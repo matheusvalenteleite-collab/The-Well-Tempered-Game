@@ -13,14 +13,10 @@ import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
 import { chooseReading, chosenReading, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
 import { tempoOf } from "../touch/tempi.ts";
+import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
 
-export type Performed = ReturnType<typeof performSubject>;
-
-/** The fugue's first entry of its (first) subject. */
-export function firstEntry(id: string) {
-  const f = fugueById(id);
-  return [...f.entries].filter((e) => !e.theme).sort((a, b) => a.on - b.on || a.voice - b.voice)[0];
-}
+export type { Performed };
+export { firstEntry };
 
 export function HearSubject({ id, open, play, close }: { id: string; open: boolean; play: (notes: Performed, voice: number) => Promise<number>; close: () => void }) {
   const f = fugueById(id);
@@ -45,7 +41,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
   const hear = () => {
     if (!e) return;
     const last = perf.at(-1);
-    void play(perf, e.voice).then((at) => (started.current = { at, total: last ? last.at + last.len : 0 }));
+    void play(subjectSounds(f, e, perf, tempoOf(id)), e.voice).then((at) => (started.current = { at, total: last ? last.at + last.len : 0 }));
   };
   useEffect(() => {
     hear();
@@ -101,7 +97,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
             <cite>
               {reading.author.charAt(0) + reading.author.slice(1).toLowerCase()}, {reading.work.includes(String(reading.year)) ? reading.work : `${reading.work} (${reading.year})`}{reading.pages ? `, ${reading.pages}` : ""}
               {reading.basis === "rule" ? ` · ${tr("his rule, applied to the notes")}` : ""}
-              {reading.tempoText ? ` · ${tr("his tempo: {t} (the game keeps the recordings' ♩ = {q})", { t: reading.tempoText, q: tempoOf(id) })}` : ""}
+              {reading.tempoText ? ` · ${tr("his tempo: {t} (the game plays ♩ = {q})", { t: reading.tempoText, q: tempoOf(id) })}` : ""}
             </cite>
           </blockquote>
         )}

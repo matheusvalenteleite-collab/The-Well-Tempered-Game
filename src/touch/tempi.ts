@@ -13,8 +13,11 @@ import data from "../../data/tempi/tempi.json" with { type: "json" };
 export type TempoVersion = "normal" | "slow";
 
 export interface PieceTempo {
-  /** Quarter notes a minute: the median of the recordings. */
+  /** Quarter notes a minute, the tempo played (D285): the recordings' 15th percentile, the busiest voice
+   * at most 4.5 notes a second, never under the slowest recording. */
   normal: number;
+  /** D285: the recordings' median, kept for reference. */
+  median: number;
   /** Quarter notes a minute: the easy mode. */
   slow: number;
   /** The meter's beat: "♩", "𝅗𝅥" (2/2, 3/2, 4/2), "♩." (3/8, 6/8, 9/8), "𝅗𝅥." (6/4), "♪." (6/16, 12/16). */
@@ -55,4 +58,13 @@ const PRELUDES: Record<string, number> = {
 const TUTORIAL_TEMPO: Record<string, number> = { inv01: 60 };
 export function tempoOf(id: string): number {
   return TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
+}
+
+/**
+ * D285: the measuring tempo: the recordings' median, as before the game slowed down. Difficulty, stars,
+ * tiers and the lessons' search are measured at it, so the pieces' ranking (and what a player has
+ * unlocked) stays as it was; what is played is `tempoOf`.
+ */
+export function standardTempo(id: string): number {
+  return TEMPO[id]?.median ?? tempoOf(id);
 }

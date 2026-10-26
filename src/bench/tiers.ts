@@ -12,7 +12,7 @@
  */
 import { beatOf, inBar, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes, preludeRides } from "../touch/lanes.ts";
-import { tempoOf } from "../touch/tempi.ts";
+import { standardTempo } from "../touch/tempi.ts";
 import { bookCards, cardById, type FugueCard } from "./cards.ts";
 
 export type Tier = "EASY" | "INTERMEDIATE" | "HARD" | "BOSS";
@@ -89,7 +89,7 @@ export const compound = (f: TouchFugue) => beatOf(f).ticks === f.tpq * (4 / Numb
  * onsets over 4 s windows (90th percentile, difficulty.ts's way), the busier hand. Without the final ritard.
  */
 export function struckLoad(p: TouchFugue, limit = preludeRideMs(p.id)): number {
-  const sPerTick = 60 / (tempoOf(p.id) * p.tpq);
+  const sPerTick = 60 / (standardTempo(p.id) * p.tpq);
   const ms = (a: number, b: number) => (b - a) * sPerTick * 1000;
   const beat = beatOf(p).ticks;
   let top = 0;

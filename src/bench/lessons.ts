@@ -17,7 +17,7 @@
 import { tr } from "../i18n/index.ts";
 import { beatOf, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import { tempoOf } from "../touch/tempi.ts";
+import { standardTempo, tempoOf } from "../touch/tempi.ts";
 import { moves, type EasyLevel, type Move, type Platform, type ProtoId } from "./protos.ts";
 import type { ProtoGame } from "./proto-game.ts";
 
@@ -101,7 +101,7 @@ export function findPassage(w: Want, skip: string[] = []): { f: TouchFugue; voic
     const f = fugueById(id);
     if (skip.includes(f.id) || f.id !== id) continue;
     const beat = beatOf(f).ticks;
-    const bpm = tempoOf(f.id);
+    const bpm = standardTempo(f.id);
     const tps = (f.tpq * bpm) / 60;
     for (let v = 0; v < f.voices.length; v++) {
       const notes = laneNotes(f.voices[v], beat, v);
@@ -120,7 +120,7 @@ export function findPassage(w: Want, skip: string[] = []): { f: TouchFugue; voic
         const kinds = inner.filter((j) => !free(j)).map((j) => kindOf(ms[j]));
         if (!kinds.every((k) => w.allow.includes(k)) || !w.need.every((k) => kinds.includes(k))) continue;
         const last = win.at(-1)!;
-        return { f, voice: v, from: win[0].on, until: last.on + last.dur, bpm };
+        return { f, voice: v, from: win[0].on, until: last.on + last.dur, bpm: tempoOf(f.id) };
       }
     }
   }

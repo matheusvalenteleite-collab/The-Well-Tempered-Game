@@ -3,8 +3,12 @@
  *
  *   node tools/tempi/compute.ts            # writes data/tempi/tempi.json, prints the summary table
  *
- * NORMAL: every recording's duration turned into an average quarter-note tempo (the piece's length
- * in quarters, from data/touch/pieces.json, × 60 / seconds); the median over the recordings, rounded.
+ * Every recording's duration is turned into an average quarter-note tempo (the piece's length in
+ * quarters, from data/touch/pieces.json, × 60 / seconds).
+ * NORMAL (D285, the tempo played): on the slow side of the recordings (the owner: "avoid excessively
+ * fast tempos in this game even if they're recommended by the experts"): the 15th percentile (85% of
+ * the recordings go faster), lowered further so the busiest voice's sustained load stays at 4.5 notes
+ * a second, but never under the slowest recording (a tempo some musician chose). The median is kept.
  * A duration includes the final chord's sounding and any closing ritardando, so the average is a few
  * per cent under the running tempo, alike for every recording (fugues have no repeats).
  *
@@ -80,6 +84,7 @@ export function beatUnit(meter: string): { unit: string; perQuarter: number } {
   throw new Error(meter);
 }
 
+const GAME_Q = 0.15, GAME_LOAD = 4.5;
 const SLOW_SHARE = 0.62, MIN_SHARE = 0.45, LOAD = 3.0, FLOOR = 30;
 const even = (x: number) => Math.round(x / 2) * 2;
 
@@ -92,15 +97,15 @@ for (const f of pieces) {
   const bpms = recs.map((r) => (quarters * 60) / seconds(r.duration));
   if (!bpms.length) throw new Error(`no recordings for ${f.id}`);
   const med = quantile(bpms, 0.5), q1 = quantile(bpms, 0.25), q3 = quantile(bpms, 0.75);
-  const normal = Math.round(med);
   const load = busiest60(f);
+  const normal = Math.round(Math.max(Math.min(...bpms), Math.min(quantile(bpms, GAME_Q), (GAME_LOAD / load) * 60)));
   const byLoad = (LOAD / load) * 60;
   const slow = Math.max(FLOOR, even(Math.max(MIN_SHARE * normal, Math.min(SLOW_SHARE * normal, byLoad))));
   const { unit, perQuarter } = beatUnit(f.meter);
   const unitBpm = { normal: Math.round(normal * perQuarter), slow: Math.round(slow * perQuarter) };
   const flag = recs.length < 5 ? "fewer than 5" : "";
   out[f.id] = {
-    normal, slow, unit, unitBpm, n: recs.length,
+    normal, median: Math.round(med), slow, unit, unitBpm, n: recs.length,
     iqr: [Math.round(q1), Math.round(q3)], range: [Math.round(Math.min(...bpms)), Math.round(Math.max(...bpms))],
     busiest: Math.round(load * (normal / 60) * 10) / 10,
     ...(flag ? { flag } : {}),

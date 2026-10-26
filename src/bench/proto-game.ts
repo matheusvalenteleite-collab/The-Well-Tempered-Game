@@ -649,7 +649,8 @@ export class ProtoGame {
           first = Math.min(first, rat);
           const rv = r.voice ?? t.voice;
           const rs = this.subj.shape(rv, r.on, voicing(rv, count, true));
-          riders.push(ch.note(r.midi, rat, len, rs.v, { ...rs.play, lead: true, envelope, into: gate.node }));
+          // D284: a riding note's ornament sounds too.
+          for (const [pon, pdur, pm] of this.rideParts(rv, notes, j)) riders.push(ch.note(pm, this.timeAt(pon), Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), rs.v, { ...rs.play, lead: true, envelope, into: gate.node }));
           ridersEnd = Math.max(ridersEnd, rat + len + 0.6);
         }
         const hold = Number.isFinite(first) ? Math.max(0.03, first - at) : HOLD_MAX;
@@ -1647,11 +1648,21 @@ export class ProtoGame {
       first = false;
       const nv = n.voice ?? this.tracks[h.k].voice;
       const sv = this.subj.shape(nv, n.on, voicing(nv, this.f.voices.length, true));
-      const sd = ch.note(n.midi, at, len, sv.v, { ...sv.play, lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
-      if (sd) this.band.push({ sd, until: at + len + 0.6 });
+      for (const [pon, pdur, pm] of this.rideParts(nv, notes, j)) {
+        const pat = Math.max(ch.ctx.currentTime, this.timeAt(pon) + offS);
+        const sd = ch.note(pm, pat, Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), sv.v, { ...sv.play, lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
+        if (sd) this.band.push({ sd, until: pat + len + 0.6 });
+      }
       if (!this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len, sv.v, sv.play.level ?? 1)) this.band.push({ sd: x, until: at + len + 0.8 });
       this.riders.push({ k: h.k, j, at });
     }
+  }
+
+  /** D284: a riding note as it sounds, its ornament realised ([onset, length, MIDI] in ticks). */
+  private rideParts(voice: number, notes: { on: number; dur: number; midi: number }[], j: number): [number, number, number][] {
+    const n = notes[j];
+    const orn = this.ornaments.get(`${voice}:${n.on}`);
+    return orn ? realiseNote(this.f, orn, n.on, n.dur, n.midi, j > 0 ? notes[j - 1].midi : undefined, this.bpm) : [[n.on, n.dur, n.midi]];
   }
 
   /** D191: the riding notes played for the player, shown as they sound. */
