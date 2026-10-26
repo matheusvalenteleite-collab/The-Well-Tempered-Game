@@ -65,6 +65,8 @@ export function softClipCurve(n = 2048): Float32Array<ArrayBuffer> {
 }
 /** D249: the room's impulse, shorter on a phone (its convolver the costliest node there). */
 export const ROOM_S = { phone: 0.8, computer: 1.3 };
+/** D291: the phone bass a little louder still: a pulse low down is softer to the ear than one higher. */
+export const PHONE_BASS_GAIN = 1.3;
 
 /**
  * D210: one sound's nodes, all disconnected once the last of its sources has ended. Nothing in chip.ts
@@ -1317,10 +1319,14 @@ export class Chip {
 /** The voices' timbres and places (D167): the bass a triangle, the top voice the thinnest pulse, the inner ones fuller; spread left (low) to right (high). */
 export function voicing(voice: number, count: number, _played = true): Voicing {
   const fromTop = voice;
-  const timbre: Timbre = fromTop === count - 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
+  const bass = count > 1 && fromTop === count - 1;
+  // D291: a phone's speaker gives almost nothing below 500 Hz, where the triangle has nearly all its
+  // sound: there the bass is a pulse (its overtones carry the pitch), the one no voice near it uses.
+  const phoneBass = bass && isPhone();
+  const timbre: Timbre = phoneBass ? (count > 3 ? "pulse25" : "pulse50") : bass || count === 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
   const pan = count > 1 ? (0.5 - fromTop / (count - 1)) * 0.9 : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
-  return { timbre, pan, gain: 1, patch: patchFor(voice, count) };
+  return { timbre, pan, gain: phoneBass ? PHONE_BASS_GAIN : 1, patch: patchFor(voice, count) };
 }
 
 /** A decaying stereo noise, for the room. */
