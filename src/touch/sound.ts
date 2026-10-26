@@ -33,6 +33,25 @@ export const SHAPES = {
     const v = Math.sin((TAU * (k + 0.5)) / 32) + 0.25 * Math.sin((2 * TAU * (k + 0.5)) / 32);
     return Math.round(7.5 + 6.2 * v) / 7.5 - 1;
   },
+  /**
+   * D294, GAME BOY: the wave channel's bass sample: a falling 4-bit sawtooth (32 steps, 15 down to 0,
+   * each level twice). Every harmonic in it (1/n), so a bass a phone's speaker can follow (D291), and
+   * the stair's faint buzz of the real channel.
+   */
+  gbSaw: (x: number) => {
+    const k = Math.floor(x * 32) % 32;
+    return Math.round(15 - (k * 15) / 31) / 7.5 - 1;
+  },
+  /**
+   * D294: the wave channel's second sample, for a further voice: a 4-bit square with stepped shoulders
+   * (two steps up, fourteen held, two down, fourteen held): hollow (odd harmonics), its top softer than a
+   * pulse's, so it stands apart from the pulses and from the sawtooth bass.
+   */
+  gbHollow: (x: number) => {
+    const k = Math.floor(x * 32) % 32;
+    const v = k < 2 ? 5 + k * 5 : k < 16 ? 15 : k < 18 ? 15 - (k - 15) * 5 : 0;
+    return Math.round(v) / 7.5 - 1;
+  },
   /** The VRC6 sawtooth (Akumajou Densetsu): an accumulator reset every seventh step, a 7-step stair. */
   saw7: (x: number) => Math.floor((x % 1) * 7) / 3 - 1,
   /** YM2612 FM, one carrier under a modulator fed by another (feedback-like): the gritty Mega Drive bass. */
@@ -79,8 +98,14 @@ export interface Osc {
 
 export interface Patch {
   osc: Osc[];
-  /** A lowpass (or bandpass) at `freq` times the note's frequency (or Hz when `hz`), opened `env` times at the attack, closing over `envDecay` s. */
-  filter?: { freq: number; hz?: boolean; q?: number; env?: number; envDecay?: number; type?: BiquadFilterType };
+  /** A lowpass (or bandpass) at `freq` times the note's frequency (or Hz when `hz`), opened `env` times at the attack, closing over `envDecay` s; D294: `poles` 4, two in a row (24 dB an octave, a Moog ladder's slope, the resonance on the first). */
+  filter?: { freq: number; hz?: boolean; q?: number; env?: number; envDecay?: number; type?: BiquadFilterType; poles?: 2 | 4 };
+  /**
+   * D294: a Game Boy volume envelope (the pulse channels' NRx2): the note starts at `from` (of 15) and
+   * falls one step every `period` 64ths of a second, abruptly as the hardware does, down to `to`, where
+   * it holds (amp.s should be to / from).
+   */
+  steps?: { from: number; to: number; period: number };
   /** Attack, decay, sustain level, release (s). A pluck (sustain 0) dies away over `decay` (s, a time constant, longer low). */
   amp: { a: number; d: number; s: number; r: number };
   /** Vibrato: depth (cents), rate (Hz), how soon it comes (s). */
@@ -146,11 +171,18 @@ export const PATCHES = {
   // patch: a bright sawtooth trumpet with a lip's scoop, a nasal resonant reed, a plucked "boing" of a
   // resonant filter swept shut, a wooden blip, a round bass that snaps; detached (each note let go before
   // the next), the oscillators a few cents apart as the drifting Moog was.
-  carlosLead: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "saw", detune: 6, gain: 0.45 }], filter: { freq: 2.2, q: 3, env: 3.2, envDecay: 0.12 }, amp: { a: 0.012, d: 0.25, s: 0.72, r: 0.05 }, vib: { depth: 7, rate: 5.6, delay: 0.35 }, scoop: { cents: -45, time: 0.025 }, level: 0.3 }),
-  carlosReed: P({ osc: [{ wave: "pulse12" }, { wave: "triangle", detune: -4, gain: 0.5 }], filter: { freq: 3.2, q: 7, env: 1.5, envDecay: 0.08 }, amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.05 }, vib: { depth: 5, rate: 5.2, delay: 0.4 }, level: 0.28 }),
-  carlosPluck: P({ osc: [{ wave: "pulse25", gain: 0.8 }, { wave: "saw", detune: 5, gain: 0.5 }], filter: { freq: 1.1, q: 10, env: 9, envDecay: 0.07 }, amp: { a: 0.003, d: 0.4, s: 0.3, r: 0.05 }, scoop: { cents: 60, time: 0.012 }, level: 0.34 }),
+  // D294, ANALOG SYNTH: revived and remade for the players' list: every patch through a 24 dB lowpass
+  // (two filters in a row, as the Moog ladder's slope) with its own envelope; the lip scoops and the
+  // wood's pitch blip dropped (on every note of a fugue they blurred the pitch), and the detuned unisons
+  // (they thicken a line into a chorus). Top down: a reedy brass lead (a sawtooth with a narrow pulse, the
+  // filter opening at each attack), a hollow square "clarinet", a plucky voice (a resonant filter snapping shut), a nasal
+  // narrow-pulse reed, and a bass whose filter never closes below 1.4 kHz, so its overtones reach a phone's speaker (D291).
+  carlosLead: P({ osc: [{ wave: "saw", gain: 0.8 }, { wave: "pulse25", gain: 0.35 }], filter: { freq: 2.6, q: 2.2, env: 3, envDecay: 0.14, poles: 4 }, amp: { a: 0.01, d: 0.3, s: 0.75, r: 0.05 }, vib: { depth: 6, rate: 5.4, delay: 0.4 }, level: 0.336 }),
+  carlosReed: P({ osc: [{ wave: "pulse12" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 3.2, q: 4, env: 1.6, envDecay: 0.08, poles: 4 }, amp: { a: 0.015, d: 0.2, s: 0.85, r: 0.05 }, vib: { depth: 4, rate: 4.6, delay: 0.45 }, level: 0.33 }),
+  carlosPluck: P({ osc: [{ wave: "pulse25", gain: 0.8 }, { wave: "saw", gain: 0.5 }], filter: { freq: 1.4, q: 5, env: 7, envDecay: 0.07, poles: 4 }, amp: { a: 0.003, d: 0.35, s: 0.4, r: 0.05 }, level: 0.414 }),
+  carlosClarinet: P({ osc: [{ wave: "square", gain: 0.8 }, { wave: "triangle", gain: 0.5 }], filter: { freq: 5, q: 1.2, env: 1.4, envDecay: 0.1, poles: 4 }, amp: { a: 0.015, d: 0.3, s: 0.85, r: 0.05 }, level: 0.16 }),
   carlosWood: P({ osc: [{ wave: "triangle" }, { wave: "pulse50", octave: 1, gain: 0.2 }], filter: { freq: 2.6, q: 4, env: 4, envDecay: 0.04 }, amp: { a: 0.003, d: 0.25, s: 0.5, r: 0.04 }, scoop: { cents: 320, time: 0.008 }, level: 0.9 }),
-  carlosBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, detune: 3, gain: 0.5 }], filter: { freq: 280, hz: true, q: 6, env: 5, envDecay: 0.09 }, amp: { a: 0.004, d: 0.3, s: 0.6, r: 0.05 }, level: 0.5 }),
+  carlosBass: P({ osc: [{ wave: "saw" }, { wave: "pulse50", gain: 0.6 }, { wave: "square", octave: -1, gain: 0.25 }], filter: { freq: 1400, hz: true, q: 1.5, env: 1.6, envDecay: 0.12, poles: 4 }, amp: { a: 0.004, d: 0.3, s: 0.72, r: 0.05 }, level: 0.364 }),
   minimoog: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "saw", detune: 8, gain: 0.4 }, { wave: "sine", octave: -1, gain: 0.5 }], filter: { freq: 2.2, q: 2, env: 2.2, envDecay: 0.25 }, amp: { a: 0.006, d: 0.3, s: 0.8, r: 0.1 }, vib: { depth: 6, rate: 5, delay: 0.4 }, level: 0.28 }),
   squareReed: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 2.8, q: 1.4 }, amp: { a: 0.02, d: 0.4, s: 0.55, r: 0.1 }, vib: { depth: 6, rate: 5.2, delay: 0.3 }, level: 0.32 }),
   brass: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 5 }], filter: { freq: 1.6, q: 1.5, env: 4, envDecay: 0.45 }, amp: { a: 0.06, d: 0.3, s: 0.85, r: 0.1 }, level: 0.3 }),
@@ -267,6 +299,22 @@ export const PATCHES = {
   // D292, PIANO (SAMPLED): the Salamander Grand (sampled.ts); the FM piano stands in for a note until its recording has loaded.
   pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.3, sample: "piano" }),
   pianoBassSampled: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, level: 0.36, sample: "piano" }),
+  // D294: the inner voices a shade lighter (-1 dB) than the top and the bass, so each line is heard as a line.
+  pianoInnerSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.267, sample: "piano" }),
+  // D294, GAME BOY (the DMG's sound, after how Pokémon Red/Blue and Link's Awakening voice their lines):
+  // the two pulse channels and the wave channel, unfiltered as the hardware is (bright and forward),
+  // each pulse with the hardware's stepped volume envelope (abrupt 1/15 steps every `period`/64 s) down
+  // to a floor where a long note holds (a fugue's long notes cannot fade out as a tune's may); the lead's
+  // vibrato comes in late, as those soundtracks' do. A fugue has more lines than the DMG's three tonal
+  // channels: the fourth and fifth reuse its kinds (a third pulse width, the wave channel's second
+  // sample), each still its own colour. Top down: 25% pulse lead (channel 1), 50% pulse (channel 2),
+  // the wave channel's hollow sample (a middle voice: three or five voices), a 12.5% pulse (the
+  // tenor of four), the wave channel's sawtooth bass (no envelope: it holds).
+  gbLead: P({ osc: [{ wave: "pulse25" }], steps: { from: 15, to: 9, period: 3 }, amp: { a: 0.002, d: 0.3, s: 0.6, r: 0.012 }, vib: { depth: 12, rate: 6, delay: 0.32 }, level: 0.63 }),
+  gbHarm: P({ osc: [{ wave: "pulse50" }], steps: { from: 14, to: 8, period: 2 }, amp: { a: 0.002, d: 0.3, s: 8 / 14, r: 0.012 }, level: 0.57 }),
+  gbThin: P({ osc: [{ wave: "pulse12" }], steps: { from: 14, to: 8, period: 2 }, amp: { a: 0.002, d: 0.3, s: 8 / 14, r: 0.012 }, level: 0.75 }),
+  gbWave: P({ osc: [{ wave: "gbHollow" }], amp: { a: 0.002, d: 0.05, s: 1, r: 0.012 }, level: 0.14 }),
+  gbBass: P({ osc: [{ wave: "gbSaw" }], amp: { a: 0.002, d: 0.05, s: 1, r: 0.012 }, level: 0.35 }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -297,19 +345,20 @@ export interface Preset {
  * recorded harpsichord, the recorded grand piano and an FM piano. In this order on the pop-up and in ⚙
  * SOUND. The ensembles (STRINGS, BAROQUE, WINDS, CONSORT, BOSSA NOVA), the nine consoles after classic
  * soundtracks and WENDY CARLOS are withdrawn (their patches kept above); a stored choice of one opens
- * as RETIRED says.
+ * as RETIRED says. D294 (the owner's ratings: ROUND CHIP "too mellow and feeble", PIANO (FM) "added
+ * nothing"): GAME BOY takes ROUND CHIP's place, ANALOG SYNTH (WENDY CARLOS's patches, remade) PIANO (FM)'s.
  */
 export const PRESETS: Preset[] = [
   // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
   { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22 },
-  // D292: softer and rounder; no drums (DRUMS stays the classic chip's).
-  { id: "chipRound", name: "ROUND CHIP", slots: ["rcLead", "rcHarm", "rcMid", "rcTenor", "rcBass"], room: 0.26 },
+  // D294: GAME BOY (in place of D292's ROUND CHIP): the DMG's pulses and wave channel; no drums (DRUMS stays the classic chip's).
+  { id: "gameboy", name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
   { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.24 },
-  // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it.
-  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoBassSampled"], room: 0.22 },
-  // D292: synthesized, FM.
-  { id: "pianoFm", name: "PIANO (FM)", slots: ["pianoFm", "pianoFm", "pianoFm", "pianoFm", "pianoFmBass"], room: 0.24 },
+  // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it; D294: the inner voices a shade lighter.
+  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoBassSampled"], room: 0.22 },
+  // D294: ANALOG SYNTH (in place of D292's PIANO (FM)): WENDY CARLOS's patches (D209) revived, after Switched-On Bach.
+  { id: "analog", name: "ANALOG SYNTH", slots: ["carlosLead", "carlosClarinet", "carlosPluck", "carlosReed", "carlosBass"], room: 0.24 },
 ];
 
 /**
@@ -343,9 +392,12 @@ export const RETIRED: Readonly<Record<string, string>> = {
   winds: "chip",
   consort: "chip",
   bossa: "chip",
-  carlos: "chip",
-  chipPocket: "chip",
-  chipGold: "chip",
+  // D294: the two sounds replaced, and the withdrawn ones they grew from, open on their successors.
+  chipRound: "gameboy",
+  pianoFm: "analog",
+  carlos: "analog",
+  chipPocket: "gameboy",
+  chipGold: "gameboy",
   chipPlumber: "chip",
   chipHyrule: "chip",
   chipBomber: "chip",

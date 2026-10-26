@@ -36,10 +36,10 @@ export const PT: Record<string, string> = {
   WINDS: "SOPROS",
   // D292: the five sounds.
   "CLASSIC CHIP": "CHIP CLÁSSICO",
-  "ROUND CHIP": "CHIP SUAVE",
+  // D294: GAME BOY and ANALOG SYNTH in place of ROUND CHIP and PIANO (FM).
+  "GAME BOY": "GAME BOY",
   PIANO: "PIANO",
-  "FM PIANO": "PIANO FM",
-  "PIANO (FM)": "PIANO (FM)",
+  "ANALOG SYNTH": "SINTETIZADOR ANALÓGICO",
   // The pop-up
   "YOU PLAY THE {voice}": "VOCÊ TOCA: {voice}",
   "YOUR VOICE": "SUA VOZ",
