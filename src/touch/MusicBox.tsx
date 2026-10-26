@@ -159,7 +159,15 @@ export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefOb
   );
 }
 
+/** D298: a picture drawn in the box's place (the SHEET mode, src/bench/sheet-view.ts): true where it drew. */
+export type BoxPainter = (c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) => boolean;
+let boxPainter: BoxPainter | null = null;
+export function setBoxPainter(p: BoxPainter | null) {
+  boxPainter = p;
+}
+
 function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
+  if (boxPainter?.(c, cssW, cssH, fr)) return;
   // D228: the interface chosen (ui/index.ts: ⚙ INTERFACE, or `?ui=NAME`), unless CLASSIC.
   if (paintUi(c, cssW, cssH, fr)) return;
   paintClassic(c, cssW, cssH, fr);

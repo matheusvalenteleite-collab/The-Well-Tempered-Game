@@ -263,4 +263,14 @@ export const ES: Record<string, string> = {
   "AUGMENTED INVERSION": "INVERSIÓN AUMENTADA",
   MAJOR: "MAYOR",
   MINOR: "MENOR",
+  // D298: ⚙ DISPLAY and the sheet's words.
+  DISPLAY: "PANTALLA",
+  DEFAULT: "PREDETERMINADA",
+  CANTUS: "CANTUS",
+  "SHEET · TWO STAVES": "PARTITURA · DOS PENTAGRAMAS",
+  "SHEET · ONE STAFF PER VOICE": "PARTITURA · UN PENTAGRAMA POR VOZ",
+  "CANTUS is coming: the default display meanwhile.": "CANTUS llegará pronto: mientras tanto, la pantalla predeterminada.",
+  "The sheet is drawn for the fugues: this piece shows the default display.": "La partitura se dibuja para las fugas: esta pieza muestra la pantalla predeterminada.",
+  Subject: "Sujeto",
+  Answer: "Respuesta",
 };
