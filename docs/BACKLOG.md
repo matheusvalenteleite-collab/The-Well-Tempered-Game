@@ -3,6 +3,28 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Touch game, play.html (open items, 26 October 2026)
+
+- **The tutorial's Invention 1 subject should end on its resolving note.** The owner: "the subject
+  of invention 1 in the tutorial ought to end in the concluding note for resolution. Right now it
+  ends at a place which gives the impression that it still ought to finish by having one more
+  note." Check every tutorial step's passage end (`toBar`, `until` in src/bench/lessons.ts), not
+  only step 1, so each ends on a note of arrival.
+- **Herr Bach's dialogue box covers the music box; the space below it lies empty.** The owner's
+  screenshot (lesson 1, phone landscape): the box sits over the roll while the band under the
+  legend is unused. Place it in the free band (or let the layout give it one) so the notes stay
+  visible while he speaks. Part of the visual redesign below.
+- **Visual redesign of the music box and the screens round it.** Audit and five directions made
+  (Nocturne Roll, Engraved, Console Sixteen, Light and Ink, Two Scales); waiting on the owner's
+  choice. The gold subject stripes are already gone (D287).
+- **Sound: phases 1 to 3** (D288 is phase 0): a sound-check bench with a phone-speaker simulation
+  and measurable rules (distinct spectra per voice, sharp attacks, a rich bass, dry on phones),
+  three or four new presets built to them, a phone master chain, and the owner's listening
+  verdicts (the Fugue Sound Trials page) to set the defaults.
+- **Special challenges** for the 48 fugues and the tempo unlock (10 bpm to the fastest recording):
+  table awaiting the owner's review; Book II Nos. 1 and 15 to decide.
+- **Thinner entry tags** in the box (optional), and the **BGA ornament comparison** (optional).
+
 ## Well-Tempered Clavier (the goal; night of 9-10 October 2026)
 
 The owner: the end goal of the whole game is a Well-Tempered Clavier mode. The lab session's work
