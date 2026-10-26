@@ -1080,9 +1080,9 @@ export class Chip {
     } else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
     // D302: a held note's release done by its written end, as a synthesized note's is (it began there,
     // and rang on a fifth of a second past it: a detached note's gap filled). D304: only a detached
-    // note's (Play.apart: a reading's mark), plucked or held, its release about -26 dB by its end, so
+    // note's (Play.apart: a reading's mark), plucked or held, its release -30 dB by its end, so
     // the gap the reading asks for is heard; every other note let go at its end, as before D302.
-    else if (!p.lead && p.apart) letGo(Math.max(t + atk + 0.02, end - 6 * ownTau));
+    else if (!p.lead && p.apart) letGo(Math.max(t + atk + 0.02, end - 3.5 * ownTau));
     else letGo(end);
     let stopped = false;
     let cents = 0;

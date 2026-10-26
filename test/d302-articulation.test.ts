@@ -223,8 +223,8 @@ test("D302: a plucked recording (the harpsichord): joined, held into the next (o
   const j = pair("harpsichordSampled", 0, 3, 0);
   assert.ok(E(j, 0, j.on2 + 0.015) > 0.3 * E(j, 0, j.on2 - 0.03), "the first still sounding after the second is plucked");
   const d = pair("harpsichordSampled", 2, 3, 0);
-  // Its damper and key-up noise in the gap: still a fifth of the note at -30 dB.
-  assert.ok(silence(d) >= 0.15 * d.value, `silent ${silence(d).toFixed(3)} s`);
+  // Its damper and key-up noise in the gap (D304: held 0.75, its damping done by then): an eighth of the note at -30 dB.
+  assert.ok(silence(d) >= 0.12 * d.value, `silent ${silence(d).toFixed(3)} s`);
 });
 
 test("D302: HEAR THE SUBJECT joins the reading's joined notes (held to the next and over, no new attack)", () => {
