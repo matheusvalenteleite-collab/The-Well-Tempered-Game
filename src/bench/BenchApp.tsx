@@ -63,6 +63,7 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
+import { ornamented } from "./hear-sound.ts";
 import { chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
 import { TutorialSteps } from "./TutorialSteps.tsx";
 import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
@@ -626,7 +627,8 @@ export function BenchApp() {
     if (!e) return;
     const tps = (f.tpq * bpm) / 60;
     const t0 = ch.ctx.currentTime + 0.3;
-    for (const [on, dur, midi] of e.notes) ch.note(midi, t0 + (on - e.on) / tps, (dur / tps) * 0.95, voicing(e.voice, f.voices.length, true), { lead: true });
+    // D284: with its ornaments, as the game plays them.
+    for (const [on, dur, midi] of ornamented(f, e.voice, e.notes, bpm)) ch.note(midi, t0 + (on - e.on) / tps, (dur / tps) * 0.95, voicing(e.voice, f.voices.length, true), { lead: true });
   };
 
   /** D271: the lesson's first notes (two bars at most), each detached (a third of its length) or joined (a touch over it). */

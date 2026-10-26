@@ -86,7 +86,7 @@ export const PT: Record<string, string> = {
   SHORT: "CURTA",
   ACCENT: "ACENTO",
   "his rule, applied to the notes": "a regra dele, aplicada às notas",
-  "his tempo: {t} (the game keeps the recordings' ♩ = {q})": "o andamento dele: {t} (o jogo mantém o das gravações, ♩ = {q})",
+  "his tempo: {t} (the game plays ♩ = {q})": "o andamento dele: {t} (o jogo toca ♩ = {q})",
   "NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN": "NENHUMA LEITURA PARA ESTA FUGA: TOCADA COMO ESCRITA",
   "HEAR IT AGAIN": "OUVIR DE NOVO",
   // Settings

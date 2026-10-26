@@ -59,3 +59,31 @@ test("D281: an ornament's neighbour is the next letter with the accidental in fo
     }
   }
 });
+
+test("D284: HEAR THE SUBJECT sounds every ornament of the subject, in all 48 fugues", async () => {
+  const { firstEntry, subjectSounds } = await import("../src/bench/hear-sound.ts");
+  const { performSubject, readingsOf } = await import("../src/touch/readings.ts");
+  const { tempoOf } = await import("../src/touch/tempi.ts");
+  let ornamentedSubjects = 0;
+  for (const b of [1, 2])
+    for (let n = 1; n <= 24; n++) {
+      const id = `wtc${b}f${String(n).padStart(2, "0")}`;
+      const f = fugueById(id);
+      const e = firstEntry(id);
+      const orns = ornamentsOf(f);
+      const marked = e.notes.filter(([on]) => orns.has(`${e.voice}:${on}`));
+      for (const r of [null, ...readingsOf(id)]) {
+        const perf = performSubject(r, e.notes, f.tpq, tempoOf(id));
+        const sounds = subjectSounds(f, e, perf, tempoOf(id));
+        assert.ok(sounds.length >= perf.length + marked.length, `${id}/${r?.id ?? "plain"}: ${marked.length} ornaments, ${sounds.length - perf.length} notes added`);
+      }
+      if (marked.length) ornamentedSubjects++;
+    }
+  assert.ok(ornamentedSubjects >= 11, `${ornamentedSubjects} subjects with ornaments`);
+  // F sharp major, Book II: the subject opens on a trill: it alternates with the note above.
+  const f = fugueById("wtc2f13");
+  const e = firstEntry("wtc2f13");
+  const s = subjectSounds(f, e, performSubject(null, e.notes, f.tpq, tempoOf("wtc2f13")), tempoOf("wtc2f13"));
+  const head = s.filter((x) => x.at < s[0].at + 0.4).map((x) => x.midi);
+  assert.ok(new Set(head).size === 2 && head.length >= 4, `the trill: ${head}`);
+});
