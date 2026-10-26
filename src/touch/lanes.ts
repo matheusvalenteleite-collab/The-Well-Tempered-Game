@@ -20,6 +20,8 @@ export interface LaneNote {
   state: NoteState;
   /** Tick of the hit or the miss (for the shine and the shake). */
   at?: number;
+  /** D290: how a hit note was taken (a new touch, or a held thumb sliding on), for the report. */
+  via?: "touch" | "slide";
   /** Tick the thumb let go of a hit note, if before its end. */
   off?: number;
   /** The voice. */
@@ -41,6 +43,14 @@ export interface LaneOptions {
   late: number;
   /** Of a long note, the part that must be held for a full point. */
   hold: number;
+  /**
+   * D290: each note's window no wider than halfway to its neighbours' onsets (never under `floor`
+   * ticks), so a touch cannot take a note that is not the nearest one in time: in running notes a
+   * ±250 ms window spans two notes, and an early or extra contact took the next note, its own touch
+   * then striking nothing.
+   */
+  split?: boolean;
+  floor?: number;
 }
 
 export function options(tpq: number, bpm: number, level: Level): LaneOptions {
@@ -183,11 +193,40 @@ export function chordOf(notes: readonly LaneNote[], i: number): number[] {
  * A tap at tick t. Returns the index of the note it plays, or -1: the pending scoring note nearest in
  * time within the window that `ok` accepts. A chord is struck whole.
  */
+const onsetsMemo = new WeakMap<LaneNote[], number[]>();
+/** D290: the onsets a player strikes (riders not), in order. */
+function struckOnsets(notes: LaneNote[]): number[] {
+  let xs = onsetsMemo.get(notes);
+  if (!xs) onsetsMemo.set(notes, (xs = [...new Set(notes.filter((n) => !n.ride).map((n) => n.on))].sort((a, b) => a - b)));
+  return xs;
+}
+/** A note's window: the options', or (D290, split) no wider than halfway to its neighbours. */
+export function windowOf(notes: LaneNote[], n: LaneNote, o: LaneOptions): { early: number; late: number } {
+  if (!o.split) return { early: o.early, late: o.late };
+  const xs = struckOnsets(notes);
+  let lo = 0;
+  let hi = xs.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (xs[mid] < n.on) lo = mid + 1;
+    else hi = mid;
+  }
+  const floor = o.floor ?? 0;
+  const prev = lo > 0 ? xs[lo - 1] : undefined;
+  const next = xs[lo] === n.on ? xs[lo + 1] : xs[lo];
+  return {
+    early: prev === undefined ? o.early : Math.max(floor, Math.min(o.early, (n.on - prev) / 2)),
+    late: next === undefined ? o.late : Math.max(floor, Math.min(o.late, (next - n.on) / 2)),
+  };
+}
+
 export function strike(notes: LaneNote[], t: number, o: LaneOptions, ok: (i: number) => boolean = () => true): number {
   let best = -1;
   let bestCost = Infinity;
   notes.forEach((n, i) => {
-    if (n.state !== "pending" || n.ride || t < n.on - o.early || t > n.on + o.late || !ok(i)) return;
+    if (n.state !== "pending" || n.ride) return;
+    const w = windowOf(notes, n, o);
+    if (t < n.on - w.early || t > n.on + w.late || !ok(i)) return;
     const cost = Math.abs(t - n.on);
     if (cost < bestCost) (best = i), (bestCost = cost);
   });
