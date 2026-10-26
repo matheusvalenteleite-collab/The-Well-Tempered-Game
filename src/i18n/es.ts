@@ -40,6 +40,19 @@ export const ES: Record<string, string> = {
   "GAME BOY": "GAME BOY",
   PIANO: "PIANO",
   "ANALOG SYNTH": "SINTETIZADOR ANALÓGICO",
+  // D297: the new presets.
+  "SUPER 16-BIT": "SUPER 16 BITS",
+  "NOCTURNE 32-BIT": "NOCTURNO 32 BITS",
+  "MEGA FM": "MEGA FM",
+  "SID 64": "SID 64",
+  TRACKER: "TRACKER",
+  "CHAMBER ORGAN": "ÓRGANO DE CÁMARA",
+  "TEMPLE 64": "TEMPLO 64",
+  "AGENT 64": "AGENTE 64",
+  MODULAR: "MODULAR",
+  TOMITA: "TOMITA",
+  // D297: ANALOG SYNTH remade as SWITCHED-ON.
+  "SWITCHED-ON": "SWITCHED-ON",
   // The pop-up
   "YOU PLAY THE {voice}": "TOCAS: {voice}",
   "YOUR VOICE": "TU VOZ",

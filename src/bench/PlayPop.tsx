@@ -24,13 +24,25 @@ export function popTitle(id: string): string {
  * ensembles, and six of the console sounds (D209). D246: and first, starred, the piece's own sound
  * (piece-sound.ts) where it is not among them; the choice kept for the piece.
  */
-/** D292: now the five sounds the players have (sound.ts PRESETS), in their order. */
+/** D292: now the five sounds the players have (sound.ts PRESETS), in their order; D297: fifteen. */
 export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["chip", "CLASSIC CHIP"],
   ["gameboy", "GAME BOY"],
   ["harpsichordSampled", "HARPSICHORD"],
   ["pianoSampled", "PIANO"],
-  ["analog", "ANALOG SYNTH"],
+  // D297: ANALOG SYNTH remade as SWITCHED-ON.
+  ["analog", "SWITCHED-ON"],
+  // D297: the new presets, after the five (for the owner to judge).
+  ["super16", "SUPER 16-BIT"],
+  ["nocturne32", "NOCTURNE 32-BIT"],
+  ["megaFm", "MEGA FM"],
+  ["sid64", "SID 64"],
+  ["tracker", "TRACKER"],
+  ["chamberOrgan", "CHAMBER ORGAN"],
+  ["temple64", "TEMPLE 64"],
+  ["agent64", "AGENT 64"],
+  ["modular", "MODULAR"],
+  ["tomita", "TOMITA"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
