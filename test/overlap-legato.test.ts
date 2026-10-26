@@ -10,6 +10,7 @@ import type { Chip, Play } from "../src/touch/chip.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
+import { readingsOf, type Reading } from "../src/touch/readings.ts";
 
 const RH = 9;
 const ROWS: Rows = { yOf: (s) => 300 - s * RH, stepAt: (y) => Math.round((300 - y) / RH), rowH: RH, xOf: () => 400 };
@@ -17,13 +18,13 @@ type Heard = { midi: number; level: number };
 function chip(clock: { t: number }, heard: Heard[]) {
   return { ctx: { get currentTime() { return clock.t; } }, heard: () => clock.t, note: (midi: number, _at: number, _d: number, _v: unknown, p: Play = {}) => (heard.push({ midi, level: p.level ?? 1 }), { stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} }), swoosh() {}, tick() {} } as unknown as Chip;
 }
-type Style = { overlap: number; glide?: boolean; long?: boolean; cancel?: boolean; xOf?: (i: number, side: "left" | "right") => number; yOff?: (i: number) => number };
+type Style = { reading?: Reading; overlap: number; glide?: boolean; long?: boolean; cancel?: boolean; xOf?: (i: number, side: "left" | "right") => number; yOff?: (i: number) => number };
 /** The voice played on time, the thumbs alternating; each lifts `overlap` s after the next lands. */
 function play(id: string, voice: number, s: Style) {
   const clock = { t: 0 };
   const heard: Heard[] = [];
   const f = fugueById(id);
-  const g = new ProtoGame(f, voice, 0, protoById("ladder"), { bpm: tempoOf(id), legato: false, until: f.length, wait: false, solo: false, fail: false }, chip(clock, heard));
+  const g = new ProtoGame(f, voice, 0, protoById("ladder"), { bpm: tempoOf(id), legato: false, until: f.length, wait: false, solo: false, fail: false, ...(s.reading ? { reading: s.reading } : {}) }, chip(clock, heard));
   g.rows = ROWS;
   const notes = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
   type E = { t: number; k: number; fn: () => void };
@@ -80,4 +81,12 @@ test("D293: the player's notes sound at one level, wherever the thumb lands and 
   const base = play("wtc1f02", 0, { overlap: -0.03 });
   assert.deepEqual([...ownLevels].sort(), [...new Set(base.heard.map((h) => h.level.toFixed(3)))].sort(), "where the thumb lands changes no level");
   assert.ok(levels.size <= ownLevels.size + 1, `wrong touches add levels: ${levels.size} vs ${ownLevels.size}`);
+});
+
+test("D296: a reading without a level leaves the loudness the music's (play.html plays every fugue by a reading)", () => {
+  const rd = readingsOf("wtc1f02")[0];
+  assert.ok(rd, "a reading of I/2");
+  const where = { xOf: (i: number, side: "left" | "right") => (side === "left" ? 10 + ((i * 37) % 120) : 834 - ((i * 53) % 120)) };
+  const levels = (r?: Reading) => [...new Set(play("wtc1f02", 0, { overlap: -0.03, reading: r, ...where }).heard.map((h) => h.level.toFixed(3)))].sort();
+  assert.deepEqual(levels({ ...rd, level: null }), levels(undefined), "where the thumb lands changes no level");
 });

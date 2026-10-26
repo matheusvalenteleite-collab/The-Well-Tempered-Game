@@ -570,13 +570,17 @@ export function BenchApp() {
   const home = () => ((waitingHer.current = null), setLesson(null), setPhase({ kind: "home" }));
   const quit = home;
   /** D237: a card chosen (the wheel, the grid): the pop-up over it (from its start unless it is the piece already chosen). */
+  // D295: the piece last opened this visit, for the list to come back to.
+  const [opened, setOpened] = useState<string | undefined>(undefined);
   const open = (piece: string) => {
     if (piece !== pick.piece) setPick({ piece, share: 0, voice: -1 });
+    setOpened(piece);
     setPhase({ kind: "title" });
   };
   /** D237: CONTINUE, NEXT: straight into the count-in, no pop-up. */
   const begin = (piece: string) => {
     if (piece !== pick.piece) setPick({ piece, share: 0, voice: -1 });
+    setOpened(piece);
     start(true);
   };
   /** D237: the bench's NEXT: a prelude's fugue, then the next pair (the wheel's order), skipping what is locked; Book II in order. */
@@ -1017,7 +1021,7 @@ export function BenchApp() {
         />
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title") && <LiteGrid beaten={lite.beaten} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
       {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (

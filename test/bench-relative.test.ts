@@ -52,6 +52,34 @@ test("D286: the ladder judges each thumb's moves, not the two thumbs' level", ()
     // D289: a row's leeway for a step (the owner's choice): a step's direction is no longer judged at a
     // drawn row of 8-9 px (finer than a thumb lands), only leaps; an inverted contour keeps up to about 3/4.
     for (const k of ["INVERTED contour", "INVERTED, thumbs 60px apart"]) assert.ok(play(id, v, MODELS[k]) <= 75, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
-    for (const k of ["RANDOM in box", "SAME spot"]) assert.ok(play(id, v, MODELS[k]) <= 20, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
+    // D296: with no window round the drawn note, tapping anywhere scores only where the tune allows it.
+    for (const k of ["RANDOM in box", "SAME spot"]) assert.ok(play(id, v, MODELS[k]) <= 50, `${id}/${v} ${k}: ${play(id, v, MODELS[k])}%`);
+  }
+});
+
+// D296: players moving each thumb from its own last touch, at their own scale, anywhere on the bar.
+const H = 390;
+function relModel(scale: number, start: Record<string, number>, jitter = 0): Model {
+  const pos: Record<string, { y: number; step: number } | undefined> = {};
+  return ({ step, side, i }) => {
+    const p = pos[side];
+    let y = (p ? p.y - (step - p.step) * scale : start[side]) + (jitter ? (((i * 7919) % 101) / 101 - 0.5) * 2 * jitter : 0);
+    y = Math.max(4, Math.min(H - 30, y));
+    pos[side] = { y, step };
+    return y;
+  };
+}
+test("D296: the whole bar is playable: only each thumb's own moves count, not where the note is drawn", () => {
+  for (const [id, v] of [["wtc1f02", 0], ["wtc2f13", 1], ["inv01", 0], ["wtc2f22", 1]] as const) {
+    const honest: Record<string, Model> = {
+      "the whole hand 120 px off the notes": ({ step, side }) => ROWS.yOf(step) - 120 + (side === "left" ? 0 : 10),
+      "own scale 15 px a step, from the top and the bottom": relModel(15, { left: 40, right: 300 }),
+      "own scale 15 px a step, ±8 px scatter": relModel(15, { left: 40, right: 300 }, 8),
+      "big moves, 25 px a step, against the ends": relModel(25, { left: 180, right: 180 }),
+    };
+    for (const [k, m] of Object.entries(honest)) assert.ok(play(id, v, m) >= 97, `${id}/${v} ${k}: ${play(id, v, m)}%`);
+    // Parked at an end from the start: no further to come from, so no more than tapping anywhere in one spot.
+    assert.ok(play(id, v, () => 10) <= play(id, v, () => 200) + 2, `${id}/${v} tapping at the top: ${play(id, v, () => 10)}%`);
+    assert.ok(play(id, v, () => 200) <= 70, `${id}/${v} tapping in one spot: ${play(id, v, () => 200)}%`);
   }
 });

@@ -69,6 +69,17 @@ export const ROOM_S = { phone: 0.8, computer: 1.3 };
 export const PHONE_BASS_GAIN = 1.3;
 
 /**
+ * D294, CLASSIC CHIP less harsh (the owner: "perhaps too harsh. Maybe it's the fact that all voices have
+ * no decay?"): a pulse note rises in 6 ms to its peak (`lift` above the old one), falls to `fall` of it
+ * (time constant `fallTau`), and from `slowFrom` s sinks toward `floor` (`floorTau`), as a console's
+ * volume envelope would (it held at 0.72 of its peak); its lowpass opens at `open` Hz at the attack and
+ * closes over `closeTau` to `tameAt` the note (4.5 times its pitch, within 2.5-4.5 kHz). The triangle
+ * (the bass on a computer) is as it was.
+ */
+export const CHIP_ENV = { lift: 1.06, fall: 0.6, fallTau: 0.08, slowFrom: 0.3, floor: 0.42, floorTau: 1.2, open: 9000, closeTau: 0.09 };
+export const tameAt = (f0: number) => Math.max(2500, Math.min(4500, f0 * 4.5));
+
+/**
  * D210: one sound's nodes, all disconnected once the last of its sources has ended. Nothing in chip.ts
  * was ever disconnected: Safari keeps a finished note's gains, filters and panner wired to the mix until
  * its garbage collector happens to run, and its audio thread goes on pulling them all (tens of thousands
@@ -510,8 +521,17 @@ export class Chip {
     const inst = v.patch?.sample ? SAMPLED[v.patch.sample] : null;
     if (v.patch && inst && !setUnreachable(inst.set)) {
       const near = nearestSample(inst.set, midi);
-      const rec = near === null ? undefined : loaded(inst.set, near);
-      if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, near, rec, bag);
+      // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
+      // instrument has one; either layer stands in for the other until it has loaded.
+      const soft = inst.soft && (p.level ?? 1) < inst.soft.below ? inst.soft.set : null;
+      let set = soft ?? inst.set;
+      let rec = near === null ? undefined : loaded(set, near);
+      if (!rec && near !== null && inst.soft) {
+        loadOne(this.ctx, set, near);
+        set = soft ? inst.set : inst.soft.set;
+        rec = loaded(set, near);
+      }
+      if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, set, near, rec, bag);
       if (near !== null) loadOne(this.ctx, inst.set, near);
     }
     if (v.patch) return this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
@@ -527,9 +547,20 @@ export class Chip {
     o.frequency.value = hz(midi);
     if (p.detune) o.detune.value = p.detune;
     // The triangle is quieter than the pulses at the same amplitude.
-    const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1);
-    const sustain = peak * 0.72;
+    const pulse = v.timbre !== "triangle";
+    const E = CHIP_ENV;
+    const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1) * (pulse ? E.lift : 1);
+    // D294: a pulse falls from its attack to a lower level and, held, sinks a little further (a console's
+    // volume envelope); the triangle holds (the NES triangle has no volume control).
+    const sustain = peak * (pulse ? E.fall : 0.72);
     const piano = p.envelope === "piano" || p.envelope === "dulcimer";
+    const slow = pulse && !piano && end - 0.04 > t + E.slowFrom;
+    /** The level the envelope has reached at `x` (after the attack). */
+    const levelAt = (x: number) => {
+      if (!pulse || p.legato) return sustain;
+      const fell = sustain + (peak - sustain) * Math.exp(-Math.max(0, Math.min(x, t + E.slowFrom) - t - 0.01) / E.fallTau);
+      return x <= t + E.slowFrom ? fell : peak * E.floor + (fell - peak * E.floor) * Math.exp(-(x - t - E.slowFrom) / E.floorTau);
+    };
     g.gain.setValueAtTime(0, t);
     if (piano) {
       // Struck: at once loud, then dying away, the low notes slower.
@@ -540,10 +571,12 @@ export class Chip {
       g.gain.linearRampToValueAtTime(sustain, t + 0.015);
     } else {
       g.gain.linearRampToValueAtTime(peak, t + (p.crisp ? 0.003 : 0.006));
-      g.gain.setTargetAtTime(sustain, t + 0.01, 0.06);
+      g.gain.setTargetAtTime(sustain, t + 0.01, pulse ? E.fallTau : 0.06);
+      if (slow && !p.legato) g.gain.setTargetAtTime(peak * E.floor, t + E.slowFrom, E.floorTau);
     }
     if (!piano) {
-      g.gain.setValueAtTime(sustain, Math.max(t + 0.02, end - 0.04));
+      const rel = Math.max(t + 0.02, end - 0.04);
+      g.gain.setValueAtTime(levelAt(rel), rel);
       g.gain.linearRampToValueAtTime(0, end);
     }
     // A gentle vibrato on a long note, after a moment (not on a piano).
@@ -562,6 +595,16 @@ export class Chip {
     const vibs: AudioScheduledSourceNode[] = [];
     this.vibrato([o.detune], t, end, p.vib ?? 0, bag, vibs);
     let src: AudioNode = this.shelf(o, Math.max(1200, Math.min(3500, hz(midi) * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
+    if (pulse) {
+      // D294: the pulse's top tamed once it has spoken: open at the attack (the edge that makes it
+      // forward), then a gentle lowpass a few harmonics up (2.5 to 4.5 kHz), where its buzz was harsh.
+      const lp = bag.add(ctx.createBiquadFilter());
+      lp.type = "lowpass";
+      lp.Q.value = 0.6;
+      lp.frequency.setValueAtTime(E.open, t);
+      lp.frequency.setTargetAtTime(tameAt(hz(midi)), t + 0.006, E.closeTau);
+      src = src.connect(lp);
+    }
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
@@ -586,7 +629,7 @@ export class Chip {
         if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
         else {
           g.gain.cancelScheduledValues(s);
-          g.gain.setValueAtTime(piano ? peak * 0.3 : sustain, s);
+          g.gain.setValueAtTime(piano ? peak * 0.3 : levelAt(s), s);
         }
         g.gain.linearRampToValueAtTime(0, s + (piano ? 0.07 : p.legato ? 0.02 : 0.04));
         halt(o, s + 0.1);
@@ -617,7 +660,7 @@ export class Chip {
     // An instrument the ensemble no longer plays lets all its recordings go.
     const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
       const inst = SAMPLED[id];
-      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.release, inst.low].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
+      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.release, inst.low].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
     });
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
@@ -644,12 +687,13 @@ export class Chip {
    * touch: an accent is 1.5 dB and nothing else, and dyn() moves it at most 3 dB either way; the organ's
    * dyn() is a swell box (level and a lowpass from about 2 to 18 kHz).
    */
-  private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, near: number, rec: Loaded, bag: Bag): Sounding {
+  private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, set: string, near: number, rec: Loaded, bag: Bag): Sounding {
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.05, at + dur - 0.01);
     const plucked = inst.plucked;
-    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
+    const layer = inst.soft && set === inst.soft.set ? inst.soft.gain : 1;
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
     const mix = bag.add(ctx.createGain());
     // D249: ORGANO PLENO's three sources brought back to about one note's level.
     if (p.pleno) mix.gain.value = PLENO_SCALE;
@@ -672,12 +716,12 @@ export class Chip {
       src.start(t, r.onset + (p.legato && !plucked ? 0.25 : 0));
       srcs.push({ src, set, m, mult });
     };
-    play(inst.set, near, rec, 1, 1);
+    play(set, near, rec, 1, 1);
     if (p.pleno) {
       // ORGANO PLENO (D181): the octave above (a 4'), and below (the organ's pedal where it reaches).
-      const up = this.nearestLoaded(inst.set, midi + 12);
+      const up = this.nearestLoaded(set, midi + 12);
       if (up) play(up.set, up.m, up.rec, 2, 0.45);
-      const down = (inst.low ? this.nearestLoaded(inst.low, midi - 12) : null) ?? this.nearestLoaded(inst.set, midi - 12);
+      const down = (inst.low ? this.nearestLoaded(inst.low, midi - 12) : null) ?? this.nearestLoaded(set, midi - 12);
       if (down) play(down.set, down.m, down.rec, 0.5, 0.5);
       // D249: on a phone a sustained note's extra pipes count against the cap.
       if (this.phone && !plucked) bag.weight = srcs.length;
@@ -740,7 +784,7 @@ export class Chip {
     const det = srcs.map((x) => x.src.detune).filter((d): d is AudioParam => !!d);
     this.vibrato(det, t, end, plucked ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
     // The recording's own end, in the context's time (a plucked note dies away by then).
-    const life = (noteInfo(inst.set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
+    const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
     const letGo = (s: number) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
@@ -939,6 +983,15 @@ export class Chip {
       fl.frequency.setValueAtTime(top, t);
       fl.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
       src = src.connect(fl);
+      if (pt.filter.poles === 4) {
+        // D294: a second pole pair, the same sweep (24 dB an octave, the resonance on the first alone).
+        const f2 = bag.add(ctx.createBiquadFilter());
+        f2.type = fl.type;
+        f2.Q.value = 0.6;
+        f2.frequency.setValueAtTime(top, t);
+        f2.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
+        src = src.connect(f2);
+      }
     } else if (bright !== 1) {
       const tone = bag.add(ctx.createBiquadFilter());
       tone.type = "lowpass";
@@ -954,16 +1007,26 @@ export class Chip {
     }
     const g = bag.add(ctx.createGain());
     const a = Math.max(0.002, pt.amp.a * (1 + (p.soft ?? 0) * 4) * (1 - (p.crisp ?? 0) * 0.5));
-    const sus = peak * pt.amp.s;
+    const st = pt.steps;
+    const sus = st ? (peak * st.to) / st.from : peak * pt.amp.s;
+    const relAt = Math.max(t + a + 0.02, end - pt.amp.r);
     g.gain.setValueAtTime(0, t);
     if (p.legato && !pluck) g.gain.linearRampToValueAtTime(sus || peak * 0.7, t + 0.02);
     else {
       g.gain.linearRampToValueAtTime(peak * (1 + (p.accent ?? 0) * 0.7), t + a);
       if (pluck) g.gain.setTargetAtTime(0, t + a, pt.amp.d * 2 ** (-(midi - 60) / 30));
-      else g.gain.setTargetAtTime(sus, t + a, pt.amp.d / 3);
+      else if (st) {
+        // D294: the Game Boy's volume envelope: a step of 1/15 every period/64 s, abrupt, down to its floor.
+        for (let k = 1; k <= st.from - st.to; k++) {
+          const at = t + a + (k * st.period) / 64;
+          if (at >= relAt) break;
+          g.gain.setValueAtTime((peak * (st.from - k)) / st.from, at);
+        }
+      } else g.gain.setTargetAtTime(sus, t + a, pt.amp.d / 3);
     }
     if (!tail) {
-      g.gain.setValueAtTime(sus, Math.max(t + a + 0.02, end - pt.amp.r));
+      const held = st && !p.legato ? (peak * Math.max(st.to, st.from - Math.floor(((relAt - t - a) * 64) / st.period))) / st.from : sus;
+      g.gain.setValueAtTime(held, relAt);
       g.gain.linearRampToValueAtTime(0, end);
     }
     // The LFOs, stopped with the note (D184: they ran on 2 s past its end, and past an early stop).

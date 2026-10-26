@@ -28,7 +28,15 @@ const GRAND_SHORT: Record<string, number> = { A6: 6.766, C6: 6.296, C7: 4.519, D
 const GRAND_NOTES = Object.fromEntries((SAMPLE_MANIFEST.grand?.notes ?? []).map((n) => [n, { cents: 0, len: GRAND_SHORT[n] ?? 7.027 }]));
 
 /** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; D288: the ensembles' withdrawn; D292: the grand piano's). */
-const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES };
+const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES };
+
+/**
+ * D294: a set that is another folder's velocity layer (its files "C4-v7.mp3" beside the layer played):
+ * the grand's softer layer 7 as "grandSoft". Its own bank, plan and mono fold; the folder's manifest.
+ */
+const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft: { folder: "grand", layer: 7 } };
+/** The folder of public/samples a set's files are in. */
+export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? set;
 
 export type SampledId = "harpsichord" | "organ" | "piano";
 
@@ -45,25 +53,33 @@ export interface SampledInstrument {
   gain: number;
   /** D292: the velocity layer played, where the set has several (its files named "C4-v12.mp3"). */
   layer?: number;
+  /**
+   * D294: a softer layer (a set of LAYER_SET), played for the notes the phrasing gives a level under
+   * `below` (the lighter notes of the bar), at `gain` against the main layer (so the two differ more in
+   * colour than in loudness: layer 7 is about 5 dB under layer 12 as recorded).
+   */
+  soft?: { set: string; below: number; gain: number };
 }
 
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
-  harpsichord: { set: "harpsichord", release: "harpsichordRel", plucked: true, gain: 1.7 },
+  harpsichord: { set: "harpsichord", release: "harpsichordRel", plucked: true, gain: 1.8 },
   organ: { set: "pipeOrgan", low: "pipePedal", plucked: false, gain: 5 },
   // D292: the grand piano, struck (it dies away by itself, damped at the written end), one layer only
   // (12 of Salamander's 16, forte: its hammer and overtones carry on a phone's speaker; layer 7 is 5 dB
   // softer and duller). Its gain set by measurement: II/22 rendered offline through chip.ts, all four
   // voices, as loud as CLASSIC CHIP and the harpsichord (about -22 LUFS) with the patches' level 0.3.
-  piano: { set: "grand", plucked: true, gain: 3.5, layer: 12 },
+  // D294: and layer 7 for the lighter notes (a Tureck-like clarity: the strong beats and the tops of
+  // phrases struck firmer, the notes between lighter, as a pianist's touch varies), 2 dB under layer 12.
+  piano: { set: "grand", plucked: true, gain: 3.8, layer: 12, soft: { set: "grandSoft", below: 1, gain: 1.41 } },
 };
 
-/** D292: the layer each layered set plays (its files' suffix). */
-const LAYER = new Map(Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!]));
+/** D292: the layer each layered set plays (its files' suffix); D294: and the layer sets'. */
+const LAYER = new Map([...Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!] as const), ...Object.entries(LAYER_SET).map(([s, l]) => [s, l.layer] as const)]);
 /** A note's file in its set: "Cs4.mp3", or with the layer played "Cs4-v12.mp3". */
 export const fileOf = (set: string, m: number) => `${nameOfMidi(m)}${LAYER.has(set) ? `-v${LAYER.get(set)}` : ""}.mp3`;
 
 /** Sets recorded in stereo (the struck string's image); the rest are mono. */
-const STEREO = new Set(["harpsichord", "grand"]);
+const STEREO = new Set(["harpsichord", "grand", "grandSoft"]);
 
 const PCS: Record<string, number> = { C: 0, Cs: 1, D: 2, Ds: 3, E: 4, F: 5, Fs: 6, G: 7, Gs: 8, A: 9, As: 10, B: 11 };
 const NAMES = Object.keys(PCS);
@@ -80,7 +96,7 @@ const midisOf = new Map<string, number[]>();
 /** The MIDI numbers recorded in a set, low to high. */
 export function sampledMidis(set: string): number[] {
   let list = midisOf.get(set);
-  if (!list) midisOf.set(set, (list = (SAMPLE_MANIFEST[set]?.notes ?? []).map(midiOfName).sort((a, b) => a - b)));
+  if (!list) midisOf.set(set, (list = (SAMPLE_MANIFEST[folderOf(set)]?.notes ?? []).map(midiOfName).sort((a, b) => a - b)));
   return list;
 }
 
@@ -134,6 +150,7 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
   const own = [...lead];
   const notes = notesFor(inst.set, [...all, ...own.flatMap((m) => [m - 12, m + 12])]);
   const plan: Plan = [{ set: inst.set, notes }];
+  if (inst.soft) plan.push({ set: inst.soft.set, notes });
   if (inst.release) plan.push({ set: inst.release, notes: notes.filter((m) => sampledMidis(inst.release!).includes(m)) });
   if (inst.low) {
     const lows = sampledMidis(inst.low);
@@ -217,7 +234,7 @@ async function slot<T>(f: () => Promise<T>): Promise<T> {
 async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
   const file = fileOf(set, m);
   // The file's length versions the URL: a re-made recording is fetched anew, past the site's own cache.
-  const v = SAMPLE_MANIFEST[set]?.pack[file]?.[1] ?? 0;
+  const v = SAMPLE_MANIFEST[folderOf(set)]?.pack[file]?.[1] ?? 0;
   const here = typeof document !== "undefined" ? document.baseURI : SITE;
   const bases = [...new Set([baseOf.get(set), here, SITE].filter((b): b is string => !!b))];
   let cache: Cache | null = null;
@@ -227,7 +244,7 @@ async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
     cache = null; // a private window, or no Cache Storage
   }
   for (const base of bases) {
-    const url = new URL(`samples/${set}/${file}?v=${v}`, base).href;
+    const url = new URL(`samples/${folderOf(set)}/${file}?v=${v}`, base).href;
     try {
       const hit = cache ? await cache.match(url) : undefined;
       if (hit) return (baseOf.set(set, base), await hit.arrayBuffer());

@@ -4,7 +4,7 @@
  * START HERE; a ✓ on each piece finished; one line saying how many more open the next tier; a small ⚙.
  */
 import { lang, pieceName, tr } from "../i18n/index.ts";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
 import { presetById } from "../touch/sound.ts";
@@ -26,7 +26,7 @@ function storedTab(): "I" | "II" {
   }
 }
 
-export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial, hear, book: asked }: { beaten: readonly string[]; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void } }) {
+export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current }: { beaten: readonly string[]; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -34,7 +34,16 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
   // D270: THE TUTORIAL first (a phone's), START HERE until it is passed.
   const learning = !!tutorial && tutorial.done < tutorial.of;
   // D276: Book I and Book II in two tabs at the top (the tutorial on Book I's).
-  const [tab, setTab] = useState<"I" | "II">(() => asked ?? storedTab());
+  // D295: back from a piece, the list opens on it (its book's tab, the card in view), not at the top.
+  const last = current && liteAll(fuguesOnly).includes(current) ? current : null;
+  const [tab, setTab] = useState<"I" | "II">(() => asked ?? (last ? (last.startsWith("wtc2") ? "II" : "I") : storedTab()));
+  const list = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (!last) return;
+    const card = document.getElementById(`card-${last}`);
+    const box = list.current;
+    if (card && box) box.scrollTop = Math.max(0, card.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - box.clientHeight / 2 + card.clientHeight / 2);
+  }, []);
   const pick = (t: "I" | "II") => {
     setTab(t);
     try {
@@ -45,7 +54,7 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
   };
   const start = learning ? null : startHere(fuguesOnly);
   return (
-    <div className="tb-lite" role="main" aria-label="Pieces">
+    <div className="tb-lite" role="main" aria-label="Pieces" ref={list}>
       <header className="tb-lite-head">
         <h1>{tr("THE WELL-TEMPERED GAME")}</h1>
         <button type="button" id="lite-settings" className="tg-x" aria-label="Settings" onClick={settings}>

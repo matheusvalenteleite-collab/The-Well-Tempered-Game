@@ -13,11 +13,11 @@ import { ornamentMark } from "../touch/ornament-play.ts";
 import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
-import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
-import { APPROACH_MS, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
+import { barStart, type TouchFugue } from "../touch/fugue.ts";
+import { APPROACH_MS, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
-import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, LADDER_AREA, MARKS } from "./protos.ts";
+import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
@@ -929,8 +929,8 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     c.fillRect(s.x, 0, bw, h);
     c.fillStyle = t.barline;
     c.fillRect(n ? s.x : bw - 2, 0, 2, h);
-    // The dynamics along the foot, pp by the box to ff by the edge.
-    MARKS.forEach((m, j) => {
+    // The dynamics along the foot, pp by the box to ff by the edge (D296: only where touch dynamics are heard, D293).
+    if (g.touchDynamics) MARKS.forEach((m, j) => {
       const u = (j + 0.5) / MARKS.length;
       label(c, m, n ? s.x + u * bw : bw - u * bw, h - 9, t.muted, 6);
     });
@@ -949,40 +949,34 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {
-    // Only the Cs named at the edges, for bearings; no rungs to aim at (D181: the way matters, not the spot).
-    for (let st = Math.floor(rows.stepAt(h)) - 1; st <= rows.stepAt(0) + 1; st++) {
-      const y = Math.round(rows.yOf(st));
-      if (st % 7 !== 0 || y < 8 || y > h - 24) continue;
-      label(c, stepName(st), 4, y, t.muted, 6, "left");
-      label(c, stepName(st), w - 4, y, t.muted, 6, "right");
-    }
+    // D296: no pitch names on the bars (the bars are not a scale: the way matters, not the spot).
     const nx = coming(g);
     if (nx) {
       const n = g.notes[nx.i];
       const m = g.moves[nx.i];
       const ink = inkOf(g.voice, count);
       const y = rows.yOf(n.step);
-      const reach = LADDER_AREA * g.ladderRow;
-      // A soft glow over the note's broad area, brightest at its height, on both bars.
+      // D296: the whole bar is playable (judged by the thumb's own moves, not by where the note is drawn): the
+      // bar lights evenly as the note comes; its sign stands where that thumb last touched (else at the note).
       for (const s of sides) {
-        const grad = c.createLinearGradient(0, y - reach, 0, y + reach);
-        grad.addColorStop(0, "rgba(0,0,0,0)");
-        grad.addColorStop(0.5, ink);
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-        c.fillStyle = grad;
-        c.globalAlpha = 0.2 + 0.55 * nx.p * nx.p;
-        c.fillRect(s.x, y - reach, bw, 2 * reach);
+        const own = g.lastBySide[s.x === 0 ? "left" : "right"];
+        const sy = own && g.now - own.tick <= OWN_FRESH_S * g.tps ? own.y : y;
+        c.fillStyle = ink;
+        c.globalAlpha = 0.1 + 0.3 * nx.p * nx.p;
+        c.fillRect(s.x, 0, bw, h - 24);
         c.globalAlpha = 1;
         // The beat closing in: two bars meeting at the bar's foot.
         const half = (bw / 2) * (1 - nx.p);
         c.fillStyle = t.shine;
         c.fillRect(s.x, h - 22, bw / 2 - half, 3);
         c.fillRect(s.x + bw / 2 + half, h - 22, bw / 2 - half, 3);
-        const way = !g.lastTouch || m.size < 0 ? "" : m.dir === 0 || m.steps === 0 ? "=" : m.dir > 0 ? "▲" : "▼";
-        label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, y, t.fg, 9);
+        // The way from that thumb's own last note (D296: how it is judged), else from the note before.
+        const d = sy !== y && own ? Math.sign(n.step - own.step) : m.size < 0 || m.steps === 0 ? 0 : m.dir;
+        const way = !g.lastTouch || m.size < 0 ? "" : d === 0 ? "=" : d > 0 ? "▲" : "▼";
+        label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, sy, t.fg, 9);
         // D278: an ornament to play: its sign and SHAKE under the arrow, gold, the hand wobbling.
         const orn = g.ornamentAt(0, nx.i);
-        if (orn) label(c, `${orn} SHAKE`, s.x + bw / 2 + Math.sin(performance.now() / 70) * 3, y + 16, t.gold, 7);
+        if (orn) label(c, `${orn} SHAKE`, s.x + bw / 2 + Math.sin(performance.now() / 70) * 3, sy + 16, t.gold, 7);
       }
       // D271, THE TUTORIAL's coaching.
       // D273: before the first strike either thumb (the point is taking turns, not which starts).
