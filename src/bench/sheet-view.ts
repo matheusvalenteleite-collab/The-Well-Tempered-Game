@@ -11,7 +11,8 @@
  * CSS pixel), made as they come near and dropped once behind; each frame only blits two to four tiles and
  * draws the few marks of the game: the next note ringed, a miss crossed in red under its head, the
  * entries' brackets (Subject, Answer; dashed, with a dot a beat, while ahead), small bar numbers. The
- * opening's clefs and key signatures stay at the left (a column the music passes under).
+ * opening's clefs and key signatures stayed at the left (a column the music passes under); D307: they
+ * scroll away with the music, as in GeruBach's videos.
  * D300: the playhead 35% into the score right of that column (about the box's middle), the music played
  * in sight until it leaves at the left, a shade lighter; each entry on a faint band from its first note
  * to its last (its voice's colour hugging its heads on two staves; a warm neutral over its staff in the
@@ -420,24 +421,6 @@ export class SheetView {
     this.tiles.delete(i);
   }
 
-  /** The opening's clefs and key signatures, for the column at the left. */
-  private head(geo: Geometry, dom: NonNullable<SheetView["dom"]>) {
-    const c = dom.headCanvas;
-    if (c.width > 0) return;
-    const { k, dpr, h, oy } = geo;
-    const lead = this.e.d.lead;
-    const pw = Math.max(1, Math.round(lead * k * dpr));
-    c.width = pw;
-    c.height = Math.round(h * dpr);
-    c.style.width = `${pw / dpr}px`;
-    c.style.height = `${h}px`;
-    const g = c.getContext("2d")!;
-    g.fillStyle = PAPER;
-    g.fillRect(0, 0, pw, c.height);
-    g.setTransform(k * dpr, 0, 0, k * dpr, 0, oy * dpr);
-    this.e.paint(g, 0, lead, this.inkOf, this.glyphPaths, 0);
-  }
-
   /** An entry's bracket: over its first to its last note, above its staff (the lower staff's voices below). */
   private bracket(s: NonNullable<Frame["spans"]>[number], geo: Geometry, marks: SVGGElement, bands: SVGGElement): Bracket | null {
     const key = `${s.voice}:${s.on}:${s.end}`;
@@ -522,8 +505,9 @@ export class SheetView {
     const dom = this.mount(roll);
     const { k, dpr } = geo;
     const d = this.e.d;
-    // D300: the playhead 35% into the score right of the clefs' column (sheet-format.ts playheadX).
-    const playX = playheadX(w, d.lead * k);
+    // D300: the playhead 35% into the score (sheet-format.ts playheadX). D307: no clefs' column kept
+    // (the owner: "Gerubach scrolls it all"): the opening's clefs and keys scroll away with the music.
+    const playX = playheadX(w, 0);
     // The page's place: the playhead on the engraving's x for the tick sounding (to the device pixel).
     const xNow = this.e.xAt(fr.now, fr.voice);
     this.last = { now: fr.now, x: xNow };
@@ -544,11 +528,8 @@ export class SheetView {
     const sp = SHEET_UNIT * k;
     const top = d.staves[0].top * k + geo.oy;
     const bottom = (d.staves[d.staves.length - 1].top + 4 * SHEET_UNIT) * k + geo.oy;
-    // The clefs and keys, kept at the left once the opening has gone by.
-    if (ox < 0) {
-      this.head(geo, dom);
-      dom.head.style.display = "";
-    } else dom.head.style.display = "none";
+    // D307: the clefs and keys are no longer kept at the left: they scroll away with the opening.
+    dom.head.style.display = "none";
     // The playhead: a thin line in the player's colour; the veil over what was played; (the open score)
     // the player's staff marked at the clefs. Set when they change.
     const mine = paperInk(fr.voice, d.voices);
@@ -575,7 +556,7 @@ export class SheetView {
       dom.svg.setAttribute("height", String(h));
     }
     const left = -ox;
-    const headW = ox < 0 ? d.lead * k : 0;
+    const headW = 0;
     const right = w - ox;
     // The entries: a bracket from the first note to the last, dashed (a dot a beat to go) while ahead.
     for (const s of fr.spans ?? []) {
