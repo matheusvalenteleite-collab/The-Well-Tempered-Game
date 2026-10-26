@@ -1,7 +1,8 @@
 /**
  * D190, the recorded instruments of the bench and the touch game: a harpsichord (VCSL "Harpsichord,
  * Unk", Harpsi4: every key A1-F6, with its key-up "thunk") and an organ (VCSL Pipe Organ, Ivy Audio's
- * loud manual every minor third C1-C6 and its loud pedal C1-F#3, looped). chip.ts plays them
+ * loud manual every minor third C1-C6 and its loud pedal C1-F#3, looped); D292, a grand piano
+ * (Salamander Grand Piano V3, Alexander Holm, CC BY 3.0: every minor third A1-C7). chip.ts plays them
  * (`sampledNote`); this module says which recordings a piece needs, fetches and decodes only those, and
  * how to retune them.
  *
@@ -18,10 +19,18 @@ import { SAMPLE_MANIFEST } from "../audio/sample-manifest.ts";
 import { SITE } from "../audio/site.ts";
 import { SAMPLED_NOTES as HARPSI_ORGAN } from "./sampled-data.ts";
 
-/** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; D288: the ensembles' withdrawn). */
-const SAMPLED_NOTES = HARPSI_ORGAN;
+/**
+ * D292: the Salamander Grand's notes (public/samples/grand: every minor third A1-C7, two velocity layers;
+ * the game plays layer 12): each 7.03 s as trimmed, the highest shorter (measured with ffprobe); taken
+ * as in tune (the set was tuned when recorded; the game retunes every note by its rate anyway).
+ */
+const GRAND_SHORT: Record<string, number> = { A6: 6.766, C6: 6.296, C7: 4.519, Ds6: 6.87, Fs6: 6.165 };
+const GRAND_NOTES = Object.fromEntries((SAMPLE_MANIFEST.grand?.notes ?? []).map((n) => [n, { cents: 0, len: GRAND_SHORT[n] ?? 7.027 }]));
 
-export type SampledId = "harpsichord" | "organ";
+/** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; D288: the ensembles' withdrawn; D292: the grand piano's). */
+const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES };
+
+export type SampledId = "harpsichord" | "organ" | "piano";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -34,15 +43,27 @@ export interface SampledInstrument {
   plucked: boolean;
   /** Level against the synthesized patches (measured in a browser: equal RMS over a note's first second at C4). */
   gain: number;
+  /** D292: the velocity layer played, where the set has several (its files named "C4-v12.mp3"). */
+  layer?: number;
 }
 
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsichord: { set: "harpsichord", release: "harpsichordRel", plucked: true, gain: 1.7 },
   organ: { set: "pipeOrgan", low: "pipePedal", plucked: false, gain: 5 },
+  // D292: the grand piano, struck (it dies away by itself, damped at the written end), one layer only
+  // (12 of Salamander's 16, forte: its hammer and overtones carry on a phone's speaker; layer 7 is 5 dB
+  // softer and duller). Its gain set by measurement: II/22 rendered offline through chip.ts, all four
+  // voices, as loud as CLASSIC CHIP and the harpsichord (about -22 LUFS) with the patches' level 0.3.
+  piano: { set: "grand", plucked: true, gain: 3.5, layer: 12 },
 };
 
+/** D292: the layer each layered set plays (its files' suffix). */
+const LAYER = new Map(Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!]));
+/** A note's file in its set: "Cs4.mp3", or with the layer played "Cs4-v12.mp3". */
+export const fileOf = (set: string, m: number) => `${nameOfMidi(m)}${LAYER.has(set) ? `-v${LAYER.get(set)}` : ""}.mp3`;
+
 /** Sets recorded in stereo (the struck string's image); the rest are mono. */
-const STEREO = new Set(["harpsichord"]);
+const STEREO = new Set(["harpsichord", "grand"]);
 
 const PCS: Record<string, number> = { C: 0, Cs: 1, D: 2, Ds: 3, E: 4, F: 5, Fs: 6, G: 7, Gs: 8, A: 9, As: 10, B: 11 };
 const NAMES = Object.keys(PCS);
@@ -194,7 +215,7 @@ async function slot<T>(f: () => Promise<T>): Promise<T> {
 
 /** A note's file: from the browser's cache, else the page's own folder, else the website (P13). */
 async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
-  const file = `${nameOfMidi(m)}.mp3`;
+  const file = fileOf(set, m);
   // The file's length versions the URL: a re-made recording is fetched anew, past the site's own cache.
   const v = SAMPLE_MANIFEST[set]?.pack[file]?.[1] ?? 0;
   const here = typeof document !== "undefined" ? document.baseURI : SITE;

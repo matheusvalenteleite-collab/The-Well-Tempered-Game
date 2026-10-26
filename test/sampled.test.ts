@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
-import { BUDGET, decodedBytes, midiOfName, monoFor, nameOfMidi, nearestSample, noteInfo, notesFor, onsetOf, planFor, rateFor, SAMPLED, sampledMidis, sampleHz } from "../src/touch/sampled.ts";
-import { FAMILIES, PATCHES, presetById, sampledNow, setPreset, ORGAN_SAMPLED } from "../src/touch/sound.ts";
+import { BUDGET, decodedBytes, fileOf, midiOfName, monoFor, nameOfMidi, nearestSample, noteInfo, notesFor, onsetOf, planFor, rateFor, SAMPLED, sampledMidis, sampleHz } from "../src/touch/sampled.ts";
+import { PATCHES, presetById, PRESETS, sampledNow, setPreset, ORGAN_SAMPLED } from "../src/touch/sound.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import { hz, setTuning } from "../src/touch/tuning.ts";
 
@@ -127,21 +127,57 @@ test("D190: where a decoded recording begins (the decoder's delay measured)", ()
 });
 
 test("D190: the sampled presets play every voice on their instrument", () => {
-  const acoustic = FAMILIES.find((f) => f.name === "ACOUSTIC")!.presets;
   {
     const p = presetById("harpsichordSampled");
     assert.equal(p.id, "harpsichordSampled");
-    assert.ok(acoustic.includes(p));
+    assert.ok(PRESETS.includes(p));
     for (const s of p.slots!) assert.equal(PATCHES[s].sample, "harpsichord");
     setPreset("harpsichordSampled");
     assert.deepEqual(sampledNow(), ["harpsichord"]);
   }
+  // D292: the grand piano likewise.
+  {
+    const p = presetById("pianoSampled");
+    assert.equal(p.id, "pianoSampled");
+    assert.ok(PRESETS.includes(p));
+    for (const s of p.slots!) assert.equal(PATCHES[s].sample, "piano");
+    setPreset("pianoSampled");
+    assert.deepEqual(sampledNow(), ["piano"]);
+  }
   // D249: the organ withdrawn from the choices (kept as a preset object for the new organs).
-  assert.ok(!FAMILIES.some((f) => f.presets.some((p) => p.id === "organSampled")));
+  assert.ok(!PRESETS.some((p) => p.id === "organSampled"));
   assert.equal(presetById("organSampled").id, "harpsichordSampled", "a stored organ opens on the harpsichord");
   for (const s of ORGAN_SAMPLED.slots!) assert.equal(PATCHES[s].sample, "organ");
   setPreset(ORGAN_SAMPLED);
   assert.deepEqual(sampledNow(), ["organ"]);
-  setPreset("bossa");
+  setPreset("pianoFm");
   assert.deepEqual(sampledNow(), []);
+});
+
+test("D292: the grand piano: layer 12 of the Salamander Grand, every minor third A1-C7, struck, its lengths, a phone's budget kept", () => {
+  const inst = SAMPLED.piano;
+  assert.equal(inst.set, "grand");
+  assert.equal(inst.plucked, true, "a struck string dies away by itself (never looped)");
+  assert.equal(inst.layer, 12);
+  assert.ok(SAMPLE_MANIFEST.grand.layers.includes(inst.layer!));
+  assert.deepEqual(sampledMidis("grand"), range(33, 96, 3));
+  for (const m of sampledMidis("grand")) {
+    assert.ok(SAMPLE_MANIFEST.grand.pack[fileOf("grand", m)][1] > 1000, fileOf("grand", m));
+    const info = noteInfo("grand", m)!;
+    assert.ok(info.len > 4 && info.len < 7.1 && info.loop === undefined, `${m}`);
+  }
+  assert.equal(fileOf("grand", 61), "Cs4-v12.mp3");
+  assert.equal(fileOf("harpsichord", 61), "Cs4.mp3", "the unlayered sets keep their names");
+  // Retuned at most a semitone and a half either way: rates within 0.91-1.1.
+  for (let midi = 33; midi <= 96; midi++) {
+    const r = rateFor("grand", nearestSample("grand", midi)!, hz(midi));
+    assert.ok(r > 0.9 && r < 1.1, `${midi}: ${r}`);
+  }
+  // A long fugue's plan fits a phone's budget (in mono at worst), and a computer keeps it in stereo.
+  const f = fugueById("wtc2f22");
+  const plan = planFor(inst, f.voices.flat().map((n) => n[2]), f.voices[0].map((n) => n[2]));
+  assert.deepEqual(plan.map((p) => p.set), ["grand"], "no key-up noises, no pedal");
+  assert.ok(decodedBytes(plan) < BUDGET.computer);
+  assert.equal(monoFor(plan, 48000, BUDGET.computer), false);
+  assert.ok(decodedBytes(plan, 48000, true) < BUDGET.phone, `${decodedBytes(plan, 48000, true) / 1e6} MB`);
 });

@@ -1,6 +1,6 @@
 /**
  * D233: ⚙ SOUND folded like TUNING and INTERFACE: one button showing the choice ("SOUND ·
- * HARPSICHORD (SAMPLED)"); it opens the families and their presets; choosing one applies and closes.
+ * HARPSICHORD (SAMPLED)"); it opens the sounds (D292: five); choosing one applies and closes.
  */
 import { useState } from "react";
 import { SoundChoices } from "../touch/Panels.tsx";

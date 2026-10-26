@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
 import { CEILING, Chip, organSwell, PLENO_SCALE, ROOM_S, softClipCurve, VOICE_CAP, voicing } from "../src/touch/chip.ts";
 import { fugueById } from "../src/touch/fugue.ts";
-import { FAMILIES, ORGAN_SAMPLED, presetById, PRESETS, setPreset } from "../src/touch/sound.ts";
+import { ORGAN_SAMPLED, presetById, PRESETS, setPreset } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 import { ProtoGame, slipLoss, SLIP_NEAR } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
@@ -162,7 +162,6 @@ test("D249: the organ out: no piece opens on it, the players cannot choose it, a
     assert.equal(presetById(id).id, "chip", id);
   }
   assert.ok(!PRESETS.some((p) => p.id === "organSampled"));
-  assert.ok(!FAMILIES.some((f) => f.presets.some((p) => p.id === "organSampled")));
   assert.equal(presetById("organSampled").id, "harpsichordSampled");
   assert.equal(soundFor("wtc2f22", { wtc2f22: "organSampled" }, "bossa"), "harpsichordSampled");
 });
