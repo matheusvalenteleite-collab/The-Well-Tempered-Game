@@ -75,6 +75,10 @@ interface Armed {
   k: number;
   i: number;
   sounds: Sounding[];
+  /** D306: its own sounds (the note, its chord, its ornament, its subject's layers; not the notes riding after it nor a traced line's), cut when the touch lets go. */
+  own: Sounding[];
+  /** D306: when its note starts (audio clock). */
+  at: number;
   /** "sounding": on the schedule; "hit": a right touch has scored it (its riders shown as they sound). */
   state: "sounding" | "hit";
   /** When (audio clock) the record may be dropped. */
@@ -149,6 +153,8 @@ interface Held {
   across?: number;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
   slideDir?: 1 | -1;
+  /** D306, BLUETOOTH MODE: its note as scheduled, cut when the touch lets go (a staccato heard, a headphones' delay late). */
+  armed?: Armed;
   /** D293: another thumb has taken over its voice while it is still down (an overlapping legato): it only holds, it slides no more. */
   handed?: boolean;
   /** Its last positions, for a flick. */
@@ -680,9 +686,12 @@ export class ProtoGame {
         if (this.arc?.echo && k === 0 && this.rowOf(i, 0) === 1) expr = { ...expr, level: (expr.level ?? 1) * ECHO_LEVEL, bright: (expr.bright ?? 0) - ECHO_DARK };
         const v = sv?.v ?? voiceV;
         const sounds: Sounding[] = [];
+        const own: Sounding[] = [];
         let end = at;
-        const put = (midi: number, from: number, secs: number, p: Play, rv = v) => {
-          sounds.push(ch.note(midi, from, secs, rv, p));
+        const put = (midi: number, from: number, secs: number, p: Play, rv = v, mine = true) => {
+          const sd = ch.note(midi, from, secs, rv, p);
+          sounds.push(sd);
+          if (mine) own.push(sd);
           end = Math.max(end, from + secs);
         };
         // The notes riding after it (D191), at their times; the note gives way to the first.
@@ -696,7 +705,7 @@ export class ProtoGame {
           const rv = r.voice ?? t.voice;
           const rs = this.subj.shape(rv, r.on, voicing(rv, count, true));
           // D284: a riding note's ornament sounds too.
-          for (const [pon, pdur, pm] of this.rideParts(rv, notes, j)) put(pm, this.timeAt(pon), len(pon, pdur), { ...rs.play, lead: true, envelope }, rs.v);
+          for (const [pon, pdur, pm] of this.rideParts(rv, notes, j)) put(pm, this.timeAt(pon), len(pon, pdur), { ...rs.play, lead: true, envelope }, rs.v, false);
         }
         const chord = chordOf(notes, i);
         const cut = (secs: number) => (Number.isFinite(first) ? Math.max(0.03, Math.min(secs, first - at)) : secs);
@@ -714,9 +723,9 @@ export class ProtoGame {
           up.forEach((c, q) => put(c.midi, at + q * SWEEP_GAP_S, cut(len(c.on, c.dur)), { ...expr, legato: false }));
         } else for (const c of chord) put(notes[c].midi, at, cut(len(notes[c].on, notes[c].dur)), expr);
         // D262: a traced line's other notes, at their written times.
-        for (const q of t.traces?.get(n.on) ?? []) put(q.midi, this.timeAt(q.on), Math.max(0.12, len(q.on, q.dur)), { ...expr, legato: false });
-        if (sv && !this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len(n.on, n.dur), v, expr.level ?? 1)) sounds.push(x);
-        this.armed.set(`${k}:${n.on}`, { k, i, sounds, state: "sounding", until: end + 1 });
+        for (const q of t.traces?.get(n.on) ?? []) put(q.midi, this.timeAt(q.on), Math.max(0.12, len(q.on, q.dur)), { ...expr, legato: false }, v, false);
+        if (sv && !this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len(n.on, n.dur), v, expr.level ?? 1)) (sounds.push(x), own.push(x));
+        this.armed.set(`${k}:${n.on}`, { k, i, sounds, own, at, state: "sounding", until: end + 1 });
       }
       this.armNext[k] = i;
     });
@@ -1519,12 +1528,17 @@ export class ProtoGame {
       const dt = Math.max(1, b.t - a.t);
       if (-dy >= SWOOSH_PX && -dy / dt >= SWOOSH_V) {
         for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
+        for (const sd of h.armed?.own ?? []) sd.stop(Math.max(this.chip.ctx.currentTime + 0.02, (h.armed?.at ?? 0) + 0.05));
         if (!this.bt) this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
         return;
       }
     }
-    if (this.pedalDown) this.pedalled.push(...h.sounds, ...(h.fx ?? []));
-    else for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
+    // D306: BLUETOOTH MODE: the note scheduled at its written length is cut as the touch lets go (never
+    // before it has sounded a moment): the release heard, as on the speaker, a headphones' delay late.
+    const a = h.armed;
+    const own = a ? a.own.map((sd) => ({ stop: (when?: number) => sd.stop(Math.max(when ?? this.chip.ctx.currentTime, a.at + 0.05)), bend() {} })) : [];
+    if (this.pedalDown) this.pedalled.push(...h.sounds, ...(h.fx ?? []), ...own);
+    else for (const sd of [...h.sounds, ...(h.fx ?? []), ...own]) sd.stop();
   }
 
   /** Sounds note i (or what was asked for instead) and grades it. A slide glides on; the piano strikes again. */
@@ -1576,7 +1590,7 @@ export class ProtoGame {
     // D299, BLUETOOTH MODE: the note is already on the schedule (arm); a right touch only scores it (its
     // riders then shown as they sound). Below, every sound a touch would make is silent (touchNote).
     const armed = this.bt && v.ok ? this.armed.get(`${h.k}:${notes[i].on}`) : undefined;
-    if (armed) armed.state = "hit";
+    if (armed) (armed.state = "hit", (h.armed = armed));
     if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
       h.sounds[0].glide?.(pitches[0]);
     } else {

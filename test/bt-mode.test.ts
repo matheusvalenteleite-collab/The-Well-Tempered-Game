@@ -94,7 +94,7 @@ test("D299: the same touches through a 200 ms Bluetooth delay are judged exactly
   assert.ok(wired.g.results().right > 0.6 * wired.heads.length, `${wired.g.results().right} of ${wired.heads.length}`);
 });
 
-test("D299: a whole run in BLUETOOTH MODE: every note of the player's on the schedule at its written time, touched or not; no touch sounds", () => {
+test("D299, D306: a whole run in BLUETOOTH MODE: every note of the player's on the schedule at its written time, touched or not; no touch sounds; a touched note cut as it is let go", () => {
   const r = run(0.2, true);
   assert.equal(r.touchSounds.length, 0, "no touch made a sound");
   const mine = r.notes.filter((x) => x.p.lead);
@@ -103,9 +103,13 @@ test("D299: a whole run in BLUETOOTH MODE: every note of the player's on the sch
     const s = mine.find((x) => x.midi === n.midi && Math.abs(x.at - at) < 1e-9);
     assert.ok(s, `note at ${n.on} scheduled`);
     assert.ok(s.asked < at, "ahead of its time");
-    assert.equal(s.stopAt, undefined, `note at ${n.on} (${n.state}) never cut by a touch or a miss`);
+    // D306: a note touched is cut as the touch lets go (0.09 s after it, as heard), never before it has sounded; a missed one sounds out.
+    if (n.state === "miss") assert.equal(s.stopAt, undefined, `note at ${n.on} missed: never cut`);
+    else if (s.stopAt !== undefined) assert.ok(s.stopAt >= at + 0.05 - 1e-9 && s.stopAt < at + Math.max(0.6, r.g.timeAt(n.on + n.dur) - at), `note at ${n.on} cut at its release`);
   }
   assert.ok(r.g.notes.some((n) => n.state === "miss"), "some missed, and they sounded all the same");
+  const cut = r.heads.filter(({ n }) => n.state !== "miss" && mine.find((x) => x.midi === n.midi && Math.abs(x.at - r.g.timeAt(n.on)) < 1e-9)?.stopAt !== undefined);
+  assert.ok(cut.length > 0.5 * r.heads.filter(({ n }) => n.state !== "miss").length, `D306: most touched notes cut at their release (${cut.length})`);
   // Wired: the player's notes come only from the touches, at the touch.
   const w = run(0, false);
   assert.ok(w.touchSounds.length > 0 && w.touchSounds.every((x) => x.at === x.asked));
