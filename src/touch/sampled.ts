@@ -86,15 +86,6 @@ export const PERIOD: Record<string, Bake> = {
   // phone's limiter), 16 bits: no grain.
   manualOrg: { folder: "pipeOrgan", rate: 22050, lp: 9500, bits: 16 },
   pedalOrg: { folder: "pipePedal", rate: 22050, lp: 9000, bits: 16 },
-  // D302, FOREST 64 and PARTY 64 (the N64: small samples mixed in software, warm but not muffled: 26
-  // kHz, the interpolation's softening at 8.5-9.5 kHz, 12 bits).
-  nylon26: { folder: "guitar", rate: 26000, lp: 9500, bits: 12 },
-  strings26: { folder: "violaSus", rate: 26000, lp: 8500, bits: 12, loop: true },
-  bassoon26: { folder: "bassoon", rate: 26000, lp: 8500, bits: 12, loop: true },
-  trumpet26: { folder: "trumpet", rate: 26000, lp: 8500, bits: 12, loop: true },
-  guitar26: { folder: "cleanGuitar", rate: 26000, lp: 9500, bits: 12 },
-  sax26: { folder: "sax", rate: 26000, lp: 8500, bits: 12, loop: true },
-  ebass26: { folder: "ebass", rate: 26000, lp: 9000, bits: 12 },
   // D302, SOLO VOICES: VocalSet's four singers (their own 1-3 s loops) and FluidR3's choir "aah" (its
   // loop 0.9-2.5 s, as the chorales play it), kept at 24 kHz: nothing of a voice lost under 11 kHz.
   voiceS: { folder: "soloSoprano", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0] },
@@ -175,7 +166,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "nylon26" | "strings26" | "bassoon26" | "trumpet26" | "guitar26" | "sax26" | "ebass26" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -233,15 +224,6 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsiMod: { set: "harpsiMod", plucked: true, gain: 1.8 },
   choirMod: { set: "choirMod", plucked: false, gain: 2.2 },
   bassMod: { set: "bassMod", plucked: true, gain: 2.2 },
-  // D302, FOREST 64's and PARTY 64's.
-  nylon26: { set: "nylon26", plucked: true, gain: 2.2 },
-  strings26: { set: "strings26", plucked: false, gain: 2.2 },
-  bassoon26: { set: "bassoon26", plucked: false, gain: 2.2 },
-  trumpet26: { set: "trumpet26", plucked: false, gain: 2.2 },
-  guitar26: { set: "guitar26", plucked: true, gain: 2.2 },
-  sax26: { set: "sax26", plucked: false, gain: 2.2 },
-  ebass26: { set: "ebass26", plucked: true, gain: 2.2 },
-  // D302, SOLO VOICES's singers.
   voiceS: { set: "voiceS", plucked: false, gain: 2.2 },
   voiceA: { set: "voiceA", plucked: false, gain: 2.2 },
   voiceT: { set: "voiceT", plucked: false, gain: 2.2 },

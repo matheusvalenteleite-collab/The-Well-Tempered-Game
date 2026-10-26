@@ -48,8 +48,6 @@ export const ES: Record<string, string> = {
   TRACKER: "TRACKER",
   // D302: CHAMBER ORGAN, TEMPLE 64 and AGENT 64 remade; two singing voices.
   "PIPE ORGAN": "ÓRGANO DE TUBOS",
-  "FOREST 64": "BOSQUE 64",
-  "PARTY 64": "FIESTA 64",
   "VOCAL SYNTH": "VOZ SINTÉTICA",
   "SOLO VOICES": "VOCES SOLISTAS",
   MODULAR: "MODULAR",

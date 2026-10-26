@@ -24,7 +24,7 @@ export function popTitle(id: string): string {
  * ensembles, and six of the console sounds (D209). D246: and first, starred, the piece's own sound
  * (piece-sound.ts) where it is not among them; the choice kept for the piece.
  */
-/** D292: now the five sounds the players have (sound.ts PRESETS), in their order; D297: fifteen; D302: seventeen. */
+/** D292: now the five sounds the players have (sound.ts PRESETS), in their order; D297: fifteen; D302: seventeen; D304: fifteen. */
 export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["chip", "CLASSIC CHIP"],
   ["gameboy", "GAME BOY"],
@@ -38,10 +38,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["megaFm", "MEGA FM"],
   ["sid64", "SID 64"],
   ["tracker", "TRACKER"],
-  // D302: CHAMBER ORGAN remade as PIPE ORGAN; the N64 pair remade as FOREST 64 and PARTY 64; two singing voices.
+  // D302: CHAMBER ORGAN remade as PIPE ORGAN; two singing voices. (D304: FOREST 64 and PARTY 64 withdrawn.)
   ["chamberOrgan", "PIPE ORGAN"],
-  ["forest64", "FOREST 64"],
-  ["party64", "PARTY 64"],
   ["vocalSynth", "VOCAL SYNTH"],
   ["soloVoices", "SOLO VOICES"],
   ["modular", "MODULAR"],

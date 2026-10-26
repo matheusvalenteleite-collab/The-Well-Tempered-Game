@@ -14,8 +14,8 @@ import { styleOf } from "../src/touch/phrasing.ts";
 import { fugueById, PIECES } from "../src/touch/fugue.ts";
 
 const ctxOf = installFakeAudio(0, true);
-// D302: CHAMBER ORGAN remade as PIPE ORGAN (its id kept), TEMPLE 64 and AGENT 64 as FOREST 64 and PARTY 64, two singing voices added.
-const NEW = ["super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "forest64", "party64", "vocalSynth", "soloVoices", "modular", "tomita"];
+// D302: CHAMBER ORGAN remade as PIPE ORGAN (its id kept), TEMPLE 64 and AGENT 64 as FOREST 64 and PARTY 64, two singing voices added; D304: FOREST 64 and PARTY 64 withdrawn.
+const NEW = ["super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita"];
 /** The presets judged by the clarity rules here (every one but the niche picks bends none of them). */
 const ALL = [...NEW, "analog"];
 
@@ -23,7 +23,7 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   assert.equal(presetById("analog").name, "SWITCHED-ON");
   assert.equal(presetById("carlos").id, "analog");
   assert.deepEqual(PRESETS.slice(5).map((p) => p.id), NEW);
-  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "FOREST 64", "PARTY 64", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
+  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
   for (const id of NEW) {
     assert.ok(!Object.values(PIECE_SOUND).includes(id), id);
     assert.equal(styleOf(id), "plain");
@@ -120,7 +120,7 @@ test("D297: the period sets: their folders, mono, baked loops for the loopless r
 });
 
 test("D297: every piece's recordings for a period preset fit a phone's budget (all its instruments together)", () => {
-  for (const id of ["super16", "nocturne32", "tracker", "chamberOrgan", "forest64", "party64", "soloVoices"]) {
+  for (const id of ["super16", "nocturne32", "tracker", "chamberOrgan", "soloVoices"]) {
     setPreset(id);
     let worst = 0;
     for (const p of PIECES) {
@@ -269,14 +269,13 @@ test("D302, D304: PIPE ORGAN: a sweet flute, a Principal, the Trompete over the 
   assert.ok(c.rt60 > REVERBS.hall.rt60);
 });
 
-test("D302: FOREST 64 and PARTY 64 in place of TEMPLE 64 and AGENT 64: lively 26 kHz samples, their own rooms", () => {
-  assert.equal(presetById("temple64").id, "forest64");
-  assert.equal(presetById("agent64").id, "party64");
-  assert.equal(presetById("forest64").fx, "grove");
-  assert.equal(presetById("party64").fx, "room64");
-  for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.ok(PERIOD[id].rate === 26000 && PERIOD[id].bits === 12 && PERIOD[id].lp >= 8500, id);
-  // Not muffled: their samples brighter than TEMPLE 64's and AGENT 64's were (22 kHz, 4.5-6 kHz, 10 bits).
-  assert.ok(REVERBS.grove.rt60 <= 2 && REVERBS.room64.rt60 <= 1.2);
+test("D304: FOREST 64 and PARTY 64 withdrawn (the owner: 0 each), they and TEMPLE 64 and AGENT 64 opening on NOCTURNE 32-BIT", () => {
+  for (const gone of ["temple64", "agent64", "forest64", "party64"]) {
+    assert.equal(presetById(gone).id, "nocturne32", gone);
+    assert.ok(!PRESETS.some((p) => p.id === gone), gone);
+  }
+  for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.equal(PERIOD[id], undefined, id);
+  assert.deepEqual(Object.keys(REVERBS).sort(), ["cathedral", "hall", "plate", "space"]);
 });
 
 test("D297, D302: TRACKER: 8-bit samples held without smoothing, short loops, hard left and right, a tone portamento", () => {

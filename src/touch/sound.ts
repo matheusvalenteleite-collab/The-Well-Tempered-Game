@@ -667,29 +667,6 @@ export const PATCHES = {
   tomFlute: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.15 }], breath: 0.18, filter: { freq: 4.5, q: 2.5, env: 1.5, envDecay: 0.2, sweep: { rate: 0.09, octaves: 0.7 } }, amp: { a: 0.05, d: 0.2, s: 0.85, r: 0.15 }, vib: { depth: 8, rate: 6, delay: 0.3 }, autopan: { rate: 0.11, depth: 0.15 }, send: 0.25, level: 0.34 }),
   tomStrings: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 10, gain: 0.8 }, { wave: "saw", detune: -10, gain: 0.8 }], filter: { freq: 3.2, q: 2.5, env: 1.3, envDecay: 0.3, poles: 4, sweep: { rate: 0.05, octaves: 0.6 } }, phaser: { rate: 0.18, lo: 300, hi: 2600 }, amp: { a: 0.1, d: 0.3, s: 0.9, r: 0.25 }, send: 0.28, level: 0.26 }),
   tomBass: P({ osc: [{ wave: "saw" }, { wave: "pulse50", gain: 0.6 }], filter: { freq: 1400, hz: true, q: 2, env: 2, envDecay: 0.15, poles: 4, sweep: { rate: 0.06, octaves: 0.3 } }, hp: 60, amp: { a: 0.005, d: 0.3, s: 0.75, r: 0.08 }, send: 0.05, level: 0.3 }),
-  // D302, the N64 remade (the owner: TEMPLE 64 and AGENT 64 "bad", "try something different"; they were
-  // muffled: 22 kHz, lowpassed at 4.5-6 kHz, 10 bits, slow pads, a washy cave). What made the console's
-  // soundtracks loved: small sampled instruments, warm but punchy (sampled.ts PERIOD at 26 kHz, the
-  // interpolation's softening at 8.5-9.5 kHz, 12 bits), each line a character, a stereo reverb used for
-  // space, not fog. FOREST 64 (after the forest and village music of the console's adventure games: an
-  // ocarina, a marimba, a plucked guitar, strings with vibrato, a woodwind bass): the ocarina a breathy
-  // sine with a tongued onset and a late vibrato; the marimba a struck FM bar (1:4, the index gone in
-  // 60 ms), its fourth partial kept faintly (the second of five); the classical guitar's pluck, the
-  // viola section (a sustained line among the plucked ones), a bassoon (a harp and a pizzicato bass
-  // were tried: through a phone's speaker 11-17 dB under the top, measured). PARTY 64 (after its bright
-  // party and platform games: a bouncy synth lead, a muted trumpet, a clean guitar's twang, a honking
-  // sax, a picked electric bass): the lead a pulse and a sawtooth through a resonant filter that pops
-  // open at each note, a tiny pitch blip from above (12 ms, none when joined), a quick vibrato.
-  f64Ocarina: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.18 }, { wave: "sine", octave: Math.log2(3), gain: 0.06 }], chiff: { level: 0.45, time: 0.035, at: 2 }, breath: 0.05, scoop: { cents: -25, time: 0.02 }, bits: 12, amp: { a: 0.018, d: 0.15, s: 0.85, r: 0.07 }, vib: { depth: 16, rate: 5.7, delay: 0.26 }, send: 0.2, level: 0.24 }),
-  f64Marimba: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }], fm: { ratio: 4, index: 1.6, to: 0.05, time: 0.06 }, bits: 12, amp: { a: 0.002, d: 0.55, s: 0, r: 0.05 }, send: 0.16, level: 0.62 }),
-  f64Guitar: P({ osc: [{ wave: "triangle" }, { wave: "square", gain: 0.15 }], filter: { freq: 3.5, q: 1, env: 2, envDecay: 0.08 }, amp: { a: 0.003, d: 0.65, s: 0, r: 0.1 }, rec: { a: 0.001, d: 0, s: 1, r: 0.08 }, send: 0.16, level: 0.53, sample: "nylon26" }),
-  f64Strings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.04, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.035, d: 0.2, s: 0.9, r: 0.1 }, vib: { depth: 12, rate: 5.1, delay: 0.3 }, send: 0.22, level: 0.63, sample: "strings26" }),
-  f64Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.08 }, rec: { a: 0.015, d: 0.2, s: 0.85, r: 0.07 }, send: 0.1, hp: 80, level: 0.44, sample: "bassoon26" }),
-  p64Lead: P({ osc: [{ wave: "pulse25", gain: 0.8 }, { wave: "saw", detune: 7, gain: 0.45 }], filter: { freq: 3.2, q: 3, env: 3, envDecay: 0.08 }, scoop: { cents: 35, time: 0.012 }, bits: 12, amp: { a: 0.004, d: 0.25, s: 0.72, r: 0.05 }, vib: { depth: 12, rate: 6.1, delay: 0.25 }, send: 0.1, level: 0.53 }),
-  p64Trumpet: P({ osc: [{ wave: "square", gain: 0.6 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.6, q: 2.2, env: 2, envDecay: 0.12 }, amp: { a: 0.015, d: 0.2, s: 0.8, r: 0.07 }, rec: { a: 0.012, d: 0.2, s: 0.85, r: 0.07 }, vib: { depth: 10, rate: 5.4, delay: 0.3 }, send: 0.12, level: 0.45, sample: "trumpet26" }),
-  p64Guitar: P({ osc: [{ wave: "triangle" }, { wave: "square", gain: 0.15 }], filter: { freq: 3.5, q: 1, env: 2, envDecay: 0.08 }, amp: { a: 0.003, d: 0.65, s: 0, r: 0.1 }, rec: { a: 0.001, d: 0, s: 1, r: 0.06 }, send: 0.1, level: 0.89, sample: "guitar26" }),
-  p64Sax: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.8, q: 1.6, env: 1.5, envDecay: 0.15 }, amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.08 }, rec: { a: 0.015, d: 0.2, s: 0.85, r: 0.07 }, vib: { depth: 12, rate: 4.8, delay: 0.32 }, send: 0.12, level: 0.45, sample: "sax26" }),
-  p64Bass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.004, d: 0.5, s: 0, r: 0.08 }, rec: { a: 0.001, d: 0, s: 1, r: 0.05 }, send: 0.05, hp: 80, level: 0.58, sample: "ebass26" }),
   // D302, VOCAL SYNTH (the owner: "a vocal based preset … inspired by this Asian vocal synths which
   // emulate the singing voice of a character with utmost detail"): five singers by formant synthesis
   // (Patch.sing), each its own voice type, size, vowel and consonant, so the lines are told apart as
@@ -733,7 +710,7 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
 export type Kit = "acoustic" | "chip" | "analog";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "grove" | "room64" | "plate" | "space";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space";
 
 export interface Preset {
   id: string;
@@ -752,10 +729,10 @@ export interface Preset {
    * echo (80 ms, feedback 0.35 through a 2.8 kHz lowpass and a 300 Hz high-pass); "hall", the
    * PlayStation's dark half-rate reverb (25 ms pre-delay, the send high-passed at 350 Hz, RT60 about
    * 1.9 s, the return lowpassed at 5.5 kHz); D302: "cathedral", PIPE ORGAN's large church (45 ms
-   * pre-delay, about 2.8 s, its highs damped; D297's small "church" retired with CHAMBER ORGAN); "grove"
-   * and "room64", the N64 presets' software reverbs (D297's "cave" and "studio" retired with them);
-   * "plate", VOCAL SYNTH's bright, short plate; "echo", MEGA FM's short dark echo (chip.ts FM_ECHO);
-   * "space", TOMITA's tape echo and long reverb (chip.ts REVERBS). None: no effect of its own.
+   * pre-delay, about 2.8 s, D304 2.2 s, its highs damped; D297's small "church" retired with CHAMBER
+   * ORGAN; D304: "grove" and "room64" withdrawn with FOREST 64 and PARTY 64); "plate", VOCAL
+   * SYNTH's bright, short plate; "echo", MEGA FM's short dark echo (chip.ts FM_ECHO); "space",
+   * TOMITA's tape echo and long reverb (chip.ts REVERBS). None: no effect of its own.
    */
   fx?: FxKind;
   /**
@@ -891,34 +868,6 @@ export const PRESETS: Preset[] = [
       5: [["orgFlute", 0.25], ["orgKrumm", -0.3, 0.84], ["orgPrincipal", 0.12], ["orgTrompete", -0.12, 0.94], ["orgPedal", 0]],
     },
   },
-  // D297, the owner's favourite console (the owner: "Think: Bomberman 64. Also: Goldeneye 64. And why
-  // not: Zelda OCT."). D302: remade as FOREST 64 and PARTY 64 (TEMPLE 64 and AGENT 64 retired: RETIRED).
-  {
-    id: "forest64",
-    name: "FOREST 64",
-    slots: ["f64Ocarina", "f64Marimba", "f64Guitar", "f64Strings", "f64Bassoon"],
-    room: 0,
-    fx: "grove",
-    by: {
-      2: [["f64Ocarina", 0.25], ["f64Bassoon", -0.05]],
-      3: [["f64Ocarina", 0.25], ["f64Guitar", -0.25], ["f64Bassoon", 0]],
-      4: [["f64Ocarina", 0.25], ["f64Guitar", -0.25], ["f64Strings", 0.12], ["f64Bassoon", 0]],
-      5: [["f64Ocarina", 0.25], ["f64Marimba", -0.3, 0.84], ["f64Guitar", 0.1], ["f64Strings", -0.12, 0.94], ["f64Bassoon", 0]],
-    },
-  },
-  {
-    id: "party64",
-    name: "PARTY 64",
-    slots: ["p64Lead", "p64Trumpet", "p64Guitar", "p64Sax", "p64Bass"],
-    room: 0,
-    fx: "room64",
-    by: {
-      2: [["p64Lead", 0.25], ["p64Bass", -0.05]],
-      3: [["p64Lead", 0.25], ["p64Guitar", -0.25], ["p64Bass", 0]],
-      4: [["p64Lead", 0.25], ["p64Guitar", -0.25], ["p64Sax", 0.12], ["p64Bass", 0]],
-      5: [["p64Lead", 0.25], ["p64Trumpet", -0.3, 0.84], ["p64Guitar", 0.1], ["p64Sax", -0.12, 0.94], ["p64Bass", 0]],
-    },
-  },
   // D302: VOCAL SYNTH: five synthesized singers (la, mi, ro, ne, da) in a bright plate.
   {
     id: "vocalSynth",
@@ -1022,9 +971,12 @@ export const RETIRED: Readonly<Record<string, string>> = {
   chipDino: "chip",
   chipLight: "chip",
   chipBlur: "chip",
-  // D302: the N64 presets remade.
-  temple64: "forest64",
-  agent64: "party64",
+  // D302: the N64 presets remade; D304: withdrawn (the owner gave FOREST 64 and PARTY 64 a 0): a stored
+  // choice opens on NOCTURNE 32-BIT (sampled instruments of the next console generation, the nearest kin).
+  temple64: "nocturne32",
+  agent64: "nocturne32",
+  forest64: "nocturne32",
+  party64: "nocturne32",
 };
 /** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
 export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";

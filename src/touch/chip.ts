@@ -107,10 +107,6 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // 2.8 s; on a phone 1.8 s of impulse), the highs damped (4.8 kHz): the organ's lines carried, not drowned.
   // D304: smaller (RT60 2.2 s) and a little brighter (5.5 kHz): the inner lines were muddled in it.
   cathedral: { predelay: 0.045, hp: 250, lp: 5500, seconds: 2.2, phoneSeconds: 1.5, rt60: 2.2, brightness: 0.3 },
-  // D302, FOREST 64's grove: a wide, airy space (RT60 1.8 s) kept bright enough to stay lively.
-  grove: { predelay: 0.025, hp: 260, lp: 7000, seconds: 1.8, phoneSeconds: 1.3, rt60: 1.8, brightness: 0.45 },
-  // D302, PARTY 64's room: short and bright (RT60 1.0 s): the bounce kept dry.
-  room64: { predelay: 0.015, hp: 300, lp: 8000, seconds: 1.0, phoneSeconds: 0.8, rt60: 1.0, brightness: 0.55 },
   // D302, VOCAL SYNTH's plate: bright and short (RT60 1.5 s), the singers' consonants kept clear (D304: its highs
   // 6.5 kHz, was 8.5: no glitter in the tail).
   plate: { predelay: 0.03, hp: 300, lp: 6500, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.45 },
