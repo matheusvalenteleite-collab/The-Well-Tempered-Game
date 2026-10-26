@@ -81,22 +81,46 @@ export function planLevel(r: Reading, bar: number): Level | null {
 }
 
 /**
- * The subject as the reading plays it (HEAR THE SUBJECT): each note's start and length in seconds and
- * its dynamic (0..1), from the entry's notes [onset, duration, MIDI] in ticks.
+ * D302: a reading's marks on every entry of the subject, in every voice (each note by its place in the
+ * subject, as the player's are judged), for the others' articulation (phrasing.ts ARTICULATION).
  */
-export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number): { at: number; len: number; midi: number; d: number }[] {
+export function readingMarks(entries: readonly { voice: number; notes: readonly (readonly [number, ...unknown[]])[]; theme?: number }[], r: Reading | null): Map<string, ReadingNote> {
+  const m = new Map<string, ReadingNote>();
+  if (!r) return m;
+  for (const e of entries) {
+    if (e.theme) continue;
+    e.notes.forEach(([on], j) => {
+      const n = r.notes[j];
+      if (n && (n.join !== null || n.short)) m.set(`${e.voice}:${on}`, n);
+    });
+  }
+  return m;
+}
+
+/** D302: a joined note's overlap into the next (s): its crossfade (phrasing.ts OVERLAP_S). */
+export const JOIN_OVER_S = 0.03;
+
+/**
+ * The subject as the reading plays it (HEAR THE SUBJECT): each note's start and length in seconds and
+ * its dynamic (0..1), from the entry's notes [onset, duration, MIDI] in ticks. D302: `tie`, joined to
+ * the next (held to its onset and JOIN_OVER_S over, then crossfaded: no gap); `legato`, joined from the
+ * one before (no fresh attack). A joined note was held 4% over its written length and still let go
+ * before the next (a 120 ms release) and the next attacked anew: no join was heard.
+ */
+export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number): { at: number; len: number; midi: number; d: number; legato?: boolean; tie?: number }[] {
   // D274: at the game's tempo (D285: on the slow side of the recordings), not the book's.
   const tps = (tpq * bpm) / 60;
   const on0 = notes[0]?.[0] ?? 0;
   const base = r?.level ? LEVEL_D[r.level] : 0.55;
+  const joined = (i: number) => !!r?.notes[i]?.join && !r?.notes[i]?.short && i + 1 < notes.length && notes[i + 1][0] <= notes[i][0] + notes[i][1];
   return notes.map(([on, dur, midi], i) => {
     const n = r?.notes[i];
     const gapTo = i + 1 < notes.length ? notes[i + 1][0] - on : dur;
-    // Joined: to the next note's start and a little over; detached: two thirds; short: a third.
-    const len = n?.short ? dur * 0.35 : n?.join === false ? Math.min(dur, gapTo) * 0.62 : n?.join ? Math.max(dur, gapTo) * 1.04 : dur * 0.92;
+    // Joined: to the next note's start and a little over; detached: about two thirds; short: a third.
+    const len = n?.short ? (dur * 0.35) / tps : n?.join === false ? (Math.min(dur, gapTo) * 0.62) / tps : joined(i) ? gapTo / tps + JOIN_OVER_S : (dur * 0.92) / tps;
     const u = notes.length > 1 ? i / (notes.length - 1) : 0;
     const shaped = r?.shape === "crescendo" ? base - 0.12 + 0.24 * u : r?.shape === "diminuendo" ? base + 0.12 - 0.24 * u : r?.shape === "arch" ? base - 0.1 + 0.2 * Math.sin(Math.PI * u) : base;
     const d = Math.max(0.05, Math.min(1, shaped + (n?.accent ? 0.15 : 0)));
-    return { at: (on - on0) / tps, len: len / tps, midi, d };
+    return { at: (on - on0) / tps, len, midi, d, ...(i > 0 && joined(i - 1) ? { legato: true } : {}), ...(joined(i) ? { tie: JOIN_OVER_S } : {}) };
   });
 }

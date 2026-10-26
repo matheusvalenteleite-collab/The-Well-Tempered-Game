@@ -3,10 +3,11 @@
  * timing from its place in the music, as a player would give them.
  *   Weight: the bar's first beat a little stronger, the other beats a little, the notes between them
  *   lighter.
- *   The subject: its notes, wherever it enters, brought forward.
+ *   The subject: its notes known (D293: never louder).
  *   Line: within a voice, the higher notes of a passage a shade louder (the arch of a phrase).
- *   Articulation: a note repeated is detached; a note before a leap is shortened a little; steps stay
- *   joined; a long note is let go just before the next.
+ *   Articulation (D302, ARTICULATION below): joined (no gap, no new attack) or detached by the
+ *   reading's marks on the subject's entries, else by a rule (steps joined, leaps, repeated notes and a
+ *   moving bass apart); a long note is let go just before the next.
  *   Time: a few milliseconds early or late, the same each time (no randomness from run to run).
  * Pure: notes in, shapes out.
  */
@@ -41,90 +42,167 @@ export const TOUCH: Record<Exclude<Style, "plain">, { spread: number; lead: numb
 
 export interface Shape {
   level: number;
-  /** The share of its written length the note is held. */
+  /** The share of its written length the note is held (D302: a joined note's, to the next note's onset). */
   hold: number;
   /** Seconds early (negative) or late. */
   nudge: number;
   /** A note of the subject (it shines whatever the player does). */
   subject: boolean;
+  /** D302: how the note goes to the next of its voice (ARTICULATION). */
+  art: Art;
+  /** D302: joined from the note before (no fresh attack: chip.ts Play.legato). */
+  legato: boolean;
+  /** D302: joined to the next: held this many seconds past `hold` (the overlap, the nudges allowed for): chip.ts Play.tie. */
+  over: number;
 }
 
-/** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). */
-export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>, style: Style = styleOf(preset().id)): Shape[] {
+/**
+ * D302, ARTICULATION: each note of the others joined to the next ("join": no gap, a little overlap,
+ * the next not attacked anew), detached ("detach": an audible gap; "short": staccato), or neither
+ * ("nonlegato": a smaller gap; "plain": held as before D302, a note before a rest or the last). Where
+ * a reading marks the subject (readings.ts, Book I: Keller's and the others' slurs and dots), its
+ * marks go on every entry of the subject in every voice (`marks`), as the player is asked to play it.
+ * Elsewhere one simple rule, after the readings' own (steps slurred; leaps, repeated notes and a
+ * moving bass's quavers apart): a step joined (a third too, among notes shorter than a beat); a
+ * leap of a fourth or more, a repeated note, and the bass's notes of a third of a beat to a beat
+ * nonlegato. The subject is never louder: the readings' accents are not levels here (D293).
+ */
+export type Art = "join" | "detach" | "short" | "nonlegato" | "plain";
+/** D302: the holds (shares of the written length): detached as HEAR THE SUBJECT plays the readings' detached notes (readings.ts). */
+export const ART_HOLD = { detach: 0.62, short: 0.35, nonlegato: 0.74 } as const;
+/** D302: a detached or nonlegato note's gap at most this share of a beat (a long note is not cut in half). */
+export const GAP_BEATS = 0.4;
+/** D302: a joined note held this far past the next one's onset (s): the crossfade of a sustained sound, a plucked note's overlegato. */
+export const OVERLAP_S = 0.03;
+/** D302: a reading's marks on a fugue's notes: "voice:onset" to the reading's note (readings.ts readingMarks). */
+export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean | null }>;
+
+/** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). D302: `marks`, a reading's; `bass`, the piece's lowest voice. */
+export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>, style: Style = styleOf(preset().id), art: { marks?: Marks; bass?: number } = {}): Shape[] {
   const plain = phrasePlain(notes, beat, inBar, subject);
-  if (style === "plain") return plain;
-  const T = TOUCH[style];
+  const T = style === "plain" ? null : TOUCH[style];
+  const nexts = nextIndex(notes);
+  let bass = art.bass ?? -1;
+  if (art.bass === undefined) for (const n of notes) bass = Math.max(bass, n.voice);
+  const arts = notes.map((_, i) => articulation(notes, i, nexts.get(i), beat, art.marks, bass));
   // Each voice's note before (the first of the onset before), for a broken chord's leap in.
   const before = new Map<number, OtherNote>();
-  const lastOn = new Map<number, { on: number; n: OtherNote }>();
-  const prevOn = new Map<number, OtherNote>();
-  notes.forEach((n, i) => {
-    const l = lastOn.get(n.voice);
-    if (l && l.on < n.on) prevOn.set(n.voice, l.n);
-    if (!l || l.on < n.on) lastOn.set(n.voice, { on: n.on, n });
-    const p = prevOn.get(n.voice);
-    if (p) before.set(i, p);
-  });
-  // The notes struck together (the same onset), low to high: their place in the chord.
-  const chords = new Map<number, number[]>();
-  notes.forEach((n, i) => {
-    const c = chords.get(n.on);
-    if (c) c.push(i);
-    else chords.set(n.on, [i]);
-  });
   const rank = new Map<number, { r: number; of: number }>();
-  for (const c of chords.values()) {
-    const voices = new Set(c.map((i) => notes[i].voice));
-    if (voices.size < 2) continue;
-    [...c].sort((a, b) => notes[a].midi - notes[b].midi).forEach((i, r) => rank.set(i, { r, of: c.length }));
+  if (T) {
+    const lastOn = new Map<number, { on: number; n: OtherNote }>();
+    const prevOn = new Map<number, OtherNote>();
+    notes.forEach((n, i) => {
+      const l = lastOn.get(n.voice);
+      if (l && l.on < n.on) prevOn.set(n.voice, l.n);
+      if (!l || l.on < n.on) lastOn.set(n.voice, { on: n.on, n });
+      const p = prevOn.get(n.voice);
+      if (p) before.set(i, p);
+    });
+    // The notes struck together (the same onset), low to high: their place in the chord.
+    const chords = new Map<number, number[]>();
+    notes.forEach((n, i) => {
+      const c = chords.get(n.on);
+      if (c) c.push(i);
+      else chords.set(n.on, [i]);
+    });
+    for (const c of chords.values()) {
+      const voices = new Set(c.map((i) => notes[i].voice));
+      if (voices.size < 2) continue;
+      [...c].sort((a, b) => notes[a].midi - notes[b].midi).forEach((i, r) => rank.set(i, { r, of: c.length }));
+    }
   }
-  const nexts = nextNotes(notes);
-  return plain.map((sh, i) => {
+  const shapes: Shape[] = plain.map((sh, i) => {
     const n = notes[i];
-    const after = nexts.get(i);
+    const a = arts[i];
+    const j = nexts.get(i);
+    const after = j === undefined ? undefined : notes[j];
+    let nudge = sh.nudge;
+    let level = sh.level;
+    if (T) {
+      const h = Math.sin(n.on * 12.9898 + n.midi * 78.233 + n.voice * 37.719) * 43758.5453;
+      nudge = ((h - Math.floor(h)) * 2 - 1) * T.jitter;
+      const c = rank.get(i);
+      if (c) nudge += c.r * T.spread - (c.r === c.of - 1 ? T.lead : 0);
+      if (inBar(n.on) === 0) nudge += T.agogic;
+      nudge = Math.max(-T.cap, Math.min(T.cap, nudge));
+      level = 1 + (sh.level - 1) * T.levels;
+    }
+    // The gap of a detached note at most GAP_BEATS of a beat.
+    const apart = (share: number) => Math.max(share, 1 - (GAP_BEATS * beat) / n.dur);
     let hold = 1;
-    if (after) {
-      const gap = after.on - (n.on + n.dur);
+    if (a === "join" && after) {
+      hold = (after.on - n.on) / n.dur;
+      // D294, the harpsichordist's finger pedal: a broken chord's notes held on into the next.
       const into = before.get(i);
       const out = after.step - n.step;
       const inn = into ? n.step - into.step : 0;
-      if (gap <= 0 && after.midi === n.midi) hold = T.repeat;
-      else if (gap <= 0 && Math.abs(out) >= 2 && Math.abs(inn) >= 2 && Math.sign(out) === Math.sign(inn) && n.dur < beat && T.overlegato > 1) hold = T.overlegato;
-      else if (gap <= 0 && Math.abs(out) >= 3) hold = T.leap;
-      else if (n.dur >= beat) hold = T.long;
-    }
-    const h = Math.sin(n.on * 12.9898 + n.midi * 78.233 + n.voice * 37.719) * 43758.5453;
-    let nudge = ((h - Math.floor(h)) * 2 - 1) * T.jitter;
-    const c = rank.get(i);
-    if (c) nudge += c.r * T.spread - (c.r === c.of - 1 ? T.lead : 0);
-    if (inBar(n.on) === 0) nudge += T.agogic;
-    nudge = Math.max(-T.cap, Math.min(T.cap, nudge));
-    return { ...sh, level: 1 + (sh.level - 1) * T.levels, hold, nudge };
+      if (T && T.overlegato > 1 && Math.abs(out) >= 2 && Math.abs(inn) >= 2 && Math.sign(out) === Math.sign(inn) && n.dur < beat) hold = Math.max(hold, T.overlegato);
+    } else if (a === "detach") hold = apart(ART_HOLD.detach);
+    else if (a === "short") hold = ART_HOLD.short;
+    else if (a === "nonlegato") hold = apart(T ? (after?.midi === n.midi ? T.repeat : T.leap) : ART_HOLD.nonlegato);
+    else if (n.dur >= beat) hold = T ? T.long : 0.95;
+    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0 };
   });
+  // Joined: the next note not attacked anew, this one held past its onset (the two nudges allowed for).
+  shapes.forEach((sh, i) => {
+    const j = nexts.get(i);
+    if (sh.art !== "join" || j === undefined) return;
+    shapes[j].legato = true;
+    sh.over = Math.max(0.01, OVERLAP_S + shapes[j].nudge - sh.nudge);
+  });
+  return shapes;
 }
 
-/** Each note's next note in its voice: the first of the next onset (D191: a chord's partner, struck with it, is not "the next note"). */
-function nextNotes(notes: readonly OtherNote[]): Map<number, OtherNote | undefined> {
+/** D302: how note i goes to its next (index j): by the reading's mark where it has one, else by the rule (ARTICULATION). */
+function articulation(notes: readonly OtherNote[], i: number, j: number | undefined, beat: number, marks: Marks | undefined, bass: number): Art {
+  const n = notes[i];
+  const after = j === undefined ? undefined : notes[j];
+  // Before a rest, or the last: as it was.
+  if (!after || after.on > n.on + n.dur) return "plain";
+  const mark = marks?.get(`${n.voice}:${n.on}`);
+  if (mark?.short) return "short";
+  if (mark?.join === false) return "detach";
+  if (mark?.join === true) return after.on === n.on + n.dur ? "join" : "plain";
+  // Notes overlapping in one voice (a chord held under the next): as it was.
+  if (after.on !== n.on + n.dur) return "plain";
+  const semis = Math.abs(after.midi - n.midi);
+  if (semis === 0) return "nonlegato";
+  if (n.voice === bass && n.dur >= beat / 3 && n.dur <= beat) return "nonlegato";
+  if (semis <= 2) return "join";
+  if (semis <= 4 && n.dur < beat) return "join";
+  return "nonlegato";
+}
+
+/** D302: each note's next note in its voice, by index (the first of the next onset; D191: a chord's partner, struck with it, is not "the next note"). */
+function nextIndex(notes: readonly OtherNote[]): Map<number, number | undefined> {
   const byVoice = new Map<number, number[]>();
   for (let i = 0; i < notes.length; i++) {
     const v = byVoice.get(notes[i].voice);
     if (v) v.push(i);
     else byVoice.set(notes[i].voice, [i]);
   }
-  const next = new Map<number, OtherNote | undefined>();
+  const next = new Map<number, number | undefined>();
   for (const idx of byVoice.values()) {
     let after: number | undefined;
     for (let k = idx.length - 1; k >= 0; k--) {
       if (k + 1 < idx.length && notes[idx[k + 1]].on > notes[idx[k]].on) after = idx[k + 1];
-      next.set(idx[k], after === undefined ? undefined : notes[after]);
+      next.set(idx[k], after);
     }
   }
   return next;
 }
 
-/** D179: the synthesized sounds' phrasing (and the base of the others'). */
-function phrasePlain(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>): Shape[] {
-  // Each voice's notes in order, to see the note after, and the voice's range around each note.
+/**
+ * D302: how a note of the others is sounded, from its shape: joined from the one before (no new
+ * attack: Play.legato), joined to the next (held over it, crossfaded out over `tie` s: Play.tie).
+ */
+export function joins(sh: Shape): { legato?: boolean; tie?: number } {
+  return { ...(sh.legato ? { legato: true } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}) };
+}
+
+/** D179: the synthesized sounds' phrasing (and the base of the others'): each note's level and its fixed unevenness (D302: the holds are ARTICULATION's). */
+function phrasePlain(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>): { level: number; nudge: number; subject: boolean }[] {
+  // Each voice's notes in order, to see the voice's range around each note.
   // (D191: built by pushing; copying the list for every note made it O(n²).)
   const byVoice = new Map<number, number[]>();
   for (let i = 0; i < notes.length; i++) {
@@ -132,15 +210,8 @@ function phrasePlain(notes: readonly OtherNote[], beat: number, inBar: (tick: nu
     if (v) v.push(i);
     else byVoice.set(notes[i].voice, [i]);
   }
-  const next = new Map<number, OtherNote | undefined>();
   const local = new Map<number, number>();
   for (const idx of byVoice.values()) {
-    // The note after: the first of the next onset (D191: a chord's partner, struck with it, is not "the next note").
-    let after: number | undefined;
-    for (let k = idx.length - 1; k >= 0; k--) {
-      if (k + 1 < idx.length && notes[idx[k + 1]].on > notes[idx[k]].on) after = idx[k + 1];
-      next.set(idx[k], after === undefined ? undefined : notes[after]);
-    }
     idx.forEach((i, k) => {
       // Where the note stands between the lowest and highest of its neighbours (0 to 1).
       const near = idx.slice(Math.max(0, k - 6), k + 7).map((j) => notes[j].midi);
@@ -157,18 +228,10 @@ function phrasePlain(notes: readonly OtherNote[], beat: number, inBar: (tick: nu
     // "patronising"); it is marked by its effect's soft layers (subject-fx.ts), not by level.
     const subj = 1;
     const arch = 0.92 + 0.16 * (local.get(i) ?? 0.5);
-    const after = next.get(i);
-    let hold = 1;
-    if (after) {
-      const gap = after.on - (n.on + n.dur);
-      if (gap <= 0 && after.midi === n.midi) hold = 0.78;
-      else if (gap <= 0 && Math.abs(after.step - n.step) >= 3) hold = 0.88;
-      else if (n.dur >= beat) hold = 0.95;
-    }
     // A fixed, small unevenness: a hash of the note.
     const h = Math.sin(n.on * 12.9898 + n.midi * 78.233 + n.voice * 37.719) * 43758.5453;
     const nudge = ((h - Math.floor(h)) * 2 - 1) * 0.006;
-    return { level: weight * subj * arch, hold, nudge, subject: inSubject };
+    return { level: weight * subj * arch, nudge, subject: inSubject };
   });
 }
 

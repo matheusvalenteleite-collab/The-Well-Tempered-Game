@@ -18,7 +18,7 @@ import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, type Touch } from "./fingering.ts";
-import { LEVEL_D, planLevel } from "../touch/readings.ts";
+import { LEVEL_D, planLevel, readingMarks } from "../touch/readings.ts";
 import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
@@ -38,7 +38,7 @@ export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => (TRAVEL_MIN = v);
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
-import { follow, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { follow, joins, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -506,7 +506,8 @@ export class ProtoGame {
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
     this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
+    // D302: the others joined and detached, the reading's marks on every entry of the subject.
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { marks: readingMarks(f.entries, o.reading ?? null), bass: f.voices.length - 1 });
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
@@ -809,7 +810,8 @@ export class ProtoGame {
       const bp = this.bassPedal;
       if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null && !this.bt) continue;
       const sh = this.shapes[this.nextOther - 1];
-      const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on);
+      // D302: a joined note held over the next one's onset (sh.over), crossfaded into it.
+      const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on) + sh.over;
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
       // D213: the subject brighter and crisper, the others duller during an entry; the fugue's effect on the subject.
       const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
@@ -819,10 +821,14 @@ export class ProtoGame {
       // D205: an ornamented note sounds its ornament (its parts on the audio clock), its main note last.
       const orn = this.ornaments.get(`${n.voice}:${n.on}`);
       const parts = orn ? realiseNote(this.f, orn, n.on, n.dur * sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
-      for (const [pon, pdur, pmidi] of parts) {
+      const jn = joins(sh);
+      for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
         const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
-        const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) : len;
-        const sd = ch.note(pmidi, pat, plen, vv, { ...sv.play, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
+        const last = q === parts.length - 1;
+        const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
+        // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
+        const art = { ...(q === 0 && jn.legato ? { legato: true } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}) };
+        const sd = ch.note(pmidi, pat, plen, vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
         if (sd) this.band.push({ sd, until: pat + plen + 0.6 });
       }
       for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len, vv, follow(sh, this.feel))) this.band.push({ sd, until: at + len + 0.8 });

@@ -4,29 +4,79 @@
  * connected, never disconnected). Time moves only by `advance(t)`, which also fires the sources'
  * `onended` as their stop times pass, as a browser would.
  */
-class FakeParam {
+type Ev = { type: "set" | "linear" | "exp" | "target"; t: number; v: number; tau?: number };
+export class FakeParam {
   value: number;
+  /** D302: the automation scheduled (time order), for `valueAt`. */
+  events: Ev[] = [];
+  private initial: number | undefined;
   constructor(v = 0) {
     this.value = v;
   }
-  setValueAtTime(v: number) {
+  private log(e: Ev) {
+    if (this.initial === undefined) this.initial = this.value;
+    let i = this.events.length;
+    while (i > 0 && this.events[i - 1].t > e.t) i--;
+    this.events.splice(i, 0, e);
+  }
+  setValueAtTime(v: number, t = 0) {
+    this.log({ type: "set", t, v });
     this.value = v;
     return this;
   }
-  linearRampToValueAtTime() {
+  linearRampToValueAtTime(v: number, t = 0) {
+    this.log({ type: "linear", t, v });
     return this;
   }
-  exponentialRampToValueAtTime() {
+  exponentialRampToValueAtTime(v: number, t = 0) {
+    this.log({ type: "exp", t, v });
     return this;
   }
-  setTargetAtTime() {
+  setTargetAtTime(v: number, t = 0, tau = 0.01) {
+    this.log({ type: "target", t, v, tau });
     return this;
   }
-  cancelScheduledValues() {
+  cancelScheduledValues(t = 0) {
+    this.events = this.events.filter((e) => e.t < t);
     return this;
   }
-  cancelAndHoldAtTime() {
+  cancelAndHoldAtTime(t = 0) {
+    const v = this.valueAt(t);
+    const cut = this.events.filter((e) => e.t >= t);
+    this.events = this.events.filter((e) => e.t < t);
+    // A ramp cut short ends at the value it had reached; anything else holds from there.
+    this.log({ type: cut.some((e) => e.type === "linear" || e.type === "exp") ? "linear" : "set", t, v });
     return this;
+  }
+  /** D302: the value at time t, as Web Audio computes it (set, linear and exponential ramps, setTarget's approach). */
+  valueAt(t: number): number {
+    if (!this.events.length) return this.value;
+    let v = this.initial ?? this.value;
+    let tp = 0;
+    let tg: { t0: number; from: number; to: number; tau: number } | null = null;
+    const cur = (x: number) => (tg ? tg.to + (tg.from - tg.to) * Math.exp(-(x - tg.t0) / tg.tau) : v);
+    for (const e of this.events) {
+      if (e.type === "linear" || e.type === "exp") {
+        const v0 = cur(tp);
+        if (t < e.t) {
+          if (t <= tp) return cur(t);
+          const k = (t - tp) / (e.t - tp);
+          return e.type === "exp" && v0 > 0 && e.v > 0 ? v0 * (e.v / v0) ** k : v0 + (e.v - v0) * k;
+        }
+        v = e.v;
+        tp = e.t;
+        tg = null;
+        continue;
+      }
+      if (e.t > t) break;
+      const before = cur(e.t);
+      if (e.type === "set") {
+        v = e.v;
+        tg = null;
+      } else tg = { t0: e.t, from: before, to: e.v, tau: Math.max(1e-6, e.tau ?? 0.01) };
+      tp = e.t;
+    }
+    return cur(t);
   }
 }
 
@@ -74,8 +124,11 @@ export class FakeSource extends FakeNode {
     super(ctx, kind);
     ctx.sources.add(this);
   }
+  /** D302: where in its buffer it was started (s). */
+  offset = 0;
   start(at = 0, offset = 0) {
     if (this.startAt !== null) throw new Error("started twice");
+    this.offset = offset;
     this.startAt = Math.max(at, this.ctx.currentTime);
     // A recording not looped ends by itself at its end (at the rate it was started at).
     const buffer = this.buffer as { duration: number } | undefined;
@@ -84,8 +137,11 @@ export class FakeSource extends FakeNode {
       this.stopAt = Math.min(this.stopAt, this.startAt + Math.max(0, buffer.duration - offset) / rate);
     }
   }
+  /** D302: when stop() last asked it to stop (the recording's own end aside). */
+  stopCall = Infinity;
   stop(at = 0) {
     if (this.startAt === null) throw new Error("stopped before started");
+    this.stopCall = Math.max(at, this.ctx.currentTime);
     // As the spec: a later stop() replaces the earlier (the browsers take the last call); a
     // recording still ends at its own end.
     const own = this.buffer && !this.loop ? this.naturalEnd() : Infinity;

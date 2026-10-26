@@ -176,8 +176,19 @@ export type Envelope = "synth" | "piano" | "dulcimer";
 
 export interface Play {
   envelope?: Envelope;
-  /** Joined to the note before without a new attack (that note is still held). */
+  /**
+   * Joined to the note before without a new attack (that note is still held). D302: on every sound: no
+   * fresh attack transient (the level comes in under the note before as it goes, over 15-20 ms; no
+   * filter or FM-index burst, no chiff, no scoop, no consonant); a plucked or struck note is plucked
+   * anyway (a harpsichord joins by holding the note before: `tie`).
+   */
   legato?: boolean;
+  /**
+   * D302: joined to the next note: held at its level to its end (the next note's onset and a little
+   * over), let go over the last `tie` s (the crossfade into the next), not released before it as a
+   * note's own release would (it left a gap or a dip of 40-120 ms between joined notes).
+   */
+  tie?: number;
   /** A level for this note alone (1: as the voice). */
   level?: number;
   /** The note can be muffled after it starts (the testbench, D175: a gesture judged wrong). */
@@ -712,7 +723,8 @@ export class Chip {
       if (slow && !p.legato) g.gain.setTargetAtTime(peak * E.floor, t + E.slowFrom, E.floorTau);
     }
     if (!piano) {
-      const rel = Math.max(t + 0.02, end - 0.04);
+      // D302: joined to the next, held to the crossfade.
+      const rel = Math.max(t + 0.02, end - (p.tie ? Math.min(0.04, p.tie / 2) : 0.04));
       g.gain.setValueAtTime(levelAt(rel), rel);
       g.gain.linearRampToValueAtTime(0, end);
     }
@@ -738,7 +750,8 @@ export class Chip {
       const lp = bag.add(ctx.createBiquadFilter());
       lp.type = "lowpass";
       lp.Q.value = 0.6;
-      lp.frequency.setValueAtTime(E.open, t);
+      // D302: joined, no edge: the filter as the note before had it.
+      lp.frequency.setValueAtTime(p.legato ? tameAt(hz(midi)) : E.open, t);
       lp.frequency.setTargetAtTime(tameAt(hz(midi)), t + 0.006, E.closeTau);
       src = src.connect(lp);
     }
@@ -952,10 +965,11 @@ export class Chip {
     // The recording's own end, in the context's time (a plucked note dies away by then).
     const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
-    const letGo = (s: number) => {
+    const letGo = (s: number, tie = 0) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
-      const tau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+      // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
+      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -977,7 +991,11 @@ export class Chip {
     if (plucked && end > t + life) {
       for (const x of srcs) halt(x.src, t + life + 0.05);
       for (const l of lfos) halt(l, t + life + 0.1);
-    } else letGo(end);
+    } else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
+    // D302: a held note's release done by its written end, as a synthesized note's is (it began there,
+    // and rang on a fifth of a second past it: a detached note's gap filled).
+    else if (!plucked && !p.lead) letGo(Math.max(t + atk + 0.02, end - 2.5 * (re ? Math.max(0.005, re.r / 3) : 0.03)));
+    else letGo(end);
     let stopped = false;
     let cents = 0;
     let muffled = false;
@@ -1097,8 +1115,9 @@ export class Chip {
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
       const det = (o.detune ?? 0) + (p.detune ?? 0);
       n.detune.value = det;
-      if (pt.scoop) {
+      if (pt.scoop && !(p.legato && !pluck)) {
         // D209: the pitch comes in from off and settles (no extra nodes: the oscillator's own detune).
+        // D302: not on a joined note (it would mark a new attack).
         n.detune.setValueAtTime(det + pt.scoop.cents, t);
         n.detune.setTargetAtTime(det, t, pt.scoop.time);
       }
@@ -1149,9 +1168,10 @@ export class Chip {
       };
       const hz1 = f0 * fm.ratio;
       const d = mod(fm.ratio);
-      d.setValueAtTime(fm.index * hz1, t);
+      // D302: a joined note goes on at the body's index (no bright onset: the YM2612 legato, no key-on).
+      d.setValueAtTime((p.legato && !pluck ? fm.to : fm.index) * hz1, t);
       let from = t;
-      if (fm.rise) {
+      if (fm.rise && !(p.legato && !pluck)) {
         d.linearRampToValueAtTime(fm.rise.to * hz1, t + fm.rise.time);
         from = t + fm.rise.time;
       }
@@ -1208,7 +1228,8 @@ export class Chip {
       fl.type = pt.filter.type ?? "lowpass";
       fl.Q.value = pt.filter.q ?? 0.7;
       const base = Math.min(16000, (pt.filter.hz ? pt.filter.freq : f0 * pt.filter.freq) * bright);
-      const top = Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
+      // D302: joined, the filter does not open anew (no "wah" of an attack).
+      const top = p.legato && !pluck ? base : Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
       fl.frequency.setValueAtTime(top, t);
       fl.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
       src = src.connect(fl);
@@ -1246,7 +1267,8 @@ export class Chip {
     const a = Math.max(0.002, pt.amp.a * (1 + (p.soft ?? 0) * 4) * (1 - (p.crisp ?? 0) * 0.5));
     const st = pt.steps;
     const sus = st ? (peak * st.to) / st.from : peak * pt.amp.s;
-    const relAt = Math.max(t + a + 0.02, end - pt.amp.r);
+    // D302: joined to the next: held to the crossfade, not released before it.
+    const relAt = Math.max(t + a + 0.02, end - (p.tie ? Math.min(pt.amp.r, p.tie / 2) : pt.amp.r));
     g.gain.setValueAtTime(0, t);
     if (p.legato && !pluck) g.gain.linearRampToValueAtTime(sus || peak * 0.7, t + 0.02);
     else {
@@ -1338,7 +1360,8 @@ export class Chip {
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
     const damp = tail && end + 0.5 < t + 6;
-    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.08);
+    // D302: the damper quicker (80 ms let a detached pluck ring into the next: no gap heard).
+    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.03);
     const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
     for (const l of lfos) halt(l, last + 0.1);
     for (const o of tuned) (o.start(t), halt(o, last));
