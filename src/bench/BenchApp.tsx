@@ -40,7 +40,7 @@ import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
 import { HeadphonesFold, useHeadphones } from "./Headphones.tsx";
-import { Chip, voicing } from "../touch/chip.ts";
+import { Chip, voicing, type Sounding } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
@@ -576,6 +576,7 @@ export function BenchApp() {
 
   /** PLAY (the pop-up, AGAIN); `now`: CONTINUE and NEXT, which start at once (no guard against a double tap). */
   const start = (now = false) => {
+    stopHearing();
     if (!now && performance.now() - shownAt.current < 350) return;
     const ch = ensureChip();
     wantHer();
@@ -696,13 +697,31 @@ export function BenchApp() {
   };
   /** D272, HEAR THE SUBJECT: the subject played as performed (its samples loaded first); returns when it starts, on the page's clock (s). */
   const [hearing, setHearing] = useState<string | null>(null);
+  // D301: what HEAR THE SUBJECT has scheduled, stopped by anything that starts or changes the sound (the owner:
+  // "it keeps on playing" when the round starts or another reading is chosen); `hearGen` drops a playback
+  // whose samples were still loading when it was superseded.
+  const hearSounds = useRef<Sounding[]>([]);
+  const hearGen = useRef(0);
+  const stopHearing = () => {
+    hearGen.current++;
+    const now = chip.current?.ctx.currentTime ?? 0;
+    for (const sd of hearSounds.current) sd.stop(now);
+    hearSounds.current = [];
+  };
   const playSubject = async (notes: Performed, v: number): Promise<number> => {
+    stopHearing();
+    const gen = hearGen.current;
     const ch = ensureChip();
     await ch.prepare(notes.map((n) => n.midi), notes.map((n) => n.midi));
+    if (gen !== hearGen.current) return performance.now() / 1000;
     const t0 = ch.ctx.currentTime + 0.15;
-    for (const n of notes) ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true });
+    for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true }));
     return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
   };
+  useEffect(() => {
+    if (!hearing) stopHearing();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hearing]);
   const events: ThumbEvents = {
     // D280: during the demonstration the game's thumbs play; the player's touches wait.
     down: (id, side, x, y, w, h, ts) => (watching ? undefined : (seen(), game.current?.down(id, { side, x, y, w, h }, ts))),
