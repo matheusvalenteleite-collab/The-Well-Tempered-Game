@@ -94,26 +94,48 @@ test("D299: the same touches through a 200 ms Bluetooth delay are judged exactly
   assert.ok(wired.g.results().right > 0.6 * wired.heads.length, `${wired.g.results().right} of ${wired.heads.length}`);
 });
 
-test("D299, D306: a whole run in BLUETOOTH MODE: every note of the player's on the schedule at its written time, touched or not; no touch sounds; a touched note cut as it is let go", () => {
+test("D299, D306: BLUETOOTH MODE: a live voice's notes on the schedule at their written times; a miss silences the voice; the next right touch sounds itself; a touched note cut as it is let go", () => {
   const r = run(0.2, true);
-  assert.equal(r.touchSounds.length, 0, "no touch made a sound");
   const mine = r.notes.filter((x) => x.p.lead);
+  const scheduled = (n: { on: number; midi: number }) => mine.find((x) => x.midi === n.midi && Math.abs(x.at - r.g.timeAt(n.on)) < 1e-9 && x.asked < x.at);
+  let onTime = 0;
+  let fromTouch = 0;
   for (const { n } of r.heads) {
-    const at = r.g.timeAt(n.on);
-    const s = mine.find((x) => x.midi === n.midi && Math.abs(x.at - at) < 1e-9);
-    assert.ok(s, `note at ${n.on} scheduled`);
-    assert.ok(s.asked < at, "ahead of its time");
-    // D306: a note touched is cut as the touch lets go (0.09 s after it, as heard), never before it has sounded; a missed one sounds out.
-    if (n.state === "miss") assert.equal(s.stopAt, undefined, `note at ${n.on} missed: never cut`);
-    else if (s.stopAt !== undefined) assert.ok(s.stopAt >= at + 0.05 - 1e-9 && s.stopAt < at + Math.max(0.6, r.g.timeAt(n.on + n.dur) - at), `note at ${n.on} cut at its release`);
+    const s = scheduled(n);
+    if (s) {
+      onTime++;
+      // A note touched is cut at its release, never before it has sounded a moment.
+      // (Or, silenced by a miss just before, it was cut and the touch sounded it itself.)
+      if (n.state !== "miss" && s.stopAt !== undefined && s.stopAt < r.g.timeAt(n.on) + 0.05 - 1e-9) assert.ok(r.touchSounds.some((x) => x.midi === n.midi && x.p.lead && x.at >= r.g.timeAt(n.on)), `note at ${n.on} cut at its release, or sounded by its touch`);
+    }
   }
-  assert.ok(r.g.notes.some((n) => n.state === "miss"), "some missed, and they sounded all the same");
-  const cut = r.heads.filter(({ n }) => n.state !== "miss" && mine.find((x) => x.midi === n.midi && Math.abs(x.at - r.g.timeAt(n.on)) < 1e-9)?.stopAt !== undefined);
-  assert.ok(cut.length > 0.5 * r.heads.filter(({ n }) => n.state !== "miss").length, `D306: most touched notes cut at their release (${cut.length})`);
+  fromTouch = r.touchSounds.filter((x) => x.p.lead).length;
+  assert.ok(onTime > 0.5 * r.heads.length, `most notes of a mostly right run on the schedule (${onTime} of ${r.heads.length})`);
+  assert.ok(fromTouch > 0, "after a miss, the touch that brings the voice back sounds itself");
+  for (const x of r.touchSounds) assert.equal(x.at, x.asked, "a touch's sound is at the touch");
+  // Every missed note scheduled was cut (it does not play on by itself).
+  for (const { n } of r.heads) {
+    const s = scheduled(n);
+    if (s && n.state === "miss") assert.notEqual(s.stopAt, undefined, `missed note at ${n.on} cut`);
+  }
   // Wired: the player's notes come only from the touches, at the touch.
   const w = run(0, false);
   assert.ok(w.touchSounds.length > 0 && w.touchSounds.every((x) => x.at === x.asked));
   assert.equal(w.notes.filter((x) => x.p.lead).length, w.touchSounds.filter((x) => x.p.lead).length);
+});
+
+test("D306: BLUETOOTH MODE, a player who touches nothing: the voice does not play by itself", () => {
+  const clock = { t: 0 };
+  const fc = fakeChip(clock, 0.2);
+  const g = new ProtoGame(fugueById("wtc1f02"), 0, 0, protoById("keys"), { bpm: 54, legato: false, easy: "timing", bt: true }, fc.chip);
+  const end = g.timeAt(g.end) + 1;
+  for (let t = 0; t < end; t += 1 / 60) {
+    clock.t = t;
+    if (g.step()) break;
+  }
+  const mine = fc.notes.filter((x) => x.p.lead);
+  const heard = mine.filter((x) => x.stopAt === undefined || x.stopAt > x.at + 0.06);
+  assert.ok(heard.length <= 2, `at most the first note or two sound (${heard.length} of ${g.notes.length})`);
 });
 
 test("D299: the retune after a run: half the steady lateness, at most 30 ms, only when steady and clear", () => {

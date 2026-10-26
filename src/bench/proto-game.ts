@@ -69,6 +69,8 @@ const HOLD_MAX = 8;
  * The window a little wider on both sides (the headphones' jitter).
  */
 export const BT_EARLY_MS = 20;
+/** D306: how far ahead (s) the player's own notes go on the schedule in BLUETOOTH MODE (the band's go further). */
+export const ARM_AHEAD_S = 0.15;
 export const BT_LATE_MS = 25;
 /** D299: the player's own note in BLUETOOTH MODE, scheduled ahead ("track:onset"). */
 interface Armed {
@@ -654,6 +656,15 @@ export class ProtoGame {
   /** D299: the player's notes put on the schedule ("track:onset"), and where each track's scheduling has reached. */
   private armed = new Map<string, Armed>();
   private armNext: number[] = [];
+  /**
+   * D306, BLUETOOTH MODE: whether each track's voice is live (the owner: "why the hell is player's voice
+   * playing by itself even if player doesn't do shit?"). Only a live voice's coming notes go on the
+   * schedule; a miss (or a wrong note) silences the voice and cuts its notes already scheduled; the next
+   * right touch sounds at once (a headphones' delay late) and makes the voice live again. Live at the start.
+   */
+  private live: boolean[] = [];
+  /** D306: a right touch on a note not on the schedule (the voice was silenced): it sounds, even in BLUETOOTH MODE. */
+  private voiced = false;
   /** D299: the pedals (D250) put on the schedule. */
   private armedPedals = new Set<number>();
   /**
@@ -670,10 +681,13 @@ export class ProtoGame {
     const count = this.f.voices.length;
     const envelope = piano ? "piano" : "synth";
     const len = (on: number, dur: number) => Math.max(0.03, this.timeAt(on + dur) - this.timeAt(on));
+    // D306: the player's notes a moment ahead only (a miss then leaves little scheduled to cut).
+    const near = Math.min(horizon, this.tickAt(ch.ctx.currentTime + ARM_AHEAD_S));
     this.tracks.forEach((t, k) => {
+      if (this.live[k] === false) return;
       const notes = t.notes;
       let i = this.armNext[k] ?? 0;
-      for (; i < notes.length && notes[i].on <= horizon; i++) {
+      for (; i < notes.length && notes[i].on <= near; i++) {
         const n = notes[i];
         if (n.ride || n.state !== "pending" || (i > 0 && notes[i - 1].on === n.on)) continue;
         const at = this.timeAt(n.on);
@@ -744,6 +758,16 @@ export class ProtoGame {
     const a = this.armed.get(`${k}:${on}`);
     return a && { state: a.state, sounds: a.sounds.length };
   }
+  /** D306: a track's voice silenced (BLUETOOTH MODE): its notes on the schedule and not touched cut now, nothing more scheduled till a right touch. */
+  private silence(k: number) {
+    this.live[k] = false;
+    const t = this.chip.ctx.currentTime;
+    for (const [key, a] of this.armed) {
+      if (a.k !== k || a.state === "hit") continue;
+      for (const sd of a.sounds) sd.stop(Math.max(t, a.at));
+      this.armed.delete(key);
+    }
+  }
   /** D299: records of notes done sounding dropped (nothing is faded: a note scheduled sounds out). */
   private watchArmed() {
     const t = this.chip.ctx.currentTime;
@@ -751,7 +775,7 @@ export class ProtoGame {
   }
   /** D299: a touch's sound: nothing in BLUETOOTH MODE (its note is already on the schedule). */
   private touchNote(...args: Parameters<Chip["note"]>): Sounding {
-    return this.bt ? SILENT() : this.chip.note(...args);
+    return this.bt && !this.voiced ? SILENT() : this.chip.note(...args);
   }
 
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
@@ -865,6 +889,7 @@ export class ProtoGame {
       }
       sweep(t.notes, this.now - grace, this.opt);
       missed += ons.size;
+      if (this.bt) this.silence(this.tracks.indexOf(t));
     }
     if (missed) {
       for (let s = 0; s < missed; s++) this.slip();
@@ -1591,6 +1616,12 @@ export class ProtoGame {
     // riders then shown as they sound). Below, every sound a touch would make is silent (touchNote).
     const armed = this.bt && v.ok ? this.armed.get(`${h.k}:${notes[i].on}`) : undefined;
     if (armed) (armed.state = "hit", (h.armed = armed));
+    // D306: a right touch on a silenced voice sounds itself and brings the voice back; a wrong one silences it.
+    if (this.bt) {
+      this.voiced = v.ok && !armed;
+      if (v.ok) this.live[h.k] = true;
+      else this.silence(h.k);
+    }
     if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
       h.sounds[0].glide?.(pitches[0]);
     } else {
@@ -1645,6 +1676,7 @@ export class ProtoGame {
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
+    this.voiced = false;
     // A touch on the screen (not a key) is the next note's reference.
     if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), this.remember(h.side, { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now });
     h.midi = pitches[0];
