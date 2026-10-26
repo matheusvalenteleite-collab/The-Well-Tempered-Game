@@ -13,7 +13,7 @@ import { ornamentMark } from "../touch/ornament-play.ts";
 import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paintPiano } from "../touch/paint-piano.ts";
-import { barStart, stepName, type TouchFugue } from "../touch/fugue.ts";
+import { barStart, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
@@ -929,8 +929,8 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     c.fillRect(s.x, 0, bw, h);
     c.fillStyle = t.barline;
     c.fillRect(n ? s.x : bw - 2, 0, 2, h);
-    // The dynamics along the foot, pp by the box to ff by the edge.
-    MARKS.forEach((m, j) => {
+    // The dynamics along the foot, pp by the box to ff by the edge (D296: only where touch dynamics are heard, D293).
+    if (g.touchDynamics) MARKS.forEach((m, j) => {
       const u = (j + 0.5) / MARKS.length;
       label(c, m, n ? s.x + u * bw : bw - u * bw, h - 9, t.muted, 6);
     });
@@ -949,13 +949,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {
-    // Only the Cs named at the edges, for bearings; no rungs to aim at (D181: the way matters, not the spot).
-    for (let st = Math.floor(rows.stepAt(h)) - 1; st <= rows.stepAt(0) + 1; st++) {
-      const y = Math.round(rows.yOf(st));
-      if (st % 7 !== 0 || y < 8 || y > h - 24) continue;
-      label(c, stepName(st), 4, y, t.muted, 6, "left");
-      label(c, stepName(st), w - 4, y, t.muted, 6, "right");
-    }
+    // D296: no pitch names on the bars (the bars are not a scale: the way matters, not the spot).
     const nx = coming(g);
     if (nx) {
       const n = g.notes[nx.i];

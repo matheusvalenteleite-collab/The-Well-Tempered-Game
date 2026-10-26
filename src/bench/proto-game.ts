@@ -993,15 +993,20 @@ export class ProtoGame {
     return 0.55;
   }
   /**
-   * D293: the loudness a touch gives is heard only where the run asks for it (the dynamics lesson, a
-   * reading's levels). Elsewhere the player's notes sound at the music's own level, wherever the thumb
+   * D293: the loudness a touch gives is heard only where the run asks for it (the dynamics lesson; D296: and a
+   * reading's level, on the subject notes it marks: heardAt). Elsewhere the player's notes sound at the music's own level, wherever the thumb
    * lands (the owner: "the big volume changes when playing correctly and wrongly … kill the flow").
    */
-  private get touchDynamics(): boolean {
-    return this.o.coach === "dynamics" || !!this.o.reading;
+  get touchDynamics(): boolean {
+    // D296: not every reading: play.html plays each fugue by a reading, which made all loudness the touch's.
+    return this.o.coach === "dynamics";
   }
   private heard(d: number): number {
     return this.touchDynamics ? d : NEUTRAL_D;
+  }
+  /** D296: the loudness heard for note `on` of track k: the touch's where the dynamics lesson or the reading (a subject note it sets a level for) asks. */
+  private heardAt(d: number, k: number, on: number): number {
+    return this.touchDynamics || (this.o.reading?.level && this.readingIndex().has(`${k}:${on}`)) ? d : NEUTRAL_D;
   }
 
   /** The note struck before note i (the top of its chord; D191: the riding notes passed over), in a voice. */
@@ -1526,7 +1531,7 @@ export class ProtoGame {
     const chord = chordOf(notes, i);
     // D293: the note sounds alike however it was struck: no duller for a note right only by its direction
     // (D239), no brighter in CON FUOCO, no octaves in ORGANO PLENO (D181; their points stay).
-    const base = dynamic(this.heard(d));
+    const base = dynamic(this.heardAt(d, h.k, notes[i].on));
     let expr: Play = { ...base, trill: this.trillNext, muffleable: true, lead: true, envelope: piano ? "piano" : "synth" };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
