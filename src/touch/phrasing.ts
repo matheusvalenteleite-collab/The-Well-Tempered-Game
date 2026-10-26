@@ -11,6 +11,33 @@
  * Pure: notes in, shapes out.
  */
 import type { OtherNote } from "./voice-mode.ts";
+import { preset } from "./sound.ts";
+
+/**
+ * D294: how the instrument is played, from the sound chosen (never from the player's touch): the
+ * recorded harpsichord and piano as a player of each would (the owner: "less robotic", after Wanda
+ * Landowska and Rosalyn Tureck); the synthesized sounds as before.
+ */
+export type Style = "plain" | "harpsichord" | "piano";
+export const styleOf = (soundId: string): Style => (soundId === "harpsichordSampled" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : "plain");
+
+/**
+ * D294, the numbers (seconds, shares of the written length, levels):
+ *   spread: a chord's notes (struck together in the others) one after another from the bass up, this
+ *     far apart (the harpsichordist's arpeggiando; on the piano 0);
+ *   lead: the chord's top note this much early (the pianist's "melody lead"; on the harpsichord 0);
+ *   agogic: the bar's first beat this much late (the harpsichord's accent is of time, not loudness);
+ *   jitter: the fixed unevenness, either way;
+ *   cap: no note more than this off its written time (the game's beat stays clear);
+ *   repeat, leap, long: the holds of a repeated note, a note before a leap of a fourth or more, a note of
+ *     a beat or longer; overlegato: a broken chord's notes (leaps the same way in and out) held into the
+ *     next, the harpsichordist's finger pedal;
+ *   levels: the share of the bar's and the phrase's level kept (a harpsichord has no touch dynamics).
+ */
+export const TOUCH: Record<Exclude<Style, "plain">, { spread: number; lead: number; agogic: number; jitter: number; cap: number; repeat: number; leap: number; long: number; overlegato: number; levels: number }> = {
+  harpsichord: { spread: 0.004, lead: 0, agogic: 0.008, jitter: 0.002, cap: 0.02, repeat: 0.72, leap: 0.8, long: 0.92, overlegato: 1.35, levels: 0.3 },
+  piano: { spread: 0, lead: 0.008, agogic: 0.005, jitter: 0.002, cap: 0.02, repeat: 0.75, leap: 0.85, long: 0.95, overlegato: 1, levels: 1 },
+};
 
 export interface Shape {
   level: number;
@@ -23,7 +50,80 @@ export interface Shape {
 }
 
 /** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). */
-export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>): Shape[] {
+export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>, style: Style = styleOf(preset().id)): Shape[] {
+  const plain = phrasePlain(notes, beat, inBar, subject);
+  if (style === "plain") return plain;
+  const T = TOUCH[style];
+  // Each voice's note before (the first of the onset before), for a broken chord's leap in.
+  const before = new Map<number, OtherNote>();
+  const lastOn = new Map<number, { on: number; n: OtherNote }>();
+  const prevOn = new Map<number, OtherNote>();
+  notes.forEach((n, i) => {
+    const l = lastOn.get(n.voice);
+    if (l && l.on < n.on) prevOn.set(n.voice, l.n);
+    if (!l || l.on < n.on) lastOn.set(n.voice, { on: n.on, n });
+    const p = prevOn.get(n.voice);
+    if (p) before.set(i, p);
+  });
+  // The notes struck together (the same onset), low to high: their place in the chord.
+  const chords = new Map<number, number[]>();
+  notes.forEach((n, i) => {
+    const c = chords.get(n.on);
+    if (c) c.push(i);
+    else chords.set(n.on, [i]);
+  });
+  const rank = new Map<number, { r: number; of: number }>();
+  for (const c of chords.values()) {
+    const voices = new Set(c.map((i) => notes[i].voice));
+    if (voices.size < 2) continue;
+    [...c].sort((a, b) => notes[a].midi - notes[b].midi).forEach((i, r) => rank.set(i, { r, of: c.length }));
+  }
+  const nexts = nextNotes(notes);
+  return plain.map((sh, i) => {
+    const n = notes[i];
+    const after = nexts.get(i);
+    let hold = 1;
+    if (after) {
+      const gap = after.on - (n.on + n.dur);
+      const into = before.get(i);
+      const out = after.step - n.step;
+      const inn = into ? n.step - into.step : 0;
+      if (gap <= 0 && after.midi === n.midi) hold = T.repeat;
+      else if (gap <= 0 && Math.abs(out) >= 2 && Math.abs(inn) >= 2 && Math.sign(out) === Math.sign(inn) && n.dur < beat && T.overlegato > 1) hold = T.overlegato;
+      else if (gap <= 0 && Math.abs(out) >= 3) hold = T.leap;
+      else if (n.dur >= beat) hold = T.long;
+    }
+    const h = Math.sin(n.on * 12.9898 + n.midi * 78.233 + n.voice * 37.719) * 43758.5453;
+    let nudge = ((h - Math.floor(h)) * 2 - 1) * T.jitter;
+    const c = rank.get(i);
+    if (c) nudge += c.r * T.spread - (c.r === c.of - 1 ? T.lead : 0);
+    if (inBar(n.on) === 0) nudge += T.agogic;
+    nudge = Math.max(-T.cap, Math.min(T.cap, nudge));
+    return { ...sh, level: 1 + (sh.level - 1) * T.levels, hold, nudge };
+  });
+}
+
+/** Each note's next note in its voice: the first of the next onset (D191: a chord's partner, struck with it, is not "the next note"). */
+function nextNotes(notes: readonly OtherNote[]): Map<number, OtherNote | undefined> {
+  const byVoice = new Map<number, number[]>();
+  for (let i = 0; i < notes.length; i++) {
+    const v = byVoice.get(notes[i].voice);
+    if (v) v.push(i);
+    else byVoice.set(notes[i].voice, [i]);
+  }
+  const next = new Map<number, OtherNote | undefined>();
+  for (const idx of byVoice.values()) {
+    let after: number | undefined;
+    for (let k = idx.length - 1; k >= 0; k--) {
+      if (k + 1 < idx.length && notes[idx[k + 1]].on > notes[idx[k]].on) after = idx[k + 1];
+      next.set(idx[k], after === undefined ? undefined : notes[after]);
+    }
+  }
+  return next;
+}
+
+/** D179: the synthesized sounds' phrasing (and the base of the others'). */
+function phrasePlain(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>): Shape[] {
   // Each voice's notes in order, to see the note after, and the voice's range around each note.
   // (D191: built by pushing; copying the list for every note made it O(n²).)
   const byVoice = new Map<number, number[]>();

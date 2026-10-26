@@ -150,7 +150,7 @@ test("D190: the sampled presets play every voice on their instrument", () => {
   for (const s of ORGAN_SAMPLED.slots!) assert.equal(PATCHES[s].sample, "organ");
   setPreset(ORGAN_SAMPLED);
   assert.deepEqual(sampledNow(), ["organ"]);
-  setPreset("pianoFm");
+  setPreset("analog");
   assert.deepEqual(sampledNow(), []);
 });
 
@@ -176,7 +176,7 @@ test("D292: the grand piano: layer 12 of the Salamander Grand, every minor third
   // A long fugue's plan fits a phone's budget (in mono at worst), and a computer keeps it in stereo.
   const f = fugueById("wtc2f22");
   const plan = planFor(inst, f.voices.flat().map((n) => n[2]), f.voices[0].map((n) => n[2]));
-  assert.deepEqual(plan.map((p) => p.set), ["grand"], "no key-up noises, no pedal");
+  assert.deepEqual(plan.map((p) => p.set), ["grand", "grandSoft"], "D294: the two layers; no key-up noises, no pedal");
   assert.ok(decodedBytes(plan) < BUDGET.computer);
   assert.equal(monoFor(plan, 48000, BUDGET.computer), false);
   assert.ok(decodedBytes(plan, 48000, true) < BUDGET.phone, `${decodedBytes(plan, 48000, true) / 1e6} MB`);

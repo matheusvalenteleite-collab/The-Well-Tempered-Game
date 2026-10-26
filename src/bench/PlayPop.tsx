@@ -27,10 +27,10 @@ export function popTitle(id: string): string {
 /** D292: now the five sounds the players have (sound.ts PRESETS), in their order. */
 export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["chip", "CLASSIC CHIP"],
-  ["chipRound", "ROUND CHIP"],
+  ["gameboy", "GAME BOY"],
   ["harpsichordSampled", "HARPSICHORD"],
   ["pianoSampled", "PIANO"],
-  ["pianoFm", "FM PIANO"],
+  ["analog", "ANALOG SYNTH"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

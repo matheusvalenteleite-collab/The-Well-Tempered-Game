@@ -8,7 +8,7 @@ const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
 
 test("D292: the friends' pop-up offers the five sounds, in the players' order", () => {
   assert.deepEqual(POP_SOUNDS.map(([id]) => id), PRESETS.map((p) => p.id));
-  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "ROUND CHIP", "HARPSICHORD", "PIANO", "FM PIANO"]);
+  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "ANALOG SYNTH"]);
 });
 
 test("D246: every piece has its own sound, a real preset; the player's choice for a piece wins", async () => {
@@ -25,7 +25,10 @@ test("D246: every piece has its own sound, a real preset; the player's choice fo
   assert.equal(soundFor("wtc1f22", {}, "bossa"), "chip", "D288");
   assert.equal(soundFor("wtc1f07", { wtc1f07: "clarinetTrio" }, "bossa"), "chip", "D288: a stored ensemble plays chip");
   assert.equal(soundFor("wtc2f22", { wtc2f22: "organSampled" }, "bossa"), "harpsichordSampled");
-  assert.equal(soundFor("wtc1f22", { wtc1f22: "pianoFm" }, "harpsichordSampled"), "pianoFm");
+  assert.equal(soundFor("wtc1f22", { wtc1f22: "analog" }, "harpsichordSampled"), "analog");
+  // D294: a stored choice of the two sounds replaced opens on their successors.
+  assert.equal(soundFor("wtc1f22", { wtc1f22: "pianoFm" }, "chip"), "analog");
+  assert.equal(soundFor("wtc1f22", { wtc1f22: "chipRound" }, "chip"), "gameboy");
   // D292: a stored choice of a withdrawn sound opens as one of the five.
   assert.equal(soundFor("wtc1f22", { wtc1f22: "bossa" }, "harpsichordSampled"), "chip");
   assert.equal(soundFor("nope", {}, "harpsichordSampled"), "harpsichordSampled");
