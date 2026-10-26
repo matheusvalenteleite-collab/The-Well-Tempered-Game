@@ -6,10 +6,9 @@ import { PRESETS } from "../src/touch/sound.ts";
 register("./tsx-hooks.mjs", import.meta.url);
 const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
 
-test("D240: the friends' pop-up offers the harpsichord, four ensembles and six console sounds, every one a preset", () => {
-  assert.equal(POP_SOUNDS.length, 11);
-  for (const [id] of POP_SOUNDS) assert.ok(PRESETS.some((p) => p.id === id), id);
-  assert.equal(POP_SOUNDS.filter(([id]) => id.startsWith("chip")).length, 6);
+test("D292: the friends' pop-up offers the five sounds, in the players' order", () => {
+  assert.deepEqual(POP_SOUNDS.map(([id]) => id), PRESETS.map((p) => p.id));
+  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "ROUND CHIP", "HARPSICHORD", "PIANO", "FM PIANO"]);
 });
 
 test("D246: every piece has its own sound, a real preset; the player's choice for a piece wins", async () => {
@@ -26,23 +25,25 @@ test("D246: every piece has its own sound, a real preset; the player's choice fo
   assert.equal(soundFor("wtc1f22", {}, "bossa"), "chip", "D288");
   assert.equal(soundFor("wtc1f07", { wtc1f07: "clarinetTrio" }, "bossa"), "chip", "D288: a stored ensemble plays chip");
   assert.equal(soundFor("wtc2f22", { wtc2f22: "organSampled" }, "bossa"), "harpsichordSampled");
-  assert.equal(soundFor("wtc1f22", { wtc1f22: "bossa" }, "harpsichordSampled"), "bossa");
+  assert.equal(soundFor("wtc1f22", { wtc1f22: "pianoFm" }, "harpsichordSampled"), "pianoFm");
+  // D292: a stored choice of a withdrawn sound opens as one of the five.
+  assert.equal(soundFor("wtc1f22", { wtc1f22: "bossa" }, "harpsichordSampled"), "chip");
   assert.equal(soundFor("nope", {}, "harpsichordSampled"), "harpsichordSampled");
 });
 
 test("D246: the pop-up's row holds the piece's own sound, marked", async () => {
   const { popSounds } = await import("../src/bench/PlayPop.tsx");
-  // A piece whose own sound is not among the eleven: first, marked (D249: no longer the organ).
-  const strings = popSounds("wtc1p04");
-  assert.deepEqual(strings[0], ["strings", "STRINGS", true]);
-  assert.equal(strings.length, 12);
-  // D288: a fugue's own sound is classic chip (not among the eleven): first, marked.
+  // D292: every piece's own sound is among the five: the row is always the five, the piece's own marked.
+  const p4 = popSounds("wtc1p04");
+  assert.equal(p4.length, 5);
+  assert.deepEqual(p4.filter(([, , own]) => own).map(([id]) => id), ["chip"]);
+  // D288: a fugue's own sound is classic chip: marked.
   const antico = popSounds("wtc1f22");
-  assert.equal(antico.length, 12);
+  assert.equal(antico.length, 5);
   assert.equal(antico[0][0], "chip");
   assert.deepEqual(antico.filter(([, , own]) => own).map(([id]) => id), ["chip"]);
   assert.ok(antico.every(([id]) => id !== "organSampled"));
   const harp = popSounds("wtc1p01");
-  assert.equal(harp.length, 11);
+  assert.equal(harp.length, 5);
   assert.deepEqual(harp.filter(([, , own]) => own).map(([id]) => id), ["harpsichordSampled"]);
 });

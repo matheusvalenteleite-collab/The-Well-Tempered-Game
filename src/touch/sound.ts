@@ -5,6 +5,7 @@
  * is synthesized (oscillators, filters, envelopes, a little drive, vowel formants); D190 adds two
  * recorded instruments (sampled.ts), whose patches keep a synthesized sound for any note not loaded yet.
  * A patch is played by chip.ts; the player's own voice takes its patch, shaped by the touch.
+ * D292: the players now choose among five sounds only (PRESETS); the other patches are kept for later.
  */
 import type { SampledId } from "./sampled.ts";
 
@@ -40,6 +41,14 @@ export const SHAPES = {
   fmBrass: (x: number) => Math.sin(TAU * x + 1.6 * Math.sin(TAU * x)),
   /** An FM bell / electric piano: a 1:7 modulator (partials 1, 6, 8, 13, 15): glassy. */
   fmBell: (x: number) => Math.sin(TAU * x + 1.3 * Math.sin(7 * TAU * x)),
+  /**
+   * D292: an FM piano's string: a 1:1 modulator (index 1.3) with a little of the octave (0.35), so the
+   * low harmonics a struck string has (1 to about 6), falling smoothly; the patch's filter closes on it
+   * as a piano's tone darkens while it dies away.
+   */
+  fmPiano: (x: number) => Math.sin(TAU * x + 1.3 * Math.sin(TAU * x) + 0.35 * Math.sin(2 * TAU * x)),
+  /** D292: the FM piano's bass string: a deeper 1:1 index (2.1), so its overtones reach a phone's speaker (D291). */
+  fmPianoBass: (x: number) => Math.sin(TAU * x + 2.1 * Math.sin(TAU * x) + 0.4 * Math.sin(2 * TAU * x)),
 } satisfies Record<string, (x: number) => number>;
 export type ShapedWave = keyof typeof SHAPES;
 export const isShaped = (w: Wave): w is ShapedWave => w in SHAPES;
@@ -240,6 +249,24 @@ export const PATCHES = {
   pedalBourdon: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: -1, gain: 0.45 }, { wave: "organ", gain: 0.25 }], amp: { a: 0.03, d: 0.1, s: 1, r: 0.08 }, level: 0.4 }),
   // D266: the ensembles' recorded instruments (sampled.ts SAMPLED: looped, held while the thumb holds);
   // the synthesized sound stands in until a recording has loaded.
+  // D292, ROUND CHIP: the classic chip's family made softer and rounder: the same pulses and triangle,
+  // each through a gentle lowpass (a few harmonics, not dozens), a softer attack, a slow vibrato on the
+  // top; each voice keeps its own wave (a square, a Game Boy wave sample, a 25% and a 12% pulse) so the
+  // lines stay apart. The bass a triangle with a filtered square in it: the triangle the body on a
+  // computer, the square's overtones (up to about 1.6 kHz) its pitch on a phone's speaker (D291).
+  rcLead: P({ osc: [{ wave: "pulse50" }], filter: { freq: 5, q: 0.5, env: 1.4, envDecay: 0.08 }, amp: { a: 0.008, d: 0.5, s: 0.75, r: 0.05 }, vib: { depth: 9, rate: 5.4, delay: 0.3 }, level: 0.46 }),
+  rcHarm: P({ osc: [{ wave: "gbRamp" }], filter: { freq: 5, q: 0.5, env: 1.3, envDecay: 0.08 }, amp: { a: 0.008, d: 0.5, s: 0.8, r: 0.05 }, vib: { depth: 6, rate: 5, delay: 0.4 }, level: 0.34 }),
+  rcMid: P({ osc: [{ wave: "pulse25" }], filter: { freq: 4, q: 0.5, env: 1.4, envDecay: 0.08 }, amp: { a: 0.007, d: 0.5, s: 0.72, r: 0.05 }, level: 0.48 }),
+  rcTenor: P({ osc: [{ wave: "pulse12" }], filter: { freq: 3.5, q: 0.5, env: 1.3, envDecay: 0.08 }, amp: { a: 0.007, d: 0.5, s: 0.72, r: 0.05 }, level: 0.6 }),
+  rcBass: P({ osc: [{ wave: "triangle", gain: 0.4 }, { wave: "pulse50", gain: 0.8 }], filter: { freq: 1600, hz: true, q: 0.5 }, amp: { a: 0.005, d: 0.3, s: 0.9, r: 0.04 }, level: 0.42 }),
+  // D292, PIANO (FM): a struck string from FM waves (fmPiano above): a quick hammer, a decay longer in
+  // the bass, the tone darkening as it dies (the filter closing), a sine 3 cents off for the beating of
+  // a piano's unison strings, a touch of the FM bell's high partials for the hammer's ring.
+  pianoFm: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }, { wave: "fmBell", octave: 1, gain: 0.06 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.3 }),
+  pianoFmBass: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, level: 0.36 }),
+  // D292, PIANO (SAMPLED): the Salamander Grand (sampled.ts); the FM piano stands in for a note until its recording has loaded.
+  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.3, sample: "piano" }),
+  pianoBassSampled: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, level: 0.36, sample: "piano" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -263,67 +290,83 @@ export interface Preset {
   room?: number;
 }
 
-export const FAMILIES: { name: string; presets: Preset[] }[] = [
-  {
-    name: "ACOUSTIC",
-    presets: [
-      { id: "strings", name: "STRINGS", slots: ["violin", "violin2", "viola", "viola", "cello"], drums: "chamber", room: 0.3 },
-      { id: "baroque", name: "BAROQUE BAND · SYNTH", slots: ["oboe", "violin", "harpsichord", "harpsichord", "cello"], drums: "chamber", room: 0.28 },
-      { id: "winds", name: "WINDS", slots: ["flute", "oboe", "clarinet", "clarinet", "bassoon"], drums: "chamber", room: 0.3 },
-      { id: "consort", name: "CONSORT", slots: ["recorder", "lute", "viol", "viol", "harpsiBass"], drums: "chamber", room: 0.28 },
-      // D190: recorded, every voice on the one instrument (as Bach played his fugues).
-      { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.24 },
-      // D249: the sampled organ withdrawn until the new organs (ORGAN_SAMPLED, below, kept for them).
-      // D219: the player's voice over Kimiko Ishizaka's piano (WITH KIMIKO ISHIZAKA's default): a breathy,
-      // sustained baroque flute on top, a soft stopped organ flute below: no hammer, so heard apart from her.
-      { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 },
-    ],
-  },
-  {
-    name: "BANDS",
-    presets: [
-      { id: "bossa", name: "BOSSA NOVA", slots: ["softFlute", "rhodes", "nylonGuitar", "nylonGuitar", "softBass"], groove: "bossa", room: 0.3 },
-    ],
-  },
-  {
-    name: "CHIP",
-    presets: [
-      // D209: the ten consoles. The classic sound (the game's own: 2A03-like pulses of three widths over a triangle), then
-      // nine after classic soundtracks, each named for its world, not its trademark. Slots top to bottom; with three
-      // voices slots 0, 2, 4 play, with four 0, 1, 3, 4, so those sets differ within themselves.
-      { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22 },
-      { id: "chipPocket", name: "POCKET MONSTERS · GB", slots: ["pkLead", "pkHarm", "pkThin", "pkThin", "pkWave"], drums: "chipHalf", kit: "chip", room: 0.18 },
-      { id: "chipGold", name: "GOLD & SILVER · GBC", slots: ["gsLead", "gsHarm", "gsEcho", "gsWave", "gsBass"], drums: "chipHalf", kit: "chip", room: 0.2 },
-      { id: "chipPlumber", name: "PLUMBER BROS · NES", slots: ["smbLead", "smbHarm", "smbThin", "smbThin", "triBass"], drums: "chipBounce", kit: "chip", room: 0.2 },
-      { id: "chipHyrule", name: "HYRULE QUEST · NES", slots: ["zLead", "zHarm", "zThin", "zThin", "triBass"], drums: "chipMarch", kit: "chip", room: 0.22 },
-      { id: "chipBomber", name: "BLUE BOMBER · NES", slots: ["mmLead", "mmHarm", "mmChug", "mmChug", "triBass"], drums: "chipDrive", kit: "chip", room: 0.2 },
-      { id: "chipVampire", name: "VAMPIRE KILLER · VRC6", slots: ["cvLead", "cvSaw", "cvSaw", "cvThin", "cvBass"], drums: "chipArcade", kit: "chip", room: 0.24 },
-      { id: "chipDino", name: "DINOSAUR LAND · SNES", slots: ["smwLead", "smwMarimba", "smwKeys", "smwStrings", "smwBass"], drums: "chipBounce", kit: "chip", room: 0.32 },
-      { id: "chipLight", name: "LIGHT WORLD · SNES", slots: ["lttpTrumpet", "lttpStrings", "lttpHarp", "lttpHorn", "lttpBass"], drums: "chipMarch", kit: "chip", room: 0.34 },
-      { id: "chipBlur", name: "BLUE BLUR · MEGA DRIVE", slots: ["mdLead", "mdBell", "mdClav", "mdClav", "mdBass"], drums: "chipFunk", kit: "chip", room: 0.24 },
-    ],
-  },
-  {
-    name: "MOOG",
-    presets: [
-      // D209: Switched-On Bach had no drums, so none here.
-      { id: "carlos", name: "WENDY CARLOS", slots: ["carlosLead", "carlosReed", "carlosPluck", "carlosWood", "carlosBass"], room: 0.26 },
-    ],
-  },
+/**
+ * D292: the players' sounds, five and no more (the owner: "let's restrict sound options to just 4: chip
+ * basic, another chip possibility (more well rounded than first which is crisper?), harpsichord, piano
+ * (… let's try both options and thus have 5 sound options)"): the classic chip, a rounder chip, the
+ * recorded harpsichord, the recorded grand piano and an FM piano. In this order on the pop-up and in ⚙
+ * SOUND. The ensembles (STRINGS, BAROQUE, WINDS, CONSORT, BOSSA NOVA), the nine consoles after classic
+ * soundtracks and WENDY CARLOS are withdrawn (their patches kept above); a stored choice of one opens
+ * as RETIRED says.
+ */
+export const PRESETS: Preset[] = [
+  // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
+  { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22 },
+  // D292: softer and rounder; no drums (DRUMS stays the classic chip's).
+  { id: "chipRound", name: "ROUND CHIP", slots: ["rcLead", "rcHarm", "rcMid", "rcTenor", "rcBass"], room: 0.26 },
+  // D190: recorded, every voice on the one instrument (as Bach played his fugues).
+  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.24 },
+  // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it.
+  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoBassSampled"], room: 0.22 },
+  // D292: synthesized, FM.
+  { id: "pianoFm", name: "PIANO (FM)", slots: ["pianoFm", "pianoFm", "pianoFm", "pianoFm", "pianoFmBass"], room: 0.24 },
 ];
 
 /**
- * D249: the sampled organ, out of the players' choices (FAMILIES, PRESETS) until the new organs come
+ * D219: the player's voice over Kimiko Ishizaka's piano (WITH KIMIKO ISHIZAKA's default): a breathy,
+ * sustained baroque flute on top, a soft stopped organ flute below: no hammer, so heard apart from her.
+ * D292: out of the players' choices, kept for that mode alone (presetById still finds it).
+ */
+export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 };
+
+/**
+ * D249: the sampled organ, out of the players' choices (PRESETS) until the new organs come
  * (ROADMAP Batch 2); set only as a preset object (setPreset(ORGAN_SAMPLED)), by the tests.
  */
 export const ORGAN_SAMPLED: Preset = { id: "organSampled", name: "ORGAN (SAMPLED)", slots: ["organSampled", "organSampled", "organSampled", "organSampled", "organSampled"], room: 0.24 };
 
-export const PRESETS = FAMILIES.flatMap((f) => f.presets);
 /** D249: presets withdrawn, and what a stored choice of one opens as instead. */
 /** D288: the sampled ensembles withdrawn (muddled on a phone speaker): a choice of one plays classic chip. */
-export const RETIRED: Readonly<Record<string, string>> = { organSampled: "harpsichordSampled", stringsReal: "chip", baroqueBand: "chip", reedTrio: "chip", windTrio: "chip", clarinetTrio: "chip", windsReal: "chip", galantTrio: "chip" };
-/** A preset by its id (a withdrawn one's stand-in, D249; else CLASSIC CHIP). */
-export const presetById = (id: string) => PRESETS.find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS.find((p) => p.id === "chip")!;
+/** D292: every sound but the five withdrawn: the harpsichord-like to the recorded harpsichord, the rest to classic chip. */
+export const RETIRED: Readonly<Record<string, string>> = {
+  organSampled: "harpsichordSampled",
+  harpsichord: "harpsichordSampled",
+  stringsReal: "chip",
+  baroqueBand: "chip",
+  reedTrio: "chip",
+  windTrio: "chip",
+  clarinetTrio: "chip",
+  windsReal: "chip",
+  galantTrio: "chip",
+  strings: "chip",
+  baroque: "chip",
+  winds: "chip",
+  consort: "chip",
+  bossa: "chip",
+  carlos: "chip",
+  chipPocket: "chip",
+  chipGold: "chip",
+  chipPlumber: "chip",
+  chipHyrule: "chip",
+  chipBomber: "chip",
+  chipVampire: "chip",
+  chipDino: "chip",
+  chipLight: "chip",
+  chipBlur: "chip",
+};
+/** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
+export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";
+/** The credit a sound owes, if any. */
+export const creditFor = (id: string): string | null => (presetById(id).id === "pianoSampled" ? PIANO_CREDIT : null);
+/** A sound the players may choose (D292: one of the five). */
+export const offered = (id: string) => PRESETS.some((p) => p.id === id);
+/** D292: a stored choice as one of the five: a withdrawn one's stand-in (RETIRED), anything else not offered (TRAVERSO, an unknown id) CLASSIC CHIP. */
+export function playerSound(id: string): string {
+  const r = RETIRED[id] ?? id;
+  return offered(r) ? r : "chip";
+}
+/** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
+export const presetById = (id: string) => [...PRESETS, TRAVERSO].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {
@@ -332,7 +375,7 @@ export function slotOf(voice: number, count: number): number {
 }
 
 /** The ensemble playing now (set from the settings), and whether CHIP's and MOOG's drums play. */
-let current: Preset = presetById("bossa");
+let current: Preset = presetById("chip");
 let drumsOn = true;
 /** By its id, or a preset itself. */
 export function setPreset(id: string | Preset) {

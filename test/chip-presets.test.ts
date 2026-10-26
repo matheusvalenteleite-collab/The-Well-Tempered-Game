@@ -1,44 +1,78 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FAMILIES, grooveHits, harmonicsOf, PATCHES, patchFor, presetById, setPreset, SHAPES, slotOf } from "../src/touch/sound.ts";
+import { grooveHits, harmonicsOf, PATCHES, patchFor, playerSound, presetById, PRESETS, RETIRED, setPreset, SHAPES, slotOf, TRAVERSO } from "../src/touch/sound.ts";
+import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
-test("D209: the CHIP family has ten consoles, distinct ids, five slots each on existing patches (or the classic sound)", () => {
-  const chip = FAMILIES.find((f) => f.name === "CHIP")!;
-  assert.equal(chip.presets.length, 10);
-  assert.equal(new Set(chip.presets.map((p) => p.id)).size, 10);
-  for (const old of ["chip2", "chip3", "chip4", "chip5"]) assert.ok(!chip.presets.some((p) => p.id === old), old);
-  for (const p of chip.presets) {
-    assert.ok(p.name.length <= 22, p.name);
-    assert.equal(p.kit, "chip", p.id);
-    assert.ok(p.drums, p.id);
-    if (p.slots === null) continue;
-    assert.equal(p.slots.length, 5, p.id);
-    for (const s of p.slots) assert.ok(PATCHES[s], `${p.id}: ${s}`);
-    // With three voices (slots 0, 2, 4) and four (0, 1, 3, 4) every voice has its own instrument.
-    for (const n of [3, 4]) {
-      const ids = Array.from({ length: n }, (_, v) => p.slots![slotOf(v, n)]);
-      assert.equal(new Set(ids).size, n, `${p.id} with ${n} voices`);
-    }
-    // Light on the CPU: at most two oscillators a patch.
-    for (const s of p.slots) assert.ok(PATCHES[s].osc.length <= 2, s);
+test("D292: the players' sounds are exactly five, in order; every piece opens on one of them", () => {
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "chipRound", "harpsichordSampled", "pianoSampled", "pianoFm"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "ROUND CHIP", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "PIANO (FM)"]);
+  const ids = PRESETS.map((p) => p.id);
+  for (const [piece, id] of Object.entries(PIECE_SOUND)) assert.ok(ids.includes(id), `${piece}: ${id}`);
+  // Every withdrawn sound (and the ensembles of D288) opens as one of the five; TRAVERSO only for WITH KIMIKO.
+  for (const gone of ["strings", "baroque", "winds", "consort", "bossa", "carlos", "chipPocket", "chipGold", "chipPlumber", "chipHyrule", "chipBomber", "chipVampire", "chipDino", "chipLight", "chipBlur", "stringsReal", "chip3"]) {
+    assert.equal(presetById(gone).id, "chip", gone);
+    assert.equal(playerSound(gone), "chip", gone);
   }
-  assert.equal(chip.presets.filter((p) => p.slots === null).length, 1, "the classic sound kept once");
+  for (const id of Object.values(RETIRED)) assert.ok(ids.includes(id), id);
+  assert.equal(presetById("organSampled").id, "harpsichordSampled");
+  assert.equal(presetById("traverso"), TRAVERSO, "WITH KIMIKO's voice kept");
+  assert.equal(playerSound("traverso"), "chip", "but no player's choice");
+  assert.equal(soundFor("wtc1p04", { wtc1p04: "traverso" }, "chip"), "chip");
+  assert.equal(soundFor("wtc1p04", { wtc1p04: "pianoFm" }, "chip"), "pianoFm");
+  for (const id of ids) assert.equal(playerSound(id), id);
+  // Every slot an existing patch; no drums but the classic chip's.
+  for (const p of PRESETS) {
+    if (p.slots) for (const s of p.slots) assert.ok(PATCHES[s], `${p.id}: ${s}`);
+    assert.equal(!!p.drums, p.id === "chip", p.id);
+    assert.equal(p.groove, undefined, p.id);
+  }
   setPreset("chip");
-  assert.equal(patchFor(0, 3), null);
-  setPreset("chipPocket");
-  assert.equal(patchFor(0, 3), PATCHES.pkLead);
-  assert.equal(presetById("chip3").id, "chip", "an old saved id falls back to the classic sound");
-  setPreset("bossa");
+  assert.equal(patchFor(0, 3), null, "the classic sound is chip.ts's own");
 });
 
-test("D209: Wendy Carlos: five distinct Moog voices, no drums (Switched-On Bach had none)", () => {
-  const carlos = presetById("carlos");
-  assert.equal(carlos.id, "carlos");
-  assert.equal(new Set(carlos.slots).size, 5);
-  assert.equal(carlos.drums, undefined);
-  assert.equal(carlos.groove, undefined);
-  assert.ok(carlos.slots!.some((s) => PATCHES[s].scoop), "a scoop somewhere");
-  assert.ok(carlos.slots!.some((s) => (PATCHES[s].filter?.q ?? 0) >= 8), "a resonant filter's boing");
+test("D292: ROUND CHIP: softer than the classic (each wave lowpassed, a gentler attack), every voice its own wave, a bass a phone can hear", () => {
+  const p = presetById("chipRound");
+  const slots = p.slots!;
+  for (const n of [2, 3, 4, 5]) {
+    const waves = Array.from({ length: n }, (_, v) => PATCHES[slots[slotOf(v, n)]].osc[0].wave);
+    assert.equal(new Set(waves).size, n, `${n} voices, ${waves}`);
+  }
+  for (const s of slots) {
+    const pt = PATCHES[s];
+    assert.ok(pt.filter && pt.filter.type === undefined, `${s}: lowpassed`);
+    assert.ok(pt.amp.a >= 0.005, `${s}: a softer attack than the classic's 2 ms`);
+    assert.ok(pt.amp.s > 0, `${s}: held, as the classic`);
+    assert.ok(pt.osc.length <= 2, `${s}: light on the CPU`);
+    assert.equal(pt.sample, undefined);
+  }
+  // The bass: a pulse in it, its overtones let through above 1 kHz (a phone's speaker gives almost nothing below 500 Hz, D291).
+  const bass = PATCHES[slots[4]];
+  assert.ok(bass.osc.some((o) => o.wave.startsWith("pulse") && (o.gain ?? 1) >= 0.4));
+  assert.ok(bass.filter!.hz && bass.filter!.freq >= 1000);
+});
+
+test("D292: the pianos: struck (dying away, never held), the bass with more overtones, the FM waves' partials", () => {
+  for (const id of ["pianoFm", "pianoSampled"]) {
+    const p = presetById(id);
+    assert.equal(p.id, id);
+    for (const s of p.slots!) {
+      const pt = PATCHES[s];
+      assert.equal(pt.amp.s, 0, `${s}: a struck note dies away`);
+      assert.ok(pt.amp.a <= 0.003 && pt.amp.d >= 1, `${s}`);
+      assert.ok((pt.filter?.env ?? 1) > 1.5, `${s}: brighter at the hammer, darkening`);
+    }
+  }
+  const amps = (f: (x: number) => number) => {
+    const { real, imag } = harmonicsOf(f, 16);
+    return Array.from({ length: 16 }, (_, k) => Math.hypot(real[k], imag[k]));
+  };
+  // The string: its fundamental strongest, harmonics 2 to 4 present.
+  const s = amps(SHAPES.fmPiano);
+  assert.ok(s[1] > s[2] && s[2] > 0.1 && s[3] > 0.05 && s[4] > 0.02);
+  // The bass string: more of its sound above the fundamental (what a phone's speaker plays, D291).
+  const b = amps(SHAPES.fmPianoBass);
+  const upper = (a: number[]) => a.slice(3).reduce((x, y) => x + y * y, 0) / a.reduce((x, y) => x + y * y, 0);
+  assert.ok(upper(b) > 2 * upper(s), `${upper(b)} against ${upper(s)}`);
 });
 
 test("D209: the consoles' wave shapes: one cycle each, within -1..1, and their harmonics", () => {

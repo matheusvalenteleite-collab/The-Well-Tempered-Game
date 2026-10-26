@@ -472,12 +472,12 @@ test("D207, HIGHWAY: tapping each note's lane is right in DIRECTION; against the
 
 test("the ensembles (D208: the disliked ones withdrawn); every preset gives each voice an instrument; the bands keep a beat", () => {
   for (const gone of ["rock", "jazz", "swingle", "moog1", "moog2", "moog3", "moog4"]) assert.ok(!PRESETS.some((p) => p.id === gone), gone);
-  for (const kept of ["harpsichordSampled", "strings", "baroque", "winds", "consort", "bossa", "carlos"]) assert.ok(PRESETS.some((p) => p.id === kept), kept);
+  for (const kept of ["chip", "chipRound", "harpsichordSampled", "pianoSampled", "pianoFm"]) assert.ok(PRESETS.some((p) => p.id === kept), kept);
   assert.deepEqual([3, 4, 5].map((n) => Array.from({ length: n }, (_, v) => slotOf(v, n))), [[0, 2, 4], [0, 1, 3, 4], [0, 1, 2, 3, 4]]);
-  assert.ok(patchFor(0, 3), "bossa nova");
+  setPreset("pianoFm");
+  assert.ok(patchFor(0, 3), "the FM piano");
   setPreset("chip");
   assert.equal(patchFor(0, 3), null);
-  setPreset("bossa");
   for (const gr of ["rock", "jazz", "bossa", "brushes"] as const) assert.ok([0, 1, 2, 3].flatMap((b) => grooveHits(gr, b, 0, 4, false)).length >= 4, gr);
 });
 
