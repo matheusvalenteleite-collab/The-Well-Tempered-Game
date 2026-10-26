@@ -3,12 +3,11 @@ import assert from "node:assert/strict";
 import { grooveHits, harmonicsOf, PATCHES, patchFor, playerSound, presetById, PRESETS, RETIRED, setPreset, SHAPES, slotOf, TRAVERSO } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
-test("D292, D294, D297, D302: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the twelve new presets, in order; every piece opens on one of the five", () => {
-  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "forest64", "party64", "vocalSynth", "soloVoices", "modular", "tomita"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "FOREST 64", "PARTY 64", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
-  // D302: TEMPLE 64 and AGENT 64 remade: a stored choice of either opens on its successor.
-  assert.equal(playerSound("temple64"), "forest64");
-  assert.equal(playerSound("agent64"), "party64");
+test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
+  // D302: TEMPLE 64 and AGENT 64 remade; D304: their successors withdrawn too: a stored choice of any opens on NOCTURNE 32-BIT.
+  for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "nocturne32", gone);
   const ids = PRESETS.map((p) => p.id);
   for (const [piece, id] of Object.entries(PIECE_SOUND)) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
   // D294: the two sounds replaced (and the withdrawn ones they grew from) open on their successors.

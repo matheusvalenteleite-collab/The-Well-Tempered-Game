@@ -14,8 +14,8 @@ import { styleOf } from "../src/touch/phrasing.ts";
 import { fugueById, PIECES } from "../src/touch/fugue.ts";
 
 const ctxOf = installFakeAudio(0, true);
-// D302: CHAMBER ORGAN remade as PIPE ORGAN (its id kept), TEMPLE 64 and AGENT 64 as FOREST 64 and PARTY 64, two singing voices added.
-const NEW = ["super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "forest64", "party64", "vocalSynth", "soloVoices", "modular", "tomita"];
+// D302: CHAMBER ORGAN remade as PIPE ORGAN (its id kept), TEMPLE 64 and AGENT 64 as FOREST 64 and PARTY 64, two singing voices added; D304: FOREST 64 and PARTY 64 withdrawn.
+const NEW = ["super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita"];
 /** The presets judged by the clarity rules here (every one but the niche picks bends none of them). */
 const ALL = [...NEW, "analog"];
 
@@ -23,7 +23,7 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   assert.equal(presetById("analog").name, "SWITCHED-ON");
   assert.equal(presetById("carlos").id, "analog");
   assert.deepEqual(PRESETS.slice(5).map((p) => p.id), NEW);
-  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "FOREST 64", "PARTY 64", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
+  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
   for (const id of NEW) {
     assert.ok(!Object.values(PIECE_SOUND).includes(id), id);
     assert.equal(styleOf(id), "plain");
@@ -120,7 +120,7 @@ test("D297: the period sets: their folders, mono, baked loops for the loopless r
 });
 
 test("D297: every piece's recordings for a period preset fit a phone's budget (all its instruments together)", () => {
-  for (const id of ["super16", "nocturne32", "tracker", "chamberOrgan", "forest64", "party64", "soloVoices"]) {
+  for (const id of ["super16", "nocturne32", "tracker", "chamberOrgan", "soloVoices"]) {
     setPreset(id);
     let worst = 0;
     for (const p of PIECES) {
@@ -234,13 +234,14 @@ test("D297: SID 64: each voice its own waveform and motion; vibrato on the top o
   assert.ok(bass.filter!.hz && bass.filter!.freq >= 1200 && bass.filter!.q! >= 2, "a resonant filter, its body kept for phones");
 });
 
-test("D302: PIPE ORGAN: the recorded plenum and pedal, synthesized flutes and reeds between, ranks beating, a chiff, no tremulant, a large church", () => {
+test("D302, D304: PIPE ORGAN: a sweet flute, a Principal, the Trompete over the recorded pedal, ranks beating, a chiff, no tremulant, a church", () => {
   const pr = presetById("chamberOrgan");
   assert.equal(pr.name, "PIPE ORGAN");
-  assert.deepEqual(pr.slots, ["orgPleno", "orgKrumm", "orgFlutes", "orgTrompete", "orgPedal"]);
-  assert.equal(PATCHES.orgPleno.sample, "organPleno");
+  assert.deepEqual(pr.slots, ["orgFlute", "orgKrumm", "orgPrincipal", "orgTrompete", "orgPedal"]);
   assert.equal(PATCHES.orgPedal.sample, "organPedal");
-  assert.equal(SAMPLED.organPleno.set, "manualOrg");
+  // The flute nearly a sine (its octave and twelfth soft); the trumpet a solo reed, bright, quick.
+  assert.ok(PATCHES.orgFlute.osc.slice(1).every((o) => (o.gain ?? 1) <= 0.12) && PATCHES.orgFlute.chiff!.level <= 0.35);
+  assert.ok(PATCHES.orgTrompete.osc.every((o) => o.wave === "stopTrompete") && PATCHES.orgTrompete.filter!.freq >= 4500 && PATCHES.orgTrompete.amp.a <= 0.012);
   assert.equal(SAMPLED.organPedal.set, "pedalOrg");
   assert.equal(folderOf("manualOrg"), "pipeOrgan");
   assert.equal(folderOf("pedalOrg"), "pipePedal");
@@ -252,29 +253,29 @@ test("D302: PIPE ORGAN: the recorded plenum and pedal, synthesized flutes and re
     const pt = PATCHES[s];
     assert.equal(pt.vib, undefined, `${s}: no tremulant`);
     assert.ok(pt.amp.s === 1, s);
-    assert.ok(pt.send! >= 0.1 && pt.send! <= 0.3, s);
+    assert.ok(pt.send! >= 0.1 && pt.send! <= 0.15, s);
     if (pt.sample) continue;
     // The synthesized registrations: a chiff, and ranks a cent or two apart (their beating).
     assert.ok(pt.chiff && pt.chiff.time >= 0.012 && pt.chiff.time <= 0.04, s);
     assert.ok(pt.osc.length >= 2 && pt.osc.some((o) => Math.abs(o.detune ?? 0) >= 1 && Math.abs(o.detune ?? 0) <= 3), s);
     assert.ok(pt.drift && pt.drift.cents <= 1.5, s);
   }
-  // The flutes the most in the room, the pedal the least.
-  assert.ok(PATCHES.orgFlutes.send! > PATCHES.orgPedal.send!);
+  // The flute the most in the room, the pedal the least.
+  assert.ok(PATCHES.orgFlute.send! > PATCHES.orgPedal.send!);
   assert.equal(pr.fx, "cathedral");
   const c = REVERBS.cathedral;
-  assert.ok(c.predelay >= 0.04 && c.rt60 >= 2.5 && c.lp <= 5000 && c.phoneSeconds < c.seconds);
+  // D304: a smaller church (the inner lines were muddled in a 2.8 s one).
+  assert.ok(c.predelay >= 0.04 && c.rt60 >= 2 && c.rt60 <= 2.4 && c.lp <= 6000 && c.phoneSeconds < c.seconds);
   assert.ok(c.rt60 > REVERBS.hall.rt60);
 });
 
-test("D302: FOREST 64 and PARTY 64 in place of TEMPLE 64 and AGENT 64: lively 26 kHz samples, their own rooms", () => {
-  assert.equal(presetById("temple64").id, "forest64");
-  assert.equal(presetById("agent64").id, "party64");
-  assert.equal(presetById("forest64").fx, "grove");
-  assert.equal(presetById("party64").fx, "room64");
-  for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.ok(PERIOD[id].rate === 26000 && PERIOD[id].bits === 12 && PERIOD[id].lp >= 8500, id);
-  // Not muffled: their samples brighter than TEMPLE 64's and AGENT 64's were (22 kHz, 4.5-6 kHz, 10 bits).
-  assert.ok(REVERBS.grove.rt60 <= 2 && REVERBS.room64.rt60 <= 1.2);
+test("D304: FOREST 64 and PARTY 64 withdrawn (the owner: 0 each), they and TEMPLE 64 and AGENT 64 opening on NOCTURNE 32-BIT", () => {
+  for (const gone of ["temple64", "agent64", "forest64", "party64"]) {
+    assert.equal(presetById(gone).id, "nocturne32", gone);
+    assert.ok(!PRESETS.some((p) => p.id === gone), gone);
+  }
+  for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.equal(PERIOD[id], undefined, id);
+  assert.deepEqual(Object.keys(REVERBS).sort(), ["cathedral", "hall", "plate", "space"]);
 });
 
 test("D297, D302: TRACKER: 8-bit samples held without smoothing, short loops, hard left and right, a tone portamento", () => {
