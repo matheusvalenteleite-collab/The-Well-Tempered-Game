@@ -19,7 +19,7 @@ import { chordOf, options, points, release, strike, sweep, type LaneOptions, typ
 import { keyboard, keyAt as keyUnder, WHITE_ONLY, type Keyboard } from "./piano.ts";
 import { fits, markShapes, SLIDE_PX } from "./shape.ts";
 import type { Side } from "./thumbs.ts";
-import { phrase, ritard, type Shape } from "./phrasing.ts";
+import { joins, phrase, ritard, type Shape } from "./phrasing.ts";
 import { accompaniment, subjectMarks, type Level, type OtherNote } from "./voice-mode.ts";
 
 export type Instrument = "synth" | "piano";
@@ -177,7 +177,7 @@ export class Game {
     });
     // D169: the other voices always play, from where the player starts.
     this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject);
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { bass: f.voices.length - 1 });
     if (!o.wait) this.rit = ritard(f.length, f.barTicks);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
@@ -246,7 +246,13 @@ export class Game {
       const prev = this.lastOther.get(n.voice);
       this.lastOther.set(n.voice, n.midi);
       const parts: [number, number, number][] = orn ? realiseNote(this.f, orn, n.on, dur * sh.hold, n.midi, prev, (this.tps * 60) / this.f.tpq) : [[n.on, dur * sh.hold, n.midi]];
-      for (const [pon, pdur, pmidi] of parts) ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon), vv, { level: sh.level });
+      // D302: joined notes joined (held over the next's onset, no new attack); not where WAIT cuts the note.
+      const jn = block === null ? joins(sh) : {};
+      parts.forEach(([pon, pdur, pmidi], q) => {
+        const last = q === parts.length - 1;
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}) };
+        ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon) + (last && jn.tie ? sh.over : 0), vv, { level: sh.level, ...art });
+      });
     }
     // Lifts that no tap carried on are final: the note stops where the thumb left it.
     this.lifting = this.lifting.filter((l) => {

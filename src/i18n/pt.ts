@@ -46,9 +46,12 @@ export const PT: Record<string, string> = {
   "MEGA FM": "MEGA FM",
   "SID 64": "SID 64",
   TRACKER: "TRACKER",
-  "CHAMBER ORGAN": "ÓRGÃO DE CÂMARA",
-  "TEMPLE 64": "TEMPLO 64",
-  "AGENT 64": "AGENTE 64",
+  // D302: CHAMBER ORGAN, TEMPLE 64 and AGENT 64 remade; two singing voices.
+  "PIPE ORGAN": "ÓRGÃO DE TUBOS",
+  "FOREST 64": "FLORESTA 64",
+  "PARTY 64": "FESTA 64",
+  "VOCAL SYNTH": "VOZ SINTÉTICA",
+  "SOLO VOICES": "VOZES SOLISTAS",
   MODULAR: "MODULAR",
   TOMITA: "TOMITA",
   // D297: ANALOG SYNTH remade as SWITCHED-ON.

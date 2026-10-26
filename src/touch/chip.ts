@@ -9,7 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 
@@ -74,8 +74,15 @@ export const PHONE_BASS_GAIN = 1.3;
  * the 8-tap FIR's usual lowpass stood in for by a 2.8 kHz lowpass and a 300 Hz high-pass in the loop).
  * Its return is 1: a voice's `send` is its echo's level (0.10-0.22: the first repeat 13-20 dB under it).
  * Not modelled: the right channel 8 ms later (a stereo nicety, R7), the 64 ms of fast fugues.
+ * D302 (SUPER 16-BIT "lush", as the SNES's ensembles were: the owner rated it 4): longer and in stereo,
+ * as the later soundtracks set it: 160 ms on the left, 240 ms on the right, each repeat fed to the
+ * other side (0.4), through 3.2 kHz.
  */
-export const SPC_ECHO = { delay: 0.08, feedback: 0.35, lp: 2800, hp: 300 };
+export const SPC_ECHO = { delay: 0.16, right: 0.24, feedback: 0.4, lp: 3200, hp: 300 };
+/** D302, MEGA FM's echo: short and dark (some of the console's soundtracks spent a channel on one). */
+export const FM_ECHO = { delay: 0.12, right: 0.18, feedback: 0.22, lp: 3000, hp: 300 };
+/** D302: the presets' echoes (Preset.fx "spc", "echo"): each side its own delay (s), the repeats crossing over. */
+export const ECHOES: Record<"spc" | "echo", { delay: number; right: number; feedback: number; lp: number; hp: number }> = { spc: SPC_ECHO, echo: FM_ECHO };
 /**
  * D297, the presets' own reverbs (Preset.fx): the sends pre-delayed (`predelay` s, onsets stay clean)
  * and high-passed (`hp` Hz: no bass in the tail), a generated impulse (`darkHall`: decaying to -60 dB
@@ -93,15 +100,18 @@ export interface Reverb {
   brightness: number;
   echo?: { delay: number; feedback: number; lp: number; level: number };
 }
-export const REVERBS: Record<Exclude<FxKind, "spc">, Reverb> = {
+export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // NOCTURNE 32-BIT's hall (§6.2: the PlayStation's half-rate reverb: dark, 5.5 kHz at most).
   hall: { predelay: 0.025, hp: 350, lp: 5500, seconds: 1.9, phoneSeconds: 1.2, rt60: 1.9, brightness: 0.3 },
-  // CHAMBER ORGAN's small church: shorter and brighter than the hall (sends 0.08-0.14: wet within 0.15).
-  church: { predelay: 0.02, hp: 250, lp: 7000, seconds: 1.4, phoneSeconds: 1.0, rt60: 1.4, brightness: 0.5 },
-  // TEMPLE 64's stone temple (the N64's software reverb, generous in Ocarina of Time's temples and caves).
-  cave: { predelay: 0.03, hp: 300, lp: 5000, seconds: 2.6, phoneSeconds: 1.5, rt60: 2.6, brightness: 0.3 },
-  // AGENT 64's moodier, shorter room (GoldenEye's levels).
-  studio: { predelay: 0.02, hp: 300, lp: 6000, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.4 },
+  // D302, PIPE ORGAN's large church: a later first reflection (45 ms), a long and darkening tail (RT60
+  // 2.8 s; on a phone 1.8 s of impulse), the highs damped (4.8 kHz): the organ's lines carried, not drowned.
+  cathedral: { predelay: 0.045, hp: 220, lp: 4800, seconds: 2.8, phoneSeconds: 1.8, rt60: 2.8, brightness: 0.25 },
+  // D302, FOREST 64's grove: a wide, airy space (RT60 1.8 s) kept bright enough to stay lively.
+  grove: { predelay: 0.025, hp: 260, lp: 7000, seconds: 1.8, phoneSeconds: 1.3, rt60: 1.8, brightness: 0.45 },
+  // D302, PARTY 64's room: short and bright (RT60 1.0 s): the bounce kept dry.
+  room64: { predelay: 0.015, hp: 300, lp: 8000, seconds: 1.0, phoneSeconds: 0.8, rt60: 1.0, brightness: 0.55 },
+  // D302, VOCAL SYNTH's plate: bright and short (RT60 1.5 s), the singers' consonants kept clear.
+  plate: { predelay: 0.03, hp: 300, lp: 8500, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.6 },
   // TOMITA's space: a long reverb and a tape echo (a third of a second, darkening) beside it.
   space: { predelay: 0.03, hp: 250, lp: 6500, seconds: 2.8, phoneSeconds: 1.6, rt60: 2.8, brightness: 0.45, echo: { delay: 0.33, feedback: 0.32, lp: 3000, level: 0.5 } },
 };
@@ -176,8 +186,23 @@ export type Envelope = "synth" | "piano" | "dulcimer";
 
 export interface Play {
   envelope?: Envelope;
-  /** Joined to the note before without a new attack (that note is still held). */
+  /**
+   * Joined to the note before without a new attack (that note is still held). D302: on every sound: no
+   * fresh attack transient (the level comes in under the note before as it goes, over 15-20 ms; no
+   * filter or FM-index burst, no chiff, no scoop, no consonant); a plucked or struck note is plucked
+   * anyway (a harpsichord joins by holding the note before: `tie`).
+   */
   legato?: boolean;
+  /**
+   * D302: joined to the next note: held at its level to its end (the next note's onset and a little
+   * over), let go over the last `tie` s (the crossfade into the next), not released before it as a
+   * note's own release would (it left a gap or a dip of 40-120 ms between joined notes).
+   */
+  tie?: number;
+  /** D302: joined from this pitch (MIDI): a singing voice glides from it (VOCAL SYNTH; the rest ignore it). */
+  from?: number;
+  /** D302: the last note before a rest (a phrase's end): a singing voice falls off it (VOCAL SYNTH). */
+  final?: boolean;
   /** A level for this note alone (1: as the voice). */
   level?: number;
   /** The note can be muffled after it starts (the testbench, D175: a gesture judged wrong). */
@@ -207,6 +232,9 @@ export interface Play {
   /** D252: false: not doubled by the coupling (the coupling's own notes). */
   couple?: boolean;
 }
+
+/** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
+export const SING_GAIN = 4.5;
 
 /** D252: the player's own notes a little brighter (a high shelf, dB) and a little louder: the player hears himself. */
 export const MINE_TONE = 2.5;
@@ -574,20 +602,30 @@ export class Chip {
     const nodes: AudioNode[] = [];
     const input = node(ctx.createGain(), nodes);
     const ret = ctx.createGain();
-    if (kind === "spc") {
-      // The SNES's echo (§6.1): an 80 ms delay (EDL 5, 16 ms steps) whose output, through the FIR's
-      // stand-in (a gentle 2.8 kHz lowpass and a 300 Hz high-pass), is both the echo heard and, at
-      // 0.35 (EFB, positive), fed back into the delay: each repeat darker and 9 dB softer.
-      const sum = node(ctx.createGain(), nodes);
-      const delay = node(ctx.createDelay(0.25), nodes);
-      delay.delayTime.value = SPC_ECHO.delay;
-      const lp = filter("lowpass", SPC_ECHO.lp, 0.5, nodes);
-      const hp = filter("highpass", SPC_ECHO.hp, 0.5, nodes);
-      const fb = node(ctx.createGain(), nodes);
-      fb.gain.value = SPC_ECHO.feedback;
-      input.connect(sum).connect(delay).connect(lp).connect(hp);
-      hp.connect(fb).connect(sum);
-      hp.connect(ret);
+    if (kind === "spc" || kind === "echo") {
+      // An echo (ECHOES): e.g. the SNES's (§6.1; D302: longer and in stereo): each side its own delay,
+      // its output, through the FIR's stand-in (a lowpass and a high-pass), both heard and fed back
+      // into the other side's delay (each repeat darker, softer, and across the stereo field).
+      const E = ECHOES[kind];
+      const merge = node(ctx.createChannelMerger(2), nodes);
+      const side = (time: number) => {
+        const sum = node(ctx.createGain(), nodes);
+        const delay = node(ctx.createDelay(0.5), nodes);
+        delay.delayTime.value = time;
+        const lp = filter("lowpass", E.lp, 0.5, nodes);
+        const hp = filter("highpass", E.hp, 0.5, nodes);
+        const fb = node(ctx.createGain(), nodes);
+        fb.gain.value = E.feedback;
+        input.connect(sum).connect(delay).connect(lp).connect(hp).connect(fb);
+        return { sum, hp, fb };
+      };
+      const l = side(E.delay);
+      const r = side(E.right);
+      l.fb.connect(r.sum);
+      r.fb.connect(l.sum);
+      l.hp.connect(merge, 0, 0);
+      r.hp.connect(merge, 0, 1);
+      merge.connect(ret);
     } else {
       // A reverb (REVERBS): e.g. the PlayStation's hall (§6.2): the sends pre-delayed 25 ms and
       // high-passed at 350 Hz (the organ's pedal does not flood the tail), a dark generated impulse,
@@ -620,6 +658,18 @@ export class Chip {
     nodes.push(ret);
     this.fx = { kind, nodes };
     return input;
+  }
+
+  /** D302, MEGA FM: a modulator fed back on itself by `fb` (sin(x + fb·sin(x + fb·sin x)): the YM2612's operator feedback, nearer a sawtooth as fb grows), built once per amount. */
+  private feedback(fb: number): PeriodicWave {
+    const key = `fb${fb}`;
+    let pw = this.waves.get(key);
+    if (!pw) {
+      const { real, imag } = harmonicsOf((x) => Math.sin(2 * Math.PI * x + fb * Math.sin(2 * Math.PI * x + fb * Math.sin(2 * Math.PI * x))));
+      pw = this.ctx.createPeriodicWave(real, imag);
+      this.waves.set(key, pw);
+    }
+    return pw;
   }
 
   /** D297: a staircase of 2^bits levels over -1..1 for a WaveShaper (Patch.bits), built once per depth. */
@@ -671,6 +721,7 @@ export class Chip {
       if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, set, near, rec, bag);
       if (near !== null) loadOne(this.ctx, main, near);
     }
+    if (v.patch?.sing) return this.singNote(midi, at, dur, v, v.patch, p, bag);
     if (v.patch) return this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
@@ -712,7 +763,8 @@ export class Chip {
       if (slow && !p.legato) g.gain.setTargetAtTime(peak * E.floor, t + E.slowFrom, E.floorTau);
     }
     if (!piano) {
-      const rel = Math.max(t + 0.02, end - 0.04);
+      // D302: joined to the next, held to the crossfade.
+      const rel = Math.max(t + 0.02, end - (p.tie ? Math.min(0.04, p.tie / 2) : 0.04));
       g.gain.setValueAtTime(levelAt(rel), rel);
       g.gain.linearRampToValueAtTime(0, end);
     }
@@ -738,7 +790,8 @@ export class Chip {
       const lp = bag.add(ctx.createBiquadFilter());
       lp.type = "lowpass";
       lp.Q.value = 0.6;
-      lp.frequency.setValueAtTime(E.open, t);
+      // D302: joined, no edge: the filter as the note before had it.
+      lp.frequency.setValueAtTime(p.legato ? tameAt(hz(midi)) : E.open, t);
       lp.frequency.setTargetAtTime(tameAt(hz(midi)), t + 0.006, E.closeTau);
       src = src.connect(lp);
     }
@@ -864,6 +917,20 @@ export class Chip {
       if (this.phone && !plucked) bag.weight = srcs.length;
     }
     let src: AudioNode = mix;
+    // D302, SOLO VOICES: a new syllable's consonant: the voice opening from a lowpass (CONSONANTS.open),
+    // softer at first; joined, none (the vowel goes on).
+    const syl = pt.syllable && !p.legato ? CONSONANTS[pt.syllable.cons] : null;
+    if (syl) {
+      const lp = bag.add(ctx.createBiquadFilter());
+      lp.type = "lowpass";
+      lp.Q.value = 0.8;
+      lp.frequency.setValueAtTime(syl.open, t);
+      lp.frequency.setTargetAtTime(16000, t + syl.time * 0.4, syl.time / 2);
+      const sg = bag.add(ctx.createGain());
+      sg.gain.setValueAtTime(Math.max(0.3, syl.voiced), t);
+      sg.gain.setTargetAtTime(1, t + syl.time * 0.4, syl.time / 3);
+      src = src.connect(lp).connect(sg);
+    }
     const bright = p.bright ?? 0;
     if (bright < 0) {
       const tone = bag.add(ctx.createBiquadFilter());
@@ -936,6 +1003,43 @@ export class Chip {
     // D213: the subject's vibrato (a plucked string's only a shimmer); where a recording's detune exists.
     const det = srcs.map((x) => x.src.detune).filter((d): d is AudioParam => !!d);
     this.vibrato(det, t, end, plucked ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
+    // D302: TRACKER's tone portamento into a joined note (Patch.slide).
+    if (pt.slide && !pt.syllable && p.legato && p.from !== undefined && p.from !== midi)
+      for (const d of det) {
+        d.setValueAtTime((p.from - midi) * 100, t);
+        d.setTargetAtTime(0, t, pt.slide / 3);
+      }
+    if (pt.syllable && det.length) {
+      // D302, SOLO VOICES: the pitch scooped into a new syllable, or glided from the note before when
+      // joined, with a small overshoot; a phrase's end falls.
+      const sy = pt.syllable;
+      const from = p.legato && p.from !== undefined ? (p.from - midi) * 100 : -sy.scoop;
+      const dir = p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1;
+      for (const d of det) {
+        d.setValueAtTime(from, t);
+        d.linearRampToValueAtTime(dir * sy.over, t + (p.legato ? 0.08 : 0.07));
+        d.setTargetAtTime(0, t + (p.legato ? 0.08 : 0.07), 0.045);
+        if (p.final && !p.tie && sy.fall && end - t > 0.35) {
+          d.setValueAtTime(0, Math.max(t + 0.25, end - 0.16));
+          d.linearRampToValueAtTime(-sy.fall, end);
+        }
+      }
+      if (syl?.burst) {
+        // A plosive's burst: a few milliseconds of noise high up, as the voice comes in.
+        const nz = bag.src(this.noise());
+        const bp = bag.add(ctx.createBiquadFilter());
+        bp.type = "bandpass";
+        bp.frequency.value = 3500;
+        bp.Q.value = 1.2;
+        const ng = bag.add(ctx.createGain());
+        ng.gain.setValueAtTime(0, t);
+        ng.gain.linearRampToValueAtTime(peak * syl.burst * 0.8, t + 0.002);
+        ng.gain.setTargetAtTime(0, t + 0.004, 0.006);
+        nz.connect(bp).connect(ng).connect(dyn);
+        nz.start(t);
+        halt(nz, t + 0.06);
+      }
+    }
     // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
     if (pt.vib && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
       const lfo = bag.src(ctx.createOscillator());
@@ -952,10 +1056,11 @@ export class Chip {
     // The recording's own end, in the context's time (a plucked note dies away by then).
     const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
-    const letGo = (s: number) => {
+    const letGo = (s: number, tie = 0) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
-      const tau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+      // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
+      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -977,7 +1082,11 @@ export class Chip {
     if (plucked && end > t + life) {
       for (const x of srcs) halt(x.src, t + life + 0.05);
       for (const l of lfos) halt(l, t + life + 0.1);
-    } else letGo(end);
+    } else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
+    // D302: a held note's release done by its written end, as a synthesized note's is (it began there,
+    // and rang on a fifth of a second past it: a detached note's gap filled).
+    else if (!plucked && !p.lead) letGo(Math.max(t + atk + 0.02, end - 2.5 * (re ? Math.max(0.005, re.r / 3) : 0.03)));
+    else letGo(end);
     let stopped = false;
     let cents = 0;
     let muffled = false;
@@ -1097,8 +1206,9 @@ export class Chip {
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
       const det = (o.detune ?? 0) + (p.detune ?? 0);
       n.detune.value = det;
-      if (pt.scoop) {
+      if (pt.scoop && !(p.legato && !pluck)) {
         // D209: the pitch comes in from off and settles (no extra nodes: the oscillator's own detune).
+        // D302: not on a joined note (it would mark a new attack).
         n.detune.setValueAtTime(det + pt.scoop.cents, t);
         n.detune.setTargetAtTime(det, t, pt.scoop.time);
       }
@@ -1134,32 +1244,54 @@ export class Chip {
     // oscillator's frequency, its depth (index x the modulator's frequency, Hz) from `index` to `to`
     // over `time` (a time constant of a third of it), through `rise` first where given; a second
     // modulator at a fixed index. The modulators follow the vibrato and the bends (ratios kept).
-    const mods: { o: OscillatorNode; ratio: number }[] = [];
+    const mods: { o: OscillatorNode; ratio: number; det: number }[] = [];
     if (pt.fm) {
       const fm = pt.fm;
-      const mod = (ratio: number) => {
+      const mod = (ratio: number, det = 0) => {
         const o = bag.src(ctx.createOscillator());
+        // D302: the modulator fed back on itself (the YM2612's operator 1: a brighter, saw-like wave).
+        if (fm.fb) o.setPeriodicWave(this.feedback(fm.fb));
         o.frequency.value = f0 * ratio;
-        o.detune.value = p.detune ?? 0;
+        o.detune.value = (p.detune ?? 0) + det;
         const depth = bag.add(ctx.createGain());
         o.connect(depth);
         for (const n of oscs) depth.connect(n.frequency);
-        mods.push({ o, ratio });
+        mods.push({ o, ratio, det });
         return depth.gain;
       };
       const hz1 = f0 * fm.ratio;
-      const d = mod(fm.ratio);
-      d.setValueAtTime(fm.index * hz1, t);
+      // D302: the modulator a few cents off its ratio (the chip's DT1: a slow beating in the timbre).
+      const d = mod(fm.ratio, fm.detune ?? 0);
+      // D302: a joined note goes on at the body's index (no bright onset: the YM2612 legato, no key-on).
+      const joinedOn = p.legato && !pluck;
+      d.setValueAtTime((joinedOn ? fm.to : fm.index) * hz1, t);
       let from = t;
-      if (fm.rise) {
+      if (fm.rise && !joinedOn) {
         d.linearRampToValueAtTime(fm.rise.to * hz1, t + fm.rise.time);
         from = t + fm.rise.time;
       }
       d.setTargetAtTime(fm.to * hz1, from, fm.time / 3);
-      if (fm.mod2) mod(fm.mod2.ratio).value = fm.mod2.index * f0 * fm.mod2.ratio;
+      if (fm.mod2) {
+        // A second modulator: a fixed index, or (D302) its own fall (an e-piano's tine, a slap's click).
+        const m2 = fm.mod2;
+        const g2 = mod(m2.ratio, -(fm.detune ?? 0) / 2);
+        const hz2 = f0 * m2.ratio;
+        if (m2.to !== undefined && m2.time) {
+          g2.setValueAtTime((joinedOn ? m2.to : m2.index) * hz2, t);
+          g2.setTargetAtTime(m2.to * hz2, t, m2.time / 3);
+        } else g2.value = m2.index * hz2;
+      }
     }
     /** Every oscillator whose pitch moves with the note (the carriers and, D297, the modulators). */
     const tuned = [...oscs, ...mods.map((m) => m.o)];
+    // D302, a portamento into a joined note (Patch.slide: TOMITA's whistle, TRACKER's tone portamento).
+    if (pt.slide && p.legato && p.from !== undefined && p.from !== midi) {
+      for (const [i, n] of oscs.entries()) {
+        const k = 2 ** (pt.osc[i].octave ?? 0);
+        n.frequency.setValueAtTime(hz(p.from) * k, t);
+        n.frequency.setTargetAtTime(f0 * k, t, pt.slide / 3);
+      }
+    }
     let breath: AudioBufferSourceNode | null = null;
     if (pt.breath) {
       breath = bag.src(this.noise());
@@ -1208,7 +1340,8 @@ export class Chip {
       fl.type = pt.filter.type ?? "lowpass";
       fl.Q.value = pt.filter.q ?? 0.7;
       const base = Math.min(16000, (pt.filter.hz ? pt.filter.freq : f0 * pt.filter.freq) * bright);
-      const top = Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
+      // D302: joined, the filter does not open anew (no "wah" of an attack).
+      const top = p.legato && !pluck ? base : Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
       fl.frequency.setValueAtTime(top, t);
       fl.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
       src = src.connect(fl);
@@ -1220,6 +1353,12 @@ export class Chip {
         f2.frequency.setValueAtTime(top, t);
         f2.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
         src = src.connect(f2);
+      }
+      // D302, TOMITA: the filter sweeping slowly with the clock (continuous from note to note).
+      const sw = pt.filter.sweep;
+      if (sw) {
+        const at = (x: number) => Math.min(16000, base * 2 ** (sw.octaves * Math.sin(2 * Math.PI * sw.rate * x)));
+        for (const f of [fl, ...(pt.filter.poles === 4 && src !== fl ? [src as BiquadFilterNode] : [])]) clocked(f.frequency, t + Math.max(0.12, (pt.filter.envDecay ?? 0.1) * 4), end + pt.amp.r, at);
       }
     } else if (bright !== 1) {
       const tone = bag.add(ctx.createBiquadFilter());
@@ -1235,6 +1374,26 @@ export class Chip {
       hp.Q.value = 0.7071;
       src = src.connect(hp);
     }
+    if (pt.phaser) {
+      // D302, TOMITA's phased strings: two allpass stages swept with the clock, beside the dry sound: moving notches.
+      const ph = pt.phaser;
+      const wet = bag.add(ctx.createGain());
+      wet.gain.value = 0.5;
+      const dry = bag.add(ctx.createGain());
+      dry.gain.value = 0.5;
+      const sum = bag.add(ctx.createGain());
+      let chain: AudioNode = src;
+      for (let k = 0; k < 2; k++) {
+        const ap = bag.add(ctx.createBiquadFilter());
+        ap.type = "allpass";
+        ap.Q.value = 0.6;
+        clocked(ap.frequency, t, end + pt.amp.r, (x) => ph.lo * (ph.hi / ph.lo) ** (0.5 + 0.5 * Math.sin(2 * Math.PI * ph.rate * x + k * 0.6)));
+        chain = chain.connect(ap);
+      }
+      chain.connect(wet).connect(sum);
+      src.connect(dry).connect(sum);
+      src = sum;
+    }
     src = this.shelf(src, Math.max(1200, Math.min(3500, f0 * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
@@ -1246,7 +1405,8 @@ export class Chip {
     const a = Math.max(0.002, pt.amp.a * (1 + (p.soft ?? 0) * 4) * (1 - (p.crisp ?? 0) * 0.5));
     const st = pt.steps;
     const sus = st ? (peak * st.to) / st.from : peak * pt.amp.s;
-    const relAt = Math.max(t + a + 0.02, end - pt.amp.r);
+    // D302: joined to the next: held to the crossfade, not released before it.
+    const relAt = Math.max(t + a + 0.02, end - (p.tie ? Math.min(pt.amp.r, p.tie / 2) : pt.amp.r));
     g.gain.setValueAtTime(0, t);
     if (p.legato && !pluck) g.gain.linearRampToValueAtTime(sus || peak * 0.7, t + 0.02);
     else {
@@ -1313,6 +1473,9 @@ export class Chip {
     const dyn = bag.add(ctx.createGain());
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
+      // D302, TOMITA's theatrical stereo: the voice wandering slowly about its place (within ±0.35, a phone's mix).
+      const ap = pt.autopan;
+      if (ap) clocked(pan.pan, t, end + pt.amp.r, (x) => Math.max(-0.35, Math.min(0.35, v.pan + ap.depth * Math.sin(2 * Math.PI * ap.rate * x))));
       src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
     } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
@@ -1338,7 +1501,8 @@ export class Chip {
     // D184: a plucked or struck note is damped at its written end (it rang 6 s whatever its length:
     // fifty voices at once on a phone); a lead note's end is its hold, so it rings as it would.
     const damp = tail && end + 0.5 < t + 6;
-    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.08);
+    // D302: the damper quicker (80 ms let a detached pluck ring into the next: no gap heard).
+    if (damp) g.gain.setTargetAtTime(0, Math.max(t + a + 0.01, end), 0.03);
     const last = tail ? (damp ? end + 0.5 : t + 6) : end + 0.05;
     for (const l of lfos) halt(l, last + 0.1);
     for (const o of tuned) (o.start(t), halt(o, last));
@@ -1359,7 +1523,7 @@ export class Chip {
       bend: (cents: number) => {
         if (stopped) return;
         for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + (p.detune ?? 0) + cents, ctx.currentTime, 0.02);
-        for (const m of mods) m.o.detune.setTargetAtTime((p.detune ?? 0) + cents, ctx.currentTime, 0.02);
+        for (const m of mods) m.o.detune.setTargetAtTime((p.detune ?? 0) + m.det + cents, ctx.currentTime, 0.02);
       },
       glide: (to: number) => {
         if (stopped) return;
@@ -1370,6 +1534,146 @@ export class Chip {
       muffle: () => {
         if (stopped || !dull) return;
         dull.frequency.setTargetAtTime(500, ctx.currentTime, 0.01);
+      },
+      dyn: (level: number) => {
+        if (!stopped) dyn.gain.setTargetAtTime(Math.max(0.05, level), ctx.currentTime, 0.06);
+      },
+    };
+  }
+
+  /**
+   * D302, VOCAL SYNTH: a sung note (Patch.sing; sound.ts Sing, VOWELS, CONSONANTS): the glottal source
+   * and breath through five formant band-passes in parallel, a new syllable's consonant (the formants
+   * moving from the consonant's into the vowel's, a burst or a murmur), the pitch's scoop and overshoot
+   * at the onset (or, joined, its glide from the note before: the vowel goes on, no consonant), the
+   * late vibrato, the fall at a phrase's end; the bright "ring" a lift at 3 kHz. About 23 nodes a
+   * note (two sources and an LFO).
+   */
+  private singNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, bag: Bag): Sounding {
+    const ctx = this.ctx;
+    const sg = pt.sing!;
+    const t = Math.max(at, ctx.currentTime);
+    const end = Math.max(t + 0.06, at + dur - 0.01);
+    const f0 = hz(midi);
+    // (SING_GAIN: the source's flat pulse train, normalised to its peak, is quieter than a sawtooth.)
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * SING_GAIN;
+    const joined = !!p.legato;
+    const det0 = p.detune ?? 0;
+    const o = bag.src(this.osc("glottal"));
+    // The pitch: joined, from the note before (a glide of about 70 ms); else scooped up from below.
+    if (joined && p.from !== undefined) {
+      o.frequency.setValueAtTime(hz(p.from), t);
+      o.frequency.setTargetAtTime(f0, t + 0.005, 0.025);
+    } else o.frequency.value = f0;
+    const dir = joined && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1;
+    o.detune.setValueAtTime(det0 + (joined ? 0 : -sg.scoop), t);
+    o.detune.linearRampToValueAtTime(det0 + dir * sg.over, t + (joined ? 0.09 : 0.07));
+    o.detune.setTargetAtTime(det0, t + (joined ? 0.09 : 0.07), 0.045);
+    // A phrase's end: the fall as the voice lets go.
+    const fallAt = Math.max(t + 0.25, end - 0.16);
+    if (p.final && !p.tie && sg.fall && end - t > 0.35) {
+      o.detune.setValueAtTime(det0, fallAt);
+      o.detune.linearRampToValueAtTime(det0 - sg.fall, end);
+    }
+    const voiced = bag.add(ctx.createGain());
+    o.connect(voiced);
+    // Breath: noise under the voice (and a consonant's burst through it).
+    const nz = bag.src(this.noise());
+    const air = bag.add(ctx.createGain());
+    nz.connect(air);
+    const src = bag.add(ctx.createGain());
+    voiced.connect(src);
+    air.connect(src);
+    const cons = CONSONANTS[sg.cons];
+    const ct = joined ? 0 : cons.time;
+    voiced.gain.setValueAtTime(joined ? 1 : cons.voiced, t);
+    if (!joined) {
+      if (cons.voiced === 0) voiced.gain.setValueAtTime(0, t + ct * 0.4);
+      voiced.gain.setTargetAtTime(1, t + ct * 0.4, ct / 3);
+    }
+    const breath = sg.breath * 0.35;
+    air.gain.setValueAtTime(joined ? breath : breath + cons.burst, t);
+    if (!joined && cons.burst) {
+      air.gain.setValueAtTime(cons.burst, t + ct * 0.35);
+      air.gain.setTargetAtTime(breath, t + ct * 0.35 + 0.004, 0.006);
+    } else if (!joined) air.gain.setTargetAtTime(breath, t, 0.02);
+    // The formants, the singer's size on them; from the consonant's into the vowel's.
+    const out = bag.add(ctx.createGain());
+    const scale = (sg.type === "bass" || sg.type === "tenor" ? 1 : 1.12) * sg.size;
+    for (const [i, [f, db, bw]] of VOWELS[sg.type][sg.vowel].entries()) {
+      const bp = bag.add(ctx.createBiquadFilter());
+      bp.type = "bandpass";
+      const fv = Math.min(ctx.sampleRate * 0.45, f * sg.size);
+      bp.Q.value = fv / (bw * sg.size);
+      if (!joined && i < 3) {
+        bp.frequency.setValueAtTime(cons.f[i] * scale, t);
+        bp.frequency.setTargetAtTime(fv, t + ct * 0.5, ct / 2.5);
+      } else bp.frequency.value = fv;
+      const g = bag.add(ctx.createGain());
+      g.gain.value = 10 ** (db / 20);
+      src.connect(bp).connect(g).connect(out);
+    }
+    let tail: AudioNode = out;
+    if (sg.ring) {
+      const sh = bag.add(ctx.createBiquadFilter());
+      sh.type = "peaking";
+      sh.frequency.value = 3000;
+      sh.Q.value = 0.9;
+      sh.gain.value = sg.ring;
+      tail = tail.connect(sh);
+    }
+    tail = this.shelf(tail, Math.max(1200, Math.min(3500, f0 * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
+    const g = bag.add(ctx.createGain());
+    const a = joined ? 0.02 : Math.max(0.006, pt.amp.a);
+    const relAt = Math.max(t + a + 0.02, end - (p.tie ? Math.min(pt.amp.r, p.tie / 2) : pt.amp.r));
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, relAt);
+    g.gain.linearRampToValueAtTime(0, end);
+    // The vibrato: late, ramped in (Patch.vib); and the subject's own (Play.vib).
+    const lfos: AudioScheduledSourceNode[] = [];
+    if (pt.vib && end - t > pt.vib.delay + 0.1) {
+      const lfo = bag.src(ctx.createOscillator());
+      lfos.push(lfo);
+      const depth = bag.add(ctx.createGain());
+      lfo.frequency.value = pt.vib.rate;
+      depth.gain.setValueAtTime(0, t);
+      depth.gain.setValueAtTime(0, t + pt.vib.delay);
+      depth.gain.linearRampToValueAtTime(pt.vib.depth, t + pt.vib.delay + 0.3);
+      lfo.connect(depth).connect(o.detune);
+      lfo.start(t);
+    }
+    this.vibrato([o.detune], t, end, p.vib ?? 0, bag, lfos);
+    const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
+    const dyn = bag.add(ctx.createGain());
+    if (pan) {
+      pan.pan.value = Math.max(-1, Math.min(1, v.pan));
+      tail.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
+    } else tail.connect(g).connect(dyn).connect(this.busOf(p));
+    this.send(pan ?? dyn, p.room, bag);
+    this.fxSend(pan ?? dyn, pt.send, bag);
+    o.start(t);
+    nz.start(t);
+    halt(o, end + 0.05);
+    halt(nz, end + 0.05);
+    for (const l of lfos) halt(l, end + 0.05);
+    let stopped = false;
+    return {
+      stop: (when = ctx.currentTime) => {
+        if (stopped) return;
+        stopped = true;
+        const s = Math.max(when, t + 0.02);
+        if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
+        else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(peak, s));
+        const r = Math.max(0.02, p.legato ? 0.03 : pt.amp.r);
+        g.gain.linearRampToValueAtTime(0, s + r);
+        for (const x of [o, nz, ...lfos]) halt(x, s + r + 0.05);
+      },
+      bend: (cents: number) => {
+        if (!stopped) o.detune.setTargetAtTime(det0 + cents, ctx.currentTime, 0.02);
+      },
+      glide: (to: number) => {
+        if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, 0.03);
       },
       dyn: (level: number) => {
         if (!stopped) dyn.gain.setTargetAtTime(Math.max(0.05, level), ctx.currentTime, 0.06);
@@ -1693,6 +1997,16 @@ export function darkHall(ctx: BaseAudioContext, seconds: number, rt60 = HALL.rt6
     }
   }
   return b;
+}
+
+/**
+ * D302: a parameter moved with the clock from `from` to `to` (s), by `at` (a function of the clock),
+ * in straight lines every `step` s: a sweep that goes on from note to note (it follows the clock, not
+ * the note), as a single LFO across all the notes would.
+ */
+export function clocked(param: AudioParam, from: number, to: number, at: (x: number) => number, step = 0.08) {
+  param.setValueAtTime(at(from), from);
+  for (let x = from + step; x < to + step; x += step) param.linearRampToValueAtTime(at(x), x);
 }
 
 /** D297: a WaveShaper curve quantising -1..1 to 2^bits levels (a staircase, 8 points a step). */

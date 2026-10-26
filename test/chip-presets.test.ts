@@ -3,9 +3,12 @@ import assert from "node:assert/strict";
 import { grooveHits, harmonicsOf, PATCHES, patchFor, playerSound, presetById, PRESETS, RETIRED, setPreset, SHAPES, slotOf, TRAVERSO } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
-test("D292, D294, D297: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
-  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "temple64", "agent64", "modular", "tomita"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "CHAMBER ORGAN", "TEMPLE 64", "AGENT 64", "MODULAR", "TOMITA"]);
+test("D292, D294, D297, D302: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the twelve new presets, in order; every piece opens on one of the five", () => {
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "forest64", "party64", "vocalSynth", "soloVoices", "modular", "tomita"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "FOREST 64", "PARTY 64", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
+  // D302: TEMPLE 64 and AGENT 64 remade: a stored choice of either opens on its successor.
+  assert.equal(playerSound("temple64"), "forest64");
+  assert.equal(playerSound("agent64"), "party64");
   const ids = PRESETS.map((p) => p.id);
   for (const [piece, id] of Object.entries(PIECE_SOUND)) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
   // D294: the two sounds replaced (and the withdrawn ones they grew from) open on their successors.
