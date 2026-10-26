@@ -53,7 +53,9 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     const pos = inBar(n.on);
     const weight = pos === 0 ? 1.12 : pos % beat === 0 ? 1.04 : 0.94;
     const inSubject = subject.has(`${n.voice}:${n.on}`);
-    const subj = inSubject ? 1.15 : 1;
+    // D293: the subject no louder than its neighbours (the owner: banging the subject every time is
+    // "patronising"); it is marked by its effect's soft layers (subject-fx.ts), not by level.
+    const subj = 1;
     const arch = 0.92 + 0.16 * (local.get(i) ?? 0.5);
     const after = next.get(i);
     let hold = 1;
@@ -72,12 +74,12 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
 
 /**
  * D181, the accompaniment listening: how the player has been playing (0 pp to 1 ff, a running
- * average) moves the others a little with them (from 0.88 to 1.12 of their level); the subject's
- * notes never drop below their own level.
+ * average) moves the others a little with them (from 0.88 to 1.12 of their level). D293: only where
+ * touch dynamics are heard (proto-game.ts touchDynamics); elsewhere `feel` stays put.
  */
 export function follow(sh: Shape, feel: number): number {
   const f = 0.88 + 0.24 * Math.max(0, Math.min(1, feel));
-  return sh.level * (sh.subject ? Math.max(1, f) : f);
+  return sh.level * f;
 }
 
 /**

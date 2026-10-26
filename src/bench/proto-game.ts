@@ -1,9 +1,10 @@
 /**
  * The testbench's game (D175; D178; D179): one voice of a piece played against the others, judged by
  * a prototype (protos.ts). The time picks the note (the pending one nearest in time, within the
- * window); the place judges it: right, Bach's note sounds; wrong, what was asked for sounds, muffled
- * (the PIANO's wrong key, plain), and it does not count. A held thumb slid onto the next note's place
- * plays it; a thumb moved across the dynamic axis while its note sounds swells or fades it; a thumb
+ * window); the place judges it: right, Bach's note sounds; wrong, what was asked for sounds all the same
+ * (D293: no longer muffled; the PIANO's wrong key), and it does not count. A held thumb slid onto the next
+ * note's place plays it; a thumb moved across the dynamic axis while its note sounds swells or fades it
+ * (D293: where the run asks for dynamics); a thumb
  * flicked upwards as it lets go sends its note off with a swoosh. The player's voice sounds as the
  * others do (D208; chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
  * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat. A note
@@ -143,6 +144,8 @@ interface Held {
   across?: number;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
   slideDir?: 1 | -1;
+  /** D293: another thumb has taken over its voice while it is still down (an overlapping legato): it only holds, it slides no more. */
+  handed?: boolean;
   /** Its last positions, for a flick. */
   trail: { t: number; y: number }[];
   /** The points its note scored (taken back if its articulation fails). */
@@ -189,6 +192,8 @@ export type LaneGrade = "exact" | "relative";
 /** D239: a relative note's share of the points, and its sound's darkening (Play.bright). */
 export const RELATIVE_SHARE = 0.5;
 export const RELATIVE_DULL = 0.4;
+/** D293: the dynamic a touch is heard at where touch dynamics are not asked for (the others' own, `feel`). */
+export const NEUTRAL_D = 0.55;
 /** D239: points as shown: a relative note's half point as ½ ("1½"). */
 export function ptsText(p: number): string {
   const w = Math.floor(p);
@@ -645,7 +650,7 @@ export class ProtoGame {
         const voiceV = voicing(voice, count, true);
         const sv = this.o.her ? null : this.subj.shape(voice, n.on, voiceV);
         const gate = ch.gate(ARM_LEVEL);
-        let expr: Play = { ...dynamic(this.feel), muffleable: true, lead: true, pleno: this.pleno, envelope, legato: !piano && this.joinedAt(i, k) };
+        let expr: Play = { ...dynamic(this.feel), muffleable: true, lead: true, envelope, legato: !piano && this.joinedAt(i, k) };
         if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
         expr.into = gate.node;
         // The notes riding after it (D191), at their times; the note gives way to the first.
@@ -764,7 +769,7 @@ export class ProtoGame {
         this.nextBeat += this.beat;
         continue;
       }
-      const band = this.nextBeat >= this.entry && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, this.mult - 1);
+      const band = this.nextBeat >= this.entry && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
       if (!band) ch.tick(this.timeAt(this.nextBeat), accent, this.nextBeat < this.entry ? (kimiko ? 0.05 : 0.12) : 0.02);
       this.nextBeat += this.beat;
     }
@@ -833,7 +838,7 @@ export class ProtoGame {
       this.stopAll();
       return true;
     }
-    ch.zone?.(this.zone);
+    // D293: the zones are seen, not heard (the room, the drive: a change of sound earned by playing).
     if (this.now > this.end) {
       this.stopAll();
       return true;
@@ -972,6 +977,17 @@ export class ProtoGame {
   dynamicAt(c: Contact): number {
     if (this.proto.layout === "bars") return barDynamic(c.x, c.w);
     return 0.55;
+  }
+  /**
+   * D293: the loudness a touch gives is heard only where the run asks for it (the dynamics lesson, a
+   * reading's levels). Elsewhere the player's notes sound at the music's own level, wherever the thumb
+   * lands (the owner: "the big volume changes when playing correctly and wrongly … kill the flow").
+   */
+  private get touchDynamics(): boolean {
+    return this.o.coach === "dynamics" || !!this.o.reading;
+  }
+  private heard(d: number): number {
+    return this.touchDynamics ? d : NEUTRAL_D;
   }
 
   /** The note struck before note i (the top of its chord; D191: the riding notes passed over), in a voice. */
@@ -1264,20 +1280,12 @@ export class ProtoGame {
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
       this.slip();
-      // A keyboard: the key struck is heard all the same. Elsewhere (Hi-Fi Rush: every touch makes
-      // music) the voice's nearest note sounds, soft and muffled, and is not used up.
-      let key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
-      let muffled = false;
-      let nearV: number | undefined;
-      if (key === undefined) {
-        const t = this.tickOf(ts);
-        const near = this.tracks[h.k].notes.filter((n) => Math.abs(n.on - t) < this.beat).sort((a, b) => Math.abs(a.on - t) - Math.abs(b.on - t))[0];
-        if (near) (key = near.midi), (muffled = true), (nearV = near.voice);
-      }
+      // A keyboard: the key struck is heard all the same. Elsewhere a touch on no note is silent (D293: it
+      // sounded the nearest note, soft and muffled: on a phone's speaker a hole in the voice, then a jolt).
+      const key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
       if (key !== undefined) {
         h.midi = key;
-        h.sounds = [this.chip.note(key, this.chip.ctx.currentTime, HOLD_MAX, voicing(nearV ?? this.tracks[h.k].voice, this.f.voices.length, true), { ...dynamic(muffled ? d * 0.5 : d), lead: true, muffleable: muffled, envelope: this.proto.id === "piano" ? "piano" : "synth" })];
-        if (muffled) h.sounds[0].muffle?.();
+        h.sounds = [this.chip.note(key, this.chip.ctx.currentTime, HOLD_MAX, voicing(this.tracks[h.k].voice, this.f.voices.length, true), { ...dynamic(this.heard(d)), lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" })];
       }
       return;
     }
@@ -1300,7 +1308,7 @@ export class ProtoGame {
     if (own && Math.abs(c.y - own.y) > 1.5 * this.ladderRow) own.moved = true;
     // Across the dynamic axis while it sounds: a swell or a diminuendo.
     const d = this.dynamicAt(c);
-    for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
+    if (this.touchDynamics) for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
     const t = this.tickOf(ts);
     if (h.passive) return;
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
@@ -1311,7 +1319,7 @@ export class ProtoGame {
       // notes' own, not a fixed row and a half (27 px, where a step is drawn 8 px apart: no slide could
       // follow the notes): at least SLIDE_MIN_PX, and the thumb at the next note's drawn height (within
       // half a judging row), on the way to it.
-      if (Math.abs(c.y - h.ay) < SLIDE_MIN_PX) return;
+      if (h.handed || Math.abs(c.y - h.ay) < SLIDE_MIN_PX) return;
       const nextN = this.tracks[h.k].notes.find((n) => n.state === "pending" && !n.ride);
       if (!nextN) return;
       const target = this.rows.yOf(nextN.step);
@@ -1347,7 +1355,7 @@ export class ProtoGame {
       // D208: a held thumb slid into another lane plays the next note there, joined (legato): only
       // once it has crossed most of a lane's width, so a rolling thumb does not slide by itself.
       const lane = this.laneOfX(c.x, c.w);
-      if (lane === h.cell || Math.abs(c.x - h.ax) < (c.w / this.laneCount) * 0.75) return;
+      if (h.handed || lane === h.cell || Math.abs(c.x - h.ax) < (c.w / this.laneCount) * 0.75) return;
       // D253: with both hands the lanes are narrow and a held thumb holds: a slide stays in its own hand's
       // lanes and needs a whole lane's travel (a held left thumb drifting took the next bass note early).
       if (this.hands && (this.laneTrack(lane) !== h.k || Math.abs(c.x - h.ax) < c.w / this.laneCount)) return;
@@ -1442,10 +1450,16 @@ export class ProtoGame {
       this.cancels++;
       // D289: the system took the touch back (iOS may, when the other thumb lands): no release judged,
       // but for the join the note ended here, so the next note can still be legato.
+      // D293: iOS takes a touch back most often when the other thumb lands on it (thumbs overlapping): the
+      // note rings on to its written end (or the next note's strike), and the join is judged from there.
       const n = this.tracks[h.k].notes[h.note];
-      if (h.open && n?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
+      if (h.open && n?.state === "hit") {
+        const end = Math.max(this.tickOf(ts), n.on + n.dur);
+        this.lastOff = { k: h.k, i: h.note, tick: end };
+        const until = this.timeAt(end);
+        for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop(Math.max(this.chip.ctx.currentTime, until));
+      } else for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
       h.open = false;
-      for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
       return;
     }
     // D218: the note's end judged as it is let go.
@@ -1459,7 +1473,7 @@ export class ProtoGame {
       const dt = Math.max(1, b.t - a.t);
       if (-dy >= SWOOSH_PX && -dy / dt >= SWOOSH_V) {
         for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
-        this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(h.d0));
+        this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
         return;
       }
     }
@@ -1467,7 +1481,7 @@ export class ProtoGame {
     else for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
   }
 
-  /** Sounds note i (or what was asked for instead, muffled) and grades it. A slide glides on; the piano strikes again. */
+  /** Sounds note i (or what was asked for instead) and grades it. A slide glides on; the piano strikes again. */
   private play(id: number, h: Held, i: number, v: Verdict, slide: boolean, d: number) {
     const notes = this.tracks[h.k].notes;
     // D218: struck by a new touch or key while the note before still sounds (held by another thumb or
@@ -1484,14 +1498,16 @@ export class ProtoGame {
     }
     if (h.open) this.judgeEnd(h, tk);
     for (const [hid, o] of this.held) if (hid !== id && o.k === h.k && o.open) this.judgeEnd(o, tk);
+    // D293: the thumbs overlapping is a legato as good as a handover; the thumb still down only holds: its
+    // glide toward its next note as it lifts took that note early (a slide), and its touch there was a slip.
+    if (!slide) for (const [hid, o] of this.held) if (hid !== id && o.k === h.k) o.handed = true;
     const voiceV = voicing(this.voiceOf(h.k, i), this.f.voices.length, true);
     const piano = this.proto.id === "piano";
     const chord = chordOf(notes, i);
-    const fuoco = this.streak >= FUOCO_NOTES;
-    const base = dynamic(d);
-    // D239: a note right only by its direction (not in its lane) sounds a little duller.
-    const dull = v.ok && v.lane === "relative" ? RELATIVE_DULL : 0;
-    let expr: Play = { ...base, trill: this.trillNext, bright: (base.bright ?? 0) + (fuoco ? 0.35 : 0) - dull, muffleable: true, lead: true, pleno: v.ok && this.pleno, envelope: piano ? "piano" : "synth" };
+    // D293: the note sounds alike however it was struck: no duller for a note right only by its direction
+    // (D239), no brighter in CON FUOCO, no octaves in ORGANO PLENO (D181; their points stay).
+    const base = dynamic(this.heard(d));
+    let expr: Play = { ...base, trill: this.trillNext, muffleable: true, lead: true, envelope: piano ? "piano" : "synth" };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
@@ -1579,7 +1595,8 @@ export class ProtoGame {
         h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: false }));
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
       } else h.sounds = pitches.map((m) => this.chip.note(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
-      if (!v.ok && !(piano && v.wrong !== undefined)) for (const sd of h.sounds) sd.muffle?.();
+      // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
+      // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
     // A touch on the screen (not a key) is the next note's reference.
     if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), (this.lastBySide[h.side] = { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now });
@@ -1597,7 +1614,8 @@ export class ProtoGame {
       this.grade = { text: "✕", at, side: h.side, why: v.why ?? "gesture" };
       return;
     }
-    this.feel += (d - this.feel) * 0.25;
+    // D293: the others follow the player's loudness only where it is heard.
+    if (this.touchDynamics) this.feel += (d - this.feel) * 0.25;
     // As heard (D191: the final ritard included; the steady tempo made PERFECT up to 22% wider there).
     const offMs = (this.timeAt(n.at ?? n.on) - this.timeAt(n.on)) * 1000;
     const perfect = Math.abs(offMs) <= PERFECT_MS;
@@ -2445,7 +2463,7 @@ export class ProtoGame {
       if (!h.sounds.length) continue;
       for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
       h.sounds = [];
-      this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(h.d0));
+      this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
       return;
     }
   }

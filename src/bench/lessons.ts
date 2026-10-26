@@ -392,10 +392,10 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     goal: "FROM THUMB TO THUMB WITH NO GAP",
     intro: [
       { text: "Listen. First each note apart, detached.", demo: "detached" },
-      { text: "Now joined, singing: legato. One thumb takes over as the other lifts, with no gap.", demo: "legato" },
+      { text: "Now joined, singing: legato. One thumb takes over as the other lifts, no gap; or overlap them a moment.", demo: "legato" },
     ],
     praise: [{ text: "As I wrote on my Inventions: a cantabile manner of playing. That is it." }],
-    again: [{ text: "The notes fell apart. Let one thumb take over as the other lifts. Again." }],
+    again: [{ text: "The notes fell apart. Let one thumb take over as the other lifts, or overlap them a moment. Again." }],
     short: (r) => skillShort(r, r.art.legatoOf, () => tr("You joined {n} of {m} notes; aim for {k}.", { n: r.art.legato, m: r.art.legatoOf, k: need(0.6, r.art.legatoOf) })),
     run: () => invention({ voice: 1, toBar: 3, solo: false }),
     passAt: 0.8,

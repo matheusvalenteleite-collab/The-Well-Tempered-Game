@@ -84,8 +84,8 @@ test("the register's compensation: an entry in the top voice gets the slightest 
   assert.equal(registerWeight(1, 2), 1);
 });
 
-test("in the game: the subject brighter and crisper, the others duller during an entry, nothing outside the entries", () => {
-  const r = run("wtc1f02", "harpsichordSampled", {}, 40, 0);
+test("in the game (SUBJECT SOUND on; D293: off by default): the subject brighter and crisper, the others duller during an entry, nothing outside the entries", () => {
+  const r = run("wtc1f02", "harpsichordSampled", { subject: true }, 40, 0);
   const plain = run("wtc1f02", "harpsichordSampled", { subject: false, effect: false }, 40, 0);
   const cues = new SubjectCues(r.f);
   const notes = own(r.calls);
@@ -158,11 +158,11 @@ test("D221: the other seventeen Book I effects cheap too: every node released, f
 test("the switches: SUBJECT SOUND and EFFECT off leave the notes as they were; VIBRATO and STEREO on", () => {
   const off = run("wtc1f01", "strings", { subject: false, effect: false }, 30, 0);
   assert.ok(off.calls.every((c) => c.p.tone === undefined && c.p.crisp === undefined && c.p.room === undefined));
-  const plain = run("wtc1f01", "strings", { effect: false }, 30, 0);
+  const plain = run("wtc1f01", "strings", { subject: true, effect: false }, 30, 0);
   assert.ok(plain.calls.some((c) => (c.p.tone ?? 0) > 0));
   assert.equal(plain.calls.length, off.calls.length, "no layers without the effect");
   assert.ok(plain.calls.every((c) => !c.p.vib));
-  const vib = run("wtc1f01", "strings", { vibrato: true, stereo: true }, 30, 0);
+  const vib = run("wtc1f01", "strings", { subject: true, vibrato: true, stereo: true }, 30, 0);
   const emph = vib.calls.filter((c) => (c.p.crisp ?? 0) > 0);
   assert.ok(emph.length > 5 && emph.every((c) => (c.p.vib ?? 0) > 0));
   // The entering voice nearer the centre than its own place.
@@ -172,9 +172,9 @@ test("the switches: SUBJECT SOUND and EFFECT off leave the notes as they were; V
   assert.ok(Math.abs(c.v.pan) < 0.5 * Math.abs((0.5 - 1 / 3) * 0.9));
 });
 
-test("the player's own voice: its subject note sounds with the same emphasis and effect", () => {
+test("the player's own voice: its subject note sounds with the same emphasis and effect (SUBJECT SOUND on)", () => {
   setPreset("chip");
-  setLab({});
+  setLab({ subject: true });
   const chip = new Chip();
   const ctx = ctxOf();
   const calls: Call[] = [];

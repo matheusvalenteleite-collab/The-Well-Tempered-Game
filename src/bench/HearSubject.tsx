@@ -85,7 +85,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
         )}
         {readings.length > 1 && !open && <p className="tb-hear-lock">{tr("FINISH THE FUGUE TO OPEN THE OTHER READINGS")}</p>}
         <canvas ref={canvas} className="tb-hear-canvas" />
-        <p className="tb-hear-key tb-hear-thumbs">{tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER WITH NO GAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")}</p>
+        <p className="tb-hear-key tb-hear-thumbs">{tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")}</p>
         <p className="tb-hear-key">
           <span>⌒ {tr("JOINED")}</span> <span>| {tr("DETACHED")}</span> <span>· {tr("SHORT")}</span> <span>&gt; {tr("ACCENT")}</span>
           <span> · ♩ = {tempoOf(id)}</span>

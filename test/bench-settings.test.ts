@@ -20,8 +20,8 @@ test("D219, TUNING: one button shows the choice; any choice applies and closes t
   for (const t of TEMPERAMENTS) assert.equal(chooseTuning(cur, { temper: t.id }).id, t.id);
 });
 
-test("D233: LAB withdrawn: the subject's sound and its effect always on, vibrato and stereo off; SOUND folded into one button", () => {
-  assert.deepEqual(lab(), { subject: true, effect: true, vibrato: false, stereo: false });
+test("D233: LAB withdrawn (D293: the subject's brightness off, its effect on), vibrato and stereo off; SOUND folded into one button", () => {
+  assert.deepEqual(lab(), { subject: false, effect: true, vibrato: false, stereo: false });
   assert.equal(soundLabel("harpsichordSampled"), "SOUND · HARPSICHORD (SAMPLED)");
 });
 
