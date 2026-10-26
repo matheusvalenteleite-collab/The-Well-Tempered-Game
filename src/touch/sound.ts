@@ -98,6 +98,18 @@ export const SHAPES = {
    * phone's speaker than on a full-range one (D291).
    */
   glottalLow: (x: number) => partials(x, Array.from({ length: 64 }, (_, k) => 1 / (k + 1) ** 1.2)),
+  /**
+   * D304, MODULAR: a West-coast wavefolder (a Buchla 259's timbre): a triangle folded back on itself
+   * (sin of 3 times it, a little offset): the fundamental strongest, the 2nd and 3rd 3-6 dB under, then
+   * the odd harmonics falling slowly (-18 dB at the 5th, -29 at the 9th): a woody buzz.
+   */
+  folded: (x: number) => Math.sin(3 * (1 - 4 * Math.abs(((x + 0.25) % 1) - 0.5)) + 0.6),
+  /**
+   * D304, MODULAR: a hard-synced sawtooth (an East-coast lead's): a slave sawtooth reset by the master
+   * every period, running 1.5 times as fast, over the master's own sawtooth: the fundamental strongest,
+   * a formant-like lift about the 3rd and 6th harmonics (the sync's tearing edge).
+   */
+  hardSync: (x: number) => (0.7 * (2 * ((1.5 * x) % 1) - 1) + 0.6 * (2 * x - 1)) / 1.3,
   /** D302: a 4' flute (Rohrflöte): the fundamental, a little of the 2nd and 3rd (the chimney's). */
   stopFlute4: (x: number) => partials(x, [1, 0.1, 0.2, 0.04]),
 } satisfies Record<string, (x: number) => number>;
@@ -622,11 +634,22 @@ export const PATCHES = {
   // pulse with a sawtooth beside it (second of five), a resonant square pluck, a slow-opening brass (the
   // tenor of four), the Minimoog-style bass (sawtooth, a sub-octave square, the filter bouncing shut but
   // never under 1.3 kHz).
-  modLead: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "saw", detune: 7, gain: 0.6 }, { wave: "square", octave: -1, gain: 0.2 }], filter: { freq: 1.8, q: 6, env: 6, envDecay: 0.22, poles: 4 }, amp: { a: 0.008, d: 0.4, s: 0.8, r: 0.08 }, vib: { depth: 5, rate: 5.6, delay: 0.4 }, drift: { cents: 4, rate: 0.09 }, level: 0.28 }),
-  modSync: P({ osc: [{ wave: "pulse25" }, { wave: "saw", detune: -6, gain: 0.5 }], filter: { freq: 2.4, q: 3, env: 4, envDecay: 0.15, poles: 4 }, amp: { a: 0.006, d: 0.3, s: 0.7, r: 0.06 }, drift: { cents: 4, rate: 0.15 }, level: 0.42 }),
-  modPluck: P({ osc: [{ wave: "square", gain: 0.8 }, { wave: "saw", detune: 5, gain: 0.5 }], filter: { freq: 1.1, q: 8, env: 10, envDecay: 0.16, poles: 4 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.05 }, drift: { cents: 4, rate: 0.06 }, level: 0.28 }),
-  modBrass: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: -8, gain: 0.7 }], filter: { freq: 2.6, q: 2, env: 3, envDecay: 0.3, poles: 4 }, amp: { a: 0.04, d: 0.4, s: 0.85, r: 0.08 }, vib: { depth: 4, rate: 4.7, delay: 0.5 }, drift: { cents: 4, rate: 0.12 }, level: 0.27 }),
-  modBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.5 }, { wave: "saw", detune: 6, gain: 0.5 }], filter: { freq: 1300, hz: true, q: 5, env: 5, envDecay: 0.08, poles: 4 }, hp: 60, amp: { a: 0.002, d: 0.25, s: 0.55, r: 0.05 }, drift: { cents: 3, rate: 0.05 }, level: 0.34 }),
+  // D304 (the owner: "Modular sucks… is this the best you could devise vis a vis a modular setup apt
+  // for playing Bach fugues?!"): rethought as a big modular system, East and West coast patched for four
+  // lines that never blur (no detuned unisons, each line one module chain): the top a hard-synced
+  // sawtooth (hardSync) through the ladder, its blip and a late vibrato (the East-coast lead); the
+  // second of five a wavefolded sustained voice (folded: a Buchla 259's woody buzz, a slow vibrato);
+  // the alto the West coast's "bongo": the folded wave through a low-pass gate (no resonance, the
+  // cutoff and the level falling together in 0.3 s, a vactrol's pluck); the tenor a bell from a
+  // frequency modulator 3.5 times the note (inharmonic: the ring modulator's metal) whose index
+  // falls in a quarter of a second to a clear, held body; the bass a sequencer's: a sawtooth over a
+  // square an octave down, a resonant filter snapping shut (never under 2 kHz, D291), driven. Dry
+  // but for a small room (0.12).
+  modLead: P({ osc: [{ wave: "hardSync" }], filter: { freq: 6, q: 2.2, env: 2.5, envDecay: 0.08, poles: 4 }, amp: { a: 0.004, d: 0.3, s: 0.8, r: 0.05 }, vib: { depth: 6, rate: 5.6, delay: 0.45 }, drift: { cents: 3, rate: 0.09 }, level: 0.28 }),
+  modFold: P({ osc: [{ wave: "folded" }], filter: { freq: 6, q: 0.8, env: 1.8, envDecay: 0.12 }, amp: { a: 0.01, d: 0.3, s: 0.85, r: 0.06 }, vib: { depth: 5, rate: 4.8, delay: 0.45 }, drift: { cents: 3, rate: 0.15 }, level: 0.3 }),
+  modBongo: P({ osc: [{ wave: "folded" }], filter: { freq: 5, q: 0.6, env: 4, envDecay: 0.09 }, amp: { a: 0.001, d: 0.32, s: 0, r: 0.05 }, drift: { cents: 3, rate: 0.06 }, level: 0.45 }),
+  modBell: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.35 }], fm: { ratio: 3.5, index: 3, to: 0.12, time: 0.25 }, amp: { a: 0.002, d: 0.6, s: 0.55, r: 0.08 }, drift: { cents: 3, rate: 0.12 }, level: 0.31 }),
+  modBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 2000, hz: true, q: 4, env: 3, envDecay: 0.05, poles: 4 }, drive: 0.8, hp: 45, amp: { a: 0.001, d: 0.15, s: 0.55, r: 0.03 }, drift: { cents: 2, rate: 0.05 }, level: 0.32 }),
   // TOMITA (D297, a niche pick, lush: after Isao Tomita's synthesizer records, Snowflakes Are Dancing
   // 1974 and Pictures at an Exhibition 1975): a whistling lead (a sine with a breath, coming up from
   // below into each note, a wide, late vibrato), a choir-like "ah" pad of three sawtooths (an ensemble
@@ -924,17 +947,17 @@ export const PRESETS: Preset[] = [
       5: [["singS", 0.25], ["singChoir", -0.3, 0.84], ["singA", 0.1], ["singT", -0.12, 0.94], ["singB", 0]],
     },
   },
-  // D297, MODULAR (a niche pick): the fatter 1970s modular and Minimoog sound beside SWITCHED-ON's leaner one.
+  // D297, MODULAR (a niche pick). D304: East and West coast: a synced lead, a wavefolder, a low-pass gate's bongo, an FM bell, a sequencer's bass.
   {
     id: "modular",
     name: "MODULAR",
-    slots: ["modLead", "modSync", "modPluck", "modBrass", "modBass"],
-    room: 0.2,
+    slots: ["modLead", "modFold", "modBongo", "modBell", "modBass"],
+    room: 0.12,
     by: {
       2: [["modLead", 0.25], ["modBass", -0.1]],
-      3: [["modLead", 0.3], ["modPluck", -0.3], ["modBass", 0]],
-      4: [["modLead", 0.3], ["modPluck", -0.25], ["modBrass", 0.15], ["modBass", 0]],
-      5: [["modLead", 0.3], ["modSync", -0.3, 0.84], ["modPluck", 0.1], ["modBrass", -0.1, 0.94], ["modBass", 0]],
+      3: [["modLead", 0.3], ["modBongo", -0.3], ["modBass", 0]],
+      4: [["modLead", 0.3], ["modBongo", -0.25], ["modBell", 0.15], ["modBass", 0]],
+      5: [["modLead", 0.3], ["modFold", -0.3, 0.84], ["modBongo", 0.1], ["modBell", -0.1, 0.94], ["modBass", 0]],
     },
   },
   // D297, TOMITA (a niche pick, lush; the owner: "Sometimes a lush one might be nice to have as a more
