@@ -271,3 +271,14 @@ test("D265: a piece's sound opens only once it is finished with an A or S (the b
   recordLite("wtc1f01", false, true, "C");
   assert.equal(readLite().best.wtc1f01, "A", "the best kept");
 });
+
+test("D308: each card shows the piece's best grade stamped on its picture and its best score in its words; nothing for a piece not played", async () => {
+  register("./tsx-hooks.mjs", import.meta.url);
+  const { createElement } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
+  const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: ["wtc1f01"], best: { wtc1f01: "S" }, scores: { wtc1f01: 12340 }, open: () => {}, settings: () => {}, fuguesOnly: true, book: "I" }));
+  assert.match(html, /id="grade-wtc1f01"[^>]*>S</);
+  assert.match(html, /id="best-wtc1f01"[^>]*>BEST 12,340</);
+  assert.doesNotMatch(html, /id="grade-wtc1f02"|id="best-wtc1f02"/);
+});

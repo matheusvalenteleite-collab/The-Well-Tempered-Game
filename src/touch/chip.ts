@@ -237,6 +237,9 @@ export interface Play {
   couple?: boolean;
 }
 
+/** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
+export const LIFT_TAU = 0.025;
+
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
 export const SING_GAIN = 3.4;
 
@@ -1051,11 +1054,13 @@ export class Chip {
     let thunk: GainNode | null = null;
     /** The note's own release (time constant, s): the recording's, a damper's (the bass slower), else 30 ms. */
     const ownTau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
-    const letGo = (s: number, tie = 0) => {
+    const letGo = (s: number, tie = 0, lift = false) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
       // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
-      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : ownTau;
+      // D308: the player's note let go (a thumb lifted): -40 dB within 120 ms, whatever the recording's
+      // own release (NOCTURNE 32-BIT's violin, 53 ms a time constant, was -20 dB then: no staccato).
+      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : lift ? Math.min(ownTau, LIFT_TAU) : ownTau;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -1095,7 +1100,7 @@ export class Chip {
       stop: (when = ctx.currentTime) => {
         if (stopped || when >= end) return;
         stopped = true;
-        letGo(Math.max(when, t + 0.02));
+        letGo(Math.max(when, t + 0.02), 0, !!p.lead);
       },
       bend: (c: number) => {
         if (stopped) return;

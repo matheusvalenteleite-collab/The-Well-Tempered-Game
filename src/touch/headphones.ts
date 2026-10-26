@@ -79,6 +79,32 @@ export function btOn(mode: BtMode, lag: number | null, reported = 0): boolean {
   return (lag ?? reported) > BT_AUTO_S;
 }
 
+/**
+ * D308: where a stored delay was tapped: the output setup then (setupKey of the latency the browser
+ * reported, if it reported one) and whether it was tapped since the page loaded.
+ */
+export interface LagOrigin {
+  setup?: string;
+  fresh: boolean;
+}
+
+/**
+ * D308: BLUETOOTH MODE's AUTO on the minimal page. A delay tapped once for earbuds stayed in force on the
+ * phone's speaker (the owner: "the notes keep ringing in the player's voice even when they let it go"):
+ * on when the latency the browser reports is over BT_AUTO_S; a stored delay over it counts only for the
+ * output it was tapped with: where the browser reports a latency, the same setup (its 50 ms bucket or
+ * the next); where it reports none (Safari), only until the page is loaded again (a phone cannot tell
+ * earbuds from its speaker: tap again with them on).
+ */
+export function btAuto(lag: number | null, reported: number | undefined, origin: LagOrigin): boolean {
+  if ((reported ?? 0) > BT_AUTO_S) return true;
+  if (lag === null || lag <= BT_AUTO_S) return false;
+  if (reported === undefined) return origin.fresh;
+  if (origin.setup === undefined) return false;
+  const now = setupKey(reported);
+  return lagFor({ [origin.setup]: 1 }, now) !== undefined;
+}
+
 export function verdictOf(lag: number): "WIRED-LIKE" | "BLUETOOTH" {
   return lag <= WIRED_MAX_S ? "WIRED-LIKE" : "BLUETOOTH";
 }
