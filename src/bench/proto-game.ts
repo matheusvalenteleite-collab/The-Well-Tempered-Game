@@ -22,6 +22,10 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
+/** D290: the narrowest window a note keeps on either side, however close its neighbours (ms). */
+export const SPLIT_FLOOR_MS = 60;
+/** D290: a contact this soon after a note was struck is the same strike doubled (ms). */
+export const DOUBLE_MS = 120;
 /** D289: the least travel of a held thumb that slides on to the next note (px). */
 export const SLIDE_MIN_PX = 10;
 /** D286: how long a thumb's last touch stays its reference for its next note (seconds). */
@@ -489,6 +493,8 @@ export class ProtoGame {
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
+    // D290: on the phone's ladder each note's window stops halfway to its neighbours (60 ms at least).
+    if (proto.id === "ladder") this.opt = { ...this.opt, split: true, floor: (SPLIT_FLOOR_MS / 60000) * f.tpq * this.bpm };
     // D223: BLUETOOTH MODE (not while the music waits for each note): the late side a little wider.
     this.bt = !!o.bt && !o.wait;
     if (this.bt) this.opt = { ...this.opt, late: this.opt.late + (BT_LATE_MS / 1000) * this.tps };
@@ -1141,6 +1147,8 @@ export class ProtoGame {
 
   down(id: number, c: Contact, ts: number) {
     if (this.held.has(id)) this.up(id, ts);
+    // D290: the play area's width, for the report (was set only on the road: "screen 1 px").
+    this.touchW = c.w;
     if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
     this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
@@ -1232,6 +1240,7 @@ export class ProtoGame {
     const key = at.key?.midi;
     let i = key !== undefined ? strike(notesK, tk, this.opt, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
     if (i < 0) i = strike(notesK, tk, this.opt);
+    if (i >= 0) for (const j of chordOf(notesK, i)) notesK[j].via ??= "touch";
     // D217: in a stretto, a note is right only in its row: the other row's note, struck here, is wrong.
     if (i < 0 && this.line && this.tracks.length > 1) {
       const o = 1 - h.k;
@@ -1244,6 +1253,11 @@ export class ProtoGame {
     }
     // D191: a strike on a note that rides (the player striking it anyway) is no slip; it is played for them.
     if (i < 0 && notesK.some((n) => n.ride && Math.abs(n.on - tk) <= Math.max(this.opt.early, this.opt.late))) return;
+    // D290: a second contact on a note just struck (a rolling thumb, a re-land): ignored, not a slip.
+    if (i < 0 && this.proto.id === "ladder" && notesK.some((n) => n.state === "hit" && n.at !== undefined && Math.abs(this.msOf(Math.min(n.at, tk), Math.max(n.at, tk))) <= DOUBLE_MS)) {
+      this.diagCounts.DOUBLE = (this.diagCounts.DOUBLE ?? 0) + 1;
+      return;
+    }
     if (i < 0) {
       this.diagNote("STRAY", h.k, tk, at.c, -1);
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
@@ -1405,6 +1419,7 @@ export class ProtoGame {
     const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
     if (i < 0) return false;
     h.ay = c.y;
+    notes[i].via = "slide";
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
     this.slides++;
     // D286: the thumb is where it slid to, on the note it slid onto.
@@ -1424,6 +1439,7 @@ export class ProtoGame {
     // D262: a line not finished goes on by itself.
     if (h.trace?.queue.length) this.loose.push(h.trace);
     if (cancelled) {
+      this.cancels++;
       // D289: the system took the touch back (iOS may, when the other thumb lands): no release judged,
       // but for the join the note ended here, so the next note can still be legato.
       const n = this.tracks[h.k].notes[h.note];
@@ -2580,6 +2596,8 @@ export class ProtoGame {
    */
   private diag: string[] = [];
   private diagCounts: Record<string, number> = {};
+  /** D290: touches the system took back (pointercancel), for the report. */
+  private cancels = 0;
   private diagNote(kind: string, k: number, tick: number, c: Contact | undefined, i: number) {
     this.diagCounts[kind] = (this.diagCounts[kind] ?? 0) + 1;
     if (this.diag.length >= 400) return;
@@ -2598,16 +2616,18 @@ export class ProtoGame {
     }
     const n = notes[j];
     const off = n ? Math.round(this.msOf(n.on, tick) * (tick < n.on ? -1 : 1)) : 0;
+    // D290: a tap whose note was already taken: by what, and how long before.
+    const taken = i < 0 && n?.state === "hit" && n.at !== undefined ? ` · note taken by ${n.via ?? "?"} ${Math.round(this.msOf(Math.min(n.at, tick), Math.max(n.at, tick)))} ms ${n.at <= tick ? "before" : "after"}` : "";
     const touched = c && this.road ? `L${this.laneOfX(c.x, c.w)}${this.arc?.rows ? (c.y >= c.h - PAD_SPLIT ? "lo" : "up") : ""}` : "";
     const asked = n && j >= 0 ? `L${this.lanesOf(k)[j]}${this.arc?.rows ? (this.rowOf(j, k) ? "lo" : "up") : ""}` : "";
     const hand = this.hands ? (k ? " LH" : " RH") : "";
-    this.diag.push(`${bar}.${beat.toFixed(1)}${hand} ${kind}${touched ? ` touched ${touched}` : ""}${asked ? ` asked ${asked}` : ""}${n ? ` ${off >= 0 ? "+" : ""}${off}ms` : ""}`);
+    this.diag.push(`${bar}.${beat.toFixed(1)}${hand} ${kind}${touched ? ` touched ${touched}` : ""}${asked ? ` asked ${asked}` : ""}${n ? ` ${off >= 0 ? "+" : ""}${off}ms` : ""}${taken}`);
   }
   private report(r: { right: number; of: number; score: number }): string {
     const counts = Object.entries(this.diagCounts).map(([k, v]) => `${k} ${v}`).join(", ") || "none";
     const head = [
       `${this.f.id} ${this.proto.id} ${this.o.easy ?? "timing"} ${Math.round(this.bpm)} bpm${this.hands ? " both hands" : ""} · sound delay ${this.chip.lag == null ? "as reported" : `${Math.round(this.chip.lag * 1000)} ms`}${this.bt ? " · BLUETOOTH MODE" : ""}`,
-      `right ${r.right}/${r.of} score ${r.score}${this.failedAt !== null ? ` crowd left at bar ${barAt(this.f, this.failedAt)}` : ""} · slips ${this.slips} · screen ${Math.round(this.touchW)} px`,
+      `right ${r.right}/${r.of} score ${r.score}${this.failedAt !== null ? ` crowd left at bar ${barAt(this.f, this.failedAt)}` : ""} · slips ${this.slips} · screen ${Math.round(this.touchW)} px · touches cancelled ${this.cancels}`,
       this.pedalList.length ? `pedals held ${this.pedalList.map((p) => `${p.name} ${Math.round(p.share * 100)}%`).join(", ")}` : "",
       `not exact: ${counts}`,
     ].filter(Boolean);
