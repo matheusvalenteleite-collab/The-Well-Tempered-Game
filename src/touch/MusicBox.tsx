@@ -235,7 +235,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
 
   // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
   // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no solid
-  // outline); a subject note framed in gold dashes (the player's own are framed solid); a note glows
+  // outline); a subject note a little brighter (D287: no gold frame); a note glows
   // while it sounds (brighter, a faint halo in its colour), never in the player's hit colour.
   const subjNotes = new Set(fr.spans?.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)) ?? []);
   for (const o of fr.others) {
@@ -255,12 +255,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       g.globalAlpha = 0.22;
       g.fillStyle = ink;
       g.fillRect(x1 - 1, yOf(o.step) - 1, bw + 2, bh + 1);
-    }
-    if (isSubj && full) {
-      // D279: the subject's gold stripe over the note, dashed (two pixels on, two off): the player's is solid.
-      g.globalAlpha = sounding ? 1 : 0.85;
-      g.fillStyle = fx.gold;
-      for (let x = x1; x < x1 + bw; x += 4) g.fillRect(x, y - 2, Math.min(2, x1 + bw - x), 1);
     }
     g.globalAlpha = sounding ? 1 : isSubj ? 0.8 : full ? 0.45 : 0.7;
     g.fillStyle = ink;
@@ -310,14 +304,10 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
       g.fillStyle = "rgba(0,0,0,0.55)";
       g.fillRect(x1 + 1, y + 1, bw + 1, bh);
-      // D279: the player's notes always outlined white (the owner took the gold frame for "yours"); a
-      // subject note marked by a gold stripe over it (the others' subject notes: dashed).
+      // D279: the player's notes always outlined white (the owner took the gold frame for "yours").
+      // D287: no gold stripe over subject notes ("The golden border was a bad idea. It's cluttering").
       g.fillStyle = edge;
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
-      if (subjNotes.has(`${n.voice ?? pv}:${n.on}`)) {
-        g.fillStyle = fx.gold;
-        g.fillRect(x1 - 1, y - 3, bw + 2, 2);
-      }
       g.fillStyle = ink;
       g.fillRect(x1, y, bw, bh - 1);
       if (bh > 3) {
