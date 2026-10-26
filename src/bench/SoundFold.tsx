@@ -1,27 +1,20 @@
 /**
  * D233: ⚙ SOUND folded like TUNING and INTERFACE: one button showing the choice ("SOUND ·
  * HARPSICHORD (SAMPLED)"); it opens the sounds (D292: five); choosing one applies and closes.
+ * D303: now one dropdown (SoundSelect.tsx), the piece's own sound first and starred; DRUMS beside it
+ * where the sound has them.
  */
-import { useState } from "react";
-import { SoundChoices } from "../touch/Panels.tsx";
-import { soundLabel } from "./settings-logic.ts";
+import { DrumsToggle } from "../touch/Panels.tsx";
+import { creditFor } from "../touch/sound.ts";
+import { POP_SOUNDS } from "./PlayPop.tsx";
+import { SoundSelect } from "./SoundSelect.tsx";
 
-export function SoundFold({ value, set }: { value: string; set: (id: string) => void }) {
-  const [open, setOpen] = useState(false);
+export function SoundFold({ value, set, own }: { value: string; set: (id: string) => void; own?: string }) {
   return (
-    <>
-      <button type="button" id="sound-open" className="tb-fold" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <span>{soundLabel(value)}</span>
-        <span aria-hidden="true">{open ? "▴" : "▾"}</span>
-      </button>
-      {open && (
-        <div className="tb-fold-panel" role="group" aria-label="Sound">
-          <SoundChoices value={value} set={(id) => (set(id), setOpen(false))} />
-          <button type="button" id="sound-done" className="tb-fold-done" onClick={() => setOpen(false)}>
-            ✕ CLOSE
-          </button>
-        </div>
-      )}
-    </>
+    <div className="tb-sound-fold">
+      <SoundSelect id="sound-select" value={value} set={set} sounds={POP_SOUNDS} own={own} />
+      <DrumsToggle sound={value} />
+      {creditFor(value) && <p className="tg-credit">{creditFor(value)}</p>}
+    </div>
   );
 }

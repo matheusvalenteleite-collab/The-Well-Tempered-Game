@@ -11,6 +11,7 @@ import { creditFor, presetById } from "../touch/sound.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { cardById } from "./cards.ts";
 import { formalTitle } from "./FuguePicker.tsx";
+import { SoundSelect } from "./SoundSelect.tsx";
 import { fugueOf, isPrelude } from "./stages.ts";
 
 /** The pop-up's title: "BWV 846/1 · PRELUDE IN C MAJOR" (the piece's own title where it has no card). */
@@ -120,14 +121,8 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
         )}
         {sound !== undefined && setSound && !soundLocked && (
           <div className="tb-pop-sounds" role="group" aria-label="Sound">
-            <p className="tb-pop-ask">{tr("SOUND")}</p>
-            <div className="tb-pop-sound-row">
-              {popSounds(id).map(([sid, name, own]) => (
-                <button key={sid} type="button" id={`pop-sound-${sid}`} className={(sid === sound ? "on" : "") + (own ? " own" : "")} title={own ? "This piece's own sound" : undefined} aria-pressed={sid === sound} onClick={() => setSound(sid)}>
-                  {tr(name)}
-                </button>
-              ))}
-            </div>
+            {/* D303: one dropdown, the piece's own sound first and starred (was a row of buttons). */}
+            <SoundSelect id="pop-sound" value={sound} set={setSound} sounds={POP_SOUNDS} own={PIECE_SOUND[id]} />
             {/* D292: the recorded piano's credit (CC BY 3.0) while it is the sound. */}
             {creditFor(sound) && <p className="tb-pop-lock" id="pop-credit">{creditFor(sound)}</p>}
           </div>

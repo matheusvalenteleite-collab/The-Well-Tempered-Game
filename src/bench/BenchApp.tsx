@@ -25,7 +25,7 @@ import { answer, askFirst, nextLesson, recordLesson, skipLesson, trackState, tri
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
-import { soundFor } from "../touch/piece-sound.ts";
+import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { engraved, layoutOf, readDisplay, saveDisplay, type DisplayMode } from "./sheet-format.ts";
@@ -1079,7 +1079,7 @@ export function BenchApp() {
           {prelude && <p className="tg-panel-note tb-note">PRELUDE · PLAYED ON HIGHWAY</p>}
           <ModeHow id={proto.id} scale={scaleOn} />
           <From f={f} pick={pick} setPick={setPick} from={from} />
-          <SoundFold key={kimiko ? "her" : "all"} value={soundNow} set={setSound} />
+          <SoundFold key={kimiko ? "her" : "all"} value={soundNow} set={setSound} own={kimiko ? undefined : PIECE_SOUND[f.id]} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only; equal temperament at her A.</p>}
           <DisplayChoice value={display} set={setDisplay} piece={f} />
           <InterfaceFold frame={frame.current} />

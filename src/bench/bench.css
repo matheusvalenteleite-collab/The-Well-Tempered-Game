@@ -550,11 +550,15 @@
 
 /* D240: the friends' page: the sounds on the pop-up, under HOW TO PLAY. */
 .tb-pop-sounds { display: grid; gap: 4px; justify-items: center; margin-top: 6px; }
-.tb-pop-sound-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 420px; }
-.tb-pop-sound-row button { font-family: var(--tg-pixel); font-size: 7px; padding: 6px 7px; min-height: 30px; background: transparent; color: var(--tg-muted); border: 2px solid var(--tg-barline); cursor: pointer; }
-.tb-pop-sound-row button.on { color: var(--tg-bg); background: var(--tg-gold); border-color: var(--tg-gold); }
-/* D246: the piece's own sound, underlined in gold. */
-.tb-pop-sound-row button.own { box-shadow: inset 0 -3px 0 #ffd66e; }
+/* D303: one dropdown for the sound (the pop-up and ⚙ SOUND): a native select, the piece's own starred. */
+.tb-sound-select { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 420px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); }
+.tb-sound-pick { position: relative; flex: 1; min-width: 0; }
+.tb-sound-pick select { width: 100%; min-height: 40px; padding: 8px 26px 8px 10px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold); background: var(--tg-box); border: 2px solid var(--tg-barline); border-radius: 0; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.tb-sound-pick select:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tb-sound-pick select option, .tb-sound-pick select optgroup { font-family: system-ui, sans-serif; font-size: 14px; color: #111; background: #fff; }
+.tb-sound-pick > span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 8px; color: var(--tg-gold); pointer-events: none; }
+.tb-sound-fold { display: grid; gap: 6px; }
+.tb-sound-fold .tb-sound-select { max-width: none; }
 /* D256: the version, discreet, top left (over every screen, never in the way of a touch). */
 #wtc-version { position: fixed; top: calc(1px + env(safe-area-inset-top, 0px)); left: max(6px, env(safe-area-inset-left, 0px)); z-index: 100; font-family: var(--tg-pixel); font-size: 5px; line-height: 5px; letter-spacing: 0.5px; color: var(--tg-fg); opacity: 0.5; pointer-events: none; user-select: none; }
 /* D259: the report's button on the result, small and quiet. */
