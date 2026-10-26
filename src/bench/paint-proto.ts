@@ -12,6 +12,7 @@
 import { ornamentMark } from "../touch/ornament-play.ts";
 import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
+import { paperInk } from "./sheet-view.ts";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
@@ -34,8 +35,18 @@ function tokens() {
   return { shine: tok("--tg-shine"), gold: tok("--tg-gold"), wrong: tok("--tg-wrong"), fg: tok("--tg-fg"), muted: tok("--tg-muted"), grid: tok("--tg-grid"), barline: tok("--tg-barline"), miss: tok("--tg-miss") };
 }
 
+/**
+ * D298: the SHEET mode's look for the bars (sheet-view.ts draws the page between them): paper, dark ink,
+ * no pitch names; the same marks as the box's (the coming note's light, the way to go, the last touch).
+ */
+let paper = false;
+export function setPaperLook(on: boolean) {
+  paper = on;
+}
+export const PAPER_TOK: Tok = { shine: "#8a6a12", gold: "#9a7410", wrong: "#b3261e", fg: "#1d1d1f", muted: "#8a857a", grid: "#e4e0d6", barline: "#d6d1c4", miss: "#b3261e" };
+
 export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, subject: Set<string>) {
-  const t = tokens();
+  const t = paper && g.proto.layout === "bars" ? PAPER_TOK : tokens();
   switch (g.proto.id) {
     case "ladder":
       bars(c, w, h, g, t);
@@ -78,7 +89,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   // D218: the legato chain under way.
   if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
-  if (g.streak >= 24) {
+  if (g.streak >= 24 && !paper) {
     const now = performance.now() / 1000;
     for (let k = 0; k < 18; k++) {
       const phase = (now * (0.4 + (k % 5) * 0.1) + k * 0.37) % 1;
@@ -920,15 +931,22 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     { x: 0, inner: bw, k: 0 },
     { x: w - bw, inner: w - bw, k: g.tracks.length > 1 ? 1 : 0 },
   ];
+  const inkFor = paper ? paperInk : inkOf;
   for (const [n, s] of sides.entries()) {
-    // The bar: warm and dark, a little lighter towards the phone's edge (forte).
-    const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
-    grad.addColorStop(0, "rgba(26,18,22,0.92)");
-    grad.addColorStop(1, "rgba(54,34,30,0.92)");
-    c.fillStyle = grad;
-    c.fillRect(s.x, 0, bw, h);
-    c.fillStyle = t.barline;
-    c.fillRect(n ? s.x : bw - 2, 0, 2, h);
+    if (paper) {
+      // D298: the sheet's bars: paper (the play area's own background, bench.css: not filled each frame), a hairline by the page.
+      c.fillStyle = t.barline;
+      c.fillRect(n ? s.x : bw - 1, 0, 1, h);
+    } else {
+      // The bar: warm and dark, a little lighter towards the phone's edge (forte).
+      const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
+      grad.addColorStop(0, "rgba(26,18,22,0.92)");
+      grad.addColorStop(1, "rgba(54,34,30,0.92)");
+      c.fillStyle = grad;
+      c.fillRect(s.x, 0, bw, h);
+      c.fillStyle = t.barline;
+      c.fillRect(n ? s.x : bw - 2, 0, 2, h);
+    }
     // The dynamics along the foot, pp by the box to ff by the edge (D296: only where touch dynamics are heard, D293).
     if (g.touchDynamics) MARKS.forEach((m, j) => {
       const u = (j + 0.5) / MARKS.length;
@@ -936,7 +954,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     });
   }
   // D244: THE FUGUE'S BUILDING on the phone: the map, small, across the top of the box.
-  if (builds(g.f) && g.f.entries.length) {
+  if (!paper && builds(g.f) && g.f.entries.length) {
     const m = fugueMap(g.f);
     const mw = w - 2 * bw - 24;
     const x0 = bw + 12;
@@ -954,7 +972,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     if (nx) {
       const n = g.notes[nx.i];
       const m = g.moves[nx.i];
-      const ink = inkOf(g.voice, count);
+      const ink = inkFor(g.voice, count);
       const y = rows.yOf(n.step);
       // D296: the whole bar is playable (judged by the thumb's own moves, not by where the note is drawn): the
       // bar lights evenly as the note comes; its sign stands where that thumb last touched (else at the note).
@@ -962,7 +980,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         const own = g.lastBySide[s.x === 0 ? "left" : "right"];
         const sy = own && g.now - own.tick <= OWN_FRESH_S * g.tps ? own.y : y;
         c.fillStyle = ink;
-        c.globalAlpha = 0.1 + 0.3 * nx.p * nx.p;
+        c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.1 + 0.3 * nx.p * nx.p;
         c.fillRect(s.x, 0, bw, h - 24);
         c.globalAlpha = 1;
         // The beat closing in: two bars meeting at the bar's foot.
@@ -987,13 +1005,15 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         else (thumbCoach(c, w, bw, y, "left", t, "EITHER THUMB"), thumbCoach(c, w, bw, y, "right", t, "EITHER THUMB"));
       }
       if (g.o.coach === "dynamics") dynamicsCoach(c, w, h, bw, n.on < g.f.barTicks, t);
-      // A soft trail from the note in the box out to the bars.
-      const xn = Math.max(bw, Math.min(w - bw, rows.xOf(n.on)));
-      c.fillStyle = ink;
-      c.globalAlpha = 0.12 + 0.3 * nx.p;
-      c.fillRect(bw, y - rows.rowH, xn - bw, 2 * rows.rowH);
-      c.fillRect(xn, y - rows.rowH, w - bw - xn, 2 * rows.rowH);
-      c.globalAlpha = 1;
+      // A soft trail from the note in the box out to the bars (D298: not over the sheet).
+      if (!paper) {
+        const xn = Math.max(bw, Math.min(w - bw, rows.xOf(n.on)));
+        c.fillStyle = ink;
+        c.globalAlpha = 0.12 + 0.3 * nx.p;
+        c.fillRect(bw, y - rows.rowH, xn - bw, 2 * rows.rowH);
+        c.fillRect(xn, y - rows.rowH, w - bw - xn, 2 * rows.rowH);
+        c.globalAlpha = 1;
+      }
     }
     // Where you last played: a mark on that bar.
     if (g.lastTouch) {

@@ -27,11 +27,14 @@ import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ladderGeometry, MusicBox, inkOf, type Frame } from "../touch/MusicBox.tsx";
+import { ladderGeometry, MusicBox, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
+import { engraved, layoutOf, readDisplay, saveDisplay, type DisplayMode } from "./sheet-format.ts";
+import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
+import { DisplayChoice } from "./DisplayChoice.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { uiRows } from "../touch/ui/index.ts";
 import { InterfaceFold } from "./InterfaceFold.tsx";
-import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
+import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
@@ -42,7 +45,7 @@ import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, c
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
-import { paintProto } from "./paint-proto.ts";
+import { paintProto, setPaperLook } from "./paint-proto.ts";
 import { laneLine, ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker } from "./FuguePicker.tsx";
@@ -252,6 +255,40 @@ export function BenchApp() {
   // D237: the minimal page: a phone's prelude on HIGHWAY, its fugue on LADDER; a computer's both on HIGHWAY (keys).
   const proto = protoById(run ? run.proto : stageMode(f, platform, APP.lite ? (platform === "computer" ? "keys" : "ladder") : offered(pick.proto, platform, midi.length > 0)));
   const prelude = !run && f.kind === "prelude";
+  // D298: ⚙ DISPLAY: the box (DEFAULT), CANTUS (to come: the box meanwhile), or the fugue's sheet
+  // (SHEET · TWO STAVES, SHEET · ONE STAFF PER VOICE) where it is engraved (the 48 fugues); kept on the device.
+  const [display, setDisplayRaw] = useState<DisplayMode>(readDisplay);
+  const setDisplay = (m: DisplayMode) => (setDisplayRaw(m), saveDisplay(m));
+  const sheetLayout = layoutOf(display);
+  const sheetOn = !!sheetLayout && engraved(f.id) && proto.layout === "bars";
+  useEffect(() => {
+    if (!sheetOn || !sheetLayout) {
+      setBoxPainter(null);
+      unmountSheets();
+      setPaperLook(false);
+      setTargetsDpr(2);
+      document.documentElement.classList.remove("tb-paper");
+      return;
+    }
+    void loadSheet(f.id, sheetLayout);
+    setPaperLook(true);
+    setTargetsDpr(1);
+    document.documentElement.classList.add("tb-paper");
+    // While the engraving loads: the white page alone.
+    setBoxPainter((c, w, h, fr) => {
+      const v = sheetView(f.id, sheetLayout);
+      if (v) v.paint(c, w, h, fr);
+      else blankPage(c, w, h);
+      return true;
+    });
+    return () => {
+      setBoxPainter(null);
+      unmountSheets();
+      setPaperLook(false);
+      setTargetsDpr(2);
+      document.documentElement.classList.remove("tb-paper");
+    };
+  }, [sheetOn, sheetLayout, f.id]);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
@@ -844,7 +881,7 @@ export function BenchApp() {
           </>
         }
         legend={f.voiceNames.map((name, i) => (
-          <span key={name} style={{ color: inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : 0.55 }}>
+          <span key={name} style={{ color: sheetOn ? paperInk(i, f.voices.length) : inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : sheetOn ? 0.75 : 0.55 }}>
             ■ {voiceName(name)}
             {played.includes(i) && <b className="tb-you"> · {tr("YOU")}</b>}
           </span>
@@ -981,6 +1018,8 @@ export function BenchApp() {
               window.location.reload();
             }}
           />
+          {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
+          <DisplayChoice value={display} set={setDisplay} piece={f} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
@@ -1003,6 +1042,7 @@ export function BenchApp() {
           <From f={f} pick={pick} setPick={setPick} from={from} />
           <SoundFold key={kimiko ? "her" : "all"} value={soundNow} set={setSound} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only; equal temperament at her A.</p>}
+          <DisplayChoice value={display} set={setDisplay} piece={f} />
           <InterfaceFold frame={frame.current} />
           <TuningFold id={tuning.id} a={tuning.a} set={changeTuning} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />

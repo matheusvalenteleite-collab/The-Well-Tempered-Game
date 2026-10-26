@@ -649,3 +649,28 @@
 .tb-step:disabled { opacity: 0.4; cursor: not-allowed; }
 .tb-step-n { color: var(--tg-muted); }
 .tb-step-name small { display: block; margin-top: 4px; font-size: 6px; line-height: 1.5; color: var(--tg-muted); }
+
+/* D298: the SHEET mode: the box a white page (sheet-view.ts), its words in a book face, the count-in in ink. */
+html.tb-paper .tg-box { background: #fff; border-color: #d6d1c4; box-shadow: none; }
+html.tb-paper .tg-roll { background: #fff; box-shadow: none; }
+html.tb-paper .tg-roll::after { display: none; }
+html.tb-paper .tg-roll canvas { image-rendering: auto; }
+html.tb-paper .tg-hud, html.tb-paper .tg-legend { background: #fff; box-shadow: none; font-family: Georgia, "Times New Roman", serif; font-size: 12px; letter-spacing: 0.05em; }
+html.tb-paper .tg-hud-title { color: #1d1d1f; }
+html.tb-paper .tg-hud-bar { color: #6b665c; font-style: italic; }
+html.tb-paper .tg-x { color: #1d1d1f; background: #f6f5f1; border-color: #d6d1c4; box-shadow: none; }
+html.tb-paper .tg-count { color: #1d1d1f; text-shadow: none; font-family: Georgia, "Times New Roman", serif; font-size: 64px; }
+html.tb-paper .tb-you { color: #1d1d1f; }
+html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars .tg-play { background: #f6f5f1; }
+/* The page over the box's canvas: a strip of tiles and marks moved by a transform only; the playhead and the clefs' column fixed. */
+.tb-sheet-page { position: absolute; inset: 0; overflow: hidden; background: #fff; pointer-events: none; }
+.tb-sheet-strip { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
+.tg-roll .tb-sheet-strip canvas { position: absolute; top: 0; image-rendering: auto; }
+.tb-sheet-marks { position: absolute; left: 0; top: 0; overflow: visible; }
+.tb-sheet-word { font-family: Georgia, "Times New Roman", serif; font-style: italic; stroke: #fff; stroke-width: 3px; paint-order: stroke; stroke-linejoin: round; }
+.tb-sheet-miss { fill: none; stroke: #b3261e; stroke-width: 1.4px; stroke-linecap: round; }
+.tb-sheet-head { position: absolute; left: 0; top: 0; height: 100%; background: #fff; }
+.tb-sheet-head::after { content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 18px; background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
+.tg-roll .tb-sheet-head canvas { display: block; image-rendering: auto; }
+.tb-sheet-playhead { position: absolute; width: 1.2px; margin-left: -0.6px; opacity: 0.55; }
+.tb-display .tg-seg { flex-wrap: wrap; }

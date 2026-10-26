@@ -16,6 +16,12 @@ export interface ThumbEvents {
 
 export type Painter = (g: CanvasRenderingContext2D, w: number, h: number) => void;
 
+/** The targets' canvas's most device pixels to a CSS pixel (D184: 2). D298: the SHEET mode's bars (plain paper, a few marks) take 1 (a phone's frame rate kept with the page beside them). */
+let targetsDpr = 2;
+export function setTargetsDpr(n: number) {
+  targetsDpr = n;
+}
+
 export function PlayArea(p: {
   events: ThumbEvents;
   /** Paints the targets, every frame, in CSS pixels. */
@@ -37,7 +43,7 @@ export function PlayArea(p: {
       const el = area.current;
       if (c && el) {
         // D184: at most 2 (chunky pixels look the same; a 3x canvas halved the frame rate on phones).
-        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const dpr = Math.min(targetsDpr, window.devicePixelRatio || 1);
         const w = el.clientWidth;
         const h = el.clientHeight;
         if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
