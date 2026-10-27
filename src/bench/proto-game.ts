@@ -58,7 +58,7 @@ export const EDGE_SHARE = 0.12;
 /** D296: the move (in rows) the line's travel over a fourth or more asks of a thumb, the right way. */
 export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => ((TRAVEL_MIN = v), (MECH.travelMin = v));
-import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
+import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, strikeNext, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
 import { follow, joins, phrase, phraseContext, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
@@ -1672,6 +1672,12 @@ export class ProtoGame {
       this.diagCounts.DOUBLE = (this.diagCounts.DOUBLE ?? 0) + 1;
       this.tap?.({ kind: "double", tick: tk, track: h.k, side: h.side });
       return;
+    }
+    // D331: the next note, when this touch fell on the near side of the halfway line of one already struck
+    // (not while the same thumb's earlier contact is still down: a roll).
+    if (i < 0 && at.c && ![...this.held.values()].some((o) => o !== h && o.side === h.side && o.k === h.k)) {
+      i = strikeNext(notesK, tk, wo, (MECH.doubleMs / 1000) * this.tps);
+      if (i >= 0) for (const j of chordOf(notesK, i)) notesK[j].via ??= "touch";
     }
     if (i < 0) {
       this.diagNote("STRAY", h.k, tk, at.c, -1);
