@@ -8,7 +8,10 @@
  * Defaults, after J. S. Bach's "Explication unterschiedlicher Zeichen" (Clavier-Büchlein vor W. F.
  * Bach, 1720):
  * - trill (Trillo): from the note above, on the beat, alternating, then the main note held; with R
- *   (Trillo und Mordant) it closes below and back (… U N L N);
+ *   (Trillo und Mordant) it closes below and back (… U N L N). D319: the alternation lasts the note
+ *   (the owner: "trills are not lasting for as long as they ought"; C. P. E. Bach, Versuch I.2.3 §21:
+ *   beaten for the note's whole value), the main note settling only at the end of a long note (about
+ *   its last 15%), at about ten notes a second on the beat's grid (trillUnit, trillPitches);
  * - mordent (Mordant): main, below, main held;
  * - turn (Cadence): above, main, below, main;
  * - the short wavy sign: a snapped trill (C. P. E. Bach's Pralltriller: main, above, main) on a note
@@ -29,6 +32,10 @@ export interface Sounding {
 export interface OrnamentContext {
   /** The ornament notes' length, in quarters (from the tempo: `ornamentUnit`). */
   unit: number;
+  /** D319: a trill's notes' length, in quarters (`trillUnit`: on the beat's grid); `unit` when not given. */
+  trillUnit?: number;
+  /** D319: the share of a long note its trill's main note settles for (TRILL_SETTLE when not given). */
+  settle?: number;
   /** The note before in the same voice (for the snapped trill), if any. */
   prevMidi?: number;
   /** The key's step above and below a note (in semitones), for signs that do not say (S, $, O, W). */
@@ -55,6 +62,55 @@ export type OrnamentStyle = (typeof ORNAMENT_STYLES)[number];
 /** P24: "somewhat long" (C. P. E. Bach §13), taken as a crotchet or longer (a design choice). */
 const LONG_FOR_NACHSCHLAG = 1;
 
+/** D319: a long trill's main note settles for about this share of the note at its end (the Explication's main note held, kept brief). */
+export const TRILL_SETTLE = 0.15;
+/** D319: a trill settles only on a note of this many trill notes or more (shorter: the alternation to the end). */
+export const TRILL_SETTLE_FROM = 8;
+/** D319: the trill's speed by default, notes a second (8 to 12 in practice: Quantz IX §6's "not much more than four alternations to a pulse"). */
+export const TRILL_PER_SECOND = 10;
+
+/**
+ * D319: a trill note's length in quarters at a tempo (`quarterSec`: a quarter's length in seconds): a
+ * subdivision of the beat (a quarter by 2, 3, 4, 6, 8, 12, 16, 24 or 32) nearest `perSecond` notes a
+ * second, so that the alternation falls on the beat's own grid.
+ */
+export function trillUnit(quarterSec: number, perSecond = TRILL_PER_SECOND): number {
+  let best = 4;
+  for (const d of [2, 3, 4, 6, 8, 12, 16, 24, 32]) if (Math.abs(d / quarterSec - perSecond) < Math.abs(best / quarterSec - perSecond)) best = d;
+  return 1 / best;
+}
+
+/**
+ * D319: a trill's notes over a note of `dur` quarters, its notes `g` long: from the upper note U,
+ * alternating with the main note N, then N held to the end; the alternation fills the note but for a
+ * settle of about `settle` of it on a note of TRILL_SETTLE_FROM trill notes or more (the alternation's
+ * length the nearest that ends on U before the main note); with `closing` (a written R, or C. P. E.
+ * Bach's Nachschlag) it ends … U N L N. A note too short for four trill notes: four notes in its
+ * length (U N U N, Bach's short Trillo), as before.
+ */
+export function trillPitches(N: number, U: number, L: number, dur: number, g: number, closing: boolean, settle = TRILL_SETTLE): number[] {
+  const S = Math.floor(dur / g + 1e-9);
+  if (S < 4) return closing ? [U, N, L, N] : [U, N, U, N];
+  const tail = closing ? 1 : 0;
+  const want = S * (1 - (S >= TRILL_SETTLE_FROM ? settle : 0)) - tail;
+  // U N U … U before the main note (odd); U N … U N before the step below (even).
+  const parity = closing ? 0 : 1;
+  let k = Math.floor(want + 1e-9);
+  if (k % 2 !== parity) k--;
+  if (k + 2 - want < want - k) k += 2;
+  const max = S - 1 - tail;
+  if (k > max) k = max % 2 === parity ? max : max - 1;
+  k = Math.max(parity ? 1 : 2, k);
+  const out: number[] = [];
+  for (let j = 0; j < k; j++) out.push(j % 2 === 0 ? U : N);
+  return [...out, ...(closing ? [L] : []), N];
+}
+
+/** D319: the length of each of a trill's `count` notes: its grid, or a short note shared out (fewer than four grid notes). */
+export function trillStep(dur: number, g: number, count: number): number {
+  return Math.floor(dur / g + 1e-9) >= 4 ? g : dur / count;
+}
+
 /** The ornament notes' length in quarters at a tempo (`tempo`: the engine's half notes a minute). */
 export function ornamentUnit(tempo: number, perSecond = 11): number {
   const quarter = 30 / tempo; // seconds
@@ -74,32 +130,25 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
     dur -= len;
   }
   const N = n.midi;
-  const u = Math.min(ctx.unit, dur / 4);
-  /** The ornament's notes, each `u` long, the last held to the end of the note. */
-  const seq = (pitches: number[]) =>
+  /** The ornament's notes, each `u` long (a trill's: its grid, `trillStep`), the last held to the end of the note. */
+  const seq = (pitches: number[], trill = false) => {
+    const u = trill ? trillStep(dur, ctx.trillUnit ?? ctx.unit, pitches.length) : Math.min(ctx.unit, dur / 4);
     pitches.forEach((midi, k) => {
       const s = at + k * u;
       out.push({ midi, at: s, dur: k === pitches.length - 1 ? n.at + n.dur - s : u });
     });
+  };
   const has = (c: string) => signs.includes(c);
   const trillUp = ctx.diatonic ? ctx.stepAbove(N) : has("T") ? 2 : has("t") ? 1 : ctx.stepAbove(N);
   if (has("T") || has("t") || has("O")) {
-    const U = N + trillUp;
-    // Alternate for most of the note (the Explication's Trillo: five notes then the main note held on
-    // a crotchet), an even count so that it lands on the main note; with R, close below and back.
+    // D319: the trill lasts the note (trillPitches): from the note above, alternating on the tempo's
+    // grid, the main note settling only for the last ~15% of a long note (C. P. E. Bach: through the
+    // whole note, §21, no settle). The closing turn: written (R), or C. P. E. Bach's Nachschlag on a
+    // somewhat long note (§13): the alternation ends on the main note, then the step below, then the
+    // main note held (… U N L N).
     const cpe = ctx.style === "cpe";
-    // C. P. E. Bach: through the whole note (§21); otherwise most of it.
-    // The closing turn: written (R), or C. P. E. Bach's Nachschlag on a somewhat long note (§13): the
-    // alternation ends on the main note, then the step below, then the main note held (… U N L N).
     const closing = has("R") || (cpe && n.dur >= LONG_FOR_NACHSCHLAG);
-    const span = cpe ? dur : dur * (dur <= 1 ? 0.7 : 0.8);
-    // C. P. E. Bach: the alternation through the whole note (§21), its last note as long as the others.
-    let k = Math.max(4, Math.floor(span / u + 1e-9) - (cpe ? 1 + (closing ? 1 : 0) : 0));
-    if (k % 2) k--;
-    const notes: number[] = [];
-    for (let j = 0; j < k; j++) notes.push(j % 2 === 0 ? U : N);
-    if (closing) notes.push(N - ctx.stepBelow(N));
-    seq([...notes, N]);
+    seq(trillPitches(N, N + trillUp, N - ctx.stepBelow(N), dur, ctx.trillUnit ?? ctx.unit, closing, cpe ? 0 : (ctx.settle ?? TRILL_SETTLE)), true);
   } else if (has("M") || has("m")) {
     seq([N, N - (ctx.diatonic ? ctx.stepBelow(N) : has("M") ? 2 : 1), N]);
   } else if (has("W") || has("w")) {

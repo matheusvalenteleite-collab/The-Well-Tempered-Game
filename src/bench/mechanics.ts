@@ -69,6 +69,14 @@ export const MECH_DEFAULTS = {
   shakeWindowMs: 300,
   /** free-ornament.ts SHAKE_STEEP: a leg's travel along the bar at least this many times its travel across. */
   shakeSteep: 1.5,
+  /** D319 TRILL_PER_SECOND: a trill's speed, notes a second (taken to the nearest subdivision of the beat). */
+  trillPerSecond: 10,
+  /** D319 TRILL_SETTLE: a long trill's main note settles for this share of the note at its end. */
+  trillSettle: 0.15,
+  /** D319: the player's trill goes on while the thumb shakes and settles on the main note when it stops (off: the first shake plays the whole trill). */
+  trillFollowsShake: true,
+  /** D319: the thumb has stopped shaking when no leg came for this long (ms). */
+  trillStopMs: 250,
   // EXPRESSION AND CANCELS.
   /** D311: where a thumb lands across its bar shapes the attack; moving sideways the sustain. */
   expression: true,
@@ -157,6 +165,10 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "shakeReachMinPx", group: "ORNAMENTS", label: "…at least", help: "…and at least this many px.", kind: "number", min: 2, max: 30, step: 1, unit: "px" },
   { key: "shakeWindowMs", group: "ORNAMENTS", label: "Shake speed", help: "A free shake's legs must follow each other within this.", kind: "number", min: 100, max: 800, step: 10, unit: "ms" },
   { key: "shakeSteep", group: "ORNAMENTS", label: "Shake steepness", help: "A leg along the bar: its up-down travel at least this many times its sideways travel.", kind: "number", min: 0.5, max: 4, step: 0.1, unit: "×" },
+  { key: "trillPerSecond", group: "ORNAMENTS", label: "Trill speed", help: "A trill's notes a second, the band's and the player's (to the nearest subdivision of the beat).", kind: "number", min: 4, max: 20, step: 1, unit: "/s" },
+  { key: "trillSettle", group: "ORNAMENTS", label: "Trill settle", help: "A long trill ends on its main note for this share of the note.", kind: "number", min: 0, max: 0.5, step: 0.05 },
+  { key: "trillFollowsShake", group: "ORNAMENTS", label: "Trill follows the shake", help: "The player's trill goes on while the thumb shakes and settles when it stops (off: the first shake plays the whole trill).", kind: "bool" },
+  { key: "trillStopMs", group: "ORNAMENTS", label: "Shaking stopped after", help: "No leg for this long: the trill settles on its main note.", kind: "number", min: 100, max: 800, step: 10, unit: "ms" },
   { key: "expression", group: "EXPRESSION", label: "Expression (D311)", help: "Where a thumb lands across its bar shapes the attack; sideways while held, the sustain.", kind: "bool" },
   { key: "cancel", group: "CANCELS", label: "A touch the phone takes back", help: "iOS sometimes cancels a touch when the other thumb lands.", kind: "choice", options: [["overlap", "Rings on while the other thumb is down (D308)"], ["always", "Always rings to its end (D293)"], ["lift", "Counts as a lift"]] },
 ];
