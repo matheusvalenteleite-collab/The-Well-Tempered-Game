@@ -19,6 +19,13 @@ export function ladderLine(w: LadderWhy | undefined): string {
   if (!w) return "";
   if (w.ref === "free") return `free: ${w.freeWhy === "first note" ? "the first note" : w.freeWhy === "first touch" ? "this thumb's first touch" : w.freeWhy === "moved since" ? "the thumb travelled since its last note" : "its last touch too long ago"}`;
   const moved = w.movedPx ?? 0;
+  // D332: under the run rule (RUNS "lenient"): the run's way from either thumb's last touch, no line travel.
+  if (w.run) {
+    const runWay = w.run.dir > 0 ? "up" : "down";
+    const ref = w.run.from === "other" ? "the other thumb's last touch" : "its last touch";
+    const verdict = w.run.from === "none" ? "neither thumb's last touch allows it" : `from ${ref}`;
+    return `RUN RULE (a fast run ${runWay}): ${way(moved)} ${moved ? px(moved) + " " : ""}${verdict} (≤ ${px(w.needPx ?? 0)} against the run allowed, from either thumb; no line travel)`;
+  }
   const tune = w.steps === 0 ? "a repeat" : `the tune ${w.steps! > 0 ? "up" : "down"} ${interval(w.steps!)}`;
   let rule = "";
   if (w.rule === "repeat") rule = `needs within ${px(w.needPx ?? 0)}`;
@@ -89,6 +96,9 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} … SLUR: ${thumb(e.side)} down ${Math.round(e.earlyMs)} ms early, waits for its note while the other holds`];
     case "takeover":
       return [`${at} ⌒ TAKEN OVER: ${thumb(e.side)} landed on the note the other thumb had just taken (its drift's slide, or landing early): this one plays it`];
+    case "run":
+      // D332: the run's trend at its last note (the notes stay as judged; no score).
+      return [`${at} ${e.ok ? "RUN ✓" : "RUN ✗"} · ${e.notes} notes ${e.dir > 0 ? "up" : "down"}: the landings ${e.touches < 3 ? `too few (${e.touches})` : `trend ${e.slope < 0 ? "up" : e.slope > 0 ? "down" : "level"} (${Math.abs(e.slope)} px/s over ${e.touches} touches)`}${e.ok ? "" : ", not the run's way"} · no score`];
     case "release":
       return [`${at} ${e.word} · held ${Math.round(e.heldMs)} of ${Math.round(e.lenMs)} ms`];
     case "band":

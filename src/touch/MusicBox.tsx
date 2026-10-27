@@ -16,6 +16,8 @@ import { paintVariant } from "./box-variants.ts";
 import { paintUi } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
+import { fugueById } from "./fugue.ts";
+import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
@@ -179,6 +181,15 @@ function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   paintClassic(c, cssW, cssH, fr);
 }
 
+/** D332: the piece's key signature (its own key; the frame's key where the piece is unknown). */
+const sigMemo = new Map<string, number[]>();
+function signatureFor(fr: Frame): number[] {
+  const key = fr.piece ? fugueById(fr.piece).key : fr.key;
+  let s = sigMemo.get(key);
+  if (!s) sigMemo.set(key, (s = signatureOf(key)));
+  return s;
+}
+
 /** The box as it was (CLASSIC); also the INTERFACE panel's thumbnail. */
 export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const w = Math.max(1, Math.floor(cssW / PX));
@@ -244,6 +255,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     g.fillRect(xOf(t), 0, 1, h);
   }
 
+  // D332: a note altered against the piece's key signature drawn a fraction of a row up (raised) or down
+  // (lowered), so that F and F♯ (E♭ and E♮) no longer share a height; its sign on the block (chroma.ts).
+  const sig = signatureFor(fr);
+  const shift = chromaShift(bh);
+  const altOf = (step: number, midi: number) => (shift && hOf(step) === bh ? alterAgainst(step, midi, sig) : 0);
+
   const fx = { g, w, h, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState, fr.beatTicks);
 
@@ -264,11 +281,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const ink = inkOf(o.voice, fr.count);
     const bw = Math.max(1, x2 - x1 - 1);
     const th = full ? Math.max(1, Math.round(bh * 0.5)) : oh;
-    const y = yOf(o.step) + (full ? Math.floor((bh - 1 - th) / 2) : 0);
+    const oy = yOf(o.step) - altOf(o.step, o.midi) * shift;
+    const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
     if (sounding && full) {
       g.globalAlpha = 0.22;
       g.fillStyle = ink;
-      g.fillRect(x1 - 1, yOf(o.step) - 1, bw + 2, bh + 1);
+      g.fillRect(x1 - 1, oy - 1, bw + 2, bh + 1);
     }
     g.globalAlpha = sounding ? 1 : isSubj ? 0.8 : full ? 0.45 : 0.7;
     g.fillStyle = ink;
@@ -297,8 +315,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       if (x1 > w) break;
       const x2 = xOf(n.on + n.dur);
       if (x2 < 0) continue;
-      const y = yOf(n.step);
-      const bw = Math.max(1, x2 - x1 - 1);
+      // D332: altered against the key, a fraction of a row off its row (raised up, lowered down).
+      const alt = altOf(n.step, n.midi);
+      const y = yOf(n.step) - alt * shift;
+      // D332: every block its own, a gap of the roll between it and the next (the owner read E♭ E♭ D E♭
+      // quavers as one long block): the fill stops 3 px before the next onset where the note is long enough.
+      const bw = Math.max(1, x2 - x1 - (x2 - x1 >= 7 ? 3 : x2 - x1 >= 4 ? 2 : 1));
       if (n.state === "miss") {
         const t = sinceMs(n.at);
         if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
@@ -329,6 +351,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         g.fillRect(x1, y, bw, 1);
       }
       if (!fr.spans && fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x2, y, edge);
+      // D332: the sign (♯ ♭ ♮), dark on the block's start, where the block holds it.
+      if (alt && bh - 1 >= 4 && bw >= 6) {
+        g.fillStyle = "rgba(0,0,0,0.6)";
+        const gx = x1 + (bw >= 9 ? 3 : 1);
+        const gy = y + Math.floor((bh - 1 - 4) / 2);
+        SIGN_PIXELS[signOf(n.step, n.midi)].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(gx + rx, gy + ry, 1, 1)));
+      }
       if (n.state === "hit") {
         g.fillStyle = shine;
         g.fillRect(x1, y, Math.max(1, Math.min(bw, 2)), bh - 1);

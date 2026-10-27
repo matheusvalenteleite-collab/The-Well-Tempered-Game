@@ -27,6 +27,7 @@ import { echoHalves, repeatHalves } from "./echo.ts";
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
+import { findRuns, runTrend, type Run } from "./runs.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
 /** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */
@@ -1008,6 +1009,7 @@ export class ProtoGame {
       for (const n of t.notes) if (n.state === "pending" && !n.ride && this.now - grace > n.on + this.opt.late) ons.add(n.on);
       if (!ons.size) continue;
       for (const on of ons) this.diagNote("MISS", this.tracks.indexOf(t), on, undefined, t.notes.findIndex((n) => n.on === on));
+      for (const on of ons) this.runMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
       if (this.tap) for (const on of ons) this.tap({ kind: "miss", tick: on, track: this.tracks.indexOf(t), i: t.notes.findIndex((n) => n.on === on), midi: t.notes.find((n) => n.on === on)?.midi ?? 0 });
       // D262: a traced line's first note missed: the line plays itself.
       for (const on of ons) {
@@ -1229,6 +1231,62 @@ export class ProtoGame {
     return j;
   }
 
+  /** D332: the runs of each track (runs.ts), for MECH.runMinNotes and MECH.runIoiMs as they are. */
+  private runsMemo: { key: string; rule: Map<number, Run>[]; member: Map<number, Run>[] } | null = null;
+  private runsOf(k: number): { rule: Map<number, Run>; member: Map<number, Run> } {
+    const key = `${MECH.runMinNotes}:${MECH.runIoiMs}`;
+    if (this.runsMemo?.key !== key) {
+      const rule = this.tracks.map((t) => findRuns(t.notes, (a, b) => ((b - a) / this.tps) * 1000, MECH.runMinNotes, MECH.runIoiMs));
+      const member = rule.map((m) => {
+        const all = new Map(m);
+        for (const r of m.values()) all.set(r.notes[0], r);
+        return all;
+      });
+      this.runsMemo = { key, rule, member };
+    }
+    return { rule: this.runsMemo.rule[k] ?? new Map(), member: this.runsMemo.member[k] ?? new Map() };
+  }
+  /** D332: the run note i of track k is judged under (RUNS "lenient", LADDER), if any. */
+  runAt(k: number, i: number): Run | undefined {
+    if (MECH.runs !== "lenient" || this.proto.id !== "ladder") return undefined;
+    const notes = this.tracks[k]?.notes;
+    if (!notes?.[i]) return undefined;
+    const rule = this.runsOf(k).rule;
+    return rule.get(i) ?? rule.get(chordOf(notes, i)[0]);
+  }
+  /** D332: each run's landings so far (t in s, y in px), and the runs already told. */
+  private runPts = new Map<string, { t: number; y: number }[]>();
+  private runTold = new Set<string>();
+  private runMember(k: number, i: number): Run | undefined {
+    if (MECH.runs !== "lenient" || this.proto.id !== "ladder" || i < 0) return undefined;
+    return this.runsOf(k).member.get(i);
+  }
+  /** D332: a thumb's landing on a run's note, remembered for the run's trend; at its last note the run is told. */
+  private runLanding(k: number, i: number, y: number) {
+    const run = this.runMember(k, i);
+    if (!run) return;
+    const key = `${k}:${run.id}`;
+    if (i === run.notes[0]) this.runPts.delete(key), this.runTold.delete(key);
+    const pts = this.runPts.get(key) ?? [];
+    pts.push({ t: this.now / this.tps, y });
+    this.runPts.set(key, pts);
+    if (i === run.last) this.runEnd(k, run);
+  }
+  /** D332: a run's last note gone by unplayed: the run is told with the landings it had. */
+  private runMissed(k: number, i: number) {
+    const run = this.runMember(k, i);
+    if (run && i === run.last) this.runEnd(k, run);
+  }
+  /** D332: RUN ✓ / RUN ✗: the landings over the run trend its way (least squares). The notes stay as judged; no score. */
+  private runEnd(k: number, run: Run) {
+    const key = `${k}:${run.id}`;
+    if (this.runTold.has(key)) return;
+    this.runTold.add(key);
+    const pts = this.runPts.get(key) ?? [];
+    const tr = runTrend(pts, run.dir);
+    this.tap?.({ kind: "run", tick: this.tracks[k].notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, ok: tr.ok });
+  }
+
   /** Judges a touch or a key on note i: right, or what to sound instead. */
   private verdict(i: number, at: { c?: Contact; key?: KeyPress }, k = 0): Verdict {
     const { notes, moves } = this.tracks[k];
@@ -1318,11 +1376,28 @@ export class ProtoGame {
           const need = (travel ? MECH.travelMin : MECH.leapRows) * R;
           return done(way >= need, travel ? "travel" : "leap", need);
         };
-        let ok = clear(own);
-        if (ok) {
-          // The line's travel: from this thumb's latest touch a fourth or more away in the tune.
-          const far = [...back].reverse().find((t) => Math.abs(n.step - t.step) >= 3);
-          if (far) ok = clear(far, true);
+        // D332, RUNS "lenient" (the lab's; the game strict): inside a fast stepwise run a landing is right
+        // if it goes the run's way, or level within the step leeway, from EITHER thumb's last touch; the
+        // line's travel is left to the run's trend, checked at its last note (runEnd).
+        const run = this.runAt(k, i);
+        let ok: boolean;
+        if (run) {
+          const lee = MECH.stepLeewayRows * R;
+          const wayOf = (from: { y: number }) => (from.y - c.y) * run.dir;
+          const other = this.lastBySide[c.side === "left" ? "right" : "left"];
+          // The own thumb's usual rule (no travel) still passes what it passed (a repeat from a turn's top, a bar's end).
+          const ownOk = clear(own) || wayOf(own) >= -lee;
+          const otherOk = !!other && fresh(other) && wayOf(other) >= -lee;
+          ok = ownOk || otherOk;
+          const from = ownOk ? own : otherOk ? other! : own;
+          why = { ref: "own", steps: n.step - from.step, movedPx: from.y - c.y, rowPx: R, rule: "run", needPx: lee, run: { dir: run.dir, from: ownOk ? "own" : otherOk ? "other" : "none" } };
+        } else {
+          ok = clear(own);
+          if (ok) {
+            // The line's travel: from this thumb's latest touch a fourth or more away in the tune.
+            const far = [...back].reverse().find((t) => Math.abs(n.step - t.step) >= 3);
+            if (far) ok = clear(far, true);
+          }
         }
         // D318 (the lab's "either", off by default): in a slur the player may place the next thumb from the note
         // the other still holds ("up from the note I'm holding"): plainly the right way from where that thumb
@@ -2337,7 +2412,7 @@ export class ProtoGame {
     }
     this.voiced = false;
     // A touch on the screen (not a key) is the next note's reference.
-    if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), this.remember(h.side, { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now });
+    if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), this.remember(h.side, { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now }), this.runLanding(h.k, i, h.ay);
     h.midi = pitches[0];
     h.note = i;
     h.chord = chord;

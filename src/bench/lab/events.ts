@@ -19,10 +19,12 @@ export interface LadderWhy {
   /** The judging row (px). */
   rowPx?: number;
   /** The rule: a repeat within `needPx` of level; a step not more than `needPx` the wrong way; a leap at least `needPx` the right way. */
-  rule?: "repeat" | "step" | "leap" | "travel" | "edge";
+  rule?: "repeat" | "step" | "leap" | "travel" | "edge" | "run";
   needPx?: number;
   /** When the line's travel was judged too (after the reference passed): its figures. */
   travel?: { steps: number; movedPx: number; needPx: number; ok: boolean };
+  /** D332, RUNS "lenient": judged under the run rule (the run's way from either thumb's last touch; no line travel). */
+  run?: { dir: 1 | -1; from: "own" | "other" | "none" };
 }
 
 /** How the join into a note went (proto-game.ts play). */
@@ -54,6 +56,8 @@ export type LabEvent =
   | { kind: "cancel"; tick: number; track: number; side: Side; ringsOn: boolean; mode: string }
   | { kind: "wait"; tick: number; track: number; i: number; side: Side; earlyMs: number }
   | { kind: "takeover"; tick: number; track: number; i: number; side: Side }
+  /** D332, RUNS "lenient": a run ended (its last note judged or missed): its landings' trend the run's way or not (no score). */
+  | { kind: "run"; tick: number; track: number; i: number; dir: 1 | -1; notes: number; touches: number; slope: number; ok: boolean }
   | { kind: "release"; tick: number; track: number; i: number; side: Side; word: string; heldMs: number; lenMs: number }
   /** D328, BAND TIME: the band waited for the player (ms), or set a beat's tempo (% of the written; its drift from the written time, ms). */
   | ({ kind: "band"; track: number } & BandEvent);
