@@ -1010,7 +1010,8 @@ export class ProtoGame {
       const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
-      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0.02) : this.nextBeat < ck.full ? 0.12 : this.nextBeat >= ck.gone ? 0 : 0.12 * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
+      // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
+      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? 0.12 : this.nextBeat >= ck.gone ? 0 : 0.12 * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
       if (!band && clickGain > 0.004) ch.tick(this.timeAt(this.nextBeat), accent, clickGain);
       this.nextBeat += this.beat;
     }
