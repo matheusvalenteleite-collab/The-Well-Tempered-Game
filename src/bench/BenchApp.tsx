@@ -79,7 +79,7 @@ import { PLACEMENT, PLACEMENT_SOUND, place, worst, type Placement, type Placemen
 import { applyPlacement, markSeen, nextLesson as nextManual, progress as manualProgress, readManual, recordTake, setAnswer, setAside, testOut as manualTestOut, triesOf, type Answer } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteExtra, liteNextOrder,litePlatform, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteExtra, liteNextOrder,litePlatform, readLite, recordLite, recordLiteBest, RULES, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
@@ -276,7 +276,7 @@ export function BenchApp() {
   const [detected] = useState(detectedPlatform);
   const [pref, setPrefRaw] = useState<PlatformPref>(() => load<PlatformPref>(PLATFORM_KEY, "auto"));
   // D263: the minimal page its own (⚙ PLAY ON, kept apart from the bench's).
-  const platform = APP.lite ? platformOf(litePlatformPref(), detected) : platformOf(pref === "mobile" || pref === "computer" ? pref : "auto", detected);
+  const platform = APP.lite ? litePlatform() : platformOf(pref === "mobile" || pref === "computer" ? pref : "auto", detected);
   const setPref = (p: PlatformPref) => {
     setPrefRaw(p);
     save(PLATFORM_KEY, p);
@@ -1386,17 +1386,6 @@ export function BenchApp() {
           </label>
           {/* D283: the language (the page re-renders in it). */}
           <Choice id="lang" label="LANGUAGE" options={LANGS} value={lang()} set={(l: Lang) => (setLang(l), setLite(readLite()))} />
-          {/* D263: the platform, should the guess be wrong (the page reloads in the other's modes). */}
-          <Choice
-            id="lite-platform"
-            label="PLAY ON"
-            options={[["auto", `AUTO · ${detected === "mobile" ? "MOBILE" : "COMPUTER"}`], ["mobile", "MOBILE"], ["computer", "COMPUTER"]]}
-            value={litePlatformPref()}
-            set={(p: PlatformPref) => {
-              saveLitePlatform(p);
-              window.location.reload();
-            }}
-          />
           {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
           <DisplayChoice value={display} set={setDisplay} piece={f} />
           {/* D327: the tuning, INSTRUMENT DEFAULT first. */}

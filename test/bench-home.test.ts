@@ -98,3 +98,19 @@ test("D233: MIDI CONTROLLER offered only while a MIDI input is connected", () =>
   assert.equal(offered("piano", "computer", true), "piano");
   assert.equal(offered("keys", "mobile", true), "ladder");
 });
+
+test("D343: play.html turns away only a device that is surely a computer", async () => {
+  const { surelyComputer } = await import("../src/bench/home.ts");
+  const mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
+  const win = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+  const linux = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+  assert.equal(surelyComputer({ anyCoarse: false, ua: mac, touchPoints: 0 }), true, "a Mac");
+  assert.equal(surelyComputer({ anyCoarse: false, ua: win, touchPoints: 0 }), true, "Windows");
+  assert.equal(surelyComputer({ anyCoarse: false, ua: mac, touchPoints: 5 }), false, "an iPad or iPhone asking for the desktop site");
+  assert.equal(surelyComputer({ anyCoarse: true, ua: linux, touchPoints: 5 }), false, "Android in desktop mode");
+  assert.equal(surelyComputer({ anyCoarse: false, ua: win, touchPoints: 10 }), false, "a touch-screen laptop");
+  assert.equal(surelyComputer({ anyCoarse: true, ua: win, touchPoints: 0 }), false, "a coarse pointer somewhere");
+  assert.equal(surelyComputer({ anyCoarse: false, ua: win, uaMobile: true, touchPoints: 0 }), false, "the browser says mobile");
+  assert.equal(surelyComputer({ anyCoarse: false, ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)", touchPoints: 0 }), false, "an iPhone's user agent");
+  assert.equal(surelyComputer({ anyCoarse: false, ua: "Mozilla/5.0 (Linux; Android 14; SM-S901B) Mobile", touchPoints: 0 }), false, "a Galaxy's user agent");
+});

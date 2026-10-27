@@ -7,7 +7,7 @@
  * finished, the modes whose one-line instruction has been seen, and the volume.
  */
 import { tierFugues, tierOf, TIER_ORDER, type Tier } from "./tiers.ts";
-import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
+import { type PlatformPref } from "./home.ts";
 import type { Platform } from "./protos.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
 import { CHORALES, fugueById, MORE_BACH, type Collection } from "../touch/fugue.ts";
@@ -75,7 +75,8 @@ export function saveLitePlatform(p: PlatformPref) {
     /* this visit only */
   }
 }
-export const litePlatform = (): Platform => platformOf(litePlatformPref(), detectedPlatform());
+/** D343: play.html plays only on phones and tablets (a computer is shown MOBILE ONLY), so always the phone's modes. */
+export const litePlatform = (): Platform => "mobile";
 /** D263: where a new player starts: Prelude 1 on a computer, Fugue 1 on a phone (no preludes there). */
 export const startHere = (fuguesOnly: boolean): string => (fuguesOnly ? "wtc1f01" : START_HERE);
 
