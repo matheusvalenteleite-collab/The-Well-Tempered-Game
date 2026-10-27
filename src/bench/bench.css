@@ -827,3 +827,39 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-manual .tb-hear-title, .tb-manual-screen .tb-hear-title { text-align: left; }
 .tb-lens-shown .tg-link { font-family: var(--tg-pixel); font-size: 6px; }
 .tb-bach .tb-lens { text-align: left; }
+
+/* D343: play.html for the friends. The header: the title, EN · PT · ES, SETTINGS labelled with a pixel gear. */
+.tb-lite-head { max-width: 760px; }
+.tb-lite-head h1 { flex: 1 1 auto; min-width: 0; }
+.tb-settings-btn { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; font-family: var(--tg-pixel); font-size: 9px; letter-spacing: 0.04em; color: var(--tg-shine); background: var(--tg-box); border: 2px solid var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; cursor: pointer; }
+.tb-settings-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
+.tb-settings-btn:focus-visible { outline: 2px solid var(--tg-fg); outline-offset: 2px; }
+.tb-gear { flex: none; }
+.tb-lang-pick { flex: none; display: flex; border: 2px solid var(--tg-barline); }
+.tb-lang-pick button { min-width: 40px; min-height: 40px; padding: 0 6px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); background: transparent; border: 0; cursor: pointer; }
+.tb-lang-pick button.on { color: #1a1408; background: var(--tg-shine); }
+@media (max-width: 560px) { .tb-settings-btn span { display: none; } .tb-settings-btn { padding: 0 10px; } .tb-lang-pick button { min-width: 34px; } }
+.tb-lite-head .tb-tools-btn { min-height: 40px; }
+/* One book: a plain heading in place of the tab bar. */
+.tb-lite-list-head .tb-lite-book { margin: 8px 0 0; }
+/* START HERE unmistakable: the card's border breathes (still where motion is unwelcome). */
+.tb-lite-here { animation: tb-here 1.6s steps(2) infinite; }
+@keyframes tb-here { 50% { border-color: color-mix(in srgb, var(--tg-shine) 45%, var(--tg-barline)); } }
+@media (prefers-reduced-motion: reduce) { .tb-lite-here { animation: none; } }
+.tb-lite-tutorial .tb-lite-title { font-size: 11px; }
+.tb-lite-tutorial-pic { align-content: center; gap: 14px; }
+.tb-lite-go { padding: 9px 14px; font-family: var(--tg-pixel); font-size: 11px; line-height: 1; color: #2a2216; background: var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; }
+.tb-lite-list .tb-lite-start { font-size: 8px; padding: 5px 8px; }
+/* Settings: the language first, the owner's items apart, the version last (and plain). */
+.tb-lang-set .tg-seg button { text-transform: none; }
+.tb-owner-set { display: grid; gap: 14px; padding: 12px; border: 2px dashed var(--tg-barline); }
+.tb-owner-head { margin: 0; font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.1em; color: var(--tg-muted); }
+.tb-lock-again { justify-self: start; min-height: 40px; padding: 8px 12px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: transparent; border: 2px solid var(--tg-muted); cursor: pointer; }
+.tb-set-version { margin: 4px 0 0; text-align: center; }
+.tb-version-tap { display: inline-block; padding: 10px 14px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); opacity: 0.7; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.tb-secret { display: flex; justify-content: center; margin: 4px 0 0; }
+.tb-secret input { width: min(240px, 80%); padding: 8px; font: 16px/1.2 system-ui, sans-serif; color: var(--tg-fg); background: var(--tg-box); border: 1px solid var(--tg-barline); }
+/* MOBILE ONLY (a computer). */
+.tb-mobile-only { min-height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; background: #0b0d18; }
+.tb-mobile-only-title { margin: 0; font-family: "Press Start 2P", monospace; font-size: 28px; font-weight: 400; line-height: 1.4; color: #f4e9a8; text-shadow: 3px 3px 0 #b8322a; user-select: none; -webkit-user-select: none; }
+.tb-mobile-only-why { margin: 0; max-width: 520px; font-family: "Press Start 2P", monospace; font-size: 12px; line-height: 2; color: #a9b0d6; }

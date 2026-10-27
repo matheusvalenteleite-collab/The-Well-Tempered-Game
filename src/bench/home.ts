@@ -21,6 +21,32 @@ export const detectPlatform = (m: { coarse: boolean; hover: boolean; ua?: string
   return m.coarse && !m.hover ? "mobile" : "computer";
 };
 
+/**
+ * D343: play.html is for phones and tablets only. A device is turned away ("MOBILE ONLY") only when it is
+ * surely a computer: no touch points at all, no coarse pointer anywhere, and nothing in the browser's own
+ * answer or its user agent saying phone or tablet. Any doubt lets it in: an iPhone or iPad asking for the
+ * desktop site (a Mac's user agent, but touch points), Android's desktop mode (touch points), a touch-screen
+ * laptop (touch points: it can be played with fingers) all play.
+ */
+export const surelyComputer = (m: { anyCoarse: boolean; ua?: string; uaMobile?: boolean; touchPoints?: number }): boolean => {
+  if (m.uaMobile) return false;
+  if (/Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile|Windows Phone|CrOS/i.test(m.ua ?? "")) return false;
+  if ((m.touchPoints ?? 0) > 0) return false;
+  return !m.anyCoarse;
+};
+
+/** The browser's answer to D343 (in try/catch: if the browser can't say, never turn it away). */
+export function isSurelyComputer(): boolean {
+  try {
+    const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
+    if (typeof nav.maxTouchPoints !== "number") return false;
+    const coarse = matchMedia("(any-pointer: coarse)").matches || matchMedia("(pointer: coarse)").matches;
+    return surelyComputer({ anyCoarse: coarse, ua: nav.userAgent, uaMobile: nav.userAgentData?.mobile, touchPoints: nav.maxTouchPoints });
+  } catch {
+    return false;
+  }
+}
+
 /** The ⚙ override: AUTO (detected), or a platform chosen. */
 export type PlatformPref = "auto" | Platform;
 export const platformOf = (pref: PlatformPref, detected: Platform): Platform => (pref === "auto" ? detected : pref);

@@ -61,7 +61,11 @@ export function popSounds(id: string): (readonly [id: string, name: string, own:
   return !own || POP_SOUNDS.some(([sid]) => sid === own) ? row : [[own, shortSound(presetById(own).name), true] as const, ...row];
 }
 
-export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, tuning, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; tuning?: string; children?: ReactNode }) {
+/**
+ * D343: `plain` (play.html for the friends): the piece's name without its BWV number, no SOUND to choose
+ * (the piece plays in its own; a recorded sound's credit still shown), so the only choice is the voice.
+ */
+export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, tuning, plain = false, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; tuning?: string; plain?: boolean; children?: ReactNode }) {
   const f = fugueById(id);
   // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
   const [help, setHelp] = useState(false);
@@ -81,7 +85,7 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
         <button type="button" id="pop-close" className="tg-x tb-pop-x" aria-label="Close" onClick={close}>
           ✕
         </button>
-        <h2 className="tb-pop-title">{lang() === "en" ? popTitle(id) : `${popTitle(id).split(" · ")[0]} · ${pieceName(f.kind, f.key)}`}</h2>
+        <h2 className="tb-pop-title">{plain ? (lang() === "en" ? popTitle(id).split(" · ").at(-1) : pieceName(f.kind, f.key)) : lang() === "en" ? popTitle(id) : `${popTitle(id).split(" · ")[0]} · ${pieceName(f.kind, f.key)}`}</h2>
         {f.kind === "prelude" ? (
           // D251: no hand to choose for a prelude: it is played with the part the game gives (stages.ts `preludePart`), named in one small line.
           <p className="tb-pop-ask tb-pop-part" id="pop-part">
@@ -134,14 +138,19 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
             </ul>
           </div>
         )}
-        {sound !== undefined && soundLocked && (
+        {sound !== undefined && plain && creditFor(sound) && (
+          <p className="tb-pop-lock" id="pop-credit">
+            {creditFor(sound)}
+          </p>
+        )}
+        {sound !== undefined && !plain && soundLocked && (
           // D265: the piece's own sound until it is finished with an A or S.
           <div className="tb-pop-sounds" id="pop-sound-locked">
             <p className="tb-pop-ask">{tr("SOUND")}: {tr(shortSound(presetById(sound).name))}</p>
             <p className="tb-pop-lock">{tr("FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND")}</p>
           </div>
         )}
-        {sound !== undefined && setSound && !soundLocked && (
+        {sound !== undefined && setSound && !plain && !soundLocked && (
           <div className="tb-pop-sounds" role="group" aria-label="Sound">
             {/* D303: one dropdown, the piece's own sound first and starred (was a row of buttons). */}
             <SoundSelect id="pop-sound" value={sound} set={setSound} sounds={POP_SOUNDS} own={PIECE_SOUND[id]} />

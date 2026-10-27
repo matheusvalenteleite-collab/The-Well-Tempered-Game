@@ -136,12 +136,20 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   assert.equal(sane({ ...was, share: 0.5 }).voice, 0, "from a later bar too");
   APP.lite = true;
   try {
+    // D343: play.html is played on phones only (a computer is shown MOBILE ONLY): no preludes there, so a
+    // prelude kept from before gives its fugue, and Book II waits behind the owner's unlock.
+    assert.equal(sane(was).piece, "wtc1f01");
+    assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc1f01", "Book II hidden from the friends");
+    // Unlocked (a computer may then play, as before D343): a prelude's own part, whatever was chosen.
+    store.set("tb-unlock-all", "1");
+    assert.equal(sane(was).piece, "wtc1p01", "unlocked: the computer's preludes");
     assert.equal(sane(was).voice, 0);
     assert.equal(sane({ ...was, voice: -1 }).voice, 0);
     // D275: a Book II fugue is kept on play.html (it fell back to Book I's first).
     assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc2f07");
   } finally {
     APP.lite = false;
+    store.delete("tb-unlock-all");
   }
   // A fugue's voice chosen is kept.
   const f2 = fugueById("wtc2f01");
@@ -190,13 +198,26 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
   const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {} }));
   // D264: all open from the start (48 cards on a computer, 24 fugues on a phone), each with its difficulty.
-  // D276: Book I's tab first (Book II's fugues behind the other tab).
   assert.equal(html.match(/class="tb-lite-card/g)?.length, 48);
-  assert.match(html, /id="tab-book-I"[^>]*aria-selected="true"/);
-  const two = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true, book: "II" }));
-  assert.equal(two.match(/class="tb-lite-card/g)?.length, 24, "D275: Book II's 24 fugues");
-  assert.match(two, /id="card-wtc2f01"/);
-  assert.doesNotMatch(two, /id="card-wtc1f01"/);
+  // D343: for the friends Book I alone: no tab bar, a plain heading; Book II asked for still gives Book I.
+  assert.doesNotMatch(html, /tb-lite-tabs|id="tab-book-/);
+  assert.match(html, /id="lite-book-head"/);
+  const locked = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true, book: "II" }));
+  assert.doesNotMatch(locked, /id="card-wtc2f/);
+  // D276: once unlocked (unlock.ts), Book I's tab first (Book II's fugues behind the other tab).
+  store.set("tb-unlock-all", "1");
+  try {
+    const full = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {} }));
+    assert.match(full, /id="tab-book-I"[^>]*aria-selected="true"/);
+    // D276: BOOK II now a tab.
+    assert.match(full, /id="tab-book-II"/);
+    const two = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true, book: "II" }));
+    assert.equal(two.match(/class="tb-lite-card/g)?.length, 24, "D275: Book II's 24 fugues");
+    assert.match(two, /id="card-wtc2f01"/);
+    assert.doesNotMatch(two, /id="card-wtc1f01"/);
+  } finally {
+    store.delete("tb-unlock-all");
+  }
   assert.match(html, /id="card-wtc1p01"[^>]*>.*?START HERE/);
   assert.doesNotMatch(html, /MORE TO UNLOCK/);
   assert.match(html, /id="card-wtc1f02".*?NORMAL/);
@@ -204,8 +225,6 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   assert.equal(phone.match(/class="tb-lite-card/g)?.length, 24);
   assert.match(phone, /id="card-wtc1f01"[^>]*>.*?START HERE/);
   assert.match(html, /id="lite-settings"/);
-  // D276: BOOK II now a tab.
-  assert.match(html, /id="tab-book-II"/);
   for (const word of ["TUTORIAL", "ACHIEVEMENT", "INTERFACE", "KIMIKO", "SEAL", "LESSON"]) assert.doesNotMatch(html, new RegExp(word, "i"), word);
   // The whole app on the minimal page, as it first renders: the grid, nothing of the bench's.
   const { APP } = await import("../src/bench/config.ts");
@@ -215,7 +234,11 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
     const app = renderToStaticMarkup(createElement(BenchApp));
     assert.match(app, /class="tb-lite"/);
     for (const id of ["home-tutorial", "home-achievements", "played-yes", "interface", "her"]) assert.doesNotMatch(app, new RegExp(`id="${id}`), id);
-    assert.doesNotMatch(app, /TUTORIAL|ACHIEVEMENTS|INTERFACE|KIMIKO/);
+    assert.doesNotMatch(app, /ACHIEVEMENTS|INTERFACE|KIMIKO/);
+    // D343: every device on play.html is a phone or tablet, so its tutorial is the manual's card (D342),
+    // not the bench's; and for the friends no TOOLS, no other book or tab.
+    assert.match(app, /id="card-tutorial"/);
+    for (const id of ["lite-tools", "tab-book-II", "tab-book-MORE", "tab-book-CHORALES"]) assert.doesNotMatch(app, new RegExp(`id="${id}"`), id);
   } finally {
     APP.lite = false;
   }

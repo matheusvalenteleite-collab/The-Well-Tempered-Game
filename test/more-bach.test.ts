@@ -4,7 +4,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { beatOf, CHORALES, fugueById, MORE_BACH } from "../src/touch/fugue.ts";
+import { beatOf, CHORALES, fugueById, loadExtras, MORE_BACH } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { MORE_TEMPO, standardTempo, tempoOf } from "../src/touch/tempi.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -15,6 +15,9 @@ import { startTick, voicesFrom } from "../src/touch/voice-mode.ts";
 import { defaultVoice } from "../src/bench/flow.ts";
 import { CHORALE_IDS, LITE_TABS, liteExtra, liteLevel, liteNextOrder, liteTabOf, MORE_SECTIONS } from "../src/bench/lite.ts";
 import { waitPoints } from "../src/bench/band-time.ts";
+
+// D343: the notes load on demand (a chunk of their own on play.html).
+await loadExtras();
 
 const count = (c: string) => MORE_BACH.filter((f) => f.collection === c).length;
 const lastBar = (id: string) => fugueById(id).bars.at(-1)!.n;

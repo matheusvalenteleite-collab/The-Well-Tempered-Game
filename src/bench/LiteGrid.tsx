@@ -3,14 +3,14 @@
  * side by side (each pair's prelude, then its fugue, both open), Prelude 1 in C major first and marked
  * START HERE; a ✓ on each piece finished; one line saying how many more open the next tier; a small ⚙.
  */
-import { lang, pieceName, tr } from "../i18n/index.ts";
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { fugueById } from "../touch/fugue.ts";
+import { lang, LANGS, pieceName, tr, type Lang } from "../i18n/index.ts";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { extrasLoaded, fugueById, loadExtras } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
 import { presetById } from "../touch/sound.ts";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyLabel } from "./emblem.ts";
-import { BEFORE_JUDGING, CHORALE_IDS, LITE_TABS, liteAll, liteExtra, liteLevel, liteTabOf, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
+import { BEFORE_JUDGING, CHORALE_IDS, liteAll, liteExtra, liteLevel, liteTabOf, liteTabs, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
 import { popTitle } from "./PlayPop.tsx";
 import { keyTint } from "../touch/MusicBox.tsx";
 
@@ -22,7 +22,7 @@ const TAB_KEY = "tb-lite-book-v1";
 function storedTab(): LiteTab {
   try {
     const v = localStorage.getItem(TAB_KEY);
-    return LITE_TABS.some(([t]) => t === v) ? (v as LiteTab) : "I";
+    return liteTabs().some(([t]) => t === v) ? (v as LiteTab) : "I";
   } catch {
     return "I";
   }
@@ -48,7 +48,31 @@ export const CHORALE_CREDITS: readonly string[] = [
 /** D308: a best grade's colour on its card (as the result's: S and A in gold, then down to red). */
 export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#f3c246", B: "#5fdc6a", C: "#7fd6e8", D: "#ec5a4a" };
 
-export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: LiteTab; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode }) {
+/** D343: a gear drawn in pixels (the font has none; the ⚙ glyph fell back to the system's). */
+const GEAR = ["....X....", ".X.XXX.X.", "..XXXXX..", ".XXX.XXX.", "XXX...XXX", ".XXX.XXX.", "..XXXXX..", ".X.XXX.X.", "....X...."];
+export function PixelGear({ size = 18 }: { size?: number }) {
+  return (
+    <svg className="tb-gear" width={size} height={size} viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
+      {GEAR.flatMap((row, y) => [...row].map((c, x) => (c === "X" ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="currentColor" /> : null)))}
+    </svg>
+  );
+}
+
+/** D343: the language, on the first screen: a short code each, its own name as the label (the full names in ⚙ SETTINGS). */
+export const LANG_CODES: Record<Lang, string> = { en: "EN", pt: "PT", es: "ES" };
+export function LangPick({ value, set }: { value: Lang; set: (l: Lang) => void }) {
+  return (
+    <div className="tb-lang-pick" role="group" aria-label="Language · Idioma">
+      {LANGS.map(([l, name]) => (
+        <button key={l} type="button" id={`head-lang-${l}`} className={l === value ? "on" : ""} aria-pressed={l === value} aria-label={name} title={name} onClick={() => set(l)}>
+          {LANG_CODES[l]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside, setLang }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: LiteTab; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode; setLang?: (l: Lang) => void }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -57,8 +81,11 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
   const learning = !!tutorial && tutorial.done < tutorial.of;
   // D276: Book I and Book II in two tabs at the top (the tutorial on Book I's).
   // D295: back from a piece, the list opens on it (its book's tab, the card in view), not at the top.
-  const last = current && (liteAll(fuguesOnly).includes(current) || liteExtra(current)) ? current : null;
-  const [tab, setTab] = useState<LiteTab>(() => asked ?? (last ? liteTabOf(last) : storedTab()));
+  // D343: the tabs shown (Book I alone for the friends: no tab bar at all; all four once unlocked).
+  const tabs = liteTabs();
+  const shown = (t: LiteTab) => tabs.some(([x]) => x === t);
+  const last = current && (liteAll(fuguesOnly).includes(current) || liteExtra(current)) && shown(liteTabOf(current)) ? current : null;
+  const [tab, setTab] = useState<LiteTab>(() => (asked && shown(asked) ? asked : last ? liteTabOf(last) : storedTab()));
   const list = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     if (!last) return;
@@ -75,24 +102,46 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
     }
   };
   const start = learning ? null : startHere(fuguesOnly);
+  // D343: the MORE BACH and CHORALES notes come only when one of their tabs is open (a chunk of their own).
+  const extra = tab === "MORE" || tab === "CHORALES";
+  const [, loaded] = useState(0);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (!extra || extrasLoaded()) return;
+    setFailed(false);
+    loadExtras().then(
+      () => loaded((n) => n + 1),
+      () => setFailed(true),
+    );
+  }, [extra]);
+  const waiting = extra && !extrasLoaded();
   return (
     <div className="tb-lite" role="main" aria-label="Pieces" ref={list}>
       <header className="tb-lite-head">
         <h1>{tr("THE WELL-TEMPERED GAME")}</h1>
-        {/* D326: TOOLS, beside ⚙. */}
+        {/* D343: the language at hand (EN · PT · ES), then SETTINGS, labelled. D326: TOOLS (once unlocked) before them. */}
         {beside}
-        <button type="button" id="lite-settings" className="tg-x" aria-label="Settings" onClick={settings}>
-          ⚙
+        {setLang && <LangPick value={lang()} set={setLang} />}
+        <button type="button" id="lite-settings" className="tb-settings-btn" aria-label={tr("SETTINGS")} onClick={settings}>
+          <PixelGear />
+          <span>{tr("SETTINGS")}</span>
         </button>
       </header>
-      <div className="tb-lite-tabs" role="tablist" aria-label="Books">
-        {LITE_TABS.map(([t, label]) => (
-          <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`tb-lite-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
-            {t === "I" || t === "II" ? `${tr("BOOK")} ${t}` : tr(label)}
-          </button>
-        ))}
-      </div>
-      {tab === "MORE" && (
+      {tabs.length > 1 ? (
+        <div className="tb-lite-tabs" role="tablist" aria-label="Books">
+          {tabs.map(([t, label]) => (
+            <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`tb-lite-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
+              {t === "I" || t === "II" ? `${tr("BOOK")} ${t}` : tr(label)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {waiting && (
+        <p className="tb-lite-line" id="extras-loading" role="status">
+          {failed ? "COULD NOT LOAD · CHECK THE CONNECTION AND OPEN THE TAB AGAIN" : "LOADING…"}
+        </p>
+      )}
+      {tab === "MORE" && !waiting && (
         // D340: MORE BACH, in sections; each card as Book I's (the picture, the name, the voices, the level, the sound).
         <>
           {MORE_SECTIONS.map((s) => (
@@ -110,7 +159,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
           <Credits lines={MORE_CREDITS} />
         </>
       )}
-      {tab === "CHORALES" && (
+      {tab === "CHORALES" && !waiting && (
         // D340: the 370 chorales, compact (no picture: a chip in the key's colour), in Sapp's (Breitkopf's) numbering.
         <>
           <p className="tb-lite-line tb-lite-chorale-note">{tr("ANY VOICE · THE BAND WAITS FOR YOU AFTER EACH FERMATA")}</p>
@@ -129,20 +178,30 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
             <button type="button" id="card-tutorial" className={`tb-lite-card tb-lite-tutorial${learning ? " tb-lite-here" : " done"}`} style={{ ["--tint" as string]: "#7fd6e8" }} onClick={tutorial.start}>
               <span className="tb-lite-pic-wrap">
                 <span className="tb-lite-pic tb-lite-tutorial-pic" aria-hidden="true">
-                  ♪
+                  <span>♪</span>
+                  {/* D343: what to tap first, said on the picture itself. */}
+                  {learning && <span className="tb-lite-go">▶ {tr("BEGIN")}</span>}
                 </span>
                 {!learning && <span className="tb-lite-done">✓</span>}
               </span>
               <span className="tb-lite-info">
                 {learning && <span className="tb-lite-start">{tr("START HERE")}</span>}
                 <span className="tb-lite-title">{tr("TUTORIAL")}</span>
-                <span className="tb-lite-meta">{tr("THE MANUAL · PARTS 0–II")}</span>
+                <span className="tb-lite-meta">{tr("LEARN TO PLAY WITH TWO THUMBS")}</span>
                 <span className="tb-lite-level" style={{ color: "#7fd6e8" }}>
                   {tutorial.done ? tr("{n} OF {m} LESSONS", { n: tutorial.done, m: tutorial.of }) : tr("{m} LESSONS", { m: tutorial.of })}
                 </span>
                 <span className="tb-lite-meta">{tr("WITH HERR BACH")}</span>
               </span>
             </button>
+          </li>
+        )}
+        {tabs.length === 1 && (
+          // D343: one book, so no tab bar: a plain heading between the tutorial and the pieces.
+          <li key="head" className="tb-lite-list-head">
+            <h2 className="tb-lite-book" id="lite-book-head">
+              {tr("BOOK")} I · {fuguesOnly ? tr("{n} FUGUES", { n: 24 }) : tr("{n} PIECES", { n: 48 })}
+            </h2>
           </li>
         )}
         {liteAll(fuguesOnly)
@@ -154,7 +213,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
           const lv = liteLevel(id);
           const n = Number(id.slice(-2));
           const title = popTitle(id);
-          const [bwv, en] = title.includes(" · ") ? title.split(" · ") : ["", title];
+          const en = title.includes(" · ") ? title.split(" · ")[1] : title;
           // D283: the piece named in the language chosen.
           const name = lang() === "en" ? en : pieceName(f.kind, f.key);
           return (
@@ -180,15 +239,11 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
                 <span className="tb-lite-info">
                   {here && <span className="tb-lite-start">{tr("START HERE")}</span>}
                   <span className="tb-lite-title">{name}</span>
-                  <span className="tb-lite-meta">
-                    {bwv}
-                    {bwv ? " · " : ""}
-                    {tr("{n} VOICES", { n: f.voices.length })}
-                  </span>
+                  {/* D343: the level and the voices only (the BWV number and the sound's name were clutter for a newcomer). */}
                   <span className="tb-lite-level" style={{ color: lv.ink }}>
                     {tr(lv.label)}
                   </span>
-                  <span className="tb-lite-meta">{tr("SOUND")}: {tr(soundName(PIECE_SOUND[id] ?? "harpsichordSampled"))}</span>
+                  <span className="tb-lite-meta">{tr("{n} VOICES", { n: f.voices.length })}</span>
                   {/* D308: the best score (a whole piece finished). */}
                   {scores[id] !== undefined && (
                     <span className="tb-lite-best" id={`best-${id}`}>

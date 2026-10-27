@@ -79,8 +79,10 @@ import { PLACEMENT, PLACEMENT_SOUND, place, worst, type Placement, type Placemen
 import { applyPlacement, markSeen, nextLesson as nextManual, progress as manualProgress, readManual, recordTake, setAnswer, setAside, testOut as manualTestOut, triesOf, type Answer } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteExtra, liteNextOrder,litePlatform, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, RULES, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
+import { setUnlocked, unlocked } from "./unlock.ts";
+import { VersionTap } from "./Secret.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
@@ -189,8 +191,8 @@ export function sane(p: Pick): Pick {
   // D232: a piece whose tier is closed gives I/1's prelude. D237: the minimal page has its own unlocking (lite.ts), Book I only.
   // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
   const mob = APP.lite && litePlatform() === "mobile";
-  // D275: and Book II's fugues.
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : /^wtc2f\d\d$/.test(pair) || liteExtra(pair) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  // D275: and Book II's fugues. D343: those and the MORE BACH and CHORALES pieces only once unlocked (unlock.ts).
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : unlocked() && (/^wtc2f\d\d$/.test(pair) || liteExtra(pair)) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -276,7 +278,9 @@ export function BenchApp() {
   const [detected] = useState(detectedPlatform);
   const [pref, setPrefRaw] = useState<PlatformPref>(() => load<PlatformPref>(PLATFORM_KEY, "auto"));
   // D263: the minimal page its own (⚙ PLAY ON, kept apart from the bench's).
-  const platform = APP.lite ? platformOf(litePlatformPref(), detected) : platformOf(pref === "mobile" || pref === "computer" ? pref : "auto", detected);
+  const platform = APP.lite ? litePlatform() : platformOf(pref === "mobile" || pref === "computer" ? pref : "auto", detected);
+  // D343: play.html for the friends (Book I, no TOOLS, the fewest choices) unless unlocked on this device (unlock.ts); the bench always full.
+  const [full] = useState(() => !APP.lite || unlocked());
   const setPref = (p: PlatformPref) => {
     setPrefRaw(p);
     save(PLATFORM_KEY, p);
@@ -367,7 +371,7 @@ export function BenchApp() {
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
   // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
   // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible; the placement on the sampled piano.
-  const sound = man ? (man.mode === "placement" ? PLACEMENT_SOUND : SOUND_PRESET[soundOf(manLesson!, manMat)]) : soundFor(f.id, chosen, DEFAULT_SOUND);
+  const sound = man ? (man.mode === "placement" ? PLACEMENT_SOUND : SOUND_PRESET[soundOf(manLesson!, manMat)]) : soundFor(f.id, full ? chosen : {}, DEFAULT_SOUND);
   const soundNow = kimiko ? herSound : sound;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   const tuning = resolveTuning(tuningPref, soundNow);
@@ -1216,7 +1220,7 @@ export function BenchApp() {
               </span>
             )}
             {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. */}
-            {hasStops(presetById(soundNow).id) && !lesson && !man && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} />}
+            {hasStops(presetById(soundNow).id) && !lesson && !man && full && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>
@@ -1266,7 +1270,7 @@ export function BenchApp() {
             ) : (
               <>
                 {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
-                {phase.failedBar !== null && <p className="tg-card-sub">BAR {phase.failedBar}</p>}
+                {phase.failedBar !== null && <p className="tg-card-sub">{tr("BAR {n}", { n: phase.failedBar })}</p>}
                 <p className="tb-score">{phase.score.toLocaleString("en")}</p>
               </>
             )}
@@ -1283,11 +1287,11 @@ export function BenchApp() {
             {phase.stage?.won && <p className="tb-result-seal tb-stage-line earned">PRELUDE BEATEN · FUGUE UNLOCKED</p>}
             {phase.opened?.map((t) => (
               <p key={t} id={`tier-toast-${t.toLowerCase()}`} className={`tb-tier-toast tb-tier-${t.toLowerCase()}`} role="status">
-                {t} UNLOCKED!
+                {tr("{tier} UNLOCKED!", { tier: tr(t) })}
               </p>
             ))}
             {!APP.lite && phase.feats && phase.feats.length > 0 && <FeatToast fresh={phase.feats} open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
-            {phase.report && (
+            {phase.report && full && (
               // D259: what went wrong, to copy and send (the owner's reports from the phone).
               <button
                 type="button"
@@ -1352,7 +1356,7 @@ export function BenchApp() {
       {hp.changed && !playing && !calib && (
         <div className="tb-hp-banner" role="status">
           <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
-            HEADPHONES CHANGED? · RECALIBRATE (5 s)
+            {tr("HEADPHONES CHANGED? · RECALIBRATE (5 s)")}
           </button>
           <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={hp.dismiss}>
             ✕
@@ -1367,7 +1371,20 @@ export function BenchApp() {
       )}
       {phase.kind === "settings" && APP.lite && (
         // D237: the minimal page's ⚙: the volume, on a phone the interface (D241), and the sound's delay (headphones); BLUETOOTH MODE on AUTO, unseen.
+        // D343: ordered by need: the language first (each named in its own tongue), the volume, the headphones'
+        // delay; the owner's items (PLAY ON, DISPLAY, TUNING, THE LAB, LOCK AGAIN) only once unlocked; the
+        // version last (seven taps on it: unlock.ts, Secret.tsx).
         <Panel title="SETTINGS" close={back} className="tb-lite-settings">
+          <div className="tg-set tb-lang-set">
+            <span>{tr("LANGUAGE")}</span>
+            <div className="tg-seg" role="group" aria-label="Language">
+              {LANGS.map(([l, name]) => (
+                <button key={l} type="button" id={`lang-${l}`} className={l === lang() ? "on" : ""} aria-pressed={l === lang()} onClick={() => (setLang(l), setLite(readLite()))}>
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="tg-from tb-volume">
             <span>{tr("VOLUME")} {Math.round(lite.volume * 100)}%</span>
             <input
@@ -1384,34 +1401,44 @@ export function BenchApp() {
               }}
             />
           </label>
-          {/* D283: the language (the page re-renders in it). */}
-          <Choice id="lang" label="LANGUAGE" options={LANGS} value={lang()} set={(l: Lang) => (setLang(l), setLite(readLite()))} />
-          {/* D263: the platform, should the guess be wrong (the page reloads in the other's modes). */}
-          <Choice
-            id="lite-platform"
-            label="PLAY ON"
-            options={[["auto", `AUTO · ${detected === "mobile" ? "MOBILE" : "COMPUTER"}`], ["mobile", "MOBILE"], ["computer", "COMPUTER"]]}
-            value={litePlatformPref()}
-            set={(p: PlatformPref) => {
-              saveLitePlatform(p);
-              window.location.reload();
-            }}
-          />
-          {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
-          <DisplayChoice value={display} set={setDisplay} piece={f} />
-          {/* D327: the tuning, INSTRUMENT DEFAULT first. */}
-          <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
-          {/* D317: THE LAB, for the owner only (once opened, or ?lab in the address). */}
-          {labLinkOn() && (
-            <a className="tb-lab-link" id="lab-link" href="./lab.html">
-              LAB
-            </a>
+          {full && (
+            // D343: the owner's (unlocked on this device): left in English.
+            <section className="tb-owner-set" id="owner-settings" aria-label="Unlocked">
+              <p className="tb-owner-head">UNLOCKED ON THIS DEVICE</p>
+              {/* D263: the platform, should the guess be wrong (the page reloads in the other's modes). */}
+              <Choice
+                id="lite-platform"
+                label="PLAY ON"
+                options={[["auto", `AUTO · ${detected === "mobile" ? "MOBILE" : "COMPUTER"}`], ["mobile", "MOBILE"], ["computer", "COMPUTER"]]}
+                value={litePlatformPref()}
+                set={(p: PlatformPref) => {
+                  saveLitePlatform(p);
+                  window.location.reload();
+                }}
+              />
+              {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
+              <DisplayChoice value={display} set={setDisplay} piece={f} />
+              {/* D327: the tuning, INSTRUMENT DEFAULT first. */}
+              <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
+              {/* D317: THE LAB, for the owner only (once opened, or ?lab in the address). */}
+              {labLinkOn() && (
+                <a className="tb-lab-link" id="lab-link" href="./lab.html">
+                  LAB
+                </a>
+              )}
+              <button type="button" id="lock-again" className="tb-lock-again" onClick={() => (setUnlocked(false), window.location.reload())}>
+                LOCK AGAIN · THE FRIENDS' VIEW
+              </button>
+            </section>
           )}
+          <p className="tb-set-version">
+            <VersionTap className="tb-version-tap">{VERSION}</VersionTap>
+          </p>
         </Panel>
       )}
       {phase.kind === "settings" && !APP.lite && (
@@ -1451,8 +1478,8 @@ export function BenchApp() {
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
       {/* D308: ⚙ opens over the cards, which stay behind it (not the music box). */}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} beside={<ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} />} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { ...manualProgress(readManual()), start: () => setSteps(true) } : undefined} />}
-      {APP.lite && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { ...manualProgress(readManual()), start: () => setSteps(true) } : undefined} />}
+      {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D342: THE MANUAL's map (in place of the old tutorial's steps), and its Part 0 screens. */}
       {APP.lite && steps && phase.kind === "home" && !manScreen && <ManualMap begin={beginManual} testOut={beginTest} close={() => setSteps(false)} />}
       {APP.lite && manScreen === "grip" && phase.kind === "home" && <GripScreen chip={ensureChip} sound={gripSound} lag={lag} setLag={setLag} done={gripDone} close={() => (setManScreen(null), setSteps(true))} />}
@@ -1460,7 +1487,7 @@ export function BenchApp() {
       {APP.lite && manScreen && typeof manScreen === "object" && phase.kind === "home" && <PlacementScreen p={manScreen.placement} takes={placementTakes.current} retake={manScreen.retake} onRetake={() => placementStep(PLACEMENT.findIndex((e) => e.id === manScreen.retake), true)} done={placementDone} close={() => (placementDone(), setSteps(true))} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
-        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning) } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
@@ -1468,9 +1495,10 @@ export function BenchApp() {
           {lag !== null && lag > 0.02 && (
             // D260: a delay in force is never hidden: shown where the game is started, with a way out.
             <p className="tg-note tb-lag-note" id="lag-note">
-              HEADPHONE DELAY {Math.round(lag * 1000)} MS IS ON{(APP.lite ? btLite() : hp.btFor(lag)) ? " · BLUETOOTH MODE" : ""} ·{" "}
+              {tr("HEADPHONE DELAY {ms} MS IS ON", { ms: Math.round(lag * 1000) })}
+              {(APP.lite ? btLite() : hp.btFor(lag)) ? ` · ${tr("BLUETOOTH MODE")}` : ""} ·{" "}
               <button type="button" id="lag-off" className="tg-link" onClick={() => setLag(null)}>
-                TURN OFF
+                {tr("TURN OFF")}
               </button>
             </p>
           )}
@@ -1490,11 +1518,11 @@ export function BenchApp() {
       <div className="tg-upright" role="alert">
         {/* D239: why, and a way back (a newcomer sent to a fugue on LADDER by NEXT, the phone upright). */}
         <div className="tb-upright-box">
-          <p className="tb-upright-title">{wide ? "TURN THE PHONE SIDEWAYS" : "TURN THE PHONE UPRIGHT"}</p>
-          <p className="tb-upright-why">{wide ? (proto.layout === "bars" ? "This piece is played on two bars, a thumb on each." : "This mode needs the phone held sideways.") : "This mode needs the phone held upright."}</p>
+          <p className="tb-upright-title">{wide ? tr("TURN THE PHONE SIDEWAYS") : tr("TURN THE PHONE UPRIGHT")}</p>
+          <p className="tb-upright-why">{wide ? (proto.layout === "bars" ? tr("This piece is played on two bars, a thumb on each.") : tr("This mode needs the phone held sideways.")) : tr("This mode needs the phone held upright.")}</p>
           {phase.kind !== "home" && (
             <button type="button" id="upright-back" className="tb-upright-back" onClick={home}>
-              ✕ BACK TO THE CARDS
+              ✕ {tr("BACK TO THE CARDS")}
             </button>
           )}
         </div>

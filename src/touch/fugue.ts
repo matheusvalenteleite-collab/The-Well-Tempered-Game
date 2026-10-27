@@ -10,8 +10,8 @@
  */
 import data from "../../data/touch/pieces.json" with { type: "json" };
 import tutorialData from "../../data/touch/tutorial.json" with { type: "json" };
-import moreData from "../../data/touch/more-bach.json" with { type: "json" };
-import choraleData from "../../data/touch/chorales.json" with { type: "json" };
+// D343: the MORE BACH and CHORALES notes load on demand (extras-data.ts, loadExtras); their index (ids, collections) now.
+import extrasIndex from "../../data/touch/extras-index.json" with { type: "json" };
 
 export type TouchNote = [on: number, dur: number, midi: number, step: number];
 
@@ -124,10 +124,32 @@ export const PRELUDES = PIECES.filter((p) => p.kind === "prelude");
 /** D270: the pieces the TUTORIAL teaches with (Invention No. 1, tools/touch/tutorial.ts): found by id, in no list. */
 export const TUTORIAL_PIECES = tutorialData as unknown as TouchFugue[];
 
-/** D340: the MORE BACH tab's pieces (the Art of Fugue, the Musical Offering's ricercars, the Inventions and Sinfonias, BWV 1043), and the CHORALES tab's. */
-export const MORE_BACH = moreData as unknown as TouchFugue[];
-export const CHORALES = choraleData as unknown as TouchFugue[];
-const BY_ID = new Map<string, TouchFugue>([...TUTORIAL_PIECES, ...CHORALES, ...MORE_BACH, ...PIECES].map((f) => [f.id, f]));
+/**
+ * D340: the MORE BACH tab's pieces (the Art of Fugue, the Musical Offering's ricercars, the Inventions and Sinfonias, BWV 1043), and the CHORALES tab's.
+ * D343: empty until loadExtras() has brought their notes (a chunk of its own, about 3.9 MB: only once
+ * play.html is unlocked and one of the two tabs is opened); their ids and collections are known at once
+ * (MORE_INDEX, CHORALE_INDEX: data/touch/extras-index.json, tools/touch/extras-index.ts).
+ */
+export const MORE_BACH: TouchFugue[] = [];
+export const CHORALES: TouchFugue[] = [];
+export const MORE_INDEX: readonly (readonly [id: string, collection: Collection])[] = (extrasIndex as unknown as { more: [string, Collection][] }).more;
+export const CHORALE_INDEX: readonly string[] = (extrasIndex as { chorales: string[] }).chorales;
+const BY_ID = new Map<string, TouchFugue>([...TUTORIAL_PIECES, ...PIECES].map((f) => [f.id, f]));
+let extras: Promise<void> | null = null;
+/** D343: whether the MORE BACH and CHORALES notes are in (fugueById finds them). */
+export const extrasLoaded = (): boolean => MORE_BACH.length > 0;
+/** D343: brings the MORE BACH and CHORALES notes (once; later calls share the first). */
+export function loadExtras(): Promise<void> {
+  extras ??= import("./extras-data.ts").then(({ MORE_DATA, CHORALE_DATA }) => {
+    if (extrasLoaded()) return;
+    CHORALES.push(...(CHORALE_DATA as TouchFugue[]));
+    MORE_BACH.push(...(MORE_DATA as TouchFugue[]));
+    // As before: the WTC's own pieces (pieces.json) win over a MORE BACH or chorale of the same id.
+    for (const f of [...CHORALES, ...MORE_BACH]) if (!PIECES.some((p) => p.id === f.id)) BY_ID.set(f.id, f);
+  });
+  extras.catch(() => (extras = null));
+  return extras;
+}
 
 /**
  * D342: pieces made at load time by the manual (its drills, src/bench/manual/drill.ts, compiled from their
