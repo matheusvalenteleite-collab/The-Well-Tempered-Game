@@ -234,7 +234,7 @@ export const RULES: Record<string, string[]> = {
     "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself. Miss too many and the crowd leaves.",
     "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
     // D314: the ornaments, as THE ORNAMENT lesson teaches them; the free ones.
-    "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓ and points; not done: nothing lost.",
+    "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
     "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
   ],
 };

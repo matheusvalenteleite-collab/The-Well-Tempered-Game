@@ -118,6 +118,13 @@ export const MECH_DEFAULTS = {
   trillFollowsShake: true,
   /** D319: the thumb has stopped shaking when no leg came for this long (ms). */
   trillStopMs: 250,
+  // THE READING'S ACCENT (D338: judged by time, not loudness; accent.ts).
+  /** An accent may be struck this share of a beat late (an agogic lean) and still be ACCENT ✓. */
+  accentLateBeats: 0.15,
+  /** The note before an accent let go at least this long before it (ms): not joined. */
+  accentGapMs: 15,
+  /** An accent held at least this share of its written length. */
+  accentHoldShare: 0.85,
   // EXPRESSION AND CANCELS.
   /** D311: where a thumb lands across its bar shapes the attack; moving sideways the sustain. */
   expression: true,
@@ -383,6 +390,9 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "trillSettle", group: "ORNAMENTS", label: "Trill settle", help: "A long trill ends on its main note for this share of the note.", kind: "number", min: 0, max: 0.5, step: 0.05 },
   { key: "trillFollowsShake", group: "ORNAMENTS", label: "Trill follows the shake", help: "The player's trill goes on while the thumb shakes and settles when it stops (off: the first shake plays the whole trill).", kind: "bool" },
   { key: "trillStopMs", group: "ORNAMENTS", label: "Shaking stopped after", help: "No leg for this long: the trill settles on its main note.", kind: "number", min: 100, max: 800, step: 10, unit: "ms" },
+  { key: "accentLateBeats", group: "READING ACCENTS", label: "Accent: lean at most", help: "D338: a reading's accent (>) is judged by time: struck on time or up to this share of a beat late (an agogic lean), the note before let go, the accent held. Never by loudness.", kind: "number", min: 0, max: 0.5, step: 0.01, unit: "beat" },
+  { key: "accentGapMs", group: "READING ACCENTS", label: "Accent: gap before", help: "D338: the note before an accent let go at least this long before it (a small silence of articulation).", kind: "number", min: 0, max: 150, step: 5, unit: "ms" },
+  { key: "accentHoldShare", group: "READING ACCENTS", label: "Accent: held at least", help: "D338: an accent held at least this share of its written length (from its written onset).", kind: "number", min: 0.3, max: 1, step: 0.05 },
   { key: "expression", group: "EXPRESSION", label: "Expression (D311)", help: "Where a thumb lands across its bar shapes the attack; sideways while held, the sustain.", kind: "bool" },
   { key: "thumbCross", group: "SLURS", label: "Thumbs cross", help: "A touch on the half where the other thumb is down (the other half free) is the other thumb (D318).", kind: "bool" },
   { key: "slurNext", group: "SLURS", label: "Slur's second thumb", help: "While the other thumb holds the note before, a landing is for the next note: struck a little early, or waiting for it (D318; D290's double contact only for the same thumb).", kind: "bool" },
