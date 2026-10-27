@@ -61,14 +61,16 @@ choirAahs/  FluidR3_GM "Choir Aahs" (Frank Wen; MIT licence), as rendered per no
          every minor third F3-F5.
 All: leading silence removed, 7 s with a 1 s fade (FluidR3's 3.2 s as rendered), mono 96 kbit/s MP3; looped over their steady middle when held.
 
-Four soloists for the chorales (P16; kept on the website, not in the claude.ai page):
+Four soloists for the chorales (P16) and the touch game's SOLO VOICES (D302; kept on the website, not in the claude.ai page):
 soloSoprano/ soloAlto/ soloTenor/ soloBass/  VocalSet (Julia Wilkins, Prem Seetharaman, Alison Wahl, Bryan Pardo,
          "VocalSet: A Singing Voice Dataset", ISMIR 2018; zenodo.org/records/1442513). CC BY 4.0
-         (https://creativecommons.org/licenses/by/4.0/). Singers f2 (soprano), f5 (mezzo-soprano), m11 (tenor), m8 (bass),
-         vowel "a". Changed: single notes cut from long tones, scales and arpeggios by pitch tracking; retuned to
-         equal temperament and levelled; sustained by crossfaded repetition into a 2 s loop; the alto's F3-A3, the
-         bass's D2-A2 and the tenor's A4 pitch-shifted (formant preserved) from the nearest sung note. Scripts:
-         tools/playback/vocalset/.
+         (https://creativecommons.org/licenses/by/4.0/). D305: rebuilt as straight tone from singers f7 (soprano),
+         f8 (alto), m3 (tenor), m8 (bass), vowel "a", their "straight", slow-scale, slow-arpeggio and long-tone takes
+         (was f2, f5, m11, m8). Changed: single notes cut by pitch tracking; each note's pitch held steady (the
+         recording read at a varying rate, undoing its vibrato) and its level held steady; every semitone of each
+         part, from the nearest sung note within 4 semitones (the alto's F3-G3 from C4: 5-7 semitones),
+         pitch-shifted with formants preserved; sustained by crossfaded repetition into a 2 s loop; levelled.
+         Scripts: tools/playback/vocalset/ (build_straight.py).
 
 Harpsichord and pipe organ for the bench's and the touch game's ensembles (D190; loaded from the website by the single-file pages):
 harpsichord/ harpsichordRel/  Versilian Community Sample Library (VCSL), Versilian Studios LLC: "Harpsichord, Unk" (Harpsi4),

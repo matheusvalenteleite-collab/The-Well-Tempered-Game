@@ -121,11 +121,12 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   guitar: { A2: 0.8, A4: -0.8, As5: -10.4, B1: -2.2, B3: 0.2, Cs3: 0.6, Cs5: 11.5, D2: -3.4, Ds4: 0.2, E3: 0.9, E5: -2.6, Fs2: 1.4, Fs4: 1.6, G3: 0.9, G5: -3.7 },
   cleanGuitar: { As2: 15.5, As3: 12.1, As4: 2.7, As5: -10.9, Cs3: 8.1, Cs4: 8.7, Cs5: -3.5, D6: -14.7, E2: 12.5, E3: 10.4, E4: 4.5, E5: -6.7, G2: 15.4, G3: 11, G4: 5.9, G5: -9.5 },
   sax: { As3: 0, As4: -0.5, Cs3: 0.1, Cs4: 0, Cs5: -0.4, E3: 0.1, E4: 0, E5: 0.1, G3: -0.1, G4: -0.5, G5: 0.1 },
-  // (The singers' over their loops, 1-3 s: the median of 60 ms frames, through their vibrato.)
-  soloSoprano: { A4: -24.4, As4: -2.2, B4: -8.9, C4: -1.7, C5: -1.1, Cs4: -5.9, Cs5: 34.4, D5: 22.5, Ds4: -8.6, Ds5: -11.4, E4: -1.6, F4: -2.6, F5: -3, Fs4: -1.7, Fs5: 5.6, G4: -4.3, Gs4: -2.9, Gs5: -2.3 },
-  soloAlto: { A3: 0.1, A4: -3.1, As4: -1.6, B4: -4.1, C4: 0, C5: -1.4, D4: 5.3, D5: -0.3, E4: -3.3, F3: -1.4, F4: 13, Fs3: 0.2, G3: -0.2, G4: -4.3, Gs3: -0.7 },
-  soloTenor: { A4: -2.1, As3: 0, C3: 15.4, C4: 0.2, Cs3: -2.3, D4: 0.8, E3: 2.1, F3: 0.8, F4: 12.2, Fs3: 1.1, Fs4: -0.5, G3: 5.7, Gs3: 3.4 },
-  soloBass: { A2: -0.4, B3: -4.1, C3: 1.2, C4: -1.9, Cs3: -3, D2: 1.2, D3: 2.2, D4: 1, Ds2: 1, E2: 1.4, E3: 4.5, F2: 0.8, F3: 1.9, F4: -0.9, Fs2: 0.7, Fs3: 3.2, G2: 0.7, G3: -10.6, Gs2: -0.3 },
+  // (D305: the singers rebuilt as straight tone, each note's pitch held steady by tools/playback/vocalset/
+  // build_straight.py; measured over their loops, 1-3 s: the median of YIN frames.)
+  soloSoprano: { C4: -0.4, Cs4: -0.1, D4: -0.4, Ds4: 0, E4: -0.1, F4: 0.1, Fs4: 0.2, G4: -0.1, Gs4: 0.1, A4: 0.1, As4: -0.2, B4: -0.2, C5: -0.1, Cs5: -0.1, D5: -0.4, Ds5: -0.1, E5: -0.3, F5: 0.1, Fs5: -0.1, G5: 0, Gs5: 0.3, A5: -0.1 },
+  soloAlto: { F3: 0, Fs3: -0.6, G3: -0.1, Gs3: -0.4, A3: -0.1, As3: 0.1, B3: -0.1, C4: -0.1, Cs4: 0.1, D4: 0, Ds4: 0, E4: 0, F4: 0.2, Fs4: 0.4, G4: -0.2, Gs4: -0.4, A4: 0.1, As4: 0.1, B4: -0.1, C5: -0.1, Cs5: -0.2, D5: -0.2 },
+  soloTenor: { B2: 0.1, C3: 0.5, Cs3: 0.2, D3: -0.4, Ds3: 0.2, E3: 0, F3: 0.1, Fs3: 0, G3: -0.3, Gs3: 2.9, A3: 2.3, As3: -0.1, B3: -0.2, C4: -0.2, Cs4: 0.2, D4: -2.9, Ds4: -0.5, E4: -0.3, F4: 0, Fs4: -0.1, G4: -0.5, Gs4: 0, A4: 0.1 },
+  soloBass: { D2: -0.5, Ds2: -0.8, E2: -0.9, F2: -0.4, Fs2: 0.7, G2: 0.9, Gs2: 1.2, A2: -0.2, As2: -0.2, B2: 0.4, C3: -0.1, Cs3: -0.1, D3: 0.7, Ds3: 0.2, E3: 0.7, F3: 0.9, Fs3: 0.1, G3: -0.8, Gs3: -0.1, A3: -0.8, As3: -0.5, B3: 0, C4: 0, Cs4: 0.3, D4: 0, Ds4: -0.2, E4: -0.4, F4: -0.1, Fs4: 0.1 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
 };
 /** D297: the recordings shorter than 4.545 s (s, measured). */

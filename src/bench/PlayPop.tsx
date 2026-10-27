@@ -43,7 +43,7 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["chamberOrgan", "PIPE ORGAN"],
   ["vocalSynth", "VOCAL SYNTH"],
   ["soloVoices", "SOLO VOICES"],
-  ["modular", "MODULAR"],
+  ["modular", "BLEEPS AND BLOOPS"],
   ["tomita", "TOMITA"],
 ];
 

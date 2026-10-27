@@ -23,10 +23,11 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   assert.equal(presetById("analog").name, "SWITCHED-ON");
   assert.equal(presetById("carlos").id, "analog");
   assert.deepEqual(PRESETS.slice(5).map((p) => p.id), NEW);
-  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
+  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
   for (const id of NEW) {
     assert.ok(!Object.values(PIECE_SOUND).includes(id), id);
-    assert.equal(styleOf(id), "plain");
+    // D305: VOCAL SYNTH sung as singers sing.
+    assert.equal(styleOf(id), id === "vocalSynth" ? "sung" : "plain");
     // No trademarks in the names.
     assert.ok(!/SNES|NINTENDO|SEGA|PLAYSTATION|MEGA DRIVE|GENESIS|ZELDA|GOLDENEYE|BOMBERMAN|MOOG|COMMODORE|AMIGA|VOCALOID|MIKU|UTAU|SYNTHESIZER V|CEVIO/.test(presetById(id).name), id);
   }
@@ -50,7 +51,9 @@ test("D297: every voice its own instrument, pans within ±0.35, vibrato only on 
         assert.ok(Math.abs(pl.pan) <= 0.35, `${id} ${n} ${v}: pan ${pl.pan}`);
         assert.equal(voicing(v, n).pan, pl.pan);
         assert.ok(pl.level <= 1 && pl.level >= 0.8, "only a shade lighter (R9)");
-        if (pt.vib) {
+        // (D305: a tape wow, under 1 Hz and a few cents, is not a vibrato: BLEEPS AND BLOOPS' tube.)
+        if (pt.vib && pt.vib.rate < 1) assert.ok(pt.vib.depth <= 4, `${id}: a wow`);
+        else if (pt.vib) {
           assert.ok(v < n - 1, `${id}: no vibrato on the bass`);
           assert.ok(pt.amp.s > 0, `${id}: vibrato only on a sustained voice`);
           // (D302: a singer's vibrato wider, as sung: up to 35 cents.)
@@ -275,7 +278,8 @@ test("D304: FOREST 64 and PARTY 64 withdrawn (the owner: 0 each), they and TEMPL
     assert.ok(!PRESETS.some((p) => p.id === gone), gone);
   }
   for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.equal(PERIOD[id], undefined, id);
-  assert.deepEqual(Object.keys(REVERBS).sort(), ["cathedral", "hall", "plate", "space"]);
+  // (D305: BLEEPS AND BLOOPS' spring.)
+  assert.deepEqual(Object.keys(REVERBS).sort(), ["cathedral", "hall", "plate", "space", "spring"]);
 });
 
 test("D297, D302: TRACKER: 8-bit samples held without smoothing, short loops, hard left and right, a tone portamento", () => {
