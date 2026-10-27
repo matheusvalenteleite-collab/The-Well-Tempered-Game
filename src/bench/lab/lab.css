@@ -118,3 +118,5 @@
 .lab-help h3 { margin: 12px 0 2px; font-size: 13px; color: var(--tg-shine); }
 .lab-help p { margin: 0 0 6px; }
 .lab-help code { font: 11px ui-monospace, Menlo, monospace; color: #8fe3b0; word-break: break-all; }
+/* D320: the latest verdict in the title bar while a passage plays (never over the music; off by default). */
+.lab-barline { font: 10px/1.5 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0; padding-top: 0; margin-top: 0; }
