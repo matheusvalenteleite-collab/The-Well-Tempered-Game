@@ -262,7 +262,7 @@ export interface Play {
   /** D252: false: not doubled by the coupling (the coupling's own notes). */
   couple?: boolean;
   /**
-   * D311, the player's touch across its bar (0 the inner edge, by the box, to 1 the outer; touch-expr.ts):
+   * D311, the player's touch across its bar, as strength (0 the soft side, 1 the strong: touch-expr.ts STRONG_SIDE):
    * where it landed shapes the attack (Chip.note turns it into the fields below, by the preset's family),
    * and the note answers Sounding.shape (a sideways move while held). Unset: no expression (the band's notes).
    */
@@ -306,7 +306,7 @@ export interface Sounding {
   muffle?: () => void;
   /** D179: the note's dynamic now (1 as struck), changed smoothly while it sounds (a swell, a diminuendo). */
   dyn?: (level: number) => void;
-  /** D311: the thumb moved sideways while holding: -1 (inward) .. 1 (outward) from where it landed (touch-expr.ts holdValue); smoothed. */
+  /** D311: the thumb moved sideways while holding: -1 (toward the soft side) .. 1 (toward the strong) from where it landed (touch-expr.ts holdValue); smoothed. */
   shape?: (s: number) => void;
 }
 
@@ -1927,7 +1927,7 @@ export class Chip {
       const bp = bag.add(ctx.createBiquadFilter());
       bp.type = "bandpass";
       // D305: the first formant tuned up to the pitch (Sing.tune), a soprano's on her high notes.
-      // D311: the player's touch: the vowel closed toward the box, opened toward the edge (touch-expr.ts formantAt).
+      // D311: the player's touch: the vowel closed toward the soft side, opened toward the strong (touch-expr.ts formantAt).
       const fx = p.open === undefined ? f : formantAt(f, VOWELS[sg.type][VOWEL_CLOSED[sg.vowel] ?? "o"][i]?.[0] ?? f, i, p.open);
       const tuned = (m: number) => (i === 0 && sg.tune ? Math.max(fx * sg.size, sg.tune * hz(m)) : fx * sg.size);
       const fv = Math.min(ctx.sampleRate * 0.45, tuned(midi));

@@ -4,6 +4,7 @@ import { beatOf, fugueById, inBar } from "../src/touch/fugue.ts";
 import { laneNotes, type LaneNote } from "../src/touch/lanes.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
+import { STRONG_SIDE, strengthOf } from "../src/touch/touch-expr.ts";
 import { ARROW_KEYS, arrowOf, barDynamic, contourOk, BAR, HIGHWAY_LANES, SUBJECT_LINE, KEY_ROWS, keyRow, menuOf, moveOf, moves, protoById, PROTOS, stepPitch, takesHer, thumbsVerdict } from "../src/bench/protos.ts";
 import { KEYS_SHARE } from "../src/bench/placed.ts";
 import { isBlack, keySpan } from "../src/touch/piano.ts";
@@ -31,12 +32,14 @@ test("THUMBS: right for up, left for down; the wrong thumb asks for the mirror",
   assert.equal(thumbsVerdict(ms[3], "right").ok, true, "a leap: either thumb");
 });
 
-test("the bars' dynamic: pp by the box, ff by the phone's edge, on both sides", () => {
+test("the bars' dynamic: pp on the soft side, ff on the strong (STRONG_SIDE: D315, by the box), on both sides", () => {
   const bw = W * BAR;
-  assert.equal(barDynamic(bw, W), 0);
-  assert.equal(barDynamic(0, W), 1);
-  assert.equal(barDynamic(W - bw, W), 0);
-  assert.equal(barDynamic(W, W), 1);
+  // The box's edge (place 0) and the phone's (place 1), as strength.
+  assert.equal(barDynamic(bw, W), strengthOf(0));
+  assert.equal(barDynamic(0, W), strengthOf(1));
+  assert.equal(barDynamic(W - bw, W), strengthOf(0));
+  assert.equal(barDynamic(W, W), strengthOf(1));
+  assert.equal(barDynamic(0, W), STRONG_SIDE === "outer" ? 1 : 0);
 });
 
 test("wrong notes are heard as asked: a staff step's pitch keeps the reference's inflection", () => {
@@ -201,7 +204,7 @@ test("LADDER is forgiving: near the note and the right way from the touch before
   assert.equal(tap(2, "right", ROWS.yOf(34) + 30), "miss");
 });
 
-test("a held note swells as the thumb moves out across its bar (D293: only where dynamics are asked); a flick upwards on letting go: a swoosh", () => {
+test("a held note swells as the thumb moves toward the strong side of its bar (STRONG_SIDE; D293: only where dynamics are asked); a flick upwards on letting go: a swoosh", () => {
   for (const coach of ["dynamics", undefined] as const) {
     const clock = { t: 0 };
     const log: { midi: number; muffled: boolean; dyn?: number }[] = [];
@@ -213,11 +216,13 @@ test("a held note swells as the thumb moves out across its bar (D293: only where
     g.step();
     const t0 = performance.now();
     const y = ROWS.yOf(n.step);
-    g.down(1, { side: "left", x: W * BAR * 0.9, y, w: W, h: H }, t0);
-    g.move(1, { side: "left", x: 2, y, w: W, h: H }, t0 + 20);
-    if (coach) assert.ok((log.at(-1)!.dyn ?? 1) > 1.3, "out to the edge: louder");
+    // The left bar: x = (1 - place) of its width; from the soft side to the strong.
+    const xAt = (strength: number) => W * BAR * (1 - strengthOf(strength));
+    g.down(1, { side: "left", x: xAt(0.1), y, w: W, h: H }, t0);
+    g.move(1, { side: "left", x: xAt(0.99), y, w: W, h: H }, t0 + 20);
+    if (coach) assert.ok((log.at(-1)!.dyn ?? 1) > 1.3, "to the strong side: louder");
     else assert.equal(log.at(-1)!.dyn, undefined, "no swell where dynamics are not asked");
-    g.move(1, { side: "left", x: 2, y: y - 60, w: W, h: H }, t0 + 60);
+    g.move(1, { side: "left", x: xAt(0.99), y: y - 60, w: W, h: H }, t0 + 60);
     g.up(1, t0 + 80);
     assert.deepEqual(swooshes, [n.midi]);
   }

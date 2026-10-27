@@ -205,7 +205,7 @@ test("D314: one switch decides the strong side; the judging and the sound read i
   assert.equal(barAcross(bw - 1, W) < 0.01, true);
   assert.equal(barDynamic(1, W), strengthOf(barAcross(1, W)));
   assert.equal(barDynamic(W - 1, W), strengthOf(barAcross(W - 1, W)));
-  assert.equal(strengthOf(strengthOf(0.3)), 0.3, "the flip is its own inverse (places drawn from strengths)");
+  assert.equal(strengthOf(strengthOf(0.25)), 0.25, "the flip is its own inverse (places drawn from strengths)");
   if (STRONG_SIDE === "outer") assert.ok(barDynamic(1, W) > 0.9);
   else assert.ok(barDynamic(1, W) < 0.1);
 });

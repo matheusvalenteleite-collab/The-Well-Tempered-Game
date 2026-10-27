@@ -185,7 +185,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
       g.fillText(">", x1 + w / 2, y - 7);
     }
   });
-  // The bars: warm, soft by the box (pp) to loud at the edge (ff).
+  // The bars: warm, soft (pp) to loud (ff), the sides by STRONG_SIDE.
   for (const side of ["left", "right"] as const) {
     const x0 = side === "left" ? 0 : cssW - bar;
     const grad = g.createLinearGradient(side === "left" ? bar : cssW - bar, 0, side === "left" ? 0 : cssW, 0);

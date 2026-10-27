@@ -47,7 +47,7 @@ export interface Reading {
 
 export const READINGS = data as unknown as Record<string, Reading[]>;
 
-/** A level as a dynamic on the bars (0 pp at the box, 1 ff at the edge). */
+/** A level as a dynamic on the bars (0 pp on the soft side, 1 ff on the strong: STRONG_SIDE). */
 export const LEVEL_D: Record<Level, number> = { pp: 0.1, p: 0.28, mp: 0.45, mf: 0.6, f: 0.78, ff: 0.92 };
 
 export const readingsOf = (id: string): Reading[] => READINGS[id] ?? [];

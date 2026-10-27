@@ -18,6 +18,7 @@ import { tr } from "../i18n/index.ts";
 import { beatOf, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { standardTempo, tempoOf } from "../touch/tempi.ts";
+import { STRONG_SIDE } from "../touch/touch-expr.ts";
 import { moves, type EasyLevel, type Move, type Platform, type ProtoId } from "./protos.ts";
 import type { ProtoGame } from "./proto-game.ts";
 
@@ -419,10 +420,11 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "LAUT UND LEISE",
     english: "LOUD AND SOFT",
-    goal: "SOFT: TOUCH NEAR THE BOX · LOUD: NEAR THE EDGE",
-    intro: [{ text: "Where you touch the bar is how loud: soft by the box, loud by the edge." }, { text: "Answer softly in the first bar, loudly in the second, as an echo turned round." }],
+    // D315: the words follow the strong side (touch-expr.ts STRONG_SIDE).
+    goal: STRONG_SIDE === "outer" ? "SOFT: TOUCH NEAR THE BOX · LOUD: NEAR THE EDGE" : "SOFT: TOUCH NEAR THE EDGE · LOUD: NEAR THE BOX",
+    intro: [{ text: STRONG_SIDE === "outer" ? "Where you touch the bar is how loud: soft by the box, loud by the edge." : "Where you touch the bar is how loud: soft by the edge, loud by the box." }, { text: "Answer softly in the first bar, loudly in the second, as an echo turned round." }],
     praise: [{ text: "A harpsichord has two keyboards for this. You have two thumbs." }],
-    again: [{ text: "Soft near the box, loud near the edge. Again." }],
+    again: [{ text: STRONG_SIDE === "outer" ? "Soft near the box, loud near the edge. Again." : "Soft near the edge, loud near the box. Again." }],
     short: (r) => {
       const a = meanIn(r, 1);
       const b = meanIn(r, 2);
