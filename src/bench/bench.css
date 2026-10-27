@@ -742,3 +742,5 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars .tg-play { background:
   .tb-result > :not(.tb-result-x) { zoom: 1.6; }
   .tb-result .tb-sheet { width: min(760px, calc((100vw - 120px) / 1.6)); }
 }
+/* D317: the lab's link in play.html's settings (only where tb-lab is set or ?lab is in the address). */
+.tb-lab-link { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); align-self: flex-end; text-decoration: none; }
