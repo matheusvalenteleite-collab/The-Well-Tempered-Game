@@ -514,7 +514,8 @@ test("the others are phrased: the subject brought forward, repeated notes detach
   const others = accompaniment(C_MINOR, 0, 1);
   const sh = phrase(others, beat, (t) => inBar(C_MINOR, t), subjectMarks(C_MINOR).subject);
   assert.equal(sh.length, others.length);
-  assert.ok(sh.every((s) => Math.abs(s.nudge) <= 0.006 && s.hold > 0.7 && s.hold <= 1 && s.level > 0.8 && s.level < 1.5));
+  // D309: repeated notes and leaps apart by the tables (never more than GAP_MAX_SHARE of a note).
+  assert.ok(sh.every((s) => Math.abs(s.nudge) <= 0.006 && s.hold >= 0.4 - 1e-9 && s.hold <= 1 && s.level > 0.8 && s.level < 1.5));
   const subj = subjectMarks(C_MINOR).subject;
   const i = others.findIndex((o) => subj.has(`${o.voice}:${o.on}`));
   const j = others.findIndex((o) => !subj.has(`${o.voice}:${o.on}`));

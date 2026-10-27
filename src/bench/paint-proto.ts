@@ -1027,9 +1027,23 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     }
   }
   for (const s of g.heldSides()) {
+    // D311: the held thumb's glow a little stronger toward the edge (firmer, brighter: the across value), and
+    // a small mark where it is across the bar; a hairline back to where it landed once it has moved (the sustain).
+    const a = s.across;
     c.fillStyle = t.shine;
-    c.globalAlpha = 0.3;
+    c.globalAlpha = a === undefined ? 0.3 : 0.2 + 0.2 * a;
     c.fillRect(s.side === "left" ? 0 : w - bw, s.y - 14, bw, 28);
+    if (a !== undefined && s.land !== undefined) {
+      const xOf = (u: number) => (s.side === "left" ? bw * (1 - u) : w - bw + bw * u);
+      const x = xOf(a);
+      const x0 = xOf(s.land);
+      c.globalAlpha = 0.85;
+      c.fillRect(Math.round(x) - 1, s.y - 9, 3, 18);
+      if (Math.abs(x - x0) > 2) {
+        c.globalAlpha = 0.5;
+        c.fillRect(Math.min(x, x0), s.y - 0.5, Math.abs(x - x0), 1);
+      }
+    }
     c.globalAlpha = 1;
   }
   if (g.proto.id === "ladder" && (g.o.demo || g.o.guide)) thumbsShown(c, w, h, g, t);

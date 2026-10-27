@@ -9,7 +9,7 @@ import { laneNotes, quickRides, RIDE_MS, type LaneNote } from "../src/touch/lane
 import { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, PERFECT_MS } from "../src/bench/proto-game.ts";
 import { keyId, midiId, protoById } from "../src/bench/protos.ts";
-import { ART_HOLD, phrase } from "../src/touch/phrasing.ts";
+import { phrase } from "../src/touch/phrasing.ts";
 import { cancelled } from "../src/touch/thumbs.ts";
 import { startTick } from "../src/touch/voice-mode.ts";
 
@@ -231,12 +231,12 @@ test("engine audit: phrasing takes the next onset as the note after (a chord's p
     { on: B, dur: B, midi: 62, step: 36, voice: 0 },
   ];
   const sh = phrase(notes, B, (t) => t % (4 * B), new Set(), "plain");
-  // C to D (a step) after a quarter: joined (D302), not shortened as before a leap to its partner G.
-  assert.equal(sh[0].art, "join");
-  assert.equal(sh[0].hold, 1);
-  // G to D, a fourth down: a little apart (D302: nonlegato; D304: 0.88, as before D302).
+  // C to D (a step) after a quarter: by the step's row (D309: a crotchet of half a second let go 35 ms early), not as a leap to its partner G.
+  assert.ok(sh[0].hold >= 0.92, `${sh[0].hold}`);
+  assert.ok(sh[0].hold > sh[1].hold + 0.1);
+  // G to D, a fourth down: apart (D302: nonlegato; D309: the table's leap, a beat of half a second by default).
   assert.equal(sh[1].art, "nonlegato");
-  assert.equal(sh[1].hold, ART_HOLD.leap);
+  assert.ok(sh[1].hold < 0.9 && sh[1].hold > 0.6, `${sh[1].hold}`);
   const many = Array.from({ length: 40000 }, (_, i) => ({ on: i * 120, dur: 120, midi: 60 + (i % 5), step: 35 + (i % 5), voice: i % 4 }));
   const t0 = performance.now();
   phrase(many, B, (t) => t % (4 * B), new Set());

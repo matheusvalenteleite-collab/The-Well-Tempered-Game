@@ -38,9 +38,10 @@ export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => (TRAVEL_MIN = v);
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
-import { follow, joins, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { holdValue, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
+import { follow, joins, phrase, phraseContext, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
-import { PATCHES } from "../touch/sound.ts";
+import { PATCHES, preset } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -114,6 +115,8 @@ export interface KeyPress {
   code?: string;
   /** 0 to 1. */
   velocity?: number;
+  /** D311: a MIDI keyboard's velocity (0 to 1): the piano's touch (a computer's keys give none: the bar's middle). */
+  touch?: number;
 }
 
 /** The bars' screens: the music box's rows and time in the play area's coordinates (set by the app as the screen is laid out). */
@@ -153,6 +156,11 @@ interface Held {
   wantShort?: boolean;
   /** D280: where across its bar it touches (0..1 of the touch area's width), for the thumbs drawn. */
   across?: number;
+  /**
+   * D311: where across its bar it landed, 0 the inner edge (by the box) to 1 the outer, mirrored per bar
+   * (protos.ts barDynamic): the note's attack (touch-expr.ts); its sideways travel from there, the sustain.
+   */
+  land?: number;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
   slideDir?: 1 | -1;
   /** D306, BLUETOOTH MODE: its note as scheduled, cut when the touch lets go (a staccato heard, a headphones' delay late). */
@@ -515,7 +523,8 @@ export class ProtoGame {
     const played = this.tracks.map((t) => t.voice);
     this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
     // D302: the others joined and detached, the reading's marks on every entry of the subject.
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { marks: readingMarks(f.entries, o.reading ?? null), bass: f.voices.length - 1 });
+    // D309: each instrument's table, the fugue's character, the piano's levels from the whole score (never the player's part).
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, this.bpm, readingMarks(f.entries, o.reading ?? null)));
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;
@@ -695,7 +704,8 @@ export class ProtoGame {
         const voice = this.voiceOf(k, i);
         const voiceV = voicing(voice, count, true);
         const sv = this.o.her ? null : this.subj.shape(voice, n.on, voiceV);
-        let expr: Play = { ...dynamic(NEUTRAL_D), lead: true, envelope, legato: !piano && this.joinedAt(i, k) };
+        // D311: the attack from the voice's latest landing (the note is scheduled before its touch); its sustain the touch's (move: shape).
+        let expr: Play = { ...dynamic(NEUTRAL_D), lead: true, envelope, legato: !piano && this.joinedAt(i, k), touch: this.touchFor(this.lastLand[k], k, n.on) };
         if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
         if (this.arc?.echo && k === 0 && this.rowOf(i, 0) === 1) expr = { ...expr, level: (expr.level ?? 1) * ECHO_LEVEL, bright: (expr.bright ?? 0) - ECHO_DARK };
         const v = sv?.v ?? voiceV;
@@ -950,8 +960,9 @@ export class ProtoGame {
     return this.tracks.length > 1 && side === "right" ? 1 : 0;
   }
 
-  heldSides(): { side: Side; y: number }[] {
-    return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay }));
+  /** The thumbs down: side, height; D311: where across its bar it is now and where it landed (0 inner .. 1 outer), on the bars. */
+  heldSides(): { side: Side; y: number; across?: number; land?: number }[] {
+    return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay, ...(h.land !== undefined && h.across !== undefined && this.proto.layout === "bars" ? { across: barDynamic(h.across * this.touchW, this.touchW), land: h.land } : {}) }));
   }
   /** D280: the thumbs down now: side, height, where across (0..1 of the width), shaking. */
   thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean }[] {
@@ -1047,6 +1058,22 @@ export class ProtoGame {
     return undefined;
   }
 
+  /** D311: where across its bar a touch is, 0 the inner edge to 1 the outer (the bars only; elsewhere the middle). */
+  landAt(c: Contact): number {
+    return this.proto.layout === "bars" ? barDynamic(c.x, c.w) : TOUCH_NEUTRAL;
+  }
+  /** D311: each voice's latest landing (BLUETOOTH MODE schedules its next notes with it: their attack can no longer wait for the touch). */
+  private lastLand: number[] = [];
+  /**
+   * D311: the touch a note of track k at `on` carries (Play.touch): the thumb's landing, unless the run's
+   * own dynamics are heard there (the dynamics lesson, a reading's level: the old full dynamic, D293/D296).
+   * Never the verdict's: right or wrong, the same sound.
+   */
+  private touchFor(land: number | undefined, k: number, on: number): number | undefined {
+    if (this.touchDynamics || (this.o.reading?.level && this.readingIndex().has(`${k}:${on}`))) return undefined;
+    return land ?? TOUCH_NEUTRAL;
+  }
+
   /** The dynamic of a touch, 0 (pp) to 1 (ff). */
   dynamicAt(c: Contact): number {
     if (this.proto.layout === "bars") return barDynamic(c.x, c.w);
@@ -1056,6 +1083,8 @@ export class ProtoGame {
    * D293: the loudness a touch gives is heard only where the run asks for it (the dynamics lesson; D296: and a
    * reading's level, on the subject notes it marks: heardAt). Elsewhere the player's notes sound at the music's own level, wherever the thumb
    * lands (the owner: "the big volume changes when playing correctly and wrongly … kill the flow").
+   * D311 revises this: elsewhere the landing still shapes the note, in a small range and by the instrument
+   * (Play.touch: the piano ±4 dB, a stop, a colour; touchFor), never by the verdict, and the others never follow it.
    */
   get touchDynamics(): boolean {
     // D296: not every reading: play.html plays each fugue by a reading, which made all loudness the touch's.
@@ -1255,6 +1284,9 @@ export class ProtoGame {
     this.finalStrike(id, ts);
     const d = this.dynamicAt(c);
     const h: Held = { across: c.x / Math.max(1, c.w), side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
+    // D311: where across it landed (the attack); BLUETOOTH MODE's next notes of the voice take it too.
+    h.land = this.landAt(c);
+    this.lastLand[h.k] = h.land;
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
@@ -1271,6 +1303,8 @@ export class ProtoGame {
     const d = k.velocity ?? 0.6;
     const struck = k.code;
     const h: Held = { side: k.side ?? "left", k: this.hands ? this.laneTrack(keyPlace(k.code ?? "")?.col ?? 8) : this.trackOf(k.side ?? "left"), x0: 0, ax: 0, ay: 0, note: -1, chord: [], sounds: [], midi: 0, cell: k.midi, d0: d, trail: [] };
+    // D311: a MIDI key's velocity is the piano's touch; elsewhere (and the computer's keys) the bar's middle.
+    h.land = k.touch !== undefined && touchKind(preset().id) === "piano" ? Math.max(0, Math.min(1, k.touch)) : TOUCH_NEUTRAL;
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { key: k }, d);
     // Where the hand is now: the next key is judged from it.
@@ -1372,7 +1406,7 @@ export class ProtoGame {
       const key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
       if (key !== undefined) {
         h.midi = key;
-        h.sounds = [this.touchNote(key, this.chip.ctx.currentTime, HOLD_MAX, voicing(this.tracks[h.k].voice, this.f.voices.length, true), { ...dynamic(this.heard(d)), lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" })];
+        h.sounds = [this.touchNote(key, this.chip.ctx.currentTime, HOLD_MAX, voicing(this.tracks[h.k].voice, this.f.voices.length, true), { ...dynamic(this.heard(d)), lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth", touch: this.touchDynamics ? undefined : (h.land ?? TOUCH_NEUTRAL) })];
       }
       return;
     }
@@ -1393,9 +1427,17 @@ export class ProtoGame {
     // D286: a thumb that travelled while down (a slide, a line, a big shake) is no longer where it struck.
     const own = this.lastBySide[h.side];
     if (own && Math.abs(c.y - own.y) > 1.5 * this.ladderRow) own.moved = true;
-    // Across the dynamic axis while it sounds: a swell or a diminuendo.
+    // Across the dynamic axis while it sounds: a swell or a diminuendo (the dynamics lesson).
     const d = this.dynamicAt(c);
     if (this.touchDynamics) for (const s of h.sounds) s.dyn?.(levelOf(d) / levelOf(h.d0));
+    // D311: elsewhere the sustain the player's (touch-expr.ts): sideways from where it landed, by the
+    // instrument (a swell, a vibrato, a wah, the tremolo's speed; a struck note nothing). In BLUETOOTH
+    // MODE the note it scored (scheduled ahead) answers it.
+    else if (h.land !== undefined && this.proto.layout === "bars") {
+      const sv = holdValue(this.landAt(c) - h.land);
+      for (const s of h.sounds) s.shape?.(sv);
+      if (h.armed?.state === "hit") for (const s of h.armed.own) s.shape?.(sv);
+    }
     const t = this.tickOf(ts);
     if (h.passive) return;
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
@@ -1602,7 +1644,8 @@ export class ProtoGame {
     // D293: the note sounds alike however it was struck: no duller for a note right only by its direction
     // (D239), no brighter in CON FUOCO, no octaves in ORGANO PLENO (D181; their points stay).
     const base = dynamic(this.heardAt(d, h.k, notes[i].on));
-    let expr: Play = { ...base, trill: this.trillNext, muffleable: true, lead: true, envelope: piano ? "piano" : "synth" };
+    // D311: where the thumb landed across its bar shapes the attack (Play.touch), right or wrong alike.
+    let expr: Play = { ...base, trill: this.trillNext, muffleable: true, lead: true, envelope: piano ? "piano" : "synth", touch: this.touchFor(h.land, h.k, notes[i].on) };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;

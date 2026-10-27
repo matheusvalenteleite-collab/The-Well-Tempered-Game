@@ -323,7 +323,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     title: "DIE LEITER",
     english: "THE LADDER",
     goal: "TOUCH A BAR AT EACH NOTE'S HEIGHT · THE MUSIC WAITS",
-    intro: [{ text: "Hold the phone sideways. The notes come from the right; touch either side bar, anywhere along it." }, { text: "Then move up the bar for a higher note, down for a lower. I will wait for you." }],
+    intro: [{ text: "Hold the phone sideways; touch either bar, anywhere. Across it is the note's colour, never right or wrong." }, { text: "Then move up the bar for a higher note, down for a lower. I will wait for you." }],
     praise: [{ text: "Recht. Your thumb drew the line." }],
     again: [{ text: "Higher when it rises, lower when it falls. Again." }],
     short: (r) => rightShort(r, 0.85),

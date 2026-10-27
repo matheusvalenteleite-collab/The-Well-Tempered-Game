@@ -88,7 +88,7 @@ export const PROTOS: Proto[] = [
     id: "ladder",
     short: "TOUCH A BAR, UP AS THE TUNE RISES",
     name: "LADDER",
-    how: ["Touch either bar, anywhere along it.", "Higher when the tune rises, lower when it falls.", "Slide for a run."],
+    how: ["Touch either bar, anywhere along it.", "Higher when the tune rises, lower when it falls.", "Slide for a run. Across the bar: the note's colour."],
     layout: "bars",
     platform: "mobile",
   },
