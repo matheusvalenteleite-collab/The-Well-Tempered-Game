@@ -642,9 +642,11 @@ export class ProtoGame {
     this.anchorTick = this.start;
     this.nextBeat = this.start;
     // D328, THE LAB's BAND TIME (band-time.ts): the band waits for the player, or follows; never in the game (MECH.bandTime "fixed").
-    if (MECH.bandTime !== "fixed" && !o.wait && !o.her && !this.bt && !o.solo && this.others.length && this.tracks[0]) {
+    // D340: a chorale's band WAITS (its own `bandTime`) after each fermata, as at a cadence, whatever MECH says.
+    const bandMode = MECH.bandTime !== "fixed" ? MECH.bandTime : (f.bandTime ?? "fixed");
+    if (bandMode !== "fixed" && !o.wait && !o.her && !this.bt && !o.solo && this.others.length && this.tracks[0]) {
       const until = o.until ?? f.length;
-      const waits = waitPoints(this.tracks[0].notes, f.cadences ?? [], { from, until, beat: this.beat, barTicks: f.barTicks, endsPiece: until >= f.length });
+      const waits = waitPoints(this.tracks[0].notes, [...(f.cadences ?? []), ...(f.fermatas ?? []).map((on) => ({ on }))], { from, until, beat: this.beat, barTicks: f.barTicks, endsPiece: until >= f.length });
       const host = {
         warp: (t: number) => this.rit.warp(t),
         unwarp: (w: number) => this.rit.unwarp(w),
@@ -654,7 +656,7 @@ export class ProtoGame {
         pendingAt: (tick: number) => this.tracks[0].notes.every((n) => n.on !== tick || n.state === "pending"),
         emit: (e: BandEvent) => this.tap?.({ kind: "band", track: 0, ...e }),
       };
-      this.bandT = new BandTime(MECH.bandTime, host, waits, { t: this.anchorAt, tick: this.start, tps: this.tps });
+      this.bandT = new BandTime(bandMode, host, waits, { t: this.anchorAt, tick: this.start, tps: this.tps });
     }
     // D250: THE PEDAL (the right hand's game only): its own lane, the figure around it, free at both ends.
     // D252: several, one after another; with both hands each in its own lane of the left thumb's.

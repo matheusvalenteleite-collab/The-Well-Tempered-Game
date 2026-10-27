@@ -7,7 +7,8 @@ export interface MidiTrack {
   notes: [on: number, dur: number, midi: number][];
 }
 
-export function readMidi(bytes: Uint8Array): { division: number; tracks: MidiTrack[] } {
+/** D340: and the time signatures (meta 0x58), in ticks, for the bars of a piece read from MIDI alone. */
+export function readMidi(bytes: Uint8Array): { division: number; tracks: MidiTrack[]; times: { tick: number; num: number; den: number }[] } {
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let p = 0;
   const str = (n: number) => String.fromCharCode(...bytes.subarray(p, p + n));
@@ -17,6 +18,7 @@ export function readMidi(bytes: Uint8Array): { division: number; tracks: MidiTra
   if (division & 0x8000) throw new Error("SMPTE time is not read");
   p = 8 + v.getUint32(4);
   const tracks: MidiTrack[] = [];
+  const times: { tick: number; num: number; den: number }[] = [];
   for (let t = 0; t < ntracks; t++) {
     if (str(4) !== "MTrk") throw new Error(`track ${t}: no MTrk`);
     const end = p + 8 + v.getUint32(p + 4);
@@ -43,6 +45,7 @@ export function readMidi(bytes: Uint8Array): { division: number; tracks: MidiTra
         const type = bytes[p++];
         const len = vlq();
         if (type === 0x03) name = new TextDecoder().decode(bytes.subarray(p, p + len));
+        if (type === 0x58 && len >= 2) times.push({ tick, num: bytes[p], den: 2 ** bytes[p + 1] });
         p += len;
         continue;
       }
@@ -65,5 +68,5 @@ export function readMidi(bytes: Uint8Array): { division: number; tracks: MidiTra
     p = end;
     tracks.push({ name, notes: notes.sort((x, y) => x[0] - y[0] || y[2] - x[2]) });
   }
-  return { division, tracks };
+  return { division, tracks, times: times.sort((a, b) => a.tick - b.tick) };
 }

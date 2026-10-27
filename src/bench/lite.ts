@@ -10,6 +10,48 @@ import { tierFugues, tierOf, TIER_ORDER, type Tier } from "./tiers.ts";
 import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
 import type { Platform } from "./protos.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
+import { CHORALES, fugueById, MORE_BACH, type Collection } from "../touch/fugue.ts";
+import { difficultyOf } from "./difficulty.ts";
+
+/**
+ * D340 (WTC 1.54): play.html's tabs: BOOK I, BOOK II, MORE BACH (the Art of Fugue, the Musical
+ * Offering's ricercars, the Inventions, the Sinfonias, the Concerto for Two Violins: tools/touch/more-bach.ts)
+ * and CHORALES (Bach's 370 four-part chorales: tools/touch/chorales.ts).
+ */
+export type LiteTab = "I" | "II" | "MORE" | "CHORALES";
+export const LITE_TABS: readonly [LiteTab, string][] = [
+  ["I", "BOOK I"],
+  ["II", "BOOK II"],
+  ["MORE", "MORE BACH"],
+  ["CHORALES", "CHORALES"],
+];
+/** D340: the MORE BACH tab's sections, in order, each its pieces (Contrapunctus 14, the unfinished fugue of pieces.json, closes the Art of Fugue). */
+const SECTION_OF: readonly [Collection, string][] = [
+  ["aof", "ART OF FUGUE"],
+  ["mo", "MUSICAL OFFERING"],
+  ["inv", "INVENTIONS"],
+  ["sin", "SINFONIAS"],
+  ["concerto", "CONCERTO"],
+  // D341: the motet BWV 228 and the cantata BWV 54 (IMSLP editions, non-commercial licences).
+  ["motet", "MOTET"],
+  ["cantata", "CANTATA"],
+];
+export const MORE_SECTIONS: readonly { id: Collection; title: string; ids: string[] }[] = SECTION_OF.map(([id, title]) => ({
+  id,
+  title,
+  ids: [...MORE_BACH.filter((f) => f.collection === id).map((f) => f.id), ...(id === "aof" ? ["bwv1080-14"] : [])],
+}));
+export const CHORALE_IDS: readonly string[] = CHORALES.map((f) => f.id);
+const EXTRA = new Set([...MORE_SECTIONS.flatMap((s) => s.ids), ...CHORALE_IDS]);
+/** D340: a piece of the MORE BACH or CHORALES tab. */
+export const liteExtra = (id: string): boolean => EXTRA.has(id);
+/** D340: the tab a piece is listed under. */
+export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
+/** D340: what NEXT follows a piece with: its own tab's list. */
+export function liteNextOrder(id: string, fuguesOnly = false): string[] {
+  const tab = liteTabOf(id);
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "MORE" ? MORE_SECTIONS.flatMap((s) => s.ids) : liteAll(fuguesOnly);
+}
 
 /**
  * D263: the minimal page's platform: as detected, or as chosen in its ⚙ (MOBILE · COMPUTER, kept on the
@@ -127,7 +169,17 @@ export const liteAll = (fuguesOnly = false): string[] =>
   ];
 /** D264: a piece's difficulty as its card shows it (its fugue's tier): EASY green, NORMAL yellow, HARD red (the BOSS among the hard). */
 export const LITE_LEVELS = { EASY: { label: "EASY", ink: "#5fdc6a" }, NORMAL: { label: "NORMAL", ink: "#e8c94a" }, HARD: { label: "HARD", ink: "#ec5a4a" } } as const;
+const extraLevels = new Map<string, { label: string; ink: string }>();
 export function liteLevel(id: string): { label: string; ink: string } {
+  // D340: the MORE BACH and CHORALES tabs' pieces by their own stars (difficulty.ts, measured as the WTC's: ★–★★ EASY, ★★★ NORMAL, more HARD).
+  if (liteExtra(id)) {
+    const hit = extraLevels.get(id);
+    if (hit) return hit;
+    const s = difficultyOf(fugueById(id)).stars;
+    const lv = s <= 2 ? LITE_LEVELS.EASY : s === 3 ? LITE_LEVELS.NORMAL : LITE_LEVELS.HARD;
+    extraLevels.set(id, lv);
+    return lv;
+  }
   const t = tierOf(id);
   return t === "EASY" ? LITE_LEVELS.EASY : t === "INTERMEDIATE" ? LITE_LEVELS.NORMAL : LITE_LEVELS.HARD;
 }
@@ -176,7 +228,8 @@ export function recordLite(piece: string, failed: boolean, fuguesOnly = false, g
   const st = readLite();
   // D265: the best grade kept (a finished run's). D337: against the bests of today's judging only, kept with it.
   if (!failed && grade && RANK.indexOf(grade) > RANK.indexOf(st.best[piece] ?? "")) writeLite({ best: { ...st.best, [piece]: grade }, bestV: { ...st.bestV, [piece]: JUDGING } });
-  if (failed || st.beaten.includes(piece) || !/^wtc1[pf]\d\d$|^wtc2f\d\d$/.test(piece)) return [];
+  // D340: the MORE BACH and CHORALES pieces are kept as finished too (their ✓).
+  if (failed || st.beaten.includes(piece) || !(/^wtc1[pf]\d\d$|^wtc2f\d\d$/.test(piece) || liteExtra(piece))) return [];
   const before = liteTiers(new Set(st.beaten), fuguesOnly);
   const beaten = [...st.beaten, piece];
   writeLite({ beaten });

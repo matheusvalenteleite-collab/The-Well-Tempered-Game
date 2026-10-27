@@ -16,6 +16,16 @@ export function Credits({ onClose }: { onClose(): void }) {
         <p>
           Dataset: <a href={prov.repository}>{prov.repository}</a> @ <code>{prov.commit.slice(0, 7)}</code>
         </p>
+        <p>
+          The touch game's MORE BACH tab (D340): scores from the Mutopia Project (mutopiaproject.org). The Art of Fugue and the Musical
+          Offering's ricercars typeset by Arnaud Gossart (Contrapunctus 1 by Pierre-Luc Gauthier) from Breitkopf &amp; Härtel 1885; the
+          Sinfonias by Olivier Vermersch; Inventions 2-5, 7, 8, 10, 11, 13-15 by Allen Garvin; the Concerto for Two Violins by David
+          Chan: public domain. Inventions 1, 6, 9 and 12 typeset by Jeff Covey from the Bach-Gesellschaft edition, CC BY-SA 3.0; the
+          game's note data for them is shared under the same licence. The CHORALES tab: Craig Stuart Sapp, bach-370-chorales
+          (github.com/craigsapp/bach-370-chorales), CC BY-NC-SA 4.0; the game's note data for them under the same licence. The motet
+          BWV 228: Fritz Brodersen's WIMA edition (IMSLP), CC BY-NC 3.0. The cantata BWV 54: Ramon Casadesus-Masanell's edition
+          (IMSLP, 2021), CC BY-NC-SA 4.0, the game's note data for it under the same licence. These three for non-commercial use only.
+        </p>
         <h3>Software and sounds</h3>
         <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>
         <p>

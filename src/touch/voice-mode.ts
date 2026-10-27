@@ -28,7 +28,8 @@ export function startTick(f: TouchFugue, share: number): number {
 
 /** The voices that still sing from a tick on. */
 export function voicesFrom(f: TouchFugue, from: number): number[] {
-  return f.voices.map((_, v) => v).filter((v) => f.voices[v].some(([on]) => on >= from));
+  // D340: only the voices the piece offers (the concerto's two solo violins).
+  return f.voices.map((_, v) => v).filter((v) => (!f.playable || f.playable.includes(v)) && f.voices[v].some(([on]) => on >= from));
 }
 
 export function level(f: TouchFugue, voice: number, from: number): Level {

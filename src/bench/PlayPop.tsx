@@ -19,7 +19,10 @@ import { STRONG_SIDE } from "../touch/touch-expr.ts";
 /** The pop-up's title: "BWV 846/1 · PRELUDE IN C MAJOR" (the piece's own title where it has no card). */
 export function popTitle(id: string): string {
   const c = cardById(fugueOf(id));
-  return c ? formalTitle(c, isPrelude(id) ? "prelude" : "fugue") : fugueById(id).title.toUpperCase();
+  if (c) return formalTitle(c, isPrelude(id) ? "prelude" : "fugue");
+  // D340: the MORE BACH and CHORALES pieces: "BWV 1080/5 · CONTRAPUNCTUS 5", "BWV 269 · AUS MEINES HERZENS GRUNDE".
+  const f = fugueById(id);
+  return f.collection && f.bwv ? `BWV ${f.bwv} · ${f.title.toUpperCase()}` : f.title.toUpperCase();
 }
 
 /**
@@ -97,6 +100,12 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
           </>
         )}
         {children}
+        {/* D340: the edition's credit (the Mutopia Project's typesetters; Sapp's chorales, CC BY-NC-SA 4.0). */}
+        {f.credit && (
+          <p className="tb-pop-lock" id="pop-score-credit">
+            {f.credit}
+          </p>
+        )}
         <button type="button" id="play" className="tb-play tb-pop-play" autoFocus onClick={play}>
           ▶ {tr("PLAY")}
         </button>
