@@ -36,6 +36,8 @@ import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
 import { describe } from "./describe.ts";
 import { FreePlay, freeRows, type FreeScale } from "./free.ts";
+import { BreathPlay } from "./breath.ts";
+import { BreathTab, loadBreath, micProblem, openBreathMic } from "./breath-tab.tsx";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 
 const STORE = "tb-lab-v1";
@@ -166,7 +168,7 @@ interface Saved {
   log: LabLog;
 }
 
-type Tab = "passage" | "free" | "drills" | "mechanics" | "see" | "runs" | "help";
+type Tab = "passage" | "free" | "breath" | "drills" | "mechanics" | "see" | "runs" | "help";
 
 interface Trace {
   id: number;
@@ -495,7 +497,53 @@ export function LabApp() {
     fr.raf = requestAnimationFrame(loop);
     setPlaying(true);
   };
+  // D323: BREATH under way (breath.ts): the thumbs finger, the microphone's breath sounds.
+  const breath = useRef<BreathPlay | null>(null);
+  const stopBreath = () => {
+    const bp = breath.current;
+    if (!bp) return;
+    breath.current = null;
+    bp.stop();
+    paint.current = idlePaint;
+    feed.current.push("— BREATH OVER");
+    setFeedTick((n) => n + 1);
+  };
+  const startBreath = async () => {
+    stopRun(false);
+    stopFree();
+    stopBreath();
+    setPanel(null);
+    setNote("");
+    const ch = ensureChip();
+    await ch.resume().catch(() => {});
+    const mic = await openBreathMic(ch);
+    if (mic.state !== "on") {
+      setPanel("breath");
+      setNote(micProblem(mic));
+      return;
+    }
+    const s = setupRef.current;
+    const ff = fugueById(s.piece);
+    const b = loadBreath();
+    const sp = passageSpan(ff, s);
+    const bp = new BreathPlay(ff, s.voice, ch, mic, { kind: b.kind, pitch: b.pitch, scale: s.freeScale, octaves: s.freeOctaves, rise: b.rise, from: sp.from, until: sp.until }, (l) => {
+      feed.current.push(l);
+      if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
+      setFeedTick((n) => n + 1);
+    });
+    breath.current = bp;
+    (globalThis as { __labBreath?: unknown }).__labBreath = bp;
+    feed.current.push(`— BREATH · ${bp.voice.spec.name} · ${b.pitch === "rows" ? `rows ${bp.name(bp.rows[0])}–${bp.name(bp.rows.at(-1)!)}` : `${ff.voiceNames[s.voice] ?? ""}'s ${bp.notes.length} notes, bars ${s.fromBar}–${s.toBar}`} · mic ${mic.path}`);
+    setFeedTick((n) => n + 1);
+    frame.current = { ...preview(), notes: [], others: [], spans: [], cadences: [], entries: [], subject: undefined, ornaments: undefined, readingMarks: undefined };
+    paint.current = (ctx, w, h) => {
+      bp.paint(ctx, w, h);
+      drawTraces(ctx);
+    };
+    setPlaying(true);
+  };
   const start = (mode: Setup["mode"] = setupRef.current.mode) => {
+    stopBreath();
     const ch = ensureChip();
     setPanel(null);
     setNote("");
@@ -524,12 +572,14 @@ export function LabApp() {
   const stop = () => {
     stopRun(true);
     stopFree();
+    stopBreath();
     setPlaying(false);
   };
   useEffect(
     () => () => {
       stopRun(false);
       stopFree();
+      stopBreath();
     },
     [],
   );
@@ -539,6 +589,11 @@ export function LabApp() {
     down: (id, side, x, y, w, h, ts) => {
       traces.current.push({ id, side, pts: [x, y], ink: "#ecead9", label: "" });
       if (traces.current.length > 16) traces.current.shift();
+      if (breath.current) {
+        breath.current.down(id, side, x, y, w, h);
+        traces.current.at(-1)!.ink = "#ffd23f";
+        return;
+      }
       const fr = free.current;
       if (fr) {
         fr.fp.down(id, side, x, y, w, h, ts);
@@ -556,6 +611,7 @@ export function LabApp() {
     move: (id, x, y, w, h, ts) => {
       const t = traces.current.find((q) => q.id === id && q.end === undefined);
       if (t && t.pts.length < 400) t.pts.push(x, y);
+      if (breath.current) return breath.current.move(id, x, y, w, h);
       if (free.current) return free.current.fp.move(id, x, y, w, h, ts);
       const r = run.current;
       if (!r) return;
@@ -566,6 +622,7 @@ export function LabApp() {
     up: (id, ts, cancelled) => {
       const t = traces.current.find((q) => q.id === id && q.end === undefined);
       if (t) (t.end = performance.now()), (t.cancelled = !!cancelled);
+      if (breath.current) return breath.current.up(id);
       if (free.current) return free.current.fp.up(id, ts, !!cancelled);
       const r = run.current;
       if (!r) return;
@@ -585,9 +642,9 @@ export function LabApp() {
     const tgt = (e: KeyboardEvent) => (e.target instanceof Element ? e.target.closest("input, select, textarea, button") : null);
     const down = (e: KeyboardEvent) => {
       if (tgt(e)) return;
-      if (e.code === "Escape" && (run.current || free.current)) return stop();
+      if (e.code === "Escape" && (run.current || free.current || breath.current)) return stop();
       const r = run.current;
-      if (free.current) return;
+      if (free.current || breath.current) return;
       if (!r) {
         if ((e.code === "Enter" || e.code === "Space") && !panel) (e.preventDefault(), start());
         return;
@@ -659,7 +716,8 @@ export function LabApp() {
     ? `LAB · FREE PLAY · ${keyName(f.key)} · ${f.voiceNames[setup.voice] ?? ""} · ${setup.freeScale === "key" ? "key" : "chromatic"} · ${setup.freeOctaves} oct`
     : `LAB · ${pieceLabel(f)} · ${f.voiceNames[setup.voice] ?? ""} · b${setup.fromBar}–${setup.toBar} · ${setup.tempoPct}%`;
   // D320: lines over the box only in FREE PLAY (nothing to follow there); while a passage plays, at most the latest in the title bar.
-  const shown = freeOn && playing ? feed.current.slice(-FEED_SHOWN) : [];
+  const breathOn = !!breath.current;
+  const shown = (freeOn || breathOn) && playing ? feed.current.slice(-FEED_SHOWN) : [];
   const barLine = !freeOn && playing && setup.feedBar ? feed.current.at(-1) : undefined;
   void mechTick;
 
@@ -700,7 +758,7 @@ export function LabApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {setup.feed && freeOn && shown.length > 0 && (
+        {setup.feed && (freeOn || breathOn) && shown.length > 0 && (
           <div className="lab-feed" aria-live="polite">
             {shown.map((l, i) => (
               <p key={feed.current.length - shown.length + i} className={lineClass(l)}>
@@ -714,14 +772,20 @@ export function LabApp() {
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {(["passage", "free", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
+            {(["passage", "free", "breath", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
                 {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}
               </button>
             ))}
-            <button type="button" className="lab-start" id="lab-start" onClick={() => start(startMode)}>
-              ▶ {startMode === "free" ? "PLAY FREELY" : "START"}
-            </button>
+            {panel === "breath" ? (
+              <button type="button" className="lab-start" id="lab-start" onClick={() => void startBreath()}>
+                ▶ PLAY BREATH
+              </button>
+            ) : (
+              <button type="button" className="lab-start" id="lab-start" onClick={() => start(startMode)}>
+                ▶ {startMode === "free" ? "PLAY FREELY" : "START"}
+              </button>
+            )}
             <button type="button" className="tg-x" aria-label="Close" onClick={() => setPanel(null)}>
               ✕
             </button>
@@ -732,6 +796,7 @@ export function LabApp() {
               <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} />
             )}
             {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} />}
+            {panel === "breath" && <BreathTab ensureChip={ensureChip} />}
             {panel === "drills" && (
               <div className="lab-drills">
                 {DRILLS.map((d) => (
