@@ -120,6 +120,8 @@ export function outcomes(events: readonly LabEvent[]): Map<string, Outcome> {
   for (const e of events) {
     if (e.kind === "note") m.set(`${e.track}:${e.i}`, { out: e.ok ? "right" : "wrong", legato: e.legato?.judged ? e.legato.ok : undefined, tick: e.tick, midi: e.midi });
     else if (e.kind === "miss" && !m.has(`${e.track}:${e.i}`)) m.set(`${e.track}:${e.i}`, { out: "miss", tick: e.tick, midi: e.midi });
+    // D332: RUN ✗ re-judged a note right by the run rule alone: wrong after all (its join no longer counted).
+    else if (e.kind === "revoked" && m.has(`${e.track}:${e.i}`)) m.set(`${e.track}:${e.i}`, { ...m.get(`${e.track}:${e.i}`)!, out: "wrong", legato: undefined });
   }
   return m;
 }

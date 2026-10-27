@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { MECH, MECH_DEFAULTS, MECH_SPEC, type Mech } from "../src/bench/mechanics.ts";
 import { CONFIGS, configById, configMech } from "../src/bench/lab/presets.ts";
 import { findRuns, runTrend, slope } from "../src/bench/runs.ts";
-import { replay } from "../src/bench/lab/replay.ts";
+import { replay, tally } from "../src/bench/lab/replay.ts";
 import { describe } from "../src/bench/lab/describe.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
 import type { LaneNote } from "../src/touch/lanes.ts";
@@ -22,8 +22,9 @@ test("D332: RUNS strict is the game's default; LENIENT on in B, C, D and E (B ot
   assert.equal(MECH_DEFAULTS.runs, "strict");
   assert.equal(MECH_DEFAULTS.runMinNotes, 4);
   assert.equal(MECH_DEFAULTS.runIoiMs, 200);
+  assert.equal(MECH_DEFAULTS.runTravelRows, 0.5);
   assert.deepEqual(MECH, MECH_DEFAULTS);
-  for (const k of ["runs", "runMinNotes", "runIoiMs"]) assert.equal(MECH_SPEC.find((s) => s.key === k)?.group, "LADDER", k);
+  for (const k of ["runs", "runMinNotes", "runIoiMs", "runTravelRows"]) assert.equal(MECH_SPEC.find((s) => s.key === k)?.group, "LADDER", k);
   assert.equal(configMech(configById("A")!).runs, "strict");
   for (const id of ["B", "C", "D", "E"]) assert.equal(configMech(configById(id)!).runs, "lenient", id);
   assert.deepEqual(configById("B")!.values, { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" });
@@ -53,16 +54,23 @@ test("D332: findRuns: four or more stepwise notes one way, closer than the IOI; 
   assert.equal(findRuns([0, 1, 1, 2, 3].map((st, i) => note(i, st)), ms, 4, 200).size, 0);
 });
 
-test("D332: the run's trend: least squares of height against time, the run's sign; at least three landings", () => {
+test("D332: the run's trend: the fitted travel (least squares × time span) the run's way, at least the travel needed; three landings", () => {
   assert.equal(slope([{ t: 0, y: 0 }, { t: 1, y: 2 }]), 2);
   assert.ok(runTrend([{ t: 0, y: 100 }, { t: 0.1, y: 95 }, { t: 0.2, y: 99 }, { t: 0.3, y: 80 }], 1).ok, "up: y falls on the whole");
   assert.equal(runTrend([{ t: 0, y: 100 }, { t: 0.1, y: 95 }, { t: 0.2, y: 99 }, { t: 0.3, y: 80 }], -1).ok, false);
   assert.equal(runTrend([{ t: 0, y: 100 }, { t: 0.1, y: 90 }], 1).ok, false, "two landings: too few");
+  // A level-ish run: the right sign but too little travel for a run of three steps over 9 px rows at half a row a step.
+  const flat = [{ t: 0, y: 100 }, { t: 0.1, y: 101 }, { t: 0.2, y: 97 }, { t: 0.3, y: 98 }];
+  assert.ok(runTrend(flat, 1).ok, "sign only");
+  assert.equal(runTrend(flat, 1, 0.5 * 3 * 9).ok, false);
+  const real = [{ t: 0, y: 100 }, { t: 0.1, y: 92 }, { t: 0.2, y: 80 }, { t: 0.3, y: 75 }];
+  assert.ok(runTrend(real, 1, 0.5 * 3 * 9).ok);
+  assert.ok(Math.abs(runTrend(real, 1).travelPx - 26.1) < 0.1, String(runTrend(real, 1).travelPx));
 });
 
 const II10: LabPassage = { piece: "wtc2f10", voice: 0, fromBar: 1, toBar: 12, bpm: 110, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 
-test("D332: LENIENT judges run notes from either thumb, tells RUN ✓/✗, and changes nothing outside runs or in scoring", () => {
+test("D332: LENIENT judges run notes from either thumb, tells RUN ✓/✗, and changes nothing outside runs", () => {
   const log = synthRun(II10, { gap: -0.02, jitter: 0.03, scatterPx: 18, seed: 2 });
   const strict = replay(log, { ...MECH_DEFAULTS } as Mech).events;
   const lenient = replay(log, { ...MECH_DEFAULTS, runs: "lenient" } as Mech).events;
@@ -84,14 +92,41 @@ test("D332: LENIENT judges run notes from either thumb, tells RUN ✓/✗, and c
   assert.ok(gained > 0, "the honest player gains in runs");
   const runs = lenient.filter((e) => e.kind === "run");
   assert.ok(runs.length >= 3, `runs ${runs.length}`);
-  assert.ok(runs.filter((e) => e.kind === "run" && e.ok).length >= runs.length - 1, "an honest player's runs trend their way");
+  assert.ok(runs.filter((e) => e.kind === "run" && e.ok).length >= runs.length - 2, "an honest player's runs mostly travel their way");
   // The log says so.
   const lines = lenient.flatMap((e) => describe("wtc2f10", e));
   assert.ok(lines.some((x) => x.includes("RUN RULE")));
   assert.ok(lines.some((x) => x.includes("RUN ✓")));
-  // A random tapper's runs are mostly marked ✗ … or at least not all ✓.
-  const rnd = replay(synthRun(II10, { gap: -0.02, jitter: 0.03, randomY: true, seed: 2 }), { ...MECH_DEFAULTS, runs: "lenient" } as Mech).events.filter((e) => e.kind === "run");
-  assert.ok(rnd.some((e) => e.kind === "run" && !e.ok));
+});
+
+test("D332: RUN ✗ re-judges the notes right only by the run rule: WRONG, told, the score and the tallies taken back", () => {
+  const log = synthRun(II10, { gap: -0.02, jitter: 0.03, randomY: true, seed: 2 });
+  const B = configMech(configById("B")!);
+  const r = replay(log, B);
+  const runs = r.events.filter((e) => e.kind === "run");
+  const revoked = r.events.filter((e) => e.kind === "revoked");
+  assert.ok(runs.some((e) => e.kind === "run" && !e.ok));
+  assert.ok(revoked.length > 0, "a random tapper's run-rule notes are taken back");
+  // Each revoked note was right by the RUN RULE (not the strict rule) in a run that failed.
+  for (const e of revoked) {
+    const n = r.events.find((x) => x.kind === "note" && x.track === e.track && x.i === e.i);
+    assert.ok(n && n.kind === "note" && n.ok && n.ladder?.run && n.ladder.run.from !== "strict");
+  }
+  // The tallies and the game's own count say WRONG; the score is lower than without the take-back.
+  const t = tally(r.events);
+  assert.equal(t.right, r.summary.right);
+  assert.equal(t.wrong, r.summary.wrong);
+  const rightNotes = new Set(r.events.filter((e) => e.kind === "note" && e.ok).map((e) => `${(e as { track: number }).track}:${(e as { i: number }).i}`));
+  assert.equal(r.summary.right, rightNotes.size - revoked.length, "the game's count follows the take-back");
+  assert.ok(revoked.every((e) => e.kind === "revoked" && e.pts > 0), "each takes its points back");
+  // The log says so.
+  const lines = r.events.flatMap((e) => describe("wtc2f10", e));
+  assert.ok(lines.some((x) => x.includes("RE-JUDGED WRONG")));
+  assert.ok(lines.some((x) => x.includes("RUN ✗")));
+  // Strict B (as before D332) is never kinder than lenient to a random tapper by more than the run rule's due:
+  // its right notes on runs stay within the strict rule's plus those of runs that held.
+  const strictB = replay(log, { ...B, runs: "strict" } as Mech);
+  assert.ok(r.summary.right >= strictB.summary.right);
 });
 
 test("D332: the key signature and a note's alteration against it (drawing only)", () => {

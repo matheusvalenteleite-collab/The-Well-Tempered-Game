@@ -5,8 +5,9 @@
  * is right when it goes the run's way, or is level within the step leeway, from EITHER thumb's last
  * touch, and the line's travel (TRAVEL_MIN) is not asked; instead the run as a whole is checked at its
  * last note: the thumbs' landings over it must trend the run's way (the least-squares slope of height
- * against time with the right sign). That check only writes RUN ✓ / RUN ✗ in the lab's WHAT HAPPENED;
- * the notes already judged stay as judged, and the score is not touched.
+ * against time travelling at least MECH.runTravelRows drawn rows per step of the run's span). RUN ✓ / RUN ✗
+ * in the lab's WHAT HAPPENED;
+ * on RUN ✗ the notes right only by the run rule are re-judged wrong (their points taken back).
  */
 import type { LaneNote } from "../touch/lanes.ts";
 
@@ -82,10 +83,13 @@ export function slope(points: readonly { t: number; y: number }[]): number {
 }
 
 /**
- * The run's trend from the thumbs' landings (screen y, down positive; t in seconds): right when the slope
- * of y against time has the run's sign (up: y falling). At least three landings, else not right.
+ * The run's trend from the thumbs' landings (screen y, down positive; t in seconds): its fitted travel
+ * (the slope times the landings' time span, px, + the run's way) at least `needPx`, from three landings
+ * or more.
  */
-export function runTrend(points: readonly { t: number; y: number }[], dir: 1 | -1): { ok: boolean; slope: number; n: number } {
+export function runTrend(points: readonly { t: number; y: number }[], dir: 1 | -1, needPx = 0): { ok: boolean; slope: number; travelPx: number; n: number } {
   const s = slope(points);
-  return { ok: points.length >= 3 && Number.isFinite(s) && -s * dir > 0, slope: s, n: points.length };
+  const span = points.length ? Math.max(...points.map((p) => p.t)) - Math.min(...points.map((p) => p.t)) : 0;
+  const travelPx = Number.isFinite(s) ? -s * dir * span : 0;
+  return { ok: points.length >= 3 && Number.isFinite(s) && travelPx > 0 && travelPx >= needPx, slope: s, travelPx, n: points.length };
 }
