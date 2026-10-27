@@ -81,6 +81,8 @@ export interface LabLog {
   preset?: string;
   /** D321: the SENSOR tab's session (tap-strength test) at the run's end, when it has taps (not replayed). */
   sensor?: SensorExport;
+  /** D333: a STUDY take: the study's id, its excerpt and take (from 0). */
+  study?: { id: string; excerpt: number; take: number };
 }
 
 /** Units of the log's times: tenths of a millisecond. */

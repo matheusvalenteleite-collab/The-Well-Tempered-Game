@@ -14,16 +14,23 @@
 import { useEffect, useRef, useState } from "react";
 import { MotionHub, posture, pressureKind, sizeOf, stampOf, medianInterval, median, valueOf, type SenseSource, type Separability, type TapLabel, type TapRecord, type TouchInfo } from "./sensor.ts";
 import { MECH } from "../mechanics.ts";
+import { loadZoneCal, saveZoneCal, zoneCalibration, zoneReport, type ZoneCal } from "./dynamics.ts";
 
 const GUIDED = 10;
 const FLATTEN = 5;
 const f2 = (x: number | null | undefined, d = 2) => (x === null || x === undefined || !Number.isFinite(x) ? "–" : x.toFixed(d));
-type Phase = "idle" | "soft" | "hard" | "flatten" | "done";
+type Phase = "idle" | "soft" | "hard" | "flatten" | "done" | ZPhase;
+/** D335, LEARN BY ZONE: soft then hard near the box (the inner half of each bar), then near the phone's edge (the outer). */
+type ZPhase = "zSoftIn" | "zHardIn" | "zSoftOut" | "zHardOut";
+const ZONE_TAPS = 8;
+const ZNEXT: Record<ZPhase, Phase> = { zSoftIn: "zHardIn", zHardIn: "zSoftOut", zSoftOut: "zHardOut", zHardOut: "done" };
+const isZ = (p: Phase): p is ZPhase => p.startsWith("z");
 
 export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub: MotionHub; play: boolean; setPlay: (v: boolean) => void; source: SenseSource; setSource: (s: SenseSource) => void; copy: () => void }) {
   const [, setTick] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [quiet, setQuiet] = useState(false);
+  const [zc, setZc] = useState<ZoneCal | null>(() => loadZoneCal());
   const starts = useRef<{ t: number; force?: number; radiusX?: number; radiusY?: number }[]>([]);
   const pending = useRef<TouchInfo[]>([]);
   const down = useRef(new Map<number, TouchInfo>());
@@ -80,18 +87,25 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
     pending.current.push(touch);
     if (pending.current.length > 10) pending.current.shift();
     const ph = phaseRef.current;
-    const label: TapLabel = ph === "soft" || ph === "hard" || ph === "flatten" ? ph : "free";
+    const label: TapLabel = ph === "soft" || ph === "hard" || ph === "flatten" ? ph : ph === "zSoftIn" || ph === "zSoftOut" ? "soft" : ph === "zHardIn" || ph === "zHardOut" ? "hard" : "free";
     if (label !== "free") {
       guided.current++;
-      if (guided.current >= (ph === "flatten" ? FLATTEN : GUIDED)) {
+      if (guided.current >= (ph === "flatten" ? FLATTEN : isZ(ph) ? ZONE_TAPS : GUIDED)) {
         guided.current = 0;
-        const next: Phase = ph === "soft" ? "hard" : "done";
+        const next: Phase = isZ(ph) ? ZNEXT[ph] : ph === "soft" ? "hard" : "done";
         phaseRef.current = next;
         setPhase(next);
       } else setTick((n) => n + 1);
     }
+    const last = isZ(ph) && ph === "zHardOut" && guided.current === 0;
     hub.measure(touch.t, label, touch, () => {
       pending.current = pending.current.filter((p) => p !== touch);
+      // D335: the zone flow's last tap read: each zone's calibration kept on this device.
+      if (last) {
+        const c = zoneCalibration(hub.taps);
+        saveZoneCal(c);
+        setZc(c);
+      }
     });
   };
   const onMove = (e: React.PointerEvent) => hub.pointerMove(e.nativeEvent, down.current.get(e.pointerId));
@@ -112,8 +126,17 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
   const growth = flat.map((x) => (sizeOf(x.touch) && x.touch.sizeMax ? x.touch.sizeMax / sizeOf(x.touch)! : null)).filter((g): g is number => g !== null);
   const supported = MotionHub.supported();
   const pk = pressureKind(hub.pressures);
+  const zp = isZ(phase);
   const prompt =
-    phase === "soft"
+    phase === "zSoftIn"
+      ? `TAP SOFTLY NEAR THE BOX (the inner half of a bar, toward the middle) · ${guided.current + 1} of ${ZONE_TAPS}`
+      : phase === "zHardIn"
+        ? `NOW TAP HARD NEAR THE BOX · ${guided.current + 1} of ${ZONE_TAPS}`
+        : phase === "zSoftOut"
+          ? `TAP SOFTLY NEAR THE PHONE'S EDGE (the outer half) · ${guided.current + 1} of ${ZONE_TAPS}`
+          : phase === "zHardOut"
+            ? `NOW TAP HARD NEAR THE EDGE · ${guided.current + 1} of ${ZONE_TAPS}`
+            : phase === "soft"
       ? `TAP SOFTLY · ${guided.current + 1} of ${GUIDED}`
       : phase === "hard"
         ? `NOW TAP HARD · ${guided.current + 1} of ${GUIDED}`
@@ -143,6 +166,9 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
         <button type="button" id="lab-sensor-guided" className="lab-btn" onClick={() => (hub.permission === "unasked" && start(), guide("soft"))}>
           LEARN: SOFT ×{GUIDED}, HARD ×{GUIDED}
         </button>
+        <button type="button" id="lab-sensor-zones" className="lab-btn" onClick={() => (hub.permission === "unasked" && start(), guide("zSoftIn"))}>
+          LEARN BY ZONE (DYNAMICS)
+        </button>
         <button type="button" id="lab-sensor-flatten" className="lab-btn" onClick={() => guide("flatten")}>
           PRESS AND FLATTEN ×{FLATTEN}
         </button>
@@ -168,7 +194,17 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
         <br />
         Touches: pressure {pk === "none" ? "not yet seen" : pk === "always 0" ? "reads always 0" : pk === "always 0.5" ? "reads always 0.5 (no pressure: the pointer default)" : "varies"} · moves while down {hub.moveCount}, of them size-only (x, y unchanged) {hub.sizeOnlyMoves}
       </p>
-      <div className={`lab-pad lab-pad-${phase}`} ref={pad} id="lab-pad" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+      <div className={`lab-pad lab-pad-${phase}${zp ? " lab-pad-zone" : ""}`} ref={pad} id="lab-pad" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+        {zp && (
+          <>
+            {/* The bars' halves to tap: the inner (by the box) or the outer (by the phone's edge), both sides. */}
+            <i className="lab-zone-mark" style={phase === "zSoftIn" || phase === "zHardIn" ? { left: "10%" } : { left: 0 }} />
+            <i className="lab-zone-mark" style={phase === "zSoftIn" || phase === "zHardIn" ? { right: "10%" } : { right: 0 }} />
+            <button type="button" className="lab-btn lab-zone-cancel" onPointerDown={(e) => e.stopPropagation()} onClick={() => guide("idle")}>
+              CANCEL
+            </button>
+          </>
+        )}
         <b>{prompt}</b>
         <span className="lab-dim">
           soft {count("soft")} · hard {count("hard")} · flatten {count("flatten")} · free {count("free")}
@@ -187,6 +223,7 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
           <p>
             <b>FLATTEN</b> {growth.length ? `the size grew ×${f2(median(growth))} (median of ${growth.length}; ${f2(Math.min(...growth))}–${f2(Math.max(...growth))}) while held` : "–"}
           </p>
+          <ZoneLine taps={hub.taps} zc={zc} forget={() => (saveZoneCal(null), setZc(null))} />
           <p>
             <b>DELAY</b> the motion peak's sample reached the page {avail.length ? `${f2(median(avail), 0)} ms (median; ${f2(Math.min(...avail), 0)}–${f2(Math.max(...avail), 0)})` : "–"} after the touch; the size is there at the touch
           </p>
@@ -220,6 +257,25 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
       </p>
       <TapTable taps={hub.taps} />
     </div>
+  );
+}
+
+/** D335: inner against outer taps (the zone's medians, separation, rotation), and the zone calibration kept for DYNAMICS. */
+function ZoneLine({ taps, zc, forget }: { taps: readonly TapRecord[]; zc: ZoneCal | null; forget: () => void }) {
+  const r = zoneReport(taps);
+  const side = (n: string, z: typeof r.inner) => `${n}: soft ${f2(z.soft.median)} (n ${z.soft.n}), hard ${f2(z.hard.median)} (n ${z.hard.n})${z.sep ? `, AUC ${f2(z.sep.auc)}` : ""}, rot ${f2(z.rot.median, 0)}°/s`;
+  const cal = (c: ZoneCal[keyof ZoneCal]) => (c ? `${f2(c.soft)}→${f2(c.hard)}` : "–");
+  return (
+    <p id="lab-sensor-zones-sum">
+      <b>ZONES</b> {r.verdict === "too few" ? "LEARN BY ZONE to compare the inner and outer halves" : `${side("inner", r.inner)} · ${side("outer", r.outer)} · outer ÷ inner: soft ×${f2(r.ratioSoft)}, hard ×${f2(r.ratioHard)} · ${r.verdict.toUpperCase()}`}
+      <br />
+      DYNAMICS calibration kept: inner {cal(zc?.inner ?? null)} · outer {cal(zc?.outer ?? null)}{" "}
+      {zc && (
+        <button type="button" className="lab-btn" onClick={forget}>
+          FORGET
+        </button>
+      )}
+    </p>
   );
 }
 

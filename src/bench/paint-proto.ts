@@ -1074,6 +1074,16 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     c.fillStyle = t.shine;
     c.globalAlpha = a === undefined ? 0.3 : 0.2 + 0.2 * strengthOf(a);
     c.fillRect(s.side === "left" ? 0 : w - bw, s.y - 14, bw, 28);
+    // D334 (B+): a thumb PREPARED on its next note: a faint outline, armed (it sounds on the other's lift).
+    if (s.armed) {
+      c.strokeStyle = t.gold;
+      c.globalAlpha = 0.45;
+      c.lineWidth = 1;
+      c.setLineDash?.([3, 3]);
+      c.strokeRect((s.side === "left" ? 0 : w - bw) + 2.5, s.y - 16.5, bw - 5, 33);
+      c.setLineDash?.([]);
+      c.globalAlpha = a === undefined ? 0.3 : 0.2 + 0.2 * strengthOf(a);
+    }
     if (a !== undefined && s.land !== undefined) {
       const xOf = (u: number) => (s.side === "left" ? bw * (1 - u) : w - bw + bw * u);
       const x = xOf(a);

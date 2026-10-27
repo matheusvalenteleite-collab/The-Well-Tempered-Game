@@ -299,6 +299,7 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
     muffle: () => both.forEach((x) => x.muffle?.()),
     dyn: (l) => both.forEach((x) => x.dyn?.(l)),
     shape: (x) => both.forEach((y) => y.shape?.(x)),
+    trim: (l, at, until) => both.forEach((x) => x.trim?.(l, at, until)),
   };
 }
 
@@ -324,6 +325,25 @@ export interface Sounding {
   dyn?: (level: number) => void;
   /** D311: the thumb moved sideways while holding: -1 (toward the soft side) .. 1 (toward the strong) from where it landed (touch-expr.ts holdValue); smoothed. */
   shape?: (s: number) => void;
+  /** D335 (the lab's DYNAMICS, the recorded instruments): the note's level set to `level` (a factor, 1 as struck) by a linear ramp from `at` to `until` (s, the audio clock): a strike read after the onset. */
+  trim?: (level: number, at: number, until: number) => void;
+}
+
+/** The part of an AudioParam rampTrim uses (a test's fake has it too). */
+export interface TrimParam {
+  value: number;
+  setValueAtTime(v: number, t: number): unknown;
+  linearRampToValueAtTime(v: number, t: number): unknown;
+  cancelScheduledValues(t: number): unknown;
+  cancelAndHoldAtTime?: (t: number) => unknown;
+}
+/** D335: a gain moved from `from` to `to` by a linear ramp over [at, until] (a step where until ≤ at), whatever was scheduled after `at` dropped: no click. */
+export function rampTrim(a: TrimParam, from: number, to: number, at: number, until: number) {
+  if (a.cancelAndHoldAtTime) a.cancelAndHoldAtTime(at);
+  else a.cancelScheduledValues(at);
+  a.setValueAtTime(from, at);
+  if (until > at) a.linearRampToValueAtTime(to, until);
+  else a.setValueAtTime(to, at);
 }
 
 /** D311: an automation taken from where it is now toward v, smoothly (no step, no zipper). */
@@ -1314,6 +1334,8 @@ export class Chip {
       levelAt = (x) => peak * re.s * (re.fade && x > a + re.d ? Math.exp(-(x - a - re.d) / re.fade) : 1);
     }
     const dyn = bag.add(ctx.createGain());
+    /** D335: the level the last trim left (Sounding.trim). */
+    let trimmed = 1;
     const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
@@ -1473,6 +1495,11 @@ export class Chip {
           dyn.gain.setTargetAtTime(organSwell(level), now, 0.08);
           swell.frequency.setTargetAtTime(swellAt(organSwell(level)), now, 0.08);
         } else dyn.gain.setTargetAtTime(Math.max(0.7, Math.min(1.4, level)), now, 0.06);
+      },
+      trim: (level: number, at: number, until: number) => {
+        if (stopped) return;
+        rampTrim(dyn.gain, trimmed, level, at, until);
+        trimmed = level;
       },
     };
   }

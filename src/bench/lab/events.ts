@@ -19,10 +19,12 @@ export interface LadderWhy {
   /** The judging row (px). */
   rowPx?: number;
   /** The rule: a repeat within `needPx` of level; a step not more than `needPx` the wrong way; a leap at least `needPx` the right way. */
-  rule?: "repeat" | "step" | "leap" | "travel" | "edge";
+  rule?: "repeat" | "step" | "leap" | "travel" | "edge" | "run";
   needPx?: number;
   /** When the line's travel was judged too (after the reference passed): its figures. */
   travel?: { steps: number; movedPx: number; needPx: number; ok: boolean };
+  /** D332, RUNS "lenient": judged under the run rule (the run's way from either thumb's last touch; no line travel). */
+  run?: { dir: 1 | -1; from: "own" | "other" | "none" | "strict" };
 }
 
 /** How the join into a note went (proto-game.ts play). */
@@ -43,7 +45,14 @@ export interface LegatoWhy {
 }
 
 export type LabEvent =
-  | { kind: "note"; tick: number; track: number; i: number; midi: number; side: Side; ok: boolean; why?: string; wrongMidi?: number; offMs: number; perfect: boolean; slide: boolean; lane?: string; ladder?: LadderWhy; legato?: LegatoWhy }
+  | { kind: "note"; tick: number; track: number; i: number; midi: number; side: Side; ok: boolean; why?: string; wrongMidi?: number; offMs: number; perfect: boolean; slide: boolean; lane?: string; ladder?: LadderWhy; legato?: LegatoWhy; gesture?: "hammer-on" | "pull-off" | "press" }
+  /**
+   * D334, PREPARED (B+): a thumb resting early on its note ("rest", how early), sounded by the other's
+   * lift ("pull-off") or a press ("press": px moved, the other still down?), the other lifting before the
+   * note's window ("early-lift", by how much), a press before it ("early-press"), the resting thumb let go
+   * unsounded ("let-go"), and a press's over-legato as the other thumb lifts ("overlap", ms).
+   */
+  | { kind: "prep"; what: "rest" | "pull-off" | "press" | "early-lift" | "early-press" | "let-go" | "overlap"; tick: number; track: number; i: number; midi: number; side: Side; earlyMs?: number; px?: number; holding?: boolean; ms?: number }
   | { kind: "stray"; tick: number; track: number; side: Side; near?: { i: number; midi: number; offMs: number; taken?: string } }
   | { kind: "double"; tick: number; track: number; side: Side }
   | { kind: "miss"; tick: number; track: number; i: number; midi: number }
@@ -54,6 +63,10 @@ export type LabEvent =
   | { kind: "cancel"; tick: number; track: number; side: Side; ringsOn: boolean; mode: string }
   | { kind: "wait"; tick: number; track: number; i: number; side: Side; earlyMs: number }
   | { kind: "takeover"; tick: number; track: number; i: number; side: Side }
+  /** D332, RUNS "lenient": a run ended (its last note judged or missed): its landings' fitted travel (px, + the run's way) against the travel needed. */
+  | { kind: "run"; tick: number; track: number; i: number; dir: 1 | -1; notes: number; touches: number; slope: number; travelPx: number; needPx: number; maxPx: number; ok: boolean }
+  /** D332: on RUN ✗, a note right only by the run rule re-judged WRONG (its points taken back). */
+  | { kind: "revoked"; tick: number; track: number; i: number; midi: number; side: Side; pts: number }
   | { kind: "release"; tick: number; track: number; i: number; side: Side; word: string; heldMs: number; lenMs: number }
   /** D328, BAND TIME: the band waited for the player (ms), or set a beat's tempo (% of the written; its drift from the written time, ms). */
   | ({ kind: "band"; track: number } & BandEvent);

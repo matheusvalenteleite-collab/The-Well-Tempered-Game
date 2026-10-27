@@ -13,6 +13,7 @@
  *                (--set still applies on top)
  *   --presets    D329: the log re-judged under every preset, one row each (right, wrong, missed, stray,
  *                joined, waits, doubles, PERFECT), the notes the player reached only
+ *   --take 3:4   D333: the file is a STUDY (wtc-study-….json): its excerpt 3's take 4 (from 1)
  *
  * Without --set it checks the replay against the log (the same parameters: identical verdicts
  * expected). The file may hold text before the log (a pasted message): it is read from the first "{".
@@ -24,14 +25,16 @@ import { diff, replay } from "../../src/bench/lab/replay.ts";
 import { describe } from "../../src/bench/lab/describe.ts";
 import { CONFIGS, configById, configMech } from "../../src/bench/lab/presets.ts";
 import { presetRow } from "../../src/bench/lab/preset-table.ts";
+import { parseStudy, takeOf } from "../../src/bench/lab/study.ts";
 
 const args = process.argv.slice(2);
-const file = args.find((a, i) => !a.startsWith("--") && !(args[i - 1] === "--set" || args[i - 1] === "--preset"));
+const file = args.find((a, i) => !a.startsWith("--") && !(args[i - 1] === "--set" || args[i - 1] === "--preset" || args[i - 1] === "--take"));
 if (!file) {
   console.error("usage: node tools/lab/replay.ts <log.json> [--set key=value ...] [--preset A-E] [--presets] [--verdicts] [--all] [--json] [--keys]");
   process.exit(2);
 }
-const log = parseLog(readFileSync(file, "utf8"));
+const text = readFileSync(file, "utf8");
+const log = args.includes("--take") ? takeOf(parseStudy(text), args[args.indexOf("--take") + 1] ?? "") : parseLog(text);
 if (args.includes("--presets")) {
   console.log(`${log.passage.piece} voice ${log.passage.voice} · ${log.app} · the notes reached (before the run was stopped)`);
   console.log("preset                 right wrong missed stray joined waits doubles perfect");

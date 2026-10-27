@@ -19,6 +19,13 @@ export function ladderLine(w: LadderWhy | undefined): string {
   if (!w) return "";
   if (w.ref === "free") return `free: ${w.freeWhy === "first note" ? "the first note" : w.freeWhy === "first touch" ? "this thumb's first touch" : w.freeWhy === "moved since" ? "the thumb travelled since its last note" : "its last touch too long ago"}`;
   const moved = w.movedPx ?? 0;
+  // D332: under the run rule (RUNS "lenient"): the run's way from either thumb's last touch, no line travel.
+  if (w.run && w.run.from !== "strict") {
+    const runWay = w.run.dir > 0 ? "up" : "down";
+    const ref = w.run.from === "other" ? "the other thumb's last touch" : "its last touch";
+    const verdict = w.run.from === "none" ? "neither thumb's last touch allows it" : `from ${ref}`;
+    return `RUN RULE (a fast run ${runWay}; the strict rule refused it): ${way(moved)} ${moved ? px(moved) + " " : ""}${verdict} (≤ ${px(w.needPx ?? 0)} against the run allowed, from either thumb; no line travel; stands only if the run's trend holds)`;
+  }
   const tune = w.steps === 0 ? "a repeat" : `the tune ${w.steps! > 0 ? "up" : "down"} ${interval(w.steps!)}`;
   let rule = "";
   if (w.rule === "repeat") rule = `needs within ${px(w.needPx ?? 0)}`;
@@ -30,6 +37,7 @@ export function ladderLine(w: LadderWhy | undefined): string {
     const up = w.travel.steps > 0 ? "up" : "down";
     s += ` · line travel: the tune ${up} ${interval(w.travel.steps)} from an earlier touch, the thumb ${way(w.travel.movedPx)} ${px(w.travel.movedPx)} (needs ≥ ${px(w.travel.needPx)} ${up})${w.travel.ok ? "" : " ✕"}`;
   }
+  if (w.run?.from === "strict") s += " · in a run (the strict rule passed it)";
   return s;
 }
 const INTERVALS = ["a unison", "a step", "a third", "a fourth", "a fifth", "a sixth", "a seventh", "an octave"];
@@ -58,7 +66,8 @@ export function describe(piece: string, e: LabEvent): string[] {
       const verdict = e.ok ? (e.slide ? "RIGHT (slid)" : e.perfect ? "RIGHT · PERFECT" : "RIGHT · GOOD") : `WRONG${e.why && e.why !== "gesture" ? ` (${e.why})` : ""}`;
       const lane = e.lane ? ` · ${e.lane === "exact" ? "its lane" : "direction only"}` : "";
       const lad = ladderLine(e.ladder);
-      const out = [`${at} ♩ ${name} ${verdict} · ${ms(e.offMs)} · ${thumb(e.side)}${lad ? ` ${lad}` : ""}${lane}`];
+      const gest = e.gesture ? ` · ${e.gesture.toUpperCase()}` : "";
+      const out = [`${at} ♩ ${name} ${verdict}${gest} · ${ms(e.offMs)} · ${thumb(e.side)}${lad ? ` ${lad}` : ""}${lane}`];
       const lg = legatoLine(e.legato, e.ok);
       if (lg) out.push(`${at} ${lg}`);
       return out;
@@ -87,8 +96,15 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} ! IOS CANCEL · ${thumb(e.side)} · ${e.mode === "lift" ? "judged as a lift" : e.ringsOn ? "rings on (another thumb down)" : "stopped there"}`];
     case "wait":
       return [`${at} … SLUR: ${thumb(e.side)} down ${Math.round(e.earlyMs)} ms early, waits for its note while the other holds`];
+    case "prep":
+      return [prepLine(at, pitchName(piece, e.midi), e)];
     case "takeover":
       return [`${at} ⌒ TAKEN OVER: ${thumb(e.side)} landed on the note the other thumb had just taken (its drift's slide, or landing early): this one plays it`];
+    case "run":
+      // D332: the run's trend at its last note (the notes stay as judged; no score).
+      return [`${at} ${e.ok ? "RUN ✓" : "RUN ✗"} · ${e.notes} notes ${e.dir > 0 ? "up" : "down"}: the landings ${e.touches < 3 ? `too few (${e.touches})` : `travel ${e.travelPx >= 0 ? "the run's way" : "against it"} ${Math.abs(e.travelPx)} px over ${e.touches} touches (fitted; needs ${e.needPx}–${e.maxPx} px)`}${e.ok ? "" : ": its RUN RULE notes re-judged WRONG"}`];
+    case "revoked":
+      return [`${at} ✕ ${pitchName(piece, e.midi)} RE-JUDGED WRONG (RUN ✗: it was right only by the run rule) · ${thumb(e.side)} · −${Math.round(e.pts)} pts`];
     case "release":
       return [`${at} ${e.word} · held ${Math.round(e.heldMs)} of ${Math.round(e.lenMs)} ms`];
     case "band":
@@ -96,7 +112,28 @@ export function describe(piece: string, e: LabEvent): string[] {
   }
 }
 
-const WAIT_AT = { cadence: "at the cadence", final: "at the final chord", breath: "after your breath" } as const;
+/** D334 (B+): "b3.2 … PREPARED F5 · R thumb rests 340 ms early while the other holds (armed: sounds on its lift)". */
+function prepLine(at: string, name: string, e: Extract<LabEvent, { kind: "prep" }>): string {
+  const n = (x?: number) => Math.round(x ?? 0);
+  switch (e.what) {
+    case "rest":
+      return `${at} … PREPARED ${name} · ${thumb(e.side)} rests ${n(e.earlyMs)} ms early while the other holds (armed: sounds when the other lifts)`;
+    case "pull-off":
+      return `${at} ⌒ PULL-OFF ${name} · the other thumb lifted: sounded now`;
+    case "press":
+      return `${at} ⌒ PRESS ${name} · moved ${n(e.px)} px down/in: sounded now${e.holding ? ", the other still down (over-legato)" : ""}`;
+    case "early-lift":
+      return `${at} … PREPARED ${name} · the other thumb lifted ${n(e.earlyMs)} ms before its window: not sounded (still resting)`;
+    case "early-press":
+      return `${at} … PREPARED ${name} · pressed ${n(e.earlyMs)} ms before its window: not sounded (press again)`;
+    case "let-go":
+      return `${at} … PREPARED ${name} · let go unsounded`;
+    case "overlap":
+      return `${at} ⌒ OVER-LEGATO ${n(e.ms)} ms (${name} pressed while the other held)`;
+  }
+}
+
+const WAIT_AT ={ cadence: "at the cadence", final: "at the final chord", breath: "after your breath" } as const;
 /** D328: "b11.1 ⏸ BAND WAITED 230 ms at the cadence", "b12.3 ♩ BAND TEMPO 97% (60 ms behind the written time)". */
 export function bandLine(at: string, e: Extract<LabEvent, { kind: "band" }>): string {
   if (e.what === "wait") return `${at} ⏸ BAND WAITED ${Math.round(e.ms)} ms ${WAIT_AT[e.at]}${e.expired ? " (the most: went on without you)" : ""}`;

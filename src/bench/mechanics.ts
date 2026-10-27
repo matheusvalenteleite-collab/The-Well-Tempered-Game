@@ -70,6 +70,22 @@ export const MECH_DEFAULTS = {
   travelMin: 0.25,
   /** EDGE_SHARE: the share of a bar's height at each end where a thumb that travelled there may stay. */
   edgeShare: 0.12,
+  /**
+   * D332 (WTC 1.49): fast stepwise runs. "strict" (the game's): as everywhere. "lenient": inside a run
+   * (RUN NOTES or more in a row, each a step the same way, less than RUN IOI apart; runs.ts) a landing is
+   * right if it goes the run's way, or level within the step leeway, from EITHER thumb's last touch, and the
+   * line's travel is replaced by the run's trend at its last note (RUN ✓ / RUN ✗ in the log; on RUN ✗ the notes
+   * right only by the run rule are re-judged wrong, their points taken back).
+   */
+  runs: "strict" as "strict" | "lenient",
+  /** D332: a run has at least this many notes. */
+  runMinNotes: 4,
+  /** D332: a run's notes follow each other by less than this (ms, at the written tempo). */
+  runIoiMs: 200,
+  /** D332: RUN ✓ needs the landings' fitted travel the run's way at least this many drawn rows per step of its span (RUN ✗ re-judges the run rule's notes wrong). */
+  runTravelRows: 0.5,
+  /** D332: ...and at most this many (a random tapper's fitted travel is large either way; an honest run's about the drawn distance). */
+  runTravelMaxRows: 2,
   // LEGATO (articulation.ts, D289).
   /** LEGATO_GAP_MS: a note let go at most this long before the next is struck still joins it (ms)... */
   legatoGapMs: 90,
@@ -140,6 +156,28 @@ export const MECH_DEFAULTS = {
   joinedSound: true,
   /** A touch taken back with no other thumb down still ends its note for the join (a slur's second thumb a moment later). */
   cancelJoins: true,
+  // PREPARED (D334, WTC 1.49: the lab's B+; the game off). A guitarist's hammer-on and pull-off on two thumbs.
+  /**
+   * A thumb landing on the next note before that note's window, while the other thumb holds the note
+   * before (a landing B would call a stray), rests PREPARED: no sound, no strike. It sounds only by a
+   * gesture: the other thumb's lift (a PULL-OFF, timed at the lift, from the note's own early window on)
+   * or (prepPress) a press of the resting thumb; never by itself at its time.
+   */
+  prepare: false,
+  /** ...from this share of the time between the two notes early (1: from the note before's onset; from the other thumb's strike in any case, whichever is earlier). */
+  prepShare: 1,
+  /** Neither by the end of the note's late window: "miss" (it is missed) or "lift" (the other thumb's lift still sounds it whenever it comes, judged late). */
+  prepLate: "miss" as "miss" | "lift",
+  /**
+   * A PRESS by the resting thumb sounds it too (over-legato: the other thumb still down, both sound), read
+   * as a small move down or inward. Off: the owner's SENSOR log (iOS 18.7) shows the contact's size
+   * useless for it (steps of ~24 px, almost never changing while a thumb rests still).
+   */
+  prepPress: false,
+  /** PRESS: the thumb moved down or inward by more than this from where it settled (px)... */
+  pressMovePx: 4,
+  /** ...settled this long after landing (ms). */
+  pressSettleMs: 60,
   // DRAG (D321: the owner's Decision 13, "the drag: one connection per instrument … try it in the Lab first").
   /**
    * What a drag (a held thumb slid on to the next note) means: "join" (D218: sounds joined, earns nothing,
@@ -169,6 +207,15 @@ export const MECH_DEFAULTS = {
   tapDelayMs: 0,
   /** PLAY WITH IT: the spike is read over this long after the touch (ms). */
   tapWindowMs: 30,
+  // DYNAMICS (D335: FREE PLAY's DYNAMICS on the sampled piano; the lab only, dynamics.ts).
+  /** B · PEDAL: the landings' places averaged over this long (ms): the running phrase level. */
+  dynPedalMs: 1000,
+  /** The strike read after the onset: the note's level corrected by a linear ramp this long (ms). */
+  dynRampMs: 12,
+  /** Wait for the strike: the attack held back until the motion peak is read (at most dynWaitMs) and struck at the whole level. Off: at once, corrected. */
+  dynWait: false,
+  /** dynWait on: the longest the attack waits (ms). */
+  dynWaitMs: 35,
   // BAND TIME (D328: a prototype, the lab only; band-time.ts). The game's band keeps the written time.
   /** "fixed" (the game's), "waits" (at cadences, the final chord and a breath, until the player's note), "follows" (waits, and its tempo follows the player's onsets, bounded). */
   bandTime: "fixed" as "fixed" | "waits" | "follows",
@@ -280,6 +327,11 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "stepLeewayRows", group: "LADDER", label: "Step leeway", help: "A step or third may land this many rows the wrong way.", kind: "number", min: 0, max: 3, step: 0.25, unit: "rows" },
   { key: "leapRows", group: "LADDER", label: "Leap needs", help: "A fourth or more: at least this many rows the right way.", kind: "number", min: 0, max: 3, step: 0.05, unit: "rows" },
   { key: "travelMin", group: "LADDER", label: "Line travel (TRAVEL_MIN)", help: "Over a fourth or more of the line, the thumb must have moved this many rows the right way.", kind: "number", min: 0, max: 2, step: 0.05, unit: "rows" },
+  { key: "runs", group: "LADDER", label: "Fast runs", help: "D332. STRICT (the game's): each landing judged from its own thumb's last touch, and the line's travel. LENIENT: inside a run (RUN NOTES or more stepwise one way, each less than RUN IOI after the one before) a landing is right if it goes the run's way, or level within the step leeway, from EITHER thumb's last touch; no line travel; at the run's last note the landings' fitted travel must go the run's way by RUN TRAVEL: RUN ✓, or RUN ✗ and the notes right only by the run rule re-judged WRONG (points taken back).", kind: "choice", options: [["strict", "STRICT (the game's)"], ["lenient", "LENIENT inside fast runs"]] },
+  { key: "runMinNotes", group: "LADDER", label: "Run: at least", help: "D332: a run is this many notes or more, each a step the same way.", kind: "number", min: 3, max: 12, step: 1, unit: "notes" },
+  { key: "runIoiMs", group: "LADDER", label: "Run: notes closer than", help: "D332: each note of a run follows the one before by less than this (at the written tempo).", kind: "number", min: 80, max: 400, step: 10, unit: "ms" },
+  { key: "runTravelRows", group: "LADDER", label: "Run: travel at least", help: "D332, LENIENT: at a run's last note the thumbs' landings over it, fitted by a straight line (height against time), must travel the run's way at least this many drawn rows per step it spans (a row is a staff step as drawn); else RUN ✗ and every note right only by the run rule is re-judged WRONG (its points taken back, a slip).", kind: "number", min: 0, max: 1.5, step: 0.05, unit: "rows/step" },
+  { key: "runTravelMaxRows", group: "LADDER", label: "Run: travel at most", help: "D332, LENIENT: …and at most this many drawn rows per step it spans: landings flung far beyond the run's drawn distance are no run played (random taps fit large travels either way): RUN ✗.", kind: "number", min: 1, max: 6, step: 0.25, unit: "rows/step" },
   { key: "edgeShare", group: "LADDER", label: "Bar end (EDGE_SHARE)", help: "A thumb that travelled into the bar's end (this share of its height) may stay there.", kind: "number", min: 0, max: 0.4, step: 0.01 },
   { key: "touchTolerance", group: "INTENTION", label: "Touch tolerance", help: "D325: a note's hold within this share of the player's recent holds (same note value) is consistent: ARTICULATION credited, whatever the touch.", kind: "number", min: 0, max: 0.6, step: 0.05 },
   { key: "artCap", group: "INTENTION", label: "Articulation cap", help: "D325: articulation's points at most this share of the run's.", kind: "number", min: 0.05, max: 1, step: 0.05 },
@@ -313,12 +365,22 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide. RELATIVE: × the note's own time to its nearer neighbour / REFERENCE.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "joinedSound", group: "SLURS", label: "Joined sound in the gap", help: "A note joined within the legato gap sounds joined (no fresh attack).", kind: "bool" },
   { key: "cancelJoins", group: "SLURS", label: "Cancel still joins", help: "A touch iOS takes back with no other thumb down ends its note for the join.", kind: "bool" },
+  { key: "prepare", group: "PREPARED", label: "Prepared notes (B+)", help: "D334. A thumb landing on the next note before its window while the other holds the note before rests PREPARED (no sound). It sounds when the other thumb lifts (PULL-OFF, timed at the lift) or, with PRESS on, when you press it (over-legato); never by itself. A landing in the note's window while the other holds is a HAMMER-ON (B's strike). Both sound slurred (no fresh attack).", kind: "bool" },
+  { key: "prepShare", group: "PREPARED", label: "…from", help: "This share of the time between the two notes early (1: a whole note early; from the other thumb's strike in any case).", kind: "number", min: 0.2, max: 1, step: 0.05 },
+  { key: "prepLate", group: "PREPARED", label: "Not sounded by its late window", help: "MISSED, or the other thumb's lift still sounds it whenever it comes (judged late).", kind: "choice", options: [["miss", "MISSED"], ["lift", "The lift sounds it, late"]] },
+  { key: "prepPress", group: "PREPARED", label: "PRESS sounds it", help: "An optional third gesture: pressing the resting thumb (a small move down or inward) sounds the prepared note, the other still down: over-legato, both sound. Off: on the owner's iPhone the contact's size cannot show a press (SENSOR log, D334).", kind: "bool" },
+  { key: "pressMovePx", group: "PREPARED", label: "Press: moves by", help: "The resting thumb moved down or inward by more than this from where it settled.", kind: "number", min: 1, max: 15, step: 0.5, unit: "px" },
+  { key: "pressSettleMs", group: "PREPARED", label: "Press: settles over", help: "Where the thumb is this long after landing is where a press is measured from.", kind: "number", min: 0, max: 200, step: 10, unit: "ms" },
   { key: "dragMeaning", group: "DRAG", label: "A drag means", help: "A held thumb slid on to the next note (free play: another row). Connect: a glide on a sound that bends; on a keyboard a coulé across a third, a Schleifer into a note from below (D321). Counts as joined for the legato chain, earns nothing more.", kind: "choice", options: [["join", "Joined, earns nothing, breaks the chain (D218)"], ["connect", "Connect: glide, coulé, Schleifer (D321)"]] },
   { key: "glideMaxShare", group: "DRAG", label: "Glide at most", help: "In a passage the glide lasts the drag's time, at most this share of the note it arrives on.", kind: "number", min: 0.1, max: 1, step: 0.05 },
   { key: "upThird", group: "DRAG", label: "Keyboard, up a third", help: "Dragged up a third on a keyboard: the Schleifer (the held note struck again, the step, the note) or the passing note (coulé).", kind: "choice", options: [["schleifer", "Schleifer"], ["coule", "Coulé (passing note)"]] },
   { key: "fillTiming", group: "DRAG", label: "Fill notes' speed", help: "A keyboard's coulé or Schleifer: at the trill's speed, or the drag's own time shared out.", kind: "choice", options: [["trill", "The trill's speed"], ["drag", "The drag's time"]] },
   { key: "tapDelayMs", group: "SENSOR", label: "Tap strength: delay the attack", help: "SENSOR's PLAY WITH IT: 0 starts the note at once and adjusts it when the tap's spike is read; more waits up to this long to strike it at that strength.", kind: "number", min: 0, max: 40, step: 5, unit: "ms" },
   { key: "tapWindowMs", group: "SENSOR", label: "Tap strength: read over", help: "SENSOR's PLAY WITH IT: the spike is read over this long after the touch.", kind: "number", min: 10, max: 60, step: 5, unit: "ms" },
+  { key: "dynPedalMs", group: "DYNAMICS", label: "Pedal: averaged over", help: "D335, FREE PLAY's DYNAMICS B · PEDAL + STRIKE: the places across of the thumbs' landings over this long set the running level (±6 dB).", kind: "number", min: 200, max: 3000, step: 100, unit: "ms" },
+  { key: "dynRampMs", group: "DYNAMICS", label: "Strike: correction ramp", help: "D335: the note starts at once at the place's or the pedal's level; when the motion peak is read (≤ ~40 ms) its level moves to include the strike over this long (no click).", kind: "number", min: 2, max: 40, step: 1, unit: "ms" },
+  { key: "dynWait", group: "DYNAMICS", label: "Strike: wait for it", help: "D335: hold every attack back until the motion peak is read (at most the wait below) and strike it at the whole level, the piano's layer included. Off (default): at once, corrected.", kind: "bool" },
+  { key: "dynWaitMs", group: "DYNAMICS", label: "Strike: wait at most", help: "D335, wait for it on: the longest the attack waits for the peak.", kind: "number", min: 5, max: 60, step: 5, unit: "ms" },
   { key: "bandTime", group: "BAND TIME", label: "The band's time", help: "A prototype (D328): FIXED is the game's. WAITS: the pulse fixed, but at a cadence, the final chord and after your breath (a lift at a rest) the band holds what it sounds until your next note, at most the wait below. FOLLOWS: that, and its tempo follows your onsets, smoothed and bounded; you are judged against where the band is.", kind: "choice", options: [["fixed", "FIXED (the game's)"], ["waits", "WAITS at cadences and breaths"], ["follows", "FOLLOWS (and waits)"]] },
   { key: "bandWaitMaxMs", group: "BAND TIME", label: "Waits at most", help: "The longest the band holds for your note; then it goes on.", kind: "number", min: 0, max: 1000, step: 20, unit: "ms" },
   { key: "bandSmooth", group: "BAND TIME", label: "Following: smoothing", help: "FOLLOWS: each new note's weight in the band's estimate of your lateness (lower: smoother, slower to follow).", kind: "number", min: 0.05, max: 1, step: 0.05 },
