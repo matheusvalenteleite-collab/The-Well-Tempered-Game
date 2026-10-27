@@ -47,7 +47,7 @@ export function LadderPlay() {
       <figcaption>
         <span>Thumbs take turns: left bar, right bar.</span>
         <span>Land the next note before letting go.</span>
-        <span className="tb-fp-gold-text">Gold overlap = LEGATO · more points.</span>
+        <span className="tb-fp-gold-text">Gold overlap = LEGATO · detached is fine too: keep your touch even.</span>
       </figcaption>
     </figure>
   );

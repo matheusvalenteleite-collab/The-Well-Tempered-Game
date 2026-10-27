@@ -14,7 +14,7 @@ const base: SheetInput = {
   entries: 4,
   maxStreak: 40,
   art: { legato: 8, legatoOf: 10, chain: 4, held: 6, heldOf: 10, clean: 0, cleanOf: 0 },
-  earned: { notes: 700, legato: 100, held: 60, subjects: 120, cadences: 20, bonus: 0, reading: 0 },
+  earned: { notes: 700, articulation: 100, held: 60, subjects: 120, cadences: 20, bonus: 0, reading: 0 },
   perfects: 60,
   goods: 30,
   failed: false,
@@ -31,7 +31,7 @@ test("D268: the qualities, weighed 40/20/20/20, give the performance; a finished
   assert.equal(s.performance, Math.round(100 * (40 * 0.9 + 20 * (2 / 3) + 20 * 0.7 + 20 * 0.75) / 100));
   assert.equal(s.bonus, Math.round((1000 * s.performance) / 200));
   assert.equal(s.final, 1000 + s.bonus);
-  assert.deepEqual(s.points.map((p) => p.source), ["notes", "subjects", "legato", "held", "cadences"], "largest first, the empty left out");
+  assert.deepEqual(s.points.map((p) => p.source), ["notes", "subjects", "articulation", "held", "cadences"], "largest first, the empty left out");
   assert.equal(s.advice, "");
 });
 

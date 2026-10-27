@@ -174,7 +174,9 @@ test("engine audit: the ritard in the PERFECT check and the drums' beat", () => 
   g.step();
   g.keyDown(1, { velocity: 0.5 }, performance.now());
   assert.ok((g.timeAt(n.on + d) - g.timeAt(n.on)) * 1000 > PERFECT_MS);
-  assert.equal(g.grade?.text, "GOOD");
+  // D325b: late in the final bars is the broadening, accepted (it was GOOD): PERFECT by its grace, not by the steady reckoning.
+  assert.equal(g.grade?.text, "PERFECT");
+  assert.equal(g.graces.broaden, 1);
   // The drums' beat lengthens through the ritard.
   const steady = (C.tpq * 1) / g.tps;
   const beats = grooves.map((x) => x.beatS);
