@@ -684,7 +684,11 @@ export const PATCHES = {
   modOrgan: P({ osc: [{ wave: "square" }, { wave: "pulse25", octave: 1, gain: 0.3 }, { wave: "saw", gain: 0.15 }], filter: { freq: 5, q: 1 }, amp: { a: 0.006, d: 0.05, s: 1, r: 0.05 }, vib: { depth: 9, rate: 6.4, delay: 0.2 }, drift: { cents: 3, rate: 0.15 }, send: 0.15, level: 0.18 }),
   modBongo: P({ osc: [{ wave: "folded" }], filter: { freq: 5, q: 0.6, env: 4, envDecay: 0.09 }, amp: { a: 0.001, d: 0.42, s: 0, r: 0.05 }, drift: { cents: 3, rate: 0.06 }, send: 0.15, level: 0.45 }),
   modBell: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.35 }], fm: { ratio: 3.5, index: 3, to: 0.12, time: 0.25 }, amp: { a: 0.002, d: 0.6, s: 0.55, r: 0.08 }, vib: { depth: 3, rate: 0.7, delay: 0 }, drift: { cents: 3, rate: 0.12 }, send: 0.18, level: 0.31 }),
-  modBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.5 }], filter: { freq: 1300, hz: true, q: 1.6, env: 4.5, envDecay: 0.11, poles: 4 }, drive: 0.4, hp: 45, amp: { a: 0.002, d: 0.35, s: 0.5, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: 0.05, level: 0.38 }),
+  // D313: BLEEPS AND BLOOPS' bass a synth upright (the owner: "bleeps bloops should find another bass"):
+  // a sine and a triangle, a touch of FM at the pluck (ratio 5, falling in 0.15 s), a short noise thump
+  // (the finger), a 20-cent scoop and a 70 ms slide between joined notes; round, no buzz (0.06% of it
+  // above 2.5 kHz, D305's saw and square 0.9%), its FM giving a phone's speaker the pitch.
+  modBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.5 }], fm: { ratio: 5, index: 1.6, to: 0.5, time: 0.15 }, filter: { freq: 1800, hz: true, q: 0.8 }, chiff: { level: 0.9, time: 0.04, at: 8 }, scoop: { cents: 20, time: 0.025 }, slide: 0.07, hp: 45, amp: { a: 0.003, d: 0.5, s: 0.35, r: 0.07 }, drift: { cents: 2, rate: 0.05 }, send: 0.06, level: 0.36 }),
   // TOMITA (D297, a niche pick, lush: after Isao Tomita's synthesizer records, Snowflakes Are Dancing
   // 1974 and Pictures at an Exhibition 1975): a whistling lead (a sine with a breath, coming up from
   // below into each note, a wide, late vibrato), a choir-like "ah" pad of three sawtooths (an ensemble
@@ -948,7 +952,7 @@ export const PRESETS: Preset[] = [
   },
   // D297, MODULAR (a niche pick). D304: East and West coast. D305: BLEEPS AND BLOOPS (the id kept, so a
   // stored choice keeps it): a vibraphone, a combo organ (five voices; the middle of three), the marimba,
-  // the tube, a Moog-like bass; a small spring.
+  // the tube, a Moog-like bass (D313: a synth upright); a small spring.
   {
     id: "modular",
     name: "BLEEPS AND BLOOPS",

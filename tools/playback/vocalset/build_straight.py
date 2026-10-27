@@ -19,8 +19,6 @@ import numpy as np
 import librosa
 import soundfile as sf
 
-SEGS, VS, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
-ONLY = sys.argv[4:]  # parts to build (default all)
 SR = 44100
 NAMES = ["C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B"]
 MAX_SHIFT = 4
@@ -109,61 +107,65 @@ def tile(chunk, n, X, P):
     return out[:n]
 
 
-segs = json.load(open(SEGS))
-os.makedirs(OUT, exist_ok=True)
-report = json.load(open(f"{OUT}/report.json")) if ONLY and os.path.exists(f"{OUT}/report.json") else {}
-for part, (who, lo, hi) in PARTS.items():
-    if ONLY and part not in ONLY:
-        continue
-    cands = []
-    for p, ss in segs.items():
-        if os.path.basename(p).split("_")[0] != who:
+
+if __name__ == "__main__":
+    SEGS, VS, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
+    ONLY = sys.argv[4:]  # parts to build (default all)
+    segs = json.load(open(SEGS))
+    os.makedirs(OUT, exist_ok=True)
+    report = json.load(open(f"{OUT}/report.json")) if ONLY and os.path.exists(f"{OUT}/report.json") else {}
+    for part, (who, lo, hi) in PARTS.items():
+        if ONLY and part not in ONLY:
             continue
-        for s in ss:
-            d = s["t1"] - s["t0"]
-            if d < 0.4:
+        cands = []
+        for p, ss in segs.items():
+            if os.path.basename(p).split("_")[0] != who:
                 continue
-            cands.append((p, s, d))
-    os.makedirs(f"{OUT}/{part}", exist_ok=True)
-    rows = []
-    for m in range(lo, hi + 1):
-        def cost(c):
-            p, s, d = c
-            straight = "/straight/" in p
-            return abs(m - s["midi"]) * 0.8 + s["vib"] / 5 + s["wander"] / 10 - min(d, 2.0) * 0.6 - (0.6 if straight else 0)
-        near = [c for c in cands if abs(c[1]["midi"] - m) <= MAX_SHIFT]
-        pool = near or cands
-        p, s, d = min(pool, key=cost)
-        y, _ = librosa.load(p, sr=SR, mono=True)
-        a = y[int((s["t0"] + 0.03) * SR): int((s["t1"] - 0.03) * SR)]
-        before, _ = wobble(a, s["midi"])
-        a = steady_pitch(a, s["midi"])
-        a = steady_level(a)
-        a = shift(a, m - s["midi"])
-        a = a / (np.sqrt((a ** 2).mean()) + 1e-9) * 0.12
-        P = int(round(SR / hz(m)))
-        X = min(int(0.12 * SR), len(a) // 3)
-        T = tile(a, int((LEAD + BLOCK + TAIL + 0.6) * SR), X, P)
-        L, B = int(LEAD * SR), int(BLOCK * SR)
-        Xl = int(0.12 * SR)
-        fi = np.sin(np.linspace(0, np.pi / 2, Xl)) ** 2
-        bs, bc = L, -1e9
-        for s0 in range(L, L + int(0.3 * SR), 4):
-            u = T[s0 + B - Xl:s0 + B]; v = T[s0 - Xl:s0]
-            cc = np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-9)
-            if cc > bc:
-                bc, bs = cc, s0
-        blk = T[bs:bs + B].copy()
-        blk[-Xl:] = blk[-Xl:] * (1 - fi) + T[bs - Xl:bs] * fi
-        out = np.concatenate([T[bs - L:bs], blk, blk[:int(TAIL * SR)]])
-        f = int(0.03 * SR)
-        out[:f] *= np.linspace(0, 1, f)
-        out[-int(0.1 * SR):] *= np.linspace(1, 0, int(0.1 * SR))
-        after, cents = wobble(out[int(1.0 * SR):int(3.0 * SR)], m)
-        sf.write(f"{TMP}/n.wav", out, SR, subtype="PCM_16")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{TMP}/n.wav", "-ac", "1", "-b:a", "96k", f"{OUT}/{part}/{name(m)}.mp3"], check=True)
-        src = f"{os.path.basename(p)[:-4]}@{s['t0']:.1f}s:{name(s['midi'])}"
-        rows.append(dict(note=name(m), src=src, shift=m - s["midi"], dur=round(d, 2), vib_before=round(before, 1), vib_after=round(after, 1), cents=round(cents, 1)))
-        print(part, name(m), src, f"shift {m - s['midi']:+d}", f"len {d:.2f}s", f"wobble {before:.1f} -> {after:.1f} c", f"tuning {cents:+.1f} c", flush=True)
-    report[part] = rows
-json.dump(report, open(f"{OUT}/report.json", "w"), indent=1)
+            for s in ss:
+                d = s["t1"] - s["t0"]
+                if d < 0.4:
+                    continue
+                cands.append((p, s, d))
+        os.makedirs(f"{OUT}/{part}", exist_ok=True)
+        rows = []
+        for m in range(lo, hi + 1):
+            def cost(c):
+                p, s, d = c
+                straight = "/straight/" in p
+                return abs(m - s["midi"]) * 0.8 + s["vib"] / 5 + s["wander"] / 10 - min(d, 2.0) * 0.6 - (0.6 if straight else 0)
+            near = [c for c in cands if abs(c[1]["midi"] - m) <= MAX_SHIFT]
+            pool = near or cands
+            p, s, d = min(pool, key=cost)
+            y, _ = librosa.load(p, sr=SR, mono=True)
+            a = y[int((s["t0"] + 0.03) * SR): int((s["t1"] - 0.03) * SR)]
+            before, _ = wobble(a, s["midi"])
+            a = steady_pitch(a, s["midi"])
+            a = steady_level(a)
+            a = shift(a, m - s["midi"])
+            a = a / (np.sqrt((a ** 2).mean()) + 1e-9) * 0.12
+            P = int(round(SR / hz(m)))
+            X = min(int(0.12 * SR), len(a) // 3)
+            T = tile(a, int((LEAD + BLOCK + TAIL + 0.6) * SR), X, P)
+            L, B = int(LEAD * SR), int(BLOCK * SR)
+            Xl = int(0.12 * SR)
+            fi = np.sin(np.linspace(0, np.pi / 2, Xl)) ** 2
+            bs, bc = L, -1e9
+            for s0 in range(L, L + int(0.3 * SR), 4):
+                u = T[s0 + B - Xl:s0 + B]; v = T[s0 - Xl:s0]
+                cc = np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-9)
+                if cc > bc:
+                    bc, bs = cc, s0
+            blk = T[bs:bs + B].copy()
+            blk[-Xl:] = blk[-Xl:] * (1 - fi) + T[bs - Xl:bs] * fi
+            out = np.concatenate([T[bs - L:bs], blk, blk[:int(TAIL * SR)]])
+            f = int(0.03 * SR)
+            out[:f] *= np.linspace(0, 1, f)
+            out[-int(0.1 * SR):] *= np.linspace(1, 0, int(0.1 * SR))
+            after, cents = wobble(out[int(1.0 * SR):int(3.0 * SR)], m)
+            sf.write(f"{TMP}/n.wav", out, SR, subtype="PCM_16")
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{TMP}/n.wav", "-ac", "1", "-b:a", "96k", f"{OUT}/{part}/{name(m)}.mp3"], check=True)
+            src = f"{os.path.basename(p)[:-4]}@{s['t0']:.1f}s:{name(s['midi'])}"
+            rows.append(dict(note=name(m), src=src, shift=m - s["midi"], dur=round(d, 2), vib_before=round(before, 1), vib_after=round(after, 1), cents=round(cents, 1)))
+            print(part, name(m), src, f"shift {m - s['midi']:+d}", f"len {d:.2f}s", f"wobble {before:.1f} -> {after:.1f} c", f"tuning {cents:+.1f} c", flush=True)
+        report[part] = rows
+    json.dump(report, open(f"{OUT}/report.json", "w"), indent=1)

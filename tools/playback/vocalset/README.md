@@ -31,3 +31,17 @@ from VocalSet's straighter singers: f7 (soprano), f8 (alto), m3 (tenor), m8 (bas
    3.25 s / 1.0-3.0 s loop layout; writes `report.json` (source, shift, wobble before/after, tuning).
    Measured (3-9 Hz pitch wobble over the loop): 33 → 0.9 cents (soprano), 18 → 0.9 (alto),
    14 → 1.9 (tenor), 11 → 2.0 (bass).
+
+## D313: no copy and paste (`build_sustain.py`)
+
+The owner heard D305's loop ("copy paste") and still a tremolo: the 2 s loop and the half-second tile
+inside it (a dip of up to 6 dB at each seam, the level moving 0.6 dB at 1-9 Hz). Now:
+
+1. `THR=0.02 segs2.py OUT.json FILES`: the same notes, their quieter ends kept (more takes).
+2. `build_sustain.py SEGS.json OUT [parts...]`: per semitone, up to ten takes of the singer within 4
+   semitones (a take the shift spoilt left out), each pitch-steadied, shifted and its spectrum held to the
+   takes' mean; the note made of their pieces (never the same take twice running), joined by 280 ms
+   crossfades aligned to the period at constant power for their correlation; a slow 4-cent pitch wander;
+   the level held within 0.5 dB; the same 3.25 s / 1.0-3.0 s loop layout (the chorales). `--mode grain`
+   and `--mode synth` are the two alternatives measured and rejected (DECISIONS D313).
+   The touch game no longer loops these files (chip.ts `chainOn`).
