@@ -203,7 +203,11 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // voices, as loud as CLASSIC CHIP and the harpsichord (about -22 LUFS) with the patches' level 0.3.
   // D294: and layer 7 for the lighter notes (a Tureck-like clarity: the strong beats and the tops of
   // phrases struck firmer, the notes between lighter, as a pianist's touch varies), 2 dB under layer 12.
-  piano: { set: "grand", plucked: true, gain: 3.8, layer: 12, soft: { set: "grandSoft", below: 1, gain: 1.41 } },
+  // D309: the level is the piano's model's (phrasing.ts, practice.ts pianoLevels: ±4 dB from the score);
+  // layer 7 for the notes it puts under -1.5 dB (practice.ts DYN.soft), brought up to layer 12's level
+  // (measured: 3.0-5.0 dB under it, 4.1 dB on average over 0.5 s of A2-A5, C3, C4), so the layer is a
+  // colour and the level the model's alone.
+  piano: { set: "grand", plucked: true, gain: 3.8, layer: 12, soft: { set: "grandSoft", below: 0.8414, gain: 1.6 } },
   // D297: the period presets' instruments (PERIOD's sets); the winds and strings held on their made
   // loops, the harpsichords plucked. Gains set by measurement (II/22 and I/2 rendered offline through
   // chip.ts, each voice alone): the voices of a preset within about 1.5 dB of each other (R8).

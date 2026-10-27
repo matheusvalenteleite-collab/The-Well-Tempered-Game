@@ -38,7 +38,7 @@ export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => (TRAVEL_MIN = v);
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
-import { follow, joins, phrase, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { follow, joins, phrase, phraseContext, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -515,7 +515,8 @@ export class ProtoGame {
     const played = this.tracks.map((t) => t.voice);
     this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
     // D302: the others joined and detached, the reading's marks on every entry of the subject.
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { marks: readingMarks(f.entries, o.reading ?? null), bass: f.voices.length - 1 });
+    // D309: each instrument's table, the fugue's character, the piano's levels from the whole score (never the player's part).
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, this.bpm, readingMarks(f.entries, o.reading ?? null)));
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     this.start = o.wait ? from - this.beat : countInStart(f, from);
     this.entry = from;

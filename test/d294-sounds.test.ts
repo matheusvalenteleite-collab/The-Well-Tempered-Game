@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { phrase, styleOf, TOUCH } from "../src/touch/phrasing.ts";
+import { dbToLevel, DYN, GAP_MAX_SHARE } from "../src/touch/practice.ts";
 import { fugueById, inBar, beatOf } from "../src/touch/fugue.ts";
 import { accompaniment, subjectMarks } from "../src/touch/voice-mode.ts";
 import { decodedBytes, fileOf, folderOf, monoFor, BUDGET, planFor, SAMPLED, sampledMidis } from "../src/touch/sampled.ts";
@@ -31,9 +32,9 @@ test("D294: the harpsichord: chords spread from the bass up, the bar's first bea
   const h = shapes("harpsichord");
   const p = shapes("plain");
   assert.ok(h.every((s) => Math.abs(s.nudge) <= TOUCH.harpsichord.cap + 1e-12));
-  // Levels: a harpsichord has no touch dynamics: the plain phrasing's swing kept at 30%.
-  const swing = (xs: { level: number }[]) => Math.max(...xs.map((s) => s.level)) - Math.min(...xs.map((s) => s.level));
-  assert.ok(Math.abs(swing(h) - 0.3 * swing(p)) < 1e-9);
+  // Levels: a harpsichord has no touch dynamics (D309: flat; D294 kept 30% of the plain swing).
+  assert.ok(h.every((s) => s.level === 1));
+  assert.ok(p.some((s) => s.level !== 1), "the synthesized sounds keep theirs");
   // In a chord the lower note is struck no later than the higher (bar the fixed 2 ms unevenness).
   const byOn = new Map<number, number[]>();
   notes.forEach((n, i) => byOn.set(n.on, [...(byOn.get(n.on) ?? []), i]));
@@ -48,16 +49,16 @@ test("D294: the harpsichord: chords spread from the bass up, the bar's first bea
     if (h[hi].nudge > h[lo].nudge) spread++;
   }
   assert.ok(chords > 50 && spread > 0.9 * chords, `${spread} of ${chords} chords spread upward`);
-  // Repeated notes and notes before a leap detached more than the synthesized sounds'.
-  assert.ok(h.some((s) => s.hold === TOUCH.harpsichord.leap));
-  assert.ok(Math.min(...h.map((s) => s.hold)) >= TOUCH.harpsichord.repeat && Math.max(...h.map((s) => s.hold)) <= TOUCH.harpsichord.overlegato);
+  // D309: leaps and repeated notes apart by the harpsichord's table (practice.ts), never more than GAP_MAX_SHARE of a note.
+  assert.ok(h.some((s) => s.art === "nonlegato" && s.hold < 0.9));
+  assert.ok(Math.min(...h.map((s) => s.hold)) >= 1 - GAP_MAX_SHARE - 1e-9 && Math.max(...h.map((s) => s.hold)) <= TOUCH.harpsichord.overlegato);
 });
 
-test("D294: the piano: a chord's top note a little ahead, the plain levels kept (they choose the velocity layer)", () => {
+test("D294: the piano: a chord's top note a little ahead; D309: its levels its model's (they choose the velocity layer)", () => {
   const pi = shapes("piano");
-  const p = shapes("plain");
+  const p = pi;
   assert.ok(pi.every((s) => Math.abs(s.nudge) <= TOUCH.piano.cap + 1e-12));
-  pi.forEach((s, i) => assert.equal(s.level, p[i].level));
+  pi.forEach((s) => assert.ok(s.db !== undefined && Math.abs(s.db) <= DYN.limit && Math.abs(s.level - dbToLevel(s.db)) < 1e-12));
   const byOn = new Map<number, number[]>();
   notes.forEach((n, i) => byOn.set(n.on, [...(byOn.get(n.on) ?? []), i]));
   let led = 0;
@@ -67,9 +68,10 @@ test("D294: the piano: a chord's top note a little ahead, the plain levels kept 
     if (idx.every((i) => i === hi || pi[i].nudge > pi[hi].nudge)) led++;
   }
   assert.ok(led > 50, `${led} chords led by their top note`);
-  // Both layers in use: the lighter notes (level under 1) on layer 7.
+  // Both layers in use: the notes under -1.5 dB (D309) on layer 7.
   const soft = p.filter((s) => s.level < SAMPLED.piano.soft!.below).length;
-  assert.ok(soft > p.length * 0.25 && soft < p.length * 0.75, `${soft} of ${p.length}`);
+  assert.ok(Math.abs(20 * Math.log10(SAMPLED.piano.soft!.below) - DYN.soft) < 0.01);
+  assert.ok(soft > p.length * 0.02 && soft < p.length * 0.5, `${soft} of ${p.length}`);
 });
 
 test("D294: the grand's softer layer: its own set in the same folder, planned with the main one, the pair folded to mono on a phone", () => {

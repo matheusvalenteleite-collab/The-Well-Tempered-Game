@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
 import { Chip, REVERBS, voicing } from "../src/touch/chip.ts";
 import { PATCHES, presetById, setPreset, playerSound } from "../src/touch/sound.ts";
-import { phrase, joins, styleOf, SUNG, SWITCHED, ART_HOLD } from "../src/touch/phrasing.ts";
+import { phrase, joins, styleOf, SUNG, SWITCHED } from "../src/touch/phrasing.ts";
 import type { OtherNote } from "../src/touch/voice-mode.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 
@@ -31,7 +31,8 @@ const shapes = (style: "plain" | "sung" | "switched") => {
 
 test("D305: VOCAL SYNTH sung: steps to fourths joined, a fifth and a repeated note a new syllable, the bass's moving notes syllables, never a gap", () => {
   assert.equal(styleOf("vocalSynth"), "sung");
-  assert.equal(styleOf("soloVoices"), "plain", "SOLO VOICES keeps its articulation (the owner prefers it)");
+  // D309: SOLO VOICES the singers' legato (§6.5: "solo").
+  assert.equal(styleOf("soloVoices"), "solo");
   const of = shapes("sung");
   const top = of(0);
   assert.deepEqual(top.map((s) => s.art), ["join", "join", "join", "syllable", "syllable", "join", "plain"]);
@@ -47,9 +48,9 @@ test("D305: VOCAL SYNTH sung: steps to fourths joined, a fifth and a repeated no
   const bass = of(1);
   assert.deepEqual(bass.slice(0, -1).map((s) => s.art), ["syllable", "syllable", "syllable", "syllable"]);
   for (const s of bass.slice(0, -1)) assert.ok(s.hold >= 1 - 1e-9);
-  // The plain synthesized sounds as before: the fifth and the repeated note let go a little early.
+  // D309: the plain synthesized sounds by their tables (CLASSIC CHIP's pulse: the harpsichord's): crotchets of 0.25 s, all a little apart.
   const plain = shapes("plain")(0);
-  assert.deepEqual(plain.map((s) => s.art), ["join", "join", "nonlegato", "nonlegato", "nonlegato", "nonlegato", "plain"]);
+  assert.deepEqual(plain.map((s) => s.art), ["nonlegato", "nonlegato", "nonlegato", "nonlegato", "nonlegato", "nonlegato", "plain"]);
 });
 
 test("D305: SWITCHED-ON's bass held 0.8 (apart), its upper voices as the plain sounds'", () => {
@@ -65,8 +66,7 @@ test("D305: SWITCHED-ON's bass held 0.8 (apart), its upper voices as the plain s
   // A note longer than a beat in the bass is not set apart.
   const long = [n(0, 0, 960, 60), n(1, 0, 960, 48), n(1, 960, 960, 50)];
   const sh = phrase(long, BEAT, (t) => t % (2 * BEAT), new Set(), "switched", { bass: 1 });
-  assert.notEqual(sh[1].art, "nonlegato");
-  assert.ok(ART_HOLD.leap > SWITCHED.hold);
+  assert.ok(sh[1].art !== "nonlegato" || sh[1].hold > SWITCHED.hold);
 });
 
 test("D305: VOCAL SYNTH's soprano a grown woman's: lower formants, F1 tuned, small scoop, a narrow late vibrato, little 3 kHz lift", () => {

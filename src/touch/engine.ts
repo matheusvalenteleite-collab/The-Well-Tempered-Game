@@ -19,7 +19,7 @@ import { chordOf, options, points, release, strike, sweep, type LaneOptions, typ
 import { keyboard, keyAt as keyUnder, WHITE_ONLY, type Keyboard } from "./piano.ts";
 import { fits, markShapes, SLIDE_PX } from "./shape.ts";
 import type { Side } from "./thumbs.ts";
-import { joins, phrase, ritard, type Shape } from "./phrasing.ts";
+import { joins, phrase, phraseContext, ritard, type Shape } from "./phrasing.ts";
 import { accompaniment, subjectMarks, type Level, type OtherNote } from "./voice-mode.ts";
 
 export type Instrument = "synth" | "piano";
@@ -177,7 +177,7 @@ export class Game {
     });
     // D169: the other voices always play, from where the player starts.
     this.others = accompaniment(f, sorted[0].from, sorted[0].voice);
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, { bass: f.voices.length - 1 });
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, o.bpm));
     if (!o.wait) this.rit = ritard(f.length, f.barTicks);
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
