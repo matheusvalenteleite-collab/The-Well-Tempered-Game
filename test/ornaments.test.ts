@@ -20,7 +20,9 @@ test("the trill starts above, alternates, and ends held on the note, filling it 
   assert.deepEqual(pitches(r).slice(0, 4), [64, 62, 64, 62]);
   assert.equal(r[r.length - 1].midi, 62);
   assert.ok(Math.abs(total(r) - 1) < 1e-9);
-  assert.ok(r[r.length - 1].dur > 0.125);
+  // D319: the alternation through the note (eight notes' room: U N U N U N U, then the note).
+  assert.equal(r.length, 8);
+  assert.ok(Math.abs(r[r.length - 1].dur - 0.125) < 1e-9);
   // A semitone trill on B: C above.
   assert.equal(realise({ midi: 71, at: 0, dur: 1 }, "t", [], ctx(0.125))[0].midi, 72);
 });

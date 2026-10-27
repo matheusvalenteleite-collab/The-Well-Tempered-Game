@@ -12,7 +12,7 @@
  * thumb lifted from it and tapping the next within CARRY_S lets it sound on to its end.
  * WAIT (D167, as Synthesia's): the music stops at each note until it is played (not offered now).
  */
-import { ornamentsOf, realiseNote, type Ornament } from "./ornament-play.ts";
+import { ornamentsOf, realiseHeld, type Ornament } from "./ornament-play.ts";
 import { voicing, type Chip, type Envelope, type Sounding } from "./chip.ts";
 import { beatOf, inBar, keyAt, type TouchFugue } from "./fugue.ts";
 import { chordOf, options, points, release, strike, sweep, type LaneOptions, type Level as Difficulty } from "./lanes.ts";
@@ -245,7 +245,7 @@ export class Game {
       const orn = this.ornaments.get(`${n.voice}:${n.on}`);
       const prev = this.lastOther.get(n.voice);
       this.lastOther.set(n.voice, n.midi);
-      const parts: [number, number, number][] = orn ? realiseNote(this.f, orn, n.on, dur * sh.hold, n.midi, prev, (this.tps * 60) / this.f.tpq) : [[n.on, dur * sh.hold, n.midi]];
+      const parts: [number, number, number][] = orn ? realiseHeld(this.f, orn, n.on, dur, sh.hold, n.midi, prev, (this.tps * 60) / this.f.tpq) : [[n.on, dur * sh.hold, n.midi]];
       // D302: joined notes joined (held over the next's onset, no new attack); not where WAIT cuts the note.
       const jn = block === null ? joins(sh) : {};
       parts.forEach(([pon, pdur, pmidi], q) => {

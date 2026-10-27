@@ -49,7 +49,7 @@ sign gives (T/M/W whole, t/m/w half); otherwise it is the key's step.
 
 | sign | played | source |
 |---|---|---|
-| T t (O) | **Trillo**: from the note above, alternating, then the main note held for the last part of the note (on a crotchet about 70% alternation, longer notes 80%) | Explication no. 1; upper-note start: C. P. E. Bach, *Versuch* I (1753), ch. 2, sect. 3 (Triller), §5, p. 72 |
+| T t (O) | **Trillo**: from the note above, alternating for the whole note (D319), the main note settling only for about the last 15% of a long note (eight trill notes or more); a shorter note trills to its end, its last note the main note; a note with room for fewer than four trill notes: U N U N in its length (before D319: 70% of a crotchet, 80% of longer notes, then the main note held) | Explication no. 1; upper-note start: C. P. E. Bach, *Versuch* I (1753), ch. 2, sect. 3 (Triller), §5, p. 72; the length: §21 (below) |
 | TR tR | **Trillo und Mordant**: the trill closing below and back (… U N L N) | Explication no. 3 |
 | M m | **Mordant**: the note, the step below, the note held | Explication no. 2; C. P. E. Bach I.2.5 §§1–4 |
 | W w after a falling step | **Pralltriller**: the note, the step above, the note, snapped | C. P. E. Bach I.2.3 §§30–34 (§34: it occurs only before a falling second); Türk, *Klavierschule* (1789), ch. 4, §55, pp. 271–272 |
@@ -59,7 +59,11 @@ sign gives (T/M/W whole, t/m/w half); otherwise it is the key's step.
 | q | a short grace on the beat, very short, taken from the main note | C. P. E. Bach I.2.2 §13 |
 | Q | a long appoggiatura: half the main note, two thirds of a dotted one | C. P. E. Bach I.2.2 §11 (1753, p. 65); Quantz VIII §§7–8 (p. 79) |
 
-**Speed**: about eleven ornament notes a second. Quantz IX §6 (pp. 84–85) allows "nicht viel mehr
+**The trill's length (D319)**: the owner found the trills short ("only lasting for a short while instead of whole notes duration", II/24). The Explication writes the Trillo as an alternation followed by the main note, without saying how much of a long note each takes; C. P. E. Bach (§21, below) has every trill but the Pralltriller beaten for the note's whole value. The game now follows §21 in substance for all trills, keeping from the Explication only a brief settle on the main note at the end of a long note (about 15%, the lab's "Trill settle"); a written closing turn (R) ends … U N L N. The C. P. E. Bach option has no settle and its Nachschlag, as before.
+
+**The trill's speed (D319)**: about ten notes a second (the lab's "Trill speed"), taken to the nearest subdivision of the beat (a quarter by 2, 3, 4, 6, 8, 12, 16, 24 or 32), so that the alternation falls on the beat's grid: II/24 at 77 a quarter in 32nds (10.3 a second), I/6 at 57 in sextuplet 16ths (11.4), II/13 at 124 in 16ths (8.3). Quantz's "not much more than four alternations to a pulse" (below) at his pulse of about 80 is about eleven notes a second.
+
+**Speed of the other ornaments**: about eleven ornament notes a second. Quantz IX §6 (pp. 84–85) allows "nicht viel mehr
 als vier Bewegungen" (not much more than four alternations, eight notes) to a pulse; his pulse is
 about 80 a minute (XVII.vii §55, p. 267). The speed is kept between a 32nd and a 16th of the written
 tempo.

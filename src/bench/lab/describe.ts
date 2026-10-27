@@ -72,6 +72,8 @@ export function describe(piece: string, e: LabEvent): string[] {
     case "slide":
       return [`${at} ↕ SLIDE fired: ${e.side} thumb moved ${px(e.movedPx)} ${way(e.movedPx)} while held`];
     case "shake":
+      // D319: the player's trill settled on its main note (the shaking stopped).
+      if (e.ornament.startsWith("settled")) return [`${at} ~ TRILL SETTLED on the main note (${e.ornament.slice(9)})`];
       return [`${at} ~ SHAKE: ${e.ornament}${e.free ? " (free ornament)" : " ✓"}`];
     case "cancel":
       return [`${at} ! IOS CANCEL · ${thumb(e.side)} · ${e.mode === "lift" ? "judged as a lift" : e.ringsOn ? "rings on (another thumb down)" : "stopped there"}`];
