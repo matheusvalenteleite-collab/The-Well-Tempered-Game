@@ -575,3 +575,35 @@ body {
 .tg-tap-lane { position: relative; display: block; width: 28px; height: 110px; }
 .tg-tap-gem { position: absolute; left: 4px; width: 20px; height: 20px; margin-top: -10px; background: var(--tg-shine); transform: rotate(45deg); }
 .tg-tap-line { position: absolute; left: -16px; right: -16px; bottom: 0; height: 3px; background: var(--tg-shine); opacity: 0.35; }
+
+/* D322: REGISTRATION: the stops in the title bar (RegistrationStops.tsx), tiny pixel toggles with a thumb's
+   target (34 px tall) round each; folded into STOPS where the bar has no room; TUTTI a small mark. */
+.tg-reg { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; flex: none; position: relative; }
+.tg-hud .tg-reg + .tb-pause { margin-left: 12px; }
+.tg-stop {
+  position: relative;
+  font-family: var(--tg-pixel);
+  font-size: 7px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--tg-muted);
+  background: transparent;
+  border: 1px solid var(--tg-barline);
+  height: 22px;
+  min-width: 26px;
+  padding: 0 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.tg-stop::after { content: ""; position: absolute; inset: -6px -2px; }
+.tg-stop.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.tg-stop:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tg-stop-tutti { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-shine); opacity: 0.7; }
+.tg-reg-tutti .tg-stop.on { box-shadow: 0 2px 0 var(--tg-fg); }
+.tg-reg-tutti:not(.tg-reg-folded)::before { content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 1px; background: var(--tg-shine); opacity: 0.6; pointer-events: none; }
+.tg-reg-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 20; width: max-content; max-width: min(330px, 86vw); display: grid; gap: 8px; justify-items: end; padding: 10px; background: var(--tg-box); border: 1px solid var(--tg-barline); box-shadow: 0 4px 0 #05060c; }
+.tg-reg-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; row-gap: 14px; }
+.tg-reg-hint { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); }

@@ -327,4 +327,13 @@ export const PT: Record<string, string> = {
   "UP AND DOWN": "PARA CIMA E PARA BAIXO",
   "TOUCH IT, THEN SHAKE": "TOQUE, DEPOIS SACUDA",
   STRONG: "FORTE",
+  // D322: the stops (the footages, 8′ 4′ 16′, as written).
+  LUTE: "ALAÚDE",
+  FLUTE: "FLAUTA",
+  PRINCIPAL: "PRINCIPAL",
+  REED: "PALHETA",
+  MIXTURE: "MIXTURA",
+  TREM: "TRÊMULO",
+  STOPS: "REGISTROS",
+  "HOLD: EVERY VOICE": "SEGURE: TODAS AS VOZES",
 };
