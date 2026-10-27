@@ -124,3 +124,9 @@ export function skipLesson(pl: Platform, id: string) {
 
 /** D289: the tries at a step not yet passed. */
 export const triesAt = (pl: Platform, id: string) => trackState(pl).tries?.[id] ?? 0;
+
+/** D327: the tutorial behind the player on this platform: every step passed, or skipped (HAVE YOU PLAYED BEFORE? YES). */
+export function tutorialDone(pl: Platform): boolean {
+  const t = trackState(pl);
+  return t.skipped || TRACKS[pl].every((l) => !!t.passed[l.id]);
+}

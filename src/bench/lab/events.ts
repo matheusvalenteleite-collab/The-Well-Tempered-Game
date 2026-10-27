@@ -4,6 +4,7 @@
  * ticks (the lab turns them into bars and ms); px in the play area's CSS pixels.
  */
 import type { Side } from "../../touch/thumbs.ts";
+import type { BandEvent } from "../band-time.ts";
 
 /** How LADDER judged a touch's height (proto-game.ts verdict). */
 export interface LadderWhy {
@@ -53,4 +54,6 @@ export type LabEvent =
   | { kind: "cancel"; tick: number; track: number; side: Side; ringsOn: boolean; mode: string }
   | { kind: "wait"; tick: number; track: number; i: number; side: Side; earlyMs: number }
   | { kind: "takeover"; tick: number; track: number; i: number; side: Side }
-  | { kind: "release"; tick: number; track: number; i: number; side: Side; word: string; heldMs: number; lenMs: number };
+  | { kind: "release"; tick: number; track: number; i: number; side: Side; word: string; heldMs: number; lenMs: number }
+  /** D328, BAND TIME: the band waited for the player (ms), or set a beat's tempo (% of the written; its drift from the written time, ms). */
+  | ({ kind: "band"; track: number } & BandEvent);
