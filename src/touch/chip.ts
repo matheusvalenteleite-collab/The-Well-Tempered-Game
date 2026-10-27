@@ -88,6 +88,8 @@ export function softClipCurve(n = 2048): Float32Array<ArrayBuffer> {
   for (let i = 0; i < n; i++) c[i] = CEILING * Math.tanh((2 * ((i / (n - 1)) * 2 - 1)) / CEILING);
   return c;
 }
+/** D346: SOLO VOICES on a phone: about 1.7 dB lower into the limiter, and a 2.5 dB dip in the low mids. */
+export const PHONE_VOICES = { sets: ["voiceS", "voiceA", "voiceT", "voiceB", "choirAah"], trim: 0.82, dipHz: 320, dipQ: 0.8, dipDb: -2.5 };
 /** D249: the room's impulse, shorter on a phone (its convolver the costliest node there). */
 export const ROOM_S = { phone: 0.8, computer: 1.3 };
 /** D291: the phone bass a little louder still: a pulse low down is softer to the ear than one higher. */
@@ -1257,6 +1259,18 @@ export class Chip {
       if (this.phone && !plucked) bag.weight = srcs.length;
     }
     let src: AudioNode = mix;
+    // D346, SOLO VOICES on a phone's speaker (the owner: "too warm and distorted … just a little bit less"):
+    // the singers a little lower into the limiter and its soft clip (PHONE_VOICES.trim) and the low mids a
+    // little thinner (a gentle dip where the small speaker booms); a computer as before.
+    if (this.phone && PHONE_VOICES.sets.includes(set)) {
+      mix.gain.value *= PHONE_VOICES.trim;
+      const dip = bag.add(ctx.createBiquadFilter());
+      dip.type = "peaking";
+      dip.frequency.value = PHONE_VOICES.dipHz;
+      dip.Q.value = PHONE_VOICES.dipQ;
+      dip.gain.value = PHONE_VOICES.dipDb;
+      src = mix.connect(dip);
+    }
     // D302, SOLO VOICES: a new syllable's consonant: the voice opening from a lowpass (CONSONANTS.open),
     // softer at first; joined, none (the vowel goes on).
     const syl = pt.syllable && !p.legato ? CONSONANTS[pt.syllable.cons] : null;
