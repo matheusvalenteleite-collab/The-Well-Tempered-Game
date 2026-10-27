@@ -849,6 +849,8 @@ export const PRESETS: Preset[] = [
       3: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Bassoon", 0]],
       4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Strings", 0.12], ["s16Bassoon", 0]],
       5: [["s16Violin", 0.25], ["s16Flute", -0.3, 0.84], ["s16Harpsi", 0.1], ["s16Strings", -0.12, 0.94], ["s16Bassoon", 0]],
+      // D340: six voices, the Concerto for Two Violins (BWV 1043): two solo violins apart, the band's violins and viola as strings, the continuo bass.
+      6: [["s16Violin", 0.25], ["s16Violin", -0.25], ["s16Strings", 0.15, 0.84], ["s16Strings", -0.15, 0.84], ["s16Strings", 0, 0.84], ["s16Bassoon", 0]],
     },
   },
   // NOCTURNE 32-BIT: violin, harpsichord, viola, the organ's pedal; oboe as the fifth voice; the dark hall.
@@ -948,6 +950,8 @@ export const PRESETS: Preset[] = [
       3: [["singS", 0.25], ["singA", -0.25], ["singB", 0]],
       4: [["singS", 0.25], ["singA", -0.25], ["singT", 0.12], ["singB", 0]],
       5: [["singS", 0.25], ["singChoir", -0.3, 0.84], ["singA", 0.1], ["singT", -0.12, 0.94], ["singB", 0]],
+      // D341: eight voices, BWV 228's two choirs (S A T B each), choir I on the left, choir II on the right.
+      8: [["singS", -0.3], ["singA", -0.2], ["singT", -0.15], ["singB", -0.1], ["singS", 0.3], ["singA", 0.2], ["singT", 0.15], ["singB", 0.1]],
     },
   },
   // D297, MODULAR (a niche pick). D304: East and West coast. D305: BLEEPS AND BLOOPS (the id kept, so a

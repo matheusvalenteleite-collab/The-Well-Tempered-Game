@@ -9,6 +9,7 @@
  * the same tempo in the meter's conventional beat, for display ("𝅗𝅥 = 40" for an alla breve fugue).
  */
 import data from "../../data/tempi/tempi.json" with { type: "json" };
+import moreData from "../../data/tempi/more-bach.json" with { type: "json" };
 
 export type TempoVersion = "normal" | "slow";
 
@@ -37,6 +38,8 @@ export interface PieceTempo {
 
 /** The 48 fugues and Contrapunctus XIV, by piece id. */
 export const TEMPO: Record<string, PieceTempo> = data as unknown as Record<string, PieceTempo>;
+/** D340: the MORE BACH and CHORALES tabs' tempi (tools/tempi/more-bach.ts: an editorial reference, the busiest voice capped as the WTC's). */
+export const MORE_TEMPO: Record<string, PieceTempo> = moreData as unknown as Record<string, PieceTempo>;
 
 /**
  * The preludes' tempi (D184, kept until they get their own NORMAL and SLOW). D229: Book I's from
@@ -57,7 +60,7 @@ const PRELUDES: Record<string, number> = {
 /** D270: the TUTORIAL's invention, a little under the recordings' usual pace (about 66 to 80 a quarter), for learning. */
 const TUTORIAL_TEMPO: Record<string, number> = { inv01: 60 };
 export function tempoOf(id: string): number {
-  return TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
+  return TEMPO[id]?.normal ?? MORE_TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
 }
 
 /**
@@ -66,5 +69,5 @@ export function tempoOf(id: string): number {
  * unlocked) stays as it was; what is played is `tempoOf`.
  */
 export function standardTempo(id: string): number {
-  return TEMPO[id]?.median ?? tempoOf(id);
+  return TEMPO[id]?.median ?? MORE_TEMPO[id]?.median ?? tempoOf(id);
 }

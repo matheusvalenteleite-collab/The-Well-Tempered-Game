@@ -36,7 +36,7 @@ import { LIBRARY } from "../../src/wtc/library.ts";
 import { findEntriesByHead, subjectAndAnswer } from "../../src/wtc/fugue.ts";
 import { laterSubjects } from "../../src/wtc/subjects.ts";
 import { readMidi } from "./midi.ts";
-import { buildEntries, countersubjects, findCadences, keyPc, keySpeller, type RawEntry } from "./analysis.ts";
+import { buildEntries, countersubjects, findCadences, homeward, keySpeller, type RawEntry } from "./analysis.ts";
 
 const read = (f: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../data/wtc/${f}`, import.meta.url)), "utf8"));
 const corpus: WtcPiece[] = read("fugues.json");
@@ -558,39 +558,6 @@ function contrapunctusAnalysis(voices: Note[][], spell: Record<number, string>, 
   return { entries: buildEntries(piece, raw, speller), cadences: findCadences(piece, speller, false) };
 }
 
-/**
- * D243: the colours come home. A piece's keys (its entries' or its cadences') leave out its return:
- * the last one read is often a turn to the subdominant over the closing pedal (Prelude 1 coloured F
- * from b. 21 to the end), or a key left long before the end with no cadence read after it. The home
- * key now holds from where the music is home for good, read in the bass, beat by beat (the lowest
- * note sounding in each beat): the closing run of the tonic in the bass and, just before it, of the
- * dominant (a dominant pedal, or the final cadence's V), or the tonic's alone after a plagal close.
- * Keys read after that point are dropped (the subdominant over a tonic pedal is not a modulation).
- * A minor piece ending on the major chord (a Picardy third) is in its minor to that chord, the major on it.
- */
-function homeward(f: { key: string; length: number; tpq: number; voices: Note[][]; keys: { on: number; key: string }[] }) {
-  const tonic = keyPc(f.key).pc;
-  const dominant = (tonic + 7) % 12;
-  const beat = f.tpq;
-  const notes = f.voices.flat();
-  const bassPc = (t: number) => {
-    let low = Infinity;
-    for (const n of notes) if (n[0] < t + beat && n[0] + n[1] > t && n[2] < low) low = n[2];
-    return low === Infinity ? -1 : low % 12;
-  };
-  let t = Math.floor((f.length - 1) / beat) * beat;
-  while (t >= 0 && bassPc(t) === tonic) t -= beat;
-  const tonicFrom = t + beat;
-  while (t >= 0 && bassPc(t) === dominant) t -= beat;
-  const home = Math.min(tonicFrom, t + beat);
-  const lastOn = Math.max(...notes.map((n) => n[0]));
-  const last = new Set(notes.filter((n) => n[0] + n[1] > lastOn).map((n) => n[2] % 12));
-  const picardy = keyPc(f.key).minor && last.has((tonic + 4) % 12) && !last.has((tonic + 3) % 12);
-  const kept = f.keys.filter((k) => k.on < home);
-  if ((kept.at(-1)?.key ?? f.key) !== f.key) kept.push({ on: home, key: f.key });
-  if (picardy) kept.push({ on: Math.max(home, Math.min(...notes.filter((n) => n[0] + n[1] > lastOn).map((n) => n[0]))), key: f.key[0].toUpperCase() + f.key.slice(1) });
-  f.keys = kept;
-}
 for (const f of [...preludes, ...fugues]) homeward(f);
 
 const out = [...preludes, ...fugues, contrapunctus()].sort((a, b) => (a.book || 9) - (b.book || 9) || a.number - b.number || (a.kind === "prelude" ? -1 : 1));

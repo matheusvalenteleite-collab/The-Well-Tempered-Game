@@ -15,7 +15,14 @@ import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { buildEntries, findCadences, keySpeller, type RawEntry } from "./analysis.ts";
 
 type Note = [number, number, number, number];
-const inv: WtcPiece[] = JSON.parse(readFileSync(fileURLToPath(new URL("../../data/wtc/inventions.json", import.meta.url)), "utf8"));
+// D340: from the Mutopia Project's edition (Jeff Covey, CC BY-SA 3.0; data/touch/more-bach.json, tools/touch/more-bach.ts),
+// no longer from the Humdrum encoding (Huron 1994: its rights statement reserves derivative electronic formats).
+// The notes, bars and spelling are the same (tools/touch/more-bach-check.ts: 22 bars, 100% of the attacks).
+type Touch = { id: string; number: number; key: string; bwv: string; meter: string; length: number; bars: { n: number; on: number }[]; voices: Note[][]; spell: Record<string, string> };
+const mutopia: Touch[] = JSON.parse(readFileSync(fileURLToPath(new URL("../../data/touch/more-bach.json", import.meta.url)), "utf8"));
+const inv: WtcPiece[] = mutopia
+  .filter((f) => f.id === "bwv772")
+  .map((f) => ({ id: "inven01", book: 0, number: f.number, kind: "invention", key: "C", mode: "major", bwv: f.bwv, meter: f.meter, length: f.length, bars: f.bars, voices: f.voices.map((v) => v.map(([on, dur, midi]) => [on, dur, f.spell[midi], 0])) }));
 const SUBJECT_STEPS = [1, 1, 1, -2, 1, -2];
 const SIXTEENTH = TPQ / 4;
 

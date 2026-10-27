@@ -10,6 +10,8 @@
  */
 import data from "../../data/touch/pieces.json" with { type: "json" };
 import tutorialData from "../../data/touch/tutorial.json" with { type: "json" };
+import moreData from "../../data/touch/more-bach.json" with { type: "json" };
+import choraleData from "../../data/touch/chorales.json" with { type: "json" };
 
 export type TouchNote = [on: number, dur: number, midi: number, step: number];
 
@@ -92,7 +94,27 @@ export interface TouchFugue {
    * (returning against two later entries at least and a third of them); empty where it has none.
    */
   countersubject: TouchCountersubject[];
+  /**
+   * D340: the MORE BACH and CHORALES tabs' pieces (tools/touch/more-bach.ts, chorales.ts): which
+   * collection, the card's short name ("CONTRAPUNCTUS 5", "INVENTION 1"), the edition's credit line and
+   * its page.
+   */
+  collection?: Collection;
+  short?: string;
+  credit?: string;
+  source?: string;
+  /** D340: the voices the player may take (the concerto's two solo violins); all where unset. */
+  playable?: number[];
+  /** D340: the voice offered first (a chorale's soprano). */
+  defaultVoice?: number;
+  /** D340: a chorale's fermatas: the ticks where the music goes on after each pause (held a beat longer than written). */
+  fermatas?: number[];
+  /** D340: the band's time in this piece (BAND TIME, D328): a chorale's band waits for the player after each fermata. */
+  bandTime?: "waits";
 }
+
+/** D340: the collections beyond the WTC. */
+export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "motet" | "cantata" | "chorale";
 
 /** All 96, each prelude before its fugue, Book I then Book II. */
 export const PIECES = data as unknown as TouchFugue[];
@@ -101,6 +123,11 @@ export const PRELUDES = PIECES.filter((p) => p.kind === "prelude");
 
 /** D270: the pieces the TUTORIAL teaches with (Invention No. 1, tools/touch/tutorial.ts): found by id, in no list. */
 export const TUTORIAL_PIECES = tutorialData as unknown as TouchFugue[];
+
+/** D340: the MORE BACH tab's pieces (the Art of Fugue, the Musical Offering's ricercars, the Inventions and Sinfonias, BWV 1043), and the CHORALES tab's. */
+export const MORE_BACH = moreData as unknown as TouchFugue[];
+export const CHORALES = choraleData as unknown as TouchFugue[];
+const BY_ID = new Map<string, TouchFugue>([...TUTORIAL_PIECES, ...CHORALES, ...MORE_BACH, ...PIECES].map((f) => [f.id, f]));
 
 /**
  * D342: pieces made at load time by the manual (its drills, src/bench/manual/drill.ts, compiled from their
@@ -112,11 +139,12 @@ export function registerPieces(ps: readonly TouchFugue[]) {
 }
 
 export function fugueById(id: string): TouchFugue {
-  return PIECES.find((f) => f.id === id) ?? TUTORIAL_PIECES.find((f) => f.id === id) ?? MADE.get(id) ?? PIECES[0];
+  return BY_ID.get(id) ?? MADE.get(id) ?? PIECES[0];
 }
 
 /** "I·2 P", "I·2 F"; the Art of Fugue's "AoF·XIV". */
 export function shortName(f: TouchFugue): string {
+  if (f.short) return f.short;
   if (!f.book) return "AoF·XIV";
   return `${f.book === 1 ? "I" : "II"}·${f.number} ${f.kind === "prelude" ? "P" : "F"}`;
 }

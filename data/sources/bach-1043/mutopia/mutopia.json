@@ -1,0 +1,50 @@
+[
+ {
+  "id": 3,
+  "title": "Concerto in D minor for two violins and strings",
+  "instruments": "Violin Duet and String Orchestra: Two Violins, Viola, 'Cello",
+  "opus": "BWV 1043",
+  "source": "Bach Gesellschaft zu Leipzig, 1874",
+  "license": "Public Domain",
+  "updated": "2015/Sep/02",
+  "musicId": "Mutopia-2015/09/02-3",
+  "lilypond": null,
+  "maintainer": "David Chan",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=3",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1043/concerto-in-d-minor/concerto-in-d-minor-lys.zip",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1043/concerto-in-d-minor/concerto-in-d-minor-mids.zip"
+  ],
+  "kept": [
+   "continuo.ly",
+   "continuo_1.ly",
+   "continuo_2.ly",
+   "continuo_3.ly",
+   "header.ly",
+   "score-1.mid",
+   "score-2.mid",
+   "score.ly",
+   "score.mid",
+   "solo_violin1.ly",
+   "solo_violin1_1.ly",
+   "solo_violin1_2.ly",
+   "solo_violin1_3.ly",
+   "solo_violin2.ly",
+   "solo_violin2_1.ly",
+   "solo_violin2_2.ly",
+   "solo_violin2_3.ly",
+   "viola.ly",
+   "viola_1.ly",
+   "viola_2.ly",
+   "viola_3.ly",
+   "violin1.ly",
+   "violin1_1.ly",
+   "violin1_2.ly",
+   "violin1_3.ly",
+   "violin2.ly",
+   "violin2_1.ly",
+   "violin2_2.ly",
+   "violin2_3.ly"
+  ]
+ }
+]

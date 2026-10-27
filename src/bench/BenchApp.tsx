@@ -79,7 +79,7 @@ import { PLACEMENT, PLACEMENT_SOUND, place, worst, type Placement, type Placemen
 import { applyPlacement, markSeen, nextLesson as nextManual, progress as manualProgress, readManual, recordTake, setAnswer, setAside, testOut as manualTestOut, triesOf, type Answer } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, litePlatform, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteExtra, liteNextOrder,litePlatform, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
@@ -190,7 +190,7 @@ export function sane(p: Pick): Pick {
   // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
   const mob = APP.lite && litePlatform() === "mobile";
   // D275: and Book II's fugues.
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : /^wtc2f\d\d$/.test(pair) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : /^wtc2f\d\d$/.test(pair) || liteExtra(pair) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -633,7 +633,7 @@ export function BenchApp() {
           const best = r.failedBar === null && from === 0 ? recordLiteBest(f.id, r.sheet.final) : null;
           // D308: read after the best score is kept (the cards show it; it was read before, so they did not until a reload).
           setLite(readLite());
-          setPhase({ kind: "result", ...r, best, seal: null, opened, next: nextIn(liteAll(platform === "mobile"), f.id) });
+          setPhase({ kind: "result", ...r, best, seal: null, opened, next: nextIn(liteNextOrder(f.id, platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);

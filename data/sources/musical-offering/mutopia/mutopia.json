@@ -1,0 +1,44 @@
+[
+ {
+  "id": 690,
+  "title": "Musicalisches Opfer, Ricercare",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1079",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Mar/02",
+  "musicId": "Mutopia-2006/03/02-690",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=690",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1079/ricercare/ricercare.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1079/ricercare/ricercare.mid"
+  ],
+  "kept": [
+   "ricercare.ly",
+   "ricercare.mid"
+  ]
+ },
+ {
+  "id": 702,
+  "title": "Musikalisches Opfer, Ricercare a 6",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1079",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Mar/23",
+  "musicId": "Mutopia-2006/03/23-702",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=702",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1079/ricercare6/ricercare6.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1079/ricercare6/ricercare6.mid"
+  ],
+  "kept": [
+   "ricercare6.ly",
+   "ricercare6.mid"
+  ]
+ }
+]
