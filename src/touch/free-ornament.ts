@@ -13,6 +13,8 @@
  *   - a third leg (two reversals) within the window: a TRILL, from the note above, to the note's end.
  * A slow drift, a single move, a sideways wobble, or a back-and-forth slower than the window: nothing.
  */
+import { MECH } from "../bench/mechanics.ts";
+/** D317: the constants below are the defaults of the lab's MECH.shakeWindowMs and MECH.shakeSteep, which feedShake reads. */
 
 /** The longest time from the start of one leg to the end of the next for a shake (ms). */
 export const SHAKE_WINDOW_MS = 300;
@@ -60,8 +62,8 @@ export function feedShake(s: ShakeTracker, x: number, y: number, t: number, reac
   if (s.kind === "trill") return null;
   if (s.dir === 0) {
     // Before the first leg: the extremes of the last moments (older than the window, forgotten: a slow wander is no start).
-    if (t - s.top.t > SHAKE_WINDOW_MS || y <= s.top.y) s.top = { y, x, t };
-    if (t - s.bottom.t > SHAKE_WINDOW_MS || y >= s.bottom.y) s.bottom = { y, x, t };
+    if (t - s.top.t > MECH.shakeWindowMs || y <= s.top.y) s.top = { y, x, t };
+    if (t - s.bottom.t > MECH.shakeWindowMs || y >= s.bottom.y) s.bottom = { y, x, t };
     const from = y - s.top.y >= reach ? s.top : s.bottom.y - y >= reach ? s.bottom : null;
     if (!from) return null;
     s.ey = from.y;
@@ -80,7 +82,7 @@ export function feedShake(s: ShakeTracker, x: number, y: number, t: number, reac
   // Back the other way, but not yet past the reach: wait (the turning point stays where it was).
   if (Math.abs(dy) < reach) return null;
   // A leg: along the bar, not across it (D311's sideways expression is not a shake).
-  const steep = Math.abs(dy) >= SHAKE_STEEP * Math.abs(x - s.ex);
+  const steep = Math.abs(dy) >= MECH.shakeSteep * Math.abs(x - s.ex);
   const leg: Leg = { from: s.et, t, dir: d };
   s.ey = y;
   s.ex = x;
@@ -92,9 +94,9 @@ export function feedShake(s: ShakeTracker, x: number, y: number, t: number, reac
   }
   s.legs.push(leg);
   // Only legs that follow each other closely count: a leg slower than the window starts again.
-  if (leg.t - leg.from > SHAKE_WINDOW_MS) s.legs = [];
+  if (leg.t - leg.from > MECH.shakeWindowMs) s.legs = [];
   const n = s.legs.length;
-  if (n >= 2 && leg.t - s.legs[n - 2].from > SHAKE_WINDOW_MS) s.legs = [leg];
+  if (n >= 2 && leg.t - s.legs[n - 2].from > MECH.shakeWindowMs) s.legs = [leg];
   if (s.legs.length === 2 && !s.kind) return (s.kind = s.legs[0].dir < 0 ? "mordent" : "short");
   if (s.legs.length >= 3 && s.kind) return (s.kind = "trill");
   return null;

@@ -1142,6 +1142,12 @@ export function BenchApp() {
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
+          {/* D317: THE LAB, for the owner only (once opened, or ?lab in the address). */}
+          {labLinkOn() && (
+            <a className="tb-lab-link" id="lab-link" href="./lab.html">
+              LAB
+            </a>
+          )}
         </Panel>
       )}
       {phase.kind === "settings" && !APP.lite && (
@@ -1230,6 +1236,15 @@ export function BenchApp() {
 
 /** D239: the bench's modes whose first-game rule has been played past. */
 const HINTS_KEY = "tb-hints-v1";
+/** D317: the lab's link in ⚙: where the lab has been opened on this device (`tb-lab`), or `?lab` is in the address (kept from then on). */
+function labLinkOn(): boolean {
+  try {
+    if (new URLSearchParams(location.search).has("lab")) localStorage.setItem("tb-lab", "1");
+    return localStorage.getItem("tb-lab") === "1";
+  } catch {
+    return false;
+  }
+}
 /** D216, KIMIKO: the credit, on the title card and the result. */
 const HER_CREDIT = "KIMIKO ISHIZAKA, THE OPEN WELL-TEMPERED CLAVIER (2015), CC0";
 /** D216: KIMIKO's title-card line (null: no recording of this piece). */

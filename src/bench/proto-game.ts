@@ -22,6 +22,9 @@ import { acrossBar, planTouches, type Touch } from "./fingering.ts";
 import { LEVEL_D, planLevel, readingMarks } from "../touch/readings.ts";
 import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
+// D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
+import { MECH } from "./mechanics.ts";
+import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
 /** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */
@@ -38,7 +41,7 @@ export const OWN_FRESH_S = 3;
 export const EDGE_SHARE = 0.12;
 /** D296: the move (in rows) the line's travel over a fourth or more asks of a thumb, the right way. */
 export let TRAVEL_MIN = 0.25;
-export const setTravelMin = (v: number) => (TRAVEL_MIN = v);
+export const setTravelMin = (v: number) => ((TRAVEL_MIN = v), (MECH.travelMin = v));
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
@@ -538,13 +541,16 @@ export class ProtoGame {
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
+    // D317: the windows the lab's (MECH; by default options' 250 ms either side).
+    const perMs = (f.tpq * this.bpm) / 60000;
+    this.opt = { ...this.opt, early: MECH.earlyMs * perMs, late: MECH.lateMs * perMs };
     // D290: on the phone's ladder each note's window stops halfway to its neighbours (60 ms at least).
-    if (proto.id === "ladder") this.opt = { ...this.opt, split: true, floor: (SPLIT_FLOOR_MS / 60000) * f.tpq * this.bpm };
+    if (proto.id === "ladder") this.opt = { ...this.opt, split: MECH.splitHalfway, floor: (MECH.splitFloorMs / 60000) * f.tpq * this.bpm };
     // D223, D299: BLUETOOTH MODE (not while the music waits for each note): the window a little wider
     // both sides (the headphones' jitter; D290's halfway split and its floor kept, so close notes never
     // share a window); the clock as heard smoothed (chip.ts `smooth`).
     this.bt = !!o.bt && !o.wait;
-    if (this.bt) this.opt = { ...this.opt, early: this.opt.early + (BT_EARLY_MS / 1000) * this.tps, late: this.opt.late + (BT_LATE_MS / 1000) * this.tps };
+    if (this.bt) this.opt = { ...this.opt, early: this.opt.early + (MECH.btEarlyMs / 1000) * this.tps, late: this.opt.late + (MECH.btLateMs / 1000) * this.tps };
     chip.smooth = this.bt;
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
@@ -650,7 +656,26 @@ export class ProtoGame {
     return this.anchorAt + (this.rit.warp(tick) - this.rit.warp(this.anchorTick)) / this.tps;
   }
   private tickOf(ts: number) {
-    return this.tickAt(this.chip.heard() - (performance.now() - ts) / 1000);
+    return this.tickAt(this.chip.heard() - (this.wall() - ts) / 1000);
+  }
+  /** D317: the clock the events' timestamps are on (performance.now; a replay injects its own, so judging is deterministic). */
+  wall: () => number = () => performance.now();
+  /** D317, THE LAB: told of every judgement as it is made (lab/events.ts); null in the game. */
+  tap: ((e: LabEvent) => void) | null = null;
+  /** D317: how LADDER judged the last touch's height (for the tap). */
+  private ladderWhy: LadderWhy | undefined;
+  /** D317: the note nearest a stray touch (for the tap). */
+  private nearOf(k: number, tick: number): { i: number; midi: number; offMs: number; taken?: string } | undefined {
+    const notes = this.tracks[k]?.notes ?? [];
+    let j = -1;
+    notes.forEach((n, q) => {
+      if (n.ride || (q > 0 && notes[q - 1].on === n.on)) return;
+      if (j < 0 || Math.abs(n.on - tick) < Math.abs(notes[j].on - tick)) j = q;
+    });
+    const n = notes[j];
+    if (!n) return undefined;
+    const taken = n.state === "hit" && n.at !== undefined ? `${n.via ?? "touch"} ${Math.round(Math.abs(this.msOf(n.at, tick)))} ms ${n.at <= tick ? "before" : "after"}` : n.state === "miss" ? (n.wrong ? "wrong" : "missed") : undefined;
+    return { i: j, midi: n.midi, offMs: this.msOf(n.on, tick), taken };
   }
 
   /** D223: the tick drawn now (the clock as heard, plus the screen's delay: Chip.visual). */
@@ -904,6 +929,7 @@ export class ProtoGame {
       for (const n of t.notes) if (n.state === "pending" && !n.ride && this.now - grace > n.on + this.opt.late) ons.add(n.on);
       if (!ons.size) continue;
       for (const on of ons) this.diagNote("MISS", this.tracks.indexOf(t), on, undefined, t.notes.findIndex((n) => n.on === on));
+      if (this.tap) for (const on of ons) this.tap({ kind: "miss", tick: on, track: this.tracks.indexOf(t), i: t.notes.findIndex((n) => n.on === on), midi: t.notes.find((n) => n.on === on)?.midi ?? 0 });
       // D262: a traced line's first note missed: the line plays itself.
       for (const on of ons) {
         const q = t.traces?.get(on);
@@ -1079,6 +1105,8 @@ export class ProtoGame {
    */
   private touchFor(land: number | undefined, k: number, on: number): number | undefined {
     if (this.touchDynamics || (this.o.reading?.level && this.readingIndex().has(`${k}:${on}`))) return undefined;
+    // D317: the lab may turn D311's expression off (every attack the bar's middle).
+    if (!MECH.expression) return TOUCH_NEUTRAL;
     return land ?? TOUCH_NEUTRAL;
   }
 
@@ -1180,24 +1208,35 @@ export class ProtoGame {
         if (!this.rows) return { ok: true };
         const R = this.ladderRow;
         const asked = stepPitch(this.rows.stepAt(c.y), n);
-        const fresh = (t?: { tick: number; moved?: boolean }) => !!t && !t.moved && this.now - t.tick <= OWN_FRESH_S * this.tps;
+        // D317: the lab's parameters (MECH: by default D286's, D289's and D296's constants), and why (the tap).
+        const fresh = (t?: { tick: number; moved?: boolean }) => !!t && !t.moved && this.now - t.tick <= MECH.ownFreshS * this.tps;
         const own = this.lastBySide[c.side];
-        if (m.size < 0 || !own || !fresh(own)) return { ok: true };
-        const edge = EDGE_SHARE * c.h;
+        if (m.size < 0 || !own || !fresh(own)) {
+          this.ladderWhy = { ref: "free", freeWhy: m.size < 0 ? "first note" : !own ? "first touch" : own.moved ? "moved since" : "too old" };
+          return { ok: true };
+        }
+        const edge = MECH.edgeShare * c.h;
         const back = (this.trailBySide[c.side] ?? []).filter((t) => fresh(t) && t !== own);
         // At the end it climbed (or fell) to: a thumb that travelled there may stay (one that started there has no further to come from).
         const arrived = (dir: number) => back.some((t) => (dir > 0 ? t.y > edge + 2 * R : t.y < c.h - edge - 2 * R));
         const pinned = (from: number, dir: number) => arrived(dir) && (dir > 0 ? from <= edge && c.y <= edge : from >= c.h - edge && c.y >= c.h - edge);
+        let why: LadderWhy = { ref: "own", rowPx: R };
         const clear = (from: { y: number; step: number }, travel = false) => {
           const steps = n.step - from.step;
           const way = (from.y - c.y) * Math.sign(steps);
-          if (steps === 0) return Math.abs(from.y - c.y) <= 2.5 * R;
-          if (pinned(from.y, Math.sign(steps))) return true;
+          const done = (ok: boolean, rule: LadderWhy["rule"], needPx?: number) => {
+            if (travel) why.travel = { steps, movedPx: from.y - c.y, needPx: needPx ?? 0, ok };
+            else why = { ref: "own", steps, movedPx: from.y - c.y, rowPx: R, rule, needPx };
+            return ok;
+          };
+          if (steps === 0) return done(Math.abs(from.y - c.y) <= MECH.repeatRows * R, "repeat", MECH.repeatRows * R);
+          if (pinned(from.y, Math.sign(steps))) return done(true, "edge");
           // From the last touch a fourth or more, a clear move (half a row); the line's travel over a fourth
           // or more, a move the right way (a quarter row: drawn steps are 8 px apart and a landing scatters
           // about as much, so a third's travel cannot be told from the scatter).
-          if (Math.abs(steps) < 3) return way >= -R;
-          return way >= (travel ? TRAVEL_MIN : 0.5) * R;
+          if (Math.abs(steps) < 3) return done(way >= -MECH.stepLeewayRows * R, "step", MECH.stepLeewayRows * R);
+          const need = (travel ? MECH.travelMin : MECH.leapRows) * R;
+          return done(way >= need, travel ? "travel" : "leap", need);
         };
         let ok = clear(own);
         if (ok) {
@@ -1205,6 +1244,7 @@ export class ProtoGame {
           const far = [...back].reverse().find((t) => Math.abs(n.step - t.step) >= 3);
           if (far) ok = clear(far, true);
         }
+        this.ladderWhy = why;
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
       case "piano": {
@@ -1399,12 +1439,14 @@ export class ProtoGame {
     // D191: a strike on a note that rides (the player striking it anyway) is no slip; it is played for them.
     if (i < 0 && notesK.some((n) => n.ride && Math.abs(n.on - tk) <= Math.max(this.opt.early, this.opt.late))) return;
     // D290: a second contact on a note just struck (a rolling thumb, a re-land): ignored, not a slip.
-    if (i < 0 && this.proto.id === "ladder" && notesK.some((n) => n.state === "hit" && n.at !== undefined && Math.abs(this.msOf(Math.min(n.at, tk), Math.max(n.at, tk))) <= DOUBLE_MS)) {
+    if (i < 0 && this.proto.id === "ladder" && notesK.some((n) => n.state === "hit" && n.at !== undefined && Math.abs(this.msOf(Math.min(n.at, tk), Math.max(n.at, tk))) <= MECH.doubleMs)) {
       this.diagCounts.DOUBLE = (this.diagCounts.DOUBLE ?? 0) + 1;
+      this.tap?.({ kind: "double", tick: tk, track: h.k, side: h.side });
       return;
     }
     if (i < 0) {
       this.diagNote("STRAY", h.k, tk, at.c, -1);
+      if (this.tap) this.tap({ kind: "stray", tick: tk, track: h.k, side: h.side, near: this.nearOf(h.k, tk) });
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
@@ -1418,6 +1460,7 @@ export class ProtoGame {
       }
       return;
     }
+    this.ladderWhy = undefined;
     let v = this.verdict(i, at, h.k);
     if (!v.ok) this.diagNote(`WRONG(${v.why ?? "?"})`, h.k, tk, at.c, i);
     else if (v.lane === "relative") this.diagNote("DIRECTION", h.k, tk, at.c, i);
@@ -1441,7 +1484,7 @@ export class ProtoGame {
     // D311: elsewhere the sustain the player's (touch-expr.ts): sideways from where it landed, by the
     // instrument (a swell, a vibrato, a wah, the tremolo's speed; a struck note nothing). In BLUETOOTH
     // MODE the note it scored (scheduled ahead) answers it.
-    else if (h.land !== undefined && this.proto.layout === "bars") {
+    else if (MECH.expression && h.land !== undefined && this.proto.layout === "bars") {
       const sv = holdValue(this.landAt(c) - h.land);
       for (const s of h.sounds) s.shape?.(sv);
       if (h.armed?.state === "hit") for (const s of h.armed.own) s.shape?.(sv);
@@ -1458,12 +1501,12 @@ export class ProtoGame {
       // notes' own, not a fixed row and a half (27 px, where a step is drawn 8 px apart: no slide could
       // follow the notes): at least SLIDE_MIN_PX, and the thumb at the next note's drawn height (within
       // half a judging row), on the way to it.
-      if (h.handed || Math.abs(c.y - h.ay) < SLIDE_MIN_PX) return;
+      if (!MECH.slides || h.handed || Math.abs(c.y - h.ay) < MECH.slideMinPx) return;
       const nextN = this.tracks[h.k].notes.find((n) => n.state === "pending" && !n.ride);
       if (!nextN) return;
       const target = this.rows.yOf(nextN.step);
       const want = target < h.ay ? 1 : -1;
-      if ((c.y < h.ay ? 1 : -1) !== want || want * (c.y - target) > 0.5 * this.ladderRow) return;
+      if ((c.y < h.ay ? 1 : -1) !== want || want * (c.y - target) > MECH.slideReachRows * this.ladderRow) return;
       // D271: one way only (the owner: "to avoid players being able to complete levels by dragging"):
       // a slide back the other way plays nothing; the thumb lifts and strikes again.
       const dir = c.y < h.ay ? 1 : -1;
@@ -1527,7 +1570,7 @@ export class ProtoGame {
     const o = h.orn!;
     if (t > o.by) return void (o.done = true);
     // D289: a smaller rock counts (0.4 of a row, about 7 px: was 0.6, 10.8 px), and either way first.
-    const reach = Math.max(6, this.ladderRow * 0.4);
+    const reach = Math.max(MECH.shakeReachMinPx, this.ladderRow * MECH.shakeReachRows);
     const dy = o.from - c.y;
     if (Math.abs(dy) < reach) return;
     const d: 1 | -1 = dy > 0 ? 1 : -1;
@@ -1546,6 +1589,7 @@ export class ProtoGame {
       this.shakes.hit++;
       this.earn("bonus", 2 * this.mult);
       this.flash = { text: `${o.word} ✓`, at: performance.now(), good: true, kind: "legato" };
+      this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: o.word, free: false });
     }
   }
   /**
@@ -1558,7 +1602,7 @@ export class ProtoGame {
    * computer's keys. True while a shake owns the thumb (no slide meanwhile).
    */
   private freeShake(h: Held, c: Contact, t: number, ts: number): boolean {
-    if (this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    if (!MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
     const i = h.note;
     const n = this.tracks[h.k].notes[i];
     if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit") return false;
@@ -1566,7 +1610,7 @@ export class ProtoGame {
     if (!h.free || h.free.note !== i) h.free = { ...shakeTracker(h.ay, h.ax, ts), note: i };
     const end = n.on + n.dur;
     if (t >= end) return !!h.free.kind;
-    const kind = feedShake(h.free, c.x, c.y, ts, Math.max(6, this.ladderRow * 0.4));
+    const kind = feedShake(h.free, c.x, c.y, ts, Math.max(MECH.shakeReachMinPx, this.ladderRow * MECH.shakeReachRows));
     if (kind) this.freeOrnament(h, kind, t);
     return !!h.free.kind;
   }
@@ -1588,6 +1632,7 @@ export class ProtoGame {
     if (kind === "short") this.freeOrns.shorts++;
     // A flourish only: the sign rising from the note, faint gold (no points, no streak, no flash over the verdict).
     this.pops.push({ tick: n.on, step: n.step, text: kind === "mordent" ? "~|" : "TR", at: performance.now(), gold: true, ink: FREE_INK });
+    this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: kind, free: true });
   }
   /** D314: the free ornaments played this run (counted for the tests; they score nothing). */
   readonly freeOrns = { mordents: 0, shorts: 0, trills: 0 };
@@ -1628,6 +1673,7 @@ export class ProtoGame {
     if (next < 0 || t < notes[next].on - this.opt.early / 2) return false;
     const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
     if (i < 0) return false;
+    this.tap?.({ kind: "slide", tick: t, track: h.k, i, side: h.side, movedPx: h.ay - c.y });
     h.ay = c.y;
     notes[i].via = "slide";
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
@@ -1648,7 +1694,9 @@ export class ProtoGame {
     this.held.delete(id);
     // D262: a line not finished goes on by itself.
     if (h.trace?.queue.length) this.loose.push(h.trace);
-    if (cancelled) {
+    // D317: the lab may judge a touch taken back as a plain lift (MECH.cancel "lift").
+    if (cancelled && MECH.cancel === "lift") (this.cancels++, this.tap?.({ kind: "cancel", tick: this.tickOf(ts), track: h.k, side: h.side, ringsOn: false, mode: "lift" }));
+    if (cancelled && MECH.cancel !== "lift") {
       this.cancels++;
       // D289: the system took the touch back (iOS may, when the other thumb lands): no release judged,
       // but for the join the note ended here, so the next note can still be legato.
@@ -1657,7 +1705,8 @@ export class ProtoGame {
       // D308: only while another thumb is down (the overlap that made iOS take it back); a touch taken back
       // alone is let go there, as a lift (it rang on to its written end: a staccato lost).
       const n = this.tracks[h.k].notes[h.note];
-      const overlap = this.held.size > 0;
+      const overlap = MECH.cancel === "always" || this.held.size > 0;
+      this.tap?.({ kind: "cancel", tick: this.tickOf(ts), track: h.k, side: h.side, ringsOn: !!(h.open && n?.state === "hit" && overlap), mode: MECH.cancel });
       if (h.open && n?.state === "hit" && overlap) {
         const end = Math.max(this.tickOf(ts), n.on + n.dur);
         this.lastOff = { k: h.k, i: h.note, tick: end };
@@ -1702,8 +1751,11 @@ export class ProtoGame {
     let over = false;
     for (const [hid, o] of this.held) if (hid !== id && o.k === h.k && o.sounds.length && !o.passive && o.note >= 0) over = true;
     const lo = this.lastOff;
+    const lw: LegatoWhy = { judged: false, holding: over, ok: false };
     if (lo && lo.k === h.k && lo.i === this.before(i, h.k)) {
       const p = notes[lo.i];
+      lw.gapMs = this.msOf(lo.tick, tk);
+      lw.allowedMs = legatoGapMs(this.msOf(p.on, p.on + p.dur));
       if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(p.on, p.on + p.dur))) over = true;
     }
     if (h.open) this.judgeEnd(h, tk);
@@ -1814,7 +1866,11 @@ export class ProtoGame {
     const at = performance.now();
     this.marks.push({ tick: this.now, step: v.ok || v.wrong === undefined ? n.step : stepNear(v.wrong, n), ok: v.ok });
     if (this.marks.length > 400) this.marks.splice(0, 100);
+    // D317: the verdict told to the lab, with why (LADDER's height, the join).
+    const tapNote = (ok: boolean, perfect: boolean, offMs: number) =>
+      this.tap?.({ kind: "note", tick: n.at ?? this.now, track: h.k, i, midi: n.midi, side: h.side, ok, why: v.why, wrongMidi: v.wrong, offMs, perfect, slide, lane: v.lane, ladder: slide ? undefined : this.ladderWhy, legato: slide ? undefined : lw });
     if (!v.ok) {
+      tapNote(false, false, (this.timeAt(n.at ?? this.now) - this.timeAt(n.on)) * 1000);
       for (const j of chord) Object.assign(notes[j], { state: "miss", wrong: true });
       this.slip();
       this.grade = { text: "✕", at, side: h.side, why: v.why ?? "gesture" };
@@ -1826,7 +1882,7 @@ export class ProtoGame {
     const offMs = (this.timeAt(n.at ?? n.on) - this.timeAt(n.on)) * 1000;
     // D299: how early or late each struck note was, as heard (BLUETOOTH MODE's delay retuned after the run: headphones.ts driftOf).
     if (this.bt && !slide) this.btOffsets.push(offMs);
-    const perfect = Math.abs(offMs) <= PERFECT_MS;
+    const perfect = Math.abs(offMs) <= MECH.perfectMs;
     this.combo++;
     this.hits++;
     this.streak++;
@@ -1860,6 +1916,9 @@ export class ProtoGame {
     if (this.joinedAt(i, h.k) && askJoin !== false) {
       this.art.legatoOf++;
       const p = this.before(i, h.k);
+      lw.judged = true;
+      lw.ok = !slide && over && p >= 0 && notes[p].state === "hit";
+      lw.prevRight = p >= 0 && notes[p].state === "hit";
       if (!slide && over && p >= 0 && notes[p].state === "hit") {
         this.chain++;
         this.art.legato++;
@@ -1898,6 +1957,7 @@ export class ProtoGame {
     this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
     this.grade = perfect ? { text: "PERFECT", at, side: h.side } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, side: h.side };
+    tapNote(true, perfect, offMs);
     this.ride(h, i, offMs / 1000);
   }
 
@@ -2185,6 +2245,7 @@ export class ProtoGame {
       this.pops.push({ tick: n.on + n.dur, step, text: `+${pts}`, at, gold: false, ink: word?.kind === "clean" ? CLEAN_INK : HELD_INK });
     }
     if (word) this.flash = word;
+    if (this.tap && word) this.tap({ kind: "release", tick: off, track: h.k, i, side: h.side, word: word.text, heldMs: this.msOf(n.on, off), lenMs: len });
   }
   /** The tempo, quarter notes a minute. */
   get bpm(): number {
@@ -2619,7 +2680,7 @@ export class ProtoGame {
   }
   /** D247: LADDER's row for judging a touch: the box's, but no smaller than LADDER_ROW_MIN (the whole piece in the box). */
   get ladderRow(): number {
-    return Math.max(this.rows?.rowH ?? LADDER_ROW_MIN, LADDER_ROW_MIN);
+    return Math.max(this.rows?.rowH ?? MECH.ladderRowMin, MECH.ladderRowMin);
   }
   /** D244: the notes of a track that repeat the first half of their bar (their lanes the first half's). */
   echoOf(k = 0): Set<number> {
