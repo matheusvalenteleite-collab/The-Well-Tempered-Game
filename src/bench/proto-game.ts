@@ -20,8 +20,9 @@ import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, type Touch } from "./fingering.ts";
-import { LEVEL_D, planLevel, readingMarks } from "../touch/readings.ts";
-import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
+import { LEVEL_D, readingMarks } from "../touch/readings.ts";
+import { accentHeld, accentSeparated, accentTimely, type AccentWhy } from "./accent.ts";
+import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
@@ -189,6 +190,8 @@ interface Held {
   trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[] };
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
+  /** D338: its note is the reading's accent, struck on time or leaned and not joined from the note before (or not: why): its hold judged at its end. */
+  wantAccent?: { why: AccentWhy | null };
   /** D314: how its note sounds (the voicing and play it was struck with), for a free ornament's notes. */
   tone?: { v: ReturnType<typeof voicing>; play: Play };
   /** D314: a shake under way on its note (free-ornament.ts), and the note it is on. */
@@ -613,7 +616,8 @@ export class ProtoGame {
     // D309: each instrument's table, the fugue's character, the piano's levels from the whole score (never the player's part).
     this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, this.bpm, readingMarks(f.entries, o.reading ?? null)));
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
-    this.start = o.wait ? from - this.beat : countInStart(f, from);
+    // D338: the count-in by time (at most about 4 s, at least two beats), not whole bars.
+    this.start = o.wait ? from - this.beat : countInStart(f, from, this.tps);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
@@ -2100,7 +2104,7 @@ export class ProtoGame {
    * than a rolling thumb's wander), the other way from the last, sounds the ornament's next note (a
    * trill: the upper and the main in turn; a mordent: the lower, then the main; a turn: upper, main,
    * lower, main); done, with its first move the right way, before the note's end: TRILL ✓ (or MORDENT,
-   * TURN), points as a legato's. Not done: the plain note, nothing lost. D319: a trill sounds the
+   * TURN), counted but unscored (D338: no points, as a free ornament's). Not done: the plain note, nothing lost. D319: a trill sounds the
    * realisation from the first move (startTrill), on while the moves go on, settling when they stop;
    * the thumb's moves stay the trill's to the note's written end (no slide meanwhile). BLUETOOTH MODE:
    * the note sounds from the schedule (arm), the whole default trill whatever the shaking.
@@ -2135,7 +2139,7 @@ export class ProtoGame {
     if (!o.done && o.moves >= o.need && midi === o.main) {
       o.done = true;
       this.shakes.hit++;
-      this.earn("bonus", 2 * this.mult);
+      // D338: a written ornament earns nothing (nor costs): counted, shown, as a free one.
       this.flash = { text: `${o.word} ✓`, at: performance.now(), good: true, kind: "legato" };
       this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: o.word, free: false });
     }
@@ -2384,8 +2388,8 @@ export class ProtoGame {
     if (st.own) this.lastBySide[o.side] = st.own;
     else delete this.lastBySide[o.side];
     this.trailBySide[o.side]?.splice(st.trail);
-    Object.assign(h, { note: o.note, chord: o.chord, midi: o.midi, d0: o.d0, sounds: o.sounds, fx: o.fx, tone: o.tone, pts: o.pts, open: o.open, wantShort: o.wantShort, armed: o.armed });
-    Object.assign(o, { sounds: [], fx: [], open: false, passive: true, handed: true, pts: undefined, armed: undefined, wantShort: undefined });
+    Object.assign(h, { note: o.note, chord: o.chord, midi: o.midi, d0: o.d0, sounds: o.sounds, fx: o.fx, tone: o.tone, pts: o.pts, open: o.open, wantShort: o.wantShort, wantAccent: o.wantAccent, armed: o.armed });
+    Object.assign(o, { sounds: [], fx: [], open: false, passive: true, handed: true, pts: undefined, armed: undefined, wantShort: undefined, wantAccent: undefined });
     // Let go already (its end judged there): the note sounds on from this thumb, joined.
     if (!holding) {
       const tone = h.tone;
@@ -2795,16 +2799,18 @@ export class ProtoGame {
     if (!slide) this.thumbNote(h.side, n.on, d);
     if (rd) {
       if (place !== undefined) {
-        // Joined or detached into it as the reading says; its accent; the subject's level.
+        // Joined or detached into it as the reading says; its accent. D338: loudness is never judged
+        // (the subject's level and the reading's dynamics sound, they are not asked of the thumbs).
         if (askJoin === true) this.styled(legatoNow, at);
         if (askJoin === false) this.styled(!over, at, "DETACHED ✓");
-        if (ask?.accent) this.styled(d >= 0.6, at, "ACCENT ✓");
-        if (rd.level) this.styled(Math.abs(d - LEVEL_D[rd.level]) <= 0.2, at);
+        // D338: the accent by time (accent.ts): on time or leaned, the note before let go; held, judged at its end.
+        if (ask?.accent) {
+          const joinedBefore = this.joinedAt(i, h.k) && pv >= 0 && notes[pv].state === "hit";
+          const gap = !joinedBefore ? null : lw.holding ? "held" : (lw.gapMs ?? null);
+          const why = slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
+          h.wantAccent = { why };
+        }
         if (ask?.short) h.wantShort = true;
-      } else {
-        // The rest at the reading's dynamics, where it names them.
-        const lv = planLevel(rd, barAt(this.f, n.on));
-        if (lv) this.styled(Math.abs(d - LEVEL_D[lv]) <= 0.22, at);
       }
     }
     // D186: the points rise from the note.
@@ -3117,8 +3123,14 @@ export class ProtoGame {
     release(notes, i, off);
     this.lastOff = { k: h.k, i, tick: off };
     const { riders, rest } = this.after(i, h.k);
-    if (riders) return;
     const len = this.msOf(n.on, n.on + n.dur);
+    // D338: the reading's accent: struck on time or leaned, not joined from the note before, and held.
+    if (h.wantAccent) {
+      const why = h.wantAccent.why ?? accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort });
+      h.wantAccent = undefined;
+      this.styled(why === null, performance.now(), "ACCENT ✓");
+    }
+    if (riders) return;
     // D261: a prelude's tap (no tail) is not judged for its release.
     if (this.f.kind === "prelude" && len < PRELUDE_TAP_MS) return;
     const restMs = rest >= this.beat / 4 ? this.msOf(n.on + n.dur, n.on + n.dur + rest) : 0;
@@ -3702,7 +3714,7 @@ export class ProtoGame {
     this.stopAll();
   }
   /**
-   * D308: on again from the beat the pause fell in (or on), after a bar of count-in clicked as at the
+   * D308: on again from the beat the pause fell in (or on), after a count-in (D338) clicked as at the
    * start: the band and the player's notes from there scheduled afresh.
    */
   resume() {
@@ -3710,7 +3722,8 @@ export class ProtoGame {
     if (at === null) return;
     this.pausedAt = null;
     const grid = this.start + Math.floor((at - this.start) / this.beat) * this.beat;
-    const from = grid - this.perBar * this.beat;
+    // D338: the count-in as at the start (by time, at least two beats), no longer a whole bar.
+    const from = grid - countInBeats(this.f, this.tps) * this.beat;
     this.resumeAt = Math.max(grid, this.entry);
     this.anchorTick = from;
     this.anchorAt = this.chip.ctx.currentTime + 0.15;

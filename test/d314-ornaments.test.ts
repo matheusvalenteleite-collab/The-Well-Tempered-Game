@@ -179,7 +179,7 @@ test("D314: sideways expression and a slow drift on a held note never become an 
   assert.deepEqual(r.g.freeOrns, { mordents: 0, shorts: 0, trills: 0 });
 });
 
-test("D314: a fugue's written ornament is shaken as in the tutorial: counted, praised, scored (and a free shake does not replace it)", () => {
+test("D314: a fugue's written ornament is shaken as in the tutorial: counted, praised, unscored (D338) (and a free shake does not replace it)", () => {
   // I/6: the subject's trill in every entry (D277); the soprano carries some.
   const f = fugueById("wtc1f06");
   const orn = ornamentsOf(f);
@@ -191,7 +191,8 @@ test("D314: a fugue's written ornament is shaken as in the tutorial: counted, pr
   assert.ok(r.r.shakes.of > 0 && r.r.shakes.of === still.r.shakes.of);
   assert.ok(r.r.shakes.hit >= r.r.shakes.of - 1, `shaken ${r.r.shakes.hit} of ${r.r.shakes.of}`);
   assert.equal(still.r.shakes.hit, 0);
-  assert.ok(r.r.score > still.r.score, "points as the tutorial gives them");
+  // D338: written ornaments earn nothing and cost nothing, as free ones.
+  assert.equal(r.r.score, still.r.score, "no points for a written ornament (D338)");
   assert.equal(r.g.freeOrns.trills + r.g.freeOrns.mordents + r.g.freeOrns.shorts, 0, "a written ornament is not a free one");
 });
 

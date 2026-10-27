@@ -163,13 +163,39 @@ export function inBar(f: TouchFugue, tick: number): number {
 /**
  * The count-in and the beat's grid (D184): beats laid from bar 1 (so that an upbeat falls between
  * them, as written), the count-in whole bars of at least four beats before the first beat at or
- * before `from`.
+ * before `from`; given the tempo (ticks a second), D338's count by time (countInBeats).
  */
-export function countInStart(f: TouchFugue, from: number): number {
+export function countInStart(f: TouchFugue, from: number, tps?: number): number {
   const { ticks, perBar } = beatOf(f);
   const first = f.bars[0]?.on ?? 0;
   const onGrid = first + Math.floor((from - first) / ticks) * ticks;
-  return onGrid - perBar * Math.ceil(4 / perBar) * ticks;
+  return onGrid - (tps ? countInBeats(f, tps) : perBar * Math.ceil(4 / perBar)) * ticks;
+}
+
+/** D338: the count-in aims at this long (s)... */
+export const COUNT_IN_AIM_S = 2.5;
+/** ...and lasts at most this long (s), unless two beats are longer. */
+export const COUNT_IN_MAX_S = 4;
+
+/**
+ * D338, THE COUNT-IN BY TIME (the owner: whole bars took very long in slow pieces): the fewest whole
+ * beats of the metre (beatOf: minims in 2/2, dotted crotchets in 12/8), at least two, lasting at least
+ * COUNT_IN_AIM_S, at most one bar and COUNT_IN_MAX_S (two beats however long). Where a bar is shorter
+ * than the aim (a quick 3/8 or 2/4) it counts whole bars instead, up to COUNT_IN_MAX_S and never more
+ * than the old count (whole bars of at least four beats). `tps`: ticks a second at the start.
+ */
+export function countInBeats(f: TouchFugue, tps: number): number {
+  const { ticks, perBar } = beatOf(f);
+  const old = perBar * Math.ceil(4 / perBar);
+  const beatS = ticks / tps;
+  if (!(beatS > 0) || !Number.isFinite(beatS)) return old;
+  const barS = perBar * beatS;
+  if (barS >= COUNT_IN_AIM_S - 1e-9) {
+    const want = Math.ceil(COUNT_IN_AIM_S / beatS - 1e-9);
+    return Math.max(2, Math.min(want, perBar, Math.floor(COUNT_IN_MAX_S / beatS + 1e-9)));
+  }
+  const bars = Math.max(1, Math.min(Math.ceil(COUNT_IN_AIM_S / barS - 1e-9), Math.floor(COUNT_IN_MAX_S / barS + 1e-9)));
+  return Math.max(2, Math.min(old, perBar * bars));
 }
 
 /** The bar a tick falls in. */

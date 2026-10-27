@@ -50,6 +50,7 @@ import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 import { CONFIGS, DEFAULT_CONFIG, configById, configEdits, configLabel } from "./presets.ts";
 import { StudyCard, StudyTab, useStudy, type StudyHost } from "./StudyTab.tsx";
 import { holdSettings, releaseSettings, STUDY_SOUND } from "./study.ts";
+import { rushLine } from "./rush.ts";
 
 const STORE = "tb-lab-v1";
 const RUNS = "tb-lab-runs-v1";
@@ -1271,7 +1272,9 @@ export function timingLine(verdicts: readonly LabEvent[], short = false): string
   const sd = Math.sqrt(offs.reduce((a, b) => a + (b - mean) ** 2, 0) / offs.length);
   const m = Math.round(Math.abs(mean));
   const word = Math.abs(mean) < 5 ? "on time" : mean < 0 ? `${m} ms early` : `${m} ms late`;
-  return short ? `${word} ±${Math.round(sd)}` : `on average ${word} (spread ±${Math.round(sd)} ms, ${offs.length} notes)`;
+  // D338: and how it moved through the passage (first, middle, last third): rushing or dragging.
+  const rush = rushLine(verdicts, short);
+  return short ? `${word} ±${Math.round(sd)}${rush ? ` · ${rush}` : ""}` : `on average ${word} (spread ±${Math.round(sd)} ms, ${offs.length} notes)${rush ? ` · ${rush}` : ""}`;
 }
 
 /** D321: what a drag means, here as in MECHANICS › DRAG (the game's: JOIN). */
