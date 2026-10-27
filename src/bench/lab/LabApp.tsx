@@ -39,6 +39,8 @@ import { FreePlay, freeRows, type FreeOptions, type FreeScale } from "./free.ts"
 import { loadTable, TableStage, TableTab } from "./TableStage.tsx";
 import { MotionHub, stampOf, strengthFrom, type SenseSource, type TouchInfo } from "./sensor.ts";
 import { SensorTab } from "./SensorTab.tsx";
+import { RegistrationStops } from "../../touch/RegistrationStops.tsx";
+import { hasStops, voicePatch } from "../../touch/registration.ts";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 
 const STORE = "tb-lab-v1";
@@ -767,6 +769,8 @@ export function LabApp() {
             ) : (
               <span className="tg-hud-title">{hudTitle}</span>
             )}
+            {/* D322: the stops for the voice played (kept per piece, as in the game). */}
+            {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} />}
             {changed > 0 && (
               <button type="button" className="lab-badge" onClick={() => setPanel("mechanics")} title="Parameters changed from the game's">
                 {changed} CHANGED
