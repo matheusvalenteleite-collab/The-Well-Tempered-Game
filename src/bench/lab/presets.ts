@@ -8,6 +8,8 @@
  * the same frame as the other strikes, about a note value early): RELATIVE timing; the double contact the
  * same thumb's only, 40 ms; "Thumbs together" 0 (in his log the resting thumb lands 0–9 ms after the
  * other's strike, which D318's 40 ms (his 20) took for a chord pressed); direction from either thumb.
+ * D332 (WTC 1.49): B, C, D and E judge fast stepwise runs leniently (RUNS "lenient"; the owner asked for
+ * B too, his favourite for its precision, its other values unchanged); A stays strict.
  */
 import { MECH, MECH_DEFAULTS, type Mech, type MechKey } from "../mechanics.ts";
 
@@ -30,6 +32,8 @@ const HAND_OVER: Partial<Mech> = {
   doubleSameThumb: true,
   doubleMs: 40,
   waitSounds: "time",
+  // D332 (WTC 1.49): fast stepwise runs judged leniently (from either thumb; the run's trend).
+  runs: "lenient",
 };
 
 export const CONFIGS: readonly LabConfig[] = [
@@ -37,8 +41,8 @@ export const CONFIGS: readonly LabConfig[] = [
   {
     id: "B",
     name: "B · CLEAN STRIKES",
-    feel: "Every landing is a strike, the moment it lands: put a thumb down too early and it is a stray; only your own thumb bouncing is forgiven (40 ms). Windows follow the tempo.",
-    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40 },
+    feel: "Every landing is a strike, the moment it lands: put a thumb down too early and it is a stray; only your own thumb bouncing is forgiven (40 ms). Windows follow the tempo; fast runs are judged from either thumb, the run as a whole.",
+    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" },
   },
   {
     // D334 (WTC 1.49): the owner's hammer-on and pull-off. B's values, and a thumb landing before its note's
@@ -46,12 +50,12 @@ export const CONFIGS: readonly LabConfig[] = [
     id: "B+",
     name: "B+ · PREPARED",
     feel: "Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.",
-    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, prepare: true, prepShare: 1, slurRollMinMs: 0 },
+    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient", prepare: true, prepShare: 1, slurRollMinMs: 0 },
   },
   {
     id: "C",
     name: "C · HAND-OVER",
-    feel: "Rest the next thumb on its note while the other still holds, up to about a note early: it waits and sounds at its own time.",
+    feel: "Rest the next thumb on its note while the other still holds, up to about a note early: it waits and sounds at its own time; fast runs are judged from either thumb, the run as a whole.",
     values: HAND_OVER,
   },
   {

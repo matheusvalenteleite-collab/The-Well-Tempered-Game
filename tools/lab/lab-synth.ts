@@ -5,7 +5,8 @@
  * after, an overlap); every `wrongEvery`-th touch lands two rows the wrong way; every `strayEvery`-th
  * note gets an extra touch between notes. D329: every `preplaceEvery`-th note's thumb is put down on
  * its note as the other thumb strikes the note before (5 ms after it: the owner's II/18 log, about a note
- * value early), resting there until its time.
+ * value early), resting there until its time. D332: `scatterPx` (a landing's height, normally spread)
+ * and `randomY` (a random tapper: any height on the bar).
  */
 import { silentChip } from "../../src/bench/lab/replay.ts";
 import { labGame } from "../../src/bench/lab/game.ts";
@@ -23,6 +24,10 @@ export interface SynthStyle {
   preplaceEvery?: number;
   /** D333: every this-many-th note (counted from 5) landed the wrong way, whatever the seed: a habit that stays. */
   stuckEvery?: number;
+  /** D332: the landing's height scatter (px, a normal spread's standard deviation; default ±3 px uniform). */
+  scatterPx?: number;
+  /** D332: a random tapper: every landing at a random height on the bar (the timing as the others'). */
+  randomY?: boolean;
   seed?: number;
 }
 
@@ -39,6 +44,7 @@ export function synthRun(p: LabPassage, s: SynthStyle): LabLog {
   const rec = new LabRecorder(g, () => clock.t, { app: "synth", at: "2026-10-27T00:00:00.000Z", passage: p, device: { w: 844, h: 390, dpr: 3, ua: "synth", lag: null }, area, rows: { y0, rowH } });
   let seed = s.seed ?? 7;
   const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+  const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-9, (rand() + 1) / 2))) * Math.cos(Math.PI * (rand() + 1));
   const notes = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
   type E = { t: number; k: number; fn: () => void };
   const evs: E[] = [];
@@ -49,7 +55,7 @@ export function synthRun(p: LabPassage, s: SynthStyle): LabLog {
     const wrong = (s.wrongEvery && i % s.wrongEvery === s.wrongEvery - 1 && i > 2) || (s.stuckEvery && i > 4 && (i - 5) % s.stuckEvery === 0);
     const prev = notes[i - 1];
     const dir = prev ? Math.sign(n.step - prev.step) || 1 : 1;
-    const y = rows.yOf(n.step) + (wrong ? dir * 2.2 * 18 : rand() * 3);
+    const y = s.randomY ? 20 + ((rand() + 1) / 2) * (area.h - 40) : rows.yOf(n.step) + (wrong ? dir * 2.2 * 18 : s.scatterPx !== undefined ? gauss() * s.scatterPx : rand() * 3);
     const pre = !!s.preplaceEvery && i > 0 && i % s.preplaceEvery === 0;
     const t0 = pre ? before + 0.005 : g.timeAt(n.on) + rand() * (s.jitter ?? 0.02);
     before = t0;

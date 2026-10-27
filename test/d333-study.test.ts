@@ -143,7 +143,7 @@ test("D333: easier to harder: the first three slow, the last two the fastest", (
 test("D333: the study's configuration is the preset's snapshot, band time fixed, piano, no reading; its name recorded", () => {
   const s = newStudy("WTC test", tempoOf, new Date("2026-10-27T10:00:00Z"));
   const c = configById(STUDY_PRESET)!;
-  assert.equal(STUDY_PRESET, "B");
+  assert.equal(STUDY_PRESET, "B+");
   assert.equal(s.preset.id, c.id);
   assert.equal(s.preset.name, c.name);
   assert.deepEqual(s.mech, { ...configMech(c), bandTime: "fixed" });
@@ -256,7 +256,7 @@ test("D333: the report finds the learning, the habit that stays and the errors t
   const t = takeStats(s.excerpts[1].takes[0], 1);
   assert.equal(t.right + t.wrong + t.missed, t.of);
   const md = studyMarkdown(s);
-  for (const h of ["# WTC study 2026-10-27", "## Overall", "## 1. I/12 · tenor · bars 1–3", "**Persistent errors**", "| **first 3** |", "| **last 3** |", "B · CLEAN STRIKES"]) assert.ok(md.includes(h), h);
+  for (const h of ["# WTC study 2026-10-27", "## Overall", "## 1. I/12 · tenor · bars 1–3", "**Persistent errors**", "| **first 3** |", "| **last 3** |", "B+ · PREPARED"]) assert.ok(md.includes(h), h);
 });
 
 test("D333: tools/lab/study-report.ts prints the markdown and a take; tools/lab/replay.ts --take reads it", () => {
