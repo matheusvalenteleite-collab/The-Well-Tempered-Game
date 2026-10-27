@@ -524,6 +524,14 @@
 .tb-pop-help { min-height: 32px; padding: 6px 12px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-shine); background: none; border: 1px dashed var(--tg-muted); cursor: pointer; }
 .tb-pop-rules { margin: 0; padding: 0 0 0 16px; max-width: 360px; text-align: left; font-family: system-ui, sans-serif; font-size: 13px; line-height: 1.45; color: var(--tg-fg); }
 .tb-pop-rules li { margin: 0 0 6px; }
+/* D314: the reading's marks explained (HOW TO PLAY, HEAR THE SUBJECT): each sign in the colour the box draws it. */
+.tb-pop-marks { display: grid; gap: 4px; justify-items: center; }
+.tb-hear-marks { list-style: none; margin: 4px auto; padding: 0; display: grid; gap: 2px; justify-items: start; width: fit-content; max-width: 100%; }
+.tb-mark { display: inline-block; min-width: 1.2em; text-align: center; font-family: system-ui, sans-serif; font-weight: 700; }
+.tb-mark-short { color: var(--tg-fg); }
+.tb-mark-apart { color: #ec5a4a; }
+.tb-mark-joined { color: var(--tg-gold); }
+.tb-mark-strong { color: #ff8a3d; }
 .tb-grade.tb-failed { font-size: 26px !important; line-height: 1.2; }
 @media (max-width: 500px) { .tb-grade.tb-failed { font-size: 18px !important; } }
 .tb-result.tg-card-low { background: rgba(9, 11, 20, 0.88); } /* D239: the result readable over the busy box (its words ran over the notes). */

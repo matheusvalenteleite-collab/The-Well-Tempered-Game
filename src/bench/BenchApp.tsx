@@ -78,6 +78,8 @@ import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
+/** D314: how long (s, from the start of play) the reading's marks are explained in the box. */
+const LEGEND_S = 6;
 const PICK_KEY = "tb-pick-v2";
 /** D233: ⚙ PLAY ON: AUTO (from the pointer) or a platform chosen. */
 const PLATFORM_KEY = "tb-platform-v1";
@@ -469,7 +471,7 @@ export function BenchApp() {
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : 1;
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
     setPaused(false);
-    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile" } : {}), reading, ...(clock ? { clock } : {}) }, ch);
+    const g = new ProtoGame(f, played, from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile" } : {}), reading, ornHint: !run && !hintSeen.includes("ornament"), ...(clock ? { clock } : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -508,6 +510,9 @@ export function BenchApp() {
         pops: g.pops,
         bursts: g.bursts,
         zone: g.zone,
+        // D314: the ornament's first-time hint as one comes; the reading's marks explained at the start.
+        banner: g.ornHintOn && g.ornamentNear() ? tr("A SIGN OVER A NOTE: TOUCH IT, THEN SHAKE YOUR THUMB") : undefined,
+        legendUntil: from + LEGEND_S * g.tps,
       };
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
       if (AUTO) autoplay(g, auto);
@@ -519,6 +524,8 @@ export function BenchApp() {
         game.current = null;
         paint.current = null;
         const r = g.results();
+        // D314: an ornament shaken: its first-time hint is done.
+        if (r.shakes.hit > 0 && !run) seenId("ornament");
         // D299: every run in BLUETOOTH MODE retunes a tapped delay a little by how late or early its notes were.
         const was = ch.lag;
         const drift = g.bt && was !== null && !lesson ? driftOf(g.btOffsets) : 0;
@@ -678,9 +685,14 @@ export function BenchApp() {
   const hintLine = tr(phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
-    if (APP.lite) setLite(writeLite({ seen: [...lite.seen, proto.id] }));
+    seenId(proto.id);
+  };
+  /** D314: a hint seen for good (a mode's line; "ornament": the first ornament shaken in a piece). */
+  const seenId = (id: string) => {
+    if (hintSeen.includes(id)) return;
+    if (APP.lite) setLite(writeLite({ seen: [...readLite().seen, id] }));
     else {
-      const next = [...benchSeen, proto.id];
+      const next = [...benchSeen, id];
       setBenchSeen(next);
       try {
         localStorage.setItem(HINTS_KEY, JSON.stringify(next));

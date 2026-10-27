@@ -16,6 +16,7 @@
 import type { LaneNote } from "../touch/lanes.ts";
 import type { Play } from "../touch/chip.ts";
 import { markShapes } from "../touch/shape.ts";
+import { strengthOf } from "../touch/touch-expr.ts";
 import type { Side } from "../touch/thumbs.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 
@@ -59,6 +60,8 @@ export interface Options {
   /** D280: the passage played by the game, the thumbs shown (the tutorial's demonstration); or, playing, a guide thumb for each next note. */
   demo?: boolean;
   guide?: boolean;
+  /** D314: the ornament's first-time hint (as THE ORNAMENT lesson teaches it): a guide thumb shaking on the bars as an ornamented note comes, till one is shaken. */
+  ornHint?: boolean;
   /** D272: the reading the fugue is played by (its subject's articulation and level, its dynamic plan). */
   reading?: Reading | null;
 }
@@ -190,6 +193,10 @@ export const levelOf = (d: number) => dynamic(d).level ?? 1;
 
 /** The bars: across a bar, from the box's edge (pp) to the phone's edge (ff). */
 export function barDynamic(x: number, w: number): number {
+  return strengthOf(barAcross(x, w));
+}
+/** D314: where across its bar a touch is, 0 the inner edge (by the box) to 1 the outer (the phone's edge), mirrored for the two bars. */
+export function barAcross(x: number, w: number): number {
   const bw = w * BAR;
   return x < w / 2 ? 1 - Math.max(0, Math.min(1, x / bw)) : Math.max(0, Math.min(1, (x - (w - bw)) / bw));
 }
