@@ -10,7 +10,7 @@ export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
 import { CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 
 /**
@@ -44,6 +44,11 @@ export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTo
  * fugue with its ornaments, the riders and the rings of plucked notes usually reach.
  */
 export const VOICE_CAP = { phone: 32, computer: 64, phoneSustained: 18 };
+/**
+ * D310, SOLO VOICES' passages (chip.ts chainOn): crossfaded over `xf` s; each from a place within the
+ * first `spread` s of the steady stretch, so it lasts at least `least` s; at most `max` of them a note.
+ */
+export const CHAIN = { xf: 0.3, spread: 0.8, least: 1.2, max: 16 };
 /**
  * D249: on a phone, a sustained recorded sound (the organ: 10-16 nodes a note, every note held on its
  * loop) has the lower cap, and ORGANO PLENO's extra pipes count against it, one each.
@@ -879,6 +884,58 @@ export class Chip {
   }
 
   /**
+   * D310, SOLO VOICES (sampled.ts Bake.chain): a note longer than its recording is not looped (D305's
+   * 2 s loop, heard again and again, was the owner's "copy paste") but goes on with passages of the same
+   * recording from places within its steady stretch `chain` that differ each time (a hash of the note's
+   * pitch and time, so a render repeats), each crossfaded into the one before over CHAIN.xf at nearly
+   * constant power (the sine law in four straight pieces), before the one before runs out (its rate
+   * allowing for a bend of 150 cents). Two nodes a passage (a source and its gain), only past the
+   * recording's length (in the fugues 1% of notes outlast 3 s); after CHAIN.max passages the last loops.
+   */
+  private chainOn(first: AudioBufferSourceNode, g0: GainNode, gain: number, r: Loaded, chain: [number, number], t: number, from: number, until: number, midi: number, out: AudioNode, bag: Bag, add: (s: AudioBufferSourceNode) => void) {
+    const ctx = this.ctx;
+    const rate = first.playbackRate.value * 2 ** (150 / 1200);
+    const xf = CHAIN.xf;
+    const curve = [0, 0.383, 0.707, 0.924, 1];
+    const fade = (pr: AudioParam, a: number, up: boolean) => {
+      pr.setValueAtTime(gain * (up ? 0 : 1), a);
+      for (let k = 1; k < curve.length; k++) pr.linearRampToValueAtTime(gain * curve[up ? k : curve.length - 1 - k], a + (xf * k) / (curve.length - 1));
+    };
+    let src = first;
+    let g = g0;
+    let at = t;
+    let pos = from;
+    for (let k = 1; ; k++) {
+      const runsOut = at + (r.onset + chain[1] - pos) / rate;
+      if (runsOut >= until) return;
+      const next = Math.max(at + xf, runsOut - xf);
+      if (k > CHAIN.max) {
+        // (A note held past every passage, e.g. the player's longest hold: the last one loops.)
+        src.loop = true;
+        src.loopStart = r.onset + chain[0];
+        src.loopEnd = r.onset + chain[1];
+        return;
+      }
+      fade(g.gain, next, false);
+      const s = bag.src(ctx.createBufferSource());
+      s.buffer = r.buffer;
+      s.playbackRate.value = first.playbackRate.value;
+      const h = Math.sin(midi * 78.233 + t * 12.9898 + k * 39.425) * 43758.5453;
+      const spread = Math.max(0, chain[1] - chain[0] - CHAIN.least);
+      pos = r.onset + chain[0] + (h - Math.floor(h)) * Math.min(spread, CHAIN.spread);
+      const gn = bag.add(ctx.createGain());
+      fade(gn.gain, next, true);
+      s.connect(gn).connect(out);
+      s.start(next, pos);
+      halt(src, next + xf + 0.02);
+      add(s);
+      src = s;
+      g = gn;
+      at = next;
+    }
+  }
+
+  /**
    * D190: a note on a recorded instrument: the nearest recording, retuned by its playback rate to the
    * tuning's pitch (hz(): every temperament, A = 415), through brightness, the muffle, the envelope and
    * the dynamic. A harpsichord's note dies away by itself; at the written end (or when let go) its
@@ -905,7 +962,8 @@ export class Chip {
       src.buffer = r.buffer;
       src.playbackRate.value = rateFor(set, m, baseHz * mult) * 2 ** ((p.detune ?? 0) / 1200);
       const loop = noteInfo(set, m)?.loop;
-      if (loop && !plucked) {
+      const chain = plucked ? undefined : chainOf(set);
+      if (loop && !plucked && !chain) {
         src.loop = true;
         src.loopStart = r.onset + loop[0];
         src.loopEnd = r.onset + loop[1];
@@ -914,8 +972,10 @@ export class Chip {
       g.gain.value = gain;
       src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack.
-      src.start(t, r.onset + (p.legato && !plucked ? 0.25 : 0));
+      const from = r.onset + (p.legato && !plucked ? 0.25 : 0);
+      src.start(t, from);
       srcs.push({ src, set, m, mult });
+      if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
     };
     play(set, near, rec, 1, 1);
     if (p.pleno) {
