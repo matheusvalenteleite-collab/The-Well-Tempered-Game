@@ -69,6 +69,7 @@ import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
+import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
 import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoBonus, legatoGapMs, releaseVerdict, restAfter } from "./articulation.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
@@ -588,6 +589,21 @@ export class ProtoGame {
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
     this.nextBeat = this.start;
+    // D328, THE LAB's BAND TIME (band-time.ts): the band waits for the player, or follows; never in the game (MECH.bandTime "fixed").
+    if (MECH.bandTime !== "fixed" && !o.wait && !o.her && !this.bt && !o.solo && this.others.length && this.tracks[0]) {
+      const until = o.until ?? f.length;
+      const waits = waitPoints(this.tracks[0].notes, f.cadences ?? [], { from, until, beat: this.beat, barTicks: f.barTicks, endsPiece: until >= f.length });
+      const host = {
+        warp: (t: number) => this.rit.warp(t),
+        unwarp: (w: number) => this.rit.unwarp(w),
+        beat: this.beat,
+        start: this.start,
+        entry: from,
+        pendingAt: (tick: number) => this.tracks[0].notes.every((n) => n.on !== tick || n.state === "pending"),
+        emit: (e: BandEvent) => this.tap?.({ kind: "band", track: 0, ...e }),
+      };
+      this.bandT = new BandTime(MECH.bandTime, host, waits, { t: this.anchorAt, tick: this.start, tps: this.tps });
+    }
     // D250: THE PEDAL (the right hand's game only): its own lane, the figure around it, free at both ends.
     // D252: several, one after another; with both hands each in its own lane of the left thumb's.
     if (spans.length && this.tracks[0]?.voice === 0 && !line && (handsOn || this.tracks.length === 1)) {
@@ -676,8 +692,13 @@ export class ProtoGame {
     return this.proto.id === "highway" || this.proto.id === "subject";
   }
 
+  /** D328, THE LAB: the band's time when it waits for or follows the player (band-time.ts); null: the written clock. */
+  readonly bandT: BandTime | null = null;
+  /** D328: the timestamp of the touch being handled (null within a frame), for when a note was struck. */
+  private evTs: number | null = null;
   /** The clock, with the last cadence held back (phrasing.ts ritard). */
   private tickAt(t: number) {
+    if (this.bandT) return this.rit.unwarp(this.bandT.wAt(t));
     return this.rit.unwarp(this.rit.warp(this.anchorTick) + (t - this.anchorAt) * this.tps);
   }
   /** The tick sounding at a time on the audio clock (D216: KIMIKO paints its road by time). */
@@ -686,6 +707,7 @@ export class ProtoGame {
   }
   /** When a tick sounds, on the audio clock. */
   timeAt(tick: number) {
+    if (this.bandT) return this.bandT.tAtW(this.rit.warp(tick));
     return this.anchorAt + (this.rit.warp(tick) - this.rit.warp(this.anchorTick)) / this.tps;
   }
   private tickOf(ts: number) {
@@ -859,6 +881,8 @@ export class ProtoGame {
     const ch = this.chip;
     // D308: paused: the clock held where it stopped, nothing scheduled, nothing judged.
     if (this.pausedAt !== null) return false;
+    this.evTs = null;
+    this.bandT?.frame(ch.heard());
     this.now = this.tickAt(ch.heard());
     this.slurWaits();
     this.pedalStep();
@@ -886,7 +910,9 @@ export class ProtoGame {
     // D223: what is drawn runs the screen's own delay ahead of the clock as heard (none: the same).
     this.viewNow = ch.visual && !this.o.wait ? this.tickAt(ch.heard() + ch.visual) : this.now;
     // D211: a phone schedules further ahead (a frame held up by the screen or the collector must not leave the others late).
-    const horizon = Math.min(this.tickAt(ch.ctx.currentTime + (isPhone() ? 0.5 : 0.25)), this.end);
+    let horizon = Math.min(this.tickAt(ch.ctx.currentTime + (isPhone() ? 0.5 : 0.25)), this.end);
+    // D328: nothing scheduled past a point where the band may wait for the player (and FOLLOWS: each beat's tempo set as it is reached).
+    if (this.bandT) horizon = this.bandT.plan(horizon, [...this.held.values()].some((h) => !h.wait));
     while (this.nextBeat <= horizon) {
       // Beats gone by while the clock ran unwatched (a hidden tab): not played late in a burst.
       if (this.timeAt(this.nextBeat) < ch.ctx.currentTime - 0.03) {
@@ -928,6 +954,9 @@ export class ProtoGame {
       if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null && !this.bt) continue;
       const sh = this.shapes[this.nextOther - 1];
       // D302: a joined note held over the next one's onset (sh.over), crossfaded into it.
+      // D328: a sound held over a point where the band may wait, scheduled longer, stopped once it is settled.
+      const hx = this.bandT ? this.bandT.crossing(n.on, n.on + n.dur * sh.hold) : -1;
+      const ext = hx >= 0 ? this.bandT!.waitMaxS + 0.25 : 0;
       const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on) + sh.over;
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
       // D213: the subject brighter and crisper, the others duller during an entry; the fugue's effect on the subject.
@@ -945,10 +974,14 @@ export class ProtoGame {
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}) };
-        const sd = ch.note(pmidi, pat, plen, vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
-        if (sd) this.band.push({ sd, until: pat + plen + 0.6 });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0), vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
+        if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
+        if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
-      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len, vv, follow(sh, this.feel))) this.band.push({ sd, until: at + len + 0.8 });
+      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel))) {
+        this.band.push({ sd, until: at + len + ext + 0.8 });
+        if (ext) this.bandT!.hold(hx, sd, n.on + n.dur * sh.hold, sh.over + sh.nudge);
+      }
     }
     if (this.bt) {
       this.arm(horizon);
@@ -1375,6 +1408,7 @@ export class ProtoGame {
 
   down(id: number, c: Contact, ts: number) {
     if (this.pausedAt !== null) return;
+    this.evTs = ts;
     if (this.held.has(id)) this.up(id, ts);
     // D290: the play area's width, for the report (was set only on the road: "screen 1 px").
     this.touchW = c.w;
@@ -1416,6 +1450,7 @@ export class ProtoGame {
   /** A computer key or a MIDI key goes down. */
   keyDown(id: number, k: KeyPress, ts: number) {
     if (this.pausedAt !== null) return;
+    this.evTs = ts;
     // The same key again without its release (lost while the window was away): let the first go.
     if (this.held.has(id)) this.up(id, ts);
     if (this.pedalTake(id, keyPlace(k.code ?? "")?.col ?? -1)) return;
@@ -1632,6 +1667,7 @@ export class ProtoGame {
   }
 
   move(id: number, c: Contact, ts: number) {
+    this.evTs = ts;
     const h = this.held.get(id);
     if (!h) return;
     // The thumb is the one that went down (D184: slides were all judged as the left's).
@@ -2059,6 +2095,7 @@ export class ProtoGame {
    * edge gesture, a sixth finger): its sound stops, but it is no release, so its end is not judged.
    */
   up(id: number, ts: number, cancelled = false) {
+    this.evTs = ts;
     if (this.pedalLeave(id, ts)) return;
     const h = this.held.get(id);
     if (!h) return;
@@ -2251,6 +2288,8 @@ export class ProtoGame {
     this.marks.push({ tick: this.now, step: v.ok || v.wrong === undefined ? n.step : stepNear(v.wrong, n), ok: v.ok });
     if (this.marks.length > 400) this.marks.splice(0, 100);
     // D317: the verdict told to the lab, with why (LADDER's height, the join).
+    // D328: the band told when the player struck (a wait ends; FOLLOWS: the lateness relative to the band).
+    if (this.bandT && !slide) this.bandT.struck(n.on, this.evTs !== null ? this.chip.heard() - (this.wall() - this.evTs) / 1000 : this.chip.heard(), v.ok);
     const tapNote = (ok: boolean, perfect: boolean, offMs: number) =>
       this.tap?.({ kind: "note", tick: n.at ?? this.now, track: h.k, i, midi: n.midi, side: h.side, ok, why: v.why, wrongMidi: v.wrong, offMs, perfect, slide, lane: v.lane, ladder: slide ? undefined : this.ladderWhy, legato: slide && !lw.drag ? undefined : lw });
     if (!v.ok) {
@@ -3175,6 +3214,7 @@ export class ProtoGame {
     this.anchorTick = from;
     this.anchorAt = this.chip.ctx.currentTime + 0.15;
     this.nextBeat = from;
+    this.bandT?.reset(this.anchorAt, from);
     this.now = this.tickAt(this.chip.heard());
     const firstAt = <T extends { on: number }>(xs: T[]) => {
       const i = xs.findIndex((n) => n.on >= grid);

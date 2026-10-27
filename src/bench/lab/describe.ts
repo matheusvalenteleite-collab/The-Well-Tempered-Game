@@ -91,5 +91,15 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} ⌒ TAKEN OVER: ${thumb(e.side)} landed on the note the other thumb had just taken (its drift's slide, or landing early): this one plays it`];
     case "release":
       return [`${at} ${e.word} · held ${Math.round(e.heldMs)} of ${Math.round(e.lenMs)} ms`];
+    case "band":
+      return [bandLine(at, e)];
   }
+}
+
+const WAIT_AT = { cadence: "at the cadence", final: "at the final chord", breath: "after your breath" } as const;
+/** D328: "b11.1 ⏸ BAND WAITED 230 ms at the cadence", "b12.3 ♩ BAND TEMPO 97% (60 ms behind the written time)". */
+export function bandLine(at: string, e: Extract<LabEvent, { kind: "band" }>): string {
+  if (e.what === "wait") return `${at} ⏸ BAND WAITED ${Math.round(e.ms)} ms ${WAIT_AT[e.at]}${e.expired ? " (the most: went on without you)" : ""}`;
+  const d = Math.round(e.driftMs);
+  return `${at} ♩ BAND TEMPO ${e.pct}%${Math.abs(d) >= 5 ? ` (${Math.abs(d)} ms ${d > 0 ? "behind" : "ahead of"} the written time)` : ""}`;
 }

@@ -450,7 +450,7 @@ export function LabApp() {
       },
       onEvent,
     );
-    feed.current.push(`— ${pieceLabel(ff)} · ${ff.voiceNames[s.voice]} · bars ${s.fromBar}–${s.toBar} · ♩ ${Math.round(bpm)} (${s.tempoPct}%)${passage.bt ? " · BLUETOOTH" : ""}${s.wait ? " · WAITING" : ""}${Object.keys(mechChanges()).length ? ` · ${Object.keys(mechChanges()).length} parameters changed` : ""}`);
+    feed.current.push(`— ${pieceLabel(ff)} · ${ff.voiceNames[s.voice]} · bars ${s.fromBar}–${s.toBar} · ♩ ${Math.round(bpm)} (${s.tempoPct}%)${passage.bt ? " · BLUETOOTH" : ""}${s.wait ? " · WAITING" : ""}${MECH.bandTime !== "fixed" ? ` · BAND ${MECH.bandTime.toUpperCase()}${g.bandT ? "" : " (off here)"}` : ""}${Object.keys(mechChanges()).length ? ` · ${Object.keys(mechChanges()).length} parameters changed` : ""}`);
     setFeedTick((n) => n + 1);
     paint.current = (ctx, w, h) => {
       g.view(() => paintProto(ctx, w, h, g, marks.subject));
@@ -899,7 +899,7 @@ export function LabApp() {
           {note && <p className="lab-note">{note}</p>}
           <div className="lab-body">
             {panel === "passage" && (
-              <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} drag={<DragSeg change={changeMech} />} />
+              <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} drag={<><DragSeg change={changeMech} /><BandSeg change={changeMech} /></>} />
             )}
             {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} drag={<DragSeg change={changeMech} />} />}
             {panel === "table" && (
@@ -1081,6 +1081,18 @@ function Seg<T extends string>({ id, label, value, options, set }: { id: string;
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** D328: the band's time, here as in MECHANICS › BAND TIME (the game's: FIXED). */
+function BandSeg({ change }: { change: (v: Partial<Record<MechKey, unknown>>) => void }) {
+  return (
+    <div className="lab-field">
+      <Seg id="lab-band-time" label="Band time" value={MECH.bandTime} options={[["fixed", "FIXED (THE GAME'S)"], ["waits", "WAITS"], ["follows", "FOLLOWS"]]} set={(v) => change({ bandTime: v })} />
+      <span className="lab-dim">
+        WAITS: at a cadence, the final chord and after your breath (a lift at a rest) the band holds until your next note, up to {MECH.bandWaitMaxMs} ms. FOLLOWS: that, and its tempo follows yours, at most ±{MECH.bandBoundPct}%, pulled back past {MECH.bandDriftMaxMs} ms of drift. Not with BLUETOOTH MODE or WAIT FOR ME (MECHANICS › BAND TIME has the rest).
+      </span>
     </div>
   );
 }
@@ -1300,6 +1312,7 @@ function HelpTab() {
       <p>MECHANICS: every timing window, the legato gap, the slide threshold, the LADDER distances (in rows: one row is the height of one step in the box), ornaments, expression and what happens when the phone cancels a touch. RESET TO GAME DEFAULTS puts everything back. The game itself (play.html) is never changed by the lab.</p>
       <h3>Drags (try: CONNECT)</h3>
       <p>A drag is a held thumb slid on to the next note. In the game it only joins (no bonus, the legato chain broken). CONNECT (in FREE PLAY, PASSAGE or MECHANICS › DRAG) gives it a meaning per instrument: voices, synths and chips glide, the pitch following your thumb; harpsichord, piano and organ play the passing note when you drag across a third (coulé) and the Schleifer (two quick notes from a third below) when you drag up into a note. In a passage it then counts as joined for the chain, but earns nothing more. Each one is a "↝ DRAG:" line.</p>
+      <p>BAND TIME (PASSAGE, or MECHANICS › BAND TIME) is a prototype: should the band follow you in time? FIXED is the game's. WAITS keeps the pulse but holds the band at a cadence, the final chord and after your breath (a lift at a rest) until your next note, at most a set time; each is a "⏸ BAND WAITED" line. FOLLOWS also lets the band's tempo follow your notes, a few per cent at most, changed only at a beat, and pulled back to the written tempo before it drifts far; each change is a "♩ BAND TEMPO" line. Your timing is judged against where the band is.</p>
       <h3>Sensor: how hard you tap</h3>
       <p>SENSOR: START SENSOR (allow motion access when asked), then LEARN: ten soft taps, ten hard taps on the pad, and PRESS AND FLATTEN (hold, flatten the thumb, lift). It shows how well soft and hard separate by the contact's size and by the motion sensor's spike. Do it held as you play, then with the phone on a table. COPY SENSOR LOG and paste it to the developer. PLAY WITH IT makes FREE PLAY's attacks follow your tap (by contact size or by the motion sensor).</p>
       <h3>Free play</h3>
