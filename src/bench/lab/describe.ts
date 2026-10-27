@@ -24,7 +24,7 @@ export function ladderLine(w: LadderWhy | undefined): string {
   else if (w.rule === "step") rule = `≤ ${px(w.needPx ?? 0)} the wrong way allowed`;
   else if (w.rule === "leap") rule = `needs ≥ ${px(w.needPx ?? 0)} ${w.steps! > 0 ? "up" : "down"}`;
   else if (w.rule === "edge") rule = "at the bar's end: may stay";
-  let s = `${way(moved)} ${moved ? px(moved) + " " : ""}from its last touch (${tune}; ${rule})`;
+  let s = `${way(moved)} ${moved ? px(moved) + " " : ""}from ${w.ref === "held" ? "the note the other thumb holds" : "its last touch"} (${tune}; ${rule})`;
   if (w.travel) {
     const up = w.travel.steps > 0 ? "up" : "down";
     s += ` · line travel: the tune ${up} ${interval(w.travel.steps)} from an earlier touch, the thumb ${way(w.travel.movedPx)} ${px(w.travel.movedPx)} (needs ≥ ${px(w.travel.needPx)} ${up})${w.travel.ok ? "" : " ✕"}`;
@@ -77,6 +77,10 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} ~ SHAKE: ${e.ornament}${e.free ? " (free ornament)" : " ✓"}`];
     case "cancel":
       return [`${at} ! IOS CANCEL · ${thumb(e.side)} · ${e.mode === "lift" ? "judged as a lift" : e.ringsOn ? "rings on (another thumb down)" : "stopped there"}`];
+    case "wait":
+      return [`${at} … SLUR: ${thumb(e.side)} down ${Math.round(e.earlyMs)} ms early, waits for its note while the other holds`];
+    case "takeover":
+      return [`${at} ⌒ TAKEN OVER: ${thumb(e.side)} landed on the note the other thumb had just taken (its drift's slide, or landing early): this one plays it`];
     case "release":
       return [`${at} ${e.word} · held ${Math.round(e.heldMs)} of ${Math.round(e.lenMs)} ms`];
   }
