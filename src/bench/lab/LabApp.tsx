@@ -45,6 +45,8 @@ import { BreathPlay } from "./breath.ts";
 import { BreathTab, loadBreath, micProblem, openBreathMic } from "./breath-tab.tsx";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 import { CONFIGS, DEFAULT_CONFIG, configById, configEdits, configLabel } from "./presets.ts";
+import { StudyCard, StudyTab, useStudy, type StudyHost } from "./StudyTab.tsx";
+import { holdSettings, releaseSettings, STUDY_SOUND } from "./study.ts";
 
 const STORE = "tb-lab-v1";
 const RUNS = "tb-lab-runs-v1";
@@ -193,7 +195,7 @@ interface Saved {
   log: LabLog;
 }
 
-type Tab = "passage" | "free" | "breath" | "table" | "drills" | "mechanics" | "sensor" | "see" | "runs" | "help";
+type Tab = "passage" | "free" | "breath" | "table" | "drills" | "mechanics" | "sensor" | "see" | "runs" | "study" | "help";
 
 interface Trace {
   id: number;
@@ -208,6 +210,8 @@ interface Trace {
 export function LabApp() {
   const [platform] = useState(detectedPlatform);
   const [setup, setSetupRaw] = useState<Setup>(() => {
+    // D333: the page closed during a STUDY session: the owner's settings put back first.
+    releaseSettings();
     const st = load<Partial<Setup> & { mech?: Record<string, unknown> }>(STORE, {});
     if (st.mech) setMech(st.mech);
     return sane(st, platform);
@@ -436,7 +440,7 @@ export function LabApp() {
   };
 
   // The run under way.
-  const run = useRef<{ g: ProtoGame; rec: LabRecorder; raf: number } | null>(null);
+  const run = useRef<{ g: ProtoGame; rec: LabRecorder; raf: number; study?: { listen: boolean } } | null>(null);
   const count = useRef<HTMLDivElement>(null);
   const stopRun = (keep: boolean) => {
     const r = run.current;
@@ -446,10 +450,15 @@ export function LabApp() {
     run.current = null;
     paint.current = idlePaint;
     if (count.current) count.current.textContent = "";
-    if (keep) finishRun(r.rec, true);
+    if (keep) finishRun(r.rec, true, r.study);
   };
-  const finishRun = (rec: LabRecorder, stopped = false) => {
+  const finishRun = (rec: LabRecorder, stopped = false, forStudy?: { listen: boolean }) => {
     const log = rec.finish(stopped);
+    // D333: a STUDY take (or its HEAR IT FIRST) goes to the study, not to RUNS.
+    if (forStudy) {
+      if (!stopped) studyRef.current.ended(log, forStudy.listen);
+      return;
+    }
     // D321: the sensor session (if any taps were measured) travels with the run's log.
     if (hub.current.taps.length) log.sensor = hub.current.export();
     const t = tally(log.verdicts);
@@ -459,7 +468,7 @@ export function LabApp() {
     // D320: every run kept on the device by itself, the newest 20 (the oldest overwritten).
     keep(log);
   };
-  const begin = () => {
+  const begin = (forStudy?: { listen: boolean }) => {
     stopRun(false);
     stopFree();
     const ch = ensureChip();
@@ -467,7 +476,7 @@ export function LabApp() {
     const ff = fugueById(s.piece);
     const pp = protoById(s.proto);
     const passage: LabPassage = { piece: s.piece, voice: s.voice, fromBar: s.fromBar, toBar: s.toBar, bpm, tempoPct: s.tempoPct, proto: s.proto, wait: s.wait, bt: btOn(s.bt, ch.lag, latencyOf(ch.ctx)), reading: s.reading || null, sound, loop: s.loop, ...(s.drill ? { drill: s.drill } : {}) };
-    const g = labGame(passage, ch);
+    const g = labGame(passage, ch, forStudy?.listen ? { demo: true } : undefined);
     const area = document.querySelector(".tg-play")?.getBoundingClientRect();
     const br = pp.layout === "bars" ? boxRows(g.now) : null;
     if (br) g.rows = br.rows;
@@ -493,7 +502,7 @@ export function LabApp() {
       drawTraces(ctx);
     };
     const b = beatOf(ff);
-    const r = { g, rec, raf: 0 };
+    const r = { g, rec, raf: 0, study: forStudy };
     run.current = r;
     // For checks driven from outside (a browser test): the run under way.
     (globalThis as { __lab?: unknown }).__lab = r;
@@ -532,8 +541,8 @@ export function LabApp() {
         run.current = null;
         paint.current = idlePaint;
         if (count.current) count.current.textContent = "";
-        finishRun(rec);
-        if (setupRef.current.loop && !setupRef.current.wait) begin();
+        finishRun(rec, false, forStudy);
+        if (!forStudy && setupRef.current.loop && !setupRef.current.wait) begin();
         else setPlaying(false);
         return;
       }
@@ -660,7 +669,7 @@ export function LabApp() {
     };
     setPlaying(true);
   };
-  const start = (mode: Setup["mode"] = setupRef.current.mode) => {
+  const start = (mode: Setup["mode"] = setupRef.current.mode, forStudy?: { listen: boolean }) => {
     stopBreath();
     const ch = ensureChip();
     setPanel(null);
@@ -681,7 +690,7 @@ export function LabApp() {
       return;
     }
     const go = () => {
-      void ch.prepare(f.voices.flat().map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin());
+      void ch.prepare(f.voices.flat().map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin(forStudy));
     };
     if (ch.ctx.state === "running") return go();
     ch.resume()
@@ -689,6 +698,8 @@ export function LabApp() {
       .catch(() => setNote("The sound is still off: tap START once more."));
   };
   const stop = () => {
+    // D333: during a STUDY, STOP (and Escape) pause it: the take under way is discarded.
+    if (studyRef.current.active) return studyRef.current.pause();
     stopRun(true);
     stopFree();
     stopBreath();
@@ -702,6 +713,43 @@ export function LabApp() {
     },
     [],
   );
+
+  // D333, STUDY (StudyTab.tsx): its settings applied in memory (the owner's put back after), each take a run.
+  const [studyGo, setStudyGo] = useState<{ listen: boolean } | null>(null);
+  const studyHost: StudyHost = {
+    unlock: () => void ensureChip(),
+    play: (it, mech, presetId, listen) => {
+      holdSettings([STORE, CONFIG]);
+      resetMech();
+      setMech(mech);
+      setMechTick((n) => n + 1);
+      configRef.current = presetId;
+      setConfig(presetId);
+      setSetupRaw((cur) => sane({ ...cur, piece: it.piece, voice: it.voice, fromBar: it.fromBar, toBar: it.toBar, tempoPct: 100, proto: "ladder", wait: false, bt: "off", reading: "", sound: STUDY_SOUND, loop: false, drill: undefined, mode: "passage" }, platform));
+      setStudyGo({ listen });
+    },
+    halt: () => {
+      stopRun(false);
+      setPlaying(false);
+    },
+    restore: () => {
+      if (!releaseSettings()) return;
+      const st = load<Partial<Setup> & { mech?: Record<string, unknown> }>(STORE, {});
+      resetMech();
+      if (st.mech) setMech(st.mech);
+      setSetupRaw(sane(st, platform));
+      const id = load<string>(CONFIG, DEFAULT_CONFIG);
+      setConfig(configById(id) ? id : DEFAULT_CONFIG);
+      setMechTick((n) => n + 1);
+    },
+    show: (open) => setPanel(open ? "study" : null),
+  };
+  const study = useStudy(studyHost, VERSION, tempoOf);
+  const studyRef = useRef(study);
+  studyRef.current = study;
+  useEffect(() => {
+    if (studyGo) start("passage", studyGo);
+  }, [studyGo]);
 
   // Touches: recorded and handed to the game; their traces kept.
   const events: ThumbEvents = {
@@ -863,7 +911,7 @@ export function LabApp() {
                 {barLine}
               </span>
             ) : (
-              <span className="tg-hud-title">{hudTitle}</span>
+              <span className="tg-hud-title">{study.active ? `STUDY · ${study.progress}` : hudTitle}</span>
             )}
             {/* D322: the stops for the voice played (kept per piece, as in the game). */}
             {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} />}
@@ -872,8 +920,8 @@ export function LabApp() {
                 {changed} CHANGED
               </button>
             )}
-            <button type="button" id="lab-go" className="lab-hud-btn" onClick={playing ? stop : () => start()}>
-              {playing ? "■ STOP" : "▶ START"}
+            <button type="button" id="lab-go" className="lab-hud-btn" onClick={study.active ? study.pause : playing ? stop : () => start()}>
+              {study.active ? "❚❚ PAUSE" : playing ? "■ STOP" : "▶ START"}
             </button>
             <button type="button" id="lab-open" className="lab-hud-btn" onClick={() => setPanel(panel ? null : "passage")}>
               LAB
@@ -888,6 +936,7 @@ export function LabApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
+        <StudyCard st={study} />
         {setup.feed && (freeOn || breathOn) && shown.length > 0 && (
           <div className="lab-feed" aria-live="polite">
             {shown.map((l, i) => (
@@ -916,12 +965,12 @@ export function LabApp() {
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {(["passage", "free", "breath", "table", "drills", "mechanics", "sensor", "see", "runs", "help"] as Tab[]).map((t) => (
+            {(["passage", "free", "breath", "table", "drills", "mechanics", "sensor", "see", "runs", "study", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
                 {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}
               </button>
             ))}
-            {panel === "breath" ? (
+            {panel === "study" ? null : panel === "breath" ? (
               <button type="button" className="lab-start" id="lab-start" onClick={() => void startBreath()}>
                 ▶ PLAY BREATH
               </button>
@@ -1085,6 +1134,7 @@ export function LabApp() {
                 </div>
               </div>
             )}
+            {panel === "study" && <StudyTab st={study} />}
             {panel === "help" && <HelpTab />}
           </div>
         </div>
@@ -1431,6 +1481,8 @@ function HelpTab() {
       <h3>Free play</h3>
       <p>FREE PLAY: no music to follow; the two bars play the sound chosen, the pitch the row under your thumb (the piece's key or every semitone, one to three octaves round the voice's range). Everything works as in the game: where you land across the bar, moving sideways while holding, sliding to another row, shaking into a mordent or a trill, landing while the other thumb holds to join. Each event is a line over the box. A metronome click if you want one. MECHANICS applies.</p>
       <p>KEYBOARD (Notes › KEYBOARD): a piano stood on end on each bar, mirrored, black keys toward the box, white keys running the whole bar. WHITE KEYS: IN THE KEY makes white the seven notes the voice plays most (in G♯ minor almost everything would be black on a piano), PIANO a real piano's. The sliders set the inner zone's width, the black keys' height and how much their tips taper (a touch near a tip is decided by where it is both across and along). Across picks the key here, so it shapes no attack.</p>
+      <h3>Study: ten excerpts, ten times each</h3>
+      <p>STUDY (D333): ten short excerpts from the fugues, each played ten times in a row, so the developer can see what you learn, what stays hard and which mistakes come back. START STUDY; before each excerpt a screen says what it tests, with ▶ PLAY and HEAR IT FIRST (the excerpt played once by itself, not counted). Each take starts after the count-in; the next starts by itself 2 s later, after its tally. ❚❚ PAUSE (top right) at any moment: the take stopped is played again. One setting for everything (preset B, piano, no reading marks, band time fixed, the game's tempo); your own settings come back afterwards. It is saved on the phone after every take, so you can stop and go on another day. SAVE FILE sends the whole study as one file (wtc-study-date.json) to upload to the developer; COPY copies it as text.</p>
       <h3>5 · Share and replay</h3>
       <p>RUNS: every run is recorded (your touches with their exact times, the settings, your phone's screen and sound delay, and every verdict). COPY LOG or SHARE sends it (paste it in a message to the developer). Each run is kept on this phone by itself (the newest 20; the oldest is overwritten). REPLAY plays a run again through the game with the current MECHANICS, without sound, and says what would have changed: for example, "with Legato gap 120 ms: 7 more joined, 2 fewer wrong".</p>
       <h3>For the developer</h3>
