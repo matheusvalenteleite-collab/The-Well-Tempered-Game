@@ -21,6 +21,8 @@ export interface SynthStyle {
   strayEvery?: number;
   /** D329: every this-many-th note landed with the note before's strike (a thumb resting early on its note). */
   preplaceEvery?: number;
+  /** D333: every this-many-th note (counted from 5) landed the wrong way, whatever the seed: a habit that stays. */
+  stuckEvery?: number;
   seed?: number;
 }
 
@@ -44,7 +46,7 @@ export function synthRun(p: LabPassage, s: SynthStyle): LabLog {
   notes.forEach((n, i) => {
     const side = i % 2 ? "right" : "left";
     const x = side === "left" ? 40 : 804;
-    const wrong = s.wrongEvery && i % s.wrongEvery === s.wrongEvery - 1 && i > 2;
+    const wrong = (s.wrongEvery && i % s.wrongEvery === s.wrongEvery - 1 && i > 2) || (s.stuckEvery && i > 4 && (i - 5) % s.stuckEvery === 0);
     const prev = notes[i - 1];
     const dir = prev ? Math.sign(n.step - prev.step) || 1 : 1;
     const y = rows.yOf(n.step) + (wrong ? dir * 2.2 * 18 : rand() * 3);
