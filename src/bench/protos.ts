@@ -8,7 +8,7 @@
  *   LADDER: sideways, the music box between two side bars; the bars' heights are the box's rows (the
  *     voice's range filling the box), so a note is touched at the height it is drawn, either bar; a
  *     glow runs from the coming note across to the bars. Across a bar: the middle mf, towards the
- *     phone's edge forte, towards the box piano.
+ *     strong side forte, towards the soft side piano (touch-expr.ts STRONG_SIDE: D315, the box's side strong).
  *   (FINGERING and SIDEWAYS were withdrawn in D208; TWO VOICES, mobile HIGHWAY and KIMIKO as a mode in D219.)
  *   MIDI CONTROLLER (D233; was PIANO): a MIDI keyboard, the key exactly; offered only while one is connected.
  * Pure: moves and gestures in, verdicts out.
@@ -191,7 +191,7 @@ export function dynamic(d: number): Play {
 /** The level a dynamic gives (for a swell while a note sounds). */
 export const levelOf = (d: number) => dynamic(d).level ?? 1;
 
-/** The bars: across a bar, from the box's edge (pp) to the phone's edge (ff). */
+/** The bars: across a bar, from the soft side (pp) to the strong (ff): D314, by STRONG_SIDE (D315: the box's side strong). */
 export function barDynamic(x: number, w: number): number {
   return strengthOf(barAcross(x, w));
 }
@@ -201,7 +201,7 @@ export function barAcross(x: number, w: number): number {
   return x < w / 2 ? 1 - Math.max(0, Math.min(1, x / bw)) : Math.max(0, Math.min(1, (x - (w - bw)) / bw));
 }
 
-/** The marks along a bar, from the box's edge outwards. */
+/** The marks along a bar, from the soft side to the strong. */
 export const MARKS = ["pp", "p", "mf", "f", "ff"];
 
 /** THUMBS: the right thumb up, the left down (steps and thirds); leaps and repeats either. The wrong thumb asks for the mirror of the move. */

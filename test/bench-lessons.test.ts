@@ -6,6 +6,7 @@ import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { BAR, KEY_ROWS, protoById } from "../src/bench/protos.ts";
 import { readingsOf } from "../src/touch/readings.ts";
+import { strengthOf } from "../src/touch/touch-expr.ts";
 import { CANDIDATES, EXAM, LESSONS, MOBILE_LESSONS, passed, TRACKS, TUTORIAL_LESSONS, type Lesson } from "../src/bench/lessons.ts";
 import { answer, askFirst, nextLesson, OLD_LESSONS_KEY, readTutorial, recordLesson, trackState, TUTORIAL_KEY } from "../src/bench/tutorial.ts";
 import { CARDS, TESTBENCH } from "../src/bench/cards.ts";
@@ -195,7 +196,9 @@ function playTutorial(l: Lesson, o: { oneThumb?: boolean; detached?: boolean; fl
     if (n.ride || (i > 0 && notes[i - 1].on === n.on)) continue;
     runTo(g.timeAt(n.on));
     const loud = !o.flat && n.on >= g.f.barTicks;
-    const xOn = (sd: "left" | "right") => (sd === "left" ? (loud ? 0.1 : 0.8) * bw : W - bw + (loud ? 0.9 : 0.2) * bw);
+    // D314/D315: loud on the strong side, wherever STRONG_SIDE puts it (strengthOf: the place of a strength).
+    const across = strengthOf(loud ? 0.9 : 0.2);
+    const xOn = (sd: "left" | "right") => (sd === "left" ? (1 - across) * bw : W - bw + across * bw);
     if (slide && held && n.step > held.step) {
       // D289: a slide follows the notes: the thumb moved to the next note's height.
       held.y = ROWS.yOf(n.step);

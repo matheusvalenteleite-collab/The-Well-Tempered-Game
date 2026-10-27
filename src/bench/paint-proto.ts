@@ -5,7 +5,7 @@
  *     height it is drawn, a trail from it in the box, the way to go from your last touch (▲ ▼ =), and
  *     a mark where you last played; only the Cs named, for bearings.
  *     THUMBS lights the bar wanted; TWO VOICES each bar for its voice (1P, 2P). The dynamics are
- *     marked along the bars' feet, pp by the box to ff by the phone's edge.
+ *     marked along the bars' feet, pp on the soft side to ff on the strong (touch-expr.ts STRONG_SIDE).
  *   PIANO: paint-piano.ts.
  * The verdict of the last touch flashes over the field.
  */
@@ -951,7 +951,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.fillStyle = t.barline;
       c.fillRect(n ? s.x : bw - 2, 0, 2, h);
     }
-    // The dynamics along the foot, pp by the box to ff by the edge (D296: only where touch dynamics are heard, D293).
+    // The dynamics along the foot, pp on the soft side to ff on the strong (STRONG_SIDE; D296: only where touch dynamics are heard, D293).
     if (g.touchDynamics) MARKS.forEach((m, j) => {
       const u = strengthOf((j + 0.5) / MARKS.length);
       label(c, m, n ? s.x + u * bw : bw - u * bw, h - 9, t.muted, 6);
@@ -1068,11 +1068,11 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     }
   }
   for (const s of g.heldSides()) {
-    // D311: the held thumb's glow a little stronger toward the edge (firmer, brighter: the across value), and
+    // D311: the held thumb's glow a little stronger toward the strong side (firmer, brighter; D315: by STRONG_SIDE), and
     // a small mark where it is across the bar; a hairline back to where it landed once it has moved (the sustain).
     const a = s.across;
     c.fillStyle = t.shine;
-    c.globalAlpha = a === undefined ? 0.3 : 0.2 + 0.2 * a;
+    c.globalAlpha = a === undefined ? 0.3 : 0.2 + 0.2 * strengthOf(a);
     c.fillRect(s.side === "left" ? 0 : w - bw, s.y - 14, bw, 28);
     if (a !== undefined && s.land !== undefined) {
       const xOf = (u: number) => (s.side === "left" ? bw * (1 - u) : w - bw + bw * u);
@@ -1157,7 +1157,7 @@ function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: numbe
   label(c, word ?? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB"), side === "left" ? bw / 2 : w - bw / 2, y + th / 2 + 12, t.shine, 6);
 }
 
-/** D271: the part of both bars asked for: soft by the box in the first bar, loud by the edge in the second. */
+/** D271: the part of both bars asked for: soft in the first bar, loud in the second (D314/D315: on the sides STRONG_SIDE gives). */
 function dynamicsCoach(c: CanvasRenderingContext2D, w: number, h: number, bw: number, soft: boolean, t: Tok) {
   const zw = bw * 0.45;
   // D314: the strong side may be the inner one (STRONG_SIDE): the zones swap with it.

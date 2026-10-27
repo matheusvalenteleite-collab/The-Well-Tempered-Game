@@ -164,8 +164,8 @@ interface Held {
   /** D280: where across its bar it touches (0..1 of the touch area's width), for the thumbs drawn. */
   across?: number;
   /**
-   * D311: where across its bar it landed, 0 the inner edge (by the box) to 1 the outer, mirrored per bar
-   * (protos.ts barDynamic): the note's attack (touch-expr.ts); its sideways travel from there, the sustain.
+   * D311: where across its bar it landed, as strength (0 soft, 1 strong: D314/D315, the strong side by
+   * STRONG_SIDE), mirrored per bar (protos.ts barDynamic): the note's attack (touch-expr.ts); its sideways travel from there, the sustain.
    */
   land?: number;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
@@ -1011,7 +1011,8 @@ export class ProtoGame {
       const W = 1000;
       const H = 400;
       const bw = W * BAR;
-      const xOf = (side: Side, d: number) => (side === "left" ? bw * (1 - acrossBar(d)) : W - bw + bw * acrossBar(d));
+      // D315: a loudness's place across follows the strong side (STRONG_SIDE: by the box now), as the bars read it.
+      const xOf = (side: Side, d: number) => (side === "left" ? bw * (1 - strengthOf(acrossBar(d))) : W - bw + bw * strengthOf(acrossBar(d)));
       const q: { tick: number; act: () => void }[] = [];
       let parent = -1;
       let y = 0;
@@ -1066,7 +1067,7 @@ export class ProtoGame {
     return undefined;
   }
 
-  /** D311: where across its bar a touch is, 0 the inner edge to 1 the outer (the bars only; elsewhere the middle). */
+  /** D311: where across its bar a touch is, as strength, 0 the soft side to 1 the strong (D314: STRONG_SIDE; the bars only; elsewhere the middle). */
   landAt(c: Contact): number {
     return this.proto.layout === "bars" ? barDynamic(c.x, c.w) : TOUCH_NEUTRAL;
   }

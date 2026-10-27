@@ -24,6 +24,8 @@ import {
   PIANO_DB,
   PIANO_SOFT_NET_DB,
   pulseWidth,
+  STRONG_SIDE,
+  strengthOf,
   TOUCH_KINDS,
   TOUCH_TAU,
   VIB_CENTS,
@@ -113,11 +115,15 @@ test("D311: the landing's numbers at the extremes, the middle the sound as it wa
     const net = db(l.level!) + (l.layer === "soft" ? PIANO_SOFT_NET_DB : 0);
     assert.ok(net >= -PIANO_DB - 1e-9 && net <= PIANO_DB + 1e-9, `piano ${x}: ${net.toFixed(2)} dB`);
   }
-  // HARPSICHORD: no loudness; the lute only at the edge.
-  assert.deepEqual(landing("harpsichord", 0.6, 64, PATCHES.harpsiSampled), {});
-  const lute = landing("harpsichord", 1, 64, PATCHES.harpsiSampled);
+  // HARPSICHORD: no loudness; the lute only at the outer edge (D315: a place, whichever side is strong;
+  // landing takes strength, strengthOf the place's).
+  assert.deepEqual(landing("harpsichord", strengthOf(0.6), 64, PATCHES.harpsiSampled), {});
+  assert.deepEqual(landing("harpsichord", strengthOf(0), 64, PATCHES.harpsiSampled), {});
+  const lute = landing("harpsichord", strengthOf(1), 64, PATCHES.harpsiSampled);
   assert.ok(lute.lute && lute.level === undefined && Math.round(lute.lp!) === 1200);
-  assert.equal(Math.round(landing("harpsichord", LUTE_FROM, 64, PATCHES.harpsiSampled).lp!), 2000);
+  assert.equal(Math.round(landing("harpsichord", strengthOf(LUTE_FROM), 64, PATCHES.harpsiSampled).lp!), 2000);
+  // D315: with the strong side by the box, the lute is on the soft side.
+  if (STRONG_SIDE === "inner") assert.ok(landing("harpsichord", 0, 64, PATCHES.harpsiSampled).lute && !landing("harpsichord", 1, 64, PATCHES.harpsiSampled).lute);
   // PIPE ORGAN: the echo manual toward the box.
   assert.equal(landing("organ", 0.1, 64, PATCHES.orgFlute).level, ECHO_GAIN);
   assert.deepEqual(landing("organ", 0.5, 64, PATCHES.orgFlute), {});
@@ -148,9 +154,10 @@ test("D311: PIANO (SAMPLED): soft to firm 8 dB edge to edge on the two recording
   assert.equal(events(firm), n0, "nothing moves");
 });
 
-test("D311: HARPSICHORD: the lute stop at the edge (a lowpass 2 to 1.2 kHz, a short ring), no loudness; the inner part plain", async () => {
-  const plain = await strike("harpsichordSampled", { touch: 0.2 });
-  const lute = await strike("harpsichordSampled", { touch: 1 });
+test("D311: HARPSICHORD: the lute stop at the outer edge (a lowpass 2 to 1.2 kHz, a short ring), no loudness; the inner part plain", async () => {
+  // D315: touch is strength; the places (inner 0.2, the outer edge) through strengthOf, whichever side is strong.
+  const plain = await strike("harpsichordSampled", { touch: strengthOf(0.2) });
+  const lute = await strike("harpsichordSampled", { touch: strengthOf(1) });
   assert.ok(Math.abs(db(lute.peak) - db(plain.peak)) < 0.1, "no loudness of touch");
   assert.ok(lowpasses(lute).some((f) => Math.round(f) === 1200));
   assert.ok(!lowpasses(plain).some((f) => f < 5000), "the plain 8': no lowpass of the touch");
@@ -327,7 +334,9 @@ function run(xOf: (i: number, side: "left" | "right") => number, wrongEvery = 0,
     const c = { side, x, y: ROWS.yOf(n.step) + (wrongEvery && i % wrongEvery === wrongEvery - 1 ? 4 * RH : 0), w: W, h: 390 } as const;
     lands.push(barDynamic(x, W));
     g.down(i + 1, c, performance.now());
-    g.move(i + 1, { ...c, x: side === "left" ? x - 20 : x + 20 }, performance.now());
+    // D315: 20 px toward the strong side (STRONG_SIDE): outward when it is the outer one, inward otherwise.
+    const out = STRONG_SIDE === "outer" ? 20 : -20;
+    g.move(i + 1, { ...c, x: side === "left" ? x - out : x + out }, performance.now());
     clock.t = t0 + Math.min(0.12, g.timeAt(n.on + n.dur) - t0);
     g.step();
     g.up(i + 1, performance.now());
@@ -346,7 +355,7 @@ test("D311: the touch is where the thumb landed, right or wrong alike; a sideway
   // Each struck note's touch is one of the landings (rounded), wrong ones too (every fifth two rows the wrong way).
   const set = new Set(lands.map((x) => x.toFixed(4)));
   for (const h of own) assert.ok(set.has(h.touch!.toFixed(4)), `touch ${h.touch}`);
-  // Outward by 20 px: a positive sustain value.
+  // Toward the strong side by 20 px: a positive sustain value.
   assert.ok(own.some((h) => h.shapes.length && h.shapes.every((s) => s > 0)));
   // D293 kept: Play.level not the landing's.
   const levels = new Set(own.map((h) => h.level.toFixed(3)));
@@ -359,7 +368,9 @@ test("D311: expression earns nothing: the same playing at the box's edge or the 
   const outer = run((_i, side) => (side === "left" ? 3 : W - 3));
   assert.equal(inner.r.score, outer.r.score);
   assert.equal(inner.r.right, outer.r.right);
-  assert.ok(inner.heard.some((h) => h.touch !== undefined && h.touch < 0.05) && outer.heard.some((h) => h.touch !== undefined && h.touch > 0.95));
+  // The touch is strength: the box's edge and the phone's at the two ends, as STRONG_SIDE puts them.
+  const near = (h: Heard, s: number) => h.touch !== undefined && Math.abs(h.touch - s) < 0.05;
+  assert.ok(inner.heard.some((h) => near(h, strengthOf(0))) && outer.heard.some((h) => near(h, strengthOf(1))));
 });
 
 test("D311: the dynamics lesson keeps its own loudness (no touch); elsewhere the band never follows the player", () => {

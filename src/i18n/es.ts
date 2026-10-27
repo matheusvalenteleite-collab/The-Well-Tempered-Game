@@ -204,6 +204,10 @@ export const ES: Record<string, string> = {
   "Answer softly in the first bar, loudly in the second, as an echo turned round.": "Responde suave en el primer compás y fuerte en el segundo, como un eco al revés.",
   "A harpsichord has two keyboards for this. You have two thumbs.": "Un clave tiene dos teclados para esto. Tú tienes dos pulgares.",
   "Soft near the box, loud near the edge. Again.": "Suave cerca de la caja, fuerte cerca del borde. Otra vez.",
+  // D315: the strong side by the box.
+  "SOFT: TOUCH NEAR THE EDGE · LOUD: NEAR THE BOX": "SUAVE: TOCA CERCA DEL BORDE · FUERTE: CERCA DE LA CAJA",
+  "Where you touch the bar is how loud: soft by the edge, loud by the box.": "Dónde tocas la barra decide la intensidad: suave en el borde, fuerte junto a la caja.",
+  "Soft near the edge, loud near the box. Again.": "Suave cerca del borde, fuerte cerca de la caja. Otra vez.",
   "THE SLIDE": "EL DESLIZAMIENTO",
   "KEEP A THUMB DOWN AND SLIDE IT UP THE RISING NOTES": "MANTÉN UN PULGAR Y DESLÍZALO HACIA ARRIBA POR LAS NOTAS QUE SUBEN",
   "Keep a thumb down and slide it up the bar: the rising notes sound joined, one after another.": "Mantén un pulgar y deslízalo hacia arriba por la barra: las notas que suben suenan ligadas, una tras otra.",

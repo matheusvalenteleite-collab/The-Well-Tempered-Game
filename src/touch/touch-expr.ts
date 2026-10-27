@@ -5,10 +5,11 @@
  * Small, smooth ranges; right or wrong never changes the sound (D293), and expression earns no points.
  *
  * The across value is normalised per bar: 0 the inner edge (by the music box) to 1 the outer edge (the
- * phone's edge), mirrored for the two bars (protos.ts barDynamic). One rule for every sound: toward
- * the box is softer, darker, more closed; toward the edge firmer, brighter, more open. The bar's middle
- * (0.5) is the sound as it was. The harpsichord is the one exception the owner placed himself: its
- * edge is the lute stop (a muted pluck), its inner part the plain 8'.
+ * phone's edge), mirrored for the two bars, and read as strength (protos.ts barDynamic, by STRONG_SIDE:
+ * D315, the strong side by the box). One rule for every sound: toward the soft side softer, darker, more
+ * closed; toward the strong side firmer, brighter, more open. The bar's middle (0.5) is the sound as it
+ * was. The harpsichord is the one exception the owner placed himself: its outer edge is the lute stop (a
+ * muted pluck), the rest the plain 8'.
  *
  * Pure numbers here (tested in test/d311-expression.test.ts); chip.ts makes them sound (Play.touch, the
  * fields `landPlay` sets, Sounding.shape).
@@ -46,7 +47,8 @@ export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[pre
  * The one switch: protos.ts barDynamic (the across value every sound and judgement reads) follows it,
  * and so does every drawing of the across axis (the soft/strong hints, the marks, the thumbs shown).
  */
-export const STRONG_SIDE = "outer" as "outer" | "inner";
+// D315: the owner: "Outer edge soft": the strong side is the inner one, by the box.
+export const STRONG_SIDE = "inner" as "outer" | "inner";
 /** D314: a bar's place across (0 the inner edge, 1 the outer) as strength (0 soft, 1 strong); the same flip maps strength back to the place. */
 export const strengthOf = (across: number): number => (STRONG_SIDE === "outer" ? across : 1 - across);
 
@@ -61,17 +63,17 @@ export const TOUCH_TAU = 0.06;
 export const PIANO_DB = 4;
 /** Layer 7 against layer 12 at the same level (sampled.ts: 5 dB softer as recorded, raised by its gain): about -2 dB. */
 export const PIANO_SOFT_NET_DB = 20 * Math.log10(SAMPLED.piano.soft?.gain ?? 1) - 5;
-/** HARPSICHORD: the lute (buff) stop from here out: a lowpass from LUTE_HZ[0] (at its start) to LUTE_HZ[1] (at the edge), and a shorter ring. */
+/** HARPSICHORD: the lute (buff) stop from here out (a place across, toward the outer edge: D315): a lowpass from LUTE_HZ[0] (at its start) to LUTE_HZ[1] (at the edge), and a shorter ring. */
 export const LUTE_FROM = 0.75;
 export const LUTE_HZ: readonly [number, number] = [2000, 1200];
 /** The lute stop's ring (s, a time constant after 30 ms; the plain string rings 1-4 s). */
 export const LUTE_TAU = 0.22;
-/** PIPE ORGAN: the echo manual under this (toward the box): quieter and flutier (D262's two keyboards). */
+/** PIPE ORGAN: the echo manual under this (toward the soft side): quieter and flutier (D262's two keyboards). */
 export const ECHO_BELOW = 0.35;
 export const ECHO_GAIN = 0.6;
 /** The echo manual's flute-like top: a lowpass at four times the note's pitch, within these (Hz). */
 export const ECHO_LP: readonly [number, number] = [1200, 4000];
-/** SOLO VOICES: closed toward the box (a lowpass down to this at the inner edge), open toward the edge (a high shelf up to this, dB). */
+/** SOLO VOICES: closed toward the soft side (a lowpass down to this at its edge), open toward the strong side (a high shelf up to this, dB). */
 export const SING_CLOSED_HZ = 3000;
 export const SING_OPEN_DB = 3;
 /** SYNTH, CONSOLE and the chips without a pulse: the filter's brightness (Play.bright, -1..1) at the edges: ±span/2. */
@@ -81,7 +83,7 @@ export const FM_OCTAVES = 1.4;
 /** BLEEPS AND BLOOPS: the mallet's hardness: the strike's brightness (FM index burst, filter opening) over this many octaves (×0.5 to ×2). */
 export const STRIKE_OCTAVES = 2;
 
-/** VOCAL SYNTH: toward the box the vowel closes toward these (log-interpolated formants: "a" toward "o", the front vowels toward "u", rounded); toward the edge it opens (the jaw: F1 up to +12%, F2 +5%). */
+/** VOCAL SYNTH: toward the soft side the vowel closes toward these (log-interpolated formants: "a" toward "o", the front vowels toward "u", rounded); toward the strong side it opens (the jaw: F1 up to +12%, F2 +5%). */
 export const VOWEL_CLOSED: Readonly<Record<string, "o" | "u">> = { a: "o", e: "u", i: "u", o: "u", u: "u" };
 export const OPEN_F1 = 0.12;
 export const OPEN_F2 = 0.05;
@@ -109,7 +111,7 @@ export const widthOf = (w: Wave): number | undefined => PULSE_WIDTH[w];
 
 /**
  * What a landing does to a note (Play's fields; `level` here a factor on the note's own). `x` 0 the
- * inner edge to 1 the outer; `pt` the voice's patch (null: the classic chip), `pulse` whether the
+ * soft side to 1 the strong (a strength: protos.ts barDynamic, by STRONG_SIDE); `pt` the voice's patch (null: the classic chip), `pulse` whether the
  * voice (classic chip) is a pulse.
  */
 export interface Landing {
@@ -136,8 +138,11 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       return { layer: soft ? "soft" : "firm", level: 10 ** ((db - (soft ? PIANO_SOFT_NET_DB : 0)) / 20) };
     }
     case "harpsichord": {
-      if (c < LUTE_FROM) return {};
-      const k = (c - LUTE_FROM) / (1 - LUTE_FROM);
+      // D315: the lute stop stays where the owner put it, at the outer edge (the phone's), whichever side is
+      // strong: `c` is strength, its place across the same flip (with the strong side inner, the soft side).
+      const place = strengthOf(c);
+      if (place < LUTE_FROM) return {};
+      const k = (place - LUTE_FROM) / (1 - LUTE_FROM);
       return { lute: true, lp: LUTE_HZ[0] * (LUTE_HZ[1] / LUTE_HZ[0]) ** k };
     }
     case "organ":
@@ -171,7 +176,7 @@ export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem";
 export const HOLD_SPAN = 0.5;
 /** SINGING VOICES: the messa di voce, ±dB. */
 export const MESSA_DB = 3;
-/** CHIPS, CONSOLES, the combo organ: the vibrato's depth added at the most (cents; inward takes the voice's own away). */
+/** CHIPS, CONSOLES, the combo organ: the vibrato's depth added at the most (cents; toward the soft side takes the voice's own away). */
 export const VIB_CENTS = 16;
 /**
  * SYNTH: the wah: a resonant peak of up to WAH_DB, its centre at WAH_MULT times the note swept WAH_OCTAVES
@@ -191,7 +196,7 @@ export const BLOOM_DEFAULT = 10;
 /** VOCAL SYNTH: a sideways move of this much sustain value (3% of the bar's width: more than a resting thumb's wander) breaks the stillness. */
 export const BLOOM_MOVE = 0.06;
 
-/** The sustain value of a thumb `dx` (across now less across at landing) away: -1 (inward) .. 1 (outward). */
+/** The sustain value of a thumb `dx` (strength now less strength at landing) away: -1 (toward the soft side) .. 1 (toward the strong side: a swell). */
 export const holdValue = (dx: number) => Math.max(-1, Math.min(1, dx / HOLD_SPAN));
 
 /** How a family's voice answers a held sideways move (`plucked`: a struck or plucked note: nothing to shape once struck). */

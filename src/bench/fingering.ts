@@ -5,8 +5,8 @@
  * and how the next note asks). The plan: each note a touch, the thumbs taking turns (so a joined note
  * is always the other thumb landing before the last one lifts: the owner's "alternate thumbs rather than
  * one thumb repeatedly"); its landing and lifting (joined: a little after the next lands; detached: at
- * three fifths; short: at a third); its loudness (where across the bar: soft by the box, loud by the
- * edge); its ornament (shaken); a rising step slid by the same thumb where sliding is taught.
+ * three fifths; short: at a third); its loudness (where across the bar: soft on the soft side, loud on
+ * the strong, touch-expr.ts STRONG_SIDE: D315, the box's side strong); its ornament (shaken); a rising step slid by the same thumb where sliding is taught.
  */
 import type { Shake } from "../touch/ornament-play.ts";
 
@@ -54,7 +54,7 @@ export function planTouches(notes: PlanNote[], o: { overlap: number; first?: Thu
   return out;
 }
 
-/** Where a loudness sits across a side bar (0..1 of the bar's width, from the box). */
+/** Where a loudness sits across a side bar, as strength (0..1 of the bar's width from its soft side; strengthOf, touch-expr.ts, makes it the place from the box: D314/D315). */
 export const acrossBar = (d: number) => 0.12 + 0.76 * Math.max(0, Math.min(1, d));
 
 /**
