@@ -69,7 +69,8 @@ export const ES: Record<string, string> = {
   "VOICES": "VOCES",
   "MORE": "MÁS",
   "Hold the phone sideways, a thumb on each bar.": "Pon el móvil en horizontal, un pulgar en cada barra.",
-  "Touch either bar at the note's height as it reaches the line: higher notes higher up.": "Toca cualquier barra a la altura de la nota cuando llegue a la línea: las notas agudas, más arriba.",
+  "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.": "Toca cualquier barra, en cualquier punto, cuando la nota llegue a la línea: más arriba cuando la melodía sube, más abajo cuando baja.",
+  "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.": "El ancho de la barra es tuyo: junto a la caja, más suave y oscuro; junto al borde, más firme y brillante; mueve de lado un pulgar que sostiene la nota para darle forma. Nunca quita ni da puntos.",
   "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.": "Pasa cada nota al otro pulgar sin hueco: el LEGATO puntúa más. Si fallas demasiado, el público se va.",
   "touch either bar at the note's height · hand over from thumb to thumb with no gap": "toca cualquier barra a la altura de la nota · pasa de un pulgar al otro sin hueco",
   // The result
@@ -158,7 +159,7 @@ export const ES: Record<string, string> = {
   "Now you. A thumb on the bars shows where each note lands, and which thumb.": "Ahora tú. Un pulgar en las barras muestra dónde cae cada nota, y con qué pulgar.",
   "THE LADDER": "LA ESCALERA",
   "TOUCH A BAR AT EACH NOTE'S HEIGHT · THE MUSIC WAITS": "TOCA UNA BARRA A LA ALTURA DE CADA NOTA · LA MÚSICA ESPERA",
-  "Hold the phone sideways. The notes come from the right; touch either side bar, anywhere along it.": "Pon el móvil en horizontal. Las notas llegan por la derecha; toca cualquier barra lateral, en cualquier punto.",
+  "Hold the phone sideways; touch either bar, anywhere. Across it is the note's colour, never right or wrong.": "Pon el móvil en horizontal; toca cualquier barra, en cualquier punto. Su ancho es el color de la nota, nunca acierto ni error.",
   "Then move up the bar for a higher note, down for a lower. I will wait for you.": "Luego sube por la barra para una nota más aguda, baja para una más grave. Te esperaré.",
   "Recht. Your thumb drew the line.": "Recht. Tu pulgar ha dibujado la línea.",
   "Higher when it rises, lower when it falls. Again.": "Más arriba cuando sube, más abajo cuando baja. Otra vez.",

@@ -799,7 +799,7 @@ export function BenchApp() {
         input.onmidimessage = (e: MIDIMessageEvent) => {
           const [st, n, vel] = e.data ?? [];
           const kind = st & 0xf0;
-          if (kind === 0x90 && vel > 0) keyDownRef.current(midiId(n), { midi: n, velocity: vel / 127, side: n < 60 ? "left" : "right" }, e.timeStamp);
+          if (kind === 0x90 && vel > 0) keyDownRef.current(midiId(n), { midi: n, velocity: vel / 127, touch: vel / 127, side: n < 60 ? "left" : "right" }, e.timeStamp);
           else if (kind === 0x80 || (kind === 0x90 && vel === 0)) game.current?.keyUp(midiId(n), e.timeStamp);
         };
       });

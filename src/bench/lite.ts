@@ -185,7 +185,9 @@ export const RULES: Record<string, string[]> = {
   ],
   ladder: [
     "Hold the phone sideways, a thumb on each bar.",
-    "Touch either bar at the note's height as it reaches the line: higher notes higher up.",
+    "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.",
+    // D311: the across axis, the player's (shapes the sound, never the score).
+    "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
     "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.",
   ],
 };
