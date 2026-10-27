@@ -74,7 +74,8 @@ test("D251: the phone's HIGHWAY (a prelude): the line filled as far as the music
   const fill = filled(ops, w);
   assert.ok(fill, "the line's filled part");
   assert.ok(Math.abs((fill.args[2] as number) - (g.now / f.length) * w) <= 1);
-  assert.ok(texts(ops).includes(`BAR ${barNumberAt(f, g.now)} / 35`), texts(ops).join(","));
+  assert.ok(texts(ops).includes(`${barNumberAt(f, g.now)} / 35`), texts(ops).join(","));
+  assert.ok(!texts(ops).some((s) => /^BAR \d/.test(s)), "D344: the numbers alone");
   // The sections' ticks (D259: bars 5 and 32, where the riding changes) and the pedal's span (bars 24 to 32).
   for (const bar of [5, 32]) {
     const x = Math.round((barStart(f, bar) / f.length) * w);
@@ -90,7 +91,7 @@ test("D251: LADDER and the computer: the line in both; BAR n / N once (on the co
   const r1 = recorder();
   paintProto(r1.c, 844, 390, lad, new Set());
   assert.ok(filled(r1.ops, 844));
-  assert.ok(texts(r1.ops).includes(`BAR ${barNumberAt(f, lad.now)} / ${f.bars[f.bars.length - 1].n}`));
+  assert.ok(texts(r1.ops).includes(`${barNumberAt(f, lad.now)} / ${f.bars[f.bars.length - 1].n}`));
   const keys = at("wtc1f02", "keys", 1, 9000);
   const r2 = recorder();
   paintProto(r2.c, 1280, 760, keys, new Set());

@@ -15,6 +15,14 @@ import { SoundSelect } from "./SoundSelect.tsx";
 import { fugueOf, isPrelude } from "./stages.ts";
 import { markLegend } from "../touch/readings.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
+import type { RuleLevels } from "./lite.ts";
+
+/** D344: HOW TO PLAY's three levels, in order (pt BÁSICO / INTERMEDIÁRIO / AVANÇADO, es BÁSICO / INTERMEDIO / AVANZADO). */
+const LEVELS: readonly [keyof RuleLevels, string][] = [
+  ["basics", "BASICS"],
+  ["intermediate", "INTERMEDIATE"],
+  ["advanced", "ADVANCED"],
+];
 
 /** The pop-up's title: "BWV 846/1 · PRELUDE IN C MAJOR" (the piece's own title where it has no card). */
 export function popTitle(id: string): string {
@@ -65,7 +73,7 @@ export function popSounds(id: string): (readonly [id: string, name: string, own:
  * D343: `plain` (play.html for the friends): the piece's name without its BWV number, no SOUND to choose
  * (the piece plays in its own; a recorded sound's credit still shown), so the only choice is the voice.
  */
-export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, tuning, plain = false, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; tuning?: string; plain?: boolean; children?: ReactNode }) {
+export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, tuning, plain = false, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: RuleLevels; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; tuning?: string; plain?: boolean; children?: ReactNode }) {
   const f = fugueById(id);
   // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
   const [help, setHelp] = useState(false);
@@ -113,29 +121,39 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
         <button type="button" id="play" className="tb-play tb-pop-play" autoFocus onClick={play}>
           ▶ {tr("PLAY")}
         </button>
-        {rules && rules.length > 0 && (
+        {rules && rules.basics.length > 0 && (
           <button type="button" id="pop-help" className="tb-pop-help" aria-expanded={help} onClick={() => setHelp(!help)}>
             ? {tr("HOW TO PLAY")}
           </button>
         )}
         {help && rules && (
-          <ul className="tb-pop-rules" id="pop-rules">
-            {rules.map((r) => (
-              <li key={r}>{tr(r)}</li>
-            ))}
-          </ul>
-        )}
-        {help && rules && (
-          // D314: the reading's marks over the subject, in plain words (the dot is SHORT). D325: only with a reading chosen.
-          <div className="tb-pop-marks" id="pop-marks">
-            <p className="tb-pop-ask">{tr("A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT")}</p>
-            <ul className="tb-pop-rules">
-              {markLegend(STRONG_SIDE).map((l) => (
-                <li key={l.kind}>
-                  <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
-                </li>
-              ))}
-            </ul>
+          // D344: the rules in three folded levels, BASICS open; the marks' legend under INTERMEDIATE.
+          <div className="tb-pop-levels" id="pop-rules">
+            {LEVELS.map(([key, title]) =>
+              rules[key].length > 0 || key === "intermediate" ? (
+                <details key={key} className="tb-pop-level" id={`pop-level-${key}`} open={key === "basics"}>
+                  <summary>{tr(title)}</summary>
+                  <ul className="tb-pop-rules">
+                    {rules[key].map((r) => (
+                      <li key={r}>{tr(r)}</li>
+                    ))}
+                  </ul>
+                  {key === "intermediate" && (
+                    // D314: the reading's marks over the subject, in plain words (the dot is SHORT). D325: only with a reading; D344: on play.html each fugue's own.
+                    <div className="tb-pop-marks" id="pop-marks">
+                      <p className="tb-pop-ask">{plain ? tr("THE MARKS OVER THE SUBJECT, WHERE THE FUGUE HAS THEM") : tr("A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT")}</p>
+                      <ul className="tb-pop-rules">
+                        {markLegend(STRONG_SIDE).map((l) => (
+                          <li key={l.kind}>
+                            <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </details>
+              ) : null,
+            )}
           </div>
         )}
         {sound !== undefined && plain && creditFor(sound) && (

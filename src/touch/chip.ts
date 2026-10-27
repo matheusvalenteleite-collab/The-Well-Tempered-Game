@@ -11,7 +11,7 @@ export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 import { hz } from "./tuning.ts";
 import { liveRegistration, registeredNote, LUTE_LP, SUBBASS, SUB16_LEVEL, type Registered } from "./registration.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 
@@ -2194,8 +2194,16 @@ export class Chip {
     const ctx = this.ctx;
     const bag = new Bag();
     const g = bag.add(ctx.createGain());
-    g.connect(this.master);
-    const lvl = 0.22 * vel;
+    // D344: the friends' backing drums below and behind: softer, and nothing under BACKING_HIGHPASS_HZ (the bass's room).
+    const back = backingOn();
+    if (back) {
+      const hp = bag.add(ctx.createBiquadFilter());
+      hp.type = "highpass";
+      hp.frequency.value = BACKING_HIGHPASS_HZ;
+      hp.Q.value = 0.7;
+      g.connect(hp).connect(this.master);
+    } else g.connect(this.master);
+    const lvl = 0.22 * vel * (back ? BACKING_LEVEL : 1);
     const noise = (type: BiquadFilterType, f: number, q: number, len: number, attack = 0.001) => {
       const n = bag.src(this.noise());
       const fl = bag.add(ctx.createBiquadFilter());

@@ -528,6 +528,19 @@
 .tb-pop-help { min-height: 32px; padding: 6px 12px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-shine); background: none; border: 1px dashed var(--tg-muted); cursor: pointer; }
 .tb-pop-rules { margin: 0; padding: 0 0 0 16px; max-width: 360px; text-align: left; font-family: system-ui, sans-serif; font-size: 13px; line-height: 1.45; color: var(--tg-fg); }
 .tb-pop-rules li { margin: 0 0 6px; }
+/* D344: HOW TO PLAY in three folded levels (BASICS open), and the friends' DRUMS switch on the pop-up. */
+.tb-pop-levels { display: grid; gap: 6px; width: 100%; max-width: 380px; }
+.tb-pop-level { border: 1px solid rgba(255, 255, 255, 0.14); padding: 0 8px; text-align: left; }
+.tb-pop-level > summary { min-height: 36px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-shine); letter-spacing: 0.08em; list-style: none; }
+.tb-pop-level > summary::-webkit-details-marker { display: none; }
+.tb-pop-level > summary::before { content: "▸"; color: var(--tg-muted); }
+.tb-pop-level[open] > summary::before { content: "▾"; }
+.tb-pop-level[open] { padding-bottom: 8px; }
+.tb-pop-level .tb-pop-marks { margin-top: 4px; justify-items: start; }
+.tb-pop-drums { display: grid; gap: 4px; justify-items: center; }
+.tb-drums-toggle { min-height: 40px; min-width: 150px; padding: 8px 14px; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-muted); background: none; border: 2px dashed var(--tg-muted); cursor: pointer; }
+.tb-drums-toggle.on { color: var(--tg-shine); border: 2px solid var(--tg-shine); }
+.tb-pop-drums-note { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); letter-spacing: 0.06em; }
 /* D314: the reading's marks explained (HOW TO PLAY, HEAR THE SUBJECT): each sign in the colour the box draws it. */
 .tb-pop-marks { display: grid; gap: 4px; justify-items: center; }
 .tb-hear-marks { list-style: none; margin: 4px auto; padding: 0; display: grid; gap: 2px; justify-items: start; width: fit-content; max-width: 100%; }

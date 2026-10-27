@@ -267,39 +267,76 @@ export const LITE_HINT: Record<string, string> = {
 
 /**
  * D239: how each mode is played, behind ? HOW TO PLAY on the pop-up (bench and play.html): a few
- * short lines, the two grades of a right note on the HIGHWAYs spelled out.
+ * short lines, the two grades of a right note on the HIGHWAYs spelled out. D344 (WTC 1.56; the owner:
+ * "can be long, as long as you divide into BASICS, INTERMEDIARY, and ADVANCED"): each mode's lines in
+ * three levels, folded on the pop-up (BASICS open); RULES keeps them in one list, in that order.
+ * Checked against the game's mechanics as of WTC 1.52+ (B+ · PREPARED: a landing is the strike, the
+ * prepared note and the pull-off, runs judged as a whole, the reading's accent by time, ornaments unscored).
  */
-export const RULES: Record<string, string[]> = {
-  keys: [
-    "Notes come down the road. Press the key of their lane (A S D F · G · H J K L) as they reach the line.",
-    "THE LANE'S KEY: full points, a bright chime and LANE ✓.",
-    "ANOTHER KEY THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept.",
-    "The wrong way or off the beat: a miss. SPACE plays the same note again. Miss too many and the crowd leaves.",
-  ],
-  highway: [
-    "Notes come down five lanes. Tap the note's lane as it reaches the line.",
-    "THE NOTE'S LANE: full points, a bright chime and LANE ✓.",
-    "ANOTHER LANE THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept.",
-    "The wrong way or off the beat: a miss. Miss too many and the crowd leaves.",
-  ],
-  ladder: [
-    "Hold the phone sideways, a thumb on each bar.",
-    "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.",
-    // D337 (WTC 1.52): B+ · PREPARED, the game's: a landing is the strike; a thumb resting early sounds on the other's lift.
-    "To join two notes: strike the next on time while the other thumb holds, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
-    "In fast runs either thumb may lead: keep the run moving the right way, and it is judged as a whole.",
-    // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
-    STRONG_SIDE === "outer"
-      ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
-      : "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
-    // D325: articulation by intention (intention.ts), no longer "LEGATO scores more"; D325b: expressive time.
-    "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself. Miss too many and the crowd leaves.",
-    "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
-    // D314: the ornaments, as THE ORNAMENT lesson teaches them; the free ones.
-    "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
-    "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
-  ],
+export interface RuleLevels {
+  basics: readonly string[];
+  intermediate: readonly string[];
+  advanced: readonly string[];
+}
+export const RULE_LEVELS: Record<string, RuleLevels> = {
+  keys: {
+    basics: [
+      "Notes come down the road. Press the key of their lane (A S D F · G · H J K L) as they reach the line.",
+      "THE LANE'S KEY: full points, a bright chime and LANE ✓.",
+      "The wrong way or off the beat: a miss. SPACE plays the same note again. Miss too many and the crowd leaves.",
+    ],
+    intermediate: ["ANOTHER KEY THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept."],
+    advanced: [],
+  },
+  highway: {
+    basics: [
+      "Notes come down five lanes. Tap the note's lane as it reaches the line.",
+      "THE NOTE'S LANE: full points, a bright chime and LANE ✓.",
+      "The wrong way or off the beat: a miss. Miss too many and the crowd leaves.",
+    ],
+    intermediate: ["ANOTHER LANE THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept."],
+    advanced: [],
+  },
+  ladder: {
+    basics: [
+      "Hold the phone sideways, a thumb on each bar.",
+      "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.",
+      // D344: the game's own words for a note's grades and its end (proto-game.ts: PERFECT, GOOD, HELD, SHORT, REST!).
+      "Your thumb's landing is the note: on the line, PERFECT; a little early or late, GOOD.",
+      "Keep the thumb down for the note's length (HELD); lifted too soon is SHORT. Where the music rests, lift: held through a rest is REST!",
+      "Let the thumbs take turns, each note on the other thumb: the easiest way to keep up.",
+      "Miss too many and the crowd leaves.",
+      // D344: the friends' backing track (LiteDrums.tsx).
+      "DRUMS ON (on this box, before you play) adds a backing track. It never changes the score.",
+    ],
+    intermediate: [
+      // D337 (WTC 1.52): B+ · PREPARED, the game's: a landing is the strike; a thumb resting early sounds on the other's lift.
+      "To join two notes: strike the next on time while the other thumb holds, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
+      // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
+      "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
+      // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).
+      "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
+      // D344: the subject's marks (readings.ts); their legend follows on the pop-up.
+      "Marks over the subject (dot, stroke, slur, wedge) come from a book on playing the fugue: follow them and the subject's notes earn a little more; missing them costs nothing. HEAR THE SUBJECT plays and draws them.",
+    ],
+    advanced: [
+      "In fast runs either thumb may lead: keep the run moving the right way, and it is judged as a whole.",
+      // D325b: expressive time.
+      "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
+      // D338: the reading's accent by time.
+      "An accent (>) is made with time, not force: let go of the note before a moment early, lean into the accent a hair late and hold it its full length. Loudness is never judged.",
+      // D186, D194: the bonuses.
+      "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.",
+      // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
+      STRONG_SIDE === "outer"
+        ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
+        : "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
+      "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
+    ],
+  },
 };
+/** Every mode's lines in one list (BASICS, then INTERMEDIATE, then ADVANCED). */
+export const RULES: Record<string, string[]> = Object.fromEntries(Object.entries(RULE_LEVELS).map(([id, l]) => [id, [...l.basics, ...l.intermediate, ...l.advanced]]));
 
 /** The piece every new player starts on: Prelude 1 in C major. */
 export const START_HERE = "wtc1p01";

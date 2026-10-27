@@ -1077,9 +1077,26 @@ export function setDrums(on: boolean) {
   drumsOn = on;
 }
 export const drums = () => drumsOn;
-/** The groove playing now, if any: a band's always, CHIP's and MOOG's when DRUMS is on. */
+/**
+ * D344 (WTC 1.56): play.html's DRUMS for the friends, a backing track under any sound: the sound's own
+ * loop where it has one (CLASSIC CHIP's march on its chip kit), else BACKING_GROOVE on the band's kit.
+ * Laid on the metre's beats by the game (the band's beat in ProtoGame: beats of the metre, compound
+ * metres in threes, the final ritard followed), kept below and behind the music (chip.ts `drum`:
+ * BACKING_LEVEL, the low end cut under BACKING_HIGHPASS_HZ, so the bass stays heard on a phone).
+ * Sound only: judging never reads it.
+ */
+let backing = false;
+export const BACKING_GROOVE: Groove = "chipMarch";
+/** D344: the backing drums' share of the drums' usual level, and the cut below which they leave the bass alone. */
+export const BACKING_LEVEL = 0.5;
+export const BACKING_HIGHPASS_HZ = 220;
+export function setBacking(on: boolean) {
+  backing = on;
+}
+export const backingOn = () => backing;
+/** The groove playing now, if any: a band's always, CHIP's and MOOG's when DRUMS is on; D344: the friends' backing. */
 export function grooveNow(): { groove: Groove; kit: Kit } | null {
-  const g = current.groove ?? (drumsOn ? current.drums : undefined);
+  const g = current.groove ?? (drumsOn ? current.drums : undefined) ?? (backing ? (current.drums ?? BACKING_GROOVE) : undefined);
   return g ? { groove: g, kit: current.kit ?? "acoustic" } : null;
 }
 

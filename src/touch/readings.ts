@@ -100,6 +100,44 @@ export function chooseReading(id: string, reading: string) {
   }
 }
 
+/**
+ * D344 (WTC 1.56): play.html for the friends (not unlocked) shows one reading a fugue, and plays it: the
+ * best of those the data hold for it on musical grounds (fidelity to the subject's character and to
+ * Baroque articulation, playable with two thumbs, few marks for a newcomer), or NO_READING where none
+ * convinces. The reasons: docs/wtc/READINGS-CHOSEN.md. The unlocked page keeps every reading to choose.
+ */
+export const BEST_READING: Readonly<Record<string, string>> = {
+  wtc1f01: "keller",
+  wtc1f02: "bodky",
+  wtc1f03: "bodky",
+  wtc1f04: "bodky",
+  wtc1f05: "bodky",
+  wtc1f06: "bodky",
+  wtc1f07: "keller",
+  wtc1f08: "keller",
+  wtc1f09: "riemann",
+  wtc1f10: "bodky",
+  wtc1f11: "bodky",
+  wtc1f12: "keller",
+  wtc1f13: "bodky",
+  wtc1f14: "bodky",
+  wtc1f15: "keller",
+  wtc1f16: "bodky",
+  wtc1f17: "keller",
+  wtc1f18: "keller",
+  wtc1f19: "bodky",
+  wtc1f20: NO_READING,
+  wtc1f21: "keller",
+  wtc1f22: "bodky",
+  wtc1f23: "bodky",
+  wtc1f24: "keller",
+};
+/** D344: the one reading the friends' page gives a fugue (null: none, the player's own articulation). */
+export function bestReading(id: string): Reading | null {
+  const want = BEST_READING[id];
+  return want ? (readingsOf(id).find((r) => r.id === want) ?? null) : null;
+}
+
 /** The level a reading asks for at a bar (the last named at or before it; cresc and dim pass). */
 export function planLevel(r: Reading, bar: number): Level | null {
   let lv: Level | null = null;
