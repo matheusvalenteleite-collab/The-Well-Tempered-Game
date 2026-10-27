@@ -137,6 +137,27 @@ export function shakeOf(o: Ornament): Shake | null {
   return null;
 }
 
+/**
+ * D314, a FREE ORNAMENT (free-ornament.ts): the held note's mordent ("M": the step below, then the
+ * note), short trill ("W": from the note above, Bach's short Trillo) or trill ("T": from the note above,
+ * alternating, the note held at the end), from tick `from` to `until` (the note's written end), realised
+ * as the written ones are (Bach's Explication, at the tempo, the neighbours as the bar reads them). The
+ * main note already sounds, so a realisation that opens on it starts at its next note. [onset, length,
+ * MIDI] in ticks; empty when too little of the note is left.
+ */
+export function freeOrnamentParts(f: TouchFugue, kind: "mordent" | "short" | "trill", noteOn: number, midi: number, from: number, until: number, bpm: number): [number, number, number][] {
+  const q = f.tpq;
+  if (until - from < q / 8) return [];
+  const signs = kind === "mordent" ? "M" : kind === "short" ? "W" : "T";
+  const steps = contextSteps(f, noteOn, midi, signs);
+  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit: ornamentUnit(bpm / 2), ...steps, diatonic: true });
+  if (parts.length > 1 && parts[0].midi === midi) {
+    const shift = parts[1].at - parts[0].at;
+    parts = parts.slice(1).map((p, k, a) => ({ ...p, at: p.at - shift, dur: k === a.length - 1 ? p.dur + shift : p.dur }));
+  }
+  return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
+}
+
 const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
 /**
  * D281: an ornamented note's neighbours as a player reads them, the next letter up (down) with its

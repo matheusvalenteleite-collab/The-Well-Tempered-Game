@@ -1,14 +1,15 @@
 /**
  * The music box's events (D186; D208): the subject drawn as the character it is, the bosses, and what
  * the player's playing throws up. Drawn on the box's own pixels (half the screen's), in a 3 by 5 font.
- *   Each subject entry: a translucent trail through its notes, its tag where it begins ("SUBJECT ·
- *   ALTO · G MINOR"; STRETTO when it begins inside another); each of its notes flashes as it is
+ *   Each subject entry (D314: in the CANTUS style): a soft halo through its notes, a bracket over it
+ *   from its first note to its last with its word ("SUBJECT"; STRETTO when it begins inside another),
+ *   announced dashed with a breath mark and its last beats counted; each of its notes flashes as it is
  *   played. Gold for the player's voice (and once captured), the voice's ink for the others, grey once
  *   lost. The countersubject is not marked.
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
-import { keyWordsIn, tr, trCanvas, voiceName } from "../i18n/index.ts";
+import { tr, trCanvas } from "../i18n/index.ts";
 
 export interface Span {
   voice: number;
@@ -49,6 +50,8 @@ const GLYPHS: Record<string, string> = {
   "4": "101101111001001", "5": "111100110001110", "6": "011100111101111", "7": "111001010010010", "8": "111101111101111",
   "9": "111101111001110", "+": "000010111010000", "·": "000000010000000", "×": "000101010101000", "!": "010010010000010",
   "#": "101111101111101", "~": "000011110000000", "|": "010010010010010", "♭": "100100110101110", "-": "000000111000000", " ": "000000000000000",
+  // D314: the reading's wedge and the legend's punctuation.
+  ">": "100010001010100", "<": "001010100010001", ":": "000010000010000", ",": "000000000010100", ".": "000000000000010", "(": "010100100100010", ")": "010001001001010", "/": "001001010100100", "'": "010010000000000",
 };
 
 /** Text in the 3 by 5 font; returns its width. */
@@ -115,57 +118,116 @@ interface Ctx {
 }
 
 /**
- * The entries (D208): the subject only (no countersubject marks). Each entry a translucent trail in its
- * voice's colour, passing continuously through all its notes (along each note, sloping from one to
- * the next); brighter while it sounds; its tag over its first note ("SUBJECT · ALTO · G MINOR", and
- * STRETTO when it begins inside another's). Drawn under the notes; `strikes` (over them) flashes each
- * of its notes as it is played.
+ * The entries (D208; D314: in the CANTUS style, the owner's choice of round three's box, "B · Cantus").
+ * The subject only (no countersubject marks). Each entry wrapped in a soft HALO of its colour that
+ * follows its notes from the first to the last (along each note, sloping from one to the next: a phrase
+ * of light, three soft layers, no blur filter, cheap on a phone); over it a BRACKET from its first note
+ * to its last, the word at its left ("SUBJECT", its shape, STRETTO when it begins inside another). As
+ * it comes (ANNOUNCED) the halo is faint (40%), the bracket dashed, a breath mark before its first note
+ * and, in its last four beats, a dot a beat (the beat under way emptying); sounding, the halo full and
+ * the bracket solid with a post at its end. An entry still beyond the box's right edge within four
+ * beats: a tab at the edge, "SUBJECT · 3". Gold for the player's voice (and once captured), the voice's
+ * ink for the others, grey once lost. Drawn under the notes; `strikes` (over them) flashes each of its
+ * notes as it is played.
  */
-export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[] | undefined, state: Map<string, string> | undefined) {
+export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[] | undefined, state: Map<string, string> | undefined, beat = 0) {
   const { g, w, xOf, yOf, bh, now } = c;
   const subj = spans.filter((s) => s.form !== "counter");
+  void names;
+  const tabs: { y: number; text: string; color: string }[] = [];
   for (const s of subj) {
+    if (!s.path.length) continue;
     const x1 = xOf(s.on);
     const x2 = xOf(s.end);
-    if (x2 < 0 || x1 > w || !s.path.length) continue;
     const st = state?.get(`${s.voice}:${s.on}`);
     const mine = player.includes(s.voice);
     const color = st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
-    const sounding = now >= s.on && now < s.end;
-    // The trail: one continuous band through the notes' middles.
+    const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
+    // D265: every entry a SUBJECT; D283: in the language chosen.
+    const word = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}${s.shape ? ` · ${trCanvas(s.shape)}` : ""}${stretto ? " · STRETTO" : ""}`;
+    const ahead = now < s.on;
+    const beatsLeft = beat > 0 ? Math.ceil((s.on - now) / beat) : 0;
+    if (x1 > w) {
+      if (ahead && beatsLeft <= 4) tabs.push({ y: yOf(s.path[0].step), text: `${tr("SUBJECT")} · ${beatsLeft}`, color });
+      continue;
+    }
+    if (x2 < 0) continue;
+    const midY = (step: number) => yOf(step) + (c.hOf ? c.hOf(step) : bh) / 2;
+    const thin = c.hOf ? Math.min(...s.path.map((n) => c.hOf!(n.step))) : bh;
+    // The halo: three soft layers along the notes, faint while it is announced.
     g.save();
-    g.globalAlpha = sounding ? 0.3 : 0.17;
     g.strokeStyle = color;
-    // In the squeezed margins (D211) the trail as thin as the notes there.
-    const th = c.hOf ? Math.min(...s.path.map((n) => c.hOf!(n.step))) : bh;
-    g.lineWidth = th < bh ? th + 2 : bh + 7;
     g.lineJoin = "round";
     g.lineCap = "round";
     g.beginPath();
     s.path.forEach((n, k) => {
-      const y = yOf(n.step) + (c.hOf ? c.hOf(n.step) : bh) / 2;
+      const y = midY(n.step);
       const a = xOf(n.on);
       const b = xOf(n.on + n.dur);
       if (k === 0) g.moveTo(a, y);
       else g.lineTo(a, y);
       g.lineTo(Math.max(a + 1, b - 1), y);
     });
-    g.stroke();
+    const base = thin < bh ? thin + 2 : bh;
+    const fade = ahead ? 0.55 : 1;
+    for (const [grow, alpha] of [[12, 0.14], [7, 0.16], [3, 0.2]] as const) {
+      g.globalAlpha = alpha * fade;
+      g.lineWidth = base + grow;
+      g.stroke();
+    }
     g.restore();
-    // The tag, over its first note.
-    const first = s.path[0];
-    const y = Math.max(1, yOf(first.step) - 9);
-    const voice = names?.[s.voice] ? voiceName(names[s.voice]) : "";
-    const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
-    // D265: every entry a SUBJECT (the owner: "stop calling the subject answers \"answers\"").
-    // D283: in the language chosen.
-    const what = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}`;
-    const label = `${what}${s.shape ? ` · ${trCanvas(s.shape)}` : ""} · ${voice} · ${keyWordsIn(s.key)}${stretto ? " · STRETTO" : ""}`;
-    g.globalAlpha = 0.7;
-    g.fillStyle = "#0c0a10";
-    g.fillRect(x1 - 1, y - 1, textWidth(label) + 1, 7);
+    // The bracket over the entry, first note to last (dashed while announced), the word at its left.
+    const top = Math.min(...s.path.map((n) => yOf(n.step)));
+    const by = Math.max(8, top - 8);
+    const a = Math.max(-2, x1 - 1);
+    const z = Math.min(w + 2, x2);
+    g.fillStyle = color;
+    g.globalAlpha = ahead ? 0.7 : 0.75;
+    if (ahead) for (let x = a; x < z; x += 4) g.fillRect(x, by, Math.min(2, z - x), 1);
+    else g.fillRect(a, by, z - a, 1);
+    g.fillRect(a, by, 1, 3);
+    if (!ahead) g.fillRect(z, by, 1, 5);
+    else g.fillRect(z, by, 1, 3);
     g.globalAlpha = 1;
-    pixText(g, label, x1, y, color);
+    // The word stays in sight while its bracket runs past the box's left edge.
+    const lx = Math.max(1, Math.min(a + 1, z - textWidth(word) - 2));
+    const ly = by - 7;
+    g.globalAlpha = 0.6;
+    g.fillStyle = "#0c0a10";
+    g.fillRect(lx - 1, ly - 1, textWidth(word) + 1, 7);
+    g.globalAlpha = 1;
+    const wEnd = lx + pixText(g, word, lx, ly, color);
+    if (ahead) {
+      // A breath mark before the first note, and (the last four beats) a dot a beat, the beat under way emptying.
+      const f = s.path[0];
+      const bx = x1 - 4;
+      const bY = yOf(f.step) - 4;
+      g.fillStyle = color;
+      g.fillRect(bx, bY, 2, 2);
+      g.fillRect(bx + 1, bY + 2, 1, 1);
+      g.fillRect(bx, bY + 3, 1, 1);
+      if (beat > 0 && beatsLeft <= 4) {
+        const frac = 1 - ((s.on - now) / beat - (beatsLeft - 1));
+        for (let k = 0; k < beatsLeft; k++) {
+          const dx = wEnd + 2 + k * 5;
+          g.globalAlpha = k === beatsLeft - 1 ? Math.max(0.2, 1 - frac) : 1;
+          g.fillRect(dx, ly + 1, 3, 3);
+        }
+        g.globalAlpha = 1;
+      }
+    }
+  }
+  // Entries still beyond the right edge: a tab at the edge with the beats to go.
+  for (const t of tabs) {
+    const tw = textWidth(t.text) + 4;
+    const y = Math.max(1, Math.min(c.h - 9, t.y - 2));
+    g.globalAlpha = 0.85;
+    g.fillStyle = "#0c0a10";
+    g.fillRect(w - tw - 3, y - 1, tw + 3, 8);
+    g.globalAlpha = 1;
+    g.fillStyle = t.color;
+    g.fillRect(w - tw - 3, y - 1, 1, 8);
+    pixText(g, t.text, w - tw, y + 1, t.color);
   }
   g.globalAlpha = 1;
 }

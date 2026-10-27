@@ -13,6 +13,8 @@ import { cardById } from "./cards.ts";
 import { formalTitle } from "./FuguePicker.tsx";
 import { SoundSelect } from "./SoundSelect.tsx";
 import { fugueOf, isPrelude } from "./stages.ts";
+import { markLegend } from "../touch/readings.ts";
+import { STRONG_SIDE } from "../touch/touch-expr.ts";
 
 /** The pop-up's title: "BWV 846/1 · PRELUDE IN C MAJOR" (the piece's own title where it has no card). */
 export function popTitle(id: string): string {
@@ -109,6 +111,19 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
               <li key={r}>{tr(r)}</li>
             ))}
           </ul>
+        )}
+        {help && rules && (
+          // D314: the reading's marks over the subject, in plain words (the dot is SHORT).
+          <div className="tb-pop-marks" id="pop-marks">
+            <p className="tb-pop-ask">{tr("THE MARKS OVER YOUR SUBJECT")}</p>
+            <ul className="tb-pop-rules">
+              {markLegend(STRONG_SIDE).map((l) => (
+                <li key={l.kind}>
+                  <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
         {sound !== undefined && soundLocked && (
           // D265: the piece's own sound until it is finished with an A or S.

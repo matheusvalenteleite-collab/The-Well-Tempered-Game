@@ -12,6 +12,8 @@ import { inkOf } from "../touch/MusicBox.tsx";
 import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
 import { chooseReading, chosenReading, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
+import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
+import { markLegend } from "../touch/readings.ts";
 import { tempoOf } from "../touch/tempi.ts";
 import { kindsOf } from "../touch/practice.ts";
 import { characterOf } from "../touch/character.ts";
@@ -89,10 +91,21 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
         )}
         {readings.length > 1 && !open && <p className="tb-hear-lock">{tr("FINISH THE FUGUE TO OPEN THE OTHER READINGS")}</p>}
         <canvas ref={canvas} className="tb-hear-canvas" />
-        <p className="tb-hear-key tb-hear-thumbs">{tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")}</p>
+        <p className="tb-hear-key tb-hear-thumbs">
+          {STRONG_SIDE === "outer"
+            ? tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")
+            : tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT")}
+        </p>
+        {/* D314: each mark in plain words: what the thumbs do for it. */}
+        <ul className="tb-hear-key tb-hear-marks" id="hear-marks">
+          {markLegend(STRONG_SIDE).map((l) => (
+            <li key={l.kind}>
+              <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
+            </li>
+          ))}
+        </ul>
         <p className="tb-hear-key">
-          <span>⌒ {tr("JOINED")}</span> <span>| {tr("DETACHED")}</span> <span>· {tr("SHORT")}</span> <span>&gt; {tr("ACCENT")}</span>
-          <span> · ♩ = {tempoOf(id)}</span>
+          <span>♩ = {tempoOf(id)}</span>
           {reading?.level ? <span> · {reading.level.toUpperCase()}</span> : null}
         </p>
         {reading?.quote && (
@@ -183,8 +196,10 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
     g.fillStyle = "#8a7f9a";
     g.font = "8px monospace";
     g.textAlign = "center";
-    g.fillText("pp", side === "left" ? bar - 10 : cssW - bar + 10, cssH - 4);
-    g.fillText("ff", side === "left" ? 10 : cssW - 10, cssH - 4);
+    // D314: pp on the soft side, ff on the strong (STRONG_SIDE).
+    const [inner, outer] = STRONG_SIDE === "outer" ? ["pp", "ff"] : ["ff", "pp"];
+    g.fillText(inner, side === "left" ? bar - 10 : cssW - bar + 10, cssH - 4);
+    g.fillText(outer, side === "left" ? 10 : cssW - 10, cssH - 4);
   }
   const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
   const t = playing ? now : -1;
@@ -192,7 +207,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   for (const tc of touches) {
     if (tc.slid) continue;
     const off = touches.filter((x) => x.slid && x.side === tc.side && x.on > tc.on).reduce((m, x) => Math.max(m, x.off), tc.off);
-    const across = acrossBar(tc.d) * (bar - size);
+    const across = strengthOf(acrossBar(tc.d)) * (bar - size);
     const x = tc.side === "left" ? bar - size * 0.2 - across : cssW - bar + size * 0.2 + across;
     // While it slides, it follows the notes it plays.
     const slidTo = touches.filter((x) => x.slid && x.side === tc.side && x.on > tc.on && x.on <= t && x.on < off).at(-1);
