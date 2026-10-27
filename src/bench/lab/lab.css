@@ -118,5 +118,40 @@
 .lab-help h3 { margin: 12px 0 2px; font-size: 13px; color: var(--tg-shine); }
 .lab-help p { margin: 0 0 6px; }
 .lab-help code { font: 11px ui-monospace, Menlo, monospace; color: #8fe3b0; word-break: break-all; }
+/* D321: the SENSOR tab. */
+.lab-sensor > p { margin: 4px 0; }
+.lab-sensor-status { font: 11px/1.5 ui-monospace, "SF Mono", Menlo, monospace; color: var(--tg-fg); }
+.lab-pad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 140px;
+  margin: 8px 0;
+  border: 2px dashed var(--tg-barline);
+  border-radius: 6px;
+  background: var(--tg-box);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+}
+.lab-pad b { font-family: var(--tg-pixel); font-size: 10px; font-weight: 400; color: var(--tg-shine); text-align: center; padding: 0 8px; }
+.lab-pad-soft { border-color: #8fb8ff; }
+.lab-pad-hard { border-color: #ffb36b; }
+.lab-pad-flatten { border-color: #ff7fbf; }
+.lab-sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; align-items: start; }
+.lab-scatter { width: 100%; height: auto; color: var(--tg-fg); background: var(--tg-box); border-radius: 3px; }
+.lab-sensor-sum p { margin: 0 0 6px; font-size: 12px; }
+.lab-tap-table { overflow-x: auto; margin-top: 8px; }
+.lab-tap-table table { border-collapse: collapse; font: 10.5px ui-monospace, Menlo, monospace; white-space: nowrap; }
+.lab-tap-table th, .lab-tap-table td { padding: 2px 6px; text-align: right; border-bottom: 1px solid var(--tg-grid); }
+.lab-tap-table th { color: var(--tg-muted); font-weight: 400; }
+.lab-tap-soft td:first-child { color: #8fb8ff; }
+.lab-tap-hard td:first-child { color: #ffb36b; }
+.lab-tap-flatten td:first-child { color: #ff7fbf; }
+.lab-tap-play td:first-child { color: #8fe3b0; }
 /* D320: the latest verdict in the title bar while a passage plays (never over the music; off by default). */
 .lab-barline { font: 10px/1.5 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0; padding-top: 0; margin-top: 0; }
