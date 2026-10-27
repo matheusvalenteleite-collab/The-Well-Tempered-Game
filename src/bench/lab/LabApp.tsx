@@ -35,6 +35,7 @@ import type { LabEvent } from "./events.ts";
 import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
 import { describe } from "./describe.ts";
+import { FreePlay, freeRows, type FreeScale } from "./free.ts";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 
 const STORE = "tb-lab-v1";
@@ -61,9 +62,19 @@ interface Setup {
   sound: string;
   loop: boolean;
   traces: boolean;
+  /** D320: FREE PLAY's lines over the box (nothing to follow there). */
   feed: boolean;
+  /** D320: while a passage plays, the latest verdict in the title bar (never over the music); off by default. */
+  feedBar: boolean;
   lag: number | null;
   drill?: string;
+  /** D320: what START plays: the passage, or FREE PLAY (free.ts). */
+  mode: "passage" | "free";
+  freeScale: FreeScale;
+  freeOctaves: number;
+  /** FREE PLAY's tempo (the metronome; the ornaments' speed), ♩ per minute. */
+  freeBpm: number;
+  click: boolean;
 }
 
 interface Drill {
@@ -137,8 +148,14 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     loop: s.loop ?? true,
     traces: s.traces ?? true,
     feed: s.feed ?? true,
+    feedBar: s.feedBar ?? false,
     lag: s.lag ?? null,
     drill: s.drill,
+    mode: s.mode === "free" ? "free" : "passage",
+    freeScale: s.freeScale === "chromatic" ? "chromatic" : "key",
+    freeOctaves: s.freeOctaves === 1 || s.freeOctaves === 3 ? s.freeOctaves : 2,
+    freeBpm: Math.max(40, Math.min(180, Math.round(s.freeBpm ?? 80))),
+    click: !!s.click,
   };
 }
 
@@ -149,7 +166,7 @@ interface Saved {
   log: LabLog;
 }
 
-type Tab = "passage" | "drills" | "mechanics" | "see" | "runs" | "help";
+type Tab = "passage" | "free" | "drills" | "mechanics" | "see" | "runs" | "help";
 
 interface Trace {
   id: number;
@@ -350,9 +367,12 @@ export function LabApp() {
     feed.current.push(`— RUN OVER: right ${t.right} · wrong ${t.wrong} · missed ${t.missed} · stray ${t.stray} · joined ${t.joined} of ${t.joined + t.notJoined} · slides ${t.slides}`);
     setFeedTick((n) => n + 1);
     setLast(log);
+    // D320: every run kept on the device by itself, the newest 20 (the oldest overwritten).
+    keep(log);
   };
   const begin = () => {
     stopRun(false);
+    stopFree();
     const ch = ensureChip();
     const s = setupRef.current;
     const ff = fugueById(s.piece);
@@ -432,10 +452,67 @@ export function LabApp() {
     r.raf = requestAnimationFrame(loop);
     setPlaying(true);
   };
-  const start = () => {
+  // D320: FREE PLAY under way (free.ts): no score, the bars play the sound chosen.
+  const free = useRef<{ fp: FreePlay; raf: number } | null>(null);
+  const stopFree = () => {
+    const fr = free.current;
+    if (!fr) return;
+    cancelAnimationFrame(fr.raf);
+    fr.fp.stop();
+    free.current = null;
+    paint.current = idlePaint;
+    feed.current.push("— FREE PLAY OVER");
+    setFeedTick((n) => n + 1);
+  };
+  const beginFree = () => {
+    stopRun(false);
+    stopFree();
+    const ch = ensureChip();
+    const s = setupRef.current;
+    const ff = fugueById(s.piece);
+    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click }, (l) => {
+      feed.current.push(l);
+      if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
+      setFeedTick((n) => n + 1);
+    });
+    const fr = { fp, raf: 0 };
+    free.current = fr;
+    // For checks driven from outside (a browser test).
+    (globalThis as { __labFree?: unknown }).__labFree = fp;
+    const changes = Object.keys(mechChanges()).length;
+    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
+    setFeedTick((n) => n + 1);
+    frame.current = { ...preview(), notes: [], others: [], spans: [], cadences: [], entries: [], subject: undefined, ornaments: undefined, readingMarks: undefined };
+    paint.current = (ctx, w, h) => {
+      fp.paint(ctx, w, h);
+      drawTraces(ctx);
+    };
+    const loop = () => {
+      if (free.current !== fr) return;
+      fp.frame();
+      fr.raf = requestAnimationFrame(loop);
+    };
+    fr.raf = requestAnimationFrame(loop);
+    setPlaying(true);
+  };
+  const start = (mode: Setup["mode"] = setupRef.current.mode) => {
     const ch = ensureChip();
     setPanel(null);
     setNote("");
+    if (mode !== setupRef.current.mode) {
+      setSetup({ mode });
+      setupRef.current = { ...setupRef.current, mode };
+    }
+    if (mode === "free") {
+      const cur = setupRef.current;
+      const rows = freeRows(fugueById(cur.piece), cur.voice, cur.freeScale, cur.freeOctaves);
+      const go = () => void ch.prepare(rows, rows).finally(() => beginFree());
+      if (ch.ctx.state === "running") return go();
+      ch.resume()
+        .then(() => (ch.ctx.state === "running" ? go() : setNote("The sound is still off: tap START once more.")))
+        .catch(() => setNote("The sound is still off: tap START once more."));
+      return;
+    }
     const go = () => {
       void ch.prepare(f.voices.flat().map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin());
     };
@@ -446,15 +523,30 @@ export function LabApp() {
   };
   const stop = () => {
     stopRun(true);
+    stopFree();
     setPlaying(false);
   };
-  useEffect(() => () => stopRun(false), []);
+  useEffect(
+    () => () => {
+      stopRun(false);
+      stopFree();
+    },
+    [],
+  );
 
   // Touches: recorded and handed to the game; their traces kept.
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => {
       traces.current.push({ id, side, pts: [x, y], ink: "#ecead9", label: "" });
       if (traces.current.length > 16) traces.current.shift();
+      const fr = free.current;
+      if (fr) {
+        fr.fp.down(id, side, x, y, w, h, ts);
+        const t = traces.current.at(-1)!;
+        t.ink = "#ffd23f";
+        t.label = fr.fp.name(fr.fp.rows[fr.fp.rowAt(y, h)]);
+        return;
+      }
       const r = run.current;
       if (!r) return;
       touching.current = id;
@@ -464,6 +556,7 @@ export function LabApp() {
     move: (id, x, y, w, h, ts) => {
       const t = traces.current.find((q) => q.id === id && q.end === undefined);
       if (t && t.pts.length < 400) t.pts.push(x, y);
+      if (free.current) return free.current.fp.move(id, x, y, w, h, ts);
       const r = run.current;
       if (!r) return;
       touching.current = id;
@@ -473,6 +566,7 @@ export function LabApp() {
     up: (id, ts, cancelled) => {
       const t = traces.current.find((q) => q.id === id && q.end === undefined);
       if (t) (t.end = performance.now()), (t.cancelled = !!cancelled);
+      if (free.current) return free.current.fp.up(id, ts, !!cancelled);
       const r = run.current;
       if (!r) return;
       touching.current = id;
@@ -491,8 +585,9 @@ export function LabApp() {
     const tgt = (e: KeyboardEvent) => (e.target instanceof Element ? e.target.closest("input, select, textarea, button") : null);
     const down = (e: KeyboardEvent) => {
       if (tgt(e)) return;
-      if (e.code === "Escape" && run.current) return stop();
+      if (e.code === "Escape" && (run.current || free.current)) return stop();
       const r = run.current;
+      if (free.current) return;
       if (!r) {
         if ((e.code === "Enter" || e.code === "Space") && !panel) (e.preventDefault(), start());
         return;
@@ -527,11 +622,13 @@ export function LabApp() {
     return `${pieceLabel(fugueById(p.piece))} · bars ${p.fromBar}–${p.toBar} · ${p.tempoPct}% · ${t.right}/${t.right + t.wrong + t.missed} right · ${t.joined} joined${ch ? ` · ${ch} changed` : ""}`;
   };
   const keep = (log: LabLog) => {
-    let next = [{ at: log.at, title: runTitle(log), log }, ...runs.filter((r) => r.at !== log.at)].slice(0, MAX_RUNS);
+    // D320: saved as each run ends (from the stored list, not this render's: the run loop's closure is old).
+    const stored = load<Saved[]>(RUNS, []);
+    let next = [{ at: log.at, title: runTitle(log), log }, ...stored.filter((r) => r.at !== log.at)].slice(0, MAX_RUNS);
     // Too much for the device's storage: the oldest go first.
     while (next.length && !save(RUNS, next)) next = next.slice(0, -1);
     setRuns(next);
-    setNote(next.some((r) => r.at === log.at) ? "Saved on this device." : "Could not save: the device's storage is full.");
+    if (!next.some((r) => r.at === log.at)) setNote("Could not save the run: the device's storage is full.");
   };
   const copy = (log: LabLog) => {
     const text = `WTC LAB LOG · ${runTitle(log)}\n${logText(log)}`;
@@ -557,9 +654,17 @@ export function LabApp() {
 
   const changed = Object.keys(mechChanges()).length;
   const voices = voicesFrom(f, span.from);
-  const hudTitle = `LAB · ${pieceLabel(f)} · ${f.voiceNames[setup.voice] ?? ""} · b${setup.fromBar}–${setup.toBar} · ${setup.tempoPct}%`;
-  const shown = feed.current.slice(-FEED_SHOWN);
+  const freeOn = setup.mode === "free";
+  const hudTitle = freeOn
+    ? `LAB · FREE PLAY · ${keyName(f.key)} · ${f.voiceNames[setup.voice] ?? ""} · ${setup.freeScale === "key" ? "key" : "chromatic"} · ${setup.freeOctaves} oct`
+    : `LAB · ${pieceLabel(f)} · ${f.voiceNames[setup.voice] ?? ""} · b${setup.fromBar}–${setup.toBar} · ${setup.tempoPct}%`;
+  // D320: lines over the box only in FREE PLAY (nothing to follow there); while a passage plays, at most the latest in the title bar.
+  const shown = freeOn && playing ? feed.current.slice(-FEED_SHOWN) : [];
+  const barLine = !freeOn && playing && setup.feedBar ? feed.current.at(-1) : undefined;
   void mechTick;
+
+  // The panel's START: FREE PLAY from its tab, the passage from PASSAGE and DRILLS, else what was played last.
+  const startMode: Setup["mode"] = panel === "free" ? "free" : panel === "passage" || panel === "drills" ? "passage" : setup.mode;
 
   return (
     <div className={`tg-app tg-wide lab-app tb-proto-${proto.id}${proto.layout === "bars" ? " tb-bars" : ""}`}>
@@ -567,13 +672,19 @@ export function LabApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{hudTitle}</span>
+            {barLine ? (
+              <span className={`tg-hud-title lab-barline ${lineClass(barLine)}`} id="lab-barline">
+                {barLine}
+              </span>
+            ) : (
+              <span className="tg-hud-title">{hudTitle}</span>
+            )}
             {changed > 0 && (
               <button type="button" className="lab-badge" onClick={() => setPanel("mechanics")} title="Parameters changed from the game's">
                 {changed} CHANGED
               </button>
             )}
-            <button type="button" id="lab-go" className="lab-hud-btn" onClick={playing ? stop : start}>
+            <button type="button" id="lab-go" className="lab-hud-btn" onClick={playing ? stop : () => start()}>
               {playing ? "■ STOP" : "▶ START"}
             </button>
             <button type="button" id="lab-open" className="lab-hud-btn" onClick={() => setPanel(panel ? null : "passage")}>
@@ -589,7 +700,7 @@ export function LabApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        {setup.feed && shown.length > 0 && (
+        {setup.feed && freeOn && shown.length > 0 && (
           <div className="lab-feed" aria-live="polite">
             {shown.map((l, i) => (
               <p key={feed.current.length - shown.length + i} className={lineClass(l)}>
@@ -603,13 +714,13 @@ export function LabApp() {
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {(["passage", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
+            {(["passage", "free", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
-                {t === "see" ? "WHAT HAPPENED" : t.toUpperCase()}
+                {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}
               </button>
             ))}
-            <button type="button" className="lab-start" onClick={start}>
-              ▶ START
+            <button type="button" className="lab-start" id="lab-start" onClick={() => start(startMode)}>
+              ▶ {startMode === "free" ? "PLAY FREELY" : "START"}
             </button>
             <button type="button" className="tg-x" aria-label="Close" onClick={() => setPanel(null)}>
               ✕
@@ -620,6 +731,7 @@ export function LabApp() {
             {panel === "passage" && (
               <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} />
             )}
+            {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} />}
             {panel === "drills" && (
               <div className="lab-drills">
                 {DRILLS.map((d) => (
@@ -646,7 +758,8 @@ export function LabApp() {
               <div className="lab-see">
                 <div className="lab-row">
                   <Toggle id="lab-traces" label="Thumb traces" on={setup.traces} set={(v) => setSetup({ traces: v })} />
-                  <Toggle id="lab-feed" label="Verdicts over the box" on={setup.feed} set={(v) => setSetup({ feed: v })} />
+                  <Toggle id="lab-feedbar" label="Latest verdict in the title bar while playing" on={setup.feedBar} set={(v) => setSetup({ feedBar: v })} />
+                  <Toggle id="lab-feed" label="FREE PLAY: lines over the box" on={setup.feed} set={(v) => setSetup({ feed: v })} />
                   <button type="button" className="lab-btn" onClick={() => ((feed.current = []), setFeedTick((n) => n + 1))}>
                     CLEAR
                   </button>
@@ -666,12 +779,11 @@ export function LabApp() {
                     <div className="lab-row">
                       <button type="button" id="lab-copy" className="lab-btn" onClick={() => copy(last)}>COPY LOG</button>
                       <button type="button" id="lab-share" className="lab-btn" onClick={() => share(last)}>SHARE</button>
-                      <button type="button" id="lab-save" className="lab-btn" onClick={() => keep(last)}>SAVE</button>
                       <button type="button" id="lab-replay" className="lab-btn" onClick={() => doReplay(last)}>REPLAY WITH CURRENT PARAMETERS</button>
                     </div>
                   </div>
                 ) : (
-                  <p className="lab-dim">Play a passage: each run is recorded. Its log can be copied for the developer, saved here, and replayed with other parameters.</p>
+                  <p className="lab-dim">Play a passage: each run is recorded and saved here by itself (the newest {MAX_RUNS}). Its log can be copied for the developer and replayed with other parameters.</p>
                 )}
                 {replayed && (
                   <div className="lab-replay" id="lab-replay-out">
@@ -700,7 +812,7 @@ export function LabApp() {
                     </details>
                   </div>
                 )}
-                <p className="lab-sub">SAVED ON THIS DEVICE ({runs.length} of {MAX_RUNS})</p>
+                <p className="lab-sub">SAVED ON THIS DEVICE BY ITSELF ({runs.length} of {MAX_RUNS}: the newest kept, the oldest overwritten)</p>
                 {runs.map((r) => (
                   <div key={r.at} className="lab-run">
                     <p>
@@ -861,6 +973,50 @@ function PassageTab({ setup, setSetup, f, voices, bpm, sound, ensureChip }: { se
   );
 }
 
+/** D320: FREE PLAY's settings (the piece gives the key and the voice its range; the sound is PASSAGE's). */
+function FreeTab({ setup, setSetup, f, sound }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; sound: string }) {
+  const rows = freeRows(f, setup.voice, setup.freeScale, setup.freeOctaves);
+  return (
+    <div className="lab-form">
+      <p className="lab-dim" style={{ gridColumn: "1 / -1", margin: 0 }}>
+        Play the sound freely on the two bars: the pitch is the row under the thumb (high at the top), every gesture works as in the game (where you land across the bar, sideways while holding, slides, shakes into mordents and trills, the other thumb still down to join) and MECHANICS applies. Each event is a line over the box and in WHAT HAPPENED. ▶ PLAY FREELY starts; ■ STOP ends.
+      </p>
+      <label className="lab-field">
+        <span>Key and range from</span>
+        <select id="lab-free-piece" value={setup.piece} onChange={(e) => setSetup({ piece: e.target.value, voice: 0, reading: readingsOf(e.target.value)[0]?.id ?? "", drill: undefined })}>
+          {ALL.map((p) => (
+            <option key={p.id} value={p.id}>
+              {pieceLabel(p)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="lab-field">
+        <span>Voice (its range)</span>
+        <select id="lab-free-voice" value={setup.voice} onChange={(e) => setSetup({ voice: Number(e.target.value) })}>
+          {f.voiceNames.map((n, i) => (
+            <option key={n} value={i}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </label>
+      <Seg id="lab-free-scale" label="Notes" value={setup.freeScale} options={[["key", `${keyName(f.key).toUpperCase()}`], ["chromatic", "CHROMATIC"]]} set={(v) => setSetup({ freeScale: v })} />
+      <Seg id="lab-free-oct" label={`Range: ${rows.length} rows`} value={String(setup.freeOctaves) as "1" | "2" | "3"} options={[["1", "1 OCTAVE"], ["2", "2 OCTAVES"], ["3", "3 OCTAVES"]]} set={(v) => setSetup({ freeOctaves: Number(v) })} />
+      <label className="lab-field">
+        <span>
+          Tempo ♩ {setup.freeBpm} (the click; the ornaments' speed)
+        </span>
+        <input type="range" id="lab-free-bpm" min={40} max={180} step={2} value={setup.freeBpm} onChange={(e) => setSetup({ freeBpm: Number(e.target.value) })} />
+      </label>
+      <div className="lab-row">
+        <Toggle id="lab-click" label="Metronome click" on={setup.click} set={(v) => setSetup({ click: v })} />
+      </div>
+      <SoundSelect id="lab-free-sound" value={sound} set={(id) => setSetup({ sound: id })} sounds={POP_SOUNDS} own={PIECE_SOUND[f.id]} />
+    </div>
+  );
+}
+
 function MechanicsTab({ change }: { change: (v: Partial<Record<MechKey, unknown>> | null) => void }) {
   const groups = [...new Set(MECH_SPEC.map((s) => s.group))];
   return (
@@ -941,11 +1097,13 @@ function HelpTab() {
       <h3>2 · Play</h3>
       <p>▶ START (top right). Hold the phone sideways and play on the two bars as in the game. ■ STOP ends the run. Each thumb leaves a trace: a circle where it landed, its path while held, an X where it lifted, green when the note was right, red when wrong, orange for a touch on no note.</p>
       <h3>3 · See what happened</h3>
-      <p>The last lines show over the box; WHAT HAPPENED lists them all, newest first. Each line gives the bar and beat, the note, the verdict, how early or late (ms), and the reason with numbers: how far your thumb moved from its last touch and what was needed; for joined notes, whether the other thumb was still down, or the gap between lifting and the next touch and the gap allowed.</p>
+      <p>WHAT HAPPENED lists every line, newest first (nothing is written over the music while you play; WHAT HAPPENED can put the latest line in the title bar). Each line gives the bar and beat, the note, the verdict, how early or late (ms), and the reason with numbers: how far your thumb moved from its last touch and what was needed; for joined notes, whether the other thumb was still down, or the gap between lifting and the next touch and the gap allowed.</p>
       <h3>4 · Change the rules</h3>
       <p>MECHANICS: every timing window, the legato gap, the slide threshold, the LADDER distances (in rows: one row is the height of one step in the box), ornaments, expression and what happens when the phone cancels a touch. RESET TO GAME DEFAULTS puts everything back. The game itself (play.html) is never changed by the lab.</p>
+      <h3>Free play</h3>
+      <p>FREE PLAY: no music to follow; the two bars play the sound chosen, the pitch the row under your thumb (the piece's key or every semitone, one to three octaves round the voice's range). Everything works as in the game: where you land across the bar, moving sideways while holding, sliding to another row, shaking into a mordent or a trill, landing while the other thumb holds to join. Each event is a line over the box. A metronome click if you want one. MECHANICS applies.</p>
       <h3>5 · Share and replay</h3>
-      <p>RUNS: every run is recorded (your touches with their exact times, the settings, your phone's screen and sound delay, and every verdict). COPY LOG or SHARE sends it (paste it in a message to the developer). SAVE keeps it on this phone (the last 20). REPLAY plays a run again through the game with the current MECHANICS, without sound, and says what would have changed: for example, "with Legato gap 120 ms: 7 more joined, 2 fewer wrong".</p>
+      <p>RUNS: every run is recorded (your touches with their exact times, the settings, your phone's screen and sound delay, and every verdict). COPY LOG or SHARE sends it (paste it in a message to the developer). Each run is kept on this phone by itself (the newest 20; the oldest is overwritten). REPLAY plays a run again through the game with the current MECHANICS, without sound, and says what would have changed: for example, "with Legato gap 120 ms: 7 more joined, 2 fewer wrong".</p>
       <h3>For the developer</h3>
       <p>
         <code>node tools/lab/replay.ts log.json --set legatoGapMs=120 --verdicts</code> replays a pasted log offline (<code>--keys</code> lists the parameters).

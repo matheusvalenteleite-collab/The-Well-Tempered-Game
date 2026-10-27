@@ -467,7 +467,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         }
         if (mk.accent) pixText(g, ">", x, y - 6, "#ff8a3d");
       });
-  if (fr.spans) strikes(fx, fr.spans);
+  if (fr.spans) strikes(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice]);
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
   if (fr.banner) banner(g, w, fr.banner, fx.gold);
