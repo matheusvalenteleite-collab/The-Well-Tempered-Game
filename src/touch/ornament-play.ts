@@ -7,7 +7,8 @@
  * computer's keys the ornamented note, once struck, plays its ornament and holds its main note.
  */
 import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
-import { keySteps, ornamentUnit, realise } from "../music/ornaments.ts";
+import { keySteps, ornamentUnit, realise, trillUnit } from "../music/ornaments.ts";
+import { MECH } from "../bench/mechanics.ts";
 import { parsePitch } from "../music/pitch.ts";
 import type { TouchFugue } from "./fugue.ts";
 
@@ -113,8 +114,23 @@ export function ornamentMark(o: Ornament): string {
 export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number, midi: number, prevMidi: number | undefined, bpm: number): [number, number, number][] {
   const q = f.tpq;
   const steps = contextSteps(f, on, midi, o.signs);
-  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), prevMidi, ...steps, diatonic: true });
+  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true });
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
+}
+
+/**
+ * D319: a note of the band's as it sounds with its ornament, its articulation holding it for `hold` of
+ * its length (D302's phrasing: a detached note stops early). A trill is realised over the note's whole
+ * written length (it lasts the note: shortened first, the grid lost notes and the alternation ended
+ * early: II/24's dotted quavers, held 0.87, trilled 3 notes of 6), the gap taken from its settling main
+ * note (at most half of it); any other ornament over the held length, as before.
+ */
+export function realiseHeld(f: TouchFugue, o: Ornament, on: number, dur: number, hold: number, midi: number, prevMidi: number | undefined, bpm: number): [number, number, number][] {
+  if (!/[TtO]/.test(o.signs) || hold >= 1) return realiseNote(f, o, on, dur * hold, midi, prevMidi, bpm);
+  const parts = realiseNote(f, o, on, dur, midi, prevMidi, bpm);
+  const last = parts[parts.length - 1];
+  last[1] = Math.max(Math.round(last[1] / 2), Math.round(last[1] - dur * (1 - hold)));
+  return parts;
 }
 
 /**
@@ -143,14 +159,15 @@ export function shakeOf(o: Ornament): Shake | null {
  * alternating, the note held at the end), from tick `from` to `until` (the note's written end), realised
  * as the written ones are (Bach's Explication, at the tempo, the neighbours as the bar reads them). The
  * main note already sounds, so a realisation that opens on it starts at its next note. [onset, length,
- * MIDI] in ticks; empty when too little of the note is left.
+ * MIDI] in ticks; empty when too little of the note is left. D319: `written`, a written trill's signs (its
+ * closing turn R kept), for the player's trill realised from the first shake to the note's end.
  */
-export function freeOrnamentParts(f: TouchFugue, kind: "mordent" | "short" | "trill", noteOn: number, midi: number, from: number, until: number, bpm: number): [number, number, number][] {
+export function freeOrnamentParts(f: TouchFugue, kind: "mordent" | "short" | "trill", noteOn: number, midi: number, from: number, until: number, bpm: number, written?: string): [number, number, number][] {
   const q = f.tpq;
   if (until - from < q / 8) return [];
-  const signs = kind === "mordent" ? "M" : kind === "short" ? "W" : "T";
+  const signs = written ?? (kind === "mordent" ? "M" : kind === "short" ? "W" : "T");
   const steps = contextSteps(f, noteOn, midi, signs);
-  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit: ornamentUnit(bpm / 2), ...steps, diatonic: true });
+  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, ...steps, diatonic: true });
   if (parts.length > 1 && parts[0].midi === midi) {
     const shift = parts[1].at - parts[0].at;
     parts = parts.slice(1).map((p, k, a) => ({ ...p, at: p.at - shift, dur: k === a.length - 1 ? p.dur + shift : p.dur }));
