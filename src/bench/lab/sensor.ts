@@ -274,6 +274,8 @@ export interface SensorExport {
   /** D335: inner against outer taps (dynamics.ts zoneReport) and the zone calibration kept on the device. */
   zones?: import("./dynamics.ts").ZoneReport;
   zoneCal?: import("./dynamics.ts").ZoneCal | null;
+  /** D336: the strike's one calibration kept on the device, the adaptive references at the export, adaptive on. */
+  dynCal?: { stored: import("./dynamics.ts").DynCal; now: import("./dynamics.ts").DynCal | null; adaptive: boolean | null };
   /** Each tap's raw samples from −250 to +150 ms: [t − tap, rt − tap, gx, gy, gz, lx, ly, lz, ra, rb, rg] (rounded). */
   raw: number[][][];
 }
