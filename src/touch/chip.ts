@@ -9,6 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
+import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
@@ -244,6 +245,29 @@ export interface Play {
   into?: AudioNode;
   /** D252: false: not doubled by the coupling (the coupling's own notes). */
   couple?: boolean;
+  /**
+   * D311, the player's touch across its bar (0 the inner edge, by the box, to 1 the outer; touch-expr.ts):
+   * where it landed shapes the attack (Chip.note turns it into the fields below, by the preset's family),
+   * and the note answers Sounding.shape (a sideways move while held). Unset: no expression (the band's notes).
+   */
+  touch?: number;
+  /** D311: the piano's recording (layer 7 "soft", layer 12 "firm"), whatever the level. */
+  layer?: "soft" | "firm";
+  /** D311: a lowpass on the note (Hz): the harpsichord's lute stop, the organ's echo manual, a singer's closed vowel. */
+  lp?: number;
+  /** D311: the harpsichord's lute (buff) stop: a muted, shorter pluck. */
+  lute?: boolean;
+  /** D311: a pulse voice's width (0.125, 0.25, 0.5: thin, hollow, square; the SID's any between: `pwContinuous`). */
+  pw?: number;
+  pwContinuous?: boolean;
+  /** D311: MEGA FM: the FM index scaled (the timbre throughout). */
+  fmScale?: number;
+  /** D311: BLEEPS AND BLOOPS: the mallet's hardness: the strike's FM burst and filter opening scaled. */
+  strike?: number;
+  /** D311: VOCAL SYNTH: the vowel, 0 closed (toward o or u) to 1 open (0.5 as the voice sings it). */
+  open?: number;
+  /** D311: how the note answers a held sideways move (set by Chip.note from `touch`). */
+  hold?: HoldMode;
 }
 
 /** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
@@ -266,6 +290,15 @@ export interface Sounding {
   muffle?: () => void;
   /** D179: the note's dynamic now (1 as struck), changed smoothly while it sounds (a swell, a diminuendo). */
   dyn?: (level: number) => void;
+  /** D311: the thumb moved sideways while holding: -1 (inward) .. 1 (outward) from where it landed (touch-expr.ts holdValue); smoothed. */
+  shape?: (s: number) => void;
+}
+
+/** D311: an automation taken from where it is now toward v, smoothly (no step, no zipper). */
+function retarget(a: AudioParam, v: number, now: number, tau = TOUCH_TAU) {
+  if (a.cancelAndHoldAtTime) a.cancelAndHoldAtTime(now);
+  else (a.cancelScheduledValues(now), a.setValueAtTime(a.value, now));
+  a.setTargetAtTime(v, now, tau);
 }
 
 export class Chip {
@@ -464,6 +497,8 @@ export class Chip {
   coupling = { up: 0, down: 0, split: 48 };
 
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
+    if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
     if (p.lead && p.couple !== false) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
     const c = this.coupling;
@@ -478,9 +513,99 @@ export class Chip {
         glide: (m) => (main.glide?.(m), twin.glide?.(m + (midi >= c.split ? 12 : -12))),
         muffle: () => both.forEach((x) => x.muffle?.()),
         dyn: (l) => both.forEach((x) => x.dyn?.(l)),
+        shape: (x) => both.forEach((y) => y.shape?.(x)),
       };
     }
     return this.single(midi, at, dur, v, p);
+  }
+
+  /**
+   * D311: a landing turned into the note's attack (touch-expr.ts landing: the piano's layer and level,
+   * the lute stop, the echo manual, the vowel, the pulse width, the FM index, the filter's brightness,
+   * the mallet's hardness) and how it will answer a sideways move (`hold`). The brightness replaces the
+   * touch's (D293 left it at the neutral dynamic's); the level and tone multiply and add.
+   */
+  private landed(midi: number, v: Voicing, p: Play): [Play, Voicing] {
+    const kind = touchKind(preset().id);
+    if (!kind) return [{ ...p, hold: "none" }, v];
+    const pt = v.patch ?? null;
+    const pulse = !pt && v.timbre !== "triangle";
+    const l = landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse);
+    const inst = pt?.sample ? SAMPLED[pt.sample] : null;
+    const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
+    const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
+    if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
+    if (l.tone) q.tone = (p.tone ?? 0) + l.tone;
+    if (l.bright !== undefined) q.bright = l.bright;
+    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
+    // The classic chip: the pulse of that width (its level by the chip's own table: voiceNote).
+    if (pulse && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
+    return [q, v];
+  }
+
+  /** D311: the player's note's expression stage: the landing's lowpass, and for holding a swell (messa di voce) or a wah's peak (at rest, none). */
+  private touchStage(src: AudioNode, p: Play, f0: number, bag: Bag): { out: AudioNode; messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number } } {
+    const ctx = this.ctx;
+    let out = src;
+    if (p.lp) {
+      const f = bag.add(ctx.createBiquadFilter());
+      f.type = "lowpass";
+      f.Q.value = 0.7071;
+      f.frequency.value = p.lp;
+      out = out.connect(f);
+    }
+    let wah: { node: BiquadFilterNode; f0: number } | undefined;
+    let messa: GainNode | undefined;
+    if (p.hold === "wah") {
+      const node = bag.add(ctx.createBiquadFilter());
+      node.type = "peaking";
+      node.Q.value = WAH_Q;
+      node.frequency.value = wahAt(0, f0).hz;
+      node.gain.value = 0;
+      out = out.connect(node);
+      wah = { node, f0 };
+    }
+    if (p.hold === "messa") {
+      messa = bag.add(ctx.createGain());
+      messa.gain.value = 1;
+      out = out.connect(messa);
+    }
+    return { out, messa, wah };
+  }
+
+  /** D311: the player's vibrato (in place of the voice's own): `base` cents after `delay`, its depth then the thumb's (vibDepth). */
+  private touchVibrato(params: AudioParam[], t: number, base: number, delay: number, rate: number, bag: Bag, lfos: AudioScheduledSourceNode[]): GainNode | null {
+    if (!params.length) return null;
+    const lfo = bag.src(this.ctx.createOscillator());
+    lfos.push(lfo);
+    lfo.frequency.value = rate;
+    const depth = bag.add(this.ctx.createGain());
+    depth.gain.setValueAtTime(0, t);
+    if (base > 0) {
+      depth.gain.setValueAtTime(0, t + delay);
+      depth.gain.linearRampToValueAtTime(base, t + delay + 0.25);
+    }
+    lfo.connect(depth);
+    for (const p of params) depth.connect(p);
+    lfo.start(t);
+    return depth;
+  }
+
+  /** D311: a held note's answer to the thumb's sideways move (Sounding.shape), from the parts it has. */
+  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number }; trem?: { lfo: OscillatorNode; rate: number } }, live: () => boolean): (s: number) => void {
+    const ctx = this.ctx;
+    return (s: number) => {
+      if (!live()) return;
+      const now = ctx.currentTime;
+      if (parts.messa) parts.messa.gain.setTargetAtTime(messaGain(s), now, TOUCH_TAU);
+      if (parts.wah) {
+        const w = wahAt(s, parts.wah.f0);
+        parts.wah.node.frequency.setTargetAtTime(w.hz, now, TOUCH_TAU);
+        parts.wah.node.gain.setTargetAtTime(w.db, now, TOUCH_TAU);
+      }
+      if (parts.vib) retarget(parts.vib.depth.gain, vibDepth(parts.vib.base, s), now);
+      if (parts.trem) parts.trem.lfo.frequency.setTargetAtTime(tremRate(parts.trem.rate, s), now, TOUCH_TAU);
+    };
   }
 
   private single(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
@@ -726,7 +851,8 @@ export class Chip {
       const near = nearestSample(main, midi);
       // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
       // instrument has one; either layer stands in for the other until it has loaded.
-      const soft = inst.soft && (p.level ?? 1) < inst.soft.below ? inst.soft.set : null;
+      // D311: the player's touch chooses the piano's recording (Play.layer), whatever the level.
+      const soft = inst.soft && (p.layer ? p.layer === "soft" : (p.level ?? 1) < inst.soft.below) ? inst.soft.set : null;
       let set = soft ?? main;
       let rec = near === null ? undefined : loaded(set, near);
       if (!rec && near !== null && inst.soft) {
@@ -784,8 +910,10 @@ export class Chip {
       g.gain.setValueAtTime(levelAt(rel), rel);
       g.gain.linearRampToValueAtTime(0, end);
     }
-    // A gentle vibrato on a long note, after a moment (not on a piano).
-    if (!piano && end - t > 0.45) {
+    // A gentle vibrato on a long note, after a moment (not on a piano). D311: the player's, its depth the thumb's (held sideways).
+    const lfos0: AudioScheduledSourceNode[] = [];
+    const xvib = p.hold === "vibrato" && !piano ? this.touchVibrato([o.detune], t, end - t > 0.45 ? 9 : 0, 0.28, 5.4, bag, lfos0) : null;
+    if (!xvib && !piano && end - t > 0.45) {
       const lfo = bag.src(ctx.createOscillator());
       const depth = bag.add(ctx.createGain());
       lfo.frequency.value = 5.4;
@@ -797,7 +925,7 @@ export class Chip {
       halt(lfo, end + 0.05);
     }
     // D213: the subject's vibrato (a long note's own vibrato aside).
-    const vibs: AudioScheduledSourceNode[] = [];
+    const vibs: AudioScheduledSourceNode[] = [...lfos0];
     this.vibrato([o.detune], t, end, p.vib ?? 0, bag, vibs);
     let src: AudioNode = this.shelf(o, Math.max(1200, Math.min(3500, hz(midi) * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     if (pulse) {
@@ -817,6 +945,10 @@ export class Chip {
       dull.frequency.value = 12000;
       src = src.connect(dull);
     }
+    let stopped = false;
+    const xs = p.hold ? this.touchStage(src, p, hz(midi), bag) : null;
+    if (xs) src = xs.out;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: end - t > 0.45 ? 9 : 0 } : undefined }, () => !stopped) : undefined;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
       src.connect(g).connect(pan).connect(this.busOf(p));
@@ -825,8 +957,8 @@ export class Chip {
     o.start(t);
     halt(o, end + 0.05);
     for (const l of vibs) halt(l, end + 0.05);
-    let stopped = false;
     return {
+      shape,
       stop: (when = ctx.currentTime) => {
         if (stopped || when >= end) return;
         stopped = true;
@@ -1026,6 +1158,9 @@ export class Chip {
       swell.frequency.value = swellAt(1);
       src = src.connect(swell);
     }
+    // D311: the player's touch: the lute stop's or the echo manual's or a closed vowel's lowpass; a singer's swell.
+    const xs = p.hold ? this.touchStage(src, p, baseHz, bag) : null;
+    if (xs) src = xs.out;
     const g = bag.add(ctx.createGain());
     g.gain.setValueAtTime(0, t);
     // D297: a period preset's envelope on the recording (Patch.rec): its attack, a fall to its sustain,
@@ -1037,6 +1172,11 @@ export class Chip {
     g.gain.linearRampToValueAtTime(top, t + Math.max(0.001, atk));
     /** Where the envelope is at `x` (after the attack): for a browser without cancelAndHoldAtTime. */
     let levelAt = (_x: number) => peak;
+    // D311: the lute (buff) stop: the string damped by its felt, a short ring.
+    if (plucked && p.lute) {
+      g.gain.setTargetAtTime(0, t + 0.03, LUTE_TAU);
+      levelAt = (x) => peak * Math.exp(-Math.max(0, x - t - 0.03) / LUTE_TAU);
+    }
     if (re && !plucked) {
       const a = t + Math.max(0.001, atk);
       if (re.s < 1 && top > peak * re.s) g.gain.setTargetAtTime(peak * re.s, a, Math.max(0.01, re.d / 3));
@@ -1109,8 +1249,10 @@ export class Chip {
       // note of the bass, out of a silent gap, were the "clickers" the owner heard): the consonant is
       // the voice opening from the lowpass, and its level coming in (CONSONANTS.open, voiced).
     }
+    // D311: the player's held recording: its vibrato's depth the thumb's (the patch's own the base).
+    const xvib = p.hold === "vibrato" && !plucked ? this.touchVibrato(det, t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
     // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
-    if (pt.vib && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
+    if (!xvib && pt.vib && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
       const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
       lfo.frequency.value = pt.vib.rate;
@@ -1165,11 +1307,13 @@ export class Chip {
     let stopped = false;
     let cents = 0;
     let muffled = false;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined }, () => !stopped) : undefined;
     const retune = (tc: number) => {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
     };
     return {
+      shape,
       stop: (when = ctx.currentTime) => {
         if (stopped || when >= end) return;
         stopped = true;
@@ -1277,7 +1421,10 @@ export class Chip {
     /** D297: the pulse-width sweeps (SID 64), stopped with the note. */
     const pwmLfos: OscillatorNode[] = [];
     for (const o of pt.osc) {
-      const n = bag.src(this.osc(o.wave));
+      // D311: a pulse voice's width from the player's touch (GAME BOY's pulses), its loudness kept (pulseRms).
+      const w0 = widthOf(o.wave);
+      const wave = p.pw !== undefined && !p.pwContinuous && w0 !== undefined && o.wave !== "square" ? pulseWave(p.pw) : o.wave;
+      const n = bag.src(this.osc(wave));
       n.frequency.value = f0 * 2 ** (o.octave ?? 0);
       const det = (o.detune ?? 0) + (p.detune ?? 0);
       n.detune.value = det;
@@ -1288,11 +1435,14 @@ export class Chip {
         n.detune.setTargetAtTime(det, t, pt.scoop.time);
       }
       const g = bag.add(ctx.createGain());
-      g.gain.value = o.gain ?? 1;
+      g.gain.value = (o.gain ?? 1) * (wave !== o.wave && w0 !== undefined ? pulseRms(w0) / pulseRms(widthOf(wave) ?? w0) : 1);
       if (pt.pwm && o.wave === "saw") {
         // D297, SID 64's pulse-width modulation: the sawtooth less itself `width` of a period later is a
         // pulse of that width (halved: within ±1); the delay swung by an LFO moves the width.
-        const pw = pt.pwm;
+        // D311: the SID's width from the player's touch (12.5% to 50%, any between), its loudness kept, its sweep within it.
+        const width = p.pwContinuous && p.pw !== undefined ? p.pw : pt.pwm.width;
+        const pw = { ...pt.pwm, width, depth: Math.min(pt.pwm.depth, Math.max(0, width - 0.03)) };
+        if (width !== pt.pwm.width) g.gain.value *= pulseRms(pt.pwm.width) / pulseRms(width);
         const f = f0 * 2 ** (o.octave ?? 0);
         const half = bag.add(ctx.createGain());
         half.gain.value = 0.5;
@@ -1336,15 +1486,18 @@ export class Chip {
         mods.push({ o, ratio, det });
         return depth.gain;
       };
-      const hz1 = f0 * fm.ratio;
+      // D311: MEGA FM's index (the timbre throughout: fmScale) and BLEEPS' mallet (the strike's burst: strike), from the player's touch.
+      const xi = p.fmScale ?? 1;
+      const xs0 = p.strike ?? 1;
+      const hz1 = f0 * fm.ratio * xi;
       // D302: the modulator a few cents off its ratio (the chip's DT1: a slow beating in the timbre).
       const d = mod(fm.ratio, fm.detune ?? 0);
       // D302: a joined note goes on at the body's index (no bright onset: the YM2612 legato, no key-on).
       const joinedOn = p.legato && !pluck;
-      d.setValueAtTime((joinedOn ? fm.to : fm.index) * hz1, t);
+      d.setValueAtTime((joinedOn ? fm.to : fm.index * xs0) * hz1, t);
       let from = t;
       if (fm.rise && !joinedOn) {
-        d.linearRampToValueAtTime(fm.rise.to * hz1, t + fm.rise.time);
+        d.linearRampToValueAtTime(fm.rise.to * xs0 * hz1, t + fm.rise.time);
         from = t + fm.rise.time;
       }
       d.setTargetAtTime(fm.to * hz1, from, fm.time / 3);
@@ -1352,9 +1505,9 @@ export class Chip {
         // A second modulator: a fixed index, or (D302) its own fall (an e-piano's tine, a slap's click).
         const m2 = fm.mod2;
         const g2 = mod(m2.ratio, -(fm.detune ?? 0) / 2);
-        const hz2 = f0 * m2.ratio;
+        const hz2 = f0 * m2.ratio * xi;
         if (m2.to !== undefined && m2.time) {
-          g2.setValueAtTime((joinedOn ? m2.to : m2.index) * hz2, t);
+          g2.setValueAtTime((joinedOn ? m2.to : m2.index * xs0) * hz2, t);
           g2.setTargetAtTime(m2.to * hz2, t, m2.time / 3);
         } else g2.value = m2.index * hz2;
       }
@@ -1418,7 +1571,8 @@ export class Chip {
       fl.Q.value = pt.filter.q ?? 0.7;
       const base = Math.min(16000, (pt.filter.hz ? pt.filter.freq : f0 * pt.filter.freq) * bright);
       // D302: joined, the filter does not open anew (no "wah" of an attack).
-      const top = p.legato && !pluck ? base : Math.min(18000, base * (pt.filter.env ?? 1) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
+      // D311: BLEEPS' mallet: a harder strike opens the filter further (never under the base).
+      const top = p.legato && !pluck ? base : Math.min(18000, base * Math.max(1, (pt.filter.env ?? 1) * (p.strike ?? 1)) * (1 + (p.accent ?? 0) * 0.8) * (1 + (p.crisp ?? 0) * 0.6));
       fl.frequency.setValueAtTime(top, t);
       fl.frequency.setTargetAtTime(base, t + 0.005, pt.filter.envDecay ?? 0.1);
       src = src.connect(fl);
@@ -1471,6 +1625,9 @@ export class Chip {
       src.connect(dry).connect(sum);
       src = sum;
     }
+    // D311: the player's touch: a lowpass (the echo manual, the lute stop, a closed singer), the wah's peak, a swell.
+    const xs = p.hold ? this.touchStage(src, p, f0, bag) : null;
+    if (xs) src = xs.out;
     src = this.shelf(src, Math.max(1200, Math.min(3500, f0 * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
@@ -1488,7 +1645,8 @@ export class Chip {
     if (p.legato && !pluck) g.gain.linearRampToValueAtTime(sus || peak * 0.7, t + 0.02);
     else {
       g.gain.linearRampToValueAtTime(peak * (1 + (p.accent ?? 0) * 0.7), t + a);
-      if (pluck) g.gain.setTargetAtTime(0, t + a, pt.amp.d * 2 ** (-(midi - 60) / 30));
+      // D311: the lute stop (a harpsichord's stand-in before its recording): the shorter ring.
+      if (pluck) g.gain.setTargetAtTime(0, t + a, p.lute ? LUTE_TAU : pt.amp.d * 2 ** (-(midi - 60) / 30));
       else if (st) {
         // D294: the Game Boy's volume envelope: a step of 1/15 every period/64 s, abrupt, down to its floor.
         for (let k = 1; k <= st.from - st.to; k++) {
@@ -1505,8 +1663,11 @@ export class Chip {
     }
     // The LFOs, stopped with the note (D184: they ran on 2 s past its end, and past an early stop).
     const lfos: AudioScheduledSourceNode[] = [...pwmLfos];
+    let xtrem: { lfo: OscillatorNode; rate: number } | undefined;
     if (pt.trem) {
       const lfo = bag.src(ctx.createOscillator());
+      // D311: the vibraphone's motor, its speed the thumb's (held sideways).
+      if (p.hold === "trem") xtrem = { lfo, rate: pt.trem.rate };
       lfos.push(lfo);
       const depth = bag.add(ctx.createGain());
       const tg = bag.add(ctx.createGain());
@@ -1517,7 +1678,9 @@ export class Chip {
       src = src.connect(tg);
       lfo.start(t);
     }
-    if (pt.vib && end - t > pt.vib.delay + 0.1) {
+    // D311: the player's vibrato, its depth the thumb's (the patch's own the base).
+    const xvib = p.hold === "vibrato" ? this.touchVibrato(tuned.map((o) => o.detune), t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
+    if (!xvib && pt.vib && end - t > pt.vib.delay + 0.1) {
       const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
       const depth = bag.add(ctx.createGain());
@@ -1586,7 +1749,9 @@ export class Chip {
     for (const o of tuned) (o.start(t), halt(o, last));
     if (breath) (breath.start(t), halt(breath, last));
     let stopped = false;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, trem: xtrem }, () => !stopped) : undefined;
     return {
+      shape,
       stop: (when = ctx.currentTime) => {
         if (stopped) return;
         stopped = true;
@@ -1689,7 +1854,9 @@ export class Chip {
       const bp = bag.add(ctx.createBiquadFilter());
       bp.type = "bandpass";
       // D305: the first formant tuned up to the pitch (Sing.tune), a soprano's on her high notes.
-      const tuned = (m: number) => (i === 0 && sg.tune ? Math.max(f * sg.size, sg.tune * hz(m)) : f * sg.size);
+      // D311: the player's touch: the vowel closed toward the box, opened toward the edge (touch-expr.ts formantAt).
+      const fx = p.open === undefined ? f : formantAt(f, VOWELS[sg.type][VOWEL_CLOSED[sg.vowel] ?? "o"][i]?.[0] ?? f, i, p.open);
+      const tuned = (m: number) => (i === 0 && sg.tune ? Math.max(fx * sg.size, sg.tune * hz(m)) : fx * sg.size);
       const fv = Math.min(ctx.sampleRate * 0.45, tuned(midi));
       bp.Q.value = (f * sg.size) / (bw * sg.size * (sg.bw ?? 1));
       if (!joined && i < 3) {
@@ -1720,6 +1887,9 @@ export class Chip {
       sh.gain.value = sg.ring;
       tail = tail.connect(sh);
     }
+    // D311: the player's swell (messa di voce), and a closed singer's lowpass (SOLO VOICES before its recording).
+    const xs = p.hold ? this.touchStage(tail, p, f0, bag) : null;
+    if (xs) tail = xs.out;
     tail = this.shelf(tail, Math.max(1200, Math.min(3500, f0 * 4)), t, p.tone ?? 0, p.crisp ?? 0, bag);
     const g = bag.add(ctx.createGain());
     const a = joined ? 0.02 : Math.max(0.006, pt.amp.a);
@@ -1730,7 +1900,12 @@ export class Chip {
     g.gain.linearRampToValueAtTime(0, end);
     // The vibrato: late, ramped in (Patch.vib); and the subject's own (Play.vib).
     const lfos: AudioScheduledSourceNode[] = [];
-    if (pt.vib && end - t > pt.vib.delay + 0.1) {
+    // D311: VOCAL SYNTH, the player's note: straight while the thumb moves; held still BLOOM_STILL s, it blooms
+    // into a little vibrato (the voice's own, at most BLOOM_CENTS; the bass, which has none, BLOOM_DEFAULT).
+    const bloomCents = Math.min(BLOOM_CENTS, pt.vib?.depth ?? BLOOM_DEFAULT);
+    const bloom = p.open !== undefined && p.hold === "messa" ? this.touchVibrato([o.detune], t, 0, 0, pt.vib?.rate ?? 5.4, bag, lfos) : null;
+    if (bloom) bloom.gain.setTargetAtTime(bloomCents, t + BLOOM_STILL, 0.12);
+    if (!bloom && pt.vib && end - t > pt.vib.delay + 0.1) {
       const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
       const depth = bag.add(ctx.createGain());
@@ -1756,7 +1931,21 @@ export class Chip {
     halt(nz, end + 0.05);
     for (const l of lfos) halt(l, end + 0.05);
     let stopped = false;
+    const swell = p.hold ? this.touchShape({ ...xs }, () => !stopped) : undefined;
+    /** Where the thumb last moved to (a move of BLOOM_MOVE or more starts the stillness over). */
+    let anchor = 0;
+    const shape = swell
+      ? (x: number) => {
+          swell(x);
+          if (!bloom || stopped || Math.abs(x - anchor) < BLOOM_MOVE) return;
+          anchor = x;
+          const now = ctx.currentTime;
+          retarget(bloom.gain, 0, now, 0.08);
+          bloom.gain.setTargetAtTime(bloomCents, now + BLOOM_STILL, 0.12);
+        }
+      : undefined;
     return {
+      shape,
       stop: (when = ctx.currentTime) => {
         if (stopped) return;
         stopped = true;

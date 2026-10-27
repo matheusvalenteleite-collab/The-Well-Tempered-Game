@@ -27,7 +27,8 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   for (const id of NEW) {
     assert.ok(!Object.values(PIECE_SOUND).includes(id), id);
     // D305: VOCAL SYNTH sung as singers sing.
-    assert.equal(styleOf(id), id === "vocalSynth" ? "sung" : "plain");
+    // D309: PIPE ORGAN the organ's way, SOLO VOICES the singers' legato.
+    assert.equal(styleOf(id), id === "vocalSynth" ? "sung" : id === "chamberOrgan" ? "organ" : id === "soloVoices" ? "solo" : "plain");
     // No trademarks in the names.
     assert.ok(!/SNES|NINTENDO|SEGA|PLAYSTATION|MEGA DRIVE|GENESIS|ZELDA|GOLDENEYE|BOMBERMAN|MOOG|COMMODORE|AMIGA|VOCALOID|MIKU|UTAU|SYNTHESIZER V|CEVIO/.test(presetById(id).name), id);
   }

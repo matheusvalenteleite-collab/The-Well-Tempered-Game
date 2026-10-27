@@ -10,6 +10,8 @@
  */
 import data from "../../data/touch/readings.json" with { type: "json" };
 import { ART_HOLD } from "./phrasing.ts";
+import { decide, type Kind } from "./practice.ts";
+import type { Character } from "./character.ts";
 
 export type Level = "pp" | "p" | "mp" | "mf" | "f" | "ff";
 export interface ReadingNote {
@@ -108,18 +110,28 @@ export const JOIN_OVER_S = 0.03;
  * one before (no fresh attack; `from` its pitch, a singing voice's glide); `final`, the last. A joined note was held 4% over its written length and still let go
  * before the next (a 120 ms release) and the next attacked anew: no join was heard.
  */
-export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number): { at: number; len: number; midi: number; d: number; legato?: boolean; from?: number; tie?: number; final?: boolean; apart?: boolean }[] {
+export function performSubject(r: Reading | null, notes: [number, number, number, ...unknown[]][], tpq: number, bpm: number, rules?: { kind: Kind; character?: Character }): { at: number; len: number; midi: number; d: number; legato?: boolean; from?: number; tie?: number; final?: boolean; apart?: boolean }[] {
   // D274: at the game's tempo (D285: on the slow side of the recordings), not the book's.
   const tps = (tpq * bpm) / 60;
   const on0 = notes[0]?.[0] ?? 0;
   const base = r?.level ? LEVEL_D[r.level] : 0.55;
-  const joined = (i: number) => !!r?.notes[i]?.join && !r?.notes[i]?.short && i + 1 < notes.length && notes[i + 1][0] <= notes[i][0] + notes[i][1];
+  // D309: a note the reading leaves unmarked, followed at once by the next, as the others play it (the
+  // instrument's table, practice.ts decide; the singers joined); without `rules`, held 0.92 as before.
+  const adjacent = (i: number) => i + 1 < notes.length && notes[i + 1][0] === notes[i][0] + notes[i][1];
+  const rule = (i: number) => {
+    const n = r?.notes[i];
+    if (!rules || !adjacent(i) || n?.short || (n?.join !== null && n?.join !== undefined)) return null;
+    if (rules.kind === "sung" || rules.kind === "solo") return notes[i + 1][2] === notes[i][2] ? { gap: 0 } : { join: JOIN_OVER_S };
+    return decide(rules.kind, { interval: notes[i + 1][2] - notes[i][2], ioi: notes[i][1] / tps, bass: false, character: rules.character, quaver: notes[i][1] >= tpq / 2 });
+  };
+  const joined = (i: number) => (!!r?.notes[i]?.join && !r?.notes[i]?.short && i + 1 < notes.length && notes[i + 1][0] <= notes[i][0] + notes[i][1]) || "join" in (rule(i) ?? {});
   return notes.map(([on, dur, midi], i) => {
     const n = r?.notes[i];
     const apart = !!n?.short || n?.join === false;
     const gapTo = i + 1 < notes.length ? notes[i + 1][0] - on : dur;
+    const ru = rule(i);
     // Joined: to the next note's start and a little over; detached: three quarters, short: half (D304: as the others play them, phrasing.ts ART_HOLD).
-    const len = n?.short ? (dur * ART_HOLD.short) / tps : n?.join === false ? (Math.min(dur, gapTo) * ART_HOLD.detach) / tps : joined(i) ? gapTo / tps + JOIN_OVER_S : (dur * 0.92) / tps;
+    const len = n?.short ? (dur * ART_HOLD.short) / tps : n?.join === false ? (Math.min(dur, gapTo) * ART_HOLD.detach) / tps : joined(i) ? gapTo / tps + JOIN_OVER_S : ru && "gap" in ru ? dur / tps - ru.gap : (dur * 0.92) / tps;
     const u = notes.length > 1 ? i / (notes.length - 1) : 0;
     const shaped = r?.shape === "crescendo" ? base - 0.12 + 0.24 * u : r?.shape === "diminuendo" ? base + 0.12 - 0.24 * u : r?.shape === "arch" ? base - 0.1 + 0.2 * Math.sin(Math.PI * u) : base;
     const d = Math.max(0.05, Math.min(1, shaped + (n?.accent ? 0.15 : 0)));

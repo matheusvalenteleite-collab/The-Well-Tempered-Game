@@ -13,6 +13,9 @@ import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
 import { chooseReading, chosenReading, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
 import { tempoOf } from "../touch/tempi.ts";
+import { kindsOf } from "../touch/practice.ts";
+import { characterOf } from "../touch/character.ts";
+import { preset } from "../touch/sound.ts";
 import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
 
 export type { Performed };
@@ -25,7 +28,8 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
   const [reading, setReading] = useState<Reading | null>(() => chosenReading(id, open));
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
-  const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id)) : [];
+  // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
+  const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
   // D280: the thumbs that play it: taking turns, landing and lifting as the reading asks, loud or soft
   // across the bar, the ornaments shaken.
   const orns = ornamentsOf(f);

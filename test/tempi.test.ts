@@ -19,9 +19,10 @@ test("every fugue and Contrapunctus XIV has a normal and a slow tempo", () => {
     assert.ok(t.normal >= 30 && t.normal <= 220, `${f.id}: normal ${t.normal}`);
     assert.ok(t.iqr[0] <= t.median && t.median <= t.iqr[1], `${f.id}: median inside its IQR`);
     // D285: on the slow side: at most the lower quartile, never under the slowest recording; the busiest
-    // voice at most 4.5 notes a second unless that is slower than every recording.
-    assert.ok(t.normal <= t.iqr[0] && t.normal >= t.range[0], `${f.id}: normal ${t.normal} in ${t.range[0]}..${t.iqr[0]}`);
-    assert.ok(t.busiest <= 4.55 || t.normal === t.range[0], `${f.id}: ${t.busiest} notes a second`);
+    // voice at most 5.5 notes a second (D312) unless that is slower than every recording.
+    // D312: the 35th percentile (between the lower quartile and the median), never under the slowest recording.
+    assert.ok(t.normal <= t.median && t.normal >= t.range[0], `${f.id}: normal ${t.normal} in ${t.range[0]}..${t.median}`);
+    assert.ok(t.busiest <= 5.55 || t.normal === t.range[0], `${f.id}: ${t.busiest} notes a second`);
     assert.ok(t.n >= 1 && (t.n >= 5) === !t.flag, `${f.id}: flagged iff fewer than 5`);
     assert.equal(tempoOf(f.id), t.normal);
   }
