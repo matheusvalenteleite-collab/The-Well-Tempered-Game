@@ -76,6 +76,8 @@ import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
 import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
+import { RegistrationStops } from "../touch/RegistrationStops.tsx";
+import { hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
 /** D314: how long (s, from the start of play) the reading's marks are explained in the box. */
@@ -960,6 +962,8 @@ export function BenchApp() {
           <>
             <span className="tg-hud-title">{lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
+            {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. */}
+            {hasStops(presetById(soundNow).id) && !lesson && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>

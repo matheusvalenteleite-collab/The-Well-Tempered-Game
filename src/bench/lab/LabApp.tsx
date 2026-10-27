@@ -35,7 +35,12 @@ import type { LabEvent } from "./events.ts";
 import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
 import { describe } from "./describe.ts";
-import { FreePlay, freeRows, type FreeScale } from "./free.ts";
+import { FreePlay, freeRows, type FreeOptions, type FreeScale } from "./free.ts";
+import { loadTable, TableStage, TableTab } from "./TableStage.tsx";
+import { MotionHub, stampOf, strengthFrom, type SenseSource, type TouchInfo } from "./sensor.ts";
+import { SensorTab } from "./SensorTab.tsx";
+import { RegistrationStops } from "../../touch/RegistrationStops.tsx";
+import { hasStops, voicePatch } from "../../touch/registration.ts";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 
 const STORE = "tb-lab-v1";
@@ -75,6 +80,10 @@ interface Setup {
   /** FREE PLAY's tempo (the metronome; the ornaments' speed), ♩ per minute. */
   freeBpm: number;
   click: boolean;
+  /** D321, SENSOR's PLAY WITH IT: FREE PLAY's attacks from the tap's strength (the motion sensor). */
+  sensePlay: boolean;
+  /** ...read from the contact's size (the default: the stronger probe on iPhone) or the motion sensor. */
+  senseSource: SenseSource;
 }
 
 interface Drill {
@@ -156,6 +165,8 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     freeOctaves: s.freeOctaves === 1 || s.freeOctaves === 3 ? s.freeOctaves : 2,
     freeBpm: Math.max(40, Math.min(180, Math.round(s.freeBpm ?? 80))),
     click: !!s.click,
+    sensePlay: !!s.sensePlay,
+    senseSource: s.senseSource === "motion" ? "motion" : "size",
   };
 }
 
@@ -166,7 +177,7 @@ interface Saved {
   log: LabLog;
 }
 
-type Tab = "passage" | "free" | "drills" | "mechanics" | "see" | "runs" | "help";
+type Tab = "passage" | "free" | "table" | "drills" | "mechanics" | "sensor" | "see" | "runs" | "help";
 
 interface Trace {
   id: number;
@@ -206,6 +217,9 @@ export function LabApp() {
   const span = passageSpan(f, setup);
 
   const [panel, setPanel] = useState<Tab | null>("passage");
+  // D324: TABLE's settings, and its whole screen while it plays (TableStage.tsx).
+  const [tableOpts, setTableOpts] = useState(loadTable);
+  const [tableOn, setTableOn] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [, setFeedTick] = useState(0);
   const feed = useRef<string[]>([]);
@@ -240,6 +254,41 @@ export function LabApp() {
     if (reading) for (const e of f.entries) if (!e.theme && e.voice === setup.voice) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, reading.notes[j]));
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, span.from, span.until, reading?.id, setup.voice]);
+
+  // D321: the motion sensor (SENSOR tab), kept for the visit; its taps go into the sensor log and the runs' logs.
+  const hub = useRef<MotionHub>(null as unknown as MotionHub);
+  hub.current ??= new MotionHub(VERSION);
+  useEffect(() => () => hub.current.stop(), []);
+  // D321: every contact on the page (capture phase, before the play area): its size for PLAY WITH IT by
+  // contact size, and (playing so in FREE PLAY) each touch kept as a "play" tap in the sensor log. The
+  // SENSOR tab's pad handles its own.
+  useEffect(() => {
+    const h = hub.current;
+    const mine = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("#lab-pad");
+    const taps = new Map<number, TouchInfo>();
+    const onDown = (e: PointerEvent) => {
+      if (mine(e)) return;
+      const info = h.pointerDown(e);
+      const s = setupRef.current;
+      if (free.current && s.sensePlay && s.senseSource === "size") (taps.set(e.pointerId, info), h.measure(info.t, "play", info));
+    };
+    const onMove = (e: PointerEvent) => !mine(e) && h.pointerMove(e, taps.get(e.pointerId));
+    const onUp = (e: PointerEvent) => {
+      if (mine(e)) return;
+      h.pointerUp(e, taps.get(e.pointerId));
+      taps.delete(e.pointerId);
+    };
+    window.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("pointermove", onMove, true);
+    window.addEventListener("pointerup", onUp, true);
+    window.addEventListener("pointercancel", onUp, true);
+    return () => {
+      window.removeEventListener("pointerdown", onDown, true);
+      window.removeEventListener("pointermove", onMove, true);
+      window.removeEventListener("pointerup", onUp, true);
+      window.removeEventListener("pointercancel", onUp, true);
+    };
+  }, []);
 
   const chip = useRef<Chip | null>(null);
   const ensureChip = (): Chip => {
@@ -345,6 +394,7 @@ export function LabApp() {
     else if (e.kind === "stray") (t.ink = "#ffb36b"), (t.label = "STRAY");
     else if (e.kind === "double") (t.ink = "#7d84b3"), (t.label = "DOUBLE");
     else if (e.kind === "slide") t.label += " SLIDE";
+    else if (e.kind === "drag") t.label += ` ${e.how.toUpperCase()}`;
     else if (e.kind === "shake") t.label += ` ${e.ornament.toUpperCase()}`;
   };
 
@@ -363,6 +413,8 @@ export function LabApp() {
   };
   const finishRun = (rec: LabRecorder, stopped = false) => {
     const log = rec.finish(stopped);
+    // D321: the sensor session (if any taps were measured) travels with the run's log.
+    if (hub.current.taps.length) log.sensor = hub.current.export();
     const t = tally(log.verdicts);
     feed.current.push(`— RUN OVER: right ${t.right} · wrong ${t.wrong} · missed ${t.missed} · stray ${t.stray} · joined ${t.joined} of ${t.joined + t.notJoined} · slides ${t.slides}`);
     setFeedTick((n) => n + 1);
@@ -470,7 +522,35 @@ export function LabApp() {
     const ch = ensureChip();
     const s = setupRef.current;
     const ff = fugueById(s.piece);
-    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click }, (l) => {
+    // D321, PLAY WITH IT: each touch's strength from the motion sensor's spike (sensor.ts).
+    const h = hub.current;
+    const calName = (c: { from: string } | null) => (c ? (c.from === "session" ? "learned on this device" : "the recent taps' calibration") : "");
+    const sense: FreeOptions["sense"] = s.sensePlay
+      ? {
+          source: s.senseSource,
+          motion: (ts, waitMs, done) => {
+            const t = stampOf(ts, performance.now());
+            h.measure(
+              t,
+              "play",
+              { t },
+              (rec) => {
+                const cal = h.calibration("motion");
+                done({ peak: rec.peak, strength: rec.peak !== null && cal ? strengthFrom(rec.peak, cal) : null, cal: calName(cal) });
+              },
+              MECH.tapWindowMs,
+              waitMs,
+            );
+          },
+          size: (id) => {
+            const c = h.contacts.get(id);
+            const size = c?.size ?? null;
+            const cal = h.calibration("size");
+            return { size, strength: size !== null && cal ? strengthFrom(size, cal) : null, cal: calName(cal) };
+          },
+        }
+      : undefined;
+    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, sense }, (l) => {
       feed.current.push(l);
       if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
       setFeedTick((n) => n + 1);
@@ -480,7 +560,8 @@ export function LabApp() {
     // For checks driven from outside (a browser test).
     (globalThis as { __labFree?: unknown }).__labFree = fp;
     const changes = Object.keys(mechChanges()).length;
-    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
+    if (s.sensePlay && !h.live) feed.current.push(h.permission === "unasked" ? "— PLAY WITH IT is on but the sensor is off: SENSOR › START SENSOR first" : "— PLAY WITH IT: no motion samples (no sensor here, or access denied): attacks stay neutral");
+    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${s.sensePlay ? " · PLAY WITH IT (tap strength)" : ""}${MECH.dragMeaning === "connect" ? " · DRAG: CONNECT" : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
     setFeedTick((n) => n + 1);
     frame.current = { ...preview(), notes: [], others: [], spans: [], cadences: [], entries: [], subject: undefined, ornaments: undefined, readingMarks: undefined };
     paint.current = (ctx, w, h) => {
@@ -636,6 +717,15 @@ export function LabApp() {
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => window.prompt("Copy the log:", text));
     else window.prompt("Copy the log:", text);
   };
+  /** D321: the sensor session as text for the lead (its taps, the separation, every tap's raw samples). */
+  const copySensor = () => {
+    const x = hub.current.export();
+    const sep = x.sep ? ` · AUC ${x.sep.auc.toFixed(2)} (${x.sep.verdict})` : "";
+    const text = `WTC LAB SENSOR LOG · ${x.taps.length} taps${sep} · ${x.permission}\n${JSON.stringify(x)}`;
+    const done = () => setNote("Sensor log copied. Paste it in a message to the developer.");
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => window.prompt("Copy the sensor log:", text));
+    else window.prompt("Copy the sensor log:", text);
+  };
   const share = (log: LabLog) => {
     const text = logText(log);
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
@@ -679,6 +769,8 @@ export function LabApp() {
             ) : (
               <span className="tg-hud-title">{hudTitle}</span>
             )}
+            {/* D322: the stops for the voice played (kept per piece, as in the game). */}
+            {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} />}
             {changed > 0 && (
               <button type="button" className="lab-badge" onClick={() => setPanel("mechanics")} title="Parameters changed from the game's">
                 {changed} CHANGED
@@ -711,10 +803,24 @@ export function LabApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
+      {tableOn && (
+        <TableStage
+          f={f}
+          voice={setup.voice}
+          chip={chip.current ?? ensureChip()}
+          o={tableOpts}
+          line={(l) => {
+            feed.current.push(l);
+            if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
+            setFeedTick((n) => n + 1);
+          }}
+          close={() => (setTableOn(false), setPanel("table"))}
+        />
+      )}
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {(["passage", "free", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
+            {(["passage", "free", "table", "drills", "mechanics", "sensor", "see", "runs", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
                 {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}
               </button>
@@ -729,9 +835,23 @@ export function LabApp() {
           {note && <p className="lab-note">{note}</p>}
           <div className="lab-body">
             {panel === "passage" && (
-              <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} />
+              <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} drag={<DragSeg change={changeMech} />} />
             )}
-            {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} />}
+            {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} drag={<DragSeg change={changeMech} />} />}
+            {panel === "table" && (
+              <TableTab
+                f={f}
+                voice={setup.voice}
+                o={tableOpts}
+                set={setTableOpts}
+                play={() => {
+                  stop();
+                  const ch = ensureChip();
+                  void ch.resume().finally(() => setTableOn(true));
+                  setPanel(null);
+                }}
+              />
+            )}
             {panel === "drills" && (
               <div className="lab-drills">
                 {DRILLS.map((d) => (
@@ -754,6 +874,7 @@ export function LabApp() {
               </div>
             )}
             {panel === "mechanics" && <MechanicsTab change={changeMech} />}
+            {panel === "sensor" && <SensorTab hub={hub.current} play={setup.sensePlay} setPlay={(v) => setSetup({ sensePlay: v })} source={setup.senseSource} setSource={(v) => setSetup({ senseSource: v })} copy={copySensor} />}
             {panel === "see" && (
               <div className="lab-see">
                 <div className="lab-row">
@@ -869,7 +990,7 @@ export function LabApp() {
 }
 
 function lineClass(l: string): string {
-  return `lab-line${/ WRONG|STRAY|NOT JOINED|MISSED|CANCEL| ✕/.test(l) ? " bad" : / RIGHT|LEGATO ✓|SLIDE|SHAKE|HELD/.test(l) ? " good" : ""}${l.startsWith("—") ? " head" : ""}`;
+  return `lab-line${/ WRONG|STRAY|NOT JOINED|MISSED|CANCEL| ✕/.test(l) ? " bad" : / RIGHT|LEGATO ✓|JOINED|SLIDE|SHAKE|HELD|DRAG|TAP/.test(l) ? " good" : ""}${l.startsWith("—") ? " head" : ""}`;
 }
 function tallyLine(t: Tally): string {
   return `right ${t.right} · wrong ${t.wrong} · missed ${t.missed} · stray ${t.stray} · joined ${t.joined} (not ${t.notJoined}) · slides ${t.slides} · shakes ${t.shakes}`;
@@ -899,7 +1020,17 @@ function Seg<T extends string>({ id, label, value, options, set }: { id: string;
   );
 }
 
-function PassageTab({ setup, setSetup, f, voices, bpm, sound, ensureChip }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; voices: number[]; bpm: number; sound: string; ensureChip: () => Chip }) {
+/** D321: what a drag means, here as in MECHANICS › DRAG (the game's: JOIN). */
+function DragSeg({ change }: { change: (v: Partial<Record<MechKey, unknown>>) => void }) {
+  return (
+    <div className="lab-field">
+      <Seg id="lab-drag" label="A drag (a held thumb slid on to the next note) means" value={MECH.dragMeaning} options={[["join", "JOIN (THE GAME'S)"], ["connect", "CONNECT"]]} set={(v) => change({ dragMeaning: v })} />
+      <span className="lab-dim">Connect: a sound that bends glides with the thumb; a harpsichord, piano or organ plays the passing note across a third, the Schleifer into a note from below (D321).</span>
+    </div>
+  );
+}
+
+function PassageTab({ setup, setSetup, f, voices, bpm, sound, ensureChip, drag }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; voices: number[]; bpm: number; sound: string; ensureChip: () => Chip; drag: React.ReactNode }) {
   const lo = firstBar(f);
   const hi = lastBar(f);
   const books = [
@@ -968,13 +1099,14 @@ function PassageTab({ setup, setSetup, f, voices, bpm, sound, ensureChip }: { se
       <SoundSelect id="lab-sound" value={sound} set={(id) => setSetup({ sound: id })} sounds={POP_SOUNDS} own={PIECE_SOUND[f.id]} />
       <Seg id="lab-bt" label="Bluetooth mode" value={setup.bt} options={[["auto", "AUTO"], ["on", "ON"], ["off", "OFF"]]} set={(v) => setSetup({ bt: v })} />
       <Seg id="lab-proto" label="Played on" value={setup.proto} options={[["ladder", "LADDER (phone)"], ["keys", "KEYS (computer)"]]} set={(v) => setSetup({ proto: v })} />
+      {drag}
       <LagSetting lag={setup.lag} setLag={(l) => setSetup({ lag: l })} chip={ensureChip} />
     </div>
   );
 }
 
 /** D320: FREE PLAY's settings (the piece gives the key and the voice its range; the sound is PASSAGE's). */
-function FreeTab({ setup, setSetup, f, sound }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; sound: string }) {
+function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; sound: string; drag: React.ReactNode }) {
   const rows = freeRows(f, setup.voice, setup.freeScale, setup.freeOctaves);
   return (
     <div className="lab-form">
@@ -1013,6 +1145,7 @@ function FreeTab({ setup, setSetup, f, sound }: { setup: Setup; setSetup: (p: Pa
         <Toggle id="lab-click" label="Metronome click" on={setup.click} set={(v) => setSetup({ click: v })} />
       </div>
       <SoundSelect id="lab-free-sound" value={sound} set={(id) => setSetup({ sound: id })} sounds={POP_SOUNDS} own={PIECE_SOUND[f.id]} />
+      {drag}
     </div>
   );
 }
@@ -1100,6 +1233,10 @@ function HelpTab() {
       <p>WHAT HAPPENED lists every line, newest first (nothing is written over the music while you play; WHAT HAPPENED can put the latest line in the title bar). Each line gives the bar and beat, the note, the verdict, how early or late (ms), and the reason with numbers: how far your thumb moved from its last touch and what was needed; for joined notes, whether the other thumb was still down, or the gap between lifting and the next touch and the gap allowed.</p>
       <h3>4 · Change the rules</h3>
       <p>MECHANICS: every timing window, the legato gap, the slide threshold, the LADDER distances (in rows: one row is the height of one step in the box), ornaments, expression and what happens when the phone cancels a touch. RESET TO GAME DEFAULTS puts everything back. The game itself (play.html) is never changed by the lab.</p>
+      <h3>Drags (try: CONNECT)</h3>
+      <p>A drag is a held thumb slid on to the next note. In the game it only joins (no bonus, the legato chain broken). CONNECT (in FREE PLAY, PASSAGE or MECHANICS › DRAG) gives it a meaning per instrument: voices, synths and chips glide, the pitch following your thumb; harpsichord, piano and organ play the passing note when you drag across a third (coulé) and the Schleifer (two quick notes from a third below) when you drag up into a note. In a passage it then counts as joined for the chain, but earns nothing more. Each one is a "↝ DRAG:" line.</p>
+      <h3>Sensor: how hard you tap</h3>
+      <p>SENSOR: START SENSOR (allow motion access when asked), then LEARN: ten soft taps, ten hard taps on the pad, and PRESS AND FLATTEN (hold, flatten the thumb, lift). It shows how well soft and hard separate by the contact's size and by the motion sensor's spike. Do it held as you play, then with the phone on a table. COPY SENSOR LOG and paste it to the developer. PLAY WITH IT makes FREE PLAY's attacks follow your tap (by contact size or by the motion sensor).</p>
       <h3>Free play</h3>
       <p>FREE PLAY: no music to follow; the two bars play the sound chosen, the pitch the row under your thumb (the piece's key or every semitone, one to three octaves round the voice's range). Everything works as in the game: where you land across the bar, moving sideways while holding, sliding to another row, shaking into a mordent or a trill, landing while the other thumb holds to join. Each event is a line over the box. A metronome click if you want one. MECHANICS applies.</p>
       <h3>5 · Share and replay</h3>
