@@ -13,6 +13,7 @@
  */
 import { freeOrnamentParts, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import { feedShake, shakeTracker, type FreeKind, type ShakeTracker } from "../touch/free-ornament.ts";
+import { freeTally, type FreeTally } from "./free-summary.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
@@ -310,6 +311,8 @@ export interface RunResults {
   slides: number;
   /** D278: the ornaments played by shaking, of those given. */
   shakes: { hit: number; of: number };
+  /** D327: the player's own ornaments, each note once (no points). */
+  free: FreeTally;
   art: ArtStats;
   lanes: { exact: number; relative: number };
   report: string;
@@ -1816,6 +1819,7 @@ export class ProtoGame {
     if (kind === "trill") this.freeOrns.trills++;
     else this.freeOrns.mordents += kind === "mordent" ? 1 : 0;
     if (kind === "short") this.freeOrns.shorts++;
+    this.freeByNote.set(`${h.k}:${h.note}`, kind);
     // A flourish only: the sign rising from the note, faint gold (no points, no streak, no flash over the verdict).
     this.pops.push({ tick: n.on, step: n.step, text: kind === "mordent" ? "~|" : "TR", at: performance.now(), gold: true, ink: FREE_INK });
     this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: kind, free: true });
@@ -1877,6 +1881,8 @@ export class ProtoGame {
   }
   /** D314: the free ornaments played this run (counted for the tests; they score nothing). */
   readonly freeOrns = { mordents: 0, shorts: 0, trills: 0 };
+  /** D327: what each note's free ornament became ("track:note" → kind), for the score sheet's line. */
+  readonly freeByNote = new Map<string, FreeKind>();
   /** D278: the ornaments a phone's player was given to play, and those played. */
   readonly shakes = { hit: 0, of: 0 };
   /** D314: the tick the run starts at (the bars' soft/strong hints fade out after it). */
@@ -3226,7 +3232,7 @@ export class ProtoGame {
     const art = { ...this.art };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
     const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style } });
-    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, report: this.report(r) };
+    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally(this.freeByNote.values()), report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
   private span(): { start: number; end: number } {

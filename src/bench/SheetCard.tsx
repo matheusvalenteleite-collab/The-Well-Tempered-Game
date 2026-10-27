@@ -6,12 +6,13 @@
 import { tr, trCanvas } from "../i18n/index.ts";
 import type { ReactNode } from "react";
 import type { Sheet } from "./score-sheet.ts";
+import { freeLine, type FreeTally } from "./free-summary.ts";
 
 const n = (x: number) => x.toLocaleString("en");
 const pc = (x: number) => `${Math.round(x * 100)}%`;
 const ink = (x: number) => (x >= 0.9 ? "var(--tg-gold)" : x >= 0.75 ? "#5fdc6a" : x >= 0.6 ? "#e8c94a" : "#ec5a4a");
 
-export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; failedBar: number | null; lastBar: number; progress: number; maxStreak: number; best?: { before: number | null; fresh: boolean } | null; head?: ReactNode }) {
+export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; failedBar: number | null; lastBar: number; progress: number; maxStreak: number; best?: { before: number | null; fresh: boolean } | null; head?: ReactNode; free?: FreeTally }) {
   const { sheet } = p;
   return (
     <div className="tb-sheet" id="score-sheet">
@@ -52,6 +53,12 @@ export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; fai
         <p className="tb-sheet-perf" id="sheet-performance">
           {tr("PERFORMANCE")} <b style={{ color: ink(sheet.performance / 100) }}>{sheet.performance}</b>/100 · {tr("MAX COMBO")} {p.maxStreak}
         </p>
+        {/* D327: the player's own graces, counted, never scored. */}
+        {freeLine(p.free) && (
+          <p className="tb-sheet-free" id="sheet-free">
+            {freeLine(p.free)}
+          </p>
+        )}
       </div>
       <ul className="tb-sheet-qualities">
         {sheet.qualities.map((q) => (

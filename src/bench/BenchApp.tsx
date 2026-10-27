@@ -21,14 +21,14 @@ import { keyWordsIn, lang, LANGS, pieceName, setLang, tr, voiceName, type Lang }
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
-import { answer, askFirst, nextLesson, recordLesson, skipLesson, trackState, triesAt } from "./tutorial.ts";
+import { answer, askFirst, nextLesson, recordLesson, skipLesson, trackState, triesAt, tutorialDone } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
-import { engraved, layoutOf, readDisplay, saveDisplay, type DisplayMode } from "./sheet-format.ts";
+import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
@@ -49,7 +49,9 @@ import { paintProto, setPaperLook } from "./paint-proto.ts";
 import { laneLine, ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker } from "./FuguePicker.tsx";
-import { TuningFold } from "./TuningFold.tsx";
+import { TuningSelect } from "./TuningSelect.tsx";
+import { resolveTuning, tuningPrefOf, tuningShort, type TuningPref } from "../touch/instrument-tuning.ts";
+import { SideHint, SideLegend } from "./SideNotes.tsx";
 import { ModeHow } from "./ModeDiagram.tsx";
 import { herClock, herMap } from "./her-clock.ts";
 import { Her, HER_FADE, herBuffer, herState, loadHer, releaseHer } from "./with-her.ts";
@@ -69,7 +71,7 @@ import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { ornamented } from "./hear-sound.ts";
 import { chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
 import { TutorialSteps } from "./TutorialSteps.tsx";
-import { LITE_HINT, liteAll, litePlatform, soundUnlocked, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, litePlatform, litePlatformPref, readLite, recordLite, recordLiteBest, RULES, saveLitePlatform, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
@@ -96,6 +98,8 @@ const LAG_SETUP_KEY = "tg-lag-setup";
 const SOUND_KEY = "tg-sound-by-piece-v1";
 const DEFAULT_SOUND = "harpsichordSampled";
 const TUNING_KEY = "tg-tuning";
+/** D327: play.html's ⚙ TUNING (INSTRUMENT DEFAULT where nothing is kept). */
+const LITE_TUNING_KEY = "tb-lite-tuning-v1";
 // D219: WITH KIMIKO ISHIZAKA, the player's voice has its own sound (over her piano), kept apart.
 const HER_SOUND_KEY = "tb-her-sound-v1";
 /**
@@ -194,7 +198,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -242,14 +246,13 @@ export function BenchApp() {
   const [retuned, setRetuned] = useState<{ from: number; to: number } | null>(null);
   const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
   const [herSound, setHerSoundRaw] = useState<string>(() => load<string>(HER_SOUND_KEY, HER_SOUND));
-  const [tuning, setTuningRaw] = useState<{ id: string; a: number }>(() => load(TUNING_KEY, { id: "equal", a: 440 }));
-  const changeTuning = (id: string, a: number) => {
-    setTuningRaw({ id, a });
-    save(TUNING_KEY, { id, a });
-    setTuning(id, a);
+  // D327: ⚙ TUNING: INSTRUMENT DEFAULT (the sound's own, instrument-tuning.ts) or a temperament at a pitch; applied below, once the sound is known.
+  const [tuningPref, setTuningPrefRaw] = useState<TuningPref>(() => tuningPrefOf(load<unknown>(APP.lite ? LITE_TUNING_KEY : TUNING_KEY, null)));
+  const changeTuning = (p: TuningPref) => {
+    setTuningPrefRaw(p);
+    save(APP.lite ? LITE_TUNING_KEY : TUNING_KEY, p);
   };
   useEffect(() => {
-    setTuning(tuning.id, tuning.a);
     loadDrums();
   }, []);
   // D233: the MIDI inputs connected (MIDI CONTROLLER offered while there is one).
@@ -288,8 +291,10 @@ export function BenchApp() {
   const prelude = !run && f.kind === "prelude";
   // D298: ⚙ DISPLAY: the box (DEFAULT), CANTUS (to come: the box meanwhile), or the fugue's sheet
   // (SHEET · TWO STAVES, SHEET · ONE STAFF PER VOICE) where it is engraved (the 48 fugues); kept on the device.
-  const [display, setDisplayRaw] = useState<DisplayMode>(readDisplay);
-  const setDisplay = (m: DisplayMode) => (setDisplayRaw(m), saveDisplay(m));
+  // D327: kept per piece; never chosen for a piece: one staff per voice for four and five voices once the tutorial is passed, else the last choice.
+  const [, displayChanged] = useState(0);
+  const display = displayFor(f.id, f.voices.length, tutorialDone(platform));
+  const setDisplay = (m: DisplayMode) => (saveDisplayFor(f.id, m), saveDisplay(m), displayChanged((n) => n + 1));
   const sheetLayout = layoutOf(display);
   const sheetOn = !!sheetLayout && engraved(f.id) && proto.layout === "bars";
   useEffect(() => {
@@ -336,10 +341,15 @@ export function BenchApp() {
   const kimiko = herHere && pick.her;
   const hm = kimiko ? herMap(f.id) : null;
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
-  // D265: on play.html a piece plays its own sound until it is finished with a high grade (A or S).
-  const soundOpen = !APP.lite || soundUnlocked(f.id, lite);
-  const sound = soundOpen ? soundFor(f.id, chosen, DEFAULT_SOUND) : soundFor(f.id, {}, DEFAULT_SOUND);
+  // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
+  const sound = soundFor(f.id, chosen, DEFAULT_SOUND);
   const soundNow = kimiko ? herSound : sound;
+  // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
+  const tuning = resolveTuning(tuningPref, soundNow);
+  useEffect(() => {
+    // (WITH KIMIKO her pitch is set while she plays; this one put back after.)
+    if (phase.kind !== "play" || !hm) setTuning(tuning.id, tuning.a);
+  }, [tuning.id, tuning.a]);
   const setSound = (id: string) => {
     if (kimiko) {
       setHerSoundRaw(id);
@@ -397,6 +407,7 @@ export function BenchApp() {
   const paint = useRef<Painter | null>(null);
   const frame = useRef<Frame>(preview());
   const count = useRef<HTMLDivElement>(null);
+  const legendRef = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
 
   function preview(): Frame {
@@ -522,8 +533,10 @@ export function BenchApp() {
         zone: g.zone,
         // D314: the ornament's first-time hint as one comes; the reading's marks explained at the start.
         banner: g.ornHintOn && g.ornamentNear() ? tr("A SIGN OVER A NOTE: TOUCH IT, THEN SHAKE YOUR THUMB") : undefined,
-        legendUntil: from + LEGEND_S * g.tps,
+        // D327: on the two bars the legend stands in the right side bar (SideLegend), off the first subject.
+        ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
+      if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
       if (AUTO) autoplay(g, auto);
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
@@ -1041,6 +1054,7 @@ export function BenchApp() {
                 progress={phase.progress ?? 1}
                 maxStreak={phase.maxStreak}
                 best={phase.best}
+                free={phase.free}
               />
             ) : (
               <>
@@ -1098,11 +1112,12 @@ export function BenchApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
-      {hintLine && (
+      {hintLine && (layout === "bars" ? <SideHint text={hintLine} /> : (
         <p className="tb-lite-hint" id="lite-hint" role="status">
           {hintLine}
         </p>
-      )}
+      ))}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && <SideLegend marks={marks.readingMarks.values()} legendRef={legendRef} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
@@ -1177,6 +1192,8 @@ export function BenchApp() {
           />
           {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
           <DisplayChoice value={display} set={setDisplay} piece={f} />
+          {/* D327: the tuning, INSTRUMENT DEFAULT first. */}
+          <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
@@ -1209,7 +1226,7 @@ export function BenchApp() {
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only; equal temperament at her A.</p>}
           <DisplayChoice value={display} set={setDisplay} piece={f} />
           <InterfaceFold frame={frame.current} />
-          <TuningFold id={tuning.id} a={tuning.a} set={changeTuning} />
+          <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
           {platform === "computer" && (
             <div className="tg-set">
@@ -1232,7 +1249,7 @@ export function BenchApp() {
       {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
-        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, soundLocked: !soundOpen } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning) } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
