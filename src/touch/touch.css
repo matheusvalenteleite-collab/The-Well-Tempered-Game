@@ -9,6 +9,11 @@
 /* One screen, portrait: the music box over the play area, halves of the height.
    A deliberately single dark look: an 8-bit console screen. */
 :root {
+  /* D320: the screen's safe edges (a landscape iPhone's notch or Dynamic Island, its rounded corners):
+     the thumb bars and their across axis start inside them (bench.css .tb-bars). Variables, so a test
+     can set them where the browser has no insets to emulate. */
+  --tg-sal: env(safe-area-inset-left, 0px);
+  --tg-sar: env(safe-area-inset-right, 0px);
   --tg-bg: #0b0d18;
   --tg-box: #121530;
   --tg-roll: #0e1126;

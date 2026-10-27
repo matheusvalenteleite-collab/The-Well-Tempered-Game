@@ -1,10 +1,10 @@
 /**
  * The music box's events (D186; D208): the subject drawn as the character it is, the bosses, and what
  * the player's playing throws up. Drawn on the box's own pixels (half the screen's), in a 3 by 5 font.
- *   Each subject entry (D314: in the CANTUS style): a soft halo through its notes, a bracket over it
- *   from its first note to its last with its word ("SUBJECT"; STRETTO when it begins inside another),
- *   announced dashed with a breath mark and its last beats counted; each of its notes flashes as it is
- *   played. Gold for the player's voice (and once captured), the voice's ink for the others, grey once
+ *   Each subject entry (D320): a soft shaded band behind it, first note to last, in a light tint of
+ *   its colour, its word small at its top left ("SUBJECT"; STRETTO when it begins inside another);
+ *   fainter while announced; each of its notes catches fire as it sounds (embers rising). Gold for
+ *   the player's voice (and once captured), the voice's ink for the others, grey once
  *   lost. The countersubject is not marked.
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
@@ -118,141 +118,156 @@ interface Ctx {
 }
 
 /**
- * The entries (D208; D314: in the CANTUS style, the owner's choice of round three's box, "B · Cantus").
- * The subject only (no countersubject marks). Each entry wrapped in a soft HALO of its colour that
- * follows its notes from the first to the last (along each note, sloping from one to the next: a phrase
- * of light, three soft layers, no blur filter, cheap on a phone); over it a BRACKET from its first note
- * to its last, the word at its left ("SUBJECT", its shape, STRETTO when it begins inside another). As
- * it comes (ANNOUNCED) the halo is faint (40%), the bracket dashed, a breath mark before its first note
- * and, in its last four beats, a dot a beat (the beat under way emptying); sounding, the halo full and
- * the bracket solid with a post at its end. An entry still beyond the box's right edge within four
- * beats: a tab at the edge, "SUBJECT · 3". Gold for the player's voice (and once captured), the voice's
- * ink for the others, grey once lost. Drawn under the notes; `strikes` (over them) flashes each of its
- * notes as it is played.
+ * The entries (D208; D314 the Cantus style; D320 the owner: "that style which creates a different shade
+ * background throughout the subject … What you gave me was that awkward dotted line above it, which is
+ * not helpful at all and clutters"). The subject only (no countersubject marks). Each entry on a soft
+ * SHADED BAND from its first note to its last: a rectangle over the rows its notes take (a row of room
+ * above and below), in a lightened tint of its colour at low alpha, its corners cut, a lighter hairline
+ * along its top and bottom; announced (still ahead) at half that. The word ("SUBJECT", its shape,
+ * STRETTO when it begins inside another) small at the band's top left, leaving with its start (not
+ * kept in sight over the music). No bracket, no dashes, no breath mark, no counted beats (D314's, gone).
+ * Gold for the player's voice (and once captured), the voice's ink for the others, grey once lost.
+ * Drawn under the notes; `strikes` (over them) sets each of its notes alight as it sounds.
  */
 export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[] | undefined, state: Map<string, string> | undefined, beat = 0) {
-  const { g, w, xOf, yOf, bh, now } = c;
-  const subj = spans.filter((s) => s.form !== "counter");
+  const { g, w, h, xOf, yOf, bh, now } = c;
   void names;
-  const tabs: { y: number; text: string; color: string }[] = [];
+  void beat;
+  const subj = spans.filter((s) => s.form !== "counter");
+  const hOf = (step: number) => (c.hOf ? c.hOf(step) : bh);
   for (const s of subj) {
     if (!s.path.length) continue;
     const x1 = xOf(s.on);
     const x2 = xOf(s.end);
+    if (x1 > w || x2 < 0) continue;
     const st = state?.get(`${s.voice}:${s.on}`);
     const mine = player.includes(s.voice);
     const color = st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
+    const tint = lighten(color, 0.35);
+    const ahead = now < s.on;
+    let top = Infinity;
+    let bot = -Infinity;
+    for (const n of s.path) {
+      top = Math.min(top, yOf(n.step));
+      bot = Math.max(bot, yOf(n.step) + hOf(n.step));
+    }
+    const pad = Math.max(2, Math.round(bh * 0.8));
+    const a = Math.max(-2, x1 - 2);
+    const z = Math.min(w + 2, x2 + 1);
+    const y0 = Math.max(0, top - pad);
+    const y1 = Math.min(h, bot + pad);
+    const bw = z - a;
+    const bhh = y1 - y0;
+    if (bw <= 2 || bhh <= 2) continue;
+    const k = ahead ? 0.5 : 1;
+    g.fillStyle = tint;
+    // The band, its corners cut (a pixel's rounding).
+    g.globalAlpha = 0.15 * k;
+    g.fillRect(a + 1, y0, bw - 2, 1);
+    g.fillRect(a, y0 + 1, bw, bhh - 2);
+    g.fillRect(a + 1, y1 - 1, bw - 2, 1);
+    // A lighter hairline along its top and bottom (where the band begins and ends in height).
+    g.globalAlpha = 0.22 * k;
+    g.fillRect(a + 2, y0, bw - 4, 1);
+    g.fillRect(a + 2, y1 - 1, bw - 4, 1);
+    g.globalAlpha = 1;
+    // The word, small, at the band's top left (inside it when there is no room above).
     const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
     // D265: every entry a SUBJECT; D283: in the language chosen.
     const word = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}${s.shape ? ` · ${trCanvas(s.shape)}` : ""}${stretto ? " · STRETTO" : ""}`;
-    const ahead = now < s.on;
-    const beatsLeft = beat > 0 ? Math.ceil((s.on - now) / beat) : 0;
-    if (x1 > w) {
-      if (ahead && beatsLeft <= 4) tabs.push({ y: yOf(s.path[0].step), text: `${tr("SUBJECT")} · ${beatsLeft}`, color });
-      continue;
-    }
-    if (x2 < 0) continue;
-    const midY = (step: number) => yOf(step) + (c.hOf ? c.hOf(step) : bh) / 2;
-    const thin = c.hOf ? Math.min(...s.path.map((n) => c.hOf!(n.step))) : bh;
-    // The halo: three soft layers along the notes, faint while it is announced.
-    g.save();
-    g.strokeStyle = color;
-    g.lineJoin = "round";
-    g.lineCap = "round";
-    g.beginPath();
-    s.path.forEach((n, k) => {
-      const y = midY(n.step);
-      const a = xOf(n.on);
-      const b = xOf(n.on + n.dur);
-      if (k === 0) g.moveTo(a, y);
-      else g.lineTo(a, y);
-      g.lineTo(Math.max(a + 1, b - 1), y);
-    });
-    const base = thin < bh ? thin + 2 : bh;
-    const fade = ahead ? 0.55 : 1;
-    for (const [grow, alpha] of [[12, 0.14], [7, 0.16], [3, 0.2]] as const) {
-      g.globalAlpha = alpha * fade;
-      g.lineWidth = base + grow;
-      g.stroke();
-    }
-    g.restore();
-    // The bracket over the entry, first note to last (dashed while announced), the word at its left.
-    const top = Math.min(...s.path.map((n) => yOf(n.step)));
-    const by = Math.max(8, top - 8);
-    const a = Math.max(-2, x1 - 1);
-    const z = Math.min(w + 2, x2);
-    g.fillStyle = color;
-    g.globalAlpha = ahead ? 0.7 : 0.75;
-    if (ahead) for (let x = a; x < z; x += 4) g.fillRect(x, by, Math.min(2, z - x), 1);
-    else g.fillRect(a, by, z - a, 1);
-    g.fillRect(a, by, 1, 3);
-    if (!ahead) g.fillRect(z, by, 1, 5);
-    else g.fillRect(z, by, 1, 3);
+    const tw = textWidth(word);
+    // At the band's start only: it leaves with the start (not kept in sight over the music).
+    const lx = x1 + 1;
+    if (lx + tw < 0) continue;
+    const ly = y0 >= 8 ? y0 - 7 : y0 + 2;
+    g.globalAlpha = (ahead ? 0.55 : 0.85) * (lx + tw > z ? 0.6 : 1);
+    pixText(g, word, lx, ly, color);
     g.globalAlpha = 1;
-    // The word stays in sight while its bracket runs past the box's left edge.
-    const lx = Math.max(1, Math.min(a + 1, z - textWidth(word) - 2));
-    const ly = by - 7;
-    g.globalAlpha = 0.6;
-    g.fillStyle = "#0c0a10";
-    g.fillRect(lx - 1, ly - 1, textWidth(word) + 1, 7);
-    g.globalAlpha = 1;
-    const wEnd = lx + pixText(g, word, lx, ly, color);
-    if (ahead) {
-      // A breath mark before the first note, and (the last four beats) a dot a beat, the beat under way emptying.
-      const f = s.path[0];
-      const bx = x1 - 4;
-      const bY = yOf(f.step) - 4;
-      g.fillStyle = color;
-      g.fillRect(bx, bY, 2, 2);
-      g.fillRect(bx + 1, bY + 2, 1, 1);
-      g.fillRect(bx, bY + 3, 1, 1);
-      if (beat > 0 && beatsLeft <= 4) {
-        const frac = 1 - ((s.on - now) / beat - (beatsLeft - 1));
-        for (let k = 0; k < beatsLeft; k++) {
-          const dx = wEnd + 2 + k * 5;
-          g.globalAlpha = k === beatsLeft - 1 ? Math.max(0.2, 1 - frac) : 1;
-          g.fillRect(dx, ly + 1, 3, 3);
-        }
-        g.globalAlpha = 1;
-      }
-    }
   }
-  // Entries still beyond the right edge: a tab at the edge with the beats to go.
-  for (const t of tabs) {
-    const tw = textWidth(t.text) + 4;
-    const y = Math.max(1, Math.min(c.h - 9, t.y - 2));
-    g.globalAlpha = 0.85;
-    g.fillStyle = "#0c0a10";
-    g.fillRect(w - tw - 3, y - 1, tw + 3, 8);
-    g.globalAlpha = 1;
-    g.fillStyle = t.color;
-    g.fillRect(w - tw - 3, y - 1, 1, 8);
-    pixText(g, t.text, w - tw, y + 1, t.color);
-  }
-  g.globalAlpha = 1;
 }
 
-/** D208: each subject note, as it is played (in any voice), strikes: a bright flash swelling out from it. */
-export function strikes(c: Ctx, spans: Span[]) {
+/** A colour (#rrggbb) mixed toward white by `k` (0..1), as an rgb() string. */
+function lighten(hex: string, k: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const v = parseInt(m[1], 16);
+  const ch = (sh: number) => Math.round(((v >> sh) & 255) + (255 - ((v >> sh) & 255)) * k);
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+}
+
+/** D320: the embers a subject note throws up as it sounds (per note), how long each lives (s), and the most notes alight at once. */
+const EMBERS = 10;
+const EMBER_LIFE = 0.95;
+const MAX_ALIGHT = 36;
+/** Cheap deterministic noise in [0, 1) for a note's embers (no state, no allocation: a note's fire is the same every frame). */
+const rnd = (a: number, b: number) => {
+  const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+/**
+ * D208, D320: each subject note, as it sounds (in any voice, the player's too), catches fire: the note
+ * itself brightens for a moment, and a few pixel embers rise from its top edge, flickering sideways,
+ * from a white-hot core through a lightened tint of the voice's colour (warm gold for the player's)
+ * to nothing over about a second (the owner: "a small fire rising and subsuming above them as they're
+ * played and fade"). Stateless: each ember's place is a function of the note and its age (no pool to
+ * keep, nothing to allocate); at most MAX_ALIGHT notes alight at once (the latest), 1-2 px rects, no
+ * blur. Non-subject notes keep their plain look.
+ */
+export function strikes(c: Ctx, spans: Span[], player: number[] = []) {
   const { g, w, xOf, yOf, bh, now, tps } = c;
+  const life = EMBER_LIFE + (EMBERS - 1) * 0.04;
+  let alight = 0;
   for (const s of spans) {
-    if (s.form === "counter" || now < s.on || now > s.end + tps) continue;
-    for (const n of s.path) {
+    if (s.form === "counter" || now < s.on || now > s.end + life * tps) continue;
+    const mine = player.includes(s.voice);
+    const ink = mine ? c.gold : c.ink(s.voice);
+    const warm = mine ? "#ffe9a0" : lighten(ink, 0.5);
+    for (let j = s.path.length - 1; j >= 0; j--) {
+      const n = s.path[j];
       const since = (now - n.on) / tps;
-      if (since < 0 || since > 0.32) continue;
+      if (since < 0) continue;
+      if (since > life) break;
+      if (++alight > MAX_ALIGHT) return void (g.globalAlpha = 1);
       const a = xOf(n.on);
       const b = Math.max(a + 2, xOf(n.on + n.dur));
-      if (b < 0 || a > w) continue;
-      const k = since / 0.32;
-      const grow = Math.round(1 + k * 5);
+      if (b < -4 || a > w + 4) continue;
       const y = yOf(n.step);
       const nh = c.hOf ? c.hOf(n.step) : bh;
-      g.globalAlpha = 0.9 * (1 - k);
-      g.fillStyle = "#fff6d0";
-      g.fillRect(a, y, b - a, nh);
-      g.strokeStyle = c.gold;
-      g.lineWidth = 1;
-      g.strokeRect(a - grow + 0.5, y - grow + 0.5, b - a + 2 * grow - 1, nh + 2 * grow - 1);
+      // The note lit: a short white-hot glow over it, then its tint.
+      if (since < 0.25) {
+        const q = since / 0.25;
+        g.globalAlpha = 0.75 * (1 - q);
+        g.fillStyle = "#fff6d8";
+        g.fillRect(a, y, b - a, nh);
+        g.globalAlpha = 0.35 * (1 - q);
+        g.fillStyle = warm;
+        g.fillRect(a - 1, y - 1, b - a + 2, nh + 2);
+      }
+      // The embers, born one after another from along the note's top (its first 30 px), rising.
+      // A low glow over the note while the fire is young (the flame's foot).
+      const span = Math.min(b - a, 30);
+      if (since < 0.6) {
+        g.globalAlpha = 0.28 * (1 - since / 0.6);
+        g.fillStyle = warm;
+        g.fillRect(a, y - 3, Math.min(b - a, 30), 3);
+      }
+      for (let k = 0; k < EMBERS; k++) {
+        const age = since - k * 0.04;
+        if (age < 0) continue;
+        const r1 = rnd(n.on + s.voice * 0.37, k);
+        const r2 = rnd(k + 0.5, n.on * 0.11 + s.voice);
+        const life1 = EMBER_LIFE * (0.6 + 0.4 * r1);
+        if (age > life1) continue;
+        const u = age / life1;
+        const rise = (12 + 18 * r2) * age + 8 * age * age;
+        const x = a + 1 + r1 * Math.max(1, span - 2) + Math.sin(age * 11 + r2 * 6.3) * (0.6 + 1.6 * u);
+        const yy = y - 1 - rise;
+        g.globalAlpha = Math.max(0, 1 - u * u) * 0.95;
+        g.fillStyle = u < 0.22 ? "#fffbe6" : u < 0.55 ? warm : ink;
+        const sz = u < 0.5 && r2 > 0.2 ? 2 : 1;
+        g.fillRect(Math.round(x), Math.round(yy), sz, sz);
+      }
     }
   }
   g.globalAlpha = 1;
