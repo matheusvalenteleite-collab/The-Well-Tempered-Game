@@ -64,6 +64,8 @@ export interface Options {
   ornHint?: boolean;
   /** D272: the reading the fugue is played by (its subject's articulation and level, its dynamic plan). */
   reading?: Reading | null;
+  /** D326, TOOLS (PRACTICE, HEAR THE OTHERS): the band's voices not sounded (still drawn). */
+  mute?: readonly number[];
 }
 
 export interface Proto {

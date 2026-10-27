@@ -918,6 +918,8 @@ export class ProtoGame {
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon) {
       const n = this.others[this.nextOther++];
       if (n.on < this.now - this.beat) continue;
+      // D326: a voice muted (TOOLS) is not sounded.
+      if (this.o.mute?.includes(n.voice)) continue;
       // D250: the bass's pedal sounds only while the player holds it.
       const bp = this.bassPedal;
       if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null && !this.bt) continue;

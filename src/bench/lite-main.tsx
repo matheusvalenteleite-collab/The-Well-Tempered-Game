@@ -12,6 +12,7 @@ import { markVersion } from "./version.ts";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
+import "./tools.css";
 
 APP.lite = true;
 APP.dev = false;

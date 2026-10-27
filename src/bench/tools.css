@@ -1,0 +1,37 @@
+/* D326, TOOLS (ToolsPanel.tsx): the button beside ⚙ and its panel over the cards. */
+.tb-lite-head .tb-tools-btn { margin-left: auto; width: auto; padding: 0 8px; font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.04em; color: var(--tg-shine); }
+.tb-lite-head .tb-tools-btn + .tg-x { margin-left: 4px; }
+.tg-picker.tb-tools { max-width: 800px; gap: 10px; }
+.tb-tools-piece { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.tb-tools-piece .tb-sound-select { flex: 1 1 280px; max-width: none; }
+.tb-tools-voices { flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+.tb-tools-voices button { padding: 6px 7px 5px; font-size: 7px; }
+.tb-tools-voices button.on { border-color: currentColor; }
+.tb-tools-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.tb-tools-sec { display: grid; gap: 8px; padding: 8px 10px 10px; border: 1px solid var(--tg-barline); min-width: 0; }
+.tb-tools-sec h2 { margin: 0; font-family: var(--tg-pixel); font-size: 9px; font-weight: 400; color: var(--tg-gold, var(--tg-shine)); letter-spacing: 0.04em; }
+.tb-tools-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); }
+.tb-tools-bars { display: inline-flex; align-items: center; gap: 6px; }
+.tb-tools-bars select { min-width: 56px; min-height: 34px; padding: 4px 8px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold, var(--tg-shine)); background: var(--tg-box, transparent); border: 2px solid var(--tg-barline); border-radius: 0; }
+.tb-tools-bars select option { font-family: system-ui, sans-serif; font-size: 14px; color: #111; background: #fff; }
+.tb-tools-range { justify-items: stretch; }
+.tb-tools-range input { width: 100%; min-height: 28px; }
+.tb-tools-toggles { justify-content: flex-start; }
+.tb-tools-toggle { min-height: 34px; padding: 6px 9px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-tools-toggle.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.tb-tools-go { justify-self: start; padding: 8px 14px; min-height: 38px; font-size: 8px; }
+.tb-tools-note { margin: 0; font-size: 11px; line-height: 1.4; color: var(--tg-muted); }
+.tb-tools-last { margin: 0; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; color: var(--tg-shine); }
+.tb-tools-mix { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; }
+.tb-tools-mix li { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 34px; }
+.tb-tools-mix li.silent .tb-tools-vname { opacity: 0.4; text-decoration: line-through; }
+.tb-tools-vname { font-family: var(--tg-pixel); font-size: 7px; }
+.tb-tools-you { font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); }
+.tb-tools-sm { display: inline-flex; gap: 4px; }
+.tb-tools-sm button { width: 34px; min-height: 32px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-tools-sm button.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+/* The run's tag in the music box's title bar (PRACTICE · BARS 3–10 · 75%). */
+.tb-tools-tag { flex: none; padding: 2px 5px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.4; color: #2a2216; background: var(--tg-shine); white-space: nowrap; }
+@media (max-width: 600px) {
+  .tb-tools-cols { grid-template-columns: 1fr; }
+}

@@ -4,7 +4,7 @@
  * START HERE; a ✓ on each piece finished; one line saying how many more open the next tier; a small ⚙.
  */
 import { lang, pieceName, tr } from "../i18n/index.ts";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
 import { presetById } from "../touch/sound.ts";
@@ -29,7 +29,7 @@ function storedTab(): "I" | "II" {
 /** D308: a best grade's colour on its card (as the result's: S and A in gold, then down to red). */
 export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#f3c246", B: "#5fdc6a", C: "#7fd6e8", D: "#ec5a4a" };
 
-export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string }) {
+export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -60,6 +60,8 @@ export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fugue
     <div className="tb-lite" role="main" aria-label="Pieces" ref={list}>
       <header className="tb-lite-head">
         <h1>{tr("THE WELL-TEMPERED GAME")}</h1>
+        {/* D326: TOOLS, beside ⚙. */}
+        {beside}
         <button type="button" id="lite-settings" className="tg-x" aria-label="Settings" onClick={settings}>
           ⚙
         </button>
