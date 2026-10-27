@@ -43,7 +43,14 @@ export interface LegatoWhy {
 }
 
 export type LabEvent =
-  | { kind: "note"; tick: number; track: number; i: number; midi: number; side: Side; ok: boolean; why?: string; wrongMidi?: number; offMs: number; perfect: boolean; slide: boolean; lane?: string; ladder?: LadderWhy; legato?: LegatoWhy }
+  | { kind: "note"; tick: number; track: number; i: number; midi: number; side: Side; ok: boolean; why?: string; wrongMidi?: number; offMs: number; perfect: boolean; slide: boolean; lane?: string; ladder?: LadderWhy; legato?: LegatoWhy; gesture?: "hammer-on" | "pull-off" | "press" }
+  /**
+   * D334, PREPARED (B+): a thumb resting early on its note ("rest", how early), sounded by the other's
+   * lift ("pull-off") or a press ("press": px moved, the other still down?), the other lifting before the
+   * note's window ("early-lift", by how much), a press before it ("early-press"), the resting thumb let go
+   * unsounded ("let-go"), and a press's over-legato as the other thumb lifts ("overlap", ms).
+   */
+  | { kind: "prep"; what: "rest" | "pull-off" | "press" | "early-lift" | "early-press" | "let-go" | "overlap"; tick: number; track: number; i: number; midi: number; side: Side; earlyMs?: number; px?: number; holding?: boolean; ms?: number }
   | { kind: "stray"; tick: number; track: number; side: Side; near?: { i: number; midi: number; offMs: number; taken?: string } }
   | { kind: "double"; tick: number; track: number; side: Side }
   | { kind: "miss"; tick: number; track: number; i: number; midi: number }

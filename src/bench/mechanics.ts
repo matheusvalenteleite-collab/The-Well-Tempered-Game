@@ -140,6 +140,28 @@ export const MECH_DEFAULTS = {
   joinedSound: true,
   /** A touch taken back with no other thumb down still ends its note for the join (a slur's second thumb a moment later). */
   cancelJoins: true,
+  // PREPARED (D334, WTC 1.49: the lab's B+; the game off). A guitarist's hammer-on and pull-off on two thumbs.
+  /**
+   * A thumb landing on the next note before that note's window, while the other thumb holds the note
+   * before (a landing B would call a stray), rests PREPARED: no sound, no strike. It sounds only by a
+   * gesture: the other thumb's lift (a PULL-OFF, timed at the lift, from the note's own early window on)
+   * or (prepPress) a press of the resting thumb; never by itself at its time.
+   */
+  prepare: false,
+  /** ...from this share of the time between the two notes early (1: from the note before's onset; from the other thumb's strike in any case, whichever is earlier). */
+  prepShare: 1,
+  /** Neither by the end of the note's late window: "miss" (it is missed) or "lift" (the other thumb's lift still sounds it whenever it comes, judged late). */
+  prepLate: "miss" as "miss" | "lift",
+  /**
+   * A PRESS by the resting thumb sounds it too (over-legato: the other thumb still down, both sound), read
+   * as a small move down or inward. Off: the owner's SENSOR log (iOS 18.7) shows the contact's size
+   * useless for it (steps of ~24 px, almost never changing while a thumb rests still).
+   */
+  prepPress: false,
+  /** PRESS: the thumb moved down or inward by more than this from where it settled (px)... */
+  pressMovePx: 4,
+  /** ...settled this long after landing (ms). */
+  pressSettleMs: 60,
   // DRAG (D321: the owner's Decision 13, "the drag: one connection per instrument … try it in the Lab first").
   /**
    * What a drag (a held thumb slid on to the next note) means: "join" (D218: sounds joined, earns nothing,
@@ -313,6 +335,12 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide. RELATIVE: × the note's own time to its nearer neighbour / REFERENCE.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "joinedSound", group: "SLURS", label: "Joined sound in the gap", help: "A note joined within the legato gap sounds joined (no fresh attack).", kind: "bool" },
   { key: "cancelJoins", group: "SLURS", label: "Cancel still joins", help: "A touch iOS takes back with no other thumb down ends its note for the join.", kind: "bool" },
+  { key: "prepare", group: "PREPARED", label: "Prepared notes (B+)", help: "D334. A thumb landing on the next note before its window while the other holds the note before rests PREPARED (no sound). It sounds when the other thumb lifts (PULL-OFF, timed at the lift) or, with PRESS on, when you press it (over-legato); never by itself. A landing in the note's window while the other holds is a HAMMER-ON (B's strike). Both sound slurred (no fresh attack).", kind: "bool" },
+  { key: "prepShare", group: "PREPARED", label: "…from", help: "This share of the time between the two notes early (1: a whole note early; from the other thumb's strike in any case).", kind: "number", min: 0.2, max: 1, step: 0.05 },
+  { key: "prepLate", group: "PREPARED", label: "Not sounded by its late window", help: "MISSED, or the other thumb's lift still sounds it whenever it comes (judged late).", kind: "choice", options: [["miss", "MISSED"], ["lift", "The lift sounds it, late"]] },
+  { key: "prepPress", group: "PREPARED", label: "PRESS sounds it", help: "An optional third gesture: pressing the resting thumb (a small move down or inward) sounds the prepared note, the other still down: over-legato, both sound. Off: on the owner's iPhone the contact's size cannot show a press (SENSOR log, D334).", kind: "bool" },
+  { key: "pressMovePx", group: "PREPARED", label: "Press: moves by", help: "The resting thumb moved down or inward by more than this from where it settled.", kind: "number", min: 1, max: 15, step: 0.5, unit: "px" },
+  { key: "pressSettleMs", group: "PREPARED", label: "Press: settles over", help: "Where the thumb is this long after landing is where a press is measured from.", kind: "number", min: 0, max: 200, step: 10, unit: "ms" },
   { key: "dragMeaning", group: "DRAG", label: "A drag means", help: "A held thumb slid on to the next note (free play: another row). Connect: a glide on a sound that bends; on a keyboard a coulé across a third, a Schleifer into a note from below (D321). Counts as joined for the legato chain, earns nothing more.", kind: "choice", options: [["join", "Joined, earns nothing, breaks the chain (D218)"], ["connect", "Connect: glide, coulé, Schleifer (D321)"]] },
   { key: "glideMaxShare", group: "DRAG", label: "Glide at most", help: "In a passage the glide lasts the drag's time, at most this share of the note it arrives on.", kind: "number", min: 0.1, max: 1, step: 0.05 },
   { key: "upThird", group: "DRAG", label: "Keyboard, up a third", help: "Dragged up a third on a keyboard: the Schleifer (the held note struck again, the step, the note) or the passing note (coulé).", kind: "choice", options: [["schleifer", "Schleifer"], ["coule", "Coulé (passing note)"]] },

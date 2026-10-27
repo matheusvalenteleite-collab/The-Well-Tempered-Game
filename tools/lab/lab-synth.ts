@@ -78,3 +78,105 @@ export function synthRun(p: LabPassage, s: SynthStyle): LabLog {
   for (let n = 0; !done && n < 60 * 600; n++) (clock.t += 1 / 60), (done = frame());
   return rec.finish();
 }
+
+/**
+ * D334: the owner's hands in II/18 (a guitarist's hammer-on and pull-off): as one thumb's note sounds,
+ * the other thumb leaves the note before and comes down on the next-next note 0–9 ms later, resting there
+ * about a note early; the note it rests on is meant to sound when the other thumb lifts, at its time
+ * (± `jitter`). With `press`, the resting thumb first presses (moves 6 px down) 0–80 ms before the other
+ * lifts; with `holdOn` (s) the other thumb lifts that much late. The first two notes are struck (the second a
+ * hammer-on, the first still held).
+ */
+export function synthPreparer(p: LabPassage, s: { jitter?: number; press?: boolean; holdOn?: number; seed?: number }): LabLog {
+  return synthEvents(p, s.seed, (notes, t, rand, rows) => {
+    const evs: SynthEvent[] = [];
+    const j = () => rand() * (s.jitter ?? 0.02);
+    const sound: number[] = [];
+    const land: number[] = [];
+    const lift: number[] = [];
+    notes.forEach((n, i) => {
+      if (i < 2) land[i] = t(n.on) + j();
+      else land[i] = sound[i - 1] + 0.0055 + rand() * 0.0035;
+      if (i < 2) sound[i] = land[i];
+      // Note i sounds as the thumb on i−1 lifts (a pull-off).
+      const next = notes[i + 1];
+      if (next && i + 1 >= 2) sound[i + 1] = Math.max(t(next.on) + j() + (s.holdOn ?? 0), land[i] + 0.05);
+    });
+    notes.forEach((n, i) => {
+      const next = notes[i + 1];
+      lift[i] = i === 0 ? land[1] + 0.001 : next ? sound[i + 1] : t(n.on + n.dur) - 0.02;
+    });
+    notes.forEach((n, i) => {
+      const side = i % 2 ? "right" : "left";
+      const x = side === "left" ? 40 : 804;
+      const y = rows.yOf(n.step) + rand() * 3;
+      evs.push({ t: land[i], k: 1, kind: "d", id: i + 1, side, x, y });
+      if (s.press && i >= 2) {
+        const tp = Math.max(land[i] + 0.1, lift[i - 1] - 0.08 * (0.5 + 0.5 * rand()));
+        if (tp < lift[i - 1]) evs.push({ t: tp, k: 2, kind: "m", id: i + 1, x, y: y + 6 });
+      }
+      evs.push({ t: Math.max(lift[i], land[i] + 0.03), k: 0, kind: "u", id: i + 1 });
+    });
+    return evs;
+  });
+}
+
+/**
+ * D334: a random tapper: touches at random moments (0.4–1.6 of the passage's usual time between notes
+ * apart), at random heights over the voice's range, either thumb, each held 60–600 ms (so it overlaps the
+ * other thumb now and then). For checking that B+ lets no more through than B.
+ */
+export function synthTapper(p: LabPassage, s: { seed?: number }): LabLog {
+  return synthEvents(p, s.seed, (notes, t, rand, rows) => {
+    const evs: SynthEvent[] = [];
+    const steps = notes.map((n) => n.step);
+    const lo = Math.min(...steps);
+    const hi = Math.max(...steps);
+    const iois = notes.slice(1).map((n, i) => t(n.on) - t(notes[i].on)).sort((a, b) => a - b);
+    const ioi = iois[iois.length >> 1] ?? 0.36;
+    const end = t(notes[notes.length - 1].on + notes[notes.length - 1].dur);
+    let id = 1;
+    for (let at = t(notes[0].on) - ioi / 2; at < end; at += ioi * (1 + 0.6 * rand())) {
+      const side = rand() > 0 ? "right" : "left";
+      const x = side === "left" ? 40 + 20 * rand() : 804 + 20 * rand();
+      const y = rows.yOf(lo + (hi - lo) * (0.5 + 0.5 * rand()));
+      evs.push({ t: at, k: 1, kind: "d", id, side, x, y });
+      evs.push({ t: at + 0.33 + 0.27 * rand(), k: 0, kind: "u", id });
+      id++;
+    }
+    return evs;
+  });
+}
+
+export type SynthEvent = { t: number; k: number; kind: "d" | "m" | "u"; id: number; side?: "left" | "right"; x?: number; y?: number };
+export type SynthNote = { on: number; dur: number; step: number };
+
+/** D334: a synthetic run from a list of touches (the setup synthRun uses). */
+export function synthEvents(p: LabPassage, seed0: number | undefined, plan: (notes: SynthNote[], t: (tick: number) => number, rand: () => number, rows: Rows) => SynthEvent[]): LabLog {
+  const clock = { t: 0 };
+  const chip = silentChip(clock);
+  const g = labGame(p, chip);
+  g.wall = () => 0;
+  const area = { w: 844, h: 390 };
+  const y0 = 330;
+  const rowH = 9;
+  const rows: Rows = { yOf: (st) => y0 - st * rowH, stepAt: (y) => Math.round((y0 - y) / rowH), rowH, xOf: () => 0 };
+  g.rows = rows;
+  const rec = new LabRecorder(g, () => clock.t, { app: "synth", at: "2026-10-27T00:00:00.000Z", passage: p, device: { w: 844, h: 390, dpr: 3, ua: "synth", lag: null }, area, rows: { y0, rowH } });
+  let seed = seed0 ?? 7;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+  const notes = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
+  const evs = plan(notes, (tick) => g.timeAt(tick), rand, rows).sort((a, b) => a.t - b.t || a.k - b.k);
+  const pos = new Map<number, { x: number; y: number }>();
+  let done = false;
+  for (const e of evs) {
+    while (!done && clock.t + 1 / 60 < e.t) (clock.t += 1 / 60), rec.frame(), (done = g.step());
+    if (done) break;
+    clock.t = Math.max(clock.t, e.t);
+    if (e.kind === "d") pos.set(e.id, { x: e.x!, y: e.y! }), rec.down(e.id, e.side!, e.x!, e.y!, area.w, area.h, 0);
+    else if (e.kind === "m") rec.move(e.id, e.x ?? pos.get(e.id)?.x ?? 0, e.y!, area.w, area.h, 0);
+    else rec.up(e.id, 0);
+  }
+  for (let n = 0; !done && n < 60 * 600; n++) (clock.t += 1 / 60), rec.frame(), (done = g.step());
+  return rec.finish();
+}

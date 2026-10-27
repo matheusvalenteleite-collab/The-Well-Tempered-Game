@@ -99,7 +99,7 @@ test("D329: a thumb resting on its next note as the other strikes: missed by A a
 test("D329: the presets: A is the game, each differs, the log's label marks an edit", () => {
   assert.equal(DEFAULT_CONFIG, "A");
   assert.deepEqual(configMech(configById("A")!), MECH_DEFAULTS);
-  assert.deepEqual(CONFIGS.map((c) => c.name), ["A · GAME NOW", "B · CLEAN STRIKES", "C · HAND-OVER", "D · LIFT TO SOUND", "E · GENEROUS"]);
+  assert.deepEqual(CONFIGS.map((c) => c.name), ["A · GAME NOW", "B · CLEAN STRIKES", "B+ · PREPARED", "C · HAND-OVER", "D · LIFT TO SOUND", "E · GENEROUS"]);
   const sets = CONFIGS.map((c) => JSON.stringify(configMech(c)));
   assert.equal(new Set(sets).size, CONFIGS.length);
   for (const c of CONFIGS) {

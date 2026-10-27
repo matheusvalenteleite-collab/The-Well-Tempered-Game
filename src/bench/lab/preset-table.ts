@@ -20,7 +20,7 @@ export function presetRow(log: LabLog, mech?: Mech): PresetRow {
   let doubles = 0;
   let perfect = 0;
   for (const e of r.events) {
-    if (e.kind === "wait") waits++;
+    if (e.kind === "wait" || (e.kind === "prep" && e.what === "rest")) waits++;
     else if (e.kind === "double") doubles++;
     else if (e.kind === "note" && e.ok && e.perfect) perfect++;
   }

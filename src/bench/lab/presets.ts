@@ -41,6 +41,14 @@ export const CONFIGS: readonly LabConfig[] = [
     values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40 },
   },
   {
+    // D334 (WTC 1.49): the owner's hammer-on and pull-off. B's values, and a thumb landing before its note's
+    // window while the other holds rests PREPARED until the other lifts (or, MECH.prepPress, it is pressed).
+    id: "B+",
+    name: "B+ · PREPARED",
+    feel: "Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.",
+    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, prepare: true, prepShare: 1, slurRollMinMs: 0 },
+  },
+  {
     id: "C",
     name: "C · HAND-OVER",
     feel: "Rest the next thumb on its note while the other still holds, up to about a note early: it waits and sounds at its own time.",
