@@ -99,7 +99,7 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} ⌒ TAKEN OVER: ${thumb(e.side)} landed on the note the other thumb had just taken (its drift's slide, or landing early): this one plays it`];
     case "run":
       // D332: the run's trend at its last note (the notes stay as judged; no score).
-      return [`${at} ${e.ok ? "RUN ✓" : "RUN ✗"} · ${e.notes} notes ${e.dir > 0 ? "up" : "down"}: the landings ${e.touches < 3 ? `too few (${e.touches})` : `travel ${e.travelPx >= 0 ? "the run's way" : "against it"} ${Math.abs(e.travelPx)} px over ${e.touches} touches (fitted; needs ≥ ${e.needPx} px)`}${e.ok ? "" : ": its RUN RULE notes re-judged WRONG"}`];
+      return [`${at} ${e.ok ? "RUN ✓" : "RUN ✗"} · ${e.notes} notes ${e.dir > 0 ? "up" : "down"}: the landings ${e.touches < 3 ? `too few (${e.touches})` : `travel ${e.travelPx >= 0 ? "the run's way" : "against it"} ${Math.abs(e.travelPx)} px over ${e.touches} touches (fitted; needs ${e.needPx}–${e.maxPx} px)`}${e.ok ? "" : ": its RUN RULE notes re-judged WRONG"}`];
     case "revoked":
       return [`${at} ✕ ${pitchName(piece, e.midi)} RE-JUDGED WRONG (RUN ✗: it was right only by the run rule) · ${thumb(e.side)} · −${Math.round(e.pts)} pts`];
     case "release":

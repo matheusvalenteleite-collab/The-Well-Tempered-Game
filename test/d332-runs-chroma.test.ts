@@ -23,8 +23,9 @@ test("D332: RUNS strict is the game's default; LENIENT on in B, C, D and E (B ot
   assert.equal(MECH_DEFAULTS.runMinNotes, 4);
   assert.equal(MECH_DEFAULTS.runIoiMs, 200);
   assert.equal(MECH_DEFAULTS.runTravelRows, 0.5);
+  assert.equal(MECH_DEFAULTS.runTravelMaxRows, 2);
   assert.deepEqual(MECH, MECH_DEFAULTS);
-  for (const k of ["runs", "runMinNotes", "runIoiMs", "runTravelRows"]) assert.equal(MECH_SPEC.find((s) => s.key === k)?.group, "LADDER", k);
+  for (const k of ["runs", "runMinNotes", "runIoiMs", "runTravelRows", "runTravelMaxRows"]) assert.equal(MECH_SPEC.find((s) => s.key === k)?.group, "LADDER", k);
   assert.equal(configMech(configById("A")!).runs, "strict");
   for (const id of ["B", "C", "D", "E"]) assert.equal(configMech(configById(id)!).runs, "lenient", id);
   assert.deepEqual(configById("B")!.values, { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" });
@@ -65,6 +66,10 @@ test("D332: the run's trend: the fitted travel (least squares × time span) the 
   assert.equal(runTrend(flat, 1, 0.5 * 3 * 9).ok, false);
   const real = [{ t: 0, y: 100 }, { t: 0.1, y: 92 }, { t: 0.2, y: 80 }, { t: 0.3, y: 75 }];
   assert.ok(runTrend(real, 1, 0.5 * 3 * 9).ok);
+  // Flung far beyond the run's drawn distance (3 steps of 9 px, at most twice): no run played.
+  const flung = [{ t: 0, y: 200 }, { t: 0.1, y: 150 }, { t: 0.2, y: 60 }, { t: 0.3, y: 20 }];
+  assert.ok(runTrend(flung, 1, 13.5).ok);
+  assert.equal(runTrend(flung, 1, 13.5, 2 * 3 * 9).ok, false);
   assert.ok(Math.abs(runTrend(real, 1).travelPx - 26.1) < 0.1, String(runTrend(real, 1).travelPx));
 });
 
@@ -119,6 +124,8 @@ test("D332: RUN ✗ re-judges the notes right only by the run rule: WRONG, told,
   const rightNotes = new Set(r.events.filter((e) => e.kind === "note" && e.ok).map((e) => `${(e as { track: number }).track}:${(e as { i: number }).i}`));
   assert.equal(r.summary.right, rightNotes.size - revoked.length, "the game's count follows the take-back");
   assert.ok(revoked.every((e) => e.kind === "revoked" && e.pts > 0), "each takes its points back");
+  // The articulation counts never go below nothing, nor the joins above those judged.
+  assert.ok(r.summary.legato >= 0 && r.summary.legato <= r.summary.legatoOf);
   // The log says so.
   const lines = r.events.flatMap((e) => describe("wtc2f10", e));
   assert.ok(lines.some((x) => x.includes("RE-JUDGED WRONG")));

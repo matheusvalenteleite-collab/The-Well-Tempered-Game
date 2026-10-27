@@ -1262,7 +1262,7 @@ export class ProtoGame {
   /** D332: the last verdict passed a note by the run rule alone (the strict rule refused it). */
   private runOnly = false;
   /** D332: the notes right by the run rule alone ("k:i"): their points, should the run's trend fail. */
-  private runAccepted = new Map<string, { pts: number; art: number; perfect: boolean; side: Side }>();
+  private runAccepted = new Map<string, { pts: number; art: number; perfect: boolean; side: Side; legatoOf: boolean; legato: boolean; held: number; heldN: number; heldOfN: number; clean: number; cleanOf: number }>();
   /** D332: runs whose last note was just struck, told on the next frame (once that note is scored). */
   private runDue: { k: number; run: Run }[] = [];
   private runMember(k: number, i: number): Run | undefined {
@@ -1307,23 +1307,33 @@ export class ProtoGame {
     const pts = this.runPts.get(key) ?? [];
     const notes = this.tracks[k].notes;
     const span = Math.abs(notes[run.last].step - notes[run.notes[0]].step);
-    const needPx = MECH.runTravelRows * span * (this.rows?.rowH ?? MECH.ladderRowMin);
-    const tr = runTrend(pts, run.dir, needPx);
-    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), ok: tr.ok });
+    const row = this.rows?.rowH ?? MECH.ladderRowMin;
+    const needPx = MECH.runTravelRows * span * row;
+    const maxPx = MECH.runTravelMaxRows * span * row;
+    const tr = runTrend(pts, run.dir, needPx, maxPx);
+    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok });
     const revoke = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`));
     for (const j of revoke) {
       const a = this.runAccepted.get(`${k}:${j}`)!;
       this.runAccepted.delete(`${k}:${j}`);
       if (tr.ok || notes[j].state !== "hit") continue;
       for (const q of chordOf(notes, j)) Object.assign(notes[q], { state: "miss", wrong: true });
-      this.score -= a.pts + a.art;
+      this.score -= a.pts + a.art + a.held;
       this.earned.notes -= a.pts;
       this.earned.articulation -= a.art;
+      // Its legato counts and its HELD (and CLEAN) credit too.
+      this.earned.held -= a.held;
+      if (a.legatoOf) this.art.legatoOf--;
+      if (a.legato) this.art.legato--;
+      this.art.held -= a.heldN;
+      this.art.heldOf -= a.heldOfN;
+      this.art.clean -= a.clean;
+      this.art.cleanOf -= a.cleanOf;
       if (a.perfect) this.perfects--;
       else this.goods--;
       this.hits--;
       this.slip();
-      this.tap?.({ kind: "revoked", tick: this.now, track: k, i: j, midi: notes[j].midi, side: a.side, pts: a.pts + a.art });
+      this.tap?.({ kind: "revoked", tick: this.now, track: k, i: j, midi: notes[j].midi, side: a.side, pts: a.pts + a.art + a.held });
     }
   }
 
@@ -2594,7 +2604,7 @@ export class ProtoGame {
     if (perfect) this.perfects++;
     else this.goods++;
     // D332: a note right only by the run rule: its points kept aside, should the run's trend fail.
-    if (!slide && this.runOnly) this.runAccepted.set(`${h.k}:${i}`, { pts: h.pts - artAdd, art: artAdd, perfect, side: h.side });
+    if (!slide && this.runOnly) this.runAccepted.set(`${h.k}:${i}`, { pts: h.pts - artAdd, art: artAdd, perfect, side: h.side, legatoOf: lw.judged, legato: legatoNow, held: 0, heldN: 0, heldOfN: 0, clean: 0, cleanOf: 0 });
     this.runOnly = false;
     if (!slide) this.thumbNote(h.side, n.on, d);
     if (rd) {
@@ -2947,6 +2957,9 @@ export class ProtoGame {
     }
     let pts = 0;
     let word: ArtFlash | null = null;
+    // D332: a note right by the run rule alone: its end's credit kept aside too, should the run fail.
+    const ra = this.runAccepted.get(`${h.k}:${i}`);
+    const art0 = { held: this.art.held, heldOf: this.art.heldOf, clean: this.art.clean, cleanOf: this.art.cleanOf };
     if (r.hold !== "none") this.art.heldOf++;
     if (r.hold === "short") {
       this.crowd = Math.max(0, this.crowd - 0.01);
@@ -2963,6 +2976,13 @@ export class ProtoGame {
         pts += this.mult;
         word = { text: word ? "HELD · CLEAN" : "CLEAN", at, good: true, kind: "clean" };
       }
+    }
+    if (ra) {
+      ra.held += pts;
+      ra.heldN += this.art.held - art0.held;
+      ra.heldOfN += this.art.heldOf - art0.heldOf;
+      ra.clean += this.art.clean - art0.clean;
+      ra.cleanOf += this.art.cleanOf - art0.cleanOf;
     }
     if (pts) {
       this.earn("held", pts);

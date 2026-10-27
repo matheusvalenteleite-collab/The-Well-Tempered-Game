@@ -84,6 +84,8 @@ export const MECH_DEFAULTS = {
   runIoiMs: 200,
   /** D332: RUN ✓ needs the landings' fitted travel the run's way at least this many drawn rows per step of its span (RUN ✗ re-judges the run rule's notes wrong). */
   runTravelRows: 0.5,
+  /** D332: ...and at most this many (a random tapper's fitted travel is large either way; an honest run's about the drawn distance). */
+  runTravelMaxRows: 2,
   // LEGATO (articulation.ts, D289).
   /** LEGATO_GAP_MS: a note let go at most this long before the next is struck still joins it (ms)... */
   legatoGapMs: 90,
@@ -298,6 +300,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "runMinNotes", group: "LADDER", label: "Run: at least", help: "D332: a run is this many notes or more, each a step the same way.", kind: "number", min: 3, max: 12, step: 1, unit: "notes" },
   { key: "runIoiMs", group: "LADDER", label: "Run: notes closer than", help: "D332: each note of a run follows the one before by less than this (at the written tempo).", kind: "number", min: 80, max: 400, step: 10, unit: "ms" },
   { key: "runTravelRows", group: "LADDER", label: "Run: travel at least", help: "D332, LENIENT: at a run's last note the thumbs' landings over it, fitted by a straight line (height against time), must travel the run's way at least this many drawn rows per step it spans (a row is a staff step as drawn); else RUN ✗ and every note right only by the run rule is re-judged WRONG (its points taken back, a slip).", kind: "number", min: 0, max: 1.5, step: 0.05, unit: "rows/step" },
+  { key: "runTravelMaxRows", group: "LADDER", label: "Run: travel at most", help: "D332, LENIENT: …and at most this many drawn rows per step it spans: landings flung far beyond the run's drawn distance are no run played (random taps fit large travels either way): RUN ✗.", kind: "number", min: 1, max: 6, step: 0.25, unit: "rows/step" },
   { key: "edgeShare", group: "LADDER", label: "Bar end (EDGE_SHARE)", help: "A thumb that travelled into the bar's end (this share of its height) may stay there.", kind: "number", min: 0, max: 0.4, step: 0.01 },
   { key: "touchTolerance", group: "INTENTION", label: "Touch tolerance", help: "D325: a note's hold within this share of the player's recent holds (same note value) is consistent: ARTICULATION credited, whatever the touch.", kind: "number", min: 0, max: 0.6, step: 0.05 },
   { key: "artCap", group: "INTENTION", label: "Articulation cap", help: "D325: articulation's points at most this share of the run's.", kind: "number", min: 0.05, max: 1, step: 0.05 },

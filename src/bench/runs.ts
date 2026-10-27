@@ -84,12 +84,13 @@ export function slope(points: readonly { t: number; y: number }[]): number {
 
 /**
  * The run's trend from the thumbs' landings (screen y, down positive; t in seconds): its fitted travel
- * (the slope times the landings' time span, px, + the run's way) at least `needPx`, from three landings
- * or more.
+ * (the slope times the landings' time span, px, + the run's way) at least `needPx` and at most `maxPx`
+ * (a thumb flung far beyond the run's drawn distance is no run played: random taps fit large travels
+ * either way), from three landings or more.
  */
-export function runTrend(points: readonly { t: number; y: number }[], dir: 1 | -1, needPx = 0): { ok: boolean; slope: number; travelPx: number; n: number } {
+export function runTrend(points: readonly { t: number; y: number }[], dir: 1 | -1, needPx = 0, maxPx = Infinity): { ok: boolean; slope: number; travelPx: number; n: number } {
   const s = slope(points);
   const span = points.length ? Math.max(...points.map((p) => p.t)) - Math.min(...points.map((p) => p.t)) : 0;
   const travelPx = Number.isFinite(s) ? -s * dir * span : 0;
-  return { ok: points.length >= 3 && Number.isFinite(s) && travelPx > 0 && travelPx >= needPx, slope: s, travelPx, n: points.length };
+  return { ok: points.length >= 3 && Number.isFinite(s) && travelPx > 0 && travelPx >= needPx && travelPx <= maxPx, slope: s, travelPx, n: points.length };
 }
