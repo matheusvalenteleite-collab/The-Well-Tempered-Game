@@ -761,3 +761,57 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 0.92); box-shadow: 0 0 0 1px #c9c2b4; }
 .tb-sheet-free { margin: 2px 0 0; font-family: var(--tg-pixel); font-size: 6px; letter-spacing: 0.04em; color: #d8c27a; }
 .tb-tuning-select { max-width: 560px; }
+
+/* D342: THE MANUAL: its map (parts as chapters, a lesson's card), Part 0's screens, the lens after a take. Quiet: the game's own type, hairlines, no new colours. */
+.tb-manual { gap: 10px; }
+.tb-manual-sub { margin: 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }
+.tb-manual-part { display: grid; gap: 6px; }
+.tb-manual-part.later { opacity: 0.5; }
+.tb-manual-part-head { text-align: left; display: grid; grid-template-columns: 3.2em 1fr auto; align-items: center; gap: 8px; margin: 4px 0 0; padding: 0 2px 4px; font-family: var(--tg-pixel); font-size: 8px; font-weight: 400; color: var(--tg-shine); border-bottom: 1px solid var(--tg-barline); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.tb-manual-part-head small { display: block; margin-top: 3px; font-size: 6px; color: var(--tg-muted); }
+.tb-manual-part.locked .tb-manual-part-head { color: var(--tg-muted); cursor: pointer; }
+.tb-manual-part-n { color: var(--tg-muted); }
+.tb-manual-part-mark { font-size: 6px; color: #5fdc6a; }
+.tb-manual-hint { margin: 0; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); }
+.tb-manual-testout { justify-self: start; padding: 8px 10px; font-family: var(--tg-pixel); font-size: 7px; text-align: left; color: #1a1408; background: var(--tg-gold); border: 0; box-shadow: 3px 3px 0 #b8322a; cursor: pointer; }
+.tb-manual-testout small { display: block; margin-top: 4px; font-size: 6px; }
+.tb-manual-card { display: grid; gap: 6px; margin: 2px 0 6px; padding: 9px 10px; background: #0f1326; border: 1px solid var(--tg-barline); border-top: 0; }
+.tb-manual-aim { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 13px; line-height: 1.4; color: var(--tg-fg); }
+.tb-manual-lens { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; margin: 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; }
+.tb-manual-lens dt { color: var(--tg-muted); }
+.tb-manual-lens dd { margin: 0; color: var(--tg-fg); }
+.tb-manual-material { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 3px; font-family: Georgia, "Times New Roman", serif; font-size: 12px; color: var(--tg-fg); }
+.tb-manual-material small { color: var(--tg-muted); }
+.tb-manual-material li.ok > span { color: #5fdc6a; }
+.tb-manual-badge { display: inline-block; min-width: 5.5em; padding: 1px 4px; font-family: var(--tg-pixel); font-size: 5px; vertical-align: 2px; color: var(--tg-muted); border: 1px solid var(--tg-barline); }
+.tb-manual-badge.drill { color: #7fd6e8; border-color: #3b6d79; }
+.tb-manual-sources { font-family: Georgia, "Times New Roman", serif; font-size: 11px; color: var(--tg-muted); }
+.tb-manual-sources summary { font-family: var(--tg-pixel); font-size: 6px; cursor: pointer; }
+.tb-manual-sources p { margin: 4px 0 0; }
+.tb-manual-go { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tb-manual-skip { padding: 7px 10px; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-fg); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-manual-screen { gap: 10px; }
+.tb-manual-says { display: flex; gap: 10px; align-items: center; }
+.tb-manual-says .tb-bach-face { width: 40px; height: 45px; flex: none; }
+.tb-manual-says p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.4; color: var(--tg-fg); }
+.tb-manual-answers { display: grid; gap: 8px; }
+.tb-manual-answers .tb-play small { display: block; margin-top: 4px; font-size: 6px; }
+.tb-grip { position: relative; display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 6px; height: 110px; }
+.tb-grip-bar { display: grid; place-items: center; align-content: center; gap: 6px; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); background: rgba(54, 34, 30, 0.92); border: 2px solid var(--tg-barline); cursor: pointer; touch-action: none; }
+.tb-grip-bar:last-of-type { grid-column: 3; grid-row: 1; }
+.tb-grip-bar.on { color: var(--tg-shine); border-color: var(--tg-gold); }
+.tb-grip-thumb { width: 22px; height: 32px; background: #f2c9a0; border-bottom: 3px solid #c8946a; }
+.tb-grip-box { grid-column: 2; grid-row: 1; display: grid; place-items: center; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); background: var(--tg-roll); border: 1px solid var(--tg-grid); }
+/* After a take: the lens, under Herr Bach's line. */
+.tb-lens { display: grid; gap: 4px; margin: 6px 0 8px; padding-top: 6px; border-top: 1px solid var(--tg-barline); font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; cursor: default; }
+.tb-lens-counts { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.tb-lens-counts li.ok { color: #8fe3b0; }
+.tb-lens-counts li.no { color: #ff8a80; }
+.tb-lens-counts li.na { color: var(--tg-muted); }
+.tb-lens-shown { margin: 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg); }
+.tb-lens-never { margin: 0; color: var(--tg-muted); }
+@media (max-height: 520px) { .tb-grip { height: 80px; } .tb-manual-aim { font-size: 12px; } }
+.tb-manual, .tb-manual-screen { text-align: left; }
+.tb-manual .tb-hear-title, .tb-manual-screen .tb-hear-title { text-align: left; }
+.tb-lens-shown .tg-link { font-family: var(--tg-pixel); font-size: 6px; }
+.tb-bach .tb-lens { text-align: left; }

@@ -86,9 +86,9 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
               <span className="tb-lite-info">
                 {learning && <span className="tb-lite-start">{tr("START HERE")}</span>}
                 <span className="tb-lite-title">{tr("TUTORIAL")}</span>
-                <span className="tb-lite-meta">{tr("INVENTION 1 · BWV 772 · 2 VOICES")}</span>
+                <span className="tb-lite-meta">{tr("THE MANUAL · PARTS 0–II")}</span>
                 <span className="tb-lite-level" style={{ color: "#7fd6e8" }}>
-                  {tutorial.done ? tr("{n} OF {m} STEPS", { n: tutorial.done, m: tutorial.of }) : tr("{m} STEPS", { m: tutorial.of })}
+                  {tutorial.done ? tr("{n} OF {m} LESSONS", { n: tutorial.done, m: tutorial.of }) : tr("{m} LESSONS", { m: tutorial.of })}
                 </span>
                 <span className="tb-lite-meta">{tr("WITH HERR BACH")}</span>
               </span>

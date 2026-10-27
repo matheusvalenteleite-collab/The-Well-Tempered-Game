@@ -102,8 +102,17 @@ export const PRELUDES = PIECES.filter((p) => p.kind === "prelude");
 /** D270: the pieces the TUTORIAL teaches with (Invention No. 1, tools/touch/tutorial.ts): found by id, in no list. */
 export const TUTORIAL_PIECES = tutorialData as unknown as TouchFugue[];
 
+/**
+ * D342: pieces made at load time by the manual (its drills, src/bench/manual/drill.ts, compiled from their
+ * text into this format): found by id, in no list.
+ */
+const MADE = new Map<string, TouchFugue>();
+export function registerPieces(ps: readonly TouchFugue[]) {
+  for (const p of ps) MADE.set(p.id, p);
+}
+
 export function fugueById(id: string): TouchFugue {
-  return PIECES.find((f) => f.id === id) ?? TUTORIAL_PIECES.find((f) => f.id === id) ?? PIECES[0];
+  return PIECES.find((f) => f.id === id) ?? TUTORIAL_PIECES.find((f) => f.id === id) ?? MADE.get(id) ?? PIECES[0];
 }
 
 /** "I·2 P", "I·2 F"; the Art of Fugue's "AoF·XIV". */

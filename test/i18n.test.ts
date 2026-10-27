@@ -7,6 +7,8 @@ import { PT } from "../src/i18n/pt.ts";
 import { ES } from "../src/i18n/es.ts";
 import { keyWordsIn, pieceName, tr, trCanvas, useLang, voiceName } from "../src/i18n/index.ts";
 import { TUTORIAL_LESSONS } from "../src/bench/lessons.ts";
+import { manualTexts } from "../src/bench/manual/lessons.ts";
+import { placementTexts } from "../src/bench/manual/placement.ts";
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => {
@@ -27,6 +29,8 @@ function keys(): Set<string> {
     if (l.goal) out.add(l.goal);
     for (const line of [...l.intro, ...l.praise, ...l.again]) out.add(line.text);
   }
+  // D342: THE MANUAL's words (its lessons, lens lines, Herr Bach, the placement).
+  for (const t of [...manualTexts(), ...placementTexts()]) out.add(t);
   return out;
 }
 

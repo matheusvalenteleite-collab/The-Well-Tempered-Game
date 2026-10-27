@@ -4,7 +4,7 @@
  * on. The lessons' words are in lessons.ts.
  */
 import { tr } from "../i18n/index.ts";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /** D289: a phone (touch first): "TAP", not "PRESS A KEY". */
 const touchFirst = () => typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
@@ -54,7 +54,8 @@ export function Portrait({ talking }: { talking: boolean }) {
 }
 
 /** The lines, one at a time; `onLine` as each begins (a demonstration to play); `onDone` after the last. */
-export function BachTalk({ title, lines, onLine, onDone, choices }: { title: string; lines: Line[]; onLine?: (l: Line) => void; onDone: () => void; choices?: { label: string; act: () => void }[] }) {
+/** D342: `extra`, shown under the last line (THE MANUAL's lens: what counted, what was shown). */
+export function BachTalk({ title, lines, onLine, onDone, choices, extra }: { title: string; lines: Line[]; onLine?: (l: Line) => void; onDone: () => void; choices?: { label: string; act: () => void }[]; extra?: ReactNode }) {
   const [i, setI] = useState(0);
   const [shown, setShown] = useState(0);
   const line = lines[i];
@@ -99,6 +100,7 @@ export function BachTalk({ title, lines, onLine, onDone, choices }: { title: str
           {said.slice(0, shown)}
           <span className="tb-bach-rest">{said.slice(shown)}</span>
         </p>
+        {extra && i + 1 >= lines.length && extra}
         {choices?.length && i + 1 >= lines.length ? (
           <div className="tb-bach-choices">
             {choices.map((c, k) => (

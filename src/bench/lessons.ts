@@ -42,6 +42,9 @@ export interface Run {
   coach?: "thumbs" | "dynamics" | "slide";
   /** D282: a reading the step is played by (readings.ts id: the subject's articulation asked). */
   reading?: string;
+  /** D342, THE MANUAL: a drill's click (Options.click), the demonstration's manner (Options.demoStyle). */
+  click?: { full: number; gone: number };
+  demoStyle?: "one-thumb" | "prepared" | "held";
 }
 
 /**

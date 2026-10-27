@@ -3,7 +3,11 @@
  * fugue's subject), contrasujeto, stretto, legato, trino, mordente, grupeto, cadencia perfecta; the notes
  * in solfège (DO, RE, MI…, src/i18n/index.ts). Herr Bach keeps his German interjections (So., Recht.).
  */
+import { MANUAL_ES } from "./manual-es.ts";
+
 export const ES: Record<string, string> = {
+  // D342: THE MANUAL (manual-es.ts; this dictionary's own entries win).
+  ...MANUAL_ES,
   // The list
   "THE WELL-TEMPERED GAME": "EL JUEGO BIEN TEMPERADO",
   BOOK: "LIBRO",
