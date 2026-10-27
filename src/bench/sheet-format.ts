@@ -278,3 +278,35 @@ export function layoutOf(m: DisplayMode): SheetLayoutId | null {
 export function engraved(id: string): boolean {
   return /^wtc[12]f\d\d$/.test(id);
 }
+
+/** D327: the display chosen for each piece (piece id → mode), kept on the device. */
+export const DISPLAY_BY_PIECE_KEY = "tb-display-by-piece-v1";
+
+function byPiece(): Record<string, DisplayMode> {
+  try {
+    const v = typeof localStorage === "undefined" ? null : localStorage.getItem(DISPLAY_BY_PIECE_KEY);
+    const o: unknown = v ? JSON.parse(v) : {};
+    return Object.fromEntries(Object.entries(o && typeof o === "object" ? o : {}).filter(([, m]) => displayOf(m) === m)) as Record<string, DisplayMode>;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * D327: the display for a piece: the one chosen for it; never chosen for it, a fugue of four or five
+ * voices once the tutorial is passed opens on one staff per voice (the panel's violist: "in five voices
+ * I lose my line among the others in the box"); else the last display chosen (D298's), else DEFAULT.
+ */
+export function displayFor(piece: string, voices: number, tutorialDone: boolean): DisplayMode {
+  const mine = byPiece()[piece];
+  if (mine) return mine;
+  if (tutorialDone && voices >= 4 && engraved(piece)) return "sheetN";
+  return readDisplay();
+}
+export function saveDisplayFor(piece: string, m: DisplayMode) {
+  try {
+    localStorage.setItem(DISPLAY_BY_PIECE_KEY, JSON.stringify({ ...byPiece(), [piece]: m }));
+  } catch {
+    /* this visit only */
+  }
+}

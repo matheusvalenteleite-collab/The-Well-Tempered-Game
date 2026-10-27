@@ -3,7 +3,7 @@
  * title, the voice to play, preselected (flow.ts `defaultVoice`; D251: a prelude's part named, not
  * chosen), and a big ▶ PLAY straight into the count-in; ✕ (or Escape) closes it, back to the cards.
  */
-import { lang, pieceName, tr, voiceName } from "../i18n/index.ts";
+import { lang, pieceName, tr, trCanvas, voiceName } from "../i18n/index.ts";
 import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
@@ -58,7 +58,7 @@ export function popSounds(id: string): (readonly [id: string, name: string, own:
   return !own || POP_SOUNDS.some(([sid]) => sid === own) ? row : [[own, shortSound(presetById(own).name), true] as const, ...row];
 }
 
-export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; children?: ReactNode }) {
+export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rules, sound, setSound, soundLocked, tuning, children }: { id: string; voice: number; singing: readonly number[]; setVoice: (v: number) => void; play: () => void; close: () => void; learn?: () => void; rules?: readonly string[]; sound?: string; setSound?: (id: string) => void; soundLocked?: boolean; tuning?: string; children?: ReactNode }) {
   const f = fugueById(id);
   // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
   const [help, setHelp] = useState(false);
@@ -137,6 +137,8 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
             {/* D303: one dropdown, the piece's own sound first and starred (was a row of buttons). */}
             <SoundSelect id="pop-sound" value={sound} set={setSound} sounds={POP_SOUNDS} own={PIECE_SOUND[id]} />
             {/* D292: the recorded piano's credit (CC BY 3.0) while it is the sound. */}
+            {/* D327: the tuning it plays in (the sound's own unless ⚙ TUNING chose another). */}
+            {tuning && <p className="tb-pop-lock tb-pop-tuning" id="pop-tuning">{trCanvas(tuning)}</p>}
             {creditFor(sound) && <p className="tb-pop-lock" id="pop-credit">{creditFor(sound)}</p>}
           </div>
         )}
