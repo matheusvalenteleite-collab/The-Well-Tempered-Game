@@ -18,7 +18,8 @@ import { SmoothClock } from "./headphones.ts";
  * fugue are equals); it only rings while the thumb is down, so a release is never cut short.
  */
 export function leadOf(pt: Patch): Patch {
-  return pt.amp.s === 0 ? pt : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
+  // D308: a struck sound (no sustain: the vibraphone's long ring) let go is damped within 0.1 s, as a held one is (LIFT_TAU).
+  return pt.amp.s === 0 ? (pt.amp.r > 0.1 ? { ...pt, amp: { ...pt.amp, r: 0.1 } } : pt) : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
 }
 
 /**
@@ -112,6 +113,9 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   plate: { predelay: 0.03, hp: 300, lp: 6500, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.45 },
   // TOMITA's space: a long reverb and a tape echo (a third of a second, darkening) beside it.
   space: { predelay: 0.03, hp: 250, lp: 6500, seconds: 2.8, phoneSeconds: 1.6, rt60: 2.8, brightness: 0.45, echo: { delay: 0.33, feedback: 0.32, lp: 3000, level: 0.5 } },
+  // D305, BLEEPS AND BLOOPS' small spring (an organ amplifier's tank): short (RT60 1.3 s), thin (the
+  // lows out from 400 Hz) and dark (4.2 kHz), with the spring's flutter: a 37 ms echo fed back (0.35).
+  spring: { predelay: 0.012, hp: 400, lp: 4200, seconds: 1.3, phoneSeconds: 1.0, rt60: 1.3, brightness: 0.4, echo: { delay: 0.037, feedback: 0.35, lp: 3500, level: 0.3 } },
 };
 export const HALL = REVERBS.hall;
 
@@ -236,6 +240,9 @@ export interface Play {
   /** D252: false: not doubled by the coupling (the coupling's own notes). */
   couple?: boolean;
 }
+
+/** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
+export const LIFT_TAU = 0.025;
 
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
 export const SING_GAIN = 3.4;
@@ -987,6 +994,15 @@ export class Chip {
     this.fxSend(pan ?? dyn, pt.send, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = [];
+    // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
+    // joined to the next (tie), back to its level by then (no step into the next).
+    const messa = pt.syllable?.messa ?? 0;
+    if (messa && !p.lead && end - t >= 0.9) {
+      const up = 10 ** (messa / 20);
+      dyn.gain.setValueAtTime(1, t);
+      dyn.gain.linearRampToValueAtTime(up, t + 0.4 * (end - t));
+      dyn.gain.linearRampToValueAtTime(p.tie ? 1 : 1 / up, end);
+    }
     if (p.trill && ctx.createConstantSource) {
       const lfo = bag.src(ctx.createOscillator());
       lfo.type = "square";
@@ -1051,11 +1067,13 @@ export class Chip {
     let thunk: GainNode | null = null;
     /** The note's own release (time constant, s): the recording's, a damper's (the bass slower), else 30 ms. */
     const ownTau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
-    const letGo = (s: number, tie = 0) => {
+    const letGo = (s: number, tie = 0, lift = false) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
       // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
-      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : ownTau;
+      // D308: the player's note let go (a thumb lifted): -40 dB within 120 ms, whatever the recording's
+      // own release (NOCTURNE 32-BIT's violin, 53 ms a time constant, was -20 dB then: no staccato).
+      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : lift ? Math.min(ownTau, LIFT_TAU) : ownTau;
       g.gain.setTargetAtTime(0, s, tau);
       for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
       for (const l of lfos) halt(l, s + tau * 9 + 0.05);
@@ -1095,7 +1113,7 @@ export class Chip {
       stop: (when = ctx.currentTime) => {
         if (stopped || when >= end) return;
         stopped = true;
-        letGo(Math.max(when, t + 0.02));
+        letGo(Math.max(when, t + 0.02), 0, !!p.lead);
       },
       bend: (c: number) => {
         if (stopped) return;
@@ -1224,7 +1242,9 @@ export class Chip {
         neg.gain.value = -0.5;
         n.connect(half).connect(g);
         n.connect(late).connect(neg).connect(g);
-        if (pw.depth && pw.rate) {
+        // D305: following the clock (SWITCHED-ON's slow PWM: one free-running LFO across the notes).
+        if (pw.depth && pw.rate && pw.clock) clocked(late.delayTime, t, end + pt.amp.r, (x) => (pw.width + pw.depth * Math.sin(2 * Math.PI * pw.rate * x)) / f, 0.05);
+        else if (pw.depth && pw.rate) {
           const lfo = bag.src(ctx.createOscillator());
           lfo.frequency.value = pw.rate;
           const sweep = bag.add(ctx.createGain());
@@ -1597,17 +1617,27 @@ export class Chip {
       air.gain.linearRampToValueAtTime(cons.burst, t + ct * 0.35);
       air.gain.setTargetAtTime(breath, t + ct * 0.35 + 0.004, 0.008);
     } else if (!joined) air.gain.setTargetAtTime(breath, t, 0.02);
+    // D305: an aspirated onset (Sing.aspirate): more breath as the syllable begins.
+    if (!joined && sg.aspirate) {
+      air.gain.setValueAtTime(breath + sg.aspirate, t + ct * 0.35 + 0.006);
+      air.gain.setTargetAtTime(breath, t + ct * 0.35 + 0.01, 0.025);
+    }
     // The formants, the singer's size on them; from the consonant's into the vowel's.
     const out = bag.add(ctx.createGain());
     const scale = (sg.type === "bass" || sg.type === "tenor" ? 1 : 1.12) * sg.size;
     for (const [i, [f, db, bw]] of VOWELS[sg.type][sg.vowel].entries()) {
       const bp = bag.add(ctx.createBiquadFilter());
       bp.type = "bandpass";
-      const fv = Math.min(ctx.sampleRate * 0.45, f * sg.size);
-      bp.Q.value = fv / (bw * sg.size * (sg.bw ?? 1));
+      // D305: the first formant tuned up to the pitch (Sing.tune), a soprano's on her high notes.
+      const tuned = (m: number) => (i === 0 && sg.tune ? Math.max(f * sg.size, sg.tune * hz(m)) : f * sg.size);
+      const fv = Math.min(ctx.sampleRate * 0.45, tuned(midi));
+      bp.Q.value = (f * sg.size) / (bw * sg.size * (sg.bw ?? 1));
       if (!joined && i < 3) {
-        bp.frequency.setValueAtTime(cons.f[i] * scale, t);
+        bp.frequency.setValueAtTime(Math.max(cons.f[i] * scale, fv - f * sg.size + cons.f[i] * scale), t);
         bp.frequency.setTargetAtTime(fv, t + ct * 0.5, ct / 2.5);
+      } else if (joined && p.from !== undefined && i === 0 && sg.tune && tuned(p.from) !== tuned(midi)) {
+        bp.frequency.setValueAtTime(Math.min(ctx.sampleRate * 0.45, tuned(p.from)), t);
+        bp.frequency.setTargetAtTime(fv, t + 0.005, 0.03);
       } else bp.frequency.value = fv;
       const g = bag.add(ctx.createGain());
       g.gain.value = 10 ** ((db + (i >= 2 ? (sg.upper ?? 0) : 0)) / 20);

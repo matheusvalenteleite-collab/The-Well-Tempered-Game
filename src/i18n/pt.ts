@@ -50,7 +50,8 @@ export const PT: Record<string, string> = {
   "PIPE ORGAN": "ÓRGÃO DE TUBOS",
   "VOCAL SYNTH": "VOZ SINTÉTICA",
   "SOLO VOICES": "VOZES SOLISTAS",
-  MODULAR: "MODULAR",
+  // D305: MODULAR remade as BLEEPS AND BLOOPS.
+  "BLEEPS AND BLOOPS": "BIPES E BLOPES",
   TOMITA: "TOMITA",
   // D297: ANALOG SYNTH remade as SWITCHED-ON.
   "SWITCHED-ON": "SWITCHED-ON",
@@ -81,6 +82,11 @@ export const PT: Record<string, string> = {
   "{a} POINTS + {b} PERFORMANCE BONUS": "{a} PONTOS + {b} DE BÔNUS DE INTERPRETAÇÃO",
   "FIRST SCORE": "PRIMEIRA PONTUAÇÃO",
   "NEW BEST · WAS {n}": "NOVO RECORDE · ERA {n}",
+  "BEST GRADE {g}": "MELHOR NOTA {g}",
+  PAUSED: "PAUSADO",
+  RESUME: "CONTINUAR",
+  QUIT: "SAIR",
+  Pause: "Pausar",
   "BEST {n}": "RECORDE {n}",
   PERFORMANCE: "INTERPRETAÇÃO",
   "MAX COMBO": "COMBO MÁXIMO",

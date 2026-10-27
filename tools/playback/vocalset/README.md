@@ -15,3 +15,19 @@ straight and vibrato scales and arpeggios.
    correlation-aligned crossfades into 3.25 s, of which 1.0-3.0 s is one seamless loop; MP3 96 kbit/s.
    Pitches VocalSet does not reach are shifted from the nearest sung note (formant preserved):
    the alto's F3-A3 from C4, the bass's D2-A2 from C3, the tenor's A4 from F#4.
+
+## D305: straight tone (`build_straight.py`)
+
+SOLO VOICES' owner asked for straight, one-singer-per-part voices (no vibrato). The parts were rebuilt
+from VocalSet's straighter singers: f7 (soprano), f8 (alto), m3 (tenor), m8 (bass), from their
+`straight` scales/arpeggios/long tones and their `slow_piano`/`slow_forte` scales and arpeggios ("a").
+
+1. `fetch.py` as above, for those files (`FULL/<singer>/{long_tones,scales,arpeggios}/...`).
+2. `segs2.py OUT.json FILES` (as `segs.py`, YIN at 5 ms, each note's
+   vibrato and wander measured).
+3. `build_straight.py SEGS.json VOCALSET_DIR OUT [parts...]`: per semitone, the steadiest note within 4
+   semitones (straight takes preferred), its pitch held steady (read at a varying rate that undoes its
+   wobble), its level held steady, shifted with rubberband (formant preserved), tiled into the same
+   3.25 s / 1.0-3.0 s loop layout; writes `report.json` (source, shift, wobble before/after, tuning).
+   Measured (3-9 Hz pitch wobble over the loop): 33 → 0.9 cents (soprano), 18 → 0.9 (alto),
+   14 → 1.9 (tenor), 11 → 2.0 (bass).

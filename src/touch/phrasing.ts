@@ -19,8 +19,9 @@ import { preset } from "./sound.ts";
  * recorded harpsichord and piano as a player of each would (the owner: "less robotic", after Wanda
  * Landowska and Rosalyn Tureck); the synthesized sounds as before.
  */
-export type Style = "plain" | "harpsichord" | "piano";
-export const styleOf = (soundId: string): Style => (soundId === "harpsichordSampled" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : "plain");
+export type Style = "plain" | "harpsichord" | "piano" | "sung" | "switched";
+/** D305: VOCAL SYNTH sung as singers sing (SUNG below), SWITCHED-ON's bass apart (SWITCHED); the other synthesized sounds "plain". */
+export const styleOf = (soundId: string): Style => (soundId === "harpsichordSampled" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : soundId === "vocalSynth" ? "sung" : soundId === "analog" ? "switched" : "plain");
 
 /**
  * D294, the numbers (seconds, shares of the written length, levels):
@@ -35,7 +36,7 @@ export const styleOf = (soundId: string): Style => (soundId === "harpsichordSamp
  *     next, the harpsichordist's finger pedal;
  *   levels: the share of the bar's and the phrase's level kept (a harpsichord has no touch dynamics).
  */
-export const TOUCH: Record<Exclude<Style, "plain">, { spread: number; lead: number; agogic: number; jitter: number; cap: number; repeat: number; leap: number; long: number; overlegato: number; levels: number }> = {
+export const TOUCH: Record<Exclude<Style, "plain" | "sung" | "switched">, { spread: number; lead: number; agogic: number; jitter: number; cap: number; repeat: number; leap: number; long: number; overlegato: number; levels: number }> = {
   // D304: a leap and a repeated note a shade longer than D294's (0.8 and 0.72 on the harpsichord, 0.85 and 0.75 on the piano).
   harpsichord: { spread: 0.004, lead: 0, agogic: 0.008, jitter: 0.002, cap: 0.02, repeat: 0.75, leap: 0.85, long: 0.92, overlegato: 1.35, levels: 0.3 },
   piano: { spread: 0, lead: 0.008, agogic: 0.005, jitter: 0.002, cap: 0.02, repeat: 0.78, leap: 0.88, long: 0.95, overlegato: 1, levels: 1 },
@@ -75,7 +76,25 @@ export interface Shape {
  * asked to play it): case by case, by the fugue and the reading. The subject is never louder: the
  * readings' accents are not levels here (D293).
  */
-export type Art = "join" | "detach" | "short" | "nonlegato" | "plain";
+export type Art = "join" | "detach" | "short" | "nonlegato" | "plain" | "syllable";
+/**
+ * D305, the singers' way (style "sung": VOCAL SYNTH): a singer carries the line: a step, a third and a
+ * fourth joined (one vowel, the pitch gliding); a leap of a fifth or more, a repeated note, and the
+ * lowest voice's notes of a third of a beat to a beat (a sung bass's syllables: the moving bass D302
+ * set apart by a silence, now by its consonant) begun anew: "syllable", held to the next onset (no
+ * gap) and the next sung on a new syllable (its consonant and scoop: chip.ts singNote without
+ * Play.legato). A reading's detached and staccato marks, and a rest, as for the others. `leap`: the
+ * smallest leap sung on a new syllable (semitones); `bass`: the bass's notes so sung (shares of a beat).
+ */
+export const SUNG = { leap: 7, bass: [1 / 3, 1] as const };
+/**
+ * D305, SWITCHED-ON (style "switched"; the owner: "the bass was less off-putting in the previous
+ * detached version … still sounds better than legato over that massive line which over fills the
+ * texture"): the lowest voice's notes of a third of a beat to a beat, before the next without a rest,
+ * held `hold` of their value (nonlegato: D302's bass rule, a little longer than its 0.74); the rest as
+ * "plain".
+ */
+export const SWITCHED = { hold: 0.8, bass: [1 / 3, 1] as const };
 /**
  * The holds (shares of the written length). D304: a reading's detached note held three quarters of its
  * value (D302's 0.62, "about two thirds", was ours, not an author's: the books say only "detached";
@@ -91,11 +110,21 @@ export const OVERLAP_S = 0.03;
 export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean | null }>;
 
 /** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). D302: `marks`, a reading's (none: the default playing only). */
-export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>, style: Style = styleOf(preset().id), art: { marks?: Marks } = {}): Shape[] {
+export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>, style: Style = styleOf(preset().id), art: { marks?: Marks; bass?: number } = {}): Shape[] {
   const plain = phrasePlain(notes, beat, inBar, subject);
-  const T = style === "plain" ? null : TOUCH[style];
+  const T = style === "plain" || style === "sung" || style === "switched" ? null : TOUCH[style];
   const nexts = nextIndex(notes);
-  const arts = notes.map((_, i) => articulation(notes, i, nexts.get(i), beat, art.marks));
+  // D305: the lowest voice (given, else the lowest among these notes).
+  const bass = art.bass ?? notes.reduce((m, n) => Math.max(m, n.voice), 0);
+  const inBass = (n: OtherNote, [lo, hi]: readonly [number, number]) => n.voice === bass && n.dur >= lo * beat - 1e-9 && n.dur <= hi * beat + 1e-9;
+  const arts = notes.map((n, i) => {
+    if (style === "sung") return sung(notes, i, nexts.get(i), beat, art.marks, bass);
+    const a = articulation(notes, i, nexts.get(i), beat, art.marks);
+    // D305: SWITCHED-ON's bass apart (SWITCHED), a reading's marks kept.
+    const j = nexts.get(i);
+    if (style === "switched" && (a === "join" || a === "nonlegato") && j !== undefined && notes[j].on === n.on + n.dur && inBass(n, SWITCHED.bass)) return "nonlegato";
+    return a;
+  });
   // Each voice's note before (the first of the onset before), for a broken chord's leap in.
   const before = new Map<number, OtherNote>();
   const rank = new Map<number, { r: number; of: number }>();
@@ -141,7 +170,7 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     // The gap of a detached note at most GAP_BEATS of a beat.
     const apart = (share: number) => Math.max(share, 1 - (GAP_BEATS * beat) / n.dur);
     let hold = 1;
-    if (a === "join" && after) {
+    if ((a === "join" || a === "syllable") && after) {
       hold = (after.on - n.on) / n.dur;
       // D294, the harpsichordist's finger pedal: a broken chord's notes held on into the next.
       const into = before.get(i);
@@ -150,17 +179,20 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
       if (T && T.overlegato > 1 && Math.abs(out) >= 2 && Math.abs(inn) >= 2 && Math.sign(out) === Math.sign(inn) && n.dur < beat) hold = Math.max(hold, T.overlegato);
     } else if (a === "detach") hold = apart(ART_HOLD.detach);
     else if (a === "short") hold = apart(ART_HOLD.short);
-    else if (a === "nonlegato") hold = apart(after?.midi === n.midi ? (T ?? ART_HOLD).repeat : (T ?? ART_HOLD).leap);
+    else if (a === "nonlegato") hold = apart(after?.midi === n.midi ? (T ?? ART_HOLD).repeat : style === "switched" && inBass(n, SWITCHED.bass) ? SWITCHED.hold : (T ?? ART_HOLD).leap);
     else if (n.dur >= beat) hold = T ? T.long : 0.95;
     const final = !after || after.on > n.on + n.dur;
     return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final };
   });
   // Joined: the next note not attacked anew, this one held past its onset (the two nudges allowed for).
+  // D305: a "syllable" held over too, the next begun anew (its consonant: no gap, no glide).
   shapes.forEach((sh, i) => {
     const j = nexts.get(i);
-    if (sh.art !== "join" || j === undefined) return;
-    shapes[j].legato = true;
-    shapes[j].from = notes[i].midi;
+    if ((sh.art !== "join" && sh.art !== "syllable") || j === undefined) return;
+    if (sh.art === "join") {
+      shapes[j].legato = true;
+      shapes[j].from = notes[i].midi;
+    }
     sh.over = Math.max(0.01, OVERLAP_S + shapes[j].nudge - sh.nudge);
   });
   return shapes;
@@ -184,6 +216,19 @@ function articulation(notes: readonly OtherNote[], i: number, j: number | undefi
   // A third: joined among quicker notes; between long ones let go just before the next (D294's).
   if (semis <= 4) return n.dur < beat ? "join" : "plain";
   return "nonlegato";
+}
+
+/** D305: how note i goes to its next in the singers' way (SUNG): a reading's marks and the rests as articulation's. */
+function sung(notes: readonly OtherNote[], i: number, j: number | undefined, beat: number, marks: Marks | undefined, bass: number): Art {
+  const a = articulation(notes, i, j, beat, marks);
+  const n = notes[i];
+  const after = j === undefined ? undefined : notes[j];
+  if (!after || after.on !== n.on + n.dur || a === "short" || a === "detach") return a;
+  if (marks?.get(`${n.voice}:${n.on}`)?.join === true) return "join";
+  const semis = Math.abs(after.midi - n.midi);
+  if (semis === 0 || semis >= SUNG.leap) return "syllable";
+  if (n.voice === bass && n.dur >= SUNG.bass[0] * beat - 1e-9 && n.dur <= SUNG.bass[1] * beat + 1e-9) return "syllable";
+  return "join";
 }
 
 /** D302: each note's next note in its voice, by index (the first of the next onset; D191: a chord's partner, struck with it, is not "the next note"). */

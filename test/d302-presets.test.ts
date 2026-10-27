@@ -27,7 +27,8 @@ test("D302: VOCAL SYNTH: five singers, each its own voice type, vowel and conson
   }
   // D304: the low voices less trumpet-like: a softer glottis, smaller scoops, wider formants, a quieter singer's formant.
   const waves = pr.slots!.map((s) => PATCHES[s].osc[0].wave);
-  assert.deepEqual(waves, ["glottal", "glottalWarm", "glottalWarm", "glottalLow", "glottalLow"]);
+  // D305: the top a softer glottis too (a grown woman's voice, not the "idol").
+  assert.deepEqual(waves, ["glottalWarm", "glottalWarm", "glottalWarm", "glottalLow", "glottalLow"]);
   for (const s of sings.slice(3)) assert.ok(s.scoop <= 25 && (s.bw ?? 1) > 1 && (s.upper ?? 0) < 0 && s.breath >= 0.2 && s.ring === 0);
   assert.equal(PATCHES.vocDa.vib, undefined);
   assert.equal(sings[4].type, "bass");

@@ -26,7 +26,10 @@ function storedTab(): "I" | "II" {
   }
 }
 
-export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current }: { beaten: readonly string[]; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string }) {
+/** D308: a best grade's colour on its card (as the result's: S and A in gold, then down to red). */
+export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#f3c246", B: "#5fdc6a", C: "#7fd6e8", D: "#ec5a4a" };
+
+export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -108,7 +111,14 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
                 <span className="tb-lite-pic-wrap">
                   <Emblem id={id} label={keyLabel(f.key, f.kind === "prelude" ? "prelude" : "fugue")} className="tb-lite-pic" />
                   <span className="tb-lite-num">{n}</span>
-                  {done && <span className="tb-lite-done">✓</span>}
+                  {/* D308: the best grade stamped on the picture (in place of the ✓ where there is one). */}
+                  {best[id] ? (
+                    <span className="tb-lite-grade" id={`grade-${id}`} style={{ ["--grade" as string]: GRADE_INK[best[id]] ?? "var(--tg-shine)" }} aria-label={tr("BEST GRADE {g}", { g: best[id] })}>
+                      {best[id]}
+                    </span>
+                  ) : (
+                    done && <span className="tb-lite-done">✓</span>
+                  )}
                 </span>
                 <span className="tb-lite-info">
                   {here && <span className="tb-lite-start">{tr("START HERE")}</span>}
@@ -122,6 +132,12 @@ export function LiteGrid({ beaten, open, settings, fuguesOnly = false, tutorial,
                     {tr(lv.label)}
                   </span>
                   <span className="tb-lite-meta">{tr("SOUND")}: {tr(soundName(PIECE_SOUND[id] ?? "harpsichordSampled"))}</span>
+                  {/* D308: the best score (a whole piece finished). */}
+                  {scores[id] !== undefined && (
+                    <span className="tb-lite-best" id={`best-${id}`}>
+                      {tr("BEST {n}", { n: scores[id].toLocaleString("en") })}
+                    </span>
+                  )}
                 </span>
               </button>
               {hear && f.kind === "fugue" && (

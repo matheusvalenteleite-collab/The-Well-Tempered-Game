@@ -5,7 +5,7 @@ import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
 test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
   assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "MODULAR", "TOMITA"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
   // D302: TEMPLE 64 and AGENT 64 remade; D304: their successors withdrawn too: a stored choice of any opens on NOCTURNE 32-BIT.
   for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "nocturne32", gone);
   const ids = PRESETS.map((p) => p.id);
@@ -79,7 +79,8 @@ test("D294, D297: ANALOG SYNTH (SWITCHED-ON): every line its own patch through a
   for (const s of slots) {
     const pt = PATCHES[s];
     assert.equal(pt.filter?.poles, 4, `${s}: 24 dB`);
-    assert.ok(pt.osc.every((o) => !o.detune), `${s}: no chorus`);
+    // D305: a slow chorus on the bloop (a second sawtooth 7 cents up) and the bass layered (two sawtooths 8 cents apart); no other.
+    assert.ok(pt.osc.every((o) => !o.detune || (["solBloop", "solBass"].includes(s) && Math.abs(o.detune) <= 8)), `${s}: no chorus`);
     assert.equal(pt.scoop, undefined, `${s}: no pitch scoop`);
     assert.equal(pt.sample, undefined);
   }

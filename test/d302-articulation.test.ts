@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FakeNode, FakeParam, FakeSource, installFakeAudio } from "./fake-audio.ts";
 import { Chip, voicing, type Play } from "../src/touch/chip.ts";
-import { setPreset } from "../src/touch/sound.ts";
+import { PATCHES, setPreset } from "../src/touch/sound.ts";
 import { fugueById, inBar, beatOf, type TouchFugue } from "../src/touch/fugue.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
 import { ART_HOLD, GAP_BEATS, joins, phrase, TOUCH, type Shape, type Style } from "../src/touch/phrasing.ts";
@@ -174,7 +174,8 @@ test("D302: a synthesized sound (SWITCHED-ON): joined, no gap and no new attack;
   assert.equal(j.sh[0].art, "join");
   assert.ok(dip(j) > 0.6, `dip ${dip(j).toFixed(2)}`);
   assert.ok(overshoot(j) < 1.08, `overshoot ${overshoot(j).toFixed(2)}`);
-  assert.ok(opening(j) < 1.05, `the filter does not open anew: ${opening(j).toFixed(2)}`);
+  // (D305: the lead's slow filter sweep goes on through the join: within its swing.)
+  assert.ok(opening(j) < 1.05 * 2 ** (PATCHES.solLead.filter!.sweep?.octaves ?? 0), `the filter does not open anew: ${opening(j).toFixed(2)}`);
   const d = pair("analog", 2, 4, 0);
   assert.equal(d.sh[0].art, "detach");
   assert.ok(Math.abs(d.sh[0].hold - ART_HOLD.detach) < 1e-9, `held three quarters (${d.sh[0].hold})`);
