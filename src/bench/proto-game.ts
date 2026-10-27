@@ -64,7 +64,8 @@ export const setTravelMin = (v: number) => ((TRAVEL_MIN = v), (MECH.travelMin = 
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, strikeNext, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
-import { follow, joins, phrase, phraseContext, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { follow, joins, phrase, phraseContext, ritard, styleOf, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { dbToLevel } from "../touch/practice.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -276,6 +277,11 @@ export const RELATIVE_SHARE = 0.5;
 export const RELATIVE_DULL = 0.4;
 /** D293: the dynamic a touch is heard at where touch dynamics are not asked for (the others' own, `feel`). */
 export const NEUTRAL_D = 0.55;
+/**
+ * D339: the sampled piano's legato groups by the thumbs (dB by place: the first, the second, later ones):
+ * a slurred pair 3 dB strong-weak (and darker: chip.ts velTone); a long legato line level after its second note.
+ */
+export const SLUR_DB = [1, -2, -0.5] as const;
 /** D239: points as shown: a relative note's half point as ½ ("1½"). */
 export function ptsText(p: number): string {
   const w = Math.floor(p);
@@ -472,6 +478,8 @@ export class ProtoGame {
   slips = 0;
   /** How the player has been playing, 0 (pp) to 1 (ff): the others follow, a little. */
   private feel = 0.55;
+  /** D339: each track's place in its legato group now (the sampled piano's slurs: SLUR_DB). */
+  private groupPos = new Map<number, number>();
 
   /**
    * D216, KIMIKO: `o.clock` puts the game on her time (her-clock.ts), in place of the steady tempo and
@@ -1015,7 +1023,8 @@ export class ProtoGame {
       // D328: a sound held over a point where the band may wait, scheduled longer, stopped once it is settled.
       const hx = this.bandT ? this.bandT.crossing(n.on, n.on + n.dur * sh.hold) : -1;
       const ext = hx >= 0 ? this.bandT!.waitMaxS + 0.25 : 0;
-      const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on) + sh.over;
+      // D339: the band's shaped time (phrasing.ts RUBATO): a note let go before the next ends where it puts it.
+      const len = this.timeAt(n.on + n.dur * sh.hold) - this.timeAt(n.on) + sh.over + sh.stretch;
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
       // D213: the subject brighter and crisper, the others duller during an entry; the fugue's effect on the subject.
       const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
@@ -1031,7 +1040,8 @@ export class ProtoGame {
         const last = q === parts.length - 1;
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
-        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}) };
+        // D339: the piano's colour by its level (Play.vel) on every part.
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}) };
         const sd = ch.note(pmidi, pat, plen + (last ? ext : 0), vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
@@ -2565,6 +2575,16 @@ export class ProtoGame {
         this.earn("bonus", this.mult);
         this.flash = { text: "ECHO", at: performance.now(), good: true, kind: "legato" };
       }
+    }
+    // D339, the sampled piano's slurs from the thumbs alone: a note struck while the note before in its
+    // track still sounds (or was let go within the legato window) continues a legato group, else begins
+    // one. The group's first a shade firmer, its second lighter, later ones a little under the first
+    // (SLUR_DB): a two-note slur is strong-weak, as Türk and C. P. E. Bach teach it; let go early, its
+    // second note ends as a hand lifts (chip.ts damper `slur`). Loudness never tied to right or wrong.
+    if (styleOf(preset().id) === "piano" && !slide) {
+      const pos = over ? Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1) : 0;
+      this.groupPos.set(h.k, pos);
+      expr = { ...expr, group: pos, level: (expr.level ?? 1) * dbToLevel(SLUR_DB[pos]) };
     }
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).

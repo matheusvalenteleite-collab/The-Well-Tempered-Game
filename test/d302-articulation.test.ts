@@ -13,7 +13,7 @@ import { Chip, voicing, type Play } from "../src/touch/chip.ts";
 import { PATCHES, setPreset } from "../src/touch/sound.ts";
 import { fugueById, inBar, beatOf, type TouchFugue } from "../src/touch/fugue.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
-import { ART_HOLD, joins, phrase, phraseContext, type Shape, type Style } from "../src/touch/phrasing.ts";
+import { ART_HOLD, ART_SPREAD, joins, phrase, phraseContext, type Shape, type Style } from "../src/touch/phrasing.ts";
 import { GAP_MAX_SHARE, TABLES } from "../src/touch/practice.ts";
 import { performSubject, readingMarks, readingsOf } from "../src/touch/readings.ts";
 import { accompaniment, subjectMarks } from "../src/touch/voice-mode.ts";
@@ -186,7 +186,9 @@ test("D302: a synthesized sound (SWITCHED-ON): joined, no gap and no new attack;
   // The same leap (C-G) with no reading: the sustained lead's table (D309: the organ's, 0.72 of a quaver, the gap 40-140 ms).
   const l = pair("analog", 2, 4, 0, null);
   assert.equal(l.sh[0].art, "nonlegato");
-  assert.ok(Math.abs((1 - l.sh[0].hold) * l.value - Math.min(0.14, Math.max(0.04, 0.28 * l.value))) < 0.002, `the default leap's written gap ${((1 - l.sh[0].hold) * l.value).toFixed(3)} s`);
+  // (D339: each gap varied by up to ART_SPREAD of itself, fixed per note.)
+  const want = Math.min(0.14, Math.max(0.04, 0.28 * l.value));
+  assert.ok(Math.abs((1 - l.sh[0].hold) * l.value - want) <= ART_SPREAD * want + 0.002, `the default leap's written gap ${((1 - l.sh[0].hold) * l.value).toFixed(3)} s`);
   assert.ok(silence(l) > 0.03, `heard (${silence(l).toFixed(3)} s)`);
 });
 

@@ -139,6 +139,12 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // D305, BLEEPS AND BLOOPS' small spring (an organ amplifier's tank): short (RT60 1.3 s), thin (the
   // lows out from 400 Hz) and dark (4.2 kHz), with the spring's flutter: a 37 ms echo fed back (0.35).
   spring: { predelay: 0.012, hp: 400, lp: 4200, seconds: 1.3, phoneSeconds: 1.0, rt60: 1.3, brightness: 0.4, echo: { delay: 0.037, feedback: 0.35, lp: 3500, level: 0.3 } },
+  // D339, the sampled piano's and harpsichord's music room (they shared the bands' room: a second of white
+  // noise, no pre-delay, as bright at its end as at its start): a salon or small hall, the first reflection
+  // 18 ms on, RT60 1.4 s (on a phone 1.0 s of impulse), darkening as it decays, nothing under 180 Hz in it
+  // (the bass's lines kept clear) and nothing over 6.5 kHz: the strings' release heard into a space, not
+  // into a dry box, with the pedal kept off (the owner's "no sustain pedal", after Schiff).
+  salon: { predelay: 0.018, hp: 180, lp: 6500, seconds: 1.4, phoneSeconds: 1.0, rt60: 1.4, brightness: 0.4 },
 };
 export const HALL = REVERBS.hall;
 
@@ -287,6 +293,17 @@ export interface Play {
   hold?: HoldMode;
   /** D322: the harpsichord's registration: a second 8' choir and the 4' plucked with the note (registration.ts). */
   choirs?: Registered["choirs"];
+  /**
+   * D339: the piano's level as struck, dB (the band's: practice.ts pianoLevels; the player's: from
+   * Play.level): a recording struck harder is brighter, not only louder (SampledInstrument.velTone).
+   */
+  vel?: number;
+  /**
+   * D339, the player's piano: the note's place in its legato group (0: struck after a gap, the group's
+   * first; 1: the second, struck while the first still sounded; 2: later). A group's later note let go
+   * before the next is a slur's end (released as a hand lifts: SampledInstrument.damper `slur`).
+   */
+  group?: number;
 }
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
@@ -305,6 +322,8 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
 
 /** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
 export const LIFT_TAU = 0.025;
+/** D339: a piano string above the dampers (SampledInstrument.damper `undamped`) let go: it rings on, falling with this time constant (s). */
+export const UNDAMPED_TAU = 0.6;
 
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
 export const SING_GAIN = 3.4;
@@ -745,7 +764,8 @@ export class Chip {
     if (!amount) return;
     const g = bag.add(this.ctx.createGain());
     g.gain.value = amount;
-    from.connect(g).connect(this.roomIn);
+    // D339: where the shared room is off (a preset with its own reverb, as the piano's salon), into that reverb.
+    from.connect(g).connect((this.dry ? this.fxInput() : null) ?? this.roomIn);
   }
 
   /** D297: a note's send to its preset's own effect (Patch.send), one gain; nothing where the preset has none. */
@@ -1281,7 +1301,12 @@ export class Chip {
     }
     // The touch's brightness and (D213) the subject's colour share one high shelf.
     const subj = !!(p.tone || p.crisp);
-    src = this.shelf(src, subj ? Math.max(1200, Math.min(3500, baseHz * 4)) : 2500, t, Math.max(0, bright) * 5 + (p.tone ?? 0), p.crisp ?? 0, bag);
+    // D339: a piano struck harder is brighter (SampledInstrument.velTone): the band's level as its model
+    // gives it (Play.vel), the player's from its level (the player's own lift, MINE_LEVEL, taken out).
+    const vt = inst.velTone;
+    const velDb = vt ? (p.vel ?? (p.lead ? 20 * Math.log10(Math.max(1e-3, (p.level ?? 1) / MINE_LEVEL)) : 0)) : 0;
+    const velTone = vt ? Math.max(vt.min, Math.min(vt.max, vt.perDb * velDb)) : 0;
+    src = this.shelf(src, subj ? Math.max(1200, Math.min(3500, baseHz * 4)) : vt ? vt.hz : 2500, t, Math.max(0, bright) * 5 + (p.tone ?? 0) + velTone, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
     if (dull) {
       dull.type = "lowpass";
@@ -1420,17 +1445,33 @@ export class Chip {
     const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
     let thunk: GainNode | null = null;
     /** The note's own release (time constant, s): the recording's, a damper's (the bass slower), else 30 ms. */
-    const ownTau = re ? Math.max(0.005, re.r / 3) : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
-    const letGo = (s: number, tie = 0, lift = false) => {
+    // D339: a piano's dampers by register (SampledInstrument.damper; 0: an undamped string, left to ring).
+    const dm = inst.damper;
+    const damp = dm ? (midi >= dm.undamped ? 0 : dm.high + (dm.low - dm.high) * Math.max(0, Math.min(1, (84 - midi) / 48))) : 0;
+    const ownTau = re ? Math.max(0.005, re.r / 3) : dm ? damp || UNDAMPED_TAU : plucked ? 0.012 + 0.02 * Math.max(0, Math.min(1, (72 - midi) / 36)) : 0.03;
+    /** `handover`: let go as the next note of its voice is struck (a legato's overlap), not lifted alone. */
+    const letGo = (s: number, tie = 0, lift = false, handover = false) => {
       if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(s);
       else (g.gain.cancelScheduledValues(s), g.gain.setValueAtTime(levelAt(s), s)); // flat after the attack, unless Patch.rec shapes it
       // D302: a held note joined to the next goes over the crossfade (`tie`), not its own release.
       // D308: the player's note let go (a thumb lifted): -40 dB within 120 ms, whatever the recording's
       // own release (NOCTURNE 32-BIT's violin, 53 ms a time constant, was -20 dB then: no staccato).
-      const tau = tie && !plucked ? Math.max(0.004, tie / 6) : lift ? Math.min(ownTau, LIFT_TAU) : ownTau;
+      let tau = tie && !plucked ? Math.max(0.004, tie / 6) : lift ? Math.min(ownTau, LIFT_TAU) : ownTau;
+      // D339, the piano's dampers: the player's staccato (a short hold) crisp; a slur's end (a later note of
+      // a legato group lifted alone) set down softly, as a hand lifts off; any other lift, a handover and
+      // the band's notes the damper of its register, with the felt's slower last contact (`tail`).
+      let tail = 0;
+      if (dm && !damp) tau = UNDAMPED_TAU;
+      else if (dm) {
+        const stacc = lift && s - t < dm.stacc;
+        tau = stacc ? Math.min(damp, dm.crisp) : lift && !handover && (p.group ?? 0) >= 1 ? damp * dm.slur : damp;
+        if (!stacc && (!lift || handover || (p.group ?? 0) >= 1)) tail = tau * dm.tail;
+      }
       g.gain.setTargetAtTime(0, s, tau);
-      for (const x of srcs) halt(x.src, s + tau * 9 + 0.02);
-      for (const l of lfos) halt(l, s + tau * 9 + 0.05);
+      if (tail) g.gain.setTargetAtTime(0, s + 3 * tau, tail);
+      const gone = tail ? 3 * tau + tail * 6 : tau * 9;
+      for (const x of srcs) halt(x.src, s + gone + 0.02);
+      for (const l of lfos) halt(l, s + gone + 0.05);
       if (thunk) (thunk.disconnect(), (thunk = null));
       const held = s - t;
       const r = inst.release ? loaded(inst.release, near) : undefined;
@@ -1469,7 +1510,8 @@ export class Chip {
       stop: (when = ctx.currentTime) => {
         if (stopped || when >= end) return;
         stopped = true;
-        letGo(Math.max(when, t + 0.02), 0, !!p.lead);
+        // D339: a stop set ahead (the game's handover: the next note struck, this one let go 30 ms on) is a legato's, not a lift.
+        letGo(Math.max(when, t + 0.02), 0, !!p.lead, when > ctx.currentTime + 0.005);
       },
       bend: (c: number) => {
         if (stopped) return;

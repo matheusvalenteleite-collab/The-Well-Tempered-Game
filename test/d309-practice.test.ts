@@ -6,7 +6,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { phrase, phraseContext, styleOf, type Shape } from "../src/touch/phrasing.ts";
+import { ART_SPREAD, phrase, phraseContext, styleOf, type Shape } from "../src/touch/phrasing.ts";
 import { arcAt, decide, DYN, kindsOf, patchKind, pianoLevels, suspensions, TABLES, type Decision, type KeyKind } from "../src/touch/practice.ts";
 import { CHARACTER, characterOf } from "../src/touch/character.ts";
 import { FUGUES, PRELUDES, fugueById, inBar, beatOf } from "../src/touch/fugue.ts";
@@ -73,9 +73,10 @@ test("D309: a synthetic line through phrase(): the holds as the tables say, the 
   const spt = 0.3 / 240;
   for (const kind of ["harpsichord", "piano", "organ"] as KeyKind[]) {
     const sh = phrase(top, B, (t) => t % (4 * B), new Set(), "plain", { spt, kinds: [kind], bass: 1 });
-    const gaps = sh.slice(0, 4).map((s) => Math.round((1 - s.hold) * 300));
-    const want = [[2], [7], [12], [0]].map(([iv]) => Math.round(gapMs(decide(kind, { interval: iv, ioi: 0.3, bass: false }))));
-    assert.deepEqual(gaps, want, kind);
+    const gaps = sh.slice(0, 4).map((s) => (1 - s.hold) * 300);
+    const want = [[2], [7], [12], [0]].map(([iv]) => gapMs(decide(kind, { interval: iv, ioi: 0.3, bass: false })));
+    // (D339: a table's gap varied by up to ART_SPREAD of itself, fixed per note; a join stays a join.)
+    gaps.forEach((g, k) => assert.ok(Math.abs(g - Math.max(0, want[k])) <= ART_SPREAD * Math.abs(want[k]) + 0.6, `${kind} ${k}: ${g.toFixed(1)} against ${want[k].toFixed(1)} ms`));
     assert.equal(sh[5].art, "plain", "the last");
   }
   // A reading's detached mark beats the step's rule; its joined mark beats the octave's.
@@ -157,10 +158,10 @@ test("D309: SOLO VOICES (§6.5): joined, a repeated note on a new syllable, a br
   assert.equal(sh[1].legato, true);
 });
 
-test("D309: the piano's dynamics: within ±4 dB, the arc's shape, the ending's rise; the harpsichord and the organ flat", () => {
-  assert.equal(arcAt(0), -1.5);
-  assert.ok(Math.abs(arcAt(0.65) - 1.5) < 1e-12);
-  assert.ok(Math.abs(arcAt(1) + 0.5) < 1e-12);
+test("D309, D339: the piano's dynamics: within ±6 dB, the arc's shape, the ending's rise; the harpsichord and the organ flat", () => {
+  assert.equal(arcAt(0), DYN.arc.from);
+  assert.ok(Math.abs(arcAt(DYN.arc.at) - DYN.arc.peak) < 1e-12);
+  assert.ok(Math.abs(arcAt(1) - DYN.arc.to) < 1e-12);
   for (const id of ["wtc1f01", "wtc1f02", "wtc2f22", "wtc1f04"]) {
     const f = fugueById(id);
     const notes = accompaniment(f, 0, -1);
@@ -207,12 +208,12 @@ test("D309, D293: the subject never louder: on the piano its notes no louder tha
     w += fw;
   }
   assert.ok(sum / w <= 0, `all fugues: the subject ${(sum / w).toFixed(3)} dB against the others`);
-  // And the subject's marks change nothing: the same shapes with no subject known.
+  // And the subject's marks only ever bring its notes down (D339: where the music's own shape lifts them), never another note, never up.
   const f = fugueById("wtc1f02");
   const notes = accompaniment(f, 0, -1);
   const a = phrase(notes, beatOf(f).ticks, (t) => inBar(f, t), subjectMarks(f).subject, "piano", phraseContext(f, tempoOf(f.id)));
   const b = phrase(notes, beatOf(f).ticks, (t) => inBar(f, t), new Set(), "piano", phraseContext(f, tempoOf(f.id)));
-  a.forEach((s, i) => assert.equal(s.level, b[i].level));
+  a.forEach((s, i) => (subjectMarks(f).subject.has(`${notes[i].voice}:${notes[i].on}`) ? assert.ok(s.level <= b[i].level + 1e-12) : assert.equal(s.level, b[i].level)));
 });
 
 test("D309, D293: the player's part changes nothing: the others' levels and holds the same whichever voice the player takes", () => {

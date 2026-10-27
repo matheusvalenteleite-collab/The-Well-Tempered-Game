@@ -324,6 +324,8 @@ export const CONSONANTS: Record<Sing["cons"], { f: [number, number, number]; tim
 };
 
 const P = (p: Patch) => p;
+/** D339: the sampled piano's and harpsichord's send to their music room (chip.ts REVERBS.salon; the bass's three quarters of it). */
+export const SALON_SEND = 0.2;
 
 /** The instruments. */
 export const PATCHES = {
@@ -341,8 +343,8 @@ export const PATCHES = {
   harpsichord: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "triangle", gain: 0.5 }, { wave: "pulse25", octave: 1, gain: 0.2 }], filter: { freq: 6, q: 0.8, env: 2, envDecay: 0.12 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.38 }),
   harpsiBass: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 4.2, q: 0.8, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.48 }),
   // D190: recorded (the synthesized sound above stands in for a note until its recording is loaded).
-  harpsiSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.36, sample: "harpsichord" }),
-  harpsiBassSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.45, sample: "harpsichord" }),
+  harpsiSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, send: SALON_SEND, level: 0.36, sample: "harpsichord" }),
+  harpsiBassSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, send: SALON_SEND * 0.75, level: 0.45, sample: "harpsichord" }),
   organSampled: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.012, d: 0.1, s: 1, r: 0.06 }, level: 0.3, sample: "organ" }),
   lute: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, level: 0.42 }),
   // Bands.
@@ -495,10 +497,10 @@ export const PATCHES = {
   pianoFm: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }, { wave: "fmBell", octave: 1, gain: 0.06 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.3 }),
   pianoFmBass: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, level: 0.36 }),
   // D292, PIANO (SAMPLED): the Salamander Grand (sampled.ts); the FM piano stands in for a note until its recording has loaded.
-  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.3, sample: "piano" }),
-  pianoBassSampled: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, level: 0.36, sample: "piano" }),
+  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.3, sample: "piano" }),
+  pianoBassSampled: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, send: SALON_SEND * 0.75, level: 0.36, sample: "piano" }),
   // D294: the inner voices a shade lighter (-1 dB) than the top and the bass, so each line is heard as a line.
-  pianoInnerSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.267, sample: "piano" }),
+  pianoInnerSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.267, sample: "piano" }),
   // D294, GAME BOY (the DMG's sound, after how Pokémon Red/Blue and Link's Awakening voice their lines):
   // the two pulse channels and the wave channel, unfiltered as the hardware is (bright and forward),
   // each pulse with the hardware's stepped volume envelope (abrupt 1/15 steps every `period`/64 s) down
@@ -764,7 +766,7 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
 export type Kit = "acoustic" | "chip" | "analog";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon";
 
 export interface Preset {
   id: string;
@@ -816,9 +818,10 @@ export const PRESETS: Preset[] = [
   // D294: GAME BOY (in place of D292's ROUND CHIP): the DMG's pulses and wave channel; no drums (DRUMS stays the classic chip's).
   { id: "gameboy", name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
-  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.24 },
+  // D339: both in a music room of their own (chip.ts REVERBS.salon) in place of the shared room (a white-noise impulse, no pre-delay, undamped).
+  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0, fx: "salon" },
   // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it; D294: the inner voices a shade lighter.
-  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoBassSampled"], room: 0.22 },
+  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoBassSampled"], room: 0, fx: "salon" },
   // D294: ANALOG SYNTH (in place of D292's PIANO (FM)): WENDY CARLOS's patches (D209) revived, after Switched-On Bach.
   // D297: remade as SWITCHED-ON (the owner: "lackluster"; the id kept, so a stored choice keeps it): the
   // ladder's spit and resonance, the drift, a bass that snaps; the D294 patches kept above (carlos*).
