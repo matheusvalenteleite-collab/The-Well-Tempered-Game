@@ -20,14 +20,16 @@ const count = (c: string) => MORE_BACH.filter((f) => f.collection === c).length;
 const lastBar = (id: string) => fugueById(id).bars.at(-1)!.n;
 
 test("D340: MORE BACH: the Art of Fugue (11 contrapuncti, 2 mirror fugues each rectus and inversus, 4 canons), 2 ricercars, 15 inventions, 15 sinfonias, 3 concerto movements", () => {
-  assert.equal(MORE_BACH.length, 54);
-  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("concerto")], [19, 2, 15, 15, 3]);
-  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 54);
+  // D341: and the motet BWV 228 (two sections) and the cantata BWV 54 (movements 1 and 3), from IMSLP.
+  assert.equal(MORE_BACH.length, 58);
+  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("concerto"), count("motet"), count("cantata")], [19, 2, 15, 15, 3, 2, 2]);
+  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 58);
   for (const f of MORE_BACH) {
     assert.equal(fugueById(f.id), f);
     assert.equal(f.voices.length, f.voiceNames.length, f.id);
-    assert.ok(f.voices.every((v) => v.length > 20), `${f.id}: every voice sounds`);
-    assert.ok(f.bars.length > 10 && f.length > 0 && f.credit && f.source?.includes("mutopiaproject.org"), f.id);
+    // (BWV 228's second section: choir II sings only its last six bars.)
+    assert.ok(f.voices.every((v) => v.length > (f.id === "bwv228-2" ? 15 : 20)), `${f.id}: every voice sounds`);
+    assert.ok(f.bars.length > 10 && f.length > 0 && f.credit && (f.source?.includes("mutopiaproject.org") || f.source?.includes("imslp.org")), f.id);
     // The notes sorted, inside the piece, on staff steps that agree with their pitch (C4 = 28).
     for (const v of f.voices) for (let i = 0; i < v.length; i++) {
       const [on, dur, midi, step] = v[i];
@@ -51,7 +53,7 @@ test("D340: MORE BACH's voices and bars, as the editions have them (and the seco
     "bwv1080-01": 78, "bwv1080-02": 84, "bwv1080-03": 72, "bwv1080-04": 138, "bwv1080-08": 188, "bwv1080-11": 184,
     "bwv1080-12r": 56, "bwv1080-13i": 71, "bwv1080-c14": 109, "bwv1080-c15": 103, "bwv1080-c16": 82, "bwv1080-c17": 78,
     "bwv1079-ric3": 185, "bwv1079-ric6": 206, bwv772: 22, bwv777: 62, bwv787: 21, bwv797: 72, bwv801: 39,
-    "bwv1043-1": 88, "bwv1043-2": 50, "bwv1043-3": 154,
+    "bwv1043-1": 88, "bwv1043-2": 50, "bwv1043-3": 154, "bwv228-1": 77, "bwv228-2": 154, "bwv54-1": 55, "bwv54-3": 72,
   };
   for (const [id, n] of Object.entries(bars)) assert.equal(lastBar(id), n, id);
   assert.equal(fugueById("bwv1043-3").bars[0].n, 0, "the finale's upbeat is bar 0");
@@ -59,7 +61,7 @@ test("D340: MORE BACH's voices and bars, as the editions have them (and the seco
 
 test("D340: what the pipeline computes for the WTC: entries in the fugues, inventions and sinfonias (none in the canons and the concerto), cadences, keys, tempi, sounds, characters", () => {
   for (const f of MORE_BACH) {
-    const fugal = !["concerto"].includes(f.collection!) && !f.id.startsWith("bwv1080-c");
+    const fugal = !["concerto"].includes(f.collection!) && !f.id.startsWith("bwv1080-c") && !["bwv228-1", "bwv54-1"].includes(f.id);
     if (fugal) assert.ok(f.entries.length >= 2, `${f.id}: ${f.entries.length} entries`);
     else assert.equal(f.entries.length, 0, f.id);
     for (const e of f.entries) assert.ok(f.voices[e.voice].some((n) => n[0] === e.on), `${f.id}: entry at ${e.on} on a note`);
@@ -119,8 +121,8 @@ test("D340: CHORALES: Sapp's 370, four voices each, every fermata held a beat lo
 
 test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunctus 14 closing the Art of Fugue), CHORALES", () => {
   assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "MORE", "CHORALES"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "CONCERTO"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "CONCERTO", "MOTET", "CANTATA"]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
   assert.equal(CHORALE_IDS.length, 370);
   assert.equal(liteTabOf("bwv1080-14"), "MORE");
@@ -172,8 +174,28 @@ function playThrough(piece: string, voice: number) {
 }
 
 test("D340: a game of each kind runs headless to the end, every note right: a contrapunctus, a canon, a mirror fugue, a ricercar, an invention, a sinfonia, the concerto (Solo Violin II), a chorale (the band waiting after its fermatas)", () => {
-  for (const [piece, voice] of [["bwv1080-03", 1], ["bwv1080-c17", 0], ["bwv1080-13i", 2], ["bwv1079-ric3", 0], ["bwv772", 0], ["bwv787", 2], ["bwv1043-2", 1], ["chor001", 0], ["chor002", 3]] as const) {
+  for (const [piece, voice] of [["bwv1080-03", 1], ["bwv1080-c17", 0], ["bwv1080-13i", 2], ["bwv1079-ric3", 0], ["bwv772", 0], ["bwv787", 2], ["bwv1043-2", 1], ["bwv228-2", 1], ["bwv54-3", 2], ["chor001", 0], ["chor002", 3]] as const) {
     const r = playThrough(piece, voice);
     assert.ok(r.of > 20 && r.right === r.of, `${piece} v${voice}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed})`);
   }
+});
+
+test("D341: BWV 228 in two sections (eight voices, then the fugue and chorale of choir I, choir II's last bars the band's) and BWV 54's arias, their non-commercial licences credited", () => {
+  const a = fugueById("bwv228-1");
+  const b = fugueById("bwv228-2");
+  assert.deepEqual([a.voices.length, a.bars[0].n, a.bars.at(-1)!.n], [8, 1, 77]);
+  assert.deepEqual([b.bars[0].n, b.bars.at(-1)!.n, b.bars[0].on], [78, 154, 0]);
+  assert.deepEqual(voicesFrom(b, 0), [0, 1, 2, 3]);
+  assert.equal(defaultVoice(b, voicesFrom(b, 0)), 1);
+  // Choir II is silent from bar 78 to 148.
+  const b149 = b.bars.find((x) => x.n === 149)!.on;
+  assert.ok(b.voices.slice(4).every((v) => v.every((n) => n[0] >= b149)));
+  assert.ok(b.entries.some((e) => e.voice >= 1 && e.voice <= 3), "the fugue's entries in alto, tenor, bass");
+  assert.equal(PIECE_SOUND["bwv228-1"], "soloVoices");
+  for (const id of ["bwv228-1", "bwv228-2"]) assert.match(fugueById(id).credit!, /CC BY-NC 3\.0/);
+  const c = fugueById("bwv54-3");
+  assert.deepEqual(c.voiceNames, ["Violins", "Violas", "Alto", "Continuo"]);
+  assert.equal(defaultVoice(c, voicesFrom(c, 0)), 2);
+  assert.equal(defaultVoice(fugueById("bwv54-1"), voicesFrom(fugueById("bwv54-1"), 0)), 4);
+  for (const id of ["bwv54-1", "bwv54-3"]) assert.match(fugueById(id).credit!, /CC BY-NC-SA 4\.0/);
 });

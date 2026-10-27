@@ -182,6 +182,10 @@ function moreBachSounds(): Record<string, string> {
   for (let b = 772; b <= 801; b++) out[`bwv${b}`] = "harpsichordSampled";
   for (let m = 1; m <= 3; m++) out[`bwv1043-${m}`] = "super16";
   for (let c = 1; c <= 371; c++) out[`chor${String(c).padStart(3, "0")}`] = "chamberOrgan";
+  // D341: the motet BWV 228 a cappella on SOLO VOICES (singers and the choir; an eight-voice layout, the
+  // two choirs apart), the cantata BWV 54 on SUPER 16-BIT's strings as the concerto (the alto line on its strings).
+  out["bwv228-1"] = out["bwv228-2"] = "soloVoices";
+  out["bwv54-1"] = out["bwv54-3"] = "super16";
   return out;
 }
 

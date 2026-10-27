@@ -114,7 +114,7 @@ export interface TouchFugue {
 }
 
 /** D340: the collections beyond the WTC. */
-export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "chorale";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "motet" | "cantata" | "chorale";
 
 /** All 96, each prelude before its fugue, Book I then Book II. */
 export const PIECES = data as unknown as TouchFugue[];

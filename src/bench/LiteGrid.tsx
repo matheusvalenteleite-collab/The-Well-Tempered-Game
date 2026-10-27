@@ -37,6 +37,9 @@ export const MORE_CREDITS: readonly string[] = [
   "SCORES: THE MUTOPIA PROJECT (MUTOPIAPROJECT.ORG). THE ART OF FUGUE, THE RICERCARS: ARNAUD GOSSART (CONTRAPUNCTUS 1: PIERRE-LUC GAUTHIER), FROM BREITKOPF & HÄRTEL 1885, PUBLIC DOMAIN.",
   "INVENTIONS 1, 6, 9, 12: JEFF COVEY, FROM THE BACH-GESELLSCHAFT EDITION, CC BY-SA 3.0 (CREATIVECOMMONS.ORG/LICENSES/BY-SA/3.0); THE GAME'S NOTE DATA FOR THEM IS SHARED UNDER THE SAME LICENCE. INVENTIONS 2-5, 7, 8, 10, 11, 13-15: ALLEN GARVIN, PUBLIC DOMAIN. SINFONIAS: OLIVIER VERMERSCH, PUBLIC DOMAIN.",
   "CONCERTO FOR TWO VIOLINS, BWV 1043: DAVID CHAN, FROM THE BACH-GESELLSCHAFT EDITION (1874), PUBLIC DOMAIN.",
+  // D341.
+  "MOTET BWV 228, FÜRCHTE DICH NICHT: FRITZ BRODERSEN, WIMA EDITION (IMSLP.ORG), CC BY-NC 3.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC/3.0), FOR NON-COMMERCIAL USE.",
+  "CANTATA BWV 54, WIDERSTEHE DOCH DER SÜNDE: RAMON CASADESUS-MASANELL (IMSLP.ORG, 2021), CC BY-NC-SA 4.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC-SA/4.0); THE GAME'S NOTE DATA FOR IT IS SHARED UNDER THE SAME LICENCE, FOR NON-COMMERCIAL USE.",
 ];
 export const CHORALE_CREDITS: readonly string[] = [
   "THE 370 CHORALES: CRAIG STUART SAPP, BACH-370-CHORALES (GITHUB.COM/CRAIGSAPP/BACH-370-CHORALES), AFTER DÖRFFEL'S EDITION (BREITKOPF & HÄRTEL, C. 1875), CC BY-NC-SA 4.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC-SA/4.0). THE GAME'S NOTE DATA FOR THEM (FERMATAS HELD A BEAT) IS SHARED UNDER THE SAME LICENCE, FOR NON-COMMERCIAL USE.",
@@ -241,7 +244,7 @@ function ExtraCard({ id, n, done, grade, score, open, hear, compact = false }: {
           <span className="tb-lite-title">{name}</span>
           <span className="tb-lite-meta">{sub}</span>
           <span className="tb-lite-meta">
-            BWV {f.bwv.split("/")[0] || "—"} · {keyLabel(f.key, "fugue").split(" · ")[0]} · {f.playable ? tr("{n} SOLO PARTS", { n: f.playable.length }) : tr("{n} VOICES", { n: f.voices.length })}
+            BWV {f.bwv.split("/")[0] || "—"} · {keyLabel(f.key, "fugue").split(" · ")[0]} · {f.collection === "concerto" ? tr("{n} SOLO PARTS", { n: f.playable?.length ?? 2 }) : tr("{n} VOICES", { n: f.playable?.length ?? f.voices.length })}
           </span>
           <span className="tb-lite-level" style={{ color: lv.ink }}>
             {tr(lv.label)}

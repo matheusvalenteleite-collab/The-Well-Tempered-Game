@@ -950,6 +950,8 @@ export const PRESETS: Preset[] = [
       3: [["singS", 0.25], ["singA", -0.25], ["singB", 0]],
       4: [["singS", 0.25], ["singA", -0.25], ["singT", 0.12], ["singB", 0]],
       5: [["singS", 0.25], ["singChoir", -0.3, 0.84], ["singA", 0.1], ["singT", -0.12, 0.94], ["singB", 0]],
+      // D341: eight voices, BWV 228's two choirs (S A T B each), choir I on the left, choir II on the right.
+      8: [["singS", -0.3], ["singA", -0.2], ["singT", -0.15], ["singB", -0.1], ["singS", 0.3], ["singA", 0.2], ["singT", 0.15], ["singB", 0.1]],
     },
   },
   // D297, MODULAR (a niche pick). D304: East and West coast. D305: BLEEPS AND BLOOPS (the id kept, so a

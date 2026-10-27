@@ -43,6 +43,9 @@ const REFERENCE: Record<string, number> = {
   // The Concerto for Two Violins: moderate, historically informed (period bands play I at about ♩ = 100-112,
   // II at ♩. = 40-46, III at ♩ = 126-144).
   "bwv1043-1": 96, "bwv1043-2": 60 /* ♩. = 40 */, "bwv1043-3": 120,
+  // D341: the motet BWV 228 (choirs' usual pace: the double-choir opening ♩ 84, the fugue under the chorale ♩ 72);
+  // the cantata BWV 54 (the first aria's slow ♩ 56; the fugal aria alla breve, 𝅗𝅥 = 56).
+  "bwv228-1": 84, "bwv228-2": 72, "bwv54-1": 56, "bwv54-3": 112,
 };
 /** The chorales: the chorale mode's ♩ = 60; a chorale in 3/2 at 𝅗𝅥 = 40. */
 const choraleRef = (p: Piece) => (p.meter === "3/2" ? 80 : 60);

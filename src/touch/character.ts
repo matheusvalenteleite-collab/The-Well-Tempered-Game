@@ -86,6 +86,10 @@ export const CHARACTER: Record<string, readonly [Character, string]> = {
   "bwv1043-1": [L, "Vivace: a concerto's driving ritornello"],
   "bwv1043-2": [A, "Largo ma non tanto: a cantabile siciliana for the two soloists"],
   "bwv1043-3": [L, "Allegro: a quick 3/4 finale"],
+  // D341.
+  "bwv228-1": [A, "a cappella double choir: sung lines, held"],
+  "bwv228-2": [A, "a chromatic vocal fugue under a chorale"],
+  "bwv54-1": [A, "a slow aria over repeated string chords, sustained dissonances"],
 };
 
 /** A piece's character (unlisted: neutral). */

@@ -101,4 +101,40 @@ if (md)
       });
     row(f.id, lastBar(f.bars), parts.join("; "), f.voices.length, parts.length, null);
   }
+// D341: BWV 228 against MuseData (bg/vocal/0228/stage2/01, its 8 parts as files 01-08): each part's last
+// bar, and its notes against Brodersen's (both sections' together; MuseData writes choir II out where the
+// choirs sing together, bars 78-148, Brodersen's edition gives those bars to choir I's staves alone).
+const md228 = arg("--musedata-228");
+if (md228 && existsSync(md228)) {
+  const a = more.find((x) => x.id === "bwv228-1")!;
+  const b = more.find((x) => x.id === "bwv228-2")!;
+  const parts = readdirSync(md228)
+    .filter((x) => /^\d+$/.test(x))
+    .sort()
+    .map((x, i) => {
+      const lines = readFileSync(`${md228}/${x}`, "latin1").split("\n");
+      const bars = lines.filter((l) => /^measure\s+\d+/.test(l)).map((l) => Number(l.split(/\s+/)[1]));
+      const notes = lines.filter((l) => /^[A-G][#f]*\d /.test(l)).length;
+      const ours = a.voices[i].length + b.voices[i].length;
+      return `${lines[8]?.trim() ?? x} ${i < 4 ? "I" : "II"}: ${Math.max(0, ...bars)} bars, ${notes} notes (Brodersen ${ours})`;
+    });
+  rows.push(`| bwv228 | ${lastBar(b.bars)} | ${parts.join("; ")} | 8 | ${parts.length} | — |`);
+}
+// D341: BWV 54 against MuseData (bg/cant/0054/stage1: never proofread): each part's last bar, movements 1 and 3.
+const md54 = arg("--musedata-54");
+if (md54)
+  for (const m of [1, 3]) {
+    const f = more.find((x) => x.id === `bwv54-${m}`)!;
+    const dir = `${md54}/${String(m).padStart(2, "0")}`;
+    if (!existsSync(dir)) continue;
+    const parts = readdirSync(dir)
+      .filter((x) => /^\d+$/.test(x))
+      .sort()
+      .map((x) => {
+        const lines = readFileSync(`${dir}/${x}`, "latin1").split("\n");
+        const bars = lines.filter((l) => /^measure\s+\d+/.test(l)).map((l) => Number(l.split(/\s+/)[1]));
+        return `${lines[8]?.trim() ?? x} ${Math.max(0, ...bars)}`;
+      });
+    rows.push(`| ${f.id} | ${lastBar(f.bars)} | ${parts.join("; ")} | ${f.voices.length} | ${parts.length} | — |`);
+  }
 console.log(rows.join("\n"));

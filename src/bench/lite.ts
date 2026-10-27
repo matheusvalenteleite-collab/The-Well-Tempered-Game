@@ -32,6 +32,9 @@ const SECTION_OF: readonly [Collection, string][] = [
   ["inv", "INVENTIONS"],
   ["sin", "SINFONIAS"],
   ["concerto", "CONCERTO"],
+  // D341: the motet BWV 228 and the cantata BWV 54 (IMSLP editions, non-commercial licences).
+  ["motet", "MOTET"],
+  ["cantata", "CANTATA"],
 ];
 export const MORE_SECTIONS: readonly { id: Collection; title: string; ids: string[] }[] = SECTION_OF.map(([id, title]) => ({
   id,

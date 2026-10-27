@@ -28,14 +28,26 @@ import { TPQ } from "../../src/wtc/kern.ts";
 import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { findEntriesByHead, findTransformed, line, subjectAndAnswer, type Note as Line } from "../../src/wtc/fugue.ts";
 import { readMidi } from "./midi.ts";
+import { readMusicXml } from "./musicxml.ts";
 import { buildEntries, findCadences, homeward, keySpeller, type Note, type RawEntry } from "./analysis.ts";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
 
-export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "motet" | "cantata";
 
 interface Spec {
+  /**
+   * D341: a MusicXML edition instead of Mutopia's (data/sources/<dir>/imslp/<xml>): the parts kept (by
+   * index, in order), the bars taken (from, to), the MIDI file checked against, the edition's page.
+   */
+  xml?: string;
+  xmlParts?: number[];
+  fromBar?: number;
+  toBar?: number;
+  page?: string;
+  /** D341: the voice offered first. */
+  defaultVoice?: number;
   id: string;
   collection: Collection;
   /** Its place in the tab's section, from 1. */
@@ -262,7 +274,133 @@ const CONCERTO: Spec[] = (
   credit: "MUTOPIA PROJECT · TYPESET BY DAVID CHAN FROM THE BACH-GESELLSCHAFT EDITION (1874) · PUBLIC DOMAIN",
 }));
 
-export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...CONCERTO];
+/**
+ * D341: the motet BWV 228 "Fürchte dich nicht" (Fritz Brodersen's WIMA edition, MusicXML from Capella:
+ * IMSLP, CC BY-NC 3.0) in its two sections: the double-choir opening (bars 1-77, eight voices), and,
+ * from bar 78 ("Chor 1 + 2", the choirs united), the three-voice fugue in alto, tenor and bass under the
+ * sopranos' chorale "Herr, mein Hirt, Brunn aller Freuden", to the end (choir II's staves silent there
+ * but for the last six bars, where it sings again: kept as the band's). The cantata BWV 54 "Widerstehe
+ * doch der Sünde" (Ramon Casadesus-Masanell's edition, MuseScore, IMSLP, CC BY-NC-SA 4.0): the first aria
+ * as written (55 bars, the da capo not taken) and the fugal third aria "Wer Sünde tut" (72 bars); the
+ * recitative left out (a recitative fits a one-line game poorly).
+ */
+const BWV228_PAGE = "https://imslp.org/wiki/F%C3%BCrchte_dich_nicht,_ich_bin_bei_dir,_BWV_228_(Bach,_Johann_Sebastian)";
+const BWV54_PAGE = "https://imslp.org/wiki/Widerstehe_doch_der_S%C3%BCnde,_BWV_54_(Bach,_Johann_Sebastian)";
+const BWV228_CREDIT = "MOTET: FRITZ BRODERSEN, WIMA EDITION (IMSLP) · CC BY-NC 3.0";
+const BWV54_CREDIT = "CANTATA: RAMON CASADESUS-MASANELL (IMSLP, 2021) · CC BY-NC-SA 4.0";
+const CHOIRS = ["Soprano I", "Alto I", "Tenor I", "Bass I", "Soprano II", "Alto II", "Tenor II", "Bass II"];
+const VOCAL: Spec[] = [
+  {
+    id: "bwv228-1",
+    collection: "motet",
+    number: 1,
+    title: "Fürchte dich nicht, BWV 228: for double choir",
+    short: "FÜRCHTE DICH NICHT · I",
+    bwv: "228",
+    key: "A",
+    dir: "bach-228",
+    mutopia: 0,
+    xml: "Bwv228.xml",
+    xmlParts: [0, 1, 2, 3, 4, 5, 6, 7],
+    toBar: 77,
+    page: BWV228_PAGE,
+    voiceNames: CHOIRS,
+    entries: false,
+    credit: BWV228_CREDIT,
+  },
+  {
+    id: "bwv228-2",
+    collection: "motet",
+    number: 2,
+    title: "Fürchte dich nicht, BWV 228: fugue and chorale",
+    short: "FÜRCHTE DICH NICHT · II",
+    bwv: "228",
+    key: "A",
+    dir: "bach-228",
+    mutopia: 0,
+    xml: "Bwv228.xml",
+    xmlParts: [0, 1, 2, 3, 4, 5, 6, 7],
+    fromBar: 78,
+    page: BWV228_PAGE,
+    voiceNames: ["Soprano (chorale)", "Alto", "Tenor", "Bass", "Soprano II", "Alto II", "Tenor II", "Bass II"],
+    entries: true,
+    playable: [0, 1, 2, 3],
+    defaultVoice: 1,
+    credit: BWV228_CREDIT,
+  },
+  {
+    id: "bwv54-1",
+    collection: "cantata",
+    number: 1,
+    title: "Widerstehe doch der Sünde, BWV 54: 1. Aria",
+    short: "WIDERSTEHE DOCH DER SÜNDE · 1",
+    bwv: "54/1",
+    key: "Eb",
+    dir: "bach-54",
+    mutopia: 0,
+    xml: "Widerstehe_doch_der_S_nde_BWV_54.1_Johann_Sebastian_Bach_BWV_54.1.mxl",
+    mid: "Widerstehe_doch_der_S_nde_BWV_54.1_Johann_Sebastian_Bach_BWV_54.1.mid",
+    xmlParts: [0, 1, 2, 3, 4, 5],
+    page: BWV54_PAGE,
+    voiceNames: ["Violin I", "Violin II", "Viola I", "Viola II", "Alto", "Continuo"],
+    entries: false,
+    defaultVoice: 4,
+    credit: BWV54_CREDIT,
+  },
+  {
+    id: "bwv54-3",
+    collection: "cantata",
+    number: 3,
+    title: "Widerstehe doch der Sünde, BWV 54: 3. Aria (Wer Sünde tut)",
+    short: "WER SÜNDE TUT · 3",
+    bwv: "54/3",
+    key: "Eb",
+    dir: "bach-54",
+    mutopia: 0,
+    xml: "Widerstehe_doch_der_S_nde_BWV_54.3_Johann_Sebastian_Bach_BWV_54.3.mxl",
+    mid: "Widerstehe_doch_der_S_nde_BWV_54.3_Johann_Sebastian_Bach_BWV_54.3.mid",
+    xmlParts: [0, 1, 2, 3],
+    page: BWV54_PAGE,
+    voiceNames: ["Violins", "Violas", "Alto", "Continuo"],
+    entries: true,
+    defaultVoice: 2,
+    credit: BWV54_CREDIT,
+  },
+];
+
+export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...CONCERTO, ...VOCAL];
+
+/** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
+export function readXmlPiece(s: Spec): Read {
+  const dir = `${SRC}${s.dir}/imslp/`;
+  const x = readMusicXml(`${dir}${s.xml}`);
+  const from = s.fromBar ? x.bars.find((b) => b.n === s.fromBar)!.on : 0;
+  const to = s.toBar ? (x.bars.find((b) => b.n === s.toBar + 1)?.on ?? x.length) : x.length;
+  const spell: Record<number, string> = {};
+  const spelled: string[] = [];
+  const voices: Note[][] = (s.xmlParts ?? x.parts.map((_, i) => i)).map((i) =>
+    x.parts[i].notes
+      .filter((n) => n[0] >= from && n[0] < to)
+      .map(([on, dur, pitch]) => {
+        const p = parsePitch(pitch);
+        spell[p.midi] ??= pitch;
+        spelled.push(pitch);
+        return [on - from, Math.min(dur, to - on), p.midi, p.diatonic] as Note;
+      }),
+  );
+  const length = to - from;
+  const bars = x.bars.filter((b) => b.on >= from && b.on < to).map((b) => ({ n: b.n, on: b.on - from }));
+  let agree = { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 };
+  if (s.mid) {
+    const m = readMidi(readFileSync(`${dir}${s.mid}`));
+    const k = TPQ / m.division;
+    const b = new Set(m.tracks.filter((t) => !/piano/i.test(t.name)).flatMap((t) => t.notes.map(([on, , midi]) => `${Math.round(on * k)}:${midi}`)));
+    const a = new Set(voices.flat().map((n) => `${n[0] + from}:${n[2]}`));
+    const inter = [...a].filter((v) => b.has(v)).length;
+    agree = { midiInLy: inter / Math.max(1, b.size), lyInMidi: inter / Math.max(1, a.size), midiNotes: b.size, lyNotes: a.size };
+  }
+  return { voices, spell, spelled, bars, meter: x.meter, length, agree };
+}
 
 // --- Reading --------------------------------------------------------------------------------------
 
@@ -494,7 +632,7 @@ export function imitation(wp: WtcPiece): { subject: Line[]; answer: Line[]; inve
 }
 
 export function build(s: Spec) {
-  const r = readPiece(s);
+  const r = s.xml ? readXmlPiece(s) : readPiece(s);
   const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
   const piece = { tpq: TPQ, meter: r.meter, bars: r.bars, length: r.length, voices: r.voices, key: s.key };
   const speller = keySpeller(r.spelled);
@@ -524,7 +662,8 @@ export function build(s: Spec) {
     collection: s.collection,
     short: s.short,
     credit: s.credit,
-    source: `https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=${s.mutopia}`,
+    source: s.page ?? `https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=${s.mutopia}`,
+    ...(s.defaultVoice !== undefined ? { defaultVoice: s.defaultVoice } : {}),
     ...(s.playable ? { playable: s.playable } : {}),
   };
   homeward(f);
