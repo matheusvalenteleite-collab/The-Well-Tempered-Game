@@ -1,10 +1,11 @@
 /**
  * D317, THE LAB's mechanics: every judging and gesture parameter of the game in one mutable object,
  * read by the engine (proto-game.ts, articulation.ts, free-ornament.ts) where it used to read module
- * constants. Its defaults are the game's (test/lab-mechanics.test.ts holds them equal to the constants
- * they replace), so play.html behaves exactly as before; the lab (lab.html) changes them live, and a
- * run's log replays through the engine with any of them changed (src/bench/lab/replay.ts,
- * tools/lab/replay.ts).
+ * constants. Its defaults are the game's: D337 (WTC 1.52) made them the lab's B+ · PREPARED (RELATIVE timing,
+ * no waiting slur, the same thumb's 40 ms double, lenient runs, prepared notes and the pull-off); the
+ * WTC 1.51 game is MECH_CLASSIC (the lab's preset A, test/lab-mechanics.test.ts holding it equal to the
+ * constants the engine read before). The lab (lab.html) changes them live, and a run's log replays
+ * through the engine with any of them changed (src/bench/lab/replay.ts, tools/lab/replay.ts).
  *
  * To add a parameter: a field in MECH_DEFAULTS, a row in MECH_SPEC (the lab draws its control from the
  * row: a number's slider, a switch, a choice), and the engine reading `MECH.<key>`. A choice's options
@@ -13,15 +14,15 @@
  */
 
 export const MECH_DEFAULTS = {
-  // TIMING UNITS (D329, WTC 1.46: the owner, "relative timing units"; the lab only, the game "absolute").
+  // TIMING UNITS (D329, WTC 1.46: the owner, "relative timing units"; D337, WTC 1.52: the game's "relative").
   /**
-   * "absolute" (the game's): every window in ms as set, whatever the tempo. "relative": the musical
+   * "absolute" (WTC 1.51's): every window in ms as set, whatever the tempo. "relative": the musical
    * windows (PERFECT, early and late, the split floor, the legato gap, the slur's early reach, the
    * slide and waiting-note takeovers, the last touch's memory) scale with the time between the notes
    * (relMs), each as set at REFERENCE IOI and never under RELATIVE FLOOR; the double contact and the
    * other motor and hardware quantities stay in ms.
    */
-  timing: "absolute" as "absolute" | "relative",
+  timing: "relative" as "absolute" | "relative",
   /** RELATIVE: the time between notes (ms) at which every window is as set (II/18's quaver at 83 bpm, 361 ms). */
   refIoiMs: 360,
   /** RELATIVE: under this time between notes (ms) the windows stop shrinking (Weber-like above about 250 ms, constant below: Friberg and Sundberg 1995). */
@@ -44,9 +45,9 @@ export const MECH_DEFAULTS = {
   /** PERFECT_MS: a right note this near its time is PERFECT (ms). */
   perfectMs: 70,
   /** D290 DOUBLE_MS: a contact this soon after a note was struck is the same strike doubled, ignored (ms). */
-  doubleMs: 120,
-  /** D329: the double contact only for the thumb that struck the note (the same side); off (the game's): any thumb. */
-  doubleSameThumb: false,
+  doubleMs: 40,
+  /** D329: the double contact only for the thumb that struck the note (the same side; D337 the game's); off (WTC 1.51's): any thumb. */
+  doubleSameThumb: true,
   /** D299 BT_EARLY_MS, BT_LATE_MS: BLUETOOTH MODE widens the window by these (ms). */
   btEarlyMs: 20,
   btLateMs: 25,
@@ -71,13 +72,13 @@ export const MECH_DEFAULTS = {
   /** EDGE_SHARE: the share of a bar's height at each end where a thumb that travelled there may stay. */
   edgeShare: 0.12,
   /**
-   * D332 (WTC 1.49): fast stepwise runs. "strict" (the game's): as everywhere. "lenient": inside a run
+   * D332 (WTC 1.49): fast stepwise runs. "strict" (WTC 1.51's): as everywhere. "lenient" (D337, the game's): inside a run
    * (RUN NOTES or more in a row, each a step the same way, less than RUN IOI apart; runs.ts) a landing is
    * right if it goes the run's way, or level within the step leeway, from EITHER thumb's last touch, and the
    * line's travel is replaced by the run's trend at its last note (RUN ✓ / RUN ✗ in the log; on RUN ✗ the notes
    * right only by the run rule are re-judged wrong, their points taken back).
    */
-  runs: "strict" as "strict" | "lenient",
+  runs: "lenient" as "strict" | "lenient",
   /** D332: a run has at least this many notes. */
   runMinNotes: 4,
   /** D332: a run's notes follow each other by less than this (ms, at the written tempo). */
@@ -117,6 +118,13 @@ export const MECH_DEFAULTS = {
   trillFollowsShake: true,
   /** D319: the thumb has stopped shaking when no leg came for this long (ms). */
   trillStopMs: 250,
+  // THE READING'S ACCENT (D338: judged by time, not loudness; accent.ts).
+  /** An accent may be struck this share of a beat late (an agogic lean) and still be ACCENT ✓. */
+  accentLateBeats: 0.15,
+  /** The note before an accent let go at least this long before it (ms): not joined. */
+  accentGapMs: 15,
+  /** An accent held at least this share of its written length. */
+  accentHoldShare: 0.85,
   // EXPRESSION AND CANCELS.
   /** D311: where a thumb lands across its bar shapes the attack; moving sideways the sustain. */
   expression: true,
@@ -129,14 +137,14 @@ export const MECH_DEFAULTS = {
   // SLURS (D318: the owner, "more accepting of slurs"; proto-game.ts thumbSide, slurNext, slideTaken).
   /** A touch landing on the half of the screen where the other thumb is down (the other half free) is the other thumb. */
   thumbCross: true,
-  /** While the other thumb holds the note before, a landing (not that thumb's own roll) is for the next note: struck early, or waiting for it. */
-  slurNext: true,
+  /** While the other thumb holds the note before, a landing (not that thumb's own roll) is for the next note: struck early, or waiting for it (WTC 1.51's; D337 off: B+ prepares instead). */
+  slurNext: false,
   /** ...struck up to this share of the time between the two onsets early... */
   slurEarlyShare: 0.5,
   /** ...and at most this early (ms); landed earlier it waits, down, and strikes then. */
   slurEarlyMaxMs: 250,
   /** Two thumbs landing closer than this (ms) are a chord pressed, not a slur. */
-  slurRollMinMs: 40,
+  slurRollMinMs: 0,
   /** A contact this close (px) to a thumb still down is that thumb's own (a roll: D290's double contact), not the other thumb. */
   sameThumbPx: 24,
   /** A thumb landing on the note the other thumb's drift has just slid onto takes it over, joined. */
@@ -147,7 +155,7 @@ export const MECH_DEFAULTS = {
   waitTakeMs: 120,
   /**
    * D329: a thumb landed early and waiting while the other thumb holds the note before sounds its note
-   * "time" (D318, the game's: at its time, or once the other lets go from the slur's early reach on) or
+   * "time" (D318, the default: at its time, or once the other lets go from the slur's early reach on) or
    * "lift" (the other thumb's release sounds it, from the note's own early window on, judged at that
    * moment; held past its time, at its time): organ and wind legato, the connection made by the release.
    */
@@ -156,14 +164,14 @@ export const MECH_DEFAULTS = {
   joinedSound: true,
   /** A touch taken back with no other thumb down still ends its note for the join (a slur's second thumb a moment later). */
   cancelJoins: true,
-  // PREPARED (D334, WTC 1.49: the lab's B+; the game off). A guitarist's hammer-on and pull-off on two thumbs.
+  // PREPARED (D334, WTC 1.49: the lab's B+; D337, WTC 1.52: the game's). A guitarist's hammer-on and pull-off on two thumbs.
   /**
    * A thumb landing on the next note before that note's window, while the other thumb holds the note
    * before (a landing B would call a stray), rests PREPARED: no sound, no strike. It sounds only by a
    * gesture: the other thumb's lift (a PULL-OFF, timed at the lift, from the note's own early window on)
    * or (prepPress) a press of the resting thumb; never by itself at its time.
    */
-  prepare: false,
+  prepare: true,
   /** ...from this share of the time between the two notes early (1: from the note before's onset; from the other thumb's strike in any case, whichever is earlier). */
   prepShare: 1,
   /** Neither by the end of the note's late window: "miss" (it is missed) or "lift" (the other thumb's lift still sounds it whenever it comes, judged late). */
@@ -231,6 +239,36 @@ export const MECH_DEFAULTS = {
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
 export type MechKey = keyof Mech;
+
+/**
+ * D337 (WTC 1.52): the parameters in which the game before 1.52 differed from today's defaults (B+ ·
+ * PREPARED became the game): WTC 1.51's judging, the lab's preset A · CLASSIC. Also what a log or a lab
+ * setting stored before 1.52 meant by a parameter it does not name (replay.ts, presets.ts).
+ */
+export const CLASSIC_VALUES = {
+  timing: "absolute",
+  slurNext: true,
+  doubleSameThumb: false,
+  doubleMs: 120,
+  runs: "strict",
+  prepare: false,
+  prepShare: 1,
+  slurRollMinMs: 40,
+} as const satisfies Partial<Mech>;
+
+/** D337: the whole of WTC 1.51's parameters (the game before B+ became its base). */
+export const MECH_CLASSIC: Mech = { ...MECH_DEFAULTS, ...CLASSIC_VALUES };
+
+/**
+ * D337: what a recorded set of parameters (a lab log's, a study's, a lab setting kept on the phone) meant:
+ * a parameter it does not name had, when it was made, WTC 1.51's value if B+ changed it (CLASSIC_VALUES:
+ * every log made since WTC 1.52 names every parameter, so only older ones lack them); D329: a log from
+ * before WTC 1.46 took the waiting note's takeover window from the double contact's.
+ */
+export function asRecorded<T extends Partial<Record<string, unknown>>>(m: T | undefined): Partial<Record<string, unknown>> {
+  const was = m?.waitTakeMs === undefined && m?.doubleMs !== undefined ? { waitTakeMs: m.doubleMs } : {};
+  return { ...CLASSIC_VALUES, ...was, ...(m ?? {}) };
+}
 
 /** The parameters in force (the lab changes them; the game never does). */
 export const MECH: Mech = { ...MECH_DEFAULTS };
@@ -305,7 +343,7 @@ export type MechSpec =
   | { key: MechKey; group: string; label: string; help: string; kind: "choice"; options: readonly (readonly [value: string, label: string])[] };
 
 export const MECH_SPEC: readonly MechSpec[] = [
-  { key: "timing", group: "TIMING UNITS", label: "Timing units", help: "D329. ABSOLUTE (the game's): every window in ms as set, at any tempo. RELATIVE: each window marked RELATIVE ↔ is as set when the notes are REFERENCE IOI apart and scales with the time between them: set × clamp(IOI, KNEE, 2 × REFERENCE) / REFERENCE, never under RELATIVE FLOOR. The double contact stays in ms (a thumb's own motion).", kind: "choice", options: [["absolute", "ABSOLUTE (the game's)"], ["relative", "RELATIVE to the time between notes"]] },
+  { key: "timing", group: "TIMING UNITS", label: "Timing units", help: "D329. ABSOLUTE (WTC 1.51's, preset A): every window in ms as set, at any tempo. RELATIVE: each window marked RELATIVE ↔ is as set when the notes are REFERENCE IOI apart and scales with the time between them: set × clamp(IOI, KNEE, 2 × REFERENCE) / REFERENCE, never under RELATIVE FLOOR. The double contact stays in ms (a thumb's own motion).", kind: "choice", options: [["absolute", "ABSOLUTE (WTC 1.51's)"], ["relative", "RELATIVE to the time between notes (the game's)"]] },
   { key: "refIoiMs", group: "TIMING UNITS", label: "Reference IOI", help: "RELATIVE: the time between notes at which every window is as set (II/18's quaver at 83 bpm: 361 ms, so RELATIVE equals today's values there).", kind: "number", min: 150, max: 1000, step: 10, unit: "ms" },
   { key: "kneeIoiMs", group: "TIMING UNITS", label: "Knee", help: "RELATIVE: faster than this the windows stop shrinking (timing is judged roughly in proportion above about 250 ms between notes and in fixed ms below: Friberg and Sundberg 1995).", kind: "number", min: 0, max: 500, step: 10, unit: "ms" },
   { key: "relFloorMs", group: "TIMING UNITS", label: "Relative floor", help: "RELATIVE: no window narrower than this (touches arrive in 16 ms frames; the sound's own jitter), unless set narrower.", kind: "number", min: 0, max: 80, step: 5, unit: "ms" },
@@ -317,7 +355,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "splitFloorMs", group: "TIMING", label: "Split floor", help: "The narrowest a split window gets on either side. RELATIVE: × the passage's median time between notes / REFERENCE.", kind: "number", min: 20, max: 200, step: 5, unit: "ms" },
   { key: "perfectMs", group: "TIMING", label: "PERFECT within", help: "A right note this near its time scores PERFECT, else GOOD. RELATIVE: × the note's own time to its nearer neighbour / REFERENCE (70 ms at 361 ms: 19%; 49 ms at 250 ms and faster).", kind: "number", min: 20, max: 200, step: 5, unit: "ms" },
   { key: "doubleMs", group: "TIMING", label: "Double contact", help: "A second contact this soon after a strike is ignored (a rolling thumb). Always in ms.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
-  { key: "doubleSameThumb", group: "TIMING", label: "Double: the same thumb only", help: "D329: only the thumb that struck the note, landing again within the double contact, is a double; the other thumb's landing is judged for itself (off, the game's: any thumb).", kind: "bool" },
+  { key: "doubleSameThumb", group: "TIMING", label: "Double: the same thumb only", help: "D329: only the thumb that struck the note, landing again within the double contact, is a double; the other thumb's landing is judged for itself (on, the game's since WTC 1.52; off, WTC 1.51's: any thumb).", kind: "bool" },
   { key: "btEarlyMs", group: "TIMING", label: "Bluetooth: extra early", help: "BLUETOOTH MODE widens the window early by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
   { key: "btLateMs", group: "TIMING", label: "Bluetooth: extra late", help: "BLUETOOTH MODE widens the window late by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
   { key: "directionRef", group: "LADDER", label: "Direction measured from", help: "Where a thumb's move is measured from.", kind: "choice", options: [["own", "Its own last touch"], ["either", "Or the note the other thumb holds (D318)"]] },
@@ -327,7 +365,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "stepLeewayRows", group: "LADDER", label: "Step leeway", help: "A step or third may land this many rows the wrong way.", kind: "number", min: 0, max: 3, step: 0.25, unit: "rows" },
   { key: "leapRows", group: "LADDER", label: "Leap needs", help: "A fourth or more: at least this many rows the right way.", kind: "number", min: 0, max: 3, step: 0.05, unit: "rows" },
   { key: "travelMin", group: "LADDER", label: "Line travel (TRAVEL_MIN)", help: "Over a fourth or more of the line, the thumb must have moved this many rows the right way.", kind: "number", min: 0, max: 2, step: 0.05, unit: "rows" },
-  { key: "runs", group: "LADDER", label: "Fast runs", help: "D332. STRICT (the game's): each landing judged from its own thumb's last touch, and the line's travel. LENIENT: inside a run (RUN NOTES or more stepwise one way, each less than RUN IOI after the one before) a landing is right if it goes the run's way, or level within the step leeway, from EITHER thumb's last touch; no line travel; at the run's last note the landings' fitted travel must go the run's way by RUN TRAVEL: RUN ✓, or RUN ✗ and the notes right only by the run rule re-judged WRONG (points taken back).", kind: "choice", options: [["strict", "STRICT (the game's)"], ["lenient", "LENIENT inside fast runs"]] },
+  { key: "runs", group: "LADDER", label: "Fast runs", help: "D332. STRICT (WTC 1.51's): each landing judged from its own thumb's last touch, and the line's travel. LENIENT: inside a run (RUN NOTES or more stepwise one way, each less than RUN IOI after the one before) a landing is right if it goes the run's way, or level within the step leeway, from EITHER thumb's last touch; no line travel; at the run's last note the landings' fitted travel must go the run's way by RUN TRAVEL: RUN ✓, or RUN ✗ and the notes right only by the run rule re-judged WRONG (points taken back).", kind: "choice", options: [["strict", "STRICT (WTC 1.51's)"], ["lenient", "LENIENT inside fast runs (the game's)"]] },
   { key: "runMinNotes", group: "LADDER", label: "Run: at least", help: "D332: a run is this many notes or more, each a step the same way.", kind: "number", min: 3, max: 12, step: 1, unit: "notes" },
   { key: "runIoiMs", group: "LADDER", label: "Run: notes closer than", help: "D332: each note of a run follows the one before by less than this (at the written tempo).", kind: "number", min: 80, max: 400, step: 10, unit: "ms" },
   { key: "runTravelRows", group: "LADDER", label: "Run: travel at least", help: "D332, LENIENT: at a run's last note the thumbs' landings over it, fitted by a straight line (height against time), must travel the run's way at least this many drawn rows per step it spans (a row is a staff step as drawn); else RUN ✗ and every note right only by the run rule is re-judged WRONG (its points taken back, a slip).", kind: "number", min: 0, max: 1.5, step: 0.05, unit: "rows/step" },
@@ -352,12 +390,15 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "trillSettle", group: "ORNAMENTS", label: "Trill settle", help: "A long trill ends on its main note for this share of the note.", kind: "number", min: 0, max: 0.5, step: 0.05 },
   { key: "trillFollowsShake", group: "ORNAMENTS", label: "Trill follows the shake", help: "The player's trill goes on while the thumb shakes and settles when it stops (off: the first shake plays the whole trill).", kind: "bool" },
   { key: "trillStopMs", group: "ORNAMENTS", label: "Shaking stopped after", help: "No leg for this long: the trill settles on its main note.", kind: "number", min: 100, max: 800, step: 10, unit: "ms" },
+  { key: "accentLateBeats", group: "READING ACCENTS", label: "Accent: lean at most", help: "D338: a reading's accent (>) is judged by time: struck on time or up to this share of a beat late (an agogic lean), the note before let go, the accent held. Never by loudness.", kind: "number", min: 0, max: 0.5, step: 0.01, unit: "beat" },
+  { key: "accentGapMs", group: "READING ACCENTS", label: "Accent: gap before", help: "D338: the note before an accent let go at least this long before it (a small silence of articulation).", kind: "number", min: 0, max: 150, step: 5, unit: "ms" },
+  { key: "accentHoldShare", group: "READING ACCENTS", label: "Accent: held at least", help: "D338: an accent held at least this share of its written length (from its written onset).", kind: "number", min: 0.3, max: 1, step: 0.05 },
   { key: "expression", group: "EXPRESSION", label: "Expression (D311)", help: "Where a thumb lands across its bar shapes the attack; sideways while held, the sustain.", kind: "bool" },
   { key: "thumbCross", group: "SLURS", label: "Thumbs cross", help: "A touch on the half where the other thumb is down (the other half free) is the other thumb (D318).", kind: "bool" },
   { key: "slurNext", group: "SLURS", label: "Slur's second thumb", help: "While the other thumb holds the note before, a landing is for the next note: struck a little early, or waiting for it (D318; D290's double contact only for the same thumb).", kind: "bool" },
   { key: "slurEarlyShare", group: "SLURS", label: "…early by up to", help: "This share of the time between the two notes. Landed earlier (while the other thumb holds), the thumb waits for its note.", kind: "number", min: 0, max: 0.9, step: 0.05 },
   { key: "slurEarlyMaxMs", group: "SLURS", label: "…and at most", help: "Landed earlier, the thumb waits and strikes its note then. RELATIVE: no cap in ms (the share alone).", kind: "number", min: 0, max: 400, step: 10, unit: "ms" },
-  { key: "waitSounds", group: "SLURS", label: "Waiting note sounds", help: "D329. A thumb landed early, resting on its note while the other holds the note before: AT ITS TIME (D318, the game's: or, once the other lets go, from the early reach above on), or WHEN THE OTHER THUMB LIFTS (the release sounds it, from the note's own early window on, judged then; held past its time, it sounds at its time): organ and wind legato.", kind: "choice", options: [["time", "AT ITS TIME (D318)"], ["lift", "WHEN THE OTHER THUMB LIFTS"]] },
+  { key: "waitSounds", group: "SLURS", label: "Waiting note sounds", help: "D329. A thumb landed early, resting on its note while the other holds the note before: AT ITS TIME (D318, the default: or, once the other lets go, from the early reach above on), or WHEN THE OTHER THUMB LIFTS (the release sounds it, from the note's own early window on, judged then; held past its time, it sounds at its time): organ and wind legato.", kind: "choice", options: [["time", "AT ITS TIME (D318)"], ["lift", "WHEN THE OTHER THUMB LIFTS"]] },
   { key: "waitTakeMs", group: "SLURS", label: "Waiting note: taken over within", help: "D329: a waiting thumb's note struck on its time is taken over by a touch landing for it this soon after (D318 used the double contact's time). RELATIVE: × the note's own time to its nearer neighbour / REFERENCE.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "slurRollMinMs", group: "SLURS", label: "Thumbs together", help: "Two thumbs landing closer than this are a chord pressed, not a slur (0: a thumb put down on its next note in the same moment the other strikes may wait for it, D329).", kind: "number", min: 0, max: 150, step: 5, unit: "ms" },
   { key: "sameThumbPx", group: "SLURS", label: "Same thumb within", help: "A contact this close to a thumb still down is that thumb rolling (a double contact).", kind: "number", min: 0, max: 80, step: 2, unit: "px" },
@@ -365,7 +406,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide. RELATIVE: × the note's own time to its nearer neighbour / REFERENCE.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "joinedSound", group: "SLURS", label: "Joined sound in the gap", help: "A note joined within the legato gap sounds joined (no fresh attack).", kind: "bool" },
   { key: "cancelJoins", group: "SLURS", label: "Cancel still joins", help: "A touch iOS takes back with no other thumb down ends its note for the join.", kind: "bool" },
-  { key: "prepare", group: "PREPARED", label: "Prepared notes (B+)", help: "D334. A thumb landing on the next note before its window while the other holds the note before rests PREPARED (no sound). It sounds when the other thumb lifts (PULL-OFF, timed at the lift) or, with PRESS on, when you press it (over-legato); never by itself. A landing in the note's window while the other holds is a HAMMER-ON (B's strike). Both sound slurred (no fresh attack).", kind: "bool" },
+  { key: "prepare", group: "PREPARED", label: "Prepared notes (B+)", help: "D334; the game's since WTC 1.52 (D337). A thumb landing on the next note before its window while the other holds the note before rests PREPARED (no sound). It sounds when the other thumb lifts (PULL-OFF, timed at the lift) or, with PRESS on, when you press it (over-legato); never by itself. A landing in the note's window while the other holds is a HAMMER-ON (B's strike). Both sound slurred (no fresh attack).", kind: "bool" },
   { key: "prepShare", group: "PREPARED", label: "…from", help: "This share of the time between the two notes early (1: a whole note early; from the other thumb's strike in any case).", kind: "number", min: 0.2, max: 1, step: 0.05 },
   { key: "prepLate", group: "PREPARED", label: "Not sounded by its late window", help: "MISSED, or the other thumb's lift still sounds it whenever it comes (judged late).", kind: "choice", options: [["miss", "MISSED"], ["lift", "The lift sounds it, late"]] },
   { key: "prepPress", group: "PREPARED", label: "PRESS sounds it", help: "An optional third gesture: pressing the resting thumb (a small move down or inward) sounds the prepared note, the other still down: over-legato, both sound. Off: on the owner's iPhone the contact's size cannot show a press (SENSOR log, D334).", kind: "bool" },

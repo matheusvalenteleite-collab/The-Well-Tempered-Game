@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fugueById } from "../src/touch/fugue.ts";
+import { countInBeats, fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
@@ -39,7 +39,7 @@ function fakeChip(clock: { t: number }) {
 }
 
 for (const bt of [false, true])
-  test(`D308: paused${bt ? " in BLUETOOTH MODE" : ""}: the clock holds, no note missed, nothing sounding or scheduled; resumed after a bar of count-in from the beat it stopped in`, () => {
+  test(`D308: paused${bt ? " in BLUETOOTH MODE" : ""}: the clock holds, no note missed, nothing sounding or scheduled; resumed after the count-in (D338: by time) from the beat it stopped in`, () => {
     const clock = { t: 0 };
     const fc = fakeChip(clock);
     const g = new ProtoGame(fugueById("wtc1f02"), 0, 0, protoById("keys"), { bpm: 60, legato: false, easy: "timing", bt }, fc.chip);
@@ -75,8 +75,11 @@ for (const bt of [false, true])
     const grid = g.start + Math.floor((tick - g.start) / beat) * beat;
     assert.ok(g.countIn() > 0, "counting in");
     const back = clock.t;
-    run(back + 0.15 + (g.timeAt(grid) - g.timeAt(grid - beat * g.beatsPerBar)) - 0.05);
-    assert.ok(fc.ticks.length - clicks >= g.beatsPerBar - 1, `the bar of count-in clicked (${fc.ticks.length - clicks})`);
+    // D338: the count-in by time (I/2 at 60: three crotchets, 3 s), not a whole bar.
+    const counts = countInBeats(g.f, g.tps);
+    assert.equal(counts, 3);
+    run(back + 0.15 + (g.timeAt(grid) - g.timeAt(grid - beat * counts)) - 0.05);
+    assert.ok(fc.ticks.length - clicks >= counts - 1, `the count-in clicked (${fc.ticks.length - clicks})`);
     assert.ok(Math.abs(g.now - grid) < beat * 0.2, `back at the beat it stopped in (${g.now} vs ${grid})`);
     assert.equal(g.countIn(), g.now < grid ? 1 : 0);
     // On again: the band plays, notes after the pause are judged again (missed, unplayed).

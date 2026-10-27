@@ -19,7 +19,7 @@
  * expected). The file may hold text before the log (a pasted message): it is read from the first "{".
  */
 import { readFileSync } from "node:fs";
-import { MECH_DEFAULTS, MECH_SPEC, setMech, MECH, resetMech, type Mech } from "../../src/bench/mechanics.ts";
+import { MECH_DEFAULTS, MECH_SPEC, setMech, MECH, resetMech, asRecorded, type Mech } from "../../src/bench/mechanics.ts";
 import { parseLog } from "../../src/bench/lab/log.ts";
 import { diff, replay } from "../../src/bench/lab/replay.ts";
 import { describe } from "../../src/bench/lab/describe.ts";
@@ -66,9 +66,10 @@ if (args.includes("--keys")) {
 }
 // The changes on top of the log's parameters, coerced to their types.
 resetMech();
-// D329: a log from before WTC 1.46 took the waiting note's takeover window from the double contact's.
+// D329: a log from before WTC 1.46 took the waiting note's takeover window from the double contact's;
+// D337: one from before WTC 1.52 lacks the parameters since added, at WTC 1.51's values (asRecorded).
 if (preset) setMech(configMech(preset));
-else setMech({ ...(log.mech.waitTakeMs === undefined ? { waitTakeMs: log.mech.doubleMs } : {}), ...log.mech });
+else setMech(asRecorded(log.mech));
 setMech(sets);
 const after: Mech = { ...MECH };
 resetMech();

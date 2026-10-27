@@ -43,7 +43,7 @@ export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[pre
 
 /**
  * D314: which side of a bar is STRONG (the firmer, brighter attack; where the reading's accent ">" is
- * played and ACCENT ✓ judged): "outer" (the phone's edge, as D311 laid it out) or "inner" (by the box).
+ * played; D338: ACCENT ✓ is judged by time now, not here): "outer" (the phone's edge, as D311 laid it out) or "inner" (by the box).
  * The one switch: protos.ts barDynamic (the across value every sound and judgement reads) follows it,
  * and so does every drawing of the across axis (the soft/strong hints, the marks, the thumbs shown).
  */

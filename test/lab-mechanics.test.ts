@@ -1,5 +1,6 @@
 /**
- * D317, THE LAB: the mechanics' defaults are the game's constants (play.html unchanged); a recorded run
+ * D317, THE LAB: the mechanics' defaults were the game's constants (D337, WTC 1.52: those are A · CLASSIC's,
+ * MECH_CLASSIC; the game's defaults B+ · PREPARED); a recorded run
  * replays to the same verdicts; a parameter changed changes the verdicts as it should; the node replay
  * script runs on a fixture log.
  */
@@ -11,7 +12,7 @@ import { DOUBLE_MS, EDGE_SHARE, LADDER_ROW_MIN, OWN_FRESH_S, PERFECT_MS, SLIDE_M
 import { LEGATO_GAP_MS, LEGATO_GAP_SHARE, legatoGapMs } from "../src/bench/articulation.ts";
 import { SHAKE_STEEP, SHAKE_WINDOW_MS } from "../src/touch/free-ornament.ts";
 import { options } from "../src/touch/lanes.ts";
-import { MECH, MECH_DEFAULTS, MECH_SPEC, mechChanges, resetMech, setMech, withMech } from "../src/bench/mechanics.ts";
+import { CLASSIC_VALUES, MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, mechChanges, resetMech, setMech, withMech } from "../src/bench/mechanics.ts";
 import { diff, replay, tally } from "../src/bench/lab/replay.ts";
 import { describe as lines } from "../src/bench/lab/describe.ts";
 import { parseLog, logText, type LabPassage } from "../src/bench/lab/log.ts";
@@ -19,40 +20,42 @@ import { synthRun } from "../tools/lab/lab-synth.ts";
 
 const II12: LabPassage = { piece: "wtc2f12", voice: 0, fromBar: 1, toBar: 6, bpm: 79, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 
-test("D317: MECH's defaults are the constants the engine read before", () => {
+test("D317: MECH's defaults were the constants the engine read before (D337: WTC 1.51's, A · CLASSIC, MECH_CLASSIC)", () => {
   const easy = options(480, 60, "easy");
   // lanes.ts options: 250 ms either side at "easy" (ticks per ms 480*60/60000 = 0.48).
-  assert.equal(MECH_DEFAULTS.earlyMs * 0.48, easy.early);
-  assert.equal(MECH_DEFAULTS.lateMs * 0.48, easy.late);
-  assert.equal(MECH_DEFAULTS.splitHalfway, true);
-  assert.equal(MECH_DEFAULTS.splitFloorMs, SPLIT_FLOOR_MS);
-  assert.equal(MECH_DEFAULTS.perfectMs, PERFECT_MS);
-  assert.equal(MECH_DEFAULTS.doubleMs, DOUBLE_MS);
-  assert.equal(MECH_DEFAULTS.btEarlyMs, BT_EARLY_MS);
-  assert.equal(MECH_DEFAULTS.btLateMs, BT_LATE_MS);
-  assert.equal(MECH_DEFAULTS.ladderRowMin, LADDER_ROW_MIN);
-  assert.equal(MECH_DEFAULTS.ownFreshS, OWN_FRESH_S);
-  assert.equal(MECH_DEFAULTS.edgeShare, EDGE_SHARE);
-  assert.equal(MECH_DEFAULTS.travelMin, TRAVEL_MIN);
-  assert.equal(MECH_DEFAULTS.slideMinPx, SLIDE_MIN_PX);
-  assert.equal(MECH_DEFAULTS.legatoGapMs, LEGATO_GAP_MS);
-  assert.equal(MECH_DEFAULTS.legatoGapShare, LEGATO_GAP_SHARE);
-  assert.equal(MECH_DEFAULTS.shakeWindowMs, SHAKE_WINDOW_MS);
-  assert.equal(MECH_DEFAULTS.shakeSteep, SHAKE_STEEP);
+  assert.equal(MECH_CLASSIC.earlyMs * 0.48, easy.early);
+  assert.equal(MECH_CLASSIC.lateMs * 0.48, easy.late);
+  assert.equal(MECH_CLASSIC.splitHalfway, true);
+  assert.equal(MECH_CLASSIC.splitFloorMs, SPLIT_FLOOR_MS);
+  assert.equal(MECH_CLASSIC.perfectMs, PERFECT_MS);
+  assert.equal(MECH_CLASSIC.doubleMs, DOUBLE_MS);
+  assert.equal(MECH_CLASSIC.btEarlyMs, BT_EARLY_MS);
+  assert.equal(MECH_CLASSIC.btLateMs, BT_LATE_MS);
+  assert.equal(MECH_CLASSIC.ladderRowMin, LADDER_ROW_MIN);
+  assert.equal(MECH_CLASSIC.ownFreshS, OWN_FRESH_S);
+  assert.equal(MECH_CLASSIC.edgeShare, EDGE_SHARE);
+  assert.equal(MECH_CLASSIC.travelMin, TRAVEL_MIN);
+  assert.equal(MECH_CLASSIC.slideMinPx, SLIDE_MIN_PX);
+  assert.equal(MECH_CLASSIC.legatoGapMs, LEGATO_GAP_MS);
+  assert.equal(MECH_CLASSIC.legatoGapShare, LEGATO_GAP_SHARE);
+  assert.equal(MECH_CLASSIC.shakeWindowMs, SHAKE_WINDOW_MS);
+  assert.equal(MECH_CLASSIC.shakeSteep, SHAKE_STEEP);
   // The ones that were literals in the code (D286, D289, D296, D314): their values then.
-  assert.deepEqual([MECH_DEFAULTS.repeatRows, MECH_DEFAULTS.stepLeewayRows, MECH_DEFAULTS.leapRows, MECH_DEFAULTS.slideReachRows, MECH_DEFAULTS.shakeReachRows, MECH_DEFAULTS.shakeReachMinPx], [2.5, 1, 0.5, 0.5, 0.4, 6]);
-  assert.deepEqual([MECH_DEFAULTS.slides, MECH_DEFAULTS.freeOrnaments, MECH_DEFAULTS.expression, MECH_DEFAULTS.cancel, MECH_DEFAULTS.directionRef], [true, true, true, "overlap", "own"]);
+  assert.deepEqual([MECH_CLASSIC.repeatRows, MECH_CLASSIC.stepLeewayRows, MECH_CLASSIC.leapRows, MECH_CLASSIC.slideReachRows, MECH_CLASSIC.shakeReachRows, MECH_CLASSIC.shakeReachMinPx], [2.5, 1, 0.5, 0.5, 0.4, 6]);
+  assert.deepEqual([MECH_CLASSIC.slides, MECH_CLASSIC.freeOrnaments, MECH_CLASSIC.expression, MECH_CLASSIC.cancel, MECH_CLASSIC.directionRef], [true, true, true, "overlap", "own"]);
   // The game runs on the defaults, and every parameter has a control in the lab.
   assert.deepEqual(MECH, MECH_DEFAULTS);
   assert.deepEqual(mechChanges(), {});
   assert.deepEqual(new Set(MECH_SPEC.map((s) => s.key)), new Set(Object.keys(MECH_DEFAULTS)));
-  // D289: the legato allowance as before (the larger of 90 ms and 35% of the note).
-  assert.equal(legatoGapMs(100), 90);
-  assert.equal(legatoGapMs(1000), 350);
+  // D289: the legato allowance as before (the larger of 90 ms and 35% of the note), in ABSOLUTE.
+  withMech(CLASSIC_VALUES, () => {
+    assert.equal(legatoGapMs(100), 90);
+    assert.equal(legatoGapMs(1000), 350);
+  });
 });
 
 test("D317: setMech coerces, withMech restores", () => {
-  withMech({ legatoGapMs: "120", slides: "false", cancel: "lift", nope: 3 }, () => {
+  withMech({ ...CLASSIC_VALUES, legatoGapMs: "120", slides: "false", cancel: "lift", nope: 3 }, () => {
     assert.equal(MECH.legatoGapMs, 120);
     assert.equal(MECH.slides, false);
     assert.equal(MECH.cancel, "lift");

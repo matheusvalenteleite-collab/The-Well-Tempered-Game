@@ -3,6 +3,9 @@
  * of errors when I actually felt like I was doing what I needed to get a slur between two notes"), and
  * the game stays honest: random heights, wrong ways, a thumb alone, two thumbs pressed together, a
  * thumb's own roll are judged as before.
+ *
+ * D337 (WTC 1.52): the game's defaults became B+ · PREPARED (no waiting slur); D318's mechanics are the
+ * lab's preset A · CLASSIC (WTC 1.51), so this file judges with it (MECH_CLASSIC) throughout.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -12,7 +15,11 @@ import { fugueById } from "../src/touch/fugue.ts";
 import { ProtoGame, SAME_THUMB_PX, SLIDE_TAKE_MS, SLUR_EARLY_MAX_MS, SLUR_EARLY_SHARE, SLUR_ROLL_MIN_MS } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
-import { MECH_DEFAULTS, withMech } from "../src/bench/mechanics.ts";
+import { CLASSIC_VALUES, MECH_CLASSIC, setMech, withMech } from "../src/bench/mechanics.ts";
+
+// D337: WTC 1.51's judging (preset A) for every test here; `A` the same with some parameters changed.
+setMech(CLASSIC_VALUES);
+const A = (v: Record<string, unknown>) => ({ ...CLASSIC_VALUES, ...v });
 
 const pc = (a: number, b: number) => (100 * a) / Math.max(1, b);
 const run = (id: string, v: number, p: Player, o: { bars?: number; bpm?: number } = { bars: 24 }) => sum([1, 2].map((s) => simulate(id, v, p, s, o)));
@@ -131,15 +138,15 @@ test("D318: a thumb's own roll and two thumbs pressed together are no slur; a ro
   }
 });
 
-test("D318: the slur mechanics are THE LAB's parameters: on by default, and off they give back the old judging", () => {
-  assert.deepEqual([MECH_DEFAULTS.slurEarlyShare, MECH_DEFAULTS.slurEarlyMaxMs, MECH_DEFAULTS.slurRollMinMs, MECH_DEFAULTS.sameThumbPx, MECH_DEFAULTS.slideTakeMs], [SLUR_EARLY_SHARE, SLUR_EARLY_MAX_MS, SLUR_ROLL_MIN_MS, SAME_THUMB_PX, SLIDE_TAKE_MS]);
-  assert.deepEqual([MECH_DEFAULTS.thumbCross, MECH_DEFAULTS.slurNext, MECH_DEFAULTS.slideTakeover, MECH_DEFAULTS.joinedSound, MECH_DEFAULTS.cancelJoins, MECH_DEFAULTS.directionRef], [true, true, true, true, true, "own"]);
+test("D318: the slur mechanics are THE LAB's parameters: on in A · CLASSIC (WTC 1.51's game), and off they give back the old judging", () => {
+  assert.deepEqual([MECH_CLASSIC.slurEarlyShare, MECH_CLASSIC.slurEarlyMaxMs, MECH_CLASSIC.slurRollMinMs, MECH_CLASSIC.sameThumbPx, MECH_CLASSIC.slideTakeMs], [SLUR_EARLY_SHARE, SLUR_EARLY_MAX_MS, SLUR_ROLL_MIN_MS, SAME_THUMB_PX, SLIDE_TAKE_MS]);
+  assert.deepEqual([MECH_CLASSIC.thumbCross, MECH_CLASSIC.slurNext, MECH_CLASSIC.slideTakeover, MECH_CLASSIC.joinedSound, MECH_CLASSIC.cancelJoins, MECH_CLASSIC.directionRef], [true, true, true, true, true, "own"]);
   const early: Player = { ...CAREFUL, earlyP: 1, earlyMs: [20, 120] };
   const on = run("wtc2f12", 0, early);
-  const off = withMech({ slurNext: false }, () => run("wtc2f12", 0, early));
+  const off = withMech(A({ slurNext: false }), () => run("wtc2f12", 0, early));
   assert.ok(off.right < on.right - 5, "slurNext off: " + off.right + " vs " + on.right);
   const same: Player = { ...CAREFUL, sameBarP: 0.5 };
-  assert.ok(withMech({ thumbCross: false }, () => run("wtc1f02", 0, same)).wrong > run("wtc1f02", 0, same).wrong + 5);
+  assert.ok(withMech(A({ thumbCross: false }), () => run("wtc1f02", 0, same)).wrong > run("wtc1f02", 0, same).wrong + 5);
   const gap: Player = { ...CAREFUL, overlapP: 0 };
-  assert.ok(withMech({ joinedSound: false }, () => run("wtc1f02", 0, gap)).attacked > 0);
+  assert.ok(withMech(A({ joinedSound: false }), () => run("wtc1f02", 0, gap)).attacked > 0);
 });
