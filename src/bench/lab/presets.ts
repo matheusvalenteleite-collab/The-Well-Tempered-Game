@@ -2,7 +2,7 @@
  * D329 (WTC 1.46), THE LAB's CONFIG presets: the owner found the SLURS group too complicated and asked
  * for named configurations to try one after another and comment on. Each is the game's defaults with a
  * few parameters changed (mechanics.ts MECH), and one plain sentence of what it feels like. The game
- * (play.html) is never changed: A is its own.
+ * (play.html) is never changed by the lab: up to WTC 1.51 A was its own, since WTC 1.52 (D337) B+ is.
  *
  * Shared by C, D and E (the owner's way of playing, a II/18 log: one thumb put down on its next note in
  * the same frame as the other strikes, about a note value early): RELATIVE timing; the double contact the
@@ -10,8 +10,13 @@
  * other's strike, which D318's 40 ms (his 20) took for a chord pressed); direction from either thumb.
  * D332 (WTC 1.49): B, C, D and E judge fast stepwise runs leniently (RUNS "lenient"; the owner asked for
  * B too, his favourite for its precision, its other values unchanged); A stays strict.
+ *
+ * D337 (WTC 1.52): B+ · PREPARED became the game's defaults (MECH_DEFAULTS) and the lab's default CONFIG.
+ * A is now A · CLASSIC (WTC 1.51), the game before that, and every preset names its values on top of
+ * WTC 1.51's (CLASSIC_VALUES first, then its own), so each keeps exactly the parameters it had: A the
+ * old game, B B+ without preparing, C, D and E their hand-over (no preparing).
  */
-import { MECH, MECH_DEFAULTS, type Mech, type MechKey } from "../mechanics.ts";
+import { CLASSIC_VALUES, MECH, MECH_DEFAULTS, type Mech, type MechKey } from "../mechanics.ts";
 
 export interface LabConfig {
   id: string;
@@ -19,11 +24,12 @@ export interface LabConfig {
   name: string;
   /** What it feels like, one sentence. */
   feel: string;
-  /** The parameters it sets on top of the game's defaults. */
+  /** The parameters it sets on top of the game's defaults (D337: each preset names WTC 1.51's first, then its own). */
   values: Partial<Mech>;
 }
 
 const HAND_OVER: Partial<Mech> = {
+  ...CLASSIC_VALUES,
   timing: "relative",
   slurNext: true,
   slurEarlyShare: 0.15,
@@ -37,20 +43,22 @@ const HAND_OVER: Partial<Mech> = {
 };
 
 export const CONFIGS: readonly LabConfig[] = [
-  { id: "A", name: "A · GAME NOW", feel: "Exactly the game as it is (WTC 1.45): fixed windows in milliseconds, a thumb landing early while the other holds waits for its note.", values: {} },
+  // D337 (WTC 1.52): the game before B+ became it, its values named (the game's defaults no longer).
+  { id: "A", name: "A · CLASSIC (WTC 1.51)", feel: "The game as it was up to WTC 1.51: fixed windows in milliseconds, a thumb landing early while the other holds waits for its note.", values: { ...CLASSIC_VALUES } },
   {
     id: "B",
     name: "B · CLEAN STRIKES",
     feel: "Every landing is a strike, the moment it lands: put a thumb down too early and it is a stray; only your own thumb bouncing is forgiven (40 ms). Windows follow the tempo; fast runs are judged from either thumb, the run as a whole.",
-    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" },
+    values: { ...CLASSIC_VALUES, timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" },
   },
   {
     // D334 (WTC 1.49): the owner's hammer-on and pull-off. B's values, and a thumb landing before its note's
     // window while the other holds rests PREPARED until the other lifts (or, MECH.prepPress, it is pressed).
     id: "B+",
     name: "B+ · PREPARED",
-    feel: "Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.",
-    values: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient", prepare: true, prepShare: 1, slurRollMinMs: 0 },
+    // D337 (WTC 1.52): the game's own (MECH_DEFAULTS), and the lab's default CONFIG.
+    feel: "The game since WTC 1.52. Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.",
+    values: { ...CLASSIC_VALUES, timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient", prepare: true, prepShare: 1, slurRollMinMs: 0 },
   },
   {
     id: "C",
@@ -72,7 +80,8 @@ export const CONFIGS: readonly LabConfig[] = [
   },
 ];
 
-export const DEFAULT_CONFIG = "A";
+/** D337 (WTC 1.52): B+ · PREPARED, the game's own. */
+export const DEFAULT_CONFIG = "B+";
 
 export function configById(id: string | null | undefined): LabConfig | undefined {
   return CONFIGS.find((c) => c.id === id);
@@ -95,4 +104,22 @@ export function configLabel(id: string | null | undefined, m: Mech = MECH): stri
   if (!c) return undefined;
   const ed = configEdits(c, m);
   return ed.length ? `${c.name} (changed: ${ed.join(", ")})` : c.name;
+}
+
+/** D337: the judging a lab setting kept on the phone is written against (its `mech` the changes from those defaults). */
+export const MECH_BASE = "1.52";
+
+/**
+ * D337: the lab's kept setting (`tb-lab-v1`'s mech, the CONFIG chosen) as it reads now: the parameters to
+ * set on the defaults, and the preset. Kept since WTC 1.52 (`mechBase`): as kept. Kept before: its changes
+ * were from WTC 1.51's defaults, so WTC 1.51's values come first (CLASSIC_VALUES) and no preset chosen meant A;
+ * a lab never touched (no changes, no preset chosen) takes today's default, B+.
+ */
+export function storedSetting(st: { mech?: Record<string, unknown>; mechBase?: string } | null, config: string | null): { mech: Partial<Record<string, unknown>>; config: string } {
+  const chosen = configById(config)?.id;
+  if (!st || st.mechBase) return { mech: st?.mech ?? {}, config: chosen ?? DEFAULT_CONFIG };
+  const changes = st.mech ?? {};
+  if (!chosen && !Object.keys(changes).length) return { mech: {}, config: DEFAULT_CONFIG };
+  // (Only the changes were kept, never a parameter at its default: no log's waitTakeMs rule here.)
+  return { mech: { ...CLASSIC_VALUES, ...changes }, config: chosen ?? "A" };
 }

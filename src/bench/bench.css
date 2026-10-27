@@ -605,6 +605,9 @@
 /* D308: the best grade, a stamp in the picture's lower corner (the key's label keeps the upper); the best score under the sound. */
 .tb-lite-grade { position: absolute; bottom: 4px; right: 4px; min-width: 22px; padding: 4px 5px 3px; font-family: var(--tg-pixel); font-size: 14px; line-height: 1; text-align: center; color: var(--grade, var(--tg-shine)); background: rgba(10, 8, 16, 0.86); border: 2px solid var(--grade, var(--tg-shine)); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6); text-shadow: 1px 1px 0 #000; }
 .tb-lite-best { font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; color: var(--tg-gold); }
+/* D337: a best from before 1.52 (another judging): dimmed, apart. */
+.tb-lite-best.tb-lite-old { color: var(--tg-muted); }
+.tb-lite-grade.tb-lite-old { opacity: 0.55; border-style: dashed; }
 /* D308: room under the words for HEAR THE SUBJECT (on a narrow card it covered the last line). */
 .tb-lite-list li:has(.tb-hear-btn) .tb-lite-info { padding-bottom: 30px; }
 .tb-pop-lock { margin: 4px 0 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }

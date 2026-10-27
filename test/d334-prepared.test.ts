@@ -2,10 +2,11 @@
  * D334 (WTC 1.49), THE LAB's B+ · PREPARED: a thumb resting early on its next note while the other holds
  * is PREPARED (silent); it sounds by the other thumb's lift (PULL-OFF) or, MECH.prepPress, a press; a
  * landing while the other holds is a HAMMER-ON (B's strike). Nothing sounds by itself. The game unchanged.
+ * D337 (WTC 1.52): B+ became the game's defaults; WTC 1.51's (no preparing) are A · CLASSIC's (MECH_CLASSIC).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MECH_DEFAULTS, MECH_SPEC, type Mech } from "../src/bench/mechanics.ts";
+import { MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, type Mech } from "../src/bench/mechanics.ts";
 import { CONFIGS, configById, configMech } from "../src/bench/lab/presets.ts";
 import { presetRow } from "../src/bench/lab/preset-table.ts";
 import { replay } from "../src/bench/lab/replay.ts";
@@ -19,8 +20,9 @@ const II12: LabPassage = { piece: "wtc2f12", voice: 0, fromBar: 1, toBar: 6, bpm
 const BP = () => configMech(configById("B+")!);
 const notesOf = (ev: LabEvent[]) => ev.filter((e): e is Extract<LabEvent, { kind: "note" }> => e.kind === "note");
 
-test("D334: the game's defaults unchanged (no preparing, no press); B+ is B with preparing, after B", () => {
-  assert.equal(MECH_DEFAULTS.prepare, false);
+test("D334: WTC 1.51's game (A) without preparing, D337's (B+) with; no press either way; B+ is B with preparing, after B", () => {
+  assert.equal(MECH_CLASSIC.prepare, false);
+  assert.equal(MECH_DEFAULTS.prepare, true);
   assert.equal(MECH_DEFAULTS.prepPress, false);
   assert.equal(MECH_DEFAULTS.prepShare, 1);
   assert.equal(MECH_DEFAULTS.prepLate, "miss");
@@ -29,8 +31,9 @@ test("D334: the game's defaults unchanged (no preparing, no press); B+ is B with
   assert.equal(ids.indexOf("B+"), ids.indexOf("B") + 1);
   const bp = configById("B+")!;
   assert.equal(bp.name, "B+ · PREPARED");
-  assert.equal(bp.feel, "Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.");
+  assert.equal(bp.feel, "The game since WTC 1.52. Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.");
   assert.deepEqual({ ...configById("B")!.values, prepare: true, prepShare: 1, slurRollMinMs: 0 }, bp.values);
+  assert.deepEqual(BP(), MECH_DEFAULTS);
   assert.equal(BP().slurNext, false);
   assert.equal(BP().prepPress, false);
 });

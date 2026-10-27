@@ -10,7 +10,7 @@ import { PIECE_SOUND } from "../touch/piece-sound.ts";
 import { presetById } from "../touch/sound.ts";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyLabel } from "./emblem.ts";
-import { liteAll, liteLevel, startHere } from "./lite.ts";
+import { BEFORE_JUDGING, liteAll, liteLevel, startHere } from "./lite.ts";
 import { popTitle } from "./PlayPop.tsx";
 
 /** D265: a sound's name as the list shows it. */
@@ -29,7 +29,7 @@ function storedTab(): "I" | "II" {
 /** D308: a best grade's colour on its card (as the result's: S and A in gold, then down to red). */
 export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#f3c246", B: "#5fdc6a", C: "#7fd6e8", D: "#ec5a4a" };
 
-export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode }) {
+export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: "I" | "II"; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -118,6 +118,11 @@ export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fugue
                     <span className="tb-lite-grade" id={`grade-${id}`} style={{ ["--grade" as string]: GRADE_INK[best[id]] ?? "var(--tg-shine)" }} aria-label={tr("BEST GRADE {g}", { g: best[id] })}>
                       {best[id]}
                     </span>
+                  ) : bestOld[id] ? (
+                    // D337: a grade from before 1.52 (another judging), dimmed, until today's judging gives one.
+                    <span className="tb-lite-grade tb-lite-old" id={`grade-${id}`} style={{ ["--grade" as string]: GRADE_INK[bestOld[id]] ?? "var(--tg-shine)" }} aria-label={`${tr("BEST GRADE {g}", { g: bestOld[id] })} · ${tr(BEFORE_JUDGING)}`} title={tr(BEFORE_JUDGING)}>
+                      {bestOld[id]}
+                    </span>
                   ) : (
                     done && <span className="tb-lite-done">✓</span>
                   )}
@@ -138,6 +143,12 @@ export function LiteGrid({ beaten, best = {}, scores = {}, open, settings, fugue
                   {scores[id] !== undefined && (
                     <span className="tb-lite-best" id={`best-${id}`}>
                       {tr("BEST {n}", { n: scores[id].toLocaleString("en") })}
+                    </span>
+                  )}
+                  {/* D337: the best from before 1.52 (another judging), apart. */}
+                  {scoresOld[id] !== undefined && (
+                    <span className="tb-lite-best tb-lite-old" id={`best-old-${id}`}>
+                      {tr("BEST {n} · BEFORE 1.52", { n: scoresOld[id].toLocaleString("en") })}
                     </span>
                   )}
                 </span>

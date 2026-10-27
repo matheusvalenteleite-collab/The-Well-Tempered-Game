@@ -3,10 +3,12 @@
  * waiting note's own takeover window, WAITING NOTE SOUNDS (at its time / when the other thumb lifts),
  * and the CONFIG presets. The game's defaults unchanged; a player resting the next thumb on its note as
  * the other strikes (the owner's II/18 log) missed in A and B, right in C, D and E.
+ * D337 (WTC 1.52): the game's defaults became B+ · PREPARED; WTC 1.51's (ABSOLUTE, any thumb's double…)
+ * are A · CLASSIC's, MECH_CLASSIC, and the lab's default CONFIG is B+.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MECH, MECH_DEFAULTS, MECH_SPEC, REL_KEYS, ownFreshSeconds, relMs, withMech, type Mech } from "../src/bench/mechanics.ts";
+import { CLASSIC_VALUES, MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, REL_KEYS, ownFreshSeconds, relMs, withMech, type Mech } from "../src/bench/mechanics.ts";
 import { legatoGapMs } from "../src/bench/articulation.ts";
 import { CONFIGS, DEFAULT_CONFIG, configById, configEdits, configLabel, configMech } from "../src/bench/lab/presets.ts";
 import { presetRow } from "../src/bench/lab/preset-table.ts";
@@ -17,17 +19,20 @@ import { synthRun } from "../tools/lab/lab-synth.ts";
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 const II12: LabPassage = { piece: "wtc2f12", voice: 0, fromBar: 1, toBar: 6, bpm: 79, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 
-test("D329: the game's defaults unchanged (ABSOLUTE, any thumb's double, takeover = the double contact's, AT ITS TIME)", () => {
-  assert.equal(MECH_DEFAULTS.timing, "absolute");
-  assert.equal(MECH_DEFAULTS.doubleSameThumb, false);
-  assert.equal(MECH_DEFAULTS.waitTakeMs, MECH_DEFAULTS.doubleMs);
-  assert.equal(MECH_DEFAULTS.waitSounds, "time");
+test("D329: WTC 1.51's defaults (A · CLASSIC: ABSOLUTE, any thumb's double, takeover = the double contact's, AT ITS TIME); D337: the game's RELATIVE, the same thumb's 40 ms", () => {
+  assert.equal(MECH_CLASSIC.timing, "absolute");
+  assert.equal(MECH_CLASSIC.doubleSameThumb, false);
+  assert.equal(MECH_CLASSIC.waitTakeMs, MECH_CLASSIC.doubleMs);
+  assert.equal(MECH_CLASSIC.waitSounds, "time");
+  assert.deepEqual([MECH_DEFAULTS.timing, MECH_DEFAULTS.doubleSameThumb, MECH_DEFAULTS.doubleMs, MECH_DEFAULTS.waitTakeMs, MECH_DEFAULTS.waitSounds], ["relative", true, 40, 120, "time"]);
   assert.deepEqual(MECH, MECH_DEFAULTS);
   for (const k of ["timing", "refIoiMs", "kneeIoiMs", "relFloorMs", "ownFreshBeats", "ownFreshMinS", "doubleSameThumb", "waitTakeMs", "waitSounds"]) assert.ok(MECH_SPEC.some((s) => s.key === k), k);
   // ABSOLUTE: every window as set, whatever the time between notes.
-  for (const ioi of [100, 250, 360, 1000]) assert.equal(relMs(70, ioi), 70);
-  assert.equal(ownFreshSeconds(0.4), 3);
-  assert.equal(legatoGapMs(100), 90);
+  withMech(CLASSIC_VALUES, () => {
+    for (const ioi of [100, 250, 360, 1000]) assert.equal(relMs(70, ioi), 70);
+    assert.equal(ownFreshSeconds(0.4), 3);
+    assert.equal(legatoGapMs(100), 90);
+  });
 });
 
 test("D329: RELATIVE: as set at the reference (361 ms), Weber-like above the knee, constant below, capped at 2×, floored", () => {
@@ -52,15 +57,15 @@ test("D329: RELATIVE: as set at the reference (361 ms), Weber-like above the kne
 
 test("D329: RELATIVE at the reference tempo judges a careful run as ABSOLUTE does (II/18's quavers, 361 ms)", () => {
   const log = synthRun(II18, { gap: 0.03, jitter: 0.05, seed: 3 });
-  const a = presetRow(log, { ...MECH_DEFAULTS });
-  const r = presetRow(log, { ...MECH_DEFAULTS, timing: "relative" } as Mech);
+  const a = presetRow(log, { ...MECH_CLASSIC });
+  const r = presetRow(log, { ...MECH_CLASSIC, timing: "relative" } as Mech);
   assert.equal(r.right, a.right);
   assert.equal(r.missed, a.missed);
   assert.ok(Math.abs(r.perfect - a.perfect) <= 2, `${r.perfect} vs ${a.perfect}`);
   // A fast fugue (II/12's semiquavers, 190 ms): PERFECT narrower (49 ms, not 70).
   const fast = synthRun(II12, { gap: 0.03, jitter: 0.06, seed: 5 });
-  const fa = presetRow(fast, { ...MECH_DEFAULTS });
-  const fr = presetRow(fast, { ...MECH_DEFAULTS, timing: "relative" } as Mech);
+  const fa = presetRow(fast, { ...MECH_CLASSIC });
+  const fr = presetRow(fast, { ...MECH_CLASSIC, timing: "relative" } as Mech);
   assert.ok(fr.perfect < fa.perfect, `${fr.perfect} < ${fa.perfect}`);
 });
 
@@ -96,10 +101,11 @@ test("D329: a thumb resting on its next note as the other strikes: missed by A a
   assert.ok(off("D") < off("C") - 10, `D ${off("D")} vs C ${off("C")}`);
 });
 
-test("D329: the presets: A is the game, each differs, the log's label marks an edit", () => {
-  assert.equal(DEFAULT_CONFIG, "A");
-  assert.deepEqual(configMech(configById("A")!), MECH_DEFAULTS);
-  assert.deepEqual(CONFIGS.map((c) => c.name), ["A · GAME NOW", "B · CLEAN STRIKES", "B+ · PREPARED", "C · HAND-OVER", "D · LIFT TO SOUND", "E · GENEROUS"]);
+test("D329: the presets: A is WTC 1.51's game (D337: B+ today's, the default), each differs, the log's label marks an edit", () => {
+  assert.equal(DEFAULT_CONFIG, "B+");
+  assert.deepEqual(configMech(configById("A")!), MECH_CLASSIC);
+  assert.deepEqual(configMech(configById("B+")!), MECH_DEFAULTS);
+  assert.deepEqual(CONFIGS.map((c) => c.name), ["A · CLASSIC (WTC 1.51)", "B · CLEAN STRIKES", "B+ · PREPARED", "C · HAND-OVER", "D · LIFT TO SOUND", "E · GENEROUS"]);
   const sets = CONFIGS.map((c) => JSON.stringify(configMech(c)));
   assert.equal(new Set(sets).size, CONFIGS.length);
   for (const c of CONFIGS) {

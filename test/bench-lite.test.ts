@@ -282,3 +282,33 @@ test("D308: each card shows the piece's best grade stamped on its picture and it
   assert.match(html, /id="best-wtc1f01"[^>]*>BEST 12,340</);
   assert.doesNotMatch(html, /id="grade-wtc1f02"|id="best-wtc1f02"/);
 });
+
+test("D337: bests from before 1.52 (another judging) are kept apart, marked BEFORE 1.52; the new best counts afresh, kept with its judging", async () => {
+  store.clear();
+  // A device that played before 1.52: bests with no judging named.
+  store.set(LITE_KEY, JSON.stringify({ beaten: ["wtc1f01"], seen: [], volume: 1, best: { wtc1f01: "S", wtc1f02: "B" }, scores: { wtc1f01: 50000 } }));
+  const { readLite, recordLite, recordLiteBest, soundUnlocked, JUDGING } = await import("../src/bench/lite.ts");
+  const st = readLite();
+  assert.deepEqual([st.best, st.scores], [{}, {}]);
+  assert.deepEqual([st.bestOld, st.scoresOld], [{ wtc1f01: "S", wtc1f02: "B" }, { wtc1f01: 50000 }]);
+  assert.equal(soundUnlocked("wtc1f01"), true, "what was earned stays earned");
+  // The first run since: a first score, the old best beside it, never beaten or replaced by it.
+  assert.deepEqual(recordLiteBest("wtc1f01", 30000), { before: null, fresh: true, old: 50000 });
+  recordLite("wtc1f01", false, true, "B");
+  const after = readLite();
+  assert.deepEqual([after.scores.wtc1f01, after.scoresV.wtc1f01, after.best.wtc1f01, after.bestV.wtc1f01], [30000, JUDGING, "B", JUDGING]);
+  assert.deepEqual([after.scoresOld.wtc1f01, after.bestOld.wtc1f01], [50000, "S"], "the old bests kept");
+  assert.deepEqual(JSON.parse(store.get(LITE_KEY)!).scoresOld, { wtc1f01: 50000 }, "written back apart");
+  assert.deepEqual(recordLiteBest("wtc1f01", 20000), { before: 30000, fresh: false, old: 50000 });
+  assert.equal(JUDGING, "1.52");
+  // The cards: today's best, and the one from before 1.52 apart; a piece with only an old grade shows it dimmed.
+  register("./tsx-hooks.mjs", import.meta.url);
+  const { createElement } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { LiteGrid } = await import("../src/bench/LiteGrid.tsx");
+  const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: ["wtc1f01"], best: after.best, scores: after.scores, bestOld: after.bestOld, scoresOld: after.scoresOld, open: () => {}, settings: () => {}, fuguesOnly: true, book: "I" }));
+  assert.match(html, /id="grade-wtc1f01"[^>]*>B</);
+  assert.match(html, /id="best-wtc1f01"[^>]*>BEST 30,000</);
+  assert.match(html, /id="best-old-wtc1f01"[^>]*>BEST 50,000 · BEFORE 1.52</);
+  assert.match(html, /class="tb-lite-grade tb-lite-old" id="grade-wtc1f02"[^>]*>B</);
+});
