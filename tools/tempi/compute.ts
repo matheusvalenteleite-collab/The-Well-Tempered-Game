@@ -5,7 +5,7 @@
  *
  * Every recording's duration is turned into an average quarter-note tempo (the piece's length in
  * quarters, from data/touch/pieces.json, × 60 / seconds).
- * NORMAL (D285, the tempo played): on the slow side of the recordings (the owner: "avoid excessively
+ * NORMAL (D285, the tempo played; D312: the 35th percentile and 5.5 notes a second): on the slow side of the recordings (the owner: "avoid excessively
  * fast tempos in this game even if they're recommended by the experts"): the 15th percentile (85% of
  * the recordings go faster), lowered further so the busiest voice's sustained load stays at 4.5 notes
  * a second, but never under the slowest recording (a tempo some musician chose). The median is kept.
@@ -84,7 +84,10 @@ export function beatUnit(meter: string): { unit: string; perQuarter: number } {
   throw new Error(meter);
 }
 
-const GAME_Q = 0.15, GAME_LOAD = 4.5;
+// D312: back toward the recordings (the owner: "the overall tempos have now started to sound overly slow …
+// revert … or at least a little bit more in that direction, though … avoid overly fast tempos"): the
+// 35th percentile (was the 15th), the busiest voice at most 5.5 notes a second (was 4.5).
+const GAME_Q = 0.35, GAME_LOAD = 5.5;
 const SLOW_SHARE = 0.62, MIN_SHARE = 0.45, LOAD = 3.0, FLOOR = 30;
 const even = (x: number) => Math.round(x / 2) * 2;
 
