@@ -28,7 +28,7 @@ test("D335: the levels: A ±4 place and ±4 strike, B ±6 pedal and ±4 accent, 
   near(baseDb("strike", 1), 0);
   near(strikeDb("place", 1), 4);
   near(strikeDb("pedal", 0.25), -2);
-  near(strikeDb("strike", 0), -8);
+  near(strikeDb("strike", 0, "even"), -8); // D335's even curve (D336 made "firm" the default: test/d336-passage-dynamics.test.ts)
   near(strikeDb("place", null), 0, 1e-9);
   near(strikeDb("off", 1), 0);
   const b = dynLevel("pedal", 1, 1);
@@ -157,7 +157,7 @@ test("D335: the zone calibration kept in localStorage; storage blocked: nothing,
 
 test("D335: the note's line names each part of its level", () => {
   const st = logStrength(1.1, { soft: 0.25, hard: 1 });
-  const l = dynLevel("pedal", 0.25, st);
+  const l = dynLevel("pedal", 0.25, st, "even");
   const s = dynLine("C5", "pedal", l, { strength: st, peak: 1.1, ms: 31 });
   assert.equal(s, "♩ C5 · pedal −3.0 dB · strike +2.3 dB (firm, peak 1.10, 31 ms) · total −0.7 dB");
   assert.match(dynLine("D4", "strike", dynLevel("strike", 0.5, null), { strength: null, peak: null, ms: 20 }), /fixed level · strike — \(no motion samples: neutral\)/);

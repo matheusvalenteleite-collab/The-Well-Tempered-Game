@@ -14,7 +14,8 @@
 import { useEffect, useRef, useState } from "react";
 import { MotionHub, posture, pressureKind, sizeOf, stampOf, medianInterval, median, valueOf, type SenseSource, type Separability, type TapLabel, type TapRecord, type TouchInfo } from "./sensor.ts";
 import { MECH } from "../mechanics.ts";
-import { loadZoneCal, saveZoneCal, zoneCalibration, zoneReport, type ZoneCal } from "./dynamics.ts";
+import { calibrate } from "./sensor.ts";
+import { ADAPT_N, DEFAULT_CAL, loadDynCal, saveDynCal, saveZoneCal, zoneReport, type AdaptiveCal, type DynCal } from "./dynamics.ts";
 
 const GUIDED = 10;
 const FLATTEN = 5;
@@ -26,11 +27,11 @@ const ZONE_TAPS = 8;
 const ZNEXT: Record<ZPhase, Phase> = { zSoftIn: "zHardIn", zHardIn: "zSoftOut", zSoftOut: "zHardOut", zHardOut: "done" };
 const isZ = (p: Phase): p is ZPhase => p.startsWith("z");
 
-export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub: MotionHub; play: boolean; setPlay: (v: boolean) => void; source: SenseSource; setSource: (s: SenseSource) => void; copy: () => void }) {
+export function SensorTab({ hub, play, setPlay, source, setSource, copy, adapt, adaptive, setAdaptive }: { hub: MotionHub; play: boolean; setPlay: (v: boolean) => void; source: SenseSource; setSource: (s: SenseSource) => void; copy: () => void; adapt: AdaptiveCal; adaptive: boolean; setAdaptive: (v: boolean) => void }) {
   const [, setTick] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [quiet, setQuiet] = useState(false);
-  const [zc, setZc] = useState<ZoneCal | null>(() => loadZoneCal());
+  const [stored, setStored] = useState<DynCal>(() => loadDynCal());
   const starts = useRef<{ t: number; force?: number; radiusX?: number; radiusY?: number }[]>([]);
   const pending = useRef<TouchInfo[]>([]);
   const down = useRef(new Map<number, TouchInfo>());
@@ -97,14 +98,20 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
         setPhase(next);
       } else setTick((n) => n + 1);
     }
-    const last = isZ(ph) && ph === "zHardOut" && guided.current === 0;
+    // D336: the last tap of LEARN (soft, hard) or LEARN BY ZONE: one calibration for DYNAMICS, from both zones.
+    const last = (ph === "zHardOut" || ph === "hard") && guided.current === 0;
+    const per = isZ(ph) ? 2 * ZONE_TAPS : GUIDED;
     hub.measure(touch.t, label, touch, () => {
       pending.current = pending.current.filter((p) => p !== touch);
-      // D335: the zone flow's last tap read: each zone's calibration kept on this device.
+      // D336: the flow's last tap read: its soft and hard taps (both zones together) the calibration kept, the adaptive references started again from it.
       if (last) {
-        const c = zoneCalibration(hub.taps);
-        saveZoneCal(c);
-        setZc(c);
+        const c = calibrate(hub.peaksOf("soft").slice(-per), hub.peaksOf("hard").slice(-per));
+        if (c) {
+          const d: DynCal = { soft: c.soft, hard: c.hard, from: "learn" };
+          saveDynCal(d);
+          adapt.reseed(d);
+          setStored(d);
+        }
       }
     });
   };
@@ -223,7 +230,8 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
           <p>
             <b>FLATTEN</b> {growth.length ? `the size grew ×${f2(median(growth))} (median of ${growth.length}; ${f2(Math.min(...growth))}–${f2(Math.max(...growth))}) while held` : "–"}
           </p>
-          <ZoneLine taps={hub.taps} zc={zc} forget={() => (saveZoneCal(null), setZc(null))} />
+          <ZoneLine taps={hub.taps} />
+          <DynCalLine adapt={adapt} stored={stored} adaptive={adaptive} setAdaptive={setAdaptive} forget={() => (saveDynCal(null), saveZoneCal(null), adapt.reseed(DEFAULT_CAL), setStored(loadDynCal()))} />
           <p>
             <b>DELAY</b> the motion peak's sample reached the page {avail.length ? `${f2(median(avail), 0)} ms (median; ${f2(Math.min(...avail), 0)}–${f2(Math.max(...avail), 0)})` : "–"} after the touch; the size is there at the touch
           </p>
@@ -260,21 +268,33 @@ export function SensorTab({ hub, play, setPlay, source, setSource, copy }: { hub
   );
 }
 
-/** D335: inner against outer taps (the zone's medians, separation, rotation), and the zone calibration kept for DYNAMICS. */
-function ZoneLine({ taps, zc, forget }: { taps: readonly TapRecord[]; zc: ZoneCal | null; forget: () => void }) {
+/** D335: inner against outer taps (the zone's medians, separation, rotation). D336: a report only (they read alike; one calibration). */
+function ZoneLine({ taps }: { taps: readonly TapRecord[] }) {
   const r = zoneReport(taps);
   const side = (n: string, z: typeof r.inner) => `${n}: soft ${f2(z.soft.median)} (n ${z.soft.n}), hard ${f2(z.hard.median)} (n ${z.hard.n})${z.sep ? `, AUC ${f2(z.sep.auc)}` : ""}, rot ${f2(z.rot.median, 0)}°/s`;
-  const cal = (c: ZoneCal[keyof ZoneCal]) => (c ? `${f2(c.soft)}→${f2(c.hard)}` : "–");
   return (
     <p id="lab-sensor-zones-sum">
       <b>ZONES</b> {r.verdict === "too few" ? "LEARN BY ZONE to compare the inner and outer halves" : `${side("inner", r.inner)} · ${side("outer", r.outer)} · outer ÷ inner: soft ×${f2(r.ratioSoft)}, hard ×${f2(r.ratioHard)} · ${r.verdict.toUpperCase()}`}
+    </p>
+  );
+}
+
+/** D336: DYNAMICS' one calibration: the references in use now (adaptive: from the recent strikes), the stored one, ADAPTIVE, FORGET. */
+function DynCalLine({ adapt, stored, adaptive, setAdaptive, forget }: { adapt: AdaptiveCal; stored: DynCal; adaptive: boolean; setAdaptive: (v: boolean) => void; forget: () => void }) {
+  const r = adapt.refs();
+  const from = (c: DynCal) => (c.from === "learn" ? "learned" : c.from === "adaptive" ? `adaptive, kept from the last session${c.n ? ` (${c.n} strikes)` : ""}` : "the default");
+  return (
+    <p id="lab-sensor-dyncal">
+      <b>DYNAMICS</b> strike references now: soft {f2(r.soft)} · hard {f2(r.hard)} ({r.from === "adaptive" ? `adaptive: ${r.n} recent strikes` : from(r)}) · started from soft {f2(stored.soft)} · hard {f2(stored.hard)} ({from(stored)}){" "}
+      <label className="lab-toggle" htmlFor="lab-dyn-adaptive">
+        <input type="checkbox" id="lab-dyn-adaptive" checked={adaptive} onChange={(e) => setAdaptive(e.target.checked)} />
+        <span>ADAPTIVE</span>
+      </label>{" "}
+      <button type="button" className="lab-btn" onClick={forget}>
+        FORGET
+      </button>
       <br />
-      DYNAMICS calibration kept: inner {cal(zc?.inner ?? null)} · outer {cal(zc?.outer ?? null)}{" "}
-      {zc && (
-        <button type="button" className="lab-btn" onClick={forget}>
-          FORGET
-        </button>
-      )}
+      <span className="lab-dim">One calibration for the whole bar (LEARN or LEARN BY ZONE sets it). ADAPTIVE: the soft and hard references follow your last {ADAPT_N} strikes (their 20th and 80th percentiles), so a new session needs no LEARN; off, the calibration alone.</span>
     </p>
   );
 }

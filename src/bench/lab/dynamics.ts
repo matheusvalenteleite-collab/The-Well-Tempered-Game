@@ -16,10 +16,12 @@
  * (chip.ts rampTrim, MECH.dynRampMs). MECH.dynWait instead holds the attack up to MECH.dynWaitMs for
  * the peak and strikes it at the whole level (the piano's layer chosen by it too).
  *
- * The strike's strength is read from the peak by the calibration of the tap's ZONE (the inner or outer
- * half of the bar: a grip turns the phone differently for each), learned in SENSOR › LEARN BY ZONE and
- * kept in localStorage; a zone without one uses the session's or the recent taps' calibration.
- * The pure functions here are tested (test/d335-dynamics.test.ts).
+ * D335 read the strike by the calibration of the tap's ZONE (the inner or outer half of the bar).
+ * D336: the owner's zone test read both alike, so ONE calibration (LEARN or LEARN BY ZONE, kept in
+ * localStorage), ADAPTIVE by default (AdaptiveCal: the references follow the recent strikes); the
+ * strike's curve trusts a firm tap more than a soft one (strikeDb "firm"). DYNAMICS also plays in
+ * PASSAGE (passage-dyn.ts). The zone functions stay for SENSOR's zone report.
+ * The pure functions here are tested (test/d335-dynamics.test.ts, test/d336-passage-dynamics.test.ts).
  */
 import type { Calibration } from "./sensor.ts";
 import { calibrate, separability, stats, type Separability, type Stats } from "./sensor.ts";
@@ -70,10 +72,26 @@ export function baseDb(mode: DynMode, c: number): number {
   if (mode === "pedal") return PEDAL_DB * (2 * clamp01(c) - 1);
   return 0;
 }
+/**
+ * D336: the strike's curve. "firm" (the default): trust a firm strike more than a soft one (the owner's
+ * zone test: 3 of 18 hard taps by the box read as soft): at or below the soft reference (strength 0.25)
+ * only a small cut, SOFT_CUT_DB (−2 dB in A and B; C's span is twice theirs, so −4 dB); from the
+ * midpoint between the references (0.5, their geometric mean) the full accent (+4 dB; C +8); linear
+ * between. "even": D335's symmetric line, (2s − 1) × span.
+ */
+export type StrikeCurve = "firm" | "even";
+/** D336: the most a strike at or below the soft reference takes off in A and B (dB). */
+export const SOFT_CUT_DB = 2;
 /** The strike's dB for a strength (null: not read: 0). */
-export function strikeDb(mode: DynMode, strength: number | null): number {
+export function strikeDb(mode: DynMode, strength: number | null, curve: StrikeCurve = "firm"): number {
   if (strength === null || mode === "off") return 0;
-  return (mode === "strike" ? STRIKE_ONLY_DB : STRIKE_DB) * (2 * clamp01(strength) - 1);
+  const span = mode === "strike" ? STRIKE_ONLY_DB : STRIKE_DB;
+  const s = clamp01(strength);
+  if (curve === "even") return span * (2 * s - 1);
+  const cut = (SOFT_CUT_DB * span) / STRIKE_DB;
+  if (s <= 0.25) return -cut;
+  if (s >= 0.5) return span;
+  return -cut + ((span + cut) * (s - 0.25)) / 0.25;
 }
 export interface DynLevel {
   base: number;
@@ -82,9 +100,9 @@ export interface DynLevel {
   total: number;
   clipped: boolean;
 }
-export function dynLevel(mode: DynMode, c: number, strength: number | null): DynLevel {
+export function dynLevel(mode: DynMode, c: number, strength: number | null, curve: StrikeCurve = "firm"): DynLevel {
   const base = baseDb(mode, c);
-  const strike = strikeDb(mode, strength);
+  const strike = strikeDb(mode, strength, curve);
   const sum = base + strike;
   const total = clamp(sum, -DYN_MAX_DB, DYN_MAX_DB);
   return { base, strike, total, clipped: total !== sum };
@@ -222,12 +240,131 @@ export function saveZoneCal(zc: ZoneCal | null): boolean {
   }
 }
 
+// ---- D336: one calibration, adapting ----
+
+/**
+ * D336: the strike's references (the motion peak, m/s², a soft tap's and a hard tap's: strength 0.25 and
+ * 0.75). One for the whole bar: the owner's zone test (WTC 1.49, 52 taps) read inner and outer alike
+ * (soft 0.23 against 0.21, hard 0.62 against 0.66). `from`: LEARN in SENSOR, the adaptive references as
+ * last kept, or the default (the owner's earlier sessions' soft median, and three times it).
+ */
+export interface DynCal {
+  soft: number;
+  hard: number;
+  from: "learn" | "adaptive" | "default";
+  /** The adaptive's strikes it was learned from (when from "adaptive"). */
+  n?: number;
+  at?: string;
+}
+export const DEFAULT_CAL: DynCal = { soft: 0.25, hard: 0.75, from: "default" };
+/** D336, ADAPTIVE: the strikes it learns from (the latest), its quantiles, the stored calibration's weight (in strikes), the narrowest spread kept. */
+export const ADAPT_N = 60;
+export const ADAPT_LO = 0.2;
+export const ADAPT_HI = 0.8;
+export const ADAPT_SEED = 12;
+export const ADAPT_MIN_RATIO = 2;
+/** It starts to move after this many strikes. */
+export const ADAPT_MIN_N = 4;
+
+const quantile = (sorted: readonly number[], p: number) => {
+  const x = p * (sorted.length - 1);
+  const lo = Math.floor(x);
+  const hi = Math.min(sorted.length - 1, lo + 1);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (x - lo);
+};
+
+/**
+ * D336, ADAPTIVE calibration (on by default): the owner's levels drift between sessions (hard median
+ * 0.95–1.18 in earlier sessions, 0.62–0.66 in the last, the phone turned the other way), so the soft and
+ * hard references follow his recent strikes: the low and high quantiles (ADAPT_LO, ADAPT_HI) of the last
+ * ADAPT_N peaks, blended on a log scale with the stored calibration as if it were ADAPT_SEED strikes
+ * (so it moves from the first strikes and has mostly followed him after a few dozen), never closer than
+ * ADAPT_MIN_RATIO apart (round their geometric mean: a run of even strikes does not make every
+ * difference an accent). Off, the stored calibration alone.
+ */
+export class AdaptiveCal {
+  peaks: number[] = [];
+  seed: DynCal;
+  on: boolean;
+  constructor(seed: DynCal = DEFAULT_CAL, on = true) {
+    this.seed = seed;
+    this.on = on;
+  }
+  /** A strike's peak learned from (nothing for none). */
+  add(peak: number | null) {
+    if (peak === null || !(peak > 0) || !Number.isFinite(peak)) return;
+    this.peaks.push(peak);
+    if (this.peaks.length > ADAPT_N) this.peaks.splice(0, this.peaks.length - ADAPT_N);
+  }
+  /** A new stored calibration (LEARN): the strikes learned so far dropped. */
+  reseed(c: DynCal) {
+    this.seed = c;
+    this.peaks = [];
+  }
+  get n(): number {
+    return this.peaks.length;
+  }
+  /** The references now. */
+  refs(): DynCal {
+    const n = this.peaks.length;
+    if (!this.on || n < ADAPT_MIN_N) return this.seed;
+    const s = [...this.peaks].sort((a, b) => a - b);
+    const w = n / (n + ADAPT_SEED);
+    const mix = (q: number, seed: number) => Math.exp((1 - w) * Math.log(seed) + w * Math.log(q));
+    let soft = mix(quantile(s, ADAPT_LO), this.seed.soft);
+    let hard = mix(quantile(s, ADAPT_HI), this.seed.hard);
+    if (!(hard >= soft * ADAPT_MIN_RATIO)) {
+      const g = Math.sqrt(soft * Math.max(hard, soft));
+      const r = Math.sqrt(ADAPT_MIN_RATIO);
+      soft = g / r;
+      hard = g * r;
+    }
+    return { soft, hard, from: "adaptive", n };
+  }
+}
+
+const CAL_KEY = "wtc.lab.dynCal";
+const okCal = (c: unknown): c is DynCal => !!c && typeof c === "object" && (c as DynCal).soft > 0 && (c as DynCal).hard > (c as DynCal).soft && Number.isFinite((c as DynCal).hard);
+/**
+ * D336: the calibration kept on this device (localStorage; guarded): LEARN's, or the adaptive references
+ * as they stood at the end of the last run; before any, D335's zone calibration's "both zones"; else the default.
+ */
+export function loadDynCal(): DynCal {
+  try {
+    const v = localStorage.getItem(CAL_KEY);
+    if (v) {
+      const o = JSON.parse(v) as DynCal;
+      if (okCal(o)) return { soft: o.soft, hard: o.hard, from: o.from === "learn" || o.from === "adaptive" ? o.from : "learn", ...(o.n ? { n: o.n } : {}), ...(o.at ? { at: o.at } : {}) };
+    }
+  } catch {
+    /* blocked: the default */
+  }
+  const zc = loadZoneCal();
+  if (zc?.all) return { soft: zc.all.soft, hard: zc.all.hard, from: "learn" };
+  return DEFAULT_CAL;
+}
+export function saveDynCal(c: DynCal | null): boolean {
+  try {
+    if (c && okCal(c)) localStorage.setItem(CAL_KEY, JSON.stringify({ ...c, at: c.at ?? new Date().toISOString() }));
+    else localStorage.removeItem(CAL_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+/** "soft 0.21 · hard 0.64 (adaptive, 40 strikes)": the references for a line. */
+export function refsText(c: DynCal): string {
+  const why = c.from === "adaptive" ? `adaptive, ${c.n ?? 0} strikes` : c.from === "learn" ? "learned" : "default: LEARN in SENSOR, or play";
+  return `soft ${c.soft.toFixed(2)} · hard ${c.hard.toFixed(2)} (${why})`;
+}
+
 const sdb = (db: number) => `${db >= 0 ? "+" : "−"}${Math.abs(db).toFixed(1)} dB`;
 export { sdb as signedDb };
 /** The note's line: "♩ C5 · pedal −3.0 dB · strike +2.5 dB (firm, peak 1.10, 31 ms) · total −0.5 dB". */
-export function dynLine(name: string, mode: DynMode, l: DynLevel, s: { strength: number | null; peak: number | null; ms: number; cal?: string }): string {
+export function dynLine(name: string, mode: DynMode, l: DynLevel, s: { strength: number | null; peak: number | null; ms: number; cal?: string; none?: string }): string {
   const base = mode === "place" ? `place ${sdb(l.base)}` : mode === "pedal" ? `pedal ${sdb(l.base)}` : "fixed level";
-  const strike =
-    s.peak === null ? "strike — (no motion samples: neutral)" : s.strength === null ? `strike — (peak ${s.peak.toFixed(2)}, no calibration yet: neutral)` : `strike ${sdb(l.strike)} (${strikeWord(s.strength)}, peak ${s.peak.toFixed(2)}, ${Math.round(s.ms)} ms)`;
+  const strike = s.none
+    ? `strike — (${s.none}: neutral)`
+    : s.peak === null ? "strike — (no motion samples: neutral)" : s.strength === null ? `strike — (peak ${s.peak.toFixed(2)}, no calibration yet: neutral)` : `strike ${sdb(l.strike)} (${strikeWord(s.strength)}, peak ${s.peak.toFixed(2)}, ${Math.round(s.ms)} ms)`;
   return `♩ ${name} · ${base} · ${strike} · total ${sdb(l.total)}${l.clipped ? ` (held within ±${DYN_MAX_DB})` : ""}`;
 }

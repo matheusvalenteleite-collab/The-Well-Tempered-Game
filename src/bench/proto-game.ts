@@ -200,6 +200,8 @@ interface Held {
    * STRONG_SIDE), mirrored per bar (protos.ts barDynamic): the note's attack (touch-expr.ts); its sideways travel from there, the sustain.
    */
   land?: number;
+  /** D336: when the thumb landed (its touch's time stamp), for the lab's strike reading. */
+  t0?: number;
   /** D271: the way its slides have gone (1 up or right, -1 down or left): a held thumb slides one way only. */
   slideDir?: 1 | -1;
   /** D306, BLUETOOTH MODE: its note as scheduled, cut when the touch lets go (a staccato heard, a headphones' delay late). */
@@ -287,6 +289,29 @@ export function laneLine(t: { exact: number; relative: number }): string {
   return `LANE ${e}% · DIRECTION ${100 - e}%`;
 }
 
+/** D336: what THE LAB's DYNAMICS is told of a note about to sound (ProtoGame.noteDyn). */
+export interface NoteDynAsk {
+  k: number;
+  i: number;
+  /** The pitch sounding (the wrong one for a wrong note). */
+  midi: number;
+  side: Side;
+  /** D311's landing across the bar (0 the soft side .. 1 the strong; the middle off the bars). */
+  land: number;
+  /** Where across its bar (0 by the box, 1 the phone's edge), on the bars. */
+  across?: number;
+  /** The landing's time stamp (the touch's; null for a key). */
+  ts: number | null;
+  /** How it sounded: a pull-off or a press has no strike of its own; a hammer-on lands while the other holds. */
+  gesture?: "hammer-on" | "pull-off" | "press";
+  ok: boolean;
+}
+export interface NoteDynAnswer {
+  touch: number;
+  level: number;
+  /** The sounds made for it (and the audio time they began), for the late correction. */
+  sounded?: (sounds: readonly Sounding[], at: number) => void;
+}
 type Verdict = { ok: boolean; wrong?: number; why?: "gesture" | "legato" | "hand" | "height" | "dynamic"; lane?: LaneGrade; at?: number };
 
 /** A voice the player plays: its notes as judged, and their moves. */
@@ -740,6 +765,14 @@ export class ProtoGame {
   wall: () => number = () => performance.now();
   /** D317, THE LAB: told of every judgement as it is made (lab/events.ts); null in the game. */
   tap: ((e: LabEvent) => void) | null = null;
+  /**
+   * D336, THE LAB's DYNAMICS in PASSAGE (lab/passage-dyn.ts): asked as the player's own note is about to
+   * sound (struck, a hammer-on, a pull-off or a press; never a slide, never in BLUETOOTH MODE), it may
+   * set the note's onset (Play.touch, a factor on Play.level) and is handed the sounds made, to correct
+   * them once the strike is read. The sound only: the verdict, the points and the events are the same
+   * with it or without it (the game never sets it).
+   */
+  noteDyn: ((n: NoteDynAsk) => NoteDynAnswer | null) | null = null;
   /** D317: how LADDER judged the last touch's height (for the tap). */
   private ladderWhy: LadderWhy | undefined;
   /** D317: the note nearest a stray touch (for the tap). */
@@ -1567,7 +1600,7 @@ export class ProtoGame {
     this.finalStrike(id, ts);
     c = { ...c, side: this.thumbSide(c) };
     const d = this.dynamicAt(c);
-    const h: Held = { across: c.x / Math.max(1, c.w), side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
+    const h: Held = { across: c.x / Math.max(1, c.w), side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], t0: ts, row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
     // D311: where across it landed (the attack); BLUETOOTH MODE's next notes of the voice take it too.
     h.land = this.landAt(c);
     this.lastLand[h.k] = h.land;
@@ -2513,6 +2546,12 @@ export class ProtoGame {
     const base = dynamic(this.heardAt(d, h.k, notes[i].on));
     // D311: where the thumb landed across its bar shapes the attack (Play.touch), right or wrong alike.
     let expr: Play = { ...base, trill: this.trillNext, muffleable: true, lead: true, envelope: piano ? "piano" : "synth", touch: this.touchFor(h.land, h.k, notes[i].on) };
+    // D336: the lab's DYNAMICS (its own touch, never with a reading's level or the dynamics lesson).
+    const dynAns =
+      this.noteDyn && !slide && !this.bt && expr.touch !== undefined
+        ? this.noteDyn({ k: h.k, i, midi: v.ok || v.wrong === undefined ? notes[i].midi : v.wrong, side: h.side, land: h.land ?? TOUCH_NEUTRAL, across: h.across !== undefined && this.proto.layout === "bars" ? barAcross(h.across * this.touchW, this.touchW) : undefined, ts: h.t0 ?? null, gesture: this.gesture ?? (MECH.prepare && lw.holding ? "hammer-on" : undefined), ok: v.ok })
+        : null;
+    if (dynAns) expr = { ...expr, touch: dynAns.touch, level: (expr.level ?? 1) * dynAns.level };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
@@ -2602,6 +2641,7 @@ export class ProtoGame {
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
       } else h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };
+      dynAns?.sounded?.(h.sounds, this.chip.ctx.currentTime);
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }

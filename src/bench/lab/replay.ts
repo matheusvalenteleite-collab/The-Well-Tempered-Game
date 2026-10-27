@@ -7,7 +7,7 @@
 import type { Chip, Sounding } from "../../touch/chip.ts";
 import { barAt, barStart, beatOf, fugueById } from "../../touch/fugue.ts";
 import { MECH, MECH_DEFAULTS, mechPhrase, withMech, type Mech, type MechKey } from "../mechanics.ts";
-import type { Rows } from "../proto-game.ts";
+import type { ProtoGame, Rows } from "../proto-game.ts";
 import type { LabEvent } from "./events.ts";
 import { labGame } from "./game.ts";
 import { summaryOf, UNIT_S, type LabLog, type LabSummary } from "./log.ts";
@@ -45,7 +45,7 @@ export interface ReplayResult {
 }
 
 /** The log played again with its own parameters, or with `mech` (a whole set or some changes on the log's). */
-export function replay(log: LabLog, mech?: Partial<Mech>): ReplayResult {
+export function replay(log: LabLog, mech?: Partial<Mech>, prepare?: (g: ProtoGame, chip: Chip) => void): ReplayResult {
   // D329: a log from before WTC 1.46 took the waiting note's takeover window from the double contact's.
   const was = log.mech?.waitTakeMs === undefined && log.mech?.doubleMs !== undefined ? { waitTakeMs: log.mech.doubleMs } : {};
   const values = { ...was, ...log.mech, ...(mech ?? {}) };
@@ -56,6 +56,8 @@ export function replay(log: LabLog, mech?: Partial<Mech>): ReplayResult {
     g.wall = () => 0;
     const events: LabEvent[] = [];
     g.tap = (e) => events.push(e);
+    // D336: a test's own hooks on the game (THE LAB's DYNAMICS: the sound only, the verdicts unchanged).
+    prepare?.(g, chip);
     // The game's anchor (its first beat) is 0.15 s after its making (ProtoGame: anchorAt).
     const base = g.timeAt(g.start);
     let area = { ...log.area };

@@ -83,6 +83,8 @@ export interface LabLog {
   sensor?: SensorExport;
   /** D333: a STUDY take: the study's id, its excerpt and take (from 0). */
   study?: { id: string; excerpt: number; take: number };
+  /** D336: DYNAMICS on the player's notes (the sound only, never judged): the design, the strike's references at the start, each note's line. */
+  dynamics?: { mode: string; adaptive: boolean; refs: { soft: number; hard: number; from: string; n?: number }; lines: string[] };
 }
 
 /** Units of the log's times: tenths of a millisecond. */
