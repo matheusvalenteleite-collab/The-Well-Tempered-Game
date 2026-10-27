@@ -11,7 +11,7 @@ export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 import { hz } from "./tuning.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 
 /**
@@ -36,6 +36,21 @@ function halt(s: AudioScheduledSourceNode, at: number) {
   }
 }
 
+/**
+ * D313: how far ahead (s, at a rate of 1) a recording has run after a syllable's pitch curve (sampledNote:
+ * `from` cents, a straight line to `over` in `t1` s, then back to 0 with a time constant of 45 ms)
+ * against running at its pitch: a scoop from below puts it behind, a glide from above ahead.
+ */
+export function scoopShift(from: number, over: number, t1: number): number {
+  let x = 0;
+  const dt = 0.001;
+  for (let s = 0; s < t1 + 0.5; s += dt) {
+    const c = s < t1 ? from + ((over - from) * s) / t1 : over * Math.exp(-(s - t1) / 0.045);
+    x += (2 ** (c / 1200) - 1) * dt;
+  }
+  return x;
+}
+
 /** D210: a phone or tablet (a touch screen): fewer notes at once (`VOICE_CAP`). */
 export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
 
@@ -45,6 +60,12 @@ export const isPhone = () => typeof navigator !== "undefined" && navigator.maxTo
  * fugue with its ornaments, the riders and the rings of plucked notes usually reach.
  */
 export const VOICE_CAP = { phone: 32, computer: 64, phoneSustained: 18 };
+/**
+ * D313, SOLO VOICES' passages (chip.ts chainOn): crossfaded over `xf` s (its gains set at `points` + 1
+ * points); the best of `tries` places drawn, each within the first `spread` s of the steady stretch, so it lasts at least
+ * `least` s; at most `max` of them a note.
+ */
+export const CHAIN = { xf: 0.3, points: 10, tries: 6, spread: 0.8, least: 1.2, max: 16 };
 /**
  * D249: on a phone, a sustained recorded sound (the organ: 10-16 nodes a note, every note held on its
  * loop) has the lower cap, and ORGANO PLENO's extra pipes count against it, one each.
@@ -1011,6 +1032,115 @@ export class Chip {
   }
 
   /**
+   * D313, SOLO VOICES (sampled.ts Bake.chain): a note longer than its recording is not looped (D305's
+   * 2 s loop, heard again and again, was the owner's "copy paste") but goes on with passages of the same
+   * recording from places within its steady stretch `chain` that differ each time (a hash of the note's
+   * pitch and time, so a render repeats), each crossfaded into the one before over CHAIN.xf before the
+   * one before runs out (its rate allowing for a bend of 150 cents). A held straight tone is nearly
+   * periodic, so two passages of it are correlated by their phase (D313 measured the sine law swelling
+   * and sagging a crossfade by up to ±3 dB: a slow tremolo): each passage starts where its waveform
+   * best matches the outgoing one's (`align`, within one period of the place drawn), and the crossfade's
+   * gains are held to constant power for the two passages' correlation measured at each of its points
+   * (`rho`; the recording's own samples); the first passage's place allows for the syllable's scoop or
+   * glide (`scoop`: s of the recording gained or lost by it, scoopShift). Two nodes a passage (a source and its gain), only past the
+   * recording's length (in the fugues 1% of notes outlast 3 s); after CHAIN.max passages the last loops.
+   */
+  private chainOn(first: AudioBufferSourceNode, g0: GainNode, gain: number, r: Loaded, chain: [number, number], t: number, from: number, until: number, midi: number, fileHz: number, scoop: number, out: AudioNode, bag: Bag, add: (s: AudioBufferSourceNode) => void) {
+    const ctx = this.ctx;
+    const rate0 = first.playbackRate.value;
+    const rate = rate0 * 2 ** (150 / 1200);
+    const xf = CHAIN.xf;
+    const data = typeof r.buffer.getChannelData === "function" ? r.buffer.getChannelData(0) : null;
+    const sr = r.buffer.sampleRate || 44100;
+    /** The normalised correlation of the recording at a and b (s) over w s (every `step`th sample). */
+    const corr = (a: number, b: number, w: number, step = 2) => {
+      if (!data) return 0;
+      const i0 = Math.round(a * sr), j0 = Math.round(b * sr), n = Math.round(w * sr);
+      if (i0 < 0 || j0 < 0 || i0 + n > data.length || j0 + n > data.length) return 0;
+      let xy = 0, xx = 0, yy = 0;
+      for (let i = 0; i < n; i += step) {
+        const x = data[i0 + i], y = data[j0 + i];
+        xy += x * y;
+        xx += x * x;
+        yy += y * y;
+      }
+      return xy / (Math.sqrt(xx * yy) + 1e-12);
+    };
+    const period = 1 / fileHz;
+    /** The place within one period after `b` whose waveform best matches the recording at `a` (every
+     * fourth sample, then the best's neighbours). */
+    const align = (a: number, b: number) => {
+      let best = -2, at = b;
+      for (let d = 0; d < period; d += 4 / sr) {
+        const c = corr(a, b + d, 0.02, 3);
+        if (c > best) (best = c), (at = b + d);
+      }
+      const coarse = at;
+      for (let d = -3; d <= 3; d++) {
+        const c = corr(a, coarse + d / sr, 0.02, 1);
+        if (d === -3 || c > best) (best = c), (at = coarse + d / sr);
+      }
+      return at;
+    };
+    const N = CHAIN.points;
+    let src = first;
+    let g = g0;
+    let at = t;
+    let pos = from;
+    for (let k = 1; ; k++) {
+      const runsOut = at + (r.onset + chain[1] - pos) / rate;
+      if (runsOut >= until) return;
+      const next = Math.max(at + xf, runsOut - xf);
+      if (k > CHAIN.max) {
+        // (A note held past every passage, e.g. the player's longest hold: the last one loops.)
+        src.loop = true;
+        src.loopStart = r.onset + chain[0];
+        src.loopEnd = r.onset + chain[1];
+        return;
+      }
+      const s = bag.src(ctx.createBufferSource());
+      s.buffer = r.buffer;
+      s.playbackRate.value = rate0;
+      const spread = Math.max(0, chain[1] - chain[0] - CHAIN.least);
+      const outAt = pos + (next - at) * rate0 + (k === 1 ? scoop * rate0 : 0);
+      /** The two passages' correlation at each point of the crossfade, the incoming one from `b`. */
+      const rhos = (b: number) =>
+        Array.from({ length: N + 1 }, (_, q) => {
+          const dx = ((q / N) * xf - 0.015) * rate0;
+          return q === 0 || q === N ? 0 : corr(outAt + dx, b + dx, 0.03);
+        });
+      // Of CHAIN.tries places drawn, each aligned, the one whose waveform stays with the outgoing one
+      // through the crossfade (the highest least correlation): the recording's slow wander of a few cents
+      // can turn two passages aligned at its start against each other by its end.
+      let best = -2;
+      let rho: number[] = [];
+      for (let j = 0; j < (data ? CHAIN.tries : 1); j++) {
+        const h = Math.sin(midi * 78.233 + t * 12.9898 + k * 39.425 + j * 17.719) * 43758.5453;
+        const b = align(outAt, r.onset + chain[0] + (h - Math.floor(h)) * Math.min(spread, CHAIN.spread));
+        const rs = rhos(b);
+        const score = Math.min(...rs.slice(1, N));
+        if (score > best) (best = score), (pos = b), (rho = rs);
+      }
+      const gn = bag.add(ctx.createGain());
+      for (let q = 0; q <= N; q++) {
+        const x = q / N;
+        const wa = Math.cos((x * Math.PI) / 2), wb = Math.sin((x * Math.PI) / 2);
+        const c = 1 / Math.sqrt(wa * wa + wb * wb + 2 * wa * wb * Math.max(-0.6, Math.min(1, rho[q])));
+        const when = next + x * xf;
+        if (q === 0) (g.gain.setValueAtTime(gain, when), gn.gain.setValueAtTime(0, when));
+        else (g.gain.linearRampToValueAtTime(gain * wa * c, when), gn.gain.linearRampToValueAtTime(gain * wb * c, when));
+      }
+      s.connect(gn).connect(out);
+      s.start(next, pos);
+      halt(src, next + xf + 0.02);
+      add(s);
+      src = s;
+      g = gn;
+      at = next;
+    }
+  }
+
+  /**
    * D190: a note on a recorded instrument: the nearest recording, retuned by its playback rate to the
    * tuning's pitch (hz(): every temperament, A = 415), through brightness, the muffle, the envelope and
    * the dynamic. A harpsichord's note dies away by itself; at the written end (or when let go) its
@@ -1037,7 +1167,8 @@ export class Chip {
       src.buffer = r.buffer;
       src.playbackRate.value = rateFor(set, m, baseHz * mult) * 2 ** ((p.detune ?? 0) / 1200);
       const loop = noteInfo(set, m)?.loop;
-      if (loop && !plucked) {
+      const chain = plucked ? undefined : chainOf(set);
+      if (loop && !plucked && !chain) {
         src.loop = true;
         src.loopStart = r.onset + loop[0];
         src.loopEnd = r.onset + loop[1];
@@ -1046,8 +1177,10 @@ export class Chip {
       g.gain.value = gain;
       src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack.
-      src.start(t, r.onset + (p.legato && !plucked ? 0.25 : 0));
+      const from = r.onset + (p.legato && !plucked ? 0.25 : 0);
+      src.start(t, from);
       srcs.push({ src, set, m, mult });
+      if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
     };
     play(set, near, rec, 1, 1);
     if (p.pleno) {

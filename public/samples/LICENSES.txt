@@ -70,7 +70,10 @@ soloSoprano/ soloAlto/ soloTenor/ soloBass/  VocalSet (Julia Wilkins, Prem Seeth
          recording read at a varying rate, undoing its vibrato) and its level held steady; every semitone of each
          part, from the nearest sung note within 4 semitones (the alto's F3-G3 from C4: 5-7 semitones),
          pitch-shifted with formants preserved; sustained by crossfaded repetition into a 2 s loop; levelled.
-         Scripts: tools/playback/vocalset/ (build_straight.py).
+         D313: each note now made of pieces of up to ten different takes of the same singer within 4 semitones
+         (the alto's F3-G3 as before), crossfaded over 280 ms, their spectra matched to the takes' mean,
+         a slow pitch wander of 4 cents added; no repetition of one stretch. Scripts: tools/playback/vocalset/
+         (build_straight.py, build_sustain.py).
 
 Harpsichord and pipe organ for the bench's and the touch game's ensembles (D190; loaded from the website by the single-file pages):
 harpsichord/ harpsichordRel/  Versilian Community Sample Library (VCSL), Versilian Studios LLC: "Harpsichord, Unk" (Harpsi4),
