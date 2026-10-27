@@ -110,6 +110,24 @@ export const MECH_DEFAULTS = {
   joinedSound: true,
   /** A touch taken back with no other thumb down still ends its note for the join (a slur's second thumb a moment later). */
   cancelJoins: true,
+  // DRAG (D321: the owner's Decision 13, "the drag: one connection per instrument … try it in the Lab first").
+  /**
+   * What a drag (a held thumb slid on to the next note) means: "join" (D218: sounds joined, earns nothing,
+   * breaks the chain) or "connect" (drag.ts: a glide on a sound that bends, a coulé or a Schleifer on a
+   * keyboard; counts as joined for the legato credit, earns nothing more).
+   */
+  dragMeaning: "join" as "join" | "connect",
+  /** "connect", a passage: the glide lasts the drag's time, at most this share of the arriving note. */
+  glideMaxShare: 0.5,
+  /** "connect", a keyboard dragged up a third: the passing note (coulé) or the Schleifer (from a third below, the held note struck again). */
+  upThird: "schleifer" as "coule" | "schleifer",
+  /** "connect", a keyboard's fill notes: at the trill's speed, or the drag's time shared out. */
+  fillTiming: "trill" as "trill" | "drag",
+  // SENSOR (D321: the owner's Decision 13, "Accelerometer test first, nothing else yet"; the lab's SENSOR tab only).
+  /** PLAY WITH IT: 0 starts the note at once, neutral, and sets its strength when the tap's spike is read; more delays the attack up to this long (ms) to strike it at that strength. */
+  tapDelayMs: 0,
+  /** PLAY WITH IT: the spike is read over this long after the touch (ms). */
+  tapWindowMs: 30,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
@@ -204,6 +222,12 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "joinedSound", group: "SLURS", label: "Joined sound in the gap", help: "A note joined within the legato gap sounds joined (no fresh attack).", kind: "bool" },
   { key: "cancelJoins", group: "SLURS", label: "Cancel still joins", help: "A touch iOS takes back with no other thumb down ends its note for the join.", kind: "bool" },
+  { key: "dragMeaning", group: "DRAG", label: "A drag means", help: "A held thumb slid on to the next note (free play: another row). Connect: a glide on a sound that bends; on a keyboard a coulé across a third, a Schleifer into a note from below (D321). Counts as joined for the legato chain, earns nothing more.", kind: "choice", options: [["join", "Joined, earns nothing, breaks the chain (D218)"], ["connect", "Connect: glide, coulé, Schleifer (D321)"]] },
+  { key: "glideMaxShare", group: "DRAG", label: "Glide at most", help: "In a passage the glide lasts the drag's time, at most this share of the note it arrives on.", kind: "number", min: 0.1, max: 1, step: 0.05 },
+  { key: "upThird", group: "DRAG", label: "Keyboard, up a third", help: "Dragged up a third on a keyboard: the Schleifer (the held note struck again, the step, the note) or the passing note (coulé).", kind: "choice", options: [["schleifer", "Schleifer"], ["coule", "Coulé (passing note)"]] },
+  { key: "fillTiming", group: "DRAG", label: "Fill notes' speed", help: "A keyboard's coulé or Schleifer: at the trill's speed, or the drag's own time shared out.", kind: "choice", options: [["trill", "The trill's speed"], ["drag", "The drag's time"]] },
+  { key: "tapDelayMs", group: "SENSOR", label: "Tap strength: delay the attack", help: "SENSOR's PLAY WITH IT: 0 starts the note at once and adjusts it when the tap's spike is read; more waits up to this long to strike it at that strength.", kind: "number", min: 0, max: 40, step: 5, unit: "ms" },
+  { key: "tapWindowMs", group: "SENSOR", label: "Tap strength: read over", help: "SENSOR's PLAY WITH IT: the spike is read over this long after the touch.", kind: "number", min: 10, max: 60, step: 5, unit: "ms" },
   { key: "cancel", group: "CANCELS", label: "A touch the phone takes back", help: "iOS sometimes cancels a touch when the other thumb lands.", kind: "choice", options: [["overlap", "Rings on while the other thumb is down (D308)"], ["always", "Always rings to its end (D293)"], ["lift", "Counts as a lift"]] },
 ];
 

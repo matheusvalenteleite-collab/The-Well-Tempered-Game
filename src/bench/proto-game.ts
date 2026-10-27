@@ -24,6 +24,7 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH } from "./mechanics.ts";
+import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
@@ -219,6 +220,11 @@ interface Held {
   row?: 0 | 1;
   /** D262, THE LINE: the half bar's notes still to sound, each by the thumb sliding on (or by itself on time). */
   trace?: Trace;
+  /** D321: the last time (ms) the thumb was still where it last played (a drag's start), and the drag's length at its slide (ms). */
+  still?: number;
+  dragMs?: number;
+  /** D321, "connect": a glide under way (the sound, from and to MIDI, its start on the audio clock, its length in ms). */
+  glider?: { sd: Sounding; from: number; to: number; t0: number; ms: number };
 }
 
 /** D262: a traced line's notes still to sound, where the thumb was, how many it slid, how they sound. */
@@ -857,6 +863,7 @@ export class ProtoGame {
     this.arcCues2();
     this.sweepStep();
     this.traceStep();
+    this.glideStep();
     if (this.o.demo) this.demoRun();
     // D252, LIFT: the doublings as the music grows (a 4′ from a quarter of the way, a 16′ from two thirds).
     if (this.arc?.lift) {
@@ -1625,6 +1632,9 @@ export class ProtoGame {
     // The thumb is the one that went down (D184: slides were all judged as the left's).
     c = { ...c, side: h.side };
     h.across = c.x / Math.max(1, c.w);
+    // D321: a drag's length: from the last moment the thumb was still where it last played.
+    if (h.still === undefined || (this.road ? Math.abs(c.x - h.ax) : Math.abs(c.y - h.ay)) < 3) h.still = ts;
+    h.dragMs = ts - h.still;
     h.trail.push({ t: ts, y: c.y });
     while (h.trail.length > 2 && ts - h.trail[0].t > 120) h.trail.shift();
     // D286: a thumb that travelled while down (a slide, a line, a big shake) is no longer where it struck.
@@ -1916,6 +1926,53 @@ export class ProtoGame {
     this.slid = { kind: "slide", k: h.k, i, id, holder: h, tick: this.now, own, trail, chain };
     return true;
   }
+  /**
+   * D321, MECH.dragMeaning "connect": a slide sounds the instrument's own connection (drag.ts). A sound
+   * that bends glides from the note held to the new one, as long as the drag took (capped by a share of
+   * the note: glideMs), the pitch carried on each frame (glideStep); a keyboard plays the coulé or the
+   * Schleifer (dragFill) and then the note, joined; a step on a keyboard is a plain joined note. False:
+   * nothing to connect with (a chord, a sound that cannot glide: the slide sounds as before).
+   */
+  private dragConnect(h: Held, i: number, to: number, expr: Play, v: ReturnType<typeof voicing>): boolean {
+    const notes = this.tracks[h.k].notes;
+    const n = notes[i];
+    const noteMs = this.msOf(n.on, n.on + n.dur);
+    const dragMs = h.dragMs ?? 0;
+    const tick = n.at ?? this.now;
+    const t0 = this.chip.ctx.currentTime;
+    const g = h.glider;
+    const from = g ? between(g.from, g.to, glideAt(0, 1, (t0 - g.t0) * 1000, g.ms)) : h.midi;
+    if (dragFamily(preset().id) === "glide") {
+      const one = h.sounds.length === 1 ? h.sounds[0] : null;
+      if (!one?.glide || this.proto.id === "piano") return false;
+      const ms = glideMs(dragMs, noteMs);
+      h.glider = { sd: one, from, to, t0, ms };
+      this.tap?.({ kind: "drag", tick, track: h.k, i, side: h.side, from: h.midi, to, how: "glide", ms, dragMs });
+      return true;
+    }
+    h.glider = undefined;
+    const fill = dragFill(h.midi, to, scaleOfKey(keyAt(this.f, n.on)));
+    const each = fillNoteMs(fill.notes.length, dragMs, noteMs) / 1000;
+    for (const sd of h.sounds) sd.stop(t0 + 0.02);
+    const play: Play = { ...expr, legato: true };
+    const fills = fill.notes.map((m, k) => this.touchNote(m, t0 + k * each, each, v, play));
+    h.sounds = [...fills, this.touchNote(to, t0 + fill.notes.length * each, HOLD_MAX, v, play)];
+    h.tone = { v, play };
+    this.tap?.({ kind: "drag", tick, track: h.k, i, side: h.side, from: h.midi, to, how: fill.kind, fill: fill.notes, ms: each * 1000, dragMs });
+    return true;
+  }
+  /** D321: each frame, the glides under way carried on (the pitch between the two notes, on a log scale). */
+  private glideStep() {
+    const t = this.chip.ctx.currentTime;
+    for (const h of this.held.values()) {
+      const g = h.glider;
+      if (!g) continue;
+      const el = (t - g.t0) * 1000;
+      if (!h.sounds.includes(g.sd)) h.glider = undefined;
+      else if (el >= g.ms) (g.sd.glide?.(g.to), (h.glider = undefined));
+      else g.sd.glide?.(between(g.from, g.to, glideAt(0, 1, el, g.ms)));
+    }
+  }
   /** D318: the last slide (its voice, note, touch, tick), and the thumb's memory and the chain before it. */
   private slid: { kind: "slide" | "wait"; until?: number; prevSide?: Side; k: number; i: number; id: number; holder: Held; tick: number; own?: { y: number; step: number; tick: number; moved?: boolean }; trail: number; chain: number } | null = null;
 
@@ -1970,6 +2027,8 @@ export class ProtoGame {
     const askJoin = rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
     const p = this.before(st.i, h.k);
     const at = performance.now();
+    // D321: a "connect" drag was credited as joined already: that credit gives way to the strike's.
+    if (slide && MECH.dragMeaning === "connect" && this.joinedAt(st.i, h.k) && p >= 0 && notes[p].state === "hit") this.art.legato--;
     if (slide && this.joinedAt(st.i, h.k) && askJoin !== false && p >= 0 && notes[p].state === "hit" && h.pts !== undefined) {
       this.chain = st.chain + 1;
       this.art.legato++;
@@ -2111,7 +2170,11 @@ export class ProtoGame {
       if (v.ok) this.live[h.k] = true;
       else this.silence(h.k);
     }
-    if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
+    // D321, "connect": the drag's own connection, by the instrument: a glide as long as the drag took, or
+    // on a keyboard the coulé or the Schleifer into the note (dragConnect); else the slide glides on as before.
+    if (slide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
+      /* sounded */
+    } else if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
       h.sounds[0].glide?.(pitches[0]);
     } else {
       for (const sd of h.sounds) sd.stop();
@@ -2181,7 +2244,7 @@ export class ProtoGame {
     if (this.marks.length > 400) this.marks.splice(0, 100);
     // D317: the verdict told to the lab, with why (LADDER's height, the join).
     const tapNote = (ok: boolean, perfect: boolean, offMs: number) =>
-      this.tap?.({ kind: "note", tick: n.at ?? this.now, track: h.k, i, midi: n.midi, side: h.side, ok, why: v.why, wrongMidi: v.wrong, offMs, perfect, slide, lane: v.lane, ladder: slide ? undefined : this.ladderWhy, legato: slide ? undefined : lw });
+      this.tap?.({ kind: "note", tick: n.at ?? this.now, track: h.k, i, midi: n.midi, side: h.side, ok, why: v.why, wrongMidi: v.wrong, offMs, perfect, slide, lane: v.lane, ladder: slide ? undefined : this.ladderWhy, legato: slide && !lw.drag ? undefined : lw });
     if (!v.ok) {
       tapNote(false, false, (this.timeAt(n.at ?? this.now) - this.timeAt(n.on)) * 1000);
       for (const j of chord) Object.assign(notes[j], { state: "miss", wrong: true });
@@ -2232,7 +2295,13 @@ export class ProtoGame {
       lw.judged = true;
       lw.ok = !slide && over && p >= 0 && notes[p].state === "hit";
       lw.prevRight = p >= 0 && notes[p].state === "hit";
-      if (!slide && over && p >= 0 && notes[p].state === "hit") {
+      // D321, "connect": a drag counts as joined (the legato credited, the chain kept as it is) and earns nothing more.
+      const connected = slide && MECH.dragMeaning === "connect" && p >= 0 && notes[p].state === "hit";
+      if (connected) {
+        lw.ok = true;
+        lw.drag = true;
+        this.art.legato++;
+      } else if (!slide && over && p >= 0 && notes[p].state === "hit") {
         this.chain++;
         this.art.legato++;
         this.art.chain = Math.max(this.art.chain, this.chain);

@@ -20,6 +20,7 @@ import type { ProtoGame, KeyPress } from "../proto-game.ts";
 import type { Side } from "../../touch/thumbs.ts";
 import { MECH, type Mech } from "../mechanics.ts";
 import type { LabEvent } from "./events.ts";
+import type { SensorExport } from "./sensor.ts";
 
 export interface LabPassage {
   piece: string;
@@ -76,6 +77,8 @@ export interface LabLog {
   result?: LabSummary;
   /** Stopped before the passage ended (STOP): a replay stops where it did. */
   stopped?: boolean;
+  /** D321: the SENSOR tab's session (tap-strength test) at the run's end, when it has taps (not replayed). */
+  sensor?: SensorExport;
 }
 
 /** Units of the log's times: tenths of a millisecond. */
