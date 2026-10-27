@@ -13,6 +13,8 @@ export function defaultVoice(f: TouchFugue, singing: readonly number[]): number 
   if (!singing.length) return 0;
   // D251: a prelude's own part (stages.ts `preludePart`: the right hand unless named), never chosen.
   if (f.kind === "prelude") return singing.includes(preludePart(f.id)) ? preludePart(f.id) : singing[0];
+  // D340: a piece's own first voice (a chorale's soprano).
+  if (f.defaultVoice !== undefined && singing.includes(f.defaultVoice)) return f.defaultVoice;
   const first = [...f.entries].sort((a, b) => a.on - b.on).find((e) => singing.includes(e.voice));
   return first ? first.voice : singing[Math.min(1, singing.length - 1)];
 }

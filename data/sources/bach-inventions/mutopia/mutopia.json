@@ -1,0 +1,632 @@
+[
+ {
+  "id": 40,
+  "title": "Invention 1",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 772",
+  "source": "Bach-Gesellschaft",
+  "license": "Creative Commons Attribution-ShareAlike 3.0",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-40",
+  "lilypond": null,
+  "maintainer": "jeff covey",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=40",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV772/bach-invention-01/bach-invention-01.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV772/bach-invention-01/bach-invention-01.mid"
+  ],
+  "kept": [
+   "bach-invention-01.ly",
+   "bach-invention-01.mid"
+  ]
+ },
+ {
+  "id": 58,
+  "title": "Invention 2",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 773",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-58",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=58",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV773/bach-invention-02/bach-invention-02.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV773/bach-invention-02/bach-invention-02.mid"
+  ],
+  "kept": [
+   "bach-invention-02.ly",
+   "bach-invention-02.mid"
+  ]
+ },
+ {
+  "id": 70,
+  "title": "Invention 3",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 774",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-70",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=70",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV774/bach-invention-03/bach-invention-03.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV774/bach-invention-03/bach-invention-03.mid"
+  ],
+  "kept": [
+   "bach-invention-03.ly",
+   "bach-invention-03.mid"
+  ]
+ },
+ {
+  "id": 67,
+  "title": "Invention 4",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 775",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-67",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=67",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV775/bach-invention-04/bach-invention-04.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV775/bach-invention-04/bach-invention-04.mid"
+  ],
+  "kept": [
+   "bach-invention-04.ly",
+   "bach-invention-04.mid"
+  ]
+ },
+ {
+  "id": 55,
+  "title": "Invention 5",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 776",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-55",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=55",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV776/bach-invention-05/bach-invention-05.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV776/bach-invention-05/bach-invention-05.mid"
+  ],
+  "kept": [
+   "bach-invention-05.ly",
+   "bach-invention-05.mid"
+  ]
+ },
+ {
+  "id": 159,
+  "title": "Invention 6",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 777",
+  "source": "Bach-Gesellschaft",
+  "license": "Creative Commons Attribution-ShareAlike 3.0",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-159",
+  "lilypond": null,
+  "maintainer": "jeff covey",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=159",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV777/bach-invention-06/bach-invention-06.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV777/bach-invention-06/bach-invention-06.mid"
+  ],
+  "kept": [
+   "bach-invention-06.ly",
+   "bach-invention-06.mid"
+  ]
+ },
+ {
+  "id": 73,
+  "title": "Invention 7",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 778",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2009/May/09",
+  "musicId": "Mutopia-2009/05/09-73",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=73",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV778/bach-invention-07/bach-invention-07.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV778/bach-invention-07/bach-invention-07.mid"
+  ],
+  "kept": [
+   "bach-invention-07.ly",
+   "bach-invention-07.mid"
+  ]
+ },
+ {
+  "id": 61,
+  "title": "Invention 8",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 779",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-61",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=61",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV779/bach-invention-08/bach-invention-08.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV779/bach-invention-08/bach-invention-08.mid"
+  ],
+  "kept": [
+   "bach-invention-08.ly",
+   "bach-invention-08.mid"
+  ]
+ },
+ {
+  "id": 171,
+  "title": "Invention 9",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 780",
+  "source": "Bach-Gesellschaft",
+  "license": "Creative Commons Attribution-ShareAlike 3.0",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-171",
+  "lilypond": null,
+  "maintainer": "jeff covey",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=171",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV780/bach-invention-09/bach-invention-09.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV780/bach-invention-09/bach-invention-09.mid"
+  ],
+  "kept": [
+   "bach-invention-09.ly",
+   "bach-invention-09.mid"
+  ]
+ },
+ {
+  "id": 62,
+  "title": "Invention 10",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 781",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-62",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=62",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV781/bach-invention-10/bach-invention-10.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV781/bach-invention-10/bach-invention-10.mid"
+  ],
+  "kept": [
+   "bach-invention-10.ly",
+   "bach-invention-10.mid"
+  ]
+ },
+ {
+  "id": 71,
+  "title": "Invention 11",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 782",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-71",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=71",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV782/bach-invention-11/bach-invention-11.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV782/bach-invention-11/bach-invention-11.mid"
+  ],
+  "kept": [
+   "bach-invention-11.ly",
+   "bach-invention-11.mid"
+  ]
+ },
+ {
+  "id": 174,
+  "title": "Invention 12",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 783",
+  "source": "Bach-Gesellschaft",
+  "license": "Creative Commons Attribution-ShareAlike 3.0",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-174",
+  "lilypond": null,
+  "maintainer": "jeff covey",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=174",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV783/bach-invention-12/bach-invention-12.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV783/bach-invention-12/bach-invention-12.mid"
+  ],
+  "kept": [
+   "bach-invention-12.ly",
+   "bach-invention-12.mid"
+  ]
+ },
+ {
+  "id": 59,
+  "title": "Invention 13",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 784",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-59",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=59",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV784/bach-invention-13/bach-invention-13.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV784/bach-invention-13/bach-invention-13.mid"
+  ],
+  "kept": [
+   "bach-invention-13.ly",
+   "bach-invention-13.mid"
+  ]
+ },
+ {
+  "id": 72,
+  "title": "Invention 14",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 785",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-72",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=72",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV785/bach-invention-14/bach-invention-14.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV785/bach-invention-14/bach-invention-14.mid"
+  ],
+  "kept": [
+   "bach-invention-14.ly",
+   "bach-invention-14.mid"
+  ]
+ },
+ {
+  "id": 68,
+  "title": "Invention 15",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 786",
+  "source": "Bach-Gesellschaft",
+  "license": "Public Domain",
+  "updated": "2008/Aug/23",
+  "musicId": "Mutopia-2008/08/23-68",
+  "lilypond": null,
+  "maintainer": "Allen Garvin",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=68",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV786/bach-invention-15/bach-invention-15.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV786/bach-invention-15/bach-invention-15.mid"
+  ],
+  "kept": [
+   "bach-invention-15.ly",
+   "bach-invention-15.mid"
+  ]
+ },
+ {
+  "id": 142,
+  "title": "Sinfonia 1",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 787",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-142",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=142",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV787/bwv787/bwv787.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV787/bwv787/bwv787.mid"
+  ],
+  "kept": [
+   "bwv787.ly",
+   "bwv787.mid"
+  ]
+ },
+ {
+  "id": 140,
+  "title": "Sinfonia 2",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 788",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-140",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=140",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV788/bwv788/bwv788.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV788/bwv788/bwv788.mid"
+  ],
+  "kept": [
+   "bwv788.ly",
+   "bwv788.mid"
+  ]
+ },
+ {
+  "id": 143,
+  "title": "Sinfonia 3",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 789",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-143",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=143",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV789/bwv789/bwv789.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV789/bwv789/bwv789.mid"
+  ],
+  "kept": [
+   "bwv789.ly",
+   "bwv789.mid"
+  ]
+ },
+ {
+  "id": 172,
+  "title": "Sinfonia 4",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 790",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-172",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=172",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV790/bwv790/bwv790.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV790/bwv790/bwv790.mid"
+  ],
+  "kept": [
+   "bwv790.ly",
+   "bwv790.mid"
+  ]
+ },
+ {
+  "id": 204,
+  "title": "Sinfonia 5",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 791",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-204",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=204",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV791/bwv791/bwv791.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV791/bwv791/bwv791.mid"
+  ],
+  "kept": [
+   "bwv791.ly",
+   "bwv791.mid"
+  ]
+ },
+ {
+  "id": 173,
+  "title": "Sinfonia 6",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 792",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-173",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=173",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV792/bwv792/bwv792.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV792/bwv792/bwv792.mid"
+  ],
+  "kept": [
+   "bwv792.ly",
+   "bwv792.mid"
+  ]
+ },
+ {
+  "id": 175,
+  "title": "Sinfonia 7",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 793",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-175",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=175",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV793/bwv793/bwv793.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV793/bwv793/bwv793.mid"
+  ],
+  "kept": [
+   "bwv793.ly",
+   "bwv793.mid"
+  ]
+ },
+ {
+  "id": 176,
+  "title": "Sinfonia 8",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 794",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-176",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=176",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV794/bwv794/bwv794.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV794/bwv794/bwv794.mid"
+  ],
+  "kept": [
+   "bwv794.ly",
+   "bwv794.mid"
+  ]
+ },
+ {
+  "id": 199,
+  "title": "Sinfonia 9",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 795",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2011/Jun/14",
+  "musicId": "Mutopia-2011/06/14-199",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=199",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV795/bwv795/bwv795.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV795/bwv795/bwv795.mid"
+  ],
+  "kept": [
+   "bwv795.ly",
+   "bwv795.mid"
+  ]
+ },
+ {
+  "id": 205,
+  "title": "Sinfonia 10",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 796",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-205",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=205",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV796/bwv796/bwv796.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV796/bwv796/bwv796.mid"
+  ],
+  "kept": [
+   "bwv796.ly",
+   "bwv796.mid"
+  ]
+ },
+ {
+  "id": 200,
+  "title": "Sinfonia 11",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 797",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-200",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=200",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV797/bwv797/bwv797.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV797/bwv797/bwv797.mid"
+  ],
+  "kept": [
+   "bwv797.ly",
+   "bwv797.mid"
+  ]
+ },
+ {
+  "id": 144,
+  "title": "Sinfonia 12",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 798",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-144",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=144",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV798/bwv798/bwv798.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV798/bwv798/bwv798.mid"
+  ],
+  "kept": [
+   "bwv798.ly",
+   "bwv798.mid"
+  ]
+ },
+ {
+  "id": 206,
+  "title": "Sinfonia 13",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 799",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-206",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=206",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV799/bwv799/bwv799.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV799/bwv799/bwv799.mid"
+  ],
+  "kept": [
+   "bwv799.ly",
+   "bwv799.mid"
+  ]
+ },
+ {
+  "id": 213,
+  "title": "Sinfonia 14",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 800",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-213",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=213",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV800/bwv800/bwv800.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV800/bwv800/bwv800.mid"
+  ],
+  "kept": [
+   "bwv800.ly",
+   "bwv800.mid"
+  ]
+ },
+ {
+  "id": 145,
+  "title": "Sinfonia 15",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 801",
+  "source": "Unknown",
+  "license": "Public Domain",
+  "updated": "2008/Jun/15",
+  "musicId": "Mutopia-2008/06/15-145",
+  "lilypond": null,
+  "maintainer": "Olivier Vermersch",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=145",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV801/bwv801/bwv801.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV801/bwv801/bwv801.mid"
+  ],
+  "kept": [
+   "bwv801.ly",
+   "bwv801.mid"
+  ]
+ }
+]

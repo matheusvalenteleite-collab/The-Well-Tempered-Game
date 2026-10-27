@@ -673,6 +673,18 @@
 .tb-lite-tabs { display: flex; gap: 8px; max-width: 760px; margin: 0 auto 12px; position: sticky; top: calc(-12px - env(safe-area-inset-top, 0px)); z-index: 3; padding: 6px 0; background: var(--tg-bg); }
 .tb-lite-tab { flex: 1; padding: 10px 0; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-muted); background: var(--tg-box); border: 2px solid var(--tg-barline); cursor: pointer; }
 .tb-lite-tab.on { color: #1a1408; background: var(--tg-shine); border-color: var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; }
+/* D340: four tabs (MORE BACH, CHORALES); the MORE BACH tab's sections; the chorales' compact cards; the editions' credits. */
+@media (max-width: 520px) { .tb-lite-tabs { gap: 5px; } .tb-lite-tab { font-size: 7px; padding: 10px 2px; } }
+.tb-lite-section { max-width: 760px; margin: 0 auto; }
+.tb-lite-section > .tb-lite-book { margin: 14px 0 10px; }
+.tb-lite-list.tb-lite-chorales .tb-lite-card { grid-template-columns: 56px 1fr; gap: 10px; padding: 4px 6px; }
+.tb-lite-chip { display: block; width: 100%; aspect-ratio: 1; border: 2px solid rgba(0, 0, 0, 0.35); }
+.tb-lite-compact .tb-lite-num { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+.tb-lite-compact .tb-lite-info { gap: 4px; }
+.tb-lite-compact .tb-lite-grade { font-size: 10px; bottom: -4px; right: -4px; min-width: 16px; padding: 2px 3px; }
+.tb-lite-chorale-note { margin: 0 auto 10px; }
+.tb-lite-credits { max-width: 760px; margin: 18px auto 0; display: grid; gap: 6px; }
+.tb-lite-credits .tb-lite-meta { margin: 0; }
 .tb-you { font-weight: 400; color: var(--tg-fg); } /* D279: the voice played named in the legend. */
 /* D280: the tutorial's steps. */
 .tb-steps-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }

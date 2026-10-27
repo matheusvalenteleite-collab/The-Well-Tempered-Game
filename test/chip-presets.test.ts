@@ -9,7 +9,9 @@ test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYN
   // D302: TEMPLE 64 and AGENT 64 remade; D304: their successors withdrawn too: a stored choice of any opens on NOCTURNE 32-BIT.
   for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "nocturne32", gone);
   const ids = PRESETS.map((p) => p.id);
-  for (const [piece, id] of Object.entries(PIECE_SOUND)) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
+  // D340: the MORE BACH and CHORALES tabs' exceptions, asked for: the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT's strings.
+  const D340 = /^(chor\d{3}|bwv1043-\d|bwv1079-ric6)$/;
+  for (const [piece, id] of Object.entries(PIECE_SOUND).filter(([p]) => !D340.test(p))) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
   // D294: the two sounds replaced (and the withdrawn ones they grew from) open on their successors.
   for (const [old, now] of [["chipRound", "gameboy"], ["chipPocket", "gameboy"], ["chipGold", "gameboy"], ["pianoFm", "analog"], ["carlos", "analog"]]) {
     assert.equal(presetById(old).id, now, old);

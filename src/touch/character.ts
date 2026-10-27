@@ -65,7 +65,29 @@ export const CHARACTER: Record<string, readonly [Character, string]> = {
   wtc2f22: [A, "stile antico (report §6.1); data: mostly joined (0.75-0.93)"],
   wtc2f23: [N, "broad alla breve, not stile antico"],
   wtc2f24: [L, "3/8 passepied-like"],
+  // D340: the MORE BACH tab, by the same reading (metre, subject, style; our judgment, unmeasured).
+  "bwv1080-01": [A, "the plain subject in long values, vocal, alla breve-like"],
+  "bwv1080-03": [A, "the inverted subject against a chromatic line, grave"],
+  "bwv1080-06": [L, "in Stylo Francese: sharp dotted figures and runs, detached"],
+  "bwv1080-09": [L, "quick, a running double fugue alla duodecima"],
+  "bwv1080-12r": [A, "3/2, long values, a mirror fugue in the old style"],
+  "bwv1080-12i": [A, "3/2, long values, a mirror fugue in the old style"],
+  "bwv1080-13r": [L, "light, quick triplets and leaps"],
+  "bwv1080-13i": [L, "light, quick triplets and leaps"],
+  "bwv1079-ric6": [A, "stile antico: the six-voice ricercar on the royal theme"],
+  bwv774: [L, "3/8 passepied-like"],
+  bwv775: [L, "3/8, a quick dance"],
+  bwv779: [L, "lively 3/4 imitation, leaping arpeggios"],
+  bwv781: [L, "9/8 gigue-like"],
+  bwv786: [L, "a gigue-like invention"],
+  bwv795: [A, "the chromatic, sighing sinfonia: slow, sustained lines"],
+  bwv791: [A, "a slow aria over a walking bass"],
+  bwv797: [L, "3/8 dance"],
+  "bwv1043-1": [L, "Vivace: a concerto's driving ritornello"],
+  "bwv1043-2": [A, "Largo ma non tanto: a cantabile siciliana for the two soloists"],
+  "bwv1043-3": [L, "Allegro: a quick 3/4 finale"],
 };
 
 /** A piece's character (unlisted: neutral). */
-export const characterOf = (id: string): Character => CHARACTER[id]?.[0] ?? "neutral";
+/** D340: the chorales are sung lines: antico (held nearer their full value). */
+export const characterOf = (id: string): Character => CHARACTER[id]?.[0] ?? (/^chor\d{3}$/.test(id) ? "antico" : "neutral");

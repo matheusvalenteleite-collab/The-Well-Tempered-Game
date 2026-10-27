@@ -161,7 +161,29 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2f24: "chip",
   // The Art of Fugue
   "bwv1080-14": "harpsichordSampled",
+  ...moreBachSounds(),
 };
+
+/**
+ * D340: the MORE BACH and CHORALES tabs (among the sounds the players have, sound.ts PRESETS): the Art
+ * of Fugue on the HARPSICHORD as Contrapunctus 14 (Bach's open score, a keyboard work in the hands);
+ * the Ricercar a 3 on the harpsichord (Bach improvised it at the keyboard), the Ricercar a 6 on the PIPE
+ * ORGAN (D246: the ricercar, the stile antico, six voices); the Inventions and Sinfonias on the
+ * harpsichord (D246: "the invention"); the Concerto for Two Violins on SUPER 16-BIT, the only sound
+ * with bowed strings (its violin for the two solos, its strings for the band, its bassoon for the
+ * continuo bass: sound.ts gives it a six-voice layout; no sampled string orchestra is offered, D288); the
+ * chorales on the PIPE ORGAN (the organ leading a congregation; SOLO VOICES, the choir, a choice away).
+ */
+function moreBachSounds(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17"]) out[`bwv1080-${n}`] = "harpsichordSampled";
+  out["bwv1079-ric3"] = "harpsichordSampled";
+  out["bwv1079-ric6"] = "chamberOrgan";
+  for (let b = 772; b <= 801; b++) out[`bwv${b}`] = "harpsichordSampled";
+  for (let m = 1; m <= 3; m++) out[`bwv1043-${m}`] = "super16";
+  for (let c = 1; c <= 371; c++) out[`chor${String(c).padStart(3, "0")}`] = "chamberOrgan";
+  return out;
+}
 
 /** The sound a piece opens with: the player's choice for it, else its own, else the game's default. */
 export function soundFor(id: string, chosen: Readonly<Record<string, string>>, fallback: string): string {

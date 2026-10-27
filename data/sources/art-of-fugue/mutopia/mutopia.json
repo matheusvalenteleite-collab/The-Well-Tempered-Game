@@ -1,0 +1,372 @@
+[
+ {
+  "id": 693,
+  "title": "Die Kunst der Fuge, Contrapunctus I",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2016/Jul/21",
+  "musicId": "Mutopia-2016/07/21-693",
+  "lilypond": null,
+  "maintainer": "Pierre-Luc Gauthier",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=693",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusI/contrapunctusI-lys.zip",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusI/contrapunctusI.mid"
+  ],
+  "kept": [
+   "alto.ily",
+   "bass.ily",
+   "contrapunctusI.ly",
+   "contrapunctusI.mid",
+   "soprano.ily",
+   "structure.ily",
+   "tenor.ily"
+  ]
+ },
+ {
+  "id": 719,
+  "title": "Die Kunst der Fuge, Contrapunctus II",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/02",
+  "musicId": "Mutopia-2006/04/02-719",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=719",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusII/contrapunctusII.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusII/contrapunctusII.mid"
+  ],
+  "kept": [
+   "contrapunctusII.ly",
+   "contrapunctusII.mid"
+  ]
+ },
+ {
+  "id": 720,
+  "title": "Die Kunst der Fuge, Contrapunctus III",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/07",
+  "musicId": "Mutopia-2006/04/07-720",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=720",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusIII/contrapunctusIII.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusIII/contrapunctusIII.mid"
+  ],
+  "kept": [
+   "contrapunctusIII.ly",
+   "contrapunctusIII.mid"
+  ]
+ },
+ {
+  "id": 721,
+  "title": "Die Kunst der Fuge, Contrapunctus IV",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/07",
+  "musicId": "Mutopia-2006/04/07-721",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=721",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusIV/contrapunctusIV.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusIV/contrapunctusIV.mid"
+  ],
+  "kept": [
+   "contrapunctusIV.ly",
+   "contrapunctusIV.mid"
+  ]
+ },
+ {
+  "id": 722,
+  "title": "Die Kunst der Fuge, Contrapunctus V",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/07",
+  "musicId": "Mutopia-2006/04/07-722",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=722",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusV/contrapunctusV.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusV/contrapunctusV.mid"
+  ],
+  "kept": [
+   "contrapunctusV.ly",
+   "contrapunctusV.mid"
+  ]
+ },
+ {
+  "id": 734,
+  "title": "Die Kunst der Fuge, Contrapunctus VI",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/09",
+  "musicId": "Mutopia-2006/04/09-734",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=734",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusVI/contrapunctusVI.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusVI/contrapunctusVI.mid"
+  ],
+  "kept": [
+   "contrapunctusVI.ly",
+   "contrapunctusVI.mid"
+  ]
+ },
+ {
+  "id": 736,
+  "title": "Die Kunst der Fuge, Contrapunctus VII",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/13",
+  "musicId": "Mutopia-2006/04/13-736",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=736",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusVII/contrapunctusVII.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusVII/contrapunctusVII.mid"
+  ],
+  "kept": [
+   "contrapunctusVII.ly",
+   "contrapunctusVII.mid"
+  ]
+ },
+ {
+  "id": 739,
+  "title": "Die Kunst der Fuge, Contrapunctus VIII",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/18",
+  "musicId": "Mutopia-2006/04/18-739",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=739",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusVIII/contrapunctusVIII.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusVIII/contrapunctusVIII.mid"
+  ],
+  "kept": [
+   "contrapunctusVIII.ly",
+   "contrapunctusVIII.mid"
+  ]
+ },
+ {
+  "id": 740,
+  "title": "Die Kunst der Fuge, Contrapunctus IX",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/18",
+  "musicId": "Mutopia-2006/04/18-740",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=740",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusIX/contrapunctusIX.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusIX/contrapunctusIX.mid"
+  ],
+  "kept": [
+   "contrapunctusIX.ly",
+   "contrapunctusIX.mid"
+  ]
+ },
+ {
+  "id": 744,
+  "title": "Die Kunst der Fuge, Contrapunctus X",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/23",
+  "musicId": "Mutopia-2006/04/23-744",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=744",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusX/contrapunctusX.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusX/contrapunctusX.mid"
+  ],
+  "kept": [
+   "contrapunctusX.ly",
+   "contrapunctusX.mid"
+  ]
+ },
+ {
+  "id": 745,
+  "title": "Die Kunst der Fuge, Contrapunctus XI",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2016/Jan/21",
+  "musicId": "Mutopia-2016/01/21-745",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=745",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXI/contrapunctusXI.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXI/contrapunctusXI.mid"
+  ],
+  "kept": [
+   "contrapunctusXI.ly",
+   "contrapunctusXI.mid"
+  ]
+ },
+ {
+  "id": 746,
+  "title": "Die Kunst der Fuge, Contrapunctus XII - Canon alla Ottava",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/28",
+  "musicId": "Mutopia-2006/04/28-746",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=746",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXII/contrapunctusXII.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXII/contrapunctusXII.mid"
+  ],
+  "kept": [
+   "contrapunctusXII.ly",
+   "contrapunctusXII.mid"
+  ]
+ },
+ {
+  "id": 748,
+  "title": "Die Kunst der Fuge, Contrapunctus XIII - Canon alla Duodecima",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/Apr/28",
+  "musicId": "Mutopia-2006/04/28-748",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=748",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXIII/contrapunctusXIII.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXIII/contrapunctusXIII.mid"
+  ],
+  "kept": [
+   "contrapunctusXIII.ly",
+   "contrapunctusXIII.mid"
+  ]
+ },
+ {
+  "id": 749,
+  "title": "Die Kunst der Fuge, Contrapunctus XIV - Canon alla Decima",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/May/03",
+  "musicId": "Mutopia-2006/05/03-749",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=749",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXIV/contrapunctusXIV.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXIV/contrapunctusXIV.mid"
+  ],
+  "kept": [
+   "contrapunctusXIV.ly",
+   "contrapunctusXIV.mid"
+  ]
+ },
+ {
+  "id": 750,
+  "title": "Die Kunst der Fuge, Contrapunctus XV - Canon per Augmentationem in Contrario Motu",
+  "instruments": "Harpsichord, Piano",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/May/03",
+  "musicId": "Mutopia-2006/05/03-750",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=750",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXV/contrapunctusXV.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXV/contrapunctusXV.mid"
+  ],
+  "kept": [
+   "contrapunctusXV.ly",
+   "contrapunctusXV.mid"
+  ]
+ },
+ {
+  "id": 751,
+  "title": "Die Kunst der Fuge, Contrapunctus XVI a 3 (rectus, inversus)",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/May/03",
+  "musicId": "Mutopia-2006/05/03-751",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=751",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXVI/contrapunctusXVI-lys.zip",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXVI/contrapunctusXVI-mids.zip"
+  ],
+  "kept": [
+   "contrapunctusXVI.ly",
+   "inversus.ly",
+   "inversus.mid",
+   "rectus.ly",
+   "rectus.mid",
+   "score.ly"
+  ]
+ },
+ {
+  "id": 764,
+  "title": "Die Kunst der Fuge, Contrapunctus XVIII a 4 (rectus, inversus)",
+  "instruments": "String Ensemble",
+  "opus": "BWV 1080",
+  "source": "Breitkopf & Härtel, 1885",
+  "license": "Public Domain",
+  "updated": "2006/May/08",
+  "musicId": "Mutopia-2006/05/08-764",
+  "lilypond": null,
+  "maintainer": "Arnaud Gossart",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=764",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXVIII/contrapunctusXVIII-lys.zip",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV1080/contrapunctusXVIII/contrapunctusXVIII-mids.zip"
+  ],
+  "kept": [
+   "contrapunctusXVIII.ly",
+   "inversus.ly",
+   "inversus.mid",
+   "rectus.ly",
+   "rectus.mid",
+   "score.ly"
+  ]
+ }
+]

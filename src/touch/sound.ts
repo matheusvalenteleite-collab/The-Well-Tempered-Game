@@ -849,6 +849,8 @@ export const PRESETS: Preset[] = [
       3: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Bassoon", 0]],
       4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Strings", 0.12], ["s16Bassoon", 0]],
       5: [["s16Violin", 0.25], ["s16Flute", -0.3, 0.84], ["s16Harpsi", 0.1], ["s16Strings", -0.12, 0.94], ["s16Bassoon", 0]],
+      // D340: six voices, the Concerto for Two Violins (BWV 1043): two solo violins apart, the band's violins and viola as strings, the continuo bass.
+      6: [["s16Violin", 0.25], ["s16Violin", -0.25], ["s16Strings", 0.15, 0.84], ["s16Strings", -0.15, 0.84], ["s16Strings", 0, 0.84], ["s16Bassoon", 0]],
     },
   },
   // NOCTURNE 32-BIT: violin, harpsichord, viola, the organ's pedal; oboe as the fifth voice; the dark hall.
