@@ -191,7 +191,9 @@ export const RULES: Record<string, string[]> = {
     STRONG_SIDE === "outer"
       ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
       : "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
-    "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.",
+    // D325: articulation by intention (intention.ts), no longer "LEGATO scores more"; D325b: expressive time.
+    "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself. Miss too many and the crowd leaves.",
+    "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
     // D314: the ornaments, as THE ORNAMENT lesson teaches them; the free ones.
     "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓ and points; not done: nothing lost.",
     "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",

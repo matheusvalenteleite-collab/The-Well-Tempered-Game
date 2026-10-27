@@ -71,7 +71,8 @@ export const ES: Record<string, string> = {
   "Hold the phone sideways, a thumb on each bar.": "Pon el móvil en horizontal, un pulgar en cada barra.",
   "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.": "Toca cualquier barra, en cualquier punto, cuando la nota llegue a la línea: más arriba cuando la melodía sube, más abajo cuando baja.",
   "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.": "El ancho de la barra es tuyo: junto a la caja, más suave y oscuro; junto al borde, más firme y brillante; mueve de lado un pulgar que sostiene la nota para darle forma. Nunca quita ni da puntos.",
-  "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.": "Pasa cada nota al otro pulgar sin hueco: el LEGATO puntúa más. Si fallas demasiado, el público se va.",
+  "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself. Miss too many and the crowd leaves.": "Tu toque es tuyo: ligado (legato), ordinario o picado. La ARTICULACIÓN puntúa un toque constante, no el legato en sí. Si fallas demasiado, el público se va.",
+  "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.": "El tiempo también es un poco tuyo: un tiempo fuerte o una disonancia retenidos, una respiración en un silencio o una cadencia, un ensanchamiento al final siguen siendo PERFECTOS si vuelves al pulso.",
   "touch either bar at the note's height · hand over from thumb to thumb with no gap": "toca cualquier barra a la altura de la nota · pasa de un pulgar al otro sin hueco",
   // The result
   "THE CROWD LEFT": "EL PÚBLICO SE FUE",
@@ -227,7 +228,7 @@ export const ES: Record<string, string> = {
   "The subject must be said whole, or it is not the subject. Again.": "El sujeto hay que decirlo entero, o no es el sujeto. Otra vez.",
   "PLAY THE SUBJECT AS THE MARKS SAY: ⌒ JOINED · | APART · > STRONG": "TOCA EL SUJETO COMO DICEN LOS SIGNOS: ⌒ LIGADO · | SEPARADO · > FUERTE",
   "Now one of my fugues. Players have written how its subject should go: some notes joined, some apart.": "Ahora una de mis fugas. Los músicos han escrito cómo debe ir su sujeto: unas notas ligadas, otras separadas.",
-  "The marks show it; HEAR THE SUBJECT on every fugue plays it so. Follow the marks.": "Los signos lo muestran; ESCUCHA EL SUJETO, en cada fuga, lo toca así. Sigue los signos.",
+  "The marks show it. In HEAR THE SUBJECT, choose a reading or none. Here, follow the marks.": "Los signos lo muestran. En ESCUCHA EL SUJETO, elige una lectura o ninguna. Aquí, sigue los signos.",
   "So. You played my subject as a thinking musician would.": "So. Has tocado mi sujeto como lo haría un músico que piensa.",
   "Joined where it is joined; lift where it is apart. Again.": "Ligado donde está ligado; suelta donde está separado. Otra vez.",
   "THE CROWD": "EL PÚBLICO",
@@ -318,7 +319,7 @@ export const ES: Record<string, string> = {
   "JOINED: NEXT THUMB DOWN BEFORE LIFTING": "LIGADO: EL OTRO PULGAR BAJA ANTES DE SOLTAR",
   "STRONG: TOUCH TOWARD THE OUTER EDGE": "FUERTE: TOCA CERCA DEL BORDE DE FUERA",
   "STRONG: TOUCH TOWARD THE INNER EDGE, BY THE BOX": "FUERTE: TOCA CERCA DEL BORDE DE DENTRO, JUNTO A LA CAJA",
-  "THE MARKS OVER YOUR SUBJECT": "LOS SIGNOS SOBRE TU SUJETO",
+  "A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT": "LOS SIGNOS DE UNA LECTURA, SI ELIGES UNA EN ESCUCHA EL SUJETO",
   "THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT": "LOS PULGARES: CADA NOTA CON EL OTRO PULGAR · PASA LA NOTA O SOLAPA (LIGADO) · SUELTA ANTES (PICADO) · SUAVE EN EL BORDE, FUERTE JUNTO A LA CAJA · AGITA EN UN ORNAMENTO",
   "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.": "El ancho de la barra es tuyo: junto al borde, más suave y oscuro; junto a la caja, más firme y brillante; mueve de lado un pulgar que sostiene la nota para darle forma. Nunca quita ni da puntos.",
   "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓ and points; not done: nothing lost.": "Un signo sobre una nota (TR, ~|) es un ornamento: toca la nota y agita el pulgar arriba y abajo a lo largo de la barra (un mordente: abajo y de vuelta). Hecho antes de que acabe la nota: TRINO ✓ y puntos; si no, no pierdes nada.",
@@ -336,4 +337,10 @@ export const ES: Record<string, string> = {
   TREM: "TRÉMOLO",
   STOPS: "REGISTROS",
   "HOLD: EVERY VOICE": "MANTÉN PULSADO: TODAS LAS VOCES",
+  // D325
+  NONE: "NINGUNA",
+  "NONE: MY OWN ARTICULATION": "NINGUNA: MI PROPIA ARTICULACIÓN",
+  "NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED": "NINGUNA: MI PROPIA ARTICULACIÓN · NINGÚN SIGNO PEDIDO NI PUNTUADO",
+  ORDINARY: "ORDINARIO",
+  "IN EXPRESSIVE TIME": "EN TIEMPO EXPRESIVO",
 };

@@ -318,7 +318,7 @@ export function BenchApp() {
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
   // book's: the owner, "fugues should not be too fast").
   // D282: a tutorial step may name its reading.
-  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, lite.beaten.includes(f.id)) : null;
+  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
   const bpm = run ? run.bpm : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
@@ -1193,7 +1193,7 @@ export function BenchApp() {
       {/* D308: ⚙ opens over the cards, which stay behind it (not the music box). */}
       {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} best={lite.best} scores={lite.scores} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { done: TRACKS.mobile.filter((l) => trackState("mobile").passed[l.id]).length, of: TRACKS.mobile.length, start: () => setSteps(true) } : undefined} />}
       {APP.lite && steps && phase.kind === "home" && <TutorialSteps play={(n) => beginLesson("mobile", n)} close={() => setSteps(false)} />}
-      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} open={lite.beaten.includes(hearing)} play={playSubject} close={() => setHearing(null)} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, soundLocked: !soundOpen } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
-import { chooseReading, chosenReading, LEVEL_D, performSubject, READINGS, readingsOf, type Reading } from "../src/touch/readings.ts";
+import { chooseReading, chosenReading, LEVEL_D, NO_READING, performSubject, READINGS, readingsOf, type Reading } from "../src/touch/readings.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 
@@ -44,16 +44,19 @@ test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop sh
   assert.ok(p[1].d > p[0].d, "the accent louder");
 });
 
-test("D272: the first reading is open; another, chosen, only once the fugue is finished", () => {
+test("D325: NONE (my own articulation) is the default; every reading is open from the start and remembered", () => {
   const store = new Map<string, string>();
   (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
   const id = "wtc1f99";
   const rs = [{ id: "a" }, { id: "b" }] as Reading[];
   READINGS[id] = rs;
-  assert.equal(chosenReading(id, false)?.id, "a");
+  assert.equal(chosenReading(id), null, "NONE by default (D272 had the first reading)");
   chooseReading(id, "b");
-  assert.equal(chosenReading(id, false)?.id, "a", "locked: the default");
-  assert.equal(chosenReading(id, true)?.id, "b");
+  assert.equal(chosenReading(id)?.id, "b", "open at once (D272 locked it until the fugue was finished)");
+  chooseReading(id, NO_READING);
+  assert.equal(chosenReading(id), null, "NONE chosen again");
+  chooseReading(id, "gone");
+  assert.equal(chosenReading(id), null, "a reading the fugue no longer has: NONE");
   delete READINGS[id];
 });
 
@@ -108,6 +111,7 @@ test("D272: in play, a subject note detached where the reading says so scores TH
   assert.ok(apart.style.hit / apart.style.of > 0.9, `detached: ${apart.style.hit}/${apart.style.of}`);
   assert.ok(apart.earned.reading > 0);
   assert.equal(joined.style.hit, 0, "joined where it asks detached");
-  assert.equal(joined.earned.legato, 0, "and no legato bonus there");
+  assert.equal(joined.earned.articulation, 0, "and no articulation credit there (D325: the mark is what is judged)");
+  assert.ok(apart.earned.articulation > 0, "detached as marked: credited");
   assert.ok(apart.results().sheet.qualities.some((q) => q.key === "reading"));
 });

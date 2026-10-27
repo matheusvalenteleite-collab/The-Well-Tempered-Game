@@ -3,7 +3,8 @@
  * they came from; four qualities of the playing, each a share (the right notes, their timing, their
  * articulation, the subject's entries captured), weighed into one PERFORMANCE out of 100; a finished
  * run's points raised by up to a half for it (the FINAL SCORE); on a failed run, how far it went and
- * what cost it most.
+ * what cost it most. D325: ARTICULATION judges the joins by the player's own touch (intention.ts), and
+ * its points are no longer LEGATO's; TIMING says how many PERFECTs came in expressive time.
  */
 import type { ArtStats } from "./articulation.ts";
 import type { ScoreSource } from "./proto-game.ts";
@@ -28,6 +29,8 @@ export interface SheetInput {
   progress: number;
   /** D272: the reading's asks met, of those judged (absent: no reading). */
   style?: { hit: number; of: number };
+  /** D325b: the strikes PERFECT by expressive time (absent: before D325). */
+  graces?: { agogic: number; breath: number; broaden: number; revoked?: number };
 }
 
 export interface Quality {
@@ -55,7 +58,7 @@ export interface Sheet {
 
 export const SOURCE_LABEL: Record<ScoreSource, string> = {
   notes: "NOTES",
-  legato: "LEGATO",
+  articulation: "ARTICULATION",
   held: "HELD NOTES",
   subjects: "SUBJECTS",
   cadences: "CADENCES",
@@ -73,11 +76,16 @@ export function scoreSheet(r: SheetInput): Sheet {
   // A stray tap weighs half a note (as the grade).
   const accOf = r.of + r.stray / 2;
   const art = r.art;
-  const artParts = [share(art.legato, art.legatoOf), share(art.held, art.heldOf), share(art.clean, art.cleanOf)].filter((x): x is number => x !== null);
-  const artDetail = [art.legatoOf && `LEGATO ${art.legato}/${art.legatoOf}`, art.heldOf && `HELD ${art.held}/${art.heldOf}`, art.cleanOf && `RESTS ${art.clean}/${art.cleanOf}`].filter(Boolean).join(" · ");
+  // D325: the joins judged by intention (consistent with the player's own touch, or as the reading marks them), where they were; else D218's legato.
+  const byTouch = art.touchOf !== undefined;
+  const joins = byTouch ? share(art.touchOk ?? 0, art.touchOf ?? 0) : share(art.legato, art.legatoOf);
+  const artParts = [joins, share(art.held, art.heldOf), share(art.clean, art.cleanOf)].filter((x): x is number => x !== null);
+  const joinsDetail = byTouch ? art.touchOf && `${art.touch ?? "TOUCH"} TOUCH ${art.touchOk ?? 0}/${art.touchOf}` : art.legatoOf && `LEGATO ${art.legato}/${art.legatoOf}`;
+  const artDetail = [joinsDetail, art.heldOf && `HELD ${art.held}/${art.heldOf}`, art.cleanOf && `RESTS ${art.clean}/${art.cleanOf}`].filter(Boolean).join(" · ");
+  const expressive = r.graces ? r.graces.agogic + r.graces.breath + r.graces.broaden : 0;
   const qualities: Quality[] = [
     { key: "accuracy", label: "ACCURACY", share: share(r.right, accOf), detail: `${r.right} OF ${r.of}${r.stray ? ` · ${r.stray} STRAY` : ""}`, weight: 40 },
-    { key: "timing", label: "TIMING", share: share(r.perfects, r.perfects + r.goods), detail: `${r.perfects} PERFECT · ${r.goods} GOOD`, weight: 20 },
+    { key: "timing", label: "TIMING", share: share(r.perfects, r.perfects + r.goods), detail: `${r.perfects} PERFECT${expressive ? ` (${expressive} IN EXPRESSIVE TIME)` : ""} · ${r.goods} GOOD`, weight: 20 },
     { key: "articulation", label: "ARTICULATION", share: artParts.length ? artParts.reduce((a, b) => a + b, 0) / artParts.length : null, detail: artDetail || "NOTHING TO JUDGE", weight: 20 },
     { key: "subjects", label: "SUBJECTS", share: share(r.captured, r.entries), detail: `${r.captured} OF ${r.entries} CAPTURED`, weight: 20 },
   ];

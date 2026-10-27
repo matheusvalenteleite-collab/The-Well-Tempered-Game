@@ -113,9 +113,9 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
           </ul>
         )}
         {help && rules && (
-          // D314: the reading's marks over the subject, in plain words (the dot is SHORT).
+          // D314: the reading's marks over the subject, in plain words (the dot is SHORT). D325: only with a reading chosen.
           <div className="tb-pop-marks" id="pop-marks">
-            <p className="tb-pop-ask">{tr("THE MARKS OVER YOUR SUBJECT")}</p>
+            <p className="tb-pop-ask">{tr("A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT")}</p>
             <ul className="tb-pop-rules">
               {markLegend(STRONG_SIDE).map((l) => (
                 <li key={l.kind}>

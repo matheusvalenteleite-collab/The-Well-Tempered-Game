@@ -14,6 +14,8 @@
  *     more than max(80 ms, a quarter of the rest): REST!, the crowd cooler, the chain broken; let go
  *     in time: CLEAN, a point at the multiplier.
  * The notes followed by riders (D191) are not judged at their end: the riders take over the sound.
+ * D325: LEGATO no longer scores more (intention.ts): a join is judged by the player's own touch, and
+ * HELD's bounds follow that touch. The legato counts stay (the lessons, the LEGATO CHAIN feat, the lab).
  * Pure: lengths in, verdicts out.
  */
 import type { LaneNote } from "../touch/lanes.ts";
@@ -48,6 +50,13 @@ export interface ArtStats {
   /** Rests respected, of the rests after notes struck right. */
   clean: number;
   cleanOf: number;
+  /**
+   * D325: the joins judged by intention (intention.ts): consistent with the player's own touch, or as
+   * the reading marks them; and the touch the player was found to use (absent: before D325).
+   */
+  touchOk?: number;
+  touchOf?: number;
+  touch?: "LEGATO" | "ORDINARY" | "DETACHED" | null;
 }
 
 /** A word called under the verdict. */
@@ -82,13 +91,14 @@ export function restAfter(notes: readonly LaneNote[], i: number): number {
  * `rest` the rest after it (0: none to respect), all in ms. `deadline`: past it (from the onset),
  * the rest is held through.
  */
-export function releaseVerdict(len: number, held: number, rest: number): { hold: "none" | "held" | "short" | "off"; rest: "none" | "clean" | "over"; deadline: number } {
+export function releaseVerdict(len: number, held: number, rest: number, bounds: { low: number; short: number } = { low: 0.75, short: 0.5 }): { hold: "none" | "held" | "short" | "off"; rest: "none" | "clean" | "over"; deadline: number } {
   const deadline = len + Math.max(80, rest * 0.25);
   const restV = rest <= 0 ? "none" : held > deadline ? "over" : "clean";
   let hold: "none" | "held" | "short" | "off" = "none";
   if (len >= HELD_MIN_MS) {
-    if (held < len * 0.5) hold = "short";
-    else if (held >= len - Math.max(80, len * 0.25) && held <= len + Math.max(80, len * 0.1)) hold = "held";
+    // D325: the bounds by the player's touch (intention.ts heldBounds): 75% and 50% for a legato one.
+    if (held < len * bounds.short) hold = "short";
+    else if (held >= len - Math.max(80, len * (1 - bounds.low)) && held <= len + Math.max(80, len * 0.1)) hold = "held";
     else hold = "off";
   }
   return { hold, rest: restV, deadline };
@@ -98,7 +108,9 @@ export function releaseVerdict(len: number, held: number, rest: number): { hold:
 export function artLine(a: ArtStats): string {
   const pc = (x: number, of: number) => `${Math.round((100 * x) / Math.max(1, of))}%`;
   const parts: string[] = [];
-  if (a.legatoOf) parts.push(`LEGATO ${pc(a.legato, a.legatoOf)}${a.chain > 1 ? ` (CHAIN ${a.chain})` : ""}`);
+  // D325: the touch judged by intention, where it was.
+  if (a.touchOf) parts.push(`${a.touch ?? "TOUCH"} ${pc(a.touchOk ?? 0, a.touchOf)}`);
+  else if (a.legatoOf) parts.push(`LEGATO ${pc(a.legato, a.legatoOf)}${a.chain > 1 ? ` (CHAIN ${a.chain})` : ""}`);
   if (a.heldOf) parts.push(`HELD ${pc(a.held, a.heldOf)}`);
   if (a.cleanOf) parts.push(`RESTS ${pc(a.clean, a.cleanOf)}`);
   return parts.join(" · ");

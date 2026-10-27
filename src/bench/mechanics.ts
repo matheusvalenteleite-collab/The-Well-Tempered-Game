@@ -123,6 +123,17 @@ export const MECH_DEFAULTS = {
   upThird: "schleifer" as "coule" | "schleifer",
   /** "connect", a keyboard's fill notes: at the trill's speed, or the drag's time shared out. */
   fillTiming: "trill" as "trill" | "drag",
+  // INTENTION (D325: the musicians' panel; intention.ts).
+  /** A hold within this share of the player's recent median (same kind of note) is a consistent touch. */
+  touchTolerance: 0.15,
+  /** Articulation's points: at most this share of the run's. */
+  artCap: 0.3,
+  /** D325b: a strong beat or a dissonance may come this share of a beat late and be PERFECT (the next note back on the pulse). */
+  agogicShare: 0.15,
+  /** D325b: a re-entry after a rest or a cadence may come this late and be PERFECT (ms). */
+  breathLateMs: 120,
+  /** D325b: the last two bars may broaden: late up to this share of a beat by the end. */
+  broadenShare: 0.2,
   // SENSOR (D321: the owner's Decision 13, "Accelerometer test first, nothing else yet"; the lab's SENSOR tab only).
   /** PLAY WITH IT: 0 starts the note at once, neutral, and sets its strength when the tap's spike is read; more delays the attack up to this long (ms) to strike it at that strength. */
   tapDelayMs: 0,
@@ -197,6 +208,11 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "leapRows", group: "LADDER", label: "Leap needs", help: "A fourth or more: at least this many rows the right way.", kind: "number", min: 0, max: 3, step: 0.05, unit: "rows" },
   { key: "travelMin", group: "LADDER", label: "Line travel (TRAVEL_MIN)", help: "Over a fourth or more of the line, the thumb must have moved this many rows the right way.", kind: "number", min: 0, max: 2, step: 0.05, unit: "rows" },
   { key: "edgeShare", group: "LADDER", label: "Bar end (EDGE_SHARE)", help: "A thumb that travelled into the bar's end (this share of its height) may stay there.", kind: "number", min: 0, max: 0.4, step: 0.01 },
+  { key: "touchTolerance", group: "INTENTION", label: "Touch tolerance", help: "D325: a note's hold within this share of the player's recent holds (same note value) is consistent: ARTICULATION credited, whatever the touch.", kind: "number", min: 0, max: 0.6, step: 0.05 },
+  { key: "artCap", group: "INTENTION", label: "Articulation cap", help: "D325: articulation's points at most this share of the run's.", kind: "number", min: 0.05, max: 1, step: 0.05 },
+  { key: "agogicShare", group: "INTENTION", label: "Agogic delay", help: "D325b: a strong beat or a dissonance this share of a beat late is still PERFECT, if the next note is back on the pulse.", kind: "number", min: 0, max: 0.4, step: 0.01 },
+  { key: "breathLateMs", group: "INTENTION", label: "Breath re-entry", help: "D325b: a note after a rest or a cadence this late is still PERFECT.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "broadenShare", group: "INTENTION", label: "Final broadening", help: "D325b: in the last two bars, late by up to this share of a beat (growing to the end) is still PERFECT.", kind: "number", min: 0, max: 0.5, step: 0.05 },
   { key: "legatoGapMs", group: "LEGATO", label: "Legato gap", help: "A note let go at most this long before the next is struck still joins it…", kind: "number", min: 0, max: 300, step: 5, unit: "ms" },
   { key: "legatoGapShare", group: "LEGATO", label: "…or share of the note", help: "…or this share of the note's length, whichever is longer.", kind: "number", min: 0, max: 1, step: 0.05 },
   { key: "slides", group: "SLIDES", label: "Slides", help: "A held thumb moved on to the next note plays it.", kind: "bool" },

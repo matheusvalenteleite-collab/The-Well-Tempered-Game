@@ -69,7 +69,8 @@ import { SubjectSound } from "../touch/subject-fx.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
-import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoBonus, legatoGapMs, releaseVerdict, restAfter } from "./articulation.ts";
+import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoGapMs, releaseVerdict, restAfter } from "./articulation.ts";
+import { afterCadence, artBonus, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
@@ -315,7 +316,7 @@ export interface RunResults {
   report: string;
 }
 /** D268: where a score's points came from. */
-export type ScoreSource = "notes" | "legato" | "held" | "subjects" | "cadences" | "bonus" | "reading";
+export type ScoreSource = "notes" | "articulation" | "held" | "subjects" | "cadences" | "bonus" | "reading";
 /** D249: a slip costs the streak a quarter, at least this many notes. */
 export const SLIP_LOSS_MIN = 4;
 /** D249: a second slip within this many right notes of the one before costs a multiplier step. */
@@ -1567,8 +1568,10 @@ export class ProtoGame {
     // D318: the other thumb lands while one waits for its note: that note's moment has come (it is struck
     // first, and this touch is for what follows).
     if (at.c && this.proto.id === "ladder") for (const [wid, w] of this.held) if (w !== h && w.wait && w.k === h.k && w.side !== h.side) this.strikeWaiting(wid, w, false);
-    let i = key !== undefined ? strike(notesK, tk, this.opt, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
-    if (i < 0) i = strike(notesK, tk, this.opt);
+    // D325b: a strong beat's or a dissonance's window leans late (an agogic delay), the next note's giving way.
+    const wo = this.leanOpt(h.k);
+    let i = key !== undefined ? strike(notesK, tk, wo, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
+    if (i < 0) i = strike(notesK, tk, wo);
     if (i < 0 && at.c && this.slideTaken(id, h, at.c, tk)) return;
     if (i < 0 && MECH.slurNext && this.proto.id === "ladder" && at.c) {
       const sl = this.slurNext(id, h, at.c, tk);
@@ -1910,7 +1913,7 @@ export class ProtoGame {
     const notes = this.tracks[h.k].notes;
     const next = notes.findIndex((n) => n.state === "pending" && !n.ride);
     if (next < 0 || t < notes[next].on - this.opt.early / 2) return false;
-    const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
+    const i = strike(notes, t, this.leanOpt(h.k), (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
     if (i < 0) return false;
     // D318: as it was before the slide, should the other thumb land on the note at once (slideTaken).
     const own = this.lastBySide[h.side];
@@ -2033,10 +2036,20 @@ export class ProtoGame {
       this.chain = st.chain + 1;
       this.art.legato++;
       this.art.chain = Math.max(this.art.chain, this.chain);
-      const bonus = legatoBonus(h.pts, this.chain);
-      h.pts += bonus;
-      this.earn("legato", bonus);
-      const text = this.chain > 1 ? `LEGATO ×${this.chain}` : "LEGATO";
+      // D325: the join judged by intention as a strike's, joined (a hold of 1).
+      let text = this.chain > 1 ? `LEGATO ×${this.chain}` : "LEGATO";
+      if (!this.breathAt(st.i, h.k)) {
+        const ok = askJoin === true || this.sense.judge(valueClass(notes[p].dur, this.beat), 1);
+        this.art.touchOf = (this.art.touchOf ?? 0) + 1;
+        if (ok) {
+          this.art.touchOk = (this.art.touchOk ?? 0) + 1;
+          this.artChain++;
+          const bonus = artRoom(artBonus(h.pts, this.artChain), this.score, this.earned.articulation);
+          h.pts += bonus;
+          this.earn("articulation", bonus);
+          text = this.artChain > 1 ? `LEGATO ×${this.artChain}` : "LEGATO";
+        } else this.artChain = 0;
+      }
       this.flash = { text, at, good: true, kind: "legato" };
       this.ties.push({ k: h.k, a: p, b: st.i, at });
       if (this.ties.length > 12) this.ties.splice(0, 6);
@@ -2127,6 +2140,16 @@ export class ProtoGame {
       lw.gapMs = this.msOf(lo.tick, tk);
       lw.allowedMs = legatoGapMs(this.msOf(p.on, p.on + p.dur));
       if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(p.on, p.on + p.dur))) over = true;
+    }
+    // D325: the note before's hold, as the player let it go (still down: held to this strike), before its end is judged here.
+    const pv = this.before(i, h.k);
+    let hold: { sounded: number; toNext: number; gap: number } | null = null;
+    const pa = pv >= 0 && notes[pv].state === "hit" ? notes[pv].at : undefined;
+    if (pa !== undefined && !slide) {
+      let still = false;
+      for (const [hid, o] of this.held) if (hid !== id && o.k === h.k && o.note === pv && o.sounds.length) still = true;
+      if (still) hold = { sounded: this.msOf(pa, tk), toNext: this.msOf(pa, tk), gap: 0 };
+      else if (lo && lo.k === h.k && lo.i === pv) hold = { sounded: this.msOf(pa, lo.tick), toNext: this.msOf(pa, tk), gap: this.msOf(lo.tick, tk) };
     }
     if (h.open) this.judgeEnd(h, tk);
     for (const [hid, o] of this.held) if (hid !== id && o.k === h.k && o.open) this.judgeEnd(o, tk);
@@ -2258,7 +2281,27 @@ export class ProtoGame {
     const offMs = (this.timeAt(n.at ?? n.on) - this.timeAt(n.on)) * 1000;
     // D299: how early or late each struck note was, as heard (BLUETOOTH MODE's delay retuned after the run: headphones.ts driftOf).
     if (this.bt && !slide) this.btOffsets.push(offMs);
-    const perfect = Math.abs(offMs) <= MECH.perfectMs;
+    // D325b: expressive time: a late strike where a musician delays on purpose is still PERFECT (intention.ts).
+    let grace: Grace | null = null;
+    if (Math.abs(offMs) > MECH.perfectMs && offMs > 0 && !slide) {
+      const g = this.graceFor(h.k, i);
+      if (g.why && offMs <= g.ms) grace = g.why;
+    }
+    // An agogic delay before: this strike back on the pulse keeps it PERFECT, else it was GOOD after all.
+    const due = this.agogicDue;
+    if (due && due.k === h.k && !slide) {
+      this.agogicDue = null;
+      if (Math.abs(offMs) > MECH.perfectMs && grace !== "breath" && grace !== "broaden") {
+        this.perfects--;
+        this.goods++;
+        this.graces.agogic--;
+        this.graces.revoked++;
+        this.score -= due.refund;
+        this.earned.notes -= due.refund;
+      }
+    }
+    const perfect = Math.abs(offMs) <= MECH.perfectMs || grace !== null;
+    if (grace) this.graces[grace]++;
     this.combo++;
     this.hits++;
     this.streak++;
@@ -2275,21 +2318,26 @@ export class ProtoGame {
     // D239: the planned lane scores in full, with a small bright chime over Bach's note; the right
     // direction in another lane half (the streak and the multiplier kept).
     if (v.lane === "relative") (h.pts *= RELATIVE_SHARE), this.laneTally.relative++;
+    if (grace === "agogic") this.agogicDue = { k: h.k, refund: h.pts / 2 };
     if (v.lane === "exact") {
       this.laneTally.exact++;
       if (!this.bt) this.chip.chime?.(pitches[0], this.chip.ctx.currentTime, levelOf(d));
     }
     h.open = true;
-    // D218: a note joined in the score, struck legato, scores more, and more along an unbroken chain;
-    // struck detached it scores as it is (Bach's articulation is open) but the chain is broken.
+    // D218: a note joined in the score, struck legato: counted (the lessons, the LEGATO CHAIN feat, the
+    // slur drawn), along an unbroken chain. D325: it no longer scores more (intention.ts, below).
     const step = Math.max(...chord.map((j) => notes[j].step));
-    let legatoAdd = 0;
+    let artAdd = 0;
     // D272: the reading: what it asks of this subject note (its place in the subject), and of the join into it.
     const rd = v.ok && !slide ? this.o.reading : null;
     const place = rd ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
     const ask = rd && place !== undefined ? rd.notes[place] : undefined;
     const askJoin = rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
-    if (this.joinedAt(i, h.k) && askJoin !== false) {
+    // D325b: a breath (after a written rest, or after a cadence's arrival): the lift before it is never
+    // judged (never NOT JOINED); joined there all the same, the legato is counted.
+    const breath = this.breathAt(i, h.k);
+    let legatoNow = false;
+    if (this.joinedAt(i, h.k) && askJoin !== false && (!breath || (!slide && over && pv >= 0 && notes[pv].state === "hit"))) {
       this.art.legatoOf++;
       const p = this.before(i, h.k);
       lw.judged = true;
@@ -2305,26 +2353,50 @@ export class ProtoGame {
         this.chain++;
         this.art.legato++;
         this.art.chain = Math.max(this.art.chain, this.chain);
-        const bonus = legatoBonus(h.pts, this.chain);
-        h.pts += bonus;
-        legatoAdd = bonus;
-        const text = this.chain > 1 ? `LEGATO ×${this.chain}` : "LEGATO";
-        this.flash = { text, at, good: true, kind: "legato" };
+        legatoNow = true;
         this.ties.push({ k: h.k, a: p, b: i, at });
         if (this.ties.length > 12) this.ties.splice(0, 6);
-        this.pops.push({ tick: n.on, step, text, at, gold: false, from: { tick: notes[p].on, step: notes[p].step }, ink: LEGATO_INK });
       } else this.chain = 0;
     }
-    // D268: the score sheet: the note's own points and its legato's apart; its timing counted.
-    this.earn("notes", h.pts - legatoAdd);
-    this.earn("legato", legatoAdd);
+    // D325: ARTICULATION by intention: the join into this note as the reading marks it, else consistent
+    // with the player's own touch on notes of that value; a bonus the same for every touch, capped.
+    if (this.joinedAt(i, h.k) && !breath && !slide && pv >= 0 && notes[pv].state === "hit" && !notes[i - 1]?.ride) {
+      let ok: boolean | null = null;
+      let word = "";
+      if (askJoin === true) (ok = over), (word = "LEGATO");
+      else if (askJoin === false) (ok = !over), (word = "DETACHED");
+      else if (hold) {
+        const raw = holdOf(hold.sounded, hold.toNext, hold.gap);
+        const eff = holdOf(hold.sounded, hold.toNext, hold.gap, true);
+        ok = this.sense.judge(valueClass(notes[pv].dur, this.beat), eff, raw);
+        word = touchStyle(eff);
+      }
+      if (ok !== null) {
+        this.art.touchOf = (this.art.touchOf ?? 0) + 1;
+        if (ok) {
+          this.art.touchOk = (this.art.touchOk ?? 0) + 1;
+          this.artChain++;
+          artAdd = artRoom(artBonus(h.pts, this.artChain), this.score + h.pts, this.earned.articulation);
+          h.pts += artAdd;
+          const text = this.artChain > 1 ? `${word} ×${this.artChain}` : word;
+          this.flash = { text, at, good: true, kind: "legato" };
+          this.pops.push({ tick: n.on, step, text, at, gold: false, from: { tick: notes[pv].on, step: notes[pv].step }, ink: LEGATO_INK });
+        } else this.artChain = 0;
+      }
+    } else if (legatoNow) {
+      const text = this.chain > 1 ? `LEGATO ×${this.chain}` : "LEGATO";
+      this.flash = { text, at, good: true, kind: "legato" };
+    }
+    // D268: the score sheet: the note's own points and its articulation's apart; its timing counted.
+    this.earn("notes", h.pts - artAdd);
+    this.earn("articulation", artAdd);
     if (perfect) this.perfects++;
     else this.goods++;
     if (!slide) this.thumbNote(h.side, n.on, d);
     if (rd) {
       if (place !== undefined) {
         // Joined or detached into it as the reading says; its accent; the subject's level.
-        if (askJoin === true) this.styled(legatoAdd > 0, at);
+        if (askJoin === true) this.styled(legatoNow, at);
         if (askJoin === false) this.styled(!over, at, "DETACHED ✓");
         if (ask?.accent) this.styled(d >= 0.6, at, "ACCENT ✓");
         if (rd.level) this.styled(Math.abs(d - LEVEL_D[rd.level]) <= 0.2, at);
@@ -2525,6 +2597,46 @@ export class ProtoGame {
   readonly art: ArtStats = { legato: 0, legatoOf: 0, chain: 0, held: 0, heldOf: 0, clean: 0, cleanOf: 0 };
   /** The legato chain now (legato strikes in a row). */
   chain = 0;
+  /** D325: the player's touch, inferred; the run of joins consistent with it (or with the reading's marks). */
+  readonly sense = new TouchSense();
+  artChain = 0;
+  /** D325b: the strikes PERFECT by expressive time, by grace; agogic delays taken back (the next note not back on the pulse). */
+  readonly graces = { agogic: 0, breath: 0, broaden: 0, revoked: 0 };
+  /** D325b: an agogic delay waiting for the next strike in its voice to come back on the pulse (its points' PERFECT half, to take back). */
+  private agogicDue: { k: number; refund: number } | null = null;
+  /** D325b: how late note i of track k may be struck and be PERFECT, and why (intention.ts graceMs). */
+  private graceFor(k: number, i: number): { ms: number; why: Grace | null } {
+    const n = this.tracks[k].notes[i];
+    const strong = strongBeat(this.f, n.on);
+    return graceMs({
+      beatMs: this.msOf(n.on, n.on + this.beat),
+      strong,
+      dissonant: !strong && dissonantAt(this.f, this.voiceOf(k, i), n.on, n.midi),
+      breath: this.breathAt(i, k),
+      toEndBars: (this.end - this.beat - n.on) / this.f.barTicks,
+    });
+  }
+  /** D325b: the window options for track k, an agogic note's late side leaning (lanes.ts LaneOptions.lean); on LADDER's split windows only. */
+  private leanMemo: (LaneOptions | undefined)[] = [];
+  private leanOpt(k: number): LaneOptions {
+    if (!this.opt.split || !MECH.agogicShare) return this.opt;
+    const memo = this.leanMemo[k];
+    if (memo && memo.early === this.opt.early && memo.late === this.opt.late) return memo;
+    const notes = this.tracks[k]?.notes ?? [];
+    const lean = new Map<number, number>();
+    notes.forEach((n, i) => {
+      if (n.ride || lean.has(n.on)) return;
+      if (strongBeat(this.f, n.on) || dissonantAt(this.f, this.voiceOf(k, i), n.on, n.midi)) lean.set(n.on, MECH.agogicShare * this.beat);
+    });
+    return (this.leanMemo[k] = { ...this.opt, lean: (on: number) => lean.get(on) ?? 0 });
+  }
+  /** D325b: note i comes after a breath: a written rest before it (the run's first note too), or a cadence's arrival in the note before. */
+  breathAt(i: number, k = 0): boolean {
+    const notes = this.tracks[k].notes;
+    if (this.restBefore(i, k) > 0) return true;
+    const p = this.before(i, k);
+    return p >= 0 && afterCadence(this.f, notes[p].on, notes[i].on);
+  }
   /** The last articulation called (a short word under the verdict). */
   flash: ArtFlash | null = null;
   /** The legato strikes, for the slur drawn between the two notes (note a to note b of track k). */
@@ -2585,7 +2697,8 @@ export class ProtoGame {
     // D261: a prelude's tap (no tail) is not judged for its release.
     if (this.f.kind === "prelude" && len < PRELUDE_TAP_MS) return;
     const restMs = rest >= this.beat / 4 ? this.msOf(n.on + n.dur, n.on + n.dur + rest) : 0;
-    const r = releaseVerdict(len, this.msOf(n.on, off), restMs);
+    // D325: HELD's bounds by the player's touch on notes of this value.
+    const r = releaseVerdict(len, this.msOf(n.on, off), restMs, heldBounds(this.sense.touchFor(valueClass(n.dur, this.beat)) ?? this.sense.touch));
     const at = performance.now();
     // D272: a note the reading wants short: let go early it is right (no SHORT), held it is not.
     if (h.wantShort) {
@@ -3221,9 +3334,9 @@ export class ProtoGame {
       });
     r.grade = this.gradeOf(r);
     const failed = this.failedAt !== null;
-    const art = { ...this.art };
+    const art = { ...this.art, touch: this.sense.touch };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
-    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style } });
+    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces } });
     return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
@@ -3257,7 +3370,7 @@ export class ProtoGame {
   }
 
   /** D268: the points by where they came from (the score sheet), and the right notes' timing. */
-  readonly earned: Record<ScoreSource, number> = { notes: 0, legato: 0, held: 0, subjects: 0, cadences: 0, bonus: 0, reading: 0 };
+  readonly earned: Record<ScoreSource, number> = { notes: 0, articulation: 0, held: 0, subjects: 0, cadences: 0, bonus: 0, reading: 0 };
   /** D272: the reading's asks met, of those judged (the score sheet's READING). */
   readonly style = { hit: 0, of: 0 };
   private readingMemo: Map<string, number> | null = null;
