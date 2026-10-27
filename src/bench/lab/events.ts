@@ -37,6 +37,8 @@ export interface LegatoWhy {
   prevRight?: boolean;
   /** Credited as LEGATO (judged, holding or within the gap, the note before right, not a slide). */
   ok: boolean;
+  /** D321: credited as joined because it was a drag with MECH.dragMeaning "connect" (no bonus, the chain kept). */
+  drag?: boolean;
 }
 
 export type LabEvent =
@@ -45,6 +47,8 @@ export type LabEvent =
   | { kind: "double"; tick: number; track: number; side: Side }
   | { kind: "miss"; tick: number; track: number; i: number; midi: number }
   | { kind: "slide"; tick: number; track: number; i: number; side: Side; movedPx: number }
+  /** D321, a drag with MECH.dragMeaning "connect": a glide (its length), or a keyboard's fill (coulé, Schleifer, a plain join) and its notes. */
+  | { kind: "drag"; tick: number; track: number; i: number; side: Side; from: number; to: number; how: "glide" | "coule" | "schleifer" | "join"; ms?: number; fill?: number[]; dragMs?: number }
   | { kind: "shake"; tick: number; track: number; i: number; side: Side; ornament: string; free: boolean }
   | { kind: "cancel"; tick: number; track: number; side: Side; ringsOn: boolean; mode: string }
   | { kind: "wait"; tick: number; track: number; i: number; side: Side; earlyMs: number }

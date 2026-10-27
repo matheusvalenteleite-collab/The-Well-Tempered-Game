@@ -9,6 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
+import { liveRegistration, registeredNote, LUTE_LP, SUBBASS, SUB16_LEVEL, type Registered } from "./registration.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
@@ -284,6 +285,21 @@ export interface Play {
   open?: number;
   /** D311: how the note answers a held sideways move (set by Chip.note from `touch`). */
   hold?: HoldMode;
+  /** D322: the harpsichord's registration: a second 8' choir and the 4' plucked with the note (registration.ts). */
+  choirs?: Registered["choirs"];
+}
+
+/** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
+function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
+  const both = [main, twin];
+  return {
+    stop: (t) => both.forEach((x) => x.stop(t)),
+    bend: (cents) => both.forEach((x) => x.bend(cents)),
+    glide: (m) => (main.glide?.(m), twin.glide?.(m + shift)),
+    muffle: () => both.forEach((x) => x.muffle?.()),
+    dyn: (l) => both.forEach((x) => x.dyn?.(l)),
+    shape: (x) => both.forEach((y) => y.shape?.(x)),
+  };
 }
 
 /** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
@@ -517,20 +533,31 @@ export class Chip {
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
     if (p.lead && p.couple !== false) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
+    // D322: the registration (the player's voice; every voice under TUTTI), read as the note starts: a change sounds from the next note.
+    const id = preset().id;
+    const reg = p.couple === false ? null : registeredNote(id, liveRegistration(id), v.patch, !!p.lead, midi);
+    if (reg) {
+      if (reg.patch) v = { ...v, patch: reg.patch };
+      if (reg.choirs) p = { ...p, choirs: reg.choirs };
+      // The buff stop on every note so registered (the touch's own lute, D311, may darken it further).
+      if (reg.lute) p = { ...p, lute: true, lp: Math.min(p.lp ?? LUTE_LP, LUTE_LP), hold: p.hold ?? "none" };
+      if (reg.sub16) {
+        const main = this.coupled(midi, at, dur, v, p);
+        const sub = this.single(midi - 12, at, dur, { ...v, patch: SUBBASS }, { ...p, couple: false, touch: undefined, hold: undefined, tone: 0, level: (p.level ?? 1) * SUB16_LEVEL });
+        return together([main, sub]);
+      }
+    }
+    return this.coupled(midi, at, dur, v, p);
+  }
+
+  /** D252: a note with the coupling's octave where it is on (a prelude's LIFT). */
+  private coupled(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
     const c = this.coupling;
     const g = p.couple === false ? 0 : midi >= c.split ? c.up : c.down;
     if (g > 0.01) {
       const main = this.single(midi, at, dur, v, p);
       const twin = this.single(midi >= c.split ? midi + 12 : midi - 12, at, dur, v, { ...p, couple: false, level: (p.level ?? 1) * g });
-      const both = [main, twin];
-      return {
-        stop: (t) => both.forEach((x) => x.stop(t)),
-        bend: (cents) => both.forEach((x) => x.bend(cents)),
-        glide: (m) => (main.glide?.(m), twin.glide?.(m + (midi >= c.split ? 12 : -12))),
-        muffle: () => both.forEach((x) => x.muffle?.()),
-        dyn: (l) => both.forEach((x) => x.dyn?.(l)),
-        shape: (x) => both.forEach((y) => y.shape?.(x)),
-      };
+      return together([main, twin], midi >= c.split ? 12 : -12);
     }
     return this.single(midi, at, dur, v, p);
   }
@@ -1162,7 +1189,7 @@ export class Chip {
     if (p.pleno) mix.gain.value = PLENO_SCALE;
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);
-    const play = (set: string, m: number, r: Loaded, mult: number, gain: number) => {
+    const play = (set: string, m: number, r: Loaded, mult: number, gain: number, choir?: { delay: number; shelf: number }) => {
       const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;
       src.playbackRate.value = rateFor(set, m, baseHz * mult) * 2 ** ((p.detune ?? 0) / 1200);
@@ -1175,14 +1202,31 @@ export class Chip {
       }
       const g = bag.add(ctx.createGain());
       g.gain.value = gain;
-      src.connect(g).connect(mix);
+      // D322: another choir (the harpsichord's 8'+8' and 4'): a little brighter, plucked a little later.
+      if (choir?.shelf) {
+        const sh = bag.add(ctx.createBiquadFilter());
+        sh.type = "highshelf";
+        sh.frequency.value = 2500;
+        sh.gain.value = choir.shelf;
+        src.connect(g).connect(sh).connect(mix);
+      } else src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack.
       const from = r.onset + (p.legato && !plucked ? 0.25 : 0);
-      src.start(t, from);
+      src.start(t + (choir?.delay ?? 0), from);
       srcs.push({ src, set, m, mult });
       if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
     };
     play(set, near, rec, 1, 1);
+    if (p.choirs && plucked) {
+      // D322, the harpsichord's registration: the second 8' (the neighbouring key's string retuned: another
+      // string, not a copy; a few cents off, a few ms later) and the 4' (the octave above), in this note.
+      const u = p.choirs.unison;
+      const nb = u ? (this.nearestLoaded(set, midi + 1) ?? this.nearestLoaded(set, midi - 1) ?? { set, m: near, rec }) : null;
+      if (u && nb) play(nb.set, nb.m, nb.rec, 2 ** (u.cents / 1200), u.gain, { delay: u.delay, shelf: u.shelf });
+      const f = p.choirs.four;
+      const up = f ? this.nearestLoaded(set, midi + 12) : null;
+      if (f && up) play(up.set, up.m, up.rec, 2, f.gain, { delay: 0, shelf: f.shelf });
+    }
     if (p.pleno) {
       // ORGANO PLENO (D181): the octave above (a 4'), and below (the organ's pedal where it reaches).
       const up = this.nearestLoaded(set, midi + 12);
@@ -1234,6 +1278,19 @@ export class Chip {
     // D311: the player's touch: the lute stop's or the echo manual's or a closed vowel's lowpass; a singer's swell.
     const xs = p.hold ? this.touchStage(src, p, baseHz, bag) : null;
     if (xs) src = xs.out;
+    // D322: the organ's tremulant on a recorded pipe (the pedal): the level shaken (Patch.trem), as patchNote does.
+    let tremLfo: OscillatorNode | null = null;
+    if (pt.trem && !plucked) {
+      tremLfo = bag.src(ctx.createOscillator());
+      tremLfo.frequency.value = pt.trem.rate;
+      const depth = bag.add(ctx.createGain());
+      const tg = bag.add(ctx.createGain());
+      depth.gain.value = pt.trem.depth * 0.5;
+      tg.gain.value = 1 - pt.trem.depth * 0.5;
+      tremLfo.connect(depth).connect(tg.gain);
+      src = src.connect(tg);
+      tremLfo.start(t);
+    }
     const g = bag.add(ctx.createGain());
     g.gain.setValueAtTime(0, t);
     // D297: a period preset's envelope on the recording (Patch.rec): its attack, a fall to its sustain,
@@ -1266,7 +1323,7 @@ export class Chip {
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     this.fxSend(pan ?? dyn, pt.send, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
-    const lfos: AudioScheduledSourceNode[] = [];
+    const lfos: AudioScheduledSourceNode[] = tremLfo ? [tremLfo] : [];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
     // joined to the next (tie), back to its level by then (no step into the next).
     const messa = pt.syllable?.messa ?? 0;

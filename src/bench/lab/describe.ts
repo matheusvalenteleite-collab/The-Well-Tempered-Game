@@ -7,6 +7,7 @@
  */
 import type { LabEvent, LadderWhy, LegatoWhy } from "./events.ts";
 import { pitchName, where } from "./replay.ts";
+import { dragLine } from "../drag.ts";
 
 const px = (n: number) => `${Math.round(Math.abs(n))} px`;
 const ms = (n: number) => `${n >= 0 ? "+" : "−"}${Math.round(Math.abs(n))} ms`;
@@ -41,6 +42,7 @@ export function interval(steps: number): string {
 /** How the join went: "LEGATO ✓ other thumb still down", "NOT JOINED: gap 85 ms > 62 ms allowed". */
 export function legatoLine(l: LegatoWhy | undefined, ok: boolean): string {
   if (!l || !l.judged || !ok) return "";
+  if (l.ok && l.drag) return "⌒ JOINED by the drag (connect: the chain kept, no bonus)";
   if (l.ok) return l.holding ? "⌒ LEGATO ✓ other thumb still down" : `⌒ LEGATO ✓ handover, gap ${Math.round(l.gapMs ?? 0)} ms ≤ ${Math.round(l.allowedMs ?? 0)} ms`;
   if (!l.holding && l.gapMs !== undefined && l.allowedMs !== undefined && l.gapMs > l.allowedMs) return `⌒ NOT JOINED: gap ${Math.round(l.gapMs)} ms > ${Math.round(l.allowedMs)} ms allowed`;
   if (l.prevRight === false || l.holding || (l.gapMs !== undefined && l.allowedMs !== undefined && l.gapMs <= l.allowedMs)) return "⌒ NOT JOINED: the note before was not right";
@@ -71,6 +73,12 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} ○ ${pitchName(piece, e.midi)} MISSED (no touch in its window)`];
     case "slide":
       return [`${at} ↕ SLIDE fired: ${e.side} thumb moved ${px(e.movedPx)} ${way(e.movedPx)} while held`];
+    case "drag": {
+      const name = (m: number) => pitchName(piece, m);
+      const took = e.dragMs !== undefined ? ` · the drag took ${Math.round(e.dragMs)} ms` : "";
+      if (e.how === "glide") return [`${at} ↝ ${dragLine(name, e.from, e.to, { glideMs: e.ms ?? 0 })}${took}`];
+      return [`${at} ↝ ${dragLine(name, e.from, e.to, { fill: { kind: e.how, notes: e.fill ?? [] } })}${took}`];
+    }
     case "shake":
       // D319: the player's trill settled on its main note (the shaking stopped).
       if (e.ornament.startsWith("settled")) return [`${at} ~ TRILL SETTLED on the main note (${e.ornament.slice(9)})`];
