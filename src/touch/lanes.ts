@@ -242,6 +242,28 @@ export function strike(notes: LaneNote[], t: number, o: LaneOptions, ok: (i: num
   return best;
 }
 
+/**
+ * D331: a touch on the halfway line's near side of a note already struck goes to the next note (if it has
+ * not come yet, within the full early window, and at least `minAfter` ticks after that strike): the owner's
+ * thumb landing for G 134 ms early between quavers was a STRAY, and G was lost. The caller rules out a
+ * rolling thumb's re-contact first.
+ */
+export function strikeNext(notes: LaneNote[], t: number, o: LaneOptions, minAfter: number, ok: (i: number) => boolean = () => true): number {
+  if (!o.split) return -1;
+  let best = -1;
+  const xs = struckOnsets(notes);
+  for (let k = 0; k + 1 < xs.length && best < 0; k++) {
+    const prev = xs[k], on = xs[k + 1];
+    if (t <= prev || t >= on || t < on - o.early) continue;
+    if (!notes.some((n) => n.on === prev && n.state === "hit" && n.at !== undefined && t - n.at >= Math.max(minAfter, (on - prev) / 4))) continue;
+    notes.forEach((n, i) => {
+      if (best < 0 && n.on === on && n.state === "pending" && !n.ride && ok(i)) best = i;
+    });
+  }
+  if (best >= 0) for (const j of chordOf(notes, best)) if (notes[j].state === "pending") Object.assign(notes[j], { state: "hit", at: t });
+  return best;
+}
+
 /** The thumb leaves a note it was playing at tick t. */
 export function release(notes: LaneNote[], i: number, t: number) {
   const n = notes[i];
