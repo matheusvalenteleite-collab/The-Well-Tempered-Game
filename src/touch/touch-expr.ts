@@ -40,6 +40,16 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;
 
+/**
+ * D314: which side of a bar is STRONG (the firmer, brighter attack; where the reading's accent ">" is
+ * played and ACCENT ✓ judged): "outer" (the phone's edge, as D311 laid it out) or "inner" (by the box).
+ * The one switch: protos.ts barDynamic (the across value every sound and judgement reads) follows it,
+ * and so does every drawing of the across axis (the soft/strong hints, the marks, the thumbs shown).
+ */
+export const STRONG_SIDE = "outer" as "outer" | "inner";
+/** D314: a bar's place across (0 the inner edge, 1 the outer) as strength (0 soft, 1 strong); the same flip maps strength back to the place. */
+export const strengthOf = (across: number): number => (STRONG_SIDE === "outer" ? across : 1 - across);
+
 /** The across value of a touch that says nothing (the computer's keys, a MIDI note on a sound without dynamics): the bar's middle, the sound as it was. */
 export const TOUCH_NEUTRAL = 0.5;
 /** The smoothing of every sustain change (s, a time constant: no zipper noise). */

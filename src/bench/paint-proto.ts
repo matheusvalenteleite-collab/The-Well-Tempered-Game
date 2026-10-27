@@ -18,6 +18,7 @@ import { barStart, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
+import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
@@ -25,6 +26,9 @@ import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
 import { arcOf, pedalSpan } from "./arc.ts";
 import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
+
+/** D314: how long (s from the run's start) the bars say where SOFT and STRONG are. */
+const SIDES_HINT_S = 6;
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 
@@ -938,10 +942,10 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.fillStyle = t.barline;
       c.fillRect(n ? s.x : bw - 1, 0, 1, h);
     } else {
-      // The bar: warm and dark, a little lighter towards the phone's edge (forte).
+      // The bar: warm and dark, a little lighter towards its strong side (D314: the phone's edge, or the box's by STRONG_SIDE).
       const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
-      grad.addColorStop(0, "rgba(26,18,22,0.92)");
-      grad.addColorStop(1, "rgba(54,34,30,0.92)");
+      grad.addColorStop(strengthOf(0), "rgba(26,18,22,0.92)");
+      grad.addColorStop(strengthOf(1), "rgba(54,34,30,0.92)");
       c.fillStyle = grad;
       c.fillRect(s.x, 0, bw, h);
       c.fillStyle = t.barline;
@@ -949,9 +953,31 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     }
     // The dynamics along the foot, pp by the box to ff by the edge (D296: only where touch dynamics are heard, D293).
     if (g.touchDynamics) MARKS.forEach((m, j) => {
-      const u = (j + 0.5) / MARKS.length;
+      const u = strengthOf((j + 0.5) / MARKS.length);
       label(c, m, n ? s.x + u * bw : bw - u * bw, h - 9, t.muted, 6);
     });
+    // D314: where across the bar is SOFT and where STRONG (D311's attack; the reading's ">"), for the
+    // first seconds of the round (through the count-in), then fading out.
+    else if (g.proto.layout === "bars") {
+      const left = (g.startTick + SIDES_HINT_S * g.tps - g.now) / g.tps;
+      if (left > 0) {
+        const a = Math.min(1, left / 2);
+        const xAt = (u: number) => (n ? s.x + u * bw : bw - u * bw);
+        const weak = strengthOf(0.22);
+        const strong = strengthOf(0.78);
+        c.globalAlpha = 0.85 * a;
+        label(c, "SOFT", xAt(weak), h - 14, "#7fd6e8", 7);
+        label(c, "STRONG", xAt(strong), h - 14, "#ff8a3d", 7);
+        // A hairline from soft to strong, thicker toward the strong side.
+        for (let k = 0; k < 12; k++) {
+          const u = 0.12 + (k / 11) * 0.76;
+          c.fillStyle = strengthOf(u) < 0.5 ? "#7fd6e8" : "#ff8a3d";
+          const th = 1 + Math.round(2 * strengthOf(u));
+          c.fillRect(Math.round(xAt(u)) - 1, h - 26 - th, 3, th);
+        }
+        c.globalAlpha = 1;
+      }
+    }
   }
   // D244: THE FUGUE'S BUILDING on the phone: the map, small, across the top of the box.
   if (!paper && builds(g.f) && g.f.entries.length) {
@@ -995,8 +1021,23 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         const way = !g.lastTouch || m.size < 0 ? "" : d === 0 ? "=" : d > 0 ? "▲" : "▼";
         label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, sy, t.fg, 9);
         // D278: an ornament to play: its sign and SHAKE under the arrow, gold, the hand wobbling.
+        // D314: as the tutorial shows it: the sign larger, the ornament named; till one is shaken, a
+        // guide thumb shaking on the bar and how ("TOUCH IT, THEN SHAKE YOUR THUMB").
         const orn = g.ornamentAt(0, nx.i);
-        if (orn) label(c, `${orn} SHAKE`, s.x + bw / 2 + Math.sin(performance.now() / 70) * 3, sy + 16, t.gold, 7);
+        const sk = orn ? g.shakeAt(0, nx.i) : null;
+        if (orn && sk) {
+          const wob = Math.sin(performance.now() / 70) * 3;
+          label(c, `${sk.word} · SHAKE`, s.x + bw / 2 + wob, sy + 17, t.gold, 7);
+          if (g.ornHintOn) {
+            const size = Math.max(16, Math.min(28, bw * 0.26));
+            const hx = s.x === 0 ? bw * 0.5 : w - bw * 0.5;
+            // The thumb shaking along the bar (up and down), as THE ORNAMENT's demonstration shows it.
+            const shakeY = Math.sin(performance.now() / 45) * g.ladderRow * 0.45;
+            drawThumb(c, hx, sy + 46 + shakeY, size, s.x === 0 ? "left" : "right", "down", 0.55 + 0.4 * nx.p);
+            label(c, sk.first < 0 ? "DOWN AND BACK" : "UP AND DOWN", s.x + bw / 2, sy + 46 + size * 1.1, t.shine, 6);
+            label(c, "TOUCH IT, THEN SHAKE", s.x + bw / 2, sy + 46 + size * 1.1 + 11, t.shine, 6);
+          }
+        }
       }
       // D271, THE TUTORIAL's coaching.
       // D273: before the first strike either thumb (the point is taking turns, not which starts).
@@ -1091,7 +1132,7 @@ function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: Proto
   // The other thumb from the last; before the first note, either (taking turns is the point, not which starts: D273).
   const last = g.thumbNext();
   for (const side of last ? [last] : (["left", "right"] as const)) {
-    const x = side === "left" ? bw * (1 - acrossBar(next.d)) : w - bw + bw * acrossBar(next.d);
+    const x = side === "left" ? bw * (1 - strengthOf(acrossBar(next.d))) : w - bw + bw * strengthOf(acrossBar(next.d));
     drawThumb(c, x, y, size, side, "hover", fade);
     label(c, `${last ? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB") : "EITHER THUMB"}${next.shake ? " · THEN SHAKE" : ""}`, side === "left" ? bw / 2 : w - bw / 2, y + size * 0.9, t.shine, 6);
   }
@@ -1119,9 +1160,11 @@ function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: numbe
 /** D271: the part of both bars asked for: soft by the box in the first bar, loud by the edge in the second. */
 function dynamicsCoach(c: CanvasRenderingContext2D, w: number, h: number, bw: number, soft: boolean, t: Tok) {
   const zw = bw * 0.45;
+  // D314: the strong side may be the inner one (STRONG_SIDE): the zones swap with it.
+  const inner = soft === (STRONG_SIDE === "outer");
   c.fillStyle = soft ? "#7fd6e8" : "#ff8a3d";
   c.globalAlpha = 0.16 + 0.06 * Math.sin(performance.now() / 200);
-  if (soft) {
+  if (inner) {
     c.fillRect(bw - zw, 0, zw, h);
     c.fillRect(w - bw, 0, zw, h);
   } else {
@@ -1130,8 +1173,8 @@ function dynamicsCoach(c: CanvasRenderingContext2D, w: number, h: number, bw: nu
   }
   c.globalAlpha = 1;
   const word = soft ? "SOFT" : "LOUD";
-  label(c, word, soft ? bw - zw / 2 : zw / 2, h * 0.5, soft ? "#7fd6e8" : "#ff8a3d", 8);
-  label(c, word, soft ? w - bw + zw / 2 : w - zw / 2, h * 0.5, soft ? "#7fd6e8" : "#ff8a3d", 8);
+  label(c, word, inner ? bw - zw / 2 : zw / 2, h * 0.5, soft ? "#7fd6e8" : "#ff8a3d", 8);
+  label(c, word, inner ? w - bw + zw / 2 : w - zw / 2, h * 0.5, soft ? "#7fd6e8" : "#ff8a3d", 8);
   void t;
 }
 

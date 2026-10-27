@@ -9,6 +9,7 @@
 import { tierFugues, tierOf, TIER_ORDER, type Tier } from "./tiers.ts";
 import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
 import type { Platform } from "./protos.ts";
+import { STRONG_SIDE } from "../touch/touch-expr.ts";
 
 /**
  * D263: the minimal page's platform: as detected, or as chosen in its ⚙ (MOBILE · COMPUTER, kept on the
@@ -186,9 +187,14 @@ export const RULES: Record<string, string[]> = {
   ladder: [
     "Hold the phone sideways, a thumb on each bar.",
     "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.",
-    // D311: the across axis, the player's (shapes the sound, never the score).
-    "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
+    // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
+    STRONG_SIDE === "outer"
+      ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
+      : "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
     "Hand each note to the other thumb with no gap: LEGATO scores more. Miss too many and the crowd leaves.",
+    // D314: the ornaments, as THE ORNAMENT lesson teaches them; the free ones.
+    "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓ and points; not done: nothing lost.",
+    "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
   ],
 };
 

@@ -11,7 +11,8 @@
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
-import { ornamentMark, ornamentsOf, realiseNote, shakeOf, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { freeOrnamentParts, ornamentMark, ornamentsOf, realiseNote, shakeOf, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { feedShake, shakeTracker, type FreeKind, type ShakeTracker } from "../touch/free-ornament.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
@@ -23,6 +24,8 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
+/** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */
+const FREE_INK = "#f3d78a";
 /** D290: the narrowest window a note keeps on either side, however close its neighbours (ms). */
 export const SPLIT_FLOOR_MS = 60;
 /** D290: a contact this soon after a note was struck is the same strike doubled (ms). */
@@ -38,7 +41,7 @@ export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => (TRAVEL_MIN = v);
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, sweep, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
-import { holdValue, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
+import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
 import { follow, joins, phrase, phraseContext, ritard, withSpeed, type Shape } from "../touch/phrasing.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
@@ -52,7 +55,7 @@ import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoBonus, legatoGapMs, r
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { BAR, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
+import { BAR, barAcross, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
 /** The multiplier's step (notes right in a row), and CON FUOCO's run. */
@@ -154,6 +157,10 @@ interface Held {
   orn?: Shake & { main: number; upper: number; lower: number; moves: number; dir: 0 | 1 | -1; from: number; firstDir: 0 | 1 | -1; v: ReturnType<typeof voicing>; play: Play; by: number; done: boolean };
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
+  /** D314: how its note sounds (the voicing and play it was struck with), for a free ornament's notes. */
+  tone?: { v: ReturnType<typeof voicing>; play: Play };
+  /** D314: a shake under way on its note (free-ornament.ts), and the note it is on. */
+  free?: ShakeTracker & { note: number };
   /** D280: where across its bar it touches (0..1 of the touch area's width), for the thumbs drawn. */
   across?: number;
   /**
@@ -396,6 +403,7 @@ export class ProtoGame {
   constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number; clock?: Clock }, chip: Chip) {
     this.f = f;
     this.proto = proto;
+    this.startTick = from;
     this.ornaments = ornamentsOf(f);
     this.subj = new SubjectSound(f);
     this.o = o;
@@ -960,9 +968,9 @@ export class ProtoGame {
     return this.tracks.length > 1 && side === "right" ? 1 : 0;
   }
 
-  /** The thumbs down: side, height; D311: where across its bar it is now and where it landed (0 inner .. 1 outer), on the bars. */
+  /** The thumbs down: side, height; D311: where across its bar it is now and where it landed (0 inner .. 1 outer: D314, places, whichever side is strong), on the bars. */
   heldSides(): { side: Side; y: number; across?: number; land?: number }[] {
-    return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay, ...(h.land !== undefined && h.across !== undefined && this.proto.layout === "bars" ? { across: barDynamic(h.across * this.touchW, this.touchW), land: h.land } : {}) }));
+    return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay, ...(h.land !== undefined && h.across !== undefined && this.proto.layout === "bars" ? { across: barAcross(h.across * this.touchW, this.touchW), land: strengthOf(h.land) } : {}) }));
   }
   /** D280: the thumbs down now: side, height, where across (0..1 of the width), shaking. */
   thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean }[] {
@@ -1442,6 +1450,8 @@ export class ProtoGame {
     if (h.passive) return;
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
     if (h.orn && !h.orn.done && h.open) return this.ornamentShake(h, c, t);
+    // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
+    if (this.freeShake(h, c, t, ts)) return;
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
       // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
@@ -1538,8 +1548,71 @@ export class ProtoGame {
       this.flash = { text: `${o.word} ✓`, at: performance.now(), good: true, kind: "legato" };
     }
   }
+  /**
+   * D314, FREE ORNAMENTS: on LADDER a held note struck right, alone, still due and without a written
+   * ornament takes a mordent or a trill when the thumb shakes on it (free-ornament.ts: along the bar,
+   * fast, back and forth; D311's sideways expression and a slow drift are not shakes). Its notes sound
+   * from now to the note's written end, realised at the tempo (ornament-play.ts freeOrnamentParts);
+   * the note's judging is untouched (struck, held, lifted as before), nothing is earned: a small sign
+   * rises from the note (a pop). Not in BLUETOOTH MODE (the note sounds from the schedule) nor on a
+   * computer's keys. True while a shake owns the thumb (no slide meanwhile).
+   */
+  private freeShake(h: Held, c: Contact, t: number, ts: number): boolean {
+    if (this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    const i = h.note;
+    const n = this.tracks[h.k].notes[i];
+    if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit") return false;
+    // From where the note was struck (the first move is already part of the shake).
+    if (!h.free || h.free.note !== i) h.free = { ...shakeTracker(h.ay, h.ax, ts), note: i };
+    const end = n.on + n.dur;
+    if (t >= end) return !!h.free.kind;
+    const kind = feedShake(h.free, c.x, c.y, ts, Math.max(6, this.ladderRow * 0.4));
+    if (kind) this.freeOrnament(h, kind, t);
+    return !!h.free.kind;
+  }
+  private freeOrnament(h: Held, kind: FreeKind, t: number) {
+    const notes = this.tracks[h.k].notes;
+    const n = notes[h.note];
+    const parts = freeOrnamentParts(this.f, kind, n.on, n.midi, t, n.on + n.dur, this.bpm);
+    if (!parts.length) return;
+    const now = this.chip.ctx.currentTime;
+    for (const sd of h.sounds) sd.stop(now + 0.02);
+    const tone = h.tone!;
+    h.sounds = parts.map(([pon, pdur, pm], k) => {
+      const at = now + Math.max(0, this.timeAt(pon) - this.timeAt(t));
+      const last = k === parts.length - 1;
+      return this.touchNote(pm, at, last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), tone.v, { ...tone.play, legato: true });
+    });
+    if (kind === "trill") this.freeOrns.trills++;
+    else this.freeOrns.mordents += kind === "mordent" ? 1 : 0;
+    if (kind === "short") this.freeOrns.shorts++;
+    // A flourish only: the sign rising from the note, faint gold (no points, no streak, no flash over the verdict).
+    this.pops.push({ tick: n.on, step: n.step, text: kind === "mordent" ? "~|" : "TR", at: performance.now(), gold: true, ink: FREE_INK });
+  }
+  /** D314: the free ornaments played this run (counted for the tests; they score nothing). */
+  readonly freeOrns = { mordents: 0, shorts: 0, trills: 0 };
   /** D278: the ornaments a phone's player was given to play, and those played. */
   readonly shakes = { hit: 0, of: 0 };
+  /** D314: the tick the run starts at (the bars' soft/strong hints fade out after it). */
+  readonly startTick: number;
+  /** D314: the ornament hint is shown (asked for, and no ornament shaken yet this run). */
+  get ornHintOn(): boolean {
+    return !!this.o.ornHint && this.shakes.hit === 0 && this.proto.platform === "mobile";
+  }
+  /** D314: an ornament of the player's to shake coming within `beats` beats (or one being shaken now). */
+  ornamentNear(beats = 3): boolean {
+    if ([...this.held.values()].some((h) => h.orn && !h.orn.done)) return true;
+    const notes = this.tracks[0]?.notes ?? [];
+    const until = this.now + beats * this.beat;
+    for (let i = Math.max(0, this.next(0)); i < notes.length && notes[i].on <= until; i++) if (notes[i].state === "pending" && this.shakeAt(0, i)) return true;
+    return false;
+  }
+  /** D314: the ornament to shake on track k's note i, if any (its kind, first way, moves). */
+  shakeAt(k: number, i: number): Shake | null {
+    const n = this.tracks[k]?.notes[i];
+    const o = n ? this.ornaments.get(`${this.voiceOf(k, i)}:${n.on}`) : undefined;
+    return o ? shakeOf(o) : null;
+  }
   /** D278: the word for the ornament on track k's note i ("TR", "~|"…), or "". */
   ornamentAt(k: number, i: number): string {
     const n = this.tracks[k]?.notes[i];
@@ -1726,6 +1799,7 @@ export class ProtoGame {
         h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: false }));
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
       } else h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
+      h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }

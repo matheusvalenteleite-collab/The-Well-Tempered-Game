@@ -9,7 +9,9 @@
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { tr } from "../i18n/index.ts";
-import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, textWidth, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { markLegend } from "./readings.ts";
+import { STRONG_SIDE } from "./touch-expr.ts";
 import { paintVariant } from "./box-variants.ts";
 import { paintUi } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
@@ -122,6 +124,10 @@ export interface Frame {
   zone?: "pleno" | "fuoco" | null;
   /** D205: each ornamented note's sign ("voice:onset" → "TR", "~|"…). */
   ornaments?: Map<string, string>;
+  /** D314: a line over the box (the ornament's first-time hint: "A SIGN OVER A NOTE: TOUCH IT, THEN SHAKE YOUR THUMB"). */
+  banner?: string;
+  /** D314: the reading's marks explained (a small legend) until this tick: the start of a round where marks appear. */
+  legendUntil?: number;
   /** D272: the reading's marks on the subject's notes ("voice:onset"): joined to the next, detached, short, accented. */
   readingMarks?: Map<string, { join: boolean | null; short: boolean | null; accent: boolean | null }>;
   /** D194: the cadences, named. */
@@ -239,7 +245,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   }
 
   const fx = { g, w, h, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
-  if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState);
+  if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState, fr.beatTicks);
 
   // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
   // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no solid
@@ -413,11 +419,23 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const x = xOf(o.on);
       if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
     }
+    // D314: the player's, to be shaken as THE ORNAMENT lesson teaches: twice the size, on a dark backing, a
+    // tick under it to its note (its word over the bars, paint-proto.ts); gone grey once its note is missed.
     for (const [pv, pnotes] of played)
       for (const n of pnotes) {
         const mk = fr.ornaments.get(`${pv}:${n.on}`);
         const x = xOf(n.on);
-        if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(n.step) - 6, fx.gold);
+        if (!mk || x < -16 || x > w) continue;
+        const sw = textWidth(mk, 2);
+        const y = Math.max(0, yOf(n.step) - 14);
+        g.globalAlpha = 0.65;
+        g.fillStyle = "#0c0a10";
+        g.fillRect(x - 2, y - 2, sw + 2, 14);
+        g.globalAlpha = 1;
+        const ink = n.state === "miss" ? miss : fx.gold;
+        pixText(g, mk, x, y, ink, 2);
+        g.fillStyle = ink;
+        g.fillRect(x, y + 11, 1, Math.max(1, yOf(n.step) - y - 11));
       }
   }
   // D272: the reading's marks over the player's subject notes: a slur to the next where joined, a red
@@ -443,17 +461,63 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
           g.fillRect(Math.round((xOf(n.on + n.dur) + xOf(nx.on)) / 2) - 1, y - 2, 1, bh + 3);
         }
         if (mk.short) {
+          // D314: the staccato dot, 2 by 2 (it was a lone pixel), over the note's middle.
           g.fillStyle = edge;
-          g.fillRect(Math.round((x + xOf(n.on + n.dur)) / 2), y - 3, 1, 1);
+          g.fillRect(Math.round((x + xOf(n.on + n.dur)) / 2) - 1, y - 4, 2, 2);
         }
         if (mk.accent) pixText(g, ">", x, y - 6, "#ff8a3d");
       });
   if (fr.spans) strikes(fx, fr.spans);
+  // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
+  if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
+  if (fr.banner) banner(g, w, fr.banner, fx.gold);
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   sparks(fx, fr.pops ?? [], fr.bursts ?? []);
   zoneGlow(fx, fr.zone ?? null);
 }
+
+/**
+ * D314: the reading's marks explained, small, at the box's foot (only the marks this round has): the
+ * sign as the box draws it, then what it asks of the thumbs (readings.ts markLegend; the strong side
+ * by touch-expr.ts STRONG_SIDE). Fades over its last two seconds.
+ */
+function marksLegend(g: CanvasRenderingContext2D, w: number, h: number, fr: Frame, edge: string, alpha: number) {
+  const marks = [...fr.readingMarks!.values()];
+  const has = { short: marks.some((m) => m.short), apart: marks.some((m) => m.join === false), joined: marks.some((m) => m.join), strong: marks.some((m) => m.accent) };
+  const lines = markLegend(STRONG_SIDE).filter((l) => has[l.kind]);
+  if (!lines.length) return;
+  const lw = Math.min(w - 8, 10 + Math.max(...lines.map((l) => textWidth(l.text))));
+  const lh = 8;
+  const y0 = h - 6 - lines.length * lh - 4;
+  g.globalAlpha = 0.62 * alpha;
+  g.fillStyle = "#0c0a10";
+  g.fillRect(3, y0, lw + 4, lines.length * lh + 5);
+  g.globalAlpha = alpha;
+  lines.forEach((l, k) => {
+    const y = y0 + 3 + k * lh;
+    // The sign as drawn over the notes: the dot, the red stroke, the gold slur, the orange wedge.
+    if (l.kind === "short") (g.fillStyle = edge), g.fillRect(7, y + 2, 2, 2);
+    else if (l.kind === "apart") (g.fillStyle = "#ec5a4a"), g.fillRect(7, y, 1, 5);
+    else if (l.kind === "joined") (g.fillStyle = GOLD_SLUR), g.fillRect(6, y + 1, 5, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(11, y + 2, 1, 1);
+    else pixText(g, ">", 6, y, "#ff8a3d");
+    pixText(g, l.text, 15, y, edge);
+  });
+  g.globalAlpha = 1;
+}
+/** D314: a line over the box's top, on a dark band (the ornament's first-time hint). */
+function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: string) {
+  const tw = textWidth(text);
+  const x = Math.max(2, Math.round((w - tw) / 2));
+  const pulse = 0.75 + 0.25 * Math.sin(performance.now() / 180);
+  g.globalAlpha = 0.82;
+  g.fillStyle = "#0c0a10";
+  g.fillRect(x - 4, 3, tw + 7, 11);
+  g.globalAlpha = pulse;
+  pixText(g, text, x, 6, ink);
+  g.globalAlpha = 1;
+}
+const GOLD_SLUR = "#ffd23f";
 
 /** The subject's texture: dots along a block's top. */
 function dots(g: CanvasRenderingContext2D, x1: number, x2: number, y: number, ink: string) {

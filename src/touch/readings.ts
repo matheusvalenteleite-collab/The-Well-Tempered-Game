@@ -10,6 +10,7 @@
  */
 import data from "../../data/touch/readings.json" with { type: "json" };
 import { ART_HOLD } from "./phrasing.ts";
+import { tr } from "../i18n/index.ts";
 import { decide, type Kind } from "./practice.ts";
 import type { Character } from "./character.ts";
 
@@ -50,6 +51,23 @@ export const READINGS = data as unknown as Record<string, Reading[]>;
 export const LEVEL_D: Record<Level, number> = { pp: 0.1, p: 0.28, mp: 0.45, mf: 0.6, f: 0.78, ff: 0.92 };
 
 export const readingsOf = (id: string): Reading[] => READINGS[id] ?? [];
+
+/**
+ * D314: what each of the reading's marks asks of the thumbs, in plain words (the owner: "clearer
+ * instructions on what the . is in articulation"): the dot is SHORT (staccato: judged STACCATO ✓ when
+ * the thumb lets go before three fifths of the note), the stroke APART (detached), the slur JOINED
+ * (legato), the wedge STRONG (an accent: judged ACCENT ✓ on the bar's strong side, touch-expr.ts
+ * STRONG_SIDE). The box's legend at the start of a round with marks, HEAR THE SUBJECT and HOW TO PLAY.
+ */
+export type MarkKind = "short" | "apart" | "joined" | "strong";
+export function markLegend(strongSide: "outer" | "inner"): { kind: MarkKind; sym: string; text: string }[] {
+  return [
+    { kind: "short", sym: "·", text: tr("SHORT: LIFT QUICKLY") },
+    { kind: "apart", sym: "|", text: tr("APART: LIFT BEFORE THE NEXT") },
+    { kind: "joined", sym: "⌒", text: tr("JOINED: NEXT THUMB DOWN BEFORE LIFTING") },
+    { kind: "strong", sym: ">", text: strongSide === "outer" ? tr("STRONG: TOUCH TOWARD THE OUTER EDGE") : tr("STRONG: TOUCH TOWARD THE INNER EDGE, BY THE BOX") },
+  ];
+}
 
 const KEY = "tb-reading-v1";
 function store(): Record<string, string> {
