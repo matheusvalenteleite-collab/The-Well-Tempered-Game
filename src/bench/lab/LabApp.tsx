@@ -491,7 +491,7 @@ export function LabApp() {
     // D321: the sensor session (if any taps were measured) travels with the run's log.
     if (hub.current.taps.length) log.sensor = sensorExport(hub.current, adapt.current);
     const t = tally(log.verdicts);
-    feed.current.push(`— RUN OVER: right ${t.right} · wrong ${t.wrong} · missed ${t.missed} · stray ${t.stray} · joined ${t.joined} of ${t.joined + t.notJoined} · slides ${t.slides}`);
+    feed.current.push(`— RUN OVER: right ${t.right} · wrong ${t.wrong} · missed ${t.missed} · stray ${t.stray} · joined ${t.joined} of ${t.joined + t.notJoined} · slides ${t.slides} · ${timingLine(log.verdicts)}`);
     setFeedTick((n) => n + 1);
     setLast(log);
     // D320: every run kept on the device by itself, the newest 20 (the oldest overwritten).
@@ -920,7 +920,7 @@ export function LabApp() {
     const t = tally(log.verdicts);
     const p = log.passage;
     const ch = Object.keys(mechChanges(log.mech)).length;
-    return `${pieceLabel(fugueById(p.piece))} · bars ${p.fromBar}–${p.toBar} · ${p.tempoPct}% · ${t.right}/${t.right + t.wrong + t.missed} right · ${t.joined} joined${ch ? ` · ${ch} changed` : ""}`;
+    return `${pieceLabel(fugueById(p.piece))} · bars ${p.fromBar}–${p.toBar} · ${p.tempoPct}% · ${t.right}/${t.right + t.wrong + t.missed} right · ${t.joined} joined · ${timingLine(log.verdicts, true)}${ch ? ` · ${ch} changed` : ""}`;
   };
   const keep = (log: LabLog) => {
     // D320: saved as each run ends (from the stored list, not this render's: the run loop's closure is old).
@@ -1261,6 +1261,17 @@ function BandSeg({ change }: { change: (v: Partial<Record<MechKey, unknown>>) =>
       </span>
     </div>
   );
+}
+
+/** How early or late the player's right notes were on average (the owner: "how do I know if I'm less or more early?"). */
+export function timingLine(verdicts: readonly LabEvent[], short = false): string {
+  const offs = verdicts.flatMap((v) => (v.kind === "note" && v.ok && typeof v.offMs === "number" ? [v.offMs] : []));
+  if (!offs.length) return short ? "timing —" : "timing: no right notes";
+  const mean = offs.reduce((a, b) => a + b, 0) / offs.length;
+  const sd = Math.sqrt(offs.reduce((a, b) => a + (b - mean) ** 2, 0) / offs.length);
+  const m = Math.round(Math.abs(mean));
+  const word = Math.abs(mean) < 5 ? "on time" : mean < 0 ? `${m} ms early` : `${m} ms late`;
+  return short ? `${word} ±${Math.round(sd)}` : `on average ${word} (spread ±${Math.round(sd)} ms, ${offs.length} notes)`;
 }
 
 /** D321: what a drag means, here as in MECHANICS › DRAG (the game's: JOIN). */
