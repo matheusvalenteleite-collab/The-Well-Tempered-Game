@@ -8,7 +8,7 @@ import type { Side } from "../../touch/thumbs.ts";
 /** How LADDER judged a touch's height (proto-game.ts verdict). */
 export interface LadderWhy {
   /** "own": from this thumb's last touch; "travel": the line's travel from an older touch; "free": not judged (first touch, after a pause or a slide, or the last touch too old). */
-  ref: "own" | "travel" | "free";
+  ref: "own" | "travel" | "free" | "held";
   /** Why free. */
   freeWhy?: "first note" | "first touch" | "moved since" | "too old";
   /** The tune's move from the reference note (staff steps, + up). */
@@ -47,4 +47,6 @@ export type LabEvent =
   | { kind: "slide"; tick: number; track: number; i: number; side: Side; movedPx: number }
   | { kind: "shake"; tick: number; track: number; i: number; side: Side; ornament: string; free: boolean }
   | { kind: "cancel"; tick: number; track: number; side: Side; ringsOn: boolean; mode: string }
+  | { kind: "wait"; tick: number; track: number; i: number; side: Side; earlyMs: number }
+  | { kind: "takeover"; tick: number; track: number; i: number; side: Side }
   | { kind: "release"; tick: number; track: number; i: number; side: Side; word: string; heldMs: number; lenMs: number };

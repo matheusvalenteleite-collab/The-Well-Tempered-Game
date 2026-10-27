@@ -35,6 +35,20 @@ export const SPLIT_FLOOR_MS = 60;
 export const DOUBLE_MS = 120;
 /** D289: the least travel of a held thumb that slides on to the next note (px). */
 export const SLIDE_MIN_PX = 10;
+/**
+ * D318, THE SLUR'S SECOND THUMB (slurNext): while the other thumb holds the voice's note before, a landing
+ * strikes the next note up to SLUR_EARLY_SHARE of the time between their onsets early (at most
+ * SLUR_EARLY_MAX_MS); landed earlier still (but SLUR_ROLL_MIN_MS or more after that note was struck: two
+ * thumbs together are no slur) it waits, down, and strikes it then.
+ */
+export const SLUR_EARLY_SHARE = 0.5;
+export const SLUR_EARLY_MAX_MS = 250;
+export const SLUR_ROLL_MIN_MS = 40;
+/* (D317: the engine reads these from MECH, slurEarlyShare, slurEarlyMaxMs, slurRollMinMs, sameThumbPx, slideTakeMs; the constants are the defaults.) */
+/** D318: a contact this close (px, across and along) to a thumb still down is that thumb's own (a roll: D290's DOUBLE), not the other thumb. */
+export const SAME_THUMB_PX = 24;
+/** D318: a thumb landing this soon (ms) on the note the other thumb's drift just slid onto takes it over (slideTaken). */
+export const SLIDE_TAKE_MS = 120;
 /** D286: how long a thumb's last touch stays its reference for its next note (seconds). */
 export const OWN_FRESH_S = 3;
 /** D296: the share of a bar's height at each end where a thumb that can go no further may stay. */
@@ -185,6 +199,8 @@ interface Held {
   armed?: Armed;
   /** D293: another thumb has taken over its voice while it is still down (an overlapping legato): it only holds, it slides no more. */
   handed?: boolean;
+  /** D318: down early for the slur's next note (slurNext): the note, the tick it strikes at, where the thumb is. */
+  wait?: { i: number; open: number; c: Contact };
   /** Its last positions, for a flick. */
   trail: { t: number; y: number }[];
   /** The points its note scored (taken back if its articulation fails). */
@@ -835,6 +851,7 @@ export class ProtoGame {
     // D308: paused: the clock held where it stopped, nothing scheduled, nothing judged.
     if (this.pausedAt !== null) return false;
     this.now = this.tickAt(ch.heard());
+    this.slurWaits();
     this.pedalStep();
     this.arcCues();
     this.arcCues2();
@@ -1254,6 +1271,17 @@ export class ProtoGame {
           const far = [...back].reverse().find((t) => Math.abs(n.step - t.step) >= 3);
           if (far) ok = clear(far, true);
         }
+        // D318 (the lab's "either", off by default): in a slur the player may place the next thumb from the note
+        // the other still holds ("up from the note I'm holding"): plainly the right way from where that thumb
+        // struck it (no leeway the wrong way, a quarter row the right way; a repeat within a row). It lets a
+        // random tap pass far more often (simulated: 40% right → 64%), so it is the owner's to try.
+        if (!ok && MECH.directionRef === "either" && prev >= 0)
+          for (const o of this.held.values()) {
+            if (o.k !== k || o.side === c.side || !chordOf(notes, prev).includes(o.note)) continue;
+            const steps = n.step - notes[o.note].step;
+            const moved = o.ay - c.y;
+            if (steps === 0 ? Math.abs(moved) <= R : moved * Math.sign(steps) >= 0.25 * R) (ok = true), (why = { ref: "held", steps, movedPx: moved, rowPx: R, rule: steps === 0 ? "repeat" : "leap", needPx: steps === 0 ? R : 0.25 * R });
+          }
         this.ladderWhy = why;
         return ok ? { ok } : { ok, wrong: asked, why: "gesture" };
       }
@@ -1340,6 +1368,7 @@ export class ProtoGame {
     this.touchW = c.w;
     if (this.road && this.pedalTake(id, this.laneOfX(c.x, c.w))) return;
     this.finalStrike(id, ts);
+    c = { ...c, side: this.thumbSide(c) };
     const d = this.dynamicAt(c);
     const h: Held = { across: c.x / Math.max(1, c.w), side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
     // D311: where across it landed (the attack); BLUETOOTH MODE's next notes of the voice take it too.
@@ -1349,6 +1378,27 @@ export class ProtoGame {
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
     if (this.road) (this.lastLane = this.laneBy[h.k] = this.handLane(h.k, this.laneOfX(c.x, c.w))), (this.touchW = c.w);
+  }
+
+  /**
+   * D318: the thumb a touch is. A touch belongs to the half of the screen it lands in (thumbs.ts), but in
+   * a slur the thumbs meet: the next thumb lands on the bar (or past the middle) where the other still
+   * holds. On LADDER with one voice, a touch landing on a half whose thumb is down while the other half
+   * has none is the other thumb (two thumbs, not two touches of one): it is judged and remembered as it.
+   */
+  private thumbSide(c: Contact): Side {
+    if (!MECH.thumbCross || this.proto.id !== "ladder" || this.tracks.length !== 1 || this.line || this.rollOf(c)) return c.side;
+    const sides = [...this.held.values()].map((o) => o.side);
+    return sides.length && sides.every((s) => s === c.side) ? (c.side === "left" ? "right" : "left") : c.side;
+  }
+  /** D318: a contact landing on a thumb still down (within SAME_THUMB_PX of where it is now): that thumb rolling, a second contact of its own. */
+  private rollOf(c: Contact, but?: Held): boolean {
+    for (const o of this.held.values()) {
+      if (o === but) continue;
+      const y = o.trail.at(-1)?.y ?? o.ay;
+      if (Math.abs(y - c.y) <= MECH.sameThumbPx && Math.abs((o.across ?? 0) * c.w - c.x) <= MECH.sameThumbPx) return true;
+    }
+    return false;
   }
 
   /** A computer key or a MIDI key goes down. */
@@ -1425,6 +1475,80 @@ export class ProtoGame {
     this.up(id, ts);
   }
 
+  /**
+   * D318: a slur's second thumb landing early. D290 stops each note's window halfway to the note before
+   * (at least 60 ms), and took a contact within DOUBLE_MS of a note just struck for that strike doubled:
+   * so a second thumb rolling into a slur while the first still holds (the owner's II/18 report: MISS 79,
+   * DOUBLE 30, STRAY 10 of 494, the slurred pairs' second notes) struck nothing, ignored or a stray, and
+   * its note then went by missed. While the voice's note before is struck and still held by another thumb
+   * (or just let go, within the legato window: a touch iOS took back), a contact that is not that thumb's
+   * own (rollOf) can mean only the next note: it strikes it from SLUR_EARLY_SHARE of the way early (at most
+   * SLUR_EARLY_MAX_MS); landed earlier, it waits, down, and strikes it then (slurWaits). Alone, or on a
+   * note not yet struck, the windows are as they were.
+   */
+  private slurNext(id: number, h: Held, c: Contact, tk: number): { i: number; open: number } | null {
+    const notes = this.tracks[h.k].notes;
+    if (this.rollOf(c, h)) return null;
+    // The note held by another thumb (the latest), or the one just let go within the legato window.
+    let prev = -1;
+    for (const [hid, o] of this.held) if (hid !== id && o.k === h.k && o.open && o.note > prev && notes[o.note]?.state === "hit") prev = o.note;
+    const lo = this.lastOff;
+    if (prev < 0 && lo && lo.k === h.k && notes[lo.i]?.state === "hit") {
+      const q = notes[lo.i];
+      if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(q.on, q.on + q.dur))) prev = lo.i;
+    }
+    if (prev < 0) return null;
+    // Its next note, still to strike (an earlier one left behind is not this thumb's to take).
+    const chord = chordOf(notes, prev);
+    let next = Math.max(...chord) + 1;
+    while (next < notes.length && notes[next].ride) next++;
+    if (next >= notes.length || notes[next].state !== "pending" || !chord.includes(this.before(next, h.k)) || tk > notes[next].on) return null;
+    const p = notes[prev];
+    // Two thumbs down together are a chord pressed, not a slur.
+    if (p.at !== undefined && this.msOf(Math.min(p.at, tk), Math.max(p.at, tk)) < MECH.slurRollMinMs) return null;
+    const reach = Math.min((MECH.slurEarlyMaxMs / 1000) * this.tps, MECH.slurEarlyShare * (notes[next].on - p.on));
+    return { i: next, open: notes[next].on - reach };
+  }
+  /** D318: thumbs waiting, down, for the note they landed early for (slurNext): each strikes it as its time comes. */
+  private slurWaits() {
+    for (const [id, h] of this.held) {
+      const w = h.wait;
+      if (!w) continue;
+      const notes = this.tracks[h.k].notes;
+      if (notes[w.i].state !== "pending") {
+        h.wait = undefined;
+        continue;
+      }
+      // While the other thumb holds the note before, on the note's time (a touch of its own, landing in its
+      // window first, takes it: the waiting one was no slur); once that thumb lets go, from the slur's early
+      // window on (no silence between the two).
+      const holding = [...this.held.values()].some((o) => o !== h && o.k === h.k && !o.wait && o.sounds.length);
+      if (this.now < (holding ? notes[w.i].on : w.open)) continue;
+      this.strikeWaiting(id, h);
+    }
+  }
+  /**
+   * D318: a waiting thumb strikes its note now: on its time (`takeable`: a touch landing for it after all,
+   * by its time and a little after, takes it over, slideTaken), or as the other thumb lands for what follows.
+   */
+  private strikeWaiting(id: number, h: Held, takeable = true) {
+    const w = h.wait;
+    if (!w) return;
+    const notes = this.tracks[h.k].notes;
+    h.wait = undefined;
+    if (notes[w.i].state !== "pending") return;
+    for (const j of chordOf(notes, w.i)) if (notes[j].state === "pending") Object.assign(notes[j], { state: "hit", at: this.now, via: "touch" });
+    const v = this.verdict(w.i, { c: w.c }, h.k);
+    if (!v.ok) this.diagNote(`WRONG(${v.why ?? "?"})`, h.k, this.now, w.c, w.i);
+    const own = this.lastBySide[h.side];
+    const trail = this.trailBySide[h.side]?.length ?? 0;
+    const chain = this.chain;
+    // The thumb that played the note before: its next touch is for what follows, never this note.
+    const prevSide = this.lastTouch?.side;
+    this.play(id, h, w.i, v, false, h.d0);
+    if (v.ok && takeable) this.slid = { kind: "wait", k: h.k, i: w.i, id, holder: h, tick: this.now, until: notes[w.i].on + (MECH.doubleMs / 1000) * this.tps, own, trail, chain, prevSide };
+  }
+
   private trillNext = false;
   private strikeWith(id: number, h: Held, ts: number, at: { c?: Contact; key?: KeyPress }, d: number) {
     this.trillNext = !!at.key?.trill;
@@ -1433,8 +1557,26 @@ export class ProtoGame {
     // A pitched key (PIANO, MIDI): the note of that pitch in the window first, else the nearest in time
     // (D184: a right key a little late took the next note, and both were lost).
     const key = at.key?.midi;
+    // D318: the other thumb lands while one waits for its note: that note's moment has come (it is struck
+    // first, and this touch is for what follows).
+    if (at.c && this.proto.id === "ladder") for (const [wid, w] of this.held) if (w !== h && w.wait && w.k === h.k && w.side !== h.side) this.strikeWaiting(wid, w, false);
     let i = key !== undefined ? strike(notesK, tk, this.opt, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
     if (i < 0) i = strike(notesK, tk, this.opt);
+    if (i < 0 && at.c && this.slideTaken(id, h, at.c, tk)) return;
+    if (i < 0 && MECH.slurNext && this.proto.id === "ladder" && at.c) {
+      const sl = this.slurNext(id, h, at.c, tk);
+      if (sl && tk >= sl.open) {
+        i = sl.i;
+        for (const j of chordOf(notesK, i)) if (notesK[j].state === "pending") Object.assign(notesK[j], { state: "hit", at: tk });
+      } else if (sl) {
+        // Down early: it waits for its note; the thumb holding gives way already (no slide, no shake).
+        h.wait = { i: sl.i, open: sl.open, c: at.c };
+        for (const [hid, o] of this.held) if (hid !== id && o.k === h.k) o.handed = true;
+        this.diagCounts.WAIT = (this.diagCounts.WAIT ?? 0) + 1;
+        this.tap?.({ kind: "wait", tick: tk, track: h.k, i: sl.i, side: h.side, earlyMs: Math.round(this.msOf(tk, this.tracks[h.k].notes[sl.i].on)) });
+        return;
+      }
+    }
     if (i >= 0) for (const j of chordOf(notesK, i)) notesK[j].via ??= "touch";
     // D217: in a stretto, a note is right only in its row: the other row's note, struck here, is wrong.
     if (i < 0 && this.line && this.tracks.length > 1) {
@@ -1500,6 +1642,8 @@ export class ProtoGame {
       if (h.armed?.state === "hit") for (const s of h.armed.own) s.shape?.(sv);
     }
     const t = this.tickOf(ts);
+    // D318: down early for its note: where it is now judges it; it slides nowhere meanwhile.
+    if (h.wait) return void (h.wait.c = c);
     if (h.passive) return;
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
     // D319: and while its trill goes on (each leg keeps it going), after the shake was judged.
@@ -1758,6 +1902,10 @@ export class ProtoGame {
     if (next < 0 || t < notes[next].on - this.opt.early / 2) return false;
     const i = strike(notes, t, this.opt, (j) => chordOf(notes, next).includes(j) && !h.chord.includes(j) && this.verdict(j, { c }, h.k).ok);
     if (i < 0) return false;
+    // D318: as it was before the slide, should the other thumb land on the note at once (slideTaken).
+    const own = this.lastBySide[h.side];
+    const trail = this.trailBySide[h.side]?.length ?? 0;
+    const chain = this.chain;
     this.tap?.({ kind: "slide", tick: t, track: h.k, i, side: h.side, movedPx: h.ay - c.y });
     h.ay = c.y;
     notes[i].via = "slide";
@@ -1765,6 +1913,77 @@ export class ProtoGame {
     this.slides++;
     // D286: the thumb is where it slid to, on the note it slid onto.
     this.remember(h.side, { y: c.y, step: notes[i].step, tick: this.now });
+    this.slid = { kind: "slide", k: h.k, i, id, holder: h, tick: this.now, own, trail, chain };
+    return true;
+  }
+  /** D318: the last slide (its voice, note, touch, tick), and the thumb's memory and the chain before it. */
+  private slid: { kind: "slide" | "wait"; until?: number; prevSide?: Side; k: number; i: number; id: number; holder: Held; tick: number; own?: { y: number; step: number; tick: number; moved?: boolean }; trail: number; chain: number } | null = null;
+
+  /**
+   * D318: a slide the slur's own drift made. A thumb giving way rolls and drifts toward the next note as
+   * the other comes down (0 to 30 px in simulation), and reaching that note's drawn height a moment before
+   * the other thumb lands it slid onto it: the note taken early as a slide (no legato, the chain broken),
+   * the landing then ignored as a second contact. A thumb landing on the note just slid onto, within
+   * SLIDE_TAKE_MS and right by its own moves, while the sliding thumb still holds it, takes the note over:
+   * its strike, joined (the sound the slide made goes on: no new attack), scored as the legato it was; the
+   * drifting thumb only holds (handed), its memory back where it struck.
+   */
+  private slideTaken(id: number, h: Held, c: Contact, tk: number): boolean {
+    const st = this.slid;
+    if (!MECH.slideTakeover || !st || st.k !== h.k || this.proto.id !== "ladder") return false;
+    const notes = this.tracks[h.k].notes;
+    const n = notes[st.i];
+    const o = st.holder;
+    // Still holding it, or let go (or taken back by iOS) within the legato window: the slur's gap.
+    const holding = this.held.get(st.id) === o;
+    const lo = this.lastOff;
+    const gone = !holding && !!lo && lo.k === h.k && lo.i === st.i && this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(n.on, n.on + n.dur));
+    const slide = st.kind === "slide";
+    // A waiting thumb's note: by a touch nearer its time than the next note's, not the thumb that played the note before.
+    const nx = notes.findIndex((x, j) => j > st.i && !x.ride && x.on > n.on);
+    const nearer = nx < 0 || Math.abs(tk - n.on) < Math.abs(notes[nx].on - tk);
+    const soon = slide ? n.via === "slide" && this.msOf(st.tick, tk) <= MECH.slideTakeMs : tk <= (st.until ?? 0) && nearer && h.side !== st.prevSide;
+    if (o === h || o.note !== st.i || !soon || !(holding || gone)) return false;
+    if (notes.some((x, j) => j > st.i && x.state === "hit" && !x.ride && notes[j - 1].on !== x.on)) return false;
+    if (!this.verdict(st.i, { c }, h.k).ok) return false;
+    this.slid = null;
+    this.tap?.({ kind: "takeover", tick: tk, track: h.k, i: st.i, side: h.side });
+    for (const j of o.chord) notes[j].via = "touch";
+    if (slide) this.slides--;
+    if (st.own) this.lastBySide[o.side] = st.own;
+    else delete this.lastBySide[o.side];
+    this.trailBySide[o.side]?.splice(st.trail);
+    Object.assign(h, { note: o.note, chord: o.chord, midi: o.midi, d0: o.d0, sounds: o.sounds, fx: o.fx, tone: o.tone, pts: o.pts, open: o.open, wantShort: o.wantShort, armed: o.armed });
+    Object.assign(o, { sounds: [], fx: [], open: false, passive: true, handed: true, pts: undefined, armed: undefined, wantShort: undefined });
+    // Let go already (its end judged there): the note sounds on from this thumb, joined.
+    if (!holding) {
+      const tone = h.tone;
+      h.sounds = tone ? h.chord.map((j) => this.touchNote(notes[j].midi, this.chip.ctx.currentTime, HOLD_MAX, tone.v, { ...tone.play, legato: this.proto.id !== "piano" })) : [];
+      h.fx = [];
+      h.open = false;
+    }
+    this.lastTouch = { side: h.side, y: c.y };
+    this.remember(h.side, { y: c.y, step: n.step, tick: this.now });
+    // The legato the slide broke: credited as a strike's (the reading asking it detached: as before).
+    const rd = this.o.reading;
+    const place = rd ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
+    const askJoin = rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
+    const p = this.before(st.i, h.k);
+    const at = performance.now();
+    if (slide && this.joinedAt(st.i, h.k) && askJoin !== false && p >= 0 && notes[p].state === "hit" && h.pts !== undefined) {
+      this.chain = st.chain + 1;
+      this.art.legato++;
+      this.art.chain = Math.max(this.art.chain, this.chain);
+      const bonus = legatoBonus(h.pts, this.chain);
+      h.pts += bonus;
+      this.earn("legato", bonus);
+      const text = this.chain > 1 ? `LEGATO ×${this.chain}` : "LEGATO";
+      this.flash = { text, at, good: true, kind: "legato" };
+      this.ties.push({ k: h.k, a: p, b: st.i, at });
+      if (this.ties.length > 12) this.ties.splice(0, 6);
+      this.pops.push({ tick: n.on, step: n.step, text, at, gold: false, from: { tick: notes[p].on, step: notes[p].step }, ink: LEGATO_INK });
+    }
+    this.thumbNote(h.side, n.on, h.d0);
     return true;
   }
 
@@ -1797,12 +2016,19 @@ export class ProtoGame {
         this.lastOff = { k: h.k, i: h.note, tick: end };
         const until = this.timeAt(end);
         for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop(Math.max(this.chip.ctx.currentTime, until));
-      } else for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
+      } else {
+        // D318: taken back alone, the note ends here, and for the join too (D289: a cancel counts as a lift):
+        // iOS takes the first thumb back a moment before the second lands, and the slur was lost.
+        if (MECH.cancelJoins && h.open && n?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
+        for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
+      }
       h.open = false;
       return;
     }
     // D218: the note's end judged as it is let go.
     if (h.open) this.judgeEnd(h, this.tickOf(ts));
+    // D318: a note taken over after its first thumb let go (slideTaken) ends, for the join, as this thumb lets go.
+    else if (h.note >= 0 && h.sounds.length && !h.passive && this.tracks[h.k].notes[h.note]?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
     // Flicked upwards as it let go: the swoosh.
     const tr = h.trail;
     if (h.sounds.length && tr.length >= 2) {
@@ -1889,8 +2115,10 @@ export class ProtoGame {
       h.sounds[0].glide?.(pitches[0]);
     } else {
       for (const sd of h.sounds) sd.stop();
-      // Joined to the note the other thumb still holds: that one gives way.
-      let legato = slide;
+      // Joined to the note the other thumb still holds: that one gives way. D318: and to the note let go
+      // within the legato window (a handover with a hair's gap, or a touch iOS took back): joined as it is
+      // judged, the sound too (no fresh attack where the instrument can join; a plucked one plucks).
+      let legato = slide || (MECH.joinedSound && over && !piano && v.ok);
       for (const [hid, o] of this.held) {
         if (hid === id || o.k !== h.k) continue;
         o.passive = true;

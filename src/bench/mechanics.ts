@@ -32,8 +32,11 @@ export const MECH_DEFAULTS = {
   // LADDER: relative judging (D286, D289, D296).
   /** LADDER_ROW_MIN: the smallest row (px) a touch is judged by. */
   ladderRowMin: 18,
-  /** Where a thumb's moves are measured from: its own last touch (D286). */
-  directionRef: "own" as "own",
+  /**
+   * Where a thumb's moves are measured from: its own last touch (D286), or (D318 "either") also from the
+   * note the other thumb still holds, plainly the right way (a slur placed "from the note I'm holding").
+   */
+  directionRef: "own" as "own" | "either",
   /** OWN_FRESH_S: how long a thumb's last touch stays its reference (s). */
   ownFreshS: 3,
   /** A repeated note: the thumb within this many rows of its last touch. */
@@ -86,6 +89,27 @@ export const MECH_DEFAULTS = {
    * (judged as a plain lift).
    */
   cancel: "overlap" as "overlap" | "always" | "lift",
+  // SLURS (D318: the owner, "more accepting of slurs"; proto-game.ts thumbSide, slurNext, slideTaken).
+  /** A touch landing on the half of the screen where the other thumb is down (the other half free) is the other thumb. */
+  thumbCross: true,
+  /** While the other thumb holds the note before, a landing (not that thumb's own roll) is for the next note: struck early, or waiting for it. */
+  slurNext: true,
+  /** ...struck up to this share of the time between the two onsets early... */
+  slurEarlyShare: 0.5,
+  /** ...and at most this early (ms); landed earlier it waits, down, and strikes then. */
+  slurEarlyMaxMs: 250,
+  /** Two thumbs landing closer than this (ms) are a chord pressed, not a slur. */
+  slurRollMinMs: 40,
+  /** A contact this close (px) to a thumb still down is that thumb's own (a roll: D290's double contact), not the other thumb. */
+  sameThumbPx: 24,
+  /** A thumb landing on the note the other thumb's drift has just slid onto takes it over, joined. */
+  slideTakeover: true,
+  /** ...within this long of the slide (ms). */
+  slideTakeMs: 120,
+  /** A note joined within the legato gap (a handover, a touch taken back) sounds joined: no fresh attack. */
+  joinedSound: true,
+  /** A touch taken back with no other thumb down still ends its note for the join (a slur's second thumb a moment later). */
+  cancelJoins: true,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
@@ -147,7 +171,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "doubleMs", group: "TIMING", label: "Double contact", help: "A second contact this soon after a strike is ignored (a rolling thumb).", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "btEarlyMs", group: "TIMING", label: "Bluetooth: extra early", help: "BLUETOOTH MODE widens the window early by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
   { key: "btLateMs", group: "TIMING", label: "Bluetooth: extra late", help: "BLUETOOTH MODE widens the window late by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
-  { key: "directionRef", group: "LADDER", label: "Direction measured from", help: "Where a thumb's move is measured from.", kind: "choice", options: [["own", "Its own last touch"]] },
+  { key: "directionRef", group: "LADDER", label: "Direction measured from", help: "Where a thumb's move is measured from.", kind: "choice", options: [["own", "Its own last touch"], ["either", "Or the note the other thumb holds (D318)"]] },
   { key: "ladderRowMin", group: "LADDER", label: "Smallest row", help: "Rows are the box's step height, never smaller than this; the other LADDER sizes are in rows.", kind: "number", min: 8, max: 40, step: 1, unit: "px" },
   { key: "ownFreshS", group: "LADDER", label: "Last touch counts for", help: "After this long (or after a slide) a thumb's next touch is free.", kind: "number", min: 0.5, max: 10, step: 0.5, unit: "s" },
   { key: "repeatRows", group: "LADDER", label: "Repeat band", help: "A repeated note: within this many rows of the last touch.", kind: "number", min: 0.5, max: 6, step: 0.25, unit: "rows" },
@@ -170,6 +194,16 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "trillFollowsShake", group: "ORNAMENTS", label: "Trill follows the shake", help: "The player's trill goes on while the thumb shakes and settles when it stops (off: the first shake plays the whole trill).", kind: "bool" },
   { key: "trillStopMs", group: "ORNAMENTS", label: "Shaking stopped after", help: "No leg for this long: the trill settles on its main note.", kind: "number", min: 100, max: 800, step: 10, unit: "ms" },
   { key: "expression", group: "EXPRESSION", label: "Expression (D311)", help: "Where a thumb lands across its bar shapes the attack; sideways while held, the sustain.", kind: "bool" },
+  { key: "thumbCross", group: "SLURS", label: "Thumbs cross", help: "A touch on the half where the other thumb is down (the other half free) is the other thumb (D318).", kind: "bool" },
+  { key: "slurNext", group: "SLURS", label: "Slur's second thumb", help: "While the other thumb holds the note before, a landing is for the next note: struck a little early, or waiting for it (D318; D290's double contact only for the same thumb).", kind: "bool" },
+  { key: "slurEarlyShare", group: "SLURS", label: "…early by up to", help: "This share of the time between the two notes.", kind: "number", min: 0, max: 0.9, step: 0.05 },
+  { key: "slurEarlyMaxMs", group: "SLURS", label: "…and at most", help: "Landed earlier, the thumb waits and strikes its note then.", kind: "number", min: 0, max: 400, step: 10, unit: "ms" },
+  { key: "slurRollMinMs", group: "SLURS", label: "Thumbs together", help: "Two thumbs landing closer than this are a chord pressed, not a slur.", kind: "number", min: 0, max: 150, step: 5, unit: "ms" },
+  { key: "sameThumbPx", group: "SLURS", label: "Same thumb within", help: "A contact this close to a thumb still down is that thumb rolling (a double contact).", kind: "number", min: 0, max: 80, step: 2, unit: "px" },
+  { key: "slideTakeover", group: "SLURS", label: "Landing takes a drift's slide", help: "The other thumb landing on the note a drifting thumb just slid onto takes it over, joined.", kind: "bool" },
+  { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "joinedSound", group: "SLURS", label: "Joined sound in the gap", help: "A note joined within the legato gap sounds joined (no fresh attack).", kind: "bool" },
+  { key: "cancelJoins", group: "SLURS", label: "Cancel still joins", help: "A touch iOS takes back with no other thumb down ends its note for the join.", kind: "bool" },
   { key: "cancel", group: "CANCELS", label: "A touch the phone takes back", help: "iOS sometimes cancels a touch when the other thumb lands.", kind: "choice", options: [["overlap", "Rings on while the other thumb is down (D308)"], ["always", "Always rings to its end (D293)"], ["lift", "Counts as a lift"]] },
 ];
 
