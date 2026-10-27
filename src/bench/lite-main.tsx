@@ -10,6 +10,8 @@ import { forceUi } from "../touch/ui/index.ts";
 import { BenchApp } from "./BenchApp.tsx";
 import { markVersion } from "./version.ts";
 import { isSurelyComputer } from "./home.ts";
+import { unlocked } from "./unlock.ts";
+import { MobileOnly } from "./MobileOnly.tsx";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
@@ -21,17 +23,7 @@ APP.dev = false;
 // visualization modes. let's focus on making the default visualization mode as good as possible").
 forceUi("classic");
 
-// D343: phones and tablets only. A computer (surely one: see isSurelyComputer) is told so, and nothing else.
-function MobileOnly() {
-  return (
-    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, padding: 24, textAlign: "center", background: "#0b0d18", color: "#f4e9a8", fontFamily: '"Press Start 2P", monospace' }}>
-      <div style={{ fontSize: 28, lineHeight: 1.4 }}>MOBILE ONLY</div>
-      <div style={{ fontSize: 12, lineHeight: 2, color: "#a9b0d6", maxWidth: 520 }}>
-        The Well-Tempered Game is played with two thumbs on a phone or tablet, held sideways. Open this page there.
-      </div>
-    </div>
-  );
-}
-
+// D343: phones and tablets only. A computer (surely one: see isSurelyComputer) is told so, and nothing else,
+// unless the device is unlocked (unlock.ts): then the game, as before, with ⚙ PLAY ON.
 markVersion();
-createRoot(document.getElementById("root")!).render(<StrictMode>{isSurelyComputer() ? <MobileOnly /> : <BenchApp />}</StrictMode>);
+createRoot(document.getElementById("root")!).render(<StrictMode>{isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}</StrictMode>);

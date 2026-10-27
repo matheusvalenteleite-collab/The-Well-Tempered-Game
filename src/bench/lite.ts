@@ -7,10 +7,11 @@
  * finished, the modes whose one-line instruction has been seen, and the volume.
  */
 import { tierFugues, tierOf, TIER_ORDER, type Tier } from "./tiers.ts";
-import { type PlatformPref } from "./home.ts";
+import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
+import { unlocked } from "./unlock.ts";
 import type { Platform } from "./protos.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
-import { CHORALES, fugueById, MORE_BACH, type Collection } from "../touch/fugue.ts";
+import { CHORALE_INDEX, fugueById, MORE_INDEX, type Collection } from "../touch/fugue.ts";
 import { difficultyOf } from "./difficulty.ts";
 
 /**
@@ -25,6 +26,8 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
   ["MORE", "MORE BACH"],
   ["CHORALES", "CHORALES"],
 ];
+/** D343: the tabs play.html shows: Book I alone for the friends (no tab bar), all four once unlocked (unlock.ts). */
+export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.slice(0, 1));
 /** D340: the MORE BACH tab's sections, in order, each its pieces (Contrapunctus 14, the unfinished fugue of pieces.json, closes the Art of Fugue). */
 const SECTION_OF: readonly [Collection, string][] = [
   ["aof", "ART OF FUGUE"],
@@ -39,9 +42,10 @@ const SECTION_OF: readonly [Collection, string][] = [
 export const MORE_SECTIONS: readonly { id: Collection; title: string; ids: string[] }[] = SECTION_OF.map(([id, title]) => ({
   id,
   title,
-  ids: [...MORE_BACH.filter((f) => f.collection === id).map((f) => f.id), ...(id === "aof" ? ["bwv1080-14"] : [])],
+  ids: [...MORE_INDEX.filter(([, c]) => c === id).map(([f]) => f), ...(id === "aof" ? ["bwv1080-14"] : [])],
 }));
-export const CHORALE_IDS: readonly string[] = CHORALES.map((f) => f.id);
+// D343: from the index (the notes load on demand: fugue.ts loadExtras).
+export const CHORALE_IDS: readonly string[] = CHORALE_INDEX;
 const EXTRA = new Set([...MORE_SECTIONS.flatMap((s) => s.ids), ...CHORALE_IDS]);
 /** D340: a piece of the MORE BACH or CHORALES tab. */
 export const liteExtra = (id: string): boolean => EXTRA.has(id);
@@ -50,7 +54,8 @@ export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "C
 /** D340: what NEXT follows a piece with: its own tab's list. */
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
   const tab = liteTabOf(id);
-  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "MORE" ? MORE_SECTIONS.flatMap((s) => s.ids) : liteAll(fuguesOnly);
+  // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock).
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "MORE" ? MORE_SECTIONS.flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => unlocked() || x.startsWith("wtc1"));
 }
 
 /**
@@ -75,8 +80,11 @@ export function saveLitePlatform(p: PlatformPref) {
     /* this visit only */
   }
 }
-/** D343: play.html plays only on phones and tablets (a computer is shown MOBILE ONLY), so always the phone's modes. */
-export const litePlatform = (): Platform => "mobile";
+/**
+ * D343: play.html plays only on phones and tablets (a computer is shown MOBILE ONLY), so always the phone's
+ * modes; once unlocked (unlock.ts) as detected or as chosen in ⚙ PLAY ON, as before.
+ */
+export const litePlatform = (): Platform => (unlocked() ? platformOf(litePlatformPref(), detectedPlatform()) : "mobile");
 /** D263: where a new player starts: Prelude 1 on a computer, Fugue 1 on a phone (no preludes there). */
 export const startHere = (fuguesOnly: boolean): string => (fuguesOnly ? "wtc1f01" : START_HERE);
 
