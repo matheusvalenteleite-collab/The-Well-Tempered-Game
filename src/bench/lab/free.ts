@@ -38,6 +38,7 @@ import { dragFamily, dragFill, dragLine, fillNoteMs, pitchAtRow, scaleOfKey, sna
 import { preset } from "../../touch/sound.ts";
 import { BAR, barAcross, barDynamic, dynamic } from "../protos.ts";
 import { pitchName } from "./replay.ts";
+import { correctionRamp, dynLevel, dynLine, Pedal, pianoOnset, signedDb, zoneOf, type DynMode, type Zone } from "./dynamics.ts";
 
 /** D330: "keyboard" is a piano turned vertical on each bar (white keys outer, black keys inner, mirrored). */
 export type FreeScale = "key" | "chromatic" | "keyboard";
@@ -339,6 +340,15 @@ export interface FreeOptions {
     motion: (ts: number, waitMs: number, done: (r: { peak: number | null; strength: number | null; cal: string }) => void) => void;
     size: (id: number) => { size: number | null; strength: number | null; cal: string };
   };
+  /**
+   * D335, DYNAMICS (dynamics.ts; the sampled piano only, in place of PLAY WITH IT): `mode`, and the
+   * strike: the motion peak after `ts`, answered once read or `waitMs` on at the latest, its strength
+   * by the calibration of the zone it landed in (null: no samples, or no calibration).
+   */
+  dynamics?: {
+    mode: DynMode;
+    strike: (ts: number, zone: Zone, waitMs: number, done: (r: { peak: number | null; strength: number | null; cal: string }) => void) => void;
+  };
 }
 
 /** D321: the sensor's strength on a note already sounding: the piano's level (D311's ±4 dB), the others' sustain shape (brightness, the swell). */
@@ -374,6 +384,8 @@ export class FreePlay {
   private rolls = new Set<number>();
   /** For a test driving the page: the lines so far. */
   lines = 0;
+  /** D335, DYNAMICS B: the expression pedal (the landings' places, averaged). */
+  readonly pedal = new Pedal(MECH.dynPedalMs);
 
   readonly f: TouchFugue;
   readonly voice: number;
@@ -497,11 +509,18 @@ export class FreePlay {
     const v = voicing(this.voice, this.f.voices.length, true);
     // D321, PLAY WITH IT: the attack the tap's strength (the sensor's), not the place across: the note
     // starts neutral and is set when the spike is read, or (MECH.tapDelayMs) waits for it.
-    const sense = this.o.sense;
+    // D335, DYNAMICS on the sampled piano: the level known at touchdown (the place, the pedal; the strike
+    // neutral) at once, the strike's correction when read (dynStrike), or (MECH.dynWait) the attack held for it.
+    const dm = this.dynMode();
+    const dynC = dm === "place" ? (this.kbOn ? 0.5 : strength) : dm === "pedal" ? (this.kbOn ? 0.5 : ((this.pedal.windowMs = MECH.dynPedalMs), this.pedal.add(ts, strength))) : 0.5;
+    const dyn0 = dm === "off" ? null : dynLevel(dm, dynC, null);
+    const sense = dyn0 ? undefined : this.o.sense;
     const bySize = sense?.source === "size" ? sense.size(id) : null;
-    const delay = sense?.source === "motion" ? MECH.tapDelayMs : 0;
-    const touch = bySize ? (bySize.strength ?? TOUCH_NEUTRAL) : sense ? TOUCH_NEUTRAL : land;
-    const play: Play = { ...dynamic(0.5), lead: true, envelope: "synth", touch, legato: joined || (handover && MECH.joinedSound) };
+    const delay = dyn0 ? (MECH.dynWait ? MECH.dynWaitMs : 0) : sense?.source === "motion" ? MECH.tapDelayMs : 0;
+    const on0 = dyn0 ? pianoOnset(dyn0.total) : null;
+    const touch = on0 ? on0.touch : bySize ? (bySize.strength ?? TOUCH_NEUTRAL) : sense ? TOUCH_NEUTRAL : land;
+    const base = dynamic(0.5);
+    const play: Play = { ...base, ...(on0 ? { level: (base.level ?? 1) * on0.level } : {}), lead: true, envelope: "synth", touch, legato: joined || (handover && MECH.joinedSound) };
     const sounds = delay > 0 ? [] : [this.chip.note(midi, now, HOLD_MAX, v, play)];
     const hd: Held = { side, row, midi, land, ax: x, ay: y, setY: y, setX: x, at: now, sounds, v, play: { ...play, legato: true }, sMin: 0, sMax: 0, sNow: 0, shapes: 0, shake: shakeTracker(y, x, ts), pts: 1, lastLeg: -Infinity, cx: x, cy: y, still: ts };
     this.held.set(id, hd);
@@ -519,8 +538,51 @@ export class FreePlay {
     if (joined) join = " · ⌒ JOINED: other thumb still down (no new attack)";
     else if (handover) join = ` · ⌒ JOINED by handover: gap ${Math.round(gap)} ms ≤ ${MECH.legatoGapMs} ms${MECH.joinedSound ? " (joined sound)" : " (a new attack: joined sound off)"}`;
     else if (gap < 1500) join = ` · NOT JOINED: gap ${Math.round(gap)} ms > ${MECH.legatoGapMs} ms`;
-    if (this.kbOn) this.say(`♩ ${this.name(midi)}${this.keyLine(hit)} · ${th} · across ${across.toFixed(2)} (0 by the box, 1 the edge) · KEYBOARD: across picks the key, the attack neutral${join}`);
+    if (dyn0) this.dynStrike(id, hd, ts, delay, dm, dynC, play, zoneOf(across), `${this.keyLine(hit)} · ${th} · across ${across.toFixed(2)}${join}`);
+    else if (this.kbOn) this.say(`♩ ${this.name(midi)}${this.keyLine(hit)} · ${th} · across ${across.toFixed(2)} (0 by the box, 1 the edge) · KEYBOARD: across picks the key, the attack neutral${join}`);
     else this.say(`♩ ${this.name(midi)} · ${th} · across ${across.toFixed(2)} (0 by the box, 1 the edge) · strength ${strength.toFixed(2)} (strong ${strong})${MECH.expression ? "" : " · expression off: attack at the middle"}${join}`);
+  }
+
+  /** D335: the DYNAMICS mode in force: off unless chosen and the sound is the sampled piano. */
+  dynMode(): DynMode {
+    const m = this.o.dynamics?.mode ?? "off";
+    return m !== "off" && preset().id === "pianoSampled" ? m : "off";
+  }
+
+  /**
+   * D335: the strike read, the note's level set: corrected on the note sounding (a ramp of
+   * MECH.dynRampMs on its gain, from the touchdown's level to the whole), or (`delay`, MECH.dynWait)
+   * the note struck now at the whole level; the note's line with its parts.
+   */
+  private dynStrike(id: number, hd: Held, ts: number, delay: number, mode: DynMode, c: number, play: Play, zone: Zone, rest: string) {
+    const dy = this.o.dynamics!;
+    const l0 = dynLevel(mode, c, null);
+    dy.strike(ts, zone, delay > 0 ? delay : MECH.tapWindowMs + 40, (r) => {
+      const ms = performance.now() - ts;
+      const l = dynLevel(mode, c, r.strength);
+      const here = this.held.get(id) === hd && !hd.passive;
+      const now = this.chip.ctx.currentTime;
+      let how: string;
+      if (delay > 0) {
+        const on = pianoOnset(l.total);
+        const base = dynamic(0.5);
+        const p: Play = { ...play, touch: on.touch, level: (base.level ?? 1) * on.level };
+        if (here && !hd.sounds.length && !hd.ornament) hd.sounds = [this.chip.note(hd.midi, now, HOLD_MAX, hd.v, p)];
+        else if (!here && !hd.passive) this.chip.note(hd.midi, now, 0.15, hd.v, p);
+        hd.play = { ...p, legato: true };
+        how = `the attack waited ${Math.round(ms)} ms (MECH: wait for it)`;
+      } else {
+        const d = l.total - l0.total;
+        const k = 10 ** (d / 20);
+        if (here && Math.abs(d) > 0.05) {
+          const ramp = correctionRamp(now, hd.at, MECH.dynRampMs);
+          for (const s of hd.sounds) s.trim?.(k, ramp.at, ramp.until);
+          hd.play = { ...hd.play, level: (hd.play.level ?? 1) * k };
+          how = `struck at ${signedDb(l0.total)}, corrected ${signedDb(d)} over ${MECH.dynRampMs} ms, ${Math.round((ramp.at - hd.at) * 1000)} ms after the onset`;
+        } else how = here ? `struck at ${signedDb(l0.total)}, no correction` : "lifted before the strike was read";
+      }
+      this.say(`${dynLine(this.name(hd.midi), mode, l, { strength: r.strength, peak: r.peak, ms, cal: r.cal })} · ${zone} zone${r.cal ? ` (${r.cal})` : ""} · ${how}${rest}`);
+    });
   }
 
   /** D321: the tap's strength from the sensor, applied to the note sounding (delay 0) or striking it (the attack held back up to `delay` ms). */

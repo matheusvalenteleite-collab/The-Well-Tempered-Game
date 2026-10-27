@@ -191,6 +191,15 @@ export const MECH_DEFAULTS = {
   tapDelayMs: 0,
   /** PLAY WITH IT: the spike is read over this long after the touch (ms). */
   tapWindowMs: 30,
+  // DYNAMICS (D335: FREE PLAY's DYNAMICS on the sampled piano; the lab only, dynamics.ts).
+  /** B · PEDAL: the landings' places averaged over this long (ms): the running phrase level. */
+  dynPedalMs: 1000,
+  /** The strike read after the onset: the note's level corrected by a linear ramp this long (ms). */
+  dynRampMs: 12,
+  /** Wait for the strike: the attack held back until the motion peak is read (at most dynWaitMs) and struck at the whole level. Off: at once, corrected. */
+  dynWait: false,
+  /** dynWait on: the longest the attack waits (ms). */
+  dynWaitMs: 35,
   // BAND TIME (D328: a prototype, the lab only; band-time.ts). The game's band keeps the written time.
   /** "fixed" (the game's), "waits" (at cadences, the final chord and a breath, until the player's note), "follows" (waits, and its tempo follows the player's onsets, bounded). */
   bandTime: "fixed" as "fixed" | "waits" | "follows",
@@ -347,6 +356,10 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "fillTiming", group: "DRAG", label: "Fill notes' speed", help: "A keyboard's coulé or Schleifer: at the trill's speed, or the drag's own time shared out.", kind: "choice", options: [["trill", "The trill's speed"], ["drag", "The drag's time"]] },
   { key: "tapDelayMs", group: "SENSOR", label: "Tap strength: delay the attack", help: "SENSOR's PLAY WITH IT: 0 starts the note at once and adjusts it when the tap's spike is read; more waits up to this long to strike it at that strength.", kind: "number", min: 0, max: 40, step: 5, unit: "ms" },
   { key: "tapWindowMs", group: "SENSOR", label: "Tap strength: read over", help: "SENSOR's PLAY WITH IT: the spike is read over this long after the touch.", kind: "number", min: 10, max: 60, step: 5, unit: "ms" },
+  { key: "dynPedalMs", group: "DYNAMICS", label: "Pedal: averaged over", help: "D335, FREE PLAY's DYNAMICS B · PEDAL + STRIKE: the places across of the thumbs' landings over this long set the running level (±6 dB).", kind: "number", min: 200, max: 3000, step: 100, unit: "ms" },
+  { key: "dynRampMs", group: "DYNAMICS", label: "Strike: correction ramp", help: "D335: the note starts at once at the place's or the pedal's level; when the motion peak is read (≤ ~40 ms) its level moves to include the strike over this long (no click).", kind: "number", min: 2, max: 40, step: 1, unit: "ms" },
+  { key: "dynWait", group: "DYNAMICS", label: "Strike: wait for it", help: "D335: hold every attack back until the motion peak is read (at most the wait below) and strike it at the whole level, the piano's layer included. Off (default): at once, corrected.", kind: "bool" },
+  { key: "dynWaitMs", group: "DYNAMICS", label: "Strike: wait at most", help: "D335, wait for it on: the longest the attack waits for the peak.", kind: "number", min: 5, max: 60, step: 5, unit: "ms" },
   { key: "bandTime", group: "BAND TIME", label: "The band's time", help: "A prototype (D328): FIXED is the game's. WAITS: the pulse fixed, but at a cadence, the final chord and after your breath (a lift at a rest) the band holds what it sounds until your next note, at most the wait below. FOLLOWS: that, and its tempo follows your onsets, smoothed and bounded; you are judged against where the band is.", kind: "choice", options: [["fixed", "FIXED (the game's)"], ["waits", "WAITS at cadences and breaths"], ["follows", "FOLLOWS (and waits)"]] },
   { key: "bandWaitMaxMs", group: "BAND TIME", label: "Waits at most", help: "The longest the band holds for your note; then it goes on.", kind: "number", min: 0, max: 1000, step: 20, unit: "ms" },
   { key: "bandSmooth", group: "BAND TIME", label: "Following: smoothing", help: "FOLLOWS: each new note's weight in the band's estimate of your lateness (lower: smoother, slower to follow).", kind: "number", min: 0.05, max: 1, step: 0.05 },
