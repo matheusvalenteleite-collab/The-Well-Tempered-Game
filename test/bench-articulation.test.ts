@@ -3,6 +3,7 @@
  * rests respected (CLEAN, REST!); the riders (D191) not judged at their end.
  */
 import { test } from "node:test";
+import { CLASSIC_VALUES, withMech } from "../src/bench/mechanics.ts";
 import assert from "node:assert/strict";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
@@ -105,7 +106,8 @@ test("D218: an overlapped legato run scores more than the same run played detach
   assert.equal(broken.combo, 6, "the combo goes on");
 });
 
-test("D218: HELD and SHORT judged on release; SHORT no slip", () => {
+test("D218: HELD and SHORT judged on release; SHORT no slip (D337: A · CLASSIC's fixed windows)", () =>
+  withMech(CLASSIC_VALUES, () => {
   const g0 = probe();
   // A note of 250 ms or more (an eighth at 54 is 556 ms) with no rest after it.
   const i = heads(g0).find((j) => g0.timeAt(g0.notes[j].on + g0.notes[j].dur) - g0.timeAt(g0.notes[j].on) >= 0.4 && g0.joinedAt(heads(g0)[heads(g0).indexOf(j) + 1]))!;
@@ -122,7 +124,7 @@ test("D218: HELD and SHORT judged on release; SHORT no slip", () => {
   assert.ok(short.score < held.score, "no HELD bonus");
   assert.equal(short.slips, held.slips);
   assert.equal(short.combo, held.combo, "no combo break");
-});
+  }));
 
 test("D218: holding a note into the rest after it is penalised; letting go in time is CLEAN", () => {
   const g0 = probe();

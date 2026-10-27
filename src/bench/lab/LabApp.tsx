@@ -30,7 +30,7 @@ import { detectedPlatform } from "../home.ts";
 import { SoundSelect } from "../SoundSelect.tsx";
 import { POP_SOUNDS } from "../PlayPop.tsx";
 import { VERSION } from "../version.ts";
-import { MECH, MECH_DEFAULTS, MECH_SPEC, REL_KEYS, mechChanges, mechPhrase, resetMech, setMech, type MechKey, type MechSpec } from "../mechanics.ts";
+import { MECH, MECH_DEFAULTS, MECH_SPEC, REL_KEYS, asRecorded, mechChanges, mechPhrase, resetMech, setMech, type Mech, type MechKey, type MechSpec } from "../mechanics.ts";
 import type { LabEvent } from "./events.ts";
 import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
@@ -47,9 +47,10 @@ import { hasStops, voicePatch } from "../../touch/registration.ts";
 import { BreathPlay } from "./breath.ts";
 import { BreathTab, loadBreath, micProblem, openBreathMic } from "./breath-tab.tsx";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
-import { CONFIGS, DEFAULT_CONFIG, configById, configEdits, configLabel } from "./presets.ts";
+import { CONFIGS, DEFAULT_CONFIG, MECH_BASE, configById, configEdits, configLabel, storedSetting } from "./presets.ts";
 import { StudyCard, StudyTab, useStudy, type StudyHost } from "./StudyTab.tsx";
 import { holdSettings, releaseSettings, STUDY_SOUND } from "./study.ts";
+import { rushLine } from "./rush.ts";
 
 const STORE = "tb-lab-v1";
 const RUNS = "tb-lab-runs-v1";
@@ -221,28 +222,26 @@ export function LabApp() {
   const [setup, setSetupRaw] = useState<Setup>(() => {
     // D333: the page closed during a STUDY session: the owner's settings put back first.
     releaseSettings();
-    const st = load<Partial<Setup> & { mech?: Record<string, unknown> }>(STORE, {});
-    if (st.mech) setMech(st.mech);
-    return sane(st, platform);
+    const st = load<(Partial<Setup> & { mech?: Record<string, unknown>; mechBase?: string }) | null>(STORE, null);
+    // D337: a setting kept before WTC 1.52 read against WTC 1.51's defaults (storedSetting).
+    setMech(storedSetting(st, load<string | null>(CONFIG, null)).mech);
+    return sane(st ?? {}, platform);
   });
   const [mechTick, setMechTick] = useState(0);
   const setSetup = (p: Partial<Setup>) =>
     setSetupRaw((cur) => {
       const next = sane({ ...cur, ...p }, platform);
-      save(STORE, { ...next, mech: mechChanges() });
+      save(STORE, { ...next, mech: mechChanges(), mechBase: MECH_BASE });
       return next;
     });
   // D329: the CONFIG preset chosen (its parameters are MECH's; edited afterwards, it shows "(changed)").
-  const [config, setConfig] = useState<string>(() => {
-    const id = load<string>(CONFIG, DEFAULT_CONFIG);
-    return configById(id) ? id : DEFAULT_CONFIG;
-  });
+  const [config, setConfig] = useState<string>(() => storedSetting(load(STORE, null), load<string | null>(CONFIG, null)).config);
   const configRef = useRef(config);
   configRef.current = config;
   const changeMech = (values: Partial<Record<MechKey, unknown>> | null) => {
     if (values === null) resetMech();
     else setMech(values);
-    save(STORE, { ...setup, mech: mechChanges() });
+    save(STORE, { ...setup, mech: mechChanges(), mechBase: MECH_BASE });
     if (values === null) {
       save(CONFIG, DEFAULT_CONFIG);
       setConfig(DEFAULT_CONFIG);
@@ -254,7 +253,7 @@ export function LabApp() {
     if (!c) return;
     resetMech();
     setMech(c.values);
-    save(STORE, { ...setup, mech: mechChanges() });
+    save(STORE, { ...setup, mech: mechChanges(), mechBase: MECH_BASE });
     save(CONFIG, c.id);
     setConfig(c.id);
     setMechTick((n) => n + 1);
@@ -811,12 +810,12 @@ export function LabApp() {
     },
     restore: () => {
       if (!releaseSettings()) return;
-      const st = load<Partial<Setup> & { mech?: Record<string, unknown> }>(STORE, {});
+      const st = load<(Partial<Setup> & { mech?: Record<string, unknown>; mechBase?: string }) | null>(STORE, null);
+      const kept = storedSetting(st, load<string | null>(CONFIG, null));
       resetMech();
-      if (st.mech) setMech(st.mech);
-      setSetupRaw(sane(st, platform));
-      const id = load<string>(CONFIG, DEFAULT_CONFIG);
-      setConfig(configById(id) ? id : DEFAULT_CONFIG);
+      setMech(kept.mech);
+      setSetupRaw(sane(st ?? {}, platform));
+      setConfig(kept.config);
       setMechTick((n) => n + 1);
     },
     show: (open) => setPanel(open ? "study" : null),
@@ -919,7 +918,7 @@ export function LabApp() {
   const runTitle = (log: LabLog) => {
     const t = tally(log.verdicts);
     const p = log.passage;
-    const ch = Object.keys(mechChanges(log.mech)).length;
+    const ch = Object.keys(mechChanges(asRecorded(log.mech) as Partial<Mech>)).length;
     return `${pieceLabel(fugueById(p.piece))} · bars ${p.fromBar}–${p.toBar} · ${p.tempoPct}% · ${t.right}/${t.right + t.wrong + t.missed} right · ${t.joined} joined · ${timingLine(log.verdicts, true)}${ch ? ` · ${ch} changed` : ""}`;
   };
   const keep = (log: LabLog) => {
@@ -1271,7 +1270,9 @@ export function timingLine(verdicts: readonly LabEvent[], short = false): string
   const sd = Math.sqrt(offs.reduce((a, b) => a + (b - mean) ** 2, 0) / offs.length);
   const m = Math.round(Math.abs(mean));
   const word = Math.abs(mean) < 5 ? "on time" : mean < 0 ? `${m} ms early` : `${m} ms late`;
-  return short ? `${word} ±${Math.round(sd)}` : `on average ${word} (spread ±${Math.round(sd)} ms, ${offs.length} notes)`;
+  // D338: and how it moved through the passage (first, middle, last third): rushing or dragging.
+  const rush = rushLine(verdicts, short);
+  return short ? `${word} ±${Math.round(sd)}${rush ? ` · ${rush}` : ""}` : `on average ${word} (spread ±${Math.round(sd)} ms, ${offs.length} notes)${rush ? ` · ${rush}` : ""}`;
 }
 
 /** D321: what a drag means, here as in MECHANICS › DRAG (the game's: JOIN). */
@@ -1568,7 +1569,7 @@ function HelpTab() {
       <p>WHAT HAPPENED lists every line, newest first (nothing is written over the music while you play; WHAT HAPPENED can put the latest line in the title bar). Each line gives the bar and beat, the note, the verdict, how early or late (ms), and the reason with numbers: how far your thumb moved from its last touch and what was needed; for joined notes, whether the other thumb was still down, or the gap between lifting and the next touch and the gap allowed.</p>
       <h3>4 · Change the rules</h3>
       <p>MECHANICS: every timing window, the legato gap, the slide threshold, the LADDER distances (in rows: one row is the height of one step in the box), ornaments, expression and what happens when the phone cancels a touch. RESET TO GAME DEFAULTS puts everything back. The game itself (play.html) is never changed by the lab.</p>
-      <p>CONFIG (at the top of PASSAGE and MECHANICS) sets everything at once to a named way of playing, so you can try them one after another and say which feels right: A · GAME NOW is the game as it is; B · CLEAN STRIKES makes every landing a strike; B+ · PREPARED is B where a thumb may rest early on its next note while the other holds, sounded when the other lifts (a pull-off; a landing while the other holds is a hammer-on), never by itself; C · HAND-OVER lets a thumb rest on its next note while the other still holds and sounds it at its time; D · LIFT TO SOUND sounds it when the other thumb lifts; E · GENEROUS is C with wider windows. Moving a slider afterwards marks it "(changed)"; every run records the config it was played with. TIMING UNITS: RELATIVE scales the windows with the time between the notes (as set at 360 ms between notes, II/18's quavers; never narrower than at 250 ms, nor than a few touch frames).</p>
+      <p>CONFIG (at the top of PASSAGE and MECHANICS) sets everything at once to a named way of playing, so you can try them one after another and say which feels right: A · CLASSIC is the game as it was up to WTC 1.51; B · CLEAN STRIKES makes every landing a strike; B+ · PREPARED (the game since WTC 1.52, and the default here) is B where a thumb may rest early on its next note while the other holds, sounded when the other lifts (a pull-off; a landing while the other holds is a hammer-on), never by itself; C · HAND-OVER lets a thumb rest on its next note while the other still holds and sounds it at its time; D · LIFT TO SOUND sounds it when the other thumb lifts; E · GENEROUS is C with wider windows. Moving a slider afterwards marks it "(changed)"; every run records the config it was played with. TIMING UNITS: RELATIVE scales the windows with the time between the notes (as set at 360 ms between notes, II/18's quavers; never narrower than at 250 ms, nor than a few touch frames).</p>
       <h3>Drags (try: CONNECT)</h3>
       <p>A drag is a held thumb slid on to the next note. In the game it only joins (no bonus, the legato chain broken). CONNECT (in FREE PLAY, PASSAGE or MECHANICS › DRAG) gives it a meaning per instrument: voices, synths and chips glide, the pitch following your thumb; harpsichord, piano and organ play the passing note when you drag across a third (coulé) and the Schleifer (two quick notes from a third below) when you drag up into a note. In a passage it then counts as joined for the chain, but earns nothing more. Each one is a "↝ DRAG:" line.</p>
       <p>BAND TIME (PASSAGE, or MECHANICS › BAND TIME) is a prototype: should the band follow you in time? FIXED is the game's. WAITS keeps the pulse but holds the band at a cadence, the final chord and after your breath (a lift at a rest) until your next note, at most a set time; each is a "⏸ BAND WAITED" line. FOLLOWS also lets the band's tempo follow your notes, a few per cent at most, changed only at a beat, and pulled back to the written tempo before it drifts far; each change is a "♩ BAND TEMPO" line. Your timing is judged against where the band is.</p>

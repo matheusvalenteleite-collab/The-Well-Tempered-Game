@@ -89,26 +89,58 @@ export interface LiteState {
   best: Record<string, string>;
   /** D268: the best final score each piece was finished with. */
   scores: Record<string, number>;
+  /** D337: the judging each best grade in `best` was earned under (JUDGING; one without was earned before 1.52, moved to bestOld). */
+  bestV: Record<string, string>;
+  /** D337: the judging each best score in `scores` was made under. */
+  scoresV: Record<string, string>;
+  /** D337: the best grades earned before WTC 1.52 (judged otherwise: kept, shown apart, "before 1.52"). */
+  bestOld: Record<string, string>;
+  /** D337: the best scores made before WTC 1.52. */
+  scoresOld: Record<string, number>;
 }
+
+/**
+ * D337 (WTC 1.52): the game's judging became B+ · PREPARED (mechanics.ts MECH_DEFAULTS), so a best made
+ * before is no longer comparable: each best is kept with the judging it was made under; those from
+ * before (none named) are kept apart as "before 1.52", never deleted, and the new best is counted afresh.
+ */
+export const JUDGING = "1.52";
+export const BEFORE_JUDGING = "BEFORE 1.52";
 
 /** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
 export const SOUND_UNLOCK_GRADES = ["S", "A"];
-export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "");
+// D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
+export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
 
 export function readLite(): LiteState {
   try {
     const v = localStorage.getItem(LITE_KEY);
     const o = v ? (JSON.parse(v) as Partial<LiteState>) : {};
+    const strings = (x: unknown) => (x && typeof x === "object" ? Object.fromEntries(Object.entries(x).filter(([, g]) => typeof g === "string")) : {}) as Record<string, string>;
+    const numbers = (x: unknown) => (x && typeof x === "object" ? Object.fromEntries(Object.entries(x).filter(([, n]) => typeof n === "number" && Number.isFinite(n))) : {}) as Record<string, number>;
+    const best = strings(o.best);
+    const scores = numbers(o.scores);
+    const bestV = strings(o.bestV);
+    const scoresV = strings(o.scoresV);
+    const bestOld = strings(o.bestOld);
+    const scoresOld = numbers(o.scoresOld);
+    // D337: a best with no judging named was made before 1.52: kept apart (written back with the next change).
+    for (const [id, g] of Object.entries(best)) if (!bestV[id]) ((bestOld[id] ??= g), delete best[id]);
+    for (const [id, n] of Object.entries(scores)) if (!scoresV[id]) ((scoresOld[id] ??= n), delete scores[id]);
     return {
       beaten: Array.isArray(o.beaten) ? o.beaten.filter((x) => typeof x === "string") : [],
       seen: Array.isArray(o.seen) ? o.seen.filter((x) => typeof x === "string") : [],
       volume: typeof o.volume === "number" && o.volume >= 0 && o.volume <= 1 ? o.volume : 1,
-      best: o.best && typeof o.best === "object" ? Object.fromEntries(Object.entries(o.best).filter(([, g]) => typeof g === "string")) : {},
-      scores: o.scores && typeof o.scores === "object" ? Object.fromEntries(Object.entries(o.scores).filter(([, n]) => typeof n === "number" && Number.isFinite(n))) : {},
+      best,
+      scores,
+      bestV,
+      scoresV,
+      bestOld,
+      scoresOld,
     };
   } catch {
-    return { beaten: [], seen: [], volume: 1, best: {}, scores: {} };
+    return { beaten: [], seen: [], volume: 1, best: {}, scores: {}, bestV: {}, scoresV: {}, bestOld: {}, scoresOld: {} };
   }
 }
 export function writeLite(patch: Partial<LiteState>): LiteState {
@@ -191,8 +223,9 @@ export function liteLine(beaten: ReadonlySet<string>, fuguesOnly = false): strin
  */
 export function recordLite(piece: string, failed: boolean, fuguesOnly = false, grade?: string): Tier[] {
   const st = readLite();
-  // D265: the best grade kept (a finished run's).
-  if (!failed && grade && RANK.indexOf(grade) > RANK.indexOf(st.best[piece] ?? "")) writeLite({ best: { ...st.best, [piece]: grade } });
+  // D265: the best grade kept (a finished run's). D337: against the bests of today's judging only, kept with it.
+  if (!failed && grade && RANK.indexOf(grade) > RANK.indexOf(st.best[piece] ?? "")) writeLite({ best: { ...st.best, [piece]: grade }, bestV: { ...st.bestV, [piece]: JUDGING } });
+  // D340: the MORE BACH and CHORALES pieces are kept as finished too (their ✓).
   if (failed || st.beaten.includes(piece) || !(/^wtc1[pf]\d\d$|^wtc2f\d\d$/.test(piece) || liteExtra(piece))) return [];
   const before = liteTiers(new Set(st.beaten), fuguesOnly);
   const beaten = [...st.beaten, piece];
@@ -200,13 +233,17 @@ export function recordLite(piece: string, failed: boolean, fuguesOnly = false, g
   return liteTiers(new Set(beaten), fuguesOnly).filter((t) => !before.includes(t));
 }
 
-/** D268: a finished run's final score against the piece's best: the best before it, and whether it is a new one (kept). */
-export function recordLiteBest(piece: string, final: number): { before: number | null; fresh: boolean } {
+/**
+ * D268: a finished run's final score against the piece's best: the best before it, and whether it is a new
+ * one (kept). D337: against today's judging's best only (kept with JUDGING); `old`, the best from before
+ * 1.52 (another judging: shown apart, never beaten or replaced).
+ */
+export function recordLiteBest(piece: string, final: number): { before: number | null; fresh: boolean; old: number | null } {
   const st = readLite();
   const before = st.scores[piece] ?? null;
   const fresh = before === null || final > before;
-  if (fresh) writeLite({ scores: { ...st.scores, [piece]: final } });
-  return { before, fresh };
+  if (fresh) writeLite({ scores: { ...st.scores, [piece]: final }, scoresV: { ...st.scoresV, [piece]: JUDGING } });
+  return { before, fresh, old: st.scoresOld[piece] ?? null };
 }
 
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
@@ -236,6 +273,9 @@ export const RULES: Record<string, string[]> = {
   ladder: [
     "Hold the phone sideways, a thumb on each bar.",
     "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.",
+    // D337 (WTC 1.52): B+ · PREPARED, the game's: a landing is the strike; a thumb resting early sounds on the other's lift.
+    "To join two notes: strike the next on time while the other thumb holds, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
+    "In fast runs either thumb may lead: keep the run moving the right way, and it is judged as a whole.",
     // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
     STRONG_SIDE === "outer"
       ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
@@ -244,7 +284,7 @@ export const RULES: Record<string, string[]> = {
     "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself. Miss too many and the crowd leaves.",
     "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
     // D314: the ornaments, as THE ORNAMENT lesson teaches them; the free ones.
-    "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓ and points; not done: nothing lost.",
+    "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
     "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
   ],
 };

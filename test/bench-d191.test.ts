@@ -3,6 +3,7 @@
  * the engine audit's low items.
  */
 import { test } from "node:test";
+import { CLASSIC_VALUES, withMech } from "../src/bench/mechanics.ts";
 import assert from "node:assert/strict";
 import { beatOf, FUGUES, fugueById } from "../src/touch/fugue.ts";
 import { laneNotes, quickRides, RIDE_MS, type LaneNote } from "../src/touch/lanes.ts";
@@ -159,7 +160,8 @@ test("a rider's note missed: the rider stays silent and unjudged; only the note 
   assert.notEqual(g.notes[first].state, "hit");
 });
 
-test("engine audit: the ritard in the PERFECT check and the drums' beat", () => {
+test("engine audit: the ritard in the PERFECT check and the drums' beat (D337: A · CLASSIC's fixed windows)", () =>
+  withMech(CLASSIC_VALUES, () => {
   const C = fugueById("wtc1f02");
   const clock = { t: 0 };
   const grooves: { at: number; beatS: number }[] = [];
@@ -181,9 +183,10 @@ test("engine audit: the ritard in the PERFECT check and the drums' beat", () => 
   const steady = (C.tpq * 1) / g.tps;
   const beats = grooves.map((x) => x.beatS);
   assert.ok(beats.length > 2 && Math.max(...beats) > steady * 1.1, `beats ${beats.map((b) => b.toFixed(3))}`);
-});
+  }));
 
-test("engine audit: several notes missed in one frame (D249: the second and third within 8 notes of the first) each cost a step; a tap at the window's very end still counts", () => {
+test("engine audit: several notes missed in one frame (D249: the second and third within 8 notes of the first) each cost a step; a tap at the window's very end still counts (D337: A · CLASSIC's fixed windows)", () =>
+  withMech(CLASSIC_VALUES, () => {
   {
     const { g, clock } = aGame(54);
     const hs = headsOf(g.notes).filter((i) => !g.notes[i].ride);
@@ -207,7 +210,7 @@ test("engine audit: several notes missed in one frame (D249: the second and thir
     g.keyDown(1, { velocity: 0.5 }, performance.now() - 15);
     assert.equal(n.state, "hit");
   }
-});
+  }));
 
 test("engine audit: input ids apart; a cancelled touch is no tap; the silent <audio> played again after an interruption", () => {
   const ids = new Set<number>();

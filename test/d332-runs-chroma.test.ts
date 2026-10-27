@@ -2,10 +2,11 @@
  * D332 (WTC 1.49): (1) chromatic neighbours drawn apart in the music box (the signature's alteration,
  * the shift, the signs); (2) THE LAB's RUNS "lenient": fast stepwise runs judged from either thumb's last
  * touch, the run's trend told at its end (no score); on in presets B, C, D and E, the game (A) strict.
+ * D337 (WTC 1.52): the game's own since B+ became it; A · CLASSIC (WTC 1.51, MECH_CLASSIC) strict.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MECH, MECH_DEFAULTS, MECH_SPEC, type Mech } from "../src/bench/mechanics.ts";
+import { MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, type Mech } from "../src/bench/mechanics.ts";
 import { CONFIGS, configById, configMech } from "../src/bench/lab/presets.ts";
 import { findRuns, runTrend, slope } from "../src/bench/runs.ts";
 import { replay, tally } from "../src/bench/lab/replay.ts";
@@ -18,8 +19,9 @@ import { synthRun } from "../tools/lab/lab-synth.ts";
 const note = (on: number, step: number, midi = 60): LaneNote => ({ on, dur: 1, midi, step, long: false, state: "pending" });
 const ms = (a: number, b: number) => (b - a) * 100;
 
-test("D332: RUNS strict is the game's default; LENIENT on in B, C, D and E (B otherwise unchanged), A strict", () => {
-  assert.equal(MECH_DEFAULTS.runs, "strict");
+test("D332: RUNS strict was the game's (A · CLASSIC); LENIENT on in B, B+ (D337: the game's), C, D and E (B otherwise unchanged)", () => {
+  assert.equal(MECH_CLASSIC.runs, "strict");
+  assert.equal(MECH_DEFAULTS.runs, "lenient");
   assert.equal(MECH_DEFAULTS.runMinNotes, 4);
   assert.equal(MECH_DEFAULTS.runIoiMs, 200);
   assert.equal(MECH_DEFAULTS.runTravelRows, 0.5);
@@ -28,7 +30,8 @@ test("D332: RUNS strict is the game's default; LENIENT on in B, C, D and E (B ot
   for (const k of ["runs", "runMinNotes", "runIoiMs", "runTravelRows", "runTravelMaxRows"]) assert.equal(MECH_SPEC.find((s) => s.key === k)?.group, "LADDER", k);
   assert.equal(configMech(configById("A")!).runs, "strict");
   for (const id of ["B", "B+", "C", "D", "E"]) assert.equal(configMech(configById(id)!).runs, "lenient", id);
-  assert.deepEqual(configById("B")!.values, { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" });
+  // B: WTC 1.51's game with these (D337: named on top of A's values, so it stays what it was).
+  assert.deepEqual(configMech(configById("B")!), { ...MECH_CLASSIC, timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" });
   assert.equal(CONFIGS.length, 6);
 });
 
@@ -77,8 +80,8 @@ const II10: LabPassage = { piece: "wtc2f10", voice: 0, fromBar: 1, toBar: 12, bp
 
 test("D332: LENIENT judges run notes from either thumb, tells RUN ✓/✗, and changes nothing outside runs", () => {
   const log = synthRun(II10, { gap: -0.02, jitter: 0.03, scatterPx: 18, seed: 2 });
-  const strict = replay(log, { ...MECH_DEFAULTS } as Mech).events;
-  const lenient = replay(log, { ...MECH_DEFAULTS, runs: "lenient" } as Mech).events;
+  const strict = replay(log, { ...MECH_CLASSIC } as Mech).events;
+  const lenient = replay(log, { ...MECH_CLASSIC, runs: "lenient" } as Mech).events;
   const key = (e: { track: number; i: number }) => `${e.track}:${e.i}`;
   const ruled = new Set(lenient.filter((e) => e.kind === "note" && e.ladder?.run).map((e) => key(e as { track: number; i: number })));
   assert.ok(ruled.size > 20, `run notes ${ruled.size}`);
