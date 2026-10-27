@@ -36,6 +36,7 @@ import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
 import { describe } from "./describe.ts";
 import { FreePlay, freeRows, type FreeScale } from "./free.ts";
+import { loadTable, TableStage, TableTab } from "./TableStage.tsx";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 
 const STORE = "tb-lab-v1";
@@ -166,7 +167,7 @@ interface Saved {
   log: LabLog;
 }
 
-type Tab = "passage" | "free" | "drills" | "mechanics" | "see" | "runs" | "help";
+type Tab = "passage" | "free" | "table" | "drills" | "mechanics" | "see" | "runs" | "help";
 
 interface Trace {
   id: number;
@@ -206,6 +207,9 @@ export function LabApp() {
   const span = passageSpan(f, setup);
 
   const [panel, setPanel] = useState<Tab | null>("passage");
+  // D324: TABLE's settings, and its whole screen while it plays (TableStage.tsx).
+  const [tableOpts, setTableOpts] = useState(loadTable);
+  const [tableOn, setTableOn] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [, setFeedTick] = useState(0);
   const feed = useRef<string[]>([]);
@@ -711,10 +715,24 @@ export function LabApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
+      {tableOn && (
+        <TableStage
+          f={f}
+          voice={setup.voice}
+          chip={chip.current ?? ensureChip()}
+          o={tableOpts}
+          line={(l) => {
+            feed.current.push(l);
+            if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
+            setFeedTick((n) => n + 1);
+          }}
+          close={() => (setTableOn(false), setPanel("table"))}
+        />
+      )}
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {(["passage", "free", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
+            {(["passage", "free", "table", "drills", "mechanics", "see", "runs", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
                 {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}
               </button>
@@ -732,6 +750,20 @@ export function LabApp() {
               <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} />
             )}
             {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} />}
+            {panel === "table" && (
+              <TableTab
+                f={f}
+                voice={setup.voice}
+                o={tableOpts}
+                set={setTableOpts}
+                play={() => {
+                  stop();
+                  const ch = ensureChip();
+                  void ch.resume().finally(() => setTableOn(true));
+                  setPanel(null);
+                }}
+              />
+            )}
             {panel === "drills" && (
               <div className="lab-drills">
                 {DRILLS.map((d) => (
