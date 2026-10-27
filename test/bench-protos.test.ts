@@ -345,6 +345,7 @@ test("audit fixes: mashing is no S; ORGANO PLENO sounds on every capture; a lost
   }
 });
 
+// D346: no click past the count-in in the game, so the beat is heard here through a drill's click (D342).
 test("the downbeat on the barline in triple time; an upbeat played from the start", () => {
   for (const id of ["wtc1f06", "wtc1f11", "wtc2f10", "wtc2f13"]) {
     const f = fugueById(id);
@@ -356,7 +357,7 @@ test("the downbeat on the barline in triple time; an upbeat played from the star
     };
     const from = startTick(f, 0);
     assert.equal(from, 0, `${id} starts at its first note`);
-    const g = new ProtoGame(f, voicesFrom(f, 0)[0], from, protoById("keys"), { bpm: 54, legato: false }, chip);
+    const g = new ProtoGame(f, voicesFrom(f, 0)[0], from, protoById("keys"), { bpm: 54, legato: false, click: { full: Infinity, gone: Infinity } }, chip);
     while (clock.t < g.timeAt(f.bars[3].on)) (clock.t += 0.05), g.step();
     const bars = new Set(f.bars.map((b) => Math.round(g.timeAt(b.on) * 1000)));
     const after = accents.filter((t) => t >= g.timeAt(f.bars[0].on) - 1e-6);
