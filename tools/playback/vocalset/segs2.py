@@ -14,7 +14,8 @@ for p in sys.argv[2:]:
     f0 = librosa.yin(y, fmin=60, fmax=1200, sr=sr, frame_length=4096, hop_length=hop, trough_threshold=0.1)
     rms = librosa.feature.rms(y=y, frame_length=882, hop_length=hop)[0][: len(f0)]
     f0 = f0[: len(rms)]
-    thr = 0.08 * np.percentile(rms, 99)
+    # (D313: THR=0.02 for build_sustain.py: the quieter ends of notes kept, more takes to choose from.)
+    thr = float(__import__("os").environ.get("THR", "0.08")) * np.percentile(rms, 99)
     m = 69 + 12 * np.log2(f0 / 440)
     # smooth over 0.2 s (a vibrato cycle) to decide the note, keep the raw track for measuring
     k = 40

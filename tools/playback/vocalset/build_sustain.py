@@ -1,4 +1,4 @@
-"""D310: SOLO VOICES' four singers, straight tone without the copy and paste.
+"""D313: SOLO VOICES' four singers, straight tone without the copy and paste.
 python -I build_sustain.py SEGS.json OUT_DIR [--mode chain|grain|synth] [parts...]
 
 D305's build_straight.py held each note to one stretch of one take (median 0.5-0.7 s) and tiled that
@@ -7,8 +7,9 @@ the 120 ms crossfades between the copies dipping 2-3 times a second, and the str
 undone in pitch, left in its harmonics' levels (a brightness wobble at the vibrato's 5-6 Hz: the
 "tremolo" still heard). Here, for every semitone of a part (one singer per part, as D305):
 
-  1. a pool: the singer's steady notes (segs2.py, its threshold lowered: SEGS.json) within 4 semitones
-     (7 where none), the straight takes and the steadiest preferred, up to `POOL` of them;
+  1. a pool: the singer's steady notes (SEGS.json: THR=0.02 segs2.py, its level threshold lowered) within 4 semitones
+     (7 where none), the straight takes and the steadiest preferred, up to `POOL` of them, a take the
+     pitch shift spoilt left out (`sound`);
   2. each one's pitch held steady (build_straight.steady_pitch), shifted to the target (rubberband,
      formants preserved), its level matched, and its spectrogram's magnitudes smoothed along time
      (`smooth`: a Gaussian of 80 ms, -10 dB at 3 Hz, -33 at 5.5 Hz; the phases kept): the vibrato's
@@ -19,7 +20,9 @@ undone in pitch, left in its harmonics' levels (a brightness wobble at the vibra
      `grain` (measured, not kept): 100-200 ms Hann grains at 50% overlap from random places of the pool;
      `synth` (measured, not kept): the first 250 ms recorded, then this singer's average spectrum
      (its harmonics' mean levels) resynthesized as a steady harmonic tone with a little jitter and breath;
-  4. its level held within half a decibel (a 100 ms envelope divided out);
+  4. a slow aperiodic pitch wander of 4 cents (`wander`: held to one pitch exactly, every lag of a whole
+     number of periods correlated, the 2.5-8 kHz self-similarity 0.47 against a real straight tone's 0.14;
+     with it 0.24), then its level held within half a decibel (a 60 ms envelope divided out);
   5. 3.25 s as before, 1.0-3.0 s still a seamless loop (the chorales loop it; the touch game no longer
      does: chip.ts `chain`), RMS 0.12, MP3 96 kbit/s mono.
 Writes report.json (per note: the takes used, shifts, and the measured level and brightness wobble).
@@ -44,7 +47,8 @@ if rest and rest[0] == "--mode":
     MODE, rest = rest[1], rest[2:]
 ONLY = rest
 MAX_SHIFT, WIDE_SHIFT = 4, 7
-POOL = 6
+POOL = 10
+WANDER = float(os.environ.get("WANDER", "4"))  # cents (peak) of the slow pitch wander
 LEN = 3.25
 XF = 0.28
 TMP = tempfile.mkdtemp()
@@ -81,7 +85,7 @@ def colour(a):
 def matched(pool):
     """Each take held to the pool's mean spectrum (a geometric mean per bin) throughout: one singer's
     one vowel, so neither a take's own course (a swell: louder and brighter, its centroid rising 5-7% in
-    0.7 s) nor the joins between takes change its colour (D310: matched only on average, the centroid
+    0.7 s) nor the joins between takes change its colour (D313: matched only on average, the centroid
     wandered 8-9% at about 1.3-1.8 Hz, twice a real straight tone's 4.5%)."""
     target = np.exp(np.mean([np.log(colour(a)) for a in pool], axis=0))
     return [norm(smooth(a, target=target)) for a in pool]
@@ -90,7 +94,7 @@ def matched(pool):
 def clean(pool, least=0.3):
     """The takes cut where they falter: a 25 ms frame more than 1.2 dB under the median of the 120 ms
     about it (a glitch of the take or of its pitch track, which a piece would carry into every note that
-    used it: D310 measured -2 to -4 dB blips, the centroid falling 8%); the pieces left of `least` s or
+    used it: D313 measured -2 to -4 dB blips, the centroid falling 8%); the pieces left of `least` s or
     more kept (the whole pool if nothing is left)."""
     from scipy.ndimage import median_filter
     out = []
@@ -109,6 +113,35 @@ def clean(pool, least=0.3):
             cuts.append(a[start:])
         out += cuts
     return out or pool
+
+
+def sound(a, f0):
+    """Whether a take came through the pitch shift whole: its energy under 0.8 f0 below -40 dB and between
+    its first two harmonics below -30 dB of the whole (D313: rubberband, given a 0.4 s take, once left an
+    E5 shifted to F5 with a subharmonic at -13 dB, heard as a growl an octave down in every note using it)."""
+    S = np.abs(np.fft.rfft(a * np.hanning(len(a)))) ** 2
+    f = np.fft.rfftfreq(len(a), 1 / SR)
+    tot = S.sum() + 1e-20
+    under = S[(f > 60) & (f < 0.8 * f0)].sum() / tot
+    between = S[(f > 1.2 * f0) & (f < 1.8 * f0)].sum() / tot
+    return 10 * np.log10(under + 1e-20) < -40 and 10 * np.log10(between + 1e-20) < -30
+
+
+def wander(a, rng, cents=WANDER, sigma=0.3):
+    """a read at a slowly varying rate: an aperiodic wander of the pitch within ±`cents` (noise smoothed by
+    a Gaussian of `sigma` s: under 1 Hz), as a straight-toned singer's own (natural.py: 3-8 cents). Takes
+    held to exactly one pitch made every lag of a whole number of periods correlate, the joins included:
+    a machine's steadiness, and a repetition heard where the material differs."""
+    if cents <= 0:
+        return a
+    from scipy.interpolate import CubicSpline
+    n = len(a)
+    c = gaussian_filter1d(rng.normal(0, 1, n // 64 + 2), sigma * SR / 64)
+    c = cents * c / (np.abs(c).max() + 1e-9)
+    r = 2 ** (np.interp(np.arange(n) / 64, np.arange(len(c)), c) / 1200)
+    p = np.cumsum(r) - r[0]
+    p = p[p < n - 1]
+    return CubicSpline(np.arange(n), a)(p)
 
 
 def level(a, w=0.1, lo=0.7, hi=1.4):
@@ -293,9 +326,10 @@ for part, (who, lo, hi) in PARTS.items():
         steady = [c for c in near if c[1]["vib"] <= 15]
         if len(steady) >= 2:
             near = steady + [c for c in near if 15 < c[1]["vib"] <= 25]
-        chosen = near[:POOL]
-        pool = []
-        for p, s, d in chosen:
+        chosen, pool = [], []
+        for p, s, d in near:
+            if len(chosen) == POOL:
+                break
             key = (p, s["t0"], m)
             if key not in cache:
                 if p not in cache:
@@ -304,9 +338,10 @@ for part, (who, lo, hi) in PARTS.items():
                 a = y[int((s["t0"] + 0.03) * SR): int((s["t1"] - 0.03) * SR)]
                 a = steady_pitch(a, s["midi"])
                 a = shift(a, m - s["midi"])
-                a = norm(a)
-                cache[key] = norm(a)
-            pool.append(cache[key])
+                cache[key] = norm(a) if sound(a, hz(m)) else None
+            if cache[key] is not None:
+                chosen.append((p, s, d))
+                pool.append(cache[key])
         if MODE != "raw":
             pool = matched(pool)
         # (their first and last 60 ms left out: the edges of the pitch track, the shift and the spectrogram)
@@ -321,14 +356,16 @@ for part, (who, lo, hi) in PARTS.items():
             T, joins = grain(pool, n, rng, P)
         else:
             T, joins = synth(pool, n, rng, P, hz(m))
-        T = norm(level(T, 0.06))
+        T = norm(level(wander(T, rng), 0.06))
         out = loopable(T)
         f = int(0.03 * SR)
         out[:f] *= np.linspace(0, 1, f)
         out[-int(0.1 * SR):] *= np.linspace(1, 0, int(0.1 * SR))
         wob, spread = wobble_db(out[int(0.2 * SR):int(3.1 * SR)])
         sf.write(f"{TMP}/n.wav", out, SR, subtype="PCM_16")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{TMP}/n.wav", "-ac", "1", "-b:a", "96k", f"{OUT}/{part}/{name(m)}.mp3"], check=True)
+        # (The comment tag makes each file a few bytes longer than D305's, whose lengths were the same: the
+        # game versions a recording's URL by its length, so a player's cache fetches the new one.)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{TMP}/n.wav", "-ac", "1", "-b:a", "96k", "-metadata", "comment=D313 build_sustain.py", f"{OUT}/{part}/{name(m)}.mp3"], check=True)
         srcs = [f"{os.path.basename(p)[:-4]}@{s['t0']:.1f}s:{name(s['midi'])}({s['vib']:.0f}c)" for p, s, d in chosen]
         rows.append(dict(note=name(m), takes=srcs, shifts=[m - s["midi"] for p, s, d in chosen], joins=joins, level_wobble_db=round(wob, 2), spread_db=round(spread, 2)))
         print(part, name(m), f"{len(chosen)} takes", f"shifts {[m - s['midi'] for p, s, d in chosen]}", f"joins {len(joins)} rho {np.mean(joins) if joins else 0:.2f}", f"wobble {wob:.2f} dB spread {spread:.1f}", flush=True)

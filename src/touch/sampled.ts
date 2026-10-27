@@ -54,7 +54,7 @@ export interface Bake {
    */
   hold?: boolean;
   /**
-   * D310, SOLO VOICES: never looped in the touch game (a 2 s loop heard over again was the owner's "copy
+   * D313, SOLO VOICES: never looped in the touch game (a 2 s loop heard over again was the owner's "copy
    * paste"): a note longer than its recording goes on with passages of it from random places within this
    * steady stretch (s from the onset), each crossfaded into the last (chip.ts sampledNote, CHAIN). The
    * file keeps its `loop` for the chorales (audio/voice.ts).
@@ -63,7 +63,7 @@ export interface Bake {
 }
 /** D297: TRACKER's short loops (s from the onset): half a second, as a MOD's samples looped a short stretch. */
 export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
-/** D310: where SOLO VOICES' passages are taken from (s from the onset: build_sustain.py's files are steady from 0.2 s to 3.15 s). */
+/** D313: where SOLO VOICES' passages are taken from (s from the onset: build_sustain.py's files are steady from 0.2 s to 3.15 s). */
 export const VOICE_CHAIN: [number, number] = [0.45, 3.0];
 export const PERIOD: Record<string, Bake> = {
   // SUPER 16-BIT (§6.1: oboe 16 kHz LP 5.8 kHz, harpsichord 16 kHz 6 kHz, clarinet 14 kHz 5 kHz, violin 16 kHz 6 kHz, bassoon 12 kHz 4.3 kHz; 11 bits).
@@ -154,7 +154,7 @@ const SHORT: Record<string, Record<string, number>> = {
   soloBass: Object.fromEntries((SAMPLE_MANIFEST.soloBass?.notes ?? []).map((n) => [n, 3.25])),
   choirAahs: Object.fromEntries((SAMPLE_MANIFEST.choirAahs?.notes ?? []).map((n) => [n, 3.08])),
 };
-/** D310: a period set's chained stretch (Bake.chain), if it is held so rather than looped. */
+/** D313: a period set's chained stretch (Bake.chain), if it is held so rather than looped. */
 export const chainOf = (set: string): [number, number] | undefined => PERIOD[set]?.chain;
 /** D297: a period set's made loop (s from the onset). */
 const loopOf = (b: Bake): [number, number] => (b.loop === true ? WIND_LOOP : b.loop || WIND_LOOP);
@@ -440,7 +440,7 @@ export function bake(chans: Float32Array[], sr0: number, b: Bake): Float32Array 
     for (let i = 0; i < n; i++) x[i] = Math.round(x[i] / q) * q;
   }
   if (b.loop && !b.chain) {
-    // (D310: not a chained set's: its file is one take after another, played through, never looped here.)
+    // (D313: not a chained set's: its file is one take after another, played through, never looped here.)
     // The made loop (WIND_LOOP or its own, from the onset): its last 0.25 s (a third of a short loop) faded into the same before its start
     // (equal power), so that playing on from its start sounds what the end had become.
     const on = onsetOf(x, sr);
