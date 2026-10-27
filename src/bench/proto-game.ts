@@ -29,6 +29,7 @@ import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 import { findRuns, runTrend, type Run } from "./runs.ts";
+import type { LensStats } from "./manual/lens.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
 /** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */
@@ -362,6 +363,8 @@ export interface RunResults {
   art: ArtStats;
   lanes: { exact: number; relative: number };
   report: string;
+  /** D342, THE MANUAL: the lesson's lens (manual/lens.ts), where one watches the run: figures only, never points. */
+  lens?: LensStats;
 }
 /** D268: where a score's points came from. */
 export type ScoreSource = "notes" | "articulation" | "held" | "subjects" | "cadences" | "bonus" | "reading";
@@ -1005,7 +1008,10 @@ export class ProtoGame {
       // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
       const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
-      if (!band) ch.tick(this.timeAt(this.nextBeat), accent, counting ? (kimiko ? 0.05 : 0.12) : 0.02);
+      // D342: a drill's click (THE MANUAL), fading out where it asks.
+      const ck = this.o.click;
+      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0.02) : this.nextBeat < ck.full ? 0.12 : this.nextBeat >= ck.gone ? 0 : 0.12 * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
+      if (!band && clickGain > 0.004) ch.tick(this.timeAt(this.nextBeat), accent, clickGain);
       this.nextBeat += this.beat;
     }
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon) {
@@ -1181,17 +1187,18 @@ export class ProtoGame {
       const q: { tick: number; act: () => void }[] = [];
       let parent = -1;
       let y = 0;
-      this.plan.forEach((t, p) => {
+      const plan = this.demoPlan();
+      plan.forEach((t, p) => {
         const id = 90000 + p;
         if (t.slid && parent >= 0) {
           const pid = 90000 + parent;
-          const side = this.plan[parent].side;
+          const side = plan[parent].side;
           q.push({
             tick: t.on,
             act: () => {
               // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
               const want = rows.yOf(t.step);
-              const dir = t.step > this.plan[p - 1].step ? -1 : 1;
+              const dir = t.step > plan[p - 1].step ? -1 : 1;
               y += dir * Math.max(SLIDE_MIN_PX, dir * (want - y));
               this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
             },
@@ -1199,19 +1206,54 @@ export class ProtoGame {
           return;
         }
         parent = p;
-        q.push({ tick: t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
+        q.push({ tick: t.land ?? t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
           const span = Math.max(this.f.tpq / 8, (t.off - t.on) * 0.6);
           for (let m = 1; m <= sh.need; m++)
             q.push({ tick: t.on + (span * m) / (sh.need + 1), act: () => this.move(id, { side: t.side, x: xOf(t.side, t.d), y: rows.yOf(t.step) - (m % 2 ? sh.first : 0) * this.ladderRow, w: W, h: H }, performance.now()) });
         }
-        const offTick = Math.max(...this.plan.filter((x, j) => j >= p && (j === p || (x.slid && x.side === t.side && this.plan.slice(p + 1, j + 1).every((z) => z.slid)))).map((x) => x.off));
+        const offTick = Math.max(...plan.filter((x, j) => j >= p && (j === p || (x.slid && x.side === t.side && plan.slice(p + 1, j + 1).every((z) => z.slid)))).map((x) => x.off));
         q.push({ tick: offTick, act: () => this.up(id, performance.now()) });
       });
       this.demoQueue = q.sort((a, b) => a.tick - b.tick);
     }
     while (this.demoQueue.length && this.demoQueue[0].tick <= this.now) this.demoQueue.shift()!.act();
+  }
+
+  /**
+   * D342, THE MANUAL's demonstrations (Options.demoStyle): the plan as Herr Bach plays it. "one-thumb":
+   * every note by the right thumb, each let go a moment before the next; "prepared": where a note is
+   * joined to the one before and taken by the other thumb, that thumb lands early, a third of the way
+   * from the note before (resting PREPARED on it, D334), and the thumb holding the note before lifts
+   * exactly at the note's time: the pull-off sounds it; "held": every note before a rest held to its end.
+   */
+  private demoPlan(): (Touch & { land?: number })[] {
+    const plan = this.plan.map((t) => ({ ...t })) as (Touch & { land?: number })[];
+    const style = this.o.demoStyle;
+    if (style === "one-thumb")
+      plan.forEach((t, p) => {
+        t.side = "right";
+        const next = plan[p + 1];
+        if (next && !next.slid) t.off = Math.min(t.off, next.on - Math.max(this.f.tpq / 16, 0.07 * this.tps));
+      });
+    if (style === "prepared")
+      plan.forEach((t, p) => {
+        const prev = plan[p - 1];
+        if (!prev || t.slid || prev.slid || prev.side === t.side || prev.off < t.on || t.shake) return;
+        // As the owner's hands do (D334): down a moment after the other thumb's strike, resting till its lift.
+        t.land = prev.on + (t.on - prev.on) / 20;
+        prev.off = t.on;
+      });
+    if (style === "held") {
+      const notes = this.tracks[0].notes;
+      plan.forEach((t, p) => {
+        const next = plan[p + 1];
+        const end = t.on + notes[t.i].dur;
+        if (!t.slid && (!next || next.on >= end)) t.off = Math.max(t.off, end - this.f.tpq / 32);
+      });
+    }
+    return plan;
   }
 
   /** The places held now (columns, keys, rows). */
@@ -1451,6 +1493,12 @@ export class ProtoGame {
         // A thumb's first touch, or its first after a pause or a slide, is free: it sets where it is.
         this.runOnly = false;
         if (!this.rows) return { ok: true };
+        // D342, THE MANUAL's first lesson (I.1, the pulse): EASY "timing" on LADDER: the height not judged
+        // (a lesson-only lens; the game never sets it: easyOf gives LADDER "direction").
+        if (this.o.easy === "timing") {
+          this.ladderWhy = { ref: "free", freeWhy: "first touch" };
+          return { ok: true };
+        }
         const R = this.ladderRow;
         const asked = stepPitch(this.rows.stepAt(c.y), n);
         // D317: the lab's parameters (MECH: by default D286's, D289's and D296's constants), and why (the tap).
@@ -2440,12 +2488,27 @@ export class ProtoGame {
    * A touch or key let go. D249: `cancelled` when the system took the touch back (pointercancel: an
    * edge gesture, a sixth finger): its sound stops, but it is no release, so its end is not judged.
    */
+  /**
+   * D342, THE MANUAL's lens (never judged from here): every lift of a thumb that played a note: which note,
+   * which thumb, when (ticks). The lessons' hold fill, touch meter and gap before a repeat read it.
+   */
+  readonly lifts: { k: number; i: number; side: Side; tick: number }[] = [];
+  /** D342: THE MANUAL's lens watching this run (manual/lens.ts LensTally), its figures added to the results. */
+  lens: { stats(r: Pick<RunResults, "right" | "of" | "stray" | "art" | "thumbs">): LensStats } | null = null;
+  /** D342: the notes held now (a thumb down on a note it played), for THE MANUAL's hold fill. */
+  heldNotes(): { k: number; i: number; side: Side }[] {
+    return [...this.held.values()].filter((h) => h.note >= 0 && !h.passive && !h.wait).map((h) => ({ k: h.k, i: h.note, side: h.side }));
+  }
   up(id: number, ts: number, cancelled = false) {
     this.evTs = ts;
     if (this.pedalLeave(id, ts)) return;
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
+    if (h.note >= 0 && !h.wait) {
+      this.lifts.push({ k: h.k, i: h.note, side: h.side, tick: this.tickOf(ts) });
+      if (this.lifts.length > 600) this.lifts.splice(0, 200);
+    }
     // D262: a line not finished goes on by itself.
     if (h.trace?.queue.length) this.loose.push(h.trace);
     // D334: a prepared thumb let go before its note sounded: unprepared, silent.
@@ -3788,7 +3851,8 @@ export class ProtoGame {
     const art = { ...this.art, touch: this.sense.touch };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
     const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces } });
-    return { ...r, art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally(this.freeByNote.values()), report: this.report(r) };
+    const lens = this.lens?.stats({ ...r, art, thumbs: this.thumbs });
+    return { ...r, ...(lens ? { lens } : {}), art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally(this.freeByNote.values()), report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
   private span(): { start: number; end: number } {

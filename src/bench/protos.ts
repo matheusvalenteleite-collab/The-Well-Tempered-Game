@@ -66,6 +66,14 @@ export interface Options {
   reading?: Reading | null;
   /** D326, TOOLS (PRACTICE, HEAR THE OTHERS): the band's voices not sounded (still drawn). */
   mute?: readonly number[];
+  /**
+   * D342, THE MANUAL (lesson-only, never set by the game): the metronome's click past the count-in, where
+   * no band plays (a drill's "band click"): full (the count-in's level) until `full`, fading to nothing at
+   * `gone` (ticks); after it, silent.
+   */
+  click?: { full: number; gone: number };
+  /** D342, THE MANUAL: how Herr Bach's demonstration (`demo`) plays: every note by one thumb, or the next thumb resting early on its note and sounded by the other's lift (a pull-off). */
+  demoStyle?: "one-thumb" | "prepared" | "held";
 }
 
 export interface Proto {
