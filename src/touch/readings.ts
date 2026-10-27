@@ -4,7 +4,10 @@
  * accented), its level and shape, the tempo, and what they say of the rest (a dynamic plan by bar).
  * Taken from their words only (the owner: textual descriptions, no listening to recordings), by
  * tools/touch/readings.ts from the extractions (docs/wtc/readings/), into data/touch/readings.json.
- * Up to three a fugue, the first its default; the others open once the fugue is finished. The game
+ * Up to three a fugue. D325 (the musicians' panel, #4): no longer the rule of every run: NONE ("my own
+ * articulation") is an equal choice and the default, and every reading is open from the start; a
+ * reading chosen still scores its marks. (Before: the first the default, the others opened once the
+ * fugue was finished.) The game
  * (D274: at the recordings' tempo; the book's mark only shown) rewards the subject played as the reading says and the rest at
  * its dynamics, and HEAR THE SUBJECT plays and draws the subject so.
  */
@@ -79,13 +82,14 @@ function store(): Record<string, string> {
     return {};
   }
 }
-/** The reading chosen for a fugue (one it has; once open), else its first. */
-export function chosenReading(id: string, open: boolean): Reading | null {
-  const rs = readingsOf(id);
+/** D325: NONE, the player's own articulation: no reading's marks shown, asked or scored. */
+export const NO_READING = "none";
+/** D325: the reading the player chose for a fugue (any it has, all open), else none (NONE, the default). */
+export function chosenReading(id: string): Reading | null {
   const want = store()[id];
-  const i = rs.findIndex((r) => r.id === want);
-  return i > 0 && !open ? (rs[0] ?? null) : (rs[i] ?? rs[0] ?? null);
+  return readingsOf(id).find((r) => r.id === want) ?? null;
 }
+/** D325: a reading's id, or NO_READING. */
 export function chooseReading(id: string, reading: string) {
   try {
     localStorage.setItem(KEY, JSON.stringify({ ...store(), [id]: reading }));

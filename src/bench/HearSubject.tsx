@@ -2,15 +2,15 @@
  * D272, HEAR THE SUBJECT (play.html's list): the fugue's subject as the chosen reading says to play it,
  * drawn and heard: each note a block at its pitch and length, joined notes under a slur, detached ones
  * with a gap, short ones dotted, accents marked, the level written; a light runs along as it sounds.
- * The readings (at most three) as buttons, the first open, the others once the fugue is finished; the
- * author's words and pages below.
+ * The readings (at most three) as buttons, the author's words and pages below. D325: NONE (my own
+ * articulation) first, the default, and every reading open from the start; the one chosen is the run's.
  */
 import { lang, pieceName, tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
-import { chooseReading, chosenReading, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
+import { chooseReading, chosenReading, NO_READING, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
@@ -23,11 +23,11 @@ import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
 export type { Performed };
 export { firstEntry };
 
-export function HearSubject({ id, open, play, close }: { id: string; open: boolean; play: (notes: Performed, voice: number) => Promise<number>; close: () => void }) {
+export function HearSubject({ id, play, close }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; close: () => void }) {
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
-  const [reading, setReading] = useState<Reading | null>(() => chosenReading(id, open));
+  const [reading, setReading] = useState<Reading | null>(() => chosenReading(id));
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
@@ -64,9 +64,8 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
     return () => cancelAnimationFrame(raf);
   });
   if (!e) return null;
-  const pick = (r: Reading, k: number) => {
-    if (k > 0 && !open) return;
-    chooseReading(id, r.id);
+  const pick = (r: Reading | null) => {
+    chooseReading(id, r?.id ?? NO_READING);
     setReading(r);
   };
   return (
@@ -78,18 +77,16 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
         <h2 className="tb-hear-title">{tr("THE SUBJECT")} · {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)}</h2>
         {readings.length > 0 && (
           <div className="tb-hear-readings" role="radiogroup" aria-label="Readings">
-            {readings.map((r, k) => {
-              const locked = k > 0 && !open;
-              return (
-                <button key={r.id} type="button" id={`reading-${r.id}`} role="radio" aria-checked={reading?.id === r.id} className={`tb-hear-reading${reading?.id === r.id ? " on" : ""}${locked ? " locked" : ""}`} onClick={() => pick(r, k)} title={locked ? "Finish the fugue to open" : `${r.author}, ${r.work} (${r.year})`}>
-                  {locked ? "🔒 " : ""}
-                  {r.author} {r.year}
-                </button>
-              );
-            })}
+            <button type="button" id="reading-none" role="radio" aria-checked={!reading} className={`tb-hear-reading${!reading ? " on" : ""}`} onClick={() => pick(null)} title={tr("NONE: MY OWN ARTICULATION")}>
+              {tr("NONE")}
+            </button>
+            {readings.map((r) => (
+              <button key={r.id} type="button" id={`reading-${r.id}`} role="radio" aria-checked={reading?.id === r.id} className={`tb-hear-reading${reading?.id === r.id ? " on" : ""}`} onClick={() => pick(r)} title={`${r.author}, ${r.work} (${r.year})`}>
+                {r.author} {r.year}
+              </button>
+            ))}
           </div>
         )}
-        {readings.length > 1 && !open && <p className="tb-hear-lock">{tr("FINISH THE FUGUE TO OPEN THE OTHER READINGS")}</p>}
         <canvas ref={canvas} className="tb-hear-canvas" />
         <p className="tb-hear-key tb-hear-thumbs">
           {STRONG_SIDE === "outer"
@@ -118,7 +115,7 @@ export function HearSubject({ id, open, play, close }: { id: string; open: boole
             </cite>
           </blockquote>
         )}
-        {!reading && <p className="tb-hear-lock">{tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
+        {!reading && <p className="tb-hear-lock">{readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
         <button type="button" id="hear-again" className="tb-play tb-hear-play" onClick={hear}>
           ▶ {tr("HEAR IT AGAIN")}
         </button>

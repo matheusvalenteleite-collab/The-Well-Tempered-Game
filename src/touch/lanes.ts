@@ -51,6 +51,12 @@ export interface LaneOptions {
    */
   split?: boolean;
   floor?: number;
+  /**
+   * D325b: an agogic delay (a strong beat, a dissonance): how far late (ticks) the note at this onset
+   * may still be taken, past the halfway split (never so far that the next note keeps less than `floor`
+   * early); the next note's early window gives way by as much.
+   */
+  lean?: (on: number) => number;
 }
 
 export function options(tpq: number, bpm: number, level: Level): LaneOptions {
@@ -214,9 +220,11 @@ export function windowOf(notes: LaneNote[], n: LaneNote, o: LaneOptions): { earl
   const floor = o.floor ?? 0;
   const prev = lo > 0 ? xs[lo - 1] : undefined;
   const next = xs[lo] === n.on ? xs[lo + 1] : xs[lo];
+  // D325b: a note's late side: halfway to the next, or as far as its lean asks (the next keeping its floor).
+  const lateOf = (on: number, nx: number) => Math.max(floor, Math.min(o.late, Math.max((nx - on) / 2, Math.min(o.lean?.(on) ?? 0, nx - on - floor))));
   return {
-    early: prev === undefined ? o.early : Math.max(floor, Math.min(o.early, (n.on - prev) / 2)),
-    late: next === undefined ? o.late : Math.max(floor, Math.min(o.late, (next - n.on) / 2)),
+    early: prev === undefined ? o.early : Math.max(floor, Math.min(o.early, (n.on - prev) / 2, n.on - prev - lateOf(prev, n.on))),
+    late: next === undefined ? o.late : lateOf(n.on, next),
   };
 }
 

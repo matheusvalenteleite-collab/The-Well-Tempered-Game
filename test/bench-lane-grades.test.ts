@@ -44,7 +44,8 @@ function play(proto: "keys" | "highway", rel: (g: ProtoGame) => number, lane: (g
     clock.t = Math.max(clock.t, t);
     g.step();
     const l = i === target ? lane(g, i) : g.lanes[i];
-    const s0 = g.score;
+    // D325: the note's own points (its articulation's credit, the same for either lane, apart).
+    const s0 = g.earned.notes;
     const c0 = log.chimes;
     if (proto === "keys") {
       const code = g.moves[i].dir === 0 && !g.isFree(i) && i !== target ? "Space" : HOME[l];
@@ -55,7 +56,7 @@ function play(proto: "keys" | "highway", rel: (g: ProtoGame) => number, lane: (g
       g.down(++id, { side: x < W / 2 ? "left" : "right", x, y: H * 0.8, w: W, h: H }, performance.now());
       g.up(id, performance.now());
     }
-    if (i === target) at = { pts: g.score - s0, chimes: log.chimes - c0, bright: log.bright.at(-1)! };
+    if (i === target) at = { pts: g.earned.notes - s0, chimes: log.chimes - c0, bright: log.bright.at(-1)! };
   }
   return { g, at: at!, chimes: log.chimes };
 }
