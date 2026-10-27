@@ -3,7 +3,9 @@
  * lab's recorder (frames every 1/60 s, touches with a seeded scatter), so that its log can be
  * replayed and compared. `gap` is how long before the next note's strike each thumb lifts (negative:
  * after, an overlap); every `wrongEvery`-th touch lands two rows the wrong way; every `strayEvery`-th
- * note gets an extra touch between notes.
+ * note gets an extra touch between notes. D329: every `preplaceEvery`-th note's thumb is put down on
+ * its note as the other thumb strikes the note before (5 ms after it: the owner's II/18 log, about a note
+ * value early), resting there until its time.
  */
 import { silentChip } from "../../src/bench/lab/replay.ts";
 import { labGame } from "../../src/bench/lab/game.ts";
@@ -17,6 +19,8 @@ export interface SynthStyle {
   jitter?: number;
   wrongEvery?: number;
   strayEvery?: number;
+  /** D329: every this-many-th note landed with the note before's strike (a thumb resting early on its note). */
+  preplaceEvery?: number;
   seed?: number;
 }
 
@@ -36,6 +40,7 @@ export function synthRun(p: LabPassage, s: SynthStyle): LabLog {
   const notes = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
   type E = { t: number; k: number; fn: () => void };
   const evs: E[] = [];
+  let before = 0;
   notes.forEach((n, i) => {
     const side = i % 2 ? "right" : "left";
     const x = side === "left" ? 40 : 804;
@@ -43,7 +48,9 @@ export function synthRun(p: LabPassage, s: SynthStyle): LabLog {
     const prev = notes[i - 1];
     const dir = prev ? Math.sign(n.step - prev.step) || 1 : 1;
     const y = rows.yOf(n.step) + (wrong ? dir * 2.2 * 18 : rand() * 3);
-    const t0 = g.timeAt(n.on) + rand() * (s.jitter ?? 0.02);
+    const pre = !!s.preplaceEvery && i > 0 && i % s.preplaceEvery === 0;
+    const t0 = pre ? before + 0.005 : g.timeAt(n.on) + rand() * (s.jitter ?? 0.02);
+    before = t0;
     const next = notes[i + 1];
     const t1 = next ? Math.max(t0 + 0.04, g.timeAt(next.on) - s.gap) : g.timeAt(n.on + n.dur) - 0.02;
     const id = i + 1;

@@ -77,6 +77,8 @@ export interface LabLog {
   result?: LabSummary;
   /** Stopped before the passage ended (STOP): a replay stops where it did. */
   stopped?: boolean;
+  /** D329: the CONFIG preset the run was played with ("C · HAND-OVER", "(changed: …)" when edited after choosing it). */
+  preset?: string;
   /** D321: the SENSOR tab's session (tap-strength test) at the run's end, when it has taps (not replayed). */
   sensor?: SensorExport;
 }

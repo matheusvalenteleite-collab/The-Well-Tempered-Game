@@ -74,6 +74,10 @@
 .lab-btn:active { background: var(--tg-barline); }
 .lab-form, .lab-mech { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 18px; align-items: start; }
 .lab-mech > .lab-row, .lab-mech > p { grid-column: 1 / -1; }
+/* D329: CONFIG, across the whole width at the top of PASSAGE and MECHANICS. */
+.lab-config { grid-column: 1 / -1; padding: 6px 8px; border: 1px solid var(--tg-barline); border-radius: 2px; }
+.lab-config select { max-width: 360px; }
+.lab-changed { color: #ffb36b; }
 .lab-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .lab-field > span:first-child { font-size: 12px; color: var(--tg-muted); }
 .lab-field b { color: var(--tg-shine); font-weight: 600; }
