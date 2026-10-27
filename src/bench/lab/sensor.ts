@@ -15,6 +15,8 @@
  * (test/d321-drag-sensor.test.ts); MotionHub is the browser's side.
  */
 
+import { barAcross } from "../protos.ts";
+
 /** One motion sample. t: its time (ms, the page's clock, performance.now's); rt: when the page received it. */
 export interface MotionSample {
   t: number;
@@ -52,6 +54,9 @@ export interface TouchInfo {
   moves?: number;
   sizeMoves?: number;
   heldMs?: number;
+  /** D335: where across the bar it landed (protos.ts barAcross: 0 by the box, 1 the phone's edge; the screen's width) and its zone (inner under 0.5). */
+  across?: number;
+  zone?: "inner" | "outer";
 }
 
 /**
@@ -106,6 +111,8 @@ export interface TapRecord extends TapPeak {
   posture: Posture;
   /** The sensor's interval round it (ms, measured from the samples' times). */
   intervalMs: number | null;
+  /** D335: the zone of the bar it landed in (inner: by the box; outer: by the phone's edge). */
+  zone?: "inner" | "outer";
 }
 
 /** The window round a touch the peak is looked for in (ms), and the baseline before it. */
@@ -264,6 +271,9 @@ export interface SensorExport {
   calSize: Calibration | null;
   /** The touches: what the pressure reads, the pointer moves seen while down, those that changed only the size. */
   touches: { pressure: string; moves: number; sizeOnlyMoves: number };
+  /** D335: inner against outer taps (dynamics.ts zoneReport) and the zone calibration kept on the device. */
+  zones?: import("./dynamics.ts").ZoneReport;
+  zoneCal?: import("./dynamics.ts").ZoneCal | null;
   /** Each tap's raw samples from −250 to +150 ms: [t − tap, rt − tap, gx, gy, gz, lx, ly, lz, ra, rb, rg] (rounded). */
   raw: number[][][];
 }
@@ -368,6 +378,7 @@ export class MotionHub {
       const pk = tapPeak(this.samples, t, PEAK_FROM_MS, to);
       const near = this.samples.filter((s) => s.t >= t - 500 && s.t <= t + 100);
       const rec: TapRecord = { ...pk, t, label, touch, posture: posture(this.samples, t), intervalMs: medianInterval(near) };
+      if (touch.zone) rec.zone = touch.zone;
       this.taps.push(rec);
       this.raw.push(this.samples.filter((s) => s.t >= t + BASE_FROM_MS && s.t <= t + 150).map((s) => [r2(s.t - t), r2(s.rt - t), r2(s.gx), r2(s.gy), r2(s.gz), r2(s.lx), r2(s.ly), r2(s.lz), r2(s.ra), r2(s.rb), r2(s.rg)]));
       if (this.taps.length > 400) (this.taps.splice(0, 100), this.raw.splice(0, 100));
@@ -404,6 +415,12 @@ export class MotionHub {
   pointerDown(e: PointerEvent) {
     const now = performance.now();
     const info: TouchInfo = { t: stampOf(e.timeStamp, now), pointerType: e.pointerType, pressure: e.pressure, width: e.width, height: e.height, tiltX: e.tiltX, tiltY: e.tiltY, moves: 0, sizeMoves: 0 };
+    // D335: where across the bar (the screen's width: the bars at its two edges) and the zone.
+    const w = typeof window !== "undefined" ? window.innerWidth : 0;
+    if (w > 0) {
+      info.across = Math.round(barAcross(e.clientX, w) * 1000) / 1000;
+      info.zone = info.across < 0.5 ? "inner" : "outer";
+    }
     const size = sizeOf(info);
     info.sizeMax = size ?? undefined;
     this.contacts.set(e.pointerId, { ...info, x: e.clientX, y: e.clientY, size0: size, size });

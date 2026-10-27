@@ -146,6 +146,10 @@
 .lab-pad-soft { border-color: #8fb8ff; }
 .lab-pad-hard { border-color: #ffb36b; }
 .lab-pad-flatten { border-color: #ff7fbf; }
+/* D335: LEARN BY ZONE: the pad over the whole screen, the bars' halves to tap marked. */
+.lab-pad-zone { position: fixed; inset: 0; z-index: 50; margin: 0; border-radius: 0; border-color: #8fe3b0; }
+.lab-zone-mark { position: absolute; top: 0; bottom: 0; width: 10%; background: rgba(143, 227, 176, 0.18); border: 1px dashed #8fe3b0; pointer-events: none; }
+.lab-zone-cancel { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); }
 .lab-sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; align-items: start; }
 .lab-scatter { width: 100%; height: auto; color: var(--tg-fg); background: var(--tg-box); border-radius: 3px; }
 .lab-sensor-sum p { margin: 0 0 6px; font-size: 12px; }

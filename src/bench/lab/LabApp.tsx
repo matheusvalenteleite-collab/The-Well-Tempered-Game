@@ -39,6 +39,7 @@ import { FreePlay, freeRows, KB_DEFAULT, whiteNames, whitePcs, whiteShare, type 
 import { loadTable, TableStage, TableTab } from "./TableStage.tsx";
 import { MotionHub, stampOf, strengthFrom, type SenseSource, type TouchInfo } from "./sensor.ts";
 import { SensorTab } from "./SensorTab.tsx";
+import { DYN_MODES, loadZoneCal, zoneReport, zoneStrength, type DynMode } from "./dynamics.ts";
 import { RegistrationStops } from "../../touch/RegistrationStops.tsx";
 import { hasStops, voicePatch } from "../../touch/registration.ts";
 import { BreathPlay } from "./breath.ts";
@@ -95,6 +96,8 @@ interface Setup {
   sensePlay: boolean;
   /** ...read from the contact's size (the default: the stronger probe on iPhone) or the motion sensor. */
   senseSource: SenseSource;
+  /** D335: FREE PLAY's DYNAMICS on the sampled piano (dynamics.ts): off, A place × strike, B pedal + strike, C strike only. */
+  dynMode: DynMode;
 }
 
 interface Drill {
@@ -183,6 +186,7 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     click: !!s.click,
     sensePlay: !!s.sensePlay,
     senseSource: s.senseSource === "motion" ? "motion" : "size",
+    dynMode: DYN_MODES.some(([m]) => m === s.dynMode) ? s.dynMode! : "off",
   };
 }
 
@@ -451,7 +455,7 @@ export function LabApp() {
   const finishRun = (rec: LabRecorder, stopped = false) => {
     const log = rec.finish(stopped);
     // D321: the sensor session (if any taps were measured) travels with the run's log.
-    if (hub.current.taps.length) log.sensor = hub.current.export();
+    if (hub.current.taps.length) log.sensor = sensorExport(hub.current);
     const t = tally(log.verdicts);
     feed.current.push(`— RUN OVER: right ${t.right} · wrong ${t.wrong} · missed ${t.missed} · stray ${t.stray} · joined ${t.joined} of ${t.joined + t.notJoined} · slides ${t.slides}`);
     setFeedTick((n) => n + 1);
@@ -589,7 +593,29 @@ export function LabApp() {
         }
       : undefined;
     const kb = { white: s.kbWhite, shape: { split: s.kbSplit, black: s.kbBlack, slant: s.kbSlant }, labels: s.kbLabels };
-    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, sense, kb }, (l) => {
+    // D335, DYNAMICS: the strike's peak (the motion sensor), its strength by the zone's calibration (SENSOR › LEARN BY ZONE).
+    const zc = loadZoneCal();
+    const dynamics: FreeOptions["dynamics"] =
+      s.dynMode === "off"
+        ? undefined
+        : {
+            mode: s.dynMode,
+            strike: (ts, zone, waitMs, done) => {
+              const t = stampOf(ts, performance.now());
+              h.measure(
+                t,
+                "play",
+                { t, zone },
+                (rec) => {
+                  const z = zoneStrength(rec.peak, zone, zc, h.calibration("motion"));
+                  done({ peak: rec.peak, strength: z?.strength ?? null, cal: z?.cal ?? "" });
+                },
+                Math.min(MECH.tapWindowMs, waitMs),
+                waitMs,
+              );
+            },
+          };
+    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, sense, kb, dynamics }, (l) => {
       feed.current.push(l);
       if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
       setFeedTick((n) => n + 1);
@@ -599,6 +625,7 @@ export function LabApp() {
     // For checks driven from outside (a browser test).
     (globalThis as { __labFree?: unknown }).__labFree = fp;
     const changes = Object.keys(mechChanges()).length;
+    if (s.dynMode !== "off") feed.current.push(sound !== "pianoSampled" ? "— DYNAMICS: the sampled piano only (PIANO (SAMPLED)): off for this sound" : `— DYNAMICS ${DYN_MODES.find(([m]) => m === s.dynMode)![1]}${h.live ? "" : " · the motion sensor is off (SENSOR › START SENSOR): the strike stays neutral"} · zone calibration ${zc?.inner && zc.outer ? "inner and outer" : zc?.inner ? "inner only" : zc?.outer ? "outer only" : "none (SENSOR › LEARN BY ZONE)"}${MECH.dynWait ? ` · the attack waits for the strike (≤ ${MECH.dynWaitMs} ms)` : ` · corrected over ${MECH.dynRampMs} ms`}`);
     if (s.sensePlay && !h.live) feed.current.push(h.permission === "unasked" ? "— PLAY WITH IT is on but the sensor is off: SENSOR › START SENSOR first" : "— PLAY WITH IT: no motion samples (no sensor here, or access denied): attacks stay neutral");
     feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : s.freeScale === "keyboard" ? `KEYBOARD (white keys ${s.kbWhite === "piano" ? "PIANO" : "IN THE KEY"}: ${whiteNames(ff, fp.whites, s.kbWhite)}; split ${s.kbSplit.toFixed(2)}, black ${s.kbBlack.toFixed(2)}, slant ${s.kbSlant.toFixed(2)})` : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${s.sensePlay ? " · PLAY WITH IT (tap strength)" : ""}${MECH.dragMeaning === "connect" ? " · DRAG: CONNECT" : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
     setFeedTick((n) => n + 1);
@@ -814,7 +841,7 @@ export function LabApp() {
   };
   /** D321: the sensor session as text for the lead (its taps, the separation, every tap's raw samples). */
   const copySensor = () => {
-    const x = hub.current.export();
+    const x = sensorExport(hub.current);
     const sep = x.sep ? ` · AUC ${x.sep.auc.toFixed(2)} (${x.sep.verdict})` : "";
     const text = `WTC LAB SENSOR LOG · ${x.taps.length} taps${sep} · ${x.permission}\n${JSON.stringify(x)}`;
     const done = () => setNote("Sensor log copied. Paste it in a message to the developer.");
@@ -1222,6 +1249,12 @@ function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip
   );
 }
 
+/** D321, D335: the sensor session for a log, with inner against outer taps and the zone calibration. */
+function sensorExport(h: MotionHub) {
+  const x = h.export();
+  return { ...x, zones: zoneReport(x.taps), zoneCal: loadZoneCal() };
+}
+
 /** D320: FREE PLAY's settings (the piece gives the key and the voice its range; the sound is PASSAGE's). */
 function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; sound: string; drag: React.ReactNode }) {
   const whites = whitePcs(f, setup.voice, setup.kbWhite);
@@ -1298,6 +1331,17 @@ function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: 
       </div>
       <SoundSelect id="lab-free-sound" value={sound} set={(id) => setSetup({ sound: id })} sounds={POP_SOUNDS} own={PIECE_SOUND[f.id]} />
       {drag}
+      <Seg id="lab-free-dyn" label="Dynamics (piano)" value={setup.dynMode} options={DYN_MODES} set={(v) => setSetup({ dynMode: v })} />
+      <p className="lab-dim" id="lab-free-dyn-help" style={{ gridColumn: "1 / -1", margin: 0 }}>
+        {setup.dynMode === "off"
+          ? "OFF: as today (where you land across the bar shapes the attack, D311)."
+          : setup.dynMode === "place"
+            ? "A · PLACE × STRIKE: the place across (by the box loud, by the edge soft: ±4 dB) shifted by how hard you tap (±4 dB)."
+            : setup.dynMode === "pedal"
+              ? "B · PEDAL + STRIKE: where your thumbs land over the last second sets a running level (±6 dB, an expression pedal); how hard you tap adds an accent (±4 dB)."
+              : "C · STRIKE ONLY: how hard you tap alone (±8 dB)."}
+        {setup.dynMode !== "off" ? ` Never more than 16 dB in all; nothing is scored. The tap's strength needs SENSOR › START SENSOR (and LEARN BY ZONE once). ${sound === "pianoSampled" ? "" : "The sampled piano only: choose PIANO (SAMPLED)."}` : ""}
+      </p>
     </div>
   );
 }

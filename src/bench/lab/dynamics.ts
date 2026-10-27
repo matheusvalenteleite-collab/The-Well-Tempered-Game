@@ -1,0 +1,233 @@
+/**
+ * D335, THE LAB's DYNAMICS (FREE PLAY, the sampled piano only): the note's loudness from where the
+ * thumb lands across its bar and how hard it strikes (the motion sensor's peak, D321), in one of three
+ * designs, beside OFF (today's: D311's across landing):
+ *   A · PLACE × STRIKE: the across level (D311: the strong side, by STRONG_SIDE the inner, +4 dB; the
+ *     soft side −4 dB) shifted by the strike (±4 dB).
+ *   B · PEDAL + STRIKE: the across place averaged over the last MECH.dynPedalMs of landings (both
+ *     thumbs) sets a running phrase level over 12 dB (±6), an expression pedal; the strike adds an
+ *     accent of ±4 dB per note.
+ *   C · STRIKE ONLY: the strike alone, ±8 dB round a fixed level.
+ * Every total is held within ±DYN_MAX_DB (16 dB edge to edge: what a phone's speaker shows well).
+ * Loudness is never scored: FREE PLAY judges nothing.
+ *
+ * The note starts at once at what is known at touchdown (the place or the pedal; the strike neutral);
+ * when the peak is read (≤ ~40 ms) the note's level is corrected by a short linear ramp on its gain
+ * (chip.ts rampTrim, MECH.dynRampMs). MECH.dynWait instead holds the attack up to MECH.dynWaitMs for
+ * the peak and strikes it at the whole level (the piano's layer chosen by it too).
+ *
+ * The strike's strength is read from the peak by the calibration of the tap's ZONE (the inner or outer
+ * half of the bar: a grip turns the phone differently for each), learned in SENSOR › LEARN BY ZONE and
+ * kept in localStorage; a zone without one uses the session's or the recent taps' calibration.
+ * The pure functions here are tested (test/d335-dynamics.test.ts).
+ */
+import type { Calibration } from "./sensor.ts";
+import { calibrate, separability, stats, type Separability, type Stats } from "./sensor.ts";
+import { PIANO_DB } from "../../touch/touch-expr.ts";
+
+export type DynMode = "off" | "place" | "pedal" | "strike";
+export const DYN_MODES: readonly (readonly [DynMode, string])[] = [
+  ["off", "OFF"],
+  ["place", "A · PLACE × STRIKE"],
+  ["pedal", "B · PEDAL + STRIKE"],
+  ["strike", "C · STRIKE ONLY"],
+];
+/** The total held within ±this (dB): 16 dB edge to edge. */
+export const DYN_MAX_DB = 8;
+/** A: the place's own range (D311's piano: ±4 dB). */
+export const PLACE_DB = PIANO_DB;
+/** B: the pedal's range, ±6 dB (12 dB). */
+export const PEDAL_DB = 6;
+/** A and B: the strike's accent, ±4 dB. */
+export const STRIKE_DB = 4;
+/** C: the strike alone, ±8 dB. */
+export const STRIKE_ONLY_DB = 8;
+
+export type Zone = "inner" | "outer";
+/** A place across the bar (0 by the box, 1 the phone's edge: protos.ts barAcross) as its zone. */
+export const zoneOf = (across: number): Zone => (across < 0.5 ? "inner" : "outer");
+
+const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+const clamp01 = (x: number) => clamp(x, 0, 1);
+
+/**
+ * A peak as strength on a LOG scale (the owner's peaks run 0.07-2.7 m/s², soft and hard a factor of
+ * about four apart): the calibration's soft median at 0.25, the hard's at 0.75, clamped 0..1 (so 0 at
+ * soft ÷ √(hard/soft), 1 at hard × √(hard/soft)).
+ */
+export function logStrength(peak: number, cal: Pick<Calibration, "soft" | "hard">): number {
+  if (!(peak > 0) || !(cal.soft > 0) || !(cal.hard > cal.soft)) return peak > 0 ? 0.5 : 0;
+  return clamp01(0.25 + (0.5 * Math.log(peak / cal.soft)) / Math.log(cal.hard / cal.soft));
+}
+/** A strength's word for the feed. */
+export function strikeWord(s: number): string {
+  return s < 0.2 ? "soft" : s < 0.4 ? "light" : s < 0.6 ? "medium" : s < 0.8 ? "firm" : "hard";
+}
+
+/** The level's base at touchdown (dB), from `c` (0 the soft side .. 1 the strong: the place, or the pedal's average); C, none. */
+export function baseDb(mode: DynMode, c: number): number {
+  if (mode === "place") return PLACE_DB * (2 * clamp01(c) - 1);
+  if (mode === "pedal") return PEDAL_DB * (2 * clamp01(c) - 1);
+  return 0;
+}
+/** The strike's dB for a strength (null: not read: 0). */
+export function strikeDb(mode: DynMode, strength: number | null): number {
+  if (strength === null || mode === "off") return 0;
+  return (mode === "strike" ? STRIKE_ONLY_DB : STRIKE_DB) * (2 * clamp01(strength) - 1);
+}
+export interface DynLevel {
+  base: number;
+  strike: number;
+  /** The sum held within ±DYN_MAX_DB. */
+  total: number;
+  clipped: boolean;
+}
+export function dynLevel(mode: DynMode, c: number, strength: number | null): DynLevel {
+  const base = baseDb(mode, c);
+  const strike = strikeDb(mode, strength);
+  const sum = base + strike;
+  const total = clamp(sum, -DYN_MAX_DB, DYN_MAX_DB);
+  return { base, strike, total, clipped: total !== sum };
+}
+
+/**
+ * The piano's onset for a level (dB): Play.touch (D311's landing: the layer, soft under the middle,
+ * and ±PIANO_DB) and a factor on Play.level for what lies beyond PIANO_DB.
+ */
+export function pianoOnset(db: number): { touch: number; level: number } {
+  const touch = clamp01(0.5 + db / (2 * PIANO_DB));
+  const rest = db - PIANO_DB * (2 * touch - 1);
+  return { touch, level: 10 ** (rest / 20) };
+}
+
+/** B: the expression pedal: the landings' places (0..1, strength) over the last `windowMs`, averaged. */
+export class Pedal {
+  private xs: { t: number; c: number }[] = [];
+  windowMs: number;
+  constructor(windowMs = 1000) {
+    this.windowMs = windowMs;
+  }
+  /** A landing at `t` (ms) with strength `c`: the average with it. */
+  add(t: number, c: number): number {
+    this.xs.push({ t, c: clamp01(c) });
+    return this.value(t);
+  }
+  /** The average of the landings within the window ending at `t` (0.5, the middle, with none). */
+  value(t: number): number {
+    this.xs = this.xs.filter((x) => x.t >= t - this.windowMs);
+    const w = this.xs.filter((x) => x.t <= t);
+    return w.length ? w.reduce((a, x) => a + x.c, 0) / w.length : 0.5;
+  }
+  get count(): number {
+    return this.xs.length;
+  }
+}
+
+/**
+ * The late correction's ramp: the strike read at `now` (s, the audio clock) on a note struck at
+ * `onset`: from the gain it has to `to`, starting now (never before the onset), over `rampMs`; read
+ * before the note has begun (a note scheduled ahead), set at its onset with no ramp.
+ */
+export function correctionRamp(now: number, onset: number, rampMs: number): { at: number; until: number } {
+  if (now <= onset) return { at: onset, until: onset };
+  return { at: now, until: now + Math.max(0, rampMs) / 1000 };
+}
+
+// ---- Calibration by zone ----
+
+export interface ZoneTap {
+  label: string;
+  peak: number | null;
+  zone?: Zone;
+}
+export interface ZoneCal {
+  inner: Calibration | null;
+  outer: Calibration | null;
+  /** Both zones' taps together (the plain LEARN's). */
+  all: Calibration | null;
+}
+const peaksOf = (taps: readonly ZoneTap[], label: string, zone?: Zone) => taps.filter((x) => x.label === label && x.peak !== null && (!zone || x.zone === zone)).map((x) => x.peak!);
+/** Each zone's calibration from its soft and hard taps (at least three each), and both together. */
+export function zoneCalibration(taps: readonly ZoneTap[]): ZoneCal {
+  return {
+    inner: calibrate(peaksOf(taps, "soft", "inner"), peaksOf(taps, "hard", "inner")),
+    outer: calibrate(peaksOf(taps, "soft", "outer"), peaksOf(taps, "hard", "outer")),
+    all: calibrate(peaksOf(taps, "soft"), peaksOf(taps, "hard")),
+  };
+}
+/** A peak's strength by its zone's calibration, else both zones', else `fallback`; null with none. */
+export function zoneStrength(peak: number | null, zone: Zone, zc: ZoneCal | null, fallback?: Calibration | null): { strength: number; cal: string } | null {
+  if (peak === null) return null;
+  const own = zc?.[zone];
+  if (own) return { strength: logStrength(peak, own), cal: `${zone} zone's calibration` };
+  if (zc?.all) return { strength: logStrength(peak, zc.all), cal: "both zones' calibration" };
+  if (fallback) return { strength: logStrength(peak, fallback), cal: fallback.from === "session" ? "this session's LEARN" : "the recent taps" };
+  return null;
+}
+
+export interface ZoneSide {
+  soft: Stats;
+  hard: Stats;
+  sep: Separability | null;
+  /** The rotation's peaks (°/s), soft and hard together. */
+  rot: Stats;
+}
+export interface ZoneReport {
+  inner: ZoneSide;
+  outer: ZoneSide;
+  /** The outer zone's median over the inner's (soft, hard; NaN without both): 1 no difference. */
+  ratioSoft: number;
+  ratioHard: number;
+  /** A plain verdict: "differ" (either ratio off by 25% or more), "alike", "too few". */
+  verdict: "differ" | "alike" | "too few";
+}
+/** Do inner and outer taps differ? (the log's taps, each with its zone: SENSOR's LEARN BY ZONE). */
+export function zoneReport(taps: readonly (ZoneTap & { rotPeak?: number | null })[]): ZoneReport {
+  const side = (z: Zone): ZoneSide => {
+    const s = peaksOf(taps, "soft", z);
+    const h = peaksOf(taps, "hard", z);
+    const rot = taps.filter((x) => x.zone === z && (x.label === "soft" || x.label === "hard") && typeof x.rotPeak === "number").map((x) => x.rotPeak!);
+    return { soft: stats(s), hard: stats(h), sep: s.length && h.length ? separability(s, h) : null, rot: stats(rot) };
+  };
+  const inner = side("inner");
+  const outer = side("outer");
+  const ratio = (a: Stats, b: Stats) => (a.n >= 3 && b.n >= 3 && a.median > 0 ? b.median / a.median : NaN);
+  const ratioSoft = ratio(inner.soft, outer.soft);
+  const ratioHard = ratio(inner.hard, outer.hard);
+  const off = (r: number) => Number.isFinite(r) && (r >= 1.25 || r <= 0.8);
+  const verdict = !Number.isFinite(ratioSoft) && !Number.isFinite(ratioHard) ? "too few" : off(ratioSoft) || off(ratioHard) ? "differ" : "alike";
+  return { inner, outer, ratioSoft, ratioHard, verdict };
+}
+
+const ZONE_KEY = "wtc.lab.zoneCal";
+/** The zone calibration kept on this device (localStorage; nothing if storage is blocked). */
+export function loadZoneCal(): ZoneCal | null {
+  try {
+    const v = localStorage.getItem(ZONE_KEY);
+    if (!v) return null;
+    const o = JSON.parse(v) as Partial<ZoneCal>;
+    const ok = (c: unknown): Calibration | null => (c && typeof c === "object" && (c as Calibration).hard > (c as Calibration).soft && (c as Calibration).soft > 0 ? (c as Calibration) : null);
+    return { inner: ok(o.inner), outer: ok(o.outer), all: ok(o.all) };
+  } catch {
+    return null;
+  }
+}
+export function saveZoneCal(zc: ZoneCal | null): boolean {
+  try {
+    if (zc) localStorage.setItem(ZONE_KEY, JSON.stringify(zc));
+    else localStorage.removeItem(ZONE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const sdb = (db: number) => `${db >= 0 ? "+" : "−"}${Math.abs(db).toFixed(1)} dB`;
+export { sdb as signedDb };
+/** The note's line: "♩ C5 · pedal −3.0 dB · strike +2.5 dB (firm, peak 1.10, 31 ms) · total −0.5 dB". */
+export function dynLine(name: string, mode: DynMode, l: DynLevel, s: { strength: number | null; peak: number | null; ms: number; cal?: string }): string {
+  const base = mode === "place" ? `place ${sdb(l.base)}` : mode === "pedal" ? `pedal ${sdb(l.base)}` : "fixed level";
+  const strike =
+    s.peak === null ? "strike — (no motion samples: neutral)" : s.strength === null ? `strike — (peak ${s.peak.toFixed(2)}, no calibration yet: neutral)` : `strike ${sdb(l.strike)} (${strikeWord(s.strength)}, peak ${s.peak.toFixed(2)}, ${Math.round(s.ms)} ms)`;
+  return `♩ ${name} · ${base} · ${strike} · total ${sdb(l.total)}${l.clipped ? ` (held within ±${DYN_MAX_DB})` : ""}`;
+}
