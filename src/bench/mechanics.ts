@@ -128,6 +128,17 @@ export const MECH_DEFAULTS = {
   tapDelayMs: 0,
   /** PLAY WITH IT: the spike is read over this long after the touch (ms). */
   tapWindowMs: 30,
+  // BAND TIME (D328: a prototype, the lab only; band-time.ts). The game's band keeps the written time.
+  /** "fixed" (the game's), "waits" (at cadences, the final chord and a breath, until the player's note), "follows" (waits, and its tempo follows the player's onsets, bounded). */
+  bandTime: "fixed" as "fixed" | "waits" | "follows",
+  /** The longest the band waits for the player (ms). */
+  bandWaitMaxMs: 400,
+  /** FOLLOWS: the newest onset's weight in the smoothed lateness (exponential; 0.3 ≈ the last few notes). */
+  bandSmooth: 0.3,
+  /** FOLLOWS: the band's tempo at most this far from the written (± %). */
+  bandBoundPct: 4,
+  /** FOLLOWS: the band's drift from the written time by tempo (not by waits) is pulled back, so that at this much it gives way no further (ms). */
+  bandDriftMaxMs: 250,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
@@ -228,6 +239,11 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "fillTiming", group: "DRAG", label: "Fill notes' speed", help: "A keyboard's coulé or Schleifer: at the trill's speed, or the drag's own time shared out.", kind: "choice", options: [["trill", "The trill's speed"], ["drag", "The drag's time"]] },
   { key: "tapDelayMs", group: "SENSOR", label: "Tap strength: delay the attack", help: "SENSOR's PLAY WITH IT: 0 starts the note at once and adjusts it when the tap's spike is read; more waits up to this long to strike it at that strength.", kind: "number", min: 0, max: 40, step: 5, unit: "ms" },
   { key: "tapWindowMs", group: "SENSOR", label: "Tap strength: read over", help: "SENSOR's PLAY WITH IT: the spike is read over this long after the touch.", kind: "number", min: 10, max: 60, step: 5, unit: "ms" },
+  { key: "bandTime", group: "BAND TIME", label: "The band's time", help: "A prototype (D328): FIXED is the game's. WAITS: the pulse fixed, but at a cadence, the final chord and after your breath (a lift at a rest) the band holds what it sounds until your next note, at most the wait below. FOLLOWS: that, and its tempo follows your onsets, smoothed and bounded; you are judged against where the band is.", kind: "choice", options: [["fixed", "FIXED (the game's)"], ["waits", "WAITS at cadences and breaths"], ["follows", "FOLLOWS (and waits)"]] },
+  { key: "bandWaitMaxMs", group: "BAND TIME", label: "Waits at most", help: "The longest the band holds for your note; then it goes on.", kind: "number", min: 0, max: 1000, step: 20, unit: "ms" },
+  { key: "bandSmooth", group: "BAND TIME", label: "Following: smoothing", help: "FOLLOWS: each new note's weight in the band's estimate of your lateness (lower: smoother, slower to follow).", kind: "number", min: 0.05, max: 1, step: 0.05 },
+  { key: "bandBoundPct", group: "BAND TIME", label: "Following: at most", help: "FOLLOWS: the band's tempo stays within this of the written (set at each beat, never within one).", kind: "number", min: 0, max: 10, step: 0.5, unit: "%" },
+  { key: "bandDriftMaxMs", group: "BAND TIME", label: "Following: drift cap", help: "FOLLOWS: how far the band may fall behind (or run ahead of) the written time by its tempo; it is pulled back toward it and gives way no further.", kind: "number", min: 50, max: 1000, step: 25, unit: "ms" },
   { key: "cancel", group: "CANCELS", label: "A touch the phone takes back", help: "iOS sometimes cancels a touch when the other thumb lands.", kind: "choice", options: [["overlap", "Rings on while the other thumb is down (D308)"], ["always", "Always rings to its end (D293)"], ["lift", "Counts as a lift"]] },
 ];
 
