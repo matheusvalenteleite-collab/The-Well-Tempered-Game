@@ -46,7 +46,9 @@ export interface ReplayResult {
 
 /** The log played again with its own parameters, or with `mech` (a whole set or some changes on the log's). */
 export function replay(log: LabLog, mech?: Partial<Mech>): ReplayResult {
-  const values = { ...log.mech, ...(mech ?? {}) };
+  // D329: a log from before WTC 1.46 took the waiting note's takeover window from the double contact's.
+  const was = log.mech?.waitTakeMs === undefined && log.mech?.doubleMs !== undefined ? { waitTakeMs: log.mech.doubleMs } : {};
+  const values = { ...was, ...log.mech, ...(mech ?? {}) };
   return withMech(values, () => {
     const clock = { t: 0 };
     const chip = silentChip(clock);
@@ -185,7 +187,9 @@ export function pitchName(piece: string, midi: number): string {
 const WORD = { right: "RIGHT", wrong: "WRONG", miss: "MISSED" } as const;
 
 export function diff(log: LabLog, before: readonly LabEvent[], after: readonly LabEvent[], mechAfter: Mech): Diff {
-  const changed = (Object.keys(MECH_DEFAULTS) as MechKey[]).filter((k) => log.mech[k] !== mechAfter[k] && !(log.mech[k] === undefined && mechAfter[k] === MECH_DEFAULTS[k])).map((k) => `${mechPhrase(k, mechAfter[k])} (was ${String(log.mech[k] ?? MECH_DEFAULTS[k])})`);
+  // D329: a log from before WTC 1.46 had the waiting note's takeover window the double contact's.
+  const logged = (k: MechKey) => (k === "waitTakeMs" && log.mech[k] === undefined ? log.mech.doubleMs : log.mech[k]);
+  const changed = (Object.keys(MECH_DEFAULTS) as MechKey[]).filter((k) => logged(k) !== mechAfter[k] && !(logged(k) === undefined && mechAfter[k] === MECH_DEFAULTS[k])).map((k) => `${mechPhrase(k, mechAfter[k])} (was ${String(logged(k) ?? MECH_DEFAULTS[k])})`);
   const a = outcomes(before);
   const b = outcomes(after);
   const notes: string[] = [];

@@ -13,6 +13,25 @@
  */
 
 export const MECH_DEFAULTS = {
+  // TIMING UNITS (D329, WTC 1.46: the owner, "relative timing units"; the lab only, the game "absolute").
+  /**
+   * "absolute" (the game's): every window in ms as set, whatever the tempo. "relative": the musical
+   * windows (PERFECT, early and late, the split floor, the legato gap, the slur's early reach, the
+   * slide and waiting-note takeovers, the last touch's memory) scale with the time between the notes
+   * (relMs), each as set at REFERENCE IOI and never under RELATIVE FLOOR; the double contact and the
+   * other motor and hardware quantities stay in ms.
+   */
+  timing: "absolute" as "absolute" | "relative",
+  /** RELATIVE: the time between notes (ms) at which every window is as set (II/18's quaver at 83 bpm, 361 ms). */
+  refIoiMs: 360,
+  /** RELATIVE: under this time between notes (ms) the windows stop shrinking (Weber-like above about 250 ms, constant below: Friberg and Sundberg 1995). */
+  kneeIoiMs: 250,
+  /** RELATIVE: no window narrower than this (ms: touch frames of 16 ms, the audio's jitter), unless set narrower. */
+  relFloorMs: 30,
+  /** RELATIVE: a thumb's last touch counts for this many beats (instead of OWN_FRESH_S)... */
+  ownFreshBeats: 3,
+  /** ...and at least this long (s). */
+  ownFreshMinS: 1.5,
   // TIMING: the window round each note (proto-game.ts; lanes.ts options "easy": 250 ms either side).
   /** How early a touch may take a note (ms). */
   earlyMs: 250,
@@ -26,6 +45,8 @@ export const MECH_DEFAULTS = {
   perfectMs: 70,
   /** D290 DOUBLE_MS: a contact this soon after a note was struck is the same strike doubled, ignored (ms). */
   doubleMs: 120,
+  /** D329: the double contact only for the thumb that struck the note (the same side); off (the game's): any thumb. */
+  doubleSameThumb: false,
   /** D299 BT_EARLY_MS, BT_LATE_MS: BLUETOOTH MODE widens the window by these (ms). */
   btEarlyMs: 20,
   btLateMs: 25,
@@ -106,6 +127,15 @@ export const MECH_DEFAULTS = {
   slideTakeover: true,
   /** ...within this long of the slide (ms). */
   slideTakeMs: 120,
+  /** D329: a waiting thumb's note (slurNext) struck on its time may be taken over by a touch landing for it within this long after (ms; D318 read doubleMs). */
+  waitTakeMs: 120,
+  /**
+   * D329: a thumb landed early and waiting while the other thumb holds the note before sounds its note
+   * "time" (D318, the game's: at its time, or once the other lets go from the slur's early reach on) or
+   * "lift" (the other thumb's release sounds it, from the note's own early window on, judged at that
+   * moment; held past its time, at its time): organ and wind legato, the connection made by the release.
+   */
+  waitSounds: "time" as "time" | "lift",
   /** A note joined within the legato gap (a handover, a touch taken back) sounds joined: no fresh attack. */
   joinedSound: true,
   /** A touch taken back with no other thumb down still ends its note for the join (a slur's second thumb a moment later). */
@@ -196,6 +226,31 @@ export function mechChanges(m: Partial<Mech> = MECH): Partial<Mech> {
   return out as Partial<Mech>;
 }
 
+/** D329: the windows RELATIVE scales (each help says by what); the rest stay as set. */
+export const REL_KEYS: readonly MechKey[] = ["earlyMs", "lateMs", "splitFloorMs", "perfectMs", "legatoGapMs", "slurEarlyMaxMs", "slideTakeMs", "waitTakeMs", "ownFreshS"];
+
+/** D329: RELATIVE's ceiling: the windows grow with the time between notes up to this many times the reference, no further. */
+export const REL_CEIL = 2;
+
+/**
+ * D329: a window (ms, as set at the reference) for notes `ioiMs` apart. ABSOLUTE: as set. RELATIVE:
+ * ms × clamp(ioi, KNEE, 2 × REF) / REF, at least RELATIVE FLOOR (or the value set, if narrower):
+ * proportional to the time between notes above the knee (timing discrimination roughly Weber-like, a
+ * few per cent of the interval, above about 250 ms: Friberg and Sundberg 1995; tapping variability
+ * grows with the interval: Repp 2005), constant below it.
+ */
+export function relMs(ms: number, ioiMs: number, m: Mech = MECH): number {
+  if (m.timing !== "relative") return ms;
+  const at = Number.isFinite(ioiMs) && ioiMs > 0 ? ioiMs : m.refIoiMs;
+  const ioi = Math.min(Math.max(at, m.kneeIoiMs), REL_CEIL * m.refIoiMs);
+  return Math.max(Math.min(ms, m.relFloorMs), (ms * ioi) / Math.max(1, m.refIoiMs));
+}
+
+/** D329: how long a thumb's last touch counts (s): OWN_FRESH_S, or (RELATIVE) so many beats of `beatS` seconds, at least the floor. */
+export function ownFreshSeconds(beatS: number, m: Mech = MECH): number {
+  return m.timing === "relative" ? Math.max(m.ownFreshMinS, m.ownFreshBeats * beatS) : m.ownFreshS;
+}
+
 /** One control of the lab's MECHANICS panel. */
 export type MechSpec =
   | { key: MechKey; group: string; label: string; help: string; kind: "number"; min: number; max: number; step: number; unit?: string }
@@ -203,17 +258,24 @@ export type MechSpec =
   | { key: MechKey; group: string; label: string; help: string; kind: "choice"; options: readonly (readonly [value: string, label: string])[] };
 
 export const MECH_SPEC: readonly MechSpec[] = [
-  { key: "earlyMs", group: "TIMING", label: "Early window", help: "How early a touch may take a note.", kind: "number", min: 40, max: 400, step: 5, unit: "ms" },
-  { key: "lateMs", group: "TIMING", label: "Late window", help: "How late a touch may take a note.", kind: "number", min: 40, max: 400, step: 5, unit: "ms" },
+  { key: "timing", group: "TIMING UNITS", label: "Timing units", help: "D329. ABSOLUTE (the game's): every window in ms as set, at any tempo. RELATIVE: each window marked RELATIVE ↔ is as set when the notes are REFERENCE IOI apart and scales with the time between them: set × clamp(IOI, KNEE, 2 × REFERENCE) / REFERENCE, never under RELATIVE FLOOR. The double contact stays in ms (a thumb's own motion).", kind: "choice", options: [["absolute", "ABSOLUTE (the game's)"], ["relative", "RELATIVE to the time between notes"]] },
+  { key: "refIoiMs", group: "TIMING UNITS", label: "Reference IOI", help: "RELATIVE: the time between notes at which every window is as set (II/18's quaver at 83 bpm: 361 ms, so RELATIVE equals today's values there).", kind: "number", min: 150, max: 1000, step: 10, unit: "ms" },
+  { key: "kneeIoiMs", group: "TIMING UNITS", label: "Knee", help: "RELATIVE: faster than this the windows stop shrinking (timing is judged roughly in proportion above about 250 ms between notes and in fixed ms below: Friberg and Sundberg 1995).", kind: "number", min: 0, max: 500, step: 10, unit: "ms" },
+  { key: "relFloorMs", group: "TIMING UNITS", label: "Relative floor", help: "RELATIVE: no window narrower than this (touches arrive in 16 ms frames; the sound's own jitter), unless set narrower.", kind: "number", min: 0, max: 80, step: 5, unit: "ms" },
+  { key: "ownFreshBeats", group: "TIMING UNITS", label: "Last touch counts for (beats)", help: "RELATIVE: a thumb's last touch is its reference for this many beats (ABSOLUTE: LADDER › Last touch counts for, in seconds)…", kind: "number", min: 0.5, max: 8, step: 0.5, unit: "beats" },
+  { key: "ownFreshMinS", group: "TIMING UNITS", label: "…at least", help: "…and never less than this.", kind: "number", min: 0.5, max: 5, step: 0.5, unit: "s" },
+  { key: "earlyMs", group: "TIMING", label: "Early window", help: "How early a touch may take a note. RELATIVE: × the passage's usual time between notes (its median) / REFERENCE.", kind: "number", min: 40, max: 400, step: 5, unit: "ms" },
+  { key: "lateMs", group: "TIMING", label: "Late window", help: "How late a touch may take a note. RELATIVE: × the passage's median time between notes / REFERENCE.", kind: "number", min: 40, max: 400, step: 5, unit: "ms" },
   { key: "splitHalfway", group: "TIMING", label: "Split windows halfway", help: "A note's window stops halfway to its neighbours (D290), so one touch never takes the next note.", kind: "bool" },
-  { key: "splitFloorMs", group: "TIMING", label: "Split floor", help: "The narrowest a split window gets on either side.", kind: "number", min: 20, max: 200, step: 5, unit: "ms" },
-  { key: "perfectMs", group: "TIMING", label: "PERFECT within", help: "A right note this near its time scores PERFECT, else GOOD.", kind: "number", min: 20, max: 200, step: 5, unit: "ms" },
-  { key: "doubleMs", group: "TIMING", label: "Double contact", help: "A second contact this soon after a strike is ignored (a rolling thumb).", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "splitFloorMs", group: "TIMING", label: "Split floor", help: "The narrowest a split window gets on either side. RELATIVE: × the passage's median time between notes / REFERENCE.", kind: "number", min: 20, max: 200, step: 5, unit: "ms" },
+  { key: "perfectMs", group: "TIMING", label: "PERFECT within", help: "A right note this near its time scores PERFECT, else GOOD. RELATIVE: × the note's own time to its nearer neighbour / REFERENCE (70 ms at 361 ms: 19%; 49 ms at 250 ms and faster).", kind: "number", min: 20, max: 200, step: 5, unit: "ms" },
+  { key: "doubleMs", group: "TIMING", label: "Double contact", help: "A second contact this soon after a strike is ignored (a rolling thumb). Always in ms.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "doubleSameThumb", group: "TIMING", label: "Double: the same thumb only", help: "D329: only the thumb that struck the note, landing again within the double contact, is a double; the other thumb's landing is judged for itself (off, the game's: any thumb).", kind: "bool" },
   { key: "btEarlyMs", group: "TIMING", label: "Bluetooth: extra early", help: "BLUETOOTH MODE widens the window early by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
   { key: "btLateMs", group: "TIMING", label: "Bluetooth: extra late", help: "BLUETOOTH MODE widens the window late by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
   { key: "directionRef", group: "LADDER", label: "Direction measured from", help: "Where a thumb's move is measured from.", kind: "choice", options: [["own", "Its own last touch"], ["either", "Or the note the other thumb holds (D318)"]] },
   { key: "ladderRowMin", group: "LADDER", label: "Smallest row", help: "Rows are the box's step height, never smaller than this; the other LADDER sizes are in rows.", kind: "number", min: 8, max: 40, step: 1, unit: "px" },
-  { key: "ownFreshS", group: "LADDER", label: "Last touch counts for", help: "After this long (or after a slide) a thumb's next touch is free.", kind: "number", min: 0.5, max: 10, step: 0.5, unit: "s" },
+  { key: "ownFreshS", group: "LADDER", label: "Last touch counts for", help: "After this long (or after a slide) a thumb's next touch is free. RELATIVE: TIMING UNITS › Last touch counts for (beats) instead.", kind: "number", min: 0.5, max: 10, step: 0.5, unit: "s" },
   { key: "repeatRows", group: "LADDER", label: "Repeat band", help: "A repeated note: within this many rows of the last touch.", kind: "number", min: 0.5, max: 6, step: 0.25, unit: "rows" },
   { key: "stepLeewayRows", group: "LADDER", label: "Step leeway", help: "A step or third may land this many rows the wrong way.", kind: "number", min: 0, max: 3, step: 0.25, unit: "rows" },
   { key: "leapRows", group: "LADDER", label: "Leap needs", help: "A fourth or more: at least this many rows the right way.", kind: "number", min: 0, max: 3, step: 0.05, unit: "rows" },
@@ -224,7 +286,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "agogicShare", group: "INTENTION", label: "Agogic delay", help: "D325b: a strong beat or a dissonance this share of a beat late is still PERFECT, if the next note is back on the pulse.", kind: "number", min: 0, max: 0.4, step: 0.01 },
   { key: "breathLateMs", group: "INTENTION", label: "Breath re-entry", help: "D325b: a note after a rest or a cadence this late is still PERFECT.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "broadenShare", group: "INTENTION", label: "Final broadening", help: "D325b: in the last two bars, late by up to this share of a beat (growing to the end) is still PERFECT.", kind: "number", min: 0, max: 0.5, step: 0.05 },
-  { key: "legatoGapMs", group: "LEGATO", label: "Legato gap", help: "A note let go at most this long before the next is struck still joins it…", kind: "number", min: 0, max: 300, step: 5, unit: "ms" },
+  { key: "legatoGapMs", group: "LEGATO", label: "Legato gap", help: "A note let go at most this long before the next is struck still joins it… RELATIVE: × the note's length / REFERENCE.", kind: "number", min: 0, max: 300, step: 5, unit: "ms" },
   { key: "legatoGapShare", group: "LEGATO", label: "…or share of the note", help: "…or this share of the note's length, whichever is longer.", kind: "number", min: 0, max: 1, step: 0.05 },
   { key: "slides", group: "SLIDES", label: "Slides", help: "A held thumb moved on to the next note plays it.", kind: "bool" },
   { key: "slideMinPx", group: "SLIDES", label: "Slide threshold", help: "The least travel of a held thumb that slides.", kind: "number", min: 2, max: 60, step: 1, unit: "px" },
@@ -241,12 +303,14 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "expression", group: "EXPRESSION", label: "Expression (D311)", help: "Where a thumb lands across its bar shapes the attack; sideways while held, the sustain.", kind: "bool" },
   { key: "thumbCross", group: "SLURS", label: "Thumbs cross", help: "A touch on the half where the other thumb is down (the other half free) is the other thumb (D318).", kind: "bool" },
   { key: "slurNext", group: "SLURS", label: "Slur's second thumb", help: "While the other thumb holds the note before, a landing is for the next note: struck a little early, or waiting for it (D318; D290's double contact only for the same thumb).", kind: "bool" },
-  { key: "slurEarlyShare", group: "SLURS", label: "…early by up to", help: "This share of the time between the two notes.", kind: "number", min: 0, max: 0.9, step: 0.05 },
-  { key: "slurEarlyMaxMs", group: "SLURS", label: "…and at most", help: "Landed earlier, the thumb waits and strikes its note then.", kind: "number", min: 0, max: 400, step: 10, unit: "ms" },
-  { key: "slurRollMinMs", group: "SLURS", label: "Thumbs together", help: "Two thumbs landing closer than this are a chord pressed, not a slur.", kind: "number", min: 0, max: 150, step: 5, unit: "ms" },
+  { key: "slurEarlyShare", group: "SLURS", label: "…early by up to", help: "This share of the time between the two notes. Landed earlier (while the other thumb holds), the thumb waits for its note.", kind: "number", min: 0, max: 0.9, step: 0.05 },
+  { key: "slurEarlyMaxMs", group: "SLURS", label: "…and at most", help: "Landed earlier, the thumb waits and strikes its note then. RELATIVE: no cap in ms (the share alone).", kind: "number", min: 0, max: 400, step: 10, unit: "ms" },
+  { key: "waitSounds", group: "SLURS", label: "Waiting note sounds", help: "D329. A thumb landed early, resting on its note while the other holds the note before: AT ITS TIME (D318, the game's: or, once the other lets go, from the early reach above on), or WHEN THE OTHER THUMB LIFTS (the release sounds it, from the note's own early window on, judged then; held past its time, it sounds at its time): organ and wind legato.", kind: "choice", options: [["time", "AT ITS TIME (D318)"], ["lift", "WHEN THE OTHER THUMB LIFTS"]] },
+  { key: "waitTakeMs", group: "SLURS", label: "Waiting note: taken over within", help: "D329: a waiting thumb's note struck on its time is taken over by a touch landing for it this soon after (D318 used the double contact's time). RELATIVE: × the note's own time to its nearer neighbour / REFERENCE.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "slurRollMinMs", group: "SLURS", label: "Thumbs together", help: "Two thumbs landing closer than this are a chord pressed, not a slur (0: a thumb put down on its next note in the same moment the other strikes may wait for it, D329).", kind: "number", min: 0, max: 150, step: 5, unit: "ms" },
   { key: "sameThumbPx", group: "SLURS", label: "Same thumb within", help: "A contact this close to a thumb still down is that thumb rolling (a double contact).", kind: "number", min: 0, max: 80, step: 2, unit: "px" },
   { key: "slideTakeover", group: "SLURS", label: "Landing takes a drift's slide", help: "The other thumb landing on the note a drifting thumb just slid onto takes it over, joined.", kind: "bool" },
-  { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "slideTakeMs", group: "SLURS", label: "…within", help: "How soon after the slide. RELATIVE: × the note's own time to its nearer neighbour / REFERENCE.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
   { key: "joinedSound", group: "SLURS", label: "Joined sound in the gap", help: "A note joined within the legato gap sounds joined (no fresh attack).", kind: "bool" },
   { key: "cancelJoins", group: "SLURS", label: "Cancel still joins", help: "A touch iOS takes back with no other thumb down ends its note for the join.", kind: "bool" },
   { key: "dragMeaning", group: "DRAG", label: "A drag means", help: "A held thumb slid on to the next note (free play: another row). Connect: a glide on a sound that bends; on a keyboard a coulé across a third, a Schleifer into a note from below (D321). Counts as joined for the legato chain, earns nothing more.", kind: "choice", options: [["join", "Joined, earns nothing, breaks the chain (D218)"], ["connect", "Connect: glide, coulé, Schleifer (D321)"]] },

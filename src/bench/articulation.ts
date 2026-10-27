@@ -19,7 +19,7 @@
  * Pure: lengths in, verdicts out.
  */
 import type { LaneNote } from "../touch/lanes.ts";
-import { MECH } from "./mechanics.ts";
+import { MECH, relMs } from "./mechanics.ts";
 
 /**
  * D289: a strike this soon after the note before was let go is still legato: the larger of LEGATO_GAP_MS
@@ -29,8 +29,8 @@ import { MECH } from "./mechanics.ts";
  */
 export const LEGATO_GAP_MS = 90;
 export const LEGATO_GAP_SHARE = 0.35;
-/** D317: by the lab's parameters (mechanics.ts MECH: by default LEGATO_GAP_MS and LEGATO_GAP_SHARE). */
-export const legatoGapMs = (noteMs: number) => Math.max(MECH.legatoGapMs, MECH.legatoGapShare * noteMs);
+/** D317: by the lab's parameters (mechanics.ts MECH: by default LEGATO_GAP_MS and LEGATO_GAP_SHARE); D329: RELATIVE, the gap in ms scaled by the note's length. */
+export const legatoGapMs = (noteMs: number) => Math.max(relMs(MECH.legatoGapMs, noteMs), MECH.legatoGapShare * noteMs);
 /** The shortest note judged for its length (about an eighth at a moderate tempo). */
 export const HELD_MIN_MS = 250;
 /** The words' colours: legato violet, held and clean greens. */

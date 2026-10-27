@@ -30,7 +30,7 @@ import { detectedPlatform } from "../home.ts";
 import { SoundSelect } from "../SoundSelect.tsx";
 import { POP_SOUNDS } from "../PlayPop.tsx";
 import { VERSION } from "../version.ts";
-import { MECH, MECH_DEFAULTS, MECH_SPEC, mechChanges, mechPhrase, resetMech, setMech, type MechKey, type MechSpec } from "../mechanics.ts";
+import { MECH, MECH_DEFAULTS, MECH_SPEC, REL_KEYS, mechChanges, mechPhrase, resetMech, setMech, type MechKey, type MechSpec } from "../mechanics.ts";
 import type { LabEvent } from "./events.ts";
 import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
@@ -44,9 +44,12 @@ import { hasStops, voicePatch } from "../../touch/registration.ts";
 import { BreathPlay } from "./breath.ts";
 import { BreathTab, loadBreath, micProblem, openBreathMic } from "./breath-tab.tsx";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
+import { CONFIGS, DEFAULT_CONFIG, configById, configEdits, configLabel } from "./presets.ts";
 
 const STORE = "tb-lab-v1";
 const RUNS = "tb-lab-runs-v1";
+/** D329: the CONFIG preset last chosen (presets.ts). */
+const CONFIG = "tb-lab-config-v1";
 const MAX_RUNS = 20;
 /** Verdict lines over the box, and kept for SEE. */
 const FEED_SHOWN = 4;
@@ -205,10 +208,31 @@ export function LabApp() {
       save(STORE, { ...next, mech: mechChanges() });
       return next;
     });
+  // D329: the CONFIG preset chosen (its parameters are MECH's; edited afterwards, it shows "(changed)").
+  const [config, setConfig] = useState<string>(() => {
+    const id = load<string>(CONFIG, DEFAULT_CONFIG);
+    return configById(id) ? id : DEFAULT_CONFIG;
+  });
+  const configRef = useRef(config);
+  configRef.current = config;
   const changeMech = (values: Partial<Record<MechKey, unknown>> | null) => {
     if (values === null) resetMech();
     else setMech(values);
     save(STORE, { ...setup, mech: mechChanges() });
+    if (values === null) {
+      save(CONFIG, DEFAULT_CONFIG);
+      setConfig(DEFAULT_CONFIG);
+    }
+    setMechTick((n) => n + 1);
+  };
+  const pickConfig = (id: string) => {
+    const c = configById(id);
+    if (!c) return;
+    resetMech();
+    setMech(c.values);
+    save(STORE, { ...setup, mech: mechChanges() });
+    save(CONFIG, c.id);
+    setConfig(c.id);
     setMechTick((n) => n + 1);
   };
   const f = fugueById(setup.piece);
@@ -447,10 +471,11 @@ export function LabApp() {
         device: { w: screen.width, h: screen.height, dpr: devicePixelRatio || 1, ua: navigator.userAgent, outputLatency: lat.outputLatency, baseLatency: lat.baseLatency, lag: ch.lag, platform },
         area: { w: Math.round(area?.width ?? 0), h: Math.round(area?.height ?? 0) },
         rows: br ? { y0: br.y0, rowH: br.rowH } : null,
+        preset: configLabel(configRef.current),
       },
       onEvent,
     );
-    feed.current.push(`— ${pieceLabel(ff)} · ${ff.voiceNames[s.voice]} · bars ${s.fromBar}–${s.toBar} · ♩ ${Math.round(bpm)} (${s.tempoPct}%)${passage.bt ? " · BLUETOOTH" : ""}${s.wait ? " · WAITING" : ""}${MECH.bandTime !== "fixed" ? ` · BAND ${MECH.bandTime.toUpperCase()}${g.bandT ? "" : " (off here)"}` : ""}${Object.keys(mechChanges()).length ? ` · ${Object.keys(mechChanges()).length} parameters changed` : ""}`);
+    feed.current.push(`— ${pieceLabel(ff)} · ${ff.voiceNames[s.voice]} · bars ${s.fromBar}–${s.toBar} · ♩ ${Math.round(bpm)} (${s.tempoPct}%)${passage.bt ? " · BLUETOOTH" : ""}${s.wait ? " · WAITING" : ""}${MECH.bandTime !== "fixed" ? ` · BAND ${MECH.bandTime.toUpperCase()}${g.bandT ? "" : " (off here)"}` : ""}${configLabel(configRef.current) ? ` · CONFIG ${configById(configRef.current)?.name}${configEdits(configById(configRef.current)!).length ? " (changed)" : ""}` : ""}${Object.keys(mechChanges()).length ? ` · ${Object.keys(mechChanges()).length} parameters changed` : ""}`);
     setFeedTick((n) => n + 1);
     paint.current = (ctx, w, h) => {
       g.view(() => paintProto(ctx, w, h, g, marks.subject));
@@ -899,7 +924,7 @@ export function LabApp() {
           {note && <p className="lab-note">{note}</p>}
           <div className="lab-body">
             {panel === "passage" && (
-              <PassageTab setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} drag={<><DragSeg change={changeMech} /><BandSeg change={changeMech} /></>} />
+              <PassageTab config={<ConfigPick id={config} pick={pickConfig} />} setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} drag={<><DragSeg change={changeMech} /><BandSeg change={changeMech} /></>} />
             )}
             {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} drag={<DragSeg change={changeMech} />} />}
             {panel === "table" && (
@@ -938,7 +963,7 @@ export function LabApp() {
                 <p className="lab-dim">A drill sets the passage; tap ▶ START. Loop is {setup.loop ? "on" : "off"} (PASSAGE).</p>
               </div>
             )}
-            {panel === "mechanics" && <MechanicsTab change={changeMech} />}
+            {panel === "mechanics" && <MechanicsTab config={<ConfigPick id={config} pick={pickConfig} />} change={changeMech} />}
             {panel === "sensor" && <SensorTab hub={hub.current} play={setup.sensePlay} setPlay={(v) => setSetup({ sensePlay: v })} source={setup.senseSource} setSource={(v) => setSetup({ senseSource: v })} copy={copySensor} />}
             {panel === "see" && (
               <div className="lab-see">
@@ -1003,6 +1028,7 @@ export function LabApp() {
                   <div key={r.at} className="lab-run">
                     <p>
                       <span className="lab-dim">{new Date(r.at).toLocaleString()}</span> {r.title}
+                      {r.log.preset ? <span className="lab-dim"> · {r.log.preset}</span> : null}
                     </p>
                     <div className="lab-row">
                       <button type="button" className="lab-btn" onClick={() => doReplay(r.log)}>REPLAY</button>
@@ -1107,7 +1133,7 @@ function DragSeg({ change }: { change: (v: Partial<Record<MechKey, unknown>>) =>
   );
 }
 
-function PassageTab({ setup, setSetup, f, voices, bpm, sound, ensureChip, drag }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; voices: number[]; bpm: number; sound: string; ensureChip: () => Chip; drag: React.ReactNode }) {
+function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip, drag }: { config: React.ReactNode; setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; voices: number[]; bpm: number; sound: string; ensureChip: () => Chip; drag: React.ReactNode }) {
   const lo = firstBar(f);
   const hi = lastBar(f);
   const books = [
@@ -1118,6 +1144,7 @@ function PassageTab({ setup, setSetup, f, voices, bpm, sound, ensureChip, drag }
   const readings = readingsOf(f.id);
   return (
     <div className="lab-form">
+      {config}
       <label className="lab-field">
         <span>Piece</span>
         <select id="lab-piece" value={setup.piece} onChange={(e) => setSetup({ piece: e.target.value, voice: 0, fromBar: 1, toBar: 8, reading: readingsOf(e.target.value)[0]?.id ?? "", sound: "", drill: undefined })}>
@@ -1227,10 +1254,46 @@ function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: 
   );
 }
 
-function MechanicsTab({ change }: { change: (v: Partial<Record<MechKey, unknown>> | null) => void }) {
+/**
+ * D329: CONFIG, the named presets (presets.ts) at the top of PASSAGE and MECHANICS: one chosen sets every
+ * parameter (the game's defaults with its own on top); what it feels like under it; "(changed)" once a
+ * slider is moved after, with what.
+ */
+function ConfigPick({ id, pick }: { id: string; pick: (id: string) => void }) {
+  const c = configById(id) ?? CONFIGS[0];
+  const edits = configEdits(c);
+  return (
+    <div className="lab-field lab-config">
+      <label className="lab-field">
+        <span>
+          Config <b>{c.name}</b>
+          {edits.length ? <span className="lab-changed"> (changed)</span> : null}
+        </span>
+        <select id="lab-config" value={c.id} onChange={(e) => pick(e.target.value)}>
+          {CONFIGS.map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <span className="lab-dim" id="lab-config-feel">
+        {c.feel}
+      </span>
+      {edits.length ? (
+        <span className="lab-dim">
+          Changed since: {edits.map((k) => mechPhrase(k)).join(" · ")}. Choose it again to put it back.
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function MechanicsTab({ config, change }: { config: React.ReactNode; change: (v: Partial<Record<MechKey, unknown>> | null) => void }) {
   const groups = [...new Set(MECH_SPEC.map((s) => s.group))];
   return (
     <div className="lab-mech">
+      {config}
       <div className="lab-row">
         <button type="button" id="lab-reset" className="lab-btn" onClick={() => change(null)}>
           RESET TO GAME DEFAULTS
@@ -1289,6 +1352,7 @@ function MechControl({ s, change }: { s: MechSpec; change: (v: Partial<Record<Me
         <span>
           {s.label} <b>{String(v)}{s.unit ? ` ${s.unit}` : ""}</b>
           {off && <span className="lab-dim"> (game: {String(d)})</span>}
+          {MECH.timing === "relative" && REL_KEYS.includes(s.key) && <span className="lab-changed"> RELATIVE ↔</span>}
         </span>
         <input type="range" id={`mech-${s.key}`} min={s.min} max={s.max} step={s.step} value={Number(v)} onChange={(e) => change({ [s.key]: Number(e.target.value) })} />
       </label>
@@ -1310,6 +1374,7 @@ function HelpTab() {
       <p>WHAT HAPPENED lists every line, newest first (nothing is written over the music while you play; WHAT HAPPENED can put the latest line in the title bar). Each line gives the bar and beat, the note, the verdict, how early or late (ms), and the reason with numbers: how far your thumb moved from its last touch and what was needed; for joined notes, whether the other thumb was still down, or the gap between lifting and the next touch and the gap allowed.</p>
       <h3>4 · Change the rules</h3>
       <p>MECHANICS: every timing window, the legato gap, the slide threshold, the LADDER distances (in rows: one row is the height of one step in the box), ornaments, expression and what happens when the phone cancels a touch. RESET TO GAME DEFAULTS puts everything back. The game itself (play.html) is never changed by the lab.</p>
+      <p>CONFIG (at the top of PASSAGE and MECHANICS) sets everything at once to a named way of playing, so you can try them one after another and say which feels right: A · GAME NOW is the game as it is; B · CLEAN STRIKES makes every landing a strike; C · HAND-OVER lets a thumb rest on its next note while the other still holds and sounds it at its time; D · LIFT TO SOUND sounds it when the other thumb lifts; E · GENEROUS is C with wider windows. Moving a slider afterwards marks it "(changed)"; every run records the config it was played with. TIMING UNITS: RELATIVE scales the windows with the time between the notes (as set at 360 ms between notes, II/18's quavers; never narrower than at 250 ms, nor than a few touch frames).</p>
       <h3>Drags (try: CONNECT)</h3>
       <p>A drag is a held thumb slid on to the next note. In the game it only joins (no bonus, the legato chain broken). CONNECT (in FREE PLAY, PASSAGE or MECHANICS › DRAG) gives it a meaning per instrument: voices, synths and chips glide, the pitch following your thumb; harpsichord, piano and organ play the passing note when you drag across a third (coulé) and the Schleifer (two quick notes from a third below) when you drag up into a note. In a passage it then counts as joined for the chain, but earns nothing more. Each one is a "↝ DRAG:" line.</p>
       <p>BAND TIME (PASSAGE, or MECHANICS › BAND TIME) is a prototype: should the band follow you in time? FIXED is the game's. WAITS keeps the pulse but holds the band at a cadence, the final chord and after your breath (a lift at a rest) until your next note, at most a set time; each is a "⏸ BAND WAITED" line. FOLLOWS also lets the band's tempo follow your notes, a few per cent at most, changed only at a beat, and pulled back to the written tempo before it drifts far; each change is a "♩ BAND TEMPO" line. Your timing is judged against where the band is.</p>
