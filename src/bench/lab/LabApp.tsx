@@ -35,7 +35,7 @@ import type { LabEvent } from "./events.ts";
 import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
 import { describe } from "./describe.ts";
-import { FreePlay, freeRows, type FreeOptions, type FreeScale } from "./free.ts";
+import { FreePlay, freeRows, KB_DEFAULT, whiteNames, whitePcs, whiteShare, type FreeOptions, type FreeScale, type WhiteMode } from "./free.ts";
 import { loadTable, TableStage, TableTab } from "./TableStage.tsx";
 import { MotionHub, stampOf, strengthFrom, type SenseSource, type TouchInfo } from "./sensor.ts";
 import { SensorTab } from "./SensorTab.tsx";
@@ -82,6 +82,12 @@ interface Setup {
   mode: "passage" | "free";
   freeScale: FreeScale;
   freeOctaves: number;
+  /** D330, FREE PLAY's KEYBOARD: which notes are white, the zone split, the black keys' height, their tips' slant, the names on the keys. */
+  kbWhite: WhiteMode;
+  kbSplit: number;
+  kbBlack: number;
+  kbSlant: number;
+  kbLabels: boolean;
   /** FREE PLAY's tempo (the metronome; the ornaments' speed), ♩ per minute. */
   freeBpm: number;
   click: boolean;
@@ -166,8 +172,13 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     lag: s.lag ?? null,
     drill: s.drill,
     mode: s.mode === "free" ? "free" : "passage",
-    freeScale: s.freeScale === "chromatic" ? "chromatic" : "key",
+    freeScale: s.freeScale === "chromatic" || s.freeScale === "keyboard" ? s.freeScale : "key",
     freeOctaves: s.freeOctaves === 1 || s.freeOctaves === 3 ? s.freeOctaves : 2,
+    kbWhite: s.kbWhite === "piano" ? "piano" : "key",
+    kbSplit: Math.max(0.3, Math.min(0.85, s.kbSplit ?? KB_DEFAULT.split)),
+    kbBlack: Math.max(0.35, Math.min(0.9, s.kbBlack ?? KB_DEFAULT.black)),
+    kbSlant: Math.max(0, Math.min(0.6, s.kbSlant ?? KB_DEFAULT.slant)),
+    kbLabels: s.kbLabels ?? true,
     freeBpm: Math.max(40, Math.min(180, Math.round(s.freeBpm ?? 80))),
     click: !!s.click,
     sensePlay: !!s.sensePlay,
@@ -577,7 +588,8 @@ export function LabApp() {
           },
         }
       : undefined;
-    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, sense }, (l) => {
+    const kb = { white: s.kbWhite, shape: { split: s.kbSplit, black: s.kbBlack, slant: s.kbSlant }, labels: s.kbLabels };
+    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, sense, kb }, (l) => {
       feed.current.push(l);
       if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
       setFeedTick((n) => n + 1);
@@ -588,7 +600,7 @@ export function LabApp() {
     (globalThis as { __labFree?: unknown }).__labFree = fp;
     const changes = Object.keys(mechChanges()).length;
     if (s.sensePlay && !h.live) feed.current.push(h.permission === "unasked" ? "— PLAY WITH IT is on but the sensor is off: SENSOR › START SENSOR first" : "— PLAY WITH IT: no motion samples (no sensor here, or access denied): attacks stay neutral");
-    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${s.sensePlay ? " · PLAY WITH IT (tap strength)" : ""}${MECH.dragMeaning === "connect" ? " · DRAG: CONNECT" : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
+    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : s.freeScale === "keyboard" ? `KEYBOARD (white keys ${s.kbWhite === "piano" ? "PIANO" : "IN THE KEY"}: ${whiteNames(ff, fp.whites, s.kbWhite)}; split ${s.kbSplit.toFixed(2)}, black ${s.kbBlack.toFixed(2)}, slant ${s.kbSlant.toFixed(2)})` : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${s.sensePlay ? " · PLAY WITH IT (tap strength)" : ""}${MECH.dragMeaning === "connect" ? " · DRAG: CONNECT" : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
     setFeedTick((n) => n + 1);
     frame.current = { ...preview(), notes: [], others: [], spans: [], cadences: [], entries: [], subject: undefined, ornaments: undefined, readingMarks: undefined };
     paint.current = (ctx, w, h) => {
@@ -659,7 +671,8 @@ export function LabApp() {
     }
     if (mode === "free") {
       const cur = setupRef.current;
-      const rows = freeRows(fugueById(cur.piece), cur.voice, cur.freeScale, cur.freeOctaves);
+      const cf = fugueById(cur.piece);
+      const rows = freeRows(cf, cur.voice, cur.freeScale, cur.freeOctaves, whitePcs(cf, cur.voice, cur.kbWhite));
       const go = () => void ch.prepare(rows, rows).finally(() => beginFree());
       if (ch.ctx.state === "running") return go();
       ch.resume()
@@ -705,7 +718,7 @@ export function LabApp() {
         fr.fp.down(id, side, x, y, w, h, ts);
         const t = traces.current.at(-1)!;
         t.ink = "#ffd23f";
-        t.label = fr.fp.name(fr.fp.rows[fr.fp.rowAt(y, h)]);
+        t.label = fr.fp.name(fr.fp.pitchAt(x, y, w, h));
         return;
       }
       const r = run.current;
@@ -828,7 +841,7 @@ export function LabApp() {
   const voices = voicesFrom(f, span.from);
   const freeOn = setup.mode === "free";
   const hudTitle = freeOn
-    ? `LAB · FREE PLAY · ${keyName(f.key)} · ${f.voiceNames[setup.voice] ?? ""} · ${setup.freeScale === "key" ? "key" : "chromatic"} · ${setup.freeOctaves} oct`
+    ? `LAB · FREE PLAY · ${keyName(f.key)} · ${f.voiceNames[setup.voice] ?? ""} · ${setup.freeScale === "key" ? "key" : setup.freeScale === "keyboard" ? `keyboard (${setup.kbWhite === "piano" ? "piano" : "in the key"})` : "chromatic"} · ${setup.freeOctaves} oct`
     : `LAB · ${pieceLabel(f)} · ${f.voiceNames[setup.voice] ?? ""} · b${setup.fromBar}–${setup.toBar} · ${setup.tempoPct}%`;
   // D320: lines over the box only in FREE PLAY (nothing to follow there); while a passage plays, at most the latest in the title bar.
   const breathOn = !!breath.current;
@@ -1211,7 +1224,10 @@ function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip
 
 /** D320: FREE PLAY's settings (the piece gives the key and the voice its range; the sound is PASSAGE's). */
 function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: (p: Partial<Setup>) => void; f: TouchFugue; sound: string; drag: React.ReactNode }) {
-  const rows = freeRows(f, setup.voice, setup.freeScale, setup.freeOctaves);
+  const whites = whitePcs(f, setup.voice, setup.kbWhite);
+  const rows = freeRows(f, setup.voice, setup.freeScale, setup.freeOctaves, whites);
+  const kbOn = setup.freeScale === "keyboard";
+  const share = (m: WhiteMode) => Math.round(whiteShare(f, setup.voice, whitePcs(f, setup.voice, m)) * 100);
   return (
     <div className="lab-form">
       <p className="lab-dim" style={{ gridColumn: "1 / -1", margin: 0 }}>
@@ -1237,8 +1253,40 @@ function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: 
           ))}
         </select>
       </label>
-      <Seg id="lab-free-scale" label="Notes" value={setup.freeScale} options={[["key", `${keyName(f.key).toUpperCase()}`], ["chromatic", "CHROMATIC"]]} set={(v) => setSetup({ freeScale: v })} />
-      <Seg id="lab-free-oct" label={`Range: ${rows.length} rows`} value={String(setup.freeOctaves) as "1" | "2" | "3"} options={[["1", "1 OCTAVE"], ["2", "2 OCTAVES"], ["3", "3 OCTAVES"]]} set={(v) => setSetup({ freeOctaves: Number(v) })} />
+      <Seg id="lab-free-scale" label="Notes" value={setup.freeScale} options={[["key", `${keyName(f.key).toUpperCase()}`], ["chromatic", "CHROMATIC"], ["keyboard", "KEYBOARD"]]} set={(v) => setSetup({ freeScale: v })} />
+      {kbOn && (
+        <>
+          <p className="lab-dim" style={{ gridColumn: "1 / -1", margin: 0 }}>
+            KEYBOARD (D330): a piano stood on end on each bar, high at the top, mirrored: white keys run the whole bar, black keys sit toward the inner edge (by the box), so a chromatic run stays inner and an all-white run can relax outward. A touch goes to the nearest key, weighing across and along (the black keys' tips taper: a touch there is decided by both). Across picks the key here, so it shapes no attack; slides, shakes and drags work as before.
+          </p>
+          <Seg
+            id="lab-kb-white"
+            label={`White keys: ${whiteNames(f, whites, setup.kbWhite)} (${share(setup.kbWhite)}% of the ${f.voiceNames[setup.voice] ?? "voice"}'s notes)`}
+            value={setup.kbWhite}
+            options={[["key", `IN THE KEY (${share("key")}%)`], ["piano", `PIANO (${share("piano")}%)`]]}
+            set={(v) => setSetup({ kbWhite: v })}
+          />
+          <label className="lab-field">
+            <span>Inner zone (black keys): {Math.round(setup.kbSplit * 100)}% of the bar</span>
+            <input type="range" id="lab-kb-split" min={0.3} max={0.85} step={0.05} value={setup.kbSplit} onChange={(e) => setSetup({ kbSplit: Number(e.target.value) })} />
+          </label>
+          <label className="lab-field">
+            <span>Black key height: {setup.kbBlack.toFixed(2)} of a white's</span>
+            <input type="range" id="lab-kb-black" min={0.35} max={0.9} step={0.01} value={setup.kbBlack} onChange={(e) => setSetup({ kbBlack: Number(e.target.value) })} />
+          </label>
+          <label className="lab-field">
+            <span>Slant (the weighting): black tips taper over {Math.round(setup.kbSlant * 100)}% of the bar{setup.kbSlant === 0 ? " (hard edges)" : ""}</span>
+            <input type="range" id="lab-kb-slant" min={0} max={0.6} step={0.05} value={setup.kbSlant} onChange={(e) => setSetup({ kbSlant: Number(e.target.value) })} />
+          </label>
+          <div className="lab-row">
+            <Toggle id="lab-kb-labels" label="Pitch names on the keys" on={setup.kbLabels} set={(v) => setSetup({ kbLabels: v })} />
+            <button type="button" className="lab-btn" onClick={() => setSetup({ kbSplit: KB_DEFAULT.split, kbBlack: KB_DEFAULT.black, kbSlant: KB_DEFAULT.slant })}>
+              SHAPE: DEFAULTS
+            </button>
+          </div>
+        </>
+      )}
+      <Seg id="lab-free-oct" label={kbOn ? `Range: ${rows.length} keys (${rows.filter((m) => whites.includes(((m % 12) + 12) % 12)).length} white)` : `Range: ${rows.length} rows`}value={String(setup.freeOctaves) as "1" | "2" | "3"} options={[["1", "1 OCTAVE"], ["2", "2 OCTAVES"], ["3", "3 OCTAVES"]]} set={(v) => setSetup({ freeOctaves: Number(v) })} />
       <label className="lab-field">
         <span>
           Tempo ♩ {setup.freeBpm} (the click; the ornaments' speed)
@@ -1382,6 +1430,7 @@ function HelpTab() {
       <p>SENSOR: START SENSOR (allow motion access when asked), then LEARN: ten soft taps, ten hard taps on the pad, and PRESS AND FLATTEN (hold, flatten the thumb, lift). It shows how well soft and hard separate by the contact's size and by the motion sensor's spike. Do it held as you play, then with the phone on a table. COPY SENSOR LOG and paste it to the developer. PLAY WITH IT makes FREE PLAY's attacks follow your tap (by contact size or by the motion sensor).</p>
       <h3>Free play</h3>
       <p>FREE PLAY: no music to follow; the two bars play the sound chosen, the pitch the row under your thumb (the piece's key or every semitone, one to three octaves round the voice's range). Everything works as in the game: where you land across the bar, moving sideways while holding, sliding to another row, shaking into a mordent or a trill, landing while the other thumb holds to join. Each event is a line over the box. A metronome click if you want one. MECHANICS applies.</p>
+      <p>KEYBOARD (Notes › KEYBOARD): a piano stood on end on each bar, mirrored, black keys toward the box, white keys running the whole bar. WHITE KEYS: IN THE KEY makes white the seven notes the voice plays most (in G♯ minor almost everything would be black on a piano), PIANO a real piano's. The sliders set the inner zone's width, the black keys' height and how much their tips taper (a touch near a tip is decided by where it is both across and along). Across picks the key here, so it shapes no attack.</p>
       <h3>5 · Share and replay</h3>
       <p>RUNS: every run is recorded (your touches with their exact times, the settings, your phone's screen and sound delay, and every verdict). COPY LOG or SHARE sends it (paste it in a message to the developer). Each run is kept on this phone by itself (the newest 20; the oldest is overwritten). REPLAY plays a run again through the game with the current MECHANICS, without sound, and says what would have changed: for example, "with Legato gap 120 ms: 7 more joined, 2 fewer wrong".</p>
       <h3>For the developer</h3>
