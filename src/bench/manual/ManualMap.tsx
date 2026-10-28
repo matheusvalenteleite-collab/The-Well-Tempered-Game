@@ -8,6 +8,7 @@
 import { useRef, useState } from "react";
 import { tr } from "../../i18n/index.ts";
 import { checkpointOf, lessonMeta, lessonsOf, MANUAL, PARTS, type ManualLesson, type PartId } from "./lessons.ts";
+import { Seal } from "./Screens.tsx";
 import { lessonDone, nextLesson, partOpen, progress, readManual, type ManualStore } from "./store.ts";
 
 /** A long press (ms). */
@@ -33,7 +34,7 @@ export function ManualMap({ begin, testOut, close, store }: { begin: (id: string
         </button>
         <h2 className="tb-hear-title">{tr("THE MANUAL · WITH HERR BACH")}</h2>
         <p className="tb-manual-sub">{tr("{n} OF {m} LESSONS", { n: pr.done, m: pr.of })}</p>
-        {PARTS.filter((p) => p.phase === "A").map((p) => {
+        {PARTS.filter((p) => p.phase !== "later").map((p) => {
           const isOpen = partOpen(s, p.id);
           const state = s.parts[p.id];
           return (
@@ -50,7 +51,7 @@ export function ManualMap({ begin, testOut, close, store }: { begin: (id: string
                   {p.title}
                   <small>{tr(p.english)}</small>
                 </span>
-                <span className="tb-manual-part-mark">{state === "passed" ? "✓" : state === "tested" ? tr("TESTED") : isOpen ? "" : "🔒"}</span>
+                <span className="tb-manual-part-mark">{state === "passed" ? <Seal part={p.id} small /> : state === "tested" ? tr("TESTED") : isOpen ? "" : "🔒"}</span>
               </h3>
               {!isOpen && offer !== p.id && <p className="tb-manual-hint">{tr("LOCKED · HOLD TO TEST OUT")}</p>}
               {!isOpen && offer === p.id && checkpointOf(p.id) && (
@@ -69,7 +70,7 @@ export function ManualMap({ begin, testOut, close, store }: { begin: (id: string
         })}
         <section className="tb-manual-part later">
           <h3 className="tb-manual-part-head">
-            <span className="tb-manual-part-n">III–VIII</span>
+            <span className="tb-manual-part-n">VI–VIII</span>
             <span className="tb-manual-part-name">
               {tr("IN A LATER VERSION")}
               <small>{PARTS.filter((p) => p.phase === "later").map((p) => tr(p.english)).join(" · ")}</small>
@@ -101,6 +102,7 @@ function LessonRow({ l, s, open, next, shown, toggle, begin }: { l: ManualLesson
       {shown && open && (
         <div className="tb-manual-card" id={`card-${l.id}`}>
           <p className="tb-manual-aim">{tr(l.aim)}</p>
+          {!l.screen && (
           <dl className="tb-manual-lens">
             <dt>{tr("COUNTS")}</dt>
             <dd>{l.lens.counts.map((c) => tr(c)).join(" · ")}</dd>
@@ -109,6 +111,7 @@ function LessonRow({ l, s, open, next, shown, toggle, begin }: { l: ManualLesson
             <dt>{tr("NEVER")}</dt>
             <dd>{l.lens.never.map((c) => tr(c)).join(" · ")}</dd>
           </dl>
+          )}
           {l.stages.length > 0 && (
             <ul className="tb-manual-material">
               {l.stages.map((st, k) => (
@@ -142,5 +145,5 @@ function LessonRow({ l, s, open, next, shown, toggle, begin }: { l: ManualLesson
   );
 }
 
-/** The number of lessons in Phase A (the list's card). */
+/** The number of lessons built (Parts I–IV: the list's card). */
 export const MANUAL_SIZE = MANUAL.filter((l) => !l.screen).length;
