@@ -23,3 +23,20 @@ test("D369 (1): a lock phrase, checked by its hash alone, locks the device again
   const secret = src("src/bench/Secret.tsx");
   assert.match(secret, /setUnlocked\(act === "unlock"\)/);
 });
+
+test("D369 (2): play.html sideways only: the turn screen over everything, the run paused, the lock asked, a landscape manifest", () => {
+  const main = src("src/bench/lite-main.tsx");
+  assert.match(main, /<Sideways \/>/);
+  assert.match(main, /lockOnFirstTap\(\)/);
+  const sw = src("src/bench/Sideways.tsx");
+  assert.match(sw, /UPRIGHT_QUERY = "\(orientation: portrait\) and \(pointer: coarse\)"/);
+  assert.match(sw, /lock\?\.\("landscape"\)\.catch/);
+  assert.match(sw, /requestFullscreen/);
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /if \(q\.matches && APP\.lite\) \{\s*pauseNow\(true\);/);
+  const man = JSON.parse(src("public/play-app/manifest.webmanifest"));
+  assert.equal(man.orientation, "landscape");
+  assert.equal(man.display, "fullscreen");
+  assert.match(src("play.html"), /rel="manifest" href="\.\/play-app\/manifest\.webmanifest"/);
+  assert.match(src("src/bench/bench.css"), /\.tb-play-page \.tg-upright \{ display: none !important; \}/);
+});

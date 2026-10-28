@@ -84,6 +84,7 @@ import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatfor
 import { LiteGrid } from "./LiteGrid.tsx";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
+import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
@@ -782,9 +783,10 @@ export function BenchApp() {
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
   const [paused, setPaused] = useState(false);
   const canPause = !kimiko && !lesson && !man;
-  const pauseNow = () => {
+  /** `force` (D369): paused also in a lesson or KIMIKO, the phone turned upright on play.html. */
+  const pauseNow = (force?: unknown) => {
     const g = game.current;
-    if (!g || g.paused || !canPause) return;
+    if (!g || g.paused || (!canPause && force !== true)) return;
     g.pause();
     setPaused(true);
   };
@@ -1156,11 +1158,18 @@ export function BenchApp() {
   // The phone held the wrong way while playing (the notice up): the game paused with its sound, until
   // it is turned (D184).
   useEffect(() => {
-    if (proto.platform !== "mobile") return;
-    const q = window.matchMedia(proto.layout !== "full" ? "(orientation: portrait) and (max-width: 500px)" : "(orientation: landscape) and (max-height: 500px)");
+    if (proto.platform !== "mobile" && !APP.lite) return;
+    // D369: play.html is sideways only: a phone or tablet upright (Sideways.tsx's screen up) pauses the run,
+    // lessons too; RESUME then needs a tap. The bench keeps D184's notice (the sound held until it is turned).
+    const q = window.matchMedia(APP.lite ? UPRIGHT_QUERY : proto.layout !== "full" ? "(orientation: portrait) and (max-width: 500px)" : "(orientation: landscape) and (max-height: 500px)");
     const check = () => {
       const ch = chip.current;
       if (!ch || phase.kind !== "play") return;
+      if (q.matches && APP.lite) {
+        pauseNow(true);
+        game.current?.releaseAll(performance.now());
+        return;
+      }
       if (q.matches) {
         game.current?.releaseAll(performance.now());
         void ch.ctx.suspend();
