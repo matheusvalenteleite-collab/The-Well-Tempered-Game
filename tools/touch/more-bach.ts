@@ -28,7 +28,7 @@ import { TPQ } from "../../src/wtc/kern.ts";
 import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { findEntriesByHead, findTransformed, line, subjectAndAnswer, type Note as Line } from "../../src/wtc/fugue.ts";
 import { readMidi } from "./midi.ts";
-import { hyphensOf, readMusicXml } from "./musicxml.ts";
+import { hyphensOf, readMusicXml, type XmlPart, type XmlScore } from "./musicxml.ts";
 import { buildEntries, findCadences, homeward, keySpeller, type Note, type RawEntry } from "./analysis.ts";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -379,17 +379,45 @@ const VOCAL: Spec[] = [
 
 export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...CONCERTO, ...VOCAL];
 
+/**
+ * D361: a sung part is one line, the MusicXML voice(s) carrying its words. Another voice written on its
+ * staff (BWV 54/1's alto in bar 26: plain crotchets Bb4 and G4 under the sung semiquavers, both in the
+ * game's alto before) is left out where another part kept plays the same pitch while it sounds (it
+ * doubles the band: there Violin II's Bb4 and Viola I's G4); one doubling nothing stops the import (it
+ * would be the band's, a voice of its own: none so far). A part without words is returned whole.
+ */
+export function sungLine(x: XmlScore, i: number, kept: readonly number[]): { notes: XmlPart["notes"]; dropped: XmlPart["notes"] } {
+  const p = x.parts[i];
+  const sung = new Set(p.lyrics.map((l) => l.voice));
+  if (!sung.size) return { notes: p.notes, dropped: [] };
+  const notes: XmlPart["notes"] = [];
+  const dropped: XmlPart["notes"] = [];
+  for (const n of p.notes) {
+    if (sung.has(n[4])) {
+      notes.push(n);
+      continue;
+    }
+    const midi = parsePitch(n[2]).midi;
+    const doubled = kept.some((j) => j !== i && x.parts[j].notes.some((o) => o[0] <= n[0] && n[0] < o[0] + o[1] && parsePitch(o[2]).midi === midi));
+    if (!doubled) throw new Error(`${p.name}: a note of voice ${n[4]} beside the sung line (${n[2]} at ${n[0]}) doubles no other part`);
+    dropped.push(n);
+  }
+  return { notes, dropped };
+}
+
 /** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
 export function readXmlPiece(s: Spec): Read {
   const dir = `${SRC}${s.dir}/imslp/`;
   const x = readMusicXml(`${dir}${s.xml}`);
   const from = s.fromBar ? x.bars.find((b) => b.n === s.fromBar)!.on : 0;
-  const to = s.toBar ? (x.bars.find((b) => b.n === s.toBar + 1)?.on ?? x.length) : x.length;
+  const toBar = s.toBar;
+  const to = toBar ? (x.bars.find((b) => b.n === toBar + 1)?.on ?? x.length) : x.length;
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
-  const voices: Note[][] = (s.xmlParts ?? x.parts.map((_, i) => i)).map((i) =>
-    x.parts[i].notes
-      .filter((n) => n[0] >= from && n[0] < to)
+  const kept = s.xmlParts ?? x.parts.map((_, i) => i);
+  const voices: Note[][] = kept.map((i) =>
+    sungLine(x, i, kept)
+      .notes.filter((n) => n[0] >= from && n[0] < to)
       .map(([on, dur, pitch]) => {
         const p = parsePitch(pitch);
         spell[p.midi] ??= pitch;

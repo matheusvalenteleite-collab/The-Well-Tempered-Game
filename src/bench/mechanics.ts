@@ -99,17 +99,45 @@ export const MECH_DEFAULTS = {
   slideMinPx: 10,
   /** The thumb within this many rows of the next note's drawn height. */
   slideReachRows: 0.5,
-  // ORNAMENTS (D278, D314).
-  /** D314: a shake on a plain held note plays a free mordent or trill. */
+  // ORNAMENTS (D278, D314; D353: the contour reader, free-ornament.ts ShakeReader, its thresholds by the tempo).
+  /** D353: the thumb's shake is read for ornaments (written and free). Off: a written ornament plays itself (as on a computer's keys), no free ones. */
+  ornGestures: true,
+  /** D314: a shake on a plain held note plays a free ornament. */
   freeOrnaments: true,
-  /** A shake's leg: at least this many rows... */
-  shakeReachRows: 0.4,
-  /** ...and at least this many px. */
-  shakeReachMinPx: 6,
-  /** free-ornament.ts SHAKE_WINDOW_MS: each turn within this long of the leg before (ms). */
-  shakeWindowMs: 300,
-  /** free-ornament.ts SHAKE_STEEP: a leg's travel along the bar at least this many times its travel across. */
+  /** D353: a leg's least travel: this many rows... (D314/D289: 0.4) */
+  shakeReachRows: 0.15,
+  /** ...and at least this many px (the owner's "very subtle": 3 px, about half a millimetre; D314: 6). */
+  shakeReachMinPx: 3,
+  /** A leg's travel along the bar at least this many times its travel across (free-ornament.ts). */
   shakeSteep: 1.5,
+  /** D353: steepness over the whole leg (off: where the reach is first passed, D314's). */
+  shakeWholeLeg: true,
+  /** D353: a mordent's or Pralltriller's leg at most this share of a beat... */
+  ornLegBeats: 0.3,
+  /** ...clamped to at least this (ms)... */
+  ornLegMinMs: 90,
+  /** ...and at most this (ms: keeps a slow wobble out at slow tempi). */
+  ornLegMaxMs: 220,
+  /** D353: a trill's legs on average at most this share of a beat... */
+  trillLegBeats: 0.2,
+  /** ...clamped to at least this (ms)... */
+  trillLegMinMs: 70,
+  /** ...and at most this (ms). */
+  trillLegMaxMs: 160,
+  /** D353: the first leg begun within this share of a beat of the landing (on the beat; later, a two-leg shake is late: the turn after the note)... */
+  ornStartBeats: 0.6,
+  /** ...clamped to at least this (ms)... */
+  ornStartMinMs: 180,
+  /** ...and at most this (ms). */
+  ornStartMaxMs: 500,
+  /** D353: a late two-leg shake is the turn after the note when it starts past this share of a note... */
+  turnAfterShare: 0.4,
+  /** ...of at least a beat and this long (ms). */
+  turnAfterMinMs: 600,
+  /** D353: a trill's ending: "rule" (C. P. E. Bach, I.2.3 §§13, 16: the Nachschlag on a note of a beat or more, after a leap, or before a cadence; none in a falling series or on a short note; else settled) or "settle" (the Explication's: settled on the note). */
+  trillEnding: "rule" as "rule" | "settle",
+  /** D353: a slide while the thumb may be shaking is confirmed after this long without turning back (ms). */
+  slideConfirmMs: 60,
   /** D319 TRILL_PER_SECOND: a trill's speed, notes a second (taken to the nearest subdivision of the beat). */
   trillPerSecond: 10,
   /** D319 TRILL_SETTLE: a long trill's main note settles for this share of the note at its end. */
@@ -381,11 +409,25 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "slides", group: "SLIDES", label: "Slides", help: "A held thumb moved on to the next note plays it.", kind: "bool" },
   { key: "slideMinPx", group: "SLIDES", label: "Slide threshold", help: "The least travel of a held thumb that slides.", kind: "number", min: 2, max: 60, step: 1, unit: "px" },
   { key: "slideReachRows", group: "SLIDES", label: "Slide reach", help: "The thumb must come within this many rows of the next note's height.", kind: "number", min: 0, max: 3, step: 0.1, unit: "rows" },
-  { key: "freeOrnaments", group: "ORNAMENTS", label: "Free ornaments", help: "A shake on a plain held note plays a mordent or trill (D314).", kind: "bool" },
-  { key: "shakeReachRows", group: "ORNAMENTS", label: "Shake leg", help: "Each leg of a shake travels this many rows (written and free ornaments)…", kind: "number", min: 0.1, max: 2, step: 0.05, unit: "rows" },
-  { key: "shakeReachMinPx", group: "ORNAMENTS", label: "…at least", help: "…and at least this many px.", kind: "number", min: 2, max: 30, step: 1, unit: "px" },
-  { key: "shakeWindowMs", group: "ORNAMENTS", label: "Shake speed", help: "A free shake's legs must follow each other within this.", kind: "number", min: 100, max: 800, step: 10, unit: "ms" },
-  { key: "shakeSteep", group: "ORNAMENTS", label: "Shake steepness", help: "A leg along the bar: its up-down travel at least this many times its sideways travel.", kind: "number", min: 0.5, max: 4, step: 0.1, unit: "×" },
+  { key: "ornGestures", group: "ORNAMENTS", label: "Ornament gestures", help: "D353: the thumb's shake is read for ornaments, written and free (the contour reader: the gesture mirrors the ornament, as small as you like, as quick as the tempo asks). Off: a written ornament plays itself, as on a computer's keys; no free ones. Never changes a note's verdict.", kind: "bool" },
+  { key: "freeOrnaments", group: "ORNAMENTS", label: "Free ornaments", help: "A shake on a plain held note plays your own ornament (D314): down and back a mordent; up and back a Pralltriller, Schneller or short trill (named by the music); three legs or more a trill.", kind: "bool" },
+  { key: "shakeReachRows", group: "ORNAMENTS", label: "Reach (least leg)", help: "D353: each leg of a shake travels at least this many rows… (D314's: 0.4)", kind: "number", min: 0, max: 2, step: 0.05, unit: "rows" },
+  { key: "shakeReachMinPx", group: "ORNAMENTS", label: "…at least", help: "…and at least this many px (the owner's: 3 px, about half a millimetre; a still thumb's jitter stays under about 2.3 px).", kind: "number", min: 1, max: 30, step: 0.5, unit: "px" },
+  { key: "shakeSteep", group: "ORNAMENTS", label: "Shake steepness", help: "A leg along the bar: its up-down travel at least this many times its sideways travel (D311's sideways shaping is not a shake).", kind: "number", min: 0.5, max: 4, step: 0.1, unit: "×" },
+  { key: "shakeWholeLeg", group: "ORNAMENTS", label: "Steepness over the whole leg", help: "D353: judged from turning point to turning point (an elliptical thumb's large shakes recovered); off: where the reach is first passed (D314's).", kind: "bool" },
+  { key: "ornLegBeats", group: "ORNAMENTS", label: "Mordent leg at most", help: "D353: each leg of a two-leg shake (and every leg of any) at most this share of a beat at the tempo played…", kind: "number", min: 0.05, max: 1, step: 0.05, unit: "beat" },
+  { key: "ornLegMinMs", group: "ORNAMENTS", label: "…never under", help: "…but at least this long in ms (fast tempi)…", kind: "number", min: 30, max: 300, step: 10, unit: "ms" },
+  { key: "ornLegMaxMs", group: "ORNAMENTS", label: "…never over", help: "…and at most this long (slow tempi: keeps a slow wobble out).", kind: "number", min: 60, max: 600, step: 10, unit: "ms" },
+  { key: "trillLegBeats", group: "ORNAMENTS", label: "Trill leg at most", help: "D353: a trill's legs (three or more) on average at most this share of a beat, even quicker…", kind: "number", min: 0.05, max: 1, step: 0.05, unit: "beat" },
+  { key: "trillLegMinMs", group: "ORNAMENTS", label: "…never under", help: "…but at least this long in ms…", kind: "number", min: 30, max: 300, step: 10, unit: "ms" },
+  { key: "trillLegMaxMs", group: "ORNAMENTS", label: "…never over", help: "…and at most this long.", kind: "number", min: 50, max: 500, step: 10, unit: "ms" },
+  { key: "ornStartBeats", group: "ORNAMENTS", label: "Begun within", help: "D353: a two-leg shake's first leg begun within this share of a beat of the landing (on the beat); later it is LATE: on a long note, the turn after the note…", kind: "number", min: 0.1, max: 2, step: 0.05, unit: "beat" },
+  { key: "ornStartMinMs", group: "ORNAMENTS", label: "…never under", help: "…but at least this long in ms…", kind: "number", min: 50, max: 600, step: 10, unit: "ms" },
+  { key: "ornStartMaxMs", group: "ORNAMENTS", label: "…never over", help: "…and at most this long.", kind: "number", min: 100, max: 1500, step: 10, unit: "ms" },
+  { key: "turnAfterShare", group: "ORNAMENTS", label: "Turn after the note: from", help: "D353: a late two-leg shake begun past this share of its note sounds the turn after the note (C. P. E. Bach I.2.4 §21)…", kind: "number", min: 0, max: 0.9, step: 0.05 },
+  { key: "turnAfterMinMs", group: "ORNAMENTS", label: "…on a note of at least", help: "…on a note of a beat or more and at least this long; not before a falling second (§22: there the shake keeps its own meaning).", kind: "number", min: 0, max: 2000, step: 50, unit: "ms" },
+  { key: "trillEnding", group: "ORNAMENTS", label: "Trill ending", help: "D353. RULE (C. P. E. Bach, Versuch I.2.3 §§13, 16): the Nachschlag (the step below, then the note) on a note of a beat or more, after a leap, or before a cadence; none in a falling series or on a short note; else settled on the note. SETTLE (the Explication's): every trill settles on its note. The band's trills and yours.", kind: "choice", options: [["rule", "RULE (C. P. E. Bach)"], ["settle", "SETTLE (the Explication)"]] },
+  { key: "slideConfirmMs", group: "ORNAMENTS", label: "Slide confirmed after", help: "D353: a slide is confirmed only once the thumb has not turned back for this long and no fast leg is under way (a large shake's first leg is no slide); judged at the moment it reached the note. 0: at once (D289's).", kind: "number", min: 0, max: 200, step: 10, unit: "ms" },
   { key: "trillPerSecond", group: "ORNAMENTS", label: "Trill speed", help: "A trill's notes a second, the band's and the player's (to the nearest subdivision of the beat).", kind: "number", min: 4, max: 20, step: 1, unit: "/s" },
   { key: "trillSettle", group: "ORNAMENTS", label: "Trill settle", help: "A long trill ends on its main note for this share of the note.", kind: "number", min: 0, max: 0.5, step: 0.05 },
   { key: "trillFollowsShake", group: "ORNAMENTS", label: "Trill follows the shake", help: "The player's trill goes on while the thumb shakes and settles when it stops (off: the first shake plays the whole trill).", kind: "bool" },

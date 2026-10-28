@@ -329,6 +329,8 @@ function run(xOf: (i: number, side: "left" | "right") => number, wrongEvery = 0,
   const heard: Heard[] = [];
   const f = fugueById("wtc1f02");
   const g = new ProtoGame(f, 0, 0, protoById("ladder"), { bpm: tempoOf("wtc1f02"), legato: false, until: f.length, wait: false, solo: false, fail: false, ...opts }, fakeChip(clock, heard));
+  // D361: the touches stamped on the fake audio clock, so they are judged by it alone, never by how long the machine took.
+  g.wall = () => clock.t * 1000;
   g.rows = ROWS;
   const notes = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
   const lands: number[] = [];
@@ -341,13 +343,13 @@ function run(xOf: (i: number, side: "left" | "right") => number, wrongEvery = 0,
     const x = xOf(i, side);
     const c = { side, x, y: ROWS.yOf(n.step) + (wrongEvery && i % wrongEvery === wrongEvery - 1 ? 4 * RH : 0), w: W, h: 390 } as const;
     lands.push(barDynamic(x, W));
-    g.down(i + 1, c, performance.now());
+    g.down(i + 1, c, g.wall());
     // D315: 20 px toward the strong side (STRONG_SIDE): outward when it is the outer one, inward otherwise.
     const out = STRONG_SIDE === "outer" ? 20 : -20;
-    g.move(i + 1, { ...c, x: side === "left" ? x - out : x + out }, performance.now());
+    g.move(i + 1, { ...c, x: side === "left" ? x - out : x + out }, g.wall());
     clock.t = t0 + Math.min(0.12, g.timeAt(n.on + n.dur) - t0);
     g.step();
-    g.up(i + 1, performance.now());
+    g.up(i + 1, g.wall());
   });
   while (clock.t < g.timeAt(g.end + 1)) (clock.t += 0.05), g.step();
   return { r: g.results(), heard, lands, g };
@@ -409,10 +411,11 @@ test("D311: the computer's keys strike at the bar's middle; a MIDI key's velocit
       const clock = { t: 0 };
       const heard: Heard[] = [];
       const g = new ProtoGame(f, 0, 0, protoById("piano"), { bpm: 54, legato: false }, fakeChip(clock, heard));
+      g.wall = () => clock.t * 1000;
       const n = g.notes[0];
       clock.t = 0.15 + (n.on - g.start) / g.tps;
       g.step();
-      g.keyDown(1, { midi: n.midi, ...k }, performance.now());
+      g.keyDown(1, { midi: n.midi, ...k }, g.wall());
       const t = heard.filter((h) => h.touch !== undefined).at(-1)?.touch;
       assert.equal(t, "touch" in k ? want : 0.5, `${pid} ${JSON.stringify(k)}`);
     }

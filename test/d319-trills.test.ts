@@ -7,7 +7,7 @@ import { tempoOf } from "../src/touch/tempi.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { ornamentsOf, realiseHeld, realiseNote, shakeOf } from "../src/touch/ornament-play.ts";
 import { realise, trillPitches, trillUnit, TRILL_PER_SECOND, TRILL_SETTLE, keySteps } from "../src/music/ornaments.ts";
-import { MECH, MECH_DEFAULTS, MECH_SPEC, resetMech } from "../src/bench/mechanics.ts";
+import { MECH, MECH_DEFAULTS, MECH_SPEC, resetMech, withMech } from "../src/bench/mechanics.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 
 // ---- The realisation ----
@@ -63,7 +63,8 @@ function measure(id: string, parts: [number, number, number][], on: number, dur:
   return { notes: parts.length, reach: (lastUp[0] + lastUp[1] - on) / dur, perS: 1000 / ((parts[1][1] / f.tpq) * msq) };
 }
 
-test("D319: every trill of the fugues lasts its note at the game's tempo (II/24, I/6, I/12, I/14, II/13 …)", () => {
+// D353: these hold D319's SETTLE ending (the Explication's); C. P. E. Bach's rule, the game's default since, in d353-ornaments.test.ts.
+test("D319: every trill of the fugues lasts its note at the game's tempo (II/24, I/6, I/12, I/14, II/13 …)", () => withMech({ trillEnding: "settle" }, () => {
   // II/24's dotted quavers: six notes, the alternation to 83% (before D319 four, to 62%).
   const f = fugueById("wtc2f24");
   for (const [key, o] of ornamentsOf(f)) {
@@ -90,7 +91,7 @@ test("D319: every trill of the fugues lasts its note at the game's tempo (II/24,
     }
   }
   assert.ok(n > 100, `${n} trills`);
-});
+}));
 
 // ---- The player's trill ----
 
@@ -182,6 +183,7 @@ const settled = (r: { during: Heard[]; main: number; len: number }) => {
 
 test("D319: the player's written trill lasts as long as the thumb shakes: through the note, the whole note; stopped, it settles", () => {
   resetMech();
+  MECH.trillEnding = "settle";
   const f = fugueById("wtc1f06");
   const orn = ornamentsOf(f);
   const voice = [0, 1, 2].find((v) => f.voices[v].some((n) => orn.has(`${v}:${n[0]}`) && n[1] >= f.tpq))!;
@@ -205,6 +207,7 @@ test("D319: the player's written trill lasts as long as the thumb shakes: throug
   assert.ok(gaps.every((d) => Math.abs(d - 2 * (60 / 57 / 12)) < 0.01), `upper to upper ${gaps.map((d) => d.toFixed(3)).join(" ")}`);
   // Option off: the first shake plays the whole trill.
   MECH.trillFollowsShake = false;
+  MECH.trillEnding = "settle";
   try {
     const whole = playShaking("wtc1f06", voice, target, 260);
     assert.ok(settled(whole) >= 0.75, "the whole trill though the shaking stopped");
@@ -215,6 +218,7 @@ test("D319: the player's written trill lasts as long as the thumb shakes: throug
 
 test("D319: a free trill goes on while the thumb shakes and settles when it stops", () => {
   resetMech();
+  MECH.trillEnding = "settle";
   // A plain held note of I/2 a crotchet or longer.
   const target = (g: ProtoGame, i: number) => !g.ornamentAt(0, i) && g.tracks[0].notes[i].dur >= g.f.tpq && g.timeAt(g.tracks[0].notes[i].on) > 1;
   const through = playShaking("wtc1f02", 0, target, 99999);
@@ -226,6 +230,7 @@ test("D319: a free trill goes on while the thumb shakes and settles when it stop
   assert.ok(settled(through) >= 0.75, `through: settled at ${settled(through).toFixed(2)} of the note`);
   assert.ok(bu.length < tu.length && bu.at(-1)!.at <= 0.16 + 0.25 + 0.15, `brief: ${bu.length} uppers, the last at ${bu.at(-1)?.at.toFixed(3)} s`);
   assert.equal(brief.during.at(-1)!.midi, brief.main);
+  resetMech();
 });
 
 test("D319: the trill's speed and its following the shake are the lab's parameters", () => {

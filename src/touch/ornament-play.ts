@@ -10,7 +10,8 @@ import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
 import { keySteps, ornamentUnit, realise, trillUnit } from "../music/ornaments.ts";
 import { MECH } from "../bench/mechanics.ts";
 import { parsePitch } from "../music/pitch.ts";
-import type { TouchFugue } from "./fugue.ts";
+import { beatOf, type TouchFugue, type TouchNote } from "./fugue.ts";
+import type { FreeKind } from "./free-ornament.ts";
 
 type Row = [number, number, string, string, string[]?];
 const ROWS = ornamentsData as unknown as Record<string, Row[]>;
@@ -47,7 +48,17 @@ export const SUBJECT_ORNAMENTS: Record<string, { at: number; signs: string }[]> 
   wtc2f12: [{ at: 1, signs: "m" }],
 };
 
-const ALIAS: Record<string, string> = { inv01: "inven01" };
+/**
+ * The encodings' names for pieces the game knows by another id: the tutorial's invention (D278), and
+ * D353: MORE BACH's Inventions and Sinfonias (bwv772–786, bwv787–801), whose 310 signs ornaments.json
+ * keeps as inven01–15 and sinfo01–15 (looked up as bwv772…, they played with none).
+ */
+export const ORNAMENT_ALIAS: Record<string, string> = { inv01: "inven01" };
+for (let k = 0; k < 15; k++) {
+  ORNAMENT_ALIAS[`bwv${772 + k}`] = `inven${String(k + 1).padStart(2, "0")}`;
+  ORNAMENT_ALIAS[`bwv${787 + k}`] = `sinfo${String(k + 1).padStart(2, "0")}`;
+}
+const ALIAS = ORNAMENT_ALIAS;
 const cache = new Map<string, Map<string, Ornament>>();
 /**
  * A piece's ornaments by "voice:onset". D277: a fugue's subject keeps its ornaments in every entry (the
@@ -114,7 +125,8 @@ export function ornamentMark(o: Ornament): string {
 export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number, midi: number, prevMidi: number | undefined, bpm: number): [number, number, number][] {
   const q = f.tpq;
   const steps = contextSteps(f, on, midi, o.signs);
-  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true });
+  const nachschlag = /[TtO]/.test(o.signs) && !o.signs.includes("R") && nachschlagAt(f, on, midi, dur, bpm);
+  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag });
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
 }
 
@@ -136,7 +148,10 @@ export function realiseHeld(f: TouchFugue, o: Ornament, on: number, dur: number,
 /**
  * D278: how an ornament is played on a phone: the thumb shaken on the struck note, its first move up
  * (an upper note: the trill, the short trill, the turn) or down (the mordent), so many moves to finish
- * it; null for grace notes alone (they play themselves).
+ * it; null for grace notes alone (they play themselves). D353: read by the contour reader, either way
+ * first (D289), the sign deciding what sounds: `first` is only the way the guide thumb shows; `need`, the
+ * legs that make it done (a trill four, the others a two-leg contour: the turn too, since its notes are
+ * realised, not one a move).
  */
 export interface Shake {
   kind: "trill" | "short" | "mordent" | "turn";
@@ -149,30 +164,98 @@ export function shakeOf(o: Ornament): Shake | null {
   if (/[TtO]/.test(s)) return { kind: "trill", word: "TRILL", first: 1, need: 4 };
   if (/[Mm]/.test(s)) return { kind: "mordent", word: "MORDENT", first: -1, need: 2 };
   if (/[Ww]/.test(s)) return { kind: "short", word: "TRILL", first: 1, need: 2 };
-  if (/[S$]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 4 };
+  if (/[S$]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 2 };
   return null;
 }
 
 /**
- * D314, a FREE ORNAMENT (free-ornament.ts): the held note's mordent ("M": the step below, then the
- * note), short trill ("W": from the note above, Bach's short Trillo) or trill ("T": from the note above,
- * alternating, the note held at the end), from tick `from` to `until` (the note's written end), realised
- * as the written ones are (Bach's Explication, at the tempo, the neighbours as the bar reads them). The
- * main note already sounds, so a realisation that opens on it starts at its next note. [onset, length,
- * MIDI] in ticks; empty when too little of the note is left. D319: `written`, a written trill's signs (its
- * closing turn R kept), for the player's trill realised from the first shake to the note's end.
+ * D314, a FREE ORNAMENT (free-ornament.ts), D353 named by the gesture and the music: the held note's
+ * mordent ("M": the step below, then the note), Pralltriller (N U N at twice the ornament speed, no
+ * faster than the beat's 32nds: I.2.3 §32's "extraordinary speed"), Schneller (N U N at the ornament
+ * speed, I.2.8), short trill ("W": from the note above, Bach's short Trillo), turn ("S": U N L N) or trill
+ * ("T": from the note above, alternating, the note held at the end, or closing with the Nachschlag:
+ * `nachschlag`), from tick `from` to `until` (the note's written end), realised as the written ones are
+ * (Bach's Explication, at the tempo, the neighbours as the bar reads them). The main note already sounds,
+ * so a realisation that opens on it starts at its next note. [onset, length, MIDI] in ticks; empty when
+ * too little of the note is left. D319: `written`, a written ornament's signs (a trill's closing turn R
+ * kept), the player's ornament realised from the shake; `prevMidi`, the note before (a written W's
+ * snapped form).
  */
-export function freeOrnamentParts(f: TouchFugue, kind: "mordent" | "short" | "trill", noteOn: number, midi: number, from: number, until: number, bpm: number, written?: string): [number, number, number][] {
+export function freeOrnamentParts(f: TouchFugue, kind: FreeKind, noteOn: number, midi: number, from: number, until: number, bpm: number, written?: string, opts: { prevMidi?: number; nachschlag?: boolean } = {}): [number, number, number][] {
   const q = f.tpq;
   if (until - from < q / 8) return [];
-  const signs = written ?? (kind === "mordent" ? "M" : kind === "short" ? "W" : "T");
+  const signs = written ?? (kind === "mordent" ? "M" : kind === "trill" ? "T" : kind === "turn" ? "S" : "W");
   const steps = contextSteps(f, noteOn, midi, signs);
-  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, ...steps, diatonic: true });
+  let unit = ornamentUnit(bpm / 2);
+  // The Pralltriller "with extraordinary speed" (I.2.3 §32), but no faster than the beat's 32nds.
+  if (!written && kind === "pralltriller") unit = Math.max(unit / 2, beatOf(f).ticks / q / 8);
+  // The up-down forms named (the Pralltriller, the Schneller: main, upper, main) are W's snapped form, from the main note.
+  const prevMidi = !written && (kind === "pralltriller" || kind === "schneller") ? midi + 1 : opts.prevMidi;
+  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit, trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag: !!opts.nachschlag && /[TtO]/.test(signs) && !signs.includes("R") });
   if (parts.length > 1 && parts[0].midi === midi) {
     const shift = parts[1].at - parts[0].at;
     parts = parts.slice(1).map((p, k, a) => ({ ...p, at: p.at - shift, dur: k === a.length - 1 ? p.dur + shift : p.dur }));
   }
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
+}
+
+/** The voice's note sounding `midi` at `on` (any voice), its neighbours in the voice. */
+function voiceNote(f: TouchFugue, on: number, midi: number): { n: TouchNote; prev?: TouchNote; next?: TouchNote } | null {
+  for (const v of f.voices) {
+    const j = v.findIndex((n) => n[0] === on && n[2] === midi);
+    if (j >= 0) return { n: v[j], prev: v[j - 1], next: v[j + 1] };
+  }
+  return null;
+}
+
+/**
+ * D353, THE TRILL'S ENDING by C. P. E. Bach's rule (MECH.trillEnding "rule"; Versuch I.2.3 §§13, 16):
+ * the Nachschlag (the step below, then the note, the alternation beaten to it) on a note of a beat or
+ * more, after a leap, or on the note before a cadence's arrival; none in a falling series (stepwise down
+ * through it) or on a short note (no room for four trill notes and the Nachschlag); else the trill
+ * settles on its note (the Explication's). "settle": never.
+ */
+export function nachschlagAt(f: TouchFugue, on: number, midi: number, dur: number, bpm: number): boolean {
+  if (MECH.trillEnding !== "rule") return false;
+  const g = trillUnit(60 / bpm, MECH.trillPerSecond) * f.tpq;
+  if (dur < 6 * g - 1e-6) return false;
+  const at = voiceNote(f, on, midi);
+  const prev = at?.prev && at.prev[0] + at.prev[1] >= on ? at.prev : undefined;
+  const next = at?.next;
+  const step = at?.n[3];
+  if (step !== undefined && prev && next && prev[3] - step === 1 && step - next[3] === 1) return false;
+  if (dur >= beatOf(f).ticks) return true;
+  if (step !== undefined && prev && Math.abs(prev[3] - step) >= 2) return true;
+  const beat = beatOf(f).ticks;
+  return (f.cadences ?? []).some((c) => on < c.on && on + dur >= c.on - f.tpq / 8 && c.on - on <= 2 * beat);
+}
+
+/**
+ * D353: the two-leg shake's ornament named by the music (the owner: the gesture's clear direction wins;
+ * the music names an ambiguous one and chooses between the Pralltriller and the Schneller for the
+ * up-down form): down first, the mordent; up first, the Pralltriller on a note reached by a falling
+ * second and joined to it (I.2.3 §§31, 34), the Schneller on a detached note shorter than half a beat
+ * with falling notes after it (I.2.8 §§2–3), else Bach's short Trillo; a blurred first leg, the
+ * Pralltriller on a note reached by a falling second, the mordent elsewhere.
+ */
+export function twoLegKind(f: TouchFugue, on: number, midi: number, dur: number, form: "down" | "up" | "blur"): FreeKind {
+  const at = voiceNote(f, on, midi);
+  const prev = at?.prev;
+  const next = at?.next;
+  const step = at?.n[3];
+  const joined = !!prev && prev[0] + prev[1] >= on;
+  const fallingSecond = !!prev && step !== undefined && prev[3] - step === 1 && prev[2] > midi;
+  if (form === "down") return "mordent";
+  if (form === "blur") return fallingSecond ? "pralltriller" : "mordent";
+  if (fallingSecond && joined) return "pralltriller";
+  if (dur < beatOf(f).ticks / 2 && next && next[2] < midi) return "schneller";
+  return "short";
+}
+
+/** D353: whether the note `on` (sounding `midi`) is followed in its voice by a falling second (the turn after it is "preferably not" there, I.2.4 §22). */
+export function fallingSecondAfter(f: TouchFugue, on: number, midi: number): boolean {
+  const at = voiceNote(f, on, midi);
+  return !!at?.next && at.n[3] - at.next[3] === 1 && at.next[2] < midi;
 }
 
 const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];

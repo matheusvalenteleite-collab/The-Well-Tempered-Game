@@ -5,21 +5,28 @@ import { fugueById } from "../src/touch/fugue.ts";
 import { protoById, barDynamic, barAcross, BAR } from "../src/bench/protos.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
-import { feedShake, shakeTracker, SHAKE_WINDOW_MS, type FreeKind } from "../src/touch/free-ornament.ts";
+import { ShakeReader, shakeThresholds, type Gesture } from "../src/touch/free-ornament.ts";
 import { freeOrnamentParts, ornamentsOf } from "../src/touch/ornament-play.ts";
 import { STRONG_SIDE, strengthOf } from "../src/touch/touch-expr.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 
 // ---- The gesture ----
 
-/** Feeds a path of [ms, x, y] points; returns the kinds it became, in order. */
-function gesture(path: [number, number, number][], reach = 7.2): FreeKind[] {
-  const s = shakeTracker(path[0][2], path[0][1], path[0][0]);
-  const out: FreeKind[] = [];
+/**
+ * D353: feeds a path of [ms, x, y] points to the contour reader (a beat of 0.75 s: crotchet = 80; rows of
+ * 18 px), a frame's tick between them and after; returns what it read, in order.
+ */
+function gesture(path: [number, number, number][], beatS = 0.75): Gesture[] {
+  const r = new ShakeReader({ x: path[0][1], y: path[0][2], t: path[0][0] }, shakeThresholds(beatS, 18));
+  const out: Gesture[] = [];
+  const put = (g: Gesture | null) => g && out.push(g);
+  let last = path[0][0];
   for (const [t, x, y] of path.slice(1)) {
-    const k = feedShake(s, x, y, t, reach);
-    if (k) out.push(k);
+    for (let f = last + 16; f < t; f += 16) put(r.tick(f));
+    last = t;
+    put(r.feed(x, y, t));
   }
+  for (let f = last + 16; f < last + 300; f += 16) put(r.tick(f));
   return out;
 }
 /** Back and forth along the bar: `legs` legs of `amp` px, each `ms` long, sampled every 16 ms (the first one `first`: 1 up, -1 down). */
@@ -41,20 +48,23 @@ function wobble(legs: number, amp: number, ms: number, first: 1 | -1, sideways =
   return out;
 }
 
-test("D314: a quick shake along the bar: down and back a mordent, up and back a short trill, a third leg a trill", () => {
-  assert.deepEqual(gesture(wobble(2, 12, 70, -1)), ["mordent"]);
-  assert.deepEqual(gesture(wobble(2, 12, 70, 1)), ["short"]);
-  assert.deepEqual(gesture(wobble(4, 12, 60, 1)), ["short", "trill"]);
-  assert.deepEqual(gesture(wobble(5, 10, 50, -1)), ["mordent", "trill"]);
+test("D314/D353: a quick shake along the bar: down and back (the mordent's form), up and back (the Pralltriller's), a third leg a trill", () => {
+  assert.deepEqual(gesture(wobble(2, 12, 70, -1)), ["down"]);
+  assert.deepEqual(gesture(wobble(2, 12, 70, 1)), ["up"]);
+  assert.deepEqual(gesture(wobble(4, 12, 60, 1)), ["up", "trill"]);
+  assert.deepEqual(gesture(wobble(5, 10, 50, -1)), ["down", "trill"]);
+  // D353: as small as the owner likes (4 px, quick).
+  assert.deepEqual(gesture(wobble(2, 4, 60, -1)), ["down"]);
+  assert.deepEqual(gesture(wobble(6, 4, 40, 1)), ["up", "trill"]);
 });
 
 test("D314: not a shake: a slow drift, a slow back and forth, a small wander, D311's sideways expression", () => {
   // A drift up the bar, slow, 60 px over a second.
   assert.deepEqual(gesture(wobble(1, 60, 1000, 1)), []);
-  // Back and forth, each leg slower than the window allows.
-  assert.deepEqual(gesture(wobble(4, 14, SHAKE_WINDOW_MS, 1)), []);
-  // A rolling thumb's wander (4 px) however fast.
-  assert.deepEqual(gesture(wobble(6, 4, 40, 1)), []);
+  // Back and forth, each leg slower than the tempo allows (D353: at crotchet = 80 a leg at most 220 ms).
+  assert.deepEqual(gesture(wobble(4, 14, 300, 1)), []);
+  // A still thumb's jitter (2 px, under the 3 px reach) however fast.
+  assert.deepEqual(gesture(wobble(6, 2, 40, 1)), []);
   // Sideways: a fast wobble across the bar (40 px) with a little height in it (10 px): expression, not a shake.
   assert.deepEqual(gesture(wobble(6, 10, 60, 1, 40)), []);
   // A slow sideways swell with nothing along the bar.
@@ -132,8 +142,11 @@ function play(id: string, voice: number, during: (g: ProtoGame, i: number, move:
         y += dy;
         x += dx;
         g.move(id, { ...c, x, y }, performance.now());
+        g.step();
       });
       const end = g.timeAt(n.on + n.dur);
+      // D353: the frames go on while the thumb holds (a leg that stopped ends at rest, read on the clock).
+      while (clock.t < end - 0.05) (clock.t += 0.016), g.step();
       clock.t = Math.max(clock.t, end - 0.03);
       g.step();
       g.up(id, performance.now());
@@ -176,7 +189,7 @@ test("D314: sideways expression and a slow drift on a held note never become an 
     for (let k = 0; k < 6; k++) move(4 * (k % 2 ? -1 : 1), 30 * (k % 2 ? -1 : 1), 40);
     for (let k = 0; k < 6; k++) move(-3, 0, 90);
   });
-  assert.deepEqual(r.g.freeOrns, { mordents: 0, shorts: 0, trills: 0 });
+  assert.deepEqual(r.g.freeOrns, { mordents: 0, shorts: 0, trills: 0, turns: 0 });
 });
 
 test("D314: a fugue's written ornament is shaken as in the tutorial: counted, praised, unscored (D338) (and a free shake does not replace it)", () => {

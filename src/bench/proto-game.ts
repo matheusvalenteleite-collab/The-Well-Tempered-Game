@@ -11,9 +11,10 @@
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
-import { freeOrnamentParts, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, type Ornament, type Shake } from "../touch/ornament-play.ts";
-import { feedShake, shakeTracker, type FreeKind, type ShakeTracker } from "../touch/free-ornament.ts";
+import { fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
+import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
@@ -94,6 +95,26 @@ export const APPROACH_MS = 1100;
 const HOLD_MAX = 8;
 /** D319: the player's trill sounds its notes this far ahead of the clock (s), so that it can stop when the shaking does. */
 const TRILL_AHEAD_S = 0.06;
+/** D353: the quickest leg a free ornament's room allows for (ms): a note shorter than two such legs and two ornament notes is not read. */
+const FREE_LEG_MIN_MS = 50;
+
+/**
+ * D353: an ornament as performed, the player's (written or free) or the band's: what it became, whose,
+ * its note (the voice, its staff step and pitch, its written onset and end) and its notes as they
+ * sounded ([onset, length, MIDI] in ticks; a trill's grow as it goes). The box draws it over the
+ * written note (MusicBox, the overlay); the score sheet counts the player's free ones (D327).
+ */
+export interface Performed {
+  kind: FreeKind;
+  free: boolean;
+  band: boolean;
+  voice: number;
+  step: number;
+  midi: number;
+  on: number;
+  end: number;
+  parts: [number, number, number][];
+}
 /**
  * D299, BLUETOOTH MODE (replacing D223's armed notes): the whole piece is on the audio clock's
  * schedule, the player's own notes too, at their written times and lengths and at their usual level
@@ -180,25 +201,35 @@ interface Held {
   /** D208: another thumb has struck since on this voice: this one is on its way off and slides no more. */
   passive?: boolean;
   /**
-   * D278: its note's ornament, played by shaking the thumb: the pitches (main, the one above, the one
-   * below), the moves made (each past the shake's reach, the other way from the last), where the last
-   * began, the voicing and play its notes sound with, the tick it must be done by, and whether it is.
+   * D278: its note's ornament, played by shaking the thumb: the main pitch, D353's contour reader (its
+   * legs counted: `moves`), the voicing and play its notes sound with, the tick it must be done by,
+   * whether it is done, whether its notes have begun to sound, and the note before (a W's snapped form).
    */
-  orn?: Shake & { main: number; upper: number; lower: number; moves: number; dir: 0 | 1 | -1; from: number; firstDir: 0 | 1 | -1; v: ReturnType<typeof voicing>; play: Play; by: number; done: boolean; signs: string };
+  orn?: Shake & { main: number; read: ShakeReader; moves: number; v: ReturnType<typeof voicing>; play: Play; by: number; done: boolean; sounded: boolean; signs: string; prevMidi?: number };
   /**
    * D319: a trill under way on its note (written, D278, or free, D314): its notes from the first shake to
    * the note's end ([onset, length, MIDI] in ticks, the realisation's), the next to sound, the tick of
    * the last leg (it settles on the main note MECH.trillStopMs after it), and whether it has settled.
    */
-  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[] };
+  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed };
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
   /** D338: its note is the reading's accent, struck on time or leaned and not joined from the note before (or not: why): its hold judged at its end. */
   wantAccent?: { why: AccentWhy | null };
   /** D314: how its note sounds (the voicing and play it was struck with), for a free ornament's notes. */
   tone?: { v: ReturnType<typeof voicing>; play: Play };
-  /** D314: a shake under way on its note (free-ornament.ts), and the note it is on. */
-  free?: ShakeTracker & { note: number };
+  /** D314: a shake under way on its note (D353: free-ornament.ts ShakeReader), the note it is on, the legs counted. */
+  free?: { r: ShakeReader; note: number; legs: number };
+  /** D353: when its note was struck (ms on the audio clock): the shake's landing. */
+  strikeMs?: number;
+  /** D353: an ornament was read on it (written or free): its thumb's reference returns to the landing at the lift. */
+  ornRead?: boolean;
+  /** D353: where it is now (the reference's reset). */
+  lastY?: number;
+  /** D353: a slide waiting to be confirmed (not turned back for MECH.slideConfirmMs, no fast leg under way): where and when it reached the note. */
+  slidePend?: { c: Contact; t: number; ms: number; ext: number; dir: 1 | -1 };
+  /** D353: its last move (ms on the audio clock, y) and its speed along the bar then (px/ms). */
+  mv?: { ms: number; y: number; v: number };
   /** D280: where across its bar it touches (0..1 of the touch area's width), for the thumbs drawn. */
   across?: number;
   /**
@@ -252,6 +283,8 @@ interface Prep {
   tick: number;
   x0: number;
   y0: number;
+  /** D353: the resting thumb's shake read (PRESS disabled for it once a shake is read). */
+  read?: ShakeReader;
 }
 
 /** D262: a traced line's notes still to sound, where the thumb was, how many it slid, how they sound. */
@@ -1050,6 +1083,8 @@ export class ProtoGame {
       // D205: an ornamented note sounds its ornament (its parts on the audio clock), its main note last.
       const orn = this.ornaments.get(`${n.voice}:${n.on}`);
       const parts = orn ? realiseHeld(this.f, orn, n.on, n.dur, sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
+      // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
+      if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
         const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
@@ -1072,9 +1107,11 @@ export class ProtoGame {
       this.watchArmed();
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
+    if (this.bandPerformed.length > 32) this.bandPerformed = this.bandPerformed.filter((p) => p.end > this.now - 2 * this.tps);
     this.sounding();
     this.tieStep();
     this.trills();
+    this.shakeFrames();
     // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
     // handled after the frame, was refused); each one missed (a chord once) a slip.
     const grace = SWEEP_GRACE_S * this.tps;
@@ -1228,9 +1265,11 @@ export class ProtoGame {
         q.push({ tick: t.land ?? t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
+          // D353: the legs as quick as the contour reader asks (each within half its mordent leg), from the landing.
           const span = Math.max(this.f.tpq / 8, (t.off - t.on) * 0.6);
+          const leg = Math.min(span / (sh.need + 1), ((0.5 * this.shakeTh().Lm) / 1000) * this.tps);
           for (let m = 1; m <= sh.need; m++)
-            q.push({ tick: t.on + (span * m) / (sh.need + 1), act: () => this.move(id, { side: t.side, x: xOf(t.side, t.d), y: rows.yOf(t.step) - (m % 2 ? sh.first : 0) * this.ladderRow, w: W, h: H }, performance.now()) });
+            q.push({ tick: t.on + leg * m, act: () => this.move(id, { side: t.side, x: xOf(t.side, t.d), y: rows.yOf(t.step) - (m % 2 ? sh.first : 0) * this.ladderRow, w: W, h: H }, performance.now()) });
         }
         const offTick = Math.max(...plan.filter((x, j) => j >= p && (j === p || (x.slid && x.side === t.side && plan.slice(p + 1, j + 1).every((z) => z.slid)))).map((x) => x.off));
         q.push({ tick: offTick, act: () => this.up(id, performance.now()) });
@@ -2076,6 +2115,10 @@ export class ProtoGame {
     h.dragMs = ts - h.still;
     h.trail.push({ t: ts, y: c.y });
     while (h.trail.length > 2 && ts - h.trail[0].t > 120) h.trail.shift();
+    // D353: where it is and how fast it goes along the bar (the audio clock's ms: a replay's own).
+    const ms = this.evMs();
+    h.mv = h.mv ? { ms, y: c.y, v: Math.abs(c.y - h.mv.y) / Math.max(1, ms - h.mv.ms) } : { ms, y: c.y, v: 0 };
+    h.lastY = c.y;
     // D286: a thumb that travelled while down (a slide, a line, a big shake) is no longer where it struck.
     const own = this.lastBySide[h.side];
     if (own && Math.abs(c.y - own.y) > 1.5 * this.ladderRow) own.moved = true;
@@ -2094,8 +2137,13 @@ export class ProtoGame {
     // D318: down early for its note: where it is now judges it; it slides nowhere meanwhile.
     if (h.wait) {
       h.wait.c = c;
-      // D334: a prepared thumb pressed (MECH.prepPress) sounds its note.
-      if (h.wait.prep) this.prepPress(id, h, c, ts);
+      // D334: a prepared thumb pressed (MECH.prepPress) sounds its note. D353: its shake read (the
+      // contour reader on the resting thumb), it is shaking, not pressing: PRESS disabled for it.
+      const p = h.wait.prep;
+      if (p) {
+        if (MECH.ornGestures && this.proto.platform === "mobile") (p.read ??= new ShakeReader({ x: p.x0, y: p.y0, t: ms }, this.shakeTh())).feed(c.x, c.y, ms);
+        if (!p.read?.kind) this.prepPress(id, h, c, ts);
+      }
       return;
     }
     if (h.passive) return;
@@ -2103,13 +2151,20 @@ export class ProtoGame {
     // D319: and while its trill goes on (each leg keeps it going), after the shake was judged.
     if (h.orn && h.open && (!h.orn.done || (h.trill && t <= h.orn.by))) return this.ornamentShake(h, c, t);
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (this.freeShake(h, c, t, ts)) return;
+    if (this.freeShake(h, c, t)) return void (h.slidePend = undefined);
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
       // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
       // notes' own, not a fixed row and a half (27 px, where a step is drawn 8 px apart: no slide could
       // follow the notes): at least SLIDE_MIN_PX, and the thumb at the next note's drawn height (within
       // half a judging row), on the way to it.
+      // D353: a slide waiting to be confirmed: dropped if the thumb turns back by the reach (a shake's leg), else tried.
+      const pend = h.slidePend;
+      if (pend) {
+        pend.ext = pend.dir === 1 ? Math.min(pend.ext, c.y) : Math.max(pend.ext, c.y);
+        if (Math.abs(c.y - pend.ext) < this.shakeTh().reach) return this.trySlide(id, h, ms);
+        h.slidePend = undefined;
+      }
       if (!MECH.slides || h.handed || Math.abs(c.y - h.ay) < MECH.slideMinPx) return;
       const nextN = this.tracks[h.k].notes.find((n) => n.state === "pending" && !n.ride);
       if (!nextN) return;
@@ -2120,6 +2175,11 @@ export class ProtoGame {
       // a slide back the other way plays nothing; the thumb lifts and strikes again.
       const dir = c.y < h.ay ? 1 : -1;
       if (h.slideDir && dir !== h.slideDir) return;
+      // D353: where a shake could be under way, the slide waits to be confirmed (judged as it reached the note).
+      if (this.slideGuarded()) {
+        h.slidePend = { c, t, ms, ext: c.y, dir };
+        return this.trySlide(id, h, ms);
+      }
       if (this.slideTo(id, h, c, t)) h.slideDir = dir;
     } else if (this.road && h.trace?.queue.length) {
       // D262: tracing: each part of a lane travelled sounds the line's next note, when it is near (no earlier
@@ -2169,43 +2229,46 @@ export class ProtoGame {
   }
 
   /**
-   * D278: a thumb shaken on an ornamented note: each move past the reach (three fifths of a row: more
-   * than a rolling thumb's wander), the other way from the last, sounds the ornament's next note (a
-   * trill: the upper and the main in turn; a mordent: the lower, then the main; a turn: upper, main,
-   * lower, main); done, with its first move the right way, before the note's end: TRILL ✓ (or MORDENT,
-   * TURN), counted but unscored (D338: no points, as a free ornament's). Not done: the plain note, nothing lost. D319: a trill sounds the
-   * realisation from the first move (startTrill), on while the moves go on, settling when they stop;
-   * the thumb's moves stay the trill's to the note's written end (no slide meanwhile). BLUETOOTH MODE:
-   * the note sounds from the schedule (arm), the whole default trill whatever the shaking.
+   * D278: a thumb shaken on an ornamented note. D353: read by the contour reader (free-ornament.ts
+   * ShakeReader, its thresholds by the tempo): the sign decides what sounds, the thumb only has to make a
+   * quick contour along the bar, either way first (D289). Its notes begin once a quick leg has turned back
+   * (D319: a trill at the gesture's first leg), realised from then to the note's end (ornament-play.ts
+   * freeOrnamentParts: a trill from the note above, going on while the legs keep coming, settling or
+   * closing with the Nachschlag by MECH.trillEnding); done with `need` legs before the note's end: TRILL ✓
+   * (MORDENT, TURN), counted but unscored (D338). Not done: the plain note, nothing lost. The thumb's moves
+   * stay the ornament's to the note's written end (no slide meanwhile). BLUETOOTH MODE: the note sounds
+   * from the schedule (arm), the whole default trill whatever the shaking.
    */
   private ornamentShake(h: Held, c: Contact, t: number) {
     const o = h.orn!;
     if (t > o.by) return void (o.done = true);
-    // D289: a smaller rock counts (0.4 of a row, about 7 px: was 0.6, 10.8 px), and either way first.
-    const reach = Math.max(MECH.shakeReachMinPx, this.ladderRow * MECH.shakeReachRows);
-    const dy = o.from - c.y;
-    if (Math.abs(dy) < reach) return;
-    const d: 1 | -1 = dy > 0 ? 1 : -1;
-    if (d === o.dir) return void (o.from = c.y);
-    o.dir = d;
-    o.from = c.y;
-    if (!o.moves) o.firstDir = d;
-    o.moves++;
-    const seq = o.kind === "mordent" ? [o.lower, o.main] : o.kind === "turn" ? [o.upper, o.main, o.lower, o.main] : [o.upper, o.main];
-    const midi = seq[(o.moves - 1) % seq.length];
-    // D319: a trill is the realisation's, not one note a move: the first move starts it (from the note
-    // above, at the trill's speed, to the note's end); each move after keeps it going; it settles on the
-    // main note when the moves stop (trillStep). Judged as before: the moves made.
+    o.read.feed(c.x, c.y, this.evMs());
+    this.ornamentLegs(h, t);
+  }
+  /** D278/D353: the written ornament's legs read so far: its notes begun, a trill kept going, done at `need`. */
+  private ornamentLegs(h: Held, t: number, lift = false) {
+    const o = h.orn!;
+    const r = o.read;
+    const more = r.count > o.moves;
+    o.moves = r.count;
     const n = this.tracks[h.k].notes[h.note];
-    const trill = o.kind === "trill" && n ? (h.trill ? null : freeOrnamentParts(this.f, "trill", n.on, o.main, t, o.by, this.bpm, o.signs)) : null;
-    if (o.kind === "trill" && h.trill) this.trillOn(h, t);
-    else if (trill?.length) this.startTrill(h, trill, t, o.main, o.v, o.play);
-    else {
-      const now = this.chip.ctx.currentTime;
-      for (const sd of h.sounds) sd.stop(now + 0.02);
-      h.sounds = [this.touchNote(midi, now, HOLD_MAX, o.v, { ...o.play, legato: true })];
-    }
-    if (!o.done && o.moves >= o.need && midi === o.main) {
+    if (!n) return;
+    // Begun once a quick leg has turned back, or one quick leg has stopped after a clear travel (D289's
+    // 0.4 of a row: a settling roll of a few px is not the ornament begun).
+    if (!lift && !o.sounded && (r.turns > 0 || r.count >= 2 || (r.count >= 1 && r.lastAmp >= Math.max(6, 0.4 * this.ladderRow)))) {
+      o.sounded = true;
+      h.ornRead = true;
+      if (o.kind === "trill") {
+        const nachschlag = !o.signs.includes("R") && nachschlagAt(this.f, n.on, o.main, n.dur, this.bpm);
+        const parts = freeOrnamentParts(this.f, "trill", n.on, o.main, t, o.by, this.bpm, o.signs, { nachschlag });
+        if (parts.length) this.startTrill(h, parts, t, o.main, o.v, o.play, this.perform(h, "trill", false), nachschlag);
+      } else {
+        const kind: FreeKind = o.kind === "mordent" ? "mordent" : o.kind === "turn" ? "turn" : "short";
+        const parts = freeOrnamentParts(this.f, kind, n.on, o.main, t, o.by, this.bpm, o.signs, { prevMidi: o.prevMidi });
+        if (parts.length) this.soundParts(h, parts, t, o.v, o.play, this.perform(h, kind, false));
+      }
+    } else if (more && o.kind === "trill" && h.trill) this.trillOn(h, t);
+    if (!o.done && (o.sounded || lift) && o.moves >= o.need) {
       o.done = true;
       this.shakes.hit++;
       // D338: a written ornament earns nothing (nor costs): counted, shown, as a free one.
@@ -2213,68 +2276,133 @@ export class ProtoGame {
       this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: o.word, free: false });
     }
   }
+  /** D353: the time of the event being handled (ms on the audio clock: a replay's own). */
+  private evMs(): number {
+    return (this.evTs !== null ? this.chip.heard() - (this.wall() - this.evTs) / 1000 : this.chip.heard()) * 1000;
+  }
+  /** D353: the contour reader's thresholds at the tempo played (the beat of the metre, MECH's ORNAMENTS). */
+  private shakeTh(): ShakeThresholds {
+    return shakeThresholds(this.beat / this.tps, this.ladderRow);
+  }
   /**
    * D314, FREE ORNAMENTS: on LADDER a held note struck right, alone, still due and without a written
-   * ornament takes a mordent or a trill when the thumb shakes on it (free-ornament.ts: along the bar,
-   * fast, back and forth; D311's sideways expression and a slow drift are not shakes). Its notes sound
-   * from now to the note's written end, realised at the tempo (ornament-play.ts freeOrnamentParts);
-   * the note's judging is untouched (struck, held, lifted as before), nothing is earned: a small sign
-   * rises from the note (a pop). Not in BLUETOOTH MODE (the note sounds from the schedule) nor on a
+   * ornament takes the player's own when the thumb mirrors one (D353's contour reader: two quick legs down
+   * first a mordent; up first a Pralltriller, a Schneller or Bach's short Trillo, named by the music;
+   * three legs or more a trill, from the note above, or a turn where the note has no room for it; a late
+   * two-leg shake on a long note, the turn after the note). Its notes sound from now to the note's
+   * written end, realised at the tempo (ornament-play.ts freeOrnamentParts); the note's judging is
+   * untouched, nothing is earned: a small sign rises from the note. Not read on a run's notes (but its
+   * last), on a note riders follow, on a chord, a sweep or a traced line, or on a note too short for a
+   * gesture and its ornament. Not in BLUETOOTH MODE (the note sounds from the schedule) nor on a
    * computer's keys. True while a shake owns the thumb (no slide meanwhile).
    */
-  private freeShake(h: Held, c: Contact, t: number, ts: number): boolean {
-    if (!MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+  private freeShake(h: Held, c: Contact, t: number): boolean {
+    if (!this.freeReadable(h)) return false;
     const i = h.note;
     const n = this.tracks[h.k].notes[i];
-    if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit") return false;
-    // From where the note was struck (the first move is already part of the shake).
-    if (!h.free || h.free.note !== i) h.free = { ...shakeTracker(h.ay, h.ax, ts), note: i };
-    const end = n.on + n.dur;
-    if (t >= end) return !!h.free.kind;
-    const legs = h.free.count;
-    const kind = feedShake(h.free, c.x, c.y, ts, Math.max(MECH.shakeReachMinPx, this.ladderRow * MECH.shakeReachRows));
-    if (kind) this.freeOrnament(h, kind, t);
-    // D319: a free trill goes on while the shake does (each leg keeps it going).
-    else if (h.free.count > legs && h.free.kind === "trill") this.trillOn(h, t);
-    return !!h.free.kind;
+    if (!h.free || h.free.note !== i) h.free = { r: new ShakeReader({ x: h.ax, y: h.ay, t: h.strikeMs ?? this.evMs() }, this.shakeTh()), note: i, legs: 0 };
+    if (t >= n.on + n.dur) return !!h.free.r.kind;
+    this.freeGesture(h, h.free.r.feed(c.x, c.y, this.evMs()), t);
+    return !!h.free.r.kind;
   }
-  private freeOrnament(h: Held, kind: FreeKind, t: number) {
+  /** D314/D353: a held note a free ornament may be read on (see freeShake). */
+  private freeReadable(h: Held): boolean {
+    if (!MECH.ornGestures || !MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    const i = h.note;
+    const notes = this.tracks[h.k].notes;
+    const n = notes[i];
+    if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    // D353: no reading on a run's notes (its last may be long), nor on a note riders follow (D191: they sound after it).
+    const run = this.runsOf(h.k).member.get(i);
+    if (run && run.last !== i) return false;
+    let j = i + 1;
+    while (j < notes.length && notes[j].on === n.on) j++;
+    if (notes[j]?.ride) return false;
+    // Room for the quickest two-leg gesture and a mordent's two notes (I.2.1 §19: the more notes, the longer the note).
+    const unitMs = (60000 / this.bpm) * ornamentUnit(this.bpm / 2);
+    return this.msOf(n.on, n.on + n.dur) >= 2 * FREE_LEG_MIN_MS + 2 * unitMs;
+  }
+  /** D353: what the free reader read: a two-leg form named (or the turn after the note), a trill; a further leg keeps a trill going. */
+  private freeGesture(h: Held, g: Gesture | null, t: number) {
+    const fr = h.free!;
+    const r = fr.r;
+    const more = r.count > fr.legs;
+    fr.legs = r.count;
+    const n = this.tracks[h.k].notes[h.note];
+    if (g === "trill") return this.freeOrnament(h, "trill", t);
+    if (g && r.form) {
+      let kind = twoLegKind(this.f, n.on, n.midi, n.dur, r.form);
+      let after = false;
+      if (g === "late") {
+        // Late in a long note (a beat or more, long enough), not before a falling second: the turn after the note (I.2.4 §§21–22).
+        const noteMs = this.msOf(n.on, n.on + n.dur);
+        const into = (r.formAt - (h.strikeMs ?? r.start.t)) / Math.max(1, noteMs);
+        if (n.dur >= this.beat && noteMs >= MECH.turnAfterMinMs && into >= MECH.turnAfterShare && !fallingSecondAfter(this.f, n.on, n.midi)) (kind = "turn"), (after = true);
+      }
+      return this.freeOrnament(h, kind, t, after);
+    }
+    if (more && r.kind === "trill") this.trillOn(h, t);
+  }
+  private freeOrnament(h: Held, asked: FreeKind, t: number, after = false) {
     const notes = this.tracks[h.k].notes;
     const n = notes[h.note];
-    const parts = freeOrnamentParts(this.f, kind, n.on, n.midi, t, n.on + n.dur, this.bpm);
-    if (!parts.length) return;
-    const now = this.chip.ctx.currentTime;
-    const tone = h.tone!;
-    // D319: a free trill as a written one: on while the thumb shakes, settling when it stops.
-    if (kind === "trill") this.startTrill(h, parts, t, n.midi, tone.v, tone.play);
-    else {
-      for (const sd of h.sounds) sd.stop(now + 0.02);
-      h.sounds = parts.map(([pon, pdur, pm], k) => {
-        const at = now + Math.max(0, this.timeAt(pon) - this.timeAt(t));
-        const last = k === parts.length - 1;
-        return this.touchNote(pm, at, last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), tone.v, { ...tone.play, legato: true });
-      });
+    const end = n.on + n.dur;
+    let kind = asked;
+    let nachschlag = false;
+    if (kind === "trill") {
+      // D353: no room for four trill notes and the Nachschlag: the turn, "when time is short" (I.2.4 §9).
+      if (end - t < 6 * trillUnit(60 / this.bpm, MECH.trillPerSecond) * this.f.tpq) kind = "turn";
+      else nachschlag = nachschlagAt(this.f, n.on, n.midi, n.dur, this.bpm);
     }
+    const parts = freeOrnamentParts(this.f, kind, n.on, n.midi, t, end, this.bpm, undefined, { nachschlag });
+    if (!parts.length) return;
+    const tone = h.tone!;
+    h.ornRead = true;
+    const rec = this.perform(h, kind, true);
+    // D319: a free trill as a written one: on while the thumb shakes, settling when it stops.
+    if (kind === "trill") this.startTrill(h, parts, t, n.midi, tone.v, tone.play, rec, nachschlag);
+    else this.soundParts(h, parts, t, tone.v, tone.play, rec, kind === "schneller");
     if (kind === "trill") this.freeOrns.trills++;
-    else this.freeOrns.mordents += kind === "mordent" ? 1 : 0;
-    if (kind === "short") this.freeOrns.shorts++;
-    this.freeByNote.set(`${h.k}:${h.note}`, kind);
+    else if (kind === "mordent") this.freeOrns.mordents++;
+    else if (kind === "turn") this.freeOrns.turns++;
+    else this.freeOrns.shorts++;
     // A flourish only: the sign rising from the note, faint gold (no points, no streak, no flash over the verdict).
-    this.pops.push({ tick: n.on, step: n.step, text: kind === "mordent" ? "~|" : "TR", at: performance.now(), gold: true, ink: FREE_INK });
-    this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: kind, free: true });
+    this.pops.push({ tick: n.on, step: n.step, text: kind === "mordent" ? "~|" : kind === "trill" ? "TR" : kind === "turn" ? "S" : "~", at: performance.now(), gold: true, ink: FREE_INK });
+    this.tap?.({ kind: "shake", tick: t, track: h.k, i: h.note, side: h.side, ornament: after ? "turn after the note" : kind, free: true });
+  }
+  /** D353: an ornament's notes from `t` (the last held), its main note's sound giving way; drawn as they sound (the overlay). */
+  private soundParts(h: Held, parts: [number, number, number][], t: number, v: ReturnType<typeof voicing>, play: Play, rec: Performed, detachLast = false) {
+    const now = this.chip.ctx.currentTime;
+    if (h.trill) h.trill.settled = true;
+    for (const sd of h.sounds) sd.stop(now + 0.02);
+    h.sounds = parts.map(([pon, pdur, pm], k) => {
+      const at = now + Math.max(0, this.timeAt(pon) - this.timeAt(t));
+      const last = k === parts.length - 1;
+      // The Schneller's last note detached (I.2.8 §3: "never tied and never slurred").
+      return this.touchNote(pm, at, last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), v, { ...play, legato: !(last && detachLast) });
+    });
+    rec.parts.push(...parts);
+  }
+  /** D353: the performed ornament of the player's note (the overlay, the score sheet's count), anew. */
+  private perform(h: Held, kind: FreeKind, free: boolean): Performed {
+    const n = this.tracks[h.k].notes[h.note];
+    const rec: Performed = { kind, free, band: false, voice: this.voiceOf(h.k, h.note), step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts: [] };
+    this.performed.set(`${h.k}:${h.note}`, rec);
+    return rec;
   }
   /**
-   * D319, THE PLAYER'S TRILL: started by the first shake (written, D278) or the third leg (free, D314),
-   * its notes the realisation's from then to the note's end (from the note above, at the trill's speed:
+   * D319, THE PLAYER'S TRILL: started by the first leg (written, D278) or the third (free, D314), its
+   * notes the realisation's from then to the note's end (from the note above, at the trill's speed:
    * MECH.trillPerSecond on the beat's grid), sounded a moment ahead as they come (trillStep), so that
    * it can stop: with MECH.trillFollowsShake, when no leg has come for MECH.trillStopMs the trill
-   * settles on the main note, held; shaken through the whole note, it lasts the whole note.
+   * settles on the main note, held (D353: with the Nachschlag where MECH.trillEnding's rule gives it one);
+   * shaken through the whole note, it lasts the whole note.
    */
-  private startTrill(h: Held, parts: [number, number, number][], t: number, main: number, v: ReturnType<typeof voicing>, play: Play) {
+  private startTrill(h: Held, parts: [number, number, number][], t: number, main: number, v: ReturnType<typeof voicing>, play: Play, rec?: Performed, nachschlag = false) {
     const now = this.chip.ctx.currentTime;
     for (const sd of h.sounds) sd.stop(now + 0.02);
     h.sounds = [];
-    h.trill = { parts, next: 0, last: t, main, v, play, settled: false, live: [] };
+    h.trill = { parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec };
     this.trillStep(h, t);
   }
   /** D319: a leg of the shake: the trill goes on. */
@@ -2299,10 +2427,26 @@ export class ProtoGame {
     if (r.next < r.parts.length && (!h.open || (MECH.trillFollowsShake && now - r.last > (MECH.trillStopMs / 1000) * this.tps))) {
       // The shaking stopped: the main note, held, from the end of the trill's note now sounding.
       const prev = r.parts[r.next - 1];
-      const from = prev ? Math.max(now, prev[0] + prev[1]) : now;
-      const at = audioAt(from);
+      let from = prev ? Math.max(now, prev[0] + prev[1]) : now;
+      const last = r.parts[r.parts.length - 1];
+      const end = last[0] + last[1];
       this.tap?.({ kind: "shake", tick: now, track: h.k, i: h.note, side: h.side, ornament: `settled: ${r.next} trill notes`, free: !h.orn });
+      // D353: C. P. E. Bach's Nachschlag where the rule gives it: (the main note,) the step below, then the main note.
+      const lower = r.parts.find((p) => p[2] < r.main)?.[2];
+      if (r.nachschlag && prev && lower !== undefined && h.open) {
+        const g = r.parts[0][1];
+        for (const pm of prev[2] > r.main ? [r.main, lower] : [lower]) {
+          if (from + g >= end) break;
+          const at = audioAt(from);
+          const len = Math.max(0.03, this.timeAt(from + g) - this.timeAt(from));
+          keep(this.touchNote(pm, at, len, r.v, { ...r.play, legato: true }), at + len);
+          r.rec?.parts.push([from, g, pm]);
+          from += g;
+        }
+      }
+      const at = audioAt(from);
       keep(this.touchNote(r.main, at, HOLD_MAX, r.v, { ...r.play, legato: true }), at + HOLD_MAX);
+      r.rec?.parts.push([from, Math.max(1, end - from), r.main]);
       r.next = r.parts.length;
       r.settled = true;
       return;
@@ -2314,14 +2458,61 @@ export class ProtoGame {
       const at = audioAt(pon);
       const len = last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon));
       keep(this.touchNote(pm, at, len, r.v, { ...r.play, legato: true }), at + len);
+      r.rec?.parts.push([pon, pdur, pm]);
       r.next++;
     }
     if (r.next >= r.parts.length) r.settled = true;
   }
-  /** D314: the free ornaments played this run (counted for the tests; they score nothing). */
-  readonly freeOrns = { mordents: 0, shorts: 0, trills: 0 };
-  /** D327: what each note's free ornament became ("track:note" → kind), for the score sheet's line. */
-  readonly freeByNote = new Map<string, FreeKind>();
+  /**
+   * D353: each frame, the shakes read on the game's clock (touches stop coming when a thumb is still: a
+   * leg that stopped ends at rest), and the slides waiting to be confirmed.
+   */
+  private shakeFrames() {
+    const ms = this.chip.heard() * 1000;
+    for (const [id, h] of this.held) {
+      if (h.orn && h.open && (!h.orn.done || (h.trill && this.now <= h.orn.by))) {
+        if (this.now <= h.orn.by) (h.orn.read.tick(ms), this.ornamentLegs(h, this.now));
+      } else if (h.free && h.free.note === h.note && this.freeReadable(h)) {
+        const n = this.tracks[h.k].notes[h.note];
+        if (this.now < n.on + n.dur) this.freeGesture(h, h.free.r.tick(ms), this.now);
+      }
+      if (h.wait?.prep?.read) h.wait.prep.read.tick(ms);
+      if (h.slidePend) this.trySlide(id, h, ms);
+    }
+  }
+  /** D353: slides wait for confirmation where a shake is read (LADDER on a phone, the gestures on, not BLUETOOTH MODE). */
+  private slideGuarded(): boolean {
+    return MECH.slideConfirmMs > 0 && MECH.ornGestures && this.proto.platform === "mobile" && !this.bt;
+  }
+  /**
+   * D353, THE SLIDE GUARD: a slide that reached its note fires only once the thumb has not turned back
+   * for MECH.slideConfirmMs and no leg is under way faster than reach / Lm (a large shake's first leg can
+   * reach the next note's height: it is not a slide). Judged at the moment and place it reached the note.
+   */
+  private trySlide(id: number, h: Held, ms: number) {
+    const p = h.slidePend;
+    if (!p) return;
+    if (h.passive || h.handed || !this.held.has(id)) return void (h.slidePend = undefined);
+    if (h.free?.r.kind) return void (h.slidePend = undefined);
+    if (ms - p.ms < MECH.slideConfirmMs) return;
+    const th = this.shakeTh();
+    if (h.mv && ms - h.mv.ms < 50 && h.mv.v > th.reach / th.Lm) return;
+    h.slidePend = undefined;
+    if (this.slideTo(id, h, p.c, p.t)) h.slideDir = p.dir;
+  }
+  /** D314: the free ornaments played this run (counted for the tests; they score nothing). D353: turns too; shorts the up-down forms. */
+  readonly freeOrns = { mordents: 0, shorts: 0, trills: 0, turns: 0 };
+  /** D353 (D327): the ornaments the player performed ("track:note"), written or free, their notes as sounded: the box's overlay and the score sheet's count. */
+  readonly performed = new Map<string, Performed>();
+  /** D353: the band's ornaments as they are sounded (the overlay, fainter), the recent ones. */
+  bandPerformed: Performed[] = [];
+  /** D353: the ornaments the box draws now (the overlay): the band's and the player's, until faded (a second after their note). */
+  overlay(): Performed[] {
+    const gone = this.now - 1.2 * this.tps;
+    const out: Performed[] = this.bandPerformed.filter((p) => p.end > gone && p.parts[0][0] <= this.now);
+    for (const p of this.performed.values()) if (p.end > gone && p.parts.length && p.parts[0][0] <= this.now) out.push(p);
+    return out;
+  }
   /** D278: the ornaments a phone's player was given to play, and those played. */
   readonly shakes = { hit: 0, of: 0 };
   /** D314: the tick the run starts at (the bars' soft/strong hints fade out after it). */
@@ -2524,6 +2715,12 @@ export class ProtoGame {
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
+    // D353: after an ornament read on it, the thumb's reference for its next note returns to its landing
+    // when it ended within a row of it (D286's "moved" was its shake; a final drift must not change a verdict).
+    // D353: the lift ends a written ornament's last leg (a mordent on a short note: the thumb lifts as it comes back): counted, not sounded.
+    if (h.orn && h.open && !h.orn.done && this.tickOf(ts) <= h.orn.by) (h.orn.read.tick(this.evMs(), true), this.ornamentLegs(h, this.tickOf(ts), true));
+    const ownRef = this.lastBySide[h.side];
+    if (h.ornRead && ownRef?.moved && ownRef.y === h.ay && h.lastY !== undefined && Math.abs(h.lastY - h.ay) < this.ladderRow) ownRef.moved = false;
     if (h.note >= 0 && !h.wait) {
       this.lifts.push({ k: h.k, i: h.note, side: h.side, tick: this.tickOf(ts) });
       if (this.lifts.length > 600) this.lifts.splice(0, 200);
@@ -2705,22 +2902,24 @@ export class ProtoGame {
       // D205: an ornamented note, struck right, plays its ornament from the moment it is struck, then holds its main note.
       const n0 = notes[i];
       const orn = v.ok && pitches.length === 1 ? this.ornaments.get(`${this.voiceOf(h.k, i)}:${n0.on}`) : undefined;
-      const shake = orn && this.proto.platform === "mobile" ? shakeOf(orn) : null;
+      // D353: MECH.ornGestures off, the written ornament plays itself (as on a computer's keys).
+      const shake = orn && this.proto.platform === "mobile" && MECH.ornGestures ? shakeOf(orn) : null;
       if (orn && shake) {
-        // D278: on a phone the ornament is the player's: the main note now, its other notes as the thumb shakes.
+        // D278: on a phone the ornament is the player's: the main note now, its other notes as the thumb shakes
+        // (D353: read by the contour reader from the landing).
         const prev = this.before(i, h.k);
-        const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
-        const upper = parts.find((p) => p[2] > n0.midi)?.[2] ?? n0.midi + 2;
-        const lower = parts.find((p) => p[2] < n0.midi)?.[2] ?? n0.midi - 2;
         const v = sv?.v ?? voiceV;
         const play = { ...expr, legato: legato && !piano };
         h.sounds = [this.touchNote(n0.midi, this.chip.ctx.currentTime, HOLD_MAX, v, play)];
-        h.orn = { ...shake, main: n0.midi, upper, lower, moves: 0, dir: 0, from: h.ay, firstDir: 0, v, play, by: n0.on + n0.dur, done: false, signs: orn.signs };
+        const read = new ShakeReader({ x: h.ax, y: h.ay, t: this.evMs() }, this.shakeTh());
+        h.orn = { ...shake, main: n0.midi, read, moves: 0, v, play, by: n0.on + n0.dur, done: false, sounded: false, signs: orn.signs, prevMidi: prev >= 0 ? notes[prev].midi : undefined };
         this.shakes.of++;
       } else if (orn) {
         const t0 = this.chip.ctx.currentTime;
         const prev = this.before(i, h.k);
         const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
+        // D353: the overlay draws it as it sounds (the player's, written).
+        this.performed.set(`${h.k}:${i}`, { kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: false, voice: this.voiceOf(h.k, i), step: n0.step, midi: n0.midi, on: n0.on, end: n0.on + n0.dur, parts: parts.map(([pon, pdur, pm]) => [pon - n0.on + this.now, pdur, pm] as [number, number, number]) });
         h.sounds = parts.map(([pon, pdur, pmidi], k) => {
           const at = t0 + (this.timeAt(pon) - this.timeAt(n0.on));
           const last = k === parts.length - 1;
@@ -2749,6 +2948,8 @@ export class ProtoGame {
     h.midi = pitches[0];
     h.note = i;
     h.chord = chord;
+    // D353: the shake's landing (a free ornament's reader starts from here).
+    h.strikeMs = this.evMs();
     h.d0 = d;
     const n = notes[i];
     const at = performance.now();
@@ -3461,7 +3662,7 @@ export class ProtoGame {
     const onIt = this.hands ? lane >= 0 && lane <= this.laneRegion(0).from : lane === p?.lane;
     // D254: a second touch on the left hand's lanes while the pedal is held takes it over (the thumb moved
     // down to C): in the far lane, or by the line where the right hand has nothing due (else it is the right thumb's).
-    if (p && this.hands && p.id !== null && lane >= 0 && this.laneTrack(lane) === 1 && (lane < this.laneRegion(0).from - 1 || !this.dueAt(0, performance.now()))) {
+    if (p && this.hands && p.id !== null && lane >= 0 && this.laneTrack(lane) === 1 && (lane < this.laneRegion(0).from - 1 || !this.dueAt(0, this.wall()))) {
       p.id = id;
       return true;
     }
@@ -3881,7 +4082,7 @@ export class ProtoGame {
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
     const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces } });
     const lens = this.lens?.stats({ ...r, art, thumbs: this.thumbs });
-    return { ...r, ...(lens ? { lens } : {}), art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally(this.freeByNote.values()), report: this.report(r) };
+    return { ...r, ...(lens ? { lens } : {}), art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally([...this.performed.values()].filter((p) => p.free).map((p) => p.kind)), report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
   private span(): { start: number; end: number } {
