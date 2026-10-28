@@ -270,6 +270,7 @@ export const PT: Record<string, string> = {
   "You caught {n} of {m} subjects; aim for 2.": "Você capturou {n} de {m} sujeitos; a meta é 2.",
   "You followed {p}% of the marks; aim for 60%.": "Você seguiu {p}% dos sinais; a meta é 60%.",
   // The game's words (drawn)
+  "YOU: {voice}": "VOCÊ: {voice}",
   YOU: "VOCÊ",
   SUBJECT: "SUJEITO",
   PERFECT: "PERFEITO",

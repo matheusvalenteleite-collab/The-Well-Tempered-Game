@@ -954,3 +954,10 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-stops-side .tg-stop::after { inset: -2px; }
 .tb-stops-side .tg-room-name { top: auto; bottom: calc(100% + 6px); }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 2px); align-items: center; box-sizing: border-box; }
+
+/* D369: the voice legend: the player's voice a chip of its own (its colour block and VOCÊ: …), the others after it, dimmer. */
+.tg-legend:has(.tb-you-chip) { align-items: center; overflow: visible; }
+.tb-you-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 4px; line-height: 1.6; color: var(--tg-bg); background: var(--tg-fg); border: 2px solid; font-size: 8px; white-space: nowrap; }
+.tb-you-block { display: inline-block; width: 10px; height: 10px; border: 1px solid rgba(0, 0, 0, 0.35); }
+.tb-legend-other { line-height: 1.6; padding-top: 2px; }
+html.tb-paper .tb-you-chip { color: #fff; background: #2a2724; }

@@ -1250,7 +1250,7 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
             {playing && practice.current && (
               // D326: a practice run (or THE OTHERS) named in the title bar.
@@ -1273,12 +1273,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={f.voiceNames.map((name, i) => (
-          <span key={name} style={{ color: sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : sheetOn ? 0.75 : 0.55 }}>
-            ■ {voiceName(name)}
-            {played.includes(i) && <b className="tb-you"> · {tr("YOU")}</b>}
-          </span>
-        ))}
+        legend={<VoiceLegend names={f.voiceNames} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
@@ -1585,6 +1580,32 @@ export function BenchApp() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * D369: the voice legend (the owner: "we can do better than 'MÃO DIREITO · VOCÊ · MÃO ESQUERDA' … not
+ * obvious whether 'VOCÊ' is attached to the right or left"): the player's voice first, unmistakable, a chip
+ * of its own with the voice's colour block ("VOCÊ: MÃO ESQUERDA"); the others after it, dimmer, each with
+ * its colour. Room above the capitals for their accents (MÃO, VOCÊ: the tilde is never clipped).
+ */
+export function VoiceLegend({ names, played, ink, paper = false }: { names: string[]; played: number[]; ink: (i: number) => string; paper?: boolean }) {
+  const mine = played.filter((i) => i < names.length);
+  const others = names.map((_, i) => i).filter((i) => !mine.includes(i));
+  return (
+    <>
+      <span className="tb-you-chip" id="legend-you" style={{ borderColor: ink(mine[0] ?? 0) }}>
+        {mine.map((i) => (
+          <i key={i} className="tb-you-block" style={{ background: ink(i) }} aria-hidden="true" />
+        ))}
+        <span>{tr("YOU: {voice}", { voice: mine.map((i) => voiceName(names[i])).join(" + ") })}</span>
+      </span>
+      {others.map((i) => (
+        <span key={names[i]} className="tb-legend-other" style={{ color: ink(i), opacity: paper ? 0.75 : 0.6 }}>
+          ■ {voiceName(names[i])}
+        </span>
+      ))}
+    </>
   );
 }
 

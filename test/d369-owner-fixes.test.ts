@@ -184,3 +184,25 @@ test("D369 (4): on the two bars the stops leave the title bar for the bars' feet
   assert.match(css, /\.tb-stops-side \.tg-stop \{ min-width: 44px; height: 44px;/);
   assert.match(css, /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ 2px\);/);
 });
+
+test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: MÃO ESQUERDA), the others after it, dimmer; accents kept", async () => {
+  register("./tsx-hooks.mjs", import.meta.url);
+  const React = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const i18n = await import("../src/i18n/index.ts");
+  const { VoiceLegend } = await import("../src/bench/BenchApp.tsx");
+  i18n.setLang("pt");
+  const html = renderToStaticMarkup(React.createElement(VoiceLegend, { names: ["Right hand", "Left hand"], played: [1], ink: (i: number) => (i ? "#0f0" : "#00f") }));
+  i18n.setLang("en");
+  assert.match(html, /id="legend-you"[^>]*>.*VOCÊ: MÃO ESQUERDA/);
+  assert.ok(html.indexOf("VOCÊ: MÃO ESQUERDA") < html.indexOf("MÃO DIREITA"), "the player's voice first");
+  assert.match(html, /class="tb-legend-other"[^>]*>■ MÃO DIREITA/);
+  assert.doesNotMatch(html, /\bMAO\b|DIREITO/);
+  const { PT } = await import("../src/i18n/pt.ts");
+  const { ES } = await import("../src/i18n/es.ts");
+  assert.equal(PT["YOU: {voice}"], "VOCÊ: {voice}");
+  assert.equal(ES["YOU: {voice}"], "TÚ: {voice}");
+  // No Portuguese or Spanish word left without its diacritics (the ones the owner named, and their kin).
+  for (const [d, bad] of [[PT, /\b(MAO|MAOS|NAO|VOCE|VOCES|ORGAO|LICAO|LICOES|PECA|PECAS|MUSICA|PROXIMO|ULTIMO|TAMBEM)\b/i], [ES, /\b(CANCION|LECCION|MUSICA|ORGANO DE|ULTIMO|PROXIMO|TAMBIEN|DESPUES)\b/i]] as const)
+    for (const [k, v] of Object.entries(d)) assert.doesNotMatch(v, bad, `${k} → ${v}`);
+});
