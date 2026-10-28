@@ -52,16 +52,24 @@ const GLYPHS: Record<string, string> = {
   "#": "101111101111101", "~": "000011110000000", "|": "010010010010010", "♭": "100100110101110", "-": "000000111000000", " ": "000000000000000",
   // D314: the reading's wedge and the legend's punctuation.
   ">": "100010001010100", "<": "001010100010001", ":": "000010000010000", ",": "000000000010100", ".": "000000000000010", "(": "010100100100010", ")": "010001001001010", "/": "001001010100100", "'": "010010000000000",
+  // D347: the sung words' punctuation.
+  ";": "000010000010100", "?": "110001010000010",
 };
 
 /** Text in the 3 by 5 font; returns its width. */
 export function pixText(g: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, scale = 1): number {
+  // D283: every word drawn in the box in the language chosen (the cadences, the points' words).
+  return pixRaw(g as PixTarget, trCanvas(text.toUpperCase()), x, y, color, scale);
+}
+/** What pixRaw draws on: the box's canvas, or a small one it keeps a word on (D347). */
+export type PixTarget = Pick<CanvasRenderingContext2D, "fillStyle" | "fillRect">;
+/** D347: the pixel font on text as given (upper case already, never translated: the sung words). */
+export function pixRaw(g: PixTarget, text: string, x: number, y: number, color: string, scale = 1): number {
   g.fillStyle = color;
   let cx = Math.round(x);
-  // D283: every word drawn in the box in the language chosen (the cadences, the points' words).
   // D301: the accents drawn too (the owner: "why are there no accents … like VOCÊ"): the letter, then its
   // marks in two rows above it (the cedilla below), as the 3 by 5 font's own pixels.
-  for (const [base, marks] of letters(trCanvas(text.toUpperCase()))) {
+  for (const [base, marks] of letters(text)) {
     const glyph = GLYPHS[base] ?? GLYPHS[" "];
     for (let i = 0; i < 15; i++) if (glyph[i] === "1") g.fillRect(cx + (i % 3) * scale, Math.round(y) + Math.floor(i / 3) * scale, scale, scale);
     for (const m of marks) {

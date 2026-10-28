@@ -9,7 +9,8 @@
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { tr } from "../i18n/index.ts";
-import { bossBar, cadenceMarks, pixText, ribbons, sparks, strikes, textWidth, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, pixRaw, pixText, ribbons, sparks, strikes, textWidth, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
 import { markLegend } from "./readings.ts";
 import { STRONG_SIDE } from "./touch-expr.ts";
 import { paintVariant } from "./box-variants.ts";
@@ -303,6 +304,9 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const shine = tok("--tg-shine");
   const miss = tok("--tg-miss");
   const edge = tok("--tg-fg");
+  // D347: the sung words under the player's voice (drawn first: the blocks stay on top).
+  const syls = fr.piece ? lyricsOf(fugueById(fr.piece), fr.voice) : null;
+  if (syls) paintLyrics(g, syls, fr, { xOf, yOf, lift: (n) => altOf(n.step, n.midi) * shift, bh, w, h, t0, t1: t0 + span, ink: edge });
   const played: [number, LaneNote[]][] = [[fr.voice, fr.notes]];
   if (fr.notes2 && fr.voice2 !== undefined) played.push([fr.voice2, fr.notes2]);
   for (const [pv, pnotes] of played) {
@@ -436,7 +440,11 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const n = fr.notes.find((m) => m.on + m.dur >= fr.now && !m.ride);
     if (n) {
       const x = Math.max(playX + 2, xOf(n.on));
-      if (x < w - 12) pixText(g, tr("YOU"), x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
+      // D347: where the words stand under the notes, YOU over the voice's next entry only (after a rest),
+      // not over a note the words already mark.
+      if (!syls) {
+        if (x < w - 12) pixText(g, tr("YOU"), x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
+      } else if (x < w - 12 && xOf(n.on) > playX + 24) pixText(g, tr("YOU"), x, Math.max(0, yOf(n.step) - 8), edge);
     }
   }
   g.fillStyle = tok("--tg-playhead");
@@ -504,6 +512,138 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   sparks(fx, fr.pops ?? [], fr.bursts ?? []);
   zoneGlow(fx, fr.zone ?? null);
+}
+
+/**
+ * D347: the sung words (BWV 228, BWV 54; lyrics.ts), very discreet: small and faint, under the player's
+ * voice only, each syllable at its first note's start, just under that block (lower where the word
+ * passes under a lower block, so a block is never covered; a line lower where it would touch the word
+ * before); a hyphen between a word's syllables (just before the next syllable after a melisma); a
+ * melisma a faint line from the word on, then just under each of its notes, to its last note
+ * (Teu- … -fel). The pixel font at the box's scale, twice as large where the rows are large; each
+ * word drawn once into a small canvas kept for it; only the syllables in view are looked at.
+ */
+interface LyricGeo {
+  xOf: (tick: number) => number;
+  yOf: (step: number) => number;
+  /** D332: how far a note is drawn off its row (raised, lowered). */
+  lift: (n: LaneNote) => number;
+  bh: number;
+  w: number;
+  h: number;
+  t0: number;
+  t1: number;
+  ink: string;
+}
+const LYRIC_ALPHA = 0.55;
+const EXTENDER_ALPHA = 0.45;
+const sprites = new Map<string, HTMLCanvasElement | null>();
+function lyricSprite(text: string, ink: string, s: number): HTMLCanvasElement | null {
+  const key = `${s}|${ink}|${text}`;
+  const had = sprites.get(key);
+  if (had !== undefined) return had;
+  if (sprites.size > 600) sprites.clear();
+  let c: HTMLCanvasElement | null = null;
+  if (typeof document !== "undefined") {
+    c = document.createElement("canvas");
+    c.width = Math.max(1, textWidth(text, s) - s);
+    // Two rows over the letters for the umlauts, one under for a cedilla.
+    c.height = 8 * s;
+    const cg = c.getContext("2d");
+    if (cg) pixRaw(cg, text, 0, 2 * s, ink, s);
+    else c = null;
+  }
+  sprites.set(key, c);
+  return c;
+}
+function paintLyrics(g: CanvasRenderingContext2D, syls: readonly Syllable[], fr: Frame, k: LyricGeo) {
+  const s = k.bh >= 16 ? 2 : 1;
+  const notes = fr.notes;
+  const mine = (n: LaneNote) => n.voice === undefined || n.voice === fr.voice;
+  /** The first note at or after a tick. */
+  const at = (tick: number) => {
+    let lo = 0;
+    let hi = notes.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (notes[mid].on < tick) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  /** Where a word's letters begin under a block: past its shadow, room left for the umlauts. */
+  const under = (n: LaneNote) => k.yOf(n.step) - k.lift(n) + k.bh + 1 + 2 * s;
+  const from = firstFrom(syls, k.t0);
+  const placed: ({ x: number; end: number; y: number; j: number; melisma: boolean } | null)[] = [];
+  g.globalAlpha = LYRIC_ALPHA;
+  for (let i = from; i < syls.length; i++) {
+    const sy = syls[i];
+    let j = at(sy.on);
+    while (j < notes.length && notes[j].on === sy.on && !mine(notes[j])) j++;
+    const n = notes[j];
+    // Its note not in this run (a practice of other bars): nothing.
+    if (!n || n.on !== sy.on) {
+      placed.push(null);
+      if (sy.on >= k.t1) break;
+      continue;
+    }
+    const x = k.xOf(sy.on);
+    const sp = lyricSprite(sy.shown, k.ink, s);
+    const tw = sp ? sp.width : textWidth(sy.shown, s) - s;
+    let y = under(n);
+    // Below every block of the player's the word passes under (its melisma's, the next syllables').
+    for (let m = j + 1; m < notes.length && k.xOf(notes[m].on) <= x + tw + s; m++) if (mine(notes[m])) y = Math.max(y, under(notes[m]));
+    let melisma = false;
+    for (let m = j + 1; m < notes.length && notes[m].on < sy.end && !melisma; m++) melisma = mine(notes[m]);
+    // Words close together: a line lower where the words before would be touched (at most two lines down).
+    const recent = placed.slice(-4).filter((p) => p !== null);
+    for (let r = 0; r < 3; r++) {
+      const cand = y + r * 7 * s;
+      if (!recent.some((p) => x < p.end + 2 * s && Math.abs(cand - p.y) < 7 * s)) {
+        y = cand;
+        break;
+      }
+    }
+    y = Math.min(y, k.h - 6 * s);
+    placed.push({ x, end: x + tw, y, j, melisma });
+    if (x < k.w && x + tw > 0) {
+      if (sp) g.drawImage(sp, x, y - 2 * s);
+      else pixRaw(g, sy.shown, x, y, k.ink, s);
+    }
+    if (sy.on >= k.t1) break;
+  }
+  g.fillStyle = k.ink;
+  placed.forEach((p, q) => {
+    if (!p) return;
+    const sy = syls[from + q];
+    if (p.melisma) {
+      // The melisma's line: under the first note from the word's end, then under each note to the last.
+      g.globalAlpha = EXTENDER_ALPHA;
+      const n0 = notes[p.j];
+      const e0 = k.xOf(n0.on + n0.dur) - 1;
+      if (e0 > p.end + s && p.end + s < k.w) g.fillRect(p.end + s, p.y + 4 * s, e0 - p.end - s, s);
+      for (let m = p.j + 1; m < notes.length && notes[m].on < sy.end; m++) {
+        const nm = notes[m];
+        if (!mine(nm)) continue;
+        const x1 = k.xOf(nm.on);
+        if (x1 > k.w) break;
+        const x2 = k.xOf(nm.on + nm.dur) - 1;
+        if (x2 < 0) continue;
+        g.fillRect(x1, under(nm) - 2 * s + 1, Math.max(1, x2 - x1), s);
+      }
+    }
+    // The hyphen to the word's next syllable: midway, or just before it after a melisma.
+    const nx = placed[q + 1];
+    if (sy.joined && nx) {
+      const left = p.end + s;
+      const right = nx.x - s;
+      if (right - left < 3 * s || left > k.w || right < 0) return;
+      g.globalAlpha = LYRIC_ALPHA;
+      const hx = p.melisma ? right - 3 * s : Math.round((left + right - 3 * s) / 2);
+      g.fillRect(hx, (p.melisma ? nx.y : p.y) + 2 * s, 3 * s, s);
+    }
+  });
+  g.globalAlpha = 1;
 }
 
 /**
