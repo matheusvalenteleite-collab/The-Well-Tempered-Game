@@ -167,15 +167,23 @@ test("D311: HARPSICHORD: the lute stop at the outer edge (a lowpass 2 to 1.2 kHz
   assert.ok(ringLute < -15 && ringPlain > -3, `0.6 s on: lute ${ringLute.toFixed(1)} dB, plain ${ringPlain.toFixed(1)} dB`);
 });
 
-test("D311: PIPE ORGAN: the echo manual toward the box (quieter, flutier) for that note alone; steady wind held", async () => {
-  for (const voice of [0, 2]) {
+test("D311, D349: PIPE ORGAN: the echo manual toward the box (the second manual's soft flutes, quieter, veiled) for that note alone; steady wind held; none on the pedal", async () => {
+  for (const voice of [0, 1]) {
     const main = await strike("chamberOrgan", { touch: 0.8 }, voice);
     const echo = await strike("chamberOrgan", { touch: 0.1 }, voice);
-    assert.ok(Math.abs(db(echo.peak) - db(main.peak) - db(ECHO_GAIN)) < 0.1, `voice ${voice}: ${(db(echo.peak) - db(main.peak)).toFixed(2)} dB`);
+    // (The peak counts the pipe's speech: the flutes' chiff a little stronger than the Principal's.)
+    const drop = db(echo.peak) - db(main.peak);
+    assert.ok(drop <= db(ECHO_GAIN) + 0.5 && drop >= db(ECHO_GAIN) - 4, `voice ${voice}: ${drop.toFixed(2)} dB`);
+    assert.ok(echo.waves.includes("stopGedackt") && !echo.waves.includes("stopPrincipal"), `the flutes: ${echo.waves}`);
+    assert.ok(main.waves.includes("stopPrincipal") && !main.waves.includes("stopGedackt"));
     assert.ok(lowpasses(echo).some((f) => f <= 4000 && f >= 1200));
     echo.sd.shape?.(1);
     assert.equal(ofType(echo, "peaking").length, 0);
   }
+  // The pedal (the bass of three): one pedalboard, no echo.
+  const pedal = await strike("chamberOrgan", { touch: 0.8 }, 2);
+  const soft = await strike("chamberOrgan", { touch: 0.1 }, 2);
+  assert.ok(Math.abs(db(soft.peak) - db(pedal.peak)) < 0.1);
 });
 
 test("D311: VOCAL SYNTH: the vowel closed toward the box, open at the edge; a held swell of ±3 dB; a little vibrato blooms when held still", async () => {

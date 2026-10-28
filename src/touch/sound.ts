@@ -232,6 +232,16 @@ export interface Patch {
    * more swells by that much to two fifths of its length and eases to that much under by its end.
    */
   syllable?: { cons: Sing["cons"]; scoop: number; over: number; fall: number; messa?: number };
+  /**
+   * D349, PIPE ORGAN: a pipe of one organ (chip.ts): a joined note's pipe still speaks (its own attack
+   * and chiff: another pipe, not the same one going on; the organist joins by the release); the note
+   * placed in the case by its key, not its voice (`case`: the C side, C D E F♯ G♯ A♯, that much to the
+   * left of the voice's place, the C♯ side to the right, as a case's pipes stand); each key's pipe a
+   * fraction of a cent from true (`cents`, fixed per key: one rank's pipes, not a voice wandering); the
+   * player's note neither louder nor brighter (the same pipes); and on a phone `phoneOsc` added (a
+   * pedal's upper ranks, which its small speaker hears).
+   */
+  pipe?: { case: number; cents: number; phoneOsc?: Osc[] };
 }
 
 /**
@@ -326,6 +336,8 @@ export const CONSONANTS: Record<Sing["cons"], { f: [number, number, number]; tim
 const P = (p: Patch) => p;
 /** D339: the sampled piano's and harpsichord's send to their music room (chip.ts REVERBS.salon; the bass's three quarters of it). */
 export const SALON_SEND = 0.2;
+/** D349: PIPE ORGAN's one send into its church, every pipe's (manual and pedal alike: one room). */
+export const ORGAN_SEND = 0.4;
 
 /** The instruments. */
 export const PATCHES = {
@@ -613,11 +625,41 @@ export const PATCHES = {
   // tenor the Trompete, a solo reed (every harmonic, the 2nd to 5th strongest, bright to 5 kHz, a quick
   // brassy blip, no Principal under it); the Krummhorn the second of five; the recorded pedal kept. The
   // church smaller (RT60 2.2 s) and sent less (0.1-0.14, was 0.14-0.28): the lines apart.
-  orgFlute: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 1, detune: 1.2, gain: 0.1 }, { wave: "sine", octave: Math.log2(3), detune: -1, gain: 0.05 }], chiff: { level: 0.3, time: 0.03, at: 2 }, breath: 0.012, amp: { a: 0.035, d: 0.05, s: 1, r: 0.1 }, drift: { cents: 0.8, rate: 0.031 }, send: 0.14, level: 0.28 }),
-  orgPrincipal: P({ osc: [{ wave: "stopPrincipal" }, { wave: "sine", octave: 1, detune: 1.5, gain: 0.2 }], chiff: { level: 0.22, time: 0.02, at: 6 }, amp: { a: 0.022, d: 0.05, s: 1, r: 0.09 }, drift: { cents: 1, rate: 0.041 }, send: 0.12, level: 0.34 }),
-  orgTrompete: P({ osc: [{ wave: "stopTrompete" }, { wave: "stopTrompete", detune: 1.4, gain: 0.25 }], filter: { freq: 5000, hz: true, q: 0.9, env: 1.6, envDecay: 0.03 }, chiff: { level: 0.12, time: 0.012, at: 9 }, amp: { a: 0.01, d: 0.05, s: 1, r: 0.07 }, drift: { cents: 1, rate: 0.047 }, send: 0.12, hp: 110, level: 0.39 }),
-  orgKrumm: P({ osc: [{ wave: "stopKrummhorn" }, { wave: "stopGedackt", detune: -1.8, gain: 0.5 }], chiff: { level: 0.25, time: 0.018, at: 5 }, breath: 0.01, amp: { a: 0.016, d: 0.05, s: 1, r: 0.08 }, drift: { cents: 1, rate: 0.023 }, send: 0.12, level: 0.26 }),
-  orgPedal: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.12 }, send: 0.1, level: 0.195, sample: "organPedal" }),
+  // D349 (the owner: "sounding too much like four different instruments instead of a single organ with
+  // different stops being used by a professional organist in a performance"): one organ. D304's trio of
+  // colours (a flute, a Krummhorn, a Principal, a Trompete over a recorded reed pedal, each voice its own
+  // envelope, send, pan and drifting tuning) withdrawn: every manual voice plays the same rank on the
+  // same manual (the default Principal 8' with its Octave 4' and a soft 2'), the pedal a related division (Subbass 16',
+  // Octavbass 8', Choralbass 4'); the colour changes only by registration (registration.ts: the
+  // organist's choices, for the whole organ under TUTTI or the player's voice alone on a second manual)
+  // and by compass. One envelope, one chiff (Keeler: a principal speaks slower than a flute, its 2nd
+  // partial strong in the attack; a flute quicker, its chiff plainer), one release (60 ms), one send into
+  // one church; every manual patch at one `level` (loudness matched by the ranks' gains, measured), so
+  // a registration change or the echo manual moves nothing else. `pipe`: the note placed by its key in
+  // the case (C and C♯ sides), each key's pipe a fraction of a cent from true, a joined note's pipe
+  // speaking anew.
+  orgPrincipal: P({ osc: [{ wave: "stopPrincipal", gain: 0.95 }, { wave: "sine", octave: 1, detune: 0.7, gain: 0.16 }, { wave: "sine", octave: 2, detune: -0.5, gain: 0.06 }], chiff: { level: 0.18, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
+  /** D349: FLUTES: Gedackt 8' and Rohrflöte 4' (the octave a little sharp: a slow beat), a plainer, quicker chiff. */
+  orgFlute: P({ osc: [{ wave: "stopGedackt", gain: 0.73 }, { wave: "sine", octave: 1, detune: 0.9, gain: 0.22 }], chiff: { level: 0.28, time: 0.028, at: 3 }, breath: 0.008, amp: { a: 0.02, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
+  /** D349: the Trompete 8' (a reed: a solo, a cantus firmus; with the foundation drawn, in the chorus): quick brassy speech. */
+  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 1 }, { wave: "stopTrompete", detune: 1.2, gain: 0.25 }], filter: { freq: 5000, hz: true, q: 0.9, env: 1.6, envDecay: 0.03 }, chiff: { level: 0.1, time: 0.012, at: 9 }, amp: { a: 0.012, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
+  /**
+   * D349: the PLENUM (Principal 8', Octave 4', Superoctave 2', Mixture): the VCSL organ's own recorded
+   * plenum (sampled.ts organPleno), the same organ as the plenum's pedal; its stand-in until loaded the
+   * principal chorus with a mixture's ranks.
+   */
+  orgPleno: P({ osc: [{ wave: "stopPrincipal" }, { wave: "sine", octave: 1, gain: 0.25 }, { wave: "sine", octave: 2, detune: 0.8, gain: 0.16 }, { wave: "sine", octave: 2 + Math.log2(1.5), detune: -0.7, gain: 0.1 }], chiff: { level: 0.18, time: 0.035, at: 2 }, amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.27, sample: "organPleno", pipe: { case: 0.12, cents: 0 } }),
+  /**
+   * D349, the pedal: Subbass 16' (stopped), Octavbass 8' and Choralbass 4' (principals: the manual's
+   * family an octave down), slower to speak; on a phone a 2' besides (its speaker hears the upper ranks,
+   * D291). orgPedal8: the 16' pushed in (the player's 16′ button); orgPedalSoft under the flutes
+   * (Subbass 16', Gedackt 8', Flöte 4'); orgPedalPleno the plenum's: the VCSL organ's recorded pedal
+   * (its reeds and principals at 16' and 8': "the bass sounds cool", D304).
+   */
+  orgPedal: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.85 }, { wave: "stopPrincipal", gain: 0.62 }, { wave: "stopPrincipal", octave: 1, gain: 0.2 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
+  orgPedal8: P({ osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, gain: 0.28 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
+  orgPedalSoft: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.8 }, { wave: "stopGedackt", gain: 0.55 }, { wave: "sine", octave: 1, gain: 0.16 }], chiff: { level: 0.14, time: 0.04, at: 3 }, breath: 0.004, amp: { a: 0.035, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "sine", octave: 1, gain: 0.15 }, { wave: "stopGedackt", octave: 2, gain: 0.4 }] } }),
+  orgPedalPleno: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, level: 0.245, sample: "organPedal", pipe: { case: 0.1, cents: 0 } }),
   // SWITCHED-ON (D297: ANALOG SYNTH remade; the owner: "lackluster compared to Carlos' memorable
   // sounds"), after Switched-On Bach's timbres: a modular's sawtooths and squares through the 24 dB
   // ladder with a strong, quick filter envelope (the bright "spit" at each attack and the resonant
@@ -797,6 +839,8 @@ export interface Preset {
    * report's three-voice middle is not its five-voice middle). Counts not given: the slots, the usual pans.
    */
   by?: Partial<Record<number, readonly (readonly [patch: PatchId, pan: number, level?: number])[]>>;
+  /** D349: patches the preset's registrations may play (their recordings loaded with the preset's own). */
+  also?: readonly PatchId[];
 }
 
 /**
@@ -912,19 +956,22 @@ export const PRESETS: Preset[] = [
       5: [["trkViolin", -0.35], ["trkFlute", 0.35, 0.84], ["trkHarpsi", -0.35], ["trkChoir", 0.35, 0.94], ["trkBass", 0]],
     },
   },
-  // D302: PIPE ORGAN (CHAMBER ORGAN remade, its id kept so a stored choice keeps it). D304: a sweet flute
-  // on top, a Principal, the Trompete (the top of two), the Krummhorn the second of five, the recorded pedal.
+  // D302: PIPE ORGAN (CHAMBER ORGAN remade, its id kept so a stored choice keeps it). D349: one organ:
+  // every manual voice the same Principal 8' and 4' (registration.ts changes it), the pedal its 16', 8'
+  // and 4'; the voices close together (within ±0.05: the pipes' own place in the case, C and C♯ sides,
+  // spreads them, Patch.pipe), one church. The plenum's recordings ready too (`also`).
   {
     id: "chamberOrgan",
     name: "PIPE ORGAN",
-    slots: ["orgFlute", "orgKrumm", "orgPrincipal", "orgTrompete", "orgPedal"],
+    slots: ["orgPrincipal", "orgPrincipal", "orgPrincipal", "orgPrincipal", "orgPedal"],
     room: 0,
     fx: "cathedral",
+    also: ["orgPleno", "orgPedalPleno"],
     by: {
-      2: [["orgTrompete", 0.2], ["orgPedal", -0.1]],
-      3: [["orgFlute", 0.25], ["orgTrompete", -0.25], ["orgPedal", 0]],
-      4: [["orgFlute", 0.25], ["orgPrincipal", -0.25], ["orgTrompete", 0.12], ["orgPedal", 0]],
-      5: [["orgFlute", 0.25], ["orgKrumm", -0.3, 0.84], ["orgPrincipal", 0.12], ["orgTrompete", -0.12, 0.94], ["orgPedal", 0]],
+      2: [["orgPrincipal", 0.04], ["orgPedal", 0]],
+      3: [["orgPrincipal", 0.05], ["orgPrincipal", -0.03], ["orgPedal", 0]],
+      4: [["orgPrincipal", 0.05], ["orgPrincipal", -0.02], ["orgPrincipal", 0.02], ["orgPedal", 0]],
+      5: [["orgPrincipal", 0.05], ["orgPrincipal", -0.04], ["orgPrincipal", 0.02], ["orgPrincipal", -0.02], ["orgPedal", 0]],
     },
   },
   // D302: VOCAL SYNTH: five synthesized singers (la, mi, ro, ne, da) in a bright plate.
@@ -1105,7 +1152,7 @@ export function grooveNow(): { groove: Groove; kit: Kit } | null {
 
 /** D190: the recorded instruments the ensemble now plays, if any. */
 export function sampledNow(): SampledId[] {
-  const ids = [...(current.slots ?? []), ...Object.values(current.by ?? {}).flatMap((vs) => (vs ?? []).map(([id]) => id))];
+  const ids = [...(current.slots ?? []), ...Object.values(current.by ?? {}).flatMap((vs) => (vs ?? []).map(([id]) => id)), ...(current.also ?? [])];
   return [...new Set(ids.map((id) => PATCHES[id].sample).filter((s): s is SampledId => !!s))];
 }
 

@@ -68,7 +68,7 @@ export const LUTE_FROM = 0.75;
 export const LUTE_HZ: readonly [number, number] = [2000, 1200];
 /** The lute stop's ring (s, a time constant after 30 ms; the plain string rings 1-4 s). */
 export const LUTE_TAU = 0.22;
-/** PIPE ORGAN: the echo manual under this (toward the soft side): quieter and flutier (D262's two keyboards). */
+/** PIPE ORGAN: the echo manual under this (toward the soft side): quieter and flutier (D262's two keyboards; D349: the second manual's soft flutes, chip.ts). */
 export const ECHO_BELOW = 0.35;
 export const ECHO_GAIN = 0.6;
 /** The echo manual's flute-like top: a lowpass at four times the note's pitch, within these (Hz). */
@@ -126,6 +126,8 @@ export interface Landing {
   fmScale?: number;
   strike?: number;
   open?: number;
+  /** D349: PIPE ORGAN's echo manual: the note on the second manual's soft flutes (chip.ts). */
+  echo?: boolean;
 }
 
 export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | null, pulse = true): Landing {
@@ -146,7 +148,7 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       return { lute: true, lp: LUTE_HZ[0] * (LUTE_HZ[1] / LUTE_HZ[0]) ** k };
     }
     case "organ":
-      return c < ECHO_BELOW ? { level: ECHO_GAIN, lp: Math.max(ECHO_LP[0], Math.min(ECHO_LP[1], 4 * 440 * 2 ** ((midi - 69) / 12))) } : {};
+      return c < ECHO_BELOW ? { echo: true, level: ECHO_GAIN, lp: Math.max(ECHO_LP[0], Math.min(ECHO_LP[1], 4 * 440 * 2 ** ((midi - 69) / 12))) } : {};
     case "voice":
       return { open: c };
     case "singers":
