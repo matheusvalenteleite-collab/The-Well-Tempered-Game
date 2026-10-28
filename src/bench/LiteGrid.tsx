@@ -20,7 +20,15 @@ export const soundName = (id: string): string => presetById(id).name.replace(/ \
 
 /** D276: the book tab shown, kept on the device (D340: and the MORE BACH and CHORALES tabs). */
 const TAB_KEY = "tb-lite-book-v1";
-function storedTab(): LiteTab {
+/** D371: and the selection screen's (Selection.tsx), the same key. */
+export function storeTab(t: LiteTab) {
+  try {
+    localStorage.setItem(TAB_KEY, t);
+  } catch {
+    /* this visit only */
+  }
+}
+export function storedTab(): LiteTab {
   try {
     const v = localStorage.getItem(TAB_KEY);
     return liteTabs().some(([t]) => t === v) ? (v as LiteTab) : "I";
@@ -81,7 +89,7 @@ export function LangPick({ value, set }: { value: Lang; set: (l: Lang) => void }
   );
 }
 
-export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside, setLang }: { soundOf?: (id: string) => string; beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: LiteTab; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode; setLang?: (l: Lang) => void }) {
+export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside, setLang, bare = false }: { soundOf?: (id: string) => string; beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: LiteTab; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode; setLang?: (l: Lang) => void; bare?: boolean }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -125,9 +133,9 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
   }, [extra]);
   const waiting = extra && !extrasLoaded();
   return (
-    <div className="tb-lite" role="main" aria-label="Pieces" ref={list}>
+    <div className={`tb-lite${bare ? " tb-lite-bare" : ""}`} role={bare ? undefined : "main"} aria-label="Pieces" ref={list}>
       {/* D351: the title bar (the title, EN · PT · ES, SETTINGS) and the tabs stay at the top while the list scrolls under them. */}
-      <div className="tb-lite-top" id="lite-top">
+      {!bare && (<div className="tb-lite-top" id="lite-top">
       <header className="tb-lite-head">
         <h1>{tr("THE WELL-TEMPERED GAME")}</h1>
         {/* D343: the language at hand (EN · PT · ES), then SETTINGS, labelled. D326: TOOLS (once unlocked) before them. */}
@@ -147,7 +155,7 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
           ))}
         </div>
       ) : null}
-      </div>
+      </div>)}
       {waiting && (
         <p className="tb-lite-line" id="extras-loading" role="status">
           {failed ? "COULD NOT LOAD · CHECK THE CONNECTION AND OPEN THE TAB AGAIN" : "LOADING…"}

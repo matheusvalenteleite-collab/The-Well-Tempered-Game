@@ -17,6 +17,7 @@ import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
 import "./tools.css";
+import "./selection.css";
 
 APP.lite = true;
 APP.dev = false;
