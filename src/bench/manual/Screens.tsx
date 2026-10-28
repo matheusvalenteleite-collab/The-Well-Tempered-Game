@@ -11,23 +11,24 @@ import type { Chip } from "../../touch/chip.ts";
 import { Tapper } from "../../touch/Panels.tsx";
 import { Portrait } from "../Bach.tsx";
 import type { LensStats } from "./lens.ts";
-import type { Check, ManualLesson } from "./lessons.ts";
+import { PARTS, type Check, type ManualLesson, type PartId, type Stage } from "./lessons.ts";
 import { PLACEMENT, type Placement, type PlacementTake } from "./placement.ts";
 import type { Answer } from "./store.ts";
 
 const fill = (c: Check) => tr(c.text, c.vars);
 
 /** After a take: what counted (with ✓ or ✗), what was shown, what is never judged. */
-export function LensSheet({ l, x, kind }: { l: ManualLesson; x: LensStats; kind: "drill" | "play" }) {
-  const counts = l.checks?.(x) ?? [];
-  const shown = l.shown?.(x) ?? [];
+export function LensSheet({ l, x, kind, st }: { l: ManualLesson; x: LensStats; kind: "drill" | "play"; st?: Stage }) {
+  // D359: a drill's lines with nothing to measure are left out (they read as "0 OF 0").
+  const counts = (l.checks?.(x, st) ?? []).filter((c) => !(c.na && kind === "drill"));
+  const shown = l.shown?.(x, st) ?? [];
   return (
     <div className="tb-lens" id="lens-sheet" onClick={(e) => e.stopPropagation()}>
       {counts.length > 0 && (
         <ul className="tb-lens-counts">
           {counts.map((c) => (
-            <li key={c.text} className={c.na && kind === "drill" ? "na" : c.ok ? "ok" : "no"}>
-              <span aria-hidden="true">{c.na && kind === "drill" ? "·" : c.ok ? "✓" : "✗"}</span> {fill(c)}
+            <li key={c.text} className={c.ok ? "ok" : "no"}>
+              <span aria-hidden="true">{c.ok ? "✓" : "✗"}</span> {fill(c)}
             </li>
           ))}
         </ul>
@@ -174,5 +175,45 @@ export function PlacementScreen({ p, takes, retake, onRetake, done, close }: { p
         )}
       </div>
     </Frame>
+  );
+}
+
+/** D359: under a stage's line, the material named small, with its badge (what is played, at what tempo). */
+export function StageLine({ l, k }: { l: ManualLesson; k: number }) {
+  const st = l.stages[k];
+  if (!st) return null;
+  return (
+    <p className="tb-manual-stage" id="stage-line" onClick={(e) => e.stopPropagation()}>
+      <span className={`tb-manual-badge ${st.m.badge === "DRILL" ? "drill" : "game"}`}>{st.kind === "play" ? tr("PLAY") : st.m.badge === "DRILL" ? tr("DRILL") : tr("PRACTICE")}</span> {tr(st.m.label)}
+    </p>
+  );
+}
+
+/**
+ * D359, a part's seal: a checkpoint passed seals its part, a wax seal pressed with the part's numeral and
+ * its German title round it (the manual's arc made visible; kept on the map).
+ */
+export function Seal({ part, small = false }: { part: PartId; small?: boolean }) {
+  const p = PARTS.find((q) => q.id === part);
+  return (
+    <div className={`tb-seal${small ? " small" : ""}`} id={small ? undefined : "part-seal"} onClick={(e) => e.stopPropagation()}>
+      <svg viewBox="0 0 100 100" aria-hidden="true" className="tb-seal-wax">
+        <defs>
+          <path id={`seal-arc-${part}`} d="M 50 50 m -34 0 a 34 34 0 1 1 68 0 a 34 34 0 1 1 -68 0" />
+        </defs>
+        <path d="M50 4 C60 6 64 2 72 8 C80 13 86 12 90 22 C95 31 98 36 96 46 C95 56 99 62 93 71 C88 80 86 86 76 90 C67 95 62 98 52 96 C42 95 36 99 27 93 C18 88 12 86 8 76 C3 67 1 62 4 52 C5 42 1 36 7 27 C12 18 14 12 24 8 C33 3 40 2 50 4 Z" fill="#9b2a22" />
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#c9483c" strokeWidth="1.5" />
+        <circle cx="50" cy="50" r="28" fill="none" stroke="#6e1a14" strokeWidth="1" />
+        {!small && (
+          <text fontSize="7.5" fill="#f2c8a8" letterSpacing="1">
+            <textPath href={`#seal-arc-${part}`}>{p?.title ?? ""} ·</textPath>
+          </text>
+        )}
+        <text x="50" y="59" textAnchor="middle" fontSize={part.length > 2 ? 20 : 26} fill="#f6dcc2" fontFamily="serif" fontWeight="bold">
+          {part}
+        </text>
+      </svg>
+      {!small && <p className="tb-seal-word">{tr("PART {p} · SEALED", { p: part })}</p>}
+    </div>
   );
 }

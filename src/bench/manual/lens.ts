@@ -9,6 +9,42 @@ import type { LabEvent, LadderWhy } from "../lab/events.ts";
 import type { ProtoGame, RunResults } from "../proto-game.ts";
 import { isRepeat } from "../protos.ts";
 import type { Side } from "../../touch/thumbs.ts";
+import { beatOf, inBar, type TouchFugue } from "../../touch/fugue.ts";
+
+/**
+ * D359: one note of the take as the coach reads it: where it is (bar, beat from 1), how it went (right,
+ * wrong and why, missed), how early or late (ms, + late), which thumb, its release word, whether a join
+ * into it was asked and made, and how it was sounded (a pull-off, a hammer-on).
+ */
+export interface NoteLens {
+  i: number;
+  bar: number;
+  beat: number;
+  state: "right" | "wrong" | "missed";
+  why?: string;
+  /** For a wrong note judged by its direction: the way the thumb went (+1 up, -1 down, 0 level) and the line's. */
+  moved?: number;
+  wanted?: number;
+  off?: number;
+  side?: Side;
+  word?: string;
+  join?: boolean;
+  gesture?: string;
+  /** Written length (ticks); the written onset (ms from the piece's start, as heard). */
+  dur: number;
+  ms: number;
+  /** D359: held into the rest written after it. */
+  over?: boolean;
+}
+
+/** The bar a tick is in (paint-proto.ts barNumberAt's, without the painter). */
+export function barAt(f: Pick<TouchFugue, "bars">, tick: number): number {
+  const bars = f.bars;
+  if (!bars.length) return 1;
+  let n = bars[0].n;
+  for (const b of bars) if (b.on <= tick) n = b.n;
+  return n;
+}
 
 /** The lens's figures for one run. Shares are numbers of notes (ok of of); a share with of 0 is not measured. */
 export interface LensStats {
@@ -33,7 +69,7 @@ export interface LensStats {
   /** D334's gestures: pull-offs, hammer-ons, rests (how early, ms), prepared notes let go unsounded. */
   prep: { pullOffs: number; hammerOns: number; rests: number; letGo: number; earlyMs: number[] };
   /** D332's runs: RUN ✓ of runs; their notes right of their notes; the spread of their right notes' timing (ms). */
-  runs: { ok: number; of: number; notesRight: number; notesOf: number; spreadMs: number | null };
+  runs: { ok: number; of: number; notesRight: number; notesOf: number; spreadMs: number | null; badBars?: number[] };
   /** Leaps (a fourth or more) judged: right, and by which thumb. */
   leaps: { ok: number; of: number; left: number; right: number };
   /** D325's touch inferred and the joins consistent with it. */
@@ -42,6 +78,16 @@ export interface LensStats {
   words: Record<number, string>;
   /** The passage's last note: struck right, and its release word (null: not judged before the passage ended). */
   last: { hit: boolean; word: string | null };
+  /** D359: every note of the take, for the coach (where a fault was, in bars and beats). */
+  per: NoteLens[];
+  /** D359: the reading's asks by mark (ProtoGame.styleBy): joined, apart, the dot, the accent. */
+  marks: { joined: { ok: number; of: number }; apart: { ok: number; of: number }; short: { ok: number; of: number }; accent: { ok: number; of: number } };
+  /** D359: D325b's expressive time taken: agogic leans kept, breaths, the close broadened, leans taken back. */
+  graces: { agogic: number; breath: number; broaden: number; revoked: number };
+  /** D359: the short note of each dotted pair (a note a third of the one before, or less): PERFECT of all. */
+  dotted: { perfect: number; of: number };
+  /** D359: the notes struck off the beat and sounding across the next (syncopes, ties): HELD of all. */
+  ties: { held: number; of: number };
 }
 
 const REPEAT_LIMIT_MS = 400;
@@ -52,6 +98,8 @@ export interface LiveStrike {
   perfect: boolean;
   ok: boolean;
   side: Side;
+  /** D359: PERFECT by expressive time (D325b): a lean kept, a breath, the close broadened. */
+  grace?: "agogic" | "breath" | "broaden";
 }
 export interface LiveTrace {
   at: number;
@@ -103,6 +151,7 @@ export class LensTally {
   readonly trends: LiveRun[] = [];
   readonly tags: LiveTag[] = [];
   private readonly clock: () => number;
+  private seen = { agogic: 0, breath: 0, broaden: 0 };
 
   constructor(g: ProtoGame, clock: () => number = () => (typeof performance !== "undefined" ? performance.now() : 0)) {
     this.g = g;
@@ -119,7 +168,11 @@ export class LensTally {
         if (!this.notes.has(e.i)) this.notes.set(e.i, e);
         const y = this.g.lastBySide[e.side]?.y;
         if (y !== undefined) this.landings.set(e.i, y);
-        if (e.ok) this.strikes.push({ at, offMs: e.offMs, perfect: e.perfect, ok: e.ok, side: e.side });
+        // D359: the grace this strike was given, if any (the engine counts it before it tells the lens).
+        const gr = this.g.graces;
+        const grace = gr.agogic > this.seen.agogic ? "agogic" : gr.breath > this.seen.breath ? "breath" : gr.broaden > this.seen.broaden ? "broaden" : undefined;
+        this.seen = { agogic: gr.agogic, breath: gr.breath, broaden: gr.broaden };
+        if (e.ok) this.strikes.push({ at, offMs: e.offMs, perfect: e.perfect, ok: e.ok, side: e.side, ...(grace ? { grace } : {}) });
         if (this.strikes.length > 64) this.strikes.splice(0, 32);
         if (e.gesture === "pull-off" || e.gesture === "hammer-on") {
           if (e.gesture === "pull-off") this.pullOffs++;
@@ -247,6 +300,55 @@ export class LensTally {
       }
     }
     const leapEvs = judged.filter((e) => e.ladder?.rule === "leap");
+    // D359: the coach's notes, the dotted pairs' short notes, the syncopes.
+    const f = g.f;
+    const beat = beatOf(f).ticks;
+    const per: NoteLens[] = heads.map(({ n, i }, k) => {
+      const e = this.notes.get(i);
+      // A note held into the rest written after it (the engine calls REST! but tells no event of it).
+      const nx = heads[k + 1]?.n;
+      const restT = nx ? nx.on - (n.on + n.dur) : 0;
+      const off = lifted.get(i);
+      const over = restT >= beat / 4 && n.state === "hit" && (off === undefined || off > n.on + n.dur + Math.max(restT * 0.25, 0.08 * g.tps));
+      const right = n.state === "hit" && !this.revoked.has(i);
+      const lw = e?.ladder;
+      const moved = lw?.movedPx === undefined ? undefined : Math.abs(lw.movedPx) < 3 ? 0 : Math.sign(lw.movedPx);
+      return {
+        i,
+        bar: barAt(f, n.on),
+        beat: Math.round((inBar(f, n.on) / beat + 1) * 100) / 100,
+        state: right ? "right" : e ? "wrong" : "missed",
+        ...(e && !right && e.why ? { why: e.why } : {}),
+        ...(e && !right && moved !== undefined ? { moved, wanted: Math.sign(lw?.steps ?? 0) } : {}),
+        ...(e ? { off: Math.round(e.offMs), side: e.side } : {}),
+        ...(this.words[i] ? { word: this.words[i] } : {}),
+        ...(e?.legato?.judged ? { join: e.legato.ok } : {}),
+        ...(e?.gesture ? { gesture: e.gesture } : {}),
+        dur: n.dur,
+        ms: Math.round(g.timeAt(n.on) * 1000),
+        ...(over ? { over: true } : {}),
+      };
+    });
+    let dotPerfect = 0;
+    let dotOf = 0;
+    let tieHeld = 0;
+    let tieOf = 0;
+    heads.forEach(({ n, i }, k) => {
+      const prev = heads[k - 1]?.n;
+      if (prev && prev.on + prev.dur === n.on && prev.dur >= 3 * n.dur && n.dur < beat) {
+        dotOf++;
+        const e = this.notes.get(i);
+        if (n.state === "hit" && e?.ok && e.perfect) dotPerfect++;
+      }
+      // A syncope (struck off the beat, sounding across the next) or a note tied over the bar line.
+      const into = inBar(f, n.on) % beat;
+      const barLine = f.bars.find((b) => b.on > n.on)?.on ?? Infinity;
+      if (((into > 0 && n.on + n.dur > n.on - into + beat) || n.on + n.dur > barLine) && n.dur >= beat) {
+        tieOf++;
+        if (n.state === "hit" && (this.words[i] ?? "").startsWith("HELD")) tieHeld++;
+      }
+    });
+    const sb = g.styleBy;
     return {
       of: r.of,
       right: r.right,
@@ -260,11 +362,16 @@ export class LensTally {
       alternation: { alt, of: altOf },
       joins: { ok: joinsJudged.filter((e) => e.legato?.ok).length, of: joinsJudged.length },
       prep: { pullOffs: this.pullOffs, hammerOns: this.hammerOns, rests: this.rests, letGo: this.letGo, earlyMs: [...this.earlyMs] },
-      runs: { ok: this.runEvents.filter((e) => e.ok).length, of: this.runEvents.length, notesRight, notesOf, spreadMs: runOffs.length > 1 ? Math.round(sd(runOffs)) : null },
+      runs: { ok: this.runEvents.filter((e) => e.ok).length, of: this.runEvents.length, notesRight, notesOf, spreadMs: runOffs.length > 1 ? Math.round(sd(runOffs)) : null, badBars: this.runEvents.filter((e) => !e.ok && ns[e.i]).map((e) => barAt(f, ns[e.i - e.notes + 1]?.on ?? ns[e.i].on)) },
       leaps: { ok: leapEvs.filter((e) => e.ok).length, of: leapEvs.length, left: leapEvs.filter((e) => e.side === "left").length, right: leapEvs.filter((e) => e.side === "right").length },
       touch: { style: r.art.touch ?? null, ok: r.art.touchOk ?? 0, of: r.art.touchOf ?? 0 },
       words: { ...this.words },
       last: { hit: heads.at(-1)?.n.state === "hit", word: heads.length ? (this.words[heads.at(-1)!.i] ?? null) : null },
+      per,
+      marks: { joined: { ok: sb.joined.hit, of: sb.joined.of }, apart: { ok: sb.apart.hit, of: sb.apart.of }, short: { ok: sb.short.hit, of: sb.short.of }, accent: { ok: sb.accent.hit, of: sb.accent.of } },
+      graces: { ...g.graces },
+      dotted: { perfect: dotPerfect, of: dotOf },
+      ties: { held: tieHeld, of: tieOf },
     };
   }
 }

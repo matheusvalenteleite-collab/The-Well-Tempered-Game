@@ -107,14 +107,15 @@ export function place(takes: PlacementTake[]): Placement {
   const lessons = [...new Set(passed.flatMap((e) => e.lessons))];
   const opened = [...new Set(passed.flatMap((e) => e.opens))];
   // Part II opens with Part I placed past (its checkpoint TESTED); III and IV with the fourth.
-  const order = [...lessonsOf("I"), ...lessonsOf("II")].map((l) => l.id);
+  // D360: Parts III and IV are built: past Parts I and II the placement seats a player at III.1.
+  const order = [...lessonsOf("I"), ...lessonsOf("II"), ...lessonsOf("III")].map((l) => l.id);
   const start = order.find((id) => !lessons.includes(id)) ?? null;
   const p1 = results[0].ok;
-  const line = !start
-    ? { text: opened.includes("III") ? "Begin with Part III; your hands know the rest." : "Your hands know Parts I and II. The rest of the manual comes later; my fugues are open to you now." }
+  const line = !start || start === "III.1"
+    ? { text: opened.includes("III") ? "Begin with Part III; your hands know the rest." : "Your hands know Parts I and II. Begin with Part III, on touch." }
     : !p1
       ? { text: "Begin at the beginning, with Part I: the time first, then the rest." }
-      : start === "II.1" || start.startsWith("II")
+      : start.startsWith("II")
         ? { text: "Begin with lesson {l}; your hands know what comes before it.", vars: { l: start } }
         : { text: "Begin with lesson {l}; the rest of Part I you have.", vars: { l: start } };
   return { lessons, opened, results, start, line };
@@ -133,7 +134,7 @@ export function placementTexts(): string[] {
   for (const e of PLACEMENT) out.push(e.showed({ ...ZERO }).text);
   out.push(
     "Begin with Part III; your hands know the rest.",
-    "Your hands know Parts I and II. The rest of the manual comes later; my fugues are open to you now.",
+    "Your hands know Parts I and II. Begin with Part III, on touch.",
     "Begin at the beginning, with Part I: the time first, then the rest.",
     "Begin with lesson {l}; your hands know what comes before it.",
     "Begin with lesson {l}; the rest of Part I you have.",

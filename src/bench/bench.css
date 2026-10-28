@@ -785,6 +785,9 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 
 /* D327: the round's opening words in the side bars, off the first subject: the mode's instruction in the
    left bar (under the score), the reading's marks explained in the right (under the crowd). */
+/* D359: THE MANUAL's demonstration hint: its manner named, then gone from the thumbs' bar. */
+.tb-side-hint-fade { animation: tb-hint-fade 3.2s ease-in forwards; pointer-events: none; }
+@keyframes tb-hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 .tb-bars .tb-side-hint { box-sizing: border-box; left: calc(var(--tg-sal) + 8px); top: 34%; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 16px); max-width: none; transform: none; padding: 6px 8px; font-size: 7px; line-height: 1.7; box-shadow: 2px 2px 0 #b8322a; }
 .tb-side-legend { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); top: 40%; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); padding: 5px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.72); pointer-events: none; transition: opacity 0.3s; }
 .tb-side-legend p { margin: 0 0 4px; }
@@ -839,6 +842,15 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-lens-counts li.ok { color: #8fe3b0; }
 .tb-lens-counts li.no { color: #ff8a80; }
 .tb-lens-counts li.na { color: var(--tg-muted); }
+/* D359: under a stage's line, what is played (small); a part's seal. */
+.tb-manual-stage { margin: 4px 0 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.7; color: var(--tg-muted); cursor: default; }
+.tb-seal { display: flex; align-items: center; gap: 10px; margin: 6px 0 8px; cursor: default; }
+.tb-seal-wax { width: 64px; height: 64px; flex: none; filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.45)); animation: tb-seal-press 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.tb-seal-word { margin: 0; font-family: var(--tg-pixel); font-size: 8px; letter-spacing: 1px; color: #f3d78a; }
+.tb-seal.small { display: inline-flex; margin: 0; }
+.tb-seal.small .tb-seal-wax { width: 22px; height: 22px; animation: none; filter: none; }
+@keyframes tb-seal-press { from { transform: scale(1.8) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tb-seal-wax { animation: none; } }
 .tb-lens-shown { margin: 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg); }
 .tb-lens-never { margin: 0; color: var(--tg-muted); }
 @media (max-height: 520px) { .tb-grip { height: 80px; } .tb-manual-aim { font-size: 12px; } }

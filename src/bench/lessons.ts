@@ -19,7 +19,7 @@ import { beatOf, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { standardTempo, tempoOf } from "../touch/tempi.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
-import { moves, type EasyLevel, type Move, type Platform, type ProtoId } from "./protos.ts";
+import { moves, type DemoManner, type EasyLevel, type Move, type Options, type Platform, type ProtoId } from "./protos.ts";
 import type { ProtoGame } from "./proto-game.ts";
 
 /** A run's results (ProtoGame.results). */
@@ -44,7 +44,9 @@ export interface Run {
   reading?: string;
   /** D342, THE MANUAL: a drill's click (Options.click), the demonstration's manner (Options.demoStyle). */
   click?: { full: number; gone: number };
-  demoStyle?: "one-thumb" | "prepared" | "held";
+  demoStyle?: DemoManner;
+  /** D359: THE MANUAL's practice room (Options.quiet). */
+  quiet?: Options["quiet"];
 }
 
 /**

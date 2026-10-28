@@ -73,8 +73,25 @@ export interface Options {
    */
   click?: { full: number; gone: number };
   /** D342, THE MANUAL: how Herr Bach's demonstration (`demo`) plays: every note by one thumb, or the next thumb resting early on its note and sounded by the other's lift (a pull-off). */
-  demoStyle?: "one-thumb" | "prepared" | "held";
+  demoStyle?: DemoManner;
+  /**
+   * D359, THE MANUAL's practice room (lesson-only, never set by the game): the game's chatter is not drawn
+   * (score, multiplier, combo, the legato chain, banners, embers, the right bar's live sheet, the fugue's
+   * map, the ornaments' SHAKE prompts, the SOFT/STRONG hint, the articulation words): only the verdict,
+   * the lesson's own aid and the words of `words` (articulation flashes of those kinds) remain.
+   */
+  quiet?: { words?: readonly ("legato" | "held" | "short" | "clean" | "rest")[] };
 }
+
+/**
+ * D342, D359: Herr Bach's manners of playing a demonstration. D342: "one-thumb", "prepared", "held".
+ * D359 (Parts III–IV): the three touches at set holds ("legato" a little over the next onset, "ordinary"
+ * about three quarters, "detached" under half); "lean" (a strong beat or a dissonance struck a little late,
+ * the next back on the pulse); "breath" (the note after a written rest or a cadence entered a little late);
+ * "broaden" (the last two bars growing late towards the end); "accent" (the reading's accents made by time: a lift
+ * before, the note held, D338).
+ */
+export type DemoManner = "one-thumb" | "prepared" | "held" | "legato" | "ordinary" | "detached" | "accent" | "lean" | "breath" | "broaden";
 
 export interface Proto {
   id: ProtoId;

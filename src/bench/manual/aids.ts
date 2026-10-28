@@ -15,13 +15,20 @@
  *                    HAMMER-ON on the bar as a note is so sounded, P or H under its block in the box
  *   trend     II.6   the run's trend line: after each run its landings and the fitted line through them,
  *                    green for RUN ✓, red for RUN ✗
+ *   breath    IV.1   D360: a comma over the box before each note the line may breathe into (after a written
+ *                    rest or a cadence's arrival: ProtoGame.breathAt), gold once breathed (a BREATH grace)
+ * D359 (the audit: the owner saw overlapping text): the practice room (Options.quiet) leaves the bars to
+ * the aids; PULL-OFF and HAMMER-ON stand in a fixed slot at the bar's foot (they stacked on the verdict and
+ * the articulation word); the touch meter draws the take's running median and, where a take asks for a
+ * touch (III.1), its zone outlined; the timing dial marks a strike PERFECT by expressive time in gold with
+ * its word (LEAN, BREATH, BROADER).
  */
 import { MECH } from "../mechanics.ts";
 import { label } from "../paint-proto.ts";
 import type { ProtoGame } from "../proto-game.ts";
 import { BAR, isRepeat } from "../protos.ts";
 import type { LensTally } from "./lens.ts";
-import type { AidId } from "./lessons.ts";
+import type { AidId, TouchName } from "./lessons.ts";
 
 const GREEN = "#8fe3b0";
 const RED = "#ff6b6b";
@@ -37,6 +44,8 @@ export interface AidOptions {
   aids: readonly AidId[];
   /** The thumb letters only on the lesson's first take. */
   firstTake: boolean;
+  /** D360: the touch the take asks for (the meter outlines its zone). */
+  ask?: TouchName;
   now?: number;
 }
 
@@ -51,12 +60,15 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "repeat" && rows) repeatBand(c, w, bw, g);
     if (a === "fill" && rows) holdFill(c, g);
     if (a === "letters" && rows && o.firstTake) letters(c, g, lens);
-    if (a === "meter") meter(c, w, h, bw, lens);
-    if (a === "prepared") prepared(c, w, bw, g, lens, now);
+    if (a === "meter") meter(c, w, h, bw, lens, o.ask);
+    if (a === "breath" && rows) breaths(c, w, bw, g, lens);
+    if (a === "prepared") prepared(c, w, h, bw, g, lens, now);
     if (a === "trend" && rows) trend(c, g, lens, now);
   }
   c.restore();
 }
+
+const GRACE_WORD = { agogic: "LEAN", breath: "BREATH", broaden: "BROADER" } as const;
 
 /** The timing dial: ±150 ms on an arc over the right bar. */
 function dial(c: CanvasRenderingContext2D, w: number, h: number, bw: number, lens: LensTally, now: number) {
@@ -84,8 +96,8 @@ function dial(c: CanvasRenderingContext2D, w: number, h: number, bw: number, len
     const [x0, y0] = at(s.offMs, r - 6);
     const [x1, y1] = at(s.offMs, r + 5);
     c.globalAlpha = k === recent.length - 1 ? Math.max(0.5, 1 - (now - s.at) / 2000) : 0.25 + (0.35 * k) / recent.length;
-    c.strokeStyle = s.perfect ? GOLD : "#e8e3d6";
-    c.lineWidth = k === recent.length - 1 ? 2 : 1;
+    c.strokeStyle = s.grace ? "#ffcf4a" : s.perfect ? GOLD : "#e8e3d6";
+    c.lineWidth = k === recent.length - 1 || s.grace ? 2 : 1;
     c.beginPath();
     c.moveTo(x0, y0);
     c.lineTo(x1, y1);
@@ -93,6 +105,13 @@ function dial(c: CanvasRenderingContext2D, w: number, h: number, bw: number, len
   });
   const all = lens.strikes;
   c.globalAlpha = 1;
+  // D359: the last strike PERFECT by expressive time, named for a moment.
+  const last = recent.at(-1);
+  if (last?.grace && now - last.at < 1500) {
+    c.globalAlpha = 1 - (now - last.at) / 1500;
+    label(c, `${GRACE_WORD[last.grace]} ✓`, cx, cy - r - 10, "#ffcf4a", 6);
+    c.globalAlpha = 1;
+  }
   if (all.length >= 3) {
     const mean = all.reduce((a, s) => a + s.offMs, 0) / all.length;
     const [mx, my] = at(mean, r + 9);
@@ -194,7 +213,7 @@ function letters(c: CanvasRenderingContext2D, g: ProtoGame, lens: LensTally) {
 }
 
 /** The touch meter: the last holds as bars over three zones, at the foot of the box. */
-function meter(c: CanvasRenderingContext2D, w: number, h: number, bw: number, lens: LensTally) {
+function meter(c: CanvasRenderingContext2D, w: number, h: number, bw: number, lens: LensTally, ask?: TouchName) {
   const holds = lens.holds(16);
   const x0 = bw + 10;
   const mw = w - 2 * bw - 20;
@@ -215,7 +234,23 @@ function meter(c: CanvasRenderingContext2D, w: number, h: number, bw: number, le
     c.fillRect(x0, yOf(to), mw, yOf(from) - yOf(to));
     label(c, name, x0 + 4, (yOf(from) + yOf(to)) / 2, FAINT, 4, "left");
   }
+  // D360: the zone the take asks for, outlined.
+  if (ask) {
+    const [from, to] = ask === "LEGATO" ? [ZONES.legato, 1.1] : ask === "ORDINARY" ? [ZONES.ordinary, ZONES.legato] : [0, ZONES.ordinary];
+    c.globalAlpha = 0.9;
+    c.strokeStyle = GOLD;
+    c.lineWidth = 1;
+    c.strokeRect(x0 + 0.5, yOf(to) + 0.5, mw - 1, yOf(from) - yOf(to) - 1);
+  }
   const bwid = Math.max(3, Math.min(10, (mw - 70) / 16 - 2));
+  // D360: the take's running median hold: the touch it is keeping.
+  if (holds.length >= 3) {
+    const sorted = holds.map((x) => x.hold).sort((a, b) => a - b);
+    const med = sorted[sorted.length >> 1];
+    c.globalAlpha = 0.9;
+    c.fillStyle = GOLD;
+    c.fillRect(x0 + 62, Math.round(yOf(med)), mw - 66, 1);
+  }
   holds.forEach((hd, k) => {
     const x = x0 + 66 + k * (bwid + 2);
     const ink = hd.hold >= ZONES.legato ? "#c9a6ff" : hd.hold >= ZONES.ordinary ? "#e8e3d6" : "#7fd6e8";
@@ -227,7 +262,7 @@ function meter(c: CanvasRenderingContext2D, w: number, h: number, bw: number, le
 }
 
 /** The prepared outline (clearer than D334's faint one), and PULL-OFF or HAMMER-ON over each note so sounded. */
-function prepared(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGame, lens: LensTally, now: number) {
+function prepared(c: CanvasRenderingContext2D, w: number, h: number, bw: number, g: ProtoGame, lens: LensTally, now: number) {
   for (const s of g.heldSides()) {
     if (!s.armed) continue;
     const x = s.side === "left" ? 0 : w - bw;
@@ -237,7 +272,7 @@ function prepared(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGa
     c.setLineDash?.([5, 3]);
     c.strokeRect(x + 3, s.y - 18, bw - 6, 36);
     c.setLineDash?.([]);
-    label(c, "PREPARED", x + bw / 2, s.y + 25, GOLD, 5);
+    label(c, "PREPARED", x + bw / 2, s.y - 24, GOLD, 5);
   }
   const rows = g.rows;
   for (const t of lens.tags) {
@@ -247,8 +282,27 @@ function prepared(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGa
     const ink = t.word === "PULL-OFF" ? GOLD : "#e8e3d6";
     const n = g.tracks[0].notes[t.i];
     if (rows && n) label(c, t.word === "PULL-OFF" ? "P" : "H", rows.xOf(n.on) + 2, rows.yOf(n.step) + rows.rowH + 6, ink, 5, "left");
-    const y = g.lastBySide[t.side]?.y;
-    if (y !== undefined) label(c, t.word, t.side === "left" ? bw / 2 : w - bw / 2, y + 36, ink, 5);
+    // A fixed slot near the bar's foot (it stacked on the verdict and the words at the thumb's height).
+    label(c, t.word, t.side === "left" ? bw / 2 : w - bw / 2, h - 44, ink, 6);
+  }
+  c.globalAlpha = 1;
+}
+
+/** D360: a comma over each coming note the line may breathe into; gold once breathed. */
+function breaths(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGame, lens: LensTally) {
+  const rows = g.rows!;
+  const ns = g.tracks[0].notes;
+  const span = 3 * g.f.barTicks;
+  for (let i = 1; i < ns.length; i++) {
+    const n = ns[i];
+    if (n.ride || ns[i - 1].on === n.on || n.on < g.now - span * 0.25 || n.on > g.now + span) continue;
+    if (!g.breathAt(i)) continue;
+    const x = rows.xOf(n.on) - Math.max(4, rows.rowH);
+    if (x < bw || x > w - bw) continue;
+    const y = rows.yOf(n.step) - rows.rowH * 2.2;
+    const taken = n.state === "hit" && lens.strikes.some((s) => s.grace === "breath");
+    c.globalAlpha = 0.9;
+    label(c, ",", x, y, taken ? "#ffcf4a" : "#e8e3d6", 12);
   }
   c.globalAlpha = 1;
 }

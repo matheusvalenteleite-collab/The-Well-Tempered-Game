@@ -8,9 +8,10 @@
 import type { Ref } from "react";
 import { legendLines, type Mark } from "./side-notes.ts";
 
-export function SideHint({ text }: { text: string }) {
+/** D359: `fade`: THE MANUAL's demonstration names its manner, then the hint fades off the bar the thumbs play on. */
+export function SideHint({ text, fade = false }: { text: string; fade?: boolean }) {
   return (
-    <p className="tb-lite-hint tb-side-hint" id="lite-hint" role="status">
+    <p className={`tb-lite-hint tb-side-hint${fade ? " tb-side-hint-fade" : ""}`} id="lite-hint" role="status">
       {text}
     </p>
   );

@@ -68,7 +68,8 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       break;
   }
   verdict(c, w, h, g, t);
-  scoreboard(c, w, h, g, t);
+  // D359: THE MANUAL's practice room: none of the game's chatter.
+  if (!g.o.quiet) scoreboard(c, w, h, g, t);
   // D251: how far into the piece, along the top edge.
   progress(c, w, g, t);
 }
@@ -958,7 +959,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     });
     // D314: where across the bar is SOFT and where STRONG (D311's attack; the reading's ">"), for the
     // first seconds of the round (through the count-in), then fading out.
-    else if (g.proto.layout === "bars") {
+    else if (g.proto.layout === "bars" && !g.o.quiet) {
       const left = (g.startTick + SIDES_HINT_S * g.tps - g.now) / g.tps;
       if (left > 0) {
         const a = Math.min(1, left / 2);
@@ -980,7 +981,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     }
   }
   // D244: THE FUGUE'S BUILDING on the phone: the map, small, across the top of the box.
-  if (!paper && builds(g.f) && g.f.entries.length) {
+  if (!paper && !g.o.quiet && builds(g.f) && g.f.entries.length) {
     const m = fugueMap(g.f);
     const mw = w - 2 * bw - 24;
     const x0 = bw + 12;
@@ -1025,7 +1026,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         // guide thumb shaking on the bar and how ("TOUCH IT, THEN SHAKE YOUR THUMB").
         const orn = g.ornamentAt(0, nx.i);
         const sk = orn ? g.shakeAt(0, nx.i) : null;
-        if (orn && sk) {
+        if (orn && sk && !g.o.quiet) {
           const wob = Math.sin(performance.now() / 70) * 3;
           label(c, `${sk.word} · SHAKE`, s.x + bw / 2 + wob, sy + 17, t.gold, 7);
           if (g.ornHintOn) {
@@ -1266,6 +1267,9 @@ function laneGrades(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number
 function articulation(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const f = g.flash;
   if (!f) return;
+  // D359: in THE MANUAL's practice room only the words its lesson is about.
+  // (The reading's words, DETACHED ✓, ACCENT ✓, STACCATO ✓, are of the kind "legato".)
+  if (g.o.quiet && !g.o.quiet.words?.includes(f.kind)) return;
   const age = performance.now() - f.at;
   if (age > 650) return;
   const bars = g.proto.layout === "bars";
