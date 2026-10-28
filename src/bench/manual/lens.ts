@@ -90,6 +90,11 @@ export interface LensStats {
   ties: { held: number; of: number };
   /** D360 (Part V): the written ornaments read from the thumb's shake (of those in the passage), the player's own graces, and their kinds. */
   orn: { read: number; of: number; free: number; kinds: string[] };
+  /**
+   * D364 (V.5): the hold-over appoggiaturas: the places in the passage (ProtoGame.holdOverAt), those
+   * made, how many short (a quick lift), and how long each held over as a share of its note.
+   */
+  appo: { of: number; made: number; short: number; shares: number[] };
 }
 
 const REPEAT_LIMIT_MS = 400;
@@ -136,6 +141,8 @@ export class LensTally {
   readonly g: ProtoGame;
   private readonly notes = new Map<number, LabEvent & { kind: "note" }>();
   private doubles = 0;
+  /** D364: the appoggiaturas made (their share of the note, short or long). */
+  private appos: { share: number; short: boolean }[] = [];
   private pullOffs = 0;
   private hammerOns = 0;
   private rests = 0;
@@ -204,6 +211,7 @@ export class LensTally {
       case "prep":
         if (e.what === "rest") this.rests++, e.earlyMs !== undefined && this.earlyMs.push(e.earlyMs);
         if (e.what === "let-go") this.letGo++;
+        if (e.what === "appoggiatura") this.appos.push({ share: e.share ?? 0, short: !!e.short });
         return;
       case "run": {
         this.runEvents.push(e);
@@ -383,6 +391,7 @@ export class LensTally {
       dotted: { perfect: dotPerfect, of: dotOf },
       ties: { held: tieHeld, of: tieOf },
       orn: { read: this.readShakes.size, of: heads.filter(({ i }) => !!g.ornamentAt(0, i)).length, free: this.freeShakes.length, kinds: [...this.shakeKinds, ...this.freeShakes] },
+      appo: { of: heads.filter(({ i }) => g.holdOverAt(0, i)).length, made: this.appos.length, short: this.appos.filter((a) => a.short).length, shares: this.appos.map((a) => Math.round(a.share * 100) / 100) },
     };
   }
 }

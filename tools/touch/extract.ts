@@ -37,6 +37,7 @@ import { findEntriesByHead, subjectAndAnswer } from "../../src/wtc/fugue.ts";
 import { laterSubjects } from "../../src/wtc/subjects.ts";
 import { readMidi } from "./midi.ts";
 import { buildEntries, countersubjects, findCadences, homeward, keySpeller, type RawEntry } from "./analysis.ts";
+import { splitDivisi } from "./divisi.ts";
 
 const read = (f: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../data/wtc/${f}`, import.meta.url)), "utf8"));
 const corpus: WtcPiece[] = read("fugues.json");
@@ -559,6 +560,38 @@ function contrapunctusAnalysis(voices: Note[][], spell: Record<number, string>, 
 }
 
 for (const f of [...preludes, ...fugues]) homeward(f);
+
+/**
+ * D363: each fugue's voice made one line, after every reading above (entries, cadences, countersubject,
+ * keys: read from the notes as the encoding has them, unchanged): the notes of a split spine sounding
+ * with the line (a brief divisi, a final chord's notes ending apart, I/20's last bars) go to a band-only
+ * voice of its own, sounding as its parent (TouchFugue.bandVoices; tools/touch/divisi.ts).
+ */
+const subsOf = new Map(corpus.map((p) => [p.id, p.voices]));
+for (const f of fugues as { id: string; voices: Note[][]; entries: { voice: number; notes: [number, number, number, number][] }[]; bandVoices?: { of: number; notes: Note[] }[] }[]) {
+  const raw = subsOf.get(f.id)!;
+  const subject = raw.map((_, vi) => new Set(f.entries.filter((e) => e.voice === vi).flatMap((e) => e.notes.filter((n) => n[3] === 0).map((n) => `${n[0]}:${n[2]}`))));
+  const split = raw.map((v, vi) =>
+    splitDivisi(
+      v.filter(([, dur]) => dur > 0).map(([on, dur, pitch, sub]) => {
+        const sp = parsePitch(pitch);
+        return { n: [on, dur, sp.midi, sp.diatonic] as Note, sub };
+      }),
+      vi === raw.length - 1,
+      subject[vi],
+    ),
+  );
+  if (!split.some((s) => s.band.length || s.unisons)) continue;
+  const order = (a: Note, b: Note) => a[0] - b[0] || b[2] - a[2];
+  f.voices = split.map((s) => s.main.sort(order));
+  const band = split.map((s, of) => ({ of, notes: s.band.sort(order) })).filter((b) => b.notes.length);
+  if (band.length) f.bandVoices = band;
+  // An entry's notes are its voice's: those now the band's (the other sub-line's, never the subject's own) leave it.
+  for (const e of f.entries) {
+    const line = new Set(f.voices[e.voice].map((n) => `${n[0]}:${n[1]}:${n[2]}`));
+    e.notes = e.notes.filter((n) => line.has(`${n[0]}:${n[1]}:${n[2]}`));
+  }
+}
 
 const out = [...preludes, ...fugues, contrapunctus()].sort((a, b) => (a.book || 9) - (b.book || 9) || a.number - b.number || (a.kind === "prelude" ? -1 : 1));
 

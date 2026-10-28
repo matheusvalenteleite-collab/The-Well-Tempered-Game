@@ -48,6 +48,9 @@ function game(lag: number, bt: boolean, proto: ProtoId = "keys") {
   const clock = { t: 0 };
   const fc = fakeChip(clock, lag);
   const g = new ProtoGame(C_MINOR, 1, 0, protoById(proto), { bpm: 54, legato: false, easy: "timing", bt }, fc.chip);
+  // The game's wall on the fake audio clock (D317's hook, as D361 made the timing tests): a touch stamped
+  // with g.wall() is read at that moment however busy the machine (the real clock made "40 ms late" flaky).
+  g.wall = () => clock.t * 1000;
   /** Runs the frames up to time t (s, audio clock). */
   const until = (t: number) => {
     while (clock.t < t - 0.016) (clock.t += 0.016), g.step();
@@ -95,20 +98,19 @@ test("D299, D306: a touch in the window scores the note and sounds nothing; lett
   // The touch heard on time: lag after the note's audio time; 40 ms late of that, to be sure.
   r.until(at + lag + 0.04);
   const before = r.notes.length;
-  r.g.keyDown(1, { velocity: 0.9 }, performance.now());
+  r.g.keyDown(1, { velocity: 0.9 }, r.g.wall());
   assert.equal(n.state, "hit");
   assert.equal(r.g.armedAt(0, n.on)?.state, "hit");
   assert.equal(r.notes.length, before, "no sound made by the touch");
   r.until(at + lag + 0.1);
-  r.g.keyUp(1, performance.now());
+  r.g.keyUp(1, r.g.wall());
   const rec = scheduled(r, i)!;
   assert.ok(rec.stopAt !== undefined && Math.abs(rec.stopAt - r.clock.t) < 1e-9, "D306: let go, the note is cut (a staccato heard)");
   // D218: the release judged from the touch (as heard), not from the sound.
   assert.ok(n.off !== undefined && Math.abs(r.g.timeAt(n.off) - (r.clock.t - lag)) < 0.01, `off ${n.off}`);
   // D299: how late it was, as heard, kept for the retune.
   assert.equal(r.g.btOffsets.length, 1);
-  // The touch time is read from the real clock (performance.now), so a busy test machine adds a few ms.
-  assert.ok(Math.abs(r.g.btOffsets[0] - 40) < 10, `${r.g.btOffsets[0]}`);
+  assert.ok(Math.abs(r.g.btOffsets[0] - 40) < 1, `${r.g.btOffsets[0]}`);
 });
 
 test("D299, D306: a wrong key sounds nothing; it silences the voice: the note scheduled is cut", () => {
@@ -119,7 +121,7 @@ test("D299, D306: a wrong key sounds nothing; it silences the voice: the note sc
   const at = r.g.timeAt(n.on);
   r.until(at + lag);
   const before = r.notes.length;
-  r.g.keyDown(1, { midi: n.midi + 1, velocity: 0.5 }, performance.now());
+  r.g.keyDown(1, { midi: n.midi + 1, velocity: 0.5 }, r.g.wall());
   assert.equal(n.state, "miss");
   assert.equal(r.notes.length, before, "the wrong key not heard (it would be a delay late)");
   assert.notEqual(scheduled(r, i)?.stopAt, undefined, "cut");
@@ -129,7 +131,7 @@ test("D299, D306: a wrong key sounds nothing; it silences the voice: the note sc
 test("D299: the level never follows the touch; every scheduled note at the same expression", () => {
   const r = game(0.2, true);
   r.until(r.g.timeAt(r.g.notes[firstHead(r.g)].on) + 0.25);
-  r.g.keyDown(1, { velocity: 0.1 }, performance.now());
+  r.g.keyDown(1, { velocity: 0.1 }, r.g.wall());
   r.until(r.g.timeAt(r.g.end) + 1);
   const mine = r.notes.filter((x) => x.p.lead && x.p.level !== undefined);
   // D306: missed notes silence the voice, so few are scheduled; those that are, alike.
@@ -154,10 +156,10 @@ test("D299: BLUETOOTH MODE's window 20 ms wider early, 25 ms late; off, nothing 
   assert.equal(r.notes.filter((x) => x.p.lead).length, 0, "the player's notes wait for the touch");
   assert.equal(r.g.armedAt(0, r.g.notes[i].on), undefined);
   r.until(at);
-  r.g.keyDown(1, { velocity: 0.5 }, performance.now());
+  r.g.keyDown(1, { velocity: 0.5 }, r.g.wall());
   assert.equal(r.g.notes[i].state, "hit");
   assert.ok(r.notes.some((x) => x.midi === r.g.notes[i].midi && x.at === r.clock.t && x.asked === r.clock.t), "struck at the touch");
-  r.g.keyUp(1, performance.now());
+  r.g.keyUp(1, r.g.wall());
   assert.ok(r.notes.some((x) => x.midi === r.g.notes[i].midi && x.stopAt === r.clock.t), "and let go with it");
   assert.equal(r.g.viewNow, r.g.now, "no screen delay: drawn as heard");
   assert.equal((r.chip as unknown as { smooth: boolean }).smooth, false, "the clock as it was");

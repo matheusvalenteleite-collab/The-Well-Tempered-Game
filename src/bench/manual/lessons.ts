@@ -16,8 +16,11 @@
  * SOURCES, never in his mouth.
  *
  * D360 (Part V, on D353's contour gestures): the mordent, the short trill, the trill, free graces; no pass
- * mark (the owner's decision 3): passed by being played through, what was read shown. The appoggiatura
- * (the design's V.4) waits: it needs the Sinfonias' chunk and the owner's view on its gesture.
+ * mark (the owner's decision 3): passed by being played through, what was read shown. D364: V.5, the
+ * appoggiatura held over (the design's V.4, after the four), on the hold-over gesture (proto-game.ts
+ * holdOvers): I/22's falling chains of suspensions. Not Sinfonia 5: none of its written appoggiaturas
+ * repeats the note before (F5, then the grace E♭5, then D5 in bar 2), so none can be held over, and its
+ * notes are MORE BACH's chunk, which the manual does not load.
  *
  * D359 (the audit): the organ lessons sound on the PIPE ORGAN (they had kept the retired sampled
  * organ's id, which opens as the harpsichord); every lesson is played in THE MANUAL's practice room
@@ -852,6 +855,38 @@ export const MANUAL: ManualLesson[] = [
     told: (x) => (x.orn.free === 0 ? { text: "None added. That too is a choice." } : x.orn.free > 3 ? { text: "Sparingly." } : { text: "You added {n}. Sparingly is right.", vars: { n: x.orn.free } }),
     sources: ["J. A. Scheibe, Der critische Musikus (1737): Bach criticised for writing out the graces players usually improvised."],
   },
+  // D364: the appoggiatura, held over (the hold-over gesture, MECH › ORNAMENTS › HOLD-OVER APPOGGIATURA).
+  // No pass mark (decision 3); the hold compared with the textbook half, never a pass (the report).
+  {
+    id: "V.5",
+    part: "V",
+    title: "DER VORSCHLAG",
+    english: "THE APPOGGIATURA, HELD OVER",
+    minutes: 4,
+    sound: "piano",
+    aim: "Carry the note before over the beat, then let it go: the note resolves softly.",
+    hear: { styles: ["prepared", "appoggiatura"] },
+    aids: ["prepared"],
+    ornaments: true,
+    stages: [
+      st("drill", ex("wtc1f22", 0, 13, 17, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano I, bars 13–17: three held over"), "E♭ over the bar into D♭, D♭ into C, C into B♭. Rest the other thumb on the next note; hold; let go."),
+      st("play", ex("wtc1f22", 1, 62, 67, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano II, bars 62–67: five held over"), "Five in a falling line. Hold each as long as it pleases you, half the note or so."),
+    ],
+    lens: { counts: ["Nothing: played through is passed"], shown: ["The appoggiaturas held over", "How long, against the textbook half"], never: ["In the game's score", "How long you hold"] },
+    shown: (x): Check[] => [
+      { text: "HELD OVER {n} OF {m}", vars: { n: x.appo.made, m: x.appo.of }, ok: true },
+      { text: "HELD {p}% OF THE NOTE · THE TEXTBOOK: HALF", vars: { p: x.appo.shares.length ? Math.round((100 * x.appo.shares.reduce((a, b) => a + b, 0)) / x.appo.shares.length) : "—" }, ok: true },
+    ],
+    before: ["The note before, carried over the beat while the next waits: then let it go, and the note sighs into place.", "Rest the other thumb on the next note first. Hold. Let go."],
+    after: ["So. The dissonance, and its answer."],
+    again: ["Rest the other thumb on the next note, and hold the note before past the bar line."],
+    told: (x) => {
+      if (!x.appo.made) return { text: "None held over. Rest the other thumb on the next note, then hold past the beat." };
+      const m = x.appo.shares.reduce((a, b) => a + b, 0) / x.appo.shares.length;
+      return m < 0.35 ? { text: "Short and light. My son would hold it longer: half the note." } : m > 0.65 ? { text: "Long, and full of feeling. The textbook says half; the affect may say more." } : { text: "Half the note, as my son teaches it." };
+    },
+    sources: ["C. P. E. Bach, Versuch (1753), I, ch. 2, sect. 2, §§7, 9, 11, 13, 16: the long appoggiatura, on the strong beat, half the note (or more by affect), the note after it softer; the short one.", "J. J. Quantz, Versuch (1752), ch. VIII, §§7–8: the appoggiatura held, then resolved softly."],
+  },
 ];
 
 export const lessonById = (id: string): ManualLesson | undefined => MANUAL.find((l) => l.id === id);
@@ -913,7 +948,7 @@ export function manualTexts(): string[] {
   for (const l of MANUAL) {
     out.push(l.english, l.aim, ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
     if (l.alt) out.push(l.alt.label);
-    for (const x of [...xs, { ...ZERO_LENS, graces: { agogic: 1, breath: 0, broaden: 0, revoked: 0 } }, { ...ZERO_LENS, graces: { agogic: 0, breath: 1, broaden: 0, revoked: 0 } }, ...[0, 1, 2, 5].map((free) => ({ ...ZERO_LENS, orn: { read: 0, of: 2, free, kinds: [] } }))])
+    for (const x of [...xs, { ...ZERO_LENS, graces: { agogic: 1, breath: 0, broaden: 0, revoked: 0 } }, { ...ZERO_LENS, graces: { agogic: 0, breath: 1, broaden: 0, revoked: 0 } }, ...[0, 1, 2, 5].map((free) => ({ ...ZERO_LENS, orn: { read: 0, of: 2, free, kinds: [] } })), ...[0.2, 0.5, 0.8].map((s) => ({ ...ZERO_LENS, appo: { of: 3, made: 1, short: 0, shares: [s] } }))])
       for (const s of [undefined, ...l.stages]) {
         out.push(...[...(l.checks?.(x, s) ?? []), ...(l.shown?.(x, s) ?? [])].map((c) => c.text));
         const t = l.told?.(x);
@@ -924,9 +959,9 @@ export function manualTexts(): string[] {
 }
 
 /** D359: the demonstration's manners, named in the hint while Herr Bach plays. */
-export const WATCH_WORDS = ["WATCH THE THUMBS", "WATCH · DETACHED", "WATCH · JOINED", "WATCH · ORDINARY", "WATCH · ONE THUMB", "WATCH · PREPARED", "WATCH · HELD", "WATCH · ACCENTS", "WATCH · LEANING", "WATCH · BREATHING", "WATCH · BROADENING"];
+export const WATCH_WORDS = ["WATCH THE THUMBS", "WATCH · DETACHED", "WATCH · JOINED", "WATCH · ORDINARY", "WATCH · ONE THUMB", "WATCH · PREPARED", "WATCH · HELD", "WATCH · ACCENTS", "WATCH · LEANING", "WATCH · BREATHING", "WATCH · BROADENING", "WATCH · HELD OVER"];
 export const watchWord = (s?: DemoStyle) =>
-  ({ detached: "WATCH · DETACHED", legato: "WATCH · JOINED", ordinary: "WATCH · ORDINARY", "one-thumb": "WATCH · ONE THUMB", prepared: "WATCH · PREPARED", held: "WATCH · HELD", accent: "WATCH · ACCENTS", lean: "WATCH · LEANING", breath: "WATCH · BREATHING", broaden: "WATCH · BROADENING", plain: "WATCH THE THUMBS" })[s ?? "plain"];
+  ({ detached: "WATCH · DETACHED", legato: "WATCH · JOINED", ordinary: "WATCH · ORDINARY", "one-thumb": "WATCH · ONE THUMB", prepared: "WATCH · PREPARED", held: "WATCH · HELD", accent: "WATCH · ACCENTS", lean: "WATCH · LEANING", breath: "WATCH · BREATHING", broaden: "WATCH · BROADENING", appoggiatura: "WATCH · HELD OVER", plain: "WATCH THE THUMBS" })[s ?? "plain"];
 
 /** THE MANUAL's own lines and buttons between the steps (BenchApp's flow), for the translations' check. */
 export const MANUAL_FLOW = [
@@ -978,6 +1013,7 @@ export const ZERO_LENS: LensStats = {
   dotted: { perfect: 0, of: 0 },
   ties: { held: 0, of: 0 },
   orn: { read: 0, of: 0, free: 0, kinds: [] },
+  appo: { of: 0, made: 0, short: 0, shares: [] },
 };
 
 /** "{n} min" etc.: a lesson's line on the map. */

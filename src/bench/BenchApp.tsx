@@ -41,7 +41,7 @@ import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
 import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.tsx";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName } from "../touch/fugue.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
@@ -486,7 +486,7 @@ export function BenchApp() {
       ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
       voice,
       notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
-      others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => !played.includes(n.voice) && (!run || n.on < run.until)),
+      others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => (n.band || !played.includes(n.voice)) && (!run || n.on < run.until)),
       ...marks,
       piece: f.id,
     };
@@ -522,7 +522,7 @@ export function BenchApp() {
   // octave either side for ORGANO PLENO) once there is a sound to decode them into.
   function prepareSound() {
     void chip.current?.prepare(
-      f.voices.flat().map((n) => n[2]),
+      everyNote(f).map((n) => n[2]),
       played.flatMap((v) => (f.voices[v] ?? []).map((n) => n[2])),
     );
   }

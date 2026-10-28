@@ -97,7 +97,7 @@ export function describe(piece: string, e: LabEvent): string[] {
     case "wait":
       return [`${at} … SLUR: ${thumb(e.side)} down ${Math.round(e.earlyMs)} ms early, waits for its note while the other holds`];
     case "prep":
-      return [prepLine(at, pitchName(piece, e.midi), e)];
+      return [prepLine(at, pitchName(piece, e.midi), e, e.grace !== undefined ? pitchName(piece, e.grace) : null)];
     case "takeover":
       return [`${at} ⌒ TAKEN OVER: ${thumb(e.side)} landed on the note the other thumb had just taken (its drift's slide, or landing early): this one plays it`];
     case "run":
@@ -113,7 +113,7 @@ export function describe(piece: string, e: LabEvent): string[] {
 }
 
 /** D334 (B+): "b3.2 … PREPARED F5 · R thumb rests 340 ms early while the other holds (armed: sounds on its lift)". */
-function prepLine(at: string, name: string, e: Extract<LabEvent, { kind: "prep" }>): string {
+function prepLine(at: string, name: string, e: Extract<LabEvent, { kind: "prep" }>, g: string | null = null): string {
   const n = (x?: number) => Math.round(x ?? 0);
   switch (e.what) {
     case "rest":
@@ -130,6 +130,11 @@ function prepLine(at: string, name: string, e: Extract<LabEvent, { kind: "prep" 
       return `${at} … PREPARED ${name} · let go unsounded`;
     case "overlap":
       return `${at} ⌒ OVER-LEGATO ${n(e.ms)} ms (${name} pressed while the other held)`;
+    // D364 (the report's WHAT HAPPENED line): "♪ APPOGGIATURA D5 → C5 · held 410 ms (0.53 of the note)".
+    case "hold-over":
+      return `${at} … HOLD-OVER ${g ? `${g} → ` : ""}${name} · the note before held past the beat: the lift resolves it`;
+    case "appoggiatura":
+      return `${at} ♪ APPOGGIATURA ${g ? `${g} → ` : ""}${name} · held ${n(e.ms)} ms (${(e.share ?? 0).toFixed(2)} of the note)${e.short ? ", short" : ""}`;
   }
 }
 

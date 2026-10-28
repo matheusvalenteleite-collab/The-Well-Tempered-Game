@@ -43,7 +43,7 @@ test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; c
   // Parts I–IV each end in a sealed checkpoint; Part V has none (design section 3: nothing waits on it).
   for (const p of PARTS.filter((q) => ["I", "II", "III", "IV"].includes(q.id))) assert.ok(p.seal && checkpointOf(p.id), p.id);
   assert.equal(checkpointOf("V"), undefined);
-  assert.equal(MANUAL.filter((l) => !l.screen).length, 27);
+  assert.equal(MANUAL.filter((l) => !l.screen).length, 28);
 });
 
 test("D360: each excerpt has the feature its lesson teaches", () => {
@@ -127,7 +127,8 @@ test("D359: every lesson in the practice room (Options.quiet), with only the wor
 
 test("D360, Part V (on D353's contour gestures): the graces; no pass mark (decision 3); his shakes read on every written sign", () => {
   const V = PLAYED.filter((l) => l.part === "V");
-  assert.deepEqual(V.map((l) => l.id), ["V.1", "V.2", "V.3", "V.4"]);
+  // D364: V.5, the appoggiatura held over, after the four.
+  assert.deepEqual(V.map((l) => l.id), ["V.1", "V.2", "V.3", "V.4", "V.5"]);
   for (const l of V) {
     assert.equal(l.checks, undefined, `${l.id}: passed by being played through`);
     assert.ok(l.ornaments && l.stages.every((s) => s.say), l.id);

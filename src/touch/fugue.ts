@@ -124,6 +124,38 @@ export interface TouchFugue {
    * signs, the edition's notes as written ([onset, length, MIDI] in ticks): the band sounds these].
    */
   ornaments?: [voice: number, on: number, signs: string, written?: [number, number, number][]][];
+  /**
+   * D363: the band-only voices: where an edition writes two notes at once in one voice (the kern
+   * encodings' split spines in 14 of the 48, Mutopia's extra voices on a staff in Contrapunctus 5-7),
+   * the voice (`voices[of]`) keeps one line and the rest is here, each list the notes of one voice's
+   * divisi (tools/touch/divisi.ts). Played by the band, always (the player's voice too), sounding and
+   * coloured as its parent `of` (its instrument, registration and slot: OtherNote.voice is `of`); no
+   * voice of its own anywhere else: never offered to the player, not in voiceNames, not counted in
+   * "N VOICES" or the ensemble's layout (which go by voices.length).
+   */
+  bandVoices?: BandVoice[];
+}
+
+/** D363: a band-only voice: the notes a voice's divisi adds to its line, sounding as `of`. */
+export interface BandVoice {
+  of: number;
+  notes: TouchNote[];
+}
+
+/** D363: the band-only notes of voice v (none in most pieces). */
+export function bandNotes(f: TouchFugue, v: number): TouchNote[] {
+  return (f.bandVoices ?? []).filter((b) => b.of === v).flatMap((b) => b.notes);
+}
+
+/** D363: voice v's notes as written, its line and its band-only divisi together (the score sheet's). */
+export function writtenNotes(f: TouchFugue, v: number): TouchNote[] {
+  const band = bandNotes(f, v);
+  return band.length ? [...f.voices[v], ...band].sort((a, b) => a[0] - b[0] || b[2] - a[2]) : f.voices[v];
+}
+
+/** D363: every note that sounds in the piece: the voices' and the band-only voices' (for the samples to load, the box's range). */
+export function everyNote(f: TouchFugue): TouchNote[] {
+  return [...f.voices.flat(), ...(f.bandVoices ?? []).flatMap((b) => b.notes)];
 }
 
 /** D340: the collections beyond the WTC. */

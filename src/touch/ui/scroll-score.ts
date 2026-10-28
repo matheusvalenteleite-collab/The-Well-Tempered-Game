@@ -15,7 +15,7 @@
  *
  * The side bars (LADDER) keep their own ladder (rows: false): the score only scrolls.
  */
-import { fugueById, type TouchFugue } from "../fugue.ts";
+import { fugueById, writtenNotes, type TouchFugue } from "../fugue.ts";
 import { fullGeo, glyph, keyShort, keySignature, rect, roman, WTC_KEYS, type Ctx, type Template } from "./core.ts";
 import { BRAVURA, type GlyphName } from "./glyphs.ts";
 import { grandStaves, layoutStrip, voiceStaves, type Ev, type StaffSpec, type Strip } from "./strip.ts";
@@ -39,7 +39,7 @@ export interface Plan {
 function reach(f: TouchFugue, s: StaffSpec): { above: number; below: number } {
   let lo = Infinity;
   let hi = -Infinity;
-  for (const v of s.voices) for (const n of f.voices[v] ?? []) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
+  for (const v of s.voices) for (const n of f.voices[v] ? writtenNotes(f, v) : []) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
   if (lo === Infinity) (lo = s.lines[0]), (hi = s.lines[4]);
   return { above: Math.max(0, hi - s.lines[4]), below: Math.max(0, s.lines[0] - lo) };
 }
