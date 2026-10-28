@@ -43,7 +43,7 @@ export interface Run {
   /** D282: a reading the step is played by (readings.ts id: the subject's articulation asked). */
   reading?: string;
   /** D342, THE MANUAL: a drill's click (Options.click), the demonstration's manner (Options.demoStyle). */
-  click?: { full: number; gone: number };
+  click?: { full: number; gone: number; gain?: number };
   demoStyle?: DemoManner;
   /** D360 (Part V): the ornament's first-time hint (Options.ornHint: a guide thumb shaking as a sign comes). */
   ornHint?: boolean;

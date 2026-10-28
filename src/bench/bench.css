@@ -915,3 +915,50 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 /* D356: a WTC fugue's hint (an A opens its tempo), quiet; the result's tempo line. */
 .tb-pop-tempo-hint { margin: 6px 0 0; font-size: 8px; color: var(--tg-muted); }
 .tb-pop-recon { color: #e8c94a; }
+
+/* D369: play.html sideways only: a phone or tablet upright gets this screen over everything. */
+.tb-sideways { position: fixed; inset: 0; z-index: 200; display: grid; place-content: center; justify-items: center; gap: 18px; padding: 24px 16px; background: var(--tg-bg); text-align: center; touch-action: none; }
+.tb-sideways-phone { width: 64px; height: 112px; border: 4px solid var(--tg-shine); border-radius: 12px; display: grid; place-items: center; animation: tb-sideways-turn 2.6s ease-in-out infinite; box-shadow: 4px 4px 0 #b8322a; margin: 22px 0; }
+.tb-sideways-screen { width: 44px; height: 84px; background: var(--tg-box, #161a2c); display: grid; grid-auto-flow: column; gap: 6px; align-content: center; justify-content: center; }
+.tb-sideways-screen span { width: 6px; height: 54px; background: var(--tg-left, #6cb6ff); opacity: 0.85; }
+.tb-sideways-screen span:nth-child(2) { background: var(--tg-shine); height: 36px; align-self: center; }
+.tb-sideways-screen span:nth-child(3) { background: var(--tg-right, #ff8a6c); }
+@keyframes tb-sideways-turn { 0%, 20% { transform: rotate(0deg); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+@media (prefers-reduced-motion: reduce) { .tb-sideways-phone { animation: none; transform: rotate(-90deg); } }
+.tb-sideways-title { margin: 0; font-family: var(--tg-pixel); font-size: 14px; line-height: 1.6; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; }
+.tb-sideways-why { margin: 0; max-width: 300px; font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.45; color: var(--tg-fg); }
+.tb-sideways-small { margin: 0; max-width: 300px; font-family: system-ui, sans-serif; font-size: 13px; color: var(--tg-muted); }
+/* On play.html the bench's own upright/sideways notice gives way to it (nothing there is laid out for upright any more). */
+.tb-play-page .tg-upright { display: none !important; }
+
+/* D369: WHERE TO BEGIN? (a lesson left midway): the stages reached, where it was left marked. */
+.tb-resume-veil { z-index: 70; }
+.tb-resume { position: relative; display: grid; gap: 8px; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 14px 14px 12px; }
+.tb-resume-title { margin: 0 28px 0 0; font-family: var(--tg-pixel); font-size: 9px; line-height: 1.5; color: var(--tg-shine); }
+.tb-resume-q { margin: 0; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); }
+.tb-resume-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tb-resume-stage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 44px; padding: 8px 10px; text-align: left; color: var(--tg-fg); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-resume-stage.here { border: 2px solid var(--tg-shine); background: #1a1630; }
+.tb-resume-n { font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); }
+.tb-resume-name { display: grid; gap: 3px; font-family: var(--tg-pixel); font-size: 8px; }
+.tb-resume-name small { font-family: system-ui, sans-serif; font-size: 12px; color: var(--tg-muted); }
+.tb-resume-here { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-gold, var(--tg-shine)); }
+
+/* D369: the stops at the feet of the two bars (the thumbs' bars), not in the music box's title bar: a strip
+   as tall as a thumb's target (44 px), beside the box's legend, which grows to the same height so the box's
+   rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; gap: 3px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); }
+.tb-stops-left { left: calc(var(--tg-sal) + 6px); }
+.tb-stops-right { right: calc(var(--tg-sar) + 6px); }
+.tb-stops-side .tg-stop { min-width: 44px; height: 44px; margin: 0; padding: 0 2px; font-size: 7px; background: var(--tg-bg); overflow: hidden; }
+.tb-stops-side .tg-stop.on { background: var(--tg-shine); }
+.tb-stops-side .tg-stop::after { inset: -2px; }
+.tb-stops-side .tg-room-name { top: auto; bottom: calc(100% + 6px); }
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 2px); align-items: center; box-sizing: border-box; }
+
+/* D369: the voice legend: the player's voice a chip of its own (its colour block and VOCÊ: …), the others after it, dimmer. */
+.tg-legend:has(.tb-you-chip) { align-items: center; overflow: visible; }
+.tb-you-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 4px; line-height: 1.6; color: var(--tg-bg); background: var(--tg-fg); border: 2px solid; font-size: 8px; white-space: nowrap; }
+.tb-you-block { display: inline-block; width: 10px; height: 10px; border: 1px solid rgba(0, 0, 0, 0.35); }
+.tb-legend-other { line-height: 1.6; padding-top: 2px; }
+html.tb-paper .tb-you-chip { color: #fff; background: #2a2724; }

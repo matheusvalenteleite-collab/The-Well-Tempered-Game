@@ -270,6 +270,7 @@ export const PT: Record<string, string> = {
   "You caught {n} of {m} subjects; aim for 2.": "Você capturou {n} de {m} sujeitos; a meta é 2.",
   "You followed {p}% of the marks; aim for 60%.": "Você seguiu {p}% dos sinais; a meta é 60%.",
   // The game's words (drawn)
+  "YOU: {voice}": "VOCÊ: {voice}",
   YOU: "VOCÊ",
   SUBJECT: "SUJEITO",
   PERFECT: "PERFEITO",
@@ -426,6 +427,9 @@ export const PT: Record<string, string> = {
   "HEADPHONE DELAY {ms} MS IS ON": "ATRASO DOS FONES DE {ms} MS LIGADO",
   "BLUETOOTH MODE": "MODO BLUETOOTH",
   "TURN OFF": "DESLIGAR",
+  "TURN YOUR PHONE SIDEWAYS": "VIRE O CELULAR DE LADO",
+  "The game is played with the phone on its side, a thumb on each bar.": "O jogo é tocado com o celular deitado, um polegar em cada barra.",
+  "Rotation locked? Unlock it in the control centre.": "Rotação travada? Destrave-a na central de controle.",
   "TURN THE PHONE SIDEWAYS": "VIRE O CELULAR DE LADO",
   "TURN THE PHONE UPRIGHT": "VIRE O CELULAR EM PÉ",
   "This piece is played on two bars, a thumb on each.": "Esta peça é tocada em duas barras, um polegar em cada.",

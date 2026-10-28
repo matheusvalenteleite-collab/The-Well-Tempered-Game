@@ -65,7 +65,7 @@ export type LabEvent =
   | { kind: "wait"; tick: number; track: number; i: number; side: Side; earlyMs: number }
   | { kind: "takeover"; tick: number; track: number; i: number; side: Side }
   /** D332, RUNS "lenient": a run ended (its last note judged or missed): its landings' fitted travel (px, + the run's way) against the travel needed. */
-  | { kind: "run"; tick: number; track: number; i: number; dir: 1 | -1; notes: number; touches: number; slope: number; travelPx: number; needPx: number; maxPx: number; ok: boolean }
+  | { kind: "run"; tick: number; track: number; i: number; dir: 1 | -1; notes: number; touches: number; slope: number; travelPx: number; needPx: number; maxPx: number; ok: boolean; ownShare?: number }
   /** D332: on RUN ✗, a note right only by the run rule re-judged WRONG (its points taken back). */
   | { kind: "revoked"; tick: number; track: number; i: number; midi: number; side: Side; pts: number }
   | { kind: "release"; tick: number; track: number; i: number; side: Side; word: string; heldMs: number; lenMs: number }

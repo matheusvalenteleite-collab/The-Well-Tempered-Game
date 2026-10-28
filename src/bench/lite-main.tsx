@@ -12,6 +12,7 @@ import { markVersion } from "./version.ts";
 import { isSurelyComputer } from "./home.ts";
 import { unlocked } from "./unlock.ts";
 import { MobileOnly } from "./MobileOnly.tsx";
+import { Sideways, lockOnFirstTap } from "./Sideways.tsx";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
@@ -26,4 +27,13 @@ forceUi("classic");
 // D343: phones and tablets only. A computer (surely one: see isSurelyComputer) is told so, and nothing else,
 // unless the device is unlocked (unlock.ts): then the game, as before, with ⚙ PLAY ON.
 markVersion();
-createRoot(document.getElementById("root")!).render(<StrictMode>{isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}</StrictMode>);
+// D369: sideways only: a phone or tablet upright is asked to turn (Sideways.tsx, over everything; the run
+// paused by BenchApp); the first tap asks for full screen and the landscape lock where the browser allows.
+document.documentElement.classList.add("tb-play-page");
+lockOnFirstTap();
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    {isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}
+    <Sideways />
+  </StrictMode>,
+);

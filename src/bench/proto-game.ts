@@ -1076,7 +1076,9 @@ export class ProtoGame {
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
-      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? 0.12 : this.nextBeat >= ck.gone ? 0 : 0.12 * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
+      // D369: the lessons' metronome (LESSON_CLICK) softer than the count-in, on every beat of the take.
+      const ckGain = ck?.gain ?? 0.12;
+      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? ckGain : this.nextBeat >= ck.gone ? 0 : ckGain * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
       if (!band && clickGain > 0.004) ch.tick(this.timeAt(this.nextBeat), accent, clickGain);
       this.nextBeat += this.beat;
     }
@@ -1560,8 +1562,16 @@ export class ProtoGame {
     const row = this.rows?.rowH ?? MECH.ladderRowMin;
     const needPx = MECH.runTravelRows * span * row;
     const maxPx = MECH.runTravelMaxRows * span * row;
-    const tr = runTrend(pts, run.dir, needPx, maxPx);
-    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok });
+    const trend = runTrend(pts, run.dir, needPx, maxPx);
+    // D369 (the owner: "we have made the game too easy with respect to fast passages … a little bit more
+    // difficult … without simply reverting"): RUN ✓ also asks that at least RUN OWN SHARE of the run's notes
+    // struck were right by the ladder's own rule (each thumb from its own last touch), not by the run's
+    // leniency alone; otherwise RUN ✗ and the notes passed only by leniency are re-judged wrong.
+    const struck = run.notes.filter((j) => notes[j].state === "hit").length;
+    const lenient = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`)).length;
+    const ownShare = struck ? (struck - lenient) / struck : 1;
+    const tr = { ...trend, ok: trend.ok && ownShare >= MECH.runOwnShare - 1e-9 };
+    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok, ownShare: Math.round(ownShare * 100) / 100 });
     const revoke = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`));
     for (const j of revoke) {
       const a = this.runAccepted.get(`${k}:${j}`)!;
@@ -1711,7 +1721,8 @@ export class ProtoGame {
           const wayOf = (from: { y: number }) => (from.y - c.y) * run.dir;
           const other = this.lastBySide[c.side === "left" ? "right" : "left"];
           const ownOk = clear(own) || wayOf(own) >= -lee;
-          const otherOk = !!other && fresh(other) && wayOf(other) >= -lee;
+          // D369: from the other thumb's last touch only where RUN: EITHER THUMB is on (off: the game's, from 1.77).
+          const otherOk = MECH.runOtherThumb && !!other && fresh(other) && wayOf(other) >= -lee;
           ok = ownOk || otherOk;
           this.runOnly = ok;
           const from = ownOk ? own : otherOk ? other! : own;
@@ -2475,10 +2486,21 @@ export class ProtoGame {
   /** D314/D353: a held note a free ornament may be read on (see freeShake). */
   private freeReadable(h: Held): boolean {
     if (!MECH.ornGestures || !MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    // D369: none in THE MANUAL's practice room but Part V's (Options.quiet without `ornaments`). The owner:
+    // "Why is TUTORIAL predicting my notes and playing them even if i don't? … one, sometimes even two
+    // notes": at the lessons' slow tempi nearly every note is long enough for one, and a thumb's settling
+    // roll of a few px (6 px, 70 ms each way) read as a mordent on every note (I.1's drill 16 of 16, I.4's
+    // 19 of 19): two notes he never played. At the game's tempi the same roll on its shorter notes reads
+    // far less; the lessons now sound only what is struck.
+    if (this.o.quiet && !this.o.quiet.ornaments) return false;
     const i = h.note;
     const notes = this.tracks[h.k].notes;
     const n = notes[i];
-    if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    if (!n || !h.open || h.orn || h.passive || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    // D369: handed over only to a thumb that sounds: one resting PREPARED on the next note (the owner's
+    // habit: it lands about a note early) leaves the held note his to ornament (V.4: "i couldn't perform
+    // any ornaments": every held note was handed by the time the shake began).
+    if (h.handed && [...this.held.values()].some((o) => o !== h && o.k === h.k && !o.wait && o.sounds.length)) return false;
     // D353: no reading on a run's notes (its last may be long), nor on a note riders follow (D191: they sound after it).
     const run = this.runsOf(h.k).member.get(i);
     if (run && run.last !== i) return false;

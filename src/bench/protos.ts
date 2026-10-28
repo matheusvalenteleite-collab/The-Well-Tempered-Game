@@ -71,7 +71,7 @@ export interface Options {
    * no band plays (a drill's "band click"): full (the count-in's level) until `full`, fading to nothing at
    * `gone` (ticks); after it, silent.
    */
-  click?: { full: number; gone: number };
+  click?: { full: number; gone: number; gain?: number };
   /** D342, THE MANUAL: how Herr Bach's demonstration (`demo`) plays: every note by one thumb, or the next thumb resting early on its note and sounded by the other's lift (a pull-off). */
   demoStyle?: DemoManner;
   /**
