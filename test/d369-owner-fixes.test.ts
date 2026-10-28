@@ -251,3 +251,33 @@ test("D369 (7): a fugue not yet finished offers the second voice to enter; once 
   store.clear();
   assert.match(src("src/bench/BenchApp.tsx"), /APP\.lite \? liteVoice\(f, singing, readLite\(\)\.beaten\.includes\(f\.id\)\)/);
 });
+
+test("D369 (8): fast runs a little stricter (own rule share, own thumb only), in the Lab; the owner's logs: run notes wrong 8.4% → 12.9% (strict 16.8%)", async () => {
+  const { MECH_DEFAULTS, MECH_SPEC, asRecorded } = await import("../src/bench/mechanics.ts");
+  assert.equal(MECH_DEFAULTS.runs, "lenient", "not a revert to strict");
+  assert.equal(MECH_DEFAULTS.runOwnShare, 0.85);
+  assert.equal(MECH_DEFAULTS.runOtherThumb, false);
+  for (const k of ["runOwnShare", "runOtherThumb"]) assert.ok(MECH_SPEC.some((s) => s.key === k), `${k} in the Lab`);
+  // A log made before D369 is replayed as it was played (D332's rule).
+  const old = asRecorded({ runs: "lenient", stepLeewayRows: 1 });
+  assert.equal(old.runOwnShare, 0);
+  assert.equal(old.runOtherThumb, true);
+  // Measured on the owner's logs of 27 October (one lab log here, the rest in the report): stricter, not strict.
+  const { gunzipSync } = await import("node:zlib");
+  const { parseLog } = await import("../src/bench/lab/log.ts");
+  const { replay } = await import("../src/bench/lab/replay.ts");
+  const log = parseLog(gunzipSync(readFileSync(new URL("./fixtures/owner-2026-10-27/wtc-lab-wtc2f07-2026-10-27T17-29-19-756Z.json.gz", import.meta.url))).toString("utf8"));
+  const wrongIn = (m: Record<string, unknown>) => {
+    const r = replay(log, { ...MECH_DEFAULTS, ...m });
+    const out = new Map<string, { run: boolean; ok: boolean }>();
+    for (const e of r.events) {
+      if (e.kind === "note") out.set(`${e.track}:${e.i}`, { run: !!e.ladder?.run, ok: e.ok });
+      else if (e.kind === "revoked" && out.has(`${e.track}:${e.i}`)) out.get(`${e.track}:${e.i}`)!.ok = false;
+    }
+    return [...out.values()].filter((o) => !o.ok).length;
+  };
+  const before = wrongIn({ runOwnShare: 0, runOtherThumb: true });
+  const now = wrongIn({});
+  const strict = wrongIn({ runs: "strict" });
+  assert.ok(before <= now && now <= strict, `D332 ${before} ≤ now ${now} ≤ strict ${strict}`);
+});

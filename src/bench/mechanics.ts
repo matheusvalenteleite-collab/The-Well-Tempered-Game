@@ -87,6 +87,15 @@ export const MECH_DEFAULTS = {
   runTravelRows: 0.5,
   /** D332: ...and at most this many (a random tapper's fitted travel is large either way; an honest run's about the drawn distance). */
   runTravelMaxRows: 2,
+  /**
+   * D369 (the owner: fast passages "a little bit more difficult … without simply reverting"), measured on
+   * his logs of 27 October (107 takes, 467 run notes): D332 judged 8.3% of them wrong, the strict rule
+   * 16.7%; with these two, 12.8%. RUN ✓ also needs at least this share of the run's struck notes right by
+   * the ladder's own rule (each thumb from its own last touch), not by the run's leniency alone (0: off).
+   */
+  runOwnShare: 0.85,
+  /** D369: inside a run a landing may also be judged from the OTHER thumb's last touch (D332: on; the game's from 1.77: off). */
+  runOtherThumb: false,
   // LEGATO (articulation.ts, D289).
   /** LEGATO_GAP_MS: a note let go at most this long before the next is struck still joins it (ms)... */
   legatoGapMs: 90,
@@ -313,7 +322,9 @@ export const MECH_CLASSIC: Mech = { ...MECH_DEFAULTS, ...CLASSIC_VALUES };
  */
 export function asRecorded<T extends Partial<Record<string, unknown>>>(m: T | undefined): Partial<Record<string, unknown>> {
   const was = m?.waitTakeMs === undefined && m?.doubleMs !== undefined ? { waitTakeMs: m.doubleMs } : {};
-  return { ...CLASSIC_VALUES, ...was, ...(m ?? {}) };
+  // D369: a set made before RUN OWN SHARE had none (D332's run rule alone).
+  const runs = { ...(m && m.runOwnShare === undefined ? { runOwnShare: 0 } : {}), ...(m && m.runOtherThumb === undefined ? { runOtherThumb: true } : {}) };
+  return { ...CLASSIC_VALUES, ...was, ...runs, ...(m ?? {}) };
 }
 
 /** The parameters in force (the lab changes them; the game never does). */
@@ -415,6 +426,8 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "runMinNotes", group: "LADDER", label: "Run: at least", help: "D332: a run is this many notes or more, each a step the same way.", kind: "number", min: 3, max: 12, step: 1, unit: "notes" },
   { key: "runIoiMs", group: "LADDER", label: "Run: notes closer than", help: "D332: each note of a run follows the one before by less than this (at the written tempo).", kind: "number", min: 80, max: 400, step: 10, unit: "ms" },
   { key: "runTravelRows", group: "LADDER", label: "Run: travel at least", help: "D332, LENIENT: at a run's last note the thumbs' landings over it, fitted by a straight line (height against time), must travel the run's way at least this many drawn rows per step it spans (a row is a staff step as drawn); else RUN ✗ and every note right only by the run rule is re-judged WRONG (its points taken back, a slip).", kind: "number", min: 0, max: 1.5, step: 0.05, unit: "rows/step" },
+  { key: "runOtherThumb", group: "LADDER", label: "Run: either thumb", help: "D332's leniency inside a run: a landing right if it goes the run's way from EITHER thumb's last touch (on, D332), or from its own thumb's only (off: the game's since D369, fast passages a little stricter).", kind: "bool" },
+  { key: "runOwnShare", group: "LADDER", label: "Run: own rule at least", help: "D369 (the owner: fast passages \"a little bit more difficult … without simply reverting\"): RUN ✓ also needs at least this share of the run's struck notes right by the ladder's own rule (each thumb judged from its own last touch, with the line's travel), not by the run's leniency alone; else RUN ✗ and the notes right only by leniency are re-judged WRONG. 0: D332's rule. The owner's logs: D332 8.3% of run notes wrong, strict 16.7%, the game's (0.85, either thumb off) 12.8%.", kind: "number", min: 0, max: 1, step: 0.05 },
   { key: "runTravelMaxRows", group: "LADDER", label: "Run: travel at most", help: "D332, LENIENT: …and at most this many drawn rows per step it spans: landings flung far beyond the run's drawn distance are no run played (random taps fit large travels either way): RUN ✗.", kind: "number", min: 1, max: 6, step: 0.25, unit: "rows/step" },
   { key: "edgeShare", group: "LADDER", label: "Bar end (EDGE_SHARE)", help: "A thumb that travelled into the bar's end (this share of its height) may stay there.", kind: "number", min: 0, max: 0.4, step: 0.01 },
   { key: "touchTolerance", group: "INTENTION", label: "Touch tolerance", help: "D325: a note's hold within this share of the player's recent holds (same note value) is consistent: ARTICULATION credited, whatever the touch.", kind: "number", min: 0, max: 0.6, step: 0.05 },

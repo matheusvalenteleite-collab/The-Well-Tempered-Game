@@ -1552,8 +1552,16 @@ export class ProtoGame {
     const row = this.rows?.rowH ?? MECH.ladderRowMin;
     const needPx = MECH.runTravelRows * span * row;
     const maxPx = MECH.runTravelMaxRows * span * row;
-    const tr = runTrend(pts, run.dir, needPx, maxPx);
-    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok });
+    const trend = runTrend(pts, run.dir, needPx, maxPx);
+    // D369 (the owner: "we have made the game too easy with respect to fast passages … a little bit more
+    // difficult … without simply reverting"): RUN ✓ also asks that at least RUN OWN SHARE of the run's notes
+    // struck were right by the ladder's own rule (each thumb from its own last touch), not by the run's
+    // leniency alone; otherwise RUN ✗ and the notes passed only by leniency are re-judged wrong.
+    const struck = run.notes.filter((j) => notes[j].state === "hit").length;
+    const lenient = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`)).length;
+    const ownShare = struck ? (struck - lenient) / struck : 1;
+    const tr = { ...trend, ok: trend.ok && ownShare >= MECH.runOwnShare - 1e-9 };
+    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok, ownShare: Math.round(ownShare * 100) / 100 });
     const revoke = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`));
     for (const j of revoke) {
       const a = this.runAccepted.get(`${k}:${j}`)!;
@@ -1703,7 +1711,8 @@ export class ProtoGame {
           const wayOf = (from: { y: number }) => (from.y - c.y) * run.dir;
           const other = this.lastBySide[c.side === "left" ? "right" : "left"];
           const ownOk = clear(own) || wayOf(own) >= -lee;
-          const otherOk = !!other && fresh(other) && wayOf(other) >= -lee;
+          // D369: from the other thumb's last touch only where RUN: EITHER THUMB is on (off: the game's, from 1.77).
+          const otherOk = MECH.runOtherThumb && !!other && fresh(other) && wayOf(other) >= -lee;
           ok = ownOk || otherOk;
           this.runOnly = ok;
           const from = ownOk ? own : otherOk ? other! : own;
