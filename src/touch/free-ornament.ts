@@ -33,6 +33,8 @@ import { MECH, type Mech } from "../bench/mechanics.ts";
 
 /** A leg ends when the thumb has made no progress for this long (ms). */
 export const STALL_MS = 50;
+/** D378: a frame of touches (ms; iOS sends a moving thumb's at 60 Hz or more). */
+const FRAME_MS = 17;
 /** Progress (px) that keeps a leg going. */
 const PROGRESS_PX = 0.75;
 /** The across travel's floor in the steepness test (px: the jitter). */
@@ -65,6 +67,9 @@ export interface ShakeThresholds {
   /** D376 (MECH.glenn): the legs must alternate (a same-way move after a pause continues the leg). D378: no
    * cap on a leg's length (D376's 1.5 rows lost the owner's shakes: his legs are 30–136 px, 2–7 rows). */
   alternate?: boolean;
+  /** D378 (MECH.glenn): a first leg after the thumb lay still (no touch for STALL_MS: a still thumb sends
+   * none) timed from a frame before its first move, not from the last touch (often the landing). */
+  restStart?: boolean;
 }
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -79,7 +84,7 @@ export function shakeThresholds(beatS: number, rowPx: number, m: Mech = MECH): S
     steep: m.shakeSteep,
     wholeLeg: m.shakeWholeLeg,
     // D376: Glenn's separation of a shake from a slide (glenn.ts): alternating legs.
-    ...(m.glenn ? { alternate: true } : {}),
+    ...(m.glenn ? { alternate: true, restStart: true } : {}),
   };
 }
 
@@ -153,7 +158,10 @@ export class ShakeReader {
       }
       this.dir = dy > 0 ? 1 : -1;
       // The first leg from the landing's place, timed from the last moment the thumb was still there.
-      this.legStart = { x: this.start.x, y: this.start.y, t: this.still.t };
+      // D378 (glenn): a thumb lying still sends no touches: after a silence the leg began a frame ago (else
+      // a late shake's first leg, timed from the landing, was slow and dropped: the turn after the note lost).
+      const t0 = th.restStart && t - this.still.t > STALL_MS ? Math.max(this.still.t, t - FRAME_MS) : this.still.t;
+      this.legStart = { x: this.start.x, y: this.start.y, t: t0 };
       this.ext = p;
       this.passAt = p;
       this.fast = this.speedy(this.legStart, p);
