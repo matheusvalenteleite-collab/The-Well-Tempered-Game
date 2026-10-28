@@ -10,7 +10,6 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { DOUBLE_MS, EDGE_SHARE, LADDER_ROW_MIN, OWN_FRESH_S, PERFECT_MS, SLIDE_MIN_PX, SPLIT_FLOOR_MS, TRAVEL_MIN, BT_EARLY_MS, BT_LATE_MS } from "../src/bench/proto-game.ts";
 import { LEGATO_GAP_MS, LEGATO_GAP_SHARE, legatoGapMs } from "../src/bench/articulation.ts";
-import { SHAKE_STEEP, SHAKE_WINDOW_MS } from "../src/touch/free-ornament.ts";
 import { options } from "../src/touch/lanes.ts";
 import { CLASSIC_VALUES, MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, mechChanges, resetMech, setMech, withMech } from "../src/bench/mechanics.ts";
 import { diff, replay, tally } from "../src/bench/lab/replay.ts";
@@ -38,10 +37,11 @@ test("D317: MECH's defaults were the constants the engine read before (D337: WTC
   assert.equal(MECH_CLASSIC.slideMinPx, SLIDE_MIN_PX);
   assert.equal(MECH_CLASSIC.legatoGapMs, LEGATO_GAP_MS);
   assert.equal(MECH_CLASSIC.legatoGapShare, LEGATO_GAP_SHARE);
-  assert.equal(MECH_CLASSIC.shakeWindowMs, SHAKE_WINDOW_MS);
-  assert.equal(MECH_CLASSIC.shakeSteep, SHAKE_STEEP);
-  // The ones that were literals in the code (D286, D289, D296, D314): their values then.
-  assert.deepEqual([MECH_CLASSIC.repeatRows, MECH_CLASSIC.stepLeewayRows, MECH_CLASSIC.leapRows, MECH_CLASSIC.slideReachRows, MECH_CLASSIC.shakeReachRows, MECH_CLASSIC.shakeReachMinPx], [2.5, 1, 0.5, 0.5, 0.4, 6]);
+  // D353: the shake's reader replaced (the contour reader, its thresholds by the tempo): D314's window
+  // and fixed reach (0.4 row, 6 px) gone; the steepness kept.
+  assert.equal(MECH_CLASSIC.shakeSteep, 1.5);
+  // The ones that were literals in the code (D286, D289, D296): their values then.
+  assert.deepEqual([MECH_CLASSIC.repeatRows, MECH_CLASSIC.stepLeewayRows, MECH_CLASSIC.leapRows, MECH_CLASSIC.slideReachRows], [2.5, 1, 0.5, 0.5]);
   assert.deepEqual([MECH_CLASSIC.slides, MECH_CLASSIC.freeOrnaments, MECH_CLASSIC.expression, MECH_CLASSIC.cancel, MECH_CLASSIC.directionRef], [true, true, true, "overlap", "own"]);
   // The game runs on the defaults, and every parameter has a control in the lab.
   assert.deepEqual(MECH, MECH_DEFAULTS);

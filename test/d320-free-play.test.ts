@@ -88,6 +88,8 @@ test("a shake: down and back a mordent; three legs a trill (D319: settles when t
   fp.down(1, "left", 75, y, W, H, 1000);
   fp.move(1, 75, y + 14, W, H, 1060);
   fp.move(1, 75, y, W, H, 1120);
+  // D353: the return ends at rest (read on the frame's clock: a still thumb sends nothing).
+  fp.frame(1200);
   assert.ok(lines.some((l) => /SHAKE: mordent/.test(l)), lines.join("\n"));
   const main = notes[0].midi;
   assert.ok(notes.slice(1).some((n) => n.midi < main), "the note below sounds");
@@ -109,6 +111,7 @@ test("a shake: down and back a mordent; three legs a trill (D319: settles when t
   fp.down(3, "left", 75, y, W, H, 5000);
   fp.move(3, 75, y + 14, W, H, 5060);
   fp.move(3, 75, y, W, H, 5120);
+  fp.frame(5200);
   assert.ok(!lines.slice(before).some((l) => /SHAKE/.test(l)));
   resetMech();
 });

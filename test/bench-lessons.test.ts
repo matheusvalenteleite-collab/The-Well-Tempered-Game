@@ -265,11 +265,13 @@ test("D271: a held thumb slides one way only: back the other way it plays nothin
   runTo(g.timeAt(ns[0].on));
   g.down(1, c(y), performance.now());
   // D289: each step slid to the note's own height (the notes' travel, not a fixed row and a half).
-  for (let i = 1; i <= 3; i++) (runTo(g.timeAt(ns[i].on)), g.move(1, c((y = ROWS.yOf(ns[i].step))), performance.now()));
+  // D353: each slide confirmed once the thumb has not turned back for MECH.slideConfirmMs (frames after the move).
+  for (let i = 1; i <= 3; i++) (runTo(g.timeAt(ns[i].on)), g.move(1, c((y = ROWS.yOf(ns[i].step))), performance.now()), runTo(clock.t + 0.08));
   assert.deepEqual(ns.slice(0, 4).map((n) => n.state), ["hit", "hit", "hit", "hit"]);
   assert.ok(ns[4].step < ns[3].step, "the fifth note goes down");
   runTo(g.timeAt(ns[4].on));
   g.move(1, c((y += 56)), performance.now());
+  runTo(clock.t + 0.08);
   assert.equal(ns[4].state, "pending", "not played by sliding back");
   assert.equal(g.slides, 3);
 });
