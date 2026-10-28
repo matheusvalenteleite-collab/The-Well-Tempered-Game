@@ -23,8 +23,9 @@ const ALL = [...NEW, "analog"];
 test("D297: the ten new presets follow the five; no piece opens on them; phrased plainly; SWITCHED-ON keeps ANALOG SYNTH's id", () => {
   assert.equal(presetById("analog").name, "SWITCHED-ON");
   assert.equal(presetById("carlos").id, "analog");
-  assert.deepEqual(PRESETS.slice(5).map((p) => p.id), NEW);
-  assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
+  // D365: then STRING CONSORT and LUTE (test/d365-consort-lute.test.ts).
+  assert.deepEqual(PRESETS.slice(5, 15).map((p) => p.id), NEW);
+  assert.deepEqual(PRESETS.slice(5, 15).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
   for (const id of NEW) {
     // D340: but the MORE BACH and CHORALES tabs' asked-for exceptions (the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT). D348: and the harpsichord concertos.
     // D355: and the pieces given a sound of their own (tools/touch/colour-plans).

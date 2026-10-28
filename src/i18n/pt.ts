@@ -54,6 +54,8 @@ export const PT: Record<string, string> = {
   "PIPE ORGAN": "ÓRGÃO DE TUBOS",
   "VOCAL SYNTH": "VOZ SINTÉTICA",
   "SOLO VOICES": "VOZES SOLISTAS",
+  // D365: the two presets on D349's way.
+  "STRING CONSORT": "CONJUNTO DE CORDAS",
   // D305: MODULAR remade as BLEEPS AND BLOOPS.
   "BLEEPS AND BLOOPS": "BIPES E BLOPES",
   TOMITA: "TOMITA",
@@ -73,6 +75,7 @@ export const PT: Record<string, string> = {
   "GAME CONSOLES": "CONSOLES DE VIDEOGAME",
   "SYNTHESIZERS": "SINTETIZADORES",
   "VOICES": "VOZES",
+  "ENSEMBLES": "CONJUNTOS",
   "MORE": "MAIS",
   "Hold the phone sideways, a thumb on each bar.": "Segure o celular deitado, um polegar em cada barra.",
   "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.": "Toque qualquer barra, em qualquer ponto, quando a nota chega à linha: mais acima quando a melodia sobe, mais abaixo quando desce.",

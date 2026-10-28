@@ -42,12 +42,15 @@ export const styleOf = (soundId: string): Style =>
  * D309: the holds of leaps and repeated notes are the tables' (practice.ts TABLES); the harpsichord's
  * level flat (D294 kept 30% of the phrasing's swing), the piano's from its model (practice.ts).
  */
-export const TOUCH: Record<"harpsichord" | "piano", { spread: number; lead: number; agogic: number; jitter: number; cap: number; long: number; overlegato: number }> = {
+export const TOUCH: Record<"harpsichord" | "piano" | "lute", { spread: number; lead: number; agogic: number; jitter: number; cap: number; long: number; overlegato: number }> = {
   // D339: the jitter 2 → 4 ms (the piano 5); the piano's melody lead 8 → 3 ms (ASAP's WTC fugues: an onset's notes
   // spread 10 ms, the top note a median 1 ms ahead: in Bach no melody leads; Repp 1996 and Goebl 2001
   // found the lead a by-product of the melody struck louder).
   harpsichord: { spread: 0.004, lead: 0, agogic: 0.008, jitter: 0.004, cap: 0.02, long: 0.92, overlegato: 1.35 },
   piano: { spread: 0, lead: 0.003, agogic: 0.005, jitter: 0.005, cap: 0.02, long: 0.95, overlegato: 1 },
+  // D365: LUTE, played as the harpsichord (styleOf) but its chords spread wider from the bass up (the thumb, then
+  // the fingers: about 7 ms a string, within the band's 20 ms of the written beat), the bar's first beat a little less late.
+  lute: { spread: 0.007, lead: 0, agogic: 0.006, jitter: 0.004, cap: 0.02, long: 0.92, overlegato: 1.35 },
 };
 
 /**
@@ -215,7 +218,7 @@ function kindsFor(style: Style, count: number): Kind[] {
 /** `inBar`: where a tick falls in its bar (fugue.ts inBar: by the bars as encoded). */
 export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: number) => number, subject: Set<string>, style: Style = styleOf(preset().id), art: PhraseContext = {}): Shape[] {
   const plain = phrasePlain(notes, beat, inBar, subject);
-  const T = style === "harpsichord" || style === "piano" ? TOUCH[style] : null;
+  const T = style === "harpsichord" || style === "piano" ? TOUCH[style === "harpsichord" && preset().id === "lute" ? "lute" : style] : null;
   const nexts = nextIndex(notes);
   const prevs = new Map<number, number>();
   for (const [i, j] of nexts) if (j !== undefined && notes[j].on === notes[i].on + notes[i].dur) prevs.set(j, i);
