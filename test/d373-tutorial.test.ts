@@ -152,6 +152,8 @@ test("D373: Part 3's signs are the lesson's own marks, placed on the passage's n
 const player: Record<string, PlayerStyle> = {
   "3.2": { jitterMs: 15, hold: 0.35 },
   "3.3": { jitterMs: 10, holdOf: (k) => (k < 6 ? 1.05 : 0.5) },
+  // D378: joined by ear (25 ms, Glenn's): the player who joins holds into the next strike (care's 10% gap is heard).
+  "3.4": { jitterMs: 15, hold: 1.05 },
 };
 
 test("D373: a simulated player passes every lesson (every PLAY, and the lesson), his demonstration every WATCH, every TRY played through", () => {

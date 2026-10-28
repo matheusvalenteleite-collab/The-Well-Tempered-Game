@@ -64,7 +64,9 @@
   border: 1px solid #ffd36b;
   text-decoration: none;
 }
-/* D376: THE EXPRESSION LAB's badge, over everything while Glenn's mechanics are on. */
+/* D378: the old mechanics' page, the link drawn as a second choice. */
+.lab-tabs #lab-classic { color: #ffd36b; background: transparent; }
+/* D376: THE EXPRESSION LAB's way back (D378: and, with MECHANICS: CLASSIC, its badge), over everything. */
 .glenn-badge {
   position: fixed;
   left: calc(env(safe-area-inset-left, 0px) + 6px);
