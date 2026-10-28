@@ -28,13 +28,15 @@ type Ev = { t: number; down: boolean; id: number };
 function run(evs: Ev[], bpm = 54, after?: (g: ProtoGame, e: Ev) => void) {
   const clock = { t: 0 };
   const g = new ProtoGame(C_MINOR, 1, 0, protoById("keys"), { bpm, legato: false, easy: "timing" }, fakeChip(clock));
+  // D361: the keys stamped on the fake audio clock, so they are judged by it alone, never by how long the machine took.
+  g.wall = () => clock.t * 1000;
   const sorted = [...evs].sort((a, b) => a.t - b.t || Number(a.down) - Number(b.down));
   for (const e of sorted) {
     while (clock.t < e.t - 0.02) (clock.t += 0.02), g.step();
     clock.t = Math.max(clock.t, e.t);
     g.step();
-    if (e.down) g.keyDown(e.id, { velocity: 0.5 }, performance.now());
-    else g.keyUp(e.id, performance.now());
+    if (e.down) g.keyDown(e.id, { velocity: 0.5 }, g.wall());
+    else g.keyUp(e.id, g.wall());
     after?.(g, e);
   }
   return g;
