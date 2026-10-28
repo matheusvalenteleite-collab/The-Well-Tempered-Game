@@ -2465,10 +2465,21 @@ export class ProtoGame {
   /** D314/D353: a held note a free ornament may be read on (see freeShake). */
   private freeReadable(h: Held): boolean {
     if (!MECH.ornGestures || !MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    // D369: none in THE MANUAL's practice room but Part V's (Options.quiet without `ornaments`). The owner:
+    // "Why is TUTORIAL predicting my notes and playing them even if i don't? … one, sometimes even two
+    // notes": at the lessons' slow tempi nearly every note is long enough for one, and a thumb's settling
+    // roll of a few px (6 px, 70 ms each way) read as a mordent on every note (I.1's drill 16 of 16, I.4's
+    // 19 of 19): two notes he never played. At the game's tempi the same roll on its shorter notes reads
+    // far less; the lessons now sound only what is struck.
+    if (this.o.quiet && !this.o.quiet.ornaments) return false;
     const i = h.note;
     const notes = this.tracks[h.k].notes;
     const n = notes[i];
-    if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    if (!n || !h.open || h.orn || h.passive || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    // D369: handed over only to a thumb that sounds: one resting PREPARED on the next note (the owner's
+    // habit: it lands about a note early) leaves the held note his to ornament (V.4: "i couldn't perform
+    // any ornaments": every held note was handed by the time the shake began).
+    if (h.handed && [...this.held.values()].some((o) => o !== h && o.k === h.k && !o.wait && o.sounds.length)) return false;
     // D353: no reading on a run's notes (its last may be long), nor on a note riders follow (D191: they sound after it).
     const run = this.runsOf(h.k).member.get(i);
     if (run && run.last !== i) return false;
