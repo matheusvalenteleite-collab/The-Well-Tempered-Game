@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fugueById, FUGUES, type TouchFugue } from "../src/touch/fugue.ts";
 import { accompaniment, entrySpans } from "../src/touch/voice-mode.ts";
-import { membership, raiseOf, RAISE_FADE_MS, SUBJECT_HUES, subjectInk, subjectInkOf, themeOf } from "../src/touch/subject-hue.ts";
+import { membership, raiseOf, RAISE_FADE_MS, SUBJECT_SHIFT, subjectInk, subjectInkOf, themeOf } from "../src/touch/subject-hue.ts";
 import { SubjectCues } from "../src/touch/subject-fx.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -104,7 +104,7 @@ test("made once per list: the same answer object every frame, made again only wh
   assert.equal(b[list.length - 1], -1);
 });
 
-test("the colours: a hue variation of each primary, distinct within a piece, each voice its own lean", () => {
+test("D368: the colours: each voice its own hue, modified by its subject; distinct within a piece", () => {
   const hue = (hex: string) => {
     const v = parseInt(hex.slice(1), 16);
     const [r, g, b] = [(v >> 16) & 255, (v >> 8) & 255, v & 255].map((x) => x / 255);
@@ -118,8 +118,9 @@ test("the colours: a hue variation of each primary, distinct within a piece, eac
     for (let v = 0; v < count; v++) {
       const ink = inkOf(v, count);
       const [s1, s2, s3] = ([1, 2, 3] as const).map((t) => subjectInk(ink, t));
-      ([s1, s2, s3] as string[]).forEach((c, k) => assert.ok(dist(hue(c), SUBJECT_HUES[k + 1]) <= 20, `${ink} theme ${k + 1}: ${c}`));
-      assert.ok(dist(hue(s1), hue(s2)) > 90 && dist(hue(s2), hue(s3)) > 90 && dist(hue(s1), hue(s3)) > 30, `${ink}: ${s1} ${s2} ${s3}`);
+      // D368: the voice's own hue, modified: subject 1 on it, 2 and 3 turned ±34° off it.
+      ([s1, s2, s3] as string[]).forEach((c, k) => assert.ok(dist(hue(c), (hue(ink) + SUBJECT_SHIFT[k + 1] + 360) % 360) <= 8, `${ink} theme ${k + 1}: ${c}`));
+      assert.ok(dist(hue(s2), hue(s3)) > 50, `${ink}: ${s2} ${s3}`);
       assert.equal(subjectInkOf(ink, 2), s2);
     }
     // Two voices' subject never the same colour (each its own lean, or its own lightness).

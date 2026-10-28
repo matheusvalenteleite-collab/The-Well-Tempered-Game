@@ -18,14 +18,16 @@
  */
 import type { Span } from "./box-fx.ts";
 
-/** The subjects' primaries: hue (degrees) and the rim's colour (the outline, the band, the tag, the embers). */
-export const SUBJECT_HUES = [0, 0, 218, 50] as const;
-export const SUBJECT_RIMS = ["", "#ff5a5a", "#5aa0ff", "#ffe14a"] as const;
-/** How far a voice's colour leans off the primary (a share of their hue distance, at most so many degrees). */
-const LEAN = 0.3;
-/** Red and yellow lean least (a green voice leaning red is orange, the alto's own ink; yellow leaning red is orange too). */
-const LEAN_MAX = [0, 12, 20, 6];
-
+/**
+ * D368 (the owner: "I meant some kind of hue modifier to the voice original colour, and not some change to
+ * the same colour in every voice"): a subject note keeps its voice's own colour, modified: the first
+ * subject brighter and fuller in the voice's own hue, the second and third turned a little off it, one
+ * way and the other (so a double or triple fugue's subjects stay apart within each voice). Every voice
+ * thus stays itself; only its subject lights up.
+ */
+export const SUBJECT_SHIFT = [0, 0, 34, -34] as const;
+/** How much lighter a subject note is than its voice (the first subject the most). */
+const LIFT = [0, 0.16, 0.1, 0.1];
 /** A subject's number (1, 2, 3) as the analysis marks it. */
 export const themeOf = (s: Pick<Span, "theme">): 1 | 2 | 3 => (s.theme === 2 || s.theme === 3 ? s.theme : 1);
 
@@ -54,26 +56,31 @@ function hslToHex(h: number, s: number, l: number): string {
 }
 
 /** The signed hue distance from `to` to `from`, in (-180, 180]. */
-function hueDiff(from: number, to: number): number {
+export function hueDiff(from: number, to: number): number {
   const d = (((from - to) % 360) + 540) % 360 - 180;
   return d === -180 ? 180 : d;
 }
 
-/** The subject's lightness (yellow lightest, red and blue darker: a cue a deuteranope keeps). */
-const THEME_L = [0, 0.6, 0.56, 0.7];
-
-/**
- * A voice's ink as a subject note of `theme` draws it: the primary's hue leaning a little toward the
- * voice's own (so the soprano's subject reads as a magenta-red, the alto's as an orange-red), saturated,
- * the voice's lightness met halfway by the subject's.
- */
+/** A voice's ink as a subject note of `theme` draws it: its own hue (turned SUBJECT_SHIFT), fuller, lighter. */
 export function subjectInk(voiceInk: string, theme: 1 | 2 | 3): string {
   const hsl = hexToHsl(voiceInk);
-  if (!hsl) return SUBJECT_RIMS[theme];
+  if (!hsl) return voiceInk;
   const [h, s, l] = hsl;
-  const t = SUBJECT_HUES[theme];
-  const lean = Math.max(-LEAN_MAX[theme], Math.min(LEAN_MAX[theme], hueDiff(h, t) * LEAN));
-  return hslToHex((t + lean + 360) % 360, Math.max(s, 0.85), (l + THEME_L[theme]) / 2);
+  return hslToHex((h + SUBJECT_SHIFT[theme] + 360) % 360, Math.max(s, 0.9), Math.min(0.8, l + LIFT[theme]));
+}
+
+/** The rim (outline, band, tag, embers) of a voice's subject: a pale glow of its own subject colour. */
+export function subjectRim(voiceInk: string, theme: 1 | 2 | 3): string {
+  const hsl = hexToHsl(voiceInk);
+  if (!hsl) return "#ffffff";
+  return hslToHex((hsl[0] + SUBJECT_SHIFT[theme] + 360) % 360, 0.9, 0.86);
+}
+const rimMemo = new Map<string, string[]>();
+/** subjectRim, kept. */
+export function subjectRimOf(voiceInk: string, theme: 1 | 2 | 3): string {
+  let row = rimMemo.get(voiceInk);
+  if (!row) rimMemo.set(voiceInk, (row = ["", subjectRim(voiceInk, 1), subjectRim(voiceInk, 2), subjectRim(voiceInk, 3)]));
+  return row[theme];
 }
 
 const inkMemo = new Map<string, string[]>();
