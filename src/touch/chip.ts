@@ -52,6 +52,9 @@ export function oneInstrument(midi: number, v: Voicing, one: NonNullable<Patch["
     q = { ...q, detune: (q.detune ?? 0) + ((h - Math.floor(h)) * 2 - 1) * one.cents };
   }
   if (one.courses && plucked && !q.choirs) q = { ...q, choirs: midi < one.courses.split ? { four: one.courses.octave } : { unison: one.courses.unison } };
+  // D365: the instrument's own balance by register (`low`: below `from`, easing over `over` semitones to `db`):
+  // a lute's bass courses lighter than a guitar's low strings, whoever plays them.
+  if (one.low && midi < one.low.from) q = { ...q, level: (q.level ?? 1) * 10 ** ((one.low.db * Math.min(1, (one.low.from - midi) / one.low.over)) / 20) };
   return [{ ...v, pan }, q];
 }
 // ---- end D358 ----
@@ -126,6 +129,9 @@ export const PHONE_VOICES = { sets: ["voiceS", "voiceA", "voiceT", "voiceB", "ch
 export const ROOM_S = { phone: 0.8, computer: 1.3 };
 /** D291: the phone bass a little louder still: a pulse low down is softer to the ear than one higher. */
 export const PHONE_BASS_GAIN = 1.3;
+/** D365 (D358's audit): CLASSIC CHIP's voices spread within ±0.35, and its triangle 3 dB lighter. */
+export const CHIP_PAN = 0.35;
+export const CHIP_TRIANGLE = 10 ** (-3 / 20);
 
 /**
  * D297, SUPER 16-BIT's echo (the report §6.1, after the S-DSP's: EDL 5 = 80 ms, a positive EFB of 0.35,
@@ -445,9 +451,7 @@ export const UNDAMPED_TAU = 0.6;
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
 export const SING_GAIN = 3.4;
 
-/** D252: the player's own notes a little brighter (a high shelf, dB) and a little louder: the player hears himself. */
-export const MINE_TONE = 2.5;
-export const MINE_LEVEL = 1.12;
+// D252: the player's own notes were a little brighter (2.5 dB) and louder (×1.12); D349, D358, D365: withdrawn, the player's notes the band's.
 
 export interface Sounding {
   stop: (at?: number) => void;
@@ -689,8 +693,8 @@ export class Chip {
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
     // D349: not on the organ: the player's pipes are the band's (same manual, never louder).
-    // D358: nor on one instrument or one ensemble (Patch.one: the owner's rule, SOUND-PRINCIPLES.md).
-    if (p.lead && p.couple !== false && !v.patch?.pipe && !v.patch?.one) p ={ ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
+    // D358: nor on one instrument or one ensemble (Patch.one: the owner's rule, SOUND-PRINCIPLES.md). D365: nor anywhere:
+    // the consoles' and synthesizers' player's notes are the band's too (the lift, 1 dB and 2.5 dB of treble, withdrawn).
     // D322: the registration (the player's voice; every voice under TUTTI), read as the note starts: a change sounds from the next note.
     const id = preset().id;
     // D355: the band's colour by the piece's plan (colour.ts): its effects here, its stops as the band's registration (the player's own stops win).
@@ -1182,7 +1186,8 @@ export class Chip {
     // The triangle is quieter than the pulses at the same amplitude.
     const pulse = v.timbre !== "triangle";
     const E = CHIP_ENV;
-    const peak = (v.timbre === "triangle" ? 0.36 : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1) * (pulse ? E.lift : 1);
+    // D365: the triangle (the bass on a computer) 3 dB lighter (it stood 10-13 dB over the pulses: D358); on a phone as before (its bass a pulse).
+    const peak = (v.timbre === "triangle" ? 0.36 * (this.phone ? 1 : CHIP_TRIANGLE) : v.timbre === "pulse50" ? 0.15 : 0.19) * v.gain * (p.level ?? 1) * (pulse ? E.lift : 1);
     // D294: a pulse falls from its attack to a lower level and, held, sinks a little further (a console's
     // volume envelope); the triangle holds (the NES triangle has no volume control).
     const sustain = peak * (pulse ? E.fall : 0.72);
@@ -1514,6 +1519,15 @@ export class Chip {
       dip.gain.value = PHONE_VOICES.dipDb;
       src = mix.connect(dip);
     }
+    // D365: on a phone, an instrument's upper partials lifted where its small speaker hears them (Patch.phoneLift:
+    // STRING CONSORT's cello, its bow and overtones carrying the bass line; never its fundamental), whoever plays it.
+    if (this.phone && pt.phoneLift) {
+      const lift = bag.add(ctx.createBiquadFilter());
+      lift.type = "highshelf";
+      lift.frequency.value = pt.phoneLift.hz;
+      lift.gain.value = pt.phoneLift.db;
+      src = src.connect(lift);
+    }
     // D302, SOLO VOICES: a new syllable's consonant: the voice opening from a lowpass (CONSONANTS.open),
     // softer at first; joined, none (the vowel goes on).
     const syl = pt.syllable && !p.legato ? CONSONANTS[pt.syllable.cons] : null;
@@ -1539,9 +1553,9 @@ export class Chip {
     // The touch's brightness and (D213) the subject's colour share one high shelf.
     const subj = !!(p.tone || p.crisp);
     // D339: a piano struck harder is brighter (SampledInstrument.velTone): the band's level as its model
-    // gives it (Play.vel), the player's from its level (the player's own lift, MINE_LEVEL, taken out).
+    // gives it (Play.vel), the player's from its level (D365: no lift to take out any more).
     const vt = inst.velTone;
-    const velDb = vt ? (p.vel ?? (p.lead ? 20 * Math.log10(Math.max(1e-3, (p.level ?? 1) / (pt.one ? 1 : MINE_LEVEL))) : 0)) : 0;
+    const velDb = vt ? (p.vel ?? (p.lead ? 20 * Math.log10(Math.max(1e-3, p.level ?? 1)) : 0)) : 0;
     const velTone = vt ? Math.max(vt.min, Math.min(vt.max, vt.perDb * velDb)) : 0;
     src = this.shelf(src, subj ? Math.max(1200, Math.min(3500, baseHz * 4)) : vt ? vt.hz : 2500, t, Math.max(0, bright) * 5 + (p.tone ?? 0) + velTone, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
@@ -2702,7 +2716,8 @@ export function voicing(voice: number, count: number, _played = true): Voicing {
   const timbre: Timbre = phoneBass ? (count > 3 ? "pulse25" : "pulse50") : bass || count === 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
   // D297: a period preset places its voices itself (within ±0.35) and may set an inner voice a shade lighter.
   const place = placeFor(voice, count);
-  const pan = place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * 0.9 : 0;
+  // D365: CLASSIC CHIP (no patches) within ±0.35 (it spread ±0.45, the widest of any sound: D358); the others as before.
+  const pan = place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
   return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count) };
 }

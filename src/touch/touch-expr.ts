@@ -37,6 +37,11 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   analog: "synth",
   tomita: "synth",
   modular: "bleeps",
+  // D365: STRING CONSORT as the singers (a bow's pressure: darker toward the soft side, a swell held, the
+  // messa di voce a string player makes too); LUTE as the harpsichord (plucked near the rose at the outer
+  // edge: the lute stop's muted, darker pluck).
+  stringConsort: "singers",
+  lute: "harpsichord",
 };
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;

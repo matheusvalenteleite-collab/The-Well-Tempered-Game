@@ -9,7 +9,9 @@ import { presetById } from "../touch/sound.ts";
 
 /** The kinds, in order; a sound in none of them goes under MORE. */
 export const SOUND_GROUPS: readonly [group: string, ids: readonly string[]][] = [
-  ["INSTRUMENTS", ["harpsichordSampled", "pianoSampled", "chamberOrgan"]],
+  // D365: and LUTE among the instruments, STRING CONSORT an ensemble of its own.
+  ["INSTRUMENTS", ["harpsichordSampled", "pianoSampled", "chamberOrgan", "lute"]],
+  ["ENSEMBLES", ["stringConsort"]],
   ["GAME CONSOLES", ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker"]],
   ["SYNTHESIZERS", ["analog", "modular", "tomita"]],
   ["VOICES", ["vocalSynth", "soloVoices"]],

@@ -2,13 +2,13 @@
  * D358: D349's way for the other presets (docs/playback/SOUND-PRINCIPLES.md): one harpsichord and one piano
  * (one patch, the voices in the middle, each note placed by its key, the player's note the band's), SOLO
  * VOICES as one vocal ensemble (one send, one syllable, a row), the concertos' band seated and its continuo a
- * cello, bowed strings changing bow, and two trial presets (STRING CONSORT, LUTE) found but not offered.
+ * cello, bowed strings changing bow, and two trial presets (STRING CONSORT, LUTE; D365: offered, test/d365-consort-lute.test.ts).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FakeNode, FakeParam, installFakeAudio } from "./fake-audio.ts";
 import { Chip, oneInstrument, voicing, type Play } from "../src/touch/chip.ts";
-import { HARPSI_ONE, PATCHES, PRESETS, TRIALS, VOICE_SEND, creditFor, offered, playerSound, presetById, sampledNow, setPreset } from "../src/touch/sound.ts";
+import { HARPSI_ONE, PATCHES, VOICE_SEND, creditFor, offered, playerSound, presetById, sampledNow, setPreset } from "../src/touch/sound.ts";
 import { styleOf } from "../src/touch/phrasing.ts";
 
 const ctxOf = installFakeAudio(0, false);
@@ -96,11 +96,12 @@ test("D358: the concertos' band seated (first violins left, seconds right), the 
   assert.equal(PATCHES.s16Bassoon.bow, undefined);
 });
 
-test("D358: the trial presets: found by id, not offered; the lute's courses and the harpsichord's touch", () => {
-  for (const pr of TRIALS) {
-    assert.equal(presetById(pr.id), pr);
-    assert.ok(!offered(pr.id) && !PRESETS.includes(pr));
-    assert.equal(playerSound(pr.id), "chip");
+test("D358: the trial presets (D365: offered): found by id; the lute's courses and the harpsichord's touch", () => {
+  for (const id of ["stringConsort", "lute"]) {
+    const pr = presetById(id);
+    assert.equal(pr.id, id);
+    assert.ok(offered(pr.id));
+    assert.equal(playerSound(pr.id), pr.id);
     assert.ok(creditFor(pr.id));
   }
   assert.equal(styleOf("lute"), "harpsichord");

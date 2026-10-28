@@ -271,6 +271,8 @@ export interface Patch {
     hi?: number;
     cents?: number;
     courses?: { split: number; unison: { gain: number; cents: number; delay: number; shelf: number }; octave: { gain: number; shelf: number } };
+    /** D365: the keys below `from` lighter, easing over `over` semitones to `db` (a lute's bass courses against a guitar's low strings). */
+    low?: { from: number; over: number; db: number };
   };
   /**
    * D358: a bowed string's joined note is a new bow stroke, not a slur (chip.ts sampledNote): the
@@ -278,6 +280,12 @@ export interface Patch {
    * rising over `a` s while the note before crossfades out (the bow change's small dip).
    */
   bow?: { skip: number; a: number };
+  /**
+   * D365 (SOUND-PRINCIPLES.md §10): on a phone only, a high shelf of `db` from `hz` up (chip.ts sampledNote):
+   * a bass instrument's upper partials, the band its small speaker gives, lifted (never its fundamental,
+   * which only feeds the phone's limiter); the same for the band's notes and the player's.
+   */
+  phoneLift?: { hz: number; db: number };
 }
 
 /**
@@ -378,8 +386,10 @@ export const ORGAN_SEND = 0.4;
 export const STRING_BOW = { skip: 0.06, a: 0.03 } as const;
 /** D358: STRING CONSORT's one send into its room (the salon), every player's. */
 export const CONSORT_SEND = 0.22;
-/** D358: LUTE: placed by its key across the instrument (E2-A5), uneven frets, its courses (unisons above G3, octave strings below). */
-export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.25, shelf: 0 } } } as const;
+/** D365: STRING CONSORT's cello on a phone: its upper partials lifted (Patch.phoneLift), so the bass line carries there (measured: SOUND-PRINCIPLES.md §10). */
+export const CELLO_PHONE_LIFT = { hz: 700, db: 4 } as const;
+/** D358: LUTE: placed by its key across the instrument (E2-A5), uneven frets, its courses (unisons above G3, octave strings below; D365: the octave strings 0.25 → 0.4, heard); D365: its bass courses 3.5 dB lighter below D#3, eased in from A3 (the guitar recordings' low strings stood 2.5 dB over the top on a computer, 5 on a phone). */
+export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.4, shelf: 0 } }, low: { from: 57, over: 6, db: -3.5 } } as const;
 /** D358: SOLO VOICES' one send into its room (the plate), every singer's. */
 export const VOICE_SEND = 0.15;
 /**
@@ -854,11 +864,14 @@ export const PATCHES = {
   // lowpass lower (7 → 6 kHz), more breath and an aspirated onset, a small scoop (70 → 25 cents) and
   // overshoot (15 → 4), a gentle fall, the vibrato narrow, slow and late (30 cents at 6 Hz from 0.3 s →
   // 12 at the same 6 Hz from 0.5 s, ramped in: a nearly straight choral tone).
-  vocLa: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "a", type: "soprano", size: 0.96, cons: "l", scoop: 25, over: 4, fall: 60, breath: 0.22, ring: 2, top: 6000, tune: 1.06, aspirate: 0.12 }, amp: { a: 0.04, d: 0.1, s: 1, r: 0.1 }, vib: { depth: 12, rate: 6.0, delay: 0.5 }, send: 0.16, level: 0.43 }),
-  vocMi: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "i", type: "soprano", size: 1.08, cons: "m", scoop: 50, over: 10, fall: 80, breath: 0.2, ring: 4, top: 6000 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 24, rate: 6.6, delay: 0.32 }, send: 0.16, level: 0.8 }),
-  vocRo: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "a", type: "alto", size: 1, cons: "r", scoop: 40, over: 8, fall: 80, breath: 0.2, ring: 2, top: 5000, bw: 1.15, upper: -3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 20, rate: 5.4, delay: 0.34 }, send: 0.16, level: 0.59 }),
-  vocNe: P({ osc: [{ wave: "glottalLow" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "n", scoop: 25, over: 5, fall: 60, breath: 0.24, ring: 0, top: 4000, bw: 1.3, upper: -4 }, amp: { a: 0.04, d: 0.1, s: 1, r: 0.1 }, vib: { depth: 14, rate: 4.8, delay: 0.38 }, send: 0.14, level: 0.37 }),
-  vocDa: P({ osc: [{ wave: "glottalLow" }], sing: { vowel: "a", type: "bass", size: 0.97, cons: "d", scoop: 20, over: 4, fall: 40, breath: 0.22, ring: 0, top: 3500, bw: 1.3, upper: -3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.1 }, send: 0.1, level: 0.5 }),
+  // D365 (D358's audit, the owner's yes): one syllable for all ("la": a choir sings one text, not "la mi ro ne
+  // da" at once; the mezzo's vowel "a" with the rest), and the soprano 3 dB louder (0.43 → 0.61: she stood 4-7 dB
+  // under the mezzo and the tenor).
+  vocLa: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "a", type: "soprano", size: 0.96, cons: "l", scoop: 25, over: 4, fall: 60, breath: 0.22, ring: 2, top: 6000, tune: 1.06, aspirate: 0.12 }, amp: { a: 0.04, d: 0.1, s: 1, r: 0.1 }, vib: { depth: 12, rate: 6.0, delay: 0.5 }, send: 0.16, level: 0.61 }),
+  vocMi: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "a", type: "soprano", size: 1.08, cons: "l", scoop: 50, over: 10, fall: 80, breath: 0.2, ring: 4, top: 6000 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 24, rate: 6.6, delay: 0.32 }, send: 0.16, level: 0.8 }),
+  vocRo: P({ osc: [{ wave: "glottalWarm" }], sing: { vowel: "a", type: "alto", size: 1, cons: "l", scoop: 40, over: 8, fall: 80, breath: 0.2, ring: 2, top: 5000, bw: 1.15, upper: -3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, vib: { depth: 20, rate: 5.4, delay: 0.34 }, send: 0.16, level: 0.59 }),
+  vocNe: P({ osc: [{ wave: "glottalLow" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "l", scoop: 25, over: 5, fall: 60, breath: 0.24, ring: 0, top: 4000, bw: 1.3, upper: -4 }, amp: { a: 0.04, d: 0.1, s: 1, r: 0.1 }, vib: { depth: 14, rate: 4.8, delay: 0.38 }, send: 0.14, level: 0.37 }),
+  vocDa: P({ osc: [{ wave: "glottalLow" }], sing: { vowel: "a", type: "bass", size: 0.97, cons: "l", scoop: 20, over: 4, fall: 40, breath: 0.22, ring: 0, top: 3500, bw: 1.3, upper: -3 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.1 }, send: 0.1, level: 0.5 }),
   // D302, SOLO VOICES (the second vocal preset): recorded singers (VocalSet: a soprano, a mezzo, a
   // tenor and a bass, each singing "a"; FluidR3's choir "aah" for the second of five), each line its own
   // singer and consonant ("la", "na", "ra", "da", "ma": the voice opening from a lowpass, a burst for
@@ -884,14 +897,14 @@ export const PATCHES = {
   singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.7, sample: "voiceT", one: {} }),
   singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "l", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "l", scoop: 15, over: 3, fall: 40, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.6, sample: "voiceB", one: {} }),
   singChoir: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "m", scoop: 40, over: 8, fall: 60, breath: 0.15, ring: 2 }, syllable: { cons: "m", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.05, d: 0.1, s: 1, r: 0.12 }, rec: { a: 0.05, d: 0, s: 1, r: 0.18 }, send: 0.2, level: 1.68, sample: "choirAah" }),
-  // D358, two trial presets on D349's way (SOUND-PRINCIPLES.md), not offered yet (TRIALS): the owner listens first.
+  // D358, two presets on D349's way (SOUND-PRINCIPLES.md); D365: finished and offered.
   // STRING CONSORT: a baroque string band one to a part (two violins, viola, cello), recorded (VSO2's violin,
-  // VSCO 2 CE's violas, a Freesound cello), seated as a quartet sits (Preset.by), one room (the salon) at one
+  // TinySOL's solo viola (D365: one player, not a section), a Freesound cello), seated as a quartet sits (Preset.by), one room (the salon) at one
   // send (CONSORT_SEND), one envelope (in 50 ms: the bow biting; out 120 ms), a bow change on a joined note
   // (Patch.bow), nothing added (the recordings' own vibrato), the player's line played as the others (Patch.one).
   consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
   consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
-  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {} }),
+  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT }),
   // LUTE: one lute (a classical guitar's recordings, gut-like nylon) with a lute's courses (Patch.one.courses:
   // each note's second string a few cents off and 3 ms later; below G3 an octave string in its place), each
   // note placed by its course (key) across the instrument, a fretted instrument's slightly uneven frets
@@ -1200,22 +1213,8 @@ export const PRESETS: Preset[] = [
       5: [["tomWhistle", 0.35], ["tomStrings", -0.35, 0.84], ["tomFlute", 0.2], ["tomChoir", -0.2, 0.94], ["tomBass", 0]],
     },
   },
-];
-
-/**
- * D219: the player's voice over Kimiko Ishizaka's piano (WITH KIMIKO ISHIZAKA's default): a breathy,
- * sustained baroque flute on top, a soft stopped organ flute below: no hammer, so heard apart from her.
- * D292: out of the players' choices, kept for that mode alone (presetById still finds it).
- */
-export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 };
-
-/**
- * D358: new presets on D349's way (docs/playback/SOUND-PRINCIPLES.md), for the owner to hear before any is
- * offered: presetById finds them (the A/B page, the tests), the players' list does not (playerSound: CLASSIC CHIP).
- * STRING CONSORT: two violins, viola and cello one to a part, seated as a quartet (first violin left, cello
- * right, within ±0.24), a fifth voice a second viola, a sixth a second cello. LUTE: one lute, every voice on it.
- */
-export const TRIALS: Preset[] = [
+  // D358 (a trial), D365 (offered): STRING CONSORT: two violins, viola and cello one to a part, seated as a
+  // quartet (first violin left, cello right, within ±0.24), a fifth voice a second viola, a sixth a second cello.
   {
     id: "stringConsort",
     name: "STRING CONSORT",
@@ -1231,8 +1230,16 @@ export const TRIALS: Preset[] = [
       6: [["consViolin", -0.24], ["consViolin", -0.14], ["consViola", -0.04], ["consViola", 0.06], ["consCello", 0.16], ["consCello", 0.24]],
     },
   },
+  // D358 (a trial), D365 (offered): LUTE: one lute, every voice on it, in the middle (each note placed by its key, Patch.one).
   { id: "lute", name: "LUTE", slots: ["lute2", "lute2", "lute2", "lute2", "lute2"], room: 0, fx: "salon", by: oneKeyboard("lute2") },
 ];
+
+/**
+ * D219: the player's voice over Kimiko Ishizaka's piano (WITH KIMIKO ISHIZAKA's default): a breathy,
+ * sustained baroque flute on top, a soft stopped organ flute below: no hammer, so heard apart from her.
+ * D292: out of the players' choices, kept for that mode alone (presetById still finds it).
+ */
+export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 };
 
 /**
  * D249: the sampled organ, out of the players' choices (PRESETS) until the new organs come
@@ -1285,8 +1292,8 @@ export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM 
 export const VOICES_CREDIT = "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A. WAHL, B. PARDO · CC BY 4.0";
 export const CHOIR_CREDIT = "CHOIR: FLUIDR3_GM · FRANK WEN · MIDI-JS-SOUNDFONTS · CC BY 3.0";
 // D358: SOLO VOICES sings without FluidR3's choir now (its second soprano a soprano): VocalSet's credit alone.
-/** D358: the trial presets' recordings (CC BY 3.0 asks for credit; VSCO 2 CE's violas are CC0). */
-export const CONSORT_CREDIT = "STRINGS: VERSILIAN STUDIOS VSO2 CE (VIOLIN) · CELLO: FREESOUND 12408, FLCELLOGRL · CC BY 3.0";
+/** D358, D365: STRING CONSORT's and LUTE's recordings (CC BY asks for credit). */
+export const CONSORT_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0";
 export const LUTE_CREDIT = "LUTE: CLASSICAL GUITAR, FREESOUND 11573, QUARTERTONE · CC BY 3.0";
 const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
@@ -1298,7 +1305,7 @@ export function playerSound(id: string): string {
   return offered(r) ? r : "chip";
 }
 /** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
-export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
+export const presetById = (id: string) => [...PRESETS, TRAVERSO].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {
