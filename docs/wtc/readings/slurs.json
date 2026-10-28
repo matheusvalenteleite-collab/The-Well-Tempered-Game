@@ -1,0 +1,1034 @@
+{
+ "wtc1f01": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller's rule \"the steps of a second are linked\": a legato rule, no slur."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Legato; the intervals of the fourth and fifth portato\": a legato rule."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     3,
+     6
+    ],
+    [
+     9,
+     12
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. F-G-F-E and G-A-G-F (end uncertain)."
+  }
+ },
+ "wtc1f02": {
+  "keller": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     5,
+     7
+    ],
+    [
+     10,
+     12
+    ]
+   ],
+   "why": "Keller: \"the mordent-like sixteenths should be linked\", each figure into its eighth, the eighths set apart: the three-note figure C-B-C is a group, so a slur."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     5,
+     7
+    ],
+    [
+     10,
+     12
+    ]
+   ],
+   "why": "Bodky: \"Legato for the mordent figures\" (each C-B-C a group closed by a nonlegato eighth: a slur); \"legato for the end of the theme\" (i14-19): plain legato."
+  },
+  "riemann": {
+   "legato": true,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     5,
+     7
+    ],
+    [
+     10,
+     12
+    ],
+    [
+     16,
+     19
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. C-B-C three times and A-flat-G-F-E-flat; the joins C-D (i7, i12) come from his text's rule (\"the legato of the melodic intervals\"): plain legato."
+  }
+ },
+ "wtc1f03": {
+  "keller": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     4
+    ],
+    [
+     5,
+     6
+    ],
+    [
+     7,
+     9
+    ]
+   ],
+   "why": "Keller's printed example: slurs over A#-G#-F#-G#, E#-C# and G#-F#-E#: slurs."
+  },
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     5
+    ],
+    [
+     8,
+     10
+    ]
+   ],
+   "why": "Bodky: \"the next five notes slurred; the same for the first four notes of bar 2\": slurs."
+  }
+ },
+ "wtc1f06": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"an accentuated legato\": a manner, no slur."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Legato\": a manner."
+  }
+ },
+ "wtc1f07": {
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     3
+    ],
+    [
+     5,
+     7
+    ],
+    [
+     16,
+     18
+    ],
+    [
+     20,
+     21
+    ]
+   ],
+   "why": "Keller's printed version (Bodky's Ex. A3): slurs over G-F-G, Ab-G-Ab, F-D-Bb: slurs."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     3
+    ],
+    [
+     5,
+     8
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. Slur ends uncertain."
+  }
+ },
+ "wtc1f08": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"All larger intervals portato, otherwise legato\": a legato rule."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     4
+    ],
+    [
+     9,
+     11
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc1f12": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"a continual legato\": a manner."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Molto legato\": a manner."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     8,
+     9
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. A-flat-G."
+  }
+ },
+ "wtc1f13": {
+  "keller": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     3,
+     9
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "why": "Keller's printed suggestion: slurs C#-F#, F#...D# (over the written-out trill), B-A#-G#: slurs."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Legato; in the wave figure, two notes slurred\": the legato is coded; the wave figure's pairs were never placed on the notes, so no slur is invented here."
+  }
+ },
+ "wtc1f15": {
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     5
+    ],
+    [
+     6,
+     10
+    ],
+    [
+     21,
+     25
+    ],
+    [
+     26,
+     29
+    ]
+   ],
+   "why": "Bodky's Ex. A4: slurs over A-G-F#-G-A, B-A-G-A-B, E-D-C-B-A, C-B-A-G: slurs."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     4
+    ],
+    [
+     6,
+     10
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc1f17": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"a continuous legato\": a manner."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"The eighths legato e portato, the rest legato\": a manner."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     3
+    ],
+    [
+     4,
+     6
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. Motive slurs A-flat-E-flat-C-A-flat and F-D-flat-E-flat."
+  }
+ },
+ "wtc1f18": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"The subject is legato\": a manner."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     7,
+     8
+    ]
+   ],
+   "why": "Bodky: \"The first seven notes legato\" (legato), \"the two next ones slurred\" (a slur)."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     5,
+     6
+    ],
+    [
+     7,
+     8
+    ],
+    [
+     9,
+     10
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc1f21": {
+  "keller": {
+   "legato": false,
+   "slurs": [
+    [
+     4,
+     5
+    ]
+   ],
+   "why": "Czerny's printed slur D-C (Keller's choice): a slur."
+  },
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     4,
+     5
+    ],
+    [
+     13,
+     14
+    ],
+    [
+     37,
+     38
+    ]
+   ],
+   "why": "Bodky: \"the two falling seconds d-c and e flat-d, which should be slurred\" (and the dotted D-C by his dotted-rhythm slur rule): slurs."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     6,
+     11
+    ],
+    [
+     15,
+     18
+    ],
+    [
+     19,
+     24
+    ],
+    [
+     25,
+     30
+    ],
+    [
+     31,
+     36
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. End points in bar 4 approximate."
+  }
+ },
+ "wtc1f24": {
+  "keller": {
+   "legato": false,
+   "slurs": [
+    [
+     3,
+     4
+    ],
+    [
+     5,
+     6
+    ],
+    [
+     7,
+     8
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     11,
+     12
+    ],
+    [
+     13,
+     14
+    ]
+   ],
+   "why": "Keller: \"the little slurs in the subject, which are original\": Bach's own slurred pairs: slurs."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     3,
+     4
+    ],
+    [
+     5,
+     6
+    ],
+    [
+     7,
+     8
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     11,
+     12
+    ],
+    [
+     13,
+     14
+    ],
+    [
+     15,
+     16
+    ],
+    [
+     17,
+     18
+    ],
+    [
+     19,
+     20
+    ]
+   ],
+   "why": "Bodky: \"The first three notes legato e portato\" (legato), \"the rest slurred in pairs (autographic)\" (slurs)."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     5,
+     6
+    ],
+    [
+     11,
+     12
+    ],
+    [
+     13,
+     14
+    ],
+    [
+     19,
+     20
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc2f02": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"legato (no caesura in the subject)\": a manner."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Legato\": a manner."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     3
+    ],
+    [
+     4,
+     8
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. Motive-length (G-E-flat-F-G, C-F-E-flat-D-E-flat), kept as slurs like his Book I motive slurs."
+  }
+ },
+ "wtc2f05": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: no greater error than to split the subject into (a) and (b): the junction joined is legato, no slur."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"the eighths quasi legato\": a manner."
+  }
+ },
+ "wtc2f06": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"quasi legato ... then legato\": a manner."
+  }
+ },
+ "wtc2f11": {
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     4,
+     6
+    ],
+    [
+     8,
+     10
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc2f17": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"strictly legato\": a manner."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Molto legato\": a manner."
+  }
+ },
+ "wtc2f18": {
+  "keller": {
+   "legato": true,
+   "slurs": [],
+   "why": "Keller: \"everything is legato\": a manner."
+  },
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Molto legato\": a manner."
+  }
+ },
+ "wtc1f04": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Molto legato\": a manner, no slur."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. C#-B#."
+  }
+ },
+ "wtc1f05": {
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     10,
+     11
+    ]
+   ],
+   "why": "Bodky: \"Marcato e quasi legato\" (a manner: legato), and his dotted-rhythm rule (a dotted note slurred to its short note): the A-G pair after the break is that slur; the B-B pair inside the quasi-legato run stays legato."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     8
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. The demisemiquaver run slurred to the dotted B."
+  }
+ },
+ "wtc1f09": {
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     2,
+     5
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc1f10": {
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     18,
+     19
+    ],
+    [
+     22,
+     23
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc1f11": {
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     1,
+     2
+    ]
+   ],
+   "why": "Bodky: \"the first two eighths of the first bar slurred\" (a slur), \"all the other notes legato\" (legato)."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. C-D."
+  }
+ },
+ "wtc1f14": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Legato\": a manner."
+  }
+ },
+ "wtc1f16": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"First two eighths legato\": his word is legato, kept so."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     3,
+     4
+    ],
+    [
+     5,
+     10
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc1f19": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"molto legato for the eighths\": a manner."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     2
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. G#-C#."
+  }
+ },
+ "wtc1f20": {
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     2
+    ],
+    [
+     5,
+     7
+    ],
+    [
+     10,
+     12
+    ],
+    [
+     18,
+     19
+    ],
+    [
+     22,
+     23
+    ]
+   ],
+   "why": "Bodky's Ex. A5: slurs over A-G#-A, C-B-C, D-C-D, B-C, C-D: slurs."
+  }
+ },
+ "wtc1f22": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"the others ben legato\": a manner."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. B-flat-F."
+  }
+ },
+ "wtc1f23": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Legato with slight tenuto\": a manner."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     1,
+     2
+    ],
+    [
+     5,
+     6
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs."
+  }
+ },
+ "wtc2f01": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"the rest quasi legato\": a legato rule."
+  }
+ },
+ "wtc2f04": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Quasi legato\": a legato rule."
+  }
+ },
+ "wtc2f07": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"the eighths legato\": his word is legato, kept so."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     7,
+     8
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. A-flat-G."
+  }
+ },
+ "wtc2f08": {
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     3,
+     4
+    ],
+    [
+     8,
+     9
+    ],
+    [
+     10,
+     11
+    ]
+   ],
+   "why": "Bodky's Ex. A6: slurs C##-D#, F#-E#, A#-G#: slurs."
+  }
+ },
+ "wtc2f09": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Molto legato\": a manner."
+  }
+ },
+ "wtc2f12": {
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     4,
+     5
+    ]
+   ],
+   "why": "Bodky: \"the two last sixteenths of the first bar could be lightly slurred\": a slur."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     4,
+     5
+    ],
+    [
+     9,
+     12
+    ],
+    [
+     13,
+     20
+    ],
+    [
+     21,
+     24
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. A-flat-G-A-flat-B-flat and B-flat-D-flat-C-B-flat-A-flat meet on B-flat (i16) and the data join them: one slur i13-20."
+  }
+ },
+ "wtc2f13": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"eighths legato\"; the slurred falling second of bar 4 was never placed on the notes: legato only."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     3
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. The trill's arc to F#."
+  }
+ },
+ "wtc2f14": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"all seconds legato\": a legato rule."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. C#-A."
+  }
+ },
+ "wtc2f19": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Quasi legato\": a manner."
+  }
+ },
+ "wtc2f21": {
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     13,
+     14
+    ],
+    [
+     15,
+     16
+    ],
+    [
+     17,
+     18
+    ],
+    [
+     19,
+     20
+    ],
+    [
+     21,
+     22
+    ]
+   ],
+   "why": "Bodky: \"Legato throughout\" (legato); \"the falling seconds in bars 3 and 4 are slurred in pairs\" (slurs)."
+  }
+ },
+ "wtc2f22": {
+  "bodky": {
+   "legato": false,
+   "slurs": [
+    [
+     7,
+     10
+    ],
+    [
+     11,
+     14
+    ],
+    [
+     15,
+     18
+    ],
+    [
+     19,
+     20
+    ],
+    [
+     23,
+     25
+    ]
+   ],
+   "why": "Bodky's Ex. A7: \"only the slurs are quasi legato\": slurs."
+  }
+ },
+ "wtc2f23": {
+  "bodky": {
+   "legato": true,
+   "slurs": [],
+   "why": "Bodky: \"Tenuto e quasi legato\": a manner."
+  }
+ },
+ "wtc2f24": {
+  "bodky": {
+   "legato": true,
+   "slurs": [
+    [
+     1,
+     2
+    ]
+   ],
+   "why": "Bodky: \"the first two notes slurred\" (a slur); \"all the rest legato\" (legato)."
+  },
+  "riemann": {
+   "legato": false,
+   "slurs": [
+    [
+     0,
+     1
+    ],
+    [
+     3,
+     4
+    ]
+   ],
+   "why": "Riemann's close slurs, read from his music example (notated groups; his long phrase arcs were never coded): slurs. B-A#-B begins on a portato B (coded detached), so the slur is A#-B as the data join it; F#-D."
+  }
+ }
+}

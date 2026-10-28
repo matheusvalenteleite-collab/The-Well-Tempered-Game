@@ -12,14 +12,17 @@
  * its dynamics, and HEAR THE SUBJECT plays and draws the subject so.
  */
 import data from "../../data/touch/readings.json" with { type: "json" };
-import { ART_HOLD } from "./phrasing.ts";
+import { ART_HOLD, SLUR_SHAPE } from "./phrasing.ts";
 import { tr } from "../i18n/index.ts";
 import { decide, type Kind } from "./practice.ts";
 import type { Character } from "./character.ts";
 
 export type Level = "pp" | "p" | "mp" | "mf" | "f" | "ff";
 export interface ReadingNote {
-  /** How the note goes to the next: joined (legato), detached, or not said. */
+  /**
+   * How the note goes to the next: joined, detached, or not said. D370: the derived view, as judged: joined
+   * inside one of the reading's slurs (Reading.slurs) or by its legato (Reading.legato).
+   */
   join: boolean | null;
   short: boolean | null;
   accent: boolean | null;
@@ -40,6 +43,17 @@ export interface Reading {
   quote: string | null;
   /** One per note of the fugue's first entry. */
   notes: ReadingNote[];
+  /**
+   * D370 (Glenn's notes §1: a slur is not legato): the author asks the joins not inside a slur as a manner
+   * or a rule ("linked", "legato"): an even line.
+   */
+  legato: boolean;
+  /**
+   * D370: the groups slurred as one gesture (leaned into, joined over inside, the last let go early): the
+   * notes `from`..`to` (both in) of the subject, read against the first entry in voice `v`; every entry
+   * takes them by place. Why each: docs/wtc/readings/slurs.json.
+   */
+  slurs: Slur[];
   level: Level | null;
   shape: "crescendo" | "diminuendo" | "arch" | null;
   /** The dynamics he names by bar. */
@@ -49,6 +63,31 @@ export interface Reading {
 }
 
 export const READINGS = data as unknown as Record<string, Reading[]>;
+
+/** D370: a slur: the notes from..to (indices of the subject, both in) of voice v's entry, one gesture. */
+export interface Slur {
+  v: number;
+  from: number;
+  to: number;
+}
+/** D370: a note's place in a slur: its first (leaned on), inside, or its last (let go early, lighter). */
+export type SlurRole = "first" | "mid" | "last";
+/** D370: note i's place in one of the reading's slurs, else null. */
+export function slurRole(r: Reading | null | undefined, i: number): SlurRole | null {
+  for (const s of r?.slurs ?? []) if (i >= s.from && i <= s.to) return i === s.from ? "first" : i === s.to ? "last" : "mid";
+  return null;
+}
+/** D370: the join from note i to the next is inside a slur (not the reading's plain legato). */
+export const slurredJoin = (r: Reading | null | undefined, i: number) => (r?.slurs ?? []).some((s) => i >= s.from && i < s.to);
+/** D370: a reading's mark on a note with its place in a slur (the band's shaping, the drawing). */
+export type MarkNote = ReadingNote & { slur?: SlurRole };
+/** D370: the reading's note i as marked, with its slur place (none outside a slur). */
+export function markOf(r: Reading, i: number): MarkNote | undefined {
+  const n = r.notes[i];
+  if (!n) return undefined;
+  const s = slurRole(r, i);
+  return s ? { ...n, slur: s } : n;
+}
 
 /** A level as a dynamic on the bars (0 pp on the soft side, 1 ff on the strong: STRONG_SIDE). */
 export const LEVEL_D: Record<Level, number> = { pp: 0.1, p: 0.28, mp: 0.45, mf: 0.6, f: 0.78, ff: 0.92 };
@@ -149,14 +188,15 @@ export function planLevel(r: Reading, bar: number): Level | null {
  * D302: a reading's marks on every entry of the subject, in every voice (each note by its place in the
  * subject, as the player's are judged), for the others' articulation (phrasing.ts ARTICULATION).
  */
-export function readingMarks(entries: readonly { voice: number; notes: readonly (readonly [number, ...unknown[]])[]; theme?: number }[], r: Reading | null): Map<string, ReadingNote> {
-  const m = new Map<string, ReadingNote>();
+export function readingMarks(entries: readonly { voice: number; notes: readonly (readonly [number, ...unknown[]])[]; theme?: number }[], r: Reading | null): Map<string, MarkNote> {
+  const m = new Map<string, MarkNote>();
   if (!r) return m;
   for (const e of entries) {
     if (e.theme) continue;
     e.notes.forEach(([on], j) => {
-      const n = r.notes[j];
-      if (n && (n.join !== null || n.short)) m.set(`${e.voice}:${on}`, n);
+      const n = markOf(r, j);
+      // D370: a slur's notes too (its last's way to the next may be unsaid: the rules decide it, the slur shapes it).
+      if (n && (n.join !== null || n.short || n.slur)) m.set(`${e.voice}:${on}`, n);
     });
   }
   return m;
@@ -187,16 +227,22 @@ export function performSubject(r: Reading | null, notes: [number, number, number
     return decide(rules.kind, { interval: notes[i + 1][2] - notes[i][2], ioi: notes[i][1] / tps, bass: false, character: rules.character, quaver: notes[i][1] >= tpq / 2 });
   };
   const joined = (i: number) => (!!r?.notes[i]?.join && !r?.notes[i]?.short && i + 1 < notes.length && notes[i + 1][0] <= notes[i][0] + notes[i][1]) || "join" in (rule(i) ?? {});
+  // D370: a reading's slur shaped as the band shapes it (phrasing.ts SLUR_SHAPE): its first leaned on after a
+  // lift, the plucked or struck string held over inside it, its last let go early.
+  const struck = rules?.kind === "harpsichord" || rules?.kind === "piano";
   return notes.map(([on, dur, midi], i) => {
     const n = r?.notes[i];
     const apart = !!n?.short || n?.join === false;
     const gapTo = i + 1 < notes.length ? notes[i + 1][0] - on : dur;
     const ru = rule(i);
-    // Joined: to the next note's start and a little over; detached: three quarters, short: half (D304: as the others play them, phrasing.ts ART_HOLD).
-    const len = n?.short ? (dur * ART_HOLD.short) / tps : n?.join === false ? (Math.min(dur, gapTo) * ART_HOLD.detach) / tps : joined(i) ? gapTo / tps + JOIN_OVER_S : ru && "gap" in ru ? dur / tps - ru.gap : (dur * 0.92) / tps;
+    const role = slurRole(r, i);
+    const over = struck && joined(i) && (role === "first" || role === "mid") ? (rules!.kind === "piano" ? SLUR_SHAPE.over.piano : SLUR_SHAPE.over.harpsichord) : JOIN_OVER_S;
+    const lean = role === "first" && i > 0 && !joined(i - 1) ? (rules?.kind === "piano" ? SLUR_SHAPE.lean.piano : SLUR_SHAPE.lean.other) : 0;
+    // Joined: to the next note's start and a little over; detached: three quarters, short: half (D304: as the others play them, phrasing.ts ART_HOLD); D370: a slur's last detached 0.55.
+    const len = n?.short ? (dur * ART_HOLD.short) / tps : n?.join === false ? (Math.min(dur, gapTo) * (role === "last" ? SLUR_SHAPE.lastHold : ART_HOLD.detach)) / tps - lean : joined(i) ? gapTo / tps + over - lean : ru && "gap" in ru ? dur / tps - ru.gap : (dur * 0.92) / tps;
     const u = notes.length > 1 ? i / (notes.length - 1) : 0;
     const shaped = r?.shape === "crescendo" ? base - 0.12 + 0.24 * u : r?.shape === "diminuendo" ? base + 0.12 - 0.24 * u : r?.shape === "arch" ? base - 0.1 + 0.2 * Math.sin(Math.PI * u) : base;
     const d = Math.max(0.05, Math.min(1, shaped + (n?.accent ? 0.15 : 0)));
-    return { at: (on - on0) / tps, len, midi, d, ...(i > 0 && joined(i - 1) ? { legato: true, from: notes[i - 1][2] } : {}), ...(joined(i) ? { tie: JOIN_OVER_S } : {}), ...(i === notes.length - 1 ? { final: true } : {}), ...(apart ? { apart: true } : {}) };
+    return { at: (on - on0) / tps + lean, len, midi, d, ...(i > 0 && joined(i - 1) ? { legato: true, from: notes[i - 1][2] } : {}), ...(joined(i) ? { tie: over } : {}), ...(i === notes.length - 1 ? { final: true } : {}), ...(apart ? { apart: true } : {}) };
   });
 }

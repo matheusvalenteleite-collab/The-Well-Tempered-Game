@@ -29,3 +29,24 @@ Judgements worth knowing:
   slurs over a few stepwise notes were coded as joined: a reading of his notation, not his statement.
 - Keller's Fugue 21: of the three articulations he prints, Czerny's, which he calls "perhaps" the
   most suitable, was coded.
+
+## Slurs and legato (D370)
+
+Glenn's notes (§1): a slur is a grouping (one gesture: the first leaned on, joined inside, the last
+let go early and lighter), legato a manner (an even line, no air). The extractions coded both as
+`to_next: "join"`. `slurs.json` now says, for every reading with a join, which joins are a slur and
+which are the author's plain legato, and why: `legato` (the author's words ask the joins as a manner
+or rule: "linked", "legato", "quasi legato") and `slurs` (`[from, to]`, both notes of the subject
+included). tools/touch/readings.ts writes them into data/touch/readings.json as `legato` and
+`slurs: [{ v, from, to }]` (`v` the voice of the first entry the marks were read against; every entry
+takes them by place). The per-note `join` is unchanged: the derived view the game judges.
+
+Choices, conservatively:
+- An author's word for a manner or rule ("legato", "molto legato", "linked", "quasi legato", "seconds
+  linked") is legato, even over two notes (Bodky's "first two eighths legato" in I/16).
+- A figure named as a group and closed by a break (Keller's and Bodky's I/2 mordent figure, "the two
+  next ones slurred", "slurred in pairs"), or a slur printed in an author's example (Keller's, Czerny's
+  via Keller, Bodky's Ex. A3–A7, Riemann's close slurs), is a slur.
+- Where a slur was never placed on the notes (Bodky's "wave figure" pairs in I/13, his "falling second
+  of bar 4" in II/13), nothing is invented: legato only.
+- A slur running past the end of an author's example ends on our last note.
