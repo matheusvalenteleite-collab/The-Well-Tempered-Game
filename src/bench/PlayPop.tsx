@@ -3,7 +3,7 @@
  * title, the voice to play, preselected (flow.ts `defaultVoice`; D251: a prelude's part named, not
  * chosen), and a big ▶ PLAY straight into the count-in; ✕ (or Escape) closes it, back to the cards.
  */
-import { lang, pieceName, tr, trCanvas, voiceName } from "../i18n/index.ts";
+import { lang, partName, pieceName, tr, trCanvas, voiceName } from "../i18n/index.ts";
 import { useEffect, useState, type ReactNode } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { PIECE_SOUND } from "../touch/piece-sound.ts";
@@ -121,7 +121,7 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
             <div className="tg-voices" role="group" aria-label="Voice">
               {f.voiceNames.map((name, i) => (
                 <button key={name} type="button" id={`voice-${i}`} className={i === voice ? "on" : ""} style={{ color: inkOf(i, f.voices.length) }} disabled={!singing.includes(i)} onClick={() => setVoice(i)} aria-pressed={i === voice}>
-                  {voiceName(name)}
+                  {partName(f.kind, name)}
                 </button>
               ))}
             </div>

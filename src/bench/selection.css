@@ -1,0 +1,123 @@
+/* D371 (Mario and Luigi's report): play.html's title page (Intro.tsx) and selection screen
+   (Selection.tsx). The colours are the report's mockups' (tools/lib.py): the side columns a warm dark
+   (as the play screen's thumb bars), the centre the music box's navy, cream and the red drop shadow. */
+
+/* ---- The title page ---- */
+.tb-intro { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: radial-gradient(ellipse 70% 60% at 50% 50%, #161c36, #0c0e1c 70%); font-family: var(--tg-pixel); cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.tb-intro:focus-visible { outline: none; }
+.tb-intro-begin { text-align: center; padding: 0 16px; }
+.tb-intro-touch { margin: 0 0 18px; font-size: 13px; line-height: 1.6; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; letter-spacing: 0.06em; animation: tb-intro-blink 1.4s steps(2) infinite; }
+.tb-intro-touch-other { margin: 8px 0 0; font-size: 7px; line-height: 1.6; color: var(--tg-muted); letter-spacing: 0.08em; }
+@keyframes tb-intro-blink { 50% { opacity: 0.35; } }
+.tb-intro-page { position: relative; box-sizing: border-box; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: clamp(18px, 6vw, 60px); padding: 0 max(16px, var(--tg-sar, 0px)) 0 max(16px, var(--tg-sal, 0px)); animation: tb-intro-out 2.8s linear 6s forwards; }
+.tb-intro-face { position: relative; flex: none; width: clamp(88px, 15vw, 128px); }
+.tb-intro-face .tb-bach-face { display: block; width: 100%; height: auto; }
+/* His shadow on the floor. */
+.tb-intro-face::after { content: ""; position: absolute; left: 8%; right: 8%; bottom: -12px; height: 8px; border-radius: 50%; background: rgba(0, 0, 0, 0.45); }
+.tb-intro-words { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
+.tb-intro-mark { display: block; max-width: min(62vw, 440px); height: auto; image-rendering: pixelated; }
+.tb-intro-tag { margin: 0; font-size: 7px; line-height: 1.6; color: #a0968a; letter-spacing: 0.14em; text-align: center; }
+.tb-intro-version { position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 6px; color: #646482; letter-spacing: 0.1em; text-align: center; }
+.tb-wordmark-text { font-family: Georgia, "Times New Roman", serif; font-weight: 700; color: var(--tg-shine); letter-spacing: 0.08em; }
+/* Each image on its note (a half note apart), everything out with the last one's decay. */
+.tb-intro-n1, .tb-intro-n2, .tb-intro-n3, .tb-intro-n4 { opacity: 0; animation: tb-intro-in 1.2s ease-out forwards; }
+.tb-intro-n2 { animation-delay: var(--note, 1.5s); }
+.tb-intro-n3 { animation-delay: calc(var(--note, 1.5s) * 2); }
+.tb-intro-n4 { animation-delay: calc(var(--note, 1.5s) * 3); }
+@keyframes tb-intro-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@keyframes tb-intro-out { to { opacity: 0; } }
+
+/* ---- The selection screen: 20% · 60% · 20% of the safe width, as the play screen ---- */
+.tb-sel { position: fixed; inset: 0; z-index: 40; box-sizing: border-box; display: grid; grid-template-columns: 20fr 60fr 20fr; padding: 0 var(--tg-sar, 0px) 0 var(--tg-sal, 0px); background: #1c1519; color: var(--tg-fg); font-family: var(--tg-pixel); overflow: hidden; }
+.sel-col { box-sizing: border-box; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.sel-left, .sel-right { gap: 8px; padding: calc(8px + env(safe-area-inset-top, 0px)) 8px calc(8px + env(safe-area-inset-bottom, 0px)); overflow: hidden; }
+.sel-centre { padding: 0 6px 6px; background: #121a34; border-left: 2px solid #232c55; border-right: 2px solid #232c55; }
+
+/* Left: the wordmark, the version, the TUTORIAL, the collections. */
+.sel-brand { flex: none; text-align: center; }
+.sel-title { margin: 0; line-height: 0; }
+.sel-mark { display: inline-block; max-width: 100%; height: auto; image-rendering: pixelated; }
+.sel-title .tb-wordmark-text { font-size: 10px; line-height: 1.4; }
+/* Drawn at its pixel size, never scaled down: 12 px where the column is wide, 10 px on a narrower phone. */
+.sel-mark-narrow { display: none !important; }
+@media (max-width: 799px) {
+  .sel-mark-wide { display: none !important; }
+  .sel-mark-narrow { display: inline-block !important; }
+}
+.sel-version { margin: 4px 0 0; font-size: 5px; color: #6e6e8c; letter-spacing: 0.1em; }
+.sel-tutorial { flex: none; display: grid; gap: 5px; padding: 6px; text-align: left; font-family: var(--tg-pixel); color: var(--tg-fg); background: #2c345c; border: 2px solid #78789f; box-shadow: 3px 3px 0 #b8322a; cursor: pointer; }
+.sel-tutorial:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
+.sel-tut-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.sel-tut-face { flex: none; width: 24px; }
+.sel-tut-face .tb-bach-face { display: block; width: 100%; height: auto; }
+.sel-tut-words { display: grid; gap: 3px; min-width: 0; }
+.sel-tut-title { font-size: 9px; color: var(--tg-shine); }
+.sel-tut-sub { font-size: 5px; line-height: 1.6; color: #a8a6c8; }
+.sel-tut-bar { display: block; height: 5px; background: #1e223c; }
+.sel-tut-bar i { display: block; height: 100%; background: #8fe3b0; }
+.sel-tut-line { font-size: 5px; line-height: 1.7; color: #a8a6c8; }
+.sel-tut-go { display: block; padding: 5px 4px; font-size: 7px; text-align: center; color: #2a2216; background: var(--tg-shine); box-shadow: 2px 2px 0 #b8322a; }
+.sel-glow { border-color: var(--tg-shine); animation: sel-glow 1.6s ease-in-out infinite; }
+@keyframes sel-glow { 50% { box-shadow: 3px 3px 0 #b8322a, 0 0 14px 2px rgba(254, 240, 168, 0.55); } }
+.sel-tabs { flex: none; min-height: 0; }
+.sel-tabs-head { margin: 4px 0 4px; font-size: 5px; color: #6e6e8c; letter-spacing: 0.1em; }
+.sel-tab { display: block; box-sizing: border-box; width: 100%; margin: 0 0 4px; padding: 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.5; text-align: left; color: #7a7894; background: #1e1c28; border: 1px solid #46425a; cursor: pointer; }
+.sel-tab.on { color: var(--tg-shine); background: #36301e; border-color: var(--tg-shine); }
+
+/* Centre: the strip and the grid of 24 (no scrolling); MORE BACH and CHORALES as their lists. */
+.sel-strip { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 24px; margin: env(safe-area-inset-top, 0px) -6px 4px; padding: 0 8px; background: #161e3a; }
+.sel-strip-title { margin: 0; font-size: 7px; font-weight: 400; color: var(--tg-shine); white-space: nowrap; }
+.sel-strip-order { font-size: 5px; color: #8c88aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sel-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.sel-grid > li { display: flex; min-width: 0; min-height: 0; }
+.sel-tile { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 3px; padding: 3px; overflow: hidden; font-family: var(--tg-pixel); text-align: left; color: var(--tg-fg); background: #1a2446; border: 1px solid color-mix(in srgb, var(--tint, #323a64) 30%, #323a64); cursor: pointer; }
+.sel-tile.on { padding: 2px; border: 2px solid var(--tg-shine); background: #26305a; }
+.sel-tile.next:not(.on) { border-color: var(--tg-shine); }
+.sel-tile:focus-visible { outline: 2px solid var(--tg-fg); outline-offset: 1px; }
+.sel-pic { position: relative; display: block; flex: none; width: 100%; aspect-ratio: 64 / 40; background: #000; }
+.sel-emblem { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.sel-tile-key { font-size: 7px; line-height: 1.3; white-space: nowrap; overflow: hidden; color: var(--tg-fg); }
+.sel-tile-key b { font-weight: 400; color: var(--tg-shine); }
+.sel-tile-level { font-size: 5px; line-height: 1.3; }
+.sel-grade { position: absolute; right: 2px; bottom: 2px; min-width: 10px; padding: 2px 2px 1px; font-size: 8px; line-height: 1; text-align: center; color: var(--grade, var(--tg-shine)); background: rgba(10, 8, 16, 0.86); border: 1px solid var(--grade, var(--tg-shine)); text-shadow: 1px 1px 0 #000; }
+.sel-grade.sel-old { opacity: 0.55; border-style: dashed; }
+.sel-done { position: absolute; right: 2px; bottom: 2px; padding: 1px 3px; font-size: 7px; color: #1a1620; background: var(--tg-gold, #f3d78a); }
+/* D's NEXT ribbon: the piece to play next. */
+.sel-next { position: absolute; left: 0; top: 0; padding: 2px 4px 1px; font-size: 6px; line-height: 1.2; color: #2a2216; background: var(--tg-shine); box-shadow: 1px 1px 0 #b8322a; animation: sel-next 1.6s steps(2) infinite; }
+@keyframes sel-next { 50% { background: #f3c76a; } }
+.tb-sel-first .sel-grid { opacity: 0.55; }
+.tb-sel .tb-lite-bare { position: static; inset: auto; z-index: auto; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: calc(8px + env(safe-area-inset-top, 0px)) 2px 16px; background: transparent; }
+
+/* Right: the language, SETTINGS, the chosen piece, PLAY under the right thumb. */
+.sel-top { flex: none; display: grid; gap: 4px; }
+.sel-right .tb-lang-pick { display: flex; width: 100%; box-sizing: border-box; }
+.sel-right .tb-lang-pick button { flex: 1; min-width: 0; min-height: 24px; padding: 0; font-size: 7px; }
+.sel-top-row { display: flex; flex-direction: column; gap: 4px; }
+.sel-top-row > * { flex: 1; min-width: 0; }
+.sel-right .sel-settings, .sel-right .tb-tools-btn { min-height: 24px; justify-content: center; gap: 5px; padding: 0 4px; font-size: 6px; box-shadow: 2px 2px 0 #b8322a; position: relative; }
+.sel-piece { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.sel-piece-pic { position: relative; display: block; flex: 0 1 auto; min-height: 0; }
+.sel-piece-emblem { display: block; width: 100%; height: auto; max-height: 92px; aspect-ratio: 64 / 40; object-fit: contain; image-rendering: pixelated; background: #000; }
+.sel-piece-name { margin: 2px 0 0; font-size: 7px; line-height: 1.5; color: var(--tg-shine); }
+.sel-piece-meta { margin: 0; font-size: 6px; line-height: 1.6; color: #8c88aa; }
+.sel-best { margin: 0; font-size: 6px; line-height: 1.5; color: #8fe3b0; }
+.sel-best.sel-old { color: #8c88aa; }
+.sel-ask { margin: 2px 0 0; font-size: 5px; color: #6e6e8c; letter-spacing: 0.08em; }
+.sel-voices { display: flex; flex-wrap: wrap; gap: 3px; }
+.sel-voices button { flex: 1 1 auto; min-height: 20px; padding: 3px 3px 2px; font-family: var(--tg-pixel); font-size: 6px; background: #1a1a2e; border: 1px solid; cursor: pointer; }
+.sel-voices button:disabled { opacity: 0.35; cursor: not-allowed; }
+.sel-links { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.sel-link { padding: 3px 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.4; text-align: left; color: #a8a6c8; background: none; border: 0; cursor: pointer; }
+.sel-hint { flex: 1 1 auto; margin: 10px 0 0; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.9; color: #a8a6c8; }
+.sel-lag { flex: none; margin: 0; font-size: 5px; }
+.sel-play { flex: none; width: 100%; min-height: 40px; padding: 8px 0; font-size: 12px; }
+.sel-play:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
+
+/* The corner's version mark (D256) gives way while the title page or the selection shows: both print it. */
+html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
+
+/* A shorter screen (667 × 375 and below): the picture smaller. */
+@media (max-height: 380px) {
+  .sel-piece-emblem { max-height: 70px; }
+  .sel-tile-level { display: none; }
+}

@@ -62,6 +62,19 @@ export function liteNextOrder(id: string, fuguesOnly = false): string[] {
 }
 
 /**
+ * D371 (Mario and Luigi's report, 2, D's NEXT ribbon on the grid of 24): the piece a player is pointed
+ * to next among `ids` (a tab's, in Bach's order): the first not yet finished. None on the first visit
+ * (nothing played, no lesson done: the TUTORIAL glows instead) or once every one is finished.
+ */
+export function liteSuggested(ids: readonly string[], beaten: ReadonlySet<string> | readonly string[], firstVisit = false): string | null {
+  if (firstVisit) return null;
+  const won = beaten instanceof Set ? beaten : new Set(beaten as readonly string[]);
+  return ids.find((id) => !won.has(id)) ?? null;
+}
+/** D371: the selection's first visit: no piece finished and no lesson of the tutorial done. */
+export const liteFirstVisit = (beaten: readonly string[], lessonsDone: number): boolean => beaten.length === 0 && lessonsDone === 0;
+
+/**
  * D263: the minimal page's platform: as detected, or as chosen in its ⚙ (MOBILE · COMPUTER, kept on the
  * device); on a phone only the fugues (the owner: "eliminate all preludes from mobile mode ... the fugues
  * are much more interesting. We should focus on LADDER mobile").

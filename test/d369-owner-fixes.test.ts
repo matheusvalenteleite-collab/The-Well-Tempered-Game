@@ -194,8 +194,9 @@ test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: M
   i18n.setLang("pt");
   const html = renderToStaticMarkup(React.createElement(VoiceLegend, { names: ["Right hand", "Left hand"], played: [1], ink: (i: number) => (i ? "#0f0" : "#00f") }));
   i18n.setLang("en");
-  assert.match(html, /id="legend-you"[^>]*>.*VOCÊ: MÃO ESQUERDA/);
-  assert.ok(html.indexOf("VOCÊ: MÃO ESQUERDA") < html.indexOf("MÃO DIREITA"), "the player's voice first");
+  // D371: the chip filled with the voice's colour, "VOCÊ · …" inside (the report's 8 A).
+  assert.match(html, /id="legend-you" style="background:#0f0[^"]*"[^>]*>.*VOCÊ · MÃO ESQUERDA/);
+  assert.ok(html.indexOf("VOCÊ · MÃO ESQUERDA") < html.indexOf("MÃO DIREITA"), "the player's voice first");
   assert.match(html, /class="tb-legend-other"[^>]*>■ MÃO DIREITA/);
   assert.doesNotMatch(html, /\bMAO\b|DIREITO/);
   const { PT } = await import("../src/i18n/pt.ts");

@@ -101,6 +101,30 @@ export function voiceName(name: string): string {
   return !v || current === "en" ? up : v[current === "pt" ? 0 : 1];
 }
 
+/**
+ * D371 (Mario and Luigi's report, 8): a two-part piece's voices named UPPER and LOWER (SUPERIOR, INFERIOR),
+ * not RIGHT HAND and LEFT HAND: a phone player has no right-hand part, only a thumb on each side. The
+ * Inventions (and the tutorial's Invention 1) carry the edition's hands; a prelude keeps its hands (D168:
+ * it is played by hands). Only the name shown changes, never the data.
+ */
+export function partKey(kind: string, name: string): string {
+  if (kind === "prelude") return name;
+  const up = name.toUpperCase();
+  return up === "RIGHT HAND" ? "Upper" : up === "LEFT HAND" ? "Lower" : name;
+}
+/** D371: `partKey`'s name in capitals, in the language in force (UPPER · SUPERIOR). */
+export const partName = (kind: string, name: string): string => voiceName(partKey(kind, name));
+
+/**
+ * D371 (the report's 1a and 1b): the title page's three lines in each language: the small line above
+ * the first rule, the main line between the rules, and (English only) the small line under the second.
+ */
+export const WORDMARK: Record<Lang, readonly [small: string, main: string, tail: string]> = {
+  en: ["THE", "WELL-TEMPERED", "GAME"],
+  pt: ["O JOGO", "BEM TEMPERADO", ""],
+  es: ["EL JUEGO", "BIEN TEMPERADO", ""],
+};
+
 /** A piece's name: "FUGUE IN C MAJOR", "FUGA EM DÓ MAIOR", "INVENCIÓN 1"… (kind: fugue, prelude, invention). */
 export function pieceName(kind: string, key: string, number?: number): string {
   if (kind === "invention") return tr("INVENTION {n}", { n: number ?? 1 });
