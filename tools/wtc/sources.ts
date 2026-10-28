@@ -536,6 +536,17 @@ function readFourVoicePrelude(): Read {
   const length = ticks(ly.length);
   const bars = gameBars(ly.measures.map((b) => ({ n: b.n, on: ticks(b.on) })), length);
   const raw = ids.map((vs) => sounding.filter((n) => vs.includes(n.voice)).map((n) => [ticks(n.on), ticks(n.dur), n.pitch] as Raw));
+  // The lower staff's two voices as tenor and bass by register (Mutopia's voice 1 of the staff is the
+  // stems-up voice, the tenor or, where it rests, the bass): a note sounding alone on the staff is the
+  // bass's (the climax, bb. 29-31: the bass's run); of notes sounding together, the lowest.
+  const lower = [...raw[2], ...raw[3]].sort((a, b) => a[0] - b[0]);
+  const midiOf = (r: Raw) => parsePitch(r[2]).midi;
+  raw[2] = [];
+  raw[3] = [];
+  for (const n of lower) {
+    const others = lower.filter((x) => x !== n && x[0] < n[0] + n[1] && n[0] < x[0] + x[1]);
+    (others.some((x) => midiOf(x) < midiOf(n)) ? raw[2] : raw[3]).push(n);
+  }
   const applied = applyCorrections(m.id, raw, bars);
   const piece: WtcPiece = { ...m, meter: ly.times[0]?.text ?? "6/4", voices: raw.map((v) => withSubs(v as [number, number, string][])), bars, length };
   const orn: OrnRow[] = [];

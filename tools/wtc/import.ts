@@ -26,6 +26,34 @@ const report: string[] = [
   "|---|---|---|---|---|---|---|---|",
 ];
 let problems = 0;
+/**
+ * A mordent's case, as the Humdrum encodings used it (src/touch/ornament-play.ts reads it where the
+ * music around a note does not decide its neighbour): upper case a whole step to the note below, lower
+ * case a half step, the neighbour by letter in
+ * the key (the minor's leading note raised: a mordent on the tonic of F minor turns on E natural).
+ */
+const LETTERS = "CDEFGAB";
+const PC = [0, 2, 4, 5, 7, 9, 11];
+const ORDER = "FCGDAEB";
+const FIFTHS: Record<string, number> = { C: 0, G: 1, D: 2, A: 3, E: 4, B: 5, "F#": 6, "C#": 7, "G#": 8, "D#": 9, "A#": 10, F: -1, Bb: -2, Eb: -3, Ab: -4, Db: -5, Gb: -6, Cb: -7 };
+function withCase(signs: string, pitch: string, key: string, mode: string): string {
+  const n = (FIFTHS[key] ?? 0) - (mode === "minor" ? 3 : 0);
+  const alter = (letter: string) => (n > 0 && ORDER.indexOf(letter) < n ? 1 : n < 0 && ORDER.indexOf(letter) >= 7 + n ? -1 : 0);
+  const tonic = LETTERS.indexOf(key[0]);
+  const pcOf = (li: number) => {
+    const l = LETTERS[li];
+    let pc = PC[li] + alter(l);
+    if (mode === "minor" && li === (tonic + 6) % 7) pc += 1; // the raised leading note
+    return ((pc % 12) + 12) % 12;
+  };
+  const li = LETTERS.indexOf(pitch[0]);
+  const midiPc = ((PC[li] + (pitch.match(/#/g)?.length ?? 0) - (pitch.slice(1).match(/b/g)?.length ?? 0)) % 12 + 12) % 12;
+  const up = (pcOf((li + 1) % 7) - midiPc + 12) % 12;
+  const down = (midiPc - pcOf((li + 6) % 7) + 12) % 12;
+  void up; // the trills keep upper case: their neighbour above is read from the music, else the key signature (D281)
+  return signs.replace(/[Mm]/g, (c) => (down === 1 ? c.toLowerCase() : c.toUpperCase()));
+}
+
 const take = (r: Read, into: WtcPiece[]) => {
   const p = r.piece;
   into.push(p);
@@ -43,6 +71,7 @@ const take = (r: Read, into: WtcPiece[]) => {
     } else rows.push([hits[0][0], hits[0][1], pitch, signs]);
   }
   rows.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  for (const r of rows) r[3] = withCase(r[3], r[2], p.key, p.mode);
   if (rows.length) ornaments[p.id] = rows;
   for (const c of r.notes) corrections.push(`| ${p.id} | ${c.replace(/\|/g, "/")} |`);
   const [num, den] = p.meter.split("/").map(Number);

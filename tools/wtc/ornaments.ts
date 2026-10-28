@@ -37,7 +37,7 @@ export function fugueSign(id: string, signs: string): string {
 }
 
 /**
- * D206: ornaments the Bach-Gesellschaft edition (vol. 14) prints and the encoding leaves out: [bar,
+ * D206: ornaments the Bach-Gesellschaft edition (vol. 14) prints and the edition read leaves out: [bar,
  * pitch, signs, beat (quarters into the bar, where the pitch comes twice)]. II/1: the mordents (with their stroke) on the subject's second note, bars 2, 6 and
  * 10 (BGA p. 94), and the alto's trill in bar 28 (p. 94; Mutopia and ASAP have all four).
  */
@@ -48,6 +48,15 @@ export const ADDED: Record<string, [number, string, string, number?][]> = {
     [10, "A3", "M"],
     [28, "G#4", "T", 1],
   ],
+  // D366: signs the Bach-Gesellschaft prints (the D206 audit; the Humdrum check has them) that Rother's
+  // edition leaves out, where a free edition writes them too (OpenWTC; Mutopia for I/1): I/1's short
+  // wavy line in bar 13, I/6's trill in bar 20, I/8's in bar 11, I/11's in bar 71, I/13's subject's
+  // first short wavy line (bar 1, BGA p. 48).
+  wtc1f01: [[13, "B4", "W", 3]],
+  wtc1f06: [[20, "B3", "T", 1]],
+  wtc1f08: [[11, "G#4", "T", 3]],
+  wtc1f11: [[71, "G4", "W", 0.5]],
+  wtc1f13: [[1, "C#5", "W", 3]],
 };
 
 /**

@@ -122,19 +122,6 @@
    }
   ]
  },
- "wtc.cp.dissonance|M7": {
-  "count": 1,
-  "fugues": [
-   "wtc2.03"
-  ],
-  "places": [
-   {
-    "id": "wtc2.03",
-    "bar": 29,
-    "voice": 0
-   }
-  ]
- },
  "wtc.cp.parallel|octaves": {
   "count": 29,
   "fugues": [
@@ -193,9 +180,10 @@
   ]
  },
  "wtc.cp.unresolved|m7": {
-  "count": 4,
+  "count": 5,
   "fugues": [
    "wtc1.07",
+   "wtc2.11",
    "wtc2.12",
    "wtc2.17",
    "wtc2.18"
@@ -205,6 +193,11 @@
     "id": "wtc1.07",
     "bar": 20,
     "voice": 1
+   },
+   {
+    "id": "wtc2.11",
+    "bar": 85,
+    "voice": 0
    },
    {
     "id": "wtc2.12",
