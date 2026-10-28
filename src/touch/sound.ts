@@ -365,7 +365,7 @@ export const STRING_BOW = { skip: 0.06, a: 0.03 } as const;
 /** D358: STRING CONSORT's one send into its room (the salon), every player's. */
 export const CONSORT_SEND = 0.22;
 /** D358: LUTE: placed by its key across the instrument (E2-A5), uneven frets, its courses (unisons above G3, octave strings below). */
-export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.35, shelf: 0 } } } as const;
+export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.25, shelf: 0 } } } as const;
 /** D358: SOLO VOICES' one send into its room (the plate), every singer's. */
 export const VOICE_SEND = 0.15;
 /**
@@ -651,7 +651,8 @@ export const PATCHES = {
   trkFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, rec: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, slide: 0.04, vib: { depth: 12, rate: 6.4, delay: 0.3 }, level: 0.38, sample: "fluteMod" }),
   trkHarpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, level: 0.76, sample: "harpsiMod" }),
   trkChoir: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 7, gain: 0.7 }], vowel: [700, 1150], amp: { a: 0.005, d: 0.3, s: 0.8, r: 0.06 }, rec: { a: 0.005, d: 0.3, s: 0.8, r: 0.06 }, slide: 0.04, vib: { depth: 10, rate: 4.8, delay: 0.35 }, level: 2.9, sample: "choirMod" }),
-  trkBass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, hp: 70, level: 0.6, sample: "bassMod" }),
+  // D358: the slapped bass 3.5 dB lighter (each voice alone: 4-7 dB over the violin, on a computer and through a phone).
+  trkBass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, hp: 70, level: 0.4, sample: "bassMod" }),
   // PIPE ORGAN (D302: CHAMBER ORGAN remade; the owner: "real bad too, flat and dull. Why would anyone
   // choose it?!"): an organ registered as an organist registers a trio or a fugue's lines apart, each
   // voice its own registration, in a church. The plenum (Principal 8', Octave 4', Superoctave 2' and a
@@ -861,7 +862,7 @@ export const PATCHES = {
   // (Patch.bow), nothing added (the recordings' own vibrato), the player's line played as the others (Patch.one).
   consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
   consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
-  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortCello", bow: STRING_BOW, one: {} }),
+  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {} }),
   // LUTE: one lute (a classical guitar's recordings, gut-like nylon) with a lute's courses (Patch.one.courses:
   // each note's second string a few cents off and 3 ms later; below G3 an octave string in its place), each
   // note placed by its course (key) across the instrument, a fretted instrument's slightly uneven frets
