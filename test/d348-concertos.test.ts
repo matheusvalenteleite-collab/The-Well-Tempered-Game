@@ -112,8 +112,9 @@ test("D348: the outline (a line one note at a time) and a written-out trill back
   assert.deepEqual(low.line.map((n) => n[2]), [48, 50]);
   // D-C-D-C… in demisemiquavers, then a turn: one C as long as the trill, the turn kept.
   const d = T / 8;
-  const trill = [74, 72, 74, 72, 74, 72].map((m, i) => [i * d, d, m, 0] as [number, number, number, number]);
-  const u = untrill([...trill, [6 * d, d, 71, 0], [7 * d, d, 72, 0]], T);
+  // D367: the steps as written (D one letter above C).
+  const trill = [74, 72, 74, 72, 74, 72].map((m, i) => [i * d, d, m, m === 74 ? 36 : 35] as [number, number, number, number]);
+  const u = untrill([...trill, [6 * d, d, 71, 34], [7 * d, d, 72, 35]], T);
   assert.equal(u.trills, 1);
   assert.deepEqual(u.line.map((n) => [n[0], n[1], n[2]]), [[0, 6 * d, 72], [6 * d, d, 71], [7 * d, d, 72]]);
   // Semiquaver figuration is not a trill.
