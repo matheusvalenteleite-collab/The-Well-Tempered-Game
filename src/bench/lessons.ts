@@ -43,7 +43,7 @@ export interface Run {
   /** D282: a reading the step is played by (readings.ts id: the subject's articulation asked). */
   reading?: string;
   /** D342, THE MANUAL: a drill's click (Options.click), the demonstration's manner (Options.demoStyle). */
-  click?: { full: number; gone: number };
+  click?: { full: number; gone: number; gain?: number };
   demoStyle?: DemoManner;
   /** D360 (Part V): the ornament's first-time hint (Options.ornHint: a guide thumb shaking as a sign comes). */
   ornHint?: boolean;
@@ -495,7 +495,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DIE LESART",
     english: "THE READING",
-    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ⌒ JOINED · | APART · > ACCENT (LIFT BEFORE, LEAN IN)",
+    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ‾ JOINED · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (LIFT BEFORE, LEAN IN)",
     intro: [{ text: "Now one of my fugues. Players have written how its subject should go: some notes joined, some apart." }, { text: "The marks show it. In HEAR THE SUBJECT, choose a reading or none. Here, follow the marks." }],
     praise: [{ text: "So. You played my subject as a thinking musician would." }],
     again: [{ text: "Joined where it is joined; lift where it is apart. Again." }],

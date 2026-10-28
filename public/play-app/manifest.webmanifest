@@ -1,0 +1,19 @@
+{
+  "name": "The Well-Tempered Game",
+  "short_name": "WTC Game",
+  "description": "The fugues of Bach's Well-Tempered Clavier, played as a game on a phone held sideways.",
+  "id": "../play.html",
+  "start_url": "../play.html",
+  "scope": "../",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#0b0d18",
+  "theme_color": "#0b0d18",
+  "icons": [
+    { "src": "../bench-app/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "../bench-app/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "../bench-app/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "../bench-app/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

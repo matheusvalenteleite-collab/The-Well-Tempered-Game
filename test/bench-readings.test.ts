@@ -44,13 +44,13 @@ test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop sh
   assert.ok(p[1].d > p[0].d, "the accent louder");
 });
 
-test("D325: NONE (my own articulation) is the default; every reading is open from the start and remembered", () => {
+test("D325: every reading is open from the start and remembered (D369: nothing chosen, D344's reading for the fugue, here none)", () => {
   const store = new Map<string, string>();
   (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
   const id = "wtc1f99";
   const rs = [{ id: "a" }, { id: "b" }] as Reading[];
   READINGS[id] = rs;
-  assert.equal(chosenReading(id), null, "NONE by default (D272 had the first reading)");
+  assert.equal(chosenReading(id), null, "no reading chosen for this made-up fugue by D344: NONE");
   chooseReading(id, "b");
   assert.equal(chosenReading(id)?.id, "b", "open at once (D272 locked it until the fugue was finished)");
   chooseReading(id, NO_READING);

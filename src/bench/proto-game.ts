@@ -21,7 +21,7 @@ import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, type Touch } from "./fingering.ts";
-import { LEVEL_D, readingMarks } from "../touch/readings.ts";
+import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
 import { accentHeld, accentSeparated, accentTimely, type AccentWhy } from "./accent.ts";
 import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
@@ -327,6 +327,15 @@ export const NEUTRAL_D = 0.55;
  * a slurred pair 3 dB strong-weak (and darker: chip.ts velTone); a long legato line level after its second note.
  */
 export const SLUR_DB = [1, -2, -0.5] as const;
+/** D370: a reading's slur's last note, joined, on the sampled piano (dB): lighter than its second (Glenn's notes §1). */
+export const SLUR_LAST_DB = -3;
+/**
+ * D370: inside a reading's slur the player joins, the note given way to rings this long past the new
+ * strike (s): the harpsichord's and the lute's over-legato 70 ms, the piano's 35 ms; a sustained sound
+ * keeps its 30 ms crossfade. The timing (the lean, the lift at the slur's end) stays the player's.
+ */
+export const SLUR_HANDOVER_S = { plucked: 0.07, piano: 0.035, other: 0.03 } as const;
+export const slurHandoverS = (soundId: string) => (styleOf(soundId) === "harpsichord" ? SLUR_HANDOVER_S.plucked : styleOf(soundId) === "piano" ? SLUR_HANDOVER_S.piano : SLUR_HANDOVER_S.other);
 /** D239: points as shown: a relative note's half point as ½ ("1½"). */
 export function ptsText(p: number): string {
   const w = Math.floor(p);
@@ -1067,7 +1076,9 @@ export class ProtoGame {
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
-      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? 0.12 : this.nextBeat >= ck.gone ? 0 : 0.12 * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
+      // D369: the lessons' metronome (LESSON_CLICK) softer than the count-in, on every beat of the take.
+      const ckGain = ck?.gain ?? 0.12;
+      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? ckGain : this.nextBeat >= ck.gone ? 0 : ckGain * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
       if (!band && clickGain > 0.004) ch.tick(this.timeAt(this.nextBeat), accent, clickGain);
       this.nextBeat += this.beat;
     }
@@ -1227,7 +1238,7 @@ export class ProtoGame {
   }
 
   /**
-   * D280: the plan of the thumbs for the voice played (fingering.ts): each note's touch, alternating, the
+   * D280: the plan of the thumbs for the voice played (fingering.ts): each note's touch (D370: its thumb by the music's intent), the
    * ornaments shaken, the loudness the dynamics lesson asks (soft bar 1, loud bar 2), rising steps slid
    * where sliding is taught.
    */
@@ -1244,9 +1255,10 @@ export class ProtoGame {
         const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
         const rn = rd && place !== undefined ? rd.notes[place] : undefined;
         const d = rn?.accent ? 0.78 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : loud(n.on);
-        return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, shake: o ? shakeOf(o) : null };
+        return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
       }),
-      { overlap: this.f.tpq / 16, slides: this.o.coach === "slide" },
+      // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
+      { overlap: this.f.tpq / 16, slides: this.o.coach === "slide", sec: 1 / this.tps },
     );
     return (this.planMemo = touches.map((t) => ({ ...t, i: heads[t.i].i })));
   }
@@ -1550,8 +1562,16 @@ export class ProtoGame {
     const row = this.rows?.rowH ?? MECH.ladderRowMin;
     const needPx = MECH.runTravelRows * span * row;
     const maxPx = MECH.runTravelMaxRows * span * row;
-    const tr = runTrend(pts, run.dir, needPx, maxPx);
-    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok });
+    const trend = runTrend(pts, run.dir, needPx, maxPx);
+    // D369 (the owner: "we have made the game too easy with respect to fast passages … a little bit more
+    // difficult … without simply reverting"): RUN ✓ also asks that at least RUN OWN SHARE of the run's notes
+    // struck were right by the ladder's own rule (each thumb from its own last touch), not by the run's
+    // leniency alone; otherwise RUN ✗ and the notes passed only by leniency are re-judged wrong.
+    const struck = run.notes.filter((j) => notes[j].state === "hit").length;
+    const lenient = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`)).length;
+    const ownShare = struck ? (struck - lenient) / struck : 1;
+    const tr = { ...trend, ok: trend.ok && ownShare >= MECH.runOwnShare - 1e-9 };
+    this.tap?.({ kind: "run", tick: notes[run.last].on, track: k, i: run.last, dir: run.dir, notes: run.notes.length, touches: tr.n, slope: Number.isFinite(tr.slope) ? Math.round(tr.slope) : 0, travelPx: Math.round(tr.travelPx), needPx: Math.round(needPx), maxPx: Math.round(maxPx), ok: tr.ok, ownShare: Math.round(ownShare * 100) / 100 });
     const revoke = run.notes.filter((j) => this.runAccepted.has(`${k}:${j}`));
     for (const j of revoke) {
       const a = this.runAccepted.get(`${k}:${j}`)!;
@@ -1701,7 +1721,8 @@ export class ProtoGame {
           const wayOf = (from: { y: number }) => (from.y - c.y) * run.dir;
           const other = this.lastBySide[c.side === "left" ? "right" : "left"];
           const ownOk = clear(own) || wayOf(own) >= -lee;
-          const otherOk = !!other && fresh(other) && wayOf(other) >= -lee;
+          // D369: from the other thumb's last touch only where RUN: EITHER THUMB is on (off: the game's, from 1.77).
+          const otherOk = MECH.runOtherThumb && !!other && fresh(other) && wayOf(other) >= -lee;
           ok = ownOk || otherOk;
           this.runOnly = ok;
           const from = ownOk ? own : otherOk ? other! : own;
@@ -2465,10 +2486,21 @@ export class ProtoGame {
   /** D314/D353: a held note a free ornament may be read on (see freeShake). */
   private freeReadable(h: Held): boolean {
     if (!MECH.ornGestures || !MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    // D369: none in THE MANUAL's practice room but Part V's (Options.quiet without `ornaments`). The owner:
+    // "Why is TUTORIAL predicting my notes and playing them even if i don't? … one, sometimes even two
+    // notes": at the lessons' slow tempi nearly every note is long enough for one, and a thumb's settling
+    // roll of a few px (6 px, 70 ms each way) read as a mordent on every note (I.1's drill 16 of 16, I.4's
+    // 19 of 19): two notes he never played. At the game's tempi the same roll on its shorter notes reads
+    // far less; the lessons now sound only what is struck.
+    if (this.o.quiet && !this.o.quiet.ornaments) return false;
     const i = h.note;
     const notes = this.tracks[h.k].notes;
     const n = notes[i];
-    if (!n || !h.open || h.orn || h.passive || h.handed || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    if (!n || !h.open || h.orn || h.passive || h.chord.length !== 1 || h.sweep || h.trace || !h.tone || n.state !== "hit" || n.ride) return false;
+    // D369: handed over only to a thumb that sounds: one resting PREPARED on the next note (the owner's
+    // habit: it lands about a note early) leaves the held note his to ornament (V.4: "i couldn't perform
+    // any ornaments": every held note was handed by the time the shake began).
+    if (h.handed && [...this.held.values()].some((o) => o !== h && o.k === h.k && !o.wait && o.sounds.length)) return false;
     // D353: no reading on a run's notes (its last may be long), nor on a note riders follow (D191: they sound after it).
     const run = this.runsOf(h.k).member.get(i);
     if (run && run.last !== i) return false;
@@ -3017,15 +3049,18 @@ export class ProtoGame {
         this.flash = { text: "ECHO", at: performance.now(), good: true, kind: "legato" };
       }
     }
-    // D339, the sampled piano's slurs from the thumbs alone: a note struck while the note before in its
-    // track still sounds (or was let go within the legato window) continues a legato group, else begins
-    // one. The group's first a shade firmer, its second lighter, later ones a little under the first
-    // (SLUR_DB): a two-note slur is strong-weak, as Türk and C. P. E. Bach teach it; let go early, its
-    // second note ends as a hand lifts (chip.ts damper `slur`). Loudness never tied to right or wrong.
+    // D339, the sampled piano's slurs: the group's first a shade firmer, its second lighter, later ones a
+    // little under the first (SLUR_DB): a two-note slur is strong-weak, as Türk and C. P. E. Bach teach it;
+    // let go early, its second note ends as a hand lifts (chip.ts damper `slur`). D370 (Glenn's notes §1):
+    // only on the notes a reading slurs (slurHere: its first struck, the rest joined from the note before
+    // as the thumbs play them), its last lighter still (SLUR_LAST_DB); a legato line the reading does not
+    // slur, or with no reading, level. Loudness never tied to right or wrong (the place, not the verdict).
+    const slurAt = this.slurHere(h.k, notes[i].on);
     if (styleOf(preset().id) === "piano" && !slide) {
-      const pos = over ? Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1) : 0;
+      const pos = !slurAt ? 0 : slurAt === "first" || !over ? 0 : Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1);
       this.groupPos.set(h.k, pos);
-      expr = { ...expr, group: pos, level: (expr.level ?? 1) * dbToLevel(SLUR_DB[pos]) };
+      const db = !slurAt ? 0 : slurAt === "last" && pos > 0 ? SLUR_LAST_DB : SLUR_DB[pos];
+      if (slurAt) expr = { ...expr, group: pos, level: (expr.level ?? 1) * dbToLevel(db) };
     }
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
@@ -3062,7 +3097,8 @@ export class ProtoGame {
         legato = true;
         // D334: a PRESS while the other thumb holds: over-legato, both sound until it lifts.
         if (this.gesture === "press") continue;
-        for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + 0.03);
+        // D370: joined inside a reading's slur, the note given way to rings on a little longer (SLUR_HANDOVER_S).
+        for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + (slurAt === "mid" || slurAt === "last" ? slurHandoverS(preset().id) : 0.03));
         o.sounds = [];
       }
       // D205: an ornamented note, struck right, plays its ornament from the moment it is struck, then holds its main note.
@@ -3546,6 +3582,12 @@ export class ProtoGame {
   /** D329: a note's window (ms as set): ABSOLUTE as set, RELATIVE scaled by its own time between notes. */
   private relAt(ms: number, k: number, i: number): number {
     return MECH.timing === "relative" ? relMs(ms, this.ioiOf(k, i)) : ms;
+  }
+  /** D370: note i joined from the note before inside one of the reading's slurs (the road's ⌒ only there). */
+  slurredInto(i: number, k = 0): boolean {
+    const n = this.tracks[k].notes[i];
+    const role = n ? this.slurHere(k, n.on) : null;
+    return role === "mid" || role === "last";
   }
   /** D218: note i joined in the score to the note before it (any note, the riders too; no rest between). */
   joinedAt(i: number, k = 0): boolean {
@@ -4300,6 +4342,11 @@ export class ProtoGame {
     if (this.o.reading) for (const e of this.entries) e.ons.forEach((on, j) => m.set(`${e.k}:${on}`, j));
     return (this.readingMemo = m);
   }
+  /** D370: the place in one of the reading's slurs of track k's note at `on` (none: not slurred, or no reading). */
+  private slurHere(k: number, on: number): SlurRole | null {
+    const place = this.o.reading ? this.readingIndex().get(`${k}:${on}`) : undefined;
+    return place === undefined ? null : slurRole(this.o.reading, place);
+  }
   /** D272: one of the reading's asks judged (met or not). */
   private styled(met: boolean, at: number, word?: string) {
     this.style.of++;
@@ -4323,9 +4370,13 @@ export class ProtoGame {
   slides = 0;
   readonly levels: { on: number; d: number }[] = [];
   private lastStrike: { side: Side; on: number } | null = null;
+  /** D370: the onsets the plan's same thumb takes after its note before (thumbNote). */
+  private planSame: Set<number> | null = null;
   private thumbNote(side: Side, on: number, d: number) {
     const last = this.lastStrike;
-    if (last && on > last.on && on - last.on <= this.f.tpq / 2) {
+    // D370: a quick note the plan gives to the same thumb (detached, by the music's intent: fingering.ts) is not asked to alternate.
+    this.planSame ??= new Set(this.plan.filter((t, p, a) => p > 0 && !t.slid && t.side === a[p - 1].side).map((t) => this.tracks[0].notes[t.i].on));
+    if (last && on > last.on && on - last.on <= this.f.tpq / 2 && !this.planSame.has(on)) {
       this.thumbs.of++;
       if (side !== last.side) this.thumbs.alt++;
     }

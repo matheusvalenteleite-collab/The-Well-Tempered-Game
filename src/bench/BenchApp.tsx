@@ -70,20 +70,20 @@ import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
-import { bestReading, chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
+import { chosenReading, markOf, readingsOf, type MarkNote } from "../touch/readings.ts";
 import { ManualMap } from "./manual/ManualMap.tsx";
-import { AskScreen, GripScreen, LensSheet, PlacementScreen, Seal, StageLine } from "./manual/Screens.tsx";
-import { firstPlay, fixFor, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, SOUND_PRESET, soundOf, stagePassed, checkpointOf, watchWord, type DemoStyle, type ManualLesson, type Material, type PartId } from "./manual/lessons.ts";
+import { GripScreen, LensSheet, Seal, StageLine } from "./manual/Screens.tsx";
+import { fixFor, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, SOUND_PRESET, soundOf, stagePassed, checkpointOf, watchWord, type DemoStyle, type ManualLesson, type Material, type PartId } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { PLACEMENT, PLACEMENT_SOUND, place, worst, type Placement, type PlacementTake } from "./manual/placement.ts";
-import { applyPlacement, markSeen, nextLesson as nextManual, progress as manualProgress, readManual, recordTake, setAnswer, setAside, testOut as manualTestOut, triesOf, type Answer } from "./manual/store.ts";
+import { markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, testOut as manualTestOut, triesOf } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
+import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
@@ -200,7 +200,8 @@ export function sane(p: Pick): Pick {
   const singing = voicesFrom(f, startTick(f, share));
   // D237: a fugue's voice of the first entry by default (flow.ts). D251: a prelude always its own part
   // (stages.ts `preludePart`), whatever was chosen or kept before.
-  const voice = f.kind !== "prelude" && singing.includes(p.voice) ? p.voice : defaultVoice(f, singing);
+  // D369: on play.html an unfinished fugue offers the second voice to enter; a finished one the voice last played.
+  const voice = f.kind !== "prelude" && singing.includes(p.voice) ? p.voice : APP.lite ? liteVoice(f, singing, readLite().beaten.includes(f.id)) : defaultVoice(f, singing);
   // D219: a stored mode withdrawn (HIGHWAY, TWO VOICES, KIMIKO on a phone) falls back to LADDER; a stored KIMIKO as LADDER WITH KIMIKO.
   const was = p.proto as string;
   const proto = PROTOS.some((x) => x.id === was) ? p.proto : DEFAULT.proto;
@@ -215,9 +216,9 @@ type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "
 /**
  * D342, THE MANUAL under way: a lesson's step (its stage: a material), as HEAR (Herr Bach's
  * demonstration, in a manner, the manners still to come queued), a TAKE, a checkpoint played to test out
- * of a part, or a placement passage.
+ * of a part.
  */
-type ManRun = { id: string; stage: number; mode: "hear" | "take" | "test" | "placement"; style?: DemoStyle; queue?: DemoStyle[]; alt?: boolean; place?: string; part?: PartId; takes: number; retake?: boolean; back?: number };
+type ManRun = { id: string; stage: number; mode: "hear" | "take" | "test"; style?: DemoStyle; queue?: DemoStyle[]; alt?: boolean; part?: PartId; takes: number; back?: number };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -314,14 +315,14 @@ export function BenchApp() {
   const [toolsOpen, setToolsOpen] = useState(false);
   const practice = useRef<PracticeRun | null>(null);
   const [practiced, setPracticed] = useState<{ piece: string; right: number; of: number } | null>(null);
-  // D342, THE MANUAL (play.html's phone tutorial): the step under way, its Part 0 screens, the placement's takes.
+  // D342, THE MANUAL (play.html's phone tutorial): the step under way, its Part 0 screen (D369: 0.1 alone).
   const [man, setMan] = useState<ManRun | null>(null);
-  const [manScreen, setManScreen] = useState<null | "grip" | "ask" | { placement: Placement; retake: string | null }>(null);
-  const placementTakes = useRef<PlacementTake[]>([]);
+  const [manScreen, setManScreen] = useState<null | "grip">(null);
   const recRef = useRef<LabRecorder | null>(null);
-  const manLesson: ManualLesson | undefined = man && man.mode !== "placement" ? lessonById(man.id) : undefined;
-  const manMat: Material | undefined = man ? (man.mode === "placement" ? PLACEMENT.find((e) => e.id === man.place)?.m : man.alt && manLesson?.alt ? manLesson.alt : manLesson?.stages[man.stage]?.m) : undefined;
-  const manRun = manMat ? runOf(manMat, man?.mode === "hear" ? man.style : undefined, manLesson?.words, !!manLesson?.ornaments) : undefined;
+  const manLesson: ManualLesson | undefined = man ? lessonById(man.id) : undefined;
+  const manMat: Material | undefined = man ? (man.alt && manLesson?.alt ? manLesson.alt : manLesson?.stages[man.stage]?.m) : undefined;
+  // D369: the metronome on in the player's takes (not under his demonstration).
+  const manRun = manMat ? runOf(manMat, man?.mode === "hear" ? man.style : undefined, manLesson?.words, !!manLesson?.ornaments, man?.mode !== "hear") : undefined;
   const run = lesson?.run ?? manRun;
   const f = fugueById(run?.piece ?? pick.piece);
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
@@ -370,7 +371,8 @@ export function BenchApp() {
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
   // book's: the owner, "fugues should not be too fast").
   // D282: a tutorial step may name its reading.
-  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (full ? chosenReading(f.id) : bestReading(f.id)) : null;
+  // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
+  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
@@ -388,7 +390,7 @@ export function BenchApp() {
   const hm = kimiko ? herMap(f.id) : null;
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
   // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
-  // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible; the placement on the sampled piano.
+  // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible (D369: Parts 0–II the piano).
   // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
   // D356: in the friends' view too, where a WTC fugue's tempo is open (no sound chosen there).
   const soundAt = (id: string) => {
@@ -396,7 +398,7 @@ export function BenchApp() {
     const st = !mine[id] ? stepSound(id, stepOf(id)) : undefined;
     return soundFor(id, st ? { ...mine, [id]: st } : mine, DEFAULT_SOUND);
   };
-  const sound = man ? (man.mode === "placement" ? PLACEMENT_SOUND : SOUND_PRESET[soundOf(manLesson!, manMat)]) : soundAt(f.id);
+  const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   const tuning = resolveTuning(tuningPref, soundNow);
@@ -447,8 +449,8 @@ export function BenchApp() {
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
-    const readingMarks = new Map<string, Reading["notes"][number]>();
-    if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, reading.notes[j]));
+    const readingMarks = new Map<string, MarkNote>();
+    if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
@@ -546,8 +548,10 @@ export function BenchApp() {
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : mineGain(readTools(f).balance, prac);
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
     setPaused(false);
-    // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click, the placement or TOOLS practice).
+    // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click or TOOLS practice).
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
+    // D369: the voice played kept for the piece (offered again once it is finished).
+    if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
     const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
@@ -782,9 +786,10 @@ export function BenchApp() {
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
   const [paused, setPaused] = useState(false);
   const canPause = !kimiko && !lesson && !man;
-  const pauseNow = () => {
+  /** `force` (D369): paused also in a lesson or KIMIKO, the phone turned upright on play.html. */
+  const pauseNow = (force?: unknown) => {
     const g = game.current;
-    if (!g || g.paused || !canPause) return;
+    if (!g || g.paused || (!canPause && force !== true)) return;
     g.pause();
     setPaused(true);
   };
@@ -856,20 +861,20 @@ export function BenchApp() {
     start(true);
   };
   const talk = (title: string, lines: Line[], o: { choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void } = {}) => setPhase({ kind: "mtalk", title, lines, ...o });
-  function beginManual(id: string, o: { skip?: boolean } = {}) {
+  /** `stage` (D369): taken up again at a stage already reached (the map's popup), straight to its line and PLAY. */
+  function beginManual(id: string, o: { stage?: number } = {}) {
     const l = lessonById(id);
     if (!l) return;
     setSteps(false);
     setLesson(null);
     if (l.screen === "grip") return setManScreen("grip");
-    if (l.screen === "placement") return setManScreen("ask");
     setManScreen(null);
     markSeen(l.id);
-    const playAt = firstPlay(l);
+    if (o.stage && o.stage > 0 && l.stages[o.stage]) return beginStage(l, o.stage, 0);
     const terse = readManual().answer === "keyboard";
     const styles = l.hear?.styles ?? [];
     const hearStage = l.hear?.stage ?? lastPlay(l);
-    const afterIntro = () => (o.skip ? beginStage(l, playAt, 0) : styles.length ? startStep({ id, stage: hearStage, mode: "hear", style: styles[0], queue: styles.slice(1), takes: 0 }) : beginStage(l, 0, 0));
+    const afterIntro = () => (styles.length ? startStep({ id, stage: hearStage, mode: "hear", style: styles[0], queue: styles.slice(1), takes: 0 }) : beginStage(l, 0, 0));
     setMan({ id, stage: hearStage, mode: "hear", takes: 0 });
     setWatching(false);
     // D225: a keyboard player gets no introductions.
@@ -881,6 +886,8 @@ export function BenchApp() {
   function beginStage(l: ManualLesson, k: number, takes: number, alt = false) {
     const st = l.stages[k];
     if (!st) return toMap();
+    // D369: the furthest stage begun, kept (the lesson may be taken up again from there).
+    reachStage(l.id, k);
     const m: ManRun = { id: l.id, stage: k, mode: "take", takes, ...(alt ? { alt: true } : {}) };
     setMan(m);
     setWatching(false);
@@ -901,7 +908,7 @@ export function BenchApp() {
   /** D359: START HERE starts: a player who has never opened the manual goes straight to 0.1, the map after. */
   const startManual = () => {
     const s = readManual();
-    if (!s.lessons["0.1"] && s.answer === null) return beginManual("0.1");
+    if (!s.lessons["0.1"]) return beginManual("0.1");
     setSteps(true);
   };
   /** WATCH AGAIN: his demonstration of the stage at hand (III.1: of the touch it asks), else of the lesson's. */
@@ -915,12 +922,6 @@ export function BenchApp() {
     const m = man;
     const x = r.lens;
     if (!m || !x) return toMap();
-    if (m.mode === "placement") {
-      placementTakes.current = [...placementTakes.current, { id: m.place!, x, ...(log ? { log } : {}) }];
-      const k = PLACEMENT.findIndex((e) => e.id === m.place);
-      if (!m.retake && k + 1 < PLACEMENT.length) return placementStep(k + 1);
-      return placementShow(!m.retake);
-    }
     const l = lessonById(m.id)!;
     if (m.mode === "hear") {
       const rest = m.queue ?? [];
@@ -983,52 +984,18 @@ export function BenchApp() {
         : [];
     return talk(mTitle(l), fixLine.length ? fixLine : l.again.map((text) => ({ text })), { extra: sheet("play"), choices: [again, ...watchAgain(l, m), ...skip, ...alt, { label: "THE MANUAL", act: toMap }] });
   }
-  // 0.1: a thumb on each bar sounds the lesson's instrument (the harpsichord); done, on to 0.2 if not answered.
+  // 0.1: a thumb on each bar sounds the lesson's instrument (D369: the piano); done, the map (0.2 withdrawn).
   const gripSound = (side: "left" | "right") => {
     const ch = ensureChip();
-    setPreset(SOUND_PRESET.harpsichord);
+    setPreset(SOUND_PRESET.piano);
     ch.note(side === "left" ? 60 : 67, ch.ctx.currentTime + 0.01, 0.6, voicing(0, 2, true), { lead: true });
   };
   const gripDone = () => {
     recordTake("0.1", 1, true);
     setPreset(presetById(soundNow).id);
-    if (readManual().answer === null) return setManScreen("ask");
     setManScreen(null);
     setSteps(true);
   };
-  // 0.2: NO starts at I.1; another instrument or a keyboard: the placement, or (skipped) every part open.
-  const answered = (a: Answer, test: boolean | null) => {
-    setAnswer(a, test === false);
-    setManScreen(null);
-    if (test === null) return beginManual("I.1");
-    if (!test) return (setSteps(true), undefined);
-    placementTakes.current = [];
-    placementStep(0);
-  };
-  function placementStep(k: number, retake = false) {
-    const e = PLACEMENT[k];
-    if (!e) return;
-    setManScreen(null);
-    const m: ManRun = { id: "0.2", stage: k, mode: "placement", place: e.id, takes: 0, ...(retake ? { retake: true } : {}) };
-    setMan(m);
-    setWatching(false);
-    talk(`0.2 · PROBESPIEL · ${tr("THE PLACEMENT")}`, [{ text: `${k + 1}/${PLACEMENT.length} · ${tr(e.m.label)}` }], { choices: [{ label: "PLAY", act: () => startStep(m) }] });
-  }
-  function placementShow(offerRetake: boolean) {
-    const p = place(placementTakes.current);
-    setMan(null);
-    setPhase({ kind: "home" });
-    setManScreen({ placement: p, retake: offerRetake ? worst(placementTakes.current) : null });
-  }
-  function placementDone() {
-    const sc = manScreen;
-    if (!sc || typeof sc !== "object") return;
-    const p = sc.placement;
-    applyPlacement(p.lessons, p.opened, p.results);
-    setManScreen(null);
-    if (p.start) beginManual(p.start);
-    else setSteps(true);
-  }
   const talkDone = (next: "play" | "again" | "advance" | "watch") => {
     if (next === "watch") return setWatching(true), start(true);
     if (next !== "advance") return setWatching(false), start();
@@ -1156,11 +1123,18 @@ export function BenchApp() {
   // The phone held the wrong way while playing (the notice up): the game paused with its sound, until
   // it is turned (D184).
   useEffect(() => {
-    if (proto.platform !== "mobile") return;
-    const q = window.matchMedia(proto.layout !== "full" ? "(orientation: portrait) and (max-width: 500px)" : "(orientation: landscape) and (max-height: 500px)");
+    if (proto.platform !== "mobile" && !APP.lite) return;
+    // D369: play.html is sideways only: a phone or tablet upright (Sideways.tsx's screen up) pauses the run,
+    // lessons too; RESUME then needs a tap. The bench keeps D184's notice (the sound held until it is turned).
+    const q = window.matchMedia(APP.lite ? UPRIGHT_QUERY : proto.layout !== "full" ? "(orientation: portrait) and (max-width: 500px)" : "(orientation: landscape) and (max-height: 500px)");
     const check = () => {
       const ch = chip.current;
       if (!ch || phase.kind !== "play") return;
+      if (q.matches && APP.lite) {
+        pauseNow(true);
+        game.current?.releaseAll(performance.now());
+        return;
+      }
       if (q.matches) {
         game.current?.releaseAll(performance.now());
         void ch.ctx.suspend();
@@ -1270,14 +1244,17 @@ export function BenchApp() {
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
   const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
+  // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
+  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing);
 
   return (
-    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}`}>
+    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
+      {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{man ? `${man.mode === "placement" ? "0.2" : man.id} · ${man.mode === "placement" ? tr("THE PLACEMENT") : tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
             {playing && practice.current && (
               // D326: a practice run (or THE OTHERS) named in the title bar.
@@ -1286,7 +1263,7 @@ export function BenchApp() {
               </span>
             )}
             {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. D357: one-touch, always there while playing, for the friends too. */}
-            {hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing) && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+            {stopsOn && layout !== "bars" && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>
@@ -1300,12 +1277,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={f.voiceNames.map((name, i) => (
-          <span key={name} style={{ color: sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length), opacity: played.includes(i) ? 1 : sheetOn ? 0.75 : 0.55 }}>
-            ■ {voiceName(name)}
-            {played.includes(i) && <b className="tb-you"> · {tr("YOU")}</b>}
-          </span>
-        ))}
+        legend={<VoiceLegend names={f.voiceNames} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
@@ -1556,9 +1528,7 @@ export function BenchApp() {
       {/* D342: THE MANUAL's map (in place of the old tutorial's steps), and its Part 0 screens. */}
       {APP.lite && steps && phase.kind === "home" && !manScreen && <ManualMap begin={beginManual} testOut={beginTest} close={() => setSteps(false)} />}
       {APP.lite && manScreen === "grip" && phase.kind === "home" && <GripScreen chip={ensureChip} sound={gripSound} lag={lag} setLag={setLag} done={gripDone} close={() => (setManScreen(null), setSteps(true))} />}
-      {APP.lite && manScreen === "ask" && phase.kind === "home" && <AskScreen answer={answered} close={() => (setManScreen(null), setSteps(true))} />}
-      {APP.lite && manScreen && typeof manScreen === "object" && phase.kind === "home" && <PlacementScreen p={manScreen.placement} takes={placementTakes.current} retake={manScreen.retake} onRetake={() => placementStep(PLACEMENT.findIndex((e) => e.id === manScreen.retake), true)} done={placementDone} close={() => (placementDone(), setSteps(true))} />}
-      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} single={!full} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {APP.lite && !full && <LiteDrumsSwitch />}
@@ -1614,6 +1584,32 @@ export function BenchApp() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * D369: the voice legend (the owner: "we can do better than 'MÃO DIREITO · VOCÊ · MÃO ESQUERDA' … not
+ * obvious whether 'VOCÊ' is attached to the right or left"): the player's voice first, unmistakable, a chip
+ * of its own with the voice's colour block ("VOCÊ: MÃO ESQUERDA"); the others after it, dimmer, each with
+ * its colour. Room above the capitals for their accents (MÃO, VOCÊ: the tilde is never clipped).
+ */
+export function VoiceLegend({ names, played, ink, paper = false }: { names: string[]; played: number[]; ink: (i: number) => string; paper?: boolean }) {
+  const mine = played.filter((i) => i < names.length);
+  const others = names.map((_, i) => i).filter((i) => !mine.includes(i));
+  return (
+    <>
+      <span className="tb-you-chip" id="legend-you" style={{ borderColor: ink(mine[0] ?? 0) }}>
+        {mine.map((i) => (
+          <i key={i} className="tb-you-block" style={{ background: ink(i) }} aria-hidden="true" />
+        ))}
+        <span>{tr("YOU: {voice}", { voice: mine.map((i) => voiceName(names[i])).join(" + ") })}</span>
+      </span>
+      {others.map((i) => (
+        <span key={names[i]} className="tb-legend-other" style={{ color: ink(i), opacity: paper ? 0.75 : 0.6 }}>
+          ■ {voiceName(names[i])}
+        </span>
+      ))}
+    </>
   );
 }
 

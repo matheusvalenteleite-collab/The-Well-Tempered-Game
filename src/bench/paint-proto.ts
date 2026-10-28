@@ -1141,7 +1141,10 @@ function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: Proto
     return;
   }
   // The other thumb from the last; before the first note, either (taking turns is the point, not which starts: D273).
-  const last = g.thumbNext();
+  // D370: where the plan keeps one thumb (a detached note, by the music's intent: fingering.ts), the same thumb again.
+  const k = plan.indexOf(next);
+  const other = g.thumbNext();
+  const last = other && k > 0 && plan[k - 1].side === next.side ? (other === "left" ? "right" : "left") : other;
   for (const side of last ? [last] : (["left", "right"] as const)) {
     const x = side === "left" ? bw * (1 - strengthOf(acrossBar(next.d))) : w - bw + bw * strengthOf(acrossBar(next.d));
     drawThumb(c, x, y, size, side, "hover", fade);
@@ -1285,7 +1288,7 @@ function articulation(c: CanvasRenderingContext2D, w: number, h: number, g: Prot
 }
 
 /**
- * D218, the road's slurs: a faint arc over each coming pair of notes the score joins (legato pays
+ * D218, the road's slurs: a faint arc over each coming pair of notes the score joins (D370: only where a reading slurs them; legato pays
  * there), and a bright one across the strike line as a legato is played, fading.
  */
 function slurs(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => { y: number; k: number; d: number }, laneX: (l: number, k: number) => number, y1: number) {
@@ -1304,7 +1307,8 @@ function slurs(c: CanvasRenderingContext2D, g: ProtoGame, at: (tick: number) => 
     }
     const p = at(n.on);
     if (p.d > 1) break;
-    if (prev >= 0 && n.state === "pending" && notes[prev].state !== "miss" && g.joinedAt(i)) {
+    // D370: ⌒ kept for a real slur: drawn only where the reading slurs the pair (no longer over every pair legato could join).
+    if (prev >= 0 && n.state === "pending" && notes[prev].state !== "miss" && g.joinedAt(i) && g.slurredInto(i)) {
       const a = at(Math.max(notes[prev].on, g.now));
       const xa = laneX(lanes[prev], a.k);
       const xb = laneX(lanes[i], p.k);

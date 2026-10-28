@@ -13,7 +13,7 @@ import { Chip } from "../../touch/chip.ts";
 import { PIECES, TUTORIAL_PIECES, beatOf, cadenceName, fugueById, keyAt, keyName, type TouchFugue, everyNote } from "../../touch/fugue.ts";
 import { laneNotes } from "../../touch/lanes.ts";
 import { ornamentMark, ornamentsOf } from "../../touch/ornament-play.ts";
-import { readingsOf, type Reading } from "../../touch/readings.ts";
+import { markOf, readingsOf, type MarkNote, type Reading } from "../../touch/readings.ts";
 import { tempoOf } from "../../touch/tempi.ts";
 import { presetById, setPreset } from "../../touch/sound.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
@@ -299,8 +299,8 @@ export function LabApp() {
     const spans = entrySpans(f).filter((e) => e.on < span.until && e.end > span.from);
     const cadences = (f.cadences ?? []).filter((c) => c.on >= span.from && c.on <= span.until).map((c) => ({ on: c.on, text: cadenceName(c) }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
-    const readingMarks = new Map<string, Reading["notes"][number]>();
-    if (reading) for (const e of f.entries) if (!e.theme && e.voice === setup.voice) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, reading.notes[j]));
+    const readingMarks = new Map<string, MarkNote>();
+    if (reading) for (const e of f.entries) if (!e.theme && e.voice === setup.voice) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, span.from, span.until, reading?.id, setup.voice]);
 

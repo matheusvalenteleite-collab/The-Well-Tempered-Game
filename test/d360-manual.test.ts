@@ -112,7 +112,7 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
     return fixFor(l, x, kk)!.text;
   };
   assert.match(told("III.1", 0), /I asked for \{want\}/);
-  assert.match(told("III.2"), /The dot: lift before/);
+  assert.match(told("III.2"), /the dot: lift before three fifths/);
   assert.match(told("III.3"), /Join inside the slur/);
   assert.match(told("III.4"), /small silence before/);
   assert.match(told("IV.1"), /Breathe: enter a hair late/);

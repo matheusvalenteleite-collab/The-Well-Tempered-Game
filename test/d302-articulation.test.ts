@@ -13,7 +13,7 @@ import { Chip, voicing, type Play } from "../src/touch/chip.ts";
 import { PATCHES, setPreset } from "../src/touch/sound.ts";
 import { fugueById, inBar, beatOf, type TouchFugue } from "../src/touch/fugue.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
-import { ART_HOLD, ART_SPREAD, joins, phrase, phraseContext, type Shape, type Style } from "../src/touch/phrasing.ts";
+import { ART_HOLD, ART_SPREAD, joins, phrase, phraseContext, SLUR_SHAPE, type Shape, type Style } from "../src/touch/phrasing.ts";
 import { GAP_MAX_SHARE, TABLES } from "../src/touch/practice.ts";
 import { performSubject, readingMarks, readingsOf } from "../src/touch/readings.ts";
 import { accompaniment, subjectMarks } from "../src/touch/voice-mode.ts";
@@ -180,7 +180,8 @@ test("D302: a synthesized sound (SWITCHED-ON): joined, no gap and no new attack;
   assert.ok(opening(j) < 1.05 * 2 ** (PATCHES.solLead.filter!.sweep?.octaves ?? 0), `the filter does not open anew: ${opening(j).toFixed(2)}`);
   const d = pair("analog", 2, 4, 0);
   assert.equal(d.sh[0].art, "detach");
-  assert.ok(Math.abs(d.sh[0].hold - ART_HOLD.detach) < 1e-9, `held three quarters (${d.sh[0].hold})`);
+  // D370: the C ends Keller's slurred mordent figure: let go at the slur's 0.55 (a plain detached note three quarters).
+  assert.ok(Math.abs(d.sh[0].hold - SLUR_SHAPE.lastHold) < 1e-9, `held as a slur's last (${d.sh[0].hold})`);
   assert.ok(silence(d) >= 0.2 * d.value, `silent ${silence(d).toFixed(3)} s of ${d.value.toFixed(3)}`);
   assert.ok(overshoot(d) > 1.15 || opening(d) > 1.5, "a fresh attack after the gap");
   // The same leap (C-G) with no reading: the sustained lead's table (D309: the organ's, 0.72 of a quaver, the gap 40-140 ms).
