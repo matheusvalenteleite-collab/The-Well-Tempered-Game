@@ -267,7 +267,7 @@ export const LITE_HINT: Record<string, string> = {
 
 /**
  * D239: how each mode is played, behind ? HOW TO PLAY on the pop-up (bench and play.html): a few
- * short lines, the two grades of a right note on the HIGHWAYs spelled out. D344 (WTC 1.56; the owner:
+ * short lines, the two grades of a right note on the HIGHWAYs spelled out. D344 (WTC 1.57; the owner:
  * "can be long, as long as you divide into BASICS, INTERMEDIARY, and ADVANCED"): each mode's lines in
  * three levels, folded on the pop-up (BASICS open); RULES keeps them in one list, in that order.
  * Checked against the game's mechanics as of WTC 1.52+ (B+ · PREPARED: a landing is the strike, the

@@ -1,5 +1,5 @@
 /**
- * D344 (WTC 1.56): DRUMS back on play.html for the friends (the owner: "put back the DRUMS button. my
+ * D344 (WTC 1.57): DRUMS back on play.html for the friends (the owner: "put back the DRUMS button. my
  * friends will have fun if there's a backing track available for the pieces"). Hidden with the pop-up's
  * SOUND by D343 (CLASSIC CHIP's DRUMS lived beside the sound's dropdown); now one ON/OFF switch on the
  * pop-up under YOUR VOICE, off by default, kept on the device. It plays a backing track under whatever

@@ -397,7 +397,7 @@ export const ES: Record<string, string> = {
   "BACK TO THE CARDS": "VOLVER A LAS PIEZAS",
   "MOBILE ONLY": "SOLO EN EL MÓVIL",
   "The Well-Tempered Game is played with two thumbs on a phone or tablet, held sideways. Open this page there.": "El Juego Bien Temperado se juega con dos pulgares en un móvil o tableta de lado. Abre esta página allí.",
-  // D344 (WTC 1.56): HOW TO PLAY's levels, the friends' DRUMS and single reading.
+  // D344 (WTC 1.57): HOW TO PLAY's levels, the friends' DRUMS and single reading.
   "BASICS": "BÁSICO",
   "ADVANCED": "AVANZADO",
   "DRUMS ON": "BATERÍA ACTIVADA",

@@ -101,7 +101,7 @@ export function chooseReading(id: string, reading: string) {
 }
 
 /**
- * D344 (WTC 1.56): play.html for the friends (not unlocked) shows one reading a fugue, and plays it: the
+ * D344 (WTC 1.57): play.html for the friends (not unlocked) shows one reading a fugue, and plays it: the
  * best of those the data hold for it on musical grounds (fidelity to the subject's character and to
  * Baroque articulation, playable with two thumbs, few marks for a newcomer), or NO_READING where none
  * convinces. The reasons: docs/wtc/READINGS-CHOSEN.md. The unlocked page keeps every reading to choose.

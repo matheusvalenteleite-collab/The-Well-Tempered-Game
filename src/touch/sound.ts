@@ -1078,7 +1078,7 @@ export function setDrums(on: boolean) {
 }
 export const drums = () => drumsOn;
 /**
- * D344 (WTC 1.56): play.html's DRUMS for the friends, a backing track under any sound: the sound's own
+ * D344 (WTC 1.57): play.html's DRUMS for the friends, a backing track under any sound: the sound's own
  * loop where it has one (CLASSIC CHIP's march on its chip kit), else BACKING_GROOVE on the band's kit.
  * Laid on the metre's beats by the game (the band's beat in ProtoGame: beats of the metre, compound
  * metres in threes, the final ritard followed), kept below and behind the music (chip.ts `drum`:
