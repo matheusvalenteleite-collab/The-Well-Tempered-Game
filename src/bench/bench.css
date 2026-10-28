@@ -929,3 +929,16 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-sideways-small { margin: 0; max-width: 300px; font-family: system-ui, sans-serif; font-size: 13px; color: var(--tg-muted); }
 /* On play.html the bench's own upright/sideways notice gives way to it (nothing there is laid out for upright any more). */
 .tb-play-page .tg-upright { display: none !important; }
+
+/* D369: WHERE TO BEGIN? (a lesson left midway): the stages reached, where it was left marked. */
+.tb-resume-veil { z-index: 70; }
+.tb-resume { position: relative; display: grid; gap: 8px; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 14px 14px 12px; }
+.tb-resume-title { margin: 0 28px 0 0; font-family: var(--tg-pixel); font-size: 9px; line-height: 1.5; color: var(--tg-shine); }
+.tb-resume-q { margin: 0; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted); }
+.tb-resume-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tb-resume-stage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 44px; padding: 8px 10px; text-align: left; color: var(--tg-fg); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-resume-stage.here { border: 2px solid var(--tg-shine); background: #1a1630; }
+.tb-resume-n { font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); }
+.tb-resume-name { display: grid; gap: 3px; font-family: var(--tg-pixel); font-size: 8px; }
+.tb-resume-name small { font-family: system-ui, sans-serif; font-size: 12px; color: var(--tg-muted); }
+.tb-resume-here { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-gold, var(--tg-shine)); }

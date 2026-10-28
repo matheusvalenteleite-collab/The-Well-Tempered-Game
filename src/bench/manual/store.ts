@@ -25,6 +25,8 @@ export interface LessonRec {
   seen?: true;
   /** The last three takes of its PLAY: when, the share right, passed. */
   takes?: { ms: number; right: number; ok: boolean }[];
+  /** D369: the furthest stage begun (its index): the lesson may be taken up again from any stage up to it. */
+  reached?: number;
 }
 
 export type Answer = "no" | "other" | "keyboard";
@@ -153,7 +155,7 @@ export const lessonDone = (s: ManualStore, id: string) => !!(s.lessons[id]?.pass
 export function nextLesson(s: ManualStore): string | null {
   for (const l of MANUAL) {
     if (!partOpen(s, l.part) || lessonDone(s, l.id) || s.lessons[l.id]?.later) continue;
-    if (l.part === "0" && (l.id === "0.1" ? s.lessons["0.1"]?.seen : s.answer !== null)) continue;
+    if (l.id === "0.1" && s.lessons["0.1"]?.seen) continue;
     return l.id;
   }
   return null;
@@ -180,13 +182,18 @@ export const markSeen = (id: string, st: Store | null = storage()) => update((s)
 /** D289: set aside after three tries (open, not passed). */
 export const setAside = (id: string, st: Store | null = storage()) => update((s) => void (s.lessons[id] = { ...s.lessons[id], later: true }), st);
 export const triesOf = (s: ManualStore, id: string) => s.lessons[id]?.tries ?? 0;
+/**
+ * D369 (the owner: "If I quit a lesson midway … I have to restart from beginning. BAD"): a stage begun is
+ * kept as the furthest reached; choosing the lesson again offers every stage up to it.
+ */
+export const reachStage = (id: string, k: number, st: Store | null = storage()) => update((s) => void (s.lessons[id] = { ...s.lessons[id], reached: Math.max(k, s.lessons[id]?.reached ?? 0) }), st);
+export const reachedOf = (s: ManualStore, id: string) => s.lessons[id]?.reached ?? 0;
 
 /** HAVE YOU PLAYED BEFORE? answered; YES without the test (`allOpen`) opens every part. */
 export const setAnswer = (a: Answer, allOpen: boolean, st: Store | null = storage()) =>
   update((s) => {
     s.answer = a;
     if (allOpen) s.allOpen = true;
-    s.lessons["0.2"] = { ...s.lessons["0.2"], passed: s.lessons["0.2"]?.passed ?? { tries: 1, best: 1, ms: Date.now() } };
   }, st);
 
 /** ICH KANN DAS SCHON: a part's checkpoint played once and passed: the part TESTED (its successors open). */
@@ -195,19 +202,6 @@ export const testOut = (p: PartId, st: Store | null = storage()) =>
     if (!s.parts[p]) s.parts[p] = "tested";
     for (const l of MANUAL) if (l.part === p && !s.lessons[l.id]?.passed) s.lessons[l.id] = { ...s.lessons[l.id], tested: true };
   }, st);
-
-/** The placement's verdict applied: lessons placed past marked TESTED, their parts TESTED where the whole part is, parts opened. */
-export function applyPlacement(lessons: string[], opened: PartId[], results: { id: string; right: number; ok: boolean }[], st: Store | null = storage()): ManualStore {
-  return update((s) => {
-    for (const id of lessons) if (!s.lessons[id]?.passed) s.lessons[id] = { ...s.lessons[id], tested: true };
-    for (const p of PARTS) {
-      const cp = checkpointOf(p.id);
-      if (cp && lessons.includes(cp.id) && !s.parts[p.id]) s.parts[p.id] = "tested";
-    }
-    s.opened = [...new Set([...s.opened, ...opened])];
-    s.placement = { ms: Date.now(), results };
-  }, st);
-}
 
 /** The manual's progress on the phone: lessons passed or tested, of those played in Phase A. */
 export function progress(s: ManualStore): { done: number; of: number } {

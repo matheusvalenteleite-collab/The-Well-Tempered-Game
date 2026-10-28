@@ -7,6 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { register } from "node:module";
 
 const store = new Map<string, string>();
 (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, String(v)), removeItem: (k: string) => void store.delete(k) };
@@ -97,4 +98,65 @@ test("D369 (3i): V.4's free graces read, also with the other thumb resting PREPA
   assert.ok(prepared.free >= prepared.heads / 2, `with a prepared rest: ${prepared.free} of ${prepared.heads} (before D369: 0)`);
   const small = await shaken("V.4", 1, 6, 70, true);
   assert.ok(small.free >= small.heads / 2, `small, prepared: ${small.free}`);
+});
+
+test("D369 (3a–3e): 0.2 withdrawn; Parts 0–II on the piano; Invention 1 slower; the metronome in the takes; novice-friendly timing", async () => {
+  const { MANUAL, lessonById, runOf, LESSON_CLICK, bpmOf, toldTiming, lessonPassed, ZERO_LENS, NOVICE_MEAN_MS } = await import("../src/bench/manual/lessons.ts");
+  const { tempoOf } = await import("../src/touch/tempi.ts");
+  const { existsSync } = await import("node:fs");
+  assert.ok(!lessonById("0.2"), "no 0.2");
+  assert.ok(!existsSync(new URL("../src/bench/manual/placement.ts", import.meta.url)));
+  assert.doesNotMatch(src("src/bench/BenchApp.tsx"), /AskScreen|PlacementScreen|PLACEMENT/);
+  // (b) the piano in Parts 0–II.
+  for (const l of MANUAL.filter((x) => ["0", "I", "II"].includes(x.part))) {
+    assert.equal(l.sound, "piano", l.id);
+    for (const st of l.stages) assert.ok(!st.m.sound || st.m.sound === "piano", `${l.id}: ${st.m.label}`);
+  }
+  // (c) Invention 1 at 75% of the game's tempo in Parts 0–II, at most 80% after.
+  const game = tempoOf("inv01");
+  for (const l of MANUAL)
+    for (const st of l.stages)
+      if (st.m.piece === "inv01") {
+        const share = bpmOf(st.m) / game;
+        assert.ok(["0", "I", "II"].includes(l.part) ? Math.abs(share - 0.75) < 0.01 : share <= 0.8 + 1e-9, `${l.id}: ${st.m.label} at ${Math.round(share * 100)}%`);
+      }
+  // (d) a soft click on every beat of a take (not under his demonstration); a drill's own click kept.
+  const take = runOf(lessonById("I.2")!.stages[3].m);
+  assert.deepEqual(take.click, LESSON_CLICK);
+  assert.ok(LESSON_CLICK.gain < 0.12 && LESSON_CLICK.full > 1e9);
+  assert.equal(runOf(lessonById("I.2")!.stages[3].m, "plain", undefined, false, false).click, undefined);
+  assert.deepEqual(runOf(lessonById("I.1")!.stages[0].m).click, { full: 8 * 1920, gone: 12 * 1920 });
+  assert.match(src("src/bench/proto-game.ts"), /const ckGain = ck\?\.gain \?\? 0\.12;/);
+  // (e) the owner's take: 55 ms early, a novice's spread: passed, praised first, only a suggestion.
+  const i1 = lessonById("I.1")!;
+  const x = { ...ZERO_LENS, of: 24, right: 23, accuracy: 23 / 24, timing: { n: 23, mean: -55, sd: 60, perfect: 9 } };
+  assert.ok(lessonPassed(i1, x), "early by 55 ms passes I.1");
+  assert.ok(lessonPassed(lessonById("I.5")!, { ...x, last: { hit: true, word: "HELD" } }), "and I.5");
+  assert.match(toldTiming(x)!.text, /^Good\. A shade early .*you may/);
+  assert.equal(NOVICE_MEAN_MS, 90);
+  assert.ok(!lessonPassed(i1, { ...x, timing: { ...x.timing, mean: -120 } }));
+});
+
+test("D369 (3f, 3g): a lesson tapped begins at once (no card); one left midway asks WHERE TO BEGIN?, up to the stage reached", async () => {
+  register("./tsx-hooks.mjs", import.meta.url);
+  const { createElement } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { ManualMap, WhereToBegin } = await import("../src/bench/manual/ManualMap.tsx");
+  const { reachStage, reachedOf, readManual } = await import("../src/bench/manual/store.ts");
+  const { lessonById } = await import("../src/bench/manual/lessons.ts");
+  store.clear();
+  reachStage("I.2", 2);
+  reachStage("I.2", 1);
+  assert.equal(reachedOf(readManual(), "I.2"), 2, "the furthest kept");
+  const html = renderToStaticMarkup(createElement(ManualMap, { begin: () => {}, testOut: () => {}, close: () => {} }));
+  assert.doesNotMatch(html, /tb-manual-card|BEGIN<|STRAIGHT TO PLAY|aria-expanded/);
+  const pop = renderToStaticMarkup(createElement(WhereToBegin, { l: lessonById("I.2")!, reached: 2, begin: () => {}, close: () => {} }));
+  assert.equal(pop.match(/id="resume-\d"/g)?.length, 3);
+  assert.match(pop, /FROM THE BEGINNING/);
+  assert.match(pop, /id="resume-2" class="tb-resume-stage here"/);
+  assert.match(pop, /WHERE YOU LEFT OFF/);
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /reachStage\(l\.id, k\);/);
+  assert.match(app, /if \(o\.stage && o\.stage > 0 && l\.stages\[o\.stage\]\) return beginStage\(l, o\.stage, 0\);/);
+  store.clear();
 });

@@ -10,7 +10,8 @@
  *
  * The owner's decisions (D342): Part I opens with Invention 1 (in the game) and not a chorale; each
  * lesson sounds on the instrument that makes its rudiment audible (chip for time, organ for holds,
- * harpsichord, piano), whatever the player's own sound; a lesson that teaches an unscored skill has no
+ * harpsichord, piano), whatever the player's own sound (D369: Parts 0–II all on the PIANO, the owner's
+ * "more pleasant"; the later parts keep theirs); a lesson that teaches an unscored skill has no
  * pass mark at all. His words: at most two lines before a lesson and one after (D225), one line before
  * each stage (D359); he quotes only his own title pages; the later sources sit in each lesson's
  * SOURCES, never in his mouth.
@@ -127,8 +128,8 @@ export interface ManualLesson {
   told?: (x: LensStats) => Said | null;
   sources?: string[];
   checkpoint?: boolean;
-  /** Part 0's two screens, which are not played on the bars. */
-  screen?: "grip" | "placement";
+  /** Part 0's screen (0.1), not played on the bars. D369: 0.2, the placement, withdrawn (the owner: "Everybody is a novice"). */
+  screen?: "grip";
 }
 
 const pctOf = (a: number, b: number) => (b > 0 ? Math.round((100 * a) / b) : 0);
@@ -142,6 +143,21 @@ const touchLine = (x: LensStats): Check => ({ text: "YOUR TOUCH: {t}", vars: { t
 /** D360 (Part V): the written signs read from the shake, of those in the passage; the player's own. */
 const graceLine = (x: LensStats): Check => ({ text: "SIGNS READ {n} OF {m} · YOUR OWN {f}", vars: { n: x.orn.read, m: x.orn.of, f: x.orn.free }, ok: true });
 
+/** D369: the novice-friendly timing aims (I.1, I.5): the mean within this (ms), the spread under that. */
+export const NOVICE_MEAN_MS = 90;
+export const NOVICE_SPREAD_MS = 80;
+/**
+ * D369: his one line on the timing after a take (I.1): praise first; within the aim only a suggestion
+ * ("A shade early … you may"), never a demand; past it, what to do.
+ */
+export function toldTiming(x: LensStats): Said | null {
+  if (x.timing.n < 3) return null;
+  const m = x.timing.mean;
+  if (Math.abs(m) <= 15) return { text: "On the pulse: within {n} ms.", vars: { n: Math.max(1, Math.abs(m)) } };
+  if (Math.abs(m) <= NOVICE_MEAN_MS) return m < 0 ? { text: "Good. A shade early ({n} ms): you may let the note come to you.", vars: { n: -m } } : { text: "Good. A shade late ({n} ms): you may strike a little sooner, with the beat.", vars: { n: m } };
+  return m < 0 ? { text: "Early by {n} ms. Let the note come to you.", vars: { n: -m } } : { text: "Late by {n} ms. Do not wait for the light.", vars: { n: m } };
+}
+
 /** A passage of the game's own, as a material. */
 const ex = (piece: string, voice: number, fromBar: number, toBar: number, tempo: Material["tempo"], label: string, o: Partial<Material> = {}): Material => ({ piece, voice, fromBar, toBar, tempo, label, badge: "IN GAME", ...o });
 /** A drill (drills.ts), whole, at its own tempo. */
@@ -152,6 +168,11 @@ const drill = (key: keyof typeof DRILLS & string, label: string, o: Partial<Mate
 const st = (kind: Stage["kind"], m: Material, say: string, o: Partial<Stage> = {}): Stage => ({ kind, m, say, ...o });
 
 const INV = "inv01";
+/**
+ * D369: Invention 1 in Parts 0–II at 75% of the game's tempo (♩ = 45 where the game plays it at 60): the
+ * owner, the first time it is heard and played, slower than standard; in the later parts at 80%.
+ */
+const SLOW_INV = 75;
 const RH = 0;
 const LH = 1;
 
@@ -183,7 +204,7 @@ export const MANUAL: ManualLesson[] = [
     title: "HALTUNG",
     english: "THE GRIP AND THE EARS",
     minutes: 2,
-    sound: "harpsichord",
+    sound: "piano",
     aim: "Phone sideways, one thumb on each bar, the sound in time with the touch.",
     aids: [],
     stages: [],
@@ -193,22 +214,6 @@ export const MANUAL: ManualLesson[] = [
     again: [],
     screen: "grip",
   },
-  {
-    id: "0.2",
-    part: "0",
-    title: "PROBESPIEL",
-    english: "HAVE YOU PLAYED BEFORE?",
-    minutes: 4,
-    sound: "piano",
-    aim: "To seat each player at the right lesson.",
-    aids: [],
-    stages: [],
-    lens: { counts: ["Nothing: it only places you"], shown: ["What each excerpt showed"], never: ["Loudness"] },
-    before: ["Have you played before?"],
-    after: [],
-    again: [],
-    screen: "placement",
-  },
   // PART I · DER ANSCHLAG · THE STRIKE
   {
     id: "I.1",
@@ -216,26 +221,30 @@ export const MANUAL: ManualLesson[] = [
     title: "DER PULS",
     english: "PULSE AND ONSET",
     minutes: 4,
-    sound: "chip",
+    sound: "piano",
     aim: "To strike with the music, by listening rather than by watching.",
     hear: { styles: ["plain"] },
     aids: ["dial"],
     stages: [
       st("drill", drill("schlaege", "Drill: one note, sixteen strikes; the click fades after eight", { easy: "timing" }), "Sixteen strikes on one note. After eight the click goes quiet: keep it going inside you."),
-      st("play", ex(INV, RH, 1, 2, { pct: 80 }, "Invention 1, right hand, bars 1–2, at 80%", { easy: "timing" }), "Now my Invention. My left hand answers yours: keep the beat between us."),
+      st("play", ex(INV, RH, 1, 2, { pct: SLOW_INV }, "Invention 1, right hand, bars 1–2, at 75%", { easy: "timing" }), "Now my Invention. My left hand answers yours: keep the beat between us."),
     ],
-    lens: { counts: ["Notes struck in their window: 85%", "Mean timing within ±50 ms", "Spread under 70 ms"], shown: ["PERFECT share"], never: ["Height", "Holds", "Articulation", "Colour", "Loudness"] },
-    // D342: and the spread under 70 ms (not on the card: a random tapper's mean is near zero too; design 4.10).
+    lens: { counts: ["Notes struck in their window: 85%", "Mean timing within ±90 ms", "Spread under 80 ms"], shown: ["PERFECT share"], never: ["Height", "Holds", "Articulation", "Colour", "Loudness"] },
+    // D342: and the spread (a random tapper's mean is near zero too; design 4.10). D369: novice-friendly
+    // (the owner: "I was early by 55ms … Bach is complaining like crazy and requiring me to repeat"):
+    // the mean within ±90 ms (was ±50), the spread under 80 ms (was 70: a random tapper at this tempo
+    // scatters 83–138 ms, so the ~110 first proposed would pass it on some seeds; it still fails).
     checks: (x): Check[] => [
       { text: "STRUCK IN TIME {p}% (AIM 85%)", vars: { p: pctOf(x.right, x.of) }, ok: atLeast(x.right, x.of, 0.85), fix: C.fixRight(x) },
-      meanWithin(x, 50),
-      { text: "SPREAD {s} MS (AIM UNDER 70)", vars: { s: x.timing.n > 2 ? x.timing.sd : "—" }, ok: x.timing.n > 2 && x.timing.sd < 70, fix: C.fixSpread(x) },
+      meanWithin(x, NOVICE_MEAN_MS),
+      { text: "SPREAD {s} MS (AIM UNDER 80)", vars: { s: x.timing.n > 2 ? x.timing.sd : "—" }, ok: x.timing.n > 2 && x.timing.sd < NOVICE_SPREAD_MS, fix: C.fixSpread(x) },
     ],
     shown: (x): Check[] => [{ text: "PERFECT {p}%", vars: { p: pctOf(x.timing.perfect, x.timing.n) }, ok: true }],
     before: ["Strike with the music. Anywhere on the bar: here only the time counts.", "Listen to the other voice, not to the light on the glass."],
     after: ["Recht. The pulse is in you now."],
     again: ["Let the note come to you. Again."],
-    told: (x) => (x.timing.n < 3 ? null : x.timing.mean < -15 ? { text: "Early by {n} ms. Let the note come to you.", vars: { n: -x.timing.mean } } : x.timing.mean > 15 ? { text: "Late by {n} ms. Do not wait for the light.", vars: { n: x.timing.mean } } : { text: "On the pulse: within {n} ms.", vars: { n: Math.max(1, Math.abs(x.timing.mean)) } }),
+    // D369: praise first; a novice-good take only hears a suggestion.
+    told: (x) => toldTiming(x),
     sources: ["B. H. Repp, Sensorimotor synchronization (2005): tappers anticipate the beat."],
   },
   {
@@ -244,14 +253,14 @@ export const MANUAL: ManualLesson[] = [
     title: "SCHRITT UND SPRUNG",
     english: "STEP AND LEAP",
     minutes: 4,
-    sound: "harpsichord",
+    sound: "piano",
     aim: "To draw the line with the thumb: up when it rises, down when it falls, a step small and a leap clear.",
     hear: { styles: ["plain"] },
     aids: ["trace"],
     stages: [
       st("drill", drill("treppe", "Drill: C4 to G4 by steps and back, then by leaps (WAIT FOR ME)"), "Five steps up and back, then the same in leaps. I wait for you."),
-      st("drill", ex(INV, RH, 1, 1, { bpm: 60 }, "Invention 1, right hand, bar 1 (WAIT FOR ME)", { wait: true }), "My subject: steps, then a leap of a fourth. I wait for you."),
-      st("drill", ex(INV, RH, 1, 1, { bpm: 60 }, "Invention 1, right hand, bar 1, at ♩ = 60"), "The same bar, now in time."),
+      st("drill", ex(INV, RH, 1, 1, { pct: SLOW_INV }, "Invention 1, right hand, bar 1 (WAIT FOR ME)", { wait: true }), "My subject: steps, then a leap of a fourth. I wait for you."),
+      st("drill", ex(INV, RH, 1, 1, { pct: SLOW_INV }, "Invention 1, right hand, bar 1, at 75%"), "The same bar, now in time."),
       st("play", ex("wtc1f20", 1, 1, 2, { pct: 80 }, "Fugue I/20 in A minor, alto, bars 1–2, at 80%"), "A darker line: it turns, then falls far. Draw it."),
     ],
     lens: { counts: ["Direction right: 90%", "Notes played: 70%"], shown: ["Timing"], never: ["The absolute height", "Which thumb", "Holds"] },
@@ -297,7 +306,7 @@ export const MANUAL: ManualLesson[] = [
     title: "HALTEN UND LASSEN",
     english: "HOLDING AND LETTING GO",
     minutes: 3,
-    sound: "organ",
+    sound: "piano",
     aim: "To give each note its length, and each rest its silence.",
     hear: { styles: ["held"] },
     aids: ["fill"],
@@ -312,7 +321,7 @@ export const MANUAL: ManualLesson[] = [
       { text: "RESTS LIFTED {n} OF {m} (AIM 80%)", vars: { n: x.rests.ok, m: x.rests.of }, ok: atLeast(x.rests.ok, x.rests.of, 0.8), na: !x.rests.of, fix: C.fixRests(x) },
       { text: "NOTES PLAYED {p}% (AIM 60%)", vars: { p: Math.round(100 * x.accuracy) }, ok: x.accuracy >= 0.6, fix: C.fixRight(x) },
     ],
-    before: ["On the organ a note lasts exactly as long as your thumb.", "A note lives as long as you hold it. A rest is music too."],
+    before: ["A note lasts exactly as long as your thumb.", "A note lives as long as you hold it. A rest is music too."],
     after: ["So. A note lives as long as you hold it."],
     again: ["Hold each note to its end; lift where the music rests. Again."],
   },
@@ -322,15 +331,15 @@ export const MANUAL: ManualLesson[] = [
     title: "PROBE: DIE INVENTION",
     english: "CHECKPOINT: A MELODY",
     minutes: 3,
-    sound: "organ",
+    sound: "piano",
     aim: "To play a whole melody with the other voice: pulse, line, repeats and lengths together.",
     hear: { styles: ["plain"] },
     aids: [],
     // To the downbeat of bar 7 (the passage ends on the note bar 6 leads to: G4, the cadence in G, then a rest).
-    stages: [st("play", ex(INV, RH, 1, 6, { bpm: 60 }, "Invention 1, right hand, bars 1–7, at ♩ = 60 (to the cadence in G)"), "From the first note to the cadence in G. Begin when you are ready.")],
-    lens: { counts: ["Right: 85%", "Mean timing within ±60 ms", "The cadence's note HELD"], shown: ["Everything else"], never: ["Articulation", "Colour"] },
+    stages: [st("play", ex(INV, RH, 1, 6, { pct: SLOW_INV }, "Invention 1, right hand, bars 1–7, at 75% (to the cadence in G)"), "From the first note to the cadence in G. Begin when you are ready.")],
+    lens: { counts: ["Right: 85%", "Mean timing within ±90 ms", "The cadence's note HELD"], shown: ["Everything else"], never: ["Articulation", "Colour"] },
     // The cadence's note held: struck right and not let go SHORT (its end, when the passage stops first, not judged against it).
-    checks: (x): Check[] => [right(x, 0.85), meanWithin(x, 60), { text: "THE CADENCE NOTE {w}", vars: { w: !x.last.hit ? "MISSED" : x.last.word === "SHORT" ? "SHORT" : "HELD" }, ok: x.last.hit && x.last.word !== "SHORT", fix: C.fixLast(x) }],
+    checks: (x): Check[] => [right(x, 0.85), meanWithin(x, NOVICE_MEAN_MS), { text: "THE CADENCE NOTE {w}", vars: { w: !x.last.hit ? "MISSED" : x.last.word === "SHORT" ? "SHORT" : "HELD" }, ok: x.last.hit && x.last.word !== "SHORT", fix: C.fixLast(x) }],
     shown: (x): Check[] => [perfectLine(x)],
     before: ["Seven bars, with my left hand beside you. I will say nothing until the end."],
     after: ["The first page of my Inventions. The line, the time and the lengths: yours."],
@@ -344,14 +353,14 @@ export const MANUAL: ManualLesson[] = [
     title: "WECHSEL",
     english: "TAKING TURNS",
     minutes: 4,
-    sound: "harpsichord",
+    sound: "piano",
     aim: "Quick notes shared between the thumbs, one after the other.",
     hear: { styles: ["plain"] },
     aids: ["letters"],
     guide: true,
     stages: [
       st("drill", drill("pendel", "Drill: quavers rocking G4 A4, then B4 C5 (WAIT FOR ME)"), "Rock between two notes, each thumb taking one. I wait for you."),
-      st("drill", ex(INV, LH, 2, 3, { bpm: 60 }, "Invention 1, left hand, bars 2–3, at ♩ = 60"), "My left hand's semiquavers. Left, right, left: never the same thumb twice."),
+      st("drill", ex(INV, LH, 2, 3, { pct: SLOW_INV }, "Invention 1, left hand, bars 2–3, at 75%"), "My left hand's semiquavers. Left, right, left: never the same thumb twice."),
       st("drill", ex("wtc2f18", 0, 1, 5, { pct: 75 }, "Fugue II/18 in G♯ minor, soprano, bars 1–5, at 75%"), "Running quavers, slower than written."),
       st("play", ex("wtc2f18", 0, 1, 5, { pct: 100 }, "Fugue II/18 in G♯ minor, soprano, bars 1–5"), "Now as written."),
     ],
@@ -369,7 +378,7 @@ export const MANUAL: ManualLesson[] = [
     title: "WECHSELNOTEN",
     english: "NEIGHBOURS",
     minutes: 4,
-    sound: "chip",
+    sound: "piano",
     aim: "To play the note that steps away and comes home.",
     hear: { styles: ["one-thumb", "plain"] },
     aids: ["trace"],
@@ -390,16 +399,16 @@ export const MANUAL: ManualLesson[] = [
     title: "DIE ÜBERGABE",
     english: "THE HANDOVER",
     minutes: 5,
-    sound: "organ",
+    sound: "piano",
     aim: "One note passed to the next with no gap: legato, as one of three touches.",
     // D359: his thumbs drawn (it was a sound-only pair under his lines): the same bars apart, then joined.
     hear: { stage: 0, styles: ["detached", "legato"] },
     aids: ["meter"],
     words: ["legato"],
     stages: [
-      st("drill", ex(INV, LH, 2, 3, { bpm: 60 }, "Invention 1, left hand, bars 2–3: joined"), "Joined: land the next thumb as the last one lifts, or a moment before."),
-      st("drill", ex("wtc1f22", 0, 1, 4, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano I, bars 1–4, on the organ"), "Long notes on the organ, where every gap is heard."),
-      st("play", ex(INV, RH, 3, 3, { bpm: 60 }, "Invention 1, right hand, bar 3: sixteen semiquavers, on the piano", { sound: "piano" }), "On the piano now: sixteen notes, one line."),
+      st("drill", ex(INV, LH, 2, 3, { pct: SLOW_INV }, "Invention 1, left hand, bars 2–3: joined"), "Joined: land the next thumb as the last one lifts, or a moment before."),
+      st("drill", ex("wtc1f22", 0, 1, 4, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano I, bars 1–4"), "Long notes, where every gap is heard."),
+      st("play", ex(INV, RH, 3, 3, { pct: SLOW_INV }, "Invention 1, right hand, bar 3: sixteen semiquavers"), "Now sixteen notes, one line."),
     ],
     lens: { counts: ["Joins on 70% of the notes that follow one another"], shown: ["The touch inferred", "Overlaps"], never: ["Colour", "Loudness"] },
     checks: (x): Check[] => [{ text: "JOINED {n} OF {m} (AIM 70%)", vars: { n: x.joins.ok, m: x.joins.of }, ok: atLeast(x.joins.ok, x.joins.of, 0.7), na: !x.joins.of, fix: C.fixJoins(x) }],
@@ -415,7 +424,7 @@ export const MANUAL: ManualLesson[] = [
     title: "VORBEREITEN UND ABZIEHEN",
     english: "PREPARING: HAMMER-ON AND PULL-OFF",
     minutes: 5,
-    sound: "harpsichord",
+    sound: "piano",
     aim: "To put the next thumb down before it is needed, and let the release of the other sound it.",
     hear: { styles: ["prepared"] },
     aids: ["prepared"],
@@ -443,7 +452,7 @@ export const MANUAL: ManualLesson[] = [
     aids: ["trace"],
     guide: true,
     stages: [
-      st("drill", ex(INV, LH, 14, 16, { bpm: 60 }, "Invention 1, left hand, bars 14–16: the octave of bar 15"), "An octave in bar 15: the other thumb is already waiting below."),
+      st("drill", ex(INV, LH, 14, 16, { pct: SLOW_INV }, "Invention 1, left hand, bars 14–16: the octave of bar 15"), "An octave in bar 15: the other thumb is already waiting below."),
       st("drill", ex("wtc2f24", 1, 1, 8, { pct: 80 }, "Fugue II/24 in B minor, alto, bars 1–8, at 80%"), "Octaves down and up. Each thumb keeps its own floor."),
       st("play", ex("wtc2f24", 1, 1, 8, { pct: 100 }, "Fugue II/24 in B minor, alto, bars 1–8"), "In time."),
     ],
@@ -460,7 +469,7 @@ export const MANUAL: ManualLesson[] = [
     title: "DER LAUF",
     english: "RUNS",
     minutes: 5,
-    sound: "chip",
+    sound: "piano",
     aim: "A run played as one gesture of the hand.",
     hear: { stage: 0, styles: ["plain"] },
     aids: ["trend"],
@@ -485,11 +494,11 @@ export const MANUAL: ManualLesson[] = [
     title: "PROBE: DIE INVENTION",
     english: "CHECKPOINT: INVENTION 1",
     minutes: 3,
-    sound: "harpsichord",
+    sound: "piano",
     aim: "Two voices, cleanly, which is what the 1723 title page asks of the beginner.",
     aids: [],
-    stages: [st("play", ex(INV, RH, 1, 22, { bpm: 60 }, "Invention 1, right hand, the whole, at ♩ = 60"), "Twenty-two bars, to the last C. Begin when you are ready.")],
-    alt: ex(INV, LH, 1, 22, { bpm: 60 }, "Invention 1, left hand, the whole, at ♩ = 60"),
+    stages: [st("play", ex(INV, RH, 1, 22, { pct: SLOW_INV }, "Invention 1, right hand, the whole, at 75%"), "Twenty-two bars, to the last C. Begin when you are ready.")],
+    alt: ex(INV, LH, 1, 22, { pct: SLOW_INV }, "Invention 1, left hand, the whole, at 75%"),
     lens: { counts: ["Right: 80%"], shown: ["Alternation", "Joins"], never: ["Articulation choice", "Graces"] },
     checks: (x): Check[] => [right(x, 0.8)],
     shown: (x): Check[] => [
@@ -731,7 +740,7 @@ export const MANUAL: ManualLesson[] = [
     aids: ["dial"],
     stages: [
       st("drill", ex("wtc1f02", 1, 29, 31, { pct: 100 }, "Fugue I/2 in C minor, alto, bars 29–31: the end"), "The last bars of the fugue. Let them widen a little."),
-      st("play", ex(INV, RH, 19, 22, { bpm: 60 }, "Invention 1, right hand, bars 19–22: the end"), "The end of my Invention. Broaden, and stay on the last C."),
+      st("play", ex(INV, RH, 19, 22, { pct: 80 }, "Invention 1, right hand, bars 19–22: the end"), "The end of my Invention. Broaden, and stay on the last C."),
     ],
     lens: { counts: ["Right: 85%", "The last note held"], shown: ["Broadening"], never: ["How much you broaden"] },
     checks: (x): Check[] => [right(x, 0.85), { text: "THE LAST NOTE {w}", vars: { w: !x.last.hit ? "MISSED" : x.last.word === "SHORT" ? "SHORT" : "HELD" }, ok: x.last.hit && x.last.word !== "SHORT", fix: C.fixLast(x) }],
@@ -776,7 +785,7 @@ export const MANUAL: ManualLesson[] = [
     ornaments: true,
     stages: [
       st("drill", ex("wtc2f01", 1, 1, 2, { pct: 70 }, "Fugue II/1 in C major, alto, bars 1–2, at 70%"), "One mordent, on the A. Touch it, then a small quick shake: down, and back."),
-      st("play", ex(INV, RH, 1, 2, { bpm: 60 }, "Invention 1, right hand, bars 1–2: two mordents"), "My Invention's two mordents: on the B, then on the F."),
+      st("play", ex(INV, RH, 1, 2, { pct: 80 }, "Invention 1, right hand, bars 1–2: two mordents"), "My Invention's two mordents: on the B, then on the F."),
     ],
     lens: { counts: ["Nothing: played through is passed"], shown: ["The graces read"], never: ["In the game's score"] },
     shown: (x): Check[] => [graceLine(x)],
@@ -844,7 +853,7 @@ export const MANUAL: ManualLesson[] = [
     aids: [],
     ornaments: true,
     stages: [
-      st("drill", ex(INV, RH, 5, 7, { bpm: 60 }, "Invention 1, right hand, bars 5–7"), "Before the cadence in G, a trill of your own, if you like."),
+      st("drill", ex(INV, RH, 5, 7, { pct: 80 }, "Invention 1, right hand, bars 5–7"), "Before the cadence in G, a trill of your own, if you like."),
       st("play", ex("wtc1f22", 0, 1, 13, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano I, bars 1–13, on the harpsichord"), "One or two graces of your choice, on long notes. Or none."),
     ],
     lens: { counts: ["Nothing: played through is passed"], shown: ["Your own graces"], never: ["In the game's score"] },
@@ -944,7 +953,7 @@ export const soundOf = (l: ManualLesson, m?: Material): SoundName => m?.sound ??
 export function manualTexts(): string[] {
   const out: string[] = [...MANUAL_FLOW, ...Object.values(SOUND_WORD), ...C.coachTexts(), ...WATCH_WORDS];
   for (const p of PARTS) out.push(p.english, ...(p.seal ? [p.seal] : []));
-  const xs = [-40, 0, 40].map((mean) => ({ ...ZERO_LENS, timing: { n: 9, mean, sd: 20, perfect: 5 } }));
+  const xs = [-120, -40, 0, 40, 120].map((mean) => ({ ...ZERO_LENS, timing: { n: 9, mean, sd: 20, perfect: 5 } }));
   for (const l of MANUAL) {
     out.push(l.english, l.aim, ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
     if (l.alt) out.push(l.alt.label);
@@ -965,6 +974,9 @@ export const watchWord = (s?: DemoStyle) =>
 
 /** THE MANUAL's own lines and buttons between the steps (BenchApp's flow), for the translations' check. */
 export const MANUAL_FLOW = [
+  "WHERE TO BEGIN?",
+  "FROM THE BEGINNING",
+  "WHERE YOU LEFT OFF",
   "Now you.",
   "Good. On to the next.",
   "Gut. On to the next.",
@@ -1019,8 +1031,14 @@ export const ZERO_LENS: LensStats = {
 /** "{n} min" etc.: a lesson's line on the map. */
 export const lessonMeta = (l: ManualLesson) => `${l.minutes} MIN${l.sound ? ` · ${tr(SOUND_WORD[l.sound])}` : ""}`;
 
-/** A material as the game's run (lessons.ts Run): LADDER, no crowd, the drill's click, the demonstration's manner, the reading, the practice room. */
-export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["words"], ornaments = false): Run {
+/**
+ * D369: the lessons' metronome: a soft click on every beat for the whole take (the game has none past the
+ * count-in since D346; the owner wants it in the lessons), unless a drill asks for its own (I.1's fades).
+ */
+export const LESSON_CLICK = { full: Number.MAX_SAFE_INTEGER, gone: Number.MAX_SAFE_INTEGER, gain: 0.07 } as const;
+
+/** A material as the game's run (lessons.ts Run): LADDER, no crowd, the drill's click (else the lessons' metronome, `click`), the demonstration's manner, the reading, the practice room. */
+export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["words"], ornaments = false, click = true): Run {
   const { from, until } = spanOf(m);
   const d = Object.values(DRILLS).find((x) => x.id === m.piece);
   return {
@@ -1034,7 +1052,7 @@ export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["
     wait: !!m.wait,
     solo: !!m.solo,
     easy: m.easy ?? "direction",
-    ...(d?.click ? { click: d.click } : {}),
+    ...(d?.click ? { click: d.click } : click ? { click: LESSON_CLICK } : {}),
     ...(demoStyle && demoStyle !== "plain" ? { demoStyle } : {}),
     ...(m.reading ? { reading: m.reading } : {}),
     quiet: { words: words ?? [], ...(ornaments ? { ornaments: true } : {}) },
