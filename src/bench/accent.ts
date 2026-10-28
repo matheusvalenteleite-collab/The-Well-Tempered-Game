@@ -34,6 +34,8 @@ export function accentSeparated(gapMs: number | null | "held", m: Mech = MECH): 
 /** 3: held its value (heldMs from the written onset to the lift; riders: its end is not the player's; short: the reading dots it). */
 export function accentHeld(heldMs: number, lenMs: number, o: { riders?: boolean; short?: boolean } = {}, m: Mech = MECH): AccentWhy | null {
   if (o.riders || o.short) return null;
+  // D376 (MECH.glenn): an accent is the silence before it and the lean; how long it is held is the player's.
+  if (m.glenn) return null;
   return heldMs >= lenMs * m.accentHoldShare ? null : "short";
 }
 

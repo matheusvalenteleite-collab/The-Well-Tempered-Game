@@ -27,6 +27,7 @@ import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
+import { exprFamily, GLENN, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "./glenn.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 import { findRuns, runTrend, type Run } from "./runs.ts";
@@ -280,6 +281,12 @@ interface Held {
   /** D321: the last time (ms) the thumb was still where it last played (a drag's start), and the drag's length at its slide (ms). */
   still?: number;
   dragMs?: number;
+  /** D376 (MECH.glenn): when the thumb was last still where it last played (ms on the audio clock: a replay's own). */
+  gStillMs?: number;
+  /** D376: a slide near its note (within half a row), for the stop rule: where and when. */
+  gNear?: { c: Contact; ms: number; dir: 1 | -1 };
+  /** D376: a slide arrived before its note: it waits there for the note. */
+  gWait?: { c: Contact; dir: 1 | -1; on: number };
   /** D321, "connect": a glide under way (the sound, from and to MIDI, its start on the audio clock, its length in ms). */
   glider?: { sd: Sounding; from: number; to: number; t0: number; ms: number };
 }
@@ -1021,6 +1028,8 @@ export class ProtoGame {
     // D308: paused: the clock held where it stopped, nothing scheduled, nothing judged.
     if (this.pausedAt !== null) return false;
     this.evTs = null;
+    // D376 (MECH.glenn): over-legato's ringing notes past their cap let go.
+    if (this.rings.items.length) this.rings.frame(ch.ctx.currentTime);
     // D345: sounds past their own schedule let go even where the browser never reports their end.
     ch.sweep?.();
     this.bandT?.frame(ch.heard());
@@ -2310,7 +2319,7 @@ export class ProtoGame {
     c = { ...c, side: h.side };
     h.across = c.x / Math.max(1, c.w);
     // D321: a drag's length: from the last moment the thumb was still where it last played.
-    if (h.still === undefined || (this.road ? Math.abs(c.x - h.ax) : Math.abs(c.y - h.ay)) < 3) h.still = ts;
+    if (h.still === undefined || (this.road ? Math.abs(c.x - h.ax) : Math.abs(c.y - h.ay)) < 3) (h.still = ts), MECH.glenn && (h.gStillMs = this.evMs());
     h.dragMs = ts - h.still;
     h.trail.push({ t: ts, y: c.y });
     while (h.trail.length > 2 && ts - h.trail[0].t > 120) h.trail.shift();
@@ -2349,8 +2358,11 @@ export class ProtoGame {
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
     // D319: and while its trill goes on (each leg keeps it going), after the shake was judged.
     if (h.orn && h.open && (!h.orn.done || (h.trill && t <= h.orn.by))) return this.ornamentShake(h, c, t);
+    // D376 (MECH.glenn): Glenn's slide (glennSlide); a slide in its phase half a row on: no ornament read.
+    const gl = MECH.glenn && this.proto.id === "ladder" && this.rows ? this.glennLead(h, c, ms) : null;
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (this.freeShake(h, c, t)) return void (h.slidePend = undefined);
+    if (!gl?.noOrn && this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
+    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return this.glennSlide(id, h, c, t, ms, gl);
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
       // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
@@ -2689,6 +2701,7 @@ export class ProtoGame {
       if (h.wait?.prep?.read) h.wait.prep.read.tick(ms);
       if (h.slidePend) this.trySlide(id, h, ms);
     }
+    if (MECH.glenn) this.glennFrames(ms);
   }
   /** D353: slides wait for confirmation where a shake is read (LADDER on a phone, the gestures on, not BLUETOOTH MODE). */
   private slideGuarded(): boolean {
@@ -2704,11 +2717,91 @@ export class ProtoGame {
     if (!p) return;
     if (h.passive || h.handed || !this.held.has(id)) return void (h.slidePend = undefined);
     if (h.free?.r.kind) return void (h.slidePend = undefined);
-    if (ms - p.ms < MECH.slideConfirmMs) return;
+    if (ms - p.ms < (MECH.glenn ? GLENN.slideConfirmMs : MECH.slideConfirmMs)) return;
     const th = this.shakeTh();
     if (h.mv && ms - h.mv.ms < 50 && h.mv.v > th.reach / th.Lm) return;
     h.slidePend = undefined;
-    if (this.slideTo(id, h, p.c, p.t)) h.slideDir = p.dir;
+    // D376 (MECH.glenn): judged where it sounds (the confirmation's moment), not where it reached the note.
+    if (this.slideTo(id, h, p.c, MECH.glenn ? Math.max(p.t, this.tickAt(ms / 1000)) : p.t)) h.slideDir = p.dir;
+  }
+  /** D376 (MECH.glenn): over-legato's ringing notes (glenn.ts RingList). */
+  private readonly rings = new RingList();
+  /** D376: each voice's slide-slur (glenn.ts SlideSlur). */
+  private readonly slideSlurs = new Map<number, SlideSlur>();
+  private slideSlurOf(k: number): SlideSlur {
+    let s = this.slideSlurs.get(k);
+    if (!s) this.slideSlurs.set(k, (s = new SlideSlur((tk) => nextStrongBeat(this.f, tk))));
+    return s;
+  }
+  /** D376 (MECH.glenn): the next note a slide would take, its drawn height, which way, and whether the move began in the slide phase. */
+  private glennLead(h: Held, c: Contact, ms: number): { n: LaneNote; target: number; want: 1 | -1; phase: boolean; noOrn: boolean } | null {
+    const notes = this.tracks[h.k].notes;
+    const n = notes.find((x) => x.state === "pending" && !x.ride);
+    const cur = h.note >= 0 ? notes[h.note] : undefined;
+    if (!n || !cur || !this.rows || h.passive || h.handed) return null;
+    const target = this.rows.yOf(n.step);
+    const want: 1 | -1 = target < h.ay ? 1 : -1;
+    const startTick = this.tickAt((h.gStillMs ?? ms) / 1000);
+    const phase = slidePhase(this.msOf(cur.on, startTick), 0, this.msOf(cur.on, n.on));
+    return { n, target, want, phase, noOrn: phase && want * (h.ay - c.y) >= GLENN.slideOrnRows * this.ladderRow };
+  }
+  /**
+   * D376 (MECH.glenn), Glenn's slide (§4.4): one way; at least max(SLIDE_MIN_PX, 0.6 × the drawn distance);
+   * arrived within 0.15 row of its note (or stopped within half a row: glennFrames); begun in the slide
+   * phase it sounds as it arrives, else it is confirmed (40 ms) and judged then; arrived early, it waits for its note.
+   */
+  private glennSlide(id: number, h: Held, c: Contact, t: number, ms: number, gl: ReturnType<ProtoGame["glennLead"]>) {
+    if (h.gWait) {
+      if (gl && h.gWait.on === gl.n.on && Math.abs(c.y - gl.target) <= GLENN.slideStopRows * this.ladderRow) return void (h.gWait.c = c);
+      h.gWait = undefined;
+    }
+    const pend = h.slidePend;
+    if (pend) {
+      pend.ext = pend.dir === 1 ? Math.min(pend.ext, c.y) : Math.max(pend.ext, c.y);
+      if (Math.abs(c.y - pend.ext) < this.shakeTh().reach) return this.trySlide(id, h, ms);
+      h.slidePend = undefined;
+    }
+    if (!MECH.slides || !gl) return void (h.gNear = undefined);
+    const row = this.ladderRow;
+    const dir: 1 | -1 = c.y < h.ay ? 1 : -1;
+    if (dir !== gl.want || Math.abs(c.y - h.ay) < Math.max(MECH.slideMinPx, GLENN.slideMinShare * Math.abs(gl.target - h.ay))) return void (h.gNear = undefined);
+    if (h.slideDir && dir !== h.slideDir) return;
+    const off = gl.want * (c.y - gl.target);
+    if (off > GLENN.slideReachRows * row) return void (h.gNear = off <= GLENN.slideStopRows * row ? { c, ms, dir } : undefined);
+    this.glennArrive(id, h, c, t, ms, dir, gl);
+  }
+  private glennArrive(id: number, h: Held, c: Contact, t: number, ms: number, dir: 1 | -1, gl: NonNullable<ReturnType<ProtoGame["glennLead"]>>) {
+    h.gNear = undefined;
+    if (t < this.glennOpen(h.k, gl.n)) return void (h.gWait = { c, dir, on: gl.n.on });
+    if (!gl.phase && this.slideGuarded()) {
+      h.slidePend = { c, t, ms, ext: c.y, dir };
+      return this.trySlide(id, h, ms);
+    }
+    if (this.slideTo(id, h, c, t)) h.slideDir = dir;
+  }
+  /** D376: a slide arrived early sounds from here: half the note's PERFECT window before it. */
+  private glennOpen(k: number, n: LaneNote): number {
+    const i = this.tracks[k].notes.indexOf(n);
+    return this.tickAt(this.timeAt(n.on) - this.relAt(MECH.perfectMs, k, i) / 2000);
+  }
+  /** D376: each frame, a slide waiting for its note sounds when it opens; one stopped near its note (40 ms) has arrived. */
+  private glennFrames(ms: number) {
+    for (const [id, h] of this.held) {
+      if (h.gWait) {
+        const n = this.tracks[h.k].notes.find((x) => x.state === "pending" && !x.ride);
+        if (!n || n.on !== h.gWait.on || h.passive || h.handed) h.gWait = undefined;
+        else if (this.now >= this.glennOpen(h.k, n)) {
+          const w = h.gWait;
+          h.gWait = undefined;
+          if (this.slideTo(id, h, w.c, this.now)) h.slideDir = w.dir;
+        }
+      } else if (h.gNear && ms - h.gNear.ms >= GLENN.slideStopMs && (!h.mv || ms - h.mv.ms >= GLENN.slideStopMs)) {
+        const g = h.gNear;
+        const gl = this.glennLead(h, g.c, ms);
+        if (!gl || h.lastY !== g.c.y) h.gNear = undefined;
+        else this.glennArrive(id, h, g.c, this.now, ms, g.dir, gl);
+      }
+    }
   }
   /** D314: the free ornaments played this run (counted for the tests; they score nothing). D353: turns too; shorts the up-down forms. */
   readonly freeOrns = { mordents: 0, shorts: 0, trills: 0, turns: 0 };
@@ -2842,7 +2935,9 @@ export class ProtoGame {
     // Still holding it, or let go (or taken back by iOS) within the legato window: the slur's gap.
     const holding = this.held.get(st.id) === o;
     const lo = this.lastOff;
-    const gone = !holding && !!lo && lo.k === h.k && lo.i === st.i && this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(n.on, n.on + n.dur));
+    const gap = lo ? this.msOf(lo.tick, tk) : Infinity;
+    const window = legatoGapMs(this.msOf(n.on, n.on + n.dur));
+    const gone = !holding && !!lo && lo.k === h.k && lo.i === st.i && (MECH.glenn ? joinedByEar(gap, !!lo.cancel, window) : gap <= window);
     const slide = st.kind === "slide";
     // A waiting thumb's note: by a touch nearer its time than the next note's, not the thumb that played the note before.
     const nx = notes.findIndex((x, j) => j > st.i && !x.ride && x.on > n.on);
@@ -2876,7 +2971,8 @@ export class ProtoGame {
     const p = this.before(st.i, h.k);
     const at = performance.now();
     // D321: a "connect" drag was credited as joined already: that credit gives way to the strike's.
-    if (slide && MECH.dragMeaning === "connect" && this.joinedAt(st.i, h.k) && p >= 0 && notes[p].state === "hit") this.art.legato--;
+    // D376 (MECH.glenn): so was a slide's slur.
+    if (slide && (MECH.dragMeaning === "connect" || MECH.glenn) && this.joinedAt(st.i, h.k) && p >= 0 && notes[p].state === "hit") this.art.legato--;
     if (slide && this.joinedAt(st.i, h.k) && askJoin !== false && p >= 0 && notes[p].state === "hit" && h.pts !== undefined) {
       this.chain = st.chain + 1;
       this.art.legato++;
@@ -2925,6 +3021,8 @@ export class ProtoGame {
     const h = this.held.get(id);
     if (!h) return;
     this.held.delete(id);
+    // D376 (MECH.glenn): the note it gave way to, ringing on (over-legato), stops as it lifts.
+    if (MECH.glenn) this.rings.lifted(h, this.chip.ctx.currentTime);
     // D353: after an ornament read on it, the thumb's reference for its next note returns to its landing
     // when it ended within a row of it (D286's "moved" was its shake; a final drift must not change a verdict).
     // D353: the lift ends a written ornament's last leg (a mordent on a short note: the thumb lifts as it comes back): counted, not sounded.
@@ -2955,13 +3053,13 @@ export class ProtoGame {
       this.tap?.({ kind: "cancel", tick: this.tickOf(ts), track: h.k, side: h.side, ringsOn: !!(h.open && n?.state === "hit" && overlap), mode: MECH.cancel });
       if (h.open && n?.state === "hit" && overlap) {
         const end = Math.max(this.tickOf(ts), n.on + n.dur);
-        this.lastOff = { k: h.k, i: h.note, tick: end };
+        this.lastOff = { k: h.k, i: h.note, tick: end, ...(MECH.glenn ? { cancel: true } : {}) };
         const until = this.timeAt(end);
         for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop(Math.max(this.chip.ctx.currentTime, until));
       } else {
         // D318: taken back alone, the note ends here, and for the join too (D289: a cancel counts as a lift):
         // iOS takes the first thumb back a moment before the second lands, and the slur was lost.
-        if (MECH.cancelJoins && h.open && n?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
+        if (MECH.cancelJoins && h.open && n?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts), ...(MECH.glenn ? { cancel: true } : {}) };
         for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
       }
       // D334: a touch taken back counts as the lift for a pull-off.
@@ -3022,7 +3120,11 @@ export class ProtoGame {
       const p = notes[lo.i];
       lw.gapMs = this.msOf(lo.tick, tk);
       lw.allowedMs = legatoGapMs(this.msOf(p.on, p.on + p.dur));
-      if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(p.on, p.on + p.dur))) over = true;
+      // D376 (MECH.glenn): joined as heard, a gap of 25 ms or less (a touch iOS took back: the old window).
+      if (MECH.glenn) {
+        lw.allowedMs = lo.cancel ? Math.max(lw.allowedMs, GLENN.joinGapMs) : GLENN.joinGapMs;
+        if (joinedByEar(lw.gapMs, !!lo.cancel, legatoGapMs(this.msOf(p.on, p.on + p.dur)))) over = true;
+      } else if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(p.on, p.on + p.dur))) over = true;
     }
     // D325: the note before's hold, as the player let it go (still down: held to this strike), before its end is judged here.
     const pv = this.before(i, h.k);
@@ -3077,7 +3179,21 @@ export class ProtoGame {
     // as the thumbs play them), its last lighter still (SLUR_LAST_DB); a legato line the reading does not
     // slur, or with no reading, level. Loudness never tied to right or wrong (the place, not the verdict).
     const slurAt = this.slurHere(h.k, notes[i].on);
-    if (styleOf(preset().id) === "piano" && !slide) {
+    // D376 (MECH.glenn): a slide on a keyboard opens a slur at the note slid from; the joins after it carry it
+    // to a detach, the next strong beat (included) or eight notes; on the piano it tapers (only lower, by place).
+    const pid = preset().id;
+    const fam = exprFamily(pid);
+    const kbSlide = MECH.glenn && slide && isKeyboard(pid);
+    let gPos = 0;
+    if (MECH.glenn) {
+      const ss = this.slideSlurOf(h.k);
+      if (kbSlide) gPos = ss.slide(pv >= 0 ? notes[pv].on : notes[i].on, notes[i].on);
+      else if (!slide) gPos = ss.next(notes[i].on, over);
+      else ss.end();
+    }
+    if (gPos > 0 && fam === "piano") {
+      expr = { ...expr, group: gPos, level: (expr.level ?? 1) * dbToLevel(slurTaperDb(gPos)) };
+    } else if (styleOf(preset().id) === "piano" && !slide) {
       const pos = !slurAt ? 0 : slurAt === "first" || !over ? 0 : Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1);
       this.groupPos.set(h.k, pos);
       const db = !slurAt ? 0 : slurAt === "last" && pos > 0 ? SLUR_LAST_DB : SLUR_DB[pos];
@@ -3100,12 +3216,19 @@ export class ProtoGame {
     }
     // D321, "connect": the drag's own connection, by the instrument: a glide as long as the drag took, or
     // on a keyboard the coulé or the Schleifer into the note (dragConnect); else the slide glides on as before.
-    if (slide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
+    // D376 (MECH.glenn): over-legato's notes given way to before the last ring no further (never past the next note but one).
+    if (MECH.glenn) this.rings.strike(h.k, this.chip.ctx.currentTime);
+    if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
-    } else if (slide && !piano && h.sounds.length === 1 && pitches.length === 1) {
-      h.sounds[0].glide?.(pitches[0]);
+    } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1) {
+      // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms).
+      if (MECH.glenn) h.sounds[0].glide?.(pitches[0], slideGlideTau(h.gStillMs !== undefined ? this.evMs() - h.gStillMs : 0));
+      else h.sounds[0].glide?.(pitches[0]);
     } else {
-      for (const sd of h.sounds) sd.stop();
+      // D376 (MECH.glenn): a keyboard's slide strikes the next note (no bend); the note slid from rings into it (the slur's ring).
+      const ownRing = kbSlide ? this.chip.ctx.currentTime + slurRingS(pid) : undefined;
+      for (const sd of h.sounds) if (ownRing !== undefined) sd.stop(ownRing);
+      else sd.stop();
       // Joined to the note the other thumb still holds: that one gives way. D318: and to the note let go
       // within the legato window (a handover with a hair's gap, or a touch iOS took back): joined as it is
       // judged, the sound too (no fresh attack where the instrument can join; a plucked one plucks).
@@ -3118,6 +3241,17 @@ export class ProtoGame {
         legato = true;
         // D334: a PRESS while the other thumb holds: over-legato, both sound until it lifts.
         if (this.gesture === "press") continue;
+        // D376 (MECH.glenn): over-legato: on harpsichord, lute and piano the note given way to rings until its
+        // thumb lifts (at least the old join, or inside a slide's slur its ring; at most the cap).
+        if (MECH.glenn) {
+          const now = this.chip.ctx.currentTime;
+          const cap = overHoldS(pid);
+          const min = gPos > 1 && cap > 0 ? slurRingS(pid) : GLENN.minRingS;
+          if (cap > 0) this.rings.add({ k: h.k, holder: o, stops: o.sounds, min: now + min, max: now + Math.max(cap, min) });
+          else for (const sd of o.sounds) sd.stop(now + min);
+          o.sounds = [];
+          continue;
+        }
         // D370: joined inside a reading's slur, the note given way to rings on a little longer (SLUR_HANDOVER_S).
         for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + (slurAt === "mid" || slurAt === "last" ? slurHandoverS(preset().id) : 0.03));
         o.sounds = [];
@@ -3159,7 +3293,12 @@ export class ProtoGame {
         const q = this.tracks[h.k].traces!.get(n0.on)!;
         h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: false }));
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
-      } else h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, { ...expr, legato: legato && !piano }));
+      } else {
+        // D376 (MECH.glenn): on a voice or a wind, two thumbs re-articulate (a soft new syllable or tongue); a slide glides.
+        const rearticulate = MECH.glenn && fam === "sung" && !slide && legato && !piano;
+        const play: Play = rearticulate ? { ...expr, legato: false, soft: Math.max(expr.soft ?? 0, GLENN.rearticSoft) } : { ...expr, legato: legato && !piano };
+        h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, play));
+      }
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };
       dynAns?.sounded?.(h.sounds, this.chip.ctx.currentTime);
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
@@ -3184,7 +3323,7 @@ export class ProtoGame {
     // D334 (B+): how the note was sounded: a landing while the other thumb holds is a hammer-on.
     const gesture = !MECH.prepare || slide ? undefined : (this.gesture ?? (lw.holding ? "hammer-on" : undefined));
     const tapNote = (ok: boolean, perfect: boolean, offMs: number) =>
-      this.tap?.({ kind: "note", tick: n.at ?? this.now, track: h.k, i, midi: n.midi, side: h.side, ok, why: v.why, wrongMidi: v.wrong, offMs, perfect, slide, lane: v.lane, ladder: slide ? undefined : this.ladderWhy, legato: slide && !lw.drag ? undefined : lw, ...(gesture ? { gesture } : {}) });
+      this.tap?.({ kind: "note", tick: n.at ?? this.now, track: h.k, i, midi: n.midi, side: h.side, ok, why: v.why, wrongMidi: v.wrong, offMs, perfect, slide, lane: v.lane, ladder: slide ? undefined : this.ladderWhy, legato: slide && !lw.drag && !MECH.glenn ? undefined : lw, ...(gesture ? { gesture } : {}) });
     if (!v.ok) {
       tapNote(false, false, (this.timeAt(n.at ?? this.now) - this.timeAt(n.on)) * 1000);
       for (const j of chord) Object.assign(notes[j], { state: "miss", wrong: true });
@@ -3264,12 +3403,15 @@ export class ProtoGame {
       lw.ok = !slide && over && p >= 0 && notes[p].state === "hit";
       lw.prevRight = p >= 0 && notes[p].state === "hit";
       // D321, "connect": a drag counts as joined (the legato credited, the chain kept as it is) and earns nothing more.
-      const connected = slide && MECH.dragMeaning === "connect" && p >= 0 && notes[p].state === "hit";
+      const connected = slide && !MECH.glenn && MECH.dragMeaning === "connect" && p >= 0 && notes[p].state === "hit";
+      // D376 (MECH.glenn): a slide makes a slur: joined, the chain kept going (it earns nothing more).
+      const slurred = MECH.glenn && slide && p >= 0 && notes[p].state === "hit";
+      if (slurred) lw.ok = true;
       if (connected) {
         lw.ok = true;
         lw.drag = true;
         this.art.legato++;
-      } else if (!slide && over && p >= 0 && notes[p].state === "hit") {
+      } else if (((!slide && over) || slurred) && p >= 0 && notes[p].state === "hit") {
         this.chain++;
         this.art.legato++;
         this.art.chain = Math.max(this.art.chain, this.chain);
@@ -3570,7 +3712,8 @@ export class ProtoGame {
   /** The legato strikes, for the slur drawn between the two notes (note a to note b of track k). */
   readonly ties: { k: number; a: number; b: number; at: number }[] = [];
   /** The last note let go (its track, index and tick): a strike just after it is still legato. */
-  private lastOff: { k: number; i: number; tick: number } | null = null;
+  /** D376: `cancel`, ended by a touch the system took back (joined by the old window under MECH.glenn). */
+  private lastOff: { k: number; i: number; tick: number; cancel?: boolean } | null = null;
   /** Milliseconds between two ticks, as heard. */
   /** D261: a note drawn with a tail and held (a prelude's: PRELUDE_TAP_MS or more; elsewhere a beat or more). */
   tailed(n: { on: number; dur: number }): boolean {
@@ -4290,6 +4433,7 @@ export class ProtoGame {
     this.pedalled = [];
     for (const h of this.held.values()) for (const sd of [...h.sounds, ...(h.fx ?? [])]) sd.stop();
     this.held.clear();
+    this.rings.clear();
     // D299: the player's notes on the schedule (BLUETOOTH MODE).
     for (const a of this.armed.values()) for (const sd of a.sounds) sd.stop();
     this.armed.clear();
