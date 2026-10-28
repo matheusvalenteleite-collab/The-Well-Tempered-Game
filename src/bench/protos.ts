@@ -92,7 +92,7 @@ export interface Options {
  * "broaden" (the last two bars growing late towards the end); "accent" (the reading's accents made by time: a lift
  * before, the note held, D338).
  */
-export type DemoManner = "one-thumb" | "prepared" | "held" | "legato" | "ordinary" | "detached" | "accent" | "lean" | "breath" | "broaden";
+export type DemoManner = "one-thumb" | "prepared" | "held" | "legato" | "ordinary" | "detached" | "accent" | "lean" | "breath" | "broaden" | "appoggiatura";
 
 export interface Proto {
   id: ProtoId;

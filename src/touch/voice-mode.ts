@@ -4,7 +4,7 @@
  * its end. The point is a share of the piece (0 to 99%), taken back to the start of its bar; the
  * count-in is the four beats before it.
  */
-import { barAt, barStart, countInStart, beatOf, type TouchFugue, entryShape } from "./fugue.ts";
+import { barAt, barStart, countInStart, beatOf, type TouchFugue, entryShape, everyNote } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
 import type { Span } from "./box-fx.ts";
 
@@ -54,23 +54,31 @@ export interface OtherNote {
   midi: number;
   step: number;
   voice: number;
+  /** D363: a band-only voice's note (TouchFugue.bandVoices), `voice` its parent's: the band's whoever plays the parent. */
+  band?: true;
 }
 
-/** The other voices' notes from a tick on, to play by themselves (D167). */
+/**
+ * The other voices' notes from a tick on, to play by themselves (D167). D363: with the band-only
+ * voices' notes, every one (the played voice's divisi too), each as its parent voice (`band` set):
+ * whoever filters the band by the voices played keeps them.
+ */
 export function accompaniment(f: TouchFugue, from: number, played: number): OtherNote[] {
   const out: OtherNote[] = [];
   f.voices.forEach((notes, v) => {
     if (v === played) return;
     for (const [on, dur, midi, step] of notes) if (on >= from) out.push({ on, dur, midi, step, voice: v });
   });
+  for (const b of f.bandVoices ?? []) for (const [on, dur, midi, step] of b.notes) if (on >= from) out.push({ on, dur, midi, step, voice: b.of, band: true });
   return out.sort((a, b) => a.on - b.on);
 }
+
 
 /** Every note of the piece, as the music box draws it: the steps' range, for one fixed ladder. */
 export function stepRange(f: TouchFugue): { lo: number; hi: number } {
   let lo = Infinity;
   let hi = -Infinity;
-  for (const v of f.voices) for (const n of v) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
+  for (const n of everyNote(f)) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
   return { lo, hi };
 }
 

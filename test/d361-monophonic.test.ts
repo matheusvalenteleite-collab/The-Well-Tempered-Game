@@ -5,13 +5,11 @@
  *   - a chord: notes struck together and released together (a final chord, BWV 1043's double stops),
  *     which the game strikes and lets go whole with one touch (lanes.ts chordOf); none in a sung part,
  *     a chorale or a harpsichord concerto (one note at a time there, D348), where the test is strict;
- *   - the passages listed in DIVISI below, each the edition's own: the kern encodings of the 48 split a
- *     voice's spine for a chord or a brief divisi (src/wtc/kern.ts, folded back into the voice), and
- *     Mutopia's Art of Fugue writes extra voices on a staff at the final cadences (Contrapunctus 5, 6)
- *     and in Contrapunctus 7's last six bars (staff1/v2), which more-bach.ts gives to the staff's voice.
- *     The engine carries a note held under the next (engine.ts `overlaps`). They are listed, bar by
- *     bar, so that a new one (as BWV 54/1's alto in bar 26 was: D347, fixed by more-bach.ts sungLine)
- *     fails here, and one fixed must leave the list.
+ *   - the passages listed in DIVISI below: none since D363. The kern encodings of the 48 split a voice's
+ *     spine for a chord or a brief divisi, and Mutopia's Art of Fugue writes extra voices on a staff
+ *     (Contrapunctus 5, 6 at the final cadences, 7's last six bars); D363 gives those notes to a
+ *     band-only voice (TouchFugue.bandVoices, test/d363-band-voices.test.ts) and keeps the voice one line.
+ *     A new one fails here (as BWV 54/1's alto in bar 26 did: D347, fixed by more-bach.ts sungLine).
  * The preludes are played by hands (D168: chords and held notes are a keyboard hand's), and are not
  * checked.
  */
@@ -24,38 +22,7 @@ import { readMusicXml } from "../tools/touch/musicxml.ts";
 await loadExtras();
 
 /** "id:voice" → the bars where a note begins under another of the voice still sounding, or a chord's notes end apart. */
-const DIVISI: Record<string, string> = {
-  // The 48 (kern sub-spines).
-  "wtc1f01:0": "9",
-  "wtc1f06:0": "43",
-  "wtc1f07:0": "37",
-  "wtc1f15:0": "85 86",
-  "wtc1f15:2": "84 85",
-  "wtc1f20:0": "80 81 82 83 85 86 87",
-  "wtc1f20:3": "87",
-  "wtc1f24:1": "75",
-  "wtc2f02:0": "26",
-  "wtc2f02:1": "27",
-  "wtc2f03:0": "19 20 27 28",
-  "wtc2f03:1": "16 26 32",
-  "wtc2f03:2": "15 29 30 32 33 34 35",
-  "wtc2f06:0": "14",
-  "wtc2f06:1": "8",
-  "wtc2f08:0": "14",
-  "wtc2f08:1": "36 45 46",
-  "wtc2f10:1": "86",
-  "wtc2f10:2": "51",
-  "wtc2f16:0": "83",
-  "wtc2f17:0": "6",
-  "wtc2f17:2": "48 49 50",
-  "wtc2f20:1": "6",
-  // The Art of Fugue (Mutopia's extra voices on a staff).
-  "bwv1080-05:0": "88 89",
-  "bwv1080-05:1": "86",
-  "bwv1080-05:3": "87 89",
-  "bwv1080-06:0": "76 77 78",
-  "bwv1080-07:0": "56 57 58 59 60 61",
-};
+const DIVISI: Record<string, string> = {};
 
 /** Strict: not even a chord. */
 const STRICT = new Set(["hconcerto", "cantata", "motet", "chorale"]);
@@ -86,7 +53,7 @@ test("D361: every piece is checked: the 48 fugues, MORE BACH (and its concertos)
   assert.ok(CHORALES.length >= 300);
 });
 
-test("D361: every playable voice of every piece is monophonic, but for chords and the documented divisi", () => {
+test("D361, D363: every playable voice of every piece is monophonic, but for chords (no divisi left)", () => {
   const found: Record<string, string> = {};
   for (const f of ALL)
     for (const v of playable(f)) {

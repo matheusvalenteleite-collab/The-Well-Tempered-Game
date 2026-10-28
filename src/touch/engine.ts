@@ -242,9 +242,10 @@ export class Game {
       const sh = this.shapes[this.nextOther - 1];
       const vv = voicing(n.voice, this.f.voices.length, false);
       // D205: an ornamented note sounds its ornament, its main note last.
-      const orn = this.ornaments.get(`${n.voice}:${n.on}`);
+      // D363: a band-only voice's note (a divisi) sounds as its parent, without the line's ornament.
+      const orn = n.band ? undefined : this.ornaments.get(`${n.voice}:${n.on}`);
       const prev = this.lastOther.get(n.voice);
-      this.lastOther.set(n.voice, n.midi);
+      if (!n.band) this.lastOther.set(n.voice, n.midi);
       const parts: [number, number, number][] = orn ? realiseHeld(this.f, orn, n.on, dur, sh.hold, n.midi, prev, (this.tps * 60) / this.f.tpq) : [[n.on, dur * sh.hold, n.midi]];
       // D302: joined notes joined (held over the next's onset, no new attack); not where WAIT cuts the note.
       const jn = block === null ? joins(sh) : {};

@@ -373,6 +373,10 @@ export const PT: Record<string, string> = {
   "{n} SCHNELLERS": "{n} SCHNELLER",
   "{n} TURN": "{n} GRUPETO",
   "{n} TURNS": "{n} GRUPETOS",
+  // D364: the hold-over appoggiatura.
+  "{n} APPOGGIATURA": "{n} APOJATURA",
+  "{n} APPOGGIATURAS": "{n} APOJATURAS",
+  APPOGGIATURA: "APOJATURA",
   "YOU ADDED {list}": "VOCÊ ACRESCENTOU {list}",
   // D325
   NONE: "NENHUMA",

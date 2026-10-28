@@ -52,7 +52,8 @@ export type LabEvent =
    * note's window ("early-lift", by how much), a press before it ("early-press"), the resting thumb let go
    * unsounded ("let-go"), and a press's over-legato as the other thumb lifts ("overlap", ms).
    */
-  | { kind: "prep"; what: "rest" | "pull-off" | "press" | "early-lift" | "early-press" | "let-go" | "overlap"; tick: number; track: number; i: number; midi: number; side: Side; earlyMs?: number; px?: number; holding?: boolean; ms?: number }
+  // D364: "hold-over" (armed: the note before still held past the note's PERFECT window, a step away, where a long appoggiatura goes), "appoggiatura" (the lift that resolved it: `grace` the held note, `ms` after the note's time, `share` of the note, `short` under MECH.holdOverShortMs).
+  | { kind: "prep"; what: "rest" | "pull-off" | "press" | "early-lift" | "early-press" | "let-go" | "overlap" | "hold-over" | "appoggiatura"; tick: number; track: number; i: number; midi: number; side: Side; earlyMs?: number; px?: number; holding?: boolean; ms?: number; grace?: number; share?: number; short?: boolean }
   | { kind: "stray"; tick: number; track: number; side: Side; near?: { i: number; midi: number; offMs: number; taken?: string } }
   | { kind: "double"; tick: number; track: number; side: Side }
   | { kind: "miss"; tick: number; track: number; i: number; midi: number }
