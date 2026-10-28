@@ -576,10 +576,19 @@ body {
 .tg-tap-gem { position: absolute; left: 4px; width: 20px; height: 20px; margin-top: -10px; background: var(--tg-shine); transform: rotate(45deg); }
 .tg-tap-line { position: absolute; left: -16px; right: -16px; bottom: 0; height: 3px; background: var(--tg-shine); opacity: 0.35; }
 
-/* D322: REGISTRATION: the stops in the title bar (RegistrationStops.tsx), tiny pixel toggles with a thumb's
-   target (34 px tall) round each; folded into STOPS where the bar has no room; TUTTI a small mark. */
+/* D322: REGISTRATION: the stops in the title bar (RegistrationStops.tsx). D357: one row of one-touch
+   buttons, always there while playing (no fold, no long press), each a thumb's target (30 px drawn, 46 px
+   tall to the touch); a stop drawn is a lit knob, pushed in an empty one; TUTTI and ROOM (two lines: the
+   word over the room) buttons beside them. Narrow (a phone sideways), the short labels, and the piece's
+   title gives way to them (the key stays). */
 .tg-reg { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; flex: none; position: relative; }
-.tg-hud .tg-reg + .tb-pause { margin-left: 12px; }
+.tg-reg-compact { gap: 3px; }
+.tg-reg-compact .tg-stop { padding: 0 4px; font-size: 6px; }
+.tg-stop { flex: none; }
+.tg-hud:has(.tg-reg-compact) .tb-pause { margin-left: 6px; margin-right: 10px; }
+.tg-hud:has(.tg-reg-row-inline) { align-items: center; }
+.tg-hud:has(.tg-reg-compact) .tg-hud-title { display: none; }
+.tg-hud .tg-reg + .tb-pause { margin-left: 10px; }
 .tg-stop {
   position: relative;
   font-family: var(--tg-pixel);
@@ -589,21 +598,27 @@ body {
   color: var(--tg-muted);
   background: transparent;
   border: 1px solid var(--tg-barline);
-  height: 22px;
-  min-width: 26px;
-  padding: 0 4px;
+  height: 30px;
+  min-width: 34px;
+  padding: 0 5px;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.tg-stop::after { content: ""; position: absolute; inset: -6px -2px; }
-.tg-stop.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.tg-stop::after { content: ""; position: absolute; inset: -8px -2px; }
+.tg-stop.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25); }
+.tg-stop:not(.on) { box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.35); }
 .tg-stop:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
-.tg-stop-tutti { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-shine); opacity: 0.7; }
-.tg-reg-tutti .tg-stop.on { box-shadow: 0 2px 0 var(--tg-fg); }
-.tg-reg-tutti:not(.tg-reg-folded)::before { content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 1px; background: var(--tg-shine); opacity: 0.6; pointer-events: none; }
-.tg-reg-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 20; width: max-content; max-width: min(330px, 86vw); display: grid; gap: 8px; justify-items: end; padding: 10px; background: var(--tg-box); border: 1px solid var(--tg-barline); box-shadow: 0 4px 0 #05060c; }
-.tg-reg-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; row-gap: 14px; }
-.tg-reg-hint { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); }
+.tg-stop-tuttib { margin-left: 3px; }
+.tg-stop-tuttib.on { background: var(--tg-fg); border-color: var(--tg-fg); }
+.tg-stop-room { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 6px; color: var(--tg-fg); margin-left: 3px; }
+.tg-stop-sub { font-size: 5px; color: var(--tg-muted); }
+.tg-room-cathedral { border-color: var(--tg-shine); }
+.tg-room-pips { display: inline-flex; gap: 2px; }
+.tg-room-pips i { width: 6px; height: 6px; border: 1px solid var(--tg-muted); }
+.tg-room-pips i.on { background: var(--tg-shine); border-color: var(--tg-shine); }
+.tg-room-name { position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; padding: 4px 6px; font-size: 7px; color: var(--tg-bg); background: var(--tg-shine); white-space: nowrap; pointer-events: none; }
+.tg-room-dry { border-style: dashed; }
