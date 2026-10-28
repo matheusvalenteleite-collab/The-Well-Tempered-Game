@@ -77,7 +77,7 @@ import { fixFor, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, s
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
 import { finishStep, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
-import { LabRecorder } from "./lab/log.ts";
+import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
@@ -87,7 +87,7 @@ import { bachNotes } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
-import { PlayPop } from "./PlayPop.tsx";
+import { PlayPop, popTitle } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
@@ -608,7 +608,34 @@ export function BenchApp() {
     // D342: THE MANUAL's lens watching the run (its figures added to the results), each take a lab log
     // (as the STUDY's), and the lesson's visual aids drawn over the game's picture.
     const lens = man ? new LensTally(g) : null;
-    const rec = man && !watching ? new LabRecorder(g, () => ch.heard(), { app: VERSION, at: new Date().toISOString(), passage: { piece: f.id, voice, fromBar: manMat?.fromBar ?? 1, toBar: manMat?.toBar ?? 1, bpm, tempoPct: 100, proto: "ladder", wait: !!run?.wait, bt: false, reading: null, sound: soundNow }, device: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1, ua: navigator.userAgent, lag: ch.lag }, area: { w: 0, h: 0 } }, lens?.feed) : null;
+    // D376: THE EXPRESSION LAB records every take too (the Lab's log, tagged GLENN, kept with the Lab's RUNS).
+    const glennTake = APP.glenn && !man && !watching;
+    const rec =
+      (man || glennTake) && !watching
+        ? new LabRecorder(
+            g,
+            () => ch.heard(),
+            {
+              app: VERSION,
+              at: new Date().toISOString(),
+              passage: man
+                ? { piece: f.id, voice, fromBar: manMat?.fromBar ?? 1, toBar: manMat?.toBar ?? 1, bpm, tempoPct: 100, proto: "ladder", wait: !!run?.wait, bt: false, reading: null, sound: soundNow }
+                : { piece: f.id, voice, fromBar: barAt(f, from), toBar: barAt(f, Math.max(from, (run?.until ?? f.length) - 1)), bpm, tempoPct: Math.round((100 * bpm) / tempoOf(f.id)), proto: proto.id === "ladder" ? "ladder" : "keys", wait: !!run?.wait, bt: !!g.bt, reading: reading?.id ?? null, sound: soundNow },
+              device: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1, ua: navigator.userAgent, lag: ch.lag },
+              area: { w: 0, h: 0 },
+            },
+            lens?.feed,
+          )
+        : null;
+    if (rec && glennTake) rec.log.glenn = true;
+    let glennKept = false;
+    const keepGlenn = (stopped: boolean) => {
+      if (!rec || !glennTake || glennKept) return;
+      glennKept = true;
+      const log = rec.finish(stopped);
+      const t = log.result;
+      keepRun(log, `GLENN · ${popTitle(f.id)} · ${presetById(soundNow).name} · ♩ ${Math.round(bpm)}${t ? ` · ${t.right}/${t.of} right · ${t.legato}/${t.legatoOf} joined · ${t.slides} slides` : ""}${stopped ? " · stopped" : ""}`);
+    };
     if (lens) {
       g.lens = lens;
       if (!rec) g.tap = lens.feed;
@@ -679,6 +706,8 @@ export function BenchApp() {
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
       if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : "";
       if (done) {
+        // D376: THE EXPRESSION LAB's take kept.
+        keepGlenn(false);
         // D216: a lost run: she fades out over a second; the end: her last chord rings on.
         h?.stop(g.failedAt !== null ? HER_FADE.fail : HER_FADE.end);
         game.current = null;
@@ -724,10 +753,11 @@ export function BenchApp() {
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
           // D356: a WTC fugue at SLOW: kept as finished, its grade and score apart (never its best, never what opens the tempo).
           const apart = step === "slow" && isWtcFugue(f.id);
-          recordLite(f.id, r.failedBar !== null, platform === "mobile", apart ? undefined : r.grade);
+          // D376: THE EXPRESSION LAB's runs (Glenn's judging) never touch play.html's progress or bests.
+          if (!APP.glenn) recordLite(f.id, r.failedBar !== null, platform === "mobile", apart ? undefined : r.grade);
           const opened: Tier[] = [];
           // D268: a whole piece finished: its final score against the best.
-          const whole = r.failedBar === null && from === 0;
+          const whole = r.failedBar === null && from === 0 && !APP.glenn;
           const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final)) : null;
           // D356: the tempo played, on the result.
           const tempo = tempi ? { step, beat: stepBeat(f.id, tempi[step]), apart } : undefined;
@@ -762,6 +792,8 @@ export function BenchApp() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      // D376: a take left before its end (QUIT, back to the cards) kept as stopped.
+      keepGlenn(true);
       recRef.current = null;
       g.stopAll();
       h?.stop();
@@ -1208,7 +1240,12 @@ export function BenchApp() {
    * gesture) and plays B♭–A–C–B♮ on the PIPE ORGAN (intro-sound.ts), the last note faded; resolves with
    * the seconds until it is heard. Its end (or a skip) stops it and gives the piece's sound back.
    */
-  const [intro, setIntro] = useState(() => APP.lite);
+  // D376: not in THE EXPRESSION LAB (straight to the selection screen).
+  const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
+  // D376: THE EXPRESSION LAB's badge moves out of the thumbs' way while a run plays (lab.css).
+  useEffect(() => {
+    if (APP.glenn) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
+  }, [phase.kind]);
   const introSounds = useRef<Sounding[]>([]);
   const introOver = useRef(false);
   const introBegin = async (): Promise<number> => {
@@ -1713,7 +1750,8 @@ export function BenchApp() {
           voice={pick.voice}
           singing={voicesFrom(f, from)}
           setVoice={(v) => setPick({ voice: v })}
-          select={(id) => (stopHearing(), setPick({ piece: id, share: 0, voice: -1 }))}
+          // D376: THE EXPRESSION LAB: a piece chosen opens its card at once (the instrument, the tempo, then PLAY).
+          select={(id) => (stopHearing(), APP.glenn ? open(id) : setPick({ piece: id, share: 0, voice: -1 }))}
           play={() => (setOpened(f.id), start(true))}
           options={() => open(f.id)}
           open={open}

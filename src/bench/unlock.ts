@@ -24,8 +24,14 @@ export async function secretAction(input: string): Promise<"unlock" | "lock" | n
 export const UNLOCK_TAPS = 7;
 export const UNLOCK_WINDOW_MS = 3000;
 
+/** D376: everything open for this page only (THE EXPRESSION LAB), nothing written to the device. */
+let forced = false;
+export function forceUnlocked(on = true) {
+  forced = on;
+}
 /** Everything unlocked on this device (read in try/catch: no storage, nothing unlocked). */
 export function unlocked(): boolean {
+  if (forced) return true;
   try {
     return localStorage.getItem(UNLOCK_KEY) === "1";
   } catch {

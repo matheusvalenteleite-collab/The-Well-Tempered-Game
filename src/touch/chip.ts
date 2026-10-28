@@ -435,7 +435,7 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
   return {
     stop: (t) => both.forEach((x) => x.stop(t)),
     bend: (cents) => both.forEach((x) => x.bend(cents)),
-    glide: (m) => (main.glide?.(m), twin.glide?.(m + shift)),
+    glide: (m, tau) => (main.glide?.(m, tau), twin.glide?.(m + shift, tau)),
     muffle: () => both.forEach((x) => x.muffle?.()),
     dyn: (l) => both.forEach((x) => x.dyn?.(l)),
     shape: (x) => both.forEach((y) => y.shape?.(x)),
@@ -457,8 +457,8 @@ export interface Sounding {
   stop: (at?: number) => void;
   /** Bend the note by some cents (the thumb's sideways wobble). */
   bend: (cents: number) => void;
-  /** Glide to another pitch without a new attack (a held thumb slid on: glissando). */
-  glide?: (midi: number) => void;
+  /** Glide to another pitch without a new attack (a held thumb slid on: glissando). D376: `tau`, the glide's time constant (s; the slide's own, glenn.ts slideGlideTau), else the sound's. */
+  glide?: (midi: number, tau?: number) => void;
   /** Darken and soften it (a wrong gesture: Bach's note, but muffled). */
   muffle?: () => void;
   /** D179: the note's dynamic now (1 as struck), changed smoothly while it sounds (a swell, a diminuendo). */
@@ -1284,8 +1284,8 @@ export class Chip {
       bend: (cents: number) => {
         if (!stopped) o.detune.setTargetAtTime(cents + (p.detune ?? 0), ctx.currentTime, 0.02);
       },
-      glide: (to: number) => {
-        if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, 0.025);
+      glide: (to: number, tau?: number) => {
+        if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, tau ?? 0.025);
       },
       muffle: () => {
         if (stopped || !dull) return;
@@ -1772,10 +1772,10 @@ export class Chip {
         cents = c;
         retune(0.02);
       },
-      glide: (to: number) => {
+      glide: (to: number, tau?: number) => {
         if (stopped) return;
         baseHz = hz(to);
-        retune(0.025);
+        retune(tau ?? 0.025);
       },
       muffle: () => {
         if (stopped || !dull) return;
@@ -2229,11 +2229,11 @@ export class Chip {
         for (const [i, o] of oscs.entries()) o.detune.setTargetAtTime((pt.osc[i].detune ?? 0) + (p.detune ?? 0) + cents, ctx.currentTime, 0.02);
         for (const m of mods) m.o.detune.setTargetAtTime((p.detune ?? 0) + m.det + cents, ctx.currentTime, 0.02);
       },
-      glide: (to: number) => {
+      glide: (to: number, tau?: number) => {
         if (stopped) return;
         const f = hz(to);
-        for (const [i, o] of oscs.entries()) o.frequency.setTargetAtTime(f * 2 ** (pt.osc[i].octave ?? 0), ctx.currentTime, 0.025);
-        for (const m of mods) m.o.frequency.setTargetAtTime(f * m.ratio, ctx.currentTime, 0.025);
+        for (const [i, o] of oscs.entries()) o.frequency.setTargetAtTime(f * 2 ** (pt.osc[i].octave ?? 0), ctx.currentTime, tau ?? 0.025);
+        for (const m of mods) m.o.frequency.setTargetAtTime(f * m.ratio, ctx.currentTime, tau ?? 0.025);
       },
       muffle: () => {
         if (stopped || !dull) return;
@@ -2420,8 +2420,8 @@ export class Chip {
       bend: (cents: number) => {
         if (!stopped) o.detune.setTargetAtTime(det0 + cents, ctx.currentTime, 0.02);
       },
-      glide: (to: number) => {
-        if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, 0.03);
+      glide: (to: number, tau?: number) => {
+        if (!stopped) o.frequency.setTargetAtTime(hz(to), ctx.currentTime, tau ?? 0.03);
       },
       dyn: (level: number) => {
         if (!stopped) dyn.gain.setTargetAtTime(Math.max(0.05, level), ctx.currentTime, 0.06);
