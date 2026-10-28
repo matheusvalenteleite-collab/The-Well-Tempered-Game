@@ -10,6 +10,7 @@ export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
 import { liveRegistration, registeredNote, LUTE_LP, SUBBASS, SUB16_LEVEL, type Registered } from "./registration.ts";
+import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
@@ -377,6 +378,8 @@ export interface Play {
    * before the next is a slur's end (released as a hand lifts: SampledInstrument.damper `slur`).
    */
   group?: number;
+  /** D355: the band's colour here, by the piece's colour plan for the sound (colour.ts); never on the player's note. */
+  colour?: Colour;
 }
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
@@ -647,7 +650,9 @@ export class Chip {
     if (p.lead && p.couple !== false) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
     // D322: the registration (the player's voice; every voice under TUTTI), read as the note starts: a change sounds from the next note.
     const id = preset().id;
-    const reg = p.couple === false ? null : registeredNote(id, liveRegistration(id), v.patch, !!p.lead, midi);
+    // D355: the band's colour by the piece's plan (colour.ts): its effects here, its stops as the band's registration (the player's own stops win).
+    if (p.colour && !p.lead) [v, p] = coloured(id, p.colour, v, p);
+    const reg = p.couple === false ? null : registeredNote(id, bandRegistration(liveRegistration(id), p), v.patch, !!p.lead, midi);
     if (reg) {
       if (reg.patch) v = { ...v, patch: reg.patch };
       if (reg.choirs) p = { ...p, choirs: reg.choirs };

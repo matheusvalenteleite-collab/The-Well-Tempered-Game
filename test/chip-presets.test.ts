@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { grooveHits, harmonicsOf, PATCHES, patchFor, playerSound, presetById, PRESETS, RETIRED, setPreset, SHAPES, slotOf, TRAVERSO } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
+import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 
 test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
   assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita"]);
@@ -11,7 +12,8 @@ test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYN
   const ids = PRESETS.map((p) => p.id);
   // D340: the MORE BACH and CHORALES tabs' exceptions, asked for: the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT's strings. D348: and the harpsichord concertos on its harpsichord and strings.
   const D340 = /^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/;
-  for (const [piece, id] of Object.entries(PIECE_SOUND).filter(([p]) => !D340.test(p))) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
+  // D355: and the pieces given a sound of their own (tools/touch/colour-plans), on any of the fifteen.
+  for (const [piece, id] of Object.entries(PIECE_SOUND).filter(([p]) => !D340.test(p) && !COLOURS[p])) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
   // D294: the two sounds replaced (and the withdrawn ones they grew from) open on their successors.
   for (const [old, now] of [["chipRound", "gameboy"], ["chipPocket", "gameboy"], ["chipGold", "gameboy"], ["pianoFm", "analog"], ["carlos", "analog"]]) {
     assert.equal(presetById(old).id, now, old);
