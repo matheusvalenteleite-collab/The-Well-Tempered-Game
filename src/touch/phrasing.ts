@@ -180,8 +180,22 @@ export const ART_SPREAD = 0.15;
  * decay to shape a line, and the church carries it).
  */
 export const ORGAN_ENSEMBLE = { spread: 0.05, rubato: 0.5 } as const;
-/** D302: a reading's marks on a fugue's notes: "voice:onset" to the reading's note (readings.ts readingMarks). */
-export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean | null }>;
+/** D302: a reading's marks on a fugue's notes: "voice:onset" to the reading's note (readings.ts readingMarks); D370: with its place in a slur. */
+export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean | null; slur?: "first" | "mid" | "last" }>;
+/**
+ * D370 (Glenn's notes §1), A SLUR SHAPED: where a reading slurs a group (readings.ts Reading.slurs; plain
+ * legato stays even), the band plays it as a keyboard player does:
+ *   lean: the group's first note this late (s) when the note before was let go (an agogic lean; the
+ *     piano's smaller, its weight is also in level), the whole within the band's ±20 ms of the beat;
+ *   over: inside the group each joined note held this far into the next (s): the plucked string's
+ *     over-legato (the harpsichord and the lute 60–90 ms, the piano 25–40); a sustained sound keeps its
+ *     crossfade (OVERLAP_S); a broken chord's finger pedal (TOUCH.overlegato) as before;
+ *   lastHold: the group's last note, let go before the next, held this share (a reading's detached
+ *     0.75, ART_HOLD), its gap at most GAP_BEATS of a beat;
+ *   firstDb, lastDb: the piano's first a little firmer, its last lighter (and darker: Play.vel, velTone),
+ *     before the subject's clamp (D293: never louder), the middle notes level.
+ */
+export const SLUR_SHAPE = { lean: { piano: 0.01, other: 0.02 }, over: { harpsichord: 0.075, piano: 0.032 }, lastHold: 0.55, firstDb: 1.5, lastDb: -3.5 } as const;
 
 /** D309: what the phrasing knows of the piece beyond the notes it shapes (phraseContext). */
 export interface PhraseContext {
@@ -261,6 +275,14 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
   }
   // D309: the piano's levels from the whole score (practice.ts pianoLevels).
   const dbs = style === "piano" ? pianoLevels(score, { beat, inBar, bar: art.bar ?? 4 * beat, cadences: art.cadences, harmony }) : null;
+  // D370: a slur's first a little firmer, its last lighter (SLUR_SHAPE), before the subject's clamp below.
+  if (dbs && art.marks?.size)
+    for (const x of score) {
+      const role = art.marks.get(`${x.voice}:${x.on}`)?.slur;
+      const key = `${x.voice}:${x.on}:${x.midi}`;
+      if (role === "first") dbs.set(key, (dbs.get(key) ?? 0) + SLUR_SHAPE.firstDb);
+      else if (role === "last") dbs.set(key, (dbs.get(key) ?? 0) + SLUR_SHAPE.lastDb);
+    }
   // D339, D293: the subject never louder. The terms know no subject, but with D339's wider terms the music's
   // own shape could lift it (II/16's by 0.5 dB): in each voice and octave, the subject's notes brought down
   // to the others' mean where theirs is over it (never raised).
@@ -354,6 +376,9 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
         }
       }
     }
+    // D370: inside a reading's slur a plucked or struck string held over into the next (SLUR_SHAPE.over).
+    const role = art.marks?.get(`${n.voice}:${n.on}`)?.slur;
+    if (a === "join" && struck && (role === "first" || role === "mid")) overS[i] = Math.max(overS[i], style === "piano" ? SLUR_SHAPE.over.piano : SLUR_SHAPE.over.harpsichord);
     if ((a === "join" || a === "syllable") && after) {
       hold = (after.on - n.on) / n.dur;
       // D294, the harpsichordist's finger pedal: a broken chord's notes held on into the next.
@@ -364,10 +389,26 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     } else if (a === "detach") hold = apart(ART_HOLD.detach);
     else if (a === "short") hold = apart(ART_HOLD.short);
     else if (a === "plain") hold = n.dur >= beat ? (T ? T.long : 0.95) : 1;
+    // D370: a slur's last, let go before the next, let go early (SLUR_SHAPE.lastHold; a staccato's own stays).
+    if (role === "last" && (a === "detach" || a === "nonlegato")) hold = Math.min(hold, apart(SLUR_SHAPE.lastHold));
     const final = !after || after.on > n.on + n.dur;
     const stretch = rb && a !== "join" && a !== "syllable" ? rb(n.on + n.dur * hold) - rb(n.on) : 0;
     return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, stretch, ...(db !== undefined ? { db } : {}) };
   });
+  // D370: a slur's first leaned on (SLUR_SHAPE.lean) where the note before was let go, within ±20 ms.
+  if (art.marks?.size) {
+    const seen = new Set<number>();
+    shapes.forEach((sh, i) => {
+      const n = notes[i];
+      // A voice's first note has no note before to lift.
+      const first = !seen.has(n.voice);
+      seen.add(n.voice);
+      if (first || art.marks!.get(`${n.voice}:${n.on}`)?.slur !== "first") return;
+      const p = prevs.get(i);
+      if (p !== undefined && (shapes[p].art === "join" || shapes[p].art === "syllable")) return;
+      sh.nudge = Math.max(-0.02, Math.min(0.02, sh.nudge + (style === "piano" ? SLUR_SHAPE.lean.piano : SLUR_SHAPE.lean.other)));
+    });
+  }
   // Joined: the next note not attacked anew, this one held past its onset (the two nudges allowed for).
   // D305: a "syllable" held over too, the next begun anew (its consonant: no gap, no glide).
   shapes.forEach((sh, i) => {
