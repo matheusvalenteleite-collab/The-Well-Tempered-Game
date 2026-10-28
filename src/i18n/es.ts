@@ -347,6 +347,14 @@ export const ES: Record<string, string> = {
   MIXTURE: "LLENO",
   TREM: "TRÉMOLO",
   STOPS: "REGISTROS",
+  // D357: the stop row's short labels, ROOM and TUTTI's button.
+  "PRINC.": "PRINC.",
+  "MIXT.": "LLENO",
+  ROOM: "SALA",
+  DRY: "SECO",
+  CHURCH: "IGLESIA",
+  CATHEDRAL: "CATEDRAL",
+  "EVERY VOICE TAKES YOUR STOPS": "TODAS LAS VOCES CON TUS REGISTROS",
   "HOLD: EVERY VOICE": "MANTÉN PULSADO: TODAS LAS VOCES",
   // D327
   "TUNING": "AFINACIÓN",

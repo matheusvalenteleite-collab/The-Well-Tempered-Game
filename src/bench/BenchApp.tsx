@@ -94,7 +94,7 @@ import { bookCards } from "./cards.ts";
 import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { RegistrationStops } from "../touch/RegistrationStops.tsx";
-import { hasStops, voicePatch } from "../touch/registration.ts";
+import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
 /** D314: how long (s, from the start of play) the reading's marks are explained in the box. */
@@ -222,6 +222,12 @@ type ManRun = { id: string; stage: number; mode: "hear" | "take" | "test" | "pla
 export function BenchApp() {
   // D233: the game opens on HOME.
   const [phase, setPhase] = useState<Phase>({ kind: "home" });
+  /** D357: the phase as the stop row reads it (a stop change made while playing is kept with its bar). */
+  const phaseRef = useRef<Phase["kind"]>("home");
+  // D357: a run begins: the stop changes of the last one forgotten (registration.ts stopChanges).
+  useEffect(() => {
+    if (phase.kind === "play") clearStopChanges();
+  }, [phase.kind]);
   /** Where the panels (⚙, ?, ACHIEVEMENTS, the LESSON MAP) close to: HOME or the title card they were opened from. */
   const origin = useRef<"home" | "title">("home");
   if (phase.kind === "home" || phase.kind === "title") origin.current = phase.kind;
@@ -1257,6 +1263,7 @@ export function BenchApp() {
   });
 
   const playing = phase.kind === "play";
+  phaseRef.current = phase.kind;
   /** D230: SCALE KEYS chosen for the computer's HIGHWAY. */
   // D236: SCALE KEYS withdrawn from play (the owner: "a complete failure"); the home row only.
   const scaleOn = false;
@@ -1278,8 +1285,8 @@ export function BenchApp() {
                 {tt(practice.current.listen ? "THE OTHERS · BARS {bars}" : "PRACTICE · BARS {bars}", { bars: practice.current.bars })}
               </span>
             )}
-            {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. */}
-            {hasStops(presetById(soundNow).id) && !lesson && !man && full && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} />}
+            {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. D357: one-touch, always there while playing, for the friends too. */}
+            {hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing) && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>

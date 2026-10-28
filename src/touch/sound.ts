@@ -242,6 +242,42 @@ export interface Patch {
    * pedal's upper ranks, which its small speaker hears).
    */
   pipe?: { case: number; cents: number; phoneOsc?: Osc[] };
+  /**
+   * D357: a synthesized rank sounding with this patch's note an octave below (chip.ts Chip.note, as one
+   * note: `together`): the recorded plenum pedal's Subbass 16' (its recordings are at 8' pitch, measured).
+   */
+  under?: Patch;
+  /**
+   * D357, a reed's speech and body (the organ's Trompete; chip.ts patchNote): the pitch speaking `bloom`
+   * cents flat and rising to true (time constant, s) as the tongue settles; a brief rattle of the tongue
+   * on the shallot (the level beaten `rattle.depth` at `rattle.rate` Hz, gone within `rattle.time` s);
+   * the resonator's formant (a peak at `formant` Hz, `q`, `db`); its compass (a low shelf at twice the
+   * note: `compass.low` dB at C2 to `compass.high` at C6: full at the bottom, thinner at the top).
+   * `share`: the reed's part of a chorus it sounds in (its gestures scaled by it: registration.ts).
+   */
+  reed?: { bloom: { cents: number; time: number }; rattle: { depth: number; rate: number; time: number }; formant: number; q: number; db: number; compass: { low: number; high: number }; share?: number };
+  /**
+   * D358 (docs/playback/SOUND-PRINCIPLES.md), one instrument or one ensemble (chip.ts oneInstrument): the
+   * player's note is the band's (never louder, never brighter, let go alike). A keyboard's or a plucked
+   * instrument's note placed by its key across the instrument (`span`: the pan from the lowest key `lo`
+   * to the highest `hi`, about the voice's place; bass left, as the player sits), each key a fixed
+   * fraction of a cent from true (`cents`: one instrument's strings, the same whoever plays them);
+   * `courses`, a lute's paired strings (Play.choirs): the course's second string in unison (`unison`),
+   * and below `split` an octave string (`octave`) in place of it.
+   */
+  one?: {
+    span?: number;
+    lo?: number;
+    hi?: number;
+    cents?: number;
+    courses?: { split: number; unison: { gain: number; cents: number; delay: number; shelf: number }; octave: { gain: number; shelf: number } };
+  };
+  /**
+   * D358: a bowed string's joined note is a new bow stroke, not a slur (chip.ts sampledNote): the
+   * recording entered `skip` s after its onset (some of the bow's bite kept, where a slur skips 0.25 s),
+   * rising over `a` s while the note before crossfades out (the bow change's small dip).
+   */
+  bow?: { skip: number; a: number };
 }
 
 /**
@@ -338,6 +374,22 @@ const P = (p: Patch) => p;
 export const SALON_SEND = 0.2;
 /** D349: PIPE ORGAN's one send into its church, every pipe's (manual and pedal alike: one room). */
 export const ORGAN_SEND = 0.4;
+/** D358: a bowed string's joined note a new bow stroke (Patch.bow): 60 ms of the recording's bite kept, rising over 30 ms. */
+export const STRING_BOW = { skip: 0.06, a: 0.03 } as const;
+/** D358: STRING CONSORT's one send into its room (the salon), every player's. */
+export const CONSORT_SEND = 0.22;
+/** D358: LUTE: placed by its key across the instrument (E2-A5), uneven frets, its courses (unisons above G3, octave strings below). */
+export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.25, shelf: 0 } } } as const;
+/** D358: SOLO VOICES' one send into its room (the plate), every singer's. */
+export const VOICE_SEND = 0.15;
+/**
+ * D358: one keyboard (SOUND-PRINCIPLES.md): the harpsichord's note placed by its key across its compass
+ * (A1-F6, the recorded keys: ±0.15 about the instrument's place, bass left as the player sits), each
+ * key's strings a fixed fraction of a cent from true; the piano's across its eighty-eight keys (±0.12
+ * over C2-C6, the music's compass), each key's unison a fixed fraction of a cent.
+ */
+export const HARPSI_ONE = { span: 0.3, lo: 33, hi: 89, cents: 0.8 } as const;
+export const PIANO_ONE = { span: 0.4, lo: 21, hi: 108, cents: 0.5 } as const;
 
 /** The instruments. */
 export const PATCHES = {
@@ -355,7 +407,9 @@ export const PATCHES = {
   harpsichord: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "triangle", gain: 0.5 }, { wave: "pulse25", octave: 1, gain: 0.2 }], filter: { freq: 6, q: 0.8, env: 2, envDecay: 0.12 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, level: 0.38 }),
   harpsiBass: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 4.2, q: 0.8, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, level: 0.48 }),
   // D190: recorded (the synthesized sound above stands in for a note until its recording is loaded).
-  harpsiSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, send: SALON_SEND, level: 0.36, sample: "harpsichord" }),
+  // D358: one harpsichord (SOUND-PRINCIPLES.md): every voice on these strings (the bass too: harpsiBassSampled
+  // no longer played), each note placed by its key across the instrument (HARPSI_ONE), the player's the band's.
+  harpsiSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, send: SALON_SEND, level: 0.36, sample: "harpsichord", one: HARPSI_ONE }),
   harpsiBassSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, send: SALON_SEND * 0.75, level: 0.45, sample: "harpsichord" }),
   organSampled: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.012, d: 0.1, s: 1, r: 0.06 }, level: 0.3, sample: "organ" }),
   lute: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, level: 0.42 }),
@@ -509,7 +563,9 @@ export const PATCHES = {
   pianoFm: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }, { wave: "fmBell", octave: 1, gain: 0.06 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, level: 0.3 }),
   pianoFmBass: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, level: 0.36 }),
   // D292, PIANO (SAMPLED): the Salamander Grand (sampled.ts); the FM piano stands in for a note until its recording has loaded.
-  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.3, sample: "piano" }),
+  // D358: one piano (SOUND-PRINCIPLES.md): every voice on it (pianoBassSampled and pianoInnerSampled no longer
+  // played: the balance is the player's touch, practice.ts pianoLevels), placed by its key (PIANO_ONE).
+  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.3, sample: "piano", one: PIANO_ONE }),
   pianoBassSampled: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, send: SALON_SEND * 0.75, level: 0.36, sample: "piano" }),
   // D294: the inner voices a shade lighter (-1 dB) than the top and the bass, so each line is heard as a line.
   pianoInnerSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.267, sample: "piano" }),
@@ -546,10 +602,17 @@ export const PATCHES = {
   // kHz (lowpass 6-7 kHz, the Gaussian's softening; they were muffled at 16 kHz, 4.3-6 kHz), their
   // sustain falling more slowly (4 s); the echo longer and in stereo (chip.ts SPC_ECHO), sent most from
   // the strings and the flute.
-  s16Violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.3, s: 0.82, r: 0.1 }, rec: { a: 0.02, d: 0.3, s: 0.82, fade: 4, r: 0.1 }, vib: { depth: 16, rate: 6.0, delay: 0.26 }, send: 0.22, level: 0.56, sample: "violin16" }),
+  // D358: the bowed strings change bow on a joined note (Patch.bow: STRING_BOW), as a string player does.
+  s16Violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.3, s: 0.82, r: 0.1 }, rec: { a: 0.02, d: 0.3, s: 0.82, fade: 4, r: 0.1 }, vib: { depth: 16, rate: 6.0, delay: 0.26 }, send: 0.22, level: 0.56, sample: "violin16", bow: STRING_BOW }),
   s16Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.02, d: 0.2, s: 0.85, r: 0.1 }, rec: { a: 0.02, d: 0.2, s: 0.85, fade: 4, r: 0.1 }, vib: { depth: 12, rate: 5.2, delay: 0.3 }, send: 0.26, level: 0.56, sample: "flute16" }),
   s16Harpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.06 }, rec: { a: 0.001, d: 0, s: 1, r: 0.06 }, send: 0.12, hp: 120, level: 0.75, sample: "harpsi16" }),
-  s16Strings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, vib: { depth: 10, rate: 4.6, delay: 0.34 }, send: 0.3, level: 0.6, sample: "strings16" }),
+  s16Strings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, vib: { depth: 10, rate: 4.6, delay: 0.34 }, send: 0.3, level: 0.6, sample: "strings16", bow: STRING_BOW }),
+  /**
+   * D358: the concertos' continuo a cello (the band a string band, not three violas and a bassoon:
+   * SOUND-PRINCIPLES.md), the strings' envelope, send and bow; its bow's bite and upper partials carry
+   * the bass on a phone (cello16: the Freesound cello as the console held it).
+   */
+  s16Cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, send: 0.3, level: 0.6, sample: "cello16", bow: STRING_BOW }),
   s16Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.012, d: 0.25, s: 0.78, r: 0.08 }, rec: { a: 0.012, d: 0.25, s: 0.78, fade: 4, r: 0.08 }, send: 0.12, hp: 120, level: 0.64, sample: "bassoon16" }),
   // NOCTURNE 32-BIT (the PlayStation's SPU, after the Baroque-Gothic palette of 1997: violin,
   // harpsichord, strings and organ through a dark half-rate hall): violin on top, oboe (five voices),
@@ -602,7 +665,8 @@ export const PATCHES = {
   trkFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, rec: { a: 0.004, d: 0.2, s: 0.85, r: 0.04 }, slide: 0.04, vib: { depth: 12, rate: 6.4, delay: 0.3 }, level: 0.38, sample: "fluteMod" }),
   trkHarpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, level: 0.76, sample: "harpsiMod" }),
   trkChoir: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 7, gain: 0.7 }], vowel: [700, 1150], amp: { a: 0.005, d: 0.3, s: 0.8, r: 0.06 }, rec: { a: 0.005, d: 0.3, s: 0.8, r: 0.06 }, slide: 0.04, vib: { depth: 10, rate: 4.8, delay: 0.35 }, level: 2.9, sample: "choirMod" }),
-  trkBass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, hp: 70, level: 0.6, sample: "bassMod" }),
+  // D358: the slapped bass 3.5 dB lighter (each voice alone: 4-7 dB over the violin, on a computer and through a phone).
+  trkBass: P({ osc: [{ wave: "square" }, { wave: "sine", gain: 0.8 }], filter: { freq: 3, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.04 }, rec: { a: 0.001, d: 0, s: 1, r: 0.04 }, hp: 70, level: 0.4, sample: "bassMod" }),
   // PIPE ORGAN (D302: CHAMBER ORGAN remade; the owner: "real bad too, flat and dull. Why would anyone
   // choose it?!"): an organ registered as an organist registers a trio or a fugue's lines apart, each
   // voice its own registration, in a church. The plenum (Principal 8', Octave 4', Superoctave 2' and a
@@ -641,8 +705,17 @@ export const PATCHES = {
   orgPrincipal: P({ osc: [{ wave: "stopPrincipal", gain: 0.95 }, { wave: "sine", octave: 1, detune: 0.7, gain: 0.16 }, { wave: "sine", octave: 2, detune: -0.5, gain: 0.06 }], chiff: { level: 0.18, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
   /** D349: FLUTES: Gedackt 8' and Rohrflöte 4' (the octave a little sharp: a slow beat), a plainer, quicker chiff. */
   orgFlute: P({ osc: [{ wave: "stopGedackt", gain: 0.73 }, { wave: "sine", octave: 1, detune: 0.9, gain: 0.22 }], chiff: { level: 0.28, time: 0.028, at: 3 }, breath: 0.008, amp: { a: 0.02, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
-  /** D349: the Trompete 8' (a reed: a solo, a cantus firmus; with the foundation drawn, in the chorus): quick brassy speech. */
-  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 1 }, { wave: "stopTrompete", detune: 1.2, gain: 0.25 }], filter: { freq: 5000, hz: true, q: 0.9, env: 1.6, envDecay: 0.03 }, chiff: { level: 0.1, time: 0.012, at: 9 }, amp: { a: 0.012, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
+  /**
+   * D349: the Trompete 8' (a reed: a solo, a cantus firmus; with the foundation drawn, in the chorus): quick brassy speech.
+   * D357 (the owner: "there's a je ne sais quoi to the organ trumpet sound which i love… like cotton candy to
+   * my ears"): a reed's speech and body (Patch.reed): it speaks 14 cents flat, settling in about 20 ms, its
+   * tongue rattling on the shallot for the first 35 ms (the level beaten at 38 Hz), bright at once (the
+   * lowpass opened 2.2-fold, closing over 40 ms: the brassy bloom); its resonator's formant at 1.4 kHz
+   * (+4 dB); fuller in the bass, thinner in the treble (a low shelf at twice the note, +2.5 dB at C2 to
+   * -4 at C6); the second rank (+1.2 cents) beats slowly with it; no vibrato. Its level kept (loudness
+   * matched with the other registrations, measured).
+   */
+  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 0.84 }, { wave: "stopTrompete", detune: 1.2, gain: 0.21 }], filter: { freq: 5000, hz: true, q: 0.9, env: 2.2, envDecay: 0.04 }, chiff: { level: 0.12, time: 0.014, at: 11 }, amp: { a: 0.01, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 }, reed: { bloom: { cents: 14, time: 0.007 }, rattle: { depth: 0.35, rate: 38, time: 0.035 }, formant: 1400, q: 1.1, db: 4, compass: { low: 2.5, high: -4 } } }),
   /**
    * D349: the PLENUM (Principal 8', Octave 4', Superoctave 2', Mixture): the VCSL organ's own recorded
    * plenum (sampled.ts organPleno), the same organ as the plenum's pedal; its stand-in until loaded the
@@ -659,7 +732,13 @@ export const PATCHES = {
   orgPedal: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.85 }, { wave: "stopPrincipal", gain: 0.62 }, { wave: "stopPrincipal", octave: 1, gain: 0.2 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
   orgPedal8: P({ osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, gain: 0.28 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
   orgPedalSoft: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.8 }, { wave: "stopGedackt", gain: 0.55 }, { wave: "sine", octave: 1, gain: 0.16 }], chiff: { level: 0.14, time: 0.04, at: 3 }, breath: 0.004, amp: { a: 0.035, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "sine", octave: 1, gain: 0.15 }, { wave: "stopGedackt", octave: 2, gain: 0.4 }] } }),
-  orgPedalPleno: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, level: 0.245, sample: "organPedal", pipe: { case: 0.1, cents: 0 } }),
+  /**
+   * D357: the plenum's pedal has its 16' (a Subbass, synthesized: `under`, the octave below the key, as
+   * one note with the recording). D349 took the recordings for 16' and 8'; measured, they sound at 8'
+   * (C3: the octave below 59 dB under the fundamental), so the bass of the plenum had no 16' at all and
+   * in the tenor's register (I/2's subject from C4, the manual's recordings above B3) none under it.
+   */
+  orgPedalPleno: P({ osc: [{ wave: "stopPosaune" }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, level: 0.245, sample: "organPedal", pipe: { case: 0.1, cents: 0 }, under: P({ osc: [{ wave: "stopGedackt", gain: 1 }, { wave: "sine", octave: 1, gain: 0.12 }], chiff: { level: 0.1, time: 0.045, at: 2 }, amp: { a: 0.045, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 24, level: 0.16, pipe: { case: 0.1, cents: 0.4 } }) }),
   // SWITCHED-ON (D297: ANALOG SYNTH remade; the owner: "lackluster compared to Carlos' memorable
   // sounds"), after Switched-On Bach's timbres: a modular's sawtooths and squares through the 24 dB
   // ladder with a strong, quick filter envelope (the bright "spit" at each attack and the resonant
@@ -793,11 +872,31 @@ export const PATCHES = {
   // held steady, no note shifted more than 4 semitones but the alto's F3-G3; sampled.ts), no vibrato
   // added; a gentler release (`rec.r` 0.08 → 0.15: -20 dB in about 115 ms, was 60) and a slight messa
   // di voce on the long notes (`messa`); the soprano's scoop smaller (20 cents).
-  singS: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 20, over: 4, fall: 70, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: 0.16, level: 0.6, sample: "voiceS" }),
+  // D358 (SOUND-PRINCIPLES.md): one vocal ensemble: four singers singing one text (the same syllable,
+  // "la": a choir does not sing four words at once), in one room at one send (VOICE_SEND), one envelope
+  // (in 30 ms, out as D305's 0.15), standing in a row (Preset.by), the player's line sung as the others
+  // (Patch.one: never louder or brighter). The five-voice fugues' second soprano a soprano (singS2), no
+  // longer FluidR3's synth-choir "aah" among the soloists. Kept: each singer's own scoop and fall.
+  singS: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 20, over: 4, fall: 70, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.6, sample: "voiceS", one: {} }),
+  /** D358: the second soprano (five voices, the Ricercar's six): the soprano a shade lighter, a second singer beside her. */
+  singS2: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 70, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.56, sample: "voiceS", one: {} }),
+  singA: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "l", scoop: 30, over: 6, fall: 60, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.68, sample: "voiceA", one: {} }),
+  singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.7, sample: "voiceT", one: {} }),
+  singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "l", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "l", scoop: 15, over: 3, fall: 40, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.6, sample: "voiceB", one: {} }),
   singChoir: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "m", scoop: 40, over: 8, fall: 60, breath: 0.15, ring: 2 }, syllable: { cons: "m", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.05, d: 0.1, s: 1, r: 0.12 }, rec: { a: 0.05, d: 0, s: 1, r: 0.18 }, send: 0.2, level: 1.68, sample: "choirAah" }),
-  singA: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "n", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "n", scoop: 30, over: 6, fall: 60, messa: 1.5 }, amp: { a: 0.035, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.035, d: 0, s: 1, r: 0.15 }, send: 0.16, level: 0.68, sample: "voiceA" }),
-  singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "r", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "r", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: 0.14, level: 0.7, sample: "voiceT" }),
-  singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "d", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "d", scoop: 15, over: 3, fall: 40, messa: 1.5 }, amp: { a: 0.025, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.025, d: 0, s: 1, r: 0.15 }, send: 0.1, level: 0.6, sample: "voiceB" }),
+  // D358, two trial presets on D349's way (SOUND-PRINCIPLES.md), not offered yet (TRIALS): the owner listens first.
+  // STRING CONSORT: a baroque string band one to a part (two violins, viola, cello), recorded (VSO2's violin,
+  // VSCO 2 CE's violas, a Freesound cello), seated as a quartet sits (Preset.by), one room (the salon) at one
+  // send (CONSORT_SEND), one envelope (in 50 ms: the bow biting; out 120 ms), a bow change on a joined note
+  // (Patch.bow), nothing added (the recordings' own vibrato), the player's line played as the others (Patch.one).
+  consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
+  consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
+  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {} }),
+  // LUTE: one lute (a classical guitar's recordings, gut-like nylon) with a lute's courses (Patch.one.courses:
+  // each note's second string a few cents off and 3 ms later; below G3 an octave string in its place), each
+  // note placed by its course (key) across the instrument, a fretted instrument's slightly uneven frets
+  // (1.5 cents, fixed per key), in the salon; played as the harpsichord is (phrasing.ts styleOf).
+  lute2: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, send: SALON_SEND, level: 0.5, sample: "luteGuitar", one: LUTE_ONE }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -858,9 +957,20 @@ export interface Preset {
  */
 /** D348: a harpsichord's two lines the player may take (right hand, left hand) at a pan, a shade lighter than the strings. */
 const HPSI = (pan: number): (readonly [PatchId, number, number])[] => [["s16Harpsi", pan, 0.8], ["s16Harpsi", pan, 0.8]];
+/**
+ * D358, the concertos' seating plan (SOUND-PRINCIPLES.md): the soloists in front in the middle (one
+ * harpsichord at the centre; two, three or four side by side within ±0.24; BWV 1057's recorders either
+ * side of it), the band behind, as a baroque band sits: the first violins left, the seconds right
+ * (antiphonal), the violas right of centre, the continuo cello in the middle with the harpsichord.
+ */
+const SEATS = { violin1: -0.25, violin2: 0.25, viola: 0.1, bass: 0, soloists: { 1: [0], 2: [-0.12, 0.12], 3: [-0.18, 0, 0.18], 4: [-0.24, -0.08, 0.08, 0.24] }, recorders: 0.15 } as const;
 /** D348: a concerto's strings: Violin I, Violin II, the viola, the continuo bass. */
-const BAND: (readonly [PatchId, number, number?])[] = [["s16Strings", 0.2], ["s16Strings", 0.1], ["s16Strings", 0.05], ["s16Bassoon", 0]];
+const BAND: (readonly [PatchId, number, number?])[] = [["s16Strings", SEATS.violin1], ["s16Strings", SEATS.violin2], ["s16Strings", SEATS.viola], ["s16Cello", SEATS.bass]];
 type Slot = readonly [PatchId, number, number?];
+/** D358: one keyboard's layout for any number of voices (1-13): every voice the one patch, in the middle (its notes placed by their keys, Patch.one). */
+function oneKeyboard(id: PatchId): Partial<Record<number, readonly Slot[]>> {
+  return Object.fromEntries(Array.from({ length: 13 }, (_, k) => [k + 1, Array.from({ length: k + 1 }, (): Slot => [id, 0])]));
+}
 /**
  * D351: the concertos' layouts for the two sounds their SLOW and FAST tempi take (bench/tempo-steps.ts):
  * NOCTURNE 32-BIT (its harpsichord for the hands, its violin for the violins, its viola, the organ's
@@ -872,14 +982,15 @@ function concertoLayouts(h: PatchId, hLevel: number, band: readonly Slot[], flut
   const hands = (pan: number): Slot[] => [[h, pan, hLevel], [h, pan, hLevel]];
   const inner = (pan: number, k = 0.7): Slot => [h, pan, hLevel * k];
   return {
-    7: [...hands(-0.15), inner(-0.15), ...band],
-    9: [...hands(-0.15), inner(-0.15), [flute, 0.3, 0.84], [flute, -0.3, 0.84], ...band],
-    10: [...hands(-0.3), ...hands(0.3), inner(-0.3), inner(0.3), ...band],
-    11: [...hands(-0.3), ...hands(0), ...hands(0.3), inner(0, 0.62), ...band],
-    13: [...hands(-0.3), ...hands(-0.1), ...hands(0.1), ...hands(0.3), inner(0, 0.62), ...band],
+    // D358: the seating plan (SEATS).
+    7: [...hands(0), inner(0), ...band],
+    9: [...hands(0), inner(0), [flute, -SEATS.recorders, 0.84], [flute, SEATS.recorders, 0.84], ...band],
+    10: [...hands(-0.12), ...hands(0.12), inner(-0.12), inner(0.12), ...band],
+    11: [...hands(-0.18), ...hands(0), ...hands(0.18), inner(0, 0.62), ...band],
+    13: [...hands(-0.24), ...hands(-0.08), ...hands(0.08), ...hands(0.24), inner(0, 0.62), ...band],
   };
 }
-const N32_BAND: readonly Slot[] = [["n32Violin", 0.2], ["n32Violin", 0.1, 0.9], ["n32Viola", 0.05, 0.7], ["n32Organ", 0]];
+const N32_BAND: readonly Slot[] = [["n32Violin", SEATS.violin1], ["n32Violin", SEATS.violin2, 0.9], ["n32Viola", SEATS.viola, 0.7], ["n32Organ", SEATS.bass]];
 const TRK_BAND: readonly Slot[] = [["trkViolin", 0.35], ["trkViolin", 0.2, 0.9], ["trkViolin", -0.2, 0.9], ["trkBass", 0]];
 
 export const PRESETS: Preset[] = [
@@ -890,9 +1001,11 @@ export const PRESETS: Preset[] = [
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
   // D339: both in a music room of their own (chip.ts REVERBS.salon) in place of the shared room (a white-noise impulse, no pre-delay, undamped).
   // D351: six voices (the Ricercar a 6 at its FAST tempo, bench/tempo-steps.ts): the five upper on the treble, the bass alone on the bass.
-  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0, fx: "salon", by: { 6: [["harpsiSampled", 0.25], ["harpsiSampled", -0.25], ["harpsiSampled", 0.15], ["harpsiSampled", -0.15], ["harpsiSampled", 0.05], ["harpsiBassSampled", 0]] } },
+  // D358: one harpsichord: every voice its strings, in the middle (each note placed by its key, Patch.one).
+  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled"], room: 0, fx: "salon", by: oneKeyboard("harpsiSampled") },
   // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it; D294: the inner voices a shade lighter.
-  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoBassSampled"], room: 0, fx: "salon" },
+  // D358: one piano: every voice on it, in the middle (each note placed by its key, Patch.one).
+  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled"], room: 0, fx: "salon", by: oneKeyboard("pianoSampled") },
   // D294: ANALOG SYNTH (in place of D292's PIANO (FM)): WENDY CARLOS's patches (D209) revived, after Switched-On Bach.
   // D297: remade as SWITCHED-ON (the owner: "lackluster"; the id kept, so a stored choice keeps it): the
   // ladder's spit and resonance, the drift, a bass that snaps; the D294 patches kept above (carlos*).
@@ -924,17 +1037,19 @@ export const PRESETS: Preset[] = [
       4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["s16Strings", 0.12], ["s16Bassoon", 0]],
       5: [["s16Violin", 0.25], ["s16Flute", -0.3, 0.84], ["s16Harpsi", 0.1], ["s16Strings", -0.12, 0.94], ["s16Bassoon", 0]],
       // D340: six voices, the Concerto for Two Violins (BWV 1043): two solo violins apart, the band's violins and viola as strings, the continuo bass.
-      6: [["s16Violin", 0.25], ["s16Violin", -0.25], ["s16Strings", 0.15, 0.84], ["s16Strings", -0.15, 0.84], ["s16Strings", 0, 0.84], ["s16Bassoon", 0]],
+      // D358: the soloists in front either side of the middle, the band seated behind them (SEATS), the continuo a cello.
+      6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", SEATS.violin1, 0.84], ["s16Strings", SEATS.violin2, 0.84], ["s16Strings", SEATS.viola, 0.84], ["s16Cello", SEATS.bass]],
       // D348: the HARPSICHORD CONCERTOS (tools/touch/concertos.ts), a layout for each of their voice counts:
       // each harpsichord's right hand, left hand and inner notes on its harpsichord (the inner notes lighter),
       // the harpsichords apart; the violins and the viola as strings, the continuo bass on the bassoon (the
       // last voice: a phone's bass, chip.ts PHONE_BASS_GAIN), BWV 1057's recorders on the flute. A
       // harpsichord's line is never louder than a string line (its patch's level × 0.8 ≤ the strings' × 1).
-      7: [...HPSI(-0.15), ["s16Harpsi", -0.15, 0.6], ...BAND],
-      9: [...HPSI(-0.15), ["s16Harpsi", -0.15, 0.6], ["s16Flute", 0.3, 0.84], ["s16Flute", -0.3, 0.84], ...BAND],
-      10: [...HPSI(-0.3), ...HPSI(0.3), ["s16Harpsi", -0.3, 0.6], ["s16Harpsi", 0.3, 0.6], ...BAND],
-      11: [...HPSI(-0.3), ...HPSI(0), ...HPSI(0.3), ["s16Harpsi", 0, 0.5], ...BAND],
-      13: [...HPSI(-0.3), ...HPSI(-0.1), ...HPSI(0.1), ...HPSI(0.3), ["s16Harpsi", 0, 0.5], ...BAND],
+      // D358: the seating plan (SEATS): the harpsichord(s) in front in the middle, the band behind.
+      7: [...HPSI(0), ["s16Harpsi", 0, 0.6], ...BAND],
+      9: [...HPSI(0), ["s16Harpsi", 0, 0.6], ["s16Flute", -SEATS.recorders, 0.84], ["s16Flute", SEATS.recorders, 0.84], ...BAND],
+      10: [...HPSI(-0.12), ...HPSI(0.12), ["s16Harpsi", -0.12, 0.6], ["s16Harpsi", 0.12, 0.6], ...BAND],
+      11: [...HPSI(-0.18), ...HPSI(0), ...HPSI(0.18), ["s16Harpsi", 0, 0.5], ...BAND],
+      13: [...HPSI(-0.24), ...HPSI(-0.08), ...HPSI(0.08), ...HPSI(0.24), ["s16Harpsi", 0, 0.5], ...BAND],
     },
   },
   // NOCTURNE 32-BIT: violin, harpsichord, viola, the organ's pedal; oboe as the fifth voice; the dark hall.
@@ -1037,18 +1152,20 @@ export const PRESETS: Preset[] = [
   {
     id: "soloVoices",
     name: "SOLO VOICES",
-    slots: ["singS", "singChoir", "singA", "singT", "singB"],
+    slots: ["singS", "singS2", "singA", "singT", "singB"],
     room: 0,
     fx: "plate",
     by: {
-      2: [["singS", 0.25], ["singB", -0.1]],
-      3: [["singS", 0.25], ["singA", -0.25], ["singB", 0]],
-      4: [["singS", 0.25], ["singA", -0.25], ["singT", 0.12], ["singB", 0]],
-      5: [["singS", 0.25], ["singChoir", -0.3, 0.84], ["singA", 0.1], ["singT", -0.12, 0.94], ["singB", 0]],
+      // D358: standing in a row, soprano to bass left to right (within ±0.2: one group of singers).
+      1: [["singS", 0]],
+      2: [["singS", -0.1], ["singB", 0.1]],
+      3: [["singS", -0.15], ["singA", 0], ["singB", 0.15]],
+      4: [["singS", -0.18], ["singA", -0.06], ["singT", 0.06], ["singB", 0.18]],
+      5: [["singS", -0.2], ["singS2", -0.1], ["singA", 0], ["singT", 0.1], ["singB", 0.2]],
       // D341: eight voices, BWV 228's two choirs (S A T B each), choir I on the left, choir II on the right.
       8: [["singS", -0.3], ["singA", -0.2], ["singT", -0.15], ["singB", -0.1], ["singS", 0.3], ["singA", 0.2], ["singT", 0.15], ["singB", 0.1]],
       // D351: six voices, the Ricercar a 6 sung at its SLOW tempo (soprano, mezzo, alto, tenor, baritone, bass).
-      6: [["singS", 0.25], ["singS", -0.25, 0.9], ["singA", 0.1], ["singT", -0.1], ["singT", 0.15, 0.9], ["singB", 0]],
+      6: [["singS", -0.2], ["singS2", -0.12], ["singA", -0.04], ["singT", 0.04], ["singT", 0.12, 0.9], ["singB", 0.2]],
     },
   },
   // D297, MODULAR (a niche pick). D304: East and West coast. D305: BLEEPS AND BLOOPS (the id kept, so a
@@ -1091,6 +1208,31 @@ export const PRESETS: Preset[] = [
  * D292: out of the players' choices, kept for that mode alone (presetById still finds it).
  */
 export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 };
+
+/**
+ * D358: new presets on D349's way (docs/playback/SOUND-PRINCIPLES.md), for the owner to hear before any is
+ * offered: presetById finds them (the A/B page, the tests), the players' list does not (playerSound: CLASSIC CHIP).
+ * STRING CONSORT: two violins, viola and cello one to a part, seated as a quartet (first violin left, cello
+ * right, within ±0.24), a fifth voice a second viola, a sixth a second cello. LUTE: one lute, every voice on it.
+ */
+export const TRIALS: Preset[] = [
+  {
+    id: "stringConsort",
+    name: "STRING CONSORT",
+    slots: ["consViolin", "consViolin", "consViola", "consViola", "consCello"],
+    room: 0,
+    fx: "salon",
+    by: {
+      1: [["consViolin", 0]],
+      2: [["consViolin", -0.15], ["consCello", 0.15]],
+      3: [["consViolin", -0.2], ["consViola", 0.04], ["consCello", 0.2]],
+      4: [["consViolin", -0.24], ["consViolin", -0.08], ["consViola", 0.08], ["consCello", 0.24]],
+      5: [["consViolin", -0.24], ["consViolin", -0.12], ["consViola", 0], ["consViola", 0.12], ["consCello", 0.24]],
+      6: [["consViolin", -0.24], ["consViolin", -0.14], ["consViola", -0.04], ["consViola", 0.06], ["consCello", 0.16], ["consCello", 0.24]],
+    },
+  },
+  { id: "lute", name: "LUTE", slots: ["lute2", "lute2", "lute2", "lute2", "lute2"], room: 0, fx: "salon", by: oneKeyboard("lute2") },
+];
 
 /**
  * D249: the sampled organ, out of the players' choices (PRESETS) until the new organs come
@@ -1142,7 +1284,11 @@ export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM 
 /** D302: SOLO VOICES' singers (VocalSet, CC BY 4.0) and the choir "aah" it and TRACKER sing with (FluidR3's, as rendered for midi-js-soundfonts, CC BY 3.0). */
 export const VOICES_CREDIT = "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A. WAHL, B. PARDO · CC BY 4.0";
 export const CHOIR_CREDIT = "CHOIR: FLUIDR3_GM · FRANK WEN · MIDI-JS-SOUNDFONTS · CC BY 3.0";
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: `${VOICES_CREDIT} · ${CHOIR_CREDIT}`, tracker: CHOIR_CREDIT };
+// D358: SOLO VOICES sings without FluidR3's choir now (its second soprano a soprano): VocalSet's credit alone.
+/** D358: the trial presets' recordings (CC BY 3.0 asks for credit; VSCO 2 CE's violas are CC0). */
+export const CONSORT_CREDIT = "STRINGS: VERSILIAN STUDIOS VSO2 CE (VIOLIN) · CELLO: FREESOUND 12408, FLCELLOGRL · CC BY 3.0";
+export const LUTE_CREDIT = "LUTE: CLASSICAL GUITAR, FREESOUND 11573, QUARTERTONE · CC BY 3.0";
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1152,7 +1298,7 @@ export function playerSound(id: string): string {
   return offered(r) ? r : "chip";
 }
 /** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
-export const presetById = (id: string) => [...PRESETS, TRAVERSO].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
+export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {

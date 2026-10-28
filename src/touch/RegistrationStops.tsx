@@ -1,16 +1,21 @@
 /**
- * D322, REGISTRATION's buttons (registration.ts): small toggles in the music box's title bar, beside
- * ❚❚ and ✕, for the player's voice; a long press on any of them is TUTTI (every voice takes the
- * player's stops), shown by a small mark. Where the title bar has no room (a phone upright, the organ's
- * five stops in a narrow box) they fold into one STOPS button that opens them under the bar. Kept per
- * piece on the device; a change sounds from the next note. Instrument by instrument (STOPS): the
- * harpsichord and the organ now; the piano's UNA CORDA, the voices' SYLLABLE, the chips' WAVE later
- * (a stop id, its label below, and its sound in registration.ts).
+ * D322, REGISTRATION's buttons (registration.ts) for the player's voice. D357 (the owner: "the instrument
+ * stops should not be folded on a box, they should be readily available upon a single touch. this is the
+ * only way one can, amidst play, change stops"): one row of one-touch buttons in the music box's title
+ * bar, always there while the harpsichord or the organ plays (for the friends too), between the thumbs'
+ * bars (never on them), each a thumb's target, drawn or pushed in at a glance (a lit knob or an empty
+ * one). TUTTI a button of its own (every voice takes the player's stops; was a long press); on the organ
+ * ROOM besides (room.ts: DRY · CHURCH · CATHEDRAL, cycling, kept on the device). Where the bar is narrow
+ * (a phone sideways) the labels shorten and the piece's title gives way; a phone upright (the game asks
+ * for it sideways) shows none. Kept per piece on the device; a change sounds from the next note. Each
+ * change made while playing is kept for the run (registration.ts recordStopChange: the bar, the stop):
+ * the special challenges to come ("draw X at bar N").
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Patch } from "./sound.ts";
 import { tr } from "../i18n/index.ts";
-import { DEFAULT_REG, loadRegistration, saveRegistration, setLiveRegistration, setTutti, stopsOf, stopsShown, toggle, type Registration, type StopId } from "./registration.ts";
+import { loadRegistration, onLiveRegistration, recordStopChange, saveRegistration, setLiveRegistration, setTutti, stopsOf, stopsShown, toggle, DEFAULT_REG, type Registration, type StopId, type StopKnob } from "./registration.ts";
+import { hasRoom, liveRoom, nextRoom, ROOM_ORDER, setRoom, type RoomId } from "./room.ts";
 
 /** A stop's label: the footages as organists write them (no translation), the names translated. */
 export function stopLabel(s: StopId): string {
@@ -35,129 +40,136 @@ export function stopLabel(s: StopId): string {
       return tr("TREM");
   }
 }
+/** D357: a stop's label where the bar is narrow (a phone sideways). */
+export function shortLabel(s: StopId): string {
+  return s === "principal" ? tr("PRINC.") : s === "mixture" ? tr("MIXT.") : stopLabel(s);
+}
+/** D357: a room's name on its button. */
+export const roomLabel = (r: RoomId) => tr(r === "dry" ? "DRY" : r === "church" ? "CHURCH" : "CATHEDRAL");
 
-/** How long a press is TUTTI (ms). */
-export const TUTTI_HOLD_MS = 550;
-/** The title bar's room kept for the title, the key, ❚❚ and ✕ (px): the buttons fold into STOPS below it. */
-const KEEP_PX = 300;
-/** Under this title bar width (px) not even STOPS fits beside the title. */
+/** D357: the title bar's room kept for the key, ❚❚ and ✕ (px; the title gives way). */
+const KEEP_PX = 160;
+/** D357: how long the room's name shows after a press (ms). */
+const ROOM_NAME_MS = 1600;
+/** Under this title bar width (px) the row has no room (a phone upright). */
 const HIDE_BELOW_PX = 360;
-/** A button's width at 7 px Press Start 2P (px a character, padding and gap). */
+/** A button's width (px): 7 px Press Start 2P a character, its padding and border, the gap. */
 const chipPx = (label: string) => [...label].length * 7 + 16;
 
-export function RegistrationStops({ presetId, patch, piece }: { presetId: string; patch: Patch | null | undefined; piece: string }) {
+export function RegistrationStops({ presetId, patch, piece, barNow }: { presetId: string; patch: Patch | null | undefined; piece: string; barNow?: () => number | null }) {
   const [reg, setReg] = useState<Registration>(() => loadRegistration(piece, presetId));
-  const [open, setOpen] = useState(false);
-  const [room, setRoom] = useState(1000);
+  const [room, setRoomNow] = useState<RoomId>(() => liveRoom());
+  const [width, setWidth] = useState(1000);
+  /** D357: the room's name shown a moment under its button after a press (narrow: the button shows its level only). */
+  const [named, setNamed] = useState(0);
+  useEffect(() => {
+    if (!named) return;
+    const id = window.setTimeout(() => setNamed(0), ROOM_NAME_MS);
+    return () => clearTimeout(id);
+  }, [named]);
   const wrap = useRef<HTMLSpanElement>(null);
-  const held = useRef<{ timer: number; fired: boolean } | null>(null);
   const shown = stopsShown(presetId, patch);
 
-  // The piece's kept registration, in force while the buttons are there (the default once they go).
+  // The piece's kept registration, in force while the buttons are there (the default once they go);
+  // a change made elsewhere (the piece's own plan) shown as it comes.
   useEffect(() => {
     const r = loadRegistration(piece, presetId);
     setReg(r);
     setLiveRegistration(presetId, r);
-    return () => setLiveRegistration(presetId, DEFAULT_REG);
+    const off = onLiveRegistration((id, next) => {
+      if (id === presetId) setReg(next);
+    });
+    return () => {
+      off();
+      setLiveRegistration(presetId, DEFAULT_REG);
+    };
   }, [piece, presetId]);
 
-  // The title bar's width: inline buttons where they fit beside the rest, else STOPS.
+  // The title bar's width: the full labels where they fit beside the key, ❚❚ and ✕, else the short ones.
   useLayoutEffect(() => {
     const hud = wrap.current?.closest(".tg-hud") as HTMLElement | null;
     if (!hud) return;
-    const measure = () => setRoom(hud.clientWidth);
+    const measure = () => setWidth(hud.clientWidth);
     measure();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     ro?.observe(hud);
     return () => ro?.disconnect();
   }, []);
 
-  // The folded stops close at a touch anywhere else (the bars' touches included: the music goes on under them).
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: PointerEvent) => {
-      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", away, true);
-    return () => document.removeEventListener("pointerdown", away, true);
-  }, [open]);
-
-  // A phone upright (the game asks for it sideways): no room even for STOPS beside the title; none shown (what is drawn still sounds).
-  if (!shown.length || room < HIDE_BELOW_PX) return null;
+  if (!shown.length || width < HIDE_BELOW_PX) return <span ref={wrap} hidden />;
   const on = new Set(stopsOf(presetId, reg, patch));
-  const need = shown.reduce((a, s) => a + chipPx(stopLabel(s)), 0);
-  const folded = room - KEEP_PX < need;
+  const roomed = hasRoom(presetId);
+  const extra = chipPx("TUTTI") + (roomed ? chipPx(roomLabel("cathedral")) : 0);
+  const compact = width - KEEP_PX < shown.reduce((a, s) => a + chipPx(stopLabel(s)), 0) + extra;
+  const label = compact ? shortLabel : stopLabel;
 
-  const change = (next: Registration) => {
+  const change = (next: Registration, knob: StopKnob) => {
+    const before = knob === "tutti" ? reg.tutti : on.has(knob);
+    const after = knob === "tutti" ? next.tutti : stopsOf(presetId, next, patch).includes(knob);
     setReg(next);
     setLiveRegistration(presetId, next);
     saveRegistration(piece, presetId, next);
+    if (before !== after) recordStopChange({ bar: barNow?.() ?? null, stop: knob, drawn: after, reg: next });
   };
-  const down = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    const h = { timer: 0, fired: false };
-    h.timer = window.setTimeout(() => {
-      h.fired = true;
-      change(setTutti(presetId, reg, patch, !reg.tutti));
-    }, TUTTI_HOLD_MS);
-    held.current = h;
-  };
-  const cancel = () => {
-    if (held.current) clearTimeout(held.current.timer);
-  };
-  const press = (s: StopId) => {
-    const h = held.current;
-    held.current = null;
-    if (h) clearTimeout(h.timer);
-    if (h?.fired) return;
-    change(toggle(presetId, reg, patch, s));
-  };
-
-  const chips = shown.map((s) => (
-    <button
-      key={s}
-      type="button"
-      id={`stop-${s}`}
-      className={`tg-stop${on.has(s) ? " on" : ""}`}
-      aria-pressed={on.has(s)}
-      title={tr("HOLD: EVERY VOICE")}
-      onPointerDown={down}
-      onPointerUp={cancel}
-      onPointerLeave={cancel}
-      onPointerCancel={cancel}
-      onContextMenu={(e) => e.preventDefault()}
-      onClick={() => press(s)}
-    >
-      {stopLabel(s)}
-    </button>
-  ));
-  const tutti = reg.tutti && (
-    <span className="tg-stop-tutti" id="stops-tutti" title={tr("HOLD: EVERY VOICE")}>
-      TUTTI
-    </span>
-  );
 
   return (
-    <span className={`tg-reg${reg.tutti ? " tg-reg-tutti" : ""}${folded ? " tg-reg-folded" : ""}`} ref={wrap} role="group" aria-label={tr("STOPS")}>
-      {folded ? (
-        <>
-          <button type="button" id="stops" className={`tg-stop tg-stops-open${open ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}>
-            {tr("STOPS")}
-            {reg.tutti ? "·T" : ""}
-          </button>
-          {open && (
-            <span className="tg-reg-pop" id="stops-pop">
-              <span className="tg-reg-row">
-                {tutti}
-                {chips}
-              </span>
-              <span className="tg-reg-hint">{tr("HOLD: EVERY VOICE")}</span>
+    <span className={`tg-reg tg-reg-row-inline${compact ? " tg-reg-compact" : ""}${reg.tutti ? " tg-reg-tutti" : ""}`} ref={wrap} role="group" aria-label={tr("STOPS")}>
+      {shown.map((s) => (
+        <button
+          key={s}
+          type="button"
+          id={`stop-${s}`}
+          className={`tg-stop${on.has(s) ? " on" : ""}`}
+          aria-pressed={on.has(s)}
+          aria-label={stopLabel(s)}
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={() => change(toggle(presetId, reg, patch, s), s)}
+        >
+          {label(s)}
+        </button>
+      ))}
+      <button
+        type="button"
+        id="stop-tutti"
+        className={`tg-stop tg-stop-tuttib${reg.tutti ? " on" : ""}`}
+        aria-pressed={reg.tutti}
+        title={tr("EVERY VOICE TAKES YOUR STOPS")}
+        onContextMenu={(e) => e.preventDefault()}
+        onClick={() => change(setTutti(presetId, reg, patch, !reg.tutti), "tutti")}
+      >
+        TUTTI
+      </button>
+      {roomed && (
+        <button
+          type="button"
+          id="stop-room"
+          className={`tg-stop tg-stop-room tg-room-${room}`}
+          aria-label={`${tr("ROOM")}: ${roomLabel(room)}`}
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={() => {
+            const r = nextRoom(room);
+            setRoom(r);
+            setRoomNow(r);
+            setNamed(Date.now());
+          }}
+        >
+          <span className="tg-stop-sub">{tr("ROOM")}</span>
+          {compact ? (
+            // Narrow: the room's level as three pips (DRY one, CHURCH two, CATHEDRAL three); its name a moment below after a press.
+            <span className="tg-room-pips" aria-hidden="true">
+              {ROOM_ORDER.map((r, i) => (
+                <i key={r} className={i <= ROOM_ORDER.indexOf(room) ? "on" : ""} />
+              ))}
+            </span>
+          ) : (
+            roomLabel(room)
+          )}
+          {compact && named > 0 && (
+            <span className="tg-room-name" role="status">
+              {roomLabel(room)}
             </span>
           )}
-        </>
-      ) : (
-        // TUTTI inline: no word (the bar has no room for it), a line under the stops (CSS .tg-reg-tutti).
-        chips
+        </button>
       )}
     </span>
   );

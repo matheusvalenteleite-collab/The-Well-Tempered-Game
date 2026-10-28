@@ -65,6 +65,8 @@ export interface Bake {
 export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
 /** D313: where SOLO VOICES' passages are taken from (s from the onset: build_sustain.py's files are steady from 0.2 s to 3.15 s). */
 export const VOICE_CHAIN: [number, number] = [0.45, 3.0];
+/** D358: the cello's made loop (s from the onset): its recordings are 2.3-4.2 s, steady from about 0.5 s to 2.2 s (measured). */
+export const CELLO_LOOP: [number, number] = [0.8, 2.0];
 export const PERIOD: Record<string, Bake> = {
   // SUPER 16-BIT (§6.1: oboe 16 kHz LP 5.8 kHz, harpsichord 16 kHz 6 kHz, clarinet 14 kHz 5 kHz, violin 16 kHz 6 kHz, bassoon 12 kHz 4.3 kHz; 11 bits).
   // D302: brighter (22 kHz, 6-7.5 kHz: they were muffled), the oboe and clarinet replaced by a flute and
@@ -75,6 +77,8 @@ export const PERIOD: Record<string, Bake> = {
   harpsi16: { folder: "harpsichord", rate: 22050, lp: 7500, bits: 11 },
   strings16: { folder: "violaSus", rate: 22050, lp: 6000, bits: 11, loop: true },
   bassoon16: { folder: "bassoon", rate: 16000, lp: 5000, bits: 11, loop: true },
+  // D358: the concertos' continuo on a cello (the band a string band: SOUND-PRINCIPLES.md), as the console held it.
+  cello16: { folder: "cello", rate: 22050, lp: 6000, bits: 11, loop: CELLO_LOOP },
   // NOCTURNE 32-BIT (§6.2: 22.05 kHz; violin and oboe LP 8 kHz, harpsichord 8.8 kHz, viola 7 kHz, organ 6 kHz; 13 bits).
   violin32: { folder: "violin", rate: 22050, lp: 8000, bits: 13, loop: true },
   oboe32: { folder: "oboe", rate: 22050, lp: 8000, bits: 13, loop: true },
@@ -98,6 +102,13 @@ export const PERIOD: Record<string, Bake> = {
   plenoOrg: { folder: "pipeOrgan", rate: 22050, lp: 9500, bits: 16 },
   // D302, SOLO VOICES: VocalSet's four singers (their own 1-3 s loops) and FluidR3's choir "aah" (its
   // loop 0.9-2.5 s, as the chorales play it), kept at 24 kHz: nothing of a voice lost under 11 kHz.
+  // D358, STRING CONSORT: the violin (VSO2), the viola section (VSCO 2 CE) and the cello (Freesound 12408),
+  // as recorded (24 kHz, 16 bits: nothing lost under 11 kHz), each held on a made loop of its steady stretch.
+  consortViolin: { folder: "violin", rate: 32000, lp: 11000, bits: 16, loop: true },
+  consortViola: { folder: "violaSus", rate: 32000, lp: 11000, bits: 16, loop: true },
+  consortCello: { folder: "cello", rate: 32000, lp: 11000, bits: 16, loop: CELLO_LOOP },
+  // D358, LUTE: the classical guitar's gut-like nylon (Freesound 11573), plucked, as recorded.
+  luteGuitar: { folder: "guitar", rate: 32000, lp: 11000, bits: 16 },
   voiceS: { folder: "soloSoprano", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceA: { folder: "soloAlto", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceT: { folder: "soloTenor", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
@@ -137,10 +148,14 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   soloAlto: { F3: 0, Fs3: -0.6, G3: -0.1, Gs3: -0.4, A3: -0.1, As3: 0.1, B3: -0.1, C4: -0.1, Cs4: 0.1, D4: 0, Ds4: 0, E4: 0, F4: 0.2, Fs4: 0.4, G4: -0.2, Gs4: -0.4, A4: 0.1, As4: 0.1, B4: -0.1, C5: -0.1, Cs5: -0.2, D5: -0.2 },
   soloTenor: { B2: 0.1, C3: 0.5, Cs3: 0.2, D3: -0.4, Ds3: 0.2, E3: 0, F3: 0.1, Fs3: 0, G3: -0.3, Gs3: 2.9, A3: 2.3, As3: -0.1, B3: -0.2, C4: -0.2, Cs4: 0.2, D4: -2.9, Ds4: -0.5, E4: -0.3, F4: 0, Fs4: -0.1, G4: -0.5, Gs4: 0, A4: 0.1 },
   soloBass: { D2: -0.5, Ds2: -0.8, E2: -0.9, F2: -0.4, Fs2: 0.7, G2: 0.9, Gs2: 1.2, A2: -0.2, As2: -0.2, B2: 0.4, C3: -0.1, Cs3: -0.1, D3: 0.7, Ds3: 0.2, E3: 0.7, F3: 0.9, Fs3: 0.1, G3: -0.8, Gs3: -0.1, A3: -0.8, As3: -0.5, B3: 0, C4: 0, Cs4: 0.3, D4: 0, Ds4: -0.2, E4: -0.4, F4: -0.1, Fs4: 0.1 },
+  // D358 (measured as the guitar's, autocorrelation over 0.8-2.0 s; E2 and E3 as recorded, flat).
+  cello: { A2: -0.1, A3: -1.1, A4: 0.3, As2: 0.3, As3: -3.6, B2: 0, B3: 0.9, B4: 0.9, C2: -0.3, C3: -0.7, C4: 1.6, C5: 1.1, Cs3: 0.1, Cs4: 1.8, D2: -0.6, D3: -0.5, D4: 3.7, Ds2: -0.2, Ds3: -0.6, Ds4: -1, E2: -38.6, E3: -14.7, E4: 0.9, F2: -1, F3: -0.5, F4: -3.2, Fs3: 1.7, Fs4: -2.6, G2: -0.2, G3: -0.1, G4: -1.5, Gs2: 0.8, Gs3: 0.9, Gs4: -0.4 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
 };
 /** D297: the recordings shorter than 4.545 s (s, measured). */
 const SHORT: Record<string, Record<string, number>> = {
+  // D358: the cello's recordings (s, measured).
+  cello: { A2: 4.122, A3: 3.02, A4: 2.485, As2: 3.805, As3: 2.756, B2: 3.463, B3: 3.434, B4: 2.631, C2: 3.847, C3: 3.126, C4: 3.308, C5: 3.359, Cs3: 3.175, Cs4: 2.735, D2: 4.226, D3: 3.364, D4: 2.711, Ds2: 3.41, Ds3: 2.68, Ds4: 2.939, E2: 3.441, E3: 2.944, E4: 2.748, F2: 3.941, F3: 2.944, F4: 2.935, Fs3: 2.622, Fs4: 2.494, G2: 3.856, G3: 2.913, G4: 2.531, Gs2: 3.596, Gs3: 2.336, Gs4: 2.532 },
   harp: { A2: 4.5, A4: 4.5, A6: 3.58, B1: 4.5, B3: 4.5, B5: 4.394, C3: 4.5, C5: 4.5, D2: 4.5, D4: 4.5, D6: 3.878, D7: 2.19, E1: 4.5, E3: 4.5, E5: 4.5, F2: 4.5, F4: 4.5, F6: 2.332, F7: 1.848, G1: 4.5, G3: 4.5, G5: 4.5 },
   xylophone: { C5: 3.369, C6: 1.884, C7: 1.467, C8: 1.138, G4: 3.619, G5: 2.507, G6: 1.614, G7: 1.383 },
   horn: {},
@@ -179,7 +194,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -202,6 +217,14 @@ export interface SampledInstrument {
   soft?: { set: string; below: number; gain: number };
   /** D297: the key-up noise's level against the note (0.9 if not given). */
   relGain?: number;
+  /**
+   * D357: a recorded pipe's speech kept on a new note (s): the recording entered that long before it
+   * reaches half its level (Loaded.speech), at most SPEAK_MAX in. D349 gave every organ note its own
+   * attack (no joined note entered past its speech): the VCSL pedal's 55-120 ms of speech then left a
+   * short detached note (the plenum's pedal, I/2's 16ths of 0.11 s) 13 dB under its neighbours: the
+   * owner's "the bass in the beginning is cutting".
+   */
+  speak?: number;
   /** D297: the pitches from `from` up played from `set` (an organ's manual above its pedal's compass). */
   above?: { set: string; from: number };
   /**
@@ -268,10 +291,20 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   voiceB: { set: "voiceB", plucked: false, gain: 2.2 },
   choirAah: { set: "choirAah", plucked: false, gain: 2.2 },
   // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
-  organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5 },
+  organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5, speak: 0.02 },
   // D349, PIPE ORGAN's PLENUM: the same organ's recorded plenum on the manuals (a set of its own, so its plan and the pedal's never let go of each other's notes).
-  organPleno: { set: "plenoOrg", plucked: false, gain: 5 },
+  organPleno: { set: "plenoOrg", plucked: false, gain: 5, speak: 0.02 },
+  // D358: SUPER 16-BIT's continuo cello; STRING CONSORT's violin, viola and cello; LUTE's strings. Gains set by measurement (each voice alone, gated loudness).
+  cello16: { set: "cello16", plucked: false, gain: 2.2 },
+  consortViolin: { set: "consortViolin", plucked: false, gain: 2.2 },
+  consortViola: { set: "consortViola", plucked: false, gain: 2.2 },
+  consortCello: { set: "consortCello", plucked: false, gain: 2.2 },
+  luteGuitar: { set: "luteGuitar", plucked: true, gain: 2.2 },
 };
+/** D357: at most this far into a recorded pipe's speech (s). */
+export const SPEAK_MAX = 0.12;
+/** D357: where a new note enters its recording (s past the onset): its speech shortened to `speak` (SampledInstrument.speak). */
+export const speakFrom = (inst: SampledInstrument, r: Loaded) => (inst.speak === undefined ? 0 : Math.max(0, Math.min(SPEAK_MAX, (r.speech ?? 0) - inst.speak)));
 
 /** D297: the set a pitch of an instrument is played from (an organ's manual above its pedal). */
 export const setFor = (inst: SampledInstrument, midi: number) => (inst.above && midi >= inst.above.from ? inst.above.set : inst.set);
@@ -399,6 +432,29 @@ export function onsetOf(data: Float32Array, sampleRate: number): number {
   return 0;
 }
 
+/**
+ * D357: how long a recording takes to speak (s from its onset): the first 10 ms window whose RMS
+ * reaches half (-6 dB) of the steady level (0.6-1.6 s past the onset, or what the file has). The VCSL
+ * organ's pipes take 20-120 ms (measured: the pedal 55-120, the plenum 20-100).
+ */
+export function speechOf(data: Float32Array, sampleRate: number, onset: number): number {
+  const o = Math.floor(onset * sampleRate);
+  const a = Math.min(data.length, o + Math.floor(0.6 * sampleRate));
+  const b = Math.min(data.length, o + Math.floor(1.6 * sampleRate));
+  if (b - a < sampleRate * 0.1) return 0;
+  let e = 0;
+  for (let i = a; i < b; i++) e += data[i] * data[i];
+  const half = Math.sqrt(e / (b - a)) * 0.5;
+  const w = Math.floor(0.01 * sampleRate);
+  const step = Math.max(1, Math.floor(w / 2));
+  for (let i = o; i + w <= Math.min(data.length, o + sampleRate); i += step) {
+    let r = 0;
+    for (let j = i; j < i + w; j++) r += data[j] * data[j];
+    if (Math.sqrt(r / w) >= half) return (i - o) / sampleRate;
+  }
+  return 0;
+}
+
 /** D297: a biquad (RBJ's cookbook: "lowpass" or "highpass" at f Hz, quality q) run over x in place. */
 function biquad(x: Float32Array, type: "lowpass" | "highpass", f: number, q: number, sr: number) {
   const w = (2 * Math.PI * Math.min(f, sr * 0.49)) / sr;
@@ -489,6 +545,8 @@ export interface Loaded {
   buffer: AudioBuffer;
   /** Where the recording begins (s). */
   onset: number;
+  /** D357: how long the recorded pipe takes to speak (s from the onset to half its steady level: speechOf). */
+  speech?: number;
 }
 const banks = new Map<string, Map<number, Loaded>>();
 const inFlight = new Map<string, Promise<void>>();
@@ -596,7 +654,8 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
     const buffer = period ? baked(ctx, decoded, period) : monoSets.has(set) ? toMono(ctx, decoded) : decoded;
     let bank = banks.get(set);
     if (!bank) banks.set(set, (bank = new Map()));
-    bank.set(m, { buffer, onset: onsetOf(buffer.getChannelData(0), buffer.sampleRate) });
+    const onset = onsetOf(buffer.getChannelData(0), buffer.sampleRate);
+    bank.set(m, { buffer, onset, speech: speechOf(buffer.getChannelData(0), buffer.sampleRate, onset) });
   })()
     .catch(() => void failedAt.set(key, Date.now()))
     .finally(() => inFlight.delete(key));
