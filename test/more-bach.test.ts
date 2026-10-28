@@ -24,15 +24,17 @@ const lastBar = (id: string) => fugueById(id).bars.at(-1)!.n;
 
 test("D340: MORE BACH: the Art of Fugue (11 contrapuncti, 2 mirror fugues each rectus and inversus, 4 canons), 2 ricercars, 15 inventions, 15 sinfonias, 3 concerto movements", () => {
   // D341: and the motet BWV 228 (two sections) and the cantata BWV 54 (movements 1 and 3), from IMSLP.
-  assert.equal(MORE_BACH.length, 58);
-  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("concerto"), count("motet"), count("cantata")], [19, 2, 15, 15, 3, 2, 2]);
-  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 58);
+  // D348: and the harpsichord concertos, 39 movements (test/d348-concertos.test.ts).
+  assert.equal(MORE_BACH.length, 58 + 39);
+  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 3, 2, 2, 39]);
+  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 58 + 39);
   for (const f of MORE_BACH) {
     assert.equal(fugueById(f.id), f);
     assert.equal(f.voices.length, f.voiceNames.length, f.id);
-    // (BWV 228's second section: choir II sings only its last six bars.)
-    assert.ok(f.voices.every((v) => v.length > (f.id === "bwv228-2" ? 15 : 20)), `${f.id}: every voice sounds`);
-    assert.ok(f.bars.length > 10 && f.length > 0 && f.credit && (f.source?.includes("mutopiaproject.org") || f.source?.includes("imslp.org")), f.id);
+    // (BWV 228's second section: choir II sings only its last six bars. D348: a concerto's band may rest a movement, or nearly: the strings in BWV 1061's Adagio, a harpsichord's inner notes; the voices offered sound.)
+    if (f.collection === "hconcerto") assert.ok(f.playable!.every((v) => f.voices[v].length > 20), `${f.id}: every voice offered sounds`);
+    else assert.ok(f.voices.every((v) => v.length > (f.id === "bwv228-2" ? 15 : 20)), `${f.id}: every voice sounds`);
+    assert.ok(f.bars.length > 10 && f.length > 0 && f.credit && (f.source?.includes("mutopiaproject.org") || f.source?.includes("imslp.org") || f.source?.includes("musescore.com")), f.id);
     // The notes sorted, inside the piece, on staff steps that agree with their pitch (C4 = 28).
     for (const v of f.voices) for (let i = 0; i < v.length; i++) {
       const [on, dur, midi, step] = v[i];
@@ -64,7 +66,7 @@ test("D340: MORE BACH's voices and bars, as the editions have them (and the seco
 
 test("D340: what the pipeline computes for the WTC: entries in the fugues, inventions and sinfonias (none in the canons and the concerto), cadences, keys, tempi, sounds, characters", () => {
   for (const f of MORE_BACH) {
-    const fugal = !["concerto"].includes(f.collection!) && !f.id.startsWith("bwv1080-c") && !["bwv228-1", "bwv54-1"].includes(f.id);
+    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && !f.id.startsWith("bwv1080-c") && !["bwv228-1", "bwv54-1"].includes(f.id);
     if (fugal) assert.ok(f.entries.length >= 2, `${f.id}: ${f.entries.length} entries`);
     else assert.equal(f.entries.length, 0, f.id);
     for (const e of f.entries) assert.ok(f.voices[e.voice].some((n) => n[0] === e.on), `${f.id}: entry at ${e.on} on a note`);
@@ -124,8 +126,8 @@ test("D340: CHORALES: Sapp's 370, four voices each, every fermata held a beat lo
 
 test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunctus 14 closing the Art of Fugue), CHORALES", () => {
   assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "MORE", "CHORALES"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "CONCERTO", "MOTET", "CANTATA"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3, 2, 2]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3, 39, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
   assert.equal(CHORALE_IDS.length, 370);
   assert.equal(liteTabOf("bwv1080-14"), "MORE");

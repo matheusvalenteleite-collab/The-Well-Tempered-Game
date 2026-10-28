@@ -131,11 +131,12 @@ test("D343: the MORE BACH and CHORALES notes load on demand; their index (ids, c
   assert.match(fugue, /import\("\.\/extras-data\.ts"\)/);
   const { extrasIndex } = await import("../tools/touch/extras-index.ts");
   const data = (p: string) => JSON.parse(src(p));
-  assert.deepEqual(JSON.parse(src("data/touch/extras-index.json")), extrasIndex(data("data/touch/more-bach.json"), data("data/touch/chorales.json")), "run node tools/touch/extras-index.ts");
+  // D348: and the harpsichord concertos (data/touch/concertos.json, their own chunk).
+  assert.deepEqual(JSON.parse(src("data/touch/extras-index.json")), extrasIndex(data("data/touch/more-bach.json"), data("data/touch/chorales.json"), data("data/touch/concertos.json")), "run node tools/touch/extras-index.ts");
   const { CHORALE_IDS, MORE_SECTIONS } = await import("../src/bench/lite.ts");
   const { extrasLoaded, fugueById, loadExtras } = await import("../src/touch/fugue.ts");
   assert.equal(CHORALE_IDS.length, 370, "the tabs known before the notes");
-  assert.equal(MORE_SECTIONS.flatMap((s) => s.ids).length, 59);
+  assert.equal(MORE_SECTIONS.flatMap((s) => s.ids).length, 59 + 39);
   await Promise.all([loadExtras(), loadExtras()]);
   assert.equal(extrasLoaded(), true);
   assert.equal(fugueById("chor001").id, "chor001");

@@ -26,6 +26,11 @@ export function Credits({ onClose }: { onClose(): void }) {
           BWV 228: Fritz Brodersen's WIMA edition (IMSLP), CC BY-NC 3.0. The cantata BWV 54: Ramon Casadesus-Masanell's edition
           (IMSLP, 2021), CC BY-NC-SA 4.0, the game's note data for it under the same licence. These three for non-commercial use only.
         </p>
+        <p>
+          The HARPSICHORD CONCERTOS, BWV 1052-1058 and 1060-1065 (D348): scores from musescore.com dedicated to the public domain
+          (CC0 1.0), as kept in the PDMX dataset (Long, Novack, Berg-Kirkpatrick and McAuley, 2024): verits99's (all but BWV 1056)
+          and Andrey Ronzhin's (BWV 1056). Credited though CC0 asks for nothing.
+        </p>
         <h3>Software and sounds</h3>
         <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>
         <p>

@@ -376,6 +376,9 @@ export const PT: Record<string, string> = {
   CANTATA: "CANTATA",
   "ANY VOICE · THE BAND WAITS FOR YOU AFTER EACH FERMATA": "QUALQUER VOZ · A BANDA ESPERA POR VOCÊ APÓS CADA FERMATA",
   "{n} SOLO PARTS": "{n} PARTES SOLO",
+  // D348.
+  "HARPSICHORD CONCERTOS": "CONCERTOS PARA CRAVO",
+  "{n} PARTS": "{n} PARTES",
   "SOURCES & CREDITS": "FONTES E CRÉDITOS",
   // D343: play.html for friends (the first screen, the result, the pop-up, the phone held the wrong way, MOBILE ONLY).
   "LEARN TO PLAY WITH TWO THUMBS": "APRENDA A TOCAR COM DOIS POLEGARES",
