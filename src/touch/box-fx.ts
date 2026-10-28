@@ -6,15 +6,15 @@
  *   fainter while announced; each of its notes catches fire as it sounds (embers rising). D352: in
  *   its subject's primary (1 red, 2 blue, 3 yellow: subject-hue.ts), whoever's voice; grey once lost.
  *   D372 (Mario's report §6): no band; a SUBJECT flag on each entry's first note (flags), and each
- *   subject its own effect in its voice's own subject colour, note by note by weight (subjectFx; the
- *   cast and weights in subject-cast.ts). `strikes` (the embers) stays for the design study's variants.
+ *   subject its own effect in its voice's own subject colour, every note alike (subjectFx; the
+ *   cast in subject-cast.ts). `strikes` (the embers) stays for the design study's variants.
  *   The countersubject is not marked.
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
 import { tr, trCanvas } from "../i18n/index.ts";
 import { subjectInkOf, subjectRimOf, themeOf } from "./subject-hue.ts";
-import { OTHERS_SCALE, effectOf, weightsOf } from "./subject-cast.ts";
+import { NOTE_WEIGHT, OTHERS_SCALE, effectOf } from "./subject-cast.ts";
 
 export interface Span {
   voice: number;
@@ -214,18 +214,17 @@ function mixHex(a: string, b: string, k: number): string {
 
 /**
  * D372 (Mario's report §6): each subject's own effect, tinted from its voice's own subject colour (D368:
- * a blue soprano's fire burns blue-white, an orange alto's gold), on every subject note in view, each as
- * strong as its weight (subject-cast.ts: the head 1.0, a leap's landing 0.85, longer notes 0.7, quick
- * passing notes 0.35; another voice's at half), ahead of the playhead at FX_AHEAD, full while it sounds,
+ * a blue soprano's fire burns blue-white, an orange alto's gold), on every subject note in view, every note
+ * as strong (D374: NOTE_WEIGHT; another voice's at half), ahead of the playhead at FX_AHEAD, full while it sounds,
  * fading over FX_FADE_S once over. FIRE: flames lick up from the note's top in 2 px columns, the voice's
  * subject ink outside, its pale rim at the core, a spark now and then (12 flickers a second). GLINT: a
- * star flashes at each note's start as it sounds (bigger on the heavy notes), and a small one travels
+ * star flashes at each note's start as it sounds , and a small one travels
  * from note to note over the entry. SMOKE: slow wisps rise and drift from the notes. Stateless (each
  * mark a function of the note and the clock), nothing allocated, at most FX_RECTS rectangles a pass.
  * `mine` picks the pass: the others' (drawn under the player's notes) or the player's (over them).
  * Never tied to right or wrong: a missed note burns as a hit one.
  */
-export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly number[], mine: boolean, piece: string | undefined, beat: number, t: number) {
+export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly number[], mine: boolean, piece: string | undefined, _beat: number, t: number) {
   const { g, w, xOf, yOf, bh, now, tps } = c;
   let budget = FX_RECTS;
   const flick = Math.floor(t * 12);
@@ -238,8 +237,7 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
     const voiceInk = c.ink(s.voice);
     const ink = subjectInkOf(voiceInk, theme);
     const rim = subjectRimOf(voiceInk, theme);
-    const wts = weightsOf(s, beat);
-    const scale = mine ? 1 : OTHERS_SCALE;
+    const wt = NOTE_WEIGHT * (mine ? 1 : OTHERS_SCALE);
     // GLINT's travelling star: one note of the entry at a time, seven a second.
     const travel = fx === "GLINT" ? Math.floor(t * 7 + s.on * 0.37) % s.path.length : -1;
     for (let j = 0; j < s.path.length && budget > 0; j++) {
@@ -251,7 +249,6 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
       const over = (now - (n.on + n.dur)) / tps;
       const env = now < n.on ? FX_AHEAD : over <= 0 ? 1 : 1 - over / FX_FADE_S;
       if (env <= 0) continue;
-      const wt = wts[j] * scale;
       const full = (c.hOf ? c.hOf(n.step) : bh) === bh;
       // The note's top: the player's outline; another voice's thinner block, centred in its row.
       const top = mine || !full ? yOf(n.step) - (mine ? 1 : 0) : yOf(n.step) + Math.floor((bh - 1 - Math.max(1, Math.round(bh * 0.5))) / 2);

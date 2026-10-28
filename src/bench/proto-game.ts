@@ -183,6 +183,14 @@ export interface Rows {
   xOf(tick: number): number;
 }
 
+/** D374: where a moving thumb was 120 ms before its last place (its proxy's trail), if it moved lately. */
+function wasAt(trail: readonly { t: number; y: number }[]): number | undefined {
+  const last = trail[trail.length - 1];
+  if (!last || performance.now() - last.t > 200) return undefined;
+  for (let i = trail.length - 2; i >= 0; i--) if (last.t - trail[i].t >= 120) return trail[i].y;
+  return trail.length > 1 ? trail[0].y : undefined;
+}
+
 interface Held {
   side: Side;
   /** The voice it plays (TWO VOICES: the left thumb the first, the right the second). */
@@ -1236,8 +1244,8 @@ export class ProtoGame {
     return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay, ...(h.wait?.prep ? { armed: true } : {}), ...(h.land !== undefined && h.across !== undefined && this.proto.layout === "bars" ? { across: barAcross(h.across * this.touchW, this.touchW), land: strengthOf(h.land) } : {}) }));
   }
   /** D280: the thumbs down now: side, height, where across (0..1 of the width), shaking. */
-  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean }[] {
-    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done }));
+  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean; t0?: number; was?: number }[] {
+    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done, t0: h.t0, was: wasAt(h.trail) }));
   }
 
   /**

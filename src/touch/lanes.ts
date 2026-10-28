@@ -24,6 +24,8 @@ export interface LaneNote {
   via?: "touch" | "slide";
   /** Tick the thumb let go of a hit note, if before its end. */
   off?: number;
+  /** D374: tick the thumb first let go of a hit note, before or after its end (drawing only: the played shape). */
+  up?: number;
   /** The voice. */
   voice?: number;
   /** EASY: a short note that plays by itself after a hit, and does not score (D166); the testbench: a note too quick to strike (D191 quickRides). */
@@ -268,6 +270,7 @@ export function strikeNext(notes: LaneNote[], t: number, o: LaneOptions, minAfte
 export function release(notes: LaneNote[], i: number, t: number) {
   const n = notes[i];
   if (n && n.state === "hit" && t < n.on + n.dur && n.off === undefined) n.off = t;
+  if (n && n.state === "hit" && n.up === undefined) n.up = t;
 }
 
 /** Scoring notes whose window has passed unplayed become misses. Returns how many. */

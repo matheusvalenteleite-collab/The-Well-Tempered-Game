@@ -8,12 +8,10 @@
  * FIRE). Built so far: FIRE, GLINT and SMOKE; a subject cast as another effect falls back to GLINT until
  * that effect is drawn (FX_BUILT), as does every piece the table does not name.
  *
- * THE WEIGHTS: the head (the first HEAD_NOTES notes, where the ear recognises the subject) 1.0; the
- * landing of a leap of a fourth or more (three staff steps) 0.85; a note half a beat or longer 0.7;
- * a quick passing note 0.35 (it keeps the colour, barely the effect). Another voice's subject notes at
- * half these (OTHERS_SCALE), the player's at full.
+ * ONE STRENGTH (D374, the owner): every subject note shows its effect equally (NOTE_WEIGHT; D372's
+ * per-note weights, head, leap, long and quick, dropped). Another voice's subject notes at half
+ * (OTHERS_SCALE), the player's at full.
  */
-import type { Span } from "./box-fx.ts";
 
 export type SubjectEffect = "FIRE" | "EMBERS" | "SHIMMER" | "GLINT" | "RIPPLE" | "PULSE" | "SMOKE" | "RAYS" | "HOP" | "TEARS";
 
@@ -61,35 +59,7 @@ export function effectOf(piece: string | undefined, theme: 1 | 2 | 3): SubjectEf
   return e && FX_BUILT.has(e) ? e : FALLBACK_FX;
 }
 
-export const HEAD_NOTES = 3;
-export const W_HEAD = 1;
-export const W_LEAP = 0.85;
-export const W_LONG = 0.7;
-export const W_QUICK = 0.35;
-/** A leap: a fourth or more, in staff steps (a third is two). */
-export const LEAP_STEPS = 3;
-/** Another voice's subject notes at this share of the weights (the player's at full). */
+/** Every subject note's effect strength (D374: the same on every note). */
+export const NOTE_WEIGHT = 0.85;
+/** Another voice's subject notes at this share (the player's at full). */
 export const OTHERS_SCALE = 0.5;
-
-/**
- * Each note's weight in an entry (`path`: onset, length in ticks, staff step), `beat` ticks a beat:
- * the head 1.0, a leap's landing 0.85, half a beat or longer 0.7, else 0.35.
- */
-export function noteWeights(path: readonly { dur: number; step: number }[], beat: number): Float32Array {
-  const out = new Float32Array(path.length);
-  for (let i = 0; i < path.length; i++) {
-    const p = path[i];
-    out[i] = i < HEAD_NOTES ? W_HEAD : Math.abs(p.step - path[i - 1].step) >= LEAP_STEPS ? W_LEAP : p.dur >= beat / 2 ? W_LONG : W_QUICK;
-  }
-  return out;
-}
-
-const weightMemo = new WeakMap<Span, { beat: number; w: Float32Array }>();
-/** noteWeights of an entry, kept (the frame looks them up). */
-export function weightsOf(s: Span, beat: number): Float32Array {
-  const had = weightMemo.get(s);
-  if (had && had.beat === beat && had.w.length === s.path.length) return had.w;
-  const w = noteWeights(s.path, beat);
-  weightMemo.set(s, { beat, w });
-  return w;
-}

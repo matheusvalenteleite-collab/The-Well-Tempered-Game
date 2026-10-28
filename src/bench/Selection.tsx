@@ -14,6 +14,7 @@
 import { useState, type ReactNode } from "react";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
 import { fugueById } from "../touch/fugue.ts";
+import { fugueName } from "../touch/fugue-names.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { Portrait } from "./Bach.tsx";
 import { Emblem } from "./FuguePicker.tsx";
@@ -173,7 +174,9 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
   const lv = liteLevel(id);
   const n = Number(id.slice(-2));
   const key = keyLabel(f.key, "fugue").split(" · ")[0];
-  const name = pieceTitle(id);
+  const nick = fugueName(id, lang(), "short");
+  const full = fugueName(id, lang());
+  const name = full ? `${full} · ${pieceTitle(id)}` : pieceTitle(id);
   return (
     <li>
       <button type="button" id={`tile-${id}`} className={`sel-tile${on ? " on" : ""}${done ? " done" : ""}${next ? " next" : ""}`} style={{ ["--tint" as string]: lv.ink }} aria-pressed={on} aria-label={name} onClick={() => pick(id)}>
@@ -199,6 +202,11 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
         <span className="sel-tile-key">
           <b>{n}</b> {key}
         </span>
+        {nick && (
+          <span className="sel-tile-name" id={`name-${id}`}>
+            {nick}
+          </span>
+        )}
         <span className="sel-tile-level" style={{ color: lv.ink }}>
           {tr(lv.label)}
         </span>
@@ -213,6 +221,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
   const lv = liteLevel(piece);
   const wtc = /^wtc[12][fp]\d\d$/.test(piece);
   const name = pieceTitle(piece);
+  const nick = fugueName(piece, lang());
   const where = wtc ? `${tr("BOOK")} ${piece[3] === "1" ? "I" : "II"} · ${Number(piece.slice(-2))}` : "";
   const grade = best[piece] ?? bestOld[piece];
   return (
@@ -225,6 +234,11 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
           </span>
         )}
       </span>
+      {nick && (
+        <p className="sel-piece-nick" id="sel-piece-nick">
+          {nick}
+        </p>
+      )}
       <p className="sel-piece-name" id="sel-piece-name">
         {name}
       </p>
