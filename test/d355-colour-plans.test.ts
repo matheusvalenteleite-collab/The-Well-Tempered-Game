@@ -39,6 +39,9 @@ test("D355: every piece planned opens on its own sound (PIECE_SOUND as written, 
     assert.ok(COLOURS[id].plans.harpsichordSampled?.length && COLOURS[id].plans.chamberOrgan?.length, `${id}: harpsichord and organ`);
   }
   assert.ok(new Set(Object.values(COLOURS).map((p) => p.sound)).size >= 10, "a variety of sounds");
+  // The Art of Fugue, the ricercars, the Inventions and Sinfonias too; no chorale.
+  for (const id of [...["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17", "14"].map((n) => `bwv1080-${n}`), "bwv1079-ric3", "bwv1079-ric6", ...Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`)]) assert.ok(COLOURS[id]?.plans.harpsichordSampled?.length, id);
+  assert.ok(!Object.keys(COLOURS).some((id) => id.startsWith("chor")));
 });
 
 /** Where each move can sound. */
