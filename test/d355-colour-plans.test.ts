@@ -33,8 +33,8 @@ test("D355: every piece planned opens on its own sound (PIECE_SOUND as written, 
     assert.ok(p.soundWhy.length > 40 && p.character.length > 20, id);
   }
   // Every Book I fugue has a sound of its own (no longer CLASSIC CHIP for all, D288), and the organ and harpsichord plans.
-  for (let n = 1; n <= 24; n++) {
-    const id = `wtc1f${String(n).padStart(2, "0")}`;
+  for (let n = 1; n <= 48; n++) {
+    const id = `wtc${n > 24 ? 2 : 1}f${String(((n - 1) % 24) + 1).padStart(2, "0")}`;
     assert.ok(COLOURS[id], id);
     assert.ok(COLOURS[id].plans.harpsichordSampled?.length && COLOURS[id].plans.chamberOrgan?.length, `${id}: harpsichord and organ`);
   }
