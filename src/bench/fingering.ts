@@ -18,6 +18,7 @@
  * The judge does not ask which thumb (LADDER: either thumb's note counts).
  */
 import type { Shake } from "../touch/ornament-play.ts";
+import { drawThumbProxy } from "./thumb-proxy.ts";
 
 export type Thumb = "left" | "right";
 /** D370: how a note goes to the next, as the plan reads it. */
@@ -261,36 +262,9 @@ export function planCost(notes: readonly PlanNote[], sides: readonly Thumb[], o:
 export const acrossBar = (d: number) => 0.12 + 0.76 * Math.max(0, Math.min(1, d));
 
 /**
- * A thumb drawn on a bar at (x, y), its tip toward the box: down (pressed: flat, darker, a ring where it
- * touches), hover (lifted and faint: about to land), shaking (a wobble). `size` its width in px.
+ * A thumb on a bar at (x, y): D374, the abstract proxy (thumb-proxy.ts): down a filled disc, hover a
+ * dotted ring where it is about to land, shaking a wobble. `size` its width in px.
  */
 export function drawThumb(c: CanvasRenderingContext2D, x: number, y: number, size: number, side: Thumb, state: "down" | "hover", alpha = 1, wobble = 0) {
-  const w = size;
-  const h = size * 1.45;
-  const dir = side === "left" ? 1 : -1;
-  const lift = state === "hover" ? size * 0.35 : 0;
-  const cx = x + wobble - dir * lift;
-  const cy = y - (state === "hover" ? size * 0.25 : 0);
-  c.save();
-  c.globalAlpha = alpha * (state === "hover" ? 0.55 : 1);
-  if (state === "down") {
-    c.strokeStyle = "#fff3b0";
-    c.lineWidth = 2;
-    c.beginPath();
-    c.arc(x + dir * w * 0.25, y, w * 0.55, 0, Math.PI * 2);
-    c.stroke();
-  }
-  // The thumb: a rounded body pointing at the box, the nail at its tip.
-  c.fillStyle = state === "down" ? "#d9a57a" : "#f2c9a0";
-  c.beginPath();
-  const left = cx - (dir > 0 ? w * 0.9 : w * 0.1);
-  c.roundRect(left, cy - h * 0.32, w, h * 0.64, w * 0.32);
-  c.fill();
-  c.fillStyle = "#b07a52";
-  c.fillRect(left + (dir > 0 ? 0 : w * 0.75), cy - h * 0.32, w * 0.25, h * 0.64);
-  c.fillStyle = "#fff1e2";
-  c.beginPath();
-  c.roundRect(cx + (dir > 0 ? -w * 0.32 : w * 0.02), cy - h * 0.18, w * 0.3, h * 0.36, w * 0.12);
-  c.fill();
-  c.restore();
+  drawThumbProxy(c, x + wobble, y, size, side, state === "down" ? "press" : "prep", alpha);
 }

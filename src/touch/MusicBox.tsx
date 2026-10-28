@@ -10,7 +10,6 @@
  */
 import { tr } from "../i18n/index.ts";
 import { bossBar, cadenceMarks, flags, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
-import { ART_HOLD } from "./phrasing.ts";
 import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
 import { markLegend, marksHas } from "./readings.ts";
 import { STRONG_SIDE } from "./touch-expr.ts";
@@ -457,86 +456,43 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   if (syls) paintLyrics(g, syls, fr, { xOf, yOf, lift: (n) => altOf(n.step, n.midi) * shift, bh, w, h, t0, t1: t0 + span, ink: edge });
   const played: [number, LaneNote[]][] = [[fr.voice, fr.notes]];
   if (fr.notes2 && fr.voice2 !== undefined) played.push([fr.voice2, fr.notes2]);
-  // D372 (Mario's report §5, language A): the reading's marks live inside the notes' own shapes, nothing
-  // hangs above them but a slur's arc. JOINED: the block runs on into the next (no D332 gap), a bridge
-  // where the rows differ, one white outline round the group and a thin dark seam between its notes.
-  // DETACHED: D332's gap, the block's end a bright wall. SHORT: the written length kept as a hollow
-  // outline, only the part to play (the band's ART_HOLD.short) filled. ACCENT: a bright strike edge and
-  // wedge at the note's start. Drawn in three passes (halos and shadows, outlines, fills) so a group's
-  // outline is one shape.
+  // D374 (the owner: the box shows Bach's music): every note not yet played a plain block (D332's gap
+  // after it); the reading's marks hang over the blocks as before D372 (below). A note the player has
+  // played and let go takes the shape of how it was played: joined to the next (the next taken before
+  // this one was let go, or slid onto) the blocks touch; let go before its end, filled to the lift and
+  // the rest of its written length an outline; else the gap. Never a colour of right or wrong but the
+  // long note's early lift D198 already showed.
   for (const [pv, pnotes] of played) {
     const inkPv = inkOf(pv, fr.count);
     const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
     const mineIdx = spans ? membership(pnotes, spans, pv) : null;
-    const mks = fr.readingMarks?.size ? marksIndex(pnotes, pv, fr.readingMarks) : null;
-    const from = firstSounding(pnotes, t0, span);
-    /** The note's block (into G): its place, width, filled width, the next note it fuses into (-1 none). */
-    const geo = (ni: number) => {
-      const n = pnotes[ni];
-      G.x1 = xOf(n.on);
-      const x2 = xOf(n.on + n.dur);
-      G.y = yOf(n.step) - altOf(n.step, n.midi) * shift;
-      G.fuse = -1;
-      // D332: every block its own, a gap of the roll between it and the next (the fill stops 3 px short).
-      G.bw = Math.max(1, x2 - G.x1 - (x2 - G.x1 >= 7 ? 3 : x2 - G.x1 >= 4 ? 2 : 1));
-      const mk = mks ? mks[ni] : undefined;
-      G.mk = mk;
-      if (mk?.join && !mk.short && n.state !== "miss" && !n.ride) {
-        let q = ni + 1;
-        while (q < pnotes.length && pnotes[q].on <= n.on) q++;
-        const nx = pnotes[q];
-        if (nx && nx.on <= n.on + n.dur && nx.state !== "miss" && !nx.ride) {
-          G.fuse = q;
-          G.bw = Math.max(1, xOf(nx.on) - G.x1);
-          G.ny = yOf(nx.step) - altOf(nx.step, nx.midi) * shift;
-        }
-      }
-      G.fw = mk?.short && G.bw >= 4 ? Math.max(2, Math.round(G.bw * ART_HOLD.short)) : G.bw;
-      return x2;
-    };
-    // Pass 1: the subject's halo, the voxel shadow (D202).
-    for (let ni = from; ni < pnotes.length; ni++) {
-      const n = pnotes[ni];
-      if (xOf(n.on) > w) break;
-      if (n.state === "miss" || n.ride) continue;
-      if (geo(ni) < 0) continue;
-      const si = mineIdx ? mineIdx[ni] : -1;
-      const r = si >= 0 ? raiseOf(spans![si], fr.now, fr.tps) : 0;
-      // D352: while the player's own entry sounds, a halo of its subject colour round the white outline.
-      if (r > 0) {
-        g.globalAlpha = 0.85 * r;
-        g.fillStyle = subjectRimOf(inkPv, themeOf(spans![si]));
-        g.fillRect(G.x1 - 2, G.y - 2, G.bw + 4, bh + 3);
-        if (G.fuse >= 0) bridge(g, G, bh, 2);
-        g.globalAlpha = 1;
-      }
-      g.fillStyle = "rgba(0,0,0,0.55)";
-      g.fillRect(G.x1 + 1, G.y + 1, G.fw + 1, bh);
-    }
-    // Pass 2: the white outline (D279), round a joined group as one shape.
-    g.fillStyle = edge;
-    for (let ni = from; ni < pnotes.length; ni++) {
-      const n = pnotes[ni];
-      if (xOf(n.on) > w) break;
-      if (n.state === "miss" || n.ride) continue;
-      if (geo(ni) < 0) continue;
-      g.fillRect(G.x1 - 1, G.y - 1, G.fw + 2, bh + 1);
-      if (G.fuse >= 0) bridge(g, G, bh, 1);
-    }
-    // Pass 3: the fills, the signs and the states.
-    for (let ni = from; ni < pnotes.length; ni++) {
+    for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
       const n = pnotes[ni];
       // D214: SUBJECT's line passes between voices, each note in its own colour.
       const voiceInk = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
-      // D352, D368: a subject note in its own voice's colour, modified (its keel the voice's plain ink).
+      // D368: a subject note in its voice's own subject colour.
       const si = mineIdx ? mineIdx[ni] : -1;
       const sp = si >= 0 ? spans![si] : null;
       const ink = sp ? subjectInkOf(voiceInk, themeOf(sp)) : voiceInk;
-      if (xOf(n.on) > w) break;
-      if (geo(ni) < 0) continue;
-      let x1 = G.x1;
-      const { y, bw, fw, mk } = G;
+      let x1 = xOf(n.on);
+      if (x1 > w) break;
+      const x2 = xOf(n.on + n.dur);
+      // D332: altered against the key, a fraction of a row off its row (raised up, lowered down).
       const alt = altOf(n.step, n.midi);
+      const y = yOf(n.step) - alt * shift;
+      // D332: every block its own, a gap of the roll between it and the next (the owner read E♭ E♭ D E♭
+      // quavers as one long block): the fill stops 3 px before the next onset where the note is long enough.
+      let bw = Math.max(1, x2 - x1 - (x2 - x1 >= 7 ? 3 : x2 - x1 >= 4 ? 2 : 1));
+      let fw = bw;
+      // D374: the played shape (only once the thumb has let go of it).
+      if (n.state === "hit" && !n.ride && n.up !== undefined) {
+        let q = ni + 1;
+        while (q < pnotes.length && pnotes[q].on <= n.on) q++;
+        const nx = pnotes[q];
+        if (nx && nx.state === "hit" && !nx.ride && nx.at !== undefined && (nx.via === "slide" || nx.at <= n.up) && nx.on <= n.on + n.dur) bw = fw = Math.max(1, xOf(nx.on) - x1);
+        else if (n.up < n.on + n.dur) fw = Math.max(1, Math.min(bw, xOf(n.up) - x1));
+      }
+      if (x1 + bw < 0) continue;
       if (n.state === "miss") {
         const t = sinceMs(n.at);
         if (t < 300) x1 += Math.round(Math.sin(t / 22) * 2 * (1 - t / 300));
@@ -553,19 +509,25 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         g.globalAlpha = 1;
         continue;
       }
+      // D352: while the player's own entry sounds, a halo of its primary round the white outline.
+      const r = sp ? raiseOf(sp, fr.now, fr.tps) : 0;
+      if (r > 0) {
+        g.globalAlpha = 0.85 * r;
+        g.fillStyle = subjectRimOf(inkPv, themeOf(sp!));
+        g.fillRect(x1 - 2, y - 2, fw + 4, bh + 3);
+        g.globalAlpha = 1;
+      }
+      // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
+      g.fillStyle = "rgba(0,0,0,0.55)";
+      g.fillRect(x1 + 1, y + 1, fw + 1, bh);
+      // D279: the player's notes always outlined white (the owner took the gold frame for "yours").
+      g.fillStyle = edge;
+      g.fillRect(x1 - 1, y - 1, fw + 2, bh + 1);
       g.fillStyle = ink;
       g.fillRect(x1, y, fw, bh - 1);
-      if (G.fuse >= 0) {
-        bridge(g, G, bh, 0);
-        // The seam: a thin dark line where one note gives way to the next (inside the group's outline).
-        const a = Math.min(y, G.ny);
-        const z = Math.max(y, G.ny) + bh - 1;
-        g.fillStyle = "rgba(0,0,0,0.42)";
-        g.fillRect(x1 + bw - 1, a + (bh >= 5 ? 1 : 0), 1, Math.max(1, z - a - (bh >= 5 ? 2 : 0)));
-      }
       if (fw < bw) {
-        // SHORT: the rest of the written length, hollow (a 1 px outline in the note's colour).
-        g.fillStyle = ink;
+        // D374: let go early: the rest of the written length an outline (the long note's in D198's colour).
+        g.fillStyle = n.long ? miss : ink;
         g.fillRect(x1 + fw, y - 1, bw - fw + 1, 1);
         g.fillRect(x1 + fw, y + bh - 1, bw - fw + 1, 1);
         g.fillRect(x1 + bw, y - 1, 1, bh + 1);
@@ -580,7 +542,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       }
       if (!fr.spans && fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x1 + bw, y, edge);
       // D332: the sign (♯ ♭ ♮), dark on the block's start, where the block holds it.
-      if (alt && bh - 1 >= 4 && fw >= 6 && !mk?.accent) {
+      if (alt && bh - 1 >= 4 && fw >= 6) {
         g.fillStyle = "rgba(0,0,0,0.6)";
         const gx = x1 + (fw >= 9 ? 3 : 1);
         const gy = y + Math.floor((bh - 1 - 4) / 2);
@@ -589,32 +551,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       if (n.state === "hit") {
         g.fillStyle = shine;
         g.fillRect(x1, y, Math.max(1, Math.min(fw, 2)), bh - 1);
-        if (n.long && n.off !== undefined) {
-          const xo = xOf(n.off);
-          g.fillStyle = miss;
-          g.fillRect(xo, y, Math.max(0, x1 + fw - xo), bh - 1);
-        }
         const t = sinceMs(n.at);
         if (t < 240) {
           g.fillStyle = shine;
           g.globalAlpha = 1 - t / 240;
           g.fillRect(x1 - 1, y - 1, fw + 2, bh + 1);
           g.globalAlpha = 1;
-        }
-      }
-      // DETACHED: the block's end a bright wall (lift before the next).
-      if (mk && mk.join === false && !mk.short && bw >= 4) {
-        g.fillStyle = edge;
-        g.fillRect(x1 + bw - 1, y, 1, bh - 1);
-      }
-      // ACCENT: a bright strike edge at the start, a wedge pointing in.
-      if (mk?.accent && fw >= 4) {
-        g.fillStyle = ACCENT_EDGE;
-        g.fillRect(x1, y, 1, bh - 1);
-        for (let k = 0; k < 3; k++) {
-          const hh = bh - 1 - 2 * (k + 1);
-          if (hh <= 0 || k + 2 >= fw) break;
-          g.fillRect(x1 + 1 + k, y + k + 1, 1, hh);
         }
       }
     }
@@ -728,8 +670,9 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   }
   // D353/D362: the ornaments performed, over the written blocks (the plain melody under) and above the signs.
   if (fr.performed?.length) paintOverlay(g, fr, { xOf, yOf, hOf, bh, w, lift: (step, midi) => altOf(step, midi) * shift, gold: fx.gold });
-  // D370, D372: a reading's slur, one arc over its group (fused below it); everything else the reading
-  // marks is drawn inside the blocks (above).
+  // D272, D374 (D372's in-block designs reverted): the reading's marks over the player's notes, only where
+  // a reading marks them: a gold line to the next where joined, a red stroke in the gap where detached, a
+  // dot where short, an accent; D370: ⌒ only for a reading's real slur, one arc over the group.
   if (fr.readingMarks?.size)
     for (const [pv, pnotes] of played) {
       const mks = marksIndex(pnotes, pv, fr.readingMarks);
@@ -737,24 +680,50 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         const n = pnotes[j];
         const x = xOf(n.on);
         if (x > w) break;
-        if (x < -40 || mks[j]?.slur !== "first") continue;
-        let last = j;
-        for (let q = j + 1; q < pnotes.length; q++) {
-          const m = mks[q];
-          if (!m?.slur || m.slur === "first") break;
-          last = q;
-          if (m.slur === "last") break;
+        const mk = x < -40 ? undefined : mks[j];
+        if (!mk) continue;
+        const y = yOf(n.step);
+        let nx: LaneNote | undefined;
+        for (let q = j + 1; q < pnotes.length && !nx; q++) if (pnotes[q].on > n.on) nx = pnotes[q];
+        if (mk.slur === "first") {
+          let last = j;
+          for (let q = j + 1; q < pnotes.length; q++) {
+            const m = mks[q];
+            if (!m?.slur || m.slur === "first") break;
+            last = q;
+            if (m.slur === "last") break;
+          }
+          if (last > j) {
+            const x2 = xOf(pnotes[last].on) + 2;
+            let top = y;
+            for (let q = j; q <= last; q++) top = Math.min(top, yOf(pnotes[q].step));
+            const lift = Math.max(2, Math.min(6, (x2 - x) / 6));
+            g.fillStyle = fx.gold;
+            for (let px = Math.round(x); px <= x2; px++) {
+              const u = (px - x) / Math.max(1, x2 - x);
+              g.fillRect(px, Math.round(top - 3 - lift * 4 * u * (1 - u)), 1, 1);
+            }
+          }
         }
-        if (last === j) continue;
-        const x2 = xOf(pnotes[last].on) + 2;
-        let top = yOf(n.step);
-        for (let q = j; q <= last; q++) top = Math.min(top, yOf(pnotes[q].step));
-        const lift = Math.max(2, Math.min(6, (x2 - x) / 6));
-        g.fillStyle = fx.gold;
-        for (let px = Math.round(x); px <= x2; px++) {
-          const u = (px - x) / Math.max(1, x2 - x);
-          g.fillRect(px, Math.round(top - 3 - lift * 4 * u * (1 - u)), 1, 1);
+        // JOINED (a plain legato join, D370): the flat gold line over the pair.
+        if (mk.join && nx && mk.slur !== "first" && mk.slur !== "mid") {
+          const x2 = xOf(nx.on);
+          const top = Math.min(y, yOf(nx.step)) - 3;
+          g.fillStyle = fx.gold;
+          g.fillRect(x + 1, top, Math.max(1, x2 - x - 1), 1);
+          g.fillRect(x, top + 1, 1, 1);
+          g.fillRect(x2, top + 1, 1, 1);
         }
+        if (mk.join === false && nx) {
+          g.fillStyle = DETACH_RED;
+          g.fillRect(Math.round((xOf(n.on + n.dur) + xOf(nx.on)) / 2) - 1, y - 2, 1, bh + 3);
+        }
+        if (mk.short) {
+          // D314: the staccato dot, 2 by 2, over the note's middle.
+          g.fillStyle = edge;
+          g.fillRect(Math.round((x + xOf(n.on + n.dur)) / 2) - 1, y - 4, 2, 2);
+        }
+        if (mk.accent) pixText(g, ">", x, y - 6, ACCENT_ORANGE);
       }
     }
   // D372: the subject's effect over the player's own subject notes, then each entry's flag.
@@ -942,57 +911,15 @@ function marksLegend(g: CanvasRenderingContext2D, w: number, h: number, fr: Fram
   g.globalAlpha = alpha;
   lines.forEach((l, k) => {
     const y = y0 + 3 + k * lh;
-    // D372: the sign as the box now draws it, inside a small block of the player's colour.
-    legendIcon(g, l.kind, 4, y, inkOf(fr.voice, fr.count), edge);
+    // D374: the sign as drawn over the notes: the dot, the red stroke, the gold line (JOINED), the gold arc (D370: SLUR), the orange >.
+    if (l.kind === "short") (g.fillStyle = edge), g.fillRect(7, y + 2, 2, 2);
+    else if (l.kind === "apart") (g.fillStyle = DETACH_RED), g.fillRect(7, y, 1, 5);
+    else if (l.kind === "joined") (g.fillStyle = GOLD_SLUR), g.fillRect(6, y + 1, 5, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(11, y + 2, 1, 1);
+    else if (l.kind === "slur") (g.fillStyle = GOLD_SLUR), g.fillRect(4, y + 3, 1, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(6, y + 1, 4, 1), g.fillRect(10, y + 2, 1, 1), g.fillRect(11, y + 3, 1, 1);
+    else pixText(g, ">", 6, y, ACCENT_ORANGE);
     pixText(g, l.text, 15, y, edge);
   });
   g.globalAlpha = 1;
-}
-/**
- * D372: a mark's sign in the legend, 10 by 5 px from (x, y): SHORT a block half filled, half hollow;
- * DETACHED a block with its bright end wall; JOINED two blocks fused with a seam (a step down); SLUR the
- * same under an arc; ACCENT a block with its strike edge and wedge.
- */
-function legendIcon(g: CanvasRenderingContext2D, kind: string, x: number, y: number, ink: string, edge: string) {
-  const block = (bx: number, by: number, bw: number) => {
-    g.fillStyle = edge;
-    g.fillRect(bx - 1, by - 1, bw + 2, 4);
-    g.fillStyle = ink;
-    g.fillRect(bx, by, bw, 2);
-  };
-  if (kind === "short") {
-    block(x + 1, y + 2, 4);
-    g.fillStyle = ink;
-    g.fillRect(x + 5, y + 1, 5, 1);
-    g.fillRect(x + 5, y + 4, 5, 1);
-    g.fillRect(x + 9, y + 1, 1, 4);
-  } else if (kind === "apart") {
-    block(x + 1, y + 2, 8);
-    g.fillStyle = edge;
-    g.fillRect(x + 8, y + 2, 1, 2);
-  } else if (kind === "joined" || kind === "slur") {
-    const dy = kind === "slur" ? 1 : 0;
-    g.fillStyle = edge;
-    g.fillRect(x, y + 1 + dy, 6, 4);
-    g.fillRect(x + 4, y + 2 + dy, 6, 3);
-    g.fillStyle = ink;
-    g.fillRect(x + 1, y + 2 + dy, 4, 2);
-    g.fillRect(x + 5, y + 3 + dy, 4, 1);
-    g.fillRect(x + 5, y + 2 + dy, 1, 2);
-    g.fillStyle = "rgba(0,0,0,0.42)";
-    g.fillRect(x + 4, y + 2 + dy, 1, 2);
-    if (dy) {
-      g.fillStyle = GOLD_SLUR;
-      g.fillRect(x, y + 1, 1, 1);
-      g.fillRect(x + 1, y, 8, 1);
-      g.fillRect(x + 9, y + 1, 1, 1);
-    }
-  } else {
-    block(x + 1, y + 2, 8);
-    g.fillStyle = ACCENT_EDGE;
-    g.fillRect(x + 1, y + 2, 1, 2);
-    g.fillRect(x + 2, y + 2, 1, 2);
-  }
 }
 /** D314: a line over the box's top, on a dark band (the ornament's first-time hint). */
 function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: string) {
@@ -1011,17 +938,9 @@ const GOLD_SLUR = "#ffd23f";
 const PLAYED_VOICES = [0, 0];
 type MarkNote = { join: boolean | null; short: boolean | null; accent: boolean | null; slur?: "first" | "mid" | "last" };
 
-/** D372: the accent's strike edge and wedge. */
-const ACCENT_EDGE = "#fff8dc";
-/** D372: one player's note's block as the painter lays it out (kept, so the frame allocates nothing). */
-const G = { x1: 0, y: 0, bw: 0, fw: 0, fuse: -1, ny: 0, mk: undefined as MarkNote | undefined };
-/** D372: the bridge where a joined note's block meets the next on another row (`grow` px larger round it). */
-function bridge(g: CanvasRenderingContext2D, b: typeof G, bh: number, grow: number) {
-  if (b.ny === b.y) return;
-  const a = Math.min(b.y, b.ny);
-  const z = Math.max(b.y, b.ny) + bh - 1;
-  g.fillRect(b.x1 + b.bw - 2 - grow, a + 1 - grow, 4 + 2 * grow, Math.max(1, z - a - 2 + 2 * grow));
-}
+/** D374: the detached stroke and the accent's sign (as before D372). */
+const DETACH_RED = "#ec5a4a";
+const ACCENT_ORANGE = "#ff8a3d";
 const marksMemo = new WeakMap<readonly LaneNote[], { map: ReadonlyMap<string, MarkNote>; pv: number; n: number; idx: (MarkNote | undefined)[] }>();
 /** D372: each of a played list's notes' reading mark (by index), made once per list and marks (D345: no strings built a frame). */
 export function marksIndex(list: readonly LaneNote[], pv: number, map: ReadonlyMap<string, MarkNote>): (MarkNote | undefined)[] {

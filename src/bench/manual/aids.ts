@@ -31,6 +31,7 @@ import type { LensTally } from "./lens.ts";
 import type { AidId, TouchName } from "./lessons.ts";
 import type { Side } from "../../touch/thumbs.ts";
 import { tr, trCanvas } from "../../i18n/index.ts";
+import { drawThumbProxy, type ProxyOpts } from "../thumb-proxy.ts";
 
 const GREEN = "#8fe3b0";
 const RED = "#ff6b6b";
@@ -356,70 +357,20 @@ function trend(c: CanvasRenderingContext2D, g: ProtoGame, lens: LensTally, now: 
 
 // D373, THE TUTORIAL's aids (Mario's designs: tut-watch, tut-play, tut-01-tour; the thumbs his model A).
 
-const SKIN = "#e7b38a";
-const SKIN_DARK = "#b97f57";
-const NAIL = "#fbe9dc";
-const SHADOW = "rgba(20,10,4,0.42)";
-const BLUE = "#6fb2ff";
-
 /**
- * Mario's model A: a thumb from above (nail, knuckle crease, its base off the strip's edge) and its shadow
- * on the glass. `lift` 0 is pressing (the thumb on its shadow, a ring where it touches), 1 resting (far
- * from its shadow, pale); between, hovering. The left thumb points right, into the box; the right, left.
+ * D374: the thumb in the tutorial, the abstract proxy (thumb-proxy.ts; D373's model A, nail and knuckle,
+ * dropped: the owner). `lift` 0 pressing (a filled disc), 1 resting (a thin ring), between the ghost of
+ * where it goes next (a dotted ring); prepared (resting early on the next note) a dotted blue ring round
+ * the pressing disc. The wedge points to the thumb's lower outer corner of the phone.
  */
-export function drawThumbA(c: CanvasRenderingContext2D, x: number, y: number, size: number, side: Side, lift: number, alpha = 1, prepared = false) {
-  const dir = side === "left" ? 1 : -1;
-  const w = size * 1.5;
-  const th = size * 0.78;
+export function drawThumbA(c: CanvasRenderingContext2D, x: number, y: number, size: number, side: Side, lift: number, alpha = 1, prepared = false, o?: ProxyOpts) {
   const l = Math.max(0, Math.min(1, lift));
-  const leftOf = (cx: number) => (dir > 0 ? cx - w : cx);
-  c.save();
-  // The shadow, on the glass where the thumb would land.
-  c.globalAlpha = alpha * (0.85 - 0.45 * l);
-  c.fillStyle = SHADOW;
-  c.beginPath();
-  c.roundRect(leftOf(x + dir * size * 0.08), y + 2 - th / 2, w, th, th * 0.45);
-  c.fill();
-  // The thumb itself: up and back from its shadow as it lifts.
-  const left = leftOf(x - dir * l * size * 0.35);
-  const top = y - l * size * 0.7 - th / 2;
-  c.globalAlpha = alpha * (l > 0.6 ? 0.62 : 1);
-  c.fillStyle = l === 0 ? SKIN_DARK : SKIN;
-  c.beginPath();
-  c.roundRect(left, top, w, th, th * 0.45);
-  c.fill();
-  // The base running off the strip's edge, a little darker; the knuckle crease.
-  c.fillStyle = SKIN_DARK;
-  c.fillRect(dir > 0 ? left : left + w * 0.82, top + 2, w * 0.18, th - 4);
-  c.fillStyle = "rgba(110,60,30,0.55)";
-  c.fillRect(dir > 0 ? left + w * 0.42 : left + w * 0.56, top + th * 0.22, 2, th * 0.56);
-  // The nail at the tip.
-  c.fillStyle = NAIL;
-  c.beginPath();
-  c.roundRect(dir > 0 ? left + w * 0.66 : left + w * 0.08, top + th * 0.18, w * 0.26, th * 0.64, th * 0.2);
-  c.fill();
-  if (l === 0) {
-    // Pressing: a ring where it touches.
-    c.globalAlpha = alpha * 0.9;
-    c.strokeStyle = "#fff3b0";
-    c.lineWidth = 2;
-    c.beginPath();
-    c.arc(x - dir * size * 0.15, y, size * 0.5, 0, Math.PI * 2);
-    c.stroke();
-  }
-  if (prepared) {
-    // Prepared (resting early on the next note): a blue dotted ring.
-    c.globalAlpha = alpha;
-    c.strokeStyle = BLUE;
-    c.lineWidth = 1.5;
-    c.setLineDash?.([2, 3]);
-    c.beginPath();
-    c.arc(x - dir * size * 0.15, y, size * 0.62, 0, Math.PI * 2);
-    c.stroke();
-    c.setLineDash?.([]);
-  }
-  c.restore();
+  drawThumbProxy(c, x, y, size, side, l === 0 ? "press" : l >= 0.9 ? "rest" : "prep", alpha, o);
+  if (prepared && l === 0) drawThumbProxy(c, x, y, size * 1.5, side, "prep", alpha, { beam: 0 });
 }
+
+/** D374: the pressing proxy's ripple and trail (kept). */
+const PROXY_O: ProxyOpts = {};
 
 /** Where a thumb rests on its strip (across): its tip toward the box. */
 const restX = (w: number, bw: number, side: Side) => (side === "left" ? bw * 0.72 : w - bw * 0.72);
@@ -453,7 +404,11 @@ function thumbsA(c: CanvasRenderingContext2D, w: number, h: number, bw: number, 
     if (d) {
       const armed = !!g.heldSides().find((x) => x.side === side)?.armed;
       // His thumbs (WATCH) drawn whole; yours a little see-through, not to cover the place you aim at.
-      drawThumbA(c, step === "watch" ? Math.max(size, Math.min(w - size, d.fx * w)) : restX(w, bw, side), d.y, size, side, 0, step === "watch" ? 1 : 0.6, armed);
+      // D374: a ripple as it lands, a short trail while it moves.
+      const since = d.t0 !== undefined ? performance.now() - d.t0 : -1;
+      PROXY_O.ripple = since >= 0 && since < 350 ? since / 350 : undefined;
+      PROXY_O.trailY = d.was;
+      drawThumbA(c, step === "watch" ? Math.max(size, Math.min(w - size, d.fx * w)) : restX(w, bw, side), d.y, size, side, 0, step === "watch" ? 1 : 0.6, armed, PROXY_O);
       continue;
     }
     const last = g.lastBySide[side];
