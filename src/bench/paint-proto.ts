@@ -1340,7 +1340,7 @@ export const PROGRESS_H = 3;
  * end"): a thin line along the canvas's very top edge, in every layout, the whole piece from its start
  * to its end, filled as far as it has sounded (a practice from a later bar fills from there on); a
  * prelude with an arc (arc.ts) has its sections as faint ticks and its pedal as a faint gold span.
- * "BAR n / N" small under its right end (left of ✕), except over the computer's fugue map (it shows BAR n already).
+ * "n / N" (D344: was "BAR n / N") small under its right end (left of ✕), except over the computer's fugue map (it shows BAR n already).
  */
 function progress(c: CanvasRenderingContext2D, w: number, g: ProtoGame, t: Tok) {
   const f = g.f;
@@ -1371,7 +1371,8 @@ function progress(c: CanvasRenderingContext2D, w: number, g: ProtoGame, t: Tok) 
   if ((g.proto.layout === "desk" && f.entries.length > 0) || !f.bars.length) return;
   // Left of the game's ✕ (the DOM button in the top right corner).
   // D308: left of ❚❚ and ✕.
-  label(c, `BAR ${barNumberAt(f, g.now)} / ${f.bars[f.bars.length - 1].n}`, w - 100, H + 8, t.muted, 6, "right");
+  // D344: the numbers alone ("1 / 27"), no BAR / COMPASSO / COMPÁS (the owner).
+  label(c, `${barNumberAt(f, g.now)} / ${f.bars[f.bars.length - 1].n}`, w - 100, H + 8, t.muted, 6, "right");
 }
 
 /** D251: the number of the bar a tick falls in (the first before bar 1, the last after the end). */

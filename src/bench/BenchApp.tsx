@@ -68,8 +68,9 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
+import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
-import { chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
+import { bestReading, chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
 import { ManualMap } from "./manual/ManualMap.tsx";
 import { AskScreen, GripScreen, LensSheet, PlacementScreen } from "./manual/Screens.tsx";
 import { lessonById, runOf, SOUND_PRESET, soundOf, stagePassed, checkpointOf, type DemoStyle, type ManualLesson, type Material, type PartId } from "./manual/lessons.ts";
@@ -79,7 +80,7 @@ import { PLACEMENT, PLACEMENT_SOUND, place, worst, type Placement, type Placemen
 import { applyPlacement, markSeen, nextLesson as nextManual, progress as manualProgress, readManual, recordTake, setAnswer, setAside, testOut as manualTestOut, triesOf, type Answer } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, RULES, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, RULE_LEVELS, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
@@ -270,7 +271,9 @@ export function BenchApp() {
     save(APP.lite ? LITE_TUNING_KEY : TUNING_KEY, p);
   };
   useEffect(() => {
-    loadDrums();
+    // D344: the friends' DRUMS (a backing track, off by default) on play.html; the full pages' as before.
+    if (APP.lite && !unlocked()) applyLiteDrums();
+    else loadDrums();
   }, []);
   // D233: the MIDI inputs connected (MIDI CONTROLLER offered while there is one).
   const [midi, setMidi] = useState<string[]>([]);
@@ -358,7 +361,7 @@ export function BenchApp() {
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
   // book's: the owner, "fugues should not be too fast").
   // D282: a tutorial step may name its reading.
-  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
+  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (full ? chosenReading(f.id) : bestReading(f.id)) : null;
   const bpm = run ? run.bpm : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
@@ -521,6 +524,8 @@ export function BenchApp() {
     ch.mine.gain.value = kimiko ? MINE[pick.mine] : mineGain(readTools(f).balance, prac);
     // D219: failing always on (D225: in the lessons from the fourth on); WITH KIMIKO, the game sounds only the player's voice.
     setPaused(false);
+    // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click, the placement or TOOLS practice).
+    if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}) } : {}), reading, ornHint: !run && !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
@@ -1485,9 +1490,10 @@ export function BenchApp() {
       {APP.lite && manScreen === "grip" && phase.kind === "home" && <GripScreen chip={ensureChip} sound={gripSound} lag={lag} setLag={setLag} done={gripDone} close={() => (setManScreen(null), setSteps(true))} />}
       {APP.lite && manScreen === "ask" && phase.kind === "home" && <AskScreen answer={answered} close={() => (setManScreen(null), setSteps(true))} />}
       {APP.lite && manScreen && typeof manScreen === "object" && phase.kind === "home" && <PlacementScreen p={manScreen.placement} takes={placementTakes.current} retake={manScreen.retake} onRetake={() => placementStep(PLACEMENT.findIndex((e) => e.id === manScreen.retake), true)} done={placementDone} close={() => (placementDone(), setSteps(true))} />}
-      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} single={!full} />}
       {phase.kind === "title" && (
-        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULES[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+        <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
+          {APP.lite && !full && <LiteDrumsSwitch />}
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}

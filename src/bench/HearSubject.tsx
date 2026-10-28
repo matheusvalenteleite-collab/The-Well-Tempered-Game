@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
-import { chooseReading, chosenReading, NO_READING, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
+import { bestReading, chooseReading, chosenReading, NO_READING, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
@@ -23,11 +23,12 @@ import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
 export type { Performed };
 export { firstEntry };
 
-export function HearSubject({ id, play, close }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; close: () => void }) {
+/** D344: `single` (play.html for the friends): the one reading chosen for the fugue (readings.ts BEST_READING), no tabs. */
+export function HearSubject({ id, play, close, single = false }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; close: () => void; single?: boolean }) {
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
-  const [reading, setReading] = useState<Reading | null>(() => chosenReading(id));
+  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id) : chosenReading(id)));
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
@@ -75,7 +76,12 @@ export function HearSubject({ id, play, close }: { id: string; play: (notes: Per
           ✕
         </button>
         <h2 className="tb-hear-title">{tr("THE SUBJECT")} · {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)}</h2>
-        {readings.length > 0 && (
+        {single && reading && (
+          <p className="tb-hear-key tb-hear-one" id="reading-one">
+            {tr("THE READING")}: {reading.author} {reading.year}
+          </p>
+        )}
+        {!single && readings.length > 0 && (
           <div className="tb-hear-readings" role="radiogroup" aria-label="Readings">
             <button type="button" id="reading-none" role="radio" aria-checked={!reading} className={`tb-hear-reading${!reading ? " on" : ""}`} onClick={() => pick(null)} title={tr("NONE: MY OWN ARTICULATION")}>
               {tr("NONE")}
@@ -115,7 +121,7 @@ export function HearSubject({ id, play, close }: { id: string; play: (notes: Per
             </cite>
           </blockquote>
         )}
-        {!reading && <p className="tb-hear-lock">{readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
+        {!reading && <p className="tb-hear-lock">{single ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
         <button type="button" id="hear-again" className="tb-play tb-hear-play" onClick={hear}>
           ▶ {tr("HEAR IT AGAIN")}
         </button>
