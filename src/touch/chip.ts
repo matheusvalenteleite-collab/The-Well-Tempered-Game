@@ -20,11 +20,36 @@ import { SmoothClock } from "./headphones.ts";
  * fugue are equals); it only rings while the thumb is down, so a release is never cut short.
  */
 export function leadOf(pt: Patch): Patch {
-  // D349: an organ's pipe is the same pipe whoever plays it (one envelope, one release).
-  if (pt.pipe) return pt;
+  // D349: an organ's pipe is the same pipe whoever plays it (one envelope, one release). D358: and any one instrument's (Patch.one).
+  if (pt.pipe || pt.one) return pt;
   // D308: a struck sound (no sustain: the vibraphone's long ring) let go is damped within 0.1 s, as a held one is (LIFT_TAU).
   return pt.amp.s === 0 ? (pt.amp.r > 0.1 ? { ...pt, amp: { ...pt.amp, r: 0.1 } } : pt) : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
 }
+
+// ---- D358: one instrument (docs/playback/SOUND-PRINCIPLES.md). Additive: only patches with Patch.one or Patch.bow reach it. ----
+/**
+ * D358, a note of one instrument (Patch.one): placed by its key across the instrument (`span` about the
+ * voice's place, from `lo` to `hi`: bass left, as the player sits), its key a fixed fraction of a cent from
+ * true (`cents`: by key, whoever plays it), and a lute's course (`courses`: the second string in unison,
+ * an octave string below `split`) where the registration has drawn no choirs. Pure.
+ */
+export function oneInstrument(midi: number, v: Voicing, one: NonNullable<Patch["one"]>, p: Play, plucked: boolean): [Voicing, Play] {
+  let pan = v.pan;
+  if (one.span) {
+    const lo = one.lo ?? 21;
+    const hi = one.hi ?? 108;
+    const x = Math.max(0, Math.min(1, (midi - lo) / Math.max(1, hi - lo)));
+    pan = Math.max(-1, Math.min(1, v.pan + (x - 0.5) * one.span));
+  }
+  let q = p;
+  if (one.cents) {
+    const h = Math.sin(midi * 78.233 + 1.618) * 43758.5453;
+    q = { ...q, detune: (q.detune ?? 0) + ((h - Math.floor(h)) * 2 - 1) * one.cents };
+  }
+  if (one.courses && plucked && !q.choirs) q = { ...q, choirs: midi < one.courses.split ? { four: one.courses.octave } : { unison: one.courses.unison } };
+  return [{ ...v, pan }, q];
+}
+// ---- end D358 ----
 
 /**
  * D211: a source stopped at `at`, never throwing. A note cut short after its end was scheduled is
@@ -655,7 +680,8 @@ export class Chip {
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
     // D349: not on the organ: the player's pipes are the band's (same manual, never louder).
-    if (p.lead && p.couple !== false && !v.patch?.pipe) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
+    // D358: nor on one instrument or one ensemble (Patch.one: the owner's rule, SOUND-PRINCIPLES.md).
+    if (p.lead && p.couple !== false && !v.patch?.pipe && !v.patch?.one) p ={ ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
     // D322: the registration (the player's voice; every voice under TUTTI), read as the note starts: a change sounds from the next note.
     const id = preset().id;
     const live = liveRegistration(id);
@@ -1339,6 +1365,7 @@ export class Chip {
    */
   private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, set: string, near: number, rec: Loaded, bag: Bag): Sounding {
     if (pt.pipe) [v, pt, p] = this.piped(midi, v, pt, p);
+    if (pt.one) [v, p] = oneInstrument(midi, v, pt.one, p, inst.plucked);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.05, at + dur - 0.01);
@@ -1350,6 +1377,8 @@ export class Chip {
     if (p.pleno) mix.gain.value = PLENO_SCALE;
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);
+    // D358: a bowed string's joined note a new bow stroke (Patch.bow), not a slur.
+    const bow = pt.bow && p.legato && !plucked ? pt.bow : null;
     const play = (set: string, m: number, r: Loaded, mult: number, gain: number, choir?: { delay: number; shelf: number }) => {
       const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;
@@ -1371,8 +1400,8 @@ export class Chip {
         sh.gain.value = choir.shelf;
         src.connect(g).connect(sh).connect(mix);
       } else src.connect(g).connect(mix);
-      // Joined on the organ (legato): the pipe already speaking, past its attack.
-      const from = r.onset + (p.legato && !plucked ? 0.25 : 0);
+      // Joined on the organ (legato): the pipe already speaking, past its attack. D358: a bowed string's a new stroke (Patch.bow).
+      const from = r.onset + (p.legato && !plucked ? (bow ? bow.skip : 0.25) : 0);
       src.start(t + (choir?.delay ?? 0), from);
       srcs.push({ src, set, m, mult });
       if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
@@ -1437,7 +1466,7 @@ export class Chip {
     // D339: a piano struck harder is brighter (SampledInstrument.velTone): the band's level as its model
     // gives it (Play.vel), the player's from its level (the player's own lift, MINE_LEVEL, taken out).
     const vt = inst.velTone;
-    const velDb = vt ? (p.vel ?? (p.lead ? 20 * Math.log10(Math.max(1e-3, (p.level ?? 1) / MINE_LEVEL)) : 0)) : 0;
+    const velDb = vt ? (p.vel ?? (p.lead ? 20 * Math.log10(Math.max(1e-3, (p.level ?? 1) / (pt.one ? 1 : MINE_LEVEL))) : 0)) : 0;
     const velTone = vt ? Math.max(vt.min, Math.min(vt.max, vt.perDb * velDb)) : 0;
     src = this.shelf(src, subj ? Math.max(1200, Math.min(3500, baseHz * 4)) : vt ? vt.hz : 2500, t, Math.max(0, bright) * 5 + (p.tone ?? 0) + velTone, p.crisp ?? 0, bag);
     const dull = p.muffleable ? bag.add(ctx.createBiquadFilter()) : null;
@@ -1475,7 +1504,7 @@ export class Chip {
     // then, held, an exponential fall toward silence (the SNES's sustain that is not one); a joined
     // (legato) note comes in at the sustain. Without `rec`, the recording's own envelope, as before.
     const re = pt.rec;
-    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? 0.015 : 0.01 + (p.soft ?? 0) * 0.08;
+    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? (bow?.a ?? 0.015) : 0.01 + (p.soft ?? 0) * 0.08;
     const top = re && p.legato && !plucked ? peak * re.s : peak;
     g.gain.linearRampToValueAtTime(top, t + Math.max(0.001, atk));
     /** Where the envelope is at `x` (after the attack): for a browser without cancelAndHoldAtTime. */
@@ -1739,6 +1768,7 @@ export class Chip {
    */
   private patchNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, bag: Bag): Sounding {
     if (pt.pipe) [v, pt, p] = this.piped(midi, v, pt, p);
+    if (pt.one) [v, p] = oneInstrument(midi, v, pt.one, p, false);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     // D297, the analog drift (Patch.drift): the note's tuning off by a slow sine of the clock (no nodes).

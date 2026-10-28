@@ -100,8 +100,8 @@ test("D292: the pianos: struck (dying away, never held), the bass with more over
   for (const id of ["pianoSampled"]) {
     const p = presetById(id);
     assert.equal(p.id, id);
-    // D294: the inner voices a shade lighter than the top and the bass.
-    assert.ok(PATCHES[p.slots![1]].level < PATCHES[p.slots![0]].level && PATCHES[p.slots![1]].level > 0.85 * PATCHES[p.slots![0]].level);
+    // D358: one piano: every voice on the one patch (D294's lighter inner voices withdrawn: the balance is the touch's, practice.ts pianoLevels).
+    assert.equal(new Set(p.slots!).size, 1);
     for (const s of [...p.slots!, "pianoFm", "pianoFmBass"] as const) {
       const pt = PATCHES[s];
       assert.equal(pt.amp.s, 0, `${s}: a struck note dies away`);

@@ -146,14 +146,15 @@ test("D348: SUPER 16-BIT: a layout for each voice count: the harpsichord(s) for 
         if (/Harpsichord/.test(name)) assert.equal(p, PATCHES.s16Harpsi, `${f.id} ${name}`);
         else if (/Violin|Viola/.test(name)) assert.equal(p, PATCHES.s16Strings, `${f.id} ${name}`);
         else if (/Recorder/.test(name)) assert.equal(p, PATCHES.s16Flute);
-        else assert.equal(p, PATCHES.s16Bassoon, `${f.id} ${name}`);
+        // D358: the continuo a cello (the band a string band).
+        else assert.equal(p, PATCHES.s16Cello, `${f.id} ${name}`);
         if (/Harpsichord/.test(name)) assert.ok(level(v) <= Math.min(...strings.map(level)) + 1e-9, `${f.id} ${name}: never louder than the strings`);
         assert.ok(Math.abs(placeFor(v, n)!.pan) <= 0.35);
         assert.equal(voicing(v, n).pan, placeFor(v, n)!.pan);
       }
     }
-    // BWV 1043's six-voice layout untouched (two solo violins).
-    assert.deepEqual(presetById("super16").by![6]!.map(([p]) => p), ["s16Violin", "s16Violin", "s16Strings", "s16Strings", "s16Strings", "s16Bassoon"]);
+    // BWV 1043's six-voice layout: two solo violins, the band, D358's continuo cello.
+    assert.deepEqual(presetById("super16").by![6]!.map(([p]) => p), ["s16Violin", "s16Violin", "s16Strings", "s16Strings", "s16Strings", "s16Cello"]);
   } finally {
     setPreset("chip");
   }

@@ -103,7 +103,8 @@ test("D297: the period sets: their folders, mono, baked loops for the loopless r
   assert.equal(folderOf("flute16"), "flute");
   assert.equal(folderOf("manual32"), "pipeOrgan");
   setPreset("super16");
-  assert.deepEqual(sampledNow().sort(), ["bassoon16", "flute16", "harpsi16", "strings16", "violin16"]);
+  // D358: and the concertos' continuo cello.
+  assert.deepEqual(sampledNow().sort(), ["bassoon16", "cello16", "flute16", "harpsi16", "strings16", "violin16"]);
   setPreset("nocturne32");
   assert.deepEqual(sampledNow().sort(), ["harpsi32", "oboe32", "organ32", "viola32", "violin32"]);
   setPreset("megaFm");
