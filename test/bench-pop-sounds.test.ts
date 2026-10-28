@@ -8,7 +8,7 @@ const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
 
 test("D292, D297, D302, D304: the friends' pop-up offers the players' sounds (the five, then the ten new presets), in their order", () => {
   assert.deepEqual(POP_SOUNDS.map(([id]) => id), PRESETS.map((p) => p.id));
-  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
+  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA", "STRING CONSORT", "LUTE"]);
 });
 
 test("D246: every piece has its own sound, a real preset; the player's choice for a piece wins", async () => {
@@ -39,15 +39,15 @@ test("D246: the pop-up's row holds the piece's own sound, marked", async () => {
   const { popSounds } = await import("../src/bench/PlayPop.tsx");
   // D292: every piece's own sound is among the five: the row is always the five, the piece's own marked.
   const p4 = popSounds("wtc1p04");
-  assert.equal(p4.length, 15, "D304: the five and the ten");
+  assert.equal(p4.length, 17, "D304: the five and the ten; D365: and STRING CONSORT and LUTE");
   assert.deepEqual(p4.filter(([, , own]) => own).map(([id]) => id), ["chip"]);
   // D355: a fugue's own sound (I/22: SOLO VOICES) marked.
   const antico = popSounds("wtc1f22");
-  assert.equal(antico.length, 15);
+  assert.equal(antico.length, 17);
   assert.equal(antico[0][0], "chip", "the row in its order");
   assert.deepEqual(antico.filter(([, , own]) => own).map(([id]) => id), ["soloVoices"]);
   assert.ok(antico.every(([id]) => id !== "organSampled"));
   const harp = popSounds("wtc1p01");
-  assert.equal(harp.length, 15);
+  assert.equal(harp.length, 17);
   assert.deepEqual(harp.filter(([, , own]) => own).map(([id]) => id), ["harpsichordSampled"]);
 });

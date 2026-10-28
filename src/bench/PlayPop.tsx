@@ -59,6 +59,9 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["soloVoices", "SOLO VOICES"],
   ["modular", "BLEEPS AND BLOOPS"],
   ["tomita", "TOMITA"],
+  // D365: D358's two presets on D349's way, offered.
+  ["stringConsort", "STRING CONSORT"],
+  ["lute", "LUTE"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
