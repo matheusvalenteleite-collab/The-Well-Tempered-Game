@@ -293,14 +293,15 @@ function byPiece(): Record<string, DisplayMode> {
 }
 
 /**
- * D327: the display for a piece: the one chosen for it; never chosen for it, a fugue of four or five
- * voices once the tutorial is passed opens on one staff per voice (the panel's violist: "in five voices
- * I lose my line among the others in the box"); else the last display chosen (D298's), else DEFAULT.
+ * D327: the display for a piece: the one chosen for it, else the last display chosen (D298's), else
+ * DEFAULT. (D354: the four-and-five-voice fugues no longer open on the sheet by themselves.)
  */
 export function displayFor(piece: string, voices: number, tutorialDone: boolean): DisplayMode {
   const mine = byPiece()[piece];
   if (mine) return mine;
-  if (tutorialDone && voices >= 4 && engraved(piece)) return "sheetN";
+  // D354: no piece switches to the sheet by itself any more (the owner: "beware of some fugues which are
+  // switching interface to sheet … don't let it do that"); D327's four-and-five-voice rule withdrawn.
+  void voices, void tutorialDone;
   return readDisplay();
 }
 export function saveDisplayFor(piece: string, m: DisplayMode) {

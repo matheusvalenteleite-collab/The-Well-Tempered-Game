@@ -79,12 +79,12 @@ test("D327: the recorded instruments are retuned (not left at 440): A = 415 play
   }
 });
 
-test("D327: DISPLAY kept per piece; never chosen: one staff per voice for 4-5 voices once the tutorial is passed", () =>
+test("D327: DISPLAY kept per piece; D354: never chosen, no piece opens on the sheet by itself", () =>
   withStorage((store) => {
     // I/1 (four voices), I/2 (three), I/22 (five).
     assert.equal(displayFor("wtc1f01", 4, false), "default", "tutorial not passed: DEFAULT");
-    assert.equal(displayFor("wtc1f01", 4, true), "sheetN");
-    assert.equal(displayFor("wtc1f22", 5, true), "sheetN");
+    assert.equal(displayFor("wtc1f01", 4, true), "default", "D354: not the sheet by itself");
+    assert.equal(displayFor("wtc1f22", 5, true), "default");
     assert.equal(displayFor("wtc1f02", 3, true), "default", "three voices: as before");
     assert.equal(displayFor("wtc1p01", 4, true), "default", "a prelude is not engraved");
     saveDisplayFor("wtc1f01", "default");
@@ -94,7 +94,7 @@ test("D327: DISPLAY kept per piece; never chosen: one staff per voice for 4-5 vo
     saveDisplay("sheet2");
     assert.equal(displayFor("wtc1f02", 3, true), "sheet2");
     assert.equal(displayFor("wtc1f03", 3, true), "sheet2", "a piece never chosen for: the last choice");
-    assert.equal(displayFor("wtc1f22", 5, true), "sheetN", "but four and five voices open on their staves");
+    assert.equal(displayFor("wtc1f22", 5, true), "sheet2", "D354: four and five voices too: the last choice");
     assert.equal(displayFor("wtc1f01", 4, true), "default");
     assert.equal(store.get(DISPLAY_KEY), "sheet2");
     store.set(DISPLAY_BY_PIECE_KEY, JSON.stringify({ wtc1f05: "piano-roll" }));
