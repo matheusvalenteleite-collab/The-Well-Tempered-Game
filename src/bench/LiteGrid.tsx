@@ -147,7 +147,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
         // D340: MORE BACH, in sections; each card as Book I's (the picture, the name, the voices, the level, the sound).
         <>
           {MORE_SECTIONS.map((s) => (
-            // D349b: each collection folded (the owner: "foldable … to ease up navigation"), its count on the fold.
+            // D350: each collection folded (the owner: "foldable … to ease up navigation"), its count on the fold.
             <details key={s.id} className="tb-lite-section tb-lite-fold" aria-label={s.title}>
               <summary className="tb-lite-book" id={`section-${s.id}`}>
                 {tr(s.title)} <span className="tb-lite-fold-n">· {s.ids.length}</span>
@@ -166,7 +166,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
         // D340: the 370 chorales, compact (no picture: a chip in the key's colour), in Sapp's (Breitkopf's) numbering.
         <>
           <p className="tb-lite-line tb-lite-chorale-note">{tr("ANY VOICE · THE BAND WAITS FOR YOU AFTER EACH FERMATA")}</p>
-          {/* D349b: the chorales folded by the hundred (1–100, 101–200, …). */}
+          {/* D350: the chorales folded by the hundred (1–100, 101–200, …). */}
           {chunks(CHORALE_IDS, 100).map((ids, k) => (
             <details key={k} className="tb-lite-section tb-lite-fold" id={`chorales-${k + 1}`}>
               <summary className="tb-lite-book">
@@ -284,7 +284,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
   );
 }
 
-/** D349b: a list cut into runs of `n`. */
+/** D350: a list cut into runs of `n`. */
 const chunks = <T,>(xs: readonly T[], n: number): T[][] => Array.from({ length: Math.ceil(xs.length / n) }, (_, k) => xs.slice(k * n, k * n + n));
 
 /** D340: a MORE BACH or CHORALES card: as Book I's, or (a chorale) compact, a chip in the key's colour for the picture. */

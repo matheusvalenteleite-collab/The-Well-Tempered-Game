@@ -19,6 +19,7 @@
  * Pure: lengths in, verdicts out.
  */
 import type { LaneNote } from "../touch/lanes.ts";
+import { inOrder } from "../touch/visible.ts";
 import { MECH, relMs } from "./mechanics.ts";
 
 /**
@@ -82,7 +83,10 @@ export function restAfter(notes: readonly LaneNote[], i: number): number {
   let end = -Infinity;
   for (let j = i; j >= 0 && notes[j].on === notes[i].on; j--) end = Math.max(end, notes[j].on + notes[j].dur);
   for (let j = i + 1; j < notes.length && notes[j].on === notes[i].on; j++) end = Math.max(end, notes[j].on + notes[j].dur);
-  const next = notes.find((n) => n.on > notes[i].on);
+  // D345: the notes are in time order: the next onset is found from i on (it was looked for from the
+  // piece's first note, for every held note, every frame).
+  let next: LaneNote | undefined;
+  for (let j = inOrder(notes) ? i + 1 : 0; j < notes.length && !next; j++) if (notes[j].on > notes[i].on) next = notes[j];
   return next ? Math.max(0, next.on - end) : 0;
 }
 

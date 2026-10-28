@@ -92,6 +92,10 @@ export class FakeNode {
     ctx.made.set(kind, (ctx.made.get(kind) ?? 0) + 1);
     ctx.nodes.add(this);
   }
+  /** As AudioNode.context (D345: the chip's sweep reads a source's clock). */
+  get context(): FakeAudioContext {
+    return this.ctx;
+  }
   /** D249: where it is wired to (connect, minus a disconnect from one node). */
   targets: unknown[] = [];
   connect<T>(to: T): T {
