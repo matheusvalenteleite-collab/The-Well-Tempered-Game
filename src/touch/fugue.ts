@@ -119,7 +119,7 @@ export interface TouchFugue {
 }
 
 /** D340: the collections beyond the WTC. */
-export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "motet" | "cantata" | "chorale";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "motet" | "cantata" | "chorale" | "hconcerto";
 
 /** All 96, each prelude before its fugue, Book I then Book II. */
 export const PIECES = data as unknown as TouchFugue[];
@@ -145,10 +145,11 @@ let extras: Promise<void> | null = null;
 export const extrasLoaded = (): boolean => MORE_BACH.length > 0;
 /** D343: brings the MORE BACH and CHORALES notes (once; later calls share the first). */
 export function loadExtras(): Promise<void> {
-  extras ??= import("./extras-data.ts").then(({ MORE_DATA, CHORALE_DATA }) => {
+  // D348: the HARPSICHORD CONCERTOS a chunk of their own (concertos-data.ts), fetched alongside.
+  extras ??= Promise.all([import("./extras-data.ts"), import("./concertos-data.ts")]).then(([{ MORE_DATA, CHORALE_DATA }, { CONCERTO_DATA }]) => {
     if (extrasLoaded()) return;
     CHORALES.push(...(CHORALE_DATA as TouchFugue[]));
-    MORE_BACH.push(...(MORE_DATA as TouchFugue[]));
+    MORE_BACH.push(...(MORE_DATA as TouchFugue[]), ...(CONCERTO_DATA as TouchFugue[]));
     // As before: the WTC's own pieces (pieces.json) win over a MORE BACH or chorale of the same id.
     for (const f of [...CHORALES, ...MORE_BACH]) if (!PIECES.some((p) => p.id === f.id)) BY_ID.set(f.id, f);
   });
