@@ -14,6 +14,7 @@ import { protoById } from "../src/bench/protos.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { layoutKern } from "../tools/sheet/kern-layout.ts";
+import { fugueKern } from "../tools/sheet/to-kern.ts";
 
 const sheet = (id: string, layout: "grand" | "open"): SheetData => JSON.parse(readFileSync(new URL(`../public/sheet/${id}.${layout}.json`, import.meta.url), "utf8"));
 
@@ -78,7 +79,8 @@ test("D298: the time map: x rising through the onsets, linear between, its inver
 });
 
 test("D298: the kern laid out for the two staves and the open score keeps every voice", () => {
-  const src = readFileSync(new URL("../data/sources/bach-wtc/kern/wtc1f01.krn", import.meta.url), "utf8");
+  // D366: the kern written from the game's notes (tools/sheet/to-kern.ts), as the engraving reads it.
+  const src = fugueKern("wtc1f01");
   const grand = layoutKern(src, "grand");
   assert.deepEqual(grand.staves, [[0, 1], [2, 3]]);
   assert.equal(grand.kern.split("\n")[0], "**kern\t**kern");

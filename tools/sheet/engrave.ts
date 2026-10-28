@@ -1,6 +1,7 @@
 /**
  * D298: engraves the fugues for the SHEET mode, at build time, with Verovio (6.3.0, the Humdrum build):
- * each fugue's **kern (data/sources/bach-wtc/kern) laid out as the two staves of an Urtext ("grand")
+ * each fugue as **kern (D366: written from the game's own notes by to-kern.ts; D298 read the Humdrum encodings)
+ * laid out as the two staves of an Urtext ("grand")
  * and as one staff per voice ("open") (kern-layout.ts), on one long system (no breaks), in the style
  * SHEET_STYLE (D300: "henle", Leland with fine lines; SHEET_STYLES has the candidates the owner was
  * shown, and D298's). Verovio's SVG is read into a
@@ -18,6 +19,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { kernPitch } from "../../src/wtc/kern.ts";
 import { parsePitch } from "../../src/music/pitch.ts";
 import { layoutKern, type SheetLayout } from "./kern-layout.ts";
+import { fugueKern } from "./to-kern.ts";
 import { GLYPH_SCALE, SHEET_UNIT, timeMap, type SheetData, type SheetNote } from "../../src/bench/sheet-format.ts";
 
 const root = (p: string) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
@@ -254,7 +256,8 @@ interface Onset {
 export async function engrave(tk: { setOptions(o: object): void; loadData(s: string): boolean; renderToSVG(p: number): string; renderToTimemap(o?: object): { qstamp: number; on?: string[] }[]; getLog(): string }, id: string, layout: SheetLayout, glyphs: Map<string, { d: string; box: [number, number, number, number] }>, style: SheetStyle = SHEET_STYLES[SHEET_STYLE]): Promise<SheetData> {
   const piece = pieces.find((p) => p.id === id);
   if (!piece) throw new Error(`no piece ${id}`);
-  const src = readFileSync(root(`data/sources/bach-wtc/kern/${id}.krn`), "utf8");
+  // D366: the kern written from the game's own notes (to-kern.ts), not the Humdrum encodings.
+  const src = fugueKern(id);
   const medians = piece.voices.map((v) => {
     const s = v.map((n) => n[2]).sort((a, b) => a - b);
     return s[Math.floor(s.length / 2)] ?? 60;
