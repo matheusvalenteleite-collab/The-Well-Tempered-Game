@@ -203,6 +203,16 @@ export interface SampledInstrument {
   relGain?: number;
   /** D297: the pitches from `from` up played from `set` (an organ's manual above its pedal's compass). */
   above?: { set: string; from: number };
+  /**
+   * D339, a piano's dampers (chip.ts sampledNote): the release's time constant (s) from `low` (A1 and
+   * under) to `high` (C6 and over), the strings from `undamped` (MIDI) up left to ring (a grand's top
+   * octave and a half has no dampers); the felt's last contact a slower `tail` (that many times the
+   * time constant, from 3 of them on: the residue a damper leaves, Repp 1995, 1997); the player's lifts:
+   * a staccato (held under `stacc` s) at most `crisp`, a slur's end (Play.group) `slur` times slower.
+   */
+  damper?: { low: number; high: number; undamped: number; tail: number; stacc: number; crisp: number; slur: number };
+  /** D339: dB of brightness (a high shelf at `hz`) per dB of level struck (Play.vel), within [min, max]. */
+  velTone?: { perDb: number; hz: number; min: number; max: number };
 }
 
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
@@ -218,7 +228,18 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // layer 7 for the notes it puts under -1.5 dB (practice.ts DYN.soft), brought up to layer 12's level
   // (measured: 3.0-5.0 dB under it, 4.1 dB on average over 0.5 s of A2-A5, C3, C4), so the layer is a
   // colour and the level the model's alone.
-  piano: { set: "grand", plucked: true, gain: 3.8, layer: 12, soft: { set: "grandSoft", below: 0.8414, gain: 1.6 } },
+  // D339: its dampers by register (the top undamped) and its colour by the level struck: Salamander's layer 7
+  // against layer 12 at C4, level matched, is 8.6 dB darker at 2-4 kHz and 14.6 at 4-8 kHz for about 4
+  // dB of level (measured here): about 1.5 dB of brightness a dB, as a shelf, within -8..+5.
+  piano: {
+    set: "grand",
+    plucked: true,
+    gain: 3.8,
+    layer: 12,
+    soft: { set: "grandSoft", below: 0.8414, gain: 1.6 },
+    damper: { low: 0.045, high: 0.016, undamped: 89, tail: 2.5, stacc: 0.16, crisp: 0.02, slur: 1.25 },
+    velTone: { perDb: 1.5, hz: 1800, min: -8, max: 5 },
+  },
   // D297: the period presets' instruments (PERIOD's sets); the winds and strings held on their made
   // loops, the harpsichords plucked. Gains set by measurement (II/22 and I/2 rendered offline through
   // chip.ts, each voice alone): the voices of a preset within about 1.5 dB of each other (R8).

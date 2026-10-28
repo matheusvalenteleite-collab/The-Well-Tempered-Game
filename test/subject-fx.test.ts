@@ -9,7 +9,9 @@ import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
 import { Chip, type Play, type Voicing } from "../src/touch/chip.ts";
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
-import { ORGAN_SAMPLED, patchFor, setPreset, type Preset } from "../src/touch/sound.ts";
+import { ORGAN_SAMPLED, patchFor, presetById, setPreset, type Preset } from "../src/touch/sound.ts";
+/** D339: the nodes a preset's own reverb keeps wired while it plays (the piano's and harpsichord's salon: 7 at most). */
+const fxLeft = (p: string | Preset) => ((typeof p === "string" ? presetById(p) : p).fx ? 7 : 0);
 import { startTick } from "../src/touch/voice-mode.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
@@ -128,7 +130,7 @@ test("the effect's layers are cheap: every node released, few more made", () => 
     const on = run(piece, preset, {}, 90);
     const off = run(piece, preset, { subject: false, effect: false }, 90);
     assert.ok(on.calls.length > off.calls.length, `${piece}: layers played`);
-    assert.equal(on.left, 0, `${piece} ${preset}: nodes left wired`);
+    assert.ok(on.left <= fxLeft(preset), `${piece} ${preset}: ${on.left} nodes left wired`);
     const ratio = on.made / off.made;
     assert.ok(ratio < 1.5, `${piece} ${preset}: ${on.made} nodes against ${off.made} (${ratio.toFixed(2)})`);
     assert.ok(on.wired < 400, `${piece}: at most ${on.wired} wired at once`);
@@ -146,7 +148,7 @@ test("D221: the other seventeen Book I effects cheap too: every node released, f
     const on = run(f.id, preset, {}, 60);
     const off = run(f.id, preset, { subject: false, effect: false }, 60);
     assert.ok(on.calls.length > off.calls.length, `${f.id}: layers played`);
-    assert.equal(on.left, 0, `${f.id} ${pid}: nodes left wired`);
+    assert.ok(on.left <= fxLeft(preset), `${f.id} ${pid}: ${on.left} nodes left wired`);
     const ratio = on.made / off.made;
     ratios.push(`${f.id} ${ratio.toFixed(2)} (${on.wired})`);
     assert.ok(ratio < 1.5, `${f.id} ${pid}: ${on.made} nodes against ${off.made} (${ratio.toFixed(2)})`);
@@ -207,6 +209,9 @@ test("the recorded harpsichord and organ take the colour too: one shelf, a send,
     const ctx = ctxOf();
     await chip.prepare([60]);
     const v: Voicing = { timbre: "pulse25", pan: 0.15, gain: 1, patch: patchFor(1, 4) };
+    // D339: a first note builds the preset's own reverb (the harpsichord's salon), kept while it plays; let it end.
+    chip.note(60, ctx.currentTime, 0.1, v, {});
+    ctx.advance(ctx.currentTime + 5);
     const fixed = ctx.nodes.size;
     const count = (p: Play) => {
       const was = new Map(ctx.made);

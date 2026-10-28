@@ -250,8 +250,8 @@ export class Game {
       const jn = block === null ? joins(sh) : {};
       parts.forEach(([pon, pdur, pmidi], q) => {
         const last = q === parts.length - 1;
-        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}) };
-        ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon) + (last && jn.tie ? sh.over : 0), vv, { level: sh.level, ...art });
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...("vel" in jn && jn.vel !== undefined ? { vel: jn.vel } : {}) };
+        ch.note(pmidi, Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge), this.timeAt(pon + pdur) - this.timeAt(pon) + (last && jn.tie ? sh.over : last && block === null ? sh.stretch : 0), vv, { level: sh.level, ...art });
       });
     }
     // Lifts that no tap carried on are final: the note stops where the thumb left it.
