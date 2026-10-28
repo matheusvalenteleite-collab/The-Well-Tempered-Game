@@ -68,6 +68,8 @@ test("D319: every trill of the fugues lasts its note at the game's tempo (II/24,
   // II/24's dotted quavers: six notes, the alternation to 83% (before D319 four, to 62%).
   const f = fugueById("wtc2f24");
   for (const [key, o] of ornamentsOf(f)) {
+    // (D366: the edition's appoggiaturas in the last bar, grace notes with no sign, are no trills.)
+    if (!o.signs) continue;
     const [v, on] = key.split(":").map(Number);
     const n = f.voices[v].find((x) => x[0] === on)!;
     const m = measure(f.id, realiseNote(f, o, on, n[1], n[2], undefined, tempoOf(f.id)), on, n[1]);

@@ -146,6 +146,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f01 | b. 14, voice 3, beat 0: A3 → A2 (slip: the bass's cadence an octave down (a ',' missing in \relative; the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc1f01 | b. 18, voice 3, beat 3.25: B3 → Bb3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p02 | b. 35, voice 1, beat 0.25: Ab2 → C2 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
+| wtc1f03 | bar 38, G#5: the sign the BGA's (T) (D206) |
 | wtc1f03 | b. 17, voice 0, beat 0.25: D#5 → D#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f03 | b. 17, voice 0, beat 0.5: E#5 → E#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f03 | b. 17, voice 0, beat 0.75: D#5 → D#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -169,6 +170,11 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f05 | b. 22, voice 2, beat 2: G4 → F#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f05 | 8 figures: triplet32 (editorial: Rother's triplet demisemiquavers (his note on m. 3) as the Bach-Gesellschaft writes them) |
 | wtc1p06 | b. 21, voice 0, beat 3.1667: Bb3 → B3 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
+| wtc1f06 | bar 9, C#5: the sign removed (not the BGA's) (D206) |
+| wtc1f06 | bar 10, B4: the sign removed (not the BGA's) (D206) |
+| wtc1f06 | bar 11, A4: the sign removed (not the BGA's) (D206) |
+| wtc1f06 | bar 21, A4: the sign the BGA's (O) (D206) |
+| wtc1f06 | bar 29, G4: the sign the BGA's (T) (D206) |
 | wtc1f06 | b. 29, voice 1, beat 1: B4 → Bb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f06 | b. 33, voice 0, beat 0.75: A4 → G4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p07 | b. 34, voice 1, beat 1.75: E3 → G3 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
@@ -177,6 +183,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1p08 | b. 14, voice 1, beat 4: Bb2 → Bb3 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
 | wtc1p08 | b. 15, voice 0, beat 4: C5 → A4 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
 | wtc1p08 | b. 23, voice 1, beat 5.5: Eb3 → F3 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
+| wtc1f08 | bar 74, B#3: the sign the BGA's (T) (D206) |
 | wtc1f08 | b. 48, voice 2, beats 1.5-2: E3 C#3 → D#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f08 | b. 77, voice 2, beat 0.5: E3 → E#3 (slip: E#, as the Humdrum check and Mutopia have it) |
 | wtc1f09 | b. 26, voice 2, beats 2-4: F#2 C#3 D#3 B2 → F#2 E3 D#3 B2 (editorial: the Bach-Gesellschaft's E (Rother's ossia): the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -192,6 +199,9 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f12 | b. 57, voice 0, beat 3: Eb4 → E4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p13 | b. 15, voice 1, beat 1.5: A#3 → A#2 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
 | wtc1p13 | b. 29, voice 0, beat 1.75: C#5 → A#4 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
+| wtc1f13 | bar 15, G#4: the sign removed (not the BGA's) (D206) |
+| wtc1f13 | bar 20, A#2: the sign removed (not the BGA's) (D206) |
+| wtc1f13 | bar 28, F#4: the sign removed (not the BGA's) (D206) |
 | wtc1f14 | b. 17, voice 1, beat 4: D#4 → D4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f14 | b. 28, voice 0, beat 0.5: D5 → E5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p15 | b. 13, voice 1, beat 2.3333: G3 → F#3 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
@@ -224,6 +234,8 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f19 | b. 52, voice 2, beat 4.25: D2 → E2 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f19 | b. 38, voice 0, beats 3-4.5: F#4 → F#4 (slip: the tie over the bar (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc1f19 | b. 39, voice 0, beats 0-0.5: F#4 → nothing (slip: the tie over the bar (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
+| wtc1f20 | bar 52, B3: the sign removed (not the BGA's) (D206) |
+| wtc1f20 | bar 56, E5: the sign removed (not the BGA's) (D206) |
 | wtc1f20 | b. 23, voice 1, beat 1: G4 → D4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f20 | b. 77, voice 3, beat 2.75: D3 → F3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p21 | b. 13, voice 1, beat 1.75: Bb3 → C4 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
@@ -275,6 +287,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2p05 | 4 written-out trills folded back into their notes |
 | wtc2p05 | 60 figures: dotted (editorial: the dotted quaver and semiquaver as written (verits99 writes them as triplets), as the game has always played them) |
 | wtc2f05 | b. 49, voice 2, beats 2.5-4: D3 E3 → D3 B2 E3 A2 (slip: the bass divides (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
+| wtc2f06 | bar 16, F4: the sign the BGA's (T) (D206) |
 | wtc2f06 | b. 21, voice 2, beat 3: C3 → C#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p07 | 1 written-out trills folded back into their notes |
 | wtc2p08 | written-out repeats taken once (72 measures → 36) |
@@ -333,6 +346,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f19 | b. 3, voice 2, beats 2-2.5: D#4 → D#4 B3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p20 | written-out repeats taken once (64 measures → 32) |
 | wtc2p20 | 1 written-out trills folded back into their notes |
+| wtc2f20 | bar 28, E2: the sign the BGA's (T) (D206) |
 | wtc2f20 | b. 4, voice 2, beat 1.75: D3 → D#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p21 | written-out repeats taken once (174 measures → 87) |
 | wtc2f21 | b. 78, voice 0, beat 2.5: Bb4 → C5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |

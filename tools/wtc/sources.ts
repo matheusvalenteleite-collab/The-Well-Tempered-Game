@@ -376,6 +376,8 @@ const METER: Record<string, string> = {
   wtc2p24: "4/4",
   // Rother writes II/9's bars of four minims as 2/1; the game counts them in minims, 4/2, as before.
   wtc2f09: "4/2",
+  // Mutopia's I/4 prelude writes 3/2 on its lower staff for the 6/4 of its upper (the bars the same).
+  wtc1p04: "6/4",
 };
 
 function xmlOrnaments(x: XmlScore, move: (on: number) => number | null, voices: WtcNote[][], staves: string[]): OrnRow[] {
@@ -548,7 +550,7 @@ function readFourVoicePrelude(): Read {
     (others.some((x) => midiOf(x) < midiOf(n)) ? raw[2] : raw[3]).push(n);
   }
   const applied = applyCorrections(m.id, raw, bars);
-  const piece: WtcPiece = { ...m, meter: ly.times[0]?.text ?? "6/4", voices: raw.map((v) => withSubs(v as [number, number, string][])), bars, length };
+  const piece: WtcPiece = { ...m, meter: METER[m.id] ?? ly.times[0]?.text ?? "6/4", voices: raw.map((v) => withSubs(v as [number, number, string][])), bars, length };
   const orn: OrnRow[] = [];
   ids.forEach((vs, vi) => {
     for (const n of ly.notes.filter((x) => vs.includes(x.voice) && !x.grace && x.orn)) orn.push([vi, ticks(n.on), n.pitch, signsOf(n.orn!)]);

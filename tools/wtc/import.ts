@@ -7,7 +7,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { TPQ, type WtcPiece } from "../../src/wtc/corpus.ts";
 import { readFugue, readInvention, readPrelude, ROOT, type OrnRow, type Read } from "./sources.ts";
-import { ADDED, CONTRAPUNCTUS } from "./ornaments.ts";
+import { ADDED, BGA_SIGNS, CONTRAPUNCTUS } from "./ornaments.ts";
 
 const fugues: WtcPiece[] = [];
 const preludes: WtcPiece[] = [];
@@ -69,6 +69,27 @@ const take = (r: Read, into: WtcPiece[]) => {
     if (row) {
       if (!row[3].includes(signs)) row[3] += signs;
     } else rows.push([hits[0][0], hits[0][1], pitch, signs]);
+  }
+  // The BGA's sign where the edition's differs (D206's reading of the BGA).
+  for (const [bar, pitch, signs, beat] of BGA_SIGNS[p.id] ?? []) {
+    const on = p.bars.find((b) => b.n === bar)!.on + beat * TPQ;
+    const i = rows.findIndex((x) => x[1] === on && x[2] === pitch);
+    if (i < 0) throw new Error(`${p.id} bar ${bar} ${pitch}: no sign to put back`);
+    if (signs || rows[i][4]?.length) rows[i][3] = signs;
+    else rows.splice(i, 1);
+    corrections.push(`| ${p.id} | bar ${bar}, ${pitch}: the sign ${signs ? `the BGA's (${signs})` : "removed (not the BGA's)"} (D206) |`);
+  }
+  rows.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  // A sign on a note a correction re-spelled (tools/wtc/corrections.ts) names the note as corrected.
+  for (const r of rows) {
+    const at = p.voices[r[0]].filter((n) => n[0] === r[1] && n[1] > 0);
+    if (at.length === 1 && at[0][2] !== r[2]) r[2] = at[0][2];
+    else if (!at.length) {
+      // A staff's notes shared out between two voices (I/4's prelude): the voice that has the note.
+      const vi = p.voices.findIndex((v) => v.some((n) => n[0] === r[1] && n[2] === r[2]));
+      if (vi < 0) throw new Error(`${p.id}: a sign on no note (voice ${r[0]}, ${r[1]} ${r[2]})`);
+      r[0] = vi;
+    }
   }
   rows.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   for (const r of rows) r[3] = withCase(r[3], r[2], p.key, p.mode);

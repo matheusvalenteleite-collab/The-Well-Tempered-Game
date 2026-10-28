@@ -171,8 +171,13 @@ test("D314: free ornaments in a fugue: they sound, the notes stay right, the sco
     return n.dur >= g.f.tpq && !g.ornamentAt(0, i);
   };
   const plain = play("wtc1f02", 0, () => {});
+  // Every other held note a mordent, the rest trills (D366: counted by held note, not by the note's index,
+  // which the edition's chord in bar 30 moved on by one).
+  let held = 0;
   const shaken = play("wtc1f02", 0, (g, i, move) => {
-    if (long(g, i)) shakeOn(move, i % 3 === 0 ? 2 : 4, i % 3 === 0 ? -1 : 1);
+    if (!long(g, i)) return;
+    const mordent = held++ % 2 === 0;
+    shakeOn(move, mordent ? 2 : 4, mordent ? -1 : 1);
   });
   assert.ok(shaken.g.freeOrns.mordents > 3, `mordents ${JSON.stringify(shaken.g.freeOrns)}`);
   assert.ok(shaken.g.freeOrns.trills > 3, `trills ${JSON.stringify(shaken.g.freeOrns)}`);
