@@ -51,6 +51,8 @@ function play(piece: string, voice: number, proto: string, wrongFrom = Infinity)
   const clock = { t: 0 };
   const g = new ProtoGame(f, [voice], 0, protoById(proto), { bpm: tempoOf(piece), legato: false, easy: "exact", fail: true }, fakeChip(clock));
   g.rows = { yOf: (s) => 900 - s * 16, stepAt: (y) => Math.round((900 - y) / 16), rowH: 16, xOf: () => W / 2 };
+  // D361: the touches stamped on the fake audio clock, so they are judged by it alone, never by how long the machine took.
+  g.wall = () => clock.t * 1000;
   const runTo = (t: number) => {
     while (clock.t < t - 0.05) (clock.t += 0.05), g.step();
     clock.t = Math.max(clock.t, t);
@@ -69,11 +71,11 @@ function play(piece: string, voice: number, proto: string, wrongFrom = Infinity)
     id++;
     if (proto === "keys") {
       const code = isRepeat(g.tracks[k].moves[i]) && !g.isFree(i, k) ? "Space" : KEYS[g.lanesOf(k)[i]];
-      g.keyDown(id, { velocity: 0.5, code }, performance.now());
-      g.keyUp(id, performance.now());
+      g.keyDown(id, { velocity: 0.5, code }, g.wall());
+      g.keyUp(id, g.wall());
     } else {
-      g.down(id, rightTouch(g, i, k), performance.now());
-      g.up(id, performance.now());
+      g.down(id, rightTouch(g, i, k), g.wall());
+      g.up(id, g.wall());
     }
   }
   runTo(g.timeAt(g.end + 1));

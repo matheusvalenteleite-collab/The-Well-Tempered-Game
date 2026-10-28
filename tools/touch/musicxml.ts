@@ -27,6 +27,8 @@ export interface XmlSyllable {
   extend: boolean;
   /** Its measure's number, for checking. */
   bar: number;
+  /** D361: the MusicXML voice it is sung in (BWV 54/1's alto staff writes a second voice under it in bar 26). */
+  voice: string;
 }
 export interface XmlPart {
   id: string;
@@ -76,7 +78,7 @@ const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
 const PC = [0, 2, 4, 5, 7, 9, 11];
 
 type XmlNote = XmlPart["notes"][number];
-type Sung = Omit<XmlSyllable, "on" | "end">;
+type Sung = Omit<XmlSyllable, "on" | "end" | "voice">;
 
 /** D348: a spelled note (step, alter, octave) transposed: the letter moved `diatonic` steps, the sound `chromatic` semitones. */
 export function transposed(step: string, alter: number, octave: number, t: Transpose): [step: string, alter: number, octave: number] {
@@ -234,7 +236,7 @@ function melismas(all: XmlPart["notes"], sung: Map<XmlNote, Sung>, voiceOf: Map<
       }
       let j = i;
       while (j + 1 < notes.length && !sung.has(notes[j + 1]) && notes[j + 1][0] <= notes[j][0] + notes[j][1]) j++;
-      out.push({ ...s, on: notes[i][0], end: notes[j][0] + notes[j][1] });
+      out.push({ ...s, on: notes[i][0], end: notes[j][0] + notes[j][1], voice: v ?? "1" });
     }
   }
   if (orphans) report.push(`${orphans} phrase(s) beginning without words`);

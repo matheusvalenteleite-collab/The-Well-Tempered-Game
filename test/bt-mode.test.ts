@@ -55,6 +55,8 @@ function run(lag: number, bt: boolean, seed = 7) {
   const clock = { t: 0 };
   const fc = fakeChip(clock, lag);
   const g = new ProtoGame(fugueById("wtc1f02"), 0, 0, protoById("keys"), { bpm: 54, legato: false, easy: "timing", bt }, fc.chip);
+  // D361: the keys stamped on the fake audio clock, so they are judged by it alone, never by how long the machine took.
+  g.wall = () => clock.t * 1000;
   const R = rng(seed);
   const gauss = () => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R());
   const heads = g.notes.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && g.notes[i - 1].on === n.on));
@@ -74,8 +76,8 @@ function run(lag: number, bt: boolean, seed = 7) {
       const e = evs[k++];
       clock.t = e.t;
       const before = fc.notes.length;
-      if (e.down) g.keyDown(e.id, { velocity: 0.5 }, performance.now());
-      else g.keyUp(e.id, performance.now());
+      if (e.down) g.keyDown(e.id, { velocity: 0.5 }, g.wall());
+      else g.keyUp(e.id, g.wall());
       touchSounds.push(...fc.notes.slice(before));
     }
     clock.t = t;

@@ -84,6 +84,8 @@ function playAccents(o: { lean?: number; hold?: number; overlap?: boolean; x?: n
   const ROWS: Rows = { yOf: (s) => 900 - s * 16, stepAt: (y) => Math.round((900 - y) / 16), rowH: 16, xOf: () => W / 2 };
   const clock = { t: 0 };
   const g = new ProtoGame(f, e.voice, 0, protoById("ladder"), { bpm: 60, legato: false, until: e.end, solo: true, easy: "direction", fail: false, reading }, fakeChip(clock));
+  // D361: the touches stamped on the fake audio clock, so they are judged by it alone, never by how long the machine took.
+  g.wall = () => clock.t * 1000;
   g.rows = ROWS;
   const to = (t: number) => {
     while (clock.t < t - 0.02) (clock.t += 0.02), g.step();
@@ -99,12 +101,12 @@ function playAccents(o: { lean?: number; hold?: number; overlap?: boolean; x?: n
     side = side === "left" ? "right" : "left";
     const nid = ++id;
     const x = o.x ?? 40;
-    g.down(nid, { side, x: side === "left" ? x : W - x, y: ROWS.yOf(n.step), w: W, h: H }, performance.now());
-    if (held && o.overlap) g.up(held, performance.now() + 1);
+    g.down(nid, { side, x: side === "left" ? x : W - x, y: ROWS.yOf(n.step), w: W, h: H }, g.wall());
+    if (held && o.overlap) g.up(held, g.wall() + 1);
     held = nid;
-    if (!o.overlap) (to(g.timeAt(n.on + n.dur * (o.hold ?? 0.92))), g.up(nid, performance.now()), (held = 0));
+    if (!o.overlap) (to(g.timeAt(n.on + n.dur * (o.hold ?? 0.92))), g.up(nid, g.wall()), (held = 0));
   }
-  if (held) g.up(held, performance.now());
+  if (held) g.up(held, g.wall());
   to(g.timeAt(g.end + 1));
   return g;
 }
