@@ -30,6 +30,7 @@ import { findEntriesByHead, findTransformed, line, subjectAndAnswer, type Note a
 import { readMidi } from "./midi.ts";
 import { hyphensOf, readMusicXml, type XmlPart, type XmlScore } from "./musicxml.ts";
 import { buildEntries, findCadences, homeward, keySpeller, type Note, type RawEntry } from "./analysis.ts";
+import { splitDivisi } from "./divisi.ts";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
@@ -521,6 +522,8 @@ function barsFrom(times: { tick: number; num: number; den: number }[], length: n
 
 const mean = (v: Note[]) => v.reduce((t, n) => t + n[2], 0) / Math.max(1, v.length);
 const sortVoice = (v: Note[]) => v.sort((a, b) => a[0] - b[0] || b[2] - a[2]);
+/** D363: the notes read from a voice of their own within a staff ("staff1/v2"), given to the staff's voice: its sub-line, not its own. */
+const ASIDE = new WeakSet<Note>();
 
 export interface Read {
   voices: Note[][];
@@ -577,7 +580,17 @@ export function readPiece(s: Spec): Read {
     const home = (v: string) => (ids.includes(v) ? v : ids.includes(v.split(/[:/]/)[0]) ? v.split(/[:/]/)[0] : null);
     const unknown = [...count.keys()].filter((v) => !home(v));
     if (unknown.length) throw new Error(`${s.id}: LilyPond voices ${unknown.join(", ")} not in ${ids.join(", ")}`);
-    voices = ids.map((id) => sortVoice(lyNotes.filter((n) => home(n.voice) === id).map((n) => note(ticks(n.on), ticks(n.dur), n.midi, n.pitch))));
+    voices = ids.map((id) =>
+      sortVoice(
+        lyNotes
+          .filter((n) => home(n.voice) === id)
+          .map((n) => {
+            const x = note(ticks(n.on), ticks(n.dur), n.midi, n.pitch);
+            if (n.voice !== id) ASIDE.add(x);
+            return x;
+          }),
+      ),
+    );
     if (!s.lyVoices) voices.sort((a, b) => mean(b) - mean(a));
   }
   if (voices.length !== s.voiceNames.length) throw new Error(`${s.id}: ${voices.length} voices, ${s.voiceNames.length} names`);
@@ -738,7 +751,25 @@ export function build(s: Spec) {
   homeward(f);
   // A piece where nothing is read (the Canon per Augmentationem: no cadence found) is in its home key throughout.
   if (!f.keys.length) f.keys = [{ on: 0, key: s.key }];
-  return { f, agree: r.agree };
+  // D363: each voice the player may take made one line, after the readings above (as extract.ts does
+  // for the 48): Mutopia's extra voices on a staff at the cadences (Contrapunctus 5, 6) and in
+  // Contrapunctus 7's last bars go to a band-only voice sounding as the staff's (tools/touch/divisi.ts).
+  const band: { of: number; notes: Note[] }[] = [];
+  f.voices = f.voices.map((v, vi) => {
+    if (s.playable && !s.playable.includes(vi)) return v;
+    const subject = new Set(entries.filter((e) => e.voice === vi).flatMap((e) => e.notes.filter((n) => n[3] === 0).map((n) => `${n[0]}:${n[2]}`)));
+    const split = splitDivisi(v.map((n) => ({ n, sub: ASIDE.has(n) ? 1 : 0 })), vi === f.voices.length - 1, subject);
+    if (!split.band.length && !split.unisons) return v;
+    if (f.lyrics?.[vi]?.length) throw new Error(`${s.id}: a sung voice split (its words would lose their notes)`);
+    if (split.band.length) band.push({ of: vi, notes: sortVoice(split.band) });
+    return sortVoice(split.main);
+  });
+  // An entry's notes are its voice's: those now the band's leave it (as extract.ts).
+  for (const e of band.length ? entries : []) {
+    const line = new Set(f.voices[e.voice].map((n) => `${n[0]}:${n[1]}:${n[2]}`));
+    e.notes = e.notes.filter((n) => line.has(`${n[0]}:${n[1]}:${n[2]}`));
+  }
+  return { f: band.length ? { ...f, bandVoices: band } : f, agree: r.agree };
 }
 
 // --- Write ------------------------------------------------------------------------------------------

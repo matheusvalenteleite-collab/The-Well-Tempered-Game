@@ -43,6 +43,8 @@ export interface XmlPart {
   ornaments: { on: number; pitch: string; staff: number; voice: string; signs: string[] }[];
   /** D366: the grace notes, each at the onset of the note it leads to (`slash`: an acciaccatura, else an appoggiatura). */
   graces: { on: number; pitch: string; staff: number; voice: string; slash: boolean }[];
+  /** D367: the notes marked with a trill sign (`<trill-mark/>`), as "staff:onset:pitch" (a tied note's first onset). */
+  trills: Set<string>;
 }
 /** D348: a measure of the first part. */
 export interface XmlMeasure {
@@ -122,6 +124,7 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
     const lyricNotes: string[] = [];
     const ornaments: XmlPart["ornaments"] = [];
     const graces: XmlPart["graces"] = [];
+    const trills = new Set<string>();
     const open = new Map<string, XmlPart["notes"][number]>();
     const pbars: { n: number; on: number }[] = [];
     const pmeasures: XmlMeasure[] = [];
@@ -206,6 +209,7 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
           const signs = [...orn.matchAll(/<(trill-mark|mordent|inverted-mordent|turn|inverted-turn|delayed-turn|delayed-inverted-turn|shake|vertical-turn|schleifer|haydn)\b/g)].map((m) => m[1]);
           if (signs.length) ornaments.push({ on, pitch: name, staff, voice, signs });
         }
+        if (/<trill-mark\b/.test(body)) trills.add(`${staff}:${on}:${name}`);
         if (syl && !chord) sung.set(n, syl);
         voiceOf.set(n, voice);
         if (begin) open.set(key, n);
@@ -214,7 +218,7 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
       at = Math.max(reach, start);
     }
     notes.sort((a, b) => a[0] - b[0]);
-    parts.push({ id: pm[1], name: names.get(pm[1]) ?? pm[1], notes, lyrics: melismas(notes, sung, voiceOf, lyricNotes), lyricNotes, ornaments, graces });
+    parts.push({ id: pm[1], name: names.get(pm[1]) ?? pm[1], notes, lyrics: melismas(notes, sung, voiceOf, lyricNotes), lyricNotes, ornaments, graces, trills });
     if (!bars.length) bars = pbars;
     if (!measures.length) measures = pmeasures;
     length = Math.max(length, at);

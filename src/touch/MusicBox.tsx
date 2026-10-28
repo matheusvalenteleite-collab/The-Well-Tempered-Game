@@ -21,7 +21,7 @@ import { fugueById } from "./fugue.ts";
 import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
-import { SUBJECT_RIMS, membership, raiseOf, subjectInkOf, themeOf } from "./subject-hue.ts";
+import { membership, raiseOf, subjectInkOf, subjectRimOf, themeOf } from "./subject-hue.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
 const PX = 2;
@@ -397,7 +397,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     if (si >= 0) {
       const sp = spans![si];
       const theme = themeOf(sp);
-      const rim = SUBJECT_RIMS[theme];
+      const rim = subjectRimOf(voiceInk, theme);
       const r = raiseOf(sp, fr.now, fr.tps);
       const th = full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
       const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
@@ -458,7 +458,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const n = pnotes[ni];
       // D214: SUBJECT's line passes between voices, each note in its own colour.
       const voiceInk = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
-      // D352: a subject note bent toward its subject's primary (its keel the voice's own ink).
+      // D352, D368: a subject note in its own voice's colour, modified (its keel the voice's plain ink).
       const si = mineIdx ? mineIdx[ni] : -1;
       const sp = si >= 0 ? spans![si] : null;
       const ink = sp ? subjectInkOf(voiceInk, themeOf(sp)) : voiceInk;
@@ -492,7 +492,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const r = sp ? raiseOf(sp, fr.now, fr.tps) : 0;
       if (r > 0) {
         g.globalAlpha = 0.85 * r;
-        g.fillStyle = SUBJECT_RIMS[themeOf(sp!)];
+        g.fillStyle = subjectRimOf(inkPv, themeOf(sp!));
         g.fillRect(x1 - 2, y - 2, bw + 4, bh + 3);
         g.globalAlpha = 1;
       }

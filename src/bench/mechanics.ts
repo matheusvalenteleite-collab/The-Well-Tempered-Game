@@ -138,6 +138,24 @@ export const MECH_DEFAULTS = {
   trillEnding: "rule" as "rule" | "settle",
   /** D353: a slide while the thumb may be shaking is confirmed after this long without turning back (ms). */
   slideConfirmMs: 60,
+  /**
+   * D364, THE HOLD-OVER APPOGGIATURA (the ornament report's Layer 2, "Appoggiatura by hold-over"): a thumb
+   * resting PREPARED on a note while the other still holds the note before, a diatonic step away, past the
+   * note's time (its PERFECT window): the held note sounds on over the beat as the appoggiatura and the
+   * lift sounds the note (the pull-off), unjudged for time. Only where C. P. E. Bach's long appoggiatura
+   * goes (I.2.2 §9): a strong beat, a note of a beat or more, the note before joined to it a step away.
+   */
+  holdOver: true,
+  /** ...lifted before this share of the note (later: missed, as without it)... */
+  holdOverShare: 0.75,
+  /** ...this share on a fermata (or the last note). */
+  holdOverFermataShare: 0.9,
+  /** A lift within this long of the note's PERFECT window is the short appoggiatura (I.2.2 §13): the note at its full level. */
+  holdOverShortMs: 80,
+  /** The held note "tied" over the beat (a suspension: no new attack) or "struck" again as the grace is armed (necessarily about 70 ms late). */
+  holdOverSound: "tied" as "tied" | "struck",
+  /** The note after a long appoggiatura this much softer (a factor), where the instrument has dynamics (the Abzug, I.2.2 §7). */
+  holdOverSoft: 0.7,
   /** D319 TRILL_PER_SECOND: a trill's speed, notes a second (taken to the nearest subdivision of the beat). */
   trillPerSecond: 10,
   /** D319 TRILL_SETTLE: a long trill's main note settles for this share of the note at its end. */
@@ -427,6 +445,12 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "turnAfterShare", group: "ORNAMENTS", label: "Turn after the note: from", help: "D353: a late two-leg shake begun past this share of its note sounds the turn after the note (C. P. E. Bach I.2.4 §21)…", kind: "number", min: 0, max: 0.9, step: 0.05 },
   { key: "turnAfterMinMs", group: "ORNAMENTS", label: "…on a note of at least", help: "…on a note of a beat or more and at least this long; not before a falling second (§22: there the shake keeps its own meaning).", kind: "number", min: 0, max: 2000, step: 50, unit: "ms" },
   { key: "trillEnding", group: "ORNAMENTS", label: "Trill ending", help: "D353. RULE (C. P. E. Bach, Versuch I.2.3 §§13, 16): the Nachschlag (the step below, then the note) on a note of a beat or more, after a leap, or before a cadence; none in a falling series or on a short note; else settled on the note. SETTLE (the Explication's): every trill settles on its note. The band's trills and yours.", kind: "choice", options: [["rule", "RULE (C. P. E. Bach)"], ["settle", "SETTLE (the Explication)"]] },
+  { key: "holdOver", group: "ORNAMENTS", label: "Hold-over appoggiatura", help: "D364: one thumb rests PREPARED on the note while the other holds the note before, a step away, past the beat: the held note sounds over the beat as the appoggiatura, and your lift sounds the note (the pull-off), unjudged for time. Only on a strong beat, a note of a beat or more, the note before joined (C. P. E. Bach, Versuch I.2.2 §9). Lifted past the share below, the note is missed, as without it.", kind: "bool" },
+  { key: "holdOverShare", group: "ORNAMENTS", label: "…lift before", help: "The lift sounds the note before this share of it (later: missed).", kind: "number", min: 0.3, max: 0.95, step: 0.05 },
+  { key: "holdOverFermataShare", group: "ORNAMENTS", label: "…on a fermata", help: "The same on a fermata or the last note.", kind: "number", min: 0.3, max: 0.98, step: 0.02 },
+  { key: "holdOverShortMs", group: "ORNAMENTS", label: "…short within", help: "A lift this soon after the note's PERFECT window is the short appoggiatura (I.2.2 §13): the note at its full level.", kind: "number", min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "holdOverSound", group: "ORNAMENTS", label: "…the held note", help: "Tied over the beat, like a suspension (the default), or struck again as the grace is armed (necessarily about 70 ms late): compare.", kind: "choice", options: [["tied", "TIED (a suspension)"], ["struck", "STRUCK AGAIN"]] },
+  { key: "holdOverSoft", group: "ORNAMENTS", label: "…the note after it", help: "The note after a long appoggiatura at this level (C. P. E. Bach's Abzug, I.2.2 §7), where the instrument has dynamics (not the harpsichord or the organ).", kind: "number", min: 0.3, max: 1, step: 0.05 },
   { key: "slideConfirmMs", group: "ORNAMENTS", label: "Slide confirmed after", help: "D353: a slide is confirmed only once the thumb has not turned back for this long and no fast leg is under way (a large shake's first leg is no slide); judged at the moment it reached the note. 0: at once (D289's).", kind: "number", min: 0, max: 200, step: 10, unit: "ms" },
   { key: "trillPerSecond", group: "ORNAMENTS", label: "Trill speed", help: "A trill's notes a second, the band's and the player's (to the nearest subdivision of the beat).", kind: "number", min: 4, max: 20, step: 1, unit: "/s" },
   { key: "trillSettle", group: "ORNAMENTS", label: "Trill settle", help: "A long trill ends on its main note for this share of the note.", kind: "number", min: 0, max: 0.5, step: 0.05 },

@@ -18,6 +18,8 @@
  * movement (an upbeat bar 0); no repeat taken. Cadences and keys as for the WTC (analysis.ts); no entries
  * (a concerto's ritornello is not a fugue's subject, as BWV 1043, D340).
  * D351: BWV 1059 (a fragment of nine bars) added as verits99's reconstruction from Cantata 35, labelled so.
+ * D367: the lines offered keep their trills as signs (`ornaments`): written out in the edition (untrill),
+ * the band sounds its notes as written; signed in the edition (`<trill-mark/>`), realised by D353's rules.
  * Run: node tools/touch/concertos.ts   (needs python3 for .mxl), then node tools/touch/extras-index.ts
  */
 import { writeFileSync } from "node:fs";
@@ -236,33 +238,43 @@ export function busiest60(f: { tpq: number; voices: Note[][] }, which: number[] 
   return worst;
 }
 
+/** D367: a written-out trill read back to its note: the note's onset, its sign ("t" a half step, "T" a whole step) and the edition's notes as written ([onset, length, MIDI] in ticks). */
+export interface WrittenTrill {
+  on: number;
+  signs: "t" | "T";
+  notes: [number, number, number][];
+}
+
 /**
  * A trill written out (the editions' playback) back to its note: a run of four or more notes of a
- * demisemiquaver or less, one after another, alternating between two pitches a tone or a semitone
- * apart, as one note of the run's length on the lower pitch (the main note: Bach's trills begin on the
- * upper). Its closing turn, if any, stays. Only in the lines the player may take (so they sound plain as the band's too).
+ * demisemiquaver or less, one after another, alternating between two adjacent steps (a tone or a
+ * semitone apart, the next letter or, D367, the same: the editions' playback spells a few trills so,
+ * BWV 1064/I bar 105's A flat and A), as one note of the run's length on the lower pitch (the main note:
+ * Bach's trills begin on the upper). Its closing turn, if any, stays. Only in the lines the player may
+ * take. D367: each also returned in `found`, so the note carries a trill sign (the player shakes it,
+ * D353) and the band, playing the line, sounds the edition's own notes.
  */
-export function untrill(line: Note[], tpq: number): { line: Note[]; trills: number } {
+export function untrill(line: Note[], tpq: number): { line: Note[]; trills: number; found: WrittenTrill[] } {
   const short = tpq / 8;
   const out: Note[] = [];
-  let trills = 0;
+  const found: WrittenTrill[] = [];
   for (let i = 0; i < line.length; ) {
     const [a, b] = [line[i], line[i + 1]];
     let j = i + 1;
-    if (b && a[1] <= short && Math.abs(b[2] - a[2]) >= 1 && Math.abs(b[2] - a[2]) <= 2)
+    if (b && a[1] <= short && Math.abs(b[2] - a[2]) >= 1 && Math.abs(b[2] - a[2]) <= 2 && Math.abs(b[3] - a[3]) <= 1)
       while (j < line.length && line[j][1] <= short && line[j][0] === line[j - 1][0] + line[j - 1][1] && line[j][2] === ((j - i) % 2 ? b[2] : a[2])) j++;
     if (j - i >= 4) {
       const last = line[j - 1];
       const low = a[2] < b[2] ? a : b;
       out.push([a[0], last[0] + last[1] - a[0], low[2], low[3]]);
-      trills++;
+      found.push({ on: a[0], signs: Math.abs(b[2] - a[2]) === 1 ? "t" : "T", notes: line.slice(i, j).map((n) => [n[0], n[1], n[2]]) });
       i = j;
     } else {
       out.push(a);
       i++;
     }
   }
-  return { line: out, trills };
+  return { line: out, trills: found.length, found };
 }
 
 /** A line one note at a time: the highest (or lowest) note at each onset, held until the next; one under a higher note still held (over a lower one) left out. */
@@ -298,6 +310,8 @@ export interface Read {
   bars: { n: number; on: number }[];
   meter: string;
   length: number;
+  /** D367: the trills of the lines offered, by voice: [voice, onset, sign, the edition's notes where it writes them out]. */
+  ornaments: [voice: number, on: number, signs: string, written?: [number, number, number][]][];
 }
 
 const scores = new Map<string, XmlScore>();
@@ -340,23 +354,41 @@ export function readMovement(c: Concerto, mv: Movement): Read {
       });
   const hs = mv.harpsichords ?? c.harpsichords;
   const n = hs.length;
-  const tops: Note[][] = [];
-  const basses: Note[][] = [];
+  const tops: ReturnType<typeof untrill>[] = [];
+  const basses: ReturnType<typeof untrill>[] = [];
   const inners: Note[][] = [];
   hs.forEach(([rh, lh]) => {
     const t = outline(take(rh), true);
     const b = outline(take(lh), false);
-    tops.push(untrill(t.line, TPQ).line);
-    basses.push(untrill(b.line, TPQ).line);
+    tops.push(untrill(t.line, TPQ));
+    basses.push(untrill(b.line, TPQ));
     inners.push(byOnset([...t.rest, ...b.rest]));
   });
   const voices: Note[][] = [];
   const names: string[] = [];
   const playable: number[] = [];
+  const ornaments: Read["ornaments"] = [];
+  // D367: the notes of a staff the edition marks with a trill sign, as "onset:MIDI" in the movement.
+  const signed = ([part, staff]: Src, octaves = 0) =>
+    new Set(
+      [...(x.parts[part]?.trills ?? [])]
+        .map((k) => k.split(":"))
+        .filter(([s]) => Number(s) === staff)
+        .map(([, on, pitch]) => `${Number(on) - from}:${parsePitch(pitch).midi + 12 * octaves}`),
+    );
+  // D367: a line's trills as signs on its notes: written out (the edition's notes kept for the band), or
+  // signed in the edition (BWV 1052's and 1056's scores: the band's realised by D353's rules).
+  const mark = (v: number, u: ReturnType<typeof untrill>, signs: Set<string>) => {
+    for (const t of u.found) ornaments.push([v, t.on, t.signs, t.notes]);
+    // A sign on a note the line holds less than a semiquaver (cut short by the outline) is left out.
+    for (const nn of u.line) if (nn[1] >= TPQ / 4 && signs.has(`${nn[0]}:${nn[2]}`) && !u.found.some((t) => t.on === nn[0])) ornaments.push([v, nn[0], "T"]);
+  };
   const who = (h: number) => (n === 1 ? "Harpsichord" : `Harpsichord ${ROMAN[h + 1]}`);
   for (let h = 0; h < n; h++) {
     playable.push(voices.length, voices.length + 1);
-    voices.push(tops[h], basses[h]);
+    mark(voices.length, tops[h], signed(hs[h][0]));
+    mark(voices.length + 1, basses[h], signed(hs[h][1]));
+    voices.push(tops[h].line, basses[h].line);
     names.push(`${who(h)}, right hand`, `${who(h)}, left hand`);
   }
   // One inner voice for each of one or two harpsichords; for three or four, one for all (fewer voices to sound).
@@ -369,15 +401,16 @@ export function readMovement(c: Concerto, mv: Movement): Read {
     voices.push(byOnset(inners.flat()));
     names.push("Harpsichords, inner notes");
   }
-  const lines = (mv.band ?? c.band).map(([name, src, oct]) => ({ name, notes: take(src, oct) }));
+  const lines = (mv.band ?? c.band).map(([name, src, oct]) => ({ name, notes: take(src, oct), signs: signed(src, oct) }));
   const v1 = lines.findIndex((l) => l.name === "Violin I");
   const v2 = lines.findIndex((l) => l.name === "Violin II");
   // Violin I one note at a time (its double stops' lower notes to Violin II).
   const o = outline(lines[v1].notes, true);
-  lines[v1].notes = mv.violin ? untrill(o.line, TPQ).line : o.line;
+  const vt = mv.violin ? untrill(o.line, TPQ) : null;
+  lines[v1].notes = vt ? vt.line : o.line;
   lines[v2].notes = byOnset([...lines[v2].notes, ...o.rest]);
   for (const [i, l] of lines.entries()) {
-    if (i === v1 && mv.violin) playable.push(voices.length);
+    if (i === v1 && vt) (playable.push(voices.length), mark(voices.length, vt, l.signs));
     voices.push(byOnset(l.notes));
     names.push(l.name);
   }
@@ -388,7 +421,7 @@ export function readMovement(c: Concerto, mv: Movement): Read {
   const firstLen = (ms[1]?.on ?? to) - ms[0].on;
   let bar = ms[0].implicit || firstLen < barLen || lead ? 0 : 1;
   const bars = ms.map((q, i) => ({ n: i === 0 ? bar : q.implicit ? bar : ++bar, on: i === 0 ? 0 : q.on - from }));
-  return { voices, voiceNames: names, playable, spell, spelled, bars, meter, length: to - from };
+  return { voices, voiceNames: names, playable, spell, spelled, bars, meter, length: to - from, ornaments };
 }
 
 const keyWords = (k: string) => `${k[0].toUpperCase()}${k.slice(1).replace("b", "♭").replace("#", "♯")} ${k[0] === k[0].toLowerCase() ? "minor" : "major"}`;
@@ -432,6 +465,8 @@ export function build(c: Concerto, i: number, number: number) {
     ...(c.reconstruction ? { reconstruction: c.reconstruction } : {}),
     credit: c.credit,
     source: c.page,
+    // D367: the written-out trills of the lines offered (src/touch/ornament-play.ts ornamentsOf).
+    ...(r.ornaments.length ? { ornaments: r.ornaments } : {}),
     // The first harpsichord's right hand offered first.
     defaultVoice: playable[0],
     playable,

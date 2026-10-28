@@ -16,7 +16,7 @@
  * (linear between two), monotonic, so the scroll follows the clock. Units: staff spaces of the full-size
  * staff.
  */
-import { beatOf, type TouchFugue } from "../fugue.ts";
+import { beatOf, writtenNotes, type TouchFugue } from "../fugue.ts";
 import { keySignature, spelled } from "./core.ts";
 
 /** Treble, bass, soprano clef, and the tenor's treble an octave down (D231). */
@@ -144,8 +144,9 @@ export function layoutStrip(f: TouchFugue, staves: StaffSpec[]): Strip {
     return bars[lo];
   };
 
-  // The events, voice by voice.
-  f.voices.forEach((notes, v) => {
+  // The events, voice by voice (D363: each with its band-only divisi, as the edition writes it).
+  f.voices.forEach((_, v) => {
+    const notes = writtenNotes(f, v);
     const staff = staffOf(v);
     const st = staves[staff];
     const k = st.voices.indexOf(v);

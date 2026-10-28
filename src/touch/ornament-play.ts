@@ -19,6 +19,8 @@ const ROWS = ornamentsData as unknown as Record<string, Row[]>;
 export interface Ornament {
   signs: string;
   graces: { kind: "q" | "Q"; midi: number }[];
+  /** D367: the edition's own notes for it, written out ([onset, length, MIDI] in ticks): sounded as written (realiseNote) where the game plays it; the player's shake still realised by D353's rules. */
+  written?: [number, number, number][];
 }
 
 const SHARPS = "FCGDAEB";
@@ -75,6 +77,8 @@ export function ornamentsOf(f: TouchFugue): Map<string, Ornament> {
     // D278: the tutorial's invention under its corpus name.
     for (const [v, on, , signs, graces] of ROWS[f.id] ?? ROWS[ALIAS[f.id] ?? ""] ?? [])
       m.set(`${v}:${on}`, { signs, graces: (graces ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi })) });
+    // D367: the piece's own (the harpsichord concertos' written-out trills, their notes as the edition writes them).
+    for (const [v, on, signs, written] of f.ornaments ?? []) m.set(`${v}:${on}`, { signs, graces: [], ...(written ? { written } : {}) });
     if (f.kind === "fugue") carrySubjectOrnaments(f, m);
     cache.set(f.id, m);
   }
@@ -123,6 +127,13 @@ export function ornamentMark(o: Ornament): string {
  * a minute); the last part is the main note, held to the note's end.
  */
 export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number, midi: number, prevMidi: number | undefined, bpm: number): [number, number, number][] {
+  // D367: written out in the edition: its own notes (within the note's span; the last held to its end).
+  if (o.written?.length) {
+    const end = on + dur;
+    const w = o.written.filter((p) => p[0] < end).map((p) => [p[0], Math.min(p[1], end - p[0]), p[2]] as [number, number, number]);
+    if (w.length) w[w.length - 1][1] = Math.max(1, end - w[w.length - 1][0]);
+    return w.length ? w : [[on, dur, midi]];
+  }
   const q = f.tpq;
   const steps = contextSteps(f, on, midi, o.signs);
   const nachschlag = /[TtO]/.test(o.signs) && !o.signs.includes("R") && nachschlagAt(f, on, midi, dur, bpm);
@@ -268,6 +279,14 @@ const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
  * their plain default (II/13: a whole-step trill on B sharp and on A sharp in F sharp major).
  */
 export function contextSteps(f: TouchFugue, on: number, midi: number, signs = ""): { stepAbove(m: number): number; stepBelow(m: number): number } {
+  const read = readSteps(f, on, midi, signs);
+  // D367: a trill the edition writes out (the concertos): its upper note as written (the player's shake too).
+  const w = f.ornaments?.find(([, o, , notes]) => o === on && notes?.some((p) => p[2] === midi))?.[3];
+  const up = w ? Math.max(...w.map((p) => p[2])) - midi : 0;
+  return up === 1 || up === 2 ? { stepAbove: () => up, stepBelow: read.stepBelow } : read;
+}
+
+function readSteps(f: TouchFugue, on: number, midi: number, signs: string): { stepAbove(m: number): number; stepBelow(m: number): number } {
   const sig = keySteps(signature(f.key));
   let step: number | null = null;
   for (const v of f.voices) for (const n of v) if (n[0] === on && n[2] === midi) step = n[3];

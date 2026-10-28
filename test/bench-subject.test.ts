@@ -1,7 +1,7 @@
 /** D214, SUBJECT: the player follows the subject through all of its entries, whichever voice. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fugueById, inBar, type TouchFugue } from "../src/touch/fugue.ts";
+import { everyNote, fugueById, inBar, type TouchFugue } from "../src/touch/fugue.ts";
 import { voicing, type Chip, type Voicing } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById, type EasyLevel } from "../src/bench/protos.ts";
@@ -69,7 +69,8 @@ test("D214, D217, SUBJECT: the player's notes are exactly the subject's under th
       const others = new Set(g.others.map((n) => `${n.voice}:${n.on}:${n.midi}`));
       assert.ok(mine.every((k) => !others.has(k)), `${id}: the player's notes are not scheduled in the accompaniment`);
       // Nothing lost: the player's notes and the accompaniment make the whole fugue from there.
-      const all = f.voices.reduce((a, v) => a + v.filter(([on]) => on >= from).length, 0);
+      // D363: the band-only voices' notes (a divisi) too, the band's.
+      const all = everyNote(f).filter(([on]) => on >= from).length;
       assert.equal(mine.length + g.others.length, all, `${id}: every note sounds once`);
       // The line in time; the entries take turns (a chord only within one entry's voice).
       assert.ok(g.notes.every((n, i) => i === 0 || g.notes[i - 1].on < n.on || (g.notes[i - 1].on === n.on && g.notes[i - 1].voice === n.voice)), `${id}: the entries take turns`);
@@ -241,7 +242,8 @@ test("D221: every Book I fugue's SUBJECT line is the stretto rule's (from the st
       const { g } = game(f, from);
       const [main, second] = g.tracks.map((t) => t.notes.map((n) => `${n.voice}:${n.on}:${n.midi}`));
       assert.deepEqual([[...main].sort(), [...second].sort()], expected(f, from), `${id} from ${share}`);
-      const all = f.voices.reduce((a, v) => a + v.filter(([on]) => on >= from).length, 0);
+      // D363: the band-only voices' notes (a divisi) too, the band's.
+      const all = everyNote(f).filter(([on]) => on >= from).length;
       assert.equal(main.length + second.length + g.others.length, all, `${id}: every note sounds once`);
     }
     const log: { midi: number; at: number; v: Voicing; lead: boolean }[] = [];
