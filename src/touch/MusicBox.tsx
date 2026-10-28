@@ -81,6 +81,83 @@ export function ladderGeometry(lo: number, hi: number, cssH: number): { yOf: (st
   return { yOf: (step) => (top + (hi + 1 - step) * rowH + rowH / 2) * PX, rowH: rowH * PX };
 }
 
+/**
+ * D353: an ornament as performed (proto-game.ts Performed): whose (the band's or the player's), its note
+ * (the voice, the staff step and pitch, its written end) and its notes as they sounded ([onset, length,
+ * MIDI] in ticks).
+ */
+export interface OverlayOrnament {
+  band: boolean;
+  voice: number;
+  step: number;
+  midi: number;
+  end: number;
+  parts: [number, number, number][];
+}
+
+/** D353: the overlay fades over this long (s) once its note has gone by. */
+export const OVERLAY_FADE_S = 1;
+
+/**
+ * D353, THE OVERLAY (the owner's design: "a performed ornament drawn as a translucent layer over the
+ * written melody, only when performed"): each realised note on the box's own rows (its staff step, a
+ * neighbour raised or lowered against the key as D332 draws it), from its onset for its length, only
+ * once it sounds; 60% of a block's height, centred on the row, in the voice's colour (gold for the
+ * player) at 60% opacity, no outline, stopping a pixel before the next; a note narrower than 3 px (a
+ * trill's) drawn instead as a 1 px line zig-zagging between the rows. The band's fainter and thinner
+ * (30%, on their thin bars). Once the note has gone by, it fades over OVERLAY_FADE_S.
+ */
+function paintOverlay(
+  g: CanvasRenderingContext2D,
+  fr: Frame,
+  b: { xOf: (t: number) => number; yOf: (s: number) => number; hOf: (s: number) => number; bh: number; w: number; lift: (step: number, midi: number) => number; gold: string },
+) {
+  for (const p of fr.performed ?? []) {
+    const fade = 1 - (fr.now - p.end) / (OVERLAY_FADE_S * fr.tps);
+    if (fade <= 0 || !p.parts.length) continue;
+    const shown = p.parts.filter((q) => q[0] <= fr.now);
+    if (!shown.length || b.xOf(shown[0][0]) > b.w || b.xOf(p.end) < 0) continue;
+    g.globalAlpha = Math.min(1, fade) * (p.band ? 0.3 : 0.6);
+    g.fillStyle = p.band ? inkOf(p.voice, fr.count) : b.gold;
+    const rowOf = (m: number) => p.step + Math.sign(m - p.midi);
+    const mid = (m: number) => {
+      const st = rowOf(m);
+      return b.yOf(st) - b.lift(st, m) + Math.floor((b.hOf(st) - 1) / 2);
+    };
+    let line: { x: number; y: number }[] = [];
+    const flush = () => {
+      for (let k = 1; k < line.length; k++) seg(g, line[k - 1].x, line[k - 1].y, line[k].x, line[k].y);
+      if (line.length === 1) g.fillRect(line[0].x, line[0].y, 1, 1);
+      line = [];
+    };
+    for (let k = 0; k < shown.length; k++) {
+      const [on, len, m] = shown[k];
+      const x1 = b.xOf(on);
+      const x2 = b.xOf(on + len);
+      const y = mid(m);
+      if (x2 - x1 < 3) {
+        line.push({ x: x1, y });
+        // The line runs on to this note's end where the next is a block or none has sounded yet.
+        const nx = shown[k + 1];
+        if (!nx || b.xOf(nx[0] + nx[1]) - b.xOf(nx[0]) >= 3) line.push({ x: Math.max(x1, x2 - 1), y });
+        continue;
+      }
+      if (line.length) (line.push({ x: x1, y }), flush());
+      const hh = b.hOf(rowOf(m));
+      const th = Math.max(1, Math.round(hh * (p.band ? 0.3 : 0.6)));
+      g.fillRect(x1, y - Math.floor((th - 1) / 2), Math.max(1, x2 - x1 - 1), th);
+    }
+    flush();
+  }
+  g.globalAlpha = 1;
+}
+
+/** A 1 px line from (x0, y0) to (x1, y1). */
+function seg(g: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number) {
+  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1);
+  for (let i = 0; i <= n; i++) g.fillRect(Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), 1, 1);
+}
+
 export interface Frame {
   /** The tick the ear is at. */
   now: number;
@@ -129,6 +206,8 @@ export interface Frame {
   zone?: "pleno" | "fuoco" | null;
   /** D205: each ornamented note's sign ("voice:onset" → "TR", "~|"…). */
   ornaments?: Map<string, string>;
+  /** D353: the ornaments performed (the player's, the band's), drawn over their notes as they sound (the overlay). */
+  performed?: OverlayOrnament[];
   /** D314: a line over the box (the ornament's first-time hint: "A SIGN OVER A NOTE: TOUCH IT, THEN SHAKE YOUR THUMB"). */
   banner?: string;
   /** D314: the reading's marks explained (a small legend) until this tick: the start of a round where marks appear. */
@@ -436,6 +515,9 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       }
     }
   }
+
+  // D353: the ornaments performed, over the written blocks (which stay as they are: the plain melody under).
+  if (fr.performed?.length) paintOverlay(g, fr, { xOf, yOf, hOf, bh, w, lift: (step, midi) => altOf(step, midi) * shift, gold: fx.gold });
 
   // LADDER on a computer: each coming note's key, a small pixel arrow over it (a dot: the same note).
   if (fr.arrows)
