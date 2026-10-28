@@ -45,6 +45,8 @@ export interface Run {
   /** D342, THE MANUAL: a drill's click (Options.click), the demonstration's manner (Options.demoStyle). */
   click?: { full: number; gone: number };
   demoStyle?: DemoManner;
+  /** D360 (Part V): the ornament's first-time hint (Options.ornHint: a guide thumb shaking as a sign comes). */
+  ornHint?: boolean;
   /** D359: THE MANUAL's practice room (Options.quiet). */
   quiet?: Options["quiet"];
 }

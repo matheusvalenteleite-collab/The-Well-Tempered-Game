@@ -78,9 +78,10 @@ export interface Options {
    * D359, THE MANUAL's practice room (lesson-only, never set by the game): the game's chatter is not drawn
    * (score, multiplier, combo, the legato chain, banners, embers, the right bar's live sheet, the fugue's
    * map, the ornaments' SHAKE prompts, the SOFT/STRONG hint, the articulation words): only the verdict,
-   * the lesson's own aid and the words of `words` (articulation flashes of those kinds) remain.
+   * the lesson's own aid and the words of `words` (articulation flashes of those kinds) remain; with
+ * `ornaments` (D360, Part V) the ornaments' SHAKE prompts too.
    */
-  quiet?: { words?: readonly ("legato" | "held" | "short" | "clean" | "rest")[] };
+  quiet?: { words?: readonly ("legato" | "held" | "short" | "clean" | "rest")[]; ornaments?: boolean };
 }
 
 /**

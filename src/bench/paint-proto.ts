@@ -1026,7 +1026,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         // guide thumb shaking on the bar and how ("TOUCH IT, THEN SHAKE YOUR THUMB").
         const orn = g.ornamentAt(0, nx.i);
         const sk = orn ? g.shakeAt(0, nx.i) : null;
-        if (orn && sk && !g.o.quiet) {
+        if (orn && sk && (!g.o.quiet || g.o.quiet.ornaments)) {
           const wob = Math.sin(performance.now() / 70) * 3;
           label(c, `${sk.word} · SHAKE`, s.x + bw / 2 + wob, sy + 17, t.gold, 7);
           if (g.ornHintOn) {

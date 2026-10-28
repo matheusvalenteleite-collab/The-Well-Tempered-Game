@@ -217,7 +217,8 @@ function meter(c: CanvasRenderingContext2D, w: number, h: number, bw: number, le
   const holds = lens.holds(16);
   const x0 = bw + 10;
   const mw = w - 2 * bw - 20;
-  const mh = 26;
+  // D359: tall enough for its three zones and their names (26 px stacked the names).
+  const mh = 44;
   // Above the box's legend (the voices' names, the last 30 px).
   const y0 = h - mh - 36;
   const yOf = (v: number) => y0 + mh - (Math.min(1.1, v) / 1.1) * mh;
@@ -232,7 +233,7 @@ function meter(c: CanvasRenderingContext2D, w: number, h: number, bw: number, le
   ] as const) {
     c.fillStyle = ink;
     c.fillRect(x0, yOf(to), mw, yOf(from) - yOf(to));
-    label(c, name, x0 + 4, (yOf(from) + yOf(to)) / 2, FAINT, 4, "left");
+    label(c, name, x0 + 4, (yOf(from) + yOf(to)) / 2, ask === name ? GOLD : FAINT, 4, "left");
   }
   // D360: the zone the take asks for, outlined.
   if (ask) {
@@ -272,7 +273,8 @@ function prepared(c: CanvasRenderingContext2D, w: number, h: number, bw: number,
     c.setLineDash?.([5, 3]);
     c.strokeRect(x + 3, s.y - 18, bw - 6, 36);
     c.setLineDash?.([]);
-    label(c, "PREPARED", x + bw / 2, s.y - 24, GOLD, 5);
+    // Inside the frame's corner (above it, the guide's LIFT stands; below it, the verdict).
+    label(c, "PREPARED", x + 7, s.y - 12, GOLD, 4, "left");
   }
   const rows = g.rows;
   for (const t of lens.tags) {

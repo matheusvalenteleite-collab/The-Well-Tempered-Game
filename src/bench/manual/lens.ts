@@ -88,6 +88,8 @@ export interface LensStats {
   dotted: { perfect: number; of: number };
   /** D359: the notes struck off the beat and sounding across the next (syncopes, ties): HELD of all. */
   ties: { held: number; of: number };
+  /** D360 (Part V): the written ornaments read from the thumb's shake (of those in the passage), the player's own graces, and their kinds. */
+  orn: { read: number; of: number; free: number; kinds: string[] };
 }
 
 const REPEAT_LIMIT_MS = 400;
@@ -152,6 +154,9 @@ export class LensTally {
   readonly tags: LiveTag[] = [];
   private readonly clock: () => number;
   private seen = { agogic: 0, breath: 0, broaden: 0 };
+  private readonly readShakes = new Set<number>();
+  private readonly shakeKinds: string[] = [];
+  private readonly freeShakes: string[] = [];
 
   constructor(g: ProtoGame, clock: () => number = () => (typeof performance !== "undefined" ? performance.now() : 0)) {
     this.g = g;
@@ -190,6 +195,11 @@ export class LensTally {
       }
       case "double":
         this.doubles++;
+        return;
+      case "shake":
+        if (e.ornament.startsWith("settled")) return;
+        if (e.free) this.freeShakes.push(e.ornament.toUpperCase());
+        else this.readShakes.add(e.i), this.shakeKinds.push(e.ornament.toUpperCase());
         return;
       case "prep":
         if (e.what === "rest") this.rests++, e.earlyMs !== undefined && this.earlyMs.push(e.earlyMs);
@@ -372,6 +382,7 @@ export class LensTally {
       graces: { ...g.graces },
       dotted: { perfect: dotPerfect, of: dotOf },
       ties: { held: tieHeld, of: tieOf },
+      orn: { read: this.readShakes.size, of: heads.filter(({ i }) => !!g.ornamentAt(0, i)).length, free: this.freeShakes.length, kinds: [...this.shakeKinds, ...this.freeShakes] },
     };
   }
 }

@@ -318,11 +318,11 @@ test("D342: the map: parts as chapters, the next lesson marked, locked parts off
   const { ManualMap } = await import("../src/bench/manual/ManualMap.tsx");
   await withStorage({}, async () => {
     const html = renderToStaticMarkup(createElement(ManualMap, { begin: () => {}, testOut: () => {}, close: () => {} }));
-    assert.equal(html.match(/data-lesson=/g)?.length, 25);
+    assert.equal(html.match(/data-lesson=/g)?.length, 29);
     assert.match(html, /id="lesson-0\.1" data-lesson="0\.1" class="tb-step next"/);
     assert.match(html, /id="lesson-II\.1"[^>]*disabled/);
     assert.match(html, /LOCKED · HOLD TO TEST OUT/);
-    assert.match(html, /0 OF 23 LESSONS/);
+    assert.match(html, /0 OF 27 LESSONS/);
     assert.match(html, /IN A LATER VERSION/);
   });
 });

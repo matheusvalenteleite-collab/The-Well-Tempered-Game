@@ -315,7 +315,7 @@ export function BenchApp() {
   const recRef = useRef<LabRecorder | null>(null);
   const manLesson: ManualLesson | undefined = man && man.mode !== "placement" ? lessonById(man.id) : undefined;
   const manMat: Material | undefined = man ? (man.mode === "placement" ? PLACEMENT.find((e) => e.id === man.place)?.m : man.alt && manLesson?.alt ? manLesson.alt : manLesson?.stages[man.stage]?.m) : undefined;
-  const manRun = manMat ? runOf(manMat, man?.mode === "hear" ? man.style : undefined, manLesson?.words) : undefined;
+  const manRun = manMat ? runOf(manMat, man?.mode === "hear" ? man.style : undefined, manLesson?.words, !!manLesson?.ornaments) : undefined;
   const run = lesson?.run ?? manRun;
   const f = fugueById(run?.piece ?? pick.piece);
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
@@ -542,7 +542,7 @@ export function BenchApp() {
     setPaused(false);
     // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click, the placement or TOOLS practice).
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}) } : {}), reading, ornHint: !run && !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -955,10 +955,10 @@ export function BenchApp() {
       const part = MANUAL_PARTS.find((p) => p.id === l.part);
       const sealed = !!l.checkpoint && !!part?.seal;
       const nextIn = next ? lessonById(next) : undefined;
-      const lines: Line[] = [...toldLine, ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : []), ...(sealed && !next ? [{ text: "Parts V–VIII come in a later version. My fugues are open to you now." }] : [])];
+      const lines: Line[] = [...toldLine, ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : []), ...(sealed && !next ? [{ text: "Parts VI–VIII come in a later version. My fugues are open to you now." }] : [])];
       return talk(mTitle(l), lines, {
         extra: sealed ? <Seal part={l.part} /> : sheet("play"),
-        choices: [...(next ? [{ label: nextIn && nextIn.part !== l.part ? "NEXT PART" : "NEXT LESSON", act: () => beginManual(next) }] : []), ...alt, { label: "THE MANUAL", act: toMap }],
+        choices: [...(next ? [{ label: sealed && nextIn && nextIn.part !== l.part ? "NEXT PART" : "NEXT LESSON", act: () => beginManual(next) }] : []), ...alt, { label: "THE MANUAL", act: toMap }],
       });
     }
     const tries = triesOf(s, l.id);

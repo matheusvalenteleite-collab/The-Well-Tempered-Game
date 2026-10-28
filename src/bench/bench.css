@@ -715,6 +715,9 @@
 .tb-step.next { border-color: var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; }
 .tb-step:disabled { opacity: 0.4; cursor: not-allowed; }
 .tb-step-n { color: var(--tg-muted); }
+/* D359: the manual's numbers (III.1, IV.6) need their own column (they ran into the titles). */
+.tb-manual .tb-step { grid-template-columns: 4.2em 1fr auto; }
+.tb-manual .tb-step-n { white-space: nowrap; }
 .tb-step-name small { display: block; margin-top: 4px; font-size: 6px; line-height: 1.5; color: var(--tg-muted); }
 
 /* D298: the SHEET mode: the box a white page (sheet-view.ts), its words in a book face, the count-in in ink. */

@@ -20,7 +20,7 @@ const fill = (c: Check) => tr(c.text, c.vars);
 /** After a take: what counted (with ✓ or ✗), what was shown, what is never judged. */
 export function LensSheet({ l, x, kind, st }: { l: ManualLesson; x: LensStats; kind: "drill" | "play"; st?: Stage }) {
   // D359: a drill's lines with nothing to measure are left out (they read as "0 OF 0").
-  const counts = (l.checks?.(x, st) ?? []).filter((c) => !(c.na && kind === "drill"));
+  const counts = (l.checks?.(x, st) ?? []).filter((c) => !c.na);
   const shown = l.shown?.(x, st) ?? [];
   return (
     <div className="tb-lens" id="lens-sheet" onClick={(e) => e.stopPropagation()}>

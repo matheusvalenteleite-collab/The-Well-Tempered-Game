@@ -70,7 +70,7 @@ export function ManualMap({ begin, testOut, close, store }: { begin: (id: string
         })}
         <section className="tb-manual-part later">
           <h3 className="tb-manual-part-head">
-            <span className="tb-manual-part-n">V–VIII</span>
+            <span className="tb-manual-part-n">VI–VIII</span>
             <span className="tb-manual-part-name">
               {tr("IN A LATER VERSION")}
               <small>{PARTS.filter((p) => p.phase === "later").map((p) => tr(p.english)).join(" · ")}</small>

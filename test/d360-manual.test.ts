@@ -26,7 +26,7 @@ function struck(st: Stage) {
 
 test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; checkpoints III.5 and IV.6; the map shows Parts 0–IV", () => {
   assert.deepEqual(PARTS_B.map((l) => l.id), ["III.1", "III.2", "III.3", "III.4", "III.5", "IV.1", "IV.2", "IV.3", "IV.4", "IV.5", "IV.6"]);
-  assert.deepEqual(BUILT.map((p) => p.id), ["0", "I", "II", "III", "IV"]);
+  assert.deepEqual(BUILT.map((p) => p.id), ["0", "I", "II", "III", "IV", "V"]);
   assert.equal(checkpointOf("III")!.id, "III.5");
   assert.equal(checkpointOf("IV")!.id, "IV.6");
   for (const l of PARTS_B) {
@@ -40,8 +40,10 @@ test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; c
   assert.deepEqual(Object.fromEntries(PARTS_B.map((l) => [l.id, l.sound])), { "III.1": "harpsichord", "III.2": "harpsichord", "III.3": "harpsichord", "III.4": "harpsichord", "III.5": "harpsichord", "IV.1": "organ", "IV.2": "harpsichord", "IV.3": "harpsichord", "IV.4": "organ", "IV.5": "piano", "IV.6": "organ" });
   assert.equal(lessonById("III.2")!.stages[0].m.sound, "chip", "III.2: the chip, then the harpsichord");
   // Every part built but Part 0 ends in a sealed checkpoint.
-  for (const p of PARTS.filter((q) => q.phase !== "later" && q.id !== "0")) assert.ok(p.seal && checkpointOf(p.id), p.id);
-  assert.equal(MANUAL.filter((l) => !l.screen).length, 23);
+  // Parts I–IV each end in a sealed checkpoint; Part V has none (design section 3: nothing waits on it).
+  for (const p of PARTS.filter((q) => ["I", "II", "III", "IV"].includes(q.id))) assert.ok(p.seal && checkpointOf(p.id), p.id);
+  assert.equal(checkpointOf("V"), undefined);
+  assert.equal(MANUAL.filter((l) => !l.screen).length, 27);
 });
 
 test("D360: each excerpt has the feature its lesson teaches", () => {
@@ -121,6 +123,35 @@ test("D359: every lesson in the practice room (Options.quiet), with only the wor
   for (const l of PLAYED) for (const st of l.stages) assert.deepEqual(runOf(st.m, undefined, l.words).quiet, { words: l.words ?? [] });
   assert.deepEqual(lessonById("I.4")!.words, ["held", "rest", "short"]);
   assert.equal(runOf(lessonById("III.3")!.stages[1].m).reading, "keller");
+});
+
+test("D360, Part V (on D353's contour gestures): the graces; no pass mark (decision 3); his shakes read on every written sign", () => {
+  const V = PLAYED.filter((l) => l.part === "V");
+  assert.deepEqual(V.map((l) => l.id), ["V.1", "V.2", "V.3", "V.4"]);
+  for (const l of V) {
+    assert.equal(l.checks, undefined, `${l.id}: passed by being played through`);
+    assert.ok(l.ornaments && l.stages.every((s) => s.say), l.id);
+    for (const st of l.stages) {
+      const r = runOf(st.m, undefined, l.words, l.ornaments);
+      assert.deepEqual(r.quiet, { words: [], ornaments: true }, `${l.id}: the SHAKE prompts kept in the practice room`);
+      assert.equal(r.ornHint, true);
+      assert.ok(stagePassed(l, st.kind, tapperRun(st.m, 7).lens!), `${l.id}: anyone passes (no pass mark)`);
+    }
+  }
+  // Each excerpt carries the written signs its lesson teaches, and his demonstration's shakes read every one.
+  const want: Record<string, number[]> = { "V.1": [1, 2], "V.2": [1, 3], "V.3": [1, 1, 1] };
+  for (const [id, counts] of Object.entries(want)) {
+    const l = lessonById(id)!;
+    l.stages.forEach((st, k) => {
+      const x = demoRun(st.m, "plain").lens!;
+      assert.equal(x.orn.of, counts[k], `${id} stage ${k}: written signs`);
+      assert.equal(x.orn.read, x.orn.of, `${id} stage ${k}: every sign read from his shake`);
+    });
+  }
+  assert.equal(lessonById("V.3")!.stages[2].m.sound, "organ", "V.3: the trill in the bass on the organ");
+  const v4 = lessonById("V.4")!;
+  assert.equal(v4.told!({ ...demoRun(v4.stages[1].m, "plain").lens!, orn: { read: 0, of: 0, free: 0, kinds: [] } })!.text, "None added. That too is a choice.");
+  assert.equal(v4.told!({ ...demoRun(v4.stages[1].m, "plain").lens!, orn: { read: 0, of: 0, free: 6, kinds: [] } })!.text, "Sparingly.");
 });
 
 test("D359: the coach names the bar and the way", () => {

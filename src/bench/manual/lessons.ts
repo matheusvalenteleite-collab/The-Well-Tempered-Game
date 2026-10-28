@@ -15,6 +15,10 @@
  * each stage (D359); he quotes only his own title pages; the later sources sit in each lesson's
  * SOURCES, never in his mouth.
  *
+ * D360 (Part V, on D353's contour gestures): the mordent, the short trill, the trill, free graces; no pass
+ * mark (the owner's decision 3): passed by being played through, what was read shown. The appoggiatura
+ * (the design's V.4) waits: it needs the Sinfonias' chunk and the owner's view on its gesture.
+ *
  * D359 (the audit): the organ lessons sound on the PIPE ORGAN (they had kept the retired sampled
  * organ's id, which opens as the harpsichord); every lesson is played in THE MANUAL's practice room
  * (Options.quiet: none of the game's chatter, only the lesson's aid and the words it is about); each
@@ -99,6 +103,8 @@ export interface ManualLesson {
   /** HEAR: his demonstration of a stage (the last by default), in one or more manners, one after the other. */
   hear?: { stage?: number; styles: DemoStyle[] };
   aids: AidId[];
+  /** D360 (Part V): the ornaments' SHAKE prompts and first-time hint kept in the practice room. */
+  ornaments?: boolean;
   /** D359: the articulation words the practice room still calls (Options.quiet.words). */
   words?: NonNullable<Options["quiet"]>["words"];
   /** The guide thumbs (D280: the thumb the next note wants, hovering where it lands) while the player plays. */
@@ -130,6 +136,8 @@ const meanWithin = (x: LensStats, ms: number): Check => ({ text: "MEAN TIMING {m
 const perfectLine = (x: LensStats): Check => ({ text: "PERFECT {p}% · SPREAD {s} MS", vars: { p: pctOf(x.timing.perfect, x.timing.n), s: x.timing.sd }, ok: true });
 const consistency = (x: LensStats, share = 0.7): Check => ({ text: "TOUCH KEPT {p}% (AIM {a}%)", vars: { p: pctOf(x.touch.ok, x.touch.of), a: Math.round(100 * share) }, ok: atLeast(x.touch.ok, x.touch.of, share), na: !x.touch.of, fix: C.fixConsistency(x) });
 const touchLine = (x: LensStats): Check => ({ text: "YOUR TOUCH: {t}", vars: { t: x.touch.style ?? "—" }, ok: true });
+/** D360 (Part V): the written signs read from the shake, of those in the passage; the player's own. */
+const graceLine = (x: LensStats): Check => ({ text: "SIGNS READ {n} OF {m} · YOUR OWN {f}", vars: { n: x.orn.read, m: x.orn.of, f: x.orn.free }, ok: true });
 
 /** A passage of the game's own, as a material. */
 const ex = (piece: string, voice: number, fromBar: number, toBar: number, tempo: Material["tempo"], label: string, o: Partial<Material> = {}): Material => ({ piece, voice, fromBar, toBar, tempo, label, badge: "IN GAME", ...o });
@@ -150,7 +158,7 @@ export const PARTS: { id: PartId; title: string; english: string; phase: "A" | "
   { id: "II", title: "ZWEI DAUMEN", english: "TWO THUMBS", phase: "A", seal: "Two thumbs, one voice. Next: how each note is spoken." },
   { id: "III", title: "DER VORTRAG DER NOTEN", english: "TOUCH AND ARTICULATION", phase: "B", seal: "Spoken, and kept. Next: where the music breathes." },
   { id: "IV", title: "ZEIT UND ATEM", english: "TIME AND BREATH", phase: "B", seal: "Time and breath are yours. My fugues are waiting." },
-  { id: "V", title: "DIE MANIEREN", english: "THE GRACES", phase: "later" },
+  { id: "V", title: "DIE MANIEREN", english: "THE GRACES", phase: "B" },
   { id: "VI", title: "DAS HÖREN", english: "LISTENING", phase: "later" },
   { id: "VII", title: "DIE INSTRUMENTE", english: "THE FOUR INSTRUMENTS", phase: "later" },
   { id: "VIII", title: "DER VORTRAG", english: "PLAYING MUSIC", phase: "later" },
@@ -750,6 +758,100 @@ export const MANUAL: ManualLesson[] = [
     told: (x) => (x.graces.breath > 0 ? { text: "I heard you breathe where a singer would." } : x.graces.agogic > 0 ? { text: "I heard you lean, and come back." } : x.ties.of && x.ties.held === x.ties.of ? { text: "Your ties held while the others moved." } : { text: "The line was yours, from first note to last." }),
     checkpoint: true,
   },
+  // PART V · DIE MANIEREN · THE GRACES (D360, on D353's contour gestures). The owner's decision 3: unscored
+  // skills have no pass mark: each lesson is passed by being played through; what was read is shown.
+  {
+    id: "V.1",
+    part: "V",
+    title: "DER MORDANT",
+    english: "THE MORDENT",
+    minutes: 4,
+    sound: "harpsichord",
+    aim: "Touch the note, then down and back.",
+    hear: { styles: ["plain"] },
+    aids: [],
+    ornaments: true,
+    stages: [
+      st("drill", ex("wtc2f01", 1, 1, 2, { pct: 70 }, "Fugue II/1 in C major, alto, bars 1–2, at 70%"), "One mordent, on the A. Touch it, then a small quick shake: down, and back."),
+      st("play", ex(INV, RH, 1, 2, { bpm: 60 }, "Invention 1, right hand, bars 1–2: two mordents"), "My Invention's two mordents: on the B, then on the F."),
+    ],
+    lens: { counts: ["Nothing: played through is passed"], shown: ["The graces read"], never: ["In the game's score"] },
+    shown: (x): Check[] => [graceLine(x)],
+    before: ["Down and back, quick as a glance."],
+    after: ["So. The sign is a word, and you said it."],
+    again: ["Touch the note, then shake small and quick: down first."],
+    told: (x) => (x.orn.of && x.orn.read < x.orn.of ? { text: "Not every sign was read. Touch the note, then shake small and quick, down first." } : null),
+    sources: ["J. S. Bach, Clavier-Büchlein vor Wilhelm Friedemann Bach (1720): the Explication, the mordent.", "C. P. E. Bach, Versuch (1753), I, ch. 2, sect. 5: the mordent."],
+  },
+  {
+    id: "V.2",
+    part: "V",
+    title: "DER PRALLTRILLER",
+    english: "THE SHORT TRILL",
+    minutes: 4,
+    sound: "harpsichord",
+    aim: "Up and back, snapped, before a falling step.",
+    hear: { styles: ["plain"] },
+    aids: [],
+    ornaments: true,
+    stages: [
+      st("drill", ex("wtc1f13", 0, 1, 2, { pct: 100 }, "Fugue I/13 in F♯ major, soprano, bars 1–2"), "The sign on the C♯: up and back, snapped, then on."),
+      st("play", ex("wtc2f13", 0, 24, 26, { pct: 70 }, "Fugue II/13 in F♯ major, soprano, bars 24–26, at 70%"), "Three in a falling line, each before a step down."),
+    ],
+    lens: { counts: ["Nothing: played through is passed"], shown: ["The graces read"], never: ["In the game's score"] },
+    shown: (x): Check[] => [graceLine(x)],
+    before: ["A flick upward, and down to the next."],
+    after: ["Gut. Snapped, and gone."],
+    again: ["Up first, quick, then let the note fall to the next."],
+    told: (x) => (x.orn.of && x.orn.read < x.orn.of ? { text: "Not every sign was read. Touch the note, then a quick small flick up and back." } : null),
+    sources: ["C. P. E. Bach, Versuch (1753), I, ch. 2, sect. 3, §§30–34: the Pralltriller, before a falling second."],
+  },
+  {
+    id: "V.3",
+    part: "V",
+    title: "DER TRILLER",
+    english: "THE TRILL",
+    minutes: 4,
+    sound: "harpsichord",
+    aim: "A trill from above, lasting as long as you want, and settling when you stop.",
+    hear: { styles: ["plain"] },
+    aids: [],
+    ornaments: true,
+    stages: [
+      st("drill", ex("wtc1f06", 0, 1, 3, { pct: 100 }, "Fugue I/6 in D minor, soprano, bars 1–3"), "The trill on the G: shake, and keep shaking while the note lasts."),
+      st("drill", ex("wtc1f15", 0, 67, 69, { pct: 100 }, "Fugue I/15 in G major, soprano, bars 67–69: the cadence trill"), "A cadence trill of five beats. When you stop, it settles."),
+      st("play", ex("wtc2f18", 2, 29, 31, { pct: 100 }, "Fugue II/18 in G♯ minor, bass, bars 29–31, on the organ", { sound: "organ" }), "A whole bar's trill in the bass, on the organ."),
+    ],
+    lens: { counts: ["Nothing: played through is passed"], shown: ["The graces read"], never: ["In the game's score", "The trill's speed"] },
+    shown: (x): Check[] => [graceLine(x)],
+    before: ["Begin above. Shake as long as the note asks.", "Stop, and it rests."],
+    after: ["So. It began above, and it came to rest."],
+    again: ["Keep the shake going while the note lasts."],
+    told: (x) => (x.orn.of && x.orn.read < x.orn.of ? { text: "Not every sign was read. Shake small and quick, and keep going." } : null),
+    sources: ["J. S. Bach, Clavier-Büchlein (1720): the Explication, the trill.", "C. P. E. Bach, Versuch (1753), I, ch. 2, sect. 3, §§5, 13, 16, 21: from the upper note; its ending."],
+  },
+  {
+    id: "V.4",
+    part: "V",
+    title: "FREIE MANIEREN",
+    english: "FREE GRACES, AND TASTE",
+    minutes: 4,
+    sound: "harpsichord",
+    aim: "To add a grace of your own where it serves, and not elsewhere.",
+    aids: [],
+    ornaments: true,
+    stages: [
+      st("drill", ex(INV, RH, 5, 7, { bpm: 60 }, "Invention 1, right hand, bars 5–7"), "Before the cadence in G, a trill of your own, if you like."),
+      st("play", ex("wtc1f22", 0, 1, 13, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano I, bars 1–13, on the harpsichord"), "One or two graces of your choice, on long notes. Or none."),
+    ],
+    lens: { counts: ["Nothing: played through is passed"], shown: ["Your own graces"], never: ["In the game's score"] },
+    shown: (x): Check[] => [{ text: "YOUR OWN GRACES {n}", vars: { n: x.orn.free }, ok: true }],
+    before: ["Where I wrote a sign, play it; elsewhere a grace is your choice, sparingly."],
+    after: ["Your taste, not mine. That is the point."],
+    again: ["Sparingly."],
+    told: (x) => (x.orn.free === 0 ? { text: "None added. That too is a choice." } : x.orn.free > 3 ? { text: "Sparingly." } : { text: "You added {n}. Sparingly is right.", vars: { n: x.orn.free } }),
+    sources: ["J. A. Scheibe, Der critische Musikus (1737): Bach criticised for writing out the graces players usually improvised."],
+  },
 ];
 
 export const lessonById = (id: string): ManualLesson | undefined => MANUAL.find((l) => l.id === id);
@@ -778,6 +880,8 @@ export function stagePassed(l: ManualLesson, kind: Stage["kind"], x: LensStats, 
 /** D359: what Herr Bach says when a take falls short: the first unmet line's fix, else the lesson's own line. */
 export function fixFor(l: ManualLesson, x: LensStats, k?: number): Said | null {
   const s = k === undefined ? undefined : l.stages[k];
+  // When most notes went astray, the notes first (a lean or a breath is not the point yet).
+  if (l.checks && x.of > 0 && x.accuracy < 0.6) return C.fixRight(x);
   const miss = (l.checks?.(x, s) ?? []).find((c) => !c.ok && !c.na && c.fix);
   return miss?.fix ?? null;
 }
@@ -809,7 +913,7 @@ export function manualTexts(): string[] {
   for (const l of MANUAL) {
     out.push(l.english, l.aim, ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
     if (l.alt) out.push(l.alt.label);
-    for (const x of [...xs, { ...ZERO_LENS, graces: { agogic: 1, breath: 0, broaden: 0, revoked: 0 } }, { ...ZERO_LENS, graces: { agogic: 0, breath: 1, broaden: 0, revoked: 0 } }])
+    for (const x of [...xs, { ...ZERO_LENS, graces: { agogic: 1, breath: 0, broaden: 0, revoked: 0 } }, { ...ZERO_LENS, graces: { agogic: 0, breath: 1, broaden: 0, revoked: 0 } }, ...[0, 1, 2, 5].map((free) => ({ ...ZERO_LENS, orn: { read: 0, of: 2, free, kinds: [] } }))])
       for (const s of [undefined, ...l.stages]) {
         out.push(...[...(l.checks?.(x, s) ?? []), ...(l.shown?.(x, s) ?? [])].map((c) => c.text));
         const t = l.told?.(x);
@@ -845,7 +949,8 @@ export const MANUAL_FLOW = [
   "THE LEFT HAND INSTEAD",
   "PART {p} · SEALED",
   "THE MANUAL · PARTS 0–IV",
-  "Parts V–VIII come in a later version. My fugues are open to you now.",
+  "Parts VI–VIII come in a later version. My fugues are open to you now.",
+  "THE MANUAL · PARTS 0–V",
 ];
 
 /** A take with nothing in it (the figures' shape, for the texts' check). */
@@ -872,13 +977,14 @@ export const ZERO_LENS: LensStats = {
   graces: { agogic: 0, breath: 0, broaden: 0, revoked: 0 },
   dotted: { perfect: 0, of: 0 },
   ties: { held: 0, of: 0 },
+  orn: { read: 0, of: 0, free: 0, kinds: [] },
 };
 
 /** "{n} min" etc.: a lesson's line on the map. */
 export const lessonMeta = (l: ManualLesson) => `${l.minutes} MIN${l.sound ? ` · ${tr(SOUND_WORD[l.sound])}` : ""}`;
 
 /** A material as the game's run (lessons.ts Run): LADDER, no crowd, the drill's click, the demonstration's manner, the reading, the practice room. */
-export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["words"]): Run {
+export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["words"], ornaments = false): Run {
   const { from, until } = spanOf(m);
   const d = Object.values(DRILLS).find((x) => x.id === m.piece);
   return {
@@ -895,6 +1001,7 @@ export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["
     ...(d?.click ? { click: d.click } : {}),
     ...(demoStyle && demoStyle !== "plain" ? { demoStyle } : {}),
     ...(m.reading ? { reading: m.reading } : {}),
-    quiet: { words: words ?? [] },
+    quiet: { words: words ?? [], ...(ornaments ? { ornaments: true } : {}) },
+    ...(ornaments ? { ornHint: true } : {}),
   };
 }
