@@ -65,6 +65,8 @@ export const PT: Record<string, string> = {
   PLAY: "TOCAR",
   "HOW TO PLAY": "COMO JOGAR",
   "FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND": "TERMINE COM A OU S PARA ESCOLHER OUTRO SOM",
+  // D355: the pop-up's hint where the sound has a colour plan for the piece.
+  "THIS SOUND HAS ITS OWN COLOURS HERE": "ESTE SOM TEM CORES PRÓPRIAS AQUI",
   // D303: the sound dropdown's groups.
   "THIS PIECE": "ESTA PEÇA",
   "INSTRUMENTS": "INSTRUMENTOS",

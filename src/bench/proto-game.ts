@@ -74,6 +74,7 @@ import { PATCHES, preset } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
+import { colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
@@ -535,6 +536,11 @@ export class ProtoGame {
     this.subj = new SubjectSound(f);
     this.o = o;
     this.chip = chip;
+    // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
+    if (!o.her) {
+      if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
+      else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
+    }
     if (chip.coupling) chip.coupling = { up: 0, down: 0, split: 48 };
     const b = beatOf(f);
     this.beat = b.ticks;
@@ -1086,6 +1092,8 @@ export class ProtoGame {
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
       if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
+      // D355: the band's colour where the note starts (colour.ts).
+      const cl = this.colour?.at(n.on, n.voice) ?? null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
         const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
         const last = q === parts.length - 1;
@@ -1093,7 +1101,7 @@ export class ProtoGame {
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
         // D339: the piano's colour by its level (Play.vel) on every part.
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}) };
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0), vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0), vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1), ...(cl ? { colour: cl } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
@@ -3973,6 +3981,8 @@ export class ProtoGame {
 
   /** D213: the subject's sound (the cues, the fugue's effect, the LAB switches as the game began). */
   readonly subj: SubjectSound;
+  /** D355: the piece's colour plan for the sound playing (colour.ts), null where it has none. */
+  colour: ColourPlan | null = null;
   /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */
   readonly ornaments: Map<string, Ornament>;
   private lastOther = new Map<number, number>();

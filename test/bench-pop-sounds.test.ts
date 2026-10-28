@@ -22,7 +22,8 @@ test("D246: every piece has its own sound, a real preset; the player's choice fo
   }
   // D249: the organ withdrawn: no piece opens on it, and a stored choice of it opens on the harpsichord.
   assert.ok(!Object.values(PIECE_SOUND).includes("organSampled"), "no piece on the organ");
-  assert.equal(soundFor("wtc1f22", {}, "bossa"), "chip", "D288");
+  // D355: each fugue its own sound again (tools/touch/colour-plans): I/22 sung.
+  assert.equal(soundFor("wtc1f22", {}, "bossa"), "soloVoices", "D355");
   assert.equal(soundFor("wtc1f07", { wtc1f07: "clarinetTrio" }, "bossa"), "chip", "D288: a stored ensemble plays chip");
   assert.equal(soundFor("wtc2f22", { wtc2f22: "organSampled" }, "bossa"), "harpsichordSampled");
   assert.equal(soundFor("wtc1f22", { wtc1f22: "analog" }, "harpsichordSampled"), "analog");
@@ -40,11 +41,11 @@ test("D246: the pop-up's row holds the piece's own sound, marked", async () => {
   const p4 = popSounds("wtc1p04");
   assert.equal(p4.length, 15, "D304: the five and the ten");
   assert.deepEqual(p4.filter(([, , own]) => own).map(([id]) => id), ["chip"]);
-  // D288: a fugue's own sound is classic chip: marked.
+  // D355: a fugue's own sound (I/22: SOLO VOICES) marked.
   const antico = popSounds("wtc1f22");
   assert.equal(antico.length, 15);
-  assert.equal(antico[0][0], "chip");
-  assert.deepEqual(antico.filter(([, , own]) => own).map(([id]) => id), ["chip"]);
+  assert.equal(antico[0][0], "chip", "the row in its order");
+  assert.deepEqual(antico.filter(([, , own]) => own).map(([id]) => id), ["soloVoices"]);
   assert.ok(antico.every(([id]) => id !== "organSampled"));
   const harp = popSounds("wtc1p01");
   assert.equal(harp.length, 15);

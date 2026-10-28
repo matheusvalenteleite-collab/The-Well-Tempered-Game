@@ -10,6 +10,7 @@ import { ORGAN_SEND, PATCHES, patchFor, placeFor, presetById, PRESETS, sampledNo
 import { BAKE_RATE, bake, BUDGET, decodedBytes, folderOf, noteInfo, PERIOD, planFor, SAMPLED, setFor, WIND_LOOP } from "../src/touch/sampled.ts";
 import { Chip, HALL, REVERBS, SPC_ECHO, stairCurve, voicing } from "../src/touch/chip.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
+import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 import { styleOf } from "../src/touch/phrasing.ts";
 import { fugueById, PIECES } from "../src/touch/fugue.ts";
 
@@ -26,7 +27,8 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   assert.deepEqual(PRESETS.slice(5).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
   for (const id of NEW) {
     // D340: but the MORE BACH and CHORALES tabs' asked-for exceptions (the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT). D348: and the harpsichord concertos.
-    assert.ok(!Object.entries(PIECE_SOUND).some(([p, s]) => s === id && !/^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/.test(p)), id);
+    // D355: and the pieces given a sound of their own (tools/touch/colour-plans).
+    assert.ok(!Object.entries(PIECE_SOUND).some(([p, s]) => s === id && !COLOURS[p] && !/^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/.test(p)), id);
     // D305: VOCAL SYNTH sung as singers sing.
     // D309: PIPE ORGAN the organ's way, SOLO VOICES the singers' legato.
     assert.equal(styleOf(id), id === "vocalSynth" ? "sung" : id === "chamberOrgan" ? "organ" : id === "soloVoices" ? "solo" : "plain");

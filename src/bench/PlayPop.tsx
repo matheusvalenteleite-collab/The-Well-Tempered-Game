@@ -15,6 +15,7 @@ import { SoundSelect } from "./SoundSelect.tsx";
 import { fugueOf, isPrelude } from "./stages.ts";
 import { markLegend } from "../touch/readings.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
+import { coloursLoaded, hasColours, loadColours } from "../touch/colour.ts";
 import type { RuleLevels } from "./lite.ts";
 
 /** D344: HOW TO PLAY's three levels, in order (pt BÁSICO / INTERMEDIÁRIO / AVANÇADO, es BÁSICO / INTERMEDIO / AVANZADO). */
@@ -77,6 +78,12 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
   const f = fugueById(id);
   // D239: ? HOW TO PLAY: the mode's rules, folded under PLAY.
   const [help, setHelp] = useState(false);
+  // D355: whether the sound has its own colours in this piece (the plans load on demand).
+  const [, setPlans] = useState(coloursLoaded());
+  useEffect(() => {
+    if (!coloursLoaded()) void loadColours().then(setPlans, () => {});
+  }, []);
+  const colours = sound !== undefined && hasColours(id, sound);
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.code !== "Escape") return;
@@ -161,6 +168,12 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
               ) : null,
             )}
           </div>
+        )}
+        {colours && (
+          // D355: the sound's own colour plan for this piece (colour.ts): a hint, so a piece is worth trying again in another sound.
+          <p className="tb-pop-lock tb-pop-colours" id="pop-colours">
+            ♪ {tr("THIS SOUND HAS ITS OWN COLOURS HERE")}
+          </p>
         )}
         {sound !== undefined && plain && creditFor(sound) && (
           <p className="tb-pop-lock" id="pop-credit">
