@@ -896,4 +896,6 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-pop-tempo:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
 .tb-pop-tempo b { font-weight: 400; color: var(--tg-shine); }
 .tb-pop-tempo-k, .tb-pop-tempo-v { color: var(--tg-muted); font-size: 8px; }
+/* D356: a WTC fugue's hint (an A opens its tempo), quiet; the result's tempo line. */
+.tb-pop-tempo-hint { margin: 6px 0 0; font-size: 8px; color: var(--tg-muted); }
 .tb-pop-recon { color: #e8c94a; }

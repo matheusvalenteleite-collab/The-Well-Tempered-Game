@@ -169,6 +169,13 @@ export const GAP_BEATS = 0.4;
 export const OVERLAP_S = 0.03;
 /** D339: a table's gap varied by up to this share either way, fixed per note (practice.ts noteHash). */
 export const ART_SPREAD = 0.15;
+/**
+ * D349, PIPE ORGAN: an organist's ensemble: the manual's voices speak together (no note's own scatter:
+ * one player's hands on one wind), each gap varied a third as much (a release is an organist's one
+ * control, kept even), the phrase's shaped time half the others' (RUBATO: an organ's tone does not
+ * decay to shape a line, and the church carries it).
+ */
+export const ORGAN_ENSEMBLE = { spread: 0.05, rubato: 0.5 } as const;
 /** D302: a reading's marks on a fugue's notes: "voice:onset" to the reading's note (readings.ts readingMarks). */
 export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean | null }>;
 
@@ -272,12 +279,14 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
   const overS: number[] = [];
   // D339: the band's time shaped (RUBATO), where the piece's phrases are known (phraseContext); none for a bare list.
   const scoreOns = score.length ? score.map((x) => x.on) : [0];
-  const rb = art.bar !== undefined && art.cadences !== undefined && notes.length ? rubato({ first: Math.min(...scoreOns), lastOn: Math.max(...scoreOns), cadences: art.cadences, bar: art.bar, beat }) : null;
+  const rb0 = art.bar !== undefined && art.cadences !== undefined && notes.length ? rubato({ first: Math.min(...scoreOns), lastOn: Math.max(...scoreOns), cadences: art.cadences, bar: art.bar, beat }) : null;
+  const organ = style === "organ";
+  const rb = rb0 && organ ? (t: number) => rb0(t) * ORGAN_ENSEMBLE.rubato : rb0;
   const shapes: Shape[] = plain.map((sh, i) => {
     const n = notes[i];
     const j = nexts.get(i);
     const after = j === undefined ? undefined : notes[j];
-    let nudge = sh.nudge;
+    let nudge = organ ? 0 : sh.nudge;
     let level = sh.level;
     if (T) {
       const h = Math.sin(n.on * 12.9898 + n.midi * 78.233 + n.voice * 37.719) * 43758.5453;
@@ -337,7 +346,7 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
         } else {
           a = "nonlegato";
           // D339: no two gaps alike (±15%, fixed per note): a player's hand, not a sewing machine.
-          hold = gapped(d.gap * (1 + ART_SPREAD * noteHash(n.on, n.midi, n.voice, 2)));
+          hold = gapped(d.gap * (1 + (organ ? ORGAN_ENSEMBLE.spread : ART_SPREAD) * noteHash(n.on, n.midi, n.voice, 2)));
         }
       }
     }
