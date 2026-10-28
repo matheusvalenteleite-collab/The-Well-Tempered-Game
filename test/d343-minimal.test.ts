@@ -27,7 +27,7 @@ test("D343: the passphrase is checked by its SHA-256 (trimmed, lower-cased); onl
   assert.equal(await passMatches(phrase), false, "the test phrase is not the passphrase");
   // The field: the hash compared, the device unlocked and reloaded only on a match; a wrong input closes silently.
   const secret = src("src/bench/Secret.tsx");
-  assert.match(secret, /const ok = await passMatches\(text\);\s*close\(\);\s*if \(!ok\) return;\s*setUnlocked\(true\);\s*window\.location\.reload\(\);/);
+  assert.match(secret, /const act = await secretAction\(text\);\s*close\(\);\s*if \(!act\) return;\s*setUnlocked\(act === "unlock"\);\s*window\.location\.reload\(\);/);
 });
 
 test("D343: seven taps within three seconds open the field; slower taps never do", async () => {
