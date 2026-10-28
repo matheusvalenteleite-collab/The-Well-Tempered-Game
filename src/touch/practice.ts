@@ -290,19 +290,57 @@ export function suspensions(score: readonly ScoreNote[], beat: number, inBar: (t
   return { dissonance, resolution };
 }
 
-/** §6.6, the piano's terms (dB). */
+/**
+ * §6.6, the piano's terms (dB). D339 (WTC 1.53): wider, after the pianists themselves: in ASAP's 84
+ * performances of 29 WTC fugues (MAESTRO's Disklavier velocities, measured for D339) a note's velocity
+ * varies with a standard deviation of 11 MIDI units (the median performance; 10-12 between the
+ * quartiles), the bars' means by 6.8; an onset's highest note is 8.4 units over its lowest; a beat only
+ * 1.2 over the notes between. At roughly 0.3 dB a unit (an assumption: velocity-to-level curves differ
+ * by piano) that is 3.3 dB a note, 2 dB a bar, 2.5 top to bottom: D309's terms gave 0.95 dB a note, a
+ * third of it. So: the arcs twice as deep (-3 → +3 at 62% → -1), the register ±1.25, the contour
+ * 2.5 dB an octave on top (within ±2), a melodic peak (higher than both its neighbours in its voice) +0.5 (KTH's
+ * "high loud"), the downbeat +0.5 (the other beats +0.4), a fixed unevenness of ±1.2 dB a note (no two
+ * notes struck alike: the rule system's "noise"; Friberg, Bresin and Sundberg 2006), the limit ±6.
+ */
 export const DYN = {
-  register: 1,
-  contour: [1.2, 0.6, 0] as const,
-  contourClamp: 1,
-  metric: { beat: 0.3, sub: -0.3 },
-  arc: { from: -1.5, peak: 1.5, at: 0.65, to: -0.5, minBars: 2 },
-  tension: { dissonance: 0.6, resolution: -0.4 },
-  ending: { db: 1.5, bars: 2 },
-  limit: 4,
+  register: 1.25,
+  contour: [2.5, 1.2, 0.3] as const,
+  contourClamp: 2,
+  metric: { downbeat: 0.5, beat: 0.4, sub: -0.4 },
+  arc: { from: -3, peak: 3, at: 0.62, to: -1, minBars: 2 },
+  peak: 0.5,
+  noise: 1.2,
+  tension: { dissonance: 0.9, resolution: -0.6 },
+  ending: { db: 2, bars: 2 },
+  limit: 6,
   /** The soft recording below this (dB): sampled.ts SAMPLED.piano.soft.below. */
   soft: -1.5,
 } as const;
+
+/** D339: a fixed number in [-1, 1) for a note (the same every run): the rule system's noise without randomness. */
+export function noteHash(on: number, midi: number, voice: number, salt = 0): number {
+  const h = Math.sin(on * 12.9898 + midi * 78.233 + voice * 37.719 + salt * 4.1414) * 43758.5453;
+  return (h - Math.floor(h)) * 2 - 1;
+}
+
+/**
+ * D309, D339: the phrases' bounds (ticks): the perfect and imperfect cadences' arrivals (fugue.ts
+ * cadences), a segment shorter than `minBars` merged with the next, the last onset the last bound. The
+ * piano's dynamic arcs and every sound's timing arcs (phrasing.ts rubato) share them.
+ */
+export function phraseBounds(first: number, lastOn: number, cadences: readonly { on: number; kind?: string }[] | undefined, bar: number, minBars: number = DYN.arc.minBars): number[] {
+  const cads = [...new Set((cadences ?? []).filter((c) => !c.kind || c.kind === "perfect" || c.kind === "imperfect").map((c) => c.on))].filter((t) => t > first && t < lastOn).sort((a, b) => a - b);
+  const bounds: number[] = [];
+  let prev = first;
+  for (const c of cads) {
+    if (c - prev < minBars * bar) continue;
+    bounds.push(c);
+    prev = c;
+  }
+  if (bounds.length && lastOn - bounds[bounds.length - 1] < minBars * bar) bounds.pop();
+  bounds.push(lastOn);
+  return bounds;
+}
 
 /** The arc's value at x (0..1) through a segment: -1.5 rising to +1.5 at 0.65, falling to -0.5 at its cadence. */
 export function arcAt(x: number): number {
@@ -315,7 +353,7 @@ export function arcAt(x: number): number {
  * onset (the highest note sounding +1, the lowest -1), contour against its voice's median pitch, the
  * metre, phrase arcs between cadences (perfect and imperfect: fugue.ts cadences; shorter than two
  * bars merged with the next), a suspension's tension and release, the last two bars' rise; soft-limited
- * to ±4 dB. Keys "voice:on:midi". No term knows which voice has the subject or what the player does.
+ * to ±4 dB (D339: ±6, and a melodic peak and a fixed unevenness). Keys "voice:on:midi". No term knows which voice has the subject or what the player does.
  */
 export function pianoLevels(score: readonly ScoreNote[], o: { beat: number; inBar: (t: number) => number; bar: number; cadences?: readonly { on: number; kind?: string }[]; harmony?: { dissonance: Set<string>; resolution: Set<string> } }): Map<string, number> {
   const out = new Map<string, number>();
@@ -332,16 +370,7 @@ export function pianoLevels(score: readonly ScoreNote[], o: { beat: number; inBa
   const first = Math.min(...score.map((n) => n.on));
   const lastOn = Math.max(...score.map((n) => n.on));
   // The arcs' boundaries: the cadences' arrivals (V-I), the piece's last onset.
-  const cads = [...new Set((o.cadences ?? []).filter((c) => !c.kind || c.kind === "perfect" || c.kind === "imperfect").map((c) => c.on))].filter((t) => t > first && t < lastOn).sort((a, b) => a - b);
-  const bounds: number[] = [];
-  let prev = first;
-  for (const c of cads) {
-    if (c - prev < DYN.arc.minBars * o.bar) continue;
-    bounds.push(c);
-    prev = c;
-  }
-  if (bounds.length && lastOn - bounds[bounds.length - 1] < DYN.arc.minBars * o.bar) bounds.pop();
-  bounds.push(lastOn);
+  const bounds = phraseBounds(first, lastOn, o.cadences, o.bar);
   const arc = (t: number) => {
     let a = first;
     for (const c of bounds) {
@@ -352,6 +381,12 @@ export function pianoLevels(score: readonly ScoreNote[], o: { beat: number; inBa
   };
   const endFrom = lastOn - DYN.ending.bars * o.bar;
   const h = o.harmony;
+  // D339: each note's neighbours' pitches in its voice (the onsets before and after), for its melodic peak.
+  const around = new Map<ScoreNote, readonly [number | undefined, number | undefined]>();
+  for (const v of voices) {
+    const ns = score.filter((n) => n.voice === v).sort((a, b) => a.on - b.on || b.midi - a.midi);
+    ns.forEach((n, k) => around.set(n, [ns[k - 1]?.midi, ns[k + 1]?.midi]));
+  }
   for (const n of score) {
     let db = 0;
     const sound = at(n.on);
@@ -363,7 +398,11 @@ export function pianoLevels(score: readonly ScoreNote[], o: { beat: number; inBa
     const slope = voices.length === 1 || n.voice === top ? DYN.contour[0] : n.voice === bottom ? DYN.contour[2] : DYN.contour[1];
     db += Math.max(-DYN.contourClamp, Math.min(DYN.contourClamp, (slope * (n.midi - (median.get(n.voice) ?? n.midi))) / 12));
     const pos = o.inBar(n.on);
-    db += pos % o.beat === 0 ? DYN.metric.beat : pos % (o.beat / 2) === 0 || pos % (o.beat / 3) === 0 ? 0 : DYN.metric.sub;
+    db += pos === 0 ? DYN.metric.downbeat : pos % o.beat === 0 ? DYN.metric.beat : pos % (o.beat / 2) === 0 || pos % (o.beat / 3) === 0 ? 0 : DYN.metric.sub;
+    // D339: a melodic peak (higher than the notes either side of it in its voice), and the fixed unevenness.
+    const nb = around.get(n);
+    if (nb && nb[0] !== undefined && nb[1] !== undefined && n.midi > nb[0] && n.midi > nb[1]) db += DYN.peak;
+    db += DYN.noise * noteHash(n.on, n.midi, n.voice, 1);
     db += arc(n.on);
     const key = `${n.voice}:${n.on}`;
     if (h?.dissonance.has(key)) db += DYN.tension.dissonance;

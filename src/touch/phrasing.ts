@@ -15,7 +15,7 @@ import { accompaniment, type OtherNote } from "./voice-mode.ts";
 import type { TouchFugue } from "./fugue.ts";
 import { preset } from "./sound.ts";
 import { characterOf, type Character } from "./character.ts";
-import { BREATH, dbToLevel, decide, GAP_MAX_SHARE, kindsOf, pianoLevels, suspensions, type Kind, type KeyKind } from "./practice.ts";
+import { BREATH, dbToLevel, decide, GAP_MAX_SHARE, kindsOf, noteHash, phraseBounds, pianoLevels, suspensions, type Kind, type KeyKind } from "./practice.ts";
 
 /**
  * D294: how the instrument is played, from the sound chosen (never from the player's touch): the
@@ -42,9 +42,59 @@ export const styleOf = (soundId: string): Style =>
  * level flat (D294 kept 30% of the phrasing's swing), the piano's from its model (practice.ts).
  */
 export const TOUCH: Record<"harpsichord" | "piano", { spread: number; lead: number; agogic: number; jitter: number; cap: number; long: number; overlegato: number }> = {
-  harpsichord: { spread: 0.004, lead: 0, agogic: 0.008, jitter: 0.002, cap: 0.02, long: 0.92, overlegato: 1.35 },
-  piano: { spread: 0, lead: 0.008, agogic: 0.005, jitter: 0.002, cap: 0.02, long: 0.95, overlegato: 1 },
+  // D339: the jitter 2 → 4 ms (the piano 5); the piano's melody lead 8 → 3 ms (ASAP's WTC fugues: an onset's notes
+  // spread 10 ms, the top note a median 1 ms ahead: in Bach no melody leads; Repp 1996 and Goebl 2001
+  // found the lead a by-product of the melody struck louder).
+  harpsichord: { spread: 0.004, lead: 0, agogic: 0.008, jitter: 0.004, cap: 0.02, long: 0.92, overlegato: 1.35 },
+  piano: { spread: 0, lead: 0.003, agogic: 0.005, jitter: 0.005, cap: 0.02, long: 0.95, overlegato: 1 },
 };
+
+/**
+ * D339, THE BAND'S TIME SHAPED (every sound): the others as one ensemble move a little off the written
+ * time, together (every voice the same offset at a tick, so a chord stays a chord), never more than
+ * `cap` s either way, so the player's timing, judged against the written clock, can still lean on
+ * them. Two terms, summed and soft-limited (cap · tanh(x / cap)):
+ *   arc: within each phrase (practice.ts phraseBounds: between the cadences' arrivals) a little ahead in
+ *     its middle and behind at its ends: `arc` · (1 - 1.5 sin πx), x the place in the phrase: quicker
+ *     into the phrase, broadening out of it (Todd 1985, 1992's phrase arc; the KTH rule system's
+ *     "phrase arch", Friberg, Bresin and Sundberg 2006); the piece's first phrase eased in over `settle`
+ *     beats from the written time (the count-in's clicks are on it);
+ *   final: the arrival of each cadence (not the piece's last: phrasing.ts ritard has it) `final` s late,
+ *     reached smoothly over `before` beats (the last notes before it lengthened: phrase-final
+ *     lengthening, Repp 1992; Todd 1985) and given back over `after` beats.
+ * ASAP's pianists move much further (their phrase-level timeline 60 ms from a smooth one, median; 3.4%
+ * in tempo): this is the part a game's time reference can bear.
+ */
+export const RUBATO = { arc: 0.008, final: 0.013, before: 1, after: 1.5, settle: 2, cap: 0.018 } as const;
+
+/** D339: the band's offset (s, late +) at each tick: RUBATO's arcs and cadences. */
+export function rubato(o: { first: number; lastOn: number; cadences?: readonly { on: number; kind?: string }[]; bar: number; beat: number }): (tick: number) => number {
+  const bounds = phraseBounds(o.first, o.lastOn, o.cadences, o.bar);
+  const R = RUBATO;
+  const smooth = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+  return (t: number) => {
+    let a = o.first;
+    let arc = 0;
+    for (const c of bounds) {
+      if (t <= c) {
+        const x = c > a ? (t - a) / (c - a) : 1;
+        arc = R.arc * (1 - 1.5 * Math.sin(Math.PI * x));
+        break;
+      }
+      a = c;
+    }
+    // The first phrase eased in from the written time.
+    arc *= smooth((t - o.first) / (R.settle * o.beat));
+    let fin = 0;
+    for (let k = 0; k < bounds.length - 1; k++) {
+      const c = bounds[k];
+      if (t > c - R.before * o.beat && t <= c) fin = Math.max(fin, R.final * smooth((t - (c - R.before * o.beat)) / (R.before * o.beat)));
+      else if (t > c && t < c + R.after * o.beat) fin = Math.max(fin, R.final * (1 - smooth((t - c) / (R.after * o.beat))));
+    }
+    const x = arc + fin;
+    return R.cap * Math.tanh(x / R.cap);
+  };
+}
 
 export interface Shape {
   level: number;
@@ -66,6 +116,12 @@ export interface Shape {
   final: boolean;
   /** D309: the piano's level in dB (practice.ts pianoLevels); none elsewhere. */
   db?: number;
+  /**
+   * D339: seconds added to the note's sounding length (the band's offset at its release less at its
+   * onset: RUBATO), so a note let go before the next ends where the shaped time puts it; 0 when joined
+   * (`over` already reaches the next note's shifted onset).
+   */
+  stretch: number;
 }
 
 /**
@@ -111,6 +167,8 @@ export const ART_HOLD = { detach: 0.75, short: 0.5 } as const;
 export const GAP_BEATS = 0.4;
 /** D302: a joined note held this far past the next one's onset (s) on a sustained sound: its crossfade (D309: the sampled harpsichord and piano by their tables' overlaps). */
 export const OVERLAP_S = 0.03;
+/** D339: a table's gap varied by up to this share either way, fixed per note (practice.ts noteHash). */
+export const ART_SPREAD = 0.15;
 /** D302: a reading's marks on a fugue's notes: "voice:onset" to the reading's note (readings.ts readingMarks). */
 export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean | null }>;
 
@@ -192,7 +250,29 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
   }
   // D309: the piano's levels from the whole score (practice.ts pianoLevels).
   const dbs = style === "piano" ? pianoLevels(score, { beat, inBar, bar: art.bar ?? 4 * beat, cadences: art.cadences, harmony }) : null;
+  // D339, D293: the subject never louder. The terms know no subject, but with D339's wider terms the music's
+  // own shape could lift it (II/16's by 0.5 dB): in each voice and octave, the subject's notes brought down
+  // to the others' mean where theirs is over it (never raised).
+  if (dbs && subject.size) {
+    const bins = new Map<string, { s: string[]; o: number[] }>();
+    for (const x of score) {
+      const k = `${x.voice}:${Math.floor(x.midi / 12)}`;
+      const b = bins.get(k) ?? { s: [], o: [] };
+      const key = `${x.voice}:${x.on}:${x.midi}`;
+      if (subject.has(`${x.voice}:${x.on}`)) b.s.push(key);
+      else b.o.push(dbs.get(key) ?? 0);
+      bins.set(k, b);
+    }
+    for (const b of bins.values()) {
+      if (!b.s.length || !b.o.length) continue;
+      const over = b.s.reduce((a, k) => a + (dbs.get(k) ?? 0), 0) / b.s.length - b.o.reduce((a, c) => a + c, 0) / b.o.length;
+      if (over > 0) for (const k of b.s) dbs.set(k, (dbs.get(k) ?? 0) - over);
+    }
+  }
   const overS: number[] = [];
+  // D339: the band's time shaped (RUBATO), where the piece's phrases are known (phraseContext); none for a bare list.
+  const scoreOns = score.length ? score.map((x) => x.on) : [0];
+  const rb = art.bar !== undefined && art.cadences !== undefined && notes.length ? rubato({ first: Math.min(...scoreOns), lastOn: Math.max(...scoreOns), cadences: art.cadences, bar: art.bar, beat }) : null;
   const shapes: Shape[] = plain.map((sh, i) => {
     const n = notes[i];
     const j = nexts.get(i);
@@ -207,6 +287,8 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
       if (inBar(n.on) === 0) nudge += T.agogic;
       nudge = Math.max(-T.cap, Math.min(T.cap, nudge));
     }
+    // D339: the ensemble's shaped time on top, the whole within ±20 ms of the written beat.
+    if (rb) nudge = Math.max(-0.02, Math.min(0.02, nudge + rb(n.on)));
     let db: number | undefined;
     if (dbs) {
       db = dbs.get(`${n.voice}:${n.on}:${n.midi}`) ?? 0;
@@ -254,7 +336,8 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
           if (struck) overS[i] = d.join;
         } else {
           a = "nonlegato";
-          hold = gapped(d.gap);
+          // D339: no two gaps alike (±15%, fixed per note): a player's hand, not a sewing machine.
+          hold = gapped(d.gap * (1 + ART_SPREAD * noteHash(n.on, n.midi, n.voice, 2)));
         }
       }
     }
@@ -269,7 +352,8 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     else if (a === "short") hold = apart(ART_HOLD.short);
     else if (a === "plain") hold = n.dur >= beat ? (T ? T.long : 0.95) : 1;
     const final = !after || after.on > n.on + n.dur;
-    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, ...(db !== undefined ? { db } : {}) };
+    const stretch = rb && a !== "join" && a !== "syllable" ? rb(n.on + n.dur * hold) - rb(n.on) : 0;
+    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, stretch, ...(db !== undefined ? { db } : {}) };
   });
   // Joined: the next note not attacked anew, this one held past its onset (the two nudges allowed for).
   // D305: a "syllable" held over too, the next begun anew (its consonant: no gap, no glide).
@@ -335,9 +419,10 @@ function nextIndex(notes: readonly OtherNote[]): Map<number, number | undefined>
  * D302: how a note of the others is sounded, from its shape: joined from the one before (no new
  * attack: Play.legato), joined to the next (held over it, crossfaded out over `tie` s: Play.tie).
  * D304: `apart`, detached or staccato by a reading's mark (Play.apart: its gap heard on every sound).
+ * D339: `vel`, the piano's level in dB (Play.vel: its colour, brighter struck harder).
  */
-export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean; apart?: boolean } {
-  return { ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}), ...(sh.art === "detach" || sh.art === "short" ? { apart: true } : {}) };
+export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean; apart?: boolean; vel?: number } {
+  return { ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}), ...(sh.art === "detach" || sh.art === "short" ? { apart: true } : {}), ...(sh.db !== undefined ? { vel: sh.db } : {}) };
 }
 
 /** D179: the synthesized sounds' phrasing (and the base of the others'): each note's level and its fixed unevenness (D302: the holds are ARTICULATION's). */

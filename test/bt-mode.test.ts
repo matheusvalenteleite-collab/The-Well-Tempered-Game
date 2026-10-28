@@ -186,11 +186,12 @@ test("D299: the sounds suggested with Bluetooth: quick attacks (5 ms or less) an
   for (const id of BT_SOUNDS) {
     const p = PRESETS.find((x) => x.id === id);
     assert.ok(p, id);
-    assert.equal(p.fx, undefined, `${id}: no echo or hall`);
+    // D339: the sampled harpsichord's music room (salon, RT60 1.5 s) only takes the shared room's place: no echo, no hall.
+    assert.ok(p.fx === undefined || p.fx === "salon", `${id}: no echo or hall`);
     for (const s of p.slots ?? []) {
       const q = P[s];
       assert.ok((q.rec?.a ?? q.amp?.a ?? 0) <= 0.005, `${id} ${s}: attack`);
-      assert.ok(!q.send, `${id} ${s}: no send of its own`);
+      assert.ok(!q.send || p.fx === "salon", `${id} ${s}: no send of its own`);
     }
   }
   // And the slowest (for the report): TOMITA's choir, 120 ms (D302: AGENT 64 retired).
