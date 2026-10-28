@@ -1311,6 +1311,52 @@ export class ProtoGame {
         if (!t.slid && (!next || next.on >= end)) t.off = Math.max(t.off, end - this.f.tpq / 32);
       });
     }
+    // D359: the three touches at set holds, each note joined in the score let go at its share of the time to the next.
+    const HOLD = { legato: 1.06, ordinary: 0.76, detached: 0.42 } as const;
+    if (style === "legato" || style === "ordinary" || style === "detached") {
+      const notes = this.tracks[0].notes;
+      plan.forEach((t, p) => {
+        const next = plan[p + 1];
+        if (!next || t.slid || next.slid || next.on > t.on + notes[t.i].dur) return;
+        t.off = style === "legato" ? Math.max(next.on + this.f.tpq / 32, t.on + HOLD.legato * (next.on - t.on)) : t.on + HOLD[style] * (next.on - t.on);
+      });
+    }
+    // D359: the reading's accents made as D338 judges them: the note before let go a little early (a
+    // small silence), the accented note held nine tenths of its length.
+    if (style === "accent" && this.o.reading) {
+      const idx = this.readingIndex();
+      const rd = this.o.reading;
+      const notes = this.tracks[0].notes;
+      const gap = (0.04 * this.tps) | 0;
+      plan.forEach((t, p) => {
+        const place = idx.get(`0:${notes[t.i].on}`);
+        if (place === undefined || !rd.notes[place]?.accent || t.slid) return;
+        const prev = plan[p - 1];
+        if (prev && prev.off > t.on - gap) prev.off = Math.max(prev.on + (t.on - prev.on) * 0.5, t.on - gap);
+        const next = plan[p + 1];
+        t.off = Math.max(t.off, Math.min(t.on + 0.92 * notes[t.i].dur, next ? next.on - gap : Infinity));
+      });
+    }
+    // D359: expressive time as Herr Bach shows it: a strike late by the middle of what D325b allows
+    // (PERFECT's reach to the grace's bound), where the grace is the manner's: a strong beat leaned on, a
+    // breath after a rest or a cadence, the close broadened; the next note back on the pulse.
+    if (style === "lean" || style === "breath" || style === "broaden") {
+      const want = style === "lean" ? "agogic" : style;
+      const tickPerMs = this.tps / 1000;
+      plan.forEach((t, p) => {
+        if (t.slid || p === 0) return;
+        const gr = this.graceFor(0, t.i);
+        if (gr.why !== want || (style === "lean" && !strongBeat(this.f, t.on))) return;
+        const perf = this.relAt(MECH.perfectMs, 0, t.i);
+        if (gr.ms < perf + 20) return;
+        const late = (perf + gr.ms) / 2;
+        t.land = t.on + late * tickPerMs;
+        t.off = Math.max(t.off, t.land + this.f.tpq / 8);
+        // The note before held on to the late strike where it was joined (the lean is in time, not a gap).
+        const prev = plan[p - 1];
+        if (style === "lean" && prev.off >= t.on) prev.off = t.land;
+      });
+    }
     return plan;
   }
 
@@ -4118,6 +4164,8 @@ export class ProtoGame {
   readonly earned: Record<ScoreSource, number> = { notes: 0, articulation: 0, held: 0, subjects: 0, cadences: 0, bonus: 0, reading: 0 };
   /** D272: the reading's asks met, of those judged (the score sheet's READING). */
   readonly style = { hit: 0, of: 0 };
+  /** D359: the reading's asks by mark: ⌒ joined, | apart, the dot short, > the accent (each met, of judged). */
+  readonly styleBy = { joined: { hit: 0, of: 0 }, apart: { hit: 0, of: 0 }, short: { hit: 0, of: 0 }, accent: { hit: 0, of: 0 } };
   private readingMemo: Map<string, number> | null = null;
   /** D272: each of the player's subject notes (track:onset) to its place in the subject (the reading's note). */
   private readingIndex(): Map<string, number> {
@@ -4129,6 +4177,10 @@ export class ProtoGame {
   /** D272: one of the reading's asks judged (met or not). */
   private styled(met: boolean, at: number, word?: string) {
     this.style.of++;
+    // D359: the same asks by the mark they answer (THE MANUAL's lessons on articulation read them apart).
+    const by = this.styleBy[word === "DETACHED ✓" ? "apart" : word === "ACCENT ✓" ? "accent" : word === "STACCATO ✓" ? "short" : "joined"];
+    by.of++;
+    if (met) by.hit++;
     if (!met) return;
     this.style.hit++;
     this.earn("reading", this.mult);

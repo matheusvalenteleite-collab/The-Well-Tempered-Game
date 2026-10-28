@@ -20,6 +20,8 @@ import { LESSONS, TRACKS } from "../src/bench/lessons.ts";
 import { demoRun, gameFor, tapperRun } from "./d342-sim.ts";
 
 const style = (l: ManualLesson): DemoStyle => (l.hear?.styles.includes("prepared") ? "prepared" : l.hear?.styles.includes("held") ? "held" : "plain");
+/** D360: Parts III and IV are held by test/d360-manual.test.ts; these tests hold Phase A's (Parts 0–II). */
+const PHASE_A = PLAYED.filter((l) => l.part === "I" || l.part === "II");
 const playOf = (l: ManualLesson) => l.stages.find((s) => s.kind === "play")!.m;
 
 /** The notes struck in a material (not riding, one per onset) with their times (s). */
@@ -65,8 +67,8 @@ test("D342: each drill does what it claims (its steps, leaps and repeats)", () =
 });
 
 test("D342: the cards: Parts 0–II, 14 lessons, each its sound, its lens, its stages ending on a PLAY; checkpoints I.5 and II.7", () => {
-  assert.deepEqual(MANUAL.map((l) => l.id), ["0.1", "0.2", "I.1", "I.2", "I.3", "I.4", "I.5", "II.1", "II.2", "II.3", "II.4", "II.5", "II.6", "II.7"]);
-  for (const l of PLAYED) {
+  assert.deepEqual(MANUAL.filter((l) => ["0", "I", "II"].includes(l.part)).map((l) => l.id), ["0.1", "0.2", "I.1", "I.2", "I.3", "I.4", "I.5", "II.1", "II.2", "II.3", "II.4", "II.5", "II.6", "II.7"]);
+  for (const l of PHASE_A) {
     assert.ok(l.stages.length >= 1 && l.stages.at(-1)!.kind === "play", `${l.id}: ends on its play`);
     assert.equal(l.stages.filter((s) => s.kind === "play").length, 1);
     assert.ok(l.sound && SOUND_PRESET[l.sound], l.id);
@@ -80,9 +82,11 @@ test("D342: the cards: Parts 0–II, 14 lessons, each its sound, its lens, its s
       assert.ok(until > from);
     }
   }
-  assert.deepEqual(MANUAL.filter((l) => l.checkpoint).map((l) => l.id), ["I.5", "II.7"]);
+  assert.deepEqual(PHASE_A.filter((l) => l.checkpoint).map((l) => l.id), ["I.5", "II.7"]);
+  // D359: the organ lessons on the PIPE ORGAN (D349), not the retired sampled organ (which opens as the harpsichord).
+  assert.equal(SOUND_PRESET.organ, "chamberOrgan");
   // Decision 4: each lesson's own instrument.
-  assert.deepEqual(Object.fromEntries(PLAYED.map((l) => [l.id, l.sound])), { "I.1": "chip", "I.2": "harpsichord", "I.3": "piano", "I.4": "organ", "I.5": "organ", "II.1": "harpsichord", "II.2": "chip", "II.3": "organ", "II.4": "harpsichord", "II.5": "piano", "II.6": "chip", "II.7": "harpsichord" });
+  assert.deepEqual(Object.fromEntries(PHASE_A.map((l) => [l.id, l.sound])), { "I.1": "chip", "I.2": "harpsichord", "I.3": "piano", "I.4": "organ", "I.5": "organ", "II.1": "harpsichord", "II.2": "chip", "II.3": "organ", "II.4": "harpsichord", "II.5": "piano", "II.6": "chip", "II.7": "harpsichord" });
   // II.3's play on the piano (organ, then piano).
   assert.equal(lessonById("II.3")!.stages[2].m.sound, "piano");
 });
@@ -161,7 +165,7 @@ test("D342: each excerpt has the feature its lesson teaches", () => {
 });
 
 test("D342 (design 4.10): Herr Bach's demonstration passes every stage; a random tapper fails every lesson's PLAY", () => {
-  for (const l of PLAYED) {
+  for (const l of PHASE_A) {
     for (const st of l.stages) {
       const r = demoRun(st.m, style(l));
       assert.ok(r.lens, `${l.id}: the lens's figures in the results`);
@@ -287,7 +291,8 @@ test("D342: the placement: four excerpts, one take each; its verdict, the worst 
   const takes = PLACEMENT.map((e) => ({ id: e.id, x: demoRun(e.m).lens! }));
   const all = place(takes);
   assert.deepEqual(all.results.map((r) => r.ok), [true, true, true, true], JSON.stringify(all.results));
-  assert.equal(all.start, null);
+  // D360: past Parts I and II, the placement seats the player at Part III.
+  assert.equal(all.start, "III.1");
   assert.deepEqual(all.opened.sort(), ["II", "III", "IV"]);
   // A tapper on every excerpt: placed nowhere, begins at Part I.
   const none = place(PLACEMENT.map((e) => ({ id: e.id, x: tapperRun(e.m, 3).lens! })));
@@ -313,11 +318,11 @@ test("D342: the map: parts as chapters, the next lesson marked, locked parts off
   const { ManualMap } = await import("../src/bench/manual/ManualMap.tsx");
   await withStorage({}, async () => {
     const html = renderToStaticMarkup(createElement(ManualMap, { begin: () => {}, testOut: () => {}, close: () => {} }));
-    assert.equal(html.match(/data-lesson=/g)?.length, 14);
+    assert.equal(html.match(/data-lesson=/g)?.length, 29);
     assert.match(html, /id="lesson-0\.1" data-lesson="0\.1" class="tb-step next"/);
     assert.match(html, /id="lesson-II\.1"[^>]*disabled/);
     assert.match(html, /LOCKED · HOLD TO TEST OUT/);
-    assert.match(html, /0 OF 12 LESSONS/);
+    assert.match(html, /0 OF 27 LESSONS/);
     assert.match(html, /IN A LATER VERSION/);
   });
 });
