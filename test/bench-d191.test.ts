@@ -243,7 +243,14 @@ test("engine audit: phrasing takes the next onset as the note after (a chord's p
   assert.equal(sh[1].art, "nonlegato");
   assert.ok(sh[1].hold < 0.9 && sh[1].hold > 0.6, `${sh[1].hold}`);
   const many = Array.from({ length: 40000 }, (_, i) => ({ on: i * 120, dur: 120, midi: 60 + (i % 5), step: 35 + (i % 5), voice: i % 4 }));
-  const t0 = performance.now();
+  // D361: the process's own CPU time (user + system), not the wall clock: what the work costs, not how
+  // long a busy machine let it run (the same bound).
+  const cpuMs = () => {
+    const u = process.cpuUsage();
+    return (u.user + u.system) / 1000;
+  };
+  const t0 = cpuMs();
   phrase(many, B, (t) => t % (4 * B), new Set());
-  assert.ok(performance.now() - t0 < 1500);
+  const ms = cpuMs() - t0;
+  assert.ok(ms < 1500, `${ms.toFixed(0)} ms of CPU`);
 });

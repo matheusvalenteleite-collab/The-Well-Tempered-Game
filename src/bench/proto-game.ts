@@ -3662,7 +3662,7 @@ export class ProtoGame {
     const onIt = this.hands ? lane >= 0 && lane <= this.laneRegion(0).from : lane === p?.lane;
     // D254: a second touch on the left hand's lanes while the pedal is held takes it over (the thumb moved
     // down to C): in the far lane, or by the line where the right hand has nothing due (else it is the right thumb's).
-    if (p && this.hands && p.id !== null && lane >= 0 && this.laneTrack(lane) === 1 && (lane < this.laneRegion(0).from - 1 || !this.dueAt(0, performance.now()))) {
+    if (p && this.hands && p.id !== null && lane >= 0 && this.laneTrack(lane) === 1 && (lane < this.laneRegion(0).from - 1 || !this.dueAt(0, this.wall()))) {
       p.id = id;
       return true;
     }
