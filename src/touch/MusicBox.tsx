@@ -91,6 +91,8 @@ export interface OverlayOrnament {
   voice: number;
   step: number;
   midi: number;
+  /** D362: its note's written onset (its sign moved aside once it sounds). */
+  on: number;
   end: number;
   parts: [number, number, number][];
 }
@@ -102,10 +104,12 @@ export const OVERLAY_FADE_S = 1;
  * D353, THE OVERLAY (the owner's design: "a performed ornament drawn as a translucent layer over the
  * written melody, only when performed"): each realised note on the box's own rows (its staff step, a
  * neighbour raised or lowered against the key as D332 draws it), from its onset for its length, only
- * once it sounds; 60% of a block's height, centred on the row, in the voice's colour (gold for the
- * player) at 60% opacity, no outline, stopping a pixel before the next; a note narrower than 3 px (a
- * trill's) drawn instead as a 1 px line zig-zagging between the rows. The band's fainter and thinner
- * (30%, on their thin bars). Once the note has gone by, it fades over OVERLAY_FADE_S.
+ * once it sounds, in the voice's colour (gold for the player); once the note has gone by it fades over
+ * OVERLAY_FADE_S. D362, legible on a phone: drawn above the ornament signs (the player's sign steps up
+ * and dims once its ornament sounds), on a dark 1 px halo; the player's notes at least 3 px high and 2 px
+ * wide, at 90% opacity; a neighbour at least 3 px from the main note's row (rows are about 4 px apart on
+ * the box), so a trill's alternation reads; notes narrower than 3 px drawn as a 2 px zig-zag between the
+ * rows. The band's fainter (50%) and thinner (2 px, 1 px line), over their thin bars.
  */
 function paintOverlay(
   g: CanvasRenderingContext2D,
@@ -117,17 +121,27 @@ function paintOverlay(
     if (fade <= 0 || !p.parts.length) continue;
     const shown = p.parts.filter((q) => q[0] <= fr.now);
     if (!shown.length || b.xOf(shown[0][0]) > b.w || b.xOf(p.end) < 0) continue;
-    g.globalAlpha = Math.min(1, fade) * (p.band ? 0.3 : 0.6);
-    g.fillStyle = p.band ? inkOf(p.voice, fr.count) : b.gold;
+    const alpha = Math.min(1, fade) * (p.band ? 0.5 : 0.9);
+    const ink = p.band ? inkOf(p.voice, fr.count) : b.gold;
+    const thick = p.band ? 1 : 2;
     const rowOf = (m: number) => p.step + Math.sign(m - p.midi);
-    const mid = (m: number) => {
+    const centre = (m: number) => {
       const st = rowOf(m);
       return b.yOf(st) - b.lift(st, m) + Math.floor((b.hOf(st) - 1) / 2);
     };
+    const y0 = centre(p.midi);
+    // A neighbour at least 3 px off the main note's row (more when the rows are wider apart).
+    const mid = (m: number) => {
+      const y = centre(m);
+      const d = Math.sign(m - p.midi);
+      return d === 0 ? y0 : d > 0 ? Math.min(y, y0 - 3) : Math.max(y, y0 + 3);
+    };
+    // The shapes once: blocks and the zig-zag's points.
+    const blocks: [number, number, number, number][] = [];
+    const lines: { x: number; y: number }[][] = [];
     let line: { x: number; y: number }[] = [];
     const flush = () => {
-      for (let k = 1; k < line.length; k++) seg(g, line[k - 1].x, line[k - 1].y, line[k].x, line[k].y);
-      if (line.length === 1) g.fillRect(line[0].x, line[0].y, 1, 1);
+      if (line.length) lines.push(line);
       line = [];
     };
     for (let k = 0; k < shown.length; k++) {
@@ -139,23 +153,33 @@ function paintOverlay(
         line.push({ x: x1, y });
         // The line runs on to this note's end where the next is a block or none has sounded yet.
         const nx = shown[k + 1];
-        if (!nx || b.xOf(nx[0] + nx[1]) - b.xOf(nx[0]) >= 3) line.push({ x: Math.max(x1, x2 - 1), y });
+        if (!nx || b.xOf(nx[0] + nx[1]) - b.xOf(nx[0]) >= 3) line.push({ x: Math.max(x1 + 1, x2 - 1), y });
         continue;
       }
       if (line.length) (line.push({ x: x1, y }), flush());
       const hh = b.hOf(rowOf(m));
-      const th = Math.max(1, Math.round(hh * (p.band ? 0.3 : 0.6)));
-      g.fillRect(x1, y - Math.floor((th - 1) / 2), Math.max(1, x2 - x1 - 1), th);
+      const th = p.band ? Math.max(2, Math.round(hh * 0.35)) : Math.max(3, Math.round(hh * 0.6));
+      blocks.push([x1, y - Math.floor((th - 1) / 2), Math.max(2, x2 - x1 - 1), th]);
     }
     flush();
+    // The halo (dark, a pixel round every shape), then the colour.
+    for (const [pass, style, grow] of [[0, "#000", 1], [1, ink, 0]] as const) {
+      g.globalAlpha = pass === 0 ? alpha * 0.55 : alpha;
+      g.fillStyle = style;
+      for (const [x, y, bw, th] of blocks) g.fillRect(x - grow, y - grow, bw + 2 * grow, th + 2 * grow);
+      for (const l of lines) {
+        for (let k = 1; k < l.length; k++) seg(g, l[k - 1].x, l[k - 1].y, l[k].x, l[k].y, thick + 2 * grow, grow);
+        if (l.length === 1) g.fillRect(l[0].x - grow, l[0].y - grow, thick + 2 * grow, thick + 2 * grow);
+      }
+    }
   }
   g.globalAlpha = 1;
 }
 
-/** A 1 px line from (x0, y0) to (x1, y1). */
-function seg(g: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number) {
+/** A line `t` px thick from (x0, y0) to (x1, y1) (its pixels from `o` px up and left of the path). */
+function seg(g: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, t = 1, o = 0) {
   const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1);
-  for (let i = 0; i <= n; i++) g.fillRect(Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), 1, 1);
+  for (let i = 0; i <= n; i++) g.fillRect(Math.round(x0 + ((x1 - x0) * i) / n) - o, Math.round(y0 + ((y1 - y0) * i) / n) - o, t, t);
 }
 
 export interface Frame {
@@ -516,9 +540,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     }
   }
 
-  // D353: the ornaments performed, over the written blocks (which stay as they are: the plain melody under).
-  if (fr.performed?.length) paintOverlay(g, fr, { xOf, yOf, hOf, bh, w, lift: (step, midi) => altOf(step, midi) * shift, gold: fx.gold });
-
   // LADDER on a computer: each coming note's key, a small pixel arrow over it (a dot: the same note).
   if (fr.arrows)
     fr.notes.forEach((n, i) => {
@@ -597,6 +618,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const mk = x > -8 ? fr.ornaments.get(`${o.voice}:${o.on}`) : undefined;
       if (mk) pixText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
     }
+    const sounding = new Set((fr.performed ?? []).filter((p) => !p.band && p.parts[0]?.[0] <= fr.now).map((p) => p.on));
     // D314: the player's, to be shaken as THE ORNAMENT lesson teaches: twice the size, on a dark backing, a
     // tick under it to its note (its word over the bars, paint-proto.ts); gone grey once its note is missed.
     for (const [pv, pnotes] of played)
@@ -606,6 +628,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         if (x > w) break;
         const mk = x < -16 ? undefined : fr.ornaments.get(`${pv}:${n.on}`);
         if (!mk) continue;
+        // D362: once its ornament sounds, the sign steps up out of the overlay's way, small and dimmed.
+        if (sounding.has(n.on)) {
+          g.globalAlpha = 0.6;
+          pixText(g, mk, x, Math.max(0, yOf(n.step) - 14), fx.gold);
+          g.globalAlpha = 1;
+          continue;
+        }
         const sw = textWidth(mk, 2);
         const y = Math.max(0, yOf(n.step) - 14);
         g.globalAlpha = 0.65;
@@ -618,6 +647,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         g.fillRect(x, y + 11, 1, Math.max(1, yOf(n.step) - y - 11));
       }
   }
+  // D353/D362: the ornaments performed, over the written blocks (the plain melody under) and above the signs.
+  if (fr.performed?.length) paintOverlay(g, fr, { xOf, yOf, hOf, bh, w, lift: (step, midi) => altOf(step, midi) * shift, gold: fx.gold });
   // D272: the reading's marks over the player's subject notes: a slur to the next where joined, a red
   // stroke in the gap where detached, a dot where short, an accent.
   if (fr.readingMarks)

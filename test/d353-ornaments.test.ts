@@ -417,3 +417,13 @@ test("D353: PRESS disabled on a resting thumb whose shake is read", () => {
   const src = readFileSync(new URL("../src/bench/proto-game.ts", import.meta.url), "utf8");
   assert.match(src, /if \(!p\.read\?\.kind\) this\.prepPress\(id, h, c, ts\);/);
 });
+
+test("D362: the overlay drawn above the signs, the player's sign stepping aside once its ornament sounds; minimum sizes", () => {
+  const box = readFileSync(new URL("../src/touch/MusicBox.tsx", import.meta.url), "utf8");
+  const signs = box.indexOf("// D314: the player's, to be shaken as THE ORNAMENT lesson teaches");
+  const call = box.indexOf("if (fr.performed?.length) paintOverlay(");
+  assert.ok(signs > 0 && call > signs, "the overlay after the signs");
+  assert.match(box, /if \(sounding\.has\(n\.on\)\)/);
+  assert.match(box, /Math\.max\(3, Math\.round\(hh \* 0\.6\)\)/);
+  assert.match(box, /Math\.min\(y, y0 - 3\) : Math\.max\(y, y0 \+ 3\)/);
+});
