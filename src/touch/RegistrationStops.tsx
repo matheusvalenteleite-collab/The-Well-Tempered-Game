@@ -10,6 +10,14 @@
  * for it sideways) shows none. Kept per piece on the device; a change sounds from the next note. Each
  * change made while playing is kept for the run (registration.ts recordStopChange: the bar, the stop):
  * the special challenges to come ("draw X at bar N").
+ *
+ * D369 (the owner: "The boxes for instrument modifications … should not be within music box. instead, … at
+ * the bottom of both buttons [divided between them] … The top of the screen can be reserved for something
+ * else"): on the two bars (`sides`) the buttons leave the title bar for the lowest strip of each thumb's
+ * bar, beside the music box's legend and below its rows (no note is judged there): the knobs shared out
+ * by count, the first half on the left, the rest (TUTTI, ROOM last) on the right, each at least 44 px.
+ * They lie over the play area, outside it in the page (siblings of its section, above it): a touch on
+ * them is the button's and never reaches the bars.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Patch } from "./sound.ts";
@@ -56,7 +64,16 @@ const HIDE_BELOW_PX = 360;
 /** A button's width (px): 7 px Press Start 2P a character, its padding and border, the gap. */
 const chipPx = (label: string) => [...label].length * 7 + 16;
 
-export function RegistrationStops({ presetId, patch, piece, barNow }: { presetId: string; patch: Patch | null | undefined; piece: string; barNow?: () => number | null }) {
+/** D369: the knobs on the two bars: the first half (rounded up) on the left, the rest on the right. */
+export function splitKnobs<T>(knobs: T[]): [T[], T[]] {
+  const k = Math.ceil(knobs.length / 2);
+  return [knobs.slice(0, k), knobs.slice(k)];
+}
+/** D369: a bar's foot holds three 44 px targets side by side (a phone's bar is about 150 px); more go in rows of two. */
+export const sideCols = (n: number) => (n <= 3 ? Math.max(1, n) : Math.ceil(n / 2));
+export const sideRows = (n: number) => Math.ceil(n / sideCols(n));
+
+export function RegistrationStops({ presetId, patch, piece, barNow, sides = false }: { presetId: string; patch: Patch | null | undefined; piece: string; barNow?: () => number | null; sides?: boolean }) {
   const [reg, setReg] = useState<Registration>(() => loadRegistration(piece, presetId));
   const [room, setRoomNow] = useState<RoomId>(() => liveRoom());
   const [width, setWidth] = useState(1000);
@@ -96,11 +113,11 @@ export function RegistrationStops({ presetId, patch, piece, barNow }: { presetId
     return () => ro?.disconnect();
   }, []);
 
-  if (!shown.length || width < HIDE_BELOW_PX) return <span ref={wrap} hidden />;
+  if (!shown.length || (!sides && width < HIDE_BELOW_PX)) return <span ref={wrap} hidden />;
   const on = new Set(stopsOf(presetId, reg, patch));
   const roomed = hasRoom(presetId);
   const extra = chipPx("TUTTI") + (roomed ? chipPx(roomLabel("cathedral")) : 0);
-  const compact = width - KEEP_PX < shown.reduce((a, s) => a + chipPx(stopLabel(s)), 0) + extra;
+  const compact = sides || width - KEEP_PX < shown.reduce((a, s) => a + chipPx(stopLabel(s)), 0) + extra;
   const label = compact ? shortLabel : stopLabel;
 
   const change = (next: Registration, knob: StopKnob) => {
@@ -112,65 +129,91 @@ export function RegistrationStops({ presetId, patch, piece, barNow }: { presetId
     if (before !== after) recordStopChange({ bar: barNow?.() ?? null, stop: knob, drawn: after, reg: next });
   };
 
-  return (
-    <span className={`tg-reg tg-reg-row-inline${compact ? " tg-reg-compact" : ""}${reg.tutti ? " tg-reg-tutti" : ""}`} ref={wrap} role="group" aria-label={tr("STOPS")}>
+  const knobs = (
+    <>
       {shown.map((s) => (
-        <button
-          key={s}
-          type="button"
-          id={`stop-${s}`}
-          className={`tg-stop${on.has(s) ? " on" : ""}`}
-          aria-pressed={on.has(s)}
-          aria-label={stopLabel(s)}
-          onContextMenu={(e) => e.preventDefault()}
-          onClick={() => change(toggle(presetId, reg, patch, s), s)}
-        >
-          {label(s)}
-        </button>
-      ))}
-      <button
-        type="button"
-        id="stop-tutti"
-        className={`tg-stop tg-stop-tuttib${reg.tutti ? " on" : ""}`}
-        aria-pressed={reg.tutti}
-        title={tr("EVERY VOICE TAKES YOUR STOPS")}
-        onContextMenu={(e) => e.preventDefault()}
-        onClick={() => change(setTutti(presetId, reg, patch, !reg.tutti), "tutti")}
-      >
-        TUTTI
-      </button>
-      {roomed && (
+          <button
+            key={s}
+            type="button"
+            id={`stop-${s}`}
+            className={`tg-stop${on.has(s) ? " on" : ""}`}
+            aria-pressed={on.has(s)}
+            aria-label={stopLabel(s)}
+            onContextMenu={(e) => e.preventDefault()}
+            onClick={() => change(toggle(presetId, reg, patch, s), s)}
+          >
+            {label(s)}
+          </button>
+        ))}
         <button
           type="button"
-          id="stop-room"
-          className={`tg-stop tg-stop-room tg-room-${room}`}
-          aria-label={`${tr("ROOM")}: ${roomLabel(room)}`}
+          id="stop-tutti"
+          className={`tg-stop tg-stop-tuttib${reg.tutti ? " on" : ""}`}
+          aria-pressed={reg.tutti}
+          title={tr("EVERY VOICE TAKES YOUR STOPS")}
           onContextMenu={(e) => e.preventDefault()}
-          onClick={() => {
-            const r = nextRoom(room);
-            setRoom(r);
-            setRoomNow(r);
-            setNamed(Date.now());
-          }}
+          onClick={() => change(setTutti(presetId, reg, patch, !reg.tutti), "tutti")}
         >
-          <span className="tg-stop-sub">{tr("ROOM")}</span>
-          {compact ? (
-            // Narrow: the room's level as three pips (DRY one, CHURCH two, CATHEDRAL three); its name a moment below after a press.
-            <span className="tg-room-pips" aria-hidden="true">
-              {ROOM_ORDER.map((r, i) => (
-                <i key={r} className={i <= ROOM_ORDER.indexOf(room) ? "on" : ""} />
-              ))}
-            </span>
-          ) : (
-            roomLabel(room)
-          )}
-          {compact && named > 0 && (
-            <span className="tg-room-name" role="status">
-              {roomLabel(room)}
-            </span>
-          )}
+          TUTTI
         </button>
-      )}
+        {roomed && (
+          <button
+            type="button"
+            id="stop-room"
+            className={`tg-stop tg-stop-room tg-room-${room}`}
+            aria-label={`${tr("ROOM")}: ${roomLabel(room)}`}
+            onContextMenu={(e) => e.preventDefault()}
+            onClick={() => {
+              const r = nextRoom(room);
+              setRoom(r);
+              setRoomNow(r);
+              setNamed(Date.now());
+            }}
+          >
+            <span className="tg-stop-sub">{tr("ROOM")}</span>
+            {compact ? (
+              // Narrow: the room's level as three pips (DRY one, CHURCH two, CATHEDRAL three); its name a moment below after a press.
+              <span className="tg-room-pips" aria-hidden="true">
+                {ROOM_ORDER.map((r, i) => (
+                  <i key={r} className={i <= ROOM_ORDER.indexOf(room) ? "on" : ""} />
+                ))}
+              </span>
+            ) : (
+              roomLabel(room)
+            )}
+            {compact && named > 0 && (
+              <span className="tg-room-name" role="status">
+                {roomLabel(room)}
+              </span>
+            )}
+          </button>
+        )}
+    </>
+  );
+  const cls = `tg-reg${compact ? " tg-reg-compact" : ""}${reg.tutti ? " tg-reg-tutti" : ""}`;
+  if (sides) {
+    // D369: the elements in order (the stops, TUTTI, ROOM), shared out between the two bars' feet.
+    const all = (knobs.props.children as React.ReactNode[]).flat().filter(Boolean);
+    const [l, r] = splitKnobs(all);
+    // The music box's legend as tall as the taller foot (bench.css): its rows end above the buttons.
+    const rows = Math.max(sideRows(l.length), sideRows(r.length));
+    const side = (id: string, k: React.ReactNode[]) => (
+      <span className={`${cls} tb-stops-side tb-stops-${id}`} id={`stops-${id}`} role="group" aria-label={tr("STOPS")} style={{ gridTemplateColumns: `repeat(${sideCols(k.length)}, minmax(0, 1fr))` }}>
+        {k}
+      </span>
+    );
+    return (
+      <>
+        <span ref={wrap} hidden data-rows={rows} />
+        <style>{`.tb-has-side-stops { --tb-stop-rows: ${rows}; }`}</style>
+        {side("left", l)}
+        {side("right", r)}
+      </>
+    );
+  }
+  return (
+    <span className={`${cls} tg-reg-row-inline`} ref={wrap} role="group" aria-label={tr("STOPS")}>
+      {knobs}
     </span>
   );
 }

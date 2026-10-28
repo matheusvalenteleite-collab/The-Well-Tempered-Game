@@ -1240,9 +1240,12 @@ export function BenchApp() {
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
   const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
+  // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
+  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing);
 
   return (
-    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}`}>
+    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
+      {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
         hud={
@@ -1256,7 +1259,7 @@ export function BenchApp() {
               </span>
             )}
             {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. D357: one-touch, always there while playing, for the friends too. */}
-            {hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing) && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+            {stopsOn && layout !== "bars" && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>

@@ -160,3 +160,27 @@ test("D369 (3f, 3g): a lesson tapped begins at once (no card); one left midway a
   assert.match(app, /if \(o\.stage && o\.stage > 0 && l\.stages\[o\.stage\]\) return beginStage\(l, o\.stage, 0\);/);
   store.clear();
 });
+
+test("D369 (4): on the two bars the stops leave the title bar for the bars' feet, shared out by count, 44 px targets, the box's rows ending above them", async () => {
+  register("./tsx-hooks.mjs", import.meta.url);
+  const React = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { RegistrationStops, splitKnobs, sideCols, sideRows } = await import("../src/touch/RegistrationStops.tsx");
+  const { PATCHES } = await import("../src/touch/sound.ts");
+  const err = console.error;
+  console.error = (...a: unknown[]) => void (String(a[0]).includes("useLayoutEffect") || err(...a));
+  const html = renderToStaticMarkup(React.createElement(RegistrationStops, { presetId: "chamberOrgan", patch: PATCHES.orgPrincipal, piece: "wtc1f02", sides: true }));
+  console.error = err;
+  const left = html.slice(html.indexOf('id="stops-left"'), html.indexOf('id="stops-right"'));
+  const right = html.slice(html.indexOf('id="stops-right"'));
+  assert.deepEqual([...left.matchAll(/id="stop-([a-z0-9]+)"/g)].map((m) => m[1]), ["flute", "principal", "reed", "mixture"]);
+  assert.deepEqual([...right.matchAll(/id="stop-([a-z0-9]+)"/g)].map((m) => m[1]), ["trem", "tutti", "room"]);
+  assert.deepEqual(splitKnobs([1, 2, 3, 4]), [[1, 2], [3, 4]]);
+  assert.equal(sideCols(3), 3);
+  assert.equal(sideRows(4), 2);
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /\{stopsOn && layout === "bars" && playing && <RegistrationStops sides /);
+  const css = src("src/bench/bench.css");
+  assert.match(css, /\.tb-stops-side \.tg-stop \{ min-width: 44px; height: 44px;/);
+  assert.match(css, /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ 2px\);/);
+});

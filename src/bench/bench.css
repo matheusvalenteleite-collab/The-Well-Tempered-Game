@@ -942,3 +942,15 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-resume-name { display: grid; gap: 3px; font-family: var(--tg-pixel); font-size: 8px; }
 .tb-resume-name small { font-family: system-ui, sans-serif; font-size: 12px; color: var(--tg-muted); }
 .tb-resume-here { font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-gold, var(--tg-shine)); }
+
+/* D369: the stops at the feet of the two bars (the thumbs' bars), not in the music box's title bar: a strip
+   as tall as a thumb's target (44 px), beside the box's legend, which grows to the same height so the box's
+   rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; gap: 3px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); }
+.tb-stops-left { left: calc(var(--tg-sal) + 6px); }
+.tb-stops-right { right: calc(var(--tg-sar) + 6px); }
+.tb-stops-side .tg-stop { min-width: 44px; height: 44px; margin: 0; padding: 0 2px; font-size: 7px; background: var(--tg-bg); overflow: hidden; }
+.tb-stops-side .tg-stop.on { background: var(--tg-shine); }
+.tb-stops-side .tg-stop::after { inset: -2px; }
+.tb-stops-side .tg-room-name { top: auto; bottom: calc(100% + 6px); }
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 2px); align-items: center; box-sizing: border-box; }
