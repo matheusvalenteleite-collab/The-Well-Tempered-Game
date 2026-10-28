@@ -80,12 +80,12 @@ import { PLACEMENT, PLACEMENT_SOUND, place, worst, type Placement, type Placemen
 import { applyPlacement, markSeen, nextLesson as nextManual, progress as manualProgress, readManual, recordTake, setAnswer, setAside, testOut as manualTestOut, triesOf, type Answer } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, RULE_LEVELS, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { PlayPop } from "./PlayPop.tsx";
-import { nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, type TempoStep } from "./tempo-steps.ts";
+import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -210,7 +210,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean; old?: number | null } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" } | { kind: "mtalk"; title: string; lines: Line[]; choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean; old?: number | null } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; tempo?: { step: TempoStep; beat: string; apart: boolean }; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" } | { kind: "mtalk"; title: string; lines: Line[]; choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void };
 
 /**
  * D342, THE MANUAL under way: a lesson's step (its stage: a material), as HEAR (Herr Bach's
@@ -366,8 +366,10 @@ export function BenchApp() {
   // D282: a tutorial step may name its reading.
   const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (full ? chosenReading(f.id) : bestReading(f.id)) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
-  const stepOf = (id: string): TempoStep => (APP.lite && full && stepTempi(id) ? (tempoSteps[id] ?? "default") : "default");
-  const tempi = APP.lite && full ? stepTempi(f.id) : null;
+  // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
+  const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
+  const stepOf = (id: string): TempoStep => (opensTempo(id) ? (tempoSteps[id] ?? "default") : "default");
+  const tempi = opensTempo(f.id) ? stepTempi(f.id) : null;
   const step = stepOf(f.id);
   const bpm = run ? run.bpm : tempi ? tempi[step] : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
@@ -382,9 +384,11 @@ export function BenchApp() {
   // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
   // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible; the placement on the sampled piano.
   // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
+  // D356: in the friends' view too, where a WTC fugue's tempo is open (no sound chosen there).
   const soundAt = (id: string) => {
-    const st = full && !chosen[id] ? stepSound(id, stepOf(id)) : undefined;
-    return soundFor(id, full ? (st ? { ...chosen, [id]: st } : chosen) : {}, DEFAULT_SOUND);
+    const mine = full ? chosen : {};
+    const st = !mine[id] ? stepSound(id, stepOf(id)) : undefined;
+    return soundFor(id, st ? { ...mine, [id]: st } : mine, DEFAULT_SOUND);
   };
   const sound = man ? (man.mode === "placement" ? PLACEMENT_SOUND : SOUND_PRESET[soundOf(manLesson!, manMat)]) : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
@@ -648,13 +652,18 @@ export function BenchApp() {
         } else if (APP.lite) {
           // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
-          recordLite(f.id, r.failedBar !== null, platform === "mobile", r.grade);
+          // D356: a WTC fugue at SLOW: kept as finished, its grade and score apart (never its best, never what opens the tempo).
+          const apart = step === "slow" && isWtcFugue(f.id);
+          recordLite(f.id, r.failedBar !== null, platform === "mobile", apart ? undefined : r.grade);
           const opened: Tier[] = [];
           // D268: a whole piece finished: its final score against the best.
-          const best = r.failedBar === null && from === 0 ? recordLiteBest(f.id, r.sheet.final) : null;
+          const whole = r.failedBar === null && from === 0;
+          const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final)) : null;
+          // D356: the tempo played, on the result.
+          const tempo = tempi ? { step, beat: stepBeat(f.id, tempi[step]), apart } : undefined;
           // D308: read after the best score is kept (the cards show it; it was read before, so they did not until a reload).
           setLite(readLite());
-          setPhase({ kind: "result", ...r, best, seal: null, opened, next: nextIn(liteNextOrder(f.id, platform === "mobile"), f.id) });
+          setPhase({ kind: "result", ...r, best, seal: null, tempo, opened, next: nextIn(liteNextOrder(f.id, platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
@@ -1296,6 +1305,13 @@ export function BenchApp() {
                 {laneLine(phase.lanes)}
               </p>
             )}
+            {phase.tempo && (
+              // D356: the tempo the run was played at; at SLOW (a WTC fugue) its best kept apart.
+              <p className={`tb-lane-line tb-result-tempo tb-pop-tempo-${phase.tempo.step}`} id="result-tempo">
+                {tr("TEMPO")} · {stepWord(phase.tempo.step)} · {phase.tempo.beat}
+                {phase.tempo.apart ? ` · ${tr("KEPT APART FROM YOUR BEST")}` : ""}
+              </p>
+            )}
             {retuned && (
               <p className="tb-lane-line" id="bt-retune">
                 {tr("SOUND DELAY {from} → {to} MS (TUNED TO YOUR PLAYING)", { from: Math.round(retuned.from * 1000), to: Math.round(retuned.to * 1000) })}
@@ -1511,6 +1527,12 @@ export function BenchApp() {
             <button type="button" id="pop-tempo" className={`tb-pop-tempo tb-pop-tempo-${step}`} aria-label={`${tr("TEMPO")}: ${stepWord(step)}`} onClick={() => setTempoSteps(saveStep(f.id, nextStep(step)))}>
               <span className="tb-pop-tempo-k">{tr("TEMPO")}</span> <b>{stepWord(step)}</b> <span className="tb-pop-tempo-v">{stepBeat(f.id, tempi[step])}</span>
             </button>
+          )}
+          {APP.lite && !tempi && isWtcFugue(f.id) && lite.beaten.includes(f.id) && (
+            // D356: a WTC fugue finished but not with an A: the one quiet line saying what opens its tempo.
+            <p className="tg-card-sub tb-pop-tempo-hint" id="pop-tempo-hint">
+              {tr("AN A ON THIS FUGUE UNLOCKS TEMPO")}
+            </p>
           )}
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}

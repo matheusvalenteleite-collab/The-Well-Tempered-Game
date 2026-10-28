@@ -18,6 +18,7 @@
 import { lang, type Lang } from "../i18n/index.ts";
 import { MORE_INDEX, CHORALE_INDEX } from "../touch/fugue.ts";
 import { MORE_TEMPO, TEMPO, type PieceTempo } from "../touch/tempi.ts";
+import { PIECE_SOUND } from "../touch/piece-sound.ts";
 
 export type TempoStep = "slow" | "default" | "fast";
 export const TEMPO_STEPS: readonly TempoStep[] = ["slow", "default", "fast"];
@@ -41,10 +42,14 @@ export const CHORALE_SHARES = { slow: 48 / 60, fast: 76 / 60 } as const;
 const COLLECTION = new Map<string, string>(MORE_INDEX.map(([id, c]) => [id, c]));
 const CHORALES = new Set(CHORALE_INDEX);
 
+/** D356: a fugue of the Well-Tempered Clavier (Book I or II). */
+export const isWtcFugue = (id: string): boolean => /^wtc[12]f\d\d$/.test(id);
+
 /** The kinds the sounds are chosen by. */
-export type StepKind = "aof" | "ric3" | "ric6" | "inv" | "sin" | "concerto" | "hconcerto" | "motet" | "cantata" | "chorale";
+export type StepKind = "wtc" | "aof" | "ric3" | "ric6" | "inv" | "sin" | "concerto" | "hconcerto" | "motet" | "cantata" | "chorale";
 export function stepKind(id: string): StepKind | null {
   if (CHORALES.has(id)) return "chorale";
+  if (isWtcFugue(id)) return "wtc";
   if (id === "bwv1080-14") return "aof";
   if (id === "bwv1079-ric3") return "ric3";
   if (id === "bwv1079-ric6") return "ric6";
@@ -72,6 +77,8 @@ export function stepKind(id: string): StepKind | null {
  *     PIPE ORGAN, fast the HARPSICHORD (a continuo's crisp attack where pipes would smear passing notes).
  */
 export const STEP_SOUNDS: Record<StepKind, { slow: string; fast: string }> = {
+  // D356: the WTC's fugues as the Art of Fugue (keyboard counterpoint); WTC_SOUND_ELSE where the fugue's own sound is already the step's.
+  wtc: { slow: "chamberOrgan", fast: "chip" },
   aof: { slow: "chamberOrgan", fast: "chip" },
   ric3: { slow: "pianoSampled", fast: "chip" },
   ric6: { slow: "soloVoices", fast: "harpsichordSampled" },
@@ -84,10 +91,10 @@ export const STEP_SOUNDS: Record<StepKind, { slow: string; fast: string }> = {
   chorale: { slow: "soloVoices", fast: "harpsichordSampled" },
 };
 
-/** A piece's tempo record (the WTC's file for the unfinished fugue, else MORE BACH's). */
+/** A piece's tempo record (the WTC's file for its fugues and the unfinished fugue, else MORE BACH's). */
 const recordOf = (id: string): PieceTempo | undefined => TEMPO[id] ?? MORE_TEMPO[id];
 
-/** The three tempi of a MORE BACH or CHORALES piece (quarter notes a minute), or null for any other. */
+/** The three tempi of a MORE BACH or CHORALES piece or (D356) a WTC fugue (quarter notes a minute), or null for any other. */
 export function stepTempi(id: string): Record<TempoStep, number> | null {
   const t = recordOf(id);
   const kind = stepKind(id);
@@ -107,11 +114,27 @@ export function stepBeat(id: string, bpm: number): string {
   return `${t.unit} ${Math.round(bpm * per)}`;
 }
 
+/**
+ * D356: a WTC fugue whose own sound (PIECE_SOUND, read when asked: D355 chooses the fugues' sounds) is
+ * already the step's plays this one instead, so every step changes the sound: SLOW the PIANO (sustained,
+ * singing), FAST the HARPSICHORD (a crisp attack).
+ */
+export const WTC_SOUND_ELSE = { slow: "pianoSampled", fast: "harpsichordSampled" } as const;
+
 /** The sound a step plays in, where it is not the piece's own (DEFAULT: undefined). */
 export function stepSound(id: string, step: TempoStep): string | undefined {
   const kind = stepKind(id);
-  return kind && step !== "default" ? STEP_SOUNDS[kind][step] : undefined;
+  if (!kind || step === "default") return undefined;
+  const s = STEP_SOUNDS[kind][step];
+  return kind === "wtc" && PIECE_SOUND[id] === s ? WTC_SOUND_ELSE[step] : s;
 }
+
+/**
+ * D356: where the tempo button is shown: every MORE BACH and CHORALES piece and every WTC fugue in the
+ * unlocked view (`full`, tb-unlock-all); in the friends' view a WTC fugue once finished with an A or
+ * better (`gradedA`: lite.ts tempoEarned).
+ */
+export const tempoOpen = (id: string, full: boolean, gradedA: boolean): boolean => !!stepTempi(id) && (full || (isWtcFugue(id) && gradedA));
 
 export const nextStep = (s: TempoStep): TempoStep => TEMPO_STEPS[(TEMPO_STEPS.indexOf(s) + 1) % TEMPO_STEPS.length];
 
