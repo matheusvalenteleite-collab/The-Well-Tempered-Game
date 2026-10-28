@@ -103,6 +103,8 @@ export interface TouchFugue {
   short?: string;
   credit?: string;
   source?: string;
+  /** D351: an editor's reconstruction, not Bach's text as it survives (BWV 1059R): what it is, said on its card and pop-up. */
+  reconstruction?: string;
   /** D340: the voices the player may take (the concerto's two solo violins); all where unset. */
   playable?: number[];
   /** D340: the voice offered first (a chorale's soprano). */

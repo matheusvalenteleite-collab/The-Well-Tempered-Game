@@ -10,6 +10,7 @@ import { PIECE_SOUND } from "../touch/piece-sound.ts";
 import { presetById } from "../touch/sound.ts";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyLabel } from "./emblem.ts";
+import { pieceWord } from "./piece-word.ts";
 import { BEFORE_JUDGING, CHORALE_IDS, liteAll, liteExtra, liteLevel, liteTabOf, liteTabs, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
 import { popTitle } from "./PlayPop.tsx";
 import { keyTint } from "../touch/MusicBox.tsx";
@@ -38,7 +39,7 @@ export const MORE_CREDITS: readonly string[] = [
   "INVENTIONS 1, 6, 9, 12: JEFF COVEY, FROM THE BACH-GESELLSCHAFT EDITION, CC BY-SA 3.0 (CREATIVECOMMONS.ORG/LICENSES/BY-SA/3.0); THE GAME'S NOTE DATA FOR THEM IS SHARED UNDER THE SAME LICENCE. INVENTIONS 2-5, 7, 8, 10, 11, 13-15: ALLEN GARVIN, PUBLIC DOMAIN. SINFONIAS: OLIVIER VERMERSCH, PUBLIC DOMAIN.",
   "CONCERTO FOR TWO VIOLINS, BWV 1043: DAVID CHAN, FROM THE BACH-GESELLSCHAFT EDITION (1874), PUBLIC DOMAIN.",
   // D348.
-  "HARPSICHORD CONCERTOS, BWV 1052-1058, 1060-1065: MUSESCORE.COM SCORES DEDICATED TO THE PUBLIC DOMAIN (CC0 1.0, CREATIVECOMMONS.ORG/PUBLICDOMAIN/ZERO/1.0), AS KEPT IN THE PDMX DATASET: VERITS99 (ALL BUT BWV 1056), ANDREY RONZHIN (BWV 1056). WRITTEN-OUT TRILLS IN THE PARTS YOU PLAY ARE SHOWN AS THEIR NOTE.",
+  "HARPSICHORD CONCERTOS, BWV 1052-1065: MUSESCORE.COM SCORES DEDICATED TO THE PUBLIC DOMAIN (CC0 1.0, CREATIVECOMMONS.ORG/PUBLICDOMAIN/ZERO/1.0), AS KEPT IN THE PDMX DATASET: VERITS99 (ALL BUT BWV 1056), ANDREY RONZHIN (BWV 1056). BWV 1059 IS A RECONSTRUCTION: BACH LEFT ONLY NINE BARS; VERITS99'S “TRIAL RECONSTRUCTION” COMPLETES IT FROM CANTATA 35 (ITS TWO SINFONIAS AND AN ARIA), NOT BACH'S OWN CONCERTO. WRITTEN-OUT TRILLS IN THE PARTS YOU PLAY ARE SHOWN AS THEIR NOTE.",
   // D341.
   "MOTET BWV 228, FÜRCHTE DICH NICHT: FRITZ BRODERSEN, WIMA EDITION (IMSLP.ORG), CC BY-NC 3.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC/3.0), FOR NON-COMMERCIAL USE.",
   "CANTATA BWV 54, WIDERSTEHE DOCH DER SÜNDE: RAMON CASADESUS-MASANELL (IMSLP.ORG, 2021), CC BY-NC-SA 4.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC-SA/4.0); THE GAME'S NOTE DATA FOR IT IS SHARED UNDER THE SAME LICENCE, FOR NON-COMMERCIAL USE.",
@@ -74,7 +75,7 @@ export function LangPick({ value, set }: { value: Lang; set: (l: Lang) => void }
   );
 }
 
-export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside, setLang }: { beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: LiteTab; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode; setLang?: (l: Lang) => void }) {
+export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, open, settings, fuguesOnly = false, tutorial, hear, book: asked, current, beside, setLang }: { soundOf?: (id: string) => string; beaten: readonly string[]; best?: Readonly<Record<string, string>>; scores?: Readonly<Record<string, number>>; bestOld?: Readonly<Record<string, string>>; scoresOld?: Readonly<Record<string, number>>; open: (id: string) => void; hear?: (id: string) => void; book?: LiteTab; settings: () => void; fuguesOnly?: boolean; tutorial?: { done: number; of: number; start: () => void }; current?: string; beside?: ReactNode; setLang?: (l: Lang) => void }) {
   const won = useMemo(() => new Set(beaten), [beaten]);
   // D263: on a phone the fugues only. D264: all open, each in its difficulty's colour. D265: a list from
   // the first to the last, numbered, the card on the left and what the piece is on the right (its voices,
@@ -119,6 +120,8 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
   const waiting = extra && !extrasLoaded();
   return (
     <div className="tb-lite" role="main" aria-label="Pieces" ref={list}>
+      {/* D351: the title bar (the title, EN · PT · ES, SETTINGS) and the tabs stay at the top while the list scrolls under them. */}
+      <div className="tb-lite-top" id="lite-top">
       <header className="tb-lite-head">
         <h1>{tr("THE WELL-TEMPERED GAME")}</h1>
         {/* D343: the language at hand (EN · PT · ES), then SETTINGS, labelled. D326: TOOLS (once unlocked) before them. */}
@@ -138,6 +141,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
           ))}
         </div>
       ) : null}
+      </div>
       {waiting && (
         <p className="tb-lite-line" id="extras-loading" role="status">
           {failed ? "COULD NOT LOAD · CHECK THE CONNECTION AND OPEN THE TAB AGAIN" : "LOADING…"}
@@ -154,7 +158,7 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
               </summary>
               <ol className="tb-lite-list">
                 {s.ids.map((id, i) => (
-                  <ExtraCard key={id} id={id} n={i + 1} done={won.has(id)} grade={best[id]} score={scores[id]} open={open} hear={hear} />
+                  <ExtraCard key={id} id={id} n={i + 1} done={won.has(id)} grade={best[id]} score={scores[id]} open={open} hear={hear} sound={soundOf?.(id)} />
                 ))}
               </ol>
             </details>
@@ -288,9 +292,11 @@ export function LiteGrid({ beaten, best = {}, scores = {}, bestOld = {}, scoresO
 const chunks = <T,>(xs: readonly T[], n: number): T[][] => Array.from({ length: Math.ceil(xs.length / n) }, (_, k) => xs.slice(k * n, k * n + n));
 
 /** D340: a MORE BACH or CHORALES card: as Book I's, or (a chorale) compact, a chip in the key's colour for the picture. */
-function ExtraCard({ id, n, done, grade, score, open, hear, compact = false }: { id: string; n: number; done: boolean; grade?: string; score?: number; open: (id: string) => void; hear?: (id: string) => void; compact?: boolean }) {
+function ExtraCard({ id, n, done, grade, score, open, hear, compact = false, sound }: { id: string; n: number; done: boolean; grade?: string; score?: number; open: (id: string) => void; hear?: (id: string) => void; compact?: boolean; sound?: string }) {
   const f = fugueById(id);
   const lv = liteLevel(id);
+  // D351: the picture's word after the key: FUGA for a fugue, else the piece's own (ALLEGRO, SINFONIA, CHORAL…).
+  const word = pieceWord(f);
   // The unfinished fugue (pieces.json, D169) has a card of its own: its formal title.
   const name = f.short ?? popTitle(id).split(" · ").at(-1) ?? f.title.toUpperCase();
   const sub = !f.short ? "FUGA A 3 SOGGETTI · UNFINISHED" : f.title.toUpperCase() !== f.short ? f.title.toUpperCase() : "DIE KUNST DER FUGE";
@@ -305,7 +311,7 @@ function ExtraCard({ id, n, done, grade, score, open, hear, compact = false }: {
     <li>
       <button type="button" id={`card-${id}`} className={`tb-lite-card${done ? " done" : ""}${compact ? " tb-lite-compact" : ""}`} style={{ ["--tint" as string]: lv.ink }} onClick={() => open(id)}>
         <span className="tb-lite-pic-wrap">
-          {compact ? <span className="tb-lite-chip" style={{ background: keyTint(f.key, 30) }} aria-hidden="true" /> : <Emblem id={id} label={keyLabel(f.key, "fugue")} className="tb-lite-pic" />}
+          {compact ? <span className="tb-lite-chip" style={{ background: keyTint(f.key, 30) }} aria-hidden="true" /> : <Emblem id={id} label={keyLabel(f.key, word)} className="tb-lite-pic" />}
           <span className="tb-lite-num">{n}</span>
           {stamp}
         </span>
@@ -313,12 +319,12 @@ function ExtraCard({ id, n, done, grade, score, open, hear, compact = false }: {
           <span className="tb-lite-title">{name}</span>
           <span className="tb-lite-meta">{sub}</span>
           <span className="tb-lite-meta">
-            BWV {f.bwv.split("/")[0] || "—"} · {keyLabel(f.key, "fugue").split(" · ")[0]} · {f.collection === "concerto" ? tr("{n} SOLO PARTS", { n: f.playable?.length ?? 2 }) : f.collection === "hconcerto" ? tr("{n} PARTS", { n: f.playable?.length ?? 2 }) : tr("{n} VOICES", { n: f.playable?.length ?? f.voices.length })}
+            BWV {f.bwv.split("/")[0] || "—"} · {keyLabel(f.key, word).split(" · ")[0]}{compact ? ` · ${word}` : ""} · {f.collection === "concerto" ? tr("{n} SOLO PARTS", { n: f.playable?.length ?? 2 }) : f.collection === "hconcerto" ? tr("{n} PARTS", { n: f.playable?.length ?? 2 }) : tr("{n} VOICES", { n: f.playable?.length ?? f.voices.length })}
           </span>
           <span className="tb-lite-level" style={{ color: lv.ink }}>
             {tr(lv.label)}
           </span>
-          {!compact && <span className="tb-lite-meta">{tr("SOUND")}: {tr(soundName(PIECE_SOUND[id] ?? "harpsichordSampled"))}</span>}
+          {!compact && <span className="tb-lite-meta">{tr("SOUND")}: {tr(soundName(sound ?? PIECE_SOUND[id] ?? "harpsichordSampled"))}</span>}
           {score !== undefined && (
             <span className="tb-lite-best" id={`best-${id}`}>
               {tr("BEST {n}", { n: score.toLocaleString("en") })}

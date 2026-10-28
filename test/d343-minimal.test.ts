@@ -136,7 +136,7 @@ test("D343: the MORE BACH and CHORALES notes load on demand; their index (ids, c
   const { CHORALE_IDS, MORE_SECTIONS } = await import("../src/bench/lite.ts");
   const { extrasLoaded, fugueById, loadExtras } = await import("../src/touch/fugue.ts");
   assert.equal(CHORALE_IDS.length, 370, "the tabs known before the notes");
-  assert.equal(MORE_SECTIONS.flatMap((s) => s.ids).length, 59 + 39);
+  assert.equal(MORE_SECTIONS.flatMap((s) => s.ids).length, 59 + 42);
   await Promise.all([loadExtras(), loadExtras()]);
   assert.equal(extrasLoaded(), true);
   assert.equal(fugueById("chor001").id, "chor001");

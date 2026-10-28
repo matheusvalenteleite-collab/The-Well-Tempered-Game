@@ -379,6 +379,9 @@ export const ES: Record<string, string> = {
   // D348.
   "HARPSICHORD CONCERTOS": "CONCIERTOS PARA CLAVE",
   "{n} PARTS": "{n} PARTES",
+  // D351: the pop-up's tempo button (its SLOW · DEFAULT · FAST in tempo-steps.ts) and BWV 1059's reconstruction.
+  TEMPO: "TEMPO",
+  "A RECONSTRUCTION: BACH LEFT ONLY NINE BARS; VERITS99 COMPLETED IT FROM CANTATA 35": "UNA RECONSTRUCCIÓN: BACH DEJÓ SOLO NUEVE COMPASES; VERITS99 LA COMPLETÓ A PARTIR DE LA CANTATA 35",
   "SOURCES & CREDITS": "FUENTES Y CRÉDITOS",
   // D343: play.html for friends (the first screen, the result, the pop-up, the phone held the wrong way, MOBILE ONLY).
   "LEARN TO PLAY WITH TWO THUMBS": "APRENDE A TOCAR CON DOS PULGARES",

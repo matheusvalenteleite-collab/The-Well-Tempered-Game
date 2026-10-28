@@ -27,9 +27,11 @@ export function Credits({ onClose }: { onClose(): void }) {
           (IMSLP, 2021), CC BY-NC-SA 4.0, the game's note data for it under the same licence. These three for non-commercial use only.
         </p>
         <p>
-          The HARPSICHORD CONCERTOS, BWV 1052-1058 and 1060-1065 (D348): scores from musescore.com dedicated to the public domain
+          The HARPSICHORD CONCERTOS, BWV 1052-1065 (D348): scores from musescore.com dedicated to the public domain
           (CC0 1.0), as kept in the PDMX dataset (Long, Novack, Berg-Kirkpatrick and McAuley, 2024): verits99's (all but BWV 1056)
-          and Andrey Ronzhin's (BWV 1056). Credited though CC0 asks for nothing.
+          and Andrey Ronzhin's (BWV 1056). Credited though CC0 asks for nothing. BWV 1059 (D351) is a reconstruction, not Bach's
+          concerto: he left only nine bars; verits99's "trial reconstruction based on BWV 35" (CC0 1.0) completes it from Cantata 35's
+          two sinfonias and the aria "Gott hat alles wohlgemacht".
         </p>
         <h3>Software and sounds</h3>
         <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>

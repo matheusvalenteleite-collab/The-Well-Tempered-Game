@@ -24,10 +24,10 @@ const lastBar = (id: string) => fugueById(id).bars.at(-1)!.n;
 
 test("D340: MORE BACH: the Art of Fugue (11 contrapuncti, 2 mirror fugues each rectus and inversus, 4 canons), 2 ricercars, 15 inventions, 15 sinfonias, 3 concerto movements", () => {
   // D341: and the motet BWV 228 (two sections) and the cantata BWV 54 (movements 1 and 3), from IMSLP.
-  // D348: and the harpsichord concertos, 39 movements (test/d348-concertos.test.ts).
-  assert.equal(MORE_BACH.length, 58 + 39);
-  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 3, 2, 2, 39]);
-  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 58 + 39);
+  // D348: and the harpsichord concertos, 39 movements (test/d348-concertos.test.ts); D351: 42 with BWV 1059R.
+  assert.equal(MORE_BACH.length, 58 + 42);
+  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 3, 2, 2, 42]);
+  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 58 + 42);
   for (const f of MORE_BACH) {
     assert.equal(fugueById(f.id), f);
     assert.equal(f.voices.length, f.voiceNames.length, f.id);
@@ -127,7 +127,7 @@ test("D340: CHORALES: Sapp's 370, four voices each, every fermata held a beat lo
 test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunctus 14 closing the Art of Fugue), CHORALES", () => {
   assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "MORE", "CHORALES"]);
   assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3, 39, 2, 2]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3, 42, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
   assert.equal(CHORALE_IDS.length, 370);
   assert.equal(liteTabOf("bwv1080-14"), "MORE");

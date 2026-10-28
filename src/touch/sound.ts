@@ -816,6 +816,27 @@ export interface Preset {
 const HPSI = (pan: number): (readonly [PatchId, number, number])[] => [["s16Harpsi", pan, 0.8], ["s16Harpsi", pan, 0.8]];
 /** D348: a concerto's strings: Violin I, Violin II, the viola, the continuo bass. */
 const BAND: (readonly [PatchId, number, number?])[] = [["s16Strings", 0.2], ["s16Strings", 0.1], ["s16Strings", 0.05], ["s16Bassoon", 0]];
+type Slot = readonly [PatchId, number, number?];
+/**
+ * D351: the concertos' layouts for the two sounds their SLOW and FAST tempi take (bench/tempo-steps.ts):
+ * NOCTURNE 32-BIT (its harpsichord for the hands, its violin for the violins, its viola, the organ's
+ * continuo) and TRACKER (its harpsichord, its violin for the three string lines, its slapped bass), as
+ * SUPER 16-BIT's: the harpsichords apart, the inner notes lighter, a harpsichord line never louder than a
+ * string line (patch level × place level), the recorders (BWV 1057) on the flute.
+ */
+function concertoLayouts(h: PatchId, hLevel: number, band: readonly Slot[], flute: PatchId): Partial<Record<number, readonly Slot[]>> {
+  const hands = (pan: number): Slot[] => [[h, pan, hLevel], [h, pan, hLevel]];
+  const inner = (pan: number, k = 0.7): Slot => [h, pan, hLevel * k];
+  return {
+    7: [...hands(-0.15), inner(-0.15), ...band],
+    9: [...hands(-0.15), inner(-0.15), [flute, 0.3, 0.84], [flute, -0.3, 0.84], ...band],
+    10: [...hands(-0.3), ...hands(0.3), inner(-0.3), inner(0.3), ...band],
+    11: [...hands(-0.3), ...hands(0), ...hands(0.3), inner(0, 0.62), ...band],
+    13: [...hands(-0.3), ...hands(-0.1), ...hands(0.1), ...hands(0.3), inner(0, 0.62), ...band],
+  };
+}
+const N32_BAND: readonly Slot[] = [["n32Violin", 0.2], ["n32Violin", 0.1, 0.9], ["n32Viola", 0.05, 0.7], ["n32Organ", 0]];
+const TRK_BAND: readonly Slot[] = [["trkViolin", 0.35], ["trkViolin", 0.2, 0.9], ["trkViolin", -0.2, 0.9], ["trkBass", 0]];
 
 export const PRESETS: Preset[] = [
   // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
@@ -824,7 +845,8 @@ export const PRESETS: Preset[] = [
   { id: "gameboy", name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
   // D339: both in a music room of their own (chip.ts REVERBS.salon) in place of the shared room (a white-noise impulse, no pre-delay, undamped).
-  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0, fx: "salon" },
+  // D351: six voices (the Ricercar a 6 at its FAST tempo, bench/tempo-steps.ts): the five upper on the treble, the bass alone on the bass.
+  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0, fx: "salon", by: { 6: [["harpsiSampled", 0.25], ["harpsiSampled", -0.25], ["harpsiSampled", 0.15], ["harpsiSampled", -0.15], ["harpsiSampled", 0.05], ["harpsiBassSampled", 0]] } },
   // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it; D294: the inner voices a shade lighter.
   { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoInnerSampled", "pianoBassSampled"], room: 0, fx: "salon" },
   // D294: ANALOG SYNTH (in place of D292's PIANO (FM)): WENDY CARLOS's patches (D209) revived, after Switched-On Bach.
@@ -883,6 +905,9 @@ export const PRESETS: Preset[] = [
       3: [["n32Violin", 0.25], ["n32Harpsi", -0.25], ["n32Organ", 0]],
       4: [["n32Violin", 0.25], ["n32Harpsi", -0.25], ["n32Viola", -0.05], ["n32Organ", 0]],
       5: [["n32Violin", 0.25], ["n32Oboe", -0.3, 0.84], ["n32Harpsi", 0.1], ["n32Viola", -0.1, 0.94], ["n32Organ", 0]],
+      // D351: six voices (BWV 1043's two solo violins and band; BWV 54's violins, violas and alto on the strings), the organ's continuo.
+      6: [["n32Violin", 0.25], ["n32Violin", -0.25], ["n32Violin", 0.15, 0.84], ["n32Viola", -0.15, 0.84], ["n32Viola", 0, 0.84], ["n32Organ", 0]],
+      ...concertoLayouts("n32Harpsi", 0.5, N32_BAND, "n32Oboe"),
     },
   },
   // MEGA FM (D302 remade): a fed-back lead, brass (five voices), an e-piano (four), a clav (three to five), the slap bass; a short dark echo.
@@ -925,6 +950,9 @@ export const PRESETS: Preset[] = [
       3: [["trkViolin", -0.35], ["trkHarpsi", 0.35], ["trkBass", -0.15]],
       4: [["trkViolin", -0.35], ["trkHarpsi", 0.35], ["trkChoir", -0.35], ["trkBass", 0.35]],
       5: [["trkViolin", -0.35], ["trkFlute", 0.35, 0.84], ["trkHarpsi", -0.35], ["trkChoir", 0.35, 0.94], ["trkBass", 0]],
+      // D351: six voices (BWV 1043: the solos on the violin, the band's violins on the harpsichord, the viola on the choir; BWV 54: the alto on the choir).
+      6: [["trkViolin", -0.35], ["trkViolin", 0.35], ["trkHarpsi", -0.2, 0.5], ["trkHarpsi", 0.2, 0.5], ["trkChoir", 0, 0.84], ["trkBass", 0]],
+      ...concertoLayouts("trkHarpsi", 0.47, TRK_BAND, "trkFlute"),
     },
   },
   // D302: PIPE ORGAN (CHAMBER ORGAN remade, its id kept so a stored choice keeps it). D304: a sweet flute
@@ -954,6 +982,8 @@ export const PRESETS: Preset[] = [
       3: [["vocLa", 0.25], ["vocRo", -0.25], ["vocDa", 0]],
       4: [["vocLa", 0.25], ["vocRo", -0.25], ["vocNe", 0.12], ["vocDa", 0]],
       5: [["vocLa", 0.25], ["vocMi", -0.3, 0.84], ["vocRo", 0.1], ["vocNe", -0.12, 0.94], ["vocDa", 0]],
+      // D351: eight voices, BWV 228's two choirs (its FAST tempo), choir I on the left, choir II on the right.
+      8: [["vocLa", -0.3], ["vocRo", -0.2], ["vocNe", -0.15], ["vocDa", -0.1], ["vocMi", 0.3], ["vocRo", 0.2], ["vocNe", 0.15], ["vocDa", 0.1]],
     },
   },
   // D302: SOLO VOICES: four recorded singers and a choir, each line its own syllable, in the plate.
@@ -970,6 +1000,8 @@ export const PRESETS: Preset[] = [
       5: [["singS", 0.25], ["singChoir", -0.3, 0.84], ["singA", 0.1], ["singT", -0.12, 0.94], ["singB", 0]],
       // D341: eight voices, BWV 228's two choirs (S A T B each), choir I on the left, choir II on the right.
       8: [["singS", -0.3], ["singA", -0.2], ["singT", -0.15], ["singB", -0.1], ["singS", 0.3], ["singA", 0.2], ["singT", 0.15], ["singB", 0.1]],
+      // D351: six voices, the Ricercar a 6 sung at its SLOW tempo (soprano, mezzo, alto, tenor, baritone, bass).
+      6: [["singS", 0.25], ["singS", -0.25, 0.9], ["singA", 0.1], ["singT", -0.1], ["singT", 0.15, 0.9], ["singB", 0]],
     },
   },
   // D297, MODULAR (a niche pick). D304: East and West coast. D305: BLEEPS AND BLOOPS (the id kept, so a

@@ -85,6 +85,7 @@ import { LiteGrid } from "./LiteGrid.tsx";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { PlayPop } from "./PlayPop.tsx";
+import { nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -263,6 +264,8 @@ export function BenchApp() {
   // D299: the sound's delay retuned after a run in BLUETOOTH MODE (from, to: s), shown on the result.
   const [retuned, setRetuned] = useState<{ from: number; to: number } | null>(null);
   const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
+  // D351: the tempo step chosen for each MORE BACH and CHORALES piece (tempo-steps.ts), kept on the device.
+  const [tempoSteps, setTempoSteps] = useState<Record<string, TempoStep>>(readSteps);
   const [herSound, setHerSoundRaw] = useState<string>(() => load<string>(HER_SOUND_KEY, HER_SOUND));
   // D327: ⚙ TUNING: INSTRUMENT DEFAULT (the sound's own, instrument-tuning.ts) or a temperament at a pitch; applied below, once the sound is known.
   const [tuningPref, setTuningPrefRaw] = useState<TuningPref>(() => tuningPrefOf(load<unknown>(APP.lite ? LITE_TUNING_KEY : TUNING_KEY, null)));
@@ -362,7 +365,11 @@ export function BenchApp() {
   // book's: the owner, "fugues should not be too fast").
   // D282: a tutorial step may name its reading.
   const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (full ? chosenReading(f.id) : bestReading(f.id)) : null;
-  const bpm = run ? run.bpm : tempoOf(f.id);
+  // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
+  const stepOf = (id: string): TempoStep => (APP.lite && full && stepTempi(id) ? (tempoSteps[id] ?? "default") : "default");
+  const tempi = APP.lite && full ? stepTempi(f.id) : null;
+  const step = stepOf(f.id);
+  const bpm = run ? run.bpm : tempi ? tempi[step] : tempoOf(f.id);
   // D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): the player over Kimiko
   // Ishizaka's recording, the game on her time; only where she is timed (whatever pieces
   // data/recordings/ishizaka-ticks.json holds); her track let go when the switch or the piece is left.
@@ -374,7 +381,12 @@ export function BenchApp() {
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
   // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
   // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible; the placement on the sampled piano.
-  const sound = man ? (man.mode === "placement" ? PLACEMENT_SOUND : SOUND_PRESET[soundOf(manLesson!, manMat)]) : soundFor(f.id, full ? chosen : {}, DEFAULT_SOUND);
+  // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
+  const soundAt = (id: string) => {
+    const st = full && !chosen[id] ? stepSound(id, stepOf(id)) : undefined;
+    return soundFor(id, full ? (st ? { ...chosen, [id]: st } : chosen) : {}, DEFAULT_SOUND);
+  };
+  const sound = man ? (man.mode === "placement" ? PLACEMENT_SOUND : SOUND_PRESET[soundOf(manLesson!, manMat)]) : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   const tuning = resolveTuning(tuningPref, soundNow);
@@ -1483,7 +1495,7 @@ export function BenchApp() {
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
       {/* D308: ⚙ opens over the cards, which stay behind it (not the music box). */}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { ...manualProgress(readManual()), start: () => setSteps(true) } : undefined} />}
+      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { ...manualProgress(readManual()), start: () => setSteps(true) } : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D342: THE MANUAL's map (in place of the old tutorial's steps), and its Part 0 screens. */}
       {APP.lite && steps && phase.kind === "home" && !manScreen && <ManualMap begin={beginManual} testOut={beginTest} close={() => setSteps(false)} />}
@@ -1494,6 +1506,12 @@ export function BenchApp() {
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {APP.lite && !full && <LiteDrumsSwitch />}
+          {tempi && (
+            // D351: SLOW · DEFAULT · FAST, one button cycling them; the sound follows (unless one was chosen).
+            <button type="button" id="pop-tempo" className={`tb-pop-tempo tb-pop-tempo-${step}`} aria-label={`${tr("TEMPO")}: ${stepWord(step)}`} onClick={() => setTempoSteps(saveStep(f.id, nextStep(step)))}>
+              <span className="tb-pop-tempo-k">{tr("TEMPO")}</span> <b>{stepWord(step)}</b> <span className="tb-pop-tempo-v">{stepBeat(f.id, tempi[step])}</span>
+            </button>
+          )}
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}

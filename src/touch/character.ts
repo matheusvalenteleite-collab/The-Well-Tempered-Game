@@ -112,6 +112,10 @@ export const CHARACTER: Record<string, readonly [Character, string]> = {
   "bwv1058-1": [L, "(Allegro): a concerto's driving ritornello, 2/4"],
   "bwv1058-2": [A, "Andante: a cantabile slow movement over the strings"],
   "bwv1058-3": [L, "Allegro assai: a concerto's driving ritornello, 3/8"],
+  // D351: BWV 1059R (verits99's reconstruction from Cantata 35): the sinfonia, the aria, the Presto.
+  "bwv1059-1": [L, "(Allegro): a concerto's driving ritornello, 4/4"],
+  "bwv1059-2": [A, "(Andante): an aria's cantabile line over the obbligato"],
+  "bwv1059-3": [L, "Presto: a concerto's driving ritornello, 3/8"],
   "bwv1060-1": [L, "Allegro: a concerto's driving ritornello, 4/4"],
   "bwv1060-2": [A, "Adagio: a cantabile slow movement over the strings"],
   "bwv1060-3": [L, "Allegro: a concerto's driving ritornello, 2/4"],
