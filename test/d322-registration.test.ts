@@ -74,11 +74,9 @@ test("D322: the defaults: nothing registered, every voice's own patch bit for bi
         // The default made explicit (TUTTI) is the voice's own sound for the player.
         assert.equal(registeredNote(presetId, reg(defaultStops(presetId, pt)), pt, true, 64)?.patch ?? null, null, `${presetId} ${v}/${count}`);
       }
-  assert.deepEqual(defaultStops(O, PATCHES.orgFlute), ["flute"]);
+  // D349: one organ: every manual the Principal 8' and 4', the pedal with its 16'.
   assert.deepEqual(defaultStops(O, PATCHES.orgPrincipal), ["principal"]);
-  assert.deepEqual(defaultStops(O, PATCHES.orgTrompete), ["reed"]);
-  assert.deepEqual(defaultStops(O, PATCHES.orgKrumm), ["reed"]);
-  assert.deepEqual(defaultStops(O, PATCHES.orgPedal), []);
+  assert.deepEqual(defaultStops(O, PATCHES.orgPedal), ["sub16"]);
   assert.equal(organPatch(PATCHES.orgPrincipal, ["principal"], 64), PATCHES.orgPrincipal);
   // No live registration: the note as before (one recording on the harpsichord).
   assert.deepEqual(liveRegistration(H), DEFAULT_REG);
@@ -109,32 +107,34 @@ test("D322: HARPSICHORD: 8'+8' a second choir (another string, a few cents off, 
   assert.equal(all.buffers.filter((b) => b.startAt !== null && b.startAt >= 1 && b.startAt < 1.1).length, 3);
 });
 
-test("D322: PIPE ORGAN: the player's stops in one note (FLUTE, PRINCIPAL, REED, MIXTURE), the TREMULANT, the pedal's 16'", async () => {
-  // Four voices: flute, principal, Trompete, pedal.
-  const flute = await strike(O, DEFAULT_REG, 0, 4);
-  assert.ok(flute.waves.includes("sine") && !flute.waves.includes("stopPrincipal"));
-  const princ = await strike(O, reg(["flute", "principal"]), 0, 4);
-  assert.ok(princ.waves.includes("stopPrincipal") && princ.waves.includes("sine"), princ.waves.join());
-  const reed = await strike(O, reg(["reed"]), 0, 4);
+test("D322, D349: PIPE ORGAN: the player's stops (FLUTE, PRINCIPAL, REED, MIXTURE the recorded plenum), the TREMULANT, the pedal's 16'", async () => {
+  // Four voices: three manuals on the Principal, the pedal.
+  const princ = await strike(O, DEFAULT_REG, 0, 4);
+  assert.ok(princ.waves.includes("stopPrincipal") && !princ.waves.includes("stopGedackt"), princ.waves.join());
+  const flute = await strike(O, reg(["flute"]), 0, 4);
+  assert.ok(flute.waves.includes("stopGedackt") && !flute.waves.includes("stopPrincipal"));
+  const both = await strike(O, reg(["flute", "principal"]), 1, 4);
+  assert.ok(both.waves.includes("stopPrincipal") && both.waves.includes("stopGedackt"), both.waves.join());
+  const reed = await strike(O, reg(["reed"]), 2, 4);
   assert.ok(reed.waves.includes("stopTrompete") && !reed.waves.includes("stopPrincipal"));
-  // The Krummhorn voice's REED is its Krummhorn.
-  assert.ok(organPatch(PATCHES.orgKrumm, ["principal", "reed"], 64).osc.some((o) => o.wave === "stopKrummhorn"));
-  // MIXTURE: ranks two octaves up (one above c'', broken back).
-  const mix = organPatch(PATCHES.orgPrincipal, ["principal", "mixture"], 60);
-  assert.ok(mix.osc.some((o) => (o.octave ?? 0) >= 2 && o.wave === "stopPrincipal"));
-  assert.ok(Math.max(...organPatch(PATCHES.orgPrincipal, ["principal", "mixture"], 84).osc.map((o) => o.octave ?? 0)) <= 2.01);
+  // MIXTURE: the plenum, recorded (its synthesized stand-in until loaded); with the reed, the mixture's ranks two octaves up.
+  assert.equal(organPatch(PATCHES.orgPrincipal, ["principal", "mixture"], 60), PATCHES.orgPleno);
+  assert.equal(organPatch(PATCHES.orgPrincipal, ["flute", "mixture"], 60), PATCHES.orgPleno);
+  const mix = organPatch(PATCHES.orgPrincipal, ["principal", "reed", "mixture"], 60);
+  assert.ok(mix.osc.some((o) => (o.octave ?? 0) >= 2 && o.wave === "stopPrincipal") && mix.osc.some((o) => o.wave === "stopTrompete"));
+  assert.ok(Math.max(...organPatch(PATCHES.orgPrincipal, ["principal", "reed", "mixture"], 84).osc.map((o) => o.octave ?? 0)) <= 2.01);
   // TREMULANT: about 5-6 Hz, the level and a little pitch.
-  const trem = organPatch(PATCHES.orgFlute, ["flute", "trem"], 64);
+  const trem = organPatch(PATCHES.orgPrincipal, ["flute", "trem"], 64);
   assert.ok(trem.trem && trem.trem.rate >= 5 && trem.trem.rate <= 6 && trem.vib && trem.vib.depth <= 8);
-  // The pedal: its recording kept; 16' adds a note an octave down; the tremulant on the recording.
+  // The pedal: 16' drawn by default; pushed in, the 8' alone; the tremulant.
   assert.deepEqual(stopsShown(O, PATCHES.orgPedal), ["sub16", "trem"]);
-  assert.ok(!stopsShown(O, PATCHES.orgFlute).includes("sub16"));
+  assert.ok(!stopsShown(O, PATCHES.orgPrincipal).includes("sub16"));
+  assert.equal(registeredNote(O, reg(["sub16"]), PATCHES.orgPedal, true, 40), null, "the default");
+  assert.equal(registeredNote(O, reg([]), PATCHES.orgPedal, true, 40)?.patch, PATCHES.orgPedal8);
   const r = registeredNote(O, reg(["sub16", "trem"]), PATCHES.orgPedal, true, 40)!;
-  assert.ok(r.sub16 && r.patch?.sample === "organPedal" && r.patch.trem);
-  const pedal = await strike(O, reg(["sub16"]), 3, 4, { lead: true }, 40);
-  assert.ok(pedal.waves.includes("stopGedackt"), "the Subbass");
-  const plainPedal = await strike(O, DEFAULT_REG, 3, 4, { lead: true }, 40);
-  assert.ok(!plainPedal.waves.includes("stopGedackt"), "no Subbass by default");
+  assert.ok(r.patch?.trem && r.patch.osc.some((o) => o.octave === -1));
+  const pedal = await strike(O, DEFAULT_REG, 3, 4, { lead: true }, 40);
+  assert.ok(pedal.waves.includes("stopGedackt") && pedal.waves.includes("stopPrincipal"), "the Subbass 16' and the Octavbass 8'");
 });
 
 test("D322: TUTTI: the band takes the player's stops; without it the band's notes are untouched", async () => {
@@ -142,19 +142,22 @@ test("D322: TUTTI: the band takes the player's stops; without it the band's note
   assert.equal(band.buffers.filter((b) => b.startAt !== null && b.startAt >= 1 && b.startAt < 1.1).length, 1, "another voice, no TUTTI: as it was");
   const tutti = await strike(H, reg(["unison"], true), 0, 3, {});
   assert.equal(tutti.buffers.filter((b) => b.startAt !== null && b.startAt >= 1 && b.startAt < 1.1).length, 2, "TUTTI: the second 8' on the band too");
-  // The organ under TUTTI: every manual the player's stops; the pedal its own (and the tremulant, 16').
+  // The organ under TUTTI (D349): every manual the plenum; the pedal the plenum's (recorded), the flutes' soft one, the tremulant.
   const pleno = reg(["principal", "mixture"], true);
   for (const v of [0, 1, 2]) {
     const pt = voicePatch(O, v, 4)!;
-    const r = registeredNote(O, pleno, pt, false, 64);
-    assert.ok(r?.patch?.osc.some((o) => o.wave === "stopPrincipal" && (o.octave ?? 0) >= 2), `voice ${v}`);
+    assert.equal(registeredNote(O, pleno, pt, false, 64)?.patch, PATCHES.orgPleno, `voice ${v}`);
   }
-  assert.equal(registeredNote(O, pleno, PATCHES.orgPedal, false, 40), null);
+  assert.equal(registeredNote(O, pleno, PATCHES.orgPedal, false, 40)?.patch, PATCHES.orgPedalPleno);
+  assert.equal(registeredNote(O, reg(["flute"], true), PATCHES.orgPedal, false, 40)?.patch, PATCHES.orgPedalSoft);
   assert.ok(registeredNote(O, reg(["flute", "trem"], true), PATCHES.orgPedal, false, 40)?.patch?.trem);
+  // Without TUTTI the band's manual and pedal as they were (the player alone on a second manual).
+  assert.equal(registeredNote(O, reg(["principal", "mixture"]), PATCHES.orgPrincipal, false, 64), null);
+  assert.equal(registeredNote(O, reg(["principal", "mixture"]), PATCHES.orgPedal, false, 40), null);
   // A long press: the default made explicit, so the band takes it; let go of TUTTI, back to the player's default.
-  const t = setTutti(O, DEFAULT_REG, PATCHES.orgTrompete, true);
-  assert.deepEqual(t, { stops: ["reed"], tutti: true });
-  assert.deepEqual(setTutti(O, t, PATCHES.orgTrompete, false), DEFAULT_REG);
+  const t = setTutti(O, DEFAULT_REG, PATCHES.orgPrincipal, true);
+  assert.deepEqual(t, { stops: ["principal"], tutti: true });
+  assert.deepEqual(setTutti(O, t, PATCHES.orgPrincipal, false), DEFAULT_REG);
 });
 
 test("D322: loudness: the full registration within about +4 dB of one stop; the tremulant's mean level kept", () => {
@@ -163,7 +166,7 @@ test("D322: loudness: the full registration within about +4 dB of one stop; the 
   assert.ok(h > 1 && h <= 4, `${h.toFixed(2)} dB`);
   // ORGAN: each voice, every set of stops: the stops' gains (relative to the leading stop's level) within the bound.
   const sets: StopId[][] = [["flute"], ["principal"], ["reed"], ["flute", "principal"], ["principal", "mixture"], ["flute", "principal", "reed"], ["flute", "principal", "reed", "mixture"]];
-  for (const own of [PATCHES.orgFlute, PATCHES.orgPrincipal, PATCHES.orgTrompete, PATCHES.orgKrumm]) {
+  for (const own of [PATCHES.orgPrincipal]) {
     for (const s of sets) {
       const pt = organPatch(own, s, 64);
       if (pt === own) continue;
@@ -176,22 +179,22 @@ test("D322: loudness: the full registration within about +4 dB of one stop; the 
       assert.ok(norm > 0 && target / norm <= 1, `${s}: each stop softer than alone`);
     }
   }
-  const t = organPatch(PATCHES.orgFlute, ["flute", "trem"], 64);
+  const t = organPatch(PATCHES.orgPrincipal, ["flute", "trem"], 64);
   assert.ok(Math.abs(db(t.level * (1 - TREMULANT.depth / 2)) - db(PATCHES.orgFlute.level)) < 1e-9);
 });
 
 test("D322: the buttons: a manual never silent, MIXTURE draws a PRINCIPAL, the default kept as none; per piece on the device", () => {
-  const pt = PATCHES.orgFlute;
-  // The flute voice: pushing its only stop in does nothing.
-  assert.deepEqual(toggle(O, DEFAULT_REG, pt, "flute"), DEFAULT_REG);
-  const a = toggle(O, DEFAULT_REG, pt, "principal");
+  const pt = PATCHES.orgPrincipal;
+  // A manual voice: pushing its only stop in does nothing.
+  assert.deepEqual(toggle(O, DEFAULT_REG, pt, "principal"), DEFAULT_REG);
+  const a = toggle(O, DEFAULT_REG, pt, "flute");
   assert.deepEqual(a.stops, ["flute", "principal"]);
   // Back to its own: stored as the default.
-  assert.deepEqual(toggle(O, a, pt, "principal"), DEFAULT_REG);
-  const onlyP = toggle(O, a, pt, "flute");
-  assert.deepEqual(onlyP.stops, ["principal"]);
-  assert.deepEqual(toggle(O, onlyP, pt, "principal"), onlyP, "the last foundation stays");
-  assert.deepEqual(toggle(O, onlyP, pt, "mixture").stops, ["principal", "mixture"]);
+  assert.deepEqual(toggle(O, a, pt, "flute"), DEFAULT_REG);
+  const onlyF = toggle(O, a, pt, "principal");
+  assert.deepEqual(onlyF.stops, ["flute"]);
+  assert.deepEqual(toggle(O, onlyF, pt, "flute"), onlyF, "the last foundation stays");
+  assert.deepEqual(toggle(O, onlyF, pt, "mixture").stops, ["flute", "mixture"]);
   // The harpsichord's 8' always speaks: its buttons add.
   assert.deepEqual(toggle(H, DEFAULT_REG, PATCHES.harpsiSampled, "lute").stops, ["lute"]);
   assert.deepEqual(toggle(H, reg(["lute"]), PATCHES.harpsiSampled, "lute"), DEFAULT_REG);

@@ -95,6 +95,7 @@ export const PERIOD: Record<string, Bake> = {
   // phone's limiter), 16 bits: no grain.
   manualOrg: { folder: "pipeOrgan", rate: 22050, lp: 9500, bits: 16 },
   pedalOrg: { folder: "pipePedal", rate: 22050, lp: 9000, bits: 16 },
+  plenoOrg: { folder: "pipeOrgan", rate: 22050, lp: 9500, bits: 16 },
   // D302, SOLO VOICES: VocalSet's four singers (their own 1-3 s loops) and FluidR3's choir "aah" (its
   // loop 0.9-2.5 s, as the chorales play it), kept at 24 kHz: nothing of a voice lost under 11 kHz.
   voiceS: { folder: "soloSoprano", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
@@ -178,7 +179,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -268,6 +269,8 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   choirAah: { set: "choirAah", plucked: false, gain: 2.2 },
   // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
   organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5 },
+  // D349, PIPE ORGAN's PLENUM: the same organ's recorded plenum on the manuals (a set of its own, so its plan and the pedal's never let go of each other's notes).
+  organPleno: { set: "plenoOrg", plucked: false, gain: 5 },
 };
 
 /** D297: the set a pitch of an instrument is played from (an organ's manual above its pedal). */

@@ -9,12 +9,16 @@
  *   neighbouring key's recording retuned, so another string: a few cents off, plucked a few ms later,
  *   a little brighter); 4' adds the octave above (quieter, brighter); LUTE the buff stop (D311's: the
  *   lowpass and the short ring), on everything that sounds.
- *   PIPE ORGAN: FLUTE (Flöte 8'), PRINCIPAL (8' with its 4'), REED (the Trompete; the Krummhorn where
- *   the voice's own is the Krummhorn), MIXTURE (a 2' and the mixture's ranks, breaking back an octave
- *   in the treble), TREMULANT (the wind shaken: an amplitude and a slight pitch tremolo, 5.6 Hz). The
- *   default is the voice's own D304 registration. The pedal (the bass) keeps its recorded pipes; when
- *   the player has it, 16' adds a Subbass an octave down, and the tremulant. Synthesized ranks only
- *   (the recorded plenum stays withdrawn: no more decoded audio, sampled.ts BUDGET untouched).
+ *   PIPE ORGAN (D349: one organ, as an organist registers it): every manual voice plays the same
+ *   registration on the same manual, the default PRINCIPAL (Principal 8' and Octave 4'); FLUTE the
+ *   flutes (Gedackt 8', Rohrflöte 4'); MIXTURE the plenum (the VCSL organ's recorded Principal 8' to
+ *   Mixture, its recorded pedal under it); REED the Trompete (alone a solo reed: a cantus firmus; with
+ *   the foundation, in the chorus); TREMULANT (the wind shaken: an amplitude and a slight pitch tremolo,
+ *   5.6 Hz). Without TUTTI the stops are the player's voice alone, on a second manual (a solo, never
+ *   louder: one level for every registration); under TUTTI the whole organ takes them (the band's
+ *   manual, and the pedal's family: the flutes' soft pedal, the plenum's recorded one). The pedal
+ *   (the bass): Subbass 16', Octavbass 8', Choralbass 4'; its 16′ button (drawn by default) and the
+ *   tremulant when the player has it.
  *
  * Several stops drawn together are scaled so the full registration is at most about +4 dB over one
  * stop (measured: DECISIONS D322). Pure numbers and the state here (test/d322-registration.test.ts);
@@ -54,31 +58,23 @@ export const DEFAULT_REG: Registration = { stops: null, tutti: false };
 
 // ---- The organ's voices ----
 
-const ORGAN_PATCHES = ["orgFlute", "orgPrincipal", "orgTrompete", "orgKrumm", "orgPedal"] as const;
-type OrganPatch = (typeof ORGAN_PATCHES)[number];
+const MANUALS = ["orgPrincipal", "orgFlute", "orgTrompete", "orgPleno"] as const;
+const PEDALS = ["orgPedal", "orgPedal8", "orgPedalSoft", "orgPedalPleno"] as const;
+type OrganPatch = (typeof MANUALS)[number] | (typeof PEDALS)[number];
 /** Which of PIPE ORGAN's patches a voice plays (by identity), or null for any other patch. */
 export function organPatchOf(pt: Patch | null | undefined): OrganPatch | null {
-  for (const id of ORGAN_PATCHES) if (PATCHES[id] === pt) return id;
+  for (const id of [...MANUALS, ...PEDALS]) if (PATCHES[id] === pt) return id;
   return null;
 }
-export const isPedal = (pt: Patch | null | undefined) => organPatchOf(pt) === "orgPedal";
+export const isPedal = (pt: Patch | null | undefined) => (PEDALS as readonly string[]).includes(organPatchOf(pt) ?? "");
+export const isManual = (pt: Patch | null | undefined) => (MANUALS as readonly string[]).includes(organPatchOf(pt) ?? "");
 const HARPSI = new Set<Patch>([PATCHES.harpsiSampled, PATCHES.harpsiBassSampled]);
 export const isHarpsichord = (pt: Patch | null | undefined) => !!pt && HARPSI.has(pt);
 
-/** A voice's own (D304) registration, as stops. The pedal: none drawn (its recorded pipes). */
+/** A voice's default registration, as stops (D349: every manual the Principal 8' and 4'; the pedal with its 16'). */
 export function defaultStops(presetId: string, pt: Patch | null | undefined): StopId[] {
   if (presetId !== "chamberOrgan") return [];
-  switch (organPatchOf(pt)) {
-    case "orgFlute":
-      return ["flute"];
-    case "orgPrincipal":
-      return ["principal"];
-    case "orgTrompete":
-    case "orgKrumm":
-      return ["reed"];
-    default:
-      return [];
-  }
+  return isPedal(pt) ? ["sub16"] : organPatchOf(pt) ? ["principal"] : [];
 }
 
 /** The buttons shown for the player's voice: the organ's pedal shows 16' and the tremulant; a manual every stop but 16'. */
@@ -142,10 +138,8 @@ export const ORGAN_SUM_P = 1.25;
 export const MIXTURE_WEIGHT = 0.55;
 /** ORGAN: the tremulant: amplitude depth (0-1), rate (Hz), and its slight pitch wobble (cents). */
 export const TREMULANT = { depth: 0.22, rate: 5.6, cents: 5 };
-/** ORGAN: the Subbass 16' under the pedal (its level against the pedal's). */
-export const SUB16_LEVEL = 0.55;
 
-/** ORGAN: the mixture's ranks: a 2', a 1 1/3' and a 1' (a 2', 2 2/3' and 1 1/3' from c'', broken back an octave). */
+/** ORGAN: the mixture's ranks (synthesized, with a reed in the chorus): a 2', a 1 1/3' and a 1' (a 2', 2 2/3' and 1 1/3' from c'', broken back an octave). */
 export function mixturePatch(midi: number): Patch {
   const k = midi >= 72 ? 1 : 2;
   return {
@@ -154,46 +148,41 @@ export function mixturePatch(midi: number): Patch {
       { wave: "sine", octave: k + Math.log2(1.5), detune: 1.4, gain: 0.32 },
       { wave: "sine", octave: k + 1, detune: -1.2, gain: 0.26 },
     ],
-    amp: { a: 0.02, d: 0.05, s: 1, r: 0.09 },
-    level: 0.3,
+    amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 },
+    level: PATCHES.orgPrincipal.level,
   };
 }
-/** ORGAN: the Subbass 16' (a stopped pipe an octave down), played as its own note under the pedal's. */
-export const SUBBASS: Patch = { osc: [{ wave: "stopGedackt" }], chiff: { level: 0.15, time: 0.03, at: 3 }, amp: { a: 0.04, d: 0.05, s: 1, r: 0.12 }, send: 0.1, hp: 28, level: 0.3 };
 
-const STOP_PATCH = (stop: StopId, own: OrganPatch | null, midi: number): Patch | null =>
-  stop === "flute" ? PATCHES.orgFlute : stop === "principal" ? PATCHES.orgPrincipal : stop === "reed" ? (own === "orgKrumm" ? PATCHES.orgKrumm : PATCHES.orgTrompete) : stop === "mixture" ? mixturePatch(midi) : null;
+const STOP_PATCH = (stop: StopId, midi: number): Patch | null =>
+  stop === "flute" ? PATCHES.orgFlute : stop === "principal" ? PATCHES.orgPrincipal : stop === "reed" ? PATCHES.orgTrompete : stop === "mixture" ? mixturePatch(midi) : null;
 
 /** ORGAN: a patch with the tremulant: the level shaken about its own (chip.ts takes depth/2 off the mean: given back), a slight pitch wobble with it. */
 export const tremulant = (pt: Patch): Patch => ({ ...pt, level: pt.level / (1 - TREMULANT.depth / 2), trem: { depth: TREMULANT.depth, rate: TREMULANT.rate }, vib: { depth: TREMULANT.cents, rate: TREMULANT.rate, delay: 0 } });
 
 const merged = new Map<string, Patch>();
 /**
- * ORGAN: one manual note's patch for the stops drawn: the stops' oscillators in one note (one envelope,
- * one chiff: a single key opening several ranks), each scaled by its own level and the sum's share;
- * the voice's own patch itself where the stops are its own (the default bit for bit), with the tremulant
- * where drawn.
+ * ORGAN: one manual note's patch for the stops drawn (D349: whichever voice: one manual). One stop, its
+ * own patch; MIXTURE without the reed, the recorded plenum (the foundation under it is in it); several
+ * others, their ranks in one note (one envelope, one chiff: a single key opening several ranks), each
+ * scaled by the sum's share, the Principal leading where drawn; the tremulant where drawn.
  */
-export function organPatch(own: Patch, stops: readonly StopId[], midi: number): Patch {
-  const id = organPatchOf(own);
-  const def = defaultStops("chamberOrgan", own);
+export function organPatch(_own: Patch, stops: readonly StopId[], midi: number): Patch {
   let ranks: StopId[] = stops.filter((s) => s !== "trem" && s !== "sub16");
-  if (!ranks.some((s) => FOUNDATION.includes(s))) ranks = [...def, ...ranks];
+  if (!ranks.some((s) => FOUNDATION.includes(s))) ranks = ["principal", ...ranks];
   const trem = stops.includes("trem");
-  const same = ranks.length === def.length && ranks.every((s) => def.includes(s));
-  const key = `${id}|${ranks.join(",")}|${trem}|${ranks.includes("mixture") ? (midi >= 72 ? 1 : 2) : 0}`;
+  const key = `${ranks.join(",")}|${trem}|${ranks.includes("mixture") ? (midi >= 72 ? 1 : 2) : 0}`;
   const hit = merged.get(key);
   if (hit) return hit;
   let pt: Patch;
-  if (same) pt = own;
+  if (ranks.length === 1) pt = STOP_PATCH(ranks[0], midi)!;
+  else if (ranks.includes("mixture") && !ranks.includes("reed")) pt = PATCHES.orgPleno;
   else {
-    // The voice's own stop leads where drawn (its envelope, chiff, filter, send), else the first foundation stop; the others' ranks join it.
-    const lead = STOP_PATCH(ranks.find((s) => def.includes(s)) ?? ranks.find((s) => FOUNDATION.includes(s))!, id, midi)!;
+    const lead = STOP_PATCH((["principal", "flute", "reed"] as StopId[]).find((s) => ranks.includes(s))!, midi)!;
     const weights = ranks.map((s) => (s === "mixture" ? MIXTURE_WEIGHT : 1));
     const target = 10 ** (ORGAN_SUM_DB[Math.min(4, ranks.length)] / 20);
     const scale = target / weights.reduce((a, w) => a + w ** ORGAN_SUM_P, 0) ** (1 / ORGAN_SUM_P);
     const osc = ranks.flatMap((s, i) => {
-      const sp = STOP_PATCH(s, id, midi)!;
+      const sp = STOP_PATCH(s, midi)!;
       const g = (sp.level / lead.level) * weights[i] * scale;
       return sp.osc.map((o) => ({ ...o, detune: (o.detune ?? 0) + (RANK_CENTS[s] ?? 0), gain: (o.gain ?? 1) * g }));
     });
@@ -205,18 +194,44 @@ export function organPatch(own: Patch, stops: readonly StopId[], midi: number): 
   return pt;
 }
 
-/** What the registration makes of one note: its patch (the organ), the harpsichord's choirs and lute, the pedal's 16'. */
+/**
+ * ORGAN: the pedal's patch: its family by the manual's registration (the plenum's recorded pedal under
+ * MIXTURE, the soft one under the flutes alone, else the principals), without its 16' where the
+ * player pushed it in (not the plenum's: its recordings have their 16'), with the tremulant where drawn.
+ */
+export function pedalPatch(manual: readonly StopId[] | null, sixteen = true, trem = false): Patch {
+  const m = manual ?? ["principal"];
+  const pleno = m.includes("mixture");
+  const soft = !pleno && m.includes("flute") && !m.includes("principal") && !m.includes("reed");
+  const pt = pleno ? PATCHES.orgPedalPleno : !sixteen ? PATCHES.orgPedal8 : soft ? PATCHES.orgPedalSoft : PATCHES.orgPedal;
+  return trem ? tremulant(pt) : pt;
+}
+
+/**
+ * D349, ORGANO PLENO (the game's zone, an entry captured): the organist draws the mixture for the
+ * section: a manual's note crowned (the plenum; a reed's with the mixture's ranks), the pedal's the
+ * plenum's. Null where nothing changes (another sound, a plenum already).
+ */
+export function crowned(pt: Patch | null | undefined, pedal: boolean, stops: readonly StopId[] | null, midi: number): Patch | null {
+  if (!pt?.pipe) return null;
+  if (pedal) return pt === PATCHES.orgPedalPleno ? null : PATCHES.orgPedalPleno;
+  const now = stops ?? ["principal"];
+  if (now.includes("mixture") || pt === PATCHES.orgPleno || pt === PATCHES.orgFlute) return null;
+  return organPatch(pt, [...now, "mixture"], midi);
+}
+
+/** What the registration makes of one note: its patch (the organ), the harpsichord's choirs and lute. */
 export interface Registered {
   patch?: Patch;
   choirs?: { unison?: typeof UNISON; four?: typeof FOUR };
   lute?: boolean;
-  sub16?: boolean;
 }
 
 /**
  * The registration's answer for a note of the preset playing, of the voice whose patch is `pt`;
  * `lead` whether it is the player's. Null: the note as it was (another voice without TUTTI, another
- * sound, a patch the preset does not register, or the default registration).
+ * sound, a patch the preset does not register, or the default registration). D349: the organ's pedal
+ * follows the band's manual (its family) whoever plays it.
  */
 export function registeredNote(presetId: string, reg: Registration, pt: Patch | null | undefined, lead: boolean, midi: number): Registered | null {
   if (!reg.stops || !pt || (!lead && !reg.tutti)) return null;
@@ -229,15 +244,9 @@ export function registeredNote(presetId: string, reg: Registration, pt: Patch | 
     return r.choirs || r.lute ? r : null;
   }
   if (presetId === "chamberOrgan") {
-    const id = organPatchOf(pt);
-    if (!id) return null;
-    if (id === "orgPedal") {
-      const r: Registered = {};
-      if (st.includes("trem")) r.patch = tremulant(pt);
-      if (st.includes("sub16")) r.sub16 = true;
-      return r.patch || r.sub16 ? r : null;
-    }
-    const patch = organPatch(pt, st, midi);
+    if (!organPatchOf(pt)) return null;
+    // The pedal's 16′ pushed in only from the pedal (the player's); the tremulant the player's, or every voice's under TUTTI.
+    const patch = isPedal(pt) ? pedalPatch(reg.tutti ? st : null, !lead || st.includes("sub16"), st.includes("trem")) : organPatch(pt, st, midi);
     return patch === pt ? null : { patch };
   }
   return null;
