@@ -51,6 +51,8 @@ test("D369 (2): play.html sideways only: the turn screen over everything, the ru
 async function shaken(id: string, stage: number, px: number, legMs: number, rest = false) {
   const { lessonById } = await import("../src/bench/manual/lessons.ts");
   const { gameFor, ROWS } = await import("./d342-sim.ts");
+  // D373: Inventions 4, 8 and 12 are MORE BACH's chunk.
+  await (await import("../src/touch/fugue.ts")).loadExtras();
   const l = lessonById(id)!;
   const clock = { t: 0 };
   const { g } = gameFor(l.stages[stage].m, clock, undefined, !!l.ornaments);
@@ -81,9 +83,9 @@ async function shaken(id: string, stage: number, px: number, legMs: number, rest
   return { free: f.mordents + f.shorts + f.trills + f.turns, heads: heads.length, r: g.results() };
 }
 
-test("D369 (3h): a lesson sounds only what is struck: a settling roll of a few px reads no grace of its own (Parts 0–IV)", async () => {
-  // Before: a 6 px roll each way, 70 ms, read as a mordent on every note of I.1's drill and I.4's first stage.
-  for (const [id, k] of [["I.1", 0], ["I.4", 0], ["I.4", 1], ["II.1", 2]] as const) {
+test("D369 (3h): a lesson sounds only what is struck: a settling roll of a few px reads no grace of its own (D373: Parts 1–3, III, IV)", async () => {
+  // Before: a 6 px roll each way, 70 ms, read as a mordent on every note of I.1's drill and I.4's first stage (D373: the new parts' PLAYs).
+  for (const [id, k] of [["1.2", 2], ["1.4", 2], ["2.1", 2], ["3.1", 2], ["III.2", 0]] as const) {
     const s = await shaken(id, k, 6, 70);
     assert.equal(s.free, 0, `${id} stage ${k}: ${s.free} free graces read`);
     assert.equal(s.r.right, s.r.of, `${id}: every note right`);
@@ -100,64 +102,61 @@ test("D369 (3i): V.4's free graces read, also with the other thumb resting PREPA
   assert.ok(small.free >= small.heads / 2, `small, prepared: ${small.free}`);
 });
 
-test("D369 (3a–3e): 0.2 withdrawn; Parts 0–II on the piano; Invention 1 slower; the metronome in the takes; novice-friendly timing", async () => {
-  const { MANUAL, lessonById, runOf, LESSON_CLICK, bpmOf, toldTiming, lessonPassed, ZERO_LENS, NOVICE_MEAN_MS } = await import("../src/bench/manual/lessons.ts");
+test("D369 (3a–3e), as D373 keeps them: 0.1 and 0.2 withdrawn; Parts 1–2 on the piano; Invention 1 slower; the metronome in the takes; novice-friendly timing", async () => {
+  const { MANUAL, lessonById, runOf, LESSON_CLICK, bpmOf, toldTiming, ZERO_LENS, NOVICE_MEAN_MS } = await import("../src/bench/manual/lessons.ts");
   const { tempoOf } = await import("../src/touch/tempi.ts");
   const { existsSync } = await import("node:fs");
-  assert.ok(!lessonById("0.2"), "no 0.2");
+  assert.ok(!lessonById("0.1") && !lessonById("0.2"), "no 0.1, no 0.2 (D373: the sound's delay in SETTINGS)");
   assert.ok(!existsSync(new URL("../src/bench/manual/placement.ts", import.meta.url)));
-  assert.doesNotMatch(src("src/bench/BenchApp.tsx"), /AskScreen|PlacementScreen|PLACEMENT/);
-  // (b) the piano in Parts 0–II.
-  for (const l of MANUAL.filter((x) => ["0", "I", "II"].includes(x.part))) {
+  assert.doesNotMatch(src("src/bench/BenchApp.tsx"), /AskScreen|PlacementScreen|PLACEMENT|GripScreen/);
+  assert.match(src("src/bench/BenchApp.tsx"), /<LagSetting lag=\{lag\} setLag=\{setLag\}/);
+  // (b) the piano in Parts 1–2.
+  for (const l of MANUAL.filter((x) => ["1", "2"].includes(x.part))) {
     assert.equal(l.sound, "piano", l.id);
     for (const st of l.stages) assert.ok(!st.m.sound || st.m.sound === "piano", `${l.id}: ${st.m.label}`);
   }
-  // (c) Invention 1 at 75% of the game's tempo in Parts 0–II, at most 80% after.
+  // (c) Invention 1 slower than the game's in the tutorial: at most 75% in Parts 1–3 (♩ = 30 to 43), at most 80% after.
   const game = tempoOf("inv01");
   for (const l of MANUAL)
     for (const st of l.stages)
       if (st.m.piece === "inv01") {
         const share = bpmOf(st.m) / game;
-        assert.ok(["0", "I", "II"].includes(l.part) ? Math.abs(share - 0.75) < 0.01 : share <= 0.8 + 1e-9, `${l.id}: ${st.m.label} at ${Math.round(share * 100)}%`);
+        assert.ok(share <= (["1", "2", "3"].includes(l.part) ? 0.75 : 0.8) + 1e-9, `${l.id}: ${st.m.label} at ${Math.round(share * 100)}%`);
       }
-  // (d) a soft click on every beat of a take (not under his demonstration); a drill's own click kept.
-  const take = runOf(lessonById("I.2")!.stages[3].m);
+  // (d) a soft click on every beat of a take (not under his demonstration).
+  const take = runOf(lessonById("1.2")!.stages[2].m);
   assert.deepEqual(take.click, LESSON_CLICK);
   assert.ok(LESSON_CLICK.gain < 0.12 && LESSON_CLICK.full > 1e9);
-  assert.equal(runOf(lessonById("I.2")!.stages[3].m, "plain", undefined, false, false).click, undefined);
-  assert.deepEqual(runOf(lessonById("I.1")!.stages[0].m).click, { full: 8 * 1920, gone: 12 * 1920 });
+  assert.equal(runOf(lessonById("1.2")!.stages[0].m, "plain", undefined, false, false).click, undefined);
   assert.match(src("src/bench/proto-game.ts"), /const ckGain = ck\?\.gain \?\? 0\.12;/);
-  // (e) the owner's take: 55 ms early, a novice's spread: passed, praised first, only a suggestion.
-  const i1 = lessonById("I.1")!;
+  // (e) the owner's take: 55 ms early: praised first, only a suggestion.
   const x = { ...ZERO_LENS, of: 24, right: 23, accuracy: 23 / 24, timing: { n: 23, mean: -55, sd: 60, perfect: 9 } };
-  assert.ok(lessonPassed(i1, x), "early by 55 ms passes I.1");
-  assert.ok(lessonPassed(lessonById("I.5")!, { ...x, last: { hit: true, word: "HELD" } }), "and I.5");
   assert.match(toldTiming(x)!.text, /^Good\. A shade early .*you may/);
   assert.equal(NOVICE_MEAN_MS, 90);
-  assert.ok(!lessonPassed(i1, { ...x, timing: { ...x.timing, mean: -120 } }));
 });
 
-test("D369 (3f, 3g): a lesson tapped begins at once (no card); one left midway asks WHERE TO BEGIN?, up to the stage reached", async () => {
+test("D369 (3f, 3g), as D373 keeps them: a lesson begins at once; one left midway is taken up where it stopped (the tile's chips, CONTINUE)", async () => {
   register("./tsx-hooks.mjs", import.meta.url);
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
-  const { ManualMap, WhereToBegin } = await import("../src/bench/manual/ManualMap.tsx");
-  const { reachStage, reachedOf, readManual } = await import("../src/bench/manual/store.ts");
-  const { lessonById } = await import("../src/bench/manual/lessons.ts");
+  const { TutorialSelect } = await import("../src/bench/manual/ManualMap.tsx");
+  const { finishStep, reachStage, reachedOf, readManual, resumeAt } = await import("../src/bench/manual/store.ts");
   store.clear();
-  reachStage("I.2", 2);
-  reachStage("I.2", 1);
-  assert.equal(reachedOf(readManual(), "I.2"), 2, "the furthest kept");
-  const html = renderToStaticMarkup(createElement(ManualMap, { begin: () => {}, testOut: () => {}, close: () => {} }));
-  assert.doesNotMatch(html, /tb-manual-card|BEGIN<|STRAIGHT TO PLAY|aria-expanded/);
-  const pop = renderToStaticMarkup(createElement(WhereToBegin, { l: lessonById("I.2")!, reached: 2, begin: () => {}, close: () => {} }));
-  assert.equal(pop.match(/id="resume-\d"/g)?.length, 3);
-  assert.match(pop, /FROM THE BEGINNING/);
-  assert.match(pop, /id="resume-2" class="tb-resume-stage here"/);
-  assert.match(pop, /WHERE YOU LEFT OFF/);
+  reachStage("1.2", 2);
+  reachStage("1.2", 1);
+  assert.equal(reachedOf(readManual(), "1.2"), 2, "the furthest kept");
+  finishStep("1.2", 0);
+  finishStep("1.2", 1);
+  assert.equal(resumeAt(readManual(), "1.2"), 2, "CONTINUE: the PLAY");
+  const html = renderToStaticMarkup(createElement(TutorialSelect, { begin: () => {}, close: () => {}, focus: "1.2" }));
+  assert.doesNotMatch(html, /tb-manual-card|STRAIGHT TO PLAY/);
+  assert.match(html, /YOU STOPPED AT: PLAY/);
+  assert.match(html, /id="chip-1\.2-0" class="tb-tut-chip watch fin"/);
+  assert.match(html, /id="chip-1\.2-2" class="tb-tut-chip play"/);
+  assert.doesNotMatch(html, /id="chip-1\.2-2"[^>]*disabled/);
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /reachStage\(l\.id, k\);/);
-  assert.match(app, /if \(o\.stage && o\.stage > 0 && l\.stages\[o\.stage\]\) return beginStage\(l, o\.stage, 0\);/);
+  assert.match(app, /if \(isCourse\(l\)\) return courseStep\(l, o\.stage \?\? 0, 0, !o\.stage\);/);
   store.clear();
 });
 

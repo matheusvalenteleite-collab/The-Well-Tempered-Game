@@ -964,3 +964,101 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 /* D371 (the report's 8 A): the chip filled with the voice's colour (inline), its words in dark ink; on paper too. */
 .tb-you-chip { color: #14101a; border-color: rgba(0, 0, 0, 0.35) !important; box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45); }
 html.tb-paper .tb-you-chip { color: #14101a; }
+
+/* D373, THE TUTORIAL's selection screen (Mario's tut-select): the play screen's three columns, nothing scrolls. */
+.tb-tut { --tb-tut-side: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2); position: fixed; inset: 0; z-index: 60; display: grid; grid-template-columns: calc(var(--tg-sal) + var(--tb-tut-side)) 1fr calc(var(--tg-sar) + var(--tb-tut-side)); height: 100dvh; overflow: hidden; background: #141a33; color: var(--tg-fg); font-family: var(--tg-pixel); }
+.tb-tut-left, .tb-tut-right { box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; min-height: 0; background: #1d1a24; }
+.tb-tut-left { padding: 8px 8px 8px calc(var(--tg-sal) + 8px); }
+.tb-tut-right { position: relative; padding: 10px calc(var(--tg-sar) + 10px) 8px 10px; }
+.tb-tut-head { display: flex; gap: 8px; align-items: center; }
+.tb-tut-head .tb-bach-face { width: 26px; height: 30px; flex: none; }
+.tb-tut-head h2 { margin: 0; font-size: 9px; color: var(--tg-gold); letter-spacing: 0.06em; }
+.tb-tut-head p { margin: 3px 0 0; font-size: 6px; color: var(--tg-muted); }
+.tb-tut-parts { display: flex; flex-direction: column; gap: 5px; flex: 1; min-height: 0; justify-content: space-between; }
+.tb-tut-part { display: grid; gap: 3px; flex: 1; min-height: 0; max-height: 52px; padding: 4px 7px; text-align: left; font-family: inherit; color: var(--tg-fg); background: #221f2c; border: 2px solid #3a3550; cursor: pointer; }
+.tb-tut-part.on { background: #3a3122; border-color: var(--tg-gold); }
+.tb-tut-part.older { opacity: 0.8; }
+.tb-tut-part-n { font-size: 5px; color: var(--tg-muted); }
+.tb-tut-part-name { font-size: 6px; line-height: 1.3; }
+.tb-tut-part.on .tb-tut-part-name { color: var(--tg-gold); }
+.tb-tut-pips { display: flex; gap: 3px; }
+.tb-tut-pips i { width: 9px; height: 4px; background: #3d3a52; }
+.tb-tut-pips i.done { background: #79d99a; }
+.tb-tut-centre { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 0 10px 8px; }
+.tb-tut-bar { margin: 0; padding: 8px 0 6px; font-size: 6px; color: var(--tg-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-tut-tiles { flex: 1; min-height: 0; display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); }
+.tb-tut-tiles.n5, .tb-tut-tiles.n6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tb-tut-tiles.n1, .tb-tut-tiles.n2 { grid-auto-rows: minmax(0, 0.5fr); }
+.tb-tut-tile { position: relative; display: flex; flex-direction: column; gap: 3px; min-height: 0; overflow: hidden; padding: 6px 7px; background: #1b2550; border: 2px solid #2f3c74; cursor: pointer; }
+.tb-tut-tile.on { border-color: var(--tg-gold); background: #232d5c; }
+.tb-tut-tile-n { font-size: 8px; color: var(--tg-gold); }
+.tb-tut-tile-name { font-size: 6px; line-height: 1.35; }
+.tb-tut-tile-music { font-size: 5px; color: var(--tg-muted); }
+.tb-tut-tick { position: absolute; top: 5px; right: 7px; font-size: 9px; color: #79d99a; }
+.tb-tut-next { position: absolute; top: 4px; right: 5px; padding: 2px 4px; font-size: 6px; color: #12101a; background: #fff0b0; }
+.tb-tut-contour { flex: 1; min-height: 8px; width: 100%; }
+.tb-tut-chips { display: flex; gap: 3px; justify-content: flex-end; flex-wrap: wrap; }
+.tb-tut-chip { min-width: 0; padding: 4px 5px; font-family: inherit; font-size: 5px; color: var(--tg-fg); background: transparent; border: 1px solid #6f7ab0; cursor: pointer; }
+.tb-tut-chip.watch { border-color: #5aa2ee; color: #8cc4ff; }
+.tb-tut-chip.try { border-color: #b5a46a; color: #d9c98f; }
+.tb-tut-chip.play, .tb-tut-chip.tour { border-color: #f2c45a; color: #f2c45a; }
+.tb-tut-chip.fin.watch { background: #5aa2ee; color: #0d1430; }
+.tb-tut-chip.fin.try { background: #b5a46a; color: #12101a; }
+.tb-tut-chip.fin.play, .tb-tut-chip.fin.tour, .tb-tut-chip.fin.drill { background: #f2c45a; color: #12101a; }
+.tb-tut-chip:disabled { opacity: 0.35; cursor: default; }
+.tb-tut-right .tb-tut-x { position: absolute; top: 6px; right: calc(var(--tg-sar) + 6px); left: auto; margin: 0; }
+.tb-tut-title { margin: 0; padding-right: 30px; font-size: 7px; line-height: 1.5; color: var(--tg-gold); }
+.tb-tut-learn { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 1.3; color: var(--tg-fg); }
+.tb-tut-facts { display: grid; grid-template-columns: 1fr; gap: 1px; margin: 2px 0 0; font-size: 5px; }
+.tb-tut-facts dt { color: var(--tg-muted); }
+.tb-tut-facts dd { margin: 0 0 3px; color: var(--tg-fg); font-size: 6px; line-height: 1.4; }
+.tb-tut-stopped { margin: 0; font-size: 6px; color: var(--tg-gold); }
+.tb-tut-go { display: grid; gap: 5px; margin-top: auto; }
+.tb-tut-continue { width: 100%; padding: 10px 4px; font-size: 9px; }
+.tb-tut-go .tb-tut-over { justify-self: center; padding: 2px; font-family: var(--tg-pixel); font-size: 6px; color: var(--tg-muted); background: transparent; border: 0; }
+.tb-tut-langs { display: flex; gap: 6px; justify-content: center; }
+.tb-tut-langs button { padding: 3px 5px; font-family: inherit; font-size: 6px; color: var(--tg-muted); background: transparent; border: 0; cursor: pointer; }
+.tb-tut-langs button.on { color: var(--tg-gold); }
+
+/* D373: a lesson on the play screen: his words over the foot of the box, between the strips (the layout never moves). */
+.tb-bach.tb-bach-low { position: fixed; inset: auto calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px) 30px calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px); z-index: 30; max-height: 62vh; overflow: auto; padding: 7px 10px; gap: 10px; border-width: 2px; border-radius: 6px; box-shadow: none; }
+.tb-bach-low .tb-bach-face { width: 36px; height: 40px; }
+.tb-bach-low .tb-bach-line { font-size: 13px; line-height: 1.35; }
+.tb-bach-low .tb-bach-title { font-size: 6px; }
+.tb-bach-low .tb-bach-choices { gap: 6px; }
+.tb-bach-low .tb-bach-choice { padding: 7px 10px; }
+.tb-course-chrome { position: fixed; inset: 0; z-index: 25; pointer-events: none; }
+.tb-caption { position: fixed; left: calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px); right: calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px); bottom: 30px; display: flex; gap: 8px; align-items: center; padding: 5px 9px; background: rgba(10, 9, 14, 0.82); border: 2px solid rgba(243, 215, 138, 0.75); border-radius: 6px; }
+.tb-caption .tb-bach-face { width: 26px; height: 29px; flex: none; }
+.tb-caption p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 1.3; color: var(--tg-fg); }
+.tb-step-banner { position: fixed; top: 32px; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 14px; font-family: var(--tg-pixel); font-size: 8px; letter-spacing: 0.06em; white-space: nowrap; }
+.tb-step-banner.watch { background: #2b6fb8; color: #fff; }
+.tb-step-banner.try { background: #a99a63; color: #12101a; }
+.tb-step-banner.play { background: #f2c45a; color: #12101a; }
+.tb-step-strip { position: fixed; top: 8px; left: calc(var(--tg-sal) + 8px); max-width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 16px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.5; }
+.tb-step-strip.watch { background: #2b6fb8; color: #fff; }
+.tb-step-strip.try { background: #a99a63; color: #12101a; }
+.tb-step-strip.play { background: #f2c45a; color: #12101a; }
+.tb-step-nudge { position: fixed; top: 42%; left: calc(var(--tg-sal) + 8px); right: calc(var(--tg-sar) + 8px); margin: 0; text-align: center; font-family: var(--tg-pixel); font-size: 9px; color: #fff; text-shadow: 0 0 6px #2b6fb8; }
+.tb-bach-low.tb-tour { pointer-events: auto; }
+/* After a PLAY: one number, the details behind "?". */
+.tb-result-line { display: grid; gap: 4px; }
+.tb-result-num { display: flex; gap: 10px; align-items: center; margin: 0; font-family: var(--tg-pixel); font-size: 7px; }
+.tb-result-num .ok { color: #79d99a; }
+.tb-result-num .no { color: #ff8a80; }
+.tb-result-more { width: 20px; height: 20px; padding: 0; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: transparent; border: 1px solid var(--tg-muted); border-radius: 50%; cursor: pointer; }
+.tb-manual-badge.watch { color: #8cc4ff; border-color: #2b6fb8; }
+.tb-manual-badge.try { color: #d9c98f; border-color: #a99a63; }
+/* A sign's card (Part 3: Mario's tut-notation). */
+.tb-sign-card { display: grid; grid-template-columns: auto auto 1fr; gap: 12px; align-items: center; padding: 6px 8px; background: #1b2550; border: 1px solid #2f3c74; }
+.tb-sign-name { margin: 0; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold); }
+.tb-sign-pic { position: relative; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; }
+.tb-sign-pic .blk { position: relative; display: block; width: 46px; height: 10px; background: #5aa2ee; border: 1px solid #fff; }
+.tb-sign-pic .blk.long { width: 96px; }
+.tb-sign-pic .blk.hollow { background: transparent; border-color: #5aa2ee; }
+.tb-sign-pic .blk.hollow b { position: absolute; inset: 0 55% 0 0; background: #5aa2ee; }
+.tb-sign-pic .blk.join { margin-right: -8px; border-right: 1px solid #1b2550; }
+.tb-sign-pic .blk.join2 { border-left: 0; }
+.tb-sign-pic .blk.accent::before { content: ""; position: absolute; left: 0; top: 0; border-style: solid; border-width: 5px 0 5px 7px; border-color: transparent transparent transparent #fff3d0; }
+.tb-sign-pic em { position: absolute; left: 0; right: 0; bottom: -2px; text-align: center; font-style: normal; font-family: var(--tg-pixel); font-size: 5px; color: var(--tg-gold); }
+.tb-sign-text { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 12px; color: var(--tg-fg); }

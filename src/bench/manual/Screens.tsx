@@ -1,16 +1,16 @@
 /**
- * D342, THE MANUAL's Part 0 screens and its lens sheet: 0.1 HALTUNG (the grip and the ears: a thumb on
- * each bar, each sounding the lesson's instrument, and the sound's delay tapped); and, after a lesson's
- * take, its lens: COUNTS with the figures reached (✓ or ✗), SHOWN with its figures, NEVER. D369: 0.2
- * PROBESPIEL (HAVE YOU PLAYED BEFORE? and the placement) withdrawn: "Everybody is a novice".
+ * D342, THE MANUAL's lens sheet: after a lesson's take, COUNTS with the figures reached (✓ or ✗), SHOWN
+ * with its figures, NEVER. D369: 0.2 withdrawn. D373: 0.1 (the grip) withdrawn too (the sound's delay
+ * check lives in SETTINGS; 1.1 tours the real play screen instead), and the tutorial's pieces of the play
+ * screen: the step's banner (WATCH · BACH PLAYS, TRY · I WAIT FOR YOU, YOUR TURN · PLAY) and the strips'
+ * words, his words over the foot of the box while the step runs, 1.1's bubbles, a sign's card (Part 3),
+ * and the compact result (one number, the details behind "?").
  */
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { tr } from "../../i18n/index.ts";
-import type { Chip } from "../../touch/chip.ts";
-import { Tapper } from "../../touch/Panels.tsx";
 import { Portrait } from "../Bach.tsx";
 import type { LensStats } from "./lens.ts";
-import { PARTS, type Check, type ManualLesson, type PartId, type Stage } from "./lessons.ts";
+import { PARTS, SIGN_WORDS, TOUR, TOUR_TOUCH, type Check, type ManualLesson, type PartId, type SignId, type Stage, type StageKind } from "./lessons.ts";
 
 const fill = (c: Check) => tr(c.text, c.vars);
 
@@ -19,6 +19,7 @@ export function LensSheet({ l, x, kind, st }: { l: ManualLesson; x: LensStats; k
   // D359: a drill's lines with nothing to measure are left out (they read as "0 OF 0").
   const counts = (l.checks?.(x, st) ?? []).filter((c) => !c.na);
   const shown = l.shown?.(x, st) ?? [];
+  void kind;
   return (
     <div className="tb-lens" id="lens-sheet" onClick={(e) => e.stopPropagation()}>
       {counts.length > 0 && (
@@ -39,68 +40,28 @@ export function LensSheet({ l, x, kind, st }: { l: ManualLesson; x: LensStats; k
   );
 }
 
-function Frame({ title, children, close }: { title: string; children: React.ReactNode; close: () => void }) {
+/**
+ * D373 (the report: "after a PLAY: one line from Bach, one number at most … the details sit behind a
+ * small ?"): the take's main figure, and "?" opening the lens sheet.
+ */
+export function ResultLine({ l, x, st, extra }: { l: ManualLesson; x: LensStats; st?: Stage; extra?: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const main = (l.checks?.(x, st) ?? []).find((c) => !c.na);
   return (
-    <div className="tb-hear-wrap" role="dialog" aria-label={title} onClick={close}>
-      <div className="tg-card tb-hear tb-manual-screen" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
-          ✕
+    <div className="tb-result-line" id="result-line" onClick={(e) => e.stopPropagation()}>
+      {extra}
+      <p className="tb-result-num">
+        {main && (
+          <span className={main.ok ? "ok" : "no"}>
+            {main.ok ? "✓" : "✗"} {fill(main)}
+          </span>
+        )}
+        <button type="button" id="result-more" className="tb-result-more" aria-expanded={open} aria-label={tr("WHAT COUNTED")} onClick={() => setOpen((o) => !o)}>
+          ?
         </button>
-        <h2 className="tb-hear-title">{title}</h2>
-        {children}
-      </div>
+      </p>
+      {open && <LensSheet l={l} x={x} kind="play" st={st} />}
     </div>
-  );
-}
-
-function Says({ text }: { text: string }) {
-  return (
-    <div className="tb-manual-says">
-      <Portrait talking={false} />
-      <p>{tr(text)}</p>
-    </div>
-  );
-}
-
-/** 0.1, HALTUNG: both bars, a thumb resting on each (each touch sounds the lesson's instrument); the sound's delay tapped. */
-export function GripScreen({ chip, sound, lag, setLag, done, close }: { chip: () => Chip; sound: (side: "left" | "right") => void; lag: number | null; setLag: (l: number | null) => void; done: () => void; close: () => void }) {
-  const [tapping, setTapping] = useState(false);
-  const [touched, setTouched] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
-  const touch = (side: "left" | "right") => (sound(side), setTouched((t) => ({ ...t, [side]: true })));
-  return (
-    <Frame title={`0.1 · HALTUNG · ${tr("THE GRIP AND THE EARS")}`} close={close}>
-      <Says text="Two thumbs and one voice. The rest of the music is mine to play." />
-      <p className="tb-manual-aim">{tr("Phone sideways, one thumb on each bar, the sound in time with the touch.")}</p>
-      <div className="tb-grip">
-        {(["left", "right"] as const).map((side) => (
-          <button key={side} type="button" id={`grip-${side}`} className={`tb-grip-bar${touched[side] ? " on" : ""}`} onPointerDown={(e) => (e.preventDefault(), touch(side))}>
-            <span className="tb-grip-thumb" aria-hidden="true" />
-            {tr(side === "left" ? "LEFT THUMB" : "RIGHT THUMB")}
-          </button>
-        ))}
-        <div className="tb-grip-box" aria-hidden="true">
-          <span>{tr("THE MUSIC")}</span>
-        </div>
-      </div>
-      {tapping ? (
-        <div className="tb-grip-tap">
-          <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
-          <Tapper chip={chip} done={(l) => (l !== null && setLag(l), setTapping(false))} />
-        </div>
-      ) : (
-        <p className="tb-lens-shown" id="grip-delay">
-          {tr("SOUND DELAY")}: {lag === null ? tr("NONE (THE PHONE'S SPEAKER)") : `${Math.round(lag * 1000)} MS`} ·{" "}
-          <button type="button" id="grip-tap" className="tg-link" onClick={() => setTapping(true)}>
-            {tr("TAP THE DELAY (HEADPHONES)")}
-          </button>
-        </p>
-      )}
-      <div className="tb-manual-go">
-        <button type="button" id="grip-done" className="tb-play" onClick={done}>
-          ▶ {tr("READY")}
-        </button>
-      </div>
-    </Frame>
   );
 }
 
@@ -110,17 +71,122 @@ export function StageLine({ l, k }: { l: ManualLesson; k: number }) {
   if (!st) return null;
   return (
     <p className="tb-manual-stage" id="stage-line" onClick={(e) => e.stopPropagation()}>
-      <span className={`tb-manual-badge ${st.m.badge === "DRILL" ? "drill" : "game"}`}>{st.kind === "play" ? tr("PLAY") : st.m.badge === "DRILL" ? tr("DRILL") : tr("PRACTICE")}</span> {tr(st.m.label)}
+      <span className={`tb-manual-badge ${st.kind}`}>{tr(st.kind === "play" ? "PLAY" : st.kind === "watch" ? "WATCH" : st.kind === "try" ? "TRY" : "PRACTICE")}</span> {tr(st.m.label)}
     </p>
   );
 }
 
 /**
+ * D373, the convention that keeps WATCH, TRY and PLAY apart (the report's §7): a banner at the top of
+ * the box (blue WATCH · BACH PLAYS; grey-gold TRY · I WAIT FOR YOU; gold YOUR TURN · PLAY), the left
+ * strip's word (WATCH ONLY · DON'T TOUCH YET; YOUR TURN), and, touched while he plays, JUST WATCH FOR NOW.
+ */
+export function StepBanner({ kind, nudge }: { kind: StageKind; nudge: number }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!nudge) return;
+    const t = window.setTimeout(() => tick((n) => n + 1), 1300);
+    return () => window.clearTimeout(t);
+  }, [nudge]);
+  const word = kind === "watch" ? "WATCH · BACH PLAYS" : kind === "try" ? "TRY · I WAIT FOR YOU" : kind === "tour" ? "" : "YOUR TURN · PLAY";
+  const strip = kind === "watch" ? "WATCH ONLY · DON'T TOUCH YET" : kind === "play" ? "YOUR TURN" : kind === "try" ? "TRY" : "";
+  const nudged = nudge > 0 && performance.now() - nudge < 1200;
+  return (
+    <>
+      {word && (
+        <p className={`tb-step-banner ${kind}`} id="step-banner" role="status">
+          {tr(word)}
+        </p>
+      )}
+      {strip && <p className={`tb-step-strip ${kind}`}>{tr(strip)}</p>}
+      {nudged && (
+        <p className="tb-step-nudge" role="status">
+          {tr("JUST WATCH FOR NOW")}
+        </p>
+      )}
+    </>
+  );
+}
+
+/** D373: his words over the foot of the box while a step runs (the layout never moves; touches pass through). */
+export function Caption({ text }: { text: string }) {
+  return (
+    <div className="tb-caption" id="caption" aria-live="polite">
+      <Portrait talking={false} />
+      <p>{tr(text)}</p>
+    </div>
+  );
+}
+
+/**
+ * D373, 1.1: his six bubbles over the real play screen, one tap each; at the second he waits for a touch
+ * on each strip (each plays a note: the first sound the player makes).
+ */
+export function TourBubble({ k, touched, next }: { k: number; touched: { left: boolean; right: boolean }; next: () => void }) {
+  const line = TOUR[k];
+  const waiting = line?.focus === "strips" && !(touched.left && touched.right);
+  if (!line) return null;
+  return (
+    <div className="tb-bach tb-bach-low tb-tour" id="tour-bubble" role="dialog" aria-label={`Herr Bach: ${k + 1} / ${TOUR.length}`} onClick={() => !waiting && next()}>
+      <Portrait talking={false} />
+      <div className="tb-bach-box">
+        <p className="tb-bach-title">
+          1.1 · {tr("THE PLAY SCREEN")} · {k + 1} / {TOUR.length}
+        </p>
+        <p className="tb-bach-line">{tr(line.text)}</p>
+        <p className="tb-bach-more">{waiting ? tr(touched.left ? TOUR_TOUCH[1] : TOUR_TOUCH[0]) : tr("TAP ▶")}</p>
+      </div>
+    </div>
+  );
+}
+
+/** D373: a sign alone, on a card, in the shapes the box draws (Mario's tut-notation), before the lesson that uses it. */
+export function SignCard({ sign }: { sign: SignId }) {
+  const w = SIGN_WORDS[sign];
+  return (
+    <div className={`tb-sign-card ${sign}`} id="sign-card" onClick={(e) => e.stopPropagation()}>
+      <p className="tb-sign-name">{tr(w.name)}</p>
+      <div className="tb-sign-pic" aria-hidden="true">
+        {sign === "held" && <i className="blk long" />}
+        {sign === "short" && (
+          <i className="blk long hollow">
+            <b />
+          </i>
+        )}
+        {sign === "detached" && (
+          <>
+            <i className="blk" />
+            <i className="blk" />
+            <em>{tr("GAP")}</em>
+          </>
+        )}
+        {sign === "joined" && (
+          <>
+            <i className="blk join" />
+            <i className="blk join2" />
+            <em>{tr("NO GAP")}</em>
+          </>
+        )}
+        {sign === "accent" && (
+          <>
+            <i className="blk" />
+            <i className="blk accent" />
+          </>
+        )}
+      </div>
+      <p className="tb-sign-text">{tr(w.text)}</p>
+    </div>
+  );
+}
+
+/**
  * D359, a part's seal: a checkpoint passed seals its part, a wax seal pressed with the part's numeral and
- * its German title round it (the manual's arc made visible; kept on the map).
+ * its title round it (the manual's arc made visible). D373: the new parts' numerals (1, 2, 3; the older
+ * III–V as 4–6).
  */
 export function Seal({ part, small = false }: { part: PartId; small?: boolean }) {
   const p = PARTS.find((q) => q.id === part);
+  const n = String(p?.n ?? part);
   return (
     <div className={`tb-seal${small ? " small" : ""}`} id={small ? undefined : "part-seal"} onClick={(e) => e.stopPropagation()}>
       <svg viewBox="0 0 100 100" aria-hidden="true" className="tb-seal-wax">
@@ -132,14 +198,14 @@ export function Seal({ part, small = false }: { part: PartId; small?: boolean })
         <circle cx="50" cy="50" r="28" fill="none" stroke="#6e1a14" strokeWidth="1" />
         {!small && (
           <text fontSize="7.5" fill="#f2c8a8" letterSpacing="1">
-            <textPath href={`#seal-arc-${part}`}>{p?.title ?? ""} ·</textPath>
+            <textPath href={`#seal-arc-${part}`}>{p ? tr(p.english) : ""} ·</textPath>
           </text>
         )}
-        <text x="50" y="59" textAnchor="middle" fontSize={part.length > 2 ? 20 : 26} fill="#f6dcc2" fontFamily="serif" fontWeight="bold">
-          {part}
+        <text x="50" y="59" textAnchor="middle" fontSize={26} fill="#f6dcc2" fontFamily="serif" fontWeight="bold">
+          {n}
         </text>
       </svg>
-      {!small && <p className="tb-seal-word">{tr("PART {p} · SEALED", { p: part })}</p>}
+      {!small && <p className="tb-seal-word">{tr("PART {p} · SEALED", { p: n })}</p>}
     </div>
   );
 }

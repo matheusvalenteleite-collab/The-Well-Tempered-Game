@@ -683,7 +683,8 @@ export class ProtoGame {
     this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, this.bpm, readingMarks(f.entries, o.reading ?? null)));
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     // D338: the count-in by time (at most about 4 s, at least two beats), not whole bars.
-    this.start = o.wait ? from - this.beat : countInStart(f, from, this.tps);
+    // D373: the tutorial's count-in in whole beats ("I count four, then you begin").
+    this.start = o.wait ? from - this.beat : o.countBeats ? from - o.countBeats * this.beat : countInStart(f, from, this.tps);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
@@ -698,6 +699,8 @@ export class ProtoGame {
     this.opt = { ...this.opt, early: relMs(MECH.earlyMs, this.ioiMedian) * perMs, late: relMs(MECH.lateMs, this.ioiMedian) * perMs };
     // D290: on the phone's ladder each note's window stops halfway to its neighbours (60 ms at least).
     if (proto.id === "ladder") this.opt = { ...this.opt, split: MECH.splitHalfway, floor: (relMs(MECH.splitFloorMs, this.ioiMedian) / 60000) * f.tpq * this.bpm };
+    // D373: THE TUTORIAL's lenient windows (Parts 1–2: twice the game's), the halfway split kept.
+    if (o.widen && o.widen !== 1) this.opt = { ...this.opt, early: this.opt.early * o.widen, late: this.opt.late * o.widen, ...(this.opt.floor !== undefined ? { floor: this.opt.floor * o.widen } : {}) };
     // D223, D299: BLUETOOTH MODE (not while the music waits for each note): the window a little wider
     // both sides (the headphones' jitter; D290's halfway split and its floor kept, so close notes never
     // share a window); the clock as heard smoothed (chip.ts `smooth`).
@@ -1260,7 +1263,17 @@ export class ProtoGame {
       // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
       { overlap: this.f.tpq / 16, slides: this.o.coach === "slide", sec: 1 / this.tps },
     );
-    return (this.planMemo = touches.map((t) => ({ ...t, i: heads[t.i].i })));
+    const planned = touches.map((t) => ({ ...t, i: heads[t.i].i }));
+    // D373: one thumb only (the tutorial's "left thumb alone"): every touch that side, each let go before the next.
+    const one = this.o.side;
+    if (one)
+      planned.forEach((t, p) => {
+        t.side = one;
+        t.slid = false;
+        const next = planned[p + 1];
+        if (next) t.off = Math.min(t.off, next.on - Math.max(this.f.tpq / 16, 0.07 * this.tps));
+      });
+    return (this.planMemo = planned);
   }
   private planMemo: Touch[] | null = null;
   /** D280: the demonstration's actions still to come (tick, what), in time. */
@@ -4339,7 +4352,9 @@ export class ProtoGame {
   private readingIndex(): Map<string, number> {
     if (this.readingMemo) return this.readingMemo;
     const m = new Map<string, number>();
-    if (this.o.reading) for (const e of this.entries) e.ons.forEach((on, j) => m.set(`${e.k}:${on}`, j));
+    // D373: a lesson's own marks, placed on the voice played's onsets.
+    if (this.o.reading && this.o.readingAt) this.o.readingAt.forEach((on, j) => m.set(`0:${on}`, j));
+    else if (this.o.reading) for (const e of this.entries) e.ons.forEach((on, j) => m.set(`${e.k}:${on}`, j));
     return (this.readingMemo = m);
   }
   /** D370: the place in one of the reading's slurs of track k's note at `on` (none: not slurred, or no reading). */

@@ -29,6 +29,8 @@ import type { ProtoGame } from "../proto-game.ts";
 import { BAR, isRepeat } from "../protos.ts";
 import type { LensTally } from "./lens.ts";
 import type { AidId, TouchName } from "./lessons.ts";
+import type { Side } from "../../touch/thumbs.ts";
+import { tr, trCanvas } from "../../i18n/index.ts";
 
 const GREEN = "#8fe3b0";
 const RED = "#ff6b6b";
@@ -47,7 +49,14 @@ export interface AidOptions {
   /** D360: the touch the take asks for (the meter outlines its zone). */
   ask?: TouchName;
   now?: number;
+  /** D373: the music box's rectangle in the play area (the tour's frames, his words' arrow). */
+  box?: { x: number; y: number; w: number; h: number };
+  /** D373: 1.1's tour: the part that glows, and the strips touched so far. */
+  tour?: { focus: TourFocus; left: boolean; right: boolean };
+  /** D373: the step under way (WATCH: his thumbs whole and the next move named). */
+  step?: "watch" | "try" | "play" | "tour";
 }
+export type TourFocus = "all" | "strips" | "box" | "notes" | "line" | "height";
 
 export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, lens: LensTally, o: AidOptions) {
   const now = o.now ?? performance.now();
@@ -64,7 +73,14 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "breath" && rows) breaths(c, w, bw, g, lens);
     if (a === "prepared") prepared(c, w, h, bw, g, lens, now);
     if (a === "trend" && rows) trend(c, g, lens, now);
+    if (a === "rest" && g.o.side) rest(c, w, h, bw, g.o.side === "left" ? "right" : "left");
+    if (a === "count" && rows) counted(c, g, o.box);
+    if (a === "plan" && rows) planLetters(c, g, o.box);
+    if (a === "answer" && rows) answer(c, g);
+    if (a === "point" && rows && o.box) point(c, g, o.box);
+    if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbsA(c, w, h, bw, g, o.step ?? "play");
   }
+  if (o.tour && rows) tour(c, w, h, bw, g, o.tour, o.box, now);
   c.restore();
 }
 
@@ -336,4 +352,331 @@ function trend(c: CanvasRenderingContext2D, g: ProtoGame, lens: LensTally, now: 
     label(c, r.ok ? "RUN ✓" : "RUN ✗", xb + 6, my + slope * (xb - mx), ink, 6, "left");
   }
   c.globalAlpha = 1;
+}
+
+// D373, THE TUTORIAL's aids (Mario's designs: tut-watch, tut-play, tut-01-tour; the thumbs his model A).
+
+const SKIN = "#e7b38a";
+const SKIN_DARK = "#b97f57";
+const NAIL = "#fbe9dc";
+const SHADOW = "rgba(20,10,4,0.42)";
+const BLUE = "#6fb2ff";
+
+/**
+ * Mario's model A: a thumb from above (nail, knuckle crease, its base off the strip's edge) and its shadow
+ * on the glass. `lift` 0 is pressing (the thumb on its shadow, a ring where it touches), 1 resting (far
+ * from its shadow, pale); between, hovering. The left thumb points right, into the box; the right, left.
+ */
+export function drawThumbA(c: CanvasRenderingContext2D, x: number, y: number, size: number, side: Side, lift: number, alpha = 1, prepared = false) {
+  const dir = side === "left" ? 1 : -1;
+  const w = size * 1.5;
+  const th = size * 0.78;
+  const l = Math.max(0, Math.min(1, lift));
+  const leftOf = (cx: number) => (dir > 0 ? cx - w : cx);
+  c.save();
+  // The shadow, on the glass where the thumb would land.
+  c.globalAlpha = alpha * (0.85 - 0.45 * l);
+  c.fillStyle = SHADOW;
+  c.beginPath();
+  c.roundRect(leftOf(x + dir * size * 0.08), y + 2 - th / 2, w, th, th * 0.45);
+  c.fill();
+  // The thumb itself: up and back from its shadow as it lifts.
+  const left = leftOf(x - dir * l * size * 0.35);
+  const top = y - l * size * 0.7 - th / 2;
+  c.globalAlpha = alpha * (l > 0.6 ? 0.62 : 1);
+  c.fillStyle = l === 0 ? SKIN_DARK : SKIN;
+  c.beginPath();
+  c.roundRect(left, top, w, th, th * 0.45);
+  c.fill();
+  // The base running off the strip's edge, a little darker; the knuckle crease.
+  c.fillStyle = SKIN_DARK;
+  c.fillRect(dir > 0 ? left : left + w * 0.82, top + 2, w * 0.18, th - 4);
+  c.fillStyle = "rgba(110,60,30,0.55)";
+  c.fillRect(dir > 0 ? left + w * 0.42 : left + w * 0.56, top + th * 0.22, 2, th * 0.56);
+  // The nail at the tip.
+  c.fillStyle = NAIL;
+  c.beginPath();
+  c.roundRect(dir > 0 ? left + w * 0.66 : left + w * 0.08, top + th * 0.18, w * 0.26, th * 0.64, th * 0.2);
+  c.fill();
+  if (l === 0) {
+    // Pressing: a ring where it touches.
+    c.globalAlpha = alpha * 0.9;
+    c.strokeStyle = "#fff3b0";
+    c.lineWidth = 2;
+    c.beginPath();
+    c.arc(x - dir * size * 0.15, y, size * 0.5, 0, Math.PI * 2);
+    c.stroke();
+  }
+  if (prepared) {
+    // Prepared (resting early on the next note): a blue dotted ring.
+    c.globalAlpha = alpha;
+    c.strokeStyle = BLUE;
+    c.lineWidth = 1.5;
+    c.setLineDash?.([2, 3]);
+    c.beginPath();
+    c.arc(x - dir * size * 0.15, y, size * 0.62, 0, Math.PI * 2);
+    c.stroke();
+    c.setLineDash?.([]);
+  }
+  c.restore();
+}
+
+/** Where a thumb rests on its strip (across): its tip toward the box. */
+const restX = (w: number, bw: number, side: Side) => (side === "left" ? bw * 0.72 : w - bw * 0.72);
+
+/** The words for the next move, from where the thumb is to where the note lands. */
+function moveWord(from: number | undefined, to: number): string {
+  if (from === undefined) return "";
+  const d = to - from;
+  if (Math.abs(d) < 0.5) return "NEXT: THE SAME NOTE";
+  if (d >= 3) return "NEXT: A BIG JUMP UP";
+  if (d <= -3) return "NEXT: A BIG JUMP DOWN";
+  return d > 0 ? "NEXT: A LITTLE HIGHER" : "NEXT: A LITTLE LOWER";
+}
+
+/**
+ * Both thumbs, always there (the owner: "the thumbs should not disappear … they ought to become
+ * shadowed"): pressing where a touch is down (his in a WATCH, yours in TRY and PLAY), resting over their
+ * shadows where they last were otherwise; the ghost of the next move (the plan's thumb hovering where the
+ * next note lands, an arrow from where it rests), named in WATCH and TRY.
+ */
+function thumbsA(c: CanvasRenderingContext2D, w: number, h: number, bw: number, g: ProtoGame, step: "watch" | "try" | "play" | "tour") {
+  const rows = g.rows!;
+  const size = Math.max(14, Math.min(26, bw * 0.24));
+  const notes = g.tracks[0].notes;
+  const plan = g.plan;
+  const next = plan.find((p) => notes[p.i]?.state === "pending");
+  const downs = g.thumbsDown();
+  const mid = next ? rows.yOf(next.step) : h * 0.55;
+  for (const side of ["left", "right"] as const) {
+    const d = downs.find((x) => x.side === side);
+    if (d) {
+      const armed = !!g.heldSides().find((x) => x.side === side)?.armed;
+      // His thumbs (WATCH) drawn whole; yours a little see-through, not to cover the place you aim at.
+      drawThumbA(c, step === "watch" ? Math.max(size, Math.min(w - size, d.fx * w)) : restX(w, bw, side), d.y, size, side, 0, step === "watch" ? 1 : 0.6, armed);
+      continue;
+    }
+    const last = g.lastBySide[side];
+    const y = last ? last.y : side === "left" ? mid + rows.rowH * 2 : mid - rows.rowH * 2;
+    drawThumbA(c, restX(w, bw, side), Math.max(size, Math.min(h - size, y)), size, side, 1, g.o.side && g.o.side !== side ? 0.45 : 0.85);
+  }
+  if (!next) return;
+  const ahead = ((notes[next.i].on - g.now) / g.tps) * 1000;
+  if (ahead > 1800) return;
+  const side = next.side;
+  if (downs.some((d) => d.side === side)) return;
+  const y = rows.yOf(next.step);
+  const from = g.lastBySide[side];
+  drawThumbA(c, restX(w, bw, side), y, size, side, 0.5, Math.max(0.3, Math.min(0.7, 1 - ahead / 1800)));
+  if (from && Math.abs(from.y - y) > 4) {
+    c.globalAlpha = 0.7;
+    c.strokeStyle = GOLD;
+    c.lineWidth = 1.5;
+    const ax = side === "left" ? bw * 0.3 : w - bw * 0.3;
+    const dy = y < from.y ? 1 : -1;
+    c.beginPath();
+    c.moveTo(ax, from.y);
+    c.lineTo(ax, y);
+    c.moveTo(ax - 4, y + dy * 6);
+    c.lineTo(ax, y);
+    c.lineTo(ax + 4, y + dy * 6);
+    c.stroke();
+    c.globalAlpha = 1;
+  }
+  if (step === "watch" || step === "try") {
+    const word = moveWord(from?.step, next.step);
+    if (word) label(c, word, side === "left" ? bw / 2 : w - bw / 2, Math.min(h - 12, y + size * 1.3), GOLD, 6);
+  }
+}
+
+/** A thumb not in use: its strip dimmed, REST. */
+function rest(c: CanvasRenderingContext2D, w: number, h: number, bw: number, side: Side) {
+  const x = side === "left" ? 0 : w - bw;
+  c.fillStyle = "rgba(10,8,14,0.45)";
+  c.fillRect(x, 0, bw, h);
+  label(c, "REST", x + bw / 2, h * 0.8, "#b8b0d6", 9);
+  label(c, "THIS THUMB SITS OUT", x + bw / 2, h * 0.8 + 16, "#8e87ac", 6);
+}
+
+/** The player's notes in the passage, in order (heads only). */
+function heads(g: ProtoGame) {
+  const ns = g.tracks[0].notes;
+  return ns.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && ns[i - 1].on === n.on));
+}
+const inBox = (x: number, box?: { x: number; w: number }) => !box || (x > box.x - 2 && x < box.x + box.w - 6);
+
+/** 1, 2, 3 … over the player's notes (pointing at them one by one). */
+function counted(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: number; w: number }) {
+  const rows = g.rows!;
+  heads(g).forEach(({ n }, k) => {
+    const x = rows.xOf(n.on);
+    if (!inBox(x, box) || k > 15) return;
+    label(c, String(k + 1), x + 6, rows.yOf(n.step) - rows.rowH - 8, n.state === "pending" ? GOLD : FAINT, 7);
+  });
+}
+
+/** L or R under each of the player's notes to come: the fingering planner's thumb (D370), before it is played. */
+function planLetters(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: number; w: number }) {
+  const rows = g.rows!;
+  const notes = g.tracks[0].notes;
+  for (const t of g.plan) {
+    const n = notes[t.i];
+    if (!n || t.slid) continue;
+    const x = rows.xOf(n.on);
+    if (!inBox(x, box)) continue;
+    label(c, t.side === "left" ? tr("L") : tr("R"), x + 6, rows.yOf(n.step) + rows.rowH + 8, t.side === "left" ? "#9ecbff" : "#ffc58f", 7);
+  }
+}
+
+/** YOU ANSWER HERE under the player's first note (1.5). */
+function answer(c: CanvasRenderingContext2D, g: ProtoGame) {
+  const rows = g.rows!;
+  const first = heads(g)[0]?.n;
+  if (!first || first.state !== "pending") return;
+  label(c, "YOU ANSWER HERE", rows.xOf(first.on), rows.yOf(first.step) + rows.rowH + 18, GOLD, 7, "left");
+}
+
+/** The sign a note bears in the lesson's own reading (its name, D370's vocabulary). */
+function signOf(g: ProtoGame, on: number): string | null {
+  const rd = g.o.reading;
+  const at = g.o.readingAt;
+  if (!rd || !at) return null;
+  const n = rd.notes[at.indexOf(on)];
+  if (!n) return null;
+  return n.short ? "SHORT" : n.accent ? "ACCENT" : n.join === true ? "JOINED" : n.join === false ? "DETACHED" : null;
+}
+
+/** An arrow from his words (over the foot of the box) to the next of your notes, its sign named over it. */
+function point(c: CanvasRenderingContext2D, g: ProtoGame, box: { x: number; y: number; w: number; h: number }) {
+  const rows = g.rows!;
+  const next = heads(g).find(({ n }) => n.state === "pending")?.n;
+  if (!next) return;
+  const x = rows.xOf(next.on) + 4;
+  if (x > box.x + box.w - 8 || x < box.x) return;
+  const y = rows.yOf(next.step) + rows.rowH + 3;
+  const y0 = box.y + box.h - 92;
+  if (y0 - y < 12) return;
+  const x0 = box.x + box.w * 0.42;
+  c.save();
+  c.strokeStyle = GOLD;
+  c.globalAlpha = 0.85;
+  c.lineWidth = 1.5;
+  const a = Math.atan2(y - y0, x - x0);
+  c.beginPath();
+  c.moveTo(x0, y0);
+  c.lineTo(x, y);
+  c.moveTo(x - 7 * Math.cos(a - 0.4), y - 7 * Math.sin(a - 0.4));
+  c.lineTo(x, y);
+  c.lineTo(x - 7 * Math.cos(a + 0.4), y - 7 * Math.sin(a + 0.4));
+  c.stroke();
+  c.restore();
+  const sign = signOf(g, next.on);
+  if (sign) label(c, sign, x, rows.yOf(next.step) - rows.rowH - 10, GOLD, 7);
+}
+
+/**
+ * 1.1, the play screen explained on the play screen (Mario's tut-01-tour): the part he is speaking of
+ * glows in gold, the rest dims; the strips ask to be touched (left, then right).
+ */
+function tour(c: CanvasRenderingContext2D, w: number, h: number, bw: number, g: ProtoGame, t: { focus: TourFocus; left: boolean; right: boolean }, box: { x: number; y: number; w: number; h: number } | undefined, now: number) {
+  const rows = g.rows!;
+  const b = box ?? { x: bw, y: 0, w: w - 2 * bw, h };
+  const dim = (x: number, y: number, ww: number, hh: number) => {
+    c.fillStyle = "rgba(6,5,10,0.55)";
+    c.fillRect(x, y, ww, hh);
+  };
+  const frame = (x: number, y: number, ww: number, hh: number) => {
+    c.strokeStyle = GOLD;
+    c.globalAlpha = 0.65 + 0.3 * Math.sin(now / 300);
+    c.lineWidth = 2;
+    c.strokeRect(x + 1, y + 1, ww - 2, hh - 2);
+    c.globalAlpha = 1;
+  };
+  const tag = (text: string, x: number, y: number, align: "left" | "right" = "left") => {
+    c.font = `7px "Press Start 2P", monospace`;
+    const tw = c.measureText(trCanvas(text)).width;
+    const x0 = align === "right" ? x - tw - 8 : x;
+    c.fillStyle = "#fff0b0";
+    c.fillRect(x0, y - 7, tw + 8, 14);
+    label(c, text, x0 + 4, y, "#12101a", 7, "left");
+  };
+  const mine = heads(g).filter(({ n }) => inBox(rows.xOf(n.on), b));
+  switch (t.focus) {
+    case "all":
+      frame(b.x, b.y, b.w, b.h);
+      break;
+    case "strips":
+      dim(b.x, b.y, b.w, b.h);
+      frame(0, 0, bw, h);
+      frame(w - bw, 0, bw, h);
+      tag("LEFT THUMB", 10, 18);
+      tag("RIGHT THUMB", w - 10, 18, "right");
+      label(c, t.left ? "✓" : "TOUCH THE LEFT STRIP", bw / 2, h * 0.3, t.left ? "#8fe3b0" : GOLD, t.left ? 14 : 6);
+      if (t.left) label(c, t.right ? "✓" : "NOW THE RIGHT STRIP", w - bw / 2, h * 0.3, t.right ? "#8fe3b0" : GOLD, t.right ? 14 : 6);
+      break;
+    case "box": {
+      dim(0, 0, bw, h);
+      dim(w - bw, 0, bw, h);
+      frame(b.x, b.y, b.w, b.h);
+      const y = b.y + 22;
+      tag("THE MUSIC MOVES THIS WAY", b.x + b.w - 70, y, "right");
+      c.strokeStyle = "#fff0b0";
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.moveTo(b.x + b.w - 14, y);
+      c.lineTo(b.x + b.w - 66, y);
+      c.lineTo(b.x + b.w - 58, y - 4);
+      c.moveTo(b.x + b.w - 66, y);
+      c.lineTo(b.x + b.w - 58, y + 4);
+      c.stroke();
+      break;
+    }
+    case "notes": {
+      dim(0, 0, bw, h);
+      dim(w - bw, 0, bw, h);
+      if (mine.length) {
+        const xs = mine.map(({ n }) => rows.xOf(n.on));
+        const ys = mine.map(({ n }) => rows.yOf(n.step));
+        const x0 = Math.max(b.x + 2, Math.min(...xs) - 6);
+        const x1 = Math.min(b.x + b.w - 4, Math.max(...mine.map(({ n }) => rows.xOf(n.on + n.dur))) + 6);
+        const y0 = Math.min(...ys) - rows.rowH - 6;
+        const y1 = Math.max(...ys) + rows.rowH + 6;
+        frame(x0, y0, x1 - x0, y1 - y0);
+        tag("YOURS: WHITE BORDER", x0, y0 - 10);
+      }
+      const nowX = rows.xOf(g.now);
+      const other = g.others.find((n) => inBox(rows.xOf(n.on), b) && rows.xOf(n.on) > nowX + 20);
+      if (other) tag("MINE: THIN", Math.min(b.x + b.w - 90, rows.xOf(other.on)), rows.yOf(other.step) + rows.rowH + 12);
+      break;
+    }
+    case "line": {
+      dim(0, 0, bw, h);
+      dim(w - bw, 0, bw, h);
+      const x = rows.xOf(g.now);
+      frame(x - 5, b.y, 10, b.h);
+      tag("NOW", x + 8, b.y + 18);
+      break;
+    }
+    case "height": {
+      dim(b.x, b.y, b.w, b.h);
+      dim(w - bw, 0, bw, h);
+      frame(0, 0, bw, h);
+      const size = Math.max(14, Math.min(26, bw * 0.24));
+      const lo = h * 0.72;
+      const hi = h * 0.32;
+      const k = (Math.sin(now / 700) + 1) / 2;
+      drawThumbA(c, bw * 0.72, lo + (hi - lo) * k, size, "left", k > 0.9 || k < 0.1 ? 0 : 0.6);
+      c.strokeStyle = GOLD;
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.moveTo(bw * 0.2, lo);
+      c.lineTo(bw * 0.2, hi);
+      c.lineTo(bw * 0.2 - 4, hi + 7);
+      c.moveTo(bw * 0.2, hi);
+      c.lineTo(bw * 0.2 + 4, hi + 7);
+      c.stroke();
+      label(c, "HIGHER NOTE: TOUCH HIGHER", bw / 2, h * 0.84, GOLD, 6);
+      break;
+    }
+  }
 }

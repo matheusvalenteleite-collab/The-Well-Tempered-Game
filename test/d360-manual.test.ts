@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { barStart, fugueById } from "../src/touch/fugue.ts";
 import { readingsOf } from "../src/touch/readings.ts";
-import { BUILT, checkpointOf, fixFor, lastPlay, lessonById, lessonsOf, MANUAL, PARTS, PLAYED, runOf, SOUND_PRESET, stagePassed, type DemoStyle, type ManualLesson, type Stage } from "../src/bench/manual/lessons.ts";
+import { BUILT, checkpointOf, fixFor, lastPlay, lessonById, lessonsOf, MANUAL, PARTS, PLAYED, runOf, SOUND_PRESET, stagePassed, type DemoStyle, type ManualLesson, type Material, type Stage } from "../src/bench/manual/lessons.ts";
 import { fixDirection, fixRests } from "../src/bench/manual/coach.ts";
 import { demoRun, gameFor, tapperRun } from "./d342-sim.ts";
 import { playerRun } from "./d359-players.ts";
@@ -24,9 +24,9 @@ function struck(st: Stage) {
   return g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on)).map((n) => ({ on: n.on, dur: n.dur, midi: n.midi }));
 }
 
-test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; checkpoints III.5 and IV.6; the map shows Parts 0–IV", () => {
+test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; checkpoints III.5 and IV.6; D373: shown after the new Parts 1–3", () => {
   assert.deepEqual(PARTS_B.map((l) => l.id), ["III.1", "III.2", "III.3", "III.4", "III.5", "IV.1", "IV.2", "IV.3", "IV.4", "IV.5", "IV.6"]);
-  assert.deepEqual(BUILT.map((p) => p.id), ["0", "I", "II", "III", "IV", "V"]);
+  assert.deepEqual(BUILT.map((p) => p.id), ["1", "2", "3", "III", "IV", "V"]);
   assert.equal(checkpointOf("III")!.id, "III.5");
   assert.equal(checkpointOf("IV")!.id, "IV.6");
   for (const l of PARTS_B) {
@@ -40,10 +40,10 @@ test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; c
   assert.deepEqual(Object.fromEntries(PARTS_B.map((l) => [l.id, l.sound])), { "III.1": "harpsichord", "III.2": "harpsichord", "III.3": "harpsichord", "III.4": "harpsichord", "III.5": "harpsichord", "IV.1": "organ", "IV.2": "harpsichord", "IV.3": "harpsichord", "IV.4": "organ", "IV.5": "piano", "IV.6": "organ" });
   assert.equal(lessonById("III.2")!.stages[0].m.sound, "chip", "III.2: the chip, then the harpsichord");
   // Every part built but Part 0 ends in a sealed checkpoint.
-  // Parts I–IV each end in a sealed checkpoint; Part V has none (design section 3: nothing waits on it).
-  for (const p of PARTS.filter((q) => ["I", "II", "III", "IV"].includes(q.id))) assert.ok(p.seal && checkpointOf(p.id), p.id);
+  // Parts 1–3 and III–IV each end in a sealed checkpoint; Part V has none (design section 3: nothing waits on it).
+  for (const p of PARTS.filter((q) => ["1", "2", "3", "III", "IV"].includes(q.id))) assert.ok(p.seal && checkpointOf(p.id), p.id);
   assert.equal(checkpointOf("V"), undefined);
-  assert.equal(MANUAL.filter((l) => !l.screen).length, 28);
+  assert.equal(MANUAL.length, 31, "D373: the fifteen new lessons and the sixteen older (III–V)");
 });
 
 test("D360: each excerpt has the feature its lesson teaches", () => {
@@ -121,7 +121,7 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
 
 test("D359: every lesson in the practice room (Options.quiet), with only the words it is about", () => {
   for (const l of PLAYED) for (const st of l.stages) assert.deepEqual(runOf(st.m, undefined, l.words).quiet, { words: l.words ?? [] });
-  assert.deepEqual(lessonById("I.4")!.words, ["held", "rest", "short"]);
+  assert.deepEqual(lessonById("3.1")!.words, ["held", "short"]);
   assert.equal(runOf(lessonById("III.3")!.stages[1].m).reading, "keller");
 });
 
@@ -156,13 +156,13 @@ test("D360, Part V (on D353's contour gestures): the graces; no pass mark (decis
 });
 
 test("D359: the coach names the bar and the way", () => {
-  const l = lessonById("I.4")!;
-  const m = l.stages[1].m;
+  // (D373: Part I's materials, now given here: I/2's soprano 17–19 and I/20's alto 1–2.)
+  const m: Material = { piece: "wtc1f02", voice: 0, fromBar: 17, toBar: 19, tempo: { pct: 100 }, label: "", badge: "IN GAME" };
   const x = playerRun(m, { jitterMs: 10, hold: 1.0 }).lens!;
   const f = fixRests(x)!;
   assert.equal(f.text, "Bar {b}: you held into the rest. Lift as the note ends.");
   assert.ok(Number(f.vars!.b) >= 17 && Number(f.vars!.b) <= 19);
-  const w = playerRun(lessonById("I.2")!.stages[3].m, { jitterMs: 10, wrongEvery: 4 }).lens!;
+  const w = playerRun({ piece: "wtc1f20", voice: 1, fromBar: 1, toBar: 2, tempo: { pct: 80 }, label: "", badge: "IN GAME" }, { jitterMs: 10, wrongEvery: 4 }).lens!;
   assert.match(fixDirection(w)!.text, /^Bar \{b\}: (the line|a leap|the same note)/);
   assert.ok(lessonsOf("IV").every((q) => q.part === "IV"));
 });

@@ -1107,7 +1107,8 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     }
     c.globalAlpha = 1;
   }
-  if (g.proto.id === "ladder" && (g.o.demo || g.o.guide)) thumbsShown(c, w, h, g, t);
+  // D373: in the tutorial the thumbs are its aid's (model A, manual/aids.ts).
+  if (g.proto.id === "ladder" && (g.o.demo || g.o.guide) && !g.o.thumbsA) thumbsShown(c, w, h, g, t);
 }
 
 /**
