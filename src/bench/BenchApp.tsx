@@ -223,6 +223,13 @@ type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "
  */
 type ManRun = { id: string; stage: number; mode: "hear" | "take" | "tour"; style?: DemoStyle; queue?: DemoStyle[]; alt?: boolean; takes: number; back?: number };
 
+/** D375: a lesson's box holds at least this many staff steps (a passage of a few notes still reads as a tune). */
+const ZOOM_ROWS = 10;
+/** D375: a lesson's box shows at most this many of the passage's typical notes across. */
+const ZOOM_NOTES = 16;
+/** D375: the share of the box's height under the tutorial's speech bubble. */
+const TUT_FLOOR = 0.3;
+
 export function BenchApp() {
   // D233: the game opens on HOME.
   const [phase, setPhase] = useState<Phase>({ kind: "home" });
@@ -446,10 +453,33 @@ export function BenchApp() {
   // D247: LADDER: the box holds the whole piece's range at one scale, whatever the voice (the voice's
   // own range, D211's margins squeezing the rest, lost the fugue's architecture with the soprano or
   // the bass); the touches judged on rows no smaller than LADDER_ROW_MIN (proto-game.ts).
+  // D375: a lesson's box is sized to its own passage (the owner: "the notes are so tiny in the tutorial
+  // music box"): the rows span only the passage's notes (the voice's own when alone), at least
+  // ZOOM_ROWS of them, and the time shown is the passage and a little more (at most the game's 3 bars).
+  const zoom = useMemo(() => {
+    if (!run) return null;
+    let lo = Infinity;
+    let hi = -Infinity;
+    f.voices.forEach((ns, v) => {
+      if (run.solo && v !== voice) return;
+      for (const n of ns) if (n[0] >= run.from && n[0] < run.until) (lo = Math.min(lo, n[3])), (hi = Math.max(hi, n[3]));
+    });
+    if (lo > hi) return null;
+    // The time shown also no wider than ZOOM_NOTES of the passage's typical (median) note of the voice played.
+    const durs = f.voices[voice].filter((n) => n[0] >= run.from && n[0] < run.until).map((n) => n[1]).sort((a, b) => a - b);
+    const typical = durs.length ? durs[durs.length >> 1] : f.barTicks;
+    const pad = Math.max(0, ZOOM_ROWS - (hi - lo + 1));
+    lo -= Math.ceil(pad / 2);
+    hi += Math.floor(pad / 2);
+    return { lo, hi, bars: Math.max(1.25, Math.min(3, (run.until - run.from) / f.barTicks + 0.5, (ZOOM_NOTES * typical) / f.barTicks)) };
+  }, [f, run?.from, run?.until, run?.solo, voice]);
   const range = useMemo(() => {
-    const r = stepRange(f);
-    return proto.id === "ladder" ? { lo: r.lo - 1, hi: r.hi + 1 } : r;
-  }, [f, proto.id]);
+    const r = zoom ?? stepRange(f);
+    return proto.id === "ladder" ? { lo: r.lo - 1, hi: r.hi + 1 } : { lo: r.lo, hi: r.hi };
+  }, [f, proto.id, zoom]);
+  const barsShown = zoom?.bars ?? 3;
+  // D375: Herr Bach's words cover the box's foot through a tutorial step: the notes stay above them.
+  const boxFloor = run?.tut ? TUT_FLOOR : 0;
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
@@ -496,6 +526,8 @@ export function BenchApp() {
       count: f.voices.length,
       lo: range.lo,
       hi: range.hi,
+      bars: barsShown,
+      floor: boxFloor,
       ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
       voice,
       notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
@@ -616,6 +648,8 @@ export function BenchApp() {
         count: f.voices.length,
         lo: range.lo,
         hi: range.hi,
+        bars: barsShown,
+      floor: boxFloor,
         ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
         voice,
         notes: g.notes,
@@ -746,10 +780,11 @@ export function BenchApp() {
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
-    const geo = uiRows(f.id, voice, range, r.height) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, r.height) : null) ?? ladderGeometry(range.lo, range.hi, r.height);
+    const rh = r.height * (1 - boxFloor);
+    const geo = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null) ?? ladderGeometry(range.lo, range.hi, rh);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
-    const span = 3 * barTicks;
+    const span = barsShown * barTicks;
     return {
       yOf: (step: number) => y0 - step * geo.rowH,
       stepAt: (y: number) => Math.round((y0 - y) / geo.rowH),

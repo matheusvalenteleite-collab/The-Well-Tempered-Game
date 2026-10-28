@@ -189,6 +189,10 @@ export interface Frame {
   tps: number;
   key: string;
   barTicks: number;
+  /** D375: how many bars the box shows (a lesson's passage; else BARS_SHOWN). */
+  bars?: number;
+  /** D375: the share of the box's height kept free at its foot (the tutorial's words sit there). */
+  floor?: number;
   beatTicks: number;
   /** How many voices the piece has (for the inks). */
   count: number;
@@ -317,15 +321,17 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   g.fillStyle = keyTint(fr.key);
   g.fillRect(0, 0, w, h);
 
-  const span = BARS_SHOWN * fr.barTicks;
+  const span = (fr.bars ?? BARS_SHOWN) * fr.barTicks;
   const t0 = fr.now - PLAYHEAD * span;
   const xOf = (tick: number) => Math.round(((tick - t0) / span) * w);
   const playX = xOf(fr.now);
   // The ladder: one row per staff step over the piece's range, a step of room either side.
   const lo = fr.lo - 1;
   const rows = fr.hi - lo + 2;
-  const rowH = Math.max(2, Math.floor(h / rows));
-  const top = Math.floor((h - rowH * rows) / 2);
+  // D375: the ladder keeps clear of the box's foot where something sits over it (Herr Bach's words).
+  const hh = Math.round(h * (1 - (fr.floor ?? 0)));
+  const rowH = Math.max(2, Math.floor(hh / rows));
+  const top = Math.floor((hh - rowH * rows) / 2);
   const lin = (step: number) => top + (fr.hi + 1 - step) * rowH;
   const bh = Math.max(2, rowH);
   // D211: beyond the ladder, the margins: every step above it squeezed into the space over the top
