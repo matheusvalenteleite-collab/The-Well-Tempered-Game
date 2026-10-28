@@ -15,6 +15,7 @@ import { configById, configMech } from "../src/bench/lab/presets.ts";
 import { labPlayParam } from "../src/bench/glenn.ts";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
 import { ShakeReader, shakeThresholds } from "../src/touch/free-ornament.ts";
+import { ornamentsOf } from "../src/touch/ornament-play.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
@@ -23,6 +24,8 @@ import { replay } from "../src/bench/lab/replay.ts";
 import { parseLog, type LabLog } from "../src/bench/lab/log.ts";
 import { parseStudy } from "../src/bench/lab/study.ts";
 import { RULES } from "../src/bench/lite.ts";
+import type { Material } from "../src/bench/manual/lessons.ts";
+import { gameFor, ROWS as GROWS } from "./d342-sim.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
@@ -122,7 +125,7 @@ test("D378: the owner's 20 logged ornaments (shakes of 27–136 px) read with Gl
 
 const RH = 12;
 const ROWS: Rows = { yOf: (s) => 900 - s * RH, stepAt: (y) => Math.round((900 - y) / RH), rowH: RH, xOf: () => 400 };
-type Kind = "mordent" | "up" | "trill" | "late" | "slide";
+type Kind = "mordent" | "up" | "trill" | "late" | "slide" | "written";
 function rng(seed: number) {
   let s = seed >>> 0;
   return () => (s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32;
@@ -172,11 +175,11 @@ function shakePath(kind: Kind, r: () => number, big: boolean): [number, number, 
  * with `rest`, each thumb lands on its note right after the note before sounds and the lift sounds it.
  * Returns the shaken notes and how many read as asked, and the slides played.
  */
-function shaken(id: string, kind: Kind, glenn: boolean, rest: boolean, big: boolean, seed = 7) {
+function shaken(id: string, kind: Kind, glenn: boolean, rest: boolean, big: boolean, seed = 7, voice = 0) {
   return withMech({ glenn }, () => {
     const clock = { t: 0 };
     const f = fugueById(id);
-    const g = new ProtoGame(f, 0, 0, protoById("ladder"), { bpm: tempoOf(id), legato: false, until: f.length, wait: false, solo: false, fail: false }, silent(clock));
+    const g = new ProtoGame(f, voice, 0, protoById("ladder"), { bpm: tempoOf(id), legato: false, until: f.length, wait: false, solo: false, fail: false }, silent(clock));
     g.rows = ROWS;
     g.wall = () => 0;
     const notes = g.tracks[0].notes;
@@ -210,10 +213,12 @@ function shaken(id: string, kind: Kind, glenn: boolean, rest: boolean, big: bool
         return;
       }
       evs.push({ t: rest && j > 0 ? g.timeAt(heads[j - 1].n.on) + 0.03 + r() * 0.05 : t, k: 1, fn: () => g.down(j + 1, c(x0, y0), 0) });
-      if (n.dur >= g.beat && noteMs > 380) {
-        const path = shakePath(kind, r, big);
+      // A written ornament (D278) shaken as a trill wherever its sign is; a free one on a beat or more.
+      if (kind === "written" ? !!g.ornamentAt(0, i) && noteMs > 200 : n.dur >= g.beat && noteMs > 380) {
+        const path = shakePath(kind === "written" ? "trill" : kind, r, big);
         const start = kind === "late" ? noteMs * (0.55 + r() * 0.1) : 30 + r() * 90;
-        if (start + path.at(-1)![0] <= noteMs - 40) tried.add(i);
+        // (The turn after the note needs its last leg's rest, 50 ms, and room to sound before the note ends.)
+        if (kind === "written" || start + path.at(-1)![0] <= noteMs - (kind === "late" ? 100 : 40)) tried.add(i);
         for (const [pt, dx, dy] of path) if (start + pt < noteMs - 30) evs.push({ t: t + (start + pt) / 1000, k: 2, fn: () => g.move(j + 1, c(x0 + dx, y0 + dy), 0) });
       }
       evs.push({ t: rest ? nx + 0.005 : nx - 0.012, k: 0, fn: () => g.up(j + 1, 0) });
@@ -221,7 +226,7 @@ function shaken(id: string, kind: Kind, glenn: boolean, rest: boolean, big: bool
     const got = new Map<number, string[]>();
     const slid = new Set<number>();
     g.tap = (e) => {
-      if (e.kind === "shake" && e.free && e.track === 0 && !e.ornament.startsWith("settled")) got.set(e.i, [...(got.get(e.i) ?? []), e.ornament]);
+      if (e.kind === "shake" && e.free === (kind !== "written") && e.track === 0 && !e.ornament.startsWith("settled")) got.set(e.i, [...(got.get(e.i) ?? []), e.ornament]);
       if (e.kind === "note" && e.slide && e.ok) slid.add(e.i);
     };
     evs.sort((a, b) => a.t - b.t || a.k - b.k);
@@ -234,7 +239,7 @@ function shaken(id: string, kind: Kind, glenn: boolean, rest: boolean, big: bool
     }
     while (!done && clock.t < 2000) (clock.t += 1 / 120), (done = g.step());
     const want = (o: string[]) =>
-      kind === "mordent" ? o.length === 1 && o[0] === "mordent" : kind === "up" ? o.length === 1 && ["short", "pralltriller", "schneller"].includes(o[0]) : kind === "trill" ? ["trill", "turn"].includes(o.at(-1)!) : o.length === 1 && o[0] === "turn after the note";
+      kind === "written" ? o.length >= 1 : kind === "mordent" ? o.length === 1 && o[0] === "mordent" : kind === "up" ? o.length === 1 && ["short", "pralltriller", "schneller"].includes(o[0]) : kind === "trill" ? ["trill", "turn"].includes(o.at(-1)!) : o.length === 1 && o[0] === "turn after the note";
     let ok = 0;
     for (const i of tried) if (kind === "slide" ? slid.has(i) : got.has(i) && want(got.get(i)!)) ok++;
     return { ok, of: tried.size, slides: slid.size, right: g.results().right, notes: g.results().of };
@@ -242,8 +247,10 @@ function shaken(id: string, kind: Kind, glenn: boolean, rest: boolean, big: bool
 }
 
 test("D378: each ornament gesture read with Glenn's mechanics at least as often as with CLASSIC's: small and large shakes, with and without the other thumb resting early", () => {
-  // Rates measured in II/12 (the owner's mordents) for the D378 row: before the fix, with the flag on,
-  // large shakes read 0 of 40 (the 1.5-row leg cap) and small mordents 83%; now as CLASSIC's.
+  // Rates for the D378 row (II/12, I/2, I/22, two seeds, rows of 12 px): before the fix, with the flag on,
+  // large shakes read 0–2% (the 1.5-row leg cap), small ones 81–86%, the turn after the note 0–28%; now
+  // mordent, up and trill 100% (CLASSIC 85–100%), the turn after the note 36% (CLASSIC 4–31%: the rest
+  // is the music's, a falling second after or no room, named otherwise).
   const rows: string[] = [];
   for (const big of [false, true])
     for (const rest of [false, true])
@@ -260,8 +267,95 @@ test("D378: each ornament gesture read with Glenn's mechanics at least as often 
       }
 });
 
+test("D378: a late shake after a still thumb (no touches meanwhile) is read: the turn after the note; CLASSIC's reader as before", () => {
+  // A long note at crotchet = 60: the thumb lands, lies still 600 ms (a still thumb sends no touches),
+  // then a quick large down-and-back (40 px, 60 ms each way): its first leg once timed from the landing.
+  const read = (glenn: boolean) => {
+    const th = shakeThresholds(1, 18, { ...MECH_DEFAULTS, glenn });
+    const r = new ShakeReader({ x: 100, y: 500, t: 0 }, th);
+    for (let t = 16.7; t < 600; t += 16.7) r.tick(t);
+    for (let k = 1; k <= 4; k++) r.feed(100, 500 + 10 * k, 600 + 15 * k);
+    for (let k = 1; k <= 4; k++) r.feed(100, 540 - 10 * k, 660 + 15 * k);
+    for (let t = 736; t < 900; t += 16.7) r.tick(t);
+    return r.kind;
+  };
+  assert.equal(read(true), "late");
+  assert.equal(read(false), null, "CLASSIC unchanged (its first leg timed from the landing, slow)");
+});
+
+test("D378: a written ornament shaken (I/6's trills) read with Glenn's mechanics as with CLASSIC's, large and small, resting or not", () => {
+  const f = fugueById("wtc1f06");
+  const orn = ornamentsOf(f);
+  const voice = [0, 1, 2].find((v) => f.voices[v].some((n) => orn.has(`${v}:${n[0]}`)))!;
+  for (const big of [false, true])
+    for (const rest of [false, true]) {
+      const on = shaken("wtc1f06", "written", true, rest, big, 7, voice);
+      const off = shaken("wtc1f06", "written", false, rest, big, 7, voice);
+      assert.ok(on.of > 0 && on.of === off.of);
+      assert.equal(on.ok, on.of, `${big ? "large" : "small"} ${rest ? "resting" : "alone"}: ${on.ok}/${on.of} (CLASSIC ${off.ok})`);
+    }
+});
+
 test("D378: a one-way slide is still Glenn's slide (and his slur): not taken for a shake", () => {
   const on = shaken("wtc2f12", "slide", true, false, false);
   assert.ok(on.of >= 5);
   assert.equal(on.ok, on.of, `slid ${on.ok} of ${on.of}`);
+});
+
+test("D378: the hold-over appoggiatura with Glenn's mechanics, the resting thumb rolling and drifting (to 30 px/s), the lift a little off: as with CLASSIC's", () => {
+  const I22: Material = { piece: "wtc1f22", voice: 0, fromBar: 13, toBar: 17, tempo: { pct: 100 }, label: "I/22", badge: "IN GAME" };
+  const run = (glenn: boolean, seed: number) =>
+    withMech({ glenn }, () => {
+      const r = rng(seed);
+      const clock = { t: 0 };
+      const { g } = gameFor(I22, clock);
+      g.o.demo = false;
+      g.wall = () => 0;
+      let appo = 0;
+      const feed = g.tap!;
+      g.tap = (e) => (e.kind === "prep" && e.what === "appoggiatura" && appo++, feed(e));
+      const heads = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
+      const es: { t: number; k: number; fn: () => void }[] = [];
+      const offs: number[] = [];
+      heads.forEach((n, k) => {
+        const side = k % 2 ? "right" : "left";
+        const x = side === "left" ? 40 : 760;
+        const prev = heads[k - 1];
+        const next = heads[k + 1];
+        // Bars 15–17's three places held over a third to two thirds of their notes.
+        const share = next && [7, 8, 9].includes(k + 1) ? 0.3 + r() * 0.35 : 0;
+        const t1 = next ? g.timeAt(next.on + share * next.dur) + (r() - 0.5) * 0.02 : g.timeAt(n.on + n.dur) - 0.02;
+        offs.push(t1);
+        const t0 = !prev ? g.timeAt(n.on) : Math.max(g.timeAt(prev.on) + 0.05 + r() * 0.1, (offs[k - 2] ?? -1) + 0.03);
+        const y = GROWS.yOf(n.step) + (r() - 0.5) * 6;
+        const c = (dx: number, dy: number) => ({ side, x: x + dx, y: y + dy, w: 800, h: 1000 }) as const;
+        es.push({ t: t0, k: 1, fn: () => g.down(k + 1, c(0, 0), 0) });
+        const dir = r() < 0.5 ? 1 : -1;
+        let dx = 0;
+        let dy = 0;
+        for (let t = t0 + 0.016; t < t1 - 0.005; t += 0.016 + r() * 0.01) {
+          dy += dir * 30 * 0.016 * (0.5 + r()) + (r() - 0.5) * 1.2;
+          dx += (r() - 0.5) * 1.2;
+          const p = c(dx, dy);
+          es.push({ t, k: 2, fn: () => g.move(k + 1, p, 0) });
+        }
+        es.push({ t: t1, k: 0, fn: () => g.up(k + 1, 0) });
+      });
+      es.sort((a, b) => a.t - b.t || a.k - b.k);
+      let done = false;
+      for (const e of es) {
+        while (!done && clock.t + 1 / 240 < e.t) (clock.t += 1 / 240), (done = g.step());
+        if (done) break;
+        clock.t = Math.max(clock.t, e.t);
+        e.fn();
+      }
+      while (!done && clock.t < 900) (clock.t += 1 / 240), (done = g.step());
+      return { appo, right: g.results().right, of: g.results().of };
+    });
+  for (let s = 1; s <= 5; s++) {
+    const on = run(true, s);
+    assert.equal(on.appo, 3, `seed ${s}`);
+    assert.equal(on.right, on.of);
+    assert.deepEqual(run(false, s), on);
+  }
 });
