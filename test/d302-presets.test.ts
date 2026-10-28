@@ -76,8 +76,9 @@ test("D302: a sung note: a new syllable comes from its consonant into the vowel,
 
 test("D302: SOLO VOICES: the four singers recorded, a syllable at each new note and none when joined; credited", () => {
   const pr = presetById("soloVoices");
-  assert.deepEqual(pr.slots!.map((s) => PATCHES[s].sample), ["voiceS", "choirAah", "voiceA", "voiceT", "voiceB"]);
-  assert.equal(new Set(pr.slots!.map((s) => PATCHES[s].syllable!.cons)).size, 5);
+  // D358: the second soprano a soprano (no synth choir among the soloists); one text: every singer the same syllable.
+  assert.deepEqual(pr.slots!.map((s) => PATCHES[s].sample), ["voiceS", "voiceS", "voiceA", "voiceT", "voiceB"]);
+  assert.equal(new Set(pr.slots!.map((s) => PATCHES[s].syllable!.cons)).size, 1);
   for (const id of ["voiceS", "voiceA", "voiceT", "voiceB", "choirAah"] as const) assert.equal(SAMPLED[id].plucked, false);
   assert.match(creditFor("soloVoices")!, /VOCALSET.*CC BY 4\.0/);
   assert.match(creditFor("tracker")!, /FLUIDR3/);
