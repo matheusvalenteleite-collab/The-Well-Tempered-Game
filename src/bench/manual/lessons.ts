@@ -22,8 +22,11 @@ import type { Run } from "../lessons.ts";
 
 export type PartId = "0" | "I" | "II" | "III" | "IV" | "V" | "VI" | "VII" | "VIII";
 export type SoundName = "chip" | "harpsichord" | "organ" | "piano";
-/** The sound each name plays on (sound.ts presets). */
-export const SOUND_PRESET: Record<SoundName, string> = { chip: "chip", harpsichord: "harpsichordSampled", organ: "organSampled", piano: "pianoSampled" };
+/**
+ * The sound each name plays on (sound.ts presets). D353: the organ is PIPE ORGAN (D302/D304), not the
+ * sampled organ D249 withdrew (presetById opens that on the harpsichord, whose notes decay).
+ */
+export const SOUND_PRESET: Record<SoundName, string> = { chip: "chip", harpsichord: "harpsichordSampled", organ: "chamberOrgan", piano: "pianoSampled" };
 export const SOUND_WORD: Record<SoundName, string> = { chip: "CLASSIC CHIP", harpsichord: "HARPSICHORD", organ: "ORGAN", piano: "PIANO" };
 
 /** The visual aids of Parts I–II (design 4.5), each for its lesson only. */

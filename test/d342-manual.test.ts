@@ -83,6 +83,8 @@ test("D342: the cards: Parts 0–II, 14 lessons, each its sound, its lens, its s
   assert.deepEqual(MANUAL.filter((l) => l.checkpoint).map((l) => l.id), ["I.5", "II.7"]);
   // Decision 4: each lesson's own instrument.
   assert.deepEqual(Object.fromEntries(PLAYED.map((l) => [l.id, l.sound])), { "I.1": "chip", "I.2": "harpsichord", "I.3": "piano", "I.4": "organ", "I.5": "organ", "II.1": "harpsichord", "II.2": "chip", "II.3": "organ", "II.4": "harpsichord", "II.5": "piano", "II.6": "chip", "II.7": "harpsichord" });
+  // D353: the organ is PIPE ORGAN (D249 withdrew the sampled organ: it opened on the harpsichord, which decays).
+  assert.equal(SOUND_PRESET.organ, "chamberOrgan");
   // II.3's play on the piano (organ, then piano).
   assert.equal(lessonById("II.3")!.stages[2].m.sound, "piano");
 });
