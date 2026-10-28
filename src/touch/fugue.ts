@@ -111,6 +111,11 @@ export interface TouchFugue {
   fermatas?: number[];
   /** D340: the band's time in this piece (BAND TIME, D328): a chorale's band waits for the player after each fermata. */
   bandTime?: "waits";
+  /**
+   * D347: the words, a list a voice (empty for an instrument), packed by tools/touch/more-bach.ts
+   * packLyrics; unpacked by lyrics.ts. Only the sung pieces (BWV 228, BWV 54) have them.
+   */
+  lyrics?: (number | string)[][];
 }
 
 /** D340: the collections beyond the WTC. */

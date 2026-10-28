@@ -28,7 +28,7 @@ import { TPQ } from "../../src/wtc/kern.ts";
 import type { WtcPiece } from "../../src/wtc/corpus.ts";
 import { findEntriesByHead, findTransformed, line, subjectAndAnswer, type Note as Line } from "../../src/wtc/fugue.ts";
 import { readMidi } from "./midi.ts";
-import { readMusicXml } from "./musicxml.ts";
+import { hyphensOf, readMusicXml } from "./musicxml.ts";
 import { buildEntries, findCadences, homeward, keySpeller, type Note, type RawEntry } from "./analysis.ts";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -46,6 +46,11 @@ interface Spec {
   fromBar?: number;
   toBar?: number;
   page?: string;
+  /**
+   * D347: syllables to join with a hyphen where the edition writes them apart and nothing in the score
+   * shows them joined (musicxml.ts hyphensOf), as "al|ler" (lower case, punctuation left off).
+   */
+  joins?: string[];
   /** D341: the voice offered first. */
   defaultVoice?: number;
   id: string;
@@ -288,6 +293,8 @@ const BWV228_PAGE = "https://imslp.org/wiki/F%C3%BCrchte_dich_nicht,_ich_bin_bei
 const BWV54_PAGE = "https://imslp.org/wiki/Widerstehe_doch_der_S%C3%BCnde,_BWV_54_(Bach,_Johann_Sebastian)";
 const BWV228_CREDIT = "MOTET: FRITZ BRODERSEN, WIMA EDITION (IMSLP) · CC BY-NC 3.0";
 const BWV54_CREDIT = "CANTATA: RAMON CASADESUS-MASANELL (IMSLP, 2021) · CC BY-NC-SA 4.0";
+/** D347: BWV 228's chorale words written apart over melismas ("Brunn al ler Freu den"), joined by hand. */
+const CHORALE_JOINS = ["al|ler", "freu|den", "le|ben", "ge|ge", "ge|ben", "fas|se", "her|zen", "lan|gen", "um|fan", "fan|gen"];
 const CHOIRS = ["Soprano I", "Alto I", "Tenor I", "Bass I", "Soprano II", "Alto II", "Tenor II", "Bass II"];
 const VOCAL: Spec[] = [
   {
@@ -326,6 +333,8 @@ const VOCAL: Spec[] = [
     entries: true,
     playable: [0, 1, 2, 3],
     defaultVoice: 1,
+    // D347: the chorale's words split over melismas, which no other part sings joined.
+    joins: CHORALE_JOINS,
     credit: BWV228_CREDIT,
   },
   {
@@ -390,6 +399,11 @@ export function readXmlPiece(s: Spec): Read {
   );
   const length = to - from;
   const bars = x.bars.filter((b) => b.on >= from && b.on < to).map((b) => ({ n: b.n, on: b.on - from }));
+  // D347: the words of each voice kept (none for an instrument), as packLyrics stores them.
+  const hy = hyphensOf(x.parts, s.joins);
+  const lyrics = (s.xmlParts ?? x.parts.map((_, i) => i)).map((i) =>
+    packLyrics(x.parts[i].lyrics.flatMap((l, k) => (l.on >= from && l.on < to ? [{ on: l.on - from, end: Math.min(l.end, to) - from, text: l.text, joined: hy.joined[i][k] }] : []))),
+  );
   let agree = { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 };
   if (s.mid) {
     const m = readMidi(readFileSync(`${dir}${s.mid}`));
@@ -399,7 +413,22 @@ export function readXmlPiece(s: Spec): Read {
     const inter = [...a].filter((v) => b.has(v)).length;
     agree = { midiInLy: inter / Math.max(1, b.size), lyInMidi: inter / Math.max(1, a.size), midiNotes: b.size, lyNotes: a.size };
   }
-  return { voices, spell, spelled, bars, meter: x.meter, length, agree };
+  return { voices, spell, spelled, bars, meter: x.meter, length, agree, ...(lyrics.some((l) => l.length) ? { lyrics } : {}) };
+}
+
+/**
+ * D347: a voice's words, compact: [onset after the last syllable's onset, length to the melisma's last
+ * note's end, text], three values a syllable, in time; a text ending in "-" is followed by a hyphen (the
+ * word goes on). src/touch/lyrics.ts unpacks it.
+ */
+export function packLyrics(syls: { on: number; end: number; text: string; joined: boolean }[]): (number | string)[] {
+  const out: (number | string)[] = [];
+  let last = 0;
+  for (const l of syls) {
+    out.push(l.on - last, l.end - l.on, l.joined ? `${l.text}-` : l.text);
+    last = l.on;
+  }
+  return out;
 }
 
 // --- Reading --------------------------------------------------------------------------------------
@@ -465,6 +494,8 @@ export interface Read {
   length: number;
   /** The share of the MIDI file's attacks (onset, pitch) the LilyPond notes hold, and the other way round. */
   agree: { midiInLy: number; lyInMidi: number; midiNotes: number; lyNotes: number };
+  /** D347: each voice's words (packLyrics), where any voice is sung. */
+  lyrics?: (number | string)[][];
 }
 
 export function readPiece(s: Spec): Read {
@@ -665,6 +696,7 @@ export function build(s: Spec) {
     source: s.page ?? `https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=${s.mutopia}`,
     ...(s.defaultVoice !== undefined ? { defaultVoice: s.defaultVoice } : {}),
     ...(s.playable ? { playable: s.playable } : {}),
+    ...(r.lyrics ? { lyrics: r.lyrics } : {}),
   };
   homeward(f);
   // A piece where nothing is read (the Canon per Augmentationem: no cadence found) is in its home key throughout.
@@ -681,7 +713,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     out.push(f);
     const lastBar = f.bars.at(-1)?.n ?? 0;
     console.log(
-      `${f.id.padEnd(14)} ${f.voices.length} voices ${String(lastBar).padStart(3)} bars ${f.meter.padEnd(5)} notes ${f.voices.map((v) => v.length).join("/")} entries ${f.entries.length} cadences ${f.cadences.length} · MIDI in LilyPond ${(agree.midiInLy * 100).toFixed(1)}%, LilyPond in MIDI ${(agree.lyInMidi * 100).toFixed(1)}%`,
+      `${f.id.padEnd(14)} ${f.voices.length} voices ${String(lastBar).padStart(3)} bars ${f.meter.padEnd(5)} notes ${f.voices.map((v) => v.length).join("/")} entries ${f.entries.length} cadences ${f.cadences.length} · MIDI in LilyPond ${(agree.midiInLy * 100).toFixed(1)}%, LilyPond in MIDI ${(agree.lyInMidi * 100).toFixed(1)}%${"lyrics" in f && f.lyrics ? ` · syllables ${f.lyrics.map((l) => l.length / 3).join("/")}` : ""}`,
     );
   }
   writeFileSync(`${ROOT}data/touch/more-bach.json`, JSON.stringify(out) + "\n");
