@@ -242,6 +242,20 @@ export interface Patch {
    * pedal's upper ranks, which its small speaker hears).
    */
   pipe?: { case: number; cents: number; phoneOsc?: Osc[] };
+  /**
+   * D357: a synthesized rank sounding with this patch's note an octave below (chip.ts Chip.note, as one
+   * note: `together`): the recorded plenum pedal's Subbass 16' (its recordings are at 8' pitch, measured).
+   */
+  under?: Patch;
+  /**
+   * D357, a reed's speech and body (the organ's Trompete; chip.ts patchNote): the pitch speaking `bloom`
+   * cents flat and rising to true (time constant, s) as the tongue settles; a brief rattle of the tongue
+   * on the shallot (the level beaten `rattle.depth` at `rattle.rate` Hz, gone within `rattle.time` s);
+   * the resonator's formant (a peak at `formant` Hz, `q`, `db`); its compass (a low shelf at twice the
+   * note: `compass.low` dB at C2 to `compass.high` at C6: full at the bottom, thinner at the top).
+   * `share`: the reed's part of a chorus it sounds in (its gestures scaled by it: registration.ts).
+   */
+  reed?: { bloom: { cents: number; time: number }; rattle: { depth: number; rate: number; time: number }; formant: number; q: number; db: number; compass: { low: number; high: number }; share?: number };
 }
 
 /**
@@ -641,8 +655,17 @@ export const PATCHES = {
   orgPrincipal: P({ osc: [{ wave: "stopPrincipal", gain: 0.95 }, { wave: "sine", octave: 1, detune: 0.7, gain: 0.16 }, { wave: "sine", octave: 2, detune: -0.5, gain: 0.06 }], chiff: { level: 0.18, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
   /** D349: FLUTES: Gedackt 8' and Rohrflöte 4' (the octave a little sharp: a slow beat), a plainer, quicker chiff. */
   orgFlute: P({ osc: [{ wave: "stopGedackt", gain: 0.73 }, { wave: "sine", octave: 1, detune: 0.9, gain: 0.22 }], chiff: { level: 0.28, time: 0.028, at: 3 }, breath: 0.008, amp: { a: 0.02, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
-  /** D349: the Trompete 8' (a reed: a solo, a cantus firmus; with the foundation drawn, in the chorus): quick brassy speech. */
-  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 1 }, { wave: "stopTrompete", detune: 1.2, gain: 0.25 }], filter: { freq: 5000, hz: true, q: 0.9, env: 1.6, envDecay: 0.03 }, chiff: { level: 0.1, time: 0.012, at: 9 }, amp: { a: 0.012, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
+  /**
+   * D349: the Trompete 8' (a reed: a solo, a cantus firmus; with the foundation drawn, in the chorus): quick brassy speech.
+   * D357 (the owner: "there's a je ne sais quoi to the organ trumpet sound which i love… like cotton candy to
+   * my ears"): a reed's speech and body (Patch.reed): it speaks 14 cents flat, settling in about 20 ms, its
+   * tongue rattling on the shallot for the first 35 ms (the level beaten at 38 Hz), bright at once (the
+   * lowpass opened 2.2-fold, closing over 40 ms: the brassy bloom); its resonator's formant at 1.4 kHz
+   * (+4 dB); fuller in the bass, thinner in the treble (a low shelf at twice the note, +2.5 dB at C2 to
+   * -4 at C6); the second rank (+1.2 cents) beats slowly with it; no vibrato. Its level kept (loudness
+   * matched with the other registrations, measured).
+   */
+  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 0.84 }, { wave: "stopTrompete", detune: 1.2, gain: 0.21 }], filter: { freq: 5000, hz: true, q: 0.9, env: 2.2, envDecay: 0.04 }, chiff: { level: 0.12, time: 0.014, at: 11 }, amp: { a: 0.01, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 }, reed: { bloom: { cents: 14, time: 0.007 }, rattle: { depth: 0.35, rate: 38, time: 0.035 }, formant: 1400, q: 1.1, db: 4, compass: { low: 2.5, high: -4 } } }),
   /**
    * D349: the PLENUM (Principal 8', Octave 4', Superoctave 2', Mixture): the VCSL organ's own recorded
    * plenum (sampled.ts organPleno), the same organ as the plenum's pedal; its stand-in until loaded the
@@ -659,7 +682,13 @@ export const PATCHES = {
   orgPedal: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.85 }, { wave: "stopPrincipal", gain: 0.62 }, { wave: "stopPrincipal", octave: 1, gain: 0.2 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
   orgPedal8: P({ osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, gain: 0.28 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
   orgPedalSoft: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.8 }, { wave: "stopGedackt", gain: 0.55 }, { wave: "sine", octave: 1, gain: 0.16 }], chiff: { level: 0.14, time: 0.04, at: 3 }, breath: 0.004, amp: { a: 0.035, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "sine", octave: 1, gain: 0.15 }, { wave: "stopGedackt", octave: 2, gain: 0.4 }] } }),
-  orgPedalPleno: P({ osc: [{ wave: "stopPosaune" }, { wave: "stopGedackt", octave: -1, gain: 0.5 }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, level: 0.245, sample: "organPedal", pipe: { case: 0.1, cents: 0 } }),
+  /**
+   * D357: the plenum's pedal has its 16' (a Subbass, synthesized: `under`, the octave below the key, as
+   * one note with the recording). D349 took the recordings for 16' and 8'; measured, they sound at 8'
+   * (C3: the octave below 59 dB under the fundamental), so the bass of the plenum had no 16' at all and
+   * in the tenor's register (I/2's subject from C4, the manual's recordings above B3) none under it.
+   */
+  orgPedalPleno: P({ osc: [{ wave: "stopPosaune" }], amp: { a: 0.03, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, level: 0.245, sample: "organPedal", pipe: { case: 0.1, cents: 0 }, under: P({ osc: [{ wave: "stopGedackt", gain: 1 }, { wave: "sine", octave: 1, gain: 0.12 }], chiff: { level: 0.1, time: 0.045, at: 2 }, amp: { a: 0.045, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 24, level: 0.16, pipe: { case: 0.1, cents: 0.4 } }) }),
   // SWITCHED-ON (D297: ANALOG SYNTH remade; the owner: "lackluster compared to Carlos' memorable
   // sounds"), after Switched-On Bach's timbres: a modular's sawtooths and squares through the 24 dB
   // ladder with a strong, quick filter envelope (the bright "spit" at each attack and the resonant

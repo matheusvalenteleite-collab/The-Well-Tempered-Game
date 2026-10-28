@@ -13,8 +13,12 @@ import { crowned, isPedal, liveRegistration, registeredNote, LUTE_LP, type Regis
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
+import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
+
+/** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
+const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
 
 /**
  * D208, the player's voice: the same instrument as the others, at the same level (the voices of a
@@ -128,6 +132,8 @@ export interface Reverb {
   rt60: number;
   /** D349: a phone's own (shorter) decay, where it differs. */
   phoneRt60?: number;
+  /** D357: a phone's own send high-pass (Hz), where it differs (room.ts: a long room's low tail is mud on a small speaker). */
+  phoneHp?: number;
   brightness: number;
   echo?: { delay: number; feedback: number; lp: number; level: number };
 }
@@ -682,6 +688,13 @@ export class Chip {
       // flutes (Gedackt 8', Rohrflöte 4'), quieter and a little veiled (its lowpass: a Brustwerk behind its doors).
       if (p.echo && !pedal) v = { ...v, patch: PATCHES.orgFlute };
     }
+    // D357: a rank under the note (Patch.under: the plenum pedal's Subbass 16'), sounding as one with it.
+    const under = v.patch?.under;
+    if (under && p.couple !== false) {
+      const main = this.coupled(midi, at, dur, v, p);
+      const twin = this.single(midi - 12, at, dur, { ...v, patch: under }, { ...p, couple: false });
+      return together([main, twin], -12);
+    }
     return this.coupled(midi, at, dur, v, p);
   }
 
@@ -735,6 +748,42 @@ export class Chip {
     const cents = ((h - Math.floor(h)) * 2 - 1) * pp.cents;
     const pt2 = this.phone && pp.phoneOsc ? { ...pt, osc: [...pt.osc, ...pp.phoneOsc] } : pt;
     return [{ ...v, pan: Math.max(-1, Math.min(1, v.pan + side * pp.case)) }, pt2, { ...p, legato: false, detune: (p.detune ?? 0) + cents }];
+  }
+
+  /**
+   * D357, a reed's body (Patch.reed): its formant (a peak), its compass (a low shelf at twice the note,
+   * fuller low, thinner high) and, on a new note, the tongue's rattle (the level beaten by a square wave
+   * for a moment). The gestures scaled by the reed's share of the chorus.
+   */
+  private reedBody(src: AudioNode, r: NonNullable<Patch["reed"]>, f0: number, midi: number, t: number, joined: boolean, bag: Bag): AudioNode {
+    const ctx = this.ctx;
+    const k = r.share ?? 1;
+    const pk = bag.add(ctx.createBiquadFilter());
+    pk.type = "peaking";
+    pk.frequency.value = r.formant;
+    pk.Q.value = r.q;
+    pk.gain.value = r.db * k;
+    const sh = bag.add(ctx.createBiquadFilter());
+    sh.type = "lowshelf";
+    sh.frequency.value = Math.min(4000, f0 * 2);
+    const x = Math.max(0, Math.min(1, (midi - 36) / 48));
+    sh.gain.value = (r.compass.low + (r.compass.high - r.compass.low) * x) * k;
+    let out: AudioNode = src.connect(pk).connect(sh);
+    if (!joined && r.rattle.depth > 0) {
+      const rg = bag.add(ctx.createGain());
+      rg.gain.value = 1;
+      const lfo = bag.src(ctx.createOscillator());
+      lfo.type = "square";
+      lfo.frequency.value = r.rattle.rate;
+      const d = bag.add(ctx.createGain());
+      d.gain.setValueAtTime((r.rattle.depth * k) / 2, t);
+      d.gain.setTargetAtTime(0, t + 0.004, r.rattle.time / 3);
+      lfo.connect(d).connect(rg.gain);
+      lfo.start(t);
+      halt(lfo, t + r.rattle.time * 1.5 + 0.02);
+      out = out.connect(rg);
+    }
+    return out;
   }
 
   /** D311: the player's note's expression stage: the landing's lowpass, and for holding a swell (messa di voce) or a wah's peak (at rest, none). */
@@ -903,7 +952,7 @@ export class Chip {
   }
 
   /** D297: the period presets' effect now (Preset.fx), built at its first note, its nodes (the input first, the return last). */
-  private fx: { kind: FxKind; nodes: AudioNode[] } | null = null;
+  private fx: { kind: FxKind; nodes: AudioNode[]; room: RoomId | null; seconds: number } | null = null;
   /** D297: whether the shared room is off (a preset with `room: 0`). */
   private dry = false;
   /**
@@ -931,6 +980,21 @@ export class Chip {
           /* already */
         }
       this.fx = null;
+    } else if (this.fx && this.fx.room !== roomOf(pr.id)) {
+      // D357: another ROOM: no new sound into the old one, its tail left to ring out, then taken down.
+      const old = this.fx;
+      this.fx = null;
+      const t = this.ctx.currentTime;
+      const input = old.nodes[0] as GainNode;
+      input.gain.setTargetAtTime(0, t, 0.01);
+      setTimeout(() => {
+        for (const n of old.nodes)
+          try {
+            n.disconnect();
+          } catch {
+            /* already */
+          }
+      }, (old.seconds + 0.5) * 1000);
     }
   }
 
@@ -938,7 +1002,8 @@ export class Chip {
   private fxInput(): AudioNode | null {
     const kind = preset().fx;
     if (!kind) return null;
-    if (this.fx?.kind === kind) return this.fx.nodes[0];
+    const room = roomOf(preset().id);
+    if (this.fx?.kind === kind && this.fx.room === room) return this.fx.nodes[0];
     const ctx = this.ctx;
     const node = <T extends AudioNode>(n: T, nodes: AudioNode[]) => (nodes.push(n), n);
     const filter = (type: BiquadFilterType, f: number, q: number, nodes: AudioNode[]) => {
@@ -949,6 +1014,7 @@ export class Chip {
       return b;
     };
     const nodes: AudioNode[] = [];
+    let seconds = 0.5;
     const input = node(ctx.createGain(), nodes);
     const ret = ctx.createGain();
     if (kind === "spc" || kind === "echo") {
@@ -979,7 +1045,10 @@ export class Chip {
       // A reverb (REVERBS): e.g. the PlayStation's hall (§6.2): the sends pre-delayed 25 ms and
       // high-passed at 350 Hz (the organ's pedal does not flood the tail), a dark generated impulse,
       // the return lowpassed at 5.5 kHz (its half-rate core).
-      const r = REVERBS[kind];
+      // D357: PIPE ORGAN's church as the ROOM button sets it (room.ts), its send's level on the input.
+      const r = room ? roomReverb(REVERBS[kind], room) : REVERBS[kind];
+      if (room) input.gain.value = ROOMS[room].send;
+      seconds = this.phone ? r.phoneSeconds : r.seconds;
       if (r.echo) {
         const e = r.echo;
         const sum = node(ctx.createGain(), nodes);
@@ -996,7 +1065,7 @@ export class Chip {
       }
       const pre = node(ctx.createDelay(0.1), nodes);
       pre.delayTime.value = r.predelay;
-      const hp = filter("highpass", r.hp, 0.7071, nodes);
+      const hp = filter("highpass", this.phone ? (r.phoneHp ?? r.hp) : r.hp, 0.7071, nodes);
       const conv = node(ctx.createConvolver(), nodes);
       conv.buffer = darkHall(ctx, this.phone ? r.phoneSeconds : r.seconds, this.phone ? (r.phoneRt60 ?? r.rt60) : r.rt60, r.brightness);
       const lp = filter("lowpass", r.lp, 0.7071, nodes);
@@ -1005,7 +1074,7 @@ export class Chip {
     // The return through the master (the volume, the limiter), not into the shared room.
     ret.connect(this.master);
     nodes.push(ret);
-    this.fx = { kind, nodes };
+    this.fx = { kind, nodes, room, seconds };
     return input;
   }
 
@@ -1377,7 +1446,8 @@ export class Chip {
         src.connect(g).connect(sh).connect(mix);
       } else src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack.
-      const from = r.onset + (p.legato && !plucked ? 0.25 : 0);
+      // D357: a new note on a recorded pipe enters its speech near where it sounds (SampledInstrument.speak).
+      const from = r.onset + (p.legato && !plucked ? 0.25 : plucked ? 0 : speakFrom(inst, r));
       src.start(t + (choir?.delay ?? 0), from);
       srcs.push({ src, set, m, mult });
       if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
@@ -1633,7 +1703,10 @@ export class Chip {
     // and rang on a fifth of a second past it: a detached note's gap filled). D304: only a detached
     // note's (Play.apart: a reading's mark), plucked or held, its release -30 dB by its end, so
     // the gap the reading asks for is heard; every other note let go at its end, as before D302.
-    else if (!p.lead && p.apart) letGo(Math.max(t + atk + 0.02, end - 3.5 * ownTau));
+    // D357: not an organ's recorded pipe (Patch.pipe): its notes let go at their written end, as the
+    // synthesized pipes' are (D349: the phrasing's hold is the organist's release); its release begun
+    // 30 ms in left the plenum pedal's detached 16ths (0.11 s) 13 dB under their neighbours.
+    else if (!p.lead && p.apart && !pt.pipe) letGo(Math.max(t + atk + 0.02, end - 3.5 * ownTau));
     else letGo(end);
     let stopped = false;
     let cents = 0;
@@ -1771,6 +1844,11 @@ export class Chip {
         // D302: not on a joined note (it would mark a new attack).
         n.detune.setValueAtTime(det + pt.scoop.cents, t);
         n.detune.setTargetAtTime(det, t, pt.scoop.time);
+      }
+      // D357: a reed's pitch speaking a little flat as its tongue settles (Patch.reed.bloom; joined, none).
+      if (pt.reed && !pt.scoop && !(p.legato && !pluck)) {
+        n.detune.setValueAtTime(det - pt.reed.bloom.cents * (pt.reed.share ?? 1), t);
+        n.detune.setTargetAtTime(det, t, pt.reed.bloom.time);
       }
       const g = bag.add(ctx.createGain());
       g.gain.value = (o.gain ?? 1) * (wave !== o.wave && w0 !== undefined ? pulseRms(w0) / pulseRms(widthOf(wave) ?? w0) : 1);
@@ -1943,6 +2021,7 @@ export class Chip {
       hp.Q.value = 0.7071;
       src = src.connect(hp);
     }
+    if (pt.reed) src = this.reedBody(src, pt.reed, f0, midi, t, !!(p.legato && !pluck), bag);
     if (pt.phaser) {
       // D302, TOMITA's phased strings: two allpass stages swept with the clock, beside the dry sound: moving notches.
       const ph = pt.phaser;

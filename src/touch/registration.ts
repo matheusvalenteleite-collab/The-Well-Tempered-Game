@@ -187,23 +187,31 @@ export function organPatch(_own: Patch, stops: readonly StopId[], midi: number):
       return sp.osc.map((o) => ({ ...o, detune: (o.detune ?? 0) + (RANK_CENTS[s] ?? 0), gain: (o.gain ?? 1) * g }));
     });
     // A reed's own lowpass (5 kHz) and floor kept only where the reed leads; the mixture's ranks would be dulled under another's.
-    pt = { ...lead, osc };
+    // D357: the reed's speech and body (Patch.reed: its bloom, rattle, formant, compass) carried into the chorus, by its share of it.
+    const ri = ranks.indexOf("reed");
+    const reed = ri >= 0 && lead.reed === undefined ? PATCHES.orgTrompete.reed : undefined;
+    const share = reed ? weights[ri] ** ORGAN_SUM_P / weights.reduce((a, w) => a + w ** ORGAN_SUM_P, 0) : 0;
+    pt = { ...lead, osc, ...(reed ? { reed: { ...reed, share: Math.max(0.5, share) } } : {}) };
   }
   if (trem) pt = tremulant(pt);
   merged.set(key, pt);
   return pt;
 }
 
+/** D357: the plenum's recorded pedal with its 16' pushed in (the synthesized Subbass under it, Patch.under, withdrawn). */
+export const PEDAL_PLENO_8: Patch = { ...PATCHES.orgPedalPleno, under: undefined };
+
 /**
  * ORGAN: the pedal's patch: its family by the manual's registration (the plenum's recorded pedal under
  * MIXTURE, the soft one under the flutes alone, else the principals), without its 16' where the
- * player pushed it in (not the plenum's: its recordings have their 16'), with the tremulant where drawn.
+ * player pushed it in (D357: the plenum's too: its Subbass is synthesized, its recordings at 8'), with
+ * the tremulant where drawn.
  */
 export function pedalPatch(manual: readonly StopId[] | null, sixteen = true, trem = false): Patch {
   const m = manual ?? ["principal"];
   const pleno = m.includes("mixture");
   const soft = !pleno && m.includes("flute") && !m.includes("principal") && !m.includes("reed");
-  const pt = pleno ? PATCHES.orgPedalPleno : !sixteen ? PATCHES.orgPedal8 : soft ? PATCHES.orgPedalSoft : PATCHES.orgPedal;
+  const pt = pleno ? (sixteen ? PATCHES.orgPedalPleno : PEDAL_PLENO_8) : !sixteen ? PATCHES.orgPedal8 : soft ? PATCHES.orgPedalSoft : PATCHES.orgPedal;
   return trem ? tremulant(pt) : pt;
 }
 
@@ -255,9 +263,17 @@ export function registeredNote(presetId: string, reg: Registration, pt: Patch | 
 // ---- The state: the registration in force (read by every note), kept per piece on the device ----
 
 let live: { presetId: string; reg: Registration } = { presetId: "", reg: DEFAULT_REG };
+const listeners = new Set<(presetId: string, reg: Registration) => void>();
 /** The registration in force for the preset now playing (set by the title bar's buttons and when a piece opens). */
 export function setLiveRegistration(presetId: string, reg: Registration) {
   live = { presetId, reg };
+  // D357: whoever shows it (the stop row) follows a change made elsewhere.
+  for (const f of listeners) f(presetId, reg);
+}
+/** D357: told of every change of the registration in force (the stop row redraws); returns the unsubscribe. */
+export function onLiveRegistration(f: (presetId: string, reg: Registration) => void): () => void {
+  listeners.add(f);
+  return () => void listeners.delete(f);
 }
 export function liveRegistration(presetId: string): Registration {
   return live.presetId === presetId ? live.reg : DEFAULT_REG;
@@ -294,4 +310,44 @@ export function saveRegistration(piece: string, presetId: string, reg: Registrat
   } catch {
     /* this visit only */
   }
+}
+
+// ---- D357: the stop changes made while playing (for the special challenges to come) ----
+
+/**
+ * The owner (D357): "coordinating stop changes will be relevant to some special challenges". Every
+ * change the player makes at the stop row is kept for the run: the bar it was made in (the game's
+ * clock), the stop (or TUTTI), drawn or pushed in, and the registration after it. A challenge can then
+ * ask "draw X at bar N" (`StopCue`) and check it (`cueMet`); nothing scores it yet.
+ */
+export type StopKnob = StopId | "tutti";
+export interface StopChange {
+  /** The bar the change was made in (null: not while playing). */
+  bar: number | null;
+  stop: StopKnob;
+  drawn: boolean;
+  reg: Registration;
+}
+let changes: StopChange[] = [];
+/** The changes made since the run began (oldest first). */
+export const stopChanges = (): readonly StopChange[] => changes;
+/** A run begins (or ends): the changes forgotten. */
+export function clearStopChanges() {
+  changes = [];
+}
+/** Keep a change (the stop row, as a button is pressed). */
+export function recordStopChange(c: StopChange) {
+  changes.push(c);
+}
+/** A challenge's ask: `stop` drawn (or pushed in: `drawn` false) in bar `bar`, or up to `early` bars before it (0: that bar exactly). */
+export interface StopCue {
+  bar: number;
+  stop: StopKnob;
+  drawn: boolean;
+  early?: number;
+}
+/** Whether the changes meet a cue: the stop's last change made by the cue's bar falls within its window and is the one asked for. */
+export function cueMet(cue: StopCue, log: readonly StopChange[] = changes): boolean {
+  const last = log.filter((c) => c.stop === cue.stop && c.bar !== null && c.bar <= cue.bar).at(-1);
+  return !!last && last.drawn === cue.drawn && last.bar! >= cue.bar - (cue.early ?? 0);
 }

@@ -202,6 +202,14 @@ export interface SampledInstrument {
   soft?: { set: string; below: number; gain: number };
   /** D297: the key-up noise's level against the note (0.9 if not given). */
   relGain?: number;
+  /**
+   * D357: a recorded pipe's speech kept on a new note (s): the recording entered that long before it
+   * reaches half its level (Loaded.speech), at most SPEAK_MAX in. D349 gave every organ note its own
+   * attack (no joined note entered past its speech): the VCSL pedal's 55-120 ms of speech then left a
+   * short detached note (the plenum's pedal, I/2's 16ths of 0.11 s) 13 dB under its neighbours: the
+   * owner's "the bass in the beginning is cutting".
+   */
+  speak?: number;
   /** D297: the pitches from `from` up played from `set` (an organ's manual above its pedal's compass). */
   above?: { set: string; from: number };
   /**
@@ -268,10 +276,14 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   voiceB: { set: "voiceB", plucked: false, gain: 2.2 },
   choirAah: { set: "choirAah", plucked: false, gain: 2.2 },
   // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
-  organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5 },
+  organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5, speak: 0.02 },
   // D349, PIPE ORGAN's PLENUM: the same organ's recorded plenum on the manuals (a set of its own, so its plan and the pedal's never let go of each other's notes).
-  organPleno: { set: "plenoOrg", plucked: false, gain: 5 },
+  organPleno: { set: "plenoOrg", plucked: false, gain: 5, speak: 0.02 },
 };
+/** D357: at most this far into a recorded pipe's speech (s). */
+export const SPEAK_MAX = 0.12;
+/** D357: where a new note enters its recording (s past the onset): its speech shortened to `speak` (SampledInstrument.speak). */
+export const speakFrom = (inst: SampledInstrument, r: Loaded) => (inst.speak === undefined ? 0 : Math.max(0, Math.min(SPEAK_MAX, (r.speech ?? 0) - inst.speak)));
 
 /** D297: the set a pitch of an instrument is played from (an organ's manual above its pedal). */
 export const setFor = (inst: SampledInstrument, midi: number) => (inst.above && midi >= inst.above.from ? inst.above.set : inst.set);
@@ -399,6 +411,29 @@ export function onsetOf(data: Float32Array, sampleRate: number): number {
   return 0;
 }
 
+/**
+ * D357: how long a recording takes to speak (s from its onset): the first 10 ms window whose RMS
+ * reaches half (-6 dB) of the steady level (0.6-1.6 s past the onset, or what the file has). The VCSL
+ * organ's pipes take 20-120 ms (measured: the pedal 55-120, the plenum 20-100).
+ */
+export function speechOf(data: Float32Array, sampleRate: number, onset: number): number {
+  const o = Math.floor(onset * sampleRate);
+  const a = Math.min(data.length, o + Math.floor(0.6 * sampleRate));
+  const b = Math.min(data.length, o + Math.floor(1.6 * sampleRate));
+  if (b - a < sampleRate * 0.1) return 0;
+  let e = 0;
+  for (let i = a; i < b; i++) e += data[i] * data[i];
+  const half = Math.sqrt(e / (b - a)) * 0.5;
+  const w = Math.floor(0.01 * sampleRate);
+  const step = Math.max(1, Math.floor(w / 2));
+  for (let i = o; i + w <= Math.min(data.length, o + sampleRate); i += step) {
+    let r = 0;
+    for (let j = i; j < i + w; j++) r += data[j] * data[j];
+    if (Math.sqrt(r / w) >= half) return (i - o) / sampleRate;
+  }
+  return 0;
+}
+
 /** D297: a biquad (RBJ's cookbook: "lowpass" or "highpass" at f Hz, quality q) run over x in place. */
 function biquad(x: Float32Array, type: "lowpass" | "highpass", f: number, q: number, sr: number) {
   const w = (2 * Math.PI * Math.min(f, sr * 0.49)) / sr;
@@ -489,6 +524,8 @@ export interface Loaded {
   buffer: AudioBuffer;
   /** Where the recording begins (s). */
   onset: number;
+  /** D357: how long the recorded pipe takes to speak (s from the onset to half its steady level: speechOf). */
+  speech?: number;
 }
 const banks = new Map<string, Map<number, Loaded>>();
 const inFlight = new Map<string, Promise<void>>();
@@ -596,7 +633,8 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
     const buffer = period ? baked(ctx, decoded, period) : monoSets.has(set) ? toMono(ctx, decoded) : decoded;
     let bank = banks.get(set);
     if (!bank) banks.set(set, (bank = new Map()));
-    bank.set(m, { buffer, onset: onsetOf(buffer.getChannelData(0), buffer.sampleRate) });
+    const onset = onsetOf(buffer.getChannelData(0), buffer.sampleRate);
+    bank.set(m, { buffer, onset, speech: speechOf(buffer.getChannelData(0), buffer.sampleRate, onset) });
   })()
     .catch(() => void failedAt.set(key, Date.now()))
     .finally(() => inFlight.delete(key));
