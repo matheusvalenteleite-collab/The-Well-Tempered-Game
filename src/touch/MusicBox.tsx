@@ -19,6 +19,7 @@ import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
 import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
+import { firstSounding } from "./visible.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
 const PX = 2;
@@ -190,6 +191,16 @@ function signatureFor(fr: Frame): number[] {
   return s;
 }
 
+/** D345: the entries' subject notes ("voice:onset"), made once per list of entries (it was made every frame). */
+const subjMemo = new WeakMap<Span[], Set<string>>();
+const NO_SUBJECT = new Set<string>();
+function subjectNotes(spans: Span[] | undefined): Set<string> {
+  if (!spans) return NO_SUBJECT;
+  let s = subjMemo.get(spans);
+  if (!s) subjMemo.set(spans, (s = new Set(spans.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)))));
+  return s;
+}
+
 /** The box as it was (CLASSIC); also the INTERFACE panel's thumbnail. */
 export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const w = Math.max(1, Math.floor(cssW / PX));
@@ -268,8 +279,10 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no solid
   // outline); a subject note a little brighter (D287: no gold frame); a note glows
   // while it sounds (brighter, a faint halo in its colour), never in the player's hit colour.
-  const subjNotes = new Set(fr.spans?.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)) ?? []);
-  for (const o of fr.others) {
+  const subjNotes = subjectNotes(fr.spans);
+  // D345: from the first note that can still show (the notes gone by not walked again every frame).
+  for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
+    const o = fr.others[oi];
     const x1 = xOf(o.on);
     if (x1 > w) break;
     const x2 = xOf(o.on + o.dur);
@@ -308,7 +321,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   for (const [pv, pnotes] of played) {
     const inkPv = inkOf(pv, fr.count);
     const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
-    for (const n of pnotes) {
+    for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
+      const n = pnotes[ni];
       // D214: SUBJECT's line passes between voices, each note in its own colour.
       const ink = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
       let x1 = xOf(n.on);
@@ -433,7 +447,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D279: YOU over the player's next note (the voice played, whatever its colour), so which line is
   // yours is never a guess.
   {
-    const n = fr.notes.find((m) => m.on + m.dur >= fr.now && !m.ride);
+    let n: LaneNote | undefined;
+    for (let i = firstSounding(fr.notes, fr.now); i < fr.notes.length && !n; i++) if (fr.notes[i].on + fr.notes[i].dur >= fr.now && !fr.notes[i].ride) n = fr.notes[i];
     if (n) {
       const x = Math.max(playX + 2, xOf(n.on));
       if (x < w - 12) pixText(g, tr("YOU"), x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
@@ -443,18 +458,22 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   g.fillRect(playX, 0, 1, h);
   // D205: the ornaments' signs, small, over their notes (gold over the player's, the ink over the others').
   if (fr.ornaments) {
-    for (const o of fr.others) {
-      const mk = fr.ornaments.get(`${o.voice}:${o.on}`);
+    for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
+      const o = fr.others[oi];
       const x = xOf(o.on);
-      if (mk && x > -8 && x < w) pixText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
+      if (x >= w) break;
+      const mk = x > -8 ? fr.ornaments.get(`${o.voice}:${o.on}`) : undefined;
+      if (mk) pixText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
     }
     // D314: the player's, to be shaken as THE ORNAMENT lesson teaches: twice the size, on a dark backing, a
     // tick under it to its note (its word over the bars, paint-proto.ts); gone grey once its note is missed.
     for (const [pv, pnotes] of played)
-      for (const n of pnotes) {
-        const mk = fr.ornaments.get(`${pv}:${n.on}`);
+      for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
+        const n = pnotes[ni];
         const x = xOf(n.on);
-        if (!mk || x < -16 || x > w) continue;
+        if (x > w) break;
+        const mk = x < -16 ? undefined : fr.ornaments.get(`${pv}:${n.on}`);
+        if (!mk) continue;
         const sw = textWidth(mk, 2);
         const y = Math.max(0, yOf(n.step) - 14);
         g.globalAlpha = 0.65;
@@ -471,12 +490,15 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // stroke in the gap where detached, a dot where short, an accent.
   if (fr.readingMarks)
     for (const [pv, pnotes] of played)
-      pnotes.forEach((n, j) => {
-        const mk = fr.readingMarks!.get(`${pv}:${n.on}`);
+      for (let j = firstSounding(pnotes, t0, span); j < pnotes.length; j++) {
+        const n = pnotes[j];
         const x = xOf(n.on);
-        if (!mk || x < -40 || x > w) return;
+        if (x > w) break;
+        const mk = x < -40 ? undefined : fr.readingMarks.get(`${pv}:${n.on}`);
+        if (!mk) continue;
         const y = yOf(n.step);
-        const nx = pnotes.slice(j + 1).find((m) => m.on > n.on);
+        let nx: LaneNote | undefined;
+        for (let q = j + 1; q < pnotes.length && !nx; q++) if (pnotes[q].on > n.on) nx = pnotes[q];
         if (mk.join && nx) {
           const x2 = xOf(nx.on);
           const top = Math.min(y, yOf(nx.step)) - 3;
@@ -495,7 +517,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
           g.fillRect(Math.round((x + xOf(n.on + n.dur)) / 2) - 1, y - 4, 2, 2);
         }
         if (mk.accent) pixText(g, ">", x, y - 6, "#ff8a3d");
-      });
+      }
   if (fr.spans) strikes(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice]);
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
