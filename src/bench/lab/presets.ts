@@ -57,8 +57,9 @@ export const CONFIGS: readonly LabConfig[] = [
     id: "B+",
     name: "B+ · PREPARED",
     // D337 (WTC 1.52): the game's own (MECH_DEFAULTS), and the lab's default CONFIG.
-    feel: "The game since WTC 1.52. Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.",
-    values: { ...CLASSIC_VALUES, timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient", prepare: true, prepShare: 1, slurRollMinMs: 0 },
+    feel: "The game since WTC 1.52 (since WTC 1.83 with Glenn's mechanics: over-legato, a slide's slur, joins judged by ear). Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.",
+    // D378: Glenn's mechanics the game's (the other presets keep the CLASSIC mechanics they had).
+    values: { ...CLASSIC_VALUES, timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient", prepare: true, prepShare: 1, slurRollMinMs: 0, glenn: true },
   },
   {
     id: "C",

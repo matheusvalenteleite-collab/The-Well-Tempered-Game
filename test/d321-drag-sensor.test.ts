@@ -8,7 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, glideTau, keyScale, passingNote, pitchAtRow, scaleOfKey, snappedRow, stepBelow, dragLine, GLIDE_MIN_MS } from "../src/bench/drag.ts";
-import { MECH, MECH_DEFAULTS, resetMech } from "../src/bench/mechanics.ts";
+import { MECH, MECH_DEFAULTS, resetMech, withMech } from "../src/bench/mechanics.ts";
 import { hz, setTuning } from "../src/touch/tuning.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
@@ -129,6 +129,8 @@ function fakeChip(clock: { t: number }, rec: Rec[]) {
 /** Three joined notes on the alto: the first thumb on a, the second lands on b while a holds (legato), then slides on to c. */
 function slurAndDrag(meaning: "join" | "connect", presetId = "chip") {
   resetMech();
+  // D378: the drag's meanings are MECHANICS: CLASSIC's (Glenn's slide makes a slur).
+  MECH.glenn = false;
   MECH.dragMeaning = meaning;
   setPreset(presetId);
   const clock = { t: 0 };
@@ -169,7 +171,8 @@ function slurAndDrag(meaning: "join" | "connect", presetId = "chip") {
   return { g, a, b, c, taps, rec, before };
 }
 
-test("D321: in a passage, 'join' as before: the drag breaks the chain, no legato credit", () => {
+test("D321: in a passage, 'join' as before: the drag breaks the chain, no legato credit (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   const { g, c, taps } = slurAndDrag("join");
   assert.equal(g.notes[c].state, "hit");
   assert.equal(g.notes[c].via, "slide");
@@ -177,9 +180,10 @@ test("D321: in a passage, 'join' as before: the drag breaks the chain, no legato
   assert.equal(g.art.legato, 1, "only the handover");
   assert.equal(taps.filter((e) => e.kind === "drag").length, 0);
   resetMech();
-});
+  }));
 
-test("D321: in a passage, 'connect': the drag counts as joined (the chain kept, not lengthened), nothing more earned; a glide as long as the drag", () => {
+test("D321: in a passage, 'connect': the drag counts as joined (the chain kept, not lengthened), nothing more earned; a glide as long as the drag (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   const j = slurAndDrag("join");
   const k = slurAndDrag("connect");
   assert.equal(k.g.notes[k.c].state, "hit");
@@ -205,9 +209,10 @@ test("D321: in a passage, 'connect': the drag counts as joined (the chain kept, 
   assert.ok(note?.kind === "note" && note.legato?.drag && note.legato.ok);
   if (note?.kind === "note") assert.match(lines(C_MINOR.id, note).join("\n"), /JOINED by the drag/);
   resetMech();
-});
+  }));
 
-test("D321: in a passage, 'connect' on a keyboard: its fill (coulé, Schleifer, or a plain joined note), then the note", () => {
+test("D321: in a passage, 'connect' on a keyboard: its fill (coulé, Schleifer, or a plain joined note), then the note (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   const k = slurAndDrag("connect", "harpsichordSampled");
   const d = k.taps.find((e) => e.kind === "drag");
   assert.ok(d?.kind === "drag");
@@ -219,7 +224,7 @@ test("D321: in a passage, 'connect' on a keyboard: its fill (coulé, Schleifer, 
   assert.deepEqual(sounded, [...exp.notes, d.to], "the fill's notes then the note");
   assert.equal(k.g.chain, 1);
   resetMech();
-});
+  }));
 
 // ---- In free play ----
 

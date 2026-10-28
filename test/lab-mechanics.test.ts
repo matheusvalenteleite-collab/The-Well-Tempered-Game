@@ -89,7 +89,8 @@ test("D317: a recorded run replays to identical verdicts with the default parame
   for (const e of r.events) assert.ok(lines(II12.piece, e).every((l) => l.length > 8));
 });
 
-test("D317: a parameter changed changes the verdicts as expected", () => {
+test("D317: a parameter changed changes the verdicts as expected (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   // Thumbs lifting 150 ms before the next strike: semiquavers at 79 bpm (190 ms) mostly not joined at 90 ms.
   const log = synthRun(II12, { gap: 0.15, jitter: 0.01 });
   const base = tally(log.verdicts);
@@ -106,7 +107,7 @@ test("D317: a parameter changed changes the verdicts as expected", () => {
   const loose80 = synthRun(II12, { gap: 0.06, jitter: 0.08 });
   const narrow = tally(replay(loose80, { earlyMs: 40, lateMs: 40, splitFloorMs: 20 }).events);
   assert.ok(narrow.right < tally(loose80.verdicts).right, `${narrow.right} vs ${tally(loose80.verdicts).right}`);
-});
+  }));
 
 test("D317: tools/lab/replay.ts runs on the fixture log", () => {
   const fixture = new URL("./fixtures/lab-run.json", import.meta.url);

@@ -166,7 +166,8 @@ test("D218: a note followed by riders (D191) is not judged at its end", () => {
   }
 });
 
-test("D218: a slide is not legato (cheap): joined in sound, no bonus, and it breaks the chain", () => {
+test("D218: a slide is not legato (cheap): joined in sound, no bonus, and it breaks the chain (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   const clock = { t: 0 };
   const g = new ProtoGame(C_MINOR, 1, 0, protoById("highway"), { bpm: 54, legato: false, easy: "timing" }, fakeChip(clock));
   const [a, b] = joinedRun(g, 2);
@@ -186,4 +187,4 @@ test("D218: a slide is not legato (cheap): joined in sound, no bonus, and it bre
   assert.equal(g.chain, 0);
   assert.equal(g.ties.length, 0);
   assert.notEqual(g.flash?.text, "LEGATO");
-});
+  }));

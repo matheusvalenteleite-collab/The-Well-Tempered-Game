@@ -49,7 +49,8 @@ test("D337: the game's defaults are B+ · PREPARED; WTC 1.51's are A · CLASSIC;
   const a = configById("A")!;
   assert.equal(a.name, "A · CLASSIC (WTC 1.51)");
   assert.deepEqual(configMech(a), MECH_CLASSIC);
-  assert.deepEqual(MECH_CLASSIC, { ...MECH_DEFAULTS, timing: "absolute", slurNext: true, doubleSameThumb: false, doubleMs: 120, runs: "strict", prepare: false, prepShare: 1, slurRollMinMs: 40 });
+  // D378: and Glenn's mechanics off (MECHANICS: CLASSIC).
+  assert.deepEqual(MECH_CLASSIC, { ...MECH_DEFAULTS, timing: "absolute", slurNext: true, doubleSameThumb: false, doubleMs: 120, runs: "strict", prepare: false, prepShare: 1, slurRollMinMs: 40, glenn: false });
   assert.deepEqual(configMech(configById("B")!), { ...MECH_CLASSIC, timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient" });
   // C, D and E keep their meaning: WTC 1.51's values under their own, no preparing.
   for (const id of ["C", "D", "E"]) {
@@ -273,7 +274,8 @@ test("D337: a lab setting kept before 1.52 keeps its meaning (A with its changes
   assert.deepEqual(withMech(old.mech, () => ({ ...MECH })), { ...MECH_CLASSIC, legatoGapMs: 120 });
   const ob = storedSetting({ mech: { timing: "relative", slurNext: false, doubleSameThumb: true, doubleMs: 40, runs: "lenient", prepare: true, slurRollMinMs: 0 } }, "B+");
   assert.equal(ob.config, "B+");
-  assert.deepEqual(withMech(ob.mech, () => ({ ...MECH })), MECH_DEFAULTS);
+  // D378: B+ as it was then (Glenn's mechanics off: a setting that does not name them meant off).
+  assert.deepEqual(withMech(ob.mech, () => ({ ...MECH })), { ...MECH_DEFAULTS, glenn: false });
   assert.deepEqual(storedSetting({ mech: {} }, null), { mech: {}, config: "B+" });
   assert.deepEqual(storedSetting(null, null), { mech: {}, config: "B+" });
   // Kept since 1.52: as kept.
