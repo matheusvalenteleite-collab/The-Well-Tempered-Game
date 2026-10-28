@@ -94,3 +94,10 @@ D266, the ensembles' looped instruments (tools/playback/ensemble/build.py: trimm
 lpViolin/ lpViola/ lpCello/ lpClarinet/   Made from violin/, violaSus/, cello/ and clarinet/ above (their sources and licences).
 lpFlute/ lpOboe/ lpBassoon/   VS Chamber Orchestra 2: Community Edition, Versilian Studios (Woodwinds: Flute susNV, Oboe Sus, Bassoon sus). CC0 1.0.
          Source: https://github.com/sgossner/VSCO-2-CE
+
+D365, the touch game's STRING CONSORT's viola (one player to a part, in place of the viola section above):
+violaSolo/  TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent Lostanlen, Fabien Lévy, Joshua Fineberg, Yan Maresz;
+         IRCAM; zenodo.org/records/3685367). CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+         Solo viola, ordinario, mf, every whole tone C3-D6, each from the highest string that has it (nearest first position).
+         Changed: mono; onset kept 1 ms before the attack; 4.5 s with a 0.3 s fade; each note's steady loudness (0.5-3 s,
+         K-weighted) evened; the loudest peak at -1 dBFS; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/viola/build_viola.py.

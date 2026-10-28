@@ -12,13 +12,14 @@ import { SAMPLED } from "../src/touch/sampled.ts";
 
 const ctxOf = installFakeAudio(0, true);
 
-test("D302: VOCAL SYNTH: five singers, each its own voice type, vowel and consonant; formants where a phone's speaker hears; a bass without vibrato", () => {
+test("D302, D365: VOCAL SYNTH: five singers, each its own voice type, one syllable (D365); formants where a phone's speaker hears; a bass without vibrato", () => {
   const pr = presetById("vocalSynth");
   const sings = pr.slots!.map((s) => PATCHES[s].sing!);
   assert.equal(new Set(sings.map((s) => `${s.type}/${s.vowel}/${s.cons}/${s.size}`)).size, 5);
-  assert.equal(new Set(sings.map((s) => s.cons)).size, 5, "five syllables: la, mi, ra, na, da");
+  // D365: one syllable for all (a choir sings one text; it sang "la mi ra na da" at once).
+  assert.equal(new Set(sings.map((s) => s.cons)).size, 1, "one syllable: la");
   // D304: the mezzo and the tenor on "a" ("o" was tried: 9-12 dB weaker through a phone's speaker than on a full-range one).
-  assert.deepEqual(sings.map((s) => s.cons + s.vowel), ["la", "mi", "ra", "na", "da"]);
+  assert.deepEqual(sings.map((s) => s.cons + s.vowel), ["la", "la", "la", "la", "la"]);
   for (const s of sings) {
     for (const [f, db, bw] of VOWELS[s.type][s.vowel]) assert.ok(f >= 250 && f <= 5000 && db <= 0 && bw >= 40 && bw <= 200);
     assert.ok(s.scoop >= 15 && s.scoop <= 100 && s.over > 0 && s.over <= 20 && s.fall >= 40, `${s.cons}${s.vowel}`);

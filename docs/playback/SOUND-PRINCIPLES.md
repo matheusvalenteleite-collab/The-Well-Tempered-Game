@@ -106,8 +106,8 @@ are let go in the same way. The player is one of the musicians, not a soloist wi
 box's colour and the touch show which voice is the player's. Before D349 the engine lifted every
 player's note by 1 dB and 2.5 dB of treble (`MINE_LEVEL`, `MINE_TONE`) and gave it a longer release
 (`leadOf`). D349 removed this for the organ. D358 removes it for every preset that is one instrument or
-one ensemble (`Patch.one`). The consoles still have the lift. Whether they keep it is an open question
-for the owner.
+one ensemble (`Patch.one`). D365 removes it everywhere (the owner's yes): the consoles' and synthesizers'
+player's notes are the band's too, and the lift (`MINE_LEVEL`, `MINE_TONE`) is gone from the engine.
 
 ## 7. Articulation is idiomatic to the instrument
 
@@ -151,6 +151,10 @@ organist draws a 4′ or a 2′ in the pedal: D349's pedal adds a 2′ on a phon
 a cello's bow noise and upper partials carry where a bassoon's fundamental does not. Each preset is
 measured through the phone-speaker approximation (mono; two 2-pole high-passes at 380 Hz; +3 dB at
 1 kHz; nothing above 10 kHz): the bass voice should land within about ±3 dB of the top voice there.
+A recorded bass whose overtones are too weak there takes a phone-only high shelf over its fundamentals
+(`Patch.phoneLift`, D365: STRING CONSORT's cello, +4 dB from 700 Hz, the band's notes and the player's alike).
+An instrument whose low register is too heavy is lightened by register, never by voice (`Patch.one.low`,
+D365: the lute's bass courses, -3.5 dB below D♯3).
 
 ## Checklist for a new preset
 

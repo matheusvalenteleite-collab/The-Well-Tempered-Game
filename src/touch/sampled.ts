@@ -102,10 +102,11 @@ export const PERIOD: Record<string, Bake> = {
   plenoOrg: { folder: "pipeOrgan", rate: 22050, lp: 9500, bits: 16 },
   // D302, SOLO VOICES: VocalSet's four singers (their own 1-3 s loops) and FluidR3's choir "aah" (its
   // loop 0.9-2.5 s, as the chorales play it), kept at 24 kHz: nothing of a voice lost under 11 kHz.
-  // D358, STRING CONSORT: the violin (VSO2), the viola section (VSCO 2 CE) and the cello (Freesound 12408),
+  // D358, STRING CONSORT: the violin (VSO2), the viola (D365: TinySOL's solo viola) and the cello (Freesound 12408),
   // as recorded (24 kHz, 16 bits: nothing lost under 11 kHz), each held on a made loop of its steady stretch.
   consortViolin: { folder: "violin", rate: 32000, lp: 11000, bits: 16, loop: true },
-  consortViola: { folder: "violaSus", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D365: a solo viola (TinySOL, IRCAM, CC BY 4.0), in place of VSCO 2 CE's viola section: one player to a part.
+  consortViola: { folder: "violaSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
   consortCello: { folder: "cello", rate: 32000, lp: 11000, bits: 16, loop: CELLO_LOOP },
   // D358, LUTE: the classical guitar's gut-like nylon (Freesound 11573), plucked, as recorded.
   luteGuitar: { folder: "guitar", rate: 32000, lp: 11000, bits: 16 },
@@ -133,6 +134,8 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   violin: { C4: 4.8, C5: 4.1, C6: -9.9, C7: -0.9, E4: 0.8, E5: 15.4, E6: 12, G3: -1, G4: 1.2, G5: 5.7, G6: 10.9 },
   flute: { A4: -1.4, A5: 0.6, A6: -1.2, C4: 0, C5: 1.8, C6: -3.1, C7: 1.7, E4: 0.4, E5: 1, E6: 0.5 },
   violaSus: { A4: 1.6, B3: 0, B5: -0.8, C3: 0.2, C5: -0.5, D3: -0.2, D4: -0.5, D6: 0, E3: 0.4, E5: -0.3, F4: 0.3, G3: -0.5, G5: 1.6 },
+  // D365 (measured as the cello's: autocorrelation over 1-3 s; tools/playback/viola/build_viola.py).
+  violaSolo: { C3: -2.5, D3: -7.8, E3: -0.5, Fs3: 1.3, Gs3: -2.6, As3: -5.7, C4: -3.1, D4: 0.2, E4: -2.2, Fs4: -1.5, Gs4: 1.7, As4: -8.7, C5: -5.9, D5: -1.8, E5: 1.1, Fs5: -0.2, Gs5: 2.2, As5: -0.7, C6: -5.6, D6: -2.5 },
   harp: { A2: -3.7, A4: -9.6, A6: -18.7, B1: -14.5, B3: -12, B5: -8.3, C3: -2.7, C5: -10.4, D2: -4.8, D4: -12.4, D6: -7.7, D7: -8, E1: -16.5, E3: -4.4, E5: -11.5, F2: -7.2, F4: -0.7, F6: -5.8, F7: 0, G1: -21.4, G3: -8, G5: -6.7 },
   horn: { A1: -0.2, A3: 0.1, C2: 0, C4: -0.2, D3: 0.6, D5: 0.2, Ds2: 0, F3: 0.1, F5: 0.1, G2: 0.3 },
   trumpet: { A3: 0.7, A5: 0.8, As4: 1, C4: -2.3, C6: 0.6, D5: 1.3, Ds4: -2.8, F3: -12.1, F5: 1.6, G4: -1.7 },
