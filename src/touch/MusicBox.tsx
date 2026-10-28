@@ -21,6 +21,7 @@ import { fugueById } from "./fugue.ts";
 import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
+import { SUBJECT_RIMS, membership, raiseOf, subjectInkOf, themeOf } from "./subject-hue.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
 const PX = 2;
@@ -192,16 +193,6 @@ function signatureFor(fr: Frame): number[] {
   return s;
 }
 
-/** D345: the entries' subject notes ("voice:onset"), made once per list of entries (it was made every frame). */
-const subjMemo = new WeakMap<Span[], Set<string>>();
-const NO_SUBJECT = new Set<string>();
-function subjectNotes(spans: Span[] | undefined): Set<string> {
-  if (!spans) return NO_SUBJECT;
-  let s = subjMemo.get(spans);
-  if (!s) subjMemo.set(spans, (s = new Set(spans.filter((sp) => sp.form !== "counter").flatMap((sp) => sp.path.map((n) => `${sp.voice}:${n.on}`)))));
-  return s;
-}
-
 /** The box as it was (CLASSIC); also the INTERFACE panel's thumbnail. */
 export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   const w = Math.max(1, Math.floor(cssW / PX));
@@ -276,11 +267,16 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const fx = { g, w, h, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   if (fr.spans) ribbons(fx, fr.spans, fr.notes2 && fr.voice2 !== undefined ? [fr.voice, fr.voice2] : [fr.voice], fr.names, fr.entryState, fr.beatTicks);
 
-  // The other voices: their colours, dimmer; (D208) their subject notes full, standing out of the trail.
-  // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no solid
-  // outline); a subject note a little brighter (D287: no gold frame); a note glows
-  // while it sounds (brighter, a faint halo in its colour), never in the player's hit colour.
-  const subjNotes = subjectNotes(fr.spans);
+  // The other voices: their colours, dimmer.
+  // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no white
+  // outline); a note glows while it sounds (brighter, a faint halo in its colour), never in the player's
+  // hit colour.
+  // D352: a subject note (subject-hue.ts) in its voice's colour bent toward its subject's primary (1 red,
+  // 2 blue, 3 yellow), a rim of the primary round it, a keel of the voice's own ink along its foot; and
+  // while its entry sounds the voice is raised (taller, brighter, a halo of the primary), faded in and
+  // out over 150 ms: near the player's prominence, never their white outline or their full row.
+  const spans = fr.spans;
+  const otherIdx = spans ? membership(fr.others, spans) : null;
   // D345: from the first note that can still show (the notes gone by not walked again every frame).
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
@@ -290,26 +286,55 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     if (x2 < 0) continue;
     const oh = hOf(o.step);
     const full = oh === bh;
-    const isSubj = subjNotes.has(`${o.voice}:${o.on}`);
+    const si = otherIdx ? otherIdx[oi] : -1;
     const sounding = fr.now >= o.on && fr.now < o.on + o.dur;
-    const ink = inkOf(o.voice, fr.count);
+    const voiceInk = inkOf(o.voice, fr.count);
     const bw = Math.max(1, x2 - x1 - 1);
-    const th = full ? Math.max(1, Math.round(bh * 0.5)) : oh;
     const oy = yOf(o.step) - altOf(o.step, o.midi) * shift;
+    if (si >= 0) {
+      const sp = spans![si];
+      const theme = themeOf(sp);
+      const rim = SUBJECT_RIMS[theme];
+      const r = raiseOf(sp, fr.now, fr.tps);
+      const th = full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
+      const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
+      // Each block its own (D332's gap, so the rims do not run the notes together).
+      const sw = Math.max(1, x2 - x1 - (x2 - x1 >= 7 ? 3 : x2 - x1 >= 4 ? 2 : 1));
+      g.fillStyle = rim;
+      if (r > 0 && full) {
+        g.globalAlpha = 0.14 * r;
+        g.fillRect(x1 - 2, y - 2, sw + 4, th + 4);
+      }
+      g.globalAlpha = 0.4 + 0.45 * r;
+      g.fillRect(x1 - 1, y - 1, sw + 2, th + 2);
+      g.globalAlpha = sounding ? 1 : 0.75 + 0.17 * r;
+      g.fillStyle = subjectInkOf(voiceInk, theme);
+      g.fillRect(x1, y, sw, th);
+      if (th >= 4) {
+        g.fillStyle = voiceInk;
+        g.fillRect(x1, y + th - 1, sw, 1);
+      }
+      if (sounding && th > 1) {
+        g.fillStyle = "rgba(255,255,255,0.35)";
+        g.fillRect(x1, y, sw, 1);
+      }
+      continue;
+    }
+    const th = full ? Math.max(1, Math.round(bh * 0.5)) : oh;
     const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
     if (sounding && full) {
       g.globalAlpha = 0.22;
-      g.fillStyle = ink;
+      g.fillStyle = voiceInk;
       g.fillRect(x1 - 1, oy - 1, bw + 2, bh + 1);
     }
-    g.globalAlpha = sounding ? 1 : isSubj ? 0.8 : full ? 0.45 : 0.7;
-    g.fillStyle = ink;
+    g.globalAlpha = sounding ? 1 : full ? 0.45 : 0.7;
+    g.fillStyle = voiceInk;
     g.fillRect(x1, y, bw, th);
     if (sounding && th > 1) {
       g.fillStyle = "rgba(255,255,255,0.35)";
       g.fillRect(x1, y, bw, 1);
     }
-    if (!fr.spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
+    if (!spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;
 
@@ -325,10 +350,15 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   for (const [pv, pnotes] of played) {
     const inkPv = inkOf(pv, fr.count);
     const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
+    const mineIdx = spans ? membership(pnotes, spans, pv) : null;
     for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
       const n = pnotes[ni];
       // D214: SUBJECT's line passes between voices, each note in its own colour.
-      const ink = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
+      const voiceInk = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
+      // D352: a subject note bent toward its subject's primary (its keel the voice's own ink).
+      const si = mineIdx ? mineIdx[ni] : -1;
+      const sp = si >= 0 ? spans![si] : null;
+      const ink = sp ? subjectInkOf(voiceInk, themeOf(sp)) : voiceInk;
       let x1 = xOf(n.on);
       if (x1 > w) break;
       const x2 = xOf(n.on + n.dur);
@@ -355,6 +385,14 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         g.globalAlpha = 1;
         continue;
       }
+      // D352: while the player's own entry sounds, a halo of its primary round the white outline.
+      const r = sp ? raiseOf(sp, fr.now, fr.tps) : 0;
+      if (r > 0) {
+        g.globalAlpha = 0.85 * r;
+        g.fillStyle = SUBJECT_RIMS[themeOf(sp!)];
+        g.fillRect(x1 - 2, y - 2, bw + 4, bh + 3);
+        g.globalAlpha = 1;
+      }
       // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
       g.fillStyle = "rgba(0,0,0,0.55)";
       g.fillRect(x1 + 1, y + 1, bw + 1, bh);
@@ -364,6 +402,10 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       g.fillRect(x1 - 1, y - 1, bw + 2, bh + 1);
       g.fillStyle = ink;
       g.fillRect(x1, y, bw, bh - 1);
+      if (sp && bh >= 6) {
+        g.fillStyle = voiceInk;
+        g.fillRect(x1, y + bh - 2, bw, 1);
+      }
       if (bh > 3) {
         g.fillStyle = "rgba(255,255,255,0.28)";
         g.fillRect(x1, y, bw, 1);

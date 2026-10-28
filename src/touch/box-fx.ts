@@ -3,13 +3,14 @@
  * the player's playing throws up. Drawn on the box's own pixels (half the screen's), in a 3 by 5 font.
  *   Each subject entry (D320): a soft shaded band behind it, first note to last, in a light tint of
  *   its colour, its word small at its top left ("SUBJECT"; STRETTO when it begins inside another);
- *   fainter while announced; each of its notes catches fire as it sounds (embers rising). Gold for
- *   the player's voice (and once captured), the voice's ink for the others, grey once
- *   lost. The countersubject is not marked.
+ *   fainter while announced; each of its notes catches fire as it sounds (embers rising). D352: in
+ *   its subject's primary (1 red, 2 blue, 3 yellow: subject-hue.ts), whoever's voice; grey once lost.
+ *   The countersubject is not marked.
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
 import { tr, trCanvas } from "../i18n/index.ts";
+import { SUBJECT_RIMS, themeOf } from "./subject-hue.ts";
 
 export interface Span {
   voice: number;
@@ -134,11 +135,12 @@ interface Ctx {
  * along its top and bottom; announced (still ahead) at half that. The word ("SUBJECT", its shape,
  * STRETTO when it begins inside another) small at the band's top left, leaving with its start (not
  * kept in sight over the music). No bracket, no dashes, no breath mark, no counted beats (D314's, gone).
- * Gold for the player's voice (and once captured), the voice's ink for the others, grey once lost.
- * Drawn under the notes; `strikes` (over them) sets each of its notes alight as it sounds.
+ * D352: the band quieter (its notes now carry the subject's colour themselves), no hairlines, in its
+ * subject's primary (red, blue, yellow) for every voice; grey once lost. Drawn under the notes; `strikes` (over them) sets each of its notes alight as it sounds.
  */
 export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[] | undefined, state: Map<string, string> | undefined, beat = 0) {
   const { g, w, h, xOf, yOf, bh, now } = c;
+  void player;
   void names;
   void beat;
   const subj = spans.filter((s) => s.form !== "counter");
@@ -149,8 +151,7 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     const x2 = xOf(s.end);
     if (x1 > w || x2 < 0) continue;
     const st = state?.get(`${s.voice}:${s.on}`);
-    const mine = player.includes(s.voice);
-    const color = st === "lost" ? c.miss : mine || st === "captured" ? c.gold : c.ink(s.voice);
+    const color = st === "lost" ? c.miss : SUBJECT_RIMS[themeOf(s)];
     const tint = lighten(color, 0.35);
     const ahead = now < s.on;
     let top = Infinity;
@@ -169,15 +170,11 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     if (bw <= 2 || bhh <= 2) continue;
     const k = ahead ? 0.5 : 1;
     g.fillStyle = tint;
-    // The band, its corners cut (a pixel's rounding).
-    g.globalAlpha = 0.15 * k;
+    // The band, its corners cut (a pixel's rounding). D352: 0.15 → 0.09, its hairlines gone.
+    g.globalAlpha = 0.09 * k;
     g.fillRect(a + 1, y0, bw - 2, 1);
     g.fillRect(a, y0 + 1, bw, bhh - 2);
     g.fillRect(a + 1, y1 - 1, bw - 2, 1);
-    // A lighter hairline along its top and bottom (where the band begins and ends in height).
-    g.globalAlpha = 0.22 * k;
-    g.fillRect(a + 2, y0, bw - 4, 1);
-    g.fillRect(a + 2, y1 - 1, bw - 4, 1);
     g.globalAlpha = 1;
     // The word, small, at the band's top left (inside it when there is no room above).
     const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
@@ -203,8 +200,9 @@ function lighten(hex: string, k: number): string {
   return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
 }
 
-/** D320: the embers a subject note throws up as it sounds (per note), how long each lives (s), and the most notes alight at once. */
+/** D320: the embers a subject note throws up as it sounds (per note), how long each lives (s), and the most notes alight at once. D352: fewer from the others' notes (their voice raised says it already). */
 const EMBERS = 10;
+const EMBERS_OTHERS = 6;
 const EMBER_LIFE = 0.95;
 const MAX_ALIGHT = 36;
 /** Cheap deterministic noise in [0, 1) for a note's embers (no state, no allocation: a note's fire is the same every frame). */
@@ -229,8 +227,10 @@ export function strikes(c: Ctx, spans: Span[], player: number[] = []) {
   for (const s of spans) {
     if (s.form === "counter" || now < s.on || now > s.end + life * tps) continue;
     const mine = player.includes(s.voice);
-    const ink = mine ? c.gold : c.ink(s.voice);
-    const warm = mine ? "#ffe9a0" : lighten(ink, 0.5);
+    // D352: the fire in its subject's primary (red, blue, yellow), whoever's voice.
+    const ink = SUBJECT_RIMS[themeOf(s)];
+    const warm = lighten(ink, 0.5);
+    const embers = mine ? EMBERS : EMBERS_OTHERS;
     for (let j = s.path.length - 1; j >= 0; j--) {
       const n = s.path[j];
       const since = (now - n.on) / tps;
@@ -260,7 +260,7 @@ export function strikes(c: Ctx, spans: Span[], player: number[] = []) {
         g.fillStyle = warm;
         g.fillRect(a, y - 3, Math.min(b - a, 30), 3);
       }
-      for (let k = 0; k < EMBERS; k++) {
+      for (let k = 0; k < embers; k++) {
         const age = since - k * 0.04;
         if (age < 0) continue;
         const r1 = rnd(n.on + s.voice * 0.37, k);
