@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, ladderGeometry, inkOf, type Frame } from "../../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../../touch/PlayArea.tsx";
 import { Chip } from "../../touch/chip.ts";
-import { PIECES, TUTORIAL_PIECES, beatOf, cadenceName, fugueById, keyAt, keyName, type TouchFugue } from "../../touch/fugue.ts";
+import { PIECES, TUTORIAL_PIECES, beatOf, cadenceName, fugueById, keyAt, keyName, type TouchFugue, everyNote } from "../../touch/fugue.ts";
 import { laneNotes } from "../../touch/lanes.ts";
 import { ornamentMark, ornamentsOf } from "../../touch/ornament-play.ts";
 import { readingsOf, type Reading } from "../../touch/readings.ts";
@@ -384,7 +384,7 @@ export function LabApp() {
       ...(proto.id === "ladder" ? { spill: stepRange(f) } : {}),
       voice: setup.voice,
       notes: laneNotes(f.voices[setup.voice].filter(([on]) => on >= span.from && on < span.until), b.ticks, setup.voice),
-      others: accompaniment(f, span.from, setup.voice).filter((n) => n.voice !== setup.voice && n.on < span.until),
+      others: accompaniment(f, span.from, setup.voice).filter((n) => (n.band || n.voice !== setup.voice) && n.on < span.until),
       ...marks,
       piece: f.id,
     };
@@ -767,7 +767,7 @@ export function LabApp() {
       return;
     }
     const go = () => {
-      void ch.prepare(f.voices.flat().map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin(forStudy));
+      void ch.prepare(everyNote(f).map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin(forStudy));
     };
     if (ch.ctx.state === "running") return go();
     ch.resume()

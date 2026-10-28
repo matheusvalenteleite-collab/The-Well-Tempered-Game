@@ -16,7 +16,7 @@ import { paintSynth } from "./paint-synth.ts";
 import { HelpPanel, loadDrums, saneBpm, SettingsPanel } from "./Panels.tsx";
 import { setTuning } from "./tuning.ts";
 import { playerSound, setPreset } from "./sound.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue, fugueOnly } from "./fugue.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, shortName, type TouchFugue, fugueOnly, everyNote } from "./fugue.ts";
 import { LEVELS, type Level as Difficulty } from "./lanes.ts";
 import { accompaniment, level, startTick, stepRange, subjectMarks, voicesFrom } from "./voice-mode.ts";
 
@@ -228,7 +228,7 @@ export function TouchApp() {
   // (a ref, as ensureChip may run from the first render's listener).
   function prepareSound() {
     void chip.current?.prepare(
-      f.voices.flat().map((n) => n[2]),
+      everyNote(f).map((n) => n[2]),
       (f.voices[voice] ?? []).map((n) => n[2]),
     );
   }
