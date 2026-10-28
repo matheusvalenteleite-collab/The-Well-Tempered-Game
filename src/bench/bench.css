@@ -548,6 +548,7 @@
 .tb-mark-short { color: var(--tg-fg); }
 .tb-mark-apart { color: #ec5a4a; }
 .tb-mark-joined { color: var(--tg-gold); }
+.tb-mark-slur { color: var(--tg-gold); }
 .tb-mark-strong { color: #ff8a3d; }
 .tb-grade.tb-failed { font-size: 26px !important; line-height: 1.2; }
 @media (max-width: 500px) { .tb-grade.tb-failed { font-size: 18px !important; } }

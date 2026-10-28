@@ -116,7 +116,7 @@ export const fixConsistency = (x: LensStats): Said => ({ text: "Your touch chang
 export const fixMarks = (x: LensStats): Said => {
   const ok = x.marks.apart.ok + x.marks.short.ok;
   const of = x.marks.apart.of + x.marks.short.of;
-  return { text: "{n} of {m} marks missed. The dot: lift before the note's middle. The stroke: lift before the next.", vars: { n: of - ok, m: of } };
+  return { text: "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: lift before the next.", vars: { n: of - ok, m: of } };
 };
 
 export const fixSlurs = (x: LensStats): Said => {
@@ -172,7 +172,7 @@ export function coachTexts(): string[] {
     "That was {got}. I asked for {want}: {how}.",
     ...Object.values(HOW),
     "Your touch changed from note to note: {c}% kept. Choose one length, and keep it.",
-    "{n} of {m} marks missed. The dot: lift before the note's middle. The stroke: lift before the next.",
+    "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: lift before the next.",
     "{n} of {m} missed. Join inside the slur; lift where it ends.",
     "{n} of {m} accents missed. A small silence before the note, then hold it full.",
     "You came in exactly on time after every rest. Breathe: enter a hair late, then go on.",

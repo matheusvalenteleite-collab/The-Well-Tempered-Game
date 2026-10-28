@@ -97,20 +97,29 @@ export const readingsOf = (id: string): Reading[] => READINGS[id] ?? [];
 /**
  * D314: what each of the reading's marks asks of the thumbs, in plain words (the owner: "clearer
  * instructions on what the . is in articulation"): the dot is SHORT (staccato: judged STACCATO ✓ when
- * the thumb lets go before three fifths of the note), the stroke APART (detached), the slur JOINED
- * (legato), the wedge an ACCENT (D338: judged ACCENT ✓ by time, never loudness: the note before lifted,
- * the accent on time or a hair late and held; src/bench/accent.ts. It was the bar's strong side, touch-expr.ts
- * STRONG_SIDE). The box's legend at the start of a round with marks, HEAR THE SUBJECT and HOW TO PLAY.
+ * the thumb lets go before three fifths of the note), the stroke DETACHED (D370: it was APART; judged
+ * DETACHED ✓), the line JOINED (legato), the wedge an ACCENT (D338: judged ACCENT ✓ by time, never
+ * loudness: the note before lifted, the accent on time or a hair late and held; src/bench/accent.ts. It
+ * was the bar's strong side, touch-expr.ts STRONG_SIDE). D370 (Glenn's notes §3): one vocabulary
+ * everywhere, and ⌒ kept for a real slur (a group the reading slurs: one gesture, joined inside, let go at
+ * its end); a plain legato join is JOINED's line. The box's legend at the start of a round with marks,
+ * HEAR THE SUBJECT, HOW TO PLAY and the side bar.
  */
-export type MarkKind = "short" | "apart" | "joined" | "strong";
+export type MarkKind = "short" | "apart" | "joined" | "slur" | "strong";
 export function markLegend(_strongSide?: "outer" | "inner"): { kind: MarkKind; sym: string; text: string }[] {
   return [
-    { kind: "short", sym: "·", text: tr("SHORT: LIFT QUICKLY") },
-    { kind: "apart", sym: "|", text: tr("APART: LIFT BEFORE THE NEXT") },
-    { kind: "joined", sym: "⌒", text: tr("JOINED: NEXT THUMB DOWN BEFORE LIFTING") },
+    { kind: "short", sym: "·", text: tr("SHORT: LIFT BEFORE THREE FIFTHS OF THE NOTE") },
+    { kind: "apart", sym: "|", text: tr("DETACHED: LIFT BEFORE THE NEXT") },
+    { kind: "joined", sym: "‾", text: tr("JOINED: NEXT THUMB DOWN BEFORE LIFTING") },
+    { kind: "slur", sym: "⌒", text: tr("SLUR: ONE GESTURE, JOINED INSIDE, LIFT AT ITS END") },
     // D338: the accent by time, whichever side is strong (strongSide no longer asked of it).
     { kind: "strong", sym: ">", text: tr("ACCENT: LIFT THE NOTE BEFORE, LEAN IN A HAIR LATE, HOLD IT") },
   ];
+}
+/** D370: which of the legend's marks a set of marks has (a join inside a slur is the slur's, not JOINED's). */
+export function marksHas(marks: Iterable<MarkNote>): Record<MarkKind, boolean> {
+  const ms = [...marks];
+  return { short: ms.some((m) => !!m.short), apart: ms.some((m) => m.join === false), joined: ms.some((m) => !!m.join && !m.slur), slur: ms.some((m) => !!m.slur), strong: ms.some((m) => !!m.accent) };
 }
 
 const KEY = "tb-reading-v1";

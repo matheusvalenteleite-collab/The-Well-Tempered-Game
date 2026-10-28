@@ -543,7 +543,7 @@ export const MANUAL: ManualLesson[] = [
     aids: [],
     words: ["legato", "short"],
     stages: [
-      st("drill", ex("wtc1f09", 1, 1, 3, { pct: 70 }, "Fugue I/9 in E major, alto, bars 1–3, at 70%: Bodky's reading", { reading: "bodky", sound: "chip" }), "The dot: lift before the note's middle. The stroke: lift before the next."),
+      st("drill", ex("wtc1f09", 1, 1, 3, { pct: 70 }, "Fugue I/9 in E major, alto, bars 1–3, at 70%: Bodky's reading", { reading: "bodky", sound: "chip" }), "SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: lift before the next."),
       st("play", ex("wtc1f09", 1, 1, 3, { pct: 100 }, "Fugue I/9 in E major, alto, bars 1–3: Bodky's reading", { reading: "bodky" }), "On the harpsichord now, in time."),
     ],
     lens: { counts: ["The reading's dots and strokes followed: 60%", "Right: 85%"], shown: ["Every hold"], never: ["Loudness"] },
@@ -579,7 +579,7 @@ export const MANUAL: ManualLesson[] = [
       const of = x.marks.joined.of + x.marks.apart.of;
       return [{ text: "SLURS AND STROKES {n} OF {m} (AIM 60%)", vars: { n: ok, m: of }, ok: atLeast(ok, of, 0.6), na: !of, fix: C.fixSlurs(x) }, right(x, 0.85)];
     },
-    shown: (x): Check[] => [{ text: "SLURRED {s} OF {t} · APART {a} OF {b}", vars: { s: x.marks.joined.ok, t: x.marks.joined.of, a: x.marks.apart.ok, b: x.marks.apart.of }, ok: true }],
+    shown: (x): Check[] => [{ text: "SLURRED {s} OF {t} · DETACHED {a} OF {b}", vars: { s: x.marks.joined.ok, t: x.marks.joined.of, a: x.marks.apart.ok, b: x.marks.apart.of }, ok: true }],
     before: ["A slur is a sentence: joined inside, let go at its end."],
     after: ["Two notes in one breath, then the next breath."],
     again: ["Join inside the group; lift at its end. Again."],

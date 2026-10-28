@@ -11,7 +11,7 @@
 import { tr } from "../i18n/index.ts";
 import { bossBar, cadenceMarks, pixRaw, pixText, ribbons, sparks, strikes, textWidth, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
 import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
-import { markLegend } from "./readings.ts";
+import { markLegend, marksHas } from "./readings.ts";
 import { STRONG_SIDE } from "./touch-expr.ts";
 import { paintVariant } from "./box-variants.ts";
 import { paintUi } from "./ui/index.ts";
@@ -237,7 +237,7 @@ export interface Frame {
   /** D314: the reading's marks explained (a small legend) until this tick: the start of a round where marks appear. */
   legendUntil?: number;
   /** D272: the reading's marks on the subject's notes ("voice:onset"): joined to the next, detached, short, accented. */
-  readingMarks?: Map<string, { join: boolean | null; short: boolean | null; accent: boolean | null }>;
+  readingMarks?: Map<string, { join: boolean | null; short: boolean | null; accent: boolean | null; slur?: "first" | "mid" | "last" }>;
   /** D194: the cadences, named. */
   cadences?: { on: number; text: string }[];
   /** Each voice's range of steps (the design study's staves, box-variants.ts). */
@@ -662,7 +662,29 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         const y = yOf(n.step);
         let nx: LaneNote | undefined;
         for (let q = j + 1; q < pnotes.length && !nx; q++) if (pnotes[q].on > n.on) nx = pnotes[q];
-        if (mk.join && nx) {
+        // D370: ⌒ only for a real slur: one arc over the group, from its first note to its last.
+        if (mk.slur === "first") {
+          let last = j;
+          for (let q = j + 1; q < pnotes.length; q++) {
+            const m = fr.readingMarks.get(`${pv}:${pnotes[q].on}`);
+            if (!m?.slur || m.slur === "first") break;
+            last = q;
+            if (m.slur === "last") break;
+          }
+          if (last > j) {
+            const x2 = xOf(pnotes[last].on) + 2;
+            let top = y;
+            for (let q = j; q <= last; q++) top = Math.min(top, yOf(pnotes[q].step));
+            const lift = Math.max(2, Math.min(6, (x2 - x) / 6));
+            g.fillStyle = fx.gold;
+            for (let px = Math.round(x); px <= x2; px++) {
+              const u = (px - x) / Math.max(1, x2 - x);
+              g.fillRect(px, Math.round(top - 3 - lift * 4 * u * (1 - u)), 1, 1);
+            }
+          }
+        }
+        // JOINED (a plain legato join, D370): the flat line over the pair.
+        if (mk.join && nx && mk.slur !== "first" && mk.slur !== "mid") {
           const x2 = xOf(nx.on);
           const top = Math.min(y, yOf(nx.step)) - 3;
           g.fillStyle = fx.gold;
@@ -830,7 +852,7 @@ function paintLyrics(g: CanvasRenderingContext2D, syls: readonly Syllable[], fr:
  */
 function marksLegend(g: CanvasRenderingContext2D, w: number, h: number, fr: Frame, edge: string, alpha: number) {
   const marks = [...fr.readingMarks!.values()];
-  const has = { short: marks.some((m) => m.short), apart: marks.some((m) => m.join === false), joined: marks.some((m) => m.join), strong: marks.some((m) => m.accent) };
+  const has = marksHas(marks);
   const lines = markLegend(STRONG_SIDE).filter((l) => has[l.kind]);
   if (!lines.length) return;
   const lw = Math.min(w - 8, 10 + Math.max(...lines.map((l) => textWidth(l.text))));
@@ -842,10 +864,11 @@ function marksLegend(g: CanvasRenderingContext2D, w: number, h: number, fr: Fram
   g.globalAlpha = alpha;
   lines.forEach((l, k) => {
     const y = y0 + 3 + k * lh;
-    // The sign as drawn over the notes: the dot, the red stroke, the gold slur, the orange wedge.
+    // The sign as drawn over the notes: the dot, the red stroke, the gold line (JOINED), the gold arc (D370: SLUR), the orange wedge.
     if (l.kind === "short") (g.fillStyle = edge), g.fillRect(7, y + 2, 2, 2);
     else if (l.kind === "apart") (g.fillStyle = "#ec5a4a"), g.fillRect(7, y, 1, 5);
     else if (l.kind === "joined") (g.fillStyle = GOLD_SLUR), g.fillRect(6, y + 1, 5, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(11, y + 2, 1, 1);
+    else if (l.kind === "slur") (g.fillStyle = GOLD_SLUR), g.fillRect(4, y + 3, 1, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(6, y + 1, 4, 1), g.fillRect(10, y + 2, 1, 1), g.fillRect(11, y + 3, 1, 1);
     else pixText(g, ">", 6, y, "#ff8a3d");
     pixText(g, l.text, 15, y, edge);
   });

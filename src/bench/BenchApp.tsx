@@ -70,7 +70,7 @@ import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
-import { bestReading, chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
+import { bestReading, chosenReading, markOf, readingsOf, type MarkNote } from "../touch/readings.ts";
 import { ManualMap } from "./manual/ManualMap.tsx";
 import { AskScreen, GripScreen, LensSheet, PlacementScreen, Seal, StageLine } from "./manual/Screens.tsx";
 import { firstPlay, fixFor, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, SOUND_PRESET, soundOf, stagePassed, checkpointOf, watchWord, type DemoStyle, type ManualLesson, type Material, type PartId } from "./manual/lessons.ts";
@@ -447,8 +447,8 @@ export function BenchApp() {
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
-    const readingMarks = new Map<string, Reading["notes"][number]>();
-    if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, reading.notes[j]));
+    const readingMarks = new Map<string, MarkNote>();
+    if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);

@@ -495,7 +495,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DIE LESART",
     english: "THE READING",
-    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ⌒ JOINED · | APART · > ACCENT (LIFT BEFORE, LEAN IN)",
+    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ‾ JOINED · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (LIFT BEFORE, LEAN IN)",
     intro: [{ text: "Now one of my fugues. Players have written how its subject should go: some notes joined, some apart." }, { text: "The marks show it. In HEAR THE SUBJECT, choose a reading or none. Here, follow the marks." }],
     praise: [{ text: "So. You played my subject as a thinking musician would." }],
     again: [{ text: "Joined where it is joined; lift where it is apart. Again." }],
