@@ -31,8 +31,9 @@ test("D334: WTC 1.51's game (A) without preparing, D337's (B+) with; no press ei
   assert.equal(ids.indexOf("B+"), ids.indexOf("B") + 1);
   const bp = configById("B+")!;
   assert.equal(bp.name, "B+ · PREPARED");
-  assert.equal(bp.feel, "The game since WTC 1.52. Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.");
-  assert.deepEqual({ ...configById("B")!.values, prepare: true, prepShare: 1, slurRollMinMs: 0 }, bp.values);
+  // D378: since WTC 1.83 with Glenn's mechanics (B+ is the game's; the others keep CLASSIC's).
+  assert.equal(bp.feel, "The game since WTC 1.52 (since WTC 1.83 with Glenn's mechanics: over-legato, a slide's slur, joins judged by ear). Like B, but every note is sounded by a gesture: landing on it (hammer-on) or, for a thumb resting early on its note, the other thumb lifting (pull-off); nothing sounds by itself.");
+  assert.deepEqual({ ...configById("B")!.values, prepare: true, prepShare: 1, slurRollMinMs: 0, glenn: true }, bp.values);
   assert.deepEqual(BP(), MECH_DEFAULTS);
   assert.equal(BP().slurNext, false);
   assert.equal(BP().prepPress, false);

@@ -354,6 +354,8 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
     intermediate: [
       // D337 (WTC 1.52): B+ · PREPARED, the game's: a landing is the strike; a thumb resting early sounds on the other's lift.
       "To join two notes: strike the next on time while the other thumb holds, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
+      // D378: Glenn's mechanics, the game's: joined by ear, over-legato, a keyboard slide's slur.
+      "Joined means no gap you can hear (25 ms or less). On harpsichord, lute and piano, keep the old thumb down a moment after the new strike: the old note rings on until you lift it (over-legato). Slide a held thumb to the next note and it plays it: on a keyboard a slur begins, joined until you lift, the next strong beat or eight notes.",
       // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
       "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
       // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).
@@ -366,7 +368,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       // D325b: expressive time.
       "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
       // D338: the reading's accent by time.
-      "An accent (>) is made with time, not force: let go of the note before a moment early, lean into the accent a hair late and hold it its full length. Loudness is never judged.",
+      "An accent (>) is made with time, not force: let go of the note before a moment early (a small silence) and, if you like, lean into the accent a hair late; how long you hold it is yours. Loudness is never judged.",
       // D186, D194: the bonuses.
       "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.",
       // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
