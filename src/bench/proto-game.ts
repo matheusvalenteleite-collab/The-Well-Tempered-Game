@@ -21,7 +21,7 @@ import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, type Touch } from "./fingering.ts";
-import { LEVEL_D, readingMarks } from "../touch/readings.ts";
+import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
 import { accentHeld, accentSeparated, accentTimely, type AccentWhy } from "./accent.ts";
 import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
@@ -327,6 +327,15 @@ export const NEUTRAL_D = 0.55;
  * a slurred pair 3 dB strong-weak (and darker: chip.ts velTone); a long legato line level after its second note.
  */
 export const SLUR_DB = [1, -2, -0.5] as const;
+/** D370: a reading's slur's last note, joined, on the sampled piano (dB): lighter than its second (Glenn's notes §1). */
+export const SLUR_LAST_DB = -3;
+/**
+ * D370: inside a reading's slur the player joins, the note given way to rings this long past the new
+ * strike (s): the harpsichord's and the lute's over-legato 70 ms, the piano's 35 ms; a sustained sound
+ * keeps its 30 ms crossfade. The timing (the lean, the lift at the slur's end) stays the player's.
+ */
+export const SLUR_HANDOVER_S = { plucked: 0.07, piano: 0.035, other: 0.03 } as const;
+export const slurHandoverS = (soundId: string) => (styleOf(soundId) === "harpsichord" ? SLUR_HANDOVER_S.plucked : styleOf(soundId) === "piano" ? SLUR_HANDOVER_S.piano : SLUR_HANDOVER_S.other);
 /** D239: points as shown: a relative note's half point as ½ ("1½"). */
 export function ptsText(p: number): string {
   const w = Math.floor(p);
@@ -3017,15 +3026,18 @@ export class ProtoGame {
         this.flash = { text: "ECHO", at: performance.now(), good: true, kind: "legato" };
       }
     }
-    // D339, the sampled piano's slurs from the thumbs alone: a note struck while the note before in its
-    // track still sounds (or was let go within the legato window) continues a legato group, else begins
-    // one. The group's first a shade firmer, its second lighter, later ones a little under the first
-    // (SLUR_DB): a two-note slur is strong-weak, as Türk and C. P. E. Bach teach it; let go early, its
-    // second note ends as a hand lifts (chip.ts damper `slur`). Loudness never tied to right or wrong.
+    // D339, the sampled piano's slurs: the group's first a shade firmer, its second lighter, later ones a
+    // little under the first (SLUR_DB): a two-note slur is strong-weak, as Türk and C. P. E. Bach teach it;
+    // let go early, its second note ends as a hand lifts (chip.ts damper `slur`). D370 (Glenn's notes §1):
+    // only on the notes a reading slurs (slurHere: its first struck, the rest joined from the note before
+    // as the thumbs play them), its last lighter still (SLUR_LAST_DB); a legato line the reading does not
+    // slur, or with no reading, level. Loudness never tied to right or wrong (the place, not the verdict).
+    const slurAt = this.slurHere(h.k, notes[i].on);
     if (styleOf(preset().id) === "piano" && !slide) {
-      const pos = over ? Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1) : 0;
+      const pos = !slurAt ? 0 : slurAt === "first" || !over ? 0 : Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1);
       this.groupPos.set(h.k, pos);
-      expr = { ...expr, group: pos, level: (expr.level ?? 1) * dbToLevel(SLUR_DB[pos]) };
+      const db = !slurAt ? 0 : slurAt === "last" && pos > 0 ? SLUR_LAST_DB : SLUR_DB[pos];
+      if (slurAt) expr = { ...expr, group: pos, level: (expr.level ?? 1) * dbToLevel(db) };
     }
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
@@ -3062,7 +3074,8 @@ export class ProtoGame {
         legato = true;
         // D334: a PRESS while the other thumb holds: over-legato, both sound until it lifts.
         if (this.gesture === "press") continue;
-        for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + 0.03);
+        // D370: joined inside a reading's slur, the note given way to rings on a little longer (SLUR_HANDOVER_S).
+        for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + (slurAt === "mid" || slurAt === "last" ? slurHandoverS(preset().id) : 0.03));
         o.sounds = [];
       }
       // D205: an ornamented note, struck right, plays its ornament from the moment it is struck, then holds its main note.
@@ -4299,6 +4312,11 @@ export class ProtoGame {
     const m = new Map<string, number>();
     if (this.o.reading) for (const e of this.entries) e.ons.forEach((on, j) => m.set(`${e.k}:${on}`, j));
     return (this.readingMemo = m);
+  }
+  /** D370: the place in one of the reading's slurs of track k's note at `on` (none: not slurred, or no reading). */
+  private slurHere(k: number, on: number): SlurRole | null {
+    const place = this.o.reading ? this.readingIndex().get(`${k}:${on}`) : undefined;
+    return place === undefined ? null : slurRole(this.o.reading, place);
   }
   /** D272: one of the reading's asks judged (met or not). */
   private styled(met: boolean, at: number, word?: string) {
