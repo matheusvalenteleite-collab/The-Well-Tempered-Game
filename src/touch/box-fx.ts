@@ -10,7 +10,7 @@
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
 import { tr, trCanvas } from "../i18n/index.ts";
-import { SUBJECT_RIMS, themeOf } from "./subject-hue.ts";
+import { subjectRimOf, themeOf } from "./subject-hue.ts";
 
 export interface Span {
   voice: number;
@@ -151,7 +151,7 @@ export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[]
     const x2 = xOf(s.end);
     if (x1 > w || x2 < 0) continue;
     const st = state?.get(`${s.voice}:${s.on}`);
-    const color = st === "lost" ? c.miss : SUBJECT_RIMS[themeOf(s)];
+    const color = st === "lost" ? c.miss : subjectRimOf(c.ink(s.voice), themeOf(s));
     const tint = lighten(color, 0.35);
     const ahead = now < s.on;
     let top = Infinity;
@@ -227,8 +227,8 @@ export function strikes(c: Ctx, spans: Span[], player: number[] = []) {
   for (const s of spans) {
     if (s.form === "counter" || now < s.on || now > s.end + life * tps) continue;
     const mine = player.includes(s.voice);
-    // D352: the fire in its subject's primary (red, blue, yellow), whoever's voice.
-    const ink = SUBJECT_RIMS[themeOf(s)];
+    // D352, D368: the fire in the voice's own subject colour.
+    const ink = subjectRimOf(c.ink(s.voice), themeOf(s));
     const warm = lighten(ink, 0.5);
     const embers = mine ? EMBERS : EMBERS_OTHERS;
     for (let j = s.path.length - 1; j >= 0; j--) {

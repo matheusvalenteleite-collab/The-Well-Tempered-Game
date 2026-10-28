@@ -118,6 +118,12 @@ export interface TouchFugue {
    * packLyrics; unpacked by lyrics.ts. Only the sung pieces (BWV 228, BWV 54) have them.
    */
   lyrics?: (number | string)[][];
+  /**
+   * D367: ornaments the piece's own data carries (the harpsichord concertos' written-out trills, read
+   * back to their notes in the lines offered, tools/touch/concertos.ts untrill): [voice, onset, kern
+   * signs, the edition's notes as written ([onset, length, MIDI] in ticks): the band sounds these].
+   */
+  ornaments?: [voice: number, on: number, signs: string, written?: [number, number, number][]][];
 }
 
 /** D340: the collections beyond the WTC. */

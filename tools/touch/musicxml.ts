@@ -39,6 +39,8 @@ export interface XmlPart {
   lyrics: XmlSyllable[];
   /** D347: what the reader noticed (verses beyond the first, words on a rest or a tied note, phrases without words). */
   lyricNotes: string[];
+  /** D367: the notes marked with a trill sign (`<trill-mark/>`), as "staff:onset:pitch" (a tied note's first onset). */
+  trills: Set<string>;
 }
 /** D348: a measure of the first part. */
 export interface XmlMeasure {
@@ -114,7 +116,8 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
     const sung = new Map<XmlNote, Sung>();
     const voiceOf = new Map<XmlNote, string>();
     const lyricNotes: string[] = [];
-    const open = new Map<string, XmlPart["notes"][number]>();
+    const trills = new Set<string>();
+    const open =new Map<string, XmlPart["notes"][number]>();
     const pbars: { n: number; on: number }[] = [];
     const pmeasures: XmlMeasure[] = [];
     let divisions = 1;
@@ -180,6 +183,7 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
         }
         const n: XmlPart["notes"][number] = [on, dur, name, staff, voice];
         notes.push(n);
+        if (/<trill-mark\b/.test(body)) trills.add(`${staff}:${on}:${name}`);
         if (syl && !chord) sung.set(n, syl);
         voiceOf.set(n, voice);
         if (begin) open.set(key, n);
@@ -188,7 +192,7 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
       at = Math.max(reach, start);
     }
     notes.sort((a, b) => a[0] - b[0]);
-    parts.push({ id: pm[1], name: names.get(pm[1]) ?? pm[1], notes, lyrics: melismas(notes, sung, voiceOf, lyricNotes), lyricNotes });
+    parts.push({ id: pm[1], name: names.get(pm[1]) ?? pm[1], notes, lyrics: melismas(notes, sung, voiceOf, lyricNotes), lyricNotes, trills });
     if (!bars.length) bars = pbars;
     if (!measures.length) measures = pmeasures;
     length = Math.max(length, at);
