@@ -32,6 +32,7 @@ import { audio, store, stored } from "./shared.ts";
 import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
+import { editionOf } from "../wtc/corpus.ts";
 
 type Exercise = "mutation" | "answer" | "counter" | "hunt" | "study";
 const EXERCISES: Exercise[] = ["mutation", "answer", "counter", "hunt", "study"];
@@ -749,7 +750,7 @@ export function WtcApp({ onVoices, onStudy, onTutorial }: { onVoices(n: Mode): v
       )}
       tab={tab}
       onTab={setTab}
-      idle={`J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, Fuga ${F.number} (BWV ${F.bwv}). Encoding: ASAP dataset (Foscarin et al. 2020), CC BY-NC-SA 4.0.`}
+      idle={`J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, Fuga ${F.number} (BWV ${F.bwv}). Edition: ${editionOf(F.book, F.number, false)}.`}
       tabs={[
         { id: "keys", text: true, label: t("ui.wtc.keys"), content: keyGrid },
         { id: "evaluation", text: true, label: t("ui.dock.evaluation"), content: feedback() },

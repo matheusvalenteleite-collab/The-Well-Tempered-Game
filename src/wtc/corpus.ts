@@ -1,7 +1,8 @@
 /**
  * The Well-Tempered Clavier as data: Bach's 48 preludes and fugues (BWV 846-893), each voice a list
  * of notes [onset, duration, pitch, sub] in ticks (TPQ per quarter), top voice first. Built by
- * tools/wtc/import.ts from the Humdrum encoding (data/sources/bach-wtc/SOURCE.md).
+ * tools/wtc/import.ts (D366) from licence-clean editions (docs/wtc/SOURCES.md): the fugues Kyle
+ * Rother's (CC BY 4.0), the preludes OpenWTC's, verits99's (CC0) and Mutopia's (public domain).
  */
 import { TPQ, type KernPiece } from "./kern.ts";
 
@@ -55,4 +56,15 @@ export function label(p: WtcPiece): string {
   const kind = { fugue: "Fugue", prelude: "Prelude", invention: "Invention", sinfonia: "Sinfonia" }[p.kind];
   const where = p.book ? `Book ${p.book === 1 ? "I" : "II"}${p.bwv ? `, BWV ${p.bwv}` : ""}` : p.bwv ? `BWV ${p.bwv}` : "";
   return `${kind} ${p.number} in ${key}${where ? ` (${where})` : ""}`;
+}
+
+/** D366: the edition a piece of the 48 is read from, and its licence, for the credit line. */
+export function editionOf(book: number, number: number, prelude: boolean): string {
+  if (!prelude) return "Kyle Rother's open-score edition after the Bach-Gesellschaft edition (University of Cape Town, 2015), CC BY 4.0, with the game's corrections";
+  if (book === 1)
+    return number === 4
+      ? "the Mutopia Project (typeset by Davide Castellone), public domain"
+      : "The Open Well-Tempered Clavier, MuseScore edition (Kimiko Ishizaka and the OpenGoldberg team, 2015), CC0 1.0";
+  const mutopia: Record<number, string> = { 1: "Urs Metzger", 2: "Jesse Mehrbach", 6: "Gwenaël Joret" };
+  return mutopia[number] ? `the Mutopia Project (typeset by ${mutopia[number]}), public domain` : "verits99's musescore.com score (CC0 1.0), as kept in the PDMX dataset";
 }

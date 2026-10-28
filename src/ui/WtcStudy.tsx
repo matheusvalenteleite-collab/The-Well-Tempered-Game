@@ -47,6 +47,7 @@ import { t } from "./i18n.ts";
 import { Shell } from "./Shell.tsx";
 import { HeaderTools } from "./HeaderTools.tsx";
 import { VOICE_COLORS } from "./voice-colors.ts";
+import { editionOf } from "../wtc/corpus.ts";
 
 
 const roman = (b: number) => (b === 1 ? "I" : "II");
@@ -1099,7 +1100,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
       }
       tab={isPrelude && (tab === "workshop" || tab === "next") ? "guide" : tab}
       onTab={setTab}
-      idle={`${useRec && track ? `Recording: ${track.performer === "Kimiko Ishizaka" ? "Kimiko Ishizaka, The Open Well-Tempered Clavier (2015)" : "Arthur Loesser (1964), via the Internet Archive"}, ${track.licence}; bars timed by the game. ` : ""}J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Encoding: David Huron (Humdrum, 1994, after the Bach-Gesellschaft edition; rights to derivative electronic formats reserved, for study only); ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
+      idle={`${useRec && track ? `Recording: ${track.performer === "Kimiko Ishizaka" ? "Kimiko Ishizaka, The Open Well-Tempered Clavier (2015)" : "Arthur Loesser (1964), via the Internet Archive"}, ${track.licence}; bars timed by the game. ` : ""}J. S. Bach, Das wohltemperirte Clavier, ${roman(F.book)}, ${isPrelude ? "Praeludium" : "Fuga"} ${F.number} (BWV ${F.bwv}). Edition: ${editionOf(F.book, F.number, isPrelude)}; ${isPrelude ? "strands, " : "voices as encoded; entries, "}chords and cadences found by the game.`}
       tabs={[
         { id: "guide", text: true, label: t("ui.study.tab.guide"), content: guide },
         { id: "voices", text: true, label: t("ui.study.tab.voices"), content: voicesPanel },

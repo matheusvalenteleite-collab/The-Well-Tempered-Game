@@ -7,3 +7,7 @@
   formats reserved". The music is in the public domain; this encoding may not be. Fine for study in
   this project; before anything derived from it is published (the game's public build included), the
   owner should decide whether to ask for permission or re-encode from the Bach-Gesellschaft edition.
+- **D366: a private cross-check only.** Nothing the game ships is made from these files any more: the
+  48 are read from licence-clean editions (docs/wtc/SOURCES.md) and the SHEET mode's engravings from the
+  game's own notes. They are read only by `tools/wtc/sources-check.ts` (docs/wtc/SOURCES-CHECK.md) and
+  the old studies' tools, never by the build.
