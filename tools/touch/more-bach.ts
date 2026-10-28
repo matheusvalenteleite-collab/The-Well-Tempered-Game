@@ -461,21 +461,30 @@ export function packLyrics(syls: { on: number; end: number; text: string; joined
 
 // --- Reading --------------------------------------------------------------------------------------
 
-interface LyNote {
+export interface LyNote {
   on: string;
   dur: string;
   pitch: string;
   midi: number;
   voice: string;
   staff: string;
+  /** D366: the staff whose music it is (before any \\change Staff). */
+  part: string;
   grace: boolean;
+  /** D366: its ornament signs (LilyPond's names), and a grace note's kind (grace, acciaccatura, appoggiatura). */
+  orn?: string[];
+  graceKind?: string;
+  /** D366: for a staff opened inside another staff's music (a voice dividing onto an extra staff), that staff. */
+  host?: string;
 }
-interface LyScore {
+export interface LyScore {
   notes: LyNote[];
   measures: { n: number; on: string }[];
   times: { on: string; text: string }[];
   partial: string | null;
   length: string;
+  /** D366: the staves in order of appearance. */
+  staves: string[];
   warnings: string[];
 }
 

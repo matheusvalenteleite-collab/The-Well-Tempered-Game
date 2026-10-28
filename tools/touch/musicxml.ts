@@ -39,6 +39,10 @@ export interface XmlPart {
   lyrics: XmlSyllable[];
   /** D347: what the reader noticed (verses beyond the first, words on a rest or a tied note, phrases without words). */
   lyricNotes: string[];
+  /** D366: the ornament signs written on notes (MusicXML's names: trill-mark, mordent, inverted-mordent, turn…), by onset, pitch, staff and voice. */
+  ornaments: { on: number; pitch: string; staff: number; voice: string; signs: string[] }[];
+  /** D366: the grace notes, each at the onset of the note it leads to (`slash`: an acciaccatura, else an appoggiatura). */
+  graces: { on: number; pitch: string; staff: number; voice: string; slash: boolean }[];
 }
 /** D348: a measure of the first part. */
 export interface XmlMeasure {
@@ -49,6 +53,8 @@ export interface XmlMeasure {
   implicit: boolean;
   /** A time signature set here. */
   time?: string;
+  /** D366: words written in it (directions). */
+  words?: string[];
 }
 export interface XmlScore {
   parts: XmlPart[];
@@ -114,6 +120,8 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
     const sung = new Map<XmlNote, Sung>();
     const voiceOf = new Map<XmlNote, string>();
     const lyricNotes: string[] = [];
+    const ornaments: XmlPart["ornaments"] = [];
+    const graces: XmlPart["graces"] = [];
     const open = new Map<string, XmlPart["notes"][number]>();
     const pbars: { n: number; on: number }[] = [];
     const pmeasures: XmlMeasure[] = [];
@@ -127,6 +135,9 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
       let lastOn = start;
       if (Number.isFinite(num)) pbars.push({ n: num, on: start });
       const ms: XmlMeasure = { on: start, n: /number="([^"]*)"/.exec(mm[1])?.[1] ?? "", implicit: /implicit="yes"/.test(mm[1]) };
+      // D366: the words written in it (a movement's title, "Fuga", in a prelude-and-fugue score).
+      const words = [...mm[2].matchAll(/<words\b[^>]*>([^<]*)<\/words>/g)].map((w) => w[1].trim()).filter(Boolean);
+      if (words.length) ms.words = words;
       pmeasures.push(ms);
       // The measure's elements in order.
       for (const em of mm[2].matchAll(/<(attributes|note|backup|forward)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
@@ -149,6 +160,15 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
           cursor += dur;
           reach = Math.max(reach, cursor);
           continue;
+        }
+        if (/<grace\b/.test(body) && !/<rest\b/.test(body)) {
+          // D366: kept for the ornaments (data/wtc/ornaments.json), at the onset of the note that follows.
+          const gp = tag(body, "pitch");
+          if (gp) {
+            let [gs, ga, go] = [tag(gp, "step")!, Math.round(Number(tag(gp, "alter") ?? 0)), Number(tag(gp, "octave"))];
+            if (transpose) [gs, ga, go] = transposed(gs, ga, go, transpose);
+            graces.push({ on: cursor, pitch: `${gs}${ALTER[String(ga)] ?? ""}${go}`, staff: Number(tag(body, "staff") ?? 1), voice: tag(body, "voice") ?? "1", slash: /<grace\b[^>]*slash="yes"/.test(body) });
+          }
         }
         if (/<grace\b/.test(body) || /<cue\s*\/>/.test(body)) continue;
         const chord = /<chord\s*\/>/.test(body);
@@ -180,6 +200,12 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
         }
         const n: XmlPart["notes"][number] = [on, dur, name, staff, voice];
         notes.push(n);
+        // D366: its ornaments (on the note as struck, not on a tied continuation).
+        const orn = tag(body, "ornaments");
+        if (orn) {
+          const signs = [...orn.matchAll(/<(trill-mark|mordent|inverted-mordent|turn|inverted-turn|delayed-turn|delayed-inverted-turn|shake|vertical-turn|schleifer|haydn)\b/g)].map((m) => m[1]);
+          if (signs.length) ornaments.push({ on, pitch: name, staff, voice, signs });
+        }
         if (syl && !chord) sung.set(n, syl);
         voiceOf.set(n, voice);
         if (begin) open.set(key, n);
@@ -188,7 +214,7 @@ export function readMusicXml(path: string, transpose?: Transpose): XmlScore {
       at = Math.max(reach, start);
     }
     notes.sort((a, b) => a[0] - b[0]);
-    parts.push({ id: pm[1], name: names.get(pm[1]) ?? pm[1], notes, lyrics: melismas(notes, sung, voiceOf, lyricNotes), lyricNotes });
+    parts.push({ id: pm[1], name: names.get(pm[1]) ?? pm[1], notes, lyrics: melismas(notes, sung, voiceOf, lyricNotes), lyricNotes, ornaments, graces });
     if (!bars.length) bars = pbars;
     if (!measures.length) measures = pmeasures;
     length = Math.max(length, at);

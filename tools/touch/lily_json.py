@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """D340: a Mutopia LilyPond file read by tools/wtc/lily.py, printed as one JSON object for
 tools/touch/more-bach.ts: the notes (onset and duration in whole notes as "n/d"; spelled pitch, MIDI,
-voice, staff, grace), the bars, the time signatures, the anacrusis and the length.
+voice, staff, part, grace; D366: the ornament signs and the grace's kind), the bars, the time signatures, the anacrusis and the length.
 
     python3 -I tools/touch/lily_json.py FILE.ly [SCORE] [--as-written]
 
@@ -31,11 +31,15 @@ def main() -> None:
     fr = lambda x: f"{Fraction(x).numerator}/{Fraction(x).denominator}"  # noqa: E731
     print(json.dumps({
         "notes": [{"on": fr(n["onset"]), "dur": fr(n["duration"]), "pitch": n["pitch"], "midi": n["midi"],
-                   "voice": n["voice"], "staff": n["staff"], "grace": bool(n["grace"])} for n in s.notes],
+                   "voice": n["voice"], "staff": n["staff"], "part": n["part"], "grace": bool(n["grace"]),
+                   **({"orn": n["orn"]} if n.get("orn") else {}),
+                   **({"graceKind": n["grace_kind"]} if n.get("grace_kind") else {}),
+                   **({"host": n["host"]} if n.get("host") else {})} for n in s.notes],
         "measures": [{"n": m["number"], "on": fr(m["onset"])} for m in s.measures],
         "times": [{"on": fr(t["onset"]), "text": t["text"]} for t in s.time_signatures],
         "partial": fr(s.partial) if s.partial else None,
         "length": fr(s.length),
+        "staves": s.staves,
         "warnings": s.warnings,
     }))
 

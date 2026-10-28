@@ -1,9 +1,9 @@
-// P8: the ornaments of the WTC and of the Inventions and Sinfonias, as encoded: for each piece,
-// [voice, onset (ticks), pitch, signs, grace notes?] per ornamented note, voices and onsets as in
-// data/wtc/{fugues,preludes,inventions}.json. Usage: node tools/wtc/ornaments.ts
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
-import { parseKern } from "../../src/wtc/kern.ts";
+// P8: the ornaments of the WTC and of the Inventions and Sinfonias, as the editions write them: for
+// each piece, [voice, onset (ticks), pitch, signs, grace notes?] per ornamented note, voices and onsets
+// as in data/wtc/{fugues,preludes,inventions}.json. D366: data/wtc/ornaments.json is written by
+// tools/wtc/import.ts from the licence-clean editions' signs (tools/wtc/sources.ts: LilyPond's \\trill,
+// \\prall, \\mordent, \\turn…, MusicXML's <ornaments>, the grace notes) with the tables below; the
+// Humdrum encodings (the kern letters these signs keep) are no longer read.
 
 /**
  * P23: appoggiaturas the WTC encodings leave in local comments (e.g. wtc2p23.krn: "! (16eeP/" before
@@ -60,37 +60,3 @@ export const CONTRAPUNCTUS: [number, number, string, string][] = [
   [2, 1501440, "C#4", "W"],
   [0, 1687680, "D#5", "S"],
 ];
-
-/** Writes data/wtc/ornaments.json (run as a script only, so the tables above can be imported). */
-if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  const dirs = ["data/sources/bach-wtc/kern", "data/sources/bach-inventions/kern"];
-  const out: Record<string, [number, number, string, string, string[]?][]> = {};
-  const counts: Record<string, number> = {};
-  for (const dir of dirs)
-    for (const f of readdirSync(dir).filter((x) => x.endsWith(".krn")).sort()) {
-      const id = f.replace(".krn", "");
-      const k = parseKern(appoggiaturas(readFileSync(`${dir}/${f}`, "utf8")));
-      for (const v of k.voices) for (const n of v) if (n.orn) n.orn = fugueSign(id, n.orn);
-    for (const [bar, pitch, signs, beat] of ADDED[id] ?? []) {
-        const start = k.bars.find((b) => b.n === bar)!.on;
-        const end = k.bars.find((b) => b.n === bar + 1)?.on ?? k.length;
-        const hits = k.voices.flatMap((v) => v.filter((n) => n.pitch === pitch && n.on >= start && n.on < end && (beat === undefined || n.on === start + beat * 1920)));
-        if (hits.length !== 1) throw new Error(`${id} bar ${bar} ${pitch}: ${hits.length} notes`);
-        hits[0].orn = (hits[0].orn ?? "") + signs;
-      }
-      const rows: [number, number, string, string, string[]?][] = [];
-      k.voices.forEach((v, i) =>
-        v.forEach((n) => {
-          if (!n.orn && !n.grace) return;
-            for (const c of n.orn ?? "") counts[c] = (counts[c] ?? 0) + 1;
-          if (n.grace) counts.grace = (counts.grace ?? 0) + n.grace.length;
-          rows.push(n.grace ? [i, n.on, n.pitch, n.orn ?? "", n.grace.map((g) => `${g.kind}${g.pitch}`)] : [i, n.on, n.pitch, n.orn ?? ""]);
-        }),
-      );
-      if (rows.length) out[id] = rows;
-    }
-  out["bwv1080-14"] = CONTRAPUNCTUS;
-  for (const r of CONTRAPUNCTUS) counts[r[3]] = (counts[r[3]] ?? 0) + 1;
-  writeFileSync("data/wtc/ornaments.json", JSON.stringify(out) + "\n");
-  console.log(Object.keys(out).length, "pieces with ornaments;", counts);
-}
