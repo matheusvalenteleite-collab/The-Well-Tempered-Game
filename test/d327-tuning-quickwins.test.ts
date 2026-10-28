@@ -103,7 +103,9 @@ test("D327: DISPLAY kept per piece; never chosen: one staff per voice for 4-5 vo
 
 test("D327: the free ornaments on the score sheet, each note once, no points", () => {
   useLang("en");
-  assert.deepEqual(freeTally(["mordent", "mordent", "trill", "short", "mordent", "trill"]), { mordents: 3, shorts: 1, trills: 2 });
+  assert.deepEqual(freeTally(["mordent", "mordent", "trill", "short", "mordent", "trill"]), { mordents: 3, shorts: 1, trills: 2, pralltrillers: 0, schnellers: 0, turns: 0 });
+  // D353: the up-down forms as the music named them, and the turn.
+  assert.equal(freeLine(freeTally(["pralltriller", "schneller", "turn", "turn"])), "YOU ADDED 1 PRALLTRILLER, 1 SCHNELLER, 2 TURNS");
   assert.equal(freeLine({ mordents: 3, shorts: 0, trills: 2 }), "YOU ADDED 3 MORDENTS, 2 TRILLS");
   assert.equal(freeLine({ mordents: 1, shorts: 1, trills: 0 }), "YOU ADDED 1 MORDENT, 1 SHORT TRILL");
   assert.equal(freeLine({ mordents: 0, shorts: 0, trills: 0 }), "");
@@ -111,10 +113,11 @@ test("D327: the free ornaments on the score sheet, each note once, no points", (
   useLang("pt");
   assert.equal(freeLine({ mordents: 2, shorts: 0, trills: 1 }), "VOCÊ ACRESCENTOU 2 MORDENTES, 1 TRILO");
   useLang("en");
-  // The game keeps what each note's shake became (a short trill turned trill counts as one trill).
+  // The game keeps what each note's shake became (a short trill turned trill counts as one trill): D353,
+  // in the performed ornaments the box's overlay draws.
   const game = src("src/bench/proto-game.ts");
-  assert.match(game, /this\.freeByNote\.set\(`\$\{h\.k\}:\$\{h\.note\}`, kind\)/);
-  assert.match(game, /free: freeTally\(this\.freeByNote\.values\(\)\)/);
+  assert.match(game, /this\.performed\.set\(`\$\{h\.k\}:\$\{h\.note\}`, rec\)/);
+  assert.match(game, /free: freeTally\(\[\.\.\.this\.performed\.values\(\)\]\.filter\(\(p\) => p\.free\)/);
 });
 
 test("D327: every sound open from the start on play.html; the tuning shown where the sound is chosen", () => {

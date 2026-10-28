@@ -581,6 +581,8 @@ export function BenchApp() {
         pops: g.pops,
         bursts: g.bursts,
         zone: g.zone,
+        // D353: the ornaments performed, drawn over their notes (the overlay).
+        performed: g.overlay(),
         // D314: the ornament's first-time hint as one comes; the reading's marks explained at the start.
         banner: g.ornHintOn && g.ornamentNear() ? tr("A SIGN OVER A NOTE: TOUCH IT, THEN SHAKE YOUR THUMB") : undefined,
         // D327: on the two bars the legend stands in the right side bar (SideLegend), off the first subject.
@@ -1583,10 +1585,16 @@ function From({ f, pick, setPick, from }: { f: TouchFugue; pick: Pick; setPick: 
  * The design study's `&auto=1` (screenshots only): the voice plays itself on the bars, each note touched
  * at its row as it comes and let go near its end.
  */
-function autoplay(g: ProtoGame, st: { id: number; held: { id: number; end: number } | null; last: number }) {
+function autoplay(g: ProtoGame, st: { id: number; held: { id: number; end: number } | null; last: number; shake?: { id: number; until: number; k: number; legs: number; x: number; y: number; w: number; h: number; side: "left" | "right" } }) {
   const area = document.querySelector(".tg-play")?.getBoundingClientRect();
   if (!g.rows || !area) return;
   const ts = performance.now();
+  // D353: a written ornament shaken as the contour reader reads it (small, quick legs; a trill through 60% of its note).
+  const sh = st.shake;
+  if (sh && st.held?.id === sh.id && g.now < sh.until && sh.k < sh.legs) {
+    sh.k++;
+    g.move(sh.id, { side: sh.side, x: sh.x, y: sh.y + (sh.k % 2 ? 5 : 0), w: sh.w, h: sh.h }, ts);
+  }
   if (st.held && g.now >= st.held.end) {
     g.up(st.held.id, ts);
     st.held = null;
@@ -1598,6 +1606,10 @@ function autoplay(g: ProtoGame, st: { id: number; held: { id: number; end: numbe
   if (st.held) g.up(st.held.id, ts);
   st.last = i;
   st.id++;
-  g.down(st.id, { side: st.id % 2 ? "left" : "right", x: st.id % 2 ? 20 : area.width - 20, y: g.rows.yOf(n.step), w: area.width, h: area.height }, ts);
+  const side = st.id % 2 ? "left" : "right";
+  const c = { side, x: st.id % 2 ? 20 : area.width - 20, y: g.rows.yOf(n.step), w: area.width, h: area.height } as const;
+  g.down(st.id, c, ts);
   st.held = { id: st.id, end: n.on + n.dur * 0.85 };
+  const orn = g.shakeAt(0, i);
+  if (orn) st.shake = { id: st.id, until: n.on + n.dur * 0.6, k: 0, legs: orn.kind === "trill" ? 999 : 2, x: c.x, y: c.y, w: c.w, h: c.h, side };
 }

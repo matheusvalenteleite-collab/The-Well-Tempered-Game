@@ -317,7 +317,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
       "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
       // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).
-      "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
+      "A sign over a note (TR, ~|) is an ornament: touch the note, then rock your thumb quickly along the bar, as small as you like (a mordent: a dip and back; a trill: on and on). The sign decides what sounds. Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
       // D344: the subject's marks (readings.ts); their legend follows on the pop-up.
       "Marks over the subject (dot, stroke, slur, wedge) come from a book on playing the fugue: follow them and the subject's notes earn a little more; missing them costs nothing. HEAR THE SUBJECT plays and draws them.",
     ],
@@ -333,7 +333,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       STRONG_SIDE === "outer"
         ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
         : "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
-      "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
+      "Any other note you hold may take your own ornament: the thumb draws its shape, quick and as small as you like. Down and back: a mordent. Up and back: a Pralltriller (or a Schneller, as the music has it). On and on: a trill, from the note above, lasting while you shake (no room for it: a turn). Late in a long note, up and back: the turn after the note. It sounds, is drawn over the note, and never scores or costs.",
     ],
   },
 };
