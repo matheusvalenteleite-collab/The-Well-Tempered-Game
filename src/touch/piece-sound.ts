@@ -186,6 +186,9 @@ function moreBachSounds(): Record<string, string> {
   // two choirs apart), the cantata BWV 54 on SUPER 16-BIT's strings as the concerto (the alto line on its strings).
   out["bwv228-1"] = out["bwv228-2"] = "soloVoices";
   out["bwv54-1"] = out["bwv54-3"] = "super16";
+  // D348: the harpsichord concertos on SUPER 16-BIT too: its harpsichord for the solo part(s), its strings
+  // for the violins and the viola, its bassoon for the continuo bass (sound.ts: a layout for each voice count).
+  for (const b of [1052, 1053, 1054, 1055, 1056, 1057, 1058, 1060, 1061, 1062, 1063, 1064, 1065]) for (let m = 1; m <= 3; m++) out[`bwv${b}-${m}`] = "super16";
   return out;
 }
 

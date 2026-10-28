@@ -35,6 +35,8 @@ const SECTION_OF: readonly [Collection, string][] = [
   ["inv", "INVENTIONS"],
   ["sin", "SINFONIAS"],
   ["concerto", "CONCERTO"],
+  // D348: BWV 1052-1058 and 1060-1065, every movement (tools/touch/concertos.ts; MuseScore editions, CC0).
+  ["hconcerto", "HARPSICHORD CONCERTOS"],
   // D341: the motet BWV 228 and the cantata BWV 54 (IMSLP editions, non-commercial licences).
   ["motet", "MOTET"],
   ["cantata", "CANTATA"],

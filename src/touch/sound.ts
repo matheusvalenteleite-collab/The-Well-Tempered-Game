@@ -812,6 +812,11 @@ export interface Preset {
  * (fifteen for now): three after the research report's consoles, then SID 64, TRACKER, CHAMBER ORGAN,
  * the two N64 presets, and two niche picks, MODULAR and TOMITA.
  */
+/** D348: a harpsichord's two lines the player may take (right hand, left hand) at a pan, a shade lighter than the strings. */
+const HPSI = (pan: number): (readonly [PatchId, number, number])[] => [["s16Harpsi", pan, 0.8], ["s16Harpsi", pan, 0.8]];
+/** D348: a concerto's strings: Violin I, Violin II, the viola, the continuo bass. */
+const BAND: (readonly [PatchId, number, number?])[] = [["s16Strings", 0.2], ["s16Strings", 0.1], ["s16Strings", 0.05], ["s16Bassoon", 0]];
+
 export const PRESETS: Preset[] = [
   // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
   { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22 },
@@ -854,6 +859,16 @@ export const PRESETS: Preset[] = [
       5: [["s16Violin", 0.25], ["s16Flute", -0.3, 0.84], ["s16Harpsi", 0.1], ["s16Strings", -0.12, 0.94], ["s16Bassoon", 0]],
       // D340: six voices, the Concerto for Two Violins (BWV 1043): two solo violins apart, the band's violins and viola as strings, the continuo bass.
       6: [["s16Violin", 0.25], ["s16Violin", -0.25], ["s16Strings", 0.15, 0.84], ["s16Strings", -0.15, 0.84], ["s16Strings", 0, 0.84], ["s16Bassoon", 0]],
+      // D348: the HARPSICHORD CONCERTOS (tools/touch/concertos.ts), a layout for each of their voice counts:
+      // each harpsichord's right hand, left hand and inner notes on its harpsichord (the inner notes lighter),
+      // the harpsichords apart; the violins and the viola as strings, the continuo bass on the bassoon (the
+      // last voice: a phone's bass, chip.ts PHONE_BASS_GAIN), BWV 1057's recorders on the flute. A
+      // harpsichord's line is never louder than a string line (its patch's level × 0.8 ≤ the strings' × 1).
+      7: [...HPSI(-0.15), ["s16Harpsi", -0.15, 0.6], ...BAND],
+      9: [...HPSI(-0.15), ["s16Harpsi", -0.15, 0.6], ["s16Flute", 0.3, 0.84], ["s16Flute", -0.3, 0.84], ...BAND],
+      10: [...HPSI(-0.3), ...HPSI(0.3), ["s16Harpsi", -0.3, 0.6], ["s16Harpsi", 0.3, 0.6], ...BAND],
+      11: [...HPSI(-0.3), ...HPSI(0), ...HPSI(0.3), ["s16Harpsi", 0, 0.5], ...BAND],
+      13: [...HPSI(-0.3), ...HPSI(-0.1), ...HPSI(0.1), ...HPSI(0.3), ["s16Harpsi", 0, 0.5], ...BAND],
     },
   },
   // NOCTURNE 32-BIT: violin, harpsichord, viola, the organ's pedal; oboe as the fifth voice; the dark hall.

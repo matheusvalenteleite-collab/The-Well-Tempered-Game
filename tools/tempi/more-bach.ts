@@ -16,11 +16,13 @@
  * and stars are measured at it, as the WTC's at the recordings' median). `n` is 0: no recordings.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { busiest60 as busiestOf, GAME_LOAD as CONCERTO_LOAD, REFERENCE as CONCERTO_REFERENCE } from "../touch/concertos.ts";
 
 const ROOT = new URL("../../", import.meta.url);
-type Piece = { id: string; meter: string; tpq: number; voices: [number, number, number, number][][] };
+type Piece = { id: string; meter: string; tpq: number; voices: [number, number, number, number][][]; collection?: string; playable?: number[] };
 const load = (f: string): Piece[] => JSON.parse(readFileSync(new URL(`data/touch/${f}`, ROOT), "utf8"));
-const pieces = [...load("more-bach.json"), ...load("chorales.json")];
+// D348: and the HARPSICHORD CONCERTOS (tools/touch/concertos.ts: their reference tempi there).
+const pieces = [...load("more-bach.json"), ...load("chorales.json"), ...load("concertos.json")];
 
 /** Reference tempi, quarter notes a minute (in the meter's beat in the comment). */
 const REFERENCE: Record<string, number> = {
@@ -86,10 +88,12 @@ const even = (x: number) => Math.round(x / 2) * 2;
 
 const out: string[] = [];
 for (const f of pieces) {
-  const ref = f.id.startsWith("chor") ? choraleRef(f) : REFERENCE[f.id];
+  const concerto = f.collection === "hconcerto";
+  const ref = f.id.startsWith("chor") ? choraleRef(f) : concerto ? CONCERTO_REFERENCE[f.id] : REFERENCE[f.id];
   if (!ref) throw new Error(`no reference tempo for ${f.id}`);
-  const l = busiest60(f);
-  const normal = Math.round(Math.max(FLOOR_SHARE * ref, Math.min(ref, (GAME_LOAD / l) * 60)));
+  // D348: a concerto movement by the lines the player may take, and the cap holds (no floor): the busiest at most 5.5 notes a second.
+  const l = concerto ? busiestOf(f, f.playable) : busiest60(f);
+  const normal = concerto ? Math.min(ref, Math.floor((CONCERTO_LOAD / l) * 60)) : Math.round(Math.max(FLOOR_SHARE * ref, Math.min(ref, (GAME_LOAD / l) * 60)));
   const slow = Math.max(FLOOR, even(Math.max(MIN_SHARE * normal, Math.min(SLOW_SHARE * normal, (LOAD / l) * 60))));
   const { unit, perQuarter } = beatUnit(f.meter);
   const t = {

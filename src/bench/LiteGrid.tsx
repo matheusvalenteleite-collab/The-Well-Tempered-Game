@@ -37,6 +37,8 @@ export const MORE_CREDITS: readonly string[] = [
   "SCORES: THE MUTOPIA PROJECT (MUTOPIAPROJECT.ORG). THE ART OF FUGUE, THE RICERCARS: ARNAUD GOSSART (CONTRAPUNCTUS 1: PIERRE-LUC GAUTHIER), FROM BREITKOPF & HÄRTEL 1885, PUBLIC DOMAIN.",
   "INVENTIONS 1, 6, 9, 12: JEFF COVEY, FROM THE BACH-GESELLSCHAFT EDITION, CC BY-SA 3.0 (CREATIVECOMMONS.ORG/LICENSES/BY-SA/3.0); THE GAME'S NOTE DATA FOR THEM IS SHARED UNDER THE SAME LICENCE. INVENTIONS 2-5, 7, 8, 10, 11, 13-15: ALLEN GARVIN, PUBLIC DOMAIN. SINFONIAS: OLIVIER VERMERSCH, PUBLIC DOMAIN.",
   "CONCERTO FOR TWO VIOLINS, BWV 1043: DAVID CHAN, FROM THE BACH-GESELLSCHAFT EDITION (1874), PUBLIC DOMAIN.",
+  // D348.
+  "HARPSICHORD CONCERTOS, BWV 1052-1058, 1060-1065: MUSESCORE.COM SCORES DEDICATED TO THE PUBLIC DOMAIN (CC0 1.0, CREATIVECOMMONS.ORG/PUBLICDOMAIN/ZERO/1.0), AS KEPT IN THE PDMX DATASET: VERITS99 (ALL BUT BWV 1056), ANDREY RONZHIN (BWV 1056). WRITTEN-OUT TRILLS IN THE PARTS YOU PLAY ARE SHOWN AS THEIR NOTE.",
   // D341.
   "MOTET BWV 228, FÜRCHTE DICH NICHT: FRITZ BRODERSEN, WIMA EDITION (IMSLP.ORG), CC BY-NC 3.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC/3.0), FOR NON-COMMERCIAL USE.",
   "CANTATA BWV 54, WIDERSTEHE DOCH DER SÜNDE: RAMON CASADESUS-MASANELL (IMSLP.ORG, 2021), CC BY-NC-SA 4.0 (CREATIVECOMMONS.ORG/LICENSES/BY-NC-SA/4.0); THE GAME'S NOTE DATA FOR IT IS SHARED UNDER THE SAME LICENCE, FOR NON-COMMERCIAL USE.",
@@ -299,7 +301,7 @@ function ExtraCard({ id, n, done, grade, score, open, hear, compact = false }: {
           <span className="tb-lite-title">{name}</span>
           <span className="tb-lite-meta">{sub}</span>
           <span className="tb-lite-meta">
-            BWV {f.bwv.split("/")[0] || "—"} · {keyLabel(f.key, "fugue").split(" · ")[0]} · {f.collection === "concerto" ? tr("{n} SOLO PARTS", { n: f.playable?.length ?? 2 }) : tr("{n} VOICES", { n: f.playable?.length ?? f.voices.length })}
+            BWV {f.bwv.split("/")[0] || "—"} · {keyLabel(f.key, "fugue").split(" · ")[0]} · {f.collection === "concerto" ? tr("{n} SOLO PARTS", { n: f.playable?.length ?? 2 }) : f.collection === "hconcerto" ? tr("{n} PARTS", { n: f.playable?.length ?? 2 }) : tr("{n} VOICES", { n: f.playable?.length ?? f.voices.length })}
           </span>
           <span className="tb-lite-level" style={{ color: lv.ink }}>
             {tr(lv.label)}
