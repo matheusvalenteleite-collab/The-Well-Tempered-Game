@@ -30,6 +30,7 @@
  * Phase 1's, for the Lab; not read here.
  */
 import { MECH, type Mech } from "../bench/mechanics.ts";
+import { GLENN } from "../bench/glenn.ts";
 
 /** A leg ends when the thumb has made no progress for this long (ms). */
 export const STALL_MS = 50;
@@ -62,6 +63,10 @@ export interface ShakeThresholds {
   steep: number;
   /** D353: steepness over the whole leg (off: where the reach is first passed, D314's). */
   wholeLeg: boolean;
+  /** D376 (MECH.glenn): the legs must alternate (a same-way move after a pause continues the leg)... */
+  alternate?: boolean;
+  /** ...and none is longer than this (px; a one-way move that long is a slide, never a leg). */
+  maxLeg?: number;
 }
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -75,6 +80,8 @@ export function shakeThresholds(beatS: number, rowPx: number, m: Mech = MECH): S
     S: clamp(m.ornStartBeats * ms, m.ornStartMinMs, Math.max(m.ornStartMinMs, m.ornStartMaxMs)),
     steep: m.shakeSteep,
     wholeLeg: m.shakeWholeLeg,
+    // D376: Glenn's separation of a shake from a slide (glenn.ts).
+    ...(m.glenn ? { alternate: true, maxLeg: GLENN.shakeMaxLegRows * rowPx } : {}),
   };
 }
 
@@ -222,6 +229,20 @@ export class ShakeReader {
   private counted(leg: Leg): Gesture | null {
     const th = this.th;
     const dur = (l: Leg) => l.b.t - l.a.t;
+    // D376: a leg the same way as the one before (it paused, then went on) is that leg continued: the
+    // pause read as a turn made a slow one-way slide a trill. A leg longer than maxLeg is a slide's.
+    if (th.alternate) {
+      const prev = this.legs.at(-1);
+      if (prev && prev.dir === leg.dir) {
+        this.legs.pop();
+        this.count--;
+        leg = { a: prev.a, b: leg.b, dir: leg.dir };
+      }
+      if (th.maxLeg !== undefined && Math.abs(leg.b.y - leg.a.y) > th.maxLeg) {
+        this.legs = [];
+        return null;
+      }
+    }
     if (dur(leg) > th.Lm) {
       // A slow leg (a sink, a drift) is no part of the ornament: what came before it is forgotten.
       this.legs = [];

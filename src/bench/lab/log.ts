@@ -85,6 +85,8 @@ export interface LabLog {
   study?: { id: string; excerpt: number; take: number };
   /** D336: DYNAMICS on the player's notes (the sound only, never judged): the design, the strike's references at the start, each note's line. */
   dynamics?: { mode: string; adaptive: boolean; refs: { soft: number; hard: number; from: string; n?: number }; lines: string[] };
+  /** D376: a take played in THE EXPRESSION LAB (lab.html?glenn=1: MECH.glenn on). */
+  glenn?: true;
 }
 
 /** Units of the log's times: tenths of a millisecond. */
@@ -186,4 +188,30 @@ export function parseLog(text: string): LabLog {
   const log = JSON.parse(at > 0 ? text.slice(at) : text) as LabLog;
   if (!log || log.v !== 1 || !log.passage || !Array.isArray(log.ev)) throw new Error("not a lab log (v1)");
   return log;
+}
+
+/** D320: the Lab's runs kept on the device (LabApp's RUNS), the newest first. */
+export const RUNS_KEY = "tb-lab-runs-v1";
+export const MAX_RUNS = 20;
+
+/**
+ * D376: a take from THE EXPRESSION LAB kept with the Lab's own runs (the newest 20; the oldest go first
+ * when the device's storage is full), titled GLENN, so the Lab's RUNS can copy and replay it. False: not kept.
+ */
+export function keepRun(log: LabLog, title: string): boolean {
+  try {
+    const stored = JSON.parse(localStorage.getItem(RUNS_KEY) ?? "[]") as { at: string; title: string; log: LabLog }[];
+    let next = [{ at: log.at, title, log }, ...(Array.isArray(stored) ? stored : []).filter((r) => r.at !== log.at)].slice(0, MAX_RUNS);
+    while (next.length) {
+      try {
+        localStorage.setItem(RUNS_KEY, JSON.stringify(next));
+        return next.some((r) => r.at === log.at);
+      } catch {
+        next = next.slice(0, -1);
+      }
+    }
+  } catch {
+    /* no storage: nothing kept */
+  }
+  return false;
 }

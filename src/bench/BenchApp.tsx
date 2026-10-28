@@ -32,7 +32,9 @@ import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type Displ
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
-import { uiRows } from "../touch/ui/index.ts";
+import { uiActive, uiRows } from "../touch/ui/index.ts";
+import { BOX_PLAYHEAD, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
+import { MECH } from "./mechanics.ts";
 import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
@@ -77,7 +79,7 @@ import { fixFor, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, s
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
 import { finishStep, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
-import { LabRecorder } from "./lab/log.ts";
+import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
@@ -87,7 +89,7 @@ import { bachNotes } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
-import { PlayPop } from "./PlayPop.tsx";
+import { PlayPop, popTitle } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
@@ -477,9 +479,22 @@ export function BenchApp() {
     const r = zoom ?? stepRange(f);
     return proto.id === "ladder" ? { lo: r.lo - 1, hi: r.hi + 1 } : { lo: r.lo, hi: r.hi };
   }, [f, proto.id, zoom]);
-  const barsShown = zoom?.bars ?? 3;
   // D375: Herr Bach's words cover the box's foot through a tutorial step: the notes stay above them.
   const boxFloor = run?.tut ? TUT_FLOOR : 0;
+  // D377: the box's zoom everywhere (box-zoom.ts), in CLASSIC's box (the interfaces and the engraving keep
+  // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
+  // narrowed rarely and eased (not in a lesson: its range is its passage's already).
+  const zoomBox = (start: number, tps: number) => {
+    const on = MECH.boxZoom === "auto" && !uiActive() && !BOXV && !sheetOn;
+    const own = played.flatMap((v) => f.voices[v] ?? []).filter((n) => n[0] >= start && (!run || n[0] < run.until));
+    const bars = !on ? (zoom?.bars ?? 3) : zoom ? Math.max(zoom.bars, Math.min(ZOOM.maxBars, aheadBars(f.barTicks, tps))) : chooseBars(own, f.barTicks, tps);
+    const shown = run?.solo || kimiko ? own : everyNote(f);
+    const plan = planZoom(shown, own, range, f.barTicks, start, run ? run.until : Infinity);
+    return { bars, plan, on: on && !run };
+  };
+  const boxPlan = useMemo(() => zoomBox(from, (f.tpq * bpm) / 60), [f, voice, from, run, bpm, range, sheetOn, kimiko, proto.id]);
+  const barsShown = boxPlan.bars;
+  const range0 = boxPlan.on ? initialRange(boxPlan.plan, from) : range;
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
@@ -524,8 +539,8 @@ export function BenchApp() {
       barTicks: f.barTicks,
       beatTicks: b.ticks,
       count: f.voices.length,
-      lo: range.lo,
-      hi: range.hi,
+      lo: range0.lo,
+      hi: range0.hi,
       bars: barsShown,
       floor: boxFloor,
       ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
@@ -608,7 +623,34 @@ export function BenchApp() {
     // D342: THE MANUAL's lens watching the run (its figures added to the results), each take a lab log
     // (as the STUDY's), and the lesson's visual aids drawn over the game's picture.
     const lens = man ? new LensTally(g) : null;
-    const rec = man && !watching ? new LabRecorder(g, () => ch.heard(), { app: VERSION, at: new Date().toISOString(), passage: { piece: f.id, voice, fromBar: manMat?.fromBar ?? 1, toBar: manMat?.toBar ?? 1, bpm, tempoPct: 100, proto: "ladder", wait: !!run?.wait, bt: false, reading: null, sound: soundNow }, device: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1, ua: navigator.userAgent, lag: ch.lag }, area: { w: 0, h: 0 } }, lens?.feed) : null;
+    // D376: THE EXPRESSION LAB records every take too (the Lab's log, tagged GLENN, kept with the Lab's RUNS).
+    const glennTake = APP.glenn && !man && !watching;
+    const rec =
+      (man || glennTake) && !watching
+        ? new LabRecorder(
+            g,
+            () => ch.heard(),
+            {
+              app: VERSION,
+              at: new Date().toISOString(),
+              passage: man
+                ? { piece: f.id, voice, fromBar: manMat?.fromBar ?? 1, toBar: manMat?.toBar ?? 1, bpm, tempoPct: 100, proto: "ladder", wait: !!run?.wait, bt: false, reading: null, sound: soundNow }
+                : { piece: f.id, voice, fromBar: barAt(f, from), toBar: barAt(f, Math.max(from, (run?.until ?? f.length) - 1)), bpm, tempoPct: Math.round((100 * bpm) / tempoOf(f.id)), proto: proto.id === "ladder" ? "ladder" : "keys", wait: !!run?.wait, bt: !!g.bt, reading: reading?.id ?? null, sound: soundNow },
+              device: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1, ua: navigator.userAgent, lag: ch.lag },
+              area: { w: 0, h: 0 },
+            },
+            lens?.feed,
+          )
+        : null;
+    if (rec && glennTake) rec.log.glenn = true;
+    let glennKept = false;
+    const keepGlenn = (stopped: boolean) => {
+      if (!rec || !glennTake || glennKept) return;
+      glennKept = true;
+      const log = rec.finish(stopped);
+      const t = log.result;
+      keepRun(log, `GLENN · ${popTitle(f.id)} · ${presetById(soundNow).name} · ♩ ${Math.round(bpm)}${t ? ` · ${t.right}/${t.of} right · ${t.legato}/${t.legatoOf} joined · ${t.slides} slides` : ""}${stopped ? " · stopped" : ""}`);
+    };
     if (lens) {
       g.lens = lens;
       if (!rec) g.tap = lens.feed;
@@ -635,10 +677,17 @@ export function BenchApp() {
       });
     const b = beatOf(f);
     const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
+    // D377: the box's zoom for this round (its width fixed; its range eased rarely; drawing and touch alike).
+    const box = prac ? zoomBox(prac.from, g.tps) : { ...boxPlan, bars: zoomBox(from, g.tps).bars };
+    const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on);
+    const aheadTicks = (1 - BOX_PLAYHEAD) * box.bars * f.barTicks;
     let raf = 0;
     const loop = () => {
       rec?.frame();
       const done = g.step();
+      const ms = performance.now();
+      zoomer.update(g.now, ms, g.tps, aheadTicks);
+      const zv = zoomer.view(ms);
       frame.current = {
         now: g.viewNow,
         tps: g.tps,
@@ -646,10 +695,12 @@ export function BenchApp() {
         barTicks: f.barTicks,
         beatTicks: b.ticks,
         count: f.voices.length,
-        lo: range.lo,
-        hi: range.hi,
-        bars: barsShown,
-      floor: boxFloor,
+        // D377: the range as eased now (the touch rows below the same).
+        lo: zv.lo,
+        hi: zv.hi,
+        bars: box.bars,
+        floor: boxFloor,
+        ...(zv.from ? { zoomFrom: zv.from, zoomMix: zv.mix } : {}),
         ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
         voice,
         notes: g.notes,
@@ -673,12 +724,14 @@ export function BenchApp() {
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
-      if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
+      if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now, zv, box.bars);
       if (rec && g.rows) rec.rows(g.rows.yOf(0), g.rows.rowH);
       if (AUTO) autoplay(g, auto);
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
       if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : "";
       if (done) {
+        // D376: THE EXPRESSION LAB's take kept.
+        keepGlenn(false);
         // D216: a lost run: she fades out over a second; the end: her last chord rings on.
         h?.stop(g.failedAt !== null ? HER_FADE.fail : HER_FADE.end);
         game.current = null;
@@ -724,10 +777,11 @@ export function BenchApp() {
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
           // D356: a WTC fugue at SLOW: kept as finished, its grade and score apart (never its best, never what opens the tempo).
           const apart = step === "slow" && isWtcFugue(f.id);
-          recordLite(f.id, r.failedBar !== null, platform === "mobile", apart ? undefined : r.grade);
+          // D376: THE EXPRESSION LAB's runs (Glenn's judging) never touch play.html's progress or bests.
+          if (!APP.glenn) recordLite(f.id, r.failedBar !== null, platform === "mobile", apart ? undefined : r.grade);
           const opened: Tier[] = [];
           // D268: a whole piece finished: its final score against the best.
-          const whole = r.failedBar === null && from === 0;
+          const whole = r.failedBar === null && from === 0 && !APP.glenn;
           const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final)) : null;
           // D356: the tempo played, on the result.
           const tempo = tempi ? { step, beat: stepBeat(f.id, tempi[step]), apart } : undefined;
@@ -762,6 +816,8 @@ export function BenchApp() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      // D376: a take left before its end (QUIT, back to the cards) kept as stopped.
+      keepGlenn(true);
       recRef.current = null;
       g.stopAll();
       h?.stop();
@@ -774,17 +830,18 @@ export function BenchApp() {
   }, [phase]);
 
   /** The music box's rows and time, in the play area's coordinates (the bars line up with them). */
-  function boxRows(barTicks: number, now: number) {
+  function boxRows(barTicks: number, now: number, zv: ZoomView, bars: number) {
     const roll = document.querySelector(".tg-roll");
     const area = document.querySelector(".tg-play");
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
     const rh = r.height * (1 - boxFloor);
-    const geo = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null) ?? ladderGeometry(range.lo, range.hi, rh);
+    // D377: CLASSIC's rows exactly as drawn, the zoom's ease included (box-zoom.ts touchRows).
+    const geo = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null) ?? ladderGeometry(zv.lo, zv.hi, r.height, boxFloor, zv.from, zv.mix);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
-    const span = barsShown * barTicks;
+    const span = bars * barTicks;
     return {
       yOf: (step: number) => y0 - step * geo.rowH,
       stepAt: (y: number) => Math.round((y0 - y) / geo.rowH),
@@ -1208,7 +1265,12 @@ export function BenchApp() {
    * gesture) and plays B♭–A–C–B♮ on the PIPE ORGAN (intro-sound.ts), the last note faded; resolves with
    * the seconds until it is heard. Its end (or a skip) stops it and gives the piece's sound back.
    */
-  const [intro, setIntro] = useState(() => APP.lite);
+  // D376: not in THE EXPRESSION LAB (straight to the selection screen).
+  const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
+  // D376: THE EXPRESSION LAB's badge moves out of the thumbs' way while a run plays (lab.css).
+  useEffect(() => {
+    if (APP.glenn) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
+  }, [phase.kind]);
   const introSounds = useRef<Sounding[]>([]);
   const introOver = useRef(false);
   const introBegin = async (): Promise<number> => {
@@ -1713,7 +1775,8 @@ export function BenchApp() {
           voice={pick.voice}
           singing={voicesFrom(f, from)}
           setVoice={(v) => setPick({ voice: v })}
-          select={(id) => (stopHearing(), setPick({ piece: id, share: 0, voice: -1 }))}
+          // D376: THE EXPRESSION LAB: a piece chosen opens its card at once (the instrument, the tempo, then PLAY).
+          select={(id) => (stopHearing(), APP.glenn ? open(id) : setPick({ piece: id, share: 0, voice: -1 }))}
           play={() => (setOpened(f.id), start(true))}
           options={() => open(f.id)}
           open={open}

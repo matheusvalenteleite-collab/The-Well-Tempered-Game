@@ -55,6 +55,33 @@
   cursor: pointer;
 }
 .lab-tabs button.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.lab-tabs .lab-glenn {
+  font-family: var(--tg-pixel);
+  font-size: 8px;
+  padding: 7px 8px;
+  color: var(--tg-bg);
+  background: #ffd36b;
+  border: 1px solid #ffd36b;
+  text-decoration: none;
+}
+/* D376: THE EXPRESSION LAB's badge, over everything while Glenn's mechanics are on. */
+.glenn-badge {
+  position: fixed;
+  left: calc(env(safe-area-inset-left, 0px) + 6px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  z-index: 1000;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--tg-pixel), monospace;
+  font-size: 7px;
+  pointer-events: none;
+}
+.glenn-badge b { padding: 4px 6px; color: #0b0d18; background: #ffd36b; border-radius: 3px; }
+/* While a run plays: up in the corner, out of the thumbs' way, and no link to tap by accident. */
+html.glenn-playing .glenn-badge { top: calc(env(safe-area-inset-top, 0px) + 14px); bottom: auto; font-size: 6px; opacity: 0.85; }
+html.glenn-playing .glenn-badge a { display: none; }
+.glenn-badge a { pointer-events: auto; padding: 4px 6px; color: #ffd36b; background: rgba(11, 13, 24, 0.85); border: 1px solid #ffd36b; border-radius: 3px; text-decoration: none; }
 .lab-tabs .lab-start { margin-left: auto; color: var(--tg-bg); background: #8fe3b0; border-color: #8fe3b0; }
 .lab-body { flex: 1; overflow-y: auto; touch-action: pan-y; padding: 8px 2px 16px; -webkit-overflow-scrolling: touch; }
 .lab-note { margin: 6px 0 0; color: var(--tg-shine); font-size: 12px; }

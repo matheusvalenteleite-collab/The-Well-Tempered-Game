@@ -21,6 +21,7 @@ import { fugueById } from "./fugue.ts";
 import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
+import { ladderHeight, ladderRows, touchRows, type StepRange } from "./box-zoom.ts";
 import { membership, raiseOf, subjectInkOf, subjectRimOf, themeOf } from "./subject-hue.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
@@ -73,12 +74,9 @@ export const ARROW_PIXELS: Record<Arrow, string[]> = {
   free: ["11111", "10001", "10001", "10001", "11111"],
 };
 
-export function ladderGeometry(lo: number, hi: number, cssH: number): { yOf: (step: number) => number; rowH: number } {
-  const h = Math.max(1, Math.floor(cssH / PX));
-  const rows = hi - (lo - 1) + 2;
-  const rowH = Math.max(2, Math.floor(h / rows));
-  const top = Math.floor((h - rowH * rows) / 2);
-  return { yOf: (step) => (top + (hi + 1 - step) * rowH + rowH / 2) * PX, rowH: rowH * PX };
+/** The ladder's touch rows (CSS px); D377: `floor` and the zoom's ease as the box draws them (box-zoom.ts touchRows). */
+export function ladderGeometry(lo: number, hi: number, cssH: number, floor = 0, from?: StepRange, mix = 1): { yOf: (step: number) => number; rowH: number } {
+  return touchRows(lo, hi, cssH, floor, from, mix);
 }
 
 /**
@@ -193,6 +191,9 @@ export interface Frame {
   bars?: number;
   /** D375: the share of the box's height kept free at its foot (the tutorial's words sit there). */
   floor?: number;
+  /** D377: while the box's range eases (box-zoom.ts): the range it comes from, and how far (0..1) toward lo..hi. */
+  zoomFrom?: StepRange;
+  zoomMix?: number;
   beatTicks: number;
   /** How many voices the piece has (for the inks). */
   count: number;
@@ -326,39 +327,41 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const xOf = (tick: number) => Math.round(((tick - t0) / span) * w);
   const playX = xOf(fr.now);
   // The ladder: one row per staff step over the piece's range, a step of room either side.
-  const lo = fr.lo - 1;
-  const rows = fr.hi - lo + 2;
   // D375: the ladder keeps clear of the box's foot where something sits over it (Herr Bach's words).
-  const hh = Math.round(h * (1 - (fr.floor ?? 0)));
-  const rowH = Math.max(2, Math.floor(hh / rows));
-  const top = Math.floor((hh - rowH * rows) / 2);
-  const lin = (step: number) => top + (fr.hi + 1 - step) * rowH;
-  const bh = Math.max(2, rowH);
+  // D377: while the range eases, the rows blended (box-zoom.ts ladderRows: the touch rows the same).
+  const easing = !!fr.zoomFrom && (fr.zoomMix ?? 1) < 1;
+  const L = ladderRows(ladderHeight(cssH, fr.floor ?? 0), fr.lo, fr.hi, easing ? fr.zoomFrom : undefined, fr.zoomMix ?? 1);
+  const rowH = L.rowH;
+  const lin = (step: number) => Math.round(L.a - step * rowH);
+  const bh = Math.max(2, Math.round(rowH));
+  // The ladder's steps (while easing, both ranges': the notes leaving slide off rather than jump into the margins).
+  const ladHi = easing ? Math.max(fr.hi, fr.zoomFrom!.hi) : fr.hi;
+  const ladLo = easing ? Math.min(fr.lo, fr.zoomFrom!.lo) : fr.lo;
   // D211: beyond the ladder, the margins: every step above it squeezed into the space over the top
   // row, every step below into the space under the bottom one.
   const sp = fr.spill;
-  const upTo = sp ? Math.max(fr.hi, sp.hi) : fr.hi;
-  const downTo = sp ? Math.min(fr.lo, sp.lo) : fr.lo;
-  const capH = lin(fr.hi);
-  const footY = lin(fr.lo) + rowH;
+  const upTo = sp ? Math.max(ladHi, sp.hi) : ladHi;
+  const downTo = sp ? Math.min(ladLo, sp.lo) : ladLo;
+  const capH = Math.max(0, lin(ladHi));
+  const footY = Math.min(h, Math.round(lin(ladLo) + rowH));
   const footH = h - footY;
-  const upTh = Math.max(1, Math.floor(capH / Math.max(1, upTo - fr.hi + 1)));
-  const downTh = Math.max(1, Math.floor(footH / Math.max(1, fr.lo - downTo + 1)));
+  const upTh = Math.max(1, Math.floor(capH / Math.max(1, upTo - ladHi + 1)));
+  const downTh = Math.max(1, Math.floor(footH / Math.max(1, ladLo - downTo + 1)));
   const yOf = (step: number) =>
-    !sp || (step <= fr.hi && step >= fr.lo)
+    !sp || (step <= ladHi && step >= ladLo)
       ? lin(step)
-      : step > fr.hi
-        ? Math.max(0, Math.round(capH - ((step - fr.hi) / (upTo - fr.hi + 1)) * capH) - upTh)
-        : Math.min(h - downTh, Math.round(footY + ((fr.lo - step) / (fr.lo - downTo + 1)) * footH));
-  const hOf = (step: number) => (!sp || (step <= fr.hi && step >= fr.lo) ? bh : step > fr.hi ? upTh : downTh);
-  if (sp && (upTo > fr.hi || downTo < fr.lo)) {
+      : step > ladHi
+        ? Math.max(0, Math.round(capH - ((step - ladHi) / (upTo - ladHi + 1)) * capH) - upTh)
+        : Math.min(h - downTh, Math.round(footY + ((ladLo - step) / (ladLo - downTo + 1)) * footH));
+  const hOf = (step: number) => (!sp || (step <= ladHi && step >= ladLo) ? bh : step > ladHi ? upTh : downTh);
+  if (sp && (upTo > ladHi || downTo < ladLo)) {
     // The margins a shade darker, a hairline where the ladder begins and ends.
     g.fillStyle = "rgba(0,0,0,0.22)";
-    if (upTo > fr.hi) g.fillRect(0, 0, w, capH);
-    if (downTo < fr.lo) g.fillRect(0, footY, w, footH);
+    if (upTo > ladHi) g.fillRect(0, 0, w, capH);
+    if (downTo < ladLo) g.fillRect(0, footY, w, footH);
     g.fillStyle = "rgba(255,255,255,0.08)";
-    if (upTo > fr.hi) g.fillRect(0, capH, w, 1);
-    if (downTo < fr.lo) g.fillRect(0, footY - 1, w, 1);
+    if (upTo > ladHi) g.fillRect(0, capH, w, 1);
+    if (downTo < ladLo) g.fillRect(0, footY - 1, w, 1);
   }
 
   // Beats faint, bar lines brighter.
@@ -602,7 +605,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
 
   // The player's own line: what they sounded, against the music.
   if (fr.trace?.length) {
-    const ys = (step: number) => top + (fr.hi + 1 - step) * rowH + rowH / 2;
+    const ys = (step: number) => L.a - step * rowH + rowH / 2;
     g.fillStyle = tok("--tg-fg");
     let prev: { x: number; y: number } | null = null;
     for (const p of fr.trace) {
