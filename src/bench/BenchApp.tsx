@@ -32,7 +32,9 @@ import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type Displ
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
-import { uiRows } from "../touch/ui/index.ts";
+import { uiActive, uiRows } from "../touch/ui/index.ts";
+import { BOX_PLAYHEAD, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
+import { MECH } from "./mechanics.ts";
 import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
@@ -477,9 +479,22 @@ export function BenchApp() {
     const r = zoom ?? stepRange(f);
     return proto.id === "ladder" ? { lo: r.lo - 1, hi: r.hi + 1 } : { lo: r.lo, hi: r.hi };
   }, [f, proto.id, zoom]);
-  const barsShown = zoom?.bars ?? 3;
   // D375: Herr Bach's words cover the box's foot through a tutorial step: the notes stay above them.
   const boxFloor = run?.tut ? TUT_FLOOR : 0;
+  // D377: the box's zoom everywhere (box-zoom.ts), in CLASSIC's box (the interfaces and the engraving keep
+  // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
+  // narrowed rarely and eased (not in a lesson: its range is its passage's already).
+  const zoomBox = (start: number, tps: number) => {
+    const on = MECH.boxZoom === "auto" && !uiActive() && !BOXV && !sheetOn;
+    const own = played.flatMap((v) => f.voices[v] ?? []).filter((n) => n[0] >= start && (!run || n[0] < run.until));
+    const bars = !on ? (zoom?.bars ?? 3) : zoom ? Math.max(zoom.bars, Math.min(ZOOM.maxBars, aheadBars(f.barTicks, tps))) : chooseBars(own, f.barTicks, tps);
+    const shown = run?.solo || kimiko ? own : everyNote(f);
+    const plan = planZoom(shown, own, range, f.barTicks, start, run ? run.until : Infinity);
+    return { bars, plan, on: on && !run };
+  };
+  const boxPlan = useMemo(() => zoomBox(from, (f.tpq * bpm) / 60), [f, voice, from, run, bpm, range, sheetOn, kimiko, proto.id]);
+  const barsShown = boxPlan.bars;
+  const range0 = boxPlan.on ? initialRange(boxPlan.plan, from) : range;
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
@@ -524,8 +539,8 @@ export function BenchApp() {
       barTicks: f.barTicks,
       beatTicks: b.ticks,
       count: f.voices.length,
-      lo: range.lo,
-      hi: range.hi,
+      lo: range0.lo,
+      hi: range0.hi,
       bars: barsShown,
       floor: boxFloor,
       ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
@@ -635,10 +650,17 @@ export function BenchApp() {
       });
     const b = beatOf(f);
     const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
+    // D377: the box's zoom for this round (its width fixed; its range eased rarely; drawing and touch alike).
+    const box = prac ? zoomBox(prac.from, g.tps) : { ...boxPlan, bars: zoomBox(from, g.tps).bars };
+    const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on);
+    const aheadTicks = (1 - BOX_PLAYHEAD) * box.bars * f.barTicks;
     let raf = 0;
     const loop = () => {
       rec?.frame();
       const done = g.step();
+      const ms = performance.now();
+      zoomer.update(g.now, ms, g.tps, aheadTicks);
+      const zv = zoomer.view(ms);
       frame.current = {
         now: g.viewNow,
         tps: g.tps,
@@ -646,10 +668,12 @@ export function BenchApp() {
         barTicks: f.barTicks,
         beatTicks: b.ticks,
         count: f.voices.length,
-        lo: range.lo,
-        hi: range.hi,
-        bars: barsShown,
-      floor: boxFloor,
+        // D377: the range as eased now (the touch rows below the same).
+        lo: zv.lo,
+        hi: zv.hi,
+        bars: box.bars,
+        floor: boxFloor,
+        ...(zv.from ? { zoomFrom: zv.from, zoomMix: zv.mix } : {}),
         ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
         voice,
         notes: g.notes,
@@ -673,7 +697,7 @@ export function BenchApp() {
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
-      if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now);
+      if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now, zv, box.bars);
       if (rec && g.rows) rec.rows(g.rows.yOf(0), g.rows.rowH);
       if (AUTO) autoplay(g, auto);
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
@@ -774,17 +798,18 @@ export function BenchApp() {
   }, [phase]);
 
   /** The music box's rows and time, in the play area's coordinates (the bars line up with them). */
-  function boxRows(barTicks: number, now: number) {
+  function boxRows(barTicks: number, now: number, zv: ZoomView, bars: number) {
     const roll = document.querySelector(".tg-roll");
     const area = document.querySelector(".tg-play");
     if (!roll || !area) return null;
     const r = roll.getBoundingClientRect();
     const a = area.getBoundingClientRect();
     const rh = r.height * (1 - boxFloor);
-    const geo = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null) ?? ladderGeometry(range.lo, range.hi, rh);
+    // D377: CLASSIC's rows exactly as drawn, the zoom's ease included (box-zoom.ts touchRows).
+    const geo = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null) ?? ladderGeometry(zv.lo, zv.hi, r.height, boxFloor, zv.from, zv.mix);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
-    const span = barsShown * barTicks;
+    const span = bars * barTicks;
     return {
       yOf: (step: number) => y0 - step * geo.rowH,
       stepAt: (y: number) => Math.round((y0 - y) / geo.rowH),

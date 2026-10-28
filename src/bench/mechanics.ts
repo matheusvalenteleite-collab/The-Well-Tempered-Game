@@ -54,6 +54,8 @@ export const MECH_DEFAULTS = {
   // LADDER: relative judging (D286, D289, D296).
   /** LADDER_ROW_MIN: the smallest row (px) a touch is judged by. */
   ladderRowMin: 18,
+  /** D377: the music box's zoom (box-zoom.ts): AUTO, its width per round and its range eased where it would be needlessly empty; OFF, D247's whole piece over three bars. */
+  boxZoom: "auto" as "auto" | "off",
   /**
    * Where a thumb's moves are measured from: its own last touch (D286), or (D318 "either") also from the
    * note the other thumb still holds, plainly the right way (a slur placed "from the note I'm holding").
@@ -415,6 +417,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "doubleSameThumb", group: "TIMING", label: "Double: the same thumb only", help: "D329: only the thumb that struck the note, landing again within the double contact, is a double; the other thumb's landing is judged for itself (on, the game's since WTC 1.52; off, WTC 1.51's: any thumb).", kind: "bool" },
   { key: "btEarlyMs", group: "TIMING", label: "Bluetooth: extra early", help: "BLUETOOTH MODE widens the window early by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
   { key: "btLateMs", group: "TIMING", label: "Bluetooth: extra late", help: "BLUETOOTH MODE widens the window late by this.", kind: "number", min: 0, max: 100, step: 5, unit: "ms" },
+  { key: "boxZoom", group: "LADDER", label: "Box zoom", help: "D377. AUTO (the game's): the bars shown chosen once per round so the voice's typical note is about 1/18 of the box (1.5 to 4 bars, at least 3 s ahead); the rows narrowed, rarely and eased over 1.3 s while the thumbs are still, where the next 4 bars use under 70% of the range (never under 60% of the piece's, never clipping). OFF: the whole piece over three bars (D247). Applies from the next round.", kind: "choice", options: [["auto", "AUTO (the game's)"], ["off", "OFF (D247: the whole piece, 3 bars)"]] },
   { key: "directionRef", group: "LADDER", label: "Direction measured from", help: "Where a thumb's move is measured from.", kind: "choice", options: [["own", "Its own last touch"], ["either", "Or the note the other thumb holds (D318)"]] },
   { key: "ladderRowMin", group: "LADDER", label: "Smallest row", help: "Rows are the box's step height, never smaller than this; the other LADDER sizes are in rows.", kind: "number", min: 8, max: 40, step: 1, unit: "px" },
   { key: "ownFreshS", group: "LADDER", label: "Last touch counts for", help: "After this long (or after a slide) a thumb's next touch is free. RELATIVE: TIMING UNITS › Last touch counts for (beats) instead.", kind: "number", min: 0.5, max: 10, step: 0.5, unit: "s" },
