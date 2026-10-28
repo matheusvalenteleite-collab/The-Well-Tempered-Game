@@ -137,7 +137,7 @@ interface Ctx {
  * (SUJEITO, SUJETO; SUBJECT 2 for a later subject) in the 3 by 5 font. One flag an entry, so in a
  * stretto each entry has its own. It fades once the entry's first three notes have passed. D265 kept:
  * every entry a SUBJECT (no ANSWER). Never tied to right or wrong (the same flag captured or lost).
- * `blocked` says whether a rectangle is taken by another note (than the entry's first).
+ * `blocked` says whether a rectangle is taken by another voice's note (the entry's own never push it below).
  */
 export const FLAG_FADE_S = 0.4;
 const FLAG_BG = "#fff3c4";
@@ -163,7 +163,10 @@ export function flags(c: Ctx, spans: readonly Span[], blocked: (x0: number, x1: 
     let fy = top - 9;
     let poleY = fy;
     let poleH = top - fy;
-    if (fy < 0 || blocked(px, px + fw + 1, fy, top - 1, s.voice, first.on)) {
+    // The flag hangs back from its pole, over the rest before the entry, so it never hides the entry's
+    // own next notes; it flips forward only against the box's left edge.
+    const fx0 = px - fw >= 0 ? px - fw : px + 1;
+    if (fy < 0 || blocked(fx0, fx0 + fw, fy, top - 1, s.voice, first.on)) {
       fy = bot + 2;
       poleY = bot;
       poleH = 9;
@@ -176,8 +179,8 @@ export function flags(c: Ctx, spans: readonly Span[], blocked: (x0: number, x1: 
     g.globalAlpha = alpha;
     g.fillStyle = FLAG_BG;
     g.fillRect(px, poleY, 1, poleH);
-    g.fillRect(px + 1, fy, fw, 7);
-    pixText(g, word, px + 2, fy + 1, FLAG_INK);
+    g.fillRect(fx0, fy, fw, 7);
+    pixText(g, word, fx0 + 1, fy + 1, FLAG_INK);
   }
   g.globalAlpha = 1;
 }

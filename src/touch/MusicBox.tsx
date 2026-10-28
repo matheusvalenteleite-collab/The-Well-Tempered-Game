@@ -760,12 +760,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D372: the subject's effect over the player's own subject notes, then each entry's flag.
   if (spans) {
     subjectFx(fx, spans, playedVoices, true, fr.piece, fr.beatTicks, fxClock);
-    flags(fx, spans, (x0, x1, y0, y1, voice, on) => {
+    // Only another voice's note pushes the flag below: the entry's own notes rise under it as it fades.
+    flags(fx, spans, (x0, x1, y0, y1, voice) => {
       for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
         const o = fr.others[oi];
         const a = xOf(o.on);
         if (a > x1) break;
-        if (xOf(o.on + o.dur) < x0 || (o.voice === voice && o.on === on)) continue;
+        if (xOf(o.on + o.dur) < x0 || o.voice === voice) continue;
         const oy = yOf(o.step);
         if (oy + hOf(o.step) > y0 && oy < y1) return true;
       }
@@ -774,7 +775,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
           const n = pnotes[ni];
           const a = xOf(n.on);
           if (a > x1) break;
-          if (xOf(n.on + n.dur) < x0 || (pv === voice && n.on === on)) continue;
+          if (xOf(n.on + n.dur) < x0 || pv === voice) continue;
           const ny = yOf(n.step);
           if (ny + bh > y0 && ny < y1) return true;
         }
