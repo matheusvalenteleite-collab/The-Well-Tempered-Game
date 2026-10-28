@@ -161,6 +161,11 @@ export const HALL = REVERBS.hall;
 export const CHIP_ENV = { lift: 1.06, fall: 0.6, fallTau: 0.08, slowFrom: 0.3, floor: 0.42, floorTau: 1.2, open: 9000, closeTau: 0.09 };
 export const tameAt = (f0: number) => Math.max(2500, Math.min(4500, f0 * 4.5));
 
+/** D345: how long past its own schedule's end a sound not reported ended is let go (s), and how often the chip looks (s). */
+export const SWEEP_GRACE_S = 1.5;
+export const SWEEP_EVERY_S = 0.5;
+const OPEN = new Set<Bag>();
+
 /**
  * D210: one sound's nodes, all disconnected once the last of its sources has ended. Nothing in chip.ts
  * was ever disconnected: Safari keeps a finished note's gains, filters and panner wired to the mix until
@@ -172,6 +177,9 @@ export class Bag {
   private live = 0;
   done = false;
   onDone: (() => void) | null = null;
+  /** D345: each source's start and stop as asked (s; null: not started), for the deadline (`Bag.sweep`). */
+  private srcs: { s: AudioScheduledSourceNode; start: number | null; offset: number; stop: number }[] = [];
+  private ctx: BaseAudioContext | null = null;
   add<T extends AudioNode>(n: T): T {
     this.nodes.push(n);
     return n;
@@ -183,11 +191,53 @@ export class Bag {
     s.onended = () => {
       if (--this.live <= 0) this.free();
     };
+    // D345: its start and stop noted (the browser's own calls, unchanged), so the sound can be let go by
+    // its own schedule where the browser's `ended` comes late or never (Bag.sweep).
+    const e = { s, start: null as number | null, offset: 0, stop: Infinity };
+    this.srcs.push(e);
+    if (!this.ctx) {
+      this.ctx = s.context;
+      OPEN.add(this);
+    }
+    const start = s.start;
+    const stop = s.stop;
+    const at = () => s.context.currentTime;
+    s.start = ((when = 0, offset?: number, ...rest: number[]) => {
+      (start as (...a: unknown[]) => void).call(s, when, offset, ...rest);
+      e.start = Math.max(when, at());
+      e.offset = offset ?? 0;
+      if (rest[0] !== undefined) e.stop = Math.min(e.stop, e.start + rest[0]);
+    }) as T["start"];
+    s.stop = ((when = 0) => {
+      stop.call(s, when);
+      // As the spec: the last stop() asked is the one that holds.
+      e.stop = Math.max(when, at());
+    }) as T["stop"];
     return s;
+  }
+  /**
+   * D345: when this sound is surely over (context time, s): its last source's stop, or a recording's own
+   * end (at its slowest rate); Infinity while a source has no end yet (not started, or held without a stop).
+   */
+  deadline(): number {
+    let end = -Infinity;
+    for (const e of this.srcs) {
+      if (e.start === null) return Infinity;
+      let own = e.stop;
+      const b = e.s as Partial<AudioBufferSourceNode>;
+      if (b.buffer && !b.loop) own = Math.min(own, e.start + Math.max(0, b.buffer.duration - e.offset) / Math.max(0.25, Math.min(1, b.playbackRate?.value ?? 1)));
+      end = Math.max(end, own);
+    }
+    return end;
+  }
+  /** D345: let go now (a note that failed to build: its sources may never start, so never end). */
+  release() {
+    this.free();
   }
   private free() {
     if (this.done) return;
     this.done = true;
+    OPEN.delete(this);
     for (const n of this.nodes)
       try {
         n.disconnect();
@@ -195,7 +245,28 @@ export class Bag {
         /* already */
       }
     this.nodes = [];
+    this.srcs = [];
     this.onDone?.();
+  }
+  /**
+   * D345, the safeguard behind D210 (the owner: an iPhone "jittering at a long concerto piece, by the
+   * end"): a sound's nodes were let go only when the browser reported its sources' end (`ended`). Where
+   * that report comes late or never (D211 saw it on the phone), every such note stayed wired and Safari's
+   * audio thread went on pulling it: over BWV 1043 III (150 nodes a second, six voices) 36,000 nodes by
+   * the end on the fake context with the reports silenced, D210's hiss and slowdown growing with the
+   * piece. Now any sound whose own schedule is over (its last source's stop, a recording's end) by
+   * SWEEP_GRACE_S is let go whether reported or not; a reported end still lets it go at once. Never
+   * earlier than the report would (the report comes at the stop), so nothing heard changes.
+   */
+  static sweep(ctx: BaseAudioContext) {
+    const now = ctx.currentTime;
+    for (const b of OPEN) if (b.ctx === ctx && now > b.deadline() + SWEEP_GRACE_S) b.free();
+  }
+  /** D345: sounds not yet let go (for the tests and the measurements). */
+  static open(ctx?: BaseAudioContext): number {
+    let n = 0;
+    for (const b of OPEN) if (!ctx || b.ctx === ctx) n++;
+    return n;
   }
   /** D249: how many notes it counts as against a phone's cap (ORGANO PLENO's extra pipes, one each). */
   weight = 1;
@@ -696,6 +767,7 @@ export class Chip {
     // D210: within the cap (the oldest let go first), and every node disconnected once the note has ended.
     const t = Math.max(at, this.ctx.currentTime);
     this.makeRoom(t);
+    this.sweep();
     const bag = new Bag();
     let sd: Sounding;
     try {
@@ -704,6 +776,8 @@ export class Chip {
     } catch {
       // D211: one note's failure is never the others' (the scheduler goes on to the next).
       this.failed++;
+      // D345: and what it had built is let go (a source never started never reports an end).
+      bag.release();
       return { stop: () => {}, bend: () => {} };
     }
     if (bag.done) return sd;
@@ -723,6 +797,15 @@ export class Chip {
       stop(when);
     };
     return sd;
+  }
+
+  private sweptAt = -Infinity;
+  /** D345: every sound past its own schedule let go, reported ended or not (Bag.sweep), twice a second at most. */
+  sweep() {
+    const now = this.ctx.currentTime;
+    if (now - this.sweptAt < SWEEP_EVERY_S) return;
+    this.sweptAt = now;
+    Bag.sweep(this.ctx);
   }
 
   /** D210: the notes sounding (not let go to make room, not past their end). */
@@ -797,6 +880,7 @@ export class Chip {
       const t = this.ctx.currentTime;
       this.wet.gain.cancelScheduledValues(t);
       this.wet.gain.setValueAtTime(dry ? 0 : 0.16, t);
+      this.roomGoal = NaN;
       if (dry) this.master.disconnect(this.room);
       else this.master.connect(this.room);
     }
@@ -2361,6 +2445,7 @@ export class Chip {
   /** The rhythm section's hits for one beat (the ensemble's groove), scheduled at `at`, a beat lasting `beatS` seconds. */
   groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, extra = 0) {
     this.roomTo();
+    this.sweep();
     const gr = grooveNow();
     // D186: the band grows with the player's run: layers over the groove (or over the click).
     for (const h of layerHits(extra, b, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr?.kit ?? "analog");
@@ -2406,8 +2491,15 @@ export class Chip {
   private roomTo() {
     const base = preset().room ?? 0.16;
     const room = this.zoneNow === "pleno" ? Math.min(0.45, base * 2.2) : this.zoneNow === "fuoco" ? Math.min(0.4, base * 1.6) : base;
+    // D345: asked again only when it changes (it was asked every beat: an automation event a beat, never
+    // let go where the room idles, as under a period preset, 1,350 over a 15-minute piece). The same
+    // value approached again is the same sound.
+    if (room === this.roomGoal) return;
+    this.roomGoal = room;
     this.wet.gain.setTargetAtTime(room, this.ctx.currentTime, 0.4);
   }
+  /** D345: the room's level last asked for (NaN: set directly since, by `period`). */
+  private roomGoal = NaN;
 
   /** A metronome tick: a short, soft click, brighter on the bar's first beat. */
   tick(at: number, accent: boolean, gain = 0.1) {

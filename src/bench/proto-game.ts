@@ -78,6 +78,7 @@ import type { Clock } from "./her-clock.ts";
 import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
 import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoGapMs, releaseVerdict, restAfter } from "./articulation.ts";
+import { firstAtOrAfter } from "../touch/visible.ts";
 import { afterCadence, artBonus, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
@@ -955,6 +956,8 @@ export class ProtoGame {
     // D308: paused: the clock held where it stopped, nothing scheduled, nothing judged.
     if (this.pausedAt !== null) return false;
     this.evTs = null;
+    // D345: sounds past their own schedule let go even where the browser never reports their end.
+    ch.sweep?.();
     this.bandT?.frame(ch.heard());
     this.now = this.tickAt(ch.heard());
     // D332: runs whose last note was struck: their trend told (RUN ✗ re-judges the run rule's notes).
@@ -1131,7 +1134,12 @@ export class ProtoGame {
   /** The next note to play (index) in a voice (the first by default), if any. */
   next(k = 0): number {
     const notes = this.tracks[k].notes;
-    return notes.findIndex((n, i) => n.state === "pending" && !n.ride && n.on >= this.now - this.opt.late && !(i > 0 && notes[i - 1].on === n.on));
+    // D345: from the first note not yet too late (the notes in time order), not from the piece's first each frame.
+    for (let i = firstAtOrAfter(notes, this.now - this.opt.late); i < notes.length; i++) {
+      const n = notes[i];
+      if (n.state === "pending" && !n.ride && n.on >= this.now - this.opt.late && !(i > 0 && notes[i - 1].on === n.on)) return i;
+    }
+    return -1;
   }
 
   /** D217: a voice's pending struck note nearest a tick within the window (none: -1), not taken. */
