@@ -15,17 +15,20 @@ export interface FreeTally {
   pralltrillers?: number;
   schnellers?: number;
   turns?: number;
+  /** D364: the hold-over's appoggiaturas. */
+  appoggiaturas?: number;
 }
 
 /** The kinds each note's free ornament ended as → the tally. */
 export function freeTally(kinds: Iterable<FreeKind>): FreeTally {
-  const t = { mordents: 0, shorts: 0, trills: 0, pralltrillers: 0, schnellers: 0, turns: 0 };
+  const t: FreeTally = { mordents: 0, shorts: 0, trills: 0, pralltrillers: 0, schnellers: 0, turns: 0 };
   for (const k of kinds) {
     if (k === "mordent") t.mordents++;
     else if (k === "short") t.shorts++;
-    else if (k === "pralltriller") t.pralltrillers++;
-    else if (k === "schneller") t.schnellers++;
-    else if (k === "turn") t.turns++;
+    else if (k === "pralltriller") t.pralltrillers!++;
+    else if (k === "schneller") t.schnellers!++;
+    else if (k === "turn") t.turns!++;
+    else if (k === "appoggiatura") t.appoggiaturas = (t.appoggiaturas ?? 0) + 1;
     else t.trills++;
   }
   return t;
@@ -42,6 +45,7 @@ export function freeLine(t: FreeTally | undefined): string {
     one(t.shorts, "{n} SHORT TRILL", "{n} SHORT TRILLS"),
     one(t.trills, "{n} TRILL", "{n} TRILLS"),
     one(t.turns, "{n} TURN", "{n} TURNS"),
+    one(t.appoggiaturas, "{n} APPOGGIATURA", "{n} APPOGGIATURAS"),
   ].filter(Boolean);
   return parts.length ? tr("YOU ADDED {list}", { list: parts.join(", ") }) : "";
 }

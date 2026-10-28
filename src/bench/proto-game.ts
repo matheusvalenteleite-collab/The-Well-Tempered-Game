@@ -286,6 +286,12 @@ interface Prep {
   y0: number;
   /** D353: the resting thumb's shake read (PRESS disabled for it once a shake is read). */
   read?: ShakeReader;
+  /**
+   * D364, THE HOLD-OVER APPOGGIATURA: looked at once the note's PERFECT window has passed with the other
+   * thumb still holding the note before: armed there (`at` the tick, `grace` the held note's MIDI, the
+   * lift sounding the note until `until`), or not (`at` −1: no place for it, or MECH.holdOver off).
+   */
+  hold?: { at: number; grace: number; until: number; perfect: number };
 }
 
 /** D262: a traced line's notes still to sound, where the thumb was, how many it slid, how they sound. */
@@ -1121,6 +1127,8 @@ export class ProtoGame {
     this.tieStep();
     this.trills();
     this.shakeFrames();
+    // D364: a prepared note whose note before is still held past its PERFECT window: the hold-over armed.
+    this.holdOvers();
     // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
     // handled after the frame, was refused); each one missed (a chord once) a slip.
     const grace = SWEEP_GRACE_S * this.tps;
@@ -1128,6 +1136,11 @@ export class ProtoGame {
     // D334: MECH.prepLate "lift": a note a thumb is still prepared on waits for the other thumb's lift.
     const kept = new Set<LaneNote>();
     if (MECH.prepare && MECH.prepLate === "lift") for (const h of this.held.values()) if (h.wait?.prep) for (const j of chordOf(this.tracks[h.k].notes, h.wait.i)) kept.add(this.tracks[h.k].notes[j]);
+    // D364: an armed hold-over waits for the lift until its share of the note (then missed, as without it).
+    for (const h of this.held.values()) {
+      const ho = h.wait?.prep?.hold;
+      if (ho && ho.at >= 0 && this.now <= ho.until) kept.add(this.tracks[h.k].notes[h.wait!.i]);
+    }
     for (const t of this.tracks) {
       const ons = new Set<number>();
       for (const n of t.notes) if (n.state === "pending" && !n.ride && !kept.has(n) && this.now - grace > n.on + this.opt.late) ons.add(n.on);
@@ -1304,6 +1317,22 @@ export class ProtoGame {
         const next = plan[p + 1];
         if (next && !next.slid) t.off = Math.min(t.off, next.on - Math.max(this.f.tpq / 16, 0.07 * this.tps));
       });
+    // D364, "appoggiatura": prepared throughout (as "prepared"), and where a note takes the hold-over
+    // (holdOverAt) the thumb on the note before holds it past the beat to the textbook half of the note
+    // (C. P. E. Bach, I.2.2 §11) before it lifts: the appoggiatura, resolved by the pull-off.
+    if (style === "appoggiatura") {
+      const notes = this.tracks[0].notes;
+      plan.forEach((t, p) => {
+        const prev = plan[p - 1];
+        if (!prev || t.slid || prev.slid || prev.side === t.side || prev.off < t.on || t.shake) return;
+        // Down once this thumb has let go of its own last note (held over, it lifts late).
+        const mine = plan.slice(0, p - 1).filter((x) => x.side === t.side && !x.slid).at(-1);
+        t.land = Math.max(prev.on + (t.on - prev.on) / 20, mine ? mine.off + this.f.tpq / 16 : -Infinity);
+        if (t.land >= t.on) t.land = undefined;
+        prev.off = this.holdOverAt(0, t.i) && t.land !== undefined ? t.on + 0.5 * notes[t.i].dur : t.on;
+        if (prev.off > t.on) t.off = Math.max(t.off, prev.off + this.f.tpq / 8);
+      });
+    }
     if (style === "prepared")
       plan.forEach((t, p) => {
         const prev = plan[p - 1];
@@ -2021,12 +2050,85 @@ export class ProtoGame {
         this.tap?.({ kind: "prep", what: "early-lift", ...base, earlyMs: this.msOf(tk, p.lift) });
         continue;
       }
-      this.tap?.({ kind: "prep", what: "pull-off", ...base });
+      // D364: lifted while the hold-over is armed: the appoggiatura resolves, the note sounding now, unjudged for time.
+      const ho = p.prep.hold;
+      if (ho && ho.at >= 0 && tk <= ho.until) {
+        const n = notes[p.i];
+        const short = this.msOf(ho.perfect, tk) < MECH.holdOverShortMs;
+        const share = (tk - n.on) / n.dur;
+        this.tap?.({ kind: "prep", what: "appoggiatura", ...base, grace: ho.grace, ms: this.msOf(n.on, tk), share, short });
+        this.appo = { grace: ho.grace, short };
+      } else this.tap?.({ kind: "prep", what: "pull-off", ...base });
       this.gesture = "pull-off";
       try {
         this.strikeWaiting(wid, w, false, tk);
       } finally {
         this.gesture = null;
+        this.appo = null;
+      }
+    }
+  }
+  /** D364: the appoggiatura sounding now by the lift (prepLift → play): the held note's MIDI, short or long. */
+  private appo: { grace: number; short: boolean } | null = null;
+  /**
+   * D364: whether note i of track k may take the hold-over appoggiatura: where C. P. E. Bach's long
+   * appoggiatura goes (Versuch I.2.2 §9; the ornament report's table): a single note on a strong beat,
+   * a beat or more long, the note before (single) joined to it and a diatonic step away.
+   */
+  holdOverAt(k: number, i: number): boolean {
+    const notes = this.tracks[k].notes;
+    const n = notes[i];
+    if (!n || n.ride || chordOf(notes, i).length > 1 || !strongBeat(this.f, n.on) || n.dur < this.beat) return false;
+    const b = this.before(i, k);
+    const p = notes[b];
+    return !!p && chordOf(notes, b).length === 1 && p.on + p.dur === n.on && Math.abs(p.step - n.step) === 1 && p.midi !== n.midi;
+  }
+  /** D364: whether thumb h, lifting at tick tk, is holding the note before an armed hold-over (its lift the appoggiatura's resolution). */
+  private holdingOver(h: Held, tk: number): boolean {
+    if (h.note < 0 || h.wait) return false;
+    for (const w of this.held.values()) {
+      const ho = w.wait?.prep?.hold;
+      if (!ho || ho.at < 0 || tk > ho.until || w.k !== h.k || this.tracks[w.k].notes[w.wait!.i]?.state !== "pending") continue;
+      const b = this.before(w.wait!.i, w.k);
+      if (b >= 0 && chordOf(this.tracks[w.k].notes, b).includes(h.note)) return true;
+    }
+    return false;
+  }
+  /** D364: whether a note ends on a fermata (the chorales' pauses, or the piece's last note). */
+  private onFermata(n: LaneNote): boolean {
+    return n.on + n.dur >= this.f.length || (this.f.fermatas ?? []).includes(n.on + n.dur);
+  }
+  /**
+   * D364, THE HOLD-OVER ARMED: a thumb resting PREPARED on a note while the other still holds the note
+   * before, once the note's PERFECT window has passed: where the note may take it (holdOverAt), the held
+   * note goes on sounding over the beat as the appoggiatura (MECH.holdOverSound "struck": struck again
+   * now), and the note is not missed while the lift may still come (MECH.holdOverShare of it, more on a
+   * fermata). The owner's logs: 177 prepared rests, 0 lifted late (the report): never by accident.
+   */
+  private holdOvers() {
+    if (!MECH.prepare || this.bt || this.o.wait || this.proto.id !== "ladder") return;
+    for (const w of this.held.values()) {
+      const p = w.wait?.prep;
+      if (!p || p.hold) continue;
+      const notes = this.tracks[w.k].notes;
+      const i = w.wait!.i;
+      const n = notes[i];
+      if (n?.state !== "pending") continue;
+      const perfect = n.on + (this.relAt(MECH.perfectMs, w.k, i) / 1000) * this.tps;
+      if (this.now < perfect) continue;
+      const b = this.before(i, w.k);
+      const holder = [...this.held.values()].find((o) => o !== w && o.k === w.k && !o.wait && o.sounds.length && b >= 0 && chordOf(notes, b).includes(o.note));
+      if (!MECH.holdOver || !holder || !this.holdOverAt(w.k, i)) {
+        p.hold = { at: -1, grace: 0, until: 0, perfect };
+        continue;
+      }
+      const until = n.on + (this.onFermata(n) ? MECH.holdOverFermataShare : MECH.holdOverShare) * n.dur;
+      p.hold = { at: this.now, grace: holder.midi, until, perfect };
+      this.tap?.({ kind: "prep", what: "hold-over", tick: this.now, track: w.k, i, midi: n.midi, side: w.side, grace: holder.midi });
+      // "struck": the grace struck again on the beat's window (a re-attack of the held note).
+      if (MECH.holdOverSound === "struck" && holder.tone) {
+        for (const sd of holder.sounds) sd.stop(this.chip.ctx.currentTime + 0.01);
+        holder.sounds = [this.touchNote(holder.midi, this.chip.ctx.currentTime, HOLD_MAX, holder.tone.v, { ...holder.tone.play, legato: false })];
       }
     }
   }
@@ -2814,8 +2916,14 @@ export class ProtoGame {
       h.open = false;
       return;
     }
-    // D218: the note's end judged as it is let go.
-    if (h.open) this.judgeEnd(h, this.tickOf(ts));
+    // D218: the note's end judged as it is let go. D364: the note held over as an appoggiatura judged as
+    // ending at its written end (the hold past it is the grace); the join into the note from the lift.
+    const heldOver = h.open && this.holdingOver(h, this.tickOf(ts));
+    if (h.open && heldOver) {
+      const n = this.tracks[h.k].notes[h.note];
+      this.judgeEnd(h, Math.min(this.tickOf(ts), n.on + n.dur));
+      this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
+    } else if (h.open) this.judgeEnd(h, this.tickOf(ts));
     // D318: a note taken over after its first thumb let go (slideTaken) ends, for the join, as this thumb lets go.
     else if (h.note >= 0 && h.sounds.length && !h.passive && this.tracks[h.k].notes[h.note]?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
     // D329: WHEN THE OTHER THUMB LIFTS: this release sounds a thumb resting early on the next note.
@@ -2892,6 +3000,9 @@ export class ProtoGame {
         ? this.noteDyn({ k: h.k, i, midi: v.ok || v.wrong === undefined ? notes[i].midi : v.wrong, side: h.side, land: h.land ?? TOUCH_NEUTRAL, across: h.across !== undefined && this.proto.layout === "bars" ? barAcross(h.across * this.touchW, this.touchW) : undefined, ts: h.t0 ?? null, gesture: this.gesture ?? (MECH.prepare && lw.holding ? "hammer-on" : undefined), ok: v.ok })
         : null;
     if (dynAns) expr = { ...expr, touch: dynAns.touch, level: (expr.level ?? 1) * dynAns.level };
+    // D364: the note after a long appoggiatura softer (the Abzug, Versuch I.2.2 §7) where the instrument has dynamics.
+    const appo = this.appo;
+    if (appo && !appo.short && !["harpsichord", "organ"].includes(touchKind(preset().id) ?? "")) expr = { ...expr, level: (expr.level ?? 1) * MECH.holdOverSoft };
     // D213: the player's voice as the others: its subject brighter (and its effect), duller during another's entry.
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
@@ -3051,7 +3162,8 @@ export class ProtoGame {
         this.earned.notes -= due.refund;
       }
     }
-    const perfect = Math.abs(offMs) <= perfMs || grace !== null;
+    // D364: sounded by an appoggiatura's lift: unjudged for time (its moment the player's).
+    const perfect = Math.abs(offMs) <= perfMs || grace !== null || !!appo;
     if (grace) this.graces[grace]++;
     this.combo++;
     this.hits++;
@@ -3167,6 +3279,9 @@ export class ProtoGame {
     this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
     this.grade = perfect ? { text: "PERFECT", at, side: h.side } : { text: "GOOD", lean: offMs < 0 ? -1 : 1, at, side: h.side };
+    if (appo) this.flash = { text: "APPOGGIATURA", at, good: true, kind: "legato" };
+    // D364: the appoggiatura drawn over its note (D353's overlay): the held note on its row from the beat, then the note from the lift.
+    if (appo) this.performed.set(`${h.k}:${i}`, { kind: "appoggiatura", free: true, band: false, voice: this.voiceOf(h.k, i), step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts: [[n.on, Math.max(1, tk - n.on), appo.grace], [tk, Math.max(1, n.on + n.dur - tk), n.midi]] });
     tapNote(true, perfect, offMs);
     this.ride(h, i, offMs / 1000);
   }

@@ -46,7 +46,8 @@ export type Gesture = "down" | "up" | "blur" | "late" | "trill";
  * Bach's short Trillo ("short"); the trill; the turn (a trill with no room, I.2.4 §9; or late in a long
  * note, the turn after the note, I.2.4 §21).
  */
-export type FreeKind = "mordent" | "short" | "pralltriller" | "schneller" | "trill" | "turn";
+/** D364: "appoggiatura", the hold-over's (proto-game.ts), no shake. */
+export type FreeKind = "mordent" | "short" | "pralltriller" | "schneller" | "trill" | "turn" | "appoggiatura";
 
 export interface ShakeThresholds {
   /** The least leg (px). */
