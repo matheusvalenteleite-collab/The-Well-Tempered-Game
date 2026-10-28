@@ -34,8 +34,6 @@ import { findRuns, runTrend, type Run } from "./runs.ts";
 import type { LensStats } from "./manual/lens.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
-export const DBGC: Record<string, number> = {};
-const DBG = (k: string) => void (DBGC[k] = (DBGC[k] ?? 0) + 1);
 /** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */
 const FREE_INK = "#f3d78a";
 /** D290: the narrowest window a note keeps on either side, however close its neighbours (ms). */
@@ -2775,8 +2773,7 @@ export class ProtoGame {
   }
   private glennArrive(id: number, h: Held, c: Contact, t: number, ms: number, dir: 1 | -1, gl: NonNullable<ReturnType<ProtoGame["glennLead"]>>) {
     h.gNear = undefined;
-    if (t < this.glennOpen(h.k, gl.n)) return void ((h.gWait = { c, dir, on: gl.n.on }), DBG("wait"));
-    DBG(gl.phase ? "phase" : "guard");
+    if (t < this.glennOpen(h.k, gl.n)) return void (h.gWait = { c, dir, on: gl.n.on });
     // D378: begun in its phase it sounds at once, unless a shake's leg was counted on the note: then confirmed (D353's guard).
     const shaking = h.free?.note === h.note && h.free.r.count > 0;
     if ((!gl.phase || shaking) && this.slideGuarded()) {
@@ -2802,7 +2799,6 @@ export class ProtoGame {
         else if (this.now >= this.glennOpen(h.k, n)) {
           const w = h.gWait;
           h.gWait = undefined;
-          DBG("waitfire");
           // D378: a shake under way (a leg counted, or the thumb still moving fast): confirmed first (D353's
           // guard: dropped if the thumb turns back), so a late shake's leg is not taken for the slide.
           const th = this.shakeTh();
@@ -2816,7 +2812,7 @@ export class ProtoGame {
         const g = h.gNear;
         const gl = this.glennLead(h, ms);
         if (!gl || h.lastY !== g.c.y) h.gNear = undefined;
-        else (DBG("near"), this.glennArrive(id, h, g.c, this.now, ms, g.dir, gl));
+        else this.glennArrive(id, h, g.c, this.now, ms, g.dir, gl);
       }
     }
   }
