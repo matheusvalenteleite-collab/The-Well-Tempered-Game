@@ -11,7 +11,8 @@ import { detectedPlatform, platformOf, type PlatformPref } from "./home.ts";
 import { unlocked } from "./unlock.ts";
 import type { Platform } from "./protos.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
-import { CHORALE_INDEX, fugueById, MORE_INDEX, type Collection } from "../touch/fugue.ts";
+import { CHORALE_INDEX, fugueById, MORE_INDEX, type Collection, type TouchFugue } from "../touch/fugue.ts";
+import { defaultVoice } from "./flow.ts";
 import { difficultyOf } from "./difficulty.ts";
 
 /**
@@ -368,3 +369,31 @@ export const RULES: Record<string, string[]> = Object.fromEntries(Object.entries
 
 /** The piece every new player starts on: Prelude 1 in C major. */
 export const START_HERE = "wtc1p01";
+
+/**
+ * D369: the voice last played in each piece (play.html), offered again once the piece is finished (before
+ * that, a fugue offers the second voice to enter: flow.ts defaultVoice `fresh`).
+ */
+export const LAST_VOICE_KEY = "tb-voice-by-piece-v1";
+export function lastVoice(id: string): number | undefined {
+  try {
+    const v = (JSON.parse(localStorage.getItem(LAST_VOICE_KEY) ?? "{}") as Record<string, unknown>)[id];
+    return typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : undefined;
+  } catch {
+    return undefined;
+  }
+}
+export function saveLastVoice(id: string, voice: number) {
+  try {
+    const o = JSON.parse(localStorage.getItem(LAST_VOICE_KEY) ?? "{}") as Record<string, number>;
+    localStorage.setItem(LAST_VOICE_KEY, JSON.stringify({ ...o, [id]: voice }));
+  } catch {
+    /* this visit only */
+  }
+}
+/** D369: the voice a piece offers first on play.html: unfinished, the second to enter; finished, the last played (else as before). */
+export function liteVoice(f: TouchFugue, singing: readonly number[], finished: boolean): number {
+  const last = finished ? lastVoice(f.id) : undefined;
+  if (last !== undefined && singing.includes(last) && f.kind !== "prelude") return last;
+  return defaultVoice(f, singing, { fresh: !finished });
+}

@@ -79,7 +79,7 @@ import { paintAids } from "./manual/aids.ts";
 import { markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, testOut as manualTestOut, triesOf } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
@@ -200,7 +200,8 @@ export function sane(p: Pick): Pick {
   const singing = voicesFrom(f, startTick(f, share));
   // D237: a fugue's voice of the first entry by default (flow.ts). D251: a prelude always its own part
   // (stages.ts `preludePart`), whatever was chosen or kept before.
-  const voice = f.kind !== "prelude" && singing.includes(p.voice) ? p.voice : defaultVoice(f, singing);
+  // D369: on play.html an unfinished fugue offers the second voice to enter; a finished one the voice last played.
+  const voice = f.kind !== "prelude" && singing.includes(p.voice) ? p.voice : APP.lite ? liteVoice(f, singing, readLite().beaten.includes(f.id)) : defaultVoice(f, singing);
   // D219: a stored mode withdrawn (HIGHWAY, TWO VOICES, KIMIKO on a phone) falls back to LADDER; a stored KIMIKO as LADDER WITH KIMIKO.
   const was = p.proto as string;
   const proto = PROTOS.some((x) => x.id === was) ? p.proto : DEFAULT.proto;
@@ -549,6 +550,8 @@ export function BenchApp() {
     setPaused(false);
     // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click or TOOLS practice).
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
+    // D369: the voice played kept for the piece (offered again once it is finished).
+    if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
     const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);

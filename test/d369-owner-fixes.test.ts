@@ -230,3 +230,24 @@ test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading th
   for (const r of readingsOf(id)) assert.match(html, new RegExp(`id="reading-${r.id}"`));
   assert.match(html, new RegExp(`id="reading-${BEST_READING[id]}"[^>]*aria-checked="true"`));
 });
+
+test("D369 (7): a fugue not yet finished offers the second voice to enter; once finished, the voice last played", async () => {
+  const { fugueById } = await import("../src/touch/fugue.ts");
+  const { voicesFrom } = await import("../src/touch/voice-mode.ts");
+  const { defaultVoice } = await import("../src/bench/flow.ts");
+  const { liteVoice, saveLastVoice } = await import("../src/bench/lite.ts");
+  store.clear();
+  for (const id of ["wtc1f01", "wtc1f02", "wtc1f16", "wtc2f09"]) {
+    const f = fugueById(id);
+    const order = [...new Set([...f.entries].sort((a, b) => a.on - b.on).map((e) => e.voice))];
+    const s = voicesFrom(f, 0);
+    assert.equal(liteVoice(f, s, false), order[1], `${id}: the second to enter (${f.voiceNames[order[1]]})`);
+    assert.equal(defaultVoice(f, s), order[0], `${id}: elsewhere the first, as before`);
+    assert.equal(liteVoice(f, s, true), order[0], `${id}: finished, nothing kept yet: the first`);
+    saveLastVoice(id, order.at(-1)!);
+    assert.equal(liteVoice(f, s, true), order.at(-1), `${id}: finished: the last played`);
+    assert.equal(liteVoice(f, s, false), order[1], `${id}: unfinished: still the second`);
+  }
+  store.clear();
+  assert.match(src("src/bench/BenchApp.tsx"), /APP\.lite \? liteVoice\(f, singing, readLite\(\)\.beaten\.includes\(f\.id\)\)/);
+});
