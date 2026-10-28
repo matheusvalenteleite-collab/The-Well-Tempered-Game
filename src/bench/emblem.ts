@@ -382,7 +382,7 @@ export function drawEmblem(g: PixelTarget, id: string, scale = 1): void {
  * "c♯ · FUGA": a major key upper case, a minor lower, the kinds as Bach's title page names them), in a
  * 3 x 5 pixel font finer than the emblem's own pixels, cream at 0.8 over a faint dark band.
  */
-const GLYPHS: Record<string, string[]> = {
+export const GLYPHS: Record<string, string[]> = {
   A: [".#.", "#.#", "###", "#.#", "#.#"],
   B: ["##.", "#.#", "##.", "#.#", "##."],
   C: [".##", "#..", "#..", "#..", ".##"],
@@ -390,12 +390,19 @@ const GLYPHS: Record<string, string[]> = {
   E: ["###", "#..", "##.", "#..", "###"],
   F: ["###", "#..", "##.", "#..", "#.."],
   G: [".##", "#..", "#.#", "#.#", ".##"],
+  // D351: for the MORE BACH and CHORALES pictures' words (ALLEGRO, ANDANTE, SINFONIA, MOTETTE, VIVACE, LARGHETTO…).
+  H: ["#.#", "#.#", "###", "#.#", "#.#"],
   I: ["###", ".#.", ".#.", ".#.", "###"],
   L: ["#..", "#..", "#..", "#..", "###"],
   M: ["#.#", "###", "###", "#.#", "#.#"],
+  N: ["#..#", "##.#", "#.##", "#..#", "#..#"],
+  O: [".#.", "#.#", "#.#", "#.#", ".#."],
   P: ["##.", "#.#", "##.", "#..", "#.."],
   R: ["##.", "#.#", "##.", "#.#", "#.#"],
+  S: [".##", "#..", ".#.", "..#", "##."],
+  T: ["###", ".#.", ".#.", ".#.", ".#."],
   U: ["#.#", "#.#", "#.#", "#.#", "###"],
+  V: ["#.#", "#.#", "#.#", "#.#", ".#."],
   a: ["...", ".##", "#.#", "#.#", ".##"],
   b: ["#..", "#..", "##.", "#.#", "##."],
   c: ["...", ".##", "#..", "#..", ".##"],
@@ -409,10 +416,13 @@ const GLYPHS: Record<string, string[]> = {
   " ": ["..", "..", "..", "..", ".."],
 };
 
-/** The label's text for a key ("C#", "eb") and a kind: "C♯ · PRAELUDIUM", "e♭ · FUGA". */
-export function keyLabel(key: string, kind: "prelude" | "fugue"): string {
+/**
+ * The label's text for a key ("C#", "eb") and a kind: "C♯ · PRAELUDIUM", "e♭ · FUGA". D351: or the
+ * piece's own word where it is not a prelude or a fugue ("d · ALLEGRO", "G · CHORAL": bench/piece-word.ts).
+ */
+export function keyLabel(key: string, kind: "prelude" | "fugue" | (string & {})): string {
   const k = key[0] + key.slice(1).replace("#", "♯").replace("b", "♭");
-  return `${k} · ${kind === "prelude" ? "PRAELUDIUM" : "FUGA"}`;
+  return `${k} · ${kind === "prelude" ? "PRAELUDIUM" : kind === "fugue" ? "FUGA" : kind}`;
 }
 
 /** The label's width in font pixels (a glyph unknown to the font drawn as a space). */

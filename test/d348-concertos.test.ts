@@ -21,7 +21,8 @@ import { protoById } from "../src/bench/protos.ts";
 import { CONCERTOS, outline, untrill } from "../tools/touch/concertos.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-const BWVS = [1052, 1053, 1054, 1055, 1056, 1057, 1058, 1060, 1061, 1062, 1063, 1064, 1065];
+// D351: and BWV 1059, verits99's reconstruction (test/d351-tempo-steps.test.ts).
+const BWVS = [1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065];
 const IDS = BWVS.flatMap((b) => [1, 2, 3].map((m) => `bwv${b}-${m}`));
 
 test("D348: the section is known before the notes load (the index), and its notes are a chunk of their own", async () => {
@@ -37,14 +38,14 @@ test("D348: the section is known before the notes load (the index), and its note
   assert.ok(existsSync(new URL("../data/touch/concertos.d.json.ts", import.meta.url)));
   assert.equal(JSON.parse(src("tsconfig.json")).compilerOptions.allowArbitraryExtensions, true);
   await loadExtras();
-  assert.equal(MORE_BACH.filter((f) => f.collection === "hconcerto").length, 39);
+  assert.equal(MORE_BACH.filter((f) => f.collection === "hconcerto").length, 42);
 });
 
 await loadExtras();
 const pieces = IDS.map((id) => fugueById(id));
 
 test("D348: 13 concertos, every movement: the voices (each harpsichord's right hand, left hand, inner notes; winds; strings; continuo last), bars as written", () => {
-  const count: Record<number, number> = { 1052: 7, 1053: 7, 1054: 7, 1055: 7, 1056: 7, 1057: 9, 1058: 7, 1060: 10, 1061: 10, 1062: 10, 1063: 11, 1064: 11, 1065: 13 };
+  const count: Record<number, number> = { 1052: 7, 1053: 7, 1054: 7, 1055: 7, 1056: 7, 1057: 9, 1058: 7, 1059: 7, 1060: 10, 1061: 10, 1062: 10, 1063: 11, 1064: 11, 1065: 13 };
   for (const f of pieces) {
     const bwv = Number(f.id.slice(3, 7));
     assert.equal(f.collection, "hconcerto");
@@ -78,7 +79,7 @@ test("D348: 13 concertos, every movement: the voices (each harpsichord's right h
   assert.ok(spelled("bwv1055-1").some((s) => /^C#/.test(s)) && !spelled("bwv1055-1").some((s) => /^(Db|Ab)/.test(s)));
   assert.ok(spelled("bwv1057-1").some((s) => /^Bb/.test(s)) && !spelled("bwv1057-1").some((s) => /^(A#|E#)/.test(s)));
   assert.ok(spelled("bwv1058-1").some((s) => /^Bb/.test(s)) && !spelled("bwv1058-1").some((s) => /^(F##|A#)/.test(s)));
-  assert.equal(CONCERTOS.length, 13);
+  assert.equal(CONCERTOS.length, 14);
 });
 
 test("D348: the lines the player may take: each harpsichord's right hand (offered first) and left hand, one note at a time; Violin I where it has a line of its own", () => {
@@ -166,7 +167,7 @@ test("D348: credits: each movement's (CC0, its MuseScore page), the tab's, the s
     assert.ok(sourceMd.includes(f.source!.split("/").at(-1)!), `${f.id}: its score in SOURCE.md`);
   }
   for (const c of CONCERTOS) assert.ok(existsSync(new URL(`../data/sources/bach-harpsichord-concertos/musescore/${c.score}.mxl`, import.meta.url)), c.score);
-  assert.match(src("src/bench/LiteGrid.tsx"), /"HARPSICHORD CONCERTOS, BWV 1052-1058, 1060-1065: .*CC0 1\.0.*VERITS99.*RONZHIN/, "the tab's SOURCES & CREDITS");
+  assert.match(src("src/bench/LiteGrid.tsx"), /"HARPSICHORD CONCERTOS, BWV 1052-1065: .*CC0 1\.0.*VERITS99.*RONZHIN.*BWV 1059 IS A RECONSTRUCTION/, "the tab's SOURCES & CREDITS");
   assert.match(src("src/ui/Credits.tsx"), /HARPSICHORD CONCERTOS[\s\S]*verits99[\s\S]*Ronzhin/);
   assert.match(sourceMd, /BWV 1059/);
 });

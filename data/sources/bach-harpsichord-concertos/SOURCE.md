@@ -1,8 +1,8 @@
-# Source: Bach, the harpsichord concertos, BWV 1052-1065 (D348)
+# Source: Bach, the harpsichord concertos, BWV 1052-1065 (D348; BWV 1059 as a reconstruction, D351)
 
 ## What is read, and its rights
 
-- **Files** (`musescore/<score id>.mxl`, compressed MusicXML as MuseScore exported it): thirteen scores from
+- **Files** (`musescore/<score id>.mxl`, compressed MusicXML as MuseScore exported it): fourteen scores (thirteen, D348; BWV 1059's reconstruction added by D351) from
   musescore.com, taken from the **PDMX** dataset (Phillip Long, Zachary Novack, Taylor Berg-Kirkpatrick,
   Julian McAuley, *PDMX: A Large-Scale Public Domain MusicXML Dataset*, 2024; zenodo.org/records/14648209;
   the copy used was fetched for the research report of 27 October 2026, `PDMX.csv` and `mxl.tar.gz`). PDMX
@@ -31,6 +31,7 @@
 | 1056 | https://musescore.com/user/27726/scores/53191 | aronzhin (Andrey Ronzhin) | `mxl/8/47/QmQUXXNL….mxl` | full score | Violin I, Violin II, Viola, Continuo, Piano (2 staves: the solo) |
 | 1057 | https://musescore.com/user/13172/scores/136395 | verits99 | `mxl/1/17/QmbemKAV….mxl` | keyboard score, a semitone low (E) | solo; Recorder I \| Viola (8vb); Recorder II \| Continuo; Violin I \| Continuo; Violin II \| Continuo 16′ (the doublings not read) |
 | 1058 | https://musescore.com/user/13172/scores/132209 | verits99 | `mxl/9/32/QmRMNCYE….mxl` | keyboard score, a semitone low (F♯ minor) | solo; Violin I \| Continuo; Violin II \| Viola (8vb) |
+| 1059 (reconstruction, D351) | https://musescore.com/user/13172/scores/853226 | verits99 | `mxl/11/7/QmT8hWYm….mxl` | keyboard score ("Harp (4)"), A = 415 Hz (a semitone low, C♯ minor) | by movement: see below |
 | 1060 | https://musescore.com/user/13172/scores/3512851 | verits99 | `mxl/14/47/QmWUKnBV….mxl` | full score | Violin, Violin, Viola, Cello, Harpsichord ×2 |
 | 1061 | https://musescore.com/user/13172/scores/3513726 | verits99 | `mxl/3/36/QmdpT4Ea….mxl` | full score | Violin, Violin, Viola, Continuo, Harpsichord ×2 |
 | 1062 | https://musescore.com/user/13172/scores/3519861 | verits99 | `mxl/10/29/QmSKeG8R….mxl` | full score | Violin 1, Violin 2, Viola, Continuo, Harpsichord 1, 2 |
@@ -82,6 +83,9 @@ back to its main note in the lines offered. Tempi: tools/tempi/more-bach.ts (ref
 | bwv1058-1 | I. (Allegro) | 2/4 | 0-171 | 7 | H. RH, H. LH, Violin I | 96 → 82 (♩ 82) | 5.5 |
 | bwv1058-2 | II. Andante | 4/4 | 1-46 | 7 | H. RH, H. LH, Violin I | 56 → 55 (♩ 55) | 5.5 |
 | bwv1058-3 | III. Allegro assai | 3/8 | 1-421 | 7 | H. RH, H. LH, Violin I | 144 → 82 (♪ 164) | 5.5 |
+| bwv1059-1 | I. (Allegro) (reconstruction: Cantata 35's first Sinfonia) | 4/4 | 0-131 | 7 | H. RH, H. LH, Violin I | 100 → 82 (♩ 82) | 5.5 |
+| bwv1059-2 | II. (Andante) (reconstruction: Cantata 35's aria "Gott hat alles wohlgemacht") | 4/4 | 1-72 | 7 | H. RH, H. LH | 72 → 72 (♩ 72) | 4.8 |
+| bwv1059-3 | III. Presto (reconstruction: Cantata 35's second Sinfonia) | 3/8 | 1-232 | 7 | H. RH, H. LH, Violin I | 132 → 82 (♪ 164) | 5.5 |
 | bwv1060-1 | I. Allegro | 4/4 | 1-110 | 10 | H. I RH, H. I LH, H. II RH, H. II LH, Violin I | 96 → 82 (♩ 82) | 5.5 |
 | bwv1060-2 | II. Adagio | 12/8 | 1-37 | 10 | H. I RH, H. I LH, H. II RH, H. II LH | 54 → 54 (♩. 36) | 4.1 |
 | bwv1060-3 | III. Allegro | 2/4 | 0-178 | 10 | H. I RH, H. I LH, H. II RH, H. II LH, Violin I | 112 → 66 (♩ 66) | 5.5 |
@@ -175,6 +179,29 @@ research).
   keyboards; the same notes); Erisceres's unfinished BWV 1065/III (public domain mark: a check);
   arrangements (electric guitars, bluegrass, brass quintet, piano duet).
 - **MuseData** (CCARH, bitbucket.org/musedata/bach): no harpsichord concertos (`bg/orch` holds BWV 1041-1051 and the suites).
-- **BWV 1059** is left out: Bach left nine bars; verits99's score (MuseScore 853226, CC0) is "a trial
-  reconstruction based on BWV 35" (the cantata's sinfonias and an aria), not Bach's concerto. The owner
-  may decide to add it as a reconstruction.
+- **BWV 1059**: left out by D348 (Bach left nine bars); **added by D351** at the owner's word ("add
+  reconstruction"), labelled a reconstruction on its card, its pop-up and in the credits: below.
+
+## BWV 1059, a reconstruction (D351)
+
+Bach's autograph breaks off after nine bars of a harpsichord concerto in D minor: the opening of
+the first Sinfonia of Cantata 35, *Geist und Seele wird verwirret* (1726, for obbligato organ). verits99's
+score (MuseScore 853226, uploaded as "BWV 1059 Harpsichord Concerto in D minor (A = 415 Hz)", subtitle "A
+Trial Reconstruction Based on BWV 35"; PDMX: `cc-zero`, no licence conflict; metadata `metadata/7/853226.json`)
+completes it from the cantata: I. the first Sinfonia, II. the aria "Gott hat alles wohlgemacht" (alto,
+obbligato organ, continuo), III. the second Sinfonia (Presto). It is an editor's work, not Bach's concerto:
+the game says so (the card's title "· RECONSTRUCTION", the pop-up's line and title, both credit lines).
+No second edition was checked (none found machine-readable).
+
+Its four keyboard parts are all named "ハープ" (harp), so which staff is which was found by register,
+texture and doubling (read up a step: C♯ minor → D minor, `UP_STEP`):
+
+| movement | measures | harpsichord RH / LH | Violin I | Violin II | Viola (8vb, read up) | Continuo | not read |
+|---|---|---|---|---|---|---|---|
+| I | 0-133 (bar 0 an upbeat) | part 1, staves 1 / 2 (the busiest, 1485 notes; rests in the opening tutti) | part 2 staff 1 | part 4 staff 1 (a line of its own under Violin I) | part 2 staff 2 (its own line; up an octave it lies in the viola's compass) | part 3 staff 2 | part 3 staff 1 (85% of its attacks Violin I's: the doubling), part 4 staff 2 (96% the continuo's) |
+| II | 133-205 | part 1 staff 1 (the aria's alto line: rests in the ritornelli) / part 2 staff 1 (the organ's obbligato, unbroken semiquavers, tenor register) | — | — | — | part 2 staff 2 | part 1 staff 2 (100% the continuo's); parts 3-4 empty |
+| III | 205-437 | part 3, staves 1 / 2 (the running semiquavers; its left hand the continuo's line an octave lower) | part 1 staff 1 | part 2 staff 1 | part 1 staff 2 | part 2 staff 2 | part 4 empty |
+
+Movement names: Cantata 35's first Sinfonia and the aria carry no tempo word (verits99's playback: none,
+♩ 80): "(Allegro)" and "(Andante)", in parentheses as the other unmarked movements; the second Sinfonia is
+Bach's Presto. Reference tempi ♩ 100, ♩ 72, ♩. 88 (concertos.ts).

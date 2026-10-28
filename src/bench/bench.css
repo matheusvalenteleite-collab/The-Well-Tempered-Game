@@ -882,3 +882,18 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-mobile-only { min-height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; background: #0b0d18; }
 .tb-mobile-only-title { margin: 0; font-family: "Press Start 2P", monospace; font-size: 28px; font-weight: 400; line-height: 1.4; color: #f4e9a8; text-shadow: 3px 3px 0 #b8322a; user-select: none; -webkit-user-select: none; }
 .tb-mobile-only-why { margin: 0; max-width: 520px; font-family: "Press Start 2P", monospace; font-size: 12px; line-height: 2; color: #a9b0d6; }
+
+/* D351: the title bar (title, EN · PT · ES, SETTINGS) and the tab bar stay at the top while the list
+   scrolls (the owner: "settings bar and tabs bar ought to remain always visible"): one sticky band, opaque,
+   reaching the screen's edges and its notch (its padding the list's own, safe areas included), in the
+   flow so it never covers the first card. The scroll container's padding is outside a sticky box's
+   bounds, hence the top and margins by the same amounts. */
+.tb-lite-top { position: sticky; top: calc(-12px - env(safe-area-inset-top, 0px)); z-index: 20; margin: calc(-12px - env(safe-area-inset-top, 0px)) calc(-1 * max(16px, env(safe-area-inset-right, 0px))) 10px calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); background: var(--tg-bg); border-bottom: 2px solid var(--tg-barline); }
+.tb-lite-top .tb-lite-head { margin-bottom: 0; }
+.tb-lite-top .tb-lite-tabs { position: static; margin: 8px auto 0; padding: 0; }
+/* D351: the tempo, cycled on the pop-up (SLOW · DEFAULT · FAST). */
+.tb-pop-tempo { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; margin: 8px auto 0; padding: 6px 14px; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-fg); background: var(--tg-box); border: 2px solid var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; cursor: pointer; }
+.tb-pop-tempo:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
+.tb-pop-tempo b { font-weight: 400; color: var(--tg-shine); }
+.tb-pop-tempo-k, .tb-pop-tempo-v { color: var(--tg-muted); font-size: 8px; }
+.tb-pop-recon { color: #e8c94a; }

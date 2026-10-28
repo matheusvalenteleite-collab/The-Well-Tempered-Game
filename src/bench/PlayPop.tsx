@@ -93,7 +93,13 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
         <button type="button" id="pop-close" className="tg-x tb-pop-x" aria-label="Close" onClick={close}>
           ✕
         </button>
-        <h2 className="tb-pop-title">{plain ? (lang() === "en" ? popTitle(id).split(" · ").at(-1) : pieceName(f.kind, f.key)) : lang() === "en" ? popTitle(id) : `${popTitle(id).split(" · ")[0]} · ${pieceName(f.kind, f.key)}`}</h2>
+        <h2 className="tb-pop-title">{plain ? (lang() === "en" ? popTitle(id).split(" · ").at(-1) : pieceName(f.kind, f.key)) : lang() === "en" || f.collection ? popTitle(id) : `${popTitle(id).split(" · ")[0]} · ${pieceName(f.kind, f.key)}`}</h2>
+        {/* D351: a reconstruction says so (BWV 1059: Bach left nine bars). */}
+        {f.reconstruction && (
+          <p className="tb-pop-ask tb-pop-recon" id="pop-reconstruction">
+            {tr(f.reconstruction)}
+          </p>
+        )}
         {f.kind === "prelude" ? (
           // D251: no hand to choose for a prelude: it is played with the part the game gives (stages.ts `preludePart`), named in one small line.
           <p className="tb-pop-ask tb-pop-part" id="pop-part">

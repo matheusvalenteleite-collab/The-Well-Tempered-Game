@@ -17,7 +17,7 @@
  * time: a double stop's lower note goes to Violin II). The bars as written, counted from 1 in each
  * movement (an upbeat bar 0); no repeat taken. Cadences and keys as for the WTC (analysis.ts); no entries
  * (a concerto's ritornello is not a fugue's subject, as BWV 1043, D340).
- * BWV 1059 (a fragment of nine bars; verits99's is a reconstruction from Cantata 35) is left out.
+ * D351: BWV 1059 (a fragment of nine bars) added as verits99's reconstruction from Cantata 35, labelled so.
  * Run: node tools/touch/concertos.ts   (needs python3 for .mxl), then node tools/touch/extras-index.ts
  */
 import { writeFileSync } from "node:fs";
@@ -44,6 +44,9 @@ export interface Movement {
   key: string;
   /** Violin I offered to the player: where it has a melodic line of its own (not where it accompanies in repeated notes or pizzicato chords, or rests: the slow movements of BWV 1054, 1056, 1060-1065, BWV 1065's first; few repeated notes, tools/touch/concertos.ts's report). */
   violin: boolean;
+  /** D351: where this movement's staves differ from the concerto's (BWV 1059's reconstruction: each movement from another number of Cantata 35, set on the four keyboard parts differently). */
+  harpsichords?: Concerto["harpsichords"];
+  band?: readonly Line[];
 }
 export interface Concerto {
   bwv: number;
@@ -60,6 +63,8 @@ export interface Concerto {
   /** The other parts, top down: winds, Violin I (the first string line, always), Violin II, Viola, Continuo. */
   band: readonly Line[];
   movements: readonly Movement[];
+  /** D351: not Bach's concerto as it survives but an editor's reconstruction (BWV 1059: nine bars by Bach; verits99's from Cantata 35): said on its card, pop-up and credits. */
+  reconstruction?: string;
 }
 
 const VERITS = (id: string) => `https://musescore.com/user/13172/scores/${id}`;
@@ -79,6 +84,8 @@ const FULL_STRINGS: Line[] = [
   ["Viola", [2, 1]],
   ["Continuo", [3, 1]],
 ];
+/** D351: a line that rests throughout a movement (BWV 1059's aria has no strings). */
+const NONE: Src = [-1, 0];
 const m = (name: string, from: number, to: number, key: string, violin = true): Movement => ({ name, from, to, key, violin });
 
 export const CONCERTOS: Concerto[] = [
@@ -121,6 +128,28 @@ export const CONCERTOS: Concerto[] = [
     // Here Violin I's keyboard part carries the continuo, Violin II's the viola.
     band: [["Violin I", [1, 1]], ["Violin II", [2, 1]], ["Viola", [2, 2], 1], ["Continuo", [1, 2]]],
     movements: [m("I. (Allegro)", 0, 173, "g"), m("II. Andante", 173, 220, "Bb"), m("III. Allegro assai", 220, 641, "g")],
+  },
+  {
+    // D351: BWV 1059, a reconstruction. Bach left nine bars of a harpsichord concerto in D minor (the opening of Cantata 35's first
+    // sinfonia); verits99's "trial reconstruction based on BWV 35" completes it from the cantata: I. its first Sinfonia, II. the aria
+    // "Gott hat alles wohlgemacht" (alto, organ obbligato, continuo), III. its second Sinfonia (Presto). A keyboard score at A = 415 Hz
+    // (written in C-sharp minor: read up a step, D minor), four keyboard parts named only "harp", the parts differently in each movement
+    // (found by register, texture and doubling: SOURCE.md): I. part 1 the solo; Violin I | Viola (8vb) on part 2, Violin II's
+    // doubling of Violin I (85% of its attacks) | the continuo on part 3, Violin II's own line | the continuo again (96%) on part 4 (the
+    // doublings not read); II. the aria's alto line on part 1's upper staff (the harpsichord's right hand) and the organ's obbligato on
+    // part 2's (its left hand), the continuo below (part 1's lower staff the same notes: not read), the strings resting; III. Violin I |
+    // Viola (8vb) on part 1, Violin II | Continuo on part 2, the solo on part 3 (its left hand the continuo an octave lower).
+    bwv: 1059, title: "Harpsichord Concerto in D minor (reconstruction from Cantata 35)", score: "853226", page: VERITS("853226"),
+    credit: "HARPSICHORD CONCERTO BWV 1059, A RECONSTRUCTION FROM CANTATA 35 (BACH LEFT NINE BARS): VERITS99 ON MUSESCORE (PDMX) · CC0 1.0",
+    reconstruction: "A RECONSTRUCTION: BACH LEFT ONLY NINE BARS; VERITS99 COMPLETED IT FROM CANTATA 35",
+    transpose: UP_STEP,
+    harpsichords: [[[0, 1], [0, 2]]],
+    band: [["Violin I", [1, 1]], ["Violin II", [3, 1]], ["Viola", [1, 2], 1], ["Continuo", [2, 2]]],
+    movements: [
+      m("I. (Allegro)", 0, 133, "d"),
+      { ...m("II. (Andante)", 133, 205, "F", false), harpsichords: [[[0, 1], [1, 1]]], band: [["Violin I", NONE], ["Violin II", NONE], ["Viola", NONE], ["Continuo", [1, 2]]] },
+      { ...m("III. Presto", 205, 437, "d"), harpsichords: [[[2, 1], [2, 2]]], band: KEYBOARD_STRINGS(0) },
+    ],
   },
   {
     bwv: 1060, title: "Concerto for Two Harpsichords in C minor", score: "3512851", page: VERITS("3512851"), credit: VERITS_CREDIT,
@@ -173,6 +202,8 @@ export const REFERENCE: Record<string, number> = {
   "bwv1056-1": 92, "bwv1056-2": 50, "bwv1056-3": 132 /* ♩. = 88 */,
   "bwv1057-1": 112 /* ♩. = 75 */, "bwv1057-2": 60, "bwv1057-3": 160 /* 𝅗𝅥 = 80 */,
   "bwv1058-1": 96, "bwv1058-2": 56, "bwv1058-3": 144 /* ♩. = 96 */,
+  // D351: BWV 1059R as the cantata's numbers are played (Sinfonia ♩ 100; the aria's moving ♩ 72; the Presto ♪ 264, ♩. = 88).
+  "bwv1059-1": 100, "bwv1059-2": 72, "bwv1059-3": 132 /* ♩. = 88 */,
   "bwv1060-1": 96, "bwv1060-2": 54 /* ♩. = 36 */, "bwv1060-3": 112,
   "bwv1061-1": 100, "bwv1061-2": 50 /* ♩. = 33 */, "bwv1061-3": 104,
   "bwv1062-1": 96, "bwv1062-2": 60 /* ♩. = 40 */, "bwv1062-3": 126,
@@ -297,7 +328,7 @@ export function readMovement(c: Concerto, mv: Movement): Read {
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
   const take = ([part, staff]: Src, octaves = 0): Note[] =>
-    x.parts[part].notes
+    (x.parts[part]?.notes ?? [])
       .filter((n) => n[3] === staff && n[0] >= from && n[0] < to)
       .map(([on, dur, pitch]) => {
         const p = parsePitch(pitch);
@@ -307,11 +338,12 @@ export function readMovement(c: Concerto, mv: Movement): Read {
         spelled.push(name);
         return [on - from, Math.min(dur, to - on), midi, p.diatonic + 7 * octaves] as Note;
       });
-  const n = c.harpsichords.length;
+  const hs = mv.harpsichords ?? c.harpsichords;
+  const n = hs.length;
   const tops: Note[][] = [];
   const basses: Note[][] = [];
   const inners: Note[][] = [];
-  c.harpsichords.forEach(([rh, lh]) => {
+  hs.forEach(([rh, lh]) => {
     const t = outline(take(rh), true);
     const b = outline(take(lh), false);
     tops.push(untrill(t.line, TPQ).line);
@@ -337,7 +369,7 @@ export function readMovement(c: Concerto, mv: Movement): Read {
     voices.push(byOnset(inners.flat()));
     names.push("Harpsichords, inner notes");
   }
-  const lines = c.band.map(([name, src, oct]) => ({ name, notes: take(src, oct) }));
+  const lines = (mv.band ?? c.band).map(([name, src, oct]) => ({ name, notes: take(src, oct) }));
   const v1 = lines.findIndex((l) => l.name === "Violin I");
   const v2 = lines.findIndex((l) => l.name === "Violin II");
   // Violin I one note at a time (its double stops' lower notes to Violin II).
@@ -378,7 +410,7 @@ export function build(c: Concerto, i: number, number: number) {
     kind: "fugue" as const,
     book: 3,
     number,
-    title: `${c.title}, BWV ${c.bwv}: ${mv.name}`,
+    title: `${c.title}, BWV ${c.bwv}${c.reconstruction ? "R" : ""}: ${mv.name}`,
     key: mv.key,
     bwv: `${c.bwv}/${i + 1}`,
     meter: r.meter,
@@ -395,7 +427,9 @@ export function build(c: Concerto, i: number, number: number) {
     cadences,
     countersubject: [],
     collection: "hconcerto" as const,
-    short: `BWV ${c.bwv} · ${mv.name.toUpperCase()}`,
+    short: `BWV ${c.bwv} · ${mv.name.toUpperCase()}${c.reconstruction ? " · RECONSTRUCTION" : ""}`,
+    // D351: a reconstruction says so (its card, its pop-up).
+    ...(c.reconstruction ? { reconstruction: c.reconstruction } : {}),
     credit: c.credit,
     source: c.page,
     // The first harpsichord's right hand offered first.
