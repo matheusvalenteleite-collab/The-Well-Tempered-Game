@@ -4,10 +4,13 @@
  * solfège (DÓ, RÉ, MI…, src/i18n/index.ts). Herr Bach keeps his German interjections (So., Recht.).
  */
 import { MANUAL_PT } from "./manual-pt.ts";
+import { COURSE_PT } from "./course-pt.ts";
 
 export const PT: Record<string, string> = {
   // D342: THE MANUAL (manual-pt.ts; this dictionary's own entries win).
   ...MANUAL_PT,
+  // D373: THE TUTORIAL rebuilt (course-pt.ts).
+  ...COURSE_PT,
   // The list
   "THE WELL-TEMPERED GAME": "O JOGO BEM TEMPERADO",
   BOOK: "LIVRO",

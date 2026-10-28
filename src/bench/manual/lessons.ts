@@ -1,4 +1,8 @@
 /**
+ * D373, THE TUTORIAL REBUILT (Luigi and Mario's report of 28 October 2026, the owner's "assume yes"):
+ * Parts 1–3 on the Inventions (1, 4, 8, 12), fifteen lessons, each WATCH → TRY → PLAY on the real play
+ * screen (1.1 a tour of it); Parts 0–II and the drills withdrawn; the older Parts III–V kept, shown as 4–6.
+ *
  * D342, THE MANUAL (the Two-Thumb Clavier-Büchlein; design of 27 October 2026): Parts 0–II (Phase A),
  * D360: Parts III (touch and articulation) and IV (time and breath). Each lesson declared, not searched
  * (design 4.1): its part and titles, its aim, Herr Bach's lines, the steps (HEAR: his demonstration, in
@@ -31,14 +35,18 @@
 import { tr } from "../../i18n/index.ts";
 import { barStart, fugueById } from "../../touch/fugue.ts";
 import { tempoOf } from "../../touch/tempi.ts";
+import type { Reading } from "../../touch/readings.ts";
 import type { LensStats } from "./lens.ts";
-import { DRILLS } from "./drills.ts";
 import type { Run } from "../lessons.ts";
 import type { DemoManner, Options } from "../protos.ts";
 import * as C from "./coach.ts";
 import type { Said } from "./coach.ts";
 
-export type PartId = "0" | "I" | "II" | "III" | "IV" | "V" | "VI" | "VII" | "VIII";
+/**
+ * D373: Parts 1–3 are the new tutorial's (Luigi and Mario's curriculum, on the Inventions); III, IV and V
+ * the older parts kept until they are rebuilt (shown after the new ones as Parts 4, 5 and 6).
+ */
+export type PartId = "1" | "2" | "3" | "III" | "IV" | "V" | "VI" | "VII" | "VIII";
 export type SoundName = "chip" | "harpsichord" | "organ" | "piano";
 /** The sound each name plays on (sound.ts presets). D359: the organ is the PIPE ORGAN (D349), not the retired sampled organ. */
 export const SOUND_PRESET: Record<SoundName, string> = { chip: "chip", harpsichord: "harpsichordSampled", organ: "chamberOrgan", piano: "pianoSampled" };
@@ -47,10 +55,18 @@ export const SOUND_WORD: Record<SoundName, string> = { chip: "CLASSIC CHIP", har
 /**
  * The visual aids (design 4.5), each for its lesson only. D342: dial, trace, repeat, fill, letters,
  * meter, prepared, trend. D360: breath (a comma over the box at each place the line may breathe).
+ * D373 (the new tutorial): thumbs (Mario's model A: both thumbs always there, a shadow under each,
+ * the ghost of the next move), count (the notes numbered 1, 2, 3…), plan (L or R under each block, from
+ * the fingering planner), point (an arrow from his words to the next note, a sign named over it), rest
+ * (a thumb not in use: its strip dimmed, REST), answer (YOU ANSWER HERE at the player's first note).
  */
-export type AidId = "dial" | "trace" | "repeat" | "fill" | "letters" | "meter" | "prepared" | "trend" | "breath";
+export type AidId = "dial" | "trace" | "repeat" | "fill" | "letters" | "meter" | "prepared" | "trend" | "breath" | "thumbs" | "count" | "plan" | "point" | "rest" | "answer";
 export type DemoStyle = "plain" | DemoManner;
 export type TouchName = "LEGATO" | "ORDINARY" | "DETACHED";
+/** D373: the signs of Part 3 (D370's vocabulary), one at a time; HELD is the plain long note. */
+export type SignId = "held" | "short" | "detached" | "joined" | "accent";
+/** D373: a lesson's own mark on a note (its reading, built for the lesson). */
+export type LessonMark = "short" | "detached" | "joined" | "accent" | null;
 
 export interface Material {
   piece: string;
@@ -71,16 +87,38 @@ export interface Material {
   /** What it is, in a line ("Invention 1, right hand, bar 1"). */
   label: string;
   badge: "IN GAME" | "DRILL";
+  /** D373: the voice's notes skipped from the first bar's line (the passage begins on the next). */
+  skip?: number;
+  /** D373: only so many of the voice's notes (the passage ends on the last of them). */
+  count?: number;
+  /** D373: the notes the passage plays, as written ("C4", "B♭4"): held to the data by the tests, drawn small on its tile. */
+  notes?: string[];
+  /** D373: one thumb takes every note in the hints and his demonstration (Options.side). */
+  side?: "left" | "right";
+  /** D373: the timing windows this many times the game's (Parts 1–2: twice). */
+  widen?: number;
+  /** D373: the lesson's own marks, one per note of the passage (its reading). */
+  marks?: LessonMark[];
 }
 
+/**
+ * D373: the new tutorial's steps: WATCH (Bach plays, his thumbs shown), TRY (the notes wait for you; only
+ * the way is judged, nothing scored), PLAY (count-in, the metronome, judged), and 1.1's TOUR of the screen.
+ * The older parts keep DRILL and PLAY (their HEAR is the lesson's `hear`).
+ */
+export type StageKind = "drill" | "play" | "watch" | "try" | "tour";
 export interface Stage {
   /** A DRILL may be left after one take; a PLAY must be passed to go on, and the last PLAY decides the lesson. */
-  kind: "drill" | "play";
+  kind: StageKind;
   m: Material;
   /** D359: Herr Bach's one line before the stage: what it is for. */
   say?: string;
   /** D360 (III.1): the touch this take asks for. */
   ask?: TouchName;
+  /** D373: how he plays a WATCH. */
+  style?: DemoStyle;
+  /** D373: the aids of this step (else the lesson's). */
+  aids?: AidId[];
 }
 
 /** One line of the lens (COUNTS): what it is, the figure reached, and whether it is met. */
@@ -97,13 +135,19 @@ export interface Check {
 export interface ManualLesson {
   id: string;
   part: PartId;
-  /** Herr Bach's title (German) and the English beneath it. */
+  /** Herr Bach's title (German) and the English beneath it. D373: the new parts' titles are English only (title = english). */
   title: string;
   english: string;
   minutes: number;
   /** The lesson's sound (decision 4: the instrument that makes its rudiment audible). */
   sound?: SoundName;
   aim: string;
+  /** D373: "You'll learn: …", in one sentence (the tile and the card). */
+  learn?: string;
+  /** D373: the music, named small ("INVENTION 1, BAR 1"). */
+  music?: string;
+  /** D373: the sign shown alone, on a card, before the lesson (Part 3). */
+  sign?: SignId;
   /** HEAR: his demonstration of a stage (the last by default), in one or more manners, one after the other. */
   hear?: { stage?: number; styles: DemoStyle[] };
   aids: AidId[];
@@ -128,20 +172,25 @@ export interface ManualLesson {
   told?: (x: LensStats) => Said | null;
   sources?: string[];
   checkpoint?: boolean;
-  /** Part 0's screen (0.1), not played on the bars. D369: 0.2, the placement, withdrawn (the owner: "Everybody is a novice"). */
-  screen?: "grip";
 }
 
 const pctOf = (a: number, b: number) => (b > 0 ? Math.round((100 * a) / b) : 0);
 const atLeast = (a: number, b: number, share: number) => b > 0 && a / b >= share - 1e-9;
 /** The share right (of the notes, a stray strike half a note). */
 const right = (x: LensStats, share: number): Check => ({ text: "RIGHT {p}% (AIM {a}%)", vars: { p: Math.round(100 * x.accuracy), a: Math.round(100 * share) }, ok: x.accuracy >= share - 1e-9 && x.of > 0, fix: C.fixRight(x) });
-const meanWithin = (x: LensStats, ms: number): Check => ({ text: "MEAN TIMING {m} MS (AIM WITHIN ±{a})", vars: { m: !x.timing.n ? "—" : x.timing.mean > 0 ? `+${x.timing.mean}` : x.timing.mean, a: ms }, ok: x.timing.n > 0 && Math.abs(x.timing.mean) <= ms, fix: C.fixTiming(x) });
 const perfectLine = (x: LensStats): Check => ({ text: "PERFECT {p}% · SPREAD {s} MS", vars: { p: pctOf(x.timing.perfect, x.timing.n), s: x.timing.sd }, ok: true });
 const consistency = (x: LensStats, share = 0.7): Check => ({ text: "TOUCH KEPT {p}% (AIM {a}%)", vars: { p: pctOf(x.touch.ok, x.touch.of), a: Math.round(100 * share) }, ok: atLeast(x.touch.ok, x.touch.of, share), na: !x.touch.of, fix: C.fixConsistency(x) });
 const touchLine = (x: LensStats): Check => ({ text: "YOUR TOUCH: {t}", vars: { t: x.touch.style ?? "—" }, ok: true });
 /** D360 (Part V): the written signs read from the shake, of those in the passage; the player's own. */
 const graceLine = (x: LensStats): Check => ({ text: "SIGNS READ {n} OF {m} · YOUR OWN {f}", vars: { n: x.orn.read, m: x.orn.of, f: x.orn.free }, ok: true });
+
+/** D373: the notes right, of the notes (a stray strike half a note), at least so many in every `of`. */
+const notesRight = (x: LensStats, share: number): Check => ({ text: "NOTES {n} OF {m}", vars: { n: x.right, m: x.of }, ok: x.of > 0 && x.accuracy >= share - 1e-9, fix: C.fixRight(x) });
+/** D373: the moves the right way (each note after the first: up, down or the same), of the moves. */
+const movesRight = (x: LensStats, share: number): Check => {
+  const of = Math.max(0, x.of - 1);
+  return { text: "MOVES THE RIGHT WAY {n} OF {m}", vars: { n: Math.min(x.direction.ok, of), m: of }, ok: of > 0 && x.direction.ok >= Math.ceil(share * of - 1e-9), fix: C.fixDirection(x) };
+};
 
 /** D369: the novice-friendly timing aims (I.1, I.5): the mean within this (ms), the spread under that. */
 export const NOVICE_MEAN_MS = 90;
@@ -160,35 +209,34 @@ export function toldTiming(x: LensStats): Said | null {
 
 /** A passage of the game's own, as a material. */
 const ex = (piece: string, voice: number, fromBar: number, toBar: number, tempo: Material["tempo"], label: string, o: Partial<Material> = {}): Material => ({ piece, voice, fromBar, toBar, tempo, label, badge: "IN GAME", ...o });
-/** A drill (drills.ts), whole, at its own tempo. */
-const drill = (key: keyof typeof DRILLS & string, label: string, o: Partial<Material> = {}): Material => {
-  const d = DRILLS[key];
-  return { piece: d.id, voice: d.voice, fromBar: 1, toBar: d.piece.bars.length, tempo: { bpm: d.tempo }, wait: d.wait, solo: d.band.kind === "click" || d.band.kind === "none", label, badge: "DRILL", ...o };
-};
 const st = (kind: Stage["kind"], m: Material, say: string, o: Partial<Stage> = {}): Stage => ({ kind, m, say, ...o });
 
 const INV = "inv01";
-/**
- * D369: Invention 1 in Parts 0–II at 75% of the game's tempo (♩ = 45 where the game plays it at 60): the
- * owner, the first time it is heard and played, slower than standard; in the later parts at 80%.
- */
-const SLOW_INV = 75;
 const RH = 0;
-const LH = 1;
+/** D373: Inventions 4, 8 and 12 (MORE BACH's chunk: loaded before their lessons begin, fugue.ts loadExtras). */
+const INV4 = "bwv775";
+const INV8 = "bwv779";
+const INV12 = "bwv783";
 
-export const PARTS: { id: PartId; title: string; english: string; phase: "A" | "B" | "later"; seal?: string }[] = [
-  { id: "0", title: "VORBEREITUNG", english: "BEFORE THE FIRST NOTE", phase: "A" },
-  { id: "I", title: "DER ANSCHLAG", english: "THE STRIKE", phase: "A", seal: "So. The strike is yours. Now let both thumbs work." },
-  { id: "II", title: "ZWEI DAUMEN", english: "TWO THUMBS", phase: "A", seal: "Two thumbs, one voice. Next: how each note is spoken." },
-  { id: "III", title: "DER VORTRAG DER NOTEN", english: "TOUCH AND ARTICULATION", phase: "B", seal: "Spoken, and kept. Next: where the music breathes." },
-  { id: "IV", title: "ZEIT UND ATEM", english: "TIME AND BREATH", phase: "B", seal: "Time and breath are yours. My fugues are waiting." },
-  { id: "V", title: "DIE MANIEREN", english: "THE GRACES", phase: "B" },
+export const PARTS: { id: PartId; title: string; english: string; phase: "A" | "B" | "later"; seal?: string; n?: number; sub?: string }[] = [
+  { id: "1", n: 1, title: "FIRST NOTES", english: "FIRST NOTES", sub: "ONE THUMB, THEN TWO, THEN WITH BACH", phase: "A", seal: "Your first notes, with both thumbs and with me. Next: high and low." },
+  { id: "2", n: 2, title: "HIGH AND LOW", english: "HIGH AND LOW", sub: "YOUR THUMB DRAWS THE TUNE", phase: "A", seal: "Steps, jumps, repeats and runs: your thumbs draw the tune. Next: how long." },
+  { id: "3", n: 3, title: "HOW LONG", english: "HOW LONG", sub: "THE SIGNS, ONE AT A TIME", phase: "A", seal: "Held, short, detached, joined, accented: you read my signs now." },
+  { id: "III", n: 4, title: "DER VORTRAG DER NOTEN", english: "TOUCH AND ARTICULATION", sub: "THE OLDER LESSONS, ON MY FUGUES", phase: "B", seal: "Spoken, and kept. Next: where the music breathes." },
+  { id: "IV", n: 5, title: "ZEIT UND ATEM", english: "TIME AND BREATH", sub: "THE OLDER LESSONS, ON MY FUGUES", phase: "B", seal: "Time and breath are yours. My fugues are waiting." },
+  { id: "V", n: 6, title: "DIE MANIEREN", english: "THE GRACES", sub: "THE OLDER LESSONS, ON MY FUGUES", phase: "B" },
   { id: "VI", title: "DAS HÖREN", english: "LISTENING", phase: "later" },
   { id: "VII", title: "DIE INSTRUMENTE", english: "THE FOUR INSTRUMENTS", phase: "later" },
   { id: "VIII", title: "DER VORTRAG", english: "PLAYING MUSIC", phase: "later" },
 ];
-/** The parts built (Phase A and B), in order. */
+/** The parts built, in order. */
 export const BUILT = PARTS.filter((p) => p.phase !== "later");
+/** D373: a lesson's number as the tutorial shows it (the older parts numbered after the new: III.2 is 4.2). */
+export function shownId(id: string): string {
+  const [p, k] = id.split(".");
+  const n = PARTS.find((x) => x.id === p)?.n;
+  return n && k ? `${n}.${k}` : id;
+}
 
 const SOURCES_TOUCH = [
   "C. P. E. Bach, Versuch (1753), I, ch. 3 §22: plain quavers held about half their value.",
@@ -197,320 +245,378 @@ const SOURCES_TOUCH = [
   "J. N. Forkel (1802), ch. III: Bach's touch, neither too long nor too short.",
 ];
 
-export const MANUAL: ManualLesson[] = [
+/**
+ * D373: the materials of Parts 1–3 (every note read from data/touch/: test/d373-tutorial.test.ts). Tempi
+ * as crotchets a minute (the report's as a share of MORE BACH's: Invention 1 ♩ = 72, Invention 4 ♪ = 150,
+ * Invention 8 ♩ = 84, Invention 12 ♩. = 55).
+ */
+const SUBJECT = ["C4", "D4", "E4", "F4", "D4", "E4", "C4", "G4"];
+/** Invention 1, the upper voice's first eight notes (seven quick notes, then a longer one), alone. */
+const first8 = (bpm: number, o: Partial<Material> = {}) => ex(INV, RH, 1, 1, { bpm }, "Invention 1, upper voice, bar 1: the first eight notes", { solo: true, count: 8, notes: SUBJECT, widen: 2, ...o });
+const LOWER_1_2 = ["C3", "D3", "E3", "F3", "D3", "E3", "C3", "G3", "G2", "G3", "A3", "B3", "C4", "A3", "B3", "G3", "C4"];
+const INV8_1_2 = ["F4", "A4", "F4", "C5", "F4", "F5", "E5", "D5", "C5", "D5", "C5", "B♭4", "A4", "B♭4", "A4", "G4", "F4"];
+const INV8_1_3 = [...INV8_1_2, "A4", "C5", "A4", "F5", "C5", "A5"];
+const INV8_1_4 = [...INV8_1_3, "C6", "B♭5", "C6", "A5", "C6", "B♭5", "C6", "A5", "C6", "B♭5", "C6", "F5"];
+const INV4_1 = ["D4", "E4", "F4", "G4", "A4", "B♭4"];
+const INV4_1_2 = [...INV4_1, "C♯4", "B♭4", "A4", "G4", "F4", "E4", "F4"];
+const INV1_1_4 = [
+  ...SUBJECT, "C5", "B4", "C5", "D5", "G4", "A4", "B4", "C5", "A4", "B4", "G4", "D5", "G5", "F5", "G5",
+  "E5", "A5", "G5", "F5", "E5", "G5", "F5", "A5", "G5", "F5", "E5", "D5", "C5", "E5", "D5", "F5",
+  "E5", "D5", "C5", "B4", "A4", "C5", "B4", "D5", "C5", "B4", "A4", "G4", "F♯4", "A4", "G4", "B4", "A4",
+];
+
+/** His lines over the screen in 1.1 (each with the part that glows). */
+export const TOUR: { text: string; focus: "all" | "strips" | "box" | "notes" | "line" | "height" }[] = [
+  { text: "Welcome. This is the screen you will play on. Let me show you its parts, one at a time.", focus: "all" },
+  { text: "Hold the phone sideways. Your thumbs go here, on these two strips. Touch anywhere along them.", focus: "strips" },
+  { text: "In the middle the music goes by, right to left. Each little bar is one note.", focus: "box" },
+  { text: "The notes with a white border are yours. The thin ones are mine: I play them for you.", focus: "notes" },
+  { text: "When one of your notes reaches the gold line, touch a strip. That plays it.", focus: "line" },
+  { text: "A higher note: touch higher on the strip. A lower note: lower. Not exactly; just the right way.", focus: "height" },
+];
+/** 1.1's words over the strips while it waits for a touch on each. */
+export const TOUR_TOUCH = ["TOUCH THE LEFT STRIP", "NOW THE RIGHT STRIP", "BOTH STRIPS ✓"];
+
+/** The new tutorial (D373): Parts 1–3, fifteen lessons on Inventions 1, 4, 8 and 12. */
+const COURSE: ManualLesson[] = [
+  // PART 1 · FIRST NOTES · piano, metronome on, the windows twice the game's
   {
-    id: "0.1",
-    part: "0",
-    title: "HALTUNG",
-    english: "THE GRIP AND THE EARS",
-    minutes: 2,
+    id: "1.1",
+    part: "1",
+    title: "THE PLAY SCREEN",
+    english: "THE PLAY SCREEN",
+    minutes: 1,
     sound: "piano",
-    aim: "Phone sideways, one thumb on each bar, the sound in time with the touch.",
-    aids: [],
-    stages: [],
-    lens: { counts: ["Nothing"], shown: ["The sound's delay found"], never: ["Anything else"] },
-    before: ["Two thumbs and one voice. The rest of the music is mine to play."],
-    after: [],
+    aim: "What each part of the play screen is for, and how a touch plays a note.",
+    music: "INVENTION 1, PAUSED IN THE BOX",
+    aids: ["thumbs"],
+    stages: [st("tour", ex(INV, RH, 1, 2, { bpm: 30 }, "Invention 1, bars 1–2", { wait: true, widen: 2, notes: [...INV1_1_4.slice(0, 24)] }), "Six parts, one at a time.")],
+    lens: { counts: ["Both strips touched"], shown: [], never: ["Anything else"] },
+    before: [],
+    after: ["That is the whole screen. Now a tune."],
     again: [],
-    screen: "grip",
-  },
-  // PART I · DER ANSCHLAG · THE STRIKE
-  {
-    id: "I.1",
-    part: "I",
-    title: "DER PULS",
-    english: "PULSE AND ONSET",
-    minutes: 4,
-    sound: "piano",
-    aim: "To strike with the music, by listening rather than by watching.",
-    hear: { styles: ["plain"] },
-    aids: ["dial"],
-    stages: [
-      st("drill", drill("schlaege", "Drill: one note, sixteen strikes; the click fades after eight", { easy: "timing" }), "Sixteen strikes on one note. After eight the click goes quiet: keep it going inside you."),
-      st("play", ex(INV, RH, 1, 2, { pct: SLOW_INV }, "Invention 1, right hand, bars 1–2, at 75%", { easy: "timing" }), "Now my Invention. My left hand answers yours: keep the beat between us."),
-    ],
-    lens: { counts: ["Notes struck in their window: 85%", "Mean timing within ±90 ms", "Spread under 80 ms"], shown: ["PERFECT share"], never: ["Height", "Holds", "Articulation", "Colour", "Loudness"] },
-    // D342: and the spread (a random tapper's mean is near zero too; design 4.10). D369: novice-friendly
-    // (the owner: "I was early by 55ms … Bach is complaining like crazy and requiring me to repeat"):
-    // the mean within ±90 ms (was ±50), the spread under 80 ms (was 70: a random tapper at this tempo
-    // scatters 83–138 ms, so the ~110 first proposed would pass it on some seeds; it still fails).
-    checks: (x): Check[] => [
-      { text: "STRUCK IN TIME {p}% (AIM 85%)", vars: { p: pctOf(x.right, x.of) }, ok: atLeast(x.right, x.of, 0.85), fix: C.fixRight(x) },
-      meanWithin(x, NOVICE_MEAN_MS),
-      { text: "SPREAD {s} MS (AIM UNDER 80)", vars: { s: x.timing.n > 2 ? x.timing.sd : "—" }, ok: x.timing.n > 2 && x.timing.sd < NOVICE_SPREAD_MS, fix: C.fixSpread(x) },
-    ],
-    shown: (x): Check[] => [{ text: "PERFECT {p}%", vars: { p: pctOf(x.timing.perfect, x.timing.n) }, ok: true }],
-    before: ["Strike with the music. Anywhere on the bar: here only the time counts.", "Listen to the other voice, not to the light on the glass."],
-    after: ["Recht. The pulse is in you now."],
-    again: ["Let the note come to you. Again."],
-    // D369: praise first; a novice-good take only hears a suggestion.
-    told: (x) => toldTiming(x),
-    sources: ["B. H. Repp, Sensorimotor synchronization (2005): tappers anticipate the beat."],
   },
   {
-    id: "I.2",
-    part: "I",
-    title: "SCHRITT UND SPRUNG",
-    english: "STEP AND LEAP",
-    minutes: 4,
-    sound: "piano",
-    aim: "To draw the line with the thumb: up when it rises, down when it falls, a step small and a leap clear.",
-    hear: { styles: ["plain"] },
-    aids: ["trace"],
-    stages: [
-      st("drill", drill("treppe", "Drill: C4 to G4 by steps and back, then by leaps (WAIT FOR ME)"), "Five steps up and back, then the same in leaps. I wait for you."),
-      st("drill", ex(INV, RH, 1, 1, { pct: SLOW_INV }, "Invention 1, right hand, bar 1 (WAIT FOR ME)", { wait: true }), "My subject: steps, then a leap of a fourth. I wait for you."),
-      st("drill", ex(INV, RH, 1, 1, { pct: SLOW_INV }, "Invention 1, right hand, bar 1, at 75%"), "The same bar, now in time."),
-      st("play", ex("wtc1f20", 1, 1, 2, { pct: 80 }, "Fugue I/20 in A minor, alto, bars 1–2, at 80%"), "A darker line: it turns, then falls far. Draw it."),
-    ],
-    lens: { counts: ["Direction right: 90%", "Notes played: 70%"], shown: ["Timing"], never: ["The absolute height", "Which thumb", "Holds"] },
-    checks: (x): Check[] => [
-      { text: "DIRECTION RIGHT {p}% (AIM 90%)", vars: { p: pctOf(x.direction.ok, x.direction.of) }, ok: atLeast(x.direction.ok, x.direction.of, 0.9) && x.direction.of >= x.of / 2, fix: C.fixDirection(x) },
-      { text: "NOTES PLAYED {p}% (AIM 70%)", vars: { p: Math.round(100 * x.accuracy) }, ok: x.accuracy >= 0.7, fix: C.fixRight(x) },
-    ],
-    shown: (x): Check[] => [perfectLine(x)],
-    before: ["Higher when it rises, lower when it falls.", "How high is your affair, but a leap must look like one."],
-    after: ["Gut. Your thumb drew the line."],
-    again: ["A leap must look like one; a step may be small. Again."],
-  },
-  {
-    id: "I.3",
-    part: "I",
-    title: "DIESELBE NOTE",
-    english: "THE SAME NOTE AGAIN",
+    id: "1.2",
+    part: "1",
+    title: "THE LEFT THUMB ALONE",
+    english: "THE LEFT THUMB ALONE",
     minutes: 3,
     sound: "piano",
-    aim: "To strike a note again: lift, then land level.",
-    hear: { styles: ["one-thumb", "plain"] },
-    aids: ["repeat"],
+    aim: "One touch plays one note, and your thumb climbs when the tune climbs.",
+    music: "INVENTION 1, BAR 1",
+    aids: ["thumbs", "rest"],
     stages: [
-      st("drill", ex("wtc2f05", 2, 1, 3, { pct: 85 }, "Fugue II/5 in D major, tenor, bars 1–3, at 85%"), "Three Ds, a little slower than written. Lift between them."),
-      st("drill", ex("wtc2f12", 0, 1, 2, { pct: 80 }, "Fugue II/12 in F minor, soprano, bars 1–2, at 80%"), "Three Fs, then three Es: each one lifted, each one new."),
-      st("play", ex("wtc2f05", 2, 1, 3, { pct: 100 }, "Fugue II/5 in D major, tenor, bars 1–3"), "The Ds again, in time."),
+      st("watch", first8(30, { side: "left" }), "Watch my left thumb. One note, then one a little higher: it climbs with the music, and drops where the music drops.", { aids: ["thumbs", "count", "point", "rest"] }),
+      st("try", first8(30, { side: "left", wait: true }), "Now you, left thumb. Don't hurry: each note waits for you.", { aids: ["thumbs", "trace", "rest"] }),
+      st("play", first8(30, { side: "left" }), "Now in time. I count four, then you begin. I'll go slowly."),
     ],
-    lens: { counts: ["Repeats right and struck: 90%", "Notes played: 70%"], shown: ["Doubles ignored"], never: ["Which thumb", "The release's length"] },
-    // D342: and the notes played (a passage has only two or four repeats: chance alone could pass them).
-    checks: (x): Check[] => [
-      { text: "REPEATS RIGHT {n} OF {m} (AIM 90%)", vars: { n: x.repeats.ok, m: x.repeats.of }, ok: atLeast(x.repeats.ok, x.repeats.of, 0.9), na: !x.repeats.of, fix: C.fixRepeats(x) },
-      { text: "NOTES PLAYED {p}% (AIM 70%)", vars: { p: Math.round(100 * x.accuracy) }, ok: x.accuracy >= 0.7, fix: C.fixRight(x) },
-    ],
-    // D359: the gap before a repeat is no longer shown (it read as a negative number when a thumb took over).
-    shown: (x): Check[] => [{ text: "DOUBLES IGNORED {n}", vars: { n: x.repeats.doubles }, ok: true }],
-    before: ["A word said twice is said twice: let go, then speak again."],
-    after: ["So. Each word heard twice."],
-    again: ["Lift, then land level where you were. Again."],
+    lens: { counts: ["Notes: 6 of 8", "Moves the right way: 5 of 7"], shown: [], never: ["Which thumb", "How long you hold"] },
+    checks: (x): Check[] => [notesRight(x, 0.75), movesRight(x, 0.7)],
+    before: ["Invention 1 begins with a little tune of eight notes. First your left thumb alone."],
+    after: ["That was the first idea of my first Invention, and you just played it."],
+    again: ["Slowly: one note at a time, up when the tune goes up. Again."],
   },
   {
-    id: "I.4",
-    part: "I",
-    title: "HALTEN UND LASSEN",
-    english: "HOLDING AND LETTING GO",
+    id: "1.3",
+    part: "1",
+    title: "THE RIGHT THUMB ALONE",
+    english: "THE RIGHT THUMB ALONE",
     minutes: 3,
     sound: "piano",
-    aim: "To give each note its length, and each rest its silence.",
-    hear: { styles: ["held"] },
-    aids: ["fill"],
-    words: ["held", "rest", "short"],
+    aim: "The same tune with your other thumb.",
+    music: "INVENTION 1, BAR 1",
+    aids: ["thumbs", "rest"],
     stages: [
-      st("drill", ex("wtc2f09", 3, 1, 3, { pct: 70 }, "Fugue II/9 in E major, bass, bars 1–3, at 70%"), "Long notes in the old style. Stay on each until the next begins."),
-      st("play", ex("wtc1f02", 0, 17, 19, { pct: 100 }, "Fugue I/2 in C minor, soprano, bars 17–19"), "Short figures, each after a rest. Lift where I rest."),
+      st("watch", first8(30, { side: "right" }), "The same tune, with my right thumb. Your left one rests.", { aids: ["thumbs", "count", "point", "rest"] }),
+      st("try", first8(30, { side: "right", wait: true }), "Now you, right thumb. Each note waits for you.", { aids: ["thumbs", "trace", "rest"] }),
+      st("play", first8(30, { side: "right" }), "Now in time, right thumb. I count four, then you begin."),
     ],
-    lens: { counts: ["HELD on 70% of the notes judged for length", "RESTS lifted: 80%", "Notes played: 60%"], shown: ["Each note's hold"], never: ["Touch consistency (Part III)"] },
-    checks: (x): Check[] => [
-      { text: "HELD {n} OF {m} (AIM 70%)", vars: { n: x.held.ok, m: x.held.of }, ok: atLeast(x.held.ok, x.held.of, 0.7), na: !x.held.of, fix: C.fixHeld(x) },
-      { text: "RESTS LIFTED {n} OF {m} (AIM 80%)", vars: { n: x.rests.ok, m: x.rests.of }, ok: atLeast(x.rests.ok, x.rests.of, 0.8), na: !x.rests.of, fix: C.fixRests(x) },
-      { text: "NOTES PLAYED {p}% (AIM 60%)", vars: { p: Math.round(100 * x.accuracy) }, ok: x.accuracy >= 0.6, fix: C.fixRight(x) },
-    ],
-    before: ["A note lasts exactly as long as your thumb.", "A note lives as long as you hold it. A rest is music too."],
-    after: ["So. A note lives as long as you hold it."],
-    again: ["Hold each note to its end; lift where the music rests. Again."],
+    lens: { counts: ["Notes: 6 of 8", "Moves the right way: 5 of 7"], shown: [], never: ["Which thumb", "How long you hold"] },
+    checks: (x): Check[] => [notesRight(x, 0.75), movesRight(x, 0.7)],
+    before: ["The same tune with your right thumb. You know it already: only the thumb is new."],
+    after: ["Both thumbs know the tune now."],
+    again: ["One note at a time, the right way. Again."],
   },
   {
-    id: "I.5",
-    part: "I",
-    title: "PROBE: DIE INVENTION",
-    english: "CHECKPOINT: A MELODY",
-    minutes: 3,
-    sound: "piano",
-    aim: "To play a whole melody with the other voice: pulse, line, repeats and lengths together.",
-    hear: { styles: ["plain"] },
-    aids: [],
-    // To the downbeat of bar 7 (the passage ends on the note bar 6 leads to: G4, the cadence in G, then a rest).
-    stages: [st("play", ex(INV, RH, 1, 6, { pct: SLOW_INV }, "Invention 1, right hand, bars 1–7, at 75% (to the cadence in G)"), "From the first note to the cadence in G. Begin when you are ready.")],
-    lens: { counts: ["Right: 85%", "Mean timing within ±90 ms", "The cadence's note HELD"], shown: ["Everything else"], never: ["Articulation", "Colour"] },
-    // The cadence's note held: struck right and not let go SHORT (its end, when the passage stops first, not judged against it).
-    checks: (x): Check[] => [right(x, 0.85), meanWithin(x, NOVICE_MEAN_MS), { text: "THE CADENCE NOTE {w}", vars: { w: !x.last.hit ? "MISSED" : x.last.word === "SHORT" ? "SHORT" : "HELD" }, ok: x.last.hit && x.last.word !== "SHORT", fix: C.fixLast(x) }],
-    shown: (x): Check[] => [perfectLine(x)],
-    before: ["Seven bars, with my left hand beside you. I will say nothing until the end."],
-    after: ["The first page of my Inventions. The line, the time and the lengths: yours."],
-    again: ["Again. Hear it in your head first; then play."],
-    checkpoint: true,
-  },
-  // PART II · ZWEI DAUMEN · TWO THUMBS
-  {
-    id: "II.1",
-    part: "II",
-    title: "WECHSEL",
+    id: "1.4",
+    part: "1",
+    title: "TAKING TURNS",
     english: "TAKING TURNS",
     minutes: 4,
     sound: "piano",
-    aim: "Quick notes shared between the thumbs, one after the other.",
-    hear: { styles: ["plain"] },
-    aids: ["letters"],
-    guide: true,
+    aim: "Your thumbs take turns, left, right, left, right: that is how quick notes are played.",
+    music: "INVENTION 1, BAR 1",
+    aids: ["thumbs", "plan"],
     stages: [
-      st("drill", drill("pendel", "Drill: quavers rocking G4 A4, then B4 C5 (WAIT FOR ME)"), "Rock between two notes, each thumb taking one. I wait for you."),
-      st("drill", ex(INV, LH, 2, 3, { pct: SLOW_INV }, "Invention 1, left hand, bars 2–3, at 75%"), "My left hand's semiquavers. Left, right, left: never the same thumb twice."),
-      st("drill", ex("wtc2f18", 0, 1, 5, { pct: 75 }, "Fugue II/18 in G♯ minor, soprano, bars 1–5, at 75%"), "Running quavers, slower than written."),
-      st("play", ex("wtc2f18", 0, 1, 5, { pct: 100 }, "Fugue II/18 in G♯ minor, soprano, bars 1–5"), "Now as written."),
+      st("watch", first8(30), "Now both thumbs: left, right, left, right. The letters under the notes tell you which.", { aids: ["thumbs", "plan", "point"] }),
+      st("try", first8(30, { wait: true }), "Now you: the letter under each note tells you which thumb.", { aids: ["thumbs", "plan", "trace"] }),
+      st("play", first8(30), "In time, taking turns. I count four."),
+      st("play", first8(36), "A little quicker now. The same turns."),
     ],
-    lens: { counts: ["Taking turns on 70% of notes under 400 ms apart", "Right: 85%"], shown: ["Joins and gaps"], never: ["Articulation", "Which thumb starts"] },
-    checks: (x): Check[] => [{ text: "TURNS TAKEN {n} OF {m} (AIM 70%)", vars: { n: x.alternation.alt, m: x.alternation.of }, ok: atLeast(x.alternation.alt, x.alternation.of, 0.7), na: !x.alternation.of, fix: C.fixTurns(x) }, right(x, 0.85)],
-    shown: (x): Check[] => [{ text: "JOINED {n} OF {m}", vars: { n: x.joins.ok, m: x.joins.of }, ok: true }],
-    before: ["They say I taught the thumb to play. Here you have nothing else; let both work."],
-    after: ["So. Two thumbs walk where one would stumble."],
-    again: ["One thumb did all the work. Take turns. Again."],
-    sources: ["J. N. Forkel, Ueber J. S. Bachs Leben, Kunst und Kunstwerke (1802), ch. III: the thumb given its full share."],
-  },
-  {
-    id: "II.2",
-    part: "II",
-    title: "WECHSELNOTEN",
-    english: "NEIGHBOURS",
-    minutes: 4,
-    sound: "piano",
-    aim: "To play the note that steps away and comes home.",
-    hear: { styles: ["one-thumb", "plain"] },
-    aids: ["trace"],
-    stages: [
-      st("drill", ex("wtc1f02", 1, 1, 1, { pct: 70 }, "Fugue I/2 in C minor, alto, bar 1, at 70%"), "C, B, C: the thumb on C stays where it is and takes it back."),
-      st("play", ex("wtc2f07", 0, 41, 46, { pct: 100 }, "Fugue II/7 in E♭ major, soprano, bars 41–46"), "The same figure three times, falling. The home thumb waits each time."),
-    ],
-    lens: { counts: ["Right: 90%"], shown: ["Which thumb took each note"], never: ["Thumb choice", "Articulation"] },
-    checks: (x): Check[] => [right(x, 0.9)],
+    lens: { counts: ["Notes: 6 of 8", "Moves the right way: 5 of 7"], shown: ["Turns taken"], never: ["Which thumb (taking turns is praised, not required)"] },
+    checks: (x): Check[] => [notesRight(x, 0.75), movesRight(x, 0.7)],
     shown: (x): Check[] => [{ text: "TURNS TAKEN {n} OF {m}", vars: { n: x.alternation.alt, m: x.alternation.of }, ok: true }],
-    before: ["The note visits its neighbour and comes home.", "Let the thumb that stayed home receive it."],
-    after: ["Recht. The home thumb waited, and the note came back to it."],
-    again: ["Leave the home thumb where it is; it takes the return. Again."],
+    told: (x) => (x.alternation.of > 2 && x.alternation.alt / x.alternation.of >= 0.7 ? { text: "And you took turns on {n} of {m} quick notes. Good.", vars: { n: x.alternation.alt, m: x.alternation.of } } : null),
+    before: ["Quick notes are easier with two thumbs, one after the other."],
+    after: ["Two thumbs walk where one would stumble."],
+    again: ["Left, right, left, right, as the letters say. Again."],
   },
   {
-    id: "II.3",
-    part: "II",
-    title: "DIE ÜBERGABE",
-    english: "THE HANDOVER",
-    minutes: 5,
-    sound: "piano",
-    aim: "One note passed to the next with no gap: legato, as one of three touches.",
-    // D359: his thumbs drawn (it was a sound-only pair under his lines): the same bars apart, then joined.
-    hear: { stage: 0, styles: ["detached", "legato"] },
-    aids: ["meter"],
-    words: ["legato"],
-    stages: [
-      st("drill", ex(INV, LH, 2, 3, { pct: SLOW_INV }, "Invention 1, left hand, bars 2–3: joined"), "Joined: land the next thumb as the last one lifts, or a moment before."),
-      st("drill", ex("wtc1f22", 0, 1, 4, { pct: 100 }, "Fugue I/22 in B♭ minor, soprano I, bars 1–4"), "Long notes, where every gap is heard."),
-      st("play", ex(INV, RH, 3, 3, { pct: SLOW_INV }, "Invention 1, right hand, bar 3: sixteen semiquavers"), "Now sixteen notes, one line."),
-    ],
-    lens: { counts: ["Joins on 70% of the notes that follow one another"], shown: ["The touch inferred", "Overlaps"], never: ["Colour", "Loudness"] },
-    checks: (x): Check[] => [{ text: "JOINED {n} OF {m} (AIM 70%)", vars: { n: x.joins.ok, m: x.joins.of }, ok: atLeast(x.joins.ok, x.joins.of, 0.7), na: !x.joins.of, fix: C.fixJoins(x) }],
-    shown: (x): Check[] => [touchLine(x)],
-    before: ["Listen: the same bars apart, then joined."],
-    after: ["A cantabile manner, as my Inventions ask, is more than joined: neither glued nor clipped; it breathes."],
-    again: ["The notes fell apart. Land the next before the last lifts. Again."],
-    sources: ["F. Couperin, L'art de toucher le clavecin (1716): a line kept joined with the fingers.", "J. N. Forkel (1802), ch. III: Bach's touch, neither too long nor too short."],
-  },
-  {
-    id: "II.4",
-    part: "II",
-    title: "VORBEREITEN UND ABZIEHEN",
-    english: "PREPARING: HAMMER-ON AND PULL-OFF",
-    minutes: 5,
-    sound: "piano",
-    aim: "To put the next thumb down before it is needed, and let the release of the other sound it.",
-    hear: { styles: ["prepared"] },
-    aids: ["prepared"],
-    stages: [
-      st("drill", drill("paare", "Drill: falling pairs: rest the second thumb early, lift the first on the beat"), "As one thumb strikes, rest the other on the next note. Lift the first on the beat."),
-      st("drill", ex("wtc1f22", 0, 4, 6, { pct: 70 }, "Fugue I/22 in B♭ minor, soprano I, bars 4–6, slow"), "Slowly: every handover prepared."),
-      st("play", ex("wtc2f18", 0, 1, 5, { pct: 100 }, "Fugue II/18 in G♯ minor, soprano, bars 1–5, prepared"), "The running quavers again, prepared."),
-    ],
-    lens: { counts: ["Right: 85%", "At least four pull-offs or hammer-ons"], shown: ["How early each thumb rested", "Notes left unsounded"], never: ["Whether you prepare at all after this lesson"] },
-    checks: (x): Check[] => [right(x, 0.85), { text: "PULL-OFFS {p} · HAMMER-ONS {h} (AIM 4 IN ALL)", vars: { p: x.prep.pullOffs, h: x.prep.hammerOns }, ok: x.prep.pullOffs + x.prep.hammerOns >= 4, fix: C.fixPrep(x) }],
-    shown: (x): Check[] => [{ text: "RESTED EARLY {n} · LEFT UNSOUNDED {u}", vars: { n: x.prep.rests, u: x.prep.letGo }, ok: true }],
-    before: ["Put the next finger down before you need it.", "Then letting go is the note."],
-    after: ["So. The release of one thumb is the voice of the other."],
-    again: ["Rest the next thumb early; lift the other on the beat. Again."],
-  },
-  {
-    id: "II.5",
-    part: "II",
-    title: "DER SPRUNG",
-    english: "LEAPS WITH THE OTHER THUMB",
+    id: "1.5",
+    part: "1",
+    title: "PLAYING WITH BACH",
+    english: "PLAYING WITH BACH",
     minutes: 4,
     sound: "piano",
-    aim: "The far note taken by the thumb that is already there.",
-    hear: { styles: ["prepared"] },
-    aids: ["trace"],
-    guide: true,
+    aim: "You play one line and I play the other: I begin, and you answer me with the same tune.",
+    music: "INVENTION 1, BARS 1–2",
+    aids: ["thumbs", "answer"],
     stages: [
-      st("drill", ex(INV, LH, 14, 16, { pct: SLOW_INV }, "Invention 1, left hand, bars 14–16: the octave of bar 15"), "An octave in bar 15: the other thumb is already waiting below."),
-      st("drill", ex("wtc2f24", 1, 1, 8, { pct: 80 }, "Fugue II/24 in B minor, alto, bars 1–8, at 80%"), "Octaves down and up. Each thumb keeps its own floor."),
-      st("play", ex("wtc2f24", 1, 1, 8, { pct: 100 }, "Fugue II/24 in B minor, alto, bars 1–8"), "In time."),
+      st("watch", ex(INV, 1, 1, 2, { bpm: 43 }, "Invention 1, lower voice, bars 1–2", { notes: LOWER_1_2, widen: 2 }), "Watch the lower notes, the ones with a white border: that will be your part. My upper voice begins; yours answers.", { aids: ["thumbs", "answer", "point"] }),
+      st("play", ex(INV, 1, 1, 2, { bpm: 43 }, "Invention 1, lower voice, bars 1–2", { notes: LOWER_1_2, widen: 2 }), "I'll take the upper voice, and you take the lower one. On my count: I play my tune first; when it reaches you, answer with the same tune, lower down."),
     ],
-    lens: { counts: ["Right: 80%"], shown: ["Leaps by thumb"], never: ["Which thumb"] },
-    checks: (x): Check[] => [right(x, 0.8)],
-    shown: (x): Check[] => [{ text: "LEAPS RIGHT {n} OF {m} · LEFT THUMB {l} · RIGHT THUMB {r}", vars: { n: x.leaps.ok, m: x.leaps.of, l: x.leaps.left, r: x.leaps.right }, ok: true }],
-    before: ["Be at the far note before it arrives."],
-    after: ["Gut. Your thumbs draw the line as it is drawn on the page."],
-    again: ["Do not drag one thumb across; the other is already there. Again."],
+    lens: { counts: ["Notes: 70%"], shown: [], never: ["Which thumb", "How long you hold"] },
+    checks: (x): Check[] => [notesRight(x, 0.7)],
+    before: ["Now we play together. The music has two lines, two voices: I play one, you play the other."],
+    after: ["We just played my Invention together, two voices. You answered me."],
+    again: ["Wait for my tune to reach the gold line, then answer it. Again."],
+    checkpoint: true,
   },
+  // PART 2 · HIGH AND LOW · your thumb draws the tune
   {
-    id: "II.6",
-    part: "II",
-    title: "DER LAUF",
-    english: "RUNS",
-    minutes: 5,
-    sound: "piano",
-    aim: "A run played as one gesture of the hand.",
-    hear: { stage: 0, styles: ["plain"] },
-    aids: ["trend"],
-    stages: [
-      st("drill", drill("tonleiter", "Drill: D minor, up and back, sixteen semiquavers a bar"), "Up and down D minor: the hand travels, the thumbs follow."),
-      st("drill", ex("wtc2f10", 0, 5, 6, { pct: 100 }, "Fugue II/10 in E minor, soprano, bars 5–6: triplet runs"), "Triplets: three notes, one gesture."),
-      st("play", ex("wtc2f12", 0, 2, 6, { pct: 100 }, "Fugue II/12 in F minor, soprano, bars 2–6: 34 semiquavers"), "Thirty-four semiquavers. Think of four gestures, not thirty-four notes."),
-    ],
-    lens: { counts: ["RUN ✓ on two thirds of the runs", "Run notes right: 80%"], shown: ["Timing spread in the run"], never: ["Alternation", "Evenness"] },
-    checks: (x): Check[] => [
-      { text: "RUN ✓ {n} OF {m} (AIM TWO THIRDS)", vars: { n: x.runs.ok, m: x.runs.of }, ok: x.runs.of > 0 && x.runs.ok / x.runs.of >= 2 / 3 - 1e-9, na: !x.runs.of, fix: C.fixRuns(x) },
-      { text: "RUN NOTES RIGHT {n} OF {m} (AIM 80%)", vars: { n: x.runs.notesRight, m: x.runs.notesOf }, ok: atLeast(x.runs.notesRight, x.runs.notesOf, 0.8), na: !x.runs.notesOf, fix: C.fixRuns(x) ?? C.fixRight(x) },
-    ],
-    shown: (x): Check[] => [{ text: "SPREAD IN THE RUNS {s} MS", vars: { s: x.runs.spreadMs ?? "—" }, ok: true }],
-    before: ["A run is one gesture, not twenty.", "Let the hand travel; the fingers follow."],
-    after: ["So. One gesture, many notes."],
-    again: ["Let the whole hand travel the run's way. Again."],
-  },
-  {
-    id: "II.7",
-    part: "II",
-    title: "PROBE: DIE INVENTION",
-    english: "CHECKPOINT: INVENTION 1",
+    id: "2.1",
+    part: "2",
+    title: "STEPS AND LEAPS",
+    english: "STEPS AND LEAPS",
     minutes: 3,
     sound: "piano",
-    aim: "Two voices, cleanly, which is what the 1723 title page asks of the beginner.",
-    aids: [],
-    stages: [st("play", ex(INV, RH, 1, 22, { pct: SLOW_INV }, "Invention 1, right hand, the whole, at 75%"), "Twenty-two bars, to the last C. Begin when you are ready.")],
-    alt: ex(INV, LH, 1, 22, { pct: SLOW_INV }, "Invention 1, left hand, the whole, at 75%"),
-    lens: { counts: ["Right: 80%"], shown: ["Alternation", "Joins"], never: ["Articulation choice", "Graces"] },
-    checks: (x): Check[] => [right(x, 0.8)],
-    shown: (x): Check[] => [
-      { text: "TURNS TAKEN {n} OF {m}", vars: { n: x.alternation.alt, m: x.alternation.of }, ok: true },
-      { text: "JOINED {n} OF {m}", vars: { n: x.joins.ok, m: x.joins.of }, ok: true },
+    aim: "A small move of the thumb for a step, a big one for a jump.",
+    music: "INVENTION 8, BARS 1–2",
+    aids: ["thumbs"],
+    stages: [
+      st("watch", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2 }), "Some notes jump and some walk. Watch: big moves for the jumps, small ones for the steps.", { aids: ["thumbs", "point"] }),
+      st("try", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2, wait: true }), "Your turn: jump big, walk small. Each note waits for you.", { aids: ["thumbs", "trace"] }),
+      st("play", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2 }), "In time now. Jump big, walk small."),
     ],
-    before: ["The whole Invention, with my other hand beside you. I will say nothing until the end."],
-    after: ["Two voices, cleanly: the first thing I asked of my pupils."],
-    again: ["Again. Hear it in your head first; then play."],
-    checkpoint: true,
-    sources: ["J. S. Bach, title page of the Inventions and Sinfonias (Cöthen, 1723)."],
+    lens: { counts: ["Moves the right way: 80%", "Notes: 70%"], shown: [], never: ["How high exactly", "Which thumb"] },
+    checks: (x): Check[] => [movesRight(x, 0.8), notesRight(x, 0.7)],
+    before: ["A new tune, from my eighth Invention. It jumps first, then walks down."],
+    after: ["Your thumb drew the jumps and the steps."],
+    again: ["A jump must look like one; a step may be small. Again."],
   },
+  {
+    id: "2.2",
+    part: "2",
+    title: "THE SAME NOTE AGAIN",
+    english: "THE SAME NOTE AGAIN",
+    minutes: 3,
+    sound: "piano",
+    aim: "To play the same note again: lift your thumb, and land where you were.",
+    music: "INVENTION 12, BAR 1",
+    aids: ["thumbs"],
+    stages: [
+      st("watch", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2 }), "Four times the same note. Watch: I lift my thumb, and land where I was.", { aids: ["thumbs", "point"] }),
+      st("try", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2, wait: true }), "Your turn. Lift, and land in the same place.", { aids: ["thumbs", "trace"] }),
+      st("play", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2 }), "In time: long, short, long, short, then a long note a little higher."),
+    ],
+    lens: { counts: ["Repeats: 3 of 3", "Notes: 4 of 5"], shown: [], never: ["Which thumb", "How long you hold"] },
+    checks: (x): Check[] => [
+      { text: "REPEATS {n} OF {m}", vars: { n: x.repeats.ok, m: x.repeats.of }, ok: x.repeats.of > 0 && x.repeats.ok >= x.repeats.of, fix: C.fixRepeats(x) },
+      notesRight(x, 0.8),
+    ],
+    before: ["My twelfth Invention begins on one note, four times. Each time is a new touch."],
+    after: ["Each one heard: lift, and land again."],
+    again: ["Lift your thumb, and land where you were. Again."],
+  },
+  {
+    id: "2.3",
+    part: "2",
+    title: "QUICK RUNS",
+    english: "QUICK RUNS",
+    minutes: 3,
+    sound: "piano",
+    aim: "In a quick run, keep your thumbs moving the run's way, and don't worry about each note.",
+    music: "INVENTION 4, BARS 1–2",
+    aids: ["thumbs"],
+    stages: [
+      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2 }), "Six quick notes going up. Watch: one movement, up and up.", { aids: ["thumbs", "point"] }),
+      st("try", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2, wait: true }), "Your turn: keep going up. Each note waits for you.", { aids: ["thumbs", "trace"] }),
+      st("play", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2 }), "In time. A run is one movement: don't stop to aim at each note."),
+      st("play", ex(INV4, 0, 1, 2, { bpm: 52.5 }, "Invention 4, upper voice, bars 1–2: up, then a drop, and down", { solo: true, notes: INV4_1_2, widen: 2 }), "Now up, then a big drop, and back down. Keep going the run's way."),
+    ],
+    lens: { counts: ["Moves the run's way: 80%", "Notes: 70%"], shown: [], never: ["Which thumb", "Each note's exact place"] },
+    checks: (x): Check[] => [movesRight(x, 0.8), notesRight(x, 0.7)],
+    before: ["My fourth Invention starts with a quick run up."],
+    after: ["One movement, the run's way. Runs are yours."],
+    again: ["Don't aim at each note: keep moving the run's way. Again."],
+  },
+  {
+    id: "2.4",
+    part: "2",
+    title: "CHECK: A WHOLE PHRASE",
+    english: "CHECK: A WHOLE PHRASE",
+    minutes: 3,
+    sound: "piano",
+    aim: "Steps, jumps and quick notes together, in a whole phrase with me.",
+    music: "INVENTION 8, BARS 1–4",
+    aids: ["thumbs"],
+    stages: [
+      st("watch", ex(INV8, 0, 1, 4, { bpm: 59 }, "Invention 8, upper voice, bars 1–4, with the lower voice", { notes: INV8_1_4, widen: 2 }), "A whole phrase. Watch the jumps, the steps and the quick notes.", { aids: ["thumbs", "point"] }),
+      st("play", ex(INV8, 0, 1, 4, { bpm: 59 }, "Invention 8, upper voice, bars 1–4, with the lower voice", { notes: INV8_1_4, widen: 2 }), "A whole phrase now. I'll play the lower voice with you."),
+    ],
+    lens: { counts: ["Notes: 75%"], shown: [], never: ["Which thumb", "How long you hold"] },
+    checks: (x): Check[] => [notesRight(x, 0.75)],
+    before: ["Everything so far, in one phrase of my eighth Invention."],
+    after: ["A whole phrase, with me beside you."],
+    again: ["Hear the tune in your head first; then play. Again."],
+    checkpoint: true,
+  },
+  // PART 3 · HOW LONG · the signs, one at a time (D370's vocabulary)
+  {
+    id: "3.1",
+    part: "3",
+    title: "HELD",
+    english: "HELD",
+    minutes: 3,
+    sound: "organ",
+    sign: "held",
+    aim: "To keep your thumb down as long as the note's block lasts.",
+    music: "INVENTION 1, BAR 1",
+    aids: ["thumbs", "fill"],
+    words: ["held", "short"],
+    stages: [
+      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"] }), "Watch: my thumb stays down until the next note starts.", { style: "held", aids: ["thumbs", "fill", "point"] }),
+      st("try", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"], wait: true }), "Your turn. Hold each one; the next waits for you.", { aids: ["thumbs", "fill", "trace"] }),
+      st("play", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"] }), "These four notes are longer. Keep your thumb down until the next one starts."),
+    ],
+    lens: { counts: ["Held: 3 of 4"], shown: [], never: ["Which thumb"] },
+    checks: (x): Check[] => [{ text: "HELD {n} OF {m}", vars: { n: x.held.ok, m: x.held.of }, ok: x.held.of > 0 && x.held.ok >= Math.min(3, x.held.of), fix: C.fixHeld(x) }, notesRight(x, 0.6)],
+    before: ["How long is a note? As long as your thumb stays down. Here the pipe organ: on the organ you hear exactly how long you hold."],
+    after: ["Held: you hear the whole note now."],
+    again: ["Keep your thumb down until the next note starts. Again."],
+  },
+  {
+    id: "3.2",
+    part: "3",
+    title: "SHORT",
+    english: "SHORT",
+    minutes: 3,
+    sound: "piano",
+    sign: "short",
+    aim: "The SHORT sign: touch and let go early; only the filled part of the block sounds.",
+    music: "INVENTION 8, BAR 1",
+    aids: ["thumbs"],
+    words: ["short"],
+    stages: [
+      st("watch", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null] }), "See the half-empty blocks? Watch: touch, and let go.", { aids: ["thumbs", "point"] }),
+      st("try", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null], wait: true }), "Your turn: touch and let go.", { aids: ["thumbs", "trace"] }),
+      st("play", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null] }), "Play those notes short: touch and let go."),
+    ],
+    lens: { counts: ["Short: 4 of 6", "Moves the right way: 80%"], shown: [], never: ["Which thumb"] },
+    checks: (x): Check[] => [{ text: "SHORT {n} OF {m}", vars: { n: x.marks.short.ok, m: x.marks.short.of }, ok: x.marks.short.ok >= 4, fix: { text: "Let go sooner: before three fifths of the block." } }, movesRight(x, 0.8)],
+    before: ["A block half empty is a SHORT note: only the filled part sounds."],
+    after: ["Short and light. You read the sign."],
+    again: ["Touch, and let go at once. Again."],
+  },
+  {
+    id: "3.3",
+    part: "3",
+    title: "DETACHED AND JOINED",
+    english: "DETACHED AND JOINED",
+    minutes: 4,
+    sound: "piano",
+    sign: "joined",
+    aim: "DETACHED: lift before the next note. JOINED: the next thumb lands before this one lifts.",
+    music: "INVENTION 1, BAR 1",
+    aids: ["thumbs", "plan"],
+    words: ["legato"],
+    stages: [
+      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Watch: where the blocks are joined, the next thumb lands before I lift. Where there is a gap, I lift first.", { aids: ["thumbs", "plan", "point"] }),
+      st("try", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null], wait: true }), "Your turn. Joined: the next thumb down first. A gap: lift first.", { aids: ["thumbs", "plan"] }),
+      st("play", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Where the blocks are joined, no gap: put the next thumb down before you lift. Where there is a gap, lift first."),
+    ],
+    lens: { counts: ["Joins and gaps as asked: 70%"], shown: [], never: ["Which thumb"] },
+    checks: (x): Check[] => {
+      const ok = x.marks.joined.ok + x.marks.apart.ok;
+      const of = x.marks.joined.of + x.marks.apart.of;
+      return [{ text: "AS ASKED {n} OF {m}", vars: { n: ok, m: of }, ok: atLeast(ok, of, 0.7), fix: x.marks.joined.of && x.marks.joined.ok / x.marks.joined.of < 0.7 ? { text: "Joined: put the next thumb down before you lift the other." } : { text: "Detached: lift before the next note." } }, notesRight(x, 0.6)];
+    },
+    before: ["A gap between two blocks: DETACHED. Blocks joined, no gap: JOINED."],
+    after: ["Joined where I join, apart where I separate. You read them both."],
+    again: ["Joined: the next thumb down first. A gap: lift first. Again."],
+  },
+  {
+    id: "3.4",
+    part: "3",
+    title: "JOINING THE EASY WAY",
+    english: "JOINING THE EASY WAY",
+    minutes: 3,
+    sound: "piano",
+    aim: "A trick for joining: rest the free thumb on the next note early; lifting the other one sounds it.",
+    music: "INVENTION 4, BAR 1",
+    aids: ["thumbs", "plan", "prepared"],
+    words: ["legato"],
+    stages: [
+      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "Watch: while one thumb holds, I rest the other on the next note. When I lift the first, the next one sounds by itself.", { style: "prepared", aids: ["thumbs", "plan", "prepared", "point"] }),
+      st("try", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null], wait: true }), "Your turn. Rest the free thumb on the next note, then lift the other.", { aids: ["thumbs", "plan", "prepared"] }),
+      st("play", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "In time. Joined by preparing, or by striking: either way."),
+    ],
+    lens: { counts: ["Joined: 60%", "Notes: 70%"], shown: ["Notes sounded by a lift"], never: ["Which way you join"] },
+    checks: (x): Check[] => [{ text: "JOINED {n} OF {m}", vars: { n: x.marks.joined.ok, m: x.marks.joined.of }, ok: atLeast(x.marks.joined.ok, x.marks.joined.of, 0.6), fix: { text: "Rest the free thumb on the next note before you lift the other." } }, notesRight(x, 0.7)],
+    shown: (x): Check[] => [{ text: "SOUNDED BY A LIFT {n}", vars: { n: x.prep.pullOffs }, ok: true }],
+    before: ["Joining with two thumbs is easier with a trick. I'll show you."],
+    after: ["Prepared, and lifted: the easy way to join."],
+    again: ["While one thumb holds, rest the other on the next note. Again."],
+  },
+  {
+    id: "3.5",
+    part: "3",
+    title: "ACCENT",
+    english: "ACCENT",
+    minutes: 3,
+    sound: "piano",
+    sign: "accent",
+    aim: "To make a note stand out without playing louder: let go of the note before a moment early, then hold this one.",
+    music: "INVENTION 8, BARS 1–3",
+    aids: ["thumbs"],
+    stages: [
+      st("watch", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)) }), "Watch the top notes: I let go of the note before a moment early, then land and hold.", { style: "accent", aids: ["thumbs", "point"] }),
+      st("try", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)), wait: true }), "Your turn. Before each top note, lift a moment early.", { aids: ["thumbs", "trace"] }),
+      st("play", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)) }), "To make the top note stand out, let go of the one before a moment early, then land and hold."),
+    ],
+    lens: { counts: ["Accents: 1 of 2", "Notes: 70%"], shown: [], never: ["Loudness"] },
+    checks: (x): Check[] => [{ text: "ACCENTS {n} OF {m}", vars: { n: x.marks.accent.ok, m: x.marks.accent.of }, ok: x.marks.accent.of > 0 && x.marks.accent.ok >= 1, fix: { text: "Before the accent, lift a moment early; then hold the accented note." } }, notesRight(x, 0.7)],
+    before: ["A small wedge at the front of a block: ACCENT. On a keyboard like mine you cannot simply play louder; you make room before the note."],
+    after: ["The top notes stood out, and no louder. That is an accent."],
+    again: ["A moment of silence before the top note, then hold it. Again."],
+  },
+  {
+    id: "3.6",
+    part: "3",
+    title: "CHECK: YOUR OWN TOUCH",
+    english: "CHECK: YOUR OWN TOUCH",
+    minutes: 3,
+    sound: "piano",
+    aim: "To choose your own touch, joined or detached, and keep it the same all the way.",
+    music: "INVENTION 1, BARS 1–4",
+    aids: ["thumbs"],
+    stages: [
+      st("watch", ex(INV, RH, 1, 4, { bpm: 43 }, "Invention 1, upper voice, bars 1–4, no signs", { notes: INV1_1_4 }), "No signs this time. Watch: I choose one touch, and keep it.", { style: "ordinary", aids: ["thumbs", "point"] }),
+      st("play", ex(INV, RH, 1, 4, { bpm: 43 }, "Invention 1, upper voice, bars 1–4, no signs", { notes: INV1_1_4 }), "No signs this time. Join or separate as you like, but keep it the same all the way."),
+    ],
+    lens: { counts: ["Touch kept: 70%", "Notes: 75%"], shown: ["Your touch"], never: ["Which touch you choose"] },
+    checks: (x): Check[] => [consistency(x), notesRight(x, 0.75)],
+    shown: (x): Check[] => [touchLine(x)],
+    before: ["Four bars of my first Invention, with no signs: the touch is yours."],
+    after: ["Your own touch, kept. You can read and play my Inventions now."],
+    again: ["Choose one touch, and keep it. Again."],
+    checkpoint: true,
+  },
+];
+
+export const MANUAL: ManualLesson[] = [
+  ...COURSE,
   // PART III · DER VORTRAG DER NOTEN · TOUCH AND ARTICULATION (D360)
   {
     id: "III.1",
@@ -902,8 +1008,21 @@ export const lessonById = (id: string): ManualLesson | undefined => MANUAL.find(
 export const lessonsOf = (p: PartId) => MANUAL.filter((l) => l.part === p);
 /** The part's checkpoint (its last lesson marked so), if it has one. */
 export const checkpointOf = (p: PartId) => MANUAL.find((l) => l.part === p && l.checkpoint);
-/** The lessons played on the bars (not Part 0's screens). */
-export const PLAYED = MANUAL.filter((l) => !l.screen);
+/** The lessons played on the bars (D373: all of them; 1.1's tour too runs on the real play screen). */
+export const PLAYED = MANUAL;
+/** D373: "C4", "B♭4", "F♯4" as MIDI. */
+export function midiOf(name: string): number {
+  const m = /^([A-G])([♭♯b#]?)(-?\d)$/.exec(name);
+  if (!m) return 60;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1] as "C"];
+  const acc = m[2] === "♭" || m[2] === "b" ? -1 : m[2] === "♯" || m[2] === "#" ? 1 : 0;
+  return 12 * (Number(m[3]) + 1) + base + acc;
+}
+
+/** D373: a lesson of the new tutorial (WATCH, TRY, PLAY), not of the older parts. */
+export const isCourse = (l: ManualLesson) => l.stages.some((s) => s.kind === "watch" || s.kind === "try" || s.kind === "tour");
+/** D373: the step's name on its chip. */
+export const STEP_WORD: Record<StageKind, string> = { watch: "WATCH", try: "TRY", play: "PLAY", tour: "TOUR", drill: "PRACTICE" };
 /** D360: the stage whose pass passes the lesson (the last PLAY), and the first PLAY (STRAIGHT TO PLAY). */
 export const lastPlay = (l: ManualLesson) => l.stages.map((s) => s.kind).lastIndexOf("play");
 export const firstPlay = (l: ManualLesson) => l.stages.findIndex((s) => s.kind === "play");
@@ -938,7 +1057,21 @@ export function bpmOf(m: Material): number {
 /** A material's span in ticks: from its first bar's line to the note its last bar leads to (inclusive; D289), or the piece's end. */
 export function spanOf(m: Material): { from: number; until: number } {
   const f = fugueById(m.piece);
-  const from = barStart(f, m.fromBar);
+  const bar = barStart(f, m.fromBar);
+  // D373: a passage of so many notes, perhaps after so many (from the first bar's line).
+  if (m.skip || m.count) {
+    const ns = f.voices[m.voice].filter((n) => n[0] >= bar);
+    const a = ns[m.skip ?? 0];
+    const b = m.count ? ns[(m.skip ?? 0) + m.count - 1] : undefined;
+    const from = m.skip && a ? a[0] : bar;
+    if (b) return { from, until: b[0] + 1 };
+    const lastBar = f.bars.at(-1)?.n ?? 1;
+    if (m.toBar >= lastBar) return { from, until: f.length };
+    const cut = barStart(f, m.toBar + 1);
+    const arrival = f.voices[m.voice].find((n) => n[0] >= cut);
+    return { from, until: arrival ? arrival[0] + 1 : cut };
+  }
+  const from = bar;
   const lastBar = f.bars.at(-1)?.n ?? 1;
   if (m.toBar >= lastBar) return { from, until: f.length };
   const cut = barStart(f, m.toBar + 1);
@@ -952,10 +1085,11 @@ export const soundOf = (l: ManualLesson, m?: Material): SoundName => m?.sound ??
 /** Every English text the manual shows (for the translations' check). */
 export function manualTexts(): string[] {
   const out: string[] = [...MANUAL_FLOW, ...Object.values(SOUND_WORD), ...C.coachTexts(), ...WATCH_WORDS];
-  for (const p of PARTS) out.push(p.english, ...(p.seal ? [p.seal] : []));
+  for (const p of PARTS) out.push(p.english, ...(p.seal ? [p.seal] : []), ...(p.sub ? [p.sub] : []));
+  out.push(...TOUR.map((t) => t.text), ...TOUR_TOUCH, ...Object.values(STEP_WORD), ...COURSE_FLOW);
   const xs = [-120, -40, 0, 40, 120].map((mean) => ({ ...ZERO_LENS, timing: { n: 9, mean, sd: 20, perfect: 5 } }));
   for (const l of MANUAL) {
-    out.push(l.english, l.aim, ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
+    out.push(l.english, l.aim, ...(l.learn ? [l.learn] : []), ...(l.music ? [l.music] : []), ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
     if (l.alt) out.push(l.alt.label);
     for (const x of [...xs, { ...ZERO_LENS, graces: { agogic: 1, breath: 0, broaden: 0, revoked: 0 } }, { ...ZERO_LENS, graces: { agogic: 0, breath: 1, broaden: 0, revoked: 0 } }, ...[0, 1, 2, 5].map((free) => ({ ...ZERO_LENS, orn: { read: 0, of: 2, free, kinds: [] } })), ...[0.2, 0.5, 0.8].map((s) => ({ ...ZERO_LENS, appo: { of: 3, made: 1, short: 0, shares: [s] } }))])
       for (const s of [undefined, ...l.stages]) {
@@ -1040,7 +1174,8 @@ export const LESSON_CLICK = { full: Number.MAX_SAFE_INTEGER, gone: Number.MAX_SA
 /** A material as the game's run (lessons.ts Run): LADDER, no crowd, the drill's click (else the lessons' metronome, `click`), the demonstration's manner, the reading, the practice room. */
 export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["words"], ornaments = false, click = true): Run {
   const { from, until } = spanOf(m);
-  const d = Object.values(DRILLS).find((x) => x.id === m.piece);
+  // D373: the lesson's own marks as a reading of its own, placed on the passage's notes.
+  const lr = lessonReading(m, from, until);
   return {
     proto: "ladder",
     fail: false,
@@ -1052,10 +1187,122 @@ export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["
     wait: !!m.wait,
     solo: !!m.solo,
     easy: m.easy ?? "direction",
-    ...(d?.click ? { click: d.click } : click ? { click: LESSON_CLICK } : {}),
+    ...(click ? { click: LESSON_CLICK } : {}),
     ...(demoStyle && demoStyle !== "plain" ? { demoStyle } : {}),
     ...(m.reading ? { reading: m.reading } : {}),
     quiet: { words: words ?? [], ...(ornaments ? { ornaments: true } : {}) },
     ...(ornaments ? { ornHint: true } : {}),
+    // D373: the tutorial's options (one thumb, the lenient windows, four beats counted in, model A's thumbs).
+    ...(isCourseMat(m)
+      ? {
+          tut: {
+            ...(m.side ? { side: m.side } : {}),
+            ...(m.widen ? { widen: m.widen } : {}),
+            ...(m.wait || !click ? {} : { countBeats: 4 }),
+            thumbsA: true,
+            ...(lr ? { reading: lr.reading, readingAt: lr.at } : {}),
+          },
+        }
+      : {}),
   };
 }
+
+/** D373: a material of the new tutorial (its notes listed). */
+const isCourseMat = (m: Material) => !!m.notes;
+
+/** D373: the lesson's marks as a reading (one note per mark, from the passage's first note), and where each sits. */
+export function lessonReading(m: Material, from: number, until: number): { reading: Reading; at: number[] } | null {
+  if (!m.marks) return null;
+  const f = fugueById(m.piece);
+  const ns = f.voices[m.voice].filter((n) => n[0] >= from && n[0] < until).slice(0, m.marks.length);
+  const notes = m.marks.map((k) => ({ join: k === "joined" ? true : k === "detached" ? false : null, short: k === "short" ? true : null, accent: k === "accent" ? true : null }));
+  const reading: Reading = { id: "lesson", author: "BACH", work: "THE TUTORIAL", year: 1723, pages: null, tempo: null, tempoText: null, character: null, basis: "explicit", quote: null, notes, legato: false, slurs: [], level: null, shape: null, plan: [], restQuote: null, restSummary: null };
+  return { reading, at: ns.map((n) => n[0]) };
+}
+
+/** D373: the new tutorial's own words between the steps (BenchApp's flow and the selection screen). */
+export const COURSE_FLOW = [
+  "TUTORIAL",
+  "▶ WATCH",
+  "▶ TRY",
+  "▶ PLAY",
+  "▶ TOUR",
+  "UPPER VOICE",
+  "LOWER VOICE",
+  "WITH HERR BACH",
+  "PART {n}",
+  "You'll learn: {l}",
+  "MUSIC",
+  "SOUND",
+  "TIME",
+  "METRONOME ON",
+  "ABOUT {n} MINUTES",
+  "YOU STOPPED AT: {s}",
+  "CONTINUE",
+  "BEGIN",
+  "AGAIN",
+  "NEXT",
+  "or START OVER",
+  "NEXT ✦",
+  "DONE ✓",
+  "WATCH · BACH PLAYS",
+  "TRY · I WAIT FOR YOU",
+  "YOUR TURN · PLAY",
+  "WATCH ONLY · DON'T TOUCH YET",
+  "JUST WATCH FOR NOW",
+  "REST",
+  "THIS THUMB SITS OUT",
+  "LEFT THUMB",
+  "RIGHT THUMB",
+  "YOUR TURN",
+  "TRY",
+  "WATCH",
+  "TAP ▶",
+  "{n} OF {m} MOVES THE RIGHT WAY.",
+  "Good: {n} of {m} moves the right way. Now in time.",
+  "Let's go on: we'll meet this again.",
+  "LET'S GO ON",
+  "Now you try, slowly.",
+  "THE OLDER LESSONS",
+  "A WHOLE PART DONE",
+  "WHAT COUNTED",
+  "HELD",
+  "SHORT",
+  "DETACHED",
+  "JOINED",
+  "ACCENT",
+  "Hold it until the next note begins.",
+  "Lift early: only the filled part sounds.",
+  "A little gap: lift before the next.",
+  "No gap: the next thumb lands before this one lifts.",
+  "Lean on it: let go of the one before a little early.",
+  "THE MUSIC MOVES THIS WAY",
+  "YOURS: WHITE BORDER",
+  "MINE: THIN",
+  "NOW",
+  "HIGHER NOTE: TOUCH HIGHER",
+  "YOU ANSWER HERE",
+  "NEXT: A LITTLE HIGHER",
+  "NEXT: A LITTLE LOWER",
+  "NEXT: THE SAME NOTE",
+  "NEXT: A BIG JUMP UP",
+  "NEXT: A BIG JUMP DOWN",
+  "GAP",
+  "NO GAP",
+  // His fixes and praise in the new lessons (said at run time).
+  "And you took turns on {n} of {m} quick notes. Good.",
+  "Before the accent, lift a moment early; then hold the accented note.",
+  "Let go sooner: before three fifths of the block.",
+  "Rest the free thumb on the next note before you lift the other.",
+  "Joined: put the next thumb down before you lift the other.",
+  "Detached: lift before the next note.",
+];
+
+/** D373: what each sign looks like and asks (the card before a lesson of Part 3). */
+export const SIGN_WORDS: Record<SignId, { name: string; text: string }> = {
+  held: { name: "HELD", text: "Hold it until the next note begins." },
+  short: { name: "SHORT", text: "Lift early: only the filled part sounds." },
+  detached: { name: "DETACHED", text: "A little gap: lift before the next." },
+  joined: { name: "JOINED", text: "No gap: the next thumb lands before this one lifts." },
+  accent: { name: "ACCENT", text: "Lean on it: let go of the one before a little early." },
+};

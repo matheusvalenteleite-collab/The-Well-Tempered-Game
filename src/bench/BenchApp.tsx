@@ -41,7 +41,7 @@ import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
 import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.tsx";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote } from "../touch/fugue.ts";
+import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
@@ -71,12 +71,12 @@ import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
 import { chosenReading, markOf, readingsOf, type MarkNote } from "../touch/readings.ts";
-import { ManualMap } from "./manual/ManualMap.tsx";
-import { GripScreen, LensSheet, Seal, StageLine } from "./manual/Screens.tsx";
-import { fixFor, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, SOUND_PRESET, soundOf, stagePassed, checkpointOf, watchWord, type DemoStyle, type ManualLesson, type Material, type PartId } from "./manual/lessons.ts";
+import { TutorialSelect } from "./manual/ManualMap.tsx";
+import { Caption, LensSheet, ResultLine, Seal, SignCard, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
+import { fixFor, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, testOut as manualTestOut, triesOf } from "./manual/store.ts";
+import { finishStep, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
@@ -218,7 +218,7 @@ type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "
  * demonstration, in a manner, the manners still to come queued), a TAKE, a checkpoint played to test out
  * of a part.
  */
-type ManRun = { id: string; stage: number; mode: "hear" | "take" | "test"; style?: DemoStyle; queue?: DemoStyle[]; alt?: boolean; part?: PartId; takes: number; back?: number };
+type ManRun = { id: string; stage: number; mode: "hear" | "take" | "tour"; style?: DemoStyle; queue?: DemoStyle[]; alt?: boolean; takes: number; back?: number };
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -315,9 +315,14 @@ export function BenchApp() {
   const [toolsOpen, setToolsOpen] = useState(false);
   const practice = useRef<PracticeRun | null>(null);
   const [practiced, setPracticed] = useState<{ piece: string; right: number; of: number } | null>(null);
-  // D342, THE MANUAL (play.html's phone tutorial): the step under way, its Part 0 screen (D369: 0.1 alone).
+  // D342, THE MANUAL (play.html's phone tutorial): the step under way.
   const [man, setMan] = useState<ManRun | null>(null);
-  const [manScreen, setManScreen] = useState<null | "grip">(null);
+  // D373: 1.1's tour (its bubble, the strips touched; a ref for the painter), a touch while he plays, the lesson the selection screen shows.
+  const [tourAt, setTourAt] = useState<{ k: number; left: boolean; right: boolean } | null>(null);
+  const tourRef = useRef<{ k: number; left: boolean; right: boolean } | null>(null);
+  tourRef.current = tourAt;
+  const [nudge, setNudge] = useState(0);
+  const [tutFocus, setTutFocus] = useState<string | null>(null);
   const recRef = useRef<LabRecorder | null>(null);
   const manLesson: ManualLesson | undefined = man ? lessonById(man.id) : undefined;
   const manMat: Material | undefined = man ? (man.alt && manLesson?.alt ? manLesson.alt : manLesson?.stages[man.stage]?.m) : undefined;
@@ -372,7 +377,8 @@ export function BenchApp() {
   // book's: the owner, "fugues should not be too fast").
   // D282: a tutorial step may name its reading.
   // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
-  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
+  // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
@@ -443,15 +449,19 @@ export function BenchApp() {
   }, [f, proto.id]);
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
+  // D373 (the report's §8): in the tutorial an Invention's voices are the UPPER and the LOWER voice (a phone player has thumbs, not hands).
+  const voiceNamesOf = run?.tut && f.voices.length === 2 ? [tr("UPPER VOICE"), tr("LOWER VOICE")] : f.voiceNames;
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
   const marks = useMemo(() => {
-    const spans = entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
+    // D373: no SUBJECT bands in the tutorial's first parts (the word comes later, explained).
+    const spans = run?.tut ? [] : entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
     const readingMarks = new Map<string, MarkNote>();
-    if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
-    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
+    if (reading && run?.tut?.readingAt) run.tut.readingAt.forEach((on, j) => reading.notes[j] && readingMarks.set(`${run.voice}:${on}`, markOf(reading, j)!));
+    else if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
+    return { ...subjectMarks(f), spans, names: voiceNamesOf, cadences, ornaments, readingMarks };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
   /** D308: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
@@ -552,7 +562,7 @@ export function BenchApp() {
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -571,7 +581,15 @@ export function BenchApp() {
       if (!rec) g.tap = lens.feed;
     }
     recRef.current = rec;
-    const aids = man && manLesson ? manLesson.aids : [];
+    // D373: a tutorial step's own aids (else the lesson's); its kind (WATCH: his thumbs whole).
+    const manStage = man && manLesson ? manLesson.stages[man.stage] : undefined;
+    const aids = man && manLesson ? (manStage?.aids ?? manLesson.aids) : [];
+    const stepKind = man?.mode === "tour" ? "tour" : manStage && manLesson && isCourse(manLesson) ? (man?.mode === "hear" ? "watch" : manStage.kind === "try" ? "try" : "play") : undefined;
+    const boxRect = () => {
+      const r = document.querySelector(".tg-roll")?.getBoundingClientRect();
+      const a = document.querySelector(".tg-play")?.getBoundingClientRect();
+      return r && a ? { x: r.left - a.left, y: r.top - a.top, w: r.width, h: r.height } : undefined;
+    };
     const firstTake = !!man && man.takes === 0;
     // D360: the touch a take asks for (III.1), outlined on the meter (his demonstration of it too).
     const shownTouch = man?.mode === "hear" ? ({ legato: "LEGATO", ordinary: "ORDINARY", detached: "DETACHED" } as const)[man.style as "legato"] : undefined;
@@ -579,7 +597,8 @@ export function BenchApp() {
     paint.current = (ctx, w, h) =>
       g.view(() => {
         paintProto(ctx, w, h, g, marks.subject);
-        if (lens && aids.length) paintAids(ctx, w, h, g, lens, { aids, firstTake, ...(ask ? { ask } : {}) });
+        const tour = man?.mode === "tour" ? tourRef.current : null;
+        if (lens && (aids.length || tour)) paintAids(ctx, w, h, g, lens, { aids, firstTake, ...(ask ? { ask } : {}), ...(stepKind ? { step: stepKind as "watch", box: boxRect() } : {}), ...(tour ? { tour: { focus: TOUR[tour.k]?.focus ?? "all", left: tour.left, right: tour.right } } : {}) });
       });
     const b = beatOf(f);
     const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
@@ -782,7 +801,8 @@ export function BenchApp() {
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
   const home = () => ((waitingHer.current = null), setLesson(null), setMan(null), setWatching(false), setPhase({ kind: "home" }));
-  const quit = () => (setPaused(false), practice.current && setToolsOpen(true), home());
+  // D373: ✕ in a lesson goes back to the tutorial's selection screen, the lesson chosen there.
+  const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
   const [paused, setPaused] = useState(false);
   const canPause = !kimiko && !lesson && !man;
@@ -821,7 +841,7 @@ export function BenchApp() {
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
   // D282: in a tutorial step, its goal (the demonstration: WATCH).
-  const hintLine = tr(phase.kind === "play" && man ? (watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
+  const hintLine = tr(phase.kind === "play" && man ? (watching && !(manLesson && isCourse(manLesson)) ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
     seenId(proto.id);
@@ -851,36 +871,141 @@ export function BenchApp() {
     // D280: the phone's tutorial shows each step first.
     setPhase({ kind: "talk", lines: l.intro, next: pl === "mobile" && l.id !== "t-whole" ? "watch" : "play" });
   };
-  // D342, THE MANUAL's flow: a lesson's Herr Bach (at most two lines before: none for a keyboard player),
-  // HEAR (his demonstration, in each manner the lesson asks), its DRILL stages (each may be left after one
-  // take), its PLAY (passing it passes the lesson); after each take his line and the lens.
-  const mTitle = (l: ManualLesson) => `${l.id} · ${l.title} · ${tr(l.english)}`;
+  // D342, THE MANUAL's flow: a lesson's Herr Bach (at most two lines before), HEAR (his demonstration, in
+  // each manner the lesson asks), its DRILL stages (each may be left after one take), its PLAY (passing it
+  // passes the lesson); after each take his line and the lens. D373: the new tutorial's lessons (Parts 1–3)
+  // go WATCH → TRY → PLAY instead (courseStep, courseDone), his words over the foot of the box.
+  const mTitle = (l: ManualLesson) => `${shownId(l.id)} · ${tr(l.english)}`;
   const startStep = (m: ManRun) => {
     setMan(m);
     setWatching(m.mode === "hear");
+    setNudge(0);
     start(true);
   };
   const talk = (title: string, lines: Line[], o: { choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void } = {}) => setPhase({ kind: "mtalk", title, lines, ...o });
-  /** `stage` (D369): taken up again at a stage already reached (the map's popup), straight to its line and PLAY. */
+  /** `stage` (D369): taken up again at a stage already reached (D373: a chip on the selection screen's tile). */
   function beginManual(id: string, o: { stage?: number } = {}) {
     const l = lessonById(id);
     if (!l) return;
+    // D373: Inventions 4, 8 and 12 are MORE BACH's chunk: fetched first.
+    if (l.stages.some((s) => fugueById(s.m.piece).id !== s.m.piece)) return void loadExtras().then(() => beginManual(id, o));
     setSteps(false);
     setLesson(null);
-    if (l.screen === "grip") return setManScreen("grip");
-    setManScreen(null);
+    setTutFocus(id);
     markSeen(l.id);
+    if (isCourse(l)) return courseStep(l, o.stage ?? 0, 0, !o.stage);
     if (o.stage && o.stage > 0 && l.stages[o.stage]) return beginStage(l, o.stage, 0);
-    const terse = readManual().answer === "keyboard";
     const styles = l.hear?.styles ?? [];
     const hearStage = l.hear?.stage ?? lastPlay(l);
     const afterIntro = () => (styles.length ? startStep({ id, stage: hearStage, mode: "hear", style: styles[0], queue: styles.slice(1), takes: 0 }) : beginStage(l, 0, 0));
     setMan({ id, stage: hearStage, mode: "hear", takes: 0 });
     setWatching(false);
-    // D225: a keyboard player gets no introductions.
-    const lines: Line[] = terse ? [] : l.before.map((text) => ({ text }));
+    const lines: Line[] = l.before.map((text) => ({ text }));
     if (!lines.length) return afterIntro();
     talk(mTitle(l), lines, { done: afterIntro });
+  }
+  /**
+   * D373: a step of the new tutorial: his line for it (after the lesson's own, and its sign's card, when it
+   * begins), then ▶ WATCH, ▶ TRY or ▶ PLAY; 1.1's tour begins at once on the play screen.
+   */
+  function courseStep(l: ManualLesson, k: number, takes: number, intro = false, lead: Line[] = []) {
+    const st = l.stages[k];
+    if (!st) return toMap();
+    reachStage(l.id, k);
+    const m: ManRun = { id: l.id, stage: k, mode: st.kind === "watch" ? "hear" : st.kind === "tour" ? "tour" : "take", ...(st.style ? { style: st.style } : {}), takes };
+    if (st.kind === "tour") {
+      setTourAt({ k: 0, left: false, right: false });
+      return startStep(m);
+    }
+    setMan(m);
+    setWatching(false);
+    const lines: Line[] = [...lead, ...(intro ? l.before.map((text) => ({ text })) : []), ...(st.say ? [{ text: st.say }] : [])];
+    talk(mTitle(l), lines, { extra: intro && l.sign ? <SignCard sign={l.sign} /> : <StageLine l={l} k={k} />, choices: [{ label: `▶ ${STEP_WORD[st.kind]}`, act: () => startStep(m) }] });
+  }
+  /** D373, 1.1: a strip touched during the tour (the second bubble waits for both). */
+  const tourTouch = (side: "left" | "right") => {
+    if (man?.mode !== "tour") return;
+    setTourAt((t) => (t ? { ...t, [side]: true } : t));
+  };
+  /** D373, 1.1: the next bubble; past the last, the lesson passed and the next one offered. */
+  const tourNext = () => {
+    const t = tourRef.current;
+    if (!t || !man) return;
+    if (t.k + 1 < TOUR.length) return setTourAt({ ...t, k: t.k + 1 });
+    const l = lessonById(man.id)!;
+    setTourAt(null);
+    finishStep(l.id, 0);
+    const s = recordTake(l.id, 1, true);
+    const next = nextManual(s);
+    talk(mTitle(l), l.after.map((text) => ({ text })), { choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : []), { label: "TUTORIAL", act: toMap }] });
+  };
+  // 1.1's two touches made: on to the next bubble by itself.
+  useEffect(() => {
+    if (tourAt && TOUR[tourAt.k]?.focus === "strips" && tourAt.left && tourAt.right) {
+      const t = window.setTimeout(tourNext, 700);
+      return () => window.clearTimeout(t);
+    }
+  }, [tourAt?.k, tourAt?.left, tourAt?.right]);
+  /**
+   * D373: a step of the new tutorial over. WATCH: on to the next step. TRY: how many moves went the right
+   * way (nothing scored), on. A PLAY passed: on (the last passes the lesson: his line, one number, NEXT and
+   * AGAIN, the details behind "?"); not passed: his fix, AGAIN, WATCH AGAIN, and after three tries "Let's go
+   * on: we'll meet this again".
+   */
+  function courseDone(l: ManualLesson, m: ManRun, r: ReturnType<ProtoGame["results"]>, x: NonNullable<ReturnType<ProtoGame["results"]>["lens"]>) {
+    const st = l.stages[m.stage];
+    if (m.mode === "tour") return startStep(m);
+    const watchK = l.stages.findIndex((s) => s.kind === "watch");
+    const watchAgain = watchK >= 0 ? [{ label: "WATCH AGAIN", act: () => courseStep(l, watchK, m.takes + 1) }] : [];
+    if (m.mode === "hear") {
+      finishStep(l.id, m.stage);
+      return courseStep(l, m.stage + 1, m.takes, false, [{ text: "Now you try, slowly." }]);
+    }
+    if (st.kind === "try") {
+      finishStep(l.id, m.stage);
+      const of = Math.max(0, x.of - 1);
+      const lead: Line[] = [{ text: tr("Good: {n} of {m} moves the right way. Now in time.", { n: Math.min(of, x.direction.ok), m: of }) }];
+      return courseStep(l, m.stage + 1, m.takes + 1, false, lead);
+    }
+    const failed = r.failedBar !== null;
+    const ok = !failed && stagePassed(l, "play", x, m.stage);
+    const fix = fixFor(l, x, m.stage);
+    const fixLine: Line[] = fix ? [{ text: tr(fix.text, fix.vars) }] : l.again.map((text) => ({ text }));
+    const again = { label: "AGAIN", act: () => startStep({ ...m, takes: m.takes + 1 }) };
+    const final = m.stage === lastPlay(l);
+    const result = (extra?: ReactNode) => <ResultLine l={l} x={x} st={st} extra={extra} />;
+    if (!final) {
+      if (ok) {
+        finishStep(l.id, m.stage);
+        return courseStep(l, m.stage + 1, m.takes + 1, false, [{ text: "Good. On to the next." }]);
+      }
+      return talk(mTitle(l), fixLine, { extra: result(), choices: [again, ...watchAgain] });
+    }
+    const s = recordTake(l.id, x.accuracy, ok);
+    const next = nextManual(s);
+    if (ok) {
+      finishStep(l.id, m.stage);
+      const told = l.told?.(x);
+      const part = MANUAL_PARTS.find((p) => p.id === l.part);
+      const sealed = !!l.checkpoint && !!part?.seal;
+      const lines: Line[] = [...(told ? [{ text: tr(told.text, told.vars) }] : []), ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : [])];
+      return talk(mTitle(l), lines, { extra: result(sealed ? <Seal part={l.part} /> : undefined), choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : [{ label: "TUTORIAL", act: toMap }]), again] });
+    }
+    // D373 (the report: "after three tries he always offers 'Let's go on: we'll meet this again'").
+    const tries = triesOf(s, l.id);
+    const goOn =
+      tries >= 3
+        ? [
+            {
+              label: "LET'S GO ON",
+              act: () => {
+                const n = nextManual(setAside(l.id));
+                return n ? beginManual(n) : toMap();
+              },
+            },
+          ]
+        : [];
+    return talk(mTitle(l), [...fixLine, ...(tries >= 3 ? [{ text: "Let's go on: we'll meet this again." }] : [])], { extra: result(), choices: [again, ...watchAgain, ...goOn] });
   }
   /** D359: a stage introduced by what it is for (his one line), the material named small beneath it, and PLAY. */
   function beginStage(l: ManualLesson, k: number, takes: number, alt = false) {
@@ -894,21 +1019,13 @@ export function BenchApp() {
     const mat = alt && l.alt ? l.alt : st.m;
     talk(mTitle(l), [{ text: alt ? mat.label : (st.say ?? mat.label) }], { extra: !alt && st.say ? <StageLine l={l} k={k} /> : undefined, choices: [{ label: "PLAY", act: () => startStep(m) }] });
   }
-  function beginTest(p: PartId) {
-    const cp = checkpointOf(p);
-    if (!cp) return;
-    setSteps(false);
-    const k = lastPlay(cp);
-    const m: ManRun = { id: cp.id, stage: k, mode: "test", part: p, takes: 0 };
-    setMan(m);
-    setWatching(false);
-    talk(mTitle(cp), [{ text: "Play the checkpoint once. Pass it, and the part is yours." }], { extra: <StageLine l={cp} k={k} />, choices: [{ label: "PLAY", act: () => startStep(m) }] });
-  }
-  const toMap = () => (setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
-  /** D359: START HERE starts: a player who has never opened the manual goes straight to 0.1, the map after. */
+  /** Back to the tutorial's selection screen, the lesson just left chosen there. */
+  const toMap = () => (setTourAt(null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
+  /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
   const startManual = () => {
     const s = readManual();
-    if (!s.lessons["0.1"]) return beginManual("0.1");
+    if (!Object.keys(s.lessons).length) return beginManual("1.1");
+    setTutFocus(null);
     setSteps(true);
   };
   /** WATCH AGAIN: his demonstration of the stage at hand (III.1: of the touch it asks), else of the lesson's. */
@@ -919,10 +1036,12 @@ export function BenchApp() {
     return styles.length ? [{ label: "WATCH AGAIN", act: () => startStep({ id: l.id, stage, mode: "hear", style: styles[0], queue: styles.slice(1), takes: m.takes + 1, back: m.stage }) }] : [];
   };
   function manualDone(r: ReturnType<ProtoGame["results"]>, log?: ReturnType<LabRecorder["finish"]>) {
+    void log;
     const m = man;
     const x = r.lens;
     if (!m || !x) return toMap();
     const l = lessonById(m.id)!;
+    if (isCourse(l)) return courseDone(l, m, r, x);
     if (m.mode === "hear") {
       const rest = m.queue ?? [];
       if (rest.length) return startStep({ ...m, style: rest[0], queue: rest.slice(1) });
@@ -934,11 +1053,6 @@ export function BenchApp() {
     const sheet = (kind: "drill" | "play") => <LensSheet l={l} x={x} kind={kind} st={m.alt ? undefined : st} />;
     const fix = fixFor(l, x, m.alt ? undefined : m.stage);
     const fixLine: Line[] = fix ? [{ text: tr(fix.text, fix.vars) }] : [];
-    if (m.mode === "test") {
-      const ok = !failed && stagePassed(l, "play", x, m.stage);
-      if (ok) manualTestOut(m.part!);
-      return talk(mTitle(l), ok ? [{ text: "So. The part is yours: its lessons stay open to you." }] : [...fixLine, { text: "Not yet. Its lessons are open to you when you are ready." }], { extra: sheet("play"), choices: [{ label: "THE MANUAL", act: toMap }] });
-    }
     const again = { label: "TRY AGAIN", act: () => startStep({ ...m, takes: m.takes + 1 }) };
     if (st.kind === "drill" && !m.alt) {
       const ok = !failed && stagePassed(l, "drill", x, m.stage);
@@ -950,7 +1064,7 @@ export function BenchApp() {
     if (!final) {
       // D360: a PLAY before the last (III.1's asked touches): passed, on to the next; else once more.
       if (ok) return talk(mTitle(l), [{ text: "Gut. On to the next." }], { extra: sheet("play"), choices: [{ label: "GO ON", act: () => beginStage(l, m.stage + 1, m.takes + 1) }, again] });
-      return talk(mTitle(l), fixLine.length ? fixLine : l.again.map((text) => ({ text })), { extra: sheet("play"), choices: [again, ...watchAgain(l, m), { label: "THE MANUAL", act: toMap }] });
+      return talk(mTitle(l), fixLine.length ? fixLine : l.again.map((text) => ({ text })), { extra: sheet("play"), choices: [again, ...watchAgain(l, m), { label: "TUTORIAL", act: toMap }] });
     }
     const s = recordTake(l.id, x.accuracy, ok);
     const told = l.told?.(x);
@@ -965,7 +1079,7 @@ export function BenchApp() {
       const lines: Line[] = [...toldLine, ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : []), ...(sealed && !next ? [{ text: "Parts VI–VIII come in a later version. My fugues are open to you now." }] : [])];
       return talk(mTitle(l), lines, {
         extra: sealed ? <Seal part={l.part} /> : sheet("play"),
-        choices: [...(next ? [{ label: sealed && nextIn && nextIn.part !== l.part ? "NEXT PART" : "NEXT LESSON", act: () => beginManual(next) }] : []), ...alt, { label: "THE MANUAL", act: toMap }],
+        choices: [...(next ? [{ label: sealed && nextIn && nextIn.part !== l.part ? "NEXT PART" : "NEXT LESSON", act: () => beginManual(next) }] : []), ...alt, { label: "TUTORIAL", act: toMap }],
       });
     }
     const tries = triesOf(s, l.id);
@@ -982,20 +1096,8 @@ export function BenchApp() {
             },
           ]
         : [];
-    return talk(mTitle(l), fixLine.length ? fixLine : l.again.map((text) => ({ text })), { extra: sheet("play"), choices: [again, ...watchAgain(l, m), ...skip, ...alt, { label: "THE MANUAL", act: toMap }] });
+    return talk(mTitle(l), fixLine.length ? fixLine : l.again.map((text) => ({ text })), { extra: sheet("play"), choices: [again, ...watchAgain(l, m), ...skip, ...alt, { label: "TUTORIAL", act: toMap }] });
   }
-  // 0.1: a thumb on each bar sounds the lesson's instrument (D369: the piano); done, the map (0.2 withdrawn).
-  const gripSound = (side: "left" | "right") => {
-    const ch = ensureChip();
-    setPreset(SOUND_PRESET.piano);
-    ch.note(side === "left" ? 60 : 67, ch.ctx.currentTime + 0.01, 0.6, voicing(0, 2, true), { lead: true });
-  };
-  const gripDone = () => {
-    recordTake("0.1", 1, true);
-    setPreset(presetById(soundNow).id);
-    setManScreen(null);
-    setSteps(true);
-  };
   const talkDone = (next: "play" | "again" | "advance" | "watch") => {
     if (next === "watch") return setWatching(true), start(true);
     if (next !== "advance") return setWatching(false), start();
@@ -1068,7 +1170,8 @@ export function BenchApp() {
   const events: ThumbEvents = {
     // D280: during the demonstration the game's thumbs play; the player's touches wait.
     // D342: a manual take's touches go through its recorder (the take's lab log), which hands them on to the game.
-    down: (id, side, x, y, w, h, ts) => (watching || practice.current?.listen ? undefined : (seen(), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
+    // D373: a touch while he plays: JUST WATCH FOR NOW; in 1.1's tour, each strip touched noted (and played, as in the game).
+    down: (id, side, x, y, w, h, ts) => (watching ? void setNudge(performance.now()) : practice.current?.listen ? undefined : (seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
     move: (id, x, y, w, h, ts) => (recRef.current && game.current ? recRef.current.move(id, x, y, w, h, ts) : game.current?.move(id, { side: "left", x, y, w, h }, ts)),
     // D249: a touch the system took back (pointercancel) stops its note unjudged: no early let-go.
     up: (id, ts, cancelled) => (recRef.current && game.current ? recRef.current.up(id, ts, cancelled) : game.current?.up(id, ts, cancelled)),
@@ -1243,12 +1346,14 @@ export function BenchApp() {
   const scaleOn = false;
   const layout = proto.layout;
   const wide = layout === "wide" || layout === "bars" || layout === "desk";
-  const own = (playing && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
+  // D373: between a tutorial lesson's steps the play screen stays as it is (the layout never changes).
+  const onBars = playing || (phase.kind === "mtalk" && !!manLesson && isCourse(manLesson));
+  const own = (onBars && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
   // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
   const stopsOn = hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing);
 
   return (
-    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${playing ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
+    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
@@ -1277,14 +1382,14 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<VoiceLegend names={f.voiceNames} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
+        legend={<VoiceLegend names={voiceNamesOf} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
           <BachTalk key={`${lesson.n}-${phase.next}-${phase.lines[0]?.text}`} title={`${TRACKS[lesson.pl][lesson.n].title} · ${tr(TRACKS[lesson.pl][lesson.n].english)}`} lines={phase.lines} onLine={demo} onDone={() => talkDone(phase.next)} choices={phase.next === "again" ? againChoices() : undefined} />
         )}
         {phase.kind === "mtalk" && (
-          <BachTalk key={`m-${phase.title}-${phase.lines.map((l) => l.text).join("|")}`} title={phase.title} lines={phase.lines} onLine={demo} onDone={() => phase.done?.()} choices={phase.choices} extra={phase.extra} />
+          <BachTalk key={`m-${phase.title}-${phase.lines.map((l) => l.text).join("|")}`} title={phase.title} lines={phase.lines} onLine={demo} onDone={() => phase.done?.()} choices={phase.choices} extra={phase.extra} className={manLesson && isCourse(manLesson) ? "tb-bach-low" : undefined} />
         )}
         {phase.kind === "result" && (
           // D237: the result, minimal: the grade (or where the crowd left), the score, AGAIN, NEXT, ✕ back to the cards.
@@ -1368,6 +1473,14 @@ export function BenchApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
+      {playing && man && manLesson && isCourse(manLesson) && (
+        // D373: WATCH, TRY and PLAY told apart (the banner, the strips' words), his words over the foot of the box; 1.1's bubbles.
+        <div className="tb-course-chrome">
+          <StepBanner kind={man.mode === "tour" ? "tour" : man.mode === "hear" ? "watch" : (manLesson.stages[man.stage]?.kind ?? "play")} nudge={nudge} />
+          {man.mode !== "tour" && manLesson.stages[man.stage]?.say && <Caption text={manLesson.stages[man.stage].say!} />}
+          {man.mode === "tour" && tourAt && <TourBubble k={tourAt.k} touched={tourAt} next={tourNext} />}
+        </div>
+      )}
       {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man} /> : (
         <p className="tb-lite-hint" id="lite-hint" role="status">
           {hintLine}
@@ -1525,9 +1638,8 @@ export function BenchApp() {
       {/* D308: ⚙ opens over the cards, which stay behind it (not the music box). */}
       {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { ...manualProgress(readManual()), start: startManual } : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
-      {/* D342: THE MANUAL's map (in place of the old tutorial's steps), and its Part 0 screens. */}
-      {APP.lite && steps && phase.kind === "home" && !manScreen && <ManualMap begin={beginManual} testOut={beginTest} close={() => setSteps(false)} />}
-      {APP.lite && manScreen === "grip" && phase.kind === "home" && <GripScreen chip={ensureChip} sound={gripSound} lag={lag} setLag={setLag} done={gripDone} close={() => (setManScreen(null), setSteps(true))} />}
+      {/* D373: THE TUTORIAL's selection screen (three columns, nothing scrolls). */}
+      {APP.lite && steps && phase.kind === "home" && <TutorialSelect begin={beginManual} focus={tutFocus} close={() => setSteps(false)} relang={() => setLite(readLite())} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>

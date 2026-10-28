@@ -82,6 +82,22 @@ export interface Options {
  * `ornaments` (D360, Part V) the ornaments' SHAKE prompts too.
    */
   quiet?: { words?: readonly ("legato" | "held" | "short" | "clean" | "rest")[]; ornaments?: boolean };
+  /**
+   * D373, THE TUTORIAL (lesson-only, never set by the game): one thumb takes every note of the plan (the
+   * demonstration and the hints: "the left thumb alone"); the judge never asks which thumb.
+   */
+  side?: "left" | "right";
+  /** D373 (lesson-only): the timing windows (early, late, the halfway split's floor) this many times the game's. */
+  widen?: number;
+  /** D373 (lesson-only): the count-in in whole beats ("I count four"), instead of D338's by time. */
+  countBeats?: number;
+  /**
+   * D373 (lesson-only): the reading's notes placed on these onsets of the voice played (one per note of
+   * `reading`), instead of on the subject's entries: a lesson's own marks (SHORT, DETACHED, JOINED, ACCENT).
+   */
+  readingAt?: readonly number[];
+  /** D373 (lesson-only): the thumbs drawn by the tutorial's aid (Mario's model A), not the demonstration's own. */
+  thumbsA?: boolean;
 }
 
 /**

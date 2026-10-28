@@ -55,7 +55,8 @@ export function Portrait({ talking }: { talking: boolean }) {
 
 /** The lines, one at a time; `onLine` as each begins (a demonstration to play); `onDone` after the last. */
 /** D342: `extra`, shown under the last line (THE MANUAL's lens: what counted, what was shown). */
-export function BachTalk({ title, lines, onLine, onDone, choices, extra }: { title: string; lines: Line[]; onLine?: (l: Line) => void; onDone: () => void; choices?: { label: string; act: () => void }[]; extra?: ReactNode }) {
+/** D373: `className` (the tutorial: over the foot of the box, between the strips). */
+export function BachTalk({ title, lines, onLine, onDone, choices, extra, className }: { title: string; lines: Line[]; onLine?: (l: Line) => void; onDone: () => void; choices?: { label: string; act: () => void }[]; extra?: ReactNode; className?: string }) {
   const [i, setI] = useState(0);
   const [shown, setShown] = useState(0);
   const line = lines[i];
@@ -92,7 +93,7 @@ export function BachTalk({ title, lines, onLine, onDone, choices, extra }: { tit
   }, []);
 
   return (
-    <div className="tb-bach" role="dialog" aria-label={`Herr Bach: ${title}`} onClick={advance}>
+    <div className={`tb-bach${className ? ` ${className}` : ""}`} role="dialog" aria-label={`Herr Bach: ${title}`} onClick={advance}>
       <Portrait talking={shown < full} />
       <div className="tb-bach-box">
         <p className="tb-bach-title">{title}</p>

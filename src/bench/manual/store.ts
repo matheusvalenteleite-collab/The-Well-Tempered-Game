@@ -1,52 +1,51 @@
 /**
- * D342, THE MANUAL's memory (design 4.8, section 3): `tb-tutorial-v2`, the phone's manual: the answer to
- * HAVE YOU PLAYED BEFORE?, each lesson passed (tries, best, when), TESTED (placed past, or tested out of),
- * tried, set aside (D289's SKIP FOR NOW), its last takes' figures; each part's checkpoint passed or
- * tested; the parts the placement opened; the placement's results. Carried over once from the old
- * tutorial's memory (`tb-tutorial-v1`, the phone's track), which stays as it was (the computer's
- * HIGHWAY lessons still live there).
+ * D342, THE MANUAL's memory: `tb-tutorial-v2`, the phone's tutorial: each lesson passed (tries, best,
+ * when), tried, set aside (D289's SKIP FOR NOW), its last takes' figures; each part sealed. Carried over
+ * once from the old tutorial's memory (`tb-tutorial-v1`, the phone's track), which stays as it was.
  *
- * Gating (section 3): the game is never locked by the manual. Part 0 and Part I are open from the
- * start; a part opens when the part before it is passed (its checkpoint) or TESTED, or when it is tested
- * out of itself (ICH KANN DAS SCHON: its checkpoint played once and passed). Inside an open part every
- * lesson is open; the order is a suggestion. Answering YES without the test opens every part.
+ * D373 (the tutorial rebuilt: Parts 1–3 on the Inventions, the older III–V after them): the same key, the
+ * record now `v: 3`. Each lesson also keeps the steps finished (WATCH, TRY, PLAY: `steps`, by index) and
+ * the furthest begun (`reached`, D369): its tile's chips resume any finished one, CONTINUE where it
+ * stopped. Every part is open (the order a suggestion; the game itself never locked). A `v: 2` record is
+ * carried once: its own lessons kept as they were (III–V unchanged), and the new lessons that teach what
+ * a passed old one taught marked passed, `carried` (CARRY: I.1 → 1.2 and 1.3, II.1 → 1.4, I.2 → 2.1 …;
+ * an old part sealed carries its whole new part). Nobody who passed the old lessons redoes them; what the
+ * old ones never taught (1.1's tour of the screen is the only one) is offered as NEXT.
  */
-import { checkpointOf, MANUAL, PARTS, PLAYED, type PartId } from "./lessons.ts";
+import { checkpointOf, lessonsOf, MANUAL, PARTS, PLAYED, type PartId } from "./lessons.ts";
 
 export const MANUAL_KEY = "tb-tutorial-v2";
 export const OLD_TUTORIAL_KEY = "tb-tutorial-v1";
 
 export interface LessonRec {
   passed?: { tries: number; best: number; ms: number };
+  /** D342's TESTED (a part tested out of): kept from older records, counted as done. */
   tested?: true;
   tries?: number;
   later?: true;
-  /** Begun at least once (its steps may be skipped after). */
+  /** Begun at least once. */
   seen?: true;
   /** The last three takes of its PLAY: when, the share right, passed. */
   takes?: { ms: number; right: number; ok: boolean }[];
   /** D369: the furthest stage begun (its index): the lesson may be taken up again from any stage up to it. */
   reached?: number;
+  /** D373: the steps finished (their indices): a WATCH watched, a TRY tried, a PLAY passed. */
+  steps?: number[];
+  /** D373: passed by an old lesson that taught the same (CARRY), not played here. */
+  carried?: true;
 }
-
-export type Answer = "no" | "other" | "keyboard";
 
 export interface ManualStore {
-  v: 2;
-  /** HAVE YOU PLAYED BEFORE? (null: not answered yet). */
-  answer: Answer | null;
-  /** YES without the test: every part open (the old "played before: YES"). */
-  allOpen: boolean;
+  v: 3;
   lessons: Record<string, LessonRec>;
-  parts: Partial<Record<PartId, "passed" | "tested">>;
-  /** Parts opened by the placement (III and IV: their own lessons come in later phases). */
-  opened: PartId[];
-  placement?: { ms: number; results: { id: string; right: number; ok: boolean }[] };
+  parts: Partial<Record<PartId | "0" | "I" | "II", "passed" | "tested">>;
   /** Carried over from tb-tutorial-v1 (once). */
   migrated?: true;
+  /** D373: carried over from the record before the rebuild (v: 2), once. */
+  carried?: true;
 }
 
-const fresh = (): ManualStore => ({ v: 2, answer: null, allOpen: false, lessons: {}, parts: {}, opened: [] });
+const fresh = (): ManualStore => ({ v: 3, lessons: {}, parts: {} });
 type Store = Pick<Storage, "getItem" | "setItem">;
 const storage = (): Store | null => {
   try {
@@ -57,9 +56,8 @@ const storage = (): Store | null => {
 };
 
 /**
- * The old tutorial's steps (TUTORIAL_LESSONS, the phone's track) and the lessons they mark (design 3,
- * "Migration"). t-ladder, t-beat and t-hold together mark I.1–I.4: each its own (the beat I.1, the
- * ladder I.2, the hold I.4) and, all three passed, I.3 too. t-dynamics (it judged loudness) has none.
+ * D342: the old tutorial's steps (TUTORIAL_LESSONS, the phone's track) and the old lessons they marked.
+ * D373: carried on from there by CARRY.
  */
 export const MIGRATION: Record<string, string[]> = {
   "t-beat": ["I.1"],
@@ -69,29 +67,66 @@ export const MIGRATION: Record<string, string[]> = {
   "t-legato": ["II.3"],
   "t-leaps": ["II.5"],
   "t-ornament": ["V.1"],
-  "t-subject": ["VI.1"],
   "t-reading": ["III.3"],
-  "t-whole": ["II.7", "VIII.1"],
+  "t-whole": ["II.7"],
 };
 
-/** The new store made from the old one's phone track (null: nothing to carry over). */
-export function migrate(old: unknown): ManualStore | null {
-  const m = (old as { mobile?: { answered?: boolean; skipped?: boolean; passed?: Record<string, { tries?: number; best?: number; ms?: number }> } } | null)?.mobile;
+/**
+ * D373: an old lesson passed (or tested) and the new lessons that teach what it taught. The old Parts 0–II
+ * are withdrawn; III–V stay (their records unchanged), and three of III's carry Part 3's signs.
+ */
+export const CARRY: Record<string, string[]> = {
+  "0.1": ["1.1"],
+  "I.1": ["1.2", "1.3"],
+  "I.2": ["2.1"],
+  "I.3": ["2.2"],
+  "I.4": ["3.1"],
+  "I.5": ["1.2", "1.3", "1.5"],
+  "II.1": ["1.4"],
+  "II.3": ["3.3"],
+  "II.4": ["3.4"],
+  "II.5": ["2.1"],
+  "II.6": ["2.3"],
+  "II.7": ["2.4"],
+  "III.1": ["3.6"],
+  "III.2": ["3.2"],
+  "III.4": ["3.5"],
+  "III.5": ["3.6"],
+};
+/** D373: an old part sealed (its checkpoint passed, or tested out of) carries a whole new part. */
+export const CARRY_PART: Record<string, PartId[]> = { I: ["1"], II: ["1", "2"], III: ["3"] };
+
+/** The old store (v: 2's shape) made from the old tutorial's phone track (null: nothing to carry over). */
+export function migrate(old: unknown): { lessons: Record<string, LessonRec>; parts: Record<string, "passed"> } | null {
+  const m = (old as { mobile?: { passed?: Record<string, { tries?: number; best?: number; ms?: number }> } } | null)?.mobile;
   if (!m) return null;
-  const s = fresh();
-  s.migrated = true;
-  if (m.answered) s.answer = m.skipped ? "other" : "no";
-  if (m.answered && m.skipped) s.allOpen = true;
+  const lessons: Record<string, LessonRec> = {};
   const passed = m.passed ?? {};
-  const mark = (id: string, from: { tries?: number; best?: number; ms?: number }) => {
-    s.lessons[id] = { ...s.lessons[id], passed: { tries: from.tries ?? 1, best: from.best ?? 0, ms: from.ms ?? 0 } };
-  };
-  for (const [old, ids] of Object.entries(MIGRATION)) if (passed[old]) for (const id of ids) mark(id, passed[old]);
+  const mark = (id: string, from: { tries?: number; best?: number; ms?: number }) => (lessons[id] = { passed: { tries: from.tries ?? 1, best: from.best ?? 0, ms: from.ms ?? 0 } });
+  for (const [o, ids] of Object.entries(MIGRATION)) if (passed[o]) for (const id of ids) mark(id, passed[o]);
   if (passed["t-beat"] && passed["t-ladder"] && passed["t-hold"]) mark("I.3", passed["t-hold"]);
-  // A checkpoint carried over passes its part.
+  const parts: Record<string, "passed"> = {};
+  if (lessons["II.7"]) parts.II = "passed";
+  return { lessons, parts };
+}
+
+/** D373: a record of before the rebuild (v: 2, or v1's carried) as v: 3, the new lessons it covers passed. */
+export function carry(old: { lessons?: Record<string, LessonRec>; parts?: Record<string, string> }): ManualStore {
+  const s = fresh();
+  s.carried = true;
+  s.lessons = { ...(old.lessons ?? {}) };
+  for (const [p, v] of Object.entries(old.parts ?? {})) if (v === "passed" || v === "tested") s.parts[p as PartId] = v;
+  const done = (id: string) => !!(old.lessons?.[id]?.passed || old.lessons?.[id]?.tested);
+  const give = (id: string, from?: LessonRec) => {
+    if (s.lessons[id]?.passed) return;
+    const p = from?.passed;
+    s.lessons[id] = { ...s.lessons[id], passed: { tries: p?.tries ?? 1, best: p?.best ?? 1, ms: p?.ms ?? 0 }, carried: true };
+  };
+  for (const [o, ids] of Object.entries(CARRY)) if (done(o) || (o === "0.1" && old.lessons?.["0.1"]?.seen)) for (const id of ids) give(id, old.lessons?.[o]);
+  for (const [o, ps] of Object.entries(CARRY_PART)) if (old.parts?.[o] === "passed" || old.parts?.[o] === "tested") for (const p of ps) for (const l of lessonsOf(p)) give(l.id);
   for (const p of PARTS) {
     const cp = checkpointOf(p.id);
-    if (cp && s.lessons[cp.id]?.passed) s.parts[p.id] = "passed";
+    if (cp && s.lessons[cp.id]?.passed && !s.parts[p.id]) s.parts[p.id] = "passed";
   }
   return s;
 }
@@ -101,13 +136,19 @@ export function readManual(st: Store | null = storage()): ManualStore {
   try {
     const raw = st.getItem(MANUAL_KEY);
     if (raw) {
-      const s = JSON.parse(raw) as ManualStore;
-      if (s && s.v === 2) return { ...fresh(), ...s, lessons: { ...s.lessons }, parts: { ...s.parts }, opened: [...(s.opened ?? [])] };
+      const s = JSON.parse(raw) as { v?: number } & Partial<ManualStore>;
+      if (s && s.v === 3) return { ...fresh(), ...s, v: 3, lessons: { ...s.lessons }, parts: { ...s.parts } };
+      // D373: the record before the rebuild, carried once.
+      if (s && (s.v as number) === 2) {
+        const c = carry(s as never);
+        st.setItem(MANUAL_KEY, JSON.stringify(c));
+        return c;
+      }
     }
     // Once: the old tutorial's phone track carried over (it is left as it was).
     const old = st.getItem(OLD_TUTORIAL_KEY);
     const made = old ? migrate(JSON.parse(old)) : null;
-    const s = made ?? fresh();
+    const s = made ? { ...carry(made), migrated: true as const } : fresh();
     st.setItem(MANUAL_KEY, JSON.stringify(s));
     return s;
   } catch {
@@ -130,38 +171,24 @@ const update = (f: (s: ManualStore) => void, st: Store | null = storage()): Manu
   return s;
 };
 
-const ORDER: PartId[] = PARTS.map((p) => p.id);
-/** The part a part follows (design 3: II after I, III after II, IV after III, V and VI after II, VII after IV). */
-export const AFTER: Partial<Record<PartId, PartId>> = { II: "I", III: "II", IV: "III", V: "II", VI: "II", VII: "IV", VIII: "VII" };
-
-const done = (s: ManualStore, p: PartId) => !!s.parts[p];
-
-/** A part open: 0 and I always; else its predecessor passed or tested, itself tested or passed, a later part's checkpoint passed, opened by the placement, or every part open. */
-export function partOpen(s: ManualStore, p: PartId): boolean {
-  if (p === "0" || p === "I" || s.allOpen || s.opened.includes(p) || done(s, p)) return true;
-  const before = AFTER[p];
-  if (before && done(s, before)) return true;
-  // A later part's checkpoint passed (carried over, or tested out of) opens what leads to it.
-  return ORDER.slice(ORDER.indexOf(p) + 1).some((q) => AFTER[q] === p && done(s, q));
-}
-
+/** D373: every built part is open (the order a suggestion; the owner's friends free to go where they like). */
+export const partOpen = (_s: ManualStore, p: PartId): boolean => PARTS.some((x) => x.id === p && x.phase !== "later");
 export const lessonOpen = (s: ManualStore, id: string) => {
   const l = MANUAL.find((x) => x.id === id);
   return !!l && partOpen(s, l.part);
 };
 export const lessonDone = (s: ManualStore, id: string) => !!(s.lessons[id]?.passed || s.lessons[id]?.tested);
 
-/** The lesson suggested next: the first open one, in order, neither passed, tested nor set aside (null: none left). */
+/** The lesson suggested next: the first, in order, neither passed nor set aside (null: none left). */
 export function nextLesson(s: ManualStore): string | null {
   for (const l of MANUAL) {
     if (!partOpen(s, l.part) || lessonDone(s, l.id) || s.lessons[l.id]?.later) continue;
-    if (l.id === "0.1" && s.lessons["0.1"]?.seen) continue;
     return l.id;
   }
   return null;
 }
 
-/** A take of a lesson's PLAY: counted; passed, kept with its best share right (a checkpoint passes its part). */
+/** A take of a lesson's last PLAY: counted; passed, kept with its best share right (a checkpoint seals its part). */
 export function recordTake(id: string, right: number, ok: boolean, st: Store | null = storage(), now = Date.now()): ManualStore {
   return update((s) => {
     const r: LessonRec = { ...s.lessons[id] };
@@ -169,7 +196,7 @@ export function recordTake(id: string, right: number, ok: boolean, st: Store | n
     if (r.passed) r.passed = { ...r.passed, best: Math.max(r.passed.best, right) };
     else if (ok) r.passed = { tries, best: right, ms: now };
     r.tries = r.passed ? undefined : tries;
-    if (ok) delete r.later;
+    if (ok) delete r.later, delete r.carried;
     r.takes = [...(r.takes ?? []), { ms: now, right: Math.round(right * 1000) / 1000, ok }].slice(-3);
     s.lessons[id] = clean(r);
     const l = MANUAL.find((x) => x.id === id);
@@ -188,25 +215,32 @@ export const triesOf = (s: ManualStore, id: string) => s.lessons[id]?.tries ?? 0
  */
 export const reachStage = (id: string, k: number, st: Store | null = storage()) => update((s) => void (s.lessons[id] = { ...s.lessons[id], reached: Math.max(k, s.lessons[id]?.reached ?? 0) }), st);
 export const reachedOf = (s: ManualStore, id: string) => s.lessons[id]?.reached ?? 0;
-
-/** HAVE YOU PLAYED BEFORE? answered; YES without the test (`allOpen`) opens every part. */
-export const setAnswer = (a: Answer, allOpen: boolean, st: Store | null = storage()) =>
+/** D373: a step finished (a WATCH watched, a TRY tried, a PLAY passed). */
+export const finishStep = (id: string, k: number, st: Store | null = storage()) =>
   update((s) => {
-    s.answer = a;
-    if (allOpen) s.allOpen = true;
+    const r = s.lessons[id] ?? {};
+    s.lessons[id] = { ...r, steps: [...new Set([...(r.steps ?? []), k])].sort((a, b) => a - b) };
   }, st);
+/** D373: the steps finished; a lesson passed has all of them. */
+export function stepsDone(s: ManualStore, id: string): number[] {
+  const l = MANUAL.find((x) => x.id === id);
+  if (!l) return [];
+  if (lessonDone(s, id)) return l.stages.map((_, k) => k);
+  return s.lessons[id]?.steps ?? [];
+}
+/** D373: where CONTINUE takes a lesson up: its first step not finished (from the beginning once passed). */
+export function resumeAt(s: ManualStore, id: string): number {
+  const l = MANUAL.find((x) => x.id === id);
+  if (!l || lessonDone(s, id)) return 0;
+  const done = new Set(s.lessons[id]?.steps ?? []);
+  const k = l.stages.findIndex((_, i) => !done.has(i));
+  return k < 0 ? Math.max(0, l.stages.length - 1) : k;
+}
 
-/** ICH KANN DAS SCHON: a part's checkpoint played once and passed: the part TESTED (its successors open). */
-export const testOut = (p: PartId, st: Store | null = storage()) =>
-  update((s) => {
-    if (!s.parts[p]) s.parts[p] = "tested";
-    for (const l of MANUAL) if (l.part === p && !s.lessons[l.id]?.passed) s.lessons[l.id] = { ...s.lessons[l.id], tested: true };
-  }, st);
-
-/** The manual's progress on the phone: lessons passed or tested, of those played in Phase A. */
+/** The manual's progress on the phone: lessons passed, of all of them. */
 export function progress(s: ManualStore): { done: number; of: number } {
   return { done: PLAYED.filter((l) => lessonDone(s, l.id)).length, of: PLAYED.length };
 }
 
-/** D327's "the tutorial behind the player" on the phone: every part open by the answer, or Part II (the last of Phase A) passed or tested. */
-export const manualBehind = (s: ManualStore) => s.allOpen || !!s.parts.II;
+/** D327's "the tutorial behind the player" on the phone: D373: Part 2 (high and low) sealed, or an older part carried. */
+export const manualBehind = (s: ManualStore) => !!s.parts["2"] || !!s.parts.II || !!s.parts["3"];

@@ -49,6 +49,8 @@ export interface Run {
   ornHint?: boolean;
   /** D359: THE MANUAL's practice room (Options.quiet). */
   quiet?: Options["quiet"];
+  /** D373: THE TUTORIAL's options (one thumb, the windows widened, the count-in, its own marks, model A's thumbs). */
+  tut?: Pick<Options, "side" | "widen" | "countBeats" | "readingAt" | "thumbsA" | "reading">;
 }
 
 /**
