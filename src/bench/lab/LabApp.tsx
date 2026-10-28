@@ -581,6 +581,7 @@ export function LabApp() {
         bossFight: false,
         pops: g.pops,
         bursts: g.bursts,
+        performed: g.overlay(),
         zone: g.zone,
       };
       if (pp.layout === "bars") {
