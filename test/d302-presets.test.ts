@@ -95,15 +95,14 @@ test("D302: SOLO VOICES from the recordings: a new syllable opens from a lowpass
   assert.ok(!joined.some((n) => n.kind === "filter" && (n.type as string) === "lowpass" && (n.frequency as FakeParam).events.length), "no consonant when joined");
 });
 
-test("D302: what a note costs a phone: VOCAL SYNTH about 23 nodes (two sources and an LFO), PIPE ORGAN's synthesized registrations 13-21, its recorded ones 8", async () => {
+test("D302: what a note costs a phone: VOCAL SYNTH about 23 nodes (two sources and an LFO), PIPE ORGAN's synthesized registrations 13-22", async () => {
   const sung = noteNodes("vocalSynth", 0, 4);
   assert.ok(sung.made.length <= 24, `${sung.made.length} nodes`);
   setPreset("chamberOrgan");
   await new Chip().prepare(fugueById("wtc1f02").voices.flat().map((n) => n[2]));
   const counts = [0, 1, 2, 3].map((v) => noteNodes("chamberOrgan", v, 4).made.length);
+  // D349: one organ, its pedal synthesized as its manuals are (the plenum's recordings cheaper still).
   for (const c of counts) assert.ok(c <= 22, `${counts}`);
-  // The recorded pedal (D304: the only recording left) far cheaper than a synthesized registration.
-  assert.ok(counts[3] < Math.min(counts[0], counts[1], counts[2]), `${counts}`);
   void FakeNode;
 });
 

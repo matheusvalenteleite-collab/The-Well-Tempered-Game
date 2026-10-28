@@ -248,10 +248,17 @@ test("the fade: full while the fast envelope is near the slow one, none in a ton
 
 test("cost: ten seconds of microphone analysed in well under a second", () => {
   const x = wind(10 * SR, 0.05);
-  const t0 = performance.now();
+  // D361: the analysis's own CPU time (this process's user + system, process.cpuUsage), not the wall
+  // clock: what the work costs, not how long the machine (the suite's other files, a build) let it run.
+  // A cold run, as before (about 200 ms here; the wall clock read 400 ms alone and over 1000 under load).
+  const cpuMs = () => {
+    const u = process.cpuUsage();
+    return (u.user + u.system) / 1000;
+  };
+  const t0 = cpuMs();
   run(x);
-  const ms = performance.now() - t0;
-  assert.ok(ms < 1000, `${ms.toFixed(0)} ms`);
+  const ms = cpuMs() - t0;
+  assert.ok(ms < 1000, `${ms.toFixed(0)} ms of CPU`);
 });
 
 test("THE VOICE'S NOTES: the passage's notes of the voice, in order", () => {

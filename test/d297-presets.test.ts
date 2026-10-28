@@ -6,7 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
-import { PATCHES, patchFor, placeFor, presetById, PRESETS, sampledNow, setPreset, type PatchId } from "../src/touch/sound.ts";
+import { ORGAN_SEND, PATCHES, patchFor, placeFor, presetById, PRESETS, sampledNow, setPreset, type PatchId } from "../src/touch/sound.ts";
 import { BAKE_RATE, bake, BUDGET, decodedBytes, folderOf, noteInfo, PERIOD, planFor, SAMPLED, setFor, WIND_LOOP } from "../src/touch/sampled.ts";
 import { Chip, HALL, REVERBS, SPC_ECHO, stairCurve, voicing } from "../src/touch/chip.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -46,7 +46,9 @@ test("D297: every voice its own instrument, pans within ±0.35, vibrato only on 
     setPreset(id);
     for (const n of [2, 3, 4, 5]) {
       const ids: PatchId[] = presetById(id).by![n]!.map(([p]) => p);
-      assert.equal(new Set(ids).size, n, `${id} ${n}: ${ids}`);
+      // D349: but PIPE ORGAN, one organ: every manual voice the same rank, the pedal its own division.
+      if (id === "chamberOrgan") assert.deepEqual([new Set(ids.slice(0, -1)).size, ids[n - 1]], [1, "orgPedal"], `${id} ${n}: ${ids}`);
+      else assert.equal(new Set(ids).size, n, `${id} ${n}: ${ids}`);
       const rates: number[] = [];
       for (let v = 0; v < n; v++) {
         const pt = patchFor(v, n)!;
@@ -241,38 +243,34 @@ test("D297: SID 64: each voice its own waveform and motion; vibrato on the top o
   assert.ok(bass.filter!.hz && bass.filter!.freq >= 1200 && bass.filter!.q! >= 2, "a resonant filter, its body kept for phones");
 });
 
-test("D302, D304: PIPE ORGAN: a sweet flute, a Principal, the Trompete over the recorded pedal, ranks beating, a chiff, no tremulant, a church", () => {
+test("D302, D349: PIPE ORGAN: one organ: the manuals one rank, the pedal its division, the plenum and its pedal recorded, a church", () => {
   const pr = presetById("chamberOrgan");
   assert.equal(pr.name, "PIPE ORGAN");
-  assert.deepEqual(pr.slots, ["orgFlute", "orgKrumm", "orgPrincipal", "orgTrompete", "orgPedal"]);
-  assert.equal(PATCHES.orgPedal.sample, "organPedal");
-  // The flute nearly a sine (its octave and twelfth soft); the trumpet a solo reed, bright, quick.
-  assert.ok(PATCHES.orgFlute.osc.slice(1).every((o) => (o.gain ?? 1) <= 0.12) && PATCHES.orgFlute.chiff!.level <= 0.35);
-  assert.ok(PATCHES.orgTrompete.osc.every((o) => o.wave === "stopTrompete") && PATCHES.orgTrompete.filter!.freq >= 4500 && PATCHES.orgTrompete.amp.a <= 0.012);
+  assert.deepEqual(pr.slots, ["orgPrincipal", "orgPrincipal", "orgPrincipal", "orgPrincipal", "orgPedal"]);
+  assert.deepEqual(pr.also, ["orgPleno", "orgPedalPleno"]);
+  assert.equal(PATCHES.orgPedalPleno.sample, "organPedal");
+  assert.equal(PATCHES.orgPleno.sample, "organPleno");
   assert.equal(SAMPLED.organPedal.set, "pedalOrg");
-  assert.equal(folderOf("manualOrg"), "pipeOrgan");
+  assert.equal(SAMPLED.organPleno.set, "plenoOrg");
+  assert.equal(folderOf("plenoOrg"), "pipeOrgan");
   assert.equal(folderOf("pedalOrg"), "pipePedal");
-  assert.ok(noteInfo("pedalOrg", 36)!.loop && noteInfo("manualOrg", 60)!.loop, "the recordings' own loops");
-  // The pedal up to B3, the plenum above (as an organist takes a high bass on a manual).
+  assert.ok(noteInfo("pedalOrg", 36)!.loop && noteInfo("plenoOrg", 60)!.loop, "the recordings' own loops");
+  // The pedal recording up to B3, the plenum above (as an organist takes a high bass on a manual).
   assert.equal(setFor(SAMPLED.organPedal, 59), "pedalOrg");
   assert.equal(setFor(SAMPLED.organPedal, 60), "manualOrg");
-  for (const s of pr.slots!) {
+  assert.ok(PATCHES.orgTrompete.osc.every((o) => o.wave === "stopTrompete") && PATCHES.orgTrompete.filter!.freq >= 4500 && PATCHES.orgTrompete.amp.a <= 0.012);
+  for (const s of ["orgPrincipal", "orgFlute", "orgTrompete", "orgPleno", "orgPedal", "orgPedal8", "orgPedalSoft", "orgPedalPleno"] as const) {
     const pt = PATCHES[s];
     assert.equal(pt.vib, undefined, `${s}: no tremulant`);
-    assert.ok(pt.amp.s === 1, s);
-    assert.ok(pt.send! >= 0.1 && pt.send! <= 0.15, s);
-    if (pt.sample) continue;
-    // The synthesized registrations: a chiff, and ranks a cent or two apart (their beating).
-    assert.ok(pt.chiff && pt.chiff.time >= 0.012 && pt.chiff.time <= 0.04, s);
-    assert.ok(pt.osc.length >= 2 && pt.osc.some((o) => Math.abs(o.detune ?? 0) >= 1 && Math.abs(o.detune ?? 0) <= 3), s);
-    assert.ok(pt.drift && pt.drift.cents <= 1.5, s);
+    assert.equal(pt.drift, undefined, `${s}: no voice wandering`);
+    assert.ok(pt.amp.s === 1 && pt.pipe, s);
+    assert.equal(pt.send, ORGAN_SEND, `${s}: one church`);
+    if (!pt.sample) assert.ok(pt.chiff && pt.chiff.time >= 0.012 && pt.chiff.time <= 0.05, s);
   }
-  // The flute the most in the room, the pedal the least.
-  assert.ok(PATCHES.orgFlute.send! > PATCHES.orgPedal.send!);
   assert.equal(pr.fx, "cathedral");
   const c = REVERBS.cathedral;
-  // D304: a smaller church (the inner lines were muddled in a 2.8 s one).
-  assert.ok(c.predelay >= 0.04 && c.rt60 >= 2 && c.rt60 <= 2.4 && c.lp <= 6000 && c.phoneSeconds < c.seconds);
+  // D349: a church of Bach's (RT60 2-3 s; Boren 2021), shorter on a phone, the pedal's fundamentals in it.
+  assert.ok(c.rt60 >= 2.3 && c.rt60 <= 3 && (c.phoneRt60 ?? c.rt60) < c.rt60 && c.phoneSeconds < c.seconds && c.hp <= 120 && c.lp <= 6000);
   assert.ok(c.rt60 > REVERBS.hall.rt60);
 });
 

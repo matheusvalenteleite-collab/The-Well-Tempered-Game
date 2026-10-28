@@ -101,8 +101,8 @@ test("D351: three tempi for every MORE BACH and CHORALES piece: SLOW 0.75×, FAS
   }
   // The quick concerto movements sit at the cap: FAST passes it by 12% (♩ 82 → 92).
   assert.deepEqual(steps.stepTempi("bwv1052-1"), { slow: 62, default: 82, fast: 92 });
-  // Not for the WTC.
-  assert.equal(steps.stepTempi("wtc1f01"), null);
+  // Not for the WTC's preludes (D356: its fugues since, test/d356-wtc-tempo.test.ts).
+  assert.equal(steps.stepTempi("wtc1p01"), null);
   assert.match(steps.stepBeat("bwv1053-2", 66), /^♩\. 44$/);
 });
 
@@ -139,7 +139,8 @@ test("D351: each tempo its sound: DEFAULT the piece's own, SLOW and FAST by the 
   setPreset("chip");
   // The page: a sound chosen for the piece is kept at every tempo; the card shows the sound in force.
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /const st = full && !chosen\[id\] \? stepSound\(id, stepOf\(id\)\) : undefined;/);
+  // D356: in the friends' view too (no sound chosen there), where a WTC fugue's tempo is open.
+  assert.match(app, /const mine = full \? chosen : \{\};\s*const st = !mine\[id\] \? stepSound\(id, stepOf\(id\)\) : undefined;/);
   assert.match(app, /const bpm = run \? run\.bpm : tempi \? tempi\[step\] : tempoOf\(f\.id\);/);
   assert.match(app, /id="pop-tempo"/);
   assert.match(app, /<LiteGrid soundOf=\{soundAt\}/);

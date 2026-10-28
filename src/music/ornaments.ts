@@ -49,6 +49,12 @@ export interface OrnamentContext {
    */
   style?: OrnamentStyle;
   /**
+   * D353, the game's TRILL ENDING "rule" (MECH.trillEnding; ornament-play.ts nachschlagAt): this trill
+   * closes with C. P. E. Bach's Nachschlag (… U N L N, beaten to the end, I.2.3 §13), decided by the
+   * music; false: as `style` says.
+   */
+  nachschlag?: boolean;
+  /**
    * D281: the neighbours from the music, not from the sign's case: the step above and below as given
    * (the next letter, with the accidental in force), for every sign. The encodings' case (T a whole
    * step, t a half) proved unreliable (II/13: a whole-step T on B sharp, a W on A sharp in F sharp
@@ -147,8 +153,8 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
     // somewhat long note (§13): the alternation ends on the main note, then the step below, then the
     // main note held (… U N L N).
     const cpe = ctx.style === "cpe";
-    const closing = has("R") || (cpe && n.dur >= LONG_FOR_NACHSCHLAG);
-    seq(trillPitches(N, N + trillUp, N - ctx.stepBelow(N), dur, ctx.trillUnit ?? ctx.unit, closing, cpe ? 0 : (ctx.settle ?? TRILL_SETTLE)), true);
+    const closing = has("R") || (cpe && n.dur >= LONG_FOR_NACHSCHLAG) || !!ctx.nachschlag;
+    seq(trillPitches(N, N + trillUp, N - ctx.stepBelow(N), dur, ctx.trillUnit ?? ctx.unit, closing, cpe || ctx.nachschlag ? 0 : (ctx.settle ?? TRILL_SETTLE)), true);
   } else if (has("M") || has("m")) {
     seq([N, N - (ctx.diatonic ? ctx.stepBelow(N) : has("M") ? 2 : 1), N]);
   } else if (has("W") || has("w")) {

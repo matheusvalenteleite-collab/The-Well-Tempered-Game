@@ -198,3 +198,14 @@ test("D355: the pop-up's hint knows which sounds have colours in a piece", () =>
   assert.ok(!hasColours("chor001", "chamberOrgan"), "no chorale has a plan");
   setColours(null);
 });
+
+test("D355 on D349's organ: the plan's plenum is the recorded plenum (the pedal follows), the flutes the second manual's", async () => {
+  const { registeredNote } = await import("../src/touch/registration.ts");
+  const { PATCHES } = await import("../src/touch/sound.ts");
+  const band = (stops: StopId[]) => bandRegistration({ stops: null, tutti: false }, { colour: { reg: stops } });
+  assert.equal(registeredNote("chamberOrgan", band(["principal", "mixture"]), PATCHES.orgPrincipal, false, 64)?.patch, PATCHES.orgPleno);
+  assert.equal(registeredNote("chamberOrgan", band(["principal", "mixture"]), PATCHES.orgPedal, false, 40)?.patch, PATCHES.orgPedalPleno);
+  assert.equal(registeredNote("chamberOrgan", band(["flute"]), PATCHES.orgPrincipal, false, 64)?.patch, PATCHES.orgFlute);
+  assert.equal(registeredNote("chamberOrgan", band(["flute"]), PATCHES.orgPedal, false, 40)?.patch, PATCHES.orgPedalSoft);
+  assert.equal(registeredNote("chamberOrgan", band(["principal"]), PATCHES.orgPrincipal, false, 64), null, "the principals: the organ's own");
+});

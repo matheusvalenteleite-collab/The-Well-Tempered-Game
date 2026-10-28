@@ -111,6 +111,10 @@ export interface LiteState {
   bestOld: Record<string, string>;
   /** D337: the best scores made before WTC 1.52. */
   scoresOld: Record<string, number>;
+  /** D356: a WTC fugue's best grade at SLOW (kept apart: never its best, never what opens its tempo). */
+  slowBest: Record<string, string>;
+  /** D356: a WTC fugue's best score at SLOW (kept apart). */
+  slowScores: Record<string, number>;
 }
 
 /**
@@ -126,6 +130,8 @@ export const SOUND_UNLOCK_GRADES = ["S", "A"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
 export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
+/** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens once it is finished with an A or better (as its sound, D265). */
+export const tempoEarned = soundUnlocked;
 
 export function readLite(): LiteState {
   try {
@@ -139,6 +145,8 @@ export function readLite(): LiteState {
     const scoresV = strings(o.scoresV);
     const bestOld = strings(o.bestOld);
     const scoresOld = numbers(o.scoresOld);
+    const slowBest = strings(o.slowBest);
+    const slowScores = numbers(o.slowScores);
     // D337: a best with no judging named was made before 1.52: kept apart (written back with the next change).
     for (const [id, g] of Object.entries(best)) if (!bestV[id]) ((bestOld[id] ??= g), delete best[id]);
     for (const [id, n] of Object.entries(scores)) if (!scoresV[id]) ((scoresOld[id] ??= n), delete scores[id]);
@@ -152,9 +160,11 @@ export function readLite(): LiteState {
       scoresV,
       bestOld,
       scoresOld,
+      slowBest,
+      slowScores,
     };
   } catch {
-    return { beaten: [], seen: [], volume: 1, best: {}, scores: {}, bestV: {}, scoresV: {}, bestOld: {}, scoresOld: {} };
+    return { beaten: [], seen: [], volume: 1, best: {}, scores: {}, bestV: {}, scoresV: {}, bestOld: {}, scoresOld: {}, slowBest: {}, slowScores: {} };
   }
 }
 export function writeLite(patch: Partial<LiteState>): LiteState {
@@ -260,6 +270,22 @@ export function recordLiteBest(piece: string, final: number): { before: number |
   return { before, fresh, old: st.scoresOld[piece] ?? null };
 }
 
+/**
+ * D356: a whole WTC fugue finished at SLOW: its grade and score kept apart from its best (a SLOW run never
+ * replaces the A that opened the tempo, nor the best score), against the best at SLOW. (Finished at all,
+ * it is kept as finished by recordLite, given no grade.) A run at FAST or DEFAULT counts as any.
+ */
+export function recordLiteSlow(piece: string, grade: string, final: number): { before: number | null; fresh: boolean; old: null } {
+  const st = readLite();
+  const before = st.slowScores[piece] ?? null;
+  const fresh = before === null || final > before;
+  writeLite({
+    ...(RANK.indexOf(grade) > RANK.indexOf(st.slowBest[piece] ?? "") ? { slowBest: { ...st.slowBest, [piece]: grade } } : {}),
+    ...(fresh ? { slowScores: { ...st.slowScores, [piece]: final } } : {}),
+  });
+  return { before, fresh, old: null };
+}
+
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
 export const LITE_HINT: Record<string, string> = {
   ladder: "touch either bar at the note's height · hand over from thumb to thumb with no gap",
@@ -317,7 +343,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
       "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
       // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).
-      "A sign over a note (TR, ~|) is an ornament: touch the note, then shake your thumb up and down along the bar (a mordent: down and back). Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
+      "A sign over a note (TR, ~|) is an ornament: touch the note, then rock your thumb quickly along the bar, as small as you like (a mordent: a dip and back; a trill: on and on). The sign decides what sounds. Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
       // D344: the subject's marks (readings.ts); their legend follows on the pop-up.
       "Marks over the subject (dot, stroke, slur, wedge) come from a book on playing the fugue: follow them and the subject's notes earn a little more; missing them costs nothing. HEAR THE SUBJECT plays and draws them.",
     ],
@@ -333,7 +359,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       STRONG_SIDE === "outer"
         ? "Across the bar is yours: by the box softer and darker, by the edge firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points."
         : "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.",
-      "Any other note you hold may take your own ornament: shake quickly along the bar (down and back: a mordent; on and on: a trill). It sounds, and never scores or costs.",
+      "Any other note you hold may take your own ornament: the thumb draws its shape, quick and as small as you like. Down and back: a mordent. Up and back: a Pralltriller (or a Schneller, as the music has it). On and on: a trill, from the note above, lasting while you shake (no room for it: a turn). Late in a long note, up and back: the turn after the note. It sounds, is drawn over the note, and never scores or costs.",
     ],
   },
 };

@@ -10,8 +10,8 @@
  *     holdValue → Sounding.shape). MECH.expression off: every attack the middle.
  *   - SLIDES: a held thumb moved into another row (at least MECH.slideMinPx and half a row) glides there
  *     (Sounding.glide; a new joined note where the sound cannot glide). MECH.slides off: no slides.
- *   - SHAKES (free-ornament.ts feedShake, MECH.shake*): down and back a mordent, up and back a short
- *     trill, a third leg a trill from the note above (ornament-play.ts freeOrnamentParts, on the key's
+ *   - SHAKES (D353: free-ornament.ts ShakeReader, MECH's ORNAMENTS, its thresholds by the tempo chosen):
+ *     two quick legs down first a mordent, up first a short trill, a third leg a trill from the note above (ornament-play.ts freeOrnamentParts, on the key's
  *     neighbours), D319: going on while the legs keep coming, settling on the note MECH.trillStopMs after
  *     they stop (MECH.trillFollowsShake; off: two beats of trill). MECH.freeOrnaments off: none.
  *   - JOINED: a thumb landing while the other still holds takes over without a new attack (the held
@@ -29,7 +29,7 @@
  */
 import { voicing, type Chip, type Play, type Sounding } from "../../touch/chip.ts";
 import { beatOf, type TouchFugue } from "../../touch/fugue.ts";
-import { feedShake, shakeTracker, type FreeKind, type ShakeTracker } from "../../touch/free-ornament.ts";
+import { ShakeReader, shakeThresholds, type FreeKind, type Gesture } from "../../touch/free-ornament.ts";
 import { freeOrnamentParts } from "../../touch/ornament-play.ts";
 import { holdValue, PIANO_DB, STRONG_SIDE, TOUCH_NEUTRAL, touchKind } from "../../touch/touch-expr.ts";
 import type { Side } from "../../touch/thumbs.ts";
@@ -292,7 +292,7 @@ interface Held {
   sMax: number;
   sNow: number;
   shapes: number;
-  shake: ShakeTracker;
+  shake: ShakeReader;
   /** A trill under way (D319): its notes, the next to sound, the tick of the latest leg. */
   trill?: { parts: [number, number, number][]; next: number; last: number; settled: boolean; live: { sd: Sounding; end: number }[] };
   ornament?: FreeKind;
@@ -302,6 +302,8 @@ interface Held {
   /** A slide waiting its dwell (the row reached, since when, where), and the latest shake leg's time (ms). */
   pend?: { row: number; since: number; x: number; y: number };
   lastLeg: number;
+  /** D353: the reader's legs counted so far. */
+  lastCount?: number;
   /** Where the thumb is now (D318's rolling contact is measured from it). */
   cx: number;
   cy: number;
@@ -522,7 +524,7 @@ export class FreePlay {
     const base = dynamic(0.5);
     const play: Play = { ...base, ...(on0 ? { level: (base.level ?? 1) * on0.level } : {}), lead: true, envelope: "synth", touch, legato: joined || (handover && MECH.joinedSound) };
     const sounds = delay > 0 ? [] : [this.chip.note(midi, now, HOLD_MAX, v, play)];
-    const hd: Held = { side, row, midi, land, ax: x, ay: y, setY: y, setX: x, at: now, sounds, v, play: { ...play, legato: true }, sMin: 0, sMax: 0, sNow: 0, shapes: 0, shake: shakeTracker(y, x, ts), pts: 1, lastLeg: -Infinity, cx: x, cy: y, still: ts };
+    const hd: Held = { side, row, midi, land, ax: x, ay: y, setY: y, setX: x, at: now, sounds, v, play: { ...play, legato: true }, sMin: 0, sMax: 0, sNow: 0, shapes: 0, shake: this.reader(x, y, ts), pts: 1, lastLeg: -Infinity, cx: x, cy: y, still: ts };
     this.held.set(id, hd);
     if (bySize) {
       hd.size0 = bySize.strength ?? undefined;
@@ -645,11 +647,7 @@ export class FreePlay {
     const t = this.tick();
     // D314/D319: a shake along the bar: a free ornament; once begun, no slides.
     if (MECH.freeOrnaments) {
-      const legs = hd.shake.count;
-      const kind = feedShake(hd.shake, x, y, ts, Math.max(MECH.shakeReachMinPx, this.rowH() * MECH.shakeReachRows));
-      if (hd.shake.count > legs) (hd.lastLeg = ts), hd.shake.count >= 2 && (hd.pend = undefined);
-      if (kind) return this.ornament(hd, kind, t);
-      if (hd.shake.count > legs && hd.trill && !hd.trill.settled) hd.trill.last = Math.max(hd.trill.last, t);
+      if (this.shaken(hd, hd.shake.feed(x, y, ts), ts, t)) return;
       if (hd.shake.kind) return;
     }
     // A slide: the held thumb travelled into another row and stayed there a moment (SLIDE_DWELL_MS: a
@@ -670,7 +668,7 @@ export class FreePlay {
   /** A slide waiting its dwell: taken once the thumb has stayed in the new row SLIDE_DWELL_MS, no shake leg meanwhile. */
   private trySlide(id: number, hd: Held, ts: number) {
     const p = hd.pend;
-    if (!p || ts - p.since < SLIDE_DWELL_MS || (hd.shake.count >= 2 && ts - hd.lastLeg < MECH.shakeWindowMs) || hd.shake.kind) return;
+    if (!p || ts - p.since < SLIDE_DWELL_MS || (hd.shake.count >= 2 && ts - hd.lastLeg < this.th().Lm) || hd.shake.kind) return;
     hd.pend = undefined;
     const { row, x, y } = p;
     const from = hd.midi;
@@ -699,7 +697,7 @@ export class FreePlay {
     hd.midi = midi;
     hd.setY = y;
     hd.setX = x;
-    hd.shake = shakeTracker(y, x, ts);
+    hd.shake = this.reader(x, y, ts);
   }
 
   /** D321: a drag here is a glide (MECH.dragMeaning "connect", a sound that bends, one note sounding). */
@@ -740,6 +738,24 @@ export class FreePlay {
     g.leftAt = ts;
   }
 
+  /** D353: the contour reader's thresholds at the tempo chosen; a reader from where the thumb is now. */
+  private th() {
+    return shakeThresholds(this.beatS, this.rowH());
+  }
+  /** A reader from (x, y) at `ts` (the touches' clock, ms). */
+  private reader(x: number, y: number, ts: number): ShakeReader {
+    return new ShakeReader({ x, y, t: ts }, this.th());
+  }
+  /** D353: what the reader read (a two-leg form, a trill), a leg keeping a trill going; true once an ornament sounds. */
+  private shaken(hd: Held, g: Gesture | null, ts: number, t: number): boolean {
+    const legs = hd.lastCount ?? 0;
+    hd.lastCount = hd.shake.count;
+    if (hd.shake.count > legs) (hd.lastLeg = ts), hd.shake.count >= 2 && (hd.pend = undefined);
+    if (g === "trill") return (this.ornament(hd, "trill", t), true);
+    if (g) return (this.ornament(hd, hd.shake.form === "up" ? "short" : "mordent", t), true);
+    if (hd.shake.count > legs && hd.trill && !hd.trill.settled) hd.trill.last = Math.max(hd.trill.last, t);
+    return false;
+  }
   /** D314: a shake became an ornament: its notes from now, on the key's neighbours; a trill (D319) goes on while the shake does. */
   private ornament(hd: Held, kind: FreeKind, t: number) {
     const long = MECH.trillFollowsShake ? HOLD_MAX * this.tps : 2 * this.beatS * this.tps;
@@ -810,10 +826,11 @@ export class FreePlay {
   }
 
   /** Each frame: the trills' next notes, the metronome's clicks scheduled a moment ahead. */
-  frame() {
+  frame(ms = performance.now()) {
     const t = this.tick();
     for (const hd of this.held.values()) if (hd.trill && !hd.trill.settled) this.trillStep(hd, t);
-    const ms = performance.now();
+    // D353: a leg that stopped ends at rest (read on the clock: a still thumb sends nothing).
+    if (MECH.freeOrnaments) for (const hd of this.held.values()) if (!hd.passive && hd.ornament !== "trill") this.shaken(hd, hd.shake.tick(ms), ms, t);
     for (const [id, hd] of this.held) if (hd.pend && !hd.passive) this.trySlide(id, hd, ms);
     for (const [id, hd] of this.held) if (hd.gl?.at && !hd.passive) this.arrive(id, hd, ms);
     if (!this.o.click) return;

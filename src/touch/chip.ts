@@ -9,10 +9,10 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { liveRegistration, registeredNote, LUTE_LP, SUBBASS, SUB16_LEVEL, type Registered } from "./registration.ts";
+import { crowned, isPedal, liveRegistration, registeredNote, LUTE_LP, type Registered } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 
@@ -21,6 +21,8 @@ import { SmoothClock } from "./headphones.ts";
  * fugue are equals); it only rings while the thumb is down, so a release is never cut short.
  */
 export function leadOf(pt: Patch): Patch {
+  // D349: an organ's pipe is the same pipe whoever plays it (one envelope, one release).
+  if (pt.pipe) return pt;
   // D308: a struck sound (no sustain: the vibraphone's long ring) let go is damped within 0.1 s, as a held one is (LIFT_TAU).
   return pt.amp.s === 0 ? (pt.amp.r > 0.1 ? { ...pt, amp: { ...pt.amp, r: 0.1 } } : pt) : { ...pt, amp: { ...pt.amp, r: Math.max(0.12, pt.amp.r) } };
 }
@@ -124,6 +126,8 @@ export interface Reverb {
   seconds: number;
   phoneSeconds: number;
   rt60: number;
+  /** D349: a phone's own (shorter) decay, where it differs. */
+  phoneRt60?: number;
   brightness: number;
   echo?: { delay: number; feedback: number; lp: number; level: number };
 }
@@ -133,7 +137,11 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // D302, PIPE ORGAN's large church: a later first reflection (45 ms), a long and darkening tail (RT60
   // 2.8 s; on a phone 1.8 s of impulse), the highs damped (4.8 kHz): the organ's lines carried, not drowned.
   // D304: smaller (RT60 2.2 s) and a little brighter (5.5 kHz): the inner lines were muddled in it.
-  cathedral: { predelay: 0.045, hp: 250, lp: 5500, seconds: 2.2, phoneSeconds: 1.5, rt60: 2.2, brightness: 0.3 },
+  // D349: one church for the whole organ: RT60 2.6 s (Boren 2021: the Thomaskirche simulated as in 1723,
+  // occupied, 2.3 s at 1 kHz; empty today about 4 s; its decay as long at 125 Hz as at 1 kHz), on a phone
+  // 1.7 s (the small speaker smears a long tail); the send high-passed at 110 Hz (was 250: the pedal's
+  // fundamentals were left dry, as if in another room), the first reflection at 30 ms.
+  cathedral: { predelay: 0.03, hp: 110, lp: 5500, seconds: 2.8, phoneSeconds: 1.7, rt60: 2.6, phoneRt60: 1.7, brightness: 0.3 },
   // D302, VOCAL SYNTH's plate: bright and short (RT60 1.5 s), the singers' consonants kept clear (D304: its highs
   // 6.5 kHz, was 8.5: no glitter in the tail).
   plate: { predelay: 0.03, hp: 300, lp: 6500, seconds: 1.5, phoneSeconds: 1.1, rt60: 1.5, brightness: 0.45 },
@@ -354,6 +362,8 @@ export interface Play {
   lp?: number;
   /** D311: the harpsichord's lute (buff) stop: a muted, shorter pluck. */
   lute?: boolean;
+  /** D349: PIPE ORGAN's echo manual (the player's touch): the note on the second manual's soft flutes. */
+  echo?: boolean;
   /** D311: a pulse voice's width (0.125, 0.25, 0.5: thin, hollow, square; the SID's any between: `pwContinuous`). */
   pw?: number;
   pwContinuous?: boolean;
@@ -647,22 +657,30 @@ export class Chip {
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
-    if (p.lead && p.couple !== false) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
+    // D349: not on the organ: the player's pipes are the band's (same manual, never louder).
+    if (p.lead && p.couple !== false && !v.patch?.pipe) p = { ...p, tone: (p.tone ?? 0) + MINE_TONE, level: (p.level ?? 1) * MINE_LEVEL };
     // D322: the registration (the player's voice; every voice under TUTTI), read as the note starts: a change sounds from the next note.
     const id = preset().id;
     // D355: the band's colour by the piece's plan (colour.ts): its effects here, its stops as the band's registration (the player's own stops win).
     if (p.colour && !p.lead) [v, p] = coloured(id, p.colour, v, p);
-    const reg = p.couple === false ? null : registeredNote(id, bandRegistration(liveRegistration(id), p), v.patch, !!p.lead, midi);
+    const live = bandRegistration(liveRegistration(id), p);
+    const pedal = isPedal(v.patch);
+    const reg = p.couple === false ? null : registeredNote(id, live, v.patch, !!p.lead, midi);
     if (reg) {
       if (reg.patch) v = { ...v, patch: reg.patch };
       if (reg.choirs) p = { ...p, choirs: reg.choirs };
       // The buff stop on every note so registered (the touch's own lute, D311, may darken it further).
       if (reg.lute) p = { ...p, lute: true, lp: Math.min(p.lp ?? LUTE_LP, LUTE_LP), hold: p.hold ?? "none" };
-      if (reg.sub16) {
-        const main = this.coupled(midi, at, dur, v, p);
-        const sub = this.single(midi - 12, at, dur, { ...v, patch: SUBBASS }, { ...p, couple: false, touch: undefined, hold: undefined, tone: 0, level: (p.level ?? 1) * SUB16_LEVEL });
-        return together([main, sub]);
+    }
+    if (id === "chamberOrgan" && p.couple !== false) {
+      // D349, ORGANO PLENO (the zone): the organist draws the mixture for the section, the whole organ.
+      if (this.zoneNow === "pleno") {
+        const c = crowned(v.patch, pedal, (p.lead || live.tutti) && live.stops ? live.stops : null, midi);
+        if (c) v = { ...v, patch: c };
       }
+      // D349, the echo manual (the player's touch toward the box): the note on the second manual's soft
+      // flutes (Gedackt 8', Rohrflöte 4'), quieter and a little veiled (its lowpass: a Brustwerk behind its doors).
+      if (p.echo && !pedal) v = { ...v, patch: PATCHES.orgFlute };
     }
     return this.coupled(midi, at, dur, v, p);
   }
@@ -690,17 +708,33 @@ export class Chip {
     if (!kind) return [{ ...p, hold: "none" }, v];
     const pt = v.patch ?? null;
     const pulse = !pt && v.timbre !== "triangle";
-    const l = landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse);
+    // D349: the pedal has no echo manual (an organist's feet stay on the one pedalboard).
+    const l = kind === "organ" && isPedal(pt) ? {} : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse);
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
     const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
     if (l.tone) q.tone = (p.tone ?? 0) + l.tone;
     if (l.bright !== undefined) q.bright = l.bright;
-    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
+    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open", "echo"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
     // The classic chip: the pulse of that width (its level by the chip's own table: voiceNote).
     if (pulse && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
     return [q, v];
+  }
+
+  /**
+   * D349, an organ's pipe (Patch.pipe): the note placed by its key in the case (the C side left of the
+   * voice's place, the C♯ side right), its pipe a fixed fraction of a cent from true (by key: the same
+   * pipe whoever plays it), on a phone the patch's upper ranks added; and a joined note's pipe speaking
+   * anew (its own attack and chiff: another pipe; the organist's legato is in the release, Play.tie).
+   */
+  private piped(midi: number, v: Voicing, pt: Patch, p: Play): [Voicing, Patch, Play] {
+    const pp = pt.pipe!;
+    const side = (((midi % 12) + 12) % 12) % 2 === 0 ? -1 : 1;
+    const h = Math.sin(midi * 12.9898 + 4.1414) * 43758.5453;
+    const cents = ((h - Math.floor(h)) * 2 - 1) * pp.cents;
+    const pt2 = this.phone && pp.phoneOsc ? { ...pt, osc: [...pt.osc, ...pp.phoneOsc] } : pt;
+    return [{ ...v, pan: Math.max(-1, Math.min(1, v.pan + side * pp.case)) }, pt2, { ...p, legato: false, detune: (p.detune ?? 0) + cents }];
   }
 
   /** D311: the player's note's expression stage: the landing's lowpass, and for holding a swell (messa di voce) or a wah's peak (at rest, none). */
@@ -964,7 +998,7 @@ export class Chip {
       pre.delayTime.value = r.predelay;
       const hp = filter("highpass", r.hp, 0.7071, nodes);
       const conv = node(ctx.createConvolver(), nodes);
-      conv.buffer = darkHall(ctx, this.phone ? r.phoneSeconds : r.seconds, r.rt60, r.brightness);
+      conv.buffer = darkHall(ctx, this.phone ? r.phoneSeconds : r.seconds, this.phone ? (r.phoneRt60 ?? r.rt60) : r.rt60, r.brightness);
       const lp = filter("lowpass", r.lp, 0.7071, nodes);
       input.connect(pre).connect(hp).connect(conv).connect(lp).connect(ret);
     }
@@ -1309,6 +1343,7 @@ export class Chip {
    * dyn() is a swell box (level and a lowpass from about 2 to 18 kHz).
    */
   private sampledNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, inst: SampledInstrument, set: string, near: number, rec: Loaded, bag: Bag): Sounding {
+    if (pt.pipe) [v, pt, p] = this.piped(midi, v, pt, p);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.05, at + dur - 0.01);
@@ -1708,6 +1743,7 @@ export class Chip {
    * envelope, vibrato and tremolo; shaped by the touch (brightness, a soft or accented attack, level).
    */
   private patchNote(midi: number, at: number, dur: number, v: Voicing, pt: Patch, p: Play, bag: Bag): Sounding {
+    if (pt.pipe) [v, pt, p] = this.piped(midi, v, pt, p);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     // D297, the analog drift (Patch.drift): the note's tuning off by a slow sine of the clock (no nodes).
