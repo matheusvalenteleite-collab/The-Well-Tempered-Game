@@ -336,6 +336,7 @@ class Event:
     ties: list[bool]
     dur: F
     line: int
+    orn: list = field(default_factory=list)  # D366: ornament signs written on it (\\trill, \\prall ...)
 
 
 @dataclass
@@ -372,6 +373,7 @@ class Scale:
 @dataclass
 class Grace:
     body: object
+    kind: str = "grace"  # D366: grace, acciaccatura, appoggiatura, slashedGrace
 
 
 @dataclass
@@ -482,6 +484,10 @@ startTrillSpan stopTrillSpan glissando laissezVibrer repeatTie sustainOn sustain
 sostenutoOff unaCorda treCorde p pp ppp pppp mp mf f ff fff ffff fp sf sff sfz fz rfz sp spp
 cresc decresc dim endcresc enddecresc enddim startTextSpan stopTextSpan startGroup stopGroup
 harmonic halfopen ictus noBeam lheel rheel ltoe rtoe signumcongruentiae""".split()) | set("()[]<>!~+=")
+
+# D366: the signs kept on the notes (the ornaments; \\startTrillSpan is a trill with its wavy line).
+ORNAMENTS = set("""mordent prall prallprall prallmordent upprall downprall upmordent downmordent pralldown
+prallup lineprall reverseturn turn trill startTrillSpan""".split())
 
 _NOOP_PREFIX = {"once", "temporary", "parenthesize", "single", "footnote_"}
 _SKIP_BLOCK = {"header", "paper", "layout", "midi", "with"}
@@ -737,7 +743,7 @@ class Parser:
                 self.i += 1
                 if ev is not None:
                     if per_note is None:
-                        ev.ties = [True] * len(ev.pitches)
+                        ev.ties = [True] * max(1, len(ev.pitches))  # D366: a tie on "q" (no pitches of its own) too
                     else:
                         ev.ties[per_note] = True
             elif t.kind == "sym" and t.value in "[]()":
@@ -759,12 +765,16 @@ class Parser:
                     if self.at("cmd"):
                         self.i += 1
                 else:
+                    if ev is not None and u.kind == "cmd" and u.value in ORNAMENTS:
+                        ev.orn.append(u.value)
                     self.i += 1
             elif t.kind == "cmd" and t.value == "rest":
                 self.i += 1
                 if ev is not None and ev.kind == "note":
                     ev.kind = "pitched-rest"  # its pitch still counts in \\relative
             elif t.kind == "cmd" and t.value in _POST:
+                if ev is not None and t.value in ORNAMENTS:
+                    ev.orn.append(t.value)
                 self.i += 1
             elif t.kind == "cmd" and t.value == "tweak":
                 self.i += 1
@@ -953,7 +963,7 @@ class Parser:
             self.parse_duration()  # the span of each bracket, for engraving only
             return Scale(1 / f, self.parse_music())
         if c in ("grace", "acciaccatura", "appoggiatura", "slashedGrace"):
-            return Grace(self.parse_music())
+            return Grace(self.parse_music(), c)
         if c == "afterGrace":
             if self.at("num") and self.at("sym", "/", 1):
                 self.parse_fraction()
@@ -1174,7 +1184,7 @@ class _Player:
         if isinstance(node, Scale):
             return self.play(node.body, t, dict(ctx, factor=ctx["factor"] * node.factor))
         if isinstance(node, Grace):
-            self.play(node.body, t, dict(ctx, grace=True))
+            self.play(node.body, t, dict(ctx, grace=node.kind))
             return t
         if isinstance(node, AfterGrace):
             end = self.play(node.main, t, ctx)
@@ -1210,7 +1220,10 @@ class _Player:
             if name not in self.staves:
                 self.staves.append(name)
             self.voice_staff.setdefault(name, name)
-            return self.play(node.body, t, dict(ctx, part=name, voice=name))
+            # D366: a staff opened inside another staff's music (an ossia-like extra staff for a
+            # voice dividing) keeps that staff as its host.
+            host = ctx.get("host") or (ctx["part"] if node.name is None and ctx["part"] else None)
+            return self.play(node.body, t, dict(ctx, part=name, voice=name, host=host))
         if node.type == "Voice" or node.type == "Bottom":
             name = node.name
             if name is None:
@@ -1240,6 +1253,7 @@ class _Player:
             for p in pitches:
                 self.notes.append(self.note(p, t, F(0), ctx, grace=True))
             return t
+        orn = list(ev.orn)
         for p, tied in zip(pitches, ties):
             m = p.midi()
             key, pkey = (ctx["voice"], m), (ctx["part"], m)
@@ -1258,6 +1272,9 @@ class _Player:
                     self.pending_part[pkey] = prev
                 continue
             n = self.note(p, t, dur, ctx, grace=False)
+            if orn:
+                n["orn"] = orn  # D366: on the first sounding note of the event
+                orn = []
             self.notes.append(n)
             if tied:
                 self.pending[key] = n
@@ -1267,7 +1284,8 @@ class _Player:
     def note(self, p: Pitch, t: F, dur: F, ctx: dict, grace: bool) -> dict:
         return {"onset": t, "duration": dur, "pitch": p.name(), "midi": p.midi(), "measure": 0,
                 "staff": self.staff_of(ctx), "part": ctx["part"], "voice": ctx["voice"],
-                "grace": grace}
+                "grace": grace, **({"grace_kind": ctx["grace"]} if grace and isinstance(ctx["grace"], str) else {}),
+                **({"host": ctx["host"]} if ctx.get("host") else {})}
 
 
 def _bars(times: list[tuple[F, F, str]], partial: F | None, length: F) -> list[dict]:
@@ -1325,6 +1343,8 @@ def parse(text: str, path: str = "<string>", base_dir: Path | None = None, score
     starts = [b["onset"] for b in bars]
     for n in player.notes:
         n["staff"], n["part"], n["voice"] = ren(n["staff"]), ren(n["part"]), ren(n["voice"])
+        if "host" in n:
+            n["host"] = ren(n["host"])
         n["measure"] = bars[bisect.bisect_right(starts, n["onset"]) - 1]["number"]
     player.notes.sort(key=lambda n: (n["onset"], n["staff"] != "upper", -n["midi"], n["voice"]))
     sigs = []

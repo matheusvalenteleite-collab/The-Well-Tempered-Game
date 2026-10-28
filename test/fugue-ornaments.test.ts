@@ -1,5 +1,7 @@
 // D206: the ornaments of the 48 fugues and Contrapunctus XIV, audited against the Bach-Gesellschaft
 // edition (vol. 14 and 25), Mutopia and ASAP: per-fugue counts pinned, and a few landmarks.
+// D366: the fugues' signs are now Rother's edition's (data/sources/wtc-uct), with D206's additions where a free
+// witness (OpenWTC, Mutopia) prints the Bach-Gesellschaft's sign; docs/wtc/SOURCES-CHECK.md lists each change.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import ornaments from "../data/wtc/ornaments.json" with { type: "json" };
@@ -17,9 +19,9 @@ const signed = (id: string) => (ORN[id] ?? []).filter((r) => r[3]);
 
 // Ornamented notes per fugue after D206 (fugues not listed: none).
 const COUNTS: Record<string, number> = {
-  wtc1f01: 3, wtc1f03: 1, wtc1f05: 2, wtc1f06: 16, wtc1f07: 6, wtc1f08: 2, wtc1f11: 10, wtc1f12: 4,
-  wtc1f13: 5, wtc1f14: 1, wtc1f15: 6, wtc1f19: 2, wtc1f20: 2, wtc1f22: 1, wtc1f23: 1, wtc1f24: 1,
-  wtc2f01: 5, wtc2f02: 1, wtc2f03: 1, wtc2f04: 3, wtc2f06: 2, wtc2f10: 6, wtc2f13: 24, wtc2f14: 6,
+  wtc1f01: 3, wtc1f03: 2, wtc1f05: 2, wtc1f06: 16, wtc1f07: 6, wtc1f08: 2, wtc1f11: 11, wtc1f12: 4,
+  wtc1f13: 5, wtc1f14: 3, wtc1f15: 6, wtc1f19: 2, wtc1f20: 2, wtc1f22: 1, wtc1f23: 3, wtc1f24: 1,
+  wtc2f01: 5, wtc2f02: 1, wtc2f03: 1, wtc2f04: 3, wtc2f06: 2, wtc2f10: 4, wtc2f12: 2, wtc2f13: 22, wtc2f14: 6,
   wtc2f15: 6, wtc2f16: 1, wtc2f17: 1, wtc2f18: 4, wtc2f19: 1, wtc2f20: 18, wtc2f22: 1, wtc2f24: 9,
   "bwv1080-14": 2,
 };
@@ -33,7 +35,7 @@ const midi = (p: string) => {
 test("D206: pins the count of each fugue's ornamented notes", () => {
   const got = Object.fromEntries(FUGUES.filter((id) => signed(id).length).map((id) => [id, signed(id).length]));
   assert.deepEqual(got, COUNTS);
-  assert.equal(Object.values(got).reduce((a, b) => a + b, 0), 154);
+  assert.equal(Object.values(got).reduce((a, b) => a + b, 0), 158);
 });
 
 test("D206: puts every row on a note of the game's pieces", () => {
@@ -50,17 +52,18 @@ test("D206: reads the encoding's M in a fugue as the short wavy sign", () => {
   assert.equal(fugueSign("wtc1p04", "m"), "m");
   // I/13's subject: the short wavy line over its dotted C#5 (BGA p. 48).
   assert.deepEqual(signed("wtc1f13")[0], [0, 5760, "C#5", "W"]);
-  // the remaining mordents of the fugues are the three added to II/1
-  const mordents = FUGUES.flatMap((id) => signed(id).filter((r) => /[Mm]/.test(r[3])).map((r) => `${id} ${r[2]}`));
-  assert.deepEqual(mordents.sort(), ["wtc2f01 A3", "wtc2f01 A4", "wtc2f01 E5"]);
+  // the mordents of the fugues: the three added to II/1, and (D366) the edition's in II/12, bars 1 and 25
+  // (no free witness; docs/wtc/SOURCES-CHECK.md)
+  const mordents = FUGUES.flatMap((id) => signed(id).filter((r) => /[Mm]/.test(r[3])).map((r) => `${id} ${r[2]} ${r[3]}`));
+  assert.deepEqual(mordents.sort(), ["wtc2f01 A3 M", "wtc2f01 A4 M", "wtc2f01 E5 M", "wtc2f12 Ab4 m", "wtc2f12 F4 m"]);
 });
 
 test("D206: keeps the landmarks", () => {
-  // I/2 and I/16 have none; I/6's subject trills (bar 2, G4); II/13's 24.
+  // I/2 and I/16 have none; I/6's subject trills (bar 2, G4); II/13's 22 (D366: the edition has none in bars 29 and 30).
   assert.deepEqual(signed("wtc1f02"), []);
   assert.deepEqual(signed("wtc1f16"), []);
   assert.deepEqual(signed("wtc1f06")[0], [0, 9600, "G4", "T"]);
-  assert.equal(signed("wtc2f13").length, 24);
+  assert.equal(signed("wtc2f13").length, 22);
   // II/1: the BGA's mordents in bars 2, 6, 10 and the trill in bar 28, added.
   assert.equal(ADDED.wtc2f01.length, 4);
   assert.ok(signed("wtc2f01").some((r) => JSON.stringify(r) === JSON.stringify([1, 105600, "G#4", "T"])));

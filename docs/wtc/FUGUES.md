@@ -8,7 +8,7 @@ to be checked against the score; where the reading is doubtful the row says so.
 | 1/1 | C | 4 | 27 | 14 / 1.4 / 9 | fifth up, real | A-S-T-B | 24 | 0 | 0 | 0 | 12 | 2 | 14% |
 | 1/2 | c | 3 | 31 | 20 / 1.9 / 11 | fifth up, tonal (int. 3,4) | A-S-B | 8 | 0 | 0 | 0 | 0 | 5 | 52% |
 | 1/3 | C# | 3 | 55 | 22 / 2.1 / 16 | fifth down, tonal (int. 1) | S-A-B | 16 | 0 | 0 | 0 | 3 | 1 | 57% |
-| 1/4 | c# | 5 | 115 | 5 / 3.2 / 4 | fifth up, real | B-T-A-S | 13 | 0 | 0 | 0 | 4 | 0 | 64% |
+| 1/4 | c# | 5 | 115 | 5 / 3.2 / 4 | fifth up, real | B-T-A-S | 14 | 0 | 0 | 0 | 4 | 0 | 61% |
 | 1/5 | D | 4 | 27 | 13 / 0.94 / 9 | fifth up, real | B-T-A-S | 36 | 1 | 0 | 0 | 8 | 0 | 40% |
 | 1/6 | d | 3 | 44 | 19 / 2.1 / 9 | fourth down, real; end altered | S-A-B | 26 | 11 | 0 | 0 | 14 | 8 | 26% |
 | 1/7 | Eb | 3 | 37 | 10 / 0.75 / 9 | fifth down, tonal (int. 1) | S-A-B | 11 | 0 | 0 | 0 | 0 | 0 | 76% |
@@ -24,19 +24,19 @@ to be checked against the score; where the reading is doubtful the row says so.
 | 1/17 | Ab | 4 | 35 | 7 / 1.1 / 9 | fourth down, tonal (int. 1,2) | T-B-S-A | 15 | 0 | 0 | 0 | 2 | 0 | 58% |
 | 1/18 | g# | 4 | 41 | 15 / 1.9 / 12 | fifth up, tonal (int. 1) | T-A-S-B | 19 | 7 | 0 | 0 | 4 | 4 | 35% |
 | 1/19 | A | 3 | 54 | 13 / 2.1 / 13 | fourth down, tonal (int. 1,3) | S-A-B | 24 | 0 | 0 | 0 | 7 | 0 | 55% |
-| 1/20 | a | 4 | 87 | 31 / 3.1 / 13 | fifth up, real | A-S-B-T | 40 | 21 | 0 | 0 | 19 | 4 | 32% |
+| 1/20 | a | 4 | 87 | 31 / 3.1 / 13 | fifth up, real | A-S-B-T | 41 | 20 | 0 | 0 | 21 | 4 | 32% |
 | 1/21 | Bb | 3 | 48 | 41 / 3.2 / 15 | fifth down, tonal (int. 1,2,3); end altered | S-B-A | 10 | 5 | 0 | 0 | 0 | 1 | 46% |
 | 1/22 | bb | 5 | 75 | 10 / 3.2 / 13 | fourth down, tonal (int. 1,2) | S-M-A-T-B | 19 | 0 | 0 | 0 | 10 | 2 | 49% |
 | 1/23 | B | 4 | 34 | 22 / 2.9 / 13 | fifth up, tonal (int. 1,5); end altered | T-S-A-B | 9 | 2 | 0 | 0 | 1 | 0 | 48% |
-| 1/24 | b | 4 | 76 | 21 / 3.1 / 15 | fifth down, tonal (int. 1,4) | A-T-B-S | 19 | 0 | 0 | 0 | 6 | 4 | 43% |
-| 2/1 | C | 3 | 83 | 28 / 2.4 / 9 | fourth up, tonal (int. 1,2,3) | A-S-B | 19 | 0 | 0 | 0 | 12 | 10 | 43% |
+| 1/24 | b | 4 | 76 | 21 / 3.1 / 15 | fifth down, tonal (int. 1,4) | A-T-B-S | 20 | 0 | 0 | 0 | 6 | 4 | 39% |
+| 2/1 | C | 3 | 83 | 28 / 2.4 / 9 | fourth up, tonal (int. 1,2,3) | A-S-B | 20 | 0 | 0 | 0 | 12 | 10 | 40% |
 | 2/2 | c | 4 | 28 | 10 / 1.2 / 7 | fourth up, tonal (int. 1); end altered | A-S-T-B | 20 | 0 | 2 | 0 | 9 | 0 | 38% |
 | 2/3 | C# | 3 | 35 | 11 / 1.4 / 7 | twelfth up, tonal (int. 3) | B-S-A | 11 | 2 | 0 | 0 | 7 | 4 | 76% |
 | 2/4 | c# | 3 | 71 | 22 / 1.7 / 12 | twelfth up, real | B-S-A | 23 | 4 | 0 | 0 | 4 | 0 | 56% |
 | 2/5 | D | 4 | 50 | 9 / 1.6 / 10 | fifth up, real | T-A-S-B | 22 | 0 | 0 | 0 | 11 | 0 | 52% |
 | 2/6 | d | 3 | 27 | 23 / 2 / 12 | fifth up, real | A-S-B | 30 | 17 | 0 | 0 | 21 | 0 | 34% |
 | 2/7 | Eb | 4 | 70 | 28 / 8 / 12 | fifth up, tonal (int. 1,2); end altered | B-T-A-S | 11 | 0 | 0 | 0 | 7 | 1 | 18% |
-| 2/8 | eb/d# | 4 | 46 | 15 / 2.2 / 8 | fourth down, real | A-T-B-S | 18 | 2 | 0 | 0 | 7 | 1 | 33% |
+| 2/8 | eb/d# | 4 | 46 | 15 / 2.2 / 8 | fourth down, real | A-T-B-S | 18 | 2 | 0 | 0 | 7 | 1 | 32% |
 | 2/9 | E | 4 | 43 | 6 / 3.2 / 5 | fifth up, real | B-T-A-S | 25 | 3 | 0 | 8 | 14 | 0 | 40% |
 | 2/10 | e | 3 | 86 | 42 / 5.8 / 13 | fourth down, real | S-A-B | 9 | 0 | 0 | 0 | 0 | 0 | 38% |
 | 2/11 | F | 3 | 99 | 20 / 1.5 / 13 | fourth down, tonal (int. 1,2,3,4) | S-A-B | 8 | 0 | 0 | 0 | 0 | 0 | 72% |
@@ -45,7 +45,7 @@ to be checked against the score; where the reading is doubtful the row says so.
 | 2/14 | f# | 3 | 70 | 15 / 2.8 / 12 | fourth up, tonal (int. 1) | A-S-B | 8 | 0 | 0 | 0 | 0 | 0 | 68% |
 | 2/15 | G | 3 | 72 | 36 / 2.2 / 17 | fifth down, tonal (int. 1) | S-A-B | 12 | 0 | 0 | 0 | 4 | 2 | 37% |
 | 2/16 | g | 4 | 84 | 19 / 3.1 / 8 | fourth up, tonal (int. 1) | T-A-S-B | 16 | 0 | 0 | 0 | 7 | 2 | 40% |
-| 2/17 | Ab | 4 | 50 | 24 / 2.4 / 14 | fourth up, tonal (int. 1,5,6); end altered | A-S-T-B | 15 | 0 | 0 | 0 | 5 | 1 | 44% |
+| 2/17 | Ab | 4 | 50 | 24 / 2.4 / 14 | fourth up, tonal (int. 1); end altered | A-S-T-B | 16 | 0 | 0 | 0 | 5 | 1 | 40% |
 | 2/18 | g# | 3 | 143 | 27 / 4.1 / 13 | fourth down, real | S-A-B | 12 | 0 | 0 | 0 | 1 | 1 | 63% |
 | 2/19 | A | 3 | 29 | 19 / 1.5 / 9 | fifth up, real | B-A-S | 10 | 0 | 0 | 0 | 0 | 0 | 46% |
 | 2/20 | a | 3 | 28 | 11 / 2.2 / 11 | fourth up, tonal (int. 1); end altered | B-A-S | 8 | 0 | 0 | 0 | 1 | 0 | 41% |
@@ -54,7 +54,7 @@ to be checked against the score; where the reading is doubtful the row says so.
 | 2/23 | B | 4 | 104 | 17 / 5.1 / 12 | fifth up, real | B-T-A-S | 14 | 0 | 0 | 0 | 4 | 1 | 49% |
 | 2/24 | b | 3 | 100 | 27 / 2.4 / 13 | fourth up, tonal (int. 1); end altered | A-S-B | 12 | 0 | 0 | 0 | 4 | 0 | 44% |
 
-Totals: 783 entries, 106 inverted, 5 augmented, 277 stretti; tonal answers 28 of 48.
+Totals: 788 entries, 105 inverted, 5 augmented, 279 stretti; tonal answers 28 of 48.
 
 ## Checks against what is known of these fugues
 
@@ -121,7 +121,7 @@ Facts any analysis of the WTC states, which the reading must reproduce:
 - **2/14 (f#, 3 voices)**: C#4 A3 F#3 D4 C#4 B3 C#4 F#4 B3 A3 G#3 A3 F#3 G#3 F#3
 - **2/15 (G, 3 voices)**: D5 B4 D5 G5 D5 B4 D5 G4 D5 B4 D5 E5 C5 A4 C5 F#4 A4 D5 B4 G4 B4 E4 G4 C5 A4 F#4 A4 D4 F#4 B4 A4 G4 A4 B4 C5 D5
 - **2/16 (g, 4 voices)**: D4 Bb3 Eb4 C4 A3 D4 Bb3 G3 C4 C4 C4 C4 C4 C4 C4 Bb3 A3 Bb3 G3
-- **2/17 (Ab, 4 voices)**: Eb5 C5 F5 Bb4 C5 D5 Eb5 Eb4 Ab4 Bb4 C5 Db5 Eb5 C5 Db5 Bb4 C5 Db5 Eb5 C5 Bb4 C5 D5 Eb5
+- **2/17 (Ab, 4 voices)**: Eb5 C5 F5 Bb4 C5 Db5 Eb5 Eb4 Ab4 Bb4 C5 Db5 Eb5 C5 Db5 Bb4 C5 Db5 Eb5 C5 Bb4 C5 D5 Eb5
 - **2/18 (g#, 3 voices)**: G#4 A#4 B4 A#4 D#5 D#4 G#4 B4 A#4 B4 A#4 G#4 A#4 B4 C#5 B4 E5 G#4 A#4 C#5 B4 C#5 B4 A#4 B4 B#4 C#5
 - **2/19 (A, 3 voices)**: A3 B3 C#4 B3 A3 C#4 B3 D4 C#4 E4 D4 F#4 E4 D4 E4 B3 C#4 D4 C#4
 - **2/20 (a, 3 voices)**: E4 C4 F4 G#3 D4 B3 E4 C4 A3 F#3 D#4

@@ -1,5 +1,5 @@
 /**
- * D298: a fugue's Humdrum **kern (data/sources/bach-wtc/kern, one voice per spine, bass first) laid out
+ * D298: a fugue's **kern (D366: as tools/sheet/to-kern.ts writes it from the game's notes; one voice per spine, bass first) laid out
  * for engraving as the sheet mode prints it:
  *   grand  the two staves an Urtext prints (the voices on the staves the encoding names, *staff1/2), each
  *          staff one spine whose sub-spines are its voices (the upper voice first: Verovio's layer 1,

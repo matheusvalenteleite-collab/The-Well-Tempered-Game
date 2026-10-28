@@ -17,6 +17,16 @@ export function Credits({ onClose }: { onClose(): void }) {
           Dataset: <a href={prov.repository}>{prov.repository}</a> @ <code>{prov.commit.slice(0, 7)}</code>
         </p>
         <p>
+          The Well-Tempered Clavier (D366): the 48 fugues from Kyle Rother's open-score edition after the Bach-Gesellschaft edition
+          (University of Cape Town, 2015; open.uct.ac.za/handle/11427/13106), CC BY 4.0, with the game's corrections. Book I's
+          preludes from The Open Well-Tempered Clavier, MuseScore edition (Kimiko Ishizaka and the OpenGoldberg team, 2015), CC0 1.0;
+          no. 4 from the Mutopia Project (typeset by Davide Castellone), public domain. Book II's preludes from verits99's
+          musescore.com scores (CC0 1.0), as kept in the PDMX dataset (Long, Novack, Berg-Kirkpatrick and McAuley, 2024); nos. 1, 2
+          and 6 from the Mutopia Project (typeset by Urs Metzger, Jesse Mehrbach and Gwenaël Joret), public domain. Prelude 1's
+          harmonic plan from the Mutopia Project (Shay Rojansky and others), public domain. The study's Inventions and Sinfonias are
+          MORE BACH's, below.
+        </p>
+        <p>
           The touch game's MORE BACH tab (D340): scores from the Mutopia Project (mutopiaproject.org). The Art of Fugue and the Musical
           Offering's ricercars typeset by Arnaud Gossart (Contrapunctus 1 by Pierre-Luc Gauthier) from Breitkopf &amp; Härtel 1885; the
           Sinfonias by Olivier Vermersch; Inventions 2-5, 7, 8, 10, 11, 13-15 by Allen Garvin; the Concerto for Two Violins by David

@@ -1,9 +1,11 @@
 """
 Fugue expositions from the Well-Tempered Clavier (D119): the subject (dux), the answer (comes) and
-the countersubject, read from the ASAP dataset's MusicXML scores (Foscarin, McLeod, Rigaux,
-Jacquemard, Sakai 2020, CC BY-NC-SA 4.0). Usage:
+the countersubject. D366: read from the game's licence-clean corpus (data/wtc/fugues.json, Rother's
+open-score edition, tools/wtc/import.ts), for the 29 fugues D119 took from the ASAP dataset (whose
+scores, CC BY-NC-SA 4.0, are no longer read); the ASAP reading is kept as an option. Usage:
 
-  python3 tools/wtc-extract.py <ASAP>/Bach/Fugue data/bach/wtc/fugues.json
+  python3 tools/wtc-extract.py --corpus data/wtc/fugues.json data/bach/wtc/fugues.json
+  python3 tools/wtc-extract.py <ASAP>/Bach/Fugue data/bach/wtc/fugues.json   (the former reading)
 
 The encodings' voice numbers are not reliable (a subject may be split between two of them), so the
 lines are found from the notes alone: the exposition is one line until the answer enters (two
@@ -15,9 +17,11 @@ one or two semitones off the transposition, which the following notes correct). 
 """
 import json, sys, os
 from fractions import Fraction as F
-from music21 import converter, chord, meter, key as m21key
 
-ROOT, OUT = sys.argv[1], sys.argv[2]
+CORPUS = sys.argv[1] == "--corpus"
+ROOT, OUT = (sys.argv[2], sys.argv[3]) if CORPUS else (sys.argv[1], sys.argv[2])
+# The 29 fugues of D119 (those ASAP has), so that the exercises stay the same set.
+D119 = [846, 848, 854, 856, 857, 858, 860, 862, 863, 864, 865, 866, 867, 868, 870, 873, 874, 875, 876, 880, 883, 884, 885, 887, 888, 889, 891, 892, 893]
 KEYS = ["C", "c", "C#", "c#", "D", "d", "Eb", "d#", "E", "e", "F", "f", "F#", "f#", "G", "g", "Ab", "g#", "A", "a", "Bb", "bb", "B", "b"]
 SUBJECT_NOTES = {}  # id -> number of notes in the subject, where the rhythm runs on
 
@@ -26,9 +30,32 @@ def info(bwv):
     return 2, bwv - 869, KEYS[bwv - 870]
 
 def pname(p):
+    if isinstance(p, str): return p
     return p.step + {0: "", 1: "#", 2: "##", -1: "b", -2: "bb"}[int(p.alter)] + str(p.octave)
 
+STEPS = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+def midi_of(name):
+    import re
+    m = re.match(r"([A-G])(#*|b*)(-?\d+)$", name)
+    return 12 * (int(m.group(3)) + 1) + STEPS[m.group(1)] + (len(m.group(2)) if m.group(2).startswith("#") else -len(m.group(2)))
+
+def corpus_items():
+    """D366: each fugue of D119 from data/wtc/fugues.json: notes in quarters from the first note's
+    bar (a pickup padded as ASAP's scores pad it), the bar, the pickup's padding, the time signature."""
+    for p in json.load(open(ROOT)):
+        bwv = 845 + (p["book"] - 1) * 24 + p["number"]
+        if bwv not in D119: continue
+        num, den = map(int, p["meter"].split("/"))
+        barq = F(num * 4, den)
+        b1 = next((b["on"] for b in p["bars"] if b["n"] == 1), 0)
+        pad = barq - F(b1, 1920) if b1 else F(0)
+        ns = [{"on": F(on, 1920), "dur": F(dur, 1920), "p": pitch, "midi": midi_of(pitch), "tie": None}
+              for v in p["voices"] for on, dur, pitch, _ in v if dur > 0]
+        ns.sort(key=lambda x: (x["on"], x["midi"]))
+        yield bwv, clean(ns), pad, barq, p["meter"]
+
 def pool(score):
+    from music21 import chord
     raw = []
     for part in score.parts:
         for n in part.recurse().notes:
@@ -68,16 +95,17 @@ def frac(x): return f"{x.numerator}/{x.denominator}"
 
 results, problems = [], []
 full = {}
-for d in sorted(os.listdir(ROOT)):
-    if not d.startswith("bwv_"): continue
-    bwv = int(d[4:]); book, num, kname = info(bwv); fid = f"wtc{book}.{num:02d}"
-    sc = converter.parse(os.path.join(ROOT, d, "xml_score.musicxml"))
-    ts = sc.recurse().getElementsByClass(meter.TimeSignature).first()
-    ns = pool(sc)
-    # Metre: the bar in quarters, and where the subject starts within its bar (a pickup bar counts).
-    m0 = sc.parts[0].getElementsByClass("Measure").first()
-    pad = F(m0.paddingLeft).limit_denominator(96)
-    barq = F(ts.barDuration.quarterLength).limit_denominator(96)
+def asap_items():
+    from music21 import converter, meter
+    for d in sorted(os.listdir(ROOT)):
+        if not d.startswith("bwv_"): continue
+        sc = converter.parse(os.path.join(ROOT, d, "xml_score.musicxml"))
+        ts = sc.recurse().getElementsByClass(meter.TimeSignature).first()
+        m0 = sc.parts[0].getElementsByClass("Measure").first()
+        yield int(d[4:]), pool(sc), F(m0.paddingLeft).limit_denominator(96), F(ts.barDuration.quarterLength).limit_denominator(96), ts.ratioString if ts else None
+
+for bwv, ns, pad, barq, tsig in (corpus_items() if CORPUS else asap_items()):
+    book, num, kname = info(bwv); fid = f"wtc{book}.{num:02d}"
     onsets = sorted({n["on"] for n in ns})
     t1 = onsets[0]
     t2 = next(t for t in onsets if len(sounding(ns, t)) >= 2)
@@ -143,7 +171,7 @@ for d in sorted(os.listdir(ROOT)):
     cs = [n for n in dux[k:] if n["on"] < end]
     rec = {
         "id": fid, "bwv": bwv, "book": book, "number": num, "key": kname,
-        "time": ts.ratioString if ts else None,
+        "time": tsig,
         "startAt": frac(t1), "barQuarters": frac(barq), "phase": frac((t1 + pad) % barq), "answerAt": frac(t2 - t1), "thirdAt": frac(t3 - t1) if t3 is not None else None,
         "answerAbove": above, "answerShift": common, "mutations": muts,
         "subject": [{"pitch": pname(x["p"]), "at": frac(x["on"] - t1), "dur": frac(x["dur"])} for x in subject],
@@ -157,10 +185,12 @@ for d in sorted(os.listdir(ROOT)):
     results.append(rec)
 
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
-json.dump({"source": "ASAP dataset (Foscarin, McLeod, Rigaux, Jacquemard, Sakai 2020), CC BY-NC-SA 4.0", "fugues": results}, open(OUT, "w"), indent=1, ensure_ascii=False)
+SOURCE = ("Kyle Rother's open-score edition (University of Cape Town, 2015), CC BY 4.0; read by tools/wtc/import.ts (D366)"
+          if CORPUS else "ASAP dataset (Foscarin, McLeod, Rigaux, Jacquemard, Sakai 2020), CC BY-NC-SA 4.0")
+json.dump({"source": SOURCE, "fugues": results}, open(OUT, "w"), indent=1, ensure_ascii=False)
 FULL = os.path.join(os.path.dirname(OUT), "fugues-full.json")
 with open(FULL, "w") as fh:
-    fh.write('{"source": "ASAP dataset (Foscarin et al. 2020), CC BY-NC-SA 4.0", "unit": "1/96 quarter", "notes": {\n')
+    fh.write(json.dumps({"source": SOURCE})[:-1] + ', "unit": "1/96 quarter", "notes": {\n')
     fh.write(",\n".join(f'"{k}": {json.dumps(v, separators=(",", ":"))}' for k, v in full.items()))
     fh.write("\n}}\n")
 for r in results:

@@ -52,6 +52,9 @@ Fetched 27 October 2026, LilyPond source and the edition's MIDI, in `mutopia/<id
   CREDITS) as "Invention N, typeset by Jeff Covey for the Mutopia Project (mutopiaproject.org) from the
   Bach-Gesellschaft edition, CC BY-SA 3.0"; (b) the game's note data derived from them (their entries
   in `data/touch/more-bach.json`, and `data/touch/tutorial.json`) is released under CC BY-SA 3.0 too.
+- **D366**: the study's Inventions and Sinfonias (`data/wtc/inventions.json`, their rows of
+  `data/wtc/ornaments.json`; `tools/wtc/import.ts`) are read from these files too, no longer from the
+  Humdrum encodings below; the entries of Inventions 1, 6, 9 and 12 there are CC BY-SA 3.0 as above.
 - Read from the LilyPond (voices as typeset: the inventions' two staves, the sinfonias' upper staff in
   two voices and the bass); every `\repeat volta` once, as printed (Invention 6). The MIDI's attacks are
   in the LilyPond: 99.8-100%.

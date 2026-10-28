@@ -20,21 +20,20 @@ import type { LabPassage } from "../src/bench/lab/log.ts";
 
 await loadExtras();
 
+// D366: the divisi of Rother's edition (one staff a voice; its chords and second lines on a staff) in 12 of the 48.
 const WITH_BAND: Record<string, number[]> = {
-  wtc1f01: [0],
-  wtc1f06: [0],
-  wtc1f07: [0],
+  wtc1f06: [2],
+  wtc1f07: [1],
   wtc1f15: [0, 2],
-  wtc1f20: [0, 3],
-  wtc1f24: [1],
-  wtc2f02: [0, 1],
-  wtc2f03: [0, 1, 2],
-  wtc2f06: [0, 1],
-  wtc2f08: [0, 1],
-  wtc2f10: [1, 2],
-  wtc2f16: [0],
-  wtc2f17: [0, 2],
-  wtc2f20: [1],
+  wtc1f20: [0, 1, 3],
+  wtc1f24: [3],
+  wtc2f02: [1],
+  wtc2f03: [1, 2],
+  wtc2f08: [1],
+  wtc2f10: [0],
+  wtc2f11: [0, 1, 2],
+  wtc2f15: [0, 1],
+  wtc2f17: [3],
   "bwv1080-05": [0, 1, 3],
   "bwv1080-06": [0],
   "bwv1080-07": [0],
@@ -42,11 +41,11 @@ const WITH_BAND: Record<string, number[]> = {
 const ALL = [...PIECES, ...MORE_BACH];
 const overlaps = (ns: TouchNote[]) => ns.some((n, i) => ns.some((m, j) => i !== j && m[0] < n[0] && n[0] < m[0] + m[1]));
 
-test("D363: the band-only voices are D361's divisi exactly: 23 voices of 14 of the 48, Contrapunctus 5 (three voices), 6 and 7", () => {
+test("D363: the band-only voices are D361's divisi exactly: 19 voices of 12 of the 48 (D366: the edition's), Contrapunctus 5 (three voices), 6 and 7", () => {
   const found: Record<string, number[]> = {};
   for (const f of ALL) if (f.bandVoices) found[f.id] = f.bandVoices.map((b) => b.of);
   assert.deepEqual(found, WITH_BAND);
-  assert.equal(Object.entries(found).filter(([id]) => id.startsWith("wtc")).reduce((a, [, v]) => a + v.length, 0), 23);
+  assert.equal(Object.entries(found).filter(([id]) => id.startsWith("wtc")).reduce((a, [, v]) => a + v.length, 0), 19);
   for (const f of ALL)
     for (const b of f.bandVoices ?? []) {
       assert.ok(b.of >= 0 && b.of < f.voices.length && b.notes.length > 0, `${f.id} band voice of ${b.of}`);
@@ -89,8 +88,8 @@ test("D363: nothing lost: each of the 48's voices, its line and its band-only vo
       assert.ok(!overlaps(f.voices[vi]), `${p.id} voice ${vi} one line`);
     });
   }
-  // II/3's doubled sub-lines (16 in the soprano, 6 in the alto), II/6's alto (2), II/20's alto (1).
-  assert.equal(dropped, 25);
+  // D366: the edition writes no unison twice (the kern encodings' II/3, II/6 and II/20 did, 25 notes).
+  assert.equal(dropped, 0);
 });
 
 test("D363: the line kept: the one that carries on, the subject where an entry runs through, the last chord's top (an upper voice) or bottom (the bass)", () => {
@@ -101,9 +100,8 @@ test("D363: the line kept: the one that carries on, the subject where an entry r
   const name = (m: number) => `${"C C# D Eb E F F# G Ab A Bb B".split(" ")[m % 12]}${Math.floor(m / 12) - 1}`;
   const last = (id: string, v: number) => name(fugueById(id).voices[v].at(-1)![2]);
   // Upper voices' last notes the top, the bass's the bottom.
-  // I/20's soprano: its last entry (b. 85) runs to the end in the lower sub-line, ending on the C#5
-  // of the last chord, the A5 held above it the band's (the subject before the top).
-  assert.equal(last("wtc1f20", 0), "C#5");
+  // I/20's soprano ends on the A5 of the last chord (D366: the edition gives its last entry, b. 85, to the alto staff).
+  assert.equal(last("wtc1f20", 0), "A5");
   assert.equal(last("wtc1f20", 3), "A2");
   assert.equal(last("wtc1f06", 0), "D5");
   assert.equal(last("wtc1f15", 0), "G5");
@@ -113,16 +111,18 @@ test("D363: the line kept: the one that carries on, the subject where an entry r
   assert.equal(last("bwv1080-05", 3), "D3");
   // I/15's bass holds its pedal G2 (bar 84), the moving line above it the band's.
   assert.deepEqual(at("wtc1f15", 2, 84).map((n) => [name(n[2]), n[1]]), [["G2", 16320]]);
-  // I/20's soprano in bar 80 is the subject (A G# A B C), the held A5 above it the band's; every entry's notes are its voice's.
-  assert.deepEqual(at("wtc1f20", 0, 80).filter((n) => n[0] >= 610560).map((n) => name(n[2])), ["A4", "Ab4", "A4", "B4"]);
+  // I/20, bar 80: the held A5 the soprano's, the subject under it (A G# A B C) the alto's (D366: the edition's
+  // staves; the kern encoding wrote it as the soprano's lower sub-line); every entry's notes are its voice's.
+  assert.deepEqual(at("wtc1f20", 0, 80).filter((n) => n[0] >= 610560).map((n) => name(n[2])), ["A5"]);
+  assert.deepEqual(at("wtc1f20", 1, 80).filter((n) => n[0] >= 610560).map((n) => name(n[2])), ["A4", "Ab4", "A4", "B4"]);
   for (const f of ALL)
     for (const e of f.entries) {
       const line = new Set(f.voices[e.voice].map((n) => `${n[0]}:${n[2]}`));
       assert.ok(e.notes.every((n) => line.has(`${n[0]}:${n[2]}`)), `${f.id} entry b. ${e.bar}`);
       assert.ok(line.has(`${e.notes[0]?.[0]}:${e.notes[0]?.[2]}`) || !e.notes.length, `${f.id} entry b. ${e.bar}: its head in the line`);
     }
-  // II/17's tenor (bar 48) keeps its entry's moving line; the chromatic minims under it are the band's.
-  assert.deepEqual(bandNotes(fugueById("wtc2f17"), 2).filter((n) => barAt(fugueById("wtc2f17"), n[0]) === 48).map((n) => name(n[2])), ["Ab3"]);
+  // II/17, bar 48: the bass keeps its line; the second line on its staff (D366: the edition's) is the band's.
+  assert.deepEqual(bandNotes(fugueById("wtc2f17"), 3).filter((n) => barAt(fugueById("wtc2f17"), n[0]) === 48).map((n) => name(n[2])), ["Ab3"]);
 });
 
 test("D363: the splitter: a chord alone stays a chord; a divisi and the music joined to it become one line; the subject first", () => {
@@ -159,7 +159,7 @@ test("D363: in the game the band plays the divisi as its parent, the player's vo
   // (Bar 80's first chord, E5 G#5 struck and released together, before a rest: a chord, one touch.)
   assert.ok(lane.every((x) => lane.every((y) => !(y.on < x.on && x.on < y.on + y.dur)) && lane.every((y) => y.on !== x.on || y.dur === x.dur)), "the soprano one note at a time");
   const band = g.others.filter((x) => x.band);
-  assert.ok(band.length >= 40 && band.every((x) => x.voice === 0 || x.voice === 3));
+  assert.ok(band.length >= 30 && band.every((x) => x.voice === 0 || x.voice === 1 || x.voice === 3));
   assert.ok(g.others.filter((x) => !x.band).every((x) => x.voice !== 0), "the soprano's line the player's");
   // The player on the alto: the soprano's line and its divisi both the band's, as the soprano.
   const alto = run(passage("wtc1f20", 1, 80, 87)).g;

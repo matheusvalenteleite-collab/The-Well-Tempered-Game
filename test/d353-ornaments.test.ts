@@ -19,7 +19,7 @@ import { parseLog, type LabLog } from "../src/bench/lab/log.ts";
 import { parseStudy } from "../src/bench/lab/study.ts";
 import type { LabEvent } from "../src/bench/lab/events.ts";
 
-test("D353: MORE BACH's Inventions and Sinfonias find their 310 written ornaments, each on its note", async () => {
+test("D353: MORE BACH's Inventions and Sinfonias find their 221 written ornaments, each on its note (D366: the Mutopia editions' own signs; 310 from the kern encodings before, Sinfonia 5's ornamented version among them)", async () => {
   await loadExtras();
   const rows = ornamentsData as unknown as Record<string, [number, number, string, string][]>;
   let found = 0;
@@ -38,8 +38,8 @@ test("D353: MORE BACH's Inventions and Sinfonias find their 310 written ornament
       found++;
     }
   }
-  assert.equal(total, 310);
-  assert.equal(found, 310);
+  assert.equal(total, 221);
+  assert.equal(found, 221);
   // Invention 1's mordents (the tutorial cites them) in MORE BACH too.
   assert.ok([...ornamentsOf(fugueById("bwv772")).values()].some((o) => /[Mm]/.test(o.signs)));
 });

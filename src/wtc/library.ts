@@ -1,6 +1,6 @@
 /**
- * The study's library (D126): all 48 preludes and fugues from the lab's corpus (data/wtc, Humdrum
- * encoding, true voices; src/wtc/corpus.ts), in the shape the study screen reads: notes in quarters
+ * The study's library (D126): all 48 preludes and fugues from the lab's corpus (data/wtc, D366: the licence-clean
+ * editions, true voices; src/wtc/corpus.ts), in the shape the study screen reads: notes in quarters
  * from the start of the first bar (a pickup bar padded to a full bar), each fugue note with its voice
  * as Bach wrote it, the subject (the first voice's opening, as long as the second voice repeats it:
  * fugue.ts) and its entries in every voice, each with its transposition: those of fugue.ts's finder by

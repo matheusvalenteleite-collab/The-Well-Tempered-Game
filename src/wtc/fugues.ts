@@ -1,6 +1,6 @@
 /**
- * The Well-Tempered Clavier (D119): fugue expositions read from the ASAP dataset's encodings
- * (tools/wtc-extract.py; data/bach/wtc/README.md). Each fugue gives the subject (dux), Bach's
+ * The Well-Tempered Clavier (D119): fugue expositions read from the game's corpus (D366: Kyle Rother's edition, data/wtc/fugues.json;
+ * tools/wtc-extract.py --corpus; data/bach/wtc/README.md). Each fugue gives the subject (dux), Bach's
  * answer (comes) with its mutations, and what the dux sings against the answer (the
  * countersubject, or Bach's free counterpoint where he keeps none). Times are in quarter notes:
  * the subject's from its first note, the answer's and the countersubject's from the answer's entry.

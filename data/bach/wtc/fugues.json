@@ -1,5 +1,5 @@
 {
- "source": "ASAP dataset (Foscarin, McLeod, Rigaux, Jacquemard, Sakai 2020), CC BY-NC-SA 4.0",
+ "source": "Kyle Rother's open-score edition (University of Cape Town, 2015), CC BY 4.0; read by tools/wtc/import.ts (D366)",
  "fugues": [
   {
    "id": "wtc1.01",
@@ -7552,7 +7552,12 @@
     {
      "pitch": "D#4",
      "at": "7/2",
-     "dur": "1/2"
+     "dur": "1/4"
+    },
+    {
+     "pitch": "B3",
+     "at": "15/4",
+     "dur": "1/4"
     },
     {
      "pitch": "E4",
