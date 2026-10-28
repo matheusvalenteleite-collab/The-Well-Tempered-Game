@@ -206,3 +206,27 @@ test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: M
   for (const [d, bad] of [[PT, /\b(MAO|MAOS|NAO|VOCE|VOCES|ORGAO|LICAO|LICOES|PECA|PECAS|MUSICA|PROXIMO|ULTIMO|TAMBEM)\b/i], [ES, /\b(CANCION|LECCION|MUSICA|ORGANO DE|ULTIMO|PROXIMO|TAMBIEN|DESPUES)\b/i]] as const)
     for (const [k, v] of Object.entries(d)) assert.doesNotMatch(v, bad, `${k} → ${v}`);
 });
+
+test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading the default until one is chosen", async () => {
+  const { chosenReading, chooseReading, bestReading, BEST_READING, NO_READING, readingsOf } = await import("../src/touch/readings.ts");
+  store.clear();
+  const id = Object.keys(BEST_READING).find((k) => BEST_READING[k] !== NO_READING && readingsOf(k).length > 1)!;
+  assert.equal(chosenReading(id)?.id, bestReading(id)?.id, "nothing chosen: D344's");
+  const other = readingsOf(id).find((r) => r.id !== BEST_READING[id])!;
+  chooseReading(id, other.id);
+  assert.equal(chosenReading(id)?.id, other.id);
+  chooseReading(id, NO_READING);
+  assert.equal(chosenReading(id), null, "NONE chosen");
+  store.clear();
+  const app = src("src/bench/BenchApp.tsx");
+  assert.doesNotMatch(app, /single=\{!full\}/);
+  assert.match(app, /f\.kind === "fugue" \? chosenReading\(f\.id\) : null;/);
+  register("./tsx-hooks.mjs", import.meta.url);
+  const React = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { HearSubject } = await import("../src/bench/HearSubject.tsx");
+  const html = renderToStaticMarkup(React.createElement(HearSubject, { id, play: async () => 0, close: () => {} }));
+  assert.match(html, /id="reading-none"/);
+  for (const r of readingsOf(id)) assert.match(html, new RegExp(`id="reading-${r.id}"`));
+  assert.match(html, new RegExp(`id="reading-${BEST_READING[id]}"[^>]*aria-checked="true"`));
+});

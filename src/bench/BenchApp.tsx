@@ -70,7 +70,7 @@ import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
-import { bestReading, chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
+import { chosenReading, readingsOf, type Reading } from "../touch/readings.ts";
 import { ManualMap } from "./manual/ManualMap.tsx";
 import { GripScreen, LensSheet, Seal, StageLine } from "./manual/Screens.tsx";
 import { fixFor, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, SOUND_PRESET, soundOf, stagePassed, checkpointOf, watchWord, type DemoStyle, type ManualLesson, type Material, type PartId } from "./manual/lessons.ts";
@@ -370,7 +370,8 @@ export function BenchApp() {
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
   // book's: the owner, "fugues should not be too fast").
   // D282: a tutorial step may name its reading.
-  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (full ? chosenReading(f.id) : bestReading(f.id)) : null;
+  // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
+  const reading = run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
@@ -1524,7 +1525,7 @@ export function BenchApp() {
       {/* D342: THE MANUAL's map (in place of the old tutorial's steps), and its Part 0 screens. */}
       {APP.lite && steps && phase.kind === "home" && !manScreen && <ManualMap begin={beginManual} testOut={beginTest} close={() => setSteps(false)} />}
       {APP.lite && manScreen === "grip" && phase.kind === "home" && <GripScreen chip={ensureChip} sound={gripSound} lag={lag} setLag={setLag} done={gripDone} close={() => (setManScreen(null), setSteps(true))} />}
-      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} single={!full} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {APP.lite && !full && <LiteDrumsSwitch />}

@@ -86,9 +86,14 @@ function store(): Record<string, string> {
 }
 /** D325: NONE, the player's own articulation: no reading's marks shown, asked or scored. */
 export const NO_READING = "none";
-/** D325: the reading the player chose for a fugue (any it has, all open), else none (NONE, the default). */
+/**
+ * D325: the reading the player chose for a fugue (any it has, all open; NONE chosen: none). D369 (the
+ * owner: "I want the return of all 'HEAR THE SUBJECT' readings to the game"): every reading open to
+ * everyone again; nothing chosen yet, D344's chosen reading for the fugue (bestReading) is the default.
+ */
 export function chosenReading(id: string): Reading | null {
   const want = store()[id];
+  if (want === undefined) return bestReading(id);
   return readingsOf(id).find((r) => r.id === want) ?? null;
 }
 /** D325: a reading's id, or NO_READING. */
