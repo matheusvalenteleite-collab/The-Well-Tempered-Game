@@ -381,6 +381,9 @@ export const PT: Record<string, string> = {
   "{n} PARTS": "{n} PARTES",
   // D351: the pop-up's tempo button (its SLOW · DEFAULT · FAST in tempo-steps.ts) and BWV 1059's reconstruction.
   TEMPO: "ANDAMENTO",
+  // D356: a WTC fugue's tempo, opened by an A; a SLOW run's best kept apart.
+  "AN A ON THIS FUGUE UNLOCKS TEMPO": "UM A NESTA FUGA DESBLOQUEIA O ANDAMENTO",
+  "KEPT APART FROM YOUR BEST": "À PARTE DO SEU RECORDE",
   "A RECONSTRUCTION: BACH LEFT ONLY NINE BARS; VERITS99 COMPLETED IT FROM CANTATA 35": "UMA RECONSTRUÇÃO: BACH DEIXOU SÓ NOVE COMPASSOS; VERITS99 A COMPLETOU A PARTIR DA CANTATA 35",
   "SOURCES & CREDITS": "FONTES E CRÉDITOS",
   // D343: play.html for friends (the first screen, the result, the pop-up, the phone held the wrong way, MOBILE ONLY).

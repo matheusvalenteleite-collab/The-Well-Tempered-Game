@@ -111,6 +111,10 @@ export interface LiteState {
   bestOld: Record<string, string>;
   /** D337: the best scores made before WTC 1.52. */
   scoresOld: Record<string, number>;
+  /** D356: a WTC fugue's best grade at SLOW (kept apart: never its best, never what opens its tempo). */
+  slowBest: Record<string, string>;
+  /** D356: a WTC fugue's best score at SLOW (kept apart). */
+  slowScores: Record<string, number>;
 }
 
 /**
@@ -126,6 +130,8 @@ export const SOUND_UNLOCK_GRADES = ["S", "A"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
 export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
+/** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens once it is finished with an A or better (as its sound, D265). */
+export const tempoEarned = soundUnlocked;
 
 export function readLite(): LiteState {
   try {
@@ -139,6 +145,8 @@ export function readLite(): LiteState {
     const scoresV = strings(o.scoresV);
     const bestOld = strings(o.bestOld);
     const scoresOld = numbers(o.scoresOld);
+    const slowBest = strings(o.slowBest);
+    const slowScores = numbers(o.slowScores);
     // D337: a best with no judging named was made before 1.52: kept apart (written back with the next change).
     for (const [id, g] of Object.entries(best)) if (!bestV[id]) ((bestOld[id] ??= g), delete best[id]);
     for (const [id, n] of Object.entries(scores)) if (!scoresV[id]) ((scoresOld[id] ??= n), delete scores[id]);
@@ -152,9 +160,11 @@ export function readLite(): LiteState {
       scoresV,
       bestOld,
       scoresOld,
+      slowBest,
+      slowScores,
     };
   } catch {
-    return { beaten: [], seen: [], volume: 1, best: {}, scores: {}, bestV: {}, scoresV: {}, bestOld: {}, scoresOld: {} };
+    return { beaten: [], seen: [], volume: 1, best: {}, scores: {}, bestV: {}, scoresV: {}, bestOld: {}, scoresOld: {}, slowBest: {}, slowScores: {} };
   }
 }
 export function writeLite(patch: Partial<LiteState>): LiteState {
@@ -258,6 +268,22 @@ export function recordLiteBest(piece: string, final: number): { before: number |
   const fresh = before === null || final > before;
   if (fresh) writeLite({ scores: { ...st.scores, [piece]: final }, scoresV: { ...st.scoresV, [piece]: JUDGING } });
   return { before, fresh, old: st.scoresOld[piece] ?? null };
+}
+
+/**
+ * D356: a whole WTC fugue finished at SLOW: its grade and score kept apart from its best (a SLOW run never
+ * replaces the A that opened the tempo, nor the best score), against the best at SLOW. (Finished at all,
+ * it is kept as finished by recordLite, given no grade.) A run at FAST or DEFAULT counts as any.
+ */
+export function recordLiteSlow(piece: string, grade: string, final: number): { before: number | null; fresh: boolean; old: null } {
+  const st = readLite();
+  const before = st.slowScores[piece] ?? null;
+  const fresh = before === null || final > before;
+  writeLite({
+    ...(RANK.indexOf(grade) > RANK.indexOf(st.slowBest[piece] ?? "") ? { slowBest: { ...st.slowBest, [piece]: grade } } : {}),
+    ...(fresh ? { slowScores: { ...st.slowScores, [piece]: final } } : {}),
+  });
+  return { before, fresh, old: null };
 }
 
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
