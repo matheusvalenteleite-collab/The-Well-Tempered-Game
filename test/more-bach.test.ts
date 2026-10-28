@@ -87,7 +87,9 @@ test("D340: what the pipeline computes for the WTC: entries in the fugues, inven
   assert.ok(tempoOf("bwv1043-3") >= 84 && tempoOf("bwv1043-3") <= 126);
   assert.equal(PIECE_SOUND["bwv1043-1"], "super16");
   assert.equal(PIECE_SOUND.chor001, "chamberOrgan");
-  assert.equal(PIECE_SOUND["bwv1080-05"], "harpsichordSampled");
+  // D355: the Art of Fugue each its own sound (Contrapunctus 5, the counter-fugue, on SUPER 16-BIT), Contrapunctus 14 still the harpsichord.
+  assert.equal(PIECE_SOUND["bwv1080-05"], "super16");
+  assert.equal(PIECE_SOUND["bwv1080-14"], "harpsichordSampled");
 });
 
 test("D340: the concerto offers the two solo violins only; a chorale its soprano first", () => {

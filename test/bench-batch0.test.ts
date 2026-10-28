@@ -156,7 +156,8 @@ test("D249: the organ out: no piece opens on it, the players cannot choose it, a
   assert.ok(!Object.values(PIECE_SOUND).includes("organSampled"));
   assert.equal(PIECE_SOUND["bwv1080-14"], "harpsichordSampled");
   // D288: every fugue on classic chip; the recorded ensembles (D266, D275) withdrawn, a stored choice of one plays chip.
-  for (const id of ["wtc1f01", "wtc1f22", "wtc2f02", "wtc2f13"]) assert.equal(PIECE_SOUND[id], "chip", id);
+  // D355: each fugue its own sound again (tools/touch/colour-plans), always one the players have.
+  for (const id of ["wtc1f01", "wtc1f22", "wtc2f02", "wtc2f13"]) assert.ok(PRESETS.some((p) => p.id === PIECE_SOUND[id]), id);
   for (const id of ["stringsReal", "baroqueBand", "reedTrio", "windTrio", "clarinetTrio", "windsReal", "galantTrio"]) {
     assert.ok(!PRESETS.some((p) => p.id === id), id);
     assert.equal(presetById(id).id, "chip", id);
