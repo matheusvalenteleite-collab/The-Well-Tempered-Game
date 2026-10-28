@@ -47,7 +47,15 @@ export const SUBJECT_ORNAMENTS: Record<string, { at: number; signs: string }[]> 
   wtc2f12: [{ at: 1, signs: "m" }],
 };
 
-const ALIAS: Record<string, string> = { inv01: "inven01" };
+/**
+ * D278: the tutorial's invention under its corpus name; D353: MORE BACH's Inventions (BWV 772-786) and
+ * Sinfonias (BWV 787-801) under theirs (inven01-15, sinfo01-15; the same notes, tpq 1920).
+ */
+const ALIAS: Record<string, string> = {
+  inv01: "inven01",
+  ...Object.fromEntries(Array.from({ length: 15 }, (_, i) => [`bwv${772 + i}`, `inven${String(i + 1).padStart(2, "0")}`])),
+  ...Object.fromEntries(Array.from({ length: 15 }, (_, i) => [`bwv${787 + i}`, `sinfo${String(i + 1).padStart(2, "0")}`])),
+};
 const cache = new Map<string, Map<string, Ornament>>();
 /**
  * A piece's ornaments by "voice:onset". D277: a fugue's subject keeps its ornaments in every entry (the
@@ -61,10 +69,10 @@ export function ornamentsOf(f: TouchFugue): Map<string, Ornament> {
   let m = cache.get(f.id);
   if (!m) {
     m = new Map();
-    // D278: the tutorial's invention under its corpus name.
     for (const [v, on, , signs, graces] of ROWS[f.id] ?? ROWS[ALIAS[f.id] ?? ""] ?? [])
       m.set(`${v}:${on}`, { signs, graces: (graces ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi })) });
-    if (f.kind === "fugue") carrySubjectOrnaments(f, m);
+    // D353: not an invention's or sinfonia's (kind "fugue" too): their signs stand as written, entry by entry.
+    if (f.kind === "fugue" && !/^(inven|sinfo)/.test(ALIAS[f.id] ?? "")) carrySubjectOrnaments(f, m);
     cache.set(f.id, m);
   }
   return m;
