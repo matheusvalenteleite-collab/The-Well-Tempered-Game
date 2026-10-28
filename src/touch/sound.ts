@@ -665,7 +665,7 @@ export const PATCHES = {
    * -4 at C6); the second rank (+1.2 cents) beats slowly with it; no vibrato. Its level kept (loudness
    * matched with the other registrations, measured).
    */
-  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 1 }, { wave: "stopTrompete", detune: 1.2, gain: 0.25 }], filter: { freq: 5000, hz: true, q: 0.9, env: 2.2, envDecay: 0.04 }, chiff: { level: 0.12, time: 0.014, at: 11 }, amp: { a: 0.01, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 }, reed: { bloom: { cents: 14, time: 0.007 }, rattle: { depth: 0.35, rate: 38, time: 0.035 }, formant: 1400, q: 1.1, db: 4, compass: { low: 2.5, high: -4 } } }),
+  orgTrompete: P({ osc: [{ wave: "stopTrompete", gain: 0.84 }, { wave: "stopTrompete", detune: 1.2, gain: 0.21 }], filter: { freq: 5000, hz: true, q: 0.9, env: 2.2, envDecay: 0.04 }, chiff: { level: 0.12, time: 0.014, at: 11 }, amp: { a: 0.01, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, hp: 110, level: 0.3, pipe: { case: 0.12, cents: 0.6 }, reed: { bloom: { cents: 14, time: 0.007 }, rattle: { depth: 0.35, rate: 38, time: 0.035 }, formant: 1400, q: 1.1, db: 4, compass: { low: 2.5, high: -4 } } }),
   /**
    * D349: the PLENUM (Principal 8', Octave 4', Superoctave 2', Mixture): the VCSL organ's own recorded
    * plenum (sampled.ts organPleno), the same organ as the plenum's pedal; its stand-in until loaded the

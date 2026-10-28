@@ -585,7 +585,9 @@ body {
 .tg-reg-compact { gap: 3px; }
 .tg-reg-compact .tg-stop { padding: 0 4px; font-size: 6px; }
 .tg-stop { flex: none; }
-.tg-hud:has(.tg-reg-compact) .tb-pause { margin-left: 6px; margin-right: 10px; }
+.tg-hud:has(.tg-reg-compact) { gap: 5px; }
+.tg-hud:has(.tg-reg-compact) .tb-pause { margin-left: 4px; margin-right: 6px; }
+.tg-reg-compact .tg-stop-tuttib, .tg-reg-compact .tg-stop-room { margin-left: 1px; }
 .tg-hud:has(.tg-reg-row-inline) { align-items: center; }
 .tg-hud:has(.tg-reg-compact) .tg-hud-title { display: none; }
 .tg-hud .tg-reg + .tb-pause { margin-left: 10px; }
