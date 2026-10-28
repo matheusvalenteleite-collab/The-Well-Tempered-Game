@@ -455,4 +455,16 @@ export const PT: Record<string, string> = {
   "Marks over the subject (dot, stroke, slur, wedge) come from a book on playing the fugue: follow them and the subject's notes earn a little more; missing them costs nothing. HEAR THE SUBJECT plays and draws them.": "Os sinais sobre o sujeito (ponto, traço, ligadura, cunha) vêm de um livro sobre como tocar a fuga: siga-os e as notas do sujeito valem um pouco mais; não segui-los não custa nada. OUÇA O SUJEITO os toca e desenha.",
   "An accent (>) is made with time, not force: let go of the note before a moment early, lean into the accent a hair late and hold it its full length. Loudness is never judged.": "Um acento (>) se faz com o tempo, não com força: solte a nota anterior um instante antes, entre no acento um triz atrasado e segure-o por todo o valor. O volume nunca é julgado.",
   "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.": "Bônus: uma entrada inteira do sujeito sem erro (ORGANO PLENO!; a última entrada de uma voz é o seu CHEFÃO), e uma cadência alcançada sem interromper a sequência.",
+  // D371: the title page and the selection screen (Mario and Luigi's report).
+  "TOUCH TO BEGIN": "TOQUE PARA COMEÇAR",
+  "24 FUGUES FOR TWO THUMBS": "24 FUGAS PARA DOIS POLEGARES",
+  "VERSION {v}": "VERSÃO {v}",
+  "YOU · {voice}": "VOCÊ · {voice}",
+  "LEARN TO PLAY WITH HERR BACH": "APRENDA A TOCAR COM HERR BACH",
+  "NEW HERE? START HERE": "NOVO AQUI? COMECE AQUI",
+  CONTINUE: "CONTINUAR",
+  COLLECTIONS: "COLEÇÕES",
+  "MAJOR · MINOR, BY KEY": "MAIOR · MENOR, POR TONALIDADE",
+  OPTIONS: "OPÇÕES",
+  "Pick a fugue in the middle, or learn first with the TUTORIAL on the left.": "Escolha uma fuga no meio, ou aprenda primeiro com o TUTORIAL à esquerda.",
 };

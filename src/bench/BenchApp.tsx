@@ -17,7 +17,7 @@
  * friends (play.html, `APP.lite`): the card grid (LiteGrid.tsx) instead of HOME, the platform as
  * detected, its own progress (lite.ts), ⚙ with the volume, the sound's delay and (phone only) the interface.
  */
-import { keyWordsIn, lang, LANGS, pieceName, setLang, tr, voiceName, type Lang } from "../i18n/index.ts";
+import { keyWordsIn, lang, LANGS, partKey, pieceName, setLang, tr, voiceName, type Lang } from "../i18n/index.ts";
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
@@ -81,6 +81,9 @@ import { LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
+import { Selection } from "./Selection.tsx";
+import { Intro } from "./Intro.tsx";
+import { bachNotes } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
@@ -451,7 +454,7 @@ export function BenchApp() {
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
     const readingMarks = new Map<string, MarkNote>();
     if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
-    return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
+    return { ...subjectMarks(f), spans, names: f.voiceNames.map((n) => partKey(f.kind, n)), cadences, ornaments, readingMarks };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
   /** D308: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
@@ -1065,6 +1068,39 @@ export function BenchApp() {
     if (!hearing) stopHearing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hearing]);
+  /**
+   * D371: play.html's title page (Intro.tsx), on every launch. Its first touch makes the sound (the phone's
+   * gesture) and plays B♭–A–C–B♮ on the PIPE ORGAN (intro-sound.ts), the last note faded; resolves with
+   * the seconds until it is heard. Its end (or a skip) stops it and gives the piece's sound back.
+   */
+  const [intro, setIntro] = useState(() => APP.lite);
+  const introSounds = useRef<Sounding[]>([]);
+  const introOver = useRef(false);
+  const introBegin = async (): Promise<number> => {
+    const ch = ensureChip();
+    setPreset("chamberOrgan");
+    const notes = bachNotes();
+    await ch.prepare(notes.map((n) => n.midi), notes.map((n) => n.midi)).catch(() => {});
+    if (introOver.current) return 0;
+    // The organ's voice as a tenor of four (where the subject is, Contrapunctus XIV's tenor): its Principal 8'.
+    const v = voicing(2, 4, true);
+    const t0 = ch.ctx.currentTime + 0.12;
+    for (const n of notes) {
+      const sd = ch.note(n.midi, t0 + n.at, n.len, v, { lead: true, ...(n.fade ? { final: true } : {}) });
+      // The last note dies away over its length (the church's tail after it).
+      if (n.fade) sd.trim?.(0.001, t0 + n.at + 0.3, t0 + n.at + n.len);
+      introSounds.current.push(sd);
+    }
+    return 0.12 + (ch.lag ?? 0);
+  };
+  const introEnd = (skipped: boolean) => {
+    introOver.current = true;
+    const now = chip.current?.ctx.currentTime ?? 0;
+    if (skipped) for (const sd of introSounds.current) sd.stop(now + 0.08);
+    introSounds.current = [];
+    setPreset(presetById(soundNow).id);
+    setIntro(false);
+  };
   const events: ThumbEvents = {
     // D280: during the demonstration the game's thumbs play; the player's touches wait.
     // D342: a manual take's touches go through its recorder (the take's lab log), which hands them on to the game.
@@ -1277,7 +1313,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<VoiceLegend names={f.voiceNames} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
+        legend={<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
@@ -1523,7 +1559,40 @@ export function BenchApp() {
       )}
       {wheel && !APP.lite && (phase.kind === "home" || phase.kind === "title") && <FuguePicker current={pick.piece} close={() => setWheel(false)} pick={open} paused={phase.kind === "title"} />}
       {/* D308: ⚙ opens over the cards, which stay behind it (not the music box). */}
-      {APP.lite && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} fuguesOnly={platform === "mobile"} tutorial={platform === "mobile" ? { ...manualProgress(readManual()), start: startManual } : undefined} />}
+      {/* D371: on a phone (every device of the friends') the selection screen in three columns (Selection.tsx); the list where unlocked on a computer. */}
+      {APP.lite && platform === "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && (
+        <Selection
+          piece={f.id}
+          current={opened}
+          voice={pick.voice}
+          singing={voicesFrom(f, from)}
+          setVoice={(v) => setPick({ voice: v })}
+          select={(id) => (stopHearing(), setPick({ piece: id, share: 0, voice: -1 }))}
+          play={() => (setOpened(f.id), start(true))}
+          options={() => open(f.id)}
+          open={open}
+          hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))}
+          beaten={lite.beaten}
+          best={lite.best}
+          scores={lite.scores}
+          bestOld={lite.bestOld}
+          scoresOld={lite.scoresOld}
+          soundOf={soundAt}
+          settings={() => setPhase({ kind: "settings" })}
+          setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
+          tutorial={{ ...manualProgress(readManual()), start: startManual }}
+          beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
+          note={
+            lag !== null && lag > 0.02 ? (
+              <p className="tg-note tb-lag-note sel-lag" id="sel-lag-note">
+                {tr("HEADPHONE DELAY {ms} MS IS ON", { ms: Math.round(lag * 1000) })}
+              </p>
+            ) : undefined
+          }
+        />
+      )}
+      {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
+      {APP.lite && platform !== "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D342: THE MANUAL's map (in place of the old tutorial's steps), and its Part 0 screens. */}
       {APP.lite && steps && phase.kind === "home" && !manScreen && <ManualMap begin={beginManual} testOut={beginTest} close={() => setSteps(false)} />}
@@ -1592,17 +1661,18 @@ export function BenchApp() {
  * obvious whether 'VOCÊ' is attached to the right or left"): the player's voice first, unmistakable, a chip
  * of its own with the voice's colour block ("VOCÊ: MÃO ESQUERDA"); the others after it, dimmer, each with
  * its colour. Room above the capitals for their accents (MÃO, VOCÊ: the tilde is never clipped).
+ * D371 (Mario and Luigi's report, 8 A): the chip FILLED with the voice's colour, its name inside in dark
+ * ink ("VOCÊ · SOPRANO"; two voices played: the chip split between their colours). `names` as shown
+ * (partKey: an Invention's Upper and Lower).
  */
 export function VoiceLegend({ names, played, ink, paper = false }: { names: string[]; played: number[]; ink: (i: number) => string; paper?: boolean }) {
   const mine = played.filter((i) => i < names.length);
   const others = names.map((_, i) => i).filter((i) => !mine.includes(i));
+  const fill = mine.length > 1 ? `linear-gradient(90deg, ${mine.map((i, k) => `${ink(i)} ${(100 * k) / mine.length}% ${(100 * (k + 1)) / mine.length}%`).join(", ")})` : ink(mine[0] ?? 0);
   return (
     <>
-      <span className="tb-you-chip" id="legend-you" style={{ borderColor: ink(mine[0] ?? 0) }}>
-        {mine.map((i) => (
-          <i key={i} className="tb-you-block" style={{ background: ink(i) }} aria-hidden="true" />
-        ))}
-        <span>{tr("YOU: {voice}", { voice: mine.map((i) => voiceName(names[i])).join(" + ") })}</span>
+      <span className="tb-you-chip" id="legend-you" style={{ background: fill, borderColor: ink(mine[0] ?? 0) }}>
+        <span>{tr("YOU · {voice}", { voice: mine.map((i) => voiceName(names[i])).join(" + ") })}</span>
       </span>
       {others.map((i) => (
         <span key={names[i]} className="tb-legend-other" style={{ color: ink(i), opacity: paper ? 0.75 : 0.6 }}>

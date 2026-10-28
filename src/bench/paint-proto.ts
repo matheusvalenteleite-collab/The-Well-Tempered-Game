@@ -29,6 +29,8 @@ import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver,
 
 /** D314: how long (s from the run's start) the bars say where SOFT and STRONG are. */
 const SIDES_HINT_S = 6;
+/** D371: the thumb bar's inner edge in the player's voice colour (px; the report's 4 px). */
+export const STRIP_EDGE = 4;
 
 const FONT = '"TG Accidentals", "Press Start 2P", ui-monospace, monospace';
 
@@ -951,6 +953,13 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.fillRect(s.x, 0, bw, h);
       c.fillStyle = t.barline;
       c.fillRect(n ? s.x : bw - 2, 0, 2, h);
+    }
+    // D371 (Mario and Luigi's report, 8 C): the bar's inner edge in the colour of the voice its thumb plays
+    // (the player's voice; with two, each bar its own), so the hands and the line are visibly one.
+    const tv = (g.tracks[s.k] ?? g.tracks[0])?.voice;
+    if (tv !== undefined) {
+      c.fillStyle = inkFor(tv, count);
+      c.fillRect(n ? s.x : bw - STRIP_EDGE, 0, STRIP_EDGE, h);
     }
     // The dynamics along the foot, pp on the soft side to ff on the strong (STRONG_SIDE; D296: only where touch dynamics are heard, D293).
     if (g.touchDynamics) MARKS.forEach((m, j) => {
