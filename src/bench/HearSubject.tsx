@@ -1,6 +1,6 @@
 /**
  * D272, HEAR THE SUBJECT (play.html's list): the fugue's subject as the chosen reading says to play it,
- * drawn and heard: each note a block at its pitch and length, joined notes under a slur, detached ones
+ * drawn and heard: each note a block at its pitch and length, a slurred group under its slur (D370; a plain join a line), detached ones
  * with a gap, short ones dotted, accents marked, the level written; a light runs along as it sounds.
  * The readings (at most three) as buttons, the author's words and pages below. D325: NONE (my own
  * articulation) first, the default, and every reading open from the start; the one chosen is the run's.
@@ -10,8 +10,8 @@ import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
-import { bestReading, chooseReading, chosenReading, NO_READING, performSubject, readingsOf, type Reading } from "../touch/readings.ts";
-import { acrossBar, drawThumb, planTouches, type Touch } from "./fingering.ts";
+import { bestReading, chooseReading, chosenReading, NO_READING, performSubject, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
+import { acrossBar, drawThumb, planFingerings, type Touch } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
 import { tempoOf } from "../touch/tempi.ts";
@@ -33,18 +33,25 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
   const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
-  // D280: the thumbs that play it: taking turns, landing and lifting as the reading asks, loud or soft
-  // across the bar, the ornaments shaken.
+  // D280: the thumbs that play it: landing and lifting as the reading asks, loud or soft across the bar,
+  // the ornaments shaken. D370: the thumbs chosen by the music's intent (fingering.ts planFingerings): the
+  // reading's marks, else the joins and gaps it is played with here; the best plan shown, the next good
+  // one a tap away where there is one.
   const orns = ornamentsOf(f);
-  const touches = e
-    ? planTouches(
+  const [alt, setAlt] = useState(0);
+  const fingerings = e
+    ? planFingerings(
         perf.map((p, i) => {
           const o = orns.get(`${e.voice}:${e.notes[i][0]}`);
-          return { at: p.at, dur: p.len, step: p.midi, join: reading?.notes[i]?.join ?? null, short: reading?.notes[i]?.short ?? null, d: p.d, shake: o ? shakeOf(o) : null };
+          const rn = reading?.notes[i];
+          const follows = i + 1 < perf.length && e.notes[i + 1][0] <= e.notes[i][0] + e.notes[i][1];
+          const marked = rn && (rn.join !== null || rn.short);
+          return { at: p.at, dur: p.len, step: p.midi, st: e.notes[i][3], join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, ...(marked || !follows ? {} : { intent: p.tie !== undefined ? ("join" as const) : ("detach" as const) }), d: p.d, shake: o ? shakeOf(o) : null };
         }),
         { overlap: 0.04 },
       )
     : [];
+  const touches = fingerings[Math.min(alt, fingerings.length - 1)]?.touches ?? [];
   const hear = () => {
     if (!e) return;
     const last = perf.at(-1);
@@ -68,6 +75,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const pick = (r: Reading | null) => {
     chooseReading(id, r?.id ?? NO_READING);
     setReading(r);
+    setAlt(0);
   };
   return (
     <div className="tb-hear-wrap" role="dialog" aria-label="Hear the subject" onClick={close}>
@@ -96,9 +104,18 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
         <canvas ref={canvas} className="tb-hear-canvas" />
         <p className="tb-hear-key tb-hear-thumbs">
           {STRONG_SIDE === "outer"
-            ? tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")
-            : tr("THE THUMBS: EACH NOTE THE OTHER THUMB · HAND OVER OR OVERLAP (JOINED) · LIFT EARLY (DETACHED) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT")}
+            ? tr("THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")
+            : tr("THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT")}
         </p>
+        {/* D370: another good fingering, where the plan finds one close to the best. */}
+        {fingerings.length > 1 && (
+          <p className="tb-hear-key tb-hear-fingering">
+            <button type="button" id="hear-fingering" className="tb-hear-reading" onClick={() => setAlt((a) => (a + 1) % fingerings.length)}>
+              {tr("THUMBS {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} ↻
+            </button>{" "}
+            {tr(fingerings[Math.min(alt, fingerings.length - 1)].name)}
+          </p>
+        )}
         {/* D314: each mark in plain words: what the thumbs do for it. */}
         <ul className="tb-hear-key tb-hear-marks" id="hear-marks">
           {markLegend(STRONG_SIDE).map((l) => (
@@ -163,15 +180,24 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
     g.fillRect(x1, y, w, rowH - 1);
     g.globalAlpha = 1;
     // The marks: a slur over a joined pair, a bar in the gap of a detached one, a dot, an accent.
-    if (n?.join && i + 1 < perf.length) {
-      const x2 = X(perf[i + 1].at);
-      const top = Math.min(y, Y(perf[i + 1].midi)) - 5;
+    // D370: ⌒ only over a real slur (one arc, its first note to its last); a plain legato join a flat line (JOINED).
+    const sl = (r?.slurs ?? []).find((s) => s.from === i);
+    if (sl && sl.to < perf.length) {
+      const x2 = X(perf[sl.to].at);
+      let top = y;
+      for (let q = i; q <= sl.to; q++) top = Math.min(top, Y(perf[q].midi));
+      top -= 5;
       g.strokeStyle = "#f2d16b";
       g.lineWidth = 1.5;
       g.beginPath();
       g.moveTo(x1 + w / 2, top + 3);
-      g.quadraticCurveTo((x1 + w / 2 + x2 + 3) / 2, top - 5, x2 + 3, top + 3);
+      g.quadraticCurveTo((x1 + w / 2 + x2 + 3) / 2, top - 7, x2 + 3, top + 3);
       g.stroke();
+    } else if (n?.join && i + 1 < perf.length && !slurredJoin(r, i)) {
+      const x2 = X(perf[i + 1].at);
+      const top = Math.min(y, Y(perf[i + 1].midi)) - 4;
+      g.fillStyle = "#f2d16b";
+      g.fillRect(x1 + w / 2, top, Math.max(1, x2 + 3 - x1 - w / 2), 1.5);
     }
     if (n?.join === false && i + 1 < perf.length) {
       g.fillStyle = "#ec5a4a";

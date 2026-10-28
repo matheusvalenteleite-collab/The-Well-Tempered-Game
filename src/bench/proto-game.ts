@@ -1236,7 +1236,7 @@ export class ProtoGame {
   }
 
   /**
-   * D280: the plan of the thumbs for the voice played (fingering.ts): each note's touch, alternating, the
+   * D280: the plan of the thumbs for the voice played (fingering.ts): each note's touch (D370: its thumb by the music's intent), the
    * ornaments shaken, the loudness the dynamics lesson asks (soft bar 1, loud bar 2), rising steps slid
    * where sliding is taught.
    */
@@ -1253,9 +1253,10 @@ export class ProtoGame {
         const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
         const rn = rd && place !== undefined ? rd.notes[place] : undefined;
         const d = rn?.accent ? 0.78 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : loud(n.on);
-        return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, shake: o ? shakeOf(o) : null };
+        return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
       }),
-      { overlap: this.f.tpq / 16, slides: this.o.coach === "slide" },
+      // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
+      { overlap: this.f.tpq / 16, slides: this.o.coach === "slide", sec: 1 / this.tps },
     );
     return (this.planMemo = touches.map((t) => ({ ...t, i: heads[t.i].i })));
   }
@@ -3560,6 +3561,12 @@ export class ProtoGame {
   private relAt(ms: number, k: number, i: number): number {
     return MECH.timing === "relative" ? relMs(ms, this.ioiOf(k, i)) : ms;
   }
+  /** D370: note i joined from the note before inside one of the reading's slurs (the road's ⌒ only there). */
+  slurredInto(i: number, k = 0): boolean {
+    const n = this.tracks[k].notes[i];
+    const role = n ? this.slurHere(k, n.on) : null;
+    return role === "mid" || role === "last";
+  }
   /** D218: note i joined in the score to the note before it (any note, the riders too; no rest between). */
   joinedAt(i: number, k = 0): boolean {
     const notes = this.tracks[k].notes;
@@ -4341,9 +4348,13 @@ export class ProtoGame {
   slides = 0;
   readonly levels: { on: number; d: number }[] = [];
   private lastStrike: { side: Side; on: number } | null = null;
+  /** D370: the onsets the plan's same thumb takes after its note before (thumbNote). */
+  private planSame: Set<number> | null = null;
   private thumbNote(side: Side, on: number, d: number) {
     const last = this.lastStrike;
-    if (last && on > last.on && on - last.on <= this.f.tpq / 2) {
+    // D370: a quick note the plan gives to the same thumb (detached, by the music's intent: fingering.ts) is not asked to alternate.
+    this.planSame ??= new Set(this.plan.filter((t, p, a) => p > 0 && !t.slid && t.side === a[p - 1].side).map((t) => this.tracks[0].notes[t.i].on));
+    if (last && on > last.on && on - last.on <= this.f.tpq / 2 && !this.planSame.has(on)) {
       this.thumbs.of++;
       if (side !== last.side) this.thumbs.alt++;
     }
