@@ -294,7 +294,7 @@ export const MECH_DEFAULTS = {
   bandDriftMaxMs: 250,
   // EXPRESSION LAB (D376: Glenn's "More Expression from Two Thumbs"; glenn.ts). Off in the game; lab.html?glenn=1 turns it on.
   /** Glenn's mechanics: real over-legato, a keyboard slide begins a slur, slides and shakes told apart, joins judged by ear, a new bow against a slur. */
-  glenn: false,
+  glenn: true,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };

@@ -34,6 +34,8 @@ import { findRuns, runTrend, type Run } from "./runs.ts";
 import type { LensStats } from "./manual/lens.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
+export const DBGC: Record<string, number> = {};
+const DBG = (k: string) => void (DBGC[k] = (DBGC[k] ?? 0) + 1);
 /** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */
 const FREE_INK = "#f3d78a";
 /** D290: the narrowest window a note keeps on either side, however close its neighbours (ms). */
@@ -2361,7 +2363,7 @@ export class ProtoGame {
     // D376 (MECH.glenn): Glenn's slide (glennSlide); a slide in its phase half a row on: no ornament read.
     const gl = MECH.glenn && this.proto.id === "ladder" && this.rows ? this.glennLead(h, c, ms) : null;
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (!gl?.noOrn && this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
+    if (this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
     if (MECH.glenn && this.proto.id === "ladder" && this.rows) return this.glennSlide(id, h, c, t, ms, gl);
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
@@ -2717,7 +2719,7 @@ export class ProtoGame {
     if (!p) return;
     if (h.passive || h.handed || !this.held.has(id)) return void (h.slidePend = undefined);
     if (h.free?.r.kind) return void (h.slidePend = undefined);
-    if (ms - p.ms < (MECH.glenn ? GLENN.slideConfirmMs : MECH.slideConfirmMs)) return;
+    if (ms - p.ms < MECH.slideConfirmMs) return;
     const th = this.shakeTh();
     if (h.mv && ms - h.mv.ms < 50 && h.mv.v > th.reach / th.Lm) return;
     h.slidePend = undefined;
@@ -2772,7 +2774,8 @@ export class ProtoGame {
   }
   private glennArrive(id: number, h: Held, c: Contact, t: number, ms: number, dir: 1 | -1, gl: NonNullable<ReturnType<ProtoGame["glennLead"]>>) {
     h.gNear = undefined;
-    if (t < this.glennOpen(h.k, gl.n)) return void (h.gWait = { c, dir, on: gl.n.on });
+    if (t < this.glennOpen(h.k, gl.n)) return void ((h.gWait = { c, dir, on: gl.n.on }), DBG("wait"));
+    DBG(gl.phase ? "phase" : "guard");
     if (!gl.phase && this.slideGuarded()) {
       h.slidePend = { c, t, ms, ext: c.y, dir };
       return this.trySlide(id, h, ms);
@@ -2787,19 +2790,30 @@ export class ProtoGame {
   /** D376: each frame, a slide waiting for its note sounds when it opens; one stopped near its note (40 ms) has arrived. */
   private glennFrames(ms: number) {
     for (const [id, h] of this.held) {
+      // D378: a shake read on the note owns the thumb (its last leg is often read at rest, after the last
+      // move): a slide that waited for its note, or stopped near it, was that shake's leg.
+      if ((h.gWait || h.gNear) && h.free?.note === h.note && h.free.r.kind) (h.gWait = undefined), (h.gNear = undefined);
       if (h.gWait) {
         const n = this.tracks[h.k].notes.find((x) => x.state === "pending" && !x.ride);
         if (!n || n.on !== h.gWait.on || h.passive || h.handed) h.gWait = undefined;
         else if (this.now >= this.glennOpen(h.k, n)) {
           const w = h.gWait;
           h.gWait = undefined;
-          if (this.slideTo(id, h, w.c, this.now)) h.slideDir = w.dir;
+          DBG("waitfire");
+          // D378: a shake under way (a leg counted, or the thumb still moving fast): confirmed first (D353's
+          // guard: dropped if the thumb turns back), so a late shake's leg is not taken for the slide.
+          const th = this.shakeTh();
+          const busy = (h.free?.note === h.note && h.free.r.count > 0) || (!!h.mv && ms - h.mv.ms < 50 && h.mv.v > th.reach / th.Lm);
+          if (busy && this.slideGuarded()) {
+            h.slidePend = { c: w.c, t: this.now, ms, ext: w.c.y, dir: w.dir };
+            this.trySlide(id, h, ms);
+          } else if (this.slideTo(id, h, w.c, this.now)) h.slideDir = w.dir;
         }
       } else if (h.gNear && ms - h.gNear.ms >= GLENN.slideStopMs && (!h.mv || ms - h.mv.ms >= GLENN.slideStopMs)) {
         const g = h.gNear;
         const gl = this.glennLead(h, g.c, ms);
         if (!gl || h.lastY !== g.c.y) h.gNear = undefined;
-        else this.glennArrive(id, h, g.c, this.now, ms, g.dir, gl);
+        else (DBG("near"), this.glennArrive(id, h, g.c, this.now, ms, g.dir, gl));
       }
     }
   }
