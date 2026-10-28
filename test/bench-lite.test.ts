@@ -232,7 +232,9 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   try {
     const { BenchApp } = await import("../src/bench/BenchApp.tsx");
     const app = renderToStaticMarkup(createElement(BenchApp));
-    assert.match(app, /class="tb-lite"/);
+    // D371: on a phone the selection screen in three columns (Selection.tsx), the title page over it.
+    assert.match(app, /class="tb-sel[^"]*" id="selection"/);
+    assert.match(app, /id="intro"/);
     for (const id of ["home-tutorial", "home-achievements", "played-yes", "interface", "her"]) assert.doesNotMatch(app, new RegExp(`id="${id}`), id);
     assert.doesNotMatch(app, /ACHIEVEMENTS|INTERFACE|KIMIKO/);
     // D343: every device on play.html is a phone or tablet, so its tutorial is the manual's card (D342),

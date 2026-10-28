@@ -1227,8 +1227,6 @@ export const COURSE_FLOW = [
   "▶ TRY",
   "▶ PLAY",
   "▶ TOUR",
-  "UPPER VOICE",
-  "LOWER VOICE",
   "WITH HERR BACH",
   "PART {n}",
   "You'll learn: {l}",

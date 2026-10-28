@@ -5,12 +5,16 @@
  *   its colour, its word small at its top left ("SUBJECT"; STRETTO when it begins inside another);
  *   fainter while announced; each of its notes catches fire as it sounds (embers rising). D352: in
  *   its subject's primary (1 red, 2 blue, 3 yellow: subject-hue.ts), whoever's voice; grey once lost.
+ *   D372 (Mario's report §6): no band; a SUBJECT flag on each entry's first note (flags), and each
+ *   subject its own effect in its voice's own subject colour, note by note by weight (subjectFx; the
+ *   cast and weights in subject-cast.ts). `strikes` (the embers) stays for the design study's variants.
  *   The countersubject is not marked.
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
 import { tr, trCanvas } from "../i18n/index.ts";
-import { subjectRimOf, themeOf } from "./subject-hue.ts";
+import { subjectInkOf, subjectRimOf, themeOf } from "./subject-hue.ts";
+import { OTHERS_SCALE, effectOf, weightsOf } from "./subject-cast.ts";
 
 export interface Span {
   voice: number;
@@ -127,68 +131,209 @@ interface Ctx {
 }
 
 /**
- * The entries (D208; D314 the Cantus style; D320 the owner: "that style which creates a different shade
- * background throughout the subject … What you gave me was that awkward dotted line above it, which is
- * not helpful at all and clutters"). The subject only (no countersubject marks). Each entry on a soft
- * SHADED BAND from its first note to its last: a rectangle over the rows its notes take (a row of room
- * above and below), in a lightened tint of its colour at low alpha, its corners cut, a lighter hairline
- * along its top and bottom; announced (still ahead) at half that. The word ("SUBJECT", its shape,
- * STRETTO when it begins inside another) small at the band's top left, leaving with its start (not
- * kept in sight over the music). No bracket, no dashes, no breath mark, no counted beats (D314's, gone).
- * D352: the band quieter (its notes now carry the subject's colour themselves), no hairlines, in its
- * subject's primary (red, blue, yellow) for every voice; grey once lost. Drawn under the notes; `strikes` (over them) sets each of its notes alight as it sounds.
+ * D372 (Mario's report §6; replaces D320's shaded band, quieted by D352): THE SUBJECT FLAG. No band
+ * behind the entry; a small cream flag on a 1 px pole at each entry's first note, moving with it, above
+ * the note (below it where another voice's note is in the way, or no room above), the word SUBJECT
+ * (SUJEITO, SUJETO; SUBJECT 2 for a later subject) in the 3 by 5 font. One flag an entry, so in a
+ * stretto each entry has its own. It fades once the entry's first three notes have passed. D265 kept:
+ * every entry a SUBJECT (no ANSWER). Never tied to right or wrong (the same flag captured or lost).
+ * `blocked` says whether a rectangle is taken by another voice's note (the entry's own never push it below).
  */
-export function ribbons(c: Ctx, spans: Span[], player: number[], names: string[] | undefined, state: Map<string, string> | undefined, beat = 0) {
-  const { g, w, h, xOf, yOf, bh, now } = c;
-  void player;
-  void names;
-  void beat;
-  const subj = spans.filter((s) => s.form !== "counter");
-  const hOf = (step: number) => (c.hOf ? c.hOf(step) : bh);
-  for (const s of subj) {
-    if (!s.path.length) continue;
-    const x1 = xOf(s.on);
-    const x2 = xOf(s.end);
-    if (x1 > w || x2 < 0) continue;
-    const st = state?.get(`${s.voice}:${s.on}`);
-    const color = st === "lost" ? c.miss : subjectRimOf(c.ink(s.voice), themeOf(s));
-    const tint = lighten(color, 0.35);
-    const ahead = now < s.on;
-    let top = Infinity;
-    let bot = -Infinity;
-    for (const n of s.path) {
-      top = Math.min(top, yOf(n.step));
-      bot = Math.max(bot, yOf(n.step) + hOf(n.step));
-    }
-    const pad = Math.max(2, Math.round(bh * 0.8));
-    const a = Math.max(-2, x1 - 2);
-    const z = Math.min(w + 2, x2 + 1);
-    const y0 = Math.max(0, top - pad);
-    const y1 = Math.min(h, bot + pad);
-    const bw = z - a;
-    const bhh = y1 - y0;
-    if (bw <= 2 || bhh <= 2) continue;
-    const k = ahead ? 0.5 : 1;
-    g.fillStyle = tint;
-    // The band, its corners cut (a pixel's rounding). D352: 0.15 → 0.09, its hairlines gone.
-    g.globalAlpha = 0.09 * k;
-    g.fillRect(a + 1, y0, bw - 2, 1);
-    g.fillRect(a, y0 + 1, bw, bhh - 2);
-    g.fillRect(a + 1, y1 - 1, bw - 2, 1);
-    g.globalAlpha = 1;
-    // The word, small, at the band's top left (inside it when there is no room above).
-    const stretto = subj.some((o) => o !== s && o.voice !== s.voice && s.on > o.on && s.on < o.end);
-    // D265: every entry a SUBJECT; D283: in the language chosen.
-    const word = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}${s.shape ? ` · ${trCanvas(s.shape)}` : ""}${stretto ? " · STRETTO" : ""}`;
+export const FLAG_FADE_S = 0.4;
+const FLAG_BG = "#fff3c4";
+const FLAG_INK = "#2a2030";
+export function flags(c: Ctx, spans: readonly Span[], blocked: (x0: number, x1: number, y0: number, y1: number, voice: number, on: number) => boolean) {
+  const { g, w, h, xOf, yOf, bh, now, tps } = c;
+  for (const s of spans) {
+    if (s.form === "counter" || !s.path.length) continue;
+    const first = s.path[0];
+    const px = xOf(first.on) - 1;
+    if (px > w || xOf(s.end) < -40) continue;
+    const third = s.path[Math.min(2, s.path.length - 1)];
+    const past = (now - (third.on + third.dur)) / tps;
+    const alpha = past <= 0 ? 1 : 1 - past / FLAG_FADE_S;
+    if (alpha <= 0) continue;
+    const word = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}`;
     const tw = textWidth(word);
-    // At the band's start only: it leaves with the start (not kept in sight over the music).
-    const lx = x1 + 1;
-    if (lx + tw < 0) continue;
-    const ly = y0 >= 8 ? y0 - 7 : y0 + 2;
-    g.globalAlpha = (ahead ? 0.55 : 0.85) * (lx + tw > z ? 0.6 : 1);
-    pixText(g, word, lx, ly, color);
-    g.globalAlpha = 1;
+    if (px + tw + 4 < 0) continue;
+    const top = yOf(first.step);
+    const bot = top + (c.hOf ? c.hOf(first.step) : bh);
+    const fw = tw + 2;
+    // Above: the flag 7 px high, its pole 2 px on to the note's top; else below.
+    let fy = top - 9;
+    let poleY = fy;
+    let poleH = top - fy;
+    // The flag hangs back from its pole, over the rest before the entry, so it never hides the entry's
+    // own next notes; it flips forward only against the box's left edge.
+    const fx0 = px - fw >= 0 ? px - fw : px + 1;
+    if (fy < 0 || blocked(fx0, fx0 + fw, fy, top - 1, s.voice, first.on)) {
+      fy = bot + 2;
+      poleY = bot;
+      poleH = 9;
+      if (fy + 7 > h) {
+        fy = Math.max(0, top - 9);
+        poleY = fy;
+        poleH = top - fy;
+      }
+    }
+    g.globalAlpha = alpha;
+    g.fillStyle = FLAG_BG;
+    g.fillRect(px, poleY, 1, poleH);
+    g.fillRect(fx0, fy, fw, 7);
+    pixText(g, word, fx0 + 1, fy + 1, FLAG_INK);
   }
+  g.globalAlpha = 1;
+}
+
+const FIRE_CORE = "#fff6dc";
+/** D372: the effects' share of the frame: at most this many rectangles a pass (the player's, the others'). */
+export const FX_RECTS = 700;
+/** D372: a subject note ahead of the playhead shows its effect at this share; once over, it fades in FX_FADE_S. */
+export const FX_AHEAD = 0.5;
+export const FX_FADE_S = 0.8;
+/** The widest stretch of a note that burns or smokes (px), so a long note costs no more than a crotchet. */
+const FX_SPAN = 32;
+
+const smokeMemo = new Map<string, string[]>();
+/** A voice's subject smoke: its pale subject colour toward a cool grey. */
+function smokeOf(voiceInk: string, theme: 1 | 2 | 3): string {
+  let row = smokeMemo.get(voiceInk);
+  if (!row) {
+    row = ["", "", "", ""];
+    for (const t of [1, 2, 3] as const) row[t] = mixHex(subjectRimOf(voiceInk, t), "#8f90a8", 0.45);
+    smokeMemo.set(voiceInk, row);
+  }
+  return row[theme];
+}
+function mixHex(a: string, b: string, k: number): string {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ch = (sh: number) => Math.round(((pa >> sh) & 255) * (1 - k) + ((pb >> sh) & 255) * k);
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+}
+
+/**
+ * D372 (Mario's report §6): each subject's own effect, tinted from its voice's own subject colour (D368:
+ * a blue soprano's fire burns blue-white, an orange alto's gold), on every subject note in view, each as
+ * strong as its weight (subject-cast.ts: the head 1.0, a leap's landing 0.85, longer notes 0.7, quick
+ * passing notes 0.35; another voice's at half), ahead of the playhead at FX_AHEAD, full while it sounds,
+ * fading over FX_FADE_S once over. FIRE: flames lick up from the note's top in 2 px columns, the voice's
+ * subject ink outside, its pale rim at the core, a spark now and then (12 flickers a second). GLINT: a
+ * star flashes at each note's start as it sounds (bigger on the heavy notes), and a small one travels
+ * from note to note over the entry. SMOKE: slow wisps rise and drift from the notes. Stateless (each
+ * mark a function of the note and the clock), nothing allocated, at most FX_RECTS rectangles a pass.
+ * `mine` picks the pass: the others' (drawn under the player's notes) or the player's (over them).
+ * Never tied to right or wrong: a missed note burns as a hit one.
+ */
+export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly number[], mine: boolean, piece: string | undefined, beat: number, t: number) {
+  const { g, w, xOf, yOf, bh, now, tps } = c;
+  let budget = FX_RECTS;
+  const flick = Math.floor(t * 12);
+  for (let si = 0; si < spans.length && budget > 0; si++) {
+    const s = spans[si];
+    if (s.form === "counter" || !s.path.length || player.includes(s.voice) !== mine) continue;
+    if (xOf(s.on) > w || (now - s.end) / tps > FX_FADE_S) continue;
+    const theme = themeOf(s);
+    const fx = effectOf(piece, theme);
+    const voiceInk = c.ink(s.voice);
+    const ink = subjectInkOf(voiceInk, theme);
+    const rim = subjectRimOf(voiceInk, theme);
+    const wts = weightsOf(s, beat);
+    const scale = mine ? 1 : OTHERS_SCALE;
+    // GLINT's travelling star: one note of the entry at a time, seven a second.
+    const travel = fx === "GLINT" ? Math.floor(t * 7 + s.on * 0.37) % s.path.length : -1;
+    for (let j = 0; j < s.path.length && budget > 0; j++) {
+      const n = s.path[j];
+      const a = xOf(n.on);
+      if (a > w + 2) break;
+      const b = Math.max(a + 2, xOf(n.on + n.dur) - 1);
+      if (b < -8) continue;
+      const over = (now - (n.on + n.dur)) / tps;
+      const env = now < n.on ? FX_AHEAD : over <= 0 ? 1 : 1 - over / FX_FADE_S;
+      if (env <= 0) continue;
+      const wt = wts[j] * scale;
+      const full = (c.hOf ? c.hOf(n.step) : bh) === bh;
+      // The note's top: the player's outline; another voice's thinner block, centred in its row.
+      const top = mine || !full ? yOf(n.step) - (mine ? 1 : 0) : yOf(n.step) + Math.floor((bh - 1 - Math.max(1, Math.round(bh * 0.5))) / 2);
+      const span = Math.min(b - a, FX_SPAN);
+      if (fx === "FIRE") {
+        // Tongues 1 px wide, two to a 2 px column: the voice's pale subject colour, a warm white core,
+        // now and then a tip of the voice's subject ink above (so the flame still says whose).
+        const hmax = 1.5 + 5.5 * wt;
+        const seed = n.on * 0.013;
+        const fl = flick + s.voice;
+        g.globalAlpha = 0.3 + 0.6 * env;
+        g.fillStyle = rim;
+        for (let k = 0; k < span; k += 2) {
+          const h1 = Math.round(hmax * (0.3 + 0.7 * rnd(seed + k, fl)));
+          const h2 = Math.round(hmax * (0.2 + 0.6 * rnd(seed + k + 0.5, fl)));
+          if (h1 > 0) g.fillRect(a + k, top - h1, 1, h1);
+          if (h2 > 0) g.fillRect(a + k + 1, top - h2, 1, h2);
+          budget -= 2;
+        }
+        g.fillStyle = FIRE_CORE;
+        for (let k = 0; k < span; k += 2) {
+          const core = Math.round(hmax * (0.3 + 0.7 * rnd(seed + k, fl)) * 0.4);
+          if (core > 0) g.fillRect(a + k, top - core, 2, core);
+          budget--;
+        }
+        g.fillStyle = ink;
+        for (let k = 0; k < span; k += 2) {
+          const r = rnd(seed + k, fl);
+          if (r > 0.6 && wt >= 0.5) g.fillRect(a + k + (flick & 1), top - Math.round(hmax * (0.3 + 0.7 * r)) - 1 - (r > 0.9 ? 1 : 0), 1, 1);
+          budget--;
+        }
+      } else if (fx === "SMOKE") {
+        const wisps = 1 + Math.round(3 * wt);
+        g.fillStyle = smokeOf(voiceInk, theme);
+        for (let k = 0; k < wisps; k++) {
+          const ph = (t / 2.4 + rnd(n.on * 0.01, k)) % 1;
+          const x0 = a + 1 + rnd(k + 1.7, n.on * 0.01) * Math.max(1, span - 2);
+          const rise = 10 + 14 * wt;
+          for (let d = 0; d < 5; d++) {
+            const u = ph - d * 0.035;
+            if (u < 0) continue;
+            g.globalAlpha = env * (1 - u) * (0.45 + 0.45 * wt);
+            const sz = u < 0.3 && wt >= 0.7 ? 2 : 1;
+            g.fillRect(Math.round(x0 + Math.sin(u * 7 + k * 1.3) * 2 + u * 5), Math.round(top - 1 - u * rise), sz, sz);
+          }
+          budget -= 5;
+        }
+      } else {
+        // GLINT: the flash as the note sounds, then the travelling star.
+        const since = (now - n.on) / tps;
+        let r = 0;
+        let alpha = 0;
+        if (since >= 0 && since < 0.4) {
+          r = Math.max(1, Math.round((1.5 + 3 * wt) * (1 - 0.6 * (since / 0.4)) + 0.4));
+          alpha = 1;
+        } else if (j === travel && over < 0) {
+          r = wt >= 0.7 ? 3 : 2;
+          alpha = 0.6 * env;
+        }
+        if (r > 0) {
+          star(g, a + 1, top - 2, r, rim, alpha);
+          budget -= 5;
+        }
+      }
+    }
+  }
+  g.globalAlpha = 1;
+}
+/** A pixel star: a white heart, arms `r` long in `ink`, its diagonals where it is big. */
+function star(g: CanvasRenderingContext2D, x: number, y: number, r: number, ink: string, alpha: number) {
+  g.globalAlpha = alpha;
+  g.fillStyle = ink;
+  g.fillRect(x - r, y, 2 * r + 1, 1);
+  g.fillRect(x, y - r, 1, 2 * r + 1);
+  if (r >= 3) {
+    g.fillRect(x - 1, y - 1, 1, 1);
+    g.fillRect(x + 1, y - 1, 1, 1);
+    g.fillRect(x - 1, y + 1, 1, 1);
+    g.fillRect(x + 1, y + 1, 1, 1);
+  }
+  g.fillStyle = "#ffffff";
+  g.fillRect(x, y, 1, 1);
 }
 
 /** A colour (#rrggbb) mixed toward white by `k` (0..1), as an rgb() string. */

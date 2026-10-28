@@ -961,7 +961,9 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-you-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 4px; line-height: 1.6; color: var(--tg-bg); background: var(--tg-fg); border: 2px solid; font-size: 8px; white-space: nowrap; }
 .tb-you-block { display: inline-block; width: 10px; height: 10px; border: 1px solid rgba(0, 0, 0, 0.35); }
 .tb-legend-other { line-height: 1.6; padding-top: 2px; }
-html.tb-paper .tb-you-chip { color: #fff; background: #2a2724; }
+/* D371 (the report's 8 A): the chip filled with the voice's colour (inline), its words in dark ink; on paper too. */
+.tb-you-chip { color: #14101a; border-color: rgba(0, 0, 0, 0.35) !important; box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45); }
+html.tb-paper .tb-you-chip { color: #14101a; }
 
 /* D373, THE TUTORIAL's selection screen (Mario's tut-select): the play screen's three columns, nothing scrolls. */
 .tb-tut { --tb-tut-side: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2); position: fixed; inset: 0; z-index: 60; display: grid; grid-template-columns: calc(var(--tg-sal) + var(--tb-tut-side)) 1fr calc(var(--tg-sar) + var(--tb-tut-side)); height: 100dvh; overflow: hidden; background: #141a33; color: var(--tg-fg); font-family: var(--tg-pixel); }

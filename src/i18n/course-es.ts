@@ -5,8 +5,6 @@
 export const COURSE_ES: Record<string, string> = {
   "L": "I",
   "R": "D",
-  "UPPER VOICE": "VOZ SUPERIOR",
-  "LOWER VOICE": "VOZ INFERIOR",
   "Good: {n} of {m} moves the right way. Now in time.": "Bien: {n} de {m} movimientos en la dirección correcta. Ahora, a tempo.",
   "ABOUT {n} MINUTES": "UNOS {n} MINUTOS",
   "PART {n}": "PARTE {n}",
