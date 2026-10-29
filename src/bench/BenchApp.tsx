@@ -642,14 +642,15 @@ export function BenchApp() {
             lens?.feed,
           )
         : null;
-    if (rec && glennTake) rec.log.glenn = true;
+    // D378: a take with Glenn's mechanics (the game's) tagged so; one with MECHANICS: CLASSIC not.
+    if (rec && glennTake && MECH.glenn) rec.log.glenn = true;
     let glennKept = false;
     const keepGlenn = (stopped: boolean) => {
       if (!rec || !glennTake || glennKept) return;
       glennKept = true;
       const log = rec.finish(stopped);
       const t = log.result;
-      keepRun(log, `GLENN · ${popTitle(f.id)} · ${presetById(soundNow).name} · ♩ ${Math.round(bpm)}${t ? ` · ${t.right}/${t.of} right · ${t.legato}/${t.legatoOf} joined · ${t.slides} slides` : ""}${stopped ? " · stopped" : ""}`);
+      keepRun(log, `${MECH.glenn ? "PLAY" : "CLASSIC"} · ${popTitle(f.id)} · ${presetById(soundNow).name} · ♩ ${Math.round(bpm)}${t ? ` · ${t.right}/${t.of} right · ${t.legato}/${t.legatoOf} joined · ${t.slides} slides` : ""}${stopped ? " · stopped" : ""}`);
     };
     if (lens) {
       g.lens = lens;

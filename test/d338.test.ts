@@ -28,7 +28,8 @@ test("D338: HOW TO PLAY no longer promises points for a written ornament (en, pt
 
 // ---- 2. The accent by time ----
 
-test("D338: the accent's verdict: on time or leaned up to 15% of a beat, the note before let go, held; never loudness", () => {
+test("D338: the accent's verdict: on time or leaned up to 15% of a beat, the note before let go, held; never loudness (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   assert.equal(MECH_DEFAULTS.accentLateBeats, 0.15);
   const beat = 600;
   // On time, a little early within PERFECT, a lean of 80 ms (13% of the beat): all met.
@@ -60,7 +61,7 @@ test("D338: the accent's verdict: on time or leaned up to 15% of a beat, the not
   const l = markLegend("outer").find((x) => x.kind === "strong")!;
   assert.match(l.text, /ACCENT: LIFT THE NOTE BEFORE, LEAN IN A HAIR LATE, HOLD IT/);
   assert.equal(markLegend("inner").find((x) => x.kind === "strong")!.text, l.text);
-});
+  }));
 
 function fakeChip(clock: { t: number }) {
   return {
@@ -111,7 +112,8 @@ function playAccents(o: { lean?: number; hold?: number; overlap?: boolean; x?: n
   return g;
 }
 
-test("D338: in play, ACCENT ✓ for notes on time (or leaned), the one before let go, held; not when joined, rushed past, or cut short", () => {
+test("D338: in play, ACCENT ✓ for notes on time (or leaned), the one before let go, held; not when joined, rushed past, or cut short (D378: CLASSIC)", () =>
+  withMech({ glenn: false }, () => {
   const good = playAccents({});
   assert.ok(good.style.of > 5, `${good.style.of} judged`);
   assert.ok(good.style.hit / good.style.of > 0.9, `on time, apart, held: ${good.style.hit}/${good.style.of}`);
@@ -124,7 +126,7 @@ test("D338: in play, ACCENT ✓ for notes on time (or leaned), the one before le
   assert.ok(joined.style.hit / Math.max(1, joined.style.of) < 0.2, `joined: ${joined.style.hit}/${joined.style.of}`);
   const cut = playAccents({ hold: 0.5 });
   assert.ok(cut.style.hit / Math.max(1, cut.style.of) < 0.2, `cut short: ${cut.style.hit}/${cut.style.of}`);
-});
+  }));
 
 test("D338: loudness never counts: the same touches by the box or by the edge judge the same, and a reading's level asks nothing", () => {
   const edge = playAccents({ x: 5 });

@@ -2358,10 +2358,11 @@ export class ProtoGame {
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
     // D319: and while its trill goes on (each leg keeps it going), after the shake was judged.
     if (h.orn && h.open && (!h.orn.done || (h.trill && t <= h.orn.by))) return this.ornamentShake(h, c, t);
-    // D376 (MECH.glenn): Glenn's slide (glennSlide); a slide in its phase half a row on: no ornament read.
-    const gl = MECH.glenn && this.proto.id === "ladder" && this.rows ? this.glennLead(h, c, ms) : null;
+    // D376 (MECH.glenn): Glenn's slide (glennSlide). D378: the shake read all the same (D376's "no ornament
+    // once a slide in its phase has gone half a row" starved the reader: the owner's legs are 2–7 rows).
+    const gl = MECH.glenn && this.proto.id === "ladder" && this.rows ? this.glennLead(h, ms) : null;
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (!gl?.noOrn && this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
+    if (this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
     if (MECH.glenn && this.proto.id === "ladder" && this.rows) return this.glennSlide(id, h, c, t, ms, gl);
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
@@ -2734,7 +2735,7 @@ export class ProtoGame {
     return s;
   }
   /** D376 (MECH.glenn): the next note a slide would take, its drawn height, which way, and whether the move began in the slide phase. */
-  private glennLead(h: Held, c: Contact, ms: number): { n: LaneNote; target: number; want: 1 | -1; phase: boolean; noOrn: boolean } | null {
+  private glennLead(h: Held, ms: number): { n: LaneNote; target: number; want: 1 | -1; phase: boolean } | null {
     const notes = this.tracks[h.k].notes;
     const n = notes.find((x) => x.state === "pending" && !x.ride);
     const cur = h.note >= 0 ? notes[h.note] : undefined;
@@ -2743,7 +2744,7 @@ export class ProtoGame {
     const want: 1 | -1 = target < h.ay ? 1 : -1;
     const startTick = this.tickAt((h.gStillMs ?? ms) / 1000);
     const phase = slidePhase(this.msOf(cur.on, startTick), 0, this.msOf(cur.on, n.on));
-    return { n, target, want, phase, noOrn: phase && want * (h.ay - c.y) >= GLENN.slideOrnRows * this.ladderRow };
+    return { n, target, want, phase };
   }
   /**
    * D376 (MECH.glenn), Glenn's slide (§4.4): one way; at least max(SLIDE_MIN_PX, 0.6 × the drawn distance);
@@ -2773,7 +2774,9 @@ export class ProtoGame {
   private glennArrive(id: number, h: Held, c: Contact, t: number, ms: number, dir: 1 | -1, gl: NonNullable<ReturnType<ProtoGame["glennLead"]>>) {
     h.gNear = undefined;
     if (t < this.glennOpen(h.k, gl.n)) return void (h.gWait = { c, dir, on: gl.n.on });
-    if (!gl.phase && this.slideGuarded()) {
+    // D378: begun in its phase it sounds at once, unless a shake's leg was counted on the note: then confirmed (D353's guard).
+    const shaking = h.free?.note === h.note && h.free.r.count > 0;
+    if ((!gl.phase || shaking) && this.slideGuarded()) {
       h.slidePend = { c, t, ms, ext: c.y, dir };
       return this.trySlide(id, h, ms);
     }
@@ -2787,17 +2790,27 @@ export class ProtoGame {
   /** D376: each frame, a slide waiting for its note sounds when it opens; one stopped near its note (40 ms) has arrived. */
   private glennFrames(ms: number) {
     for (const [id, h] of this.held) {
+      // D378: a shake read on the note owns the thumb (its last leg is often read at rest, after the last
+      // move): a slide that waited for its note, or stopped near it, was that shake's leg.
+      if ((h.gWait || h.gNear) && h.free?.note === h.note && h.free.r.kind) (h.gWait = undefined), (h.gNear = undefined);
       if (h.gWait) {
         const n = this.tracks[h.k].notes.find((x) => x.state === "pending" && !x.ride);
         if (!n || n.on !== h.gWait.on || h.passive || h.handed) h.gWait = undefined;
         else if (this.now >= this.glennOpen(h.k, n)) {
           const w = h.gWait;
           h.gWait = undefined;
-          if (this.slideTo(id, h, w.c, this.now)) h.slideDir = w.dir;
+          // D378: a shake under way (a leg counted, or the thumb still moving fast): confirmed first (D353's
+          // guard: dropped if the thumb turns back), so a late shake's leg is not taken for the slide.
+          const th = this.shakeTh();
+          const busy = (h.free?.note === h.note && h.free.r.count > 0) || (!!h.mv && ms - h.mv.ms < 50 && h.mv.v > th.reach / th.Lm);
+          if (busy && this.slideGuarded()) {
+            h.slidePend = { c: w.c, t: this.now, ms, ext: w.c.y, dir: w.dir };
+            this.trySlide(id, h, ms);
+          } else if (this.slideTo(id, h, w.c, this.now)) h.slideDir = w.dir;
         }
       } else if (h.gNear && ms - h.gNear.ms >= GLENN.slideStopMs && (!h.mv || ms - h.mv.ms >= GLENN.slideStopMs)) {
         const g = h.gNear;
-        const gl = this.glennLead(h, g.c, ms);
+        const gl = this.glennLead(h, ms);
         if (!gl || h.lastY !== g.c.y) h.gNear = undefined;
         else this.glennArrive(id, h, g.c, this.now, ms, g.dir, gl);
       }

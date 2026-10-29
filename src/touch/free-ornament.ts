@@ -30,10 +30,11 @@
  * Phase 1's, for the Lab; not read here.
  */
 import { MECH, type Mech } from "../bench/mechanics.ts";
-import { GLENN } from "../bench/glenn.ts";
 
 /** A leg ends when the thumb has made no progress for this long (ms). */
 export const STALL_MS = 50;
+/** D378: a frame of touches (ms; iOS sends a moving thumb's at 60 Hz or more). */
+const FRAME_MS = 17;
 /** Progress (px) that keeps a leg going. */
 const PROGRESS_PX = 0.75;
 /** The across travel's floor in the steepness test (px: the jitter). */
@@ -63,10 +64,12 @@ export interface ShakeThresholds {
   steep: number;
   /** D353: steepness over the whole leg (off: where the reach is first passed, D314's). */
   wholeLeg: boolean;
-  /** D376 (MECH.glenn): the legs must alternate (a same-way move after a pause continues the leg)... */
+  /** D376 (MECH.glenn): the legs must alternate (a same-way move after a pause continues the leg). D378: no
+   * cap on a leg's length (D376's 1.5 rows lost the owner's shakes: his legs are 30–136 px, 2–7 rows). */
   alternate?: boolean;
-  /** ...and none is longer than this (px; a one-way move that long is a slide, never a leg). */
-  maxLeg?: number;
+  /** D378 (MECH.glenn): a first leg after the thumb lay still (no touch for STALL_MS: a still thumb sends
+   * none) timed from a frame before its first move, not from the last touch (often the landing). */
+  restStart?: boolean;
 }
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -80,8 +83,8 @@ export function shakeThresholds(beatS: number, rowPx: number, m: Mech = MECH): S
     S: clamp(m.ornStartBeats * ms, m.ornStartMinMs, Math.max(m.ornStartMinMs, m.ornStartMaxMs)),
     steep: m.shakeSteep,
     wholeLeg: m.shakeWholeLeg,
-    // D376: Glenn's separation of a shake from a slide (glenn.ts).
-    ...(m.glenn ? { alternate: true, maxLeg: GLENN.shakeMaxLegRows * rowPx } : {}),
+    // D376: Glenn's separation of a shake from a slide (glenn.ts): alternating legs.
+    ...(m.glenn ? { alternate: true, restStart: true } : {}),
   };
 }
 
@@ -95,6 +98,10 @@ interface Leg {
   b: P;
   /** 1 up (y decreasing), -1 down. */
   dir: 1 | -1;
+  /** D378: a first leg timed from a frame before its first move (restStart): its touches, and the time
+   * it had otherwise (the last touch before it). */
+  rest?: number;
+  t0?: number;
 }
 
 /**
@@ -131,6 +138,9 @@ export class ShakeReader {
   /** D314's steepness: where the leg first passed the reach. */
   private passAt: P | null = null;
   private legs: Leg[] = [];
+  /** D378: the leg under way began after a silence (restStart): its touches so far; 0 otherwise. */
+  private restN = 0;
+  private restT0 = 0;
 
   constructor(start: P, th: ShakeThresholds) {
     this.start = start;
@@ -155,7 +165,12 @@ export class ShakeReader {
       }
       this.dir = dy > 0 ? 1 : -1;
       // The first leg from the landing's place, timed from the last moment the thumb was still there.
-      this.legStart = { x: this.start.x, y: this.start.y, t: this.still.t };
+      // D378 (glenn): a thumb lying still sends no touches: after a silence the leg began a frame ago (else
+      // a late shake's first leg, timed from the landing, was slow and dropped: the turn after the note lost).
+      const t0 = th.restStart && t - this.still.t > STALL_MS ? Math.max(this.still.t, t - FRAME_MS) : this.still.t;
+      this.legStart = { x: this.start.x, y: this.start.y, t: t0 };
+      this.restN = t0 !== this.still.t ? 1 : 0;
+      this.restT0 = this.still.t;
       this.ext = p;
       this.passAt = p;
       this.fast = this.speedy(this.legStart, p);
@@ -164,6 +179,7 @@ export class ShakeReader {
     const goingOn = this.dir === 1 ? y <= this.ext.y - PROGRESS_PX : y >= this.ext.y + PROGRESS_PX;
     if (goingOn) {
       this.ext = p;
+      if (this.restN) this.restN++;
       if (!this.passAt && Math.abs(y - this.legStart.y) >= th.reach) this.passAt = p;
       this.fast = this.speedy(prev, p) || this.speedy(this.legStart, p);
       return null;
@@ -174,7 +190,8 @@ export class ShakeReader {
       return t - this.ext.t >= STALL_MS ? this.closeAtRest(t) : null;
     }
     // The leg from legStart to ext is complete (unless counted already where it stopped); the next begins at ext.
-    const leg: Leg = { a: this.legStart, b: this.ext, dir: this.dir };
+    const leg: Leg = { a: this.legStart, b: this.ext, dir: this.dir, ...(this.restN ? { rest: this.restN, t0: this.restT0 } : {}) };
+    this.restN = 0;
     const fresh = this.ext !== this.legStart;
     const ok = fresh && this.steepLeg(leg, this.passAt);
     this.legStart = this.ext;
@@ -218,8 +235,9 @@ export class ShakeReader {
     const a = this.legStart;
     const b = this.ext;
     if (a === b) return null;
-    const leg: Leg = { a, b, dir: this.dir as 1 | -1 };
+    const leg: Leg = { a, b, dir: this.dir as 1 | -1, ...(this.restN ? { rest: this.restN, t0: this.restT0 } : {}) };
     if (!this.steepLeg(leg, this.passAt)) return null;
+    this.restN = 0;
     this.legStart = b;
     this.passAt = null;
     return this.counted(leg);
@@ -230,7 +248,7 @@ export class ShakeReader {
     const th = this.th;
     const dur = (l: Leg) => l.b.t - l.a.t;
     // D376: a leg the same way as the one before (it paused, then went on) is that leg continued: the
-    // pause read as a turn made a slow one-way slide a trill. A leg longer than maxLeg is a slide's.
+    // pause read as a turn made a slow one-way slide a trill.
     if (th.alternate) {
       const prev = this.legs.at(-1);
       if (prev && prev.dir === leg.dir) {
@@ -238,10 +256,17 @@ export class ShakeReader {
         this.count--;
         leg = { a: prev.a, b: leg.b, dir: leg.dir };
       }
-      if (th.maxLeg !== undefined && Math.abs(leg.b.y - leg.a.y) > th.maxLeg) {
-        this.legs = [];
-        return null;
-      }
+    }
+    // D378: a first leg after a silence is timed from a frame before it only if the thumb was seen moving
+    // (two touches or more: a lone jump is the touch's first report after a roll, the owner's logs'
+    // commonest) and comes back at least half way (else a slide and the lift's roll): otherwise timed as
+    // before, from the last touch (and dropped if slow, as before).
+    const asBefore = (l: Leg): Leg => ({ a: { ...l.a, t: l.t0! }, b: l.b, dir: l.dir });
+    if (leg.rest !== undefined && leg.rest < 2) leg = asBefore(leg);
+    const first = this.legs.length === 1 ? this.legs[0] : undefined;
+    if (first?.rest !== undefined && Math.abs(leg.b.y - leg.a.y) < 0.5 * Math.abs(first.b.y - first.a.y)) {
+      this.legs[0] = asBefore(first);
+      if (dur(this.legs[0]) > th.Lm) this.legs = [];
     }
     if (dur(leg) > th.Lm) {
       // A slow leg (a sink, a drift) is no part of the ornament: what came before it is forgotten.

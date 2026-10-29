@@ -1,7 +1,9 @@
 /**
  * D376, THE EXPRESSION LAB: Glenn's "More Expression from Two Thumbs" (28 October 2026, WTC 1.81),
- * built behind one switch, MECH.glenn (off in the game; lab.html?glenn=1 turns it on, nothing else
- * does). The engine (proto-game.ts, free-ornament.ts, accent.ts, chip.ts) reads the rules from here:
+ * built behind one switch, MECH.glenn. D378 (WTC 1.83): the game's own, everywhere (play.html, the
+ * tutorial, the Lab); the old mechanics only in the Lab, MECHANICS: CLASSIC (lab.html?glenn=0, preset A,
+ * or the switch off); a take keeps the mechanics it was recorded with (asRecorded: none named, off). The
+ * engine (proto-game.ts, free-ornament.ts, accent.ts, chip.ts) reads the rules from here:
  *
  *   OVER-LEGATO: on harpsichord, lute and piano the note given way to rings until its thumb lifts, at
  *     least 30 ms (the old join), at most 400 ms (the piano 250 ms), never past the next note but one.
@@ -12,11 +14,12 @@
  *     lets each note ring 110 ms into the next (the lute 150), the piano tapers −1.5, −2.5, −3.5, at most
  *     −4 dB (only lower: the subject never louder; by place, never by verdict).
  *   SLIDE AGAINST SHAKE: a shake's legs alternate (a same-way move after a pause continues its leg: the
- *     pause read as a trill fixed), no leg longer than 1.5 rows; a slide travels at least max(10 px,
+ *     pause read as a trill fixed; D378: no cap on a leg's length); a slide travels at least max(10 px,
  *     0.6 × the drawn distance) and arrives within 0.15 row (or stops within half a row for 40 ms); one
  *     begun late in its note (after 35% of the time to the next, or within 250 ms of it) sounds as it
- *     arrives, no confirmation, and no ornament is read once it has gone half a row; else it is confirmed
- *     after 40 ms and judged then (where it sounds); one arriving early waits for its note.
+ *     arrives, no confirmation (D378: unless a shake's leg was counted on the note; and the shake is read
+ *     all the same); else it is confirmed after 40 ms and judged then (where it sounds); one arriving
+ *     early waits for its note (D378: not when a shake was read; confirmed if one is under way).
  *   JUDGED BY EAR: joined is a gap of 25 ms or less (the 90 ms window kept for a touch iOS took back); a
  *     real gap re-attacks on sustaining sounds; an accent is the silence before it and the lean, no hold
  *     rule; a slide that makes a slur counts as joined.
@@ -54,10 +57,6 @@ export const GLENN = {
   slidePhaseMs: 250,
   /** Outside the slide phase, a slide is confirmed after this long (ms). */
   slideConfirmMs: 40,
-  /** Once a slide in its phase has gone this many rows, no ornament is read on the note. */
-  slideOrnRows: 0.5,
-  /** No shake leg longer than this many rows. */
-  shakeMaxLegRows: 1.5,
   /** A glide's time constant: a quarter of the slide's time, kept within these (ms). */
   glideTauMinMs: 10,
   glideTauMaxMs: 90,
@@ -210,10 +209,17 @@ export class RingList {
 
 /** The flag from a page's address: `?glenn=1` (or `glenn=on`, `glenn=true`). */
 export function glennParam(search: string): boolean {
+  return labPlayParam(search) === "glenn";
+}
+/**
+ * D378: the Lab's play page from its address: `?glenn=1` the game's mechanics (Glenn's), `?glenn=0` (or
+ * off, false) MECHANICS: CLASSIC, the mechanics before WTC 1.83; null: the Lab itself.
+ */
+export function labPlayParam(search: string): "glenn" | "classic" | null {
   try {
     const v = new URLSearchParams(search).get("glenn");
-    return v === "1" || v === "on" || v === "true";
+    return v === "1" || v === "on" || v === "true" ? "glenn" : v === "0" || v === "off" || v === "false" ? "classic" : null;
   } catch {
-    return false;
+    return null;
   }
 }

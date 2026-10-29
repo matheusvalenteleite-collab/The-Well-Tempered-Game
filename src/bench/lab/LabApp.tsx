@@ -1042,9 +1042,13 @@ export function LabApp() {
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {/* D376: THE EXPRESSION LAB: the game's selection screen with Glenn's mechanics on (lab.html?glenn=1). */}
+            {/* D376: THE EXPRESSION LAB: the game's selection screen (lab.html?glenn=1). D378: Glenn's mechanics the
+                game's; the same page with the old ones, MECHANICS: CLASSIC (lab.html?glenn=0), for comparison. */}
             <a className="lab-glenn" id="lab-glenn" href="?glenn=1">
-              EXPRESSION LAB (GLENN)
+              PLAY ALL PIECES
+            </a>
+            <a className="lab-glenn" id="lab-classic" href="?glenn=0">
+              MECHANICS: CLASSIC
             </a>
             {(["passage", "free", "breath", "table", "drills", "mechanics", "sensor", "see", "runs", "study", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>

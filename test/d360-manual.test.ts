@@ -82,7 +82,8 @@ test("D359/D360: Herr Bach's manners: three touches found as asked; accents made
   for (const [s, want] of [["legato", "LEGATO"], ["ordinary", "ORDINARY"], ["detached", "DETACHED"]] as const) assert.equal(demoRun(m, s).lens!.touch.style, want, s);
   const acc = demoRun(lessonById("III.4")!.stages[1].m, "accent").lens!;
   assert.equal(acc.marks.accent.ok, acc.marks.accent.of);
-  assert.equal(demoRun(lessonById("III.4")!.stages[1].m, "plain").lens!.marks.accent.ok, 0, "level: no accent made");
+  // D378: by ear (Glenn's), an accent is the silence before it: his plain touch leaves one before every note, so the level player is his legato.
+  assert.equal(demoRun(lessonById("III.4")!.stages[1].m, "legato").lens!.marks.accent.ok, 0, "level: no accent made");
   assert.ok(demoRun(lessonById("IV.2")!.stages[1].m, "lean").lens!.graces.agogic >= 2);
   assert.ok(demoRun(lessonById("IV.1")!.stages[1].m, "breath").lens!.graces.breath >= 2);
   assert.ok(demoRun(lessonById("IV.5")!.stages[1].m, "broaden").lens!.graces.broaden >= 1);
@@ -104,17 +105,18 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
     assert.ok(stagePassed(l, "play", playerRun(l.stages[lastPlay(l)].m, careful).lens!, lastPlay(l)), id);
   }
   // ... and where it asks more, he says exactly what.
-  const told = (id: string, k?: number) => {
+  const told = (id: string, k?: number, style: { jitterMs: number; hold: number } = careful) => {
     const l = lessonById(id)!;
     const kk = k ?? lastPlay(l);
-    const x = playerRun(l.stages[kk].m, careful).lens!;
+    const x = playerRun(l.stages[kk].m, style).lens!;
     assert.ok(!stagePassed(l, "play", x, kk), `${id}: plain care does not pass`);
     return fixFor(l, x, kk)!.text;
   };
   assert.match(told("III.1", 0), /I asked for \{want\}/);
-  assert.match(told("III.2"), /the dot: lift before three fifths/);
-  assert.match(told("III.3"), /Join inside the slur/);
-  assert.match(told("III.4"), /small silence before/);
+  // D378: joined by ear (25 ms), care's 20% gap is a detached touch, the strokes' own: plain care for the readings is joined throughout.
+  assert.match(told("III.2", undefined, { jitterMs: 5, hold: 0.97 }), /the dot: lift before three fifths/);
+  assert.match(told("III.3", undefined, { jitterMs: 5, hold: 0.97 }), /Join inside the slur/);
+  assert.match(told("III.4", undefined, { jitterMs: 5, hold: 0.97 }), /small silence before/);
   assert.match(told("IV.1"), /Breathe: enter a hair late/);
   assert.match(told("IV.2"), /No lean yet/);
 });

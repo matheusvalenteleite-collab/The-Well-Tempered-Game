@@ -1,6 +1,6 @@
 /**
- * D376, THE EXPRESSION LAB (Glenn's "More Expression from Two Thumbs"): his mechanics behind MECH.glenn,
- * off in the game (play.html never turns it on; lab.html?glenn=1 does). Each rule with the flag on, and
+ * D376, THE EXPRESSION LAB (Glenn's "More Expression from Two Thumbs"): his mechanics behind MECH.glenn;
+ * D378 (WTC 1.83): the game's own, the old ones (OFF here) MECHANICS: CLASSIC, in the Lab only. Each rule with the flag on, and
  * the same gesture with it off as the game plays it today: over-legato's ring, a keyboard slide's slur
  * (its start and end), a shake told from a slide (the pause no longer a trill), joins judged by ear and
  * the accent without its hold, a new bow or syllable against a slide's glide.
@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { MECH, MECH_DEFAULTS, MECH_SPEC, withMech } from "../src/bench/mechanics.ts";
-import { exprFamily, GLENN, glennParam, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "../src/bench/glenn.ts";
+import { exprFamily, GLENN, glennParam, labPlayParam, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "../src/bench/glenn.ts";
 import { ShakeReader, shakeThresholds } from "../src/touch/free-ornament.ts";
 import { accentHeld, accentVerdict } from "../src/bench/accent.ts";
 import { replay } from "../src/bench/lab/replay.ts";
@@ -21,20 +21,26 @@ import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-s
 
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 const ON = { glenn: true };
+/** D378: MECHANICS: CLASSIC (the game before WTC 1.83). */
+const OFF = { glenn: false };
 
-test("D376: the flag is off in the game, a Lab parameter, and only lab.html?glenn=1 turns it on", () => {
-  assert.equal(MECH_DEFAULTS.glenn, false);
-  assert.equal(MECH.glenn, false);
+test("D376/D378: the flag a Lab parameter; on in the game (D378); lab.html?glenn=1 the game's, ?glenn=0 MECHANICS: CLASSIC", () => {
+  assert.equal(MECH_DEFAULTS.glenn, true);
+  assert.equal(MECH.glenn, true);
   assert.ok(MECH_SPEC.some((s) => s.key === "glenn" && s.kind === "bool"));
   assert.equal(glennParam("?glenn=1"), true);
   assert.equal(glennParam("?glenn=1&lab=1"), true);
   assert.equal(glennParam(""), false);
   assert.equal(glennParam("?glenn=0"), false);
-  // play.html's entry never reads it; the Lab's does.
+  assert.equal(labPlayParam("?glenn=1"), "glenn");
+  assert.equal(labPlayParam("?glenn=0"), "classic");
+  assert.equal(labPlayParam("?glenn=off"), "classic");
+  assert.equal(labPlayParam(""), null);
+  // play.html's entry sets nothing: the defaults are Glenn's. The Lab's reads the page's address.
   const lite = readFileSync(new URL("../src/bench/lite-main.tsx", import.meta.url), "utf8");
   assert.ok(!/glenn/i.test(lite));
   const lab = readFileSync(new URL("../src/bench/lab/lab-main.tsx", import.meta.url), "utf8");
-  assert.ok(lab.includes("glennParam(location.search)"));
+  assert.ok(lab.includes("labPlayParam(location.search)"));
 });
 
 test("D376: the families and their numbers", () => {
@@ -112,15 +118,15 @@ test("D376: joined by ear (25 ms; a touch iOS took back keeps the old window); a
   assert.equal(joinedByEar(62, false, 90), false);
   assert.equal(joinedByEar(62, true, 90), true);
   assert.equal(GLENN.joinGapMs, 25);
-  assert.equal(accentHeld(100, 500), "short");
+  assert.equal(accentHeld(100, 500, {}, { ...MECH_DEFAULTS, glenn: false }), "short");
   assert.equal(accentHeld(100, 500, {}, { ...MECH_DEFAULTS, glenn: true }), null);
   const v = { offMs: 10, onTimeMs: 70, beatMs: 700, gapMs: 40, heldMs: 200, lenMs: 500 };
-  assert.deepEqual(accentVerdict(v), { met: false, why: "short" });
+  assert.deepEqual(accentVerdict(v, { ...MECH_DEFAULTS, glenn: false }), { met: false, why: "short" });
   assert.deepEqual(accentVerdict(v, { ...MECH_DEFAULTS, glenn: true }), { met: true, why: null });
   assert.equal(accentVerdict({ ...v, gapMs: 5 }, { ...MECH_DEFAULTS, glenn: true }).why, "joined");
 });
 
-test("D376: shake against slide: the slide phase; a slow one-way slide that pauses is no trill; legs alternate; a long one-way move is no leg", () => {
+test("D376: shake against slide: the slide phase; a slow one-way slide that pauses is no trill; legs alternate", () => {
   // The slide phase: after 35% of the way to the next note, or within 250 ms of it.
   assert.equal(slidePhase(100, 0, 1000), false);
   assert.equal(slidePhase(400, 0, 1000), true);
@@ -139,7 +145,7 @@ test("D376: shake against slide: the slide phase; a slow one-way slide that paus
     }
     return r.kind;
   };
-  assert.notEqual(slow(MECH_DEFAULTS), null, "today: read as an ornament (the bug)");
+  assert.notEqual(slow({ ...MECH_DEFAULTS, glenn: false }), null, "CLASSIC: read as an ornament (the bug)");
   assert.equal(slow({ ...MECH_DEFAULTS, glenn: true }), null, "Glenn's: no ornament");
   // A quick mordent (down, back up) is still one with the flag on.
   const mordent = (mech: typeof MECH_DEFAULTS) => {
@@ -149,10 +155,12 @@ test("D376: shake against slide: the slide phase; a slow one-way slide that paus
     r.tick(200);
     return r.kind;
   };
-  assert.equal(mordent(MECH_DEFAULTS), "down");
+  assert.equal(mordent({ ...MECH_DEFAULTS, glenn: false }), "down");
   assert.equal(mordent({ ...MECH_DEFAULTS, glenn: true }), "down");
-  assert.equal(shakeThresholds(0.7, 9, MECH_DEFAULTS).alternate, undefined, "off: today's reader");
-  assert.equal(shakeThresholds(0.7, 9, { ...MECH_DEFAULTS, glenn: true }).maxLeg, 13.5);
+  assert.equal(shakeThresholds(0.7, 9, { ...MECH_DEFAULTS, glenn: false }).alternate, undefined, "CLASSIC: the old reader");
+  assert.equal(shakeThresholds(0.7, 9, MECH_DEFAULTS).alternate, true);
+  // D378: no cap on a leg's length (D376's 1.5 rows lost the owner's shakes, 30–136 px).
+  assert.equal("maxLeg" in shakeThresholds(0.7, 9, MECH_DEFAULTS), false);
 });
 
 // ---- The engine, driven by synthetic thumbs (tools/lab/lab-synth.ts), sounds recorded. ----
@@ -212,14 +220,14 @@ test("D376: over-legato: on the harpsichord the note given way to rings until it
     assert.ok(a && b, "two notes");
     return Math.round(((a.stop ?? Infinity) - b.at) * 1000);
   };
-  assert.equal(given("harpsichordSampled", 0.2, {}), 30);
+  assert.equal(given("harpsichordSampled", 0.2, OFF), 30);
   const on = given("harpsichordSampled", 0.2, ON);
   assert.ok(on >= 195 && on <= 220, `rings to the lift: ${on} ms`);
   const capped = given("harpsichordSampled", 0.55, ON);
   assert.ok(capped >= 400 && capped <= 420, `at most 400 ms: ${capped}`);
   const piano = given("pianoSampled", 0.4, ON);
   assert.ok(piano >= 250 && piano <= 270, `the piano at most 250 ms: ${piano}`);
-  assert.equal(given("pianoSampled", 0.4, {}), 30);
+  assert.equal(given("pianoSampled", 0.4, OFF), 30);
   // The organ and the single lines keep the clean join.
   assert.equal(given("chamberOrgan", 0.2, ON), 30);
   assert.equal(given("stringConsort", 0.2, ON), 30);
@@ -243,7 +251,7 @@ const slidePlan = (o: { gapS?: number; slideS?: number }) => (notes: SynthNote[]
 };
 
 test("D376: a slide on a keyboard strikes the next note (no bend), rings 110 ms into it, counts as joined; off: today's bend", () => {
-  const off = run("harpsichordSampled", slidePlan({}), {});
+  const off = run("harpsichordSampled", slidePlan({}), OFF);
   assert.ok(off.heard[0].glides.length === 1, "today: the harpsichord's string bent (the bug)");
   const on = run("harpsichordSampled", slidePlan({}), ON);
   const [a, b] = on.heard;
@@ -266,7 +274,7 @@ test("D376: the piano's slide-slur tapers the joins after it; a detach ends it",
   const detached = run("pianoSampled", slidePlan({ gapS: 0.1 }), ON);
   assert.equal(detached.heard[2].p.group, undefined, "a detach: plain");
   // Off: the piano's slide bends nothing here either way: no group without a reading.
-  assert.equal(run("pianoSampled", slidePlan({}), {}).heard[2]?.p.group, undefined);
+  assert.equal(run("pianoSampled", slidePlan({}), OFF).heard[2]?.p.group, undefined);
 });
 
 test("D376: a real gap is not joined and re-attacks on a sustaining sound; off: joined within 90 ms", () => {
@@ -282,7 +290,7 @@ test("D376: a real gap is not joined and re-attacks on a sustaining sound; off: 
     }, mech);
     return { legato: r.summary.legato, attack: r.heard[1].p.legato };
   };
-  assert.deepEqual(gap({}), { legato: 1, attack: true });
+  assert.deepEqual(gap(OFF), { legato: 1, attack: true });
   assert.deepEqual(gap(ON), { legato: 0, attack: false });
 });
 
@@ -293,16 +301,16 @@ test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, tim
   const voice = run("vocalSynth", handover(0.02), ON).heard[1].p;
   assert.equal(voice.legato, false);
   assert.ok((voice.soft ?? 0) >= GLENN.rearticSoft);
-  assert.equal(run("vocalSynth", handover(0.02), {}).heard[1].p.legato, true, "off: today's joined voice");
+  assert.equal(run("vocalSynth", handover(0.02), OFF).heard[1].p.legato, true, "off: today's joined voice");
   // A slide: one sound glides; its time constant from the slide (a quarter of its measured travel, 150–200 ms here: 38–50 ms; off: the sound's own).
   const slow = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
   assert.ok(slow && slow.tau !== undefined && slow.tau >= 0.03 && slow.tau <= 0.06, JSON.stringify(slow));
   const quick = run("chip", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
   assert.ok(quick && quick.tau !== undefined && quick.tau <= 0.015, JSON.stringify(quick));
-  assert.equal(run("stringConsort", slidePlan({ slideS: 0.2 }), {}).heard[0].glides[0]?.tau, undefined);
+  assert.equal(run("stringConsort", slidePlan({ slideS: 0.2 }), OFF).heard[0].glides[0]?.tau, undefined);
 });
 
 test("D376: MECH.glenn restored after a replay (the game's parameters untouched)", () => {
-  withMech(ON, () => assert.equal(MECH.glenn, true));
-  assert.equal(MECH.glenn, false);
+  withMech(OFF, () => assert.equal(MECH.glenn, false));
+  assert.equal(MECH.glenn, true);
 });
