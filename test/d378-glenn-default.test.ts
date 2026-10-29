@@ -80,7 +80,7 @@ test("D378: a take recorded before (no glenn named) replays with the CLASSIC mec
   assert.equal(MECH.glenn, true, "the game's parameters untouched");
 });
 
-test("D378: the owner's 20 logged ornaments (shakes of 27–136 px) read with Glenn's reader as with CLASSIC's, nothing else", () => {
+test("D378: the owner's 20 logged ornaments (shakes of 27–136 px) read with Glenn's reader as with CLASSIC's, nothing else (one a trill)", () => {
   const read = (glenn: boolean) => {
     const found: string[] = [];
     for (const log of ownerLogs()) {
@@ -118,7 +118,10 @@ test("D378: the owner's 20 logged ornaments (shakes of 27–136 px) read with Gl
   };
   const glenn = read(true);
   assert.equal(glenn.length, 20, "WTC 1.82's 1.5-row cap on a leg read 4 of them");
-  assert.deepEqual(glenn, read(false));
+  // The same touches; one named otherwise: II/18's large shake late in a long note (56, 129, 106 px in
+  // 300 ms, after 700 ms still), its first leg timed from a frame before it moved (D378), a trill where
+  // CLASSIC, timing it from the last touch, dropped it and read the turn after the note from two legs.
+  assert.deepEqual(glenn, read(false).map((k) => (k === "wtc2f18 4 late" ? "wtc2f18 4 trill" : k)));
 });
 
 // ---- In a fugue at tempo: a real thumb's shakes ----
