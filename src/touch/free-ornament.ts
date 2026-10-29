@@ -98,8 +98,10 @@ interface Leg {
   b: P;
   /** 1 up (y decreasing), -1 down. */
   dir: 1 | -1;
-  /** D378: a first leg timed from a frame before its first move (restStart): its touches so far. */
+  /** D378: a first leg timed from a frame before its first move (restStart): its touches, and the time
+   * it had otherwise (the last touch before it). */
   rest?: number;
+  t0?: number;
 }
 
 /**
@@ -138,6 +140,7 @@ export class ShakeReader {
   private legs: Leg[] = [];
   /** D378: the leg under way began after a silence (restStart): its touches so far; 0 otherwise. */
   private restN = 0;
+  private restT0 = 0;
 
   constructor(start: P, th: ShakeThresholds) {
     this.start = start;
@@ -167,6 +170,7 @@ export class ShakeReader {
       const t0 = th.restStart && t - this.still.t > STALL_MS ? Math.max(this.still.t, t - FRAME_MS) : this.still.t;
       this.legStart = { x: this.start.x, y: this.start.y, t: t0 };
       this.restN = t0 !== this.still.t ? 1 : 0;
+      this.restT0 = this.still.t;
       this.ext = p;
       this.passAt = p;
       this.fast = this.speedy(this.legStart, p);
@@ -186,7 +190,7 @@ export class ShakeReader {
       return t - this.ext.t >= STALL_MS ? this.closeAtRest(t) : null;
     }
     // The leg from legStart to ext is complete (unless counted already where it stopped); the next begins at ext.
-    const leg: Leg = { a: this.legStart, b: this.ext, dir: this.dir, ...(this.restN ? { rest: this.restN } : {}) };
+    const leg: Leg = { a: this.legStart, b: this.ext, dir: this.dir, ...(this.restN ? { rest: this.restN, t0: this.restT0 } : {}) };
     this.restN = 0;
     const fresh = this.ext !== this.legStart;
     const ok = fresh && this.steepLeg(leg, this.passAt);
@@ -231,7 +235,7 @@ export class ShakeReader {
     const a = this.legStart;
     const b = this.ext;
     if (a === b) return null;
-    const leg: Leg = { a, b, dir: this.dir as 1 | -1, ...(this.restN ? { rest: this.restN } : {}) };
+    const leg: Leg = { a, b, dir: this.dir as 1 | -1, ...(this.restN ? { rest: this.restN, t0: this.restT0 } : {}) };
     if (!this.steepLeg(leg, this.passAt)) return null;
     this.restN = 0;
     this.legStart = b;
@@ -253,15 +257,17 @@ export class ShakeReader {
         leg = { a: prev.a, b: leg.b, dir: leg.dir };
       }
     }
-    // D378: a first leg after a silence is a move only if the thumb was seen moving (two touches or more: a
-    // lone jump is the touch's first report after a roll, the owner's logs' commonest), and it is an
-    // ornament's only if the thumb comes back at least half way (else a slide and the lift's roll).
-    if (leg.rest !== undefined && leg.rest < 2) {
-      this.legs = [];
-      return null;
-    }
+    // D378: a first leg after a silence is timed from a frame before it only if the thumb was seen moving
+    // (two touches or more: a lone jump is the touch's first report after a roll, the owner's logs'
+    // commonest) and comes back at least half way (else a slide and the lift's roll): otherwise timed as
+    // before, from the last touch (and dropped if slow, as before).
+    const asBefore = (l: Leg): Leg => ({ a: { ...l.a, t: l.t0! }, b: l.b, dir: l.dir });
+    if (leg.rest !== undefined && leg.rest < 2) leg = asBefore(leg);
     const first = this.legs.length === 1 ? this.legs[0] : undefined;
-    if (first?.rest !== undefined && Math.abs(leg.b.y - leg.a.y) < 0.5 * Math.abs(first.b.y - first.a.y)) this.legs = [];
+    if (first?.rest !== undefined && Math.abs(leg.b.y - leg.a.y) < 0.5 * Math.abs(first.b.y - first.a.y)) {
+      this.legs[0] = asBefore(first);
+      if (dur(this.legs[0]) > th.Lm) this.legs = [];
+    }
     if (dur(leg) > th.Lm) {
       // A slow leg (a sink, a drift) is no part of the ornament: what came before it is forgotten.
       this.legs = [];
