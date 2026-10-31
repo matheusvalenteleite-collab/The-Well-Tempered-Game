@@ -95,7 +95,24 @@ export interface LensStats {
    * made, how many short (a quick lift), and how long each held over as a share of its note.
    */
   appo: { of: number; made: number; short: number; shares: number[] };
+  /**
+   * D379 (6.4, the colour of a landing: D311's free dimension): the notes struck by the box (firm and
+   * bright: strength 0.6 or more), by the rim (soft and dark: 0.4 or less), of those struck on a bar.
+   * Never a verdict: shown, and asked only where a lesson is about it.
+   */
+  colour: { firm: number; soft: number; of: number };
+  /** D379 (6.6, D376's slide-slur): the notes struck by a slide of the thumb holding the note before. */
+  slides: number;
+  /** D379 (6.7, D376's over-legato): the joins where the note given way to rang on (its thumb lifted RING_MS or more after the next strike), of the joins struck right. */
+  rings: { ok: number; of: number };
+  /** D379 (6.5, the struck sigh): the falling steps shaped strong then soft (the first landed firmer by SIGH_LEAN, or the second slid to), of the falling steps struck right. */
+  sighs: { ok: number; of: number };
 }
+
+/** D379: an over-legato heard (D376: the note given way to rings until its thumb lifts, from 30 ms; 60 ms is a ring the ear notices). */
+export const RING_MS = 60;
+/** D379: a sigh shaped by the landing: the first note at least this much firmer (0..1 across the bar) than the second. */
+export const SIGH_LEAN = 0.2;
 
 const REPEAT_LIMIT_MS = 400;
 
@@ -164,6 +181,9 @@ export class LensTally {
   private readonly readShakes = new Set<number>();
   private readonly shakeKinds: string[] = [];
   private readonly freeShakes: string[] = [];
+  /** D379: where across its bar each note landed (strength, 0 soft .. 1 firm), and the notes a slide struck. */
+  private readonly lands = new Map<number, number>();
+  private readonly slid = new Set<number>();
 
   constructor(g: ProtoGame, clock: () => number = () => (typeof performance !== "undefined" ? performance.now() : 0)) {
     this.g = g;
@@ -176,8 +196,13 @@ export class LensTally {
     const at = this.clock();
     switch (e.kind) {
       case "note": {
-        if (e.slide) return;
+        if (e.slide) {
+          if (e.ok) this.slid.add(e.i);
+          return;
+        }
         if (!this.notes.has(e.i)) this.notes.set(e.i, e);
+        const land = this.g.landNow[e.side];
+        if (land !== undefined && !this.lands.has(e.i)) this.lands.set(e.i, land);
         const y = this.g.lastBySide[e.side]?.y;
         if (y !== undefined) this.landings.set(e.i, y);
         // D359: the grace this strike was given, if any (the engine counts it before it tells the lens).
@@ -367,6 +392,29 @@ export class LensTally {
       }
     });
     const sb = g.styleBy;
+    // D379: the colours landed, the joins that rang on, the falling steps shaped strong then soft.
+    const landed = [...this.lands.values()];
+    let ringOk = 0;
+    let ringOf = 0;
+    let sighOk = 0;
+    let sighOf = 0;
+    heads.forEach(({ n, i }, k) => {
+      const nx = heads[k + 1];
+      if (!nx || n.state !== "hit" || nx.n.state !== "hit") return;
+      const at = nx.n.at;
+      const off = lifted.get(i);
+      if (at !== undefined && n.on + n.dur >= nx.n.on && this.notes.get(nx.i)?.side !== this.notes.get(i)?.side && !this.slid.has(nx.i)) {
+        ringOf++;
+        if (off !== undefined && (g.timeAt(off) - g.timeAt(at)) * 1000 >= RING_MS) ringOk++;
+      }
+      const fall = n.midi - nx.n.midi;
+      if (fall >= 1 && fall <= 2) {
+        sighOf++;
+        const a = this.lands.get(i);
+        const b = this.lands.get(nx.i);
+        if (this.slid.has(nx.i) || (a !== undefined && b !== undefined && a - b >= SIGH_LEAN)) sighOk++;
+      }
+    });
     return {
       of: r.of,
       right: r.right,
@@ -392,6 +440,10 @@ export class LensTally {
       ties: { held: tieHeld, of: tieOf },
       orn: { read: this.readShakes.size, of: heads.filter(({ i }) => !!g.ornamentAt(0, i)).length, free: this.freeShakes.length, kinds: [...this.shakeKinds, ...this.freeShakes] },
       appo: { of: heads.filter(({ i }) => g.holdOverAt(0, i)).length, made: this.appos.length, short: this.appos.filter((a) => a.short).length, shares: this.appos.map((a) => Math.round(a.share * 100) / 100) },
+      colour: { firm: landed.filter((d) => d >= 0.6).length, soft: landed.filter((d) => d <= 0.4).length, of: landed.length },
+      slides: this.slid.size,
+      rings: { ok: ringOk, of: ringOf },
+      sighs: { ok: sighOk, of: sighOf },
     };
   }
 }

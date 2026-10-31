@@ -499,6 +499,8 @@ export class ProtoGame {
   lastTouch: { side: Side; y: number } | null = null;
   /** D286: each thumb's own last touch and the staff step of the note it played. */
   lastBySide: Partial<Record<Side, { y: number; step: number; tick: number; moved?: boolean }>> = {};
+  /** D379: where across its bar each thumb last landed (D311's strength, 0 the soft side .. 1 the strong), for THE TUTORIAL's colour lesson (lens.ts). */
+  landNow: Partial<Record<Side, number>> = {};
   /** D296: each thumb's recent touches (the last first pushed last), for the line's travel. */
   trailBySide: Partial<Record<Side, { y: number; step: number; tick: number; moved?: boolean }[]>> = {};
   /** D296: a thumb's touch remembered (its last, and its recent ones). */
@@ -1266,21 +1268,36 @@ export class ProtoGame {
     if (this.planMemo) return this.planMemo;
     const notes = this.tracks[0].notes;
     const heads = notes.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && notes[i - 1].on === n.on));
-    const loud = (on: number) => (this.o.coach === "dynamics" ? (on < this.f.barTicks ? 0.2 : 0.85) : 0.5);
+    // D379 (THE TUTORIAL's 6.4, colour): his demonstration lands a bar firm by the box, the next soft by the rim (an echo); heard as D311's landing, never the old full dynamic.
+    const loud = (on: number) => (this.o.coach === "dynamics" ? (on < this.f.barTicks ? 0.2 : 0.85) : this.o.coach === "colour" ? (Math.floor((on - this.startTick) / this.f.barTicks) % 2 ? 0.15 : 0.9) : 0.5);
     // D282: with a reading, its articulation, accents and level on the subject's notes.
     const rd = this.o.reading;
+    // D379 (6.5): a falling step's first note firm, its second soft (the struck sigh).
+    const sigh = (k: number) => {
+      if (this.o.coach !== "sigh") return null;
+      const fall = (a?: { n: { midi: number } }, b?: { n: { midi: number } }) => !!a && !!b && a.n.midi - b.n.midi >= 1 && a.n.midi - b.n.midi <= 2;
+      return fall(heads[k], heads[k + 1]) ? 0.9 : fall(heads[k - 1], heads[k]) ? 0.15 : null;
+    };
     const touches = planTouches(
-      heads.map(({ n, i }) => {
+      heads.map(({ n, i }, k) => {
         const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
         const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
         const rn = rd && place !== undefined ? rd.notes[place] : undefined;
-        const d = rn?.accent ? 0.78 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : loud(n.on);
+        const d = rn?.accent ? 0.78 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
         return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
       }),
       // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
       { overlap: this.f.tpq / 16, slides: this.o.coach === "slide", sec: 1 / this.tps },
     );
     const planned = touches.map((t) => ({ ...t, i: heads[t.i].i }));
+    // D379 (6.7, over-legato): the thumbs taking turns, each note held on past the next strike (a third of the gap), so it rings (D376).
+    if (this.o.coach === "ring")
+      planned.forEach((t, p) => {
+        t.side = p % 2 ? "right" : "left";
+        t.slid = false;
+        const next = planned[p + 1];
+        if (next) t.off = Math.max(t.off, next.on + (next.on - t.on) / 3);
+      });
     // D373: one thumb only (the tutorial's "left thumb alone"): every touch that side, each let go before the next.
     const one = this.o.side;
     if (one)
@@ -1851,6 +1868,7 @@ export class ProtoGame {
     // D311: where across it landed (the attack); BLUETOOTH MODE's next notes of the voice take it too.
     h.land = this.landAt(c);
     this.lastLand[h.k] = h.land;
+    this.landNow[c.side] = h.land;
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.

@@ -729,7 +729,8 @@ export function BenchApp() {
       if (rec && g.rows) rec.rows(g.rows.yOf(0), g.rows.rowH);
       if (AUTO) autoplay(g, auto);
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
-      if (count.current) count.current.textContent = g.countIn() ? String(g.countIn()) : "";
+      // D379: no big count digit over his demonstration in a tutorial WATCH (it hid the first note and his arrow).
+      if (count.current) count.current.textContent = g.countIn() && stepKind !== "watch" ? String(g.countIn()) : "";
       if (done) {
         // D376: THE EXPRESSION LAB's take kept.
         keepGlenn(false);
@@ -1618,7 +1619,7 @@ export function BenchApp() {
           {hintLine}
         </p>
       ))}
-      {playing && layout === "bars" && marks.readingMarks.size > 0 && <SideLegend marks={marks.readingMarks.values()} legendRef={legendRef} />}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson)) && <SideLegend marks={marks.readingMarks.values()} legendRef={legendRef} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
