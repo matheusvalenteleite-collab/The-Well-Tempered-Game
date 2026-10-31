@@ -80,7 +80,11 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "answer" && rows) answer(c, g);
     if (a === "point" && rows && o.box) point(c, g, o.box);
     if (a === "colour") colourMap(c, w, h, bw);
-    if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbPath(c, w, bw, g, o.aids.includes("colour"));
+    // Design studio (D386, the owner: "we don't need A for buttons, because the L and R markings appearing in
+    // synchrony with the thumbs movement is informative enough"): the path on the strips only where a lesson is
+    // about where across the strip a thumb lands (6.4, colour); elsewhere each played note keeps its L or R.
+    if (a === "thumbs" && rows && o.tour?.focus !== "height" && o.aids.includes("colour")) thumbPath(c, w, bw, g, true);
+    if (a === "thumbs" && rows && o.tour?.focus !== "height") playedLetters(c, g, o.box, now);
     if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbsA(c, w, h, bw, g, o.step ?? "play");
   }
   if (o.tour && rows) tour(c, w, h, bw, g, o.tour, o.box, now);
@@ -565,10 +569,56 @@ function planLetters(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: numbe
   const notes = g.tracks[0].notes;
   for (const t of g.plan) {
     const n = notes[t.i];
-    if (!n || t.slid) continue;
+    // Design studio (D386): the plan's letters only on notes still to come, faint, in the thumbs' one ink;
+    // a played note shows the thumb that played it (playedLetters).
+    if (!n || t.slid || n.state !== "pending") continue;
     const x = rows.xOf(n.on);
     if (!inBox(x, box)) continue;
-    label(c, t.side === "left" ? tr("L") : tr("R"), x + 6, rows.yOf(n.step) + rows.rowH + 8, t.side === "left" ? "#9ecbff" : "#ffc58f", 7);
+    label(c, t.side === "left" ? tr("L") : tr("R"), x + 6, rows.yOf(n.step) + rows.rowH + 8, LETTER_AHEAD, 7);
+  }
+}
+
+/**
+ * Design studio (D386): under each played note, the thumb that played it, L or R, appearing as the thumb lands
+ * (a short flash, the letter a size larger, settling): his thumbs in a WATCH, yours in a TRY or PLAY. One ink
+ * for both thumbs (the owner: "share"), the thumbs' cream. Which thumb: the one down nearest the note's height
+ * when it is first seen struck, else the plan's. Drawing only; nothing judged.
+ */
+const PLAYED = new WeakMap<ProtoGame, Map<number, { side: Side; t: number }>>();
+const LETTER_INK = "#fff3b0";
+const LETTER_AHEAD = "rgba(255, 243, 176, 0.45)";
+const FLASH_MS = 350;
+function playedLetters(c: CanvasRenderingContext2D, g: ProtoGame, box: { x: number; w: number } | undefined, now: number) {
+  const rows = g.rows!;
+  const notes = g.tracks[0].notes;
+  let seen = PLAYED.get(g);
+  if (!seen) PLAYED.set(g, (seen = new Map()));
+  const downs = g.thumbsDown();
+  for (let i = 0; i < notes.length; i++) {
+    const n = notes[i];
+    if (n.state !== "hit" || n.ride) continue;
+    let mark = seen.get(i);
+    if (!mark) {
+      const y = rows.yOf(n.step);
+      const near = downs.reduce<{ side: Side; d: number } | null>((b, d) => (!b || Math.abs(d.y - y) < b.d ? { side: d.side, d: Math.abs(d.y - y) } : b), null);
+      const side = near?.side ?? g.plan.find((t) => t.i === i)?.side;
+      if (!side) continue;
+      seen.set(i, (mark = { side, t: now }));
+    }
+    const x = rows.xOf(n.on);
+    if (!inBox(x, box)) continue;
+    const y = rows.yOf(n.step) + rows.rowH + 8;
+    const k = Math.min(1, (now - mark.t) / FLASH_MS);
+    if (k < 1) {
+      c.save();
+      c.globalAlpha = 0.5 * (1 - k);
+      c.fillStyle = LETTER_INK;
+      c.beginPath();
+      c.arc(x + 6, y, 6 + 8 * k, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
+    label(c, mark.side === "left" ? tr("L") : tr("R"), x + 6, y, LETTER_INK, k < 1 ? 9 : 7);
   }
 }
 
