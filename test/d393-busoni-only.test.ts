@@ -1,7 +1,8 @@
 /**
  * D393 (WTC 1.90), ONLY BUSONI: play.html offers BUSONI's whole-piece reading and no other; it is on by
  * default for every fugue of Book I and every instrument; Settings' BUSONI'S MARKINGS (ON / OFF, persisted)
- * is the one switch, off meaning no reading at all; Book II plays with none; the Lab keeps every reading.
+ * is the one switch, off meaning no reading at all; the Lab keeps every reading.
+ * D394 (WTC 1.91): Book II has BUSONI too: the default for all 48; a fugue with no whole reading plays with none.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -11,31 +12,36 @@ import { register } from "node:module";
 const store = new Map<string, string>();
 (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, String(v)), removeItem: (k: string) => void store.delete(k) };
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
+/** D394: both books. */
+const ALL = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 
-test("D393: BUSONI on by default for all 24 fugues of Book I on every instrument; the switch turns it off everywhere; Book II none", async () => {
-  const { busoniOn, setBusoniOn, playReading, readingsOf, OFFER_READINGS } = await import("../src/touch/readings.ts");
+test("D393, D394: BUSONI on by default for all 48 fugues on every instrument; the switch turns it off everywhere; a fugue with no whole reading none", async () => {
+  const { busoniOn, setBusoniOn, playReading, readingsOf, wholeReadingOf, OFFER_READINGS } = await import("../src/touch/readings.ts");
   const { FUGUES } = await import("../src/touch/fugue.ts");
   store.clear();
   assert.equal(OFFER_READINGS, false, "only BUSONI offered");
   assert.equal(busoniOn(), true, "on by default");
-  for (const id of BOOK_I) {
+  for (const id of ALL) {
     const r = playReading(id);
     assert.equal(r?.id, "busoni", id);
     assert.ok(r?.whole, id);
     // The books' readings are kept (data and code), only not offered.
     assert.ok(readingsOf(id).some((x) => !x.whole), `${id}: the books' readings kept`);
   }
-  for (const f of FUGUES.filter((x) => x.book === 2)) assert.equal(playReading(f.id), null, `${f.id}: no reading`);
+  // D394: a fugue with no whole-piece reading at all plays with none.
+  const bare = FUGUES.filter((x) => !wholeReadingOf(x.id));
+  assert.ok(bare.length > 0 && bare.every((x) => !ALL.includes(x.id)), "every fugue of the 48 has BUSONI");
+  for (const f of bare) assert.equal(playReading(f.id), null, `${f.id}: no reading`);
   // The play page takes the reading by playReading, not by the sound (every instrument alike).
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /OFFER_READINGS \? chosenReading\(f\.id, presetById\(soundNow\)\.id\) : busoni \? playReading\(f\.id\) : null/);
   setBusoniOn(false);
   assert.equal(busoniOn(), false);
   assert.equal(store.get("tb-busoni-v1"), "off", "persisted");
-  for (const id of BOOK_I) assert.equal(playReading(id), null, `${id}: off, no reading`);
+  for (const id of ALL) assert.equal(playReading(id), null, `${id}: off, no reading`);
   setBusoniOn(true);
   assert.equal(playReading("wtc1f04")?.id, "busoni");
+  assert.equal(playReading("wtc2f22")?.id, "busoni");
   store.clear();
 });
 
@@ -61,8 +67,14 @@ test("D393: the one switch is in play.html's Settings (en, pt, es); no other tog
   assert.doesNotMatch(off, /id="reading-one"/);
   assert.match(off, /BUSONI&#x27;S MARKINGS ARE OFF|BUSONI'S MARKINGS ARE OFF/);
   store.clear();
+  // D394: Book II shows BUSONI (its own year); a fugue with no whole reading shows none.
   const b2 = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc2f02", play: async () => 0, close: () => {} }));
-  assert.doesNotMatch(b2, /id="reading-/);
+  assert.match(b2, /id="reading-one"[^>]*>[^<]*BUSONI 1915/);
+  const { FUGUES } = await import("../src/touch/fugue.ts");
+  const { wholeReadingOf } = await import("../src/touch/readings.ts");
+  const bare = FUGUES.find((x) => !wholeReadingOf(x.id))!;
+  const none = renderToStaticMarkup(React.createElement(HearSubject, { id: bare.id, play: async () => 0, close: () => {} }));
+  assert.doesNotMatch(none, /id="reading-/);
 });
 
 test("D393: BUSONI on the harpsichord and the organ: articulation, the box and the ending, no piano levels; the Lab keeps every reading", async () => {
@@ -74,7 +86,7 @@ test("D393: BUSONI on the harpsichord and the organ: articulation, the box and t
   const { accompaniment, subjectMarks } = await import("../src/touch/voice-mode.ts");
   const { tempoOf } = await import("../src/touch/tempi.ts");
   store.clear();
-  for (const id of ["wtc1f04", "wtc1f22"]) {
+  for (const id of ["wtc1f04", "wtc1f22", "wtc2f15", "wtc2f22"]) {
     const f = fugueById(id);
     const r = playReading(id)!;
     const plan = wholePlan(f, r)!;
