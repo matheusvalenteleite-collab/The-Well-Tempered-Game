@@ -20,7 +20,7 @@ import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, MARKS } from "./protos.ts";
-import { CLEAN_INK, HELD_INK, LEGATO_INK } from "./articulation.ts";
+import { CLEAN_INK, HELD_INK, LEGATO_INK, type ArtFlash } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
 import { arcOf, pedalSpan } from "./arc.ts";
@@ -1278,21 +1278,30 @@ function laneGrades(c: CanvasRenderingContext2D, g: ProtoGame, laneX: (l: number
 
 /** D218: the articulation's word (LEGATO ×n, HELD, CLEAN, SHORT, REST!), small, under the verdict, rising a little as it fades. */
 function articulation(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
-  const f = g.flash;
-  if (!f) return;
+  // D384 (Mario 1): the articulation's word first, the reading's verdict last, a line above it: never hidden.
+  if (g.flash) articulationWord(c, w, h, g, t, g.flash, 0);
+  if (g.readingWord) articulationWord(c, w, h, g, t, g.readingWord, g.flash && performance.now() - g.flash.at <= ART_WORD_MS ? VERDICT_LIFT : 0);
+}
+
+/** How long an articulation's word or a reading's verdict shows (ms). */
+const ART_WORD_MS = 650;
+/** D384: how far above the articulation's word a reading's verdict sits while both show (px). */
+export const VERDICT_LIFT = 10;
+
+function articulationWord(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok, f: ArtFlash, lift: number) {
   // D359: in THE MANUAL's practice room only the words its lesson is about.
   // (The reading's words, DETACHED ✓, ACCENT ✓, STACCATO ✓, are of the kind "legato".)
   if (g.o.quiet && !g.o.quiet.words?.includes(f.kind)) return;
   const age = performance.now() - f.at;
-  if (age > 650) return;
+  if (age > ART_WORD_MS) return;
   const bars = g.proto.layout === "bars";
   const desk = g.proto.layout === "desk";
   const x = bars ? (g.grade?.side === "right" ? w * (1 - BAR * 0.5) : w * BAR * 0.5) : desk ? w - 90 : w / 2;
-  const y = (bars ? h * 0.45 + 14 : desk ? 26 : 44) - age / 60;
+  const y = (bars ? h * 0.45 + 14 : desk ? 26 : 44) - age / 60 - lift;
   const ink = f.kind === "legato" ? LEGATO_INK : f.kind === "held" ? HELD_INK : f.kind === "clean" ? CLEAN_INK : t.wrong;
   c.globalAlpha = age < 450 ? 1 : 1 - (age - 450) / 200;
   // D220: on the computer's road, under the verdict over the strike line, larger.
-  if (g.proto.id === "keys") label(c, f.text, w / 2, deskGeom(w, h).y1 - 44 - age / 30, ink, 9);
+  if (g.proto.id === "keys") label(c, f.text, w / 2, deskGeom(w, h).y1 - 44 - age / 30 - lift * 1.3, ink, 9);
   else label(c, f.text, x, y, ink, 7);
   c.globalAlpha = 1;
 }
