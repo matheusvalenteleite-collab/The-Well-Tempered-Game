@@ -98,6 +98,14 @@ export interface Options {
   readingAt?: readonly number[];
   /** D373 (lesson-only): the thumbs drawn by the tutorial's aid (Mario's model A), not the demonstration's own. */
   thumbsA?: boolean;
+  /**
+   * D400 (lesson-only): the tutorial's screen dressed lesson by lesson (manual/dress.ts DressId): the game's
+   * own elements drawn over the practice room (`quiet`) only as they come on: "score" (the score, the
+   * multiplier, the combo), "verdicts", "bar" (the bar counter), "accuracy", "crowd" (its meter; the crowd
+   * never leaves in a lesson), "subjects" (SUBJECTS n/m and, with it, the full screen's banners and chains).
+   * Absent: D359's practice room as it was.
+   */
+  dress?: readonly string[];
 }
 
 /**

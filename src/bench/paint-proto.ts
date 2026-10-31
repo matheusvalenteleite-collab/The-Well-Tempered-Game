@@ -69,9 +69,10 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       pads(c, w, h, g, t);
       break;
   }
-  verdict(c, w, h, g, t);
-  // D359: THE MANUAL's practice room: none of the game's chatter.
-  if (!g.o.quiet) scoreboard(c, w, h, g, t);
+  // D400: the tutorial's screen dressed lesson by lesson: the verdicts from Part 2.
+  if (!g.o.dress || g.o.dress.includes("verdicts")) verdict(c, w, h, g, t);
+  // D359: THE MANUAL's practice room: none of the game's chatter. D400: unless the lesson has dressed it.
+  if (!g.o.quiet || g.o.dress?.includes("score")) scoreboard(c, w, h, g, t);
   // D251: how far into the piece, along the top edge.
   progress(c, w, g, t);
 }
@@ -80,6 +81,9 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
 function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bars = g.proto.layout === "bars";
   const desk = g.proto.layout === "desk";
+  // D400: a tutorial lesson's dressing (the full screen's banners, chains and embers come with SUBJECTS, at THE REAL THING).
+  const dress = g.o.dress;
+  const full = !dress || dress.includes("subjects");
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
   const y = bars ? h * 0.12 : desk ? 34 : 14;
   label(c, Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
@@ -92,6 +96,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const below = combo ? 12 : 0;
   // D268: the right bar's live sheet: the share of right notes so far, the subject's entries captured, the crowd.
   if (bars) liveSheet(c, w, h, g, t);
+  if (!full) return;
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 + 74 : y + 32 + below, t.gold, 7);
   // D218: the legato chain under way.
   if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
@@ -124,17 +129,21 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
   const bw = w * BAR;
   const x = w - bw / 2;
   let y = h * 0.12;
+  // D400: in the tutorial each line only once the lesson has dressed it (ACCURACY and the crowd from 3.6, SUBJECTS at THE REAL THING).
+  const on = (k: string) => !g.o.dress || g.o.dress.includes(k);
   const acc = g.liveAccuracy();
-  label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
-  label(c, "ACCURACY", x, y + 12, t.muted, 5);
-  y += 28;
+  if (on("accuracy")) {
+    label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
+    label(c, "ACCURACY", x, y + 12, t.muted, 5);
+    y += 28;
+  }
   const come = g.entries.filter((e) => e.state !== "open").length;
-  if (g.entries.length) {
+  if (g.entries.length && on("subjects")) {
     label(c, `${g.entries.filter((e) => e.state === "captured").length}/${come}`, x, y, t.gold, 8);
     label(c, "SUBJECTS", x, y + 11, t.muted, 5);
     y += 26;
   }
-  if (g.o.fail) {
+  if (g.o.dress ? g.o.dress.includes("crowd") : g.o.fail) {
     const mw = Math.max(24, bw * 0.6);
     const grad = c.createLinearGradient(x - mw / 2, 0, x + mw / 2, 0);
     grad.addColorStop(0, "#e2533f");
@@ -1399,6 +1408,8 @@ function progress(c: CanvasRenderingContext2D, w: number, g: ProtoGame, t: Tok) 
   // Left of the game's ✕ (the DOM button in the top right corner).
   // D308: left of ❚❚ and ✕.
   // D344: the numbers alone ("1 / 27"), no BAR / COMPASSO / COMPÁS (the owner).
+  // D400: the tutorial's bar counter from Part 2.
+  if (g.o.dress && !g.o.dress.includes("bar")) return;
   label(c, `${barNumberAt(f, g.now)} / ${f.bars[f.bars.length - 1].n}`, w - 100, H + 8, t.muted, 6, "right");
 }
 

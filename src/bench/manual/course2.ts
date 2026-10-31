@@ -21,6 +21,8 @@
 import type { Check, ManualLesson, Material } from "./lessons.ts";
 import * as C from "./coach.ts";
 import { atLeast, ex, graceLine, INV, INV1_1_4, INV8, notesRight, RH, st } from "./kit.ts";
+import { I2_SUBJECT } from "./fugue-track.ts";
+import { REAL_TOUR } from "./dress.ts";
 
 const SINF1 = "bwv787";
 const SINF7 = "bwv793";
@@ -56,6 +58,8 @@ const INV8_LEAPS = ["F4", "A4", "F4", "C5", "F4", "F5", "E5"];
 /** Invention 1, upper voice, bar 1: the first idea. */
 const FIRST8 = INV1_1_4.slice(0, 8);
 
+/** D400, THE REAL THING: Fugue I/2's subject, the alto alone (bars 1–2), on the organ, flagged, by BUSONI's reading as the game plays it, at the game's own windows. */
+const real = () => ex("wtc1f02", 1, 1, 2, { bpm: 44 }, "Fugue I/2 in C minor, alto, bars 1–2: the subject, as in the game", { notes: I2_SUBJECT, flags: true, reading: "busoni", sound: "organ" });
 const flagged = { flags: true } as const;
 /** Invention 1's upper voice; the SUBJECT flags only where asked (Part 4: the subject being the point there; elsewhere they would crowd the box). */
 const inv1Upper = (from: number, to: number, bpm: number, label: string, notes: string[], o: Partial<Material> = {}) => ex(INV, RH, from, to, { bpm }, label, { notes, ...o });
@@ -435,6 +439,30 @@ export const COURSE2: ManualLesson[] = [
     before: ["Harpsichord players hold notes a little longer than written, so they ring into each other. You can too."],
     after: ["Held over, and ringing: the harpsichord sings."],
     again: ["Land the next note first; lift the old one a moment later. Again."],
+  },
+  // D400 (the design studio's brief, STUDIO-REAL-SCREEN.md): the last lesson before the fugue track: the
+  // whole play screen toured, one element lit at a time, then a fugue subject played on it, on the organ.
+  {
+    id: "6.8",
+    part: "6",
+    title: "THE REAL THING",
+    english: "THE REAL THING",
+    minutes: 3,
+    sound: "organ",
+    aim: "The whole play screen, every part of it, and a fugue subject played on it as in the game.",
+    learn: "The real screen, the one you will play on: score, crowd, the subject, the stops, pause.",
+    music: "FUGUE 2 IN C MINOR, BARS 1–2",
+    aids: ["thumbs"],
+    stages: [
+      st("tour", real(), "The real screen, one part at a time.", { tour: REAL_TOUR }),
+      st("watch", real(), "Watch me play the subject of my fugue in C minor, on the organ. The flag marks where it enters.", { aids: ["thumbs", "point"] }),
+      st("play", real(), "Now you, on the real screen. The subject is yours: play it whole."),
+    ],
+    lens: { counts: ["Notes: 70%"], shown: [], never: ["Which thumb", "How long you hold"] },
+    checks: (x): Check[] => [notesRight(x, 0.7)],
+    before: ["You have learned every part of the screen. Now the screen of the game itself, all of it at once."],
+    after: ["That was the real thing. Every fugue of mine is played on this screen."],
+    again: ["A quick turn around C, a jump down, the turn again. Again."],
     checkpoint: true,
   },
 ];

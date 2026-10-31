@@ -45,6 +45,8 @@ export interface ManualStore {
   carried?: true;
   /** D379: the older Parts III–V's records carried to the rebuilt Parts 4–6 (CARRY4), once. */
   carried4?: true;
+  /** D400: the play screen's elements already introduced by his bubbles (dress.ts DressId), each once. */
+  dressed?: string[];
 }
 
 const fresh = (): ManualStore => ({ v: 3, lessons: {}, parts: {} });
@@ -263,6 +265,10 @@ export const finishStep = (id: string, k: number, st: Store | null = storage()) 
     const r = s.lessons[id] ?? {};
     s.lessons[id] = { ...r, steps: [...new Set([...(r.steps ?? []), k])].sort((a, b) => a - b) };
   }, st);
+/** D400: the screen's elements introduced so far (none in an older record: each is introduced once, where it first shows). */
+export const dressedOf = (s: ManualStore): string[] => s.dressed ?? [];
+/** D400: elements introduced (his bubbles seen), kept. */
+export const markDressed = (ids: readonly string[], st: Store | null = storage()) => update((s) => void (s.dressed = [...new Set([...(s.dressed ?? []), ...ids])]), st);
 /** D373: the steps finished; a lesson passed has all of them. */
 export function stepsDone(s: ManualStore, id: string): number[] {
   const l = MANUAL.find((x) => x.id === id);
