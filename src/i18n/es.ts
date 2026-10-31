@@ -482,4 +482,5 @@ export const ES: Record<string, string> = {
   "Headphones disconnected: delay reset": "Auriculares desconectados: retardo reiniciado",
   "Headphones back: delay {ms} ms restored": "Auriculares de vuelta: retardo de {ms} ms restaurado",
   "Using speaker? Tap to reset delay": "¿Usas el altavoz? Toca para reiniciar el retardo",
+  Dismiss: "Cerrar",
 };

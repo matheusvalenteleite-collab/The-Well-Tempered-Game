@@ -85,6 +85,7 @@ import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice,
 import { LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
+import { InstallButton, InstallHint } from "./InstallHint.tsx";
 import { bachNotes } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
@@ -1643,6 +1644,8 @@ export function BenchApp() {
           </div>
         </div>
       )}
+      {/* D380: iPhone Safari, not installed: ADD TO HOME SCREEN, once, on the selection only (never in play). */}
+      {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib} />}
       {hp.changed && !playing && !calib && (
         <div className="tb-hp-banner" role="status">
           <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
@@ -1696,6 +1699,8 @@ export function BenchApp() {
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
+          {/* D380: Android's Chrome: INSTALL while the browser offers it. */}
+          <InstallButton />
           {full && (
             // D343: the owner's (unlocked on this device): left in English.
             <section className="tb-owner-set" id="owner-settings" aria-label="Unlocked">

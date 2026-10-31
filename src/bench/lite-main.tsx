@@ -13,6 +13,7 @@ import { isSurelyComputer } from "./home.ts";
 import { unlocked } from "./unlock.ts";
 import { MobileOnly } from "./MobileOnly.tsx";
 import { Sideways, lockOnFirstTap } from "./Sideways.tsx";
+import { isInstalled, watchInstall } from "./install.ts";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
@@ -32,6 +33,10 @@ markVersion();
 // paused by BenchApp); the first tap asks for full screen and the landscape lock where the browser allows.
 document.documentElement.classList.add("tb-play-page");
 lockOnFirstTap();
+// D380: Chrome's install prompt kept for ⚙ INSTALL (it fires early); the page marked when it runs installed
+// (opened from the Home Screen: no browser bars; the sideways screen and the safe areas as ever).
+watchInstall();
+if (isInstalled()) document.documentElement.classList.add("tb-installed");
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     {isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}

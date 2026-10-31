@@ -3,19 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <!-- D380: added to the Home Screen: full screen (iOS: apple-mobile-web-app-capable; the status bar
+         translucent over the game, whose safe areas pad the notch), named WTC Game, the B-A-C-H icon. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="WTC Game" />
     <meta name="application-name" content="WTC Game" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="theme-color" content="#0b0d18" />
+    <meta name="color-scheme" content="dark" />
     <!-- D369: installed from the home screen, sideways and full screen where the system honours it (Android; iOS ignores the orientation). -->
     <link rel="manifest" href="./play-app/manifest.webmanifest" />
     <!-- D371: the B-A-C-H sign (tools/play-app/icon.py). -->
-    <link rel="apple-touch-icon" href="./play-app/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./play-app/icon-180.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="./play-app/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="./play-app/icon-512.png" />
     <title>The Well-Tempered Game</title>
+    <!-- D380: the launch background: the game's own dark from the first frame (no white flash while
+         the scripts load, installed or not). -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #0b0d18;
+        color: #fff;
+      }
+    </style>
     <!-- D237: the minimal page for friends (the card grid and the game; src/bench/lite-main.tsx). -->
+    <!-- D380: the offline worker (play-sw.js, written by the build: tools/play-app/), production builds
+         only, over https or on localhost, its scope play.html alone; the worker file never taken from
+         the HTTP cache, so a deploy is found at once. -->
+    <script>
+      if ("%PROD%" === "true" && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1"))
+        addEventListener("load", function () {
+          navigator.serviceWorker.register("./play-sw.js", { scope: "./play", updateViaCache: "none" }).catch(function () {});
+        });
+    </script>
   </head>
   <body>
     <div id="root"></div>
