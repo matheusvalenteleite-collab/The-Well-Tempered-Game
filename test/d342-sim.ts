@@ -26,7 +26,7 @@ export const ROWS: Rows = { yOf: (s) => 900 - s * 16, stepAt: (y) => Math.round(
 
 export function gameFor(m: Material, clock: { t: number }, demo?: DemoStyle, ornaments = false) {
   const r = runOf(m, demo, undefined, ornaments);
-  const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById("ladder"), { bpm: r.bpm, legato: false, until: r.until, wait: r.wait, solo: r.solo, easy: r.easy, fail: false, ...(demo ? { demo: true } : {}), ...(r.demoStyle ? { demoStyle: r.demoStyle } : {}), ...(r.click ? { click: r.click } : {}), ...(r.reading ? { reading: readingsOf(r.piece).find((x) => x.id === r.reading) ?? null } : {}), ...(r.quiet ? { quiet: r.quiet } : {}), ...(r.tut ?? {}) }, fakeChip(clock));
+  const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById("ladder"), { bpm: r.bpm, legato: false, until: r.until, wait: r.wait, solo: r.solo, easy: r.easy, fail: false, ...(demo ? { demo: true } : {}), ...(r.demoStyle ? { demoStyle: r.demoStyle } : {}), ...(r.click ? { click: r.click } : {}), ...(r.reading ? { reading: readingsOf(r.piece).find((x) => x.id === r.reading) ?? null } : {}), ...(r.quiet ? { quiet: r.quiet } : {}), ...(r.coach ? { coach: r.coach } : {}), ...(r.tut ?? {}) }, fakeChip(clock));
   g.rows = ROWS;
   const lens = new LensTally(g, () => clock.t * 1000);
   g.tap = lens.feed;
