@@ -792,7 +792,8 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 /* D359: THE MANUAL's demonstration hint: its manner named, then gone from the thumbs' bar. */
 .tb-side-hint-fade { animation: tb-hint-fade 3.2s ease-in forwards; pointer-events: none; }
 @keyframes tb-hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-.tb-bars .tb-side-hint { box-sizing: border-box; left: calc(var(--tg-sal) + 8px); top: 34%; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 16px); max-width: none; transform: none; padding: 6px 8px; font-size: 7px; line-height: 1.7; box-shadow: 2px 2px 0 #b8322a; }
+/* Design studio (D387): in the box behind the gold line; BenchApp sets left, top and width each frame (hidden until it does). */
+.tb-bars .tb-side-hint { box-sizing: border-box; left: -9999px; top: 34%; width: 120px; max-width: none; transform: none; padding: 6px 8px; font-size: 7px; line-height: 1.7; box-shadow: 2px 2px 0 #b8322a; }
 .tb-side-legend { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); top: 40%; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); padding: 5px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.72); pointer-events: none; transition: opacity 0.3s; }
 .tb-side-legend p { margin: 0 0 4px; }
 .tb-side-legend p:last-child { margin-bottom: 0; }
