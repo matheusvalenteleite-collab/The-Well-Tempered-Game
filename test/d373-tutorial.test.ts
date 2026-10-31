@@ -155,6 +155,8 @@ const player: Record<string, PlayerStyle> = {
   "3.3": { jitterMs: 10, holdOf: (k) => (k < 6 ? 1.05 : 0.5) },
   // D378: joined by ear (25 ms, Glenn's): the player who joins holds into the next strike (care's 10% gap is heard).
   "3.4": { jitterMs: 15, hold: 1.05 },
+  // D385: the accent is weight on time: the two top notes landed by the box (the strong zone), on the beat.
+  "3.5": { jitterMs: 20, hold: 0.9, acrossOf: (k) => (k === 5 || k === 20 ? 0.1 : 0.5) },
 };
 
 test("D373: a simulated player passes every lesson (every PLAY, and the lesson), his demonstration every WATCH, every TRY played through", () => {

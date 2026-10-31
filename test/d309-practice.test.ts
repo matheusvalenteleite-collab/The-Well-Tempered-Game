@@ -179,42 +179,8 @@ test("D309, D339: the piano's dynamics: within ±6 dB, the arc's shape, the endi
   }
 });
 
-test("D309, D293: the subject never louder: on the piano its notes no louder than the others' in the same voice and octave (all 48 fugues)", () => {
-  let sum = 0;
-  let w = 0;
-  for (const f of FUGUES.filter((x) => x.book)) {
-    const notes = accompaniment(f, 0, -1);
-    const subj = subjectMarks(f).subject;
-    const sh = phrase(notes, beatOf(f).ticks, (t) => inBar(f, t), subj, "piano", phraseContext(f, tempoOf(f.id)));
-    const bins = new Map<string, { s: number[]; o: number[] }>();
-    notes.forEach((n, i) => {
-      const k = `${n.voice}:${Math.floor(n.midi / 12)}`;
-      const b = bins.get(k) ?? { s: [], o: [] };
-      (subj.has(`${n.voice}:${n.on}`) ? b.s : b.o).push(sh[i].db!);
-      bins.set(k, b);
-    });
-    let fs = 0;
-    let fw = 0;
-    const mean = (x: number[]) => x.reduce((a, c) => a + c, 0) / x.length;
-    for (const b of bins.values())
-      if (b.s.length && b.o.length) {
-        const k = Math.min(b.s.length, b.o.length);
-        fs += (mean(b.s) - mean(b.o)) * k;
-        fw += k;
-      }
-    // No fugue's subject more than half a decibel over its neighbours (no term knows it; what is left is the music's own).
-    assert.ok(!fw || fs / fw < 0.5, `${f.id}: ${(fs / fw).toFixed(2)} dB`);
-    sum += fs;
-    w += fw;
-  }
-  assert.ok(sum / w <= 0, `all fugues: the subject ${(sum / w).toFixed(3)} dB against the others`);
-  // And the subject's marks only ever bring its notes down (D339: where the music's own shape lifts them), never another note, never up.
-  const f = fugueById("wtc1f02");
-  const notes = accompaniment(f, 0, -1);
-  const a = phrase(notes, beatOf(f).ticks, (t) => inBar(f, t), subjectMarks(f).subject, "piano", phraseContext(f, tempoOf(f.id)));
-  const b = phrase(notes, beatOf(f).ticks, (t) => inBar(f, t), new Set(), "piano", phraseContext(f, tempoOf(f.id)));
-  a.forEach((s, i) => (subjectMarks(f).subject.has(`${notes[i].voice}:${notes[i].on}`) ? assert.ok(s.level <= b[i].level + 1e-12) : assert.equal(s.level, b[i].level)));
-});
+// D385: D309's "the subject never louder" test removed with D293's rule (the owner: "let's follow Busoni, eliminate my rule"); d385-piano.test.ts holds that the phrasing no longer
+// knows the subject's level at all, and that a whole-piece reading brings an entry out where it prints it.
 
 test("D309, D293: the player's part changes nothing: the others' levels and holds the same whichever voice the player takes", () => {
   for (const id of ["wtc1f02", "wtc2f22"]) {

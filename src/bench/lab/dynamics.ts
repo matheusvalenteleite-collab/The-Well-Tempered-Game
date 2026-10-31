@@ -25,7 +25,7 @@
  */
 import type { Calibration } from "./sensor.ts";
 import { calibrate, separability, stats, type Separability, type Stats } from "./sensor.ts";
-import { PIANO_DB } from "../../touch/touch-expr.ts";
+import { PIANO_DB, PIANO_ZONE_DB } from "../../touch/touch-expr.ts";
 
 export type DynMode = "off" | "place" | "pedal" | "strike";
 export const DYN_MODES: readonly (readonly [DynMode, string])[] = [
@@ -109,13 +109,14 @@ export function dynLevel(mode: DynMode, c: number, strength: number | null, curv
 }
 
 /**
- * The piano's onset for a level (dB): Play.touch (D311's landing: the layer, soft under the middle,
- * and ±PIANO_DB) and a factor on Play.level for what lies beyond PIANO_DB.
+ * The piano's onset for a level (dB): Play.touch (D385: the zone, soft −3, normal 0, strong +3 dB)
+ * and a factor on Play.level for the rest.
  */
 export function pianoOnset(db: number): { touch: number; level: number } {
-  const touch = clamp01(0.5 + db / (2 * PIANO_DB));
-  const rest = db - PIANO_DB * (2 * touch - 1);
-  return { touch, level: 10 ** (rest / 20) };
+  // D385: the piano's landing is three zones (touch-expr.ts PIANO_ZONE_DB): the nearest zone's middle, the level the rest.
+  const z = db <= -1.5 ? 0 : db >= 1.5 ? 2 : 1;
+  const touch = z === 0 ? 1 / 6 : z === 2 ? 5 / 6 : 0.5;
+  return { touch, level: 10 ** ((db - PIANO_ZONE_DB[z]) / 20) };
 }
 
 /** B: the expression pedal: the landings' places (0..1, strength) over the last `windowMs`, averaged. */

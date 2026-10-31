@@ -90,8 +90,9 @@ test("D359/D360: Herr Bach's manners: three touches found as asked; accents made
   for (const [s, want] of [["legato", "LEGATO"], ["ordinary", "ORDINARY"], ["detached", "DETACHED"]] as const) assert.equal(demoRun(m, s).lens!.touch.style, want, s);
   const acc = demoRun(lessonById("III.4")!.stages[1].m, "accent").lens!;
   assert.equal(acc.marks.accent.ok, acc.marks.accent.of);
-  // D378: by ear (Glenn's), an accent is the silence before it: his plain touch leaves one before every note, so the level player is his legato.
-  assert.equal(demoRun(lessonById("III.4")!.stages[1].m, "legato").lens!.marks.accent.ok, 0, "level: no accent made");
+  // D385: an accent is weight on time (the strong zone), not a silence: joined into, it is an accent all the same.
+  const leg = demoRun(lessonById("III.4")!.stages[1].m, "legato").lens!;
+  assert.equal(leg.marks.accent.ok, leg.marks.accent.of, "joined: still accents, landed by the box");
   assert.ok(demoRun(lessonById("IV.2")!.stages[1].m, "lean").lens!.graces.agogic >= 2);
   assert.ok(demoRun(lessonById("IV.1")!.stages[1].m, "breath").lens!.graces.breath >= 2);
   assert.ok(demoRun(lessonById("IV.5")!.stages[1].m, "broaden").lens!.graces.broaden >= 1);

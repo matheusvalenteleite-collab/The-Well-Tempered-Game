@@ -59,7 +59,8 @@ test("D338: the accent's verdict: on time or leaned up to 15% of a beat, the not
   assert.equal(MECH.accentLateBeats, 0.15);
   // The legend says what is asked, by time.
   const l = markLegend("outer").find((x) => x.kind === "strong")!;
-  assert.match(l.text, /ACCENT: LIFT THE NOTE BEFORE A LITTLE EARLY, LEAN IN A HAIR LATE/);
+  // D385: weight on time.
+  assert.match(l.text, /ACCENT: LAND IN THE STRONG ZONE, BY THE BOX, ON TIME/);
   assert.equal(markLegend("inner").find((x) => x.kind === "strong")!.text, l.text);
   }));
 
@@ -128,10 +129,11 @@ test("D338: in play, ACCENT ✓ for notes on time (or leaned), the one before le
   assert.ok(cut.style.hit / Math.max(1, cut.style.of) < 0.2, `cut short: ${cut.style.hit}/${cut.style.of}`);
   }));
 
-test("D338: loudness never counts: the same touches by the box or by the edge judge the same, and a reading's level asks nothing", () => {
+test("D338, D385: the accent is weight on time: the strong zone (by the box) judged ACCENT ✓, the soft side not; a reading's level asks nothing", () => {
   const edge = playAccents({ x: 5 });
   const box = playAccents({ x: 395 });
-  assert.equal(edge.style.hit, box.style.hit);
+  assert.ok(box.style.of > 5 && box.style.hit / box.style.of > 0.9, `by the box: ${box.style.hit}/${box.style.of}`);
+  assert.equal(edge.style.hit, 0, "by the edge (the soft zone): no accent");
   assert.equal(edge.style.of, box.style.of);
   // A level (ff) with no marks: nothing judged.
   const lv = playAccents({ accent: false, level: "ff", x: 395 });

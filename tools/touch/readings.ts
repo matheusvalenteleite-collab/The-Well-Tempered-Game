@@ -143,7 +143,7 @@ for (const ed of EDITIONS) {
       tempoText: B.tempo?.text ?? null,
       character: B.character ?? null,
       basis: "explicit",
-      quote: B.dynamicPlan ?? null,
+      quote: null,
       notes,
       legato: false,
       slurs: slurs.map(([from, to]: number[]) => ({ v: first.voice, from, to })),

@@ -143,7 +143,7 @@ export function markLegend(_strongSide?: "outer" | "inner"): { kind: MarkKind; s
     { kind: "joined", sym: "‾", text: tr("JOINED: NEXT THUMB DOWN BEFORE LIFTING") },
     { kind: "slur", sym: "⌒", text: tr("SLUR: ONE GESTURE, JOINED INSIDE, LIFT AT ITS END") },
     // D338: the accent by time, whichever side is strong (strongSide no longer asked of it).
-    { kind: "strong", sym: ">", text: tr("ACCENT: LIFT THE NOTE BEFORE A LITTLE EARLY, LEAN IN A HAIR LATE") },
+    { kind: "strong", sym: ">", text: tr("ACCENT: LAND IN THE STRONG ZONE, BY THE BOX, ON TIME") },
   ];
 }
 /** D370: which of the legend's marks a set of marks has (a join inside a slur is the slur's, not JOINED's). */
