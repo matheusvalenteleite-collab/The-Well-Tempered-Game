@@ -18,7 +18,8 @@ import { parseStudy } from "../src/bench/lab/study.ts";
 import type { LabEvent } from "../src/bench/lab/events.ts";
 import { describe as lines } from "../src/bench/lab/describe.ts";
 import { freeLine, freeTally } from "../src/bench/free-summary.ts";
-import { lessonById, PLAYED, stagePassed, type Material } from "../src/bench/manual/lessons.ts";
+import { anyLessonById, stagePassed, type Material } from "../src/bench/manual/lessons.ts";
+import { RETIRED } from "../src/bench/manual/retired.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 import { setPreset } from "../src/touch/sound.ts";
@@ -229,12 +230,12 @@ test("D364: Herr Bach's manner APPOGGIATURA holds every place over half its note
   assert.equal(x.right, x.of);
   // Prepared but lifted on time: none.
   assert.equal(demoRun(I22, "prepared").lens!.appo.made, 0);
-  assert.ok(lessonById("V.5"));
+  assert.ok(anyLessonById("V.5"));
 });
 
 test("D364: THE MANUAL's V.5, the appoggiatura held over: after the four, no pass mark, I/22's falling chains; his demonstration holds every one over", () => {
-  const l = lessonById("V.5")!;
-  assert.deepEqual(PLAYED.filter((x) => x.part === "V").map((x) => x.id), ["V.1", "V.2", "V.3", "V.4", "V.5"]);
+  const l = anyLessonById("V.5")!;
+  assert.deepEqual(RETIRED.filter((x) => x.part === "V").map((x) => x.id), ["V.1", "V.2", "V.3", "V.4", "V.5"]);
   assert.equal(l.checks, undefined, "decision 3: passed by being played through");
   assert.deepEqual(l.hear!.styles, ["prepared", "appoggiatura"], "listening first: on time, then held over");
   assert.equal(l.sound, "piano", "the note after it softer: an instrument with dynamics");

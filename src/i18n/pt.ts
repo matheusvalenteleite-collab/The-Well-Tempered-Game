@@ -5,12 +5,15 @@
  */
 import { MANUAL_PT } from "./manual-pt.ts";
 import { COURSE_PT } from "./course-pt.ts";
+import { COURSE2_PT } from "./course2-pt.ts";
 
 export const PT: Record<string, string> = {
   // D342: THE MANUAL (manual-pt.ts; this dictionary's own entries win).
   ...MANUAL_PT,
   // D373: THE TUTORIAL rebuilt (course-pt.ts).
   ...COURSE_PT,
+  // D379: Parts 4–6 rebuilt and the fugue track (course2-pt.ts).
+  ...COURSE2_PT,
   // The list
   "THE WELL-TEMPERED GAME": "O JOGO BEM TEMPERADO",
   BOOK: "LIVRO",
@@ -341,7 +344,7 @@ export const PT: Record<string, string> = {
   "HANDOVERS": "PASSAGENS DE POLEGAR A POLEGAR",
   "ONE THUMB WHERE DETACHED": "UM SÓ POLEGAR ONDE DESTACADO",
   "ONE-THUMB LEAPS": "SALTOS COM UM SÓ POLEGAR",
-  "ACCENT: LIFT THE NOTE BEFORE, LEAN IN A HAIR LATE, HOLD IT": "ACENTO: SOLTE A NOTA ANTERIOR, ENTRE UM TRIZ ATRASADO, SEGURE",
+  "ACCENT: LIFT THE NOTE BEFORE A LITTLE EARLY, LEAN IN A HAIR LATE": "ACENTO: SOLTE UM POUCO ANTES A NOTA ANTERIOR, ENTRE UM TRIZ ATRASADO",
   "A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT": "OS SINAIS DE UMA LEITURA, SE VOCÊ ESCOLHER UMA EM OUÇA O SUJEITO",
   "THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT": "OS POLEGARES: LIGADO, O OUTRO POLEGAR PASSA A NOTA OU SOBREPÕE · DESTACADO, SOLTE ANTES (UM SÓ POLEGAR PODE TOCAR A PRÓXIMA) · SUAVE NA BORDA, FORTE PERTO DA CAIXA · SACUDA NUM ORNAMENTO",
   "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.": "A largura da barra é sua: perto da borda, mais suave e escuro; perto da caixa, mais firme e brilhante; mova de lado um polegar que segura a nota para moldá-la. Nunca tira nem dá pontos.",

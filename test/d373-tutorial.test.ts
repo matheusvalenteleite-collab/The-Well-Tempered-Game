@@ -19,7 +19,8 @@ import { playerRun, type PlayerStyle } from "./d359-players.ts";
 
 await loadExtras();
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-const COURSE = MANUAL.filter(isCourse);
+// D379: Parts 1–3 (4–6 rebuilt and the fugue track are held by d379-tutorial.test.ts).
+const COURSE = MANUAL.filter((l) => isCourse(l) && ["1", "2", "3"].includes(l.part));
 const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
 const nameOf = (m: number) => NAMES[m % 12] + (Math.floor(m / 12) - 1);
 
@@ -32,10 +33,10 @@ test("D373: Parts 1–3, fifteen lessons on Inventions 1, 4, 8 and 12; WATCH →
     COURSE.map((l) => l.id),
     ["1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2.3", "2.4", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6"],
   );
-  assert.deepEqual(BUILT.map((p) => p.id), ["1", "2", "3", "III", "IV", "V"]);
-  assert.deepEqual(MANUAL.map((l) => l.part).filter((p, i, a) => a.indexOf(p) === i), ["1", "2", "3", "III", "IV", "V"], "the new parts first, the older kept after them");
-  assert.equal(shownId("III.2"), "4.2");
-  assert.equal(shownId("V.5"), "6.5");
+  // D379: the older III–V retired (Parts 4–6 rebuilt), the fugue track after them.
+  assert.deepEqual(BUILT.map((p) => p.id), ["1", "2", "3", "4", "5", "6", "F"]);
+  assert.deepEqual(MANUAL.map((l) => l.part).filter((p, i, a) => a.indexOf(p) === i), ["1", "2", "3", "4", "5", "6", "F"]);
+  assert.equal(shownId("4.2"), "4.2");
   assert.equal(shownId("2.3"), "2.3");
   for (const l of COURSE) {
     // Only the Inventions (no Book I material in the tutorial).
@@ -233,7 +234,7 @@ test("D373: the selection screen: three columns (parts, the part's lessons as ti
   const { TutorialSelect } = await import("../src/bench/manual/ManualMap.tsx");
   const html = renderToStaticMarkup(createElement(TutorialSelect, { begin: () => {}, close: () => {}, focus: "2.3" }));
   for (const c of ["tb-tut-left", "tb-tut-centre", "tb-tut-right"]) assert.match(html, new RegExp(`class="${c}"`));
-  assert.equal(html.match(/id="tut-part-/g)?.length, 6, "six parts");
+  assert.equal(html.match(/id="tut-part-/g)?.length, 7, "D379: six parts and the fugue track");
   assert.equal(html.match(/class="tb-tut-tile[ "]/g)?.length, 4, "Part 2's four lessons");
   assert.match(html, /id="chip-2\.3-0" class="tb-tut-chip watch"/);
   assert.match(html, /You&#x27;ll learn: In a quick run/);

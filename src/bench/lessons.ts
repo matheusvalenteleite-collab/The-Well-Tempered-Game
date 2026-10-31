@@ -39,7 +39,7 @@ export interface Run {
   solo: boolean;
   easy: EasyLevel;
   /** D271: the tutorial's coaching over the play (Options.coach). */
-  coach?: "thumbs" | "dynamics" | "slide";
+  coach?: "thumbs" | "dynamics" | "slide" | "colour" | "sigh" | "ring";
   /** D282: a reading the step is played by (readings.ts id: the subject's articulation asked). */
   reading?: string;
   /** D342, THE MANUAL: a drill's click (Options.click), the demonstration's manner (Options.demoStyle). */
@@ -51,6 +51,10 @@ export interface Run {
   quiet?: Options["quiet"];
   /** D373: THE TUTORIAL's options (one thumb, the windows widened, the count-in, its own marks, model A's thumbs). */
   tut?: Pick<Options, "side" | "widen" | "countBeats" | "readingAt" | "thumbsA" | "reading">;
+  /** D379: THE TUTORIAL's SUBJECT flags shown (4.1 on, and the fugue track); none in its first parts. */
+  flags?: boolean;
+  /** D379: the temperament a tutorial step sounds in (tuning.ts id), else the sound's own. */
+  tuning?: string;
 }
 
 /**

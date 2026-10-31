@@ -43,6 +43,8 @@ export interface ManualStore {
   migrated?: true;
   /** D373: carried over from the record before the rebuild (v: 2), once. */
   carried?: true;
+  /** D379: the older Parts III–V's records carried to the rebuilt Parts 4–6 (CARRY4), once. */
+  carried4?: true;
 }
 
 const fresh = (): ManualStore => ({ v: 3, lessons: {}, parts: {} });
@@ -93,6 +95,39 @@ export const CARRY: Record<string, string[]> = {
   "III.4": ["3.5"],
   "III.5": ["3.6"],
 };
+/**
+ * D379: the older Parts III–V (retired.ts) and the rebuilt lessons that teach what each taught: a lesson
+ * of theirs passed (or tested) marks these passed, `carried`, once (the same v: 3 record; nothing wiped:
+ * the old records stay as they were). The new parts' other lessons (4.x, the colour, the slide, the ring,
+ * the struck sigh) taught nothing before, so they are offered.
+ */
+export const CARRY4: Record<string, string[]> = {
+  "IV.1": ["5.1"],
+  "IV.2": ["5.3"],
+  "IV.5": ["5.2"],
+  "IV.6": ["5.4"],
+  "V.1": ["6.1"],
+  "V.2": ["6.1"],
+  "V.3": ["6.2"],
+  "V.5": ["6.3"],
+};
+/** D379: the records of III–V carried to 4–6 (see CARRY4); a part whose checkpoint is now passed, sealed. */
+export function carry4(s: ManualStore): ManualStore {
+  const out: ManualStore = { ...s, lessons: { ...s.lessons }, parts: { ...s.parts }, carried4: true };
+  const done = (id: string) => !!(s.lessons[id]?.passed || s.lessons[id]?.tested);
+  for (const [o, ids] of Object.entries(CARRY4))
+    if (done(o))
+      for (const id of ids) {
+        if (out.lessons[id]?.passed) continue;
+        const p = s.lessons[o]?.passed;
+        out.lessons[id] = { ...out.lessons[id], passed: { tries: p?.tries ?? 1, best: p?.best ?? 1, ms: p?.ms ?? 0 }, carried: true };
+      }
+  for (const p of PARTS) {
+    const cp = checkpointOf(p.id);
+    if (cp && out.lessons[cp.id]?.passed && !out.parts[p.id]) out.parts[p.id] = "passed";
+  }
+  return out;
+}
 /** D373: an old part sealed (its checkpoint passed, or tested out of) carries a whole new part. */
 export const CARRY_PART: Record<string, PartId[]> = { I: ["1"], II: ["1", "2"], III: ["3"] };
 
@@ -137,10 +172,17 @@ export function readManual(st: Store | null = storage()): ManualStore {
     const raw = st.getItem(MANUAL_KEY);
     if (raw) {
       const s = JSON.parse(raw) as { v?: number } & Partial<ManualStore>;
-      if (s && s.v === 3) return { ...fresh(), ...s, v: 3, lessons: { ...s.lessons }, parts: { ...s.parts } };
+      if (s && s.v === 3) {
+        const r: ManualStore = { ...fresh(), ...s, v: 3, lessons: { ...s.lessons }, parts: { ...s.parts } };
+        if (r.carried4) return r;
+        // D379: once, the older III–V carried to the rebuilt 4–6 (kept as they were besides).
+        const c = carry4(r);
+        st.setItem(MANUAL_KEY, JSON.stringify(c));
+        return c;
+      }
       // D373: the record before the rebuild, carried once.
       if (s && (s.v as number) === 2) {
-        const c = carry(s as never);
+        const c = carry4(carry(s as never));
         st.setItem(MANUAL_KEY, JSON.stringify(c));
         return c;
       }
@@ -148,7 +190,7 @@ export function readManual(st: Store | null = storage()): ManualStore {
     // Once: the old tutorial's phone track carried over (it is left as it was).
     const old = st.getItem(OLD_TUTORIAL_KEY);
     const made = old ? migrate(JSON.parse(old)) : null;
-    const s = made ? { ...carry(made), migrated: true as const } : fresh();
+    const s = made ? { ...carry4(carry(made)), migrated: true as const } : { ...fresh(), carried4: true as const };
     st.setItem(MANUAL_KEY, JSON.stringify(s));
     return s;
   } catch {
