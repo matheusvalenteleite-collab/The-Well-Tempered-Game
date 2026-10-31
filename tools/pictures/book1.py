@@ -1,8 +1,11 @@
-"""Book I: the company of 24 (Mario and Luigi's report §3, system A; the names in fugue-names.ts).
+"""Book I's 24 pictures (D383's method; the names in fugue-names.ts).
 
-One character a fugue, big, in one telling pose with one prop, on the key's own ground; the subject
-hidden in the scene only where it falls naturally (I/1's three bells rung in close succession, I/3's
-seven balls for seven sharps, I/12's ten steps, I/24's twelve hours).
+WTC 1.92: the owner's 48 (docs/design/FUGUE-NAMES-48.md): sixteen redrawn to the owner's picture lines
+(I/1, 3-8, 12, 13, 15, 17, 19-21, 23, 24), the Shepherdess's face and the Sleepwalker's face and
+nightcap fixed; the Imp, Sparrow, Horsemen, Pierrot, Knight and Procession as D383 drew them. The
+owner's standing rule: women, men and androgynous figures in balance, no figure male by default, groups
+mixed (people.py draws the heads, hair and skin tones). One subject big in the frame, on the key's own
+ground, the ink outline round it so it reads at tile size.
 """
 import math
 from lib import *  # noqa: F401,F403
@@ -1259,4 +1262,4 @@ def f24():
     return p
 
 
-PICTURES = {f"wtc1f{n:02d}": globals()[f"f{n:02d}"] for n in range(1, 25) if f"f{n:02d}" in globals()}
+PICTURES = {f"wtc1f{n:02d}": globals()[f"f{n:02d}"] for n in range(1, 25)}

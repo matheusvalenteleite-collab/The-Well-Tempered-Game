@@ -1,8 +1,9 @@
-"""Book II: 24 more characters (D383; the names and their reasons in fugue-names.ts).
+"""Book II's 24 pictures (D383's method; the names in fugue-names.ts).
 
-The same language as Book I: one character big in the frame, one pose, one prop, on the key's ground,
-the subject in the scene only where it falls naturally (II/2's one stone twice the size, II/3's threads,
-II/13's trill, II/14's three flasks for three subjects, II/18's two dancers for two subjects).
+WTC 1.92: the owner's 48 (docs/design/FUGUE-NAMES-48.md): all redrawn but the Organist, the Butterfly
+and the Wanderer. The same language as Book I and the owner's rule on gender (book1.py); the music in
+the scene where the owner's line puts it (II/2's shadows twice the figures' length, II/5's one bell
+swinging of four, II/14's three sisters for three subjects, II/18's couple for two themes).
 """
 import math
 from lib import *  # noqa: F401,F403
@@ -1058,4 +1059,4 @@ def g24():
     return p
 
 
-PICTURES = {f"wtc2f{n:02d}": globals()[f"g{n:02d}"] for n in range(1, 25) if f"g{n:02d}" in globals()}
+PICTURES = {f"wtc2f{n:02d}": globals()[f"g{n:02d}"] for n in range(1, 25)}
