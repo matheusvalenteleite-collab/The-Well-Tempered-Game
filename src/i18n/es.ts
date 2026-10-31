@@ -474,4 +474,16 @@ export const ES: Record<string, string> = {
   "MAJOR · MINOR, BY KEY": "MAYOR · MENOR, POR TONALIDAD",
   OPTIONS: "OPCIONES",
   "Pick a fugue in the middle, or learn first with the TUTORIAL on the left.": "Elige una fuga en el centro, o aprende primero con el TUTORIAL a la izquierda.",
+  // D380 (installing), D381 (headphones gone), D382 (Book II earned).
+  "BOOK II UNLOCKED!": "¡LIBRO II DESBLOQUEADO!",
+  "You finished all 24 fugues of Book I. 24 more await.": "Terminaste las 24 fugas del Libro I. Te esperan 24 más.",
+  "OPEN BOOK II": "ABRIR EL LIBRO II",
+  "Add to Home Screen for full screen: tap Share ⎙ then Add to Home Screen": "Añade a la pantalla de inicio para pantalla completa: toca Compartir ⎙ y luego Añadir a pantalla de inicio",
+  "INSTALL": "INSTALAR",
+  "INSTALL THE GAME": "INSTALAR EL JUEGO",
+  "Installed, it opens full screen and plays offline.": "Instalado, se abre en pantalla completa y funciona sin conexión.",
+  "Headphones disconnected: delay reset": "Auriculares desconectados: retardo reiniciado",
+  "Headphones back: delay {ms} ms restored": "Auriculares de vuelta: retardo de {ms} ms restaurado",
+  "Using speaker? Tap to reset delay": "¿Usas el altavoz? Toca para reiniciar el retardo",
+  Dismiss: "Cerrar",
 };
