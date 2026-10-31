@@ -3728,6 +3728,8 @@ export class ProtoGame {
   }
   /** The last articulation called (a short word under the verdict). */
   flash: ArtFlash | null = null;
+  /** D384 (Mario 1): the last reading verdict (DETACHED ✓, ACCENT ✓, STACCATO ✓), drawn over the articulation's word. */
+  readingWord: ArtFlash | null = null;
   /** The legato strikes, for the slur drawn between the two notes (note a to note b of track k). */
   readonly ties: { k: number; a: number; b: number; at: number }[] = [];
   /** The last note let go (its track, index and tick): a strike just after it is still legato. */
@@ -4543,7 +4545,8 @@ export class ProtoGame {
     if (!met) return;
     this.style.hit++;
     this.earn("reading", this.mult);
-    if (word) this.flash = { text: word, at, good: true, kind: "legato" };
+    // D384 (Mario 1): the reading's verdict has a slot of its own, so HELD or LEGATO coming at the same moment never hides it.
+    if (word) this.readingWord = { text: word, at, good: true, kind: "legato" };
   }
   perfects = 0;
   goods = 0;
