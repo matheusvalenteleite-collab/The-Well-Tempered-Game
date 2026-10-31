@@ -46,6 +46,13 @@ export const ZOOM = {
   easeS: 1.3,
   /** HEIGHT: a change begins only when the player's next note is at least this share of the ease away. */
   quietShare: 0.75,
+  /**
+   * D399 (design studio; the owner: the zoom "occurred amidst a player's melody, giving the player the
+   * impression that they ought to adjust their gameplay to the zoomings"): a change only at a SEAM of the
+   * player's line: none of their notes sounding as it begins, and none struck from this long (s) before the
+   * ease to this long after it.
+   */
+  seamS: 0.25,
 };
 
 /** The playhead's place across the box (MusicBox PLAYHEAD). */
@@ -101,6 +108,8 @@ export interface ZoomPlan {
   hi: Int16Array;
   /** The player's onsets, in order. */
   onsets: Float64Array;
+  /** D399: the player's notes' ends, in the onsets' order. */
+  offs: Float64Array;
   /** The range the box would show without the zoom (the whole piece's). */
   full: StepRange;
 }
@@ -119,8 +128,10 @@ export function planZoom(shown: Iterable<N>, own: readonly N[], full: StepRange,
     const b = Math.min(count - 1, Math.floor((n[0] + n[1] - 1) / barTicks) - bar0);
     for (let k = a; k <= b; k++) (lo[k] = Math.min(lo[k], n[3])), (hi[k] = Math.max(hi[k], n[3]));
   }
-  const onsets = Float64Array.from(own.filter((n) => n[0] >= from && n[0] < until).map((n) => n[0])).sort();
-  return { barTicks, bar0, lo, hi, onsets, full };
+  const mine = own.filter((n) => n[0] >= from && n[0] < until).sort((x, y) => x[0] - y[0]);
+  const onsets = Float64Array.from(mine.map((n) => n[0]));
+  const offs = Float64Array.from(mine.map((n) => n[0] + n[1]));
+  return { barTicks, bar0, lo, hi, onsets, full, offs };
 }
 
 /** The steps sounding in bars k..k+n (the next n bars from within bar k; LOOK_BARS); null: none. */
@@ -157,12 +168,71 @@ export function quietAt(p: ZoomPlan, now: number, easeTicks: number): boolean {
   return a >= o.length || o[a] - now >= ZOOM.quietShare * easeTicks;
 }
 
-/** The range a round begins on (no ease: the count-in shows it): the opening's, when that is well under the whole. */
-export function initialRange(p: ZoomPlan, start: number): StepRange {
+/** The first index of an onset at or after `t` (binary search). */
+function firstOnset(o: Float64Array, t: number): number {
+  let a = 0;
+  let b = o.length;
+  while (a < b) {
+    const m = (a + b) >> 1;
+    if (o[m] < t) a = m + 1;
+    else b = m;
+  }
+  return a;
+}
+
+/**
+ * D399: a SEAM of the player's line at `t`: no note of theirs sounding at `t`, and none struck from `margin`
+ * before `t` to `ease + margin` after it, so an ease begun at `t` runs entirely in a rest of theirs (or the
+ * tail of nothing). Never mid-melody, never under a held thumb.
+ */
+export function seamAt(p: ZoomPlan, t: number, ease: number, margin: number): boolean {
+  const o = p.onsets;
+  const i = firstOnset(o, t - margin);
+  if (i < o.length && o[i] <= t + ease + margin) return false;
+  // A note struck before the window still sounding at t (its thumb down).
+  for (let k = i - 1; k >= 0 && k >= i - 8; k--) if (p.offs[k] > t) return false;
+  return true;
+}
+
+/** D399: the first seam in [a, b] (ticks), or -1: tried at `a` and at the end of each of the player's notes. */
+export function seamIn(p: ZoomPlan, a: number, b: number, ease: number, margin: number): number {
+  if (a > b) return -1;
+  if (seamAt(p, a, ease, margin)) return a;
+  for (let k = firstOnset(p.onsets, a - 8 * p.barTicks); k < p.offs.length; k++) {
+    const t = p.offs[k];
+    if (t <= a) continue;
+    if (t > b) break;
+    if (seamAt(p, t, ease, margin)) return t;
+  }
+  return -1;
+}
+
+/** D399: the first bar from `bar` on (the whole round ahead) with a note outside `r`, or -1. */
+export function firstOutside(p: ZoomPlan, r: StepRange, bar: number): number {
+  for (let i = Math.max(0, bar - p.bar0); i < p.lo.length; i++) if (p.lo[i] <= p.hi[i] && (p.lo[i] < r.lo || p.hi[i] > r.hi)) return i + p.bar0;
+  return -1;
+}
+
+/** D399: the last tick a change to make room for bar `k` may begin: its notes reach the screen `aheadTicks` early, the ease done by then. */
+const deadlineOf = (p: ZoomPlan, k: number, aheadTicks: number, ease: number) => k * p.barTicks - aheadTicks - ease;
+
+/**
+ * The range a round begins on (no ease: the count-in shows it): the opening's, when that is well under the
+ * whole. D399: and only when a seam of the player's line comes, after the count-in's first ease, before the
+ * way back out is needed (else the round begins on the whole piece: no forced zoom in the middle of a melody).
+ * `tps`/`aheadTicks` unknown (0): the seam not asked (D377's rule).
+ */
+export function initialRange(p: ZoomPlan, start: number, tps = 0, aheadTicks = 0): StepRange {
   const need = needAt(p, Math.floor(start / p.barTicks));
   if (!need) return p.full;
   const to = widen(need, p.full);
-  return size(to) < ZOOM.inShare * size(p.full) ? to : p.full;
+  if (size(to) >= ZOOM.inShare * size(p.full)) return p.full;
+  if (tps > 0) {
+    const ease = ZOOM.easeS * tps;
+    const k = firstOutside(p, to, Math.floor(start / p.barTicks));
+    if (k >= 0 && seamIn(p, start, deadlineOf(p, k, aheadTicks, ease), ease, ZOOM.seamS * tps) < 0) return p.full;
+  }
+  return to;
 }
 
 /**
@@ -174,27 +244,32 @@ export function decide(p: ZoomPlan, cur: StepRange, held: number, now: number, t
   const need = needAt(p, bar);
   if (!need) return null;
   const ease = ZOOM.easeS * tps;
-  const quiet = quietAt(p, now, ease);
-  if (need.lo < cur.lo || need.hi > cur.hi) {
-    // OUT, to the whole piece (one step, not a staircase): nothing clipped. At a still moment; else once
-    // the note outside would reach the screen during the ease.
-    const to = p.full;
-    if (quiet) return to;
-    for (let k = bar; k <= bar + ZOOM.lookBars; k++) {
-      const i = k - p.bar0;
-      if (i < 0 || i >= p.lo.length || p.lo[i] > p.hi[i]) continue;
-      if (p.lo[i] < cur.lo || p.hi[i] > cur.hi) return Math.max(now, k * p.barTicks) - now <= aheadTicks + ease ? to : null;
-    }
-    return null;
+  const margin = ZOOM.seamS * tps;
+  const seam = seamAt(p, now, ease, margin);
+  // OUT, to the whole piece (one step, not a staircase), before anything ahead would be clipped. D399: at a
+  // seam of the player's line: the one now if the notes outside are near (within LOOK_BARS) or no later seam
+  // comes before they are due; at the deadline only if no seam came at all (the in-rule below and the
+  // opening's make that the exception: a round so busy it never rests).
+  const k = firstOutside(p, cur, bar);
+  if (k >= 0) {
+    const due = deadlineOf(p, k, aheadTicks, ease);
+    if (now >= due) return p.full;
+    if (!seam) return null;
+    if (k - bar <= ZOOM.lookBars) return p.full;
+    return seamIn(p, now + p.barTicks / 4, due, ease, margin) < 0 ? p.full : null;
   }
-  // IN: rarely; held long enough, the thumbs still, well narrower, and narrow for the hold to come too
+  // IN: rarely; held long enough, at a seam, well narrower, and narrow for the hold to come too
   // (LOOK_BARS + HOLD_BARS ahead, the music lasting that long: no zoom in to go straight back out).
+  // D399: and only if the way back out also falls at a seam (one after this ease, before it is due).
   const span = ZOOM.lookBars + ZOOM.holdBars;
-  if (now - held < ZOOM.holdBars * p.barTicks || !quiet || bar - p.bar0 + span >= p.lo.length) return null;
+  if (now - held < ZOOM.holdBars * p.barTicks || !seam || bar - p.bar0 + span >= p.lo.length) return null;
   const far = needAt(p, bar, span);
   if (!far) return null;
   const to = widen(far, p.full);
-  return size(to) < ZOOM.inShare * size(cur) ? to : null;
+  if (size(to) >= ZOOM.inShare * size(cur)) return null;
+  const k2 = firstOutside(p, to, bar);
+  if (k2 >= 0 && seamIn(p, now + ease + margin, deadlineOf(p, k2, aheadTicks, ease), ease, margin) < 0) return null;
+  return to;
 }
 
 /** The ease's curve (0 → 1, gentle at both ends). */
@@ -222,11 +297,11 @@ export class BoxZoom {
   readonly plan: ZoomPlan;
   readonly beatTicks: number;
   readonly on: boolean;
-  constructor(plan: ZoomPlan, start: number, beatTicks: number, on: boolean) {
+  constructor(plan: ZoomPlan, start: number, beatTicks: number, on: boolean, tps = 0, aheadTicks = 0) {
     this.plan = plan;
     this.beatTicks = beatTicks;
     this.on = on;
-    this.cur = on ? initialRange(plan, start) : plan.full;
+    this.cur = on ? initialRange(plan, start, tps, aheadTicks) : plan.full;
     this.held = start;
     this.v = { lo: this.cur.lo, hi: this.cur.hi, from: undefined, mix: 1 };
   }

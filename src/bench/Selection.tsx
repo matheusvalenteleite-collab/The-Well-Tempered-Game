@@ -18,7 +18,6 @@ import { fugueName } from "../touch/fugue-names.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { Portrait } from "./Bach.tsx";
 import { Emblem } from "./FuguePicker.tsx";
-import { keyLabel } from "./emblem.ts";
 import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
@@ -178,12 +177,19 @@ export function Selection(p: SelectionProps) {
   );
 }
 
+/** A key ("c#", "Eb") in words: the tonic in capitals ("C♯", "E♭") and the mode, MAJOR or MINOR (translated). */
+export function keyWords(key: string): { tonic: string; mode: string } {
+  const tonic = key[0].toUpperCase() + key.slice(1).replace("#", "♯").replace("b", "♭");
+  return { tonic, mode: tr(key[0] === key[0].toLowerCase() ? "MINOR" : "MAJOR") };
+}
+
 /** A tile of the grid: the picture, its number and key, its level; the best grade (or ✓); NEXT. */
 function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void }) {
   const f = fugueById(id);
   const lv = liteLevel(id);
   const n = Number(id.slice(-2));
-  const key = keyLabel(f.key, "fugue").split(" · ")[0];
+  // Design studio: the key in words, "C♯ major" / "C♯ minor", not the upper/lower-case convention.
+  const key = keyWords(f.key);
   const nick = fugueName(id, lang(), "short");
   const full = fugueName(id, lang());
   const name = full ? `${full} · ${pieceTitle(id)}` : pieceTitle(id);
@@ -210,7 +216,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
           )}
         </span>
         <span className="sel-tile-key">
-          <b>{n}</b> {key}
+          <b>{n}</b> {key.tonic} <i>{key.mode}</i>
         </span>
         {nick && (
           <span className="sel-tile-name" id={`name-${id}`}>
@@ -237,7 +243,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
   return (
     <div className="sel-piece" id="sel-piece">
       <span className="sel-piece-pic">
-        <Emblem id={piece} label={keyLabel(f.key, f.kind === "prelude" ? "prelude" : "fugue")} className="sel-piece-emblem" />
+        <Emblem id={piece} className="sel-piece-emblem" />
         {grade && (
           <span className={`sel-grade${best[piece] ? "" : " sel-old"}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }}>
             {grade}
