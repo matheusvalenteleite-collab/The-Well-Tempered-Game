@@ -47,6 +47,10 @@ function Contour({ l }: { l: ManualLesson }) {
 }
 
 const partOf = (id: PartId) => BUILT.find((p) => p.id === id)!;
+/** D379: a part's name on its tab and bar: PART 4, or the fugue track's own. */
+const partWord = (p: (typeof BUILT)[number]) => (p.track ? tr("THE FUGUE TRACK") : tr("PART {n}", { n: p.n ?? p.id }));
+/** D379: the lesson has takes of the player's (the metronome on), or only his playing, questions and taps. */
+const hasTakes = (l: ManualLesson) => l.stages.some((s) => s.kind === "play" || s.kind === "try");
 const minutesWord = (l: ManualLesson) => tr("ABOUT {n} MINUTES", { n: l.minutes });
 const musicOf = (l: ManualLesson) => (l.music ? tr(l.music) : tr(l.stages.at(-1)?.m.label ?? ""));
 
@@ -76,8 +80,8 @@ export function TutorialSelect({ begin, close, focus, store, relang }: { begin: 
           {BUILT.map((p) => {
             const ls = lessonsOf(p.id);
             return (
-              <button key={p.id} type="button" id={`tut-part-${p.id}`} className={`tb-tut-part${p.id === part ? " on" : ""}${p.phase === "B" ? " older" : ""}`} onClick={() => (setPart(p.id), setChosen((ls.find((x) => x.id === next) ?? ls.find((x) => !lessonDone(s, x.id)) ?? ls[0]).id))}>
-                <span className="tb-tut-part-n">{tr("PART {n}", { n: p.n ?? p.id })}</span>
+              <button key={p.id} type="button" id={`tut-part-${p.id}`} className={`tb-tut-part${p.id === part ? " on" : ""}${p.phase === "B" ? " older" : ""}${p.track ? " track" : ""}`} onClick={() => (setPart(p.id), setChosen((ls.find((x) => x.id === next) ?? ls.find((x) => !lessonDone(s, x.id)) ?? ls[0]).id))}>
+                <span className="tb-tut-part-n">{partWord(p)}</span>
                 <span className="tb-tut-part-name">{tr(p.english)}</span>
                 <span className="tb-tut-pips">
                   {ls.map((x) => (
@@ -91,7 +95,7 @@ export function TutorialSelect({ begin, close, focus, store, relang }: { begin: 
       </aside>
       <main className="tb-tut-centre">
         <p className="tb-tut-bar">
-          {tr("PART {n}", { n: partOf(part).n ?? part })} · {tr(partOf(part).english)}
+          {partWord(partOf(part))} · {tr(partOf(part).english)}
           {partOf(part).sub ? ` · ${tr(partOf(part).sub!)}` : ""}
         </p>
         <div className={`tb-tut-tiles n${lessons.length}`}>
@@ -134,12 +138,13 @@ export function TutorialSelect({ begin, close, focus, store, relang }: { begin: 
           <dd>{musicOf(l)}</dd>
           <dt>{tr("SOUND")}</dt>
           <dd>
-            {tr(SOUND_WORD[soundOf(l, l.stages.at(-1)?.m)])} · {tr("METRONOME ON")}
+            {tr(SOUND_WORD[soundOf(l, l.stages.at(-1)?.m)])}
+            {hasTakes(l) ? ` · ${tr("METRONOME ON")}` : ""}
           </dd>
           <dt>{tr("TIME")}</dt>
           <dd>
             {minutesWord(l)}
-            {isCourse(l) && l.stages.at(-1) ? ` · ♩ = ${Math.round(bpmOf(l.stages.at(-1)!.m))}` : ""}
+            {isCourse(l) && hasTakes(l) && l.stages.at(-1) ? ` · ♩ = ${Math.round(bpmOf(l.stages.at(-1)!.m))}` : ""}
           </dd>
         </dl>
         {begun && !done && <p className="tb-tut-stopped">{tr("YOU STOPPED AT: {s}", { s: tr(STEP_WORD[l.stages[at]?.kind ?? "play"]) })}</p>}

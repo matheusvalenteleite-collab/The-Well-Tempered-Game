@@ -10,7 +10,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { barStart, fugueById } from "../src/touch/fugue.ts";
 import { readingsOf } from "../src/touch/readings.ts";
-import { BUILT, checkpointOf, fixFor, lastPlay, lessonById, lessonsOf, MANUAL, PARTS, PLAYED, runOf, SOUND_PRESET, stagePassed, type DemoStyle, type ManualLesson, type Material, type Stage } from "../src/bench/manual/lessons.ts";
+import { anyLessonById as lessonById, BUILT, fixFor, lastPlay, MANUAL, PARTS, runOf, SOUND_PRESET, stagePassed, type DemoStyle, type ManualLesson, type Material, type PartId, type Stage } from "../src/bench/manual/lessons.ts";
+import { RETIRED } from "../src/bench/manual/retired.ts";
+
+/** D379: the older III–V retired from the tutorial (retired.ts), kept as data for these checks. */
+const PLAYED = RETIRED;
+const checkpointOf = (p: PartId) => RETIRED.find((l) => l.part === p && l.checkpoint);
+const lessonsOf = (p: PartId) => RETIRED.filter((l) => l.part === p);
 import { fixDirection, fixRests } from "../src/bench/manual/coach.ts";
 import { demoRun, gameFor, tapperRun } from "./d342-sim.ts";
 import { playerRun } from "./d359-players.ts";
@@ -26,7 +32,8 @@ function struck(st: Stage) {
 
 test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; checkpoints III.5 and IV.6; D373: shown after the new Parts 1–3", () => {
   assert.deepEqual(PARTS_B.map((l) => l.id), ["III.1", "III.2", "III.3", "III.4", "III.5", "IV.1", "IV.2", "IV.3", "IV.4", "IV.5", "IV.6"]);
-  assert.deepEqual(BUILT.map((p) => p.id), ["1", "2", "3", "III", "IV", "V"]);
+  // D379: retired from the tutorial (Parts 4–6 rebuilt, the fugue track after them).
+  assert.deepEqual(BUILT.map((p) => p.id), ["1", "2", "3", "4", "5", "6", "F"]);
   assert.equal(checkpointOf("III")!.id, "III.5");
   assert.equal(checkpointOf("IV")!.id, "IV.6");
   for (const l of PARTS_B) {
@@ -41,9 +48,10 @@ test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; c
   assert.equal(lessonById("III.2")!.stages[0].m.sound, "chip", "III.2: the chip, then the harpsichord");
   // Every part built but Part 0 ends in a sealed checkpoint.
   // Parts 1–3 and III–IV each end in a sealed checkpoint; Part V has none (design section 3: nothing waits on it).
-  for (const p of PARTS.filter((q) => ["1", "2", "3", "III", "IV"].includes(q.id))) assert.ok(p.seal && checkpointOf(p.id), p.id);
+  for (const p of ["III", "IV"] as const) assert.ok(checkpointOf(p), p);
   assert.equal(checkpointOf("V"), undefined);
-  assert.equal(MANUAL.length, 31, "D373: the fifteen new lessons and the sixteen older (III–V)");
+  assert.ok(!PARTS.some((q) => ["III", "IV", "V"].includes(q.id)), "D379: no longer shown");
+  assert.equal(MANUAL.length, 38, "D379: the fifteen of Parts 1–3, sixteen of 4–6, seven of the fugue track");
 });
 
 test("D360: each excerpt has the feature its lesson teaches", () => {
@@ -122,7 +130,7 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
 });
 
 test("D359: every lesson in the practice room (Options.quiet), with only the words it is about", () => {
-  for (const l of PLAYED) for (const st of l.stages) assert.deepEqual(runOf(st.m, undefined, l.words).quiet, { words: l.words ?? [] });
+  for (const l of [...MANUAL, ...PLAYED]) for (const st of l.stages) assert.deepEqual(runOf(st.m, undefined, l.words, l.ornaments).quiet, { words: l.words ?? [], ...(l.ornaments ? { ornaments: true } : {}) });
   assert.deepEqual(lessonById("3.1")!.words, ["held", "short"]);
   assert.equal(runOf(lessonById("III.3")!.stages[1].m).reading, "keller");
 });

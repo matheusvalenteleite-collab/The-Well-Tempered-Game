@@ -59,7 +59,7 @@ test("D338: the accent's verdict: on time or leaned up to 15% of a beat, the not
   assert.equal(MECH.accentLateBeats, 0.15);
   // The legend says what is asked, by time.
   const l = markLegend("outer").find((x) => x.kind === "strong")!;
-  assert.match(l.text, /ACCENT: LIFT THE NOTE BEFORE, LEAN IN A HAIR LATE, HOLD IT/);
+  assert.match(l.text, /ACCENT: LIFT THE NOTE BEFORE A LITTLE EARLY, LEAN IN A HAIR LATE/);
   assert.equal(markLegend("inner").find((x) => x.kind === "strong")!.text, l.text);
   }));
 

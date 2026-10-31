@@ -79,6 +79,8 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "plan" && rows) planLetters(c, g, o.box);
     if (a === "answer" && rows) answer(c, g);
     if (a === "point" && rows && o.box) point(c, g, o.box);
+    if (a === "colour") colourMap(c, w, h, bw);
+    if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbPath(c, w, bw, g, o.aids.includes("colour"));
     if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbsA(c, w, h, bw, g, o.step ?? "play");
   }
   if (o.tour && rows) tour(c, w, h, bw, g, o.tour, o.box, now);
@@ -441,6 +443,93 @@ function thumbsA(c: CanvasRenderingContext2D, w: number, h: number, bw: number, 
   if (step === "watch" || step === "try") {
     const word = moveWord(from?.step, next.step);
     if (word) label(c, word, side === "left" ? bw / 2 : w - bw / 2, Math.min(h - 12, y + size * 1.3), GOLD, 6);
+  }
+}
+
+/**
+ * D379 (the owner: "The shadows of earlier thumbs should remain in place, perhaps in a gradient of opacity
+ * up to the current one, so one can see the whole movement at once when it's finished"): every touch of
+ * the step (his in a WATCH, the player's in a TRY or PLAY) leaves a small marker where it landed, at its
+ * own height on its own strip (each later one a step toward the box, so the path reads in order and a
+ * repeated note never hides the one before); a slide adds one where it arrives. Each thumb's markers joined in order by a
+ * thin line (the left's gold, the right's blue, so the two paths read apart), the older fainter, the
+ * latest full; numbered in order while there are few. Kept for the whole step (and held a moment after
+ * its end, BenchApp PATH_HOLD_MS), fresh for each step (one per game).
+ */
+type PathMark = { side: Side; x: number; y: number; t0: number };
+const PATHS = new WeakMap<ProtoGame, PathMark[]>();
+const PATH_INK: Record<Side, string> = { left: "#f3d78a", right: "#8cc4ff" };
+/** At most so many markers drawn (the latest), and numbered while the step has no more than this. */
+const PATH_MAX = 40;
+const PATH_NUMBERED = 16;
+export function thumbPath(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGame, across = false) {
+  const rows = g.rows!;
+  let marks = PATHS.get(g);
+  if (!marks) PATHS.set(g, (marks = []));
+  for (const d of g.thumbsDown()) {
+    const t0 = d.t0 ?? 0;
+    const x = Math.max(4, Math.min(w - 4, d.fx * w));
+    const mine = marks.filter((m) => m.t0 === t0 && m.side === d.side).at(-1);
+    // A new touch, or the same thumb slid a row or more since its last marker.
+    if (!mine || Math.abs(mine.y - d.y) >= rows.rowH * 0.9) marks.push({ side: d.side, x, y: d.y, t0 });
+  }
+  const shown = marks.slice(-PATH_MAX);
+  const n = shown.length;
+  if (!n) return;
+  const alphaOf = (j: number) => 0.18 + (0.67 * (j + 1)) / n;
+  c.save();
+  for (const side of ["left", "right"] as const) {
+    const raw = shown.map((m, j) => ({ m, j })).filter(({ m }) => m.side === side);
+    // Read in order like a line of music: each later touch a step further toward the box, from where the
+    // thumb first landed (a repeated note no longer hides the one before it), within the strip.
+    const step = raw.length > 1 ? Math.max(5, Math.min(14, (bw - 24) / (raw.length - 1))) : 0;
+    const dir = side === "left" ? 1 : -1;
+    const lo = side === "left" ? 6 : w - bw + 6;
+    const hi = side === "left" ? bw - 6 : w - 6;
+    const x0 = raw.length ? Math.max(lo, Math.min(hi - (raw.length - 1) * step * (dir > 0 ? 1 : 0), raw[0].m.x)) : 0;
+    const start = dir > 0 ? Math.min(x0, hi - (raw.length - 1) * step) : Math.max(x0, lo + (raw.length - 1) * step);
+    // D379 (6.4): where the lesson is about where across the strip a thumb lands, each marker where it landed.
+    const pts = raw.map(({ m, j }, k) => ({ j, x: across ? m.x : Math.max(lo, Math.min(hi, start + dir * k * step)), y: m.y }));
+    c.strokeStyle = PATH_INK[side];
+    c.lineWidth = 1.5;
+    for (let k = 1; k < pts.length; k++) {
+      c.globalAlpha = alphaOf(pts[k].j) * 0.75;
+      c.beginPath();
+      c.moveTo(pts[k - 1].x, pts[k - 1].y);
+      c.lineTo(pts[k].x, pts[k].y);
+      c.stroke();
+    }
+    for (const { x, y, j } of pts) {
+      c.globalAlpha = alphaOf(j);
+      c.fillStyle = PATH_INK[side];
+      c.beginPath();
+      c.arc(x, y, j === n - 1 ? 5 : 3.5, 0, Math.PI * 2);
+      c.fill();
+      if (marks.length <= PATH_NUMBERED && !across) label(c, String(j + 1), x, y - 10, PATH_INK[side], 6);
+    }
+  }
+  c.restore();
+}
+
+/**
+ * D379 (6.4, colour: the mechanics report's free dimension, §5 Luigi 4 and Mario 3): each strip's map
+ * across its width: firm and bright by the box (its inner edge), soft and dark out by the phone's edge.
+ * Never a verdict: the sound only (D311).
+ */
+function colourMap(c: CanvasRenderingContext2D, w: number, h: number, bw: number) {
+  const y = h * 0.88;
+  for (const side of ["left", "right"] as const) {
+    const x0 = side === "left" ? 0 : w - bw;
+    const inner = side === "left" ? x0 + bw : x0;
+    const outer = side === "left" ? x0 : x0 + bw;
+    const grad = c.createLinearGradient(inner, 0, outer, 0);
+    grad.addColorStop(0, "rgba(255,226,150,0.85)");
+    grad.addColorStop(1, "rgba(80,70,120,0.35)");
+    c.fillStyle = grad;
+    c.fillRect(x0 + 4, y, bw - 8, 6);
+    const lx = (at: number) => Math.max(x0 + 22, Math.min(x0 + bw - 22, at));
+    label(c, "FIRM", lx(inner + (side === "left" ? -18 : 18)), y - 8, "#ffe296", 6);
+    label(c, "SOFT", lx(outer + (side === "left" ? 18 : -18)), y - 8, "#a59cc8", 6);
   }
 }
 

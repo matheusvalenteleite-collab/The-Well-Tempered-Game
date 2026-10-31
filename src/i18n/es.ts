@@ -5,12 +5,15 @@
  */
 import { MANUAL_ES } from "./manual-es.ts";
 import { COURSE_ES } from "./course-es.ts";
+import { COURSE2_ES } from "./course2-es.ts";
 
 export const ES: Record<string, string> = {
   // D342: THE MANUAL (manual-es.ts; this dictionary's own entries win).
   ...MANUAL_ES,
   // D373: THE TUTORIAL rebuilt (course-es.ts).
   ...COURSE_ES,
+  // D379: Parts 4–6 rebuilt and the fugue track (course2-es.ts).
+  ...COURSE2_ES,
   // The list
   "THE WELL-TEMPERED GAME": "EL JUEGO BIEN TEMPERADO",
   BOOK: "LIBRO",
@@ -341,7 +344,7 @@ export const ES: Record<string, string> = {
   "HANDOVERS": "RELEVOS DE PULGAR A PULGAR",
   "ONE THUMB WHERE DETACHED": "UN SOLO PULGAR DONDE PICADO",
   "ONE-THUMB LEAPS": "SALTOS CON UN SOLO PULGAR",
-  "ACCENT: LIFT THE NOTE BEFORE, LEAN IN A HAIR LATE, HOLD IT": "ACENTO: SUELTA LA NOTA ANTERIOR, ENTRA UN PELÍN TARDE, MANTENLA",
+  "ACCENT: LIFT THE NOTE BEFORE A LITTLE EARLY, LEAN IN A HAIR LATE": "ACENTO: SUELTA UN POCO ANTES LA NOTA ANTERIOR, ENTRA UN PELÍN TARDE",
   "A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT": "LOS SIGNOS DE UNA LECTURA, SI ELIGES UNA EN ESCUCHA EL SUJETO",
   "THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT": "LOS PULGARES: LIGADO, EL OTRO PULGAR PASA LA NOTA O SOLAPA · PICADO, SUELTA ANTES (UN SOLO PULGAR PUEDE TOCAR LA SIGUIENTE) · SUAVE EN EL BORDE, FUERTE JUNTO A LA CAJA · AGITA EN UN ORNAMENTO",
   "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.": "El ancho de la barra es tuyo: junto al borde, más suave y oscuro; junto a la caja, más firme y brillante; mueve de lado un pulgar que sostiene la nota para darle forma. Nunca quita ni da puntos.",
