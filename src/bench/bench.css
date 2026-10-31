@@ -1072,3 +1072,10 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 @media (prefers-reduced-motion: reduce) { .tb-install-hint { animation: none; } }
 .tb-install-set { flex-wrap: wrap; }
 .tb-install-set .tg-panel-note { flex-basis: 100%; margin: 4px 0 0; }
+
+/* D381: the headphones gone or back: a brief notice at the top; USING SPEAKER? a chip at the foot until answered. */
+.tb-route-notice { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 120; max-width: calc(100% - 32px); margin: 0; padding: 6px 12px; transform: translateX(-50%); font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); background: #0b0d18ee; border: 2px solid var(--tg-shine); pointer-events: none; animation: tb-route-fade 3.5s ease both; }
+@keyframes tb-route-fade { 0% { opacity: 0; } 8% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+.tb-route-chip { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 120; display: flex; align-items: center; gap: 4px; padding: 2px 2px 2px 8px; background: var(--tg-box); border: 2px solid var(--tg-shine); }
+.tb-route-chip button:first-child { min-height: 36px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-shine); background: transparent; border: 0; cursor: pointer; text-align: left; }
+@media (prefers-reduced-motion: reduce) { .tb-route-notice { animation: none; } }
