@@ -803,7 +803,7 @@ export function BenchApp() {
       if (AUTO) autoplay(g, auto);
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
       // D379: no big count digit over his demonstration in a tutorial WATCH (it hid the first note and his arrow).
-      if (count.current) count.current.textContent = g.countIn() && stepKind !== "watch" ? String(g.countIn()) : "";
+      if (count.current) count.current.textContent = g.countIn() && stepKind !== "watch" && !dressRef.current ? String(g.countIn()) : "";
       if (done) {
         // D376: THE EXPRESSION LAB's take kept.
         keepGlenn(false);
