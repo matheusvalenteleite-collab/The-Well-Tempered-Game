@@ -1062,3 +1062,24 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-sign-pic .blk.accent::before { content: ""; position: absolute; left: 0; top: 0; border-style: solid; border-width: 5px 0 5px 7px; border-color: transparent transparent transparent #fff3d0; }
 .tb-sign-pic em { position: absolute; left: 0; right: 0; bottom: -2px; text-align: center; font-style: normal; font-family: var(--tg-pixel); font-size: 5px; color: var(--tg-gold); }
 .tb-sign-text { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 12px; color: var(--tg-fg); }
+/* D379: the tutorial's LISTEN, SPOT and QUIZ steps (their banner, strip word, chips and badge), a SPOT tap's flash, the fugue track's tab. */
+.tb-step-banner.listen, .tb-step-strip.listen { background: #6a4fa3; color: #fff; }
+.tb-step-banner.spot, .tb-step-strip.spot { background: #2f8f6a; color: #fff; }
+.tb-tut-chip.listen { border-color: #a58be0; color: #c9b6f2; }
+.tb-tut-chip.spot { border-color: #57c79a; color: #8fe0bd; }
+.tb-tut-chip.quiz { border-color: #e08b8b; color: #f2b6b6; }
+.tb-tut-chip.fin.listen { background: #a58be0; color: #12101a; }
+.tb-tut-chip.fin.spot { background: #57c79a; color: #12101a; }
+.tb-tut-chip.fin.quiz { background: #e08b8b; color: #12101a; }
+.tb-manual-badge.listen { color: #c9b6f2; border-color: #6a4fa3; }
+.tb-manual-badge.spot { color: #8fe0bd; border-color: #2f8f6a; }
+.tb-manual-badge.quiz { color: #f2b6b6; border-color: #a35050; }
+.tb-spot-flash { position: fixed; top: 34%; left: 50%; transform: translateX(-50%); margin: 0; padding: 4px 10px; font-family: var(--tg-pixel); font-size: 9px; white-space: nowrap; pointer-events: none; animation: tb-spot-fade 0.9s ease-out forwards; }
+.tb-spot-flash.ok { color: #12101a; background: #79d99a; }
+.tb-spot-flash.no { color: #fff; background: #7a3b3b; }
+@keyframes tb-spot-fade { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+.tb-tut-part.track { background: #1e2a26; border-color: #2f8f6a; }
+.tb-tut-part.track.on { background: #24382f; border-color: #57c79a; }
+.tb-tut-part.track .tb-tut-part-n { color: #8fe0bd; }
+.tb-tut-parts { gap: 3px; }
+.tb-tut-part { gap: 1px; padding: 3px 7px; }

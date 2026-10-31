@@ -10,7 +10,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { tr } from "../../i18n/index.ts";
 import { Portrait } from "../Bach.tsx";
 import type { LensStats } from "./lens.ts";
-import { PARTS, SIGN_WORDS, TOUR, TOUR_TOUCH, type Check, type ManualLesson, type PartId, type SignId, type Stage, type StageKind } from "./lessons.ts";
+import { PARTS, SIGN_WORDS, STEP_WORD, TOUR, TOUR_TOUCH, type Check, type ManualLesson, type PartId, type SignId, type Stage, type StageKind } from "./lessons.ts";
 
 const fill = (c: Check) => tr(c.text, c.vars);
 
@@ -71,7 +71,7 @@ export function StageLine({ l, k }: { l: ManualLesson; k: number }) {
   if (!st) return null;
   return (
     <p className="tb-manual-stage" id="stage-line" onClick={(e) => e.stopPropagation()}>
-      <span className={`tb-manual-badge ${st.kind}`}>{tr(st.kind === "play" ? "PLAY" : st.kind === "watch" ? "WATCH" : st.kind === "try" ? "TRY" : "PRACTICE")}</span> {tr(st.m.label)}
+      <span className={`tb-manual-badge ${st.kind}`}>{tr(STEP_WORD[st.kind])}</span> {tr(st.m.label)}
     </p>
   );
 }
@@ -88,8 +88,9 @@ export function StepBanner({ kind, nudge }: { kind: StageKind; nudge: number }) 
     const t = window.setTimeout(() => tick((n) => n + 1), 1300);
     return () => window.clearTimeout(t);
   }, [nudge]);
-  const word = kind === "watch" ? "WATCH · BACH PLAYS" : kind === "try" ? "TRY · I WAIT FOR YOU" : kind === "tour" ? "" : "YOUR TURN · PLAY";
-  const strip = kind === "watch" ? "WATCH ONLY · DON'T TOUCH YET" : kind === "play" ? "YOUR TURN" : kind === "try" ? "TRY" : "";
+  // D379: LISTEN (he plays; nothing to touch) and SPOT (he plays; tap as the tune comes in).
+  const word = kind === "watch" ? "WATCH · BACH PLAYS" : kind === "listen" ? "LISTEN · BACH PLAYS" : kind === "spot" ? "SPOT · TAP WHEN THE TUNE COMES IN" : kind === "try" ? "TRY · I WAIT FOR YOU" : kind === "tour" ? "" : "YOUR TURN · PLAY";
+  const strip = kind === "watch" ? "WATCH ONLY · DON'T TOUCH YET" : kind === "listen" ? "JUST LISTEN" : kind === "spot" ? "TAP WHEN IT COMES IN" : kind === "play" ? "YOUR TURN" : kind === "try" ? "TRY" : "";
   const nudged = nudge > 0 && performance.now() - nudge < 1200;
   return (
     <>
@@ -101,10 +102,28 @@ export function StepBanner({ kind, nudge }: { kind: StageKind; nudge: number }) 
       {strip && <p className={`tb-step-strip ${kind}`}>{tr(strip)}</p>}
       {nudged && (
         <p className="tb-step-nudge" role="status">
-          {tr("JUST WATCH FOR NOW")}
+          {tr(kind === "listen" ? "JUST LISTEN FOR NOW" : "JUST WATCH FOR NOW")}
         </p>
       )}
     </>
+  );
+}
+
+/** D379, SPOT: a tap's flash over the box: a new entry found (✓ THERE IT IS), or not (NOT A NEW ENTRY). */
+export function SpotFlash({ ok }: { ok: boolean }) {
+  return (
+    <p className={`tb-spot-flash ${ok ? "ok" : "no"}`} role="status" id="spot-flash">
+      {tr(ok ? "✓ THERE IT IS" : "NOT A NEW ENTRY")}
+    </p>
+  );
+}
+
+/** D379, SPOT: after the step, one number: the entries found, and the stray taps. */
+export function SpotLine({ r }: { r: { spotted: number; of: number; strays: number } }) {
+  return (
+    <p className="tb-result-num" id="spot-line" onClick={(e) => e.stopPropagation()}>
+      <span className={r.spotted ? "ok" : "no"}>{tr("ENTRIES FOUND {n} OF {m} · STRAY TAPS {s}", { n: r.spotted, m: r.of, s: r.strays })}</span>
+    </p>
   );
 }
 

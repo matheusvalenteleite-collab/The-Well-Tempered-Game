@@ -74,8 +74,8 @@ import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
 import { chosenReading, markOf, readingsOf, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
-import { Caption, LensSheet, ResultLine, Seal, SignCard, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
-import { fixFor, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material } from "./manual/lessons.ts";
+import { Caption, LensSheet, ResultLine, Seal, SignCard, SpotFlash, SpotLine, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
+import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
 import { finishStep, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
@@ -334,6 +334,9 @@ export function BenchApp() {
   const tourRef = useRef<{ k: number; left: boolean; right: boolean } | null>(null);
   tourRef.current = tourAt;
   const [nudge, setNudge] = useState(0);
+  // D379, SPOT: the step's entries and the taps so far (ticks), and the last tap's flash (a new entry found, or not).
+  const spotRef = useRef<{ taps: number[]; entries: number[]; beat: number } | null>(null);
+  const [spotFlash, setSpotFlash] = useState<{ ok: boolean; at: number } | null>(null);
   const [tutFocus, setTutFocus] = useState<string | null>(null);
   const recRef = useRef<LabRecorder | null>(null);
   const manLesson: ManualLesson | undefined = man ? lessonById(man.id) : undefined;
@@ -419,7 +422,8 @@ export function BenchApp() {
   const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
-  const tuning = resolveTuning(tuningPref, soundNow);
+  // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
+  const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);
   useEffect(() => {
     // (WITH KIMIKO her pitch is set while she plays; this one put back after.)
     if (phase.kind !== "play" || !hm) setTuning(tuning.id, tuning.a);
@@ -500,7 +504,8 @@ export function BenchApp() {
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
   const marks = useMemo(() => {
     // D373: no SUBJECT bands in the tutorial's first parts (the word comes later, explained).
-    const spans = run?.tut ? [] : entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
+    // D379: from 4.1 on (the word taught), and in the fugue track, the flags as in the game.
+    const spans = run?.tut && !run.flags ? [] : entrySpans(f).filter((e) => !run || (e.on < run.until && e.end > run.from && (!run.solo || e.voice === run.voice)));
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
@@ -660,7 +665,7 @@ export function BenchApp() {
     // D373: a tutorial step's own aids (else the lesson's); its kind (WATCH: his thumbs whole).
     const manStage = man && manLesson ? manLesson.stages[man.stage] : undefined;
     const aids = man && manLesson ? (manStage?.aids ?? manLesson.aids) : [];
-    const stepKind = man?.mode === "tour" ? "tour" : manStage && manLesson && isCourse(manLesson) ? (man?.mode === "hear" ? "watch" : manStage.kind === "try" ? "try" : "play") : undefined;
+    const stepKind = man?.mode === "tour" ? "tour" : manStage && manLesson && isCourse(manLesson) ? (man?.mode === "hear" || heHears(manStage.kind) ? "watch" : manStage.kind === "try" ? "try" : "play") : undefined;
     const boxRect = () => {
       const r = document.querySelector(".tg-roll")?.getBoundingClientRect();
       const a = document.querySelector(".tg-play")?.getBoundingClientRect();
@@ -974,6 +979,10 @@ export function BenchApp() {
   const startStep = (m: ManRun) => {
     setMan(m);
     setWatching(m.mode === "hear");
+    // D379, SPOT: the entries of the passage (any voice), none tapped yet.
+    const sm = lessonById(m.id)?.stages[m.stage];
+    spotRef.current = sm?.kind === "spot" && m.mode === "hear" ? { taps: [], entries: spotEntries(sm.m), beat: fugueById(sm.m.piece).tpq } : null;
+    setSpotFlash(null);
     setNudge(0);
     start(true);
   };
@@ -1007,7 +1016,7 @@ export function BenchApp() {
     const st = l.stages[k];
     if (!st) return toMap();
     reachStage(l.id, k);
-    const m: ManRun = { id: l.id, stage: k, mode: st.kind === "watch" ? "hear" : st.kind === "tour" ? "tour" : "take", ...(st.style ? { style: st.style } : {}), takes };
+    const m: ManRun = { id: l.id, stage: k, mode: heHears(st.kind) ? "hear" : st.kind === "tour" ? "tour" : "take", ...(st.style ? { style: st.style } : {}), takes };
     if (st.kind === "tour") {
       setTourAt({ k: 0, left: false, right: false });
       return startStep(m);
@@ -1015,8 +1024,44 @@ export function BenchApp() {
     setMan(m);
     setWatching(false);
     const lines: Line[] = [...lead, ...(intro ? l.before.map((text) => ({ text })) : []), ...(st.say ? [{ text: st.say }] : [])];
+    // D379, QUIZ: his question, the answers as the choices (each explained; a wrong one asks again).
+    if (st.kind === "quiz" && st.quiz) return askQuiz(l, k, st.quiz, lines, takes, intro && l.sign ? <SignCard sign={l.sign} /> : undefined);
     talk(mTitle(l), lines, { extra: intro && l.sign ? <SignCard sign={l.sign} /> : <StageLine l={l} k={k} />, choices: [{ label: `▶ ${STEP_WORD[st.kind]}`, act: () => startStep(m) }] });
   }
+  /** D379, QUIZ: the question, his reason after each answer; right: on to the next step (the last passes the lesson). */
+  function askQuiz(l: ManualLesson, k: number, q: Quiz, lines: Line[], takes: number, extra?: ReactNode) {
+    const choices = q.answers.map((a) => ({
+      label: a.text,
+      act: () => {
+        if (!a.right) return askQuiz(l, k, q, [{ text: a.why }, { text: q.ask }], takes + 1);
+        finishStep(l.id, k);
+        if (k >= decider(l)) return passLesson(l, [{ text: a.why }], takes);
+        return courseStep(l, k + 1, takes, false, [{ text: a.why }]);
+      },
+    }));
+    talk(mTitle(l), [...lines, { text: q.ask }], { choices, ...(extra ? { extra } : {}) });
+  }
+  /** D379: a lesson passed by its deciding step (a PLAY, a SPOT, a QUIZ): his lines, the part sealed by its checkpoint, NEXT and AGAIN. */
+  function passLesson(l: ManualLesson, lead: Line[], takes: number, extra?: ReactNode, right = 1) {
+    const s = recordTake(l.id, right, true);
+    const next = nextManual(s);
+    finishStep(l.id, decider(l));
+    const part = MANUAL_PARTS.find((p) => p.id === l.part);
+    const sealed = !!l.checkpoint && !!part?.seal;
+    const lines: Line[] = [...lead, ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : [])];
+    const again = { label: "AGAIN", act: () => courseStep(l, 0, takes + 1, true) };
+    return talk(mTitle(l), lines, { extra: sealed ? <>{extra}<Seal part={l.part} /></> : extra, choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : [{ label: "TUTORIAL", act: toMap }]), again] });
+  }
+  /** D379, SPOT: a tap while he plays, noted against the entries (true: a SPOT step is under way). */
+  const spotTap = (): boolean => {
+    const sp = spotRef.current;
+    const g = game.current;
+    if (!sp || !g) return false;
+    const before = spotJudge(sp.entries, sp.taps, sp.beat).spotted;
+    sp.taps.push(g.now);
+    setSpotFlash({ ok: spotJudge(sp.entries, sp.taps, sp.beat).spotted > before, at: performance.now() });
+    return true;
+  };
   /** D373, 1.1: a strip touched during the tour (the second bubble waits for both). */
   const tourTouch = (side: "left" | "right") => {
     if (man?.mode !== "tour") return;
@@ -1052,9 +1097,29 @@ export function BenchApp() {
     if (m.mode === "tour") return startStep(m);
     const watchK = l.stages.findIndex((s) => s.kind === "watch");
     const watchAgain = watchK >= 0 ? [{ label: "WATCH AGAIN", act: () => courseStep(l, watchK, m.takes + 1) }] : [];
+    if (st.kind === "spot") {
+      // D379, SPOT: the taps against the entries; found enough with few strays: on (the last passes the lesson).
+      const sp = spotRef.current;
+      const r = spotJudge(sp?.entries ?? [], sp?.taps ?? [], sp?.beat ?? 1);
+      spotRef.current = null;
+      const said: Line = { text: tr("You found {n} of {m} entries.", { n: r.spotted, m: r.of }) };
+      if (spotPassed(st, r)) {
+        finishStep(l.id, m.stage);
+        if (m.stage >= decider(l)) return passLesson(l, [said], m.takes, <SpotLine r={r} />, r.spotted / Math.max(1, r.of));
+        return courseStep(l, m.stage + 1, m.takes + 1, false, [said]);
+      }
+      const s = recordTake(l.id, r.spotted / Math.max(1, r.of), false);
+      const why: Line = r.spotted < (st.spot?.need ?? 0) ? { text: l.again[0] ?? "Tap as the tune begins. Again." } : { text: "Tap only when the tune begins, not in between." };
+      const tries = triesOf(s, l.id);
+      const goOn = tries >= 3 ? [{ label: "LET'S GO ON", act: () => { const n = nextManual(setAside(l.id)); return n ? beginManual(n) : toMap(); } }] : [];
+      return talk(mTitle(l), [said, why], { extra: <SpotLine r={r} />, choices: [{ label: "AGAIN", act: () => startStep({ ...m, takes: m.takes + 1 }) }, ...watchAgain, ...goOn] });
+    }
     if (m.mode === "hear") {
       finishStep(l.id, m.stage);
-      return courseStep(l, m.stage + 1, m.takes, false, [{ text: "Now you try, slowly." }]);
+      // D379: what comes next said only where it is a take (a QUIZ, a SPOT or a LISTEN says its own).
+      const nk: StageKind | undefined = l.stages[m.stage + 1]?.kind;
+      const lead: Line[] = nk === "try" ? [{ text: "Now you try, slowly." }] : nk === "play" ? [{ text: "Now you, in time." }] : [];
+      return courseStep(l, m.stage + 1, m.takes, false, lead);
     }
     if (st.kind === "try") {
       finishStep(l.id, m.stage);
@@ -1067,7 +1132,7 @@ export function BenchApp() {
     const fix = fixFor(l, x, m.stage);
     const fixLine: Line[] = fix ? [{ text: tr(fix.text, fix.vars) }] : l.again.map((text) => ({ text }));
     const again = { label: "AGAIN", act: () => startStep({ ...m, takes: m.takes + 1 }) };
-    const final = m.stage === lastPlay(l);
+    const final = m.stage >= decider(l);
     const result = (extra?: ReactNode) => <ResultLine l={l} x={x} st={st} extra={extra} />;
     if (!final) {
       if (ok) {
@@ -1304,7 +1369,8 @@ export function BenchApp() {
     // D280: during the demonstration the game's thumbs play; the player's touches wait.
     // D342: a manual take's touches go through its recorder (the take's lab log), which hands them on to the game.
     // D373: a touch while he plays: JUST WATCH FOR NOW; in 1.1's tour, each strip touched noted (and played, as in the game).
-    down: (id, side, x, y, w, h, ts) => (watching ? void setNudge(performance.now()) : practice.current?.listen ? undefined : (seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
+    // D379, SPOT: while he plays, a tap is the player's "there it is" (noted, flashed; it plays nothing).
+    down: (id, side, x, y, w, h, ts) => (watching ? void (spotTap() || setNudge(performance.now())) : practice.current?.listen ? undefined : (seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
     move: (id, x, y, w, h, ts) => (recRef.current && game.current ? recRef.current.move(id, x, y, w, h, ts) : game.current?.move(id, { side: "left", x, y, w, h }, ts)),
     // D249: a touch the system took back (pointercancel) stops its note unjudged: no early let-go.
     up: (id, ts, cancelled) => (recRef.current && game.current ? recRef.current.up(id, ts, cancelled) : game.current?.up(id, ts, cancelled)),
@@ -1609,7 +1675,8 @@ export function BenchApp() {
       {playing && man && manLesson && isCourse(manLesson) && (
         // D373: WATCH, TRY and PLAY told apart (the banner, the strips' words), his words over the foot of the box; 1.1's bubbles.
         <div className="tb-course-chrome">
-          <StepBanner kind={man.mode === "tour" ? "tour" : man.mode === "hear" ? "watch" : (manLesson.stages[man.stage]?.kind ?? "play")} nudge={nudge} />
+          <StepBanner kind={man.mode === "tour" ? "tour" : man.mode === "hear" && !heHears(manLesson.stages[man.stage]?.kind ?? "watch") ? "watch" : (manLesson.stages[man.stage]?.kind ?? "play")} nudge={nudge} />
+          {spotFlash && <SpotFlash key={spotFlash.at} ok={spotFlash.ok} />}
           {man.mode !== "tour" && manLesson.stages[man.stage]?.say && <Caption text={manLesson.stages[man.stage].say!} />}
           {man.mode === "tour" && tourAt && <TourBubble k={tourAt.k} touched={tourAt} next={tourNext} />}
         </div>
