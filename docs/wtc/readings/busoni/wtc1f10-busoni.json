@@ -1,0 +1,1640 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Upper, 1 Lower; 3/4, a bar is 5760 ticks, so bar n starts at (n-1)*5760, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc1f10",
+ "title": "Fugue 10 in E minor, BWV 855",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperirte Clavier, Erster Theil, bearbeitet, erläutert und mit daran anknüpfenden Beispielen und Anweisungen für das Studium der modernen Clavierspieltechnik herausgegeben",
+  "publisher": "G. Schirmer, New York, 1894 (plate 11652)",
+  "pages": {
+   "pdf": [
+    64,
+    65
+   ],
+   "printed": [
+    62,
+    63
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1894)"
+ },
+ "tempo": {
+  "text": "Allegro deciso.",
+  "en": "quick and decided",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "Footnote 1: an even, bright forte and great clarity of figuration rather than dynamic nuance; non legato, distintamente throughout.",
+ "dynamicPlan": "f non legato (b.1), f for the bass answer (b.3); each subject opens with a short crescendo and the tied notes are accented; più leggiero eighths (b.15–18) to ff (b.19); the inverted second half repeats the plan (crescendi b.20, 22, 28–29, 30, 32; più legg. b.34; ff b.38); coda with crescendi (b.39–40) and a rising final flourish.",
+ "marks": [
+  {
+   "v": 0,
+   "on": 1920,
+   "p": 75,
+   "name": "D#5",
+   "bar": 1,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 2880,
+   "p": 74,
+   "name": "D5",
+   "bar": 1,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 3840,
+   "p": 73,
+   "name": "C#5",
+   "bar": 1,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 4800,
+   "p": 72,
+   "name": "C5",
+   "bar": 1,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 5760,
+   "p": 71,
+   "name": "B4",
+   "bar": 2,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject"
+  },
+  {
+   "v": 0,
+   "on": 11520,
+   "p": 62,
+   "name": "D4",
+   "bar": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 12480,
+   "p": 71,
+   "name": "B4",
+   "bar": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 1,
+   "on": 13440,
+   "p": 58,
+   "name": "A#3",
+   "bar": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 14400,
+   "p": 57,
+   "name": "A3",
+   "bar": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 15360,
+   "p": 56,
+   "name": "G#3",
+   "bar": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 16320,
+   "p": 55,
+   "name": "G3",
+   "bar": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 17280,
+   "p": 74,
+   "name": "D5",
+   "bar": 4,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 23040,
+   "p": 73,
+   "name": "C#5",
+   "bar": 5,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 23040,
+   "p": 46,
+   "name": "A#2",
+   "bar": 5,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 24000,
+   "p": 54,
+   "name": "F#3",
+   "bar": 5,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 32640,
+   "p": 74,
+   "name": "D5",
+   "bar": 6,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 28800,
+   "p": 62,
+   "name": "D4",
+   "bar": 6,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 34560,
+   "p": 44,
+   "name": "G#2",
+   "bar": 7,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 35520,
+   "p": 52,
+   "name": "E3",
+   "bar": 7,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 44160,
+   "p": 72,
+   "name": "C5",
+   "bar": 8,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 40320,
+   "p": 60,
+   "name": "C4",
+   "bar": 8,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 46080,
+   "p": 42,
+   "name": "F#2",
+   "bar": 9,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 47040,
+   "p": 50,
+   "name": "D3",
+   "bar": 9,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 52800,
+   "p": 81,
+   "name": "A5",
+   "bar": 10,
+   "art": "accent",
+   "conf": "likely",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 59520,
+   "p": 78,
+   "name": "F#5",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 60480,
+   "p": 77,
+   "name": "F5",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 61440,
+   "p": 76,
+   "name": "E5",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 62400,
+   "p": 75,
+   "name": "D#5",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 57600,
+   "p": 47,
+   "name": "B2",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 58560,
+   "p": 55,
+   "name": "G3",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 63360,
+   "p": 74,
+   "name": "D5",
+   "bar": 12,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 63360,
+   "p": 59,
+   "name": "B3",
+   "bar": 12,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 69120,
+   "p": 66,
+   "name": "F#4",
+   "bar": 13,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 70080,
+   "p": 74,
+   "name": "D5",
+   "bar": 13,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 1,
+   "on": 71040,
+   "p": 61,
+   "name": "C#4",
+   "bar": 13,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 72000,
+   "p": 60,
+   "name": "C4",
+   "bar": 13,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 72960,
+   "p": 59,
+   "name": "B3",
+   "bar": 13,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 73920,
+   "p": 58,
+   "name": "A#3",
+   "bar": 13,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 74880,
+   "p": 57,
+   "name": "A3",
+   "bar": 14,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 74880,
+   "p": 78,
+   "name": "F#5",
+   "bar": 14,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 80640,
+   "p": 49,
+   "name": "C#3",
+   "bar": 15,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 81600,
+   "p": 45,
+   "name": "A2",
+   "bar": 15,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 82560,
+   "p": 49,
+   "name": "C#3",
+   "bar": 15,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 83520,
+   "p": 52,
+   "name": "E3",
+   "bar": 15,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 84480,
+   "p": 57,
+   "name": "A3",
+   "bar": 15,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 85440,
+   "p": 49,
+   "name": "C#3",
+   "bar": 15,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 86400,
+   "p": 66,
+   "name": "F#4",
+   "bar": 16,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 87360,
+   "p": 62,
+   "name": "D4",
+   "bar": 16,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 88320,
+   "p": 66,
+   "name": "F#4",
+   "bar": 16,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 89280,
+   "p": 69,
+   "name": "A4",
+   "bar": 16,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 90240,
+   "p": 74,
+   "name": "D5",
+   "bar": 16,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 91200,
+   "p": 66,
+   "name": "F#4",
+   "bar": 16,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 92160,
+   "p": 47,
+   "name": "B2",
+   "bar": 17,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 93120,
+   "p": 43,
+   "name": "G2",
+   "bar": 17,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 94080,
+   "p": 47,
+   "name": "B2",
+   "bar": 17,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 95040,
+   "p": 50,
+   "name": "D3",
+   "bar": 17,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 96000,
+   "p": 55,
+   "name": "G3",
+   "bar": 17,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 96960,
+   "p": 47,
+   "name": "B2",
+   "bar": 17,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 97920,
+   "p": 64,
+   "name": "E4",
+   "bar": 18,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 98880,
+   "p": 60,
+   "name": "C4",
+   "bar": 18,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 99840,
+   "p": 64,
+   "name": "E4",
+   "bar": 18,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 100800,
+   "p": 67,
+   "name": "G4",
+   "bar": 18,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 101760,
+   "p": 72,
+   "name": "C5",
+   "bar": 18,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 102720,
+   "p": 64,
+   "name": "E4",
+   "bar": 18,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 115200,
+   "p": 72,
+   "name": "C5",
+   "bar": 21,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 120960,
+   "p": 43,
+   "name": "G2",
+   "bar": 22,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 121920,
+   "p": 52,
+   "name": "E3",
+   "bar": 22,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 126720,
+   "p": 55,
+   "name": "G3",
+   "bar": 23,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 132480,
+   "p": 63,
+   "name": "D#4",
+   "bar": 24,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 133440,
+   "p": 71,
+   "name": "B4",
+   "bar": 24,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 138240,
+   "p": 79,
+   "name": "G5",
+   "bar": 25,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 142080,
+   "p": 55,
+   "name": "G3",
+   "bar": 25,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 144000,
+   "p": 73,
+   "name": "C#5",
+   "bar": 26,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 144960,
+   "p": 81,
+   "name": "A5",
+   "bar": 26,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 149760,
+   "p": 77,
+   "name": "F5",
+   "bar": 27,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 153600,
+   "p": 53,
+   "name": "E#3",
+   "bar": 27,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 155520,
+   "p": 71,
+   "name": "B4",
+   "bar": 28,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 156480,
+   "p": 79,
+   "name": "G5",
+   "bar": 28,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 162240,
+   "p": 79,
+   "name": "G5",
+   "bar": 29,
+   "art": "accent",
+   "conf": "sure",
+   "role": "top of the climb"
+  },
+  {
+   "v": 1,
+   "on": 162240,
+   "p": 64,
+   "name": "E4",
+   "bar": 29,
+   "art": "accent",
+   "conf": "sure",
+   "role": "top of the climb"
+  },
+  {
+   "v": 0,
+   "on": 167040,
+   "p": 65,
+   "name": "F4",
+   "bar": 30,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 168000,
+   "p": 74,
+   "name": "D5",
+   "bar": 30,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 172800,
+   "p": 77,
+   "name": "F5",
+   "bar": 31,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 1,
+   "on": 178560,
+   "p": 48,
+   "name": "C3",
+   "bar": 32,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 179520,
+   "p": 57,
+   "name": "A3",
+   "bar": 32,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 184320,
+   "p": 60,
+   "name": "C4",
+   "bar": 33,
+   "art": "accent",
+   "conf": "sure",
+   "role": "tied note of the countersubject / subject tail"
+  },
+  {
+   "v": 0,
+   "on": 190080,
+   "p": 68,
+   "name": "G#4",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 191040,
+   "p": 64,
+   "name": "E4",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 192000,
+   "p": 68,
+   "name": "G#4",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 192960,
+   "p": 71,
+   "name": "B4",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 193920,
+   "p": 76,
+   "name": "E5",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 194880,
+   "p": 68,
+   "name": "G#4",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 195840,
+   "p": 49,
+   "name": "C#3",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 196800,
+   "p": 45,
+   "name": "A2",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 197760,
+   "p": 49,
+   "name": "C#3",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 198720,
+   "p": 52,
+   "name": "E3",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 199680,
+   "p": 57,
+   "name": "A3",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 200640,
+   "p": 49,
+   "name": "C#3",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 201600,
+   "p": 66,
+   "name": "F#4",
+   "bar": 36,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 202560,
+   "p": 62,
+   "name": "D4",
+   "bar": 36,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 203520,
+   "p": 66,
+   "name": "F#4",
+   "bar": 36,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 204480,
+   "p": 69,
+   "name": "A4",
+   "bar": 36,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 205440,
+   "p": 74,
+   "name": "D5",
+   "bar": 36,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 206400,
+   "p": 66,
+   "name": "F#4",
+   "bar": 36,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 207360,
+   "p": 47,
+   "name": "B2",
+   "bar": 37,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 208320,
+   "p": 43,
+   "name": "G2",
+   "bar": 37,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 209280,
+   "p": 47,
+   "name": "B2",
+   "bar": 37,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 210240,
+   "p": 50,
+   "name": "D3",
+   "bar": 37,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 211200,
+   "p": 55,
+   "name": "G3",
+   "bar": 37,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 1,
+   "on": 212160,
+   "p": 47,
+   "name": "B2",
+   "bar": 37,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "episode eighths"
+  },
+  {
+   "v": 0,
+   "on": 220800,
+   "p": 75,
+   "name": "D#5",
+   "bar": 39,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 221760,
+   "p": 74,
+   "name": "D5",
+   "bar": 39,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 222720,
+   "p": 73,
+   "name": "C#5",
+   "bar": 39,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 0,
+   "on": 223680,
+   "p": 72,
+   "name": "C5",
+   "bar": 39,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 226560,
+   "p": 63,
+   "name": "D#4",
+   "bar": 40,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 227520,
+   "p": 62,
+   "name": "D4",
+   "bar": 40,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 228480,
+   "p": 61,
+   "name": "C#4",
+   "bar": 40,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 229440,
+   "p": 60,
+   "name": "C4",
+   "bar": 40,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "subject, chromatic descent"
+  },
+  {
+   "v": 1,
+   "on": 230400,
+   "p": 59,
+   "name": "B3",
+   "bar": 41,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 231360,
+   "p": 57,
+   "name": "A3",
+   "bar": 41,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 232320,
+   "p": 59,
+   "name": "B3",
+   "bar": 41,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 234240,
+   "p": 47,
+   "name": "B2",
+   "bar": 41,
+   "art": "staccato",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 236160,
+   "to": 236640,
+   "bars": "42.0–42.1",
+   "names": "G#3–E4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "the closing upbeat run to the final E"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 11520,
+   "bar": 3,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 57600,
+   "bar": 11,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 103680,
+   "bar": 19,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  },
+  {
+   "on": 213120,
+   "bar": 38,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0
+   ],
+   "from": 0,
+   "to": 1440,
+   "bars": "1.0–1.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 11520,
+   "to": 12960,
+   "bars": "3.0–3.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 47040,
+   "to": 53280,
+   "bars": "9.2–10.3",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 57600,
+   "to": 59040,
+   "bars": "11.0–11.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 69120,
+   "to": 70560,
+   "bars": "13.0–13.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 109440,
+   "to": 110880,
+   "bars": "20.0–20.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 120960,
+   "to": 122400,
+   "bars": "22.0–22.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 157920,
+   "to": 161760,
+   "bars": "28.5–29.1",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 167040,
+   "to": 168480,
+   "bars": "30.0–30.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 178560,
+   "to": 180000,
+   "bars": "32.0–32.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 218880,
+   "to": 220320,
+   "bars": "39.0–39.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 224640,
+   "to": 226080,
+   "bars": "40.0–40.3",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 236160,
+   "to": 236640,
+   "bars": "42.0–42.1",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "text": "Allegro deciso.",
+   "en": "quick and decided (footnote 1: Tausig's \"Allegro con fuoco\" reading preferred)",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "non legato, distintamente",
+   "en": "detached, distinctly (footnote *: C. P. E. Bach, the liveliness of the Allegro is shown in detached notes)",
+   "conf": "sure"
+  },
+  {
+   "on": 13440,
+   "bar": 3,
+   "pos": 4,
+   "voices": [
+    0
+   ],
+   "text": "Counter-subject / Contrasubject",
+   "en": "the countersubject begins (footnote 3)",
+   "conf": "sure"
+  },
+  {
+   "on": 25440,
+   "bar": 5,
+   "pos": 5,
+   "voices": [
+    1
+   ],
+   "text": "C.S.",
+   "en": "countersubject in the bass",
+   "conf": "sure"
+  },
+  {
+   "on": 80640,
+   "bar": 15,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "text": "più leggiero",
+   "en": "lighter",
+   "conf": "sure"
+  },
+  {
+   "on": 190080,
+   "bar": 34,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "text": "più legg.",
+   "en": "più leggiero: lighter",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1
+    ]
+   },
+   "applies": "unmarked notes, throughout",
+   "art": "non legato, distintamente: every note detached, an even, rather bright forte prevailing over dynamic nuance (footnotes 1 and *)",
+   "source": "text at bar 1; footnotes 1 and *",
+   "conf": "sure"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1
+    ],
+    "entries": true
+   },
+   "applies": "subject entries",
+   "art": "the opening broken chord under a short crescendo; the chromatic off-beat descent dotted (first half); both eighths of bar 3 type staccato and part of the subject (footnote 2); the tied note of the tail accented",
+   "source": "printed at bars 1–14, 22–33, 39–40",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 11,
+   "sign": "double bar",
+   "en": "second group of entries"
+  },
+  {
+   "beforeBar": 20,
+   "sign": "double bar",
+   "en": "second half: bars 1–19 in contrapuntal inversion (footnote 4)"
+  },
+  {
+   "beforeBar": 30,
+   "sign": "double bar",
+   "en": "second group of the second half"
+  },
+  {
+   "beforeBar": 39,
+   "sign": "double bar",
+   "en": "coda"
+  }
+ ],
+ "ornaments": [],
+ "ornamentsNote": "No ornaments in I/10.",
+ "pedal": [],
+ "pedalNote": "No pedal marks in I/10.",
+ "fingering": {
+  "summary": [
+   "Skipped in this pass (fingerings not transcribed)."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": 62,
+   "at": "Allegro deciso",
+   "de": "… ein durchschnittliches, stellenweise mehr oder weniger helles forte soll vorherrschen, als vielmehr um grosse Deutlichkeit des Figurenspiels.",
+   "en": "Little dynamic nuance: an even, in places brighter forte should prevail, with great clarity of the figuration.",
+   "conf": "sure"
+  },
+  {
+   "n": "*",
+   "page": 62,
+   "at": "bar 1, distintamente",
+   "de": "„Die Lebhaftigkeit des Allegro wird gemeiniglich (im Allgemeinen) in gestossenen Noten … vorgestellet.“ (Ph. E. Bach)",
+   "en": "C. P. E. Bach: the liveliness of an Allegro is generally shown in detached notes.",
+   "conf": "sure"
+  },
+  {
+   "n": 2,
+   "page": 62,
+   "at": "bar 3",
+   "de": "Den Herausgeber bedünkt es, dass beide Achtelschläge noch zum Thema gerechnet werden müssen.",
+   "en": "Both eighth-note strokes (b.3) still belong to the subject: give them the subject's weight.",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Read from 200 dpi greyscale crops, one system at a time (upscaled 2x for reading).",
+  "Economical pass: fingering, octave doublings and ossias skipped; footnotes 3 and 4 (structure, Riemann's division) and the Anhang (pdf 66–67) omitted as they do not change the playing.",
+  "In the second half (b.20–38) Busoni leaves the chromatic off-beat descents undotted except in the coda (b.39–40); they are read as unmarked, not as legato."
+ ],
+ "counts": {
+  "marks": 122,
+  "slurs": 1,
+  "dyn": 5,
+  "hairpins": 13,
+  "text": 6,
+  "breaths": 0,
+  "ornaments": 0,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 3,
+  "byArt": {
+   "staccato": 104,
+   "accent": 18
+  },
+  "bySlurKind": {
+   "slur": 1
+  },
+  "byConf": {
+   "sure": 135,
+   "likely": 6
+  },
+  "byConfAll": {
+   "sure": 141,
+   "likely": 6
+  }
+ }
+}

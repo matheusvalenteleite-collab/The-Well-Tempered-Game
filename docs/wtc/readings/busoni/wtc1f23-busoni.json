@@ -1,0 +1,686 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc1f23",
+ "title": "Fugue 23 in B major, BWV 868",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperirte Clavier, Erster Theil, bearbeitet, erläutert und mit daran anknüpfenden Beispielen und Anweisungen für das Studium der modernen Clavierspieltechnik herausgegeben",
+  "publisher": "G. Schirmer, New York, 1894 (plate 11652)",
+  "pages": {
+   "pdf": [
+    142,
+    143,
+    144
+   ],
+   "printed": [
+    140,
+    141,
+    142
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1894)"
+ },
+ "tempo": {
+  "text": "Poco Andante.",
+  "en": "a little walking",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 249600,
+    "bar": 33,
+    "pos": 8,
+    "text": "allarg.",
+    "en": "broadening into the last chord",
+    "kind": "broaden",
+    "conf": "sure",
+    "applied": false
+   }
+  ]
+ },
+ "character": "\"Mit mild-ernstem Ausdruck. dolce, ma serioso\" (with a gently serious expression); prelude and fugue share one theme (footnote 1).",
+ "dynamicPlan": "Tenor and alto mf (b.1, 3); dolce (b.9); poco marc. entries (b.11, 16), marc. bass (b.21); cresc. (b.23); dolce (b.26), cresc. (b.27); f at Part III (b.29); più f (b.31); cresc. (b.32); allarg. to ff and fermatas (b.33–34).",
+ "marks": [
+  {
+   "v": 2,
+   "on": 960,
+   "p": 59,
+   "name": "B3",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head (\"tenuto\")"
+  },
+  {
+   "v": 2,
+   "on": 1920,
+   "p": 58,
+   "name": "A#3",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head (\"tenuto\")"
+  },
+  {
+   "v": 2,
+   "on": 2880,
+   "p": 59,
+   "name": "B3",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head (\"tenuto\")"
+  },
+  {
+   "v": 2,
+   "on": 3840,
+   "p": 61,
+   "name": "C#4",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "the quarter after the head"
+  },
+  {
+   "v": 2,
+   "on": 9600,
+   "p": 64,
+   "name": "E4",
+   "bar": 2,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 10560,
+   "p": 63,
+   "name": "D#4",
+   "bar": 2,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 19200,
+   "p": 66,
+   "name": "F#4",
+   "bar": 3,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "the quarter after the head"
+  },
+  {
+   "v": 0,
+   "on": 34560,
+   "p": 73,
+   "name": "C#5",
+   "bar": 5,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "the quarter after the head"
+  },
+  {
+   "v": 3,
+   "on": 49920,
+   "p": 54,
+   "name": "F#3",
+   "bar": 7,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "the quarter after the head"
+  },
+  {
+   "v": 0,
+   "on": 67200,
+   "p": 73,
+   "name": "C#5",
+   "bar": 9,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 68160,
+   "p": 75,
+   "name": "D#5",
+   "bar": 9,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 69120,
+   "p": 68,
+   "name": "G#4",
+   "bar": 10,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 84480,
+   "p": 61,
+   "name": "C#4",
+   "bar": 12,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "the quarter after the head"
+  },
+  {
+   "v": 1,
+   "on": 119040,
+   "p": 68,
+   "name": "G#4",
+   "bar": 16,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 141120,
+   "p": 75,
+   "name": "D#5",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 142080,
+   "p": 76,
+   "name": "E5",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 161280,
+   "p": 49,
+   "name": "C#3",
+   "bar": 22,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 177600,
+   "p": 64,
+   "name": "E4",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "tenor entry in E (footnote 2)"
+  },
+  {
+   "v": 2,
+   "on": 178560,
+   "p": 63,
+   "name": "D#4",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "tenor entry in E (footnote 2)"
+  },
+  {
+   "v": 2,
+   "on": 179520,
+   "p": 64,
+   "name": "E4",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "tenor entry in E (footnote 2)"
+  },
+  {
+   "v": 0,
+   "on": 253440,
+   "p": 75,
+   "name": "D#5",
+   "bar": 34,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 3,
+   "on": 253440,
+   "p": 47,
+   "name": "B2",
+   "bar": 34,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 2,
+   "from": 5760,
+   "to": 11520,
+   "bars": "1.12–2.8",
+   "names": "F#3–C#4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "run to the long note"
+  },
+  {
+   "v": 2,
+   "from": 11520,
+   "to": 15360,
+   "bars": "2.8–3.0",
+   "names": "C#4–B3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "trill note into its resolution"
+  },
+  {
+   "v": 1,
+   "from": 21120,
+   "to": 26880,
+   "bars": "3.12–4.8",
+   "names": "B3–G#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "run to the long note"
+  },
+  {
+   "v": 0,
+   "from": 36480,
+   "to": 42240,
+   "bars": "5.12–6.8",
+   "names": "F#4–C#5",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "run to the long note"
+  },
+  {
+   "v": 3,
+   "from": 51840,
+   "to": 57600,
+   "bars": "7.12–8.8",
+   "names": "B2–G#3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "run to the long note"
+  },
+  {
+   "v": 2,
+   "from": 86400,
+   "to": 92160,
+   "bars": "12.4–12.16",
+   "names": "F#3–C#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "run to the long note"
+  },
+  {
+   "v": 2,
+   "from": 177600,
+   "to": 180480,
+   "bars": "24.2–24.8",
+   "names": "E4–F#4",
+   "kind": "slur",
+   "conf": "likely"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "mark": "mf",
+   "conf": "sure",
+   "role": "tenor subject"
+  },
+  {
+   "on": 16320,
+   "bar": 3,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "mark": "mf",
+   "conf": "sure",
+   "role": "alto answer"
+  },
+  {
+   "on": 61440,
+   "bar": 9,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "mark": "dolce",
+   "conf": "sure"
+  },
+  {
+   "on": 192000,
+   "bar": 26,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "dolce",
+   "conf": "sure"
+  },
+  {
+   "on": 203520,
+   "bar": 27,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "cresc.",
+   "conf": "sure"
+  },
+  {
+   "on": 215040,
+   "bar": 29,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "f",
+   "conf": "sure",
+   "role": "alto entry"
+  },
+  {
+   "on": 230400,
+   "bar": 31,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "più f",
+   "conf": "sure",
+   "role": "soprano answer"
+  },
+  {
+   "on": 253440,
+   "bar": 34,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0
+   ],
+   "from": 170880,
+   "to": 172800,
+   "bars": "23.4–23.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 173760,
+   "to": 176160,
+   "bars": "23.10–23.15",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2,
+    3
+   ],
+   "from": 240000,
+   "to": 245280,
+   "bars": "32.4–32.15",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "Poco Andante. Mit mild-ernstem Ausdruck. dolce, ma serioso.",
+   "en": "a little walking; with a gently serious expression; sweet but serious",
+   "conf": "sure"
+  },
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "tenuto",
+   "en": "held: the head eighths",
+   "conf": "sure"
+  },
+  {
+   "on": 69120,
+   "bar": 10,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "ten.",
+   "en": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "on": 81600,
+   "bar": 11,
+   "pos": 10,
+   "voices": [
+    2
+   ],
+   "text": "poco marc.",
+   "en": "a little marked: the tenor entry",
+   "conf": "sure"
+  },
+  {
+   "on": 115200,
+   "bar": 16,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "poco marc.",
+   "en": "a little marked: the alto entry",
+   "conf": "sure"
+  },
+  {
+   "on": 158400,
+   "bar": 21,
+   "pos": 10,
+   "voices": [
+    3
+   ],
+   "text": "marc.",
+   "en": "marked: the bass entry",
+   "conf": "likely"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "the head eighths held (\"tenuto\"), the following quarter with a dash, the sixteenth run slurred to the long note; the long note often trilled",
+   "source": "printed in full at b.1–2; dashes on the quarter at most later entries; (tr) suggested at b.4, 8, 13, 23",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 9,
+   "sign": "double bar",
+   "en": "end of the exposition"
+  },
+  {
+   "beforeBar": 18,
+   "sign": "double bar",
+   "en": "before the soprano entry"
+  },
+  {
+   "beforeBar": 29,
+   "sign": "double bar",
+   "en": "Part III"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 2,
+   "on": 11520,
+   "p": 61,
+   "name": "C#4",
+   "bar": 2,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "none printed",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 26880,
+   "p": 68,
+   "name": "G#4",
+   "bar": 4,
+   "pos": 8,
+   "sign": "(tr)",
+   "realisation": "none printed; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 3,
+   "on": 57600,
+   "p": 56,
+   "name": "G#3",
+   "bar": 8,
+   "pos": 8,
+   "sign": "(tr)",
+   "realisation": "none printed; bracketed",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 92160,
+   "p": 61,
+   "name": "C#4",
+   "bar": 13,
+   "pos": 0,
+   "sign": "(tr)",
+   "realisation": "none printed; bracketed",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 3,
+   "on": 168960,
+   "p": 49,
+   "name": "C#3",
+   "bar": 23,
+   "pos": 0,
+   "sign": "(tr)",
+   "realisation": "none printed; bracketed",
+   "conf": "sure",
+   "optional": true
+  }
+ ],
+ "ornamentsNote": "One printed trill (b.2, tenor); bracketed (tr) suggestions at b.4, 8, 13, 23. Skipped: the \"Ausführung\" hand-distribution example (b.15), the \"oder\" bass octave ossia (b.28), and footnote 3's inner-voice stretto in notes.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "Economy reading from 300 dpi system crops; fingering, ossias, doublings skipped; ties not recorded.",
+  "Footnotes 1–3 and NB are analytic and not transcribed.",
+  "Countersubject eighths carry scattered dashes (b.4, 6, 9, 19, 26–28) that were transcribed only where clearly placed."
+ ],
+ "counts": {
+  "marks": 22,
+  "slurs": 7,
+  "dyn": 8,
+  "hairpins": 3,
+  "text": 6,
+  "breaths": 0,
+  "ornaments": 5,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 1,
+  "footnotes": 0,
+  "byArt": {
+   "tenuto": 20,
+   "fermata": 2
+  },
+  "bySlurKind": {
+   "phrase": 5,
+   "slur": 2
+  },
+  "byConf": {
+   "sure": 17,
+   "likely": 23
+  },
+  "byConfAll": {
+   "sure": 28,
+   "likely": 24
+  }
+ }
+}
