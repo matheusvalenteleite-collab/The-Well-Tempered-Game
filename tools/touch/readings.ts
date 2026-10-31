@@ -20,6 +20,8 @@
  * D392 (WTC 1.90): BUSONI for all 24 fugues of Book I. Busoni swapped fugues between his books: I/7 and
  * I/15 are read from his Book II volume (Breitkopf & Härtel, 1915), so a file may override the
  * edition's work and year (EDITION_FILES).
+ * D394 (WTC 1.91): BUSONI for all 24 fugues of Book II too, from his Book II volume (Breitkopf & Härtel,
+ * 1915: EDITIONS' `book2`), except II/7 and II/15, which he printed in his Book I volume (Schirmer, 1894).
  * Run: node tools/touch/readings.ts
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -93,11 +95,23 @@ for (const src of SOURCES) {
 for (const id of Object.keys(out)) out[id] = out[id].slice(0, 3);
 
 /** D385: the whole-piece editions (docs/wtc/readings/<edition>/), each after the books' readings. */
-const EDITIONS = [{ id: "busoni", author: "BUSONI", work: "Das wohltemperirte Clavier, Erster Theil (G. Schirmer, 1894)", year: 1894 }];
+const EDITIONS = [
+  {
+    id: "busoni",
+    author: "BUSONI",
+    work: "Das wohltemperirte Clavier, Erster Theil (G. Schirmer, 1894)",
+    year: 1894,
+    // D394: Book II's fugues from his Book II volume.
+    book2: { work: "Das wohltemperierte Klavier, Zweiter Teil (Breitkopf & Härtel, 1915)", year: 1915 },
+  },
+];
 /** D392: a file read from another volume of the edition than the edition's own (its work and year). */
 const EDITION_FILES: Record<string, { work: string; year: number }> = {
   "wtc1f07-busoni.json": { work: "Das wohltemperierte Klavier, Zweiter Teil (Breitkopf & Härtel, 1915), as Fuga VII*", year: 1915 },
   "wtc1f15-busoni.json": { work: "Das wohltemperierte Klavier, Zweiter Teil (Breitkopf & Härtel, 1915), as Fuga XV", year: 1915 },
+  // D394: and Book II's E-flat and G-major fugues from his Book I volume.
+  "wtc2f07-busoni.json": { work: "Das wohltemperirte Clavier, Erster Theil (G. Schirmer, 1894), as Fuga VII", year: 1894 },
+  "wtc2f15-busoni.json": { work: "Das wohltemperirte Clavier, Erster Theil (G. Schirmer, 1894), as Fuga XV", year: 1894 },
 };
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -141,7 +155,7 @@ for (const ed of EDITIONS) {
       const join = inSlur(i) && !short ? true : a.has("portato") ? false : null;
       return { join, short, accent: a.has("accent") || a.has("marcato") ? true : null };
     });
-    const vol = EDITION_FILES[file];
+    const vol = EDITION_FILES[file] ?? (/^wtc2f/.test(id) ? ed.book2 : undefined);
     (out[id] ??= []).push({
       id: ed.id,
       author: ed.author,

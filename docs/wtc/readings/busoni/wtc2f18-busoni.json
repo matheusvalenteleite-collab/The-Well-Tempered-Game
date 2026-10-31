@@ -1,0 +1,780 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar starts as in pieces.json bars[]). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f18",
+ "title": "Fugue 18 in G♯ minor, BWV 887",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Des wohltemperierten Klavieres zweiter Teil (J. S. Bach, Klavierwerke, Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (Edition Nr. 8276, plate 27452)",
+  "pages": {
+   "pdf": [
+    57,
+    58,
+    59,
+    60,
+    61
+   ],
+   "printed": [
+    48,
+    49,
+    50,
+    51,
+    52
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1915)"
+ },
+ "tempo": {
+  "text": "Tranquillo melodioso e meditativo",
+  "en": "calm, singing and meditative",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 800640,
+    "bar": 140,
+    "pos": 0,
+    "text": "sostenendo",
+    "en": "holding back to the end",
+    "kind": "slow",
+    "conf": "sure",
+    "applied": false
+   }
+  ]
+ },
+ "character": "Double fugue, \"a due soggetti\": Fuga I (b.1), Fuga II (b.61.4, a tempo), Fuga I e II (b.97). \"mezza voce egualmente e tutto legato\"; the close \"espressivo ma semplicemente\".",
+ "dynamicPlan": "Mezza voce throughout; small swells (b.20, 22); cresc. (b.25) and dim. (b.27); cresc. to the bass trill (b.30–31); swells on the alto (b.45–48); dim. hairpins (b.107–110); espressivo ma semplicemente (b.139), sostenendo to the end with hairpins (b.140–141).",
+ "marks": [
+  {
+   "v": 0,
+   "on": 184320,
+   "p": 75,
+   "name": "D#5",
+   "bar": 33,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 187200,
+   "p": 68,
+   "name": "G#4",
+   "bar": 33,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 190080,
+   "p": 66,
+   "name": "F#4",
+   "bar": 34,
+   "art": "staccato",
+   "conf": "unsure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 0,
+   "to": 22080,
+   "bars": "1.0–4.10",
+   "names": "G#4–A#4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 1,
+   "from": 23040,
+   "to": 45120,
+   "bars": "5.0–8.10",
+   "names": "D#4–E#4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "answer (alto)"
+  },
+  {
+   "v": 2,
+   "from": 69120,
+   "to": 91200,
+   "bars": "13.0–16.10",
+   "names": "G#3–A#3",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (bass)"
+  },
+  {
+   "v": 1,
+   "from": 103680,
+   "to": 125760,
+   "bars": "19.0–22.10",
+   "names": "G#4–A#4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (alto)"
+  },
+  {
+   "v": 2,
+   "from": 184320,
+   "to": 206400,
+   "bars": "33.0–36.10",
+   "names": "D#3–E#3",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "answer (bass)"
+  },
+  {
+   "v": 1,
+   "from": 230400,
+   "to": 239040,
+   "bars": "41.0–42.6",
+   "names": "D#4–A#4",
+   "kind": "slur",
+   "conf": "unsure",
+   "role": "middle voice brought out (footnote 1)"
+  },
+  {
+   "v": 0,
+   "from": 253440,
+   "to": 275520,
+   "bars": "45.0–48.10",
+   "names": "D#5–E#5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 2,
+   "from": 311040,
+   "to": 338880,
+   "bars": "55.0–59.10",
+   "names": "G#2–D#2",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (bass)"
+  },
+  {
+   "v": 0,
+   "from": 347520,
+   "to": 368640,
+   "bars": "61.4–65.0",
+   "names": "D#5–D#5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 2, answer (soprano)"
+  },
+  {
+   "v": 1,
+   "from": 376320,
+   "to": 397440,
+   "bars": "66.4–70.0",
+   "names": "G#4–G#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 2 (alto)"
+  },
+  {
+   "v": 2,
+   "from": 405120,
+   "to": 417600,
+   "bars": "71.4–73.6",
+   "names": "C#4–C#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 2 (bass)"
+  },
+  {
+   "v": 0,
+   "from": 451200,
+   "to": 469440,
+   "bars": "79.4–82.6",
+   "names": "G#5–F##5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 2 (soprano)"
+  },
+  {
+   "v": 2,
+   "from": 552960,
+   "to": 576000,
+   "bars": "97.0–101.0",
+   "names": "G#2–B2",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 1 (bass) with subject 2 above"
+  },
+  {
+   "v": 1,
+   "from": 554880,
+   "to": 576000,
+   "bars": "97.4–101.0",
+   "names": "G#4–G#4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 2 (alto)"
+  },
+  {
+   "v": 0,
+   "from": 587520,
+   "to": 609600,
+   "bars": "103.0–106.10",
+   "names": "D#5–E#5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 1 answer (soprano)"
+  },
+  {
+   "v": 1,
+   "from": 589440,
+   "to": 610560,
+   "bars": "103.4–107.0",
+   "names": "D#4–D#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 2 answer (alto)"
+  },
+  {
+   "v": 1,
+   "from": 633600,
+   "to": 655680,
+   "bars": "111.0–114.10",
+   "names": "E4–F#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 1 in E (alto)"
+  },
+  {
+   "v": 0,
+   "from": 635520,
+   "to": 653760,
+   "bars": "111.4–114.6",
+   "names": "E5–D#5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 2 in e (soprano)"
+  },
+  {
+   "v": 1,
+   "from": 714240,
+   "to": 736320,
+   "bars": "125.0–128.10",
+   "names": "G#3–A#3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 1 (alto)"
+  },
+  {
+   "v": 2,
+   "from": 716160,
+   "to": 736320,
+   "bars": "125.4–128.10",
+   "names": "G#2–C#3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 2 (bass)"
+  },
+  {
+   "v": 0,
+   "from": 771840,
+   "to": 793920,
+   "bars": "135.0–138.10",
+   "names": "G#4–A#4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject 1 (soprano)"
+  },
+  {
+   "v": 1,
+   "from": 773760,
+   "to": 792000,
+   "bars": "135.4–138.6",
+   "names": "G#4–F##4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject 2 (alto)"
+  }
+ ],
+ "dyn": [],
+ "hairpins": [
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 111360,
+   "to": 113280,
+   "bars": "20.4–20.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 113280,
+   "to": 115200,
+   "bars": "20.8–21.0",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 122880,
+   "to": 125280,
+   "bars": "22.4–22.9",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 125280,
+   "to": 127680,
+   "bars": "22.9–23.2",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 138240,
+   "to": 141120,
+   "bars": "25.0–25.6",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 144000,
+   "to": 146880,
+   "bars": "26.0–26.6",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 167040,
+   "to": 177600,
+   "bars": "30.0–31.10",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 256320,
+   "to": 258240,
+   "bars": "45.6–45.10",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 262080,
+   "to": 264000,
+   "bars": "46.6–46.10",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 267840,
+   "to": 269760,
+   "bars": "47.6–47.10",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 270720,
+   "to": 273600,
+   "bars": "48.0–48.6",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 610560,
+   "to": 615360,
+   "bars": "107.0–107.10",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 616320,
+   "to": 620160,
+   "bars": "108.0–108.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 622080,
+   "to": 625920,
+   "bars": "109.0–109.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 627840,
+   "to": 631680,
+   "bars": "110.0–110.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 800640,
+   "to": 802560,
+   "bars": "140.0–140.4",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 802560,
+   "to": 804480,
+   "bars": "140.4–140.8",
+   "dir": "dim",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 806400,
+   "to": 809280,
+   "bars": "141.0–141.6",
+   "dir": "dim",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 803520,
+   "to": 806400,
+   "bars": "140.6–140.12",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 806400,
+   "to": 811200,
+   "bars": "141.0–141.10",
+   "dir": "dim",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "Tranquillo melodioso e meditativo",
+   "en": "calm, singing and meditative",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "mezza voce egualmente e tutto legato",
+   "en": "half voice, even, and all legato",
+   "conf": "sure"
+  },
+  {
+   "on": 139200,
+   "bar": 25,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 150720,
+   "bar": 27,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "dim.",
+   "en": "growing softer",
+   "conf": "sure"
+  },
+  {
+   "on": 512640,
+   "bar": 90,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "sostenuto",
+   "en": "sustained (footnote 1: the following six bars are an inserted parenthesis)",
+   "conf": "sure"
+  },
+  {
+   "on": 657600,
+   "bar": 115,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "marc.",
+   "en": "marked: the bass",
+   "conf": "likely"
+  },
+  {
+   "on": 794880,
+   "bar": 139,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "espressivo ma semplicemente",
+   "en": "expressive but simple",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "from": 0,
+    "to": 823680
+   },
+   "applies": "all voices",
+   "art": "legato throughout (\"tutto legato\"); each subject entry under one phrasing arc",
+   "source": "printed at b.1",
+   "conf": "sure"
+  },
+  {
+   "scope": {
+    "voices": [
+     1
+    ],
+    "from": 230400,
+    "to": 253440
+   },
+   "applies": "the alto, b.41–44",
+   "art": "brought out a little (voicing, not articulation)",
+   "source": "footnote 1, p.58",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 33,
+   "sign": "double bar",
+   "en": "bass answer"
+  },
+  {
+   "beforeBar": 61,
+   "pos": 4,
+   "sign": "double bar + \"Fuga II\"",
+   "en": "second fugue (chromatic subject)"
+  },
+  {
+   "beforeBar": 97,
+   "sign": "double bar + \"Fuga I e II\"",
+   "en": "both subjects combined"
+  },
+  {
+   "beforeBar": 135,
+   "sign": "double bar",
+   "en": "last entries"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 2,
+   "on": 167040,
+   "p": 47,
+   "name": "B2",
+   "bar": 30,
+   "pos": 0,
+   "sign": "tr",
+   "realisation": "no realisation printed; a long trill on the bass B",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 339840,
+   "p": 40,
+   "name": "E2",
+   "bar": 60,
+   "pos": 0,
+   "sign": "tr",
+   "realisation": "no realisation printed; trill on the held bass E closing Fuga I",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 365760,
+   "p": 74,
+   "name": "C##5",
+   "bar": 64,
+   "pos": 6,
+   "sign": "tr",
+   "realisation": "trill closed by the written grace notes (B♯–C𝄪)",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 394560,
+   "p": 67,
+   "name": "F##4",
+   "bar": 69,
+   "pos": 6,
+   "sign": "(tr)",
+   "realisation": "no realisation printed; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 423360,
+   "p": 60,
+   "name": "B#3",
+   "bar": 74,
+   "pos": 6,
+   "sign": "(tr)",
+   "realisation": "no realisation printed; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  }
+ ],
+ "ornamentsNote": "Trills at b.30 and b.60 (bass) and b.64 (soprano, closed by grace notes); bracketed (tr) at b.69 and b.74. Skipped: \"Idee:\" staves (b.37–41, 69–73, 92–96), the NB variant (b.83) and the analytic footnotes and commentary on p.59.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief: gameplay does not use fingering)."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": 58,
+   "at": "b.41",
+   "de": "Die Mittelstimme für die nächsten vier Takte etwas hervorgehoben.",
+   "en": "Bring out the middle voice a little for the next four bars."
+  }
+ ],
+ "caveats": [
+  "Economy reading from 200 dpi system crops of the 1915 Breitkopf print; fingering and \"Idee\" staves skipped.",
+  "Busoni marks this fugue sparsely: legato, phrasing arcs over entries, a few hairpins. Inner-voice slurs and small ties are not transcribed.",
+  "\"sostenendo\" at b.59 (end of Fuga I) and \"sostenuto\" at b.90 are mid-piece tempo words and are not applied; \"a tempo\" follows at b.61."
+ ],
+ "counts": {
+  "marks": 3,
+  "slurs": 22,
+  "dyn": 0,
+  "hairpins": 20,
+  "text": 7,
+  "breaths": 0,
+  "ornaments": 5,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 2,
+  "footnotes": 1,
+  "byArt": {
+   "staccato": 3
+  },
+  "bySlurKind": {
+   "phrase": 21,
+   "slur": 1
+  },
+  "byConf": {
+   "likely": 25,
+   "unsure": 3,
+   "sure": 17
+  },
+  "byConfAll": {
+   "likely": 26,
+   "unsure": 3,
+   "sure": 30
+  }
+ },
+ "notes": [
+  "Game import (WTC 1.91, D394): \"1) middle voice brought out\" (bar 41) dropped from text: footnote 1's gloss (footnotes are not played), not printed words."
+ ]
+}

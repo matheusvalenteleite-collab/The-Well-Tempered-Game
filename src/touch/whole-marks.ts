@@ -404,7 +404,8 @@ function lineOf(f: TouchFugue, W: NonNullable<Reading["whole"]>, v: number): Who
     // A level or an accent (sf, sfz): letters; a ramp or a character said as a level (dim., dolce): a word.
     if (LEVEL_DB[mark] !== undefined && !/^(dolce|più dolce|mezza voce|sotto voce)$/.test(mark)) {
       const parts = dynParts(mark);
-      dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts, strong: false });
+      // D394: fp is a level (p) struck forte: the strong zone.
+      dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts, strong: SFZ.test(mark) });
       // Its words translated too ("p subito", "meno f").
       if (parts.some((p) => !p.italic)) words.push({ on: d.on, step: lowAt(d.on), text: mark, shown: "", gloss: glossOf(mark) ?? G(mark, mark, mark) });
     } else if (SFZ.test(mark)) dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts: dynParts(mark), strong: true });

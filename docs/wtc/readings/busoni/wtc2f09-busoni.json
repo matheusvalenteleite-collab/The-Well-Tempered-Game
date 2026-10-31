@@ -1,0 +1,484 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f09",
+ "title": "Fugue 9 in E major, BWV 878",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Johann Sebastian Bach, Das Wohltemperierte Klavier, Zweiter Teil, bearbeitet und erläutert von Ferruccio Busoni (Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (scan: a later printing)",
+  "source": "editions/busoni2/busoni-II-a.pdf",
+  "copyright": "public domain (Busoni d. 1924)",
+  "pages": {
+   "pdf": [
+    79,
+    80
+   ],
+   "printed": [
+    16,
+    17
+   ]
+  }
+ },
+ "tempo": {
+  "text": "Largo alla breve",
+  "en": "broad, in two (half-note beats)",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "Largo alla breve; the subject scolpito (b.1). Busoni marks only the entries, with V (variation) and D (diminution) labels and brackets.",
+ "dynamicPlan": "None printed.",
+ "marks": [
+  {
+   "v": 0,
+   "on": 645120,
+   "p": 68,
+   "name": "G#4",
+   "bar": 43,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 645120,
+   "p": 64,
+   "name": "E4",
+   "bar": 43,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 645120,
+   "p": 59,
+   "name": "B3",
+   "bar": 43,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 3,
+   "on": 645120,
+   "p": 47,
+   "name": "B2",
+   "bar": 43,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [],
+ "dyn": [],
+ "hairpins": [],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "scolpito",
+   "en": "sculpted: every note of the subject chiselled out, clearly separated in weight",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 23040,
+   "bar": 2,
+   "pos": 16,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 46080,
+   "bar": 4,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 69120,
+   "bar": 5,
+   "pos": 16,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 126720,
+   "bar": 9,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 145920,
+   "bar": 10,
+   "pos": 16,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 153600,
+   "bar": 11,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 230400,
+   "bar": 16,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 245760,
+   "bar": 17,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 276480,
+   "bar": 19,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 291840,
+   "bar": 20,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 306240,
+   "bar": 20,
+   "pos": 30,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "likely"
+  },
+  {
+   "on": 337920,
+   "bar": 23,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "SV",
+   "en": "entry label: soprano, variation",
+   "conf": "sure"
+  },
+  {
+   "on": 368640,
+   "bar": 25,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "BV",
+   "en": "entry label: bass, variation",
+   "conf": "sure"
+  },
+  {
+   "on": 395520,
+   "bar": 26,
+   "pos": 24,
+   "voices": [
+    0
+   ],
+   "text": "SD",
+   "en": "entry label: soprano in diminution",
+   "conf": "sure"
+  },
+  {
+   "on": 403200,
+   "bar": 27,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "text": "AD",
+   "en": "entry label: alto in diminution",
+   "conf": "sure"
+  },
+  {
+   "on": 418560,
+   "bar": 28,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "TD",
+   "en": "entry label: tenor in diminution",
+   "conf": "sure"
+  },
+  {
+   "on": 426240,
+   "bar": 28,
+   "pos": 24,
+   "voices": [
+    3
+   ],
+   "text": "BD",
+   "en": "entry label: bass in diminution",
+   "conf": "sure"
+  },
+  {
+   "on": 453120,
+   "bar": 30,
+   "pos": 16,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 474240,
+   "bar": 31,
+   "pos": 28,
+   "voices": [
+    0
+   ],
+   "text": "SV",
+   "en": "entry label: soprano, variation",
+   "conf": "likely"
+  },
+  {
+   "on": 526080,
+   "bar": 35,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "text": "∂D",
+   "en": "entry label: soprano-line in diminution and inversion (legend: \"Sopran in der Diminution und in der Gegenbewegung\")",
+   "conf": "likely"
+  },
+  {
+   "on": 529920,
+   "bar": 35,
+   "pos": 16,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 545280,
+   "bar": 36,
+   "pos": 16,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 564480,
+   "bar": 37,
+   "pos": 24,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 599040,
+   "bar": 40,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "scolpito, as on the first entry: each long note weighted and set apart",
+   "source": "b.1, extended by inference",
+   "conf": "unsure"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fromBar": 1,
+    "toBar": 43
+   },
+   "applies": "all notes",
+   "art": "no printed dynamics; shading by the voices' entries (Busoni's general note at Fugue VIII, footnote 1, p.70)",
+   "source": "Fugue VIII footnote 1",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 9,
+   "sign": "double bar",
+   "en": "end of the exposition"
+  },
+  {
+   "beforeBar": 16,
+   "sign": "double bar",
+   "en": "second section"
+  },
+  {
+   "beforeBar": 34,
+   "sign": "double bar",
+   "en": "third section"
+  },
+  {
+   "beforeBar": 40,
+   "sign": "double bar",
+   "en": "last bass entry and coda"
+  }
+ ],
+ "ornaments": [],
+ "ornamentsNote": "No ornaments printed.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "None printed."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 0,
+   "page": "II-a 80",
+   "at": "legend",
+   "de": "SV = Sopran-Variation; SD = Sopran in der Diminution; ∂D = Sopran in der Diminution und in der Gegenbewegung",
+   "en": "Key to the entry labels: V = variation, D = diminution, the turned letter = diminution and inversion.",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Entry labels are placed on the entry note given in pieces.json entries; labels in brackets for partial or hidden entries (VD, LD, TV, b.32 and 36–37) are not transcribed.",
+  "Skipped: the \"Idee des Basses\" and \"Idee\" ossia staves (b.30, 39–43) and the analytical commentary pages 81–83.",
+  "All arcs are ties over held notes; no slurs recorded. Read from 200 dpi crops."
+ ],
+ "counts": {
+  "marks": 4,
+  "slurs": 0,
+  "dyn": 0,
+  "hairpins": 0,
+  "text": 26,
+  "breaths": 0,
+  "ornaments": 0,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 1,
+  "byArt": {
+   "fermata": 4
+  },
+  "bySlurKind": {},
+  "byConf": {
+   "sure": 4
+  },
+  "byConfAll": {
+   "sure": 27,
+   "likely": 3
+  }
+ },
+ "notes": [
+  "Game import (WTC 1.91, D394): \"∂D (inverted S)\" (bar 35) kept as \"∂D\": the gloss was the transcriber's, not printed words."
+ ]
+}

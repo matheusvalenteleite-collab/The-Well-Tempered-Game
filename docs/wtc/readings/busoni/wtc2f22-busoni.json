@@ -1,0 +1,1433 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 3/2 bar is 11520 ticks; bar n starts at (n-1)*11520). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f22",
+ "title": "Fugue 22 in B♭ minor, BWV 891",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Johann Sebastian Bach, Das Wohltemperierte Klavier, Zweiter Teil, bearbeitet und erläutert von Ferruccio Busoni (Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (scan: a later printing)",
+  "source": "editions/busoni2/busoni-II-b.pdf",
+  "copyright": "public domain (Busoni d. 1924)",
+  "pages": {
+   "pdf": [
+    93,
+    94,
+    95,
+    96,
+    97
+   ],
+   "printed": [
+    24,
+    25,
+    26,
+    27,
+    28
+   ]
+  }
+ },
+ "tempo": {
+  "text": "Largamente alla breve",
+  "en": "broadly, beaten in halves",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "Largamente alla breve; f, the subject tenuto non legato; più legato from b.8. Every entry labelled S/A/T/B; the quarter-note countersubject wedged; fp on held notes against it.",
+ "dynamicPlan": "f at the start (b.1); fp on held notes (b.7, 13, 19, 44, 48, 54, 60, 91); small swells (b.34, 36, 65–66) and a chain of crescendos on the stretto motive (b.77–79); dim (b.87); crescendo to ff for the final four-voice stretto (b.95–96). Fermata on the last chord.",
+ "marks": [
+  {
+   "v": 0,
+   "on": 138240,
+   "p": 77,
+   "name": "F5",
+   "bar": 13,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 142080,
+   "p": 72,
+   "name": "C5",
+   "bar": 13,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 145920,
+   "p": 73,
+   "name": "Db5",
+   "bar": 13,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 1,
+   "on": 207360,
+   "p": 68,
+   "name": "Ab4",
+   "bar": 19,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "likely",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 211200,
+   "p": 76,
+   "name": "E5",
+   "bar": 19,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 215040,
+   "p": 77,
+   "name": "F5",
+   "bar": 19,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 1,
+   "on": 218880,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 20,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 1,
+   "on": 222720,
+   "p": 67,
+   "name": "G4",
+   "bar": 20,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 1,
+   "on": 226560,
+   "p": 72,
+   "name": "C5",
+   "bar": 20,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 218880,
+   "p": 79,
+   "name": "G5",
+   "bar": 20,
+   "pos": 0,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "ten.: held dotted whole"
+  },
+  {
+   "v": 0,
+   "on": 495360,
+   "p": 73,
+   "name": "Db5",
+   "bar": 44,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 499200,
+   "p": 69,
+   "name": "A4",
+   "bar": 44,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 503040,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 44,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 3,
+   "on": 541440,
+   "p": 51,
+   "name": "Eb3",
+   "bar": 48,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 3,
+   "on": 545280,
+   "p": 53,
+   "name": "F3",
+   "bar": 48,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 3,
+   "on": 549120,
+   "p": 54,
+   "name": "Gb3",
+   "bar": 48,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 610560,
+   "p": 54,
+   "name": "Gb3",
+   "bar": 54,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 614400,
+   "p": 53,
+   "name": "F3",
+   "bar": 54,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 618240,
+   "p": 51,
+   "name": "Eb3",
+   "bar": 54,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 679680,
+   "p": 68,
+   "name": "Ab4",
+   "bar": 60,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 683520,
+   "p": 67,
+   "name": "G4",
+   "bar": 60,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 687360,
+   "p": 68,
+   "name": "Ab4",
+   "bar": 60,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 1036800,
+   "p": 77,
+   "name": "F5",
+   "bar": 91,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 1040640,
+   "p": 66,
+   "name": "Gb4",
+   "bar": 91,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 1044480,
+   "p": 65,
+   "name": "F4",
+   "bar": 91,
+   "pos": 16,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 0,
+   "on": 1048320,
+   "p": 63,
+   "name": "Eb4",
+   "bar": 92,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "wedged quarter (countersubject in quarters with rests)"
+  },
+  {
+   "v": 2,
+   "on": 410880,
+   "p": 68,
+   "name": "Ab4",
+   "bar": 36,
+   "pos": 16,
+   "art": "accent",
+   "conf": "likely",
+   "role": "held half, at a bracket"
+  },
+  {
+   "v": 0,
+   "on": 1002240,
+   "p": 63,
+   "name": "Eb4",
+   "bar": 88,
+   "pos": 0,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 1152000,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 101,
+   "pos": 0,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 3,
+   "on": 1152000,
+   "p": 46,
+   "name": "Bb2",
+   "bar": 101,
+   "pos": 0,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 1,
+   "from": 48000,
+   "to": 53760,
+   "bars": "5.4–5.16",
+   "names": "A3–C4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "chromatic countersubject"
+  },
+  {
+   "v": 1,
+   "from": 59520,
+   "to": 67200,
+   "bars": "6.4–6.20",
+   "names": "C4–E4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "chromatic countersubject"
+  },
+  {
+   "v": 0,
+   "from": 86400,
+   "to": 92160,
+   "bars": "8.12–9.0",
+   "names": "Db5–A4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 92160,
+   "to": 94080,
+   "bars": "9.0–9.4",
+   "names": "A4–F5",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 97920,
+   "to": 105600,
+   "bars": "9.12–10.4",
+   "names": "Bb4–Eb5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 94080,
+   "to": 101760,
+   "bars": "9.4–9.20",
+   "names": "D4–Db4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 109440,
+   "to": 114240,
+   "bars": "10.12–10.22",
+   "names": "A4–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 117120,
+   "to": 122880,
+   "bars": "11.4–11.16",
+   "names": "D4–F4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "chromatic countersubject"
+  },
+  {
+   "v": 1,
+   "from": 128640,
+   "to": 136320,
+   "bars": "12.4–12.20",
+   "names": "F4–A4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "chromatic countersubject"
+  },
+  {
+   "v": 0,
+   "from": 149760,
+   "to": 154560,
+   "bars": "14.0–14.10",
+   "names": "Eb5–Db5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "from": 155520,
+   "to": 161280,
+   "bars": "14.12–15.0",
+   "names": "Gb3–D3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "from": 184320,
+   "to": 192000,
+   "bars": "17.0–17.16",
+   "names": "Ab2–C3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "chromatic countersubject"
+  },
+  {
+   "v": 3,
+   "from": 197760,
+   "to": 205440,
+   "bars": "18.4–18.20",
+   "names": "C3–E3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "chromatic countersubject"
+  },
+  {
+   "v": 0,
+   "from": 337920,
+   "to": 345600,
+   "bars": "30.8–31.0",
+   "names": "A5–Bb5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 347520,
+   "to": 355200,
+   "bars": "31.4–31.20",
+   "names": "Bb3–Eb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 428160,
+   "to": 436800,
+   "bars": "38.4–38.22",
+   "names": "Gb5–Db5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 439680,
+   "to": 448320,
+   "bars": "39.4–39.22",
+   "names": "Eb4–Bb3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 451200,
+   "to": 459840,
+   "bars": "40.4–40.22",
+   "names": "Ab4–Eb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 462720,
+   "to": 471360,
+   "bars": "41.4–41.22",
+   "names": "F5–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 485760,
+   "to": 493440,
+   "bars": "43.4–43.20",
+   "names": "Bb4–Gb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 520320,
+   "to": 526080,
+   "bars": "46.4–46.16",
+   "names": "Gb4–Eb4",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 531840,
+   "to": 539520,
+   "bars": "47.4–47.20",
+   "names": "Eb4–B3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 627840,
+   "to": 632640,
+   "bars": "55.12–55.22",
+   "names": "F4–Ab4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 635520,
+   "to": 641280,
+   "bars": "56.4–56.16",
+   "names": "Eb5–Db5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 643200,
+   "to": 652800,
+   "bars": "56.20–57.16",
+   "names": "Gb5–Bb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 652800,
+   "to": 664320,
+   "bars": "57.16–58.16",
+   "names": "Bb4–Ab4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 704640,
+   "to": 713280,
+   "bars": "62.4–62.22",
+   "names": "Eb4–Eb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 715200,
+   "to": 724800,
+   "bars": "63.2–63.22",
+   "names": "Bb4–Ab4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 726720,
+   "to": 736320,
+   "bars": "64.2–64.22",
+   "names": "Gb4–F4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 738240,
+   "to": 747840,
+   "bars": "65.2–65.22",
+   "names": "C5–Bb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 748800,
+   "to": 759360,
+   "bars": "66.0–66.22",
+   "names": "C5–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "from": 798720,
+   "to": 814080,
+   "bars": "70.8–71.16",
+   "names": "F3–Ab3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 877440,
+   "to": 883200,
+   "bars": "77.4–77.16",
+   "names": "G4–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 935040,
+   "to": 942720,
+   "bars": "82.4–82.20",
+   "names": "Ab4–E4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 981120,
+   "to": 988800,
+   "bars": "86.4–86.20",
+   "names": "Ab4–F5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 990720,
+   "to": 1000320,
+   "bars": "87.0–87.20",
+   "names": "Bb4–Bb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 1015680,
+   "to": 1023360,
+   "bars": "89.4–89.20",
+   "names": "Eb3–Db4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 1065600,
+   "to": 1075200,
+   "bars": "93.12–94.8",
+   "names": "Bb4–Db5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 1059840,
+   "to": 1069440,
+   "bars": "93.0–93.20",
+   "names": "F4–Eb4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 1077120,
+   "to": 1090560,
+   "bars": "94.12–95.16",
+   "names": "Bb4–A4",
+   "kind": "slur",
+   "conf": "likely"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 69120,
+   "bar": 7,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 138240,
+   "bar": 13,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 207360,
+   "bar": 19,
+   "pos": 0,
+   "voices": [
+    2,
+    3
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 495360,
+   "bar": 44,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 541440,
+   "bar": 48,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 610560,
+   "bar": 54,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 679680,
+   "bar": 60,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 1036800,
+   "bar": 91,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "mark": "fp",
+   "conf": "sure"
+  },
+  {
+   "on": 1094400,
+   "bar": 96,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 384000,
+   "to": 387840,
+   "bars": "34.8–34.16",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 388800,
+   "to": 390720,
+   "bars": "34.18–34.22",
+   "dir": "dim",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 407040,
+   "to": 410880,
+   "bars": "36.8–36.16",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 618240,
+   "to": 622080,
+   "bars": "54.16–55.0",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 738240,
+   "to": 743040,
+   "bars": "65.2–65.12",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 743040,
+   "to": 747840,
+   "bars": "65.12–65.22",
+   "dir": "dim",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 749760,
+   "to": 754560,
+   "bars": "66.2–66.12",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 885120,
+   "to": 887040,
+   "bars": "77.20–78.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 887040,
+   "to": 888960,
+   "bars": "78.0–78.4",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    3
+   ],
+   "from": 887040,
+   "to": 888960,
+   "bars": "78.0–78.4",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 892800,
+   "to": 896640,
+   "bars": "78.12–78.20",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 894720,
+   "to": 897600,
+   "bars": "78.16–78.22",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    3
+   ],
+   "from": 894720,
+   "to": 897600,
+   "bars": "78.16–78.22",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 900480,
+   "to": 904320,
+   "bars": "79.4–79.12",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 904320,
+   "to": 908160,
+   "bars": "79.12–79.20",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    3
+   ],
+   "from": 904320,
+   "to": 907200,
+   "bars": "79.12–79.18",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 990720,
+   "to": 994560,
+   "bars": "87.0–87.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2,
+    3
+   ],
+   "from": 1086720,
+   "to": 1094400,
+   "bars": "95.8–96.0",
+   "dir": "cresc",
+   "conf": "sure"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "Largamente alla breve",
+   "en": "broadly, in two (half-bar) beats",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "tenuto non legato",
+   "en": "held but not joined",
+   "conf": "sure"
+  },
+  {
+   "on": 86400,
+   "bar": 8,
+   "pos": 12,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "più legato",
+   "en": "more joined",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 46080,
+   "bar": 5,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 115200,
+   "bar": 11,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 184320,
+   "bar": 17,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 299520,
+   "bar": 27,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 303360,
+   "bar": 27,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 368640,
+   "bar": 33,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 372480,
+   "bar": 33,
+   "pos": 8,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "likely"
+  },
+  {
+   "on": 472320,
+   "bar": 42,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "likely"
+  },
+  {
+   "on": 587520,
+   "bar": 52,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 656640,
+   "bar": 58,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 764160,
+   "bar": 67,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "likely"
+  },
+  {
+   "on": 829440,
+   "bar": 73,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 833280,
+   "bar": 73,
+   "pos": 8,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 910080,
+   "bar": 80,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 913920,
+   "bar": 80,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 1013760,
+   "bar": 89,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 1017600,
+   "bar": 89,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 1094400,
+   "bar": 96,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 1094400,
+   "bar": 96,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 1098240,
+   "bar": 96,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "likely"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry (upright and inverted)",
+   "art": "tenuto non legato, the entry brought out (Busoni labels each entry S/A/T/B)",
+   "source": "b.1 and the entry labels",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": false
+   },
+   "applies": "the countersubject in quarters separated by rests (b.13, 19–20, 44, 48, 54, 60, 91–92)",
+   "art": "each quarter wedged",
+   "source": "printed",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 27,
+   "sign": "double bar",
+   "en": "before the tenor/alto stretto"
+  },
+  {
+   "beforeBar": 42,
+   "sign": "double bar",
+   "en": "before the inverted subject"
+  },
+  {
+   "beforeBar": 67,
+   "sign": "double bar",
+   "en": "before the inverted stretto"
+  },
+  {
+   "beforeBar": 80,
+   "sign": "double bar",
+   "en": "before the A♭ stretto"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 0,
+   "on": 1148160,
+   "p": 69,
+   "name": "A4",
+   "bar": 100,
+   "pos": 16,
+   "sign": "𝆖 (Pralltriller)",
+   "realisation": "none printed: a short upper-note trill on A♮4",
+   "conf": "sure"
+  }
+ ],
+ "ornamentsNote": "One ornament, in the penultimate bar.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "This scan carries heavy handwritten pencil (pp, mp, UNA CORDA, DIMIN, cresc, circles and arrows, especially p.25 and 27); all handwriting is ignored. Printed slurs among the pencil are read with doubt (mostly likely).",
+  "Skipped: the \"Idee\", \"Mögliche Variante\" and \"Thematische Idee\" staves, footnote 1 on p.26 (the full inversion of the counterpoint) and the analysis on pp.29–31; the brackets [ at b.21, 36, 40, 43, 46, 62 are not interpreted.",
+  "Labels printed as \"L\" (b.42, 96) are read as T (likely). Entry labels obscured by pencil (b.46, 67 tenor) are omitted.",
+  "Busoni sometimes shifts notes between staves; wedges and accents are assigned to the voice whose note sits at that onset in pieces.json.",
+  "Economy reading from 200 dpi crops; fingering skipped."
+ ],
+ "counts": {
+  "marks": 30,
+  "slurs": 40,
+  "dyn": 10,
+  "hairpins": 18,
+  "text": 24,
+  "breaths": 0,
+  "ornaments": 1,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 0,
+  "byArt": {
+   "wedge": 25,
+   "tenuto": 1,
+   "accent": 2,
+   "fermata": 2
+  },
+  "bySlurKind": {
+   "slur": 40
+  },
+  "byConf": {
+   "sure": 66,
+   "likely": 54,
+   "unsure": 3
+  },
+  "byConfAll": {
+   "sure": 66,
+   "likely": 56,
+   "unsure": 3
+  }
+ }
+}
