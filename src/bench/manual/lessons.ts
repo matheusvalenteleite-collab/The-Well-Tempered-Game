@@ -45,6 +45,7 @@ import { atLeast, consistency, ex, INV, INV1_1_4, INV4, INV4_1, INV4_1_2, INV8, 
 import { COURSE2 } from "./course2.ts";
 import { FUGUE_TRACK } from "./fugue-track.ts";
 import { RETIRED } from "./retired.ts";
+import { DRESS_TEXTS, type DressLine } from "./dress.ts";
 void RETIRED;
 
 /**
@@ -146,6 +147,8 @@ export interface Stage {
   quiz?: Quiz;
   /** D379: a SPOT step: the entries to find (at least), and the stray taps allowed (at most). */
   spot?: { need: number; strays: number };
+  /** D402: a TOUR of the screen's elements, one lit at a time over its material's round, paused (6.8 THE REAL THING). */
+  tour?: DressLine[];
 }
 
 /** One line of the lens (COUNTS): what it is, the figure reached, and whether it is met. */
@@ -727,6 +730,8 @@ export function manualTexts(): string[] {
   const out: string[] = [...MANUAL_FLOW, ...Object.values(SOUND_WORD), ...C.coachTexts(), ...WATCH_WORDS];
   for (const p of PARTS) out.push(p.english, ...(p.seal ? [p.seal] : []), ...(p.sub ? [p.sub] : []));
   out.push(...TOUR.map((t) => t.text), ...TOUR_TOUCH, ...Object.values(STEP_WORD), ...COURSE_FLOW);
+  // D402: the screen's elements introduced, and THE REAL THING's tour.
+  out.push(...DRESS_TEXTS);
   const xs = [-120, -40, 0, 40, 120].map((mean) => ({ ...ZERO_LENS, timing: { n: 9, mean, sd: 20, perfect: 5 } }));
   for (const l of MANUAL) {
     out.push(l.english, l.aim, ...(l.learn ? [l.learn] : []), ...(l.music ? [l.music] : []), ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
