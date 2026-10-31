@@ -80,7 +80,7 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "answer" && rows) answer(c, g);
     if (a === "point" && rows && o.box) point(c, g, o.box);
     if (a === "colour") colourMap(c, w, h, bw);
-    if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbPath(c, w, bw, g);
+    if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbPath(c, w, bw, g, o.aids.includes("colour"));
     if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbsA(c, w, h, bw, g, o.step ?? "play");
   }
   if (o.tour && rows) tour(c, w, h, bw, g, o.tour, o.box, now);
@@ -450,7 +450,8 @@ function thumbsA(c: CanvasRenderingContext2D, w: number, h: number, bw: number, 
  * D379 (the owner: "The shadows of earlier thumbs should remain in place, perhaps in a gradient of opacity
  * up to the current one, so one can see the whole movement at once when it's finished"): every touch of
  * the step (his in a WATCH, the player's in a TRY or PLAY) leaves a small marker where it landed, at its
- * own place on its own strip; a slide adds one where it arrives. Each thumb's markers joined in order by a
+ * own height on its own strip (each later one a step toward the box, so the path reads in order and a
+ * repeated note never hides the one before); a slide adds one where it arrives. Each thumb's markers joined in order by a
  * thin line (the left's gold, the right's blue, so the two paths read apart), the older fainter, the
  * latest full; numbered in order while there are few. Kept for the whole step (and held a moment after
  * its end, BenchApp PATH_HOLD_MS), fresh for each step (one per game).
@@ -461,7 +462,7 @@ const PATH_INK: Record<Side, string> = { left: "#f3d78a", right: "#8cc4ff" };
 /** At most so many markers drawn (the latest), and numbered while the step has no more than this. */
 const PATH_MAX = 40;
 const PATH_NUMBERED = 16;
-export function thumbPath(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGame) {
+export function thumbPath(c: CanvasRenderingContext2D, w: number, bw: number, g: ProtoGame, across = false) {
   const rows = g.rows!;
   let marks = PATHS.get(g);
   if (!marks) PATHS.set(g, (marks = []));
@@ -478,23 +479,33 @@ export function thumbPath(c: CanvasRenderingContext2D, w: number, bw: number, g:
   const alphaOf = (j: number) => 0.18 + (0.67 * (j + 1)) / n;
   c.save();
   for (const side of ["left", "right"] as const) {
-    const pts = shown.map((m, j) => ({ m, j })).filter(({ m }) => m.side === side);
+    const raw = shown.map((m, j) => ({ m, j })).filter(({ m }) => m.side === side);
+    // Read in order like a line of music: each later touch a step further toward the box, from where the
+    // thumb first landed (a repeated note no longer hides the one before it), within the strip.
+    const step = raw.length > 1 ? Math.max(5, Math.min(14, (bw - 24) / (raw.length - 1))) : 0;
+    const dir = side === "left" ? 1 : -1;
+    const lo = side === "left" ? 6 : w - bw + 6;
+    const hi = side === "left" ? bw - 6 : w - 6;
+    const x0 = raw.length ? Math.max(lo, Math.min(hi - (raw.length - 1) * step * (dir > 0 ? 1 : 0), raw[0].m.x)) : 0;
+    const start = dir > 0 ? Math.min(x0, hi - (raw.length - 1) * step) : Math.max(x0, lo + (raw.length - 1) * step);
+    // D379 (6.4): where the lesson is about where across the strip a thumb lands, each marker where it landed.
+    const pts = raw.map(({ m, j }, k) => ({ j, x: across ? m.x : Math.max(lo, Math.min(hi, start + dir * k * step)), y: m.y }));
     c.strokeStyle = PATH_INK[side];
     c.lineWidth = 1.5;
     for (let k = 1; k < pts.length; k++) {
       c.globalAlpha = alphaOf(pts[k].j) * 0.75;
       c.beginPath();
-      c.moveTo(pts[k - 1].m.x, pts[k - 1].m.y);
-      c.lineTo(pts[k].m.x, pts[k].m.y);
+      c.moveTo(pts[k - 1].x, pts[k - 1].y);
+      c.lineTo(pts[k].x, pts[k].y);
       c.stroke();
     }
-    for (const { m, j } of pts) {
+    for (const { x, y, j } of pts) {
       c.globalAlpha = alphaOf(j);
       c.fillStyle = PATH_INK[side];
       c.beginPath();
-      c.arc(m.x, m.y, j === n - 1 ? 5 : 3.5, 0, Math.PI * 2);
+      c.arc(x, y, j === n - 1 ? 5 : 3.5, 0, Math.PI * 2);
       c.fill();
-      if (marks.length <= PATH_NUMBERED) label(c, String(j + 1), side === "left" ? Math.min(bw - 6, m.x + 10) : Math.max(w - bw + 6, m.x - 10), m.y - 7, PATH_INK[side], 6);
+      if (marks.length <= PATH_NUMBERED) label(c, String(j + 1), x, y - 10, PATH_INK[side], 6);
     }
   }
   c.restore();
@@ -520,8 +531,6 @@ function colourMap(c: CanvasRenderingContext2D, w: number, h: number, bw: number
     label(c, "FIRM", lx(inner + (side === "left" ? -18 : 18)), y - 8, "#ffe296", 6);
     label(c, "SOFT", lx(outer + (side === "left" ? 18 : -18)), y - 8, "#a59cc8", 6);
   }
-  label(c, "BY THE BOX: FIRM, BRIGHT", bw / 2, y + 18, "#ffe296", 5);
-  label(c, "BY THE EDGE: SOFT, DARK", w - bw / 2, y + 18, "#a59cc8", 5);
 }
 
 /** A thumb not in use: its strip dimmed, REST. */

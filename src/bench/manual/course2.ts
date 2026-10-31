@@ -57,7 +57,8 @@ const INV8_LEAPS = ["F4", "A4", "F4", "C5", "F4", "F5", "E5"];
 const FIRST8 = INV1_1_4.slice(0, 8);
 
 const flagged = { flags: true } as const;
-const inv1Upper = (from: number, to: number, bpm: number, label: string, notes: string[], o: Partial<Material> = {}) => ex(INV, RH, from, to, { bpm }, label, { notes, ...flagged, ...o });
+/** Invention 1's upper voice; the SUBJECT flags only where asked (Part 4: the subject being the point there; elsewhere they would crowd the box). */
+const inv1Upper = (from: number, to: number, bpm: number, label: string, notes: string[], o: Partial<Material> = {}) => ex(INV, RH, from, to, { bpm }, label, { notes, ...o });
 
 const colourLine = (x: { colour: { firm: number; soft: number } }): Check => ({ text: "BY THE BOX {f} · BY THE RIM {s}", vars: { f: x.colour.firm, s: x.colour.soft }, ok: x.colour.firm >= 2 && x.colour.soft >= 2, fix: { text: "Land some notes right by the box, and some out by the edge of the phone." } });
 
@@ -75,7 +76,7 @@ export const COURSE2: ManualLesson[] = [
     music: "INVENTION 1, BARS 1–3",
     aids: [],
     stages: [
-      st("watch", inv1Upper(1, 3, 43, "Invention 1, bars 1–3, both voices: the tune flagged each time it begins", INV1_1_4.slice(0, 40)), "Watch the flags: each one marks the tune beginning again. First up high, then down low, then up again.", { aids: ["point"] }),
+      st("watch", inv1Upper(1, 3, 43, "Invention 1, bars 1–3, both voices: the tune flagged each time it begins", INV1_1_4.slice(0, 40), flagged), "Watch the flags: each one marks the tune beginning again. First up high, then down low, then up again.", { aids: ["point"] }),
       st("spot", inv1Upper(1, 3, 43, "Invention 1, bars 1–3, both voices, no flags", INV1_1_4.slice(0, 40), { flags: false }), "Now without flags. Each time you hear the tune begin, high or low, tap a strip.", { spot: { need: 4, strays: 3 } }),
     ],
     lens: { counts: ["Entries found: 4 of 6", "Stray taps: 3 at most"], shown: [], never: ["Which strip you tap"] },
@@ -95,9 +96,9 @@ export const COURSE2: ManualLesson[] = [
     music: "INVENTION 1, BARS 1–4",
     aids: ["thumbs"],
     stages: [
-      st("watch", inv1Upper(1, 4, 48, "Invention 1, upper voice, bars 1–4, with the lower voice", INV1_1_4, { widen: 2 }), "This time the upper voice is yours. Watch: it begins alone, and my lower voice answers it.", { aids: ["thumbs", "point"] }),
-      st("try", inv1Upper(1, 4, 48, "Invention 1, upper voice, bars 1–4, with the lower voice", INV1_1_4, { widen: 2, wait: true }), "Your turn. Each note waits for you; my voice waits with it.", { aids: ["thumbs", "trace"] }),
-      st("play", inv1Upper(1, 4, 48, "Invention 1, upper voice, bars 1–4, with the lower voice", INV1_1_4, { widen: 2 }), "In time now. You begin; I answer."),
+      st("watch", inv1Upper(1, 4, 48, "Invention 1, upper voice, bars 1–4, with the lower voice", INV1_1_4, { ...flagged, widen: 2 }), "This time the upper voice is yours. Watch: it begins alone, and my lower voice answers it.", { aids: ["thumbs", "point"] }),
+      st("try", inv1Upper(1, 4, 48, "Invention 1, upper voice, bars 1–4, with the lower voice", INV1_1_4, { ...flagged, widen: 2, wait: true }), "Your turn. Each note waits for you; my voice waits with it.", { aids: ["thumbs", "trace"] }),
+      st("play", inv1Upper(1, 4, 48, "Invention 1, upper voice, bars 1–4, with the lower voice", INV1_1_4, { ...flagged, widen: 2 }), "In time now. You begin; I answer."),
     ],
     lens: { counts: ["Notes: 75%"], shown: [], never: ["Which thumb", "How long you hold"] },
     checks: (x): Check[] => [notesRight(x, 0.75)],
@@ -161,8 +162,8 @@ export const COURSE2: ManualLesson[] = [
     music: "INVENTION 1, BARS 1–7",
     aids: ["thumbs"],
     stages: [
-      st("watch", inv1Upper(1, 7, 48, "Invention 1, upper voice, bars 1–7, with the lower voice", UPPER_1_7), "Seven bars, to the end of the first phrase. Watch for the subject's flags as it comes and goes.", { aids: ["thumbs", "point"] }),
-      st("play", inv1Upper(1, 7, 48, "Invention 1, upper voice, bars 1–7, with the lower voice", UPPER_1_7), "Seven bars. I will say nothing until the end."),
+      st("watch", inv1Upper(1, 7, 48, "Invention 1, upper voice, bars 1–7, with the lower voice", UPPER_1_7, flagged), "Seven bars, to the end of the first phrase. Watch for the subject's flags as it comes and goes.", { aids: ["thumbs", "point"] }),
+      st("play", inv1Upper(1, 7, 48, "Invention 1, upper voice, bars 1–7, with the lower voice", UPPER_1_7, flagged), "Seven bars. I will say nothing until the end."),
     ],
     lens: { counts: ["Notes: 75%"], shown: [], never: ["Which thumb", "How long you hold"] },
     checks: (x): Check[] => [notesRight(x, 0.75)],
@@ -227,9 +228,9 @@ export const COURSE2: ManualLesson[] = [
     music: "SINFONIA 9, BARS 3–5",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: a line falling by half steps", { notes: SINF9_ALTO, ...flagged }), "A sad, slow line. Watch: on the first beat of each bar I arrive a moment late, then walk on in time.", { style: "lean", aids: ["thumbs", "point"] }),
-      st("try", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: a line falling by half steps", { notes: SINF9_ALTO, wait: true, ...flagged }), "Your turn, slowly: feel each step down. Each note waits for you.", { aids: ["thumbs", "trace"] }),
-      st("play", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: a line falling by half steps", { notes: SINF9_ALTO, ...flagged }), "In time. On the strong beats, linger a moment; then back in time."),
+      st("watch", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: a line falling by half steps", { notes: SINF9_ALTO }), "A sad, slow line. Watch: on the first beat of each bar I arrive a moment late, then walk on in time.", { style: "lean", aids: ["thumbs", "point"] }),
+      st("try", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: a line falling by half steps", { notes: SINF9_ALTO, wait: true }), "Your turn, slowly: feel each step down. Each note waits for you.", { aids: ["thumbs", "trace"] }),
+      st("play", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: a line falling by half steps", { notes: SINF9_ALTO }), "In time. On the strong beats, linger a moment; then back in time."),
     ],
     lens: { counts: ["Two lingerings kept", "Notes: 70%"], shown: ["Lingerings taken back"], never: ["Which beats you choose"] },
     checks: (x): Check[] => [{ text: "LEANS KEPT {n} (AIM 2)", vars: { n: x.graces.agogic }, ok: x.graces.agogic >= 2, fix: C.fixLean(x) }, notesRight(x, 0.7)],
@@ -302,9 +303,9 @@ export const COURSE2: ManualLesson[] = [
     aids: ["thumbs"],
     ornaments: true,
     stages: [
-      st("watch", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2, ...flagged }), "Near the end, the long note with the sign: watch, I keep shaking until the next note.", { aids: ["thumbs", "point"] }),
-      st("try", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2, wait: true, ...flagged }), "Your turn. On the sign, shake and keep shaking. Each note waits for you.", { aids: ["thumbs"] }),
-      st("play", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2, ...flagged }), "In time. Shake through the long note, then land on the last one."),
+      st("watch", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2 }), "Near the end, the long note with the sign: watch, I keep shaking until the next note.", { aids: ["thumbs", "point"] }),
+      st("try", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2, wait: true }), "Your turn. On the sign, shake and keep shaking. Each note waits for you.", { aids: ["thumbs"] }),
+      st("play", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2 }), "In time. Shake through the long note, then land on the last one."),
     ],
     lens: { counts: ["Notes: 70%"], shown: ["The shake read"], never: ["The shake (it is never required)", "How fast you shake"] },
     checks: (x): Check[] => [notesRight(x, 0.7)],
@@ -328,9 +329,9 @@ export const COURSE2: ManualLesson[] = [
     aids: ["thumbs", "prepared"],
     ornaments: true,
     stages: [
-      st("watch", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: three sighs held over", { notes: SINF9_ALTO, widen: 2, ...flagged }), "Watch: my free thumb rests on the next note early. I keep holding the old one past the beat, then let go: the new note sighs in.", { style: "appoggiatura", aids: ["thumbs", "prepared", "point"] }),
-      st("try", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: three sighs held over", { notes: SINF9_ALTO, widen: 2, wait: true, ...flagged }), "Your turn, slowly. Rest the free thumb on the next note, then lift the other.", { aids: ["thumbs", "prepared"] }),
-      st("play", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: three sighs held over", { notes: SINF9_ALTO, widen: 2, ...flagged }), "In time. Where you like, hold the old note past the beat, about half the new note, then let go."),
+      st("watch", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: three sighs held over", { notes: SINF9_ALTO, widen: 2 }), "Watch: my free thumb rests on the next note early. I keep holding the old one past the beat, then let go: the new note sighs in.", { style: "appoggiatura", aids: ["thumbs", "prepared", "point"] }),
+      st("try", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: three sighs held over", { notes: SINF9_ALTO, widen: 2, wait: true }), "Your turn, slowly. Rest the free thumb on the next note, then lift the other.", { aids: ["thumbs", "prepared"] }),
+      st("play", ex(SINF9, 1, 3, 5, { bpm: 40 }, "Sinfonia 9, middle voice, bars 3–5: three sighs held over", { notes: SINF9_ALTO, widen: 2 }), "In time. Where you like, hold the old note past the beat, about half the new note, then let go."),
     ],
     lens: { counts: ["Notes: 85%"], shown: ["The sighs held over", "How long, against the textbook half"], never: ["The sighs (they are never required)", "How long you hold"] },
     checks: (x): Check[] => [notesRight(x, 0.85)],
@@ -382,9 +383,9 @@ export const COURSE2: ManualLesson[] = [
     music: "SINFONIA 9, BARS 3–4",
     aids: ["thumbs", "colour"],
     stages: [
-      st("watch", ex(SINF9, 0, 3, 4, { bpm: 40 }, "Sinfonia 9, top voice, bars 3–4: sighs, each a note and a step down", { notes: SINF9_SOP, widen: 2, coach: "sigh", ...flagged }), "Each step down is a sigh. Watch: I lean on the first note by the box, and let the next one fall softly, by the edge.", { aids: ["thumbs", "colour", "point"] }),
-      st("try", ex(SINF9, 0, 3, 4, { bpm: 40 }, "Sinfonia 9, top voice, bars 3–4: sighs, each a note and a step down", { notes: SINF9_SOP, widen: 2, wait: true, coach: "sigh", ...flagged }), "Your turn: firm, then soft, on every step down. Each note waits for you.", { aids: ["thumbs", "colour"] }),
-      st("play", ex(SINF9, 0, 3, 4, { bpm: 40 }, "Sinfonia 9, top voice, bars 3–4: sighs, each a note and a step down", { notes: SINF9_SOP, widen: 2, coach: "sigh", ...flagged }), "In time. Lean, then soft. Or slide your thumb down the step: the slide softens it for you."),
+      st("watch", ex(SINF9, 0, 3, 4, { bpm: 40 }, "Sinfonia 9, top voice, bars 3–4: sighs, each a note and a step down", { notes: SINF9_SOP, widen: 2, coach: "sigh" }), "Each step down is a sigh. Watch: I lean on the first note by the box, and let the next one fall softly, by the edge.", { aids: ["thumbs", "colour", "point"] }),
+      st("try", ex(SINF9, 0, 3, 4, { bpm: 40 }, "Sinfonia 9, top voice, bars 3–4: sighs, each a note and a step down", { notes: SINF9_SOP, widen: 2, wait: true, coach: "sigh" }), "Your turn: firm, then soft, on every step down. Each note waits for you.", { aids: ["thumbs", "colour"] }),
+      st("play", ex(SINF9, 0, 3, 4, { bpm: 40 }, "Sinfonia 9, top voice, bars 3–4: sighs, each a note and a step down", { notes: SINF9_SOP, widen: 2, coach: "sigh" }), "In time. Lean, then soft. Or slide your thumb down the step: the slide softens it for you."),
     ],
     lens: { counts: ["Two sighs shaped", "Notes: 70%"], shown: [], never: ["How strong or soft", "Loudness, as right or wrong"] },
     checks: (x): Check[] => [{ text: "SIGHS SHAPED {n} OF {m}", vars: { n: x.sighs.ok, m: x.sighs.of }, ok: x.sighs.ok >= 2, fix: { text: "On each step down: the first note by the box, the second by the edge, or slide down to it." } }, notesRight(x, 0.7)],
