@@ -28,7 +28,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
-  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id) : chosenReading(id)));
+  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id, preset().id) : chosenReading(id, preset().id)));
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.

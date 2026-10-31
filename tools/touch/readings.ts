@@ -105,6 +105,8 @@ for (const ed of EDITIONS) {
     if (!first) throw new Error(`${file}: no first entry for ${id}`);
     const whole = {
       heading: B.tempo?.text ?? null,
+      // Changes of pace (rall., allargando): only an ending's slowing is played (whole-reading.ts endingOf); the rest kept as words.
+      tempo: [...(B.tempo?.changes ?? []), ...(B.tempo?.notes ?? [])].map((x: Any) => pick(x, ["on", "text", "kind"])).sort((a: Any, b: Any) => a.on - b.on),
       marks: (B.marks ?? []).map((m: Any) => pick(m, ["v", "on", "art"])),
       slurs: (B.slurs ?? []).map((x: Any) => pick(x, ["v", "from", "to", "kind", "lastShort"])),
       dyn: (B.dyn ?? []).map((x: Any) => pick(x, ["on", "voices", "mark"])),

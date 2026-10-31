@@ -12,7 +12,7 @@
  * its dynamics, and HEAR THE SUBJECT plays and draws the subject so.
  */
 import data from "../../data/touch/readings.json" with { type: "json" };
-import { ART_HOLD, SLUR_SHAPE } from "./phrasing.ts";
+import { ART_HOLD, SLUR_SHAPE, styleOf } from "./phrasing.ts";
 import { tr } from "../i18n/index.ts";
 import { decide, type Kind } from "./practice.ts";
 import type { Character } from "./character.ts";
@@ -60,6 +60,36 @@ export interface Reading {
   plan: { bar: number; level: Level | "cresc" | "dim" }[];
   restQuote: string | null;
   restSummary: string | null;
+  /**
+   * D385: a whole-piece reading (an edition transcribed for every voice and bar: BUSONI): what it prints,
+   * played by the band and set as the player's line (whole-reading.ts). `notes` and `slurs` above are its
+   * first entry's, so the judge and HEAR THE SUBJECT read it as any other reading.
+   */
+  whole?: WholeReading;
+}
+
+/** D385: a whole-piece edition's marks (docs/wtc/readings/<edition>/, format wtc-reading/2), as tools/touch/readings.ts keeps them. */
+export interface WholeReading {
+  /** The heading's words ("Allegretto, vivacemente."): the fugue's character (its palette). */
+  heading: string | null;
+  /** Changes of pace as printed (kind slow, broaden, resume): only a slowing that runs to the end is played (whole-reading.ts endingOf). */
+  tempo: { on: number; text: string; kind: string }[];
+  /** One note's articulation: staccato, wedge, tenuto, portato, accent, marcato, fermata ("wedge+tenuto": two). */
+  marks: { v: number; on: number; art: string }[];
+  /** Spans in one voice, both ends in: a slur (one gesture), portato (dots under a slur), a phrase (a long arc). */
+  slurs: { v: number; from: number; to: number; kind: "slur" | "portato" | "phrase"; lastShort?: boolean }[];
+  /** A printed level ("p", "mf", "p subito", "dim.") at a tick, for the voices it was printed for. */
+  dyn: { on: number; voices: number[]; mark: string }[];
+  hairpins: { voices: number[]; from: number; to: number; dir: "cresc" | "dim" }[];
+  /** Words in the score (character words, "cresc.", "quasi stacc."). */
+  text: { on: number; voices?: number[]; text: string; span?: string }[];
+  /** A caesura before the note. */
+  breaths: { v: number; on: number; kind?: string }[];
+  /** Instructions for the unmarked notes (a footnote's "always staccato", the subject's template on every entry). */
+  rules: { scope: { voices?: number[]; from?: number; to?: number; entries?: boolean; bars?: unknown; labels?: boolean }; art: string }[];
+  /** The edition's double bars (a new terrace). */
+  sections: { beforeBar?: number; at?: number }[];
+  ornaments: { v: number; on: number; sign: string; optional?: boolean; realisation?: unknown }[];
 }
 
 export const READINGS = data as unknown as Record<string, Reading[]>;
@@ -139,9 +169,9 @@ export const NO_READING = "none";
  * owner: "I want the return of all 'HEAR THE SUBJECT' readings to the game"): every reading open to
  * everyone again; nothing chosen yet, D344's chosen reading for the fugue (bestReading) is the default.
  */
-export function chosenReading(id: string): Reading | null {
+export function chosenReading(id: string, soundId?: string): Reading | null {
   const want = store()[id];
-  if (want === undefined) return bestReading(id);
+  if (want === undefined) return bestReading(id, soundId);
   return readingsOf(id).find((r) => r.id === want) ?? null;
 }
 /** D325: a reading's id, or NO_READING. */
@@ -185,8 +215,19 @@ export const BEST_READING: Readonly<Record<string, string>> = {
   wtc1f23: "bodky",
   wtc1f24: "keller",
 };
-/** D344: the one reading the friends' page gives a fugue (null: none, the player's own articulation). */
-export function bestReading(id: string): Reading | null {
+/**
+ * D385: on the piano a fugue with a whole-piece reading (BUSONI: I/1, I/2, I/8, I/16, I/24) is played by it
+ * unless the player chose another: its dynamics, accents, slurs and characters are the piano's (the
+ * owner). Every other sound, and every other fugue, keeps D344's choice.
+ */
+export const WHOLE_DEFAULT = "busoni";
+export const wholeReadingOf = (id: string): Reading | null => readingsOf(id).find((r) => r.id === WHOLE_DEFAULT && r.whole) ?? null;
+/** D344: the one reading the friends' page gives a fugue (null: none, the player's own articulation); D385: on the piano a whole-piece reading first. */
+export function bestReading(id: string, soundId?: string): Reading | null {
+  if (soundId && styleOf(soundId) === "piano") {
+    const w = wholeReadingOf(id);
+    if (w) return w;
+  }
   const want = BEST_READING[id];
   return want ? (readingsOf(id).find((r) => r.id === want) ?? null) : null;
 }

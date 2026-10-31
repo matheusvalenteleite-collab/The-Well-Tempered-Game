@@ -399,12 +399,6 @@ export function BenchApp() {
   }, [sheetOn, sheetLayout, f.id]);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
-  // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
-  // book's: the owner, "fugues should not be too fast").
-  // D282: a tutorial step may name its reading.
-  // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
-  // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
@@ -432,6 +426,13 @@ export function BenchApp() {
   };
   const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
+  // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
+  // book's: the owner, "fugues should not be too fast").
+  // D282: a tutorial step may name its reading.
+  // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
+  // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
+  // D385: on the piano BUSONI's whole-piece reading is the default where it exists (readings.ts bestReading).
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, presetById(soundNow).id) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
   const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);
