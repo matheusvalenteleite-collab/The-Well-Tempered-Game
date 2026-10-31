@@ -24,7 +24,7 @@ Across the 48, women, men and androgynous figures in balance; no figure male by 
 10. **The Horsemen** (kept) · as drawn.
 11. **The Shepherdess** (kept) · as drawn; the owner asked earlier to fix her face.
 12. **The Requiem** · a choir in black behind a bier, candles in a row · black and candle · each entry lights a candle; the last chord, all.
-13. **The Water Mill** (round two D) · a mill wheel turning slowly beside a brook · brook-green and wood · the wheel turns once a bar. The owner noted "The Aquarium": to confirm whether it replaces The Water Mill.
+13. **The Aquarium** (the owner, replacing round two's The Water Mill) · a child (girl or boy) watching fish drift in a big glass aquarium · aquarium-green and glass-blue · the fish drift slowly across the strip over the piece; at the cadences one turns (Bodky's serene "Little Brook", water figures; Keller: soft, gently flowing).
 14. **Pierrot** (kept) · as drawn.
 15. **The Pinball** · a pinball machine, the ball mid-flight among lit bumpers · neon and chrome · each entry lights a bumper; the final cadence, TILT dims everything.
 16. **The Knight** (kept) · as drawn.
@@ -63,3 +63,24 @@ Across the 48, women, men and androgynous figures in balance; no figure male by 
 22. **The Colossus** · a giant statue over a harbour, ships small at its feet · harbour-bronze and sea · each entry, the statue firmer.
 23. **The Elegy** · a poet reading by a grave under a willow · willow-green and stone · branches move slowly; the end, still.
 24. **The Last Dance** · two dancers in an emptying ballroom, candles burning low · ballroom and candle · the candles lower over the piece; the end, one candle.
+
+## For the main board (the owner: "hand it to main board")
+
+The owner asks the main board to put these into the game; the studio keeps developing each fugue's look.
+
+1. **Names** (`src/touch/fugue-names.ts`): the 48 above, with Brazilian Portuguese and Spanish and the short
+   tile forms, as D374/D383 did. Changed from today: Book I 1, 3, 4, 5, 6, 7, 8, 12, 13, 15, 17, 19, 20, 21, 23, 24
+   (I/3 and I/7 swap: I/3 The Stone-Skipper, I/7 The Bicycle; the Juggler retires); Book II 1, 2, 3, 4, 5, 6, 8, 9,
+   10, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24. Kept: I/2 Imp, I/9 Sparrow, I/10 Horsemen, I/11
+   Shepherdess, I/14 Pierrot, I/16 Knight, I/18 Sleepwalker, I/22 Procession; II/7 Organist, II/11 Butterfly,
+   II/19 Wanderer.
+2. **Pictures** (`tools/pictures/`, D383's method): redraw every changed one to the picture line above, plus the
+   owner's fixes to kept ones: I/11 her face ("looks off"), I/18 face and hat, and (from the pictures page) I/21
+   improve. Owner's rules: gender variety, never masculine as default; one character big in the frame, as D383.
+   I/19 The Three Stooges: the owner's decision after the studio flagged the trademark and likenesses; draw three
+   generic slapstick figures in silent-film sepia, not portraits. I/24 Faust and I/12 The Requiem: no religious or
+   occult symbol that reads as a real cult object beyond what the line says.
+3. **Subject effects** (`subject-cast.ts`) may want re-casting where a picture changed its world (e.g. I/20 FIRE
+   for The Locomotive's steam; II/8 The Rain → TEARS or RIPPLE). The studio can propose these with the looks.
+4. The owner wants to see the redrawn pictures before they ship (the studio's pictures page can be reused for it:
+   https://claude.ai/artifact/DrKtGUQgod9BM14bfvvmoS).
