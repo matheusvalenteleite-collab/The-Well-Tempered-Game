@@ -513,7 +513,7 @@ export function BenchApp() {
   };
   const boxPlan = useMemo(() => zoomBox(from, (f.tpq * bpm) / 60), [f, voice, from, run, bpm, range, sheetOn, kimiko, proto.id]);
   const barsShown = boxPlan.bars;
-  const range0 = boxPlan.on ? initialRange(boxPlan.plan, from) : range;
+  const range0 = boxPlan.on ? initialRange(boxPlan.plan, from, (f.tpq * bpm) / 60, (1 - BOX_PLAYHEAD) * barsShown * f.barTicks) : range;
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
@@ -560,6 +560,9 @@ export function BenchApp() {
   /** D391: the side bar's translation of the whole reading's word in force on the player's line (set by the frame loop). */
   const glossRef = useRef<HTMLParagraphElement>(null);
   const glossAt = useRef(-1);
+  /** Design studio (D397): the first-round hint, in the box behind the gold line, fading as the first note reaches it. */
+  const hintRef = useRef<HTMLParagraphElement>(null);
+  const hintGone = useRef(false);
   const shownAt = useRef(0);
 
   function preview(): Frame {
@@ -722,8 +725,9 @@ export function BenchApp() {
     const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
     // D377: the box's zoom for this round (its width fixed; its range eased rarely; drawing and touch alike).
     const box = prac ? zoomBox(prac.from, g.tps) : { ...boxPlan, bars: zoomBox(from, g.tps).bars };
-    const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on);
     const aheadTicks = (1 - BOX_PLAYHEAD) * box.bars * f.barTicks;
+    // D399: the opening narrowed only if its way back out falls at a seam of the player's line.
+    const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on, g.tps, aheadTicks);
     let raf = 0;
     // D379 (the owner: "one can see the whole movement at once when it's finished"): a tutorial step that
     // draws the thumbs' path (WATCH, TRY) stays on its last frame a moment before his next words.
@@ -772,6 +776,7 @@ export function BenchApp() {
         // D327: on the two bars the legend stands in the right side bar (SideLegend), off the first subject.
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
+      if (hintRef.current && proto.layout === "bars") placeHint(hintRef.current, g, from, !!man);
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
       // D391: the word in force on the player's line, translated in the side bar (changed only when another word is passed).
       if (glossRef.current && marks.whole) {
@@ -909,9 +914,36 @@ export function BenchApp() {
     };
   }
 
+  /**
+   * Design studio (D397, the owner chose placement A): the round's hint stands in the box behind the gold line,
+   * the one empty place during the count-in, where the eye waits for the first note and no thumb plays. Full
+   * through the count-in, it fades over the last 0.6 s before the round's first note (any voice) reaches the
+   * line, and is then seen for good; a touch no longer clears it (the player read it to the end). THE TUTORIAL's
+   * words keep their own fade (D359); only their place moves.
+   */
+  function placeHint(el: HTMLElement, g: ProtoGame, from: number, ownFade: boolean) {
+    const roll = document.querySelector(".tg-roll");
+    if (!roll) return;
+    const r = roll.getBoundingClientRect();
+    el.style.left = `${Math.round(r.left + 8)}px`;
+    el.style.top = `${Math.round(r.top + r.height * 0.28)}px`;
+    el.style.width = `${Math.max(90, Math.round(r.width * 0.25 - 16))}px`;
+    if (ownFade) return;
+    let first = Infinity;
+    for (const t of g.tracks) for (const n of t.notes) if (n.on >= from) { first = Math.min(first, n.on); break; }
+    for (const n of g.others) if (n.on >= from && n.on < first) first = n.on;
+    const k = first === Infinity ? 0 : Math.max(0, Math.min(1, (first - g.now) / (0.6 * g.tps)));
+    el.style.opacity = String(k);
+    if (k === 0 && !hintGone.current) {
+      hintGone.current = true;
+      seen();
+    }
+  }
+
   /** PLAY (the pop-up, AGAIN); `now`: CONTINUE and NEXT, which start at once (no guard against a double tap). */
   const start = (now = false) => {
     practice.current = null;
+    hintGone.current = false;
     stopHearing();
     if (!now && performance.now() - shownAt.current < 350) return;
     const ch = ensureChip();
@@ -1422,7 +1454,7 @@ export function BenchApp() {
     // D342: a manual take's touches go through its recorder (the take's lab log), which hands them on to the game.
     // D373: a touch while he plays: JUST WATCH FOR NOW; in 1.1's tour, each strip touched noted (and played, as in the game).
     // D379, SPOT: while he plays, a tap is the player's "there it is" (noted, flashed; it plays nothing).
-    down: (id, side, x, y, w, h, ts) => (watching ? void (spotTap() || setNudge(performance.now())) : practice.current?.listen ? undefined : (seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
+    down: (id, side, x, y, w, h, ts) => (watching ? void (spotTap() || setNudge(performance.now())) : practice.current?.listen ? undefined : (layout !== "bars" && seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
     move: (id, x, y, w, h, ts) => (recRef.current && game.current ? recRef.current.move(id, x, y, w, h, ts) : game.current?.move(id, { side: "left", x, y, w, h }, ts)),
     // D249: a touch the system took back (pointercancel) stops its note unjudged: no early let-go.
     up: (id, ts, cancelled) => (recRef.current && game.current ? recRef.current.up(id, ts, cancelled) : game.current?.up(id, ts, cancelled)),
@@ -1432,7 +1464,7 @@ export function BenchApp() {
   const keyDownRef = useRef<(id: number, k: KeyPress, ts: number) => void>(() => {});
   keyDownRef.current = (id, k, ts) => {
     const g = game.current;
-    if (g) (seen(), g.keyDown(id, k, ts));
+    if (g) (layout !== "bars" && seen(), g.keyDown(id, k, ts));
     else if (phase.kind === "title" || phase.kind === "result") start();
   };
   useEffect(() => {
@@ -1733,7 +1765,7 @@ export function BenchApp() {
           {man.mode === "tour" && tourAt && <TourBubble k={tourAt.k} touched={tourAt} next={tourNext} />}
         </div>
       )}
-      {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man} /> : (
+      {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man} hintRef={hintRef} /> : (
         <p className="tb-lite-hint" id="lite-hint" role="status">
           {hintLine}
         </p>
