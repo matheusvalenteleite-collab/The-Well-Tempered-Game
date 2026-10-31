@@ -139,9 +139,9 @@ export const NO_READING = "none";
  * owner: "I want the return of all 'HEAR THE SUBJECT' readings to the game"): every reading open to
  * everyone again; nothing chosen yet, D344's chosen reading for the fugue (bestReading) is the default.
  */
-export function chosenReading(id: string): Reading | null {
+export function chosenReading(id: string, piano = false): Reading | null {
   const want = store()[id];
-  if (want === undefined) return bestReading(id);
+  if (want === undefined) return bestReading(id, piano);
   return readingsOf(id).find((r) => r.id === want) ?? null;
 }
 /** D325: a reading's id, or NO_READING. */
@@ -186,7 +186,10 @@ export const BEST_READING: Readonly<Record<string, string>> = {
   wtc1f24: "keller",
 };
 /** D344: the one reading the friends' page gives a fugue (null: none, the player's own articulation). */
-export function bestReading(id: string): Reading | null {
+export function bestReading(id: string, piano = false): Reading | null {
+  // Design studio (D388, the owner: "Busoni is default for piano"): on the piano, his reading first where it exists.
+  const busoni = piano ? readingsOf(id).find((r) => r.id === "busoni") : undefined;
+  if (busoni) return busoni;
   const want = BEST_READING[id];
   return want ? (readingsOf(id).find((r) => r.id === want) ?? null) : null;
 }

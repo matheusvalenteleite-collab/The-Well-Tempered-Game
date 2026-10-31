@@ -12,6 +12,9 @@ import { inkOf } from "../touch/MusicBox.tsx";
 import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
 import { bestReading, chooseReading, chosenReading, NO_READING, performSubject, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planFingerings, type Touch } from "./fingering.ts";
+import { drawThumbProxy } from "./thumb-proxy.ts";
+import { fugueName } from "../touch/fugue-names.ts";
+import { subjectInkOf, subjectRimOf } from "../touch/subject-hue.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
 import { tempoOf } from "../touch/tempi.ts";
@@ -28,7 +31,10 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
-  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id) : chosenReading(id)));
+  // D388: Busoni the default on the piano (the owner), where his reading exists.
+  const piano = /piano/i.test(preset().id);
+  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id, piano) : chosenReading(id, piano)));
+  const [picking, setPicking] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
@@ -76,58 +82,79 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     chooseReading(id, r?.id ?? NO_READING);
     setReading(r);
     setAlt(0);
+    setPicking(false);
   };
+  const nick = fugueName(id, lang());
+  const fg = fingerings[Math.min(alt, fingerings.length - 1)];
+  // Design studio (D388): the legend only of the signs this subject bears in this reading.
+  const ns = reading?.notes ?? [];
+  const has: Record<string, boolean> | null = reading
+    ? { short: ns.some((n) => !!n.short), apart: ns.some((n) => n.join === false), joined: ns.some((n, i) => !!n.join && !slurredJoin(reading, i)), slur: (reading.slurs ?? []).length > 0, strong: ns.some((n) => !!n.accent) }
+    : null;
+  const legend = has ? markLegend(STRONG_SIDE).filter((l) => has[l.kind]) : [];
   return (
     <div className="tb-hear-wrap" role="dialog" aria-label="Hear the subject" onClick={close}>
       <div className="tg-card tb-hear" onClick={(ev) => ev.stopPropagation()}>
-        <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
-          ✕
-        </button>
-        <h2 className="tb-hear-title">{tr("THE SUBJECT")} · {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)}</h2>
-        {single && reading && (
-          <p className="tb-hear-key tb-hear-one" id="reading-one">
-            {tr("THE READING")}: {reading.author} {reading.year}
-          </p>
-        )}
-        {!single && readings.length > 0 && (
-          <div className="tb-hear-readings" role="radiogroup" aria-label="Readings">
-            <button type="button" id="reading-none" role="radio" aria-checked={!reading} className={`tb-hear-reading${!reading ? " on" : ""}`} onClick={() => pick(null)} title={tr("NONE: MY OWN ARTICULATION")}>
-              {tr("NONE")}
-            </button>
-            {readings.map((r) => (
-              <button key={r.id} type="button" id={`reading-${r.id}`} role="radio" aria-checked={reading?.id === r.id} className={`tb-hear-reading${reading?.id === r.id ? " on" : ""}`} onClick={() => pick(r)} title={`${r.author}, ${r.work} (${r.year})`}>
-                {r.author} {r.year}
+        <div className="tb-hear-top">
+          {nick && <span className="tb-hear-nick">{nick.toUpperCase()}</span>}
+          <h2 className="tb-hear-title">
+            {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)} · {tr("THE SUBJECT")}
+          </h2>
+          <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
+            ✕
+          </button>
+        </div>
+        <div className="tb-hear-stage">
+          <canvas ref={canvas} className="tb-hear-canvas" />
+          {!single && readings.length > 0 && (
+            <div className="tb-hear-picker" role="radiogroup" aria-label={tr("WHOSE READING?")} hidden={!picking}>
+              <p className="tb-hear-picker-head">{tr("WHOSE READING?")}</p>
+              <button type="button" id="reading-none" role="radio" aria-checked={!reading} className={`tb-hear-pick${!reading ? " on" : ""}`} onClick={() => pick(null)}>
+                <b>{tr("NO READING")}</b>
+                <span>{tr("Your own articulation: no marks asked or scored.")}</span>
               </button>
+              {readings.map((r) => (
+                <button key={r.id} type="button" id={`reading-${r.id}`} role="radio" aria-checked={reading?.id === r.id} className={`tb-hear-pick${reading?.id === r.id ? " on" : ""}`} onClick={() => pick(r)}>
+                  <b>
+                    {r.author} {r.year}
+                  </b>
+                  <span>{READING_WHO[r.id] ? tr(READING_WHO[r.id]) : `${r.work}`}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="tb-hear-row">
+          <button type="button" id="hear-again" className="tb-hear-btn2 tb-hear-again" onClick={hear}>
+            ▶ {tr("HEAR IT AGAIN")}
+          </button>
+          {single || !readings.length ? (
+            <span className="tb-hear-one" id="reading-one">
+              {reading ? `${reading.author} ${reading.year}` : tr("NO READING")}
+            </span>
+          ) : (
+            <button type="button" id="reading-pick" className={`tb-hear-btn2${picking ? " on" : ""}`} aria-expanded={picking} onClick={() => setPicking((x) => !x)}>
+              {reading ? `${reading.author} ${reading.year}` : tr("NO READING")} ▾
+            </button>
+          )}
+          {fg && (
+            <button type="button" id="hear-fingering" className="tb-hear-btn2" disabled={fingerings.length < 2} onClick={() => setAlt((a) => (a + 1) % fingerings.length)}>
+              {fingerings.length > 1 ? `${tr("THUMBS {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} · ` : ""}
+              {tr(fg.name)}
+              {fingerings.length > 1 ? " ↻" : ""}
+            </button>
+          )}
+          <span className="tb-hear-tempo">♩ = {tempoOf(id)}</span>
+        </div>
+        {legend.length > 0 && (
+          <ul className="tb-hear-key tb-hear-marks" id="hear-marks">
+            {legend.map((l) => (
+              <li key={l.kind}>
+                <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-        <canvas ref={canvas} className="tb-hear-canvas" />
-        <p className="tb-hear-key tb-hear-thumbs">
-          {STRONG_SIDE === "outer"
-            ? tr("THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE BOX, LOUD BY THE EDGE · SHAKE ON AN ORNAMENT")
-            : tr("THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT")}
-        </p>
-        {/* D370: another good fingering, where the plan finds one close to the best. */}
-        {fingerings.length > 1 && (
-          <p className="tb-hear-key tb-hear-fingering">
-            <button type="button" id="hear-fingering" className="tb-hear-reading" onClick={() => setAlt((a) => (a + 1) % fingerings.length)}>
-              {tr("THUMBS {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} ↻
-            </button>{" "}
-            {tr(fingerings[Math.min(alt, fingerings.length - 1)].name)}
-          </p>
-        )}
-        {/* D314: each mark in plain words: what the thumbs do for it. */}
-        <ul className="tb-hear-key tb-hear-marks" id="hear-marks">
-          {markLegend(STRONG_SIDE).map((l) => (
-            <li key={l.kind}>
-              <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
-            </li>
-          ))}
-        </ul>
-        <p className="tb-hear-key">
-          <span>♩ = {tempoOf(id)}</span>
-          {reading?.level ? <span> · {reading.level.toUpperCase()}</span> : null}
-        </p>
         {reading?.quote && (
           <blockquote className="tb-hear-quote" id="hear-quote">
             “{reading.quote}”
@@ -139,48 +166,86 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
           </blockquote>
         )}
         {!reading && <p className="tb-hear-lock">{single ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
-        <button type="button" id="hear-again" className="tb-play tb-hear-play" onClick={hear}>
-          ▶ {tr("HEAR IT AGAIN")}
-        </button>
       </div>
     </div>
   );
 }
 
-/** The subject drawn: blocks by pitch and time, the reading's marks, the light where it sounds. */
+/** Design studio (D388): what each reading is, one line in the picker (the studio's rating of 31 Oct 2026). */
+const READING_WHO: Readonly<Record<string, string>> = {
+  bodky: "A harpsichordist after Quantz. Marks almost every note.",
+  keller: "An organist's articulation, from Bach's marked parts. Not every fugue.",
+  riemann: "A Romantic theorist's phrasing. No tempo.",
+  busoni: "A pianist's edition. The default on the piano.",
+};
+
+const BOX = "#0f1730";
+const STRIP = "#1c1f2c";
+const EDGE = "#4b8ef0";
+const LINE = "#18223f";
+const GOLD_LINE = "#f3d26b";
+const LETTER = "#fff3b0";
+
+/**
+ * Design studio (D388): the subject drawn as the play screen draws it: the box between the two strips, its
+ * blocks in the voice's subject ink (D368) with their rims, the reading's marks over them (D374), a gold
+ * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D386), each
+ * played note's L or R under it as its thumb lands (D386).
+ */
 function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
   const cssW = c.clientWidth || 300;
-  const cssH = c.clientHeight || 140;
+  const cssH = c.clientHeight || 160;
   const dpr = Math.min(3, devicePixelRatio || 1);
-  if (c.width !== Math.round(cssW * dpr)) (c.width = Math.round(cssW * dpr)), (c.height = Math.round(cssH * dpr));
+  if (c.width !== Math.round(cssW * dpr) || c.height !== Math.round(cssH * dpr)) (c.width = Math.round(cssW * dpr)), (c.height = Math.round(cssH * dpr));
   const g = c.getContext("2d")!;
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.fillStyle = "#0b0d18";
+  const bar = Math.max(52, cssW * 0.15);
+  g.fillStyle = STRIP;
   g.fillRect(0, 0, cssW, cssH);
+  g.fillStyle = BOX;
+  g.fillRect(bar, 0, cssW - 2 * bar, cssH);
+  g.fillStyle = EDGE;
+  g.fillRect(bar - 2, 0, 2, cssH);
+  g.fillRect(cssW - bar, 0, 2, cssH);
   if (!perf.length) return;
   const lo = Math.min(...midis) - 1;
   const hi = Math.max(...midis) + 1;
   const end = Math.max(...perf.map((p, i) => (i + 1 < perf.length ? perf[i + 1].at : p.at + p.len)));
-  // D280: a side bar either side (the thumbs' bars, as in the game), the notes between.
-  const bar = Math.max(44, cssW * 0.15);
-  const pad = bar + 12;
+  const pad = bar + 14;
   const X = (s: number) => pad + (s / end) * (cssW - 2 * pad);
-  const rowH = Math.max(3, Math.min(10, (cssH - 44) / (hi - lo + 1)));
-  const Y = (m: number) => 26 + (hi - m) * rowH;
-  const now = started ? (performance.now() / 1000 - started.at) : -1;
+  const rowH = Math.max(4, Math.min(14, (cssH - 46) / (hi - lo + 1)));
+  const top0 = Math.max(22, (cssH - (hi - lo + 1) * rowH) / 2);
+  const Y = (m: number) => top0 + (hi - m) * rowH;
+  g.strokeStyle = LINE;
+  g.lineWidth = 1;
+  for (let m = lo; m <= hi; m++) {
+    g.beginPath();
+    g.moveTo(bar, Y(m) + rowH / 2);
+    g.lineTo(cssW - bar, Y(m) + rowH / 2);
+    g.stroke();
+  }
+  const now = started ? performance.now() / 1000 - started.at : -1;
+  const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
+  const finished = !!started && now > started.total + 0.4;
+  const fill = subjectInkOf(ink, 1);
+  const rim = subjectRimOf(ink, 1);
+  const bh = Math.max(4, rowH - 2);
   perf.forEach((p, i) => {
     const n = r?.notes[i];
     const x1 = X(p.at);
     const written = i + 1 < perf.length ? X(perf[i + 1].at) - x1 : X(p.at + p.len) - x1;
-    const w = Math.max(2, Math.min(written, X(p.at + p.len) - x1) - 1);
-    const y = Y(p.midi);
-    const sounding = now >= p.at && now < p.at + p.len;
-    g.globalAlpha = 0.35 + 0.65 * p.d;
-    g.fillStyle = sounding ? "#fff3b0" : ink;
-    g.fillRect(x1, y, w, rowH - 1);
+    const w = Math.max(3, Math.min(written, X(p.at + p.len) - x1) - 2);
+    const y = Y(p.midi) + (rowH - bh) / 2;
+    const past = playing && now >= p.at + p.len;
+    g.globalAlpha = past ? 0.55 : 1;
+    g.fillStyle = fill;
+    g.fillRect(x1, y, w, bh);
+    g.strokeStyle = rim;
+    g.lineWidth = 1.25;
+    g.strokeRect(x1 + 0.5, y + 0.5, w - 1, bh - 1);
     g.globalAlpha = 1;
-    // The marks: a slur over a joined pair, a bar in the gap of a detached one, a dot, an accent.
-    // D370: ⌒ only over a real slur (one arc, its first note to its last); a plain legato join a flat line (JOINED).
+    // The reading's marks over the notes (D370, D374): ⌒ over a real slur, a flat line for a plain join,
+    // a red stroke in a detached gap, a dot for short, > for an accent.
     const sl = (r?.slurs ?? []).find((s) => s.from === i);
     if (sl && sl.to < perf.length) {
       const x2 = X(perf[sl.to].at);
@@ -201,7 +266,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
     }
     if (n?.join === false && i + 1 < perf.length) {
       g.fillStyle = "#ec5a4a";
-      g.fillRect(Math.round((x1 + w + X(perf[i + 1].at)) / 2), y - 2, 1.5, rowH + 3);
+      g.fillRect(Math.round((x1 + w + X(perf[i + 1].at)) / 2), y - 2, 1.5, bh + 4);
     }
     if (n?.short) {
       g.fillStyle = "#fff";
@@ -214,40 +279,61 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
       g.fillText(">", x1 + w / 2, y - 7);
     }
   });
-  // The bars: warm, soft (pp) to loud (ff), the sides by STRONG_SIDE.
-  for (const side of ["left", "right"] as const) {
-    const x0 = side === "left" ? 0 : cssW - bar;
-    const grad = g.createLinearGradient(side === "left" ? bar : cssW - bar, 0, side === "left" ? 0 : cssW, 0);
-    grad.addColorStop(0, "#1a1216");
-    grad.addColorStop(1, "#3a2420");
-    g.fillStyle = grad;
-    g.fillRect(x0, 0, bar, cssH);
-    g.fillStyle = "#8a7f9a";
-    g.font = "8px monospace";
-    g.textAlign = "center";
-    // D314: pp on the soft side, ff on the strong (STRONG_SIDE).
-    const [inner, outer] = STRONG_SIDE === "outer" ? ["pp", "ff"] : ["ff", "pp"];
-    g.fillText(inner, side === "left" ? bar - 10 : cssW - bar + 10, cssH - 4);
-    g.fillText(outer, side === "left" ? 10 : cssW - 10, cssH - 4);
-  }
-  const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
-  const t = playing ? now : -1;
-  const size = Math.max(12, Math.min(22, bar * 0.36));
-  for (const tc of touches) {
-    if (tc.slid) continue;
-    const off = touches.filter((x) => x.slid && x.side === tc.side && x.on > tc.on).reduce((m, x) => Math.max(m, x.off), tc.off);
-    const across = strengthOf(acrossBar(tc.d)) * (bar - size);
-    const x = tc.side === "left" ? bar - size * 0.2 - across : cssW - bar + size * 0.2 + across;
-    // While it slides, it follows the notes it plays.
-    const slidTo = touches.filter((x) => x.slid && x.side === tc.side && x.on > tc.on && x.on <= t && x.on < off).at(-1);
-    const yc = Y(perf[slidTo ? slidTo.i : tc.i].midi) + rowH / 2;
-    const wob = tc.shake && t >= tc.on && t < tc.on + (perf[tc.i].len || 0) * 0.8 ? Math.sin(t * 48) * rowH * 1.2 : 0;
-    if (t >= tc.on && t < off) drawThumb(g, x, yc + wob, size, tc.side, "down");
-    else if (t >= tc.on - 0.35 && t < tc.on) drawThumb(g, x, yc, size, tc.side, "hover", 1 - (tc.on - t) / 0.35);
-    else if (!playing && tc.i < 2) drawThumb(g, x, yc, size, tc.side, "hover", 0.8);
-  }
+  // D314: pp on the soft side of each strip, ff on the strong (STRONG_SIDE).
+  g.fillStyle = "#8a7f9a";
+  g.font = "8px monospace";
+  g.textAlign = "center";
+  const [inner, outer] = STRONG_SIDE === "outer" ? ["pp", "ff"] : ["ff", "pp"];
+  g.fillText(inner, bar - 12, cssH - 5);
+  g.fillText(outer, 12, cssH - 5);
+  g.fillText(inner, cssW - bar + 12, cssH - 5);
+  g.fillText(outer, cssW - 12, cssH - 5);
+  // The gold line where it sounds.
   if (started && now >= 0 && now <= started.total) {
-    g.fillStyle = "rgba(255,255,255,0.6)";
-    g.fillRect(X(now), 18, 1, cssH - 26);
+    g.fillStyle = GOLD_LINE;
+    g.fillRect(X(now) - 1, 4, 2, cssH - 8);
+  }
+  const t = playing ? now : finished ? Infinity : -1;
+  const size = Math.max(12, Math.min(22, bar * 0.34));
+  // Each played note's thumb, L or R, appearing as it lands (D386: one ink for both thumbs).
+  for (const tc of touches) {
+    if (tc.slid || t < tc.on) continue;
+    const p = perf[tc.i];
+    const x1 = X(p.at);
+    const since = t - tc.on;
+    const k = Math.min(1, since / 0.35);
+    const ly = Y(p.midi) + rowH + 7;
+    if (k < 1) {
+      g.globalAlpha = 0.5 * (1 - k);
+      g.fillStyle = LETTER;
+      g.beginPath();
+      g.arc(x1 + 4, ly, 5 + 7 * k, 0, Math.PI * 2);
+      g.fill();
+      g.globalAlpha = 1;
+    }
+    g.fillStyle = LETTER;
+    g.font = `${k < 1 ? 10 : 8}px monospace`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(tc.side === "left" ? tr("L") : tr("R"), x1 + 4, ly);
+    g.textBaseline = "alphabetic";
+  }
+  // Both thumbs, always on their strips: pressing (glowing) while they play a note, else resting where they last were.
+  for (const side of ["left", "right"] as const) {
+    const mine = touches.filter((x) => x.side === side && !x.slid);
+    if (!mine.length) continue;
+    const down = mine.find((tc) => {
+      const off = touches.filter((x) => x.slid && x.side === side && x.on > tc.on).reduce((m, x) => Math.max(m, x.off), tc.off);
+      return t >= tc.on && t < off;
+    });
+    const at = down ?? [...mine].reverse().find((tc) => tc.on <= t) ?? mine[0];
+    const across = strengthOf(acrossBar(at.d)) * (bar - size);
+    const x = side === "left" ? bar - size * 0.2 - across : cssW - bar + size * 0.2 + across;
+    const slidTo = down ? touches.filter((x2) => x2.slid && x2.side === side && x2.on > down.on && x2.on <= t).at(-1) : undefined;
+    const yc = Y(perf[slidTo ? slidTo.i : at.i].midi) + rowH / 2;
+    if (down) {
+      const wob = down.shake && t < down.on + (perf[down.i].len || 0) * 0.8 ? Math.sin(t * 48) * rowH * 1.2 : 0;
+      drawThumb(g, x, yc + wob, size, side, "down");
+    } else drawThumbProxy(g, x, yc, size, side, "rest", 0.75);
   }
 }

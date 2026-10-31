@@ -143,6 +143,14 @@ export const ES: Record<string, string> = {
   "his rule, applied to the notes": "su regla, aplicada a las notas",
   "his tempo: {t} (the game plays ♩ = {q})": "su tempo: {t} (el juego toca ♩ = {q})",
   "NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN": "NO HAY LECTURA PARA ESTA FUGA: SE TOCA COMO ESTÁ ESCRITA",
+  // Design studio (D388): HEAR THE SUBJECT's picker.
+  "WHOSE READING?": "¿DE QUIÉN ES LA LECTURA?",
+  "NO READING": "SIN LECTURA",
+  "Your own articulation: no marks asked or scored.": "Tu propia articulación: ninguna marca pedida ni puntuada.",
+  "A harpsichordist after Quantz. Marks almost every note.": "Un clavecinista, a partir de Quantz. Marca casi todas las notas.",
+  "An organist's articulation, from Bach's marked parts. Not every fugue.": "La articulación de un organista, a partir de las partes que Bach marcó. No en todas las fugas.",
+  "A Romantic theorist's phrasing. No tempo.": "El fraseo de un teórico romántico. Sin tempo.",
+  "A pianist's edition. The default on the piano.": "La edición de un pianista. La opción por defecto al piano.",
   "HEAR IT AGAIN": "ESCUCHAR OTRA VEZ",
   // Settings
   SETTINGS: "AJUSTES",

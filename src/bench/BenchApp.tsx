@@ -24,7 +24,7 @@ import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
 import { answer, askFirst, nextLesson, recordLesson, skipLesson, triesAt, tutorialDone } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
-import { presetById, setPreset } from "../touch/sound.ts";
+import { preset, presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
@@ -404,7 +404,7 @@ export function BenchApp() {
   // D282: a tutorial step may name its reading.
   // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
   // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id) : null;
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, /piano/i.test(preset().id)) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));

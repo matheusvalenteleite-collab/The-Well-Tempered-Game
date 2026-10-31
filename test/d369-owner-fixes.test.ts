@@ -220,7 +220,8 @@ test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading th
   store.clear();
   const app = src("src/bench/BenchApp.tsx");
   assert.doesNotMatch(app, /single=\{!full\}/);
-  assert.match(app, /f\.kind === "fugue" \? chosenReading\(f\.id\) : null;/);
+  // D388: the piano's flag passed along (Busoni its default where his reading exists).
+  assert.match(app, /f\.kind === "fugue" \? chosenReading\(f\.id(, [^;]*)?\) : null;/);
   register("./tsx-hooks.mjs", import.meta.url);
   const React = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");

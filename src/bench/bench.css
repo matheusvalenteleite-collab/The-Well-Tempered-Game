@@ -685,6 +685,31 @@
 .tb-hear-quote cite { display: block; margin-top: 4px; font-style: normal; font-size: 11px; color: var(--tg-muted); }
 .tb-hear-play { justify-self: center; font-size: 10px; padding: 9px 18px; }
 @media (max-height: 520px) { .tb-hear-canvas { height: 110px; } .tb-hear { gap: 5px; padding: 10px; } }
+/* Design studio (D388): HEAR THE SUBJECT as the play screen draws it; one control row; a picker that says what each reading is. */
+.tb-hear { width: min(820px, 100%); gap: 7px; padding: 10px 12px; }
+.tb-hear-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding-right: 36px; }
+.tb-hear-top .tb-hear-title { margin: 0; }
+.tb-hear-nick { font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.06em; color: var(--tg-gold); }
+.tb-hear-stage { position: relative; }
+.tb-hear .tb-hear-canvas { display: block; height: clamp(150px, 46vh, 300px); border: 0; }
+.tb-hear-picker { position: absolute; inset: 3px 12%; z-index: 2; display: grid; align-content: start; gap: 1px; padding: 6px 10px; overflow: auto; background: rgba(6, 8, 18, 0.95); border: 2px solid var(--tg-gold); }
+.tb-hear-picker[hidden] { display: none; }
+.tb-hear-picker-head { margin: 0 0 2px; text-align: left; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold); }
+.tb-hear-pick { display: grid; gap: 1px; padding: 3px 8px; text-align: left; color: var(--tg-fg); background: transparent; border: 0; border-left: 3px solid transparent; cursor: pointer; }
+.tb-hear-pick b { font-family: var(--tg-pixel); font-size: 7px; font-weight: 400; }
+.tb-hear-pick span { font-family: Georgia, "Times New Roman", serif; font-size: 11px; line-height: 1.3; color: #c8c3b4; }
+.tb-hear-pick.on { background: rgba(243, 210, 107, 0.14); border-left-color: var(--tg-gold); }
+.tb-hear-pick.on b { color: var(--tg-gold); }
+.tb-hear-pick:focus-visible, .tb-hear-btn2:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 1px; }
+.tb-hear-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tb-hear-btn2 { padding: 7px 10px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-fg); background: #1b2347; border: 1px solid #3a4677; cursor: pointer; }
+.tb-hear-btn2:disabled { cursor: default; opacity: 0.85; }
+.tb-hear-btn2.on { color: #1a1408; background: var(--tg-gold); border-color: var(--tg-gold); }
+.tb-hear-again { border-color: var(--tg-gold); }
+.tb-hear-one { font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); }
+.tb-hear-tempo { margin-left: auto; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); }
+.tb-hear .tb-hear-marks { display: flex; flex-wrap: wrap; gap: 3px 14px; margin: 0; width: auto; }
+@media (max-height: 520px) { .tb-hear .tb-hear-canvas { height: clamp(130px, 42vh, 220px); } }
 .tb-lite-book { margin: 10px 0 0; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); letter-spacing: 0.08em; text-shadow: 2px 2px 0 #b8322a; }
 /* D276: Book I and Book II as two tabs at the top of the list. */
 .tb-lite-tabs { display: flex; gap: 8px; max-width: 760px; margin: 0 auto 12px; position: sticky; top: calc(-12px - env(safe-area-inset-top, 0px)); z-index: 3; padding: 6px 0; background: var(--tg-bg); }
