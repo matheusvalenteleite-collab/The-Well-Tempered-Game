@@ -17,6 +17,8 @@ import { protoById } from "../src/bench/protos.ts";
 const FIVE = ["wtc1f01", "wtc1f02", "wtc1f08", "wtc1f16", "wtc1f24"];
 /** D392: BUSONI for every fugue of Book I. */
 const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
+/** D394: and Book II. */
+const ALL = [...BOOK_I, ...BOOK_I.map((id) => id.replace("wtc1", "wtc2"))];
 
 function silentChip(): Chip {
   return {
@@ -76,7 +78,7 @@ test("D391: I/2's line shows every kind Busoni prints there; the legend explains
   const f1 = fugueById("wtc1f01");
   const b1 = wholeBox(f1, wholeReadingOf("wtc1f01")!, f1.voices.map((_, i) => i))!;
   assert.ok(b1.lines.some((l) => l.dyn.some((d) => d.strong && /sf/.test(d.text))));
-  for (const id of BOOK_I) {
+  for (const id of ALL) {
     const f = fugueById(id);
     const b = wholeBox(f, wholeReadingOf(id)!, f.voices.map((_, i) => i))!;
     assert.ok(b.lines.every((l) => l.dyn.every((d) => d.strong === SFZ.test(d.text))), `${id}: every other level the normal zone`);
@@ -84,9 +86,10 @@ test("D391: I/2's line shows every kind Busoni prints there; the legend explains
 });
 
 test("D391: every word Busoni prints is drawn as printed with a translation in three languages, or is a label", () => {
-  // The entry letters (S A T B, inverted ᗺ ∀ Ƨ, I/4's A I., C. II.), countersubjects and hands: labels.
-  const LABEL = /^(\(?[A-Zᗺ∀Ƨ]\.?\)?( \(augmentation\))?( molto marc\.)?|\(?[AC]\. ?I{1,2}\.?\)?|[AC] I{1,2}\.|C\.S\.|Contrasubject I{1,2}|Counter-subject \/ Contrasubject|il basso|m\. d\.|r\. H\.( \/ Alto)?|Tenor|\(Coda\)|\(S\)|\(sotto\)|\(Modulation\)|[ᗺ∀Ƨ ]+|ma marc\. \(ᗺ\)|∀ … marc\.)$/i;
-  for (const id of BOOK_I) {
+  // The entry letters (S A T B, inverted ᗺ ∀ Ƨ, I/4's A I., C. II.), countersubjects and hands: labels. D394: Book II's
+  // entry letters for a variation and a diminution (II/9: SV, BD, ∂D), NB, the subject's brackets (⌐, [) and m.d.
+  const LABEL = /^(\(?[A-Zᗺ∀Ƨ]\.?\)?( \(augmentation\))?( molto marc\.)?|\(?[AC]\. ?I{1,2}\.?\)?|[AC] I{1,2}\.|C\.S\.|Contrasubject I{1,2}|Counter-subject \/ Contrasubject|il basso|m\. d\.|r\. H\.( \/ Alto)?|Tenor|\(Coda\)|\(S\)|\(sotto\)|\(Modulation\)|[ᗺ∀Ƨ ]+|ma marc\. \(ᗺ\)|∀ … marc\.|[SATB∂][VD]|NB|⌐( ⌐)*|\[|m\.d\.)$/i;
+  for (const id of ALL) {
     const W = wholeReadingOf(id)!.whole!;
     const texts = [...W.text.map((t) => t.text), ...W.tempo.map((t) => t.text), ...(W.heading ? [W.heading] : [])];
     for (const t of texts) assert.ok(glossOf(t) || LABEL.test(t), `${id}: "${t}" neither translated nor a label`);
@@ -160,8 +163,8 @@ test("D391: the painter's index: the first item at or after a tick", () => {
   assert.equal(firstOn(l, 31), 4);
 });
 
-test("D392: the box over the whole line for all 24 fugues of Book I; I/4 and I/22 spot-checked", () => {
-  for (const id of BOOK_I) {
+test("D392, D394: the box over the whole line for all 48 fugues; I/4 and I/22 spot-checked", () => {
+  for (const id of ALL) {
     const f = fugueById(id);
     const r = wholeReadingOf(id)!;
     const all = wholeAsks(wholePlan(f, r)!);
@@ -188,4 +191,31 @@ test("D392: the box over the whole line for all 24 fugues of Book I; I/4 and I/2
   assert.ok(b22.lines.flatMap((l) => l.words).some((w) => w.text === "più dolce" && w.gloss.en === "SWEETER"));
   assert.ok(!b22.lines.flatMap((l) => l.dyn).some((d) => d.text === "più dolce"));
   assert.ok(b22.lines.some((l) => l.spans.length) && b22.marks.size > 20);
+});
+
+test("D394: Book II in the box: II/22's fp (a level struck in the strong zone), II/15's dots and II/3's ending word, as judged", () => {
+  // II/22: fp drawn as letters, strong, and the note under it accented; the slurs of the chromatic countersubject drawn.
+  const f22 = fugueById("wtc2f22");
+  const r22 = wholeReadingOf("wtc2f22")!;
+  const plan22 = wholePlan(f22, r22)!;
+  const b22 = wholeBox(f22, r22, f22.voices.map((_, i) => i))!;
+  const fp = b22.lines.flatMap((l) => l.dyn).filter((d) => d.text === "fp");
+  assert.equal(fp.length, r22.whole!.dyn.filter((d) => d.mark === "fp").reduce((n, d) => n + d.voices.length, 0));
+  assert.ok(fp.every((d) => d.strong && d.parts.every((p) => p.italic)));
+  const d7 = r22.whole!.dyn.find((d) => d.mark === "fp")!;
+  assert.ok(plan22.notes.get(`${d7.voices[0]}:${d7.on}`)?.arts.has("accent"), "fp: the forte an accent");
+  assert.ok(plan22.dynAt(d7.voices[0], d7.on + f22.tpq) < plan22.dynAt(d7.voices[0], d7.on - 1), "then p");
+  assert.ok(b22.lines.some((l) => l.spans.length > 5));
+  // II/15 (from Busoni's Book I volume): every sixteenth of the subject dotted: short, as the box draws it.
+  const f15 = fugueById("wtc2f15");
+  const r15 = wholeReadingOf("wtc2f15")!;
+  const asks = wholeAsks(wholePlan(f15, r15)!);
+  const b15 = wholeBox(f15, r15, [0])!;
+  const dot = r15.whole!.marks.find((m) => m.v === 0 && m.art === "staccato")!;
+  assert.equal(b15.marks.get(`0:${dot.on}`), asks.get(`0:${dot.on}`));
+  assert.equal(asks.get(`0:${dot.on}`)!.short, true);
+  // II/3: "più largamente sino al fine" drawn and translated over every voice.
+  const f3 = fugueById("wtc2f03");
+  const b3 = wholeBox(f3, wholeReadingOf("wtc2f03")!, f3.voices.map((_, i) => i))!;
+  assert.ok(b3.lines.every((l) => l.words.some((w) => w.text === "più largamente sino al fine" && w.gloss.en === "BROADER TO THE END")));
 });

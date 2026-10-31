@@ -1,0 +1,363 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f08",
+ "title": "Fugue 8 in D♯ minor, BWV 877",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Johann Sebastian Bach, Das Wohltemperierte Klavier, Zweiter Teil, bearbeitet und erläutert von Ferruccio Busoni (Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (scan: a later printing)",
+  "source": "editions/busoni2/busoni-II-a.pdf",
+  "copyright": "public domain (Busoni d. 1924)",
+  "pages": {
+   "pdf": [
+    67,
+    68,
+    69,
+    70
+   ],
+   "printed": [
+    4,
+    5,
+    6,
+    7
+   ]
+  }
+ },
+ "tempo": {
+  "text": "Sostenuto e serio",
+  "en": "sustained and serious",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 299520,
+    "bar": 40,
+    "pos": 0,
+    "text": "Sostenendo sino al Fine",
+    "en": "holding back (sustaining) to the end",
+    "kind": "slow",
+    "conf": "sure",
+    "applied": false
+   }
+  ]
+ },
+ "character": "Sostenuto e serio; the subject molto tenuto (b.1). No dynamics anywhere: footnote 1 (p.70) leaves the shading to the voice-leading.",
+ "dynamicPlan": "None printed. Shading by the rise and fall of the lines and the entries (footnote 1); Sostenendo sino al Fine from b.40.",
+ "marks": [],
+ "slurs": [],
+ "dyn": [],
+ "hairpins": [],
+ "text": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "molto tenuto",
+   "en": "very sustained: each note held full value",
+   "conf": "sure"
+  },
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 16320,
+   "bar": 3,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 47040,
+   "bar": 7,
+   "pos": 2,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 62400,
+   "bar": 9,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 108480,
+   "bar": 15,
+   "pos": 2,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 123840,
+   "bar": 17,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 139200,
+   "bar": 19,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 154560,
+   "bar": 21,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 173760,
+   "bar": 23,
+   "pos": 10,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 185280,
+   "bar": 25,
+   "pos": 2,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 204480,
+   "bar": 27,
+   "pos": 10,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 223680,
+   "bar": 30,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 239040,
+   "bar": 32,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "sure"
+  },
+  {
+   "on": 304320,
+   "bar": 40,
+   "pos": 10,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 327360,
+   "bar": 43,
+   "pos": 10,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 327360,
+   "bar": 43,
+   "pos": 10,
+   "voices": [
+    2
+   ],
+   "text": "T",
+   "en": "entry label: tenor",
+   "conf": "unsure"
+  },
+  {
+   "on": 76800,
+   "bar": 11,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "NB",
+   "en": "nota bene: the chromatic counterpoint of footnote 2 (analytical)",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fromBar": 1,
+    "toBar": 46
+   },
+   "applies": "all notes",
+   "art": "no printed dynamics: shading follows the entries and withdrawals of the voices and the rise and fall of each line, with a sensible economy (footnote 1, p.70)",
+   "source": "footnote 1, pdf p.70",
+   "conf": "sure"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "molto tenuto, as printed on the first entry",
+   "source": "b.1, extended by inference",
+   "conf": "unsure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 15,
+   "sign": "double bar",
+   "en": "end of the exposition"
+  },
+  {
+   "beforeBar": 35,
+   "pos": 8,
+   "on": 264960,
+   "sign": "double bar (mid-bar)",
+   "en": "into the last section"
+  }
+ ],
+ "ornaments": [],
+ "ornamentsNote": "No ornaments printed.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief); very few fingerings printed."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": "II-a 70",
+   "at": "bar 40, Sostenendo sino al Fine",
+   "de": "Es widerstrebte dem Herausgeber, besondere Vortragsnuancen aufzuzeichnen, die aus dem Hervor- und Zurücktreten der Stimmen, dem Steigen und Fallen der Linie unmißverständlich hervorgehen; doch setzt er voraus, daß eine vernünftige Ökonomie derselben eingehalten werde.",
+   "en": "Busoni declined to print shadings that follow plainly from the voices coming forward and receding and from the rise and fall of the line, but expects a sensible economy in them.",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Busoni labels every entry with S, A, T, B; these are kept in text[] as entry emphasis cues. The label at b.43 under the bass staff reads like \"L\"; taken as the tenor (unsure).",
+  "Skipped: ossias (b.14, 21, 36), the octave doubling \"con 8va ad lib.\" in the bass (b.40–42), the variant markers * (b.28) and ** (b.39) and the analytical footnotes 1–2 on p.67.",
+  "All arcs seen are ties over held notes; no slurs recorded.",
+  "Printed page numbers are the volume's own (4–7); pdf pages 67–70. Read from 200 dpi crops, zoomed to 300 dpi where needed."
+ ],
+ "counts": {
+  "marks": 0,
+  "slurs": 0,
+  "dyn": 0,
+  "hairpins": 0,
+  "text": 18,
+  "breaths": 0,
+  "ornaments": 0,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 2,
+  "footnotes": 1,
+  "byArt": {},
+  "bySlurKind": {},
+  "byConf": {},
+  "byConfAll": {
+   "sure": 18,
+   "unsure": 1
+  }
+ }
+}

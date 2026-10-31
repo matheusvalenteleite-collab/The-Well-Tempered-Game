@@ -99,7 +99,7 @@ export interface WholeBox {
 export type Gloss = Record<Lang, string>;
 const G = (en: string, pt: string, es: string): Gloss => ({ en, pt, es });
 /**
- * Busoni's words in the 24 fugues of Book I (D392) (data/touch/readings.json `whole.text`, `whole.tempo`, the headings, the
+ * Busoni's words in the 24 fugues of Book I (D392) and of Book II (D394) (data/touch/readings.json `whole.text`, `whole.tempo`, the headings, the
  * level words): each to its translation. A text not here is a label (r. H., Tenor, the subject's letters,
  * (Coda)) and is not drawn: it asks nothing of the player.
  */
@@ -291,6 +291,106 @@ export const WORD_GLOSS: Readonly<Record<string, Gloss>> = {
   "più largamente (coda)": G("MORE BROADLY (CODA)", "MAIS AMPLO (CODA)", "MÁS AMPLIO (CODA)"),
   "più largo": G("BROADER", "MAIS LARGO", "MÁS AMPLIO"),
   "sostenuto sino al fine": G("SUSTAINED, HELD BACK TO THE END", "SUSTENTADO, CONTIDO ATÉ O FIM", "SOSTENIDO, CONTENIDO HASTA EL FINAL"),
+  // D394: Book II's words. The headings.
+  allegro: G("QUICK", "RÁPIDO", "RÁPIDO"),
+  "andante con moto": G("WALKING, WITH MOTION", "ANDANDO, COM MOVIMENTO", "ANDANDO, CON MOVIMIENTO"),
+  "allegro risoluto": G("QUICK, RESOLUTE", "RÁPIDO, RESOLUTO", "RÁPIDO, RESUELTO"),
+  "maestoso alla breve": G("MAJESTIC, IN TWO", "MAJESTOSO, EM DOIS", "MAJESTUOSO, EN DOS"),
+  "allegro moderato con slancio e sentimento": G("MODERATELY QUICK, WITH SWEEP AND FEELING", "MODERADAMENTE RÁPIDO, COM ÍMPETO E SENTIMENTO", "MODERADAMENTE RÁPIDO, CON ÍMPETU Y SENTIMIENTO"),
+  "tempo giusto": G("IN STRICT TIME", "NO TEMPO JUSTO", "EN TIEMPO JUSTO"),
+  "sostenuto e serio": G("SUSTAINED AND SERIOUS", "SUSTENTADO E SÉRIO", "SOSTENIDO Y SERIO"),
+  "largo alla breve": G("BROAD, IN TWO", "LARGO, EM DOIS", "AMPLIO, EN DOS"),
+  "allegro deciso": G("QUICK, DECIDED", "RÁPIDO, DECIDIDO", "RÁPIDO, DECIDIDO"),
+  "vivace moderato": G("LIVELY, MODERATELY", "VIVO, MODERADO", "VIVO, MODERADO"),
+  "moderato un poco scherzando": G("MODERATE, A LITTLE PLAYFUL", "MODERADO, UM POUCO BRINCALHÃO", "MODERADO, UN POCO JUGUETÓN"),
+  "allegro fermo": G("QUICK, FIRM", "RÁPIDO, FIRME", "RÁPIDO, FIRME"),
+  "allegretto scherzoso.": G("FAIRLY QUICK, PLAYFUL", "UM POUCO RÁPIDO, BRINCALHÃO", "ALGO RÁPIDO, JUGUETÓN"),
+  "allegretto scherzoso. etwas mit humor.": G("FAIRLY QUICK, PLAYFUL, WITH A TOUCH OF HUMOUR", "UM POUCO RÁPIDO, BRINCALHÃO, COM UM POUCO DE HUMOR", "ALGO RÁPIDO, JUGUETÓN, CON UN POCO DE HUMOR"),
+  "allegretto maestoso": G("FAIRLY QUICK, MAJESTIC", "UM POUCO RÁPIDO, MAJESTOSO", "ALGO RÁPIDO, MAJESTUOSO"),
+  "allegretto lusingando": G("FAIRLY QUICK, COAXING", "UM POUCO RÁPIDO, LISONJEIRO", "ALGO RÁPIDO, HALAGADOR"),
+  "tranquillo melodioso e meditativo": G("CALM, SINGING AND THOUGHTFUL", "CALMO, MELODIOSO E MEDITATIVO", "TRANQUILO, MELODIOSO Y MEDITATIVO"),
+  "allegro ritenuto e ostinato": G("QUICK BUT HELD BACK, OBSTINATE", "RÁPIDO MAS CONTIDO, OBSTINADO", "RÁPIDO PERO CONTENIDO, OBSTINADO"),
+  "♩ = ♪. del preludio": G("A QUARTER = THE PRELUDE'S DOTTED EIGHTH", "SEMÍNIMA = COLCHEIA PONTUADA DO PRELÚDIO", "NEGRA = CORCHEA CON PUNTILLO DEL PRELUDIO"),
+  "largamente alla breve": G("BROADLY, IN TWO", "AMPLAMENTE, EM DOIS", "AMPLIAMENTE, EN DOS"),
+  "andante alla breve": G("WALKING, IN TWO", "ANDANDO, EM DOIS", "ANDANDO, EN DOS"),
+  "alla danza tedesca, dal ritmo sostenuto": G("LIKE A GERMAN DANCE, WITH A SUSTAINED RHYTHM", "COMO UMA DANÇA ALEMÃ, DE RITMO SUSTENTADO", "COMO UNA DANZA ALEMANA, DE RITMO SOSTENIDO"),
+  // D394: character and touch.
+  "non legato, decisamente in tono e carattere": G("NOT JOINED, DECISIVE IN TONE AND CHARACTER", "NÃO LIGADO, DECIDIDO NO SOM E NO CARÁTER", "NO LIGADO, DECIDIDO EN SONIDO Y CARÁCTER"),
+  "dolce, ma con carattere": G("SWEET, BUT WITH CHARACTER", "DOCE, MAS COM CARÁTER", "DULCE, PERO CON CARÁCTER"),
+  "meno dolce e più con carattere": G("LESS SWEET, WITH MORE CHARACTER", "MENOS DOCE E COM MAIS CARÁTER", "MENOS DULCE Y CON MÁS CARÁCTER"),
+  "non leggiero": G("NOT LIGHT", "NÃO LEVE", "NO LIGERO"),
+  "(non legato)": G("(NOT JOINED)", "(NÃO LIGADO)", "(NO LIGADO)"),
+  "ritmo di 6 quarti": G("IN A RHYTHM OF SIX QUARTERS", "EM RITMO DE SEIS SEMÍNIMAS", "EN RITMO DE SEIS NEGRAS"),
+  "ritmo di 4 quarti": G("IN A RHYTHM OF FOUR QUARTERS", "EM RITMO DE QUATRO SEMÍNIMAS", "EN RITMO DE CUATRO NEGRAS"),
+  "ritmo di 2 quarti": G("IN A RHYTHM OF TWO QUARTERS", "EM RITMO DE DUAS SEMÍNIMAS", "EN RITMO DE DOS NEGRAS"),
+  "legato melodioso": G("JOINED, SINGING", "LIGADO, MELODIOSO", "LIGADO, MELODIOSO"),
+  "wuchtig, sehr gehalten. / pesante e ben tenuto, ma non legato": G("WEIGHTY, WELL HELD, BUT NOT JOINED", "PESADO E BEM SUSTENTADO, MAS NÃO LIGADO", "PESADO Y BIEN SOSTENIDO, PERO NO LIGADO"),
+  "meno f e più legato": G("LESS LOUD AND MORE JOINED", "MENOS FORTE E MAIS LIGADO", "MENOS FUERTE Y MÁS LIGADO"),
+  "t ten.": G("TENOR, HELD", "TENOR, SUSTENTADO", "TENOR, SOSTENIDO"),
+  "dolce, tranquillo e tutto legato": G("SWEET, CALM AND ALL JOINED", "DOCE, CALMO E TUDO LIGADO", "DULCE, TRANQUILO Y TODO LIGADO"),
+  "t marcato ma dolce": G("TENOR, MARKED BUT SWEET", "TENOR, MARCADO MAS DOCE", "TENOR, MARCADO PERO DULCE"),
+  "s … f come prima": G("SOPRANO … LOUD AS BEFORE", "SOPRANO … FORTE COMO ANTES", "SOPRANO … FUERTE COMO ANTES"),
+  scolpito: G("CHISELLED", "ESCULPIDO", "ESCULPIDO"),
+  "incisivo, disinvolto, marcato": G("INCISIVE, EASY, MARKED", "INCISIVO, DESENVOLTO, MARCADO", "INCISIVO, DESENVUELTO, MARCADO"),
+  "(maggiore)": G("(MAJOR)", "(MAIOR)", "(MAYOR)"),
+  "(minore)": G("(MINOR)", "(MENOR)", "(MENOR)"),
+  recitato: G("SPOKEN (RECITATIVE)", "RECITADO", "RECITADO"),
+  "allegro e più legato": G("QUICK AND MORE JOINED", "RÁPIDO E MAIS LIGADO", "RÁPIDO Y MÁS LIGADO"),
+  "non troppo leggiero": G("NOT TOO LIGHT", "NÃO MUITO LEVE", "NO DEMASIADO LIGERO"),
+  "non tanto leggiero": G("NOT SO LIGHT", "NÃO TÃO LEVE", "NO TAN LIGERO"),
+  "rinf. non legato": G("REINFORCED, NOT JOINED", "REFORÇADO, NÃO LIGADO", "REFORZADO, NO LIGADO"),
+  "largo e meno leggiero": G("BROAD AND LESS LIGHT", "LARGO E MENOS LEVE", "AMPLIO Y MENOS LIGERO"),
+  "non troppo staccato e poco forte": G("NOT TOO SHORT, AND FAIRLY LOUD", "NÃO MUITO CURTO, E UM POUCO FORTE", "NO DEMASIADO CORTO, Y ALGO FUERTE"),
+  fermamente: G("FIRMLY", "FIRMEMENTE", "FIRMEMENTE"),
+  apertamente: G("OPENLY", "ABERTAMENTE", "ABIERTAMENTE"),
+  "meno serio": G("LESS SERIOUS", "MENOS SÉRIO", "MENOS SERIO"),
+  "dolce marcato": G("SWEET, MARKED", "DOCE, MARCADO", "DULCE, MARCADO"),
+  "sempre staccato, non troppo leggiero": G("ALWAYS SHORT, NOT TOO LIGHT", "SEMPRE CURTO, NÃO MUITO LEVE", "SIEMPRE CORTO, NO DEMASIADO LIGERO"),
+  "mit praecisem anschlag": G("WITH A PRECISE TOUCH", "COM TOQUE PRECISO", "CON TOQUE PRECISO"),
+  "sostenuto ma deliberatamente": G("SUSTAINED BUT DELIBERATE", "SUSTENTADO MAS DELIBERADO", "SOSTENIDO PERO DELIBERADO"),
+  amabile: G("AMIABLE", "AMÁVEL", "AMABLE"),
+  "mezza voce egualmente e tutto legato": G("HALF VOICE, EVEN AND ALL JOINED", "A MEIA VOZ, IGUAL E TUDO LIGADO", "A MEDIA VOZ, IGUAL Y TODO LIGADO"),
+  "espressivo ma semplicemente": G("EXPRESSIVE BUT SIMPLE", "EXPRESSIVO MAS SIMPLES", "EXPRESIVO PERO SENCILLO"),
+  "tenuto ma non legato": G("HELD BUT NOT JOINED", "SUSTENTADO MAS NÃO LIGADO", "SOSTENIDO PERO NO LIGADO"),
+  "tenuto non legato": G("HELD, NOT JOINED", "SUSTENTADO, NÃO LIGADO", "SOSTENIDO, NO LIGADO"),
+  "(trotzig)": G("(DEFIANT)", "(DESAFIADOR)", "(DESAFIANTE)"),
+  "dolce, con grazia di movimento": G("SWEET, WITH GRACE OF MOVEMENT", "DOCE, COM GRAÇA DE MOVIMENTO", "DULCE, CON GRACIA DE MOVIMIENTO"),
+  "poco più": G("A LITTLE MORE", "UM POUCO MAIS", "UN POCO MÁS"),
+  "sotto voce tranquillo": G("HUSHED, CALM", "EM VOZ BAIXA, CALMO", "EN VOZ BAJA, TRANQUILO"),
+  "con fermezza e dignità": G("FIRMLY AND WITH DIGNITY", "COM FIRMEZA E DIGNIDADE", "CON FIRMEZA Y DIGNIDAD"),
+  "meno robusto": G("LESS ROBUST", "MENOS ROBUSTO", "MENOS ROBUSTO"),
+  tematico: G("THEMATIC (THE SUBJECT)", "TEMÁTICO (O SUJEITO)", "TEMÁTICO (EL SUJETO)"),
+  "ten. assai": G("WELL HELD", "BEM SUSTENTADO", "BIEN SOSTENIDO"),
+  "più chiaro": G("BRIGHTER", "MAIS CLARO", "MÁS CLARO"),
+  deciso: G("DECIDED", "DECIDIDO", "DECIDIDO"),
+  // D394: levels and ramps.
+  forte: G("LOUD", "FORTE", "FUERTE"),
+  "meno forte": G("LESS LOUD", "MENOS FORTE", "MENOS FUERTE"),
+  "non forte": G("NOT LOUD", "NÃO FORTE", "NO FUERTE"),
+  "f sempre": G("ALWAYS LOUD", "SEMPRE FORTE", "SIEMPRE FUERTE"),
+  "sempre forte": G("ALWAYS LOUD", "SEMPRE FORTE", "SIEMPRE FUERTE"),
+  "sempre p": G("ALWAYS SOFT", "SEMPRE SUAVE", "SIEMPRE SUAVE"),
+  "forte dolce": G("LOUD BUT SWEET", "FORTE MAS DOCE", "FUERTE PERO DULCE"),
+  "forte, tenutamente": G("LOUD, HELD", "FORTE, SUSTENTADO", "FUERTE, SOSTENIDO"),
+  "f tenuto": G("LOUD, HELD", "FORTE, SUSTENTADO", "FUERTE, SOSTENIDO"),
+  "meno dolce": G("LESS SWEET", "MENOS DOCE", "MENOS DULCE"),
+  "poco a poco dimin.": G("SOFTER LITTLE BY LITTLE", "DIMINUINDO POUCO A POUCO", "DISMINUYENDO POCO A POCO"),
+  "un poco dimin.": G("A LITTLE SOFTER", "DIMINUINDO UM POUCO", "DISMINUYENDO UN POCO"),
+  "sempre aumentando": G("GROWING EVER LOUDER", "SEMPRE AUMENTANDO", "SIEMPRE AUMENTANDO"),
+  "diminuendo sempre": G("GROWING EVER SOFTER", "SEMPRE DIMINUINDO", "SIEMPRE DISMINUYENDO"),
+  diminuendo: G("GROWING SOFTER", "DIMINUINDO", "DISMINUYENDO"),
+  "p molto cresc.": G("SOFT, THEN MUCH LOUDER", "SUAVE, DEPOIS MUITO MAIS FORTE", "SUAVE, LUEGO MUCHO MÁS FUERTE"),
+  "molto cresc.": G("GROWING MUCH LOUDER", "CRESCENDO MUITO", "CRECIENDO MUCHO"),
+  "più crescendo": G("GROWING STILL LOUDER", "CRESCENDO AINDA MAIS", "CRECIENDO AÚN MÁS"),
+  "(cresc. il basso)": G("(THE BASS GROWING LOUDER)", "(O BAIXO EM CRESCENDO)", "(EL BAJO CRECIENDO)"),
+  "cresc. il soprano": G("THE SOPRANO GROWING LOUDER", "O SOPRANO EM CRESCENDO", "EL SOPRANO CRECIENDO"),
+  // D394: time (an ending's slowing is played, D390).
+  sostenendo: G("HOLDING BACK", "CONTENDO", "CONTENIENDO"),
+  "sostenendo sino al fine": G("HOLDING BACK TO THE END", "CONTENDO ATÉ O FIM", "CONTENIENDO HASTA EL FINAL"),
+  "più largamente sino al fine": G("BROADER TO THE END", "MAIS AMPLO ATÉ O FIM", "MÁS AMPLIO HASTA EL FINAL"),
+  meno: G("LESS QUICK", "MENOS RÁPIDO", "MENOS RÁPIDO"),
+  "più grave": G("GRAVER", "MAIS GRAVE", "MÁS GRAVE"),
+  slentando: G("SLACKENING", "AFROUXANDO", "AFLOJANDO"),
 };
 /** A printed word as the glossary keys it: lower case, the dashes of a span ("sostenuto - - -") off. */
 export const wordKey = (text: string) => text.toLowerCase().replace(/(\s*-)+\s*$/, "").replace(/\s+/g, " ").trim();
@@ -404,7 +504,8 @@ function lineOf(f: TouchFugue, W: NonNullable<Reading["whole"]>, v: number): Who
     // A level or an accent (sf, sfz): letters; a ramp or a character said as a level (dim., dolce): a word.
     if (LEVEL_DB[mark] !== undefined && !/^(dolce|più dolce|mezza voce|sotto voce)$/.test(mark)) {
       const parts = dynParts(mark);
-      dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts, strong: false });
+      // D394: fp is a level (p) struck forte: the strong zone.
+      dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts, strong: SFZ.test(mark) });
       // Its words translated too ("p subito", "meno f").
       if (parts.some((p) => !p.italic)) words.push({ on: d.on, step: lowAt(d.on), text: mark, shown: "", gloss: glossOf(mark) ?? G(mark, mark, mark) });
     } else if (SFZ.test(mark)) dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts: dynParts(mark), strong: true });

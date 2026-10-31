@@ -1,0 +1,286 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 2/2 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f05",
+ "title": "Fugue 5 in D major, BWV 874",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperierte Klavier, Zweiter Teil (Busoni-Ausgabe, Band II, Heft 1)",
+  "publisher": "Breitkopf & Härtel (1915; later Wiesbaden printing)",
+  "pages": {
+   "pdf": [
+    43,
+    44,
+    45
+   ],
+   "printed": [
+    40,
+    41,
+    42
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1915)",
+  "source": "editions/busoni2/busoni-II-a.pdf"
+ },
+ "tempo": {
+  "text": "Maestoso alla breve",
+  "en": "majestic, in two",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "Tempo word \"Maestoso\"; \"f tenuto\" at the first two entries; Busoni's footnote calls the fugue a chorale-like Christe eleison in steady eighths.",
+ "dynamicPlan": "f tenuto at the tenor subject (b.1) and alto answer (b.2); no other dynamics; sections marked 1./2. Durchführung, 1.–3. Engführung and \"Engste Führung\" (b.28, 33, 44), all at one level, to the fermatas.",
+ "marks": [
+  {
+   "v": 3,
+   "on": 325440,
+   "p": 57,
+   "name": "A3",
+   "bar": 43,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 380160,
+   "p": 62,
+   "name": "D4",
+   "bar": 50,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 380160,
+   "p": 57,
+   "name": "A3",
+   "bar": 50,
+   "art": "fermata",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 380160,
+   "p": 54,
+   "name": "F#3",
+   "bar": 50,
+   "art": "fermata",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 380160,
+   "p": 38,
+   "name": "D2",
+   "bar": 50,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 2,
+   "from": 5760,
+   "to": 11520,
+   "bars": "1.12–2.8",
+   "names": "B3–F#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail (tenor)"
+  },
+  {
+   "v": 1,
+   "from": 17280,
+   "to": 22080,
+   "bars": "3.4–3.14",
+   "names": "F#4–D4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 36480,
+   "to": 42240,
+   "bars": "5.12–6.8",
+   "names": "B4–F#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail (soprano)"
+  },
+  {
+   "v": 3,
+   "from": 47040,
+   "to": 51840,
+   "bars": "7.2–7.12",
+   "names": "B2–A2",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail (bass)"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "mark": "f",
+   "conf": "sure",
+   "role": "tenor subject"
+  },
+  {
+   "on": 12480,
+   "bar": 2,
+   "pos": 10,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "sure",
+   "role": "alto answer"
+  }
+ ],
+ "hairpins": [],
+ "text": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "f tenuto",
+   "en": "loud, every note held its full value",
+   "conf": "sure"
+  },
+  {
+   "on": 12480,
+   "bar": 2,
+   "pos": 10,
+   "voices": [
+    1
+   ],
+   "text": "f tenuto",
+   "en": "loud, held: the alto answer",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": false
+   },
+   "applies": "every unmarked note",
+   "art": "tenuto: full value, no detachment (\"f tenuto\" printed at the first two entries; never cancelled; no other dynamics in the fugue)",
+   "source": "text at b.1 and b.2",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "Busoni labels each entry with its voice (S, A, T, B) and a bracket over the subject: bring it out",
+   "source": "letters and brackets printed throughout",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 10,
+   "sign": "double bar",
+   "en": "\"2. Durchführung (Sopran und Alt)\""
+  },
+  {
+   "beforeBar": 20,
+   "sign": "double bar",
+   "en": "before \"1. Engführung\" (b.21)"
+  },
+  {
+   "beforeBar": 33,
+   "sign": "double bar",
+   "en": "\"3. Engführung\""
+  },
+  {
+   "beforeBar": 40,
+   "sign": "double bar",
+   "en": "before the tenor entry"
+  }
+ ],
+ "ornaments": [],
+ "ornamentsNote": "No ornaments.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "Source scanned at 300 ppi; read one system at a time at 200 dpi.",
+  "Footnotes 1–2 (commentary on the style; six-quarter subjects; the bass stretto answers suggested in small notes) and the ossias (b.36–37, 49) and the commentary example are skipped.",
+  "Section labels (1./2. Durchführung, 1.–3. Engführung, Engste Führung) are recorded only through sections[] where a double bar is printed.",
+  "Ties are not recorded as slurs; nearly all arcs in this fugue are ties."
+ ],
+ "counts": {
+  "marks": 5,
+  "slurs": 4,
+  "dyn": 2,
+  "hairpins": 0,
+  "text": 2,
+  "breaths": 0,
+  "ornaments": 0,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 0,
+  "byArt": {
+   "tenuto": 1,
+   "fermata": 4
+  },
+  "bySlurKind": {
+   "slur": 4
+  },
+  "byConf": {
+   "likely": 7,
+   "sure": 4
+  },
+  "byConfAll": {
+   "likely": 8,
+   "sure": 7
+  }
+ }
+}
