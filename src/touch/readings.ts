@@ -128,9 +128,8 @@ export const readingsOf = (id: string): Reading[] => READINGS[id] ?? [];
  * D314: what each of the reading's marks asks of the thumbs, in plain words (the owner: "clearer
  * instructions on what the . is in articulation"): the dot is SHORT (staccato: judged STACCATO ✓ when
  * the thumb lets go before three fifths of the note), the stroke DETACHED (D370: it was APART; judged
- * DETACHED ✓), the line JOINED (legato), the wedge an ACCENT (D338: judged ACCENT ✓ by time, never
- * loudness: the note before lifted, the accent on time or a hair late and held; src/bench/accent.ts. It
- * was the bar's strong side, touch-expr.ts STRONG_SIDE). D370 (Glenn's notes §3): one vocabulary
+ * DETACHED ✓), the line JOINED (legato), the wedge an ACCENT (D387: weight on time: landed in the strong
+ * zone, by the box, within PERFECT; src/bench/accent.ts. D338's lean after a silence only under CLASSIC). D370 (Glenn's notes §3): one vocabulary
  * everywhere, and ⌒ kept for a real slur (a group the reading slurs: one gesture, joined inside, let go at
  * its end); a plain legato join is JOINED's line. The box's legend at the start of a round with marks,
  * HEAR THE SUBJECT, HOW TO PLAY and the side bar.
@@ -142,7 +141,7 @@ export function markLegend(_strongSide?: "outer" | "inner"): { kind: MarkKind; s
     { kind: "apart", sym: "|", text: tr("DETACHED: LIFT BEFORE THE NEXT") },
     { kind: "joined", sym: "‾", text: tr("JOINED: NEXT THUMB DOWN BEFORE LIFTING") },
     { kind: "slur", sym: "⌒", text: tr("SLUR: ONE GESTURE, JOINED INSIDE, LIFT AT ITS END") },
-    // D338: the accent by time, whichever side is strong (strongSide no longer asked of it).
+    // D387: the accent as weight on time (the strong zone, by the box), whichever argument is given.
     { kind: "strong", sym: ">", text: tr("ACCENT: LAND IN THE STRONG ZONE, BY THE BOX, ON TIME") },
   ];
 }

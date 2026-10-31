@@ -199,7 +199,8 @@ test("D335: FREE PLAY, A · PLACE × STRIKE: struck at once at the place's level
   fp.down(1, "left", 149, 100, W, H, performance.now());
   assert.equal(notes.length, 1, "at once");
   const t0 = notes[0].p.touch!;
-  assert.ok(t0 > 0.98, `the place's level at touchdown: touch ${t0}`);
+  // D385: the piano's landing in three zones: the strong zone, the rest of the place's +4 dB made up in level.
+  assert.ok(t0 >= 2 / 3, `the place's level at touchdown: touch ${t0}`);
   assert.equal(out.length, 0, "the line waits for the strike");
   clock.t = 10.03;
   pending!({ peak: 0.25, strength: 0.25, cal: "inner zone's calibration" });

@@ -125,7 +125,8 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
   // D378: joined by ear (25 ms), care's 20% gap is a detached touch, the strokes' own: plain care for the readings is joined throughout.
   assert.match(told("III.2", undefined, { jitterMs: 5, hold: 0.97 }), /the dot: lift before three fifths/);
   assert.match(told("III.3", undefined, { jitterMs: 5, hold: 0.97 }), /Join inside the slur/);
-  assert.match(told("III.4", undefined, { jitterMs: 5, hold: 0.97 }), /small silence before/);
+  // D387: the accent is weight on time.
+  assert.match(told("III.4", undefined, { jitterMs: 5, hold: 0.97 }), /Weight on time/);
   assert.match(told("IV.1"), /Breathe: enter a hair late/);
   assert.match(told("IV.2"), /No lean yet/);
 });

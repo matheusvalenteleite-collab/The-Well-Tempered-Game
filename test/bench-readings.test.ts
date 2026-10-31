@@ -22,7 +22,7 @@ test("D272: every reading belongs to a Book I fugue, at most three a fugue (D385
       assert.equal(r.notes.length, firstEntry(id).notes.length, `${id}/${r.id}: a mark per note`);
       if (r.tempo !== null) assert.ok(r.tempo >= 30 && r.tempo <= 200, `${id}/${r.id}: ♩ = ${r.tempo}`);
       if (r.level) assert.ok(r.level in LEVEL_D);
-      assert.ok(r.notes.some((n) => n.join !== null || n.short || n.accent) || r.level || r.plan.length, `${id}/${r.id}: something to play by`);
+      assert.ok(r.notes.some((n) => n.join !== null || n.short || n.accent) || r.level || r.plan.length || r.whole, `${id}/${r.id}: something to play by`);
       if (r.quote) assert.ok(r.quote.split(/\s+/).length <= 45, `${id}/${r.id}: a short quotation`);
     }
   }
