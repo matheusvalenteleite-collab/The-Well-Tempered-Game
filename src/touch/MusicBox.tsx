@@ -679,6 +679,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   }
   // D353/D362: the ornaments performed, over the written blocks (the plain melody under) and above the signs.
   if (fr.performed?.length) paintOverlay(g, fr, { xOf, yOf, hOf, bh, w, lift: (step, midi) => altOf(step, midi) * shift, gold: fx.gold });
+  // D384 (Mario 1): the strikes' points and bursts under the reading's marks, so a mark is never hidden by them.
+  sparks(fx, fr.pops ?? [], fr.bursts ?? []);
   // D272, D374 (D372's in-block designs reverted): the reading's marks over the player's notes, only where
   // a reading marks them: a gold line to the next where joined, a red stroke in the gap where detached, a
   // dot where short, an accent; D370: ⌒ only for a reading's real slur, one arc over the group.
@@ -765,7 +767,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   if (fr.banner) banner(g, w, fr.banner, fx.gold);
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
-  sparks(fx, fr.pops ?? [], fr.bursts ?? []);
   zoneGlow(fx, fr.zone ?? null);
 }
 
