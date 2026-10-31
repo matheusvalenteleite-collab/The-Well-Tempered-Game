@@ -427,6 +427,16 @@ export interface Play {
   group?: number;
   /** D355: the band's colour here, by the piece's colour plan for the sound (colour.ts); never on the player's note. */
   colour?: Colour;
+  /** D385: the piano's dampers this many times slower (a palette's half pedal; a trill's half-seated dampers, both strings ringing). */
+  dampMul?: number;
+  /** D385: the room's send scaled (a palette: drier for leggiero, larger for grave). */
+  roomMul?: number;
+  /** D385: the player's line on the piano: the reading's level here (dB about the middle), the touch's zone added (touch-expr.ts landing). */
+  lineDb?: number;
+  /** D385: the player's note is a reading's accent (">" +4, "^" +6 dB): what the strong zone gives it. */
+  accentDb?: number;
+  /** D385: a trill's auxiliary note: sounded from the other neighbouring recording (sampled.ts), so the two pitches never share one hammer. */
+  altSample?: boolean;
 }
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
@@ -756,13 +766,15 @@ export class Chip {
     const pt = v.patch ?? null;
     const pulse = !pt && v.timbre !== "triangle";
     // D349: the pedal has no echo manual (an organist's feet stay on the one pedalboard).
-    const l = kind === "organ" && isPedal(pt) ? {} : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse);
+    const l = kind === "organ" && isPedal(pt) ? {} : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb });
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
     const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
     if (l.tone) q.tone = (p.tone ?? 0) + l.tone;
     if (l.bright !== undefined) q.bright = l.bright;
+    // D385: the piano's colour by the level struck (the line's and the zone's), when the note has none of its own.
+    if (l.vel !== undefined && p.vel === undefined) q.vel = l.vel + 20 * Math.log10(Math.max(1e-3, p.level ?? 1));
     for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open", "echo"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
     // The classic chip: the pulse of that width (its level by the chip's own table: voiceNote).
     if (pulse && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
@@ -1623,7 +1635,8 @@ export class Chip {
     } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
-    this.fxSend(pan ?? dyn, pt.send, bag);
+    // D385: a whole-piece reading's palette (Play.roomMul): more or less of the room.
+    this.fxSend(pan ?? dyn, pt.send !== undefined && p.roomMul ? pt.send * p.roomMul : pt.send, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = tremLfo ? [tremLfo] : [];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
@@ -1721,6 +1734,11 @@ export class Chip {
         const stacc = lift && s - t < dm.stacc;
         tau = stacc ? Math.min(damp, dm.crisp) : lift && !handover && (p.group ?? 0) >= 1 ? damp * dm.slur : damp;
         if (!stacc && (!lift || handover || (p.group ?? 0) >= 1)) tail = tau * dm.tail;
+      }
+      // D385: a palette's sparing half pedal, a trill's half-seated dampers (Play.dampMul: the dampers slower).
+      if (dm && damp && p.dampMul && p.dampMul !== 1) {
+        tau *= p.dampMul;
+        tail = tail ? tail * p.dampMul : tau * dm.tail;
       }
       g.gain.setTargetAtTime(0, s, tau);
       if (tail) g.gain.setTargetAtTime(0, s + 3 * tau, tail);

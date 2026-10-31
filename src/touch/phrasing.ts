@@ -4,7 +4,8 @@
  *   Weight: the bar's first beat a little stronger, the other beats a little, the notes between them
  *   lighter (the synthesized sounds; D309: the sampled piano by its own model, practice.ts
  *   pianoLevels; the harpsichord and the organ flat: they have no touch dynamics).
- *   The subject: its notes known (D293: never louder).
+ *   The subject: its notes known (D385: no longer never louder: D293's rule removed by the owner; an
+ *   entry is as loud as a reading prints it).
  *   Line: within a voice, the higher notes of a passage a shade louder (the arch of a phrase).
  *   Articulation (D302, D304, D309: ARTICULATION below): each instrument's table (practice.ts), the
  *   readings' marks first.
@@ -15,6 +16,7 @@ import { accompaniment, type OtherNote } from "./voice-mode.ts";
 import type { TouchFugue } from "./fugue.ts";
 import { preset } from "./sound.ts";
 import { characterOf, type Character } from "./character.ts";
+import { bandDb, CAESURA_S, metricPlace, PHRASE_BREATH_HOLD, slurShapeDb, WHOLE_HOLD, type WholePlan } from "./whole-reading.ts";
 import { BREATH, dbToLevel, decide, GAP_MAX_SHARE, kindsOf, noteHash, phraseBounds, pianoLevels, suspensions, type Kind, type KeyKind } from "./practice.ts";
 
 /**
@@ -120,6 +122,10 @@ export interface Shape {
   final: boolean;
   /** D309: the piano's level in dB (practice.ts pianoLevels); none elsewhere. */
   db?: number;
+  /** D385: a whole-piece reading's palette on the piano: its colour (dB on Play.vel, not a level), dampers and room (chip.ts Play.dampMul, roomMul). */
+  tone?: number;
+  dampMul?: number;
+  roomMul?: number;
   /**
    * D339: seconds added to the note's sounding length (the band's offset at its release less at its
    * onset: RUBATO), so a note let go before the next ends where the shaped time puts it; 0 when joined
@@ -139,8 +145,9 @@ export interface Shape {
  * time to the next onset with its gap clamped in milliseconds, by the interval, the note's pace, the
  * voice (the bass a little more apart on leaps), the fugue's character (character.ts), in this order
  * of precedence: the reading's marks; ties and suspensions (a dissonance joined to its resolution);
- * an upper voice's cadence arrival before a new start (f 0.85); a repeated note; the interval. The
- * subject is never louder: the readings' accents are not levels here (D293).
+ * an upper voice's cadence arrival before a new start (f 0.85); a repeated note; the interval. D385: a
+ * whole-piece reading (whole-reading.ts) adds its wedges, portato, tenuto, caesuras and phrase breaths,
+ * and on the piano its dynamics, accents and palettes; nothing caps the subject (D293 removed).
  */
 export type Art = "join" | "detach" | "short" | "nonlegato" | "plain" | "syllable";
 /**
@@ -193,7 +200,9 @@ export type Marks = ReadonlyMap<string, { join: boolean | null; short: boolean |
  *   lastHold: the group's last note, let go before the next, held this share (a reading's detached
  *     0.75, ART_HOLD), its gap at most GAP_BEATS of a beat;
  *   firstDb, lastDb: the piano's first a little firmer, its last lighter (and darker: Play.vel, velTone),
- *     before the subject's clamp (D293: never louder), the middle notes level.
+ *     the middle notes level. D385 (the report §3): superseded on the piano by the shape by place in the
+ *     bar (whole-reading.ts slurShapeDb: first +1.5 on a beat, +0.5 off it; inner −2.5; last −1.5 on a
+ *     beat, −3.75 off it); kept for HEAR THE SUBJECT's and the tests' record.
  */
 export const SLUR_SHAPE = { lean: { piano: 0.01, other: 0.02 }, over: { harpsichord: 0.075, piano: 0.032 }, lastHold: 0.55, firstDb: 1.5, lastDb: -3.5 } as const;
 
@@ -216,11 +225,13 @@ export interface PhraseContext {
   quaver?: number;
   /** D309: each voice's way (else from the sound: practice.ts kindsOf). */
   kinds?: readonly Kind[];
+  /** D385: a whole-piece reading's plan (whole-reading.ts wholePlan): every voice, every bar. */
+  whole?: WholePlan;
 }
 
 /** D309: the context of a piece at a tempo (quarter notes a minute), for phrase(). */
-export function phraseContext(f: TouchFugue, bpm: number, marks?: Marks): PhraseContext {
-  return { ...(marks ? { marks } : {}), bass: f.voices.length - 1, spt: 60 / (bpm * f.tpq), score: accompaniment(f, 0, -1), cadences: f.cadences ?? [], bar: f.barTicks, quaver: f.tpq / 2, character: characterOf(f.id) };
+export function phraseContext(f: TouchFugue, bpm: number, marks?: Marks, whole?: WholePlan | null): PhraseContext {
+  return { ...(marks ? { marks } : {}), ...(whole ? { whole } : {}), bass: f.voices.length - 1, spt: 60 / (bpm * f.tpq), score: accompaniment(f, 0, -1), cadences: f.cadences ?? [], bar: f.barTicks, quaver: f.tpq / 2, character: characterOf(f.id) };
 }
 
 /** D309: each voice's way under a style (the synthesized sounds by their patches). */
@@ -275,33 +286,21 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
   }
   // D309: the piano's levels from the whole score (practice.ts pianoLevels).
   const dbs = style === "piano" ? pianoLevels(score, { beat, inBar, bar: art.bar ?? 4 * beat, cadences: art.cadences, harmony }) : null;
-  // D370: a slur's first a little firmer, its last lighter (SLUR_SHAPE), before the subject's clamp below.
-  if (dbs && art.marks?.size)
+  // D385: the piano's slurs shaped by their place in the bar (whole-reading.ts slurShapeDb); a whole-piece reading's
+  // dynamics, marks, slurs, phrase arcs and palette (bandDb). D293's clamp ("the subject never louder") removed:
+  // an entry is as loud as the reading prints it.
+  const W = art.whole;
+  if (dbs && W)
+    for (const x of score) {
+      const key = `${x.voice}:${x.on}:${x.midi}`;
+      dbs.set(key, (dbs.get(key) ?? 0) + bandDb(W, inBar, x.voice, x.on, beat, bass));
+    }
+  else if (dbs && art.marks?.size)
     for (const x of score) {
       const role = art.marks.get(`${x.voice}:${x.on}`)?.slur;
       const key = `${x.voice}:${x.on}:${x.midi}`;
-      if (role === "first") dbs.set(key, (dbs.get(key) ?? 0) + SLUR_SHAPE.firstDb);
-      else if (role === "last") dbs.set(key, (dbs.get(key) ?? 0) + SLUR_SHAPE.lastDb);
+      if (role) dbs.set(key, (dbs.get(key) ?? 0) + slurShapeDb(role, metricPlace(inBar, x.on, beat) < 2));
     }
-  // D339, D293: the subject never louder. The terms know no subject, but with D339's wider terms the music's
-  // own shape could lift it (II/16's by 0.5 dB): in each voice and octave, the subject's notes brought down
-  // to the others' mean where theirs is over it (never raised).
-  if (dbs && subject.size) {
-    const bins = new Map<string, { s: string[]; o: number[] }>();
-    for (const x of score) {
-      const k = `${x.voice}:${Math.floor(x.midi / 12)}`;
-      const b = bins.get(k) ?? { s: [], o: [] };
-      const key = `${x.voice}:${x.on}:${x.midi}`;
-      if (subject.has(`${x.voice}:${x.on}`)) b.s.push(key);
-      else b.o.push(dbs.get(key) ?? 0);
-      bins.set(k, b);
-    }
-    for (const b of bins.values()) {
-      if (!b.s.length || !b.o.length) continue;
-      const over = b.s.reduce((a, k) => a + (dbs.get(k) ?? 0), 0) / b.s.length - b.o.reduce((a, c) => a + c, 0) / b.o.length;
-      if (over > 0) for (const k of b.s) dbs.set(k, (dbs.get(k) ?? 0) - over);
-    }
-  }
   const overS: number[] = [];
   // D339: the band's time shaped (RUBATO), where the piece's phrases are known (phraseContext); none for a bare list.
   const scoreOns = score.length ? score.map((x) => x.on) : [0];
@@ -391,9 +390,33 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     else if (a === "plain") hold = n.dur >= beat ? (T ? T.long : 0.95) : 1;
     // D370: a slur's last, let go before the next, let go early (SLUR_SHAPE.lastHold; a staccato's own stays).
     if (role === "last" && (a === "detach" || a === "nonlegato")) hold = Math.min(hold, apart(SLUR_SHAPE.lastHold));
+    // D385: a whole-piece reading's own marks (whole-reading.ts): the wedge shorter than a dot, portato a
+    // little apart, tenuto its full value (not joined), a caesura's note let go early, a phrase's last a
+    // breath; on the piano its palette's articulation (holdMul, overS), colour, dampers and room.
+    let pal: ReturnType<WholePlan["paletteAt"]> | undefined;
+    if (W) {
+      const g = W.notes.get(`${n.voice}:${n.on}`);
+      const gapLater = after && after.on === n.on + n.dur;
+      if (g && gapLater) {
+        if (g.arts.has("wedge")) (a = "short"), (hold = Math.min(hold, apart(WHOLE_HOLD.wedge)));
+        else if (g.arts.has("portato") && a !== "short") (a = "detach"), (hold = apart(WHOLE_HOLD.portato));
+        else if (g.arts.has("tenuto") && a !== "join" && a !== "short") (a = "nonlegato"), (hold = WHOLE_HOLD.tenuto);
+        if (g.phrase?.last && a !== "short") {
+          if (a === "join") a = "nonlegato";
+          hold = Math.min(hold, PHRASE_BREATH_HOLD);
+        }
+        if (g.caesura) (a = "nonlegato"), (hold = Math.max(0.4, Math.min(hold, 1 - CAESURA_S / (n.dur * spt))));
+      }
+      if (g?.spread) nudge += g.spread;
+      if (style === "piano") {
+        pal = W.paletteAt(n.voice, n.on);
+        if (a !== "join" && a !== "syllable" && gapLater) hold = Math.max(0.15, Math.min(0.98, hold * pal.holdMul));
+        if (a === "join" && pal.overS) overS[i] += pal.overS;
+      }
+    }
     const final = !after || after.on > n.on + n.dur;
     const stretch = rb && a !== "join" && a !== "syllable" ? rb(n.on + n.dur * hold) - rb(n.on) : 0;
-    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, stretch, ...(db !== undefined ? { db } : {}) };
+    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, stretch, ...(db !== undefined ? { db } : {}), ...(pal ? { ...(pal.toneDb ? { tone: pal.toneDb } : {}), ...(pal.dampMul !== 1 ? { dampMul: pal.dampMul } : {}), ...(pal.roomMul !== 1 ? { roomMul: pal.roomMul } : {}) } : {}) };
   });
   // D370: a slur's first leaned on (SLUR_SHAPE.lean) where the note before was let go, within ±20 ms.
   if (art.marks?.size) {
@@ -475,8 +498,8 @@ function nextIndex(notes: readonly OtherNote[]): Map<number, number | undefined>
  * D304: `apart`, detached or staccato by a reading's mark (Play.apart: its gap heard on every sound).
  * D339: `vel`, the piano's level in dB (Play.vel: its colour, brighter struck harder).
  */
-export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean; apart?: boolean; vel?: number } {
-  return { ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}), ...(sh.art === "detach" || sh.art === "short" ? { apart: true } : {}), ...(sh.db !== undefined ? { vel: sh.db } : {}) };
+export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean; apart?: boolean; vel?: number; dampMul?: number; roomMul?: number } {
+  return { ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}), ...(sh.art === "detach" || sh.art === "short" ? { apart: true } : {}), ...(sh.db !== undefined ? { vel: sh.db + (sh.tone ?? 0) } : {}), ...(sh.dampMul ? { dampMul: sh.dampMul } : {}), ...(sh.roomMul ? { roomMul: sh.roomMul } : {}) };
 }
 
 /** D179: the synthesized sounds' phrasing (and the base of the others'): each note's level and its fixed unevenness (D302: the holds are ARTICULATION's). */
