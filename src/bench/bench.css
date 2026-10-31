@@ -796,6 +796,16 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 .tb-side-legend { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); top: 40%; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); padding: 5px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.72); pointer-events: none; transition: opacity 0.3s; }
 .tb-side-legend p { margin: 0 0 4px; }
 .tb-side-legend p:last-child { margin-bottom: 0; }
+/* D391: BUSONI's signs in the side legend; the word in force, translated, kept under it. */
+.tb-mark-w-marcato { color: #ff8a3d; }
+.tb-mark-w-lift, .tb-mark-w-phrase { color: var(--tg-gold); }
+.tb-mark-w-phrase { opacity: 0.55; }
+.tb-mark-w-dynamics, .tb-mark-w-words { font-style: italic; font-family: Georgia, serif; font-weight: 700; }
+.tb-side-legend-whole { top: 30%; font-size: 5px; line-height: 1.35; }
+.tb-side-legend-whole p { margin-bottom: 2px; }
+.tb-side-gloss { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); bottom: 10px; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.6); pointer-events: none; }
+.tb-side-gloss:empty { display: none; }
+html.tb-paper .tb-side-gloss { color: #2a2216; background: rgba(246, 245, 241, 0.92); }
 html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 0.92); box-shadow: 0 0 0 1px #c9c2b4; }
 .tb-sheet-free { margin: 2px 0 0; font-family: var(--tg-pixel); font-size: 6px; letter-spacing: 0.04em; color: #d8c27a; }
 .tb-tuning-select { max-width: 560px; }
