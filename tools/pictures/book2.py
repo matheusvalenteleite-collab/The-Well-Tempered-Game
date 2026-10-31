@@ -477,7 +477,6 @@ def g09():
         x = 9 + (i % 4) * 15 + (6 if row else 0)
         y = 10 + row * 9
         s.rect(x - 3, y + 3, 7, 10, coats[i])
-        s.rect(x + 1, y + 3, 3, 10, dark(coats[i], 0.25))
         head(s, x, y, tn, hc, st, r=2.8, mouth=False)
         s.rect(x, y + 2, 1, 1, INK)  # singing
         s.rect(x - 2, y + 5, 5, 2, (244, 238, 220))  # the open book
@@ -727,9 +726,9 @@ def g16():
     s.rect(fx - 4, 14, 9, 14, (40, 60, 110))
     s.rect(fx + 1, 14, 4, 14, (30, 44, 84))
     s.hline(fx - 1, fx + 1, 14, WHITE)
-    head(s, fx, 9, 3, "black", "long", r=3.5, mouth=False)
+    head(s, fx, 9, 2, "auburn", "long", r=3.5, mouth=False)
     s.set(fx - 4, 11, GOLD)  # an earring
-    s.rect(fx - 1, 11, 2, 2, INK)
+    s.rect(fx, 11, 1, 2, INK)
     arm(s, fx + 4, 16, fx + 10, 10, (40, 60, 110), w=2)
     s.rect(fx + 10, 6, 4, 5, (246, 240, 226))  # the verdict
     s.hline(fx + 11, fx + 12, 8, (120, 120, 140))
