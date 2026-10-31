@@ -27,8 +27,21 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
   ["MORE", "MORE BACH"],
   ["CHORALES", "CHORALES"],
 ];
-/** D343: the tabs play.html shows: Book I alone for the friends (no tab bar), all four once unlocked (unlock.ts). */
-export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.slice(0, 1));
+/** D343: the tabs play.html shows: Book I alone for the friends (no tab bar), all four once unlocked (unlock.ts). D382: Book I and II once every Book I fugue is finished. */
+export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : bookTwoOpen() ? LITE_TABS.slice(0, 2) : LITE_TABS.slice(0, 1));
+
+/** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
+export const BOOK_ONE_FUGUES: readonly string[] = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
+/** D382: Book II earned on this device: every Book I fugue finished (lite.ts `beaten`, whatever the grade). */
+export const bookTwoEarned = (beaten: readonly string[] = readLite().beaten): boolean => {
+  const won = new Set(beaten);
+  return BOOK_ONE_FUGUES.every((id) => won.has(id));
+};
+/** D382: Book II open on play.html: earned, or everything unlocked by the owner's passphrase (unlock.ts). */
+export const bookTwoOpen = (beaten?: readonly string[]): boolean => unlocked() || bookTwoEarned(beaten);
+/** D382: the selection's note for a Book II just earned: shown until seen (kept in `seen` under this id). */
+export const BOOK_TWO_SEEN = "book2-open";
+export const bookTwoNews = (st: Pick<LiteState, "beaten" | "seen"> = readLite()): boolean => !unlocked() && bookTwoEarned(st.beaten) && !st.seen.includes(BOOK_TWO_SEEN);
 /** D340: the MORE BACH tab's sections, in order, each its pieces (Contrapunctus 14, the unfinished fugue of pieces.json, closes the Art of Fugue). */
 const SECTION_OF: readonly [Collection, string][] = [
   ["aof", "ART OF FUGUE"],
@@ -57,8 +70,8 @@ export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "C
 /** D340: what NEXT follows a piece with: its own tab's list. */
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
   const tab = liteTabOf(id);
-  // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock).
-  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "MORE" ? MORE_SECTIONS.flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => unlocked() || x.startsWith("wtc1"));
+  // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock; D382: or once earned).
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "MORE" ? MORE_SECTIONS.flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
 }
 
 /**

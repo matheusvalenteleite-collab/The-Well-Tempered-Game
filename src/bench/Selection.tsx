@@ -62,6 +62,8 @@ export interface SelectionProps {
   current?: string;
   /** A line under the piece (the headphone delay in force, D260). */
   note?: ReactNode;
+  /** D382: Book II just earned: the note is shown; called once it is seen (tapped, or BOOK II opened). */
+  bookTwo?: () => void;
 }
 
 export function Selection(p: SelectionProps) {
@@ -69,7 +71,7 @@ export function Selection(p: SelectionProps) {
   const tabs = liteTabs();
   const shown = (t: LiteTab) => tabs.some(([x]) => x === t);
   const [tab, setTab] = useState<LiteTab>(() => (shown(liteTabOf(piece)) && (liteTabOf(piece) === "I" || liteTabOf(piece) === "II") ? liteTabOf(piece) : storedTab()));
-  const pick = (t: LiteTab) => (setTab(t), storeTab(t));
+  const pick = (t: LiteTab) => (setTab(t), storeTab(t), t === "II" && p.bookTwo?.());
   const won = new Set(beaten);
   const first = !!tutorial && liteFirstVisit(beaten, tutorial.done);
   // The first visit: the right column says where to start until a tile is tapped.
@@ -121,6 +123,14 @@ export function Selection(p: SelectionProps) {
         </nav>
       </aside>
       <section className="sel-col sel-centre" id="sel-centre" aria-label={tr("BOOK")}>
+        {p.bookTwo && (
+          // D382: Book II opened by finishing every Book I fugue: a short celebration; a tap opens it.
+          <button type="button" id="book2-news" className="sel-news" onClick={() => pick("II")}>
+            <span className="sel-news-title">★ {tr("BOOK II UNLOCKED!")} ★</span>
+            <span className="sel-news-line">{tr("You finished all 24 fugues of Book I. 24 more await.")}</span>
+            <span className="sel-news-go">▶ {tr("OPEN BOOK II")}</span>
+          </button>
+        )}
         {grid ? (
           <>
             <header className="sel-strip">
