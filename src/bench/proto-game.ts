@@ -71,6 +71,7 @@ import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
 import { follow, joins, phrase, phraseContext, ritard, styleOf, withHolds, withSpeed, type Shape } from "../touch/phrasing.ts";
 import { metricPlace, phraseArchDb, PLAYER_ACCENT_DB, slurShapeDb, wholeMarks, wholePlan, type WholePlan } from "../touch/whole-reading.ts";
+import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
@@ -3043,8 +3044,9 @@ export class ProtoGame {
     this.remember(h.side, { y: c.y, step: n.step, tick: this.now });
     // The legato the slide broke: credited as a strike's (the reading asking it detached: as before).
     const rd = this.o.reading;
-    const place = rd ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
-    const askJoin = rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
+    const whole = !!rd && this.wholeAsking();
+    const place = rd && !whole ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
+    const askJoin = whole ? this.wholeJoinInto(h.k, st.i) : rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
     const p = this.before(st.i, h.k);
     const at = performance.now();
     // D321: a "connect" drag was credited as joined already: that credit gives way to the strike's.
@@ -3479,9 +3481,11 @@ export class ProtoGame {
     let artAdd = 0;
     // D272: the reading: what it asks of this subject note (its place in the subject), and of the join into it.
     const rd = v.ok && !slide ? this.o.reading : null;
-    const place = rd ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
-    const ask = rd && place !== undefined ? rd.notes[place] : undefined;
-    const askJoin = rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
+    // D391: a whole-piece reading asks every note of the line as the box draws it (whole-marks.ts wholeAsk), the subject's too.
+    const whole = !!rd && this.wholeAsking();
+    const place = rd && !whole ? this.readingIndex().get(`${h.k}:${n.on}`) : undefined;
+    const ask = whole ? this.wholeAskOf(h.k, i) : rd && place !== undefined ? rd.notes[place] : undefined;
+    const askJoin = whole ? this.wholeJoinInto(h.k, i) : rd && place !== undefined && place > 0 ? rd.notes[place - 1]?.join : null;
     // D325b: a breath (after a written rest, or after a cadence's arrival): the lift before it is never
     // judged (never NOT JOINED); joined there all the same, the legato is counted.
     const breath = this.breathAt(i, h.k);
@@ -3549,7 +3553,7 @@ export class ProtoGame {
     this.runOnly = false;
     if (!slide) this.thumbNote(h.side, n.on, d);
     if (rd) {
-      if (place !== undefined) {
+      if (place !== undefined || whole) {
         // Joined or detached into it as the reading says; its accent. D338: loudness is never judged
         // (the subject's level and the reading's dynamics sound, they are not asked of the thumbs).
         if (askJoin === true) this.styled(legatoNow, at);
@@ -3566,11 +3570,8 @@ export class ProtoGame {
         if (ask?.short) h.wantShort = true;
       }
     }
-    // D385: a whole-piece reading's accents and marcatos on the player's other notes too (every bar, not only the subject's).
-    if (rd && this.whole && !h.wantAccent && MECH.glenn) {
-      const g = this.whole.notes.get(`${this.voiceOf(h.k, i)}:${n.on}`);
-      if (g && (g.arts.has("accent") || g.arts.has("marcato"))) h.wantAccent = { why: slide ? "soft" : accentWeighted(offMs, perfMs, this.strengthAsked() ? (h.land ?? TOUCH_NEUTRAL) : null) };
-    }
+    // D385: a whole-piece reading's accents and marcatos on the player's other notes too (every bar, not only the
+    // subject's). D391: asked above with its other marks (wholeAsk: ">", "^", sfz), the subject's included.
     // D186: the points rise from the note.
     this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
     if (this.pops.length > 40) this.pops.splice(0, 20);
@@ -4614,7 +4615,20 @@ export class ProtoGame {
     else if (this.o.reading) for (const e of this.entries) e.ons.forEach((on, j) => m.set(`${e.k}:${on}`, j));
     return (this.readingMemo = m);
   }
-  /** D370: the place in one of the reading's slurs of track k's note at `on` (none: not slurred, or no reading). */
+  /** D391: a whole-piece reading is asked note by note (not a lesson's own marks placed on its passage). */
+  private wholeAsking(): boolean {
+    return !!this.whole && !this.o.readingAt;
+  }
+  /** D391: a whole-piece reading's asks of track k's note i (whole-marks.ts wholeAsks: as the box draws them). */
+  private wholeAskOf(k: number, i: number): BoxMark | undefined {
+    const n = this.tracks[k].notes[i];
+    return n && this.whole ? wholeAsks(this.whole).get(`${this.voiceOf(k, i)}:${n.on}`) : undefined;
+  }
+  /** D391: the join a whole-piece reading asks into track k's note i (the note before's way to it). */
+  private wholeJoinInto(k: number, i: number): boolean | null {
+    const p = this.before(i, k);
+    return p >= 0 ? (this.wholeAskOf(k, p)?.join ?? null) : null;
+  }
   /** D385: a landing's strength is asked of an accent where the thumbs land on bars (a computer's keys cannot weigh a note). */
   private strengthAsked(): boolean {
     return this.proto.layout === "bars";
