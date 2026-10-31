@@ -505,7 +505,7 @@ export function thumbPath(c: CanvasRenderingContext2D, w: number, bw: number, g:
       c.beginPath();
       c.arc(x, y, j === n - 1 ? 5 : 3.5, 0, Math.PI * 2);
       c.fill();
-      if (marks.length <= PATH_NUMBERED) label(c, String(j + 1), x, y - 10, PATH_INK[side], 6);
+      if (marks.length <= PATH_NUMBERED && !across) label(c, String(j + 1), x, y - 10, PATH_INK[side], 6);
     }
   }
   c.restore();
