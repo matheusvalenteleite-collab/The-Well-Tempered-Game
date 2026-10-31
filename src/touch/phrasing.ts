@@ -599,22 +599,53 @@ export function withSpeed(base: Warp, speed: (tick: number) => number, length: n
     },
   };
 }
-export function ritard(length: number, barTicks: number): Warp {
-  const from = Math.max(0, length - 2 * barTicks);
+/**
+ * D181's final ritard: from `from` (two bars before the end) to the end, the tempo slowing evenly to `end`
+ * of itself. D385 (the owner: no tempo change but at a fermata and at an ending the edition slows): where a
+ * whole-piece reading marks the ending's slowing (whole-reading.ts endingOf: Busoni's rall., allargando,
+ * poco largamente, sostenuto), it starts at his first word and reaches his word's speed; elsewhere, and
+ * for every fugue without such a reading, the automatic RIT_END over the last two bars as before.
+ */
+export function ritard(length: number, barTicks: number, fromTick?: number, endSpeed: number = RIT_END): Warp {
+  const from = Math.max(0, Math.min(length - 1, fromTick ?? length - 2 * barTicks));
   const L = length - from;
-  const a = 1 - RIT_END;
+  const endS = Math.max(0.3, Math.min(0.999, endSpeed));
+  const a = 1 - endS;
   const end = from - (L / a) * Math.log(1 - a);
   return {
     warp: (tick) => {
       if (tick <= from) return tick;
-      if (tick >= length) return end + (tick - length) / RIT_END;
+      if (tick >= length) return end + (tick - length) / endS;
       const x = (tick - from) / L;
       return from - (L / a) * Math.log(1 - a * x);
     },
     unwarp: (w) => {
       if (w <= from) return w;
-      if (w >= end) return length + (w - end) * RIT_END;
+      if (w >= end) return length + (w - end) * endS;
       return from + (L * (1 - Math.exp((-a * (w - from)) / L))) / a;
+    },
+  };
+}
+
+/**
+ * D385: fermatas held (whole-reading.ts: where every voice holds the chord): from tick `a` over its value
+ * `d`, `x` steady ticks added (time stretched there only, nothing else moves); over another warp.
+ */
+export function withHolds(base: Warp, holds: readonly { a: number; d: number; x: number }[]): Warp {
+  if (!holds.length) return base;
+  const add = (t: number) => holds.reduce((s, z) => s + z.x * Math.max(0, Math.min(1, (t - z.a) / z.d)), 0);
+  const warp = (t: number) => base.warp(t) + add(t);
+  return {
+    warp,
+    unwarp: (w: number) => {
+      let lo = base.unwarp(w - holds.reduce((s, z) => s + z.x, 0)) - 1;
+      let hi = base.unwarp(w) + 1;
+      for (let i = 0; i < 60; i++) {
+        const m = (lo + hi) / 2;
+        if (warp(m) < w) lo = m;
+        else hi = m;
+      }
+      return (lo + hi) / 2;
     },
   };
 }
