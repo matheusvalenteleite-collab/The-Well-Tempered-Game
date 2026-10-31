@@ -510,7 +510,7 @@ export function BenchApp() {
   };
   const boxPlan = useMemo(() => zoomBox(from, (f.tpq * bpm) / 60), [f, voice, from, run, bpm, range, sheetOn, kimiko, proto.id]);
   const barsShown = boxPlan.bars;
-  const range0 = boxPlan.on ? initialRange(boxPlan.plan, from) : range;
+  const range0 = boxPlan.on ? initialRange(boxPlan.plan, from, (f.tpq * bpm) / 60, (1 - BOX_PLAYHEAD) * barsShown * f.barTicks) : range;
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
   const study = useMemo(() => (BOXV ? { ranges: f.voices.map((ns) => ({ lo: Math.min(...ns.map((n) => n[3])), hi: Math.max(...ns.map((n) => n[3])) })) } : {}), [f]);
   // A lesson's passage: only the entries it holds (alone: only the voice's own).
@@ -713,8 +713,9 @@ export function BenchApp() {
     const auto = { id: 9000, held: null as { id: number; end: number } | null, last: -1 };
     // D377: the box's zoom for this round (its width fixed; its range eased rarely; drawing and touch alike).
     const box = prac ? zoomBox(prac.from, g.tps) : { ...boxPlan, bars: zoomBox(from, g.tps).bars };
-    const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on);
     const aheadTicks = (1 - BOX_PLAYHEAD) * box.bars * f.barTicks;
+    // D395: the opening narrowed only if its way back out falls at a seam of the player's line.
+    const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on, g.tps, aheadTicks);
     let raf = 0;
     // D379 (the owner: "one can see the whole movement at once when it's finished"): a tutorial step that
     // draws the thumbs' path (WATCH, TRY) stays on its last frame a moment before his next words.
