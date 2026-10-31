@@ -43,7 +43,7 @@ async function outputLabel(): Promise<string | undefined> {
   }
 }
 
-export function useHeadphones(chip: { current: Chip | null }, applyLag: (l: number | null) => void) {
+export function useHeadphones(chip: { current: Chip | null }, applyLag: (l: number | null) => void, watching = true) {
   const book = useRef<LagBook>(load<LagBook>(BOOK_KEY, {}));
   const key = useRef<string | null>(null);
   const apply = useRef(applyLag);
@@ -53,6 +53,8 @@ export function useHeadphones(chip: { current: Chip | null }, applyLag: (l: numb
   const [visual, setVisualRaw] = useState<number>(() => load<number>(VISUAL_KEY, 0));
   const visualNow = useRef(visual);
   useEffect(() => {
+    // D381: play.html watches the route itself (RouteWatch.tsx).
+    if (!watching) return;
     const watch = new OutputWatch();
     let label: string | undefined;
     const check = (device: boolean) => {
@@ -117,6 +119,18 @@ export function useHeadphones(chip: { current: Chip | null }, applyLag: (l: numb
   };
 }
 export type Headphones = ReturnType<typeof useHeadphones>;
+
+/** D381: D223's delays by setup, as kept on the device. */
+export const lagBook = (): LagBook => load<LagBook>(BOOK_KEY, {});
+/**
+ * D381: play.html keeps a Bluetooth delay in D223's book only where the browser reported a Bluetooth-like
+ * latency when it was tapped (the setup is then known by its latency, and given back only when that
+ * latency returns: never on the speaker, D260).
+ */
+export function rememberRoute(lag: number | null, reported: number | undefined) {
+  if (lag === null || lag <= BT_AUTO_S || reported === undefined || reported <= BT_AUTO_S) return;
+  save(BOOK_KEY, withLag(lagBook(), setupKey(reported), lag));
+}
 
 const MODE_NOTE = "The whole piece, your notes too, plays on time through the headphones' delay; your touches score but make no sound (a missed note sounds all the same).";
 

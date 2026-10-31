@@ -501,6 +501,10 @@ export class Chip {
   private roomIn: AudioNode;
   private waves = new Map<string, PeriodicWave>();
   private keepAlive: HTMLAudioElement | null = null;
+  /** D381: the silent keep-alive <audio> (iPhone), watched for the system's pause when the headphones go. */
+  get keepAliveAudio(): HTMLAudioElement | null {
+    return this.keepAlive;
+  }
   private wet: GainNode;
   /** D297: the shared room (unwired from the master while a preset with `room: 0` plays). */
   private room: ConvolverNode;
