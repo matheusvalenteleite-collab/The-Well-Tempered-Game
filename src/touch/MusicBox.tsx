@@ -13,7 +13,7 @@ import { bossBar, cadenceMarks, flags, pixRaw, pixText, sparks, subjectFx, textW
 import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
 import { markLegend, marksHas } from "./readings.ts";
 import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGeo } from "./box-whole.ts";
-import type { BoxMark, WholeBox } from "./whole-marks.ts";
+import { wholeLegend, type BoxMark, type WholeBox } from "./whole-marks.ts";
 import { STRONG_SIDE } from "./touch-expr.ts";
 import { paintVariant } from "./box-variants.ts";
 import { paintUi } from "./ui/index.ts";
@@ -940,28 +940,88 @@ function paintLyrics(g: CanvasRenderingContext2D, syls: readonly Syllable[], fr:
  * by touch-expr.ts STRONG_SIDE). Fades over its last two seconds.
  */
 function marksLegend(g: CanvasRenderingContext2D, w: number, h: number, fr: Frame, edge: string, alpha: number) {
-  const marks = [...fr.readingMarks!.values()];
-  const has = marksHas(marks);
-  const lines = markLegend(STRONG_SIDE).filter((l) => has[l.kind]);
+  const lines = legendOf(fr);
   if (!lines.length) return;
-  const lw = Math.min(w - 8, 10 + Math.max(...lines.map((l) => textWidth(l.text))));
   const lh = 8;
-  const y0 = h - 6 - lines.length * lh - 4;
+  // D391: a whole reading's signs too: in columns where one would not fit the box.
+  const rows = Math.max(1, Math.min(lines.length, Math.floor((h - 14) / lh)));
+  const cols = Math.ceil(lines.length / rows);
+  const colW = Math.floor((w - 8) / cols);
+  const lw = Math.min(w - 8, cols > 1 ? colW * cols : 10 + Math.max(...lines.map((l) => textWidth(l.text))) + 5);
+  const y0 = h - 6 - rows * lh - 4;
   g.globalAlpha = 0.62 * alpha;
   g.fillStyle = "#0c0a10";
-  g.fillRect(3, y0, lw + 4, lines.length * lh + 5);
+  g.fillRect(3, y0, lw + 4, rows * lh + 5);
   g.globalAlpha = alpha;
+  if (cols > 1) {
+    g.save();
+    g.beginPath();
+  }
   lines.forEach((l, k) => {
-    const y = y0 + 3 + k * lh;
-    // D374: the sign as drawn over the notes: the dot, the red stroke, the gold line (JOINED), the gold arc (D370: SLUR), the orange >.
-    if (l.kind === "short") (g.fillStyle = edge), g.fillRect(7, y + 2, 2, 2);
-    else if (l.kind === "apart") (g.fillStyle = DETACH_RED), g.fillRect(7, y, 1, 5);
-    else if (l.kind === "joined") (g.fillStyle = GOLD_SLUR), g.fillRect(6, y + 1, 5, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(11, y + 2, 1, 1);
-    else if (l.kind === "slur") (g.fillStyle = GOLD_SLUR), g.fillRect(4, y + 3, 1, 1), g.fillRect(5, y + 2, 1, 1), g.fillRect(6, y + 1, 4, 1), g.fillRect(10, y + 2, 1, 1), g.fillRect(11, y + 3, 1, 1);
-    else pixText(g, ">", 6, y, ACCENT_ORANGE);
-    pixText(g, l.text, 15, y, edge);
+    const x0 = Math.floor(k / rows) * colW;
+    const y = y0 + 3 + (k % rows) * lh;
+    if (cols > 1) {
+      g.restore();
+      g.save();
+      g.beginPath();
+      g.rect(x0 + 3, y - 1, colW - 2, lh);
+      g.clip();
+    }
+    legendSign(g, l.kind, x0, y, edge);
+    pixText(g, l.text, x0 + 15, y, edge);
   });
+  if (cols > 1) g.restore();
   g.globalAlpha = 1;
+}
+const legendMemo = new WeakMap<object, { kind: string; text: string }[]>();
+/** The legend's lines for a frame's marks (made once per marks: the judged signs, then a whole reading's). */
+function legendOf(fr: Frame): { kind: string; text: string }[] {
+  const key = fr.readingMarks!;
+  let lines = legendMemo.get(key);
+  if (!lines) {
+    const has = marksHas(fr.readingMarks!.values());
+    lines = [...markLegend(STRONG_SIDE).filter((l) => has[l.kind]), ...(fr.whole ? wholeLegend(fr.whole) : [])];
+    legendMemo.set(key, lines);
+  }
+  return lines;
+}
+/** The sign as drawn over (or under) the notes, at the legend's left. */
+function legendSign(g: CanvasRenderingContext2D, kind: string, x0: number, y: number, edge: string) {
+  const x = x0;
+  g.fillStyle = edge;
+  switch (kind) {
+    // D374: the dot, the red stroke, the gold line (JOINED), the gold arc (D370: SLUR), the orange >.
+    case "short":
+      return g.fillRect(x + 7, y + 2, 2, 2);
+    case "apart":
+      return (g.fillStyle = DETACH_RED), g.fillRect(x + 7, y, 1, 5);
+    case "joined":
+      return (g.fillStyle = GOLD_SLUR), g.fillRect(x + 6, y + 1, 5, 1), g.fillRect(x + 5, y + 2, 1, 1), g.fillRect(x + 11, y + 2, 1, 1);
+    case "slur":
+    case "phrase":
+      if (kind === "phrase") g.globalAlpha *= 0.5;
+      g.fillStyle = kind === "phrase" ? edge : GOLD_SLUR;
+      g.fillRect(x + 4, y + 3, 1, 1), g.fillRect(x + 5, y + 2, 1, 1), g.fillRect(x + 6, y + 1, 4, 1), g.fillRect(x + 10, y + 2, 1, 1), g.fillRect(x + 11, y + 3, 1, 1);
+      if (kind === "phrase") g.globalAlpha *= 2;
+      return;
+    case "strong":
+      return void pixText(g, ">", x + 6, y, ACCENT_ORANGE);
+    // D391: BUSONI's own (box-whole.ts draws them the same).
+    case "lift":
+      return g.fillRect(x + 8, y, 1, 2), g.fillRect(x + 7, y + 2, 1, 1);
+    case "breath":
+      for (let r = 0; r < 4; r++) g.fillRect(x + 8 - r, y + r, 1, 1), g.fillRect(x + 11 - r, y + r, 1, 1);
+      return;
+    case "dynamics":
+      return void pixText(g, "P", x + 5, y, edge);
+    case "hairpin":
+      return void pixText(g, "<", x + 6, y, edge);
+    case "words":
+      return void pixText(g, "AA", x + 4, y, edge);
+    default:
+      // wedge, marcato, tenuto, portato, fermata: as over a note (its top at y + 6).
+      noteSigns(g, { join: null, short: null, accent: null, [kind]: true }, x + 6, x + 8, y + (kind === "fermata" ? 10 : 6), edge, ACCENT_ORANGE);
+  }
 }
 /** D314: a line over the box's top, on a dark band (the ornament's first-time hint). */
 function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: string) {

@@ -56,6 +56,7 @@ import { FuguePicker } from "./FuguePicker.tsx";
 import { TuningSelect } from "./TuningSelect.tsx";
 import { resolveTuning, tuningPrefOf, tuningShort, type TuningPref } from "../touch/instrument-tuning.ts";
 import { SideHint, SideLegend } from "./SideNotes.tsx";
+import { firstOn, glossLine, wholeBox } from "../touch/whole-marks.ts";
 import { ModeHow } from "./ModeDiagram.tsx";
 import { herClock, herMap } from "./her-clock.ts";
 import { Her, HER_FADE, herBuffer, herState, loadHer, releaseHer } from "./with-her.ts";
@@ -521,10 +522,16 @@ export function BenchApp() {
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
-    const readingMarks = new Map<string, MarkNote>();
-    if (reading && run?.tut?.readingAt) run.tut.readingAt.forEach((on, j) => reading.notes[j] && readingMarks.set(`${run.voice}:${on}`, markOf(reading, j)!));
+    let readingMarks = new Map<string, MarkNote>();
+    // D391: a whole-piece reading (BUSONI) marks the player's whole line, every bar (whole-marks.ts wholeBox): its
+    // note marks, arcs, levels, hairpins, words and caesuras; the band's voices nothing.
+    const whole = reading && !run?.tut?.readingAt ? wholeBox(f, reading, played) : null;
+    if (whole) readingMarks = whole.marks as Map<string, MarkNote>;
+    else if (reading && run?.tut?.readingAt) run.tut.readingAt.forEach((on, j) => reading.notes[j] && readingMarks.set(`${run.voice}:${on}`, markOf(reading, j)!));
     else if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
-    return { ...subjectMarks(f), spans, names: f.voiceNames.map((n) => partKey(f.kind, n)), cadences, ornaments, readingMarks };
+    // D391: Busoni's optional trills shown as he prints them, in brackets.
+    if (whole) for (const o of reading!.whole!.ornaments) if (o.optional && /tr/.test(o.sign) && ornaments.get(`${o.v}:${o.on}`) === "TR") ornaments.set(`${o.v}:${o.on}`, "(TR)");
+    return { ...subjectMarks(f), spans, names: f.voiceNames.map((n) => partKey(f.kind, n)), cadences, ornaments, readingMarks, ...(whole ? { whole } : {}) };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
   /** D308: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
@@ -548,6 +555,9 @@ export function BenchApp() {
   const frame = useRef<Frame>(preview());
   const count = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
+  /** D391: the side bar's translation of the whole reading's word in force on the player's line (set by the frame loop). */
+  const glossRef = useRef<HTMLParagraphElement>(null);
+  const glossAt = useRef(-1);
   const shownAt = useRef(0);
 
   function preview(): Frame {
@@ -761,6 +771,15 @@ export function BenchApp() {
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
+      // D391: the word in force on the player's line, translated in the side bar (changed only when another word is passed).
+      if (glossRef.current && marks.whole) {
+        const ws = marks.whole.lines[0]?.words ?? [];
+        const wi = firstOn(ws, g.now + 1) - 1;
+        if (wi !== glossAt.current || (wi >= 0 && !glossRef.current.textContent)) {
+          glossAt.current = wi;
+          glossRef.current.textContent = wi >= 0 ? glossLine(ws[wi]) : "";
+        }
+      }
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now, zv, box.bars);
       if (rec && g.rows) rec.rows(g.rows.yOf(0), g.rows.rowH);
       if (AUTO) autoplay(g, auto);
@@ -1717,7 +1736,7 @@ export function BenchApp() {
           {hintLine}
         </p>
       ))}
-      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson)) && <SideLegend marks={marks.readingMarks.values()} legendRef={legendRef} />}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson)) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕

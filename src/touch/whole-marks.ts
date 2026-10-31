@@ -22,7 +22,7 @@
 import type { TouchFugue } from "./fugue.ts";
 import type { Reading } from "./readings.ts";
 import { LEVEL_DB, wholePlan, type SlurPlace, type WholeNote, type WholePlan } from "./whole-reading.ts";
-import type { Lang } from "../i18n/index.ts";
+import { lang, tr, type Lang } from "../i18n/index.ts";
 
 /** A note's mark as the box draws it (a superset of readings.ts MarkNote: the judge's asks first). */
 export interface BoxMark {
@@ -346,4 +346,32 @@ export function wholeHas(box: WholeBox): Record<WholeKind, boolean> {
     hairpin: ls.some((l) => l.hairpins.length > 0),
     words: ls.some((l) => l.words.some((w) => w.shown)),
   };
+}
+
+/**
+ * D391: BUSONI's other signs explained (the start of a round's legend in the box, the side bar's), only those
+ * the player's line has, after the judged ones (readings.ts markLegend). The three zones: the levels are
+ * played by the line (the normal zone gives the printed level); the strong zone is asked by > ^ sf.
+ */
+export function wholeLegend(box: WholeBox): { kind: WholeKind; sym: string; text: string }[] {
+  const has = wholeHas(box);
+  const all: { kind: WholeKind; sym: string; text: string }[] = [
+    { kind: "marcato", sym: "^", text: tr("MARCATO: STRONG ZONE, ON TIME, LET GO SHORT") },
+    { kind: "wedge", sym: "▾", text: tr("WEDGE: SHORTER THAN THE DOT") },
+    { kind: "tenuto", sym: "–", text: tr("TENUTO: HOLD ITS FULL VALUE") },
+    { kind: "portato", sym: "·", text: tr("PORTATO: CARRIED, A LITTLE APART") },
+    { kind: "lift", sym: "’", text: tr("LIFT: LET GO AT THE SLUR'S END") },
+    { kind: "phrase", sym: "⌒", text: tr("PHRASE: ONE LONG LINE (A GUIDE)") },
+    { kind: "breath", sym: "//", text: tr("CAESURA: A SHORT SILENCE") },
+    { kind: "fermata", sym: "𝄐", text: tr("FERMATA: HELD LONGER") },
+    { kind: "dynamics", sym: "p f", text: tr("LEVELS: THE LINE PLAYS THEM; THE MIDDLE ZONE KEEPS THEM, SF THE STRONG ZONE") },
+    { kind: "hairpin", sym: "< >", text: tr("HAIRPINS: LOUDER, SOFTER (THE LINE FOLLOWS)") },
+    { kind: "words", sym: "Aa", text: tr("WORDS AS BUSONI PRINTS THEM: TRANSLATED BELOW") },
+  ];
+  return all.filter((l) => has[l.kind]);
+}
+/** D391: a word and its translation, for the side bar ("dolce · SWEETLY"). */
+export function glossLine(wd: LineWord): string {
+  const shown = wd.text.replace(/(\s*-)+\s*$/, "").trim();
+  return `${shown} · ${wd.gloss[lang()]}`;
 }
