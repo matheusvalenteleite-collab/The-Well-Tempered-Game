@@ -462,6 +462,8 @@ export const ES: Record<string, string> = {
   "DRUMS OFF": "BATERÍA DESACTIVADA",
   "A BACKING TRACK · NEVER SCORED": "UN ACOMPAÑAMIENTO · NUNCA PUNTÚA",
   "NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION": "SIN SIGNOS EN ESTA FUGA: TU PROPIA ARTICULACIÓN",
+  "BUSONI'S MARKINGS": "INDICACIONES DE BUSONI",
+  "BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION": "INDICACIONES DE BUSONI DESACTIVADAS (AJUSTES): TU PROPIA ARTICULACIÓN",
   "THE MARKS OVER THE SUBJECT, WHERE THE FUGUE HAS THEM": "LOS SIGNOS SOBRE EL SUJETO, CUANDO LA FUGA LOS TIENE",
   "Your thumb's landing is the note: on the line, PERFECT; a little early or late, GOOD.": "El pulgar que se posa es la nota: en la línea, PERFECTO; un poco antes o después, BIEN.",
   "Keep the thumb down for the note's length (HELD); lifted too soon is SHORT. Where the music rests, lift: held through a rest is REST!": "Mantén el pulgar durante toda la nota (SOSTENIDA); si sueltas demasiado pronto: CORTA. Donde la música calla, suelta: sostener durante el silencio es ¡SILENCIO!",

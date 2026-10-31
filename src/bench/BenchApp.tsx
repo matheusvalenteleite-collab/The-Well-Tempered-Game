@@ -75,7 +75,7 @@ import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
-import { chosenReading, markOf, readingsOf, type MarkNote } from "../touch/readings.ts";
+import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
 import { Caption, LensSheet, ResultLine, Seal, SignCard, SpotFlash, SpotLine, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
@@ -433,7 +433,9 @@ export function BenchApp() {
   // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
   // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
   // D385: on the piano BUSONI's whole-piece reading is the default where it exists (readings.ts bestReading).
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, presetById(soundNow).id) : null;
+  // D393: only BUSONI's, on every instrument, unless Settings' BUSONI'S MARKINGS is off.
+  const [busoni, setBusoni] = useState(busoniOn);
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
   const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);
@@ -1813,6 +1815,8 @@ export function BenchApp() {
               }}
             />
           </label>
+          {/* D393: the one switch for the reading (no other toggle anywhere): BUSONI on by default. */}
+          <Choice id="busoni" label="BUSONI'S MARKINGS" options={BUSONI_SWITCH[lang()] ?? BUSONI_SWITCH.en} value={busoni ? "on" : "off"} set={(v) => (setBusoniOn(v === "on"), setBusoni(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
@@ -2018,6 +2022,12 @@ export function VoiceLegend({ names, played, ink, paper = false }: { names: stri
   );
 }
 
+/** D393: the words of Settings' BUSONI'S MARKINGS switch (the markings, plural, in Portuguese and Spanish). */
+const BUSONI_SWITCH: Record<string, ["on" | "off", string][]> = {
+  en: [["on", "ON"], ["off", "OFF"]],
+  pt: [["on", "LIGADAS"], ["off", "DESLIGADAS"]],
+  es: [["on", "ACTIVADAS"], ["off", "DESACTIVADAS"]],
+};
 /** D239: the bench's modes whose first-game rule has been played past. */
 const HINTS_KEY = "tb-hints-v1";
 /** D317: the lab's link in ⚙: where the lab has been opened on this device (`tb-lab`), or `?lab` is in the address (kept from then on). */

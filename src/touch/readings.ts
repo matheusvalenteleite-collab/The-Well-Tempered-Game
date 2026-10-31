@@ -221,6 +221,36 @@ export const BEST_READING: Readonly<Record<string, string>> = {
  */
 export const WHOLE_DEFAULT = "busoni";
 export const wholeReadingOf = (id: string): Reading | null => readingsOf(id).find((r) => r.id === WHOLE_DEFAULT && r.whole) ?? null;
+/**
+ * D393 (WTC 1.90; the owner: "leave only Busoni's reading in the game for now. It's the default, and can be
+ * turned off in settings"): play.html offers no reading but BUSONI's. The books' readings (KELLER, BODKY,
+ * RIEMANN) keep their data and code (readingsOf, chosenReading, the HEAR THE SUBJECT chooser behind
+ * OFFER_READINGS) and the Lab still shows them; true brings the chooser back.
+ */
+export const OFFER_READINGS = false;
+const BUSONI_KEY = "tb-busoni-v1";
+/** D393: Settings' BUSONI'S MARKINGS: on unless turned off (persisted). */
+export function busoniOn(): boolean {
+  try {
+    return localStorage.getItem(BUSONI_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+export function setBusoniOn(on: boolean) {
+  try {
+    localStorage.setItem(BUSONI_KEY, on ? "on" : "off");
+  } catch {
+    /* private mode: on for this visit */
+  }
+}
+/**
+ * D393: the reading play.html plays a fugue by, on every instrument: BUSONI's whole-piece reading where the
+ * fugue has one (every fugue of Book I) and the switch is on; else none (Book II; the switch off): the
+ * player's own articulation, the plain band, no marks in the box. The piano's own features (D385–D389)
+ * stay the piano's; the others take what they already support (articulation, slurs, the box, the ending).
+ */
+export const playReading = (id: string): Reading | null => (busoniOn() ? wholeReadingOf(id) : null);
 /** D344: the one reading the friends' page gives a fugue (null: none, the player's own articulation); D385: on the piano a whole-piece reading first. */
 export function bestReading(id: string, soundId?: string): Reading | null {
   if (soundId && styleOf(soundId) === "piano") {
