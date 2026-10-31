@@ -59,7 +59,7 @@ export const BROADEN_MIN_BARS = 3;
 export function broadenClose(o: { from: number; until: number; length: number; barTicks: number; cadences?: readonly { on: number; kind: string }[]; fermatas?: readonly number[] }): number | null {
   if (o.until - o.from < BROADEN_MIN_BARS * o.barTicks) return null;
   if (o.until >= o.length) return o.until;
-  const lastBar = (t: number) => t > o.until - o.barTicks && t <= o.until;
+  const lastBar = (t: number) => t >= o.until - o.barTicks && t <= o.until;
   let close: number | null = null;
   for (const c of o.cadences ?? []) if ((c.kind === "perfect" || c.kind === "imperfect") && lastBar(c.on)) close = Math.max(close ?? 0, c.on);
   for (const t of o.fermatas ?? []) if (lastBar(t)) close = Math.max(close ?? 0, t);
