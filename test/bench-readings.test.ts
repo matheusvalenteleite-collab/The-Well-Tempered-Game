@@ -9,19 +9,20 @@ import { protoById } from "../src/bench/protos.ts";
 
 const firstEntry = (id: string) => [...fugueById(id).entries].filter((e) => !e.theme).sort((a, b) => a.on - b.on || a.voice - b.voice)[0];
 
-test("D272: every reading belongs to a Book I fugue, at most three a fugue, one mark per note of its first entry, levels and tempi sane", () => {
+test("D272: every reading belongs to a Book I fugue, at most three a fugue (D385: and one whole-piece edition), one mark per note of its first entry, levels and tempi sane", () => {
   const ids = Object.keys(READINGS);
   assert.ok(ids.length >= 10, `${ids.length} fugues with a reading`);
   for (const id of ids) {
     assert.match(id, /^wtc[12]f\d\d$/);
     const rs = readingsOf(id);
-    assert.ok(rs.length >= 1 && rs.length <= 3, id);
+    const books = rs.filter((r) => !r.whole);
+    assert.ok(rs.length >= 1 && books.length <= 3 && rs.length - books.length <= 1, id);
     assert.equal(new Set(rs.map((r) => r.id)).size, rs.length, `${id}: one reading an author`);
     for (const r of rs) {
       assert.equal(r.notes.length, firstEntry(id).notes.length, `${id}/${r.id}: a mark per note`);
       if (r.tempo !== null) assert.ok(r.tempo >= 30 && r.tempo <= 200, `${id}/${r.id}: ♩ = ${r.tempo}`);
       if (r.level) assert.ok(r.level in LEVEL_D);
-      assert.ok(r.notes.some((n) => n.join !== null || n.short || n.accent) || r.level || r.plan.length, `${id}/${r.id}: something to play by`);
+      assert.ok(r.notes.some((n) => n.join !== null || n.short || n.accent) || r.level || r.plan.length || r.whole, `${id}/${r.id}: something to play by`);
       if (r.quote) assert.ok(r.quote.split(/\s+/).length <= 45, `${id}/${r.id}: a short quotation`);
     }
   }

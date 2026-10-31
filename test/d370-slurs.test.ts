@@ -11,6 +11,7 @@ import { READINGS, readingMarks, slurRole, slurredJoin, type Reading } from "../
 import { fugueById } from "../src/touch/fugue.ts";
 import { ART_HOLD, OVERLAP_S, phrase, SLUR_SHAPE, type Marks, type Style } from "../src/touch/phrasing.ts";
 import type { OtherNote } from "../src/touch/voice-mode.ts";
+import { slurShapeDb } from "../src/touch/whole-reading.ts";
 import { SLUR_DB, SLUR_HANDOVER_S, SLUR_LAST_DB, slurHandoverS } from "../src/bench/proto-game.ts";
 
 const all = () => Object.entries(READINGS).flatMap(([id, rs]) => rs.map((r) => ({ id, r })));
@@ -34,7 +35,8 @@ test("D370: every reading's joins are its slurs' insides or its legato; a slur's
       // (A last note "joined": a slur running past the end of the author's example.)
       if (n.join === true && i < r.notes.length - 1 && !slurredJoin(r, i)) assert.ok(r.legato, `${id}/${r.id}: join ${i} neither slurred nor legato`);
     });
-    if (r.notes.some((n) => n.join === true)) assert.ok(doc[id]?.[r.id]?.why, `${id}/${r.id}: why documented`);
+    // (D385: a whole-piece edition's slurs are printed, not read from words: docs/wtc/readings/busoni/.)
+    if (r.notes.some((n) => n.join === true) && !r.whole) assert.ok(doc[id]?.[r.id]?.why, `${id}/${r.id}: why documented`);
     slurs += r.slurs.length;
     if (r.legato) legato++;
   }
@@ -108,31 +110,16 @@ test("D370: the band's slur: the first leaned (piano 10 ms, else 20, within ±20
     // Legato inside the plain line no more than the table's overlap (an even line).
     for (let k = 0; k < 7; k++) assert.ok(legato[k].over - (legato[k + 1].nudge - legato[k].nudge) <= Math.max(OVERLAP_S, 0.03) + 1e-9, `${style} legato ${k}`);
   }
-  // The piano: the first +1.5 dB, the last -3.5 dB against the unslurred pairs (the same music otherwise).
+  // The piano (D385: by place in the bar, whole-reading.ts slurShapeDb): the first on the beat +1.5 dB, the last off it -3.75 dB.
   const old = shapesOf("piano", "pairs-old");
   const pairs = shapesOf("piano", "pairs");
   for (let k = 0; k < 8; k += 2) {
-    assert.ok(Math.abs(pairs[k].db! - old[k].db! - SLUR_SHAPE.firstDb) < 1e-9);
-    assert.ok(Math.abs(pairs[k + 1].db! - old[k + 1].db! - SLUR_SHAPE.lastDb) < 1e-9);
+    assert.ok(Math.abs(pairs[k].db! - old[k].db! - slurShapeDb("first", true)) < 1e-9);
+    assert.ok(Math.abs(pairs[k + 1].db! - old[k + 1].db! - slurShapeDb("last", false)) < 1e-9);
   }
 });
 
-test("D370: the subject's clamp holds with slurs: no subject note's mean level over the others' in its voice and octave", () => {
-  const f = fugueById("wtc1f02");
-  const r = READINGS.wtc1f02.find((x) => x.id === "keller")!;
-  const notes = [...f.voices.flatMap((v, k) => v.map((n) => ({ on: n[0], dur: n[1], midi: n[2], step: n[3], voice: k })))].sort((a, b) => a.on - b.on || a.voice - b.voice);
-  const subject = new Set(f.entries.filter((e) => !e.theme).flatMap((e) => e.notes.map((n) => `${e.voice}:${n[0]}`)));
-  const sh = phrase(notes, f.tpq, (t) => t % f.barTicks, subject, "piano", { marks: readingMarks(f.entries, r), score: notes, bar: f.barTicks, cadences: f.cadences ?? [] });
-  const bins = new Map<string, { s: number[]; o: number[] }>();
-  notes.forEach((n, i) => {
-    const k = `${n.voice}:${Math.floor(n.midi / 12)}`;
-    const b = bins.get(k) ?? { s: [], o: [] };
-    (subject.has(`${n.voice}:${n.on}`) ? b.s : b.o).push(sh[i].db!);
-    bins.set(k, b);
-  });
-  const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
-  for (const [k, b] of bins) if (b.s.length && b.o.length) assert.ok(mean(b.s) <= mean(b.o) + 1e-9, `${k}: subject ${mean(b.s).toFixed(2)} over ${mean(b.o).toFixed(2)}`);
-});
+// D385: D370's clamp test (the subject never louder) removed with D293's rule; d385-piano.test.ts holds entries brought out where the reading asks.
 
 test("D370: the player's voice: the slur's piano dB by place only on a reading's slurs, its last lighter; a longer handover inside a slur on the harpsichord (70 ms) and the piano", () => {
   assert.ok(SLUR_LAST_DB < SLUR_DB[1]);

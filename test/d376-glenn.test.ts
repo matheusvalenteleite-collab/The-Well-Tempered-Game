@@ -59,7 +59,7 @@ test("D376: the families and their numbers", () => {
   assert.equal(overHoldS("vocalSynth"), 0);
   assert.equal(slurRingS("harpsichordSampled"), 0.11);
   assert.deepEqual([0, 1, 2, 3, 4, 7].map(slurTaperDb), [0, -1.5, -2.5, -3.5, -4, -4]);
-  assert.ok([1, 2, 3, 4, 5].every((p) => slurTaperDb(p) <= 0), "only lower: the subject never louder");
+  assert.ok([1, 2, 3, 4, 5].every((p) => slurTaperDb(p) <= 0), "only lower: a slide's slur tapers");
   // The glide: a quarter of the slide's time, 10–90 ms.
   assert.equal(slideGlideTau(200), 0.05);
   assert.equal(slideGlideTau(10), 0.01);

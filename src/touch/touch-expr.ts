@@ -64,8 +64,23 @@ export const TOUCH_TAU = 0.06;
 
 // ---- Landing: the attack ----
 
-/** PIANO: soft to firm, ±4 dB, on the softer recording (layer 7) under the middle and the firmer (layer 12) from it. */
+/**
+ * PIANO: D311's soft to firm, ±4 dB, a smooth map (kept for the record and the Lab's measures). D385 (WTC
+ * 1.88, the panel's report §1): a thumb lands within about ±2 mm of its aim but its aim wanders ±3–4 mm
+ * from take to take, on a strip about 28 mm wide: three bands are hit almost every time (94% with the drift),
+ * five are not (55%). So the piano's landing is now THREE ZONES (pianoZone): soft, normal, strong, each a
+ * third of the bar, PIANO_ZONE_DB about the line's level: lighter, as written, heavier. The level itself
+ * is the reading's (Play.lineDb: Busoni's pp to ff); the touch shapes inside it.
+ */
 export const PIANO_DB = 4;
+/** D385: the piano's three zones (dB about the line's level): soft, normal, strong. */
+export const PIANO_ZONE_DB: readonly [number, number, number] = [-3, 0, 3];
+/** D385: the zone of a landing's strength (0 soft, 1 normal, 2 strong), each a third of the bar. */
+export const pianoZone = (x: number): 0 | 1 | 2 => (clamp01(x) < 1 / 3 ? 0 : clamp01(x) < 2 / 3 ? 1 : 2);
+/** D385: the strong zone: where a reading's accent (">", "^") is played (proto-game.ts: ACCENT ✓ is the strong zone on time). */
+export const STRONG_ZONE_FROM = 2 / 3;
+/** D385: under this level (dB about the middle) the piano's softer recording (layer 7), from it the firmer (the report: colour by level). */
+export const PIANO_SOFT_BELOW_DB = -1.5;
 /** Layer 7 against layer 12 at the same level (sampled.ts: 5 dB softer as recorded, raised by its gain): about -2 dB. */
 export const PIANO_SOFT_NET_DB = 20 * Math.log10(SAMPLED.piano.soft?.gain ?? 1) - 5;
 /** HARPSICHORD: the lute (buff) stop from here out (a place across, toward the outer edge: D315): a lowpass from LUTE_HZ[0] (at its start) to LUTE_HZ[1] (at the edge), and a shorter ring. */
@@ -133,16 +148,31 @@ export interface Landing {
   open?: number;
   /** D349: PIPE ORGAN's echo manual: the note on the second manual's soft flutes (chip.ts). */
   echo?: boolean;
+  /** D385: the piano's level as struck (dB about the middle): its colour (chip.ts Play.vel). */
+  vel?: number;
 }
 
-export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | null, pulse = true): Landing {
+/** D385: the line around a landing on the piano: the reading's level here (`lineDb`) and an accent's weight in the strong zone (`accentDb`). */
+export interface LineAt {
+  lineDb?: number;
+  accentDb?: number;
+}
+/** D385: the piano's dB for a landing: the line's level, the zone's weight (an accent's own in the strong zone). */
+export function pianoDb(x: number, line: LineAt = {}): number {
+  const z = pianoZone(x);
+  const w = z === 2 && line.accentDb !== undefined ? Math.max(PIANO_ZONE_DB[2], line.accentDb) : PIANO_ZONE_DB[z];
+  return (line.lineDb ?? 0) + w;
+}
+
+export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | null, pulse = true, line: LineAt = {}): Landing {
   const c = clamp01(x);
   switch (kind) {
     case "piano": {
-      const db = PIANO_DB * (2 * c - 1);
-      const soft = c < 0.5;
-      // The softer recording is already about 2 dB under: the level makes up the rest, so the loudness runs evenly over ±4 dB.
-      return { layer: soft ? "soft" : "firm", level: 10 ** ((db - (soft ? PIANO_SOFT_NET_DB : 0)) / 20) };
+      // D385: three zones about the line's level (pianoDb); the softer recording under PIANO_SOFT_BELOW_DB, which
+      // is already about 2 dB under: the level makes up the rest, so the loudness runs evenly.
+      const db = pianoDb(c, line);
+      const soft = db < PIANO_SOFT_BELOW_DB;
+      return { layer: soft ? "soft" : "firm", level: 10 ** ((db - (soft ? PIANO_SOFT_NET_DB : 0)) / 20), vel: db };
     }
     case "harpsichord": {
       // D315: the lute stop stays where the owner put it, at the outer edge (the phone's), whichever side is
