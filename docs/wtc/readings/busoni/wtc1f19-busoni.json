@@ -1,0 +1,834 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc1f19",
+ "title": "Fugue 19 in A major, BWV 864",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperirte Clavier, Erster Theil, bearbeitet, erläutert und mit daran anknüpfenden Beispielen und Anweisungen für das Studium der modernen Clavierspieltechnik herausgegeben",
+  "publisher": "G. Schirmer, New York, 1894 (plate 11652)",
+  "pages": {
+   "pdf": [
+    113,
+    114,
+    115,
+    116
+   ],
+   "printed": [
+    111,
+    112,
+    113,
+    114
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1894)"
+ },
+ "tempo": {
+  "text": "Tranquillo e piacevole.",
+  "en": "calm and pleasant",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "Supple and gentle (\"geschmeidig\"; NB I: a \"velvety flexibility\", not to shy from its \"femininity\"); legato and even throughout.",
+ "dynamicPlan": "sotto voce dolcemente (b.1), sempre legato, sempre egualmente (b.9); poco marc. bass (b.13); poco cresc. to più pieno (b.16–18), dim. to p (b.19–20), non cresc. (b.21); dolce, scorrevolmente (b.23); marc. alto (b.31); small swells (b.36–37); cresc. (b.40) to più f (b.42); dim. con affabilità (b.48); Coda dolce (b.49), espress. alto (b.52), fermata.",
+ "marks": [
+  {
+   "v": 0,
+   "on": 0,
+   "p": 69,
+   "name": "A4",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 1,
+   "on": 8640,
+   "p": 64,
+   "name": "E4",
+   "bar": 2,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 25920,
+   "p": 57,
+   "name": "A3",
+   "bar": 4,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 43200,
+   "p": 52,
+   "name": "E3",
+   "bar": 6,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 69120,
+   "p": 69,
+   "name": "A4",
+   "bar": 9,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 103680,
+   "p": 42,
+   "name": "F#2",
+   "bar": 13,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 1,
+   "on": 172800,
+   "p": 68,
+   "name": "G#4",
+   "bar": 21,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 190080,
+   "p": 45,
+   "name": "A2",
+   "bar": 23,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 0,
+   "on": 207360,
+   "p": 64,
+   "name": "E4",
+   "bar": 25,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 1,
+   "on": 224640,
+   "p": 76,
+   "name": "E5",
+   "bar": 27,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 276480,
+   "p": 50,
+   "name": "D3",
+   "bar": 33,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 1,
+   "on": 354240,
+   "p": 66,
+   "name": "F#4",
+   "bar": 42,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 371520,
+   "p": 52,
+   "name": "E3",
+   "bar": 44,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head"
+  },
+  {
+   "v": 2,
+   "on": 129600,
+   "p": 47,
+   "name": "B2",
+   "bar": 16,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass head before the answer"
+  },
+  {
+   "v": 2,
+   "on": 344640,
+   "p": 62,
+   "name": "D4",
+   "bar": 40,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 457920,
+   "p": 69,
+   "name": "A4",
+   "bar": 54,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 457920,
+   "p": 61,
+   "name": "C#4",
+   "bar": 54,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 457920,
+   "p": 45,
+   "name": "A2",
+   "bar": 54,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 3840,
+   "to": 13440,
+   "bars": "1.8–2.10",
+   "names": "G#4–D5",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 1,
+   "from": 12480,
+   "to": 22080,
+   "bars": "2.8–3.10",
+   "names": "C#4–A4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 2,
+   "from": 29760,
+   "to": 39360,
+   "bars": "4.8–5.10",
+   "names": "G#3–D4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 2,
+   "from": 47040,
+   "to": 56640,
+   "bars": "6.8–7.10",
+   "names": "C#3–A3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 0,
+   "from": 72960,
+   "to": 82560,
+   "bars": "9.8–10.10",
+   "names": "G#4–D5",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 2,
+   "from": 107520,
+   "to": 117120,
+   "bars": "13.8–14.10",
+   "names": "E#3–B3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 1,
+   "from": 175680,
+   "to": 187200,
+   "bars": "21.6–22.12",
+   "names": "E4–B4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 2,
+   "from": 193920,
+   "to": 203520,
+   "bars": "23.8–24.10",
+   "names": "G#2–D3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 0,
+   "from": 211200,
+   "to": 220800,
+   "bars": "25.8–26.10",
+   "names": "C#4–C#5",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 1,
+   "from": 228480,
+   "to": 238080,
+   "bars": "27.8–28.10",
+   "names": "D#4–A4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 2,
+   "from": 280320,
+   "to": 289920,
+   "bars": "33.8–34.10",
+   "names": "C#3–A#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 1,
+   "from": 358080,
+   "to": 367680,
+   "bars": "42.8–43.10",
+   "names": "G#3–D4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  },
+  {
+   "v": 2,
+   "from": 375360,
+   "to": 384960,
+   "bars": "44.8–45.10",
+   "names": "C#3–F#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject, one arc"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 164160,
+   "bar": 20,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "p",
+   "conf": "sure"
+  },
+  {
+   "on": 354240,
+   "bar": 42,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "più f",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 131520,
+   "to": 146880,
+   "bars": "16.4–18.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 159360,
+   "to": 163680,
+   "bars": "19.8–19.17",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 305280,
+   "to": 308160,
+   "bars": "36.6–36.12",
+   "dir": "cresc",
+   "conf": "likely",
+   "role": "\"poco\""
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 308160,
+   "to": 311040,
+   "bars": "36.12–37.0",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 316800,
+   "to": 319200,
+   "bars": "37.12–37.17",
+   "dir": "cresc",
+   "conf": "likely",
+   "role": "\"poco\""
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 336960,
+   "to": 345600,
+   "bars": "40.0–41.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 408000,
+   "to": 414720,
+   "bars": "48.4–49.0",
+   "dir": "dim",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "Tranquillo e piacevole. geschmeidig",
+   "en": "calm and pleasant; supple",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "sotto voce, dolcemente",
+   "en": "hushed, sweetly",
+   "conf": "sure"
+  },
+  {
+   "on": 17280,
+   "bar": 3,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "sempre legato",
+   "en": "always joined",
+   "conf": "sure"
+  },
+  {
+   "on": 69120,
+   "bar": 9,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "sempre egualmente",
+   "en": "always even",
+   "conf": "sure"
+  },
+  {
+   "on": 103680,
+   "bar": 13,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "poco marc.",
+   "en": "a little marked (bass entry)",
+   "conf": "sure"
+  },
+  {
+   "on": 131520,
+   "bar": 16,
+   "pos": 4,
+   "voices": [
+    0,
+    1
+   ],
+   "text": "poco cresc.",
+   "en": "growing a little",
+   "conf": "sure"
+  },
+  {
+   "on": 146880,
+   "bar": 18,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "più pieno",
+   "en": "fuller tone",
+   "conf": "sure"
+  },
+  {
+   "on": 172800,
+   "bar": 21,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "non cresc.",
+   "en": "do not grow louder (alto entry)",
+   "conf": "sure"
+  },
+  {
+   "on": 190080,
+   "bar": 23,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "scorrevolmente",
+   "en": "flowing",
+   "conf": "sure"
+  },
+  {
+   "on": 190080,
+   "bar": 23,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "legato",
+   "en": "joined",
+   "conf": "sure"
+  },
+  {
+   "on": 190080,
+   "bar": 23,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "dolce",
+   "en": "sweetly (bass entry)",
+   "conf": "sure"
+  },
+  {
+   "on": 221760,
+   "bar": 26,
+   "pos": 12,
+   "voices": [
+    2
+   ],
+   "text": "scorrevolmente",
+   "en": "flowing",
+   "conf": "sure"
+  },
+  {
+   "on": 261120,
+   "bar": 31,
+   "pos": 4,
+   "voices": [
+    1
+   ],
+   "text": "marc. l'Alto",
+   "en": "the alto marked (its entry)",
+   "conf": "sure"
+  },
+  {
+   "on": 336960,
+   "bar": 40,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 406080,
+   "bar": 48,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "con affabilità",
+   "en": "with friendliness (poco slentando, a tempo word, ignored)",
+   "conf": "sure"
+  },
+  {
+   "on": 408000,
+   "bar": 48,
+   "pos": 4,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "dim.",
+   "en": "growing softer",
+   "conf": "sure"
+  },
+  {
+   "on": 414720,
+   "bar": 49,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "(Coda) dolce",
+   "en": "coda, sweetly",
+   "conf": "sure"
+  },
+  {
+   "on": 445440,
+   "bar": 52,
+   "pos": 10,
+   "voices": [
+    1
+   ],
+   "text": "espress. l'Alto",
+   "en": "the alto expressive",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "first eighth tenuto (never a sforzato, footnote 1); the rest of the subject legato under one arc",
+   "source": "printed at bars 1–6, 13, 16, 23, 33 and others",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ]
+   },
+   "applies": "the whole fugue",
+   "art": "legato, even (sempre legato b.3, sempre egualmente b.9)",
+   "source": "text",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 9,
+   "sign": "dotted double bar",
+   "en": "end of the exposition"
+  },
+  {
+   "beforeBar": 23,
+   "sign": "double bar",
+   "en": "development (footnote 3: a calm part, then a moving one)"
+  },
+  {
+   "beforeBar": 31,
+   "sign": "dotted bar line",
+   "en": "the moving part divides here",
+   "conf": "likely"
+  },
+  {
+   "beforeBar": 42,
+   "sign": "double bar",
+   "en": "third part (footnote 4: back in A major)"
+  },
+  {
+   "beforeBar": 49,
+   "sign": "double bar",
+   "en": "Coda"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 0,
+   "on": 67200,
+   "p": 68,
+   "name": "G#4",
+   "bar": 8,
+   "pos": 14,
+   "sign": "tr",
+   "realisation": "trill, realised in small notes above the staff (from the upper note, closing with the written turn F♯–G♯); exact count not legible",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "on": 222720,
+   "p": 75,
+   "name": "D#5",
+   "bar": 26,
+   "pos": 14,
+   "sign": "tr",
+   "realisation": "trill on the D♯ quarter, no realisation printed",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 437760,
+   "p": 71,
+   "name": "B4",
+   "bar": 51,
+   "pos": 12,
+   "sign": "small notes (turn or trill) above the B",
+   "realisation": "printed in small notes above the staff; not legible at 200 dpi",
+   "conf": "unsure",
+   "optional": true
+  }
+ ],
+ "ornamentsNote": "Two trills (b.8, b.26) and a small-note ornament (b.51); realisations printed in small notes are not legible at 200 dpi.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed: fingerings were skipped on purpose (gameplay does not use them)."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": 113,
+   "at": "bar 1, first eighth",
+   "de": "Von dem groben „Sforzato“ auf dem ersten Achtel des Themas, wie es die meisten Ausgaben „treu nach Czerny“ vorzeichnen, fehlt bei Bach jede Spur.",
+   "en": "No sforzato on the subject’s first eighth (Czerny’s accent is not Bach’s).",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Economical pass: playing marks only. Fingerings, ossias (\"oder\", b.4, b.30) and tempo words (un poco allarg. b.19, a tempo b.20/49, poco slentando b.48) are left out; there is no ending slowing word.",
+  "Read from 200 dpi greyscale crops, one system at a time. Subject marks are generated from pieces.json entries[] using the template Busoni prints at b.1–6.",
+  "Footnotes 2–5 and NB II are structural (voice assignment, form, the g♯ reading, links with Book II) and left out."
+ ],
+ "counts": {
+  "marks": 18,
+  "slurs": 13,
+  "dyn": 2,
+  "hairpins": 7,
+  "text": 18,
+  "breaths": 0,
+  "ornaments": 3,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 1,
+  "byArt": {
+   "tenuto": 14,
+   "accent": 1,
+   "fermata": 3
+  },
+  "bySlurKind": {
+   "slur": 13
+  },
+  "byConf": {
+   "sure": 13,
+   "likely": 27
+  },
+  "byConfAll": {
+   "sure": 31,
+   "likely": 28,
+   "unsure": 2
+  }
+ },
+ "notes": [
+  "Game import (WTC 1.90, D392): \"Tranquillo e piacevole. geschmeidig (flexibly)\" (bar 1) kept as \"Tranquillo e piacevole. geschmeidig\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.90, D392): \"più pieno (fuller)\" (bar 18) kept as \"più pieno\": the gloss and footnote reference were the transcriber's, not printed words."
+ ]
+}

@@ -8,13 +8,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fugueById } from "../src/touch/fugue.ts";
 import { readingsOf, wholeReadingOf, readingMarks } from "../src/touch/readings.ts";
-import { wholePlan } from "../src/touch/whole-reading.ts";
+import { SFZ, wholePlan } from "../src/touch/whole-reading.ts";
 import { WORD_GLOSS, glossOf, wholeAsk, wholeAsks, wholeBox, wholeLegend, firstOn } from "../src/touch/whole-marks.ts";
 import { Chip } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 
 const FIVE = ["wtc1f01", "wtc1f02", "wtc1f08", "wtc1f16", "wtc1f24"];
+/** D392: BUSONI for every fugue of Book I. */
+const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
 
 function silentChip(): Chip {
   return {
@@ -74,12 +76,17 @@ test("D391: I/2's line shows every kind Busoni prints there; the legend explains
   const f1 = fugueById("wtc1f01");
   const b1 = wholeBox(f1, wholeReadingOf("wtc1f01")!, f1.voices.map((_, i) => i))!;
   assert.ok(b1.lines.some((l) => l.dyn.some((d) => d.strong && /sf/.test(d.text))));
-  assert.ok(b1.lines.every((l) => l.dyn.every((d) => d.strong === /sf/.test(d.text))), "every other level the normal zone");
+  for (const id of BOOK_I) {
+    const f = fugueById(id);
+    const b = wholeBox(f, wholeReadingOf(id)!, f.voices.map((_, i) => i))!;
+    assert.ok(b.lines.every((l) => l.dyn.every((d) => d.strong === SFZ.test(d.text))), `${id}: every other level the normal zone`);
+  }
 });
 
 test("D391: every word Busoni prints is drawn as printed with a translation in three languages, or is a label", () => {
-  const LABEL = /^(\(?[A-Zᗺ∀Ƨ]\)?( \(augmentation\))?( molto marc\.)?|r\. H\.( \/ Alto)?|Tenor|\(Coda\)|\(S\)|\(sotto\)|\(Modulation\)|[ᗺ∀Ƨ ]+|ma marc\. \(ᗺ\)|∀ … marc\.)$/;
-  for (const id of FIVE) {
+  // The entry letters (S A T B, inverted ᗺ ∀ Ƨ, I/4's A I., C. II.), countersubjects and hands: labels.
+  const LABEL = /^(\(?[A-Zᗺ∀Ƨ]\.?\)?( \(augmentation\))?( molto marc\.)?|\(?[AC]\. ?I{1,2}\.?\)?|[AC] I{1,2}\.|C\.S\.|Contrasubject I{1,2}|Counter-subject \/ Contrasubject|il basso|m\. d\.|r\. H\.( \/ Alto)?|Tenor|\(Coda\)|\(S\)|\(sotto\)|\(Modulation\)|[ᗺ∀Ƨ ]+|ma marc\. \(ᗺ\)|∀ … marc\.)$/i;
+  for (const id of BOOK_I) {
     const W = wholeReadingOf(id)!.whole!;
     const texts = [...W.text.map((t) => t.text), ...W.tempo.map((t) => t.text), ...(W.heading ? [W.heading] : [])];
     for (const t of texts) assert.ok(glossOf(t) || LABEL.test(t), `${id}: "${t}" neither translated nor a label`);
@@ -151,4 +158,34 @@ test("D391: the painter's index: the first item at or after a tick", () => {
   assert.equal(firstOn(l, 10), 1);
   assert.equal(firstOn(l, 11), 3);
   assert.equal(firstOn(l, 31), 4);
+});
+
+test("D392: the box over the whole line for all 24 fugues of Book I; I/4 and I/22 spot-checked", () => {
+  for (const id of BOOK_I) {
+    const f = fugueById(id);
+    const r = wholeReadingOf(id)!;
+    const all = wholeAsks(wholePlan(f, r)!);
+    for (let v = 0; v < f.voices.length; v++) {
+      const want = [...all.keys()].filter((k) => k.startsWith(`${v}:`)).sort();
+      assert.deepEqual([...wholeBox(f, r, [v])!.marks.keys()].sort(), want, `${id} voice ${v}`);
+    }
+    const box = wholeBox(f, r, f.voices.map((_, i) => i))!;
+    assert.ok(box.lines.some((l) => l.dyn.length || l.words.length), `${id}: levels or words drawn`);
+  }
+  // I/4: fz the strong zone, "sempre f" a level with its word, largamente drawn and translated, B poco pesante a word.
+  const f4 = fugueById("wtc1f04");
+  const b4 = wholeBox(f4, wholeReadingOf("wtc1f04")!, f4.voices.map((_, i) => i))!;
+  const d4 = b4.lines.flatMap((l) => l.dyn);
+  assert.ok(d4.some((d) => d.text === "fz" && d.strong));
+  assert.ok(d4.some((d) => d.text === "sempre f" && !d.strong));
+  const w4 = b4.lines.flatMap((l) => l.words);
+  assert.ok(w4.some((w) => w.text === "largamente" && w.shown === "LARGAMENTE" && w.gloss.en === "BROADLY"));
+  assert.ok(w4.some((w) => /poco pesante/.test(w.text) && w.gloss.pt.length > 1));
+  assert.ok(b4.marks.size > 50 && [...b4.marks.keys()].some((k) => Number(k.split(":")[1]) > f4.length * 0.9), "I/4: marks to the end");
+  // I/22: "più dolce" a character word (not letters); its slurs and its marks on every voice.
+  const f22 = fugueById("wtc1f22");
+  const b22 = wholeBox(f22, wholeReadingOf("wtc1f22")!, f22.voices.map((_, i) => i))!;
+  assert.ok(b22.lines.flatMap((l) => l.words).some((w) => w.text === "più dolce" && w.gloss.en === "SWEETER"));
+  assert.ok(!b22.lines.flatMap((l) => l.dyn).some((d) => d.text === "più dolce"));
+  assert.ok(b22.lines.some((l) => l.spans.length) && b22.marks.size > 20);
 });

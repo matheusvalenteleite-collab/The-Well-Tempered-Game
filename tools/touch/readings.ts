@@ -17,6 +17,9 @@
  * footnotes and the checks dropped), and its subject marks (`notes`, `slurs`) derived from the marks and
  * slurs on the first entry, so everything that reads a subject-only reading reads it too. It comes after
  * the (at most three) books' readings. Today: BUSONI (1894) for I/1, I/2, I/8, I/16, I/24.
+ * D392 (WTC 1.90): BUSONI for all 24 fugues of Book I. Busoni swapped fugues between his books: I/7 and
+ * I/15 are read from his Book II volume (Breitkopf & Härtel, 1915), so a file may override the
+ * edition's work and year (EDITION_FILES).
  * Run: node tools/touch/readings.ts
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -91,6 +94,11 @@ for (const id of Object.keys(out)) out[id] = out[id].slice(0, 3);
 
 /** D385: the whole-piece editions (docs/wtc/readings/<edition>/), each after the books' readings. */
 const EDITIONS = [{ id: "busoni", author: "BUSONI", work: "Das wohltemperirte Clavier, Erster Theil (G. Schirmer, 1894)", year: 1894 }];
+/** D392: a file read from another volume of the edition than the edition's own (its work and year). */
+const EDITION_FILES: Record<string, { work: string; year: number }> = {
+  "wtc1f07-busoni.json": { work: "Das wohltemperierte Klavier, Zweiter Teil (Breitkopf & Härtel, 1915), as Fuga VII*", year: 1915 },
+  "wtc1f15-busoni.json": { work: "Das wohltemperierte Klavier, Zweiter Teil (Breitkopf & Härtel, 1915), as Fuga XV", year: 1915 },
+};
 // deno-lint-ignore no-explicit-any
 type Any = any;
 const pick = (o: Any, keys: string[]) => Object.fromEntries(keys.filter((k) => o[k] !== undefined && o[k] !== null).map((k) => [k, o[k]]));
@@ -133,11 +141,12 @@ for (const ed of EDITIONS) {
       const join = inSlur(i) && !short ? true : a.has("portato") ? false : null;
       return { join, short, accent: a.has("accent") || a.has("marcato") ? true : null };
     });
+    const vol = EDITION_FILES[file];
     (out[id] ??= []).push({
       id: ed.id,
       author: ed.author,
-      work: ed.work,
-      year: ed.year,
+      work: vol?.work ?? ed.work,
+      year: vol?.year ?? ed.year,
       pages: B.edition?.pages?.printed ? `pp. ${B.edition.pages.printed.join("-")}` : null,
       tempo: null,
       tempoText: B.tempo?.text ?? null,
