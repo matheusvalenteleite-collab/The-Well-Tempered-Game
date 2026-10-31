@@ -7,7 +7,8 @@
  *   its subject's primary (1 red, 2 blue, 3 yellow: subject-hue.ts), whoever's voice; grey once lost.
  *   D372 (Mario's report §6): no band; a SUBJECT flag on each entry's first note (flags), and each
  *   subject its own effect in its voice's own subject colour, every note alike (subjectFx; the
- *   cast in subject-cast.ts). `strikes` (the embers) stays for the design study's variants.
+ *   cast in subject-cast.ts; D383: all ten of the report's effects drawn, every fugue of the 48 cast).
+ *   `strikes` (the embers) stays for the design study's variants.
  *   The countersubject is not marked.
  *   The bosses (not in LADDER): while one is near, a bar of its notes along the top.
  *   Points rise from the note struck; a captured entry bursts into pixels.
@@ -217,14 +218,20 @@ function mixHex(a: string, b: string, k: number): string {
  * a blue soprano's fire burns blue-white, an orange alto's gold), on every subject note in view, every note
  * as strong (D374: NOTE_WEIGHT; another voice's at half), ahead of the playhead at FX_AHEAD, full while it sounds,
  * fading over FX_FADE_S once over. FIRE: flames lick up from the note's top in 2 px columns, the voice's
- * subject ink outside, its pale rim at the core, a spark now and then (12 flickers a second). GLINT: a
- * star flashes at each note's start as it sounds , and a small one travels
- * from note to note over the entry. SMOKE: slow wisps rise and drift from the notes. Stateless (each
- * mark a function of the note and the clock), nothing allocated, at most FX_RECTS rectangles a pass.
- * `mine` picks the pass: the others' (drawn under the player's notes) or the player's (over them).
- * Never tied to right or wrong: a missed note burns as a hit one.
+ * subject ink outside, its pale rim at the core, a spark now and then (12 flickers a second; D383: an
+ * inverted entry's sparks fall below the note instead). GLINT: a star flashes at each note's start as it
+ * sounds, and a small one travels from note to note over the entry. SMOKE: slow wisps rise and drift.
+ * D383, the report's other seven: EMBERS, sparks rising and drifting off the note; SHIMMER, a band of
+ * light running along the line (a sheen on each note's top, a bright sweep travelling the entry);
+ * RIPPLE, rings spreading from each note as it sounds, like water; PULSE, a frame round each note
+ * breathing on the music's beat, lub-dub (an augmented entry at half speed, so augmentation shows);
+ * RAYS, light falling on the notes from above; HOP, a bright ball hopping along the notes as they sound;
+ * TEARS, slow drops falling from under the notes (SMOKE turned downward). Stateless (each mark a function
+ * of the note and the clock), nothing allocated (the colours memoised per voice), at most FX_RECTS
+ * rectangles a pass. `mine` picks the pass: the others' (drawn under the player's notes) or the player's
+ * (over them). Never tied to right or wrong: a missed note burns as a hit one.
  */
-export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly number[], mine: boolean, piece: string | undefined, _beat: number, t: number) {
+export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly number[], mine: boolean, piece: string | undefined, beat: number, t: number) {
   const { g, w, xOf, yOf, bh, now, tps } = c;
   let budget = FX_RECTS;
   const flick = Math.floor(t * 12);
@@ -238,8 +245,19 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
     const ink = subjectInkOf(voiceInk, theme);
     const rim = subjectRimOf(voiceInk, theme);
     const wt = NOTE_WEIGHT * (mine ? 1 : OTHERS_SCALE);
+    const inverted = !!s.shape && s.shape.includes("INVERSION");
     // GLINT's travelling star: one note of the entry at a time, seven a second.
     const travel = fx === "GLINT" ? Math.floor(t * 7 + s.on * 0.37) % s.path.length : -1;
+    // SHIMMER's sweep: across the entry once every 1.4 s.
+    const sx0 = xOf(s.on);
+    const sweep = fx === "SHIMMER" ? sx0 - 6 + ((t / 1.4 + s.on * 0.0007) % 1) * (xOf(s.end) - sx0 + 12) : 0;
+    // PULSE: the music's beat (an augmented entry's at half speed), lub-dub.
+    let pulse = 0;
+    if (fx === "PULSE") {
+      const per = beat > 0 ? beat * (s.shape && s.shape.includes("AUGMENT") ? 2 : 1) : tps;
+      const ph = (((now - s.on) / per) % 1 + 1) % 1;
+      pulse = Math.max(0, 1 - ph * 5) + 0.6 * Math.max(0, 1 - Math.abs(ph - 0.3) * 7);
+    }
     for (let j = 0; j < s.path.length && budget > 0; j++) {
       const n = s.path[j];
       const a = xOf(n.on);
@@ -252,7 +270,10 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
       const full = (c.hOf ? c.hOf(n.step) : bh) === bh;
       // The note's top: the player's outline; another voice's thinner block, centred in its row.
       const top = mine || !full ? yOf(n.step) - (mine ? 1 : 0) : yOf(n.step) + Math.floor((bh - 1 - Math.max(1, Math.round(bh * 0.5))) / 2);
+      // Its bottom: the player's outline, the row's foot, or the thinner block's.
+      const bot = mine || !full ? yOf(n.step) + (c.hOf ? c.hOf(n.step) : bh) + (mine ? 1 : 0) : top + Math.max(1, Math.round(bh * 0.5));
       const span = Math.min(b - a, FX_SPAN);
+      const since = (now - n.on) / tps;
       if (fx === "FIRE") {
         // Tongues 1 px wide, two to a 2 px column: the voice's pale subject colour, a warm white core,
         // now and then a tip of the voice's subject ink above (so the flame still says whose).
@@ -277,7 +298,10 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
         g.fillStyle = ink;
         for (let k = 0; k < span; k += 2) {
           const r = rnd(seed + k, fl);
-          if (r > 0.6 && wt >= 0.5) g.fillRect(a + k + (flick & 1), top - Math.round(hmax * (0.3 + 0.7 * r)) - 1 - (r > 0.9 ? 1 : 0), 1, 1);
+          if (r > 0.6 && wt >= 0.5) {
+            const lift = Math.round(hmax * (0.3 + 0.7 * r)) + 1 + (r > 0.9 ? 1 : 0);
+            g.fillRect(a + k + (flick & 1), inverted ? bot + lift - 2 : top - lift, 1, 1);
+          }
           budget--;
         }
       } else if (fx === "SMOKE") {
@@ -296,9 +320,145 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
           }
           budget -= 5;
         }
+      } else if (fx === "EMBERS") {
+        // Sparks thrown up off the note, drifting sideways as they cool: white-hot, then the pale
+        // subject colour, then the voice's subject ink, gone in about a second.
+        const sparks = 2 + Math.round(4 * wt);
+        const rise = 8 + 12 * wt;
+        for (let k = 0; k < sparks; k++) {
+          const u = (t * 1.1 + rnd(n.on * 0.011, k + 0.3)) % 1;
+          const x = Math.round(a + rnd(k + 0.9, n.on * 0.007) * span + Math.sin(u * 6 + k) * 2 + (k & 1 ? u * 4 : -u * 3));
+          const y = Math.round(top - 1 - u * rise);
+          g.globalAlpha = env * (1 - u * 0.85);
+          g.fillStyle = u < 0.18 ? "#ffffff" : u < 0.6 ? rim : ink;
+          const sz = u < 0.25 && wt >= 0.7 ? 2 : 1;
+          g.fillRect(x, y, sz, sz);
+          budget--;
+        }
+      } else if (fx === "SHIMMER") {
+        // A sheen along the note's top, and the bright sweep where it passes.
+        g.globalAlpha = env * (0.25 + 0.3 * wt);
+        g.fillStyle = rim;
+        g.fillRect(a, top - 1, span, 1);
+        budget--;
+        if (sweep > a - 4 && sweep < b + 4) {
+          const x = Math.round(sweep);
+          const hh = Math.max(2, bot - top + 2);
+          g.globalAlpha = env * (0.5 + 0.5 * wt);
+          g.fillStyle = "#ffffff";
+          g.fillRect(x, top - 2, 1, hh);
+          g.fillStyle = rim;
+          g.fillRect(x - 2, top - 1, 2, hh - 2);
+          g.fillRect(x + 1, top - 1, 2, hh - 2);
+          g.globalAlpha = env * 0.35;
+          g.fillRect(x - 4, top, 2, hh - 4);
+          g.fillRect(x + 3, top, 2, hh - 4);
+          budget -= 5;
+        }
+      } else if (fx === "RIPPLE") {
+        // A ring spreading out from the note as it sounds (again every 0.7 s while it lasts): an ellipse
+        // of twelve pixels, flatter than wide, like a stone's ring on water.
+        if (since >= 0 && over < FX_FADE_S) {
+          const ph = (since % 0.7) / 0.7;
+          if (over > 0 && since - (n.dur / tps) > 0.7) continue;
+          const cx = a + Math.min(4, span / 2);
+          const cy = (top + bot) / 2;
+          const rx = 2 + ph * (6 + 8 * wt);
+          const ry = 1 + ph * (2 + 3 * wt);
+          g.globalAlpha = env * (1 - ph) * (0.5 + 0.5 * wt);
+          g.fillStyle = rim;
+          for (let k = 0; k < 12; k++) {
+            const an = (k / 12) * Math.PI * 2;
+            g.fillRect(Math.round(cx + Math.cos(an) * rx), Math.round(cy + Math.sin(an) * ry), 1, 1);
+          }
+          budget -= 12;
+        } else if (since < 0) {
+          // Ahead: a still ring, small, at the note's start.
+          g.globalAlpha = env * 0.4 * wt;
+          g.fillStyle = rim;
+          g.fillRect(a, top - 2, 3, 1);
+          budget--;
+        }
+      } else if (fx === "PULSE") {
+        // A frame round the note, swelling and settling on the beat.
+        const grow = Math.round(1 + 2 * pulse * wt);
+        g.globalAlpha = env * (0.2 + 0.55 * pulse) * (0.5 + 0.5 * wt);
+        g.fillStyle = rim;
+        const x0 = a - grow;
+        const x1 = a + span + grow;
+        g.fillRect(x0, top - grow, x1 - x0, 1);
+        g.fillRect(x0, bot + grow - 1, x1 - x0, 1);
+        g.fillRect(x0, top - grow, 1, bot - top + 2 * grow);
+        g.fillRect(x1 - 1, top - grow, 1, bot - top + 2 * grow);
+        budget -= 4;
+      } else if (fx === "RAYS") {
+        // Two or three thin beams falling onto the note from above, brighter near it, slowly breathing.
+        const beams = 1 + Math.round(2 * wt);
+        const len = 6 + 8 * wt;
+        g.fillStyle = rim;
+        for (let k = 0; k < beams; k++) {
+          const x = Math.round(a + ((k + 0.5) / beams) * span);
+          const br = 0.55 + 0.45 * Math.sin(t * 2.2 + k * 2.1 + n.on * 0.003);
+          for (let d = 0; d < 3; d++) {
+            g.globalAlpha = env * br * (0.15 + 0.22 * d) * (0.6 + 0.4 * wt);
+            const y0 = Math.round(top - 1 - len + (d * len) / 3);
+            g.fillRect(x, y0, 1, Math.ceil(len / 3));
+          }
+          budget -= 3;
+        }
+        if (since >= 0 && since < 0.3) {
+          g.globalAlpha = env * (1 - since / 0.3);
+          g.fillStyle = "#ffffff";
+          g.fillRect(a, top - 1, span, 1);
+          budget--;
+        }
+      } else if (fx === "HOP") {
+        // A bright ball hopping along: as the note sounds it leaps from the note's start to the next
+        // note's (or this one's end), landing with a puff; ahead, it waits on the note's start.
+        const nx = j + 1 < s.path.length ? xOf(s.path[j + 1].on) : b;
+        const hopS = Math.min(0.45, Math.max(0.12, (n.dur / tps) * 0.9));
+        if (since >= 0 && since < hopS) {
+          const u = since / hopS;
+          const nextTop = j + 1 < s.path.length ? (mine ? yOf(s.path[j + 1].step) - 1 : top) : top;
+          const x = Math.round(a + (nx - a) * u);
+          const y = Math.round(top + (nextTop - top) * u - 2 - (3 + 6 * wt) * Math.sin(Math.PI * u));
+          g.globalAlpha = env;
+          g.fillStyle = rim;
+          g.fillRect(x - 1, y - 1, 3, 2);
+          g.fillStyle = "#ffffff";
+          g.fillRect(x, y - 1, 1, 1);
+          budget -= 2;
+        } else if (since >= hopS && since < hopS + 0.2) {
+          const u = (since - hopS) / 0.2;
+          g.globalAlpha = env * (1 - u) * 0.8;
+          g.fillStyle = rim;
+          g.fillRect(Math.round(nx - 2 - u * 2), top - 1, 1, 1);
+          g.fillRect(Math.round(nx + 2 + u * 2), top - 1, 1, 1);
+          budget -= 2;
+        } else if (since < 0 && j === 0) {
+          g.globalAlpha = env * 0.7;
+          g.fillStyle = rim;
+          g.fillRect(a, top - 3, 2, 2);
+          budget--;
+        }
+      } else if (fx === "TEARS") {
+        // Slow drops gathering under the note and falling (a longer note sheds a few more).
+        const drops = 1 + Math.min(2, Math.floor(span / 12));
+        const fall = 10 + 10 * wt;
+        for (let k = 0; k < drops; k++) {
+          const u = (t / 1.9 + rnd(n.on * 0.009, k + 0.6)) % 1;
+          const x = Math.round(a + 1 + rnd(k + 2.3, n.on * 0.005) * Math.max(1, span - 2));
+          // It swells for the first quarter, then falls.
+          const y = Math.round(bot + (u < 0.25 ? 0 : (u - 0.25) * (u - 0.25) * 1.8 * fall));
+          g.globalAlpha = env * (u < 0.25 ? u * 4 : 1 - (u - 0.25) / 0.75) * (0.5 + 0.5 * wt);
+          g.fillStyle = rim;
+          g.fillRect(x, y, 1, u < 0.25 ? 1 : 2);
+          g.fillStyle = "#ffffff";
+          g.fillRect(x, y + (u < 0.25 ? 0 : 1), 1, 1);
+          budget -= 2;
+        }
       } else {
         // GLINT: the flash as the note sounds, then the travelling star.
-        const since = (now - n.on) / tps;
         let r = 0;
         let alpha = 0;
         if (since >= 0 && since < 0.4) {

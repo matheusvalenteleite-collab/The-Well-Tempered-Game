@@ -1,6 +1,5 @@
 /**
- * D372: each subject's own effect (Mario's cast for Book I, FIRE, GLINT and SMOKE built, the rest GLINT
- * for now) and (D374) one strength on every subject note; and the box's drawing of it reaches neither the sound nor the score.
+ * D372: each subject's own effect (Mario's cast for Book I; D383 all ten effects built) and (D374) one strength on every subject note; and the box's drawing of it reaches neither the sound nor the score.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -16,19 +15,19 @@ test("the cast names all 24 fugues of Book I, I/4 with three effects (RAYS, RIPP
   for (const t of themes) assert.ok(castOf("wtc1f04", t as 1 | 2 | 3), `theme ${t}`);
 });
 
-test("the effects drawn: the report's FIRE, GLINT and SMOKE where cast, GLINT for the rest and for pieces outside the table", () => {
-  assert.deepEqual([...FX_BUILT].sort(), ["FIRE", "GLINT", "SMOKE"]);
+test("the effects drawn (D383: all ten), each fugue's cast its own; GLINT only for pieces outside the 48", () => {
+  assert.deepEqual([...FX_BUILT].sort(), ["EMBERS", "FIRE", "GLINT", "HOP", "PULSE", "RAYS", "RIPPLE", "SHIMMER", "SMOKE", "TEARS"]);
   assert.equal(FALLBACK_FX, "GLINT");
-  const expect: Record<string, string> = { wtc1f01: "GLINT", wtc1f05: "FIRE", wtc1f10: "FIRE", wtc1f12: "SMOKE", wtc1f16: "GLINT", wtc1f19: "GLINT", wtc1f20: "FIRE", wtc1f24: "SMOKE", wtc1f02: "GLINT", wtc1f03: "GLINT", wtc1f14: "GLINT" };
+  const expect: Record<string, string> = { wtc1f01: "GLINT", wtc1f02: "HOP", wtc1f03: "SHIMMER", wtc1f05: "FIRE", wtc1f06: "EMBERS", wtc1f07: "RIPPLE", wtc1f08: "PULSE", wtc1f12: "SMOKE", wtc1f14: "TEARS", wtc1f17: "RAYS", wtc1f24: "SMOKE" };
   for (const [id, fx] of Object.entries(expect)) assert.equal(effectOf(id, 1), fx, id);
-  assert.equal(effectOf("wtc1f04", 1), "GLINT");
-  assert.equal(effectOf("wtc1f04", 2), "GLINT");
+  assert.equal(effectOf("wtc1f04", 1), "RAYS");
+  assert.equal(effectOf("wtc1f04", 2), "RIPPLE");
   assert.equal(effectOf("wtc1f04", 3), "FIRE");
-  assert.equal(effectOf("wtc2f01", 1), "GLINT");
+  assert.equal(effectOf("wtc2f01", 1), "HOP");
+  assert.equal(effectOf("bwv1080-14", 1), "GLINT");
   assert.equal(effectOf(undefined, 1), "GLINT");
-  // The cast's FIRE, GLINT and SMOKE subjects: nine of Book I's (the report counted twelve fugues).
-  const built = Object.values(BOOK1_CAST).flat().filter((e) => FX_BUILT.has(e)).length;
-  assert.equal(built, 9);
+  // Every subject of Book I drawn as cast (no fallback inside the cast).
+  for (const [id, row] of Object.entries(BOOK1_CAST)) row.forEach((e, i) => assert.equal(effectOf(id, (i + 1) as 1 | 2 | 3), e, id));
 });
 
 test("D374: every subject note the same strength (no per-note weights); another voice's at half", () => {

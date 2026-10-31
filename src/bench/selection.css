@@ -98,9 +98,9 @@
 .sel-top-row > * { flex: 1; min-width: 0; }
 .sel-right .sel-settings, .sel-right .tb-tools-btn { min-height: 24px; justify-content: center; gap: 5px; padding: 0 4px; font-size: 6px; box-shadow: 2px 2px 0 #b8322a; position: relative; }
 .sel-piece { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
-.sel-piece-pic { position: relative; display: block; flex: 0 1 auto; min-height: 0; }
+.sel-piece-pic { position: relative; display: block; flex: none; }
 .sel-piece-emblem { display: block; width: 100%; height: auto; max-height: 92px; aspect-ratio: 64 / 40; object-fit: contain; image-rendering: pixelated; background: #000; }
-.sel-piece-nick { margin: 2px 0 0; font-size: 8px; line-height: 1.4; color: #f3d78a; text-transform: uppercase; }
+.sel-piece-nick { margin: 2px 0 0; font-size: 8px; flex: none; line-height: 1.4; color: #f3d78a; text-transform: uppercase; }
 .sel-piece-name { margin: 2px 0 0; font-size: 7px; line-height: 1.5; color: var(--tg-shine); }
 .sel-piece-meta { margin: 0; font-size: 6px; line-height: 1.6; color: #8c88aa; }
 .sel-best { margin: 0; font-size: 6px; line-height: 1.5; color: #8fe3b0; }
@@ -121,7 +121,7 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 
 /* A shorter screen (667 × 375 and below): the picture smaller. */
 @media (max-height: 380px) {
-  .sel-piece-emblem { max-height: 70px; }
+  .sel-piece-emblem { max-height: 60px; }
   .sel-tile-level { display: none; }
   /* D374: the name in the level's room, two lines where it needs them (a hyphen breaks it). */
   .sel-tile { padding-left: 2px; padding-right: 1px; }
