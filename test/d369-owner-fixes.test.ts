@@ -49,7 +49,7 @@ test("D369 (2): play.html sideways only: the turn screen over everything, the ru
  * the other sounds it (a pull-off). The free graces read.
  */
 async function shaken(id: string, stage: number, px: number, legMs: number, rest = false) {
-  const { lessonById } = await import("../src/bench/manual/lessons.ts");
+  const { anyLessonById: lessonById } = await import("../src/bench/manual/lessons.ts");
   const { gameFor, ROWS } = await import("./d342-sim.ts");
   // D373: Inventions 4, 8 and 12 are MORE BACH's chunk.
   await (await import("../src/touch/fugue.ts")).loadExtras();
@@ -85,7 +85,7 @@ async function shaken(id: string, stage: number, px: number, legMs: number, rest
 
 test("D369 (3h): a lesson sounds only what is struck: a settling roll of a few px reads no grace of its own (D373: Parts 1–3, III, IV)", async () => {
   // Before: a 6 px roll each way, 70 ms, read as a mordent on every note of I.1's drill and I.4's first stage (D373: the new parts' PLAYs).
-  for (const [id, k] of [["1.2", 2], ["1.4", 2], ["2.1", 2], ["3.1", 2], ["III.2", 0]] as const) {
+  for (const [id, k] of [["1.2", 2], ["1.4", 2], ["2.1", 2], ["3.1", 2], ["III.2", 0], ["4.2", 2], ["6.4", 2]] as const) {
     const s = await shaken(id, k, 6, 70);
     assert.equal(s.free, 0, `${id} stage ${k}: ${s.free} free graces read`);
     assert.equal(s.r.right, s.r.of, `${id}: every note right`);

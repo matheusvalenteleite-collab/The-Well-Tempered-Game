@@ -31,15 +31,15 @@ const I2_ALTO_1_8 = [
 const I2_ALTO_1_9 = [...I2_ALTO_1_8, "B4", "C5", "C5", "B4", "C5", "G4", "A♭4"];
 /** I/2's bass, bars 5–8: silent through the episode, then the subject, deep down. */
 const I2_BASS_5_8 = ["C4", "B3", "C4", "G3", "A♭3", "C4", "B3", "C4", "D4", "G3", "C4", "B3", "C4", "D4", "F3", "G3", "A♭3", "G3", "F3", "E♭3"];
-/** I/1's alto, bars 1–6: the exposition (alto, soprano, tenor, bass). */
-const I1_ALTO_1_6 = ["C4", "D4", "E4", "F4", "G4", "F4", "E4", "A4", "D4", "G4", "A4", "G4", "F4", "E4", "F4", "E4", "D4", "C4", "D4", "C4", "B3", "A3", "F♯4", "G4", "F♯4", "E4", "F♯4", "D4", "G4", "F4", "E4", "D4", "C4", "G4", "F4", "E4", "F4", "F4", "E4", "D4", "C4", "F4", "G4", "F4", "E4", "F4", "D4", "G4", "G4"];
+/** I/1's alto, bars 1–5: the exposition (alto, soprano, tenor, bass). */
+const I1_ALTO_1_5 = ["C4", "D4", "E4", "F4", "G4", "F4", "E4", "A4", "D4", "G4", "A4", "G4", "F4", "E4", "F4", "E4", "D4", "C4", "D4", "C4", "B3", "A3", "F♯4", "G4", "F♯4", "E4", "F♯4", "D4", "G4", "F4", "E4", "D4", "C4", "G4", "F4", "E4", "F4", "F4", "E4", "D4", "C4"];
 /** I/1's alto, bars 14–17: the entries crowding in (a stretto). */
 const I1_ALTO_14_17 = ["C4", "D4", "E4", "F4", "G4", "F4", "E4", "A4", "D4", "G4", "A4", "G4", "F4", "E4", "E4", "F♯4", "G4", "F♯4", "A♭4", "A4", "G4", "A4", "B4", "C5", "D5", "C5", "B4", "E5", "A4", "D5", "E5", "D5", "C5", "B4"];
 /** Prelude I/1, bars 1–4 (C major), and Prelude I/3, bars 1–8 (C♯ major), the upper voice. */
 const P1_1_4 = ["G4", "C5", "E5", "G4", "C5", "E5", "G4", "C5", "E5", "G4", "C5", "E5", "A4", "D5", "F5", "A4", "D5", "F5", "A4", "D5", "F5", "A4", "D5", "F5", "G4", "D5", "F5", "G4", "D5", "F5", "G4", "D5", "F5", "G4", "D5", "F5", "G4", "C5", "E5", "G4", "C5", "E5", "G4", "C5", "E5", "G4", "C5", "E5", "A4"];
 const P3_1_8 = ["F5", "C♯5", "A♭4", "C♯5", "F5", "C♯5", "F♯5", "C♯5", "F♯5", "C♯5", "F♯5", "C♯5", "A♭5", "C♯5", "A♭5", "C♯5", "A♭5", "C♯5", "B♭5", "C♯5", "B♭5", "C♯5", "B♭5", "C♯5", "A♭5", "C♯5", "A♭5", "C♯5", "A♭5", "C♯5", "F♯5", "F5", "E♭5", "F5", "F♯5", "E♭5", "F5", "E♭5", "C♯5", "E♭5", "F5", "C♯5", "E♭5", "F5", "E♭5", "C♯5", "C5", "B♭4", "A♭4"];
 
-const inv1 = (o: Partial<Material> = {}) => ex(INV, RH, 1, 2, { bpm: 58 }, "Invention 1, bars 1–2, both voices", { notes: UPPER_1_2, ...o });
+const inv1 = (o: Partial<Material> = {}) => ex(INV, RH, 1, 2, { bpm: 48 }, "Invention 1, bars 1–2, both voices", { notes: UPPER_1_2, ...o });
 const i2 = (voice: number, from: number, to: number, label: string, notes: string[], o: Partial<Material> = {}) => ex(I2, voice, from, to, { bpm: 52 }, label, { notes, ...o });
 
 export const FUGUE_TRACK: ManualLesson[] = [
@@ -256,11 +256,11 @@ export const FUGUE_TRACK: ManualLesson[] = [
     sound: "harpsichord",
     aim: "Learn the subject by heart, then count the voices as they come in, high, middle, low.",
     learn: "How to follow a fugue: the subject by heart, then every voice that takes it up.",
-    music: "FUGUE 1 IN C MAJOR, BARS 1–6",
+    music: "FUGUE 1 IN C MAJOR, BARS 1–5",
     aids: [],
     stages: [
-      st("watch", ex(I1, 1, 1, 6, { bpm: 50 }, "Fugue I/1 in C major, bars 1–6: four voices enter", { notes: I1_ALTO_1_6, flags: true }), "My first fugue has four voices. Follow the flags: one voice, then another, until all four are playing.", { aids: ["point"] }),
-      st("quiz", ex(I1, 1, 1, 6, { bpm: 50 }, "Fugue I/1 in C major, bars 1–6", { notes: I1_ALTO_1_6 }), "Before you try alone:", {
+      st("watch", ex(I1, 1, 1, 5, { bpm: 50 }, "Fugue I/1 in C major, bars 1–5: four voices enter", { notes: I1_ALTO_1_5, flags: true }), "My first fugue has four voices. Follow the flags: one voice, then another, until all four are playing.", { aids: ["point"] }),
+      st("quiz", ex(I1, 1, 1, 5, { bpm: 50 }, "Fugue I/1 in C major, bars 1–5", { notes: I1_ALTO_1_5 }), "Before you try alone:", {
         quiz: {
           ask: "What is the best way to follow a fugue?",
           answers: [
@@ -269,7 +269,7 @@ export const FUGUE_TRACK: ManualLesson[] = [
           ],
         },
       }),
-      st("spot", ex(I1, 1, 1, 6, { bpm: 50 }, "Fugue I/1 in C major, bars 1–6, no flags", { notes: I1_ALTO_1_6 }), "Now alone, without flags: tap each time the subject comes in.", { spot: { need: 3, strays: 2 } }),
+      st("spot", ex(I1, 1, 1, 5, { bpm: 50 }, "Fugue I/1 in C major, bars 1–5, no flags", { notes: I1_ALTO_1_5 }), "Now alone, without flags: tap each time the subject comes in.", { spot: { need: 3, strays: 2 } }),
     ],
     lens: { counts: ["Entries found: 3 of 4", "Stray taps: 2 at most"], shown: [], never: ["Which strip you tap"] },
     before: ["How to listen to a fugue: first learn the subject by heart. Then count the voices as they come in."],
