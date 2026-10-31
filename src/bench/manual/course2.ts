@@ -152,8 +152,8 @@ export const COURSE2: ManualLesson[] = [
   {
     id: "4.5",
     part: "4",
-    title: "CHECK: INVENTION 1 TO THE CADENCE",
-    english: "CHECK: INVENTION 1 TO THE CADENCE",
+    title: "CHECK: INVENTION 1'S FIRST PHRASE",
+    english: "CHECK: INVENTION 1'S FIRST PHRASE",
     minutes: 4,
     sound: "piano",
     aim: "The first page of my first Invention, to the end of its first phrase.",

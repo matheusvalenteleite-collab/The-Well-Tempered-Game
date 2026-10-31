@@ -225,6 +225,8 @@ type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "
  */
 type ManRun = { id: string; stage: number; mode: "hear" | "take" | "tour"; style?: DemoStyle; queue?: DemoStyle[]; alt?: boolean; takes: number; back?: number };
 
+/** D379: how long a finished WATCH or TRY keeps its thumbs' path on screen (ms). */
+const PATH_HOLD_MS = 1800;
 /** D375: a lesson's box holds at least this many staff steps (a passage of a few notes still reads as a tune). */
 const ZOOM_ROWS = 10;
 /** D375: a lesson's box shows at most this many of the passage's typical notes across. */
@@ -688,9 +690,15 @@ export function BenchApp() {
     const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on);
     const aheadTicks = (1 - BOX_PLAYHEAD) * box.bars * f.barTicks;
     let raf = 0;
+    // D379 (the owner: "one can see the whole movement at once when it's finished"): a tutorial step that
+    // draws the thumbs' path (WATCH, TRY) stays on its last frame a moment before his next words.
+    const holdPath = !!man && !!manLesson && isCourse(manLesson) && (stepKind === "watch" || stepKind === "try") && aids.includes("thumbs") ? PATH_HOLD_MS : 0;
+    let endedAt: number | null = null;
     const loop = () => {
       rec?.frame();
-      const done = g.step();
+      const ended = g.step();
+      if (ended && endedAt === null) endedAt = performance.now();
+      const done = ended && performance.now() - (endedAt ?? 0) >= holdPath;
       const ms = performance.now();
       zoomer.update(g.now, ms, g.tps, aheadTicks);
       const zv = zoomer.view(ms);
