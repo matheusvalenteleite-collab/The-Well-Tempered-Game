@@ -41,7 +41,9 @@ import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
-import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.tsx";
+import { BtLite, HeadphonesFold, keepBtLag, lagBook, rememberRoute, useHeadphones } from "./Headphones.tsx";
+import { RouteNotice, useRoute } from "./RouteWatch.tsx";
+import { latOfSetup } from "../touch/route.ts";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
 import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
@@ -81,10 +83,11 @@ import { paintAids } from "./manual/aids.ts";
 import { finishStep, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
+import { InstallButton, InstallHint } from "./InstallHint.tsx";
 import { bachNotes } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
@@ -199,7 +202,7 @@ export function sane(p: Pick): Pick {
   // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
   const mob = APP.lite && litePlatform() === "mobile";
   // D275: and Book II's fugues. D343: those and the MORE BACH and CHORALES pieces only once unlocked (unlock.ts).
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : unlocked() && (/^wtc2f\d\d$/.test(pair) || liteExtra(pair)) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : (unlocked() && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -277,6 +280,12 @@ export function BenchApp() {
   const setLag = (l: number | null) => {
     applyLag(l);
     if (!APP.lite) hp.record(l);
+    // D381: on play.html a Bluetooth delay tapped where the browser told the route apart is kept for that
+    // setup (D223's book), to be given back when that latency returns; nothing held or asked any more.
+    else {
+      rememberRoute(l, chip.current ? latencyOf(chip.current.ctx) : undefined);
+      route.tapped();
+    }
     // D299: a Bluetooth delay kept on the device, to be offered again (never applied by itself).
     keepBtLag(l);
   };
@@ -513,7 +522,18 @@ export function BenchApp() {
   /** D308: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
   const btLite = (ctx = chip.current?.ctx) => btAuto(lag, ctx ? latencyOf(ctx) : undefined, { setup: sessionLagSetup(), fresh: lagFresh.current });
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
-  const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag);
+  // D381: play.html watches the route itself (RouteWatch.tsx): D223's watcher off there.
+  const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag, !APP.lite);
+  // D381: the headphones gone, the Bluetooth delay dropped at once (and given back when they return).
+  const route = useRoute({
+    chip,
+    lag: () => chip.current?.lag ?? null,
+    tappedAt: () => latOfSetup(sessionLagSetup()),
+    book: lagBook,
+    apply: applyLag,
+    pause: () => phaseNow.current === "play" && pauseNow(),
+    on: APP.lite && !APP.glenn,
+  });
   const [calib, setCalib] = useState(false);
   const game = useRef<ProtoGame | null>(null);
   const paint = useRef<Painter | null>(null);
@@ -570,6 +590,8 @@ export function BenchApp() {
       chip.current = new Chip();
       chip.current.lag = lag;
       hp.attach(chip.current);
+      // D381: the route's first reading, once the sound has started (again by the poll).
+      window.setTimeout(route.started, 500);
       // D237: the minimal page's volume.
       if (APP.lite) chip.current.setVolume(readLite().volume);
       prepared.current();
@@ -1643,18 +1665,22 @@ export function BenchApp() {
           </div>
         </div>
       )}
-      {hp.changed && !playing && !calib && (
+      {/* D380: iPhone Safari, not installed: ADD TO HOME SCREEN, once, on the selection only (never in play). */}
+      {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib} />}
+      {/* D381: the headphones gone or back (a brief notice), or USING SPEAKER? where the browser cannot tell. */}
+      {APP.lite && !APP.glenn && <RouteNotice route={route} busy={playing && !paused} />}
+      {(hp.changed || route.recal) && !playing && !calib && (
         <div className="tb-hp-banner" role="status">
           <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
             {tr("HEADPHONES CHANGED? · RECALIBRATE (5 s)")}
           </button>
-          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={hp.dismiss}>
+          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={() => (hp.dismiss(), route.dismissRecal())}>
             ✕
           </button>
         </div>
       )}
       {calib && (
-        <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss())}>
+        <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss(), route.dismissRecal())}>
           <p className="tg-panel-note">With the headphones on: tap on each click, eight times.</p>
           <Tapper chip={ensureChip} done={(l) => (l !== null && setLag(l), setCalib(false), hp.dismiss())} />
         </Panel>
@@ -1696,6 +1722,8 @@ export function BenchApp() {
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
+          {/* D380: Android's Chrome: INSTALL while the browser offers it. */}
+          <InstallButton />
           {full && (
             // D343: the owner's (unlocked on this device): left in English.
             <section className="tb-owner-set" id="owner-settings" aria-label="Unlocked">
@@ -1783,6 +1811,8 @@ export function BenchApp() {
           open={open}
           hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))}
           beaten={lite.beaten}
+          // D382: Book II just earned (every Book I fugue finished): a note on the selection until it is seen.
+          bookTwo={!APP.glenn && bookTwoNews(lite) ? () => setLite(writeLite({ seen: [...readLite().seen, BOOK_TWO_SEEN] })) : undefined}
           best={lite.best}
           scores={lite.scores}
           bestOld={lite.bestOld}
