@@ -51,7 +51,7 @@ test("D360: Parts III and IV: eleven lessons, each its sound, lens and stages; c
   for (const p of ["III", "IV"] as const) assert.ok(checkpointOf(p), p);
   assert.equal(checkpointOf("V"), undefined);
   assert.ok(!PARTS.some((q) => ["III", "IV", "V"].includes(q.id)), "D379: no longer shown");
-  assert.equal(MANUAL.length, 38, "D379: the fifteen of Parts 1–3, sixteen of 4–6, seven of the fugue track");
+  assert.equal(MANUAL.length, 39, "D379: the fifteen of Parts 1–3, sixteen of 4–6, seven of the fugue track; D400: and 6.8 THE REAL THING");
 });
 
 test("D360: each excerpt has the feature its lesson teaches", () => {

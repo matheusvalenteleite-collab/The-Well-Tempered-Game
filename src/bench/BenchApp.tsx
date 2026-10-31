@@ -49,7 +49,7 @@ import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, c
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
-import { paintProto, setPaperLook } from "./paint-proto.ts";
+import { barNumberAt, paintProto, setPaperLook } from "./paint-proto.ts";
 import { laneLine, ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker } from "./FuguePicker.tsx";
@@ -77,11 +77,13 @@ import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
-import { Caption, LensSheet, ResultLine, Seal, SignCard, SpotFlash, SpotLine, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
+import { Caption, DressBubble, LensSheet, ResultLine, Seal, SignCard, Spotlight, SpotFlash, SpotLine, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
+import { dressOf, introFor, introIds } from "./manual/dress-of.ts";
+import type { DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { finishStep, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
+import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
@@ -355,6 +357,12 @@ export function BenchApp() {
   const manMat: Material | undefined = man ? (man.alt && manLesson?.alt ? manLesson.alt : manLesson?.stages[man.stage]?.m) : undefined;
   // D369: the metronome on in the player's takes (not under his demonstration).
   const manRun = manMat ? runOf(manMat, man?.mode === "hear" ? man.style : undefined, manLesson?.words, !!manLesson?.ornaments, man?.mode !== "hear") : undefined;
+  // D400 (STUDIO-REAL-SCREEN.md): the play screen's elements on in this tutorial lesson (manual/dress.ts); null outside the tutorial.
+  const dressNow = man && manLesson && isCourse(manLesson) ? dressOf(manLesson.id) : null;
+  // D400: his bubbles introducing what comes on (or THE REAL THING's tour), the round paused under them.
+  const [dressIntro, setDressIntro] = useState<{ lines: DressLine[]; k: number; ids: string[]; tour: boolean } | null>(null);
+  const dressRef = useRef(dressIntro);
+  dressRef.current = dressIntro;
   const run = lesson?.run ?? manRun;
   const f = fugueById(run?.piece ?? pick.piece);
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
@@ -435,7 +443,7 @@ export function BenchApp() {
   // D385: on the piano BUSONI's whole-piece reading is the default where it exists (readings.ts bestReading).
   // D393: only BUSONI's, on every instrument, unless Settings' BUSONI'S MARKINGS is off.
   const [busoni, setBusoni] = useState(busoniOn);
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (run.reading === "busoni" && !busoni ? null : (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null)) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
   const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);
@@ -499,7 +507,8 @@ export function BenchApp() {
     return proto.id === "ladder" ? { lo: r.lo - 1, hi: r.hi + 1 } : { lo: r.lo, hi: r.hi };
   }, [f, proto.id, zoom]);
   // D375: Herr Bach's words cover the box's foot through a tutorial step: the notes stay above them.
-  const boxFloor = run?.tut ? TUT_FLOOR : 0;
+  // D400: once the hint card carries his words (3.6 on), nothing covers the box's foot.
+  const boxFloor = run?.tut && !dressNow?.includes("hint") ? TUT_FLOOR : 0;
   // D377: the box's zoom everywhere (box-zoom.ts), in CLASSIC's box (the interfaces and the engraving keep
   // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
   // narrowed rarely and eased (not in a lesson: its range is its passage's already).
@@ -655,7 +664,7 @@ export function BenchApp() {
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -735,6 +744,8 @@ export function BenchApp() {
     let endedAt: number | null = null;
     const loop = () => {
       rec?.frame();
+      // D400: held still while his bubbles introduce the screen's elements.
+      if (dressRef.current && !g.paused) g.pause();
       const ended = g.step();
       if (ended && endedAt === null) endedAt = performance.now();
       const done = ended && performance.now() - (endedAt ?? 0) >= holdPath;
@@ -989,7 +1000,8 @@ export function BenchApp() {
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
   const [paused, setPaused] = useState(false);
-  const canPause = !kimiko && !lesson && !man;
+  // D400: in the tutorial from THE REAL THING on (the full screen).
+  const canPause = !kimiko && !lesson && (!man || !!dressNow?.includes("pause"));
   /** `force` (D369): paused also in a lesson or KIMIKO, the phone turned upright on play.html. */
   const pauseNow = (force?: unknown) => {
     const g = game.current;
@@ -1025,7 +1037,7 @@ export function BenchApp() {
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
   // D282: in a tutorial step, its goal (the demonstration: WATCH).
-  const hintLine = tr(phase.kind === "play" && man ? (watching && !(manLesson && isCourse(manLesson)) ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
+  const hintLine = tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? (manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
     seenId(proto.id);
@@ -1061,6 +1073,14 @@ export function BenchApp() {
   // go WATCH → TRY → PLAY instead (courseStep, courseDone), his words over the foot of the box.
   const mTitle = (l: ManualLesson) => `${shownId(l.id)} · ${tr(l.english)}`;
   const startStep = (m: ManRun) => {
+    // D400: the first step of a lesson that shows something new opens with his bubbles about it (THE REAL THING: its tour).
+    const il = lessonById(m.id);
+    const ist = il?.stages[m.stage];
+    const dressed = dressedOf(readManual());
+    const lines = ist?.tour ?? (il && ist && isCourse(il) && ist.kind !== "tour" && ist.kind !== "quiz" ? introFor(il.id, dressed) : []);
+    const it = il && lines.length ? { lines, k: 0, ids: ist?.tour ? dressOf(il.id) : introIds(il.id, dressed), tour: !!ist?.tour } : null;
+    setDressIntro(it);
+    dressRef.current = it;
     setMan(m);
     setWatching(m.mode === "hear");
     // D379, SPOT: the entries of the passage (any voice), none tapped yet.
@@ -1101,7 +1121,8 @@ export function BenchApp() {
     if (!st) return toMap();
     reachStage(l.id, k);
     const m: ManRun = { id: l.id, stage: k, mode: heHears(st.kind) ? "hear" : st.kind === "tour" ? "tour" : "take", ...(st.style ? { style: st.style } : {}), takes };
-    if (st.kind === "tour") {
+    // D400: THE REAL THING's tour (its own bubbles, st.tour) is offered like any step (▶ TOUR); 1.1's begins at once.
+    if (st.kind === "tour" && !st.tour) {
       setTourAt({ k: 0, left: false, right: false });
       return startStep(m);
     }
@@ -1162,6 +1183,23 @@ export function BenchApp() {
     const s = recordTake(l.id, 1, true);
     const next = nextManual(s);
     talk(mTitle(l), l.after.map((text) => ({ text })), { choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : []), { label: "TUTORIAL", act: toMap }] });
+  };
+  /** D400: his next bubble; past the last, what they introduced kept as introduced, and the round on (THE REAL THING's tour: on to its next step). */
+  const dressNext = () => {
+    const it = dressRef.current;
+    if (!it) return;
+    if (it.k + 1 < it.lines.length) return setDressIntro({ ...it, k: it.k + 1 });
+    markDressed(it.ids);
+    setDressIntro(null);
+    dressRef.current = null;
+    const l = man ? lessonById(man.id) : undefined;
+    if (it.tour && man && l) {
+      finishStep(l.id, man.stage);
+      return courseStep(l, man.stage + 1, man.takes, false, []);
+    }
+    const ch = chip.current;
+    if (ch && ch.ctx.state !== "running" && ch.ctx.state !== "closed") void ch.resume();
+    game.current?.resume();
   };
   // 1.1's two touches made: on to the next bubble by itself.
   useEffect(() => {
@@ -1264,7 +1302,7 @@ export function BenchApp() {
     talk(mTitle(l), [{ text: alt ? mat.label : (st.say ?? mat.label) }], { extra: !alt && st.say ? <StageLine l={l} k={k} /> : undefined, choices: [{ label: "PLAY", act: () => startStep(m) }] });
   }
   /** Back to the tutorial's selection screen, the lesson just left chosen there. */
-  const toMap = () => (setTourAt(null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
+  const toMap = () => (setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
   const startManual = () => {
     const s = readManual();
@@ -1633,7 +1671,8 @@ export function BenchApp() {
   const onBars = playing || (phase.kind === "mtalk" && !!manLesson && isCourse(manLesson));
   const own = (onBars && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
   // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
-  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && !man && (full || playing);
+  // D400: in the tutorial from THE REAL THING on (the full screen).
+  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && (full || playing);
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
@@ -1665,7 +1704,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
+        legend={<VoiceLegend alone={!!dressNow && !dressNow.includes("voices")} names={f.voiceNames.map((n) => partKey(f.kind, n))} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
@@ -1761,16 +1800,23 @@ export function BenchApp() {
         <div className="tb-course-chrome">
           <StepBanner kind={man.mode === "tour" ? "tour" : man.mode === "hear" && !heHears(manLesson.stages[man.stage]?.kind ?? "watch") ? "watch" : (manLesson.stages[man.stage]?.kind ?? "play")} nudge={nudge} />
           {spotFlash && <SpotFlash key={spotFlash.at} ok={spotFlash.ok} />}
-          {man.mode !== "tour" && manLesson.stages[man.stage]?.say && <Caption text={manLesson.stages[man.stage].say!} />}
+          {man.mode !== "tour" && !dressIntro && !dressNow?.includes("hint") && manLesson.stages[man.stage]?.say && <Caption text={manLesson.stages[man.stage].say!} />}
           {man.mode === "tour" && tourAt && <TourBubble k={tourAt.k} touched={tourAt} next={tourNext} />}
+          {dressIntro && dressIntro.lines[dressIntro.k] && (
+            // D400: the element he speaks of lit, the rest of the screen dimmed, the round paused.
+            <>
+              <Spotlight line={dressIntro.lines[dressIntro.k]} subjects={!!dressNow?.includes("subjects") && (game.current?.entries.length ?? 0) > 0} accuracy={!!dressNow?.includes("accuracy")} />
+              <DressBubble title={mTitle(manLesson)} line={dressIntro.lines[dressIntro.k]} k={dressIntro.k} of={dressIntro.lines.length} vars={{ n: game.current ? barNumberAt(f, Math.max(game.current.now, from)) : 1, m: f.bars.at(-1)?.n ?? 1 }} next={dressNext} />
+            </>
+          )}
         </div>
       )}
-      {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man} hintRef={hintRef} /> : (
+      {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man && !dressIntro} hintRef={hintRef} /> : (
         <p className="tb-lite-hint" id="lite-hint" role="status">
           {hintLine}
         </p>
       ))}
-      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson)) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} />}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson) && !dressNow?.includes("marks")) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
@@ -2036,9 +2082,10 @@ export function BenchApp() {
  * ink ("VOCÊ · SOPRANO"; two voices played: the chip split between their colours). `names` as shown
  * (partKey: an Invention's Upper and Lower).
  */
-export function VoiceLegend({ names, played, ink, paper = false }: { names: string[]; played: number[]; ink: (i: number) => string; paper?: boolean }) {
+export function VoiceLegend({ names, played, ink, paper = false, alone = false }: { names: string[]; played: number[]; ink: (i: number) => string; paper?: boolean; alone?: boolean }) {
   const mine = played.filter((i) => i < names.length);
-  const others = names.map((_, i) => i).filter((i) => !mine.includes(i));
+  // D400: the tutorial before 1.5: your voice's label alone (the others named once another voice plays).
+  const others = alone ? [] : names.map((_, i) => i).filter((i) => !mine.includes(i));
   const fill = mine.length > 1 ? `linear-gradient(90deg, ${mine.map((i, k) => `${ink(i)} ${(100 * k) / mine.length}% ${(100 * (k + 1)) / mine.length}%`).join(", ")})` : ink(mine[0] ?? 0);
   return (
     <>

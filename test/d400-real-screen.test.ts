@@ -84,7 +84,7 @@ test("D400: the screen drawn by its dressing; the round paused under his bubbles
   assert.match(paint, /g\.o\.dress && !g\.o\.dress\.includes\("bar"\)/);
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /dress: dressNow/);
-  assert.match(app, /introRef\.current && !g\.paused\) g\.pause\(\)/);
-  assert.match(app, /dressNow\.includes\("stops"\)/);
-  assert.match(app, /dressNow\.includes\("pause"\)/);
+  assert.match(app, /dressRef\.current && !g\.paused\) g\.pause\(\)/);
+  assert.match(app, /dressNow\?\.includes\("stops"\)/);
+  assert.match(app, /dressNow\?\.includes\("pause"\)/);
 });

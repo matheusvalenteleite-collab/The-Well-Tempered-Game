@@ -462,7 +462,7 @@ export const COURSE2: ManualLesson[] = [
     checks: (x): Check[] => [notesRight(x, 0.7)],
     before: ["You have learned every part of the screen. Now the screen of the game itself, all of it at once."],
     after: ["That was the real thing. Every fugue of mine is played on this screen."],
-    again: ["A quick turn around C, a jump down, the turn again. Again."],
+    again: ["A quick turn, a jump down, the turn again. Again."],
     checkpoint: true,
   },
 ];

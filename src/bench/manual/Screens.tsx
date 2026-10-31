@@ -10,6 +10,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { tr } from "../../i18n/index.ts";
 import { Portrait } from "../Bach.tsx";
 import type { LensStats } from "./lens.ts";
+import { BAR } from "../protos.ts";
+import type { DressFocus, DressLine } from "./dress.ts";
 import { PARTS, SIGN_WORDS, STEP_WORD, TOUR, TOUR_TOUCH, type Check, type ManualLesson, type PartId, type SignId, type Stage, type StageKind } from "./lessons.ts";
 
 const fill = (c: Check) => tr(c.text, c.vars);
@@ -225,6 +227,110 @@ export function Seal({ part, small = false }: { part: PartId; small?: boolean })
         </text>
       </svg>
       {!small && <p className="tb-seal-word">{tr("PART {p} · SEALED", { p: n })}</p>}
+    </div>
+  );
+}
+
+/**
+ * D400 (STUDIO-REAL-SCREEN.md): his bubble introducing an element of the play screen as it comes on (or
+ * one of THE REAL THING's eleven), one tap each, the round paused under it. Where the element sits at the
+ * screen's foot (the voice bar, the stops) the bubble stands at the top instead.
+ */
+export function DressBubble({ title, line, k, of, vars, next }: { title: string; line: DressLine; k: number; of: number; vars: Record<string, string | number>; next: () => void }) {
+  const pos = line.focus === "voicesPause" ? " tb-tour-mid" : line.focus === "voices" || line.focus === "stops" ? " tb-tour-top" : "";
+  return (
+    <div className={`tb-bach tb-bach-low tb-tour${pos}`} id="dress-bubble" role="dialog" aria-label={`Herr Bach: ${k + 1} / ${of}`} onClick={next}>
+      <Portrait talking={false} />
+      <div className="tb-bach-box">
+        <p className="tb-bach-title">
+          {title} · {k + 1} / {of}
+        </p>
+        <p className="tb-bach-line">{tr(line.text, vars)}</p>
+        <p className="tb-bach-more">{tr("TAP ▶")}</p>
+      </div>
+    </div>
+  );
+}
+
+type Box = { x: number; y: number; w: number; h: number };
+const boxOf = (r: DOMRect | undefined): Box | null => (r && r.width > 0 ? { x: r.left, y: r.top, w: r.width, h: r.height } : null);
+const rectOf = (sel: string): Box | null => boxOf(document.querySelector(sel)?.getBoundingClientRect());
+const union = (...bs: (Box | null)[]): Box | null => {
+  const xs = bs.filter((b): b is Box => !!b);
+  if (!xs.length) return null;
+  const x = Math.min(...xs.map((b) => b.x));
+  const y = Math.min(...xs.map((b) => b.y));
+  return { x, y, w: Math.max(...xs.map((b) => b.x + b.w)) - x, h: Math.max(...xs.map((b) => b.y + b.h)) - y };
+};
+
+/**
+ * D400: where an element of the play screen stands now (the viewport's pixels): the canvas's own by the
+ * painter's geometry (paint-proto.ts: the score at the left strip's top, the verdict at 45% of its height,
+ * ACCURACY, SUBJECTS and the crowd down the right strip's top, the bar counter by ✕), the rest by their
+ * elements (the legend, the hint card, the box, the voice bar, the stops, ❚❚). Null: the whole screen.
+ */
+export function spotRect(focus: DressFocus, o: { subjects: boolean; accuracy: boolean }): Box | null {
+  const play = rectOf(".tg-play");
+  if (!play) return null;
+  const bw = play.w * BAR;
+  const top = play.h * 0.12;
+  const cv = (x: number, y: number, w: number, h: number): Box => ({ x: play.x + x, y: play.y + Math.max(0, y), w, h });
+  const voiceBar = boxOf(document.querySelector("#legend-you")?.parentElement?.getBoundingClientRect());
+  const pause = rectOf("#pause") ?? rectOf("#pause-full");
+  switch (focus) {
+    case "all":
+      return null;
+    case "score":
+      return cv(0, top - 16, bw, 46);
+    case "verdicts":
+      return cv(0, play.h * 0.45 - 18, bw, 32);
+    case "bar":
+      return cv(play.w - 152, 0, 60, 18);
+    case "accuracy":
+      return cv(play.w - bw, top - 12, bw, 26);
+    case "subjects":
+      return cv(play.w - bw, top + (o.accuracy ? 28 : 0) - 12, bw, 24);
+    case "accSubjects":
+      return cv(play.w - bw, top - 12, bw, o.subjects ? 52 : 26);
+    case "crowd":
+      return cv(play.w - bw, top + (o.accuracy ? 28 : 0) + (o.subjects ? 26 : 0) - 6, bw, 26);
+    case "marks":
+      return rectOf("#side-legend") ?? rectOf(".tg-roll");
+    case "hint":
+      return rectOf("#lite-hint") ?? rectOf(".tg-roll");
+    case "box":
+      return rectOf(".tg-roll");
+    case "voices":
+      return union(rectOf(".tg-roll"), voiceBar);
+    case "stops":
+      return union(...[...document.querySelectorAll(".tb-stops-side, .tg-reg-row-inline")].map((e) => boxOf(e.getBoundingClientRect())));
+    case "pause":
+      return pause;
+    case "voicesPause":
+      return union(voiceBar, pause);
+  }
+  return null;
+}
+
+/** D400: the rest of the screen dimmed round the element he speaks of, a gold frame round it (a sample verdict in it). */
+export function Spotlight({ line, subjects, accuracy }: { line: DressLine; subjects: boolean; accuracy: boolean }) {
+  const [b, setB] = useState<Box | null>(null);
+  useEffect(() => {
+    let raf = 0;
+    let last = "";
+    const tick = () => {
+      const r = spotRect(line.focus, { subjects, accuracy });
+      const pad = r ? { x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 } : null;
+      const key = pad ? `${Math.round(pad.x)},${Math.round(pad.y)},${Math.round(pad.w)},${Math.round(pad.h)}` : "all";
+      if (key !== last) (last = key), setB(pad);
+      raf = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
+  }, [line.focus, subjects, accuracy]);
+  return (
+    <div className={`tb-spot${b ? "" : " all"}`} id="spotlight" style={b ? { left: b.x, top: b.y, width: b.w, height: b.h } : undefined} aria-hidden="true">
+      {line.sample && <span className="tb-spot-sample">{tr(line.sample)}</span>}
     </div>
   );
 }

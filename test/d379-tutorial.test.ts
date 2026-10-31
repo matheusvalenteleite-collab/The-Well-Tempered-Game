@@ -28,7 +28,7 @@ test("D379: Parts 4–6 rebuilt in the new format, then the fugue track; the old
   assert.deepEqual(BUILT.map((p) => p.id), ["1", "2", "3", "4", "5", "6", "F"]);
   assert.deepEqual(
     NEW.map((l) => l.id),
-    ["4.1", "4.2", "4.3", "4.4", "4.5", "5.1", "5.2", "5.3", "5.4", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "F.1", "F.2", "F.3", "F.4", "F.5", "F.6", "F.7"],
+    ["4.1", "4.2", "4.3", "4.4", "4.5", "5.1", "5.2", "5.3", "5.4", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "F.1", "F.2", "F.3", "F.4", "F.5", "F.6", "F.7"],
   );
   assert.equal(shownId("F.3"), "F.3");
   assert.equal(shownId("6.4"), "6.4");
@@ -48,7 +48,8 @@ test("D379: Parts 4–6 rebuilt in the new format, then the fugue track; the old
     }
   }
   // Inventions and Sinfonias in Parts 4–6; Book I's fugues and preludes only in the fugue track.
-  for (const l of NEW.filter((x) => x.part !== "F")) for (const s of l.stages) assert.match(s.m.piece, /^(inv01|bwv7(7[2-9]|8\d|9\d|80[01]))$/, `${l.id}: ${s.m.piece}`);
+  // D400: 6.8 THE REAL THING plays Fugue I/2's subject (the game's own screen, before the fugue track).
+  for (const l of NEW.filter((x) => x.part !== "F" && x.id !== "6.8")) for (const s of l.stages) assert.match(s.m.piece, /^(inv01|bwv7(7[2-9]|8\d|9\d|80[01]))$/, `${l.id}: ${s.m.piece}`);
   for (const l of NEW.filter((x) => x.part === "F")) for (const s of l.stages) assert.match(s.m.piece, /^(inv01|wtc1[fp]0[1-3])$/, l.id);
   // Each part sealed by a checkpoint.
   for (const p of ["4", "5", "6", "F"]) assert.ok(MANUAL.some((l) => l.part === p && l.checkpoint), p);
