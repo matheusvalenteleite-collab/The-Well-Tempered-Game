@@ -6,6 +6,7 @@ seven balls for seven sharps, I/12's ten steps, I/24's twelve hours).
 """
 import math
 from lib import *  # noqa: F401,F403
+from people import *  # noqa: F401,F403
 
 
 def rot(pts, ox, oy, deg):
@@ -30,63 +31,6 @@ def bell(lay, cx, top, w, c, cd, tilt=0):
     lay.line(*lip[0], *lip[1], dark(cd, 0.25))
     cl = rot([(cx, top + h + 1.5)], cx, top, tilt)[0]
     lay.disc(cl[0], cl[1], 1, dark(cd, 0.3))
-
-
-def f01():
-    """THE BELL-RINGER: a monk in a belfry pulls the rope; three bells swing at three angles (the stretti)."""
-    k = Key("C")
-    p = Pix()
-    sky(p, k, lift=0.14)
-    wall, wall_d, wall_l = k.c(-0.08, -0.22, 10), k.c(-0.13, -0.22, 10), k.c(-0.02, -0.22, 10)
-    # the belfry's arches: stone round three openings
-    p.rect(0, 0, W, H, wall)
-    for ox in (4, 24, 44):
-        p.rect(ox, 8, 16, 26, k.c(0.14))
-        p.disc(ox + 7.5, 8, 7.5, k.c(0.12))
-        p.rect(ox, 22, 16, 12, k.c(0.2, 0.05))
-    for y in range(0, H, 4):
-        for x in range((y // 4 % 2) * 3, W, 6):
-            if p.get(x, y)[:3] == wall:
-                p.hline(x, x + 4, y, wall_d)
-    for ox in (4, 24, 44):
-        p.vline(ox - 1, 8, 34, wall_l)
-    stars(p, [(8, 26), (29, 27), (52, 25), (56, 29), (12, 30)], light(k.c(0.2), 0.5))
-    # the beam
-    p.rect(0, 2, W, 3, BROWN)
-    p.hline(0, W - 1, 2, mix(BROWN, GOLD, 0.3))
-    p.hline(0, W - 1, 4, BROWN_D)
-    lay = Pix()
-    bell(lay, 32, 5, 12, GOLD, GOLD_D, 0)
-    bell(lay, 12, 5, 9, (226, 170, 70), GOLD_D, 24)
-    bell(lay, 52, 5, 9, (226, 170, 70), GOLD_D, -16)
-    p.paste(lay)
-    # sound: small rays from the big bell
-    for x, y in ((23, 9), (22, 12), (41, 9), (42, 12)):
-        p.set(x, y, WHITE)
-    # the ropes down to the monk's hands
-    p.vline(32, 19, 20, CREAM)
-    p.line(8, 14, 29, 21, (200, 186, 150))
-    p.line(56, 13, 35, 21, (200, 186, 150))
-    # the monk: brown habit, a white cord, tonsure, both hands up on the rope
-    m = Pix()
-    habit, habit_d = (140, 90, 56), (96, 60, 38)
-    robe(m, 32, 27, 39, 5, 9, habit, habit_d)
-    m.hline(28, 36, 32, CREAM)
-    m.set(29, 33, CREAM)
-    m.set(29, 34, CREAM)
-    m.thick(27, 29, 30, 22, habit, 2)
-    m.thick(36, 29, 33, 22, habit_d, 2)
-    m.rect(30, 21, 2, 2, SKIN)
-    m.rect(33, 21, 2, 2, SKIN)
-    m.poly([(27, 26), (37, 26), (36, 29), (28, 29)], habit_d)  # the hood fallen back
-    face(m, 32, 25, SKIN, r=3, mouth=SKIN_B, cheek=True)
-    m.hline(30, 34, 22, (110, 70, 44))  # hair round the tonsure
-    m.set(29, 23, (110, 70, 44))
-    m.set(35, 23, (110, 70, 44))
-    m.set(32, 22, SKIN)
-    p.paste(m)
-    p.rect(0, 39, W, 1, wall_d)
-    return p
 
 
 def f02():
@@ -141,322 +85,6 @@ def f02():
         imp.set(cx + 5 + i * 0.55 + math.cos(a) * 1.4, cy + 8 - i * 0.6 + math.sin(a) * 1.4, red_d)
     imp.poly([(cx + 12, cy - 1), (cx + 14, cy + 1), (cx + 11, cy + 2)], red)
     p.paste(imp)
-    return p
-
-
-def f03():
-    """THE JUGGLER: a jester in motley keeps seven balls in the air (seven sharps)."""
-    k = Key("C#")
-    p = Pix()
-    sky(p, k, lift=0.12)
-    # a stage: boards and a curtain's edges
-    p.rect(0, 33, W, 7, (140, 96, 60))
-    for x in range(0, W, 8):
-        p.vline(x, 34, 39, (104, 70, 44))
-    p.hline(0, W - 1, 33, (196, 146, 96))
-    for x in range(0, 6):
-        p.vline(x, 0, 32 - x * 2, (176, 40, 56) if x % 2 == 0 else (140, 28, 44))
-        p.vline(W - 1 - x, 0, 32 - x * 2, (176, 40, 56) if x % 2 == 0 else (140, 28, 44))
-    j = Pix()
-    a, b = (230, 58, 86), (250, 196, 60)
-    cx = 32
-    for y in range(19, 30):
-        half = 4 if y < 27 else 4 + (y - 27)
-        for x in range(int(cx - half), int(cx + half) + 1):
-            j.set(x, y, a if ((x // 2 + y // 2) % 2) else b)
-    j.hline(cx - 4, cx + 4, 19, WHITE)  # collar
-    j.set(cx - 2, 20, WHITE)
-    j.set(cx + 2, 20, WHITE)
-    j.rect(cx - 3, 30, 2, 3, b)
-    j.rect(cx + 2, 30, 2, 3, a)
-    j.rect(cx - 5, 32, 4, 1, a)
-    j.rect(cx + 2, 32, 4, 1, b)
-    j.set(cx - 5, 31, a)
-    j.set(cx + 5, 31, b)
-    face(j, cx, 15, SKIN, r=2.6, mouth=RED_D, cheek=True)
-    # the cap: two horns ending in bells
-    j.poly([(cx - 3, 13), (cx, 11), (cx - 8, 7), (cx - 9, 9)], a)
-    j.poly([(cx + 3, 13), (cx, 11), (cx + 8, 7), (cx + 9, 9)], b)
-    j.hline(cx - 3, cx + 3, 12, a)
-    j.set(cx - 10, 9, GOLD)
-    j.set(cx + 10, 9, GOLD)
-    # arms up and out
-    j.thick(cx - 4, 21, cx - 9, 16, a, 2)
-    j.thick(cx + 4, 21, cx + 9, 16, b, 2)
-    j.set(cx - 10, 15, SKIN)
-    j.set(cx + 10, 15, SKIN)
-    p.paste(j)
-    # seven balls on an arc, hand to hand
-    cols = [(255, 90, 90), (255, 160, 60), (250, 230, 80), (110, 214, 110), (90, 186, 255), (150, 116, 250), (255, 120, 210)]
-    for i in range(7):
-        t = i / 6
-        x = 11 + 42 * t
-        y = 14 - 11 * math.sin(math.pi * t)
-        bl = Pix()
-        bl.disc(x, y, 1.6, cols[i])
-        bl.set(x - 1, y - 1, WHITE)
-        p.paste(bl, outline=dark(cols[i], 0.55))
-    return p
-
-
-def f04():
-    """THE PILGRIM: a bowed pilgrim with a heavy pack climbs toward a cross-shaped window (the subject's cross)."""
-    k = Key("c#")
-    p = Pix()
-    sky(p, k, lift=0.0)
-    # the cathedral's dark west front on the right, a cross window lit gold
-    stone = k.c(-0.07, -0.15)
-    p.poly([(36, 40), (36, 10), (48, 0), (60, 10), (60, 40)], stone)
-    p.poly([(50, 0), (60, 10), (60, 40), (52, 40)], dark(stone, 0.2))
-    p.rect(46, 9, 4, 14, GOLD)
-    p.rect(42, 13, 12, 4, GOLD)
-    p.rect(47, 10, 2, 12, FIRE_L)
-    p.rect(43, 14, 10, 2, FIRE_L)
-    p.glow(48, 15, 11, mix(k.c(0.1), GOLD, 0.35), inner=0.0)
-    p.rect(46, 9, 4, 14, GOLD)
-    p.rect(42, 13, 12, 4, GOLD)
-    p.rect(47, 10, 2, 12, FIRE_L)
-    p.rect(43, 14, 10, 2, FIRE_L)
-    # the slope up toward it
-    hill = k.c(-0.09, -0.1, 15)
-    p.poly([(0, 40), (0, 33), (40, 26), (64, 24), (64, 40)], hill)
-    p.line(0, 33, 40, 26, light(hill, 0.2))
-    stars(p, [(5, 4), (14, 9), (24, 3), (30, 12), (8, 17)])
-    pg = Pix()
-    cloak, cloak_d, cloak_l = (120, 98, 74), (82, 66, 50), (150, 126, 96)
-    # bowed forward under the load, climbing to the right
-    pg.poly([(13, 16), (21, 14), (26, 20), (25, 32), (12, 32)], cloak)
-    pg.poly([(21, 15), (26, 20), (25, 32), (20, 32)], cloak_d)
-    pg.line(13, 17, 12, 31, cloak_l)
-    # the pack: a sack with a bedroll strapped on top
-    pg.ell(13, 20, 5, 6, (168, 120, 70))
-    pg.ell(14.5, 21, 2.5, 4.5, (132, 92, 52))
-    pg.ell(12, 13, 5, 2, (196, 70, 60))
-    pg.hline(8, 16, 13, (150, 50, 46))
-    pg.line(16, 16, 20, 24, BROWN_D)  # strap
-    face(pg, 25, 15, SKIN, r=2.4, look=1)
-    # the pilgrim's broad hat with a shell
-    pg.hline(20, 30, 12, (90, 70, 50))
-    pg.rect(22, 9, 6, 3, (90, 70, 50))
-    pg.set(24, 10, CREAM)
-    pg.set(25, 10, CREAM)
-    # the staff, a gourd tied to it
-    pg.vline(30, 10, 34, BROWN)
-    pg.set(30, 9, light(BROWN, 0.3))
-    pg.disc(31, 15, 1, GOLD_D)
-    pg.thick(25, 21, 29, 19, cloak, 2)
-    pg.set(30, 19, SKIN)
-    # legs mid-stride up the slope
-    pg.thick(15, 32, 13, 35, cloak_d, 2)
-    pg.thick(22, 32, 25, 31, cloak_d, 2)
-    pg.hline(12, 15, 35, BROWN_D)
-    pg.hline(25, 27, 31, BROWN_D)
-    p.paste(pg)
-    return p
-
-
-def f05():
-    """THE HERALD: a herald blows a long trumpet with a banner, the flourish unrolling (the overture's rush)."""
-    k = Key("D")
-    p = Pix()
-    sky(p, k, lift=0.14, warm=0.3)
-    # castle battlements behind
-    wall = k.c(-0.04, -0.2, 15)
-    p.rect(0, 27, W, 13, wall)
-    for x in range(0, W, 8):
-        p.rect(x, 24, 5, 3, wall)
-    p.hline(0, W - 1, 27, light(wall, 0.2))
-    for x in range(2, W, 8):
-        p.vline(x, 30, 33, dark(wall, 0.3))
-    h = Pix()
-    tab, tab_d = (60, 90, 190), (40, 60, 140)
-    # tabard over a red tunic, quartered
-    h.rect(10, 18, 9, 13, tab)
-    h.rect(14, 18, 5, 13, tab_d)
-    h.rect(12, 21, 5, 5, GOLD)
-    h.set(14, 23, RED)
-    h.rect(10, 31, 3, 6, RED_D)
-    h.rect(16, 31, 3, 6, RED_D)
-    h.hline(9, 12, 37, INK)
-    h.hline(16, 19, 37, INK)
-    face(h, 15, 14, SKIN, r=2.6, look=1)
-    h.set(17, 15, RED)  # cheeks puffed
-    # the cap with a feather
-    h.rect(12, 10, 6, 2, RED)
-    h.line(13, 10, 9, 5, WHITE)
-    h.line(14, 10, 10, 5, CREAM)
-    # the trumpet: long, gold, a bell flaring right
-    h.hline(18, 44, 14, GOLD)
-    h.hline(18, 44, 15, GOLD_D)
-    h.poly([(44, 14), (50, 10), (50, 19), (44, 15)], GOLD)
-    h.line(50, 10, 50, 19, FIRE_L)
-    h.thick(18, 19, 22, 15, SKIN, 2)
-    # the banner hanging from it
-    h.poly([(26, 16), (40, 16), (40, 25), (33, 22), (26, 25)], (210, 50, 56))
-    h.rect(31, 18, 3, 3, GOLD)
-    p.paste(h)
-    # the flourish: a run of notes unrolling from the bell
-    for i, (x, y) in enumerate(((53, 8), (55, 11), (57, 14), (59, 13), (61, 16))):
-        p.set(x, y, WHITE)
-        p.set(x, y - 1, CREAM if i % 2 else WHITE)
-    p.line(52, 18, 62, 22, light(k.c(0.2), 0.6))
-    return p
-
-
-def f06():
-    """THE DUELLIST: a fencer lunges at his own reflection in a tall mirror (the subject comes upside down)."""
-    k = Key("d")
-    p = Pix()
-    sky(p, k, lift=0.02)
-    floor = k.c(-0.05, -0.15, 10)
-    p.rect(0, 33, W, 7, floor)
-    for x in range(0, W, 6):
-        p.line(x, 33, x - 4, 39, dark(floor, 0.25))
-    # the mirror: gilt frame, a paler glass
-    p.rect(38, 2, 22, 31, GOLD_D)
-    p.rect(39, 3, 20, 29, GOLD)
-    p.rect(40, 4, 18, 27, k.c(0.12, -0.1))
-    p.line(42, 6, 47, 6, light(k.c(0.12), 0.4))
-    p.line(41, 8, 41, 14, light(k.c(0.12), 0.4))
-
-    def fencer(lay, x0, flip, white, shade):
-        s = -1 if flip else 1
-        X = lambda dx: x0 + s * dx  # noqa: E731
-        lay.poly([(X(0), 18), (X(5), 17), (X(6), 26), (X(1), 27)], white)
-        lay.line(X(4), 18, X(5), 26, shade)
-        face(lay, X(4), 14, SKIN, r=2.2, look=s)
-        lay.rect(min(X(2), X(6)), 12, 5, 4, (60, 60, 70))  # the mask's mesh
-        lay.set(X(5), 13, GREY)
-        lay.set(X(3), 14, GREY)
-        # the lunge: front leg bent forward, back leg straight back
-        lay.thick(X(5), 26, X(10), 30, white, 2)
-        lay.thick(X(10), 30, X(10), 33, white, 2)
-        lay.thick(X(1), 26, X(-5), 32, shade, 2)
-        lay.hline(min(X(9), X(12)), max(X(9), X(12)), 33, INK)
-        # the sword arm forward, the blade
-        lay.thick(X(5), 19, X(11), 18, white, 2)
-        lay.line(X(12), 18, X(22), 17, STEEL)
-        lay.set(X(11), 17, GOLD)
-        lay.set(X(11), 19, GOLD)
-        # the back arm raised behind
-        lay.line(X(1), 19, X(-3), 14, white)
-        lay.set(X(-3), 13, SKIN)
-
-    a = Pix()
-    fencer(a, 12, False, WHITE, (186, 190, 204))
-    p.paste(a)
-    b = Pix()
-    fencer(b, 55, True, (200, 206, 224), (150, 156, 180))
-    # only what falls inside the glass shows
-    for y in range(H):
-        for x in range(W):
-            if not (40 <= x <= 57 and 4 <= y <= 30):
-                b.px[x, y] = (0, 0, 0, 0)
-    p.paste(b, outline=dark(k.c(0.12), 0.45))
-    # the two points meet at the glass
-    twinkle(p, 39, 17, CREAM, 2)
-    return p
-
-
-def f07():
-    """THE STONE-SKIPPER: a boy on a river bank skims a stone; its skips trail across the water."""
-    k = Key("Eb")
-    p = Pix()
-    sky(p, k, 0, 22, lift=0.16, warm=0.2)
-    # far trees
-    for x in range(0, W, 5):
-        p.ell(x + 2, 20, 3, 3 + (x * 7) % 3, k.c(-0.04, -0.1, -10))
-    water, water_l = k.c(0.02, 0.05, -20), k.c(0.2, 0.05, -20)
-    p.rect(0, 22, W, 18, water)
-    for y in range(24, H, 3):
-        for x in range((y * 7) % 11, W, 13):
-            p.hline(x, x + 3, y, water_l)
-    # the bank in front, left
-    bank = (92, 132, 62)
-    p.poly([(0, 40), (0, 26), (8, 25), (20, 28), (26, 40)], bank)
-    p.line(0, 26, 8, 25, light(bank, 0.3))
-    p.line(8, 25, 20, 28, light(bank, 0.3))
-    for x in (2, 5, 17, 21):
-        p.vline(x, 24, 27, (60, 104, 50))
-    # the skips: four splashes on the water, smaller as they go, the stone's hops dotted between
-    skips = [(30, 31, 3), (40, 29, 2), (48, 27, 1.5), (54, 26, 1)]
-    prev = (23, 22)
-    for x, y, r in skips:
-        for t in range(1, 6):
-            xx = prev[0] + (x - prev[0]) * t / 6
-            yy = prev[1] + (y - prev[1]) * t / 6 - (2 + r) * math.sin(math.pi * t / 6)
-            if t % 2:
-                p.set(xx, yy, WHITE)
-        p.hline(x - r * 1.6, x + r * 1.6, y, WHITE)
-        p.set(x - r * 1.6 - 1, y - 1, light(water_l, 0.5))
-        p.set(x + r * 1.6 + 1, y - 1, light(water_l, 0.5))
-        p.set(x, y - 1 - int(r), WHITE)
-        prev = (x, y)
-    p.disc(58, 24, 1, GREY)
-    b = Pix()
-    shirt, shirt_d, pants = (240, 170, 60), (200, 126, 40), (70, 90, 150)
-    # the throw: body twisted, arm out low, sidearm
-    b.rect(10, 15, 6, 7, shirt)
-    b.rect(13, 15, 3, 7, shirt_d)
-    b.rect(10, 22, 6, 3, pants)
-    b.thick(11, 25, 8, 29, pants, 2)
-    b.thick(14, 25, 17, 29, pants, 2)
-    b.hline(7, 9, 30, BROWN_D)
-    b.hline(17, 19, 30, BROWN_D)
-    face(b, 13, 11, SKIN, r=2.5, look=1, mouth=SKIN_D)
-    b.hline(11, 15, 8, (120, 70, 40))
-    b.set(10, 9, (120, 70, 40))
-    b.set(11, 9, (120, 70, 40))
-    b.thick(16, 17, 22, 21, SKIN, 2)  # throwing arm, low and forward
-    b.thick(10, 16, 7, 19, shirt, 2)
-    p.paste(b)
-    return p
-
-
-def f08():
-    """THE LANTERN-BEARER: a small hooded figure with a lantern; on the wall its shadow twice as tall (augmentation)."""
-    k = Key("d#")
-    p = Pix()
-    wall = k.c(-0.02, -0.12)
-    p.rect(0, 0, W, 34, wall)
-    for y in range(1, 34, 4):
-        for x in range((y // 4 % 2) * 5, W, 10):
-            p.hline(x, x + 8, y, dark(wall, 0.25))
-            p.set(x + 9, y + 1, dark(wall, 0.25))
-            p.set(x + 9, y + 2, dark(wall, 0.25))
-    lx, ly = 18, 25
-    p.glow(lx, ly, 15, mix(wall, GOLD, 0.35), inner=0.35)
-    p.glow(lx, ly, 8, mix(wall, GOLD, 0.6), inner=0.5)
-    # the shadow: the same figure at twice the size, thrown up the wall
-    sh = dark(wall, 0.55)
-    sx = 42
-    p.disc(sx, 9, 4.5, sh)
-    p.poly([(sx - 3, 6), (sx + 4, 5), (sx + 5, 12), (sx - 4, 12)], sh)
-    robe(p, sx, 12, 33, 4, 10, sh)
-    p.thick(sx - 6, 18, sx - 13, 22, sh, 2)
-    p.rect(sx - 16, 21, 4, 6, sh)
-    # the floor
-    floor = dark(wall, 0.35)
-    p.rect(0, 34, W, 6, floor)
-    p.hline(0, W - 1, 34, light(floor, 0.15))
-    p.glow(lx, 35, 9, mix(floor, GOLD, 0.25), inner=0.2)
-    f = Pix()
-    cloak, cloak_d = (78, 66, 128), (52, 44, 90)
-    cx = 22
-    robe(f, cx, 24, 36, 2.5, 5, cloak, cloak_d)
-    f.disc(cx, 22, 3, cloak)
-    f.poly([(cx - 2, 18), (cx + 1, 17), (cx + 3, 21), (cx - 3, 21)], cloak)
-    f.disc(cx - 1, 22.5, 1.6, SKIN)
-    f.set(cx - 2, 22, INK)
-    f.thick(cx - 3, 27, lx + 1, 25, cloak, 2)
-    p.paste(f)
-    # the lantern
-    l = Pix()
-    l.rect(lx - 2, ly - 1, 4, 5, GOLD)
-    l.rect(lx - 1, ly, 2, 3, WHITE)
-    l.hline(lx - 2, lx + 1, ly - 2, INK)
-    l.set(lx - 1, ly - 3, INK)
-    p.paste(l)
     return p
 
 
@@ -557,155 +185,6 @@ def f10():
     return p
 
 
-def f11():
-    """THE SHEPHERDESS: a shepherdess turns in a dance, ribbons flying, a lamb watching (the passepied)."""
-    k = Key("F")
-    p = Pix()
-    sky(p, k, 0, 26, lift=0.18)
-    p.disc(10, 7, 3, (255, 244, 200))
-    for cx, cy in ((44, 6), (48, 5), (52, 7)):
-        p.disc(cx, cy, 3, WHITE)
-    meadow = (120, 176, 84)
-    p.poly([(0, 26), (20, 23), (44, 25), (64, 22), (64, 40), (0, 40)], meadow)
-    p.line(0, 26, 20, 23, light(meadow, 0.3))
-    p.line(20, 23, 44, 25, light(meadow, 0.3))
-    p.line(44, 25, 64, 22, light(meadow, 0.3))
-    for x, y in ((6, 33), (14, 37), (40, 35), (56, 31), (60, 37), (30, 38)):
-        p.set(x, y, WHITE if x % 2 else (250, 200, 220))
-    s = Pix()
-    dress, dress_d, apron = (90, 140, 220), (60, 100, 180), (248, 244, 230)
-    cx = 28
-    # the skirt twirling out, wide
-    s.poly([(cx - 3, 19), (cx + 3, 19), (cx + 10, 31), (cx - 9, 32)], dress)
-    s.poly([(cx + 1, 19), (cx + 3, 19), (cx + 10, 31), (cx + 3, 32)], dress_d)
-    s.poly([(cx - 2, 21), (cx + 2, 21), (cx + 3, 29), (cx - 3, 29)], apron)
-    s.rect(cx - 3, 14, 6, 6, (240, 236, 226))
-    s.rect(cx - 2, 16, 4, 4, (180, 50, 60))  # bodice
-    face(s, cx, 10, SKIN, r=2.6, look=-1, mouth=RED_D, cheek=True)
-    s.hline(cx - 3, cx + 3, 7, (230, 190, 90))  # hair
-    s.set(cx - 3, 8, (230, 190, 90))
-    s.set(cx + 3, 8, (230, 190, 90))
-    s.vline(cx + 3, 9, 12, (230, 190, 90))
-    # a straw hat tilted
-    s.hline(cx - 5, cx + 4, 6, (240, 210, 120))
-    s.rect(cx - 2, 4, 4, 2, (240, 210, 120))
-    # arms out, one up holding the crook
-    s.thick(cx - 3, 15, cx - 8, 12, SKIN, 1)
-    s.thick(cx + 3, 15, cx + 8, 17, SKIN, 1)
-    s.vline(cx - 9, 4, 30, BROWN)
-    s.ring(cx - 7, 4, 2, BROWN, 180, 360)
-    s.set(cx - 9, 4, BROWN)
-    s.vline(cx - 2, 32, 34, SKIN_D)
-    s.vline(cx + 2, 32, 33, SKIN_D)
-    p.paste(s)
-    # ribbons flying from the hat
-    for i in range(7):
-        p.set(cx + 5 + i, 5 + math.sin(i * 1.1) * 1.5, (230, 60, 90))
-        p.set(cx + 5 + i, 7 + math.sin(i * 1.1 + 1) * 1.5, (250, 220, 90))
-    # the lamb
-    l = Pix()
-    lx, ly = 50, 32
-    l.ell(lx, ly, 5, 3, WHITE)
-    for dx in (-4, -2, 0, 2, 4):
-        l.disc(lx + dx, ly - 2, 1.2, WHITE)
-    l.disc(lx - 5, ly - 2, 2, (240, 234, 220))
-    l.set(lx - 6, ly - 2, INK)
-    l.set(lx - 4, ly - 4, (200, 190, 180))
-    for dx in (-3, -1, 2, 4):
-        l.vline(lx + dx, ly + 3, ly + 5, (70, 60, 60))
-    p.paste(l)
-    return p
-
-
-def f12():
-    """THE MOURNER: a hooded mourner with a candle at the top of a stair of ten steps down into the dark (ten half-steps)."""
-    k = Key("f")
-    p = Pix()
-    sky(p, k, lift=-0.04)
-    p.rect(0, 0, W, H, k.c(-0.07, -0.1))
-    for y in range(0, H, 5):
-        for x in range((y // 5 % 2) * 4, W, 8):
-            p.hline(x, x + 6, y, k.c(-0.1, -0.1))
-    stone, stone_l, stone_d = k.c(0.08, -0.25), k.c(0.2, -0.25), k.c(-0.02, -0.25)
-    x, y = 2, 20
-    for i in range(10):
-        p.rect(x, y, 6, H - y, stone)
-        p.hline(x, x + 5, y, stone_l)
-        p.vline(x + 5, y + 1, H - 1, stone_d)
-        x += 6
-        y += 2
-    # the dark at the foot
-    for yy in range(26, H):
-        for xx in range(40, W):
-            if (xx + yy) % 2 == 0 and yy > 50 - (xx - 40) * 0.6:
-                p.set(xx, yy, k.c(-0.12, -0.1))
-    # candlelight
-    p.glow(16, 9, 12, mix(k.c(-0.07), GOLD, 0.3), inner=0.3)
-    m = Pix()
-    rb, rb_d, rb_l = (70, 58, 88), (44, 36, 58), (130, 110, 120)
-    cx = 9
-    robe(m, cx, 9, 19, 3.5, 6.5, rb, rb_d)
-    m.disc(cx + 1, 6, 3.6, rb)
-    m.poly([(cx - 2, 1), (cx + 3, 2), (cx + 5, 7), (cx - 3, 7)], rb)  # the hood, bowed
-    m.disc(cx + 2.5, 6.5, 1.7, SKIN_D)
-    m.set(cx + 3, 6, INK)
-    m.vline(cx + 5, 3, 8, rb_l)  # candle-lit rim
-    m.vline(cx + 6, 10, 18, rb_l)
-    m.thick(cx + 3, 11, cx + 7, 12, rb, 2)
-    m.set(cx + 8, 12, SKIN_D)
-    p.paste(m)
-    p.rect(17, 9, 1, 3, CREAM)
-    p.set(17, 8, GOLD)
-    p.set(17, 7, WHITE)
-    # the drop of light running down the stair
-    for i in range(5):
-        p.set(22 + i * 7, 22 + i * 2.6, light(k.c(0.2), 0.5))
-    return p
-
-
-def f13():
-    """THE HERON: a heron on one leg in a gentle brook among reeds, a pale sun (Bodky's 'Little Brook')."""
-    k = Key("F#")
-    p = Pix()
-    sky(p, k, 0, 26, lift=0.14)
-    p.disc(51, 8, 4, (255, 244, 210))
-    p.disc(51, 8, 3, (255, 250, 230))
-    water, water_l = k.c(0.04, 0.08, -10), k.c(0.22, 0.08, -10)
-    p.rect(0, 26, W, 14, water)
-    for y in range(28, H, 3):
-        for x in range((y * 7) % 9, W, 11):
-            p.hline(x, x + 4, y, water_l)
-    p.hline(0, W - 1, 26, water_l)
-    for x in (4, 6, 9, 55, 58, 61):
-        hgt = 15 + (x * 5) % 5
-        p.vline(x, hgt, 29, (70, 120, 64))
-        p.rect(x, hgt - 3, 1, 3, (130, 86, 50))
-    h = Pix()
-    body, body_d = (214, 218, 228), (152, 158, 176)
-    cx = 30
-    h.ell(cx, 18, 7, 3.6, body)
-    h.ell(cx - 1, 19, 6, 2, body_d)
-    h.poly([(cx - 6, 17), (cx - 12, 21), (cx - 6, 20)], body_d)
-    # the S of the neck
-    for x, y in ((cx + 5, 15), (cx + 6, 14), (cx + 6, 13), (cx + 5, 12), (cx + 5, 11), (cx + 5, 10), (cx + 6, 9), (cx + 7, 8)):
-        h.set(x, y, body)
-        h.set(x + 1, y, body)
-    h.disc(cx + 8, 7, 1.8, body)
-    h.line(cx + 7, 6, cx + 3, 5, INK)  # crest
-    h.set(cx + 9, 7, INK)
-    h.hline(cx + 10, cx + 15, 8, GOLD)
-    h.hline(cx + 10, cx + 13, 7, GOLD_D)
-    h.vline(cx, 22, 30, (210, 176, 96))
-    h.line(cx, 23, cx - 3, 25, (210, 176, 96))
-    h.set(cx - 3, 26, (210, 176, 96))
-    p.paste(h)
-    # the reflection
-    p.vline(cx, 31, 35, water_l)
-    p.ell(cx, 36, 6, 1, light(water, 0.2))
-    p.ell(cx, 30, 3, 0.6, WHITE)
-    return p
-
-
 def f14():
     """PIERROT: Pierrot in white at a window at night, one tear on his cheek (Bodky's teardrop countersubject)."""
     k = Key("f#")
@@ -766,53 +245,6 @@ def f14():
     return p
 
 
-def f15():
-    """THE ACROBAT: an acrobat in mid-somersault between two trapezes, the crowd below (the leaps of a seventh)."""
-    k = Key("G")
-    p = Pix()
-    tent = k.c(0.06, 0.05)
-    p.rect(0, 0, W, H, tent)
-    # the big top's stripes, converging
-    for i in range(-4, 10):
-        p.poly([(32, -6), (32 + i * 9, 40), (32 + i * 9 + 4, 40)], light(tent, 0.18) if i % 2 else dark(tent, 0.08))
-    p.glow(32, 4, 16, light(tent, 0.35), inner=0.2)
-    # the crowd: rows of dots below
-    p.rect(0, 33, W, 7, dark(tent, 0.55))
-    for y in (35, 38):
-        for x in range((y % 3), W, 3):
-            p.disc(x, y, 1, [(230, 190, 150), (200, 140, 110), (240, 220, 180)][(x + y) % 3])
-    # two trapezes
-    for x0 in (4, 50):
-        p.line(x0, 0, x0 + 1, 13, (220, 220, 220))
-        p.line(x0 + 9, 0, x0 + 8, 13, (220, 220, 220))
-        p.hline(x0 + 1, x0 + 8, 13, GOLD)
-    a = Pix()
-    suit, suit_d = (230, 50, 90), (170, 30, 66)
-    # flying from the left trapeze to the right one, stretched long, reaching
-    a.poly([(22, 22), (26, 19), (36, 14), (38, 17), (28, 23), (24, 25)], suit)
-    a.poly([(26, 22), (37, 16), (38, 17), (28, 23)], suit_d)
-    a.line(25, 20, 35, 15, GOLD)  # the sash
-    a.thick(22, 22, 15, 24, suit, 2)  # legs trailing, toes pointed
-    a.thick(23, 24, 16, 27, suit_d, 2)
-    a.set(14, 24, WHITE)
-    a.set(15, 28, WHITE)
-    face(a, 40, 13, SKIN, r=2.4, look=1, mouth=RED_D)
-    a.hline(38, 41, 10, (60, 40, 30))
-    a.set(37, 11, (60, 40, 30))
-    a.set(38, 11, (60, 40, 30))
-    a.thick(38, 15, 49, 12, SKIN, 1)  # arms reaching for the bar
-    a.thick(37, 16, 49, 14, SKIN_D, 1)
-    p.paste(a)
-    # the arc of the flight
-    for t in range(0, 13, 2):
-        x = 8 + t * 0.9
-        y = 14 + t * 0.6
-        p.set(x, y, WHITE)
-    for x, y in ((24, 6), (40, 7), (36, 26)):
-        twinkle(p, x, y, GOLD)
-    return p
-
-
 def f16():
     """THE KNIGHT: a chess knight come alive, mid-leap in its L across the board (the answer swaps the subject's halves)."""
     k = Key("g")
@@ -850,264 +282,6 @@ def f16():
     # speed lines behind
     for y in (14, 18, 22):
         p.hline(14, 19, y, light(k.c(0.1), 0.5))
-    return p
-
-
-def f17():
-    """THE ABBOT: a broad, kind abbot blesses a harvest sheaf in late-summer light (the subject's broad leaps, a choir's opening)."""
-    k = Key("Ab")
-    p = Pix()
-    sky(p, k, 0, 26, lift=0.16, warm=0.7)
-    p.glow(48, 22, 12, (255, 220, 150), inner=0.3)
-    p.disc(48, 22, 4, (255, 236, 180))
-    field = (214, 170, 80)
-    p.rect(0, 26, W, 14, field)
-    for y in range(27, H, 2):
-        for x in range((y * 3) % 4, W, 4):
-            p.vline(x, y, y + 1, (186, 140, 60))
-    p.hline(0, W - 1, 26, (240, 206, 120))
-    a = Pix()
-    habit, habit_d = (236, 232, 222), (186, 180, 172)
-    cx = 20
-    robe(a, cx, 16, 39, 6, 10, habit, habit_d)
-    a.rect(cx - 7, 16, 14, 3, (200, 50, 50))  # a red cape over the shoulders
-    a.poly([(cx - 7, 16), (cx + 7, 16), (cx + 9, 26), (cx - 9, 26)], (190, 46, 46))
-    a.poly([(cx + 3, 16), (cx + 7, 16), (cx + 9, 26), (cx + 4, 26)], (140, 34, 38))
-    a.rect(cx - 1, 19, 2, 6, GOLD)  # the pectoral cross
-    a.rect(cx - 2, 20, 4, 1, GOLD)
-    face(a, cx, 11, SKIN, r=4, mouth=SKIN_B, cheek=True)
-    a.set(cx - 2, 11, INK)
-    a.set(cx + 2, 11, INK)
-    a.hline(cx - 3, cx + 3, 7, (220, 220, 220))  # white fringe round the tonsure
-    a.set(cx - 4, 9, (220, 220, 220))
-    a.set(cx + 4, 9, (220, 220, 220))
-    # one hand raised in blessing, two fingers
-    a.thick(cx + 7, 20, cx + 12, 13, habit, 2)
-    a.rect(cx + 12, 11, 2, 2, SKIN)
-    a.vline(cx + 12, 9, 10, SKIN)
-    a.vline(cx + 13, 9, 10, SKIN)
-    p.paste(a)
-    # the sheaf, tied with a band
-    s = Pix()
-    sx = 40
-    for i in range(-4, 5):
-        s.line(sx, 31, sx + i * 1.4, 17, (236, 196, 90) if i % 2 else (210, 160, 60))
-        s.set(sx + i * 1.4, 16, (250, 220, 120))
-    for i in range(-3, 4):
-        s.line(sx, 31, sx + i, 38, (200, 150, 60))
-    s.hline(sx - 2, sx + 2, 30, BROWN)
-    p.paste(s)
-    for x, y in ((30, 5), (36, 9), (8, 4)):
-        twinkle(p, x, y, (255, 230, 170))
-    return p
-
-
-def f18():
-    """THE SLEEPWALKER: a figure in a nightgown walks a rooftop ridge under a big moon, arms out, perfectly balanced."""
-    k = Key("g#")
-    p = Pix()
-    sky(p, k, lift=-0.02)
-    p.disc(44, 14, 11, (238, 232, 204))
-    p.disc(41, 11, 2, (214, 206, 180))
-    p.disc(47, 18, 1.5, (214, 206, 180))
-    p.disc(49, 10, 1, (214, 206, 180))
-    stars(p, [(4, 4), (12, 10), (22, 3), (60, 4), (58, 28), (6, 20)])
-    # rooftops, the walker's ridge in front
-    far = k.c(-0.09, -0.2)
-    for x0, top in ((0, 26), (14, 24), (52, 25)):
-        p.poly([(x0, 40), (x0, top + 4), (x0 + 6, top), (x0 + 12, top + 4), (x0 + 12, 40)], far)
-    p.rect(8, 21, 2, 5, far)
-    roof = k.c(-0.04, -0.15, 20)
-    p.poly([(0, 40), (0, 33), (64, 30), (64, 40)], roof)
-    p.line(0, 33, 64, 30, light(roof, 0.3))
-    for x in range(4, W, 6):
-        p.line(x, 35, x - 2, 39, dark(roof, 0.3))
-    p.rect(54, 25, 4, 6, roof)
-    p.rect(53, 24, 6, 1, light(roof, 0.2))
-    s = Pix()
-    gown, gown_d = (232, 230, 244), (180, 178, 206)
-    cx = 26
-    robe(s, cx, 14, 29, 2.5, 5, gown, gown_d)
-    face(s, cx, 10, SKIN, r=2.5, mouth=None)
-    s.hline(cx - 2, cx, 10, SKIN_D)  # eyes shut
-    s.set(cx + 1, 10, SKIN_D)
-    s.set(cx - 1, 10, SKIN_D)
-    s.poly([(cx - 3, 8), (cx + 3, 8), (cx + 4, 6), (cx + 9, 9), (cx + 3, 5), (cx - 3, 6)], (200, 60, 70))  # nightcap
-    s.disc(cx + 9, 9, 1, WHITE)
-    # arms straight out, balanced
-    s.hline(cx - 11, cx - 2, 16, gown)
-    s.hline(cx + 2, cx + 11, 16, gown)
-    s.hline(cx - 11, cx - 2, 17, gown_d)
-    s.hline(cx + 2, cx + 11, 17, gown_d)
-    s.set(cx - 12, 16, SKIN)
-    s.set(cx + 12, 16, SKIN)
-    s.vline(cx - 1, 30, 31, SKIN)
-    s.vline(cx + 1, 30, 31, SKIN)
-    p.paste(s)
-    p.set(cx + 6, 6, CREAM)
-    p.set(cx + 8, 4, CREAM)  # z z
-    p.hline(cx + 9, cx + 10, 2, CREAM)
-    return p
-
-
-def f19():
-    """THE CONJURER: a magician with three cups and a ball; which cup? (9/8 = 3 x 3, the illusion)."""
-    k = Key("A")
-    p = Pix()
-    curtain = k.c(-0.04, 0.0, 0)
-    p.rect(0, 0, W, H, curtain)
-    for x in range(0, W, 4):
-        p.vline(x, 0, 27, dark(curtain, 0.2))
-        p.vline(x + 1, 0, 27, light(curtain, 0.1))
-    p.glow(32, 14, 18, light(curtain, 0.2), inner=0.2)
-    # the table and its cloth
-    p.rect(4, 28, 56, 3, (140, 30, 50))
-    p.rect(6, 31, 52, 9, (110, 22, 40))
-    p.hline(4, 59, 28, (200, 60, 80))
-    for x in range(8, 58, 6):
-        p.vline(x, 31, 39, (90, 18, 34))
-    m = Pix()
-    coat, coat_d = (40, 34, 60), (26, 22, 40)
-    cx = 32
-    m.poly([(cx - 8, 28), (cx - 6, 15), (cx + 6, 15), (cx + 8, 28)], coat)
-    m.poly([(cx + 2, 15), (cx + 6, 15), (cx + 8, 28), (cx + 3, 28)], coat_d)
-    m.poly([(cx - 2, 15), (cx + 2, 15), (cx, 22)], WHITE)  # shirt front
-    m.set(cx, 16, RED)  # bow tie
-    m.set(cx - 1, 16, RED)
-    m.set(cx + 1, 16, RED)
-    face(m, cx, 11, SKIN, r=2.8, mouth=None)
-    m.hline(cx - 2, cx + 2, 13, INK)  # moustache, curled
-    m.set(cx - 3, 12, INK)
-    m.set(cx + 3, 12, INK)
-    m.set(cx - 1, 10, INK)
-    m.set(cx + 1, 10, INK)
-    # the top hat
-    m.rect(cx - 3, 3, 7, 6, INK)
-    m.hline(cx - 5, cx + 5, 8, INK)
-    m.hline(cx - 3, cx + 3, 7, (180, 40, 60))
-    # arms out over the cups, a wand
-    m.thick(cx - 6, 18, cx - 13, 24, coat, 2)
-    m.thick(cx + 6, 18, cx + 13, 22, coat_d, 2)
-    m.set(cx - 14, 25, WHITE)
-    m.line(cx + 14, 22, cx + 19, 16, INK)
-    m.set(cx + 19, 15, WHITE)
-    p.paste(m)
-    c = Pix()
-    for x in (14, 32, 50):
-        c.poly([(x - 4, 28), (x - 3, 21), (x + 3, 21), (x + 4, 28)], GOLD)
-        c.poly([(x + 1, 21), (x + 3, 21), (x + 4, 28), (x + 2, 28)], GOLD_D)
-        c.hline(x - 3, x + 3, 21, FIRE_L)
-        c.hline(x - 4, x + 4, 27, GOLD_D)
-    p.paste(c)
-    # the ball, half seen under the middle cup's lip, and a sparkle of the trick
-    p.disc(41, 27, 1.3, (230, 50, 60))
-    twinkle(p, 52, 16, WHITE, 2)
-    p.set(46, 13, CREAM)
-    p.set(56, 19, CREAM)
-    return p
-
-
-def f20():
-    """THE BLACKSMITH: a smith, hammer raised over the anvil, sparks flying, the forge glowing (the stretti hammered out)."""
-    k = Key("a")
-    p = Pix()
-    room = k.c(-0.06, -0.15)
-    p.rect(0, 0, W, H, room)
-    for y in range(0, 36, 5):
-        for x in range((y // 5 % 2) * 5, W, 10):
-            p.hline(x, x + 8, y, dark(room, 0.2))
-    # the forge on the right, glowing
-    p.glow(55, 24, 14, mix(room, FIRE, 0.4), inner=0.2)
-    p.rect(47, 22, 16, 14, (70, 50, 50))
-    p.hline(47, 62, 22, (110, 80, 70))
-    p.rect(50, 25, 10, 5, FIRE)
-    p.rect(52, 26, 6, 3, FIRE_L)
-    for x in range(50, 60, 2):
-        p.set(x, 24, FIRE_L)
-    p.rect(52, 2, 8, 20, (60, 44, 44))  # the hood above it
-    p.rect(0, 36, W, 4, dark(room, 0.4))
-    p.hline(0, W - 1, 36, light(dark(room, 0.4), 0.2))
-    an = Pix()
-    anv, anv_l = (62, 64, 78), (130, 134, 152)
-    an.rect(25, 26, 18, 3, anv)
-    an.hline(25, 42, 26, anv_l)
-    an.poly([(25, 26), (19, 26), (25, 28)], anv)
-    an.rect(30, 29, 8, 4, anv)
-    an.rect(27, 33, 14, 3, anv)
-    an.hline(30, 38, 25, FIRE)
-    an.hline(32, 36, 25, FIRE_L)
-    p.paste(an)
-    s = Pix()
-    shirt, apron, apron_d = (196, 140, 106), (104, 70, 44), (76, 50, 32)
-    cx = 13
-    s.rect(cx - 5, 17, 10, 11, shirt)
-    s.rect(cx - 4, 20, 8, 12, apron)
-    s.rect(cx, 20, 4, 12, apron_d)
-    s.rect(cx - 4, 32, 3, 4, INK)
-    s.rect(cx + 1, 32, 3, 4, INK)
-    face(s, cx, 12, SKIN, r=3.2)
-    s.set(cx + 1, 11, INK)
-    s.set(cx + 2, 11, INK)
-    s.set(cx - 1, 11, INK)
-    s.hline(cx - 3, cx + 3, 14, (110, 60, 34))  # beard
-    s.hline(cx - 2, cx + 2, 15, (110, 60, 34))
-    s.hline(cx - 1, cx + 1, 16, (110, 60, 34))
-    s.hline(cx - 3, cx + 2, 9, (110, 60, 34))  # hair
-    # the raised arm and hammer
-    s.thick(cx + 4, 18, cx + 9, 9, SKIN, 2)
-    s.line(cx + 9, 9, cx + 11, 4, BROWN)
-    s.rect(cx + 8, 1, 7, 3, (80, 82, 96))
-    s.hline(cx + 8, cx + 14, 1, (160, 164, 180))
-    s.thick(cx - 4, 19, cx + 0, 25, SKIN_D, 2)  # the other arm holds the tongs
-    s.line(cx + 1, 25, 30, 25, GREY_D)
-    p.paste(s)
-    for x, y in ((28, 20), (33, 17), (38, 21), (30, 14), (41, 16), (36, 12), (44, 19), (25, 18)):
-        p.set(x, y, FIRE_L if (x + y) % 2 else WHITE)
-    return p
-
-
-def f21():
-    """THE PUPPETEER: a puppeteer works three marionettes dancing in step (the subject and its two countersubjects)."""
-    k = Key("Bb")
-    p = Pix()
-    sky(p, k, lift=0.08)
-    # the little theatre's stage and curtain
-    p.rect(0, 33, W, 7, (150, 100, 60))
-    p.hline(0, W - 1, 33, (200, 150, 96))
-    p.rect(0, 0, W, 4, (170, 40, 50))
-    for x in range(0, W, 5):
-        p.disc(x + 2, 4, 2, (170, 40, 50))
-    p.vline(1, 0, 32, (140, 30, 40))
-    p.vline(62, 0, 32, (140, 30, 40))
-    # the puppeteer's hands and cross bar, above
-    pu = Pix()
-    pu.rect(10, 5, 44, 2, BROWN)
-    pu.hline(10, 53, 5, light(BROWN, 0.3))
-    for x in (8, 54):
-        pu.rect(x - 1, 4, 3, 4, SKIN)
-    face(pu, 32, 8, SKIN, r=2.6, mouth=RED_D, cheek=True)
-    pu.rect(29, 4, 7, 2, (60, 50, 90))  # his cap peeping over the bar
-    p.paste(pu)
-    cols = [((230, 70, 70), (170, 40, 50)), ((70, 150, 230), (40, 100, 170)), ((240, 200, 70), (190, 140, 40))]
-    for i, x in enumerate((16, 32, 48)):
-        # strings
-        for dx, ty in ((-3, 18), (3, 18), (0, 13)):
-            p.line(x + dx * 0.5, 7, x + dx, ty, (220, 220, 220))
-        m = Pix()
-        c, cd = cols[i]
-        face(m, x, 15, (240, 200, 160), r=2.2)
-        m.rect(x - 2, 18, 5, 7, c)
-        m.rect(x + 1, 18, 2, 7, cd)
-        # all three in the same step: one leg kicked, arms up
-        m.line(x - 2, 19, x - 4, 16, c)
-        m.line(x + 2, 19, x + 4, 16, cd)
-        m.line(x - 1, 25, x - 2, 31, cd)
-        m.line(x + 1, 25, x + 5, 28, c)
-        m.set(x - 3, 31, INK)
-        m.set(x + 6, 28, INK)
-        m.hline(x - 2, x + 2, 13, cd)  # little hats
-        m.set(x, 12, cd)
-        p.paste(m)
     return p
 
 
@@ -1153,104 +327,936 @@ def f22():
     return p
 
 
+# ---- the owner's 48 (31 Oct 2026): the new pictures
+
+
+
+def singer(L, cx, cy, tone, hair, style, robe_c, mouth_open, flip=False, r=3.5):
+    """A singer's bust: robe to the frame's foot, a head, a mouth open by 0 (shut) to 3 (wide)."""
+    robe(L, cx, cy + r, H - 1, r + 0.5, r + 4, robe_c, dark(robe_c, 0.3))
+    L.hline(cx - 1, cx + 1, cy + r + 1, WHITE)  # a white collar
+    head(L, cx, cy, tone, hair, style, r=r, mouth=False, flip=flip)
+    my = cy + 2
+    if mouth_open == 1:
+        L.set(cx, my, INK)
+    elif mouth_open == 2:
+        L.rect(cx, my, 1, 2, INK)
+    elif mouth_open >= 3:
+        L.rect(cx - 1, my, 2, 2, INK)
+        L.set(cx - 1, my + 2, RED_D)
+    else:
+        L.set(cx, my, mix(TONES[tone][1], RED_D, 0.5))
+
+
+
+def f01():
+    """THE CANON: four singers, women and men, in a staggered row, each mouth opening a beat after the last."""
+    k = Key("C")
+    p = Pix()
+    stone, stone_d, stone_l = k.c(-0.04, -0.22), k.c(-0.1, -0.22), k.c(0.04, -0.22)
+    p.rect(0, 0, W, H, stone)
+    for y in range(0, H, 5):
+        for x in range((y // 5 % 2) * 4, W, 8):
+            p.hline(x, x + 6, y, stone_d)
+            p.vline(x + 7, y, y + 4, stone_d)
+            p.set(x, y + 1, stone_l)
+    # candle-gold light from the candles behind
+    for x in (6, 58):
+        p.glow(x, 12, 9, mix(stone, GOLD, 0.35), inner=0.4)
+        p.rect(x - 1, 10, 2, 8, CREAM)
+        p.vline(x, 7, 9, FIRE_L)
+        p.set(x, 8, FIRE)
+        p.rect(x - 2, 18, 4, 2, GOLD_D)
+    s = Pix()
+    # the row steps up to the right: the first in, the mouth widest; the last, still shut
+    singer(s, 12, 24, 1, "auburn", "long", (176, 40, 52), 3)
+    singer(s, 25, 20, 3, "black", "beard", (60, 70, 140), 2)
+    singer(s, 38, 16, 0, "blonde", "bun", (40, 120, 90), 1, flip=True)
+    singer(s, 51, 12, 4, "black", "crop", (150, 100, 40), 0)
+    p.paste(s)
+    # their song: a note ahead of each open mouth
+    notes_trail(p, [(17, 20), (30, 16), (43, 12)], GOLD)
+    return p
+
+
+
+def f03():
+    """THE STONE-SKIPPER: Little Red Riding Hood skips a stone across a pond, her basket on her arm; rings at each bounce."""
+    k = Key("C#")
+    p = Pix()
+    sky(p, k, 0, 18, lift=0.16)
+    trees = k.c(-0.06, 0.0, 10)
+    for x in range(0, W, 5):
+        p.disc(x + 2, 15 + (x * 7) % 3, 3.5, trees)
+        p.set(x + 1, 13 + (x * 7) % 3, light(trees, 0.2))
+    water, water_d, water_l = (60, 130, 120), (40, 96, 96), (150, 206, 190)
+    p.rect(0, 18, W, H - 18, water)
+    for y in range(20, H, 3):
+        for x in range((y * 3) % 9, W, 9):
+            p.hline(x, x + 2, y, water_d)
+    bank = (96, 150, 66)
+    p.poly([(0, 24), (14, 25), (24, 30), (26, 40), (0, 40)], bank)
+    p.line(0, 24, 14, 25, light(bank, 0.3))
+    p.line(14, 25, 24, 30, light(bank, 0.3))
+    for x, y in ((3, 32), (8, 36), (15, 33), (5, 28)):
+        p.set(x, y, dark(bank, 0.25))
+    # the stone's skips: rings smaller each bounce, the stone just past the last
+    for cx, cy, rx in ((32, 31, 4), (42, 27, 3), (50, 24, 2.4), (56, 22, 1.6)):
+        for a in range(0, 360, 20):
+            p.set(cx + rx * math.cos(math.radians(a)), cy + rx * 0.4 * math.sin(math.radians(a)), water_l)
+    for t in range(0, 30):
+        x = 20 + t
+        base = 31 - t * 0.33
+        hop = abs(math.sin(math.pi * t / 10)) * (4 - t * 0.1)
+        if t % 2 == 0:
+            p.set(x, base - hop, light(water_l, 0.3))
+    p.disc(59, 19, 1, (200, 196, 190))
+    p.set(59, 18, WHITE)
+    g = Pix()
+    hood, hood_d = (210, 40, 44), (150, 26, 34)
+    cx = 13
+    # the cape over a pale dress, mid-throw: the arm swept out to the right
+    g.poly([(cx - 4, 14), (cx + 3, 14), (cx + 7, 31), (cx - 7, 31)], hood)
+    g.poly([(cx + 1, 14), (cx + 3, 14), (cx + 7, 31), (cx + 2, 31)], hood_d)
+    g.rect(cx - 2, 26, 4, 5, (240, 230, 210))
+    g.vline(cx - 1, 32, 35, TONES[1][1])
+    g.vline(cx + 2, 32, 34, TONES[1][1])
+    g.set(cx - 2, 35, INK)
+    g.set(cx + 3, 34, INK)
+    head(g, cx, 10, 1, "blonde", "braid", r=3, look=1)
+    # the hood up round her face
+    g.ring(cx, 10, 4, hood, 180, 360)
+    g.vline(cx - 4, 10, 14, hood)
+    g.vline(cx + 4, 9, 12, hood_d)
+    g.hline(cx - 3, cx + 3, 6, hood)
+    arm(g, cx + 3, 16, cx + 9, 19, hood_d, hand=TONES[1][0])
+    # the basket on the other arm
+    g.rect(cx - 9, 20, 6, 4, (196, 146, 80))
+    g.hline(cx - 9, cx - 4, 20, (230, 190, 120))
+    g.ring(cx - 6, 20, 2.5, (150, 100, 50), 180, 360)
+    g.set(cx - 7, 19, WHITE)
+    g.set(cx - 5, 19, (230, 60, 60))
+    p.paste(g)
+    return p
+
+
+
+def f04():
+    """THE CROSS: a great wooden cross on a hill at dusk, five candles lit at its foot."""
+    k = Key("c#")
+    p = Pix()
+    sky(p, k, 0, 30, lift=0.02, warm=-1.5)
+    p.vgrad(0, 18, W, 12, [k.c(0.06, 0.05, -40), (200, 120, 110), (240, 170, 110)])
+    stars(p, [(5, 3), (14, 8), (50, 4), (58, 10), (42, 2)], light(k.c(0.2), 0.5))
+    hill = k.c(-0.08, -0.15, -30)
+    p.poly([(0, 40), (0, 32), (16, 28), (32, 26), (48, 28), (64, 31), (64, 40)], hill)
+    p.line(16, 28, 32, 26, light(hill, 0.2))
+    p.line(32, 26, 48, 28, light(hill, 0.2))
+    c = Pix()
+    wood, wood_d, wood_l = (130, 84, 50), (88, 54, 34), (176, 120, 76)
+    c.rect(30, 3, 5, 25, wood)
+    c.rect(33, 3, 2, 25, wood_d)
+    c.vline(30, 3, 27, wood_l)
+    c.rect(20, 9, 25, 4, wood)
+    c.hline(20, 44, 9, wood_l)
+    c.hline(20, 44, 12, wood_d)
+    for y in (6, 16, 21):
+        c.set(31, y, wood_d)
+    p.paste(c)
+    # five candles at the foot, their light pooled on the hill
+    for i, x in enumerate((22, 26, 32, 38, 42)):
+        h = 4 if i in (0, 4) else 5
+        y = 29 - (1 if i == 2 else 0)
+        p.glow(x, y - h - 1, 3, mix(hill, GOLD, 0.6), inner=0.3)
+    for i, x in enumerate((22, 26, 32, 38, 42)):
+        h = 4 if i in (0, 4) else 5
+        y = 29 - (1 if i == 2 else 0)
+        p.rect(x, y - h, 1, h, CREAM)
+        p.set(x, y - h - 1, FIRE)
+        p.set(x, y - h - 2, FIRE_L)
+    return p
+
+
+
+def f05():
+    """THE CORONATION: a crown lowered onto a queen's bowed head in a cathedral, banners above."""
+    k = Key("D")
+    p = Pix()
+    nave, nave_d = k.c(-0.06, -0.12), k.c(-0.12, -0.12)
+    p.rect(0, 0, W, H, nave)
+    for x in (2, 14, 46, 58):
+        p.rect(x, 0, 4, H, k.c(0.04, -0.15))
+        p.vline(x, 0, H - 1, k.c(0.12, -0.15))
+        p.vline(x + 3, 0, H - 1, nave_d)
+    p.glow(32, 8, 12, mix(nave, GOLD, 0.25), inner=0.3)
+    # the tall window behind, gold light
+    p.rect(28, 2, 8, 14, mix(nave, GOLD, 0.45))
+    p.disc(31.5, 2, 4, mix(nave, GOLD, 0.45))
+    p.vline(31, 0, 15, nave_d)
+    p.hline(28, 35, 8, nave_d)
+    # banners, purple and gilt, swung by the dotted rhythm
+    for x, sw in ((8, 1), (20, -1), (40, 1), (52, -1)):
+        p.poly([(x, 0), (x + 5, 0), (x + 5 + sw, 12), (x + 2.5 + sw, 10), (x + sw, 12)], PURPLE)
+        p.vline(x + 2, 1, 9, GOLD)
+        p.hline(x, x + 5, 0, GOLD_D)
+    p.rect(0, 34, W, 6, (120, 30, 50))
+    p.hline(0, W - 1, 34, (170, 60, 70))
+    q = Pix()
+    cx = 32
+    # her gown and ermine cape, kneeling, head bowed
+    q.poly([(cx - 9, 24), (cx + 9, 24), (cx + 12, 35), (cx - 12, 35)], PURPLE)
+    q.poly([(cx + 3, 24), (cx + 9, 24), (cx + 12, 35), (cx + 5, 35)], PURPLE_D)
+    q.poly([(cx - 8, 20), (cx + 8, 20), (cx + 10, 26), (cx - 10, 26)], (244, 240, 232))
+    for x, y in ((cx - 6, 22), (cx - 2, 24), (cx + 3, 22), (cx + 7, 24), (cx - 8, 25), (cx + 1, 25)):
+        q.set(x, y, INK)
+    head(q, cx, 18, 2, "brown", "long", r=3.5, eyes="shut", mouth=True)
+    # the crown, just above, held by two hands reaching down out of the light
+    q.rect(cx - 4, 10, 9, 3, GOLD)
+    for x in (cx - 4, cx, cx + 4):
+        q.set(x, 9, GOLD)
+        q.set(x, 8, FIRE_L)
+    q.hline(cx - 4, cx + 4, 12, GOLD_D)
+    q.set(cx - 2, 11, RED)
+    q.set(cx + 2, 11, (90, 160, 230))
+    for sx in (-1, 1):
+        x = cx + sx * 7
+        q.vline(x, 0, 8, (150, 40, 60))
+        q.vline(x + sx, 0, 7, GOLD_D)
+        q.set(x - sx, 9, TONES[1][0])
+        q.set(x, 9, TONES[1][0])
+        q.set(x - sx, 10, TONES[1][0])
+    p.paste(q)
+    for x, y in ((cx - 7, 7), (cx + 8, 6), (cx, 5)):
+        p.set(x, y, WHITE)
+    return p
+
+
+
+def f06():
+    """THE AMBUSH: a rider on a forest road; figures half-hidden behind the trees, a blade's glint."""
+    k = Key("d")
+    p = Pix()
+    sky(p, k, 0, 24, lift=0.0)
+    p.disc(50, 6, 3, (220, 220, 236))
+    far = k.c(-0.1, -0.1)
+    for x in range(0, W, 6):
+        p.poly([(x, 26), (x + 3, 8 + (x * 5) % 6), (x + 6, 26)], far)
+    road = k.c(-0.05, -0.25, 30)
+    p.rect(0, 27, W, 13, road)
+    p.hline(0, W - 1, 27, light(road, 0.2))
+    for x in range(0, W, 7):
+        p.set(x + 2, 32 + x % 3, dark(road, 0.3))
+    trunk, trunk_d = (40, 34, 40), (24, 20, 26)
+    steel = (196, 206, 224)
+    # three trees in front, a watcher behind each
+    for x, who in ((6, ("brown", "long", 2)), (46, ("black", "crop", 4)), (58, ("auburn", "bun", 0))):
+        w = Pix()
+        head(w, x + 4, 17, who[2], who[0], who[1], r=2.5, mouth=False, look=-1 if x > 30 else 1, cheek=False)
+        w.rect(x + 2, 20, 5, 7, (54, 50, 70))
+        p.paste(w, outline=None)
+        p.rect(x, 0, 4, 31, trunk)
+        p.vline(x + 3, 0, 30, trunk_d)
+        p.vline(x, 0, 30, light(trunk, 0.2))
+    p.line(52, 19, 52, 13, steel)  # a blade raised behind a tree
+    p.set(52, 12, WHITE)
+    p.line(9, 22, 12, 20, steel)
+    # the rider, a man in a grey cloak, riding left to right on a dark horse
+    r = Pix()
+    x, y = 26, 24
+    horse(r, x, y, (110, 74, 54), (74, 48, 36), stride=1)
+    cloak = (120, 124, 140)
+    r.poly([(x - 3, y - 9), (x + 2, y - 9), (x + 3, y + 2), (x - 4, y + 2)], cloak)
+    r.poly([(x - 3, y - 8), (x - 9, y - 3), (x - 4, y + 1)], dark(cloak, 0.2))
+    r.thick(x, y + 1, x + 2, y + 6, (60, 50, 50), 2)
+    head(r, x, y - 12, 2, "brown", "beard", r=2.8, look=1)
+    r.line(x + 2, y - 5, x + 10, y - 4, dark(cloak, 0.4))  # the reins
+    p.paste(r)
+    return p
+
+
+
+def f07():
+    """THE BICYCLE: a girl on an old high bicycle down a green lane, ribbon flying, ringing the bell."""
+    k = Key("Eb")
+    p = Pix()
+    sky(p, k, 0, 26, lift=0.2)
+    for cx, cy in ((10, 6), (14, 5), (18, 7)):
+        p.disc(cx, cy, 2.6, WHITE)
+    hedge = (70, 140, 70)
+    p.rect(0, 22, W, 6, hedge)
+    for x in range(0, W, 4):
+        p.disc(x + 2, 22, 2.2, hedge)
+        p.set(x + 1, 21, light(hedge, 0.3))
+    lane = (190, 170, 120)
+    p.rect(0, 28, W, 12, (110, 170, 80))
+    p.poly([(0, 31), (64, 30), (64, 38), (0, 39)], lane)
+    p.line(0, 31, 64, 30, light(lane, 0.3))
+    b = Pix()
+    metal, metal_d = (60, 60, 72), (34, 34, 44)
+    fx, fy, fr = 36, 26, 11  # the great front wheel
+    for rr in (fr, fr - 1):
+        b.ring(fx, fy, rr, metal)
+    for a in range(0, 360, 30):
+        b.line(fx, fy, fx + (fr - 1) * math.cos(math.radians(a)), fy + (fr - 1) * math.sin(math.radians(a)), (150, 150, 160))
+    b.disc(fx, fy, 1, metal_d)
+    b.ring(20, 34, 3, metal)
+    b.ring(20, 34, 2, metal)
+    b.set(20, 34, metal_d)
+    b.line(20, 34, 30, 16, metal)  # the backbone
+    b.line(21, 34, 31, 16, metal_d)
+    b.line(fx, fy, 34, 15, metal)  # the fork
+    b.hline(32, 39, 13, metal)  # handlebar
+    b.disc(39, 12, 1, GOLD)  # the bell
+    b.set(39, 11, FIRE_L)
+    p.paste(b)
+    g = Pix()
+    dress, dress_d = (236, 120, 150), (190, 80, 116)
+    cx = 31
+    g.poly([(cx - 3, 8), (cx + 3, 8), (cx + 4, 17), (cx - 5, 17)], dress)
+    g.poly([(cx + 1, 8), (cx + 3, 8), (cx + 4, 17), (cx + 1, 17)], dress_d)
+    g.thick(cx + 1, 16, cx + 4, 22, TONES[3][0], 1)  # a leg to the pedal
+    g.thick(cx - 1, 16, cx + 2, 24, TONES[3][1], 1)
+    head(g, cx, 4, 3, "black", "ponytail", r=2.6, look=1)
+    arm(g, cx + 2, 10, cx + 7, 12, TONES[3][0], hand=None, w=1)
+    p.paste(g)
+    # the ribbon streaming back, the bell's ring
+    for i in range(8):
+        p.set(cx - 5 - i, 2 + i * 0.25 + math.sin(i * 0.9) * 1.2, (250, 220, 80))
+    for x, y in ((41, 9), (42, 11), (41, 13)):
+        p.set(x, y, WHITE)
+    return p
+
+
+
+def f08():
+    """THE PILGRIM: a woman pilgrim with staff and shell on a long road at dusk, a shrine far off, lit."""
+    k = Key("d#")
+    p = Pix()
+    sky(p, k, 0, 22, lift=0.04, warm=1.0)
+    p.vgrad(0, 14, W, 8, [k.c(0.06, 0.05, 20), (200, 150, 110), (236, 190, 120)])
+    land = k.c(-0.06, -0.15, 20)
+    p.rect(0, 22, W, 18, land)
+    p.hline(0, W - 1, 22, light(land, 0.2))
+    dust = (170, 140, 100)
+    p.poly([(44, 22), (47, 22), (40, 40), (12, 40)], dust)
+    p.line(44, 22, 12, 40, light(dust, 0.25))
+    # waymarks passed along the road
+    for x, y, h in ((38, 31, 3), (43, 26, 2)):
+        p.rect(x, y - h, 1, h, (200, 196, 180))
+    # the shrine far off, its light
+    p.glow(52, 19, 4, (250, 220, 140), inner=0.3)
+    p.rect(50, 17, 4, 5, (220, 210, 190))
+    p.poly([(49, 17), (52, 14), (55, 17)], (150, 70, 50))
+    p.set(52, 19, FIRE_L)
+    g = Pix()
+    cloak, cloak_d = (120, 92, 70), (84, 62, 48)
+    cx = 22
+    robe(g, cx, 13, 35, 3.5, 7, cloak, cloak_d)
+    g.poly([(cx - 4, 13), (cx + 4, 13), (cx + 5, 17), (cx - 5, 17)], light(cloak, 0.15))  # a shoulder cape
+    g.set(cx - 2, 16, WHITE)
+    g.set(cx - 3, 16, CREAM)
+    g.set(cx - 2, 15, CREAM)  # the scallop shell
+    head(g, cx, 9, 2, "brown", "braid", r=3, look=1)
+    g.hline(cx - 6, cx + 6, 6, (150, 110, 60))  # the wide pilgrim hat
+    g.rect(cx - 3, 4, 7, 2, (150, 110, 60))
+    g.set(cx, 4, CREAM)
+    g.vline(cx + 8, 4, 36, BROWN)  # the staff, a gourd hung on it
+    g.disc(cx + 9, 9, 1.2, GOLD_D)
+    arm(g, cx + 4, 15, cx + 7, 18, cloak_d, hand=TONES[2][0])
+    p.paste(g)
+    return p
+
+
+
+def f12():
+    """THE REQUIEM: a choir in black behind a draped bier, a row of candles lit before it."""
+    k = Key("f")
+    p = Pix()
+    sky(p, k, lift=-0.04)
+    p.glow(32, 16, 18, k.c(0.06), inner=0.3)
+    for x in (4, 58):
+        p.rect(x, 0, 3, H, k.c(-0.08, -0.1))
+    ch = Pix()
+    hairs = [("grey", "bun", 0), ("black", "crop", 4), ("auburn", "long", 1), ("brown", "beard", 2), ("blonde", "bob", 0), ("black", "curls", 3)]
+    for i, (hc, st, tn) in enumerate(hairs):
+        x = 10 + i * 9
+        y = 11 if i % 2 else 13
+        robe(ch, x, y + 3, 30, 3, 5, (40, 36, 48), (26, 24, 34))
+        ch.set(x, y + 4, (220, 220, 220))
+        head(ch, x, y, tn, hc, st, r=2.6, eyes="shut", mouth=True)
+    p.paste(ch)
+    # the bier, draped in dark cloth, a pale edge
+    bier = Pix()
+    bier.rect(14, 24, 36, 8, (60, 40, 70))
+    bier.hline(14, 49, 24, (130, 110, 140))
+    bier.rect(14, 31, 36, 2, (200, 190, 170))
+    bier.vline(16, 33, 37, BROWN_D)
+    bier.vline(47, 33, 37, BROWN_D)
+    p.paste(bier)
+    p.rect(0, 37, W, 3, k.c(-0.1, -0.1))
+    for i in range(6):
+        x = 8 + i * 10
+        p.glow(x, 33, 3, mix(k.c(0.0), GOLD, 0.5), inner=0.3)
+        p.rect(x, 34, 1, 4, CREAM)
+        p.set(x, 33, FIRE)
+        p.set(x, 32, FIRE_L)
+    return p
+
+
+
+def f11():
+    """THE SHEPHERDESS: a shepherdess turns in a dance, ribbons flying, a lamb watching (the passepied)."""
+    k = Key("F")
+    p = Pix()
+    sky(p, k, 0, 26, lift=0.18)
+    p.disc(10, 7, 3, (255, 244, 200))
+    for cx, cy in ((44, 6), (48, 5), (52, 7)):
+        p.disc(cx, cy, 3, WHITE)
+    meadow = (120, 176, 84)
+    p.poly([(0, 26), (20, 23), (44, 25), (64, 22), (64, 40), (0, 40)], meadow)
+    p.line(0, 26, 20, 23, light(meadow, 0.3))
+    p.line(20, 23, 44, 25, light(meadow, 0.3))
+    p.line(44, 25, 64, 22, light(meadow, 0.3))
+    for x, y in ((6, 33), (14, 37), (40, 35), (56, 31), (60, 37), (30, 38)):
+        p.set(x, y, WHITE if x % 2 else (250, 200, 220))
+    s = Pix()
+    dress, dress_d, apron = (90, 140, 220), (60, 100, 180), (248, 244, 230)
+    cx = 28
+    # the skirt twirling out, wide
+    s.poly([(cx - 3, 19), (cx + 3, 19), (cx + 10, 31), (cx - 9, 32)], dress)
+    s.poly([(cx + 1, 19), (cx + 3, 19), (cx + 10, 31), (cx + 3, 32)], dress_d)
+    s.poly([(cx - 2, 21), (cx + 2, 21), (cx + 3, 29), (cx - 3, 29)], apron)
+    s.rect(cx - 3, 14, 7, 6, (240, 236, 226))
+    s.rect(cx - 2, 16, 5, 4, (180, 50, 60))  # bodice
+    # her face (the owner: "looks off"): a fuller face, both eyes level, hair framing it to the shoulders
+    head(s, cx, 10, 0, "blonde", "long", r=3, mouth=True)
+    s.set(cx, 12, RED_D)
+    # a straw hat tilted back, its brim behind her head
+    s.hline(cx - 6, cx + 5, 6, (240, 210, 120))
+    s.hline(cx - 5, cx + 4, 7, (214, 180, 96))
+    s.rect(cx - 3, 4, 6, 2, (240, 210, 120))
+    s.hline(cx - 3, cx + 2, 5, (230, 70, 90))  # the hat's ribbon
+    # arms out, one up holding the crook
+    s.thick(cx - 3, 15, cx - 8, 12, TONES[0][0], 1)
+    s.thick(cx + 4, 15, cx + 9, 17, TONES[0][0], 1)
+    s.vline(cx - 9, 4, 30, BROWN)
+    s.ring(cx - 7, 4, 2, BROWN, 180, 360)
+    s.set(cx - 9, 4, BROWN)
+    s.vline(cx - 2, 32, 34, TONES[0][1])
+    s.vline(cx + 2, 32, 33, TONES[0][1])
+    p.paste(s)
+    # ribbons flying from the hat
+    for i in range(7):
+        p.set(cx + 6 + i, 5 + math.sin(i * 1.1) * 1.5, (230, 60, 90))
+        p.set(cx + 6 + i, 7 + math.sin(i * 1.1 + 1) * 1.5, (250, 220, 90))
+    # the lamb
+    lamb = Pix()
+    lx, ly = 50, 32
+    lamb.ell(lx, ly, 5, 3, WHITE)
+    for dx in (-4, -2, 0, 2, 4):
+        lamb.disc(lx + dx, ly - 2, 1.2, WHITE)
+    lamb.disc(lx - 5, ly - 2, 2, (240, 234, 220))
+    lamb.set(lx - 6, ly - 2, INK)
+    lamb.set(lx - 4, ly - 4, (200, 190, 180))
+    for dx in (-3, -1, 2, 4):
+        lamb.vline(lx + dx, ly + 3, ly + 5, (70, 60, 60))
+    p.paste(lamb)
+    return p
+
+
+
+def f13():
+    """THE AQUARIUM: a boy watches fish drift in a big glass aquarium (Bodky's serene "Little Brook")."""
+    k = Key("F#")
+    p = Pix()
+    wall = k.c(-0.02, -0.12)
+    p.rect(0, 0, W, H, wall)
+    p.rect(0, 33, W, 7, k.c(-0.1, -0.15))
+    p.hline(0, W - 1, 33, k.c(-0.04, -0.15))
+    # the tank: glass-blue water, a lid, a stand
+    x0, y0, x1, y1 = 22, 5, 62, 31
+    p.vgrad(x0, y0 + 2, x1 - x0, y1 - y0 - 2, [(110, 200, 210), (60, 150, 170), (40, 110, 130)])
+    p.rect(x0 - 1, y0, x1 - x0 + 2, 2, (60, 60, 70))
+    p.rect(x0 - 1, y1, x1 - x0 + 2, 3, (90, 70, 56))
+    p.vline(x0 - 1, y0, y1, (200, 230, 236))
+    p.vline(x1, y0, y1, (200, 230, 236))
+    p.rect(x0, y1 - 3, x1 - x0, 3, (200, 180, 130))  # sand
+    for x in range(x0 + 1, x1, 3):
+        p.set(x, y1 - 3, (230, 214, 170))
+    for x, h in ((26, 10), (29, 7), (55, 12), (58, 8)):  # weed
+        for y in range(h):
+            p.set(x + (1 if (y // 2) % 2 else 0), y1 - 4 - y, (60, 160, 80) if y % 3 else (90, 190, 100))
+    for x, y in ((40, 22), (41, 18), (40, 14), (49, 11), (50, 8)):
+        p.set(x, y, (220, 246, 250))
+    p.hline(x0 + 2, x1 - 3, y0 + 3, (170, 230, 236))  # the light on the water
+    f = Pix()
+
+    def fish(x, y, c, d, flip=False):
+        s = -1 if flip else 1
+        f.ell(x, y, 3, 1.6, c)
+        f.poly([(x - s * 3, y), (x - s * 6, y - 2), (x - s * 6, y + 2)], d)
+        f.set(x + s * 2, y - 1, INK)
+        f.set(x, y - 2, d)
+
+    fish(36, 13, (250, 140, 40), (210, 90, 30))
+    fish(48, 20, (250, 220, 70), (210, 160, 40), flip=True)
+    fish(33, 24, (240, 90, 80), (190, 50, 60))
+    p.paste(f, outline=(30, 70, 90))
+    b = Pix()
+    cx = 12
+    # the boy in profile, nose to the glass, one hand on it
+    shirt = (230, 210, 80)
+    b.rect(cx - 4, 18, 8, 9, shirt)
+    for y in (20, 23, 26):
+        b.hline(cx - 4, cx + 3, y, (60, 110, 190))
+    b.rect(cx - 3, 27, 3, 6, (60, 70, 110))
+    b.rect(cx + 1, 27, 3, 6, (44, 52, 90))
+    b.hline(cx - 4, cx - 1, 33, INK)
+    b.hline(cx + 1, cx + 4, 33, INK)
+    head(b, cx + 1, 13, 4, "black", "crop", r=3.8, look=2)
+    b.set(cx + 5, 13, TONES[4][0])  # nose
+    arm(b, cx + 3, 20, cx + 9, 16, shirt, hand=TONES[4][0])
+    b.set(cx + 10, 16, TONES[4][0])
+    p.paste(b)
+    return p
+
+
+
+def f15():
+    """THE PINBALL: a pinball machine's playfield, the ball mid-flight among lit bumpers."""
+    k = Key("G")
+    p = Pix()
+    p.rect(0, 0, W, H, k.c(-0.14, -0.1))
+    # the playfield in perspective: wide at the foot, narrow at the head
+    field = k.c(0.0, 0.2)
+    p.poly([(14, 2), (50, 2), (60, 39), (4, 39)], field)
+    p.vgrad(16, 3, 33, 6, [k.c(0.2, 0.3), field])
+    chrome = (210, 216, 230)
+    p.line(14, 2, 4, 39, chrome)
+    p.line(50, 2, 60, 39, chrome)
+    p.line(15, 2, 5, 39, (130, 136, 150))
+    p.hline(14, 50, 2, chrome)
+    # neon lanes and arrows
+    for x0, x1 in ((22, 16), (42, 48)):
+        p.line(x0, 10, x1, 30, (255, 90, 200))
+    for x, y in ((30, 28), (34, 28), (32, 25)):
+        p.set(x, y, (255, 240, 90))
+    # three bumpers, two lit
+    for (x, y, lit) in ((24, 13, True), (40, 13, True), (32, 19, False)):
+        b = Pix()
+        top = (255, 90, 120) if lit else (120, 60, 90)
+        b.disc(x, y, 3.5, (40, 40, 60))
+        b.disc(x, y - 1, 3, top)
+        b.disc(x, y - 1, 1.5, WHITE if lit else light(top, 0.3))
+        p.paste(b)
+        if lit:
+            for dx, dy in ((-5, -2), (5, -2), (0, -6), (-4, 3), (4, 3)):
+                p.set(x + dx, y + dy, (255, 240, 120))
+    # flippers
+    fl = Pix()
+    fl.thick(18, 33, 27, 36, (250, 250, 250), 2)
+    fl.thick(46, 33, 37, 36, (250, 250, 250), 2)
+    fl.disc(18, 33, 1.5, RED)
+    fl.disc(46, 33, 1.5, RED)
+    p.paste(fl)
+    # the ball, chrome, flying, a trail behind
+    for i in range(5):
+        p.set(38 + i * 2, 29 - i * 3, light(field, 0.25 + i * 0.05))
+    ball = Pix()
+    ball.disc(35, 24, 2.2, chrome)
+    ball.set(34, 23, WHITE)
+    ball.set(36, 25, (120, 126, 140))
+    p.paste(ball)
+    return p
+
+
+
+def f17():
+    """THE DIARY: a girl writing in a diary by a summer window, a pressed flower on the page."""
+    k = Key("Ab")
+    p = Pix()
+    wall = k.c(0.06, -0.12, -40)
+    p.rect(0, 0, W, H, wall)
+    # the summer window: light, a tree, a curtain
+    p.rect(36, 3, 24, 22, (170, 214, 236))
+    p.disc(50, 18, 7, (110, 180, 90))
+    p.disc(44, 20, 5, (90, 160, 80))
+    p.disc(54, 8, 3, (255, 244, 180))
+    p.rect(36, 3, 24, 1, (240, 230, 210))
+    p.vline(48, 3, 24, (240, 230, 210))
+    p.hline(36, 59, 13, (240, 230, 210))
+    p.rect(35, 2, 26, 1, BROWN_D)
+    p.poly([(56, 2), (61, 2), (62, 26), (58, 26)], (230, 200, 120))  # the curtain
+    p.dither(37, 4, 22, 20, (255, 250, 220), 1)
+    p.rect(34, 25, 28, 2, (240, 230, 210))
+    # light falling across the desk
+    desk = (150, 104, 66)
+    p.rect(0, 28, W, 3, desk)
+    p.hline(0, W - 1, 28, light(desk, 0.3))
+    p.rect(0, 31, W, 9, k.c(-0.08, -0.15, -40))
+    p.vline(6, 31, 39, dark(desk, 0.3))
+    p.vline(58, 31, 39, dark(desk, 0.3))
+    # the open diary, a pressed flower on the left page
+    d = Pix()
+    d.poly([(22, 27), (31, 26), (31, 28), (22, 29)], (248, 244, 230))
+    d.poly([(31, 26), (40, 27), (40, 29), (31, 28)], (230, 224, 206))
+    d.rect(21, 28, 20, 1, (120, 60, 70))
+    d.set(25, 27, (230, 120, 160))
+    d.set(26, 26, (230, 120, 160))
+    d.set(24, 26, (230, 120, 160))
+    d.set(25, 28, (90, 150, 70))
+    for x in range(33, 39, 2):
+        d.set(x, 27, (120, 120, 160))
+    p.paste(d)
+    g = Pix()
+    cx = 22
+    dress = (90, 150, 210)
+    g.poly([(cx - 5, 17), (cx + 3, 17), (cx + 5, 28), (cx - 7, 28)], dress)
+    g.poly([(cx, 17), (cx + 3, 17), (cx + 5, 28), (cx + 1, 28)], dark(dress, 0.25))
+    g.hline(cx - 3, cx + 1, 17, WHITE)
+    head(g, cx, 12, 0, "red", "bun", r=3.5, look=1)
+    g.set(cx + 1, 13, TONES[0][1])  # eyes down on the page
+    arm(g, cx + 2, 20, cx + 11, 25, dress, hand=TONES[0][0])
+    g.line(cx + 11, 25, cx + 13, 22, GOLD_D)  # the pen
+    p.paste(g)
+    return p
+
+
+
+def f18():
+    """THE SLEEPWALKER: a figure in a nightgown walks a rooftop ridge under a big moon, arms out, perfectly balanced."""
+    k = Key("g#")
+    p = Pix()
+    sky(p, k, lift=-0.02)
+    p.disc(44, 14, 11, (238, 232, 204))
+    p.disc(41, 11, 2, (214, 206, 180))
+    p.disc(47, 18, 1.5, (214, 206, 180))
+    p.disc(49, 10, 1, (214, 206, 180))
+    stars(p, [(4, 4), (12, 10), (22, 3), (60, 4), (58, 28), (6, 20)])
+    far = k.c(-0.09, -0.2)
+    for x0, top in ((0, 26), (14, 24), (52, 25)):
+        p.poly([(x0, 40), (x0, top + 4), (x0 + 6, top), (x0 + 12, top + 4), (x0 + 12, 40)], far)
+    p.rect(8, 21, 2, 5, far)
+    roof = k.c(-0.04, -0.15, 20)
+    p.poly([(0, 40), (0, 33), (64, 30), (64, 40)], roof)
+    p.line(0, 33, 64, 30, light(roof, 0.3))
+    for x in range(4, W, 6):
+        p.line(x, 35, x - 2, 39, dark(roof, 0.3))
+    p.rect(54, 25, 4, 6, roof)
+    p.rect(53, 24, 6, 1, light(roof, 0.2))
+    s = Pix()
+    gown, gown_d = (232, 230, 244), (180, 178, 206)
+    cx = 26
+    robe(s, cx, 14, 29, 2.5, 5, gown, gown_d)
+    # the face (the owner: improve face and hat): a round face, eyes shut in two dark arcs, a calm mouth
+    head(s, cx, 10, 2, "brown", "short", r=3.2, eyes="shut", mouth=True, cheek=True)
+    for dx in (-2, 1):
+        s.hline(cx + dx, cx + dx + 1, 10, INK)
+        s.set(cx + dx, 9, TONES[2][1])
+    # a soft striped nightcap drooping to one side, a pompom at its tip
+    cap, cap_s = (90, 110, 200), (236, 236, 250)
+    s.poly([(cx - 4, 9), (cx + 4, 9), (cx + 3, 6), (cx - 2, 5)], cap)
+    s.poly([(cx + 1, 5), (cx + 3, 6), (cx + 8, 9), (cx + 9, 11)], cap)
+    for x in (cx - 2, cx + 1, cx + 4, cx + 7):
+        s.line(x, 9 if x < cx + 3 else 8 + (x - cx - 3) // 2, x + 1, 5 if x < cx + 3 else 6 + (x - cx - 3) // 2, cap_s)
+    s.hline(cx - 4, cx + 4, 9, cap_s)
+    s.disc(cx + 9, 12, 1.2, WHITE)
+    # arms straight out, balanced
+    s.hline(cx - 11, cx - 2, 16, gown)
+    s.hline(cx + 2, cx + 11, 16, gown)
+    s.hline(cx - 11, cx - 2, 17, gown_d)
+    s.hline(cx + 2, cx + 11, 17, gown_d)
+    s.set(cx - 12, 16, TONES[2][0])
+    s.set(cx + 12, 16, TONES[2][0])
+    s.vline(cx - 1, 30, 31, TONES[2][0])
+    s.vline(cx + 1, 30, 31, TONES[2][0])
+    p.paste(s)
+    p.set(cx + 6, 4, CREAM)  # z z
+    p.hline(cx + 8, cx + 9, 2, CREAM)
+    p.hline(cx + 11, cx + 13, 0, CREAM)
+    return p
+
+
+
+def f19():
+    """THE THREE STOOGES: three slapstick comedians, two men and a woman, a pie in flight, in silent-film sepia."""
+    k = Key("A")
+    p = Pix()
+    sep = lambda l: hls(k.h * 0.0 + 32, l, 0.32)  # noqa: E731  sepia, warmed toward the key
+    p.vgrad(0, 0, W, 30, [sep(0.30), sep(0.40), sep(0.48)])
+    p.rect(0, 30, W, 10, sep(0.26))
+    p.hline(0, W - 1, 30, sep(0.5))
+    for x in range(0, W, 8):
+        p.vline(x, 31, 39, sep(0.2))
+    # a painted backdrop: a door and a window
+    p.rect(44, 8, 10, 22, sep(0.22))
+    p.set(52, 19, sep(0.6))
+    p.rect(8, 7, 10, 8, sep(0.55))
+    p.vline(13, 7, 14, sep(0.3))
+    p.hline(8, 17, 11, sep(0.3))
+    c = Pix()
+    suit, suit_d = sep(0.18), sep(0.1)
+    # left: the bowl-cut one ducks, hands on knees
+    head(c, 11, 20, 0, sep(0.2), "short", r=3.2, look=1, mouth=sep(0.1))
+    c.rect(7, 23, 8, 6, suit)
+    c.rect(7, 29, 3, 4, suit_d)
+    c.rect(12, 29, 3, 4, suit_d)
+    # middle: the bald one, a pie square in the face
+    c.rect(28, 19, 8, 10, suit)
+    c.rect(29, 29, 3, 4, suit_d)
+    c.rect(33, 29, 3, 4, suit_d)
+    head(c, 32, 14, 1, sep(0.12), "bald", r=3.6, mouth=False)
+    c.disc(32, 14, 2.6, sep(0.92))
+    c.set(31, 13, sep(0.75))
+    c.set(34, 15, sep(0.75))
+    c.thick(28, 21, 24, 17, suit, 2)
+    c.thick(36, 21, 40, 17, suit, 2)
+    # right: the woman in curls, arm back, a second pie ready
+    c.poly([(48, 20), (54, 20), (56, 33), (46, 33)], sep(0.62))
+    c.poly([(51, 20), (54, 20), (56, 33), (52, 33)], sep(0.5))
+    head(c, 51, 15, 1, sep(0.12), "curls", r=3, look=-1, mouth=sep(0.1))
+    c.thick(54, 21, 59, 16, sep(0.62), 2)
+    c.ell(60, 14, 3, 1.5, sep(0.85))
+    c.hline(57, 63, 15, sep(0.4))
+    c.thick(48, 22, 44, 25, sep(0.62), 2)
+    p.paste(c, outline=sep(0.05))
+    # splash and stars round the hit
+    for x, y in ((26, 11), (38, 11), (25, 16), (39, 17), (32, 8)):
+        p.set(x, y, sep(0.95))
+    # the film: dark edges, a scratch, a flicker of grain
+    p.rect(0, 0, W, 1, (10, 8, 6))
+    p.rect(0, 39, W, 1, (10, 8, 6))
+    for x in (0, 1, 62, 63):
+        p.vline(x, 0, H - 1, (16, 12, 8))
+    p.vline(20, 2, 37, sep(0.62))
+    for x, y in ((6, 5), (41, 33), (57, 4), (23, 36), (60, 27)):
+        p.set(x, y, sep(0.7))
+    return p
+
+
+
+def f20():
+    """THE LOCOMOTIVE: a steam locomotive at full power, pistons driving, smoke streaming; its driver, a woman, at the cab."""
+    k = Key("a")
+    p = Pix()
+    sky(p, k, 0, 30, lift=0.02, warm=0.6)
+    p.rect(0, 33, W, 7, k.c(-0.1, -0.1, 20))
+    p.hline(0, W - 1, 33, (120, 110, 110))
+    for x in range(0, W, 4):
+        p.rect(x, 34, 2, 1, (90, 60, 40))
+    # the smoke streaming back over the engine
+    for i, (x, y, r) in enumerate(((22, 5, 3), (28, 4, 3.5), (35, 3, 4), (43, 4, 4.5), (52, 5, 5), (61, 7, 5))):
+        p.disc(x, y, r, mix((220, 216, 220), k.c(0.1), i * 0.12))
+        p.set(x - 1, y - 1, WHITE)
+    e = Pix()
+    coal, coal_d = (44, 40, 48), (26, 24, 30)
+    red, red_d = (190, 44, 40), (130, 28, 30)
+    e.rect(8, 15, 30, 9, coal)  # boiler
+    e.hline(8, 37, 15, (90, 86, 96))
+    for x in (14, 22, 30):
+        e.vline(x, 15, 23, GOLD_D)  # bands
+    e.rect(4, 17, 4, 7, coal_d)  # the smokebox front
+    e.disc(5, 20, 2, (250, 220, 120))  # the lamp
+    e.rect(16, 9, 4, 6, coal)  # the funnel
+    e.rect(15, 8, 6, 2, coal)
+    e.disc(28, 13, 2, GOLD)  # dome
+    e.rect(38, 8, 14, 16, red)  # the cab
+    e.rect(38, 7, 16, 2, coal)
+    e.rect(42, 10, 6, 6, (250, 220, 150))  # the cab window, lit
+    e.rect(48, 8, 4, 16, red_d)
+    e.rect(52, 14, 10, 10, coal)  # tender
+    e.hline(52, 61, 13, (80, 76, 86))
+    e.rect(2, 24, 60, 2, red_d)  # the running board
+    e.poly([(0, 30), (4, 26), (6, 26), (6, 30)], red_d)  # cow-catcher
+    p.paste(e)
+    head(p, 45, 13, 3, "black", "bun", r=2.5, look=-1)
+    p.rect(43, 15, 5, 1, (60, 80, 140))
+    # driving wheels and the rod
+    for x, r in ((14, 4.5), (25, 4.5), (36, 4.5), (47, 2.5), (57, 2.5)):
+        w = Pix()
+        w.disc(x, 33 - r - 0.5 if r > 3 else 31, r, red)
+        w.disc(x, 33 - r - 0.5 if r > 3 else 31, r - 1.5, coal)
+        w.set(x, (33 - r - 0.5) if r > 3 else 31, GOLD)
+        p.paste(w)
+    p.thick(12, 30, 38, 27, (210, 210, 220), 1)
+    p.rect(4, 26, 7, 3, (160, 160, 170))  # the piston
+    # steam at the cylinder
+    for x, y in ((2, 28), (1, 26), (3, 31)):
+        p.set(x, y, WHITE)
+    return p
+
+
+
+def f21():
+    """THE MARIONETTES: three marionettes, a dancer, a soldier and a harlequin, dancing in step, strings rising out of frame."""
+    k = Key("Bb")
+    p = Pix()
+    p.rect(0, 0, W, H, k.c(-0.06, -0.05))
+    p.glow(32, 22, 22, k.c(0.04), inner=0.4)
+    curtain, curtain_d = (190, 36, 52), (130, 22, 40)
+    p.rect(0, 0, W, 4, curtain)
+    for x in range(0, W, 4):
+        p.disc(x + 2, 4, 2, curtain)
+    for x in range(0, 5):
+        c = curtain if x % 2 == 0 else curtain_d
+        p.vline(x, 0, 34, c)
+        p.vline(W - 1 - x, 0, 34, c)
+    p.hline(0, W - 1, 0, GOLD)
+    p.rect(0, 33, W, 7, (140, 90, 50))
+    p.hline(0, W - 1, 33, GOLD)
+    p.hline(0, W - 1, 34, (190, 130, 70))
+    wood = (232, 196, 150)
+    s = Pix()
+
+    def puppet(cx, kind):
+        # strings first, from the hands, the head and the knee up out of frame
+        for x0, y0 in ((cx - 6, 14), (cx + 6, 14), (cx, 8), (cx + 3, 26)):
+            p.vline(x0, 0, y0 - 1, (236, 232, 220))
+        if kind == "dancer":
+            s.rect(cx - 2, 13, 5, 5, (240, 140, 180))
+            s.ell(cx, 19, 6, 1.6, (250, 200, 220))  # the tutu
+            s.hline(cx - 6, cx + 6, 19, (240, 170, 200))
+            leg = wood
+            head(s, cx, 10, 0, "brown", "bun", r=2.6)
+        elif kind == "soldier":
+            s.rect(cx - 2, 13, 5, 6, (50, 90, 180))
+            s.hline(cx - 2, cx + 2, 15, GOLD)
+            s.hline(cx - 2, cx + 2, 17, GOLD)
+            leg = WHITE
+            head(s, cx, 10, 1, "black", "crop", r=2.6)
+            s.rect(cx - 2, 3, 5, 5, (40, 36, 44))  # the shako
+            s.set(cx, 3, RED)
+            s.hline(cx - 1, cx + 1, 12, INK)  # a moustache
+        else:
+            for y in range(13, 19):
+                for x in range(cx - 2, cx + 3):
+                    s.set(x, y, (250, 200, 60) if (x + y) % 2 else (40, 160, 120))
+            leg = (40, 160, 120)
+            head(s, cx, 10, 3, "black", "short", r=2.6)
+            s.poly([(cx - 3, 8), (cx + 3, 8), (cx, 5)], (40, 36, 44))  # the harlequin's cap
+        # arms up to the strings, joints as dots
+        s.line(cx - 2, 14, cx - 6, 14, wood)
+        s.line(cx + 2, 14, cx + 6, 14, wood)
+        s.set(cx - 4, 14, dark(wood, 0.3))
+        s.set(cx + 4, 14, dark(wood, 0.3))
+        # in step: the left leg straight, the right kicked up at the knee
+        s.vline(cx - 1, 19, 30, leg)
+        s.line(cx + 1, 19, cx + 3, 25, leg)
+        s.line(cx + 3, 26, cx + 6, 28, leg)
+        s.set(cx + 3, 25, dark(leg, 0.3))
+        s.set(cx - 1, 25, dark(leg, 0.3))
+        s.hline(cx - 2, cx - 1, 31, INK)
+
+    puppet(15, "dancer")
+    puppet(32, "soldier")
+    puppet(49, "harlequin")
+    p.paste(s)
+    # the floor's shadows under them
+    for cx in (15, 32, 49):
+        p.hline(cx - 3, cx + 4, 35, (110, 70, 40))
+    return p
+
+
+
 def f23():
-    """THE LAMPLIGHTER: at dusk a lamplighter lights the fourth of four lamps down a quiet street (the prelude's four notes)."""
+    """THE GRAMOPHONE: an old gramophone with a brass horn in a quiet room, a cat asleep beside it."""
     k = Key("B")
     p = Pix()
-    sky(p, k, lift=0.08, warm=0.9)
-    # the houses
-    for x0, w, top in ((0, 14, 12), (14, 12, 16), (40, 12, 14), (52, 12, 10)):
-        c = k.c(-0.1, -0.15, 10)
-        p.rect(x0, top, w, 40 - top, c)
-        p.poly([(x0 - 1, top), (x0 + w / 2, top - 5), (x0 + w, top)], dark(c, 0.2))
-        for wx in range(x0 + 2, x0 + w - 2, 5):
-            p.rect(wx, top + 4, 2, 3, GOLD if (wx + top) % 3 else dark(c, 0.3))
-    street = k.c(-0.08, -0.2, 20)
-    p.rect(0, 33, W, 7, street)
-    p.hline(0, W - 1, 33, light(street, 0.2))
-    # four lamps receding: three lit, the fourth being lit
-    lamps = [(58, 15, 1.0), (47, 19, 0.8), (40, 22, 0.66), (14, 12, 1.2)]
-    for i, (x, top, s) in enumerate(lamps[:3]):
-        p.vline(x, top, 33, (40, 40, 50))
-        p.glow(x, top - 1, 4 * s, mix(k.c(0.1), GOLD, 0.5), inner=0.3)
-        p.rect(x - 1, top - 2, 3, 2, FIRE_L)
-    x, top = 14, 12
-    p.vline(x, top, 33, (40, 40, 50))
-    p.vline(x + 1, top, 33, (60, 60, 72))
-    p.rect(x - 2, top - 4, 5, 4, (60, 60, 72))
-    p.rect(x - 1, top - 3, 3, 2, GOLD)
-    p.hline(x - 3, x + 3, top, (40, 40, 50))
-    l = Pix()
-    coat, coat_d = (60, 70, 110), (40, 46, 80)
-    cx = 26
-    robe(l, cx, 18, 33, 3, 5, coat, coat_d)
-    face(l, cx, 15, SKIN, r=2.4, look=-1)
-    l.rect(cx - 3, 11, 6, 2, INK)  # a cap
-    l.hline(cx - 4, cx + 1, 13, INK)
-    l.thick(cx - 3, 20, cx - 6, 16, coat, 2)
-    l.line(cx - 6, 16, x + 2, top - 3, BROWN)  # the long pole to the lamp
-    l.vline(cx - 1, 34, 35, INK)
-    l.vline(cx + 2, 34, 35, INK)
-    p.paste(l)
-    p.set(x + 2, top - 3, WHITE)
-    twinkle(p, x + 1, top - 5, FIRE_L)
+    wall = k.c(0.0, -0.12)
+    p.rect(0, 0, W, H, wall)
+    for x in range(3, W, 8):
+        p.vline(x, 0, 26, k.c(-0.04, -0.12))
+    p.rect(0, 27, W, 13, (110, 74, 50))
+    p.hline(0, W - 1, 27, (150, 104, 70))
+    p.ell(30, 36, 26, 3, (150, 50, 50))  # the rug
+    p.ell(30, 36, 22, 2, (180, 80, 60))
+    # a small framed picture and the lamp's light
+    p.rect(50, 6, 8, 6, (180, 140, 70))
+    p.rect(51, 7, 6, 4, k.c(0.12))
+    p.glow(8, 12, 9, mix(wall, GOLD, 0.35), inner=0.3)
+    g = Pix()
+    wood, wood_d = (150, 92, 50), (100, 60, 34)
+    g.rect(14, 24, 16, 8, wood)  # the box
+    g.rect(14, 24, 16, 1, light(wood, 0.3))
+    g.rect(24, 24, 6, 8, wood_d)
+    g.rect(15, 32, 2, 2, wood_d)
+    g.rect(27, 32, 2, 2, wood_d)
+    g.ell(22, 23, 7, 1.3, (30, 26, 30))  # the record
+    g.hline(21, 23, 23, (200, 60, 60))
+    g.disc(18, 26, 1, GOLD_D)  # the crank
+    g.line(17, 27, 13, 28, GOLD_D)
+    g.line(27, 22, 30, 15, GOLD_D)  # the arm up to the horn
+    # the horn, flaring up and out to the right
+    brass, brass_d, brass_l = (230, 176, 70), (170, 116, 40), (255, 226, 140)
+    g.poly([(29, 16), (31, 14), (44, 2), (50, 12), (32, 18)], brass)
+    g.poly([(31, 17), (48, 11), (50, 12), (32, 18)], brass_d)
+    g.ell(47, 7, 3, 6, brass_l)
+    g.ell(47, 7, 2, 4.5, brass_d)
+    g.line(32, 15, 43, 4, brass_l)
+    p.paste(g)
+    # the cat, curled asleep on the rug
+    c = Pix()
+    fur, fur_d = (90, 84, 96), (60, 56, 66)
+    c.ell(42, 33, 7, 3, fur)
+    c.ell(43, 34, 5, 1.6, fur_d)
+    c.disc(36, 32, 2.5, fur)
+    c.set(35, 29, fur)
+    c.set(37, 29, fur)
+    c.hline(35, 36, 32, INK)
+    c.line(49, 33, 52, 35, fur_d)
+    p.paste(c)
+    p.set(37, 26, CREAM)  # a z
+    p.hline(38, 39, 24, CREAM)
     return p
+
 
 
 def f24():
-    """THE CLOCKMAKER: an old clockmaker with a loupe adjusts a great clock of twelve hours (all twelve notes); the pendulum sways (the sighs)."""
+    """FAUST: a scholar, a woman, in her study at night, a book open, a sign glowing in the air before her."""
     k = Key("b")
     p = Pix()
-    room = k.c(-0.04, -0.1)
-    p.rect(0, 0, W, H, room)
-    for x in range(0, W, 6):
-        p.vline(x, 0, 36, dark(room, 0.15))
-    p.rect(0, 36, W, 4, dark(room, 0.45))
-    cl = Pix()
-    cx, cy, r = 42, 15, 12
-    case, case_l = (124, 78, 44), (160, 104, 60)
-    cl.rect(cx - 15, 0, 31, 37, case)
-    cl.rect(cx - 15, 0, 2, 37, case_l)
-    cl.disc(cx, cy, r + 1, GOLD_D)
-    cl.disc(cx, cy, r, (244, 234, 206))
-    for i in range(12):
-        a = i * math.pi / 6
-        x, y = cx + (r - 2) * math.sin(a), cy - (r - 2) * math.cos(a)
-        cl.set(x, y, RED_D if i % 3 == 0 else INK)
-        if i % 3 == 0:
-            cl.set(cx + (r - 3) * math.sin(a), cy - (r - 3) * math.cos(a), RED_D)
-    cl.line(cx, cy, cx - 3, cy - 7, INK)
-    cl.line(cx, cy, cx + 6, cy + 2, INK)
-    cl.set(cx, cy, GOLD)
-    # the pendulum's window, the bob swung left
-    cl.rect(cx - 5, cy + 15, 11, 7, (56, 34, 22))
-    cl.line(cx, cy + 15, cx - 3, cy + 19, GOLD_D)
-    cl.disc(cx - 3, cy + 20, 1.4, GOLD)
-    p.paste(cl)
-    # the swing's ghosts
-    p.set(cx + 2, cy + 20, mix((56, 34, 22), GOLD, 0.4))
-    p.set(cx + 3, cy + 20, mix((56, 34, 22), GOLD, 0.25))
-    m = Pix()
-    coat, coat_d = (74, 62, 96), (50, 42, 68)
-    hx = 13
-    m.poly([(hx - 5, 37), (hx - 4, 21), (hx + 4, 20), (hx + 6, 37)], coat)
-    m.poly([(hx + 1, 20), (hx + 4, 20), (hx + 6, 37), (hx + 2, 37)], coat_d)
-    m.rect(hx - 4, 37, 4, 2, INK)
-    m.rect(hx + 1, 37, 4, 2, INK)
-    face(m, hx + 1, 15, SKIN, r=3.4)
-    m.hline(hx - 2, hx + 4, 11, WHITE)  # white hair, a bald crown
-    m.vline(hx - 2, 12, 16, WHITE)
-    m.set(hx - 1, 12, WHITE)
-    m.hline(hx, hx + 3, 18, WHITE)  # beard
-    m.set(hx + 1, 19, WHITE)
-    m.disc(hx + 4, 14, 1.4, (60, 60, 72))  # the loupe in his eye
-    m.set(hx + 4, 14, (190, 226, 255))
-    m.set(hx + 1, 14, INK)
-    m.thick(hx + 4, 23, hx + 13, 19, coat, 2)
-    m.set(hx + 14, 19, SKIN)
-    m.hline(hx + 15, hx + 17, 18, STEEL)  # the screwdriver
-    p.paste(m)
+    wall = k.c(-0.02, -0.15)
+    p.rect(0, 0, W, H, wall)
+    # shelves of books
+    for y in (4, 13):
+        p.rect(0, y + 7, 18, 1, BROWN)
+        x = 1
+        while x < 17:
+            w = 1 + (x * 3 + y) % 2
+            h = 5 + (x + y) % 3
+            col = [(140, 50, 50), (60, 90, 140), (150, 120, 60), (70, 110, 70)][(x + y) % 4]
+            p.rect(x, y + 7 - h, w, h, col)
+            x += w + (1 if x % 5 == 0 else 0)
+    p.rect(0, 31, W, 9, (70, 46, 36))
+    p.hline(0, W - 1, 31, (110, 74, 54))
+    # the sign: a ring of light with points, glowing in the dark air
+    sx, sy = 46, 12
+    p.glow(sx, sy, 10, mix(wall, (240, 220, 140), 0.4), inner=0.2)
+    p.ring(sx, sy, 6, (255, 240, 170))
+    p.ring(sx, sy, 3, (255, 240, 170))
+    for a in range(0, 360, 60):
+        p.set(sx + 6 * math.cos(math.radians(a + 30)), sy + 6 * math.sin(math.radians(a + 30)), WHITE)
+    p.set(sx, sy, WHITE)
+    # the lectern and the open book, a candle
+    lec = Pix()
+    lec.poly([(22, 22), (34, 20), (34, 23), (22, 25)], (130, 84, 50))
+    lec.rect(27, 24, 3, 8, (100, 62, 38))
+    lec.poly([(23, 21), (28, 19), (28, 21), (23, 23)], (246, 238, 214))
+    lec.poly([(28, 19), (33, 18), (33, 20), (28, 21)], (226, 216, 190))
+    lec.rect(36, 24, 2, 5, CREAM)
+    p.paste(lec)
+    p.set(36, 23, FIRE)
+    p.set(36, 22, FIRE_L)
+    s = Pix()
+    cx = 13
+    gown, gown_d = (70, 60, 110), (46, 40, 80)
+    robe(s, cx, 17, 31, 3.5, 7, gown, gown_d)
+    s.hline(cx - 3, cx + 3, 17, (200, 170, 90))
+    head(s, cx, 13, 1, "grey", "bun", r=3.2, look=1)
+    arm(s, cx + 3, 19, cx + 12, 14, gown, hand=TONES[1][0])  # her hand reaching to the sign
+    s.set(cx + 13, 13, TONES[1][0])
+    p.paste(s)
     return p
 
 
-PICTURES = {f"wtc1f{n:02d}": globals()[f"f{n:02d}"] for n in range(1, 25)}
+PICTURES = {f"wtc1f{n:02d}": globals()[f"f{n:02d}"] for n in range(1, 25) if f"f{n:02d}" in globals()}
