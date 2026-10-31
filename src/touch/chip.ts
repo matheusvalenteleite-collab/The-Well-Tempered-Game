@@ -435,8 +435,8 @@ export interface Play {
   lineDb?: number;
   /** D385: the player's note is a reading's accent (">" +4, "^" +6 dB): what the strong zone gives it. */
   accentDb?: number;
-  /** D385: a trill's auxiliary note: sounded from the other neighbouring recording (sampled.ts), so the two pitches never share one hammer. */
-  altSample?: boolean;
+  /** D385: a trill's note: the other pitch of its alternation; where both would sound one recording, this one takes the other neighbouring recording (no shared hammer). */
+  altSample?: number;
 }
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
@@ -1171,7 +1171,13 @@ export class Chip {
     // D297: an organ's manual above its pedal's compass (sampled.ts setFor).
     const main = inst ? setFor(inst, midi) : "";
     if (v.patch && inst && !setUnreachable(main)) {
-      const near = nearestSample(main, midi);
+      let near = nearestSample(main, midi);
+      // D385: a piano trill's two pitches never from one recording: the one not recorded itself takes the other
+      // neighbouring recording (G#4 from F#4 up where A4 sounds A4), where that recording is loaded.
+      if (p.altSample !== undefined && near !== null && near !== midi && nearestSample(main, p.altSample) === near && !(near !== p.altSample && midi < p.altSample)) {
+        const other = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= 4);
+        if (other !== null && loaded(main, other)) near = other;
+      }
       // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
       // instrument has one; either layer stands in for the other until it has loaded.
       // D311: the player's touch chooses the piano's recording (Play.layer), whatever the level.

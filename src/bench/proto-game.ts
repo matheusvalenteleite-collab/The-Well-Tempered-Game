@@ -11,7 +11,8 @@
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
-import { fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
+import { contextSteps, fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
@@ -222,7 +223,9 @@ interface Held {
    * the note's end ([onset, length, MIDI] in ticks, the realisation's), the next to sound, the tick of
    * the last leg (it settles on the main note MECH.trillStopMs after it), and whether it has settled.
    */
-  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed };
+  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed; piano?: PianoTrill };
+  /** D385: the landing on a written trill struck its upper note (the piano: no main note first). */
+  upperStruck?: boolean;
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
   /** D338: its note is the reading's accent, struck on time or leaned and not joined from the note before (or not: why): its hold judged at its end. */
@@ -1140,7 +1143,12 @@ export class ProtoGame {
       if (!n.band) this.lastOther.set(n.voice, n.midi);
       // D205: an ornamented note sounds its ornament (its parts on the audio clock), its main note last.
       const orn = n.band ? undefined : this.ornaments.get(`${n.voice}:${n.on}`);
-      const parts = orn ? realiseHeld(this.f, orn, n.on, n.dur, sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
+      let parts = orn ? realiseHeld(this.f, orn, n.on, n.dur, sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
+      // D385: on the piano a trill is a pianist's (piano-trill.ts): unsnapped, its upper notes lighter and uneven,
+      // overlapped with the dampers half-seated, the two pitches from two recordings; from the main note where
+      // a whole-piece reading plays it (Busoni's own realisation).
+      const ptr = orn && /[TtO]/.test(orn.signs) ? this.pianoTrillOf(parts, n.midi, this.whole ? "main" : "upper") : undefined;
+      if (ptr) parts = ptr.parts;
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
       if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
@@ -1152,8 +1160,11 @@ export class ProtoGame {
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
         // D339: the piano's colour by its level (Play.vel) on every part.
-        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}) };
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0), vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1), ...(cl ? { colour: cl } : {}) });
+        // D385: a whole-piece reading's palette (the dampers, the room) on every part.
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
+        const tdb = ptr?.db[q] ?? 0;
+        const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: PIANO_TRILL.dampMul * (jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
@@ -2660,10 +2671,25 @@ export class ProtoGame {
    */
   private startTrill(h: Held, parts: [number, number, number][], t: number, main: number, v: ReturnType<typeof voicing>, play: Play, rec?: Performed, nachschlag = false) {
     const now = this.chip.ctx.currentTime;
-    for (const sd of h.sounds) sd.stop(now + 0.02);
+    // D385: on the piano a pianist's trill (piano-trill.ts); begun after the landing struck its upper note
+    // (upperStruck), it goes on from the main note, and the upper note rings into it (no dry cut).
+    const ptr = this.pianoTrillOf(parts, main, h.upperStruck || this.whole ? "main" : "upper", nachschlag);
+    for (const sd of h.sounds) sd.stop(now + (ptr ? PIANO_TRILL.overlap : 0.02));
     h.sounds = [];
-    h.trill = { parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec };
+    h.upperStruck = false;
+    h.trill = { parts: ptr?.parts ?? parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec, ...(ptr ? { piano: ptr } : {}) };
     this.trillStep(h, t);
+  }
+  /** D385: a trill's realisation as a pianist plays it, on the piano only (undefined elsewhere, or no room). */
+  private pianoTrillOf(parts: [number, number, number][], main: number, start: "upper" | "main", nachschlag?: boolean): PianoTrill | undefined {
+    if (styleOf(preset().id) !== "piano" || parts.length < 4) return undefined;
+    return pianoTrill(parts, main, this.tps, { start, nachschlag: nachschlag ?? parts.some((x) => x[2] < main), character: trillCharacter(this.beat / this.tps) });
+  }
+  /** D385: a trill note's Play on the piano: its dB, the dampers half-seated, the other recording for its pitch. */
+  private trillPlay(r: NonNullable<Held["trill"]>, i: number, play: Play): Play {
+    const p = r.piano;
+    if (!p || i >= p.db.length) return play;
+    return { ...play, level: (play.level ?? 1) * 10 ** (p.db[i] / 20), dampMul: PIANO_TRILL.dampMul, altSample: p.partner[i] };
   }
   /** D319: a leg of the shake: the trill goes on. */
   private trillOn(h: Held, t: number) {
@@ -2699,7 +2725,8 @@ export class ProtoGame {
           if (from + g >= end) break;
           const at = audioAt(from);
           const len = Math.max(0.03, this.timeAt(from + g) - this.timeAt(from));
-          keep(this.touchNote(pm, at, len, r.v, { ...r.play, legato: true }), at + len);
+          const ov = r.piano ? PIANO_TRILL.overlap : 0;
+          keep(this.touchNote(pm, at, len + ov, r.v, r.piano ? { ...r.play, legato: true, dampMul: PIANO_TRILL.dampMul, level: (r.play.level ?? 1) * 10 ** (PIANO_TRILL.auxDb / 20) } : { ...r.play, legato: true }), at + len + ov);
           r.rec?.parts.push([from, g, pm]);
           from += g;
         }
@@ -2716,8 +2743,8 @@ export class ProtoGame {
       const [pon, pdur, pm] = r.parts[r.next];
       const last = r.next === r.parts.length - 1;
       const at = audioAt(pon);
-      const len = last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon));
-      keep(this.touchNote(pm, at, len, r.v, { ...r.play, legato: true }), at + len);
+      const len = (last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon))) + (r.piano?.over[r.next] ?? 0);
+      keep(this.touchNote(pm, at, len, r.v, this.trillPlay(r, r.next, { ...r.play, legato: true })), at + len);
       r.rec?.parts.push([pon, pdur, pm]);
       r.next++;
     }
@@ -3321,7 +3348,16 @@ export class ProtoGame {
         const prev = this.before(i, h.k);
         const v = sv?.v ?? voiceV;
         const play = { ...expr, legato: legato && !piano };
-        h.sounds = [this.touchNote(n0.midi, this.chip.ctx.currentTime, HOLD_MAX, v, play)];
+        const now = this.chip.ctx.currentTime;
+        if (shake.kind === "trill" && styleOf(preset().id) === "piano" && !this.whole) {
+          // D385: on the piano a landing on a written trill strikes its upper note at once (Bach's start: no main
+          // note first while the shake is read), leaned, then the main note; the shake's trill goes on from there.
+          const up = n0.midi + contextSteps(this.f, n0.on, n0.midi, orn.signs).stepAbove(n0.midi);
+          const lean = PIANO_TRILL.lean / TRILL_CHARACTERS[trillCharacter(this.beat / this.tps)].rate0;
+          const leanS = Math.min(lean, Math.max(0.05, (this.timeAt(n0.on + n0.dur) - this.timeAt(n0.on)) / 3));
+          h.sounds = [this.touchNote(up, now, leanS + PIANO_TRILL.overlap, v, { ...play, level: (play.level ?? 1) * 10 ** (PIANO_TRILL.leanDb / 20), dampMul: PIANO_TRILL.dampMul, altSample: n0.midi }), this.touchNote(n0.midi, now + leanS, HOLD_MAX, v, { ...play, legato: true, dampMul: PIANO_TRILL.dampMul, altSample: up })];
+          h.upperStruck = true;
+        } else h.sounds = [this.touchNote(n0.midi, now, HOLD_MAX, v, play)];
         const read = new ShakeReader({ x: h.ax, y: h.ay, t: this.evMs() }, this.shakeTh());
         h.orn = { ...shake, main: n0.midi, read, moves: 0, v, play, by: n0.on + n0.dur, done: false, sounded: false, signs: orn.signs, prevMidi: prev >= 0 ? notes[prev].midi : undefined };
         this.shakes.of++;
