@@ -14,8 +14,28 @@
  *      where the reading also dots it short, the dot decides its length and this is not asked).
  */
 import { MECH, type Mech } from "./mechanics.ts";
+import { STRONG_ZONE_FROM } from "../touch/touch-expr.ts";
 
-export type AccentWhy = "early" | "late" | "joined" | "short";
+/**
+ * D385 (WTC 1.88, the panel's report §2; the owner: "accents and marcato as weight on time, not a delay"):
+ * on the piano an accent is pressed harder, on the beat; the harpsichordist's lean and silence was the wrong
+ * tool borrowed for every instrument. ACCENT ✓ now asks two things: struck WITHIN THE PERFECT WINDOW (no
+ * late lean credited) and landed in the STRONG ZONE of the bar (touch-expr.ts: the third by the box), read
+ * at touch-down, so it costs no latency. On the piano that zone is the accent's weight (+4 dB for ">", +6 for
+ * "^", firm and bright: whole-reading.ts PLAYER_ACCENT_DB); on the harpsichord and the organ, which cannot
+ * strike louder, the same gesture is asked and the note sounds its plain stop. Where no bar is touched (a
+ * computer's keys) only the timing is asked. Nothing about the note before or the hold is asked; a wrong
+ * note sounds as a right one (loudness never tied to right or wrong). D338's three rules below stay for the
+ * Lab's CLASSIC mechanics (MECH.glenn off).
+ */
+export type AccentWhy = "early" | "late" | "joined" | "short" | "soft";
+/** D385: the accent's verdict: on time (offMs within ±onTimeMs, the PERFECT window) and strong (strength 0..1, null: not asked). */
+export function accentWeighted(offMs: number, onTimeMs: number, strength: number | null): AccentWhy | null {
+  if (offMs < -onTimeMs) return "early";
+  if (offMs > onTimeMs) return "late";
+  if (strength !== null && strength < STRONG_ZONE_FROM) return "soft";
+  return null;
+}
 
 /** 1: struck on time or leaned (offMs: + late; onTimeMs: the PERFECT window; beatMs: one beat of the metre). */
 export function accentTimely(offMs: number, onTimeMs: number, beatMs: number, m: Mech = MECH): AccentWhy | null {

@@ -80,7 +80,7 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "answer" && rows) answer(c, g);
     if (a === "point" && rows && o.box) point(c, g, o.box);
     if (a === "colour") colourMap(c, w, h, bw);
-    // Design studio (D386, the owner: "we don't need A for buttons, because the L and R markings appearing in
+    // Design studio (D392, the owner: "we don't need A for buttons, because the L and R markings appearing in
     // synchrony with the thumbs movement is informative enough"): the path on the strips only where a lesson is
     // about where across the strip a thumb lands (6.4, colour); elsewhere each played note keeps its L or R.
     if (a === "thumbs" && rows && o.tour?.focus !== "height" && o.aids.includes("colour")) thumbPath(c, w, bw, g, true);
@@ -569,7 +569,7 @@ function planLetters(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: numbe
   const notes = g.tracks[0].notes;
   for (const t of g.plan) {
     const n = notes[t.i];
-    // Design studio (D386): the plan's letters only on notes still to come, faint, in the thumbs' one ink;
+    // Design studio (D392): the plan's letters only on notes still to come, faint, in the thumbs' one ink;
     // a played note shows the thumb that played it (playedLetters).
     if (!n || t.slid || n.state !== "pending") continue;
     const x = rows.xOf(n.on);
@@ -579,7 +579,7 @@ function planLetters(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: numbe
 }
 
 /**
- * Design studio (D386): under each played note, the thumb that played it, L or R, appearing as the thumb lands
+ * Design studio (D392): under each played note, the thumb that played it, L or R, appearing as the thumb lands
  * (a short flash, the letter a size larger, settling): his thumbs in a WATCH, yours in a TRY or PLAY. One ink
  * for both thumbs (the owner: "share"), the thumbs' cream. Which thumb: the one down nearest the note's height
  * when it is first seen struck, else the plan's. Drawing only; nothing judged.

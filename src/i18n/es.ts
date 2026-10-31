@@ -143,7 +143,7 @@ export const ES: Record<string, string> = {
   "his rule, applied to the notes": "su regla, aplicada a las notas",
   "his tempo: {t} (the game plays ♩ = {q})": "su tempo: {t} (el juego toca ♩ = {q})",
   "NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN": "NO HAY LECTURA PARA ESTA FUGA: SE TOCA COMO ESTÁ ESCRITA",
-  // Design studio (D388): HEAR THE SUBJECT's picker.
+  // Design studio (D394): HEAR THE SUBJECT's picker.
   "WHOSE READING?": "¿DE QUIÉN ES LA LECTURA?",
   "NO READING": "SIN LECTURA",
   "Your own articulation: no marks asked or scored.": "Tu propia articulación: ninguna marca pedida ni puntuada.",
@@ -255,7 +255,7 @@ export const ES: Record<string, string> = {
   "A tag names it wherever it goes. Now the right hand: play each of your subjects whole.": "Una etiqueta lo nombra vaya donde vaya. Ahora la mano derecha: toca entero cada sujeto tuyo.",
   "That is a fugue in small: one subject, passed from voice to voice.": "Eso es una fuga en pequeño: un sujeto que pasa de voz en voz.",
   "The subject must be said whole, or it is not the subject. Again.": "El sujeto hay que decirlo entero, o no es el sujeto. Otra vez.",
-  "PLAY THE SUBJECT AS THE MARKS SAY: ‾ JOINED · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (LIFT BEFORE, LEAN IN)": "TOCA EL SUJETO COMO DICEN LOS SIGNOS: ‾ LIGADO · ⌒ LIGADURA · | PICADO · · CORTA · > ACENTO (SUELTA ANTES, ENTRA TARDE)",
+  "PLAY THE SUBJECT AS THE MARKS SAY: ‾ JOINED · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (STRONG ZONE, ON TIME)": "TOCA EL SUJETO COMO DICEN LOS SIGNOS: ‾ LIGADO · ⌒ LIGADURA · | PICADO · · CORTA · > ACENTO (ZONA FUERTE, A TIEMPO)",
   "Now one of my fugues. Players have written how its subject should go: some notes joined, some apart.": "Ahora una de mis fugas. Los músicos han escrito cómo debe ir su sujeto: unas notas ligadas, otras separadas.",
   "The marks show it. In HEAR THE SUBJECT, choose a reading or none. Here, follow the marks.": "Los signos lo muestran. En ESCUCHA EL SUJETO, elige una lectura o ninguna. Aquí, sigue los signos.",
   "So. You played my subject as a thinking musician would.": "So. Has tocado mi sujeto como lo haría un músico que piensa.",
@@ -352,7 +352,7 @@ export const ES: Record<string, string> = {
   "HANDOVERS": "RELEVOS DE PULGAR A PULGAR",
   "ONE THUMB WHERE DETACHED": "UN SOLO PULGAR DONDE PICADO",
   "ONE-THUMB LEAPS": "SALTOS CON UN SOLO PULGAR",
-  "ACCENT: LIFT THE NOTE BEFORE A LITTLE EARLY, LEAN IN A HAIR LATE": "ACENTO: SUELTA UN POCO ANTES LA NOTA ANTERIOR, ENTRA UN PELÍN TARDE",
+  "ACCENT: LAND IN THE STRONG ZONE, BY THE BOX, ON TIME": "ACENTO: POSA EN LA ZONA FUERTE, JUNTO A LA CAJA, A TIEMPO",
   "A READING'S MARKS, IF YOU CHOOSE ONE IN HEAR THE SUBJECT": "LOS SIGNOS DE UNA LECTURA, SI ELIGES UNA EN ESCUCHA EL SUJETO",
   "THE THUMBS: JOINED, THE OTHER THUMB HANDS OVER OR OVERLAPS · DETACHED, LIFT EARLY (ONE THUMB MAY TAKE THE NEXT) · SOFT BY THE EDGE, LOUD BY THE BOX · SHAKE ON AN ORNAMENT": "LOS PULGARES: LIGADO, EL OTRO PULGAR PASA LA NOTA O SOLAPA · PICADO, SUELTA ANTES (UN SOLO PULGAR PUEDE TOCAR LA SIGUIENTE) · SUAVE EN EL BORDE, FUERTE JUNTO A LA CAJA · AGITA EN UN ORNAMENTO",
   "Across the bar is yours: by the edge softer and darker, by the box firmer and brighter; move a held thumb sideways to shape the note. It never costs or earns points.": "El ancho de la barra es tuyo: junto al borde, más suave y oscuro; junto a la caja, más firme y brillante; mueve de lado un pulgar que sostiene la nota para darle forma. Nunca quita ni da puntos.",
@@ -468,7 +468,7 @@ export const ES: Record<string, string> = {
   "Joined means no gap you can hear (25 ms or less). On harpsichord, lute and piano, keep the old thumb down a moment after the new strike: the old note rings on until you lift it (over-legato). Slide a held thumb to the next note and it plays it: on a keyboard a slur begins, joined until you lift, the next strong beat or eight notes.": "Ligado es sin pausa que se oiga (25 ms o menos). En el clave, el laúd y el piano, deja el pulgar anterior un instante tras el nuevo toque: la nota anterior suena hasta que lo sueltes (over-legato). Desliza un pulgar sostenido hasta la siguiente nota y suena: en un teclado empieza una ligadura, ligada hasta que sueltes, el siguiente tiempo fuerte u ocho notas.",
   "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.": "Tu toque es tuyo: ligado (legato), ordinario o picado. La ARTICULACIÓN puntúa un toque constante, no el legato en sí.",
   "Marks over the subject (dot, stroke, slur, wedge) come from a book on playing the fugue: follow them and the subject's notes earn a little more; missing them costs nothing. HEAR THE SUBJECT plays and draws them.": "Los signos sobre el sujeto (punto, raya, ligadura, cuña) vienen de un libro sobre cómo tocar la fuga: síguelos y las notas del sujeto valen un poco más; no seguirlos no cuesta nada. ESCUCHA EL SUJETO los toca y los dibuja.",
-  "An accent (>) is made with time, not force: let go of the note before a moment early (a small silence) and, if you like, lean into the accent a hair late; how long you hold it is yours. Loudness is never judged.": "Un acento (>) se hace con el tiempo, no con fuerza: suelta la nota anterior un instante antes (un pequeño silencio) y, si quieres, entra en el acento un pelín tarde; cuánto lo mantienes es cosa tuya. El volumen nunca se juzga.",
+  "An accent (>) is weight on time: land it in the strong zone of the bar (the third by the box), on the beat, and on the piano it sounds heavier. A late or soft landing is no accent; a wrong note never sounds different.": "Un acento (>) es peso a tiempo: pósalo en la zona fuerte de la barra (el tercio junto a la caja), a tiempo, y en el piano suena más pesado. Una posada tarde o suave no es acento; una nota equivocada nunca suena distinta.",
   "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.": "Bonificaciones: una entrada entera del sujeto sin fallo (ORGANO PLENO!; la última entrada de una voz es su JEFE FINAL), y una cadencia alcanzada sin romper la racha.",
   // D371: the title page and the selection screen (Mario and Luigi's report).
   "TOUCH TO BEGIN": "TOCA PARA EMPEZAR",

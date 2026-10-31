@@ -210,7 +210,8 @@ test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: M
 test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading the default until one is chosen", async () => {
   const { chosenReading, chooseReading, bestReading, BEST_READING, NO_READING, readingsOf } = await import("../src/touch/readings.ts");
   store.clear();
-  const id = Object.keys(BEST_READING).find((k) => BEST_READING[k] !== NO_READING && readingsOf(k).length > 1)!;
+  // (D385: a fugue with no whole-piece reading: on the piano BUSONI's is the default where it exists, d385-piano.test.ts.)
+  const id = Object.keys(BEST_READING).find((k) => BEST_READING[k] !== NO_READING && readingsOf(k).length > 1 && !readingsOf(k).some((r) => r.whole))!;
   assert.equal(chosenReading(id)?.id, bestReading(id)?.id, "nothing chosen: D344's");
   const other = readingsOf(id).find((r) => r.id !== BEST_READING[id])!;
   chooseReading(id, other.id);
@@ -220,8 +221,7 @@ test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading th
   store.clear();
   const app = src("src/bench/BenchApp.tsx");
   assert.doesNotMatch(app, /single=\{!full\}/);
-  // D388: the piano's flag passed along (Busoni its default where his reading exists).
-  assert.match(app, /f\.kind === "fugue" \? chosenReading\(f\.id(, [^;]*)?\) : null;/);
+  assert.match(app, /f\.kind === "fugue" \? chosenReading\(f\.id, presetById\(soundNow\)\.id\) : null;/);
   register("./tsx-hooks.mjs", import.meta.url);
   const React = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");

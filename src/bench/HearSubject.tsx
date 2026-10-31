@@ -31,9 +31,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
-  // D388: Busoni the default on the piano (the owner), where his reading exists.
-  const piano = /piano/i.test(preset().id);
-  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id, piano) : chosenReading(id, piano)));
+  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id, preset().id) : chosenReading(id, preset().id)));
   const [picking, setPicking] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
@@ -86,7 +84,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   };
   const nick = fugueName(id, lang());
   const fg = fingerings[Math.min(alt, fingerings.length - 1)];
-  // Design studio (D388): the legend only of the signs this subject bears in this reading.
+  // Design studio (D394): the legend only of the signs this subject bears in this reading.
   const ns = reading?.notes ?? [];
   const has: Record<string, boolean> | null = reading
     ? { short: ns.some((n) => !!n.short), apart: ns.some((n) => n.join === false), joined: ns.some((n, i) => !!n.join && !slurredJoin(reading, i)), slur: (reading.slurs ?? []).length > 0, strong: ns.some((n) => !!n.accent) }
@@ -171,7 +169,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   );
 }
 
-/** Design studio (D388): what each reading is, one line in the picker (the studio's rating of 31 Oct 2026). */
+/** Design studio (D394): what each reading is, one line in the picker (the studio's rating of 31 Oct 2026). */
 const READING_WHO: Readonly<Record<string, string>> = {
   bodky: "A harpsichordist after Quantz. Marks almost every note.",
   keller: "An organist's articulation, from Bach's marked parts. Not every fugue.",
@@ -187,10 +185,10 @@ const GOLD_LINE = "#f3d26b";
 const LETTER = "#fff3b0";
 
 /**
- * Design studio (D388): the subject drawn as the play screen draws it: the box between the two strips, its
+ * Design studio (D394): the subject drawn as the play screen draws it: the box between the two strips, its
  * blocks in the voice's subject ink (D368) with their rims, the reading's marks over them (D374), a gold
  * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D386), each
- * played note's L or R under it as its thumb lands (D386).
+ * played note's L or R under it as its thumb lands (D392).
  */
 function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
   const cssW = c.clientWidth || 300;
@@ -295,7 +293,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   }
   const t = playing ? now : finished ? Infinity : -1;
   const size = Math.max(12, Math.min(22, bar * 0.34));
-  // Each played note's thumb, L or R, appearing as it lands (D386: one ink for both thumbs).
+  // Each played note's thumb, L or R, appearing as it lands (D392: one ink for both thumbs).
   for (const tc of touches) {
     if (tc.slid || t < tc.on) continue;
     const p = perf[tc.i];

@@ -54,7 +54,7 @@ test("D335: the strike's strength on a log scale: soft median 0.25, hard 0.75, t
   assert.deepEqual(["soft", "light", "medium", "firm", "hard"], [0.1, 0.3, 0.5, 0.7, 0.9].map(strikeWord));
 });
 
-test("D335: the piano's onset: the layer by D311's landing, the level beyond ±4 dB made up; the loudness the one asked", () => {
+test("D335, D385: the piano's onset: the layer by the landing's zone, the level beyond it made up; the loudness the one asked", () => {
   for (const db of [-8, -6, -4, -3, -1, 0, 2, 4, 6, 8]) {
     const o = pianoOnset(db);
     const l = landing("piano", o.touch, 60, null);
@@ -62,8 +62,8 @@ test("D335: the piano's onset: the layer by D311's landing, the level beyond ±4
     near(got, db, 1e-9);
   }
   assert.deepEqual(pianoOnset(0), { touch: 0.5, level: 1 });
-  assert.equal(pianoOnset(6).touch, 1);
-  near(pianoOnset(6).level, 10 ** (2 / 20));
+  assert.ok(pianoOnset(6).touch >= 2 / 3, "the strong zone");
+  near(pianoOnset(6).level, 10 ** (3 / 20));
 });
 
 test("D335: the pedal: the landings over the window averaged, the old ones dropped, the middle with none", () => {
@@ -199,7 +199,8 @@ test("D335: FREE PLAY, A · PLACE × STRIKE: struck at once at the place's level
   fp.down(1, "left", 149, 100, W, H, performance.now());
   assert.equal(notes.length, 1, "at once");
   const t0 = notes[0].p.touch!;
-  assert.ok(t0 > 0.98, `the place's level at touchdown: touch ${t0}`);
+  // D385: the piano's landing in three zones: the strong zone, the rest of the place's +4 dB made up in level.
+  assert.ok(t0 >= 2 / 3, `the place's level at touchdown: touch ${t0}`);
   assert.equal(out.length, 0, "the line waits for the strike");
   clock.t = 10.03;
   pending!({ peak: 0.25, strength: 0.25, cal: "inner zone's calibration" });

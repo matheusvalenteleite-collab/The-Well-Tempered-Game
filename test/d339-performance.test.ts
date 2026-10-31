@@ -1,6 +1,6 @@
 /**
  * D339 (WTC 1.53): the band played as a performance (the shaped time within ±20 ms of the written beat,
- * every voice together; the piano's wider dynamics, the subject never louder; its colour by its level;
+ * every voice together; the piano's wider dynamics (D385: the subject no longer capped); its colour by its level;
  * its dampers by register), the player's piano slurs from the thumbs (SLUR_DB, the slur's end set
  * down softly, a staccato crisp), and the music room of the piano and the harpsichord.
  */

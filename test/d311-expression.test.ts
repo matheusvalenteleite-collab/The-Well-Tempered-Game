@@ -21,7 +21,6 @@ import {
   landing,
   LUTE_FROM,
   MESSA_DB,
-  PIANO_DB,
   PIANO_SOFT_NET_DB,
   pulseWidth,
   STRONG_SIDE,
@@ -30,6 +29,7 @@ import {
   TOUCH_TAU,
   VIB_CENTS,
   WAH_DB,
+  PIANO_ZONE_DB,
 } from "../src/touch/touch-expr.ts";
 
 const ctxOf = installFakeAudio(5, true);
@@ -99,21 +99,20 @@ test("D311: every preset the players choose has a family (the band's level never
 });
 
 test("D311: the landing's numbers at the extremes, the middle the sound as it was", () => {
-  // PIANO: ±4 dB, the softer recording under the middle.
+  // PIANO (D385): three zones, soft −3, normal 0, strong +3 dB; the softer recording under −1.5 dB.
   const lo = landing("piano", 0, 64, PATCHES.pianoSampled);
   const mid = landing("piano", 0.5, 64, PATCHES.pianoSampled);
   const hi = landing("piano", 1, 64, PATCHES.pianoSampled);
   assert.equal(lo.layer, "soft");
   assert.equal(mid.layer, "firm");
   assert.equal(hi.layer, "firm");
-  // Net of the softer recording (about -2 dB at the same level): -4, 0, +4.
-  assert.ok(Math.abs(db(lo.level!) + PIANO_SOFT_NET_DB - -PIANO_DB) < 1e-9);
+  assert.ok(Math.abs(db(lo.level!) + PIANO_SOFT_NET_DB - PIANO_ZONE_DB[0]) < 1e-9);
   assert.ok(Math.abs(db(mid.level!)) < 1e-9);
-  assert.ok(Math.abs(db(hi.level!) - PIANO_DB) < 1e-9);
+  assert.ok(Math.abs(db(hi.level!) - PIANO_ZONE_DB[2]) < 1e-9);
   for (let x = 0; x <= 1; x += 0.05) {
     const l = landing("piano", x, 64, PATCHES.pianoSampled);
     const net = db(l.level!) + (l.layer === "soft" ? PIANO_SOFT_NET_DB : 0);
-    assert.ok(net >= -PIANO_DB - 1e-9 && net <= PIANO_DB + 1e-9, `piano ${x}: ${net.toFixed(2)} dB`);
+    assert.ok(PIANO_ZONE_DB.some((z) => Math.abs(net - z) < 1e-9), `piano ${x}: ${net.toFixed(2)} dB`);
   }
   // HARPSICHORD: no loudness; the lute only at the outer edge (D315: a place, whichever side is strong;
   // landing takes strength, strengthOf the place's).
@@ -136,14 +135,14 @@ test("D311: the landing's numbers at the extremes, the middle the sound as it wa
   assert.equal(landing("synth", 0.5, 64, PATCHES.solLead).bright, 0);
 });
 
-test("D311: PIANO (SAMPLED): soft to firm 8 dB edge to edge on the two recordings; the middle as before", async () => {
+test("D311, D385: PIANO (SAMPLED): soft to strong 6 dB edge to edge (three zones) on the two recordings; the middle as before", async () => {
   const soft = await strike("pianoSampled", { touch: 0 });
   const mid = await strike("pianoSampled", { touch: 0.5 });
   const firm = await strike("pianoSampled", { touch: 1 });
   const plain = await strike("pianoSampled", {});
   // The fake's recordings are alike; the real layer 7 is 5 dB under layer 12 as recorded.
   const net = db(firm.peak) - (db(soft.peak) - 5);
-  assert.ok(Math.abs(net - 2 * PIANO_DB) < 0.2, `range ${net.toFixed(2)} dB`);
+  assert.ok(Math.abs(net - (PIANO_ZONE_DB[2] - PIANO_ZONE_DB[0])) < 0.2, `range ${net.toFixed(2)} dB`);
   assert.ok(Math.abs(db(mid.peak) - db(plain.peak)) < 0.05, "the bar's middle: as the player's note was");
   // Holding: nothing (a struck note cannot swell).
   const events = (s: Struck) => s.made.reduce((n, x) => n + Object.values(x).filter((v) => v instanceof FakeParam).reduce((m, v) => m + (v as FakeParam).events.length, 0), 0);

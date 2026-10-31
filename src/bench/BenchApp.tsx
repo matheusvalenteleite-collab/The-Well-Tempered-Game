@@ -24,7 +24,7 @@ import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
 import { answer, askFirst, nextLesson, recordLesson, skipLesson, triesAt, tutorialDone } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
-import { preset, presetById, setPreset } from "../touch/sound.ts";
+import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
@@ -399,12 +399,6 @@ export function BenchApp() {
   }, [sheetOn, sheetLayout, f.id]);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
-  // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
-  // book's: the owner, "fugues should not be too fast").
-  // D282: a tutorial step may name its reading.
-  // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
-  // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, /piano/i.test(preset().id)) : null;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
@@ -432,6 +426,13 @@ export function BenchApp() {
   };
   const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
+  // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
+  // book's: the owner, "fugues should not be too fast").
+  // D282: a tutorial step may name its reading.
+  // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
+  // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
+  // D385: on the piano BUSONI's whole-piece reading is the default where it exists (readings.ts bestReading).
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, presetById(soundNow).id) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
   const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);
@@ -547,7 +548,7 @@ export function BenchApp() {
   const frame = useRef<Frame>(preview());
   const count = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
-  /** Design studio (D387): the first-round hint, in the box behind the gold line, fading as the first note reaches it. */
+  /** Design studio (D393): the first-round hint, in the box behind the gold line, fading as the first note reaches it. */
   const hintRef = useRef<HTMLParagraphElement>(null);
   const hintGone = useRef(false);
   const shownAt = useRef(0);
@@ -892,7 +893,7 @@ export function BenchApp() {
   }
 
   /**
-   * Design studio (D387, the owner chose placement A): the round's hint stands in the box behind the gold line,
+   * Design studio (D393, the owner chose placement A): the round's hint stands in the box behind the gold line,
    * the one empty place during the count-in, where the eye waits for the first note and no thumb plays. Full
    * through the count-in, it fades over the last 0.6 s before the round's first note (any voice) reaches the
    * line, and is then seen for good; a touch no longer clears it (the player read it to the end). THE TUTORIAL's

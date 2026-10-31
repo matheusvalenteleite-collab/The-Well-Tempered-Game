@@ -128,9 +128,9 @@ test("D336: a struck note: at the place's level at once, corrected over the ramp
   const audio = { t: 5 };
   const pd = new PassageDynamics({ mode: "place", adapt: new AdaptiveCal({ soft: 0.25, hard: 1, from: "learn" }), read, say: (l) => lines.push(l), name: () => "C5", audioNow: () => audio.t, wall: () => 1010 });
   const a = pd.ask(ask())!;
-  // The place (by the box: strong) +4 dB at once: the piano's layer at the top, no level beyond.
-  near(a.touch, 1);
-  near(a.level, 1);
+  // The place (by the box: strong) +4 dB at once: D385, the piano's strong zone (+3) and 1 dB of level beyond.
+  assert.ok(a.touch >= 2 / 3);
+  near(a.level, 10 ** (1 / 20));
   const f = fakeSound();
   a.sounded!([f.s], 5);
   audio.t = 5.03;

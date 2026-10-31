@@ -76,7 +76,7 @@ export function drawThumbProxy(c: CanvasRenderingContext2D, x: number, y: number
   }
   c.lineWidth = state === "rest" ? 1.25 : 1.75;
   if (state === "press") {
-    // Design studio (D386): the pressing thumb glows, a soft halo of its own ink round the disc.
+    // Design studio (D392): the pressing thumb glows, a soft halo of its own ink round the disc.
     c.globalAlpha = alpha * 0.85;
     c.fillStyle = PROXY_INK;
     c.shadowColor = PROXY_INK;
@@ -109,7 +109,7 @@ export function drawThumbProxy(c: CanvasRenderingContext2D, x: number, y: number
   c.restore();
 }
 const NONE: ProxyOpts = {};
-/** Design studio (D386): the pressing disc's glow, its blur as a share of the thumb's size. */
+/** Design studio (D392): the pressing disc's glow, its blur as a share of the thumb's size. */
 export const GLOW = 0.75;
 const DASH = [2, 3];
 const SOLID: number[] = [];

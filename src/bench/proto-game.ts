@@ -11,7 +11,8 @@
  * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
-import { fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
+import { contextSteps, fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
@@ -22,7 +23,7 @@ import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, type Touch } from "./fingering.ts";
 import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
-import { accentHeld, accentSeparated, accentTimely, type AccentWhy } from "./accent.ts";
+import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentWhy } from "./accent.ts";
 import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
@@ -68,7 +69,8 @@ export const setTravelMin = (v: number) => ((TRAVEL_MIN = v), (MECH.travelMin = 
 import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, strikeNext, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
-import { follow, joins, phrase, phraseContext, ritard, styleOf, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { follow, joins, phrase, phraseContext, ritard, styleOf, withHolds, withSpeed, type Shape } from "../touch/phrasing.ts";
+import { metricPlace, phraseArchDb, PLAYER_ACCENT_DB, slurShapeDb, wholeMarks, wholePlan, type WholePlan } from "../touch/whole-reading.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
@@ -221,7 +223,9 @@ interface Held {
    * the note's end ([onset, length, MIDI] in ticks, the realisation's), the next to sound, the tick of
    * the last leg (it settles on the main note MECH.trillStopMs after it), and whether it has settled.
    */
-  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed };
+  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed; piano?: PianoTrill };
+  /** D385: the landing on a written trill struck its upper note (the piano: no main note first). */
+  upperStruck?: boolean;
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
   /** D338: its note is the reading's accent, struck on time or leaned and not joined from the note before (or not: why): its hold judged at its end. */
@@ -544,6 +548,8 @@ export class ProtoGame {
   private readonly shapes: Shape[];
   private held = new Map<number, Held>();
   private readonly rit: ReturnType<typeof ritard> = { warp: (t: number) => t, unwarp: (w: number) => w };
+  /** D385: the whole-piece reading's plan (BUSONI), or null. */
+  readonly whole: WholePlan | null = null;
   /** D216, KIMIKO (D219: WITH KIMIKO ISHIZAKA, a switch in LADDER and SUBJECT): her clock (her-clock.ts), the game on Kimiko Ishizaka's time. */
   readonly clock: Clock | null = null;
   /** D215: the notes played right and the slips, so far (counted only; the fade went with D216). */
@@ -579,8 +585,16 @@ export class ProtoGame {
     this.perBar = b.perBar;
     // D181: the tempo counts quarter notes, whatever the metre (in 2/2 the beat was a half note: twice as fast).
     this.tps = (f.tpq * o.bpm) / 60;
+    // D385: a whole-piece reading (BUSONI): every voice's dynamics, marks and characters (whole-reading.ts).
+    this.whole = wholePlan(f, o.reading);
     if (o.clock && o.her) (this.rit = o.clock), (this.tps = o.clock.tps), (this.clock = o.clock);
-    else if (o.until === undefined || o.until >= f.length) this.rit = ritard(f.length, f.barTicks);
+    else {
+      // D385: the final slowing where the edition marks it (his words, his bars), else D181's automatic one;
+      // and the fermatas it marks held (the only other place the time moves).
+      const end = this.whole?.ending;
+      if (o.until === undefined || o.until >= f.length) this.rit = end ? ritard(f.length, f.barTicks, end.from, end.end) : ritard(f.length, f.barTicks);
+      if (this.whole?.fermatas.length) this.rit = withHolds(this.rit, this.whole.fermatas);
+    }
     // D250: a prelude's arc (arc.ts): its tempo rising subtly, its notes passing to the player by section.
     const arc = o.her || proto.id === "subject" ? undefined : arcOf(f);
     this.arc = arc;
@@ -697,7 +711,8 @@ export class ProtoGame {
     this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (n.band || (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi)))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
     // D302: the others joined and detached, the reading's marks on every entry of the subject.
     // D309: each instrument's table, the fugue's character, the piano's levels from the whole score (never the player's part).
-    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, this.bpm, readingMarks(f.entries, o.reading ?? null)));
+    // D385: a whole-piece reading's marks on every voice (its slurs, dots, joins), its plan (dynamics, palettes) on the piano.
+    this.shapes = phrase(this.others, this.beat, (t) => inBar(f, t), subjectMarks(f).subject, undefined, phraseContext(f, this.bpm, this.whole ? wholeMarks(this.whole) : readingMarks(f.entries, o.reading ?? null), this.whole));
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     // D338: the count-in by time (at most about 4 s, at least two beats), not whole bars.
     // D373: the tutorial's count-in in whole beats ("I count four, then you begin").
@@ -1128,7 +1143,12 @@ export class ProtoGame {
       if (!n.band) this.lastOther.set(n.voice, n.midi);
       // D205: an ornamented note sounds its ornament (its parts on the audio clock), its main note last.
       const orn = n.band ? undefined : this.ornaments.get(`${n.voice}:${n.on}`);
-      const parts = orn ? realiseHeld(this.f, orn, n.on, n.dur, sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
+      let parts = orn ? realiseHeld(this.f, orn, n.on, n.dur, sh.hold, n.midi, prev, this.bpm) : [[n.on, 0, n.midi] as [number, number, number]];
+      // D385: on the piano a trill is a pianist's (piano-trill.ts): unsnapped, its upper notes lighter and uneven,
+      // overlapped with the dampers half-seated, the two pitches from two recordings; from the main note where
+      // a whole-piece reading plays it (Busoni's own realisation).
+      const ptr = orn && /[TtO]/.test(orn.signs) ? this.pianoTrillOf(parts, n.midi, this.whole ? "main" : "upper") : undefined;
+      if (ptr) parts = ptr.parts;
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
       if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
@@ -1140,8 +1160,11 @@ export class ProtoGame {
         const plen = orn ? this.timeAt(pon + pdur) - this.timeAt(pon) + (last ? sh.over : 0) : len;
         // D302: an ornament's first note joined from the note before as the note was; its last joined to the next.
         // D339: the piano's colour by its level (Play.vel) on every part.
-        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}) };
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0), vv, { ...sv.play, ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1), ...(cl ? { colour: cl } : {}) });
+        // D385: a whole-piece reading's palette (the dampers, the room) on every part.
+        const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
+        const tdb = ptr?.db[q] ?? 0;
+        const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
@@ -1283,7 +1306,7 @@ export class ProtoGame {
         const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
         const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
         const rn = rd && place !== undefined ? rd.notes[place] : undefined;
-        const d = rn?.accent ? 0.78 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
+        const d = rn?.accent ? 0.9 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
         return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
       }),
       // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
@@ -1418,8 +1441,8 @@ export class ProtoGame {
         t.off = style === "legato" ? Math.max(next.on + this.f.tpq / 32, t.on + HOLD.legato * (next.on - t.on)) : t.on + HOLD[style] * (next.on - t.on);
       });
     }
-    // D359: the reading's accents made as D338 judges them: the note before let go a little early (a
-    // small silence), the accented note held nine tenths of its length.
+    // D359: the reading's accents made as they are judged. D385: weight on time: landed in the strong zone
+    // (accent.ts accentWeighted), on the beat; no silence before, no lean (D338's way only under CLASSIC).
     if (style === "accent" && this.o.reading) {
       const idx = this.readingIndex();
       const rd = this.o.reading;
@@ -1428,6 +1451,10 @@ export class ProtoGame {
       plan.forEach((t, p) => {
         const place = idx.get(`0:${notes[t.i].on}`);
         if (place === undefined || !rd.notes[place]?.accent || t.slid) return;
+        if (MECH.glenn) {
+          t.d = 0.9;
+          return;
+        }
         const prev = plan[p - 1];
         if (prev && prev.off > t.on - gap) prev.off = Math.max(prev.on + (t.on - prev.on) * 0.5, t.on - gap);
         const next = plan[p + 1];
@@ -1487,7 +1514,9 @@ export class ProtoGame {
    * Never the verdict's: right or wrong, the same sound.
    */
   private touchFor(land: number | undefined, k: number, on: number): number | undefined {
-    if (this.touchDynamics || (this.o.reading?.level && this.readingIndex().has(`${k}:${on}`))) return undefined;
+    // D385: on the piano the strip means the same everywhere: three zones about the reading's level (no second mapping on a reading's notes).
+    const piano = styleOf(preset().id) === "piano";
+    if (this.touchDynamics || (!piano && this.o.reading?.level && this.readingIndex().has(`${k}:${on}`))) return undefined;
     // D317: the lab may turn D311's expression off (every attack the bar's middle).
     if (!MECH.expression) return TOUCH_NEUTRAL;
     return land ?? TOUCH_NEUTRAL;
@@ -1514,6 +1543,7 @@ export class ProtoGame {
   }
   /** D296: the loudness heard for note `on` of track k: the touch's where the dynamics lesson or the reading (a subject note it sets a level for) asks. */
   private heardAt(d: number, k: number, on: number): number {
+    if (!this.touchDynamics && styleOf(preset().id) === "piano") return NEUTRAL_D;
     return this.touchDynamics || (this.o.reading?.level && this.readingIndex().has(`${k}:${on}`)) ? d : NEUTRAL_D;
   }
 
@@ -2641,10 +2671,25 @@ export class ProtoGame {
    */
   private startTrill(h: Held, parts: [number, number, number][], t: number, main: number, v: ReturnType<typeof voicing>, play: Play, rec?: Performed, nachschlag = false) {
     const now = this.chip.ctx.currentTime;
-    for (const sd of h.sounds) sd.stop(now + 0.02);
+    // D385: on the piano a pianist's trill (piano-trill.ts); begun after the landing struck its upper note
+    // (upperStruck), it goes on from the main note, and the upper note rings into it (no dry cut).
+    const ptr = this.pianoTrillOf(parts, main, h.upperStruck || this.whole ? "main" : "upper", nachschlag);
+    for (const sd of h.sounds) sd.stop(now + (ptr ? PIANO_TRILL.overlap : 0.02));
     h.sounds = [];
-    h.trill = { parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec };
+    h.upperStruck = false;
+    h.trill = { parts: ptr?.parts ?? parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec, ...(ptr ? { piano: ptr } : {}) };
     this.trillStep(h, t);
+  }
+  /** D385: a trill's realisation as a pianist plays it, on the piano only (undefined elsewhere, or no room). */
+  private pianoTrillOf(parts: [number, number, number][], main: number, start: "upper" | "main", nachschlag?: boolean): PianoTrill | undefined {
+    if (styleOf(preset().id) !== "piano" || parts.length < 4) return undefined;
+    return pianoTrill(parts, main, this.tps, { start, nachschlag: nachschlag ?? parts.some((x) => x[2] < main), character: trillCharacter(this.beat / this.tps) });
+  }
+  /** D385: a trill note's Play on the piano: its dB, the dampers half-seated, the other recording for its pitch. */
+  private trillPlay(r: NonNullable<Held["trill"]>, i: number, play: Play): Play {
+    const p = r.piano;
+    if (!p || i >= p.db.length) return play;
+    return { ...play, level: (play.level ?? 1) * 10 ** (p.db[i] / 20), dampMul: PIANO_TRILL.dampMul, altSample: p.partner[i] };
   }
   /** D319: a leg of the shake: the trill goes on. */
   private trillOn(h: Held, t: number) {
@@ -2680,7 +2725,8 @@ export class ProtoGame {
           if (from + g >= end) break;
           const at = audioAt(from);
           const len = Math.max(0.03, this.timeAt(from + g) - this.timeAt(from));
-          keep(this.touchNote(pm, at, len, r.v, { ...r.play, legato: true }), at + len);
+          const ov = r.piano ? PIANO_TRILL.overlap : 0;
+          keep(this.touchNote(pm, at, len + ov, r.v, r.piano ? { ...r.play, legato: true, dampMul: PIANO_TRILL.dampMul, level: (r.play.level ?? 1) * 10 ** (PIANO_TRILL.auxDb / 20) } : { ...r.play, legato: true }), at + len + ov);
           r.rec?.parts.push([from, g, pm]);
           from += g;
         }
@@ -2697,8 +2743,8 @@ export class ProtoGame {
       const [pon, pdur, pm] = r.parts[r.next];
       const last = r.next === r.parts.length - 1;
       const at = audioAt(pon);
-      const len = last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon));
-      keep(this.touchNote(pm, at, len, r.v, { ...r.play, legato: true }), at + len);
+      const len = (last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon))) + (r.piano?.over[r.next] ?? 0);
+      keep(this.touchNote(pm, at, len, r.v, this.trillPlay(r, r.next, { ...r.play, legato: true })), at + len);
       r.rec?.parts.push([pon, pdur, pm]);
       r.next++;
     }
@@ -3227,9 +3273,13 @@ export class ProtoGame {
     } else if (styleOf(preset().id) === "piano" && !slide) {
       const pos = !slurAt ? 0 : slurAt === "first" || !over ? 0 : Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1);
       this.groupPos.set(h.k, pos);
-      const db = !slurAt ? 0 : slurAt === "last" && pos > 0 ? SLUR_LAST_DB : SLUR_DB[pos];
+      // D385 (the report §3): the slur's shape by its place in the bar (whole-reading.ts slurShapeDb), its first as struck.
+      const db = !slurAt ? 0 : slurShapeDb(slurAt === "first" || pos === 0 ? "first" : slurAt, metricPlace((t) => inBar(this.f, t), notes[i].on, this.beat) < 2);
       if (slurAt) expr = { ...expr, group: pos, level: (expr.level ?? 1) * dbToLevel(db) };
     }
+    // D385: the piano's line: the reading's level (a whole-piece reading's printed dynamics, its phrase arcs and
+    // palette), the thumb's zone about it (touch-expr.ts pianoDb), a reading's accent weighted in the strong zone.
+    if (styleOf(preset().id) === "piano" && expr.touch !== undefined) expr = { ...expr, ...this.lineAt(h.k, i) };
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
@@ -3298,7 +3348,16 @@ export class ProtoGame {
         const prev = this.before(i, h.k);
         const v = sv?.v ?? voiceV;
         const play = { ...expr, legato: legato && !piano };
-        h.sounds = [this.touchNote(n0.midi, this.chip.ctx.currentTime, HOLD_MAX, v, play)];
+        const now = this.chip.ctx.currentTime;
+        if (shake.kind === "trill" && styleOf(preset().id) === "piano" && !this.whole) {
+          // D385: on the piano a landing on a written trill strikes its upper note at once (Bach's start: no main
+          // note first while the shake is read), leaned, then the main note; the shake's trill goes on from there.
+          const up = n0.midi + contextSteps(this.f, n0.on, n0.midi, orn.signs).stepAbove(n0.midi);
+          const lean = PIANO_TRILL.lean / TRILL_CHARACTERS[trillCharacter(this.beat / this.tps)].rate0;
+          const leanS = Math.min(lean, Math.max(0.05, (this.timeAt(n0.on + n0.dur) - this.timeAt(n0.on)) / 3));
+          h.sounds = [this.touchNote(up, now, leanS + PIANO_TRILL.overlap, v, { ...play, level: (play.level ?? 1) * 10 ** (PIANO_TRILL.leanDb / 20), dampMul: PIANO_TRILL.dampMul, altSample: n0.midi }), this.touchNote(n0.midi, now + leanS, HOLD_MAX, v, { ...play, legato: true, dampMul: PIANO_TRILL.dampMul, altSample: up })];
+          h.upperStruck = true;
+        } else h.sounds = [this.touchNote(n0.midi, now, HOLD_MAX, v, play)];
         const read = new ShakeReader({ x: h.ax, y: h.ay, t: this.evMs() }, this.shakeTh());
         h.orn = { ...shake, main: n0.midi, read, moves: 0, v, play, by: n0.on + n0.dur, done: false, sounded: false, signs: orn.signs, prevMidi: prev >= 0 ? notes[prev].midi : undefined };
         this.shakes.of++;
@@ -3499,11 +3558,18 @@ export class ProtoGame {
         if (ask?.accent) {
           const joinedBefore = this.joinedAt(i, h.k) && pv >= 0 && notes[pv].state === "hit";
           const gap = !joinedBefore ? null : lw.holding ? "held" : (lw.gapMs ?? null);
-          const why = slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
+          // D385: weight on time (accent.ts accentWeighted): struck in the strong zone, within PERFECT; D338's
+          // lean and silence only under the Lab's CLASSIC mechanics.
+          const why = MECH.glenn ? (slide ? "soft" : accentWeighted(offMs, perfMs, this.strengthAsked() ? (h.land ?? TOUCH_NEUTRAL) : null)) : slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
           h.wantAccent = { why };
         }
         if (ask?.short) h.wantShort = true;
       }
+    }
+    // D385: a whole-piece reading's accents and marcatos on the player's other notes too (every bar, not only the subject's).
+    if (rd && this.whole && !h.wantAccent && MECH.glenn) {
+      const g = this.whole.notes.get(`${this.voiceOf(h.k, i)}:${n.on}`);
+      if (g && (g.arts.has("accent") || g.arts.has("marcato"))) h.wantAccent = { why: slide ? "soft" : accentWeighted(offMs, perfMs, this.strengthAsked() ? (h.land ?? TOUCH_NEUTRAL) : null) };
     }
     // D186: the points rise from the note.
     this.pops.push({ tick: n.on, step, text: `+${ptsText(h.pts)}`, at, gold: perfect });
@@ -3836,7 +3902,7 @@ export class ProtoGame {
     const len = this.msOf(n.on, n.on + n.dur);
     // D338: the reading's accent: struck on time or leaned, not joined from the note before, and held.
     if (h.wantAccent) {
-      const why = h.wantAccent.why ?? accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort });
+      const why = h.wantAccent.why ?? (MECH.glenn ? null : accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort }));
       h.wantAccent = undefined;
       this.styled(why === null, performance.now(), "ACCENT ✓");
     }
@@ -4549,6 +4615,36 @@ export class ProtoGame {
     return (this.readingMemo = m);
   }
   /** D370: the place in one of the reading's slurs of track k's note at `on` (none: not slurred, or no reading). */
+  /** D385: a landing's strength is asked of an accent where the thumbs land on bars (a computer's keys cannot weigh a note). */
+  private strengthAsked(): boolean {
+    return this.proto.layout === "bars";
+  }
+  /**
+   * D385: the piano's line at track k's note i (chip.ts Play.lineDb, accentDb, dampMul, roomMul): a whole-piece
+   * reading's printed level, its phrase arch, its palette's weight, colour, dampers and room; a reading's accent
+   * (">" +4, "^" +6 dB) given by the strong zone. Never by the verdict: the place in the music, not right or wrong.
+   */
+  lineAt(k: number, i: number): { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number } {
+    const n = this.tracks[k].notes[i];
+    if (!n) return {};
+    const v = this.voiceOf(k, i);
+    const W = this.whole;
+    const out: { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number } = {};
+    if (W) {
+      const g = W.notes.get(`${v}:${n.on}`);
+      const pal = W.paletteAt(v, n.on);
+      const place = metricPlace((t) => inBar(this.f, t), n.on, this.beat);
+      out.lineDb = (g?.dyn ?? W.dynAt(v, n.on)) + pal.weight[place] + (g?.phrase ? phraseArchDb(g.phrase.x) : 0) + (v === this.f.voices.length - 1 ? pal.bassDb : 0) + (W.subject.has(`${v}:${n.on}`) ? pal.entryDb : pal.othersDb);
+      if (pal.dampMul !== 1) out.dampMul = pal.dampMul;
+      if (pal.roomMul !== 1) out.roomMul = pal.roomMul;
+      if (g?.arts.has("marcato")) out.accentDb = PLAYER_ACCENT_DB.marcato;
+      else if (g?.arts.has("accent")) out.accentDb = PLAYER_ACCENT_DB.accent;
+    } else if (this.o.reading) {
+      const place = this.readingIndex().get(`${k}:${n.on}`);
+      if (place !== undefined && this.o.reading.notes[place]?.accent) out.accentDb = PLAYER_ACCENT_DB.accent;
+    }
+    return out;
+  }
   private slurHere(k: number, on: number): SlurRole | null {
     const place = this.o.reading ? this.readingIndex().get(`${k}:${on}`) : undefined;
     return place === undefined ? null : slurRole(this.o.reading, place);

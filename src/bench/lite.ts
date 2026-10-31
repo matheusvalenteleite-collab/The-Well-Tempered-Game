@@ -381,7 +381,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       // D325b: expressive time.
       "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
       // D338: the reading's accent by time.
-      "An accent (>) is made with time, not force: let go of the note before a moment early (a small silence) and, if you like, lean into the accent a hair late; how long you hold it is yours. Loudness is never judged.",
+      "An accent (>) is weight on time: land it in the strong zone of the bar (the third by the box), on the beat, and on the piano it sounds heavier. A late or soft landing is no accent; a wrong note never sounds different.",
       // D186, D194: the bonuses.
       "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.",
       // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
