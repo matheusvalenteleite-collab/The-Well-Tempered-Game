@@ -1,0 +1,522 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at pieces.json bars[n-1].on (here bar 1 = tick 960; bar 0 is the upbeat)). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f12",
+ "title": "Fugue 12 in F minor, BWV 881",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Johann Sebastian Bach, Das Wohltemperierte Klavier, Zweiter Teil, bearbeitet und erläutert von Ferruccio Busoni (Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (scan: a later printing)",
+  "source": "editions/busoni2/busoni-II-a.pdf",
+  "copyright": "public domain (Busoni d. 1924)",
+  "pages": {
+   "pdf": [
+    106,
+    107,
+    108
+   ],
+   "printed": [
+    43,
+    44,
+    45
+   ]
+  }
+ },
+ "tempo": {
+  "text": "Moderato un poco scherzando",
+  "en": "moderate, a little playful",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "Moderato un poco scherzando; \"non troppo staccato e poco forte\" (b.1); (Maggiore) b.25, (Minore) b.41; più legg. (b.66), più marc. alto entry (b.74), fermamente to the end (b.84).",
+ "dynamicPlan": "poco forte (b.1); cresc. il basso (b.56), cresc. il soprano (b.59), più cresc. (b.62) to fz (b.65); più legg. (b.66); cresc. into f (b.72); accented bass steps with swells (b.79–83); fermamente, fermatas (b.85).",
+ "marks": [
+  {
+   "v": 2,
+   "on": 223680,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 59,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 246720,
+   "p": 65,
+   "name": "F4",
+   "bar": 65,
+   "art": "accent",
+   "conf": "sure",
+   "role": "fz"
+  },
+  {
+   "v": 2,
+   "on": 300480,
+   "p": 61,
+   "name": "Db4",
+   "bar": 79,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 308160,
+   "p": 60,
+   "name": "C4",
+   "bar": 81,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 315840,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 83,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 323520,
+   "p": 65,
+   "name": "F4",
+   "bar": 85,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 323520,
+   "p": 65,
+   "name": "F4",
+   "bar": 85,
+   "art": "fermata",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 323520,
+   "p": 41,
+   "name": "F2",
+   "bar": 85,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 6720,
+   "to": 16320,
+   "bars": "2.4–5.0",
+   "names": "E4–Eb5",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "soprano: the sixteenth run of the subject"
+  },
+  {
+   "v": 1,
+   "from": 22080,
+   "to": 31200,
+   "bars": "6.4–8.7",
+   "names": "B3–A4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "alto: the sixteenth run of the answer"
+  },
+  {
+   "v": 2,
+   "from": 48960,
+   "to": 61920,
+   "bars": "13.4–16.7",
+   "names": "E3–G3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "bass: the sixteenth run of the subject"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "mark": "poco f",
+   "conf": "sure",
+   "text": "poco forte"
+  },
+  {
+   "on": 212160,
+   "bar": 56,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "mark": "cresc.",
+   "conf": "sure",
+   "text": "(cresc. il basso)"
+  },
+  {
+   "on": 224640,
+   "bar": 59,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "mark": "cresc.",
+   "conf": "sure",
+   "text": "cresc. il soprano"
+  },
+  {
+   "on": 235200,
+   "bar": 62,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "più cresc.",
+   "conf": "sure"
+  },
+  {
+   "on": 246720,
+   "bar": 65,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "mark": "fz",
+   "conf": "sure"
+  },
+  {
+   "on": 273600,
+   "bar": 72,
+   "pos": 0,
+   "voices": [
+    1,
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    2
+   ],
+   "from": 244800,
+   "to": 246720,
+   "bars": "64.4–65.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 246720,
+   "to": 249600,
+   "bars": "65.0–65.6",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 266880,
+   "to": 273600,
+   "bars": "70.2–72.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 297120,
+   "to": 300480,
+   "bars": "78.1–78.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 304320,
+   "to": 307680,
+   "bars": "80.0–80.7",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 312000,
+   "to": 315360,
+   "bars": "82.0–82.7",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "non troppo staccato e poco forte",
+   "en": "not too detached, and moderately loud",
+   "conf": "sure"
+  },
+  {
+   "on": 93120,
+   "bar": 25,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "(Maggiore)",
+   "en": "in the major: the soprano entry in A♭",
+   "conf": "sure"
+  },
+  {
+   "on": 154560,
+   "bar": 41,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "(Minore)",
+   "en": "in the minor again",
+   "conf": "sure"
+  },
+  {
+   "on": 212160,
+   "bar": 56,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "(cresc. il basso)",
+   "en": "the bass grows louder",
+   "conf": "sure"
+  },
+  {
+   "on": 224640,
+   "bar": 59,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "cresc. il soprano",
+   "en": "the soprano grows louder",
+   "conf": "sure"
+  },
+  {
+   "on": 250560,
+   "bar": 66,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "più legg.",
+   "en": "lighter",
+   "conf": "sure"
+  },
+  {
+   "on": 284160,
+   "bar": 74,
+   "pos": 6,
+   "voices": [
+    1
+   ],
+   "text": "più marc.",
+   "en": "more marked: the alto entry",
+   "conf": "sure"
+  },
+  {
+   "on": 319680,
+   "bar": 84,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "fermamente",
+   "en": "firmly",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": true
+   },
+   "applies": "the repeated eighths of every subject entry",
+   "art": "not too detached (non troppo staccato), moderately loud",
+   "source": "b.1 text, extended to the entries",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "fromBar": 66,
+    "toBar": 71
+   },
+   "applies": "unmarked notes",
+   "art": "lighter (più legg.)",
+   "source": "b.66 text",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 25,
+   "sign": "double bar",
+   "en": "end of the exposition: Maggiore"
+  },
+  {
+   "beforeBar": 41,
+   "sign": "double bar",
+   "en": "Minore"
+  },
+  {
+   "beforeBar": 72,
+   "sign": "double bar",
+   "en": "last section, f"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 0,
+   "on": 960,
+   "p": 65,
+   "name": "F4",
+   "bar": 1,
+   "pos": 0,
+   "sign": "mordent (𝆖)",
+   "realisation": "none printed: a quick mordent on the first repeated F",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 16320,
+   "p": 60,
+   "name": "C4",
+   "bar": 5,
+   "pos": 0,
+   "sign": "(mordent), bracketed",
+   "realisation": "none printed; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 43200,
+   "p": 53,
+   "name": "F3",
+   "bar": 12,
+   "pos": 0,
+   "sign": "(mordent), bracketed",
+   "realisation": "none printed; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 93120,
+   "p": 68,
+   "name": "Ab4",
+   "bar": 25,
+   "pos": 0,
+   "sign": "mordent (𝆖)",
+   "realisation": "none printed",
+   "conf": "sure"
+  }
+ ],
+ "ornamentsNote": "Mordent on the subject's first note at b.1 and b.25; bracketed (optional) at b.5 and b.12.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "Bar numbers follow pieces.json bars[] (bar 1 starts at tick 960; bar 0 is the eighth upbeat).",
+  "Skipped: \"Idee\" and ossia staves (b.16–18, 48), footnotes 1–2 p.106 (analysis) and 3–4 p.108 (a fuller stretto variant; an imagined C pedal point for six bars from b.78, not played), pencil marks in the scan.",
+  "Ties not recorded. Read from 200 dpi crops."
+ ],
+ "counts": {
+  "marks": 8,
+  "slurs": 3,
+  "dyn": 6,
+  "hairpins": 6,
+  "text": 8,
+  "breaths": 0,
+  "ornaments": 4,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 0,
+  "byArt": {
+   "accent": 5,
+   "fermata": 3
+  },
+  "bySlurKind": {
+   "phrase": 3
+  },
+  "byConf": {
+   "likely": 11,
+   "sure": 12
+  },
+  "byConfAll": {
+   "likely": 11,
+   "sure": 24
+  }
+ }
+}

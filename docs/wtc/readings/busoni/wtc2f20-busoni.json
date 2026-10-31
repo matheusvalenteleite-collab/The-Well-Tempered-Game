@@ -1,0 +1,1292 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f20",
+ "title": "Fugue 20 in A minor, BWV 889",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Johann Sebastian Bach, Das Wohltemperierte Klavier, Zweiter Teil, bearbeitet und erläutert von Ferruccio Busoni (Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (scan: a later printing)",
+  "source": "editions/busoni2/busoni-II-b.pdf",
+  "copyright": "public domain (Busoni d. 1924)",
+  "pages": {
+   "pdf": [
+    73,
+    74,
+    75
+   ],
+   "printed": [
+    4,
+    5,
+    6
+   ]
+  }
+ },
+ "tempo": {
+  "text": null,
+  "en": "no tempo word printed; footnote NB (p.6): the 32nd figures shared with the prelude allow almost the same tempo for both",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "sempre forte; the subject tenuto ma non legato with wedged eighths, the 32nd countersubject \"(trotzig)\" (defiant), slurred run by run.",
+ "dynamicPlan": "sempre forte throughout (b.1); small swells in b.9 and b.13; a crescendo to fz on the bass B♭ (b.21); no other levels.",
+ "marks": [
+  {
+   "v": 2,
+   "on": 12480,
+   "p": 62,
+   "name": "D4",
+   "bar": 2,
+   "pos": 10,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 2,
+   "on": 13440,
+   "p": 59,
+   "name": "B3",
+   "bar": 2,
+   "pos": 12,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 2,
+   "on": 14400,
+   "p": 64,
+   "name": "E4",
+   "bar": 2,
+   "pos": 14,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 2,
+   "on": 15360,
+   "p": 60,
+   "name": "C4",
+   "bar": 3,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 2,
+   "on": 16320,
+   "p": 57,
+   "name": "A3",
+   "bar": 3,
+   "pos": 2,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 2,
+   "on": 17280,
+   "p": 54,
+   "name": "F#3",
+   "bar": 3,
+   "pos": 4,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 2,
+   "on": 18240,
+   "p": 63,
+   "name": "D#4",
+   "bar": 3,
+   "pos": 6,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 27840,
+   "p": 69,
+   "name": "A4",
+   "bar": 4,
+   "pos": 10,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 28800,
+   "p": 66,
+   "name": "F#4",
+   "bar": 4,
+   "pos": 12,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 29760,
+   "p": 71,
+   "name": "B4",
+   "bar": 4,
+   "pos": 14,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 30720,
+   "p": 67,
+   "name": "G4",
+   "bar": 5,
+   "pos": 0,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 31680,
+   "p": 64,
+   "name": "E4",
+   "bar": 5,
+   "pos": 2,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 32640,
+   "p": 61,
+   "name": "C#4",
+   "bar": 5,
+   "pos": 4,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 33600,
+   "p": 69,
+   "name": "A4",
+   "bar": 5,
+   "pos": 6,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 34560,
+   "p": 65,
+   "name": "F4",
+   "bar": 5,
+   "pos": 8,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 35520,
+   "p": 62,
+   "name": "D4",
+   "bar": 5,
+   "pos": 10,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 36480,
+   "p": 59,
+   "name": "B3",
+   "bar": 5,
+   "pos": 12,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 1,
+   "on": 37440,
+   "p": 67,
+   "name": "G4",
+   "bar": 5,
+   "pos": 14,
+   "art": "wedge",
+   "conf": "sure",
+   "role": "subject eighths: tenuto ma non legato, wedged"
+  },
+  {
+   "v": 0,
+   "on": 92640,
+   "p": 71,
+   "name": "B4",
+   "bar": 13,
+   "pos": 1,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "rising 32nd run"
+  },
+  {
+   "v": 0,
+   "on": 92880,
+   "p": 72,
+   "name": "C5",
+   "bar": 13,
+   "pos": 1.5,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "rising 32nd run"
+  },
+  {
+   "v": 0,
+   "on": 93120,
+   "p": 74,
+   "name": "D5",
+   "bar": 13,
+   "pos": 2,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "rising 32nd run"
+  },
+  {
+   "v": 0,
+   "on": 93360,
+   "p": 76,
+   "name": "E5",
+   "bar": 13,
+   "pos": 2.5,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "rising 32nd run"
+  },
+  {
+   "v": 0,
+   "on": 93600,
+   "p": 78,
+   "name": "F#5",
+   "bar": 13,
+   "pos": 3,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "rising 32nd run"
+  },
+  {
+   "v": 0,
+   "on": 93840,
+   "p": 80,
+   "name": "G#5",
+   "bar": 13,
+   "pos": 3.5,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "rising 32nd run"
+  },
+  {
+   "v": 2,
+   "on": 186240,
+   "p": 57,
+   "name": "A3",
+   "bar": 25,
+   "pos": 4,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "ten.: held quarter"
+  },
+  {
+   "v": 0,
+   "on": 203040,
+   "p": 66,
+   "name": "F#4",
+   "bar": 27,
+   "pos": 7,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "trill close"
+  },
+  {
+   "v": 0,
+   "on": 203280,
+   "p": 68,
+   "name": "G#4",
+   "bar": 27,
+   "pos": 7.5,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "trill close"
+  },
+  {
+   "v": 1,
+   "on": 206880,
+   "p": 59,
+   "name": "B3",
+   "bar": 27,
+   "pos": 15,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "trill close"
+  },
+  {
+   "v": 1,
+   "on": 207120,
+   "p": 61,
+   "name": "C#4",
+   "bar": 27,
+   "pos": 15.5,
+   "art": "staccato",
+   "conf": "likely",
+   "role": "trill close"
+  },
+  {
+   "v": 2,
+   "on": 207360,
+   "p": 41,
+   "name": "F2",
+   "bar": 28,
+   "pos": 0,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "final bass figure"
+  },
+  {
+   "v": 2,
+   "on": 207600,
+   "p": 40,
+   "name": "E2",
+   "bar": 28,
+   "pos": 0.5,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "final bass figure"
+  },
+  {
+   "v": 2,
+   "on": 208800,
+   "p": 40,
+   "name": "E2",
+   "bar": 28,
+   "pos": 3,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "final bass figure"
+  },
+  {
+   "v": 2,
+   "on": 209040,
+   "p": 41,
+   "name": "F2",
+   "bar": 28,
+   "pos": 3.5,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "final bass figure"
+  },
+  {
+   "v": 2,
+   "on": 210720,
+   "p": 38,
+   "name": "D2",
+   "bar": 28,
+   "pos": 7,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "final bass figure"
+  },
+  {
+   "v": 2,
+   "on": 210960,
+   "p": 40,
+   "name": "E2",
+   "bar": 28,
+   "pos": 7.5,
+   "art": "staccato",
+   "conf": "sure",
+   "role": "final bass figure"
+  },
+  {
+   "v": 0,
+   "on": 211200,
+   "p": 69,
+   "name": "A4",
+   "bar": 28,
+   "pos": 8,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 211200,
+   "p": 33,
+   "name": "A1",
+   "bar": 28,
+   "pos": 8,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 2,
+   "from": 28800,
+   "to": 30720,
+   "bars": "4.12–5.0",
+   "names": "D#3–E3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 1,
+   "from": 51840,
+   "to": 53760,
+   "bars": "7.12–8.0",
+   "names": "G#3–A3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 0,
+   "from": 78720,
+   "to": 80640,
+   "bars": "11.4–11.8",
+   "names": "B4–C5",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 82560,
+   "to": 84480,
+   "bars": "11.12–12.0",
+   "names": "F#3–G3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 1,
+   "from": 86400,
+   "to": 88320,
+   "bars": "12.4–12.8",
+   "names": "C#4–D4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 0,
+   "from": 90240,
+   "to": 92160,
+   "bars": "12.12–13.0",
+   "names": "G#4–A4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 1,
+   "from": 105600,
+   "to": 107520,
+   "bars": "14.12–15.0",
+   "names": "D#4–E4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 136320,
+   "to": 138240,
+   "bars": "18.12–19.0",
+   "names": "G#2–A2",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 140160,
+   "to": 142080,
+   "bars": "19.4–19.8",
+   "names": "C#3–D3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 144000,
+   "to": 145920,
+   "bars": "19.12–20.0",
+   "names": "F#3–G3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 147840,
+   "to": 149760,
+   "bars": "20.4–20.8",
+   "names": "B3–C4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 151680,
+   "to": 153600,
+   "bars": "20.12–21.0",
+   "names": "E4–F4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 155520,
+   "to": 157440,
+   "bars": "21.4–21.8",
+   "names": "A4–Bb4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 167040,
+   "to": 168960,
+   "bars": "22.12–23.0",
+   "names": "C#3–D3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 174720,
+   "to": 176640,
+   "bars": "23.12–24.0",
+   "names": "B2–C3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 0,
+   "from": 201600,
+   "to": 203520,
+   "bars": "27.4–27.8",
+   "names": "G#4–A4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 1,
+   "from": 205440,
+   "to": 207360,
+   "bars": "27.12–28.0",
+   "names": "C#4–D4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "trill and its written close slurred to the next main note"
+  },
+  {
+   "v": 2,
+   "from": 20160,
+   "to": 21120,
+   "bars": "3.10–3.12",
+   "names": "E4–A3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run into the eighth"
+  },
+  {
+   "v": 2,
+   "from": 22080,
+   "to": 22800,
+   "bars": "3.14–3.15.5",
+   "names": "C4–G3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 2,
+   "from": 23520,
+   "to": 24960,
+   "bars": "4.1–4.4",
+   "names": "A3–D#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 2,
+   "from": 25440,
+   "to": 26880,
+   "bars": "4.5–4.8",
+   "names": "F#3–B2",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 2,
+   "from": 31920,
+   "to": 32640,
+   "bars": "5.2.5–5.4",
+   "names": "E3–A3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run into the eighth"
+  },
+  {
+   "v": 2,
+   "from": 33840,
+   "to": 34560,
+   "bars": "5.6.5–5.8",
+   "names": "G3–D3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run into the eighth"
+  },
+  {
+   "v": 2,
+   "from": 35760,
+   "to": 36480,
+   "bars": "5.10.5–5.12",
+   "names": "D3–G3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run into the eighth"
+  },
+  {
+   "v": 2,
+   "from": 37680,
+   "to": 38160,
+   "bars": "5.14.5–5.15.5",
+   "names": "F3–D3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 1,
+   "from": 43200,
+   "to": 44160,
+   "bars": "6.10–6.12",
+   "names": "A4–D4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run into the eighth"
+  },
+  {
+   "v": 1,
+   "from": 45120,
+   "to": 45840,
+   "bars": "6.14–6.15.5",
+   "names": "F4–C4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 1,
+   "from": 46080,
+   "to": 48000,
+   "bars": "7.0–7.4",
+   "names": "B3–G#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 1,
+   "from": 48240,
+   "to": 49920,
+   "bars": "7.4.5–7.8",
+   "names": "A3–E3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 0,
+   "from": 65520,
+   "to": 67200,
+   "bars": "9.8.5–9.12",
+   "names": "C5–B4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run"
+  },
+  {
+   "v": 1,
+   "from": 62880,
+   "to": 65280,
+   "bars": "9.3–9.8",
+   "names": "F4–D4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 1,
+   "from": 67440,
+   "to": 68880,
+   "bars": "9.12.5–9.15.5",
+   "names": "D4–D4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 0,
+   "from": 70080,
+   "to": 71040,
+   "bars": "10.2–10.4",
+   "names": "C6–F5",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run"
+  },
+  {
+   "v": 0,
+   "from": 72000,
+   "to": 72960,
+   "bars": "10.6–10.8",
+   "names": "A5–D5",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "32nd run"
+  },
+  {
+   "v": 0,
+   "from": 73200,
+   "to": 74880,
+   "bars": "10.8.5–10.12",
+   "names": "E5–B4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run"
+  },
+  {
+   "v": 0,
+   "from": 75120,
+   "to": 76560,
+   "bars": "10.12.5–10.15.5",
+   "names": "C5–A4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "32nd run"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "sempre f",
+   "conf": "sure"
+  },
+  {
+   "on": 157440,
+   "bar": 21,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "mark": "fz",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0
+   ],
+   "from": 61440,
+   "to": 62880,
+   "bars": "9.0–9.3",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 65280,
+   "to": 66240,
+   "bars": "9.8–9.10",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 66240,
+   "to": 67200,
+   "bars": "9.10–9.12",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 63360,
+   "to": 64320,
+   "bars": "9.4–9.6",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 64320,
+   "to": 65280,
+   "bars": "9.6–9.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 67440,
+   "to": 68880,
+   "bars": "9.12.5–9.15.5",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 92640,
+   "to": 94080,
+   "bars": "13.1–13.4",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 155520,
+   "to": 157440,
+   "bars": "21.4–21.8",
+   "dir": "cresc",
+   "conf": "sure"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "sempre forte",
+   "en": "always loud",
+   "conf": "sure"
+  },
+  {
+   "on": 1920,
+   "bar": 1,
+   "pos": 4,
+   "voices": [
+    2
+   ],
+   "text": "tenuto ma non legato",
+   "en": "held but not joined",
+   "conf": "sure"
+  },
+  {
+   "on": 17280,
+   "bar": 3,
+   "pos": 4,
+   "voices": [
+    1
+   ],
+   "text": "tenuto ma non legato",
+   "en": "held but not joined",
+   "conf": "sure"
+  },
+  {
+   "on": 19200,
+   "bar": 3,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "(trotzig)",
+   "en": "defiant",
+   "conf": "sure"
+  },
+  {
+   "on": 116400,
+   "bar": 16,
+   "pos": 2.5,
+   "voices": [
+    0
+   ],
+   "text": "legato",
+   "en": "joined",
+   "conf": "sure"
+  },
+  {
+   "on": 123120,
+   "bar": 17,
+   "pos": 0.5,
+   "voices": [
+    2
+   ],
+   "text": "legato",
+   "en": "joined",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "tenuto ma non legato, the eighths wedged, as printed at b.1–5",
+   "source": "printed b.1–5 only, extended by inference",
+   "conf": "unsure"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": false
+   },
+   "applies": "the 32nd runs of the countersubject",
+   "art": "each run slurred into the eighth that follows",
+   "source": "printed b.3–10",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 10,
+   "sign": "double bar",
+   "en": "end of the exposition"
+  },
+  {
+   "beforeBar": 19,
+   "sign": "double bar",
+   "en": "before the bass trill chain"
+  },
+  {
+   "beforeBar": 21,
+   "pos": 4,
+   "on": 155520,
+   "sign": "double bar (mid-bar)",
+   "en": "before the D minor soprano entry"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 2,
+   "on": 28800,
+   "p": 51,
+   "name": "D#3",
+   "bar": 4,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 51840,
+   "p": 56,
+   "name": "G#3",
+   "bar": 7,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 78720,
+   "p": 71,
+   "name": "B4",
+   "bar": 11,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 82560,
+   "p": 54,
+   "name": "F#3",
+   "bar": 11,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 86400,
+   "p": 61,
+   "name": "C#4",
+   "bar": 12,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 90240,
+   "p": 68,
+   "name": "G#4",
+   "bar": 12,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 105600,
+   "p": 63,
+   "name": "D#4",
+   "bar": 14,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 136320,
+   "p": 44,
+   "name": "G#2",
+   "bar": 18,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 140160,
+   "p": 49,
+   "name": "C#3",
+   "bar": 19,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 144000,
+   "p": 54,
+   "name": "F#3",
+   "bar": 19,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 147840,
+   "p": 59,
+   "name": "B3",
+   "bar": 20,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 151680,
+   "p": 64,
+   "name": "E4",
+   "bar": 20,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 167040,
+   "p": 49,
+   "name": "C#3",
+   "bar": 22,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 174720,
+   "p": 47,
+   "name": "B2",
+   "bar": 23,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 201600,
+   "p": 68,
+   "name": "G#4",
+   "bar": 27,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 205440,
+   "p": 61,
+   "name": "C#4",
+   "bar": 27,
+   "pos": 12,
+   "sign": "tr",
+   "realisation": "none printed; the written 32nds close it",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 155520,
+   "p": 69,
+   "name": "A4",
+   "bar": 21,
+   "pos": 4,
+   "sign": "tr (with an accidental above)",
+   "realisation": "none printed; the accidental over the tr gives the upper note (read as B♮, unsure); the written 32nds close it",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 209280,
+   "p": 40,
+   "name": "E2",
+   "bar": 28,
+   "pos": 4,
+   "sign": "𝆖 (trill, printed below)",
+   "realisation": "printed in full (Ausführung): the E2 trilled in even 64ths under one slur through the dotted value, then D2–E2 detached into the final A1",
+   "conf": "likely"
+  }
+ ],
+ "ornamentsNote": "Every trill in the subject closes with written 32nds and is slurred to the next main note.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "Economy reading from 200 dpi system crops; fingering skipped.",
+  "Skipped: the ossia over b.6, the bracketed added bass note \"ad libitum\" (b.26), \"con 8va bassa\" (b.27–28), footnote 1 on p.5 (the diminution of the subject hidden in b.16) and the footnotes on p.6 (tempo shared with the prelude; analysis).",
+  "The small arcs inside the 32nd figures (e.g. b.4, 7, 22) are ties to the split notes, not slurs.",
+  "Dashes near notes outside the staff (b.10, 11) taken as ledger lines."
+ ],
+ "counts": {
+  "marks": 37,
+  "slurs": 36,
+  "dyn": 2,
+  "hairpins": 8,
+  "text": 6,
+  "breaths": 0,
+  "ornaments": 18,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 0,
+  "byArt": {
+   "wedge": 18,
+   "staccato": 16,
+   "tenuto": 1,
+   "fermata": 2
+  },
+  "bySlurKind": {
+   "slur": 36
+  },
+  "byConf": {
+   "sure": 80,
+   "likely": 26,
+   "unsure": 1
+  },
+  "byConfAll": {
+   "sure": 80,
+   "likely": 27,
+   "unsure": 2
+  }
+ }
+}

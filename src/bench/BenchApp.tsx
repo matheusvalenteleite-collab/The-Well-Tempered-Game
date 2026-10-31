@@ -56,6 +56,7 @@ import { FuguePicker } from "./FuguePicker.tsx";
 import { TuningSelect } from "./TuningSelect.tsx";
 import { resolveTuning, tuningPrefOf, tuningShort, type TuningPref } from "../touch/instrument-tuning.ts";
 import { SideHint, SideLegend } from "./SideNotes.tsx";
+import { firstOn, glossLine, wholeBox } from "../touch/whole-marks.ts";
 import { ModeHow } from "./ModeDiagram.tsx";
 import { herClock, herMap } from "./her-clock.ts";
 import { Her, HER_FADE, herBuffer, herState, loadHer, releaseHer } from "./with-her.ts";
@@ -74,7 +75,7 @@ import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
-import { chosenReading, markOf, readingsOf, type MarkNote } from "../touch/readings.ts";
+import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
 import { Caption, LensSheet, ResultLine, Seal, SignCard, SpotFlash, SpotLine, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
@@ -432,7 +433,9 @@ export function BenchApp() {
   // D369: the friends too play the reading chosen on HEAR THE SUBJECT (D344's for the fugue until they choose).
   // D373: a tutorial step's own marks (its reading, placed on the passage's notes).
   // D385: on the piano BUSONI's whole-piece reading is the default where it exists (readings.ts bestReading).
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? chosenReading(f.id, presetById(soundNow).id) : null;
+  // D393: only BUSONI's, on every instrument, unless Settings' BUSONI'S MARKINGS is off.
+  const [busoni, setBusoni] = useState(busoniOn);
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
   const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);
@@ -521,10 +524,16 @@ export function BenchApp() {
     const cadences = (f.cadences ?? []).filter((c) => !run || (c.on >= run.from && c.on <= run.until)).map((c) => ({ on: c.on, text: lang() === "en" ? cadenceName(c) : `${tr(cadenceName(c).split(" · ")[0])} · ${keyWordsIn(c.key)}` }));
     const ornaments = new Map([...ornamentsOf(f)].map(([k, o]) => [k, ornamentMark(o)]));
     // D272: the reading's marks on every entry of the subject in the voice played (each note by its place in the subject).
-    const readingMarks = new Map<string, MarkNote>();
-    if (reading && run?.tut?.readingAt) run.tut.readingAt.forEach((on, j) => reading.notes[j] && readingMarks.set(`${run.voice}:${on}`, markOf(reading, j)!));
+    let readingMarks = new Map<string, MarkNote>();
+    // D391: a whole-piece reading (BUSONI) marks the player's whole line, every bar (whole-marks.ts wholeBox): its
+    // note marks, arcs, levels, hairpins, words and caesuras; the band's voices nothing.
+    const whole = reading && !run?.tut?.readingAt ? wholeBox(f, reading, played) : null;
+    if (whole) readingMarks = whole.marks as Map<string, MarkNote>;
+    else if (reading && run?.tut?.readingAt) run.tut.readingAt.forEach((on, j) => reading.notes[j] && readingMarks.set(`${run.voice}:${on}`, markOf(reading, j)!));
     else if (reading) for (const e of f.entries) if (!e.theme && played.includes(e.voice)) e.notes.forEach(([on], j) => reading.notes[j] && readingMarks.set(`${e.voice}:${on}`, markOf(reading, j)!));
-    return { ...subjectMarks(f), spans, names: f.voiceNames.map((n) => partKey(f.kind, n)), cadences, ornaments, readingMarks };
+    // D391: Busoni's optional trills shown as he prints them, in brackets.
+    if (whole) for (const o of reading!.whole!.ornaments) if (o.optional && /tr/.test(o.sign) && ornaments.get(`${o.v}:${o.on}`) === "TR") ornaments.set(`${o.v}:${o.on}`, "(TR)");
+    return { ...subjectMarks(f), spans, names: f.voiceNames.map((n) => partKey(f.kind, n)), cadences, ornaments, readingMarks, ...(whole ? { whole } : {}) };
   }, [f, run, reading?.id, voice]);
   const chip = useRef<Chip | null>(null);
   /** D308: BLUETOOTH MODE on AUTO (the minimal page): the reported latency, or the delay tapped for this output (btAuto). */
@@ -548,7 +557,10 @@ export function BenchApp() {
   const frame = useRef<Frame>(preview());
   const count = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
-  /** Design studio (D393): the first-round hint, in the box behind the gold line, fading as the first note reaches it. */
+  /** D391: the side bar's translation of the whole reading's word in force on the player's line (set by the frame loop). */
+  const glossRef = useRef<HTMLParagraphElement>(null);
+  const glossAt = useRef(-1);
+  /** Design studio (D397): the first-round hint, in the box behind the gold line, fading as the first note reaches it. */
   const hintRef = useRef<HTMLParagraphElement>(null);
   const hintGone = useRef(false);
   const shownAt = useRef(0);
@@ -714,7 +726,7 @@ export function BenchApp() {
     // D377: the box's zoom for this round (its width fixed; its range eased rarely; drawing and touch alike).
     const box = prac ? zoomBox(prac.from, g.tps) : { ...boxPlan, bars: zoomBox(from, g.tps).bars };
     const aheadTicks = (1 - BOX_PLAYHEAD) * box.bars * f.barTicks;
-    // D395: the opening narrowed only if its way back out falls at a seam of the player's line.
+    // D399: the opening narrowed only if its way back out falls at a seam of the player's line.
     const zoomer = new BoxZoom(box.plan, prac ? prac.from : from, b.ticks, box.on, g.tps, aheadTicks);
     let raf = 0;
     // D379 (the owner: "one can see the whole movement at once when it's finished"): a tutorial step that
@@ -766,6 +778,15 @@ export function BenchApp() {
       };
       if (hintRef.current && proto.layout === "bars") placeHint(hintRef.current, g, from, !!man);
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
+      // D391: the word in force on the player's line, translated in the side bar (changed only when another word is passed).
+      if (glossRef.current && marks.whole) {
+        const ws = marks.whole.lines[0]?.words ?? [];
+        const wi = firstOn(ws, g.now + 1) - 1;
+        if (wi !== glossAt.current || (wi >= 0 && !glossRef.current.textContent)) {
+          glossAt.current = wi;
+          glossRef.current.textContent = wi >= 0 ? glossLine(ws[wi]) : "";
+        }
+      }
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now, zv, box.bars);
       if (rec && g.rows) rec.rows(g.rows.yOf(0), g.rows.rowH);
       if (AUTO) autoplay(g, auto);
@@ -894,7 +915,7 @@ export function BenchApp() {
   }
 
   /**
-   * Design studio (D393, the owner chose placement A): the round's hint stands in the box behind the gold line,
+   * Design studio (D397, the owner chose placement A): the round's hint stands in the box behind the gold line,
    * the one empty place during the count-in, where the eye waits for the first note and no thumb plays. Full
    * through the count-in, it fades over the last 0.6 s before the round's first note (any voice) reaches the
    * line, and is then seen for good; a touch no longer clears it (the player read it to the end). THE TUTORIAL's
@@ -1749,7 +1770,7 @@ export function BenchApp() {
           {hintLine}
         </p>
       ))}
-      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson)) && <SideLegend marks={marks.readingMarks.values()} legendRef={legendRef} />}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson)) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
@@ -1826,6 +1847,8 @@ export function BenchApp() {
               }}
             />
           </label>
+          {/* D393: the one switch for the reading (no other toggle anywhere): BUSONI on by default. */}
+          <Choice id="busoni" label="BUSONI'S MARKINGS" options={BUSONI_SWITCH[lang()] ?? BUSONI_SWITCH.en} value={busoni ? "on" : "off"} set={(v) => (setBusoniOn(v === "on"), setBusoni(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
@@ -2031,6 +2054,12 @@ export function VoiceLegend({ names, played, ink, paper = false }: { names: stri
   );
 }
 
+/** D393: the words of Settings' BUSONI'S MARKINGS switch (the markings, plural, in Portuguese and Spanish). */
+const BUSONI_SWITCH: Record<string, ["on" | "off", string][]> = {
+  en: [["on", "ON"], ["off", "OFF"]],
+  pt: [["on", "LIGADAS"], ["off", "DESLIGADAS"]],
+  es: [["on", "ACTIVADAS"], ["off", "DESACTIVADAS"]],
+};
 /** D239: the bench's modes whose first-game rule has been played past. */
 const HINTS_KEY = "tb-hints-v1";
 /** D317: the lab's link in ⚙: where the lab has been opened on this device (`tb-lab`), or `?lab` is in the address (kept from then on). */

@@ -1,0 +1,1189 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar starts as in pieces.json bars[]). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f17",
+ "title": "Fugue 17 in A♭ major, BWV 886",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Des wohltemperierten Klavieres zweiter Teil (J. S. Bach, Klavierwerke, Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (Edition Nr. 8276, plate 27452)",
+  "pages": {
+   "pdf": [
+    47,
+    48,
+    49,
+    50
+   ],
+   "printed": [
+    38,
+    39,
+    40,
+    41
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1915)"
+ },
+ "tempo": {
+  "text": "Allegretto lusingando",
+  "en": "moderately quick, coaxing",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 360960,
+    "bar": 48,
+    "pos": 0,
+    "text": "sostenendo",
+    "en": "holding back to the end",
+    "kind": "slow",
+    "conf": "sure",
+    "applied": false
+   }
+  ]
+ },
+ "character": "\"lusingando\" (coaxing), the subject \"amabile\"; the chromatic countersubject in held quarters.",
+ "dynamicPlan": "No opening level (amabile); small swells (b.10, 15–16, 27–29); cresc. (b.39), più f tenor entry (b.41), marc. bass (b.42), più crescendo (b.44) to f with held chords (b.45) and ff with a fermata (b.46); sostenendo coda with accents (b.48–50).",
+ "marks": [
+  {
+   "v": 1,
+   "on": 17280,
+   "p": 75,
+   "name": "Eb5",
+   "bar": 3,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 19200,
+   "p": 74,
+   "name": "D5",
+   "bar": 3,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 21120,
+   "p": 73,
+   "name": "Db5",
+   "bar": 3,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 23040,
+   "p": 72,
+   "name": "C5",
+   "bar": 4,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 24960,
+   "p": 71,
+   "name": "B4",
+   "bar": 4,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 40320,
+   "p": 80,
+   "name": "Ab5",
+   "bar": 6,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 42240,
+   "p": 79,
+   "name": "G5",
+   "bar": 6,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 44160,
+   "p": 78,
+   "name": "Gb5",
+   "bar": 6,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 46080,
+   "p": 77,
+   "name": "F5",
+   "bar": 7,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 48000,
+   "p": 76,
+   "name": "Fb5",
+   "bar": 7,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 55680,
+   "p": 63,
+   "name": "Eb4",
+   "bar": 8,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 57600,
+   "p": 62,
+   "name": "D4",
+   "bar": 8,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 59520,
+   "p": 61,
+   "name": "Db4",
+   "bar": 8,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 61440,
+   "p": 60,
+   "name": "C4",
+   "bar": 9,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 63360,
+   "p": 59,
+   "name": "B3",
+   "bar": 9,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 70080,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 10,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 75840,
+   "p": 73,
+   "name": "Db5",
+   "bar": 10,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 99840,
+   "p": 62,
+   "name": "D4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 101760,
+   "p": 61,
+   "name": "Db4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 103680,
+   "p": 60,
+   "name": "C4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 2,
+   "on": 105600,
+   "p": 59,
+   "name": "B3",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 138240,
+   "p": 67,
+   "name": "G4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 140160,
+   "p": 66,
+   "name": "Gb4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 142080,
+   "p": 65,
+   "name": "F4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 144000,
+   "p": 64,
+   "name": "E4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 3,
+   "on": 163200,
+   "p": 56,
+   "name": "Ab3",
+   "bar": 22,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 3,
+   "on": 165120,
+   "p": 55,
+   "name": "G3",
+   "bar": 22,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 3,
+   "on": 167040,
+   "p": 54,
+   "name": "Gb3",
+   "bar": 22,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 3,
+   "on": 168960,
+   "p": 53,
+   "name": "F3",
+   "bar": 23,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 3,
+   "on": 170880,
+   "p": 52,
+   "name": "Fb3",
+   "bar": 23,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 178560,
+   "p": 77,
+   "name": "F5",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 180480,
+   "p": 76,
+   "name": "Fb5",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 182400,
+   "p": 75,
+   "name": "Eb5",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 184320,
+   "p": 74,
+   "name": "D5",
+   "bar": 25,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 186240,
+   "p": 73,
+   "name": "Db5",
+   "bar": 25,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 263040,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 35,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 264960,
+   "p": 69,
+   "name": "Bbb4",
+   "bar": 35,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 266880,
+   "p": 68,
+   "name": "Ab4",
+   "bar": 35,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 268800,
+   "p": 67,
+   "name": "G4",
+   "bar": 36,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 1,
+   "on": 270720,
+   "p": 66,
+   "name": "Gb4",
+   "bar": 36,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 284160,
+   "p": 72,
+   "name": "C5",
+   "bar": 38,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 286080,
+   "p": 71,
+   "name": "B4",
+   "bar": 38,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 288000,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 38,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 289920,
+   "p": 69,
+   "name": "Bbb4",
+   "bar": 38,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 309120,
+   "p": 80,
+   "name": "Ab5",
+   "bar": 41,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 312960,
+   "p": 79,
+   "name": "G5",
+   "bar": 41,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 313920,
+   "p": 78,
+   "name": "Gb5",
+   "bar": 41,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 316800,
+   "p": 77,
+   "name": "F5",
+   "bar": 42,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 317760,
+   "p": 76,
+   "name": "Fb5",
+   "bar": 42,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 324480,
+   "p": 74,
+   "name": "D5",
+   "bar": 43,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 325440,
+   "p": 73,
+   "name": "Db5",
+   "bar": 43,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 328320,
+   "p": 72,
+   "name": "C5",
+   "bar": 43,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 329280,
+   "p": 71,
+   "name": "B4",
+   "bar": 43,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "chromatic countersubject: each quarter held"
+  },
+  {
+   "v": 0,
+   "on": 318720,
+   "p": 75,
+   "name": "Eb5",
+   "bar": 42,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 337920,
+   "p": 73,
+   "name": "Db5",
+   "bar": 45,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 341760,
+   "p": 76,
+   "name": "Fb5",
+   "bar": 45,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 345600,
+   "p": 79,
+   "name": "G5",
+   "bar": 46,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 349440,
+   "p": 82,
+   "name": "Bb5",
+   "bar": 46,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 3,
+   "on": 349440,
+   "p": 43,
+   "name": "G2",
+   "bar": 46,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 366720,
+   "p": 60,
+   "name": "C4",
+   "bar": 48,
+   "art": "accent",
+   "conf": "unsure"
+  },
+  {
+   "v": 2,
+   "on": 369600,
+   "p": 60,
+   "name": "C4",
+   "bar": 49,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 370560,
+   "p": 54,
+   "name": "Gb3",
+   "bar": 49,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 373440,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 49,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 374400,
+   "p": 52,
+   "name": "Fb3",
+   "bar": 49,
+   "art": "accent",
+   "conf": "likely"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 1,
+   "from": 960,
+   "to": 15360,
+   "bars": "1.2–3.0",
+   "names": "Eb5–C5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (alto)"
+  },
+  {
+   "v": 0,
+   "from": 16320,
+   "to": 30240,
+   "bars": "3.2–4.15",
+   "names": "Ab5–Bb5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "answer (soprano)"
+  },
+  {
+   "v": 0,
+   "from": 30720,
+   "to": 38400,
+   "bars": "5.0–6.0",
+   "names": "G5–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 50880,
+   "to": 53760,
+   "bars": "7.10–8.0",
+   "names": "Ab5–Ab5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 39360,
+   "to": 53280,
+   "bars": "6.2–7.15",
+   "names": "Eb4–Eb4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 3,
+   "from": 54720,
+   "to": 68640,
+   "bars": "8.2–9.15",
+   "names": "Ab3–Bb3",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 1,
+   "from": 70080,
+   "to": 75840,
+   "bars": "10.2–10.14",
+   "names": "Bb4–Db5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 77760,
+   "to": 80640,
+   "bars": "11.2–11.8",
+   "names": "Bb5–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "from": 96960,
+   "to": 114240,
+   "bars": "13.10–15.14",
+   "names": "Eb3–Ab2",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (bass)"
+  },
+  {
+   "v": 0,
+   "from": 162240,
+   "to": 176160,
+   "bars": "22.2–23.15",
+   "names": "Eb5–Eb5",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 1,
+   "from": 177600,
+   "to": 191520,
+   "bars": "24.2–25.15",
+   "names": "C5–C5",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 2,
+   "from": 239040,
+   "to": 252960,
+   "bars": "32.2–33.15",
+   "names": "Bb3–Bb3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 0,
+   "from": 262080,
+   "to": 276000,
+   "bars": "35.2–36.15",
+   "names": "F5–F5",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 2,
+   "from": 308160,
+   "to": 322080,
+   "bars": "41.2–42.15",
+   "names": "Eb4–Eb4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 3,
+   "from": 319680,
+   "to": 334080,
+   "bars": "42.10–44.8",
+   "names": "Ab3–Gb3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject (one arc)"
+  },
+  {
+   "v": 0,
+   "from": 330240,
+   "to": 336960,
+   "bars": "44.0–44.14",
+   "names": "Bb4–C5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 368640,
+   "to": 375360,
+   "bars": "49.0–49.14",
+   "names": "Eb5–Ab4",
+   "kind": "slur",
+   "conf": "likely"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 308160,
+   "bar": 41,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "più f",
+   "conf": "sure"
+  },
+  {
+   "on": 337920,
+   "bar": 45,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 349440,
+   "bar": 46,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    1
+   ],
+   "from": 69120,
+   "to": 70560,
+   "bars": "10.0–10.3",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 72000,
+   "to": 74880,
+   "bars": "10.6–10.12",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 111360,
+   "to": 114720,
+   "bars": "15.8–15.15",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 115200,
+   "to": 119040,
+   "bars": "16.0–16.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 203520,
+   "to": 205440,
+   "bars": "27.8–27.12",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 205440,
+   "to": 207360,
+   "bars": "27.12–28.0",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 216000,
+   "to": 217920,
+   "bars": "29.2–29.6",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 218880,
+   "to": 221760,
+   "bars": "29.8–29.14",
+   "dir": "dim",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "Allegretto lusingando",
+   "en": "moderately quick, coaxing",
+   "conf": "sure"
+  },
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "amabile",
+   "en": "amiably",
+   "conf": "sure"
+  },
+  {
+   "on": 295680,
+   "bar": 39,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 318720,
+   "bar": 42,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "ten.",
+   "en": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "on": 319680,
+   "bar": 42,
+   "pos": 10,
+   "voices": [
+    3
+   ],
+   "text": "marc.",
+   "en": "marked: the bass subject",
+   "conf": "sure"
+  },
+  {
+   "on": 330240,
+   "bar": 44,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "più crescendo",
+   "en": "growing louder still",
+   "conf": "sure"
+  },
+  {
+   "on": 337920,
+   "bar": 45,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "ten.",
+   "en": "tenuto: the chords held",
+   "conf": "sure"
+  },
+  {
+   "on": 337920,
+   "bar": 45,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "meno legato",
+   "en": "less legato: the bass arpeggios",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "one phrasing arc over the whole subject (legato, amabile)",
+   "source": "printed at b.1, 3, 6, 8, 13, 22, 24, 32, 35, 41, 42",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": false
+   },
+   "applies": "the chromatic countersubject in quarters (falling by semitones)",
+   "art": "each quarter tenuto (dash)",
+   "source": "printed at b.3–4, 6–7, 8–9, 14, 19, 22–25, 35–36, 38, 41–43",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 22,
+   "sign": "double bar",
+   "en": "soprano subject; four voices complete (footnote 3)"
+  },
+  {
+   "beforeBar": 41,
+   "sign": "double bar",
+   "en": "tenor subject, più f"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 0,
+   "on": 362880,
+   "p": 67,
+   "name": "G4",
+   "bar": 48,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "no realisation printed; the written 32nds close it",
+   "conf": "sure"
+  }
+ ],
+ "ornamentsNote": "One printed trill (b.48, soprano). Skipped: the ossia staves (b.13, 33) and footnotes 1–7 (analytic or about voice-leading).",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief: gameplay does not use fingering)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "Economy reading from 200 dpi system crops of the 1915 Breitkopf print; fingering and ossias skipped.",
+  "Tenuto dashes under very low treble / very high bass notes may be ledger lines; only dashes on the chromatic quarters are transcribed.",
+  "Accents in the coda (b.48–49) are placed from their horizontal position and assigned to tenor or bass by guess (likely/unsure)."
+ ],
+ "counts": {
+  "marks": 64,
+  "slurs": 17,
+  "dyn": 3,
+  "hairpins": 8,
+  "text": 8,
+  "breaths": 0,
+  "ornaments": 1,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 2,
+  "footnotes": 0,
+  "byArt": {
+   "tenuto": 56,
+   "staccato": 1,
+   "fermata": 2,
+   "accent": 5
+  },
+  "bySlurKind": {
+   "phrase": 11,
+   "slur": 6
+  },
+  "byConf": {
+   "sure": 46,
+   "likely": 45,
+   "unsure": 1
+  },
+  "byConfAll": {
+   "sure": 56,
+   "likely": 45,
+   "unsure": 1
+  }
+ }
+}

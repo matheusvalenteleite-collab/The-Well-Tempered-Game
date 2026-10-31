@@ -1,5 +1,5 @@
 /**
- * D395 (design studio; the owner: zooms "amidst a player's melody … confusing and caused mistakes"): the box's
+ * D399 (design studio; the owner: zooms "amidst a player's melody … confusing and caused mistakes"): the box's
  * zoom changes only at a SEAM of the player's line (none of their notes sounding as it begins, none struck from
  * a quarter second before the ease to a quarter second after); out at a seam before anything is clipped; in
  * (and an opening narrowed) only when the way back out also falls at a seam. Over all of Book I's voices: no
@@ -41,7 +41,7 @@ test("a voice that never rests: its opening is not narrowed (no way back out at 
   for (let t = 8 * bt; t < 16 * bt; t += 25) shown.push([t, 25, 60, (t / 25) % 2 ? 2 : 38]);
   const p = planZoom(shown, own, { lo: 0, hi: 40 }, bt, 0, Infinity);
   assert.notDeepEqual(initialRange(p, 0), p.full, "D377's rule alone narrows it");
-  assert.deepEqual(initialRange(p, 0, 100, 200), p.full, "D395: not without a seam");
+  assert.deepEqual(initialRange(p, 0, 100, 200), p.full, "D399: not without a seam");
 });
 
 test("Book I, every voice: every zoom change at a seam, none forced, nothing clipped; still some zoom", () => {

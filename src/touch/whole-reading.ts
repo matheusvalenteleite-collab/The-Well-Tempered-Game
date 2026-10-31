@@ -34,6 +34,11 @@ export type WholeArt = "staccato" | "wedge" | "tenuto" | "portato" | "accent" | 
 export type SlurPlace = "first" | "mid" | "last";
 
 /** The printed levels (dB about today's middle, mf 0): the report's table (§1), the hybrid words between. */
+/** sf, sfz, fz (D392: Busoni's fz in I/4, I/9 …): an accent, the strong zone. D394: fp (II/22: the note forte, then p) and rinf. (II/11) too. */
+export const SFZ = /sf|\bfz\b|\bfp\b|\brinf/;
+/** D394: a ramp word: cresc., dim., decresc., and Busoni's "sempre aumentando" (II/1), a crescendo. */
+export const RAMP = /\b(cresc|dim|decresc|aumentando)/;
+export const RAMP_UP = /cresc|aumentando/;
 export const LEVEL_DB: Readonly<Record<string, number>> = {
   pp: -11,
   p: -6.5,
@@ -50,6 +55,21 @@ export const LEVEL_DB: Readonly<Record<string, number>> = {
   f: 3.5,
   "più f": 5,
   ff: 6.5,
+  // D392: the other levels Busoni prints in Book I.
+  "più p": -9,
+  "sotto voce": -8,
+  "più dolce": -6.5,
+  "meno p": -4.5,
+  "non f": 0,
+  "sempre f": 3.5,
+  // D394: Book II's (forte spelled out, the words after the letter; fp the level after the forte, its accent by SFZ).
+  forte: 3.5,
+  "f sempre": 3.5,
+  "forte dolce": 3.5,
+  "meno forte": 1.5,
+  "non forte": 0,
+  "meno dolce": -4,
+  fp: -6.5,
 };
 /** A hairpin with no printed level after it: a local swell or fall of this much (dB). */
 export const HAIRPIN_DB = 3;
@@ -136,10 +156,12 @@ export function paletteOfWord(text: string): PaletteName | null {
 /** The slowing words of an ending, the share of the tempo they reach at the end (RIT_END 0.78 for rall.). */
 const ENDING_WORDS: readonly [RegExp, number][] = [
   [/rall|rit/, 0.78],
-  [/allargando/, 0.82],
-  [/largamente/, 0.84],
+  [/allarg/, 0.82],
+  [/largamente|largo\b/, 0.84],
   [/slentando/, 0.84],
-  [/sostenuto/, 0.86],
+  [/sostenuto|sostenendo/, 0.86],
+  // D394: II/10's "Meno" (mosso) three bars from the end.
+  [/^meno( mosso)?\.?$/, 0.88],
 ];
 /** An ending's word's end speed (1: no slowing): "poco" halves the slowing, "pochissimo" quarters it. */
 export function endSpeedOf(text: string): number {
@@ -149,8 +171,14 @@ export function endSpeedOf(text: string): number {
   const k = /pochissimo/.test(t) ? 0.25 : /poco/.test(t) ? 0.5 : 1;
   return 1 - (1 - hit[1]) * k;
 }
-/** An ending's marks reach back at most this many bars from the end (a word earlier is mid-piece: not played). */
+/**
+ * An ending's marks reach back at most this many bars from the end, or a tenth of the piece where that is
+ * more (D392: I/4's largamente nine bars from the end of 115); a word earlier is mid-piece: not played.
+ */
 export const ENDING_BARS = 4;
+export const ENDING_SHARE = 0.1;
+/** D394: a word that says it runs to the end ("più largamente sino al fine", II/3; "Sostenendo sino al Fine", II/8) is an ending wherever it stands. */
+export const TO_THE_END = /sino al fine/i;
 /**
  * D385 (the owner: "when I said fermatas, I also meant … the endings … Busoni recommends slowing down"):
  * where the edition slows the end (rall., allargando, poco largamente, sostenuto … in the last
@@ -162,7 +190,7 @@ export function endingOf(w: WholeReading | undefined, length: number, barTicks: 
   const tail = [];
   for (const c of [...w.tempo].sort((a, b) => a.on - b.on)) {
     if (c.kind === "resume") tail.length = 0;
-    else if ((c.kind === "slow" || c.kind === "broaden") && c.on >= length - ENDING_BARS * barTicks && c.on < length) tail.push(c);
+    else if ((c.kind === "slow" || c.kind === "broaden") && (c.on >= length - Math.max(ENDING_BARS * barTicks, ENDING_SHARE * length) || TO_THE_END.test(c.text)) && c.on < length) tail.push(c);
   }
   if (!tail.length) return null;
   const end = Math.min(...tail.map((c) => endSpeedOf(c.text)));
@@ -325,14 +353,14 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     return l ? lv(l.mark) : firstLevel;
   };
   for (const d of levels) for (const v of d.voices) if (v < nv) evs[v].push({ t: d.on, kind: "set", db: lv(d.mark) });
-  const ramps = /\b(cresc|dim|decresc)/;
+  const ramps = RAMP;
   const rampWords = [
-    ...W.dyn.filter((d) => lv(d.mark) === undefined && ramps.test(d.mark)).map((d) => ({ on: d.on, voices: d.voices, up: /cresc/.test(d.mark), span: undefined as number | undefined })),
+    ...W.dyn.filter((d) => lv(d.mark) === undefined && ramps.test(d.mark)).map((d) => ({ on: d.on, voices: d.voices, up: RAMP_UP.test(d.mark), span: undefined as number | undefined })),
     ...W.text
       .filter((d) => ramps.test(d.text) && !W.dyn.some((x) => x.on === d.on && ramps.test(x.mark)))
       .map((d) => {
         const sp = d.span ? String(d.span).split(/[–-]/).map(Number) : [];
-        return { on: d.on, voices: d.voices ?? [...Array(nv).keys()], up: /cresc/.test(d.text), span: sp.length === 2 && sp[1] > sp[0] ? sp[1] - sp[0] : undefined };
+        return { on: d.on, voices: d.voices ?? [...Array(nv).keys()], up: RAMP_UP.test(d.text), span: sp.length === 2 && sp[1] > sp[0] ? sp[1] - sp[0] : undefined };
       }),
   ];
   for (const w of rampWords)
@@ -395,7 +423,7 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
   };
   const dynAt = (v: number, t: number) => base(v, t) + env(v, t);
   for (let v = 0; v < nv; v++) for (const [on] of f.voices[v]) get(key(v, on)).dyn = dynAt(v, on);
-  for (const d of W.dyn) if (/sfz/.test(d.mark)) for (const v of d.voices) if (exists(v, d.on)) get(key(v, d.on)).arts.add("accent");
+  for (const d of W.dyn) if (SFZ.test(d.mark)) for (const v of d.voices) if (exists(v, d.on)) get(key(v, d.on)).arts.add("accent");
   for (const g of notes.values())
     g.markDb = g.arts.has("marcato") ? BAND_MARK_DB.marcato : g.arts.has("accent") ? BAND_MARK_DB.accent : g.arts.has("wedge") ? BAND_MARK_DB.wedge : g.arts.has("portato") ? BAND_MARK_DB.portato : g.arts.has("tenuto") ? BAND_MARK_DB.tenuto : 0;
 

@@ -1,0 +1,838 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f03",
+ "title": "Fugue 3 in C♯ major, BWV 872",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperierte Klavier, Zweiter Teil (Busoni-Ausgabe, Band II, Heft 1)",
+  "publisher": "Breitkopf & Härtel (1915; later Wiesbaden printing)",
+  "pages": {
+   "pdf": [
+    25,
+    26,
+    27,
+    28
+   ],
+   "printed": [
+    22,
+    23,
+    24,
+    25
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1915)",
+  "source": "editions/busoni2/busoni-II-a.pdf"
+ },
+ "tempo": {
+  "text": "Sostenuto",
+  "en": "sustained",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 235200,
+    "bar": 31,
+    "pos": 10,
+    "text": "più largamente sino al fine",
+    "en": "broader to the end",
+    "kind": "broaden",
+    "conf": "sure",
+    "applied": false
+   }
+  ]
+ },
+ "character": "Text at b.1: \"non leggiero\"; the rhythm of the subject is spelled out (\"Ritmo di 6 / 4 / 2 quarti\") as it is shortened in stretto.",
+ "dynamicPlan": "No opening level: non leggiero with portato subjects; (non legato) bass b.5; bass marc. (b.17) and accented hidden subject notes (b.25–28); più largamente sino al fine (b.31); fz bass (b.32); forte, tenutamente over the pedal point (b.33) to the fermatas.",
+ "marks": [
+  {
+   "v": 2,
+   "on": 960,
+   "p": 49,
+   "name": "C#3",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 1920,
+   "p": 53,
+   "name": "E#3",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 2880,
+   "p": 49,
+   "name": "C#3",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 3840,
+   "p": 56,
+   "name": "G#3",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 4800,
+   "p": 68,
+   "name": "G#4",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 5760,
+   "p": 72,
+   "name": "B#4",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 5760,
+   "p": 54,
+   "name": "F#3",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 6720,
+   "p": 68,
+   "name": "G#4",
+   "bar": 1,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 7680,
+   "p": 73,
+   "name": "C#5",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 7680,
+   "p": 53,
+   "name": "E#3",
+   "bar": 2,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 8640,
+   "p": 68,
+   "name": "G#4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 9600,
+   "p": 71,
+   "name": "B4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 9600,
+   "p": 65,
+   "name": "E#4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 10560,
+   "p": 68,
+   "name": "G#4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 11520,
+   "p": 70,
+   "name": "A#4",
+   "bar": 2,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 11520,
+   "p": 61,
+   "name": "C#4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 11520,
+   "p": 54,
+   "name": "F#3",
+   "bar": 2,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 13440,
+   "p": 63,
+   "name": "D#4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 13440,
+   "p": 42,
+   "name": "F#2",
+   "bar": 2,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 15360,
+   "p": 65,
+   "name": "E#4",
+   "bar": 3,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 16320,
+   "p": 49,
+   "name": "C#3",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 17280,
+   "p": 46,
+   "name": "A#2",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 18240,
+   "p": 49,
+   "name": "C#3",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 19200,
+   "p": 42,
+   "name": "F#2",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 20160,
+   "p": 46,
+   "name": "A#2",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 21120,
+   "p": 39,
+   "name": "D#2",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 22080,
+   "p": 44,
+   "name": "G#2",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 126720,
+   "p": 56,
+   "name": "G#3",
+   "bar": 17,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 186240,
+   "p": 61,
+   "name": "C#4",
+   "bar": 25,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 188160,
+   "p": 58,
+   "name": "A#3",
+   "bar": 25,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 190080,
+   "p": 61,
+   "name": "C#4",
+   "bar": 25,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 192000,
+   "p": 63,
+   "name": "D#4",
+   "bar": 26,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 195840,
+   "p": 68,
+   "name": "G#4",
+   "bar": 26,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 201600,
+   "p": 51,
+   "name": "D#3",
+   "bar": 27,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 203520,
+   "p": 54,
+   "name": "F#3",
+   "bar": 27,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 205440,
+   "p": 51,
+   "name": "D#3",
+   "bar": 27,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 207360,
+   "p": 56,
+   "name": "G#3",
+   "bar": 28,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 235200,
+   "p": 39,
+   "name": "D#2",
+   "bar": 31,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 236160,
+   "p": 42,
+   "name": "F#2",
+   "bar": 31,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 237120,
+   "p": 66,
+   "name": "F#4",
+   "bar": 31,
+   "art": "accent",
+   "conf": "unsure"
+  },
+  {
+   "v": 2,
+   "on": 237120,
+   "p": 39,
+   "name": "D#2",
+   "bar": 31,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 249600,
+   "p": 37,
+   "name": "C#2",
+   "bar": 33,
+   "art": "fermata",
+   "conf": "likely",
+   "note": "printed at the end of the tied pedal C#2 under the last chord"
+  },
+  {
+   "v": 0,
+   "on": 264960,
+   "p": 65,
+   "name": "E#4",
+   "bar": 35,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 264960,
+   "p": 61,
+   "name": "C#4",
+   "bar": 35,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 2,
+   "from": 960,
+   "to": 11040,
+   "bars": "1.2–2.7",
+   "names": "C#3–C#3",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "subject (bass): dotted eighths, then the sixteenths legato under the same slur"
+  },
+  {
+   "v": 0,
+   "from": 4800,
+   "to": 14880,
+   "bars": "1.10–2.15",
+   "names": "G#4–F#4",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "answer (soprano, stretto)"
+  },
+  {
+   "v": 1,
+   "from": 8640,
+   "to": 18720,
+   "bars": "2.2–3.7",
+   "names": "G#4–G#4",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "subject (alto, stretto)"
+  },
+  {
+   "v": 2,
+   "from": 16320,
+   "to": 19200,
+   "bars": "3.2–3.8",
+   "names": "C#3–F#2",
+   "kind": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "from": 19200,
+   "to": 22560,
+   "bars": "3.8–3.15",
+   "names": "D#4–F#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 20160,
+   "to": 22080,
+   "bars": "3.10–3.14",
+   "names": "A#2–G#2",
+   "kind": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 101760,
+   "to": 103680,
+   "bars": "14.4–14.8",
+   "names": "F#2–E#2",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "trill and its resolution"
+  },
+  {
+   "v": 0,
+   "from": 126720,
+   "to": 130560,
+   "bars": "17.8–18.0",
+   "names": "D#5–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 131040,
+   "to": 136320,
+   "bars": "18.1–18.12",
+   "names": "A#4–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 177120,
+   "to": 180480,
+   "bars": "24.1–24.8",
+   "names": "A#4–E#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 180960,
+   "to": 183840,
+   "bars": "24.9–24.15",
+   "names": "F#5–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 196320,
+   "to": 199200,
+   "bars": "26.9–26.15",
+   "names": "A#4–E#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 223200,
+   "to": 226560,
+   "bars": "30.1–30.8",
+   "names": "A#3–A#2",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 227040,
+   "to": 230400,
+   "bars": "30.9–31.0",
+   "names": "A#3–G#4",
+   "kind": "slur",
+   "conf": "likely"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 238080,
+   "bar": 32,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "mark": "fz",
+   "conf": "sure"
+  },
+  {
+   "on": 249600,
+   "bar": 33,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "forte",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    2
+   ],
+   "from": 144480,
+   "to": 145920,
+   "bars": "19.13–20.0",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "non leggiero",
+   "en": "not light: full, weighted tone",
+   "conf": "sure"
+  },
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "Ritmo di 6 quarti",
+   "en": "rhythm of six quarters: the subject heard as one six-beat phrase",
+   "conf": "sure"
+  },
+  {
+   "on": 34560,
+   "bar": 5,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "(non legato)",
+   "en": "not legato: the bass eighths detached",
+   "conf": "sure"
+  },
+  {
+   "on": 46080,
+   "bar": 7,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "ritmo di 4 quarti",
+   "en": "rhythm of four quarters: the shortened subject (inversion)",
+   "conf": "sure"
+  },
+  {
+   "on": 77760,
+   "bar": 11,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "ritmo di 2 quarti",
+   "en": "rhythm of two quarters: the subject cut to its head",
+   "conf": "sure"
+  },
+  {
+   "on": 103680,
+   "bar": 14,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "ritmo di 6 quarti",
+   "en": "rhythm of six quarters again",
+   "conf": "sure"
+  },
+  {
+   "on": 123840,
+   "bar": 17,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "marc.",
+   "en": "marcato: the bass entry marked",
+   "conf": "sure"
+  },
+  {
+   "on": 195840,
+   "bar": 26,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "ten.",
+   "en": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "on": 249600,
+   "bar": 33,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "forte, tenutamente",
+   "en": "loud, held (every note sustained)",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "Busoni brackets each entry of the subject or its head (horizontal bracket over or under the notes): bring it out",
+   "source": "brackets printed from b.1 to b.31",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 7,
+   "sign": "double bar",
+   "en": "end of the exposition (inversion follows)",
+   "conf": "likely"
+  },
+  {
+   "beforeBar": 14,
+   "beforePos": 8,
+   "sign": "double bar (mid-bar)",
+   "en": "Busoni divides b.14: ritmo di 6 quarti resumes"
+  },
+  {
+   "beforeBar": 33,
+   "beforePos": 8,
+   "sign": "double bar (mid-bar)",
+   "en": "Busoni divides b.33: the final pedal point"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 2,
+   "on": 101760,
+   "p": 42,
+   "name": "F#2",
+   "bar": 14,
+   "pos": 4,
+   "sign": "tr",
+   "realisation": "none printed",
+   "conf": "sure"
+  }
+ ],
+ "ornamentsNote": "One trill (bass b.14), no realisation printed.",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [],
+ "caveats": [
+  "Source scanned at 300 ppi; read one system at a time at 200 dpi, dots checked at 300 dpi.",
+  "The Idee/Ossia staves (b.7–12, 21), the commentary, the \"Konzertmäßig\" example and footnotes 1–2 (tempo; part-writing notes) are skipped.",
+  "Brackets over entries are recorded as one rule, not per entry; pieces.json entries give their notes.",
+  "Ties are not recorded as slurs; most arcs b.12–23 are ties."
+ ],
+ "counts": {
+  "marks": 44,
+  "slurs": 14,
+  "dyn": 2,
+  "hairpins": 1,
+  "text": 9,
+  "breaths": 0,
+  "ornaments": 1,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 1,
+  "footnotes": 0,
+  "byArt": {
+   "portato": 22,
+   "tenuto": 4,
+   "staccato": 2,
+   "accent": 13,
+   "fermata": 3
+  },
+  "bySlurKind": {
+   "portato": 5,
+   "slur": 9
+  },
+  "byConf": {
+   "sure": 45,
+   "likely": 15,
+   "unsure": 1
+  },
+  "byConfAll": {
+   "sure": 56,
+   "likely": 15,
+   "unsure": 1
+  }
+ }
+}

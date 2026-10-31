@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
-import { bestReading, chooseReading, chosenReading, NO_READING, performSubject, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
+import { bestReading, busoniOn, chooseReading, chosenReading, NO_READING, OFFER_READINGS, performSubject, playReading, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
 import { acrossBar, drawThumb, planFingerings, type Touch } from "./fingering.ts";
 import { drawThumbProxy } from "./thumb-proxy.ts";
 import { fugueName } from "../touch/fugue-names.ts";
@@ -31,7 +31,9 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
-  const [reading, setReading] = useState<Reading | null>(() => (single ? bestReading(id, preset().id) : chosenReading(id, preset().id)));
+  // D393: only BUSONI offered (OFFER_READINGS off): the reading play.html plays, shown, no chooser.
+  const offered = OFFER_READINGS && !single;
+  const [reading, setReading] = useState<Reading | null>(() => (!OFFER_READINGS ? playReading(id) : single ? bestReading(id, preset().id) : chosenReading(id, preset().id)));
   const [picking, setPicking] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
@@ -84,7 +86,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   };
   const nick = fugueName(id, lang());
   const fg = fingerings[Math.min(alt, fingerings.length - 1)];
-  // Design studio (D394): the legend only of the signs this subject bears in this reading.
+  // Design studio (D398): the legend only of the signs this subject bears in this reading.
   const ns = reading?.notes ?? [];
   const has: Record<string, boolean> | null = reading
     ? { short: ns.some((n) => !!n.short), apart: ns.some((n) => n.join === false), joined: ns.some((n, i) => !!n.join && !slurredJoin(reading, i)), slur: (reading.slurs ?? []).length > 0, strong: ns.some((n) => !!n.accent) }
@@ -104,7 +106,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
         </div>
         <div className="tb-hear-stage">
           <canvas ref={canvas} className="tb-hear-canvas" />
-          {!single && readings.length > 0 && (
+          {offered && readings.length > 0 && (
             <div className="tb-hear-picker" role="radiogroup" aria-label={tr("WHOSE READING?")} hidden={!picking}>
               <p className="tb-hear-picker-head">{tr("WHOSE READING?")}</p>
               <button type="button" id="reading-none" role="radio" aria-checked={!reading} className={`tb-hear-pick${!reading ? " on" : ""}`} onClick={() => pick(null)}>
@@ -126,10 +128,14 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
           <button type="button" id="hear-again" className="tb-hear-btn2 tb-hear-again" onClick={hear}>
             ▶ {tr("HEAR IT AGAIN")}
           </button>
-          {single || !readings.length ? (
-            <span className="tb-hear-one" id="reading-one">
-              {reading ? `${reading.author} ${reading.year}` : tr("NO READING")}
-            </span>
+          {!offered || !readings.length ? (
+            reading ? (
+              <span className="tb-hear-one" id="reading-one">
+                {tr("THE READING")}: {reading.author} {reading.year}
+              </span>
+            ) : (
+              <span className="tb-hear-one">{tr("NO READING")}</span>
+            )
           ) : (
             <button type="button" id="reading-pick" className={`tb-hear-btn2${picking ? " on" : ""}`} aria-expanded={picking} onClick={() => setPicking((x) => !x)}>
               {reading ? `${reading.author} ${reading.year}` : tr("NO READING")} ▾
@@ -163,18 +169,18 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
             </cite>
           </blockquote>
         )}
-        {!reading && <p className="tb-hear-lock">{single ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
+        {!reading && <p className="tb-hear-lock">{!OFFER_READINGS && !busoniOn() && readings.some((r) => r.whole) ? tr("BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION") : !offered ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
       </div>
     </div>
   );
 }
 
-/** Design studio (D394): what each reading is, one line in the picker (the studio's rating of 31 Oct 2026). */
+/** Design studio (D398): what each reading is, one line in the picker (the studio's rating of 31 Oct 2026). */
 const READING_WHO: Readonly<Record<string, string>> = {
   bodky: "A harpsichordist after Quantz. Marks almost every note.",
   keller: "An organist's articulation, from Bach's marked parts. Not every fugue.",
   riemann: "A Romantic theorist's phrasing. No tempo.",
-  busoni: "A pianist's edition. The default on the piano.",
+  busoni: "A pianist's edition. The default on every instrument.",
 };
 
 const BOX = "#0f1730";
@@ -185,10 +191,10 @@ const GOLD_LINE = "#f3d26b";
 const LETTER = "#fff3b0";
 
 /**
- * Design studio (D394): the subject drawn as the play screen draws it: the box between the two strips, its
+ * Design studio (D398): the subject drawn as the play screen draws it: the box between the two strips, its
  * blocks in the voice's subject ink (D368) with their rims, the reading's marks over them (D374), a gold
- * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D386), each
- * played note's L or R under it as its thumb lands (D392).
+ * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D396), each
+ * played note's L or R under it as its thumb lands (D396).
  */
 function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
   const cssW = c.clientWidth || 300;
@@ -293,7 +299,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   }
   const t = playing ? now : finished ? Infinity : -1;
   const size = Math.max(12, Math.min(22, bar * 0.34));
-  // Each played note's thumb, L or R, appearing as it lands (D392: one ink for both thumbs).
+  // Each played note's thumb, L or R, appearing as it lands (D396: one ink for both thumbs).
   for (const tc of touches) {
     if (tc.slid || t < tc.on) continue;
     const p = perf[tc.i];
