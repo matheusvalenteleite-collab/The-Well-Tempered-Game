@@ -29,7 +29,7 @@ export function SideLegend({ marks, legendRef, whole, glossRef }: { marks: Itera
   if (!lines.length && !more.length) return null;
   return (
     <>
-      <div className="tb-side-legend" id="side-legend" ref={legendRef} aria-hidden="true">
+      <div className={`tb-side-legend${more.length ? " tb-side-legend-whole" : ""}`} id="side-legend" ref={legendRef} aria-hidden="true">
         {lines.map((l) => (
           <p key={l.kind}>
             <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}

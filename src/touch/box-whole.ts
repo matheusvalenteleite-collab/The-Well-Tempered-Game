@@ -58,7 +58,7 @@ function italic(g: CanvasRenderingContext2D, text: string, x: number, y: number)
 
 /** The levels' ink: the normal zone (the line plays the level) cream; sf/sfz the strong zone's orange (the accent's). */
 export const DYN_STRONG = "#ff8a3d";
-const WORD_ALPHA = 0.7;
+const WORD_ALPHA = 0.6;
 const DYN_ALPHA = 0.9;
 const PHRASE_ALPHA = 0.38;
 

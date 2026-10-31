@@ -801,6 +801,8 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 .tb-mark-w-lift, .tb-mark-w-phrase { color: var(--tg-gold); }
 .tb-mark-w-phrase { opacity: 0.55; }
 .tb-mark-w-dynamics, .tb-mark-w-words { font-style: italic; font-family: Georgia, serif; font-weight: 700; }
+.tb-side-legend-whole { top: 30%; font-size: 5px; line-height: 1.35; }
+.tb-side-legend-whole p { margin-bottom: 2px; }
 .tb-side-gloss { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); bottom: 10px; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.6); pointer-events: none; }
 .tb-side-gloss:empty { display: none; }
 html.tb-paper .tb-side-gloss { color: #2a2216; background: rgba(246, 245, 241, 0.92); }

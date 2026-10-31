@@ -266,11 +266,11 @@ function lineOf(f: TouchFugue, W: NonNullable<Reading["whole"]>, v: number): Who
   };
   const dyn: LineDyn[] = [];
   const words: LineWord[] = [];
-  const word = (on: number, text: string) => {
+  const word = (on: number, text: string, boxed = true) => {
     const gloss = glossOf(text);
     if (!gloss || words.some((w) => w.on === on && wordKey(w.text) === wordKey(text))) return;
     const shown = text.replace(/(\s*-)+\s*$/, "").trim();
-    words.push({ on, step: lowAt(on), text, shown: shown.toUpperCase(), gloss });
+    words.push({ on, step: lowAt(on), text, shown: boxed ? shown.toUpperCase() : "", gloss });
   };
   for (const d of W.dyn) {
     if (!d.voices.includes(v)) continue;
@@ -284,8 +284,9 @@ function lineOf(f: TouchFugue, W: NonNullable<Reading["whole"]>, v: number): Who
     } else if (/sf/.test(mark)) dyn.push({ on: d.on, step: lowAt(d.on), text: mark, parts: dynParts(mark), strong: true });
     else word(d.on, mark);
   }
-  // The heading over the player's first note; the words in the score in this voice; the changes of pace (every voice).
-  if (W.heading && ns.length) word(ns[0][0], W.heading);
+  // The heading translated in the side bar from the player's first note (not drawn: a long line over the first
+  // entry, the HUD names the piece); the words in the score in this voice; the changes of pace (every voice).
+  if (W.heading && ns.length) word(ns[0][0], W.heading, false);
   for (const t of W.text) if (mine(t.voices) && t.text !== W.heading) word(t.on, t.text);
   for (const t of W.tempo) word(t.on, t.text);
   const hairpins: LineHairpin[] = W.hairpins.filter((h) => h.voices.includes(v)).map((h) => ({ from: h.from, to: h.to, dir: h.dir, step: lowAt(h.from, h.to) }));
