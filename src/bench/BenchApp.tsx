@@ -1704,7 +1704,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<VoiceLegend alone={!!dressNow && !dressNow.includes("voices")} names={f.voiceNames.map((n) => partKey(f.kind, n))} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
+        legend={<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} alone={!!dressNow && !dressNow.includes("voices")} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
