@@ -19,8 +19,10 @@
  *     struck is back on the pulse (else it is GOOD after all);
  *   BREATH: a re-entry after a written rest, or the first note after a cadence's arrival, up to
  *     BREATH_LATE_MS; the lift before it is never judged "not joined";
- *   BROADENING: the last BROADEN_BARS bars of the run, late up to BROADEN_SHARE of a beat, growing
- *     toward the end.
+ *   BROADENING: the last BROADEN_BARS bars before a close, late up to BROADEN_SHARE of a beat, growing
+ *     toward it. D384: a close is the piece's end, or a perfect or imperfect cadence (a fermata) in the
+ *     run's last bar; never the bare end of a lesson's or practice's excerpt, and only in a run of at
+ *     least BROADEN_MIN_BARS bars (broadenClose).
  * The windows that take a note are unchanged (a strike later than its window is a miss, as before), the
  * band never follows, and loudness plays no part. Pure: numbers in, verdicts out.
  */
@@ -45,6 +47,24 @@ export const AGOGIC_SHARE = 0.15;
 export const BREATH_LATE_MS = 120;
 export const BROADEN_SHARE = 0.2;
 export const BROADEN_BARS = 2;
+/** D384: a run shorter than this (bars) never broadens: the grace would cover most of it. */
+export const BROADEN_MIN_BARS = 3;
+
+/**
+ * D384 (Luigi 2, the mechanics report's §7): where a run may broaden, the tick it broadens toward, or null.
+ * The piece's end (where the game's own final ritard plays: the run's end), or an arrival of a perfect or
+ * imperfect cadence, or a fermata, in the run's last bar (the arrival); and only in a run at least
+ * BROADEN_MIN_BARS long. An excerpt that merely stops (a lesson's, a practice's) judges its time plainly.
+ */
+export function broadenClose(o: { from: number; until: number; length: number; barTicks: number; cadences?: readonly { on: number; kind: string }[]; fermatas?: readonly number[] }): number | null {
+  if (o.until - o.from < BROADEN_MIN_BARS * o.barTicks) return null;
+  if (o.until >= o.length) return o.until;
+  const lastBar = (t: number) => t > o.until - o.barTicks && t <= o.until;
+  let close: number | null = null;
+  for (const c of o.cadences ?? []) if ((c.kind === "perfect" || c.kind === "imperfect") && lastBar(c.on)) close = Math.max(close ?? 0, c.on);
+  for (const t of o.fermatas ?? []) if (lastBar(t)) close = Math.max(close ?? 0, t);
+  return close;
+}
 
 export function touchStyle(hold: number): TouchStyle {
   return hold >= LEGATO_FROM ? "LEGATO" : hold >= ORDINARY_FROM ? "ORDINARY" : "DETACHED";
@@ -166,7 +186,8 @@ export function afterCadence(f: TouchFugue, prevOn: number, on: number): boolean
 export type Grace = "agogic" | "breath" | "broaden";
 /**
  * D325b: how late (ms) a strike may come and still be PERFECT, and why: the largest of the graces that
- * apply (0: none). `toEnd` how far the note is from the run's end, in bars (broadening within BROADEN_BARS).
+ * apply (0: none). `toEndBars` how far the note is from the run's close, in bars (broadening within BROADEN_BARS;
+ * Infinity where the run has no close: broadenClose).
  */
 export function graceMs(o: { beatMs: number; strong: boolean; dissonant: boolean; breath: boolean; toEndBars: number }): { ms: number; why: Grace | null } {
   let ms = 0;

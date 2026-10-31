@@ -82,7 +82,7 @@ import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
 import type { ArtFlash, ArtStats } from "./articulation.ts";
 import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoGapMs, releaseVerdict, restAfter } from "./articulation.ts";
 import { firstAtOrAfter } from "../touch/visible.ts";
-import { afterCadence, artBonus, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
+import { afterCadence, artBonus, broadenClose, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
@@ -3696,8 +3696,14 @@ export class ProtoGame {
       strong,
       dissonant: !strong && dissonantAt(this.f, this.voiceOf(k, i), n.on, n.midi),
       breath: this.breathAt(i, k),
-      toEndBars: (this.end - this.beat - n.on) / this.f.barTicks,
+      toEndBars: this.closeAt === null ? Infinity : (this.closeAt - n.on) / this.f.barTicks,
     });
+  }
+  /** D384: the tick this run broadens toward (the piece's end, a cadence closing it), or null (intention.ts broadenClose). */
+  private closeMemo: number | null | undefined;
+  private get closeAt(): number | null {
+    if (this.closeMemo === undefined) this.closeMemo = broadenClose({ from: this.entry, until: this.end - this.beat, length: this.f.length, barTicks: this.f.barTicks, cadences: this.f.cadences, fermatas: this.f.fermatas });
+    return this.closeMemo;
   }
   /** D325b: the window options for track k, an agogic note's late side leaning (lanes.ts LaneOptions.lean); on LADDER's split windows only. */
   private leanMemo: (LaneOptions | undefined)[] = [];
