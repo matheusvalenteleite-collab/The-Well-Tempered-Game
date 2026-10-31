@@ -391,7 +391,7 @@
    "to": 87360,
    "bars": "30.0–31.2",
    "names": "G5–G4",
-   "kind": "slur",
+   "kind": "phrase",
    "conf": "likely"
   },
   {
@@ -409,7 +409,7 @@
    "to": 90240,
    "bars": "31.0–32.2",
    "names": "D4–D3",
-   "kind": "slur",
+   "kind": "phrase",
    "conf": "likely"
   },
   {
@@ -418,7 +418,7 @@
    "to": 93120,
    "bars": "32.0–33.2",
    "names": "A5–A4",
-   "kind": "slur",
+   "kind": "phrase",
    "conf": "likely"
   },
   {
@@ -1161,5 +1161,8 @@
    "likely": 69,
    "unsure": 4
   }
- }
+ },
+ "notes": [
+  "Game import (WTC 1.91, D394): slurs over smaller slurs kept as phrase arcs, the inner slurs the gestures (voice:bars 0:30.0–31.2, 1:31.0–32.2, 0:32.0–33.2)."
+ ]
 }

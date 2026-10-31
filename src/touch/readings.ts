@@ -215,7 +215,7 @@ export const BEST_READING: Readonly<Record<string, string>> = {
   wtc1f24: "keller",
 };
 /**
- * D385: on the piano a fugue with a whole-piece reading (BUSONI: every Book I fugue since D392) is played by it
+ * D385: on the piano a fugue with a whole-piece reading (BUSONI: every Book I fugue since D392, all 48 since D394) is played by it
  * unless the player chose another: its dynamics, accents, slurs and characters are the piano's (the
  * owner). Every other sound, and every other fugue, keeps D344's choice.
  */
@@ -246,8 +246,8 @@ export function setBusoniOn(on: boolean) {
 }
 /**
  * D393: the reading play.html plays a fugue by, on every instrument: BUSONI's whole-piece reading where the
- * fugue has one (every fugue of Book I) and the switch is on; else none (Book II; the switch off): the
- * player's own articulation, the plain band, no marks in the box. The piano's own features (D385–D389)
+ * fugue has one (all 48 fugues since D394, WTC 1.91) and the switch is on; else none (a fugue with no whole
+ * reading; the switch off): the player's own articulation, the plain band, no marks in the box. The piano's own features (D385–D389)
  * stay the piano's; the others take what they already support (articulation, slurs, the box, the ending).
  */
 export const playReading = (id: string): Reading | null => (busoniOn() ? wholeReadingOf(id) : null);
