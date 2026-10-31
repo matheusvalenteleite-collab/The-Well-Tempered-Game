@@ -215,7 +215,7 @@ export const BEST_READING: Readonly<Record<string, string>> = {
   wtc1f24: "keller",
 };
 /**
- * D385: on the piano a fugue with a whole-piece reading (BUSONI: I/1, I/2, I/8, I/16, I/24) is played by it
+ * D385: on the piano a fugue with a whole-piece reading (BUSONI: every Book I fugue since D392) is played by it
  * unless the player chose another: its dynamics, accents, slurs and characters are the piano's (the
  * owner). Every other sound, and every other fugue, keeps D344's choice.
  */

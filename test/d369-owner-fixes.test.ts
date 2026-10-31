@@ -210,9 +210,12 @@ test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: M
 test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading the default until one is chosen", async () => {
   const { chosenReading, chooseReading, bestReading, BEST_READING, NO_READING, readingsOf } = await import("../src/touch/readings.ts");
   store.clear();
-  // (D385: a fugue with no whole-piece reading: on the piano BUSONI's is the default where it exists, d385-piano.test.ts.)
-  const id = Object.keys(BEST_READING).find((k) => BEST_READING[k] !== NO_READING && readingsOf(k).length > 1 && !readingsOf(k).some((r) => r.whole))!;
+  // D392: every Book I fugue now has BUSONI's whole-piece reading, the piano's default (d385-piano.test.ts); with no
+  // sound named and on every other sound D344's reading is the default until one is chosen.
+  const id = Object.keys(BEST_READING).find((k) => BEST_READING[k] !== NO_READING && readingsOf(k).filter((r) => !r.whole).length > 1)!;
   assert.equal(chosenReading(id)?.id, bestReading(id)?.id, "nothing chosen: D344's");
+  assert.equal(chosenReading(id)?.id, BEST_READING[id]);
+  assert.equal(chosenReading(id, "harpsichordSampled")?.id, BEST_READING[id], "another sound: D344's");
   const other = readingsOf(id).find((r) => r.id !== BEST_READING[id])!;
   chooseReading(id, other.id);
   assert.equal(chosenReading(id)?.id, other.id);
@@ -229,7 +232,8 @@ test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading th
   const html = renderToStaticMarkup(React.createElement(HearSubject, { id, play: async () => 0, close: () => {} }));
   assert.match(html, /id="reading-none"/);
   for (const r of readingsOf(id)) assert.match(html, new RegExp(`id="reading-${r.id}"`));
-  assert.match(html, new RegExp(`id="reading-${BEST_READING[id]}"[^>]*aria-checked="true"`));
+  const { preset } = await import("../src/touch/sound.ts");
+  assert.match(html, new RegExp(`id="reading-${chosenReading(id, preset().id)!.id}"[^>]*aria-checked="true"`));
 });
 
 test("D369 (7): a fugue not yet finished offers the second voice to enter; once finished, the voice last played", async () => {
