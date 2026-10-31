@@ -1163,7 +1163,7 @@ export class ProtoGame {
         // D385: a whole-piece reading's palette (the dampers, the room) on every part.
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
-        const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: PIANO_TRILL.dampMul * (jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
+        const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
         const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);

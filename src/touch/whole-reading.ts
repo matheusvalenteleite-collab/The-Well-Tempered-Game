@@ -122,12 +122,12 @@ export const PALETTES: Readonly<Record<PaletteName, Palette>> = {
 /** The word's palette (null: not a character word: a level, a ramp, a label). The order matters: "non legg." before "legg.". */
 export function paletteOfWord(text: string): PaletteName | null {
   const t = text.toLowerCase();
+  if (/espress|nobilmente/.test(t)) return "espressivo";
   if (/non legg|pesante|deciso|fermezza|eroico/.test(t)) return "heavy";
   if (/meno legg|meno severo|semplice|egualmente|misurato|meno legato/.test(t)) return "even";
   if (/legg|vivace|scherz|quasi stacc|piacevole/.test(t)) return "light";
   if (/grave|solenne|severo|sostenuto|molto tenuto|gravit/.test(t)) return "grave";
   if (/dolce|delicat|zart|weich|mezza voce|sotto voce|calmando|tranquillo/.test(t)) return "dolce";
-  if (/espress|nobilmente/.test(t)) return "espressivo";
   if (/marc|bedeutung|distintamente/.test(t)) return "marcato";
   if (/pensieroso/.test(t)) return "dolce";
   return null;
@@ -402,10 +402,13 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
   // --- palettes: the heading from the start; a word from its tick to the next word or double bar (in its voices)
   const heading = (W.heading && paletteOfWord(W.heading)) || "plain";
   const seams = W.sections.map((s) => s.at ?? (s.beforeBar ? (f.bars.find((b) => b.n === s.beforeBar)?.on ?? null) : null)).filter((x): x is number => x !== null);
-  const words = W.text.flatMap((t) => {
-    const p = t.on > 0 ? paletteOfWord(t.text) : null;
-    return p ? [{ on: t.on, voices: t.voices ?? [...Array(nv).keys()], p }] : [];
-  });
+  // The words in the score and the levels that are characters too (dolce, p dolce, mezza voce), in their voices.
+  const words = [...W.text.map((t) => ({ on: t.on, voices: t.voices ?? [...Array(nv).keys()], text: t.text })), ...W.dyn.map((d) => ({ on: d.on, voices: d.voices, text: d.mark }))]
+    .flatMap((t) => {
+      const p = paletteOfWord(t.text);
+      return p ? [{ on: t.on, voices: t.voices, p }] : [];
+    })
+    .sort((a, b) => a.on - b.on);
   const paletteAt = (v: number, t: number): Palette => {
     const w = words.filter((x) => x.on <= t && x.voices.includes(v)).pop();
     if (!w) return PALETTES[heading];
