@@ -83,7 +83,9 @@ import type { DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
+import { BUILT_STAGES, openStage, resetProfile, isOpen, markTaught, noteRun, PLAY_FUGUE, progNext, readProg, slowOffered, stageOf, fineGrade } from "./progression.ts";
+import { BASICS } from "./manual/stage-lessons.ts";
+import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManualStore, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
@@ -410,7 +412,8 @@ export function BenchApp() {
   const voice = run ? run.voice : pick.voice;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
-  const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
+  // D440: PROGRESSION MODE's SLOW valve: the tempo offered after two runs the crowd ended (progression.ts slowOffered).
+  const opensTempo = (id: string) => APP.lite && (tempoOpen(id, full, tempoEarned(id, lite)) || (slowOffered(id) && tempoOpen(id, full, true)));
   const stepOf = (id: string): TempoStep => (opensTempo(id) ? (tempoSteps[id] ?? "default") : "default");
   const tempi = opensTempo(f.id) ? stepTempi(f.id) : null;
   const step = stepOf(f.id);
@@ -852,6 +855,11 @@ export function BenchApp() {
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
           // D356: a WTC fugue at SLOW: kept as finished, its grade and score apart (never its best, never what opens the tempo).
           const apart = step === "slow" && isWtcFugue(f.id);
+          // D440, PROGRESSION MODE: the finer grades (A+ to E), and the runs the crowd ended counted (the SLOW valve).
+          if (APP.progression) {
+            r.grade = fineGrade(r, r.captured >= r.entries);
+            noteRun(f.id, r.failedBar !== null);
+          }
           // D376: THE EXPRESSION LAB's runs (Glenn's judging) never touch play.html's progress or bests.
           if (!APP.glenn) recordLite(f.id, r.failedBar !== null, platform === "mobile", apart ? undefined : r.grade);
           const opened: Tier[] = [];
@@ -862,7 +870,7 @@ export function BenchApp() {
           const tempo = tempi ? { step, beat: stepBeat(f.id, tempi[step]), apart } : undefined;
           // D308: read after the best score is kept (the cards show it; it was read before, so they did not until a reload).
           setLite(readLite());
-          setPhase({ kind: "result", ...r, best, seal: null, tempo, opened, next: nextIn(liteNextOrder(f.id, platform === "mobile"), f.id) });
+          setPhase({ kind: "result", ...r, best, seal: null, tempo, opened, next: APP.progression ? progNext(f.id, readLite().beaten) : nextIn(liteNextOrder(f.id, platform === "mobile"), f.id) });
         } else {
           // D214: SUBJECT's grade is not any one voice's.
           if (r.failedBar === null && !subjectMode) recordBest(f.id, played, r.grade);
@@ -1025,10 +1033,58 @@ export function BenchApp() {
   };
   /** D237: CONTINUE, NEXT: straight into the count-in, no pop-up. */
   const begin = (piece: string) => {
+    if (progGate(piece)) return;
     if (piece !== pick.piece) setPick({ piece, share: 0, voice: -1 });
     setOpened(piece);
     start(true);
   };
+  /**
+   * D440, PROGRESSION MODE: a stage's fugue played. Locked: nothing. Its tutorial not yet through: the
+   * tutorial's lessons in turn (stage 1's BASICS skipped where passed already), then the fugue; else the fugue.
+   */
+  const progQ = useRef<{ fugue: string; queue: string[]; at: string | null } | null>(null);
+  /** The tutorial just through: its fugue begun without asking again. */
+  const progThrough = useRef(false);
+  /** true: `begin` stops here (the fugue locked, or its tutorial begun instead). */
+  const progGate = (piece: string): boolean => {
+    if (!APP.progression) return false;
+    if (progThrough.current) return (progThrough.current = false);
+    if (!isOpen(piece, readLite().beaten)) return true;
+    return !readProg().taught.includes(piece) && progTutor(piece, false);
+  };
+  /** The stage's tutorial begun (redo: without the BASICS); false if it has none. */
+  const progTutor = (piece: string, redo: boolean): boolean => {
+    const done = readManual().lessons;
+    const queue = (stageOf(piece)?.lessons ?? []).filter((id) => (redo ? !BASICS.includes(id) : !(BASICS.includes(id) && done[id]?.passed)));
+    if (!queue.length) return false;
+    if (piece !== pick.piece) setPick({ piece, share: 0, voice: -1 });
+    setOpened(piece);
+    ensureChip();
+    progQ.current = { fugue: piece, queue, at: null };
+    beginManual(queue[0]);
+    return true;
+  };
+  /** D440: the tutorial's queue run out: the stage kept as taught, and its fugue begun. */
+  const progFugue = () => {
+    const q = progQ.current;
+    progQ.current = null;
+    if (!q) return toMap();
+    markTaught(q.fugue);
+    progThrough.current = true;
+    setMan(null);
+    setWatching(false);
+    setSteps(false);
+    setTutFocus(null);
+    begin(q.fugue);
+  };
+  /** The next lesson after the one just left: in PROGRESSION MODE the stage's queue (its end the fugue), else the tutorial's. */
+  const nextManual = (st: ReturnType<typeof readManual>): string | null => {
+    const q = progQ.current;
+    if (!q) return nextManualStore(st);
+    const k = q.at ? q.queue.indexOf(q.at) : -1;
+    return q.queue[k + 1] ?? PLAY_FUGUE;
+  };
+  const nextWord = (next: string) => (next === PLAY_FUGUE ? "▶ PLAY THE FUGUE" : "NEXT");
   /** D237: the bench's NEXT: a prelude's fugue, then the next pair (the wheel's order), skipping what is locked; Book II in order. */
   function benchNext(id: string): string | null {
     const order = paired(id) ? tierCards().flatMap((c) => [preludeOf(c.id), c.id]) : bookCards(cardById(id)?.book ?? 2).map((c) => c.id);
@@ -1093,6 +1149,9 @@ export function BenchApp() {
   const talk = (title: string, lines: Line[], o: { choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void } = {}) => setPhase({ kind: "mtalk", title, lines, ...o });
   /** `stage` (D369): taken up again at a stage already reached (D373: a chip on the selection screen's tile). */
   function beginManual(id: string, o: { stage?: number } = {}) {
+    // D440, PROGRESSION MODE: the stage's tutorial through: its fugue, at once.
+    if (id === PLAY_FUGUE) return progFugue();
+    if (progQ.current) progQ.current.at = id;
     const l = lessonById(id);
     if (!l) return;
     // D373: Inventions 4, 8 and 12 are MORE BACH's chunk: fetched first.
@@ -1155,7 +1214,7 @@ export function BenchApp() {
     const sealed = !!l.checkpoint && !!part?.seal;
     const lines: Line[] = [...lead, ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : [])];
     const again = { label: "AGAIN", act: () => courseStep(l, 0, takes + 1, true) };
-    return talk(mTitle(l), lines, { extra: sealed ? <>{extra}<Seal part={l.part} /></> : extra, choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : [{ label: "TUTORIAL", act: toMap }]), again] });
+    return talk(mTitle(l), lines, { extra: sealed ? <>{extra}<Seal part={l.part} /></> : extra, choices: [...(next ? [{ label: nextWord(next), act: () => beginManual(next) }] : [{ label: "TUTORIAL", act: toMap }]), again] });
   }
   /** D379, SPOT: a tap while he plays, noted against the entries (true: a SPOT step is under way). */
   const spotTap = (): boolean => {
@@ -1182,7 +1241,7 @@ export function BenchApp() {
     finishStep(l.id, 0);
     const s = recordTake(l.id, 1, true);
     const next = nextManual(s);
-    talk(mTitle(l), l.after.map((text) => ({ text })), { choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : []), { label: "TUTORIAL", act: toMap }] });
+    talk(mTitle(l), l.after.map((text) => ({ text })), { choices: [...(next ? [{ label: nextWord(next), act: () => beginManual(next) }] : []), { label: "TUTORIAL", act: toMap }] });
   };
   /** D402: his next bubble; past the last, what they introduced kept as introduced, and the round on (THE REAL THING's tour: on to its next step). */
   const dressNext = () => {
@@ -1271,7 +1330,7 @@ export function BenchApp() {
       const part = MANUAL_PARTS.find((p) => p.id === l.part);
       const sealed = !!l.checkpoint && !!part?.seal;
       const lines: Line[] = [...(told ? [{ text: tr(told.text, told.vars) }] : []), ...l.after.map((text) => ({ text })), ...(sealed ? [{ text: part!.seal! }] : [])];
-      return talk(mTitle(l), lines, { extra: result(sealed ? <Seal part={l.part} /> : undefined), choices: [...(next ? [{ label: "NEXT", act: () => beginManual(next) }] : [{ label: "TUTORIAL", act: toMap }]), again] });
+      return talk(mTitle(l), lines, { extra: result(sealed ? <Seal part={l.part} /> : undefined), choices: [...(next ? [{ label: nextWord(next), act: () => beginManual(next) }] : [{ label: "TUTORIAL", act: toMap }]), again] });
     }
     // D373 (the report: "after three tries he always offers 'Let's go on: we'll meet this again'").
     const tries = triesOf(s, l.id);
@@ -1302,7 +1361,7 @@ export function BenchApp() {
     talk(mTitle(l), [{ text: alt ? mat.label : (st.say ?? mat.label) }], { extra: !alt && st.say ? <StageLine l={l} k={k} /> : undefined, choices: [{ label: "PLAY", act: () => startStep(m) }] });
   }
   /** Back to the tutorial's selection screen, the lesson just left chosen there. */
-  const toMap = () => (setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
+  const toMap = () => ((progQ.current = null), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
   const startManual = () => {
     const s = readManual();
@@ -1458,7 +1517,7 @@ export function BenchApp() {
   const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
   // D376: THE EXPRESSION LAB's badge moves out of the thumbs' way while a run plays (lab.css).
   useEffect(() => {
-    if (APP.glenn) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
+    if (APP.glenn || APP.progression) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
   }, [phase.kind]);
   const introSounds = useRef<Sounding[]>([]);
   const introOver = useRef(false);
@@ -1984,7 +2043,7 @@ export function BenchApp() {
           setVoice={(v) => setPick({ voice: v })}
           // D376: THE EXPRESSION LAB: a piece chosen opens its card at once (the instrument, the tempo, then PLAY).
           select={(id) => (stopHearing(), APP.glenn ? open(id) : setPick({ piece: id, share: 0, voice: -1 }))}
-          play={() => (setOpened(f.id), start(true))}
+          play={() => (APP.progression ? begin(f.id) : (setOpened(f.id), start(true)))}
           options={() => open(f.id)}
           open={open}
           hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))}
@@ -1999,6 +2058,8 @@ export function BenchApp() {
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
           tutorial={{ ...manualProgress(readManual()), start: startManual }}
+          // D440, PROGRESSION MODE (the Lab): the stages open, REDO TUTORIAL, and a fresh start.
+          prog={APP.progression ? { open: openStage(lite.beaten), built: BUILT_STAGES, taught: readProg().taught, redo: (id: string) => void progTutor(id, true), reset: () => (resetProfile(), location.reload()) } : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
           note={
             lag !== null && lag > 0.02 ? (

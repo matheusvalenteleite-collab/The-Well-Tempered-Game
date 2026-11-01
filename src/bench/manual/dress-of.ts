@@ -2,7 +2,8 @@
 import { MANUAL } from "./lessons.ts";
 import { DRESS, type DressId, type DressLine } from "./dress.ts";
 
-const order = (id: string) => MANUAL.findIndex((l) => l.id === id);
+// D440: a PROGRESSION MODE stage lesson (P.n) is dressed as the full screen: after the last lesson of the tutorial.
+const order = (id: string) => (/^P\.\d+$/.test(id) ? MANUAL.length : MANUAL.findIndex((l) => l.id === id));
 
 /** The elements on in a lesson (every one whose lesson comes at or before it). */
 export function dressOf(id: string): DressId[] {

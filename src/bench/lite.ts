@@ -153,10 +153,11 @@ export const JUDGING = "1.52";
 export const BEFORE_JUDGING = "BEFORE 1.52";
 
 /** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
-export const SOUND_UNLOCK_GRADES = ["S", "A"];
+export const SOUND_UNLOCK_GRADES = ["S", "A+", "A"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
 export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
-const RANK = ["D", "C", "B", "A", "S"];
+// D440: PROGRESSION MODE's finer grades (progression.ts fineGrade) ranked too: E under D, A+ as S.
+const RANK = ["E", "D", "C", "B", "A", "A+", "S"];
 /** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens once it is finished with an A or better (as its sound, D265). */
 export const tempoEarned = soundUnlocked;
 

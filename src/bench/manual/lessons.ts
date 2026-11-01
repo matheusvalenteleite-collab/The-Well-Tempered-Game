@@ -45,6 +45,7 @@ import { atLeast, consistency, ex, INV, INV1_1_4, INV4, INV4_1, INV4_1_2, INV8, 
 import { COURSE2 } from "./course2.ts";
 import { FUGUE_TRACK } from "./fugue-track.ts";
 import { RETIRED } from "./retired.ts";
+import { STAGE_LESSONS } from "./stage-lessons.ts";
 import { DRESS_TEXTS, type DressLine } from "./dress.ts";
 void RETIRED;
 
@@ -53,7 +54,7 @@ void RETIRED;
  * the older parts kept until they are rebuilt (shown after the new ones as Parts 4, 5 and 6).
  */
 /** D379: Parts 4–6 rebuilt in the new format and the fugue track (F); III–V (retired.ts) kept as ids for old records. */
-export type PartId = "1" | "2" | "3" | "4" | "5" | "6" | "F" | "III" | "IV" | "V" | "VI" | "VII" | "VIII";
+export type PartId = "1" | "2" | "3" | "4" | "5" | "6" | "F" | "P" | "III" | "IV" | "V" | "VI" | "VII" | "VIII";
 export type SoundName = "chip" | "harpsichord" | "organ" | "piano";
 /** The sound each name plays on (sound.ts presets). D359: the organ is the PIPE ORGAN (D349), not the retired sampled organ. */
 export const SOUND_PRESET: Record<SoundName, string> = { chip: "chip", harpsichord: "harpsichordSampled", organ: "chamberOrgan", piano: "pianoSampled" };
@@ -610,7 +611,8 @@ export const MANUAL: ManualLesson[] = [
   ...FUGUE_TRACK,
 ];
 
-export const lessonById = (id: string): ManualLesson | undefined => MANUAL.find((l) => l.id === id);
+/** D440: the Lab's PROGRESSION MODE stage lessons found too (kept out of MANUAL: stage-lessons.ts). */
+export const lessonById = (id: string): ManualLesson | undefined => MANUAL.find((l) => l.id === id) ?? STAGE_LESSONS.find((l) => l.id === id);
 /** D379: a lesson by its id, the retired older parts' too (their tests' engine checks; never offered). */
 export const anyLessonById = (id: string): ManualLesson | undefined => lessonById(id) ?? RETIRED.find((l) => l.id === id);
 export const lessonsOf = (p: PartId) => MANUAL.filter((l) => l.part === p);

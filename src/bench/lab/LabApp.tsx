@@ -1050,6 +1050,10 @@ export function LabApp() {
             <a className="lab-glenn" id="lab-classic" href="?glenn=0">
               MECHANICS: CLASSIC
             </a>
+            {/* D440: PROGRESSION MODE: Book I as a path of stages, each with its own tutorial, on a profile of its own (lab.html?progression=1). */}
+            <a className="lab-glenn" id="lab-progression" href="?progression=1">
+              PROGRESSION MODE
+            </a>
             {(["passage", "free", "breath", "table", "drills", "mechanics", "sensor", "see", "runs", "study", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
                 {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}

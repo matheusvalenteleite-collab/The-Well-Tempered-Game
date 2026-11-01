@@ -15,6 +15,7 @@ import { markVersion } from "../version.ts";
 import { labPlayParam } from "../glenn.ts";
 import { setMech } from "../mechanics.ts";
 import { forceUnlocked } from "../unlock.ts";
+import { installProfile } from "../progression.ts";
 import { BenchApp } from "../BenchApp.tsx";
 import { Sideways, lockOnFirstTap } from "../Sideways.tsx";
 import "../tools.css";
@@ -30,6 +31,16 @@ forceUi("classic");
 
 markVersion();
 const page = labPlayParam(location.search);
+// D440: PROGRESSION MODE (lab.html?progression=1): play.html's game as a new player meets it, Book I as a path
+// of stages (progression.ts), on a profile of its own (nothing of the device's progress read or written).
+const progression = new URLSearchParams(location.search).get("progression") === "1";
+if (progression) {
+  installProfile();
+  APP.progression = true;
+  document.documentElement.classList.add("tb-play-page", "glenn-page");
+  document.title = "WTC Lab: Progression";
+  lockOnFirstTap();
+}
 const glenn = page !== null;
 const classic = page === "classic";
 if (glenn) {
@@ -42,7 +53,18 @@ if (glenn) {
 }
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {glenn ? (
+    {progression ? (
+      <>
+        <BenchApp />
+        <Sideways />
+        <div className="glenn-badge" id="prog-badge">
+          <b>PROGRESSION MODE</b>
+          <a href="./lab.html" id="prog-back">
+            ◀ LAB
+          </a>
+        </div>
+      </>
+    ) : glenn ? (
       <>
         <BenchApp />
         <Sideways />

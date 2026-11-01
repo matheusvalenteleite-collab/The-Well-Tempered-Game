@@ -147,3 +147,11 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-news-go { font-size: 9px; color: #5fdc6a; }
 @keyframes sel-news-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .sel-news { animation: none; } }
+
+/* D440, PROGRESSION MODE (the Lab): a fugue past the open stage greyed, its stage number over it. */
+.sel-tile.locked { cursor: default; filter: grayscale(1) brightness(0.45); }
+.sel-tile.locked .sel-tile-level, .sel-tile.locked .sel-tile-name { visibility: hidden; }
+.sel-lock { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #f2eee0; text-shadow: 0 1px 0 #000; pointer-events: none; }
+.sel-prog { cursor: default; display: flex; flex-direction: column; gap: 4px; }
+.sel-prog .sel-link { align-self: flex-start; font-size: 8px; }
+.sel-redo { display: block; margin: 4px 0; }
