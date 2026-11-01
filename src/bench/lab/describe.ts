@@ -82,6 +82,10 @@ export function describe(piece: string, e: LabEvent): string[] {
       return [`${at} ○ ${pitchName(piece, e.midi)} MISSED (no touch in its window)`];
     case "slide":
       return [`${at} ↕ SLIDE fired: ${e.side} thumb moved ${px(e.movedPx)} ${way(e.movedPx)} while held`];
+    case "slideMiss": {
+      const why = { short: "stopped short of halfway", far: "too far past the note", early: "lifted while waiting for its time", late: "arrived after the note went by", lifted: "lifted on the way", oneway: "the other way after sliding (one way only: lift and strike)" }[e.why];
+      return [`${at} ↕ SLIDE FAILED: ${e.side} thumb ${why}`];
+    }
     case "drag": {
       const name = (m: number) => pitchName(piece, m);
       const took = e.dragMs !== undefined ? ` · the drag took ${Math.round(e.dragMs)} ms` : "";

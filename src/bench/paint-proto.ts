@@ -1302,7 +1302,37 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.globalAlpha = 1;
   }
   articulation(c, w, h, g, t);
+  slideCue(c, w, h, g, t);
 }
+
+/** D486: how long a failed slide's word shows at the thumb (ms). */
+export const SLIDE_CUE_MS = 1100;
+/**
+ * D486: why a slide failed, at the thumb that tried it: its word (FURTHER, TOO FAR, TOO EARLY, TOO LATE,
+ * LIFTED, LIFT TO TURN) on its bar just above where the thumb was, a thin ring
+ * round the place it speaks of, rising a little as it fades. Never a sound, never points.
+ */
+function slideCue(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const q = g.slideCue;
+  if (!q || g.proto.layout !== "bars") return;
+  const age = performance.now() - q.at;
+  if (age > SLIDE_CUE_MS) return;
+  const bw = w * BAR;
+  const x = q.side === "left" ? bw / 2 : w - bw / 2;
+  const y = Math.max(24, Math.min(h - 14, q.y - 26)) - age / 80;
+  c.globalAlpha = age < 800 ? 1 : 1 - (age - 800) / (SLIDE_CUE_MS - 800);
+  // A thin ring where the thumb was: the place the word speaks of.
+  c.strokeStyle = SLIDE_CUE_INK;
+  c.lineWidth = 1.5;
+  c.beginPath();
+  c.arc(x, Math.max(10, Math.min(h - 10, q.y)), 9 + age / 120, 0, 2 * Math.PI);
+  c.stroke();
+  label(c, q.text, x, y, SLIDE_CUE_INK, 8);
+  void t;
+  c.globalAlpha = 1;
+}
+/** D486: the slide cue's ink (amber: a hint, not the error's red). */
+export const SLIDE_CUE_INK = "#ffb347";
 
 /**
  * D239: a right note's two grades on the road, where it was struck: in its planned lane a bright
