@@ -34,6 +34,16 @@ const page = labPlayParam(location.search);
 // D440: PROGRESSION MODE (lab.html?progression=1): play.html's game as a new player meets it, Book I as a path
 // of stages (progression.ts), on a profile of its own (nothing of the device's progress read or written).
 const progression = new URLSearchParams(location.search).get("progression") === "1";
+// D441: THE GLENN PILOT (lab.html?pilot=glenn): play.html's game as a new player meets it (a profile of its
+// own, as PROGRESSION MODE's), Part 1 of the tutorial hosted by Glenn, and LEARN WITH GLENN on Fugue I/1.
+const pilot = new URLSearchParams(location.search).get("pilot") === "glenn";
+if (pilot) {
+  installProfile();
+  APP.glennPilot = true;
+  document.documentElement.classList.add("tb-play-page", "glenn-page");
+  document.title = "WTC Lab: Glenn";
+  lockOnFirstTap();
+}
 if (progression) {
   installProfile();
   APP.progression = true;
@@ -53,7 +63,18 @@ if (glenn) {
 }
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {progression ? (
+    {pilot ? (
+      <>
+        <BenchApp />
+        <Sideways />
+        <div className="glenn-badge" id="pilot-badge">
+          <b>GLENN PILOT</b>
+          <a href="./lab.html" id="pilot-back">
+            ◀ LAB
+          </a>
+        </div>
+      </>
+    ) : progression ? (
       <>
         <BenchApp />
         <Sideways />

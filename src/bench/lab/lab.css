@@ -242,3 +242,4 @@ html.glenn-playing .glenn-badge a { display: none; }
 }
 .lab-study-card b { font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); font-weight: normal; }
 .lab-study-big { font-family: var(--tg-pixel); font-size: 22px; color: #8fe3b0; }
+html.glenn-film-open .glenn-badge { display: none; }

@@ -22,6 +22,8 @@ import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
 import { STAGES, stageOf } from "./progression.ts";
+import { filmOf } from "./films.ts";
+import { APP } from "./config.ts";
 import { BEFORE_JUDGING, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
@@ -65,6 +67,8 @@ export interface SelectionProps {
   /** D382: Book II just earned: the note is shown; called once it is seen (tapped, or BOOK II opened). */
   bookTwo?: () => void;
   /** D440, PROGRESSION MODE (the Lab): the stages open, the tutorial to redo, the profile to reset. */
+  /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
+  learn?: (id: string) => void;
   prog?: { open: number; built: number; taught: readonly string[]; redo: (id: string) => void; reset: () => void };
 }
 
@@ -120,11 +124,11 @@ export function Selection(p: SelectionProps) {
           <button type="button" id="card-tutorial" className={`sel-tutorial${first ? " sel-glow" : ""}`} onClick={tutorial.start}>
             <span className="sel-tut-head">
               <span className="sel-tut-face" aria-hidden="true">
-                <Portrait talking={false} />
+                <Portrait talking={false} who={APP.glennPilot ? "glenn" : undefined} />
               </span>
               <span className="sel-tut-words">
                 <span className="sel-tut-title">{tr("TUTORIAL")}</span>
-                <span className="sel-tut-sub">{tr("LEARN TO PLAY WITH HERR BACH")}</span>
+                <span className="sel-tut-sub">{APP.glennPilot ? "LEARN TO PLAY WITH GLENN" : tr("LEARN TO PLAY WITH HERR BACH")}</span>
               </span>
             </span>
             <span className="sel-tut-bar" aria-hidden="true">
@@ -199,6 +203,11 @@ export function Selection(p: SelectionProps) {
         {chosen && !locked(piece) && (
           <button type="button" id="sel-play" className="tb-play sel-play" onClick={p.play}>
             ▶ {tr("PLAY")}
+          </button>
+        )}
+        {chosen && p.learn && filmOf(piece) && (
+          <button type="button" id="sel-learn" className="tb-play sel-play sel-learn" onClick={() => p.learn!(piece)}>
+            ♪ LEARN WITH GLENN
           </button>
         )}
       </aside>

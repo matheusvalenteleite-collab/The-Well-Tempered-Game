@@ -1054,6 +1054,10 @@ export function LabApp() {
             <a className="lab-glenn" id="lab-progression" href="?progression=1">
               PROGRESSION MODE
             </a>
+            {/* D441: THE GLENN PILOT: Part 1 hosted by Glenn, and his film of Fugue I/1 (lab.html?pilot=glenn). */}
+            <a className="lab-glenn" id="lab-pilot" href="?pilot=glenn">
+              GLENN PILOT
+            </a>
             {(["passage", "free", "breath", "table", "drills", "mechanics", "sensor", "see", "runs", "study", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
                 {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}

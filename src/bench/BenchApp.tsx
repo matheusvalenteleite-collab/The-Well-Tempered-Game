@@ -85,6 +85,9 @@ import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
 import { BUILT_STAGES, openStage, resetProfile, isOpen, markTaught, noteRun, PLAY_FUGUE, progNext, readProg, slowOffered, stageOf, fineGrade } from "./progression.ts";
 import { BASICS } from "./manual/stage-lessons.ts";
+import { glennHosts, hostLine, setHost } from "./glenn-host.ts";
+import { filmOf } from "./films.ts";
+import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManualStore, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
@@ -1093,7 +1096,7 @@ export function BenchApp() {
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
   // D282: in a tutorial step, its goal (the demonstration: WATCH).
-  const hintLine = tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? (manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
+  const hintLine = tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? hostLine(manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
     seenId(proto.id);
@@ -1154,6 +1157,8 @@ export function BenchApp() {
     if (progQ.current) progQ.current.at = id;
     const l = lessonById(id);
     if (!l) return;
+    // D441: Glenn hosts the parts he has taken over (the Glenn pilot); Herr Bach the rest.
+    setHost(glennHosts(l.part) ? "glenn" : "bach");
     // D373: Inventions 4, 8 and 12 are MORE BACH's chunk: fetched first.
     if (l.stages.some((s) => fugueById(s.m.piece).id !== s.m.piece)) return void loadExtras().then(() => beginManual(id, o));
     setSteps(false);
@@ -1361,7 +1366,7 @@ export function BenchApp() {
     talk(mTitle(l), [{ text: alt ? mat.label : (st.say ?? mat.label) }], { extra: !alt && st.say ? <StageLine l={l} k={k} /> : undefined, choices: [{ label: "PLAY", act: () => startStep(m) }] });
   }
   /** Back to the tutorial's selection screen, the lesson just left chosen there. */
-  const toMap = () => ((progQ.current = null), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
+  const toMap = () => ((progQ.current = null), setHost("bach"), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
   const startManual = () => {
     const s = readManual();
@@ -1482,6 +1487,8 @@ export function BenchApp() {
   };
   /** D272, HEAR THE SUBJECT: the subject played as performed (its samples loaded first); returns when it starts, on the page's clock (s). */
   const [hearing, setHearing] = useState<string | null>(null);
+  /** D441: Glenn's film open (the Glenn pilot). */
+  const [film, setFilm] = useState<string | null>(null);
   // D301: what HEAR THE SUBJECT has scheduled, stopped by anything that starts or changes the sound (the owner:
   // "it keeps on playing" when the round starts or another reading is chosen); `hearGen` drops a playback
   // whose samples were still loading when it was superseded.
@@ -1894,7 +1901,7 @@ export function BenchApp() {
         </div>
       )}
       {/* D380: iPhone Safari, not installed: ADD TO HOME SCREEN, once, on the selection only (never in play). */}
-      {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib} />}
+      {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib || !!film} />}
       {/* D381: the headphones gone or back (a brief notice), or USING SPEAKER? where the browser cannot tell. */}
       {APP.lite && !APP.glenn && <RouteNotice route={route} busy={playing && !paused} />}
       {(hp.changed || route.recal) && !playing && !calib && (
@@ -2051,6 +2058,8 @@ export function BenchApp() {
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
           tutorial={{ ...manualProgress(readManual()), start: startManual }}
+          // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
+          learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D440, PROGRESSION MODE (the Lab): the stages open, REDO TUTORIAL, and a fresh start.
           prog={APP.progression ? { open: openStage(lite.beaten), built: BUILT_STAGES, taught: readProg().taught, redo: (id: string) => void progTutor(id, true), reset: () => (resetProfile(), location.reload()) } : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
@@ -2064,6 +2073,7 @@ export function BenchApp() {
         />
       )}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
+      {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}
       {APP.lite && platform !== "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D373: THE TUTORIAL's selection screen (three columns, nothing scrolls). */}
