@@ -560,7 +560,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         let q = ni + 1;
         while (q < pnotes.length && pnotes[q].on <= n.on) q++;
         const nx = pnotes[q];
-        if (nx && nx.state === "hit" && !nx.ride && nx.at !== undefined && (nx.via === "slide" || nx.at <= n.up) && nx.on <= n.on + n.dur) bw = fw = Math.max(1, xOf(nx.on) - x1);
+        if (nx && nx.state === "hit" && !nx.ride && nx.at !== undefined && (nx.via === "slide" || nx.at <= n.up || nx.joinedIn) && nx.on <= n.on + n.dur) bw = fw = Math.max(1, xOf(nx.on) - x1);
         else if (n.up < n.on + n.dur) fw = Math.max(1, Math.min(bw, xOf(n.up) - x1));
       }
       if (x1 + bw < 0) continue;
@@ -590,7 +590,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       g.fillRect(x1, y, fw, bh - 1);
       if (fw < bw) {
         // D374: let go early: the rest of the written length an outline (the long note's in D198's colour).
-        g.fillStyle = n.long ? miss : ink;
+        // D419 (the audit): never miss-grey on a note the reading asked short (let go early is right there).
+        g.fillStyle = n.long && !fr.readingMarks?.get(`${pv}:${n.on}`)?.short ? miss : ink;
         g.fillRect(x1 + fw, y - 1, bw - fw + 1, 1);
         g.fillRect(x1 + fw, y + bh - 1, bw - fw + 1, 1);
         g.fillRect(x1 + bw, y - 1, 1, bh + 1);
@@ -683,7 +684,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       // D347: where the words stand under the notes, YOU over the voice's next entry only (after a rest),
       // not over a note the words already mark.
       if (!syls) {
-        if (x < w - 12) youLabel(g, x, Math.min(h - 6, yOf(n.step) + bh + 2), inkOf(fr.voice, fr.count), edge, fxClock);
+        if (x < w - 12) youLabel(g, x, Math.min(h - 6, yOf(n.step) + bh + 7), inkOf(fr.voice, fr.count), edge, fxClock);
       } else if (x < w - 12 && xOf(n.on) > playX + 24) youLabel(g, x, Math.max(0, yOf(n.step) - 8), inkOf(fr.voice, fr.count), edge, fxClock);
     }
   }
@@ -1102,9 +1103,12 @@ const WHOLE_GEO = {} as WholeGeo;
 /** D391: a reading's mark (readings.ts MarkNote), with a whole-piece reading's own signs (whole-marks.ts BoxMark). */
 type MarkNote = BoxMark;
 
-/** D374: the detached stroke and the accent's sign (as before D372). */
-const DETACH_RED = "#ec5a4a";
-const ACCENT_ORANGE = "#ff8a3d";
+/**
+ * D374: the detached stroke and the accent's sign. Design studio (D419, the audit): the reading's touch signs are
+ * gold, never a voice's colour (the accent was the alto's orange) nor next to the error red (the stroke was).
+ */
+const DETACH_RED = "#ffd23f";
+const ACCENT_ORANGE = "#ffd23f";
 const marksMemo = new WeakMap<readonly LaneNote[], { map: ReadonlyMap<string, MarkNote>; pv: number; n: number; idx: (MarkNote | undefined)[] }>();
 /** D372: each of a played list's notes' reading mark (by index), made once per list and marks (D345: no strings built a frame). */
 export function marksIndex(list: readonly LaneNote[], pv: number, map: ReadonlyMap<string, MarkNote>): (MarkNote | undefined)[] {

@@ -552,10 +552,10 @@
 .tb-hear-marks { list-style: none; margin: 4px auto; padding: 0; display: grid; gap: 2px; justify-items: start; width: fit-content; max-width: 100%; }
 .tb-mark { display: inline-block; min-width: 1.2em; text-align: center; font-family: system-ui, sans-serif; font-weight: 700; }
 .tb-mark-short { color: var(--tg-fg); }
-.tb-mark-apart { color: #ec5a4a; }
+.tb-mark-apart { color: var(--tg-gold); }
 .tb-mark-joined { color: var(--tg-gold); }
 .tb-mark-slur { color: var(--tg-gold); }
-.tb-mark-strong { color: #ff8a3d; }
+.tb-mark-strong { color: var(--tg-gold); }
 .tb-grade.tb-failed { font-size: 26px !important; line-height: 1.2; }
 @media (max-width: 500px) { .tb-grade.tb-failed { font-size: 18px !important; } }
 .tb-result.tg-card-low { background: rgba(9, 11, 20, 0.88); } /* D239: the result readable over the busy box (its words ran over the notes). */
@@ -829,8 +829,8 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 .tb-side-legend p { margin: 0 0 4px; }
 .tb-side-legend p:last-child { margin-bottom: 0; }
 /* D391: BUSONI's signs in the side legend; the word in force, translated, kept under it. */
-.tb-mark-w-marcato { color: #ff8a3d; }
-.tb-mark-w-lift, .tb-mark-w-phrase { color: var(--tg-gold); }
+.tb-mark-w-marcato { color: var(--tg-gold); }
+.tb-mark-w-phrase { color: var(--tg-fg); }
 .tb-mark-w-phrase { opacity: 0.55; }
 .tb-mark-w-dynamics, .tb-mark-w-words { font-style: italic; font-family: Georgia, serif; font-weight: 700; }
 .tb-side-legend-whole { top: 30%; font-size: 5px; line-height: 1.35; }
