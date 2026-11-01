@@ -182,9 +182,10 @@ test("D385: the player's line takes the reading's level on the piano (Play.lineD
   const g = new ProtoGame(f, 1, 0, protoById("ladder"), { bpm: 60, legato: false, solo: true, easy: "direction", fail: false, reading: busoni("wtc1f02"), until: 16 * f.barTicks }, fakeChip(clock));
   const notes = g.tracks[0].notes;
   const i1 = notes.findIndex((n) => n.on === 960);
-  assert.ok(g.lineAt(0, i1).lineDb! < -5, `alto p: ${g.lineAt(0, i1).lineDb}`);
+  // D407: the player's p compressed (40% of the drop under mf, never under −3 dB): softer than mf, not 6.5 dB under.
+  assert.ok(g.lineAt(0, i1).lineDb! < -1 && g.lineAt(0, i1).lineDb! > -4, `alto p: ${g.lineAt(0, i1).lineDb}`);
   const i15 = notes.findIndex((n) => n.on >= 108480);
-  assert.ok(g.lineAt(0, i15).lineDb! > g.lineAt(0, i1).lineDb! + 4, "bar 15: the entry mf");
+  assert.ok(g.lineAt(0, i15).lineDb! > g.lineAt(0, i1).lineDb! + 1.5, "bar 15: the entry mf");
   const plan = wholePlan(f, busoni("wtc1f02"))!;
   const acc = [...plan.notes].find(([k, x]) => k.startsWith("1:") && x.arts.has("accent"));
   if (acc) {
