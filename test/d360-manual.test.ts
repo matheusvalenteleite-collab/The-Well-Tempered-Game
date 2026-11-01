@@ -124,7 +124,7 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
   assert.match(told("III.1", 0), /I asked for \{want\}/);
   // D378: joined by ear (25 ms), care's 20% gap is a detached touch, the strokes' own: plain care for the readings is joined throughout.
   assert.match(told("III.2", undefined, { jitterMs: 5, hold: 0.97 }), /the dot: lift before three fifths/);
-  assert.match(told("III.3", undefined, { jitterMs: 5, hold: 0.97 }), /Join inside the slur/);
+  assert.match(told("III.3", undefined, { jitterMs: 5, hold: 0.97 }), /Legato under the slur/);
   // D387: the accent is weight on time.
   assert.match(told("III.4", undefined, { jitterMs: 5, hold: 0.97 }), /Weight on time/);
   assert.match(told("IV.1"), /Breathe: enter a hair late/);

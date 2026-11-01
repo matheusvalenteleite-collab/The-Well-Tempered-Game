@@ -6,7 +6,8 @@
  * game's clock (BenchApp sets the ref's opacity); neither takes a touch.
  */
 import type { Ref } from "react";
-import { legendLines, type Mark } from "./side-notes.ts";
+import { legendLines, SHORT_LEGEND, type Mark } from "./side-notes.ts";
+import { tr } from "../i18n/index.ts";
 import { wholeLegend, type WholeBox } from "../touch/whole-marks.ts";
 
 /** D359: `fade`: THE MANUAL's demonstration names its manner, then the hint fades off the bar the thumbs play on. */
@@ -28,17 +29,19 @@ export function SideLegend({ marks, legendRef, whole, glossRef }: { marks: Itera
   const lines = legendLines(marks);
   const more = whole ? wholeLegend(whole) : [];
   if (!lines.length && !more.length) return null;
+  // D483: with BUSONI's signs, the short lines (they fit between the crowd and the stops at 375 px).
+  const say = (l: { kind: string; text: string }) => (more.length && SHORT_LEGEND[l.kind] ? tr(SHORT_LEGEND[l.kind]) : l.text);
   return (
     <>
       <div className={`tb-side-legend${more.length ? " tb-side-legend-whole" : ""}`} id="side-legend" ref={legendRef} aria-hidden="true">
         {lines.map((l) => (
           <p key={l.kind}>
-            <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
+            <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {say(l)}
           </p>
         ))}
         {more.map((l) => (
           <p key={`w-${l.kind}`}>
-            <b className={`tb-mark tb-mark-w-${l.kind}`}>{l.sym}</b> {l.text}
+            <b className={`tb-mark tb-mark-w-${l.kind}`}>{l.sym}</b> {say(l)}
           </p>
         ))}
       </div>

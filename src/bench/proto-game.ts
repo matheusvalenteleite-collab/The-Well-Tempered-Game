@@ -340,8 +340,9 @@ export interface Mark {
 
 /**
  * D239: a right note on a HIGHWAY (the computer's keys, the phone's lanes) in DIRECTION or LEAPS: in
- * its planned lane ("exact": full points, a chime) or only the right way from the last ("relative":
- * half the points, the note duller); none where the lane plays no part (TIMING, a free note).
+ * its planned lane ("exact": full points) or only the right way from the last ("relative": half the
+ * points; D293: sounding alike; D482: no chime on the exact, no sound follows a grade); none where the
+ * lane plays no part (TIMING, a free note).
  */
 export type LaneGrade = "exact" | "relative";
 /** D239: a relative note's share of the points, and its sound's darkening (Play.bright). */
@@ -1119,7 +1120,7 @@ export class ProtoGame {
       }
       // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound);
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
@@ -3491,14 +3492,11 @@ export class ProtoGame {
     if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
     h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
-    // D239: the planned lane scores in full, with a small bright chime over Bach's note; the right
-    // direction in another lane half (the streak and the multiplier kept).
+    // D239: the planned lane scores in full; the right direction in another lane half (the streak and
+    // the multiplier kept). D482: its chime gone (a sound added for a right grade is a loudness tied to right).
     if (v.lane === "relative") (h.pts *= RELATIVE_SHARE), this.laneTally.relative++;
     if (grace === "agogic") this.agogicDue = { k: h.k, refund: h.pts / 2 };
-    if (v.lane === "exact") {
-      this.laneTally.exact++;
-      if (!this.bt) this.chip.chime?.(pitches[0], this.chip.ctx.currentTime, levelOf(d));
-    }
+    if (v.lane === "exact") this.laneTally.exact++;
     h.open = true;
     // D218: a note joined in the score, struck legato: counted (the lessons, the LEGATO CHAIN feat, the
     // slur drawn), along an unbroken chain. D325: it no longer scores more (intention.ts, below).
@@ -4563,7 +4561,6 @@ export class ProtoGame {
   private band: { sd: Sounding; until: number }[] = [];
 
   stopAll() {
-    this.chip.zone?.(null);
     // D262: no line left to play on.
     this.loose = [];
     // D252: no coupling left on for the next game; the pedals' bourdons stopped.

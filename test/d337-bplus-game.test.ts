@@ -284,7 +284,7 @@ test("D337: a lab setting kept before 1.52 keeps its meaning (A with its changes
 
 test("D337: HOW TO PLAY says how notes join (strike on time, or rest and lift: a pull-off) and how runs are judged", () => {
   const ladder = RULES.ladder.join(" ");
-  assert.match(ladder, /strike the next on time while the other thumb holds/);
+  assert.match(ladder, /strike the next on time as the other thumb lifts/);
   assert.match(ladder, /pull-off/);
   assert.match(ladder, /Nothing sounds by itself/);
   assert.match(ladder, /fast runs/);
