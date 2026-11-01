@@ -949,9 +949,22 @@ export function label(c: CanvasRenderingContext2D, text: string, x: number, y: n
   c.textAlign = align;
   c.textBaseline = "middle";
   // D283: the game's words in the language chosen.
-  c.fillText(trCanvas(text), x, y);
+  const word = trCanvas(text);
+  // D415: over the music now running under the bars, each word ringed in the bars' dark (read over a note).
+  if (!paper) {
+    const a = c.globalAlpha;
+    c.globalAlpha = a * 0.85;
+    c.strokeStyle = "#140e12";
+    c.lineWidth = 2.5;
+    c.lineJoin = "round";
+    c.strokeText(word, x, y);
+    c.globalAlpha = a;
+  }
+  c.fillText(word, x, y);
 }
 
+/** D415: the side bars' opacity over the box running under them (0.92 before: opaque in effect). */
+const BAR_VEIL = 0.52;
 function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bw = w * BAR;
   const count = g.f.voices.length;
@@ -968,8 +981,10 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     } else {
       // The bar: warm and dark, a little lighter towards its strong side (D314: the phone's edge, or the box's by STRONG_SIDE).
       const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
-      grad.addColorStop(strengthOf(0), "rgba(26,18,22,0.92)");
-      grad.addColorStop(strengthOf(1), "rgba(54,34,30,0.92)");
+      // D415 (the owner: "we don't need the buttons to be opaque at all to know what to do with them"): the bar
+      // translucent over the box, which runs under it; enough of its warmth kept that the thumbs' marks read on it.
+      grad.addColorStop(strengthOf(0), `rgba(26,18,22,${BAR_VEIL})`);
+      grad.addColorStop(strengthOf(1), `rgba(54,34,30,${BAR_VEIL})`);
       c.fillStyle = grad;
       c.fillRect(s.x, 0, bw, h);
       c.fillStyle = t.barline;
@@ -1037,9 +1052,16 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         const own = g.lastBySide[s.x === 0 ? "left" : "right"];
         const sy = own && g.now - own.tick <= OWN_FRESH_S * g.tps ? own.y : y;
         c.fillStyle = ink;
-        c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.1 + 0.3 * nx.p * nx.p;
+        // D415: over the music the bar no longer floods with the note's colour (it hid what runs under it): a
+        // faint wash, and a line of light along its inner edge, by the box, brightening as the note comes.
+        c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.04 + 0.1 * nx.p * nx.p;
         // D308: lit to the screen's foot (a dark strip of 24 px was left under it, the owner: "a useless border").
         c.fillRect(s.x, 0, bw, h);
+        if (!paper) {
+          c.fillStyle = t.shine;
+          c.globalAlpha = 0.1 + 0.6 * nx.p * nx.p;
+          c.fillRect(s.x === 0 ? bw - STRIP_EDGE - 2 : s.x + STRIP_EDGE, 0, 2, h);
+        }
         c.globalAlpha = 1;
         // The beat closing in: two bars meeting at the bar's foot (over the bar, above the dynamics' marks).
         const half = (bw / 2) * (1 - nx.p);
