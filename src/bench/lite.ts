@@ -149,16 +149,24 @@ export interface LiteState {
  * before is no longer comparable: each best is kept with the judging it was made under; those from
  * before (none named) are kept apart as "before 1.52", never deleted, and the new best is counted afresh.
  */
-export const JUDGING = "1.52";
-export const BEFORE_JUDGING = "BEFORE 1.52";
+export const JUDGING = "2.16";
+export const BEFORE_JUDGING = "BEFORE 2.16";
+/** D445: a best score is kept per piece and voice (one voice of a fugue may be worth more than another). */
+export const scoreKey = (piece: string, voice: number) => `${piece}@${voice}`;
+/** D445: a piece's best score in a voice, or (no voice given) its best in any voice. */
+export function bestScore(scores: Readonly<Record<string, number>>, piece: string, voice?: number): number | undefined {
+  if (voice !== undefined) return scores[scoreKey(piece, voice)];
+  const all = Object.entries(scores).filter(([k]) => k === piece || k.startsWith(`${piece}@`)).map(([, n]) => n);
+  return all.length ? Math.max(...all) : undefined;
+}
 
-/** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
+/** D265: a piece's sound can be changed once it is finished with a high enough grade (D417: B or better); before, its own. */
 // D417 (the owner: "all unlocks for each fugue are opened upon completing it with score B instead of A, otherwise it's too difficult").
 export const SOUND_UNLOCK_GRADES = ["S", "A", "B"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
 export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
-/** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens once it is finished with an A or better (as its sound, D265). */
+/** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens with its sound (D417: B or better). */
 export const tempoEarned = soundUnlocked;
 
 export function readLite(): LiteState {
@@ -175,9 +183,15 @@ export function readLite(): LiteState {
     const scoresOld = numbers(o.scoresOld);
     const slowBest = strings(o.slowBest);
     const slowScores = numbers(o.slowScores);
-    // D337: a best with no judging named was made before 1.52: kept apart (written back with the next change).
-    for (const [id, g] of Object.entries(best)) if (!bestV[id]) ((bestOld[id] ??= g), delete best[id]);
-    for (const [id, n] of Object.entries(scores)) if (!scoresV[id]) ((scoresOld[id] ??= n), delete scores[id]);
+    // D337: a best made under another judging is kept apart (written back with the next change). D445: the
+    // scoring redesigned (2.13): every best from before it joins them, the better of the two kept.
+    for (const [id, g] of Object.entries(best)) if (bestV[id] !== JUDGING) (RANK.indexOf(g) > RANK.indexOf(bestOld[id] ?? "") && (bestOld[id] = g), delete best[id], delete bestV[id]);
+    for (const [id, n] of Object.entries(scores)) if (scoresV[id] !== JUDGING) {
+      const piece = id.split("@")[0];
+      if (n > (scoresOld[piece] ?? -1)) scoresOld[piece] = n;
+      delete scores[id];
+      delete scoresV[id];
+    }
     return {
       beaten: Array.isArray(o.beaten) ? o.beaten.filter((x) => typeof x === "string") : [],
       seen: Array.isArray(o.seen) ? o.seen.filter((x) => typeof x === "string") : [],
@@ -290,11 +304,13 @@ export function recordLite(piece: string, failed: boolean, fuguesOnly = false, g
  * one (kept). D337: against today's judging's best only (kept with JUDGING); `old`, the best from before
  * 1.52 (another judging: shown apart, never beaten or replaced).
  */
-export function recordLiteBest(piece: string, final: number): { before: number | null; fresh: boolean; old: number | null } {
+export function recordLiteBest(piece: string, final: number, voice = 0): { before: number | null; fresh: boolean; old: number | null } {
   const st = readLite();
-  const before = st.scores[piece] ?? null;
+  // D445: per voice.
+  const key = scoreKey(piece, voice);
+  const before = st.scores[key] ?? null;
   const fresh = before === null || final > before;
-  if (fresh) writeLite({ scores: { ...st.scores, [piece]: final }, scoresV: { ...st.scoresV, [piece]: JUDGING } });
+  if (fresh) writeLite({ scores: { ...st.scores, [key]: final }, scoresV: { ...st.scoresV, [key]: JUDGING } });
   return { before, fresh, old: st.scoresOld[piece] ?? null };
 }
 
@@ -370,6 +386,8 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       "LEGATO, two notes with no gap: strike the next on time as the other thumb lifts, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
       // D378: Glenn's mechanics, the game's: joined by ear, over-legato, a keyboard slide's slur.
       "LEGATO means no gap you can hear (25 ms or less): the next thumb lands as this one lifts. DETACHED: a small silence before the next note. SHORT (the dot): lift before three fifths of the note. A SLUR: legato under it, a small silence after its last note. An extra colour, not legato itself: on harpsichord, lute and piano, keep the old thumb down a moment after the new strike and the old note rings on until you lift it (over-legato). Slide a held thumb to the next note and it plays it: on a keyboard a slur begins, legato until you lift, the next strong beat or eight notes.",
+      // D486: the slide in plain words (slide-rule.ts), its cues and its sound (slide-sound.ts).
+      "SLIDES: keep a thumb down and move it at least halfway to the next note, the way the tune goes: it plays that note. Going past it is fine; arrive early and it waits for its time. One way only: to turn back, lift and strike. A failed slide says why at your thumb: FURTHER, TOO FAR, TOO EARLY, TOO LATE, LIFTED or LIFT TO TURN. Each instrument colours a slide its own way: the harpsichord a quick trill or a Schleifer, the piano a grace note, a voice, a string or a synth a glide.",
       // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
       "Your touch is yours: legato, ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
       // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).

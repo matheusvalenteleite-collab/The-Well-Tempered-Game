@@ -8,8 +8,8 @@
  * nothing on the band's voices; nothing allocated a frame (each list walked by index from the first in
  * view, D345; a word's picture made once and kept on it).
  */
-import { pixRaw, textWidth } from "./box-fx.ts";
-import { firstOn, type BoxMark, type LineDyn, type LineWord, type WholeBox } from "./whole-marks.ts";
+import { textWidth } from "./box-fx.ts";
+import { firstOn, type BoxMark, type LineDyn, type WholeBox } from "./whole-marks.ts";
 
 export interface WholeGeo {
   g: CanvasRenderingContext2D;
@@ -58,25 +58,9 @@ function italic(g: CanvasRenderingContext2D, text: string, x: number, y: number)
 
 /** The levels' ink: the normal zone (the line plays the level) cream; sf/sfz the accent's gold (D419: was the alto's orange). */
 export const DYN_STRONG = "#ffd23f";
-const WORD_ALPHA = 0.6;
 const DYN_ALPHA = 0.9;
 const PHRASE_ALPHA = 0.38;
 
-/** A word's picture, drawn once in the pixel face (null where there is no document: drawn directly). */
-function spriteOf(wd: LineWord, ink: string): HTMLCanvasElement | null {
-  if (wd.sprite !== undefined) return wd.sprite as HTMLCanvasElement | null;
-  let c: HTMLCanvasElement | null = null;
-  if (typeof document !== "undefined") {
-    c = document.createElement("canvas");
-    c.width = Math.max(1, textWidth(wd.shown) - 1);
-    c.height = 8;
-    const cg = c.getContext("2d");
-    if (cg) pixRaw(cg, wd.shown, 0, 2, ink);
-    else c = null;
-  }
-  wd.sprite = c;
-  return c;
-}
 
 /** Under the line, a row's pixels below a step's block (kept inside the box). */
 const under = (k: WholeGeo, step: number, dy: number, hgt: number) => Math.min(k.h - hgt - 1, k.yOf(step) + k.bh + dy);
@@ -141,8 +125,6 @@ export function paintWholeGuides(k: WholeGeo, box: WholeBox) {
       }
     }
     // The levels: the letters at their onset, under the line (sf the strong zone's orange).
-    let lastOn = -1;
-    let lastEnd = 0;
     for (let di = firstOn(l.dyn, back); di < l.dyn.length; di++) {
       const d = l.dyn[di];
       if (d.on > k.t1) break;
@@ -153,30 +135,12 @@ export function paintWholeGuides(k: WholeGeo, box: WholeBox) {
       let cx = x;
       for (let p = 0; p < d.parts.length; p++) {
         const part = d.parts[p];
+        // D484: only the dynamic letters in the box; a level's words (p dolce's "dolce") go to the side legend.
         if (part.italic) cx += italic(g, part.text, cx, y) + 2;
-        else {
-          g.globalAlpha = WORD_ALPHA;
-          cx += pixRaw(g, part.text, cx, y + 1, k.fg) + 2;
-          g.globalAlpha = DYN_ALPHA;
-        }
       }
-      lastOn = d.on;
-      lastEnd = cx;
     }
-    // The words, as printed (Italian, German), after a level at the same onset.
-    g.globalAlpha = WORD_ALPHA;
-    for (let wi = firstOn(l.words, back); wi < l.words.length; wi++) {
-      const wd = l.words[wi];
-      if (wd.on > k.t1) break;
-      if (!wd.shown) continue;
-      let x = k.xOf(wd.on);
-      if (wd.on === lastOn) x = Math.max(x, lastEnd + 1);
-      if (x > w) continue;
-      const y = under(k, wd.step, 3, 6);
-      const sp = spriteOf(wd, k.fg);
-      if (sp) g.drawImage(sp, x, y - 2);
-      else pixRaw(g, wd.shown, x, y, k.fg);
-    }
+    // D484 (the owner: "eliminate Busoni's written markings (molto dolce etc.) or relocate them; they're getting in
+    // the way"): the words are no longer drawn in the box; the side legend shows the current one, translated.
   }
   g.globalAlpha = 1;
 }

@@ -5,6 +5,7 @@
  * the lute's LEFT-HAND SLUR (no new pluck: the course retuned, about 3 dB under; over a fourth a
  * glissando), and Herr Bach's slide a gradual move. The judge unchanged whatever the sound.
  */
+import { withSlideSound } from "../src/bench/slide-sound.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { COULE_MIN_S, couleFill, couleTiming, keyboardSlide, LUTE_SLUR, luteSlur, SLIDE_TRACK_TAU } from "../src/bench/glenn.ts";
@@ -191,7 +192,9 @@ test("D426: the piano's slid note takes its level from where the thumb is across
   assert.ok(got.every((g) => verdicts(g.ev) === verdicts(got[0].ev)));
 });
 
-test("D426: the coulé on the harpsichord and the organ: the step between, just before the arrival, the arrival on time; a step plain", () => {
+test("D426: the coulé on the harpsichord and the organ: the step between, just before the arrival, the arrival on time; a step plain", () =>
+  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
+  withSlideSound("instruments", () => {
   const plainOff = notesOf(run("chip", slide(third, 0.3)).events).find((e) => e.slide)!.offMs;
   for (const sound of ["harpsichordSampled", "chamberOrgan"]) {
     const r = run(sound, slide(third, 0.3));
@@ -218,9 +221,11 @@ test("D426: the coulé on the harpsichord and the organ: the step between, just 
   const late = run("harpsichordSampled", slide(third, 0.02));
   assert.ok(late.heard.length <= 3);
   assert.ok(notesOf(late.events).find((e) => e.slide)?.ok);
-});
+}));
 
-test("D426: the lute's slide plucks nothing: the course retuned with a quick hammer, 3 dB under; over a fourth a glissando", () => {
+test("D426: the lute's slide plucks nothing: the course retuned with a quick hammer, 3 dB under; over a fourth a glissando", () =>
+  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
+  withSlideSound("instruments", () => {
   const r = run("lute", slide(third, 0.2));
   assert.ok(notesOf(r.events).find((e) => e.slide)?.ok, "the slide judged as before");
   assert.equal(r.heard.length, 1, `no new pluck: ${r.heard.map((h) => h.midi)}`);
@@ -248,7 +253,7 @@ test("D426: the lute's slide plucks nothing: the course retuned with a quick ham
   });
   assert.equal(two.heard.length, 2, "a join plucks the next");
   assert.equal(two.heard[0].glides.length, 0);
-});
+}));
 
 test("D426: the judge unchanged: the same slides, the same verdicts and times on every sound", () => {
   for (const [pick, dur] of [
@@ -279,7 +284,9 @@ test("D426: no Schleifer is read: a landing two steps below its note is judged a
   for (const sound of ["harpsichordSampled", "chamberOrgan", "pianoSampled"]) assert.equal(verdicts(run(sound, plan).events), ref, sound);
 });
 
-test("D426: Herr Bach's slide (6.6) a gradual move from the departure row to the arrival: the portamento heard along the way", () => {
+test("D426: Herr Bach's slide (6.6) a gradual move from the departure row to the arrival: the portamento heard along the way", () =>
+  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
+  withSlideSound("instruments", () => {
   const demo = (sound: string) => {
     setPreset(sound);
     const st = lessonById("6.6")!.stages[0];
@@ -302,4 +309,4 @@ test("D426: Herr Bach's slide (6.6) a gradual move from the departure row to the
   // Gradual: several steps between the notes (the old single jump gave one glide to the note).
   assert.ok(slid.some((h) => h.glides.length >= 3 && h.glides.some((m) => !Number.isInteger(m))), `followed along the way: ${JSON.stringify(slid.map((h) => h.glides.map((m) => +m.toFixed(2))))}`);
   assert.ok((g as unknown as { slides: number }).slides >= 1, "his slides arrive as slides");
-});
+}));

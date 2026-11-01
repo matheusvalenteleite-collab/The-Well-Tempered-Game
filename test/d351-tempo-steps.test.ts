@@ -128,7 +128,8 @@ test("D351, D434: every tempo the piece's own sound (the owner: \"keep each fugu
   setPreset("chip");
   // The page: the piece's own sound, or the one chosen for it, at every tempo; the card shows the sound in force.
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /const soundAt = \(id: string\) => soundFor\(id, full \? chosen : \{\}, DEFAULT_SOUND\);/);
+  // D434: one sound at every tempo (no sound by step); D463: the friends' choice counts once the fugue is unlocked (soundUnlocked).
+  assert.match(app, /const mine = full \? chosen : Object\.fromEntries\(Object\.entries\(chosen\)\.filter\(\(\[p\]\) => soundUnlocked\(p, lite\)\)\);\s*return soundFor\(id, mine, DEFAULT_SOUND\);/);
   assert.doesNotMatch(app, /stepSound/);
   assert.match(app, /const bpm = run \? run\.bpm : tempi \? tempi\[step\] : tempoOf\(f\.id\);/);
   assert.match(app, /id="pop-tempo"/);

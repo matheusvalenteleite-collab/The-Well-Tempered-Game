@@ -4,6 +4,7 @@
  * legato), a JOIN a new bow, a soft new syllable, a retrigger; a SLIDE a portamento that follows the
  * thumb (glenn.ts slidePitch) and lands on the note. Keyboards and the lute unchanged; the judge unchanged.
  */
+import { withSlideSound } from "../src/bench/slide-sound.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { GLENN, joinedSound, SLIDE_TRACK_TAU, slidePitch, touchFamily } from "../src/bench/glenn.ts";
@@ -175,7 +176,9 @@ test("D424: keyboards and the lute unchanged: a pull-off and a join sound alike 
   }
 });
 
-test("D424: a slide's portamento follows the thumb on strings, voices and synths, landing on the note; keyboards strike", () => {
+test("D424: a slide's portamento follows the thumb on strings, voices and synths, landing on the note; keyboards strike", () =>
+  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
+  withSlideSound("instruments", () => {
   for (const sound of ["stringConsort", "vocalSynth", "chip"]) {
     for (const dur of [0.08, 0.3]) {
       const r = run(sound, slide(dur));
@@ -197,9 +200,11 @@ test("D424: a slide's portamento follows the thumb on strings, voices and synths
   const kb = run("harpsichordSampled", slide(0.3));
   assert.equal(kb.heard[0].glides.length, 0);
   assert.ok(kb.heard[1] && kb.heard[1].midi !== kb.heard[0].midi);
-});
+}));
 
-test("D424: Herr Bach's demonstrations drive it: \"prepared\" (3.4) sounds its pull-offs slurred, coach \"slide\" (6.6) follows on the strings", () => {
+test("D424: Herr Bach's demonstrations drive it: \"prepared\" (3.4) sounds its pull-offs slurred, coach \"slide\" (6.6) follows on the strings", () =>
+  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
+  withSlideSound("instruments", () => {
   const demo = (sound: string, lesson: string) => {
     setPreset(sound);
     const st = lessonById(lesson)!.stages[0];
@@ -221,4 +226,4 @@ test("D424: Herr Bach's demonstrations drive it: \"prepared\" (3.4) sounds its p
   assert.equal(demo("pianoSampled", "3.4").filter((h) => h.p.slur).length, 0, "the piano unchanged");
   const slid = demo("stringConsort", "6.6");
   assert.ok(slid.some((h) => h.glides.length > 0), "the slide's portamento");
-});
+}));

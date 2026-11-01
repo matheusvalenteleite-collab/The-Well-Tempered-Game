@@ -92,8 +92,8 @@ import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
-import { LiteGrid } from "./LiteGrid.tsx";
+import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
@@ -101,7 +101,7 @@ import { INTRO_CHORD, INTRO_PRESET, playIntro, type IntroPlaying } from "./intro
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
-import { PlayPop, popTitle } from "./PlayPop.tsx";
+import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
@@ -114,6 +114,7 @@ import { askMotion, gameMotion, hardTapDevice } from "../touch/motion.ts";
 import { calOffered, loadHardCal, markCalOffered, motionStrikes } from "../touch/hard-tap.ts";
 import { HardTapCalibrate, HardTapSetting } from "../touch/HardTapPanel.tsx";
 import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
+import { ObbligatoOffer } from "./ObbligatoOffer.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
@@ -231,7 +232,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean; old?: number | null } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; tempo?: { step: TempoStep; beat: string; apart: boolean }; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" } | { kind: "mtalk"; title: string; lines: Line[]; choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean; old?: number | null } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; tempo?: { step: TempoStep; beat: string; apart: boolean }; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" } | { kind: "mtalk"; title: string; lines: Line[]; choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void };
 
 /**
  * D342, THE MANUAL under way: a lesson's step (its stage: a material), as HEAR (Herr Bach's
@@ -437,7 +438,12 @@ export function BenchApp() {
   // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible (D369: Parts 0–II the piano).
   // D351, D356: each tempo step once had its own sound (tempo-steps.ts). D434 (the owner: "keep each fugue own sound at
   // every tempo"): the piece's own sound, or the one the player chose for it, at every step.
-  const soundAt = (id: string) => soundFor(id, full ? chosen : {}, DEFAULT_SOUND);
+  const soundAt = (id: string) => {
+    // D463 (design studio; the owner: "friends can change the sound after earning B on the fugue"): the
+    // friends' choice on the selection's SOUND counts once that fugue has a B or better (D417's unlock).
+    const mine = full ? chosen : Object.fromEntries(Object.entries(chosen).filter(([p]) => soundUnlocked(p, lite)));
+    return soundFor(id, mine, DEFAULT_SOUND);
+  };
   const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
@@ -671,7 +677,9 @@ export function BenchApp() {
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(!run && !prac && !manLesson && proto.layout === "bars" ? { obbligato: true } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    // D485: the game open to the hit-tests (`?dev=1` only): its OBBLIGATO offer can be put up from the console.
+    if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -879,7 +887,7 @@ export function BenchApp() {
           const opened: Tier[] = [];
           // D268: a whole piece finished: its final score against the best.
           const whole = r.failedBar === null && from === 0 && !APP.glenn;
-          const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final)) : null;
+          const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final, played[0] ?? voice)) : null;
           // D356: the tempo played, on the result.
           const tempo = tempi ? { step, beat: stepBeat(f.id, tempi[step]), apart } : undefined;
           // D308: read after the best score is kept (the cards show it; it was read before, so they did not until a reload).
@@ -1707,6 +1715,8 @@ export function BenchApp() {
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
+      {/* D485: OBBLIGATO's buttons at the bars' outer top corners while an offer stands. */}
+      {layout === "bars" && playing && <ObbligatoOffer game={game} />}
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
@@ -1752,7 +1762,7 @@ export function BenchApp() {
             </button>
             {phase.sheet ? (
               <SheetCard
-                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className="tb-grade" style={{ color: GRADE_INK[phase.grade] }}>{phase.grade}</h1>}
                 sheet={phase.sheet}
                 score={phase.score}
                 failed={phase.failedBar !== null}
@@ -1765,7 +1775,7 @@ export function BenchApp() {
               />
             ) : (
               <>
-                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className="tb-grade" style={{ color: GRADE_INK[phase.grade] }}>{phase.grade}</h1>}
                 {phase.failedBar !== null && <p className="tg-card-sub">{tr("BAR {n}", { n: phase.failedBar })}</p>}
                 <p className="tb-score">{phase.score.toLocaleString("en")}</p>
               </>
@@ -2042,6 +2052,9 @@ export function BenchApp() {
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
           playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
+          // D463 (design studio): TEMPO and SOUND on the selection's right column.
+          tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
+          sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (
               <p className="tg-note tb-lag-note sel-lag" id="sel-lag-note">

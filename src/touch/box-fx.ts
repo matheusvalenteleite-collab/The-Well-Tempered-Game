@@ -16,6 +16,12 @@
 import { tr, trCanvas } from "../i18n/index.ts";
 import { paleOf, themeOf } from "./subject-hue.ts";
 import { NOTE_WEIGHT, OTHERS_SCALE, effectOf } from "./subject-cast.ts";
+import { drawTraveller, travellerOf, type TravelNote } from "./travellers.ts";
+/** D465: the subjects drawn by their fugue's traveller (travellers.ts). */
+export const TRAVELLING = true;
+/** D465: one entry's notes for its traveller, the objects and the array kept (nothing allocated a frame once warm). */
+const TRAVEL_POOL: TravelNote[] = [];
+const TRAVEL_VIEW: TravelNote[] = [];
 
 export interface Span {
   voice: number;
@@ -120,6 +126,8 @@ interface Ctx {
   h: number;
   /** D415: where the box's open part begins (canvas px; the roll runs under the left bar): a tab is held there. */
   left?: number;
+  /** D466: the play line's x (canvas px): a sounding entry's tab is pinned just before it. */
+  play?: number;
   xOf: (tick: number) => number;
   yOf: (step: number) => number;
   /** D211: a step's row height (smaller in the squeezed margins). */
@@ -269,6 +277,24 @@ export function entryMarks(
     g.globalAlpha = a;
     if (variant === "a") {
       const fw = textWidth(word) + 1;
+      // D466 (design studio; the owner chose B, "careful so that the fixed flag not interfere with gameplay … the
+      // player ought to be able to see things near the line"): while an entry sounds its tab is PINNED at the box's
+      // top, ending just before the play line (over the music already played, never over what is coming), with a
+      // bar under it showing how much of the subject is left; overlapping entries (a stretto) stack, one row each.
+      if (c.play !== undefined && c.now >= s.on && c.now < s.end) {
+        if (pass === "under") continue;
+        const tx = Math.max((c.left ?? 0) + 2, Math.round(c.play) - fw - 3);
+        const ty = 1 + Math.max(0, lane[order[oi]]) * (TAB_H + 4);
+        g.fillStyle = ink;
+        g.fillRect(tx, ty, fw, TAB_H);
+        pixText(g, word, tx + 1, ty + 1, DARK);
+        const left = Math.max(0, Math.min(1, (s.end - c.now) / Math.max(1, s.end - s.on)));
+        g.fillStyle = DARK;
+        g.fillRect(tx, ty + TAB_H + 1, fw, 1);
+        g.fillStyle = ink;
+        g.fillRect(tx, ty + TAB_H + 1, Math.max(1, Math.round(fw * left)), 1);
+        continue;
+      }
       // Held at the left edge once its note has gone by; never over the tab before it (entry order).
       const tx = Math.max((c.left ?? 0) + 2, Math.max(right + 2, Math.min(x0, x1 - fw)));
       // The next entry's tab, where it will stand: a crowded tab shrinks to a chip.
@@ -424,6 +450,23 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
     const ink = voiceInk;
     const rim = paleOf(voiceInk);
     const wt = NOTE_WEIGHT * (mine ? 1 : OTHERS_SCALE);
+    // D465 (design studio): the fugue's traveller gliding along the entry (travellers.ts), in place of the
+    // per-note effects below (kept, unused, as the cast's record: subject-cast.ts ONLY_FX).
+    if (TRAVELLING) {
+      const pool = TRAVEL_POOL;
+      for (let j = 0; j < s.path.length; j++) {
+        const n = s.path[j];
+        const full = (c.hOf ? c.hOf(n.step) : bh) === bh;
+        const o = pool[j] ?? (pool[j] = { on: 0, dur: 0, top: 0 });
+        o.on = n.on;
+        o.dur = n.dur;
+        o.top = mine || !full ? yOf(n.step) - (mine ? 1 : 0) : yOf(n.step) + Math.floor((bh - 1 - Math.max(1, Math.round(bh * 0.5))) / 2);
+      }
+      TRAVEL_VIEW.length = 0;
+      for (let j = 0; j < s.path.length; j++) TRAVEL_VIEW.push(pool[j]);
+      budget -= drawTraveller(travellerOf(piece), TRAVEL_VIEW, { g, xOf, now, beat, t, ink: voiceInk, rim, a: mine ? 1 : OTHERS_SCALE }, budget);
+      continue;
+    }
     const inverted = !!s.shape && s.shape.includes("INVERSION");
     // GLINT's travelling star: one note of the entry at a time, seven a second.
     const travel = fx === "GLINT" ? Math.floor(t * 7 + s.on * 0.37) % s.path.length : -1;

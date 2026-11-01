@@ -1,7 +1,7 @@
 /**
- * D268: the result's score sheet: the final score (a finished run's points and its performance bonus;
- * the best before it), the four qualities each with its bar, the points by source; on a failed run how
- * far it went and what cost it most.
+ * D268: the result's score sheet: the final score (D445: a finished run's points times its performance;
+ * the best before it), the performance's four parts each with its bar, the points by source; on a failed
+ * run how far it went and what cost it most.
  */
 import { tr, trCanvas } from "../i18n/index.ts";
 import type { ReactNode } from "react";
@@ -10,7 +10,8 @@ import { freeLine, type FreeTally } from "./free-summary.ts";
 
 const n = (x: number) => x.toLocaleString("en");
 const pc = (x: number) => `${Math.round(x * 100)}%`;
-const ink = (x: number) => (x >= 0.9 ? "var(--tg-gold)" : x >= 0.75 ? "#5fdc6a" : x >= 0.6 ? "#e8c94a" : "#ec5a4a");
+// D446: the grades' inks by the same bands (S gold, A green, B yellow, C orange-red, D red).
+const ink = (x: number) => (x >= 0.95 ? "var(--tg-gold)" : x >= 0.9 ? "#5fdc6a" : x >= 0.8 ? "#e8c94a" : x >= 0.7 ? "#f0784a" : "#d8443a");
 
 export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; failedBar: number | null; lastBar: number; progress: number; maxStreak: number; best?: { before: number | null; fresh: boolean; old?: number | null } | null; head?: ReactNode; free?: FreeTally }) {
   const { sheet } = p;
@@ -38,7 +39,7 @@ export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; fai
         ) : (
           <>
             <p className="tb-sheet-sum" id="sheet-sum">
-              {tr("{a} POINTS + {b} PERFORMANCE BONUS", { a: n(p.score), b: n(sheet.bonus) })}
+              {tr("{a} POINTS × {p}% PERFORMANCE", { a: n(p.score), p: sheet.performance })}
             </p>
             <p className="tb-score tb-sheet-final" id="sheet-final">
               {n(sheet.final)}
@@ -51,13 +52,13 @@ export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; fai
             {/* D337: the best from before 1.52 (another judging), apart: never compared. */}
             {p.best?.old != null && (
               <p className="tb-sheet-best tb-sheet-old" id="sheet-best-old">
-                {tr("BEST {n} · BEFORE 1.52", { n: n(p.best.old) })}
+                {tr("BEST {n} · BEFORE 2.16", { n: n(p.best.old) })}
               </p>
             )}
           </>
         )}
         <p className="tb-sheet-perf" id="sheet-performance">
-          {tr("PERFORMANCE")} <b style={{ color: ink(sheet.performance / 100) }}>{sheet.performance}</b>/100 · {tr("MAX COMBO")} {p.maxStreak}
+          {tr("PERFORMANCE")} <b style={{ color: ink(sheet.performance / 100) }}>{sheet.performance}%</b>
         </p>
         {/* D327: the player's own graces, counted, never scored. */}
         {freeLine(p.free) && (

@@ -11,7 +11,7 @@ import { presetById } from "../touch/sound.ts";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyLabel } from "./emblem.ts";
 import { pieceWord } from "./piece-word.ts";
-import { BEFORE_JUDGING, CHORALE_IDS, liteAll, liteExtra, liteLevel, liteTabOf, liteTabs, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
+import { BEFORE_JUDGING, bestScore, CHORALE_IDS, liteAll, liteExtra, liteLevel, liteTabOf, liteTabs, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
 import { popTitle } from "./PlayPop.tsx";
 import { keyTint } from "../touch/MusicBox.tsx";
 
@@ -63,7 +63,8 @@ export const CHORALE_CREDITS: readonly string[] = [
 ];
 
 /** D308: a best grade's colour on its card (as the result's: S and A in gold, then down to red). */
-export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#f3c246", B: "#5fdc6a", C: "#7fd6e8", D: "#ec5a4a" };
+/** D446 (the owner: "A is green of course. yellow is worse than green. C is reddish"): S gold, A green, B yellow, C orange-red, D red. */
+export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#5fdc6a", B: "#e8c94a", C: "#f0784a", D: "#d8443a" };
 
 /** D343: a gear drawn in pixels (the font has none; the ⚙ glyph fell back to the system's). */
 const GEAR = ["....X....", ".X.XXX.X.", "..XXXXX..", ".XXX.XXX.", "XXX...XXX", ".XXX.XXX.", "..XXXXX..", ".X.XXX.X.", "....X...."];
@@ -172,7 +173,7 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
               </summary>
               <ol className="tb-lite-list">
                 {s.ids.map((id, i) => (
-                  <ExtraCard key={id} id={id} n={i + 1} done={won.has(id)} grade={best[id]} score={scores[id]} open={open} hear={hear} sound={soundOf?.(id)} />
+                  <ExtraCard key={id} id={id} n={i + 1} done={won.has(id)} grade={best[id]} score={bestScore(scores, id)} open={open} hear={hear} sound={soundOf?.(id)} />
                 ))}
               </ol>
             </details>
@@ -192,7 +193,7 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
               </summary>
               <ol className="tb-lite-list tb-lite-chorales">
                 {ids.map((id) => (
-                  <ExtraCard key={id} id={id} n={fugueById(id).number} done={won.has(id)} grade={best[id]} score={scores[id]} open={open} compact />
+                  <ExtraCard key={id} id={id} n={fugueById(id).number} done={won.has(id)} grade={best[id]} score={bestScore(scores, id)} open={open} compact />
                 ))}
               </ol>
             </details>
@@ -274,15 +275,15 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
                   </span>
                   <span className="tb-lite-meta">{tr("{n} VOICES", { n: f.voices.length })}</span>
                   {/* D308: the best score (a whole piece finished). */}
-                  {scores[id] !== undefined && (
+                  {bestScore(scores, id) !== undefined && (
                     <span className="tb-lite-best" id={`best-${id}`}>
-                      {tr("BEST {n}", { n: scores[id].toLocaleString("en") })}
+                      {tr("BEST {n}", { n: (bestScore(scores, id) ?? 0).toLocaleString("en") })}
                     </span>
                   )}
                   {/* D337: the best from before 1.52 (another judging), apart. */}
                   {scoresOld[id] !== undefined && (
                     <span className="tb-lite-best tb-lite-old" id={`best-old-${id}`}>
-                      {tr("BEST {n} · BEFORE 1.52", { n: scoresOld[id].toLocaleString("en") })}
+                      {tr("BEST {n} · BEFORE 2.16", { n: scoresOld[id].toLocaleString("en") })}
                     </span>
                   )}
                 </span>

@@ -10,7 +10,6 @@
  * The verdict of the last touch flashes over the field.
  */
 import { ornamentMark } from "../touch/ornament-play.ts";
-import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paperInk } from "./sheet-view.ts";
 import { paintPiano } from "../touch/paint-piano.ts";
@@ -96,19 +95,14 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
     if (bars) liveSheet(c, w, h, g, t);
     return;
   }
-  if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
-  // D249: the combo (the right notes running), small and muted under the score, off the middle of the
-  // music (it shared the count-in's centre). Named, so it is not read as the multiplier.
-  const combo = g.combo >= 5 && !AUTO;
-  const cy = desk ? y + 16 : y + 28;
-  if (combo) label(c, `COMBO ${g.combo}`, x, cy, t.muted, 6);
-  const below = combo ? 12 : 0;
+  // D445: the streak bonus (+10% every 16 right notes in a row, up to +50%) under the score; no COMBO count.
+  if (g.streakLevel > 0 && !desk) label(c, `+${g.streakLevel * 10}%`, x, y + 16, g.streakLevel >= 5 ? t.gold : t.shine, 9);
+  const below = 0;
   // D268: the right bar's live sheet: the share of right notes so far, the subject's entries captured, the crowd.
   if (bars) liveSheet(c, w, h, g, t);
   if (!full) return;
-  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 + 74 : y + 32 + below, t.gold, 7);
-  // D218: the legato chain under way.
-  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
+  // D218: the legato chain under way. D445: ORGANO PLENO no longer doubles the points (its light and banner stay).
+  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + 32 + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24 && !paper) {
     const now = performance.now() / 1000;
@@ -142,10 +136,11 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
   const on = (k: string) => !g.o.dress || g.o.dress.includes(k);
   // D413: frozen under his demonstration (see scoreboard).
   const still = !!g.o.demo;
-  const acc = still ? null : g.liveAccuracy();
+  // D445: the PERFORMANCE so far (what the grade is made of), rounded once, as on the sheet.
+  const perf = still ? null : g.livePerformance();
   if (on("accuracy")) {
-    label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
-    label(c, "ACCURACY", x, y + 12, t.muted, 5);
+    label(c, perf === null ? "—" : `${perf}%`, x, y, perf === null || perf >= 90 ? t.fg : perf >= 80 ? t.shine : t.wrong, 9);
+    label(c, "PERFORMANCE", x, y + 12, t.muted, 5);
     y += 28;
   }
   const come = still ? 0 : g.entries.filter((e) => e.state !== "open").length;
@@ -677,12 +672,12 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const ry = phone ? 34 : y1 - 40;
   c.lineWidth = 6;
   for (let k = 0; k < 8; k++) {
-    c.strokeStyle = k < g.streak % 8 || g.mult >= 4 ? (g.mult >= 4 ? t.gold : t.shine) : "#2a2533";
+    c.strokeStyle = k < Math.floor(g.streakProgress * 8) || g.streakLevel >= 5 ? (g.streakLevel >= 5 ? t.gold : t.shine) : "#2a2533";
     c.beginPath();
     c.arc(rx, ry, 26, -Math.PI / 2 + (k * Math.PI) / 4 + 0.06, -Math.PI / 2 + ((k + 1) * Math.PI) / 4 - 0.06);
     c.stroke();
   }
-  label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
+  label(c, `+${g.streakLevel * 10}%`, rx, ry, g.streakLevel >= 5 ? t.gold : t.fg, 10);
   // D249: the run's count is shown once, as the combo by the score (it was also here, under the ring).
   if (R) deskFlare(R, rx, ry);
   // The crowd's meter (right).
@@ -1026,6 +1021,11 @@ function thumbSigns(c: CanvasRenderingContext2D, w: number, h: number, bw: numbe
 
 /** D415: the side bars' opacity over the box running under them (0.92 before: opaque in effect). */
 const BAR_VEIL = 0.52;
+/** D485: the bars' tinge while OBBLIGATO is offered (soft side, strong side). */
+export const OBB_TINGE = [
+  [14, 70, 74],
+  [52, 140, 118],
+];
 function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bw = w * BAR;
   const count = g.f.voices.length;
@@ -1044,8 +1044,17 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
       // D415 (the owner: "we don't need the buttons to be opaque at all to know what to do with them"): the bar
       // translucent over the box, which runs under it; enough of its warmth kept that the thumbs' marks read on it.
-      grad.addColorStop(strengthOf(0), `rgba(26,18,22,${BAR_VEIL})`);
-      grad.addColorStop(strengthOf(1), `rgba(54,34,30,${BAR_VEIL})`);
+      // D485, OBBLIGATO: while an offer stands the bars take a sea-green tinge, breathing (the buttons glow at their
+      // top corners); while a boost sounds, the tinge held, quieter. The veil's translucence as ever.
+      const obb = g.offer ? 0.75 + 0.25 * Math.sin(performance.now() / 260) : g.boosting ? 0.45 : 0;
+      if (obb > 0) {
+        const mix = (a: number[], b: number[]) => a.map((x, j) => Math.round(x + (b[j] - x) * obb)).join(",");
+        grad.addColorStop(strengthOf(0), `rgba(${mix([26, 18, 22], OBB_TINGE[0])},${BAR_VEIL})`);
+        grad.addColorStop(strengthOf(1), `rgba(${mix([54, 34, 30], OBB_TINGE[1])},${BAR_VEIL})`);
+      } else {
+        grad.addColorStop(strengthOf(0), `rgba(26,18,22,${BAR_VEIL})`);
+        grad.addColorStop(strengthOf(1), `rgba(54,34,30,${BAR_VEIL})`);
+      }
       c.fillStyle = grad;
       c.fillRect(s.x, 0, bw, h);
       c.fillStyle = t.barline;
@@ -1304,7 +1313,37 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.globalAlpha = 1;
   }
   articulation(c, w, h, g, t);
+  slideCue(c, w, h, g, t);
 }
+
+/** D486: how long a failed slide's word shows at the thumb (ms). */
+export const SLIDE_CUE_MS = 1100;
+/**
+ * D486: why a slide failed, at the thumb that tried it: its word (FURTHER, TOO FAR, TOO EARLY, TOO LATE,
+ * LIFTED, LIFT TO TURN) on its bar just above where the thumb was, a thin ring
+ * round the place it speaks of, rising a little as it fades. Never a sound, never points.
+ */
+function slideCue(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
+  const q = g.slideCue;
+  if (!q || g.proto.layout !== "bars") return;
+  const age = performance.now() - q.at;
+  if (age > SLIDE_CUE_MS) return;
+  const bw = w * BAR;
+  const x = q.side === "left" ? bw / 2 : w - bw / 2;
+  const y = Math.max(24, Math.min(h - 14, q.y - 26)) - age / 80;
+  c.globalAlpha = age < 800 ? 1 : 1 - (age - 800) / (SLIDE_CUE_MS - 800);
+  // A thin ring where the thumb was: the place the word speaks of.
+  c.strokeStyle = SLIDE_CUE_INK;
+  c.lineWidth = 1.5;
+  c.beginPath();
+  c.arc(x, Math.max(10, Math.min(h - 10, q.y)), 9 + age / 120, 0, 2 * Math.PI);
+  c.stroke();
+  label(c, q.text, x, y, SLIDE_CUE_INK, 8);
+  void t;
+  c.globalAlpha = 1;
+}
+/** D486: the slide cue's ink (amber: a hint, not the error's red). */
+export const SLIDE_CUE_INK = "#ffb347";
 
 /**
  * D239: a right note's two grades on the road, where it was struck: in its planned lane a bright

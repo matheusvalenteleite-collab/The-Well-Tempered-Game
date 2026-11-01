@@ -16,7 +16,9 @@ import { replay } from "../src/bench/lab/replay.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
 import type { LabEvent } from "../src/bench/lab/events.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
+import type { ProtoGame } from "../src/bench/proto-game.ts";
 import { setPreset } from "../src/touch/sound.ts";
+import { withSlideSound } from "../src/bench/slide-sound.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
 
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
@@ -176,7 +178,9 @@ function run(sound: string, plan: (notes: SynthNote[], t: (tick: number) => numb
   setPreset(sound);
   const log = synthEvents(II18, 3, (notes, t, _r, rows) => plan(notes, t, rows));
   const heard: Heard[] = [];
+  let game: ProtoGame | undefined;
   const r = replay(log, mech, (g, chip: Chip) => {
+    game = g;
     const now = () => chip.ctx.currentTime;
     // The player's sounds only: a pitch of the voice played, near its written time (the other voices' are not kept).
     const mine = (midi: number, at: number) => g.tracks[0].notes.some((n) => n.midi === midi && Math.abs(g.timeAt(n.on) - at) < 0.35);
@@ -193,7 +197,7 @@ function run(sound: string, plan: (notes: SynthNote[], t: (tick: number) => numb
     };
   });
   setPreset("chip");
-  return { heard, events: r.events, summary: r.summary };
+  return { heard, events: r.events, summary: r.summary, game };
 }
 const notesOf = (ev: LabEvent[]) => ev.filter((e): e is Extract<LabEvent, { kind: "note" }> => e.kind === "note");
 /** The first two notes two rows or more apart (a slide's way: past the slide threshold), and the one after. */
@@ -251,15 +255,16 @@ const slidePlan = (o: { gapS?: number; slideS?: number }) => (notes: SynthNote[]
   return ev;
 };
 
-test("D376: a slide on a keyboard strikes the next note (no bend), rings 110 ms into it, counts as joined; off: today's bend", () => {
+test("D376: a slide on a keyboard strikes the next note (no bend; D486: a third or more through its gesture), counts as joined; off: the old bend", () => {
   const off = run("harpsichordSampled", slidePlan({}), OFF);
   assert.ok(off.heard[0].glides.length === 1, "today: the harpsichord's string bent (the bug)");
   const on = run("harpsichordSampled", slidePlan({}), ON);
   const [a, b] = on.heard;
   assert.equal(a.glides.length, 0, "no bend");
   assert.ok(b && b.midi !== a.midi, "the next note struck");
-  const ring = Math.round(((a.stop ?? 0) - b.at) * 1000);
-  assert.ok(ring >= 105 && ring <= 115, `rings 110 ms: ${ring}`);
+  // D486: a third or more on the harpsichord: its gesture (coulé, Schleifer) into the note, the note slid from giving way to it at once.
+  const g = on.game!.slideGestures.at(-1);
+  assert.ok(g && ["coulé", "Schleifer"].includes(g.name), JSON.stringify(g));
   const slid = notesOf(on.events).find((e) => e.slide);
   assert.ok(slid?.ok && slid.legato?.ok, "a slide's slur counts as joined");
   assert.ok(on.summary.legato > off.summary.legato, `${on.summary.legato} joined, today ${off.summary.legato}`);
@@ -269,15 +274,19 @@ test("D376: a slide on a keyboard strikes the next note (no bend), rings 110 ms 
 
 test("D376: the piano's slide-slur carries the joins after it; a detach ends it (D426: the hairpin, not the taper)", () => {
   const joined = run("pianoSampled", slidePlan({}), ON);
-  const third = joined.heard[2];
-  assert.equal(third.p.group, 2, "the third note in the slur");
-  // D426 (deliberately): the taper (−1.5, −2.5…) replaced: the slid note takes the hairpin (its level from the
-  // thumb across, d426-keyboard-slides.test.ts); a note joined by the other thumb is a landing, its own zone, untapered.
-  assert.equal(joined.heard[1].p.hairpin, true, "the slid note: the hairpin");
+  // D486: the slide's own gesture (an acciaccatura, a turn) may sound before the note slid to; the join after it is the slur's third.
+  const third = joined.heard.find((h) => h.p.group === 2);
+  assert.ok(third, "the third note in the slur");
+  // D426 (deliberately, kept by D438 in both SLIDE_SOUND modes): the taper (−1.5, −2.5…) replaced: the slid note takes the
+  // hairpin (its level from the thumb across, d426-keyboard-slides.test.ts), D486's gesture with it; a note joined by the
+  // other thumb is a landing, its own zone, untapered.
+  // (Under D486's gesture the slid note sounds after its grace notes, scheduled ahead and so not heard here: its hairpin is
+  // checked in the engine by d426-keyboard-slides.test.ts; here under SLIDE_SOUND "instruments", where it is struck at once.)
+  withSlideSound("instruments", () => assert.equal(run("pianoSampled", slidePlan({}), ON).heard[1].p.hairpin, true, "the slid note: the hairpin"));
   assert.equal(third.p.hairpin, undefined);
   assert.equal(third.p.level ?? 1, joined.heard[0].p.level ?? 1, "no taper");
   const detached = run("pianoSampled", slidePlan({ gapS: 0.1 }), ON);
-  assert.equal(detached.heard[2].p.group, undefined, "a detach: plain");
+  assert.equal(detached.heard.at(-1)?.p.group, undefined, "a detach: plain");
   // Off: the piano's slide bends nothing here either way: no group without a reading.
   assert.equal(run("pianoSampled", slidePlan({}), OFF).heard[2]?.p.group, undefined);
 });
@@ -307,15 +316,23 @@ test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, tim
   assert.equal(voice.legato, false);
   assert.ok((voice.soft ?? 0) >= GLENN.rearticSoft);
   assert.equal(run("vocalSynth", handover(0.02), OFF).heard[1].p.legato, true, "off: today's joined voice");
-  // A slide: one sound glides; its time constant from the slide (a quarter of its measured travel, 150–200 ms here: 38–50 ms; off: the sound's own).
-  // D424: on strings, voices and synths the portamento now follows the thumb (d424-slur-portamento.test.ts);
-  // the quarter-of-the-slide glide stays on the other sustaining sounds (TRAVERSO here).
-  const slow = run("traverso", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
-  assert.ok(slow && slow.tau !== undefined && slow.tau >= 0.03 && slow.tau <= 0.06, JSON.stringify(slow));
-  const quick = run("traverso", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
-  assert.ok(quick && quick.tau !== undefined && quick.tau <= 0.015, JSON.stringify(quick));
-  const followed = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides;
-  assert.ok(followed.length >= 2 && followed.every((g) => g.tau === SLIDE_TRACK_TAU), JSON.stringify(followed));
+  // A slide: one sound glides. D486 (SLIDE_SOUND "d486", the default): its time constant by the instrument and the interval
+  // (slide-sound.ts: the strings' shift 25–85 ms, a synth's portamento 40–95 ms), no longer by the slide's travel; off: the sound's own.
+  const slow = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
+  assert.ok(slow && slow.tau !== undefined && slow.tau >= 0.02 && slow.tau <= 0.09, JSON.stringify(slow));
+  const synth = run("tomita", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
+  assert.ok(synth && synth.tau !== undefined && synth.tau >= 0.008 && synth.tau <= 0.095, JSON.stringify(synth));
+  // D438, SLIDE_SOUND "instruments": a quarter of its measured travel on TRAVERSO (D486 sounds it at halfway, so
+  // 100–200 ms of the 200 ms move here: 25–50 ms);
+  // D424: on strings, voices and synths the portamento follows the thumb (d424-slur-portamento.test.ts).
+  withSlideSound("instruments", () => {
+    const slowT = run("traverso", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
+    assert.ok(slowT && slowT.tau !== undefined && slowT.tau >= 0.025 && slowT.tau <= 0.06, JSON.stringify(slowT));
+    const quick = run("traverso", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
+    assert.ok(quick && quick.tau !== undefined && quick.tau <= 0.015, JSON.stringify(quick));
+    const followed = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides;
+    assert.ok(followed.length >= 2 && followed.every((g) => g.tau === SLIDE_TRACK_TAU), JSON.stringify(followed));
+  });
   assert.equal(run("stringConsort", slidePlan({ slideS: 0.2 }), OFF).heard[0].glides[0]?.tau, undefined);
 });
 

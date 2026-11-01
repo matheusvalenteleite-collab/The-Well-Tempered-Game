@@ -10,7 +10,8 @@ import { CEILING, Chip, organSwell, PLENO_SCALE, ROOM_S, softClipCurve, VOICE_CA
 import { fugueById } from "../src/touch/fugue.ts";
 import { ORGAN_SAMPLED, presetById, PRESETS, setPreset } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
-import { ProtoGame, slipLoss, SLIP_NEAR } from "../src/bench/proto-game.ts";
+import { ProtoGame, slipLoss } from "../src/bench/proto-game.ts";
+import { streakFactor } from "../src/bench/scoring.ts";
 import { protoById } from "../src/bench/protos.ts";
 
 const ctxOf = installFakeAudio(5, true);
@@ -49,21 +50,18 @@ test("D249: a slip costs the streak and the combo a quarter (at least 4, never b
   assert.equal(g.slips, 1, "counted all the same");
 });
 
-test("D249: the multiplier falls only on a second slip within 8 notes of the one before", () => {
+test("D445 (was D249): each slip takes the streak bonus one step down, never below none; the points' factor follows", () => {
   const { g } = game();
   const inside = g as unknown as Inside;
-  g.mult = 4;
-  g.streak = 30;
+  g.streakLevel = 3;
   inside.slip();
-  assert.equal(g.mult, 4, "a first slip keeps it");
+  assert.equal(g.streakLevel, 2, "a slip: one step");
+  assert.equal(g.mult, streakFactor(2));
   inside.slip();
-  assert.equal(g.mult, 3, "a second right after costs a step");
-  inside.sinceSlip = SLIP_NEAR - 1;
   inside.slip();
-  assert.equal(g.mult, 2, "seven notes after: still close");
-  inside.sinceSlip = SLIP_NEAR;
   inside.slip();
-  assert.equal(g.mult, 2, "eight notes after: a fresh slip");
+  assert.equal(g.streakLevel, 0, "never below none");
+  assert.equal(g.mult, 1);
   // A right note counts toward the distance.
   const { g: h, to } = game();
   const heads = h.notes.map((_, i) => i).filter((i) => !h.notes[i].ride && !(i > 0 && h.notes[i - 1].on === h.notes[i].on));
