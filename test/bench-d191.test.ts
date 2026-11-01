@@ -185,21 +185,21 @@ test("engine audit: the ritard in the PERFECT check and the drums' beat (D337: A
   assert.ok(beats.length > 2 && Math.max(...beats) > steady * 1.1, `beats ${beats.map((b) => b.toFixed(3))}`);
   }));
 
-test("engine audit: several notes missed in one frame (D249: the second and third within 8 notes of the first) each cost a step; a tap at the window's very end still counts (D337: A · CLASSIC's fixed windows)", () =>
+test("engine audit: several notes missed in one frame (D445: each a step off the streak bonus); a tap at the window's very end still counts (D337: A · CLASSIC's fixed windows)", () =>
   withMech(CLASSIC_VALUES, () => {
   {
     const { g, clock } = aGame(54);
     const hs = headsOf(g.notes).filter((i) => !g.notes[i].ride);
     clock.t = g.timeAt(g.notes[hs[0]].on) - 0.5;
     g.step();
-    g.mult = 4;
+    g.streakLevel = 4;
     // Three notes go by in one frame.
     clock.t = g.timeAt(g.notes[hs[2]].on) + 0.4;
     g.step();
     const missed = g.notes.filter((n) => n.state === "miss").length;
     assert.equal(missed >= 3, true);
-    // D249: the first slip keeps the multiplier; each one after it, so close, costs a step.
-    assert.equal(g.mult, Math.max(1, 4 - (missed - 1)));
+    // D445: each slip a step off the streak bonus.
+    assert.equal(g.streakLevel, Math.max(0, 4 - missed));
   }
   {
     const { g, clock } = aGame(54);

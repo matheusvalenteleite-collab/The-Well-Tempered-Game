@@ -25,7 +25,7 @@ import { popTitle } from "./PlayPop.tsx";
 import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
 import { soundOptions } from "./SoundSelect.tsx";
-import { BEFORE_JUDGING, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
+import { BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
 export function pieceTitle(id: string): string {
@@ -289,7 +289,9 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
   const nick = fugueName(piece, lang());
   const grade = best[piece] ?? bestOld[piece];
   const [about, setAbout] = useState(false);
-  const score = scores[piece] ?? scoresOld[piece];
+  // D445: the best in the voice chosen (another voice's is its own).
+  const mine = bestScore(scores, piece, voice);
+  const score = mine ?? scoresOld[piece];
   return (
     <div className="sel-piece" id="sel-piece">
       <span className="sel-piece-pic">
@@ -329,7 +331,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
         </span>
       </p>
       <p className="sel-best-row">
-        <span className={`sel-best${scores[piece] === undefined ? " sel-old" : ""}`} id={`best-${piece}`}>
+        <span className={`sel-best${mine === undefined ? " sel-old" : ""}`} id={`best-${piece}`}>
           {score !== undefined ? tr("BEST {n}", { n: score.toLocaleString("en") }) : tr("BEST —")}
         </span>
       </p>
