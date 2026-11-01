@@ -65,6 +65,16 @@
 .sel-tabs-head { margin: 4px 0 4px; font-size: 5px; color: #6e6e8c; letter-spacing: 0.1em; }
 .sel-tab { display: block; box-sizing: border-box; width: 100%; margin: 0 0 4px; padding: 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.5; text-align: left; color: #7a7894; background: #1e1c28; border: 1px solid #46425a; cursor: pointer; }
 .sel-tab.on { color: var(--tg-shine); background: #36301e; border-color: var(--tg-shine); }
+/* D463 (design studio): each book its share finished, the number right, a thin bar under. */
+.sel-tab { display: grid; grid-template-columns: 1fr auto; gap: 3px 4px; align-items: baseline; font-size: 7px; }
+.sel-tab-pct { font-size: 7px; color: #8fe3b0; }
+.sel-tab-bar { grid-column: 1 / -1; display: block; height: 3px; background: #121020; }
+.sel-tab-bar i { display: block; height: 100%; background: #8fe3b0; }
+/* D463: the language, SETTINGS and TOOLS at the left column's foot. */
+.sel-left-foot { margin-top: auto; flex: none; display: grid; gap: 4px; }
+.sel-left .tb-lang-pick { display: flex; width: 100%; box-sizing: border-box; }
+.sel-left .tb-lang-pick button { flex: 1; min-width: 0; min-height: 22px; padding: 0; font-size: 7px; }
+.sel-left .sel-settings, .sel-left .tb-tools-btn { min-height: 22px; justify-content: center; gap: 5px; padding: 0 4px; font-size: 6px; box-shadow: 2px 2px 0 #b8322a; position: relative; }
 
 /* Centre: the strip and the grid of 24 (no scrolling); MORE BACH and CHORALES as their lists. */
 .sel-strip { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 24px; margin: env(safe-area-inset-top, 0px) -6px 4px; padding: 0 8px; background: #161e3a; }
@@ -78,15 +88,17 @@
 .sel-tile:focus-visible { outline: 2px solid var(--tg-fg); outline-offset: 1px; }
 /* Design studio: the picture kept inside its frame. .tb-emblem's 2 px border made the image 4 px taller and wider than
    its box (content-box sizing), so it hung over the key line below; the frame also grew past 64 : 40 (min-height auto). */
-.sel-pic { position: relative; display: block; flex: none; width: 100%; aspect-ratio: 64 / 40; min-height: 0; overflow: hidden; background: #000; }
-.sel-emblem { display: block; box-sizing: border-box; width: 100%; height: 100%; image-rendering: pixelated; }
+.sel-pic { position: relative; display: flex; justify-content: center; flex: 1 1 auto; width: 100%; min-height: 0; overflow: hidden; background: #000; }
+/* D463 (design studio): the picture gives way (it shrinks, centred, letterboxed in black); the words below never do. */
+.sel-emblem { display: block; box-sizing: border-box; width: auto; max-width: 100%; height: 100%; max-height: 100%; aspect-ratio: 64 / 40; object-fit: contain; image-rendering: pixelated; }
+.sel-tile-words { flex: none; display: grid; gap: 1px; padding-top: 2px; }
 /* Design studio: the key written out, its mode word smaller. */
 .sel-tile-key { flex: none; padding-top: 1px; font-size: 7px; line-height: 1.3; white-space: nowrap; overflow: hidden; color: var(--tg-fg); }
 .sel-tile-key i { font-style: normal; font-size: 5px; color: color-mix(in srgb, var(--tg-fg) 80%, transparent); }
 .sel-tile-key b { font-weight: 400; color: var(--tg-shine); }
 .sel-tile-level { font-size: 5px; line-height: 1.3; }
 /* D374: Mario's name for the fugue, short on the tile, whole in the right column. */
-.sel-tile-name { font-size: 5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f3d78a; text-transform: uppercase; }
+.sel-tile-name { font-size: 6px; line-height: 1.35; height: 2.7em; overflow: hidden; color: #f3d78a; text-transform: uppercase; overflow-wrap: anywhere; }
 .sel-grade { position: absolute; right: 2px; bottom: 2px; min-width: 10px; padding: 2px 2px 1px; font-size: 8px; line-height: 1; text-align: center; color: var(--grade, var(--tg-shine)); background: rgba(10, 8, 16, 0.86); border: 1px solid var(--grade, var(--tg-shine)); text-shadow: 1px 1px 0 #000; }
 .sel-grade.sel-old { opacity: 0.55; border-style: dashed; }
 .sel-done { position: absolute; right: 2px; bottom: 2px; padding: 1px 3px; font-size: 7px; color: #1a1620; background: var(--tg-gold, #f3d78a); }
@@ -111,8 +123,39 @@
 .sel-piece-emblem { display: block; width: auto; max-width: 100%; height: 100%; max-height: 92px; aspect-ratio: 64 / 40; object-fit: contain; image-rendering: pixelated; background: #000; }
 .sel-piece-nick { margin: 2px 0 0; font-size: 8px; flex: none; line-height: 1.4; color: #f3d78a; text-transform: uppercase; }
 .sel-piece-name { margin: 2px 0 0; font-size: 7px; line-height: 1.5; color: var(--tg-shine); }
-.sel-piece-meta { margin: 0; font-size: 6px; line-height: 1.6; color: #8c88aa; }
-.sel-best { margin: 0; font-size: 6px; line-height: 1.5; color: #8fe3b0; }
+.sel-piece-meta { margin: 0; font-size: 5px; line-height: 1.6; color: #8c88aa; white-space: nowrap; word-spacing: -1px; }
+.sel-best-row { display: flex; justify-content: space-between; gap: 4px; margin: 0; font-size: 6px; line-height: 1.5; white-space: nowrap; }
+.sel-best { color: #8fe3b0; }
+.sel-secrets { color: #c9a8ff; }
+/* D463: the "?" on the picture's corner: ABOUT THIS FUGUE. */
+.sel-about { position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; padding: 0; font-family: var(--tg-pixel); font-size: 9px; line-height: 1; color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 1px 1px 0 #b8322a; cursor: pointer; }
+/* D463: TEMPO and SOUND, two buttons side by side, the setting under its name. */
+.sel-knobs { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.sel-knob { position: relative; display: grid; gap: 2px; min-height: 26px; padding: 3px 4px; box-sizing: border-box; font-family: var(--tg-pixel); text-align: left; color: var(--tg-fg); background: #1e1c32; border: 1px solid #78789f; cursor: pointer; overflow: hidden; }
+.sel-knob-k { font-size: 5px; color: #8c88aa; letter-spacing: 0.06em; }
+.sel-knob b { font-weight: 400; font-size: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tg-shine); }
+.sel-knob.locked b { color: #8c88aa; }
+.sel-knob select { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; font-size: 16px; }
+/* D463: HEAR THE SUBJECT a button, full width. */
+.sel-hear { flex: none; min-height: 26px; padding: 4px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-fg); background: #2c345c; border: 2px solid #78789f; box-shadow: 2px 2px 0 #b8322a; cursor: pointer; }
+.sel-hear span { color: var(--tg-shine); }
+.sel-hear:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #b8322a; }
+/* D463: ABOUT THIS FUGUE: two columns on a phone held sideways. */
+.sel-about-pop { width: min(700px, 100%); grid-template-columns: minmax(0, 34%) minmax(0, 1fr); align-items: start; justify-items: stretch; gap: 14px; text-align: left; font-family: var(--tg-pixel); }
+.sel-about-side, .sel-about-main { display: grid; gap: 5px; min-width: 0; }
+.sel-about-pic { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.sel-about-nick { margin: 0; font-size: 9px; color: #f3d78a; text-transform: uppercase; line-height: 1.4; }
+.sel-about-title { margin: 0; font-size: 7px; color: var(--tg-shine); line-height: 1.5; }
+.sel-about-meta { margin: 0; font-size: 6px; color: #8c88aa; }
+.sel-about-facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 6px; margin: 4px 0 0; font-size: 6px; line-height: 1.5; }
+.sel-about-facts dt { color: #8c88aa; } .sel-about-facts dd { margin: 0; color: var(--tg-fg); }
+.sel-about-h { margin: 4px 0 0; font-size: 7px; font-weight: 400; color: var(--tg-shine); letter-spacing: 0.06em; }
+.sel-about-entries { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; font-size: 6px; }
+.sel-about-entries li { display: grid; grid-template-columns: 7em 1fr auto; gap: 6px; align-items: center; }
+.sel-about-dots { letter-spacing: 2px; font-size: 6px; overflow: hidden; white-space: nowrap; }
+.sel-about-line { margin: 0; font-size: 6px; line-height: 1.6; color: #a8a6c8; }
+.sel-about-text { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 1.45; color: var(--tg-fg); }
+.sel-about-todo { color: #6e6e8c; font-style: italic; }
 .sel-best.sel-old { color: #8c88aa; }
 .sel-ask { margin: 2px 0 0; font-size: 5px; color: #6e6e8c; letter-spacing: 0.08em; }
 .sel-voices { display: flex; flex-wrap: wrap; gap: 3px; }
@@ -130,15 +173,14 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 
 /* A shorter screen (667 × 375 and below): the picture smaller. */
 @media (max-height: 380px) {
-  .sel-piece-emblem { max-height: 60px; }
-  .sel-piece-pic { flex-basis: 60px; }
+  .sel-piece-emblem { max-height: 56px; }
+  .sel-piece-pic { flex-basis: 56px; }
   /* D401: the key in words (D395) fits the narrow tiles: "13 F♯ MAJOR" a pixel smaller. */
   .sel-tile-key { font-size: 6px; word-spacing: -2px; }
-  .sel-tile-level { display: none; }
   /* D374: the name in the level's room, two lines where it needs them (a hyphen breaks it). */
   .sel-tile { padding-left: 2px; padding-right: 1px; }
   .sel-tile.on { padding-left: 1px; padding-right: 0; }
-  .sel-tile-name { white-space: normal; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .sel-tile-name { font-size: 5px; }
 }
 
 /* D382: Book II earned: a short celebration over the grid, a tap opens BOOK II. */
@@ -149,3 +191,37 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-news-go { font-size: 9px; color: #5fdc6a; }
 @keyframes sel-news-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .sel-news { animation: none; } }
+
+/* D463 (design studio): a long name (PT, ES, The Perpetual Motion Machine) a pixel smaller, still two lines. */
+.sel-tile-name.long { font-size: 5px; }
+.sel-piece-dots { display: inline-flex; gap: 2px; vertical-align: 0; }
+.sel-piece-dots i { display: block; width: 4px; height: 4px; }
+.sel-knobs { grid-template-columns: 1fr; gap: 3px; }
+.sel-knob { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 22px; }
+.sel-knob b { min-width: 0; }
+/* D463: a long sound's name (HARPSICHORD at 667 px) wraps to a second line rather than being cut. */
+@media (max-width: 700px) { .sel-knob b { white-space: normal; text-align: right; line-height: 1.35; } }
+.sel-piece-pic { flex-basis: 120px; }
+.sel-piece-emblem { max-height: 120px; }
+@media (max-height: 380px) {
+  /* D463: the word BOOK gives way on the narrowest phones ("I · 13 · NORMAL · ■■■"), so the line stays one line. */
+  .sel-piece-meta .sel-book-word { display: none; }
+  .sel-piece-pic { flex-basis: 64px; }
+  .sel-piece-emblem { max-height: 64px; }
+}
+
+/* D463 (design studio, the owner): the voice buttons symmetric: two or three in one row, four as two rows of two,
+   five as three over two. */
+.sel-voices { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.sel-voices button { grid-column: span 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-voices[data-n="2"] button, .sel-voices[data-n="4"] button { grid-column: span 3; }
+.sel-voices[data-n="5"] button:nth-child(n + 4) { grid-column: span 3; }
+/* Three across: the names a pixel smaller and the padding tighter, so SOPRANO and CONTRALTO fit whole. */
+.sel-voices button { padding-left: 1px; padding-right: 1px; text-overflow: clip; }
+.sel-voices[data-n="3"] button, .sel-voices[data-n="5"] button:nth-child(-n + 3) { font-size: 5px; letter-spacing: -0.3px; }
+@media (max-height: 380px) { .sel-voices button { font-size: 5px; letter-spacing: -0.3px; } }
+/* Five voices on the smallest phones: two, two, then the bass across (three across would clip CONTRALTO). */
+@media (max-height: 380px) {
+  .sel-voices[data-n="5"] button { grid-column: span 3; font-size: 5px; }
+  .sel-voices[data-n="5"] button:nth-child(5) { grid-column: 1 / -1; }
+}
