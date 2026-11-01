@@ -58,6 +58,8 @@ export type LabEvent =
   | { kind: "double"; tick: number; track: number; side: Side }
   | { kind: "miss"; tick: number; track: number; i: number; midi: number }
   | { kind: "slide"; tick: number; track: number; i: number; side: Side; movedPx: number }
+  /** D486: a slide that failed, and why (slide-rule.ts SLIDE_CUE: the words shown at the thumb). */
+  | { kind: "slideMiss"; tick: number; track: number; side: Side; why: "short" | "far" | "early" | "late" | "lifted" | "oneway"; on: number }
   /** D321, a drag with MECH.dragMeaning "connect": a glide (its length), or a keyboard's fill (coulé, Schleifer, a plain join) and its notes. */
   | { kind: "drag"; tick: number; track: number; i: number; side: Side; from: number; to: number; how: "glide" | "coule" | "schleifer" | "join"; ms?: number; fill?: number[]; dragMs?: number }
   | { kind: "shake"; tick: number; track: number; i: number; side: Side; ornament: string; free: boolean }

@@ -598,4 +598,12 @@ export const ES: Record<string, string> = {
   "SYNTH SINGER (RO)": "CANTANTE SINTÉTICO (RO)",
   "SYNTH SINGER (NE)": "CANTANTE SINTÉTICO (NE)",
   "SYNTH SINGER (DA)": "CANTANTE SINTÉTICO (DA)",
+  // D486: the slide's cues at the thumb and its line in HOW TO PLAY.
+  "SLIDES: keep a thumb down and move it at least halfway to the next note, the way the tune goes: it plays that note. Going past it is fine; arrive early and it waits for its time. One way only: to turn back, lift and strike. A failed slide says why at your thumb: FURTHER, TOO FAR, TOO EARLY, TOO LATE, LIFTED or LIFT TO TURN. Each instrument colours a slide its own way: the harpsichord a quick trill or a Schleifer, the piano a grace note, a voice, a string or a synth a glide.": "DESLIZAMIENTOS: mantén un pulgar apoyado y muévelo al menos hasta la mitad del camino hacia la siguiente nota, en el sentido de la melodía: toca esa nota. Pasarte no importa; si llegas antes, espera a su tiempo. Solo en un sentido: para volver, levanta y pulsa de nuevo. Un deslizamiento fallido dice por qué junto al pulgar: MÁS LEJOS, DEMASIADO LEJOS, DEMASIADO PRONTO, DEMASIADO TARDE, LEVANTADO o LEVANTA PARA VOLVER. Cada instrumento colorea el deslizamiento a su manera: el clave un trino rápido o un Schleifer, el piano una apoyatura, una voz, una cuerda o un sintetizador un glissando.",
+  "FURTHER": "MÁS LEJOS",
+  "TOO FAR": "DEMASIADO LEJOS",
+  "TOO EARLY": "DEMASIADO PRONTO",
+  "TOO LATE": "DEMASIADO TARDE",
+  "LIFTED": "LEVANTADO",
+  "LIFT TO TURN": "LEVANTA PARA VOLVER",
 };
