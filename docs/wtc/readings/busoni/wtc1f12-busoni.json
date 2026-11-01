@@ -1443,6 +1443,16 @@
    "conf": "sure"
   },
   {
+   "on": 358080,
+   "bar": 47,
+   "pos": 10,
+   "voices": [
+    2
+   ],
+   "mark": "dolce",
+   "conf": "sure"
+  },
+  {
    "on": 401280,
    "bar": 53,
    "pos": 4,
@@ -1744,7 +1754,7 @@
  "counts": {
   "marks": 115,
   "slurs": 18,
-  "dyn": 7,
+  "dyn": 8,
   "hairpins": 1,
   "text": 11,
   "breaths": 0,
@@ -1772,5 +1782,8 @@
    "likely": 92,
    "unsure": 1
   }
- }
+ },
+ "notes": [
+  "Game import (WTC 1.96, D404): \"dolce (Tenor.)\" (bar 47) entered as the tenor's level too (in text only, the tenor stayed at the sempre f of bar 43 under the p of the alto)."
+ ]
 }

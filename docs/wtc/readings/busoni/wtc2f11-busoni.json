@@ -673,7 +673,8 @@
    "pos": 0,
    "voices": [
     0,
-    1
+    1,
+    2
    ],
    "mark": "forte dolce",
    "conf": "sure"
@@ -1043,7 +1044,8 @@
    "pos": 0,
    "voices": [
     0,
-    1
+    1,
+    2
    ],
    "text": "forte dolce",
    "en": "loud but sweet",
@@ -1163,6 +1165,7 @@
   }
  },
  "notes": [
-  "Game import (WTC 1.91, D394): slurs over smaller slurs kept as phrase arcs, the inner slurs the gestures (voice:bars 0:30.0–31.2, 1:31.0–32.2, 0:32.0–33.2)."
+  "Game import (WTC 1.91, D394): slurs over smaller slurs kept as phrase arcs, the inner slurs the gestures (voice:bars 0:30.0–31.2, 1:31.0–32.2, 0:32.0–33.2).",
+  "Game import (WTC 1.96, D404): \"forte dolce\" (bar 61) is printed between the staves while the bass rests: the whole system, the bass entering under it (it had stayed p to bar 85)."
  ]
 }

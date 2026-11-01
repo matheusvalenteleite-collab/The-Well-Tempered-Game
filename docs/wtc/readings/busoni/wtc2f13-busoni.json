@@ -1501,6 +1501,16 @@
    "conf": "sure"
   },
   {
+   "on": 245760,
+   "bar": 32,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "mark": "dolce",
+   "conf": "sure"
+  },
+  {
    "on": 399360,
    "bar": 52,
    "pos": 8,
@@ -2458,7 +2468,7 @@
  "counts": {
   "marks": 75,
   "slurs": 69,
-  "dyn": 16,
+  "dyn": 17,
   "hairpins": 12,
   "text": 13,
   "breaths": 0,
@@ -2491,6 +2501,7 @@
  "notes": [
   "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 20) kept as \"⌐\": the gloss was the transcriber's, not printed words.",
   "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 64) kept as \"⌐\": the gloss was the transcriber's, not printed words.",
-  "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 76) kept as \"⌐\": the gloss was the transcriber's, not printed words."
+  "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 76) kept as \"⌐\": the gloss was the transcriber's, not printed words.",
+  "Game import (WTC 1.96, D404): The bass's \"dolce marcato\" (bar 32) entered as its level dolce too (in text only, the bass stayed at f under the dolce upper voices for twenty bars)."
  ]
 }

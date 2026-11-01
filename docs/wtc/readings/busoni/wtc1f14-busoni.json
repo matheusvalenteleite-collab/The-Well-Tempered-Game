@@ -1165,7 +1165,8 @@
    "voices": [
     0,
     1,
-    2
+    2,
+    3
    ],
    "mark": "p",
    "conf": "sure"
@@ -1770,6 +1771,7 @@
   }
  },
  "notes": [
-  "Game import (WTC 1.90, D392): \"S (footnote 6)\" (bar 25) kept as \"S\": the gloss and footnote reference were the transcriber's, not printed words."
+  "Game import (WTC 1.90, D392): \"S (footnote 6)\" (bar 25) kept as \"S\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.96, D404): The p at bar 8 is printed between the staves for the bass entry (p quasi misterioso): all four voices, the bass with them (it had inherited the tenor's mf of bar 1 and kept it to bar 27)."
  ]
 }
