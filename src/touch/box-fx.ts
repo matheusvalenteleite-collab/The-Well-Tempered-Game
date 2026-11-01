@@ -16,6 +16,12 @@
 import { tr, trCanvas } from "../i18n/index.ts";
 import { paleOf, themeOf } from "./subject-hue.ts";
 import { NOTE_WEIGHT, OTHERS_SCALE, effectOf } from "./subject-cast.ts";
+import { drawTraveller, travellerOf, type TravelNote } from "./travellers.ts";
+/** D465: the subjects drawn by their fugue's traveller (travellers.ts). */
+export const TRAVELLING = true;
+/** D465: one entry's notes for its traveller, the objects and the array kept (nothing allocated a frame once warm). */
+const TRAVEL_POOL: TravelNote[] = [];
+const TRAVEL_VIEW: TravelNote[] = [];
 
 export interface Span {
   voice: number;
@@ -424,6 +430,23 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
     const ink = voiceInk;
     const rim = paleOf(voiceInk);
     const wt = NOTE_WEIGHT * (mine ? 1 : OTHERS_SCALE);
+    // D465 (design studio): the fugue's traveller gliding along the entry (travellers.ts), in place of the
+    // per-note effects below (kept, unused, as the cast's record: subject-cast.ts ONLY_FX).
+    if (TRAVELLING) {
+      const pool = TRAVEL_POOL;
+      for (let j = 0; j < s.path.length; j++) {
+        const n = s.path[j];
+        const full = (c.hOf ? c.hOf(n.step) : bh) === bh;
+        const o = pool[j] ?? (pool[j] = { on: 0, dur: 0, top: 0 });
+        o.on = n.on;
+        o.dur = n.dur;
+        o.top = mine || !full ? yOf(n.step) - (mine ? 1 : 0) : yOf(n.step) + Math.floor((bh - 1 - Math.max(1, Math.round(bh * 0.5))) / 2);
+      }
+      TRAVEL_VIEW.length = 0;
+      for (let j = 0; j < s.path.length; j++) TRAVEL_VIEW.push(pool[j]);
+      budget -= drawTraveller(travellerOf(piece), TRAVEL_VIEW, { g, xOf, now, beat, t, ink: voiceInk, rim, a: mine ? 1 : OTHERS_SCALE }, budget);
+      continue;
+    }
     const inverted = !!s.shape && s.shape.includes("INVERSION");
     // GLINT's travelling star: one note of the entry at a time, seven a second.
     const travel = fx === "GLINT" ? Math.floor(t * 7 + s.on * 0.37) % s.path.length : -1;
