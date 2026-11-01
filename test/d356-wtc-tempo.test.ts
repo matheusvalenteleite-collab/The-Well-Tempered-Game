@@ -95,7 +95,7 @@ test("D356: a SLOW run is kept apart (never replaces the A nor the best score); 
   assert.deepEqual(lite.recordLiteSlow("wtc1f01", "B", 4000), { before: 5000, fresh: false, old: null });
   const s = lite.readLite();
   assert.equal(s.best.wtc1f01, "A");
-  assert.equal(s.scores.wtc1f01, 1000);
+  assert.equal(s.scores["wtc1f01@0"], 1000, "D445: per voice");
   assert.equal(s.slowBest.wtc1f01, "S");
   assert.equal(s.slowScores.wtc1f01, 5000);
   // A friend's first finish at SLOW (the owner's view) is still a finish (its ✓), without a grade.
@@ -106,7 +106,7 @@ test("D356: a SLOW run is kept apart (never replaces the A nor the best score); 
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /const apart = step === "slow" && isWtcFugue\(f\.id\);/);
   assert.match(app, /recordLite\(f\.id, r\.failedBar !== null, platform === "mobile", apart \? undefined : r\.grade\)/);
-  assert.match(app, /apart \? recordLiteSlow\(f\.id, r\.grade, r\.sheet\.final\) : recordLiteBest\(f\.id, r\.sheet\.final\)/);
+  assert.match(app, /apart \? recordLiteSlow\(f\.id, r\.grade, r\.sheet\.final\) : recordLiteBest\(f\.id, r\.sheet\.final, played\[0\] \?\? voice\)/);
   assert.match(app, /id="result-tempo"/);
   assert.match(app, /tempoOpen\(id, full, tempoEarned\(id, lite\)\)/);
   assert.match(app, /id="pop-tempo-hint"[\s\S]{0,80}tr\("A B ON THIS FUGUE UNLOCKS TEMPO"\)/);

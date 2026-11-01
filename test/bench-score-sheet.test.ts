@@ -21,31 +21,32 @@ const base: SheetInput = {
   progress: 1,
 };
 
-test("D268: the qualities, weighed 40/20/20/20, give the performance; a finished run's bonus is points × performance / 200", () => {
-  const s = scoreSheet(base);
+test("D445: the performance's four parts, weighed 60/15/15/10 (timing a GOOD 0.75, touch the joins, holds, rests and signs together, entries by share); the grade from it; the final the points times it", () => {
+  const s = scoreSheet({ ...base, entryShares: [1, 1, 1, 0.5] });
   const by = Object.fromEntries(s.qualities.map((q) => [q.key, q.share]));
-  assert.equal(by.accuracy, 0.9);
-  assert.ok(Math.abs((by.timing as number) - 2 / 3) < 1e-9);
-  assert.ok(Math.abs((by.articulation as number) - 0.7) < 1e-9, "legato 80%, held 60%; no rests to judge");
-  assert.equal(by.subjects, 0.75);
-  assert.equal(s.performance, Math.round(100 * (40 * 0.9 + 20 * (2 / 3) + 20 * 0.7 + 20 * 0.75) / 100));
-  assert.equal(s.bonus, Math.round((1000 * s.performance) / 200));
-  assert.equal(s.final, 1000 + s.bonus);
+  assert.equal(by.notes, 0.9);
+  assert.ok(Math.abs((by.timing as number) - (60 + 0.75 * 30) / 90) < 1e-9);
+  assert.ok(Math.abs((by.touch as number) - 14 / 20) < 1e-9, "legato 8/10 and held 6/10, counted together; no rests, no signs");
+  assert.equal(by.entries, 0.875, "three whole, one half: partial credit");
+  const perf = Math.round((60 * 0.9 + 15 * ((60 + 0.75 * 30) / 90) + 15 * 0.7 + 10 * 0.875) / 100 * 100);
+  assert.equal(s.performance, perf);
+  assert.equal(s.grade, perf >= 95 ? "S" : perf >= 90 ? "A" : perf >= 80 ? "B" : perf >= 70 ? "C" : "D");
+  assert.equal(s.final, Math.round((1000 * s.performance) / 100));
   assert.deepEqual(s.points.map((p) => p.source), ["notes", "subjects", "articulation", "held", "cadences"], "largest first, the empty left out");
+  assert.equal(s.signs, null, "no reading");
   assert.equal(s.advice, "");
 });
 
-test("D268: a quality with nothing to judge is left out of the weighing", () => {
-  const s = scoreSheet({ ...base, captured: 0, entries: 0 });
-  assert.equal(s.qualities.find((q) => q.key === "subjects")!.share, null);
-  assert.equal(s.performance, Math.round((100 * (40 * 0.9 + 20 * (2 / 3) + 20 * 0.7)) / 80));
+test("D445: a part with nothing to judge is left out of the weighing", () => {
+  const s = scoreSheet({ ...base, entryShares: [] });
+  assert.equal(s.qualities.find((q) => q.key === "entries")!.share, null);
+  assert.equal(s.performance, Math.round((100 * (60 * 0.9 + 15 * ((60 + 0.75 * 30) / 90) + 15 * 0.7)) / 90));
 });
 
-test("D268: a failed run: no bonus, the performance scaled by how far it went, what cost it most", () => {
+test("D445: a failed run: the performance scaled by how far it went, the final by it, what cost it most", () => {
   const s = scoreSheet({ ...base, failed: true, progress: 0.5, missed: 30, wrong: 4 });
-  assert.equal(s.bonus, 0);
-  assert.equal(s.final, 1000);
   assert.equal(s.performance, Math.round(scoreSheet(base).performance * 0.5));
+  assert.equal(s.final, Math.round((1000 * s.performance) / 100));
   assert.match(s.advice, /^30 NOTES WENT BY UNPLAYED/);
   assert.match(scoreSheet({ ...base, failed: true, missed: 0, wrong: 0, stray: 12 }).advice, /^12 TAPS ON NO NOTE/);
 });

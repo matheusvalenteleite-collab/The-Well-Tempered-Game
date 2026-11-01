@@ -136,7 +136,8 @@ test("D214, D217: a perfect two-row run through each testbench fugue is all hits
       const r = g.results();
       assert.equal(r.right, r.of, `${id} ${easy}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed}, stray ${r.stray})`);
       assert.equal(r.captured, r.entries, `${id} ${easy}: ${r.captured}/${r.entries} entries`);
-      assert.ok(r.grade === "S", `${id} ${easy}: grade ${r.grade}`);
+      // D445: every note right and on time; its touch (each note let go at once) keeps it from S.
+      assert.ok(["S", "A"].includes(r.grade), `${id} ${easy}: grade ${r.grade}`);
       const ss = g.line!.strettos;
       assert.ok(ss.every((_, j) => g.strettoState[j] === "cleared"), `${id} ${easy}: strettos ${g.strettoState.filter((x) => x === "cleared").length}/${ss.length} cleared`);
       // The riding notes (the second line's quick ones among them) all sounded, played for the player.
@@ -273,7 +274,8 @@ test("D221: every Book I fugue's SUBJECT line is the stretto rule's (from the st
     const r = g.results();
     assert.equal(r.right, r.of, `${id}: ${r.right}/${r.of} (wrong ${r.wrong}, missed ${r.missed}, stray ${r.stray})`);
     assert.equal(r.captured, r.entries, `${id}: ${r.captured}/${r.entries} entries`);
-    assert.equal(r.grade, "S", `${id}: grade ${r.grade}`);
+    // D445: every note right and on time; its touch (each note let go at once) keeps it from S.
+    assert.ok(["S", "A"].includes(r.grade), `${id}: grade ${r.grade}`);
     assert.ok(g.strettoState.every((x) => x === "cleared"), `${id}: strettos ${g.strettoState.join(",")}`);
     assert.ok(g.tracks.every((t) => t.notes.every((n) => n.state === "hit")), `${id}: every note sounded`);
   }

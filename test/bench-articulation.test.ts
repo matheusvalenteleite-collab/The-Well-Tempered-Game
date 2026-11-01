@@ -122,7 +122,8 @@ test("D218: HELD and SHORT judged on release; SHORT no slip (D337: A · CLASSIC'
   const short = run([{ t: t0, down: true, id: 1 }, { t: t0 + len * 0.2, down: false, id: 1 }]);
   assert.equal(short.flash?.text, "TOO SOON");
   assert.deepEqual([short.art.held, short.art.heldOf], [0, 1]);
-  assert.ok(short.crowd < held.crowd, "the crowd a little cooler");
+  // D445: TOO SOON costs the crowd nothing (the note was right); it costs the HELD bonus.
+  assert.equal(short.crowd, held.crowd);
   assert.ok(short.score < held.score, "no HELD bonus");
   assert.equal(short.slips, held.slips);
   assert.equal(short.combo, held.combo, "no combo break");
@@ -145,7 +146,9 @@ test("D218: holding a note into the rest after it is penalised; letting go in ti
   const clean = run([{ t: t0, down: true, id: 1 }, { t: end - 0.02, down: false, id: 1 }]);
   assert.match(clean.flash?.text ?? "", /CLEAN/);
   assert.deepEqual([clean.art.clean, clean.art.cleanOf], [1, 1]);
-  assert.ok(clean.score > over.score && clean.crowd > over.crowd);
+  // D445: the crowd listening (its level: the meter itself is empty here, every other note let go by).
+  const heard = (g: unknown) => (g as { listeners: { level: number } }).listeners.level;
+  assert.ok(clean.score > over.score && heard(clean) > heard(over), `score ${clean.score} vs ${over.score}, heard ${heard(clean)} vs ${heard(over)}`);
   assert.equal(over.slips, clean.slips, "no slip: the note was right");
   // A rest broken mid-chain: the chain is reset.
   assert.equal(over.chain, 0);

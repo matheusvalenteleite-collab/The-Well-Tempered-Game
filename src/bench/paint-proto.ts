@@ -10,7 +10,6 @@
  * The verdict of the last touch flashes over the field.
  */
 import { ornamentMark } from "../touch/ornament-play.ts";
-import { AUTO } from "../touch/box-variants.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paperInk } from "./sheet-view.ts";
 import { paintPiano } from "../touch/paint-piano.ts";
@@ -96,19 +95,14 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
     if (bars) liveSheet(c, w, h, g, t);
     return;
   }
-  if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
-  // D249: the combo (the right notes running), small and muted under the score, off the middle of the
-  // music (it shared the count-in's centre). Named, so it is not read as the multiplier.
-  const combo = g.combo >= 5 && !AUTO;
-  const cy = desk ? y + 16 : y + 28;
-  if (combo) label(c, `COMBO ${g.combo}`, x, cy, t.muted, 6);
-  const below = combo ? 12 : 0;
+  // D445: the streak bonus (+10% every 16 right notes in a row, up to +50%) under the score; no COMBO count.
+  if (g.streakLevel > 0 && !desk) label(c, `+${g.streakLevel * 10}%`, x, y + 16, g.streakLevel >= 5 ? t.gold : t.shine, 9);
+  const below = 0;
   // D268: the right bar's live sheet: the share of right notes so far, the subject's entries captured, the crowd.
   if (bars) liveSheet(c, w, h, g, t);
   if (!full) return;
-  if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 + 74 : y + 32 + below, t.gold, 7);
-  // D218: the legato chain under way.
-  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
+  // D218: the legato chain under way. D445: ORGANO PLENO no longer doubles the points (its light and banner stay).
+  if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + 32 + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
   if (g.streak >= 24 && !paper) {
     const now = performance.now() / 1000;
@@ -142,10 +136,11 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
   const on = (k: string) => !g.o.dress || g.o.dress.includes(k);
   // D413: frozen under his demonstration (see scoreboard).
   const still = !!g.o.demo;
-  const acc = still ? null : g.liveAccuracy();
+  // D445: the PERFORMANCE so far (what the grade is made of), rounded once, as on the sheet.
+  const perf = still ? null : g.livePerformance();
   if (on("accuracy")) {
-    label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
-    label(c, "ACCURACY", x, y + 12, t.muted, 5);
+    label(c, perf === null ? "—" : `${perf}%`, x, y, perf === null || perf >= 90 ? t.fg : perf >= 80 ? t.shine : t.wrong, 9);
+    label(c, "PERFORMANCE", x, y + 12, t.muted, 5);
     y += 28;
   }
   const come = still ? 0 : g.entries.filter((e) => e.state !== "open").length;
@@ -677,12 +672,12 @@ function highway(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
   const ry = phone ? 34 : y1 - 40;
   c.lineWidth = 6;
   for (let k = 0; k < 8; k++) {
-    c.strokeStyle = k < g.streak % 8 || g.mult >= 4 ? (g.mult >= 4 ? t.gold : t.shine) : "#2a2533";
+    c.strokeStyle = k < Math.floor(g.streakProgress * 8) || g.streakLevel >= 5 ? (g.streakLevel >= 5 ? t.gold : t.shine) : "#2a2533";
     c.beginPath();
     c.arc(rx, ry, 26, -Math.PI / 2 + (k * Math.PI) / 4 + 0.06, -Math.PI / 2 + ((k + 1) * Math.PI) / 4 - 0.06);
     c.stroke();
   }
-  label(c, `×${g.mult * (g.pleno ? 2 : 1)}`, rx, ry, g.pleno ? t.gold : t.fg, 12);
+  label(c, `+${g.streakLevel * 10}%`, rx, ry, g.streakLevel >= 5 ? t.gold : t.fg, 10);
   // D249: the run's count is shown once, as the combo by the score (it was also here, under the ring).
   if (R) deskFlare(R, rx, ry);
   // The crowd's meter (right).

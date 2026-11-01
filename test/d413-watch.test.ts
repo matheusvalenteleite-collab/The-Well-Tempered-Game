@@ -97,6 +97,7 @@ test("D413: nothing scored on the screen while he plays: the counters stand at t
   paintProto(c, 844, 390, g, new Set());
   assert.ok(texts.includes("0"), texts.join(","));
   assert.ok(!texts.includes(Math.floor(g.score).toLocaleString("en")), "his score not shown");
-  assert.ok(!texts.some((t) => /^COMBO|^×\d|^PERFECT$|^GOOD$/.test(t)), texts.join(","));
-  assert.ok(texts.includes("—") && texts.includes("ACCURACY"), "ACCURACY frozen at —");
+  assert.ok(!texts.some((t) => /^COMBO|^×\d|^\+\d+%$|^PERFECT$|^GOOD$/.test(t)), texts.join(","));
+  // D445: the live PERFORMANCE (was ACCURACY), frozen at —.
+  assert.ok(texts.includes("—") && texts.includes("PERFORMANCE"), "PERFORMANCE frozen at —");
 });
