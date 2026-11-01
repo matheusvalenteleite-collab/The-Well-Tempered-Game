@@ -49,17 +49,17 @@ test("D356: the sounds: SLOW the PIPE ORGAN, FAST CLASSIC CHIP, DEFAULT the fugu
   assert.deepEqual([steps.stepSound("bwv1080-01", "slow"), steps.stepSound("bwv1080-01", "fast")], ["chamberOrgan", "chip"]);
 });
 
-test("D356: the unlock: a friend's WTC fugue opens its tempo with an A or S (today's or before 1.52), never a B; the unlocked view everywhere; MORE BACH only unlocked", () => {
+test("D356: the unlock: a friend's WTC fugue opens its tempo with a B or better (D417; today's or before 1.52), never a C; the unlocked view everywhere; MORE BACH only unlocked", () => {
   store.clear();
   const st = () => lite.readLite();
   const open = (id: string, full = false) => steps.tempoOpen(id, full, lite.tempoEarned(id, st()));
   assert.equal(open("wtc1f01"), false);
-  lite.recordLite("wtc1f01", false, true, "B");
-  assert.equal(open("wtc1f01"), false, "a B does not open it");
+  lite.recordLite("wtc1f01", false, true, "C");
+  assert.equal(open("wtc1f01"), false, "a C does not open it");
   lite.recordLite("wtc1f01", true, true, "S");
   assert.equal(open("wtc1f01"), false, "a run the crowd left does not count");
-  lite.recordLite("wtc1f01", false, true, "A");
-  assert.equal(open("wtc1f01"), true, "an A opens it");
+  lite.recordLite("wtc1f01", false, true, "B");
+  assert.equal(open("wtc1f01"), true, "D417: a B opens it");
   assert.equal(open("wtc1f02"), false, "only that fugue's");
   lite.recordLite("wtc2f03", false, true, "S");
   assert.equal(open("wtc2f03"), true, "an S, Book II's too");
@@ -109,6 +109,6 @@ test("D356: a SLOW run is kept apart (never replaces the A nor the best score); 
   assert.match(app, /apart \? recordLiteSlow\(f\.id, r\.grade, r\.sheet\.final\) : recordLiteBest\(f\.id, r\.sheet\.final\)/);
   assert.match(app, /id="result-tempo"/);
   assert.match(app, /tempoOpen\(id, full, tempoEarned\(id, lite\)\)/);
-  assert.match(app, /id="pop-tempo-hint"[\s\S]{0,80}tr\("AN A ON THIS FUGUE UNLOCKS TEMPO"\)/);
-  for (const d of ["src/i18n/pt.ts", "src/i18n/es.ts"]) for (const k of ["AN A ON THIS FUGUE UNLOCKS TEMPO", "KEPT APART FROM YOUR BEST"]) assert.match(src(d), new RegExp(`"${k}": "`), `${d} ${k}`);
+  assert.match(app, /id="pop-tempo-hint"[\s\S]{0,80}tr\("A B ON THIS FUGUE UNLOCKS TEMPO"\)/);
+  for (const d of ["src/i18n/pt.ts", "src/i18n/es.ts"]) for (const k of ["A B ON THIS FUGUE UNLOCKS TEMPO", "KEPT APART FROM YOUR BEST"]) assert.match(src(d), new RegExp(`"${k}": "`), `${d} ${k}`);
 });
