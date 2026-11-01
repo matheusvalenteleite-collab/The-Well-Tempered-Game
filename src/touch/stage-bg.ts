@@ -79,6 +79,19 @@ class Kit {
   cads: number[] = [];
   /** No ambient motion (QUIET). */
   still = false;
+  /**
+   * D464 (the owner: "the rain getting stronger during the rain fugue … the sun shining for a bit during the
+   * moments of a fugal subject modulated to a major key … each fugue has features that allow for these kinds of
+   * scripted variation"): the music's own state, eased so nothing jumps. `turn` 0..1 while an entry stands in the
+   * other mode than the piece's (a major entry in a minor fugue: the sun; a minor one in a major fugue: a cloud);
+   * `stretto` 0..1 while entries overlap; `busy` 0..1 how many notes sound around now (the piece's own range);
+   * `cadence` 1 at a cadence's arrival, fading over two bars.
+   */
+  turn = 0;
+  homeMinor = false;
+  stretto = 0;
+  busy = 0;
+  cadence = 0;
   /** The tick the ear is at, a bar's ticks, and the canvas x of the piece's end. */
   nowTick = 0;
   barTicks = 1;
@@ -340,7 +353,7 @@ const WORLDS: Record<string, World> = {
     for (let i = 0; i < 4; i++) {
       const x = k.w * (0.28 + i * 0.15);
       const on = k.passed > i;
-      if (on) k.glow(x, k.h * 0.55, 34, [255, 220, 160], 0.22);
+      if (on) k.glow(x, k.h * 0.55, 34, [255, 220, 160], 0.22 + 0.12 * k.stretto);
       k.figure(x, k.h * 0.82 - i * 3, on ? "rgba(70,50,60,1)" : "rgba(30,20,28,1)", 0, 3);
       if (on && !k.still && Math.sin(k.sec * 2 + i) > 0) k.R(x + 1, k.h * 0.82 - i * 3 - 22, 2, 2, "rgba(20,10,14,1)");
     }
@@ -354,7 +367,7 @@ const WORLDS: Record<string, World> = {
     k.g.translate(0, -k.h);
     k.hills(0.86, 8, 0.1, 5, "rgba(8,4,8,0.9)", true);
     k.g.restore();
-    k.glow(k.w * 0.5, k.h * 0.95, 70, [255, 110, 40], 0.3);
+    k.glow(k.w * 0.5, k.h * 0.95, 60 + 30 * k.busy, [255, 110, 40], 0.22 + 0.16 * k.busy);
     for (let i = 0; i < 14; i++) {
       const tt = wrap(k.t * 0.15 + hash(i), 1);
       k.R(k.w * (0.3 + 0.4 * hash(i + 2)) + Math.sin(tt * 9 + i) * 4, k.h * (1 - tt * 0.9), 1, 1, `rgba(255,160,70,${0.7 * (1 - tt)})`);
@@ -405,7 +418,7 @@ const WORLDS: Record<string, World> = {
   wtc1f05: (k) => {
     k.room([26, 20, 34], [16, 12, 22], 0.86, "rgba(40,30,30,1)");
     arches(k, "rgba(12,10,18,0.95)");
-    k.glow(k.w * 0.5, k.h * 0.22, 40, [210, 160, 255], 0.25 + 0.15 * k.p);
+    k.glow(k.w * 0.5, k.h * 0.22, 40 + 20 * k.cadence, [210, 160, 255], 0.25 + 0.15 * k.p + 0.2 * k.cadence);
     k.disc(k.w * 0.5, k.h * 0.22, 12, "rgba(140,90,170,0.7)");
     for (let i = 0; i < 6; i++) k.line(k.w * 0.5, k.h * 0.22, k.w * 0.5 + Math.cos((i * Math.PI) / 3) * 12, k.h * 0.22 + Math.sin((i * Math.PI) / 3) * 12, "rgba(30,20,40,0.9)");
     const cols = ["rgba(150,30,40,0.9)", "rgba(40,60,150,0.9)", "rgba(190,150,40,0.9)", "rgba(40,120,70,0.9)"];
@@ -430,6 +443,14 @@ const WORLDS: Record<string, World> = {
         k.R(x + 2, y, 2, 1, "rgba(240,220,120,0.8)");
       }
     });
+    // D464: in a stretto, more eyes in the trees.
+    if (k.stretto > 0.3)
+      for (let i = 0; i < 5; i++) {
+        const x = k.w * (0.1 + 0.2 * i) + Math.sin(i * 7) * 10;
+        const y = k.h * (0.42 + (i % 2) * 0.1);
+        k.R(x - 3, y, 2, 1, `rgba(240,220,120,${0.7 * k.stretto})`);
+        k.R(x + 2, y, 2, 1, `rgba(240,220,120,${0.7 * k.stretto})`);
+      }
   },
   // The Bicycle: a summer road through the country, fence posts flying past.
   wtc1f07: (k) => {
@@ -529,6 +550,10 @@ const WORLDS: Record<string, World> = {
   // The Aquarium: the box is the tank; fish drifting, bubbles where each entry comes in.
   wtc1f13: (k) => {
     k.vgrad(0, k.h, [[0, "#0d3a44"], [0.6, "#0a2a36"], [1, "#081c26"]]);
+    for (let j = 0; j < 6 + 14 * k.busy; j++) {
+      const tt = wrap(k.t * 0.25 + j / 20, 1);
+      k.R(k.w * 0.92 + Math.sin(tt * 20 + j) * 2, k.h - 8 - tt * (k.h - 10), 1 + (j % 2), 1 + (j % 2), "rgba(220,250,255,0.3)");
+    }
     for (let i = 0; i < 7; i++) {
       const x = wrap(i * 53 + Math.sin(k.t * 0.5 + i) * 12, k.w + 40) - 20;
       k.g.fillStyle = "rgba(160,230,230,0.08)";
@@ -580,7 +605,7 @@ const WORLDS: Record<string, World> = {
     for (let i = 0; i < n; i++) {
       const x = k.w * (0.15 + 0.7 * hash(i * 3));
       const y = k.h * (0.2 + 0.6 * hash(i * 3 + 1));
-      const on = k.passed % n === i || (k.passed > n && hash(i + k.passed) > 0.6);
+      const on = k.passed % n === i || (k.passed > n && hash(i + k.passed) > 0.6) || k.cadence > 0.6;
       if (on) k.glow(x, y, 20, [255, 90, 200], 0.35);
       k.disc(x, y, 7, on ? "rgba(255,120,210,0.9)" : "rgba(90,40,90,0.9)");
       k.disc(x, y, 3, "rgba(20,10,30,1)");
@@ -691,7 +716,8 @@ const WORLDS: Record<string, World> = {
       void i;
     });
     k.R(0, k.h - 5, k.w, 5, "rgba(26,16,20,1)");
-    for (let x = -wrap(k.bar * k.pxBar * 1.6, 12); x < k.w; x += 12) k.R(x, k.h - 4, 7, 2, "rgba(110,70,50,0.6)");
+    // D464: the busier the music, the faster the sleepers (the train working harder).
+    for (let x = -wrap(k.bar * k.pxBar * (1.2 + 1.2 * k.busy), 12); x < k.w; x += 12) k.R(x, k.h - 4, 7, 2, "rgba(110,70,50,0.6)");
   },
   // The Marionettes: a puppet stage, strings from above; the three dance in step with the bars.
   wtc1f21: (k) => {
@@ -852,11 +878,12 @@ const WORLDS: Record<string, World> = {
       const bx = tx - 9 + (i % 2) * 18;
       const by = k.h * (0.3 + Math.floor(i / 2) * 0.16);
       k.R(bx - 6, by - 6, 12, 14, "rgba(10,8,12,1)");
-      const swing = k.passed > i && !k.still ? Math.sin(k.sec * 3 + i) * 0.5 : 0;
+      // D464: in a stretto every bell swings, and wider.
+      const swing = (k.passed > i || k.stretto > 0.5) && !k.still ? Math.sin(k.sec * 3 + i) * (0.4 + 0.3 * k.stretto) : 0;
       k.g.save();
       k.g.translate(bx, by - 4);
       k.g.rotate(swing);
-      k.g.fillStyle = k.passed > i ? "rgba(220,170,80,0.9)" : "rgba(90,70,40,0.9)";
+      k.g.fillStyle = k.passed > i || k.stretto > 0.5 ? "rgba(220,170,80,0.9)" : "rgba(90,70,40,0.9)";
       k.g.beginPath();
       k.g.moveTo(-2, 0);
       k.g.lineTo(2, 0);
@@ -903,7 +930,8 @@ const WORLDS: Record<string, World> = {
     k.glow(k.w * 0.6 + 3, k.h * 0.46, 18, [255, 200, 110], 0.18);
     k.ground(0.8, "rgba(30,32,40,1)");
     k.vgrad(k.h * 0.8, k.h * 0.2, [[0, "rgba(255,200,110,0.12)"], [1, "rgba(255,200,110,0)"]], k.w * 0.58, 10);
-    k.rain(70, 0.35);
+    // D464: the rain grows over the piece and with the music's density; under a major entry's sun it eases.
+    k.rain(Math.round(25 + 120 * (0.2 + 0.8 * k.p) * (0.55 + 0.45 * k.busy) * (1 - 0.7 * k.turn)), 0.26 + 0.16 * k.p);
     k.atEntries((x, i, begun) => {
       if (!begun) return;
       const r = 3 + wrap(k.t * 2 + i, 3) * 3;
@@ -1034,7 +1062,7 @@ const WORLDS: Record<string, World> = {
     k.room([70, 44, 26], [44, 28, 16], 0.84, "rgba(60,38,22,1)");
     for (let i = 0; i < 4; i++) {
       const x = k.w * (0.15 + i * 0.24);
-      const a = Math.sin(k.bar * Math.PI * 2 + i) * 0.25;
+      const a = Math.sin(k.bar * Math.PI * 2 + i) * (0.15 + 0.25 * k.busy);
       const ex = x + Math.sin(a) * 18;
       const ey = Math.cos(a) * 18;
       k.line(x, 0, ex, ey, "rgba(40,26,16,1)");
@@ -1062,7 +1090,7 @@ const WORLDS: Record<string, World> = {
     k.sky([40, 36, 40], [100, 80, 70], [30, 20, 24], [110, 60, 50]);
     skyline(k, 0.78, 0.15, "rgba(40,34,36,1)", 0.5);
     k.ground(0.78, "rgba(60,56,56,1)");
-    const shake = !k.still && k.ents.some((e) => Math.abs(k.xOf(e) - k.xOf(k.now())) < k.pxBar * 0.15) ? Math.sin(k.sec * 40) : 0;
+    const shake = !k.still && (k.stretto > 0.5 || k.ents.some((e) => Math.abs(k.xOf(e) - k.xOf(k.now())) < k.pxBar * 0.15)) ? Math.sin(k.sec * 40) * (1 + 2 * k.stretto) : 0;
     let x = k.w * 0.05;
     let y = k.h * 0.88;
     k.g.strokeStyle = "rgba(10,8,10,0.95)";
@@ -1159,12 +1187,33 @@ export const STAGE_IDS: readonly string[] = Object.keys(WORLDS);
 export const hasStage = (id: string | undefined) => !!id && id in WORLDS;
 
 const KIT = new Kit();
-const memo = new Map<string, { ents: number[]; cads: number[]; end: number }>();
-function piece(f: TouchFugue) {
+type Piece = { ents: number[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean }[]; dens: number[]; dLo: number; dHi: number };
+const memo = new Map<string, Piece>();
+const isMinor = (key: string) => key.charAt(0) === key.charAt(0).toLowerCase();
+function piece(f: TouchFugue): Piece {
   let m = memo.get(f.id);
-  if (!m) memo.set(f.id, (m = { ents: f.entries.map((e) => e.on).sort((a, b) => a - b), cads: f.cadences.map((c) => c.on), end: f.length }));
+  if (m) return m;
+  const home = isMinor(f.key);
+  // D464: the notes struck in each bar (all voices), and the piece's own quiet and busy bars (10th and 90th centiles).
+  const nb = Math.max(1, Math.ceil(f.length / f.barTicks));
+  const dens = new Array<number>(nb).fill(0);
+  for (const v of f.voices) for (const n of v) dens[Math.min(nb - 1, Math.floor(n[0] / f.barTicks))]++;
+  const sorted = [...dens].sort((a, b) => a - b);
+  m = {
+    ents: f.entries.map((e) => e.on).sort((a, b) => a - b),
+    cads: f.cadences.map((c) => c.on),
+    end: f.length,
+    spans: f.entries.map((e) => ({ on: e.on, end: e.end, other: isMinor(e.key) !== home })),
+    dens,
+    dLo: sorted[Math.floor(nb * 0.1)] ?? 0,
+    dHi: Math.max((sorted[Math.floor(nb * 0.9)] ?? 1), (sorted[Math.floor(nb * 0.1)] ?? 0) + 1),
+  };
+  memo.set(f.id, m);
   return m;
 }
+/** D464: the eased states, kept per piece between frames (and the wall clock of the last frame). */
+const eased = new Map<string, { turn: number; stretto: number; busy: number; at: number }>();
+const ease = (from: number, to: number, dt: number, s: number) => from + (to - from) * Math.min(1, dt / s);
 
 
 /**
@@ -1193,6 +1242,27 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   let passed = 0;
   while (passed < m.ents.length && m.ents[passed] <= clock.now) passed++;
   k.passed = passed;
+  // D464: the music's state, eased (a second or so), so the world turns with it and never jumps.
+  const now = clock.now;
+  let other = 0;
+  let sounding = 0;
+  for (const sp of m.spans) if (sp.on <= now && now < sp.end) (sounding++, sp.other && (other = 1));
+  const bi = Math.min(m.dens.length - 1, Math.max(0, Math.floor(now / f.barTicks)));
+  const busyNow = Math.max(0, Math.min(1, (m.dens[bi] - m.dLo) / (m.dHi - m.dLo)));
+  const e = eased.get(f.id) ?? { turn: other, stretto: 0, busy: busyNow, at: clock.sec };
+  const dt = Math.max(0, Math.min(0.25, clock.sec - e.at));
+  e.turn = ease(e.turn, other, dt, 1.2);
+  e.stretto = ease(e.stretto, sounding >= 2 ? 1 : 0, dt, 0.8);
+  e.busy = ease(e.busy, busyNow, dt, 2);
+  e.at = clock.sec;
+  eased.set(f.id, e);
+  k.turn = mode === "quiet" ? other : e.turn;
+  k.stretto = e.stretto;
+  k.busy = e.busy;
+  k.homeMinor = isMinor(f.key);
+  let lastCad = -Infinity;
+  for (const c of m.cads) if (c <= now) lastCad = c;
+  k.cadence = Math.max(0, 1 - (now - lastCad) / (2 * f.barTicks));
   k.nowTick = clock.now;
   k.barTicks = f.barTicks;
   k.end = k.xOf(m.end);
@@ -1200,6 +1270,28 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   world(k);
   g.restore();
   g.globalAlpha = 1;
+  // D464: the subject in the other mode lights the world for its length: in a minor fugue a major entry, the sun
+  // breaking through (warm light from above, a few rays); in a major fugue a minor entry, a cloud passing (cool shade).
+  if (k.turn > 0.01) {
+    if (k.homeMinor) {
+      const sun = k.turn;
+      k.glow(w * 0.8, -h * 0.1, h * 1.3, [255, 214, 140], 0.28 * sun);
+      g.fillStyle = `rgba(255,226,170,${0.05 * sun})`;
+      for (let r = 0; r < 4; r++) {
+        const x0 = w * (0.55 + r * 0.12);
+        g.beginPath();
+        g.moveTo(x0, 0);
+        g.lineTo(x0 + 10, 0);
+        g.lineTo(x0 - w * 0.25 + 18, h);
+        g.lineTo(x0 - w * 0.25, h);
+        g.closePath();
+        g.fill();
+      }
+    } else {
+      g.fillStyle = `rgba(30,40,80,${0.22 * k.turn})`;
+      g.fillRect(0, 0, w, h);
+    }
+  }
   // The veil: the world kept under the music (QUIET heavier), darkest in the middle band where the notes run.
   const a = (mode === "quiet" ? 0.62 : 0.4) + (BRIGHT.has(f.id) ? 0.14 : 0);
   const gr = g.createLinearGradient(0, 0, 0, h);
