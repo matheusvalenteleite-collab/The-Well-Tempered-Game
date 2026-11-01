@@ -93,7 +93,7 @@ import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual,
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
-import { LiteGrid } from "./LiteGrid.tsx";
+import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
@@ -1746,7 +1746,7 @@ export function BenchApp() {
             </button>
             {phase.sheet ? (
               <SheetCard
-                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className="tb-grade" style={{ color: GRADE_INK[phase.grade] }}>{phase.grade}</h1>}
                 sheet={phase.sheet}
                 score={phase.score}
                 failed={phase.failedBar !== null}
@@ -1759,7 +1759,7 @@ export function BenchApp() {
               />
             ) : (
               <>
-                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className={`tb-grade${phase.grade === "S" || phase.grade === "A" ? " tg-gold" : ""}`}>{phase.grade}</h1>}
+                {phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className="tb-grade" style={{ color: GRADE_INK[phase.grade] }}>{phase.grade}</h1>}
                 {phase.failedBar !== null && <p className="tg-card-sub">{tr("BAR {n}", { n: phase.failedBar })}</p>}
                 <p className="tb-score">{phase.score.toLocaleString("en")}</p>
               </>

@@ -598,4 +598,14 @@ export const PT: Record<string, string> = {
   "SYNTH SINGER (RO)": "CANTOR SINTÉTICO (RO)",
   "SYNTH SINGER (NE)": "CANTOR SINTÉTICO (NE)",
   "SYNTH SINGER (DA)": "CANTOR SINTÉTICO (DA)",
+  // D486: the slide's cues at the thumb and its line in HOW TO PLAY.
+  "SLIDES: keep a thumb down and move it at least halfway to the next note, the way the tune goes: it plays that note. Going past it is fine; arrive early and it waits for its time. One way only: to turn back, lift and strike. A failed slide says why at your thumb: FURTHER, TOO FAR, TOO EARLY, TOO LATE, LIFTED or LIFT TO TURN. Each instrument colours a slide its own way: the harpsichord a quick trill or a Schleifer, the piano a grace note, a voice, a string or a synth a glide.": "DESLIZES: mantenha um polegar apoiado e mova-o pelo menos até a metade do caminho para a próxima nota, no sentido da melodia: ele toca essa nota. Passar dela não tem problema; se chegar cedo, ela espera o seu tempo. Só num sentido: para voltar, levante e toque de novo. Um deslize que falha diz por quê junto ao polegar: MAIS LONGE, LONGE DEMAIS, CEDO DEMAIS, TARDE DEMAIS, LEVANTOU ou LEVANTE PARA VOLTAR. Cada instrumento colore o deslize do seu jeito: o cravo um trinado rápido ou um Schleifer, o piano uma apojatura, uma voz, uma corda ou um sintetizador um glissando.",
+  "FURTHER": "MAIS LONGE",
+  "TOO FAR": "LONGE DEMAIS",
+  "TOO EARLY": "CEDO DEMAIS",
+  "TOO LATE": "TARDE DEMAIS",
+  "LIFTED": "LEVANTOU",
+  "LIFT TO TURN": "LEVANTE PARA VOLTAR",
+  // D488: the slide-in's line in HOW TO PLAY.
+  "SLIDE IN: after a rest, put a thumb down above or below the coming note before its time, then slide it in: the note sounds when you are halfway there, entering with your instrument's slide. Putting the thumb down there never counts as a mistake.": "DESLIZAR PARA ENTRAR: depois de uma pausa, apoie um polegar acima ou abaixo da próxima nota antes do tempo dela e deslize até ela: a nota soa quando você chega à metade do caminho, entrando com o deslize do seu instrumento. Apoiar o polegar ali nunca conta como erro.",
 };

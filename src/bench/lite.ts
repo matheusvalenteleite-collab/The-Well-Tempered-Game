@@ -386,6 +386,10 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       "LEGATO, two notes with no gap: strike the next on time as the other thumb lifts, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
       // D378: Glenn's mechanics, the game's: joined by ear, over-legato, a keyboard slide's slur.
       "LEGATO means no gap you can hear (25 ms or less): the next thumb lands as this one lifts. DETACHED: a small silence before the next note. SHORT (the dot): lift before three fifths of the note. A SLUR: legato under it, a small silence after its last note. An extra colour, not legato itself: on harpsichord, lute and piano, keep the old thumb down a moment after the new strike and the old note rings on until you lift it (over-legato). Slide a held thumb to the next note and it plays it: on a keyboard a slur begins, legato until you lift, the next strong beat or eight notes.",
+      // D486: the slide in plain words (slide-rule.ts), its cues and its sound (slide-sound.ts).
+      "SLIDES: keep a thumb down and move it at least halfway to the next note, the way the tune goes: it plays that note. Going past it is fine; arrive early and it waits for its time. One way only: to turn back, lift and strike. A failed slide says why at your thumb: FURTHER, TOO FAR, TOO EARLY, TOO LATE, LIFTED or LIFT TO TURN. Each instrument colours a slide its own way: the harpsichord a quick trill or a Schleifer, the piano a grace note, a voice, a string or a synth a glide.",
+      // D488: the slide-in (slide-rule.ts SLIDE_IN).
+      "SLIDE IN: after a rest, put a thumb down above or below the coming note before its time, then slide it in: the note sounds when you are halfway there, entering with your instrument's slide. Putting the thumb down there never counts as a mistake.",
       // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
       "Your touch is yours: legato, ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
       // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).

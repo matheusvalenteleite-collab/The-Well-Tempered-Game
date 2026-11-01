@@ -230,3 +230,53 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
   .sel-voices[data-n="5"] button { grid-column: span 3; font-size: 5px; }
   .sel-voices[data-n="5"] button:nth-child(5) { grid-column: 1 / -1; }
 }
+
+/* ------------------------------------------------------------------------------------------------------
+ * D446 (the owner on the selection screen: "things are juxtaposed … this ought to be optimized
+ * dramatically"). THE CARDS: the picture the whole card; its level in its ink at the top left, always
+ * shown; the number, key and name over the picture's foot on a dark band (readable). THE RIGHT COLUMN:
+ * the picture larger (the reason to pick a card); the voices on one line (five voices on two); TEMPO and
+ * SOUND side by side, each name whole (two lines if it must, never cut); the language in SETTINGS only.
+ * ------------------------------------------------------------------------------------------------------ */
+.sel-tile { padding: 0; gap: 0; }
+.sel-tile.on { padding: 0; }
+.sel-tile .sel-pic { flex: 1 1 auto; height: 100%; }
+.sel-tile .sel-emblem { width: 100%; height: 100%; max-height: none; object-fit: cover; aspect-ratio: auto; }
+.sel-tile-level { position: absolute; left: 0; top: 0; z-index: 2; padding: 2px 3px 1px; font-size: 5px; line-height: 1.2; letter-spacing: 0.04em; color: #14101a; }
+.sel-tile .sel-next { left: auto; right: 0; top: 0; z-index: 3; }
+.sel-tile .sel-grade, .sel-tile .sel-done { top: 2px; bottom: auto; right: 2px; z-index: 3; }
+.sel-tile .sel-tile-words { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; gap: 0; padding: 6px 3px 2px; background: linear-gradient(to bottom, rgba(8, 8, 16, 0) 0, rgba(8, 8, 16, 0.82) 7px, rgba(8, 8, 16, 0.9) 100%); }
+.sel-tile .sel-tile-key { font-size: 7px; text-shadow: 1px 1px 0 #000; }
+.sel-tile .sel-tile-key i { font-size: 5px; }
+.sel-tile .sel-tile-name, .sel-tile .sel-tile-name.long { height: auto; max-height: 2.7em; font-size: 6px; text-shadow: 1px 1px 0 #000; }
+.sel-tile.on .sel-tile-words { background: linear-gradient(to bottom, rgba(38, 48, 90, 0) 0, rgba(38, 48, 90, 0.88) 7px, rgba(38, 48, 90, 0.95) 100%); }
+@media (max-width: 700px) {
+  .sel-tile .sel-tile-key { font-size: 6px; }
+  .sel-tile .sel-tile-name, .sel-tile .sel-tile-name.long { font-size: 5px; }
+}
+
+/* The right column: the picture first and large; everything else as tight as it reads. */
+.sel-right .sel-piece { gap: 3px; }
+.sel-right .sel-piece-pic { flex: 1 1 auto; min-height: 70px; max-height: 46%; }
+.sel-right .sel-piece-emblem { height: 100%; max-height: none; }
+.sel-right .sel-piece-nick { margin: 0; }
+.sel-right .sel-piece-name { margin: 0; }
+.sel-voices, .sel-voices[data-n] { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-columns: none; gap: 2px; }
+.sel-voices button, .sel-voices[data-n] button, .sel-voices[data-n] button:nth-child(n) { grid-column: auto; min-height: 20px; padding: 3px 1px 2px; font-size: 6px; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+.sel-voices[data-n="5"] { grid-auto-flow: row; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-columns: auto; }
+.sel-voices[data-n="5"] button:nth-child(-n + 3) { grid-column: span 2; }
+.sel-voices[data-n="5"] button:nth-child(n + 4) { grid-column: span 3; }
+@media (max-width: 700px) { .sel-voices button, .sel-voices[data-n] button, .sel-voices[data-n] button:nth-child(n) { font-size: 5px; } }
+.sel-knobs { grid-template-columns: 1fr 1fr; gap: 3px; }
+.sel-knob { display: grid; align-content: center; gap: 1px; min-height: 26px; padding: 2px 3px; }
+.sel-knob-k { font-size: 5px; }
+.sel-knob b, .sel-knob b:only-child { white-space: normal; overflow: visible; text-overflow: clip; text-align: left; font-size: 6px; line-height: 1.3; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .sel-knob b { font-size: 5px; } }
+/* D446: the picture cropped from its upper part (the figures), never their heads; on small phones the words tighter, never cut. */
+.sel-tile .sel-emblem { object-position: center 30%; }
+@media (max-width: 700px) {
+  .sel-tile .sel-tile-words { padding: 5px 2px 2px; }
+  .sel-tile .sel-tile-key { font-size: 5px; letter-spacing: -0.4px; }
+  .sel-tile .sel-tile-key i { font-size: 4px; }
+  .sel-tile .sel-tile-name, .sel-tile .sel-tile-name.long { font-size: 5px; letter-spacing: -0.5px; max-height: 4em; }
+}
