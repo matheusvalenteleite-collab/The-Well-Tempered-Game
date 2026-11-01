@@ -17,24 +17,30 @@
 .tb-full, .tg-wide.tb-full { grid-template-rows: 1fr; }
 .tb-full .tg-box { display: none; }
 .tb-bars, .tg-wide.tb-bars { grid-template-rows: 1fr; position: relative; }
-.tb-bars .tg-box { margin: 0 20%; }
+:root {
+  /* Design studio (D419, the owner: the bars wider for the thumbs now they are translucent): each side bar's share of
+     the play area, the one place it is set for the CSS; protos.ts BAR is the same number for the canvas and the touches
+     (test/studio-bar-width.test.ts holds them equal). Was 0.2 (D320). */
+  --tb-bar: 0.22;
+}
+.tb-bars .tg-box { margin: 0 calc(var(--tb-bar) * 100%); }
 /* D320: the play area (the bars, their touches, their across axis: protos.ts barAcross reads the area's
    width) stands inside the screen's safe edges, so a bar's outer end is the safe edge, not the glass
    under the Dynamic Island; the box sits between the bars as before (BAR, 20% of the area each). */
-.tb-bars .tg-box { margin: 0 calc(var(--tg-sar) + (100% - var(--tg-sal) - var(--tg-sar)) * 0.2) 0 calc(var(--tg-sal) + (100% - var(--tg-sal) - var(--tg-sar)) * 0.2); }
+.tb-bars .tg-box { margin: 0 calc(var(--tg-sar) + (100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar)) 0 calc(var(--tg-sal) + (100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar)); }
 /* D308: the box loses its side frame (8 px each side), so the bars (BAR, 20% each) meet its drawn content; its words keep their inset. */
 .tb-bars .tg-box { padding-left: 0; padding-right: 0; }
 .tb-bars .tg-hud, .tb-bars .tg-legend { padding-left: 8px; padding-right: 8px; }
 .tb-bars .tg-play { position: absolute; inset: 0 var(--tg-sar) 0 var(--tg-sal); }
 /* D415 (design studio; the owner: "we ought to be able to see the music flowing behind the buttons"): the roll runs
-   under both bars, to the safe edges (each bar is half the box's width: 20% of the area against 60%); the bars,
+   under both bars, to the safe edges (D419: each bar --tb-bar of the area, the box the rest); the bars,
    painted over it, are translucent (paint-proto.ts BAR_VEIL). Only the classic box (MusicBox sets tg-box-wide);
    the sheet and the interface templates keep the space between the bars. Its frame's shadow stays with the box. */
-.tb-bars .tg-box-wide .tg-roll { margin: 0 calc(-100% / 3); pointer-events: none; }
+.tb-bars .tg-box-wide .tg-roll { margin: 0 calc(-100% * var(--tb-bar) / (1 - 2 * var(--tb-bar))); pointer-events: none; }
 /* D416: the widened roll lies over the bars, so it takes no touches (they fall through to the play area under it). */
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
-.tb-bars .tb-quit { right: calc(var(--tg-sar) + (100% - var(--tg-sal) - var(--tg-sar)) * 0.2 + 8px); }
+.tb-bars .tb-quit { right: calc(var(--tg-sar) + (100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 8px); }
 /* D308: PAUSE beside ✕ (in the box's title line; over a whole-screen field, left of the fixed ✕). */
 .tg-hud .tb-pause { margin-left: auto; margin-right: 16px; font-size: 9px; letter-spacing: -0.1em; }
 .tb-pause-full { right: calc(max(8px, env(safe-area-inset-right, 0px)) + 44px); font-size: 9px; letter-spacing: -0.1em; }
@@ -825,7 +831,7 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 @keyframes tb-hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 /* Design studio (D397): in the box behind the gold line; BenchApp sets left, top and width each frame (hidden until it does). */
 .tb-bars .tb-side-hint { box-sizing: border-box; left: -9999px; top: 34%; width: 120px; max-width: none; transform: none; padding: 6px 8px; font-size: 7px; line-height: 1.7; box-shadow: 2px 2px 0 #b8322a; }
-.tb-side-legend { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); top: 40%; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); padding: 5px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.72); pointer-events: none; transition: opacity 0.3s; }
+.tb-side-legend { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); top: 40%; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); padding: 5px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.72); pointer-events: none; transition: opacity 0.3s; }
 .tb-side-legend p { margin: 0 0 4px; }
 .tb-side-legend p:last-child { margin-bottom: 0; }
 /* D391: BUSONI's signs in the side legend; the word in force, translated, kept under it. */
@@ -835,7 +841,7 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 .tb-mark-w-dynamics, .tb-mark-w-words { font-style: italic; font-family: Georgia, serif; font-weight: 700; }
 .tb-side-legend-whole { top: 30%; font-size: 5px; line-height: 1.35; }
 .tb-side-legend-whole p { margin-bottom: 2px; }
-.tb-side-gloss { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); bottom: 10px; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.6); pointer-events: none; }
+.tb-side-gloss { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); bottom: 10px; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.6); pointer-events: none; }
 .tb-side-gloss:empty { display: none; }
 html.tb-paper .tb-side-gloss { color: #2a2216; background: rgba(246, 245, 241, 0.92); }
 html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 0.92); box-shadow: 0 0 0 1px #c9c2b4; }
@@ -989,7 +995,7 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 /* D369: the stops at the feet of the two bars (the thumbs' bars), not in the music box's title bar: a strip
    as tall as a thumb's target (44 px), beside the box's legend, which grows to the same height so the box's
    rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
-.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; gap: 3px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); }
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; gap: 3px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); }
 .tb-stops-left { left: calc(var(--tg-sal) + 6px); }
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
 .tb-stops-side .tg-stop { min-width: 44px; height: 44px; margin: 0; padding: 0 2px; font-size: 7px; background: var(--tg-bg); overflow: hidden; }
@@ -1010,7 +1016,7 @@ html:not(.tb-paper) .tb-stops-side .tg-stop:not(.on) { background: color-mix(in 
 html.tb-paper .tb-you-chip { color: #14101a; }
 
 /* D373, THE TUTORIAL's selection screen (Mario's tut-select): the play screen's three columns, nothing scrolls. */
-.tb-tut { --tb-tut-side: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2); position: fixed; inset: 0; z-index: 60; display: grid; grid-template-columns: calc(var(--tg-sal) + var(--tb-tut-side)) 1fr calc(var(--tg-sar) + var(--tb-tut-side)); height: 100dvh; overflow: hidden; background: #141a33; color: var(--tg-fg); font-family: var(--tg-pixel); }
+.tb-tut { --tb-tut-side: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar)); position: fixed; inset: 0; z-index: 60; display: grid; grid-template-columns: calc(var(--tg-sal) + var(--tb-tut-side)) 1fr calc(var(--tg-sar) + var(--tb-tut-side)); height: 100dvh; overflow: hidden; background: #141a33; color: var(--tg-fg); font-family: var(--tg-pixel); }
 .tb-tut-left, .tb-tut-right { box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; min-height: 0; background: #1d1a24; }
 .tb-tut-left { padding: 8px 8px 8px calc(var(--tg-sal) + 8px); }
 .tb-tut-right { position: relative; padding: 10px calc(var(--tg-sar) + 10px) 8px 10px; }
@@ -1065,21 +1071,21 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-tut-langs button.on { color: var(--tg-gold); }
 
 /* D373: a lesson on the play screen: his words over the foot of the box, between the strips (the layout never moves). */
-.tb-bach.tb-bach-low { position: fixed; inset: auto calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px) 30px calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px); z-index: 30; max-height: 62vh; overflow: auto; padding: 7px 10px; gap: 10px; border-width: 2px; border-radius: 6px; box-shadow: none; }
+.tb-bach.tb-bach-low { position: fixed; inset: auto calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px) 30px calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px); z-index: 30; max-height: 62vh; overflow: auto; padding: 7px 10px; gap: 10px; border-width: 2px; border-radius: 6px; box-shadow: none; }
 .tb-bach-low .tb-bach-face { width: 36px; height: 40px; }
 .tb-bach-low .tb-bach-line { font-size: 13px; line-height: 1.35; }
 .tb-bach-low .tb-bach-title { font-size: 6px; }
 .tb-bach-low .tb-bach-choices { gap: 6px; }
 .tb-bach-low .tb-bach-choice { padding: 7px 10px; }
 .tb-course-chrome { position: fixed; inset: 0; z-index: 25; pointer-events: none; }
-.tb-caption { position: fixed; left: calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px); right: calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 + 6px); bottom: 30px; display: flex; gap: 8px; align-items: center; padding: 5px 9px; background: rgba(10, 9, 14, 0.82); border: 2px solid rgba(243, 215, 138, 0.75); border-radius: 6px; }
+.tb-caption { position: fixed; left: calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px); right: calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px); bottom: 30px; display: flex; gap: 8px; align-items: center; padding: 5px 9px; background: rgba(10, 9, 14, 0.82); border: 2px solid rgba(243, 215, 138, 0.75); border-radius: 6px; }
 .tb-caption .tb-bach-face { width: 26px; height: 29px; flex: none; }
 .tb-caption p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 1.3; color: var(--tg-fg); }
 .tb-step-banner { position: fixed; top: 32px; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 14px; font-family: var(--tg-pixel); font-size: 8px; letter-spacing: 0.06em; white-space: nowrap; }
 .tb-step-banner.watch { background: #2b6fb8; color: #fff; }
 .tb-step-banner.try { background: #a99a63; color: #12101a; }
 .tb-step-banner.play { background: #f2c45a; color: #12101a; }
-.tb-step-strip { position: fixed; top: 8px; left: calc(var(--tg-sal) + 8px); max-width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 16px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.5; }
+.tb-step-strip { position: fixed; top: 8px; left: calc(var(--tg-sal) + 8px); max-width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 16px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.5; }
 .tb-step-strip.watch { background: #2b6fb8; color: #fff; }
 .tb-step-strip.try { background: #a99a63; color: #12101a; }
 .tb-step-strip.play { background: #f2c45a; color: #12101a; }
