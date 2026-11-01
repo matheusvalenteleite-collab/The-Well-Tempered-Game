@@ -120,9 +120,11 @@ test("D327: the free ornaments on the score sheet, each note once, no points", (
   assert.match(game, /free: freeTally\(\[\.\.\.this\.performed\.values\(\)\]\.filter\(\(p\) => p\.free\)/);
 });
 
-test("D327: every sound open from the start on play.html; the tuning shown where the sound is chosen", () => {
+test("D327 (D463: from a B for the friends): the sound chosen on play.html; the tuning shown where the sound is chosen", () => {
   const app = src("src/bench/BenchApp.tsx");
-  assert.doesNotMatch(app, /soundUnlocked\(/);
+  // D463 (the owner: "friends can change the sound after earning B on the fugue"): the friends' choice counts from a B.
+  assert.match(app, /filter\(\(\[p\]\) => soundUnlocked\(p, lite\)\)/);
+  assert.match(app, /locked: !full && !soundUnlocked\(f\.id, lite\)/);
   assert.doesNotMatch(app, /soundLocked: /);
   assert.match(app, /tuning: tuningShort\(tuning\)/);
   assert.match(app, /<TuningSelect value=\{tuningPref\}/);

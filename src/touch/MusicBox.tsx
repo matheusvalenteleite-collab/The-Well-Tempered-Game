@@ -426,7 +426,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const shift = chromaShift(bh);
   const altOf = (step: number, midi: number) => (shift && hOf(step) === bh ? alterAgainst(step, midi, sig) : 0);
 
-  const fx = { g, w, h, left: Math.round(cl), xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
+  const fx = { g, w, h, left: Math.round(cl), play: playX, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   // D372: the effects' clock (s), and the voices played (the effects' passes).
   const fxClock = performance.now() / 1000;
   PLAYED_VOICES[0] = fr.voice;
@@ -544,6 +544,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // long note's early lift D198 already showed.
   for (const [pv, pnotes] of played) {
     const inkPv = inkOf(pv, fr.count);
+    // D466 (design studio, the owner chose C: "the rim on your subject notes"): which of the player's notes belong to a subject entry.
+    const subjIdx = spans ? membership(pnotes, spans, pv) : null;
     const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
     for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
       const n = pnotes[ni];
@@ -589,6 +591,11 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
       g.fillStyle = "rgba(0,0,0,0.55)";
       g.fillRect(x1 + 1, y + 1, fw + 1, bh);
+      // D466: a subject note of the player's own entries carries a thin gold rim outside its white outline, note by note.
+      if (subjIdx && subjIdx[ni] >= 0) {
+        g.fillStyle = SUBJECT_RIM;
+        g.fillRect(x1 - 2, y - 2, fw + 4, bh + 3);
+      }
       // D279: the player's notes always outlined white (the owner took the gold frame for "yours").
       g.fillStyle = edge;
       g.fillRect(x1 - 1, y - 1, fw + 2, bh + 1);
@@ -1089,6 +1096,8 @@ function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: strin
   g.globalAlpha = 1;
 }
 const GOLD_SLUR = "#ffd23f";
+/** D466: the rim round the player's own subject notes. */
+const SUBJECT_RIM = "#f3d26b";
 /** D372: the voices played (the effects' passes), kept. */
 const PLAYED_VOICES = [0, 0];
 const PLAYED_LISTS: (readonly LaneNote[] | null)[] = [null, null];

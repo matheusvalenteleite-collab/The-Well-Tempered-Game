@@ -92,7 +92,7 @@ import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
@@ -101,7 +101,7 @@ import { INTRO_CHORD, INTRO_PRESET, playIntro, type IntroPlaying } from "./intro
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
-import { PlayPop, popTitle } from "./PlayPop.tsx";
+import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
@@ -435,7 +435,9 @@ export function BenchApp() {
   // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
   // D356: in the friends' view too, where a WTC fugue's tempo is open (no sound chosen there).
   const soundAt = (id: string) => {
-    const mine = full ? chosen : {};
+    // D463 (design studio; the owner: "friends can change the sound after earning B on the fugue"): the
+    // friends' choice on the selection's SOUND counts once that fugue has a B or better (D417's unlock).
+    const mine = full ? chosen : Object.fromEntries(Object.entries(chosen).filter(([p]) => soundUnlocked(p, lite)));
     const st = !mine[id] ? stepSound(id, stepOf(id)) : undefined;
     return soundFor(id, st ? { ...mine, [id]: st } : mine, DEFAULT_SOUND);
   };
@@ -2022,6 +2024,9 @@ export function BenchApp() {
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
           playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
+          // D463 (design studio): TEMPO and SOUND on the selection's right column.
+          tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
+          sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (
               <p className="tg-note tb-lag-note sel-lag" id="sel-lag-note">
