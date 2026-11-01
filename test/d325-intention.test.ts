@@ -122,8 +122,8 @@ test("D325: in play, a consistently detached touch scores as a legato one; LEGAT
   const ls = legato.results().sheet;
   const ds = detached.results().sheet;
   assert.ok(Math.abs(ls.final - ds.final) <= 0.1 * ls.final, `legato ${ls.final} ≈ detached ${ds.final}`);
-  assert.match(ds.qualities.find((q) => q.key === "articulation")!.detail, /DETACHED TOUCH 9\/9/);
-  assert.match(ls.qualities.find((q) => q.key === "articulation")!.detail, /LEGATO TOUCH 9\/9/);
+  assert.match(ds.qualities.find((q) => q.key === "touch")!.detail, /DETACHED TOUCH 9\/9/);
+  assert.match(ls.qualities.find((q) => q.key === "touch")!.detail, /LEGATO TOUCH 9\/9/);
   // A careless touch scores less than either.
   const careless = run(played(g0, idx, (k) => [1, 0.3, 0.9, 0.35, 1, 0.4, 0.85, 0.3, 1, 0.5][k]));
   assert.ok((careless.art.touchOk ?? 0) < 7, `careless ${careless.art.touchOk}/${careless.art.touchOf}`);

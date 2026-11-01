@@ -99,7 +99,7 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   assert.match(first, /id="tab-book-I"[^>]*>BOOK I · 24 FUGUES</);
   assert.doesNotMatch(first, /id="tab-book-II"|id="tab-book-MORE"/);
   // Played before: NEXT on the first unfinished, the grades stamped, the chosen piece and PLAY on the right.
-  const later = renderToStaticMarkup(createElement(Selection, { ...base, beaten: ["wtc1f01", "wtc1f02"], best: { wtc1f01: "A" }, scores: { wtc1f02: 12340 }, tutorial: { done: 3, of: 12, start: () => {} } }));
+  const later = renderToStaticMarkup(createElement(Selection, { ...base, beaten: ["wtc1f01", "wtc1f02"], best: { wtc1f01: "A" }, scores: { "wtc1f02@1": 12340 }, tutorial: { done: 3, of: 12, start: () => {} } }));
   assert.match(later, /id="next-wtc1f03"/);
   assert.equal(later.match(/id="next-/g)?.length, 1);
   assert.match(later, /id="grade-wtc1f01"[^>]*>A</);

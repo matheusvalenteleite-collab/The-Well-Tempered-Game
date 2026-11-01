@@ -23,7 +23,7 @@ import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from ".
 import { popTitle } from "./PlayPop.tsx";
 import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
-import { BEFORE_JUDGING, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
+import { BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
 export function pieceTitle(id: string): string {
@@ -265,6 +265,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
   const name = pieceTitle(piece);
   const nick = fugueName(piece, lang());
   const where = wtc ? `${tr("BOOK")} ${piece[3] === "1" ? "I" : "II"} · ${Number(piece.slice(-2))}` : "";
+  const mine = bestScore(scores, piece, voice);
   const grade = best[piece] ?? bestOld[piece];
   return (
     <div className="sel-piece" id="sel-piece">
@@ -288,14 +289,15 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
         {where && <>{where} · </>}
         <span style={{ color: lv.ink }}>{tr(lv.label)}</span> · {tr("{n} VOICES", { n: f.voices.length })}
       </p>
-      {scores[piece] !== undefined && (
+      {/* D445: the best in the voice chosen. */}
+      {mine !== undefined && (
         <p className="sel-best" id={`best-${piece}`}>
-          {tr("BEST {n}", { n: scores[piece].toLocaleString("en") })}
+          {tr("BEST {n}", { n: mine.toLocaleString("en") })}
         </p>
       )}
-      {scores[piece] === undefined && scoresOld[piece] !== undefined && (
+      {mine === undefined && scoresOld[piece] !== undefined && (
         <p className="sel-best sel-old" id={`best-old-${piece}`}>
-          {tr("BEST {n} · BEFORE 1.52", { n: scoresOld[piece].toLocaleString("en") })}
+          {tr("BEST {n} · BEFORE 2.13", { n: scoresOld[piece].toLocaleString("en") })}
         </p>
       )}
       {f.kind !== "prelude" && (

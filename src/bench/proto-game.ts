@@ -28,6 +28,9 @@ import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
+import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
+/** D445: an entry's points, whole (paid by the share of its notes right). */
+const ENTRY_POINTS = 20;
 import { exprFamily, GLENN, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "./glenn.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
@@ -431,7 +434,6 @@ export interface RunResults {
   captured: number;
   entries: number;
   maxStreak: number;
-  stars: number;
   failedBar: number | null;
   /** D268: the piece's last bar; how far the run went (0..1); the score sheet. */
   lastBar: number;
@@ -540,7 +542,7 @@ export class ProtoGame {
   streak = 0;
   maxStreak = 0;
   /** The entries of the voices played: when each starts (its ◆), whether captured, whether lost. */
-  readonly entries: { voice: number; k: number; on: number; end: number; ons: number[]; state: "open" | "captured" | "lost" }[] = [];
+  readonly entries: { voice: number; k: number; on: number; end: number; ons: number[]; state: "open" | "captured" | "lost"; paid?: number }[] = [];
   /** ORGANO PLENO: until this tick (none: -1). */
   plenoUntil = -1;
   get pleno() {
@@ -578,6 +580,9 @@ export class ProtoGame {
    */
   constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number; clock?: Clock }, chip: Chip) {
     this.f = f;
+    // D445: a prelude's crowd more patient (D259).
+    this.listeners = new Crowd(f.kind === "prelude" ? CROWD_LEAVE_PRELUDE : CROWD_LEAVE);
+    this.crowd = this.listeners.meter();
     this.proto = proto;
     this.startTick = from;
     this.ornaments = ornamentsOf(f);
@@ -1244,7 +1249,7 @@ export class ProtoGame {
       if (this.bt) this.silence(this.tracks.indexOf(t));
     }
     if (missed) {
-      for (let s = 0; s < missed; s++) this.slip();
+      for (let s = 0; s < missed; s++) this.slip(0);
       // D419 (the audit): MISS on the bar whose turn it was (it showed on the right bar always).
       this.grade = { text: "MISS", at: performance.now(), side: this.thumbNext() ?? undefined };
     }
@@ -1714,7 +1719,10 @@ export class ProtoGame {
       if (a.perfect) this.perfects--;
       else this.goods--;
       this.hits--;
-      this.slip();
+      this.slip(WRONG_WORTH);
+      // D445: the points taken back shown on the note (a run re-judged wrong).
+      const back = Math.round(a.pts + a.art + a.held);
+      if (back > 0) this.pops.push({ tick: notes[j].on, step: notes[j].step, text: `−${back}`, at: performance.now(), gold: false });
       this.tap?.({ kind: "revoked", tick: this.now, track: k, i: j, midi: notes[j].midi, side: a.side, pts: a.pts + a.art + a.held });
     }
   }
@@ -2385,7 +2393,7 @@ export class ProtoGame {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
-      this.slip();
+      this.slip(STRAY_WORTH, 0.5);
       // A keyboard: the key struck is heard all the same. Elsewhere a touch on no note is silent (D293: it
       // sounded the nearest note, soft and muffled: on a phone's speaker a hole in the voice, then a jolt).
       const key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
@@ -3463,7 +3471,7 @@ export class ProtoGame {
     if (!v.ok) {
       tapNote(false, false, (this.timeAt(n.at ?? this.now) - this.timeAt(n.on)) * 1000);
       for (const j of chord) Object.assign(notes[j], { state: "miss", wrong: true });
-      this.slip();
+      this.slip(WRONG_WORTH);
       this.grade = { text: "✕", at, side: h.side, why: v.why ?? "gesture" };
       return;
     }
@@ -3491,6 +3499,8 @@ export class ProtoGame {
         this.graces.agogic--;
         this.graces.revoked++;
         this.score -= due.refund;
+        // D445: every change to the score shown: the half taken back where it went.
+        this.pops.push({ tick: n.on, step: n.step, text: `−${Math.round(due.refund)}`, at: performance.now(), gold: false });
         this.earned.notes -= due.refund;
       }
     }
@@ -3503,13 +3513,16 @@ export class ProtoGame {
     this.sinceSlip++;
     this.maxStreak = Math.max(this.maxStreak, this.streak);
     // D198: the crowd warms; a long run called out, every fifty.
-    this.crowd = Math.min(1, this.crowd + (perfect ? 0.025 : 0.015));
+    // D445: the crowd hears a right note (a GOOD a little less than a PERFECT).
+    this.hearCrowd(perfect ? 1 : GOOD_WORTH);
     this.flames.push({ i, at, k: h.k, lane: v.at, grade: v.lane });
     if (this.flames.length > 24) this.flames.splice(0, 12);
     if (this.streak % 50 === 0) this.banner = { text: `${this.streak} NOTE STREAK!`, at };
-    if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
+    // D445: the streak bonus: +10% every STREAK_STEP_NOTES right notes in a row, up to +50%.
+    if (++this.stepRun >= STREAK_STEP_NOTES && this.streakLevel < STREAK_STEPS) (this.streakLevel++, (this.stepRun = 0), (this.mult = streakFactor(this.streakLevel)));
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
-    h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
+    // D445: ORGANO PLENO is light and sound only (no doubling).
+    h.pts = (perfect ? 2 : 1) * this.mult;
     // D239: the planned lane scores in full; the right direction in another lane half (the streak and
     // the multiplier kept). D482: its chime gone (a sound added for a right grade is a loudness tied to right).
     if (v.lane === "relative") (h.pts *= RELATIVE_SHARE), this.laneTally.relative++;
@@ -3691,16 +3704,19 @@ export class ProtoGame {
    * ones) of the slip before. CON FUOCO lasts while the streak holds FUOCO_NOTES. The feats that mean
    * "no mistakes" count the slips themselves (`slips`, the wrong and missed notes), never the streak.
    */
-  private slip() {
+  private slip(worth = 0, weight = 1) {
     this.slips++;
     this.chain = 0;
-    // D259: a prelude's crowd more patient (it is there to be enjoyed: a slip costs two thirds as much).
-    this.crowd = Math.max(0, this.crowd - (this.f.kind === "prelude" ? SLIP_CROWD_PRELUDE : SLIP_CROWD));
+    // D445: the crowd hears it (a wrong note less badly than one let go by; a tap on no note as half a note).
+    this.hearCrowd(worth, weight);
     const fuoco = this.streak >= FUOCO_NOTES;
     this.streak = slipLoss(this.streak);
     this.combo = slipLoss(this.combo);
     if (fuoco && this.streak < FUOCO_NOTES) this.banner = null;
-    if (this.sinceSlip < SLIP_NEAR) this.mult = Math.max(1, this.mult - 1);
+    // D445: the streak bonus a step down (never to nothing at once), its next step counted afresh.
+    this.streakLevel = Math.max(0, this.streakLevel - 1);
+    this.stepRun = 0;
+    this.mult = streakFactor(this.streakLevel);
     this.sinceSlip = 0;
   }
   /** D249: the right notes since the last slip (none yet: Infinity). */
@@ -3708,6 +3724,15 @@ export class ProtoGame {
 
   /** The entries of the subject in the voices played: captured once every note of one is played right; lost at a slip. */
   private judgeEntries() {
+    // D445: every entry pays by the share of its notes right, once all of them are judged (no all-or-nothing).
+    for (const e of this.entries) {
+      if (e.paid !== undefined) continue;
+      const ns = (this.line ? this.tracks.flatMap((t) => t.notes.filter((n) => n.voice === e.voice)) : this.tracks[e.k].notes).filter((n) => !n.ride && e.ons.includes(n.on));
+      if (!ns.length || ns.some((n) => n.state === "pending")) continue;
+      e.paid = ns.filter((n) => n.state === "hit").length / ns.length;
+      const pts = Math.round(ENTRY_POINTS * e.paid * this.mult);
+      if (pts > 0) this.earn("subjects", pts), this.pops.push({ tick: e.on, step: ns[0].step, text: `+${pts}`, at: performance.now(), gold: e.paid === 1 });
+    }
     for (const e of this.entries) {
       if (e.state !== "open") continue;
       // D191: the riding notes are not the player's to capture.
@@ -3720,7 +3745,7 @@ export class ProtoGame {
       }
       if (notes.length && notes.every((n) => n.state === "hit")) {
         e.state = "captured";
-        this.earn("subjects", 20 * this.mult);
+        // D445: its points paid above, by its share (the whole of them here).
         // D186: it bursts; the voice's last entry is its BOSS.
         const boss = this.isBoss(e);
         this.bursts.push({ at: performance.now(), points: notes.map((n) => ({ tick: n.on, step: n.step })), boss });
@@ -3776,18 +3801,26 @@ export class ProtoGame {
   }
 
   /**
-   * D198, after Guitar Hero: the crowd (0 to 1, from a half: a right note warms it, a slip cools it;
-   * empty, the run fails); the hits' flames; the sustain (a long note held after it is struck scores
-   * as it sounds, a point a beat at the multiplier); the run's stars.
+   * D198, after Guitar Hero: the crowd (0 to 1; D445: the meter of the crowd listening to the last dozen
+   * notes, scoring.ts Crowd; empty, the run fails); the hits' flames; the sustain (a long note held after it
+   * is struck: D445, marked held, no points of its own: HELD pays it once at its release).
    */
   crowd = CROWD_START;
+  /** D445: the crowd listening (scoring.ts Crowd); `crowd` is its meter, 0 the crowd leaving. */
+  private listeners = new Crowd();
+  private hearCrowd(worth: number, weight = 1) {
+    this.listeners.hear(worth, weight);
+    this.crowd = this.listeners.meter();
+  }
+  /** D445: the streak bonus's level (0..STREAK_STEPS) and the right notes toward its next step. */
+  streakLevel = 0;
+  private stepRun = 0;
   failedAt: number | null = null;
   /** D239: lane: the lane struck (HIGHWAY), grade: its note's lane grade. */
   readonly flames: { i: number; at: number; k?: number; lane?: number; grade?: LaneGrade }[] = [];
   /** D239: the notes right in their planned lane, and right only by their direction. */
   readonly laneTally = { exact: 0, relative: 0 };
   private sustainAt = 0;
-  private sustainAcc = 0;
   private sustain() {
     const dt = this.now - this.sustainAt;
     this.sustainAt = this.now;
@@ -3797,10 +3830,8 @@ export class ProtoGame {
       const n = this.tracks[h.k].notes[h.note];
       if (n.state !== "hit" || n.dur < this.beat || this.now >= n.on + n.dur || this.now < n.on) continue;
       n.held = true;
-      this.sustainAcc += (dt / this.beat) * this.mult * (this.pleno ? 2 : 1);
+      // D445: a held note is paid once, by HELD at its release (D218); the sustain earns nothing.
     }
-    const whole = Math.floor(this.sustainAcc);
-    if (whole > 0) this.earn("held", whole), (this.sustainAcc -= whole);
   }
   /**
    * D218, articulation: legato where the score joins the notes (a bonus growing along an unbroken
@@ -3971,7 +4002,7 @@ export class ProtoGame {
       // Held through the rest: the crowd cools, the chain is broken (no slip: the note was right).
       this.art.cleanOf++;
       this.chain = 0;
-      this.crowd = Math.max(0, this.crowd - 0.03);
+      this.hearCrowd(0.5, 0.5);
       this.flash = { text: "REST!", at, good: false, kind: "rest" };
       return;
     }
@@ -3982,7 +4013,7 @@ export class ProtoGame {
     const art0 = { held: this.art.held, heldOf: this.art.heldOf, clean: this.art.clean, cleanOf: this.art.cleanOf };
     if (r.hold !== "none") this.art.heldOf++;
     if (r.hold === "short") {
-      this.crowd = Math.max(0, this.crowd - 0.01);
+      /* D445: TOO SOON: no cost to the crowd (the note was right). */
       // D419 (the audit): the fault is TOO SOON, so SHORT means one thing (the dot, lift early, done right: SHORT ✓).
       word = { text: "TOO SOON", at, good: false, kind: "short" };
     } else if (r.hold === "held") {
@@ -4016,11 +4047,7 @@ export class ProtoGame {
   get bpm(): number {
     return (this.tps * 60) / this.f.tpq;
   }
-  /** One to five stars: the score against two points a note (all PERFECT at ×1). */
-  starsOf(score: number, of: number): number {
-    const ratio = score / Math.max(1, 2 * of);
-    return ratio >= 4.5 ? 5 : ratio >= 3 ? 4 : ratio >= 2 ? 3 : ratio >= 1 ? 2 : 1;
-  }
+
   /**
    * HIGHWAY's lanes (D198; D208): the lane each note comes down, a fingering of the line planned over
    * the whole passage (protos.ts planLanes): on a computer the nine home-row keys, no finger twice
@@ -4478,13 +4505,7 @@ export class ProtoGame {
     return e.on === Math.max(...this.entries.filter((x) => x.voice === e.voice).map((x) => x.on));
   }
 
-  /** The grade, after osu! and the like: S (95% and every entry captured), A, B, C, D. */
-  gradeOf(r: { right: number; of: number; stray?: number }): string {
-    // A stray strike weighs half a note.
-    const acc = r.right / Math.max(1, r.of + (r.stray ?? 0) / 2);
-    const all = this.entries.every((e) => e.state === "captured");
-    return acc >= 0.95 && all ? "S" : acc >= 0.9 ? "A" : acc >= 0.8 ? "B" : acc >= 0.7 ? "C" : "D";
-  }
+  /** D445: the grade is the performance's (scoring.ts gradeFor, from the score sheet in `results`). */
 
   /** EASY (computer): the pedal down or up (up: what rang on stops). */
   pedal(down: boolean) {
@@ -4599,6 +4620,16 @@ export class ProtoGame {
   /** The notes (a chord once): played right, played wrong, missed; the score, the entries captured. */
   /** Strikes on no note. */
   stray = 0;
+  /** D445: each entry of the voices played that has begun (before a failed run's end), by the share of its notes right. */
+  entryShares(): number[] {
+    const out: number[] = [];
+    for (const e of this.entries) {
+      if (this.failedAt !== null && e.on > this.failedAt) continue;
+      const ns = (this.line ? this.tracks.flatMap((t) => t.notes.filter((n) => n.voice === e.voice)) : this.tracks[e.k].notes).filter((n) => !n.ride && e.ons.includes(n.on) && (this.failedAt === null || n.on <= this.failedAt));
+      if (ns.length) out.push(ns.filter((n) => n.state === "hit").length / ns.length);
+    }
+    return out;
+  }
   results(): RunResults {
     const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: Math.floor(this.score), grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
     for (const { notes } of this.tracks)
@@ -4612,13 +4643,14 @@ export class ProtoGame {
         else if (n.wrong) r.wrong++;
         else r.missed++;
       });
-    r.grade = this.gradeOf(r);
     const failed = this.failedAt !== null;
     const art = { ...this.art, touch: this.sense.touch };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
-    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces } });
+    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces }, entryShares: this.entryShares() });
+    // D445: the grade follows from the performance alone.
+    r.grade = sheet.grade;
     const lens = this.lens?.stats({ ...r, art, thumbs: this.thumbs });
-    return { ...r, ...(lens ? { lens } : {}), art, lanes: { ...this.laneTally }, stars: failed ? 0 : this.starsOf(r.score, r.of), failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally([...this.performed.values()].filter((p) => p.free).map((p) => p.kind)), report: this.report(r) };
+    return { ...r, ...(lens ? { lens } : {}), art, lanes: { ...this.laneTally }, failedBar: failed ? barAt(this.f, this.failedAt as number) : null, lastBar: barAt(this.f, this.span().end - 1), progress, sheet, thumbs: { ...this.thumbs }, levels: [...this.levels], slides: this.slides, shakes: { ...this.shakes }, free: freeTally([...this.performed.values()].filter((p) => p.free).map((p) => p.kind)), report: this.report(r) };
   }
   /** D268: the played notes' first onset and last end (ticks). */
   private span(): { start: number; end: number } {
@@ -4635,6 +4667,33 @@ export class ProtoGame {
   progressAt(tick: number): number {
     const { start, end } = this.span();
     return Math.max(0, Math.min(1, (tick - start) / (end - start)));
+  }
+  /**
+   * D445: the PERFORMANCE so far (0..100, as the sheet weighs it: notes, timing, touch, the entries judged),
+   * shown live on the right bar; null before any note is judged.
+   */
+  livePerformance(): number | null {
+    const acc = this.liveAccuracy();
+    if (acc === null) return null;
+    const W = PERFORMANCE_WEIGHTS;
+    const a = this.art;
+    const byTouch = a.touchOf !== undefined;
+    const tHit = (byTouch ? (a.touchOk ?? 0) : a.legato) + a.held + a.clean + this.style.hit;
+    const tOf = (byTouch ? (a.touchOf ?? 0) : a.legatoOf) + a.heldOf + a.cleanOf + this.style.of;
+    const paid = this.entries.filter((e) => e.paid !== undefined).map((e) => e.paid as number);
+    const parts: [number, number | null][] = [
+      [W.notes, acc],
+      [W.timing, this.perfects + this.goods ? (this.perfects + GOOD_TIMING * this.goods) / (this.perfects + this.goods) : null],
+      [W.touch, tOf ? tHit / tOf : null],
+      [W.entries, paid.length ? paid.reduce((x, y) => x + y, 0) / paid.length : null],
+    ];
+    const on = parts.filter(([, v]) => v !== null) as [number, number][];
+    const ws = on.reduce((x, [w]) => x + w, 0);
+    return Math.round((100 * on.reduce((x, [w, v]) => x + w * v, 0)) / ws);
+  }
+  /** D445: the streak bonus's progress toward its next step, 0..1 (1 at the top). */
+  get streakProgress(): number {
+    return this.streakLevel >= STREAK_STEPS ? 1 : this.stepRun / STREAK_STEP_NOTES;
   }
   /** D268: the share of the notes judged so far that were right (the right bar's live ACCURACY); null before any. */
   liveAccuracy(): number | null {

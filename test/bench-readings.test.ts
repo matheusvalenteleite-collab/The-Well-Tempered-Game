@@ -114,5 +114,6 @@ test("D272: in play, a subject note detached where the reading says so scores TH
   assert.equal(joined.style.hit, 0, "joined where it asks detached");
   assert.equal(joined.earned.articulation, 0, "and no articulation credit there (D325: the mark is what is judged)");
   assert.ok(apart.earned.articulation > 0, "detached as marked: credited");
-  assert.ok(apart.results().sheet.qualities.some((q) => q.key === "reading"));
+  // D445: the reading's signs counted in TOUCH, and kept apart for the lessons that ask them.
+  assert.ok((apart.results().sheet.signs ?? 0) > 0.9);
 });

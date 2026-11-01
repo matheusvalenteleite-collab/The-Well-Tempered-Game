@@ -506,12 +506,11 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     praise: [{ text: "So. You played my subject as a thinking musician would." }],
     again: [{ text: "Legato where it is legato; a small silence where it is apart. Again." }],
     short: (r) => {
-      const q = r.sheet.qualities.find((x) => x.key === "reading");
-      return tr("You followed {p}% of the marks; aim for 60%.", { p: Math.round(100 * (q?.share ?? 0)) });
+      return tr("You followed {p}% of the marks; aim for 60%.", { p: Math.round(100 * (r.sheet.signs ?? 0)) });
     },
     run: () => ({ proto: "ladder", fail: false, piece: "wtc1f02", voice: 1, from: 0, until: 2 * 7680, bpm: 60, wait: false, solo: true, easy: "direction", reading: "keller" }),
     passAt: 0.75,
-    pass: (r) => accuracy(r) >= 0.75 && (r.sheet.qualities.find((x) => x.key === "reading")?.share ?? 0) >= 0.6,
+    pass: (r) => accuracy(r) >= 0.75 && (r.sheet.signs ?? 0) >= 0.6,
   },
   {
     id: "t-crowd",

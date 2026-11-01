@@ -149,16 +149,24 @@ export interface LiteState {
  * before is no longer comparable: each best is kept with the judging it was made under; those from
  * before (none named) are kept apart as "before 1.52", never deleted, and the new best is counted afresh.
  */
-export const JUDGING = "1.52";
-export const BEFORE_JUDGING = "BEFORE 1.52";
+export const JUDGING = "2.13";
+export const BEFORE_JUDGING = "BEFORE 2.13";
+/** D445: a best score is kept per piece and voice (one voice of a fugue may be worth more than another). */
+export const scoreKey = (piece: string, voice: number) => `${piece}@${voice}`;
+/** D445: a piece's best score in a voice, or (no voice given) its best in any voice. */
+export function bestScore(scores: Readonly<Record<string, number>>, piece: string, voice?: number): number | undefined {
+  if (voice !== undefined) return scores[scoreKey(piece, voice)];
+  const all = Object.entries(scores).filter(([k]) => k === piece || k.startsWith(`${piece}@`)).map(([, n]) => n);
+  return all.length ? Math.max(...all) : undefined;
+}
 
-/** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
+/** D265: a piece's sound can be changed once it is finished with a high enough grade (D417: B or better); before, its own. */
 // D417 (the owner: "all unlocks for each fugue are opened upon completing it with score B instead of A, otherwise it's too difficult").
 export const SOUND_UNLOCK_GRADES = ["S", "A", "B"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
 export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
-/** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens once it is finished with an A or better (as its sound, D265). */
+/** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens with its sound (D417: B or better). */
 export const tempoEarned = soundUnlocked;
 
 export function readLite(): LiteState {
@@ -175,9 +183,15 @@ export function readLite(): LiteState {
     const scoresOld = numbers(o.scoresOld);
     const slowBest = strings(o.slowBest);
     const slowScores = numbers(o.slowScores);
-    // D337: a best with no judging named was made before 1.52: kept apart (written back with the next change).
-    for (const [id, g] of Object.entries(best)) if (!bestV[id]) ((bestOld[id] ??= g), delete best[id]);
-    for (const [id, n] of Object.entries(scores)) if (!scoresV[id]) ((scoresOld[id] ??= n), delete scores[id]);
+    // D337: a best made under another judging is kept apart (written back with the next change). D445: the
+    // scoring redesigned (2.13): every best from before it joins them, the better of the two kept.
+    for (const [id, g] of Object.entries(best)) if (bestV[id] !== JUDGING) (RANK.indexOf(g) > RANK.indexOf(bestOld[id] ?? "") && (bestOld[id] = g), delete best[id], delete bestV[id]);
+    for (const [id, n] of Object.entries(scores)) if (scoresV[id] !== JUDGING) {
+      const piece = id.split("@")[0];
+      if (n > (scoresOld[piece] ?? -1)) scoresOld[piece] = n;
+      delete scores[id];
+      delete scoresV[id];
+    }
     return {
       beaten: Array.isArray(o.beaten) ? o.beaten.filter((x) => typeof x === "string") : [],
       seen: Array.isArray(o.seen) ? o.seen.filter((x) => typeof x === "string") : [],
@@ -290,11 +304,13 @@ export function recordLite(piece: string, failed: boolean, fuguesOnly = false, g
  * one (kept). D337: against today's judging's best only (kept with JUDGING); `old`, the best from before
  * 1.52 (another judging: shown apart, never beaten or replaced).
  */
-export function recordLiteBest(piece: string, final: number): { before: number | null; fresh: boolean; old: number | null } {
+export function recordLiteBest(piece: string, final: number, voice = 0): { before: number | null; fresh: boolean; old: number | null } {
   const st = readLite();
-  const before = st.scores[piece] ?? null;
+  // D445: per voice.
+  const key = scoreKey(piece, voice);
+  const before = st.scores[key] ?? null;
   const fresh = before === null || final > before;
-  if (fresh) writeLite({ scores: { ...st.scores, [piece]: final }, scoresV: { ...st.scoresV, [piece]: JUDGING } });
+  if (fresh) writeLite({ scores: { ...st.scores, [key]: final }, scoresV: { ...st.scoresV, [key]: JUDGING } });
   return { before, fresh, old: st.scoresOld[piece] ?? null };
 }
 

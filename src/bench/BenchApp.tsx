@@ -228,7 +228,7 @@ export function sane(p: Pick): Pick {
 }
 
 /** D237: "title" is the pop-up over the cards (HOME, the wheel, the minimal page's grid). */
-type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; stars: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean; old?: number | null } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; tempo?: { step: TempoStep; beat: string; apart: boolean }; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" } | { kind: "mtalk"; title: string; lines: Line[]; choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void };
+type Phase = { kind: "home" } | { kind: "title" } | { kind: "play" } | { kind: "result"; stage?: { won: boolean; fugue: string }; her?: boolean; right: number; wrong: number; missed: number; stray: number; of: number; score: number; grade: string; captured: number; entries: number; maxStreak: number; failedBar: number | null; lastBar?: number; free?: { mordents: number; shorts: number; trills: number }; progress?: number; sheet?: Sheet; best?: { before: number | null; fresh: boolean; old?: number | null } | null; art?: ArtStats; lanes?: { exact: number; relative: number }; report?: string; seal: { kind: string; earned: boolean; why: string } | null; tempo?: { step: TempoStep; beat: string; apart: boolean }; feats?: FeatId[]; opened?: Tier[]; next?: string | null } | { kind: "settings" } | { kind: "achievements"; fresh?: FeatId[] } | { kind: "lessons"; focus?: ProtoId } | { kind: "talk"; lines: Line[]; next: "play" | "again" | "advance" | "watch" } | { kind: "mtalk"; title: string; lines: Line[]; choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void };
 
 /**
  * D342, THE MANUAL under way: a lesson's step (its stage: a material), as HEAR (Herr Bach's
@@ -871,7 +871,7 @@ export function BenchApp() {
           const opened: Tier[] = [];
           // D268: a whole piece finished: its final score against the best.
           const whole = r.failedBar === null && from === 0 && !APP.glenn;
-          const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final)) : null;
+          const best = whole ? (apart ? recordLiteSlow(f.id, r.grade, r.sheet.final) : recordLiteBest(f.id, r.sheet.final, played[0] ?? voice)) : null;
           // D356: the tempo played, on the result.
           const tempo = tempi ? { step, beat: stepBeat(f.id, tempi[step]), apart } : undefined;
           // D308: read after the best score is kept (the cards show it; it was read before, so they did not until a reload).

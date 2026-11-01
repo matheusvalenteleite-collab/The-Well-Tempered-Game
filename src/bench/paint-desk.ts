@@ -344,7 +344,7 @@ export function deskOver(r: Road) {
   // The multiplier's steps.
   if (g.mult > fx.mult) {
     fx.flare = { m: g.mult, at: nowMs };
-    if (g.mult >= 4) shake(fx, 3);
+    if (g.mult >= 1.5) shake(fx, 3);
   }
   fx.mult = g.mult;
   if (g.pleno && !fx.pleno) shake(fx, 4);
@@ -502,14 +502,14 @@ export function deskFlare(r: Road, rx: number, ry: number) {
   if (!f) return;
   const age = performance.now() - f.at;
   if (age > 900) return;
-  const ink = f.m >= 4 ? t.gold : t.shine;
+  const ink = f.m >= 1.5 ? t.gold : t.shine;
   c.globalAlpha = 1 - age / 900;
   c.strokeStyle = ink;
   c.lineWidth = 3;
   c.beginPath();
   c.arc(rx, ry, 30 + age / 12, 0, Math.PI * 2);
   c.stroke();
-  label(c, `×${f.m}!`, rx, ry - 50 - age / 30, ink, Math.round(14 + Math.max(0, 8 - age / 40)));
+  label(c, `+${Math.round((f.m - 1) * 100)}%!`, rx, ry - 50 - age / 30, ink, Math.round(14 + Math.max(0, 8 - age / 40)));
   c.globalAlpha = 1;
 }
 
