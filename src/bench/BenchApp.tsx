@@ -39,6 +39,7 @@ import { MECH } from "./mechanics.ts";
 import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
+import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
@@ -444,6 +445,8 @@ export function BenchApp() {
   // D385: on the piano BUSONI's whole-piece reading is the default where it exists (readings.ts bestReading).
   // D393: only BUSONI's, on every instrument, unless Settings' BUSONI'S MARKINGS is off.
   const [busoni, setBusoni] = useState(busoniOn);
+  // D462: the fugue's world behind the box (stage-bg.ts): FULL, QUIET or OFF.
+  const [stageBg, setStageBg] = useState(stageBgMode);
   const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (run.reading === "busoni" && !busoni ? null : (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null)) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
@@ -1892,6 +1895,8 @@ export function BenchApp() {
           </label>
           {/* D393: the one switch for the reading (no other toggle anywhere): BUSONI on by default. */}
           <Choice id="busoni" label="BUSONI'S MARKINGS" options={BUSONI_SWITCH[lang()] ?? BUSONI_SWITCH.en} value={busoni ? "on" : "off"} set={(v) => (setBusoniOn(v === "on"), setBusoni(v === "on"))} />
+          {/* D462 (design studio): each fugue's world behind its box. */}
+          <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
@@ -2098,6 +2103,12 @@ export function VoiceLegend({ names, played, ink, paper = false, alone = false }
   );
 }
 
+/** D462: the words of Settings' STAGE switch (the fugue's world behind the box). */
+const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
+  en: [["full", "FULL"], ["quiet", "QUIET"], ["off", "OFF"]],
+  pt: [["full", "CHEIO"], ["quiet", "DISCRETO"], ["off", "DESLIGADO"]],
+  es: [["full", "COMPLETO"], ["quiet", "DISCRETO"], ["off", "APAGADO"]],
+};
 /** D393: the words of Settings' BUSONI'S MARKINGS switch (the markings, plural, in Portuguese and Spanish). */
 const BUSONI_SWITCH: Record<string, ["on" | "off", string][]> = {
   en: [["on", "ON"], ["off", "OFF"]],
