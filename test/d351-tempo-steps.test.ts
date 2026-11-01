@@ -139,7 +139,7 @@ test("D351: each tempo its sound: DEFAULT the piece's own, SLOW and FAST by the 
   // The page: a sound chosen for the piece is kept at every tempo; the card shows the sound in force.
   const app = src("src/bench/BenchApp.tsx");
   // D356: in the friends' view too (no sound chosen there), where a WTC fugue's tempo is open.
-  assert.match(app, /const mine = full \? chosen : \{\};\s*const st = !mine\[id\] \? stepSound\(id, stepOf\(id\)\) : undefined;/);
+  assert.match(app, /const mine = full \? chosen : Object\.fromEntries\(Object\.entries\(chosen\)\.filter\(\(\[p\]\) => soundUnlocked\(p, lite\)\)\);\s*const st = !mine\[id\] \? stepSound\(id, stepOf\(id\)\) : undefined;/);
   assert.match(app, /const bpm = run \? run\.bpm : tempi \? tempi\[step\] : tempoOf\(f\.id\);/);
   assert.match(app, /id="pop-tempo"/);
   assert.match(app, /<LiteGrid soundOf=\{soundAt\}/);

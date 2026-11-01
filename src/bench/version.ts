@@ -3,7 +3,7 @@
  * discreetly to the top corner (WTC 0.1, then WTC 0.2…) so that I can know whether I'm testing the
  * right version"). Raised by 0.1 with every update published to the Pages site.
  */
-export const VERSION = "WTC 2.12";
+export const VERSION = "WTC 2.13";
 
 /** Puts the mark on the page (once). */
 export function markVersion() {

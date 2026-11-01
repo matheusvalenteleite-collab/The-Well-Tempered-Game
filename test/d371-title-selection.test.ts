@@ -96,7 +96,8 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   assert.match(first, /id="card-tutorial" class="sel-tutorial sel-glow"[^>]*>.*?▶ BEGIN/);
   assert.match(first, /id="sel-hint"/);
   assert.doesNotMatch(first, /id="sel-play"|id="next-/);
-  assert.match(first, /id="tab-book-I"[^>]*>BOOK I · 24 FUGUES</);
+  // D463 (design studio, D412's selection): the tab is the book and its share finished.
+  assert.match(first, /id="tab-book-I"[^>]*><span class="sel-tab-name">BOOK I<\/span><span class="sel-tab-pct" id="pct-book-I">0%</);
   assert.doesNotMatch(first, /id="tab-book-II"|id="tab-book-MORE"/);
   // Played before: NEXT on the first unfinished, the grades stamped, the chosen piece and PLAY on the right.
   const later = renderToStaticMarkup(createElement(Selection, { ...base, beaten: ["wtc1f01", "wtc1f02"], best: { wtc1f01: "A" }, scores: { wtc1f02: 12340 }, tutorial: { done: 3, of: 12, start: () => {} } }));
