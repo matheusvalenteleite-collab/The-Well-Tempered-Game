@@ -65,9 +65,9 @@ export interface SelectionProps {
   note?: ReactNode;
   /** D382: Book II just earned: the note is shown; called once it is seen (tapped, or BOOK II opened). */
   bookTwo?: () => void;
-  /** Design studio (D411): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
+  /** Design studio (D412): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
   tempo?: { word: string; beat: string; locked: boolean; cycle: () => void };
-  /** Design studio (D411): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
+  /** Design studio (D412): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
   sound?: { value: string; name: string; sounds: readonly (readonly [id: string, name: string])[]; own?: string; set: (id: string) => void };
 }
 
@@ -120,7 +120,7 @@ export function Selection(p: SelectionProps) {
           <p className="sel-tabs-head">{tr("COLLECTIONS")}</p>
           <div role="tablist">
             {tabs.map(([t, label]) => {
-              // Design studio (D411): each book its share finished, "BOOK I  42%", a bar under it.
+              // Design studio (D412): each book its share finished, "BOOK I  42%", a bar under it.
               const pct = t === "I" || t === "II" ? Math.round((100 * gridIds(t).filter((id) => won.has(id)).length) / Math.max(1, gridIds(t).length)) : null;
               return (
                 <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`sel-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
@@ -140,7 +140,7 @@ export function Selection(p: SelectionProps) {
             })}
           </div>
         </nav>
-        {/* Design studio (D411): the language, SETTINGS and TOOLS on the left (browse and set up); the right column is the piece's. */}
+        {/* Design studio (D412): the language, SETTINGS and TOOLS on the left (browse and set up); the right column is the piece's. */}
         <div className="sel-left-foot">
           {p.setLang && <LangPick value={lang()} set={p.setLang} />}
           <div className="sel-top-row">
@@ -211,7 +211,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
   const n = Number(id.slice(-2));
   // Design studio: the key in words, "C♯ major" / "C♯ minor", not the upper/lower-case convention.
   const key = keyWords(f.key);
-  // Design studio (D411): the whole name on the tile, its article back ("THE IMP"), on up to two lines.
+  // Design studio (D412): the whole name on the tile, its article back ("THE IMP"), on up to two lines.
   const full = fugueName(id, lang());
   const nick = full;
   const name = full ? `${full} · ${pieceTitle(id)}` : pieceTitle(id);
@@ -237,7 +237,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
             </span>
           )}
         </span>
-        {/* Design studio (D411): the words in a block of their own, never squeezed: the picture gives way, not the lines. */}
+        {/* Design studio (D412): the words in a block of their own, never squeezed: the picture gives way, not the lines. */}
         <span className="sel-tile-words">
           <span className="sel-tile-key">
             <b>{n}</b> {key.tonic} <i>{key.mode}</i>
@@ -254,7 +254,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
 }
 
 /** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
- * voices, its best and secrets, the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D410). */
+ * voices, its best and secrets, the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D412). */
 function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
   const f = fugueById(piece);
   const lv = liteLevel(piece);
@@ -295,7 +295,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
           </>
         )}
         <span style={{ color: lv.ink }}>{tr(lv.label)}</span> ·{" "}
-        {/* D411: the voices as dots in their inks (the buttons below in the same colours), so the line fits on one line. */}
+        {/* D412: the voices as dots in their inks (the buttons below in the same colours), so the line fits on one line. */}
         <span className="sel-piece-dots" aria-label={tr("{n} VOICES", { n: f.voices.length })}>
           {f.voiceNames.map((vn, i) => (
             <i key={vn} style={{ background: inkOf(i, f.voices.length) }} />
@@ -315,7 +315,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
       {f.kind !== "prelude" && (
         <>
           <p className="sel-ask">{tr("YOUR VOICE")}</p>
-          <div className="sel-voices" role="group" aria-label="Voice">
+          <div className="sel-voices" data-n={f.voiceNames.length} role="group" aria-label="Voice">
             {f.voiceNames.map((vn, i) => {
               const ink = inkOf(i, f.voices.length);
               const on = i === voice;
