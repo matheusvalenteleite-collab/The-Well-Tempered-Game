@@ -14,7 +14,7 @@
  *   Points rise from the note struck; a captured entry bursts into pixels.
  */
 import { tr, trCanvas } from "../i18n/index.ts";
-import { subjectInkOf, subjectRimOf, themeOf } from "./subject-hue.ts";
+import { paleOf, themeOf } from "./subject-hue.ts";
 import { NOTE_WEIGHT, OTHERS_SCALE, effectOf } from "./subject-cast.ts";
 
 export interface Span {
@@ -118,6 +118,8 @@ interface Ctx {
   g: CanvasRenderingContext2D;
   w: number;
   h: number;
+  /** D415: where the box's open part begins (canvas px; the roll runs under the left bar): a tab is held there. */
+  left?: number;
   xOf: (tick: number) => number;
   yOf: (step: number) => number;
   /** D211: a step's row height (smaller in the squeezed margins). */
@@ -186,6 +188,182 @@ export function flags(c: Ctx, spans: readonly Span[], blocked: (x0: number, x1: 
   g.globalAlpha = 1;
 }
 
+/**
+ * THE ENTRY MARKS (the design studio; the owner: the SUBJECT flag "often covers notes, and strettos are
+ * hard to read"): D372's flag rethought so that it never covers a note, and so that overlapping entries
+ * (a stretto) each read apart: their span, their voice (the voice's own ink) and their order. Three
+ * variants for the owner to choose from (`?flagv=a|b|c`, MusicBox.tsx FLAG_VARIANT; `o` the old flag):
+ *   a  TAB: a small tab in the voice's ink pinned to the box's top edge above the entry's first note,
+ *      SUBJECT in dark letters, a dotted leader down to the note (drawn under the notes); it stays for
+ *      the whole entry (held at the left edge once its first note has gone by), so in a stretto the tabs
+ *      stand side by side in entry order; a crowded tab shrinks to a chip of its colour.
+ *   b  BRACKET: a thin line in the voice's ink under the entry, its first note to its end, with end ticks
+ *      and the word at its start; overlapping entries step down a lane each, so every span reads.
+ *   c  RAIL: along the top edge, a stretto diagram: each entry a line in its voice's ink over exactly its
+ *      span, overlapping entries in lanes in order of entry (the first on top), a bright cap at each
+ *      start, the word under the first lane's start where there is room.
+ * Every mark drawn under the notes, or over them only where no note is (`noteTop`, `blocked`). Drawing
+ * only: never tied to right or wrong (nothing here reads a note's state).
+ */
+export type FlagVariant = "a" | "b" | "c" | "o";
+interface Lanes {
+  /** Per span: its lane (0 the first; an entry beginning while another sounds takes the next free one). */
+  lane: Int8Array;
+  /** The spans that are entries (no countersubject), by onset. */
+  order: number[];
+}
+const laneMemo = new WeakMap<readonly Span[], Lanes>();
+/** Each entry's lane: the lowest whose last entry has ended by its onset (made once per list of spans). */
+export function entryLanes(spans: readonly Span[]): Lanes {
+  const had = laneMemo.get(spans);
+  if (had) return had;
+  const lane = new Int8Array(spans.length).fill(-1);
+  const order = spans.map((_, i) => i).filter((i) => spans[i].form !== "counter" && spans[i].path.length);
+  order.sort((p, q) => spans[p].on - spans[q].on || spans[p].voice - spans[q].voice);
+  const ends: number[] = [];
+  for (const i of order) {
+    let k = ends.findIndex((e) => e <= spans[i].on);
+    if (k < 0) k = ends.push(0) - 1;
+    ends[k] = spans[i].end;
+    lane[i] = Math.min(k, 7);
+  }
+  const out = { lane, order };
+  laneMemo.set(spans, out);
+  return out;
+}
+/** An entry's marks' strength now: shown while it is in view, fading out FLAG_FADE_S after its end. */
+function markAlpha(c: Ctx, s: Span): number {
+  const past = (c.now - s.end) / c.tps;
+  return past <= 0 ? 1 : Math.max(0, 1 - past / FLAG_FADE_S);
+}
+const TAB_H = 7;
+const DARK = "#14101c";
+/**
+ * The entry marks of `variant`, in `pass` "under" (before the notes: leaders, brackets, rails) or "over"
+ * (after them: the tabs and words, only where no note is). `noteTop(x0, x1)` gives the top of the highest
+ * note over those columns (h if none); `blocked` whether a rectangle holds a note (any voice when -1).
+ */
+export function entryMarks(
+  c: Ctx,
+  spans: readonly Span[],
+  variant: FlagVariant,
+  pass: "under" | "over",
+  noteTop: (x0: number, x1: number) => number,
+  blocked: (x0: number, x1: number, y0: number, y1: number, voice: number, on: number) => boolean,
+) {
+  const { g, w, h, xOf, yOf, bh } = c;
+  const { lane, order } = entryLanes(spans);
+  const hOf = (step: number) => (c.hOf ? c.hOf(step) : bh);
+  let right = -1;
+  for (let oi = 0; oi < order.length; oi++) {
+    const s = spans[order[oi]];
+    const x0 = xOf(s.on);
+    if (x0 > w) break;
+    const x1 = xOf(s.end);
+    const a = markAlpha(c, s);
+    if (x1 < 0 && a >= 1) continue;
+    if (a <= 0) continue;
+    const ink = c.ink(s.voice);
+    const word = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}`;
+    const first = s.path[0];
+    g.globalAlpha = a;
+    if (variant === "a") {
+      const fw = textWidth(word) + 1;
+      // Held at the left edge once its note has gone by; never over the tab before it (entry order).
+      const tx = Math.max((c.left ?? 0) + 2, Math.max(right + 2, Math.min(x0, x1 - fw)));
+      // The next entry's tab, where it will stand: a crowded tab shrinks to a chip.
+      let room = Infinity;
+      for (let q = oi + 1; q < order.length; q++) {
+        const n = spans[order[q]];
+        if (markAlpha(c, n) <= 0) continue;
+        room = Math.max(0, xOf(n.on)) - tx - 2;
+        break;
+      }
+      if (tx > w) continue;
+      const tw = room >= fw ? fw : 4;
+      const top = noteTop(tx - 1, tx + tw + 1);
+      // D415 (the owner on 1.99/2.00: tabs off the top of the box, only their dotted pole seen): a tab with no
+      // room over the notes at the box's top takes the highest free place in its columns lower down, the
+      // pole then to the note from there; with none anywhere, no tab and no pole (never a pole to nothing).
+      let ty = 0;
+      let th = Math.min(TAB_H, top - 1);
+      if (th < TAB_H - 1) {
+        th = 0;
+        for (let y = Math.max(1, top - 1); y + TAB_H + 1 < h; y += 2) {
+          if (!blocked(tx - 1, tx + tw + 1, y - 3, y + TAB_H + 1, -1, s.on)) {
+            ty = y;
+            th = TAB_H;
+            break;
+          }
+        }
+      }
+      right = tx + tw;
+      if (th < 2) continue;
+      if (pass === "under") {
+        // The leader: dotted, the tab to the first note (its top, or its foot where the tab stands under it), while that note is in view.
+        if (x0 >= 0 && x0 === tx) {
+          const ny = yOf(first.step);
+          const fy = ny + hOf(first.step);
+          g.fillStyle = ink;
+          g.globalAlpha = a * 0.7;
+          if (ty + th < ny) for (let y = ty + th + 1; y < ny - 1; y += 2) g.fillRect(x0, y, 1, 1);
+          else for (let y = fy + 1; y < ty - 1; y += 2) g.fillRect(x0, y, 1, 1);
+        }
+        continue;
+      }
+      g.fillStyle = ink;
+      g.fillRect(tx, ty, tw, th);
+      if (tw === fw) pixText(g, word, tx + 1, ty + 1, DARK);
+      continue;
+    }
+    if (variant === "b") {
+      let low = 0;
+      for (const p of s.path) low = Math.max(low, yOf(p.step) + hOf(p.step));
+      const ly = Math.min(h - 2, low + 2 + 3 * lane[order[oi]]);
+      const bx0 = Math.max(-1, x0);
+      const bx1 = Math.min(w + 1, x1 - 1);
+      if (pass === "under") {
+        g.fillStyle = ink;
+        g.fillRect(bx0, ly, bx1 - bx0, 1);
+        if (x0 >= 0) g.fillRect(x0, ly - 3, 1, 3);
+        if (x1 - 1 <= w) g.fillRect(x1 - 1, ly - 2, 1, 2);
+        continue;
+      }
+      // The word under the bracket's start, only where no note is (it moves with the start, held at the edge).
+      const tw = textWidth(word);
+      const tx = Math.max(2, Math.min(x0, x1 - tw));
+      const ty = ly + 2;
+      if (ty + 5 > h || blocked(tx - 1, tx + tw, ty - 1, ty + 6, -1, s.on)) continue;
+      pixText(g, word, tx, ty, ink);
+      continue;
+    }
+    // c, the rail.
+    const ly = 1 + 3 * lane[order[oi]];
+    if (pass === "under") {
+      g.fillStyle = ink;
+      g.fillRect(Math.max(0, x0), ly, Math.min(w, x1 - 1) - Math.max(0, x0), 2);
+      if (x0 >= 0) {
+        g.fillStyle = paleOf(ink);
+        g.fillRect(x0, ly, 2, 2);
+      }
+      continue;
+    }
+    if (lane[order[oi]] !== 0) continue;
+    // The word: under the lanes in use here, at the first lane's start, only where no note is.
+    let lanes = 1;
+    for (const q of order) {
+      const n = spans[q];
+      if (n.on < s.end && n.end > s.on) lanes = Math.max(lanes, lane[q] + 1);
+    }
+    const tw = textWidth(word);
+    const tx = Math.max(2, Math.min(x0 + 3, x1 - tw));
+    const ty = 1 + 3 * lanes;
+    if (tx + tw > w || noteTop(tx - 1, tx + tw) < ty + 6) continue;
+    pixText(g, word, tx, ty, ink);
+  }
+  g.globalAlpha = 1;
+}
+
 const FIRE_CORE = "#fff6dc";
 /** D372: the effects' share of the frame: at most this many rectangles a pass (the player's, the others'). */
 export const FX_RECTS = 700;
@@ -201,7 +379,7 @@ function smokeOf(voiceInk: string, theme: 1 | 2 | 3): string {
   let row = smokeMemo.get(voiceInk);
   if (!row) {
     row = ["", "", "", ""];
-    for (const t of [1, 2, 3] as const) row[t] = mixHex(subjectRimOf(voiceInk, t), "#8f90a8", 0.45);
+    for (const t of [1, 2, 3] as const) row[t] = mixHex(paleOf(voiceInk), "#8f90a8", 0.45);
     smokeMemo.set(voiceInk, row);
   }
   return row[theme];
@@ -242,8 +420,9 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
     const theme = themeOf(s);
     const fx = effectOf(piece, theme);
     const voiceInk = c.ink(s.voice);
-    const ink = subjectInkOf(voiceInk, theme);
-    const rim = subjectRimOf(voiceInk, theme);
+    // The design studio: no subject hue; the effect in the voice's own ink and its pale light.
+    const ink = voiceInk;
+    const rim = paleOf(voiceInk);
     const wt = NOTE_WEIGHT * (mine ? 1 : OTHERS_SCALE);
     const inverted = !!s.shape && s.shape.includes("INVERSION");
     // GLINT's travelling star: one note of the entry at a time, seven a second.
@@ -530,7 +709,7 @@ export function strikes(c: Ctx, spans: Span[], player: number[] = []) {
     if (s.form === "counter" || now < s.on || now > s.end + life * tps) continue;
     const mine = player.includes(s.voice);
     // D352, D368: the fire in the voice's own subject colour.
-    const ink = subjectRimOf(c.ink(s.voice), themeOf(s));
+    const ink = paleOf(c.ink(s.voice));
     const warm = lighten(ink, 0.5);
     const embers = mine ? EMBERS : EMBERS_OTHERS;
     for (let j = s.path.length - 1; j >= 0; j--) {

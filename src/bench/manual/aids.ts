@@ -51,7 +51,7 @@ export interface AidOptions {
   /** D360: the touch the take asks for (the meter outlines its zone). */
   ask?: TouchName;
   now?: number;
-  /** D373: the music box's rectangle in the play area (the tour's frames, his words' arrow). */
+  /** D373: the music box's rectangle in the play area (the tour's frames). */
   box?: { x: number; y: number; w: number; h: number };
   /** D373: 1.1's tour: the part that glows, and the strips touched so far. */
   tour?: { focus: TourFocus; left: boolean; right: boolean };
@@ -79,7 +79,6 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "count" && rows) counted(c, g, o.box);
     if (a === "plan" && rows) planLetters(c, g, o.box);
     if (a === "answer" && rows) answer(c, g);
-    if (a === "point" && rows && o.box) point(c, g, o.box);
     if (a === "colour") colourMap(c, w, h, bw);
     // Design studio (D396, the owner: "we don't need A for buttons, because the L and R markings appearing in
     // synchrony with the thumbs movement is informative enough"): the path on the strips only where a lesson is
@@ -653,44 +652,6 @@ function answer(c: CanvasRenderingContext2D, g: ProtoGame) {
   const first = heads(g)[0]?.n;
   if (!first || first.state !== "pending") return;
   label(c, "YOU ANSWER HERE", rows.xOf(first.on), rows.yOf(first.step) + rows.rowH + 18, GOLD, 7, "left");
-}
-
-/** The sign a note bears in the lesson's own reading (its name, D370's vocabulary). */
-function signOf(g: ProtoGame, on: number): string | null {
-  const rd = g.o.reading;
-  const at = g.o.readingAt;
-  if (!rd || !at) return null;
-  const n = rd.notes[at.indexOf(on)];
-  if (!n) return null;
-  return n.short ? "SHORT" : n.accent ? "ACCENT" : n.join === true ? "JOINED" : n.join === false ? "DETACHED" : null;
-}
-
-/** An arrow from his words (over the foot of the box) to the next of your notes, its sign named over it. */
-function point(c: CanvasRenderingContext2D, g: ProtoGame, box: { x: number; y: number; w: number; h: number }) {
-  const rows = g.rows!;
-  const next = heads(g).find(({ n }) => n.state === "pending")?.n;
-  if (!next) return;
-  const x = rows.xOf(next.on) + 4;
-  if (x > box.x + box.w - 8 || x < box.x) return;
-  const y = rows.yOf(next.step) + rows.rowH + 3;
-  const y0 = box.y + box.h - 92;
-  if (y0 - y < 12) return;
-  const x0 = box.x + box.w * 0.42;
-  c.save();
-  c.strokeStyle = GOLD;
-  c.globalAlpha = 0.85;
-  c.lineWidth = 1.5;
-  const a = Math.atan2(y - y0, x - x0);
-  c.beginPath();
-  c.moveTo(x0, y0);
-  c.lineTo(x, y);
-  c.moveTo(x - 7 * Math.cos(a - 0.4), y - 7 * Math.sin(a - 0.4));
-  c.lineTo(x, y);
-  c.lineTo(x - 7 * Math.cos(a + 0.4), y - 7 * Math.sin(a + 0.4));
-  c.stroke();
-  c.restore();
-  const sign = signOf(g, next.on);
-  if (sign) label(c, sign, x, rows.yOf(next.step) - rows.rowH - 10, GOLD, 7);
 }
 
 /**

@@ -56,3 +56,12 @@ export const SIGN_PIXELS: Record<"sharp" | "flat" | "natural" | "double", string
   natural: ["100", "111", "111", "001"],
   double: ["101", "010", "010", "101"],
 };
+
+/**
+ * D414 (WTC 2.02): how far (CSS px, up positive) the CLASSIC box draws a note above its row's middle, as
+ * paintClassic does (its canvas row `rowCss / px` rounded, at least 2; the shift of an altered note), so
+ * that LADDER aims a slide at the block the player sees rather than at the bare row.
+ */
+export function chromaLiftPx(rowCss: number, step: number, midi: number, sig: readonly number[], px = 2): number {
+  return alterAgainst(step, midi, sig) * chromaShift(Math.max(2, Math.round(rowCss / px))) * px;
+}

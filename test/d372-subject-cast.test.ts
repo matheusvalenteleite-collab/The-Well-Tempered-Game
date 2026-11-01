@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fugueById } from "../src/touch/fugue.ts";
-import { BOOK1_CAST, castOf, effectOf, FALLBACK_FX, FX_BUILT, NOTE_WEIGHT, OTHERS_SCALE } from "../src/touch/subject-cast.ts";
+import { BOOK1_CAST, castOf, effectOf, FALLBACK_FX, FX_BUILT, NOTE_WEIGHT, ONLY_FX, OTHERS_SCALE } from "../src/touch/subject-cast.ts";
 
 test("the cast names all 24 fugues of Book I, I/4 with three effects (RAYS, RIPPLE, FIRE)", () => {
   for (let i = 1; i <= 24; i++) assert.ok(BOOK1_CAST[`wtc1f${String(i).padStart(2, "0")}`]?.length, `I/${i}`);
@@ -15,19 +15,23 @@ test("the cast names all 24 fugues of Book I, I/4 with three effects (RAYS, RIPP
   for (const t of themes) assert.ok(castOf("wtc1f04", t as 1 | 2 | 3), `theme ${t}`);
 });
 
-test("the effects drawn (D383: all ten), each fugue's cast its own; GLINT only for pieces outside the 48", () => {
+// The design studio (the owner: HOP "shows most clearly that a subject is playing"): for now HOP is the only
+// effect drawn (ONLY_FX), so this test, which pinned each fugue drawn as cast, now pins the cast as the
+// record (castOf) and HOP drawn everywhere (effectOf).
+test("the effects built (D383: all ten), each fugue's cast kept as the record; for now every subject drawn HOP", () => {
   assert.deepEqual([...FX_BUILT].sort(), ["EMBERS", "FIRE", "GLINT", "HOP", "PULSE", "RAYS", "RIPPLE", "SHIMMER", "SMOKE", "TEARS"]);
   assert.equal(FALLBACK_FX, "GLINT");
+  assert.equal(ONLY_FX, "HOP");
   const expect: Record<string, string> = { wtc1f01: "GLINT", wtc1f02: "HOP", wtc1f03: "SHIMMER", wtc1f05: "FIRE", wtc1f06: "EMBERS", wtc1f07: "RIPPLE", wtc1f08: "PULSE", wtc1f12: "SMOKE", wtc1f14: "TEARS", wtc1f17: "RAYS", wtc1f24: "SMOKE" };
-  for (const [id, fx] of Object.entries(expect)) assert.equal(effectOf(id, 1), fx, id);
-  assert.equal(effectOf("wtc1f04", 1), "RAYS");
-  assert.equal(effectOf("wtc1f04", 2), "RIPPLE");
-  assert.equal(effectOf("wtc1f04", 3), "FIRE");
-  assert.equal(effectOf("wtc2f01", 1), "HOP");
-  assert.equal(effectOf("bwv1080-14", 1), "GLINT");
-  assert.equal(effectOf(undefined, 1), "GLINT");
-  // Every subject of Book I drawn as cast (no fallback inside the cast).
-  for (const [id, row] of Object.entries(BOOK1_CAST)) row.forEach((e, i) => assert.equal(effectOf(id, (i + 1) as 1 | 2 | 3), e, id));
+  for (const [id, fx] of Object.entries(expect)) assert.equal(castOf(id, 1), fx, id);
+  assert.equal(castOf("wtc1f04", 1), "RAYS");
+  assert.equal(castOf("wtc1f04", 2), "RIPPLE");
+  assert.equal(castOf("wtc1f04", 3), "FIRE");
+  assert.equal(castOf("wtc2f01", 1), "HOP");
+  assert.equal(castOf("bwv1080-14", 1), null);
+  for (const id of ["wtc1f01", "wtc1f04", "wtc2f01", "bwv1080-14"]) for (const t of [1, 2, 3] as const) assert.equal(effectOf(id, t), "HOP", `${id} ${t}`);
+  assert.equal(effectOf(undefined, 1), "HOP");
+  for (const [id, row] of Object.entries(BOOK1_CAST)) row.forEach((_, i) => assert.equal(effectOf(id, (i + 1) as 1 | 2 | 3), "HOP", id));
 });
 
 test("D374: every subject note the same strength (no per-note weights); another voice's at half", () => {
