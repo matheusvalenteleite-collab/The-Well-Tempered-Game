@@ -6,7 +6,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { baseDb, correctionRamp, dynLevel, dynLine, DYN_MAX_DB, loadZoneCal, logStrength, Pedal, pianoOnset, saveZoneCal, strikeDb, strikeWord, zoneCalibration, zoneOf, zoneReport, zoneStrength, type ZoneTap } from "../src/bench/lab/dynamics.ts";
+import { baseDb, correctionRamp, dynLevel, dynLine, DYN_MAX_DB, loadZoneCal, logStrength, Pedal, pianoOnset, saveZoneCal, strikeDb, strikeWord, zoneOf, zoneReport, type ZoneTap } from "../src/bench/lab/dynamics.ts";
 import { landing, PIANO_SOFT_NET_DB } from "../src/touch/touch-expr.ts";
 import { rampTrim, type Chip, type TrimParam } from "../src/touch/chip.ts";
 import { FreePlay } from "../src/bench/lab/free.ts";
@@ -101,20 +101,7 @@ test("D335: the late correction: a ramp from the strike's reading, never before 
 
 const taps = (zone: "inner" | "outer", soft: number[], hard: number[], rot = 50): (ZoneTap & { rotPeak: number })[] => [...soft.map((peak) => ({ label: "soft", peak, zone, rotPeak: rot })), ...hard.map((peak) => ({ label: "hard", peak, zone, rotPeak: rot * 2 }))];
 
-test("D335: calibration by zone: each half its own soft and hard medians; a zone without one uses both, then the fallback", () => {
-  const all = [...taps("inner", [0.3, 0.35, 0.4], [1.2, 1.3, 1.4]), ...taps("outer", [0.15, 0.2, 0.25], [0.6, 0.7, 0.8])];
-  const zc = zoneCalibration(all);
-  assert.deepEqual([zc.inner!.soft, zc.inner!.hard, zc.outer!.soft, zc.outer!.hard], [0.35, 1.3, 0.2, 0.7]);
-  near(zoneStrength(0.35, "inner", zc)!.strength, 0.25);
-  near(zoneStrength(0.7, "outer", zc)!.strength, 0.75);
-  assert.equal(zoneStrength(0.7, "outer", zc)!.cal, "outer zone's calibration");
-  assert.ok(zoneStrength(0.6, "inner", zc)!.strength < zoneStrength(0.6, "outer", zc)!.strength, "the same peak softer by the box, where taps shake more");
-  const onlyInner = zoneCalibration(taps("inner", [0.3, 0.35, 0.4], [1.2, 1.3, 1.4]));
-  assert.equal(onlyInner.outer, null);
-  assert.equal(zoneStrength(0.35, "outer", onlyInner)!.cal, "both zones' calibration");
-  assert.equal(zoneStrength(0.5, "outer", null, { soft: 0.25, hard: 1, from: "recent" })!.cal, "the recent taps");
-  assert.equal(zoneStrength(0.5, "outer", null), null);
-  assert.equal(zoneStrength(null, "inner", zc), null);
+test("D335: the zone of a landing: inner by the box, outer by the edge", () => {
   assert.equal(zoneOf(0.2), "inner");
   assert.equal(zoneOf(0.7), "outer");
 });

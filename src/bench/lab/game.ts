@@ -19,11 +19,10 @@ export function passageSpan(f: TouchFugue, p: Pick<LabPassage, "fromBar" | "toBa
 }
 
 /** The game for a passage (the lab's options: no crowd to lose, no first-time hints). */
-export function labGame(p: LabPassage, chip: Chip, extra?: { demo?: boolean }): ProtoGame {
+export function labGame(p: LabPassage, chip: Chip): ProtoGame {
   const f = fugueById(p.piece);
   const { from, until } = passageSpan(f, p);
   const reading = p.reading ? (readingsOf(f.id).find((r) => r.id === p.reading) ?? null) : null;
   const proto = protoById(p.proto);
-  // D333: `demo` (the STUDY's HEAR IT FIRST): the game plays the passage itself, as the tutorial's demonstration.
-  return new ProtoGame(f, [p.voice], from, proto, { bpm: p.bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: p.bt, wait: p.wait, until, reading, ornHint: false, scale: false, ...(extra?.demo ? { demo: true } : {}) }, chip);
+  return new ProtoGame(f, [p.voice], from, proto, { bpm: p.bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: p.bt, wait: p.wait, until, reading, ornHint: false, scale: false }, chip);
 }

@@ -1,9 +1,9 @@
 /**
  * D376, THE EXPRESSION LAB: Glenn's "More Expression from Two Thumbs" (28 October 2026, WTC 1.81),
  * built behind one switch, MECH.glenn. D378 (WTC 1.83): the game's own, everywhere (play.html, the
- * tutorial, the Lab); the old mechanics only in the Lab, MECHANICS: CLASSIC (lab.html?glenn=0, preset A,
- * or the switch off); a take keeps the mechanics it was recorded with (asRecorded: none named, off). The
- * engine (proto-game.ts, free-ornament.ts, accent.ts, chip.ts) reads the rules from here:
+ * tutorial, the Lab); the old mechanics only in the Lab (its preset A, or the switch off); a take
+ * keeps the mechanics it was recorded with (asRecorded: none named, off). The engine (proto-game.ts,
+ * free-ornament.ts, accent.ts, chip.ts) reads the rules from here:
  *
  *   OVER-LEGATO: on harpsichord, lute and piano the note given way to rings until its thumb lifts, at
  *     least 30 ms (the old join), at most 400 ms (the piano 250 ms), never past the next note but one.
@@ -211,14 +211,11 @@ export class RingList {
 export function glennParam(search: string): boolean {
   return labPlayParam(search) === "glenn";
 }
-/**
- * D378: the Lab's play page from its address: `?glenn=1` the game's mechanics (Glenn's), `?glenn=0` (or
- * off, false) MECHANICS: CLASSIC, the mechanics before WTC 1.83; null: the Lab itself.
- */
-export function labPlayParam(search: string): "glenn" | "classic" | null {
+/** D378: the Lab's play page from its address: `?glenn=1` the game's mechanics (Glenn's); null: the Lab itself. */
+export function labPlayParam(search: string): "glenn" | null {
   try {
     const v = new URLSearchParams(search).get("glenn");
-    return v === "1" || v === "on" || v === "true" ? "glenn" : v === "0" || v === "off" || v === "false" ? "classic" : null;
+    return v === "1" || v === "on" || v === "true" ? "glenn" : null;
   } catch {
     return null;
   }

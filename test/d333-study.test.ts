@@ -1,10 +1,10 @@
 /**
- * D333 (WTC 1.49), THE LAB's STUDY: the ten excerpts hold to their length and to the feature each tests
- * (from the encoded scores, the notes the game makes the player strike); the study's configuration is the
- * preset's snapshot with band time FIXED; takes advance the position, are saved packed after each take
- * and read back (a take the device refused is played again); the owner's settings are kept aside and put
- * back; a take is a lab log the replay reads faithfully; the report finds the learning, the persistent
- * habit and the errors that went away on a synthetic study.
+ * D333 (WTC 1.49), THE LAB's STUDY file (the tab is gone; the format stays for the tools and the owner's
+ * recorded studies): the ten excerpts hold to their length and to the feature each tests (from the
+ * encoded scores, the notes the game makes the player strike); the study's configuration is the preset's
+ * snapshot with band time FIXED; takes advance the position; a take is a lab log the replay reads
+ * faithfully; the report finds the learning, the persistent habit and the errors that went away on a
+ * synthetic study.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -18,26 +18,7 @@ import { labGame } from "../src/bench/lab/game.ts";
 import { replay, silentChip, tally } from "../src/bench/lab/replay.ts";
 import { configById, configMech } from "../src/bench/lab/presets.ts";
 import { STUDY_EXCERPTS, pieceShort, type StudyExcerpt } from "../src/bench/lab/study-excerpts.ts";
-import {
-  addTake,
-  excerptSeconds,
-  holdSettings,
-  loadStudy,
-  newStudy,
-  pack,
-  parseStudy,
-  releaseSettings,
-  saveHead,
-  saveTake,
-  studyDone,
-  studyFileName,
-  studyMech,
-  studyText,
-  takeOf,
-  unpack,
-  STUDY_PRESET,
-  STUDY_RESTORE_KEY,
-} from "../src/bench/lab/study.ts";
+import { addTake, newStudy, parseStudy, studyMech, takeOf, STUDY_PRESET } from "../src/bench/lab/study.ts";
 import { excerptReport, studyMarkdown, takeStats } from "../src/bench/lab/study-report.ts";
 import { synthStudy } from "../tools/lab/study-synth.ts";
 
@@ -46,6 +27,11 @@ function struck(e: StudyExcerpt) {
   const g = labGame({ piece: e.piece, voice: e.voice, fromBar: e.fromBar, toBar: e.toBar, bpm: tempoOf(e.piece), tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null }, silentChip({ t: 0 }));
   const ns = g.tracks[0].notes.filter((n, i, a) => !n.ride && !(i > 0 && a[i - 1].on === n.on));
   return ns.map((n) => ({ on: n.on, dur: n.dur, midi: n.midi, step: n.step, t: g.timeAt(n.on) }));
+}
+/** An excerpt's length in seconds at its tempo (bars by the score's bar lines). */
+function excerptSeconds(it: Pick<StudyExcerpt, "piece" | "fromBar" | "toBar">, bpm: number): number {
+  const f = fugueById(it.piece);
+  return ((barStart(f, it.toBar + 1) - barStart(f, it.fromBar)) / f.tpq) * (60 / bpm);
 }
 const byId = (id: string) => STUDY_EXCERPTS.find((e) => e.id === id)!;
 const iois = (ns: ReturnType<typeof struck>) => ns.slice(1).map((n, i) => (n.t - ns[i].t) * 1000);
@@ -154,79 +140,22 @@ test("D333: the study's configuration is the preset's snapshot, band time fixed,
   assert.equal(s.bt, false);
   assert.equal(s.excerpts.length, 10);
   assert.equal(s.excerpts[0].bpm, tempoOf(s.excerpts[0].piece));
-  assert.equal(studyFileName(new Date(2026, 9, 27, 23, 5)), "wtc-study-2026-10-27.json");
 });
 
-/** A storage in memory, refusing writes past `limit` characters. */
-function memStore(limit = Infinity) {
-  const m = new Map<string, string>();
-  return {
-    m,
-    get length() {
-      return m.size;
-    },
-    key: (i: number) => [...m.keys()][i] ?? null,
-    getItem: (k: string) => m.get(k) ?? null,
-    setItem: (k: string, v: string) => {
-      const used = [...m.entries()].reduce((a, [kk, vv]) => a + (kk === k ? 0 : vv.length), 0);
-      if (used + v.length > limit) throw new Error("QuotaExceededError");
-      m.set(k, v);
-    },
-    removeItem: (k: string) => void m.delete(k),
-  };
-}
-
-test("D333: takes move the study on; saved packed after each take and read back; a take refused is played again", async () => {
+test("D333: takes move the study on", () => {
   const small = synthStudy({ excerpts: 2, takes: 3 });
   assert.deepEqual(small.pos, { excerpt: 2, take: 0 });
-  assert.ok(studyDone(small));
   assert.ok(small.finishedAt);
   assert.equal(small.excerpts[1].takes[2].study?.take, 2);
-  // Rebuilt take by take into a storage.
-  const st = memStore();
   let s = { ...newStudy("WTC test", tempoOf), takesPer: 3 };
   s = { ...s, excerpts: s.excerpts.slice(0, 2) };
-  saveHead(s, st);
-  for (let e = 0; e < 2; e++)
-    for (let t = 0; t < 3; t++) {
-      s = addTake(s, small.excerpts[e].takes[t], "WTC test");
-      saveHead(s, st);
-      assert.ok(await saveTake(s, e, t, st));
-    }
-  const back = await loadStudy(st);
-  assert.ok(back);
-  assert.deepEqual(back!.pos, s.pos);
-  assert.deepEqual(back!.excerpts[1].takes[2], JSON.parse(JSON.stringify(s.excerpts[1].takes[2])));
-  // Packed: a take's stored text a fraction of its JSON.
-  const key = [...st.m.keys()].find((k) => k.includes(":1:2"))!;
-  assert.ok(st.m.get(key)!.startsWith("gz:"));
-  assert.ok(st.m.get(key)!.length < JSON.stringify(s.excerpts[1].takes[2]).length / 3);
-  assert.equal(await unpack(await pack("plain ✓ text")), "plain ✓ text");
-  // A device that refuses the last take: the study resumes at it.
-  const full = memStore(0);
-  for (const [k, v] of st.m) if (!k.endsWith(":1:2")) full.m.set(k, v);
-  const resumed = await loadStudy(full);
-  assert.deepEqual(resumed!.pos, { excerpt: 1, take: 2 });
-  assert.equal(resumed!.finishedAt, undefined);
-  assert.equal(await saveTake(s, 1, 2, full), false);
-});
-
-test("D333: the owner's settings kept aside while a session runs and put back (once)", () => {
-  const st = memStore();
-  st.setItem("tb-lab-v1", '{"piece":"wtc1f01"}');
-  holdSettings(["tb-lab-v1", "tb-lab-config-v1"], st);
-  assert.ok(st.getItem(STUDY_RESTORE_KEY));
-  st.setItem("tb-lab-v1", '{"piece":"wtc2f07"}');
-  st.setItem("tb-lab-config-v1", '"B"');
-  holdSettings(["tb-lab-v1", "tb-lab-config-v1"], st); // a second hold keeps the first
-  assert.equal(releaseSettings(st), true);
-  assert.equal(st.getItem("tb-lab-v1"), '{"piece":"wtc1f01"}');
-  assert.equal(st.getItem("tb-lab-config-v1"), null);
-  assert.equal(releaseSettings(st), false);
+  for (let e = 0; e < 2; e++) for (let t = 0; t < 3; t++) s = addTake(s, small.excerpts[e].takes[t], "WTC test");
+  assert.deepEqual(s.pos, { excerpt: 2, take: 0 });
+  assert.ok(s.finishedAt);
 });
 
 test("D333: a take is a full lab log: extracted from the file, it replays to the same verdicts", () => {
-  const s = parseStudy(`pasted\n${studyText(synthStudy({ excerpts: 1, takes: 2 }))}`);
+  const s = parseStudy(`pasted\n${JSON.stringify(synthStudy({ excerpts: 1, takes: 2 }))}`);
   const log = takeOf(s, "1:2");
   assert.equal(log.v, 1);
   assert.equal(log.passage.piece, STUDY_EXCERPTS[0].piece);
@@ -262,7 +191,7 @@ test("D333: the report finds the learning, the habit that stays and the errors t
 test("D333: tools/lab/study-report.ts prints the markdown and a take; tools/lab/replay.ts --take reads it", () => {
   const dir = mkdtempSync(join(tmpdir(), "wtc-study-"));
   const file = join(dir, "wtc-study-2026-10-27.json");
-  writeFileSync(file, studyText(synthStudy({ excerpts: 1, takes: 4 })));
+  writeFileSync(file, JSON.stringify(synthStudy({ excerpts: 1, takes: 4 })));
   const md = execFileSync("node", ["tools/lab/study-report.ts", file], { encoding: "utf8" });
   assert.match(md, /## 1\. I\/12/);
   const take = JSON.parse(execFileSync("node", ["tools/lab/study-report.ts", file, "--take", "1:3"], { encoding: "utf8" }));
