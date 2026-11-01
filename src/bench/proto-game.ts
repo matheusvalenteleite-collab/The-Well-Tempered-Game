@@ -73,6 +73,7 @@ import { follow, joins, phrase, phraseContext, ritard, styleOf, withHolds, withS
 import { metricPlace, phraseArchDb, PLAYER_ACCENT_DB, slurShapeDb, wholeMarks, wholePlan, type WholePlan } from "../touch/whole-reading.ts";
 import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
+import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -189,6 +190,8 @@ export interface Rows {
   rowH: number;
   /** Where a tick is drawn across the box. */
   xOf(tick: number): number;
+  /** D414: how far (px, up positive) the box draws a note above its row's middle (D332's shift of an altered note); none: on the row. */
+  lift?(step: number, midi: number): number;
 }
 
 /** D374: where a moving thumb was 120 ms before its last place (its proxy's trail), if it moved lately. */
@@ -1359,7 +1362,6 @@ export class ProtoGame {
   private demoRun() {
     if (!this.rows) return;
     if (!this.demoQueue) {
-      const rows = this.rows;
       const W = 1000;
       const H = 400;
       const bw = W * BAR;
@@ -1369,6 +1371,7 @@ export class ProtoGame {
       let parent = -1;
       let y = 0;
       const plan = this.demoPlan();
+      const demoNotes = this.tracks[0].notes;
       plan.forEach((t, p) => {
         const id = 90000 + p;
         if (t.slid && parent >= 0) {
@@ -1378,7 +1381,8 @@ export class ProtoGame {
             tick: t.on,
             act: () => {
               // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
-              const want = rows.yOf(t.step);
+              // D414: to the note's block as drawn (its shift included).
+              const want = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 });
               const dir = t.step > plan[p - 1].step ? -1 : 1;
               y += dir * Math.max(SLIDE_MIN_PX, dir * (want - y));
               this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
@@ -1387,14 +1391,14 @@ export class ProtoGame {
           return;
         }
         parent = p;
-        q.push({ tick: t.land ?? t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
+        q.push({ tick: t.land ?? t.on, act: () => ((y = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 })), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
           // D353: the legs as quick as the contour reader asks (each within half its mordent leg), from the landing.
           const span = Math.max(this.f.tpq / 8, (t.off - t.on) * 0.6);
           const leg = Math.min(span / (sh.need + 1), ((0.5 * this.shakeTh().Lm) / 1000) * this.tps);
           for (let m = 1; m <= sh.need; m++)
-            q.push({ tick: t.on + leg * m, act: () => this.move(id, { side: t.side, x: xOf(t.side, t.d), y: rows.yOf(t.step) - (m % 2 ? sh.first : 0) * this.ladderRow, w: W, h: H }, performance.now()) });
+            q.push({ tick: t.on + leg * m, act: () => this.move(id, { side: t.side, x: xOf(t.side, t.d), y: this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 }) - (m % 2 ? sh.first : 0) * this.ladderRow, w: W, h: H }, performance.now()) });
         }
         const offTick = Math.max(...plan.filter((x, j) => j >= p && (j === p || (x.slid && x.side === t.side && plan.slice(p + 1, j + 1).every((z) => z.slid)))).map((x) => x.off));
         q.push({ tick: offTick, act: () => this.up(id, performance.now()) });
@@ -1776,20 +1780,18 @@ export class ProtoGame {
         let why: LadderWhy = { ref: "own", rowPx: R };
         const clear = (from: { y: number; step: number }, travel = false) => {
           const steps = n.step - from.step;
-          const way = (from.y - c.y) * Math.sign(steps);
           const done = (ok: boolean, rule: LadderWhy["rule"], needPx?: number) => {
             if (travel) why.travel = { steps, movedPx: from.y - c.y, needPx: needPx ?? 0, ok };
             else why = { ref: "own", steps, movedPx: from.y - c.y, rowPx: R, rule, needPx };
             return ok;
           };
-          if (steps === 0) return done(Math.abs(from.y - c.y) <= MECH.repeatRows * R, "repeat", MECH.repeatRows * R);
-          if (pinned(from.y, Math.sign(steps))) return done(true, "edge");
+          // D414: the rows as drawn (ladder-rule.ts): the same row, stay; a row or two, not clearly the wrong way.
+          if (steps !== 0 && pinned(from.y, Math.sign(steps))) return done(true, "edge");
           // From the last touch a fourth or more, a clear move (half a row); the line's travel over a fourth
           // or more, a move the right way (a quarter row: drawn steps are 8 px apart and a landing scatters
           // about as much, so a third's travel cannot be told from the scatter).
-          if (Math.abs(steps) < 3) return done(way >= -MECH.stepLeewayRows * R, "step", MECH.stepLeewayRows * R);
-          const need = (travel ? MECH.travelMin : MECH.leapRows) * R;
-          return done(way >= need, travel ? "travel" : "leap", need);
+          const r = ladderMove(steps, from.y - c.y, R, travel);
+          return done(r.ok, r.rule, r.needPx);
         };
         let ok = clear(own);
         if (ok) {
@@ -2449,8 +2451,8 @@ export class ProtoGame {
       if (!MECH.slides || h.handed || Math.abs(c.y - h.ay) < MECH.slideMinPx) return;
       const nextN = this.tracks[h.k].notes.find((n) => n.state === "pending" && !n.ride);
       if (!nextN) return;
-      const target = this.rows.yOf(nextN.step);
-      const want = target < h.ay ? 1 : -1;
+      const target = this.drawnY(nextN);
+      const want = slideWay(h.ay, target);
       if ((c.y < h.ay ? 1 : -1) !== want || want * (c.y - target) > MECH.slideReachRows * this.ladderRow) return;
       // D271: one way only (the owner: "to avoid players being able to complete levels by dragging"):
       // a slide back the other way plays nothing; the thumb lifts and strikes again.
@@ -2825,8 +2827,8 @@ export class ProtoGame {
     const n = notes.find((x) => x.state === "pending" && !x.ride);
     const cur = h.note >= 0 ? notes[h.note] : undefined;
     if (!n || !cur || !this.rows || h.passive || h.handed) return null;
-    const target = this.rows.yOf(n.step);
-    const want: 1 | -1 = target < h.ay ? 1 : -1;
+    const target = this.drawnY(n);
+    const want = slideWay(h.ay, target);
     const startTick = this.tickAt((h.gStillMs ?? ms) / 1000);
     const phase = slidePhase(this.msOf(cur.on, startTick), 0, this.msOf(cur.on, n.on));
     return { n, target, want, phase };
@@ -4416,6 +4418,11 @@ export class ProtoGame {
     const bonus = 20 * this.mult;
     this.earn("bonus", bonus);
     this.pops.push({ tick: this.finalOn, step: 0, text: `BOTH HANDS +${bonus}`, at: performance.now(), gold: true });
+  }
+  /** D414: where the box draws a note (its block's middle, D332's shift included): a slide aims there. */
+  drawnY(n: { step: number; midi: number }): number {
+    const rows = this.rows!;
+    return rows.yOf(n.step) - (rows.lift?.(n.step, n.midi) ?? 0);
   }
   /** D247: LADDER's row for judging a touch: the box's, but no smaller than LADDER_ROW_MIN (the whole piece in the box). */
   get ladderRow(): number {
