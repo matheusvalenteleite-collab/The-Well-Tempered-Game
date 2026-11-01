@@ -314,3 +314,158 @@ export function slideRates(o: { seeds?: number[]; pieces?: readonly [string, num
   }
   return out;
 }
+
+// ---- D488: slide-ins (a slide from a silent landing in a rest to the note after it). ----
+
+export type InFrom = "above" | "below";
+export type InTiming = "early" | "ontime" | "late" | "still";
+export interface SlideInTally {
+  /** Slide-ins tried, and played as slide-ins (right). */
+  attempts: number;
+  ok: number;
+  /** Their notes right however played (a slide-in, or a landing that struck it). */
+  right: number;
+  /** After a short rest (0.4–1 s) and a long one (over 1 s, or the first note). */
+  short: { attempts: number; ok: number };
+  long: { attempts: number; ok: number };
+  /** Strays and wrong notes over the whole take (a landing must cost nothing). */
+  strays: number;
+  wrong: number;
+  /** The other notes, struck, right. */
+  struck: number;
+  struckRight: number;
+  why: Record<string, number>;
+}
+
+/**
+ * D488: plays voice `voice` of `id` with the thumbs in turn; each note after a rest of 0.4 s or more (and the
+ * first) is slid in to: the thumb lands 1.5–3 rows `from` above or below its block, 0.3–0.8 s before it (never
+ * before the rest begins), rests there (jittering), then slides to the block over 100–250 ms, arriving
+ * `timing`: 120–300 ms early, on time (±12 ms) or 40–140 ms late; or "still": it never slides, lifting 0.4 s after the note's time.
+ */
+export function simulateSlideIns(id: string, voice: number, from: InFrom, timing: InTiming, ph: Phone, seed = 1, o: { bars?: number; log?: (s: string) => void; onTap?: (e: unknown, g: ProtoGame) => void } = {}): SlideInTally {
+  const R = rng(seed * 104729 + (from === "above" ? 7 : 3) + timing.length * 131 + ph.w);
+  const U = (a: number, b: number) => a + (b - a) * R();
+  const N = (m: number, s: number) => m + s * Math.sqrt(-2 * Math.log(R() || 1e-9)) * Math.cos(2 * Math.PI * R());
+  const clock = { t: 0 };
+  const perf = globalThis.performance;
+  const realNow = perf.now.bind(perf);
+  Object.defineProperty(perf, "now", { value: () => clock.t * 1000, configurable: true, writable: true });
+  const quiet = { stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {}, shape() {} };
+  const chip = { ctx: { get currentTime() { return clock.t; } }, heard: () => clock.t, note: () => quiet, swoosh() {}, tick() {}, chime() {} } as unknown as Chip;
+  const why: Record<string, number> = {};
+  try {
+    const f = fugueById(id);
+    const until = Math.min(f.length, ((o.bars ?? 24) + 1) * f.barTicks);
+    const g = new ProtoGame(f, voice, 0, protoById("ladder"), { bpm: tempoOf(id), legato: false, until, wait: false, solo: false, fail: false }, chip);
+    const all = g.tracks[0].notes;
+    const struck = all.map((n, i) => ({ n, i })).filter(({ n, i }) => !n.ride && !(i > 0 && all[i - 1].on === n.on) && n.on < until);
+    const steps = struck.map(({ n }) => n.step);
+    g.rows = boxRowsFor(f.key, Math.min(...steps), Math.max(...steps), ph);
+    const rows = g.rows;
+    const row = Math.max(rows.rowH, 18);
+    g.tap = (e) => {
+      const ev = e as { kind: string; why?: string };
+      if (ev.kind === "slideMiss" && ev.why) why[ev.why] = (why[ev.why] ?? 0) + 1;
+      o.onTap?.(e, g);
+    };
+    const drawn = (j: number) => rows.yOf(struck[j].n.step) - (rows.lift?.(struck[j].n.step, struck[j].n.midi) ?? 0);
+    const t = (j: number) => g.timeAt(struck[j].n.on);
+    const end = (j: number) => g.timeAt(struck[j].n.on + struck[j].n.dur);
+    const restS = (j: number) => (j === 0 ? Infinity : t(j) - end(j - 1));
+    const W = ph.w;
+    const H = ph.h;
+    type Ev = { t: number; k: number; fn: () => void };
+    const evs: Ev[] = [];
+    const tries: { j: number; long: boolean }[] = [];
+    let id1 = 0;
+    struck.forEach((_, j) => {
+      const left = j % 2 === 0;
+      const x = left ? U(0.06, 0.18) * W : W - U(0.06, 0.18) * W;
+      const base = { side: sideOf(x, W), x, w: W, h: H } as const;
+      const id = ++id1;
+      const nextRest = j + 1 < struck.length ? restS(j + 1) : Infinity;
+      const lift = j + 1 < struck.length && nextRest < 0.05 ? t(j + 1) + U(0.005, 0.03) : Math.max(t(j) + 0.06, end(j) - 0.05);
+      const target = drawn(j);
+      const path: [number, number][] = [];
+      let tl: number;
+      if (restS(j) >= 0.4) {
+        tries.push({ j, long: restS(j) > 1 });
+        const sign = from === "above" ? -1 : 1;
+        const y0 = Math.max(4, Math.min(H - 4, target + sign * U(1.5, 3) * row));
+        const restStart = j === 0 ? 0.2 : end(j - 1) + 0.03;
+        tl = Math.max(restStart, t(j) - U(0.3, 0.8));
+        let arrive = t(j) + N(0, 0.012);
+        if (timing === "early") arrive = t(j) - U(0.12, 0.3);
+        if (timing === "late") arrive = t(j) + U(0.04, 0.14);
+        const dur = U(0.1, 0.25);
+        const start = Math.max(tl + 0.06, arrive - dur);
+        arrive = Math.max(arrive, start + 0.05);
+        const yEnd = target + N(0, 1.5);
+        path.push([tl, y0], [start, y0]);
+        if (timing === "still") (path.length = 0), path.push([tl, y0], [Math.max(lift, t(j) + 0.4), y0]);
+        else {
+        for (let k = 1; k <= 6; k++) path.push([start + (k / 6) * (arrive - start), y0 + (yEnd - y0) * (0.5 - 0.5 * Math.cos((Math.PI * k) / 6))]);
+        path.push([Math.max(lift, arrive + 0.03), yEnd]);
+        }
+      } else {
+        tl = t(j) + N(0, 0.012);
+        const y = N(target, 2.5);
+        path.push([tl, y], [Math.max(lift, tl + 0.05), y]);
+      }
+      const y0 = path[0][1];
+      evs.push({ t: tl, k: 1, fn: () => g.down(id, { ...base, y: y0 }, perf.now()) });
+      let py = Math.round(y0 * 2) / 2;
+      for (let q = 1; q < path.length; q++) {
+        const [ta, ya] = path[q - 1];
+        const [tb, yb] = path[q];
+        for (let tt = ta + 0.016; tt < tb - 1e-6; tt += 0.016) {
+          const yy = Math.round((ya + (yb - ya) * ((tt - ta) / Math.max(1e-6, tb - ta)) + N(0, 0.6)) * 2) / 2;
+          if (yy === py) continue;
+          py = yy;
+          evs.push({ t: tt, k: 2, fn: () => g.move(id, { ...base, y: Math.max(1, Math.min(H - 1, yy)) }, perf.now()) });
+        }
+      }
+      const tu = path[path.length - 1][0];
+      evs.push({ t: tu, k: 0, fn: () => g.up(id, perf.now()) });
+    });
+    evs.sort((a, b) => a.t - b.t || a.k - b.k);
+    for (const e of evs) {
+      while (clock.t < e.t - 0.016) (clock.t += 0.016), g.step();
+      clock.t = Math.max(clock.t, e.t);
+      g.step();
+      e.fn();
+    }
+    while (clock.t < g.timeAt(g.end + 1)) (clock.t += 0.05), g.step();
+    const r = g.results();
+    const out: SlideInTally = { attempts: tries.length, ok: 0, right: 0, short: { attempts: 0, ok: 0 }, long: { attempts: 0, ok: 0 }, strays: r.stray, wrong: r.wrong, struck: 0, struckRight: 0, why };
+    const tried = new Set(tries.map((x) => x.j));
+    for (const { j, long } of tries) {
+      const n = struck[j].n;
+      const ok = n.state === "hit" && !n.wrong && n.via === "slide";
+      const b = long ? out.long : out.short;
+      b.attempts++;
+      if (ok) (out.ok++, b.ok++);
+      else o.log?.(`${id} #${j} rest ${restS(j).toFixed(2)} s: ${n.state}${n.wrong ? " wrong" : ""} via ${n.via ?? "-"} at ${n.at === undefined ? "-" : Math.round(g.timeAt(n.at) * 1000 - t(j) * 1000)} ms`);
+      if (n.state === "hit" && !n.wrong) out.right++;
+    }
+    struck.forEach(({ n }, j) => {
+      if (tried.has(j)) return;
+      out.struck++;
+      if (n.state === "hit" && !n.wrong) out.struckRight++;
+    });
+    return out;
+  } finally {
+    Object.defineProperty(perf, "now", { value: realNow, configurable: true, writable: true });
+  }
+}
+
+export function sumSlideIns(ts: SlideInTally[]): SlideInTally {
+  const out: SlideInTally = { attempts: 0, ok: 0, right: 0, short: { attempts: 0, ok: 0 }, long: { attempts: 0, ok: 0 }, strays: 0, wrong: 0, struck: 0, struckRight: 0, why: {} };
+  for (const x of ts) {
+    for (const k of ["attempts", "ok", "right", "strays", "wrong", "struck", "struckRight"] as const) out[k] += x[k];
+    for (const k of ["short", "long"] as const) (out[k].attempts += x[k].attempts), (out[k].ok += x[k].ok);
+    for (const [k, v] of Object.entries(x.why)) out.why[k] = (out.why[k] ?? 0) + v;
+  }
+  return out;
+}

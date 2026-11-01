@@ -77,7 +77,7 @@ import { metricPlace, phraseArchDb, PLAYER_ACCENT_DB, slurShapeDb, wholeMarks, w
 import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
-import { SLIDE, SLIDE_CUE, slideReach, type SlideMiss } from "./slide-rule.ts";
+import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
 import { slideGesture } from "./slide-sound.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
@@ -318,6 +318,14 @@ interface Held {
   ys?: { ms: number; y: number }[];
   /** D486: the note (onset) whose failed slide it has been told about. */
   slCued?: number;
+  /**
+   * D488, THE SLIDE-IN: landed in a rest, before the coming note's window, away from its row: no note, no
+   * stray; it may slide in to the note (its index and onset, where it landed and when, the furthest it came
+   * toward it, the travel that arrives, where it is, and whether it has arrived early and waits).
+   */
+  slideIn?: { i: number; on: number; y0: number; tLand: number; best: number; need: number; c: Contact; c0: Contact; wait: boolean; inWin: boolean };
+  /** D488: the pitch the slide-in's sound enters from (about halfway), while its note is played. */
+  slideInFrom?: number;
   /** D486: its slide's note went by unplayed while it had hardly set off: arriving soon after is TOO LATE. */
   slLate?: { on: number; curY: number; nextY: number; off: number; until: number; short?: number };
   /** D321, "connect": a glide under way (the sound, from and to MIDI, its start on the audio clock, its length in ms). */
@@ -2432,6 +2440,8 @@ export class ProtoGame {
     if (at.c && this.proto.id === "ladder") for (const [wid, w] of this.held) if (w !== h && w.wait && !w.wait.prep && w.k === h.k && w.side !== h.side) this.strikeWaiting(wid, w, false);
     // D325b: a strong beat's or a dissonance's window leans late (an agogic delay), the next note's giving way.
     const wo = this.leanOpt(h.k);
+    // D488: a landing far from the coming note's row, inside its early window after a rest, may be a slide-in's (it waits; struck from its landing if it does not slide).
+    if (key === undefined && at.c && this.slideInStart(h, at.c, tk, true)) return;
     let i = key !== undefined ? strike(notesK, tk, wo, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
     if (i < 0) i = strike(notesK, tk, wo);
     if (i < 0 && at.c && this.slideTaken(id, h, at.c, tk)) return;
@@ -2487,6 +2497,8 @@ export class ProtoGame {
         return;
       }
     }
+    // D488: in a rest, before the coming note's window and away from its row: a slide-in begins (silent, no stray).
+    if (i < 0 && at.c && this.slideInStart(h, at.c, tk)) return;
     if (i < 0) {
       this.diagNote("STRAY", h.k, tk, at.c, -1);
       if (this.tap) this.tap({ kind: "stray", tick: tk, track: h.k, side: h.side, near: this.nearOf(h.k, tk) });
@@ -2559,6 +2571,8 @@ export class ProtoGame {
       return;
     }
     if (h.passive) return;
+    // D488: a slide-in on its way to its note.
+    if (h.slideIn) return this.slideInMove(id, h, c, t);
     // D278: a note with an ornament to play: the thumb's moves are its notes, not a slide.
     // D319: and while its trill goes on (each leg keeps it going), after the shake was judged.
     if (h.orn && h.open && (!h.orn.done || (h.trill && t <= h.orn.by))) return this.ornamentShake(h, c, t);
@@ -2983,6 +2997,12 @@ export class ProtoGame {
     const n = notes[i];
     if (!n) return;
     for (const h of this.held.values()) {
+      // D488: a slide-in whose note went by: arrived after its window (TOO LATE), or not far enough (FURTHER).
+      if (h.slideIn && h.k === k && h.slideIn.on === n.on) {
+        this.slideMiss(h, h.slideIn.best >= h.slideIn.need ? "late" : "short", n.on);
+        h.slideIn = undefined;
+        continue;
+      }
       if (h.k !== k || h.passive || h.handed || h.wait) continue;
       const st = h.slTry;
       const tried = !!st && st.on === n.on && st.best >= SLIDE.tryShare * st.need;
@@ -3107,6 +3127,17 @@ export class ProtoGame {
   /** D376: each frame, a slide waiting for its note sounds when it opens. */
   private glennFrames(ms: number) {
     for (const [id, h] of this.held) {
+      // D488: a slide-in arrived early sounds when its note opens; one whose note another thumb played is over.
+      if (h.slideIn) {
+        const si = h.slideIn;
+        const n = this.tracks[h.k].notes[si.i];
+        if (!n || n.state !== "pending" || h.passive) h.slideIn = undefined;
+        else if (si.wait && this.now >= this.glennOpen(h.k, n)) this.slideInFire(id, h, si.c, this.now);
+        // Landed inside the window and not arrived by the note's time: struck from its landing, as it always was.
+        // (A still thumb waits half its late window for a slide begun late; one already on its way, until just before it closes.)
+        else if (si.inWin && !si.wait && this.now >= n.on + (si.best < SLIDE.tryShare * si.need ? 0.5 : 0.9) * windowOf(this.tracks[h.k].notes, n, this.leanOpt(h.k)).late) this.slideInPlain(id, h);
+        continue;
+      }
       // D486: on its way when its note went by, and not arrived since: FURTHER.
       const late = h.slLate;
       if (late?.short !== undefined && ms > late.short) (h.slLate = undefined), this.slideMiss(h, "short", late.on);
@@ -3182,6 +3213,96 @@ export class ProtoGame {
     return o && shakeOf(o) ? ornamentMark(o) : "";
   }
 
+  /** D488: the slide-ins played (the tests). */
+  slideIns = 0;
+  /**
+   * D488, THE SLIDE-IN (the owner: "slide TO A NOTE while not starting from a previous note … from downwards or
+   * from upwards to the note that starts the melody"): a touch in a rest of the player's voice (or before its
+   * first note), within SLIDE_IN.leadBeats beats (at least SLIDE_IN.leadMs) of the coming note, before that
+   * note's window opens and at least SLIDE_IN.minRows judging rows from its drawn block, would be a STRAY: it
+   * is a slide-in instead, silent and costing nothing. It sounds the note as a slide does (slideInMove).
+   */
+  private slideInStart(h: Held, c: Contact, tk: number, inWin = false): boolean {
+    if (!MECH.glenn || !MECH.slides || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    const notes = this.tracks[h.k].notes;
+    const i = notes.findIndex((n) => n.state === "pending" && !n.ride);
+    if (i < 0 || chordOf(notes, i).length !== 1 || tk >= notes[i].on) return false;
+    const n = notes[i];
+    // In the rest before it (after whatever sounded last), and not too long before it.
+    const rest = this.restBefore(i, h.k);
+    if (rest <= 0 || tk < n.on - rest) return false;
+    const lead = Math.max(SLIDE_IN.leadMs, (SLIDE_IN.leadBeats * this.beat * 1000) / this.tps);
+    if (this.msOf(tk, n.on) > lead) return false;
+    if ([...this.held.values()].some((o) => o !== h && o.slideIn?.i === i)) return false;
+    const target = this.drawnY(n);
+    // Before the note's window: what would have been a STRAY. Inside it: only a landing well off the note's row.
+    const early = tk >= n.on - windowOf(notes, n, this.leanOpt(h.k)).early;
+    if (early !== inWin) return false;
+    if (Math.abs(c.y - target) < (inWin ? SLIDE_IN.inWindowRows : SLIDE_IN.minRows) * this.ladderRow) return false;
+    const r = slideReach({ y: c.y, curY: c.y, nextY: target, off: 0, row: this.ladderRow });
+    h.slideIn = { i, on: n.on, y0: c.y, tLand: tk, best: 0, need: r.need, c, c0: c, wait: false, inWin };
+    this.diagCounts.SLIDEIN = (this.diagCounts.SLIDEIN ?? 0) + 1;
+    return true;
+  }
+  /** D488: a landing inside the note's window that did not slide in: the note struck from the landing (its time and place), as without D488. */
+  private slideInPlain(id: number, h: Held) {
+    const si = h.slideIn!;
+    const notes = this.tracks[h.k].notes;
+    h.slideIn = undefined;
+    const i = strike(notes, si.tLand, this.leanOpt(h.k), (j) => j === si.i);
+    if (i < 0) return;
+    notes[i].via ??= "touch";
+    this.play(id, h, i, this.verdict(i, { c: si.c0 }, h.k), false, this.dynamicAt(si.c0));
+    // On its way toward the note when struck: its frame the note's block, so the rest of the way is no slide on.
+    if (si.best >= SLIDE.tryShare * si.need) h.slOff = 0;
+  }
+  /** D488: a slide-in's thumb moves: arrived halfway (or on the block) as a slide does, it sounds its note at its time; early, it waits. */
+  private slideInMove(id: number, h: Held, c: Contact, t: number) {
+    const si = h.slideIn!;
+    const notes = this.tracks[h.k].notes;
+    const n = notes[si.i];
+    if (!n || n.state !== "pending") return void (h.slideIn = undefined);
+    const r = slideReach({ y: c.y, curY: si.y0, nextY: this.drawnY(n), off: 0, row: this.ladderRow });
+    si.best = Math.max(si.best, r.travel);
+    si.c = c;
+    if (si.wait) {
+      if (!r.back) return void (r.tooFar && this.slideMiss(h, "far", n.on));
+      si.wait = false;
+    }
+    if (!r.arrived) return;
+    if (r.tooFar) return this.slideMiss(h, "far", n.on);
+    if (t < this.glennOpen(h.k, n)) return void (si.wait = true);
+    this.slideInFire(id, h, c, t);
+  }
+  /** D488: the slide-in sounds its note (judged as a strike at this moment), its gesture entering from where the thumb is, about halfway. */
+  private slideInFire(id: number, h: Held, c: Contact, t: number) {
+    const si = h.slideIn!;
+    const notes = this.tracks[h.k].notes;
+    const n = notes[si.i];
+    if (slideReach({ y: c.y, curY: si.y0, nextY: this.drawnY(n), off: 0, row: this.ladderRow }).tooFar) return this.slideMiss(h, "far", n.on);
+    const i = strike(notes, t, this.leanOpt(h.k), (j) => j === si.i);
+    if (i < 0) {
+      if (t > n.on) this.slideMiss(h, "late", n.on);
+      return;
+    }
+    h.slideIn = undefined;
+    notes[i].via = "slide";
+    // The pitch where the thumb is (its staff step as drawn), or a semitone the approach's side when it is on the note's own row.
+    const way = c.y < si.y0 ? 1 : -1;
+    const at = stepPitch(this.rows!.stepAt(c.y), n);
+    h.midi = at !== n.midi && Math.sign(n.midi - at) === way ? at : n.midi - way;
+    h.slideInFrom = h.midi;
+    h.ay = c.y;
+    h.ax = c.x;
+    this.tap?.({ kind: "slide", tick: t, track: h.k, i, side: h.side, movedPx: si.y0 - c.y });
+    this.slideIns++;
+    this.play(id, h, i, { ok: true }, false, this.dynamicAt(c));
+    h.slideInFrom = undefined;
+    // Its frame for a slide on from here: the note's own block (it sounded halfway; the rest of the way is no slide on),
+    // and its follow-through no shake.
+    h.slOff = 0;
+    h.slFollow = this.evMs() + SLIDE.followMs;
+  }
   /** A held thumb reaches another place: the next note there, if it is there and due. */
   private slideTo(id: number, h: Held, c: Contact, t: number): boolean {
     // D208: only onto the next note still to play, and not before its time is near (half the early window).
@@ -3250,23 +3371,36 @@ export class ProtoGame {
    * arpeggio), the written note then held, all of it from the moment the slide arrived. False: a plain
    * legato (the keyboard's struck note, the glide as before), or a note with its own written ornament.
    */
-  private slideColour(h: Held, i: number, to: number, expr: Play, v: ReturnType<typeof voicing>): boolean {
+  private slideColour(h: Held, i: number, to: number, expr: Play, v: ReturnType<typeof voicing>, fresh = false): boolean {
     const n = this.tracks[h.k].notes[i];
     if (!n || this.ornaments.has(`${this.voiceOf(h.k, i)}:${n.on}`)) return false;
     const g = slideGesture(preset().id, h.midi, to, this.msOf(n.on, n.on + n.dur), scaleOfKey(keyAt(this.f, n.on)), MECH.upThird);
     this.slideGestures.push({ i, name: g.name, from: h.midi, to });
     if (this.slideGestures.length > 64) this.slideGestures.shift();
     if (g.kind === "plain") return false;
+    const t0 = this.chip.ctx.currentTime;
     if (g.kind === "glide") {
+      // D488: a slide-in enters from about halfway: a fresh sound there, gliding on (the silent first half not heard).
+      if (fresh) {
+        const sd = this.touchNote(h.midi, t0, HOLD_MAX, v, { ...expr, legato: false });
+        if (!sd.glide) {
+          sd.stop(t0);
+          return false;
+        }
+        sd.glide(to, g.tau);
+        h.sounds = [sd];
+        h.tone = { v, play: { ...expr, legato: true } };
+        return true;
+      }
       const one = h.sounds.length === 1 ? h.sounds[0] : null;
       if (!one?.glide) return false;
       one.glide(to, g.tau);
       return true;
     }
-    const t0 = this.chip.ctx.currentTime;
     const play: Play = { ...expr, legato: true };
     for (const sd of h.sounds) sd.stop(t0 + 0.02);
-    const graces = g.notes.map((m, k) => this.touchNote(m, t0 + k * g.eachS, g.eachS + 0.012, v, play));
+    // D488: a slide-in's first grace a fresh attack (nothing sounded before it).
+    const graces = g.notes.map((m, k) => this.touchNote(m, t0 + k * g.eachS, g.eachS + 0.012, v, fresh && k === 0 ? { ...expr, legato: false } : play));
     h.sounds = [...graces, this.touchNote(to, t0 + g.notes.length * g.eachS, HOLD_MAX, v, play)];
     for (const [, o] of this.held) {
       if (o === h || o.k !== h.k) continue;
@@ -3396,8 +3530,12 @@ export class ProtoGame {
     if (this.pedalLeave(id, ts)) return;
     const h = this.held.get(id);
     if (!h) return;
+    // D488: a landing inside the window lifted before its note without sliding in: struck from its landing.
+    if (h.slideIn?.inWin && !h.slideIn.wait && this.tracks[h.k].notes[h.slideIn.i]?.state === "pending" && h.slideIn.best < SLIDE.tryShare * h.slideIn.need) this.slideInPlain(id, h);
     this.held.delete(id);
     // D486: lifted on its way to a slide's note (or waiting on it, early): told if the note then goes by unplayed.
+    const si = h.slideIn;
+    if (si && !cancelled && this.tracks[h.k].notes[si.i]?.state === "pending" && (si.wait || si.best >= SLIDE.tryShare * si.need)) this.slLifted.push({ h, k: h.k, on: si.on, why: si.wait ? "early" : "lifted" });
     const st = h.slTry;
     if (MECH.glenn && st && !cancelled && !h.passive && !h.handed && st.best >= SLIDE.tryShare * st.need && this.tracks[h.k].notes[st.i]?.state === "pending") this.slLifted.push({ h, k: h.k, on: st.on, why: h.gWait ? "early" : "lifted" });
     // D376 (MECH.glenn): the note it gave way to, ringing on (over-legato), stops as it lifts.
@@ -3607,7 +3745,7 @@ export class ProtoGame {
     if (MECH.glenn) this.rings.strike(h.k, this.chip.ctx.currentTime);
     if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
-    } else if (slide && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
+    } else if ((slide || h.slideInFrom !== undefined) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
       /* D486: the slide's own gesture, by instrument (slide-sound.ts) */
     } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1) {
       // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms).
