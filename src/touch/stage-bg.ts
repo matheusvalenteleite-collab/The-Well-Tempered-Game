@@ -99,6 +99,18 @@ class Kit {
   now() {
     return this.nowTick;
   }
+  /**
+   * D464 (the owner: the characters "ought not to be tied to the play line. they ought to be wandering by themselves
+   * in the background image, as part of the background. walking along the journey, looking swell"): a character's
+   * place on its own clock (wall seconds), strolling across the scene and back in `period` seconds each way, eased
+   * at the turns; `step` its stride (0/1), `dir` the way it faces. Still (QUIET): standing where it is.
+   */
+  wander(period: number, phase = 0, from = 0.14, to = 0.86): { x: number; dir: number; step: number } {
+    const u = ((this.sec + phase * period) / period) % 2;
+    const leg = u < 1 ? u : 2 - u;
+    const eased = 0.5 - 0.5 * Math.cos(Math.PI * leg);
+    return { x: this.w * (from + (to - from) * eased), dir: u < 1 ? 1 : -1, step: this.still ? 0 : Math.floor(this.sec * 4) % 2 };
+  }
   barTick(b: number) {
     return b * this.barTicks;
   }
@@ -372,8 +384,9 @@ const WORLDS: Record<string, World> = {
       const tt = wrap(k.t * 0.15 + hash(i), 1);
       k.R(k.w * (0.3 + 0.4 * hash(i + 2)) + Math.sin(tt * 9 + i) * 4, k.h * (1 - tt * 0.9), 1, 1, `rgba(255,160,70,${0.7 * (1 - tt)})`);
     }
-    const lx = k.xOf(k.now());
-    const hop = Math.abs(Math.sin(k.bar * Math.PI * 2)) * 8;
+    const imp = k.wander(14, 0.3);
+    const lx = imp.x;
+    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 1.6)) * 8;
     k.figure(lx, k.h * 0.9 - hop, "rgba(150,40,40,1)", 0, 2);
     k.R(lx - 2, k.h * 0.9 - hop - 22, 1, 3, "rgba(150,40,40,1)");
     k.R(lx + 4, k.h * 0.9 - hop - 22, 1, 3, "rgba(150,40,40,1)");
@@ -496,11 +509,12 @@ const WORLDS: Record<string, World> = {
       k.tri(x + 19, k.h - hh, 44, 14, "rgba(80,44,40,1)");
       if (hash(i + 2) > 0.5) k.R(x + 26, k.h - hh - 18, 5, 10, "rgba(80,44,40,1)");
     });
-    const lx = k.xOf(k.now());
-    const hop = Math.abs(Math.sin(k.bar * Math.PI * 4)) * 5;
+    const bird = k.wander(18, 0.6, 0.2, 0.8);
+    const lx = bird.x;
+    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 2.5)) * 5;
     k.R(lx - 3, k.h * 0.6 - hop, 6, 4, "rgba(110,80,50,1)");
-    k.R(lx + 2, k.h * 0.6 - hop - 2, 3, 3, "rgba(110,80,50,1)");
-    k.R(lx - 6, k.h * 0.6 - hop + 1, 3, 1, "rgba(80,60,40,1)");
+    k.R(lx + 2 * bird.dir, k.h * 0.6 - hop - 2, 3, 3, "rgba(110,80,50,1)");
+    k.R(lx - 6 * bird.dir, k.h * 0.6 - hop + 1, 3, 1, "rgba(80,60,40,1)");
   },
   // The Two Horsemen: a plain at dawn, two riders far off; fence posts and dust.
   wtc1f10: (k) => {
@@ -636,9 +650,14 @@ const WORLDS: Record<string, World> = {
       k.R(x - 3, hz - 10, 6, 10, "rgba(20,18,24,1)");
       k.disc(x, hz - 12, 3, "rgba(20,18,24,1)");
     }
-    const lx = k.xOf(k.now());
-    k.R(lx - 4, k.h * 0.7 - 14, 8, 14, "rgba(240,236,224,0.85)");
-    k.R(lx - 1, k.h * 0.7 - 20, 6, 7, "rgba(240,236,224,0.85)");
+    // The knight leaps its L by itself, a leap every two seconds (two squares across, one in depth).
+    const leap = k.still ? 0 : Math.floor(k.sec / 2);
+    const col = ((leap * 2) % 8 + 8) % 8;
+    const row = leap % 2;
+    const lx = k.w * (0.14 + col * 0.1);
+    const ly = k.h * (0.66 + row * 0.12);
+    k.R(lx - 4, ly - 14, 8, 14, "rgba(240,236,224,0.85)");
+    k.R(lx - 1, ly - 20, 6, 7, "rgba(240,236,224,0.85)");
   },
   // The Diary: a girl's room by a summer window; leaves outside move with the bars.
   wtc1f17: (k) => {
@@ -666,9 +685,9 @@ const WORLDS: Record<string, World> = {
       if (hash(i + 5) > 0.4) k.R(x + 30, k.h - hh - 16, 5, 10, "rgba(14,14,28,1)");
       if (hash(i + 9) > 0.7) k.R(x + 10, k.h - hh + 8, 3, 3, "rgba(255,200,110,0.6)");
     });
-    const lx = k.xOf(k.now());
-    k.figure(lx, k.h * 0.62, "rgba(210,210,230,0.85)", Math.floor(k.bar * 2) % 2, 2);
-    k.R(lx + 2, k.h * 0.62 - 15, 5, 1, "rgba(210,210,230,0.85)");
+    const sw = k.wander(40, 0.1);
+    k.figure(sw.x, k.h * 0.62, "rgba(210,210,230,0.85)", sw.step, 2);
+    k.R(sw.dir > 0 ? sw.x + 2 : sw.x - 8, k.h * 0.62 - 15, 5, 1, "rgba(210,210,230,0.85)");
   },
   // The Three Stooges: a silent film in sepia: a brick wall, grain and scratches.
   wtc1f19: (k) => {
@@ -1032,9 +1051,9 @@ const WORLDS: Record<string, World> = {
       }
       void i;
     });
-    const lx = k.xOf(k.now());
-    const hop = Math.abs(Math.sin(k.bar * Math.PI)) * 10;
-    k.figure(lx, k.h * 0.82 - hop, "rgba(200,80,90,0.9)", 0, 2);
+    const girl = k.wander(16, 0.5);
+    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 1.4)) * 10;
+    k.figure(girl.x, k.h * 0.82 - hop, "rgba(200,80,90,0.9)", 0, 2);
   },
   // The Jury: wood panelling, the jury box, the forewoman on her feet.
   wtc2f16: (k) => {
@@ -1082,8 +1101,8 @@ const WORLDS: Record<string, World> = {
     k.hills(0.72, 8, 0.15, 9, "rgba(70,90,70,1)");
     k.along(50, 0.4, (x, i) => roundTree(k, x, k.h * 0.82, 6 + hash(i) * 5, "rgba(40,60,40,1)"), 20);
     k.ground(0.82, "rgba(110,96,70,1)", "rgba(220,200,160,0.2)", 0.8);
-    const lx = k.xOf(k.now());
-    k.figure(lx, k.h * 0.82, "rgba(40,34,30,1)", Math.floor(k.bar * 2) % 2, 2);
+    const wd = k.wander(50, 0.2);
+    k.figure(wd.x, k.h * 0.82, "rgba(40,34,30,1)", wd.step, 2);
   },
   // The Earthquake: a city street splitting; the crack lengthens with each entry.
   wtc2f20: (k) => {
