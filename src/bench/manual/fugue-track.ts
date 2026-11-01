@@ -176,7 +176,7 @@ export const FUGUE_TRACK: ManualLesson[] = [
     aids: [],
     stages: [
       st("listen", i2(1, 1, 2, "Fugue I/2 in C minor, alto alone, bars 1–2: the subject", I2_SUBJECT, { solo: true }), "A fugue begins with one voice alone, playing its tune: the subject. Here is the subject of my fugue in C minor."),
-      st("watch", i2(1, 1, 8, "Fugue I/2 in C minor, bars 1–8: subject, answer, and the bass's entry", I2_ALTO_1_8, { flags: true }), "Then a second voice enters with the same tune, higher: the answer. The first voice goes on against it with a new line: the countersubject. Watch the flags.", { aids: ["point"] }),
+      st("watch", i2(1, 1, 8, "Fugue I/2 in C minor, bars 1–8: subject, answer, and the bass's entry", I2_ALTO_1_8, { flags: true }), "Then a second voice enters with the same tune, higher: the answer. The first voice goes on against it with a new line: the countersubject. Watch the flags.", { aids: [] }),
       st("quiz", i2(1, 1, 8, "Fugue I/2 in C minor, bars 1–8", I2_ALTO_1_8), "Now:", {
         quiz: {
           ask: "What is the answer?",
@@ -206,9 +206,9 @@ export const FUGUE_TRACK: ManualLesson[] = [
     music: "FUGUES 2 AND 1, BOOK I",
     aids: [],
     stages: [
-      st("watch", i2(2, 5, 8, "Fugue I/2 in C minor, bars 5–8: an episode, then the subject in the bass", I2_BASS_5_8, { flags: true }), "Between entries the music wanders, made from pieces of the subject: an episode. Then, in bar 7, the subject returns in the bass.", { aids: ["point"] }),
+      st("watch", i2(2, 5, 8, "Fugue I/2 in C minor, bars 5–8: an episode, then the subject in the bass", I2_BASS_5_8, { flags: true }), "Between entries the music wanders, made from pieces of the subject: an episode. Then, in bar 7, the subject returns in the bass.", { aids: [] }),
       st("spot", i2(2, 5, 8, "Fugue I/2 in C minor, bars 5–8, no flags", I2_BASS_5_8), "Again without flags. Wait through the episode, and tap once, when the subject comes back.", { spot: { need: 1, strays: 1 } }),
-      st("watch", ex(I1, 1, 14, 17, { bpm: 50 }, "Fugue I/1 in C major, bars 14–17: the entries crowding in", { notes: I1_ALTO_14_17, flags: true }), "In a stretto the entries crowd in: a new voice starts the subject before the last one has finished. Watch the flags pile up.", { aids: ["point"] }),
+      st("watch", ex(I1, 1, 14, 17, { bpm: 50 }, "Fugue I/1 in C major, bars 14–17: the entries crowding in", { notes: I1_ALTO_14_17, flags: true }), "In a stretto the entries crowd in: a new voice starts the subject before the last one has finished. Watch the flags pile up.", { aids: [] }),
       st("quiz", ex(I1, 1, 14, 17, { bpm: 50 }, "Fugue I/1 in C major, bars 14–17", { notes: I1_ALTO_14_17 }), "So:", {
         quiz: {
           ask: "What happens in a stretto?",
@@ -237,7 +237,7 @@ export const FUGUE_TRACK: ManualLesson[] = [
     music: "FUGUE 2 IN C MINOR, BARS 1–2",
     aids: ["thumbs"],
     stages: [
-      st("watch", i2(1, 1, 2, "Fugue I/2 in C minor, alto alone, bars 1–2: the subject", I2_SUBJECT, { solo: true, widen: 2, tempo: { bpm: 40 } }), "Watch: a quick turn around C, a jump down, and the turn again.", { aids: ["thumbs", "point"] }),
+      st("watch", i2(1, 1, 2, "Fugue I/2 in C minor, alto alone, bars 1–2: the subject", I2_SUBJECT, { solo: true, widen: 2, tempo: { bpm: 40 } }), "Watch: a quick turn around C, a jump down, and the turn again.", { aids: ["thumbs"] }),
       st("try", i2(1, 1, 2, "Fugue I/2 in C minor, alto alone, bars 1–2: the subject", I2_SUBJECT, { solo: true, widen: 2, wait: true, tempo: { bpm: 40 } }), "Your turn. Each note waits for you.", { aids: ["thumbs", "trace"] }),
       st("play", i2(1, 1, 2, "Fugue I/2 in C minor, alto alone, bars 1–2: the subject", I2_SUBJECT, { solo: true, widen: 2, tempo: { bpm: 40 } }), "In time, slowly. Every voice of the fugue will play this tune after you."),
     ],
@@ -259,7 +259,7 @@ export const FUGUE_TRACK: ManualLesson[] = [
     music: "FUGUE 1 IN C MAJOR, BARS 1–5",
     aids: [],
     stages: [
-      st("watch", ex(I1, 1, 1, 5, { bpm: 50 }, "Fugue I/1 in C major, bars 1–5: four voices enter", { notes: I1_ALTO_1_5, flags: true }), "My first fugue has four voices. Follow the flags: one voice, then another, until all four are playing.", { aids: ["point"] }),
+      st("watch", ex(I1, 1, 1, 5, { bpm: 50 }, "Fugue I/1 in C major, bars 1–5: four voices enter", { notes: I1_ALTO_1_5, flags: true }), "My first fugue has four voices. Follow the flags: one voice, then another, until all four are playing.", { aids: [] }),
       st("quiz", ex(I1, 1, 1, 5, { bpm: 50 }, "Fugue I/1 in C major, bars 1–5", { notes: I1_ALTO_1_5 }), "Before you try alone:", {
         quiz: {
           ask: "What is the best way to follow a fugue?",

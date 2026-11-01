@@ -118,6 +118,8 @@ interface Ctx {
   g: CanvasRenderingContext2D;
   w: number;
   h: number;
+  /** D415: where the box's open part begins (canvas px; the roll runs under the left bar): a tab is held there. */
+  left?: number;
   xOf: (tick: number) => number;
   yOf: (step: number) => number;
   /** D211: a step's row height (smaller in the squeezed margins). */
@@ -268,7 +270,7 @@ export function entryMarks(
     if (variant === "a") {
       const fw = textWidth(word) + 1;
       // Held at the left edge once its note has gone by; never over the tab before it (entry order).
-      const tx = Math.max(2, Math.max(right + 2, Math.min(x0, x1 - fw)));
+      const tx = Math.max((c.left ?? 0) + 2, Math.max(right + 2, Math.min(x0, x1 - fw)));
       // The next entry's tab, where it will stand: a crowded tab shrinks to a chip.
       let room = Infinity;
       for (let q = oi + 1; q < order.length; q++) {
@@ -280,23 +282,38 @@ export function entryMarks(
       if (tx > w) continue;
       const tw = room >= fw ? fw : 4;
       const top = noteTop(tx - 1, tx + tw + 1);
-      const th = Math.min(TAB_H, top - 1);
+      // D415 (the owner on 1.99/2.00: tabs off the top of the box, only their dotted pole seen): a tab with no
+      // room over the notes at the box's top takes the highest free place in its columns lower down, the
+      // pole then to the note from there; with none anywhere, no tab and no pole (never a pole to nothing).
+      let ty = 0;
+      let th = Math.min(TAB_H, top - 1);
+      if (th < TAB_H - 1) {
+        th = 0;
+        for (let y = Math.max(1, top - 1); y + TAB_H + 1 < h; y += 2) {
+          if (!blocked(tx - 1, tx + tw + 1, y - 3, y + TAB_H + 1, -1, s.on)) {
+            ty = y;
+            th = TAB_H;
+            break;
+          }
+        }
+      }
       right = tx + tw;
+      if (th < 2) continue;
       if (pass === "under") {
-        // The leader: dotted, the tab's foot to the first note's top, while that note is in view.
+        // The leader: dotted, the tab to the first note (its top, or its foot where the tab stands under it), while that note is in view.
         if (x0 >= 0 && x0 === tx) {
           const ny = yOf(first.step);
+          const fy = ny + hOf(first.step);
           g.fillStyle = ink;
           g.globalAlpha = a * 0.7;
-          for (let y = th + 1; y < ny - 1; y += 2) g.fillRect(x0, y, 1, 1);
+          if (ty + th < ny) for (let y = ty + th + 1; y < ny - 1; y += 2) g.fillRect(x0, y, 1, 1);
+          else for (let y = fy + 1; y < ty - 1; y += 2) g.fillRect(x0, y, 1, 1);
         }
         continue;
       }
-      if (th < 2) continue;
       g.fillStyle = ink;
-      // Too low for its word (a note close under the top edge): a strip of its colour.
-      g.fillRect(tx, 0, tw, th >= TAB_H - 1 ? th : Math.min(th, 3));
-      if (tw === fw && th >= TAB_H - 1) pixText(g, word, tx + 1, 1, DARK);
+      g.fillRect(tx, ty, tw, th);
+      if (tw === fw) pixText(g, word, tx + 1, ty + 1, DARK);
       continue;
     }
     if (variant === "b") {
