@@ -56,8 +56,8 @@ function italic(g: CanvasRenderingContext2D, text: string, x: number, y: number)
   return cx - x;
 }
 
-/** The levels' ink: the normal zone (the line plays the level) cream; sf/sfz the strong zone's orange (the accent's). */
-export const DYN_STRONG = "#ff8a3d";
+/** The levels' ink: the normal zone (the line plays the level) cream; sf/sfz the accent's gold (D417: was the alto's orange). */
+export const DYN_STRONG = "#ffd23f";
 const WORD_ALPHA = 0.6;
 const DYN_ALPHA = 0.9;
 const PHRASE_ALPHA = 0.38;
@@ -81,7 +81,7 @@ function spriteOf(wd: LineWord, ink: string): HTMLCanvasElement | null {
 /** Under the line, a row's pixels below a step's block (kept inside the box). */
 const under = (k: WholeGeo, step: number, dy: number, hgt: number) => Math.min(k.h - hgt - 1, k.yOf(step) + k.bh + dy);
 
-/** D391: the arcs (slurs, portato slurs, phrases) over the player's line, the lift at a slur's end, the caesuras. */
+/** D391: the arcs (slurs, portato slurs, phrases) over the player's line (D417: the lift tick and the caesura's // gone: the gap's stroke says it). */
 export function paintWholeArcs(k: WholeGeo, box: WholeBox) {
   const { g, w } = k;
   for (let li = 0; li < box.lines.length; li++) {
@@ -106,30 +106,9 @@ export function paintWholeArcs(k: WholeGeo, box: WholeBox) {
         const u = (px - x1) / Math.max(1, x2 - x1);
         g.fillRect(px, Math.round(top - lift * 4 * u * (1 - u)), 1, 1);
       }
-      // The slur's lift (D388: let go at its end): a small tick just past its last note's end.
-      if (!phrase) {
-        const xe = Math.max(x2 + 1, k.xOf(s.bEnd) - 1);
-        if (xe >= 0 && xe < w) {
-          g.globalAlpha = 0.85;
-          g.fillStyle = k.fg;
-          g.fillRect(xe, top - 2, 1, 2);
-          g.fillRect(xe - 1, top, 1, 1);
-        }
-      }
+      // Design studio (D417): no lift tick at a slur's end: the stroke in the gap (MusicBox) is the one sign for a silence there.
     }
-    // A caesura: // over the gap before the note.
-    g.globalAlpha = 0.9;
-    g.fillStyle = k.fg;
-    for (let bi = firstOn(l.breaths, k.t0); bi < l.breaths.length; bi++) {
-      const br = l.breaths[bi];
-      if (br.at > k.t1) break;
-      const x = k.xOf(br.at) + 1;
-      const y = k.yOf(br.step) - 9;
-      for (let r = 0; r < 4; r++) {
-        g.fillRect(x + 3 - r, y + r, 1, 1);
-        g.fillRect(x + 6 - r, y + r, 1, 1);
-      }
-    }
+    // D417: no // for a caesura: its note is DETACHED (whole-marks), and the stroke in the gap is the one sign for a silence.
   }
   g.globalAlpha = 1;
 }

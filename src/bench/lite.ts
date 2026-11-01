@@ -315,7 +315,7 @@ export function recordLiteSlow(piece: string, grade: string, final: number): { b
 
 /** The one-line instruction shown at the start of the first game in each mode (D239: the two grades of a right note). */
 export const LITE_HINT: Record<string, string> = {
-  ladder: "touch either bar at the note's height · hand over from thumb to thumb with no gap",
+  ladder: "move each thumb up or down as the line moves · hand over from thumb to thumb with no gap",
   highway: "tap the note's lane as it lands: full points · another lane the right way (right = up, left = down): half",
   keys: "press the lane's key as the note lands: full points · another key the right way: half · SPACE repeats",
 };

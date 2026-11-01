@@ -26,6 +26,8 @@ export interface LaneNote {
   off?: number;
   /** D374: tick the thumb first let go of a hit note, before or after its end (drawing only: the played shape). */
   up?: number;
+  /** D417 (the audit): struck JOINED from the note before as the judge heard it (held, or within its gap), so the box draws the join the judge counted. */
+  joinedIn?: boolean;
   /** The voice. */
   voice?: number;
   /** EASY: a short note that plays by itself after a hit, and does not score (D166); the testbench: a note too quick to strike (D191 quickRides). */

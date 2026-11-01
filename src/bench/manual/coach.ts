@@ -73,7 +73,7 @@ export const fixRests = (x: LensStats): Said | null => {
 };
 
 export const fixHeld = (x: LensStats): Said | null => {
-  const p = firstWhere(x, (q) => q.word === "SHORT");
+  const p = firstWhere(x, (q) => q.word === "TOO SOON");
   return p ? { text: "Bar {b}: the long note ended early. Stay on it until the next is due.", vars: { b: p.bar } } : null;
 };
 
@@ -139,7 +139,7 @@ export const fixDotted = (x: LensStats): Said => {
 };
 
 export const fixTies = (x: LensStats): Said | null => {
-  const p = firstWhere(x, (q) => q.word === "SHORT" && q.state === "right");
+  const p = firstWhere(x, (q) => q.word === "TOO SOON" && q.state === "right");
   return p ? { text: "Bar {b}: the tied note was let go. Hold it across the beat while the others move.", vars: { b: p.bar } } : { text: "Hold each tied note across the beat while the others move." };
 };
 

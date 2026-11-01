@@ -316,14 +316,15 @@ export function keyName(key: string): string {
 }
 
 const CADENCE_WORDS: Record<TouchCadence["kind"], string> = {
-  perfect: "PERFECT CADENCE",
+  // D417 (the audit): FULL, so the timing verdict PERFECT keeps its one meaning (the British "full close").
+  perfect: "FULL CADENCE",
   imperfect: "IMPERFECT CADENCE",
   deceptive: "DECEPTIVE CADENCE",
   half: "HALF CADENCE",
   phrygian: "PHRYGIAN CADENCE",
 };
 
-/** D189: "PERFECT CADENCE · G MINOR". */
+/** D189: "FULL CADENCE · G MINOR" (D417). */
 export function cadenceName(c: TouchCadence): string {
   return `${CADENCE_WORDS[c.kind]} · ${keyName(c.key)}`;
 }

@@ -34,8 +34,12 @@ export const LEGATO_GAP_SHARE = 0.35;
 export const legatoGapMs = (noteMs: number) => Math.max(relMs(MECH.legatoGapMs, noteMs), MECH.legatoGapShare * noteMs);
 /** The shortest note judged for its length (about an eighth at a moderate tempo). */
 export const HELD_MIN_MS = 250;
-/** The words' colours: legato violet, held and clean greens. */
-export const LEGATO_INK = "#c9a6ff";
+/**
+ * The words' colours: held and clean greens. Design studio (D417, the audit): the legato and reading words (LEGATO,
+ * DETACHED ✓, SHORT ✓, ACCENT ✓) in the held green, "your touch done right", no longer violet beside the fourth
+ * voice's violet (#c78bff).
+ */
+export const LEGATO_INK = "#8fe3b0";
 export const HELD_INK = "#8fe3b0";
 export const CLEAN_INK = "#7fd6e8";
 

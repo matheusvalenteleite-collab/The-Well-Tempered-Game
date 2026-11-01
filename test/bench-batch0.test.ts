@@ -94,7 +94,7 @@ test("D249: a touch the system takes back (pointercancel) stops its note, unjudg
       assert.equal(g.flash, null, "no verdict on its end");
       assert.deepEqual([g.art.held, g.art.heldOf], [0, 0]);
     } else {
-      assert.equal(g.flash?.text, "SHORT");
+      assert.equal(g.flash?.text, "TOO SOON");
       assert.deepEqual([g.art.held, g.art.heldOf], [0, 1]);
     }
   }
