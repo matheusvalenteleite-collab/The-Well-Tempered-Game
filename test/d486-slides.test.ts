@@ -81,7 +81,10 @@ test("D486: each instrument family colours a slide its own way, by interval", ()
   assert.equal(name("stringConsort", 60, 62), "shift");
   assert.equal(name("soloVoices", 60, 67), "portamento");
   assert.equal(name("traverso", 60, 62), "slur");
-  assert.deepEqual(g("traverso", 60, 64), { kind: "notes", name: "appoggiatura", notes: [65], eachS: GESTURE.eachMs / 1000 });
+  // D488: from the side it comes from: rising, the step below; falling, the step above.
+  assert.deepEqual(g("traverso", 60, 64), { kind: "notes", name: "appoggiatura", notes: [62], eachS: GESTURE.eachMs / 1000 });
+  assert.deepEqual(g("traverso", 67, 64), { kind: "notes", name: "appoggiatura", notes: [65], eachS: GESTURE.eachMs / 1000 });
+  assert.deepEqual((g("pianoSampled", 62, 60) as { notes: number[] }).notes, [61]);
   // The chips: a pitch slide on a step, an arpeggio sweep on a leap; Game Boy and tracker their pitch-slide; FM a bend; Moog and Tomita portamento.
   assert.equal(name("chip", 60, 62), "pitch slide");
   assert.equal(name("chip", 60, 67), "arpeggio");

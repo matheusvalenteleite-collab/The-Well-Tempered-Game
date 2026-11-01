@@ -14,11 +14,12 @@
  *  family    · half step            · step                      · third                    · fourth or more
  *  plucked   · Pralltriller (N U N) · Pralltriller (N U N)      · coulé; up: Schleifer     · up: Schleifer; down: plain
  *  piano     · plain legato         · acciaccatura (crushed     · acciaccatura (the        · quick turn into the note
- *            ·                      ·  chromatic lower note)    ·  passing note, crushed)  ·  (U N L N)
+ *            ·                      ·  semitone, approach side) ·  passing note, crushed)  ·  (U N L N)
  *  organ     · plain legato         · plain legato              · coulé (passing note)     · mordent on arrival (N L N)
  *  bowed     · shift glide 25 ms    · shift glide 25 ms         · shift glide 45 ms        · audible shift 70 ms (down 85)
  *  voice     · portamento 35 ms     · portamento 35 ms          · portamento 55 ms         · portamento 80 ms
- *  flute     · slur (8 ms)          · slur (8 ms)               · appoggiatura from above  · appoggiatura from above
+ *  flute     · slur (8 ms)          · slur (8 ms)               · appoggiatura (approach   · appoggiatura (approach
+ *            ·                      ·                           ·  side: below rising)     ·  side)
  *  chip      · pitch slide 20 ms    · pitch slide 20 ms         · arpeggio sweep           · arpeggio sweep
  *  slide8    · pitch slide 20 ms    · pitch slide 30 ms         · pitch slide 45 ms        · pitch slide 60 ms
  *  fm        · bend 30 ms           · bend 30 ms                · bend 45 ms               · bend 60 ms
@@ -29,6 +30,10 @@
  * SID 64, super 16-bit, nocturne 32-bit; slide8: Game Boy, tracker (their pitch-slide effect); fm: Mega FM;
  * synth: Switched-On, Tomita, bleeps and bloops.) A glide's time is its time constant (an exponential
  * approach, Sounding.glide): about two thirds of the way there in that time.
+ *
+ * D488, THE SLIDE-IN (a slide from a silent landing in a rest): the same table, from the pitch where the
+ * thumb is when it has come halfway (proto-game.ts slideInFire): a glide enters there, never from the
+ * landing; the grace notes take the side of the approach (from below or above), the first a fresh attack.
  */
 import { passingNote, stepBelow } from "./drag.ts";
 
@@ -154,7 +159,8 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
   }
   if (fam === "flute") {
     if (ic === "half" || ic === "step" || quick) return { kind: "glide", name: "slur", tau: 0.008 };
-    return fit("appoggiatura", [stepAbove(to, scale)], noteMs);
+    // D488: the appoggiatura from the side it comes from (rising: the step below; falling: above).
+    return fit("appoggiatura", [up ? stepBelow(to, scale) : stepAbove(to, scale)], noteMs);
   }
   if (quick || to === from) return { kind: "plain", name: "legato" };
   const upper = stepAbove(to, scale);
@@ -168,7 +174,8 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
       return up ? schleifer() : { kind: "plain", name: "legato" };
     case "piano":
       if (ic === "half") return { kind: "plain", name: "legato" };
-      if (ic === "step") return fit("acciaccatura", [to - 1], noteMs, 0.6);
+      // D488: crushed from the side it comes from (rising: the semitone below; falling: above).
+      if (ic === "step") return fit("acciaccatura", [up ? to - 1 : to + 1], noteMs, 0.6);
       if (ic === "third") return fit("acciaccatura", [passingNote(from, to, scale)], noteMs, 0.6);
       return fit("turn", [upper, to, lower], noteMs);
     case "organ":

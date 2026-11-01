@@ -643,4 +643,6 @@ export const PT: Record<string, string> = {
   "TOO LATE": "TARDE DEMAIS",
   "LIFTED": "LEVANTOU",
   "LIFT TO TURN": "LEVANTE PARA VOLTAR",
+  // D488: the slide-in's line in HOW TO PLAY.
+  "SLIDE IN: after a rest, put a thumb down above or below the coming note before its time, then slide it in: the note sounds when you are halfway there, entering with your instrument's slide. Putting the thumb down there never counts as a mistake.": "DESLIZAR PARA ENTRAR: depois de uma pausa, apoie um polegar acima ou abaixo da próxima nota antes do tempo dela e deslize até ela: a nota soa quando você chega à metade do caminho, entrando com o deslize do seu instrumento. Apoiar o polegar ali nunca conta como erro.",
 };
