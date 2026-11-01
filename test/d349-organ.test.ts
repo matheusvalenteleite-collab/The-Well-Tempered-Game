@@ -93,7 +93,7 @@ test("D349: the pedal follows the manual's registration; ORGANO PLENO draws the 
   assert.equal(crowned(PATCHES.harpsiSampled, false, null, 64), null, "only the organ");
 });
 
-test("D349: the zone ORGANO PLENO sounds the plenum from the next note; out of it, the registration as it was", async () => {
+test("D482 (was D349's crowning): ORGANO PLENO no longer changes the organ's registration: the same stops before, during and after", async () => {
   setLiveRegistration(O, DEFAULT_REG);
   setPreset(O);
   const chip = new Chip();
@@ -102,11 +102,9 @@ test("D349: the zone ORGANO PLENO sounds the plenum from the next note; out of i
   const vn = c.voiceNote.bind(chip);
   c.voiceNote = ((m: number, a: number, d: number, v: { patch?: unknown }, ...rest: unknown[]) => (asked.push(v.patch === PATCHES.orgPleno ? "pleno" : v.patch === PATCHES.orgPrincipal ? "principal" : "?"), (vn as (...x: unknown[]) => unknown)(m, a, d, v, ...rest))) as never;
   chip.note(64, 1, 0.5, voicing(0, 3));
-  chip.zone("pleno");
+  assert.equal((chip as unknown as { zone?: unknown }).zone, undefined, "no zone reaches the sound");
   chip.note(64, 2, 0.5, voicing(0, 3));
-  chip.zone(null);
-  chip.note(64, 3, 0.5, voicing(0, 3));
-  assert.deepEqual(asked, ["principal", "pleno", "principal"]);
+  assert.deepEqual(asked, ["principal", "principal"]);
 });
 
 test("D349: the organist's ensemble: a manual's voices struck together, the shaped time half the others', the releases even", () => {

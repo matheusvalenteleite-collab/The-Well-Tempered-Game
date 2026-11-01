@@ -7,11 +7,10 @@
  * pressure, width, height, tilt, pointerType; TouchEvent's force and radius where given), and measures
  * each tap: the peak of the motion in a window round the touch (−10…+40 ms), when that peak was
  * available to the page, the phone's posture (lying on a table or held). A guided session (soft ×10,
- * hard ×10) says how well soft and hard taps separate (AUC, means and spreads). PLAY WITH IT turns the
- * peak, normalised per device (the session's calibration, or the recent taps'), into the touch's
- * strength in FREE PLAY (free.ts).
+ * hard ×10) says how well soft and hard taps separate (AUC, means and spreads). The SENSOR tab is gone;
+ * the hub stays for DYNAMICS' strike (dynamics.ts, passage-dyn.ts, free.ts), its taps in the runs' logs.
  *
- * The pure functions (tapPeak, stats, auc, separability, posture, calibrate, strengthFrom) are tested
+ * The pure functions (tapPeak, stats, auc, separability, posture, calibrate) are tested
  * (test/d321-drag-sensor.test.ts); MotionHub is the browser's side.
  */
 
@@ -175,11 +174,6 @@ export function recentCalibration(peaks: readonly number[]): Calibration | null 
   const hi = q(0.8);
   return hi > lo * 1.15 ? { soft: lo, hard: hi, from: "recent" } : null;
 }
-/** A peak as strength (0 soft … 1 strong; the calibration's soft taps at 0.25, hard at 0.75). */
-export function strengthFrom(peak: number, cal: Calibration): number {
-  const k = (peak - cal.soft) / (cal.hard - cal.soft);
-  return Math.max(0, Math.min(1, 0.25 + 0.5 * k));
-}
 
 // ---- The browser's side ----
 
@@ -237,16 +231,12 @@ export class MotionHub extends MotionReader {
       this.raw.push(this.samples.filter((s) => s.t >= t + BASE_FROM_MS && s.t <= t + 150).map((s) => [r2(s.t - t), r2(s.rt - t), r2(s.gx), r2(s.gy), r2(s.gz), r2(s.lx), r2(s.ly), r2(s.lz), r2(s.ra), r2(s.rb), r2(s.rg)]));
       if (this.taps.length > 400) (this.taps.splice(0, 100), this.raw.splice(0, 100));
       done?.(rec);
-      this.onChange?.();
     });
   }
 
   /** The values of one measure (the motion's peak, or the contact's size at landing) of the taps with a label. */
   valuesOf(label: TapLabel, src: SenseSource = "motion"): number[] {
     return this.taps.filter((x) => x.label === label).map((x) => valueOf(x, src)).filter((v): v is number => v !== null);
-  }
-  peaksOf(label: TapLabel): number[] {
-    return this.valuesOf(label, "motion");
   }
   separation(src: SenseSource = "motion"): Separability | null {
     const s = this.valuesOf("soft", src);
@@ -301,11 +291,6 @@ export class MotionHub extends MotionReader {
     const c = this.contacts.get(e.pointerId);
     if (c && info) info.heldMs = Math.round(stampOf(e.timeStamp, performance.now()) - info.t);
     this.contacts.delete(e.pointerId);
-  }
-  clear() {
-    this.taps = [];
-    this.raw = [];
-    this.onChange?.();
   }
 
   export(): SensorExport {

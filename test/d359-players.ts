@@ -30,12 +30,15 @@ export interface PlayerStyle {
   /** D379: note k reached by sliding the thumb that holds the note before (no new touch). */
   slideAt?: (k: number) => boolean;
   seed?: number;
+  /** D440: the crowd can end the run (the game's own rule; lessons play with it off). */
+  fail?: boolean;
 }
 
 export function playerRun(m: Material, s: PlayerStyle = {}, demo?: DemoStyle) {
   const clock = { t: 0 };
   const { g } = gameFor(m, clock, demo);
   g.o.demo = false;
+  if (s.fail) g.o.fail = true;
   g.wall = () => 0;
   let seed = s.seed ?? 5;
   const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;

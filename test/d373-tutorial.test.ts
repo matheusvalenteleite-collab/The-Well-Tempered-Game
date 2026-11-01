@@ -65,7 +65,10 @@ test("D373: Parts 1–3, fifteen lessons on Inventions 1, 4, 8 and 12; WATCH →
   assert.deepEqual(COURSE.filter((l) => l.sign).map((l) => [l.id, l.sign]), [["3.1", "held"], ["3.2", "short"], ["3.3", "joined"], ["3.5", "accent"]]);
   // No jargon in his words (the report's word list).
   const words = COURSE.flatMap((l) => [l.aim, ...l.before, ...l.after, ...l.again, ...l.stages.map((s) => s.say ?? "")]).join(" ");
-  assert.doesNotMatch(words, /quaver|semiquaver|legato|staccato|articulation|stretto|mordent|appoggiatura|cadence|onset|pulse|lens|\bD3\d\d/i);
+  assert.doesNotMatch(words, /quaver|semiquaver|staccato|articulation|stretto|mordent|appoggiatura|cadence|onset|pulse|lens|\bD3\d\d/i);
+  // D480: LEGATO is the play screen's word (D419), allowed in his words, glossed in the lesson that uses it.
+  const glossed = (l: { aim: string; before: string[]; after: string[]; again: string[]; stages: { say?: string }[] }) => [l.aim, ...l.before, ...l.after, ...l.again, ...l.stages.map((s) => s.say ?? "")].join(" ");
+  for (const l of COURSE) if (/legato/i.test(glossed(l))) assert.match(glossed(l), /no gap|as (this one|the other) lifts/i, l.id);
   assert.equal(STEP_WORD.watch, "WATCH");
 });
 

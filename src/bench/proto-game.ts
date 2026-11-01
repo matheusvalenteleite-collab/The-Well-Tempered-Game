@@ -78,6 +78,7 @@ import { metricPlace, phraseArchDb, PLAYER_ACCENT_DB, slurShapeDb, wholeMarks, w
 import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
+import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -358,8 +359,9 @@ export interface Mark {
 
 /**
  * D239: a right note on a HIGHWAY (the computer's keys, the phone's lanes) in DIRECTION or LEAPS: in
- * its planned lane ("exact": full points, a chime) or only the right way from the last ("relative":
- * half the points, the note duller); none where the lane plays no part (TIMING, a free note).
+ * its planned lane ("exact": full points) or only the right way from the last ("relative": half the
+ * points; D293: sounding alike; D482: no chime on the exact, no sound follows a grade); none where the
+ * lane plays no part (TIMING, a free note).
  */
 export type LaneGrade = "exact" | "relative";
 /** D239: a relative note's share of the points, and its sound's darkening (Play.bright). */
@@ -651,7 +653,24 @@ export class ProtoGame {
     const sweepKeys = new Set<string>();
     // D261: the player's own voice's notes given to the others (each thumb only its top or bass notes).
     const movedOut = new Set<string>();
+    // D442, THE REVEAL: on a phone, the prelude's plan picks the player's notes from both hands, bar by bar.
+    const rv = !line && !handsOn && f.kind === "prelude" && arc?.reveal ? reveal(f, arc.reveal) : null;
     this.tracks = line ? this.lineTracks(line, msBetween) : voiceList.map((v) => {
+      if (rv && v === 0) {
+        const inSpan = (on: number) => on >= from && (o.until === undefined || on < o.until);
+        const mine0 = rv.mine.get(0)!.filter((n) => inSpan(n[0]));
+        const mine1 = rv.mine.get(1)!.filter((n) => inSpan(n[0]));
+        const notes = [...laneNotes(mine0, this.beat, 0), ...laneNotes(mine1, this.beat, 1)].sort((a, b) => a.on - b.on || b.midi - a.midi);
+        for (const n of notes) n.ride = false;
+        const taken = new Set(mine0.map((n) => lineKey(0, n[0], n[2])));
+        const slid = new Set([...rv.traces.values()].flat().map((q) => lineKey(0, q.on, q.midi)));
+        // The right hand's other notes are the game's (the slid ones the slide's, or sounding by themselves on time); the left's, but those taken and the pedals' repeats.
+        for (const [on, , midi] of f.voices[0]) if (!taken.has(lineKey(0, on, midi)) && !slid.has(lineKey(0, on, midi))) movedOut.add(lineKey(0, on, midi));
+        for (const [on, , midi] of mine1) sweepKeys.add(lineKey(1, on, midi));
+        for (const k of rv.drop) sweepKeys.add(k);
+        const traces = new Map([...rv.traces].filter(([on]) => inSpan(on)));
+        return { voice: 0, notes, moves: moves(notes, this.beat), traces: traces.size ? traces : undefined };
+      }
       const src = take && v === 0 ? [...f.voices[0].filter(([on]) => !inTake(on)), ...f.voices[take.voice].filter(([on]) => inTake(on))].sort((a, b) => a[0] - b[0] || b[2] - a[2]) : f.voices[v];
       const notes = laneNotes(
         src.filter(([on]) => on >= from && (o.until === undefined || on < o.until) && (!handsOn || v !== 1 || lhMine(on))),
@@ -1143,7 +1162,7 @@ export class ProtoGame {
       }
       // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, 0);
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound);
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
@@ -3698,14 +3717,11 @@ export class ProtoGame {
     if (this.streak % STEP_NOTES === 0 && this.mult < 4) this.mult++;
     if (this.streak === FUOCO_NOTES) this.banner = { text: "CON FUOCO!", at };
     h.pts = (perfect ? 2 : 1) * this.mult * (this.pleno ? 2 : 1);
-    // D239: the planned lane scores in full, with a small bright chime over Bach's note; the right
-    // direction in another lane half (the streak and the multiplier kept).
+    // D239: the planned lane scores in full; the right direction in another lane half (the streak and
+    // the multiplier kept). D482: its chime gone (a sound added for a right grade is a loudness tied to right).
     if (v.lane === "relative") (h.pts *= RELATIVE_SHARE), this.laneTally.relative++;
     if (grace === "agogic") this.agogicDue = { k: h.k, refund: h.pts / 2 };
-    if (v.lane === "exact") {
-      this.laneTally.exact++;
-      if (!this.bt) this.chip.chime?.(pitches[0], this.chip.ctx.currentTime, levelOf(d));
-    }
+    if (v.lane === "exact") this.laneTally.exact++;
     h.open = true;
     // D218: a note joined in the score, struck legato: counted (the lessons, the LEGATO CHAIN feat, the
     // slur drawn), along an unbroken chain. D325: it no longer scores more (intention.ts, below).
@@ -4786,7 +4802,6 @@ export class ProtoGame {
   private band: { sd: Sounding; until: number }[] = [];
 
   stopAll() {
-    this.chip.zone?.(null);
     // D262: no line left to play on.
     this.loose = [];
     // D252: no coupling left on for the next game; the pedals' bourdons stopped.

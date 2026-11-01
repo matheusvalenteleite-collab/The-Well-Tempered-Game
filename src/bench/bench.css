@@ -443,15 +443,15 @@
 .tb-fp-l2 { animation: tb-fp-x2 4s steps(1) infinite; }
 .tb-fp-l3 { animation: tb-fp-x3 4s steps(1) infinite; }
 @keyframes tb-fp-play { from { transform: translateX(0); } to { transform: translateX(240px); } }
-@keyframes tb-fp-1 { 0% { opacity: 0.35; } 3% { opacity: 1; } 33% { opacity: 0.35; } }
-@keyframes tb-fp-2 { 0% { opacity: 0.35; } 28% { opacity: 1; } 58% { opacity: 0.35; } }
-@keyframes tb-fp-3 { 0% { opacity: 0.35; } 53% { opacity: 1; } 83% { opacity: 0.35; } }
+@keyframes tb-fp-1 { 0% { opacity: 0.35; } 3% { opacity: 1; } 28% { opacity: 0.35; } }
+@keyframes tb-fp-2 { 0% { opacity: 0.35; } 28% { opacity: 1; } 53% { opacity: 0.35; } }
+@keyframes tb-fp-3 { 0% { opacity: 0.35; } 53% { opacity: 1; } 78% { opacity: 0.35; } }
 @keyframes tb-fp-4 { 0% { opacity: 0.35; } 78% { opacity: 1; } 98% { opacity: 0.35; } }
 .tb-fp-thumb.tb-fp-t1 { animation-name: tb-fp-th1; } .tb-fp-thumb.tb-fp-t2 { animation-name: tb-fp-th2; }
 .tb-fp-thumb.tb-fp-t3 { animation-name: tb-fp-th3; } .tb-fp-thumb.tb-fp-t4 { animation-name: tb-fp-th4; }
-@keyframes tb-fp-th1 { 0% { opacity: 0; } 3% { opacity: 0.85; } 33% { opacity: 0; } }
-@keyframes tb-fp-th2 { 0% { opacity: 0; } 28% { opacity: 0.85; } 58% { opacity: 0; } }
-@keyframes tb-fp-th3 { 0% { opacity: 0; } 53% { opacity: 0.85; } 83% { opacity: 0; } }
+@keyframes tb-fp-th1 { 0% { opacity: 0; } 3% { opacity: 0.85; } 28% { opacity: 0; } }
+@keyframes tb-fp-th2 { 0% { opacity: 0; } 28% { opacity: 0.85; } 53% { opacity: 0; } }
+@keyframes tb-fp-th3 { 0% { opacity: 0; } 53% { opacity: 0.85; } 78% { opacity: 0; } }
 @keyframes tb-fp-th4 { 0% { opacity: 0; } 78% { opacity: 0.85; } 98% { opacity: 0; } }
 @keyframes tb-fp-from2 { 0% { opacity: 0; } 28% { opacity: 1; } }
 @keyframes tb-fp-from3 { 0% { opacity: 0; } 53% { opacity: 1; } }
@@ -842,6 +842,12 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 .tb-side-legend-whole { top: 30%; font-size: 5px; line-height: 1.35; }
 .tb-side-legend-whole p { margin-bottom: 2px; }
 .tb-side-gloss { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); bottom: 10px; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.6); pointer-events: none; }
+/* D483: with the organ's stops in the bars' feet, the legend and the word end above them (they ran under
+   the stops at 375 px): bounded, the word's line kept free below the legend; clipped, never scrolled (it takes no touch). */
+.tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 10px); overflow: hidden; }
+.tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 30px); line-height: 1.25; }
+.tb-has-side-stops .tb-side-legend-whole p { margin-bottom: 1px; }
+.tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 6px); }
 .tb-side-gloss:empty { display: none; }
 html.tb-paper .tb-side-gloss { color: #2a2216; background: rgba(246, 245, 241, 0.92); }
 html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 0.92); box-shadow: 0 0 0 1px #c9c2b4; }
@@ -1165,3 +1171,32 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 @keyframes tb-spot-pulse { from { border-color: rgba(243, 215, 138, 0.55); } to { border-color: #f3d78a; } }
 .tb-bach.tb-tour-top { top: calc(env(safe-area-inset-top, 0px) + 34px); bottom: auto; }
 .tb-bach.tb-tour-mid { top: 28%; bottom: auto; }
+
+/* D441: GLENN'S FILM (the Glenn pilot): over the whole screen; the box or Glenn at the piano; the scrub bar, its second chapter marked. */
+.glenn-film { position: fixed; inset: 0; z-index: 40; display: grid; grid-template-rows: auto 1fr auto; background: #0b0d18; color: var(--tg-fg, #ecead9); padding: env(safe-area-inset-top, 0px) max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)); }
+.glenn-film-head { display: flex; align-items: center; gap: 12px; padding: 6px 4px; font-family: var(--tg-pixel); font-size: 8px; letter-spacing: 0.08em; color: var(--tg-gold, #e8c94a); }
+.glenn-film-head span { color: var(--tg-muted, #8e8ca8); flex: 1; }
+.glenn-film-head button { background: transparent; color: var(--tg-fg, #ecead9); border: 2px solid var(--tg-muted, #8e8ca8); font-size: 14px; padding: 2px 10px; cursor: pointer; }
+.glenn-film-stage { position: relative; min-height: 0; border: 2px solid #2a3360; background: #0e1428; overflow: hidden; }
+.glenn-film-box { position: absolute; inset: 0; width: 100%; height: 100%; }
+.glenn-film-talk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 18px; padding: 12px 24px; }
+.glenn-film-talk p { margin: 0; max-width: 34em; font: 17px/1.5 Georgia, "Times New Roman", serif; }
+.glenn-film-scene { height: 78%; max-height: 220px; width: auto; flex: none; image-rendering: pixelated; }
+.glenn-film-cameo p small { display: block; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-gold, #e8c94a); margin-bottom: 4px; }
+.glenn-film-cameo .tb-bach-face { width: 96px; height: 108px; }
+.glenn-film-chapter p { font-family: var(--tg-pixel); font-size: 16px; color: var(--tg-gold, #e8c94a); letter-spacing: 0.1em; }
+.glenn-film-sub { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: min(86%, 46em); display: flex; gap: 10px; align-items: center; padding: 6px 10px; background: rgba(12, 10, 16, 0.86); border: 2px solid var(--tg-gold, #e8c94a); }
+.glenn-film-sub .tb-bach-face { width: 36px; height: 40px; }
+.glenn-film-sub p { margin: 0; font: 14px/1.4 Georgia, serif; }
+.glenn-film-gametalk .glenn-film-sub { position: static; transform: none; }
+.glenn-film-mock { position: absolute; inset: 0; display: grid; grid-template-columns: 13% 1fr 13%; opacity: 0.6; }
+.glenn-film-mock i { background: #24181c; }
+.glenn-film-mock span { border-left: 2px solid #e8c94a; margin-left: 17%; }
+.glenn-film-bar { display: flex; align-items: center; gap: 10px; padding: 6px 4px; }
+.glenn-film-btn { font-family: var(--tg-pixel); font-size: 9px; padding: 8px 12px; background: var(--tg-gold, #e8c94a); color: #12101a; border: 0; cursor: pointer; }
+.glenn-film-jump { background: transparent; color: var(--tg-fg, #ecead9); border: 2px solid #6fb3ff; }
+.glenn-film-time { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-muted, #8e8ca8); min-width: 7.5em; text-align: right; }
+.glenn-film-scrub { flex: 1; appearance: none; height: 10px; background: linear-gradient(90deg, #e8c94a 0 var(--at), #3a4170 var(--at) var(--ch2), #2f5d8f var(--ch2) 100%); border-radius: 0; cursor: pointer; }
+.glenn-film-scrub::-webkit-slider-thumb { appearance: none; width: 14px; height: 18px; background: #f2eee0; border: 2px solid #12101a; }
+.glenn-film-scrub::-moz-range-thumb { width: 14px; height: 18px; background: #f2eee0; border: 2px solid #12101a; border-radius: 0; }
+.sel-learn { margin-top: 6px; background: transparent; color: var(--tg-fg); border: 2px solid #6fb3ff; }

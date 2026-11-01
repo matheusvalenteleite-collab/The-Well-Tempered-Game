@@ -1,0 +1,144 @@
+<title>Book I as a Path</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; the stage path as a numbered table, the only structured element. */
+:root {
+  --bg: #f6f5f1; --fg: #1d1c22; --muted: #5d5a66; --rule: #d9d6cf; --gold: #9a6d12; --chip: #ece7dc;
+  --display: "Fraunces", Georgia, serif; --body: "Source Sans 3", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16151b; --fg: #ebe8e1; --muted: #a29fac; --rule: #34323c; --gold: #e3b34f; --chip: #24222b; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #16151b; --fg: #ebe8e1; --muted: #a29fac; --rule: #34323c; --gold: #e3b34f; --chip: #24222b; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 400 1.02rem/1.55 var(--body); }
+main { max-width: 46rem; margin: 0 auto; padding-block: 2.2rem 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 1.6rem; }
+h1, h2 { font-family: var(--display); font-weight: 650; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; line-height: 1.15; }
+h2 { font-size: 1.25rem; color: var(--gold); }
+section { display: grid; gap: .55rem; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.2rem; display: grid; gap: .3rem; }
+.meta { font: 500 .78rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.verdict { border-left: 3px solid var(--gold); padding-left: .9rem; }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; vertical-align: top; padding: .42rem .5rem; border-bottom: 1px solid var(--rule); }
+th { font: 500 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.n { font: 500 .85rem var(--mono); color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.f { white-space: nowrap; font-weight: 600; }
+tr.band td { background: var(--chip); font: 500 .74rem var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.grades { display: flex; flex-wrap: wrap; gap: .5rem; }
+.g { background: var(--chip); border-radius: 4px; padding: .3rem .6rem; font-size: .9rem; }
+.g b { font-family: var(--mono); color: var(--gold); margin-right: .35rem; }
+.ask li b { color: var(--gold); }
+small { color: var(--muted); }
+</style>
+<main>
+<header style="display:grid;gap:.4rem">
+  <p class="meta">Progression proposal · Luigi, with Mario and Glenn · 1 Nov 2026</p>
+  <h1>Book I as a path, one fugue at a time</h1>
+</header>
+
+<section class="verdict">
+  <p><b>Verdict.</b> The idea works and suits this game better than the present free grid: each fugue really does have a different main difficulty, so the order can teach. We disagree on three points: a strictly single-file path for all 24 fugues (one hard fugue would block everything), throwing the old tutorial away (it should be cut up and reused), and starting at I/2 (it has more of Busoni's signs than any other early fugue).</p>
+</section>
+
+<section>
+  <h2>How it would feel</h2>
+  <ul>
+    <li><b>First launch:</b> a two-minute <b>Basics</b> with Bach as host: the screen, the two strips, the gold line, how to touch. This is the current lessons 1.1–1.4 plus the 6.8 tour, nothing new to write.</li>
+    <li><b>The grid</b> shows all 24 fugues in Bach's order. One is lit, the rest greyed out with a lock and their stage number.</li>
+    <li><b>The first ▶ PLAY</b> on a new stage opens that fugue's tutorial: Bach welcomes you, teaches the one new thing on <i>this fugue's own bars</i>, and ends with you playing its opening at full speed. After that, ▶ PLAY goes straight to the fugue and <b>REDO TUTORIAL</b> appears in the right column.</li>
+    <li><b>Finishing</b> the fugue with any grade opens the next stage.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>The path through Book I</h2>
+  <p>16 stages. Stages 1–7 open one fugue each. From stage 8 on, each stage opens two: the first one carries the tutorial, the second uses the same skill without a tutorial, and finishing <i>either</i> opens the next stage. This way no single fugue can block the path. The order comes from measured difficulty (stars, notes per second, length) and from what Busoni marks in the voice a newcomer plays.</p>
+  <div class="wrap">
+  <table>
+    <thead><tr><th>Stage</th><th>Fugue</th><th>What it teaches</th></tr></thead>
+    <tbody>
+      <tr class="band"><td colspan="3">One at a time</td></tr>
+      <tr><td class="n">1</td><td class="f">I/1 C major</td><td>Playing one voice with two thumbs, at a gentle pace. Bach: who he is, and what a fugue is, the tune that comes back (24 times here). Two minutes, few signs.</td></tr>
+      <tr><td class="n">2</td><td class="f">I/23 B major</td><td>Listening first: the game plays the subject, and you answer it. Almost no signs.</td></tr>
+      <tr><td class="n">3</td><td class="f">I/22 B♭ minor</td><td>Holding long notes, and following your line through five voices.</td></tr>
+      <tr><td class="n">4</td><td class="f">I/18 G♯ minor</td><td>Busoni's first sign: short notes.</td></tr>
+      <tr><td class="n">5</td><td class="f">I/14 F♯ minor</td><td>Joined against detached (Busoni's portato), in a lilting 6/4.</td></tr>
+      <tr><td class="n">6</td><td class="f">I/6 D minor</td><td>The first ornaments.</td></tr>
+      <tr><td class="n">7</td><td class="f">I/16 G minor</td><td>Slurs: two or three notes as one gesture.</td></tr>
+      <tr class="band"><td colspan="3">Two at a time, either one opens the next</td></tr>
+      <tr><td class="n">8</td><td class="f">I/12 F minor · I/8 E♭ minor</td><td>Stamina: four to five minutes. The chromatic subject, and a subject that comes back upside down and slowed down.</td></tr>
+      <tr><td class="n">9</td><td class="f">I/4 C♯ minor · I/20 A minor</td><td>The big fugues: more entries, and I/4's three subjects.</td></tr>
+      <tr><td class="n">10</td><td class="f">I/5 D major · I/17 A♭ major</td><td>New rhythm (I/5's dotted, overture-like figures). Playing the bass (I/17).</td></tr>
+      <tr><td class="n">11</td><td class="f">I/13 F♯ major · I/11 F major</td><td>Ornaments in earnest. A quick dance in 3/8.</td></tr>
+      <tr><td class="n">12</td><td class="f">I/2 C minor · I/21 B♭ major</td><td>All the signs at once: short, portato and slurs.</td></tr>
+      <tr><td class="n">13</td><td class="f">I/7 E♭ major · I/15 G major</td><td>Speed starts to matter.</td></tr>
+      <tr><td class="n">14</td><td class="f">I/3 C♯ major · I/19 A major</td><td>Fast in compound time. Bach: why "well-tempered" (C♯ major is the case in point).</td></tr>
+      <tr><td class="n">15</td><td class="f">I/9 E major · I/10 E minor</td><td>The fastest: I/10, the only two-voice fugue, at about five notes a second.</td></tr>
+      <tr><td class="n">16</td><td class="f">I/24 B minor</td><td>The boss, as today: almost seven minutes, chromatic, slurred throughout.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><small>Glenn and Mario's caveat: stages 1–7 are fairly sure. The order inside 9–15 is our best guess from the measurements, and João should settle it. Book II still opens when all of Book I is finished (D382). Since either fugue of a pair opens the next stage, a player can reach I/24 without finishing all 24 fugues, but Book II still needs all 24.</small></p>
+</section>
+
+<section>
+  <h2>What happens to the current tutorial</h2>
+  <ul>
+    <li><b>Basics</b> = lessons 1.1–1.4 and the 6.8 tour.</li>
+    <li>The other Parts (about 30 lessons on the Inventions) are <b>re-cut onto the stage fugues</b>: each stage tutorial takes the lessons for its skill and replays them on that fugue's bars. For example, 3.2 SHORT goes to stage 4 on I/18, and 6.1 THE QUICK SHAKE goes to stage 6 on I/6. The engine stays (WATCH · TRY · PLAY, Bach's bubbles, the screen dressed piece by piece), so this is mostly new material, not new code.</li>
+    <li>The fugue track's talks (who was Bach, what a fugue is, stretto, well-tempered) become Bach's words at the stages listed above.</li>
+    <li>The TUTORIAL button becomes <b>LESSONS</b>: every lesson you have already met, for review. There is no standalone course any more.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Grades</h2>
+  <div class="grades">
+    <span class="g"><b>A+</b>95% and every entry caught</span>
+    <span class="g"><b>A</b>90%</span>
+    <span class="g"><b>B</b>80%</span>
+    <span class="g"><b>C</b>70%</span>
+    <span class="g"><b>D</b>60%</span>
+    <span class="g"><b>E</b>finished, under 60%</span>
+  </div>
+  <p>Today's S becomes A+, and today's D splits into D and E. E is "you made it to the end", which is the grade a first try should usually get. Changing the sound and the tempo still needs A or A+, as now. Grades already earned carry over (S shows as A+).</p>
+</section>
+
+<section>
+  <h2>What "realistically finishable" means</h2>
+  <p>A run ends when the crowd leaves, and by the game's arithmetic it stays at about two notes right in three. So each stage tutorial ends with the fugue's opening at full speed, and you pass it at that same rate. If you pass the tutorial, you can survive the fugue. <b>A safety valve:</b> after two failed runs on a stage fugue, SLOW is offered (today it needs an A first). A SLOW finish opens the next stage; its grade is kept apart, as now.</p>
+</section>
+
+<section>
+  <h2>Risks</h2>
+  <ul>
+    <li><b>Content load:</b> 15 stage tutorials. So we build stages 1–4 first and test them before writing the rest.</li>
+    <li><b>The grey grid looks random</b>, because the path jumps around Bach's numbering. The stage numbers and the NEXT ribbon fix this. The other option is to sort the grid by stage, but then it is no longer the book.</li>
+    <li><b>Existing players:</b> anyone who has already finished fugues gets every stage up to those. The passphrase still opens everything.</li>
+    <li><b>Default tempo may still be too fast for a newcomer at stage 1</b>, even after the tutorial. João's test decides this, and the SLOW valve covers it.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Testing with João</h2>
+  <ol>
+    <li>Fresh phone, no help, stages 1–4 (the first build).</li>
+    <li>For each stage we log: tries to finish, grade, minutes, where the crowd left, and what he says he didn't understand.</li>
+    <li>Targets: each stage finished in three tries or fewer, the first grade D or E, a C on replay. A stage that takes more than five tries gets moved or re-taught.</li>
+    <li>Then stages 5–7, then the pairs.</li>
+  </ol>
+</section>
+
+<section class="ask">
+  <h2>For you to choose</h2>
+  <ol>
+    <li><b>Stage 1:</b> I/1 (our choice) or something else.</li>
+    <li><b>Path shape:</b> single file to stage 7, then pairs (our choice), or single file for all 24.</li>
+    <li><b>Old tutorial:</b> re-cut into the stages plus a LESSONS shelf (our choice), or kept as an optional course.</li>
+    <li><b>SLOW valve</b> after two failed runs: yes or no.</li>
+    <li><b>Grade cut-offs</b> as above, or different.</li>
+  </ol>
+</section>
+</main>

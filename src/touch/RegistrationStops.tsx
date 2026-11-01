@@ -83,6 +83,8 @@ export const roomLabel = (r: RoomId) => tr(r === "dry" ? "DRY" : r === "church" 
 const HIDE_BELOW_PX = 360;
 /** D420: how long a piston glows after its press (ms). */
 const GLOW_MS = 450;
+/** D483 on the pistons: the feet's height in the old stops' rows (44 px and a 3 px gap): one 58 px row, 2 px up. */
+const PISTON_ROWS = Math.round(((58 + 2) / 47) * 100) / 100;
 
 /** D420: the defaults' names (the organ's flutes, principals, plenum; the harpsichord's buff, 8′, full). */
 const DEFAULT_NAMES: Readonly<Record<string, readonly string[]>> = {
@@ -207,6 +209,9 @@ export function RegistrationStops({ presetId, patch, piece, voice = 0, barNow, s
     return (
       <>
         <span ref={wrap} hidden />
+        {/* D483 on the pistons: the side legend and the word in force end above the right foot (bench.css
+            counts the foot in the old stops' 47 px rows; the pistons' one row is 58 px, 2 px off the foot). */}
+        <style>{`.tb-has-side-stops { --tb-stop-rows: ${PISTON_ROWS}; --tb-stop-rows-right: ${PISTON_ROWS}; }`}</style>
         {(["left", "right"] as const).map((s) => (
           <span key={s} className={`${cls} tb-stops-side tb-stops-${s}`} id={`stops-${s}`} role="group" aria-label={tr("PISTONS")}>
             {row(s)}

@@ -338,19 +338,19 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
   keys: {
     basics: [
       "Notes come down the road. Press the key of their lane (A S D F · G · H J K L) as they reach the line.",
-      "THE LANE'S KEY: full points, a bright chime and LANE ✓.",
+      "THE LANE'S KEY: full points and LANE ✓.",
       "The wrong way or off the beat: a miss. SPACE plays the same note again. Miss too many and the crowd leaves.",
     ],
-    intermediate: ["ANOTHER KEY THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept."],
+    intermediate: ["ANOTHER KEY THE RIGHT WAY (further right as the tune rises, left as it falls): half the points and ~. The note sounds the same; your streak is kept."],
     advanced: [],
   },
   highway: {
     basics: [
       "Notes come down five lanes. Tap the note's lane as it reaches the line.",
-      "THE NOTE'S LANE: full points, a bright chime and LANE ✓.",
+      "THE NOTE'S LANE: full points and LANE ✓.",
       "The wrong way or off the beat: a miss. Miss too many and the crowd leaves.",
     ],
-    intermediate: ["ANOTHER LANE THE RIGHT WAY (further right as the tune rises, left as it falls): half the points, a duller note and ~. Your streak is kept."],
+    intermediate: ["ANOTHER LANE THE RIGHT WAY (further right as the tune rises, left as it falls): half the points and ~. The note sounds the same; your streak is kept."],
     advanced: [],
   },
   ladder: {
@@ -359,7 +359,7 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       "Touch either bar, anywhere along it, as the note reaches the line: higher as the tune rises, lower as it falls.",
       // D344: the game's own words for a note's grades and its end (proto-game.ts: PERFECT, GOOD, HELD, SHORT, REST!).
       "Your thumb's landing is the note: on the line, PERFECT; a little early or late, GOOD.",
-      "Keep the thumb down for the note's length (HELD); lifted too soon is SHORT. Where the music rests, lift: held through a rest is REST!",
+      "Keep the thumb down for the note's length (HELD); lifted before half of it is TOO SOON. Where the music rests, lift: held through a rest is REST!",
       "Let the thumbs take turns, each note on the other thumb: the easiest way to keep up.",
       "Miss too many and the crowd leaves.",
       // D344: the friends' backing track (LiteDrums.tsx).
@@ -367,11 +367,11 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
     ],
     intermediate: [
       // D337 (WTC 1.52): B+ · PREPARED, the game's: a landing is the strike; a thumb resting early sounds on the other's lift.
-      "To join two notes: strike the next on time while the other thumb holds, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
+      "LEGATO, two notes with no gap: strike the next on time as the other thumb lifts, or rest it on its note early and lift the other: the lift sounds it (a pull-off). Nothing sounds by itself.",
       // D378: Glenn's mechanics, the game's: joined by ear, over-legato, a keyboard slide's slur.
-      "Joined means no gap you can hear (25 ms or less). On harpsichord, lute and piano, keep the old thumb down a moment after the new strike: the old note rings on until you lift it (over-legato). Slide a held thumb to the next note and it plays it: on a keyboard a slur begins, joined until you lift, the next strong beat or eight notes.",
+      "LEGATO means no gap you can hear (25 ms or less): the next thumb lands as this one lifts. DETACHED: a small silence before the next note. SHORT (the dot): lift before three fifths of the note. A SLUR: legato under it, a small silence after its last note. An extra colour, not legato itself: on harpsichord, lute and piano, keep the old thumb down a moment after the new strike and the old note rings on until you lift it (over-legato). Slide a held thumb to the next note and it plays it: on a keyboard a slur begins, legato until you lift, the next strong beat or eight notes.",
       // D325: articulation by intention (intention.ts), no longer "LEGATO scores more".
-      "Your touch is yours: joined (legato), ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
+      "Your touch is yours: legato, ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.",
       // D314: the ornaments, as THE ORNAMENT lesson teaches them (D338: unscored).
       "A sign over a note (TR, ~|) is an ornament: touch the note, then rock your thumb quickly along the bar, as small as you like (a mordent: a dip and back; a trill: on and on). The sign decides what sounds. Done before the note ends: TRILL ✓; done or not, it never scores or costs.",
       // D344: the subject's marks (readings.ts); their legend follows on the pop-up.

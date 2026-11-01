@@ -227,7 +227,7 @@ export function toldTiming(x: LensStats): Said | null {
 export const PARTS: { id: PartId; title: string; english: string; phase: "A" | "B" | "later"; seal?: string; n?: number | string; sub?: string; track?: true }[] = [
   { id: "1", n: 1, title: "FIRST NOTES", english: "FIRST NOTES", sub: "ONE THUMB, THEN TWO, THEN WITH BACH", phase: "A", seal: "Your first notes, with both thumbs and with me. Next: high and low." },
   { id: "2", n: 2, title: "HIGH AND LOW", english: "HIGH AND LOW", sub: "YOUR THUMB DRAWS THE TUNE", phase: "A", seal: "Steps, jumps, repeats and runs: your thumbs draw the tune. Next: how long." },
-  { id: "3", n: 3, title: "HOW LONG", english: "HOW LONG", sub: "THE SIGNS, ONE AT A TIME", phase: "A", seal: "Held, short, detached, joined, accented: you read my signs now. Next: playing with me." },
+  { id: "3", n: 3, title: "HOW LONG", english: "HOW LONG", sub: "THE SIGNS, ONE AT A TIME", phase: "A", seal: "Held, short, detached, legato, accented: you read my signs now. Next: playing with me." },
   // D379: Parts 4–6 rebuilt (Luigi's curriculum, in the owner's order: voices, time and breath, the graces).
   { id: "4", n: 4, title: "PLAYING WITH BACH", english: "PLAYING WITH BACH", sub: "VOICES, AND THE TUNE THAT COMES BACK", phase: "A", seal: "You can lead, answer and hold your line among three. Next: time and breath." },
   { id: "5", n: 5, title: "TIME AND BREATH", english: "TIME AND BREATH", sub: "WHERE THE MUSIC WAITS", phase: "A", seal: "You breathe, you linger, you let the end come. Next: shakes, sighs and slurs." },
@@ -513,51 +513,51 @@ const COURSE: ManualLesson[] = [
   {
     id: "3.3",
     part: "3",
-    title: "DETACHED AND JOINED",
-    english: "DETACHED AND JOINED",
+    title: "DETACHED AND LEGATO",
+    english: "DETACHED AND LEGATO",
     minutes: 4,
     sound: "piano",
     sign: "joined",
-    aim: "DETACHED: lift before the next note. JOINED: the next thumb lands before this one lifts.",
+    aim: "DETACHED: a small silence before the next note. LEGATO: no gap, the next thumb lands as this one lifts.",
     music: "INVENTION 1, BAR 1",
     aids: ["thumbs", "plan"],
     words: ["legato"],
     stages: [
-      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Watch: where the blocks are joined, the next thumb lands before I lift. Where there is a gap, I lift first.", { aids: ["thumbs", "plan"] }),
-      st("try", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null], wait: true }), "Your turn. Joined: the next thumb down first. A gap: lift first.", { aids: ["thumbs", "plan"] }),
-      st("play", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Where the blocks are joined, no gap: put the next thumb down before you lift. Where there is a gap, lift first."),
+      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes LEGATO, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Watch: where the blocks meet, the next thumb lands as I lift: no gap. Where there is a gap, a small silence first.", { aids: ["thumbs", "plan"] }),
+      st("try", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes LEGATO, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null], wait: true }), "Your turn. Legato: the next thumb lands as this one lifts. A gap: a small silence.", { aids: ["thumbs", "plan"] }),
+      st("play", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes LEGATO, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Where the blocks meet, no gap: the next thumb lands as this one lifts. Where there is a gap, leave a small silence."),
     ],
-    lens: { counts: ["Joins and gaps as asked: 70%"], shown: [], never: ["Which thumb"] },
+    lens: { counts: ["Legato and gaps as asked: 70%"], shown: [], never: ["Which thumb"] },
     checks: (x): Check[] => {
       const ok = x.marks.joined.ok + x.marks.apart.ok;
       const of = x.marks.joined.of + x.marks.apart.of;
-      return [{ text: "AS ASKED {n} OF {m}", vars: { n: ok, m: of }, ok: atLeast(ok, of, 0.7), fix: x.marks.joined.of && x.marks.joined.ok / x.marks.joined.of < 0.7 ? { text: "Joined: put the next thumb down before you lift the other." } : { text: "Detached: lift before the next note." } }, notesRight(x, 0.6)];
+      return [{ text: "AS ASKED {n} OF {m}", vars: { n: ok, m: of }, ok: atLeast(ok, of, 0.7), fix: x.marks.joined.of && x.marks.joined.ok / x.marks.joined.of < 0.7 ? { text: "Legato: land the next thumb as you lift the other, no gap." } : { text: "Detached: a small silence before the next note." } }, notesRight(x, 0.6)];
     },
-    before: ["A gap between two blocks: DETACHED. Blocks joined, no gap: JOINED."],
-    after: ["Joined where I join, apart where I separate. You read them both."],
-    again: ["Joined: the next thumb down first. A gap: lift first. Again."],
+    before: ["A gap between two blocks: DETACHED. Blocks meeting, no gap: LEGATO."],
+    after: ["Legato where I join, a small silence where I separate. You read them both."],
+    again: ["Legato: the next thumb lands as this one lifts. A gap: a small silence. Again."],
   },
   {
     id: "3.4",
     part: "3",
-    title: "JOINING THE EASY WAY",
-    english: "JOINING THE EASY WAY",
+    title: "LEGATO THE EASY WAY",
+    english: "LEGATO THE EASY WAY",
     minutes: 3,
     sound: "piano",
-    aim: "A trick for joining: rest the free thumb on the next note early; lifting the other one sounds it.",
+    aim: "A trick for legato: rest the free thumb on the next note early; lifting the other one sounds it, with no gap.",
     music: "INVENTION 4, BAR 1",
     aids: ["thumbs", "plan", "prepared"],
     words: ["legato"],
     stages: [
-      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "Watch: while one thumb holds, I rest the other on the next note. When I lift the first, the next one sounds by itself.", { style: "prepared", aids: ["thumbs", "plan", "prepared"] }),
-      st("try", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null], wait: true }), "Your turn. Rest the free thumb on the next note, then lift the other.", { aids: ["thumbs", "plan", "prepared"] }),
-      st("play", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "In time. Joined by preparing, or by striking: either way."),
+      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, LEGATO", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "Watch: while one thumb holds, I rest the other on the next note. When I lift the first, the next one sounds by itself.", { style: "prepared", aids: ["thumbs", "plan", "prepared"] }),
+      st("try", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, LEGATO", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null], wait: true }), "Your turn. Rest the free thumb on the next note, then lift the other.", { aids: ["thumbs", "plan", "prepared"] }),
+      st("play", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, LEGATO", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "In time. Legato by preparing, or by striking as the other lifts: either way."),
     ],
-    lens: { counts: ["Joined: 60%", "Notes: 70%"], shown: ["Notes sounded by a lift"], never: ["Which way you join"] },
-    checks: (x): Check[] => [{ text: "JOINED {n} OF {m}", vars: { n: x.marks.joined.ok, m: x.marks.joined.of }, ok: atLeast(x.marks.joined.ok, x.marks.joined.of, 0.6), fix: { text: "Rest the free thumb on the next note before you lift the other." } }, notesRight(x, 0.7)],
+    lens: { counts: ["Legato: 60%", "Notes: 70%"], shown: ["Notes sounded by a lift"], never: ["Which way you play legato"] },
+    checks: (x): Check[] => [{ text: "LEGATO {n} OF {m}", vars: { n: x.marks.joined.ok, m: x.marks.joined.of }, ok: atLeast(x.marks.joined.ok, x.marks.joined.of, 0.6), fix: { text: "Rest the free thumb on the next note before you lift the other." } }, notesRight(x, 0.7)],
     shown: (x): Check[] => [{ text: "SOUNDED BY A LIFT {n}", vars: { n: x.prep.pullOffs }, ok: true }],
-    before: ["Joining with two thumbs is easier with a trick. I'll show you."],
-    after: ["Prepared, and lifted: the easy way to join."],
+    before: ["Legato with two thumbs is easier with a trick. I'll show you."],
+    after: ["Prepared, and lifted: the easy way to legato."],
     again: ["While one thumb holds, rest the other on the next note. Again."],
   },
   {
@@ -589,7 +589,7 @@ const COURSE: ManualLesson[] = [
     english: "CHECK: YOUR OWN TOUCH",
     minutes: 3,
     sound: "piano",
-    aim: "To choose your own touch, joined or detached, and keep it the same all the way.",
+    aim: "To choose your own touch, legato (no gap) or detached, and keep it the same all the way.",
     music: "INVENTION 1, BARS 1–4",
     aids: ["thumbs"],
     stages: [
@@ -752,9 +752,9 @@ export function manualTexts(): string[] {
 }
 
 /** D359: the demonstration's manners, named in the hint while Herr Bach plays. */
-export const WATCH_WORDS = ["WATCH THE THUMBS", "WATCH · DETACHED", "WATCH · JOINED", "WATCH · ORDINARY", "WATCH · ONE THUMB", "WATCH · PREPARED", "WATCH · HELD", "WATCH · ACCENTS", "WATCH · LEANING", "WATCH · BREATHING", "WATCH · BROADENING", "WATCH · HELD OVER"];
+export const WATCH_WORDS = ["WATCH THE THUMBS", "WATCH · DETACHED", "WATCH · LEGATO", "WATCH · ORDINARY", "WATCH · ONE THUMB", "WATCH · PREPARED", "WATCH · HELD", "WATCH · ACCENTS", "WATCH · LEANING", "WATCH · BREATHING", "WATCH · BROADENING", "WATCH · HELD OVER"];
 export const watchWord = (s?: DemoStyle) =>
-  ({ detached: "WATCH · DETACHED", legato: "WATCH · JOINED", ordinary: "WATCH · ORDINARY", "one-thumb": "WATCH · ONE THUMB", prepared: "WATCH · PREPARED", held: "WATCH · HELD", accent: "WATCH · ACCENTS", lean: "WATCH · LEANING", breath: "WATCH · BREATHING", broaden: "WATCH · BROADENING", appoggiatura: "WATCH · HELD OVER", plain: "WATCH THE THUMBS" })[s ?? "plain"];
+  ({ detached: "WATCH · DETACHED", legato: "WATCH · LEGATO", ordinary: "WATCH · ORDINARY", "one-thumb": "WATCH · ONE THUMB", prepared: "WATCH · PREPARED", held: "WATCH · HELD", accent: "WATCH · ACCENTS", lean: "WATCH · LEANING", breath: "WATCH · BREATHING", broaden: "WATCH · BROADENING", appoggiatura: "WATCH · HELD OVER", plain: "WATCH THE THUMBS" })[s ?? "plain"];
 
 /** THE MANUAL's own lines and buttons between the steps (BenchApp's flow), for the translations' check. */
 export const MANUAL_FLOW = [
@@ -926,13 +926,13 @@ export const COURSE_FLOW = [
   "HELD",
   "SHORT",
   "DETACHED",
-  "JOINED",
+  "LEGATO",
   "ACCENT",
   "Hold it until the next note begins.",
-  "Lift early: only the filled part sounds.",
-  "A little gap: lift before the next.",
-  "No gap: the next thumb lands before this one lifts.",
-  "Weight on it: tap it hard.",
+  "Lift before three fifths of the note: only the filled part sounds.",
+  "A small silence before the next note.",
+  "No gap: the next thumb lands as this one lifts.",
+  "Weight on it: tap it hard, on time.",
   "THE MUSIC MOVES THIS WAY",
   "YOURS: WHITE BORDER",
   "MINE: THIN",
@@ -951,8 +951,8 @@ export const COURSE_FLOW = [
   "Tap the accent hard, in its time. On a computer: land it in the strong zone, by the box.",
   "Let go sooner: before three fifths of the block.",
   "Rest the free thumb on the next note before you lift the other.",
-  "Joined: put the next thumb down before you lift the other.",
-  "Detached: lift before the next note.",
+  "Legato: land the next thumb as you lift the other, no gap.",
+  "Detached: a small silence before the next note.",
   // D379: LISTEN, SPOT, QUIZ; the fugue track; the colour map; the new lessons' fixes and lines said at run time.
   "▶ LISTEN",
   "▶ SPOT",
@@ -984,8 +984,8 @@ export const COURSE_FLOW = [
 /** D373: what each sign looks like and asks (the card before a lesson of Part 3). */
 export const SIGN_WORDS: Record<SignId, { name: string; text: string }> = {
   held: { name: "HELD", text: "Hold it until the next note begins." },
-  short: { name: "SHORT", text: "Lift early: only the filled part sounds." },
-  detached: { name: "DETACHED", text: "A little gap: lift before the next." },
-  joined: { name: "JOINED", text: "No gap: the next thumb lands before this one lifts." },
-  accent: { name: "ACCENT", text: "Weight on it: tap it hard." },
+  short: { name: "SHORT", text: "Lift before three fifths of the note: only the filled part sounds." },
+  detached: { name: "DETACHED", text: "A small silence before the next note." },
+  joined: { name: "LEGATO", text: "No gap: the next thumb lands as this one lifts." },
+  accent: { name: "ACCENT", text: "Weight on it: tap it hard, on time." },
 };

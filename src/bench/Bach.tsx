@@ -9,6 +9,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 /** D289: a phone (touch first): "TAP", not "PRESS A KEY". */
 const touchFirst = () => typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
 import type { Line } from "./lessons.ts";
+import { GlennFace } from "./GlennFace.tsx";
+import { host, hostLine, hostName, type Host } from "./glenn-host.ts";
 
 const FACE = [
   "....WWWWWWWW....",
@@ -43,7 +45,9 @@ const INK: Record<string, string> = {
   L: "#f5f1e6",
 };
 
-export function Portrait({ talking }: { talking: boolean }) {
+export function Portrait({ talking, who }: { talking: boolean; who?: Host }) {
+  // D441: Glenn's face where he hosts.
+  if ((who ?? host()) === "glenn") return <GlennFace talking={talking} />;
   return (
     <svg className="tb-bach-face" viewBox="0 0 16 18" shapeRendering="crispEdges" aria-hidden="true">
       {FACE.flatMap((row, y) =>
@@ -61,7 +65,7 @@ export function BachTalk({ title, lines, onLine, onDone, choices, extra, classNa
   const [shown, setShown] = useState(0);
   const line = lines[i];
   // D283: his lines in the language chosen.
-  const said = line ? tr(line.text) : "";
+  const said = line ? tr(hostLine(line.text)) : "";
   const full = said.length;
   const state = useRef({ i, shown, full, choices });
   state.current = { i, shown, full, choices };
@@ -93,7 +97,7 @@ export function BachTalk({ title, lines, onLine, onDone, choices, extra, classNa
   }, []);
 
   return (
-    <div className={`tb-bach${className ? ` ${className}` : ""}`} role="dialog" aria-label={`Herr Bach: ${title}`} onClick={advance}>
+    <div className={`tb-bach${className ? ` ${className}` : ""}`} role="dialog" aria-label={`${hostName()}: ${title}`} onClick={advance}>
       <Portrait talking={shown < full} />
       <div className="tb-bach-box">
         <p className="tb-bach-title">{title}</p>

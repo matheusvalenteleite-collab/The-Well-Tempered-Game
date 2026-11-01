@@ -4,7 +4,7 @@
  * the keys on a computer) on any passage, at any tempo, with every judging parameter live (MECH,
  * mechanics.ts); each thumb's trace and every verdict with its reason and numbers; every run recorded
  * as a log to copy, share, keep and replay with other parameters (replay.ts; offline:
- * tools/lab/replay.ts); ready-made drills. English only.
+ * tools/lab/replay.ts). English only.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, rollRect, ladderGeometry, inkOf, type Frame } from "../../touch/MusicBox.tsx";
@@ -38,20 +38,14 @@ import { labGame, passageSpan } from "./game.ts";
 import { LabRecorder, logText, parseLog, type LabLog, type LabPassage } from "./log.ts";
 import { describe } from "./describe.ts";
 import { FreePlay, freeRows, KB_DEFAULT, whiteNames, whitePcs, whiteShare, type FreeOptions, type FreeScale, type WhiteMode } from "./free.ts";
-import { loadTable, TableStage, TableTab } from "./TableStage.tsx";
-import { MotionHub, stampOf, strengthFrom, type SenseSource, type TouchInfo } from "./sensor.ts";
-import { SensorTab } from "./SensorTab.tsx";
+import { MotionHub, stampOf } from "./sensor.ts";
 import { AdaptiveCal, DYN_MODES, loadDynCal, logStrength, refsText, saveDynCal, zoneReport, type DynMode } from "./dynamics.ts";
 import { PassageDynamics, type StrikeReader } from "./passage-dyn.ts";
 import { pitchName } from "./replay.ts";
 import { RegistrationStops } from "../../touch/RegistrationStops.tsx";
 import { hasStops, voicePatch } from "../../touch/registration.ts";
-import { BreathPlay } from "./breath.ts";
-import { BreathTab, loadBreath, micProblem, openBreathMic } from "./breath-tab.tsx";
 import { diff, replay, tally, type Diff, type Tally } from "./replay.ts";
 import { CONFIGS, DEFAULT_CONFIG, MECH_BASE, configById, configEdits, configLabel, storedSetting } from "./presets.ts";
-import { StudyCard, StudyTab, useStudy, type StudyHost } from "./StudyTab.tsx";
-import { holdSettings, releaseSettings, STUDY_SOUND } from "./study.ts";
 import { rushLine } from "./rush.ts";
 
 const STORE = "tb-lab-v1";
@@ -59,7 +53,7 @@ const RUNS = "tb-lab-runs-v1";
 /** D329: the CONFIG preset last chosen (presets.ts). */
 const CONFIG = "tb-lab-config-v1";
 const MAX_RUNS = 20;
-/** Verdict lines over the box, and kept for SEE. */
+/** FREE PLAY's lines over the box, and how many are kept. */
 const FEED_SHOWN = 4;
 const FEED_KEPT = 400;
 /** A finished trace fades over this long (ms). */
@@ -79,13 +73,7 @@ interface Setup {
   /** A sound's id, "" for the piece's own. */
   sound: string;
   loop: boolean;
-  traces: boolean;
-  /** D320: FREE PLAY's lines over the box (nothing to follow there). */
-  feed: boolean;
-  /** D320: while a passage plays, the latest verdict in the title bar (never over the music); off by default. */
-  feedBar: boolean;
   lag: number | null;
-  drill?: string;
   /** D320: what START plays: the passage, or FREE PLAY (free.ts). */
   mode: "passage" | "free";
   freeScale: FreeScale;
@@ -99,37 +87,11 @@ interface Setup {
   /** FREE PLAY's tempo (the metronome; the ornaments' speed), ♩ per minute. */
   freeBpm: number;
   click: boolean;
-  /** D321, SENSOR's PLAY WITH IT: FREE PLAY's attacks from the tap's strength (the motion sensor). */
-  sensePlay: boolean;
-  /** ...read from the contact's size (the default: the stronger probe on iPhone) or the motion sensor. */
-  senseSource: SenseSource;
   /** D335: DYNAMICS on the sampled piano (dynamics.ts): off, A place × strike, B pedal + strike, C strike only; D336: FREE PLAY and PASSAGE (passage-dyn.ts) alike. */
   dynMode: DynMode;
   /** D336: the strike's references learned from the recent strikes (on by default), else the stored calibration alone. */
   dynAdaptive: boolean;
 }
-
-interface Drill {
-  id: string;
-  name: string;
-  look: string;
-  piece: string;
-  voice: number;
-  fromBar: number;
-  toBar: number;
-  reading?: string;
-  tempoPct?: number;
-}
-/** Passages for testing one mechanic each (the owner's list, D317). */
-export const DRILLS: readonly Drill[] = [
-  { id: "slur-slow", name: "Slurred pairs, slow", look: "I/2's subject as Keller marks it: two notes joined, then apart. Land the second thumb before (or just as) the first lifts.", piece: "wtc1f02", voice: 1, fromBar: 1, toBar: 3, reading: "keller" },
-  { id: "slur-fast", name: "Slurred pairs, fast", look: "II/12's opening: quick pairs under one slur. Watch NOT JOINED lines and the gaps they report.", piece: "wtc2f12", voice: 0, fromBar: 1, toBar: 6, reading: "bodky" },
-  { id: "legato", name: "Legato line", look: "I/22's long notes in the old style: every note joined to the next, thumbs handing over.", piece: "wtc1f22", voice: 0, fromBar: 1, toBar: 5 },
-  { id: "leaps", name: "Leaps", look: "I/20's subject: leaps of a fourth and more need a clear move the right way.", piece: "wtc1f20", voice: 1, fromBar: 1, toBar: 4 },
-  { id: "ornaments", name: "Ornaments", look: "I/6's subject with its trill: touch the note, then shake the thumb up and down.", piece: "wtc1f06", voice: 0, fromBar: 1, toBar: 4 },
-  { id: "repeats", name: "Repeated notes", look: "II/5's subject: the same note struck again, the thumb about level.", piece: "wtc2f05", voice: 2, fromBar: 1, toBar: 3 },
-  { id: "staccato", name: "Staccato", look: "I/9's subject: short notes, lift quickly; see HELD and SHORT.", piece: "wtc1f09", voice: 1, fromBar: 1, toBar: 3 },
-];
 
 const ALL: TouchFugue[] = [...PIECES, ...TUTORIAL_PIECES];
 const roman = (b: number) => (b === 1 ? "I" : b === 2 ? "II" : String(b));
@@ -178,11 +140,7 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     reading: s.reading !== undefined && (s.reading === "" || readingsOf(piece).some((r) => r.id === s.reading)) ? s.reading : (readingsOf(piece)[0]?.id ?? ""),
     sound: s.sound ?? "",
     loop: s.loop ?? true,
-    traces: s.traces ?? true,
-    feed: s.feed ?? true,
-    feedBar: s.feedBar ?? false,
     lag: s.lag ?? null,
-    drill: s.drill,
     mode: s.mode === "free" ? "free" : "passage",
     freeScale: s.freeScale === "chromatic" || s.freeScale === "keyboard" ? s.freeScale : "key",
     freeOctaves: s.freeOctaves === 1 || s.freeOctaves === 3 ? s.freeOctaves : 2,
@@ -193,8 +151,6 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     kbLabels: s.kbLabels ?? true,
     freeBpm: Math.max(40, Math.min(180, Math.round(s.freeBpm ?? 80))),
     click: !!s.click,
-    sensePlay: !!s.sensePlay,
-    senseSource: s.senseSource === "motion" ? "motion" : "size",
     dynMode: DYN_MODES.some(([m]) => m === s.dynMode) ? s.dynMode! : "off",
     dynAdaptive: s.dynAdaptive !== false,
   };
@@ -207,7 +163,7 @@ interface Saved {
   log: LabLog;
 }
 
-type Tab = "passage" | "free" | "breath" | "table" | "drills" | "mechanics" | "sensor" | "see" | "runs" | "study" | "help";
+type Tab = "passage" | "free" | "mechanics" | "runs" | "help";
 
 interface Trace {
   id: number;
@@ -222,8 +178,6 @@ interface Trace {
 export function LabApp() {
   const [platform] = useState(detectedPlatform);
   const [setup, setSetupRaw] = useState<Setup>(() => {
-    // D333: the page closed during a STUDY session: the owner's settings put back first.
-    releaseSettings();
     const st = load<(Partial<Setup> & { mech?: Record<string, unknown>; mechBase?: string }) | null>(STORE, null);
     // D337: a setting kept before WTC 1.52 read against WTC 1.51's defaults (storedSetting).
     setMech(storedSetting(st, load<string | null>(CONFIG, null)).mech);
@@ -268,9 +222,6 @@ export function LabApp() {
   const span = passageSpan(f, setup);
 
   const [panel, setPanel] = useState<Tab | null>("passage");
-  // D324: TABLE's settings, and its whole screen while it plays (TableStage.tsx).
-  const [tableOpts, setTableOpts] = useState(loadTable);
-  const [tableOn, setTableOn] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [, setFeedTick] = useState(0);
   const feed = useRef<string[]>([]);
@@ -306,7 +257,7 @@ export function LabApp() {
     return { ...subjectMarks(f), spans, names: f.voiceNames, cadences, ornaments, readingMarks };
   }, [f, span.from, span.until, reading?.id, setup.voice]);
 
-  // D321: the motion sensor (SENSOR tab), kept for the visit; its taps go into the sensor log and the runs' logs.
+  // D321: the motion sensor (DYNAMICS' strike), kept for the visit; started by START with DYNAMICS on; its taps go into the runs' logs.
   const hub = useRef<MotionHub>(null as unknown as MotionHub);
   hub.current ??= new MotionHub(VERSION);
   // D336: the strike's references (one calibration, adapting to the recent strikes), kept for the visit.
@@ -329,36 +280,6 @@ export function LabApp() {
     };
   };
   useEffect(() => () => hub.current.stop(), []);
-  // D321: every contact on the page (capture phase, before the play area): its size for PLAY WITH IT by
-  // contact size, and (playing so in FREE PLAY) each touch kept as a "play" tap in the sensor log. The
-  // SENSOR tab's pad handles its own.
-  useEffect(() => {
-    const h = hub.current;
-    const mine = (e: PointerEvent) => e.target instanceof Element && !!e.target.closest("#lab-pad");
-    const taps = new Map<number, TouchInfo>();
-    const onDown = (e: PointerEvent) => {
-      if (mine(e)) return;
-      const info = h.pointerDown(e);
-      const s = setupRef.current;
-      if (free.current && s.sensePlay && s.senseSource === "size") (taps.set(e.pointerId, info), h.measure(info.t, "play", info));
-    };
-    const onMove = (e: PointerEvent) => !mine(e) && h.pointerMove(e, taps.get(e.pointerId));
-    const onUp = (e: PointerEvent) => {
-      if (mine(e)) return;
-      h.pointerUp(e, taps.get(e.pointerId));
-      taps.delete(e.pointerId);
-    };
-    window.addEventListener("pointerdown", onDown, true);
-    window.addEventListener("pointermove", onMove, true);
-    window.addEventListener("pointerup", onUp, true);
-    window.addEventListener("pointercancel", onUp, true);
-    return () => {
-      window.removeEventListener("pointerdown", onDown, true);
-      window.removeEventListener("pointermove", onMove, true);
-      window.removeEventListener("pointerup", onUp, true);
-      window.removeEventListener("pointercancel", onUp, true);
-    };
-  }, []);
 
   const chip = useRef<Chip | null>(null);
   const ensureChip = (): Chip => {
@@ -415,7 +336,6 @@ export function LabApp() {
   const touching = useRef<number | null>(null);
   const paint = useRef<Painter | null>(null);
   const drawTraces = (ctx: CanvasRenderingContext2D) => {
-    if (!setupRef.current.traces) return;
     const now = performance.now();
     traces.current = traces.current.filter((t) => t.end === undefined || now - t.end < TRACE_FADE_MS);
     for (const t of traces.current) {
@@ -471,7 +391,7 @@ export function LabApp() {
   };
 
   // The run under way.
-  const run = useRef<{ g: ProtoGame; rec: LabRecorder; raf: number; study?: { listen: boolean } } | null>(null);
+  const run = useRef<{ g: ProtoGame; rec: LabRecorder; raf: number } | null>(null);
   const count = useRef<HTMLDivElement>(null);
   const stopRun = (keep: boolean) => {
     const r = run.current;
@@ -481,16 +401,11 @@ export function LabApp() {
     run.current = null;
     paint.current = idlePaint;
     if (count.current) count.current.textContent = "";
-    if (keep) finishRun(r.rec, true, r.study);
+    if (keep) finishRun(r.rec, true);
   };
-  const finishRun = (rec: LabRecorder, stopped = false, forStudy?: { listen: boolean }) => {
+  const finishRun = (rec: LabRecorder, stopped = false) => {
     const log = rec.finish(stopped);
     keepRefs();
-    // D333: a STUDY take (or its HEAR IT FIRST) goes to the study, not to RUNS.
-    if (forStudy) {
-      if (!stopped) studyRef.current.ended(log, forStudy.listen);
-      return;
-    }
     // D321: the sensor session (if any taps were measured) travels with the run's log.
     if (hub.current.taps.length) log.sensor = sensorExport(hub.current, adapt.current);
     const t = tally(log.verdicts);
@@ -500,15 +415,15 @@ export function LabApp() {
     // D320: every run kept on the device by itself, the newest 20 (the oldest overwritten).
     keep(log);
   };
-  const begin = (forStudy?: { listen: boolean }) => {
+  const begin = () => {
     stopRun(false);
     stopFree();
     const ch = ensureChip();
     const s = setupRef.current;
     const ff = fugueById(s.piece);
     const pp = protoById(s.proto);
-    const passage: LabPassage = { piece: s.piece, voice: s.voice, fromBar: s.fromBar, toBar: s.toBar, bpm, tempoPct: s.tempoPct, proto: s.proto, wait: s.wait, bt: btOn(s.bt, ch.lag, latencyOf(ch.ctx)), reading: s.reading || null, sound, loop: s.loop, ...(s.drill ? { drill: s.drill } : {}) };
-    const g = labGame(passage, ch, forStudy?.listen ? { demo: true } : undefined);
+    const passage: LabPassage = { piece: s.piece, voice: s.voice, fromBar: s.fromBar, toBar: s.toBar, bpm, tempoPct: s.tempoPct, proto: s.proto, wait: s.wait, bt: btOn(s.bt, ch.lag, latencyOf(ch.ctx)), reading: s.reading || null, sound, loop: s.loop };
+    const g = labGame(passage, ch);
     const area = document.querySelector(".tg-play")?.getBoundingClientRect();
     const br = pp.layout === "bars" ? boxRows(g.now) : null;
     if (br) g.rows = br.rows;
@@ -527,8 +442,8 @@ export function LabApp() {
       },
       onEvent,
     );
-    // D336: DYNAMICS on the player's own notes (the sampled piano; never in a STUDY, never in BLUETOOTH MODE): the sound only.
-    const dynOn = !forStudy && s.dynMode !== "off" && presetById(sound).id === "pianoSampled" && !passage.bt;
+    // D336: DYNAMICS on the player's own notes (the sampled piano; never in BLUETOOTH MODE): the sound only.
+    const dynOn = s.dynMode !== "off" && presetById(sound).id === "pianoSampled" && !passage.bt;
     let dynHead = "";
     if (dynOn) {
       const pd = new PassageDynamics({
@@ -548,8 +463,8 @@ export function LabApp() {
       g.noteDyn = pd.ask;
       const refs = adapt.current.refs();
       rec.log.dynamics = { mode: s.dynMode, adaptive: s.dynAdaptive, refs, lines: [] };
-      dynHead = ` · DYNAMICS ${DYN_MODES.find(([m]) => m === s.dynMode)![1]} · refs ${refsText(refs)}${s.dynAdaptive ? "" : " (adaptive off)"}${hub.current.live ? "" : " · the motion sensor is off (SENSOR › START SENSOR): the strike stays neutral"}`;
-    } else if (!forStudy && s.dynMode !== "off") dynHead = ` · DYNAMICS off here (${passage.bt ? "BLUETOOTH MODE" : "the sampled piano only"})`;
+      dynHead = ` · DYNAMICS ${DYN_MODES.find(([m]) => m === s.dynMode)![1]} · refs ${refsText(refs)}${s.dynAdaptive ? "" : " (adaptive off)"}${hub.current.live ? "" : " · no motion samples (no sensor here, or access denied): the strike stays neutral"}`;
+    } else if (s.dynMode !== "off") dynHead = ` · DYNAMICS off here (${passage.bt ? "BLUETOOTH MODE" : "the sampled piano only"})`;
     feed.current.push(`— ${pieceLabel(ff)} · ${ff.voiceNames[s.voice]} · bars ${s.fromBar}–${s.toBar} · ♩ ${Math.round(bpm)} (${s.tempoPct}%)${passage.bt ? " · BLUETOOTH" : ""}${s.wait ? " · WAITING" : ""}${MECH.bandTime !== "fixed" ? ` · BAND ${MECH.bandTime.toUpperCase()}${g.bandT ? "" : " (off here)"}` : ""}${configLabel(configRef.current) ? ` · CONFIG ${configById(configRef.current)?.name}${configEdits(configById(configRef.current)!).length ? " (changed)" : ""}` : ""}${Object.keys(mechChanges()).length ? ` · ${Object.keys(mechChanges()).length} parameters changed` : ""}${dynHead}`);
     setFeedTick((n) => n + 1);
     paint.current = (ctx, w, h) => {
@@ -557,7 +472,7 @@ export function LabApp() {
       drawTraces(ctx);
     };
     const b = beatOf(ff);
-    const r = { g, rec, raf: 0, study: forStudy };
+    const r = { g, rec, raf: 0 };
     run.current = r;
     // For checks driven from outside (a browser test): the run under way.
     (globalThis as { __lab?: unknown }).__lab = r;
@@ -597,8 +512,8 @@ export function LabApp() {
         run.current = null;
         paint.current = idlePaint;
         if (count.current) count.current.textContent = "";
-        finishRun(rec, false, forStudy);
-        if (!forStudy && setupRef.current.loop && !setupRef.current.wait) begin();
+        finishRun(rec, false);
+        if (setupRef.current.loop && !setupRef.current.wait) begin();
         else setPlaying(false);
         return;
       }
@@ -626,34 +541,7 @@ export function LabApp() {
     const ch = ensureChip();
     const s = setupRef.current;
     const ff = fugueById(s.piece);
-    // D321, PLAY WITH IT: each touch's strength from the motion sensor's spike (sensor.ts).
     const h = hub.current;
-    const calName = (c: { from: string } | null) => (c ? (c.from === "session" ? "learned on this device" : "the recent taps' calibration") : "");
-    const sense: FreeOptions["sense"] = s.sensePlay
-      ? {
-          source: s.senseSource,
-          motion: (ts, waitMs, done) => {
-            const t = stampOf(ts, performance.now());
-            h.measure(
-              t,
-              "play",
-              { t },
-              (rec) => {
-                const cal = h.calibration("motion");
-                done({ peak: rec.peak, strength: rec.peak !== null && cal ? strengthFrom(rec.peak, cal) : null, cal: calName(cal) });
-              },
-              MECH.tapWindowMs,
-              waitMs,
-            );
-          },
-          size: (id) => {
-            const c = h.contacts.get(id);
-            const size = c?.size ?? null;
-            const cal = h.calibration("size");
-            return { size, strength: size !== null && cal ? strengthFrom(size, cal) : null, cal: calName(cal) };
-          },
-        }
-      : undefined;
     const kb = { white: s.kbWhite, shape: { split: s.kbSplit, black: s.kbBlack, slant: s.kbSlant }, labels: s.kbLabels };
     // D335, DYNAMICS: the strike's peak (the motion sensor); D336: its strength by the one calibration, adapting (adapt).
     // D336: one calibration for the bar (inner and outer read alike), adapting to the recent strikes.
@@ -678,7 +566,7 @@ export function LabApp() {
               );
             },
           };
-    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, sense, kb, dynamics }, (l) => {
+    const fp = new FreePlay(ff, s.voice, ch, { scale: s.freeScale, octaves: s.freeOctaves, bpm: s.freeBpm, click: s.click, kb, dynamics }, (l) => {
       feed.current.push(l);
       if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
       setFeedTick((n) => n + 1);
@@ -688,9 +576,8 @@ export function LabApp() {
     // For checks driven from outside (a browser test).
     (globalThis as { __labFree?: unknown }).__labFree = fp;
     const changes = Object.keys(mechChanges()).length;
-    if (s.dynMode !== "off") feed.current.push(sound !== "pianoSampled" ? "— DYNAMICS: the sampled piano only (PIANO (SAMPLED)): off for this sound" : `— DYNAMICS ${DYN_MODES.find(([m]) => m === s.dynMode)![1]}${h.live ? "" : " · the motion sensor is off (SENSOR › START SENSOR): the strike stays neutral"} · refs ${refsText(adapt.current.refs())}${s.dynAdaptive ? "" : " (adaptive off)"}${MECH.dynWait ? ` · the attack waits for the strike (≤ ${MECH.dynWaitMs} ms)` : ` · corrected over ${MECH.dynRampMs} ms`}`);
-    if (s.sensePlay && !h.live) feed.current.push(h.permission === "unasked" ? "— PLAY WITH IT is on but the sensor is off: SENSOR › START SENSOR first" : "— PLAY WITH IT: no motion samples (no sensor here, or access denied): attacks stay neutral");
-    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : s.freeScale === "keyboard" ? `KEYBOARD (white keys ${s.kbWhite === "piano" ? "PIANO" : "IN THE KEY"}: ${whiteNames(ff, fp.whites, s.kbWhite)}; split ${s.kbSplit.toFixed(2)}, black ${s.kbBlack.toFixed(2)}, slant ${s.kbSlant.toFixed(2)})` : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${s.sensePlay ? " · PLAY WITH IT (tap strength)" : ""}${MECH.dragMeaning === "connect" ? " · DRAG: CONNECT" : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
+    if (s.dynMode !== "off") feed.current.push(sound !== "pianoSampled" ? "— DYNAMICS: the sampled piano only (PIANO (SAMPLED)): off for this sound" : `— DYNAMICS ${DYN_MODES.find(([m]) => m === s.dynMode)![1]}${h.live ? "" : " · no motion samples (no sensor here, or access denied): the strike stays neutral"} · refs ${refsText(adapt.current.refs())}${s.dynAdaptive ? "" : " (adaptive off)"}${MECH.dynWait ? ` · the attack waits for the strike (≤ ${MECH.dynWaitMs} ms)` : ` · corrected over ${MECH.dynRampMs} ms`}`);
+    feed.current.push(`— FREE PLAY · ${keyName(ff.key)} · ${s.freeScale === "key" ? "the key's notes" : s.freeScale === "keyboard" ? `KEYBOARD (white keys ${s.kbWhite === "piano" ? "PIANO" : "IN THE KEY"}: ${whiteNames(ff, fp.whites, s.kbWhite)}; split ${s.kbSplit.toFixed(2)}, black ${s.kbBlack.toFixed(2)}, slant ${s.kbSlant.toFixed(2)})` : "chromatic"} · ${fp.name(fp.rows[0])}–${fp.name(fp.rows.at(-1)!)} · ${presetById(sound).name}${s.click ? ` · click ♩ ${s.freeBpm}` : ""}${MECH.dragMeaning === "connect" ? " · DRAG: CONNECT" : ""}${changes ? ` · ${changes} parameters changed` : ""}`);
     setFeedTick((n) => n + 1);
     frame.current = { ...preview(), notes: [], others: [], spans: [], cadences: [], entries: [], subject: undefined, ornaments: undefined, readingMarks: undefined };
     paint.current = (ctx, w, h) => {
@@ -705,54 +592,10 @@ export function LabApp() {
     fr.raf = requestAnimationFrame(loop);
     setPlaying(true);
   };
-  // D323: BREATH under way (breath.ts): the thumbs finger, the microphone's breath sounds.
-  const breath = useRef<BreathPlay | null>(null);
-  const stopBreath = () => {
-    const bp = breath.current;
-    if (!bp) return;
-    breath.current = null;
-    bp.stop();
-    paint.current = idlePaint;
-    feed.current.push("— BREATH OVER");
-    setFeedTick((n) => n + 1);
-  };
-  const startBreath = async () => {
-    stopRun(false);
-    stopFree();
-    stopBreath();
-    setPanel(null);
-    setNote("");
+  const start = (mode: Setup["mode"] = setupRef.current.mode) => {
     const ch = ensureChip();
-    await ch.resume().catch(() => {});
-    const mic = await openBreathMic(ch);
-    if (mic.state !== "on") {
-      setPanel("breath");
-      setNote(micProblem(mic));
-      return;
-    }
-    const s = setupRef.current;
-    const ff = fugueById(s.piece);
-    const b = loadBreath();
-    const sp = passageSpan(ff, s);
-    const bp = new BreathPlay(ff, s.voice, ch, mic, { kind: b.kind, pitch: b.pitch, scale: s.freeScale, octaves: s.freeOctaves, rise: b.rise, from: sp.from, until: sp.until }, (l) => {
-      feed.current.push(l);
-      if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
-      setFeedTick((n) => n + 1);
-    });
-    breath.current = bp;
-    (globalThis as { __labBreath?: unknown }).__labBreath = bp;
-    feed.current.push(`— BREATH · ${bp.voice.spec.name} · ${b.pitch === "rows" ? `rows ${bp.name(bp.rows[0])}–${bp.name(bp.rows.at(-1)!)}` : `${ff.voiceNames[s.voice] ?? ""}'s ${bp.notes.length} notes, bars ${s.fromBar}–${s.toBar}`} · mic ${mic.path}`);
-    setFeedTick((n) => n + 1);
-    frame.current = { ...preview(), notes: [], others: [], spans: [], cadences: [], entries: [], subject: undefined, ornaments: undefined, readingMarks: undefined };
-    paint.current = (ctx, w, h) => {
-      bp.paint(ctx, w, h);
-      drawTraces(ctx);
-    };
-    setPlaying(true);
-  };
-  const start = (mode: Setup["mode"] = setupRef.current.mode, forStudy?: { listen: boolean }) => {
-    stopBreath();
-    const ch = ensureChip();
+    // D336: DYNAMICS' strike reads the motion sensor: asked for here, from the tap (iOS asks for permission there).
+    if (setupRef.current.dynMode !== "off" && hub.current.permission === "unasked") void hub.current.start();
     setPanel(null);
     setNote("");
     if (mode !== setupRef.current.mode) {
@@ -771,7 +614,7 @@ export function LabApp() {
       return;
     }
     const go = () => {
-      void ch.prepare(everyNote(f).map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin(forStudy));
+      void ch.prepare(everyNote(f).map((n) => n[2]), (f.voices[setup.voice] ?? []).map((n) => n[2])).finally(() => begin());
     };
     if (ch.ctx.state === "running") return go();
     ch.resume()
@@ -779,69 +622,23 @@ export function LabApp() {
       .catch(() => setNote("The sound is still off: tap START once more."));
   };
   const stop = () => {
-    // D333: during a STUDY, STOP (and Escape) pause it: the take under way is discarded.
-    if (studyRef.current.active) return studyRef.current.pause();
     stopRun(true);
     stopFree();
-    stopBreath();
     setPlaying(false);
   };
   useEffect(
     () => () => {
       stopRun(false);
       stopFree();
-      stopBreath();
     },
     [],
   );
-
-  // D333, STUDY (StudyTab.tsx): its settings applied in memory (the owner's put back after), each take a run.
-  const [studyGo, setStudyGo] = useState<{ listen: boolean } | null>(null);
-  const studyHost: StudyHost = {
-    unlock: () => void ensureChip(),
-    play: (it, mech, presetId, listen) => {
-      holdSettings([STORE, CONFIG]);
-      resetMech();
-      setMech(mech);
-      setMechTick((n) => n + 1);
-      configRef.current = presetId;
-      setConfig(presetId);
-      setSetupRaw((cur) => sane({ ...cur, piece: it.piece, voice: it.voice, fromBar: it.fromBar, toBar: it.toBar, tempoPct: 100, proto: "ladder", wait: false, bt: "off", reading: "", sound: STUDY_SOUND, loop: false, drill: undefined, mode: "passage", dynMode: "off" }, platform));
-      setStudyGo({ listen });
-    },
-    halt: () => {
-      stopRun(false);
-      setPlaying(false);
-    },
-    restore: () => {
-      if (!releaseSettings()) return;
-      const st = load<(Partial<Setup> & { mech?: Record<string, unknown>; mechBase?: string }) | null>(STORE, null);
-      const kept = storedSetting(st, load<string | null>(CONFIG, null));
-      resetMech();
-      setMech(kept.mech);
-      setSetupRaw(sane(st ?? {}, platform));
-      setConfig(kept.config);
-      setMechTick((n) => n + 1);
-    },
-    show: (open) => setPanel(open ? "study" : null),
-  };
-  const study = useStudy(studyHost, VERSION, tempoOf);
-  const studyRef = useRef(study);
-  studyRef.current = study;
-  useEffect(() => {
-    if (studyGo) start("passage", studyGo);
-  }, [studyGo]);
 
   // Touches: recorded and handed to the game; their traces kept.
   const events: ThumbEvents = {
     down: (id, side, x, y, w, h, ts) => {
       traces.current.push({ id, side, pts: [x, y], ink: "#ecead9", label: "" });
       if (traces.current.length > 16) traces.current.shift();
-      if (breath.current) {
-        breath.current.down(id, side, x, y, w, h);
-        traces.current.at(-1)!.ink = "#ffd23f";
-        return;
-      }
       const fr = free.current;
       if (fr) {
         fr.fp.down(id, side, x, y, w, h, ts);
@@ -859,7 +656,6 @@ export function LabApp() {
     move: (id, x, y, w, h, ts) => {
       const t = traces.current.find((q) => q.id === id && q.end === undefined);
       if (t && t.pts.length < 400) t.pts.push(x, y);
-      if (breath.current) return breath.current.move(id, x, y, w, h);
       if (free.current) return free.current.fp.move(id, x, y, w, h, ts);
       const r = run.current;
       if (!r) return;
@@ -870,7 +666,6 @@ export function LabApp() {
     up: (id, ts, cancelled) => {
       const t = traces.current.find((q) => q.id === id && q.end === undefined);
       if (t) (t.end = performance.now()), (t.cancelled = !!cancelled);
-      if (breath.current) return breath.current.up(id);
       if (free.current) return free.current.fp.up(id, ts, !!cancelled);
       const r = run.current;
       if (!r) return;
@@ -890,9 +685,9 @@ export function LabApp() {
     const tgt = (e: KeyboardEvent) => (e.target instanceof Element ? e.target.closest("input, select, textarea, button") : null);
     const down = (e: KeyboardEvent) => {
       if (tgt(e)) return;
-      if (e.code === "Escape" && (run.current || free.current || breath.current)) return stop();
+      if (e.code === "Escape" && (run.current || free.current)) return stop();
       const r = run.current;
-      if (free.current || breath.current) return;
+      if (free.current) return;
       if (!r) {
         if ((e.code === "Enter" || e.code === "Space") && !panel) (e.preventDefault(), start());
         return;
@@ -941,15 +736,6 @@ export function LabApp() {
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => window.prompt("Copy the log:", text));
     else window.prompt("Copy the log:", text);
   };
-  /** D321: the sensor session as text for the lead (its taps, the separation, every tap's raw samples). */
-  const copySensor = () => {
-    const x = sensorExport(hub.current, adapt.current);
-    const sep = x.sep ? ` · AUC ${x.sep.auc.toFixed(2)} (${x.sep.verdict})` : "";
-    const text = `WTC LAB SENSOR LOG · ${x.taps.length} taps${sep} · ${x.permission}\n${JSON.stringify(x)}`;
-    const done = () => setNote("Sensor log copied. Paste it in a message to the developer.");
-    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => window.prompt("Copy the sensor log:", text));
-    else window.prompt("Copy the sensor log:", text);
-  };
   const share = (log: LabLog) => {
     const text = logText(log);
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
@@ -972,14 +758,12 @@ export function LabApp() {
   const hudTitle = freeOn
     ? `LAB · FREE PLAY · ${keyName(f.key)} · ${f.voiceNames[setup.voice] ?? ""} · ${setup.freeScale === "key" ? "key" : setup.freeScale === "keyboard" ? `keyboard (${setup.kbWhite === "piano" ? "piano" : "in the key"})` : "chromatic"} · ${setup.freeOctaves} oct`
     : `LAB · ${pieceLabel(f)} · ${f.voiceNames[setup.voice] ?? ""} · b${setup.fromBar}–${setup.toBar} · ${setup.tempoPct}%`;
-  // D320: lines over the box only in FREE PLAY (nothing to follow there); while a passage plays, at most the latest in the title bar.
-  const breathOn = !!breath.current;
-  const shown = (freeOn || breathOn) && playing ? feed.current.slice(-FEED_SHOWN) : [];
-  const barLine = !freeOn && playing && setup.feedBar ? feed.current.at(-1) : undefined;
+  // D320: lines over the box only in FREE PLAY (nothing to follow there; never over the music).
+  const shown = freeOn && playing ? feed.current.slice(-FEED_SHOWN) : [];
   void mechTick;
 
-  // The panel's START: FREE PLAY from its tab, the passage from PASSAGE and DRILLS, else what was played last.
-  const startMode: Setup["mode"] = panel === "free" ? "free" : panel === "passage" || panel === "drills" ? "passage" : setup.mode;
+  // The panel's START: FREE PLAY from its tab, the passage from PASSAGE, else what was played last.
+  const startMode: Setup["mode"] = panel === "free" ? "free" : panel === "passage" ? "passage" : setup.mode;
 
   return (
     <div className={`tg-app tg-wide lab-app tb-proto-${proto.id}${proto.layout === "bars" ? " tb-bars" : ""}`}>
@@ -987,13 +771,7 @@ export function LabApp() {
         frame={frame}
         hud={
           <>
-            {barLine ? (
-              <span className={`tg-hud-title lab-barline ${lineClass(barLine)}`} id="lab-barline">
-                {barLine}
-              </span>
-            ) : (
-              <span className="tg-hud-title">{study.active ? `STUDY · ${study.progress}` : hudTitle}</span>
-            )}
+            <span className="tg-hud-title">{hudTitle}</span>
             {/* D322: the stops for the voice played (kept per piece, as in the game). D420: the three pistons. */}
             {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} voice={setup.voice} />}
             {changed > 0 && (
@@ -1001,8 +779,8 @@ export function LabApp() {
                 {changed} CHANGED
               </button>
             )}
-            <button type="button" id="lab-go" className="lab-hud-btn" onClick={study.active ? study.pause : playing ? stop : () => start()}>
-              {study.active ? "❚❚ PAUSE" : playing ? "■ STOP" : "▶ START"}
+            <button type="button" id="lab-go" className="lab-hud-btn" onClick={playing ? stop : () => start()}>
+              {playing ? "■ STOP" : "▶ START"}
             </button>
             <button type="button" id="lab-open" className="lab-hud-btn" onClick={() => setPanel(panel ? null : "passage")}>
               LAB
@@ -1017,8 +795,7 @@ export function LabApp() {
         ))}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
-        <StudyCard st={study} />
-        {setup.feed && (freeOn || breathOn) && shown.length > 0 && (
+        {freeOn && shown.length > 0 && (
           <div className="lab-feed" aria-live="polite">
             {shown.map((l, i) => (
               <p key={feed.current.length - shown.length + i} className={lineClass(l)}>
@@ -1029,45 +806,25 @@ export function LabApp() {
         )}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
-      {tableOn && (
-        <TableStage
-          f={f}
-          voice={setup.voice}
-          chip={chip.current ?? ensureChip()}
-          o={tableOpts}
-          line={(l) => {
-            feed.current.push(l);
-            if (feed.current.length > FEED_KEPT) feed.current.splice(0, feed.current.length - FEED_KEPT);
-            setFeedTick((n) => n + 1);
-          }}
-          close={() => (setTableOn(false), setPanel("table"))}
-        />
-      )}
       {panel && (
         <div className="lab-panel" role="dialog" aria-label="Lab">
           <header className="lab-tabs">
-            {/* D376: THE EXPRESSION LAB: the game's selection screen (lab.html?glenn=1). D378: Glenn's mechanics the
-                game's; the same page with the old ones, MECHANICS: CLASSIC (lab.html?glenn=0), for comparison. */}
+            {/* D376: THE EXPRESSION LAB: the game's selection screen (lab.html?glenn=1), Glenn's mechanics the game's (D378). */}
             <a className="lab-glenn" id="lab-glenn" href="?glenn=1">
               PLAY ALL PIECES
             </a>
-            <a className="lab-glenn" id="lab-classic" href="?glenn=0">
-              MECHANICS: CLASSIC
+            {/* D441: THE GLENN PILOT: Part 1 hosted by Glenn, and his film of Fugue I/1 (lab.html?pilot=glenn). */}
+            <a className="lab-glenn" id="lab-pilot" href="?pilot=glenn">
+              GLENN PILOT
             </a>
-            {(["passage", "free", "breath", "table", "drills", "mechanics", "sensor", "see", "runs", "study", "help"] as Tab[]).map((t) => (
+            {(["passage", "free", "mechanics", "runs", "help"] as Tab[]).map((t) => (
               <button key={t} type="button" id={`lab-tab-${t}`} className={t === panel ? "on" : ""} onClick={() => setPanel(t)}>
-                {t === "see" ? "WHAT HAPPENED" : t === "free" ? "FREE PLAY" : t.toUpperCase()}
+                {t === "free" ? "FREE PLAY" : t.toUpperCase()}
               </button>
             ))}
-            {panel === "study" ? null : panel === "breath" ? (
-              <button type="button" className="lab-start" id="lab-start" onClick={() => void startBreath()}>
-                ▶ PLAY BREATH
-              </button>
-            ) : (
-              <button type="button" className="lab-start" id="lab-start" onClick={() => start(startMode)}>
-                ▶ {startMode === "free" ? "PLAY FREELY" : "START"}
-              </button>
-            )}
+            <button type="button" className="lab-start" id="lab-start" onClick={() => start(startMode)}>
+              ▶ {startMode === "free" ? "PLAY FREELY" : "START"}
+            </button>
             <button type="button" className="tg-x" aria-label="Close" onClick={() => setPanel(null)}>
               ✕
             </button>
@@ -1078,59 +835,7 @@ export function LabApp() {
               <PassageTab config={<ConfigPick id={config} pick={pickConfig} />} setup={setup} setSetup={setSetup} f={f} voices={voices} bpm={bpm} sound={sound} ensureChip={ensureChip} drag={<><DragSeg change={changeMech} /><BandSeg change={changeMech} /></>} />
             )}
             {panel === "free" && <FreeTab setup={setup} setSetup={setSetup} f={f} sound={sound} drag={<DragSeg change={changeMech} />} />}
-            {panel === "table" && (
-              <TableTab
-                f={f}
-                voice={setup.voice}
-                o={tableOpts}
-                set={setTableOpts}
-                play={() => {
-                  stop();
-                  const ch = ensureChip();
-                  void ch.resume().finally(() => setTableOn(true));
-                  setPanel(null);
-                }}
-              />
-            )}
-            {panel === "breath" && <BreathTab ensureChip={ensureChip} />}
-            {panel === "drills" && (
-              <div className="lab-drills">
-                {DRILLS.map((d) => (
-                  <button
-                    key={d.id}
-                    type="button"
-                    id={`drill-${d.id}`}
-                    className={`lab-drill${setup.drill === d.id ? " on" : ""}`}
-                    onClick={() => {
-                      const ff = fugueById(d.piece);
-                      setSetup({ piece: d.piece, voice: d.voice, fromBar: d.fromBar, toBar: d.toBar, reading: d.reading ?? readingsOf(ff.id)[0]?.id ?? "", tempoPct: d.tempoPct ?? 100, drill: d.id, sound: "" });
-                    }}
-                  >
-                    <b>{d.name}</b>
-                    <span>{pieceLabel(fugueById(d.piece))} · {fugueById(d.piece).voiceNames[d.voice]} · bars {d.fromBar}–{d.toBar}</span>
-                    <span className="lab-dim">{d.look}</span>
-                  </button>
-                ))}
-                <p className="lab-dim">A drill sets the passage; tap ▶ START. Loop is {setup.loop ? "on" : "off"} (PASSAGE).</p>
-              </div>
-            )}
             {panel === "mechanics" && <MechanicsTab config={<ConfigPick id={config} pick={pickConfig} />} change={changeMech} />}
-            {panel === "sensor" && <SensorTab hub={hub.current} play={setup.sensePlay} setPlay={(v) => setSetup({ sensePlay: v })} source={setup.senseSource} setSource={(v) => setSetup({ senseSource: v })} copy={copySensor} adapt={adapt.current} adaptive={setup.dynAdaptive} setAdaptive={(v) => setSetup({ dynAdaptive: v })} />}
-            {panel === "see" && (
-              <div className="lab-see">
-                <div className="lab-row">
-                  <Toggle id="lab-traces" label="Thumb traces" on={setup.traces} set={(v) => setSetup({ traces: v })} />
-                  <Toggle id="lab-feedbar" label="Latest verdict in the title bar while playing" on={setup.feedBar} set={(v) => setSetup({ feedBar: v })} />
-                  <Toggle id="lab-feed" label="FREE PLAY: lines over the box" on={setup.feed} set={(v) => setSetup({ feed: v })} />
-                  <button type="button" className="lab-btn" onClick={() => ((feed.current = []), setFeedTick((n) => n + 1))}>
-                    CLEAR
-                  </button>
-                </div>
-                <div className="lab-lines">
-                  {feed.current.length ? [...feed.current].reverse().map((l, i) => <p key={i} className={lineClass(l)}>{l}</p>) : <p className="lab-dim">Nothing yet: play a passage.</p>}
-                </div>
-              </div>
-            )}
             {panel === "runs" && (
               <div className="lab-runs">
                 {last ? (
@@ -1223,7 +928,6 @@ export function LabApp() {
                 </div>
               </div>
             )}
-            {panel === "study" && <StudyTab st={study} />}
             {panel === "help" && <HelpTab />}
           </div>
         </div>
@@ -1312,7 +1016,7 @@ function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip
       {config}
       <label className="lab-field">
         <span>Piece</span>
-        <select id="lab-piece" value={setup.piece} onChange={(e) => setSetup({ piece: e.target.value, voice: 0, fromBar: 1, toBar: 8, reading: readingsOf(e.target.value)[0]?.id ?? "", sound: "", drill: undefined })}>
+        <select id="lab-piece" value={setup.piece} onChange={(e) => setSetup({ piece: e.target.value, voice: 0, fromBar: 1, toBar: 8, reading: readingsOf(e.target.value)[0]?.id ?? "", sound: "" })}>
           {books.map(([name, list]) => (
             <optgroup key={name} label={name}>
               {list.map((p) => (
@@ -1326,7 +1030,7 @@ function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip
       </label>
       <label className="lab-field">
         <span>Voice</span>
-        <select id="lab-voice" value={setup.voice} onChange={(e) => setSetup({ voice: Number(e.target.value), drill: undefined })}>
+        <select id="lab-voice" value={setup.voice} onChange={(e) => setSetup({ voice: Number(e.target.value) })}>
           {f.voiceNames.map((n, i) => (
             <option key={n} value={i}>
               {n}
@@ -1338,9 +1042,9 @@ function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip
       <div className="lab-field">
         <span>Bars</span>
         <span className="lab-bars">
-          <input type="number" id="lab-from" inputMode="numeric" min={lo} max={hi} value={setup.fromBar} onChange={(e) => setSetup({ fromBar: Number(e.target.value), drill: undefined })} />
+          <input type="number" id="lab-from" inputMode="numeric" min={lo} max={hi} value={setup.fromBar} onChange={(e) => setSetup({ fromBar: Number(e.target.value) })} />
           to
-          <input type="number" id="lab-to" inputMode="numeric" min={lo} max={hi} value={setup.toBar} onChange={(e) => setSetup({ toBar: Number(e.target.value), drill: undefined })} />
+          <input type="number" id="lab-to" inputMode="numeric" min={lo} max={hi} value={setup.toBar} onChange={(e) => setSetup({ toBar: Number(e.target.value) })} />
           <span className="lab-dim">of {hi}</span>
         </span>
       </div>
@@ -1390,11 +1094,11 @@ function FreeTab({ setup, setSetup, f, sound, drag }: { setup: Setup; setSetup: 
   return (
     <div className="lab-form">
       <p className="lab-dim" style={{ gridColumn: "1 / -1", margin: 0 }}>
-        Play the sound freely on the two bars: the pitch is the row under the thumb (high at the top), every gesture works as in the game (where you land across the bar, sideways while holding, slides, shakes into mordents and trills, the other thumb still down to join) and MECHANICS applies. Each event is a line over the box and in WHAT HAPPENED. ▶ PLAY FREELY starts; ■ STOP ends.
+        Play the sound freely on the two bars: the pitch is the row under the thumb (high at the top), every gesture works as in the game (where you land across the bar, sideways while holding, slides, shakes into mordents and trills, the other thumb still down to join) and MECHANICS applies. Each event is a line over the box. ▶ PLAY FREELY starts; ■ STOP ends.
       </p>
       <label className="lab-field">
         <span>Key and range from</span>
-        <select id="lab-free-piece" value={setup.piece} onChange={(e) => setSetup({ piece: e.target.value, voice: 0, reading: readingsOf(e.target.value)[0]?.id ?? "", drill: undefined })}>
+        <select id="lab-free-piece" value={setup.piece} onChange={(e) => setSetup({ piece: e.target.value, voice: 0, reading: readingsOf(e.target.value)[0]?.id ?? "" })}>
           {ALL.map((p) => (
             <option key={p.id} value={p.id}>
               {pieceLabel(p)}
@@ -1575,27 +1279,21 @@ function HelpTab() {
       <h2>HOW TO USE THE LAB</h2>
       <p>The lab is the real game with its insides showing. Pick a passage, play it, and read why every touch counted or not. Change how the game judges, then play again, or replay a run you already played with the new settings.</p>
       <h3>1 · Pick a passage</h3>
-      <p>PASSAGE: the piece, your voice, the bars, the tempo (100% is the game's), and the sound. LOOP plays it again and again. WAIT FOR ME stops the music at each note until you play it. DRILLS: ready-made passages, one mechanic each (slurs, legato, leaps, ornaments, repeated notes, staccato).</p>
+      <p>PASSAGE: the piece, your voice, the bars, the tempo (100% is the game's), and the sound. LOOP plays it again and again. WAIT FOR ME stops the music at each note until you play it.</p>
       <h3>2 · Play</h3>
       <p>▶ START (top right). Hold the phone sideways and play on the two bars as in the game. ■ STOP ends the run. Each thumb leaves a trace: a circle where it landed, its path while held, an X where it lifted, green when the note was right, red when wrong, orange for a touch on no note.</p>
-      <h3>3 · See what happened</h3>
-      <p>WHAT HAPPENED lists every line, newest first (nothing is written over the music while you play; WHAT HAPPENED can put the latest line in the title bar). Each line gives the bar and beat, the note, the verdict, how early or late (ms), and the reason with numbers: how far your thumb moved from its last touch and what was needed; for joined notes, whether the other thumb was still down, or the gap between lifting and the next touch and the gap allowed.</p>
-      <h3>4 · Change the rules</h3>
+      <h3>3 · Change the rules</h3>
       <p>MECHANICS: every timing window, the legato gap, the slide threshold, the LADDER distances (in rows: one row is the height of one step in the box), ornaments, expression and what happens when the phone cancels a touch. RESET TO GAME DEFAULTS puts everything back. The game itself (play.html) is never changed by the lab.</p>
       <p>CONFIG (at the top of PASSAGE and MECHANICS) sets everything at once to a named way of playing, so you can try them one after another and say which feels right: A · CLASSIC is the game as it was up to WTC 1.51; B · CLEAN STRIKES makes every landing a strike; B+ · PREPARED (the game since WTC 1.52, and the default here) is B where a thumb may rest early on its next note while the other holds, sounded when the other lifts (a pull-off; a landing while the other holds is a hammer-on), never by itself; C · HAND-OVER lets a thumb rest on its next note while the other still holds and sounds it at its time; D · LIFT TO SOUND sounds it when the other thumb lifts; E · GENEROUS is C with wider windows. Moving a slider afterwards marks it "(changed)"; every run records the config it was played with. TIMING UNITS: RELATIVE scales the windows with the time between the notes (as set at 360 ms between notes, II/18's quavers; never narrower than at 250 ms, nor than a few touch frames).</p>
       <h3>Drags (try: CONNECT)</h3>
       <p>A drag is a held thumb slid on to the next note. In the game it only joins (no bonus, the legato chain broken). CONNECT (in FREE PLAY, PASSAGE or MECHANICS › DRAG) gives it a meaning per instrument: voices, synths and chips glide, the pitch following your thumb; harpsichord, piano and organ play the passing note when you drag across a third (coulé) and the Schleifer (two quick notes from a third below) when you drag up into a note. In a passage it then counts as joined for the chain, but earns nothing more. Each one is a "↝ DRAG:" line.</p>
       <p>BAND TIME (PASSAGE, or MECHANICS › BAND TIME) is a prototype: should the band follow you in time? FIXED is the game's. WAITS keeps the pulse but holds the band at a cadence, the final chord and after your breath (a lift at a rest) until your next note, at most a set time; each is a "⏸ BAND WAITED" line. FOLLOWS also lets the band's tempo follow your notes, a few per cent at most, changed only at a beat, and pulled back to the written tempo before it drifts far; each change is a "♩ BAND TEMPO" line. Your timing is judged against where the band is.</p>
-      <h3>Sensor: how hard you tap</h3>
-      <p>SENSOR: START SENSOR (allow motion access when asked), then LEARN: ten soft taps, ten hard taps on the pad, and PRESS AND FLATTEN (hold, flatten the thumb, lift). It shows how well soft and hard separate by the contact's size and by the motion sensor's spike. Do it held as you play, then with the phone on a table. COPY SENSOR LOG and paste it to the developer. PLAY WITH IT makes FREE PLAY's attacks follow your tap (by contact size or by the motion sensor).</p>
       <h3>Dynamics (the sampled piano)</h3>
-      <p>DYNAMICS (in PASSAGE and FREE PLAY, one setting): A · PLACE × STRIKE, B · PEDAL + STRIKE, C · STRIKE ONLY. In PASSAGE it shapes your own notes with the band (a pull-off has no strike: its place or pedal level only); it never changes what is judged or scored, and a STUDY always plays without it. Start the sensor first (SENSOR › START SENSOR). It needs no calibration each time: ADAPTIVE (on, in SENSOR) learns your soft and hard taps from your last 60 strikes, starting from your last session's (or a LEARN's). A firm tap is trusted more than a soft one: a tap read soft takes off 2 dB at most. Each note's level is a ♩ line in WHAT HAPPENED; the references in use are in the run's first line.</p>
+      <p>DYNAMICS (in PASSAGE and FREE PLAY, one setting): A · PLACE × STRIKE, B · PEDAL + STRIKE, C · STRIKE ONLY. In PASSAGE it shapes your own notes with the band (a pull-off has no strike: its place or pedal level only); it never changes what is judged or scored. The strike is read from the motion sensor, asked for when you tap ▶ START (allow motion access when asked). It needs no calibration: it learns your soft and hard taps from your last 60 strikes, starting from your last session's. A firm tap is trusted more than a soft one: a tap read soft takes off 2 dB at most. Each note's level is a ♩ line in the run's verdicts (RUNS › REPLAY); the references in use are in the run's first line.</p>
       <h3>Free play</h3>
       <p>FREE PLAY: no music to follow; the two bars play the sound chosen, the pitch the row under your thumb (the piece's key or every semitone, one to three octaves round the voice's range). Everything works as in the game: where you land across the bar, moving sideways while holding, sliding to another row, shaking into a mordent or a trill, landing while the other thumb holds to join. Each event is a line over the box. A metronome click if you want one. MECHANICS applies.</p>
       <p>KEYBOARD (Notes › KEYBOARD): a piano stood on end on each bar, mirrored, black keys toward the box, white keys running the whole bar. WHITE KEYS: IN THE KEY makes white the seven notes the voice plays most (in G♯ minor almost everything would be black on a piano), PIANO a real piano's. The sliders set the inner zone's width, the black keys' height and how much their tips taper (a touch near a tip is decided by where it is both across and along). Across picks the key here, so it shapes no attack.</p>
-      <h3>Study: ten excerpts, ten times each</h3>
-      <p>STUDY (D333): ten short excerpts from the fugues, each played ten times in a row, so the developer can see what you learn, what stays hard and which mistakes come back. START STUDY; before each excerpt a screen says what it tests, with ▶ PLAY and HEAR IT FIRST (the excerpt played once by itself, not counted). Each take starts after the count-in; the next starts by itself 2 s later, after its tally. ❚❚ PAUSE (top right) at any moment: the take stopped is played again. One setting for everything (preset B, piano, no reading marks, band time fixed, the game's tempo); your own settings come back afterwards. It is saved on the phone after every take, so you can stop and go on another day. SAVE FILE sends the whole study as one file (wtc-study-date.json) to upload to the developer; COPY copies it as text.</p>
-      <h3>5 · Share and replay</h3>
+      <h3>4 · Share and replay</h3>
       <p>RUNS: every run is recorded (your touches with their exact times, the settings, your phone's screen and sound delay, and every verdict). COPY LOG or SHARE sends it (paste it in a message to the developer). Each run is kept on this phone by itself (the newest 20; the oldest is overwritten). REPLAY plays a run again through the game with the current MECHANICS, without sound, and says what would have changed: for example, "with Legato gap 120 ms: 7 more joined, 2 fewer wrong".</p>
       <h3>For the developer</h3>
       <p>
@@ -1619,7 +1317,7 @@ function DynPick({ id, setup, setSetup, sound, where }: { id: string; setup: Set
               ? "B · PEDAL + STRIKE: where your thumbs land over the last second sets a running level (±6 dB, an expression pedal); how hard you tap adds an accent (a firm tap +4 dB, a soft one −2 dB at most)."
               : "C · STRIKE ONLY: how hard you tap alone (a firm tap +8 dB, a soft one −4 dB at most)."}
         {setup.dynMode !== "off"
-          ? ` ${where === "PASSAGE" ? "Your own notes with the band (struck, hammer-ons; a pull-off has no strike: its place or pedal level only). Not in a STUDY or in BLUETOOTH MODE. The same setting as FREE PLAY's. " : "The same setting as PASSAGE's. "}Never more than 16 dB in all; nothing is judged or scored by it. The tap's strength needs SENSOR › START SENSOR; it learns your soft and hard taps as you play (ADAPTIVE, in SENSOR). ${sound === "pianoSampled" ? "" : "The sampled piano only: choose PIANO (SAMPLED)."}`
+          ? ` ${where === "PASSAGE" ? "Your own notes with the band (struck, hammer-ons; a pull-off has no strike: its place or pedal level only). Not in BLUETOOTH MODE. The same setting as FREE PLAY's. " : "The same setting as PASSAGE's. "}Never more than 16 dB in all; nothing is judged or scored by it. The tap's strength is read from the motion sensor (asked for at ▶ START); it learns your soft and hard taps as you play. ${sound === "pianoSampled" ? "" : "The sampled piano only: choose PIANO (SAMPLED)."}`
           : ""}
       </p>
     </>

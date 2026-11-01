@@ -316,7 +316,7 @@ export function HelpPanel({ close }: { close: () => void }) {
         <p>Choose a prelude or fugue and a voice; the other voices play around you. The box above shows every voice; yours is outlined. The subject is dotted along its top, and a ◆ marks each entry as it comes (gold when it is yours).</p>
         <h2>SYNTH (UPRIGHT)</h2>
         <p>You play the shape, the game the pitches. Right thumb: the next note is higher. Left thumb: lower. A repeat: either. EASY wants the way and the time. NORMAL wants how far too: tap low for a repeat, higher for a step, a third, a leap (the bands are marked).</p>
-        <p>A note lasts while your thumb stays down: a quick tap is staccato. Hold one thumb and tap with the other: the notes join (legato). Slide a held thumb up or down: the next note, rising or falling, joined. Wobble sideways: vibrato.</p>
+        <p>A note lasts while your thumb stays down: a quick tap is staccato. Tap with the other thumb as this one lifts, no gap: legato. Slide a held thumb up or down: the next note, rising or falling, joined. Wobble sideways: vibrato.</p>
         <h2>PIANO (SIDEWAYS)</h2>
         <p>The notes fall onto their keys. EASY: any key on time. NORMAL: the right key, or you hear the wrong one. A key is struck anywhere in its column. The note dies away as you hold it and stops when you let go.</p>
         <h2>SOUND</h2>

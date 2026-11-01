@@ -1,0 +1,116 @@
+<title>Progression: Worth It Now?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; two tables (João's results, now vs proposal) are the only structured elements. */
+:root {
+  --bg: #f6f5f1; --fg: #1d1c22; --muted: #5d5a66; --rule: #d9d6cf; --gold: #9a6d12; --chip: #ece7dc; --ok: #2f7a45; --bad: #a3392f;
+  --display: "Fraunces", Georgia, serif; --body: "Source Sans 3", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16151b; --fg: #ebe8e1; --muted: #a29fac; --rule: #34323c; --gold: #e3b34f; --chip: #24222b; --ok: #6cc489; --bad: #e57a6e; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #16151b; --fg: #ebe8e1; --muted: #a29fac; --rule: #34323c; --gold: #e3b34f; --chip: #24222b; --ok: #6cc489; --bad: #e57a6e; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 400 1.02rem/1.55 var(--body); }
+main { max-width: 46rem; margin: 0 auto; padding-block: 2.2rem 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 1.6rem; }
+h1, h2 { font-family: var(--display); font-weight: 650; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; line-height: 1.15; }
+h2 { font-size: 1.25rem; color: var(--gold); }
+section { display: grid; gap: .55rem; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.2rem; display: grid; gap: .3rem; }
+.meta { font: 500 .78rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.verdict { border-left: 3px solid var(--gold); padding-left: .9rem; display: grid; gap: .5rem; }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; vertical-align: top; padding: .42rem .5rem; border-bottom: 1px solid var(--rule); }
+th { font: 500 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.f { white-space: nowrap; font-weight: 600; }
+.ok { color: var(--ok); font-weight: 600; }
+.bad { color: var(--bad); font-weight: 600; }
+small { color: var(--muted); }
+b.k { color: var(--gold); }
+</style>
+<main>
+<header style="display:grid;gap:.4rem">
+  <p class="meta">Progression assessment · Luigi and Mario, with Glenn · João's test · 1 Nov 2026</p>
+  <h1>Is the progression worth more energy now?</h1>
+</header>
+
+<section class="verdict">
+  <p><b>Verdict: go small, then stop and measure.</b> Stages 1–4 now exist in the Lab under PROGRESSION MODE, and they work. Teaching on the fugue you are about to play is the proposal's best idea. João's runs support it: passing a stage tutorial is a fair, though not exact, sign that you can finish that fugue.</p>
+  <p>But João also showed that three of our assumptions were wrong: the stage order, the grade scale and the pass mark. The two strongest arguments against locking the book still stand too. Most of your players are friends who want to play the C minor fugue now, and two teaching systems would have to be kept up side by side. So no stages 5–16 yet. First comes one test with a real person, then a decision.</p>
+</section>
+
+<section>
+  <h2>What João found</h2>
+  <p>This João is simulated, not a person. He is a beginner player model run through the real game engine with the crowd on. He played each whole fugue at ten skill levels, from "one note in three wrong, timing loose" (level 1) to "one in ten wrong, timing tight" (level 10), five times each. A scripted run through the real screens at phone size checked the flow: locked tiles, Basics, the stage tutorials, REDO TUTORIAL, and your own progress left untouched. Both work.</p>
+  <div class="wrap">
+  <table>
+    <thead><tr><th>Stage</th><th>Lowest level that finishes</th><th>First grade</th><th>Tutorial as a predictor</th><th>SLOW rescues</th></tr></thead>
+    <tbody>
+      <tr><td class="f">1 · I/1</td><td>3</td><td>C</td><td>A bit strict: levels 3–4 finish the fugue but mostly fail the tutorial</td><td>Everyone</td></tr>
+      <tr><td class="f">2 · I/23</td><td>3</td><td>C</td><td class="ok">Good</td><td>Everyone</td></tr>
+      <tr><td class="f">3 · I/22</td><td class="ok">1 (the easiest)</td><td>C</td><td class="ok">Good</td><td>Everyone</td></tr>
+      <tr><td class="f">4 · I/18</td><td class="bad">5 (a jump)</td><td>C</td><td class="bad">Too lenient: levels 3–4 pass it, then lose the fugue</td><td>Levels 3 and up</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ol>
+    <li><b class="k">The order is wrong at the start.</b> I/22 is by far the most forgiving: slow and long-noted, about one note a second. I/18 is a sudden jump. Glenn and Mario's revision: I/1, then I/22, then I/23, with I/18 moved later or given a gentler stage before it. I/1 stays first for its welcome, "what is a fugue". I/22 is the best second fugue: a first real finish, earned early.</li>
+    <li><b class="k">D and E are empty.</b> No finished run ever scored below C. The crowd leaves before you can finish under about 70%. The new grades only renamed S to A+ and added two bands nobody can reach. Either keep S to D, or let the crowd forgive more in the first stages so that a D or E finish is possible. Mario prefers the second, because that is what "finish with a low score" was meant to allow.</li>
+    <li><b class="k">One pass mark doesn't fit every fugue.</b> 75% of the notes is right on average but wrong at both ends: strict for I/1, lenient for I/18. The fix: pass a stage tutorial by surviving the real crowd over a longer opening (about eight bars), not by a fixed percentage.</li>
+    <li><b class="k">The SLOW safety valve works.</b> At SLOW, even the weakest João finishes stages 1–3. It is the cheapest good idea in the package, and it would help play.html today.</li>
+  </ol>
+  <p><small>What a simulated João cannot tell us: whether Bach's words are understood, whether the locks annoy, whether a beginner wants to come back tomorrow. His errors are evenly spread, while a real beginner's bunch up in the hard bars. A real person has to answer these.</small></p>
+</section>
+
+<section>
+  <h2>Now vs the proposal</h2>
+  <div class="wrap">
+  <table>
+    <thead><tr><th></th><th>Now (play.html)</th><th>Proposal</th></tr></thead>
+    <tbody>
+      <tr><td class="f">The book</td><td>All 24 fugues open</td><td>One open; the rest earned stage by stage</td></tr>
+      <tr><td class="f">Guidance</td><td>NEXT points to the next fugue in Bach's numbering, so I/2 comes right after I/1</td><td>NEXT follows the stage order</td></tr>
+      <tr><td class="f">Teaching</td><td>A separate course of about 35 lessons on the Inventions, plus the fugue track</td><td>Short Basics, then a tutorial per stage on that fugue's own bars</td></tr>
+      <tr><td class="f">SLOW</td><td>Only after an A, so closed to those who need it</td><td>After two failed runs</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>For and against</h2>
+  <p><b>For.</b> Lesson, bars and reward come in one place. A first hour that can't go wrong: today a beginner can start on I/24. Real fugues from the first minute, which is why the friends came. A clear reason to come back.</p>
+  <p><b>Against.</b> Locks hurt the players we actually have: a friend who wants "the C minor one" finds it at stage 12. For you and the musician friends, a locked book is simply worse. The 16-stage chain adds chores on top of the rewards the game already has (sounds and tempo at A, Book II at 24). The polished course would be demoted to a shelf. Each new stage tutorial costs excerpts checked note by note, Portuguese and Spanish text, and tests. Until all 16 exist, two teaching systems live side by side.</p>
+</section>
+
+<section>
+  <h2>Challenges, and what we would do about each</h2>
+  <ul>
+    <li><b>Locks against freedom.</b> Use soft locks: a greyed fugue opens on a tap with "Stage 12. Play it anyway?". Or give the path to first-time players only, with "open the whole book" in Settings.</li>
+    <li><b>Cost.</b> Plan for about 7 stage tutorials, not 15. Stages 8–15 mostly add stamina and speed, and a one-line tip card can say so.</li>
+    <li><b>The order of stages 9–15 is a guess.</b> Run João's level test on all 24 fugues before fixing any order. It costs an afternoon and no content.</li>
+    <li><b>Grades and pass mark.</b> See João's findings 2 and 3.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>A lighter alternative that gets most of the benefit</h2>
+  <p>Keep all 24 open on play.html. Have NEXT follow the stage order, with the stage number on each tile. Add the SLOW valve after two failed runs, and a one-line tip per fugue pointing to the lesson that teaches its new thing. This is a small change, and all of it carries over if the full path comes later. The stage tutorials stay in the Lab until a real test shows they beat the separate course.</p>
+</section>
+
+<section>
+  <h2>Recommendation on energy</h2>
+  <ol>
+    <li><b>Now (small):</b> fix what João found in stages 1–4: the order (I/1, I/22, I/23, then I/18) and the tutorial's pass rule. About half a day.</li>
+    <li><b>Then the real test:</b> hand a phone with the Lab's PROGRESSION MODE to one friend who doesn't play, for thirty minutes, and watch without helping. Ask one musician friend whether the locks annoy them. Ask two or three friends who already have the game whether they ever opened the TUTORIAL, and where they stopped.</li>
+    <li><b>Worth proposing to the main board regardless:</b> the SLOW valve, and NEXT in a sensible order, on play.html.</li>
+    <li><b>Not now:</b> stages 5–16, the LESSONS shelf, locks on play.html, the grade rename. Go further only if the real test shows beginners doing clearly better with the stage tutorials than with the course. If they do, go on to stages 5–7, with soft locks.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Try it</h2>
+  <p>Once the main board deploys this branch: open the Lab and tap <b>PROGRESSION MODE</b>. It plays on a separate profile, so your own progress on play.html is untouched. <b>START AGAIN FROM ZERO</b> (left column) gives you a fresh beginner's start each time.</p>
+</section>
+</main>

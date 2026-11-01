@@ -9,6 +9,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { tr } from "../../i18n/index.ts";
 import { Portrait } from "../Bach.tsx";
+import { hostLine, hostName } from "../glenn-host.ts";
 import type { LensStats } from "./lens.ts";
 import { BAR } from "../protos.ts";
 import type { DressFocus, DressLine } from "./dress.ts";
@@ -134,7 +135,7 @@ export function Caption({ text }: { text: string }) {
   return (
     <div className="tb-caption" id="caption" aria-live="polite">
       <Portrait talking={false} />
-      <p>{tr(text)}</p>
+      <p>{tr(hostLine(text))}</p>
     </div>
   );
 }
@@ -148,13 +149,13 @@ export function TourBubble({ k, touched, next }: { k: number; touched: { left: b
   const waiting = line?.focus === "strips" && !(touched.left && touched.right);
   if (!line) return null;
   return (
-    <div className="tb-bach tb-bach-low tb-tour" id="tour-bubble" role="dialog" aria-label={`Herr Bach: ${k + 1} / ${TOUR.length}`} onClick={() => !waiting && next()}>
+    <div className="tb-bach tb-bach-low tb-tour" id="tour-bubble" role="dialog" aria-label={`${hostName()}: ${k + 1} / ${TOUR.length}`} onClick={() => !waiting && next()}>
       <Portrait talking={false} />
       <div className="tb-bach-box">
         <p className="tb-bach-title">
           1.1 · {tr("THE PLAY SCREEN")} · {k + 1} / {TOUR.length}
         </p>
-        <p className="tb-bach-line">{tr(line.text)}</p>
+        <p className="tb-bach-line">{tr(hostLine(line.text))}</p>
         <p className="tb-bach-more">{waiting ? tr(touched.left ? TOUR_TOUCH[1] : TOUR_TOUCH[0]) : tr("TAP ▶")}</p>
       </div>
     </div>
@@ -239,13 +240,13 @@ export function Seal({ part, small = false }: { part: PartId; small?: boolean })
 export function DressBubble({ title, line, k, of, vars, next }: { title: string; line: DressLine; k: number; of: number; vars: Record<string, string | number>; next: () => void }) {
   const pos = line.focus === "voicesPause" ? " tb-tour-mid" : line.focus === "voices" || line.focus === "stops" ? " tb-tour-top" : "";
   return (
-    <div className={`tb-bach tb-bach-low tb-tour${pos}`} id="dress-bubble" role="dialog" aria-label={`Herr Bach: ${k + 1} / ${of}`} onClick={next}>
+    <div className={`tb-bach tb-bach-low tb-tour${pos}`} id="dress-bubble" role="dialog" aria-label={`${hostName()}: ${k + 1} / ${of}`} onClick={next}>
       <Portrait talking={false} />
       <div className="tb-bach-box">
         <p className="tb-bach-title">
           {title} · {k + 1} / {of}
         </p>
-        <p className="tb-bach-line">{tr(line.text, vars)}</p>
+        <p className="tb-bach-line">{tr(hostLine(line.text), vars)}</p>
         <p className="tb-bach-more">{tr("TAP ▶")}</p>
       </div>
     </div>

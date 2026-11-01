@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { bestReading, busoniOn, chooseReading, chosenReading, NO_READING, OFFER_READINGS, performSubject, playReading, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
-import { acrossBar, drawThumb, drawThumbMark, THUMB_LEGEND, type SuggestMark, type Touch } from "./fingering.ts";
+import { acrossBar, drawThumb, type Touch } from "./fingering.ts";
 import { drawThumbProxy } from "./thumb-proxy.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { paleOf } from "../touch/subject-hue.ts";
@@ -46,7 +46,6 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const fingerings = e ? subjectFingerings(f, e, perf, reading) : [];
   const shown = fingerings[Math.min(alt, fingerings.length - 1)];
   const touches = shown?.touches ?? [];
-  const marks = shown?.marks ?? [];
   const hear = () => {
     if (!e) return;
     const last = perf.at(-1);
@@ -60,7 +59,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     let raf = 0;
     const draw = () => {
       const c = canvas.current;
-      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current, touches, marks);
+      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current, touches);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -135,11 +134,6 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
               {tr("FINGERING SUGGESTION {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} ↻
             </button>
           )}
-          {marks.length > 0 && (
-            <span className="tb-hear-one" id="hear-thumbs-key">
-              {tr(THUMB_LEGEND)}
-            </span>
-          )}
           <span className="tb-hear-tempo">♩ = {tempoOf(id)}</span>
         </div>
         {legend.length > 0 && (
@@ -180,15 +174,14 @@ const STRIP = "#1c1f2c";
 const EDGE = "#4b8ef0";
 const LINE = "#18223f";
 const GOLD_LINE = "#f3d26b";
-const LETTER = "#fff3b0";
 
 /**
  * Design studio (D398): the subject drawn as the play screen draws it: the box between the two strips, its
  * blocks in the voice's subject ink (D368) with their rims, the reading's marks over them (D374), a gold
  * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D396); the
- * fingering suggestion's sparse marks under the notes, ● one thumb and ○ the other (D409; were L and R, D396).
+ * fingering shown by the thumbs alone (D444: no ● ○ under the notes outside the tutorial).
  */
-function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = [], marks: readonly SuggestMark[] = []) {
+function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
   const cssW = c.clientWidth || 300;
   const cssH = c.clientHeight || 160;
   const dpr = Math.min(3, devicePixelRatio || 1);
@@ -292,26 +285,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   }
   const t = playing ? now : finished ? Infinity : -1;
   const size = Math.max(12, Math.min(22, bar * 0.34));
-  // D409: the suggestion's marks, sparse (only where the plan marks a note: fingering.ts suggestionMarks), one
-  // thumb a filled disc and the other a ring, either way round (never L or R): faint ahead, full as the thumb
-  // lands with a short flash (D396: one ink for both thumbs).
-  for (const m of marks) {
-    const tc = touches[m.k];
-    if (!tc) continue;
-    const p = perf[tc.i];
-    const x1 = X(p.at);
-    const ly = Y(p.midi) + rowH + 7;
-    const k = t < tc.on ? -1 : Math.min(1, (t - tc.on) / 0.35);
-    if (k >= 0 && k < 1) {
-      g.globalAlpha = 0.5 * (1 - k);
-      g.fillStyle = LETTER;
-      g.beginPath();
-      g.arc(x1 + 4, ly, 5 + 7 * k, 0, Math.PI * 2);
-      g.fill();
-      g.globalAlpha = 1;
-    }
-    drawThumbMark(g, x1 + 4, ly, k >= 0 && k < 1 ? 3.6 : 2.6, m.thumb, LETTER, k < 0 ? 0.45 : 1);
-  }
+  // D444: no ● ○ under the notes here (the owner: only in the tutorials); the thumbs on the strips show the fingering.
   // Both thumbs, always on their strips: pressing (glowing) while they play a note, else resting where they last were.
   for (const side of ["left", "right"] as const) {
     const mine = touches.filter((x) => x.side === side && !x.slid);

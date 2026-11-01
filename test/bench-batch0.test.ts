@@ -100,7 +100,7 @@ test("D249: a touch the system takes back (pointercancel) stops its note, unjudg
   }
 });
 
-test("D249: the master chain ends in a tanh soft clip (4x) at about 0.95; the limiter lower; the drive unwired outside CON FUOCO", () => {
+test("D249: the master chain ends in a tanh soft clip (4x) at about 0.95; the limiter lower; no drive (D482: CON FUOCO no longer reaches the sound)", () => {
   setPreset("harpsichordSampled");
   const chip = new Chip();
   const ctx = ctxOf();
@@ -116,10 +116,9 @@ test("D249: the master chain ends in a tanh soft clip (4x) at about 0.95; the li
   assert.ok(Math.abs(slope - 2) < 0.01, `slope ${slope}`);
   const comps = [...ctx.nodes].filter((x) => x.kind === "compressor") as unknown as { threshold: { value: number }; attack: { value: number }; release: { value: number } }[];
   assert.ok(comps.some((c) => c.threshold.value === -10 && c.attack.value === 0.003 && c.release.value === 0.25), "the limiter");
-  assert.equal(chip.driving, false);
-  chip.zone("fuoco");
-  assert.equal(chip.driving, true);
-  chip.zone(null);
+  // D482: CON FUOCO's drive (D249) gone: no zone to switch, no shaper beside the ceiling.
+  assert.equal((chip as unknown as { zone?: unknown }).zone, undefined);
+  assert.equal([...ctx.nodes].filter((x) => x.kind === "shaper").length, 1, "only the ceiling's soft clip");
   // A phone's room shorter.
   const room = [...ctx.nodes].find((x) => x.kind === "convolver") as unknown as { buffer: { duration: number } };
   assert.ok(Math.abs(room.buffer.duration - ROOM_S.phone) < 0.01);
