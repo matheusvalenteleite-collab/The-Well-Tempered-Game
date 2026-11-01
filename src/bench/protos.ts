@@ -108,6 +108,12 @@ export interface Options {
    * Absent: D359's practice room as it was.
    */
   dress?: readonly string[];
+  /** D485, OBBLIGATO (the game only, never a lesson): playing well before one of the player's subject entries offers a layer for it (obbligato.ts). */
+  obbligato?: boolean;
+  /** D485: the instruments a boost may offer (default every one; later perhaps those the player has met). */
+  obbPool?: (l: import("./obbligato.ts").Layer) => boolean;
+  /** D485: the draw's random numbers (the tests'; default Math.random). */
+  obbRng?: () => number;
 }
 
 /**
