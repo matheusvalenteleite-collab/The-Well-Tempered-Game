@@ -9,7 +9,9 @@
  *   DYNAMICS: the printed levels per voice (LEVEL_DB: pp −11 … ff +6.5 dB about today's middle), terraced
  *     where printed (a p subito, a new level after a double bar); the ramp words (cresc., dim., poco a poco
  *     cresc.) and hairpins as ramps into the next printed level, else a local swell (HAIRPIN_DB). Entries
- *     are as loud as the edition prints them: nothing caps a subject (D293 gone).
+ *     are as loud as the edition prints them: nothing caps a subject (D293 gone). D404: a ramp reaches the
+ *     level printed for the system, an entry's own dim. ends its emphasis, a one-voice hairpin is that voice's
+ *     shaping; the player's line is never left more than 6 dB under the loudest voice for over 4 bars unasked.
  *   MARKS: accent ">" (+3 dB in the band, on time), marcato "^" (+4.5 dB and short: struck hard and left),
  *     wedge (shorter than a dot, +1.5), portato (held 0.82, +1), tenuto (its full value, not joined,
  *     +0.5), staccato (the engine's dot). A ">" or "^" asks the player's strong zone (touch-expr.ts).

@@ -60,6 +60,13 @@ test("D404: the cases fixed: each voice takes the level printed for its system",
   // I/4: the cresc. word and its hairpin are one ramp (+7 dB had stacked over più f).
   ({ f, p } = of("wtc1f04"));
   assert.ok(p.dynAt(1, at(f, 99)) <= LEVEL_DB["più f"] + 3 + 1e-9);
+  // I/4: the opening's sotto voce (a word: its first level, mp, is at b. 73); sempre mezza voce (b. 36) for all five.
+  assert.equal(p.dynAt(4, at(f, 2)), LEVEL_DB["sotto voce"]);
+  for (const v of [0, 1, 2, 3, 4]) assert.equal(p.dynAt(v, at(f, 40)), LEVEL_DB["mezza voce"], `I/4 b. 40 voice ${v}`);
+  // II/10: its only level, the ff of b. 82, no longer stands from bar 1.
+  ({ f, p } = of("wtc2f10"));
+  assert.equal(p.dynAt(0, at(f, 2)), LEVEL_DB.mf);
+  ({ f, p } = of("wtc1f04"));
   // I/9: the episode's p (b. 13) and the p of b. 23 govern all three voices.
   ({ f, p } = of("wtc1f09"));
   for (const v of [0, 1, 2]) assert.ok(p.dynAt(v, at(f, 13) + f.barTicks / 2) <= LEVEL_DB.p + 3.5, `I/9 b. 13 voice ${v}`);
