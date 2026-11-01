@@ -2200,13 +2200,14 @@ export class ProtoGame {
    * note sounds it now, judged at this moment (from the note's own early window on; let go before that, it
    * stays prepared and silent). MECH.prepLate "lift": the note waits past its late window for this.
    */
-  private prepLift(h: Held, tk: number) {
+  private prepLift(h: Held, tk: number): boolean {
+    let sounded = false;
     if (h.overFrom) {
       const n = this.tracks[h.k].notes[h.overFrom.i];
       this.tap?.({ kind: "prep", what: "overlap", tick: tk, track: h.k, i: h.overFrom.i, midi: n?.midi ?? 0, side: h.side, ms: this.msOf(h.overFrom.tick, tk) });
       h.overFrom = undefined;
     }
-    if (h.wait || h.note < 0) return;
+    if (h.wait || h.note < 0) return false;
     for (const [wid, w] of this.held) {
       const p = w.wait;
       if (!p?.prep || w.k !== h.k) continue;
@@ -2228,6 +2229,7 @@ export class ProtoGame {
         this.appo = { grace: ho.grace, short };
       } else this.tap?.({ kind: "prep", what: "pull-off", ...base });
       this.gesture = "pull-off";
+      sounded = true;
       try {
         this.strikeWaiting(wid, w, false, tk);
       } finally {
@@ -2235,6 +2237,7 @@ export class ProtoGame {
         this.appo = null;
       }
     }
+    return sounded;
   }
   /** D364: the appoggiatura sounding now by the lift (prepLift → play): the held note's MIDI, short or long. */
   private appo: { grace: number; short: boolean } | null = null;
@@ -3313,8 +3316,10 @@ export class ProtoGame {
     else if (h.note >= 0 && h.sounds.length && !h.passive && this.tracks[h.k].notes[h.note]?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
     // D329: WHEN THE OTHER THUMB LIFTS: this release sounds a thumb resting early on the next note.
     if (MECH.waitSounds === "lift" && this.proto.id === "ladder") this.liftSounds(h, this.tickOf(ts));
-    // D334, PULL-OFF: this release sounds a thumb prepared on the next note.
-    if (MECH.prepare && this.proto.id === "ladder") this.prepLift(h, this.tickOf(ts));
+    // D334, PULL-OFF: this release sounds a thumb prepared on the next note. D427: on a bowed string the
+    // note let go then gives way as a slur (held to the new onset, crossing into it: chip.ts giveWay).
+    const pulled = MECH.prepare && this.proto.id === "ladder" && this.prepLift(h, this.tickOf(ts));
+    const giveWay = pulled && MECH.glenn && touchFamily(preset().id) ? ("slur" as const) : undefined;
     // Flicked upwards as it let go: the swoosh.
     const tr = h.trail;
     if (h.sounds.length && tr.length >= 2) {
@@ -3334,7 +3339,10 @@ export class ProtoGame {
     const a = h.armed;
     const own = a ? a.own.map((sd) => ({ stop: (when?: number) => sd.stop(Math.max(when ?? this.chip.ctx.currentTime, a.at + 0.05)), bend() {} })) : [];
     if (this.pedalDown) this.pedalled.push(...h.sounds, ...(h.fx ?? []), ...own);
-    else for (const sd of [...h.sounds, ...(h.fx ?? []), ...own]) sd.stop();
+    else {
+      for (const sd of h.sounds) sd.stop(undefined, giveWay);
+      for (const sd of [...(h.fx ?? []), ...own]) sd.stop();
+    }
   }
 
   /** Sounds note i (or what was asked for instead) and grades it. A slide glides on; the piano strikes again. */
@@ -3515,6 +3523,8 @@ export class ProtoGame {
       // within the legato window (a handover with a hair's gap, or a touch iOS took back): joined as it is
       // judged, the sound too (no fresh attack where the instrument can join; a plucked one plucks).
       let legato = slide || (MECH.joinedSound && over && !piano && v.ok);
+      // D427: a JOIN, HANDOFF or OVERLAP on the strings: a new bow (glenn.ts joinedSound), its change heard.
+      const bowChange = touchFam === "strings" && !setRelease && !slide;
       for (const [hid, o] of this.held) {
         if (hid === id || o.k !== h.k) continue;
         o.passive = true;
@@ -3530,6 +3540,8 @@ export class ProtoGame {
           const cap = overHoldS(pid);
           const min = gPos > 1 && cap > 0 ? slurRingS(pid) : GLENN.minRingS;
           if (cap > 0) this.rings.add({ k: h.k, holder: o, stops: o.sounds, min: now + min, max: now + Math.max(cap, min) });
+          // D427: on a bowed string a two-thumb join is a bow change: the note given way to stops at the change (chip.ts giveWay).
+          else if (bowChange) for (const sd of o.sounds) sd.stop(now, "bow");
           else for (const sd of o.sounds) sd.stop(now + min);
           o.sounds = [];
           continue;

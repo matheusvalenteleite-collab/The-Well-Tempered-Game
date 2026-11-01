@@ -230,7 +230,8 @@ test("D376: over-legato: on the harpsichord the note given way to rings until it
   assert.equal(given("pianoSampled", 0.4, OFF), 30);
   // The organ and the single lines keep the clean join.
   assert.equal(given("chamberOrgan", 0.2, ON), 30);
-  assert.equal(given("stringConsort", 0.2, ON), 30);
+  // D427: on a bowed string a two-thumb join is a bow change: the note given way to stops at the new onset (its fast "bow" fall).
+  assert.equal(given("stringConsort", 0.2, ON), 0);
 });
 
 /** A slide: the left strikes note a and slides to a+1's height, arriving on its time; then the right joins a+2 (or lands after a gap). */
