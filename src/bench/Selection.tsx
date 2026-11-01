@@ -20,7 +20,7 @@ import { inkOf } from "../touch/MusicBox.tsx";
 import { Portrait } from "./Bach.tsx";
 import { Emblem } from "./FuguePicker.tsx";
 import { versionLine, Wordmark } from "./Intro.tsx";
-import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
+import { GRADE_INK, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
 import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
@@ -151,7 +151,7 @@ export function Selection(p: SelectionProps) {
         </nav>
         {/* Design studio (D463): the language, SETTINGS and TOOLS on the left (browse and set up); the right column is the piece's. */}
         <div className="sel-left-foot">
-          {p.setLang && <LangPick value={lang()} set={p.setLang} />}
+          {/* D446: the language lives in SETTINGS only (the owner: "fit language selection within settings, to save space and avoid clutter"). */}
           <div className="sel-top-row">
             {p.beside}
             <button type="button" id="lite-settings" className="tb-settings-btn sel-settings" aria-label={tr("SETTINGS")} onClick={p.settings}>
@@ -262,21 +262,30 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
               {tr("NEXT")}
             </span>
           )}
-        </span>
-        {/* Design studio (D463): the words in a block of their own, never squeezed: the picture gives way, not the lines. */}
-        <span className="sel-tile-words">
-          <span className="sel-tile-key">
-            <b>{n}</b> {key.tonic} <i>{key.mode}</i>
+          {/* D446 (the owner: "i cannot see easy normal difficult on the fugue cards"): the level on every card, in its ink. */}
+          <span className="sel-tile-level" id={`level-${id}`} style={{ background: lv.ink }}>
+            {tr(lv.label)}
           </span>
-          {nick && (
-            <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`}>
-              {nick}
+          {/* D446 (the owner: "fit the name and key of fugue inside the miniature picture … make sure it's readable"): the words over the picture's foot, on a dark band. */}
+          <span className="sel-tile-words">
+            <span className="sel-tile-key">
+              <b>{n}</b> {key.tonic} <i>{key.mode}</i>
             </span>
-          )}
+            {nick && (
+              <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`}>
+                {nick}
+              </span>
+            )}
+          </span>
         </span>
       </button>
     </li>
   );
+}
+
+/** D446: a voice's name short enough for four voices on one line (SOPRANO II → SOP II, TENOR → TEN). */
+export function shortPart(name: string): string {
+  return name.replace(/^SOPRANO\b/, "SOP").replace(/^TENOR\b/, "TEN").replace(/^CONTRALTO\b/, "ALTO").replace(/^SOPRANO\s/, "SOP ");
 }
 
 /** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
@@ -344,7 +353,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
               const on = i === voice;
               return (
                 <button key={vn} type="button" id={`sel-voice-${i}`} className={on ? "on" : ""} style={{ color: on ? "#14101a" : ink, background: on ? ink : undefined, borderColor: ink }} disabled={!singing.includes(i)} aria-pressed={on} onClick={() => setVoice(i)}>
-                  {partName(f.kind, vn)}
+                  {f.voiceNames.length >= 4 ? shortPart(partName(f.kind, vn)) : partName(f.kind, vn)}
                 </button>
               );
             })}

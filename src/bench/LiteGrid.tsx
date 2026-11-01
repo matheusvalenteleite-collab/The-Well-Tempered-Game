@@ -63,7 +63,8 @@ export const CHORALE_CREDITS: readonly string[] = [
 ];
 
 /** D308: a best grade's colour on its card (as the result's: S and A in gold, then down to red). */
-export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#f3c246", B: "#5fdc6a", C: "#7fd6e8", D: "#ec5a4a" };
+/** D446 (the owner: "A is green of course. yellow is worse than green. C is reddish"): S gold, A green, B yellow, C orange-red, D red. */
+export const GRADE_INK: Record<string, string> = { S: "#ffd23f", A: "#5fdc6a", B: "#e8c94a", C: "#f0784a", D: "#d8443a" };
 
 /** D343: a gear drawn in pixels (the font has none; the ⚙ glyph fell back to the system's). */
 const GEAR = ["....X....", ".X.XXX.X.", "..XXXXX..", ".XXX.XXX.", "XXX...XXX", ".XXX.XXX.", "..XXXXX..", ".X.XXX.X.", "....X...."];
