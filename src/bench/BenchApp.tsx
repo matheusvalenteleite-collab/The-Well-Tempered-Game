@@ -47,7 +47,8 @@ import { BtLite, HeadphonesFold, keepBtLag, lagBook, rememberRoute, useHeadphone
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
+import { barAt, barStart, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
+import { arcOf } from "./arc.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
@@ -85,6 +86,9 @@ import type { DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
+import { glennHosts, hostLine, setHost } from "./glenn-host.ts";
+import { filmOf } from "./films.ts";
+import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
@@ -207,7 +211,7 @@ export function sane(p: Pick): Pick {
   // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
   const mob = APP.lite && litePlatform() === "mobile";
   // D275: and Book II's fugues. D343: those and the MORE BACH and CHORALES pieces only once unlocked (unlock.ts).
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : (unlocked() && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : (unlocked() && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -791,7 +795,13 @@ export function BenchApp() {
         // D327: on the two bars the legend stands in the right side bar (SideLegend), off the first subject.
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
-      if (hintRef.current && proto.layout === "bars") placeHint(hintRef.current, g, from, !!man);
+      // D442, THE REVEAL: Glenn's word for each new step, from a bar before it to a bar and a half into it.
+      if (hintRef.current && proto.layout === "bars" && revealPlan && !man) {
+        placeHint(hintRef.current, g, from, true);
+        const ahead = revealPlan.steps.find((s) => g.now >= barStart(f, s.bar) - f.barTicks && g.now < barStart(f, s.bar) + 1.5 * f.barTicks);
+        if (ahead?.cue && hintRef.current.textContent !== ahead.cue) hintRef.current.textContent = ahead.cue;
+        hintRef.current.style.opacity = ahead ? "1" : "0";
+      } else if (hintRef.current && proto.layout === "bars") placeHint(hintRef.current, g, from, !!man);
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
       // D391: the word in force on the player's line, translated in the side bar (changed only when another word is passed).
       if (glossRef.current && marks.whole) {
@@ -1044,7 +1054,9 @@ export function BenchApp() {
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
   // D282: in a tutorial step, its goal (the demonstration: WATCH).
-  const hintLine = tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? (manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
+  // D442: THE REVEAL's prelude (the Glenn pilot): Glenn's word for each step in the hint card (set each frame).
+  const revealPlan = APP.glennPilot && phase.kind === "play" && !man && !lesson ? arcOf(f)?.reveal : undefined;
+  const hintLine = revealPlan ? (revealPlan.steps[0].cue ?? "") : tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? hostLine(manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
     seenId(proto.id);
@@ -1102,6 +1114,8 @@ export function BenchApp() {
   function beginManual(id: string, o: { stage?: number } = {}) {
     const l = lessonById(id);
     if (!l) return;
+    // D441: Glenn hosts the parts he has taken over (the Glenn pilot); Herr Bach the rest.
+    setHost(glennHosts(l.part) ? "glenn" : "bach");
     // D373: Inventions 4, 8 and 12 are MORE BACH's chunk: fetched first.
     if (l.stages.some((s) => fugueById(s.m.piece).id !== s.m.piece)) return void loadExtras().then(() => beginManual(id, o));
     setSteps(false);
@@ -1309,7 +1323,7 @@ export function BenchApp() {
     talk(mTitle(l), [{ text: alt ? mat.label : (st.say ?? mat.label) }], { extra: !alt && st.say ? <StageLine l={l} k={k} /> : undefined, choices: [{ label: "PLAY", act: () => startStep(m) }] });
   }
   /** Back to the tutorial's selection screen, the lesson just left chosen there. */
-  const toMap = () => (setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
+  const toMap = () => (setHost("bach"), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
   const startManual = () => {
     const s = readManual();
@@ -1430,6 +1444,8 @@ export function BenchApp() {
   };
   /** D272, HEAR THE SUBJECT: the subject played as performed (its samples loaded first); returns when it starts, on the page's clock (s). */
   const [hearing, setHearing] = useState<string | null>(null);
+  /** D441: Glenn's film open (the Glenn pilot). */
+  const [film, setFilm] = useState<string | null>(null);
   // D301: what HEAR THE SUBJECT has scheduled, stopped by anything that starts or changes the sound (the owner:
   // "it keeps on playing" when the round starts or another reading is chosen); `hearGen` drops a playback
   // whose samples were still loading when it was superseded.
@@ -1466,7 +1482,7 @@ export function BenchApp() {
   const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
   // D376: THE EXPRESSION LAB's badge moves out of the thumbs' way while a run plays (lab.css).
   useEffect(() => {
-    if (APP.glenn) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
+    if (APP.glenn || APP.glennPilot) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
   }, [phase.kind]);
   const introPlaying = useRef<IntroPlaying | null>(null);
   const introOver = useRef(false);
@@ -1842,7 +1858,7 @@ export function BenchApp() {
         </div>
       )}
       {/* D380: iPhone Safari, not installed: ADD TO HOME SCREEN, once, on the selection only (never in play). */}
-      {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib} />}
+      {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib || !!film} />}
       {/* D381: the headphones gone or back (a brief notice), or USING SPEAKER? where the browser cannot tell. */}
       {APP.lite && !APP.glenn && <RouteNotice route={route} busy={playing && !paused} />}
       {(hp.changed || route.recal) && !playing && !calib && (
@@ -2001,6 +2017,10 @@ export function BenchApp() {
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
           tutorial={{ ...manualProgress(readManual()), start: startManual }}
+          // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
+          learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
+          // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
+          playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
           note={
             lag !== null && lag > 0.02 ? (
@@ -2012,6 +2032,7 @@ export function BenchApp() {
         />
       )}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
+      {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}
       {APP.lite && platform !== "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D373: THE TUTORIAL's selection screen (three columns, nothing scrolls). */}

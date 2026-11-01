@@ -20,11 +20,11 @@
  * D336: the owner's zone test read both alike, so ONE calibration (LEARN or LEARN BY ZONE, kept in
  * localStorage), ADAPTIVE by default (AdaptiveCal: the references follow the recent strikes); the
  * strike's curve trusts a firm tap more than a soft one (strikeDb "firm"). DYNAMICS also plays in
- * PASSAGE (passage-dyn.ts). The zone functions stay for SENSOR's zone report.
+ * PASSAGE (passage-dyn.ts). The zone report stays for the runs' logs; a stored zone calibration seeds loadDynCal.
  * The pure functions here are tested (test/d335-dynamics.test.ts, test/d336-passage-dynamics.test.ts).
  */
 import type { Calibration } from "./sensor.ts";
-import { calibrate, separability, stats, type Separability, type Stats } from "./sensor.ts";
+import { separability, stats, type Separability, type Stats } from "./sensor.ts";
 import { PIANO_DB, PIANO_ZONE_DB } from "../../touch/touch-expr.ts";
 
 export type DynMode = "off" | "place" | "pedal" | "strike";
@@ -166,24 +166,6 @@ export interface ZoneCal {
   all: Calibration | null;
 }
 const peaksOf = (taps: readonly ZoneTap[], label: string, zone?: Zone) => taps.filter((x) => x.label === label && x.peak !== null && (!zone || x.zone === zone)).map((x) => x.peak!);
-/** Each zone's calibration from its soft and hard taps (at least three each), and both together. */
-export function zoneCalibration(taps: readonly ZoneTap[]): ZoneCal {
-  return {
-    inner: calibrate(peaksOf(taps, "soft", "inner"), peaksOf(taps, "hard", "inner")),
-    outer: calibrate(peaksOf(taps, "soft", "outer"), peaksOf(taps, "hard", "outer")),
-    all: calibrate(peaksOf(taps, "soft"), peaksOf(taps, "hard")),
-  };
-}
-/** A peak's strength by its zone's calibration, else both zones', else `fallback`; null with none. */
-export function zoneStrength(peak: number | null, zone: Zone, zc: ZoneCal | null, fallback?: Calibration | null): { strength: number; cal: string } | null {
-  if (peak === null) return null;
-  const own = zc?.[zone];
-  if (own) return { strength: logStrength(peak, own), cal: `${zone} zone's calibration` };
-  if (zc?.all) return { strength: logStrength(peak, zc.all), cal: "both zones' calibration" };
-  if (fallback) return { strength: logStrength(peak, fallback), cal: fallback.from === "session" ? "this session's LEARN" : "the recent taps" };
-  return null;
-}
-
 export interface ZoneSide {
   soft: Stats;
   hard: Stats;
@@ -200,7 +182,7 @@ export interface ZoneReport {
   /** A plain verdict: "differ" (either ratio off by 25% or more), "alike", "too few". */
   verdict: "differ" | "alike" | "too few";
 }
-/** Do inner and outer taps differ? (the log's taps, each with its zone: SENSOR's LEARN BY ZONE). */
+/** Do inner and outer taps differ? (the log's taps, each with its zone). */
 export function zoneReport(taps: readonly (ZoneTap & { rotPeak?: number | null })[]): ZoneReport {
   const side = (z: Zone): ZoneSide => {
     const s = peaksOf(taps, "soft", z);
@@ -355,7 +337,7 @@ export function saveDynCal(c: DynCal | null): boolean {
 }
 /** "soft 0.21 · hard 0.64 (adaptive, 40 strikes)": the references for a line. */
 export function refsText(c: DynCal): string {
-  const why = c.from === "adaptive" ? `adaptive, ${c.n ?? 0} strikes` : c.from === "learn" ? "learned" : "default: LEARN in SENSOR, or play";
+  const why = c.from === "adaptive" ? `adaptive, ${c.n ?? 0} strikes` : c.from === "learn" ? "learned" : "default: play to learn";
   return `soft ${c.soft.toFixed(2)} · hard ${c.hard.toFixed(2)} (${why})`;
 }
 

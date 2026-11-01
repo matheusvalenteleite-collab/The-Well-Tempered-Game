@@ -16,7 +16,7 @@ import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { setPreset } from "../src/touch/sound.ts";
 import { FreePlay, SLIDE_DWELL_MS } from "../src/bench/lab/free.ts";
-import { auc, calibrate, median, posture, pressureKind, recentCalibration, separability, sizeOf, stats, strengthFrom, tapPeak, medianInterval, type MotionSample } from "../src/bench/lab/sensor.ts";
+import { auc, calibrate, median, posture, pressureKind, recentCalibration, separability, sizeOf, stats, tapPeak, medianInterval, type MotionSample } from "../src/bench/lab/sensor.ts";
 import type { LabEvent } from "../src/bench/lab/events.ts";
 import { describe as lines } from "../src/bench/lab/describe.ts";
 
@@ -334,7 +334,7 @@ test("D321 SENSOR: a tap's peak in the window round the touch, when it was there
   assert.equal(posture([], 0), "unknown");
 });
 
-test("D321 SENSOR: separability (AUC, d′), calibration and strength", () => {
+test("D321 SENSOR: separability (AUC, d′) and calibration", () => {
   assert.equal(auc([1, 2, 3], [4, 5, 6]), 1);
   assert.equal(auc([4, 5, 6], [1, 2, 3]), 0);
   assert.equal(auc([1, 2], [1, 2]), 0.5);
@@ -350,10 +350,6 @@ test("D321 SENSOR: separability (AUC, d′), calibration and strength", () => {
   assert.equal(separability([1, 2, 3, 4, 5], [1.5, 2.5, 3.5, 4.5, 2]).verdict, "none");
   const cal = calibrate([0.2, 0.3, 0.25], [0.9, 1.1, 0.8])!;
   assert.deepEqual(cal, { soft: 0.25, hard: 0.9, from: "session" });
-  assert.equal(strengthFrom(0.25, cal), 0.25);
-  assert.equal(strengthFrom(0.9, cal), 0.75);
-  assert.equal(strengthFrom(5, cal), 1);
-  assert.equal(strengthFrom(0, cal), 0.25 - (0.5 * 0.25) / 0.65);
   assert.equal(calibrate([1, 1, 1], [0.5, 0.5, 0.5]), null);
   assert.equal(recentCalibration([1, 2, 3]), null);
   assert.ok(recentCalibration([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])!.hard > 7);
