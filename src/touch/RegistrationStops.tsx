@@ -1,29 +1,53 @@
 /**
  * D322, REGISTRATION's buttons (registration.ts) for the player's voice. D357 (the owner: "the instrument
  * stops should not be folded on a box, they should be readily available upon a single touch. this is the
- * only way one can, amidst play, change stops"): one row of one-touch buttons in the music box's title
- * bar, always there while the harpsichord or the organ plays (for the friends too), between the thumbs'
- * bars (never on them), each a thumb's target, drawn or pushed in at a glance (a lit knob or an empty
- * one). TUTTI a button of its own (every voice takes the player's stops; was a long press); on the organ
- * ROOM besides (room.ts: DRY · CHURCH · CATHEDRAL, cycling, kept on the device). Where the bar is narrow
- * (a phone sideways) the labels shorten and the piece's title gives way; a phone upright (the game asks
- * for it sideways) shows none. Kept per piece on the device; a change sounds from the next note. Each
- * change made while playing is kept for the run (registration.ts recordStopChange: the bar, the stop):
- * the special challenges to come ("draw X at bar N").
+ * only way one can, amidst play, change stops"): one touch, always there while the harpsichord or the
+ * organ plays (for the friends too). D369 (the owner: "The boxes for instrument modifications … should
+ * not be within music box. instead, … at the bottom of both buttons"): on the two bars (`sides`) they
+ * sit at the foot of each thumb's bar, beside the music box's legend and below its rows (no note is
+ * judged there), over the play area but outside it in the page (a touch on them is the button's).
  *
- * D369 (the owner: "The boxes for instrument modifications … should not be within music box. instead, … at
- * the bottom of both buttons [divided between them] … The top of the screen can be reserved for something
- * else"): on the two bars (`sides`) the buttons leave the title bar for the lowest strip of each thumb's
- * bar, beside the music box's legend and below its rows (no note is judged there): the knobs shared out
- * by count, the first half on the left, the rest (TUTTI, ROOM last) on the right, each at least 44 px.
- * They lie over the play area, outside it in the page (siblings of its section, above it): a touch on
- * them is the button's and never reaches the bars.
+ * D420, THUMB PISTONS (the owner: "Pistons good idea as well"): the row of single stops gives way to
+ * three combination pistons, as an organ has under its manual, each recalling a whole registration at
+ * one touch (registration.ts DEFAULT_PISTONS: the organ's flutes, principals and plenum; the
+ * harpsichord's buff, 8′ and 8′+8′+4′). On the two bars all three at each bar's foot (whichever thumb
+ * is free reaches them), large; elsewhere (a title bar) three large targets in the bar. Each acts at
+ * touch-down (a browser fires no click for a tap while another finger is down: the other thumb holds a
+ * note), the lit one the registration in force, a brief glow on the press. What each holds, TUTTI, ROOM
+ * and the pedal's 16′ are set before the run (PistonSettings, in the piece's pop-up). A phone upright
+ * shows none. The run starts on the piston matching the piece's colour plan at bar 1 for the player's
+ * voice, else II. Each press is kept for the run (recordStopChange: the piston and each stop it moved).
  */
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type MouseEvent as ReactMouseEvent } from "react";
 import type { Patch } from "./sound.ts";
 import { tr } from "../i18n/index.ts";
-import { loadRegistration, onLiveRegistration, recordStopChange, saveRegistration, setLiveRegistration, setTutti, stopsOf, stopsShown, toggle, DEFAULT_REG, type Registration, type StopId, type StopKnob } from "./registration.ts";
-import { hasRoom, liveRoom, nextRoom, ROOM_ORDER, setRoom, type RoomId } from "./room.ts";
+import {
+  actsOn,
+  defaultPistons,
+  hasPistons,
+  HOME_PISTON,
+  liveRegistration,
+  loadPistons,
+  loadRegistration,
+  onLiveRegistration,
+  pistonChanges,
+  pistonFor,
+  pistonRegistration,
+  PISTON_NAMES,
+  recordStopChange,
+  saveRegistration,
+  savePistons,
+  setLiveRegistration,
+  STOPS,
+  togglePiston,
+  DEFAULT_PISTONS,
+  DEFAULT_REG,
+  type Pistons,
+  type Registration,
+  type StopId,
+} from "./registration.ts";
+import { hasRoom, liveRoom, nextRoom, setRoom, type RoomId } from "./room.ts";
+import { coloursLoaded, loadColours, planOf } from "./colour.ts";
 
 /** A stop's label: the footages as organists write them (no translation), the names translated. */
 export function stopLabel(s: StopId): string {
@@ -48,61 +72,91 @@ export function stopLabel(s: StopId): string {
       return tr("TREM");
   }
 }
-/** D357: a stop's label where the bar is narrow (a phone sideways). */
+/** D357: a stop's label where the room is narrow. */
 export function shortLabel(s: StopId): string {
   return s === "principal" ? tr("PRINC.") : s === "mixture" ? tr("MIXT.") : stopLabel(s);
 }
 /** D357: a room's name on its button. */
 export const roomLabel = (r: RoomId) => tr(r === "dry" ? "DRY" : r === "church" ? "CHURCH" : "CATHEDRAL");
 
-/** D357: the title bar's room kept for the key, ❚❚ and ✕ (px; the title gives way). */
-const KEEP_PX = 160;
-/** D357: how long the room's name shows after a press (ms). */
-const ROOM_NAME_MS = 1600;
-/** Under this title bar width (px) the row has no room (a phone upright). */
+/** Under this title bar width (px) there is no room for the pistons (a phone upright). */
 const HIDE_BELOW_PX = 360;
-/** A button's width (px): 7 px Press Start 2P a character, its padding and border, the gap. */
-const chipPx = (label: string) => [...label].length * 7 + 16;
+/** D420: how long a piston glows after its press (ms). */
+const GLOW_MS = 450;
 
-/** D369: the knobs on the two bars: the first half (rounded up) on the left, the rest on the right. */
-export function splitKnobs<T>(knobs: T[]): [T[], T[]] {
-  const k = Math.ceil(knobs.length / 2);
-  return [knobs.slice(0, k), knobs.slice(k)];
+/** D420: the defaults' names (the organ's flutes, principals, plenum; the harpsichord's buff, 8′, full). */
+const DEFAULT_NAMES: Readonly<Record<string, readonly string[]>> = {
+  chamberOrgan: ["FLUTES", "PRINCIPALS", "PLENUM"],
+  harpsichordSampled: ["LUTE", "8′", "8′+8′+4′"],
+};
+/** D420: a piston's name under its numeral: a default's name where it holds one, else its stops (short). */
+export function pistonLabel(presetId: string, contents: readonly StopId[], short = false): string {
+  const def = DEFAULT_PISTONS[presetId];
+  const i = def ? pistonFor(presetId, def, contents, true) : -1;
+  // The pedal's 16′ and the tremulant do not change the name unless the ranks are a default's exactly.
+  const same = i >= 0 && def[i].length === contents.length && def[i].every((s) => contents.includes(s));
+  if (same) return short && DEFAULT_NAMES[presetId][i] === "PRINCIPALS" ? tr("PRINC.") : tr(DEFAULT_NAMES[presetId][i]);
+  const shown = contents.filter((s) => s !== "sub16");
+  return shown.length ? shown.map(shortLabel).join("+") : presetId === "harpsichordSampled" ? "8′" : tr("PRINC.");
 }
-/** D369: a bar's foot holds three 44 px targets side by side (a phone's bar is about 150 px); more go in rows of two. */
-export const sideCols = (n: number) => (n <= 3 ? Math.max(1, n) : Math.ceil(n / 2));
-export const sideRows = (n: number) => Math.ceil(n / sideCols(n));
 
-export function RegistrationStops({ presetId, patch, piece, barNow, sides = false }: { presetId: string; patch: Patch | null | undefined; piece: string; barNow?: () => number | null; sides?: boolean }) {
-  const [reg, setReg] = useState<Registration>(() => loadRegistration(piece, presetId));
-  const [room, setRoomNow] = useState<RoomId>(() => liveRoom());
+/** D420: the piston the run starts on: the colour plan's registration at bar 1 for the player's voice (pistonFor), else II. */
+export function startPiston(piece: string, presetId: string, voice: number, pistons: Pistons): number {
+  const plan = planOf(piece, presetId);
+  if (!plan) return HOME_PISTON;
+  let reg: StopId[] | undefined;
+  for (const [bar, c] of plan) if (bar <= 1 && (!c.voices || c.voices.includes(voice)) && c.reg) reg = c.reg;
+  return reg ? pistonFor(presetId, pistons, reg) : HOME_PISTON;
+}
+
+export function RegistrationStops({ presetId, patch, piece, voice = 0, barNow, sides = false }: { presetId: string; patch: Patch | null | undefined; piece: string; voice?: number; barNow?: () => number | null; sides?: boolean }) {
+  const [lit, setLit] = useState(HOME_PISTON);
+  const [glow, setGlow] = useState(-1);
   const [width, setWidth] = useState(1000);
-  /** D357: the room's name shown a moment under its button after a press (narrow: the button shows its level only). */
-  const [named, setNamed] = useState(0);
-  useEffect(() => {
-    if (!named) return;
-    const id = window.setTimeout(() => setNamed(0), ROOM_NAME_MS);
-    return () => clearTimeout(id);
-  }, [named]);
   const wrap = useRef<HTMLSpanElement>(null);
-  const shown = stopsShown(presetId, patch);
+  /** The registration this component set last (a change made elsewhere is told apart from it). */
+  const mine = useRef<Registration | null>(null);
+  const pressed = useRef(false);
+  const pistons = useRef<Pistons>(loadPistons(piece, presetId));
+  const tutti = useRef(false);
 
-  // The piece's kept registration, in force while the buttons are there (the default once they go);
-  // a change made elsewhere (the piece's own plan) shown as it comes.
+  // The piece's pistons and TUTTI; the run starts on the plan's piston (II while the plans load), and a change made elsewhere lights the piston it matches.
   useEffect(() => {
-    const r = loadRegistration(piece, presetId);
-    setReg(r);
-    setLiveRegistration(presetId, r);
+    if (!hasPistons(presetId)) return;
+    pistons.current = loadPistons(piece, presetId);
+    tutti.current = loadRegistration(piece, presetId).tutti;
+    pressed.current = false;
+    const draw = (i: number) => {
+      const r = pistonRegistration(presetId, pistons.current[i], patch, tutti.current);
+      mine.current = r;
+      setLit(i);
+      setLiveRegistration(presetId, r);
+    };
+    draw(coloursLoaded() ? startPiston(piece, presetId, voice, pistons.current) : HOME_PISTON);
+    let gone = false;
+    if (!coloursLoaded())
+      void loadColours().then(
+        () => !gone && !pressed.current && draw(startPiston(piece, presetId, voice, pistons.current)),
+        () => {},
+      );
     const off = onLiveRegistration((id, next) => {
-      if (id === presetId) setReg(next);
+      if (id !== presetId || next === mine.current) return;
+      setLit(pistonFor(presetId, pistons.current, next.stops, true));
     });
     return () => {
+      gone = true;
       off();
       setLiveRegistration(presetId, DEFAULT_REG);
     };
-  }, [piece, presetId]);
+  }, [piece, presetId, patch, voice]);
 
-  // The title bar's width: the full labels where they fit beside the key, ❚❚ and ✕, else the short ones.
+  useEffect(() => {
+    if (glow < 0) return;
+    const id = window.setTimeout(() => setGlow(-1), GLOW_MS);
+    return () => clearTimeout(id);
+  }, [glow]);
+
+  // The title bar's width (a phone upright shows none).
   useLayoutEffect(() => {
     const hud = wrap.current?.closest(".tg-hud") as HTMLElement | null;
     if (!hud) return;
@@ -113,107 +167,144 @@ export function RegistrationStops({ presetId, patch, piece, barNow, sides = fals
     return () => ro?.disconnect();
   }, []);
 
-  if (!shown.length || (!sides && width < HIDE_BELOW_PX)) return <span ref={wrap} hidden />;
-  const on = new Set(stopsOf(presetId, reg, patch));
-  const roomed = hasRoom(presetId);
-  const extra = chipPx("TUTTI") + (roomed ? chipPx(roomLabel("cathedral")) : 0);
-  const compact = sides || width - KEEP_PX < shown.reduce((a, s) => a + chipPx(stopLabel(s)), 0) + extra;
-  const label = compact ? shortLabel : stopLabel;
+  if (!hasPistons(presetId) || (!sides && width < HIDE_BELOW_PX)) return <span ref={wrap} hidden />;
 
-  const change = (next: Registration, knob: StopKnob) => {
-    const before = knob === "tutti" ? reg.tutti : on.has(knob);
-    const after = knob === "tutti" ? next.tutti : stopsOf(presetId, next, patch).includes(knob);
-    setReg(next);
-    setLiveRegistration(presetId, next);
-    saveRegistration(piece, presetId, next);
-    if (before !== after) recordStopChange({ bar: barNow?.() ?? null, stop: knob, drawn: after, reg: next });
+  const press = (i: number) => {
+    pressed.current = true;
+    const before = liveRegistration(presetId);
+    const after = pistonRegistration(presetId, pistons.current[i], patch, tutti.current);
+    mine.current = after;
+    setLit(i);
+    setGlow(i);
+    setLiveRegistration(presetId, after);
+    for (const c of pistonChanges(barNow?.() ?? null, i, before, after)) recordStopChange(c);
   };
 
-  const knobs = (
-    <>
-      {shown.map((s) => (
-          <button
-            key={s}
-            type="button"
-            id={`stop-${s}`}
-            className={`tg-stop${on.has(s) ? " on" : ""}`}
-            aria-pressed={on.has(s)}
-            aria-label={stopLabel(s)}
-            onContextMenu={(e) => e.preventDefault()}
-            onClick={() => change(toggle(presetId, reg, patch, s), s)}
-          >
-            {label(s)}
-          </button>
+  const row = (side: string) =>
+    PISTON_NAMES.map((n, i) => (
+      <button
+        key={n}
+        type="button"
+        id={side ? `piston-${side}-${n}` : `piston-${n}`}
+        className={`tg-piston${lit === i ? " on" : ""}${glow === i ? " glow" : ""}`}
+        aria-pressed={lit === i}
+        aria-label={`${tr("PISTON")} ${n}: ${pistonLabel(presetId, pistons.current[i])}`}
+        onContextMenu={(e) => e.preventDefault()}
+        onPointerDown={(e: ReactPointerEvent) => {
+          if (!actsOn("pointerdown", 0, e.button)) return;
+          e.preventDefault();
+          press(i);
+        }}
+        onClick={(e: ReactMouseEvent) => actsOn("click", e.detail) && press(i)}
+      >
+        <b className="tg-piston-n">{n}</b>
+        <span className="tg-piston-name">{pistonLabel(presetId, pistons.current[i], true)}</span>
+      </button>
+    ));
+  const cls = `tg-reg tg-pistons${tutti.current ? " tg-reg-tutti" : ""}`;
+  if (sides)
+    // D420: all three at each bar's foot: whichever thumb is free reaches them.
+    return (
+      <>
+        <span ref={wrap} hidden />
+        {(["left", "right"] as const).map((s) => (
+          <span key={s} className={`${cls} tb-stops-side tb-stops-${s}`} id={`stops-${s}`} role="group" aria-label={tr("PISTONS")}>
+            {row(s)}
+          </span>
         ))}
+      </>
+    );
+  return (
+    <span className={`${cls} tg-reg-row-inline`} ref={wrap} role="group" aria-label={tr("PISTONS")}>
+      {row("")}
+    </span>
+  );
+}
+
+/**
+ * D420: what each piston holds, set before the run (the piece's pop-up, folded): each piston's stops
+ * (the old one-touch toggles: on the organ FLUTE, PRINCIPAL, REED, MIXTURE, TREM and the pedal's 16′;
+ * on the harpsichord 8′+8′, 4′, LUTE), TUTTI (every voice takes the piston) and, on the organ, ROOM.
+ * Kept per piece and sound (registration.ts savePistons; ROOM on the device).
+ */
+export function PistonSettings({ presetId, piece }: { presetId: string; piece: string }) {
+  const [ps, setPs] = useState<Pistons>(() => loadPistons(piece, presetId));
+  const [reg, setReg] = useState<Registration>(() => loadRegistration(piece, presetId));
+  const [room, setRoomNow] = useState<RoomId>(() => liveRoom());
+  useEffect(() => {
+    setPs(loadPistons(piece, presetId));
+    setReg(loadRegistration(piece, presetId));
+  }, [piece, presetId]);
+  if (!hasPistons(presetId)) return null;
+  const stops = STOPS[presetId] ?? [];
+  const keep = (next: Pistons) => {
+    setPs(next);
+    savePistons(piece, presetId, next);
+  };
+  const isDefault = ps.every((p, i) => {
+    const d = defaultPistons(presetId)[i];
+    return p.length === d.length && p.every((s) => d.includes(s));
+  });
+  return (
+    <details className="tb-pop-pistons" id="pop-pistons">
+      <summary>
+        {tr("PISTONS")} · {PISTON_NAMES.map((n, i) => `${n} ${pistonLabel(presetId, ps[i])}`).join(" · ")}
+      </summary>
+      <p className="tb-pop-lock">{tr("EACH PISTON DRAWS ITS STOPS AT ONE TOUCH, EVEN WHILE YOU HOLD A NOTE")}</p>
+      {PISTON_NAMES.map((n, i) => (
+        <div key={n} className="tb-pop-piston" role="group" aria-label={`${tr("PISTON")} ${n}`}>
+          <b className="tb-pop-piston-n">{n}</b>
+          {stops.map((s) => (
+            <button
+              key={s}
+              type="button"
+              id={`pop-piston-${n}-${s}`}
+              className={`tg-stop${ps[i].includes(s) ? " on" : ""}`}
+              aria-pressed={ps[i].includes(s)}
+              onClick={() => keep(ps.map((p, j) => (j === i ? togglePiston(presetId, p, s) : p)) as unknown as Pistons)}
+            >
+              {shortLabel(s)}
+            </button>
+          ))}
+        </div>
+      ))}
+      <div className="tb-pop-piston tb-pop-piston-more">
         <button
           type="button"
-          id="stop-tutti"
+          id="pop-piston-tutti"
           className={`tg-stop tg-stop-tuttib${reg.tutti ? " on" : ""}`}
           aria-pressed={reg.tutti}
           title={tr("EVERY VOICE TAKES YOUR STOPS")}
-          onContextMenu={(e) => e.preventDefault()}
-          onClick={() => change(setTutti(presetId, reg, patch, !reg.tutti), "tutti")}
+          onClick={() => {
+            const next = { ...reg, tutti: !reg.tutti };
+            setReg(next);
+            saveRegistration(piece, presetId, next);
+          }}
         >
           TUTTI
         </button>
-        {roomed && (
+        {hasRoom(presetId) && (
           <button
             type="button"
-            id="stop-room"
+            id="pop-piston-room"
             className={`tg-stop tg-stop-room tg-room-${room}`}
             aria-label={`${tr("ROOM")}: ${roomLabel(room)}`}
-            onContextMenu={(e) => e.preventDefault()}
             onClick={() => {
               const r = nextRoom(room);
               setRoom(r);
               setRoomNow(r);
-              setNamed(Date.now());
             }}
           >
             <span className="tg-stop-sub">{tr("ROOM")}</span>
-            {compact ? (
-              // Narrow: the room's level as three pips (DRY one, CHURCH two, CATHEDRAL three); its name a moment below after a press.
-              <span className="tg-room-pips" aria-hidden="true">
-                {ROOM_ORDER.map((r, i) => (
-                  <i key={r} className={i <= ROOM_ORDER.indexOf(room) ? "on" : ""} />
-                ))}
-              </span>
-            ) : (
-              roomLabel(room)
-            )}
-            {compact && named > 0 && (
-              <span className="tg-room-name" role="status">
-                {roomLabel(room)}
-              </span>
-            )}
+            {roomLabel(room)}
           </button>
         )}
-    </>
-  );
-  const cls = `tg-reg${compact ? " tg-reg-compact" : ""}${reg.tutti ? " tg-reg-tutti" : ""}`;
-  if (sides) {
-    // D369: the elements in order (the stops, TUTTI, ROOM), shared out between the two bars' feet.
-    const all = (knobs.props.children as React.ReactNode[]).flat().filter(Boolean);
-    const [l, r] = splitKnobs(all);
-    // The music box's legend as tall as the taller foot (bench.css): its rows end above the buttons.
-    const rows = Math.max(sideRows(l.length), sideRows(r.length));
-    const side = (id: string, k: React.ReactNode[]) => (
-      <span className={`${cls} tb-stops-side tb-stops-${id}`} id={`stops-${id}`} role="group" aria-label={tr("STOPS")} style={{ gridTemplateColumns: `repeat(${sideCols(k.length)}, minmax(0, 1fr))` }}>
-        {k}
-      </span>
-    );
-    return (
-      <>
-        <span ref={wrap} hidden data-rows={rows} />
-        <style>{`.tb-has-side-stops { --tb-stop-rows: ${rows}; }`}</style>
-        {side("left", l)}
-        {side("right", r)}
-      </>
-    );
-  }
-  return (
-    <span className={`${cls} tg-reg-row-inline`} ref={wrap} role="group" aria-label={tr("STOPS")}>
-      {knobs}
-    </span>
+        {!isDefault && (
+          <button type="button" id="pop-piston-reset" className="tg-link" onClick={() => keep(defaultPistons(presetId))}>
+            {tr("DEFAULTS")}
+          </button>
+        )}
+      </div>
+    </details>
   );
 }

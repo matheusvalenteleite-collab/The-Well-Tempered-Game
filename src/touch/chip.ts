@@ -9,7 +9,7 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { crowned, isPedal, liveRegistration, registeredNote, LUTE_LP, type Registered } from "./registration.ts";
+import { crowned, heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
@@ -344,6 +344,12 @@ export interface Play {
    */
   legato?: boolean;
   /**
+   * D420: an organ note already sounding, taken up again under a new registration (a piston pressed
+   * while the key is held): its pipes enter joined (no new chiff: the ranks held on keep speaking),
+   * even where a pipe would speak anew (`piped`).
+   */
+  retake?: boolean;
+  /**
    * D302: joined to the next note: held at its level to its end (the next note's onset and a little
    * over), let go over the last `tie` s (the crossfade into the next), not released before it as a
    * note's own release would (it left a gap or a dip of 40-120 ms between joined notes).
@@ -451,6 +457,22 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
     shape: (x) => both.forEach((y) => y.shape?.(x)),
     trim: (l, at, until) => both.forEach((x) => x.trim?.(l, at, until)),
   };
+}
+
+/** D420: an organ note held (Chip.note), as it was asked for, its registration and what has been done to it since. */
+interface Held {
+  midi: number;
+  at: number;
+  end: number;
+  v: Voicing;
+  p: Play;
+  sd: Sounding;
+  reg: Registration;
+  done: boolean;
+  bend?: number;
+  dyn?: number;
+  shape?: number;
+  muffled?: boolean;
 }
 
 /** D308: the longest time constant of a player's note let go (s): -40 dB in 4.6 of them, 115 ms. */
@@ -712,7 +734,62 @@ export class Chip {
    */
   coupling = { up: 0, down: 0, split: 48 };
 
+  /** D420: the organ notes sounding that a registration change reaches (the player's; every voice's under TUTTI). */
+  private held: Held[] = [];
+  private heldWatch: (() => void) | null = null;
+
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    const sd = this.noteNow(midi, at, dur, v, p);
+    // D420: on the organ a registration changed under a held key reaches it (thumb pistons): the note kept to be taken up again.
+    const id = preset().id;
+    if (id !== "chamberOrgan" || p.couple === false || p.retake || !organPatchOf(v.patch)) return sd;
+    const live = liveRegistration(id);
+    if (!p.lead && !live.tutti) return sd;
+    const h: Held = { midi, at, end: at + dur, v, p, sd, reg: bandRegistration(live, p), done: false };
+    const now = this.ctx.currentTime;
+    this.held = this.held.filter((x) => !x.done && x.end > now);
+    this.held.push(h);
+    this.heldWatch ??= onLiveRegistration((pid, reg) => {
+      if (pid !== preset().id) return;
+      const t = this.ctx.currentTime;
+      this.held = this.held.filter((x) => !x.done && x.end > t);
+      for (const x of this.held) {
+        // A note scheduled ahead and not yet begun keeps what it was given (as every note did before; the lookahead is short).
+        if (x.at > t) continue;
+        const after = bandRegistration(reg, x.p);
+        if (heldChange(pid, x.reg, after, x.v.patch, !!x.p.lead, x.midi)?.retake) this.retake(x);
+        x.reg = after;
+      }
+    });
+    return {
+      stop: (t) => ((h.done = true), h.sd.stop(t)),
+      bend: (c) => ((h.bend = c), h.sd.bend(c)),
+      glide: sd.glide && ((m, tau) => ((h.midi = m), h.sd.glide?.(m, tau))),
+      muffle: () => ((h.muffled = true), h.sd.muffle?.()),
+      dyn: (l) => ((h.dyn = l), h.sd.dyn?.(l)),
+      shape: (s) => ((h.shape = s), h.sd.shape?.(s)),
+      trim: (l, a, u) => h.sd.trim?.(l, a, u),
+    };
+  }
+
+  /**
+   * D420: a held organ note under its new registration: the old pipes let go (their short release), the
+   * new registration's pipes speaking from now, joined (Play.retake: no new chiff), the thumb's bend,
+   * the note's dynamic and shape carried over.
+   */
+  private retake(h: Held) {
+    const now = this.ctx.currentTime;
+    if (h.done || now >= h.end) return;
+    h.sd.stop(now);
+    const sd = this.noteNow(h.midi, now, h.end - now, h.v, { ...h.p, retake: true });
+    if (h.bend) sd.bend(h.bend);
+    if (h.dyn !== undefined) sd.dyn?.(h.dyn);
+    if (h.shape !== undefined) sd.shape?.(h.shape);
+    if (h.muffled) sd.muffle?.();
+    h.sd = sd;
+  }
+
+  private noteNow(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
@@ -803,7 +880,7 @@ export class Chip {
     const h = Math.sin(midi * 12.9898 + 4.1414) * 43758.5453;
     const cents = ((h - Math.floor(h)) * 2 - 1) * pp.cents;
     const pt2 = this.phone && pp.phoneOsc ? { ...pt, osc: [...pt.osc, ...pp.phoneOsc] } : pt;
-    return [{ ...v, pan: Math.max(-1, Math.min(1, v.pan + side * pp.case)) }, pt2, { ...p, legato: false, detune: (p.detune ?? 0) + cents }];
+    return [{ ...v, pan: Math.max(-1, Math.min(1, v.pan + side * pp.case)) }, pt2, { ...p, legato: !!p.retake, detune: (p.detune ?? 0) + cents }];
   }
 
   /**
