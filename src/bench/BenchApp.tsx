@@ -97,7 +97,7 @@ import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
-import { INTRO_CHORD, INTRO_PRESET, playIntro, type IntroPlaying } from "./intro-sound.ts";
+import { INTRO_LOAD_WAIT_MS, INTRO_PRESET, introPitches, playIntro, type IntroPlaying } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
@@ -1497,8 +1497,8 @@ export function BenchApp() {
   }, [hearing]);
   /**
    * D371: play.html's title page (Intro.tsx), on every launch. Its first touch makes the sound (the phone's
-   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D406: on a
-   * soft traverso, then C♯–D with the string consort's D major under the D, which rings on into the
+   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D500: on
+   * STRING CONSORT's cello, then C♯–D and BAROQUE BAND's cadence from the D, which rings on into the
    * selection screen; a skip fades it out quickly. Its end gives the piece's sound back.
    */
   // D376: not in THE EXPRESSION LAB (straight to the selection screen).
@@ -1512,10 +1512,11 @@ export function BenchApp() {
   const introBegin = async (): Promise<number> => {
     const ch = ensureChip();
     setPreset(INTRO_PRESET);
-    // The flute is synthesized (heard at once); the consort's recordings load meanwhile, for the D's chord.
-    const ready = ch.prepare(INTRO_CHORD.map((c) => c.midi)).catch(() => {});
+    // D500: the cello and the band are recordings: loaded first (a moment, at most INTRO_LOAD_WAIT_MS: any not
+    // in by then synthesized), so the cello's first bow is its own; the picture waits for it (Intro.tsx).
+    await Promise.race([ch.prepare(introPitches()).catch(() => {}), new Promise((r) => setTimeout(r, INTRO_LOAD_WAIT_MS))]);
     if (introOver.current) return 0;
-    introPlaying.current = playIntro(ch, ready);
+    introPlaying.current = playIntro(ch);
     return 0.12 + (ch.lag ?? 0);
   };
   const introEnd = (skipped: boolean) => {
