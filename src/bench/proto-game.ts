@@ -4648,7 +4648,7 @@ export class ProtoGame {
       const g = W.notes.get(`${v}:${n.on}`);
       const pal = W.paletteAt(v, n.on);
       const place = metricPlace((t) => inBar(this.f, t), n.on, this.beat);
-      out.lineDb = (g?.dyn ?? W.dynAt(v, n.on)) + pal.weight[place] + (g?.phrase ? phraseArchDb(g.phrase.x) : 0) + (v === this.f.voices.length - 1 ? pal.bassDb : 0) + (W.subject.has(`${v}:${n.on}`) ? pal.entryDb : pal.othersDb);
+      out.lineDb = W.lineDynAt(v, n.on) + pal.weight[place] + (g?.phrase ? phraseArchDb(g.phrase.x) : 0) + (v === this.f.voices.length - 1 ? pal.bassDb : 0) + (W.subject.has(`${v}:${n.on}`) ? pal.entryDb : pal.othersDb);
       if (pal.dampMul !== 1) out.dampMul = pal.dampMul;
       if (pal.roomMul !== 1) out.roomMul = pal.roomMul;
       if (g?.arts.has("marcato")) out.accentDb = PLAYER_ACCENT_DB.marcato;

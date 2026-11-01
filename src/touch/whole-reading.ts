@@ -76,6 +76,23 @@ export const LEVEL_DB: Readonly<Record<string, number>> = {
 export const HAIRPIN_DB = 3;
 /** A ramp word (cresc., dim.) with no printed level within six bars: this much over its span (dB). */
 export const RAMP_DB = 3;
+/**
+ * D404: a level first printed this many bars or more into the piece is no opening level: the voices play mf (0 dB)
+ * before it (II/24 prints none until bar 50; its p had stood from bar 1).
+ */
+export const OPENING_BARS = 8;
+/**
+ * D404: a voice this far (dB) or more above the loudest other voice's printed level is brought back to it by its own
+ * dim. (an entry's emphasis ended; II/15's terraced p, mp, mf, 3 dB apart, stay).
+ */
+export const TEXTURE_DB = 6;
+/**
+ * D404: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB under the loudest
+ * sounding voice for more than LINE_GAP_BARS bars (lifted over a bar from LINE_GAP_BARS − 1), unless the reading
+ * asks it: the voice's own printed p (or softer) against another voice's printed f (or louder).
+ */
+export const LINE_GAP_DB = 6;
+export const LINE_GAP_BARS = 4;
 /** The band's marks (dB, on time): the report's §2 (the band +3 dB for ">"), Glenn's version C for the rest. */
 export const BAND_MARK_DB: Readonly<Record<"accent" | "marcato" | "wedge" | "portato" | "tenuto", number>> = { accent: 3, marcato: 4.5, wedge: 1.5, portato: 1, tenuto: 0.5 };
 /** The player's accent in the strong zone (dB): ">" +4, "^" +6 (touch-expr.ts PIANO_ZONE_DB's strong +3 otherwise). */
@@ -218,8 +235,10 @@ export interface WholeNote {
 export interface WholePlan {
   /** "voice:onset" to the note's asks (every voice, every bar). */
   notes: Map<string, WholeNote>;
-  /** Each voice's printed level at a tick (dB): the player's line's base. */
+  /** Each voice's printed level at a tick (dB): the band's base. */
   dynAt: (v: number, tick: number) => number;
+  /** D404: the player's line's base: dynAt, lifted where it would sit too long too far under the loudest voice. */
+  lineDynAt: (v: number, tick: number) => number;
   /** The palette in force for voice v at a tick. */
   paletteAt: (v: number, tick: number) => Palette;
   /** The edition's final slowing, or null (the automatic one). */
@@ -344,14 +363,34 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
   const evs: Ev[][] = Array.from({ length: nv }, () => []);
   const lv = (mark: string) => LEVEL_DB[mark.trim()];
   const levels = W.dyn.filter((d) => lv(d.mark) !== undefined).sort((a, b) => a.on - b.on);
-  const firstLevel = levels.length ? lv(levels[0].mark) : 0;
+  // D404: a level printed late in the piece is no opening level (OPENING_BARS): mf before it.
+  const firstLevel = levels.length && levels[0].on < OPENING_BARS * f.barTicks ? lv(levels[0].mark) : 0;
   const nextLevel = (v: number, t: number, within: number) => {
     const l = levels.find((d) => d.voices.includes(v) && d.on > t && d.on <= t + within);
     return l ? { t: l.on, db: lv(l.mark) } : null;
   };
+  // D404: a ramp with no level of its own ahead goes into the level Busoni prints for the other voices there (the
+  // system's level: II/6's cresc. into the alto's f, II/12's into the f of bar 72, II/11's dim. into the bass's p):
+  // the first such level, the loudest for a crescendo, the softest for a diminuendo.
+  const otherLevel = (v: number, t: number, within: number, up: boolean) => {
+    const ls = levels.filter((d) => !d.voices.includes(v) && d.on > t && d.on <= t + within);
+    if (!ls.length) return null;
+    const dbs = ls.filter((d) => d.on === ls[0].on).map((d) => lv(d.mark));
+    return { t: ls[0].on, db: up ? Math.max(...dbs) : Math.min(...dbs) };
+  };
   const levelAt = (v: number, t: number) => {
     const l = levels.filter((d) => d.voices.includes(v) && d.on <= t).pop();
     return l ? lv(l.mark) : firstLevel;
+  };
+  const sounding = (u: number, t: number) => (f.voices[u] ?? []).some((n) => n[0] < t + f.barTicks && n[0] + n[1] > t - f.barTicks);
+  // D404: a diminuendo with no level ahead, in a voice standing TEXTURE_DB or more above the loudest other voice's
+  // printed level, brings it back to that level (II/6's bass after its entry, where the upper voices' p is printed
+  // after theirs; II/13's alto after its f): an entry's emphasis ends with its own dim., it does not stay.
+  const textureDim = (v: number, t: number) => {
+    const others = [...Array(nv).keys()].filter((u) => u !== v && sounding(u, t)).map((u) => levelAt(u, t));
+    if (!others.length) return null;
+    const tex = Math.max(...others);
+    return levelAt(v, t) - tex >= TEXTURE_DB ? tex : null;
   };
   for (const d of levels) for (const v of d.voices) if (v < nv) evs[v].push({ t: d.on, kind: "set", db: lv(d.mark) });
   const ramps = RAMP;
@@ -367,35 +406,59 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
   for (const w of rampWords)
     for (const v of w.voices) {
       if (v >= nv) continue;
-      const nx = nextLevel(v, w.on, 6 * f.barTicks);
       const here = levelAt(v, w.on);
+      const own = nextLevel(v, w.on, 6 * f.barTicks);
+      const nx = own ?? otherLevel(v, w.on, 6 * f.barTicks, w.up);
+      const tex = !w.up && !own ? textureDim(v, w.on) : null;
       if (nx && (w.up ? nx.db > here : nx.db < here)) evs[v].push({ t: w.on, kind: "ramp", t1: nx.t, db1: nx.db, rel: 0 });
+      else if (tex !== null) evs[v].push({ t: w.on, kind: "ramp", t1: w.on + (w.span ?? 2) * f.barTicks, db1: tex, rel: 0 });
       else evs[v].push({ t: w.on, kind: "ramp", t1: w.on + (w.span ?? 2) * f.barTicks, db1: null, rel: w.up ? RAMP_DB : -RAMP_DB });
     }
-  // Hairpins: into a printed level (a ramp to it); a long one (a bar or more) a ramp of ±(HAIRPIN_DB + 1); a short one a local swell, back over a beat.
+  // Hairpins: into their voice's printed level at their end, in their direction (D404: not a cresc. into a p; II/24's
+  // swells on the sequences each restarting at p had been flattened), or, printed for every voice, into the level
+  // printed there for any voice (D404: II/12's cresc. into the f of bar 72, printed for two); a hairpin answered at once by its opposite
+  // (<>, ><) a swell and back, of any length (D404: a long <> had left its voice 4 dB up for good), its answer still landing on its voice's level or, after a dim., the texture's;
+  // a lone diminuendo in a voice above the texture back to it (textureDim); a lone long one (a bar or more) a ramp of
+  // ±(HAIRPIN_DB + 1), lasting only where printed for every voice (D404: in fewer voices it rises, holds a beat and
+  // returns over a bar, that voice's shaping, not a new level: II/14's soprano had stayed 8 dB over the others to
+  // the end); a short one a local swell, back over a beat. A hairpin at a ramp word of its direction in the same
+  // voice is that ramp, not another (D404: I/4's cresc. word and hairpin had stacked +7 dB over più f).
   type Env = { v: number; a: number; b: number; hold: number; peak: number; back: number };
   const envs: Env[] = [];
   const hps = [...W.hairpins].sort((a, b) => a.from - b.from);
   const paired = new Set<(typeof hps)[number]>();
   for (const h of hps) {
     if (paired.has(h)) continue;
+    const sgn = h.dir === "cresc" ? 1 : -1;
+    const long = h.to - h.from >= f.barTicks;
+    const everyVoice = [...Array(nv).keys()].every((u) => h.voices.includes(u));
     for (const v of h.voices) {
       if (v >= nv) continue;
-      const nx = nextLevel(v, h.to - beat, 2 * beat);
-      if (nx) {
+      if (rampWords.some((w) => w.voices.includes(v) && w.up === sgn > 0 && Math.abs(w.on - h.from) <= beat)) continue;
+      const toward = (x: { db: number } | null, s: number, at: number) => x !== null && (s > 0 ? x.db > levelAt(v, at) : x.db < levelAt(v, at));
+      const own = nextLevel(v, h.to - beat, 2 * beat);
+      const nx = own ?? (everyVoice ? otherLevel(v, h.to - beat, 2 * beat, sgn > 0) : null);
+      if (nx && toward(nx, sgn, h.from)) {
         evs[v].push({ t: h.from, kind: "ramp", t1: nx.t, db1: nx.db, rel: 0 });
         continue;
       }
-      const sgn = h.dir === "cresc" ? 1 : -1;
-      if (h.to - h.from >= f.barTicks) {
-        evs[v].push({ t: h.from, kind: "ramp", t1: h.to, db1: null, rel: sgn * (HAIRPIN_DB + 1) });
+      const mate = hps.find((x) => x !== h && x.dir !== h.dir && x.voices.includes(v) && Math.abs(x.from - h.to) <= beat / 8);
+      if (mate) {
+        paired.add(mate);
+        envs.push({ v, a: h.from, b: h.to, hold: 0, peak: sgn * (long ? HAIRPIN_DB + 1 : HAIRPIN_DB), back: Math.max(1, mate.to - h.to) });
+        const mOwn = nextLevel(v, mate.to - beat, 2 * beat);
+        if (mOwn && toward(mOwn, -sgn, mate.from)) evs[v].push({ t: mate.from, kind: "ramp", t1: mOwn.t, db1: mOwn.db, rel: 0 });
+        else if (!mOwn && sgn > 0) {
+          const tex = textureDim(v, mate.from);
+          if (tex !== null) evs[v].push({ t: mate.from, kind: "ramp", t1: mate.to, db1: tex, rel: 0 });
+        }
         continue;
       }
-      const mate = hps.find((x) => x !== h && x.dir !== h.dir && x.voices.includes(v) && Math.abs(x.from - h.to) <= beat / 8);
-      if (mate && sgn > 0) {
-        paired.add(mate);
-        envs.push({ v, a: h.from, b: h.to, hold: 0, peak: HAIRPIN_DB, back: Math.max(1, mate.to - h.to) });
-      } else envs.push({ v, a: h.from, b: h.to, hold: beat, peak: sgn * HAIRPIN_DB, back: beat });
+      const tex = sgn < 0 && !own ? textureDim(v, h.from) : null;
+      if (tex !== null) evs[v].push({ t: h.from, kind: "ramp", t1: h.to, db1: tex, rel: 0 });
+      else if (long && everyVoice) evs[v].push({ t: h.from, kind: "ramp", t1: h.to, db1: null, rel: sgn * (HAIRPIN_DB + 1) });
+      else if (long) envs.push({ v, a: h.from, b: h.to, hold: beat, peak: sgn * (HAIRPIN_DB + 1), back: f.barTicks });
+      else envs.push({ v, a: h.from, b: h.to, hold: beat, peak: sgn * HAIRPIN_DB, back: beat });
     }
   }
   // D403: fp on a held note: struck forte (its accent, SFZ), then p for the rest of that note, and back to the
@@ -421,10 +484,14 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     }
     return cur;
   };
+  // D404: a swell ends at the next level printed in its voice after it (I/2's poco … più cresc. into the p subito of
+  // bar 15: the cresc. heard, then the p, not the swell's way back over it).
+  const cutOf = new Map<Env, number>();
+  for (const e of envs) cutOf.set(e, levels.find((d) => d.voices.includes(e.v) && d.on > e.a)?.on ?? Infinity);
   const env = (v: number, t: number) => {
     let d = 0;
     for (const e of envs) {
-      if (e.v !== v || t < e.a) continue;
+      if (e.v !== v || t < e.a || t >= cutOf.get(e)!) continue;
       if (t <= e.b) d += (e.peak * (t - e.a)) / Math.max(1, e.b - e.a);
       else if (t <= e.b + e.hold) d += e.peak;
       else if (t <= e.b + e.hold + e.back) d += e.peak * (1 - (t - e.b - e.hold) / e.back);
@@ -441,6 +508,38 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     return 0;
   };
   const dynAt = (v: number, t: number) => base(v, t) + env(v, t) + fpAt(v, t);
+  // D404: the player's line's safety net, by beats: where the voice sounds with others, the gap under the loudest of
+  // them counted while over LINE_GAP_DB (reset where it is not; a rest of the voice neither counts nor resets), and
+  // past LINE_GAP_BARS − 1 bars lifted, over a bar, to LINE_GAP_DB under it. Not where the reading asks the gap: the
+  // voice's printed level p or softer and a sounding voice's printed level f or louder.
+  const lift = new Map<number, Float32Array>();
+  const nBeats = Math.ceil(f.length / beat) + 1;
+  const soundsAt = (u: number, t: number) => (f.voices[u] ?? []).some((n) => n[0] <= t && n[0] + n[1] > t);
+  const liftOf = (v: number) => {
+    const have = lift.get(v);
+    if (have) return have;
+    const out = new Float32Array(nBeats);
+    let run = 0;
+    for (let i = 0; i < nBeats; i++) {
+      const t = i * beat + 1;
+      if (!soundsAt(v, t)) continue;
+      const others = [...Array(nv).keys()].filter((u) => u !== v && soundsAt(u, t));
+      if (!others.length) continue;
+      const loud = Math.max(...others.map((u) => dynAt(u, t)));
+      const gap = loud - dynAt(v, t);
+      const asked = levelAt(v, t) <= LEVEL_DB.p && others.some((u) => levelAt(u, t) >= LEVEL_DB.f);
+      if (gap <= LINE_GAP_DB || asked) {
+        run = 0;
+        continue;
+      }
+      run += beat;
+      const x = (run - (LINE_GAP_BARS - 1) * f.barTicks) / f.barTicks;
+      if (x > 0) out[i] = (gap - LINE_GAP_DB) * Math.min(1, x);
+    }
+    lift.set(v, out);
+    return out;
+  };
+  const lineDynAt = (v: number, t: number) => dynAt(v, t) + (v >= 0 && v < nv ? (liftOf(v)[Math.min(nBeats - 1, Math.max(0, Math.floor((t - 1) / beat)))] ?? 0) : 0);
   for (let v = 0; v < nv; v++) for (const [on] of f.voices[v]) get(key(v, on)).dyn = dynAt(v, on);
   for (const d of W.dyn) if (SFZ.test(d.mark)) for (const v of d.voices) if (exists(v, d.on)) get(key(v, d.on)).arts.add("accent");
   for (const g of notes.values())
@@ -474,7 +573,7 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     if (f.voices.some((ns) => ns.some((n) => n[0] > on && n[0] < on + d))) continue;
     fermatas.push({ a: on, d, x: FERMATA_HOLD * d });
   }
-  return { notes, dynAt, paletteAt, ending: endingOf(W, f.length, f.barTicks), fermatas, subject };
+  return { notes, dynAt, lineDynAt, paletteAt, ending: endingOf(W, f.length, f.barTicks), fermatas, subject };
 }
 
 /** A note's place in the metre: 0 the bar's first beat, 1 another beat, 2 between (the palettes' weight, the slur's shape). `inBar`: fugue.ts inBar. */
