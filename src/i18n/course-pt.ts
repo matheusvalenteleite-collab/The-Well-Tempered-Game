@@ -3,8 +3,6 @@
  * words) in Portuguese (Brazil): plain words, no jargon (the report's word list).
  */
 export const COURSE_PT: Record<string, string> = {
-  "L": "E",
-  "R": "D",
   "Good: {n} of {m} moves the right way. Now in time.": "Bom: {n} de {m} movimentos na direção certa. Agora, no tempo.",
   "ABOUT {n} MINUTES": "CERCA DE {n} MINUTOS",
   "PART {n}": "PARTE {n}",
@@ -109,11 +107,11 @@ export const COURSE_PT: Record<string, string> = {
   "Your thumbs take turns, left, right, left, right: that is how quick notes are played.": "Seus polegares se revezam, esquerdo, direito, esquerdo, direito: é assim que se tocam notas rápidas.",
   "Quick notes are easier with two thumbs, one after the other.": "Notas rápidas são mais fáceis com dois polegares, um depois do outro.",
   "Two thumbs walk where one would stumble.": "Dois polegares andam onde um tropeçaria.",
-  "Left, right, left, right, as the letters say. Again.": "Esquerdo, direito, esquerdo, direito, como dizem as letras. De novo.",
+  "One thumb, then the other, as the marks say. Again.": "Um polegar, depois o outro, como dizem as marcas. De novo.",
   "Turns taken": "Revezamentos feitos",
   "Which thumb (taking turns is praised, not required)": "Qual polegar (revezar é elogiado, não exigido)",
-  "Now both thumbs: left, right, left, right. The letters under the notes tell you which.": "Agora os dois polegares: esquerdo, direito, esquerdo, direito. As letras sob as notas dizem qual.",
-  "Now you: the letter under each note tells you which thumb.": "Agora você: a letra sob cada nota diz qual polegar.",
+  "Now both thumbs, taking turns. Under each note: ● one thumb, ○ the other, either way round.": "Agora os dois polegares, revezando. Sob cada nota: ● um polegar, ○ o outro, em qualquer ordem.",
+  "Now you: start with either thumb, then the marks tell you when to change.": "Agora você: comece com qualquer polegar; as marcas dizem quando trocar.",
   "In time, taking turns. I count four.": "No tempo, revezando. Eu conto quatro.",
   "A little quicker now. The same turns.": "Um pouco mais rápido agora. O mesmo revezamento.",
   "PLAYING WITH BACH": "TOCANDO COM BACH",

@@ -50,7 +50,7 @@ export interface Run {
   /** D359: THE MANUAL's practice room (Options.quiet). */
   quiet?: Options["quiet"];
   /** D373: THE TUTORIAL's options (one thumb, the windows widened, the count-in, its own marks, model A's thumbs). */
-  tut?: Pick<Options, "side" | "widen" | "countBeats" | "readingAt" | "thumbsA" | "reading">;
+  tut?: Pick<Options, "side" | "widen" | "countBeats" | "readingAt" | "thumbsA" | "reading" | "everyMark">;
   /** D379: THE TUTORIAL's SUBJECT flags shown (4.1 on, and the fugue track); none in its first parts. */
   flags?: boolean;
   /** D379: the temperament a tutorial step sounds in (tuning.ts id), else the sound's own. */
