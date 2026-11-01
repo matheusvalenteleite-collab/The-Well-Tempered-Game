@@ -98,6 +98,8 @@ export interface Options {
   readingAt?: readonly number[];
   /** D373 (lesson-only): the thumbs drawn by the tutorial's aid (Mario's model A), not the demonstration's own. */
   thumbsA?: boolean;
+  /** D409 (lesson-only): the fingering marks (● ○) on every note, not only where the plan marks them (1.4, where the marks are introduced). */
+  everyMark?: boolean;
   /**
    * D402 (lesson-only): the tutorial's screen dressed lesson by lesson (manual/dress.ts DressId): the game's
    * own elements drawn over the practice room (`quiet`) only as they come on: "score" (the score, the

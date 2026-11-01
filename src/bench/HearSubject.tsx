@@ -9,19 +9,18 @@ import { lang, pieceName, tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
-import { ornamentsOf, shakeOf } from "../touch/ornament-play.ts";
 import { bestReading, busoniOn, chooseReading, chosenReading, NO_READING, OFFER_READINGS, performSubject, playReading, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
-import { acrossBar, drawThumb, planFingerings, type Touch } from "./fingering.ts";
+import { acrossBar, drawThumb, drawThumbMark, THUMB_LEGEND, type SuggestMark, type Touch } from "./fingering.ts";
 import { drawThumbProxy } from "./thumb-proxy.ts";
 import { fugueName } from "../touch/fugue-names.ts";
-import { subjectInkOf, subjectRimOf } from "../touch/subject-hue.ts";
+import { paleOf } from "../touch/subject-hue.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
 import { tempoOf } from "../touch/tempi.ts";
 import { kindsOf } from "../touch/practice.ts";
 import { characterOf } from "../touch/character.ts";
 import { preset } from "../touch/sound.ts";
-import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
+import { firstEntry, subjectFingerings, subjectSounds, type Performed } from "./hear-sound.ts";
 
 export type { Performed };
 export { firstEntry };
@@ -41,23 +40,13 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
   // D280: the thumbs that play it: landing and lifting as the reading asks, loud or soft across the bar,
   // the ornaments shaken. D370: the thumbs chosen by the music's intent (fingering.ts planFingerings): the
-  // reading's marks, else the joins and gaps it is played with here; the best plan shown, the next good
-  // one a tap away where there is one.
-  const orns = ornamentsOf(f);
+  // reading's marks, else the joins and gaps it is played with here. D409: alternation first; a plan and its
+  // mirror one suggestion; the others a tap away only where their repeats fall differently.
   const [alt, setAlt] = useState(0);
-  const fingerings = e
-    ? planFingerings(
-        perf.map((p, i) => {
-          const o = orns.get(`${e.voice}:${e.notes[i][0]}`);
-          const rn = reading?.notes[i];
-          const follows = i + 1 < perf.length && e.notes[i + 1][0] <= e.notes[i][0] + e.notes[i][1];
-          const marked = rn && (rn.join !== null || rn.short);
-          return { at: p.at, dur: p.len, step: p.midi, st: e.notes[i][3], join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, ...(marked || !follows ? {} : { intent: p.tie !== undefined ? ("join" as const) : ("detach" as const) }), d: p.d, shake: o ? shakeOf(o) : null };
-        }),
-        { overlap: 0.04 },
-      )
-    : [];
-  const touches = fingerings[Math.min(alt, fingerings.length - 1)]?.touches ?? [];
+  const fingerings = e ? subjectFingerings(f, e, perf, reading) : [];
+  const shown = fingerings[Math.min(alt, fingerings.length - 1)];
+  const touches = shown?.touches ?? [];
+  const marks = shown?.marks ?? [];
   const hear = () => {
     if (!e) return;
     const last = perf.at(-1);
@@ -71,7 +60,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     let raf = 0;
     const draw = () => {
       const c = canvas.current;
-      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current, touches);
+      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current, touches, marks);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -85,7 +74,6 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     setPicking(false);
   };
   const nick = fugueName(id, lang());
-  const fg = fingerings[Math.min(alt, fingerings.length - 1)];
   // Design studio (D398): the legend only of the signs this subject bears in this reading.
   const ns = reading?.notes ?? [];
   const has: Record<string, boolean> | null = reading
@@ -141,12 +129,16 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
               {reading ? `${reading.author} ${reading.year}` : tr("NO READING")} ▾
             </button>
           )}
-          {fg && (
-            <button type="button" id="hear-fingering" className="tb-hear-btn2" disabled={fingerings.length < 2} onClick={() => setAlt((a) => (a + 1) % fingerings.length)}>
-              {fingerings.length > 1 ? `${tr("THUMBS {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} · ` : ""}
-              {tr(fg.name)}
-              {fingerings.length > 1 ? " ↻" : ""}
+          {/* D409 (the owner): "FINGERING SUGGESTION 1 OF X", nothing more; no cycling where only one remains. */}
+          {fingerings.length > 1 && (
+            <button type="button" id="hear-fingering" className="tb-hear-btn2" onClick={() => setAlt((a) => (a + 1) % fingerings.length)}>
+              {tr("FINGERING SUGGESTION {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} ↻
             </button>
+          )}
+          {marks.length > 0 && (
+            <span className="tb-hear-one" id="hear-thumbs-key">
+              {tr(THUMB_LEGEND)}
+            </span>
           )}
           <span className="tb-hear-tempo">♩ = {tempoOf(id)}</span>
         </div>
@@ -193,10 +185,10 @@ const LETTER = "#fff3b0";
 /**
  * Design studio (D398): the subject drawn as the play screen draws it: the box between the two strips, its
  * blocks in the voice's subject ink (D368) with their rims, the reading's marks over them (D374), a gold
- * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D396), each
- * played note's L or R under it as its thumb lands (D396).
+ * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D396); the
+ * fingering suggestion's sparse marks under the notes, ● one thumb and ○ the other (D409; were L and R, D396).
  */
-function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
+function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = [], marks: readonly SuggestMark[] = []) {
   const cssW = c.clientWidth || 300;
   const cssH = c.clientHeight || 160;
   const dpr = Math.min(3, devicePixelRatio || 1);
@@ -231,8 +223,9 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   const now = started ? performance.now() / 1000 - started.at : -1;
   const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
   const finished = !!started && now > started.total + 0.4;
-  const fill = subjectInkOf(ink, 1);
-  const rim = subjectRimOf(ink, 1);
+  // The design studio: the subject in its voice's own ink (no subject hue), a pale rim of the same ink.
+  const fill = ink;
+  const rim = paleOf(ink);
   const bh = Math.max(4, rowH - 2);
   perf.forEach((p, i) => {
     const n = r?.notes[i];
@@ -299,15 +292,17 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   }
   const t = playing ? now : finished ? Infinity : -1;
   const size = Math.max(12, Math.min(22, bar * 0.34));
-  // Each played note's thumb, L or R, appearing as it lands (D396: one ink for both thumbs).
-  for (const tc of touches) {
-    if (tc.slid || t < tc.on) continue;
+  // D409: the suggestion's marks, sparse (only where the plan marks a note: fingering.ts suggestionMarks), one
+  // thumb a filled disc and the other a ring, either way round (never L or R): faint ahead, full as the thumb
+  // lands with a short flash (D396: one ink for both thumbs).
+  for (const m of marks) {
+    const tc = touches[m.k];
+    if (!tc) continue;
     const p = perf[tc.i];
     const x1 = X(p.at);
-    const since = t - tc.on;
-    const k = Math.min(1, since / 0.35);
     const ly = Y(p.midi) + rowH + 7;
-    if (k < 1) {
+    const k = t < tc.on ? -1 : Math.min(1, (t - tc.on) / 0.35);
+    if (k >= 0 && k < 1) {
       g.globalAlpha = 0.5 * (1 - k);
       g.fillStyle = LETTER;
       g.beginPath();
@@ -315,12 +310,7 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
       g.fill();
       g.globalAlpha = 1;
     }
-    g.fillStyle = LETTER;
-    g.font = `${k < 1 ? 10 : 8}px monospace`;
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.fillText(tc.side === "left" ? tr("L") : tr("R"), x1 + 4, ly);
-    g.textBaseline = "alphabetic";
+    drawThumbMark(g, x1 + 4, ly, k >= 0 && k < 1 ? 3.6 : 2.6, m.thumb, LETTER, k < 0 ? 0.45 : 1);
   }
   // Both thumbs, always on their strips: pressing (glowing) while they play a note, else resting where they last were.
   for (const side of ["left", "right"] as const) {

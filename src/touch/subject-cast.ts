@@ -7,6 +7,7 @@
  * report's table for Book I). A double or triple fugue gives each subject its own (I/4: RAYS, RIPPLE,
  * FIRE). D383: all ten of the report's effects are drawn (box-fx.ts subjectFx) and every fugue of the 48
  * is cast, Book II too (BOOK2_CAST, its reasons beside it); a piece outside the 48 falls back to GLINT.
+ * The design studio: for now every subject is drawn HOP (ONLY_FX); the cast is kept as the record.
  *
  * ONE STRENGTH (D374, the owner): every subject note shows its effect equally (NOTE_WEIGHT; D372's
  * per-note weights, head, leap, long and quick, dropped). Another voice's subject notes at half
@@ -87,8 +88,16 @@ export function castOf(piece: string | undefined, theme: 1 | 2 | 3): SubjectEffe
   return row?.[theme - 1] ?? null;
 }
 
-/** The effect drawn for a piece's subject: its cast, else GLINT. */
+/**
+ * The design studio (the owner: HOP "follows the music illustratively and shows most clearly that a
+ * subject is playing"): for now HOP is the only subject effect, in every fugue, every subject. The cast
+ * above stays as the report's record (castOf); set this to null to draw the cast again.
+ */
+export const ONLY_FX: SubjectEffect | null = "HOP";
+
+/** The effect drawn for a piece's subject: ONLY_FX while it is set; else its cast, else GLINT. */
 export function effectOf(piece: string | undefined, theme: 1 | 2 | 3): SubjectEffect {
+  if (ONLY_FX) return ONLY_FX;
   const e = castOf(piece, theme);
   return e && FX_BUILT.has(e) ? e : FALLBACK_FX;
 }

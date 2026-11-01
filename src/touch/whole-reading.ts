@@ -11,7 +11,8 @@
  *     cresc.) and hairpins as ramps into the next printed level, else a local swell (HAIRPIN_DB). Entries
  *     are as loud as the edition prints them: nothing caps a subject (D293 gone). D404: a ramp reaches the
  *     level printed for the system, an entry's own dim. ends its emphasis, a one-voice hairpin is that voice's
- *     shaping; the player's line is never left more than 6 dB under the loudest voice for over 4 bars unasked.
+ *     shaping. D407: the player's line takes 40% of a drop under mf (never under −3 dB) and is never left more than
+ *     4 dB under the loudest band voice for over 2 bars; the band keeps the full range.
  *   MARKS: accent ">" (+3 dB in the band, on time), marcato "^" (+4.5 dB and short: struck hard and left),
  *     wedge (shorter than a dot, +1.5), portato (held 0.82, +1), tenuto (its full value, not joined,
  *     +0.5), staccato (the engine's dot). A ">" or "^" asks the player's strong zone (touch-expr.ts).
@@ -106,12 +107,22 @@ export const OPENING_BARS = 8;
  */
 export const TEXTURE_DB = 6;
 /**
- * D404: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB under the loudest
- * sounding voice for more than LINE_GAP_BARS bars (lifted over a bar from LINE_GAP_BARS − 1), unless the reading
- * asks it: the voice's own printed p (or softer) against another voice's printed f (or louder).
+ * D407 (WTC 1.99): THE PLAYER'S LINE COMPRESSED UNDER mf. The owner: "Busoni's dynamic instructions make it such
+ * ... that the player's voice is for long stretches at a low volume ... harms gameplay." Below mf (0 dB) the
+ * player's line takes PLAYER_SHARE of Busoni's drop, eased into PLAYER_FLOOR_DB (a soft knee: tanh, so a hairpin
+ * or a ramp inside a p keeps its shape, smaller): p −6.5 → −2.1, pp −11 → −2.7, never under −3. mf and louder, and
+ * the accents (markDb, the strong zone's accentDb), as printed. The band keeps Busoni's full range (dynAt).
  */
-export const LINE_GAP_DB = 6;
-export const LINE_GAP_BARS = 4;
+export const PLAYER_SHARE = 0.4;
+export const PLAYER_FLOOR_DB = -3;
+export const playerDb = (d: number): number => (d >= 0 ? d : PLAYER_FLOOR_DB * Math.tanh((PLAYER_SHARE * d) / PLAYER_FLOOR_DB));
+/**
+ * D404, revised by D407: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB
+ * under the loudest sounding band voice for more than LINE_GAP_BARS bars (lifted over a bar from LINE_GAP_BARS − 1).
+ * D404's exemption (a printed p against a printed f) is gone: the compressed line plays inside the texture.
+ */
+export const LINE_GAP_DB = 4;
+export const LINE_GAP_BARS = 2;
 /** The band's marks (dB, on time): the report's §2 (the band +3 dB for ">"), Glenn's version C for the rest. */
 export const BAND_MARK_DB: Readonly<Record<"accent" | "marcato" | "wedge" | "portato" | "tenuto", number>> = { accent: 3, marcato: 4.5, wedge: 1.5, portato: 1, tenuto: 0.5 };
 /** The player's accent in the strong zone (dB): ">" +4, "^" +6 (touch-expr.ts PIANO_ZONE_DB's strong +3 otherwise). */
@@ -256,7 +267,7 @@ export interface WholePlan {
   notes: Map<string, WholeNote>;
   /** Each voice's printed level at a tick (dB): the band's base. */
   dynAt: (v: number, tick: number) => number;
-  /** D404: the player's line's base: dynAt, lifted where it would sit too long too far under the loudest voice. */
+  /** D404/D407: the player's line's base: dynAt compressed under mf (playerDb), lifted where it would sit too long too far under the loudest voice. */
   lineDynAt: (v: number, tick: number) => number;
   /** The palette in force for voice v at a tick. */
   paletteAt: (v: number, tick: number) => Palette;
@@ -531,10 +542,9 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     return 0;
   };
   const dynAt = (v: number, t: number) => PHONE_RANGE() * (base(v, t) + env(v, t) + fpAt(v, t));
-  // D404: the player's line's safety net, by beats: where the voice sounds with others, the gap under the loudest of
-  // them counted while over LINE_GAP_DB (reset where it is not; a rest of the voice neither counts nor resets), and
-  // past LINE_GAP_BARS − 1 bars lifted, over a bar, to LINE_GAP_DB under it. Not where the reading asks the gap: the
-  // voice's printed level p or softer and a sounding voice's printed level f or louder.
+  // D404/D407: the player's line: dynAt compressed under mf (playerDb), then its safety net, by beats: where the voice
+  // sounds with others, the gap under the loudest of them counted while over LINE_GAP_DB (reset where it is not; a rest
+  // of the voice neither counts nor resets), and past LINE_GAP_BARS − 1 bars lifted, over a bar, to LINE_GAP_DB under it.
   const lift = new Map<number, Float32Array>();
   const nBeats = Math.ceil(f.length / beat) + 1;
   const soundsAt = (u: number, t: number) => (f.voices[u] ?? []).some((n) => n[0] <= t && n[0] + n[1] > t);
@@ -549,9 +559,8 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
       const others = [...Array(nv).keys()].filter((u) => u !== v && soundsAt(u, t));
       if (!others.length) continue;
       const loud = Math.max(...others.map((u) => dynAt(u, t)));
-      const gap = loud - dynAt(v, t);
-      const asked = levelAt(v, t) <= LEVEL_DB.p && others.some((u) => levelAt(u, t) >= LEVEL_DB.f);
-      if (gap <= LINE_GAP_DB || asked) {
+      const gap = loud - playerDb(dynAt(v, t));
+      if (gap <= LINE_GAP_DB) {
         run = 0;
         continue;
       }
@@ -562,7 +571,7 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     lift.set(v, out);
     return out;
   };
-  const lineDynAt = (v: number, t: number) => dynAt(v, t) + (v >= 0 && v < nv ? (liftOf(v)[Math.min(nBeats - 1, Math.max(0, Math.floor((t - 1) / beat)))] ?? 0) : 0);
+  const lineDynAt = (v: number, t: number) => playerDb(dynAt(v, t)) + (v >= 0 && v < nv ? (liftOf(v)[Math.min(nBeats - 1, Math.max(0, Math.floor((t - 1) / beat)))] ?? 0) : 0);
   for (let v = 0; v < nv; v++) for (const [on] of f.voices[v]) get(key(v, on)).dyn = dynAt(v, on);
   for (const d of W.dyn) if (SFZ.test(d.mark)) for (const v of d.voices) if (exists(v, d.on)) get(key(v, d.on)).arts.add("accent");
   for (const g of notes.values())

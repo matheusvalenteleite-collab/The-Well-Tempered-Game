@@ -21,7 +21,7 @@ import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
-import { acrossBar, planTouches, type Touch } from "./fingering.ts";
+import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMark, type Touch } from "./fingering.ts";
 import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
 import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentWhy } from "./accent.ts";
 import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
@@ -1302,20 +1302,18 @@ export class ProtoGame {
       const fall = (a?: { n: { midi: number } }, b?: { n: { midi: number } }) => !!a && !!b && a.n.midi - b.n.midi >= 1 && a.n.midi - b.n.midi <= 2;
       return fall(heads[k], heads[k + 1]) ? 0.9 : fall(heads[k - 1], heads[k]) ? 0.15 : null;
     };
-    const touches = planTouches(
-      heads.map(({ n, i }, k) => {
-        const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
-        const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
-        // D422: under a whole-piece reading (BUSONI) his demonstration asks of every note what the box draws
-        // (wholeAsks: the countersubjects and free voices too), not only the subject's entries.
-        const wa = this.wholeAsking() ? this.wholeAskOf(0, i) : undefined;
-        const rn = wa ? { join: wa.portato || wa.tenuto ? false : wa.join, short: wa.short, accent: wa.accent } : rd && place !== undefined ? rd.notes[place] : undefined;
-        const d = rn?.accent ? 0.9 : !wa && rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
-        return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
-      }),
-      // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
-      { overlap: this.f.tpq / 16, slides: this.o.coach === "slide", sec: 1 / this.tps },
-    );
+    const planNotes: PlanNote[] = heads.map(({ n, i }, k) => {
+      const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
+      const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
+      // D422: under a whole-piece reading (BUSONI) his demonstration asks of every note what the box draws
+      // (wholeAsks: the countersubjects and free voices too), not only the subject's entries.
+      const wa = this.wholeAsking() ? this.wholeAskOf(0, i) : undefined;
+      const rn = wa ? { join: wa.portato || wa.tenuto ? false : wa.join, short: wa.short, accent: wa.accent } : rd && place !== undefined ? rd.notes[place] : undefined;
+      const d = rn?.accent ? 0.9 : !wa && rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
+      return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
+    });
+    // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
+    const touches = planTouches(planNotes, { overlap: this.f.tpq / 16, slides: this.o.coach === "slide", sec: 1 / this.tps });
     const planned = touches.map((t) => ({ ...t, i: heads[t.i].i }));
     // D379 (6.7, over-legato): the thumbs taking turns, each note held on past the next strike (a third of the gap), so it rings (D376).
     if (this.o.coach === "ring")
@@ -1334,9 +1332,17 @@ export class ProtoGame {
         const next = planned[p + 1];
         if (next) t.off = Math.min(t.off, next.on - Math.max(this.f.tpq / 16, 0.07 * this.tps));
       });
+    // D409: the plan's sparse marks (fingering.ts suggestionMarks), on the thumbs as finally given (6.7's turns), keyed by the track's note.
+    this.marksMemo = new Map(suggestionMarks(planNotes, planned, { sec: 1 / this.tps }).map((m) => [m.i, m]));
     return (this.planMemo = planned);
   }
   private planMemo: Touch[] | null = null;
+  private marksMemo: Map<number, SuggestMark> | null = null;
+  /** D409: the notes (the track's index) where the plan's suggestion is marked, one thumb ● (A) and the other ○ (B); elsewhere alternation is implied. */
+  get planMarks(): Map<number, SuggestMark> {
+    if (!this.marksMemo) void this.plan;
+    return this.marksMemo!;
+  }
   /** D280: the demonstration's actions still to come (tick, what), in time. */
   private demoQueue: { tick: number; act: () => void }[] | null = null;
   private demoRun() {
