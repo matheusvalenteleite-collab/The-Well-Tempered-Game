@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prelude Play Styles</title>
+<style>
+:root{--bg:#f7f3ea;--card:#fffdf8;--fg:#221d16;--muted:#6d6457;--line:#d9d0c0;--box:#efe8da;--gold:#b8860b;--left:#c8621c;--right:#2766b8;--game:#9a907f;--mute:#c9bfae;--sung:#7a3fb0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15130f;--card:#1e1b16;--fg:#ece5d8;--muted:#a59b8b;--line:#3a342b;--box:#25211b;--gold:#e0b54a;--left:#f0904a;--right:#5ea3f2;--game:#7d7465;--mute:#4a443a;--sung:#c08cf0}}
+:root[data-theme="dark"]{--bg:#15130f;--card:#1e1b16;--fg:#ece5d8;--muted:#a59b8b;--line:#3a342b;--box:#25211b;--gold:#e0b54a;--left:#f0904a;--right:#5ea3f2;--game:#7d7465;--mute:#4a443a;--sung:#c08cf0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Georgia,"Times New Roman",serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.6rem;margin:.2em 0}
+h2{font-size:1.2rem;margin:0 0 .3em}
+p{margin:.4em 0}
+.lede{color:var(--muted)}
+.demo{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:18px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+button{font:600 15px system-ui,sans-serif;border:1px solid var(--line);background:var(--box);color:var(--fg);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:40px}
+button.play{background:var(--gold);color:#1a1408;border-color:var(--gold);min-width:92px}
+button.sel{outline:2px solid var(--right)}
+canvas{display:block;width:100%;height:240px;border-radius:8px;background:var(--box);touch-action:manipulation}
+.cap{font:13px/1.4 system-ui,sans-serif;color:var(--muted);min-height:2.8em;margin-top:6px}
+.legend{font:13px system-ui,sans-serif;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+small{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>Ways to play a prelude</h1>
+<p class="lede">Four of the play styles proposed in <i>preludes.md</i>, each shown on the real opening bars of Prelude 1 in C major (BWV 846), notes taken from the game's own data (<code>data/touch/pieces.json</code>, <code>wtc1p01</code>), at the game's tempo for it (♩ = 55). The screen is the phone held sideways: the music box in the middle, notes flowing left to the gold line; the two thumb strips at the edges, higher notes higher. Press ▶ to hear it and to see what the player would touch.</p>
+<div class="legend">
+ <span><span class="sw" style="background:var(--left)"></span>left thumb</span>
+ <span><span class="sw" style="background:var(--right)"></span>right thumb</span>
+ <span><span class="sw" style="background:var(--sung)"></span>a held "sung" line</span>
+ <span><span class="sw" style="background:var(--game)"></span>the game plays</span>
+ <span><span class="sw" style="border:1px dashed var(--muted)"></span>silent until caught</span>
+</div>
+
+<section class="demo" data-demo="reveal">
+<h2>1 · The reveal (bars 1–11)</h2>
+<p>The newcomer's first minute. Bars 1–4: one touch a bar, the left thumb on the bass at the downbeat, held for two beats. Bars 5–8: the right thumb joins on the top note of the figure (beat 2). Bars 9–11, to the cadence in G: bass on beats 1 and 3, top on beats 2 and 4, one touch a beat, the thumbs taking turns. Everything else the game plays, and everything is always visible.</p>
+<div class="row"><button class="play">▶ Play</button></div>
+<canvas></canvas><div class="cap"></div>
+</section>
+
+<section class="demo" data-demo="outer">
+<h2>2 · Outer voices (bars 1–4)</h2>
+<p>The two thumbs as the two edges of the music: the left thumb holds the bass (a tail as long as the note), the right thumb taps the top of each figure. This is the version the owner already found "much better" (D261); here it is the backbone the other styles build on.</p>
+<div class="row"><button class="play">▶ Play</button></div>
+<canvas></canvas><div class="cap"></div>
+</section>
+
+<section class="demo" data-demo="capture">
+<h2>3 · Catch the layers (bars 1–6)</h2>
+<p>The box starts nearly empty: only the figure's middle notes sound. Play a layer cleanly for one bar and it is caught: it goes on by itself while you catch the next. Bar 1 the bass, bar 2 the top, bar 3 the tenor; bar 4 you rest and listen to all you built; in bar 5 the bass starts to fade and must be caught again. Dashed notes are silent, waiting.</p>
+<div class="row"><button class="play">▶ Play</button></div>
+<canvas></canvas><div class="cap"></div>
+</section>
+
+<section class="demo" data-demo="strands">
+<h2>4 · Slow strands (bars 1–8)</h2>
+<p>Each bar of this prelude is one chord of five notes, and each of the five, followed from bar to bar, is a slow tune of one note a bar. Pick a strand: the player holds its note for the bar (heard as a sung tone over the figure), keeps holding where it stays, and lifts and moves where it moves. Bars 1–4 every moving strand moves by a step; bars 5–8 the upper strands leap as the chord is spread wider.</p>
+<div class="row"><button class="play">▶ Play</button>
+ <span class="strands"><button data-s="bass">Bass</button><button data-s="tenor">Tenor</button><button data-s="alto">Alto</button><button data-s="mid">Middle</button><button data-s="top" class="sel">Top</button></span></div>
+<canvas></canvas><div class="cap"></div>
+</section>
+
+<p><small>Simple synthesized tones, not the game's sound. The player's notes are a little brighter and louder, as in the game (D252). Timing, pitches and bars are the data's; the choice of what the player touches is the proposal.</small></p>
+</main>
+<script id="p1" type="application/json">
+{"id":"wtc1p01","title":"Prelude 1 in C major","bpm":55,"sixteenthsPerBar":16,"bars":11,"notes":[[0,8,60,1],[1,7,64,1],[2,1,67,0],[3,1,72,0],[4,1,76,0],[5,1,67,0],[6,1,72,0],[7,1,76,0],[8,8,60,1],[9,7,64,1],[10,1,67,0],[11,1,72,0],[12,1,76,0],[13,1,67,0],[14,1,72,0],[15,1,76,0],[16,8,60,1],[17,7,62,1],[18,1,69,0],[19,1,74,0],[20,1,77,0],[21,1,69,0],[22,1,74,0],[23,1,77,0],[24,8,60,1],[25,7,62,1],[26,1,69,0],[27,1,74,0],[28,1,77,0],[29,1,69,0],[30,1,74,0],[31,1,77,0],[32,8,59,1],[33,7,62,1],[34,1,67,0],[35,1,74,0],[36,1,77,0],[37,1,67,0],[38,1,74,0],[39,1,77,0],[40,8,59,1],[41,7,62,1],[42,1,67,0],[43,1,74,0],[44,1,77,0],[45,1,67,0],[46,1,74,0],[47,1,77,0],[48,8,60,1],[49,7,64,1],[50,1,67,0],[51,1,72,0],[52,1,76,0],[53,1,67,0],[54,1,72,0],[55,1,76,0],[56,8,60,1],[57,7,64,1],[58,1,67,0],[59,1,72,0],[60,1,76,0],[61,1,67,0],[62,1,72,0],[63,1,76,0],[64,8,60,1],[65,7,64,1],[66,1,69,0],[67,1,76,0],[68,1,81,0],[69,1,69,0],[70,1,76,0],[71,1,81,0],[72,8,60,1],[73,7,64,1],[74,1,69,0],[75,1,76,0],[76,1,81,0],[77,1,69,0],[78,1,76,0],[79,1,81,0],[80,8,60,1],[81,7,62,1],[82,1,66,0],[83,1,69,0],[84,1,74,0],[85,1,66,0],[86,1,69,0],[87,1,74,0],[88,8,60,1],[89,7,62,1],[90,1,66,0],[91,1,69,0],[92,1,74,0],[93,1,66,0],[94,1,69,0],[95,1,74,0],[96,8,59,1],[97,7,62,1],[98,1,67,0],[99,1,74,0],[100,1,79,0],[101,1,67,0],[102,1,74,0],[103,1,79,0],[104,8,59,1],[105,7,62,1],[106,1,67,0],[107,1,74,0],[108,1,79,0],[109,1,67,0],[110,1,74,0],[111,1,79,0],[112,8,59,1],[113,7,60,1],[114,1,64,0],[115,1,67,0],[116,1,72,0],[117,1,64,0],[118,1,67,0],[119,1,72,0],[120,8,59,1],[121,7,60,1],[122,1,64,0],[123,1,67,0],[124,1,72,0],[125,1,64,0],[126,1,67,0],[127,1,72,0],[128,8,57,1],[129,7,60,1],[130,1,64,0],[131,1,67,0],[132,1,72,0],[133,1,64,0],[134,1,67,0],[135,1,72,0],[136,8,57,1],[137,7,60,1],[138,1,64,0],[139,1,67,0],[140,1,72,0],[141,1,64,0],[142,1,67,0],[143,1,72,0],[144,8,50,1],[145,7,57,1],[146,1,62,0],[147,1,66,0],[148,1,72,0],[149,1,62,0],[150,1,66,0],[151,1,72,0],[152,8,50,1],[153,7,57,1],[154,1,62,0],[155,1,66,0],[156,1,72,0],[157,1,62,0],[158,1,66,0],[159,1,72,0],[160,8,55,1],[161,7,59,1],[162,1,62,0],[163,1,67,0],[164,1,71,0],[165,1,62,0],[166,1,67,0],[167,1,71,0],[168,8,55,1],[169,7,59,1],[170,1,62,0],[171,1,67,0],[172,1,71,0],[173,1,62,0],[174,1,67,0],[175,1,71,0]],"spell":{"50":"D3","55":"G3","57":"A3","59":"B3","60":"C4","62":"D4","64":"E4","66":"F#4","67":"G4","69":"A4","71":"B4","72":"C5","74":"D5","76":"E5","77":"F5","79":"G5","81":"A5"}}
+</script>
+<script>
+(() => {
+const D = JSON.parse(document.getElementById("p1").textContent);
+const SX = 60 / D.bpm / 4;            // seconds per sixteenth
+const LEAD = 1.6;                      // seconds before bar 1
+const ROLE = (n) => { const p = n[0] % 8; return n[3] === 1 ? (p === 0 ? "bass" : "tenor") : (p === 2 || p === 5 ? "alto" : p === 3 || p === 6 ? "mid" : "top"); };
+const barOf = (on) => Math.floor(on / 16) + 1;
+const posIn = (on) => on % 16;
+const NAME = (m) => D.spell[m] || String(m);
+const isHold = (dur) => dur * SX >= 0.4; // D261: 400 ms or more is a hold
+
+// Each demo builds items: {on, dur, midi, kind:"game"|"you"|"mute"|"sung", hand, touch, sound}
+function within(a, b) { return D.notes.filter((n) => barOf(n[0]) >= a && barOf(n[0]) <= b); }
+function item(n, kind, hand) { return { on: n[0], dur: n[1], midi: n[2], kind, hand, touch: kind === "you", sound: kind !== "mute" }; }
+
+const BUILD = {
+  reveal() {
+    const items = [], labels = [[1, "Stage 1 · the bass on beat 1 (left thumb, hold)"], [5, "Stage 2 · + the top on beat 2 (right thumb, tap)"], [9, "Stage 3 · one touch a beat: bass 1 & 3, top 2 & 4"], [11, "Bar 11: the cadence in G major"]];
+    for (const n of within(1, 11)) {
+      const b = barOf(n[0]), p = posIn(n[0]), r = ROLE(n);
+      let you = false, hand = null;
+      if (r === "bass" && (p === 0 || (b >= 9 && p === 8))) { you = true; hand = "L"; }
+      if (r === "top" && b >= 5 && (p === 4 || (b >= 9 && p === 12))) { you = true; hand = "R"; }
+      items.push(item(n, you ? "you" : "game", hand));
+    }
+    return { items, labels, bars: [1, 11] };
+  },
+  outer() {
+    const items = [];
+    for (const n of within(1, 4)) {
+      const p = posIn(n[0]), r = ROLE(n);
+      if (r === "bass") items.push(item(n, "you", "L"));
+      else if (r === "top" && (p === 4 || p === 12)) items.push(item(n, "you", "R"));
+      else items.push(item(n, "game", null));
+    }
+    return { items, labels: [[1, "Left thumb holds the bass · right thumb taps the top"]], bars: [1, 4] };
+  },
+  capture() {
+    // which bar the player plays each layer in; when it sounds by itself
+    const plan = { bass: { you: [1, 5], auto: [2, 3, 4, 6] }, top: { you: [2], auto: [3, 4, 5, 6] }, tenor: { you: [3], auto: [4, 5, 6] } };
+    const items = [];
+    for (const n of within(1, 6)) {
+      const b = barOf(n[0]), p = posIn(n[0]), r = ROLE(n);
+      if (r === "alto" || r === "mid") { items.push(item(n, "game", null)); continue; }
+      const pl = plan[r];
+      if (pl.you.includes(b)) {
+        // the top: the player taps its first note in each half; its echo (beat 2's last sixteenth) follows as the layer's own
+        if (r === "top" && !(p === 4 || p === 12)) items.push(item(n, "game", null));
+        else items.push(item(n, "you", r === "top" ? "R" : "L"));
+      } else if (pl.auto.includes(b)) {
+        const it = item(n, "game", null); it.caught = true;
+        if (r === "bass" && b === 4) it.fading = true;
+        items.push(it);
+      } else items.push(item(n, "mute", null));
+    }
+    const labels = [[1, "Catch the BASS (left thumb)"], [2, "Bass caught · now the TOP (right thumb)"], [3, "Top caught · now the TENOR (left thumb)"], [4, "All caught: listen · the bass is fading…"], [5, "Catch the bass again"], [6, "The full texture"]];
+    return { items, labels, bars: [1, 6] };
+  },
+  strands(sel) {
+    const items = [];
+    const ns = within(1, 8);
+    for (const n of ns) items.push(item(n, "game", null));
+    const hand = sel === "bass" || sel === "tenor" ? "L" : "R";
+    const labels = [];
+    let last = null;
+    for (let b = 1; b <= 8; b++) {
+      const first = ns.find((n) => barOf(n[0]) === b && ROLE(n) === sel);
+      const end = b * 16;
+      if (last && last.midi === first[2]) { last.dur = end - last.on; labels.push([b, `${NAME(first[2])} stays: keep holding`]); continue; }
+      const d = last ? first[2] - last.midi : 0;
+      labels.push([b, last ? `${NAME(first[2])} ${d > 0 ? "↑" : "↓"} ${Math.abs(d) <= 2 ? "a step" : "a leap"}: lift and move` : `${NAME(first[2])}: touch and hold`]);
+      last = { on: first[0], dur: end - first[0], midi: first[2], kind: "sung", hand, touch: true, sound: true };
+      items.push(last);
+    }
+    return { items, labels, bars: [1, 8] };
+  },
+};
+
+// ---------- audio ----------
+let ac = null, master = null;
+function audio() {
+  if (!ac) {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    const comp = ac.createDynamicsCompressor();
+    master = ac.createGain(); master.gain.value = 0.5;
+    master.connect(comp); comp.connect(ac.destination);
+  }
+  if (ac.state === "suspended") ac.resume();
+  return ac;
+}
+const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+function pluck(t, m, dur, mine, voices) {
+  const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain();
+  o.type = mine ? "square" : "sawtooth"; o.frequency.value = hz(m);
+  f.type = "lowpass"; f.frequency.value = mine ? 3200 : 1700; f.Q.value = 0.6;
+  const peak = mine ? 0.16 : 0.09, len = Math.max(dur, 0.25);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(peak * 0.35, t + 0.18);
+  g.gain.setValueAtTime(peak * 0.35, t + Math.max(0.18, len - 0.05));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len + 0.2);
+  o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t + len + 0.25); voices.push(o);
+}
+function sing(t, m, dur, voices) {
+  const o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+  o.type = "triangle"; o2.type = "sine"; o.frequency.value = hz(m); o2.frequency.value = hz(m) * 2.003;
+  const g2 = ac.createGain(); g2.gain.value = 0.3;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.14, t + 0.06);
+  g.gain.setValueAtTime(0.14, t + dur - 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08);
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(master);
+  o.start(t); o2.start(t); o.stop(t + dur + 0.1); o2.stop(t + dur + 0.1); voices.push(o, o2);
+}
+
+// ---------- drawing ----------
+let colors = {};
+function readColors() { const cs = getComputedStyle(document.documentElement); for (const k of ["fg", "muted", "line", "box", "gold", "left", "right", "game", "mute", "sung"]) colors[k] = cs.getPropertyValue("--" + k).trim(); }
+readColors();
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { readColors(); demos.forEach((d) => d.draw()); });
+
+let playing = null;
+class Demo {
+  constructor(el) {
+    this.el = el; this.name = el.dataset.demo; this.cv = el.querySelector("canvas"); this.cap = el.querySelector(".cap");
+    this.btn = el.querySelector("button.play"); this.sel = "top"; this.t0 = null; this.voices = [];
+    this.btn.addEventListener("click", () => (playing === this ? this.stop() : this.play()));
+    el.querySelectorAll(".strands button").forEach((b) => b.addEventListener("click", () => {
+      el.querySelectorAll(".strands button").forEach((x) => x.classList.toggle("sel", x === b));
+      this.sel = b.dataset.s; const was = playing === this; if (was) this.stop(); this.build(); this.draw(); if (was) this.play();
+    }));
+    this.build(); new ResizeObserver(() => this.draw()).observe(this.cv);
+  }
+  build() {
+    const r = BUILD[this.name](this.sel); this.items = r.items; this.labels = r.labels; this.bars = r.bars;
+    const ms = this.items.map((i) => i.midi); this.lo = Math.min(...ms) - 1; this.hi = Math.max(...ms) + 1;
+    this.endT = LEAD + (this.bars[1] * 16) * SX;
+    this.touches = this.items.filter((i) => i.touch).length;
+    this.cap.textContent = `${this.touches} touches for you · ${this.items.filter((i) => i.kind === "game").length} notes the game plays · ${this.bars[1] - this.bars[0] + 1} bars, about ${Math.round((this.bars[1] - this.bars[0] + 1) * 16 * SX)} s`;
+  }
+  play() {
+    if (playing) playing.stop();
+    audio(); playing = this; this.btn.textContent = "■ Stop";
+    const start = ac.currentTime + 0.1; this.t0 = start; this.voices = [];
+    const base = (this.bars[0] - 1) * 16;
+    for (const i of this.items) {
+      if (!i.sound) continue;
+      const t = start + LEAD + (i.on - base) * SX, d = i.dur * SX;
+      if (i.kind === "sung") sing(t, i.midi, d, this.voices);
+      else pluck(t, i.midi, d, i.kind === "you", this.voices);
+    }
+    const tick = () => { if (playing !== this) return; this.draw(); if (ac.currentTime - this.t0 > this.endT + 0.8) this.stop(); else requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+  stop() {
+    for (const v of this.voices) { try { v.stop(); } catch (e) {} }
+    this.voices = []; if (playing === this) playing = null; this.t0 = null; this.btn.textContent = "▶ Play"; this.draw();
+  }
+  now() { return this.t0 == null ? 0 : ac.currentTime - this.t0 - LEAD; }
+  draw() {
+    const cv = this.cv, dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    if (!W) return;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+    const S = 34, top = 22, bot = H - 8, boxL = S + 6, boxR = W - S - 6, lineX = boxL + Math.min(90, (boxR - boxL) * 0.22);
+    const pps = Math.max(48, (boxR - boxL) / 5.2), t = this.now(), base = (this.bars[0] - 1) * 16;
+    const rows = this.hi - this.lo, rowH = (bot - top) / rows, nh = Math.max(3, Math.min(9, rowH * 0.8));
+    const y = (m) => bot - (m - this.lo) * rowH;
+    const x = (on) => lineX + ((on - base) * SX - t) * pps;
+    // strips
+    for (const sx of [0, W - S]) { c.fillStyle = colors.line; c.globalAlpha = 0.5; c.fillRect(sx + 4, top - 4, S - 8, bot - top + 8); c.globalAlpha = 1; }
+    c.save(); c.beginPath(); c.rect(boxL, 0, boxR - boxL, H); c.clip();
+    // bar lines and labels
+    c.font = "11px system-ui,sans-serif"; c.textBaseline = "top";
+    for (let b = this.bars[0]; b <= this.bars[1] + 1; b++) {
+      const bx = x((b - 1) * 16); if (bx < boxL - 200 || bx > boxR + 10) continue;
+      c.strokeStyle = colors.line; c.lineWidth = 1; c.beginPath(); c.moveTo(bx, top - 4); c.lineTo(bx, bot + 4); c.stroke();
+      if (b <= this.bars[1]) { c.fillStyle = colors.muted; c.fillText(String(b), bx + 3, 4); }
+    }
+    // notes
+    for (const i of this.items) {
+      const x0 = x(i.on), x1 = x(i.on + i.dur); if (x1 < boxL - 2 || x0 > boxR + 2) continue;
+      const yy = y(i.midi), now = t >= (i.on - base) * SX && t < (i.on - base + i.dur) * SX;
+      if (i.kind === "mute") { c.setLineDash([3, 3]); c.strokeStyle = colors.muted; c.globalAlpha = 0.55; c.strokeRect(x0 + 0.5, yy - nh / 2 + 0.5, Math.max(4, x1 - x0 - 2), nh - 1); c.setLineDash([]); c.globalAlpha = 1; continue; }
+      if (i.kind === "game") {
+        c.fillStyle = colors.game; c.globalAlpha = (now ? 0.95 : 0.55) * (i.fading ? 0.45 : 1);
+        c.fillRect(x0, yy - nh * 0.25, Math.max(3, x1 - x0 - 2), nh * 0.5); c.globalAlpha = 1;
+        if (i.caught) { c.fillStyle = colors.gold; c.globalAlpha = 0.6; c.fillRect(x0, yy - nh * 0.25 - 2, Math.max(3, x1 - x0 - 2), 1.5); c.globalAlpha = 1; }
+        continue;
+      }
+      const col = i.kind === "sung" ? colors.sung : i.hand === "L" ? colors.left : colors.right;
+      const hold = isHold(i.dur), w = hold ? Math.max(6, x1 - x0 - 2) : Math.max(8, nh * 1.4);
+      c.fillStyle = col; c.globalAlpha = now ? 1 : 0.88;
+      if (hold) { c.fillRect(x0, yy - nh / 2, w, nh); c.fillStyle = colors.fg; c.globalAlpha = 0.7; c.fillRect(x0 + w - 2, yy - nh / 2 - 2, 2, nh + 4); }
+      else { c.beginPath(); c.arc(x0 + nh * 0.7, yy, nh * 0.75, 0, Math.PI * 2); c.fill(); }
+      c.globalAlpha = 1; c.strokeStyle = colors.fg; c.lineWidth = 1;
+      if (hold) c.strokeRect(x0 + 0.5, yy - nh / 2 + 0.5, w - 1, nh - 1); else { c.beginPath(); c.arc(x0 + nh * 0.7, yy, nh * 0.75, 0, Math.PI * 2); c.stroke(); }
+    }
+    c.restore();
+    // gold line
+    c.strokeStyle = colors.gold; c.lineWidth = 2.5; c.beginPath(); c.moveTo(lineX, top - 8); c.lineTo(lineX, bot + 6); c.stroke();
+    // thumbs: coming (rings) and down (filled)
+    for (const i of this.items) {
+      if (!i.touch) continue;
+      const ts = (i.on - base) * SX, te = ts + (isHold(i.dur) ? i.dur * SX : 0.16), sx = i.hand === "L" ? S / 2 : W - S / 2, yy = y(i.midi);
+      const col = i.kind === "sung" ? colors.sung : i.hand === "L" ? colors.left : colors.right;
+      if (t >= ts - 0.9 && t < ts) { c.strokeStyle = col; c.globalAlpha = 1 - (ts - t) / 0.9; c.lineWidth = 2; c.beginPath(); c.arc(sx, yy, 8 + (ts - t) * 14, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1; }
+      if (t >= ts && t < te) {
+        c.fillStyle = col; c.beginPath(); c.arc(sx, yy, 12, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = col; c.globalAlpha = 0.45; c.lineWidth = 2; c.beginPath(); c.moveTo(sx, yy); c.lineTo(lineX, yy); c.stroke(); c.globalAlpha = 1;
+        c.fillStyle = "#fff"; c.font = "bold 11px system-ui,sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(i.hand, sx, yy); c.textAlign = "start";
+        c.fillStyle = colors.fg; c.font = "11px system-ui,sans-serif"; c.textBaseline = "bottom";
+        c.textAlign = i.hand === "L" ? "left" : "right"; c.fillText(NAME(i.midi), i.hand === "L" ? S + 2 : W - S - 2, yy - 10); c.textAlign = "start";
+      }
+    }
+    // caption: the current bar's label
+    if (this.t0 != null) {
+      const bar = Math.max(this.bars[0], Math.min(this.bars[1], this.bars[0] + Math.floor(t / (16 * SX))));
+      let lab = ""; for (const [b, s] of this.labels) if (b <= bar) lab = s;
+      this.cap.textContent = (t < 0 ? "Get ready… " : `Bar ${bar} · `) + lab;
+    }
+  }
+}
+const demos = [...document.querySelectorAll(".demo")].map((el) => new Demo(el));
+})();
+</script>
+</body>
+</html>
