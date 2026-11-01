@@ -153,7 +153,8 @@ export const JUDGING = "1.52";
 export const BEFORE_JUDGING = "BEFORE 1.52";
 
 /** D265: a piece's sound can be changed once it is finished with a high grade (A or S); before, its own. */
-export const SOUND_UNLOCK_GRADES = ["S", "A"];
+// D417 (the owner: "all unlocks for each fugue are opened upon completing it with score B instead of A, otherwise it's too difficult").
+export const SOUND_UNLOCK_GRADES = ["S", "A", "B"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
 export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
