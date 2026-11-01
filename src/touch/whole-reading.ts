@@ -62,14 +62,15 @@ export const LEVEL_DB: Readonly<Record<string, number>> = {
   "meno p": -4.5,
   "non f": 0,
   "sempre f": 3.5,
-  // D394: Book II's (forte spelled out, the words after the letter; fp the level after the forte, its accent by SFZ).
+  // D394: Book II's (forte spelled out, the words after the letter). D403: fp is no level: Busoni writes it on a held note
+  // (II/22), an accent on that note only (SFZ); read as a lasting p it left each voice soft for forty bars after its fp
+  // while the voices still at the opening f stayed loud.
   forte: 3.5,
   "f sempre": 3.5,
   "forte dolce": 3.5,
   "meno forte": 1.5,
   "non forte": 0,
   "meno dolce": -4,
-  fp: -6.5,
 };
 /** A hairpin with no printed level after it: a local swell or fall of this much (dB). */
 export const HAIRPIN_DB = 3;
@@ -397,6 +398,15 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
       } else envs.push({ v, a: h.from, b: h.to, hold: beat, peak: sgn * HAIRPIN_DB, back: beat });
     }
   }
+  // D403: fp on a held note: struck forte (its accent, SFZ), then p for the rest of that note, and back to the
+  // surrounding level over a beat (not a lasting p).
+  const fpDrop = new Map<number, { on: number; dur: number }[]>();
+  for (const d of W.dyn)
+    if (/^fp$/.test(d.mark.trim()))
+      for (const v of d.voices) {
+        const n = f.voices[v]?.find((x) => x[0] === d.on);
+        if (n) fpDrop.set(v, [...(fpDrop.get(v) ?? []), { on: d.on, dur: n[1] }]);
+      }
   for (const e of evs) e.sort((a, b) => a.t - b.t || (a.kind === "set" ? -1 : 1));
   const base = (v: number, t: number) => {
     let cur = firstLevel;
@@ -421,7 +431,16 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     }
     return d;
   };
-  const dynAt = (v: number, t: number) => base(v, t) + env(v, t);
+  const fpAt = (v: number, t: number) => {
+    for (const x of fpDrop.get(v) ?? []) {
+      if (t <= x.on || t > x.on + x.dur + beat) continue;
+      const drop = LEVEL_DB.p - base(v, x.on);
+      if (drop >= 0) return 0;
+      return t <= x.on + x.dur ? drop : drop * (1 - (t - x.on - x.dur) / beat);
+    }
+    return 0;
+  };
+  const dynAt = (v: number, t: number) => base(v, t) + env(v, t) + fpAt(v, t);
   for (let v = 0; v < nv; v++) for (const [on] of f.voices[v]) get(key(v, on)).dyn = dynAt(v, on);
   for (const d of W.dyn) if (SFZ.test(d.mark)) for (const v of d.voices) if (exists(v, d.on)) get(key(v, d.on)).arts.add("accent");
   for (const g of notes.values())
