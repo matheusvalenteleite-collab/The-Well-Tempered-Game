@@ -7,9 +7,10 @@
  */
 import type { Ref } from "react";
 import { legendLines, type Mark } from "./side-notes.ts";
+import { wholeLegend, type WholeBox } from "../touch/whole-marks.ts";
 
 /** D359: `fade`: THE MANUAL's demonstration names its manner, then the hint fades off the bar the thumbs play on. */
-/** Design studio (D393): placed in the box behind the gold line by BenchApp each frame (`hintRef`). */
+/** Design studio (D397): placed in the box behind the gold line by BenchApp each frame (`hintRef`). */
 export function SideHint({ text, fade = false, hintRef }: { text: string; fade?: boolean; hintRef?: Ref<HTMLParagraphElement> }) {
   return (
     <p className={`tb-lite-hint tb-side-hint${fade ? " tb-side-hint-fade" : ""}`} id="lite-hint" role="status" ref={hintRef}>
@@ -18,16 +19,30 @@ export function SideHint({ text, fade = false, hintRef }: { text: string; fade?:
   );
 }
 
-export function SideLegend({ marks, legendRef }: { marks: Iterable<Mark>; legendRef: Ref<HTMLDivElement> }) {
+/**
+ * D391: with a whole-piece reading (BUSONI) its other signs follow the judged ones (whole-marks.ts
+ * wholeLegend), and under the legend, kept while it fades, the word in force on the player's line as
+ * printed and translated (BenchApp sets it through `glossRef` as each word is passed).
+ */
+export function SideLegend({ marks, legendRef, whole, glossRef }: { marks: Iterable<Mark>; legendRef: Ref<HTMLDivElement>; whole?: WholeBox; glossRef?: Ref<HTMLParagraphElement> }) {
   const lines = legendLines(marks);
-  if (!lines.length) return null;
+  const more = whole ? wholeLegend(whole) : [];
+  if (!lines.length && !more.length) return null;
   return (
-    <div className="tb-side-legend" id="side-legend" ref={legendRef} aria-hidden="true">
-      {lines.map((l) => (
-        <p key={l.kind}>
-          <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
-        </p>
-      ))}
-    </div>
+    <>
+      <div className={`tb-side-legend${more.length ? " tb-side-legend-whole" : ""}`} id="side-legend" ref={legendRef} aria-hidden="true">
+        {lines.map((l) => (
+          <p key={l.kind}>
+            <b className={`tb-mark tb-mark-${l.kind}`}>{l.sym}</b> {l.text}
+          </p>
+        ))}
+        {more.map((l) => (
+          <p key={`w-${l.kind}`}>
+            <b className={`tb-mark tb-mark-w-${l.kind}`}>{l.sym}</b> {l.text}
+          </p>
+        ))}
+      </div>
+      {whole && <p className="tb-side-gloss" id="side-gloss" ref={glossRef} aria-live="polite" />}
+    </>
   );
 }

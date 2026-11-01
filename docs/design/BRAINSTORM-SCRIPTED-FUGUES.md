@@ -33,7 +33,7 @@ from a "reading"), whole subject entries ("SUBJECTS 2/5"), a crowd meter, a grad
 Riemann (subjects only) and Busoni (whole pieces, I/1, I/2, I/8, I/16, I/24; the piano's default, D385).
 Loudness comes from where across the strip the thumb lands (D311). Ornaments are shaken. Sounds: piano,
 harpsichord, organ with one-touch stops, lute, etc. Read `docs/DECISIONS.md` (rows D340 onwards in particular,
-and D383 the 48 pictures, D385–D390 Busoni and the expressive piano, D391–D395 the studio's latest).
+and D383 the 48 pictures, D385–D390 Busoni and the expressive piano, D395–D399 the studio's latest).
 
 ## What the music data already gives every fugue (`data/touch/pieces.json`)
 
@@ -59,8 +59,8 @@ Not yet marked anywhere: which entries are inverted or augmented, where a trill 
 - Loudness is never tied to right or wrong. The subject is never louder.
 - The box shows Bach's music: editorial marks are appendices above the notes; played notes may show how they
   were played. Nothing decorative inside the box beyond what exists (key-tinted ground, subject effects).
-- The bass must stay audible on a phone. Zoom subtle and sparing, only at seams of the player's line (D395).
-- Thumbs are the abstract disc-and-beam marks (glowing when pressing); L/R letters under played notes (D392).
+- The bass must stay audible on a phone. Zoom subtle and sparing, only at seams of the player's line (D399).
+- Thumbs are the abstract disc-and-beam marks (glowing when pressing); L/R letters under played notes (D396).
 - The game's fundamentals stay constant: note inks, the gold line, judging, the marks' vocabulary.
 - Scripted visuals fire from the piece's data, never from hits or misses, unless a challenge explicitly is
   about the player's action (then say so and keep it honest).

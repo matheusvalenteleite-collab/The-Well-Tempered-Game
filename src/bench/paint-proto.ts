@@ -15,7 +15,7 @@ import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paperInk } from "./sheet-view.ts";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
-import { APPROACH_MS, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
+import { APPROACH_MS, CROWD_START, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
@@ -71,9 +71,11 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       pads(c, w, h, g, t);
       break;
   }
-  verdict(c, w, h, g, t);
-  // D359: THE MANUAL's practice room: none of the game's chatter.
-  if (!g.o.quiet) scoreboard(c, w, h, g, t);
+  // D402: the tutorial's screen dressed lesson by lesson: the verdicts from Part 2.
+  // D413: nothing judged under his demonstration (a WATCH: Bach plays): no verdicts on his notes.
+  if ((!g.o.dress || g.o.dress.includes("verdicts")) && !g.o.demo) verdict(c, w, h, g, t);
+  // D359: THE MANUAL's practice room: none of the game's chatter. D402: unless the lesson has dressed it.
+  if (!g.o.quiet || g.o.dress?.includes("score")) scoreboard(c, w, h, g, t);
   // D251: how far into the piece, along the top edge.
   progress(c, w, g, t);
 }
@@ -82,9 +84,20 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
 function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bars = g.proto.layout === "bars";
   const desk = g.proto.layout === "desk";
+  // D402: a tutorial lesson's dressing (the full screen's banners, chains and embers come with SUBJECTS, at THE REAL THING).
+  const dress = g.o.dress;
+  const full = !dress || dress.includes("subjects");
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
   const y = bars ? h * 0.12 : desk ? 34 : 14;
-  label(c, Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
+  // D413 (the owner: "Nothing should be scored or counted during WATCH"): under his demonstration the
+  // counters stand still at where the step began (0, no multiplier, no combo, ACCURACY —), still in place
+  // for the bubbles that point at them.
+  const still = !!g.o.demo;
+  label(c, still ? "0" : Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
+  if (still) {
+    if (bars) liveSheet(c, w, h, g, t);
+    return;
+  }
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   // D249: the combo (the right notes running), small and muted under the score, off the middle of the
   // music (it shared the count-in's centre). Named, so it is not read as the multiplier.
@@ -94,6 +107,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const below = combo ? 12 : 0;
   // D268: the right bar's live sheet: the share of right notes so far, the subject's entries captured, the crowd.
   if (bars) liveSheet(c, w, h, g, t);
+  if (!full) return;
   if (g.pleno) label(c, "PLENO ×2", bars ? w - (w * BAR) / 2 : x, bars ? h * 0.12 + 74 : y + 32 + below, t.gold, 7);
   // D218: the legato chain under way.
   if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + (g.pleno ? 46 : 32) + below, LEGATO_INK, 6);
@@ -126,17 +140,23 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
   const bw = w * BAR;
   const x = w - bw / 2;
   let y = h * 0.12;
-  const acc = g.liveAccuracy();
-  label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
-  label(c, "ACCURACY", x, y + 12, t.muted, 5);
-  y += 28;
-  const come = g.entries.filter((e) => e.state !== "open").length;
-  if (g.entries.length) {
-    label(c, `${g.entries.filter((e) => e.state === "captured").length}/${come}`, x, y, t.gold, 8);
+  // D402: in the tutorial each line only once the lesson has dressed it (ACCURACY and the crowd from 3.6, SUBJECTS at THE REAL THING).
+  const on = (k: string) => !g.o.dress || g.o.dress.includes(k);
+  // D413: frozen under his demonstration (see scoreboard).
+  const still = !!g.o.demo;
+  const acc = still ? null : g.liveAccuracy();
+  if (on("accuracy")) {
+    label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
+    label(c, "ACCURACY", x, y + 12, t.muted, 5);
+    y += 28;
+  }
+  const come = still ? 0 : g.entries.filter((e) => e.state !== "open").length;
+  if (g.entries.length && on("subjects")) {
+    label(c, `${still ? 0 : g.entries.filter((e) => e.state === "captured").length}/${come}`, x, y, t.gold, 8);
     label(c, "SUBJECTS", x, y + 11, t.muted, 5);
     y += 26;
   }
-  if (g.o.fail) {
+  if (g.o.dress ? g.o.dress.includes("crowd") : g.o.fail) {
     const mw = Math.max(24, bw * 0.6);
     const grad = c.createLinearGradient(x - mw / 2, 0, x + mw / 2, 0);
     grad.addColorStop(0, "#e2533f");
@@ -145,8 +165,9 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
     c.fillStyle = "#1d1a24";
     c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw), 5);
     c.fillStyle = grad;
-    c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw * g.crowd), 5);
-    label(c, "CROWD", x, y + 13, g.crowd < 0.25 ? t.wrong : t.muted, 5);
+    const crowd = still ? CROWD_START : g.crowd;
+    c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw * crowd), 5);
+    label(c, "CROWD", x, y + 13, crowd < 0.25 ? t.wrong : t.muted, 5);
   }
 }
 
@@ -930,9 +951,22 @@ export function label(c: CanvasRenderingContext2D, text: string, x: number, y: n
   c.textAlign = align;
   c.textBaseline = "middle";
   // D283: the game's words in the language chosen.
-  c.fillText(trCanvas(text), x, y);
+  const word = trCanvas(text);
+  // D415: over the music now running under the bars, each word ringed in the bars' dark (read over a note).
+  if (!paper) {
+    const a = c.globalAlpha;
+    c.globalAlpha = a * 0.85;
+    c.strokeStyle = "#140e12";
+    c.lineWidth = 2.5;
+    c.lineJoin = "round";
+    c.strokeText(word, x, y);
+    c.globalAlpha = a;
+  }
+  c.fillText(word, x, y);
 }
 
+/** D415: the side bars' opacity over the box running under them (0.92 before: opaque in effect). */
+const BAR_VEIL = 0.52;
 function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bw = w * BAR;
   const count = g.f.voices.length;
@@ -949,8 +983,10 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     } else {
       // The bar: warm and dark, a little lighter towards its strong side (D314: the phone's edge, or the box's by STRONG_SIDE).
       const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
-      grad.addColorStop(strengthOf(0), "rgba(26,18,22,0.92)");
-      grad.addColorStop(strengthOf(1), "rgba(54,34,30,0.92)");
+      // D415 (the owner: "we don't need the buttons to be opaque at all to know what to do with them"): the bar
+      // translucent over the box, which runs under it; enough of its warmth kept that the thumbs' marks read on it.
+      grad.addColorStop(strengthOf(0), `rgba(26,18,22,${BAR_VEIL})`);
+      grad.addColorStop(strengthOf(1), `rgba(54,34,30,${BAR_VEIL})`);
       c.fillStyle = grad;
       c.fillRect(s.x, 0, bw, h);
       c.fillStyle = t.barline;
@@ -1018,9 +1054,16 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         const own = g.lastBySide[s.x === 0 ? "left" : "right"];
         const sy = own && g.now - own.tick <= OWN_FRESH_S * g.tps ? own.y : y;
         c.fillStyle = ink;
-        c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.1 + 0.3 * nx.p * nx.p;
+        // D415: over the music the bar no longer floods with the note's colour (it hid what runs under it): a
+        // faint wash, and a line of light along its inner edge, by the box, brightening as the note comes.
+        c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.04 + 0.1 * nx.p * nx.p;
         // D308: lit to the screen's foot (a dark strip of 24 px was left under it, the owner: "a useless border").
         c.fillRect(s.x, 0, bw, h);
+        if (!paper) {
+          c.fillStyle = t.shine;
+          c.globalAlpha = 0.1 + 0.6 * nx.p * nx.p;
+          c.fillRect(s.x === 0 ? bw - STRIP_EDGE - 2 : s.x + STRIP_EDGE, 0, 2, h);
+        }
         c.globalAlpha = 1;
         // The beat closing in: two bars meeting at the bar's foot (over the bar, above the dynamics' marks).
         const half = (bw / 2) * (1 - nx.p);
@@ -1401,6 +1444,8 @@ function progress(c: CanvasRenderingContext2D, w: number, g: ProtoGame, t: Tok) 
   // Left of the game's ✕ (the DOM button in the top right corner).
   // D308: left of ❚❚ and ✕.
   // D344: the numbers alone ("1 / 27"), no BAR / COMPASSO / COMPÁS (the owner).
+  // D402: the tutorial's bar counter from Part 2.
+  if (g.o.dress && !g.o.dress.includes("bar")) return;
   label(c, `${barNumberAt(f, g.now)} / ${f.bars[f.bars.length - 1].n}`, w - 100, H + 8, t.muted, 6, "right");
 }
 

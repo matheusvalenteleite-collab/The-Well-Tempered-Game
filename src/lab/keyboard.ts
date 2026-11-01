@@ -5,7 +5,7 @@
  */
 import { frequency, type TuningId } from "../wtc/tunings.ts";
 import { TPQ, type WtcPiece } from "../wtc/corpus.ts";
-import { keySteps, ornamentUnit, realise, trillUnit } from "../music/ornaments.ts";
+import { keySteps, mordentUnit, ornamentUnit, realise, trillUnit } from "../music/ornaments.ts";
 import { parsePitch } from "../music/pitch.ts";
 import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
 
@@ -30,7 +30,7 @@ function sounding(p: WtcPiece, voice: number, k: number, bpm: number, steps: Ret
   if (!row) return [[on, dur, pitch]];
   const prev = k > 0 ? parsePitch(p.voices[voice][k - 1][2]).midi : undefined;
   const graces = (row[4] ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi }));
-  const notes = realise({ midi: parsePitch(pitch).midi, at: on / TPQ, dur: dur / TPQ }, row[3], graces, { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm), prevMidi: prev, ...steps });
+  const notes = realise({ midi: parsePitch(pitch).midi, at: on / TPQ, dur: dur / TPQ }, row[3], graces, { unit: ornamentUnit(bpm / 2), quick: mordentUnit(60 / bpm), trillUnit: trillUnit(60 / bpm), prevMidi: prev, ...steps });
   const NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   return notes.map((x) => [Math.round(x.at * TPQ), Math.max(1, Math.round(x.dur * TPQ)), `${NAMES[((x.midi % 12) + 12) % 12]}${Math.floor(x.midi / 12) - 1}`]);
 }

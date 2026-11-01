@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import { fugueById, inBar, beatOf } from "../src/touch/fugue.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 import { bestReading, chooseReading, chosenReading, markLegend, readingsOf, wholeReadingOf, BEST_READING, type Reading } from "../src/touch/readings.ts";
-import { endingOf, endSpeedOf, LEVEL_DB, PALETTES, paletteOfWord, phraseArchDb, PHRASE_BREATH_HOLD, slurShapeDb, wholeMarks, wholePlan } from "../src/touch/whole-reading.ts";
+import { endingOf, endSpeedOf, LEVEL_DB, RAMP, SFZ,PALETTES, paletteOfWord, phraseArchDb, PHRASE_BREATH_HOLD, slurShapeDb, wholeMarks, wholePlan } from "../src/touch/whole-reading.ts";
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter } from "../src/touch/piano-trill.ts";
 import { landing, PIANO_SOFT_BELOW_DB, PIANO_SOFT_NET_DB, PIANO_ZONE_DB, pianoDb, pianoZone, STRONG_ZONE_FROM } from "../src/touch/touch-expr.ts";
 import { accentWeighted } from "../src/bench/accent.ts";
@@ -26,6 +26,11 @@ import { setPreset } from "../src/touch/sound.ts";
 import { PATCHES } from "../src/touch/sound.ts";
 import { trillUnit } from "../src/music/ornaments.ts";
 
+/** D392: BUSONI for every fugue of Book I (D385 began with five: I/1, I/2, I/8, I/16, I/24). */
+const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
+/** D394: and all 24 of Book II. */
+const BOOK_II = Array.from({ length: 24 }, (_, i) => `wtc2f${String(i + 1).padStart(2, "0")}`);
+const ALL = [...BOOK_I, ...BOOK_II];
 const FIVE = ["wtc1f01", "wtc1f02", "wtc1f08", "wtc1f16", "wtc1f24"];
 const busoni = (id: string) => readingsOf(id).find((r) => r.id === "busoni")!;
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -48,43 +53,63 @@ const ROWS: Rows = { yOf: (s) => 900 - s * 16, stepAt: (y) => Math.round((900 - 
 
 // ---- The reading loader ----
 
-test("D385: BUSONI loaded for I/1, I/2, I/8, I/16, I/24 as a whole-piece reading beside the books' subject-only ones (kept as they were)", () => {
-  for (const id of FIVE) {
+test("D385, D392, D394: BUSONI loaded for all 48 fugues as a whole-piece reading beside the books' subject-only ones (kept as they were)", () => {
+  for (const id of ALL) {
     const r = busoni(id);
     assert.ok(r && r.whole, id);
     assert.equal(r.author, "BUSONI");
     assert.equal(wholeReadingOf(id)?.id, "busoni");
     const first = [...fugueById(id).entries].filter((e) => !e.theme).sort((a, b) => a.on - b.on || a.voice - b.voice)[0];
     assert.equal(r.notes.length, first.notes.length, `${id}: the subject's marks derived from the first entry`);
-    assert.ok(r.whole.marks.length > 50 && r.whole.dyn.length > 5 && r.whole.slurs.length > 30, id);
+    // Book II's volume marks less (II/8: only its entry letters and the ending's word; II/9 four marks): something to play by in each.
+    if (BOOK_I.includes(id)) assert.ok(r.whole.marks.length + r.whole.slurs.length > 20 && r.whole.dyn.length >= 1, id);
+    else assert.ok(r.whole.marks.length + r.whole.slurs.length + r.whole.dyn.length + r.whole.tempo.length + r.whole.rules.length > 0, id);
+    if (FIVE.includes(id)) assert.ok(r.whole.marks.length > 50 && r.whole.dyn.length > 5 && r.whole.slurs.length > 30, id);
+    // D392: every slur and hairpin a range inside the piece; every printed level parses (a level, a ramp, an accent).
+    const f = fugueById(id);
+    assert.ok(r.whole.slurs.every((x) => x.from < x.to && x.to <= f.length && f.voices[x.v]?.some((n) => n[0] === x.from)), `${id}: slurs`);
+    assert.ok(r.whole.hairpins.every((x) => x.from < x.to && x.to <= f.length), `${id}: hairpins`);
+    for (const d of r.whole.dyn) assert.ok(LEVEL_DB[d.mark.trim()] !== undefined || RAMP.test(d.mark) || SFZ.test(d.mark), `${id}: "${d.mark}"`);
     assert.ok(r.whole.marks.every((m) => fugueById(id).voices[m.v]?.some((n) => n[0] === m.on)), `${id}: every mark on a note of the game's`);
     // The books' readings come first, at most three, untouched (no whole).
     const books = readingsOf(id).filter((x) => !x.whole);
     assert.ok(books.length >= 1 && books.length <= 3 && readingsOf(id).at(-1)!.id === "busoni");
+    // D392, D394: the edition's volume: Book I from Schirmer (1894), Book II from Breitkopf & Härtel (1915), but the
+    // fugues Busoni swapped (I/7 and I/15 in his Book II volume, II/7 and II/15 in his Book I volume).
+    const swapped = ["wtc1f07", "wtc1f15", "wtc2f07", "wtc2f15"].includes(id);
+    const book2 = BOOK_II.includes(id) !== swapped;
+    assert.match(r.work, book2 ? /Zweiter Teil \(Breitkopf & Härtel, 1915\)/ : /Erster Theil \(G\. Schirmer, 1894\)/, id);
+    assert.equal(r.year, book2 ? 1915 : 1894, id);
   }
+  assert.match(busoni("wtc2f07").work, /as Fuga VII$/);
+  assert.match(busoni("wtc2f15").work, /as Fuga XV$/);
   // I/2: the figure C–B–C slurred (one gesture), the leaping eighths portato (detached for the judge), the syncopation's sixteenths short.
   const r2 = busoni("wtc1f02");
   assert.deepEqual(r2.slurs[0], { v: 1, from: 0, to: 2 });
   assert.equal(r2.notes[3].join, false);
   assert.equal(r2.notes[13].short, true);
-  // No other fugue has a whole-piece reading; the subject-only readings keep working.
-  for (const id of Object.keys(BEST_READING).filter((k) => !FIVE.includes(k))) assert.ok(!readingsOf(id).some((r) => r.whole), id);
+  // D394: Book II's subject-only readings keep working, BUSONI after them; a fugue with no reading at all has none.
   const json = JSON.parse(src("data/touch/readings.json")) as Record<string, Reading[]>;
-  assert.ok(json.wtc1f03.every((r) => !r.whole && r.notes.length > 0));
+  const book2 = Object.keys(json).filter((k) => k.startsWith("wtc2f"));
+  assert.equal(book2.length, 24);
+  assert.ok(book2.every((k) => json[k].at(-1)!.whole && json[k].slice(0, -1).every((r) => !r.whole && r.notes.length > 0)), "Book II: the books' readings, then BUSONI");
+  assert.equal(wholeReadingOf("bwv1080-14"), null);
+  assert.equal(busoni("wtc1f07").year, 1915);
   // The tool writes it from the sources in the repository.
   assert.match(src("tools/touch/readings.ts"), /docs\/wtc\/readings\/\$\{ed\.id\}/);
-  for (const id of FIVE) assert.ok(src(`docs/wtc/readings/busoni/${id}-busoni.json`).includes("wtc-reading/2"));
+  for (const id of ALL) assert.ok(src(`docs/wtc/readings/busoni/${id}-busoni.json`).includes("wtc-reading/2"));
 });
 
-test("D385: on the piano BUSONI is the default reading of the five; every other sound and fugue keeps D344's; a choice still wins", () => {
+test("D385, D392, D394: on the piano BUSONI is the default reading of all 48 fugues; every other sound keeps D344's; a choice still wins", () => {
   mem.clear();
-  for (const id of FIVE) {
+  for (const id of ALL) {
     assert.equal(bestReading(id, "pianoSampled")?.id, "busoni", id);
     assert.equal(chosenReading(id, "pianoSampled")?.id, "busoni", id);
-    assert.equal(bestReading(id, "harpsichordSampled")?.id ?? null, BEST_READING[id], id);
-    assert.equal(bestReading(id)?.id ?? null, BEST_READING[id], id);
+    const d344 = readingsOf(id).some((r) => r.id === BEST_READING[id]) ? BEST_READING[id] : null;
+    assert.equal(bestReading(id, "harpsichordSampled")?.id ?? null, d344, id);
+    assert.equal(bestReading(id)?.id ?? null, d344, id);
   }
-  assert.equal(bestReading("wtc1f03", "pianoSampled")?.id, BEST_READING.wtc1f03);
+  assert.equal(bestReading("bwv1080-14", "pianoSampled"), null, "no reading at all: none");
   chooseReading("wtc1f02", "keller");
   assert.equal(chosenReading("wtc1f02", "pianoSampled")?.id, "keller");
   mem.clear();
@@ -157,9 +182,10 @@ test("D385: the player's line takes the reading's level on the piano (Play.lineD
   const g = new ProtoGame(f, 1, 0, protoById("ladder"), { bpm: 60, legato: false, solo: true, easy: "direction", fail: false, reading: busoni("wtc1f02"), until: 16 * f.barTicks }, fakeChip(clock));
   const notes = g.tracks[0].notes;
   const i1 = notes.findIndex((n) => n.on === 960);
-  assert.ok(g.lineAt(0, i1).lineDb! < -5, `alto p: ${g.lineAt(0, i1).lineDb}`);
+  // D407: the player's p compressed (40% of the drop under mf, never under −3 dB): softer than mf, not 6.5 dB under.
+  assert.ok(g.lineAt(0, i1).lineDb! < -1 && g.lineAt(0, i1).lineDb! > -4, `alto p: ${g.lineAt(0, i1).lineDb}`);
   const i15 = notes.findIndex((n) => n.on >= 108480);
-  assert.ok(g.lineAt(0, i15).lineDb! > g.lineAt(0, i1).lineDb! + 4, "bar 15: the entry mf");
+  assert.ok(g.lineAt(0, i15).lineDb! > g.lineAt(0, i1).lineDb! + 1.5, "bar 15: the entry mf");
   const plan = wholePlan(f, busoni("wtc1f02"))!;
   const acc = [...plan.notes].find(([k, x]) => k.startsWith("1:") && x.arts.has("accent"));
   if (acc) {
@@ -383,6 +409,37 @@ test("D385: the final slowing where Busoni marks it (his first word, his speed),
   assert.equal(endingOf(busoni("wtc1f16").whole, f16.length, f16.barTicks), null, "I/16: none marked");
   const f1 = fugueById("wtc1f01");
   assert.equal(endingOf(busoni("wtc1f01").whole, f1.length, f1.barTicks)!.from, 195840, "I/1: sostenuto (bar 26), not pochissimo riten. (bar 13, a tempo after)");
+  // D392: I/4's largamente nine bars from the end of 115 (the last tenth), I/6's "allarg.", I/20's "Più largo"; I/22 none.
+  near(endSpeedOf("allarg."), 0.82);
+  near(endSpeedOf("Più largo"), 0.84);
+  const f4 = fugueById("wtc1f04");
+  assert.deepEqual(endingOf(busoni("wtc1f04").whole, f4.length, f4.barTicks), { from: 106 * f4.barTicks, end: 0.84 }, "I/4: largamente from bar 107");
+  const f6 = fugueById("wtc1f06");
+  assert.deepEqual(endingOf(busoni("wtc1f06").whole, f6.length, f6.barTicks), { from: 42 * f6.barTicks, end: 0.82 }, "I/6: allarg. from bar 43");
+  const f22 = fugueById("wtc1f22");
+  assert.equal(endingOf(busoni("wtc1f22").whole, f22.length, f22.barTicks), null, "I/22: none marked");
+  for (const id of ["wtc1f12", "wtc1f14", "wtc1f15", "wtc1f18", "wtc1f20", "wtc1f23"]) {
+    const f = fugueById(id);
+    assert.ok(endingOf(busoni(id).whole, f.length, f.barTicks)!.end < 1, `${id}: an ending slowing`);
+  }
+  // D394: Book II. "sino al fine" runs to the end wherever it stands (II/3 five bars from the end, II/8 seven);
+  // sostenendo a slowing like sostenuto; II/10's "Meno" three bars from the end; II/16 from più grave (bar 80) at allarg.'s speed.
+  near(endSpeedOf("sostenendo"), 0.86);
+  near(endSpeedOf("Meno"), 0.88);
+  const ending = (id: string) => {
+    const f = fugueById(id);
+    const e = endingOf(busoni(id).whole, f.length, f.barTicks);
+    return e && { bar: f.bars.filter((b) => b.on <= e.from).at(-1)!.n, end: e.end };
+  };
+  assert.deepEqual(ending("wtc2f03"), { bar: 31, end: 0.84 }, "II/3: più largamente sino al fine");
+  assert.deepEqual(ending("wtc2f08"), { bar: 40, end: 0.86 }, "II/8: Sostenendo sino al Fine");
+  assert.deepEqual(ending("wtc2f10"), { bar: 83, end: 0.88 }, "II/10: Meno");
+  assert.deepEqual(ending("wtc2f16"), { bar: 80, end: 0.82 }, "II/16: più grave, allarg.");
+  for (const id of ["wtc2f02", "wtc2f06", "wtc2f07", "wtc2f17", "wtc2f18", "wtc2f21"]) assert.ok(ending(id)!.end < 1, `${id}: an ending slowing`);
+  for (const id of ["wtc2f01", "wtc2f22", "wtc2f24"]) assert.equal(ending(id), null, `${id}: none marked`);
+  const g4 = new ProtoGame(f4, 0, 0,protoById("ladder"), { bpm: 60, legato: false, solo: true, easy: "direction", fail: false, reading: busoni("wtc1f04") }, fakeChip({ t: 0 }));
+  const b4 = (bar: number) => g4.timeAt((bar - 1) * f4.barTicks + f4.tpq) - g4.timeAt((bar - 1) * f4.barTicks);
+  assert.ok(Math.abs(b4(105) - b4(100)) < 1e-6 && b4(110) > b4(105) + 1e-3 && b4(115) > b4(110), "I/4 broadens from bar 107 to the end");
   // In the game: I/2 by Busoni slows from bar 29; with no reading the last two bars as before; I/16 by Busoni the automatic ritard.
   const game = (f: ReturnType<typeof fugueById>, r: Reading | null) => new ProtoGame(f, 0, 0, protoById("ladder"), { bpm: 60, legato: false, solo: true, easy: "direction", fail: false, reading: r }, fakeChip({ t: 0 }));
   const beatS = (g: ProtoGame, bar: number, f: ReturnType<typeof fugueById>) => g.timeAt((bar - 1) * f.barTicks + f.tpq) - g.timeAt((bar - 1) * f.barTicks);

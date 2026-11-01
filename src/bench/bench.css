@@ -26,6 +26,11 @@
 .tb-bars .tg-box { padding-left: 0; padding-right: 0; }
 .tb-bars .tg-hud, .tb-bars .tg-legend { padding-left: 8px; padding-right: 8px; }
 .tb-bars .tg-play { position: absolute; inset: 0 var(--tg-sar) 0 var(--tg-sal); }
+/* D415 (design studio; the owner: "we ought to be able to see the music flowing behind the buttons"): the roll runs
+   under both bars, to the safe edges (each bar is half the box's width: 20% of the area against 60%); the bars,
+   painted over it, are translucent (paint-proto.ts BAR_VEIL). Only the classic box (MusicBox sets tg-box-wide);
+   the sheet and the interface templates keep the space between the bars. Its frame's shadow stays with the box. */
+.tb-bars .tg-box-wide .tg-roll { margin: 0 calc(-100% / 3); }
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
 .tb-bars .tb-quit { right: calc(var(--tg-sar) + (100% - var(--tg-sal) - var(--tg-sar)) * 0.2 + 8px); }
@@ -685,7 +690,7 @@
 .tb-hear-quote cite { display: block; margin-top: 4px; font-style: normal; font-size: 11px; color: var(--tg-muted); }
 .tb-hear-play { justify-self: center; font-size: 10px; padding: 9px 18px; }
 @media (max-height: 520px) { .tb-hear-canvas { height: 110px; } .tb-hear { gap: 5px; padding: 10px; } }
-/* Design studio (D394): HEAR THE SUBJECT as the play screen draws it; one control row; a picker that says what each reading is. */
+/* Design studio (D398): HEAR THE SUBJECT as the play screen draws it; one control row; a picker that says what each reading is. */
 .tb-hear { width: min(820px, 100%); gap: 7px; padding: 10px 12px; }
 .tb-hear-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding-right: 36px; }
 .tb-hear-top .tb-hear-title { margin: 0; }
@@ -817,11 +822,21 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 /* D359: THE MANUAL's demonstration hint: its manner named, then gone from the thumbs' bar. */
 .tb-side-hint-fade { animation: tb-hint-fade 3.2s ease-in forwards; pointer-events: none; }
 @keyframes tb-hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-/* Design studio (D393): in the box behind the gold line; BenchApp sets left, top and width each frame (hidden until it does). */
+/* Design studio (D397): in the box behind the gold line; BenchApp sets left, top and width each frame (hidden until it does). */
 .tb-bars .tb-side-hint { box-sizing: border-box; left: -9999px; top: 34%; width: 120px; max-width: none; transform: none; padding: 6px 8px; font-size: 7px; line-height: 1.7; box-shadow: 2px 2px 0 #b8322a; }
 .tb-side-legend { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); top: 40%; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); padding: 5px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.72); pointer-events: none; transition: opacity 0.3s; }
 .tb-side-legend p { margin: 0 0 4px; }
 .tb-side-legend p:last-child { margin-bottom: 0; }
+/* D391: BUSONI's signs in the side legend; the word in force, translated, kept under it. */
+.tb-mark-w-marcato { color: #ff8a3d; }
+.tb-mark-w-lift, .tb-mark-w-phrase { color: var(--tg-gold); }
+.tb-mark-w-phrase { opacity: 0.55; }
+.tb-mark-w-dynamics, .tb-mark-w-words { font-style: italic; font-family: Georgia, serif; font-weight: 700; }
+.tb-side-legend-whole { top: 30%; font-size: 5px; line-height: 1.35; }
+.tb-side-legend-whole p { margin-bottom: 2px; }
+.tb-side-gloss { box-sizing: border-box; position: fixed; right: calc(var(--tg-sar) + 6px); bottom: 10px; z-index: 6; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); margin: 0; padding: 4px 6px; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-fg, #e8e4d8); background: rgba(12, 10, 16, 0.6); pointer-events: none; }
+.tb-side-gloss:empty { display: none; }
+html.tb-paper .tb-side-gloss { color: #2a2216; background: rgba(246, 245, 241, 0.92); }
 html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 0.92); box-shadow: 0 0 0 1px #c9c2b4; }
 .tb-sheet-free { margin: 2px 0 0; font-family: var(--tg-pixel); font-size: 6px; letter-spacing: 0.04em; color: #d8c27a; }
 .tb-tuning-select { max-width: 560px; }
@@ -978,6 +993,8 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
 .tb-stops-side .tg-stop { min-width: 44px; height: 44px; margin: 0; padding: 0 2px; font-size: 7px; background: var(--tg-bg); overflow: hidden; }
 .tb-stops-side .tg-stop.on { background: var(--tg-shine); }
+/* D415: the stops translucent with the bars (the stage shows through); a lit stop stays solid. */
+html:not(.tb-paper) .tb-stops-side .tg-stop:not(.on) { background: color-mix(in srgb, var(--tg-bg) 55%, transparent); }
 .tb-stops-side .tg-stop::after { inset: -2px; }
 .tb-stops-side .tg-room-name { top: auto; bottom: calc(100% + 6px); }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 2px); align-items: center; box-sizing: border-box; }
@@ -1126,3 +1143,12 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-route-chip { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 120; display: flex; align-items: center; gap: 4px; padding: 2px 2px 2px 8px; background: var(--tg-box); border: 2px solid var(--tg-shine); }
 .tb-route-chip button:first-child { min-height: 36px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-shine); background: transparent; border: 0; cursor: pointer; text-align: left; }
 @media (prefers-reduced-motion: reduce) { .tb-route-notice { animation: none; } }
+
+/* D402 (STUDIO-REAL-SCREEN.md): the tutorial's screen dressed lesson by lesson: his bubble over the element
+   that comes on, lit in a gold frame, the rest of the screen dimmed (the round paused under it). */
+.tb-spot { position: fixed; z-index: 1; box-sizing: border-box; display: grid; place-items: center; pointer-events: none; border: 2px solid #f3d78a; box-shadow: 0 0 0 200vmax rgba(6, 5, 10, 0.62); animation: tb-spot-pulse 0.9s ease-in-out infinite alternate; }
+.tb-spot.all { inset: 2px; box-shadow: none; }
+.tb-spot-sample { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); }
+@keyframes tb-spot-pulse { from { border-color: rgba(243, 215, 138, 0.55); } to { border-color: #f3d78a; } }
+.tb-bach.tb-tour-top { top: calc(env(safe-area-inset-top, 0px) + 34px); bottom: auto; }
+.tb-bach.tb-tour-mid { top: 28%; bottom: auto; }

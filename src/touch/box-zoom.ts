@@ -47,7 +47,7 @@ export const ZOOM = {
   /** HEIGHT: a change begins only when the player's next note is at least this share of the ease away. */
   quietShare: 0.75,
   /**
-   * D395 (design studio; the owner: the zoom "occurred amidst a player's melody, giving the player the
+   * D399 (design studio; the owner: the zoom "occurred amidst a player's melody, giving the player the
    * impression that they ought to adjust their gameplay to the zoomings"): a change only at a SEAM of the
    * player's line: none of their notes sounding as it begins, and none struck from this long (s) before the
    * ease to this long after it.
@@ -108,7 +108,7 @@ export interface ZoomPlan {
   hi: Int16Array;
   /** The player's onsets, in order. */
   onsets: Float64Array;
-  /** D395: the player's notes' ends, in the onsets' order. */
+  /** D399: the player's notes' ends, in the onsets' order. */
   offs: Float64Array;
   /** The range the box would show without the zoom (the whole piece's). */
   full: StepRange;
@@ -181,7 +181,7 @@ function firstOnset(o: Float64Array, t: number): number {
 }
 
 /**
- * D395: a SEAM of the player's line at `t`: no note of theirs sounding at `t`, and none struck from `margin`
+ * D399: a SEAM of the player's line at `t`: no note of theirs sounding at `t`, and none struck from `margin`
  * before `t` to `ease + margin` after it, so an ease begun at `t` runs entirely in a rest of theirs (or the
  * tail of nothing). Never mid-melody, never under a held thumb.
  */
@@ -194,7 +194,7 @@ export function seamAt(p: ZoomPlan, t: number, ease: number, margin: number): bo
   return true;
 }
 
-/** D395: the first seam in [a, b] (ticks), or -1: tried at `a` and at the end of each of the player's notes. */
+/** D399: the first seam in [a, b] (ticks), or -1: tried at `a` and at the end of each of the player's notes. */
 export function seamIn(p: ZoomPlan, a: number, b: number, ease: number, margin: number): number {
   if (a > b) return -1;
   if (seamAt(p, a, ease, margin)) return a;
@@ -207,18 +207,18 @@ export function seamIn(p: ZoomPlan, a: number, b: number, ease: number, margin: 
   return -1;
 }
 
-/** D395: the first bar from `bar` on (the whole round ahead) with a note outside `r`, or -1. */
+/** D399: the first bar from `bar` on (the whole round ahead) with a note outside `r`, or -1. */
 export function firstOutside(p: ZoomPlan, r: StepRange, bar: number): number {
   for (let i = Math.max(0, bar - p.bar0); i < p.lo.length; i++) if (p.lo[i] <= p.hi[i] && (p.lo[i] < r.lo || p.hi[i] > r.hi)) return i + p.bar0;
   return -1;
 }
 
-/** D395: the last tick a change to make room for bar `k` may begin: its notes reach the screen `aheadTicks` early, the ease done by then. */
+/** D399: the last tick a change to make room for bar `k` may begin: its notes reach the screen `aheadTicks` early, the ease done by then. */
 const deadlineOf = (p: ZoomPlan, k: number, aheadTicks: number, ease: number) => k * p.barTicks - aheadTicks - ease;
 
 /**
  * The range a round begins on (no ease: the count-in shows it): the opening's, when that is well under the
- * whole. D395: and only when a seam of the player's line comes, after the count-in's first ease, before the
+ * whole. D399: and only when a seam of the player's line comes, after the count-in's first ease, before the
  * way back out is needed (else the round begins on the whole piece: no forced zoom in the middle of a melody).
  * `tps`/`aheadTicks` unknown (0): the seam not asked (D377's rule).
  */
@@ -246,7 +246,7 @@ export function decide(p: ZoomPlan, cur: StepRange, held: number, now: number, t
   const ease = ZOOM.easeS * tps;
   const margin = ZOOM.seamS * tps;
   const seam = seamAt(p, now, ease, margin);
-  // OUT, to the whole piece (one step, not a staircase), before anything ahead would be clipped. D395: at a
+  // OUT, to the whole piece (one step, not a staircase), before anything ahead would be clipped. D399: at a
   // seam of the player's line: the one now if the notes outside are near (within LOOK_BARS) or no later seam
   // comes before they are due; at the deadline only if no seam came at all (the in-rule below and the
   // opening's make that the exception: a round so busy it never rests).
@@ -260,7 +260,7 @@ export function decide(p: ZoomPlan, cur: StepRange, held: number, now: number, t
   }
   // IN: rarely; held long enough, at a seam, well narrower, and narrow for the hold to come too
   // (LOOK_BARS + HOLD_BARS ahead, the music lasting that long: no zoom in to go straight back out).
-  // D395: and only if the way back out also falls at a seam (one after this ease, before it is due).
+  // D399: and only if the way back out also falls at a seam (one after this ease, before it is due).
   const span = ZOOM.lookBars + ZOOM.holdBars;
   if (now - held < ZOOM.holdBars * p.barTicks || !seam || bar - p.bar0 + span >= p.lo.length) return null;
   const far = needAt(p, bar, span);

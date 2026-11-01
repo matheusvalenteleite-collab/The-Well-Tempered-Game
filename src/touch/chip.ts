@@ -13,7 +13,7 @@ import { crowned, isPedal, liveRegistration, registeredNote, LUTE_LP, type Regis
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { chainOf, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { chainOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 
@@ -457,6 +457,16 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
 export const LIFT_TAU = 0.025;
 /** D339: a piano string above the dampers (SampledInstrument.damper `undamped`) let go: it rings on, falling with this time constant (s). */
 export const UNDAMPED_TAU = 0.6;
+
+/** D405: the piano's dampers at most this many times slower (D389's sparing pedal, a trill's half-seated dampers). */
+export const DAMP_MUL_MAX = 1.8;
+/** D405: from C6 (MIDI 84) up, at most this (the top strings ring longest and brightest). */
+export const DAMP_MUL_HIGH = 1.3;
+export const DAMP_HIGH_FROM = 84;
+/** D405: a damped piano string halted at most this long after its release (s): no tail left ringing. */
+export const RELEASE_MAX_S = 1.5;
+/** D405: the dampers' slowing a note takes (Play.dampMul), capped by register. */
+export const dampMulFor = (midi: number, mul: number) => Math.max(0.5, Math.min(mul, midi >= DAMP_HIGH_FROM ? DAMP_MUL_HIGH : DAMP_MUL_MAX));
 
 /** D302: VOCAL SYNTH's level against the other patches (its source normalised to its peak: measured, II/22 rendered offline). */
 export const SING_GAIN = 3.4;
@@ -1171,11 +1181,13 @@ export class Chip {
     // D297: an organ's manual above its pedal's compass (sampled.ts setFor).
     const main = inst ? setFor(inst, midi) : "";
     if (v.patch && inst && !setUnreachable(main)) {
+      // D405: never a recording read more than `maxShift` semitones off (glassy above, muddy below): a pitch past the compass an octave nearer.
+      if (inst.maxShift !== undefined) midi = foldInto(main, midi, inst.maxShift);
       let near = nearestSample(main, midi);
       // D385: a piano trill's two pitches never from one recording: the one not recorded itself takes the other
       // neighbouring recording (G#4 from F#4 up where A4 sounds A4), where that recording is loaded.
       if (p.altSample !== undefined && near !== null && near !== midi && nearestSample(main, p.altSample) === near && !(near !== p.altSample && midi < p.altSample)) {
-        const other = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= 4);
+        const other = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= (inst.maxShift ?? 4));
         if (other !== null && loaded(main, other)) near = other;
       }
       // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
@@ -1742,13 +1754,16 @@ export class Chip {
         if (!stacc && (!lift || handover || (p.group ?? 0) >= 1)) tail = tau * dm.tail;
       }
       // D385: a palette's sparing half pedal, a trill's half-seated dampers (Play.dampMul: the dampers slower).
-      if (dm && damp && p.dampMul && p.dampMul !== 1) {
-        tau *= p.dampMul;
-        tail = tail ? tail * p.dampMul : tau * dm.tail;
+      // D405: never past DAMP_MUL_MAX (D389's x1.8), nor DAMP_MUL_HIGH from C6, where a ringing string carries most.
+      const mul = dm && damp && p.dampMul ? dampMulFor(midi, p.dampMul) : 1;
+      if (dm && mul !== 1) {
+        tau *= mul;
+        tail = tail ? tail * mul : tau * dm.tail;
       }
       g.gain.setTargetAtTime(0, s, tau);
       if (tail) g.gain.setTargetAtTime(0, s + 3 * tau, tail);
-      const gone = tail ? 3 * tau + tail * 6 : tau * 9;
+      // D405: a damped string halted within RELEASE_MAX_S of its release, whatever the palette.
+      const gone = Math.min(dm && damp ? RELEASE_MAX_S : Infinity, tail ? 3 * tau + tail * 6 : tau * 9);
       for (const x of srcs) halt(x.src, s + gone + 0.02);
       for (const l of lfos) halt(l, s + gone + 0.05);
       if (thunk) (thunk.disconnect(), (thunk = null));

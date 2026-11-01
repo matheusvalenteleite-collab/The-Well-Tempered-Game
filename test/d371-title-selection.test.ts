@@ -26,15 +26,13 @@ test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read
   assert.ok(line[k][0] < bar.on + f.barTicks, "in bar 193");
   assert.deepEqual(line.slice(k, k + 4).map(([, , m]) => m), [58, 57, 60, 59]);
   assert.deepEqual(line.slice(k, k + 3).map(([, d]) => d), [f.tpq * 2, f.tpq * 2, f.tpq * 2], "half notes");
+  // D406: the first four notes still B♭ A C B♮ (an octave up, on the traverso: d406's test), on their half notes.
   const notes = bachNotes();
-  assert.deepEqual(notes.map((n) => n.midi), [...BACH_PITCHES]);
-  assert.deepEqual(notes.map((n) => n.at), [0, INTRO_HALF_S, 2 * INTRO_HALF_S, 3 * INTRO_HALF_S]);
-  assert.deepEqual(notes.map((n) => n.fade), [false, false, false, true], "only the last fades");
-  const last = notes[3];
-  assert.ok(last.at + last.len < INTRO_S && INTRO_S >= 8 && INTRO_S <= 10, "the last note dies within the intro's nine seconds");
-  // On the PIPE ORGAN (the existing preset), through the game's own sound (BenchApp's chip), every touch after the first skipping.
+  assert.deepEqual(notes.slice(0, 4).map((n) => n.midi - 12), [...BACH_PITCHES]);
+  assert.deepEqual(notes.slice(0, 4).map((n) => n.at), [0, INTRO_HALF_S, 2 * INTRO_HALF_S, 3 * INTRO_HALF_S]);
+  assert.ok(INTRO_S >= 8 && INTRO_S <= 10, "about nine seconds to the selection");
+  // Through the game's own sound (BenchApp's chip), every touch after the first skipping.
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /setPreset\("chamberOrgan"\)/);
   assert.match(app, /const introBegin = async/);
   assert.match(app, /\{APP\.lite && intro && <Intro begin=\{introBegin\} end=\{introEnd\} \/>\}/);
   const intro = src("src/bench/Intro.tsx");

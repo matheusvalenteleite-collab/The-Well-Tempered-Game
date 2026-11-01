@@ -11,7 +11,7 @@ import { EMBLEM_H, EMBLEM_W, emblemPixels, pictureOf } from "../src/bench/emblem
 import { PICTURES } from "../src/bench/pictures-data.ts";
 import { FUGUE_NAMES, fugueName } from "../src/touch/fugue-names.ts";
 import { fugueById } from "../src/touch/fugue.ts";
-import { BOOK1_CAST, BOOK2_CAST, CAST, castOf, effectOf, EFFECTS, FX_BUILT, type SubjectEffect } from "../src/touch/subject-cast.ts";
+import { BOOK1_CAST, BOOK2_CAST, CAST, castOf, effectOf, EFFECTS, FX_BUILT, ONLY_FX, type SubjectEffect } from "../src/touch/subject-cast.ts";
 import { FX_RECTS, subjectFx, type Span } from "../src/touch/box-fx.ts";
 
 const THE_48 = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
@@ -38,7 +38,7 @@ test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes
   for (const f of ["lib.py", "book1.py", "book2.py", "build.py", "sheet.py"]) assert.ok(src(`tools/pictures/${f}`).length > 100, f);
 });
 
-test("names: all 48 in English, Portuguese and Spanish, a short form for the tiles, each its own; II/13 the owner's Trill", () => {
+test("names: all 48 in English, Portuguese and Spanish, a short form for the tiles, each its own; II/13 the owner's Telephone (WTC 1.92)", () => {
   for (const id of THE_48) {
     for (const l of ["en", "pt", "es"] as const) {
       const full = fugueName(id, l);
@@ -48,7 +48,7 @@ test("names: all 48 in English, Portuguese and Spanish, a short form for the til
     }
   }
   for (const l of ["en", "pt", "es"] as const) assert.equal(new Set(THE_48.map((id) => fugueName(id, l))).size, 48, `${l}: 48 different names`);
-  assert.deepEqual(FUGUE_NAMES.wtc2f13, { en: { full: "The Trill", short: "Trill" }, pt: { full: "O Trinado", short: "Trinado" }, es: { full: "El Trino", short: "Trino" } });
+  assert.deepEqual(FUGUE_NAMES.wtc2f13, { en: { full: "The Telephone", short: "Telephone" }, pt: { full: "O Telefone", short: "Telefone" }, es: { full: "El Teléfono", short: "Teléfono" } });
   // Each of Book II's names carries its reason on the line above it.
   const lines = src("src/touch/fugue-names.ts").split("\n");
   for (let i = 1; i <= 24; i++) {
@@ -65,7 +65,8 @@ test("the cast: every subject of all 48 fugues has an effect, every one of the t
     for (const t of themes) {
       const e = castOf(id, t as 1 | 2 | 3);
       assert.ok(e && FX_BUILT.has(e), `${id} subject ${t}`);
-      assert.equal(effectOf(id, t as 1 | 2 | 3), e, `${id} subject ${t} drawn as cast`);
+      // The design studio: for now every subject is drawn HOP (ONLY_FX); the cast is kept as the record.
+      assert.equal(effectOf(id, t as 1 | 2 | 3), ONLY_FX ?? e, `${id} subject ${t} drawn`);
     }
   }
   const used = new Set(Object.values(CAST).flat());

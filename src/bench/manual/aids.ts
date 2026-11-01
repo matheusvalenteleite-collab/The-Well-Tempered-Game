@@ -8,7 +8,7 @@
  *             II.5   for a repeat
  *   repeat    I.3    the repeat band: faint, round each thumb's last touch, as wide as a repeat may land
  *   fill      I.4    the hold fill: the player's held block fills as it is held, gold at its bound
- *   letters   II.1   the thumb letters: L or R under each of the player's struck blocks (the first take)
+ *   letters   II.1   the thumb marks: ● or ○ under each of the player's struck blocks (the first take; D409)
  *   meter     II.3   the touch meter: a strip at the foot of the box, each note's hold from 0 to 1 over
  *                    the zones DETACHED, ORDINARY (from 0.62) and LEGATO (from 0.9)
  *   prepared  II.4   the prepared outline, clearer (a gold dashed frame, PREPARED), and PULL-OFF or
@@ -30,8 +30,9 @@ import { BAR, isRepeat } from "../protos.ts";
 import type { LensTally } from "./lens.ts";
 import type { AidId, TouchName } from "./lessons.ts";
 import type { Side } from "../../touch/thumbs.ts";
-import { tr, trCanvas } from "../../i18n/index.ts";
+import { trCanvas } from "../../i18n/index.ts";
 import { drawThumbProxy, type ProxyOpts } from "../thumb-proxy.ts";
+import { drawThumbMark } from "../fingering.ts";
 
 const GREEN = "#8fe3b0";
 const RED = "#ff6b6b";
@@ -50,7 +51,7 @@ export interface AidOptions {
   /** D360: the touch the take asks for (the meter outlines its zone). */
   ask?: TouchName;
   now?: number;
-  /** D373: the music box's rectangle in the play area (the tour's frames, his words' arrow). */
+  /** D373: the music box's rectangle in the play area (the tour's frames). */
   box?: { x: number; y: number; w: number; h: number };
   /** D373: 1.1's tour: the part that glows, and the strips touched so far. */
   tour?: { focus: TourFocus; left: boolean; right: boolean };
@@ -78,11 +79,11 @@ export function paintAids(c: CanvasRenderingContext2D, w: number, h: number, g: 
     if (a === "count" && rows) counted(c, g, o.box);
     if (a === "plan" && rows) planLetters(c, g, o.box);
     if (a === "answer" && rows) answer(c, g);
-    if (a === "point" && rows && o.box) point(c, g, o.box);
     if (a === "colour") colourMap(c, w, h, bw);
-    // Design studio (D392, the owner: "we don't need A for buttons, because the L and R markings appearing in
+    // Design studio (D396, the owner: "we don't need A for buttons, because the L and R markings appearing in
     // synchrony with the thumbs movement is informative enough"): the path on the strips only where a lesson is
-    // about where across the strip a thumb lands (6.4, colour); elsewhere each played note keeps its L or R.
+    // about where across the strip a thumb lands (6.4, colour); elsewhere the played notes keep their marks
+    // (D409: ● and ○, sparse, never L or R).
     if (a === "thumbs" && rows && o.tour?.focus !== "height" && o.aids.includes("colour")) thumbPath(c, w, bw, g, true);
     if (a === "thumbs" && rows && o.tour?.focus !== "height") playedLetters(c, g, o.box, now);
     if (a === "thumbs" && rows && o.tour?.focus !== "height") thumbsA(c, w, h, bw, g, o.step ?? "play");
@@ -222,16 +223,19 @@ function holdFill(c: CanvasRenderingContext2D, g: ProtoGame) {
   c.globalAlpha = 1;
 }
 
-/** L or R under each struck block of the player's (within the box's view). */
+/** The thumb under each struck block of the player's (within the box's view). D409: ● the thumb of the take's first note, ○ the other, never L or R. */
 function letters(c: CanvasRenderingContext2D, g: ProtoGame, lens: LensTally) {
   const rows = g.rows!;
   const ns = g.tracks[0].notes;
+  let first: Side | null = null;
   for (let i = 0; i < ns.length; i++) {
     const n = ns[i];
-    if (n.state !== "hit" || n.on < g.now - 2 * g.f.barTicks) continue;
+    if (n.state !== "hit") continue;
     const side = lens.sideOf(i);
     if (!side) continue;
-    label(c, side === "left" ? "L" : "R", rows.xOf(n.on) + 3, rows.yOf(n.step) + rows.rowH + 6, side === "left" ? "#9ecbff" : "#ffc58f", 6, "left");
+    first ??= side;
+    if (n.on < g.now - 2 * g.f.barTicks) continue;
+    drawThumbMark(c, rows.xOf(n.on) + 5, rows.yOf(n.step) + rows.rowH + 6, MARK_R, side === first ? "A" : "B", LETTER_INK);
   }
 }
 
@@ -563,47 +567,67 @@ function counted(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: number; w
   });
 }
 
-/** L or R under each of the player's notes to come: the fingering planner's thumb (D370), before it is played. */
+/**
+ * D409 (the owner: "the editor doesn't suggest fingerings for ALL notes"; "two distinct symbols meaning one
+ * thumb and the other, without settling a particular order"): the plan's marks on the player's notes to come,
+ * faint, only where the plan marks them (fingering.ts suggestionMarks: the start, a same-thumb repeat, after a
+ * rest or a slide, the first leap let go, a reminder); ● one thumb, ○ the other, either way round; elsewhere
+ * plain alternation is implied. A lesson that teaches one thumb alone (`o.side`) draws none: its words name
+ * the hand. `every` (1.4, TAKING TURNS, where the marks are introduced): a mark on every note.
+ */
 function planLetters(c: CanvasRenderingContext2D, g: ProtoGame, box?: { x: number; w: number }) {
+  if (g.o.side) return;
   const rows = g.rows!;
   const notes = g.tracks[0].notes;
+  const every = g.o.everyMark;
+  const marks = g.planMarks;
+  const first = g.plan.find((t) => !t.slid)?.side;
   for (const t of g.plan) {
     const n = notes[t.i];
-    // Design studio (D392): the plan's letters only on notes still to come, faint, in the thumbs' one ink;
+    // Design studio (D396): the plan's marks only on notes still to come, faint, in the thumbs' one ink;
     // a played note shows the thumb that played it (playedLetters).
     if (!n || t.slid || n.state !== "pending") continue;
+    const m = marks.get(t.i);
+    if (!m && !every) continue;
     const x = rows.xOf(n.on);
     if (!inBox(x, box)) continue;
-    label(c, t.side === "left" ? tr("L") : tr("R"), x + 6, rows.yOf(n.step) + rows.rowH + 8, LETTER_AHEAD, 7);
+    drawThumbMark(c, x + 6, rows.yOf(n.step) + rows.rowH + 8, MARK_R, m?.thumb ?? (t.side === first ? "A" : "B"), LETTER_INK, 0.45);
   }
 }
 
 /**
- * Design studio (D392): under each played note, the thumb that played it, L or R, appearing as the thumb lands
- * (a short flash, the letter a size larger, settling): his thumbs in a WATCH, yours in a TRY or PLAY. One ink
- * for both thumbs (the owner: "share"), the thumbs' cream. Which thumb: the one down nearest the note's height
- * when it is first seen struck, else the plan's. Drawing only; nothing judged.
+ * Design studio (D396): under each played note, the thumb that played it, appearing as the thumb lands (a short
+ * flash, the mark a size larger, settling): his thumbs in a WATCH, yours in a TRY or PLAY. One ink for both
+ * thumbs (the owner: "share"), the thumbs' cream. Which thumb: the one down nearest the note's height when it is
+ * first seen struck, else the plan's. D409: neutral marks, ● the thumb that took the first marked note and ○
+ * the other (never L or R), and only on the notes the plan marks (every note in 1.4); none in a one-thumb
+ * lesson. Drawing only; nothing judged.
  */
-const PLAYED = new WeakMap<ProtoGame, Map<number, { side: Side; t: number }>>();
+const PLAYED = new WeakMap<ProtoGame, { first: Side | null; seen: Map<number, { side: Side; t: number }> }>();
 const LETTER_INK = "#fff3b0";
-const LETTER_AHEAD = "rgba(255, 243, 176, 0.45)";
 const FLASH_MS = 350;
+/** D409: a mark's radius (px), settled. */
+const MARK_R = 2.6;
 function playedLetters(c: CanvasRenderingContext2D, g: ProtoGame, box: { x: number; w: number } | undefined, now: number) {
+  if (g.o.side) return;
   const rows = g.rows!;
   const notes = g.tracks[0].notes;
-  let seen = PLAYED.get(g);
-  if (!seen) PLAYED.set(g, (seen = new Map()));
+  let rec = PLAYED.get(g);
+  if (!rec) PLAYED.set(g, (rec = { first: null, seen: new Map() }));
   const downs = g.thumbsDown();
+  const marks = g.planMarks;
+  const every = g.o.everyMark;
   for (let i = 0; i < notes.length; i++) {
     const n = notes[i];
-    if (n.state !== "hit" || n.ride) continue;
-    let mark = seen.get(i);
+    if (n.state !== "hit" || n.ride || (!every && !marks.has(i))) continue;
+    let mark = rec.seen.get(i);
     if (!mark) {
       const y = rows.yOf(n.step);
       const near = downs.reduce<{ side: Side; d: number } | null>((b, d) => (!b || Math.abs(d.y - y) < b.d ? { side: d.side, d: Math.abs(d.y - y) } : b), null);
       const side = near?.side ?? g.plan.find((t) => t.i === i)?.side;
       if (!side) continue;
-      seen.set(i, (mark = { side, t: now }));
+      rec.first ??= side;
+      rec.seen.set(i, (mark = { side, t: now }));
     }
     const x = rows.xOf(n.on);
     if (!inBox(x, box)) continue;
@@ -618,7 +642,7 @@ function playedLetters(c: CanvasRenderingContext2D, g: ProtoGame, box: { x: numb
       c.fill();
       c.restore();
     }
-    label(c, mark.side === "left" ? tr("L") : tr("R"), x + 6, y, LETTER_INK, k < 1 ? 9 : 7);
+    drawThumbMark(c, x + 6, y, k < 1 ? MARK_R + 1 : MARK_R, mark.side === rec.first ? "A" : "B", LETTER_INK);
   }
 }
 
@@ -628,44 +652,6 @@ function answer(c: CanvasRenderingContext2D, g: ProtoGame) {
   const first = heads(g)[0]?.n;
   if (!first || first.state !== "pending") return;
   label(c, "YOU ANSWER HERE", rows.xOf(first.on), rows.yOf(first.step) + rows.rowH + 18, GOLD, 7, "left");
-}
-
-/** The sign a note bears in the lesson's own reading (its name, D370's vocabulary). */
-function signOf(g: ProtoGame, on: number): string | null {
-  const rd = g.o.reading;
-  const at = g.o.readingAt;
-  if (!rd || !at) return null;
-  const n = rd.notes[at.indexOf(on)];
-  if (!n) return null;
-  return n.short ? "SHORT" : n.accent ? "ACCENT" : n.join === true ? "JOINED" : n.join === false ? "DETACHED" : null;
-}
-
-/** An arrow from his words (over the foot of the box) to the next of your notes, its sign named over it. */
-function point(c: CanvasRenderingContext2D, g: ProtoGame, box: { x: number; y: number; w: number; h: number }) {
-  const rows = g.rows!;
-  const next = heads(g).find(({ n }) => n.state === "pending")?.n;
-  if (!next) return;
-  const x = rows.xOf(next.on) + 4;
-  if (x > box.x + box.w - 8 || x < box.x) return;
-  const y = rows.yOf(next.step) + rows.rowH + 3;
-  const y0 = box.y + box.h - 92;
-  if (y0 - y < 12) return;
-  const x0 = box.x + box.w * 0.42;
-  c.save();
-  c.strokeStyle = GOLD;
-  c.globalAlpha = 0.85;
-  c.lineWidth = 1.5;
-  const a = Math.atan2(y - y0, x - x0);
-  c.beginPath();
-  c.moveTo(x0, y0);
-  c.lineTo(x, y);
-  c.moveTo(x - 7 * Math.cos(a - 0.4), y - 7 * Math.sin(a - 0.4));
-  c.lineTo(x, y);
-  c.lineTo(x - 7 * Math.cos(a + 0.4), y - 7 * Math.sin(a + 0.4));
-  c.stroke();
-  c.restore();
-  const sign = signOf(g, next.on);
-  if (sign) label(c, sign, x, rows.yOf(next.step) - rows.rowH - 10, GOLD, 7);
 }
 
 /**

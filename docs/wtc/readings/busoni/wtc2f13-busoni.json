@@ -1,0 +1,2507 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar starts as in pieces.json bars[]). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f13",
+ "title": "Fugue 13 in F♯ major, BWV 882",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Des wohltemperierten Klavieres zweiter Teil (J. S. Bach, Klavierwerke, Busoni-Ausgabe, Band II)",
+  "publisher": "Breitkopf & Härtel, Leipzig, 1915 (Edition Nr. 8276, plate 27452)",
+  "pages": {
+   "pdf": [
+    5,
+    6,
+    7
+   ],
+   "printed": [
+    50,
+    51,
+    52
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1915)"
+ },
+ "tempo": {
+  "text": "Allegro fermo",
+  "en": "quick and steady",
+  "mm": null,
+  "changes": [],
+  "notes": []
+ },
+ "character": "\"apertamente\" (openly, frankly; footnote 1). Busoni labels the episodes: \"Erstes Zwischenspiel\" (b.12, 44) and \"Zweites Zwischenspiel\" (b.24, 56), the second \"meno serio\".",
+ "dynamicPlan": "Alto f apertamente (b.0), meno f for the continuation, cresc. to f (b.3); soprano f (b.4), bass f (b.8); f at b.11; cresc. to f sempre soprano entry (b.20); second episode meno serio, legato (b.24); dolce / bass dolce marcato (b.32.8); alto f (b.52); p bass entry (b.64.8), cresc. (b.68), più cresc. (b.74), f soprano entry (b.76); hairpins and bass accents to ff (b.83); fermatas.",
+ "marks": [
+  {
+   "v": 1,
+   "on": 96000,
+   "p": 60,
+   "name": "B#3",
+   "bar": 13,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 99840,
+   "p": 62,
+   "name": "C##4",
+   "bar": 13,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 103680,
+   "p": 63,
+   "name": "D#4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 111360,
+   "p": 77,
+   "name": "E#5",
+   "bar": 15,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 115200,
+   "p": 79,
+   "name": "F##5",
+   "bar": 15,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 119040,
+   "p": 80,
+   "name": "G#5",
+   "bar": 16,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 126720,
+   "p": 58,
+   "name": "A#3",
+   "bar": 17,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 130560,
+   "p": 60,
+   "name": "B#3",
+   "bar": 17,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 134400,
+   "p": 61,
+   "name": "C#4",
+   "bar": 18,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 138240,
+   "p": 66,
+   "name": "F#4",
+   "bar": 18,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 144000,
+   "p": 71,
+   "name": "B4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 142080,
+   "p": 63,
+   "name": "D#4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 145920,
+   "p": 65,
+   "name": "E#4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 149760,
+   "p": 66,
+   "name": "F#4",
+   "bar": 20,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 176640,
+   "p": 80,
+   "name": "G#5",
+   "bar": 23,
+   "art": "accent",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "on": 184320,
+   "p": 78,
+   "name": "F#5",
+   "bar": 24,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 192000,
+   "p": 77,
+   "name": "E#5",
+   "bar": 25,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 199680,
+   "p": 71,
+   "name": "B4",
+   "bar": 26,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 207360,
+   "p": 70,
+   "name": "A#4",
+   "bar": 27,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 215040,
+   "p": 80,
+   "name": "G#5",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 222720,
+   "p": 79,
+   "name": "F##5",
+   "bar": 29,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 230400,
+   "p": 73,
+   "name": "C#5",
+   "bar": 30,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 238080,
+   "p": 72,
+   "name": "B#4",
+   "bar": 31,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 188160,
+   "p": 59,
+   "name": "B3",
+   "bar": 25,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 192000,
+   "p": 62,
+   "name": "C##4",
+   "bar": 25,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 195840,
+   "p": 63,
+   "name": "D#4",
+   "bar": 26,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 199680,
+   "p": 51,
+   "name": "D#3",
+   "bar": 26,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 203520,
+   "p": 52,
+   "name": "E3",
+   "bar": 27,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 207360,
+   "p": 55,
+   "name": "F##3",
+   "bar": 27,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 211200,
+   "p": 56,
+   "name": "G#3",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 215040,
+   "p": 60,
+   "name": "B#3",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 218880,
+   "p": 61,
+   "name": "C#4",
+   "bar": 29,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 222720,
+   "p": 64,
+   "name": "E4",
+   "bar": 29,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 226560,
+   "p": 65,
+   "name": "E#4",
+   "bar": 30,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 230400,
+   "p": 53,
+   "name": "E#3",
+   "bar": 30,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 234240,
+   "p": 54,
+   "name": "F#3",
+   "bar": 31,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 238080,
+   "p": 57,
+   "name": "A3",
+   "bar": 31,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "bass figure: the first of each four eighths"
+  },
+  {
+   "v": 2,
+   "on": 241920,
+   "p": 58,
+   "name": "A#3",
+   "bar": 32,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 341760,
+   "p": 65,
+   "name": "E#4",
+   "bar": 45,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 345600,
+   "p": 67,
+   "name": "F##4",
+   "bar": 45,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 349440,
+   "p": 68,
+   "name": "G#4",
+   "bar": 46,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 357120,
+   "p": 70,
+   "name": "A#4",
+   "bar": 47,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 360960,
+   "p": 72,
+   "name": "B#4",
+   "bar": 47,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 364800,
+   "p": 73,
+   "name": "C#5",
+   "bar": 48,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 368640,
+   "p": 61,
+   "name": "C#4",
+   "bar": 48,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 372480,
+   "p": 63,
+   "name": "D#4",
+   "bar": 49,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 376320,
+   "p": 65,
+   "name": "E#4",
+   "bar": 49,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 380160,
+   "p": 66,
+   "name": "F#4",
+   "bar": 50,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 382080,
+   "p": 64,
+   "name": "E4",
+   "bar": 50,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 384000,
+   "p": 63,
+   "name": "D#4",
+   "bar": 50,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 387840,
+   "p": 80,
+   "name": "G#5",
+   "bar": 51,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 391680,
+   "p": 82,
+   "name": "A#5",
+   "bar": 51,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 395520,
+   "p": 83,
+   "name": "B5",
+   "bar": 52,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 395520,
+   "p": 59,
+   "name": "B3",
+   "bar": 52,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 430080,
+   "p": 71,
+   "name": "B4",
+   "bar": 56,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 430080,
+   "p": 71,
+   "name": "B4",
+   "bar": 56,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 437760,
+   "p": 70,
+   "name": "A#4",
+   "bar": 57,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 445440,
+   "p": 76,
+   "name": "E5",
+   "bar": 58,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 453120,
+   "p": 75,
+   "name": "D#5",
+   "bar": 59,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 460800,
+   "p": 73,
+   "name": "C#5",
+   "bar": 60,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 468480,
+   "p": 72,
+   "name": "B#4",
+   "bar": 61,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 476160,
+   "p": 78,
+   "name": "F#5",
+   "bar": 62,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 483840,
+   "p": 77,
+   "name": "E#5",
+   "bar": 63,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 585600,
+   "p": 71,
+   "name": "B4",
+   "bar": 76,
+   "art": "staccato",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "on": 587520,
+   "p": 71,
+   "name": "B4",
+   "bar": 77,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 591360,
+   "p": 73,
+   "name": "C#5",
+   "bar": 77,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 593280,
+   "p": 69,
+   "name": "A4",
+   "bar": 77,
+   "art": "staccato",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "on": 595200,
+   "p": 69,
+   "name": "A4",
+   "bar": 78,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 606720,
+   "p": 80,
+   "name": "G#5",
+   "bar": 79,
+   "art": "accent",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 616320,
+   "p": 54,
+   "name": "F#3",
+   "bar": 80,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 624000,
+   "p": 59,
+   "name": "B3",
+   "bar": 81,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 631680,
+   "p": 65,
+   "name": "E#4",
+   "bar": 82,
+   "art": "accent",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 641280,
+   "p": 78,
+   "name": "F#5",
+   "bar": 84,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 641280,
+   "p": 70,
+   "name": "A#4",
+   "bar": 84,
+   "art": "fermata",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 641280,
+   "p": 42,
+   "name": "F#2",
+   "bar": 84,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 1,
+   "from": 0,
+   "to": 3840,
+   "bars": "0.0–1.0",
+   "names": "E#4–F#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 1,
+   "from": 7680,
+   "to": 23040,
+   "bars": "1.8–3.8",
+   "names": "C#4–G#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject continuation"
+  },
+  {
+   "v": 1,
+   "from": 26880,
+   "to": 32640,
+   "bars": "4.0–4.12",
+   "names": "B3–F#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 30720,
+   "to": 34560,
+   "bars": "4.8–5.0",
+   "names": "B#4–C#5",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 1,
+   "from": 34560,
+   "to": 36480,
+   "bars": "5.0–5.4",
+   "names": "F#4–E#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 38400,
+   "to": 55680,
+   "bars": "5.8–7.12",
+   "names": "G#4–F#4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "answer continuation"
+  },
+  {
+   "v": 1,
+   "from": 42240,
+   "to": 44160,
+   "bars": "6.0–6.4",
+   "names": "E4–D#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 48000,
+   "to": 59520,
+   "bars": "6.12–8.4",
+   "names": "D#4–G#3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 57600,
+   "to": 63360,
+   "bars": "8.0–8.12",
+   "names": "F#4–B4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 61440,
+   "to": 65280,
+   "bars": "8.8–9.0",
+   "names": "E#3–F#3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 1,
+   "from": 61440,
+   "to": 71040,
+   "bars": "8.8–9.12",
+   "names": "C#4–F#4",
+   "kind": "slur",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "from": 65280,
+   "to": 67200,
+   "bars": "9.0–9.4",
+   "names": "B4–A#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 69120,
+   "to": 71040,
+   "bars": "9.8–9.12",
+   "names": "C#3–D#3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 72960,
+   "to": 74880,
+   "bars": "10.0–10.4",
+   "names": "A4–G#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 78720,
+   "to": 84480,
+   "bars": "10.12–11.8",
+   "names": "G#4–E#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 72960,
+   "to": 80640,
+   "bars": "10.0–11.0",
+   "names": "B3–F#4",
+   "kind": "slur",
+   "conf": "unsure"
+  },
+  {
+   "v": 2,
+   "from": 72960,
+   "to": 88320,
+   "bars": "10.0–12.0",
+   "names": "E3–B2",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "bass subject continuation"
+  },
+  {
+   "v": 1,
+   "from": 82560,
+   "to": 88320,
+   "bars": "11.4–12.0",
+   "names": "B3–F#3",
+   "kind": "slur",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "from": 153600,
+   "to": 157440,
+   "bars": "20.8–21.0",
+   "names": "E#5–F#5",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 2,
+   "from": 153600,
+   "to": 159360,
+   "bars": "20.8–21.4",
+   "names": "C#3–A#3",
+   "kind": "slur",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "from": 161280,
+   "to": 178560,
+   "bars": "21.8–23.12",
+   "names": "C#5–B4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "subject continuation"
+  },
+  {
+   "v": 2,
+   "from": 159360,
+   "to": 167040,
+   "bars": "21.4–22.4",
+   "names": "A#3–G#3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 176640,
+   "to": 180480,
+   "bars": "23.8–24.0",
+   "names": "E#3–F#3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 180480,
+   "to": 182400,
+   "bars": "24.0–24.4",
+   "names": "B4–A#4",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 184320,
+   "to": 190080,
+   "bars": "24.8–25.4",
+   "names": "F#5–G#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 192000,
+   "to": 197760,
+   "bars": "25.8–26.4",
+   "names": "E#5–F#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 199680,
+   "to": 205440,
+   "bars": "26.8–27.4",
+   "names": "B4–C#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 207360,
+   "to": 213120,
+   "bars": "27.8–28.4",
+   "names": "A#4–B#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 215040,
+   "to": 220800,
+   "bars": "28.8–29.4",
+   "names": "G#5–A#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 222720,
+   "to": 228480,
+   "bars": "29.8–30.4",
+   "names": "F##5–G#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 230400,
+   "to": 236160,
+   "bars": "30.8–31.4",
+   "names": "C#5–D#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 238080,
+   "to": 243840,
+   "bars": "31.8–32.4",
+   "names": "B#4–C#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 2,
+   "from": 245760,
+   "to": 249600,
+   "bars": "32.8–33.0",
+   "names": "B#3–C#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 2,
+   "from": 253440,
+   "to": 264000,
+   "bars": "33.8–34.14",
+   "names": "G#3–G#3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 249600,
+   "to": 255360,
+   "bars": "33.0–33.12",
+   "names": "G#4–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 257280,
+   "to": 264960,
+   "bars": "34.0–35.0",
+   "names": "F#4–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 247680,
+   "to": 251520,
+   "bars": "32.12–33.4",
+   "names": "F#4–E#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 255360,
+   "to": 259200,
+   "bars": "33.12–34.4",
+   "names": "E4–D#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 272640,
+   "to": 279360,
+   "bars": "36.0–36.14",
+   "names": "F#3–B3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 276480,
+   "to": 280320,
+   "bars": "36.8–37.0",
+   "names": "E#4–F#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 284160,
+   "to": 301440,
+   "bars": "37.8–39.12",
+   "names": "C#4–B3",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "alto subject (from the C♯ quarter)"
+  },
+  {
+   "v": 1,
+   "from": 303360,
+   "to": 305280,
+   "bars": "40.0–40.4",
+   "names": "B3–A#3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 307200,
+   "to": 311040,
+   "bars": "40.8–41.0",
+   "names": "C##5–D#5",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 318720,
+   "to": 332160,
+   "bars": "42.0–43.12",
+   "names": "C#5–G#4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 334080,
+   "to": 337920,
+   "bars": "44.0–44.8",
+   "names": "G#4–F#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 399360,
+   "to": 403200,
+   "bars": "52.8–53.0",
+   "names": "A#4–B4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 0,
+   "from": 399360,
+   "to": 405120,
+   "bars": "52.8–53.4",
+   "names": "C#5–D#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 408960,
+   "to": 412800,
+   "bars": "53.12–54.4",
+   "names": "C##5–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 416640,
+   "to": 418560,
+   "bars": "54.12–55.0",
+   "names": "C#5–E5",
+   "kind": "slur",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "from": 430080,
+   "to": 435840,
+   "bars": "56.8–57.4",
+   "names": "B4–C#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 437760,
+   "to": 443520,
+   "bars": "57.8–58.4",
+   "names": "A#4–B3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 445440,
+   "to": 451200,
+   "bars": "58.8–59.4",
+   "names": "E5–F#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 453120,
+   "to": 458880,
+   "bars": "59.8–60.4",
+   "names": "D#5–E#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 460800,
+   "to": 466560,
+   "bars": "60.8–61.4",
+   "names": "C#5–D#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 1,
+   "from": 468480,
+   "to": 474240,
+   "bars": "61.8–62.4",
+   "names": "B#4–C#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 476160,
+   "to": 481920,
+   "bars": "62.8–63.4",
+   "names": "F#5–G#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 0,
+   "from": 483840,
+   "to": 489600,
+   "bars": "63.8–64.4",
+   "names": "E#5–F#4",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "episode 2: held note slurred over the barline"
+  },
+  {
+   "v": 2,
+   "from": 491520,
+   "to": 495360,
+   "bars": "64.8–65.0",
+   "names": "E#3–F#3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 0,
+   "from": 493440,
+   "to": 497280,
+   "bars": "64.12–65.4",
+   "names": "B4–A#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 495360,
+   "to": 501120,
+   "bars": "65.0–65.12",
+   "names": "C#4–F#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 501120,
+   "to": 504960,
+   "bars": "65.12–66.4",
+   "names": "A4–G#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 503040,
+   "to": 509760,
+   "bars": "66.0–66.14",
+   "names": "B3–E#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 499200,
+   "to": 516480,
+   "bars": "65.8–67.12",
+   "names": "C#3–B2",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 518400,
+   "to": 520320,
+   "bars": "68.0–68.4",
+   "names": "B2–A#2",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 537600,
+   "to": 541440,
+   "bars": "70.8–71.0",
+   "names": "D#3–E#3",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "from": 537600,
+   "to": 541440,
+   "bars": "70.8–71.0",
+   "names": "B#4–C#5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 583680,
+   "to": 587520,
+   "bars": "76.8–77.0",
+   "names": "E#5–F#5",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject head (trill into the downbeat)"
+  },
+  {
+   "v": 1,
+   "from": 587520,
+   "to": 589440,
+   "bars": "77.0–77.4",
+   "names": "B4–A#4",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "from": 595200,
+   "to": 597120,
+   "bars": "78.0–78.4",
+   "names": "A4–G#4",
+   "kind": "slur",
+   "conf": "sure"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 0,
+   "bar": 0,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 7680,
+   "bar": 1,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "mark": "meno f",
+   "conf": "sure"
+  },
+  {
+   "on": 23040,
+   "bar": 3,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 30720,
+   "bar": 4,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 38400,
+   "bar": 5,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "mark": "meno f",
+   "conf": "sure"
+  },
+  {
+   "on": 53760,
+   "bar": 7,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 61440,
+   "bar": 8,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 69120,
+   "bar": 9,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "mark": "meno f",
+   "conf": "sure"
+  },
+  {
+   "on": 84480,
+   "bar": 11,
+   "pos": 8,
+   "voices": [
+    1,
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 153600,
+   "bar": 20,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "mark": "f sempre",
+   "conf": "sure"
+  },
+  {
+   "on": 245760,
+   "bar": 32,
+   "pos": 8,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "dolce",
+   "conf": "sure"
+  },
+  {
+   "on": 245760,
+   "bar": 32,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "mark": "dolce",
+   "conf": "sure"
+  },
+  {
+   "on": 399360,
+   "bar": 52,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 407040,
+   "bar": 53,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "mark": "f",
+   "conf": "likely"
+  },
+  {
+   "on": 491520,
+   "bar": 64,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "p",
+   "conf": "sure"
+  },
+  {
+   "on": 583680,
+   "bar": 76,
+   "pos": 8,
+   "voices": [
+    0,
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 633600,
+   "bar": 83,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0
+   ],
+   "from": 149760,
+   "to": 153600,
+   "bars": "20.0–20.8",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 153600,
+   "to": 156480,
+   "bars": "20.8–20.14",
+   "dir": "dim",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 180480,
+   "to": 183360,
+   "bars": "24.0–24.6",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 241920,
+   "to": 245760,
+   "bars": "32.0–32.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 395520,
+   "to": 399360,
+   "bars": "52.0–52.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 426240,
+   "to": 430080,
+   "bars": "56.0–56.8",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 602880,
+   "to": 606720,
+   "bars": "79.0–79.8",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 614400,
+   "to": 617280,
+   "bars": "80.8–80.14",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 610560,
+   "to": 616320,
+   "bars": "80.0–80.12",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 622080,
+   "to": 624960,
+   "bars": "81.8–81.14",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 618240,
+   "to": 622080,
+   "bars": "81.0–81.8",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 625920,
+   "to": 631680,
+   "bars": "82.0–82.12",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 0,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "Allegro fermo",
+   "en": "quick and steady",
+   "conf": "sure"
+  },
+  {
+   "on": 0,
+   "bar": 0,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "apertamente",
+   "en": "openly, frankly (footnote 1)",
+   "conf": "sure"
+  },
+  {
+   "on": 15360,
+   "bar": 2,
+   "pos": 8,
+   "voices": [
+    1
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 46080,
+   "bar": 6,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 76800,
+   "bar": 10,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 153600,
+   "bar": 20,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "⌐",
+   "en": "entry bracket: bring out the subject",
+   "conf": "sure"
+  },
+  {
+   "on": 180480,
+   "bar": 24,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "meno serio",
+   "en": "less serious",
+   "conf": "sure"
+  },
+  {
+   "on": 180480,
+   "bar": 24,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "legato",
+   "en": "bound",
+   "conf": "sure"
+  },
+  {
+   "on": 245760,
+   "bar": 32,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "dolce marcato",
+   "en": "sweetly but marked: the bass entry",
+   "conf": "sure"
+  },
+  {
+   "on": 491520,
+   "bar": 64,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "⌐",
+   "en": "entry bracket: bring out the subject",
+   "conf": "sure"
+  },
+  {
+   "on": 522240,
+   "bar": 68,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 564480,
+   "bar": 74,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "più cresc.",
+   "en": "growing louder still",
+   "conf": "sure"
+  },
+  {
+   "on": 583680,
+   "bar": 76,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "⌐",
+   "en": "entry bracket: bring out the subject",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "the opening dotted note trilled and slurred into the next downbeat; no dashes on the head (the lines under the alto’s high notes in bass clef are ledger lines)",
+   "source": "printed at b.0, 4, 8, 20, 32, 52, 64, 76",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "from": 180480,
+    "to": 245760
+   },
+   "applies": "second episode (and its return b.56–64)",
+   "art": "the high quarter on beat 3 held (dash) and slurred over the barline to beat 2; a mordent (often bracketed) on the downbeat; the bass's first and fifth eighths dashed",
+   "source": "printed b.24–32, 56–64",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 12,
+   "sign": "double bar + \"(Erstes Zwischenspiel)\"",
+   "en": "first episode"
+  },
+  {
+   "beforeBar": 20,
+   "sign": "double bar",
+   "en": "soprano entry"
+  },
+  {
+   "beforeBar": 24,
+   "sign": "double bar + \"(Zweites Zwischenspiel)\"",
+   "en": "second episode"
+  },
+  {
+   "beforeBar": 32,
+   "pos": 8,
+   "sign": "double bar (mid-bar)",
+   "en": "bass entry, dolce marcato"
+  },
+  {
+   "beforeBar": 44,
+   "sign": "double bar + \"(Erstes Zwischenspiel)\"",
+   "en": "first episode returns"
+  },
+  {
+   "beforeBar": 56,
+   "sign": "double bar + \"(Zweites Zwischenspiel)\"",
+   "en": "second episode returns"
+  },
+  {
+   "beforeBar": 64,
+   "pos": 8,
+   "sign": "double bar (mid-bar)",
+   "en": "bass entry, p"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 1,
+   "on": 0,
+   "p": 65,
+   "name": "E#4",
+   "bar": 0,
+   "pos": 0,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 26880,
+   "p": 59,
+   "name": "B3",
+   "bar": 4,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 30720,
+   "p": 72,
+   "name": "B#4",
+   "bar": 4,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 53760,
+   "p": 60,
+   "name": "B#3",
+   "bar": 7,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 57600,
+   "p": 66,
+   "name": "F#4",
+   "bar": 8,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 61440,
+   "p": 53,
+   "name": "E#3",
+   "bar": 8,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 88320,
+   "p": 47,
+   "name": "B2",
+   "bar": 12,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 153600,
+   "p": 77,
+   "name": "E#5",
+   "bar": 20,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 176640,
+   "p": 53,
+   "name": "E#3",
+   "bar": 23,
+   "pos": 8,
+   "sign": "(tr)",
+   "realisation": "no realisation printed; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 180480,
+   "p": 71,
+   "name": "B4",
+   "bar": 24,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 188160,
+   "p": 70,
+   "name": "A#4",
+   "bar": 25,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 195840,
+   "p": 68,
+   "name": "G#4",
+   "bar": 26,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 203520,
+   "p": 63,
+   "name": "D#4",
+   "bar": 27,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 1,
+   "on": 211200,
+   "p": 61,
+   "name": "C#4",
+   "bar": 28,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 218880,
+   "p": 72,
+   "name": "B#4",
+   "bar": 29,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 226560,
+   "p": 70,
+   "name": "A#4",
+   "bar": 30,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 1,
+   "on": 234240,
+   "p": 65,
+   "name": "E#4",
+   "bar": 31,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 1,
+   "on": 241920,
+   "p": 63,
+   "name": "D#4",
+   "bar": 32,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 245760,
+   "p": 60,
+   "name": "B#3",
+   "bar": 32,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 272640,
+   "p": 54,
+   "name": "F#3",
+   "bar": 36,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 1,
+   "on": 276480,
+   "p": 65,
+   "name": "E#4",
+   "bar": 36,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 280320,
+   "p": 59,
+   "name": "B3",
+   "bar": 37,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 303360,
+   "p": 59,
+   "name": "B3",
+   "bar": 40,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 307200,
+   "p": 74,
+   "name": "C##5",
+   "bar": 40,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 334080,
+   "p": 68,
+   "name": "G#4",
+   "bar": 44,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 399360,
+   "p": 70,
+   "name": "A#4",
+   "bar": 52,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 433920,
+   "p": 63,
+   "name": "D#4",
+   "bar": 57,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 441600,
+   "p": 61,
+   "name": "C#4",
+   "bar": 58,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 449280,
+   "p": 68,
+   "name": "G#4",
+   "bar": 59,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 456960,
+   "p": 66,
+   "name": "F#4",
+   "bar": 60,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 1,
+   "on": 464640,
+   "p": 65,
+   "name": "E#4",
+   "bar": 61,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 1,
+   "on": 472320,
+   "p": 63,
+   "name": "D#4",
+   "bar": 62,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 480000,
+   "p": 70,
+   "name": "A#4",
+   "bar": 63,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 487680,
+   "p": 68,
+   "name": "G#4",
+   "bar": 64,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 491520,
+   "p": 53,
+   "name": "E#3",
+   "bar": 64,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 518400,
+   "p": 47,
+   "name": "B2",
+   "bar": 68,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 526080,
+   "p": 49,
+   "name": "C#3",
+   "bar": 69,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 533760,
+   "p": 51,
+   "name": "D#3",
+   "bar": 70,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 2,
+   "on": 537600,
+   "p": 51,
+   "name": "D#3",
+   "bar": 70,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 564480,
+   "p": 66,
+   "name": "F#4",
+   "bar": 74,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 572160,
+   "p": 64,
+   "name": "E4",
+   "bar": 75,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 579840,
+   "p": 63,
+   "name": "D#4",
+   "bar": 76,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 583680,
+   "p": 77,
+   "name": "E#5",
+   "bar": 76,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "no realisation printed; the trill closes with the written two sixteenths",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 610560,
+   "p": 71,
+   "name": "B4",
+   "bar": 80,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  },
+  {
+   "v": 0,
+   "on": 618240,
+   "p": 73,
+   "name": "C#5",
+   "bar": 81,
+   "pos": 0,
+   "sign": "mordent",
+   "realisation": "Pralltriller (upper mordent) on the beat",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 625920,
+   "p": 75,
+   "name": "D#5",
+   "bar": 82,
+   "pos": 0,
+   "sign": "(mordent)",
+   "realisation": "Pralltriller (upper mordent) on the beat; bracketed, an editorial suggestion",
+   "conf": "sure",
+   "optional": true
+  }
+ ],
+ "ornamentsNote": "Trills on every subject head (no realisation printed: the written closing sixteenths end them); mordents (Pralltriller) on downbeats of the second episode and coda, many bracketed. Skipped: the \"Idee:\" staves (b.37–41) and footnote 2 (analytic).",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief: gameplay does not use fingering)."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": 5,
+   "at": "b.0, \"apertamente\"",
+   "de": "Der Herausgeber hat im Praeludium con sincerità, in der Fuge apertamente vorgeschrieben, welche beide mit Offenheit zu übersetzen sind. …",
+   "en": "Play it openly, frankly (the prelude's con sincerità means the same)."
+  }
+ ],
+ "caveats": [
+  "Economy reading from 200 dpi system crops of the 1915 Breitkopf print; fingering, ossia (\"Idee\") staves and analytic footnote 2 skipped.",
+  "Bar numbers are the game's: Busoni's first printed bar is the game's pickup bar 0, so Busoni's bar n is the game's bar n−1.",
+  "Dashes printed at the stem end of half notes (alto/bass, b.13–19, 45–51) are read as tenuto (likely); short lines under high bass-clef notes are ledger lines, not dashes.",
+  "Slur ends in the dense middle voices (b.8–11, 20–22, 32–35) and episode-1 dashes (b.13–19, 47–51) are the main doubt."
+ ],
+ "counts": {
+  "marks": 75,
+  "slurs": 69,
+  "dyn": 17,
+  "hairpins": 12,
+  "text": 13,
+  "breaths": 0,
+  "ornaments": 46,
+  "voicing": 0,
+  "tempoNotes": 0,
+  "rules": 2,
+  "footnotes": 1,
+  "byArt": {
+   "tenuto": 62,
+   "accent": 7,
+   "staccato": 3,
+   "fermata": 3
+  },
+  "bySlurKind": {
+   "slur": 60,
+   "phrase": 9
+  },
+  "byConf": {
+   "likely": 94,
+   "sure": 69,
+   "unsure": 9
+  },
+  "byConfAll": {
+   "likely": 94,
+   "sure": 128,
+   "unsure": 9
+  }
+ },
+ "notes": [
+  "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 20) kept as \"⌐\": the gloss was the transcriber's, not printed words.",
+  "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 64) kept as \"⌐\": the gloss was the transcriber's, not printed words.",
+  "Game import (WTC 1.91, D394): \"⌐ (bracket)\" (bar 76) kept as \"⌐\": the gloss was the transcriber's, not printed words.",
+  "Game import (WTC 1.96, D404): The bass's \"dolce marcato\" (bar 32) entered as its level dolce too (in text only, the bass stayed at f under the dolce upper voices for twenty bars)."
+ ]
+}

@@ -464,6 +464,11 @@ function patchOf(l: Layer): Patch {
   return p;
 }
 
+/** D405: the layers made of a synthesized patch (the rest, echo and halo, are the voice's own instrument). */
+export const SYNTH_LAYERS: ReadonlySet<Layer["kind"]> = new Set(["ping", "brass", "shimmer"]);
+/** D405: a voice that takes no synthesized layer: the recorded piano (its strings and the reading carry the subject). */
+export const synthFree = (v: Voicing) => v.patch?.sample === "piano";
+
 /**
  * D213: the effect's layers for one subject note (at `at`, `len` s, in voicing `v`, at the note's
  * level): returns their sounds, to be stopped with the game. Layers out of the keyboard's range are left out.
@@ -474,9 +479,15 @@ export function playFx(chip: Chip, fx: SubjectFx, sn: SubjectNote, midi: number,
   // octave over voices was the "tinkling sound in the background" (I/2's glass spark: in SOLO VOICES
   // -12 dB of everything above 2.5 kHz, measured; a harpsichord's own highs hide it at -22); the room stays.
   const sung = !!(v.patch?.sing || v.patch?.syllable);
+  // D405: nor the recorded piano's: a synthesized layer (a ping, a brass blip, a shimmer) over its strings
+  // was the owner's "weird glockenspiel sound … sometimes stuck" (I/2's glass spark, an FM bell an octave
+  // over the subject's eighths, +8-11 dB over 3 kHz in its p opening, measured; a sine held at 0.85 while
+  // the string under it dies away). Its echo and second choir are the piano itself, and stay; the room stays.
+  const struck = synthFree(v);
   for (const l of fx.layers) {
     if (!fires(l.on, sn)) continue;
     if (sung && (l.kind === "ping" || l.kind === "brass")) continue;
+    if (struck && SYNTH_LAYERS.has(l.kind)) continue;
     if (l.kind === "echo") {
       out.push(chip.note(midi, at + l.delay, len * 0.9, { ...v, pan: v.pan ? -v.pan * 0.8 : 0.4 }, { level: level * l.level, tone: -4, room: fx.room }));
     } else if (l.kind === "halo") {

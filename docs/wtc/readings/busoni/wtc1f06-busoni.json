@@ -1,0 +1,1666 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc1f06",
+ "title": "Fugue 6 in D minor, BWV 851",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperirte Clavier, Erster Theil, bearbeitet, erläutert und mit daran anknüpfenden Beispielen und Anweisungen für das Studium der modernen Clavierspieltechnik herausgegeben",
+  "publisher": "G. Schirmer, New York, 1894 (plate 11652)",
+  "pages": {
+   "pdf": [
+    39,
+    40
+   ],
+   "printed": [
+    37,
+    38
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1894)"
+ },
+ "tempo": {
+  "text": "Andante espressivo.",
+  "en": "walking, expressive",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 241920,
+    "bar": 43,
+    "pos": 0,
+    "text": "allarg. - - -",
+    "en": "broadening to the end",
+    "kind": "broaden",
+    "conf": "sure",
+    "applied": true
+   }
+  ]
+ },
+ "character": "Andante espressivo, dolce; tranquillo episodes; espressivo e sempre sostenuto before the climax.",
+ "dynamicPlan": "dolce (b.1), poco cresc. (b.8, 13), p (b.17), cresc. to f (b.26–27) and dim., tranquillo (b.30), poco marc. (b.33), espressivo e sempre sostenuto with cresc. (b.36–38), f (b.38), f and allargando to the fermata (b.43–44).",
+ "marks": [
+  {
+   "v": 0,
+   "on": 7680,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 2,
+   "art": "portato",
+   "conf": "unsure",
+   "note": "a stroke above and a dot: read as dash over dot"
+  },
+  {
+   "v": 1,
+   "on": 19200,
+   "p": 65,
+   "name": "F4",
+   "bar": 4,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 24960,
+   "p": 76,
+   "name": "E5",
+   "bar": 5,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 36480,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 7,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 48000,
+   "p": 75,
+   "name": "Eb5",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 47040,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 9,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 51840,
+   "p": 74,
+   "name": "D5",
+   "bar": 10,
+   "art": "wedge",
+   "conf": "likely",
+   "note": "an upright stroke over the quarter"
+  },
+  {
+   "v": 0,
+   "on": 53760,
+   "p": 74,
+   "name": "D5",
+   "bar": 10,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 57600,
+   "p": 72,
+   "name": "C5",
+   "bar": 11,
+   "art": "wedge",
+   "conf": "likely",
+   "note": "an upright stroke over the quarter"
+  },
+  {
+   "v": 0,
+   "on": 59520,
+   "p": 72,
+   "name": "C5",
+   "bar": 11,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 65280,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 12,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 76800,
+   "p": 77,
+   "name": "F5",
+   "bar": 14,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 75840,
+   "p": 64,
+   "name": "E4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "on": 76800,
+   "p": 62,
+   "name": "D4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "on": 77760,
+   "p": 61,
+   "name": "C#4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "on": 78720,
+   "p": 59,
+   "name": "B3",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "unsure"
+  },
+  {
+   "v": 1,
+   "on": 79680,
+   "p": 62,
+   "name": "D4",
+   "bar": 14,
+   "art": "tenuto",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "on": 103680,
+   "p": 69,
+   "name": "A4",
+   "bar": 19,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 105600,
+   "p": 65,
+   "name": "F4",
+   "bar": 19,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 120960,
+   "p": 64,
+   "name": "E4",
+   "bar": 22,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 122880,
+   "p": 53,
+   "name": "F3",
+   "bar": 22,
+   "art": "wedge",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 128640,
+   "p": 67,
+   "name": "G4",
+   "bar": 23,
+   "art": "wedge",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 134400,
+   "p": 45,
+   "name": "A2",
+   "bar": 24,
+   "art": "wedge",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 157440,
+   "p": 73,
+   "name": "C#5",
+   "bar": 28,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 157440,
+   "p": 64,
+   "name": "E4",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 158400,
+   "p": 65,
+   "name": "F4",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 159360,
+   "p": 67,
+   "name": "G4",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 163200,
+   "p": 74,
+   "name": "D5",
+   "bar": 29,
+   "art": "staccato",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 168960,
+   "p": 50,
+   "name": "D3",
+   "bar": 30,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 170880,
+   "p": 54,
+   "name": "F#3",
+   "bar": 30,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 174720,
+   "p": 52,
+   "name": "E3",
+   "bar": 31,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 176640,
+   "p": 55,
+   "name": "G3",
+   "bar": 31,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 180480,
+   "p": 50,
+   "name": "D3",
+   "bar": 32,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 182400,
+   "p": 53,
+   "name": "F3",
+   "bar": 32,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 186240,
+   "p": 76,
+   "name": "E5",
+   "bar": 33,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 195840,
+   "p": 69,
+   "name": "A4",
+   "bar": 35,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 226560,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 40,
+   "art": "staccato",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "on": 247680,
+   "p": 74,
+   "name": "D5",
+   "bar": 44,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 247680,
+   "p": 69,
+   "name": "A4",
+   "bar": 44,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 247680,
+   "p": 50,
+   "name": "D3",
+   "bar": 44,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 960,
+   "to": 7200,
+   "bars": "1.2–2.3",
+   "names": "D4–D4",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject, first limb"
+  },
+  {
+   "v": 0,
+   "from": 9600,
+   "to": 16800,
+   "bars": "2.8–3.11",
+   "names": "G4–D4",
+   "kind": "phrase",
+   "conf": "likely",
+   "role": "turn figure and continuation"
+  },
+  {
+   "v": 1,
+   "from": 12480,
+   "to": 18720,
+   "bars": "3.2–4.3",
+   "names": "A3–A3",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "answer, first limb"
+  },
+  {
+   "v": 0,
+   "from": 17280,
+   "to": 22560,
+   "bars": "4.0–4.11",
+   "names": "E4–A4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 23040,
+   "to": 24480,
+   "bars": "5.0–5.3",
+   "names": "A4–G4",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "from": 23040,
+   "to": 28320,
+   "bars": "5.0–5.11",
+   "names": "E4–A3",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 29760,
+   "to": 36000,
+   "bars": "6.2–7.3",
+   "names": "D3–D3",
+   "kind": "phrase",
+   "conf": "sure",
+   "role": "subject, first limb"
+  },
+  {
+   "v": 0,
+   "from": 29760,
+   "to": 34080,
+   "bars": "6.2–6.11",
+   "names": "D5–G4",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "from": 35520,
+   "to": 39840,
+   "bars": "7.2–7.11",
+   "names": "F4–D4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 38400,
+   "to": 45600,
+   "bars": "7.8–8.11",
+   "names": "G3–D3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 41280,
+   "to": 47520,
+   "bars": "8.2–9.3",
+   "names": "E4–G4",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 46080,
+   "to": 47520,
+   "bars": "9.0–9.3",
+   "names": "Bb4–G4",
+   "kind": "slur",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 47040,
+   "to": 51360,
+   "bars": "9.2–9.11",
+   "names": "Bb3–G3",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 51840,
+   "to": 57120,
+   "bars": "10.0–10.11",
+   "names": "G3–F3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 57600,
+   "to": 62880,
+   "bars": "11.0–11.11",
+   "names": "F3–Eb3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 63360,
+   "to": 64800,
+   "bars": "12.0–12.3",
+   "names": "Eb3–D3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 64320,
+   "to": 68160,
+   "bars": "12.2–12.10",
+   "names": "A4–G4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 69120,
+   "to": 74400,
+   "bars": "13.0–13.11",
+   "names": "A3–D3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 81600,
+   "to": 85920,
+   "bars": "15.2–15.11",
+   "names": "A5–D5",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 86400,
+   "to": 86880,
+   "bars": "16.0–16.1",
+   "names": "Eb5–C6",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 87360,
+   "to": 91680,
+   "bars": "16.2–16.11",
+   "names": "Bb5–E5",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 92160,
+   "to": 97440,
+   "bars": "17.0–17.11",
+   "names": "D5–A4",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 93120,
+   "to": 99360,
+   "bars": "17.2–18.3",
+   "names": "A2–A2",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 97920,
+   "to": 103200,
+   "bars": "18.0–18.11",
+   "names": "G4–A4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 105600,
+   "to": 108960,
+   "bars": "19.4–19.11",
+   "names": "E3–C3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 121920,
+   "to": 128160,
+   "bars": "22.2–23.3",
+   "names": "E5–E5",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 127680,
+   "to": 133920,
+   "bars": "23.2–24.3",
+   "names": "F3–F3",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 132960,
+   "to": 137760,
+   "bars": "24.1–24.11",
+   "names": "A4–F4",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 144960,
+   "to": 148800,
+   "bars": "26.2–26.10",
+   "names": "G3–F3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 150720,
+   "to": 156960,
+   "bars": "27.2–28.3",
+   "names": "A5–A5",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "from": 149760,
+   "to": 155040,
+   "bars": "27.0–27.11",
+   "names": "E3–A2",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 156480,
+   "to": 162720,
+   "bars": "28.2–29.3",
+   "names": "D4–D4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 162240,
+   "to": 168480,
+   "bars": "29.2–30.3",
+   "names": "A3–A3",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 168000,
+   "to": 172320,
+   "bars": "30.2–30.11",
+   "names": "Eb5–C5",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 172800,
+   "to": 178080,
+   "bars": "31.0–31.11",
+   "names": "C5–Bb4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 178560,
+   "to": 183840,
+   "bars": "32.0–32.11",
+   "names": "Bb4–A4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 185280,
+   "to": 189120,
+   "bars": "33.2–33.10",
+   "names": "F3–G3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 190080,
+   "to": 197280,
+   "bars": "34.0–35.3",
+   "names": "F3–D3",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 196800,
+   "to": 200640,
+   "bars": "35.2–35.10",
+   "names": "F#4–G4",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 201600,
+   "to": 202560,
+   "bars": "36.0–36.2",
+   "names": "A4–Eb5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 202560,
+   "to": 206880,
+   "bars": "36.2–36.11",
+   "names": "Eb5–A4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 202560,
+   "to": 206400,
+   "bars": "36.2–36.10",
+   "names": "G3–F#3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 207360,
+   "to": 208320,
+   "bars": "37.0–37.2",
+   "names": "Bb4–F5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 208320,
+   "to": 212640,
+   "bars": "37.2–37.11",
+   "names": "F5–B4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 208320,
+   "to": 212160,
+   "bars": "37.2–37.10",
+   "names": "A3–G#3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 213120,
+   "to": 214080,
+   "bars": "38.0–38.2",
+   "names": "C#5–Bb5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "from": 214080,
+   "to": 218400,
+   "bars": "38.2–38.11",
+   "names": "Bb5–E5",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 214080,
+   "to": 217920,
+   "bars": "38.2–38.10",
+   "names": "D4–C#4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 219840,
+   "to": 226080,
+   "bars": "39.2–40.3",
+   "names": "D3–D3",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 0,
+   "from": 218880,
+   "to": 224160,
+   "bars": "39.0–39.11",
+   "names": "G5–D5",
+   "kind": "phrase",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "from": 225600,
+   "to": 231840,
+   "bars": "40.2–41.3",
+   "names": "D4–D4",
+   "kind": "phrase",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 232320,
+   "to": 235680,
+   "bars": "41.4–41.11",
+   "names": "A3–F3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "from": 238080,
+   "to": 240000,
+   "bars": "42.4–42.8",
+   "names": "A3–A3",
+   "kind": "slur",
+   "conf": "likely"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 92160,
+   "bar": 17,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "p",
+   "conf": "sure"
+  },
+  {
+   "on": 149760,
+   "bar": 27,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 214080,
+   "bar": 38,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  },
+  {
+   "on": 241920,
+   "bar": 43,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "f",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 41280,
+   "to": 46080,
+   "bars": "8.2–9.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 70080,
+   "to": 79680,
+   "bars": "13.2–14.10",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 80640,
+   "to": 82080,
+   "bars": "15.0–15.3",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 86400,
+   "to": 87360,
+   "bars": "16.0–16.2",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 88320,
+   "to": 91680,
+   "bars": "16.4–16.11",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 99840,
+   "to": 103200,
+   "bars": "18.4–18.11",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 140160,
+   "to": 143520,
+   "bars": "25.4–25.11",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 144000,
+   "to": 149280,
+   "bars": "26.0–26.11",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 149760,
+   "to": 155040,
+   "bars": "27.0–27.11",
+   "dir": "dim",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1,
+    2
+   ],
+   "from": 197760,
+   "to": 201120,
+   "bars": "35.4–35.11",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "from": 202560,
+   "to": 214080,
+   "bars": "36.2–38.2",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    1
+   ],
+   "from": 225600,
+   "to": 229440,
+   "bars": "40.2–40.10",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label S: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 960,
+   "bar": 1,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "dolce",
+   "en": "sweetly",
+   "conf": "sure"
+  },
+  {
+   "on": 12480,
+   "bar": 3,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label A: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 29760,
+   "bar": 6,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "B dolce",
+   "en": "entry label B: subject entry, to be brought out; dolce",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 41280,
+   "bar": 8,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label S: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 41280,
+   "bar": 8,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "poco cresc.",
+   "en": "a little crescendo",
+   "conf": "sure"
+  },
+  {
+   "on": 47040,
+   "bar": 9,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "tranquillo",
+   "en": "calm",
+   "conf": "sure"
+  },
+  {
+   "on": 70080,
+   "bar": 13,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label S: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 70080,
+   "bar": 13,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "poco cresc.",
+   "en": "a little crescendo",
+   "conf": "sure"
+  },
+  {
+   "on": 75840,
+   "bar": 14,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "∀",
+   "en": "entry label ∀: subject entry, to be brought out; inverted A: the subject inverted in the alto (footnote 1)",
+   "conf": "likely",
+   "role": "entry"
+  },
+  {
+   "on": 93120,
+   "bar": 17,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "B",
+   "en": "entry label B: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 98880,
+   "bar": 18,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label A: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 99840,
+   "bar": 18,
+   "pos": 4,
+   "voices": [
+    1
+   ],
+   "text": "poco (cresc.)",
+   "en": "a little crescendo",
+   "conf": "sure"
+  },
+  {
+   "on": 116160,
+   "bar": 21,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "B",
+   "en": "entry label B: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 121920,
+   "bar": 22,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "Ƨ",
+   "en": "entry label Ƨ: subject entry, to be brought out; inverted S: the subject inverted in the soprano",
+   "conf": "likely",
+   "role": "entry"
+  },
+  {
+   "on": 127680,
+   "bar": 23,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "ᗺ",
+   "en": "entry label ᗺ: subject entry, to be brought out; inverted B: the subject inverted in the bass",
+   "conf": "likely",
+   "role": "entry"
+  },
+  {
+   "on": 150720,
+   "bar": 27,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "Ƨ",
+   "en": "entry label Ƨ: subject entry, to be brought out; inverted S",
+   "conf": "likely",
+   "role": "entry"
+  },
+  {
+   "on": 156480,
+   "bar": 28,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label A: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 162240,
+   "bar": 29,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "ᗺ",
+   "en": "entry label ᗺ: subject entry, to be brought out; inverted B",
+   "conf": "likely",
+   "role": "entry"
+  },
+  {
+   "on": 168000,
+   "bar": 30,
+   "pos": 2,
+   "voices": [
+    0
+   ],
+   "text": "tranquillo",
+   "en": "calm",
+   "conf": "sure"
+  },
+  {
+   "on": 185280,
+   "bar": 33,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "poco marc.",
+   "en": "poco marcato: a little marked",
+   "conf": "sure"
+  },
+  {
+   "on": 190080,
+   "bar": 34,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "text": "B",
+   "en": "entry label B: subject entry, to be brought out",
+   "conf": "likely",
+   "role": "entry"
+  },
+  {
+   "on": 201600,
+   "bar": 36,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "espressivo e sempre sostenuto",
+   "en": "expressive and always sustained",
+   "conf": "sure"
+  },
+  {
+   "on": 202560,
+   "bar": 36,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "text": "cresc. - - -",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 219840,
+   "bar": 39,
+   "pos": 2,
+   "voices": [
+    2
+   ],
+   "text": "B",
+   "en": "entry label B: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  },
+  {
+   "on": 225600,
+   "bar": 40,
+   "pos": 2,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label A: subject entry, to be brought out",
+   "conf": "sure",
+   "role": "entry"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "the first limb under one phrase slur, the leap note after it detached (dash over dot), the long note trilled as written out in bar 9 (footnote 3)",
+   "source": "bars 1–9 and later entries",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2
+    ],
+    "labels": true
+   },
+   "applies": "entry labels",
+   "art": "S/A/B upright = direct; Ƨ ∀ ᗺ = inversion (footnote 1); the labelled voice is brought out",
+   "source": "footnote 1",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 10,
+   "sign": "double bar, \"(Zwischenspiel – Episode)\"",
+   "en": "episode"
+  },
+  {
+   "beforeBar": 28,
+   "sign": "double bar",
+   "en": ""
+  },
+  {
+   "beforeBar": 29,
+   "sign": "double bar",
+   "en": ""
+  },
+  {
+   "beforeBar": 39,
+   "sign": "double bar",
+   "en": "final group of entries (footnote 4)"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 0,
+   "on": 49920,
+   "p": 73,
+   "name": "C#5",
+   "bar": 9,
+   "pos": 8,
+   "sign": "trill written out in small notes",
+   "realisation": "about ten small notes from the upper auxiliary (D–C♯ …), ending with a turn into the next bar",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 55680,
+   "p": 71,
+   "name": "B4",
+   "bar": 10,
+   "pos": 8,
+   "sign": "(tr) in parentheses",
+   "realisation": "optional short trill from the upper note",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 61440,
+   "p": 69,
+   "name": "A4",
+   "bar": 11,
+   "pos": 8,
+   "sign": "(tr) in parentheses",
+   "realisation": "optional short trill from the upper note",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 67200,
+   "p": 55,
+   "name": "G3",
+   "bar": 12,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill, played as written out in bar 9 (footnote 3)",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 78720,
+   "p": 74,
+   "name": "D5",
+   "bar": 14,
+   "pos": 8,
+   "sign": "tr (footnote 3)",
+   "realisation": "the subject trill, played as written out in bar 9",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 101760,
+   "p": 50,
+   "name": "D3",
+   "bar": 18,
+   "pos": 8,
+   "sign": "tr (footnote 3)",
+   "realisation": "the subject trill as in bar 9",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 107520,
+   "p": 62,
+   "name": "D4",
+   "bar": 19,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 124800,
+   "p": 50,
+   "name": "D3",
+   "bar": 22,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 136320,
+   "p": 49,
+   "name": "C#3",
+   "bar": 24,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 165120,
+   "p": 67,
+   "name": "G4",
+   "bar": 29,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 188160,
+   "p": 73,
+   "name": "C#5",
+   "bar": 33,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 228480,
+   "p": 55,
+   "name": "G3",
+   "bar": 40,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 234240,
+   "p": 67,
+   "name": "G4",
+   "bar": 41,
+   "pos": 8,
+   "sign": "tr",
+   "realisation": "the subject trill as in bar 9 (footnote 3)",
+   "conf": "sure"
+  }
+ ],
+ "ornamentsNote": "The subject trill is written out in small notes at bar 9; elsewhere tr (some in parentheses, optional) refers back to it (footnote 3).",
+ "pedal": [],
+ "pedalNote": "No pedal marks.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (the owner ruled fingerings out)."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 3,
+   "page": 39,
+   "at": "bar 14, tr",
+   "de": "Überall ist der zum Thema gehörige Triller nach der in der Exposition dargestellten Weise auszuführen.",
+   "en": "The trill belonging to the subject is everywhere to be played as written out in the exposition (bar 9).",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Read from 200 dpi greyscale crops, one system at a time, enlarged 1.5x.",
+  "Economical pass: fingerings and voice-distribution signs are not transcribed; tranquillo is kept as a character word, allargando at bar 43 is the only tempo word kept (it runs to the end).",
+  "An upright stroke over a quarter (bars 2, 10, 11) is read as a wedge or as part of a dash-over-dot; marked likely or unsure.",
+  "Footnotes 1 (labels), 2 and 4 (analysis) are not listed; the label meaning is in rules[1]."
+ ],
+ "counts": {
+  "marks": 40,
+  "slurs": 53,
+  "dyn": 4,
+  "hairpins": 12,
+  "text": 26,
+  "breaths": 0,
+  "ornaments": 13,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 2,
+  "footnotes": 1,
+  "byArt": {
+   "portato": 7,
+   "tenuto": 16,
+   "wedge": 5,
+   "staccato": 9,
+   "fermata": 3
+  },
+  "bySlurKind": {
+   "phrase": 37,
+   "slur": 16
+  },
+  "byConf": {
+   "unsure": 6,
+   "likely": 58,
+   "sure": 45
+  },
+  "byConfAll": {
+   "unsure": 6,
+   "likely": 74,
+   "sure": 69
+  }
+ },
+ "notes": [
+  "Game import (WTC 1.90, D392): \"∀ inverted A: the subject inverted in the alto (footnote 1)\" (bar 14) kept as \"∀\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.90, D392): \"Ƨ inverted S: the subject inverted in the soprano\" (bar 22) kept as \"Ƨ\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.90, D392): \"ᗺ inverted B: the subject inverted in the bass\" (bar 23) kept as \"ᗺ\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.90, D392): \"Ƨ inverted S\" (bar 27) kept as \"Ƨ\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.90, D392): \"ᗺ inverted B\" (bar 29) kept as \"ᗺ\": the gloss and footnote reference were the transcriber's, not printed words."
+ ]
+}

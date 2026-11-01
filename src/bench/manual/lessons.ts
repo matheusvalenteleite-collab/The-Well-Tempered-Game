@@ -45,6 +45,7 @@ import { atLeast, consistency, ex, INV, INV1_1_4, INV4, INV4_1, INV4_1_2, INV8, 
 import { COURSE2 } from "./course2.ts";
 import { FUGUE_TRACK } from "./fugue-track.ts";
 import { RETIRED } from "./retired.ts";
+import { DRESS_TEXTS, type DressLine } from "./dress.ts";
 void RETIRED;
 
 /**
@@ -62,12 +63,13 @@ export const SOUND_WORD: Record<SoundName, string> = { chip: "CLASSIC CHIP", har
  * The visual aids (design 4.5), each for its lesson only. D342: dial, trace, repeat, fill, letters,
  * meter, prepared, trend. D360: breath (a comma over the box at each place the line may breathe).
  * D373 (the new tutorial): thumbs (Mario's model A: both thumbs always there, a shadow under each,
- * the ghost of the next move), count (the notes numbered 1, 2, 3…), plan (L or R under each block, from
- * the fingering planner), point (an arrow from his words to the next note, a sign named over it), rest
+ * the ghost of the next move), count (the notes numbered 1, 2, 3…), plan (● or ○ under a block where the plan marks it, D409; was L or R, from
+ * the fingering planner), rest
  * (a thumb not in use: its strip dimmed, REST), answer (YOU ANSWER HERE at the player's first note).
+ * (point, the gold arrow from his words to the next note, withdrawn by D413.)
  */
 /** D379: colour (each strip's map: firm and bright by the box, soft and dark by the rim). */
-export type AidId = "dial" | "trace" | "repeat" | "fill" | "letters" | "meter" | "prepared" | "trend" | "breath" | "thumbs" | "count" | "plan" | "point" | "rest" | "answer" | "colour";
+export type AidId = "dial" | "trace" | "repeat" | "fill" | "letters" | "meter" | "prepared" | "trend" | "breath" | "thumbs" | "count" | "plan" | "rest" | "answer" | "colour";
 export type DemoStyle = "plain" | DemoManner;
 export type TouchName = "LEGATO" | "ORDINARY" | "DETACHED";
 /** D373: the signs of Part 3 (D370's vocabulary), one at a time; HELD is the plain long note. */
@@ -102,6 +104,8 @@ export interface Material {
   notes?: string[];
   /** D373: one thumb takes every note in the hints and his demonstration (Options.side). */
   side?: "left" | "right";
+  /** D409: the fingering marks (● ○) on every note (1.4, where they are introduced), else only where the plan marks them. */
+  everyMark?: boolean;
   /** D373: the timing windows this many times the game's (Parts 1–2: twice). */
   widen?: number;
   /** D373: the lesson's own marks, one per note of the passage (its reading). */
@@ -146,6 +150,8 @@ export interface Stage {
   quiz?: Quiz;
   /** D379: a SPOT step: the entries to find (at least), and the stray taps allowed (at most). */
   spot?: { need: number; strays: number };
+  /** D402: a TOUR of the screen's elements, one lit at a time over its material's round, paused (6.8 THE REAL THING). */
+  tour?: DressLine[];
 }
 
 /** One line of the lens (COUNTS): what it is, the figure reached, and whether it is met. */
@@ -292,7 +298,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 1, BAR 1",
     aids: ["thumbs", "rest"],
     stages: [
-      st("watch", first8(30, { side: "left" }), "Watch my left thumb. One note, then one a little higher: it climbs with the music, and drops where the music drops.", { aids: ["thumbs", "count", "point", "rest"] }),
+      st("watch", first8(30, { side: "left" }), "Watch my left thumb. One note, then one a little higher: it climbs with the music, and drops where the music drops.", { aids: ["thumbs", "count", "rest"] }),
       st("try", first8(30, { side: "left", wait: true }), "Now you, left thumb. Don't hurry: each note waits for you.", { aids: ["thumbs", "trace", "rest"] }),
       st("play", first8(30, { side: "left" }), "Now in time. I count four, then you begin. I'll go slowly."),
     ],
@@ -313,7 +319,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 1, BAR 1",
     aids: ["thumbs", "rest"],
     stages: [
-      st("watch", first8(30, { side: "right" }), "The same tune, with my right thumb. Your left one rests.", { aids: ["thumbs", "count", "point", "rest"] }),
+      st("watch", first8(30, { side: "right" }), "The same tune, with my right thumb. Your left one rests.", { aids: ["thumbs", "count", "rest"] }),
       st("try", first8(30, { side: "right", wait: true }), "Now you, right thumb. Each note waits for you.", { aids: ["thumbs", "trace", "rest"] }),
       st("play", first8(30, { side: "right" }), "Now in time, right thumb. I count four, then you begin."),
     ],
@@ -334,8 +340,8 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 1, BAR 1",
     aids: ["thumbs", "plan"],
     stages: [
-      st("watch", first8(30), "Now both thumbs: left, right, left, right. The letters under the notes tell you which.", { aids: ["thumbs", "plan", "point"] }),
-      st("try", first8(30, { wait: true }), "Now you: the letter under each note tells you which thumb.", { aids: ["thumbs", "plan", "trace"] }),
+      st("watch", first8(30, { everyMark: true }), "Now both thumbs, taking turns. Under each note: ● one thumb, ○ the other, either way round.", { aids: ["thumbs", "plan"] }),
+      st("try", first8(30, { wait: true, everyMark: true }), "Now you: start with either thumb, then the marks tell you when to change.", { aids: ["thumbs", "plan", "trace"] }),
       st("play", first8(30), "In time, taking turns. I count four."),
       st("play", first8(36), "A little quicker now. The same turns."),
     ],
@@ -345,7 +351,7 @@ const COURSE: ManualLesson[] = [
     told: (x) => (x.alternation.of > 2 && x.alternation.alt / x.alternation.of >= 0.7 ? { text: "And you took turns on {n} of {m} quick notes. Good.", vars: { n: x.alternation.alt, m: x.alternation.of } } : null),
     before: ["Quick notes are easier with two thumbs, one after the other."],
     after: ["Two thumbs walk where one would stumble."],
-    again: ["Left, right, left, right, as the letters say. Again."],
+    again: ["One thumb, then the other, as the marks say. Again."],
   },
   {
     id: "1.5",
@@ -358,7 +364,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 1, BARS 1–2",
     aids: ["thumbs", "answer"],
     stages: [
-      st("watch", ex(INV, 1, 1, 2, { bpm: 43 }, "Invention 1, lower voice, bars 1–2", { notes: LOWER_1_2, widen: 2 }), "Watch the lower notes, the ones with a white border: that will be your part. My upper voice begins; yours answers.", { aids: ["thumbs", "answer", "point"] }),
+      st("watch", ex(INV, 1, 1, 2, { bpm: 43 }, "Invention 1, lower voice, bars 1–2", { notes: LOWER_1_2, widen: 2 }), "Watch the lower notes, the ones with a white border: that will be your part. My upper voice begins; yours answers.", { aids: ["thumbs", "answer"] }),
       st("play", ex(INV, 1, 1, 2, { bpm: 43 }, "Invention 1, lower voice, bars 1–2", { notes: LOWER_1_2, widen: 2 }), "I'll take the upper voice, and you take the lower one. On my count: I play my tune first; when it reaches you, answer with the same tune, lower down."),
     ],
     lens: { counts: ["Notes: 70%"], shown: [], never: ["Which thumb", "How long you hold"] },
@@ -380,7 +386,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 8, BARS 1–2",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2 }), "Some notes jump and some walk. Watch: big moves for the jumps, small ones for the steps.", { aids: ["thumbs", "point"] }),
+      st("watch", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2 }), "Some notes jump and some walk. Watch: big moves for the jumps, small ones for the steps.", { aids: ["thumbs"] }),
       st("try", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2, wait: true }), "Your turn: jump big, walk small. Each note waits for you.", { aids: ["thumbs", "trace"] }),
       st("play", ex(INV8, 0, 1, 2, { bpm: 50 }, "Invention 8, upper voice, bars 1–2", { solo: true, notes: INV8_1_2, widen: 2 }), "In time now. Jump big, walk small."),
     ],
@@ -401,7 +407,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 12, BAR 1",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2 }), "Four times the same note. Watch: I lift my thumb, and land where I was.", { aids: ["thumbs", "point"] }),
+      st("watch", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2 }), "Four times the same note. Watch: I lift my thumb, and land where I was.", { aids: ["thumbs"] }),
       st("try", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2, wait: true }), "Your turn. Lift, and land in the same place.", { aids: ["thumbs", "trace"] }),
       st("play", ex(INV12, 0, 1, 1, { bpm: 50 }, "Invention 12, upper voice, bar 1", { solo: true, count: 5, notes: ["A4", "A4", "A4", "A4", "B4"], widen: 2 }), "In time: long, short, long, short, then a long note a little higher."),
     ],
@@ -425,7 +431,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 4, BARS 1–2",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2 }), "Six quick notes going up. Watch: one movement, up and up.", { aids: ["thumbs", "point"] }),
+      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2 }), "Six quick notes going up. Watch: one movement, up and up.", { aids: ["thumbs"] }),
       st("try", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2, wait: true }), "Your turn: keep going up. Each note waits for you.", { aids: ["thumbs", "trace"] }),
       st("play", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: six quick notes up", { solo: true, count: 6, notes: INV4_1, widen: 2 }), "In time. A run is one movement: don't stop to aim at each note."),
       st("play", ex(INV4, 0, 1, 2, { bpm: 52.5 }, "Invention 4, upper voice, bars 1–2: up, then a drop, and down", { solo: true, notes: INV4_1_2, widen: 2 }), "Now up, then a big drop, and back down. Keep going the run's way."),
@@ -447,7 +453,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 8, BARS 1–4",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(INV8, 0, 1, 4, { bpm: 59 }, "Invention 8, upper voice, bars 1–4, with the lower voice", { notes: INV8_1_4, widen: 2 }), "A whole phrase. Watch the jumps, the steps and the quick notes.", { aids: ["thumbs", "point"] }),
+      st("watch", ex(INV8, 0, 1, 4, { bpm: 59 }, "Invention 8, upper voice, bars 1–4, with the lower voice", { notes: INV8_1_4, widen: 2 }), "A whole phrase. Watch the jumps, the steps and the quick notes.", { aids: ["thumbs"] }),
       st("play", ex(INV8, 0, 1, 4, { bpm: 59 }, "Invention 8, upper voice, bars 1–4, with the lower voice", { notes: INV8_1_4, widen: 2 }), "A whole phrase now. I'll play the lower voice with you."),
     ],
     lens: { counts: ["Notes: 75%"], shown: [], never: ["Which thumb", "How long you hold"] },
@@ -471,7 +477,7 @@ const COURSE: ManualLesson[] = [
     aids: ["thumbs", "fill"],
     words: ["held", "short"],
     stages: [
-      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"] }), "Watch: my thumb stays down until the next note starts.", { style: "held", aids: ["thumbs", "fill", "point"] }),
+      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"] }), "Watch: my thumb stays down until the next note starts.", { style: "held", aids: ["thumbs", "fill"] }),
       st("try", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"], wait: true }), "Your turn. Hold each one; the next waits for you.", { aids: ["thumbs", "fill", "trace"] }),
       st("play", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the four longer notes", { solo: true, skip: 7, count: 5, notes: ["G4", "C5", "B4", "C5", "D5"] }), "These four notes are longer. Keep your thumb down until the next one starts."),
     ],
@@ -494,7 +500,7 @@ const COURSE: ManualLesson[] = [
     aids: ["thumbs"],
     words: ["short"],
     stages: [
-      st("watch", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null] }), "See the half-empty blocks? Watch: touch, and let go.", { aids: ["thumbs", "point"] }),
+      st("watch", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null] }), "See the half-empty blocks? Watch: touch, and let go.", { aids: ["thumbs"] }),
       st("try", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null], wait: true }), "Your turn: touch and let go.", { aids: ["thumbs", "trace"] }),
       st("play", ex(INV8, 0, 1, 1, { bpm: 50 }, "Invention 8, upper voice: the jumps, each SHORT", { solo: true, count: 7, notes: INV8_1_2.slice(0, 7), marks: ["short", "short", "short", "short", "short", "short", null] }), "Play those notes short: touch and let go."),
     ],
@@ -517,7 +523,7 @@ const COURSE: ManualLesson[] = [
     aids: ["thumbs", "plan"],
     words: ["legato"],
     stages: [
-      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Watch: where the blocks are joined, the next thumb lands before I lift. Where there is a gap, I lift first.", { aids: ["thumbs", "plan", "point"] }),
+      st("watch", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Watch: where the blocks are joined, the next thumb lands before I lift. Where there is a gap, I lift first.", { aids: ["thumbs", "plan"] }),
       st("try", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null], wait: true }), "Your turn. Joined: the next thumb down first. A gap: lift first.", { aids: ["thumbs", "plan"] }),
       st("play", ex(INV, RH, 1, 1, { bpm: 36 }, "Invention 1, upper voice, bar 1: the quick notes JOINED, the longer ones DETACHED", { solo: true, count: 12, notes: [...SUBJECT, "C5", "B4", "C5", "D5"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", "detached", "detached", "detached", "detached", "detached", null] }), "Where the blocks are joined, no gap: put the next thumb down before you lift. Where there is a gap, lift first."),
     ],
@@ -543,7 +549,7 @@ const COURSE: ManualLesson[] = [
     aids: ["thumbs", "plan", "prepared"],
     words: ["legato"],
     stages: [
-      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "Watch: while one thumb holds, I rest the other on the next note. When I lift the first, the next one sounds by itself.", { style: "prepared", aids: ["thumbs", "plan", "prepared", "point"] }),
+      st("watch", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "Watch: while one thumb holds, I rest the other on the next note. When I lift the first, the next one sounds by itself.", { style: "prepared", aids: ["thumbs", "plan", "prepared"] }),
       st("try", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null], wait: true }), "Your turn. Rest the free thumb on the next note, then lift the other.", { aids: ["thumbs", "plan", "prepared"] }),
       st("play", ex(INV4, 0, 1, 1, { bpm: 37.5 }, "Invention 4, upper voice, bar 1: the run, JOINED", { solo: true, count: 7, notes: [...INV4_1, "C♯4"], marks: ["joined", "joined", "joined", "joined", "joined", "joined", null] }), "In time. Joined by preparing, or by striking: either way."),
     ],
@@ -566,7 +572,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 8, BARS 1–3",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)) }), "Watch the top notes: I land them by the box, in the strong zone, right on the beat: heavier, not later.", { style: "accent", aids: ["thumbs", "point"] }),
+      st("watch", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)) }), "Watch the top notes: I land them by the box, in the strong zone, right on the beat: heavier, not later.", { style: "accent", aids: ["thumbs"] }),
       st("try", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)), wait: true }), "Your turn. Land each top note by the box, on time.", { aids: ["thumbs", "trace"] }),
       st("play", ex(INV8, 0, 1, 3, { bpm: 50 }, "Invention 8, upper voice, bars 1–3: the top notes ACCENTED", { solo: true, notes: INV8_1_3, marks: INV8_1_3.map((_, k) => (k === 5 || k === 20 ? "accent" : null)) }), "To make the top note stand out, land it in the strong zone, by the box, on the beat."),
     ],
@@ -587,7 +593,7 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 1, BARS 1–4",
     aids: ["thumbs"],
     stages: [
-      st("watch", ex(INV, RH, 1, 4, { bpm: 43 }, "Invention 1, upper voice, bars 1–4, no signs", { notes: INV1_1_4 }), "No signs this time. Watch: I choose one touch, and keep it.", { style: "ordinary", aids: ["thumbs", "point"] }),
+      st("watch", ex(INV, RH, 1, 4, { bpm: 43 }, "Invention 1, upper voice, bars 1–4, no signs", { notes: INV1_1_4 }), "No signs this time. Watch: I choose one touch, and keep it.", { style: "ordinary", aids: ["thumbs"] }),
       st("play", ex(INV, RH, 1, 4, { bpm: 43 }, "Invention 1, upper voice, bars 1–4, no signs", { notes: INV1_1_4 }), "No signs this time. Join or separate as you like, but keep it the same all the way."),
     ],
     lens: { counts: ["Touch kept: 70%", "Notes: 75%"], shown: ["Your touch"], never: ["Which touch you choose"] },
@@ -727,6 +733,8 @@ export function manualTexts(): string[] {
   const out: string[] = [...MANUAL_FLOW, ...Object.values(SOUND_WORD), ...C.coachTexts(), ...WATCH_WORDS];
   for (const p of PARTS) out.push(p.english, ...(p.seal ? [p.seal] : []), ...(p.sub ? [p.sub] : []));
   out.push(...TOUR.map((t) => t.text), ...TOUR_TOUCH, ...Object.values(STEP_WORD), ...COURSE_FLOW);
+  // D402: the screen's elements introduced, and THE REAL THING's tour.
+  out.push(...DRESS_TEXTS);
   const xs = [-120, -40, 0, 40, 120].map((mean) => ({ ...ZERO_LENS, timing: { n: 9, mean, sd: 20, perfect: 5 } }));
   for (const l of MANUAL) {
     out.push(l.english, l.aim, ...(l.learn ? [l.learn] : []), ...(l.music ? [l.music] : []), ...l.before, ...l.after, ...l.again, ...l.lens.counts, ...l.lens.shown, ...l.lens.never, ...l.stages.map((s) => s.m.label), ...l.stages.flatMap((s) => (s.say ? [s.say] : [])));
@@ -847,6 +855,7 @@ export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["
       ? {
           tut: {
             ...(m.side ? { side: m.side } : {}),
+            ...(m.everyMark ? { everyMark: true } : {}),
             ...(m.widen ? { widen: m.widen } : {}),
             ...(m.wait || !click ? {} : { countBeats: 4 }),
             thumbsA: true,

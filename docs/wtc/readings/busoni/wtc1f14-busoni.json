@@ -1,0 +1,1777 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass; 6/4, a bar is 11520 ticks, so bar n starts at (n-1)*11520, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc1f14",
+ "title": "Fugue 14 in F♯ minor, BWV 859",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperirte Clavier, Erster Theil, bearbeitet, erläutert und mit daran anknüpfenden Beispielen und Anweisungen für das Studium der modernen Clavierspieltechnik herausgegeben",
+  "publisher": "G. Schirmer, New York, 1894 (plate 11652)",
+  "pages": {
+   "pdf": [
+    85,
+    86,
+    87
+   ],
+   "printed": [
+    83,
+    84,
+    85
+   ]
+  },
+  "copyright": "public domain (Busoni d. 1924; published 1894)"
+ },
+ "tempo": {
+  "text": "Sostenuto e severo, ma piuttosto Andante.",
+  "en": "sustained and severe, but rather walking",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 437760,
+    "bar": 39,
+    "pos": 0,
+    "text": "allarg.",
+    "en": "broadening to the end",
+    "kind": "broaden",
+    "conf": "sure",
+    "applied": false
+   }
+  ]
+ },
+ "character": "Severe and sustained without dragging (footnote 1); subject heads molto tenuto, countersubject repetitions as split syncopes (footnote 3).",
+ "dynamicPlan": "Tenor mf molto tenuto (b.1), alto mp (b.4), tenor mezza voce (b.4); più legato (b.7); p quasi misterioso for the bass entry (b.8); egualmente (b.11); poco a poco cresc. (b.15), dim. (b.19); part II p, the inverted alto dolce (b.20); poco marc. (b.22); quasi f (b.27); meno f with the tenor marc. (b.29), bass marc. (b.32); dim. (b.35); coda cresc. (b.37) to f allargando (b.39).",
+ "marks": [
+  {
+   "v": 2,
+   "on": 1920,
+   "p": 54,
+   "name": "F#3",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 2,
+   "on": 3840,
+   "p": 56,
+   "name": "G#3",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 2,
+   "on": 5760,
+   "p": 57,
+   "name": "A3",
+   "bar": 1,
+   "art": "tenuto",
+   "conf": "sure",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 2,
+   "on": 28800,
+   "p": 59,
+   "name": "B3",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 29760,
+   "p": 57,
+   "name": "A3",
+   "bar": 3,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 36480,
+   "p": 61,
+   "name": "C#4",
+   "bar": 4,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 1,
+   "on": 38400,
+   "p": 63,
+   "name": "D#4",
+   "bar": 4,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 1,
+   "on": 40320,
+   "p": 64,
+   "name": "E4",
+   "bar": 4,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 1,
+   "on": 63360,
+   "p": 66,
+   "name": "F#4",
+   "bar": 6,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 64320,
+   "p": 64,
+   "name": "E4",
+   "bar": 6,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 41280,
+   "p": 61,
+   "name": "C#4",
+   "bar": 4,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 42240,
+   "p": 61,
+   "name": "C#4",
+   "bar": 4,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 43200,
+   "p": 59,
+   "name": "B3",
+   "bar": 4,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 44160,
+   "p": 59,
+   "name": "B3",
+   "bar": 4,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 45120,
+   "p": 58,
+   "name": "A#3",
+   "bar": 4,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 46080,
+   "p": 58,
+   "name": "A#3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 47040,
+   "p": 59,
+   "name": "B3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 48000,
+   "p": 59,
+   "name": "B3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 48960,
+   "p": 57,
+   "name": "A3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 49920,
+   "p": 57,
+   "name": "A3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 50880,
+   "p": 56,
+   "name": "G#3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 51840,
+   "p": 56,
+   "name": "G#3",
+   "bar": 5,
+   "art": "portato",
+   "conf": "sure"
+  },
+  {
+   "v": 3,
+   "on": 82560,
+   "p": 42,
+   "name": "F#2",
+   "bar": 8,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 3,
+   "on": 84480,
+   "p": 44,
+   "name": "G#2",
+   "bar": 8,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 3,
+   "on": 86400,
+   "p": 45,
+   "name": "A2",
+   "bar": 8,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 3,
+   "on": 109440,
+   "p": 47,
+   "name": "B2",
+   "bar": 10,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 110400,
+   "p": 45,
+   "name": "A2",
+   "bar": 10,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 81600,
+   "p": 71,
+   "name": "B4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 82560,
+   "p": 71,
+   "name": "B4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 83520,
+   "p": 69,
+   "name": "A4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 84480,
+   "p": 69,
+   "name": "A4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 85440,
+   "p": 68,
+   "name": "G#4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 86400,
+   "p": 68,
+   "name": "G#4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 87360,
+   "p": 66,
+   "name": "F#4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 88320,
+   "p": 66,
+   "name": "F#4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 89280,
+   "p": 64,
+   "name": "E4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 90240,
+   "p": 64,
+   "name": "E4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 91200,
+   "p": 63,
+   "name": "D#4",
+   "bar": 8,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 92160,
+   "p": 63,
+   "name": "D#4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 93120,
+   "p": 64,
+   "name": "E4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 94080,
+   "p": 64,
+   "name": "E4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 95040,
+   "p": 62,
+   "name": "D4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 96000,
+   "p": 62,
+   "name": "D4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 96960,
+   "p": 61,
+   "name": "C#4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 97920,
+   "p": 61,
+   "name": "C#4",
+   "bar": 9,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 163200,
+   "p": 66,
+   "name": "F#4",
+   "bar": 15,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 0,
+   "on": 165120,
+   "p": 68,
+   "name": "G#4",
+   "bar": 15,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 0,
+   "on": 167040,
+   "p": 69,
+   "name": "A4",
+   "bar": 15,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 0,
+   "on": 190080,
+   "p": 71,
+   "name": "B4",
+   "bar": 17,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 191040,
+   "p": 69,
+   "name": "A4",
+   "bar": 17,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 253440,
+   "p": 68,
+   "name": "G#4",
+   "bar": 23,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 254400,
+   "p": 69,
+   "name": "A4",
+   "bar": 23,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 324480,
+   "p": 54,
+   "name": "F#3",
+   "bar": 29,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 2,
+   "on": 326400,
+   "p": 56,
+   "name": "G#3",
+   "bar": 29,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 2,
+   "on": 328320,
+   "p": 57,
+   "name": "A3",
+   "bar": 29,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 2,
+   "on": 351360,
+   "p": 59,
+   "name": "B3",
+   "bar": 31,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 352320,
+   "p": 57,
+   "name": "A3",
+   "bar": 31,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 323520,
+   "p": 81,
+   "name": "A5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 324480,
+   "p": 81,
+   "name": "A5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 325440,
+   "p": 80,
+   "name": "G#5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 326400,
+   "p": 80,
+   "name": "G#5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 327360,
+   "p": 78,
+   "name": "F#5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 328320,
+   "p": 78,
+   "name": "F#5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 331200,
+   "p": 76,
+   "name": "E5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 332160,
+   "p": 76,
+   "name": "E5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 333120,
+   "p": 75,
+   "name": "D#5",
+   "bar": 29,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 334080,
+   "p": 75,
+   "name": "D#5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 335040,
+   "p": 76,
+   "name": "E5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 336000,
+   "p": 76,
+   "name": "E5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 336960,
+   "p": 74,
+   "name": "D5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 337920,
+   "p": 74,
+   "name": "D5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 338880,
+   "p": 73,
+   "name": "C#5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 339840,
+   "p": 73,
+   "name": "C#5",
+   "bar": 30,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 359040,
+   "p": 54,
+   "name": "F#3",
+   "bar": 32,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 3,
+   "on": 360960,
+   "p": 52,
+   "name": "E3",
+   "bar": 32,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 3,
+   "on": 362880,
+   "p": 51,
+   "name": "D#3",
+   "bar": 32,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 3,
+   "on": 385920,
+   "p": 49,
+   "name": "C#3",
+   "bar": 34,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 386880,
+   "p": 51,
+   "name": "D#3",
+   "bar": 34,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 416640,
+   "p": 66,
+   "name": "F#4",
+   "bar": 37,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 0,
+   "on": 418560,
+   "p": 68,
+   "name": "G#4",
+   "bar": 37,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 0,
+   "on": 420480,
+   "p": 69,
+   "name": "A4",
+   "bar": 37,
+   "art": "tenuto",
+   "conf": "likely",
+   "role": "subject head, molto tenuto"
+  },
+  {
+   "v": 0,
+   "on": 443520,
+   "p": 71,
+   "name": "B4",
+   "bar": 39,
+   "art": "portato",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 444480,
+   "p": 69,
+   "name": "A4",
+   "bar": 39,
+   "art": "portato",
+   "conf": "likely"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 2,
+   "from": 25920,
+   "to": 30720,
+   "bars": "3.6–3.16",
+   "names": "B3–G#3",
+   "kind": "slur",
+   "conf": "sure",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 1,
+   "from": 60480,
+   "to": 65280,
+   "bars": "6.6–6.16",
+   "names": "F#4–D#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 2,
+   "from": 41280,
+   "to": 42240,
+   "bars": "4.14–4.16",
+   "names": "C#4–C#4",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 2,
+   "from": 43200,
+   "to": 44160,
+   "bars": "4.18–4.20",
+   "names": "B3–B3",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 2,
+   "from": 45120,
+   "to": 46080,
+   "bars": "4.22–5.0",
+   "names": "A#3–A#3",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 2,
+   "from": 47040,
+   "to": 48000,
+   "bars": "5.2–5.4",
+   "names": "B3–B3",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 2,
+   "from": 48960,
+   "to": 49920,
+   "bars": "5.6–5.8",
+   "names": "A3–A3",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 2,
+   "from": 50880,
+   "to": 51840,
+   "bars": "5.10–5.12",
+   "names": "G#3–G#3",
+   "kind": "portato",
+   "conf": "sure",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 3,
+   "from": 106560,
+   "to": 111360,
+   "bars": "10.6–10.16",
+   "names": "B2–G#2",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 1,
+   "from": 81600,
+   "to": 82560,
+   "bars": "8.2–8.4",
+   "names": "B4–B4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 83520,
+   "to": 84480,
+   "bars": "8.6–8.8",
+   "names": "A4–A4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 85440,
+   "to": 86400,
+   "bars": "8.10–8.12",
+   "names": "G#4–G#4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 87360,
+   "to": 88320,
+   "bars": "8.14–8.16",
+   "names": "F#4–F#4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 89280,
+   "to": 90240,
+   "bars": "8.18–8.20",
+   "names": "E4–E4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 91200,
+   "to": 92160,
+   "bars": "8.22–9.0",
+   "names": "D#4–D#4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 93120,
+   "to": 94080,
+   "bars": "9.2–9.4",
+   "names": "E4–E4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 95040,
+   "to": 96000,
+   "bars": "9.6–9.8",
+   "names": "D4–D4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 1,
+   "from": 96960,
+   "to": 97920,
+   "bars": "9.10–9.12",
+   "names": "C#4–C#4",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 187200,
+   "to": 192000,
+   "bars": "17.6–17.16",
+   "names": "B4–G#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 1,
+   "from": 250560,
+   "to": 255360,
+   "bars": "22.18–23.4",
+   "names": "G#4–B4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 2,
+   "from": 348480,
+   "to": 353280,
+   "bars": "31.6–31.16",
+   "names": "B3–G#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 0,
+   "from": 323520,
+   "to": 324480,
+   "bars": "29.2–29.4",
+   "names": "A5–A5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 325440,
+   "to": 326400,
+   "bars": "29.6–29.8",
+   "names": "G#5–G#5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 327360,
+   "to": 328320,
+   "bars": "29.10–29.12",
+   "names": "F#5–F#5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 331200,
+   "to": 332160,
+   "bars": "29.18–29.20",
+   "names": "E5–E5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 333120,
+   "to": 334080,
+   "bars": "29.22–30.0",
+   "names": "D#5–D#5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 335040,
+   "to": 336000,
+   "bars": "30.2–30.4",
+   "names": "E5–E5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 336960,
+   "to": 337920,
+   "bars": "30.6–30.8",
+   "names": "D5–D5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 0,
+   "from": 338880,
+   "to": 339840,
+   "bars": "30.10–30.12",
+   "names": "C#5–C#5",
+   "kind": "portato",
+   "conf": "likely",
+   "role": "countersubject repetition: a split quarter syncope, not a grace note (footnote 3)"
+  },
+  {
+   "v": 3,
+   "from": 383040,
+   "to": 387840,
+   "bars": "34.6–34.16",
+   "names": "C#3–E#3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  },
+  {
+   "v": 0,
+   "from": 440640,
+   "to": 445440,
+   "bars": "39.6–39.16",
+   "names": "B4–G#4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "subject tail into the trill"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 1920,
+   "bar": 1,
+   "pos": 4,
+   "voices": [
+    2
+   ],
+   "mark": "mf",
+   "conf": "sure"
+  },
+  {
+   "on": 36480,
+   "bar": 4,
+   "pos": 4,
+   "voices": [
+    1
+   ],
+   "mark": "mp",
+   "conf": "sure"
+  },
+  {
+   "on": 81600,
+   "bar": 8,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "p",
+   "conf": "sure"
+  },
+  {
+   "on": 226560,
+   "bar": 20,
+   "pos": 16,
+   "voices": [
+    0,
+    1,
+    2
+   ],
+   "mark": "p",
+   "conf": "sure"
+  },
+  {
+   "on": 299520,
+   "bar": 27,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "quasi f",
+   "conf": "sure"
+  },
+  {
+   "on": 324480,
+   "bar": 29,
+   "pos": 4,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "meno f",
+   "conf": "sure"
+  },
+  {
+   "on": 437760,
+   "bar": 39,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "f",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    2
+   ],
+   "from": 13440,
+   "to": 15360,
+   "bars": "2.4–2.8",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    2
+   ],
+   "from": 19200,
+   "to": 22560,
+   "bars": "2.16–2.23",
+   "dir": "cresc",
+   "conf": "sure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 174720,
+   "to": 176640,
+   "bars": "16.4–16.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 180480,
+   "to": 183840,
+   "bars": "16.16–16.23",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 197760,
+   "to": 199680,
+   "bars": "18.4–18.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 201600,
+   "to": 203520,
+   "bars": "18.12–18.16",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 278400,
+   "to": 282240,
+   "bars": "25.4–25.12",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 288960,
+   "to": 291840,
+   "bars": "26.2–26.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 294720,
+   "to": 298560,
+   "bars": "26.14–26.22",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 428160,
+   "to": 430080,
+   "bars": "38.4–38.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 433920,
+   "to": 437280,
+   "bars": "38.16–38.23",
+   "dir": "cresc",
+   "conf": "likely"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "Sostenuto e severo, ma piuttosto Andante.",
+   "en": "sustained and severe, but rather walking (footnote 1: no dragging)",
+   "conf": "sure"
+  },
+  {
+   "on": 1920,
+   "bar": 1,
+   "pos": 4,
+   "voices": [
+    2
+   ],
+   "text": "molto tenuto",
+   "en": "very held",
+   "conf": "sure"
+  },
+  {
+   "on": 41280,
+   "bar": 4,
+   "pos": 14,
+   "voices": [
+    2
+   ],
+   "text": "mezza voce",
+   "en": "half voice",
+   "conf": "sure"
+  },
+  {
+   "on": 70080,
+   "bar": 7,
+   "pos": 2,
+   "voices": [
+    1,
+    2
+   ],
+   "text": "più legato",
+   "en": "more legato",
+   "conf": "sure"
+  },
+  {
+   "on": 81600,
+   "bar": 8,
+   "pos": 2,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "quasi misterioso",
+   "en": "somewhat mysterious",
+   "conf": "sure"
+  },
+  {
+   "on": 115200,
+   "bar": 11,
+   "pos": 0,
+   "voices": [
+    1,
+    2
+   ],
+   "text": "egualmente",
+   "en": "evenly",
+   "conf": "sure"
+  },
+  {
+   "on": 165120,
+   "bar": 15,
+   "pos": 8,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "poco a poco cresc.",
+   "en": "growing louder little by little",
+   "conf": "sure"
+  },
+  {
+   "on": 209280,
+   "bar": 19,
+   "pos": 4,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "dim.",
+   "en": "growing softer",
+   "conf": "sure"
+  },
+  {
+   "on": 226560,
+   "bar": 20,
+   "pos": 16,
+   "voices": [
+    1
+   ],
+   "text": "∀ (dolce)",
+   "en": "the alto, labelled A upside down: the answer in inversion, sweetly",
+   "conf": "sure"
+  },
+  {
+   "on": 245760,
+   "bar": 22,
+   "pos": 8,
+   "voices": [
+    0
+   ],
+   "text": "poco marc.",
+   "en": "a little marked",
+   "conf": "likely"
+  },
+  {
+   "on": 278400,
+   "bar": 25,
+   "pos": 4,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "soprano: a shortened, figurative form of the answer",
+   "conf": "sure"
+  },
+  {
+   "on": 324480,
+   "bar": 29,
+   "pos": 4,
+   "voices": [
+    2
+   ],
+   "text": "marc.",
+   "en": "marked",
+   "conf": "sure"
+  },
+  {
+   "on": 359040,
+   "bar": 32,
+   "pos": 4,
+   "voices": [
+    3
+   ],
+   "text": "marc.",
+   "en": "marked",
+   "conf": "sure"
+  },
+  {
+   "on": 393600,
+   "bar": 35,
+   "pos": 4,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "dim.",
+   "en": "growing softer",
+   "conf": "sure"
+  },
+  {
+   "on": 417600,
+   "bar": 37,
+   "pos": 6,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "cresc.",
+   "en": "growing louder",
+   "conf": "sure"
+  },
+  {
+   "on": 437760,
+   "bar": 39,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "allarg.",
+   "en": "allargando: broadening to the end",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "entries": true
+   },
+   "applies": "every subject entry",
+   "art": "the three rising quarters tenuto (molto tenuto); the eighths of the second bar under short crescendi; the tail slurred with its last two eighths portato into a trill on the half note",
+   "source": "printed at bars 1–3; later entries carry the head marks and an editorial (tr)",
+   "conf": "sure"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ]
+   },
+   "applies": "repeated-note pairs of the countersubject",
+   "art": "portato under a slur: a split syncopated quarter, the second note re-struck lightly with a finger change, never as a grace note (footnote 3)",
+   "source": "footnote 3; printed at bars 4–5, 8–9",
+   "conf": "sure"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 18,
+   "sign": "double bar",
+   "en": "modulation and transition"
+  },
+  {
+   "at": 226560,
+   "sign": "double bar, mid-bar",
+   "en": "part II: alto answer in inversion (NB footnote: two parts and a coda)"
+  },
+  {
+   "beforeBar": 35,
+   "sign": "double bar",
+   "en": "transition to the coda",
+   "conf": "likely"
+  },
+  {
+   "beforeBar": 37,
+   "sign": "double bar",
+   "en": "coda: the soprano's last plain entry"
+  }
+ ],
+ "ornaments": [
+  {
+   "v": 2,
+   "on": 30720,
+   "p": 56,
+   "name": "G#3",
+   "bar": 3,
+   "pos": 16,
+   "sign": "tr",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 65280,
+   "p": 63,
+   "name": "D#4",
+   "bar": 6,
+   "pos": 16,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 111360,
+   "p": 44,
+   "name": "G#2",
+   "bar": 10,
+   "pos": 16,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 192000,
+   "p": 68,
+   "name": "G#4",
+   "bar": 17,
+   "pos": 16,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "on": 255360,
+   "p": 71,
+   "name": "B4",
+   "bar": 23,
+   "pos": 4,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 307200,
+   "p": 75,
+   "name": "D#5",
+   "bar": 27,
+   "pos": 16,
+   "sign": "(tr)",
+   "realisation": "trill on the half note, as in the subject (footnote 5)",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 353280,
+   "p": 56,
+   "name": "G#3",
+   "bar": 31,
+   "pos": 16,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "on": 387840,
+   "p": 53,
+   "name": "E#3",
+   "bar": 34,
+   "pos": 16,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 445440,
+   "p": 68,
+   "name": "G#4",
+   "bar": 39,
+   "pos": 16,
+   "sign": "(tr) in parentheses: added by Busoni after the subject's model (footnote 5)",
+   "realisation": "trill on the half note, the same form at every entry (footnote 2, after XIII footnote 1)",
+   "conf": "likely"
+  }
+ ],
+ "ornamentsNote": "One printed trill (b.3, tenor); every later \"(tr)\" in parentheses is Busoni's addition after the subject (footnote 5).",
+ "pedal": [],
+ "pedalNote": "No pedal marks in I/14.",
+ "fingering": {
+  "summary": [
+   "Skipped in this pass."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": 83,
+   "at": "tempo heading",
+   "de": "Sostenuto = getragen bezieht sich auf das Zeitmaass, severo = streng auf den Ausdruck; „piuttosto Andante“ besagt, dass die Bewegung keine Verschleppung erdulden darf.",
+   "en": "Sustained in tempo, strict in expression; \"rather Andante\": the pace must never drag.",
+   "conf": "sure"
+  },
+  {
+   "n": 2,
+   "page": 83,
+   "at": "bar 3, the trill",
+   "de": "Vergl. Anm. 1) zu Fuga XIII.",
+   "en": "As XIII footnote 1: the trill belongs to the subject and keeps one form.",
+   "conf": "sure"
+  },
+  {
+   "n": 3,
+   "page": 83,
+   "at": "bar 4, the countersubject repetitions",
+   "de": "Diese Repetitionen … dürfen nicht als Vorschläge empfunden werden, denn sie bedeuten Viertel-Syncopen zu Hälften getheilt … Ein consequenter Fingerwechsel ist hiebei unerlässlich.",
+   "en": "The repeated notes are split quarter syncopes, not grace notes; change fingers on each.",
+   "conf": "sure"
+  },
+  {
+   "n": 5,
+   "page": 84,
+   "at": "bar 17",
+   "de": "Dieser und alle folgenden Triller sind vom Herausgeber nach thematischem Muster hinzugefügt.",
+   "en": "This and all later trills are Busoni's additions after the subject's model.",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Read from 200 dpi greyscale crops: pdf 85 system 1–2 upscaled 2x, the rest of pdf 85–87 at native 200 dpi, so later per-note marks are conf likely.",
+  "Inverted (b.20) and figurative (b.25) entries get only their trill and slur, not head tenutos.",
+  "Footnotes 4 and 6 (a re-struck C♯, the figurative entry) and the NB analysis omitted."
+ ],
+ "counts": {
+  "marks": 83,
+  "slurs": 31,
+  "dyn": 7,
+  "hairpins": 11,
+  "text": 16,
+  "breaths": 0,
+  "ornaments": 9,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 2,
+  "footnotes": 4,
+  "byArt": {
+   "tenuto": 21,
+   "portato": 62
+  },
+  "bySlurKind": {
+   "slur": 8,
+   "portato": 23
+  },
+  "byConf": {
+   "sure": 33,
+   "likely": 99
+  },
+  "byConfAll": {
+   "sure": 50,
+   "likely": 108
+  }
+ },
+ "notes": [
+  "Game import (WTC 1.90, D392): \"S (footnote 6)\" (bar 25) kept as \"S\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.96, D404): The p at bar 8 is printed between the staves for the bass entry (p quasi misterioso): all four voices, the bass with them (it had inherited the tenor's mf of bar 1 and kept it to bar 27)."
+ ]
+}

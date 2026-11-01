@@ -1,0 +1,713 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "README": [
+  "A whole-piece reading: every mark an edition prints for one fugue, in every voice and bar, attached to the game's own notes.",
+  "Notes are addressed as in data/touch/pieces.json: v = voice index (here 0 Soprano, 1 Alto, 2 Tenor, 3 Bass, pieces.json voiceNames), on = onset tick (tpq 1920; a 4/4 bar is 7680 ticks; bar n starts at (n-1)*7680). p (MIDI) and name are a check (names are the game's spelling, even where the edition renotates), bar and pos (sixteenths from the barline) are for people.",
+  "marks[]: one note's articulation. art is one of staccato (dot), wedge (Keil: shorter and sharper), tenuto (dash: full value, a slight lean), portato (dash over dot: held a little apart, each note weighted), accent (>), marcato (^ over a dot: struck hard and left), fermata. A note may have two marks (wedge+tenuto).",
+  "slurs[]: spans in one voice, from and to both included. kind \"slur\" = a group played as one gesture (joined inside, the last note lighter and, with lastShort, let go early); kind \"portato\" = dots under a slur (each note detached a little but carried in one line); kind \"phrase\" = a long phrasing arc over a whole subject or line. role says what the slur covers.",
+  "dyn[]: a printed level at a time, for the voices it was printed for (Busoni prints dynamics per staff, sometimes per voice).",
+  "hairpins[]: cresc/dim spans in time for the given voices. text[]: words printed in the score with an English gloss. tempo.changes[] is left empty on purpose: the owner has ruled out tempo warping except at fermatas, so Busoni's tempo words are kept only in tempo.notes[] (applied: false) and fermatas stay in marks[].",
+  "breaths[]: a printed caesura before a note. voicing[]: pianistic re-voicings, recorded as notes only and not to be applied: octave-doubling (interval in semitones) and added notes. ornaments[]: a printed ornament and how Busoni realises it.",
+  "rules[]: instructions that apply to unmarked notes; the game must apply these by rule. sections[]: Busoni's double bars.",
+  "fingering: a summary of patterns and a few samples (fingers in the order of the notes from that note on); not every digit is transcribed.",
+  "footnotes[]: German text (as printed, old spelling kept) and an English translation.",
+  "conf on every item: sure (clearly printed and placed), likely (printed, the placement or the sign read from a 300 dpi scan with some doubt), unsure (a guess: hard to see, or inferred).",
+  "This format is a superset of docs/wtc/readings/*.json: the old per-note subject marks can be derived from marks[] and slurs[] on the first entry."
+ ],
+ "piece": "wtc2f07",
+ "title": "Fugue 7 in E♭ major, BWV 876",
+ "edition": {
+  "id": "busoni",
+  "author": "Ferruccio B. Busoni",
+  "title": "Das wohltemperirte Clavier, Erster Theil, bearbeitet … von Ferruccio B. Busoni (this Book II fugue is printed there as Fuga VII)",
+  "publisher": "G. Schirmer, New York, 1894 (plate 11652)",
+  "source": "editions/busoni/busoni.pdf",
+  "swap": "Busoni swapped the two E-flat fugues: Book II's fugue (BWV 876) stands as No. VII of his Book I volume, and Book I's (BWV 852) as \"Fuga VII*\" in his Book II volume. This reading is Book II's fugue from the Book I volume.",
+  "copyright": "public domain (Busoni d. 1924; published 1894)",
+  "pages": {
+   "pdf": [
+    46,
+    47,
+    48
+   ],
+   "printed": [
+    44,
+    45,
+    46
+   ]
+  }
+ },
+ "tempo": {
+  "text": "Tempo giusto",
+  "en": "in strict time",
+  "mm": null,
+  "changes": [],
+  "notes": [
+   {
+    "on": 495360,
+    "bar": 65,
+    "pos": 8,
+    "text": "allarg.",
+    "en": "broadening to the end (with cresc.)",
+    "kind": "slow",
+    "conf": "likely",
+    "applied": false
+   }
+  ]
+ },
+ "character": "\"Wuchtig, sehr gehalten / Pesante e ben tenuto, ma non legato\" (b.1); a quiet middle section, \"dolce, tranquillo e tutto legato\" (b.46), called a resting point in footnote 2; \"f come prima\" at the return (b.59).",
+ "dynamicPlan": "f for each entry of the exposition (bass b.1, tenor b.7); soprano answer marcato (b.21); cresc. into the double bar (b.28); meno f e più legato (b.30); alto meno f (b.37); dim. (b.45) into dolce tranquillo (b.46); tenor marcato ma dolce (b.53); cresc. (b.56–58) to f come prima (b.59); cresc. ed allarg. (b.65) to ff with fermatas (b.70).",
+ "marks": [
+  {
+   "v": 0,
+   "on": 153600,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 21,
+   "art": "marcato",
+   "conf": "sure",
+   "role": "soprano answer"
+  },
+  {
+   "v": 0,
+   "on": 207360,
+   "p": 67,
+   "name": "G4",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 0,
+   "on": 209280,
+   "p": 69,
+   "name": "A4",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 207360,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 209280,
+   "p": 60,
+   "name": "C4",
+   "bar": 28,
+   "art": "tenuto",
+   "conf": "likely"
+  },
+  {
+   "v": 2,
+   "on": 226560,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 30,
+   "art": "tenuto",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 426240,
+   "p": 70,
+   "name": "Bb4",
+   "bar": 56,
+   "art": "tenuto",
+   "conf": "unsure"
+  },
+  {
+   "v": 0,
+   "on": 529920,
+   "p": 63,
+   "name": "Eb4",
+   "bar": 70,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 1,
+   "on": 529920,
+   "p": 58,
+   "name": "Bb3",
+   "bar": 70,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 2,
+   "on": 529920,
+   "p": 55,
+   "name": "G3",
+   "bar": 70,
+   "art": "fermata",
+   "conf": "sure"
+  },
+  {
+   "v": 3,
+   "on": 529920,
+   "p": 39,
+   "name": "Eb2",
+   "bar": 70,
+   "art": "fermata",
+   "conf": "sure"
+  }
+ ],
+ "slurs": [
+  {
+   "v": 3,
+   "from": 76800,
+   "to": 80640,
+   "bars": "11.0–11.8",
+   "names": "A3–G3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "dotted figure"
+  },
+  {
+   "v": 1,
+   "from": 184320,
+   "to": 188160,
+   "bars": "25.0–25.8",
+   "names": "A4–G4",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "dotted figure"
+  },
+  {
+   "v": 2,
+   "from": 180480,
+   "to": 188160,
+   "bars": "24.8–25.8",
+   "names": "C4–Bb3",
+   "kind": "slur",
+   "conf": "unsure",
+   "role": "dotted figure (starts on a tied note)"
+  },
+  {
+   "v": 3,
+   "from": 326400,
+   "to": 330240,
+   "bars": "43.8–44.0",
+   "names": "Eb4–C4",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "from": 334080,
+   "to": 337920,
+   "bars": "44.8–45.0",
+   "names": "C4–Ab3",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 3,
+   "from": 341760,
+   "to": 344640,
+   "bars": "45.8–45.14",
+   "names": "Ab3–F3",
+   "kind": "slur",
+   "conf": "likely",
+   "role": "runs on over the page turn"
+  },
+  {
+   "v": 0,
+   "from": 337920,
+   "to": 340800,
+   "bars": "45.0–45.6",
+   "names": "C5–Eb5",
+   "kind": "slur",
+   "conf": "likely"
+  },
+  {
+   "v": 1,
+   "from": 337920,
+   "to": 345600,
+   "bars": "45.0–46.0",
+   "names": "C5–B4",
+   "kind": "slur",
+   "conf": "likely"
+  }
+ ],
+ "dyn": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "mark": "f",
+   "conf": "sure",
+   "role": "bass subject"
+  },
+  {
+   "on": 46080,
+   "bar": 7,
+   "pos": 0,
+   "voices": [
+    2
+   ],
+   "mark": "f",
+   "conf": "sure",
+   "role": "tenor answer"
+  },
+  {
+   "on": 222720,
+   "bar": 30,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "meno f",
+   "conf": "sure"
+  },
+  {
+   "on": 276480,
+   "bar": 37,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "mark": "meno f",
+   "conf": "sure",
+   "role": "alto entry"
+  },
+  {
+   "on": 337920,
+   "bar": 45,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "dim.",
+   "conf": "sure"
+  },
+  {
+   "on": 345600,
+   "bar": 46,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "dolce",
+   "conf": "likely",
+   "role": "printed as a word with the character text"
+  },
+  {
+   "on": 445440,
+   "bar": 59,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "f",
+   "conf": "sure",
+   "text": "f come prima"
+  },
+  {
+   "on": 529920,
+   "bar": 70,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "mark": "ff",
+   "conf": "sure"
+  }
+ ],
+ "hairpins": [
+  {
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "from": 207360,
+   "to": 211200,
+   "bars": "28.0–28.8",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 291840,
+   "to": 294720,
+   "bars": "39.0–39.6",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 297600,
+   "to": 301440,
+   "bars": "39.12–40.4",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0
+   ],
+   "from": 337920,
+   "to": 340800,
+   "bars": "45.0–45.6",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "from": 424320,
+   "to": 445440,
+   "bars": "56.4–59.0",
+   "dir": "cresc",
+   "conf": "sure",
+   "text": "cresc. - - -"
+  },
+  {
+   "voices": [
+    0,
+    1
+   ],
+   "from": 437760,
+   "to": 445440,
+   "bars": "58.0–59.0",
+   "dir": "cresc",
+   "conf": "likely"
+  },
+  {
+   "voices": [
+    2,
+    3
+   ],
+   "from": 437760,
+   "to": 443520,
+   "bars": "58.0–58.12",
+   "dir": "cresc",
+   "conf": "unsure"
+  },
+  {
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "from": 495360,
+   "to": 529920,
+   "bars": "65.8–70.0",
+   "dir": "cresc",
+   "conf": "likely",
+   "text": "cresc. ed allarg. - - -"
+  }
+ ],
+ "text": [
+  {
+   "on": 0,
+   "bar": 1,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "Wuchtig, sehr gehalten. / Pesante e ben tenuto, ma non legato",
+   "en": "weighty, very held back; heavy and well sustained, but not legato",
+   "conf": "sure"
+  },
+  {
+   "on": 222720,
+   "bar": 30,
+   "pos": 0,
+   "voices": [
+    0,
+    1
+   ],
+   "text": "meno f e più legato",
+   "en": "less loud and more legato",
+   "conf": "sure"
+  },
+  {
+   "on": 226560,
+   "bar": 30,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "T ten.",
+   "en": "tenor entry, held",
+   "conf": "sure"
+  },
+  {
+   "on": 234240,
+   "bar": 31,
+   "pos": 8,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  },
+  {
+   "on": 276480,
+   "bar": 37,
+   "pos": 0,
+   "voices": [
+    1
+   ],
+   "text": "A",
+   "en": "entry label: alto",
+   "conf": "sure"
+  },
+  {
+   "on": 284160,
+   "bar": 38,
+   "pos": 0,
+   "voices": [
+    0
+   ],
+   "text": "S",
+   "en": "entry label: soprano",
+   "conf": "sure"
+  },
+  {
+   "on": 345600,
+   "bar": 46,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "dolce, tranquillo e tutto legato",
+   "en": "sweetly, calm and all legato",
+   "conf": "sure"
+  },
+  {
+   "on": 403200,
+   "bar": 53,
+   "pos": 8,
+   "voices": [
+    2
+   ],
+   "text": "T marcato ma dolce",
+   "en": "tenor entry: marked but sweet",
+   "conf": "sure"
+  },
+  {
+   "on": 424320,
+   "bar": 56,
+   "pos": 4,
+   "voices": [
+    1
+   ],
+   "text": "(A)",
+   "en": "entry label in brackets: the alto carries the line",
+   "conf": "likely"
+  },
+  {
+   "on": 445440,
+   "bar": 59,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "text": "S … f come prima",
+   "en": "soprano entry: loud, as at the start",
+   "conf": "sure"
+  },
+  {
+   "on": 453120,
+   "bar": 60,
+   "pos": 0,
+   "voices": [
+    3
+   ],
+   "text": "B",
+   "en": "entry label: bass",
+   "conf": "sure"
+  }
+ ],
+ "breaths": [],
+ "voicing": [],
+ "rules": [
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fromBar": 1,
+    "toBar": 29
+   },
+   "applies": "unmarked notes",
+   "art": "non legato: each quarter and half held well but lifted (ben tenuto, ma non legato)",
+   "source": "b.1 character text",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fromBar": 30,
+    "toBar": 45
+   },
+   "applies": "unmarked notes",
+   "art": "more legato (più legato)",
+   "source": "b.30 text",
+   "conf": "likely"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fromBar": 46,
+    "toBar": 58
+   },
+   "applies": "unmarked notes",
+   "art": "legato throughout (tutto legato)",
+   "source": "b.46 text",
+   "conf": "sure"
+  },
+  {
+   "scope": {
+    "voices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fromBar": 59,
+    "toBar": 70
+   },
+   "applies": "unmarked notes",
+   "art": "as at the start (come prima): weighty, non legato",
+   "source": "b.59 text",
+   "conf": "likely"
+  }
+ ],
+ "sections": [
+  {
+   "beforeBar": 30,
+   "sign": "double bar",
+   "en": "end of the exposition (Busoni's section I)"
+  },
+  {
+   "beforeBar": 59,
+   "sign": "double bar",
+   "en": "into the soprano entry, f come prima (section III)"
+  }
+ ],
+ "ornaments": [],
+ "ornamentsNote": "No ornaments printed.",
+ "pedal": [],
+ "pedalNote": "No pedal marks in the main text.",
+ "fingering": {
+  "summary": [
+   "Not transcribed (economy brief)."
+  ],
+  "samples": []
+ },
+ "footnotes": [
+  {
+   "n": 1,
+   "page": "I 44 (pdf 46)",
+   "at": "title",
+   "de": "Die mehr scherzhafte Fuge, die ursprünglich diesen Platz einnimmt, steht im ausgesprochenen Missverhältniss zu dem … Praeludium … Dagegen zeigt die Es dur-Fuge aus dem zweiten Bande … eine auffallende Affinität …",
+   "en": "The swap: Book I's more playful E-flat fugue is out of proportion to its grand prelude, so Busoni prints Book II's E-flat fugue here; Book I's fugue goes into his Book II volume as \"Fuga VII*\".",
+   "conf": "sure"
+  },
+  {
+   "n": 2,
+   "page": "I 45 (pdf 47)",
+   "at": "bar 45",
+   "de": "Hier begegnen wir dem seltenen Beispiele, dass der II. Abschnitt des Durchführungstheiles einen Ruhepunkt verzeichnet …",
+   "en": "Section II (b.46) is a resting point; the counterpoint picks up again in section III at the tenor's signal.",
+   "conf": "sure"
+  }
+ ],
+ "caveats": [
+  "Transcribed from Busoni's Book I volume (Schirmer 1894), where this Book II fugue stands as No. VII; the Book II volume prints Book I's E-flat fugue in its place.",
+  "Busoni labels entries T, B, A, S in the score; these are kept in text[] as entry labels.",
+  "Ties are not recorded; most arcs in the upper staff of b.46–68 are ties over the long notes and are left out.",
+  "Footnote 3 (pdf 48) is an ossia for b.59–70 with the bass doubled in octaves and pedal: skipped (ossia, octave doubling).",
+  "Read from 200 dpi crops, zoomed to 300–400 dpi where needed; the scan is a 1-bit image."
+ ],
+ "counts": {
+  "marks": 11,
+  "slurs": 8,
+  "dyn": 8,
+  "hairpins": 8,
+  "text": 11,
+  "breaths": 0,
+  "ornaments": 0,
+  "voicing": 0,
+  "tempoNotes": 1,
+  "rules": 4,
+  "footnotes": 2,
+  "byArt": {
+   "marcato": 1,
+   "tenuto": 6,
+   "fermata": 4
+  },
+  "bySlurKind": {
+   "slur": 8
+  },
+  "byConf": {
+   "sure": 14,
+   "likely": 16,
+   "unsure": 5
+  },
+  "byConfAll": {
+   "sure": 24,
+   "likely": 18,
+   "unsure": 5
+  }
+ }
+}
