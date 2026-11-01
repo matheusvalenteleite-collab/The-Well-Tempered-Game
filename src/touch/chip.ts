@@ -349,6 +349,13 @@ export interface Play {
    */
   slur?: boolean;
   /**
+   * D429: the band's bowed note joined from the one before as a NEW BOW (STRING_BOW_CHANGE's bite and accent,
+   * as the player's two-thumb join), not D358's soft stroke.
+   */
+  bowChange?: boolean;
+  /** D429: the band's bowed note giving way, at the next note's onset (its end less `tie`), as a bow change or a slur (giveWay). */
+  give?: GiveWay;
+  /**
    * D420: an organ note already sounding, taken up again under a new registration (a piston pressed
    * while the key is held): its pipes enter joined (no new chiff: the ranks held on keep speaking),
    * even where a pipe would speak anew (`piped`).
@@ -1900,7 +1907,8 @@ export class Chip {
     if (plucked && end > t + life) {
       for (const x of srcs) halt(x.src, t + life + 0.05);
       for (const l of lfos) halt(l, t + life + 0.1);
-    } else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
+    } else if (p.give && pt.bow && !plucked) giveWay(Math.max(t + 0.02, end - (p.tie ?? 0)), p.give);
+    else if (p.tie && !plucked) letGo(Math.max(t + 0.02, end - p.tie / 2), p.tie);
     // D302: a held note's release done by its written end, as a synthesized note's is (it began there,
     // and rang on a fifth of a second past it: a detached note's gap filled). D304: only a detached
     // note's (Play.apart: a reading's mark), plucked or held, its release -30 dB by its end, so

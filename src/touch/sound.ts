@@ -419,10 +419,11 @@ export interface BowEntry {
  * (STRING_BOW_CHANGE), the band's (D358's STRING_BOW: no still moment, no accent), a slur's (past the
  * attack, STRING_SLUR's rise). Null: not a joined held bowed note (a TAP, a pluck, no Patch.bow): as before.
  */
-export function bowEntry(bow: Patch["bow"] | undefined, p: { legato?: boolean; slur?: boolean; lead?: boolean }, plucked = false): BowEntry | null {
+export function bowEntry(bow: Patch["bow"] | undefined, p: { legato?: boolean; slur?: boolean; lead?: boolean; bowChange?: boolean }, plucked = false): BowEntry | null {
   if (!bow || !p.legato || plucked) return null;
   if (p.slur) return { skip: 0.25, still: 0, floor: 0, a: STRING_SLUR.a, accentDb: 0, accentS: 0 };
-  if (!p.lead) return { skip: bow.skip, still: 0, floor: 0, a: bow.a, accentDb: 0, accentS: 0 };
+  // D429: the band's bow change (Play.bowChange) as the player's.
+  if (!p.lead && !p.bowChange) return { skip: bow.skip, still: 0, floor: 0, a: bow.a, accentDb: 0, accentS: 0 };
   const c = STRING_BOW_CHANGE;
   return { skip: c.skip, still: c.still, floor: c.floor, a: c.a, accentDb: c.accentDb, accentS: c.accentS };
 }

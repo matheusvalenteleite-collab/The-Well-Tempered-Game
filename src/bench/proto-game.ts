@@ -1187,6 +1187,12 @@ export class ProtoGame {
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
       if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
+      // D429: a bowed band note (Patch.bow) joined as a string player joins: inside one of the reading's slurs the
+      // same bow (a slur), any other join a new bow (bow change); its give-way to the next likewise.
+      const bowed = !!vv.patch?.bow && MECH.glenn;
+      const place = bowed && this.whole ? wholeAsks(this.whole).get(`${n.voice}:${n.on}`)?.slur : undefined;
+      const bowIn: Play = bowed && jn.legato ? (place === "mid" || place === "last" ? { slur: true } : { bowChange: true }) : {};
+      const bowOut: Play = bowed && jn.tie ? { give: place === "first" || place === "mid" ? "slur" : "bow" } : {};
       // D355: the band's colour where the note starts (colour.ts).
       const cl = this.colour?.at(n.on, n.voice) ?? null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
@@ -1199,7 +1205,7 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
