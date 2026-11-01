@@ -1,0 +1,111 @@
+<title>Scoring Audit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; the verdict, then the problems as a numbered list, the proposal as a before/after table, the decisions as a list. */
+:root {
+  --bg: #f6f5f1; --fg: #1d1c22; --muted: #5d5a66; --rule: #d9d6cf; --gold: #9a6d12; --chip: #ece7dc; --ok: #2f7a45; --bad: #a3392f;
+  --display: "Fraunces", Georgia, serif; --body: "Source Sans 3", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16151b; --fg: #ebe8e1; --muted: #a29fac; --rule: #34323c; --gold: #e3b34f; --chip: #24222b; --ok: #6cc489; --bad: #e57a6e; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #16151b; --fg: #ebe8e1; --muted: #a29fac; --rule: #34323c; --gold: #e3b34f; --chip: #24222b; --ok: #6cc489; --bad: #e57a6e; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 400 1.03rem/1.6 var(--body); }
+main { max-width: 46rem; margin: 0 auto; padding-block: 2.2rem 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 1.7rem; }
+h1, h2 { font-family: var(--display); font-weight: 650; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; line-height: 1.15; }
+h2 { font-size: 1.3rem; color: var(--gold); }
+section { display: grid; gap: .6rem; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.2rem; display: grid; gap: .4rem; }
+.meta { font: 500 .78rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.verdict { border-left: 3px solid var(--gold); padding-left: .9rem; display: grid; gap: .5rem; }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; vertical-align: top; padding: .45rem .5rem; border-bottom: 1px solid var(--rule); }
+th { font: 500 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.f { font-weight: 600; }
+small { color: var(--muted); }
+b.k { color: var(--gold); }
+</style>
+<main>
+<header style="display:grid;gap:.4rem">
+  <p class="meta">Scoring audit · Luigi and Mario · measured with João · 1 Nov 2026</p>
+  <h1>The scoring system: what's wrong, and a cleaner design</h1>
+</header>
+
+<section class="verdict">
+  <p><b>Verdict.</b> The score is built in layers from different eras: arcade points, a multiplier, organ-plenum doubling, two ways of paying for held notes, a performance bonus on top, and bonuses from game modes the phone no longer uses. It mostly tracks skill: across 120 simulated runs, score correlates with accuracy at 0.86. But it is unreadable, sometimes unfair, and its grade hinges on one brittle rule.</p>
+  <p>Luigi and Mario propose a <b>simpler system with three numbers</b>: how well you played (a percentage, from which the grade follows), a score for bragging, and the crowd, which tells you how you're doing right now. Details below. You choose.</p>
+</section>
+
+<section>
+  <h2>What's wrong, in plain words</h2>
+  <ol>
+    <li><b>The grade hinges on one rule.</b> S needs 95% <i>and every subject entry played perfectly</i>. One slip inside any entry rules out S. No simulated run in the default voice reached S, not even one at 96%.</li>
+    <li><b>A better player can score lower.</b> On I/22, a weaker João got an A with 4,153 points while a stronger one got a B with 2,925. In both cases the cause was which entries happened to be played whole.</li>
+    <li><b>One slip can cost a lot, or almost nothing.</b> A missed note inside a subject entry cost 13% of the final score; the same miss outside one cost 0.2%.</li>
+    <li><b>The multiplier has a cliff.</b> It climbs one step every 8 clean notes. Missing a note every 7 notes gives 1,779 points; every 8 gives 4,043. The playing is almost the same; the score more than doubles.</li>
+    <li><b>Held notes are paid twice:</b> once while held, and again as a HELD bonus. That's a quarter of all points, more than the notes themselves on slow fugues.</li>
+    <li><b>Bests can be gamed.</b> A fugue keeps one best score whatever voice you played, and some voices are worth much more. Choosing the right voice gave up to 2.3× the score.</li>
+    <li><b>Scores mean nothing across pieces.</b> Points per note vary about tenfold between fugues.</li>
+    <li><b>Much of it is invisible or confusing.</b> Points for holding have no pop. Taken-back points show nothing. The ×n on screen leaves out the organ's ×2. Accuracy shows "90%" on the sheet while the grade treats it as 89.6%, a B. The performance bonus (a fifth of the final score) has a formula shown nowhere. COMBO doesn't reset on a mistake.</li>
+    <li><b>Dead weight.</b> Six bonus types and the stretto bonus can't happen on the phone (0 in 120 runs). Stars are computed and never shown. Code for retired modes is still in the engine.</li>
+    <li><b>The crowd is loose once you're past the start:</b> a run missing every fourth note ended with a full crowd.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>The proposal: three numbers, each with one job</h2>
+  <div class="wrap">
+  <table>
+    <thead><tr><th></th><th>Today</th><th>Proposed</th></tr></thead>
+    <tbody>
+      <tr><td class="f">How well you played</td><td>Accuracy, plus a hidden 0–100 "performance" that only feeds a bonus</td><td><b>One percentage, shown during play and on the sheet</b>, made of named parts: notes right (60), timing (15), touch and Busoni's signs (15), the subject's entries (10, partial credit per entry)</td></tr>
+      <tr><td class="f">Grade</td><td>Accuracy bands, and S needs every entry whole</td><td>Straight from the percentage: <b>S 95, A 90, B 80, C 70, D below</b>. No all-or-nothing rule. B still opens a fugue's unlocks.</td></tr>
+      <tr><td class="f">Score (for bragging)</td><td>Points × multiplier × organ doubling, plus bonuses, plus the performance bonus</td><td><b>Points for each note, with a gentle streak bonus</b> (+10% every 16 clean notes, up to +50%, a slip drops it one step). Held notes paid once. Entries add points in proportion to how much of them you played. The whole score is also scaled by the percentage, so it stays tied to quality.</td></tr>
+      <tr><td class="f">Bests</td><td>One per fugue, any voice</td><td><b>One per fugue and voice</b> (SLOW kept apart, as now)</td></tr>
+      <tr><td class="f">The crowd</td><td>Gains and losses per note; loose once ahead</td><td><b>Follows how you're playing now</b>: roughly the last two bars. It leaves only if that stays poor for a while. A wrong note costs less than a missed one (the rule that let every João level finish in the earlier tests).</td></tr>
+      <tr><td class="f">On screen</td><td>Score, ×n, COMBO, LEGATO ×n, PLENO ×2, accuracy, subjects, crowd, many words</td><td>The percentage, the score, the streak bonus, subjects n/m and the crowd. Every change to the score shows a "+n". One rounding everywhere.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The organ plenum (doubling after a captured entry) and CON FUOCO become pure spectacle, light and sound, with no effect on points. The dead bonuses, the stars and the leftover mode code go.</p>
+</section>
+
+<section>
+  <h2>Why this shape</h2>
+  <ul>
+    <li><b>The percentage is the honest number.</b> It's comparable across pieces and voices, and it's what the grade and the unlocks should rest on. Breaking it into named parts tells the player what to work on.</li>
+    <li><b>The score keeps the fun of a run.</b> A streak rewards consistency, but it climbs gently, so there's no cliff and one slip costs a step, not everything.</li>
+    <li><b>Partial credit for entries</b> keeps the fugue's subject central, but without lottery effects.</li>
+    <li><b>A crowd that follows recent playing</b> is easy to explain ("they're listening to you now"), and it bites when you fall apart, not when you slip once.</li>
+  </ul>
+  <p><small>Mario's caveat: touch and Busoni's signs at 15 is a judgement call. Glenn would weigh them more for an advanced player. Since timing and touch are separate parts, a later "expert" view could weight them differently without changing anything else.</small></p>
+</section>
+
+<section>
+  <h2>A lighter option</h2>
+  <p>If you'd rather not redesign, these fixes keep today's structure:</p>
+  <ul>
+    <li>S at 95% with at least 3 entries in 4 played whole.</li>
+    <li>A smooth multiplier.</li>
+    <li>Held notes paid once.</li>
+    <li>Bests per voice.</li>
+    <li>One rounding.</li>
+    <li>COMBO resets on a slip.</li>
+    <li>The dead weight removed.</li>
+  </ul>
+  <p>It fixes problems 1, 3–6, 8 and 9, but not the unreadability or the crowd.</p>
+</section>
+
+<section>
+  <h2>For you to decide</h2>
+  <ol>
+    <li><b>The full redesign</b> (our recommendation) or the lighter fixes.</li>
+    <li>The weights of the percentage: notes 60, timing 15, touch 15, entries 10. Keep them, or change them.</li>
+    <li>Old bests: they were scored under different rules, so keep them apart, as the game did once before when the judging changed (version 1.52).</li>
+    <li>Whether the crowd change comes now or in a second step.</li>
+  </ol>
+  <p><small>Next, if you choose: we would build it in the Lab first, under its own button, and run João on all 24 Book I fugues to confirm that a better player always scores higher and no cliffs remain. Only then would it go to the main board for play.html. The full inventory with all numbers is in <code>docs/scoring/INVENTORY.md</code>.</small></p>
+</section>
+</main>
