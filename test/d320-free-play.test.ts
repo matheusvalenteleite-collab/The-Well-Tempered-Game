@@ -4,6 +4,7 @@
  * the other thumb still down joining, a shake becoming a mordent or a trill, a slide after its dwell;
  * MECH switches obeyed. A fake chip records what would sound.
  */
+import { BAR } from "../src/bench/protos.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FreePlay, freeRows, keyOf, SLIDE_DWELL_MS } from "../src/bench/lab/free.ts";
@@ -54,7 +55,8 @@ test("a touch strikes the row under it, its place across the bar the attack; hig
   assert.equal(notes[1].midi, fp.rows[0]);
   assert.equal(notes[0].touch, barDynamic(20, W));
   assert.equal(notes[1].touch, barDynamic(W - 10, W));
-  assert.match(lines[0], /♩ .* L thumb · across 0\.87/);
+  // D419: x = 20 on a bar of BAR × W: across 1 − 20 / (BAR × W), to two places.
+  assert.match(lines[0], new RegExp(`♩ .* L thumb · across ${(1 - 20 / (BAR * W)).toFixed(2).replace(".", "\\.")}`));
   MECH.expression = false;
   fp.down(3, "left", 20, 100, W, H, 300);
   assert.equal(notes.at(-1)!.touch, 0.5);
