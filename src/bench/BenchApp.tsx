@@ -111,6 +111,7 @@ import { bookCards } from "./cards.ts";
 import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { RegistrationStops } from "../touch/RegistrationStops.tsx";
+import { ObbligatoOffer } from "./ObbligatoOffer.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
@@ -674,7 +675,9 @@ export function BenchApp() {
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(!run && !prac && !manLesson && proto.layout === "bars" ? { obbligato: true } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    // D485: the game open to the hit-tests (`?dev=1` only): its OBBLIGATO offer can be put up from the console.
+    if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -1694,6 +1697,8 @@ export function BenchApp() {
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
+      {/* D485: OBBLIGATO's buttons at the bars' outer top corners while an offer stands. */}
+      {layout === "bars" && playing && <ObbligatoOffer game={game} />}
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}

@@ -1328,6 +1328,17 @@ export class Chip {
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
+  /** D485, OBBLIGATO: a boost's layer's recordings asked for ahead of its entry (till they arrive its synthesized sound stands in). */
+  ready(pt: Patch | null, midis: readonly number[]) {
+    const inst = pt?.sample ? SAMPLED[pt.sample] : null;
+    if (!inst) return;
+    for (const m of midis) {
+      const set = setFor(inst, m);
+      const near = nearestSample(set, m);
+      if (near !== null) loadOne(this.ctx, set, near);
+    }
+  }
+
   /** The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within an octave, retuned. */
   private nearestLoaded(set: string, m: number): { set: string; m: number; rec: Loaded } | null {
     const own = nearestSample(set, m);
