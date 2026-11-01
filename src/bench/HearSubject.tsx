@@ -13,7 +13,7 @@ import { bestReading, busoniOn, chooseReading, chosenReading, NO_READING, OFFER_
 import { acrossBar, drawThumb, drawThumbMark, THUMB_LEGEND, type SuggestMark, type Touch } from "./fingering.ts";
 import { drawThumbProxy } from "./thumb-proxy.ts";
 import { fugueName } from "../touch/fugue-names.ts";
-import { subjectInkOf, subjectRimOf } from "../touch/subject-hue.ts";
+import { paleOf } from "../touch/subject-hue.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
 import { tempoOf } from "../touch/tempi.ts";
@@ -223,8 +223,9 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   const now = started ? performance.now() / 1000 - started.at : -1;
   const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
   const finished = !!started && now > started.total + 0.4;
-  const fill = subjectInkOf(ink, 1);
-  const rim = subjectRimOf(ink, 1);
+  // The design studio: the subject in its voice's own ink (no subject hue), a pale rim of the same ink.
+  const fill = ink;
+  const rim = paleOf(ink);
   const bh = Math.max(4, rowH - 2);
   perf.forEach((p, i) => {
     const n = r?.notes[i];
