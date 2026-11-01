@@ -198,6 +198,18 @@ export function organPatch(_own: Patch, stops: readonly StopId[], midi: number):
   return pt;
 }
 
+/**
+ * TRIAL (sound.ts EXPRESSIVE_ALL, registerAll): a printed level (dB, whole-reading.ts LEVEL_DB) as the stops a
+ * harpsichordist or an organist would draw for it, terraced. HARPSICHORD: pp the buff (LUTE), p the 8′ alone,
+ * mp 8′+4′, mf 8′+8′, f and ff 8′+8′+4′. ORGAN: pp and p the flutes, mp and mf the principals, f the principals
+ * with the flutes (a fuller foundation: the engine has no 2′ stop of its own), ff the plenum (the mixture); the
+ * pedal following its manual's family (pedalPatch), its 16′ drawn.
+ */
+export function terraceStops(presetId: string, db: number): StopId[] {
+  if (presetId === "harpsichordSampled") return db <= -9 ? ["lute"] : db < -4.5 ? [] : db < -1.5 ? ["four"] : db < 2.5 ? ["unison"] : ["unison", "four"];
+  return db < -4.5 ? ["flute", "sub16"] : db < 2.5 ? ["principal", "sub16"] : db < 5.5 ? ["principal", "flute", "sub16"] : ["principal", "mixture", "sub16"];
+}
+
 /** D357: the plenum's recorded pedal with its 16' pushed in (the synthesized Subbass under it, Patch.under, withdrawn). */
 export const PEDAL_PLENO_8: Patch = { ...PATCHES.orgPedalPleno, under: undefined };
 

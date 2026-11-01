@@ -287,6 +287,11 @@ export interface Patch {
    * which only feeds the phone's limiter); the same for the band's notes and the player's.
    */
   phoneLift?: { hz: number; db: number };
+  /**
+   * TRIAL (instruments-trials): a second instrument sounding the same note with this one (chip.ts Chip.note,
+   * as one note: `together`), `level` of it: BAROQUE BAND's continuo harpsichord doubling the cello's bass line.
+   */
+  double?: { patch: Patch; level: number };
 }
 
 /**
@@ -456,6 +461,30 @@ export const VOICE_SEND = 0.15;
 export const HARPSI_ONE = { span: 0.3, lo: 33, hi: 89, cents: 0.8 } as const;
 export const PIANO_ONE = { span: 0.4, lo: 21, hi: 108, cents: 0.5 } as const;
 
+/** D358: the recorded harpsichord (PATCHES.harpsiSampled), named here so a trial's continuo can double a line on it (Patch.double). */
+const HARPSI_SAMPLED: Patch = { osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, send: SALON_SEND, level: 0.36, sample: "harpsichord", one: HARPSI_ONE };
+
+// ---- TRIALS (instruments-trials, listening prototypes; not offered: presetById finds them, PRESETS does not hold them). ----
+/** The trials' one send into their room (the salon; the organ trio the church's ORGAN_SEND): every player's. */
+export const TRIAL_SEND = 0.22;
+/**
+ * A wind or brass player's joined note (Patch.bow, read as a tongue): a JOIN (two thumbs) a soft new tongue
+ * (the recording entered 40 ms past its onset, so a little of the tongue's attack is kept, rising over 25
+ * ms; the player's as STRING_BOW_CHANGE: the air stopped an instant, then the tongue); a SLUR (SET-AND-
+ * RELEASE, the reading's slurs for the band, D429) the legato tongue: no new attack, the fingers change the
+ * note under the air (Play.slur: the recording entered past its attack).
+ */
+export const WIND_TONGUE = { skip: 0.04, a: 0.025 } as const;
+/** The trials' low instruments on a phone (Patch.phoneLift, as the consort's cello): their upper partials lifted. */
+export const BASS_PHONE_LIFT = { hz: 700, db: 6 } as const;
+/** The trombone's and the pizzicato bass's (their sound lower still: measured). */
+export const LOW_PHONE_LIFT = { hz: 600, db: 8 } as const;
+export const PIZZ_PHONE_LIFT = { hz: 400, db: 14 } as const;
+/** The continuo harpsichord under BAROQUE BAND's cello (Patch.double): -6 (measured: the harpsichord alone about 8 dB under the cello alone, I/1 bars 1-10). */
+export const CONTINUO_DB = -6;
+/** CLAVICHORD: one instrument, placed by its key (a small instrument: ±0.1), each key's pair of strings a fixed fraction of a cent off. */
+export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
+
 /** The instruments. */
 export const PATCHES = {
   // Strings and winds (ACOUSTIC).
@@ -474,7 +503,7 @@ export const PATCHES = {
   // D190: recorded (the synthesized sound above stands in for a note until its recording is loaded).
   // D358: one harpsichord (SOUND-PRINCIPLES.md): every voice on these strings (the bass too: harpsiBassSampled
   // no longer played), each note placed by its key across the instrument (HARPSI_ONE), the player's the band's.
-  harpsiSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, send: SALON_SEND, level: 0.36, sample: "harpsichord", one: HARPSI_ONE }),
+  harpsiSampled: HARPSI_SAMPLED,
   harpsiBassSampled: P({ osc: [{ wave: "saw" }, { wave: "pulse25", gain: 0.3 }], filter: { freq: 6, q: 1, env: 2, envDecay: 0.2 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.08 }, send: SALON_SEND * 0.75, level: 0.45, sample: "harpsichord" }),
   organSampled: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.012, d: 0.1, s: 1, r: 0.06 }, level: 0.3, sample: "organ" }),
   lute: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, level: 0.42 }),
@@ -965,6 +994,41 @@ export const PATCHES = {
   // note placed by its course (key) across the instrument, a fretted instrument's slightly uneven frets
   // (1.5 cents, fixed per key), in the salon; played as the harpsichord is (phrasing.ts styleOf).
   lute2: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, send: SALON_SEND, level: 0.5, sample: "luteGuitar", one: LUTE_ONE }),
+  // ---- TRIALS (instruments-trials): full-fidelity recordings (sampled.ts PERIOD's trial sets, as the consort's: 32 kHz,
+  // 16 bits, a made loop), one envelope per family (winds in 30 ms, brass 20 ms, out 100-120 ms), one send, the
+  // player's line played as the band's (Patch.one), a joined note a new tongue or a slur (WIND_TONGUE as Patch.bow).
+  // The `osc`/`filter`/`amp` are the stand-ins until a recording has loaded (D190).
+  /** BAROQUE BAND's continuo: the consort's cello with the harpsichord doubling its line, CONTINUO_DB under it. */
+  trialCelloContinuo: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.53, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT, double: { patch: HARPSI_SAMPLED, level: 10 ** (CONTINUO_DB / 20) } }),
+  /** VSCO 2 CE's oboe (vibrato), as recorded (BAROQUE BAND's alto, WIND QUINTET's second). */
+  trialOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: TRIAL_SEND, level: 0.46, sample: "trialOboe", bow: WIND_TONGUE, one: {} }),
+  /** VSO2's flute. */
+  trialFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: TRIAL_SEND, level: 0.43, sample: "trialFlute", bow: WIND_TONGUE, one: {} }),
+  /** VSCO 2 CE's clarinet (long sustain). */
+  trialClarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: TRIAL_SEND, level: 1.05, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
+  /** VSO2's horn: the quintet's (the winds' envelope). */
+  trialHorn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: TRIAL_SEND, level: 0.5, sample: "trialHorn", bow: WIND_TONGUE, one: {} }),
+  /** VSO2's bassoon (7 notes, G2-C5: sampled.ts maxShift folds below D2), its upper partials lifted on a phone. */
+  trialBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: TRIAL_SEND, level: 0.65, sample: "trialBassoon", bow: WIND_TONGUE, one: {}, phoneLift: BASS_PHONE_LIFT }),
+  /** BACH BRASS (the brass's envelope: quicker speech, 20 ms): VSO2's trumpet. */
+  trialTrumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.12 }, send: TRIAL_SEND, level: 0.42, sample: "trialTrumpet", bow: WIND_TONGUE, one: {} }),
+  /** VSO2's horn, the brass's envelope. */
+  trialBrassHorn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.12 }, send: TRIAL_SEND, level: 0.47, sample: "trialHorn", bow: WIND_TONGUE, one: {} }),
+  /** VSO2's trombone (the sackbut's part), its upper partials lifted on a phone. */
+  trialTrombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.12 }, send: TRIAL_SEND, level: 0.9, sample: "trialTrombone", bow: WIND_TONGUE, one: {}, phoneLift: LOW_PHONE_LIFT }),
+  /** MODERN JAZZ QUARTET's vibraphone (Milt Jackson's): BLEEPS' FM vibe, its motor slow (3 Hz), no analog drift. */
+  trialVibe: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], fm: { ratio: 4, index: 1.2, to: 0.05, time: 0.12 }, amp: { a: 0.001, d: 1.6, s: 0, r: 0.25 }, trem: { depth: 0.25, rate: 3 }, send: SALON_SEND, level: 0.33, one: {} }),
+  /** VSCO 2 CE's solo contrabass, pizzicato: the jazz bassist's line (Percy Heath's), plucked, lifted on a phone. */
+  trialBassPizz: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.8, s: 0, r: 0.1 }, send: SALON_SEND, level: 1.38, sample: "trialBassPizz", one: {}, phoneLift: PIZZ_PHONE_LIFT }),
+  /**
+   * CLAVICHORD (D358's proposal; synthesized: no CC0/CC BY recording found): a brass tangent strikes a pair of
+   * strings and stays on them while the key is held: a thin, bright, quiet tone (two strings 2 cents apart, a
+   * hollow octave), the tangent's thud at the onset (a short noise about the 5th harmonic), the pitch a few
+   * cents sharp as it strikes and settling (the tangent's pressure), a short sustain (dying over about a
+   * second, longer low), damped at once by the listing cloth when the key rises. Its dynamics are the
+   * player's touch (touch-expr.ts "piano": three zones).
+   */
+  trialClavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1297,6 +1361,138 @@ export const PRESETS: Preset[] = [
 export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["traverso", "traverso", "traverso", "organFlute", "organFlute"], room: 0.2 };
 
 /**
+ * TRIALS (instruments-trials): listening prototypes for the owner, not offered (not in PRESETS or the
+ * pop-up's POP_SOUNDS): presetById finds them, as D358's TRIALS once did. Each a band seated narrowly
+ * (within ±0.25), one room and one send (SOUND-PRINCIPLES.md), one instrument per voice from the top down,
+ * each voice's level by measurement (each voice rendered alone: about equal loudness, the bass heard through
+ * the phone filter). The by-levels below are those measurements' (see the commit).
+ */
+export const TRIALS: Preset[] = [
+  // BAROQUE BAND: the consort's violin on top, VSCO's oboe, TinySOL's solo viola, the consort's cello with a
+  // quiet harpsichord continuo on the bass line (Patch.double); seated as a baroque band: violins left (a second
+  // violin right, antiphonal), the oboe in front, the viola right of centre, the continuo in the middle.
+  {
+    id: "trialBaroque",
+    name: "BAROQUE BAND",
+    slots: ["consViolin", "consViolin", "trialOboe", "consViola", "trialCelloContinuo"],
+    room: 0,
+    fx: "salon",
+    by: {
+      1: [["consViolin", 0]],
+      2: [["consViolin", -0.15, 1.11], ["trialCelloContinuo", 0.05]],
+      3: [["consViolin", -0.2, 1.11], ["trialOboe", 0.12, 0.9], ["trialCelloContinuo", 0]],
+      4: [["consViolin", -0.22, 1.11], ["trialOboe", -0.04, 0.9], ["consViola", 0.18, 1.32], ["trialCelloContinuo", 0.04]],
+      5: [["consViolin", -0.24, 1.11], ["consViolin", 0.24, 1.11], ["trialOboe", -0.08, 0.9], ["consViola", 0.12, 1.32], ["trialCelloContinuo", 0]],
+    },
+  },
+  // WIND QUINTET: flute, oboe, clarinet, horn, bassoon, seated in an arc (flute left, bassoon and horn right);
+  // fewer voices: the horn goes first, then the clarinet.
+  {
+    id: "trialWinds",
+    name: "WIND QUINTET",
+    slots: ["trialFlute", "trialOboe", "trialClarinet", "trialHorn", "trialBassoon"],
+    room: 0,
+    fx: "salon",
+    by: {
+      1: [["trialFlute", 0]],
+      2: [["trialFlute", -0.12], ["trialBassoon", 0.12]],
+      3: [["trialFlute", -0.18], ["trialOboe", 0], ["trialBassoon", 0.18]],
+      4: [["trialFlute", -0.2], ["trialOboe", -0.07], ["trialClarinet", 0.07], ["trialBassoon", 0.2]],
+      5: [["trialFlute", -0.22], ["trialOboe", -0.08], ["trialClarinet", 0.08], ["trialHorn", 0.22], ["trialBassoon", 0.14]],
+    },
+  },
+  // BACH BRASS: trumpets left, the horns in the middle, the trombone right.
+  {
+    id: "trialBrass",
+    name: "BACH BRASS",
+    slots: ["trialTrumpet", "trialTrumpet", "trialBrassHorn", "trialBrassHorn", "trialTrombone"],
+    room: 0,
+    fx: "salon",
+    by: {
+      1: [["trialTrumpet", 0]],
+      2: [["trialTrumpet", -0.12], ["trialTrombone", 0.12]],
+      3: [["trialTrumpet", -0.18], ["trialBrassHorn", 0], ["trialTrombone", 0.18]],
+      4: [["trialTrumpet", -0.22], ["trialTrumpet", -0.08, 1.27], ["trialBrassHorn", 0.08], ["trialTrombone", 0.22]],
+      5: [["trialTrumpet", -0.24], ["trialTrumpet", -0.12, 1.27], ["trialBrassHorn", 0], ["trialBrassHorn", 0.12], ["trialTrombone", 0.24]],
+    },
+  },
+  // MODERN JAZZ QUARTET (who recorded Bach): the vibraphone on top (left), the grand on the middle voices
+  // (right, its notes placed by key), the pizzicato bass in the middle; no drums.
+  {
+    id: "trialJazz",
+    name: "MODERN JAZZ QUARTET",
+    slots: ["trialVibe", "pianoSampled", "pianoSampled", "pianoSampled", "trialBassPizz"],
+    room: 0,
+    fx: "salon",
+    by: {
+      1: [["trialVibe", 0]],
+      2: [["trialVibe", -0.12], ["trialBassPizz", 0.05]],
+      3: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.1], ["trialBassPizz", 0]],
+      4: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.2], ["pianoSampled", 0.12, 0.95], ["trialBassPizz", 0]],
+      5: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.2], ["pianoSampled", 0.12, 1.05], ["pianoSampled", 0.12, 0.95], ["trialBassPizz", 0]],
+    },
+  },
+  // ORGAN TRIO: one organ (PIPE ORGAN's patches, D349), each hand on its own manual with its own registration as
+  // an organist plays a trio sonata: the soprano on the reed (Trompete 8'), the middle voices on the flutes, the
+  // pedal its 16' (light, D423); five voices: the second soprano on the Principal. The divisions a little apart.
+  {
+    id: "trialOrganTrio",
+    name: "ORGAN TRIO",
+    slots: ["orgTrompete", "orgPrincipal", "orgFlute", "orgFlute", "orgPedal"],
+    room: 0,
+    fx: "cathedral",
+    by: {
+      1: [["orgTrompete", 0]],
+      2: [["orgTrompete", 0.06], ["orgPedal", 0]],
+      3: [["orgTrompete", 0.06], ["orgFlute", -0.06], ["orgPedal", 0]],
+      4: [["orgTrompete", 0.06], ["orgFlute", -0.06], ["orgFlute", -0.06], ["orgPedal", 0]],
+      5: [["orgTrompete", 0.06], ["orgPrincipal", -0.03], ["orgFlute", -0.06], ["orgFlute", -0.06], ["orgPedal", 0]],
+    },
+  },
+  // CLAVICHORD: one instrument (synthesized), every voice on it, placed by its key.
+  { id: "trialClavichord", name: "CLAVICHORD", slots: ["trialClavichord", "trialClavichord", "trialClavichord", "trialClavichord", "trialClavichord"], room: 0, fx: "salon", by: oneKeyboard("trialClavichord") },
+];
+/**
+ * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
+ * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
+ * Play.lineDb: proto-game.ts lineAt) reach every sustaining sound that can make dynamics (DYNAMIC_SOUNDS),
+ * on a phone in its narrower range (whole-reading.ts PHONE_DYN_RANGE, inside the plan's levels). Off: as before.
+ */
+export let EXPRESSIVE_ALL = false;
+export function setExpressiveAll(on: boolean) {
+  EXPRESSIVE_ALL = on;
+}
+/** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ, the lute: no dynamics by nature; the piano has them always). */
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "soloVoices", "vocalSynth", "trialBaroque", "trialWinds", "trialBrass", "trialJazz", "trialClavichord"]);
+/** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
+export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
+/**
+ * TRIAL, EXPRESSIVE_ALL on the chips, consoles and synthesizers (the owner: "chipsets might not have dynamic
+ * variations but tone variations"): the reading's planned level (dB: its printed level, hairpins, palette weight;
+ * the band's notes and the player's line) moves the TONE, by family, through the touch's own parameters
+ * (touch-expr.ts landing, as if the thumb landed TONE_DB_SPAN dB further toward the strong side per bar's
+ * width), and the loudness only a little (a quarter of it, within ±TONE_LEVEL_DB): chip.ts Chip.toned.
+ */
+export const TONE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "sid64", "megaFm", "super16", "nocturne32", "tracker", "analog", "tomita", "modular"]);
+export const toneAll = (id: string): boolean => EXPRESSIVE_ALL && TONE_SOUNDS.has(id);
+/**
+ * TRIAL, EXPRESSIVE_ALL on the harpsichord and the organ (the owner: "give harpsichord and organ some tone
+ * variation for busoni's dynamics"): no loudness; the printed LEVELS terrace the registration (registration.ts
+ * terraceStops), the hairpins and the palette's weights a small brightness (chip.ts, a high shelf within
+ * ±SWELL_TONE_DB). The colour plan's stops and the player's own win.
+ */
+export const REGISTER_SOUNDS: ReadonlySet<string> = new Set(["harpsichordSampled", "chamberOrgan"]);
+export const registerAll = (id: string): boolean => EXPRESSIVE_ALL && REGISTER_SOUNDS.has(id);
+export const SWELL_TONE_DB = 2;
+/** The swell's brightness: 0.35 dB a dB of hairpin and weight, within ±SWELL_TONE_DB. */
+export const swellToneDb = (db: number) => Math.max(-SWELL_TONE_DB, Math.min(SWELL_TONE_DB, 0.35 * db));
+/** The planned dB that moves a tone across the whole of its touch's range (p to f, about ±8 dB, is the range). */
+export const TONE_DB_SPAN = 16;
+/** The loudness a tone sound keeps of the plan: a quarter, within ±2 dB. */
+export const TONE_LEVEL_DB = 2;
+export const toneLevelDb = (db: number) => Math.max(-TONE_LEVEL_DB, Math.min(TONE_LEVEL_DB, db / 4));
+
+/**
  * D249: the sampled organ, out of the players' choices (PRESETS) until the new organs come
  * (ROADMAP Batch 2); set only as a preset object (setPreset(ORGAN_SAMPLED)), by the tests.
  */
@@ -1350,7 +1546,13 @@ export const CHOIR_CREDIT = "CHOIR: FLUIDR3_GM · FRANK WEN · MIDI-JS-SOUNDFONT
 /** D358, D365: STRING CONSORT's and LUTE's recordings (CC BY asks for credit). */
 export const CONSORT_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0";
 export const LUTE_CREDIT = "LUTE: CLASSICAL GUITAR, FREESOUND 11573, QUARTERTONE · CC BY 3.0";
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT };
+/** TRIALS' recordings (VSCO 2 CE is CC0, credit encouraged; VSO2 CE, the cello and TinySOL ask for it). */
+export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC0";
+export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
+export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
+export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TROMBONE VERSILIAN STUDIOS VSO2 CE · CC BY 3.0";
+export const JAZZ_CREDIT = `${PIANO_CREDIT} · BASS ${VSCO_CREDIT}`;
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT, trialBaroque: BAROQUE_CREDIT, trialWinds: WINDS_CREDIT, trialBrass: BRASS_CREDIT, trialJazz: JAZZ_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1360,7 +1562,7 @@ export function playerSound(id: string): string {
   return offered(r) ? r : "chip";
 }
 /** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
-export const presetById = (id: string) => [...PRESETS, TRAVERSO].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
+export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {
@@ -1408,7 +1610,9 @@ export function grooveNow(): { groove: Groove; kit: Kit } | null {
 /** D190: the recorded instruments the ensemble now plays, if any. */
 export function sampledNow(): SampledId[] {
   const ids = [...(current.slots ?? []), ...Object.values(current.by ?? {}).flatMap((vs) => (vs ?? []).map(([id]) => id)), ...(current.also ?? [])];
-  return [...new Set(ids.map((id) => PATCHES[id].sample).filter((s): s is SampledId => !!s))];
+  // TRIAL: and a doubling instrument's (Patch.double: BAROQUE BAND's continuo harpsichord).
+  const pts: Patch[] = ids.flatMap((id) => { const p: Patch = PATCHES[id]; return p.double ? [p, p.double.patch] : [p]; });
+  return [...new Set(pts.map((p) => p.sample).filter((s): s is SampledId => !!s))];
 }
 
 /** D297: a voice's entry in the preset's own layout for its number of voices (Preset.by), if it has one. */

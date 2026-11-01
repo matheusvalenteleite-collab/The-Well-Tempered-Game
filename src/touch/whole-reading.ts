@@ -277,6 +277,10 @@ export interface WholePlan {
   fermatas: { a: number; d: number; x: number }[];
   /** The subject's notes ("voice:onset"): an entry brought out where a palette asks. */
   subject: Set<string>;
+  /** TRIAL (EXPRESSIVE_ALL): voice v's printed level at a tick alone (dB, LEVEL_DB; no hairpin, no phone range): the registration's terrace. */
+  levelAt?: (v: number, tick: number) => number;
+  /** TRIAL: the hairpins' and fp's swell on it (dB). */
+  swellAt?: (v: number, tick: number) => number;
 }
 
 const memo = new WeakMap<WholeReading, Map<string, WholePlan>>();
@@ -605,7 +609,10 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     if (f.voices.some((ns) => ns.some((n) => n[0] > on && n[0] < on + d))) continue;
     fermatas.push({ a: on, d, x: FERMATA_HOLD * d });
   }
-  return { notes, dynAt, lineDynAt, paletteAt, ending: endingOf(W, f.length, f.barTicks), fermatas, subject };
+  // TRIAL (sound.ts EXPRESSIVE_ALL): the printed terrace alone (dB, as printed: no phone range), and the swell on it (hairpins, fp).
+  const printedAt = (v: number, t: number) => base(v, t);
+  const swellAt = (v: number, t: number) => env(v, t) + fpAt(v, t);
+  return { notes, dynAt, lineDynAt, paletteAt, ending: endingOf(W, f.length, f.barTicks), fermatas, subject, levelAt: printedAt, swellAt };
 }
 
 /** A note's place in the metre: 0 the bar's first beat, 1 another beat, 2 between (the palettes' weight, the slur's shape). `inBar`: fugue.ts inBar. */

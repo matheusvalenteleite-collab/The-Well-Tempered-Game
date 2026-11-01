@@ -9,10 +9,10 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { crowned, heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, LUTE_LP, type Registered, type Registration } from "./registration.ts";
+import { crowned, heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
-import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, bowEntry, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BRIGHT_SPAN, formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
+import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, bowEntry, expressiveAll, registerAll, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -457,6 +457,10 @@ export interface Play {
   accentDb?: number;
   /** D385: a trill's note: the other pitch of its alternation; where both would sound one recording, this one takes the other neighbouring recording (no shared hammer). */
   altSample?: number;
+  /** TRIAL (sound.ts registerAll): the printed level here (dB): the harpsichord's or the organ's registration terraced by it (registration.ts terraceStops). */
+  terrace?: number;
+  /** TRIAL: the hairpins' and the palette's dB here: a small brightness (sound.ts swellToneDb). */
+  swell?: number;
 }
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
@@ -806,6 +810,8 @@ export class Chip {
 
   private noteNow(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
+    // TRIAL (sound.ts toneAll): the reading's planned level as the tone on a chip, console or synthesizer.
+    if (p.hold === undefined && toneAll(preset().id)) [p, v] = this.toned(midi, v, p);
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
     // D252: the player's own a touch brighter and louder.
     // D349: not on the organ: the player's pipes are the band's (same manual, never louder).
@@ -815,7 +821,14 @@ export class Chip {
     const id = preset().id;
     // D355: the band's colour by the piece's plan (colour.ts): its effects here, its stops as the band's registration (the player's own stops win).
     if (p.colour && !p.lead) [v, p] = coloured(id, p.colour, v, p);
-    const live = bandRegistration(liveRegistration(id), p);
+    const live0 = liveRegistration(id);
+    let live = bandRegistration(live0, p);
+    // TRIAL (sound.ts registerAll): Busoni's printed level terraces the registration (the colour plan's stops, the
+    // player's TUTTI and the player's own stops on the player's note win); his hairpins a little brightness.
+    if (registerAll(id)) {
+      if (p.terrace !== undefined && !(p.colour?.reg && !p.lead) && !live0.tutti && !(p.lead && live0.stops)) live = { stops: terraceStops(id, p.terrace), tutti: true };
+      if (p.swell) p = { ...p, tone: (p.tone ?? 0) + swellToneDb(p.swell) };
+    }
     const pedal = isPedal(v.patch);
     const reg = p.couple === false ? null : registeredNote(id, live, v.patch, !!p.lead, midi);
     if (reg) {
@@ -841,6 +854,13 @@ export class Chip {
       const twin = this.single(midi - 12, at, dur, { ...v, patch: under }, { ...p, couple: false });
       return together([main, twin], -12);
     }
+    // TRIAL (instruments-trials): a second instrument on the same note (Patch.double: BAROQUE BAND's continuo harpsichord).
+    const dbl = v.patch?.double;
+    if (dbl && p.couple !== false) {
+      const main = this.coupled(midi, at, dur, v, p);
+      const twin = this.single(midi, at, dur, { ...v, patch: dbl.patch }, { ...p, couple: false, slur: false, bowChange: false, give: undefined, level: (p.level ?? 1) * dbl.level });
+      return together([main, twin], 0);
+    }
     return this.coupled(midi, at, dur, v, p);
   }
 
@@ -854,6 +874,36 @@ export class Chip {
       return together([main, twin], midi >= c.split ? 12 : -12);
     }
     return this.single(midi, at, dur, v, p);
+  }
+
+  /**
+   * TRIAL (sound.ts toneAll, EXPRESSIVE_ALL): a reading's planned level (dB) on a chip, console or synthesizer
+   * made its tone, by family, through the touch's own parameters (touch-expr.ts landing at a strength moved
+   * by dB / TONE_DB_SPAN): CLASSIC CHIP and GAME BOY the pulse width (12.5, 25, 50% as p to f) and, louder, a
+   * little vibrato; SID 64 its PWM width and its filter's cutoff; MEGA FM the FM index (×0.62-1.62); SWITCHED-ON
+   * and TOMITA the filter's cutoff and its envelope's opening (Play.bright); SUPER 16-BIT, NOCTURNE 32-BIT and
+   * TRACKER a brightness and the echo's send; BLEEPS AND BLOOPS the mallet's hardness. Its loudness a quarter of
+   * the plan's (within ±2 dB). The player's note: its landing moved so (the touch kept); the band's: the plan's
+   * dB alone (Play.vel, phrasing.ts) as a landing.
+   */
+  private toned(midi: number, v: Voicing, p: Play): [Play, Voicing] {
+    const id = preset().id;
+    const kind = touchKind(id);
+    const db = p.touch !== undefined ? p.lineDb : p.vel;
+    if (!kind || db === undefined || !Number.isFinite(db)) return [p, v];
+    const x = Math.max(0, Math.min(1, (p.touch ?? TOUCH_NEUTRAL) + db / TONE_DB_SPAN));
+    const pt = v.patch ?? null;
+    let q: Play = { ...p };
+    // The band's level already carries its quarter (phrasing.ts); the player's line here.
+    if (p.touch !== undefined) q.level = (p.level ?? 1) * 10 ** (toneLevelDb(db) / 20);
+    if (kind === "chip" && !pt?.fm) q.vib = (q.vib ?? 0) + Math.max(0, Math.min(8, db)) * 1.2;
+    if (id === "sid64") q.bright = BRIGHT_SPAN.chip * (x - 0.5);
+    if (kind === "console") q.roomMul = (q.roomMul ?? 1) * Math.max(0.6, Math.min(1.5, 1 + db / 24));
+    if (p.touch !== undefined) return [{ ...q, touch: x }, v];
+    const l = landing(kind, x, midi, pt, !pt && v.timbre !== "triangle");
+    for (const k of ["bright", "pw", "pwContinuous", "fmScale", "strike"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
+    if (!pt && v.timbre !== "triangle" && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
+    return [q, v];
   }
 
   /**
@@ -873,6 +923,8 @@ export class Chip {
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
     const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
+    // TRIAL (sound.ts EXPRESSIVE_ALL): the reading's line level on a sustaining sound (the piano's own is in its landing, pianoDb).
+    if (kind !== "piano" && p.lineDb !== undefined && expressiveAll(preset().id)) q.level = (q.level ?? p.level ?? 1) * 10 ** (p.lineDb / 20);
     if (l.tone) q.tone = (p.tone ?? 0) + l.tone;
     if (l.bright !== undefined) q.bright = l.bright;
     // D385: the piano's colour by the level struck (the line's and the zone's), when the note has none of its own.

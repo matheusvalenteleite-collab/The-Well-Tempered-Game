@@ -79,7 +79,7 @@ import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
-import { PATCHES, preset } from "../touch/sound.ts";
+import { expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -3473,7 +3473,8 @@ export class ProtoGame {
     const strike = !slide && !h.strikeUsed && this.gesture !== "pull-off" && this.gesture !== "press" ? h.strike : undefined;
     if (strike) h.strikeUsed = true;
     const byTap = !!strike && strike.value !== null && !dynAns;
-    const line = styleOf(preset().id) === "piano" && expr.touch !== undefined ? this.lineAt(h.k, i) : null;
+    // TRIAL (sound.ts EXPRESSIVE_ALL): and on a sustaining sound that can make dynamics (chip.ts landed: Play.lineDb as its level).
+    const line = (styleOf(preset().id) === "piano" || expressiveAll(preset().id) || toneAll(preset().id) || registerAll(preset().id)) && expr.touch !== undefined ? this.lineAt(h.k, i) : null;
     // D425: with the hard tap the strong zone no longer gives the accent's weight (the strike does, below); the three zones stay.
     if (line) expr = { ...expr, ...line, ...(byTap ? { accentDb: undefined } : {}) };
     const hardFam: HardFamily = fam;
@@ -4909,7 +4910,7 @@ export class ProtoGame {
   }
   /** D425: the reading's accent weight on track k's note i on the piano (PLAYER_ACCENT_DB: ">" +4, "^" +6), where marked. */
   private markDbAt(k: number, i: number): number | undefined {
-    const own = styleOf(preset().id) === "piano" ? this.lineAt(k, i).accentDb : undefined;
+    const own = styleOf(preset().id) === "piano" || expressiveAll(preset().id) ? this.lineAt(k, i).accentDb : undefined;
     return own ?? (this.asksAccent(k, i) ? PLAYER_ACCENT_DB.accent : undefined);
   }
   /** D385: a landing's strength is asked of an accent where the thumbs land on bars (a computer's keys cannot weigh a note). */
@@ -4921,16 +4922,18 @@ export class ProtoGame {
    * reading's printed level, its phrase arch, its palette's weight, colour, dampers and room; a reading's accent
    * (">" +4, "^" +6 dB) given by the strong zone. Never by the verdict: the place in the music, not right or wrong.
    */
-  lineAt(k: number, i: number): { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number } {
+  lineAt(k: number, i: number): { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number; terrace?: number; swell?: number } {
     const n = this.tracks[k].notes[i];
     if (!n) return {};
     const v = this.voiceOf(k, i);
     const W = this.whole;
-    const out: { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number } = {};
+    const out: { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number; terrace?: number; swell?: number } = {};
     if (W) {
       const g = W.notes.get(`${v}:${n.on}`);
       const pal = W.paletteAt(v, n.on);
       const place = metricPlace((t) => inBar(this.f, t), n.on, this.beat);
+      // TRIAL (sound.ts registerAll): the harpsichord's and the organ's terrace and swell (chip.ts noteNow).
+      if (W.levelAt && W.swellAt && registerAll(preset().id)) (out.terrace = W.levelAt(v, n.on)), (out.swell = W.swellAt(v, n.on) + pal.weight[place]);
       out.lineDb = W.lineDynAt(v, n.on) + pal.weight[place] + (g?.phrase ? phraseArchDb(g.phrase.x) : 0) + (v === this.f.voices.length - 1 ? pal.bassDb : 0) + (W.subject.has(`${v}:${n.on}`) ? pal.entryDb : pal.othersDb);
       if (pal.dampMul !== 1) out.dampMul = pal.dampMul;
       if (pal.roomMul !== 1) out.roomMul = pal.roomMul;
