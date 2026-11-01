@@ -83,7 +83,8 @@ test("D409: marks are sparse: the start, every same-thumb repeat, a rest, a slid
           if (x.slid) return assert.ok(!at.has(k), `${id}: no mark on a slide`);
           const m = at.get(k);
           if (m) assert.equal(m.thumb, x.side === t[f.marks[0].k].side ? "A" : "B", `${id}: A one thumb, B the other`);
-          const prev = t.slice(0, k).findLastIndex((y) => !y.slid);
+          let prev = k - 1;
+          while (prev >= 0 && t[prev].slid) prev--;
           if (prev >= 0 && t[prev].side === x.side) assert.equal(m?.why, "repeat", `${id} ${kind} ${sideStr(f)}: a repeat at ${k} unmarked`);
         });
         // Never more than REMIND_EVERY unmarked touches in a row.
