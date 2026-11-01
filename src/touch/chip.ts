@@ -9,10 +9,10 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
-import { crowned, isPedal, liveRegistration, registeredNote, LUTE_LP, type Registered } from "./registration.ts";
+import { isPedal, liveRegistration, registeredNote, LUTE_LP, type Registered } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -537,17 +537,9 @@ export class Chip {
   }
   /** D249: the notes' own room sends (Play.room), through the volume, into the room. */
   private sends: GainNode;
-  /** D249: the drive's shaper, wired to the master only while CON FUOCO lasts. */
-  private shaper: WaveShaperNode;
-  private driveOn = false;
-  private driveOff: ReturnType<typeof setTimeout> | null = null;
   /** D249: the true ceiling at the end of the chain (a tanh soft clip, 4x oversampled). */
   readonly ceiling: WaveShaperNode;
   private readonly phone = isPhone();
-  /** D186: the master's brightness and its drive (the zones). */
-  private soften: BiquadFilterNode;
-  private drive: GainNode;
-  private zoneNow: "pleno" | "fuoco" | null = null;
   /**
    * The delay between the audio clock and what the player hears and does, in seconds, measured by
    * tapping along (D173: Bluetooth headphones add a fifth of a second or more, which the system often
@@ -583,7 +575,9 @@ export class Chip {
     // D181: lower, and a limiter at the end, so many voices, a band and the room never clip (as they
     // did on an iPhone: the ensembles' voices and the drums add up past full scale).
     this.master.gain.value = 0.4;
-    const soften = (this.soften = ctx.createBiquadFilter());
+    // The master's brightness, fixed. D482: no longer moved by the zones (ORGANO PLENO, CON FUOCO):
+    // no sound depends on the streak, the combo, the accuracy or the hits.
+    const soften = ctx.createBiquadFilter();
     soften.type = "lowpass";
     soften.frequency.value = 6500;
     soften.Q.value = 0.5;
@@ -617,14 +611,7 @@ export class Chip {
     this.sends = ctx.createGain();
     this.sends.connect(room);
     this.roomIn = this.sends;
-    // A warm drive beside the dry sound, silent until CON FUOCO (D249: and unwired outside it).
-    const shaper = (this.shaper = ctx.createWaveShaper());
-    const curve = new Float32Array(1024);
-    for (let i = 0; i < 1024; i++) curve[i] = Math.tanh(((i / 1023) * 2 - 1) * 3);
-    shaper.curve = curve;
-    this.drive = ctx.createGain();
-    this.drive.gain.value = 0;
-    shaper.connect(this.drive).connect(squeeze);
+    // D482: CON FUOCO's warm drive (D249) gone: a streak never changes the sound.
     this.bus = this.master;
     // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
@@ -733,11 +720,7 @@ export class Chip {
       if (reg.lute) p = { ...p, lute: true, lp: Math.min(p.lp ?? LUTE_LP, LUTE_LP), hold: p.hold ?? "none" };
     }
     if (id === "chamberOrgan" && p.couple !== false) {
-      // D349, ORGANO PLENO (the zone): the organist draws the mixture for the section, the whole organ.
-      if (this.zoneNow === "pleno") {
-        const c = crowned(v.patch, pedal, (p.lead || live.tutti) && live.stops ? live.stops : null, midi);
-        if (c) v = { ...v, patch: c };
-      }
+      // D482: ORGANO PLENO no longer draws the mixture (D349's crowning): a bonus earned by right notes never changes the sound.
       // D349, the echo manual (the player's touch toward the box): the note on the second manual's soft
       // flutes (Gedackt 8', Rohrflöte 4'), quieter and a little veiled (its lowpass: a Brustwerk behind its doors).
       if (p.echo && !pedal) v = { ...v, patch: PATCHES.orgFlute };
@@ -2649,55 +2632,23 @@ export class Chip {
     }
   }
 
-  /** The rhythm section's hits for one beat (the ensemble's groove), scheduled at `at`, a beat lasting `beatS` seconds. */
-  groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, extra = 0) {
+  /**
+   * The rhythm section's hits for one beat (the ensemble's groove), scheduled at `at`, a beat lasting
+   * `beatS` seconds. D482: D186's layers that grew with the player's run (shaker, clap, kick) gone.
+   */
+  groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean) {
     this.roomTo();
     this.sweep();
     const gr = grooveNow();
-    // D186: the band grows with the player's run: layers over the groove (or over the click).
-    for (const h of layerHits(extra, b, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr?.kit ?? "analog");
     if (!gr) return false;
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
   }
 
-  /**
-   * D186, the zones: ORGANO PLENO opens the room (more of it, brighter), CON FUOCO brighter still,
-   * with a warm drive; out of them, back to the preset's own.
-   */
-  zone(z: "pleno" | "fuoco" | null) {
-    if (z === this.zoneNow) return;
-    this.zoneNow = z;
-    const t = this.ctx.currentTime;
-    this.soften.frequency.setTargetAtTime(z === "fuoco" ? 11000 : z === "pleno" ? 9000 : 6500, t, z ? 0.4 : 0.8);
-    this.drive.gain.setTargetAtTime(z === "fuoco" ? 0.18 : 0, t, 0.5);
-    this.wireDrive(z === "fuoco");
-    this.roomTo();
-  }
-  /** D249: the drive's shaper wired in for CON FUOCO, and unwired once its fade-out (about 3 s) is done. */
-  private wireDrive(on: boolean) {
-    if (this.driveOff) (clearTimeout(this.driveOff), (this.driveOff = null));
-    if (on && !this.driveOn) {
-      this.master.connect(this.shaper);
-      this.driveOn = true;
-    } else if (!on && this.driveOn) {
-      const tm = setTimeout(() => {
-        this.driveOff = null;
-        if (this.zoneNow === "fuoco" || !this.driveOn) return;
-        this.master.disconnect(this.shaper);
-        this.driveOn = false;
-      }, 3000);
-      (tm as { unref?: () => void }).unref?.();
-      this.driveOff = tm;
-    }
-  }
-  /** D249: whether the drive is wired in now (for the tests). */
-  get driving(): boolean {
-    return this.driveOn;
-  }
   private roomTo() {
     const base = preset().room ?? 0.16;
-    const room = this.zoneNow === "pleno" ? Math.min(0.45, base * 2.2) : this.zoneNow === "fuoco" ? Math.min(0.4, base * 1.6) : base;
+    // D482: the preset's own room, never more for a zone earned by right notes.
+    const room = base;
     // D345: asked again only when it changes (it was asked every beat: an automation event a beat, never
     // let go where the room idles, as under a period preset, 1,350 over a 15-minute piece). The same
     // value approached again is the same sound.
@@ -2723,30 +2674,6 @@ export class Chip {
     halt(o, at + 0.04);
   }
 
-  /**
-   * D239: the HIGHWAY's "in the lane" chime: a tiny bell over the note struck in its planned lane,
-   * two octaves up (a sine and a soft inharmonic partial), about 0.18 s, well under the note.
-   */
-  chime(midi: number, at: number, level = 1) {
-    const ctx = this.ctx;
-    const f = hz(Math.min(108, midi + 24));
-    const bag = new Bag();
-    const g = bag.add(ctx.createGain());
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(0.05 * Math.max(0.4, Math.min(1, level)), at + 0.004);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.18);
-    g.connect(this.bus);
-    for (const [mul, lv] of [[1, 1], [2.76, 0.3]]) {
-      const o = bag.src(ctx.createOscillator());
-      const og = bag.add(ctx.createGain());
-      o.type = "sine";
-      o.frequency.value = f * mul;
-      og.gain.value = lv;
-      o.connect(og).connect(g);
-      o.start(at);
-      halt(o, at + 0.2);
-    }
-  }
 }
 
 /** The voices' timbres and places (D167): the bass a triangle, the top voice the thinnest pulse, the inner ones fuller; spread left (low) to right (high). */

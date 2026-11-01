@@ -116,13 +116,13 @@ export const fixConsistency = (x: LensStats): Said => ({ text: "Your touch chang
 export const fixMarks = (x: LensStats): Said => {
   const ok = x.marks.apart.ok + x.marks.short.ok;
   const of = x.marks.apart.of + x.marks.short.of;
-  return { text: "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: lift before the next.", vars: { n: of - ok, m: of } };
+  return { text: "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: a small silence before the next note.", vars: { n: of - ok, m: of } };
 };
 
 export const fixSlurs = (x: LensStats): Said => {
   const ok = x.marks.joined.ok + x.marks.apart.ok;
   const of = x.marks.joined.of + x.marks.apart.of;
-  return { text: "{n} of {m} missed. Join inside the slur; lift where it ends.", vars: { n: of - ok, m: of } };
+  return { text: "{n} of {m} missed. Legato under the slur; a small silence after its last note.", vars: { n: of - ok, m: of } };
 };
 
 export const fixAccents = (x: LensStats): Said => ({ text: "{n} of {m} accents missed. Weight on time: land the accent by the box, in the strong zone, on the beat.", vars: { n: x.marks.accent.of - x.marks.accent.ok, m: x.marks.accent.of } });
@@ -172,8 +172,8 @@ export function coachTexts(): string[] {
     "That was {got}. I asked for {want}: {how}.",
     ...Object.values(HOW),
     "Your touch changed from note to note: {c}% kept. Choose one length, and keep it.",
-    "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: lift before the next.",
-    "{n} of {m} missed. Join inside the slur; lift where it ends.",
+    "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: a small silence before the next note.",
+    "{n} of {m} missed. Legato under the slur; a small silence after its last note.",
     "{n} of {m} accents missed. Weight on time: land the accent by the box, in the strong zone, on the beat.",
     "You came in exactly on time after every rest. Breathe: enter a hair late, then go on.",
     "You leaned, then stayed late. After the lean, the next note is back on the beat.",

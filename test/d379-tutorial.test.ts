@@ -62,7 +62,10 @@ test("D379: Parts 4–6 rebuilt in the new format, then the fugue track; the old
   assert.equal(lessonById("6.7")!.sound, "harpsichord");
   // No jargon without its gloss in Parts 4–6 (the report's word list): no quaver, legato, staccato, cadence…
   const words = NEW.filter((l) => l.part !== "F").flatMap((l) => [l.english, l.aim, ...l.before, ...l.after, ...l.again, ...l.stages.map((s) => s.say ?? "")]).join(" ");
-  assert.doesNotMatch(words, /quaver|semiquaver|legato|staccato|articulation|stretto|mordent|cadence|onset|pulse|\bD3\d\d/i);
+  assert.doesNotMatch(words, /quaver|semiquaver|staccato|articulation|stretto|mordent|cadence|onset|pulse|\bD3\d\d/i);
+  // D480: LEGATO is the play screen's word (D419), allowed in his words, glossed in the lesson that uses it.
+  const glossed = (l: { aim: string; before: string[]; after: string[]; again: string[]; stages: { say?: string }[] }) => [l.aim, ...l.before, ...l.after, ...l.again, ...l.stages.map((s) => s.say ?? "")].join(" ");
+  for (const l of NEW.filter((l) => l.part !== "F")) if (/legato/i.test(glossed(l))) assert.match(glossed(l), /no gap|as (this one|the other) lifts/i, l.id);
 });
 
 test("D379: every excerpt's notes, read from data/touch/", () => {

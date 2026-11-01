@@ -47,7 +47,9 @@ test("D378: Glenn's mechanics are the default (play.html, the tutorial, the Lab)
   assert.doesNotMatch(lab, /\?glenn=0|MECHANICS: CLASSIC/);
   // HOW TO PLAY: joined by ear, over-legato, the slide's slur; the accent asks no hold.
   const ladder = RULES.ladder.join(" ");
-  assert.match(ladder, /Joined means no gap you can hear \(25 ms or less\)/);
+  assert.match(ladder, /LEGATO means no gap you can hear \(25 ms or less\)/);
+  // D480: over-legato an extra colour, not legato's definition.
+  assert.match(ladder, /An extra colour, not legato itself/);
   assert.match(ladder, /over-legato/);
   assert.match(ladder, /on a keyboard a slur begins/);
   assert.doesNotMatch(ladder, /hold it its full length/);
