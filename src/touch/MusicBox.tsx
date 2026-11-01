@@ -9,7 +9,7 @@
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { tr } from "../i18n/index.ts";
-import { bossBar, cadenceMarks, flags, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, entryMarks, flags, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type FlagVariant, type Pop, type Span } from "./box-fx.ts";
 import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
 import { markLegend, marksHas } from "./readings.ts";
 import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGeo } from "./box-whole.ts";
@@ -24,7 +24,7 @@ import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./c
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
 import { ladderHeight, ladderRows, touchRows, type StepRange } from "./box-zoom.ts";
-import { membership, raiseOf, subjectInkOf, subjectRimOf, themeOf } from "./subject-hue.ts";
+import { membership, raiseOf } from "./subject-hue.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
 const PX = 2;
@@ -394,12 +394,61 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D269: never mistaken for the player's: thinner (half a row, centred), flat (no shadow, no white
   // outline); a note glows while it sounds (brighter, a faint halo in its colour), never in the player's
   // hit colour.
-  // D352: a subject note (subject-hue.ts) in its voice's colour bent toward its subject's primary (1 red,
-  // 2 blue, 3 yellow), a rim of the primary round it, a keel of the voice's own ink along its foot; and
-  // while its entry sounds the voice is raised (taller, brighter, a halo of the primary), faded in and
-  // out over 150 ms: near the player's prominence, never their white outline or their full row.
+  // D352's raise kept: while its entry sounds a voice's subject notes are taller and fuller (faded in
+  // and out over 150 ms), never a full row nor the player's outline. The design studio (the owner: the
+  // subject hue "makes the colour coding inscrutable"): no subject tint, rim, keel or halo: every note
+  // in its voice's own ink.
   const spans = fr.spans;
   const otherIdx = spans ? membership(fr.others, spans) : null;
+  // The design studio: where the notes are (the entry marks keep off them). blockedAt: whether a rectangle
+  // holds a note of another voice than `voice` (any voice for -1); noteTop: the highest note's top over
+  // some columns (h where none; over the player's, room kept for the reading's marks).
+  const playedLists = PLAYED_LISTS;
+  playedLists[0] = fr.notes;
+  playedLists[1] = fr.notes2 && fr.voice2 !== undefined ? fr.notes2 : null;
+  const blockedAt = (x0: number, x1: number, y0: number, y1: number, voice: number) => {
+    for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
+      const o = fr.others[oi];
+      if (xOf(o.on) > x1) break;
+      if (xOf(o.on + o.dur) < x0 || o.voice === voice) continue;
+      const oy = yOf(o.step) - altOf(o.step, o.midi) * shift;
+      if (oy + hOf(o.step) > y0 && oy < y1) return true;
+    }
+    for (let k = 0; k < 2; k++) {
+      const pnotes = playedLists[k];
+      const pv = k === 0 ? fr.voice : fr.voice2;
+      if (!pnotes || pv === voice) continue;
+      for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
+        const n = pnotes[ni];
+        if (xOf(n.on) > x1) break;
+        if (xOf(n.on + n.dur) < x0) continue;
+        const ny = yOf(n.step) - altOf(n.step, n.midi) * shift - 1;
+        if (ny + bh + 1 > y0 && ny < y1) return true;
+      }
+    }
+    return false;
+  };
+  const noteTop = (x0: number, x1: number) => {
+    let top = h;
+    for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
+      const o = fr.others[oi];
+      if (xOf(o.on) > x1) break;
+      if (xOf(o.on + o.dur) >= x0) top = Math.min(top, yOf(o.step) - altOf(o.step, o.midi) * shift);
+    }
+    for (let k = 0; k < 2; k++) {
+      const pnotes = playedLists[k];
+      if (!pnotes) continue;
+      for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
+        const n = pnotes[ni];
+        if (xOf(n.on) > x1) break;
+        // The player's notes: their outline, and the reading's marks and arcs over them (up to 8 px).
+        if (xOf(n.on + n.dur) >= x0) top = Math.min(top, yOf(n.step) - altOf(n.step, n.midi) * shift - 9);
+      }
+    }
+    return top;
+  };
+  // The entry marks' leaders, brackets and rails, under every note.
+  if (spans && FLAG_VARIANT !== "o") entryMarks(fx, spans, FLAG_VARIANT, "under", noteTop, blockedAt);
   // D345: from the first note that can still show (the notes gone by not walked again every frame).
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
@@ -414,43 +463,15 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const voiceInk = inkOf(o.voice, fr.count);
     const bw = Math.max(1, x2 - x1 - 1);
     const oy = yOf(o.step) - altOf(o.step, o.midi) * shift;
-    if (si >= 0) {
-      const sp = spans![si];
-      const theme = themeOf(sp);
-      const rim = subjectRimOf(voiceInk, theme);
-      const r = raiseOf(sp, fr.now, fr.tps);
-      const th = full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
-      const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
-      // Each block its own (D332's gap, so the rims do not run the notes together).
-      const sw = Math.max(1, x2 - x1 - (x2 - x1 >= 7 ? 3 : x2 - x1 >= 4 ? 2 : 1));
-      g.fillStyle = rim;
-      if (r > 0 && full) {
-        g.globalAlpha = 0.14 * r;
-        g.fillRect(x1 - 2, y - 2, sw + 4, th + 4);
-      }
-      g.globalAlpha = 0.4 + 0.45 * r;
-      g.fillRect(x1 - 1, y - 1, sw + 2, th + 2);
-      g.globalAlpha = sounding ? 1 : 0.75 + 0.17 * r;
-      g.fillStyle = subjectInkOf(voiceInk, theme);
-      g.fillRect(x1, y, sw, th);
-      if (th >= 4) {
-        g.fillStyle = voiceInk;
-        g.fillRect(x1, y + th - 1, sw, 1);
-      }
-      if (sounding && th > 1) {
-        g.fillStyle = "rgba(255,255,255,0.35)";
-        g.fillRect(x1, y, sw, 1);
-      }
-      continue;
-    }
-    const th = full ? Math.max(1, Math.round(bh * 0.5)) : oh;
+    const r = si >= 0 ? raiseOf(spans![si], fr.now, fr.tps) : 0;
+    const th = full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
     const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
     if (sounding && full) {
       g.globalAlpha = 0.22;
       g.fillStyle = voiceInk;
       g.fillRect(x1 - 1, oy - 1, bw + 2, bh + 1);
     }
-    g.globalAlpha = sounding ? 1 : full ? 0.45 : 0.7;
+    g.globalAlpha = sounding ? 1 : (full ? 0.45 : 0.7) + 0.4 * r;
     g.fillStyle = voiceInk;
     g.fillRect(x1, y, bw, th);
     if (sounding && th > 1) {
@@ -481,15 +502,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   for (const [pv, pnotes] of played) {
     const inkPv = inkOf(pv, fr.count);
     const sinceMs = (at: number | undefined) => (at === undefined ? Infinity : ((fr.now - at) / fr.tps) * 1000);
-    const mineIdx = spans ? membership(pnotes, spans, pv) : null;
     for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
       const n = pnotes[ni];
       // D214: SUBJECT's line passes between voices, each note in its own colour.
       const voiceInk = n.voice === undefined || n.voice === pv ? inkPv : inkOf(n.voice, fr.count);
-      // D368: a subject note in its voice's own subject colour.
-      const si = mineIdx ? mineIdx[ni] : -1;
-      const sp = si >= 0 ? spans![si] : null;
-      const ink = sp ? subjectInkOf(voiceInk, themeOf(sp)) : voiceInk;
+      // The design studio: no subject hue (D368 gone): every note in its voice's own ink.
+      const ink = voiceInk;
       let x1 = xOf(n.on);
       if (x1 > w) break;
       const x2 = xOf(n.on + n.dur);
@@ -525,14 +543,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         g.globalAlpha = 1;
         continue;
       }
-      // D352: while the player's own entry sounds, a halo of its primary round the white outline.
-      const r = sp ? raiseOf(sp, fr.now, fr.tps) : 0;
-      if (r > 0) {
-        g.globalAlpha = 0.85 * r;
-        g.fillStyle = subjectRimOf(inkPv, themeOf(sp!));
-        g.fillRect(x1 - 2, y - 2, fw + 4, bh + 3);
-        g.globalAlpha = 1;
-      }
       // D202: each block extruded a pixel down and right (a voxel), then outlined and filled.
       g.fillStyle = "rgba(0,0,0,0.55)";
       g.fillRect(x1 + 1, y + 1, fw + 1, bh);
@@ -547,10 +557,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         g.fillRect(x1 + fw, y - 1, bw - fw + 1, 1);
         g.fillRect(x1 + fw, y + bh - 1, bw - fw + 1, 1);
         g.fillRect(x1 + bw, y - 1, 1, bh + 1);
-      }
-      if (sp && bh >= 6) {
-        g.fillStyle = voiceInk;
-        g.fillRect(x1, y + bh - 2, fw, 1);
       }
       if (bh > 3) {
         g.fillStyle = "rgba(255,255,255,0.28)";
@@ -631,7 +637,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   }
 
   // D279: YOU over the player's next note (the voice played, whatever its colour), so which line is
-  // yours is never a guess.
+  // yours is never a guess. The design studio: it breathes (youLabel), slowly, on the wall clock.
   {
     let n: LaneNote | undefined;
     for (let i = firstSounding(fr.notes, fr.now); i < fr.notes.length && !n; i++) if (fr.notes[i].on + fr.notes[i].dur >= fr.now && !fr.notes[i].ride) n = fr.notes[i];
@@ -640,8 +646,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       // D347: where the words stand under the notes, YOU over the voice's next entry only (after a rest),
       // not over a note the words already mark.
       if (!syls) {
-        if (x < w - 12) pixText(g, tr("YOU"), x, Math.min(h - 6, yOf(n.step) + bh + 2), edge);
-      } else if (x < w - 12 && xOf(n.on) > playX + 24) pixText(g, tr("YOU"), x, Math.max(0, yOf(n.step) - 8), edge);
+        if (x < w - 12) youLabel(g, x, Math.min(h - 6, yOf(n.step) + bh + 2), inkOf(fr.voice, fr.count), edge, fxClock);
+      } else if (x < w - 12 && xOf(n.on) > playX + 24) youLabel(g, x, Math.max(0, yOf(n.step) - 8), inkOf(fr.voice, fr.count), edge, fxClock);
     }
   }
   g.fillStyle = tok("--tg-playhead");
@@ -769,30 +775,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         }
       }
     }
-  // D372: the subject's effect over the player's own subject notes, then each entry's flag.
+  // D372: the subject's effect over the player's own subject notes, then each entry's mark (the design
+  // studio: the tabs and words, only where no note is; FLAG_VARIANT).
   if (spans) {
     subjectFx(fx, spans, playedVoices, true, fr.piece, fr.beatTicks, fxClock);
-    // Only another voice's note pushes the flag below: the entry's own notes rise under it as it fades.
-    flags(fx, spans, (x0, x1, y0, y1, voice) => {
-      for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
-        const o = fr.others[oi];
-        const a = xOf(o.on);
-        if (a > x1) break;
-        if (xOf(o.on + o.dur) < x0 || o.voice === voice) continue;
-        const oy = yOf(o.step);
-        if (oy + hOf(o.step) > y0 && oy < y1) return true;
-      }
-      for (const [pv, pnotes] of played)
-        for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
-          const n = pnotes[ni];
-          const a = xOf(n.on);
-          if (a > x1) break;
-          if (xOf(n.on + n.dur) < x0 || pv === voice) continue;
-          const ny = yOf(n.step);
-          if (ny + bh > y0 && ny < y1) return true;
-        }
-      return false;
-    });
+    if (FLAG_VARIANT === "o") flags(fx, spans, blockedAt);
+    else entryMarks(fx, spans, FLAG_VARIANT, "over", noteTop, blockedAt);
   }
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
@@ -800,6 +788,27 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   if (fr.cadences) cadenceMarks(fx, fr.cadences);
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   zoneGlow(fx, fr.zone ?? null);
+}
+
+/** The design studio (the owner: YOU should "glow or blink" to be seen): one breath every YOU_BREATH_S. */
+export const YOU_BREATH_S = 1.8;
+/**
+ * The YOU label, breathing: a soft glow of the player's ink round the word, swelling and fading once every
+ * YOU_BREATH_S (about 0.56 Hz, under the owner's 1 Hz ceiling), on the wall clock: never on the music, never
+ * on right or wrong. The word itself stays white.
+ */
+function youLabel(g: CanvasRenderingContext2D, x: number, y: number, ink: string, edge: string, t: number) {
+  const word = tr("YOU");
+  const tw = textWidth(word) - 1;
+  // 0 .. 1 .. 0, smooth (a sine), one breath every YOU_BREATH_S.
+  const b = 0.5 - 0.5 * Math.cos((2 * Math.PI * t) / YOU_BREATH_S);
+  g.fillStyle = ink;
+  g.globalAlpha = 0.18 + 0.32 * b;
+  g.fillRect(x - 3, y - 3, tw + 6, 11);
+  g.globalAlpha = 0.3 + 0.5 * b;
+  g.fillRect(x - 2, y - 2, tw + 4, 9);
+  g.globalAlpha = 1;
+  pixText(g, word, x, y, edge);
 }
 
 /**
@@ -1038,6 +1047,19 @@ function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: strin
 const GOLD_SLUR = "#ffd23f";
 /** D372: the voices played (the effects' passes), kept. */
 const PLAYED_VOICES = [0, 0];
+const PLAYED_LISTS: (readonly LaneNote[] | null)[] = [null, null];
+/**
+ * The design studio: the entry marks' variant (box-fx.ts entryMarks), `?flagv=a|b|c` in the page's
+ * address (`o` D372's flag, for comparison); TAB (a) unless asked.
+ */
+export const FLAG_VARIANT: FlagVariant = (() => {
+  try {
+    const v = new URLSearchParams(globalThis.location?.search ?? "").get("flagv");
+    return v === "a" || v === "b" || v === "c" || v === "o" ? v : "a";
+  } catch {
+    return "a";
+  }
+})();
 /** D391: the whole reading's geometry, one object kept (filled each frame: nothing allocated). */
 const WHOLE_GEO = {} as WholeGeo;
 /** D391: a reading's mark (readings.ts MarkNote), with a whole-piece reading's own signs (whole-marks.ts BoxMark). */

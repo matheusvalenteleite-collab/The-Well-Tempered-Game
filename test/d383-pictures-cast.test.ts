@@ -11,7 +11,7 @@ import { EMBLEM_H, EMBLEM_W, emblemPixels, pictureOf } from "../src/bench/emblem
 import { PICTURES } from "../src/bench/pictures-data.ts";
 import { FUGUE_NAMES, fugueName } from "../src/touch/fugue-names.ts";
 import { fugueById } from "../src/touch/fugue.ts";
-import { BOOK1_CAST, BOOK2_CAST, CAST, castOf, effectOf, EFFECTS, FX_BUILT, type SubjectEffect } from "../src/touch/subject-cast.ts";
+import { BOOK1_CAST, BOOK2_CAST, CAST, castOf, effectOf, EFFECTS, FX_BUILT, ONLY_FX, type SubjectEffect } from "../src/touch/subject-cast.ts";
 import { FX_RECTS, subjectFx, type Span } from "../src/touch/box-fx.ts";
 
 const THE_48 = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
@@ -65,7 +65,8 @@ test("the cast: every subject of all 48 fugues has an effect, every one of the t
     for (const t of themes) {
       const e = castOf(id, t as 1 | 2 | 3);
       assert.ok(e && FX_BUILT.has(e), `${id} subject ${t}`);
-      assert.equal(effectOf(id, t as 1 | 2 | 3), e, `${id} subject ${t} drawn as cast`);
+      // The design studio: for now every subject is drawn HOP (ONLY_FX); the cast is kept as the record.
+      assert.equal(effectOf(id, t as 1 | 2 | 3), ONLY_FX ?? e, `${id} subject ${t} drawn`);
     }
   }
   const used = new Set(Object.values(CAST).flat());
