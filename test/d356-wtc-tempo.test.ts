@@ -19,16 +19,16 @@ const lite = await import("../src/bench/lite.ts");
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const FUGUES = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 
-test("D356: every WTC fugue has three tempi by D351's rules (SLOW 0.75×; FAST 1.25× within 5.5 notes/s, at least 1.12×)", () => {
+test("D356: every WTC fugue has three tempi by D351's rules (SLOW 0.75×; FAST 1.4× within 7.5 notes/s, at least 1.3× (D481))", () => {
   for (const id of FUGUES) {
     assert.ok(steps.isWtcFugue(id) && steps.stepKind(id) === "wtc", id);
     const t = steps.stepTempi(id)!;
     const d = TEMPO[id].normal;
     assert.equal(t.default, d, id);
     assert.equal(t.slow, Math.round(d * 0.75), id);
-    assert.ok(t.fast >= Math.round(d * 1.12) && t.fast <= Math.round(d * 1.25), id);
+    assert.ok(t.fast >= Math.round(d * 1.3) && t.fast <= Math.round(d * 1.4), id);
     const fastLoad = (TEMPO[id].busiest * t.fast) / d;
-    assert.ok(fastLoad <= 5.5 + 0.06 || t.fast === Math.round(d * 1.12), `${id}: ${fastLoad.toFixed(2)} notes/s at FAST`);
+    assert.ok(fastLoad <= 7.5 + 0.06 || t.fast === Math.round(d * 1.3), `${id}: ${fastLoad.toFixed(2)} notes/s at FAST`);
   }
   for (const id of ["wtc1p01", "wtc2p05", "inv01"]) assert.equal(steps.stepTempi(id), null, id);
 });

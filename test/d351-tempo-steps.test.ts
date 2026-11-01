@@ -80,7 +80,7 @@ test("D351: the pictures' words: a fugue keeps FUGA, every other MORE BACH and C
   assert.equal(keyLabel("c#", "fugue"), "c♯ · FUGA");
 });
 
-test("D351: three tempi for every MORE BACH and CHORALES piece: SLOW 0.75×, FAST 1.25× within the game's load (at least 1.12×); chorales ♩ 48 · 60 · 76", () => {
+test("D351: three tempi for every MORE BACH and CHORALES piece: SLOW 0.75×, FAST 1.4× within 7.5 notes/s (at least 1.3×, D481); chorales ♩ 48 · 60 · 76", () => {
   for (const id of [...MORE, ...CHORALE_IDS]) {
     const t = steps.stepTempi(id);
     assert.ok(t, id);
@@ -91,16 +91,15 @@ test("D351: three tempi for every MORE BACH and CHORALES piece: SLOW 0.75×, FAS
       continue;
     }
     assert.ok(Math.abs(t.slow - 0.75 * t.default) <= 0.5, `${id}: SLOW`);
-    assert.ok(t.fast <= Math.round(1.25 * t.default) && t.fast >= Math.round(1.12 * t.default), `${id}: FAST`);
-    // FAST passes the 5.5 notes a second only where DEFAULT is already within 12% of it, and then by at most 12%.
+    // D481: FAST 1.4×, at least 1.3×, within its own load of 7.5 notes a second unless the 1.3× floor passes it.
+    assert.ok(t.fast <= Math.round(1.4 * t.default) && t.fast >= Math.round(1.3 * t.default), `${id}: FAST`);
     if (rec.busiest > 0) {
       const load = (rec.busiest * t.fast) / t.default;
-      assert.ok(load <= 5.5 + 0.05 || t.fast === Math.round(1.12 * t.default), `${id}: ${load.toFixed(2)} notes a second at FAST`);
-      assert.ok(load <= 5.5 * 1.12 * 1.13 + 0.05, `${id}: modestly`);
+      assert.ok(load <= 7.5 + 0.06 || t.fast === Math.round(1.3 * t.default), `${id}: ${load.toFixed(2)} notes a second at FAST`);
     }
   }
   // The quick concerto movements sit at the cap: FAST passes it by 12% (♩ 82 → 92).
-  assert.deepEqual(steps.stepTempi("bwv1052-1"), { slow: 62, default: 82, fast: 92 });
+  assert.deepEqual(steps.stepTempi("bwv1052-1"), { slow: 62, default: 82, fast: 112 });
   // Not for the WTC's preludes (D356: its fugues since, test/d356-wtc-tempo.test.ts).
   assert.equal(steps.stepTempi("wtc1p01"), null);
   assert.match(steps.stepBeat("bwv1053-2", 66), /^♩\. 44$/);

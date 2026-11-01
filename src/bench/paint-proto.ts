@@ -17,7 +17,7 @@ import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, CROWD_START, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { trCanvas } from "../i18n/index.ts";
-import { acrossBar, drawThumb } from "./fingering.ts";
+import { drawThumb } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK, type ArtFlash } from "./articulation.ts";
@@ -963,6 +963,67 @@ export function label(c: CanvasRenderingContext2D, text: string, x: number, y: n
   c.fillText(word, x, y);
 }
 
+/**
+ * Design studio (D460, the owner: "keep it simple and use only the black and white circles, that's all we need"):
+ * under each of the player's coming notes in the box, ● or ○, the thumb the plan gives it (fingering.ts, D409's
+ * best plan), the two thumbs either way round: ● is the thumb the round begins with. Each bar carries its own
+ * sign, small and still, at its outer side (in THE TUTORIAL its thumbs are drawn too). Drawing only: the judge
+ * never asks which thumb (D370).
+ */
+const FIRST_SIDE = new WeakMap<ProtoGame, { start: number; side: "left" | "right"; locked?: boolean; flip?: boolean }>();
+function thumbSigns(c: CanvasRenderingContext2D, w: number, h: number, bw: number, g: ProtoGame, t: Tok) {
+  const rows = g.rows;
+  const plan = g.plan;
+  if (!rows || !plan.length) return;
+  // The round's ● thumb: the plan's first, unless the player began with the other (then the signs follow the player).
+  let first = FIRST_SIDE.get(g);
+  if (!first || first.start !== g.startTick) FIRST_SIDE.set(g, (first = { start: g.startTick, side: plan[0].side }));
+  const down = g.thumbsDown();
+  if (!first.locked && down.length) Object.assign(first, { side: down[0].side, locked: true, flip: down[0].side !== plan[0].side });
+  const flip = !!first.flip;
+  const notes = g.tracks[0].notes;
+  const ink = paper ? "#2a2216" : t.fg;
+  const back = paper ? "#f6f5f1" : "#121a34";
+  const r = Math.max(2.5, Math.min(4, rows.rowH * 0.35));
+  for (const p of plan) {
+    const n = notes[p.i];
+    if (!n || n.ride) continue;
+    const x = rows.xOf(n.on) + r + 1;
+    if (x < bw + r) continue;
+    if (x > w - bw - r) break;
+    const filled = (p.side === plan[0].side) !== flip;
+    const y = rows.yOf(n.step) + rows.rowH * 0.5 + r + 2;
+    c.globalAlpha = n.state === "pending" ? 0.95 : 0.4;
+    c.beginPath();
+    c.arc(x, y, r, 0, Math.PI * 2);
+    c.fillStyle = filled ? ink : back;
+    c.fill();
+    if (!filled) {
+      c.strokeStyle = ink;
+      c.lineWidth = 1.4;
+      c.stroke();
+    }
+  }
+  // Each bar's own sign, still, at its outer side, halfway up; brighter while that thumb is down.
+  for (const side of ["left", "right"] as const) {
+    const filled = side === first.side;
+    const x = side === "left" ? 14 : w - 14;
+    const y = h * 0.5;
+    const on = down.some((d) => d.side === side);
+    c.globalAlpha = on ? 1 : 0.6;
+    c.beginPath();
+    c.arc(x, y, 6, 0, Math.PI * 2);
+    c.fillStyle = filled ? (on ? t.shine : ink) : back;
+    c.fill();
+    if (!filled) {
+      c.strokeStyle = on ? t.shine : ink;
+      c.lineWidth = 2;
+      c.stroke();
+    }
+  }
+  c.globalAlpha = 1;
+}
+
 /** D415: the side bars' opacity over the box running under them (0.92 before: opaque in effect). */
 const BAR_VEIL = 0.52;
 function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
@@ -1063,16 +1124,11 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
           c.fillRect(s.x === 0 ? bw - STRIP_EDGE - 2 : s.x + STRIP_EDGE, 0, 2, h);
         }
         c.globalAlpha = 1;
-        // The beat closing in: two bars meeting at the bar's foot (over the bar, above the dynamics' marks).
-        const half = (bw / 2) * (1 - nx.p);
-        const fy = h - (g.touchDynamics ? 22 : 6);
-        c.fillStyle = t.shine;
-        c.fillRect(s.x, fy, bw / 2 - half, 3);
-        c.fillRect(s.x + bw / 2 + half, fy, bw / 2 - half, 3);
-        // The way from that thumb's own last note (D296: how it is judged), else from the note before.
-        const d = sy !== y && own ? Math.sign(n.step - own.step) : m.size < 0 || m.steps === 0 ? 0 : m.dir;
-        const way = !g.lastTouch || m.size < 0 ? "" : d === 0 ? "=" : d > 0 ? "▲" : "▼";
-        label(c, `${way}${n.long ? " HOLD" : ""}`, s.x + bw / 2, sy, t.fg, 9);
+        // Design studio (D460, the owner: the arrows and everything moving in the bars "happening so fast that
+        // it's impossible for the player to learn anything from them"): no closing bars, no ▲ ▼ = arrow; the
+        // thumbs are ● ○ under the notes (thumbSigns). HOLD stays, alone, where the note is long.
+        if (n.long) label(c, "HOLD", s.x + bw / 2, sy, t.fg, 7);
+        void m;
         // D278: an ornament to play: its sign and SHAKE under the arrow, gold, the hand wobbling.
         // D314: as the tutorial shows it: the sign larger, the ornament named; till one is shaken, a
         // guide thumb shaking on the bar and how ("TOUCH IT, THEN SHAKE YOUR THUMB").
@@ -1095,11 +1151,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       // D271, THE TUTORIAL's coaching.
       // D273: before the first strike either thumb (the point is taking turns, not which starts).
       // D280: with the guide, the thumbs below take its place.
-      if (g.o.coach === "thumbs" && !g.o.guide && !g.o.demo) {
-        const next = g.thumbNext();
-        if (next) thumbCoach(c, w, bw, y, next, t);
-        else (thumbCoach(c, w, bw, y, "left", t, "EITHER THUMB"), thumbCoach(c, w, bw, y, "right", t, "EITHER THUMB"));
-      }
+      // D460: the coaching's drawn thumb (a skin-coloured thumb, against the standing rule) gone: ● ○ under the notes say it.
       if (g.o.coach === "dynamics") dynamicsCoach(c, w, h, bw, n.on < g.f.barTicks, t);
       // A soft trail from the note in the box out to the bars (D298: not over the sheet).
       if (!paper) {
@@ -1152,6 +1204,8 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
   // D373: in the tutorial the thumbs are its aid's (model A, manual/aids.ts).
   if (g.proto.id === "ladder" && (g.o.demo || g.o.guide) && !g.o.thumbsA) thumbsShown(c, w, h, g, t);
+  // D460: which thumb plays each note, ● or ○ under it, and each bar's own sign.
+  if (g.proto.id === "ladder" && rows) thumbSigns(c, w, h, bw, g, t);
 }
 
 /**
@@ -1190,39 +1244,15 @@ function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: Proto
   const fade = Math.max(0.25, Math.min(1, 1 - ahead / (APPROACH_MS * 1.6)));
   const y = rows.yOf(next.step);
   if (next.slid) {
-    label(c, "SLIDE ▲", g.thumbsDown()[0]?.side === "right" ? w - bw / 2 : bw / 2, y - size, t.gold, 8);
+    // D419 (the audit): the slide's own way (it said ▲ sliding down too).
+    const before = next.i > 0 ? notes[next.i - 1] : undefined;
+    label(c, before && notes[next.i].step < before.step ? "SLIDE ▼" : "SLIDE ▲", g.thumbsDown()[0]?.side === "right" ? w - bw / 2 : bw / 2, y - size, t.gold, 8);
     return;
   }
-  // The other thumb from the last; before the first note, either (taking turns is the point, not which starts: D273).
-  // D370: where the plan keeps one thumb (a detached note, by the music's intent: fingering.ts), the same thumb again.
-  const k = plan.indexOf(next);
-  const other = g.thumbNext();
-  const last = other && k > 0 && plan[k - 1].side === next.side ? (other === "left" ? "right" : "left") : other;
-  for (const side of last ? [last] : (["left", "right"] as const)) {
-    const x = side === "left" ? bw * (1 - strengthOf(acrossBar(next.d))) : w - bw + bw * strengthOf(acrossBar(next.d));
-    drawThumb(c, x, y, size, side, "hover", fade);
-    label(c, `${last ? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB") : "EITHER THUMB"}${next.shake ? " · THEN SHAKE" : ""}`, side === "left" ? bw / 2 : w - bw / 2, y + size * 0.9, t.shine, 6);
-  }
+  // D460: no hovering thumb, no LEFT THUMB / RIGHT THUMB words: ● ○ under the notes (thumbSigns) say which thumb.
+  void fade;
 }
 
-/** D271: a thumb on the bar whose turn it is, at the next note's height, nudging in (the other bar's glow stays: either may play). */
-function thumbCoach(c: CanvasRenderingContext2D, w: number, bw: number, y: number, side: "left" | "right", t: Tok, word?: string) {
-  const bob = Math.sin(performance.now() / 160) * 4;
-  const tw = Math.max(16, Math.min(28, bw * 0.28));
-  const th = tw * 1.5;
-  const x = side === "left" ? bw * 0.62 + bob : w - bw * 0.62 - tw - bob;
-  c.globalAlpha = 0.95;
-  c.fillStyle = "#f2c9a0";
-  c.fillRect(Math.round(x), Math.round(y - th / 2), Math.round(tw), Math.round(th));
-  c.fillStyle = "#c8946a";
-  c.fillRect(Math.round(x), Math.round(y + th / 2 - 3), Math.round(tw), 3);
-  // The nail, at the end facing the box.
-  c.fillStyle = "#fff1e2";
-  const nx = side === "left" ? x + tw * 0.4 : x;
-  c.fillRect(Math.round(nx), Math.round(y - th / 2 + 3), Math.round(tw * 0.6), Math.round(th * 0.45));
-  c.globalAlpha = 1;
-  label(c, word ?? (side === "left" ? "LEFT THUMB" : "RIGHT THUMB"), side === "left" ? bw / 2 : w - bw / 2, y + th / 2 + 12, t.shine, 6);
-}
 
 /** D271: the part of both bars asked for: soft in the first bar, loud in the second (D314/D315: on the sides STRONG_SIDE gives). */
 function dynamicsCoach(c: CanvasRenderingContext2D, w: number, h: number, bw: number, soft: boolean, t: Tok) {
@@ -1333,7 +1363,7 @@ export const VERDICT_LIFT = 10;
 
 function articulationWord(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok, f: ArtFlash, lift: number) {
   // D359: in THE MANUAL's practice room only the words its lesson is about.
-  // (The reading's words, DETACHED ✓, ACCENT ✓, STACCATO ✓, are of the kind "legato".)
+  // (The reading's words, DETACHED ✓, ACCENT ✓, SHORT ✓, are of the kind "legato".)
   if (g.o.quiet && !g.o.quiet.words?.includes(f.kind)) return;
   const age = performance.now() - f.at;
   if (age > ART_WORD_MS) return;

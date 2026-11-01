@@ -848,7 +848,7 @@ export function zoneGlow(c: Ctx, zone: "pleno" | "fuoco" | null) {
 
 /**
  * D194, the cadences (D208: a tick on the timeline): each coming one a short gold tick at the foot of
- * the box, named beside it ("PERFECT CADENCE · G MINOR"); as it is reached, the tick flares.
+ * the box, named beside it ("FULL CADENCE · G MINOR"); as it is reached, the tick flares.
  */
 export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[]) {
   const { g, w, h, xOf, now } = c;

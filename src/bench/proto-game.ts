@@ -1244,7 +1244,8 @@ export class ProtoGame {
     }
     if (missed) {
       for (let s = 0; s < missed; s++) this.slip();
-      this.grade = { text: "MISS", at: performance.now() };
+      // D419 (the audit): MISS on the bar whose turn it was (it showed on the right bar always).
+      this.grade = { text: "MISS", at: performance.now(), side: this.thumbNext() ?? undefined };
     }
     this.judgeEntries();
     this.judgeStrettos();
@@ -3107,7 +3108,7 @@ export class ProtoGame {
           const bonus = artRoom(artBonus(h.pts, this.artChain), this.score, this.earned.articulation);
           h.pts += bonus;
           this.earn("articulation", bonus);
-          text = this.artChain > 1 ? `LEGATO ×${this.artChain}` : "LEGATO";
+          text = this.artChain > 1 ? `SAME TOUCH ×${this.artChain}` : "LEGATO";
         } else this.artChain = 0;
       }
       this.flash = { text, at, good: true, kind: "legato" };
@@ -3245,6 +3246,8 @@ export class ProtoGame {
         if (joinedByEar(lw.gapMs, !!lo.cancel, legatoGapMs(this.msOf(p.on, p.on + p.dur)))) over = true;
       } else if (this.msOf(lo.tick, tk) <= legatoGapMs(this.msOf(p.on, p.on + p.dur))) over = true;
     }
+    // D419: the join as judged, for the box's drawing (MusicBox: the blocks meet where the judge heard them joined).
+    if (!slide) notes[i].joinedIn = over;
     // D325: the note before's hold, as the player let it go (still down: held to this strike), before its end is judged here.
     const pv = this.before(i, h.k);
     let hold: { sounded: number; toNext: number; gap: number } | null = null;
@@ -3574,7 +3577,8 @@ export class ProtoGame {
           this.artChain++;
           artAdd = artRoom(artBonus(h.pts, this.artChain), this.score + h.pts, this.earned.articulation);
           h.pts += artAdd;
-          const text = this.artChain > 1 ? `${word} ×${this.artChain}` : word;
+          // D419 (the audit): the streak of one touch kept is SAME TOUCH ×n; LEGATO ×n is the legato chain alone (the left bar).
+          const text = this.artChain > 1 ? `SAME TOUCH ×${this.artChain}` : word;
           this.flash = { text, at, good: true, kind: "legato" };
           this.pops.push({ tick: n.on, step, text, at, gold: false, from: { tick: notes[pv].on, step: notes[pv].step }, ink: LEGATO_INK });
         } else this.artChain = 0;
@@ -3597,7 +3601,8 @@ export class ProtoGame {
         // Joined or detached into it as the reading says; its accent. D338: loudness is never judged
         // (the subject's level and the reading's dynamics sound, they are not asked of the thumbs).
         if (askJoin === true) this.styled(legatoNow, at);
-        if (askJoin === false) this.styled(!over, at, "DETACHED ✓");
+        // D419 (the audit): DETACHED asked only where the score has no rest already (a free ✓ before).
+        if (askJoin === false && this.joinedAt(i, h.k)) this.styled(!over, at, "DETACHED ✓");
         // D338: the accent by time (accent.ts): on time or leaned, the note before let go; held, judged at its end.
         if (ask?.accent) {
           const joinedBefore = this.joinedAt(i, h.k) && pv >= 0 && notes[pv].state === "hit";
@@ -3605,7 +3610,9 @@ export class ProtoGame {
           // D385: weight on time (accent.ts accentWeighted): struck in the strong zone, within PERFECT; D338's
           // lean and silence only under the Lab's CLASSIC mechanics.
           const why = MECH.glenn ? (slide ? "soft" : accentWeighted(offMs, perfMs, this.strengthAsked() ? (h.land ?? TOUCH_NEUTRAL) : null)) : slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
-          h.wantAccent = { why };
+          // D419 (the audit): Glenn's accent is judged at the strike, so ACCENT ✓ shows there, not at the lift.
+          if (MECH.glenn) this.styled(why === null, at, "ACCENT ✓");
+          else h.wantAccent = { why };
         }
         if (ask?.short) h.wantShort = true;
       }
@@ -3853,7 +3860,7 @@ export class ProtoGame {
   }
   /** The last articulation called (a short word under the verdict). */
   flash: ArtFlash | null = null;
-  /** D384 (Mario 1): the last reading verdict (DETACHED ✓, ACCENT ✓, STACCATO ✓), drawn over the articulation's word. */
+  /** D384 (Mario 1): the last reading verdict (DETACHED ✓, ACCENT ✓, SHORT ✓), drawn over the articulation's word. */
   readingWord: ArtFlash | null = null;
   /** The legato strikes, for the slur drawn between the two notes (note a to note b of track k). */
   readonly ties: { k: number; a: number; b: number; at: number }[] = [];
@@ -3958,7 +3965,7 @@ export class ProtoGame {
     if (h.wantShort) {
       h.wantShort = false;
       const short = this.msOf(n.on, off) < len * 0.6;
-      this.styled(short, at, "STACCATO ✓");
+      this.styled(short, at, "SHORT ✓");
       if (short) return;
     }
     const step = Math.max(...chordOf(notes, i).map((j) => notes[j].step));
@@ -3978,7 +3985,8 @@ export class ProtoGame {
     if (r.hold !== "none") this.art.heldOf++;
     if (r.hold === "short") {
       this.crowd = Math.max(0, this.crowd - 0.01);
-      word = { text: "SHORT", at, good: false, kind: "short" };
+      // D419 (the audit): the fault is TOO SOON, so SHORT means one thing (the dot, lift early, done right: SHORT ✓).
+      word = { text: "TOO SOON", at, good: false, kind: "short" };
     } else if (r.hold === "held") {
       this.art.held++;
       pts += holdBonus(n.dur / this.beat) * this.mult;
@@ -4713,7 +4721,7 @@ export class ProtoGame {
   private styled(met: boolean, at: number, word?: string) {
     this.style.of++;
     // D359: the same asks by the mark they answer (THE MANUAL's lessons on articulation read them apart).
-    const by = this.styleBy[word === "DETACHED ✓" ? "apart" : word === "ACCENT ✓" ? "accent" : word === "STACCATO ✓" ? "short" : "joined"];
+    const by = this.styleBy[word === "DETACHED ✓" ? "apart" : word === "ACCENT ✓" ? "accent" : word === "SHORT ✓" ? "short" : "joined"];
     by.of++;
     if (met) by.hit++;
     if (!met) return;
