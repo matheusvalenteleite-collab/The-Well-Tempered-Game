@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fugueById, FUGUES, type TouchFugue } from "../src/touch/fugue.ts";
 import { accompaniment, entrySpans } from "../src/touch/voice-mode.ts";
-import { membership, raiseOf, RAISE_FADE_MS, SUBJECT_SHIFT, subjectInk, subjectInkOf, themeOf } from "../src/touch/subject-hue.ts";
+import { membership, paleOf, raiseOf, RAISE_FADE_MS, themeOf } from "../src/touch/subject-hue.ts";
 import { SubjectCues } from "../src/touch/subject-fx.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -104,7 +104,10 @@ test("made once per list: the same answer object every frame, made again only wh
   assert.equal(b[list.length - 1], -1);
 });
 
-test("D368: the colours: each voice its own hue, modified by its subject; distinct within a piece", () => {
+// The design studio (the owner: the subject hue "makes the colour coding inscrutable"): D352/D368's subject
+// tint is gone, so its test (each voice's subject turned ±34° per subject) is replaced by this one: no subject
+// note is drawn in another hue than its voice's; an effect's light is the voice's own ink, paler.
+test("no subject hue: the box draws subject notes in their voice's own ink; an effect's light keeps the voice's hue", () => {
   const hue = (hex: string) => {
     const v = parseInt(hex.slice(1), 16);
     const [r, g, b] = [(v >> 16) & 255, (v >> 8) & 255, v & 255].map((x) => x / 255);
@@ -114,19 +117,15 @@ test("D368: the colours: each voice its own hue, modified by its subject; distin
     return h * 60;
   };
   const dist = (a: number, b: number) => Math.abs((((a - b) % 360) + 540) % 360 - 180);
-  for (const count of [2, 3, 4, 5]) {
+  for (const count of [2, 3, 4, 5])
     for (let v = 0; v < count; v++) {
       const ink = inkOf(v, count);
-      const [s1, s2, s3] = ([1, 2, 3] as const).map((t) => subjectInk(ink, t));
-      // D368: the voice's own hue, modified: subject 1 on it, 2 and 3 turned ±34° off it.
-      ([s1, s2, s3] as string[]).forEach((c, k) => assert.ok(dist(hue(c), (hue(ink) + SUBJECT_SHIFT[k + 1] + 360) % 360) <= 8, `${ink} theme ${k + 1}: ${c}`));
-      assert.ok(dist(hue(s2), hue(s3)) > 50, `${ink}: ${s2} ${s3}`);
-      assert.equal(subjectInkOf(ink, 2), s2);
+      const pale = paleOf(ink);
+      assert.ok(dist(hue(pale), hue(ink)) <= 4, `${ink} → ${pale}`);
+      assert.ok(parseInt(pale.slice(1, 3), 16) >= parseInt(ink.slice(1, 3), 16));
     }
-    // Two voices' subject never the same colour (each its own lean, or its own lightness).
-    const s = Array.from({ length: count }, (_, v) => subjectInk(inkOf(v, count), 1));
-    assert.equal(new Set(s).size, count);
-  }
+  const box = src("src/touch/MusicBox.tsx") + src("src/touch/box-fx.ts") + src("src/bench/HearSubject.tsx");
+  assert.ok(!/subjectInk|subjectRim|SUBJECT_SHIFT/.test(box), "no subject tint left in the painters");
 });
 
 test("the voice raised: up over 150 ms before the entry, held, down over 150 ms after", () => {

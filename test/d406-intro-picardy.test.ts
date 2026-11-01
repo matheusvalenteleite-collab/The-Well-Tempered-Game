@@ -30,10 +30,13 @@ test("D406: the data's tenor goes on B♭ A C B♮ C♯ D; the intro plays them 
   assert.deepEqual(notes.map((n) => n.fade), [false, false, false, false, false, true]);
   assert.equal(m.INTRO_S, m.INTRO_RESOLVE_S + m.INTRO_CROSS_S);
   assert.ok(m.INTRO_TAIL_S >= 2 && m.INTRO_TAIL_S <= 3.2 && m.INTRO_TAIL_S > m.INTRO_CROSS_S, "the chord outlasts the cross-fade, dying over the selection");
-  // D major, the third (F♯) in it, the D in the bass; the consort under the flute's D5.
-  assert.deepEqual([...new Set(m.INTRO_CHORD.map((c) => c.midi % 12))].sort((a, b) => a - b), [2, 6, 9]);
-  assert.equal(Math.min(...m.INTRO_CHORD.map((c) => c.midi)) % 12, 2);
-  assert.ok(m.INTRO_CHORD.every((c) => c.midi < 74 && c.patch.startsWith("cons")));
+  // D410: the harpsichord's arpeggio D A D G, the G (a suspension) resolving to F♯ (the Picardy third), rising, the D in the bass.
+  assert.deepEqual(m.INTRO_CHORD.map((c) => c.midi), [50, 57, 62, 67, 66]);
+  assert.ok(m.INTRO_CHORD.every((c, i, a) => i === 0 || c.at > a[i - 1].at), "broken upward, slowly");
+  assert.ok(m.INTRO_CHORD.every((c) => c.midi < 74 && c.patch.startsWith("harpsi")));
+  // D410: two slurs, B♭–A and C–H: the first of each held into the second, a breath after the A.
+  assert.ok(notes[0].at + notes[0].len > notes[1].at && notes[2].at + notes[2].len > notes[3].at, "B♭–A and C–H joined");
+  assert.ok(notes[1].at + notes[1].len < notes[2].at - 0.1, "the A lifted before the C");
   assert.equal(m.INTRO_PRESET.slots?.[0], "traverso");
 });
 
@@ -70,7 +73,7 @@ test("D406: playIntro: the flute's notes at once, the chord on the D once the st
   await new Promise((r) => setTimeout(r, 0));
   const chord = played.slice(6);
   assert.deepEqual(chord.map((n) => n.midi), m.INTRO_CHORD.map((c) => c.midi));
-  assert.ok(chord.every((n) => Math.abs(n.at - (1.12 + m.INTRO_RESOLVE_S)) < 1e-9), "the chord on the D");
+  assert.ok(chord.every((n, i) => Math.abs(n.at - (1.12 + m.INTRO_RESOLVE_S + m.INTRO_CHORD[i].at)) < 1e-9), "the arpeggio from the D");
   assert.ok(chord.every((n) => n.trims.at(-1)![0] < 0.01 && Math.abs(n.trims.at(-1)![2] - (1.12 + m.INTRO_RESOLVE_S + m.INTRO_TAIL_S)) < 1e-9), "faded to nothing at the tail's end");
   ctx.currentTime = 3;
   p.fadeOut();

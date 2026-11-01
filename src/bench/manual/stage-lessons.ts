@@ -64,7 +64,7 @@ export const STAGE_LESSONS: ManualLesson[] = [
     aids: ["thumbs"],
     stages: [
       st("listen", m(I1, 1, 1, 2, { bpm: 51 }, "Fugue I/1 in C major, alto alone, bars 1–2: the subject", I1_ALTO, { solo: true }), "Listen. One voice alone plays a tune: it climbs from C to G, then turns back. This tune is the subject."),
-      st("watch", m(I1, 0, 2, 3, { bpm: 40 }, "Fugue I/1, soprano, bars 2–3: the answer", I1_SOP_2_3, { widen: 2, flags: true }), "Now the soprano, your voice, takes the same tune, higher. Watch my thumbs.", { aids: ["thumbs", "point"] }),
+      st("watch", m(I1, 0, 2, 3, { bpm: 40 }, "Fugue I/1, soprano, bars 2–3: the answer", I1_SOP_2_3, { widen: 2, flags: true }), "Now the soprano, your voice, takes the same tune, higher. Watch my thumbs.", { aids: ["thumbs"] }),
       st("try", m(I1, 0, 2, 3, { bpm: 40 }, "Fugue I/1, soprano, bars 2–3: the answer", I1_SOP_2_3, { widen: 2, wait: true, flags: true }), "Your turn. Each note waits for you.", { aids: ["thumbs", "trace"] }),
       st("play", m(I1, 0, 2, 4, full, "Fugue I/1, soprano, bars 2–4, as in the game", I1_SOP_2_4, { flags: true }), "Now as in the game, at its own speed: wait for my voice, then answer."),
     ],
@@ -90,7 +90,7 @@ export const STAGE_LESSONS: ManualLesson[] = [
     aids: ["thumbs"],
     stages: [
       st("listen", m(I23, 2, 1, 2, { bpm: 60 }, "Fugue I/23 in B major, tenor alone, bars 1–2: the subject", I23_TEN, { solo: true }), "This fugue begins low, in the tenor. Listen to its tune: a little turn, a dip, and a climb."),
-      st("watch", m(I23, 1, 3, 4, { bpm: 44 }, "Fugue I/23, alto, bars 3–4: the answer", I23_ALTO_3_4, { widen: 2, flags: true }), "Then the alto, you, answers it, while the tenor goes on beneath. Watch.", { aids: ["thumbs", "point"] }),
+      st("watch", m(I23, 1, 3, 4, { bpm: 44 }, "Fugue I/23, alto, bars 3–4: the answer", I23_ALTO_3_4, { widen: 2, flags: true }), "Then the alto, you, answers it, while the tenor goes on beneath. Watch.", { aids: ["thumbs"] }),
       st("try", m(I23, 1, 3, 4, { bpm: 44 }, "Fugue I/23, alto, bars 3–4: the answer", I23_ALTO_3_4, { widen: 2, wait: true, flags: true }), "Your turn. Each note waits for you.", { aids: ["thumbs", "trace"] }),
       st("play", m(I23, 1, 3, 6, full, "Fugue I/23, alto, bars 3–6, as in the game", I23_ALTO_3_6, { flags: true }), "Now at the fugue's own speed. Let the tenor finish its tune, then come in."),
     ],
@@ -114,7 +114,7 @@ export const STAGE_LESSONS: ManualLesson[] = [
     aids: ["thumbs", "fill"],
     stages: [
       st("listen", m(I22, 0, 1, 2, { bpm: 94 }, "Fugue I/22 in B♭ minor, soprano alone, bars 1–2: the subject", I22_SOP1, { solo: true }), "A slow, grave tune: a fall, a great leap up, and a sigh down."),
-      st("watch", m(I22, 1, 3, 5, { bpm: 70 }, "Fugue I/22, second soprano, bars 3–5: the answer", I22_SOP2_3_5, { widen: 2 }), "Watch: my thumb stays down for the whole of each long note.", { style: "held", aids: ["thumbs", "fill", "point"] }),
+      st("watch", m(I22, 1, 3, 5, { bpm: 70 }, "Fugue I/22, second soprano, bars 3–5: the answer", I22_SOP2_3_5, { widen: 2 }), "Watch: my thumb stays down for the whole of each long note.", { style: "held", aids: ["thumbs", "fill"] }),
       st("try", m(I22, 1, 3, 5, { bpm: 70 }, "Fugue I/22, second soprano, bars 3–5: the answer", I22_SOP2_3_5, { widen: 2, wait: true }), "Your turn. Hold each one; the next waits for you.", { aids: ["thumbs", "fill", "trace"] }),
       st("play", m(I22, 1, 3, 9, full, "Fugue I/22, second soprano, bars 3–9, as in the game", I22_SOP2_3_9), "Now at the fugue's speed. Hold each note until the next one starts."),
     ],
@@ -138,7 +138,7 @@ export const STAGE_LESSONS: ManualLesson[] = [
     aids: ["thumbs"],
     stages: [
       st("listen", m(I18, 2, 1, 2, { bpm: 62 }, "Fugue I/18 in G♯ minor, tenor alone, bars 1–2: the subject", ["A♭3", "G3", "A♭3", "B♭3", "B3", "B♭3", "A♭3", "D4", "E♭4", "F♯3", "A♭3", "A♭3", "B♭3", "B♭3", "E♭3"], { solo: true }), "Listen to the end of this tune: notes in pairs, each played twice, light and short."),
-      st("watch", m(I18, 1, 3, 4, { bpm: 44 }, "Fugue I/18, alto, bars 3–4: the answer, the repeated notes short", I18_ALTO_3_4, { widen: 2 }), "The dots over those notes are Busoni's sign: short. Watch: touch, and let go.", { aids: ["thumbs", "point"] }),
+      st("watch", m(I18, 1, 3, 4, { bpm: 44 }, "Fugue I/18, alto, bars 3–4: the answer, the repeated notes short", I18_ALTO_3_4, { widen: 2 }), "The dots over those notes are Busoni's sign: short. Watch: touch, and let go.", { aids: ["thumbs"] }),
       st("try", m(I18, 1, 3, 4, { bpm: 44 }, "Fugue I/18, alto, bars 3–4: the answer, the repeated notes short", I18_ALTO_3_4, { widen: 2, wait: true }), "Your turn: the dotted notes short.", { aids: ["thumbs", "trace"] }),
       st("play", m(I18, 1, 3, 6, full, "Fugue I/18, alto, bars 3–6, as in the game", I18_ALTO_3_6), "Now at the fugue's speed. The dotted notes short; lift fully between the repeats."),
     ],

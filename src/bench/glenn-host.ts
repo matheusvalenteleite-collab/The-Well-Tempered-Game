@@ -44,12 +44,12 @@ export const GLENN_LINES: Record<string, string> = {
   "One note at a time, the right way. Again.": "One note at a time, the right way. Again.",
   // 1.4 TAKING TURNS.
   "Quick notes are easier with two thumbs, one after the other.": "Quick notes go better with two thumbs, one after the other. Like walking: nobody hops on one leg by choice.",
-  "Now both thumbs: left, right, left, right. The letters under the notes tell you which.": "Both thumbs: left, right, left, right. The letters under the notes say which. I didn't invent the letters; I obey them.",
-  "Now you: the letter under each note tells you which thumb.": "Your turn. The letter under each note tells you which thumb.",
+  "Now both thumbs, taking turns. Under each note: ● one thumb, ○ the other, either way round.": "Both thumbs, taking turns. Under each note: ● one thumb, ○ the other, whichever way round you like. I don't care which; I care that they alternate.",
+  "Now you: start with either thumb, then the marks tell you when to change.": "Your turn. Start with either thumb; the marks tell you when to change.",
   "In time, taking turns. I count four.": "In time, taking turns. Four, and in.",
   "A little quicker now. The same turns.": "A touch quicker. Same turns.",
   "Two thumbs walk where one would stumble.": "Two thumbs walk where one would stumble. Remember that when the notes get quick. They will.",
-  "Left, right, left, right, as the letters say. Again.": "Left, right, left, right, as the letters say. Again.",
+  "One thumb, then the other, as the marks say. Again.": "One thumb, then the other, as the marks say. Again.",
   // 1.5 PLAYING WITH BACH.
   "Now we play together. The music has two lines, two voices: I play one, you play the other.": "Now we play together. Two lines, two voices: I take one, you take the other. Not melody and accompaniment: a conversation.",
   "Watch the lower notes, the ones with a white border: that will be your part. My upper voice begins; yours answers.": "Watch the lower notes, the white-bordered ones. That's your part. My upper voice begins; yours answers.",

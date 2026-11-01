@@ -13,6 +13,12 @@
  * F♯4: D major, the third on top of the strings). The D is where the title page cross-fades into the
  * selection screen (INTRO_RESOLVE_S); the chord swells in, holds and fades to nothing over INTRO_TAIL_S
  * while the selection already shows.
+ *
+ * D410 (the owner: "instead of a direct D major chord … a slow harpsichord arpeggio D, A, D, G–F♯
+ * (suspension resolving to the Picardy third) … and the traverso should join B and A, and join C and H,
+ * separating these two a bit (two slurs, B–A and C–H)"): the flute's B♭ held into the A, a breath, the C
+ * held into the H; on the D the harpsichord breaks D3 A3 D4 slowly upward and lands on G4, which resolves
+ * to F♯4 (the suspension 4–3 onto the major third), all dying away while the selection shows.
  */
 import { fugueById } from "../touch/fugue.ts";
 import { PATCHES, preset, type Preset } from "../touch/sound.ts";
@@ -37,7 +43,7 @@ export const INTRO_RESOLVE_S = 3 * INTRO_HALF_S + INTRO_H_S + INTRO_CSHARP_S;
 /** D406: the chord's swell in (s). */
 export const INTRO_SWELL_S = 0.6;
 /** D406: the D and its chord die away over this long from the D (s), the selection already showing. */
-export const INTRO_TAIL_S = 2.8;
+export const INTRO_TAIL_S = 3.2;
 /** D406: the title page's cross-fade into the selection screen, from the D (s). */
 export const INTRO_CROSS_S = 1.4;
 /** The title page, from the first note to the selection screen (s): the D, then the cross-fade. */
@@ -46,14 +52,12 @@ export const INTRO_S = INTRO_RESOLVE_S + INTRO_CROSS_S;
 export const INTRO_SKIP_FADE_S = 0.35;
 /** D406: the flute's level (a note's own, 1 as the patch): quiet. */
 export const INTRO_FLUTE_LEVEL = 0.55;
-/** D406: the consort's level under the flute (its notes' trim): in the background. */
-export const INTRO_CONSORT_LEVEL = 0.32;
 
 /**
  * D406: the intro's own ensemble: the TRAVERSO on top, the STRING CONSORT's players under it (so their
  * recordings load with it), its salon for the strings and an airy share of the room for the flute.
  */
-export const INTRO_PRESET: Preset = { id: "intro", name: "INTRO", slots: ["traverso", "consViolin", "consViola", "consViola", "consCello"], room: 0.3, fx: "salon" };
+export const INTRO_PRESET: Preset = { id: "intro", name: "INTRO", slots: ["traverso", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiBassSampled"], room: 0.3, fx: "salon" };
 
 export interface IntroNote {
   midi: number;
@@ -64,19 +68,27 @@ export interface IntroNote {
   fade: boolean;
 }
 
-/** D406: one of the consort's chord notes: its patch, pan and pitch. */
+/** D410: one note of the harpsichord's arpeggio on the D: its pitch, its delay from the D (s) and its patch. */
 export interface ChordNote {
   midi: number;
-  patch: "consViolin" | "consViola" | "consCello";
+  at: number;
+  patch: "harpsiSampled" | "harpsiBassSampled";
   pan: number;
 }
 
-/** D406: D major under the flute's D5 (D3 A3 D4 F♯4: the Picardy third in the first violin). */
+/** D410: the arpeggio's pace (s between its notes) and the suspension's resolution (s from the D). */
+export const ARP_STEP_S = 0.3;
+export const ARP_RESOLVE_S = 1.55;
+/** D410: the harpsichord's level under the flute. */
+export const INTRO_HARPSI_LEVEL = 0.5;
+
+/** D410: D3 A3 D4, then G4 (the 4th, held over) resolving to F♯4 (the Picardy third). */
 export const INTRO_CHORD: readonly ChordNote[] = [
-  { midi: 50, patch: "consCello", pan: 0.2 },
-  { midi: 57, patch: "consViola", pan: 0.06 },
-  { midi: 62, patch: "consViolin", pan: -0.08 },
-  { midi: 66, patch: "consViolin", pan: -0.2 },
+  { midi: 50, at: 0, patch: "harpsiBassSampled", pan: 0.15 },
+  { midi: 57, at: ARP_STEP_S, patch: "harpsiSampled", pan: 0.05 },
+  { midi: 62, at: 2 * ARP_STEP_S, patch: "harpsiSampled", pan: -0.05 },
+  { midi: 67, at: 3 * ARP_STEP_S, patch: "harpsiSampled", pan: -0.12 },
+  { midi: 66, at: ARP_RESOLVE_S, patch: "harpsiSampled", pan: -0.12 },
 ];
 
 /**
@@ -100,8 +112,10 @@ export function bachNotes(): IntroNote[] {
   const lens = [INTRO_HALF_S, INTRO_HALF_S, INTRO_HALF_S, INTRO_H_S, INTRO_CSHARP_S, INTRO_TAIL_S];
   let at = 0;
   return pitches.map((m, i) => {
-    // The C♯ held into the D (joined: the step a breath, not two attacks).
-    const n = { midi: m + INTRO_OCTAVE, at, len: i < 4 ? lens[i] * 0.98 : i === 4 ? lens[i] + 0.02 : lens[i], fade: i === 5 };
+    // D410: two slurs, B♭–A and C–H (the first of each held into the second; the A lifted for a breath
+    // before the C); the C♯ held into the D (joined: the step a breath, not two attacks).
+    const len = i === 0 || i === 2 ? lens[i] + 0.04 : i === 1 ? lens[i] * 0.8 : i === 3 ? lens[i] * 0.97 : i === 4 ? lens[i] + 0.02 : lens[i];
+    const n = { midi: m + INTRO_OCTAVE, at, len, fade: i === 5 };
     at += lens[i];
     return n;
   });
@@ -134,7 +148,8 @@ export function playIntro(ch: Chip, ready: Promise<unknown>, lead = 0.12): Intro
   let over = false;
   for (const [i, n] of notes.entries()) {
     // The C♯ joined into the D (no new breath).
-    sounds.push(ch.note(n.midi, t0 + n.at, n.len, flute, { into: fl, level: INTRO_FLUTE_LEVEL, couple: false, ...(i === notes.length - 1 ? { legato: true, from: notes[i - 1]?.midi, final: true } : {}) }));
+    const slurred = i === 1 || i === 3 || i === notes.length - 1;
+    sounds.push(ch.note(n.midi, t0 + n.at, n.len, flute, { into: fl, level: INTRO_FLUTE_LEVEL, couple: false, ...(slurred ? { legato: true, from: notes[i - 1]?.midi } : {}), ...(i === notes.length - 1 ? { final: true } : {}) }));
   }
   // The flute's D (alone on its gain by then) held through the swell, then dying away with the chord.
   const d = t0 + INTRO_RESOLVE_S;
@@ -147,10 +162,13 @@ export function playIntro(ch: Chip, ready: Promise<unknown>, lead = 0.12): Intro
     const at = Math.max(d, ctx.currentTime + 0.03);
     if (end - at < 0.5) return;
     for (const c of INTRO_CHORD) {
-      const sd = ch.note(c.midi, at, end - at + 0.1, { ...voicing(0, 1, true), pan: c.pan, patch: PATCHES[c.patch] }, { into: out, level: INTRO_CONSORT_LEVEL, couple: false });
-      sd.trim?.(0.02, at, at + 0.001);
-      sd.trim?.(1, at + 0.001, at + INTRO_SWELL_S);
-      sd.trim?.(0.0001, at + INTRO_SWELL_S, end);
+      const on = at + c.at;
+      if (on >= end - 0.2) continue;
+      // The G held until the F♯ comes (the suspension), the rest ringing to the end.
+      const off = c.midi === 67 ? at + ARP_RESOLVE_S + 0.05 : end + 0.1;
+      const sd = ch.note(c.midi, on, off - on, { ...voicing(0, 1, true), pan: c.pan, patch: PATCHES[c.patch] }, { into: out, level: INTRO_HARPSI_LEVEL, couple: false });
+      sd.trim?.(1, Math.max(on, end - 1.2), Math.max(on, end - 1.2) + 0.001);
+      sd.trim?.(0.0001, Math.max(on + 0.01, end - 1.2), end);
       sounds.push(sd);
     }
   });
