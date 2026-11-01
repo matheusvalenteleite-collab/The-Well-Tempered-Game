@@ -588,13 +588,11 @@ export function wholeLegend(box: WholeBox): { kind: WholeKind; sym: string; text
   const tap = hardTapDevice();
   const all: { kind: WholeKind; sym: string; text: string }[] = [
     { kind: "marcato", sym: "^", text: tap ? tr("MARCATO: TAP HARD, LET GO SHORT") : tr("MARCATO: STRONG ZONE, LET GO SHORT") },
-    { kind: "wedge", sym: "▾", text: tr("WEDGE: SHORTER THAN THE DOT") },
-    { kind: "tenuto", sym: "–", text: tr("TENUTO: HOLD ITS FULL VALUE") },
-    { kind: "portato", sym: "·", text: tr("PORTATO: CARRIED, A LITTLE APART") },
-    { kind: "lift", sym: "’", text: tr("LIFT: LET GO AT THE SLUR'S END") },
+    { kind: "wedge", sym: "▾", text: tr("WEDGE: SHORT, SHARPER (JUDGED AS SHORT)") },
+    { kind: "tenuto", sym: "–", text: tr("TENUTO: ITS FULL VALUE (NOT SCORED)") },
+    { kind: "portato", sym: "–·", text: tr("PORTATO: CARRIED, A LITTLE APART") },
     { kind: "phrase", sym: "⌒", text: tr("PHRASE: ONE LONG LINE (A GUIDE)") },
-    { kind: "breath", sym: "//", text: tr("CAESURA: A SHORT SILENCE") },
-    { kind: "fermata", sym: "𝄐", text: tr("FERMATA: HELD LONGER") },
+    { kind: "fermata", sym: "𝄐", text: tr("FERMATA: HELD LONGER (NOT SCORED)") },
     { kind: "dynamics", sym: "p f", text: tap ? tr("LEVELS: THE LINE PLAYS THEM; THE MIDDLE ZONE KEEPS THEM, SF A HARD TAP") : tr("LEVELS: THE LINE PLAYS THEM; THE MIDDLE ZONE KEEPS THEM, SF THE STRONG ZONE") },
     { kind: "hairpin", sym: "< >", text: tr("HAIRPINS: LOUDER, SOFTER (THE LINE FOLLOWS)") },
     { kind: "words", sym: "Aa", text: tr("WORDS AS BUSONI PRINTS THEM: TRANSLATED BELOW") },

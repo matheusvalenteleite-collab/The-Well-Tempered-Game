@@ -19,16 +19,16 @@ const lite = await import("../src/bench/lite.ts");
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const FUGUES = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 
-test("D356: every WTC fugue has three tempi by D351's rules (SLOW 0.75×; FAST 1.25× within 5.5 notes/s, at least 1.12×)", () => {
+test("D356: every WTC fugue has three tempi by D351's rules (SLOW 0.75×; FAST 1.4× within 7.5 notes/s, at least 1.3× (D481))", () => {
   for (const id of FUGUES) {
     assert.ok(steps.isWtcFugue(id) && steps.stepKind(id) === "wtc", id);
     const t = steps.stepTempi(id)!;
     const d = TEMPO[id].normal;
     assert.equal(t.default, d, id);
     assert.equal(t.slow, Math.round(d * 0.75), id);
-    assert.ok(t.fast >= Math.round(d * 1.12) && t.fast <= Math.round(d * 1.25), id);
+    assert.ok(t.fast >= Math.round(d * 1.3) && t.fast <= Math.round(d * 1.4), id);
     const fastLoad = (TEMPO[id].busiest * t.fast) / d;
-    assert.ok(fastLoad <= 5.5 + 0.06 || t.fast === Math.round(d * 1.12), `${id}: ${fastLoad.toFixed(2)} notes/s at FAST`);
+    assert.ok(fastLoad <= 7.5 + 0.06 || t.fast === Math.round(d * 1.3), `${id}: ${fastLoad.toFixed(2)} notes/s at FAST`);
   }
   for (const id of ["wtc1p01", "wtc2p05", "inv01"]) assert.equal(steps.stepTempi(id), null, id);
 });
@@ -49,17 +49,17 @@ test("D356: the sounds: SLOW the PIPE ORGAN, FAST CLASSIC CHIP, DEFAULT the fugu
   assert.deepEqual([steps.stepSound("bwv1080-01", "slow"), steps.stepSound("bwv1080-01", "fast")], ["chamberOrgan", "chip"]);
 });
 
-test("D356: the unlock: a friend's WTC fugue opens its tempo with an A or S (today's or before 1.52), never a B; the unlocked view everywhere; MORE BACH only unlocked", () => {
+test("D356: the unlock: a friend's WTC fugue opens its tempo with a B or better (D417; today's or before 1.52), never a C; the unlocked view everywhere; MORE BACH only unlocked", () => {
   store.clear();
   const st = () => lite.readLite();
   const open = (id: string, full = false) => steps.tempoOpen(id, full, lite.tempoEarned(id, st()));
   assert.equal(open("wtc1f01"), false);
-  lite.recordLite("wtc1f01", false, true, "B");
-  assert.equal(open("wtc1f01"), false, "a B does not open it");
+  lite.recordLite("wtc1f01", false, true, "C");
+  assert.equal(open("wtc1f01"), false, "a C does not open it");
   lite.recordLite("wtc1f01", true, true, "S");
   assert.equal(open("wtc1f01"), false, "a run the crowd left does not count");
-  lite.recordLite("wtc1f01", false, true, "A");
-  assert.equal(open("wtc1f01"), true, "an A opens it");
+  lite.recordLite("wtc1f01", false, true, "B");
+  assert.equal(open("wtc1f01"), true, "D417: a B opens it");
   assert.equal(open("wtc1f02"), false, "only that fugue's");
   lite.recordLite("wtc2f03", false, true, "S");
   assert.equal(open("wtc2f03"), true, "an S, Book II's too");
@@ -109,6 +109,6 @@ test("D356: a SLOW run is kept apart (never replaces the A nor the best score); 
   assert.match(app, /apart \? recordLiteSlow\(f\.id, r\.grade, r\.sheet\.final\) : recordLiteBest\(f\.id, r\.sheet\.final\)/);
   assert.match(app, /id="result-tempo"/);
   assert.match(app, /tempoOpen\(id, full, tempoEarned\(id, lite\)\)/);
-  assert.match(app, /id="pop-tempo-hint"[\s\S]{0,80}tr\("AN A ON THIS FUGUE UNLOCKS TEMPO"\)/);
-  for (const d of ["src/i18n/pt.ts", "src/i18n/es.ts"]) for (const k of ["AN A ON THIS FUGUE UNLOCKS TEMPO", "KEPT APART FROM YOUR BEST"]) assert.match(src(d), new RegExp(`"${k}": "`), `${d} ${k}`);
+  assert.match(app, /id="pop-tempo-hint"[\s\S]{0,80}tr\("A B ON THIS FUGUE UNLOCKS TEMPO"\)/);
+  for (const d of ["src/i18n/pt.ts", "src/i18n/es.ts"]) for (const k of ["A B ON THIS FUGUE UNLOCKS TEMPO", "KEPT APART FROM YOUR BEST"]) assert.match(src(d), new RegExp(`"${k}": "`), `${d} ${k}`);
 });

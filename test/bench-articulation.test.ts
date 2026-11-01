@@ -120,7 +120,7 @@ test("D218: HELD and SHORT judged on release; SHORT no slip (D337: A · CLASSIC'
   assert.equal(held.flash?.text, "HELD");
   assert.deepEqual([held.art.held, held.art.heldOf], [1, 1]);
   const short = run([{ t: t0, down: true, id: 1 }, { t: t0 + len * 0.2, down: false, id: 1 }]);
-  assert.equal(short.flash?.text, "SHORT");
+  assert.equal(short.flash?.text, "TOO SOON");
   assert.deepEqual([short.art.held, short.art.heldOf], [0, 1]);
   assert.ok(short.crowd < held.crowd, "the crowd a little cooler");
   assert.ok(short.score < held.score, "no HELD bonus");

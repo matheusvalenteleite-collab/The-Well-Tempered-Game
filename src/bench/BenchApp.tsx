@@ -2050,7 +2050,7 @@ export function BenchApp() {
           {APP.lite && !tempi && isWtcFugue(f.id) && lite.beaten.includes(f.id) && (
             // D356: a WTC fugue finished but not with an A: the one quiet line saying what opens its tempo.
             <p className="tg-card-sub tb-pop-tempo-hint" id="pop-tempo-hint">
-              {tr("AN A ON THIS FUGUE UNLOCKS TEMPO")}
+              {tr("A B ON THIS FUGUE UNLOCKS TEMPO")}
             </p>
           )}
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}

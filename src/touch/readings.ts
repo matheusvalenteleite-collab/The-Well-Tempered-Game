@@ -127,7 +127,7 @@ export const readingsOf = (id: string): Reading[] => READINGS[id] ?? [];
 
 /**
  * D314: what each of the reading's marks asks of the thumbs, in plain words (the owner: "clearer
- * instructions on what the . is in articulation"): the dot is SHORT (staccato: judged STACCATO ✓ when
+ * instructions on what the . is in articulation"): the dot is SHORT (staccato: judged SHORT ✓ (D419; was STACCATO ✓) when
  * the thumb lets go before three fifths of the note), the stroke DETACHED (D370: it was APART; judged
  * DETACHED ✓), the line JOINED (legato), the wedge an ACCENT (D387: weight on time: landed in the strong
  * zone, by the box, within PERFECT; D425: a hard tap, within GOOD, the strong zone where no sensor; src/bench/accent.ts. D338's lean after a silence only under CLASSIC). D370 (Glenn's notes §3): one vocabulary
@@ -139,9 +139,9 @@ export type MarkKind = "short" | "apart" | "joined" | "slur" | "strong";
 export function markLegend(_strongSide?: "outer" | "inner"): { kind: MarkKind; sym: string; text: string }[] {
   return [
     { kind: "short", sym: "·", text: tr("SHORT: LIFT BEFORE THREE FIFTHS OF THE NOTE") },
-    { kind: "apart", sym: "|", text: tr("DETACHED: LIFT BEFORE THE NEXT") },
-    { kind: "joined", sym: "‾", text: tr("JOINED: NEXT THUMB DOWN BEFORE LIFTING") },
-    { kind: "slur", sym: "⌒", text: tr("SLUR: ONE GESTURE, JOINED INSIDE, LIFT AT ITS END") },
+    { kind: "apart", sym: "|", text: tr("DETACHED: A SMALL SILENCE BEFORE THE NEXT NOTE") },
+    { kind: "joined", sym: "‾", text: tr("LEGATO: NO GAP: THE NEXT THUMB LANDS AS THIS ONE LIFTS") },
+    { kind: "slur", sym: "⌒", text: tr("SLUR: LEGATO UNDER IT, A SMALL SILENCE AFTER ITS LAST NOTE") },
     // D425: the accent a hard tap where the phone feels one (motion.ts hardTapDevice), else the strong zone (D387), whichever argument is given.
     { kind: "strong", sym: ">", text: hardTapDevice() ? tr("ACCENT: TAP HARD") : tr("ACCENT: STRONG ZONE") },
   ];
