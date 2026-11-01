@@ -23,7 +23,8 @@ import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMark, type Touch } from "./fingering.ts";
 import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
-import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentWhy } from "./accent.ts";
+import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentBy, type AccentWhy } from "./accent.ts";
+import { HARD_RAMP_MS, hardDb, hardForAccent, StrikeSlot, type HardFamily, type StrikeSource } from "../touch/hard-tap.ts";
 import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
@@ -160,6 +161,8 @@ export interface Contact {
   y: number;
   w: number;
   h: number;
+  /** D425: how hard it struck (0 soft .. 1 hard), where known at touchdown: Herr Bach's demonstration, a test's player (else read by ProtoGame.strikes). */
+  strike?: number;
 }
 
 /** A key of a computer or a MIDI keyboard: a pitch (MIDI), or a move (the computer's arrows and WASD). */
@@ -230,7 +233,11 @@ interface Held {
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
   /** D338: its note is the reading's accent, struck on time or leaned and not joined from the note before (or not: why): its hold judged at its end. */
-  wantAccent?: { why: AccentWhy | null };
+  wantAccent?: { why: AccentWhy | null; pending?: boolean; then?: () => void };
+  /** D425: how hard the touch struck (the motion sensor's peak by the calibration, or given), read once after its touchdown. */
+  strike?: StrikeSlot;
+  /** D425: its strike already given to a note (a slide, a pull-off or a press after it strikes nothing). */
+  strikeUsed?: boolean;
   /** D314: how its note sounds (the voicing and play it was struck with), for a free ornament's notes. */
   tone?: { v: ReturnType<typeof voicing>; play: Play };
   /** D314: a shake under way on its note (D353: free-ornament.ts ShakeReader), the note it is on, the legs counted. */
@@ -881,6 +888,12 @@ export class ProtoGame {
    * with it or without it (the game never sets it).
    */
   noteDyn: ((n: NoteDynAsk) => NoteDynAnswer | null) | null = null;
+  /**
+   * D425, THE HARD TAP: where each touchdown's strength is read from (the motion sensor: hard-tap.ts
+   * motionStrikes; set by the page when the sensor answers). Null: none (a computer, refused): the accent
+   * falls back on the strong zone.
+   */
+  strikes: StrikeSource | null = null;
   /** D317: how LADDER judged the last touch's height (for the tap). */
   private ladderWhy: LadderWhy | undefined;
   /** D317: the note nearest a stray touch (for the tap). */
@@ -1279,8 +1292,8 @@ export class ProtoGame {
     return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay, ...(h.wait?.prep ? { armed: true } : {}), ...(h.land !== undefined && h.across !== undefined && this.proto.layout === "bars" ? { across: barAcross(h.across * this.touchW, this.touchW), land: strengthOf(h.land) } : {}) }));
   }
   /** D280: the thumbs down now: side, height, where across (0..1 of the width), shaking. */
-  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean; t0?: number; was?: number }[] {
-    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done, t0: h.t0, was: wasAt(h.trail) }));
+  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean; t0?: number; was?: number; hard?: boolean }[] {
+    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done, t0: h.t0, was: wasAt(h.trail), ...(hardForAccent(h.strike?.value ?? null) ? { hard: true } : {}) }));
   }
 
   /**
@@ -1376,7 +1389,9 @@ export class ProtoGame {
           return;
         }
         parent = p;
-        q.push({ tick: t.land ?? t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
+        // D425: his accents struck hard (a synthetic strength, as a phone would read it), the rest softly.
+        const strike = this.asksAccent(0, t.i) ? 1 : 0.25;
+        q.push({ tick: t.land ?? t.on, act: () => ((y = rows.yOf(t.step)), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H, strike }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
           // D353: the legs as quick as the contour reader asks (each within half its mordent leg), from the landing.
@@ -1909,6 +1924,12 @@ export class ProtoGame {
     h.land = this.landAt(c);
     this.lastLand[h.k] = h.land;
     this.landNow[c.side] = h.land;
+    // D425: the strike's strength, given (the demonstration) or read from the motion sensor just after the touchdown.
+    h.strike = new StrikeSlot(c.strike !== undefined ? Math.max(0, Math.min(1, c.strike)) : this.strikes ? undefined : null);
+    if (h.strike.value === undefined) {
+      const slot = h.strike;
+      this.strikes!.read(ts, (s) => slot.set(s));
+    }
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
@@ -3290,7 +3311,21 @@ export class ProtoGame {
     }
     // D385: the piano's line: the reading's level (a whole-piece reading's printed dynamics, its phrase arcs and
     // palette), the thumb's zone about it (touch-expr.ts pianoDb), a reading's accent weighted in the strong zone.
-    if (styleOf(preset().id) === "piano" && expr.touch !== undefined) expr = { ...expr, ...this.lineAt(h.k, i) };
+    // D425: the touch's strike (the hard tap), given to the first note it sounds (a slide or a lift strikes nothing).
+    const strike = !slide && !h.strikeUsed && this.gesture !== "pull-off" && this.gesture !== "press" ? h.strike : undefined;
+    if (strike) h.strikeUsed = true;
+    const byTap = !!strike && strike.value !== null && !dynAns;
+    const line = styleOf(preset().id) === "piano" && expr.touch !== undefined ? this.lineAt(h.k, i) : null;
+    // D425: with the hard tap the strong zone no longer gives the accent's weight (the strike does, below); the three zones stay.
+    if (line) expr = { ...expr, ...line, ...(byTap ? { accentDb: undefined } : {}) };
+    const hardFam: HardFamily = fam;
+    const markDb = this.markDbAt(h.k, i);
+    let hardLate = false;
+    if (byTap && strike.value !== undefined) {
+      // Read already (given, or a thumb that landed early and waited): struck at the whole level.
+      const db = hardDb(hardFam, strike.value, markDb);
+      if (db) expr = { ...expr, level: (expr.level ?? 1) * dbToLevel(db), ...(hardFam === "bowed" || hardFam === "sung" ? { accent: Math.max(expr.accent ?? 0, 0.3) } : {}) };
+    } else if (byTap) hardLate = true;
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
@@ -3402,6 +3437,17 @@ export class ProtoGame {
       }
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };
       dynAns?.sounded?.(h.sounds, this.chip.ctx.currentTime);
+      // D425: the strike read after the onset (the note began at once at its zone's level: no latency): a hard
+      // one weighs the note by a 12 ms ramp (chip.ts Sounding.trim, rampTrim), as the Lab's DYNAMICS does.
+      if (hardLate && strike) {
+        const struck = h.sounds;
+        strike.on((s) => {
+          const db = hardDb(hardFam, s, markDb);
+          if (!db) return;
+          const at = this.chip.ctx.currentTime;
+          for (const sd of struck) sd.trim?.(dbToLevel(db), at, at + HARD_RAMP_MS / 1000);
+        });
+      }
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
@@ -3573,8 +3619,27 @@ export class ProtoGame {
           const gap = !joinedBefore ? null : lw.holding ? "held" : (lw.gapMs ?? null);
           // D385: weight on time (accent.ts accentWeighted): struck in the strong zone, within PERFECT; D338's
           // lean and silence only under the Lab's CLASSIC mechanics.
-          const why = MECH.glenn ? (slide ? "soft" : accentWeighted(offMs, perfMs, this.strengthAsked() ? (h.land ?? TOUCH_NEUTRAL) : null)) : slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
-          h.wantAccent = { why };
+          // D425: the hard tap, within the GOOD window, anywhere across the strip; no strength read: the strong zone, within GOOD.
+          if (MECH.glenn && !slide) {
+            const win = this.goodWinMs(h.k, i);
+            const by = (hard: boolean | null): AccentBy => (hard !== null ? { hard } : this.strengthAsked() ? { zone: h.land ?? TOUCH_NEUTRAL } : null);
+            const read = strike?.value;
+            if (strike && read === undefined) {
+              // Being read (the peak comes 3-36 ms after the touch): judged as it comes, its verdict given at the note's end.
+              const wa: NonNullable<Held["wantAccent"]> = { why: accentWeighted(offMs, win, null), pending: true };
+              strike.on((s) => {
+                wa.why = wa.why ?? accentWeighted(offMs, win, by(s === null ? null : hardForAccent(s)));
+                wa.pending = false;
+                const then = wa.then;
+                wa.then = undefined;
+                then?.();
+              });
+              h.wantAccent = wa;
+            } else h.wantAccent = { why: accentWeighted(offMs, win, by(strike && read !== null && read !== undefined ? hardForAccent(read) : null)) };
+          } else {
+            const why = MECH.glenn ? "soft" : slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
+            h.wantAccent = { why };
+          }
         }
         if (ask?.short) h.wantShort = true;
       }
@@ -3912,9 +3977,13 @@ export class ProtoGame {
     const len = this.msOf(n.on, n.on + n.dur);
     // D338: the reading's accent: struck on time or leaned, not joined from the note before, and held.
     if (h.wantAccent) {
-      const why = h.wantAccent.why ?? (MECH.glenn ? null : accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort }));
+      const wa = h.wantAccent;
+      const held = MECH.glenn ? null : accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort });
       h.wantAccent = undefined;
-      this.styled(why === null, performance.now(), "ACCENT ✓");
+      const settle = () => this.styled((wa.why ?? held) === null, performance.now(), "ACCENT ✓");
+      // D425: a strike still being read (a note let go within a few ms): its verdict once read.
+      if (wa.pending) wa.then = settle;
+      else settle();
     }
     if (riders) return;
     // D261: a prelude's tap (no tail) is not judged for its release.
@@ -4637,6 +4706,30 @@ export class ProtoGame {
   private wholeJoinInto(k: number, i: number): boolean | null {
     const p = this.before(i, k);
     return p >= 0 ? (this.wholeAskOf(k, p)?.join ?? null) : null;
+  }
+  /** D425: the GOOD window about track k's note i (ms early, late): how far from its time a right note may be struck. */
+  private goodWinMs(k: number, i: number): { early: number; late: number } {
+    const notes = this.tracks[k].notes;
+    const n = notes[i];
+    const w = windowOf(notes, n, this.leanOpt(k));
+    return { early: this.msOf(n.on - w.early, n.on), late: this.msOf(n.on, n.on + w.late) };
+  }
+  /** D425: the reading asks an accent of track k's note i (">", "^", sfz, marcato; a subject reading's accent). */
+  asksAccent(k: number, i: number): boolean {
+    const n = this.tracks[k]?.notes[i];
+    if (!n || !this.o.reading) return false;
+    if (this.wholeAsking()) return !!this.wholeAskOf(k, i)?.accent;
+    const place = this.readingIndex().get(`${k}:${n.on}`);
+    return place !== undefined && !!this.o.reading.notes[place]?.accent;
+  }
+  /** D425: the run asks an accent somewhere (the calibration offered at its start). */
+  asksAccents(): boolean {
+    return this.tracks.some((t, k) => t.notes.some((_, i) => this.asksAccent(k, i)));
+  }
+  /** D425: the reading's accent weight on track k's note i on the piano (PLAYER_ACCENT_DB: ">" +4, "^" +6), where marked. */
+  private markDbAt(k: number, i: number): number | undefined {
+    const own = styleOf(preset().id) === "piano" ? this.lineAt(k, i).accentDb : undefined;
+    return own ?? (this.asksAccent(k, i) ? PLAYER_ACCENT_DB.accent : undefined);
   }
   /** D385: a landing's strength is asked of an accent where the thumbs land on bars (a computer's keys cannot weigh a note). */
   private strengthAsked(): boolean {

@@ -23,6 +23,7 @@ import type { TouchFugue } from "./fugue.ts";
 import type { Reading } from "./readings.ts";
 import { LEVEL_DB, SFZ, wholePlan, type SlurPlace, type WholeNote, type WholePlan } from "./whole-reading.ts";
 import { lang, tr, type Lang } from "../i18n/index.ts";
+import { hardTapDevice } from "./motion.ts";
 
 /** A note's mark as the box draws it (a superset of readings.ts MarkNote: the judge's asks first). */
 export interface BoxMark {
@@ -583,8 +584,10 @@ export function wholeHas(box: WholeBox): Record<WholeKind, boolean> {
  */
 export function wholeLegend(box: WholeBox): { kind: WholeKind; sym: string; text: string }[] {
   const has = wholeHas(box);
+  // D425: the accents (^, sf) a hard tap where the phone feels one, else the strong zone.
+  const tap = hardTapDevice();
   const all: { kind: WholeKind; sym: string; text: string }[] = [
-    { kind: "marcato", sym: "^", text: tr("MARCATO: STRONG ZONE, ON TIME, LET GO SHORT") },
+    { kind: "marcato", sym: "^", text: tap ? tr("MARCATO: TAP HARD, LET GO SHORT") : tr("MARCATO: STRONG ZONE, LET GO SHORT") },
     { kind: "wedge", sym: "▾", text: tr("WEDGE: SHORTER THAN THE DOT") },
     { kind: "tenuto", sym: "–", text: tr("TENUTO: HOLD ITS FULL VALUE") },
     { kind: "portato", sym: "·", text: tr("PORTATO: CARRIED, A LITTLE APART") },
@@ -592,7 +595,7 @@ export function wholeLegend(box: WholeBox): { kind: WholeKind; sym: string; text
     { kind: "phrase", sym: "⌒", text: tr("PHRASE: ONE LONG LINE (A GUIDE)") },
     { kind: "breath", sym: "//", text: tr("CAESURA: A SHORT SILENCE") },
     { kind: "fermata", sym: "𝄐", text: tr("FERMATA: HELD LONGER") },
-    { kind: "dynamics", sym: "p f", text: tr("LEVELS: THE LINE PLAYS THEM; THE MIDDLE ZONE KEEPS THEM, SF THE STRONG ZONE") },
+    { kind: "dynamics", sym: "p f", text: tap ? tr("LEVELS: THE LINE PLAYS THEM; THE MIDDLE ZONE KEEPS THEM, SF A HARD TAP") : tr("LEVELS: THE LINE PLAYS THEM; THE MIDDLE ZONE KEEPS THEM, SF THE STRONG ZONE") },
     { kind: "hairpin", sym: "< >", text: tr("HAIRPINS: LOUDER, SOFTER (THE LINE FOLLOWS)") },
     { kind: "words", sym: "Aa", text: tr("WORDS AS BUSONI PRINTS THEM: TRANSLATED BELOW") },
   ];

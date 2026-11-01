@@ -126,7 +126,8 @@ test("D360 (design 4.10): his demonstration passes every stage; a random tapper 
   assert.match(told("III.2", undefined, { jitterMs: 5, hold: 0.97 }), /the dot: lift before three fifths/);
   assert.match(told("III.3", undefined, { jitterMs: 5, hold: 0.97 }), /Join inside the slur/);
   // D387: the accent is weight on time.
-  assert.match(told("III.4", undefined, { jitterMs: 5, hold: 0.97 }), /Weight on time/);
+  // D425: the hard tap (the careful player here struck nothing hard and landed off the strong zone).
+  assert.match(told("III.4", undefined, { jitterMs: 5, hold: 0.97 }), /Tap the accent hard/);
   assert.match(told("IV.1"), /Breathe: enter a hair late/);
   assert.match(told("IV.2"), /No lean yet/);
 });
