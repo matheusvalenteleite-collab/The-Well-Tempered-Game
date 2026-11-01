@@ -126,6 +126,8 @@ interface Ctx {
   h: number;
   /** D415: where the box's open part begins (canvas px; the roll runs under the left bar): a tab is held there. */
   left?: number;
+  /** D466: the play line's x (canvas px): a sounding entry's tab is pinned just before it. */
+  play?: number;
   xOf: (tick: number) => number;
   yOf: (step: number) => number;
   /** D211: a step's row height (smaller in the squeezed margins). */
@@ -275,6 +277,24 @@ export function entryMarks(
     g.globalAlpha = a;
     if (variant === "a") {
       const fw = textWidth(word) + 1;
+      // D466 (design studio; the owner chose B, "careful so that the fixed flag not interfere with gameplay … the
+      // player ought to be able to see things near the line"): while an entry sounds its tab is PINNED at the box's
+      // top, ending just before the play line (over the music already played, never over what is coming), with a
+      // bar under it showing how much of the subject is left; overlapping entries (a stretto) stack, one row each.
+      if (c.play !== undefined && c.now >= s.on && c.now < s.end) {
+        if (pass === "under") continue;
+        const tx = Math.max((c.left ?? 0) + 2, Math.round(c.play) - fw - 3);
+        const ty = 1 + Math.max(0, lane[order[oi]]) * (TAB_H + 4);
+        g.fillStyle = ink;
+        g.fillRect(tx, ty, fw, TAB_H);
+        pixText(g, word, tx + 1, ty + 1, DARK);
+        const left = Math.max(0, Math.min(1, (s.end - c.now) / Math.max(1, s.end - s.on)));
+        g.fillStyle = DARK;
+        g.fillRect(tx, ty + TAB_H + 1, fw, 1);
+        g.fillStyle = ink;
+        g.fillRect(tx, ty + TAB_H + 1, Math.max(1, Math.round(fw * left)), 1);
+        continue;
+      }
       // Held at the left edge once its note has gone by; never over the tab before it (entry order).
       const tx = Math.max((c.left ?? 0) + 2, Math.max(right + 2, Math.min(x0, x1 - fw)));
       // The next entry's tab, where it will stand: a crowded tab shrinks to a chip.
