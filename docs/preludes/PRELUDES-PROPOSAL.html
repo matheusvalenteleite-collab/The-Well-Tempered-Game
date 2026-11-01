@@ -1,0 +1,121 @@
+<title>Where the Preludes Go</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; three concept blocks set as equal "movements"; one compact table for the texture reading. */
+:root {
+  --bg: #f4f3ef; --fg: #1f1e24; --muted: #5f5c68; --rule: #d8d5cd; --ink: #2f4f7a; --gold: #8f6512; --chip: #e9e5db;
+  --display: "Cormorant Garamond", Georgia, serif; --body: "Source Serif 4", Georgia, serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #15151a; --fg: #e9e6df; --muted: #a29fab; --rule: #33313a; --ink: #8fb3e6; --gold: #e2b452; --chip: #23222a; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #15151a; --fg: #e9e6df; --muted: #a29fab; --rule: #33313a; --ink: #8fb3e6; --gold: #e2b452; --chip: #23222a; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 400 1.02rem/1.58 var(--body); }
+main { max-width: 44rem; margin: 0 auto; padding-block: 2rem 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 1.7rem; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: 2.3rem; }
+h2 { font-size: 1.55rem; }
+h3 { font-size: 1.35rem; color: var(--ink); }
+p, ul, dl { margin: 0; }
+section { display: grid; gap: .6rem; min-width: 0; }
+.meta, .tag { font: 500 .74rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.lead { font-size: 1.08rem; }
+.concepts { display: grid; gap: 1.1rem; }
+.concept { display: grid; gap: .5rem; padding: 1rem 1.1rem; border: 1px solid var(--rule); border-radius: 6px; min-width: 0; }
+.concept.pick { border-color: var(--gold); border-width: 2px; }
+.concept .tag b { color: var(--gold); }
+dl { display: grid; grid-template-columns: 7.5rem 1fr; gap: .35rem .8rem; }
+dt { font: 500 .72rem/1.9 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+dd { margin: 0; min-width: 0; }
+@media (max-width: 30rem) { dl { grid-template-columns: 1fr; } dt { line-height: 1.3; } }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; vertical-align: top; padding: .45rem .5rem; border-bottom: 1px solid var(--rule); }
+th { font: 500 .7rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.n { font: 500 .86rem var(--mono); color: var(--gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.verdict { border-left: 3px solid var(--gold); padding-left: 1rem; display: grid; gap: .5rem; }
+ul { padding-left: 1.2rem; display: grid; gap: .3rem; }
+small { color: var(--muted); font-size: .86rem; }
+</style>
+
+<main>
+  <header style="display:grid;gap:.4rem">
+    <p class="meta">Preludes design · 1 Nov 2026 · for the owner to choose</p>
+    <h1>Where the preludes go</h1>
+    <p class="lead">Three ways to bring the preludes back to the phone, and a recommendation. Nothing is built yet.</p>
+  </header>
+
+  <section>
+    <h2>What went wrong last time</h2>
+    <p>The preludes left the phone (D263) for two reasons. They were a second game, on a different screen (HIGHWAY) from the fugues' LADDER. And each one needed its own rules: Prelude 1 took thirteen rounds of design, and went from "finger acrobatics" to "much better" only when each thumb touched about one note a second (D261).</p>
+    <p>So a prelude works when it is <b>the same game as the fugue</b> and <b>asks little of the thumbs</b>. All three concepts are judged against that.</p>
+    <p><small>The progression session is already working on your own "option 4" (preludes as the tutorial pieces). That is Concept A below. I judge it here and do not duplicate its work.</small></p>
+  </section>
+
+  <section>
+    <h2>What the 24 allow</h2>
+    <p>Glenn's reading, from the game's note data at its tempi. On LADDER one thumb plays one line. The preludes split evenly:</p>
+    <div class="wrap"><table>
+      <thead><tr><th>Texture</th><th>Preludes</th><th>On LADDER</th></tr></thead>
+      <tbody>
+        <tr><td>A tune is already there, at thumb speed</td><td class="n">4 9 10 13 17 19 20 24</td><td>Plays as it is. I/4's soprano, I/13's answering hands, I/24's walking bass.</td></tr>
+        <tr><td>One line, but a machine (5–7 notes a second)</td><td class="n">2 3 5 6 11 14 15 21</td><td>Playable once thinned to the strong notes, which the game already does by tier.</td></tr>
+        <tr><td>No single line in a hand (chords, broken chords, two voices in one hand)</td><td class="n">1 7 8 12 16 18 22 23</td><td>Needs a line drawn out first, usually the top notes, as D261 did for I/1.</td></tr>
+      </tbody>
+    </table></div>
+    <p>I played I/1, I/2, I/13 and I/22 on LADDER in the Lab. I/13 reads like a fugue voice. I/2 is busy but clear. I/1 and I/22, taken as a whole hand, jump about inside chords. This is the problem the third row names.</p>
+  </section>
+
+  <section>
+    <h2>Three concepts</h2>
+    <div class="concepts">
+
+      <article class="concept">
+        <p class="tag">Concept A · the prelude teaches its fugue</p>
+        <h3>The Door</h3>
+        <dl>
+          <dt>The player</dt><dd>Before each new fugue, plays a prelude in passes, one layer more each time (bass, then top, then more). Each pass brings one skill. Finishing it opens the fugue.</dd>
+          <dt>Why fun</dt><dd>Every prelude has a purpose, and the fugue is the prize. Learning happens inside the music, with no separate tutorial.</dd>
+          <dt>Cost</dt><dd><b>High.</b> Each prelude used needs its own layer plan and Glenn's script. Across sixteen stages it would be the biggest content job in the game.</dd>
+          <dt>Main risk</dt><dd>It puts a prelude in front of the thing players came for. If the prelude is dull, they stop at the door. The progression note lists this as its own riskiest assumption. Only eight preludes carry a tune that maps straight onto a fugue skill.</dd>
+        </dl>
+      </article>
+
+      <article class="concept">
+        <p class="tag">Concept B · a different kind of play</p>
+        <h3>The Interlude</h3>
+        <dl>
+          <dt>The player</dt><dd>Between fugues, plays a short piece with its own rules. Catch the layers: a part played cleanly goes on by itself while you catch the next. Surf a fast run by sliding. Hold a slow tune hidden inside the chords. There is no crowd to lose, only a score.</dd>
+          <dt>Why fun</dt><dd>A change of pace, as Bach's pairs are: free, then strict. The machines (I/2, I/3, I/15) become the most exciting pieces instead of the hardest.</dd>
+          <dt>Cost</dt><dd><b>High, and new.</b> Two or three new mechanics. Surfing needs the thumb to slide both ways, which D271 rules out. Each prelude needs its rules chosen.</dd>
+          <dt>Main risk</dt><dd>A second game to learn, which is exactly what D263 removed. It takes attention away from LADDER.</dd>
+        </dl>
+      </article>
+
+      <article class="concept pick">
+        <p class="tag">Concept C · same game, optional · <b>recommended</b></p>
+        <h3>The Overture</h3>
+        <dl>
+          <dt>The player</dt><dd>On a fugue's card, beside ▶ PLAY, an optional <b>▶ PRELUDE FIRST</b>. One line of the prelude on LADDER, chosen by Glenn: the tune, the walking bass, or the top notes. It is thinned so it is never harder than its fugue. It runs straight on into the fugue, in the same key and sound. Finish the prelude and <b>the fugue's crowd starts warm</b>: it begins fuller, so a stumble early in the fugue is forgiven.</dd>
+          <dt>Why fun</dt><dd>More music on the mechanic players already like. Two minutes to warm the thumbs before the hard piece. A real advantage for doing it, but no lock. And 24 pairs to complete, as Bach wrote them.</dd>
+          <dt>Cost</dt><dd><b>Low.</b> LADDER already plays a prelude's line in the Lab, and the thinning by tier exists. The work is Glenn choosing a line for each prelude (a top line drawn out for the eight without one), the button, the crowd's head start, and running on into the fugue.</dd>
+          <dt>Main risk</dt><dd>Anything optional can be ignored, so the preludes might end up as decoration. The beginners' tier is also the weakest for it: only I/4 has a ready tune, and the others there need a top line drawn out.</dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="verdict">
+    <h2>Recommendation: C now, as the test for A</h2>
+    <p>A depends on one unproven claim: that preludes are fun on the phone. C tests that claim cheaply, without blocking a single fugue. If your friends press PRELUDE FIRST when nothing makes them, the preludes have earned a teaching role, and the best of them can become A's stages. If they skip it, A would have forced them through something they do not want, and we will have learned that for the price of one button.</p>
+    <p>B should wait. It is the right home for the eight machines, but later, as a special event, once LADDER is settled.</p>
+  </section>
+
+  <section>
+    <h2>For you to choose</h2>
+    <ul>
+      <li><b>A</b>, <b>B</b>, <b>C</b>, or <b>C then A</b> (my choice).</li>
+      <li>If C: the reward. The crowd starts warm (my choice), or a mark on the pair and nothing more.</li>
+      <li>If C: all 24 at once with drawn-out top lines, or the eight ready tunes first (I/4, 9, 10, 13, 17, 19, 20, 24).</li>
+    </ul>
+  </section>
+</main>
