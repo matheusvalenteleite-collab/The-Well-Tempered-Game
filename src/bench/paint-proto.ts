@@ -1204,8 +1204,9 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
   // D373: in the tutorial the thumbs are its aid's (model A, manual/aids.ts).
   if (g.proto.id === "ladder" && (g.o.demo || g.o.guide) && !g.o.thumbsA) thumbsShown(c, w, h, g, t);
-  // D460: which thumb plays each note, ● or ○ under it, and each bar's own sign.
-  if (g.proto.id === "ladder" && rows) thumbSigns(c, w, h, bw, g, t);
+  // D460: which thumb plays each note, ● or ○ under it, and each bar's own sign. D444 (the owner: "eliminate
+  // the bloody white and black balls … from anywhere, except the TUTORIALS"): in the tutorial's lessons only.
+  if (g.proto.id === "ladder" && rows && g.o.quiet) thumbSigns(c, w, h, bw, g, t);
 }
 
 /**

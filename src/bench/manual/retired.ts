@@ -28,7 +28,7 @@ export const RETIRED: ManualLesson[] = [
     hear: { stage: 0, styles: ["legato", "ordinary", "detached"] },
     aids: ["meter"],
     stages: [
-      st("play", ex("wtc2f18", 0, 1, 3, { pct: 85 }, "Fugue II/18 in G♯ minor, soprano, bars 1–3, at 85%: joined"), "Joined: hold each note until the next has sounded.", { ask: "LEGATO" }),
+      st("play", ex("wtc2f18", 0, 1, 3, { pct: 85 }, "Fugue II/18 in G♯ minor, soprano, bars 1–3, at 85%: joined"), "Legato: no gap, the next thumb lands as this one lifts.", { ask: "LEGATO" }),
       st("play", ex("wtc2f18", 0, 1, 3, { pct: 85 }, "Fugue II/18 in G♯ minor, soprano, bars 1–3, at 85%: ordinary"), "Ordinary: let go a moment before the next.", { ask: "ORDINARY" }),
       st("play", ex("wtc2f18", 0, 1, 3, { pct: 85 }, "Fugue II/18 in G♯ minor, soprano, bars 1–3, at 85%: detached"), "Apart: lift at half the note. Light, not timid.", { ask: "DETACHED" }),
       st("play", ex("wtc2f18", 0, 1, 5, { pct: 100 }, "Fugue II/18 in G♯ minor, soprano, bars 1–5: yours"), "Now yours. Choose one, and keep it."),

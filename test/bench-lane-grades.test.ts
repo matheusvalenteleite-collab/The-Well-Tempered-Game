@@ -1,6 +1,7 @@
 /**
- * D239: two grades of a right note on the HIGHWAYs: in its planned lane (full points, a chime) or only
- * the right way from the last (half the points, duller, no chime; the streak and multiplier kept).
+ * D239: two grades of a right note on the HIGHWAYs: in its planned lane (full points) or only the right
+ * way from the last (half the points; the streak and multiplier kept). D293: they sound alike; D482: no
+ * chime on either (a sound added for a right grade is a loudness tied to right).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -73,13 +74,13 @@ function sideNote(count: number) {
 const beside = (g: ProtoGame, i: number) => g.lanes[i] + g.moves[i].dir;
 
 for (const [proto, count] of [["keys", 9], ["highway", 5]] as const) {
-  test(`D239, ${proto}: the planned lane scores in full with a chime; the right way in another lane half, no chime (D293: not duller)`, () => {
+  test(`D239, ${proto}: the planned lane scores in full; the right way in another lane half; no chime on either (D293, D482: they sound alike)`, () => {
     const exact = play(proto, sideNote(count), (g, i) => g.lanes[i]);
     const rel = play(proto, sideNote(count), beside);
     const i = sideNote(count)(exact.g);
     assert.ok(i > 0, "a note to try");
     assert.equal(rel.g.notes[i].state, "hit", "the right direction is still right");
-    assert.equal(exact.at.chimes, 1, "the chime on the exact lane");
+    assert.equal(exact.at.chimes, 0, "D482: no chime on the exact lane");
     assert.equal(rel.at.chimes, 0, "no chime on the relative");
     assert.ok(exact.at.pts > 0);
     assert.equal(rel.at.pts, exact.at.pts / 2, "half the points");

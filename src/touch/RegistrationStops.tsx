@@ -205,7 +205,8 @@ export function RegistrationStops({ presetId, patch, piece, barNow, sides = fals
     return (
       <>
         <span ref={wrap} hidden data-rows={rows} />
-        <style>{`.tb-has-side-stops { --tb-stop-rows: ${rows}; }`}</style>
+        {/* D483: the right foot's own rows: the side legend and the word above them end there. */}
+        <style>{`.tb-has-side-stops { --tb-stop-rows: ${rows}; --tb-stop-rows-right: ${sideRows(r.length)}; }`}</style>
         {side("left", l)}
         {side("right", r)}
       </>
