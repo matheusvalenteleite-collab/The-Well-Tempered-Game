@@ -100,8 +100,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f04: {
-    sound: "chamberOrgan",
-    soundWhy: "Five voices, three subjects, a ricercar in the stile antico, 'monumental, organ-like' (Bodky); the bass pedal points of the close (105-115) are the organ's.",
+    sound: "stringConsort",
+    soundWhy: "Five voices, three subjects, a ricercar in the stile antico (Bodky: 'monumental'): a viol consort's music, played by STRING CONSORT one to a part (two violins, two violas, cello), each line its own bow.",
     character: "Heavy first section, a more subjective second (the running second subject from 35), the highest inward intensity in the third (from 49; Keller); the stretto 94-115 (Ledbetter) over pedals on A♭ and C♯.",
     plans: {
       chamberOrgan: [
@@ -228,8 +228,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f09: {
-    sound: "super16",
-    soundWhy: "Cheeky and high-spirited (Keller), three voices like a trio sonata: SUPER 16-BIT's violin, harpsichord and bassoon, three different attacks a phone keeps apart.",
+    sound: "baroqueBand",
+    soundWhy: "Cheeky and high-spirited (Keller), three voices like a trio sonata: BAROQUE BAND's violin and oboe, and the bass entering last (bar 4) on the cello with the continuo harpsichord.",
     character: "Vocal in idiom (Bodky); a long episode 10-16, a reprise from 19 (Ledbetter).",
     plans: {
       super16: [
@@ -265,15 +265,10 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f11: {
-    sound: "modular",
-    soundWhy: "A passepied (Bodky, Keller: 'with deliberate grace'), light and dancing: BLEEPS AND BLOOPS' vibraphone, combo organ and synth upright, three mallet-and-reed colours a phone tells apart.",
+    sound: "super16",
+    soundWhy: "A passepied (Bodky, Keller: 'with deliberate grace'), light and dancing: SUPER 16-BIT's violin, harpsichord and bassoon, three attacks a phone tells apart.",
     character: "Bodky's three terraces (1-17, 17-34, 35-46, 46-56, 56-72); first section 1-46, stretto 46-56 (Ledbetter).",
     plans: {
-      modular: [
-        at(35, { strike: 1.3 }, "Bodky's loudest terrace (35-46): harder mallets."),
-        at(46, OWN, "The stretto (46-56)."),
-        at(56, { strike: 0.7 }, "The last terrace (56-72) with softer mallets."),
-      ],
       harpsichordSampled: [
         at(1, H8, "Bodky's soft 8″."),
         at(17, H88, "His louder 8′ (17-34): the coupled unison."),
@@ -338,8 +333,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f14: {
-    sound: "pianoSampled",
-    soundWhy: "Pensive, a sobbing countersubject (Keller, Bodky), in 6/4 with long lines: the recorded grand's sustained tone, its lowest notes still heard on a phone.",
+    sound: "lute",
+    soundWhy: "Pensive, with a sobbing countersubject (Keller, Bodky), four voices in 6/4: the LUTE's plucked courses, a lutenist's lament, its bass courses still heard on a phone.",
     character: "An episode 11-14 (Ledbetter), the cadence in C♯ minor (20) and the inversion's entry, a bass pedal on C♯ 37-39.",
     plans: {
       pianoSampled: [
@@ -430,7 +425,6 @@ export const BOOK1: Record<string, PieceColours> = {
       tracker: [at(23, { vib: 12 }, "The middle section with the tracker's vibrato command."), at(42, OWN, "The reprise plain.")],
       harpsichordSampled: [at(1, H8, "Dolce: the 8′."), at(23, HLUTE, "The middle section (23-42) on the buff."), at(42, H84, "The reprise (42-54) on 8′+4′.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(42, OPRIN, "The reprise on the principals.")],
-      modular: [at(23, { strike: 0.7 }, "The middle section with soft mallets."), at(42, OWN, "The reprise.")],
     },
   },
   wtc1f20: {
@@ -462,8 +456,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f21: {
-    sound: "harpsichordSampled",
-    soundWhy: "Capricious and humorous, a strict dance (Keller), 'brilliant writing for the harpsichord' (Bodky): three voices crisp on the plucked string.",
+    sound: "sid64",
+    soundWhy: "Innocent cheerfulness (Busoni), a capricious strict dance (Keller): SID 64's pulses and saw, three bright lines that dance apart.",
     character: "Episodes 13-19, 31-37, 41-48; Bodky's right hand piano 19-22 and forte 30-33 (his louder theme left out).",
     plans: {
       harpsichordSampled: [at(1, H84, "Bodky: forte."), at(19, H8, "Bodky: piano from 19 to 22."), at(22, H84, "Forte again."), at(33, H8, "Bodky: piano after 33."), at(37, H84, "Bodky: forte from 37 to the end.")],

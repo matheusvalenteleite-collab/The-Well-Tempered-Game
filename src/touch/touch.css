@@ -624,3 +624,46 @@ body {
 .tg-room-pips i.on { background: var(--tg-shine); border-color: var(--tg-shine); }
 .tg-room-name { position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; padding: 4px 6px; font-size: 7px; color: var(--tg-bg); background: var(--tg-shine); white-space: nowrap; pointer-events: none; }
 .tg-room-dry { border-style: dashed; }
+
+/* D420: THUMB PISTONS (RegistrationStops.tsx): three, each a whole registration at one touch (acted on at
+   touch-down). Large targets: the numeral over the registration's name; the one in force lit; a brief glow
+   on the press. Simple and on the tokens: the design studio restyles them. In a title bar, 36 px drawn
+   (48 px to the touch), the name beside the numeral. */
+.tg-piston {
+  --tg-piston-glow: var(--tg-shine);
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0 3px;
+  overflow: hidden;
+  font-family: var(--tg-pixel);
+  line-height: 1;
+  color: var(--tg-muted);
+  background: var(--tg-bg);
+  border: 2px solid var(--tg-barline);
+  border-radius: 8px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow 0.25s ease-out;
+}
+.tg-piston-n { font-size: 12px; color: var(--tg-fg); }
+.tg-piston-name { max-width: 100%; font-size: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tg-piston.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+.tg-piston.on .tg-piston-n { color: var(--tg-bg); }
+.tg-piston.glow { box-shadow: 0 0 0 3px var(--tg-piston-glow), 0 0 16px 2px var(--tg-piston-glow); transition: none; }
+.tg-piston:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tg-reg-row-inline.tg-pistons { gap: 6px; }
+.tg-reg-row-inline .tg-piston { flex-direction: row; gap: 6px; height: 36px; min-width: 56px; padding: 0 8px; }
+.tg-reg-row-inline .tg-piston::after { content: ""; position: absolute; inset: -6px -3px; }
+.tg-hud:has(.tg-pistons) .tg-hud-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

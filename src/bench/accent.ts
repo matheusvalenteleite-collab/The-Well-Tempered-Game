@@ -29,11 +29,23 @@ import { STRONG_ZONE_FROM } from "../touch/touch-expr.ts";
  * Lab's CLASSIC mechanics (MECH.glenn off).
  */
 export type AccentWhy = "early" | "late" | "joined" | "short" | "soft";
-/** D385: the accent's verdict: on time (offMs within ±onTimeMs, the PERFECT window) and strong (strength 0..1, null: not asked). */
-export function accentWeighted(offMs: number, onTimeMs: number, strength: number | null): AccentWhy | null {
-  if (offMs < -onTimeMs) return "early";
-  if (offMs > onTimeMs) return "late";
-  if (strength !== null && strength < STRONG_ZONE_FROM) return "soft";
+/**
+ * D425, THE HARD TAP (the owner: "It's very hard to get it consistently right, because it requires perfect
+ * tempo"; "build ... the hard tap accent"): ACCENT ✓ is the accented note struck HARD (the motion sensor's
+ * peak by the player's calibration: touch/hard-tap.ts hardForAccent), anywhere across the strip, within the
+ * note's normal GOOD window (no PERFECT asked). Where no strength is read (a computer, the sensor refused or
+ * silent) the fallback is D385's strong zone, loosened to the GOOD window; a computer's keys the timing
+ * alone. `by`: { hard } a strike read by the sensor (or Herr Bach's synthetic one); { zone } the landing's
+ * strength across the bar (STRONG_ZONE_FROM); null nothing asked but time. Striking hard never changes the
+ * verdict of a note that asks no accent (proto-game.ts asks this only where the reading marks one).
+ */
+export type AccentBy = { hard: boolean } | { zone: number } | null;
+/** D425: the accent's verdict within the GOOD window (offMs: + late; win: how early and late a right note may be, ms). */
+export function accentWeighted(offMs: number, win: { early: number; late: number }, by: AccentBy): AccentWhy | null {
+  if (offMs < -win.early) return "early";
+  if (offMs > win.late) return "late";
+  if (by && "hard" in by && !by.hard) return "soft";
+  if (by && "zone" in by && by.zone < STRONG_ZONE_FROM) return "soft";
   return null;
 }
 

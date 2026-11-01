@@ -14,6 +14,7 @@
 import data from "../../data/touch/readings.json" with { type: "json" };
 import { ART_HOLD, SLUR_SHAPE, styleOf } from "./phrasing.ts";
 import { tr } from "../i18n/index.ts";
+import { hardTapDevice } from "./motion.ts";
 import { decide, type Kind } from "./practice.ts";
 import type { Character } from "./character.ts";
 
@@ -129,7 +130,7 @@ export const readingsOf = (id: string): Reading[] => READINGS[id] ?? [];
  * instructions on what the . is in articulation"): the dot is SHORT (staccato: judged SHORT ✓ (D419; was STACCATO ✓) when
  * the thumb lets go before three fifths of the note), the stroke DETACHED (D370: it was APART; judged
  * DETACHED ✓), the line JOINED (legato), the wedge an ACCENT (D387: weight on time: landed in the strong
- * zone, by the box, within PERFECT; src/bench/accent.ts. D338's lean after a silence only under CLASSIC). D370 (Glenn's notes §3): one vocabulary
+ * zone, by the box, within PERFECT; D425: a hard tap, within GOOD, the strong zone where no sensor; src/bench/accent.ts. D338's lean after a silence only under CLASSIC). D370 (Glenn's notes §3): one vocabulary
  * everywhere, and ⌒ kept for a real slur (a group the reading slurs: one gesture, joined inside, let go at
  * its end); a plain legato join is JOINED's line. The box's legend at the start of a round with marks,
  * HEAR THE SUBJECT, HOW TO PLAY and the side bar.
@@ -141,8 +142,8 @@ export function markLegend(_strongSide?: "outer" | "inner"): { kind: MarkKind; s
     { kind: "apart", sym: "|", text: tr("DETACHED: A SMALL SILENCE BEFORE THE NEXT NOTE") },
     { kind: "joined", sym: "‾", text: tr("LEGATO: NO GAP: THE NEXT THUMB LANDS AS THIS ONE LIFTS") },
     { kind: "slur", sym: "⌒", text: tr("SLUR: LEGATO UNDER IT, A SMALL SILENCE AFTER ITS LAST NOTE") },
-    // D387: the accent as weight on time (the strong zone, by the box), whichever argument is given.
-    { kind: "strong", sym: ">", text: tr("ACCENT: LAND IN THE STRONG ZONE, BY THE BOX, ON TIME") },
+    // D425: the accent a hard tap where the phone feels one (motion.ts hardTapDevice), else the strong zone (D387), whichever argument is given.
+    { kind: "strong", sym: ">", text: hardTapDevice() ? tr("ACCENT: TAP HARD") : tr("ACCENT: STRONG ZONE") },
   ];
 }
 /** D370: which of the legend's marks a set of marks has (a join inside a slur is the slur's, not JOINED's). */

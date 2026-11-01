@@ -198,6 +198,18 @@ export function organPatch(_own: Patch, stops: readonly StopId[], midi: number):
   return pt;
 }
 
+/**
+ * TRIAL (sound.ts EXPRESSIVE_ALL, registerAll): a printed level (dB, whole-reading.ts LEVEL_DB) as the stops a
+ * harpsichordist or an organist would draw for it, terraced. HARPSICHORD: pp the buff (LUTE), p the 8′ alone,
+ * mp 8′+4′, mf 8′+8′, f and ff 8′+8′+4′. ORGAN: pp and p the flutes, mp and mf the principals, f the principals
+ * with the flutes (a fuller foundation: the engine has no 2′ stop of its own), ff the plenum (the mixture); the
+ * pedal following its manual's family (pedalPatch), its 16′ drawn.
+ */
+export function terraceStops(presetId: string, db: number): StopId[] {
+  if (presetId === "harpsichordSampled") return db <= -9 ? ["lute"] : db < -4.5 ? [] : db < -1.5 ? ["four"] : db < 2.5 ? ["unison"] : ["unison", "four"];
+  return db < -4.5 ? ["flute", "sub16"] : db < 2.5 ? ["principal", "sub16"] : db < 5.5 ? ["principal", "flute", "sub16"] : ["principal", "mixture", "sub16"];
+}
+
 /** D357: the plenum's recorded pedal with its 16' pushed in (the synthesized Subbass under it, Patch.under, withdrawn). */
 export const PEDAL_PLENO_8: Patch = { ...PATCHES.orgPedalPleno, under: undefined };
 
@@ -254,7 +266,8 @@ export function registeredNote(presetId: string, reg: Registration, pt: Patch | 
   if (presetId === "chamberOrgan") {
     if (!organPatchOf(pt)) return null;
     // The pedal's 16′ pushed in only from the pedal (the player's); the tremulant the player's, or every voice's under TUTTI.
-    const patch = isPedal(pt) ? pedalPatch(reg.tutti ? st : null, !lead || st.includes("sub16"), st.includes("trem")) : organPatch(pt, st, midi);
+    // D420: the player's pedal follows the manual stops a piston holds (their family, as under TUTTI); old records hold none (the principals').
+    const patch = isPedal(pt) ? pedalPatch(st.some((s) => s !== "sub16" && s !== "trem") ? st : null, !lead || st.includes("sub16"), st.includes("trem")) : organPatch(pt, st, midi);
     return patch === pt ? null : { patch };
   }
   return null;
@@ -302,8 +315,10 @@ export function saveRegistration(piece: string, presetId: string, reg: Registrat
   try {
     const all = readAll();
     const mine = { ...(all[piece] ?? {}) };
-    if (!reg.stops && !reg.tutti) delete mine[presetId];
-    else mine[presetId] = reg;
+    // D420: the pistons' contents kept beside it (savePistons), whatever the stops.
+    const kept = (mine[presetId] as Kept | undefined)?.pistons;
+    if (!reg.stops && !reg.tutti && !kept) delete mine[presetId];
+    else mine[presetId] = kept ? ({ stops: reg.stops, tutti: reg.tutti, pistons: kept } as Kept) : { stops: reg.stops, tutti: reg.tutti };
     if (Object.keys(mine).length) all[piece] = mine;
     else delete all[piece];
     localStorage.setItem(REG_KEY, JSON.stringify(all));
@@ -320,7 +335,7 @@ export function saveRegistration(piece: string, presetId: string, reg: Registrat
  * clock), the stop (or TUTTI), drawn or pushed in, and the registration after it. A challenge can then
  * ask "draw X at bar N" (`StopCue`) and check it (`cueMet`); nothing scores it yet.
  */
-export type StopKnob = StopId | "tutti";
+export type StopKnob = StopId | "tutti" | PistonKnob;
 export interface StopChange {
   /** The bar the change was made in (null: not while playing). */
   bar: number | null;
@@ -350,4 +365,158 @@ export interface StopCue {
 export function cueMet(cue: StopCue, log: readonly StopChange[] = changes): boolean {
   const last = log.filter((c) => c.stop === cue.stop && c.bar !== null && c.bar <= cue.bar).at(-1);
   return !!last && last.drawn === cue.drawn && last.bar! >= cue.bar - (cue.early ?? 0);
+}
+
+// ---- D420: THUMB PISTONS (the owner: "Pistons good idea as well") ----
+
+/**
+ * An organ's thumb pistons under the manual, each recalling a whole registration at one touch (the
+ * harpsichord's three: its buff, its 8′, its full 8′+8′+4′, as a player of a two-manual instrument
+ * changes manuals). What each holds is set before the run (the piece's pop-up) and kept per piece and
+ * sound with the registration (`tg-registration-v1`, a field `pistons` added: an old record reads as
+ * the defaults). The run starts on the piston matching the piece's colour plan at bar 1 for the
+ * player's voice, else II. The organ's pistons hold the pedal's 16′ too (the pedal follows the manual
+ * stops as pedalPatch says); TUTTI is the piece's (every voice takes the piston), ROOM the device's
+ * (room.ts).
+ */
+export type PistonKnob = "I" | "II" | "III";
+export const PISTON_NAMES: readonly PistonKnob[] = ["I", "II", "III"];
+export type Pistons = readonly [StopId[], StopId[], StopId[]];
+/** The defaults: the organ's flutes, principals and plenum (D349's: PRINCIPAL+MIXTURE, the pedal following); the harpsichord's LUTE (the buff), 8′, and 8′+8′+4′. */
+export const DEFAULT_PISTONS: Readonly<Record<string, Pistons>> = {
+  chamberOrgan: [
+    ["flute", "sub16"],
+    ["principal", "sub16"],
+    ["principal", "mixture", "sub16"],
+  ],
+  harpsichordSampled: [["lute"], [], ["unison", "four"]],
+};
+/** The piston a run starts on where nothing says otherwise (II: the principals, the 8′). */
+export const HOME_PISTON = 1;
+export const hasPistons = (presetId: string) => !!DEFAULT_PISTONS[presetId];
+const copyPistons = (p: Pistons): Pistons => [[...p[0]], [...p[1]], [...p[2]]];
+export const defaultPistons = (presetId: string): Pistons => copyPistons(DEFAULT_PISTONS[presetId] ?? [[], [], []]);
+
+/** The stops in their preset's order, unknown ones dropped. */
+function ordered(presetId: string, stops: readonly unknown[]): StopId[] {
+  return (STOPS[presetId] ?? []).filter((s) => stops.includes(s));
+}
+
+/**
+ * A stop toggled in a piston's contents (the pop-up). An organ piston keeps a foundation stop (MIXTURE
+ * alone draws the PRINCIPAL under it; the last foundation stop cannot be pushed in), as `toggle`.
+ */
+export function togglePiston(presetId: string, contents: readonly StopId[], stop: StopId): StopId[] {
+  const now = new Set(contents);
+  if (now.has(stop)) now.delete(stop);
+  else now.add(stop);
+  if (presetId === "chamberOrgan" && !FOUNDATION.some((s) => now.has(s))) {
+    if (stop === "mixture") now.add("principal");
+    else return [...contents];
+  }
+  return ordered(presetId, [...now]);
+}
+
+/**
+ * A piston's registration for the player's voice (`pt` its patch): a manual takes the manual's stops
+ * (the pedal's 16′ left out); the pedal takes them all (its family follows the manual stops, its 16′
+ * and tremulant its own). TUTTI as the piece keeps it.
+ */
+export function pistonRegistration(presetId: string, contents: readonly StopId[], pt: Patch | null | undefined, tutti: boolean): Registration {
+  const st = ordered(presetId, contents);
+  if (presetId === "chamberOrgan" && !isPedal(pt)) return { stops: st.filter((s) => s !== "sub16"), tutti };
+  return { stops: st, tutti };
+}
+
+/** The ranks of a set of stops, for comparing registrations (the organ's manual ranks, the principal where none; the harpsichord's choirs and buff). */
+function ranksOf(presetId: string, stops: readonly StopId[]): StopId[] {
+  const r = stops.filter((s) => s !== "sub16" && s !== "trem");
+  return presetId === "chamberOrgan" && !r.length ? ["principal"] : r;
+}
+
+/**
+ * The piston a registration matches (the colour plan's stops at bar 1, or a registration set
+ * elsewhere): the one holding the same ranks, else the one with fewest differing, II on a tie or
+ * where nothing is given. `exact`: only an identical one (-1: none).
+ */
+export function pistonFor(presetId: string, pistons: Pistons, stops: readonly StopId[] | null | undefined, exact = false): number {
+  if (!stops) return exact ? -1 : HOME_PISTON;
+  const want = ranksOf(presetId, stops);
+  const diff = pistons.map((p) => {
+    const have = ranksOf(presetId, p);
+    return have.filter((s) => !want.includes(s)).length + want.filter((s) => !have.includes(s)).length;
+  });
+  const best = Math.min(...diff);
+  if (exact) return best === 0 ? diff.indexOf(0) : -1;
+  return diff[HOME_PISTON] === best ? HOME_PISTON : diff.indexOf(best);
+}
+
+/** What is kept for a piece on a preset (D420: `pistons` added; absent in an old record). */
+type Kept = Registration & { pistons?: unknown };
+/** The pistons' contents kept for a piece on a preset (the defaults where none, or for an old record). */
+export function loadPistons(piece: string, presetId: string): Pistons {
+  const def = defaultPistons(presetId);
+  const k = readAll()[piece]?.[presetId] as Kept | undefined;
+  const p = k && typeof k === "object" ? k.pistons : undefined;
+  if (!Array.isArray(p) || p.length !== 3) return def;
+  return p.map((x, i) => (Array.isArray(x) ? ordered(presetId, x) : def[i])) as unknown as Pistons;
+}
+export function savePistons(piece: string, presetId: string, pistons: Pistons) {
+  try {
+    const all = readAll();
+    const mine = { ...(all[piece] ?? {}) };
+    const r: Partial<Registration> = mine[presetId] ?? {};
+    const def = defaultPistons(presetId);
+    const same = pistons.every((p, i) => p.length === def[i].length && p.every((s) => def[i].includes(s)));
+    if (same && !r.stops && !r.tutti) delete mine[presetId];
+    else mine[presetId] = { stops: r.stops ?? null, tutti: r.tutti === true, ...(same ? {} : { pistons: copyPistons(pistons) }) } as Kept;
+    if (Object.keys(mine).length) all[piece] = mine;
+    else delete all[piece];
+    localStorage.setItem(REG_KEY, JSON.stringify(all));
+  } catch {
+    /* this visit only */
+  }
+}
+
+const EVERY_STOP: readonly StopId[] = ["unison", "four", "lute", "flute", "principal", "reed", "mixture", "trem", "sub16"];
+/**
+ * A piston pressed while playing: the changes kept for the run (recordStopChange): the piston itself
+ * (drawn), then each stop it draws or pushes in, so a cue may ask for either ("piston III in bar 20",
+ * "MIXTURE drawn by bar 20").
+ */
+export function pistonChanges(bar: number | null, piston: number, before: Registration, after: Registration): StopChange[] {
+  const out: StopChange[] = [{ bar, stop: PISTON_NAMES[piston], drawn: true, reg: after }];
+  const was = before.stops ?? [];
+  const now = after.stops ?? [];
+  for (const s of EVERY_STOP) if (was.includes(s) !== now.includes(s)) out.push({ bar, stop: s, drawn: now.includes(s), reg: after });
+  if (before.tutti !== after.tutti) out.push({ bar, stop: "tutti", drawn: after.tutti, reg: after });
+  return out;
+}
+
+/**
+ * D420: what a registration change does to an organ note already sounding (a key held): on a real
+ * organ the ranks drawn start to speak under the held key and those pushed in stop. `added` and
+ * `withdrawn` the stops; `retake` whether the note's sound changes at all (its patch before and after
+ * differ): chip.ts then lets the old pipes go (their short release) and the new registration's pipes
+ * speak from now, joined (the ranks held on with no new chiff). Null for a note the registration does
+ * not reach (another sound, another voice without TUTTI; the harpsichord: a plucked string cannot change).
+ */
+export function heldChange(presetId: string, before: Registration, after: Registration, pt: Patch | null | undefined, lead: boolean, midi: number): { added: StopId[]; withdrawn: StopId[]; retake: boolean } | null {
+  if (presetId !== "chamberOrgan" || !organPatchOf(pt)) return null;
+  if (!lead && !before.tutti && !after.tutti) return null;
+  const sounding = (r: Registration) => (lead || r.tutti ? stopsOf(presetId, r, pt) : defaultStops(presetId, pt));
+  const was = sounding(before);
+  const now = sounding(after);
+  const patchOf = (r: Registration) => registeredNote(presetId, r, pt, lead, midi)?.patch ?? pt;
+  return { added: now.filter((s) => !was.includes(s)), withdrawn: was.filter((s) => !now.includes(s)), retake: patchOf(before) !== patchOf(after) };
+}
+
+/**
+ * D420: a piston's touch: acted on at touch-down (pointerdown), because a browser fires no click for a
+ * tap made while another finger is on the screen (iOS Safari and Chromium both), and the other thumb
+ * holds a note. A click acts only when it comes from the keyboard (`detail` 0: Enter or Space), so a
+ * tap is never taken twice.
+ */
+export function actsOn(type: "pointerdown" | "click", detail: number, button = 0): boolean {
+  return type === "pointerdown" ? button === 0 : detail === 0;
 }

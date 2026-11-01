@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { MECH, MECH_DEFAULTS, MECH_SPEC, withMech } from "../src/bench/mechanics.ts";
-import { exprFamily, GLENN, glennParam, labPlayParam, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "../src/bench/glenn.ts";
+import { exprFamily, GLENN, glennParam, labPlayParam, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "../src/bench/glenn.ts";
 import { ShakeReader, shakeThresholds } from "../src/touch/free-ornament.ts";
 import { accentHeld, accentVerdict } from "../src/bench/accent.ts";
 import { replay } from "../src/bench/lab/replay.ts";
@@ -18,6 +18,7 @@ import type { LabEvent } from "../src/bench/lab/events.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 import type { ProtoGame } from "../src/bench/proto-game.ts";
 import { setPreset } from "../src/touch/sound.ts";
+import { withSlideSound } from "../src/bench/slide-sound.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
 
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
@@ -233,7 +234,8 @@ test("D376: over-legato: on the harpsichord the note given way to rings until it
   assert.equal(given("pianoSampled", 0.4, OFF), 30);
   // The organ and the single lines keep the clean join.
   assert.equal(given("chamberOrgan", 0.2, ON), 30);
-  assert.equal(given("stringConsort", 0.2, ON), 30);
+  // D427: on a bowed string a two-thumb join is a bow change: the note given way to stops at the new onset (its fast "bow" fall).
+  assert.equal(given("stringConsort", 0.2, ON), 0);
 });
 
 /** A slide: the left strikes note a and slides to a+1's height, arriving on its time; then the right joins a+2 (or lands after a gap). */
@@ -270,12 +272,19 @@ test("D376: a slide on a keyboard strikes the next note (no bend; D486: a third 
   assert.ok(Math.abs(slid!.offMs) < 40, `on time: ${slid!.offMs}`);
 });
 
-test("D376: the piano's slide-slur tapers the joins after it; a detach ends it", () => {
+test("D376: the piano's slide-slur carries the joins after it; a detach ends it (D426: the hairpin, not the taper)", () => {
   const joined = run("pianoSampled", slidePlan({}), ON);
   // D486: the slide's own gesture (an acciaccatura, a turn) may sound before the note slid to; the join after it is the slur's third.
   const third = joined.heard.find((h) => h.p.group === 2);
   assert.ok(third, "the third note in the slur");
-  assert.ok((third.p.level ?? 1) < (joined.heard[0].p.level ?? 1), "lighter than the first (−2.5 dB)");
+  // D426 (deliberately, kept by D438 in both SLIDE_SOUND modes): the taper (−1.5, −2.5…) replaced: the slid note takes the
+  // hairpin (its level from the thumb across, d426-keyboard-slides.test.ts), D486's gesture with it; a note joined by the
+  // other thumb is a landing, its own zone, untapered.
+  // (Under D486's gesture the slid note sounds after its grace notes, scheduled ahead and so not heard here: its hairpin is
+  // checked in the engine by d426-keyboard-slides.test.ts; here under SLIDE_SOUND "instruments", where it is struck at once.)
+  withSlideSound("instruments", () => assert.equal(run("pianoSampled", slidePlan({}), ON).heard[1].p.hairpin, true, "the slid note: the hairpin"));
+  assert.equal(third.p.hairpin, undefined);
+  assert.equal(third.p.level ?? 1, joined.heard[0].p.level ?? 1, "no taper");
   const detached = run("pianoSampled", slidePlan({ gapS: 0.1 }), ON);
   assert.equal(detached.heard.at(-1)?.p.group, undefined, "a detach: plain");
   // Off: the piano's slide bends nothing here either way: no group without a reading.
@@ -307,12 +316,23 @@ test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, tim
   assert.equal(voice.legato, false);
   assert.ok((voice.soft ?? 0) >= GLENN.rearticSoft);
   assert.equal(run("vocalSynth", handover(0.02), OFF).heard[1].p.legato, true, "off: today's joined voice");
-  // A slide: one sound glides. D486: its time constant by the instrument and the interval (slide-sound.ts:
-  // the strings' shift 25–85 ms, a synth's portamento 40–95 ms), no longer by the slide's travel; off: the sound's own.
+  // A slide: one sound glides. D486 (SLIDE_SOUND "d486", the default): its time constant by the instrument and the interval
+  // (slide-sound.ts: the strings' shift 25–85 ms, a synth's portamento 40–95 ms), no longer by the slide's travel; off: the sound's own.
   const slow = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
   assert.ok(slow && slow.tau !== undefined && slow.tau >= 0.02 && slow.tau <= 0.09, JSON.stringify(slow));
   const synth = run("tomita", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
   assert.ok(synth && synth.tau !== undefined && synth.tau >= 0.008 && synth.tau <= 0.095, JSON.stringify(synth));
+  // D438, SLIDE_SOUND "instruments": a quarter of its measured travel on TRAVERSO (D486 sounds it at halfway, so
+  // 100–200 ms of the 200 ms move here: 25–50 ms);
+  // D424: on strings, voices and synths the portamento follows the thumb (d424-slur-portamento.test.ts).
+  withSlideSound("instruments", () => {
+    const slowT = run("traverso", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
+    assert.ok(slowT && slowT.tau !== undefined && slowT.tau >= 0.025 && slowT.tau <= 0.06, JSON.stringify(slowT));
+    const quick = run("traverso", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
+    assert.ok(quick && quick.tau !== undefined && quick.tau <= 0.015, JSON.stringify(quick));
+    const followed = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides;
+    assert.ok(followed.length >= 2 && followed.every((g) => g.tau === SLIDE_TRACK_TAU), JSON.stringify(followed));
+  });
   assert.equal(run("stringConsort", slidePlan({ slideS: 0.2 }), OFF).heard[0].glides[0]?.tau, undefined);
 });
 

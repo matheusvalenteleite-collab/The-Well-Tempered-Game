@@ -102,7 +102,7 @@ import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
-import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
+import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -110,7 +110,10 @@ import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
 import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
-import { RegistrationStops } from "../touch/RegistrationStops.tsx";
+import { askMotion, gameMotion, hardTapDevice } from "../touch/motion.ts";
+import { calOffered, loadHardCal, markCalOffered, motionStrikes } from "../touch/hard-tap.ts";
+import { HardTapCalibrate, HardTapSetting } from "../touch/HardTapPanel.tsx";
+import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
 import { ObbligatoOffer } from "./ObbligatoOffer.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
@@ -433,14 +436,13 @@ export function BenchApp() {
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
   // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
   // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible (D369: Parts 0–II the piano).
-  // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
-  // D356: in the friends' view too, where a WTC fugue's tempo is open (no sound chosen there).
+  // D351, D356: each tempo step once had its own sound (tempo-steps.ts). D434 (the owner: "keep each fugue own sound at
+  // every tempo"): the piece's own sound, or the one the player chose for it, at every step.
   const soundAt = (id: string) => {
     // D463 (design studio; the owner: "friends can change the sound after earning B on the fugue"): the
     // friends' choice on the selection's SOUND counts once that fugue has a B or better (D417's unlock).
     const mine = full ? chosen : Object.fromEntries(Object.entries(chosen).filter(([p]) => soundUnlocked(p, lite)));
-    const st = !mine[id] ? stepSound(id, stepOf(id)) : undefined;
-    return soundFor(id, st ? { ...mine, [id]: st } : mine, DEFAULT_SOUND);
+    return soundFor(id, mine, DEFAULT_SOUND);
   };
   const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
@@ -684,6 +686,15 @@ export function BenchApp() {
     (globalThis as { __kimiko?: unknown }).__kimiko = h ? { g, her: h, ctx: ch.ctx, map: hm } : undefined;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
+    // D425, THE HARD TAP: each touchdown's strength from the motion sensor (by the calibration kept); none: the strong zone.
+    const hardCal = loadHardCal();
+    if (platform === "mobile") g.strikes = motionStrikes(gameMotion(), () => hardCal);
+    // D425: the calibration offered once, at the start of the first run with accents on a phone whose sensor answers.
+    if (platform === "mobile" && !watching && !prac && hardCal.from === "default" && hardTapDevice() && gameMotion().live && !calOffered() && g.asksAccents()) {
+      markCalOffered();
+      g.pause();
+      setCalOffer(true);
+    }
     // D220: the game under way, for the bench's own checks (driving the keys in a browser).
     (globalThis as { __bench?: unknown }).__bench = g;
     // D223: drawn with the screen's delay taken in.
@@ -979,6 +990,8 @@ export function BenchApp() {
     hintGone.current = false;
     stopHearing();
     if (!now && performance.now() - shownAt.current < 350) return;
+    // D425: the hard tap's motion sensor asked on the PLAY tap (iOS asks only from a gesture), once; never waited for.
+    void askMotion();
     const ch = ensureChip();
     wantHer();
     const go = () => (setNote(""), setPhase({ kind: "play" }));
@@ -1006,6 +1019,7 @@ export function BenchApp() {
   /** D326, TOOLS: PRACTICE (unscored) or HEAR THE OTHERS, straight into the run. */
   const practise = (s: ToolsState, listen: boolean) => {
     stopHearing();
+    void askMotion();
     const ch = ensureChip();
     setLesson(null);
     practice.current = practiceRun(f, s, pick.voice, bpm, listen);
@@ -1022,6 +1036,8 @@ export function BenchApp() {
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
   const [paused, setPaused] = useState(false);
+  /** D425: the hard tap's calibration offered over the run's start (the run held until it closes). */
+  const [calOffer, setCalOffer] = useState(false);
   // D402: in the tutorial from THE REAL THING on (the full screen).
   const canPause = !kimiko && !lesson && (!man || !!dressNow?.includes("pause"));
   /** `force` (D369): paused also in a lesson or KIMIKO, the phone turned upright on play.html. */
@@ -1081,6 +1097,7 @@ export function BenchApp() {
     }
   };
   const beginLesson = (pl: Platform, n: number) => {
+    void askMotion();
     const l = TRACKS[pl][n];
     // D225: the lesson's mode (D233: the platform stays as guessed or set; the lesson's mode decides the play).
     setAsking(false);
@@ -1117,6 +1134,7 @@ export function BenchApp() {
   const talk = (title: string, lines: Line[], o: { choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void } = {}) => setPhase({ kind: "mtalk", title, lines, ...o });
   /** `stage` (D369): taken up again at a stage already reached (D373: a chip on the selection screen's tile). */
   function beginManual(id: string, o: { stage?: number } = {}) {
+    void askMotion();
     const l = lessonById(id);
     if (!l) return;
     // D441: Glenn hosts the parts he has taken over (the Glenn pilot); Herr Bach the rest.
@@ -1699,7 +1717,7 @@ export function BenchApp() {
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
       {/* D485: OBBLIGATO's buttons at the bars' outer top corners while an offer stands. */}
       {layout === "bars" && playing && <ObbligatoOffer game={game} />}
-      {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+      {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
         hud={
@@ -1713,7 +1731,7 @@ export function BenchApp() {
               </span>
             )}
             {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. D357: one-touch, always there while playing, for the friends too. */}
-            {stopsOn && layout !== "bars" && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+            {stopsOn && layout !== "bars" && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>
@@ -1878,6 +1896,7 @@ export function BenchApp() {
           </button>
         </div>
       )}
+      {calOffer && <HardTapCalibrate offer done={() => (setCalOffer(false), game.current?.resume())} />}
       {calib && (
         <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss(), route.dismissRecal())}>
           <p className="tg-panel-note">With the headphones on: tap on each click, eight times.</p>
@@ -1922,6 +1941,8 @@ export function BenchApp() {
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+          {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
+          {platform === "mobile" && <HardTapSetting />}
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
@@ -1983,6 +2004,8 @@ export function BenchApp() {
           <InterfaceFold frame={frame.current} />
           <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
+          {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
+          {platform === "mobile" && <HardTapSetting />}
           {platform === "computer" && (
             <div className="tg-set">
               <span>MIDI</span>
@@ -2051,8 +2074,10 @@ export function BenchApp() {
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {APP.lite && !full && <LiteDrumsSwitch />}
+          {/* D420: what each thumb piston holds (the single stops, TUTTI, ROOM, the pedal's 16′), set before the run. */}
+          {hasStops(presetById(soundNow).id) && !lesson && !man && <PistonSettings presetId={presetById(soundNow).id} piece={f.id} />}
           {tempi && (
-            // D351: SLOW · DEFAULT · FAST, one button cycling them; the sound follows (unless one was chosen).
+            // D351: SLOW · DEFAULT · FAST, one button cycling them (D434: the sound stays the piece's own).
             <button type="button" id="pop-tempo" className={`tb-pop-tempo tb-pop-tempo-${step}`} aria-label={`${tr("TEMPO")}: ${stepWord(step)}`} onClick={() => setTempoSteps(saveStep(f.id, nextStep(step)))}>
               <span className="tb-pop-tempo-k">{tr("TEMPO")}</span> <b>{stepWord(step)}</b> <span className="tb-pop-tempo-v">{stepBeat(f.id, tempi[step])}</span>
             </button>

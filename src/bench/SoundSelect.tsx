@@ -11,9 +11,10 @@ import { presetById } from "../touch/sound.ts";
 export const SOUND_GROUPS: readonly [group: string, ids: readonly string[]][] = [
   // D365: and LUTE among the instruments, STRING CONSORT an ensemble of its own.
   ["INSTRUMENTS", ["harpsichordSampled", "pianoSampled", "chamberOrgan", "lute"]],
-  ["ENSEMBLES", ["stringConsort"]],
+  // D430: BAROQUE BAND an ensemble; D433: BLEEPS AND BLOOPS retired.
+  ["ENSEMBLES", ["stringConsort", "baroqueBand"]],
   ["GAME CONSOLES", ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker"]],
-  ["SYNTHESIZERS", ["analog", "modular", "tomita"]],
+  ["SYNTHESIZERS", ["analog", "tomita"]],
   ["VOICES", ["vocalSynth", "soloVoices"]],
 ];
 

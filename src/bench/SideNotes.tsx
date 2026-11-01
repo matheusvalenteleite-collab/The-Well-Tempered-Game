@@ -6,7 +6,7 @@
  * game's clock (BenchApp sets the ref's opacity); neither takes a touch.
  */
 import type { Ref } from "react";
-import { legendLines, SHORT_LEGEND, type Mark } from "./side-notes.ts";
+import { legendLines, shortLegend, type Mark } from "./side-notes.ts";
 import { tr } from "../i18n/index.ts";
 import { wholeLegend, type WholeBox } from "../touch/whole-marks.ts";
 
@@ -30,7 +30,10 @@ export function SideLegend({ marks, legendRef, whole, glossRef }: { marks: Itera
   const more = whole ? wholeLegend(whole) : [];
   if (!lines.length && !more.length) return null;
   // D483: with BUSONI's signs, the short lines (they fit between the crowd and the stops at 375 px).
-  const say = (l: { kind: string; text: string }) => (more.length && SHORT_LEGEND[l.kind] ? tr(SHORT_LEGEND[l.kind]) : l.text);
+  const say = (l: { kind: string; text: string }) => {
+    const s = more.length ? shortLegend(l.kind) : undefined;
+    return s ? tr(s) : l.text;
+  };
   return (
     <>
       <div className={`tb-side-legend${more.length ? " tb-side-legend-whole" : ""}`} id="side-legend" ref={legendRef} aria-hidden="true">

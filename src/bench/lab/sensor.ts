@@ -16,23 +16,11 @@
 
 import { barAcross } from "../protos.ts";
 
-/** One motion sample. t: its time (ms, the page's clock, performance.now's); rt: when the page received it. */
-export interface MotionSample {
-  t: number;
-  rt: number;
-  /** accelerationIncludingGravity (m/s²). */
-  gx: number;
-  gy: number;
-  gz: number;
-  /** acceleration without gravity (m/s²), where the device gives it. */
-  lx?: number;
-  ly?: number;
-  lz?: number;
-  /** rotationRate (deg/s). */
-  ra?: number;
-  rb?: number;
-  rg?: number;
-}
+import { BASE_FROM_MS, median, MotionReader, PEAK_FROM_MS, PEAK_TO_MS, stampOf, tapPeak, type MotionSample, type Permission, type TapPeak } from "../../touch/motion.ts";
+
+const hyp = (x: number, y: number, z: number) => Math.sqrt(x * x + y * y + z * z);
+// D425: the motion sensor's reader and its pure functions now live in the game (src/touch/motion.ts), shared with the Lab.
+export { BASE_FROM_MS, BASE_TO_MS, baseline, median, PEAK_FROM_MS, PEAK_TO_MS, stampOf, tapPeak, type MotionSample, type Permission, type TapPeak } from "../../touch/motion.ts";
 
 /** What a touch reported at its start. */
 export interface TouchInfo {
@@ -87,21 +75,6 @@ export function valueOf(x: TapRecord, src: SenseSource): number | null {
   return src === "motion" ? x.peak : sizeOf(x.touch);
 }
 
-export interface TapPeak {
-  /** The largest change of the motion from its rest (|a − baseline|, gravity included: every device gives it) in the window (m/s²); null: no samples there. */
-  peak: number | null;
-  /** When it was (ms from the touch). */
-  peakAt: number | null;
-  /** The largest |acceleration| (gravity removed by the device) in the window, where given. */
-  linPeak: number | null;
-  /** The largest |rotationRate| in the window (deg/s), where given. */
-  rotPeak: number | null;
-  /** Samples in the window. */
-  n: number;
-  /** When the page had the peak's sample (ms from the touch): the earliest the strength could be used. */
-  availMs: number | null;
-}
-
 export interface TapRecord extends TapPeak {
   /** The touch's time (ms, the page's clock). */
   t: number;
@@ -114,53 +87,11 @@ export interface TapRecord extends TapPeak {
   zone?: "inner" | "outer";
 }
 
-/** The window round a touch the peak is looked for in (ms), and the baseline before it. */
-export const PEAK_FROM_MS = -10;
-export const PEAK_TO_MS = 40;
-export const BASE_FROM_MS = -250;
-export const BASE_TO_MS = -20;
-
-const hyp = (x: number, y: number, z: number) => Math.sqrt(x * x + y * y + z * z);
-
-/** The resting motion before a touch: the mean of the samples in [BASE_FROM_MS, BASE_TO_MS] (or the last before the window). */
-export function baseline(samples: readonly MotionSample[], t0: number): { gx: number; gy: number; gz: number } | null {
-  const pre = samples.filter((s) => s.t >= t0 + BASE_FROM_MS && s.t <= t0 + BASE_TO_MS);
-  const use = pre.length ? pre : samples.filter((s) => s.t < t0 + PEAK_FROM_MS).slice(-1);
-  if (!use.length) return null;
-  const m = (k: "gx" | "gy" | "gz") => use.reduce((a, s) => a + s[k], 0) / use.length;
-  return { gx: m("gx"), gy: m("gy"), gz: m("gz") };
-}
-
-/** A tap's peak: the motion's largest change from rest in [t0 + from, t0 + to]. */
-export function tapPeak(samples: readonly MotionSample[], t0: number, from = PEAK_FROM_MS, to = PEAK_TO_MS): TapPeak {
-  const win = samples.filter((s) => s.t >= t0 + from && s.t <= t0 + to);
-  const base = baseline(samples, t0) ?? (win[0] ? { gx: win[0].gx, gy: win[0].gy, gz: win[0].gz } : null);
-  if (!win.length || !base) return { peak: null, peakAt: null, linPeak: null, rotPeak: null, n: 0, availMs: null };
-  let peak = -1;
-  let at: MotionSample = win[0];
-  let lin: number | null = null;
-  let rot: number | null = null;
-  for (const s of win) {
-    const d = hyp(s.gx - base.gx, s.gy - base.gy, s.gz - base.gz);
-    if (d > peak) (peak = d), (at = s);
-    if (s.lx !== undefined && s.ly !== undefined && s.lz !== undefined) lin = Math.max(lin ?? 0, hyp(s.lx, s.ly, s.lz));
-    if (s.ra !== undefined && s.rb !== undefined && s.rg !== undefined) rot = Math.max(rot ?? 0, hyp(s.ra, s.rb, s.rg));
-  }
-  return { peak, peakAt: at.t - t0, linPeak: lin, rotPeak: rot, n: win.length, availMs: at.rt - t0 };
-}
-
 /** The sensor's interval (ms): the median gap between the samples' times. */
 export function medianInterval(samples: readonly MotionSample[]): number | null {
   const gaps: number[] = [];
   for (let i = 1; i < samples.length; i++) gaps.push(samples[i].t - samples[i - 1].t);
   return gaps.length ? median(gaps) : null;
-}
-
-export function median(xs: readonly number[]): number {
-  const s = [...xs].sort((a, b) => a - b);
-  const n = s.length;
-  if (!n) return NaN;
-  return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
 }
 
 export interface Stats {
@@ -246,8 +177,6 @@ export function recentCalibration(peaks: readonly number[]): Calibration | null 
 
 // ---- The browser's side ----
 
-export type Permission = "unasked" | "granted" | "denied" | "not-needed" | "unavailable";
-
 export interface SensorExport {
   v: 1;
   kind: "wtc-lab-sensor";
@@ -274,11 +203,6 @@ export interface SensorExport {
   raw: number[][][];
 }
 
-/** A clock stamp: an event's own timeStamp where it is the page's clock (performance.now's), else when it was received. */
-export function stampOf(eventTs: number, now: number): number {
-  return Number.isFinite(eventTs) && Math.abs(now - eventTs) < 1000 ? eventTs : now;
-}
-
 const r2 = (x: number | undefined) => (x === undefined || x === null ? NaN : Math.round(x * 100) / 100);
 
 /**
@@ -286,83 +210,14 @@ const r2 = (x: number | undefined) => (x === undefined || x === null ? NaN : Mat
  * there) listens to devicemotion; `measure(t, label, touch)` measures a tap once the samples after it
  * have come in (`whenReady`).
  */
-export class MotionHub {
-  samples: MotionSample[] = [];
+export class MotionHub extends MotionReader {
   taps: TapRecord[] = [];
   raw: number[][][] = [];
-  permission: Permission = "unasked";
-  events = 0;
-  withValues = 0;
-  reportedInterval: number | null = null;
-  private listening = false;
-  private waiters: { until: number; deadline: number; fn: () => void; timer: ReturnType<typeof setTimeout> }[] = [];
   readonly app: string;
 
   constructor(app: string) {
+    super();
     this.app = app;
-  }
-
-  static supported(): boolean {
-    return typeof window !== "undefined" && "DeviceMotionEvent" in window;
-  }
-
-  /** Asks for the sensor (iOS: DeviceMotionEvent.requestPermission, from a tap) and listens. */
-  async start(): Promise<Permission> {
-    if (!MotionHub.supported()) return (this.permission = "unavailable");
-    const DM = (window as unknown as { DeviceMotionEvent: { requestPermission?: () => Promise<string> } }).DeviceMotionEvent;
-    if (typeof DM.requestPermission === "function") {
-      try {
-        const r = await DM.requestPermission();
-        this.permission = r === "granted" ? "granted" : "denied";
-      } catch {
-        this.permission = "denied";
-      }
-    } else this.permission = "not-needed";
-    if (this.permission !== "denied" && !this.listening) {
-      window.addEventListener("devicemotion", this.onMotion);
-      this.listening = true;
-    }
-    return this.permission;
-  }
-  stop() {
-    if (this.listening) window.removeEventListener("devicemotion", this.onMotion);
-    this.listening = false;
-    for (const w of this.waiters) clearTimeout(w.timer);
-    this.waiters = [];
-  }
-  get live(): boolean {
-    return this.listening && this.withValues > 0;
-  }
-
-  private onMotion = (e: DeviceMotionEvent) => {
-    this.events++;
-    const g = e.accelerationIncludingGravity;
-    if (!g || g.x === null || g.y === null || g.z === null) return;
-    this.withValues++;
-    const rt = performance.now();
-    const a = e.acceleration;
-    const r = e.rotationRate;
-    const s: MotionSample = { t: stampOf(e.timeStamp, rt), rt, gx: g.x, gy: g.y, gz: g.z };
-    if (a && a.x !== null && a.y !== null && a.z !== null) (s.lx = a.x), (s.ly = a.y), (s.lz = a.z);
-    if (r && r.alpha !== null && r.beta !== null && r.gamma !== null) (s.ra = r.alpha), (s.rb = r.beta), (s.rg = r.gamma);
-    if (typeof e.interval === "number") this.reportedInterval = e.interval;
-    this.samples.push(s);
-    // About three seconds kept.
-    if (this.samples.length > 600) this.samples.splice(0, this.samples.length - 600);
-    const now = s.t;
-    const due = this.waiters.filter((w) => now >= w.until);
-    if (due.length) {
-      this.waiters = this.waiters.filter((w) => now < w.until);
-      for (const w of due) (clearTimeout(w.timer), w.fn());
-    }
-  };
-
-  /** fn once a sample at or after `until` has come in, or at `deadline` (ms, the page's clock) at the latest. */
-  whenReady(until: number, deadline: number, fn: () => void) {
-    if (this.samples.length && this.samples[this.samples.length - 1].t >= until) return fn();
-    if (!this.live) return void setTimeout(fn, Math.max(0, deadline - performance.now()));
-    const w = { until, deadline, fn, timer: setTimeout(() => ((this.waiters = this.waiters.filter((x) => x !== w)), fn()), Math.max(0, deadline - performance.now())) };
-    this.waiters.push(w);
   }
 
   /** A tap measured over [−10, `to`] ms (its window filled, or `waitMs` on at the latest), kept and reported. */

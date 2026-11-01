@@ -501,7 +501,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     mode: "ladder",
     title: "DIE LESART",
     english: "THE READING",
-    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ‾ LEGATO · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (STRONG ZONE, ON TIME)",
+    goal: "PLAY THE SUBJECT AS THE MARKS SAY: ‾ LEGATO · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (TAP HARD)",
     intro: [{ text: "Now one of my fugues. Players have written how its subject should go: some notes legato, some apart." }, { text: "The marks show it. In HEAR THE SUBJECT, choose a reading or none. Here, follow the marks." }],
     praise: [{ text: "So. You played my subject as a thinking musician would." }],
     again: [{ text: "Legato where it is legato; a small silence where it is apart. Again." }],

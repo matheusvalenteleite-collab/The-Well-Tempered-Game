@@ -307,3 +307,6 @@ function readSteps(f: TouchFugue, on: number, midi: number, signs: string): { st
   // Nothing fits (a letter the signature puts an augmented second away): a whole step.
   return { stepAbove: () => neighbour(1) ?? 2, stepBelow: () => neighbour(-1) ?? 2 };
 }
+
+/** D426: the piece's key signature as alterations by letter (the coulé's fill, proto-game.ts). */
+export const keySignature = (key: string): Record<string, number> => signature(key);

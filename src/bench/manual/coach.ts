@@ -125,7 +125,7 @@ export const fixSlurs = (x: LensStats): Said => {
   return { text: "{n} of {m} missed. Legato under the slur; a small silence after its last note.", vars: { n: of - ok, m: of } };
 };
 
-export const fixAccents = (x: LensStats): Said => ({ text: "{n} of {m} accents missed. Weight on time: land the accent by the box, in the strong zone, on the beat.", vars: { n: x.marks.accent.of - x.marks.accent.ok, m: x.marks.accent.of } });
+export const fixAccents = (x: LensStats): Said => ({ text: "{n} of {m} accents missed. Tap the accent hard, in its time (on a computer: land it in the strong zone, by the box).", vars: { n: x.marks.accent.of - x.marks.accent.ok, m: x.marks.accent.of } });
 
 export const fixBreath = (): Said => ({ text: "You came in exactly on time after every rest. Breathe: enter a hair late, then go on." });
 
@@ -174,7 +174,7 @@ export function coachTexts(): string[] {
     "Your touch changed from note to note: {c}% kept. Choose one length, and keep it.",
     "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: a small silence before the next note.",
     "{n} of {m} missed. Legato under the slur; a small silence after its last note.",
-    "{n} of {m} accents missed. Weight on time: land the accent by the box, in the strong zone, on the beat.",
+    "{n} of {m} accents missed. Tap the accent hard, in its time (on a computer: land it in the strong zone, by the box).",
     "You came in exactly on time after every rest. Breathe: enter a hair late, then go on.",
     "You leaned, then stayed late. After the lean, the next note is back on the beat.",
     "No lean yet. On a bar's first note, arrive a moment late; the next note on time.",
