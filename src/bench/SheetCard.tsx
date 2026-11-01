@@ -10,7 +10,8 @@ import { freeLine, type FreeTally } from "./free-summary.ts";
 
 const n = (x: number) => x.toLocaleString("en");
 const pc = (x: number) => `${Math.round(x * 100)}%`;
-const ink = (x: number) => (x >= 0.9 ? "var(--tg-gold)" : x >= 0.75 ? "#5fdc6a" : x >= 0.6 ? "#e8c94a" : "#ec5a4a");
+// D446: the grades' inks by the same bands (S gold, A green, B yellow, C orange-red, D red).
+const ink = (x: number) => (x >= 0.95 ? "var(--tg-gold)" : x >= 0.9 ? "#5fdc6a" : x >= 0.8 ? "#e8c94a" : x >= 0.7 ? "#f0784a" : "#d8443a");
 
 export function SheetCard(p: { sheet: Sheet; score: number; failed: boolean; failedBar: number | null; lastBar: number; progress: number; maxStreak: number; best?: { before: number | null; fresh: boolean; old?: number | null } | null; head?: ReactNode; free?: FreeTally }) {
   const { sheet } = p;
