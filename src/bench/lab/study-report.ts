@@ -103,7 +103,7 @@ export function takeStats(log: LabLog, take: number): TakeStats {
   for (const e of log.verdicts) {
     if (e.kind === "stray") stray++;
     if (e.kind === "release") {
-      if (e.word.includes("SHORT")) short++;
+      if (e.word.includes("TOO SOON")) short++;
       if (e.word.includes("HELD")) held++;
     }
   }

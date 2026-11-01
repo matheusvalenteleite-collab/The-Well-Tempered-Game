@@ -385,15 +385,6 @@ const PROXY_O: ProxyOpts = {};
 /** Where a thumb rests on its strip (across): its tip toward the box. */
 const restX = (w: number, bw: number, side: Side) => (side === "left" ? bw * 0.72 : w - bw * 0.72);
 
-/** The words for the next move, from where the thumb is to where the note lands. */
-function moveWord(from: number | undefined, to: number): string {
-  if (from === undefined) return "";
-  const d = to - from;
-  if (Math.abs(d) < 0.5) return "NEXT: THE SAME NOTE";
-  if (d >= 3) return "NEXT: A BIG JUMP UP";
-  if (d <= -3) return "NEXT: A BIG JUMP DOWN";
-  return d > 0 ? "NEXT: A LITTLE HIGHER" : "NEXT: A LITTLE LOWER";
-}
 
 /**
  * Both thumbs, always there (the owner: "the thumbs should not disappear … they ought to become
@@ -425,33 +416,9 @@ function thumbsA(c: CanvasRenderingContext2D, w: number, h: number, bw: number, 
     const y = last ? last.y : side === "left" ? mid + rows.rowH * 2 : mid - rows.rowH * 2;
     drawThumbA(c, restX(w, bw, side), Math.max(size, Math.min(h - size, y)), size, side, 1, g.o.side && g.o.side !== side ? 0.45 : 0.85);
   }
-  if (!next) return;
-  const ahead = ((notes[next.i].on - g.now) / g.tps) * 1000;
-  if (ahead > 1800) return;
-  const side = next.side;
-  if (downs.some((d) => d.side === side)) return;
-  const y = rows.yOf(next.step);
-  const from = g.lastBySide[side];
-  drawThumbA(c, restX(w, bw, side), y, size, side, 0.5, Math.max(0.3, Math.min(0.7, 1 - ahead / 1800)));
-  if (from && Math.abs(from.y - y) > 4) {
-    c.globalAlpha = 0.7;
-    c.strokeStyle = GOLD;
-    c.lineWidth = 1.5;
-    const ax = side === "left" ? bw * 0.3 : w - bw * 0.3;
-    const dy = y < from.y ? 1 : -1;
-    c.beginPath();
-    c.moveTo(ax, from.y);
-    c.lineTo(ax, y);
-    c.moveTo(ax - 4, y + dy * 6);
-    c.lineTo(ax, y);
-    c.lineTo(ax + 4, y + dy * 6);
-    c.stroke();
-    c.globalAlpha = 1;
-  }
-  if (step === "watch" || step === "try") {
-    const word = moveWord(from?.step, next.step);
-    if (word) label(c, word, side === "left" ? bw / 2 : w - bw / 2, Math.min(h - 12, y + size * 1.3), GOLD, 6);
-  }
+  // D460 (the owner: the arrows and rings "happening so fast, that it's impossible for the player to learn anything from
+  // them"): no ghost of the next move, no gold arrow, no NEXT words; ● ○ under the notes say which thumb (paint-proto thumbSigns).
+
 }
 
 /**

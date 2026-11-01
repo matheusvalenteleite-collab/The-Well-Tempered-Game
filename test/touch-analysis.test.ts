@@ -26,7 +26,7 @@ test("every piece carries cadences and countersubjects (empty where none); the t
     // In time order, a bar apart at least.
     for (let i = 1; i < f.cadences.length; i++) assert.ok(f.cadences[i].on - f.cadences[i - 1].on >= f.barTicks, `${f.id} b.${f.cadences[i].bar}`);
   }
-  assert.equal(cadenceName({ on: 0, bar: 1, key: "g", kind: "perfect" }), "PERFECT CADENCE · G MINOR");
+  assert.equal(cadenceName({ on: 0, bar: 1, key: "g", kind: "perfect" }), "FULL CADENCE · G MINOR");
   assert.equal(cadenceName({ on: 0, bar: 1, key: "Eb", kind: "phrygian" }), `PHRYGIAN CADENCE · ${keyName("Eb")}`);
   const f = fugueById("wtc1f16");
   assert.deepEqual(

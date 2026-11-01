@@ -248,7 +248,7 @@ export const RETIRED: ManualLesson[] = [
       st("play", ex(INV, RH, 19, 22, { pct: 80 }, "Invention 1, right hand, bars 19–22: the end"), "The end of my Invention. Broaden, and stay on the last C."),
     ],
     lens: { counts: ["Right: 85%", "The last note held"], shown: ["Broadening"], never: ["How much you broaden"] },
-    checks: (x): Check[] => [right(x, 0.85), { text: "THE LAST NOTE {w}", vars: { w: !x.last.hit ? "MISSED" : x.last.word === "SHORT" ? "SHORT" : "HELD" }, ok: x.last.hit && x.last.word !== "SHORT", fix: C.fixLast(x) }],
+    checks: (x): Check[] => [right(x, 0.85), { text: "THE LAST NOTE {w}", vars: { w: !x.last.hit ? "MISSED" : x.last.word === "TOO SOON" ? "TOO SOON" : "HELD" }, ok: x.last.hit && x.last.word !== "TOO SOON", fix: C.fixLast(x) }],
     shown: (x): Check[] => [{ text: "BROADENED {n}", vars: { n: x.graces.broaden }, ok: true }],
     before: ["The end comes to you. Do not run to meet it."],
     after: ["The end came to you."],
