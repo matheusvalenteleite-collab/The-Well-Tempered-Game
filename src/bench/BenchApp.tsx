@@ -28,12 +28,13 @@ import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ladderGeometry, MusicBox, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
+import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { uiActive, uiRows } from "../touch/ui/index.ts";
-import { BOX_PLAYHEAD, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
+import { BOX_PLAYHEAD, BOX_PX, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
 import { MECH } from "./mechanics.ts";
 import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
@@ -913,7 +914,10 @@ export function BenchApp() {
     const a = area.getBoundingClientRect();
     const rh = r.height * (1 - boxFloor);
     // D377: CLASSIC's rows exactly as drawn, the zoom's ease included (box-zoom.ts touchRows).
-    const geo = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null) ?? ladderGeometry(zv.lo, zv.hi, r.height, boxFloor, zv.from, zv.mix);
+    const other = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null);
+    const geo = other ?? ladderGeometry(zv.lo, zv.hi, r.height, boxFloor, zv.from, zv.mix);
+    // D414: CLASSIC draws an altered note a third of a row off its row (D332): a slide aims at the block as drawn.
+    const sig = other ? null : signatureOf(f.key);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
     const span = bars * barTicks;
@@ -921,6 +925,7 @@ export function BenchApp() {
       yOf: (step: number) => y0 - step * geo.rowH,
       stepAt: (y: number) => Math.round((y0 - y) / geo.rowH),
       rowH: geo.rowH,
+      ...(sig ? { lift: (step: number, midi: number) => chromaLiftPx(geo.rowH, step, midi, sig, BOX_PX) } : {}),
       xOf: (tick: number) => r.left - a.left + ((tick - (now - 0.25 * span)) / span) * r.width,
     };
   }
