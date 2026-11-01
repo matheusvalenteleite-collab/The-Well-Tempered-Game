@@ -12,7 +12,7 @@ import { hz } from "./tuning.ts";
 import { crowned, heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, bowEntry, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, layerHits, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -456,7 +456,7 @@ export interface Play {
 function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
   const both = [main, twin];
   return {
-    stop: (t) => both.forEach((x) => x.stop(t)),
+    stop: (t, how) => both.forEach((x) => x.stop(t, how)),
     bend: (cents) => both.forEach((x) => x.bend(cents)),
     glide: (m, tau) => (main.glide?.(m, tau), twin.glide?.(m + shift, tau)),
     muffle: () => both.forEach((x) => x.muffle?.()),
@@ -503,7 +503,8 @@ export const SING_GAIN = 3.4;
 // D252: the player's own notes were a little brighter (2.5 dB) and louder (×1.12); D349, D358, D365: withdrawn, the player's notes the band's.
 
 export interface Sounding {
-  stop: (at?: number) => void;
+  /** D427: `how`, a bowed note giving way to the next of its line (Patch.bow): a bow change or a slur (sound.ts giveWayFall); else its own release. */
+  stop: (at?: number, how?: GiveWay) => void;
   /** Bend the note by some cents (the thumb's sideways wobble). */
   bend: (cents: number) => void;
   /** Glide to another pitch without a new attack (a held thumb slid on: glissando). D376: `tau`, the glide's time constant (s; the slide's own, glenn.ts slideGlideTau), else the sound's. */
@@ -769,7 +770,7 @@ export class Chip {
       }
     });
     return {
-      stop: (t) => ((h.done = true), h.sd.stop(t)),
+      stop: (t, how) => ((h.done = true), h.sd.stop(t, how)),
       bend: (c) => ((h.bend = c), h.sd.bend(c)),
       glide: sd.glide && ((m, tau) => ((h.midi = m), h.sd.glide?.(m, tau))),
       muffle: () => ((h.muffled = true), h.sd.muffle?.()),
@@ -1020,9 +1021,9 @@ export class Chip {
       if (i >= 0) this.voices.splice(i, 1);
     };
     const stop = sd.stop;
-    sd.stop = (when?: number) => {
+    sd.stop = (when?: number, how?: GiveWay) => {
       entry.until = Math.min(entry.until, (when ?? this.ctx.currentTime) + 0.4);
-      stop(when);
+      stop(when, how);
     };
     return sd;
   }
@@ -1575,7 +1576,8 @@ export class Chip {
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);
     // D358: a bowed string's joined note a new bow stroke (Patch.bow), not a slur. D424: a slur (Play.slur) keeps the bow.
-    const bow = pt.bow && p.legato && !p.slur && !plucked ? pt.bow : null;
+    // D427: how a joined bowed note enters (sound.ts bowEntry): the player's bow change its bite and accent, a slur under the note before.
+    const entry = bowEntry(pt.bow, p, plucked);
     const play = (set: string, m: number, r: Loaded, mult: number, gain: number, choir?: { delay: number; shelf: number }) => {
       const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;
@@ -1599,7 +1601,7 @@ export class Chip {
       } else src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack. D358: a bowed string's a new stroke (Patch.bow).
       // D357: a new note on a recorded pipe enters its speech near where it sounds (SampledInstrument.speak).
-      const from = r.onset + (p.legato && !plucked ? (bow ? bow.skip : 0.25) : plucked ? 0 : speakFrom(inst, r));
+      const from = r.onset + (p.legato && !plucked ? (entry ? entry.skip : 0.25) : plucked ? 0 : speakFrom(inst, r));
       src.start(t + (choir?.delay ?? 0), from);
       srcs.push({ src, set, m, mult });
       if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
@@ -1711,9 +1713,16 @@ export class Chip {
     // then, held, an exponential fall toward silence (the SNES's sustain that is not one); a joined
     // (legato) note comes in at the sustain. Without `rec`, the recording's own envelope, as before.
     const re = pt.rec;
-    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? (bow?.a ?? 0.015) : 0.01 + (p.soft ?? 0) * 0.08;
+    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? (entry ? entry.still + entry.a : 0.015) : 0.01 + (p.soft ?? 0) * 0.08;
     const top = re && p.legato && !plucked ? peak * re.s : peak;
-    g.gain.linearRampToValueAtTime(top, t + Math.max(0.001, atk));
+    if (entry?.still) {
+      // D427, the bow change: the bow still a moment at the reversal (gripping, `floor`), then the stroke's bite and its accent.
+      const at0 = t + entry.still;
+      g.gain.linearRampToValueAtTime(top * entry.floor, t + 0.003);
+      g.gain.setValueAtTime(top * entry.floor, at0);
+      g.gain.linearRampToValueAtTime(top * 10 ** (entry.accentDb / 20), at0 + entry.a);
+      if (entry.accentDb) g.gain.setTargetAtTime(top, at0 + entry.a, entry.accentS / 3);
+    } else g.gain.linearRampToValueAtTime(top, t + Math.max(0.001, atk));
     /** Where the envelope is at `x` (after the attack): for a browser without cancelAndHoldAtTime. */
     let levelAt = (_x: number) => peak;
     // D311: the lute (buff) stop: the string damped by its felt, a short ring.
@@ -1726,6 +1735,13 @@ export class Chip {
       if (re.s < 1 && top > peak * re.s) g.gain.setTargetAtTime(peak * re.s, a, Math.max(0.01, re.d / 3));
       if (re.fade) g.gain.setTargetAtTime(0, a + re.d, re.fade);
       levelAt = (x) => peak * re.s * (re.fade && x > a + re.d ? Math.exp(-(x - a - re.d) / re.fade) : 1);
+    }
+    // D427: a bow change's accent, falling back (the level a giveWay starts from).
+    if (entry?.accentDb) {
+      const base = levelAt;
+      const from = t + entry.still + entry.a;
+      const over = 10 ** (entry.accentDb / 20) - 1;
+      levelAt = (x) => base(x) * (1 + (x < from ? 0 : over * Math.exp(-(x - from) / (entry.accentS / 3))));
     }
     const dyn = bag.add(ctx.createGain());
     /** D335: the level the last trim left (Sounding.trim). */
@@ -1864,6 +1880,22 @@ export class Chip {
       rs.connect(thunk).connect(dyn);
       rs.start(s, r.onset);
     };
+    /**
+     * D427: a bowed note given way to at `s` (the next note's onset): a bow change stops it quickly (the bow
+     * reversing), a slur holds it to the onset and crosses into the next (sound.ts giveWayFall).
+     */
+    const giveWay = (s: number, how: GiveWay) => {
+      const f = giveWayFall(how);
+      // From the level as the envelope gives it (levelAt), not cancelAndHoldAtTime: with it, rendered in
+      // Chromium, the first slur after a tap notched to -46 dB for a few ms.
+      const lv = levelAt(s);
+      g.gain.cancelScheduledValues(s);
+      g.gain.setValueAtTime(lv, s);
+      if (f.tau) g.gain.setTargetAtTime(0, s, f.tau);
+      else for (const [dt, k] of f.points) g.gain.linearRampToValueAtTime(lv * k, s + dt);
+      for (const x of srcs) halt(x.src, s + f.gone + 0.02);
+      for (const l of lfos) halt(l, s + f.gone + 0.05);
+    };
     // D184: damped at the written end (a lead note's end is its longest hold), unless it has died away first.
     if (plucked && end > t + life) {
       for (const x of srcs) halt(x.src, t + life + 0.05);
@@ -1888,9 +1920,11 @@ export class Chip {
     };
     return {
       shape,
-      stop: (when = ctx.currentTime) => {
+      stop: (when = ctx.currentTime, how?: GiveWay) => {
         if (stopped || when >= end) return;
         stopped = true;
+        // D427: a bowed note giving way to the next of its line: a bow change or a slur (giveWay).
+        if (how && pt.bow && !plucked) return giveWay(Math.max(when, t + 0.02), how);
         // D339: a stop set ahead (the game's handover: the next note struck, this one let go 30 ms on) is a legato's, not a lift.
         letGo(Math.max(when, t + 0.02), 0, !!p.lead, when > ctx.currentTime + 0.005);
       },

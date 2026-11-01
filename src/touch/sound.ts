@@ -277,7 +277,8 @@ export interface Patch {
   /**
    * D358: a bowed string's joined note is a new bow stroke, not a slur (chip.ts sampledNote): the
    * recording entered `skip` s after its onset (some of the bow's bite kept, where a slur skips 0.25 s),
-   * rising over `a` s while the note before crossfades out (the bow change's small dip).
+   * rising over `a` s while the note before crossfades out (the bow change's small dip). D427: the
+   * player's bow change STRING_BOW_CHANGE, a slur STRING_SLUR (bowEntry, giveWayFall).
    */
   bow?: { skip: number; a: number };
   /**
@@ -384,6 +385,57 @@ export const SALON_SEND = 0.2;
 export const ORGAN_SEND = 0.4;
 /** D358: a bowed string's joined note a new bow stroke (Patch.bow): 60 ms of the recording's bite kept, rising over 30 ms. */
 export const STRING_BOW = { skip: 0.06, a: 0.03 } as const;
+/**
+ * D427, THE BOW CHANGE (the player's joined note on a bowed string, Patch.bow: a two-thumb JOIN, HANDOFF
+ * or OVERLAP): the bow stops and reverses. The note given way to stops quickly at the change (`out` s to
+ * -40 dB from the new onset: an exponential, Sounding.stop "bow"); the new stroke stands still for
+ * `still` s at `floor` of its level (the bow gripping), then bites: the recording entered `skip` s after
+ * its onset (some of the attack's noise kept), rising over `a` s, an accent of `accentDb` falling back
+ * over about `accentS` s. Measured (D427): a dip of about 6-10 dB for 20-40 ms between the notes, still
+ * joined. The band's joined notes keep STRING_BOW (D358).
+ */
+export const STRING_BOW_CHANGE = { skip: 0.02, still: 0.012, floor: 0.18, a: 0.012, accentDb: 1.25, accentS: 0.1, out: 0.03 } as const;
+/**
+ * D427, THE SLUR (Play.slur on a bowed string: SET-AND-RELEASE, a hold-over's release): the same bow, the
+ * left hand changes the note. The note given way to held at its level to the new onset, then out over
+ * `out` s (at `mid` of its level halfway: near equal power, Sounding.stop "slur"); the new note entered
+ * past its attack (0.25 s, D424) rising over `a` s under it: the level dips 2 dB at most.
+ */
+export const STRING_SLUR = { a: 0.04, out: 0.06, mid: 0.85 } as const;
+
+/** D427: how a bowed note gives way to the next of its line (Sounding.stop): a bow change or a slur. */
+export type GiveWay = "bow" | "slur";
+/** D427: a joined bowed note's entry: where the recording is entered, the still moment, the rise and the accent (see STRING_BOW_CHANGE). */
+export interface BowEntry {
+  skip: number;
+  still: number;
+  floor: number;
+  a: number;
+  accentDb: number;
+  accentS: number;
+}
+/**
+ * D427: a joined note's entry on a bowed string (Patch.bow), by how it was joined: the player's new bow
+ * (STRING_BOW_CHANGE), the band's (D358's STRING_BOW: no still moment, no accent), a slur's (past the
+ * attack, STRING_SLUR's rise). Null: not a joined held bowed note (a TAP, a pluck, no Patch.bow): as before.
+ */
+export function bowEntry(bow: Patch["bow"] | undefined, p: { legato?: boolean; slur?: boolean; lead?: boolean }, plucked = false): BowEntry | null {
+  if (!bow || !p.legato || plucked) return null;
+  if (p.slur) return { skip: 0.25, still: 0, floor: 0, a: STRING_SLUR.a, accentDb: 0, accentS: 0 };
+  if (!p.lead) return { skip: bow.skip, still: 0, floor: 0, a: bow.a, accentDb: 0, accentS: 0 };
+  const c = STRING_BOW_CHANGE;
+  return { skip: c.skip, still: c.still, floor: c.floor, a: c.a, accentDb: c.accentDb, accentS: c.accentS };
+}
+/**
+ * D427: how a bowed note given way to falls (from the next note's onset, s after it): a bow change an
+ * exponential of time constant `tau` (-40 dB by STRING_BOW_CHANGE.out); a slur held, then a line through
+ * `points` ([s, factor of its level]) to silence (STRING_SLUR.out).
+ */
+export function giveWayFall(how: GiveWay): { tau: number; points: [number, number][]; gone: number } {
+  if (how === "bow") return { tau: STRING_BOW_CHANGE.out / 4.6, points: [], gone: STRING_BOW_CHANGE.out * 1.5 };
+  const s = STRING_SLUR;
+  return { tau: 0, points: [[s.out / 2, s.mid], [s.out, 0]], gone: s.out };
+}
 /** D358: STRING CONSORT's one send into its room (the salon), every player's. */
 export const CONSORT_SEND = 0.22;
 /** D365: STRING CONSORT's cello on a phone: its upper partials lifted (Patch.phoneLift), so the bass line carries there (measured: SOUND-PRINCIPLES.md §10). */
