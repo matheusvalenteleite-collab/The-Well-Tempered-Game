@@ -42,6 +42,15 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // edge: the lute stop's muted, darker pluck).
   stringConsort: "singers",
   lute: "harpsichord",
+  // TRIALS (instruments-trials): the bands of held instruments as the consort (a bow's or the breath's pressure,
+  // the messa); the jazz quartet and the clavichord as the piano (the touch's three zones: their dynamics); the
+  // organ trio as the organ.
+  trialBaroque: "singers",
+  trialWinds: "singers",
+  trialBrass: "singers",
+  trialJazz: "piano",
+  trialOrganTrio: "organ",
+  trialClavichord: "piano",
 };
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;

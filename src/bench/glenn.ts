@@ -75,7 +75,10 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "harpsichordSampled" || presetId === "lute") return "plucked";
   if (presetId === "pianoSampled") return "piano";
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
-  if (presetId === "stringConsort") return "bowed";
+  if (presetId === "stringConsort" || presetId === "trialBaroque" || presetId === "trialWinds" || presetId === "trialBrass") return "bowed";
+  // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); the organ trio the organ.
+  if (presetId === "trialJazz" || presetId === "trialClavichord") return "plucked";
+  if (presetId === "trialOrganTrio") return "organ";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
@@ -247,6 +250,10 @@ export function labPlayParam(search: string): "glenn" | null {
 export type TouchFamily = "strings" | "voices" | "synths";
 const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   stringConsort: "strings",
+  // TRIALS: the winds and brass as the strings (Patch.bow as a tongue, sound.ts WIND_TONGUE): a JOIN a soft new tongue, SET-AND-RELEASE the legato (slur).
+  trialBaroque: "strings",
+  trialWinds: "strings",
+  trialBrass: "strings",
   soloVoices: "voices",
   vocalSynth: "voices",
   chip: "synths",
@@ -315,7 +322,7 @@ export type KeyboardSlide = "hairpin" | "coule" | "slur";
 /** D426: what a slide does on a sound (null: D424's families, TRAVERSO, any other: as before). */
 export function keyboardSlide(presetId: string): KeyboardSlide | null {
   if (presetId === "pianoSampled") return "hairpin";
-  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled") return "coule";
+  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled" || presetId === "trialOrganTrio" || presetId === "trialClavichord") return "coule";
   if (presetId === "lute") return "slur";
   return null;
 }
