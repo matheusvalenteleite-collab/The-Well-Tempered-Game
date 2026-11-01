@@ -120,10 +120,10 @@ test("D409: no L or R in the suggestion marks: ● and ○ with their legend; th
   assert.equal(THUMB_LEGEND, "● ○ = your two thumbs, either way round");
   const hear = readFileSync(new URL("../src/bench/HearSubject.tsx", import.meta.url), "utf8");
   const aids = readFileSync(new URL("../src/bench/manual/aids.ts", import.meta.url), "utf8");
-  for (const [name, src] of [["HearSubject", hear], ["aids", aids]] as const) {
-    assert.doesNotMatch(src, /tr\("[LR]"\)|"[LR]"\s*:\s*tr|\? "L" : "R"|\? tr\("L"\)/, `${name}: an L or R letter drawn`);
-    assert.match(src, /drawThumbMark/, `${name}: the neutral marks drawn`);
-  }
+  for (const [name, src] of [["HearSubject", hear], ["aids", aids]] as const) assert.doesNotMatch(src, /tr\("[LR]"\)|"[LR]"\s*:\s*tr|\? "L" : "R"|\? tr\("L"\)/, `${name}: an L or R letter drawn`);
+  // D482 (the owner: "eliminate the bloody white and black balls … from anywhere, except the TUTORIALS"): the tutorial's aid draws them; HEAR THE SUBJECT no longer does.
+  assert.match(aids, /drawThumbMark/, "aids: the neutral marks drawn");
+  assert.doesNotMatch(hear, /drawThumbMark|THUMB_LEGEND|hear-thumbs-key/, "HearSubject: no ● ○ under the notes");
   assert.match(hear, /"FINGERING SUGGESTION \{n\} OF \{m\}"/);
   assert.doesNotMatch(hear, /THUMBS \{n\} OF \{m\}|tr\(fg\.name\)|ONE THUMB WHERE DETACHED/);
   assert.equal(PT["FINGERING SUGGESTION {n} OF {m}"], "SUGESTÃO DE DEDILHADO {n} DE {m}");
