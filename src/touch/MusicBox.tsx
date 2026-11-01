@@ -16,7 +16,7 @@ import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGe
 import { wholeLegend, type BoxMark, type WholeBox } from "./whole-marks.ts";
 import { STRONG_SIDE } from "./touch-expr.ts";
 import { paintVariant } from "./box-variants.ts";
-import { paintUi } from "./ui/index.ts";
+import { paintUi, uiActive } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
@@ -256,6 +256,27 @@ export interface Frame {
   ranges?: { lo: number; hi: number }[];
   /** The piece's id (the interface templates, ui/index.ts, `?ui=NAME`). */
   piece?: string;
+  /**
+   * Design studio (D415, the owner: "we ought to be able to see the music flowing behind the buttons"): the
+   * CSS px of the box's canvas that lie under the side bars, left and right (the roll runs the whole width,
+   * the bars translucent over it). The time scale and the playhead stay those of the part between the bars;
+   * under the left bar the music just gone, under the right the music coming. Set by MusicBox each frame.
+   */
+  clear?: { l: number; r: number };
+}
+
+/**
+ * D415: the music box's roll between the side bars (where the time scale is set and the play line stands),
+ * in client px; the whole roll elsewhere. The roll itself runs under the bars in THUMBS ↔ (bench.css).
+ */
+export function rollRect(): { left: number; right: number; top: number; bottom: number; width: number; height: number } | null {
+  const roll = typeof document !== "undefined" ? document.querySelector(".tg-roll") : null;
+  if (!roll) return null;
+  const r = roll.getBoundingClientRect();
+  const b = roll.parentElement?.getBoundingClientRect();
+  const left = b ? Math.max(r.left, b.left) : r.left;
+  const right = b ? Math.min(r.right, b.right) : r.right;
+  return { left, right, top: r.top, bottom: r.bottom, width: Math.max(1, right - left), height: r.height };
 }
 
 export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefObject<Frame>; hud: ReactNode; legend: ReactNode; children?: ReactNode }) {
@@ -266,7 +287,17 @@ export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefOb
     let raf = 0;
     const loop = () => {
       const el = wrap.current;
-      if (el && canvas.current) paint(canvas.current, el.clientWidth, el.clientHeight, frame.current);
+      if (el && canvas.current) {
+        // D415: the classic box runs under the translucent bars (the class lets bench.css widen the roll);
+        // a picture drawn in its place (the sheet, an interface template) keeps the space between them.
+        const box = el.parentElement;
+        const wide = !boxPainter && !uiActive();
+        if (box && box.classList.contains("tg-box-wide") !== wide) box.classList.toggle("tg-box-wide", wide);
+        const r = el.getBoundingClientRect();
+        const b = box?.getBoundingClientRect();
+        frame.current.clear = wide && b ? { l: Math.max(0, b.left - r.left), r: Math.max(0, r.right - b.right) } : undefined;
+        paint(canvas.current, el.clientWidth, el.clientHeight, frame.current);
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -329,8 +360,14 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   g.fillStyle = keyTint(fr.key);
   g.fillRect(0, 0, w, h);
 
-  const span = (fr.bars ?? BARS_SHOWN) * fr.barTicks;
-  const t0 = fr.now - PLAYHEAD * span;
+  // D415: the bars' share of the canvas (clear): the time scale is the part between them, the rest more of the
+  // same scale (the past under the left bar, the future under the right); span and t0 cover the whole canvas.
+  const vis = (fr.bars ?? BARS_SHOWN) * fr.barTicks;
+  const cl = fr.clear ? fr.clear.l / PX : 0;
+  const cr = fr.clear ? fr.clear.r / PX : 0;
+  const wi = Math.max(1, w - cl - cr);
+  const span = (vis * w) / wi;
+  const t0 = fr.now - PLAYHEAD * vis - (cl / wi) * vis;
   const xOf = (tick: number) => Math.round(((tick - t0) / span) * w);
   const playX = xOf(fr.now);
   // The ladder: one row per staff step over the piece's range, a step of room either side.
@@ -383,7 +420,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const shift = chromaShift(bh);
   const altOf = (step: number, midi: number) => (shift && hOf(step) === bh ? alterAgainst(step, midi, sig) : 0);
 
-  const fx = { g, w, h, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
+  const fx = { g, w, h, left: Math.round(cl), xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
   // D372: the effects' clock (s), and the voices played (the effects' passes).
   const fxClock = performance.now() / 1000;
   PLAYED_VOICES[0] = fr.voice;

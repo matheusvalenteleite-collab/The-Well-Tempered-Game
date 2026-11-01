@@ -7,7 +7,7 @@
  * tools/lab/replay.ts); ready-made drills. English only.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MusicBox, ladderGeometry, inkOf, type Frame } from "../../touch/MusicBox.tsx";
+import { MusicBox, rollRect, ladderGeometry, inkOf, type Frame } from "../../touch/MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "../../touch/PlayArea.tsx";
 import { Chip } from "../../touch/chip.ts";
 import { PIECES, TUTORIAL_PIECES, beatOf, cadenceName, fugueById, keyAt, keyName, type TouchFugue, everyNote } from "../../touch/fugue.ts";
@@ -395,10 +395,9 @@ export function LabApp() {
 
   /** The box's rows in the play area's coordinates (BenchApp boxRows), and their (y0, rowH) for the log. */
   function boxRows(now: number) {
-    const roll = document.querySelector(".tg-roll");
+    const r = rollRect();
     const area = document.querySelector(".tg-play");
-    if (!roll || !area) return null;
-    const r = roll.getBoundingClientRect();
+    if (!r || !area) return null;
     const a = area.getBoundingClientRect();
     const geo = uiRows(f.id, setup.voice, range, r.height) ?? ladderGeometry(range.lo, range.hi, r.height);
     const y0 = r.top - a.top + geo.yOf(0);
