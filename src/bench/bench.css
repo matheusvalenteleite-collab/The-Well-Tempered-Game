@@ -983,14 +983,20 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 /* D369: the stops at the feet of the two bars (the thumbs' bars), not in the music box's title bar: a strip
    as tall as a thumb's target (44 px), beside the box's legend, which grows to the same height so the box's
    rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
-.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; gap: 3px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); }
+/* D420: now the three THUMB PISTONS at each bar's foot (all three on both bars: whichever thumb is free
+   reaches them), one row of large targets (58 px tall, a third of the bar wide), the legend as tall. */
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * 0.2 - 12px); }
 .tb-stops-left { left: calc(var(--tg-sal) + 6px); }
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
-.tb-stops-side .tg-stop { min-width: 44px; height: 44px; margin: 0; padding: 0 2px; font-size: 7px; background: var(--tg-bg); overflow: hidden; }
-.tb-stops-side .tg-stop.on { background: var(--tg-shine); }
-.tb-stops-side .tg-stop::after { inset: -2px; }
-.tb-stops-side .tg-room-name { top: auto; bottom: calc(100% + 6px); }
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 2px); align-items: center; box-sizing: border-box; }
+.tb-stops-side .tg-piston { height: 58px; }
+.tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
+/* D420: what each piston holds, in the piece's pop-up (folded). */
+.tb-pop-pistons { margin: 6px 0; text-align: left; }
+.tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }
+.tb-pop-piston { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 5px 0; }
+.tb-pop-piston-n { width: 34px; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); }
+.tb-pop-piston .tg-stop { height: 30px; }
+.tb-pop-piston-more { padding-left: 38px; }
 
 /* D369: the voice legend: the player's voice a chip of its own (its colour block and VOCÊ: …), the others after it, dimmer. */
 .tg-legend:has(.tb-you-chip) { align-items: center; overflow: visible; }

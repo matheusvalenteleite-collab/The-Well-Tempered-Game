@@ -175,24 +175,27 @@ test("D357: the stop changes kept for the run (a challenge's 'draw X at bar N');
   assert.deepEqual(seen, [`${O}:flute`]);
 });
 
-test("D357: the stop row: one-touch buttons (no fold, no long press), TUTTI and ROOM buttons, shown while playing for the friends too", async () => {
+test("D357: one touch (no fold, no long press), shown while playing for the friends too (D420: three pistons; the single stops, TUTTI and ROOM in the pop-up)", async () => {
   const React = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   // The server renderer's note that layout effects do not run there: expected, not shown.
   const err = console.error;
   console.error = (...a: unknown[]) => void (String(a[0]).includes("useLayoutEffect") || err(...a));
-  const { RegistrationStops } = await import("../src/touch/RegistrationStops.tsx");
+  const { RegistrationStops, PistonSettings } = await import("../src/touch/RegistrationStops.tsx");
   const organ = renderToStaticMarkup(React.createElement(RegistrationStops, { presetId: O, patch: PATCHES.orgPrincipal, piece: "wtc1f02" }));
-  for (const id of ["stop-flute", "stop-principal", "stop-reed", "stop-mixture", "stop-trem", "stop-tutti", "stop-room"]) assert.match(organ, new RegExp(`id="${id}"`), id);
-  assert.match(organ, /id="stop-principal"[^>]*aria-pressed="true"/);
-  assert.match(organ, /id="stop-reed"[^>]*aria-pressed="false"/);
-  assert.doesNotMatch(organ, /id="stops"|stops-pop|HOLD/);
-  const harpsi = renderToStaticMarkup(React.createElement(RegistrationStops, { presetId: "harpsichordSampled", patch: PATCHES.harpsiSampled, piece: "wtc1f02" }));
-  assert.match(harpsi, /id="stop-unison"/);
-  assert.match(harpsi, /id="stop-tutti"/);
-  assert.doesNotMatch(harpsi, /id="stop-room"/, "ROOM for the organ");
+  for (const id of ["piston-I", "piston-II", "piston-III"]) assert.match(organ, new RegExp(`id="${id}"`), id);
+  assert.match(organ, /id="piston-II"[^>]*aria-pressed="true"/);
+  assert.match(organ, /id="piston-III"[^>]*aria-pressed="false"/);
+  assert.doesNotMatch(organ, /id="stops"|stops-pop|HOLD|id="stop-/);
+  // D420: the single stops, TUTTI and ROOM before the run, in the piece's pop-up.
+  const pop = renderToStaticMarkup(React.createElement(PistonSettings, { presetId: O, piece: "wtc1f02" }));
+  for (const id of ["pop-piston-I-flute", "pop-piston-III-mixture", "pop-piston-II-sub16", "pop-piston-tutti", "pop-piston-room"]) assert.match(pop, new RegExp(`id="${id}"`), id);
+  const harpsi = renderToStaticMarkup(React.createElement(PistonSettings, { presetId: "harpsichordSampled", piece: "wtc1f02" }));
+  assert.match(harpsi, /id="pop-piston-III-unison"/);
+  assert.match(harpsi, /id="pop-piston-tutti"/);
+  assert.doesNotMatch(harpsi, /id="pop-piston-room"/, "ROOM for the organ");
   const src = readFileSync(new URL("../src/touch/RegistrationStops.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(src, /setTimeout\([^)]*TUTTI|onPointerDown/, "no long press");
+  assert.doesNotMatch(src, /setTimeout\([^)]*TUTTI/, "no long press");
   const app = readFileSync(new URL("../src/bench/BenchApp.tsx", import.meta.url), "utf8");
   // D369: the condition kept (stopsOn); on the two bars the row moves to the bars' feet (test/d369-owner-fixes.test.ts).
   // D402: in the tutorial only from THE REAL THING on (its dressing), never in an older lesson.

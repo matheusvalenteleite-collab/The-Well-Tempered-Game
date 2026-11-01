@@ -104,7 +104,7 @@ import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
 import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
-import { RegistrationStops } from "../touch/RegistrationStops.tsx";
+import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
@@ -1676,7 +1676,7 @@ export function BenchApp() {
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
-      {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+      {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
         hud={
@@ -1690,7 +1690,7 @@ export function BenchApp() {
               </span>
             )}
             {/* D322: the stops for the player's voice (the harpsichord's, the organ's), beside ❚❚ and ✕. D357: one-touch, always there while playing, for the friends too. */}
-            {stopsOn && layout !== "bars" && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+            {stopsOn && layout !== "bars" && <RegistrationStops presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
             {playing && canPause && (
               // D308: PAUSE, beside ✕.
               <button type="button" id="pause" className="tg-x tb-pause" aria-label={tr("Pause")} onClick={pauseNow}>
@@ -2018,6 +2018,8 @@ export function BenchApp() {
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {APP.lite && !full && <LiteDrumsSwitch />}
+          {/* D420: what each thumb piston holds (the single stops, TUTTI, ROOM, the pedal's 16′), set before the run. */}
+          {hasStops(presetById(soundNow).id) && !lesson && !man && <PistonSettings presetId={presetById(soundNow).id} piece={f.id} />}
           {tempi && (
             // D351: SLOW · DEFAULT · FAST, one button cycling them; the sound follows (unless one was chosen).
             <button type="button" id="pop-tempo" className={`tb-pop-tempo tb-pop-tempo-${step}`} aria-label={`${tr("TEMPO")}: ${stepWord(step)}`} onClick={() => setTempoSteps(saveStep(f.id, nextStep(step)))}>

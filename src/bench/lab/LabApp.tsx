@@ -990,8 +990,8 @@ export function LabApp() {
             ) : (
               <span className="tg-hud-title">{study.active ? `STUDY · ${study.progress}` : hudTitle}</span>
             )}
-            {/* D322: the stops for the voice played (kept per piece, as in the game). */}
-            {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} />}
+            {/* D322: the stops for the voice played (kept per piece, as in the game). D420: the three pistons. */}
+            {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} voice={setup.voice} />}
             {changed > 0 && (
               <button type="button" className="lab-badge" onClick={() => setPanel("mechanics")} title="Parameters changed from the game's">
                 {changed} CHANGED
