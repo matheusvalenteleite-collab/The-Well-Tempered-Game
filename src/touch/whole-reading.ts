@@ -72,6 +72,15 @@ export const LEVEL_DB: Readonly<Record<string, number>> = {
   "non forte": 0,
   "meno dolce": -4,
 };
+/**
+ * D404: the level a word in the score begins with (an opening's level when no level is entered there) (LEVEL_DB's names, the longest first, followed by its end, a comma, a
+ * space or a bracket: "sotto voce, misterioso" sotto voce, "dolce (Tenor.)" dolce, "f tenuto" f), or null.
+ */
+export function levelWord(text: string): string | null {
+  const w = text.trim().toLowerCase();
+  const names = Object.keys(LEVEL_DB).sort((a, b) => b.length - a.length);
+  return names.find((k) => w === k || (w.startsWith(k) && /^[\s,(]/.test(w.slice(k.length)))) ?? null;
+}
 /** A hairpin with no printed level after it: a local swell or fall of this much (dB). */
 export const HAIRPIN_DB = 3;
 /** A ramp word (cresc., dim.) with no printed level within six bars: this much over its span (dB). */
@@ -363,8 +372,12 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
   const evs: Ev[][] = Array.from({ length: nv }, () => []);
   const lv = (mark: string) => LEVEL_DB[mark.trim()];
   const levels = W.dyn.filter((d) => lv(d.mark) !== undefined).sort((a, b) => a.on - b.on);
-  // D404: a level printed late in the piece is no opening level (OPENING_BARS): mf before it.
-  const firstLevel = levels.length && levels[0].on < OPENING_BARS * f.barTicks ? lv(levels[0].mark) : 0;
+  // D404: a level printed late in the piece is no opening level (OPENING_BARS): before it the level word of the opening
+  // (I/4's "sotto voce, misterioso", I/6's dolce, entered among the words), else mf (II/10's ff of bar 82 had stood
+  // from bar 1, II/24's p of bar 50 too).
+  const opening = OPENING_BARS * f.barTicks;
+  const openingWord = W.text.filter((t) => t.on < opening && levelWord(t.text)).sort((a, b) => a.on - b.on)[0];
+  const firstLevel = levels.length && levels[0].on < opening ? lv(levels[0].mark) : openingWord ? lv(levelWord(openingWord.text)!) : 0;
   const nextLevel = (v: number, t: number, within: number) => {
     const l = levels.find((d) => d.voices.includes(v) && d.on > t && d.on <= t + within);
     return l ? { t: l.on, db: lv(l.mark) } : null;
