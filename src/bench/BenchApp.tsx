@@ -95,7 +95,7 @@ import { bachNotes } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
-import { PlayPop, popTitle } from "./PlayPop.tsx";
+import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
 import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
@@ -429,7 +429,8 @@ export function BenchApp() {
   // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
   // D356: in the friends' view too, where a WTC fugue's tempo is open (no sound chosen there).
   const soundAt = (id: string) => {
-    const mine = full ? chosen : {};
+    // D410 (design studio): the friends choose a sound too, on the selection's SOUND (D343 had none).
+    const mine = chosen;
     const st = !mine[id] ? stepSound(id, stepOf(id)) : undefined;
     return soundFor(id, st ? { ...mine, [id]: st } : mine, DEFAULT_SOUND);
   };
@@ -2000,6 +2001,9 @@ export function BenchApp() {
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
           tutorial={{ ...manualProgress(readManual()), start: startManual }}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
+          // D410 (design studio): TEMPO and SOUND on the selection's right column.
+          tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
+          sound={APP.lite ? { value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (
               <p className="tg-note tb-lag-note sel-lag" id="sel-lag-note">

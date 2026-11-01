@@ -12,6 +12,7 @@
  * TUTORIAL glows, the grid is dimmed but works, and the right column says in one sentence where to start.
  */
 import { useState, type ReactNode } from "react";
+import { FugueAbout } from "./FugueAbout.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
 import { fugueById } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
@@ -21,6 +22,7 @@ import { Emblem } from "./FuguePicker.tsx";
 import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
+import { soundOptions } from "./SoundSelect.tsx";
 import { BEFORE_JUDGING, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
@@ -63,6 +65,10 @@ export interface SelectionProps {
   note?: ReactNode;
   /** D382: Book II just earned: the note is shown; called once it is seen (tapped, or BOOK II opened). */
   bookTwo?: () => void;
+  /** Design studio (D410): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
+  tempo?: { word: string; beat: string; locked: boolean; cycle: () => void };
+  /** Design studio (D410): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
+  sound?: { value: string; name: string; sounds: readonly (readonly [id: string, name: string])[]; own?: string; set: (id: string) => void };
 }
 
 export function Selection(p: SelectionProps) {
@@ -113,13 +119,38 @@ export function Selection(p: SelectionProps) {
         <nav className="sel-tabs" aria-label={tr("COLLECTIONS")}>
           <p className="sel-tabs-head">{tr("COLLECTIONS")}</p>
           <div role="tablist">
-            {tabs.map(([t, label]) => (
-              <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`sel-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
-                {t === "I" || t === "II" ? `${tr("BOOK")} ${t}${tabs.length === 1 ? ` · ${tr("{n} FUGUES", { n: 24 })}` : ""}` : tr(label)}
-              </button>
-            ))}
+            {tabs.map(([t, label]) => {
+              // Design studio (D410): each book its share finished, "BOOK I  42%", a bar under it.
+              const pct = t === "I" || t === "II" ? Math.round((100 * gridIds(t).filter((id) => won.has(id)).length) / Math.max(1, gridIds(t).length)) : null;
+              return (
+                <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`sel-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
+                  <span className="sel-tab-name">{t === "I" || t === "II" ? `${tr("BOOK")} ${t}` : tr(label)}</span>
+                  {pct !== null && (
+                    <span className="sel-tab-pct" id={`pct-book-${t}`}>
+                      {pct}%
+                    </span>
+                  )}
+                  {pct !== null && (
+                    <span className="sel-tab-bar" aria-hidden="true">
+                      <i style={{ width: `${pct}%` }} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </nav>
+        {/* Design studio (D410): the language, SETTINGS and TOOLS on the left (browse and set up); the right column is the piece's. */}
+        <div className="sel-left-foot">
+          {p.setLang && <LangPick value={lang()} set={p.setLang} />}
+          <div className="sel-top-row">
+            {p.beside}
+            <button type="button" id="lite-settings" className="tb-settings-btn sel-settings" aria-label={tr("SETTINGS")} onClick={p.settings}>
+              <PixelGear size={12} />
+              <span>{tr("SETTINGS")}</span>
+            </button>
+          </div>
+        </div>
       </aside>
       <section className="sel-col sel-centre" id="sel-centre" aria-label={tr("BOOK")}>
         {p.bookTwo && (
@@ -149,16 +180,6 @@ export function Selection(p: SelectionProps) {
         )}
       </section>
       <aside className="sel-col sel-right" id="sel-right">
-        <div className="sel-top">
-          {p.setLang && <LangPick value={lang()} set={p.setLang} />}
-          <div className="sel-top-row">
-            {p.beside}
-            <button type="button" id="lite-settings" className="tb-settings-btn sel-settings" aria-label={tr("SETTINGS")} onClick={p.settings}>
-              <PixelGear size={12} />
-              <span>{tr("SETTINGS")}</span>
-            </button>
-          </div>
-        </div>
         {chosen ? (
           <Chosen {...p} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
         ) : (
@@ -190,8 +211,9 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
   const n = Number(id.slice(-2));
   // Design studio: the key in words, "C♯ major" / "C♯ minor", not the upper/lower-case convention.
   const key = keyWords(f.key);
-  const nick = fugueName(id, lang(), "short");
+  // Design studio (D410): the whole name on the tile, its article back ("THE IMP"), on up to two lines.
   const full = fugueName(id, lang());
+  const nick = full;
   const name = full ? `${full} · ${pieceTitle(id)}` : pieceTitle(id);
   return (
     <li>
@@ -215,31 +237,33 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
             </span>
           )}
         </span>
-        <span className="sel-tile-key">
-          <b>{n}</b> {key.tonic} <i>{key.mode}</i>
-        </span>
-        {nick && (
-          <span className="sel-tile-name" id={`name-${id}`}>
-            {nick}
+        {/* Design studio (D410): the words in a block of their own, never squeezed: the picture gives way, not the lines. */}
+        <span className="sel-tile-words">
+          <span className="sel-tile-key">
+            <b>{n}</b> {key.tonic} <i>{key.mode}</i>
           </span>
-        )}
-        <span className="sel-tile-level" style={{ color: lv.ink }}>
-          {tr(lv.label)}
+          {nick && (
+            <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`}>
+              {nick}
+            </span>
+          )}
         </span>
       </button>
     </li>
   );
 }
 
-/** The right column's piece: its picture, name, book and number, level, voices; its best; the voice to play. */
-function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, bestOld, scoresOld }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
+/** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
+ * voices, its best and secrets, the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D410). */
+function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
   const f = fugueById(piece);
   const lv = liteLevel(piece);
   const wtc = /^wtc[12][fp]\d\d$/.test(piece);
   const name = pieceTitle(piece);
   const nick = fugueName(piece, lang());
-  const where = wtc ? `${tr("BOOK")} ${piece[3] === "1" ? "I" : "II"} · ${Number(piece.slice(-2))}` : "";
   const grade = best[piece] ?? bestOld[piece];
+  const [about, setAbout] = useState(false);
+  const score = scores[piece] ?? scoresOld[piece];
   return (
     <div className="sel-piece" id="sel-piece">
       <span className="sel-piece-pic">
@@ -248,6 +272,11 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
           <span className={`sel-grade${best[piece] ? "" : " sel-old"}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }}>
             {grade}
           </span>
+        )}
+        {f.kind === "fugue" && wtc && (
+          <button type="button" id="sel-about" className="sel-about" aria-label={tr("ABOUT THIS FUGUE")} onClick={() => setAbout(true)}>
+            ?
+          </button>
         )}
       </span>
       {nick && (
@@ -258,20 +287,31 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
       <p className="sel-piece-name" id="sel-piece-name">
         {name}
       </p>
-      <p className="sel-piece-meta">
-        {where && <>{where} · </>}
-        <span style={{ color: lv.ink }}>{tr(lv.label)}</span> · {tr("{n} VOICES", { n: f.voices.length })}
+      <p className="sel-piece-meta" id="sel-piece-meta">
+        {wtc && (
+          <>
+            <span className="sel-book-word">{tr("BOOK")} </span>
+            {piece[3] === "1" ? "I" : "II"} · {Number(piece.slice(-2))} ·{" "}
+          </>
+        )}
+        <span style={{ color: lv.ink }}>{tr(lv.label)}</span> ·{" "}
+        {/* D410: the voices as dots in their inks (the buttons below in the same colours), so the line fits on one line. */}
+        <span className="sel-piece-dots" aria-label={tr("{n} VOICES", { n: f.voices.length })}>
+          {f.voiceNames.map((vn, i) => (
+            <i key={vn} style={{ background: inkOf(i, f.voices.length) }} />
+          ))}
+        </span>
       </p>
-      {scores[piece] !== undefined && (
-        <p className="sel-best" id={`best-${piece}`}>
-          {tr("BEST {n}", { n: scores[piece].toLocaleString("en") })}
-        </p>
-      )}
-      {scores[piece] === undefined && scoresOld[piece] !== undefined && (
-        <p className="sel-best sel-old" id={`best-old-${piece}`}>
-          {tr("BEST {n} · BEFORE 1.52", { n: scoresOld[piece].toLocaleString("en") })}
-        </p>
-      )}
+      <p className="sel-best-row">
+        <span className={`sel-best${scores[piece] === undefined ? " sel-old" : ""}`} id={`best-${piece}`}>
+          {score !== undefined ? tr("BEST {n}", { n: score.toLocaleString("en") }) : tr("BEST —")}
+        </span>
+        {f.kind === "fugue" && wtc && (
+          <span className="sel-secrets" id={`secrets-${piece}`} aria-label={`${tr("SECRETS")} 0/3`} title={tr("SECRETS")}>
+            ✦ 0/3
+          </span>
+        )}
+      </p>
       {f.kind !== "prelude" && (
         <>
           <p className="sel-ask">{tr("YOUR VOICE")}</p>
@@ -288,17 +328,42 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
           </div>
         </>
       )}
-      <div className="sel-links">
-        {hear && f.kind === "fugue" && (
-          <button type="button" id={`hear-${piece}`} className="sel-link" onClick={() => hear(piece)}>
-            ♪ {tr("HEAR THE SUBJECT")}
-          </button>
-        )}
-        <button type="button" id="sel-options" className="sel-link" onClick={options}>
-          ? {tr("HOW TO PLAY")} · {tr("OPTIONS")}
+      {(tempo || sound) && (
+        <div className="sel-knobs">
+          {tempo && (
+            <button type="button" id="sel-tempo" className={`sel-knob${tempo.locked ? " locked" : ""}`} aria-label={`${tr("TEMPO")}: ${tempo.word}`} title={tempo.locked ? tr("AN A ON THIS FUGUE UNLOCKS TEMPO") : undefined} onClick={tempo.cycle}>
+              <span className="sel-knob-k">{tr("TEMPO")}</span>
+              <b>
+                {tempo.locked ? "🔒 " : ""}
+                {tempo.word}
+              </b>
+            </button>
+          )}
+          {sound && (
+            <label className="sel-knob" id="sel-sound-knob">
+              <span className="sel-knob-k">{tr("SOUND")}</span>
+              <b>{sound.name} ▾</b>
+              <select id="sel-sound" value={sound.value} aria-label={tr("SOUND")} onChange={(e) => sound.set(e.target.value)}>
+                {soundOptions(sound.sounds, sound.own).map(({ group, items }) => (
+                  <optgroup key={group} label={tr(group)}>
+                    {items.map(([sid, nm]) => (
+                      <option key={sid} value={sid}>
+                        {sid === sound.own ? `★ ${tr(nm)}` : tr(nm)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
+      )}
+      {hear && f.kind === "fugue" && (
+        <button type="button" id={`hear-${piece}`} className="sel-hear" onClick={() => hear(piece)}>
+          <span aria-hidden="true">♪</span> {tr("HEAR THE SUBJECT")}
         </button>
-      </div>
+      )}
+      {about && <FugueAbout id={piece} close={() => setAbout(false)} />}
     </div>
   );
 }
-
