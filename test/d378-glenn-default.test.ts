@@ -29,23 +29,22 @@ import { gameFor, ROWS as GROWS } from "./d342-sim.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("D378: Glenn's mechanics are the default (play.html, the tutorial, the Lab); CLASSIC is the Lab's A and lab.html?glenn=0", () => {
+test("D378: Glenn's mechanics are the default (play.html, the tutorial, the Lab); CLASSIC is the Lab's A", () => {
   assert.equal(MECH_DEFAULTS.glenn, true);
   assert.equal(MECH.glenn, true);
   assert.equal(MECH_CLASSIC.glenn, false);
   assert.equal(CLASSIC_VALUES.glenn, false);
   assert.equal(configMech(configById("B+")!).glenn, true, "the Lab's default config, the game's");
   assert.equal(configMech(configById("A")!).glenn, false);
-  assert.equal(labPlayParam("?glenn=0"), "classic");
+  assert.equal(labPlayParam("?glenn=0"), null, "MECHANICS: CLASSIC's page removed");
   assert.equal(labPlayParam("?glenn=1"), "glenn");
-  // The Lab's play page: no GLENN badge; CLASSIC's says so; the Lab's tabs link both.
+  // The Lab's play page: no badge but the way back; the Lab links it (no CLASSIC page).
   const main = src("src/bench/lab/lab-main.tsx");
-  assert.doesNotMatch(main, /GLENN MECHANICS ON/);
-  assert.match(main, /\{classic && <b>MECHANICS: CLASSIC<\/b>\}/);
-  assert.match(main, /setMech\(\{ glenn: !classic \}\)/);
+  assert.doesNotMatch(main, /GLENN MECHANICS ON|MECHANICS: CLASSIC/);
+  assert.match(main, /setMech\(\{ glenn: true \}\)/);
   const lab = src("src/bench/lab/LabApp.tsx");
   assert.match(lab, /href="\?glenn=1"[^]*PLAY ALL PIECES/);
-  assert.match(lab, /href="\?glenn=0"[^]*MECHANICS: CLASSIC/);
+  assert.doesNotMatch(lab, /\?glenn=0|MECHANICS: CLASSIC/);
   // HOW TO PLAY: joined by ear, over-legato, the slide's slur; the accent asks no hold.
   const ladder = RULES.ladder.join(" ");
   assert.match(ladder, /Joined means no gap you can hear \(25 ms or less\)/);

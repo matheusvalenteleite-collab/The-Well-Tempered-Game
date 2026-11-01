@@ -24,7 +24,7 @@ const ON = { glenn: true };
 /** D378: MECHANICS: CLASSIC (the game before WTC 1.83). */
 const OFF = { glenn: false };
 
-test("D376/D378: the flag a Lab parameter; on in the game (D378); lab.html?glenn=1 the game's, ?glenn=0 MECHANICS: CLASSIC", () => {
+test("D376/D378: the flag a Lab parameter; on in the game (D378); lab.html?glenn=1 the game's (?glenn=0 no longer a page)", () => {
   assert.equal(MECH_DEFAULTS.glenn, true);
   assert.equal(MECH.glenn, true);
   assert.ok(MECH_SPEC.some((s) => s.key === "glenn" && s.kind === "bool"));
@@ -33,8 +33,8 @@ test("D376/D378: the flag a Lab parameter; on in the game (D378); lab.html?glenn
   assert.equal(glennParam(""), false);
   assert.equal(glennParam("?glenn=0"), false);
   assert.equal(labPlayParam("?glenn=1"), "glenn");
-  assert.equal(labPlayParam("?glenn=0"), "classic");
-  assert.equal(labPlayParam("?glenn=off"), "classic");
+  assert.equal(labPlayParam("?glenn=0"), null);
+  assert.equal(labPlayParam("?glenn=off"), null);
   assert.equal(labPlayParam(""), null);
   // play.html's entry sets nothing: the defaults are Glenn's. The Lab's reads the page's address.
   const lite = readFileSync(new URL("../src/bench/lite-main.tsx", import.meta.url), "utf8");

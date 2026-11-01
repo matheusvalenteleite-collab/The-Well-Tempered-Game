@@ -293,7 +293,7 @@ export const MECH_DEFAULTS = {
   /** FOLLOWS: the band's drift from the written time by tempo (not by waits) is pulled back, so that at this much it gives way no further (ms). */
   bandDriftMaxMs: 250,
   // EXPRESSION LAB (D376: Glenn's "More Expression from Two Thumbs"; glenn.ts). D378 (WTC 1.83): the game's; off only in
-  // the Lab (MECHANICS: CLASSIC: lab.html?glenn=0, preset A); a recorded set that does not name it meant off (CLASSIC_VALUES).
+  // the Lab (preset A, or this switch off); a recorded set that does not name it meant off (CLASSIC_VALUES).
   /** Glenn's mechanics: real over-legato, a keyboard slide begins a slur, slides and shakes told apart, joins judged by ear, a new bow against a slur. */
   glenn: true,
 };
@@ -515,7 +515,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "bandSmooth", group: "BAND TIME", label: "Following: smoothing", help: "FOLLOWS: each new note's weight in the band's estimate of your lateness (lower: smoother, slower to follow).", kind: "number", min: 0.05, max: 1, step: 0.05 },
   { key: "bandBoundPct", group: "BAND TIME", label: "Following: at most", help: "FOLLOWS: the band's tempo stays within this of the written (set at each beat, never within one).", kind: "number", min: 0, max: 10, step: 0.5, unit: "%" },
   { key: "bandDriftMaxMs", group: "BAND TIME", label: "Following: drift cap", help: "FOLLOWS: how far the band may fall behind (or run ahead of) the written time by its tempo; it is pulled back toward it and gives way no further.", kind: "number", min: 50, max: 1000, step: 25, unit: "ms" },
-  { key: "glenn", group: "MECHANICS", label: "Glenn's mechanics (off: CLASSIC)", help: "D378: the game's since WTC 1.83; off, MECHANICS: CLASSIC, the game before it (lab.html?glenn=0). D376: on harpsichord, lute and piano the note left rings until its thumb lifts (at most 400 ms, the piano 250); a slide on a keyboard strikes the next note and begins a slur to the next detach or strong beat; a slide arrives within 0.15 row, a shake's legs alternate; joined means a gap of 25 ms or less; an accent needs no hold; on strings, winds and voices two thumbs re-articulate and a slide glides, timed by the thumb.", kind: "bool" },
+  { key: "glenn", group: "MECHANICS", label: "Glenn's mechanics (off: CLASSIC)", help: "D378: the game's since WTC 1.83; off, MECHANICS: CLASSIC, the game before it. D376: on harpsichord, lute and piano the note left rings until its thumb lifts (at most 400 ms, the piano 250); a slide on a keyboard strikes the next note and begins a slur to the next detach or strong beat; a slide arrives within 0.15 row, a shake's legs alternate; joined means a gap of 25 ms or less; an accent needs no hold; on strings, winds and voices two thumbs re-articulate and a slide glides, timed by the thumb.", kind: "bool" },
   { key: "cancel", group: "CANCELS", label: "A touch the phone takes back", help: "iOS sometimes cancels a touch when the other thumb lands.", kind: "choice", options: [["overlap", "Rings on while the other thumb is down (D308)"], ["always", "Always rings to its end (D293)"], ["lift", "Counts as a lift"]] },
 ];
 
