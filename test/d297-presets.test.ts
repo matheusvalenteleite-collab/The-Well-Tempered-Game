@@ -16,7 +16,8 @@ import { fugueById, PIECES } from "../src/touch/fugue.ts";
 
 const ctxOf = installFakeAudio(0, true);
 // D302: CHAMBER ORGAN remade as PIPE ORGAN (its id kept), TEMPLE 64 and AGENT 64 as FOREST 64 and PARTY 64, two singing voices added; D304: FOREST 64 and PARTY 64 withdrawn.
-const NEW = ["super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita"];
+// D433: BLEEPS AND BLOOPS (modular) retired.
+const NEW = ["super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita"];
 /** The presets judged by the clarity rules here (every one but the niche picks bends none of them). */
 const ALL = [...NEW, "analog"];
 
@@ -24,8 +25,8 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   assert.equal(presetById("analog").name, "SWITCHED-ON");
   assert.equal(presetById("carlos").id, "analog");
   // D365: then STRING CONSORT and LUTE (test/d365-consort-lute.test.ts).
-  assert.deepEqual(PRESETS.slice(5, 15).map((p) => p.id), NEW);
-  assert.deepEqual(PRESETS.slice(5, 15).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA"]);
+  assert.deepEqual(PRESETS.slice(5, 14).map((p) => p.id), NEW);
+  assert.deepEqual(PRESETS.slice(5, 14).map((p) => p.name), ["SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA"]);
   for (const id of NEW) {
     // D340: but the MORE BACH and CHORALES tabs' asked-for exceptions (the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT). D348: and the harpsichord concertos.
     // D355: and the pieces given a sound of their own (tools/touch/colour-plans).
@@ -282,8 +283,8 @@ test("D304: FOREST 64 and PARTY 64 withdrawn (the owner: 0 each), they and TEMPL
     assert.ok(!PRESETS.some((p) => p.id === gone), gone);
   }
   for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.equal(PERIOD[id], undefined, id);
-  // (D305: BLEEPS AND BLOOPS' spring; D339: the sampled piano's and harpsichord's salon.)
-  assert.deepEqual(Object.keys(REVERBS).sort(), ["cathedral", "hall", "plate", "salon", "space", "spring"]);
+  // (D305: BLEEPS AND BLOOPS' spring, kept with its patches; D339: the sampled piano's and harpsichord's salon; D430: BAROQUE BAND's room.)
+  assert.deepEqual(Object.keys(REVERBS).sort(), ["band", "cathedral", "hall", "plate", "salon", "space", "spring"]);
 });
 
 test("D297, D302: TRACKER: 8-bit samples held without smoothing, short loops, hard left and right, a tone portamento", () => {
@@ -302,7 +303,8 @@ test("D297: SWITCHED-ON and MODULAR drift; TOMITA's wash only from the inner voi
   for (const s of presetById("analog").slots!) assert.ok(PATCHES[s].drift && PATCHES[s].drift!.cents <= 3, s);
   const rates = presetById("analog").slots!.map((s) => PATCHES[s].drift!.rate);
   assert.equal(new Set(rates).size, 5, "each voice wanders on its own");
-  for (const s of presetById("modular").slots!) assert.ok(PATCHES[s].drift, s);
+  // D433: BLEEPS AND BLOOPS retired; its patches kept, drifting.
+  for (const s of ["modVibe", "modOrgan", "modBongo", "modBell", "modBass"] as const) assert.ok(PATCHES[s].drift, s);
   const t = presetById("tomita");
   assert.equal(t.fx, "space");
   const [top, , , , bass] = t.slots!.map((s) => PATCHES[s].send!);

@@ -1,6 +1,6 @@
 /**
  * D351 (WTC 1.62): BWV 1059 as a reconstruction; the MORE BACH and CHORALES pictures' words; the pop-up's
- * tempo cycle (SLOW · DEFAULT · FAST, each with its sound, kept per piece); play.html's header and tabs
+ * tempo cycle (SLOW · DEFAULT · FAST, kept per piece; D434: the piece's own sound at every step); play.html's header and tabs
  * sticky at the top.
  */
 import { test } from "node:test";
@@ -15,7 +15,7 @@ g0.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: s
 const { CHORALES, fugueById, loadExtras, MORE_BACH } = await import("../src/touch/fugue.ts");
 const { MORE_TEMPO } = await import("../src/touch/tempi.ts");
 const { PIECE_SOUND } = await import("../src/touch/piece-sound.ts");
-const { PATCHES, patchFor, placeFor, presetById, PRESETS, setPreset } = await import("../src/touch/sound.ts");
+const { PATCHES, patchFor, placeFor, PRESETS, setPreset } = await import("../src/touch/sound.ts");
 const { EMBLEM_W, GLYPHS, keyLabel, labelWidth } = await import("../src/bench/emblem.ts");
 const { pieceWord } = await import("../src/bench/piece-word.ts");
 const steps = await import("../src/bench/tempo-steps.ts");
@@ -105,20 +105,10 @@ test("D351: three tempi for every MORE BACH and CHORALES piece: SLOW 0.75×, FAS
   assert.match(steps.stepBeat("bwv1053-2", 66), /^♩\. 44$/);
 });
 
-test("D351: each tempo its sound: DEFAULT the piece's own, SLOW and FAST by the kind of piece, each with a layout for the piece's voices", () => {
-  assert.equal(steps.stepSound("bwv1052-1", "default"), undefined);
-  const want = { chor001: ["soloVoices", "harpsichordSampled"], "bwv1080-01": ["chamberOrgan", "chip"], "bwv1052-1": ["nocturne32", "tracker"], "bwv1043-1": ["nocturne32", "tracker"], "bwv228-1": ["soloVoices", "vocalSynth"], bwv772: ["pianoSampled", "chip"], "bwv1079-ric6": ["soloVoices", "harpsichordSampled"] } as const;
-  for (const [id, [slow, fast]] of Object.entries(want)) assert.deepEqual([steps.stepSound(id, "slow"), steps.stepSound(id, "fast")], [slow, fast], id);
-  const ids = [...MORE, ...CHORALE_IDS];
-  for (const id of ids) {
-    const n = fugueById(id).voices.length;
-    for (const s of ["slow", "fast"] as const) {
-      const p = steps.stepSound(id, s)!;
-      assert.ok(PRESETS.some((x) => x.id === p), `${id} ${s}: ${p} a player's sound`);
-      // More than five voices need the preset's own layout (else voices past the fifth all fall on the bass).
-      if (n > 5) assert.equal(presetById(p).by?.[n]?.length, n, `${id} ${s}: ${p} lays out ${n} voices`);
-    }
-  }
+test("D351, D434: every tempo the piece's own sound (the owner: \"keep each fugue own sound at every tempo\"); the layouts D351 made kept", () => {
+  assert.equal((steps as Record<string, unknown>).stepSound, undefined, "no sound by step");
+  assert.equal((steps as Record<string, unknown>).STEP_SOUNDS, undefined);
+  for (const id of [...MORE, ...CHORALE_IDS]) assert.ok(PRESETS.some((x) => x.id === (PIECE_SOUND[id] ?? "chip")), id);
   // The concertos at SLOW and FAST, as SUPER 16-BIT (D348): the harpsichords on a harpsichord, never louder than a string line.
   for (const [pid, harp] of [["nocturne32", PATCHES.n32Harpsi], ["tracker", PATCHES.trkHarpsi]] as const) {
     setPreset(pid);
@@ -136,10 +126,10 @@ test("D351: each tempo its sound: DEFAULT the piece's own, SLOW and FAST by the 
     }
   }
   setPreset("chip");
-  // The page: a sound chosen for the piece is kept at every tempo; the card shows the sound in force.
+  // The page: the piece's own sound, or the one chosen for it, at every tempo; the card shows the sound in force.
   const app = src("src/bench/BenchApp.tsx");
-  // D356: in the friends' view too (no sound chosen there), where a WTC fugue's tempo is open.
-  assert.match(app, /const mine = full \? chosen : \{\};\s*const st = !mine\[id\] \? stepSound\(id, stepOf\(id\)\) : undefined;/);
+  assert.match(app, /const soundAt = \(id: string\) => soundFor\(id, full \? chosen : \{\}, DEFAULT_SOUND\);/);
+  assert.doesNotMatch(app, /stepSound/);
   assert.match(app, /const bpm = run \? run\.bpm : tempi \? tempi\[step\] : tempoOf\(f\.id\);/);
   assert.match(app, /id="pop-tempo"/);
   assert.match(app, /<LiteGrid soundOf=\{soundAt\}/);

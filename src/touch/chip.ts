@@ -12,7 +12,7 @@ import { hz } from "./tuning.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, bowEntry, expressiveAll, registerAll, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { chainOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -193,6 +193,11 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // (the bass's lines kept clear) and nothing over 6.5 kHz: the strings' release heard into a space, not
   // into a dry box, with the pedal kept off (the owner's "no sustain pedal", after Schiff).
   salon: { predelay: 0.018, hp: 180, lp: 6500, seconds: 1.4, phoneSeconds: 1.0, rt60: 1.4, brightness: 0.4 },
+  // D430, BAROQUE BAND's music room: a chamber band's (a Kapelle in a hall of a court or a coffee house, a little larger
+  // than the salon's two or three players), the first reflection 22 ms on, RT60 1.25 s (on a phone 0.85 s, its impulse
+  // 0.9 s: a phone's speaker smears a tail), darkening as it decays, high-passed at 150 Hz (the cello's and the
+  // harpsichord's lines heard in the room too, not dry under it), nothing over 6 kHz. Sent BAND_SEND (sound.ts).
+  band: { predelay: 0.022, hp: 150, lp: 6000, seconds: 1.3, phoneSeconds: 0.9, rt60: 1.25, phoneRt60: 0.85, brightness: 0.38 },
 };
 export const HALL = REVERBS.hall;
 
@@ -329,6 +334,8 @@ export interface Voicing {
   pan: number;
   /** The voice's level (1 for every voice since D169). */
   gain: number;
+  /** D432: the lowest voice of several (CLASSIC CHIP's triangle, or its phone pulse; GAME BOY's wave bass): never volume-stepped. */
+  bass?: boolean;
 }
 
 /** How the player's own note sounds (D171): the Synth holds steady while the thumb stays down; the Piano dies away as it is held and is damped when let go. */
@@ -745,6 +752,10 @@ export class Chip {
   private heldWatch: (() => void) | null = null;
 
   note(midi: number, at: number, dur: number, v: Voicing, p: Play = {}): Sounding {
+    // D436: the sound's own level (Preset.gain, phoneGain: the quiet sounds matched), on every note.
+    const pr = preset();
+    const pg = (pr.gain ?? 1) * (this.phone ? (pr.phoneGain ?? 1) : 1);
+    if (pg !== 1) v = { ...v, gain: v.gain * pg };
     const sd = this.noteNow(midi, at, dur, v, p);
     // D420: on the organ a registration changed under a held key reaches it (thumb pistons): the note kept to be taken up again.
     const id = preset().id;
@@ -798,8 +809,12 @@ export class Chip {
   private noteNow(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
     // TRIAL (sound.ts toneAll): the reading's planned level as the tone on a chip, console or synthesizer.
-    if (p.hold === undefined && toneAll(preset().id)) [p, v] = this.toned(midi, v, p);
+    // D432: on CLASSIC CHIP and GAME BOY the channel's volume step, its duty and a long note's vibrato (Chip.stepped), after the landing.
+    const fresh = p.hold === undefined;
+    const stepped = fresh && toneAll(preset().id) && STEPPED_SOUNDS.has(preset().id);
+    if (fresh && !stepped && toneAll(preset().id)) [p, v] = this.toned(midi, v, p);
     if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
+    if (stepped) [p, v] = this.stepped(dur, v, p);
     // D252: the player's own a touch brighter and louder.
     // D349: not on the organ: the player's pipes are the band's (same manual, never louder).
     // D358: nor on one instrument or one ensemble (Patch.one: the owner's rule, SOUND-PRINCIPLES.md). D365: nor anywhere:
@@ -837,11 +852,14 @@ export class Chip {
       const twin = this.single(midi - 12, at, dur, { ...v, patch: under }, { ...p, couple: false });
       return together([main, twin], -12);
     }
-    // TRIAL (instruments-trials): a second instrument on the same note (Patch.double: BAROQUE BAND's continuo harpsichord).
+    // D430: a second instrument on the same note (Patch.double: BAROQUE BAND's continuo harpsichord), in its own
+    // seat and a moment late (its pluck heard as its own entrance); a slur's or a joined note's too (a harpsichordist
+    // plays every note of the line: no bow to change).
     const dbl = v.patch?.double;
     if (dbl && p.couple !== false) {
       const main = this.coupled(midi, at, dur, v, p);
-      const twin = this.single(midi, at, dur, { ...v, patch: dbl.patch }, { ...p, couple: false, slur: false, bowChange: false, give: undefined, level: (p.level ?? 1) * dbl.level });
+      const late = dbl.late ?? 0;
+      const twin = this.single(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: dbl.patch, ...(dbl.pan !== undefined ? { pan: dbl.pan } : {}) }, { ...p, couple: false, slur: false, bowChange: false, give: undefined, legato: false, level: (p.level ?? 1) * (this.phone ? (dbl.phoneLevel ?? dbl.level) : dbl.level) });
       return together([main, twin], 0);
     }
     return this.coupled(midi, at, dur, v, p);
@@ -862,8 +880,8 @@ export class Chip {
   /**
    * TRIAL (sound.ts toneAll, EXPRESSIVE_ALL): a reading's planned level (dB) on a chip, console or synthesizer
    * made its tone, by family, through the touch's own parameters (touch-expr.ts landing at a strength moved
-   * by dB / TONE_DB_SPAN): CLASSIC CHIP and GAME BOY the pulse width (12.5, 25, 50% as p to f) and, louder, a
-   * little vibrato; SID 64 its PWM width and its filter's cutoff; MEGA FM the FM index (×0.62-1.62); SWITCHED-ON
+   * by dB / TONE_DB_SPAN): (D432: CLASSIC CHIP and GAME BOY now by Chip.stepped; the trials gave them the pulse width, 12.5, 25, 50% as p to f, and, louder, a
+   * little vibrato); SID 64 its PWM width and its filter's cutoff; MEGA FM the FM index (×0.62-1.62); SWITCHED-ON
    * and TOMITA the filter's cutoff and its envelope's opening (Play.bright); SUPER 16-BIT, NOCTURNE 32-BIT and
    * TRACKER a brightness and the echo's send; BLEEPS AND BLOOPS the mallet's hardness. Its loudness a quarter of
    * the plan's (within ±2 dB). The player's note: its landing moved so (the touch kept); the band's: the plan's
@@ -886,6 +904,27 @@ export class Chip {
     const l = landing(kind, x, midi, pt, !pt && v.timbre !== "triangle");
     for (const k of ["bright", "pw", "pwContinuous", "fmScale", "strike"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
     if (!pt && v.timbre !== "triangle" && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
+    return [q, v];
+  }
+
+  /**
+   * D432 (sound.ts STEPPED_SOUNDS): Busoni's planned level on CLASSIC CHIP and GAME BOY as a chip composer writes
+   * it: the channel's volume step (chipVolume: the level quantised to the 4-bit register), the duty a step wider
+   * at f and narrower at p (dutyStep: CLASSIC CHIP's pulse voicing, GAME BOY's pulse patches' Play.pw), and a
+   * vibrato (VIB_F_CENTS) on a long note at f. The bass is left as it is (the triangle has no volume). The
+   * band's notes' level (Play.vel) and the player's line (Play.lineDb), the player's own landing kept.
+   */
+  private stepped(dur: number, v: Voicing, p: Play): [Play, Voicing] {
+    const db = p.touch !== undefined ? p.lineDb : p.vel;
+    if (db === undefined || !Number.isFinite(db) || v.bass) return [p, v];
+    const q: Play = { ...p, level: (p.level ?? 1) * (chipVolume(db) / VOLUME_MID) };
+    const pt = v.patch ?? null;
+    if (!pt && v.timbre !== "triangle") v = { ...v, timbre: pulseWave(dutyStep(widthOf(v.timbre) ?? 0.25, db)) };
+    else if (pt && !pt.pwm) {
+      const w = pt.osc.find((o) => o.wave === "pulse12" || o.wave === "pulse25" || o.wave === "pulse50")?.wave;
+      if (w) q.pw = dutyStep(q.pw ?? widthOf(w) ?? 0.25, db);
+    }
+    if (db >= DUTY_UP_DB && dur >= VIB_F_MIN_S) q.vib = Math.max(q.vib ?? 0, VIB_F_CENTS);
     return [q, v];
   }
 
@@ -2867,7 +2906,7 @@ export function voicing(voice: number, count: number, _played = true): Voicing {
   // D365: CLASSIC CHIP (no patches) within ±0.35 (it spread ±0.45, the widest of any sound: D358); the others as before.
   const pan = place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
-  return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count) };
+  return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count), ...(bass ? { bass: true } : {}) };
 }
 
 /** A decaying stereo noise, for the room. */

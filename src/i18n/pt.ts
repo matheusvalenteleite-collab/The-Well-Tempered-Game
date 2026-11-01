@@ -35,7 +35,8 @@ export const PT: Record<string, string> = {
   // Sounds
   HARPSICHORD: "CRAVO",
   STRINGS: "CORDAS",
-  "BAROQUE BAND": "CONJUNTO BARROCO",
+  // D430: BAROQUE BAND, offered again (the trials' ensemble): BANDA BARROCA.
+  "BAROQUE BAND": "BANDA BARROCA",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOÉ, VIOLA E FAGOTE",

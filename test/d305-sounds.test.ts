@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
 import { Chip, REVERBS, voicing } from "../src/touch/chip.ts";
-import { PATCHES, presetById, setPreset, playerSound } from "../src/touch/sound.ts";
+import { PATCHES, PRESETS, presetById, setPreset, playerSound } from "../src/touch/sound.ts";
 import { phrase, joins, styleOf, SUNG, SWITCHED } from "../src/touch/phrasing.ts";
 import type { OtherNote } from "../src/touch/voice-mode.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
@@ -117,24 +117,14 @@ test("D305: SWITCHED-ON moves (a swept lead, a clocked PWM, a chorused bloop) an
   for (const [, pan] of p.by![5]!) assert.ok(Math.abs(pan) <= 0.35);
 });
 
-test("D305: BLEEPS AND BLOOPS (MODULAR's id kept): a vibraphone with its motor's tremolo, a combo organ, the marimba, the tube, a round bass; a spring", () => {
-  const p = presetById("modular");
-  assert.equal(p.name, "BLEEPS AND BLOOPS");
-  assert.equal(playerSound("modular"), "modular", "a stored choice keeps it");
-  assert.deepEqual(p.slots, ["modVibe", "modOrgan", "modBongo", "modBell", "modBass"]);
-  assert.equal(p.fx, "spring");
+test("D305, D433: BLEEPS AND BLOOPS retired (the owner: \"bleeps and bloops is bad, retire\"): a stored choice opens on CLASSIC CHIP; its patches and spring kept", () => {
+  assert.ok(!PRESETS.some((p) => p.id === "modular"));
+  assert.equal(presetById("modular").id, "chip");
+  assert.equal(playerSound("modular"), "chip", "a stored choice opens on CLASSIC CHIP");
   assert.ok(REVERBS.spring.rt60 <= 1.6);
   const v = PATCHES.modVibe;
   assert.ok(v.trem && v.trem.rate >= 4 && v.trem.rate <= 6 && v.trem.depth <= 0.5, "the vibraphone's tremolo");
   assert.equal(v.amp.s, 0, "struck: a mallet's note");
   assert.ok(PATCHES.modOrgan.amp.s === 1 && PATCHES.modOrgan.vib, "the organ sustains");
   assert.ok(PATCHES.modBass.filter!.freq >= 1300);
-  for (const k of [2, 3, 4, 5] as const) for (const [, pan] of p.by![k]!) assert.ok(Math.abs(pan) <= 0.35);
-  // Plays: a note of each.
-  setPreset("modular");
-  const chip = new Chip();
-  ctxOf();
-  for (let v = 0; v < 5; v++) chip.note(60 - v * 5, 1 + v, 0.5, voicing(v, 5));
-  assert.equal(chip.failed, 0);
-  setPreset("chip");
 });

@@ -25,7 +25,8 @@ test("D424: the families: strings, voices, the chips and synths; keyboards and t
   assert.equal(touchFamily("stringConsort"), "strings");
   assert.equal(touchFamily("soloVoices"), "voices");
   assert.equal(touchFamily("vocalSynth"), "voices");
-  for (const id of ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker", "analog", "modular", "tomita"]) assert.equal(touchFamily(id), "synths", id);
+  // D433: BLEEPS AND BLOOPS retired (its id no family now).
+  for (const id of ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker", "analog", "tomita"]) assert.equal(touchFamily(id), "synths", id);
   for (const id of ["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled", "lute", "traverso"]) assert.equal(touchFamily(id), null, id);
   // Every offered preset with a touch family is placed: the sustaining ones in a family, the keyboards and the lute not.
   for (const p of PRESETS) {

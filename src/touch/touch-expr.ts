@@ -36,20 +36,19 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   nocturne32: "console",
   analog: "synth",
   tomita: "synth",
-  modular: "bleeps",
+  // D433: BLEEPS AND BLOOPS ("modular", "bleeps": the mallets' hardness) retired; the kind kept for its patches.
   // D365: STRING CONSORT as the singers (a bow's pressure: darker toward the soft side, a swell held, the
   // messa di voce a string player makes too); LUTE as the harpsichord (plucked near the rose at the outer
   // edge: the lute stop's muted, darker pluck).
   stringConsort: "singers",
   lute: "harpsichord",
+  // D430: BAROQUE BAND as the consort (a bow's or the breath's pressure, the messa).
+  baroqueBand: "singers",
   // TRIALS (instruments-trials): the bands of held instruments as the consort (a bow's or the breath's pressure,
-  // the messa); the jazz quartet and the clavichord as the piano (the touch's three zones: their dynamics); the
-  // organ trio as the organ.
-  trialBaroque: "singers",
+  // the messa); the jazz quartet and the clavichord as the piano (the touch's three zones: their dynamics).
   trialWinds: "singers",
   trialBrass: "singers",
   trialJazz: "piano",
-  trialOrganTrio: "organ",
   trialClavichord: "piano",
 };
 

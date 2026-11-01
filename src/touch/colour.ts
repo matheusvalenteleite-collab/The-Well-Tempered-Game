@@ -116,6 +116,17 @@ export function colourPlanFor(f: TouchFugue, presetId: string, phone = false): C
   return evs?.length ? new ColourPlan(f, evs, phone) : null;
 }
 
+/**
+ * D431, BUSONI LEADS (the owner: "busoni on by default and Busoni leads"): where Busoni's reading is played and
+ * reaches the sound (sound.ts busoniReaches: its levels, the tone they move, the harpsichord's and the organ's
+ * terraces), his marks colour the band, not the plan: the plan's moments stand aside. They come back as a
+ * fallback where Busoni prints fewer than BUSONI_LEADS_MIN marks of dynamics in the whole fugue (ten: II/3 two;
+ * II/8, II/9, II/18 none), and wherever his reading is off. The player's own pistons and TUTTI win over
+ * both (bandRegistration, chip.ts noteNow).
+ */
+export const BUSONI_LEADS_MIN = 3;
+export const busoniLeads = (whole: { dyn: readonly unknown[] } | null | undefined, reaches: boolean): boolean => reaches && !!whole && whole.dyn.length >= BUSONI_LEADS_MIN;
+
 /** The shelf's bounds (dB): never much brighter (a brighter band reads as a louder one). */
 export const TONE_RANGE: readonly [number, number] = [-6, 2];
 /** The most a send into the effect may be. */

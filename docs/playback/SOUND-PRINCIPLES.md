@@ -24,9 +24,10 @@ Every other rule depends on this. A preset is one of three things:
   the same instrument. The lines differ only by register and by what the player's hands do.
 - **One ensemble** of like instruments: a string quartet, a vocal quartet, a recorder consort, a
   concerto's band. The players differ (a violin is not a cello, a soprano is not a bass), but they share
-  one room, one family of envelopes, one way of articulating, and a seating plan.
+  one room, one family of envelopes, one way of articulating, and a seating plan. BAROQUE BAND (D430) is
+  one: violins, oboe, viola and the cello with its continuo harpsichord, in one room at one send.
 - **A band of unlike instruments on purpose**: the consoles (GAME BOY, SID 64, MEGA FM, TRACKER) and the
-  synthesizer records (SWITCHED-ON, TOMITA, BLEEPS AND BLOOPS). Here "each line its own colour" is the
+  synthesizer records (SWITCHED-ON, TOMITA; BLEEPS AND BLOOPS retired, D433). Here "each line its own colour" is the
   idiom: Wendy Carlos's one patch per line, a Game Boy's two pulses and a wave channel, a tracker's four
   hard-panned channels. These presets keep their differences. The rules that still apply to them are
   6 (the player's voice), 9 (timing scatter by the number of players) and 10 (the phone).

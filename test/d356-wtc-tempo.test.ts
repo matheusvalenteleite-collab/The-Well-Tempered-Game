@@ -33,20 +33,12 @@ test("D356: every WTC fugue has three tempi by D351's rules (SLOW 0.75×; FAST 1
   for (const id of ["wtc1p01", "wtc2p05", "inv01"]) assert.equal(steps.stepTempi(id), null, id);
 });
 
-test("D356: the sounds: SLOW the PIPE ORGAN, FAST CLASSIC CHIP, DEFAULT the fugue's own (PIECE_SOUND, read at runtime); never a step on the fugue's own sound", () => {
-  for (const id of FUGUES) {
-    assert.equal(steps.stepSound(id, "default"), undefined);
-    const own = PIECE_SOUND[id];
-    const slow = steps.stepSound(id, "slow")!;
-    const fast = steps.stepSound(id, "fast")!;
-    assert.equal(slow, own === "chamberOrgan" ? "pianoSampled" : "chamberOrgan", id);
-    assert.equal(fast, own === "chip" ? "harpsichordSampled" : "chip", id);
-    for (const p of [slow, fast]) assert.ok(PRESETS.some((x) => x.id === p), `${id}: ${p} a player's sound`);
-    assert.notEqual(slow, own);
-    assert.notEqual(fast, own);
-  }
-  // D351's pieces keep their table.
-  assert.deepEqual([steps.stepSound("bwv1080-01", "slow"), steps.stepSound("bwv1080-01", "fast")], ["chamberOrgan", "chip"]);
+test("D356, D434: the sounds: every step the fugue's own (the owner: \"keep each fugue own sound at every tempo\"); SLOW and FAST no longer change it", () => {
+  assert.equal((steps as Record<string, unknown>).stepSound, undefined);
+  assert.equal((steps as Record<string, unknown>).WTC_SOUND_ELSE, undefined);
+  for (const id of FUGUES) assert.ok(PRESETS.some((x) => x.id === PIECE_SOUND[id]), `${id}: ${PIECE_SOUND[id]} a player's sound`);
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /const soundAt = \(id: string\) => soundFor\(id, full \? chosen : \{\}, DEFAULT_SOUND\);/);
 });
 
 test("D356: the unlock: a friend's WTC fugue opens its tempo with a B or better (D417; today's or before 1.52), never a C; the unlocked view everywhere; MORE BACH only unlocked", () => {

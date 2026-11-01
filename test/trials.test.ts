@@ -1,5 +1,6 @@
 /**
- * instruments-trials: listening prototypes (not offered) and the audit's EXPRESSIVE_ALL switch.
+ * instruments-trials: listening prototypes (not offered) and the audit's EXPRESSIVE_ALL switch. D430: BAROQUE BAND
+ * offered (test/d430-baroque-band.test.ts); D437: ORGAN TRIO dropped; D431: EXPRESSIVE_ALL on by default.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -8,7 +9,7 @@ import { folderOf, PERIOD, SAMPLED } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { terraceStops } from "../src/touch/registration.ts";
 
-const IDS = ["trialBaroque", "trialWinds", "trialBrass", "trialJazz", "trialOrganTrio", "trialClavichord"];
+const IDS = ["trialWinds", "trialBrass", "trialJazz", "trialClavichord"];
 
 test("the trials are found by id, never offered", () => {
   for (const id of IDS) {
@@ -17,6 +18,9 @@ test("the trials are found by id, never offered", () => {
     assert.ok(!PRESETS.some((p) => p.id === id));
   }
   assert.equal(TRIALS.length, IDS.length);
+  // D437: the organ trio gone (a stored id opens on the organ); D430: the trial band under its offered id.
+  assert.equal(presetById("trialOrganTrio").id, "chamberOrgan");
+  assert.equal(presetById("trialBaroque").id, "baroqueBand");
 });
 
 test("seated narrowly, every layout's patches real", () => {
@@ -30,7 +34,7 @@ test("seated narrowly, every layout's patches real", () => {
     }
 });
 
-test("one send per trial (the organ trio the church's)", () => {
+test("one send per trial", () => {
   for (const p of TRIALS) {
     const sends = new Set(Object.values(p.by ?? {}).flatMap((vs) => vs!.map(([id]) => PATCHES[id].send)));
     assert.equal(sends.size, 1, `${p.id} ${[...sends]}`);
@@ -46,24 +50,24 @@ test("their recordings exist and are credited (CC0 / CC BY)", () => {
       assert.ok(!/choirUpper|choirLower/.test(folderOf(set)));
     }
   }
-  setPreset("trialBaroque");
+  setPreset("baroqueBand");
   assert.ok(sampledNow().includes("harpsichord"), "the continuo's harpsichord loads");
-  for (const id of ["trialBaroque", "trialWinds", "trialBrass", "trialJazz"]) assert.ok(creditFor(id));
+  for (const id of ["baroqueBand", "trialWinds", "trialBrass", "trialJazz"]) assert.ok(creditFor(id));
   for (const s of ["trialOboe", "trialTrombone", "trialBassPizz"]) assert.equal(PERIOD[s].bits, 16);
   setPreset("chip");
 });
 
-test("EXPRESSIVE_ALL: off by default; on, the sustaining sounds, the tone sounds, the harpsichord's and organ's registration", () => {
-  assert.equal(EXPRESSIVE_ALL, false);
-  assert.ok(!expressiveAll("stringConsort") && !toneAll("chip") && !registerAll("chamberOrgan"));
-  setExpressiveAll(true);
+test("EXPRESSIVE_ALL (D431: on by default): the sustaining sounds, the tone sounds, the harpsichord's and organ's registration; off, none", () => {
+  assert.equal(EXPRESSIVE_ALL, true);
+  for (const id of DYNAMIC_SOUNDS) assert.ok(expressiveAll(id));
+  for (const id of ["harpsichordSampled", "chamberOrgan", "lute", "pianoSampled"]) assert.ok(!expressiveAll(id), id);
+  assert.ok(toneAll("sid64") && !toneAll("lute"));
+  assert.ok(registerAll("harpsichordSampled") && !registerAll("lute"));
+  setExpressiveAll(false);
   try {
-    for (const id of DYNAMIC_SOUNDS) assert.ok(expressiveAll(id));
-    for (const id of ["harpsichordSampled", "chamberOrgan", "lute", "pianoSampled", "trialOrganTrio"]) assert.ok(!expressiveAll(id), id);
-    assert.ok(toneAll("sid64") && !toneAll("lute"));
-    assert.ok(registerAll("harpsichordSampled") && !registerAll("lute"));
+    assert.ok(!expressiveAll("stringConsort") && !toneAll("chip") && !registerAll("chamberOrgan"));
   } finally {
-    setExpressiveAll(false);
+    setExpressiveAll(true);
   }
 });
 

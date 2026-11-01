@@ -80,11 +80,11 @@ import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
-import { expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
+import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
-import { colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
+import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
@@ -603,7 +603,8 @@ export class ProtoGame {
     this.o = o;
     this.chip = chip;
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
-    if (!o.her) {
+    // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
+    if (!o.her && !busoniLeads(o.reading?.whole, busoniReaches(preset().id))) {
       if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
       else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
     }

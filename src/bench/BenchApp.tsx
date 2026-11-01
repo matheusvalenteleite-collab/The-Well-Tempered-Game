@@ -102,7 +102,7 @@ import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop, popTitle } from "./PlayPop.tsx";
-import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepSound, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
+import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -435,13 +435,9 @@ export function BenchApp() {
   // D219: the sound playing: WITH KIMIKO, the player's voice's own (TRAVERSO unless changed in ⚙ SOUND).
   // D265's lock (a piece's own sound until an A or S) lifted by D327: every sound open from the start.
   // D342 (the owner's decision 4): a lesson sounds on the instrument that makes its rudiment audible (D369: Parts 0–II the piano).
-  // D351: each tempo step its own sound (tempo-steps.ts), unless the player chose one for the piece (kept at every tempo).
-  // D356: in the friends' view too, where a WTC fugue's tempo is open (no sound chosen there).
-  const soundAt = (id: string) => {
-    const mine = full ? chosen : {};
-    const st = !mine[id] ? stepSound(id, stepOf(id)) : undefined;
-    return soundFor(id, st ? { ...mine, [id]: st } : mine, DEFAULT_SOUND);
-  };
+  // D351, D356: each tempo step once had its own sound (tempo-steps.ts). D434 (the owner: "keep each fugue own sound at
+  // every tempo"): the piece's own sound, or the one the player chose for it, at every step.
+  const soundAt = (id: string) => soundFor(id, full ? chosen : {}, DEFAULT_SOUND);
   const sound = man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
@@ -2068,7 +2064,7 @@ export function BenchApp() {
           {/* D420: what each thumb piston holds (the single stops, TUTTI, ROOM, the pedal's 16′), set before the run. */}
           {hasStops(presetById(soundNow).id) && !lesson && !man && <PistonSettings presetId={presetById(soundNow).id} piece={f.id} />}
           {tempi && (
-            // D351: SLOW · DEFAULT · FAST, one button cycling them; the sound follows (unless one was chosen).
+            // D351: SLOW · DEFAULT · FAST, one button cycling them (D434: the sound stays the piece's own).
             <button type="button" id="pop-tempo" className={`tb-pop-tempo tb-pop-tempo-${step}`} aria-label={`${tr("TEMPO")}: ${stepWord(step)}`} onClick={() => setTempoSteps(saveStep(f.id, nextStep(step)))}>
               <span className="tb-pop-tempo-k">{tr("TEMPO")}</span> <b>{stepWord(step)}</b> <span className="tb-pop-tempo-v">{stepBeat(f.id, tempi[step])}</span>
             </button>
