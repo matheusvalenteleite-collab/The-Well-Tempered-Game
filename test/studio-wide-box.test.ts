@@ -56,7 +56,7 @@ test("the box runs under the bars with the time scale and play line of the part 
   const box = src("src/touch/MusicBox.tsx");
   assert.match(box, /const span = \(vis \* w\) \/ wi;/);
   assert.match(box, /const t0 = fr\.now - PLAYHEAD \* vis - \(cl \/ wi\) \* vis;/);
-  assert.match(src("src/bench/bench.css"), /\.tb-bars \.tg-box-wide \.tg-roll \{ margin: 0 calc\(-100% \/ 3\); \}/);
+  assert.match(src("src/bench/bench.css"), /\.tb-bars \.tg-box-wide \.tg-roll \{ margin: 0 calc\(-100% \/ 3\); pointer-events: none; \}/);
   // The judging geometry and the hint read the roll between the bars, as the box draws it.
   const app = src("src/bench/BenchApp.tsx");
   assert.ok(!app.includes('document.querySelector(".tg-roll")'));
