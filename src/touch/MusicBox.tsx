@@ -20,6 +20,7 @@ import { paintUi, uiActive } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
+import { hasStage, paintStage } from "./stage-bg.ts";
 import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
@@ -357,9 +358,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // The design study (box-variants.ts): only with `?boxv=N` in the page's address.
   if (fr.spill && paintVariant(g, w, h, fr)) return;
 
-  g.fillStyle = keyTint(fr.key);
-  g.fillRect(0, 0, w, h);
-
   // D415: the bars' share of the canvas (clear): the time scale is the part between them, the rest more of the
   // same scale (the past under the left bar, the future under the right); span and t0 cover the whole canvas.
   const vis = (fr.bars ?? BARS_SHOWN) * fr.barTicks;
@@ -368,6 +366,14 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const wi = Math.max(1, w - cl - cr);
   const span = (vis * w) / wi;
   const t0 = fr.now - PLAYHEAD * vis - (cl / wi) * vis;
+
+  // D462 (design studio): the fugue's own world behind its music (stage-bg.ts), its key's tint laid faintly over
+  // it (the modulations still read); the key's flat tint alone where there is none, STAGE OFF, or a lesson's box.
+  const staged = !!fr.piece && !fr.floor && hasStage(fr.piece) && paintStage(g, w, h, fugueById(fr.piece), { now: fr.now, t0, span, sec: performance.now() / 1000 });
+  g.fillStyle = keyTint(fr.key);
+  if (staged) g.globalAlpha = 0.16;
+  g.fillRect(0, 0, w, h);
+  g.globalAlpha = 1;
   const xOf = (tick: number) => Math.round(((tick - t0) / span) * w);
   const playX = xOf(fr.now);
   // The ladder: one row per staff step over the piece's range, a step of room either side.
