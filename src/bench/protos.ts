@@ -232,8 +232,8 @@ export const keyRow = (code: string) => KEY_ROWS.findIndex((r) => r.codes.includ
 /** LADDER (D181; D208 wider): how many rows either side of where a note is drawn still reach it. */
 export const LADDER_AREA = 5;
 
-/** The bars' share of the width (each). */
-export const BAR = 0.2;
+/** The bars' share of the width (each). D461: 0.22 (was 0.2); bench.css --tb-bar is the same number. */
+export const BAR = 0.22;
 
 /** A dynamic, 0 (pp) to 1 (ff), as touch shaping: louder, brighter, a firmer attack towards ff. */
 export function dynamic(d: number): Play {
