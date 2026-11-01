@@ -26,6 +26,8 @@
  *   STRINGS, WINDS, VOICES: two thumbs give a new bow (the string's own re-bow), a soft new tongue or
  *     syllable; a slide glides, its time constant a quarter of the slide's (10–90 ms); chips and synths
  *     keep the slide's portamento, timed the same way.
+ *   D424: on strings, voices and synths a SET-AND-RELEASE is the slur and a slide's portamento follows the
+ *     thumb (touchFamily, joinedSound, slidePitch below); a two-thumb join on a synth retriggers.
  */
 import { MECH } from "./mechanics.ts";
 import type { TouchFugue } from "../touch/fugue.ts";
@@ -222,4 +224,76 @@ export function labPlayParam(search: string): "glenn" | "classic" | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * D424, THE OWNER'S TOUCHES, EACH ITS OWN SOUND (on sustaining sounds; under MECH.glenn). The owner named
+ * them: TAP (one thumb, note after note: always a gap); HANDOFF, JOIN, OVERLAP (the thumbs take turns: a
+ * small gap, no audible gap (≤ 25 ms), the next landing before the first lifts); SET-AND-RELEASE (the
+ * game's PREPARED + PULL-OFF, D334: the next thumb rests silently on the next note, which sounds as the
+ * other lifts; and HOLD-OVER, D364, its appoggiatura); SLIDE (one thumb moves to the next note without
+ * lifting). The rule: a slide does only what continuous contact can do; two thumbs cover joining; on a
+ * sustaining sound SET-AND-RELEASE is the slur (deliberate, so it carries its own sound and an accidental
+ * overlap is never punished by it).
+ *
+ *   STRINGS (STRING CONSORT): a TAP a separate bow with space; a JOIN a new bow, joined (Patch.bow);
+ *     SET-AND-RELEASE a SLUR: the same bow, no bite (Play.slur: the recording's slur path), the left hand
+ *     changes the note; a SLIDE a portamento inside the slur, the pitch following the thumb.
+ *   VOICES (SOLO VOICES, VOCAL SYNTH): a TAP a separate syllable; a JOIN a soft new syllable (D376);
+ *     SET-AND-RELEASE a slur on one vowel (no consonant, no new onset); a SLIDE a portamento in the vowel.
+ *   SYNTHS (the chips, consoles and synthesizer records): a JOIN retriggered (a new attack); SET-AND-
+ *     RELEASE the mono-synth legato (Play.legato: no retrigger, the pitch changed under the held
+ *     envelope); a SLIDE the tracker's pitch slide (3xx), the pitch following the thumb.
+ *
+ * Keyboards (harpsichord, piano, organ), the lute and TRAVERSO: unchanged (null here).
+ */
+export type TouchFamily = "strings" | "voices" | "synths";
+const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
+  stringConsort: "strings",
+  soloVoices: "voices",
+  vocalSynth: "voices",
+  chip: "synths",
+  gameboy: "synths",
+  super16: "synths",
+  nocturne32: "synths",
+  megaFm: "synths",
+  sid64: "synths",
+  tracker: "synths",
+  analog: "synths",
+  modular: "synths",
+  tomita: "synths",
+};
+/** D424: a preset's family for the touches' sounds (null: a keyboard, the lute, any other: unchanged). */
+export const touchFamily = (presetId: string): TouchFamily | null => TOUCH_FAMILIES[presetId] ?? null;
+
+/** How a joined note was joined, for its sound (D424): two thumbs taking turns, a set thumb released, or a slide. */
+export type JoinTouch = "join" | "set-release" | "slide";
+/**
+ * D424: whether a note sounds legato (no new attack, bow, consonant or retrigger) and whether it is a
+ * slur (Play.slur: a bowed string's same bow), by family and touch. `joined` false: a separate note (a
+ * TAP). A null family: the old rule (joined is legato: D302; D358's new bow on a string).
+ */
+export function joinedSound(fam: TouchFamily | null, joined: boolean, how: JoinTouch): { legato: boolean; slur: boolean } {
+  if (!joined) return { legato: false, slur: false };
+  if (!fam) return { legato: true, slur: false };
+  if (how === "set-release" || how === "slide") return { legato: true, slur: true };
+  // A JOIN, HANDOFF or OVERLAP: strings a new bow (legato, Patch.bow), voices a soft new syllable (proto-game.ts), synths retriggered.
+  return { legato: fam !== "synths", slur: false };
+}
+
+/** D424: the portamento's smoothing while it follows the thumb (s, a time constant). */
+export const SLIDE_TRACK_TAU = 0.02;
+/**
+ * D424: a slide's pitch from the thumb's height (fretless): from the departure row `y0` (the note held,
+ * `from`) toward the arrival row `yTo` (the next note, `to`), linear in semitones; nothing within `deadPx`
+ * of the departure (a resting thumb's wander) or the other way; the whole step once within `reachPx` of
+ * the arrival (the slide's own arrival, D376), never past it.
+ */
+export function slidePitch(from: number, to: number, y0: number, yTo: number, y: number, deadPx: number, reachPx: number): number {
+  const dist = Math.abs(yTo - y0);
+  if (!(dist > 0) || from === to) return from;
+  const travel = (y - y0) * Math.sign(yTo - y0);
+  if (travel <= deadPx) return from;
+  const span = Math.max(1, dist - reachPx - deadPx);
+  return from + (to - from) * Math.min(1, (travel - deadPx) / span);
 }

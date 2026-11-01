@@ -344,6 +344,11 @@ export interface Play {
    */
   legato?: boolean;
   /**
+   * D424: joined as a slur (SET-AND-RELEASE, a slide): with `legato`, a bowed string's same bow, no new
+   * stroke (Patch.bow skipped: the recording entered past its attack, 0.25 s, as a slur's).
+   */
+  slur?: boolean;
+  /**
    * D420: an organ note already sounding, taken up again under a new registration (a piston pressed
    * while the key is held): its pipes enter joined (no new chiff: the ranks held on keep speaking),
    * even where a pipe would speak anew (`piped`).
@@ -1567,8 +1572,8 @@ export class Chip {
     if (p.pleno) mix.gain.value = PLENO_SCALE;
     const srcs: { src: AudioBufferSourceNode; set: string; m: number; mult: number }[] = [];
     let baseHz = hz(midi);
-    // D358: a bowed string's joined note a new bow stroke (Patch.bow), not a slur.
-    const bow = pt.bow && p.legato && !plucked ? pt.bow : null;
+    // D358: a bowed string's joined note a new bow stroke (Patch.bow), not a slur. D424: a slur (Play.slur) keeps the bow.
+    const bow = pt.bow && p.legato && !p.slur && !plucked ? pt.bow : null;
     const play = (set: string, m: number, r: Loaded, mult: number, gain: number, choir?: { delay: number; shelf: number }) => {
       const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;

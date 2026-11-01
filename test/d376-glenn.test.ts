@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { MECH, MECH_DEFAULTS, MECH_SPEC, withMech } from "../src/bench/mechanics.ts";
-import { exprFamily, GLENN, glennParam, labPlayParam, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "../src/bench/glenn.ts";
+import { exprFamily, GLENN, glennParam, labPlayParam, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "../src/bench/glenn.ts";
 import { ShakeReader, shakeThresholds } from "../src/touch/free-ornament.ts";
 import { accentHeld, accentVerdict } from "../src/bench/accent.ts";
 import { replay } from "../src/bench/lab/replay.ts";
@@ -303,10 +303,14 @@ test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, tim
   assert.ok((voice.soft ?? 0) >= GLENN.rearticSoft);
   assert.equal(run("vocalSynth", handover(0.02), OFF).heard[1].p.legato, true, "off: today's joined voice");
   // A slide: one sound glides; its time constant from the slide (a quarter of its measured travel, 150–200 ms here: 38–50 ms; off: the sound's own).
-  const slow = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
+  // D424: on strings, voices and synths the portamento now follows the thumb (d424-slur-portamento.test.ts);
+  // the quarter-of-the-slide glide stays on the other sustaining sounds (TRAVERSO here).
+  const slow = run("traverso", slidePlan({ slideS: 0.2 }), ON).heard[0].glides[0];
   assert.ok(slow && slow.tau !== undefined && slow.tau >= 0.03 && slow.tau <= 0.06, JSON.stringify(slow));
-  const quick = run("chip", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
+  const quick = run("traverso", slidePlan({ slideS: 0.04 }), ON).heard[0].glides[0];
   assert.ok(quick && quick.tau !== undefined && quick.tau <= 0.015, JSON.stringify(quick));
+  const followed = run("stringConsort", slidePlan({ slideS: 0.2 }), ON).heard[0].glides;
+  assert.ok(followed.length >= 2 && followed.every((g) => g.tau === SLIDE_TRACK_TAU), JSON.stringify(followed));
   assert.equal(run("stringConsort", slidePlan({ slideS: 0.2 }), OFF).heard[0].glides[0]?.tau, undefined);
 });
 

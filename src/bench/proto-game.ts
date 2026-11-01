@@ -28,7 +28,7 @@ import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
-import { exprFamily, GLENN, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "./glenn.ts";
+import { exprFamily, GLENN, isKeyboard, joinedByEar, joinedSound, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, slidePitch, SlideSlur, slurRingS, slurTaperDb, touchFamily } from "./glenn.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 import { findRuns, runTrend, type Run } from "./runs.ts";
@@ -294,6 +294,8 @@ interface Held {
   gWait?: { c: Contact; dir: 1 | -1; on: number };
   /** D321, "connect": a glide under way (the sound, from and to MIDI, its start on the audio clock, its length in ms). */
   glider?: { sd: Sounding; from: number; to: number; t0: number; ms: number };
+  /** D424: the pitch (MIDI, fractional) a slide's portamento has carried the held sound to, while it follows the thumb (unset: at its note). */
+  bent?: number;
 }
 
 /**
@@ -2420,8 +2422,8 @@ export class ProtoGame {
     // once a slide in its phase has gone half a row" starved the reader: the owner's legs are 2–7 rows).
     const gl = MECH.glenn && this.proto.id === "ladder" && this.rows ? this.glennLead(h, ms) : null;
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
-    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return this.glennSlide(id, h, c, t, ms, gl);
+    if (this.freeShake(h, c, t)) return void (this.slideTrack(h, null), (h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
+    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return void (this.slideTrack(h, gl && c.y), this.glennSlide(id, h, c, t, ms, gl));
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
       // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
@@ -2856,6 +2858,31 @@ export class ProtoGame {
     }
     if (this.slideTo(id, h, c, t)) h.slideDir = dir;
   }
+  /**
+   * D424, THE SLIDE'S PORTAMENTO (strings, voices, synths; under MECH.glenn): while a thumb travels toward
+   * the next note, the note it holds follows it (fretless: the thumb's height between the departure row
+   * and the arrival row as pitch, glenn.ts slidePitch, smoothed SLIDE_TRACK_TAU), landing on the note as
+   * the slide arrives (play). Only the sound: the slide's judging (D376/D378) is unchanged. `y` null (a
+   * shake took the thumb, no slide to make): back to the note held. Keyboards, the lute: never (touchFamily null).
+   */
+  private slideTrack(h: Held, y: number | null | undefined) {
+    const sd = h.sounds.length === 1 ? h.sounds[0] : undefined;
+    if (!sd?.glide || !touchFamily(preset().id) || h.note < 0) return void (h.bent = undefined);
+    let m = h.midi;
+    const notes = this.tracks[h.k].notes;
+    const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
+    // In the slide phase (D376: where slides travel), or else once the move has gone on for D376's
+    // confirmation (40 ms: a quick shake's leg is not bent toward the next note); never once a shake has
+    // turned on the note (its second leg counted, or a shake read: the pitch back to the note held).
+    const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
+    const going = !!gl && (gl.phase || (h.gStillMs !== undefined && this.evMs() - h.gStillMs >= GLENN.slideConfirmMs));
+    if (gl && going && !shaking && typeof y === "number" && chordOf(notes, notes.indexOf(gl.n)).length === 1 && !(h.slideDir && gl.want !== h.slideDir))
+      m = slidePitch(h.midi, gl.n.midi, h.ay, gl.target, y, MECH.slideMinPx, GLENN.slideReachRows * this.ladderRow);
+    const was = h.bent ?? h.midi;
+    if (Math.abs(m - was) < 0.01) return;
+    sd.glide(m, SLIDE_TRACK_TAU);
+    h.bent = m === h.midi ? undefined : m;
+  }
   /** D376: a slide arrived early sounds from here: half the note's PERFECT window before it. */
   private glennOpen(k: number, n: LaneNote): number {
     const i = this.tracks[k].notes.indexOf(n);
@@ -3272,6 +3299,17 @@ export class ProtoGame {
     const pid = preset().id;
     const fam = exprFamily(pid);
     const kbSlide = MECH.glenn && slide && isKeyboard(pid);
+    // D424: the owner's touches, each its own sound on strings, voices and synths (glenn.ts touchFamily,
+    // joinedSound): SET-AND-RELEASE (a pull-off, a hold-over's resolution) and a SLIDE the slur (the same
+    // bow, one vowel, the mono-synth legato); a JOIN, HANDOFF or OVERLAP a new bow, a soft new syllable, a
+    // retrigger. Keyboards and the lute (null) as before. Only the sound: the verdicts are untouched.
+    const touchFam = MECH.glenn ? touchFamily(pid) : null;
+    const setRelease = this.gesture === "pull-off";
+    const joinPlay = (e: Play, joined: boolean): Play => {
+      if (piano) return { ...e, legato: false };
+      const js = joinedSound(touchFam, joined, setRelease ? "set-release" : slide ? "slide" : "join");
+      return { ...e, legato: js.legato, ...(js.slur ? { slur: true } : {}) };
+    };
     let gPos = 0;
     if (MECH.glenn) {
       const ss = this.slideSlurOf(h.k);
@@ -3313,8 +3351,11 @@ export class ProtoGame {
     if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
     } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1) {
-      // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms).
-      if (MECH.glenn) h.sounds[0].glide?.(pitches[0], slideGlideTau(h.gStillMs !== undefined ? this.evMs() - h.gStillMs : 0));
+      // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms). D424: on strings,
+      // voices and synths the portamento has followed the thumb (slideTrack): it lands on the note now (a
+      // slide begun before its phase, not followed, glides over its own travel as before).
+      if (MECH.glenn && touchFam && h.bent !== undefined) (h.sounds[0].glide?.(pitches[0], SLIDE_TRACK_TAU), (h.bent = undefined));
+      else if (MECH.glenn) h.sounds[0].glide?.(pitches[0], slideGlideTau(h.gStillMs !== undefined ? this.evMs() - h.gStillMs : 0));
       else h.sounds[0].glide?.(pitches[0]);
     } else {
       // D376 (MECH.glenn): a keyboard's slide strikes the next note (no bend); the note slid from rings into it (the slur's ring).
@@ -3358,7 +3399,7 @@ export class ProtoGame {
         // (D353: read by the contour reader from the landing).
         const prev = this.before(i, h.k);
         const v = sv?.v ?? voiceV;
-        const play = { ...expr, legato: legato && !piano };
+        const play = joinPlay(expr, legato);
         const now = this.chip.ctx.currentTime;
         if (shake.kind === "trill" && styleOf(preset().id) === "piano" && !this.whole) {
           // D385: on the piano a landing on a written trill strikes its upper note at once (Bach's start: no main
@@ -3396,8 +3437,9 @@ export class ProtoGame {
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
       } else {
         // D376 (MECH.glenn): on a voice or a wind, two thumbs re-articulate (a soft new syllable or tongue); a slide glides.
-        const rearticulate = MECH.glenn && fam === "sung" && !slide && legato && !piano;
-        const play: Play = rearticulate ? { ...expr, legato: false, soft: Math.max(expr.soft ?? 0, GLENN.rearticSoft) } : { ...expr, legato: legato && !piano };
+        // D424: not on a SET-AND-RELEASE (the slur on one vowel: no consonant, no new onset).
+        const rearticulate = MECH.glenn && fam === "sung" && !slide && legato && !piano && !(touchFam && setRelease);
+        const play: Play = rearticulate ? { ...expr, legato: false, soft: Math.max(expr.soft ?? 0, GLENN.rearticSoft) } : joinPlay(expr, legato);
         h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, play));
       }
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };
