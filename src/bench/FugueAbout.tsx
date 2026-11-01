@@ -1,5 +1,5 @@
 /**
- * Design studio (D410): ABOUT THIS FUGUE, the selection's "?" on the chosen fugue's picture. Two columns on a
+ * Design studio (D411): ABOUT THIS FUGUE, the selection's "?" on the chosen fugue's picture. Two columns on a
  * phone held sideways: the picture, the names and the facts read from the score (pieces.json: voices, bars,
  * metre, the subject's entries voice by voice, the strettos, inverted or augmented entries, the keys it
  * passes through, the cadences); and the words: the companion's note (src/wtc/notes.ts) and, still to be
