@@ -92,7 +92,7 @@ test("D487 (3): every voice of the 48 fugues measured on its own sound; with its
   // I/3 (the owner's example) on GAME BOY: the soprano and the alto lifted over the bass.
   const f3 = fugueById("wtc1f03");
   for (const v of [0, 1]) assert.ok(liftDb("wtc1f03", "gameboy", v, 3) > 4, `I/3 voice ${v}`);
-  assert.ok(liftDb("wtc1f03", "gameboy", 2, f3.voices.length) < 1, "I/3's bass already the loudest");
+  assert.ok(liftDb("wtc1f03", "gameboy", 2, f3.voices.length) <= LIFT_FORWARD_DB, "I/3's bass already the loudest");
 });
 
 test("D487 (3): on every offered sound and number of voices the balance is measured; the lift holds there too", () => {

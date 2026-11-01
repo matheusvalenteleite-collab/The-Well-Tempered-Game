@@ -19,8 +19,8 @@
  */
 import { OWN_LOUD, SOUND_LOUD } from "./player-lift-data.ts";
 
-/** How far forward the player's voice stands over the loudest other voice (dB). */
-export const LIFT_FORWARD_DB = 0.5;
+/** How far forward the player's voice stands over the loudest other voice (dB): 1, so the measuring's own spread (±0.5 dB, the engine moving on) never leaves it under. */
+export const LIFT_FORWARD_DB = 1;
 /** The most the player's voice is lifted (dB). */
 export const LIFT_MAX_DB = 9;
 

@@ -81,7 +81,11 @@ const [out, ...jobs] = process.argv.slice(2);
           if (taps.has(k)) return taps.get(k);
           const t = ac.createGain();
           t.connect(lead ? ch.mine : ch.bus);
-          const an = (pre) => { const a = ac.createAnalyser(); a.fftSize = N; let n = t; for (const x of pre) { n.connect(x); n = x; } n.connect(a); return a; };
+          // Measured as heard: the player's tap after its own bus's gain (the lift, D487), the band's as it is.
+          const src = ac.createGain();
+          src.gain.value = lead ? ch.mine.gain.value : 1;
+          t.connect(src);
+          const an = (pre) => { const a = ac.createAnalyser(); a.fftSize = N; let n = src; for (const x of pre) { n.connect(x); n = x; } n.connect(a); return a; };
           const tap = { t, K: an([bq('highpass', 38, 0.5), bq('highshelf', 1500, 0.7, 4)]), P: an([bq('highpass', 550, 0.7), bq('highpass', 550, 0.7), bq('highshelf', 1500, 0.7, 4)]), w: [], notes: 0, lv: 0 };
           taps.set(k, tap);
           return tap;
