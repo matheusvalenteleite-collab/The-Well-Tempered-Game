@@ -9,7 +9,9 @@
 .tb-intro-touch { margin: 0 0 18px; font-size: 13px; line-height: 1.6; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; letter-spacing: 0.06em; animation: tb-intro-blink 1.4s steps(2) infinite; }
 .tb-intro-touch-other { margin: 8px 0 0; font-size: 7px; line-height: 1.6; color: var(--tg-muted); letter-spacing: 0.08em; }
 @keyframes tb-intro-blink { 50% { opacity: 0.35; } }
-.tb-intro-page { position: relative; box-sizing: border-box; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: clamp(18px, 6vw, 60px); padding: 0 max(16px, var(--tg-sar, 0px)) 0 max(16px, var(--tg-sal, 0px)); animation: tb-intro-out 2.8s linear 6s forwards; }
+.tb-intro-page { position: relative; box-sizing: border-box; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: clamp(18px, 6vw, 60px); padding: 0 max(16px, var(--tg-sar, 0px)) 0 max(16px, var(--tg-sal, 0px)); }
+/* D406: on the D the whole title page (its background too) cross-fades into the selection screen beneath it. */
+.tb-intro-at-show { animation: tb-intro-out var(--cross, 1.4s) ease-in-out var(--resolve, 7.2s) forwards; }
 .tb-intro-face { position: relative; flex: none; width: clamp(88px, 15vw, 128px); }
 .tb-intro-face .tb-bach-face { display: block; width: 100%; height: auto; }
 /* His shadow on the floor. */

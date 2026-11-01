@@ -4,13 +4,13 @@
  * the data: a level printed between the staves given to one voice; in whole-reading.ts: a late level standing from
  * bar 1, a ramp that never reached the level printed for the others, a long <> left up, a one-voice hairpin made a
  * lasting level, a hairpin stacked on its own word, an entry's dim. that never brought the voice back), Busoni's
- * intent kept. And the player's line's safety net (lineDynAt).
+ * intent kept. The player's line's safety net (lineDynAt), revised by D407, is tested in d407-player-dynamics.test.ts.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById, type TouchFugue } from "../src/touch/fugue.ts";
-import { readingsOf, type Reading, type WholeReading } from "../src/touch/readings.ts";
-import { buildWhole, LEVEL_DB, LINE_GAP_BARS, LINE_GAP_DB, OPENING_BARS, wholePlan, type WholePlan } from "../src/touch/whole-reading.ts";
+import { readingsOf, type Reading } from "../src/touch/readings.ts";
+import { LEVEL_DB, OPENING_BARS, wholePlan, type WholePlan } from "../src/touch/whole-reading.ts";
 
 const IDS = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 const of = (id: string): { f: TouchFugue; r: Reading; p: WholePlan } => {
@@ -101,59 +101,3 @@ test("D404: the cases fixed: each voice takes the level printed for its system",
   for (const v of [0, 1, 2]) assert.equal(p.dynAt(v, at(f, 60)), LEVEL_DB.mf, `II/24 b. 60 voice ${v}`);
 });
 
-/** The printed level in force (as whole-reading.ts levelAt: the last level printed for the voice, else the opening one). */
-function printedAt(W: WholeReading, f: TouchFugue, v: number, t: number): number {
-  const lv = W.dyn.filter((d) => LEVEL_DB[d.mark.trim()] !== undefined).sort((a, b) => a.on - b.on);
-  const first = lv.length && lv[0].on < OPENING_BARS * f.barTicks ? LEVEL_DB[lv[0].mark.trim()] : 0;
-  const l = lv.filter((d) => d.voices.includes(v) && d.on <= t).pop();
-  return l ? LEVEL_DB[l.mark.trim()] : first;
-}
-const sounds = (f: TouchFugue, u: number, t: number) => f.voices[u].some((n) => n[0] <= t && n[0] + n[1] > t);
-
-/** The longest run (ticks) where voice v's line sits more than LINE_GAP_DB (+ slack) under the loudest sounding voice, not asked. */
-function longestLineGap(f: TouchFugue, W: WholeReading, p: WholePlan, v: number): number {
-  let run = 0;
-  let worst = 0;
-  for (let t = 1; t < f.length; t += f.tpq) {
-    if (!sounds(f, v, t)) continue;
-    const others = f.voices.map((_, u) => u).filter((u) => u !== v && sounds(f, u, t));
-    if (!others.length) continue;
-    const gap = Math.max(...others.map((u) => p.dynAt(u, t))) - p.lineDynAt(v, t);
-    const asked = printedAt(W, f, v, t) <= LEVEL_DB.p && others.some((u) => printedAt(W, f, u, t) >= LEVEL_DB.f);
-    if (gap <= LINE_GAP_DB + 0.01 || asked) run = 0;
-    else worst = Math.max(worst, (run += f.tpq));
-  }
-  return worst;
-}
-
-test("D404: the safety net: no player's voice of the 48 sits > 6 dB under the loudest for more than 4 bars unless asked", () => {
-  for (const id of IDS) {
-    const { f, r, p } = of(id);
-    for (let v = 0; v < f.voices.length; v++) {
-      const g = longestLineGap(f, r.whole!, p, v);
-      assert.ok(g <= LINE_GAP_BARS * f.barTicks, `${id} voice ${v}: ${(g / f.barTicks).toFixed(1)} bars too far under`);
-      // The net only lifts: never under the band's level.
-      for (let t = 1; t < f.length; t += f.barTicks) assert.ok(p.lineDynAt(v, t) >= p.dynAt(v, t) - 1e-9);
-    }
-  }
-});
-
-test("D404: the safety net lifts a voice left p under an mf, not a printed p under a printed f", () => {
-  const f = fugueById("wtc1f02")!;
-  const base = readingsOf("wtc1f02").find((x) => x.whole)!.whole!;
-  const make = (loud: string): WholeReading => ({ ...base, dyn: [{ on: 0, voices: [0], mark: "p" }, { on: 0, voices: [1, 2], mark: loud }], hairpins: [], text: [] });
-  // The soprano p under the alto's and the bass's mf (6.5 dB, not asked) is lifted after four bars.
-  const lifted = buildWhole(f, make("mf"));
-  const t = (bar: number) => (bar - 1) * f.barTicks + f.tpq + 1;
-  const plain = buildWhole(f, make("ff"));
-  assert.equal(lifted.dynAt(0, t(12)), LEVEL_DB.p, "the band keeps the printed p");
-  const both = Array.from({ length: 16 }, (_, i) => i + 1).filter((b) => sounds(f, 0, t(b)) && sounds(f, 1, t(b)));
-  assert.ok(both.length >= 6);
-  const late = both.filter((b) => b >= both[0] + LINE_GAP_BARS);
-  assert.ok(late.length > 0);
-  for (const b of late) assert.ok(lifted.lineDynAt(0, t(b)) > LEVEL_DB.p, `lifted at bar ${b}`);
-  // With the gap 6.5 dB (p under mf) the line is brought to 6 dB under.
-  assert.ok(Math.abs(lifted.lineDynAt(0, t(late[late.length - 1])) - (LEVEL_DB.mf - LINE_GAP_DB)) < 1e-6);
-  // p printed against ff: the reading asks it; nothing lifted.
-  for (const b of both) assert.equal(plain.lineDynAt(0, t(b)), LEVEL_DB.p, `asked at bar ${b}`);
-});

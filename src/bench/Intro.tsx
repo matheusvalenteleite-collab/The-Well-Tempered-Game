@@ -3,8 +3,10 @@
  * TOUCH TO BEGIN in the three languages (a phone plays no sound before a touch); that touch starts
  * Contrapunctus XIV's B♭–A–C–B♮ on the pipe organ (intro-sound.ts) and the page: Herr Bach's face (the
  * game's sprite, Bach.tsx), the wordmark (wordmark.ts, the title page between gold rules), the subtitle
- * and, small, the version, each fading in on its note; all of it fades out with the last note's decay,
- * then the selection screen. Any further touch skips straight to it.
+ * and, small, the version, each fading in on its note. D406: on the D (the subject's continuation, the
+ * consort's D major under it) the whole page cross-fades into the selection screen beneath it
+ * (INTRO_CROSS_S from INTRO_RESOLVE_S), the chord dying away over the selection. Any further touch skips
+ * straight to it (the sound faded out quickly).
  */
 import { useEffect, useRef, useState } from "react";
 import { lang, tr, WORDMARK, type Lang } from "../i18n/index.ts";
@@ -13,7 +15,7 @@ import { ES } from "../i18n/es.ts";
 import { Portrait } from "./Bach.tsx";
 import { wordmark } from "./wordmark.ts";
 import { VERSION } from "./version.ts";
-import { INTRO_HALF_S, INTRO_S } from "./intro-sound.ts";
+import { INTRO_CROSS_S, INTRO_HALF_S, INTRO_RESOLVE_S, INTRO_S } from "./intro-sound.ts";
 
 /** TOUCH TO BEGIN in each language (all three on the black screen, the one in force first). */
 const BEGIN_IN: Record<Lang, string> = { en: "TOUCH TO BEGIN", pt: PT["TOUCH TO BEGIN"], es: ES["TOUCH TO BEGIN"] };
@@ -58,7 +60,7 @@ export function Intro({ begin, end }: { begin: () => Promise<number>; end: (skip
       timers.current.push(setTimeout(() => setStage("show"), Math.max(0, lead * 1000)));
       timers.current.push(setTimeout(() => finish(false), (Math.max(0, lead) + INTRO_S) * 1000));
     };
-    // The picture never waits long for the organ's pipes to load.
+    // The picture never waits long for the sound to start (D406: the flute needs no loading).
     let started = false;
     const once = (lead: number) => {
       if (started) return;
@@ -71,7 +73,7 @@ export function Intro({ begin, end }: { begin: () => Promise<number>; end: (skip
   const l = lang();
   const others = (["en", "pt", "es"] as const).filter((x) => x !== l);
   return (
-    <div className={`tb-intro tb-intro-at-${stage}`} id="intro" role="button" tabIndex={0} aria-label={BEGIN_IN[l]} onClick={touch} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && touch()} style={{ ["--note" as string]: `${INTRO_HALF_S}s`, ["--intro" as string]: `${INTRO_S}s` }}>
+    <div className={`tb-intro tb-intro-at-${stage}`} id="intro" role="button" tabIndex={0} aria-label={BEGIN_IN[l]} onClick={touch} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && touch()} style={{ ["--note" as string]: `${INTRO_HALF_S}s`, ["--resolve" as string]: `${INTRO_RESOLVE_S}s`, ["--cross" as string]: `${INTRO_CROSS_S}s` }}>
       {stage === "touch" ? (
         <div className="tb-intro-begin">
           <p className="tb-intro-touch" id="intro-touch">
