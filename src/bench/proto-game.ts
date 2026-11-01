@@ -3708,7 +3708,7 @@ export class ProtoGame {
     this.slips++;
     this.chain = 0;
     // D445: the crowd hears it (a wrong note less badly than one let go by; a tap on no note as half a note).
-    this.hearCrowd(worth, weight);
+    this.hearCrowd(worth, weight, true);
     const fuoco = this.streak >= FUOCO_NOTES;
     this.streak = slipLoss(this.streak);
     this.combo = slipLoss(this.combo);
@@ -3808,8 +3808,9 @@ export class ProtoGame {
   crowd = CROWD_START;
   /** D445: the crowd listening (scoring.ts Crowd); `crowd` is its meter, 0 the crowd leaving. */
   private listeners = new Crowd();
-  private hearCrowd(worth: number, weight = 1) {
-    this.listeners.hear(worth, weight);
+  private hearCrowd(worth: number, weight = 1, fault = false) {
+    // A fault always cools the crowd, however cold it already is (never above half its level).
+    this.listeners.hear(fault ? Math.min(worth, this.listeners.level / 2) : worth, weight);
     this.crowd = this.listeners.meter();
   }
   /** D445: the streak bonus's level (0..STREAK_STEPS) and the right notes toward its next step. */
@@ -4002,7 +4003,7 @@ export class ProtoGame {
       // Held through the rest: the crowd cools, the chain is broken (no slip: the note was right).
       this.art.cleanOf++;
       this.chain = 0;
-      this.hearCrowd(0.5, 0.5);
+      this.hearCrowd(0.5, 0.5, true);
       this.flash = { text: "REST!", at, good: false, kind: "rest" };
       return;
     }

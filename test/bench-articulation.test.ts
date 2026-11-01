@@ -148,7 +148,7 @@ test("D218: holding a note into the rest after it is penalised; letting go in ti
   assert.deepEqual([clean.art.clean, clean.art.cleanOf], [1, 1]);
   // D445: the crowd listening (its level: the meter itself is empty here, every other note let go by).
   const heard = (g: unknown) => (g as { listeners: { level: number } }).listeners.level;
-  assert.ok(clean.score > over.score && heard(clean) > heard(over));
+  assert.ok(clean.score > over.score && heard(clean) > heard(over), `score ${clean.score} vs ${over.score}, heard ${heard(clean)} vs ${heard(over)}`);
   assert.equal(over.slips, clean.slips, "no slip: the note was right");
   // A rest broken mid-chain: the chain is reset.
   assert.equal(over.chain, 0);
