@@ -16,10 +16,10 @@ test("Mario's names: all 24 of Book I, in English, Portuguese and Spanish, a sho
       assert.ok(s && s.length <= 13, `${id} ${l} short`);
     }
   }
-  assert.equal(fugueName("wtc1f01", "en"), "The Bell-Ringer");
-  assert.equal(fugueName("wtc1f13", "en"), "The Heron");
+  assert.equal(fugueName("wtc1f01", "en"), "The Canon");
+  assert.equal(fugueName("wtc1f13", "en"), "The Aquarium");
   // D383: Book II named too (test/d383-pictures-cast.test.ts); nothing beyond the 48.
-  assert.equal(fugueName("wtc2f13", "en"), "The Trill");
+  assert.equal(fugueName("wtc2f13", "en"), "The Telephone");
   assert.equal(fugueName("bwv1080-14", "en"), null);
   assert.equal(Object.keys(FUGUE_NAMES).length, 48);
 });
