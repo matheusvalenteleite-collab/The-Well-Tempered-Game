@@ -1317,12 +1317,28 @@
  ],
  "dyn": [
   {
+   "on": 268800,
+   "bar": 36,
+   "pos": 0,
+   "voices": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "mark": "mezza voce",
+   "conf": "sure"
+  },
+  {
    "on": 552960,
    "bar": 73,
    "pos": 0,
    "voices": [
+    0,
     1,
-    2
+    2,
+    3
    ],
    "mark": "mp",
    "conf": "sure"
@@ -1737,6 +1753,7 @@
    "bar": 36,
    "pos": 0,
    "voices": [
+    0,
     1,
     2,
     3,
@@ -2380,7 +2397,7 @@
  "counts": {
   "marks": 100,
   "slurs": 38,
-  "dyn": 9,
+  "dyn": 10,
   "hairpins": 12,
   "text": 53,
   "breaths": 2,
@@ -2415,6 +2432,7 @@
  "notes": [
   "Game import (WTC 1.90, D392): \"A I. footnote 7\" (bar 54) kept as \"A I.\": the gloss and footnote reference were the transcriber's, not printed words.",
   "Game import (WTC 1.90, D392): \"(voll) (full tone)\" (bar 110) kept as \"(voll)\": the gloss and footnote reference were the transcriber's, not printed words.",
-  "Game import (WTC 1.90, D392): \"breit / broad\" (bar 110) kept as \"breit\": the gloss and footnote reference were the transcriber's, not printed words."
+  "Game import (WTC 1.90, D392): \"breit / broad\" (bar 110) kept as \"breit\": the gloss and footnote reference were the transcriber's, not printed words.",
+  "Game import (WTC 1.96, D404): \"sempre mezza voce\" (bar 36, between the staves after the double bar, \"ruhig\" over the soprano) entered as the level of all five voices (it was in text only, for four: the first soprano had stayed at the opening sotto voce, its \"S marcato\" entry of bar 66 8 dB under the others); the \"mp armonioso\" of bar 73, under the upper staff, governs the upper voices and the accompanying tenor (entering in bar 74), not the second soprano and the alto only: the first soprano and the tenor had fallen to −11 dB under the bass entry's \"mf sostenuto\" for thirteen bars."
  ]
 }

@@ -23,7 +23,7 @@ const P3 = "wtc1p03";
 
 const UPPER_1_2 = INV1_1_4.slice(0, 24);
 /** I/2's subject, the alto alone (bars 1–2, to the note bar 3 begins with). */
-const I2_SUBJECT = ["C5", "B4", "C5", "G4", "A♭4", "C5", "B4", "C5", "D5", "G4", "C5", "B4", "C5", "D5", "F4", "G4", "A♭4", "G4", "F4", "E♭4"];
+export const I2_SUBJECT = ["C5", "B4", "C5", "G4", "A♭4", "C5", "B4", "C5", "D5", "G4", "C5", "B4", "C5", "D5", "F4", "G4", "A♭4", "G4", "F4", "E♭4"];
 /** I/2's alto, bars 1–8: the subject, then the countersubject against the answer, the episode, on to the bass's entry. */
 const I2_ALTO_1_8 = [
   ...I2_SUBJECT, "C5", "B4", "A4", "G4", "F4", "E♭4", "D4", "C4", "E♭5", "D5", "C5", "B♭4", "A4", "B♭4", "C5", "F♯4", "G4", "A4", "F♯4", "G4", "C4", "D4", "E♭4", "F4", "G4", "A♭4", "D4", "E♭4", "F4", "G4", "A4", "B♭4", "E♭4", "F4", "G4", "A♭4", "G4", "F4", "E♭4", "D4", "C5", "B4", "C5", "F5", "E♭5", "D5", "A♭4", "G4", "F4", "G4", "F4", "E♭4", "F4", "D4", "G4",

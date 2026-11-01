@@ -38,7 +38,7 @@ test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes
   for (const f of ["lib.py", "book1.py", "book2.py", "build.py", "sheet.py"]) assert.ok(src(`tools/pictures/${f}`).length > 100, f);
 });
 
-test("names: all 48 in English, Portuguese and Spanish, a short form for the tiles, each its own; II/13 the owner's Trill", () => {
+test("names: all 48 in English, Portuguese and Spanish, a short form for the tiles, each its own; II/13 the owner's Telephone (WTC 1.92)", () => {
   for (const id of THE_48) {
     for (const l of ["en", "pt", "es"] as const) {
       const full = fugueName(id, l);
@@ -48,7 +48,7 @@ test("names: all 48 in English, Portuguese and Spanish, a short form for the til
     }
   }
   for (const l of ["en", "pt", "es"] as const) assert.equal(new Set(THE_48.map((id) => fugueName(id, l))).size, 48, `${l}: 48 different names`);
-  assert.deepEqual(FUGUE_NAMES.wtc2f13, { en: { full: "The Trill", short: "Trill" }, pt: { full: "O Trinado", short: "Trinado" }, es: { full: "El Trino", short: "Trino" } });
+  assert.deepEqual(FUGUE_NAMES.wtc2f13, { en: { full: "The Telephone", short: "Telephone" }, pt: { full: "O Telefone", short: "Telefone" }, es: { full: "El Teléfono", short: "Teléfono" } });
   // Each of Book II's names carries its reason on the line above it.
   const lines = src("src/touch/fugue-names.ts").split("\n");
   for (let i = 1; i <= 24; i++) {

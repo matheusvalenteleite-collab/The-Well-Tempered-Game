@@ -3,8 +3,6 @@
  * words) in Spanish: plain words, no jargon (the report's word list).
  */
 export const COURSE_ES: Record<string, string> = {
-  "L": "I",
-  "R": "D",
   "Good: {n} of {m} moves the right way. Now in time.": "Bien: {n} de {m} movimientos en la dirección correcta. Ahora, a tempo.",
   "ABOUT {n} MINUTES": "UNOS {n} MINUTOS",
   "PART {n}": "PARTE {n}",
@@ -109,11 +107,11 @@ export const COURSE_ES: Record<string, string> = {
   "Your thumbs take turns, left, right, left, right: that is how quick notes are played.": "Tus pulgares se turnan, izquierdo, derecho, izquierdo, derecho: así se tocan las notas rápidas.",
   "Quick notes are easier with two thumbs, one after the other.": "Las notas rápidas son más fáciles con dos pulgares, uno tras otro.",
   "Two thumbs walk where one would stumble.": "Dos pulgares caminan donde uno tropezaría.",
-  "Left, right, left, right, as the letters say. Again.": "Izquierdo, derecho, izquierdo, derecho, como dicen las letras. Otra vez.",
+  "One thumb, then the other, as the marks say. Again.": "Un pulgar, luego el otro, como dicen las marcas. Otra vez.",
   "Turns taken": "Turnos hechos",
   "Which thumb (taking turns is praised, not required)": "Qué pulgar (turnarse se elogia, no se exige)",
-  "Now both thumbs: left, right, left, right. The letters under the notes tell you which.": "Ahora los dos pulgares: izquierdo, derecho, izquierdo, derecho. Las letras bajo las notas te dicen cuál.",
-  "Now you: the letter under each note tells you which thumb.": "Ahora tú: la letra bajo cada nota te dice qué pulgar.",
+  "Now both thumbs, taking turns. Under each note: ● one thumb, ○ the other, either way round.": "Ahora los dos pulgares, por turnos. Bajo cada nota: ● un pulgar, ○ el otro, en cualquier orden.",
+  "Now you: start with either thumb, then the marks tell you when to change.": "Ahora tú: empieza con cualquier pulgar; las marcas te dicen cuándo cambiar.",
   "In time, taking turns. I count four.": "A tempo, turnándote. Cuento cuatro.",
   "A little quicker now. The same turns.": "Un poco más rápido ahora. Los mismos turnos.",
   "PLAYING WITH BACH": "TOCANDO CON BACH",

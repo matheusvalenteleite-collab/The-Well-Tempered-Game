@@ -1136,3 +1136,12 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-route-chip { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 120; display: flex; align-items: center; gap: 4px; padding: 2px 2px 2px 8px; background: var(--tg-box); border: 2px solid var(--tg-shine); }
 .tb-route-chip button:first-child { min-height: 36px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-shine); background: transparent; border: 0; cursor: pointer; text-align: left; }
 @media (prefers-reduced-motion: reduce) { .tb-route-notice { animation: none; } }
+
+/* D402 (STUDIO-REAL-SCREEN.md): the tutorial's screen dressed lesson by lesson: his bubble over the element
+   that comes on, lit in a gold frame, the rest of the screen dimmed (the round paused under it). */
+.tb-spot { position: fixed; z-index: 1; box-sizing: border-box; display: grid; place-items: center; pointer-events: none; border: 2px solid #f3d78a; box-shadow: 0 0 0 200vmax rgba(6, 5, 10, 0.62); animation: tb-spot-pulse 0.9s ease-in-out infinite alternate; }
+.tb-spot.all { inset: 2px; box-shadow: none; }
+.tb-spot-sample { font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); }
+@keyframes tb-spot-pulse { from { border-color: rgba(243, 215, 138, 0.55); } to { border-color: #f3d78a; } }
+.tb-bach.tb-tour-top { top: calc(env(safe-area-inset-top, 0px) + 34px); bottom: auto; }
+.tb-bach.tb-tour-mid { top: 28%; bottom: auto; }

@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { readingsOf, type Reading } from "../src/touch/readings.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
-import { intentsOf, PLAN_EPSILON, PLAN_K, planCost, planFingerings, planTouches, SAME_THUMB_MIN_S, type Fingering, type PlanNote, type Thumb } from "../src/bench/fingering.ts";
+import { intentsOf, PLAN_K, pattern, planCost, planFingerings, planTouches, SAME_THUMB_MIN_S, type Fingering, type PlanNote, type Thumb } from "../src/bench/fingering.ts";
 import { MECH_DEFAULTS } from "../src/bench/mechanics.ts";
 import { presetRow } from "../src/bench/lab/preset-table.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
@@ -42,7 +42,7 @@ function sound(ns: PlanNote[], fs: Fingering[], what: string) {
   const it = intentsOf(ns);
   assert.ok(fs.length >= 1 && fs.length <= PLAN_K, what);
   fs.forEach((f, k) => {
-    assert.ok(f.cost <= fs[0].cost + PLAN_EPSILON + 1e-9 && (k === 0 || f.cost >= fs[k - 1].cost), `${what}: best first, within ε`);
+    assert.ok(f.cost >= fs[0].cost - 1e-9, `${what}: best first`);
     f.touches.forEach((t, i) => {
       if (!i || t.slid || t.side !== f.touches[i - 1].side) return;
       assert.notEqual(it[i - 1], "join", `${what} plan ${k + 1}: a join on one thumb at ${i}`);
@@ -51,7 +51,7 @@ function sound(ns: PlanNote[], fs: Fingering[], what: string) {
       assert.ok(f.touches[i - 1].off < t.on, `${what} plan ${k + 1}: lifted before landing again at ${i}`);
     });
   });
-  assert.equal(new Set(fs.map(letters)).size, fs.length, `${what}: the plans differ`);
+  assert.equal(new Set(fs.map((f) => pattern(f.touches))).size, fs.length, `${what}: the plans differ, mirrors aside`);
 }
 
 // Glenn's tables (his intent plans, ✗ marks dropped).
@@ -59,20 +59,19 @@ const INVENTION = "LRLRLRLLLLRRLRLRLRLLLLL";
 const I2_BODKY = "LRLLLLRLLLLRLLRLRLRL";
 const II18_BODKY_LEAPS = "LRLRRRRLRLRL";
 
-test("D370: Invention 1 bars 1–2 (semiquavers joined, quavers detached, ♩ = 72): Glenn's plan or one as good; the joined semiquavers alternate, the quavers by one thumb", () => {
+test("D370/D409: Invention 1 bars 1–2 (semiquavers joined, quavers detached, ♩ = 72): Glenn's plan playable and offered; the best alternates, the quavers by one thumb another suggestion", () => {
   const ns = line("bwv772", 0, 1, 2, 72, null, (n, next, tpq) => (next && n[1] < tpq / 2 && next[1] < tpq / 2 ? "join" : "detach"));
   assert.equal(ns.length, INVENTION.length);
   const fs = planFingerings(ns, { overlap: 0.03 });
   sound(ns, fs, "Invention 1");
   const glenn = planCost(ns, sides(INVENTION), { overlap: 0.03 });
-  assert.ok(fs[0].cost <= glenn + 1e-9 && glenn <= fs[0].cost + PLAN_EPSILON, `best ${fs[0].cost}, Glenn's ${glenn}`);
-  // The quavers G C B C: three or more by one thumb (its lift the detachment).
-  const q = letters(fs[0]).slice(7, 11);
-  assert.ok(/(L{3}|R{3})/.test(q), q);
-  assert.ok(fs[0].name !== "HANDOVERS");
+  assert.ok(Number.isFinite(glenn) && fs[0].cost <= glenn + 1e-9, `best ${fs[0].cost}, Glenn's ${glenn}`);
+  // D409: alternation the default; the quavers G C B C by one thumb (its lift the detachment) a suggestion of its own.
+  assert.ok(!/(L{3}|R{3})/.test(letters(fs[0]).slice(7, 11)), letters(fs[0]));
+  assert.ok(fs.slice(1).some((f) => /(L{3}|R{3})/.test(letters(f).slice(7, 11))), fs.map(letters).join(" "));
 });
 
-test("D370: I/2's subject in each reading (and none): no join on one thumb; Bodky's as Glenn's or as good; the mordent figures alternate", () => {
+test("D370: I/2's subject in each reading (and none): no join on one thumb; Bodky's as Glenn's playable; the mordent figures alternate", () => {
   const id = "wtc1f02";
   const e = [...fugueById(id).entries].filter((x) => !x.theme).sort((a, b) => a.on - b.on)[0];
   for (const r of [null, ...readingsOf(id)]) {
@@ -83,12 +82,12 @@ test("D370: I/2's subject in each reading (and none): no join on one thumb; Bodk
     if (r) for (const s of r.slurs) for (let i = s.from; i < s.to; i++) assert.notEqual(fs[0].touches[i].side, fs[0].touches[i + 1].side, `${r.id}: slur ${s.from}-${s.to}`);
     if (r?.id === "bodky") {
       const glenn = planCost(ns, sides(I2_BODKY), { overlap: 0.03 });
-      assert.ok(Number.isFinite(glenn) && fs[0].cost <= glenn + 1e-9 && glenn <= fs[0].cost + PLAN_EPSILON, `Bodky: best ${fs[0].cost} ${letters(fs[0])}, Glenn's ${glenn}`);
+      assert.ok(Number.isFinite(glenn) && fs[0].cost <= glenn + 1e-9, `Bodky: best ${fs[0].cost} ${letters(fs[0])}, Glenn's ${glenn}`);
     }
   }
 });
 
-test("D370: II/18 bars 1–4: every reading all joined, so the thumbs alternate (forced and right); with Bodky's leaps apart, one thumb takes them (Glenn's plan)", () => {
+test("D370/D409: II/18 bars 1–4: every reading all joined, so the thumbs alternate (forced and right); with Bodky's leaps apart, the best alternates and one thumb on the leaps (Glenn's plan) is offered", () => {
   const id = "wtc2f18";
   for (const r of [null, ...readingsOf(id)]) {
     const ns = line(id, 0, 1, 4, tempoOf(id), r);
@@ -101,8 +100,7 @@ test("D370: II/18 bars 1–4: every reading all joined, so the thumbs alternate 
   const ns = line(id, 0, 1, 4, 83, null, (n, next) => (next && Math.abs(next[3] - n[3]) < 3 ? "join" : "detach"));
   const fs = planFingerings(ns, { overlap: 0.03 });
   sound(ns, fs, "II/18 leaps apart");
-  assert.equal(letters(fs[0]).slice(0, 12), II18_BODKY_LEAPS);
-  assert.equal(fs[0].name, "ONE-THUMB LEAPS");
+  assert.ok(fs.some((f) => letters(f).slice(0, 12) === II18_BODKY_LEAPS && f.name === "ONE-THUMB LEAPS"), fs.map((f) => `${letters(f)} ${f.name}`).join(" "));
 });
 
 test("D370: every reading's subject in the 48: no plan joins on one thumb, none needs a thumb quicker than it can lift", () => {
