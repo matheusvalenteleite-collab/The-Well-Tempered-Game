@@ -15,7 +15,7 @@ import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
 import { paperInk } from "./sheet-view.ts";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
-import { APPROACH_MS, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
+import { APPROACH_MS, CROWD_START, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
 import { trCanvas } from "../i18n/index.ts";
 import { acrossBar, drawThumb } from "./fingering.ts";
 import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
@@ -70,7 +70,8 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
       break;
   }
   // D402: the tutorial's screen dressed lesson by lesson: the verdicts from Part 2.
-  if (!g.o.dress || g.o.dress.includes("verdicts")) verdict(c, w, h, g, t);
+  // D413: nothing judged under his demonstration (a WATCH: Bach plays): no verdicts on his notes.
+  if ((!g.o.dress || g.o.dress.includes("verdicts")) && !g.o.demo) verdict(c, w, h, g, t);
   // D359: THE MANUAL's practice room: none of the game's chatter. D402: unless the lesson has dressed it.
   if (!g.o.quiet || g.o.dress?.includes("score")) scoreboard(c, w, h, g, t);
   // D251: how far into the piece, along the top edge.
@@ -86,7 +87,15 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   const full = !dress || dress.includes("subjects");
   const x = bars ? (w * BAR) / 2 : desk ? w - 90 : w / 2;
   const y = bars ? h * 0.12 : desk ? 34 : 14;
-  label(c, Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
+  // D413 (the owner: "Nothing should be scored or counted during WATCH"): under his demonstration the
+  // counters stand still at where the step began (0, no multiplier, no combo, ACCURACY —), still in place
+  // for the bubbles that point at them.
+  const still = !!g.o.demo;
+  label(c, still ? "0" : Math.floor(g.score).toLocaleString("en"), x, y, t.fg, g.proto.id === "keys" ? 12 : 9);
+  if (still) {
+    if (bars) liveSheet(c, w, h, g, t);
+    return;
+  }
   if (g.mult > 1 && !desk) label(c, `×${g.mult}`, x, y + 16, g.mult >= 4 ? t.gold : t.shine, 9);
   // D249: the combo (the right notes running), small and muted under the score, off the middle of the
   // music (it shared the count-in's centre). Named, so it is not read as the multiplier.
@@ -131,15 +140,17 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
   let y = h * 0.12;
   // D402: in the tutorial each line only once the lesson has dressed it (ACCURACY and the crowd from 3.6, SUBJECTS at THE REAL THING).
   const on = (k: string) => !g.o.dress || g.o.dress.includes(k);
-  const acc = g.liveAccuracy();
+  // D413: frozen under his demonstration (see scoreboard).
+  const still = !!g.o.demo;
+  const acc = still ? null : g.liveAccuracy();
   if (on("accuracy")) {
     label(c, acc === null ? "—" : `${Math.floor(acc * 100)}%`, x, y, acc === null || acc >= 0.9 ? t.fg : acc >= 0.8 ? t.shine : t.wrong, 9);
     label(c, "ACCURACY", x, y + 12, t.muted, 5);
     y += 28;
   }
-  const come = g.entries.filter((e) => e.state !== "open").length;
+  const come = still ? 0 : g.entries.filter((e) => e.state !== "open").length;
   if (g.entries.length && on("subjects")) {
-    label(c, `${g.entries.filter((e) => e.state === "captured").length}/${come}`, x, y, t.gold, 8);
+    label(c, `${still ? 0 : g.entries.filter((e) => e.state === "captured").length}/${come}`, x, y, t.gold, 8);
     label(c, "SUBJECTS", x, y + 11, t.muted, 5);
     y += 26;
   }
@@ -152,8 +163,9 @@ function liveSheet(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGa
     c.fillStyle = "#1d1a24";
     c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw), 5);
     c.fillStyle = grad;
-    c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw * g.crowd), 5);
-    label(c, "CROWD", x, y + 13, g.crowd < 0.25 ? t.wrong : t.muted, 5);
+    const crowd = still ? CROWD_START : g.crowd;
+    c.fillRect(Math.round(x - mw / 2), Math.round(y), Math.round(mw * crowd), 5);
+    label(c, "CROWD", x, y + 13, crowd < 0.25 ? t.wrong : t.muted, 5);
   }
 }
 

@@ -100,6 +100,10 @@ export const APPROACH_MS = 1100;
 const HOLD_MAX = 8;
 /** D319: the player's trill sounds its notes this far ahead of the clock (s), so that it can stop when the shaking does. */
 const TRILL_AHEAD_S = 0.06;
+/** The crowd's meter at a round's start. */
+export const CROWD_START = 0.6;
+/** D413: his demonstration's silent lead (s, at most a beat), instead of a count-in. */
+const DEMO_LEAD_S = 0.6;
 /** D353: the quickest leg a free ornament's room allows for (ms): a note shorter than two such legs and two ornament notes is not read. */
 const FREE_LEG_MIN_MS = 50;
 
@@ -717,7 +721,8 @@ export class ProtoGame {
     // Waiting (the lessons): no count-in, the clock stops at each note until it is struck.
     // D338: the count-in by time (at most about 4 s, at least two beats), not whole bars.
     // D373: the tutorial's count-in in whole beats ("I count four, then you begin").
-    this.start = o.wait ? from - this.beat : o.countBeats ? from - o.countBeats * this.beat : countInStart(f, from, this.tps);
+    // D413: his demonstration (a WATCH: Bach plays) counted in by nobody: a short silent lead, then he begins.
+    this.start = o.wait ? from - this.beat : o.demo ? from - this.demoLead() : o.countBeats ? from - o.countBeats * this.beat : countInStart(f, from, this.tps);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
@@ -742,7 +747,8 @@ export class ProtoGame {
     chip.smooth = this.bt;
     this.anchorAt = chip.ctx.currentTime + 0.15;
     this.anchorTick = this.start;
-    this.nextBeat = this.start;
+    // D413: the beats kept on the passage's grid under his shorter lead (one before the first sounding, unheard).
+    this.nextBeat = o.demo && !o.wait ? this.entry - this.beat : this.start;
     // D328, THE LAB's BAND TIME (band-time.ts): the band waits for the player, or follows; never in the game (MECH.bandTime "fixed").
     // D340: a chorale's band WAITS (its own `bandTime`) after each fermata, as at a cadence, whatever MECH says.
     const bandMode = MECH.bandTime !== "fixed" ? MECH.bandTime : (f.bandTime ?? "fixed");
@@ -1116,7 +1122,8 @@ export class ProtoGame {
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
       // D369: the lessons' metronome (LESSON_CLICK) softer than the count-in, on every beat of the take.
       const ckGain = ck?.gain ?? 0.12;
-      const clickGain = counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? ckGain : this.nextBeat >= ck.gone ? 0 : ckGain * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
+      // D413: his demonstration clicks no count-in (nor the bar after a pause).
+      const clickGain = counting && this.o.demo ? 0 : counting || !ck ? (counting ? (kimiko ? 0.05 : 0.12) : 0) : this.nextBeat < ck.full ? ckGain : this.nextBeat >= ck.gone ? 0 : ckGain * (1 - (this.nextBeat - ck.full) / Math.max(1, ck.gone - ck.full));
       if (!band && clickGain > 0.004) ch.tick(this.timeAt(this.nextBeat), accent, clickGain);
       this.nextBeat += this.beat;
     }
@@ -1238,7 +1245,14 @@ export class ProtoGame {
     return false;
   }
 
+  /** D413: the silent moment before his demonstration begins (at most a beat, about half a second), in ticks. */
+  private demoLead(): number {
+    return Math.min(this.beat, DEMO_LEAD_S * this.tps);
+  }
+
   countIn(): number {
+    // D413: no count-in over his demonstration (the owner: "We don't need a countdown for Bach when he's the one playing").
+    if (this.o.demo) return 0;
     if (this.resumeAt !== null && this.now < this.resumeAt) return Math.ceil((this.resumeAt - this.now) / this.beat);
     return this.now < this.entry ? Math.ceil((this.entry - this.now) / this.beat) : 0;
   }
@@ -3741,7 +3755,7 @@ export class ProtoGame {
    * empty, the run fails); the hits' flames; the sustain (a long note held after it is struck scores
    * as it sounds, a point a beat at the multiplier); the run's stars.
    */
-  crowd = 0.6;
+  crowd = CROWD_START;
   failedAt: number | null = null;
   /** D239: lane: the lane struck (HIGHWAY), grade: its note's lane grade. */
   readonly flames: { i: number; at: number; k?: number; lane?: number; grade?: LaneGrade }[] = [];
@@ -4508,11 +4522,12 @@ export class ProtoGame {
     this.pausedAt = null;
     const grid = this.start + Math.floor((at - this.start) / this.beat) * this.beat;
     // D338: the count-in as at the start (by time, at least two beats), no longer a whole bar.
-    const from = grid - countInBeats(this.f, this.tps) * this.beat;
+    // D413: his demonstration again after its short silent lead, not a count-in.
+    const from = grid - (this.o.demo ? this.demoLead() : countInBeats(this.f, this.tps) * this.beat);
     this.resumeAt = Math.max(grid, this.entry);
     this.anchorTick = from;
     this.anchorAt = this.chip.ctx.currentTime + 0.15;
-    this.nextBeat = from;
+    this.nextBeat = this.o.demo ? grid - this.beat : from;
     this.bandT?.reset(this.anchorAt, from);
     this.now = this.tickAt(this.chip.heard());
     const firstAt = <T extends { on: number }>(xs: T[]) => {
