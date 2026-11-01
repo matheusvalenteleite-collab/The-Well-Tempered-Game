@@ -51,6 +51,7 @@ import { CONFIGS, DEFAULT_CONFIG, MECH_BASE, configById, configEdits, configLabe
 import { StudyCard, StudyTab, useStudy, type StudyHost } from "./StudyTab.tsx";
 import { holdSettings, releaseSettings, STUDY_SOUND } from "./study.ts";
 import { rushLine } from "./rush.ts";
+import { knightStage, nextKnightRun, paintKnightStage, KNIGHT_PIECE } from "./knight-stage.ts";
 
 const STORE = "tb-lab-v1";
 const RUNS = "tb-lab-runs-v1";
@@ -77,6 +78,8 @@ interface Setup {
   /** A sound's id, "" for the piece's own. */
   sound: string;
   loop: boolean;
+  /** PROTOTYPE: I/16's stage on the strips (knight-stage.ts); I/16 only. */
+  stage: boolean;
   traces: boolean;
   /** D320: FREE PLAY's lines over the box (nothing to follow there). */
   feed: boolean;
@@ -176,6 +179,7 @@ function sane(s: Partial<Setup>, platform: "mobile" | "computer"): Setup {
     reading: s.reading !== undefined && (s.reading === "" || readingsOf(piece).some((r) => r.id === s.reading)) ? s.reading : (readingsOf(piece)[0]?.id ?? ""),
     sound: s.sound ?? "",
     loop: s.loop ?? true,
+    stage: s.stage ?? true,
     traces: s.traces ?? true,
     feed: s.feed ?? true,
     feedBar: s.feedBar ?? false,
@@ -548,8 +552,15 @@ export function LabApp() {
     } else if (!forStudy && s.dynMode !== "off") dynHead = ` · DYNAMICS off here (${passage.bt ? "BLUETOOTH MODE" : "the sampled piano only"})`;
     feed.current.push(`— ${pieceLabel(ff)} · ${ff.voiceNames[s.voice]} · bars ${s.fromBar}–${s.toBar} · ♩ ${Math.round(bpm)} (${s.tempoPct}%)${passage.bt ? " · BLUETOOTH" : ""}${s.wait ? " · WAITING" : ""}${MECH.bandTime !== "fixed" ? ` · BAND ${MECH.bandTime.toUpperCase()}${g.bandT ? "" : " (off here)"}` : ""}${configLabel(configRef.current) ? ` · CONFIG ${configById(configRef.current)?.name}${configEdits(configById(configRef.current)!).length ? " (changed)" : ""}` : ""}${Object.keys(mechChanges()).length ? ` · ${Object.keys(mechChanges()).length} parameters changed` : ""}${dynHead}`);
     setFeedTick((n) => n + 1);
+    // PROTOTYPE: I/16's stage (THE KNIGHT), from the piece's data and Busoni's marks; never in a STUDY.
+    const stage = !forStudy && s.stage && pp.id === "ladder" ? knightStage(ff, nextKnightRun()) : null;
+    if (stage) {
+      feed.current.push(`STAGE · THE KNIGHT · run ${stage.run}${stage.visitor !== null ? " · the opponent's hand comes at bar 24" : ` · the opponent's hand comes on run ${stage.run + 3 - (stage.run % 3)}`}`);
+      setFeedTick((n) => n + 1);
+    }
+    const under = stage ? (c: CanvasRenderingContext2D, cw: number, chh: number) => paintKnightStage(c, cw, chh, stage, { now: g.now, tps: g.tps, beat: g.beat, entry: g.entry, startTick: g.startTick, voice: g.voice, ink: (v) => inkOf(v, ff.voices.length) }) : undefined;
     paint.current = (ctx, w, h) => {
-      g.view(() => paintProto(ctx, w, h, g, marks.subject));
+      g.view(() => paintProto(ctx, w, h, g, marks.subject, under));
       drawTraces(ctx);
     };
     const b = beatOf(ff);
@@ -1348,6 +1359,7 @@ function PassageTab({ config, setup, setSetup, f, voices, bpm, sound, ensureChip
       </label>
       <div className="lab-row">
         <Toggle id="lab-loop" label="Loop" on={setup.loop} set={(v) => setSetup({ loop: v })} />
+        {setup.piece === KNIGHT_PIECE && <Toggle id="lab-stage" label="Stage: The Knight" on={setup.stage} set={(v) => setSetup({ stage: v })} />}
         <Toggle id="lab-wait" label="Wait for me" on={setup.wait} set={(v) => setSetup({ wait: v })} />
       </div>
       <label className="lab-field">

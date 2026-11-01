@@ -51,11 +51,13 @@ export function setPaperLook(on: boolean) {
 }
 export const PAPER_TOK: Tok = { shine: "#8a6a12", gold: "#9a7410", wrong: "#b3261e", fg: "#1d1d1f", muted: "#8a857a", grid: "#e4e0d6", barline: "#d6d1c4", miss: "#b3261e" };
 
-export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, subject: Set<string>) {
+export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, subject: Set<string>, under?: (c: CanvasRenderingContext2D, w: number, h: number) => void) {
   const t = paper && g.proto.layout === "bars" ? PAPER_TOK : tokens();
   switch (g.proto.id) {
     case "ladder":
       bars(c, w, h, g, t);
+      // PROTOTYPE (THE LAB): a fugue's stage on the strips, over their ground and under the HUD (lab/knight-stage.ts).
+      under?.(c, w, h);
       break;
     case "piano":
       paintPiano(c, w, h, { kb: g.kb, now: g.now, tps: g.tps, voice: g.voice, count: g.f.voices.length, notes: g.notes, others: g.others, late: g.opt.late, held: g.heldCells(), grade: g.grade }, subject);
