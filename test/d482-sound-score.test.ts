@@ -9,6 +9,10 @@
  * state thrown about before every frame and every touch (a streak of 999, the multiplier at 4, the
  * crowd full or empty, ORGANO PLENO on, the hits and the combo huge); every call the game makes to the
  * sound engine, with every argument, is the same.
+ *
+ * Retired by D485 (the owner scrapped D482; OBBLIGATO's layer is offered on the player's grades before an
+ * entry). No assertion here contradicts the boost, so none was removed: the score state thrown about
+ * (streak, combo, multiplier, crowd, hits) still reaches no call, and THE LAB's game runs without OBBLIGATO.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";

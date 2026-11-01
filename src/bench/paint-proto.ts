@@ -1026,6 +1026,11 @@ function thumbSigns(c: CanvasRenderingContext2D, w: number, h: number, bw: numbe
 
 /** D415: the side bars' opacity over the box running under them (0.92 before: opaque in effect). */
 const BAR_VEIL = 0.52;
+/** D485: the bars' tinge while OBBLIGATO is offered (soft side, strong side). */
+export const OBB_TINGE = [
+  [14, 70, 74],
+  [52, 140, 118],
+];
 function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const bw = w * BAR;
   const count = g.f.voices.length;
@@ -1044,8 +1049,17 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
       // D415 (the owner: "we don't need the buttons to be opaque at all to know what to do with them"): the bar
       // translucent over the box, which runs under it; enough of its warmth kept that the thumbs' marks read on it.
-      grad.addColorStop(strengthOf(0), `rgba(26,18,22,${BAR_VEIL})`);
-      grad.addColorStop(strengthOf(1), `rgba(54,34,30,${BAR_VEIL})`);
+      // D485, OBBLIGATO: while an offer stands the bars take a sea-green tinge, breathing (the buttons glow at their
+      // top corners); while a boost sounds, the tinge held, quieter. The veil's translucence as ever.
+      const obb = g.offer ? 0.75 + 0.25 * Math.sin(performance.now() / 260) : g.boosting ? 0.45 : 0;
+      if (obb > 0) {
+        const mix = (a: number[], b: number[]) => a.map((x, j) => Math.round(x + (b[j] - x) * obb)).join(",");
+        grad.addColorStop(strengthOf(0), `rgba(${mix([26, 18, 22], OBB_TINGE[0])},${BAR_VEIL})`);
+        grad.addColorStop(strengthOf(1), `rgba(${mix([54, 34, 30], OBB_TINGE[1])},${BAR_VEIL})`);
+      } else {
+        grad.addColorStop(strengthOf(0), `rgba(26,18,22,${BAR_VEIL})`);
+        grad.addColorStop(strengthOf(1), `rgba(54,34,30,${BAR_VEIL})`);
+      }
       c.fillStyle = grad;
       c.fillRect(s.x, 0, bw, h);
       c.fillStyle = t.barline;
