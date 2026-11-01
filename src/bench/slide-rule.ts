@@ -44,6 +44,22 @@ export const SLIDE = {
   followMs: 160,
 } as const;
 
+/**
+ * D488, THE SLIDE-IN: a thumb landing in a rest before the coming note (or before the first), away from its row,
+ * may slide in to it: the same rule from where it landed (halfway there, or on its block), early waiting for the
+ * note's time. A landing before the note's window opens (which would have been a STRAY), at least `minRows`
+ * judging rows from its block, within `leadBeats` beats (at least `leadMs`) of it; or inside the early window, at
+ * least `inWindowRows` from it, before the note's time: if that one does not slide in by the note's time (or
+ * lifts first), it is struck from its landing, its time and place, exactly as before (the landing never costs a note).
+ */
+export const SLIDE_IN = {
+  minRows: 0.75,
+  /** Inside the note's early window a landing is a slide-in's only this far (judging rows) from its block; not slid in by the note's time, it is struck from its landing. */
+  inWindowRows: 1.5,
+  leadBeats: 2,
+  leadMs: 1200,
+} as const;
+
 /** The cues a failed slide shows at the thumb (D486), in the game's words (tr: pt, es). */
 export type SlideMiss = "short" | "far" | "early" | "late" | "lifted" | "oneway";
 export const SLIDE_CUE: Record<SlideMiss, string> = {
