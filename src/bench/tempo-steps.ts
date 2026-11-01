@@ -33,9 +33,14 @@ export const stepWord = (s: TempoStep): string => STEP_WORDS[lang()][s];
 /** The game's load (D312): the busiest line at most 5.5 notes a second. */
 export const STEP_LOAD = 5.5;
 export const SLOW_SHARE = 0.75;
-export const FAST_SHARE = 1.25;
+// D481 (the owner: "some fugues' fast tempo is quite conservative and similar to standard. The fast version
+// ought to be faster"): FAST 1.4× the default, never less than 1.3×, and its own load cap (FAST_LOAD, a
+// challenge chosen by the player) instead of the default's 5.5 notes a second.
+export const FAST_SHARE = 1.4;
 /** FAST at least this much quicker than DEFAULT, even past the load (where DEFAULT is already at it). */
-export const FAST_MIN_SHARE = 1.12;
+export const FAST_MIN_SHARE = 1.3;
+/** D481: the busiest line's notes a second FAST may reach (DEFAULT keeps STEP_LOAD). */
+export const FAST_LOAD = 7.5;
 /** A chorale: ♩ 48 · 60 · 76. */
 export const CHORALE_SHARES = { slow: 48 / 60, fast: 76 / 60 } as const;
 
@@ -102,7 +107,7 @@ export function stepTempi(id: string): Record<TempoStep, number> | null {
   const d = t.normal;
   if (kind === "chorale") return { slow: Math.round(d * CHORALE_SHARES.slow), default: d, fast: Math.round(d * CHORALE_SHARES.fast) };
   // The busiest line at DEFAULT, in notes a second: the cap is the tempo where it reaches STEP_LOAD.
-  const cap = t.busiest > 0 ? (d * STEP_LOAD) / t.busiest : Infinity;
+  const cap = t.busiest > 0 ? (d * FAST_LOAD) / t.busiest : Infinity;
   return { slow: Math.round(d * SLOW_SHARE), default: d, fast: Math.round(Math.max(d * FAST_MIN_SHARE, Math.min(d * FAST_SHARE, cap))) };
 }
 
