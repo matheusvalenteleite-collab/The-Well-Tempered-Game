@@ -41,6 +41,14 @@ export const SFZ = /sf|\bfz\b|\bfp\b|\brinf/;
 /** D394: a ramp word: cresc., dim., decresc., and Busoni's "sempre aumentando" (II/1), a crescendo. */
 export const RAMP = /\b(cresc|dim|decresc|aumentando)/;
 export const RAMP_UP = /cresc|aumentando/;
+/**
+ * D421: on a phone the printed levels are played in a narrower range (×0.65 about mf: p −4.2 dB instead of
+ * −6.5, pp −7.2, ff +4.2): a phone's speaker and a room's noise leave about 16 dB of usable range (D335), and
+ * Busoni's p exposition sat 14 dB under the harpsichord there. The terraces, the swells and their order are his;
+ * only their size is scaled. A computer plays them as printed.
+ */
+export const PHONE_DYN_RANGE = 0.65;
+const PHONE_RANGE = () => (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0 ? PHONE_DYN_RANGE : 1);
 export const LEVEL_DB: Readonly<Record<string, number>> = {
   pp: -11,
   p: -6.5,
@@ -522,7 +530,7 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     }
     return 0;
   };
-  const dynAt = (v: number, t: number) => base(v, t) + env(v, t) + fpAt(v, t);
+  const dynAt = (v: number, t: number) => PHONE_RANGE() * (base(v, t) + env(v, t) + fpAt(v, t));
   // D404: the player's line's safety net, by beats: where the voice sounds with others, the gap under the loudest of
   // them counted while over LINE_GAP_DB (reset where it is not; a rest of the voice neither counts nor resets), and
   // past LINE_GAP_BARS − 1 bars lifted, over a bar, to LINE_GAP_DB under it. Not where the reading asks the gap: the

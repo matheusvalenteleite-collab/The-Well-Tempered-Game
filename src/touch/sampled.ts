@@ -648,7 +648,18 @@ function toMono(ctx: BaseAudioContext, b: AudioBuffer): AudioBuffer {
   const d = out.getChannelData(0);
   const l = b.getChannelData(0);
   const r = b.getChannelData(1);
-  for (let i = 0; i < d.length; i++) d[i] = 0.5 * (l[i] + r[i]);
+  let pl = 0;
+  let pm = 0;
+  for (let i = 0; i < d.length; i++) {
+    d[i] = 0.5 * (l[i] + r[i]);
+    pl += l[i] * l[i] + r[i] * r[i];
+    pm += d[i] * d[i];
+  }
+  // D421: the fold keeps the recording's power. A spaced pair (the Salamander grand's channels correlate
+  // about 0.15) averaged to one channel lost 3-4 dB on a phone (the budget's fold, monoFor): the piano was
+  // the quietest sound there. Scaled back to the channels' mean power (at most +6 dB).
+  const k = pm > 0 ? Math.min(2, Math.sqrt(pl / 2 / pm)) : 1;
+  if (k !== 1) for (let i = 0; i < d.length; i++) d[i] *= k;
   return out;
 }
 

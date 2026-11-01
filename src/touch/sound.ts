@@ -388,6 +388,8 @@ export const STRING_BOW = { skip: 0.06, a: 0.03 } as const;
 export const CONSORT_SEND = 0.22;
 /** D365: STRING CONSORT's cello on a phone: its upper partials lifted (Patch.phoneLift), so the bass line carries there (measured: SOUND-PRINCIPLES.md §10). */
 export const CELLO_PHONE_LIFT = { hz: 700, db: 4 } as const;
+/** D421: the grand on a phone: its upper partials lifted (Patch.phoneLift), never its fundamentals; the speaker hears little under 600 Hz, where most of the grand's sound is. */
+export const PIANO_PHONE_LIFT = { hz: 800, db: 5 } as const;
 /** D358: LUTE: placed by its key across the instrument (E2-A5), uneven frets, its courses (unisons above G3, octave strings below; D365: the octave strings 0.25 → 0.4, heard); D365: its bass courses 3.5 dB lighter below D#3, eased in from A3 (the guitar recordings' low strings stood 2.5 dB over the top on a computer, 5 on a phone). */
 export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.4, shelf: 0 } }, low: { from: 57, over: 6, db: -3.5 } } as const;
 /** D358: SOLO VOICES' one send into its room (the plate), every singer's. */
@@ -575,7 +577,7 @@ export const PATCHES = {
   // D292, PIANO (SAMPLED): the Salamander Grand (sampled.ts); the FM piano stands in for a note until its recording has loaded.
   // D358: one piano (SOUND-PRINCIPLES.md): every voice on it (pianoBassSampled and pianoInnerSampled no longer
   // played: the balance is the player's touch, practice.ts pianoLevels), placed by its key (PIANO_ONE).
-  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.3, sample: "piano", one: PIANO_ONE }),
+  pianoSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.3, sample: "piano", one: PIANO_ONE, phoneLift: PIANO_PHONE_LIFT }),
   pianoBassSampled: P({ osc: [{ wave: "fmPianoBass" }, { wave: "sine", detune: 3, gain: 0.3 }], filter: { freq: 7, q: 0.6, env: 2, envDecay: 0.3 }, amp: { a: 0.002, d: 1.5, s: 0, r: 0.12 }, send: SALON_SEND * 0.75, level: 0.36, sample: "piano" }),
   // D294: the inner voices a shade lighter (-1 dB) than the top and the bass, so each line is heard as a line.
   pianoInnerSampled: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALON_SEND, level: 0.267, sample: "piano" }),
@@ -712,7 +714,7 @@ export const PATCHES = {
   // a registration change or the echo manual moves nothing else. `pipe`: the note placed by its key in
   // the case (C and C♯ sides), each key's pipe a fraction of a cent from true, a joined note's pipe
   // speaking anew.
-  orgPrincipal: P({ osc: [{ wave: "stopPrincipal", gain: 0.95 }, { wave: "sine", octave: 1, detune: 0.7, gain: 0.16 }, { wave: "sine", octave: 2, detune: -0.5, gain: 0.06 }], chiff: { level: 0.18, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
+  orgPrincipal: P({ osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, detune: 0.7, gain: 0.34 }, { wave: "stopPrincipal", octave: 2, detune: -0.5, gain: 0.13 }], chiff: { level: 0.18, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.028, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
   /** D349: FLUTES: Gedackt 8' and Rohrflöte 4' (the octave a little sharp: a slow beat), a plainer, quicker chiff. */
   orgFlute: P({ osc: [{ wave: "stopGedackt", gain: 0.73 }, { wave: "sine", octave: 1, detune: 0.9, gain: 0.22 }], chiff: { level: 0.28, time: 0.028, at: 3 }, breath: 0.008, amp: { a: 0.02, d: 0.05, s: 1, r: 0.06 }, send: ORGAN_SEND, level: 0.3, pipe: { case: 0.12, cents: 0.6 } }),
   /**
@@ -739,7 +741,7 @@ export const PATCHES = {
    * (Subbass 16', Gedackt 8', Flöte 4'); orgPedalPleno the plenum's: the VCSL organ's recorded pedal
    * (its reeds and principals at 16' and 8': "the bass sounds cool", D304).
    */
-  orgPedal: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.85 }, { wave: "stopPrincipal", gain: 0.62 }, { wave: "stopPrincipal", octave: 1, gain: 0.2 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
+  orgPedal: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.4 }, { wave: "stopPrincipal", gain: 0.75 }, { wave: "stopPrincipal", octave: 1, gain: 0.35 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
   orgPedal8: P({ osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, gain: 0.28 }], chiff: { level: 0.12, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.04, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } }),
   orgPedalSoft: P({ osc: [{ wave: "stopGedackt", octave: -1, gain: 0.8 }, { wave: "stopGedackt", gain: 0.55 }, { wave: "sine", octave: 1, gain: 0.16 }], chiff: { level: 0.14, time: 0.04, at: 3 }, breath: 0.004, amp: { a: 0.035, d: 0.05, s: 1, r: 0.08 }, send: ORGAN_SEND, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "sine", octave: 1, gain: 0.15 }, { wave: "stopGedackt", octave: 2, gain: 0.4 }] } }),
   /**

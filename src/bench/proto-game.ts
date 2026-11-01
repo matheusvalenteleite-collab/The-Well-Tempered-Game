@@ -1306,8 +1306,11 @@ export class ProtoGame {
       heads.map(({ n, i }, k) => {
         const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
         const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
-        const rn = rd && place !== undefined ? rd.notes[place] : undefined;
-        const d = rn?.accent ? 0.9 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
+        // D422: under a whole-piece reading (BUSONI) his demonstration asks of every note what the box draws
+        // (wholeAsks: the countersubjects and free voices too), not only the subject's entries.
+        const wa = this.wholeAsking() ? this.wholeAskOf(0, i) : undefined;
+        const rn = wa ? { join: wa.portato || wa.tenuto ? false : wa.join, short: wa.short, accent: wa.accent } : rd && place !== undefined ? rd.notes[place] : undefined;
+        const d = rn?.accent ? 0.9 : !wa && rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
         return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
       }),
       // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
