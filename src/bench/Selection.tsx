@@ -21,7 +21,6 @@ import { Emblem } from "./FuguePicker.tsx";
 import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
-import { STAGES, stageOf } from "./progression.ts";
 import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
 import { BEFORE_JUDGING, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
@@ -66,12 +65,10 @@ export interface SelectionProps {
   note?: ReactNode;
   /** D382: Book II just earned: the note is shown; called once it is seen (tapped, or BOOK II opened). */
   bookTwo?: () => void;
-  /** D440, PROGRESSION MODE (the Lab): the stages open, the tutorial to redo, the profile to reset. */
   /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
   learn?: (id: string) => void;
   /** D442, the Glenn pilot: a key's prelude or fugue played (the fugue only once its prelude is finished). */
   playPiece?: (id: string) => void;
-  prog?: { open: number; built: number; taught: readonly string[]; redo: (id: string) => void; reset: () => void };
 }
 
 export function Selection(p: SelectionProps) {
@@ -86,11 +83,8 @@ export function Selection(p: SelectionProps) {
   const [chosen, setChosen] = useState(!first || !!p.current);
   const grid = tab === "I" || tab === "II";
   const ids = grid ? gridIds(tab) : [];
-  const prog = p.prog;
-  // D440: in PROGRESSION MODE a fugue past the open stage is locked; NEXT marks the open stage's fugue not yet finished.
-  const locked = (id: string) => !!prog && (stageOf(id)?.n ?? 99) > prog.open;
-  const next = prog ? (STAGES[prog.open - 1]?.fugues.find((id) => !won.has(id)) ?? null) : grid ? liteSuggested(ids, won, first) : null;
-  const choose = (id: string) => (locked(id) ? undefined : (setChosen(true), p.select(id)));
+  const next = grid ? liteSuggested(ids, won, first) : null;
+  const choose = (id: string) => (setChosen(true), p.select(id));
   // D442, the Glenn pilot: a tile is a key (its prelude and fugue); the fugue open once the prelude is finished.
   const pairKey = piece.replace(/^wtc1p/, "wtc1f");
   const fugueOpen = won.has(pairKey.replace(/^wtc1f/, "wtc1p")) || won.has(pairKey);
@@ -107,25 +101,7 @@ export function Selection(p: SelectionProps) {
             {versionLine()}
           </p>
         </div>
-        {prog && (
-          <div className="sel-tutorial sel-prog" id="card-progression">
-            <span className="sel-tut-words">
-              <span className="sel-tut-title">PROGRESSION</span>
-              <span className="sel-tut-sub">
-                STAGE {prog.open} OF {STAGES.length}
-                {prog.open >= prog.built ? ` · ${prog.built} BUILT` : ""}
-              </span>
-            </span>
-            <span className="sel-tut-bar" aria-hidden="true">
-              <i style={{ width: `${Math.round((100 * (prog.open - 1)) / STAGES.length)}%` }} />
-            </span>
-            <span className="sel-tut-line">{STAGES[prog.open - 1]?.teaches.toUpperCase()}</span>
-            <button type="button" id="prog-reset" className="sel-link" onClick={prog.reset}>
-              ↺ START AGAIN FROM ZERO
-            </button>
-          </div>
-        )}
-        {tutorial && !prog && (
+        {tutorial && (
           <button type="button" id="card-tutorial" className={`sel-tutorial${first ? " sel-glow" : ""}`} onClick={tutorial.start}>
             <span className="sel-tut-head">
               <span className="sel-tut-face" aria-hidden="true">
@@ -173,7 +149,7 @@ export function Selection(p: SelectionProps) {
             </header>
             <ol className="sel-grid" id="sel-grid">
               {ids.map((id) => (
-                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} locked={locked(id) ? (stageOf(id)?.n ?? 0) : undefined} />
+                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} />
               ))}
             </ol>
           </>
@@ -196,15 +172,10 @@ export function Selection(p: SelectionProps) {
           <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
         ) : (
           <p className="sel-hint" id="sel-hint">
-            {prog ? "Your first fugue is lit in the middle. Tap it, then PLAY: Bach will show you how." : tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.")}
+            {tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.")}
           </p>
         )}
         {chosen && p.note}
-        {chosen && prog && prog.taught.includes(piece) && (
-          <button type="button" id="prog-redo" className="sel-link sel-redo" onClick={() => prog.redo(piece)}>
-            ↺ REDO TUTORIAL
-          </button>
-        )}
         {chosen && p.playPiece ? (
           <div className="sel-pair" id="sel-pair">
             <button type="button" id="sel-play-prelude" className="tb-play sel-play" onClick={() => p.playPiece!(pairKey.replace(/^wtc1f/, "wtc1p"))}>
@@ -216,15 +187,14 @@ export function Selection(p: SelectionProps) {
             {!fugueOpen && <p className="sel-pair-note">Finish the prelude to open its fugue.</p>}
           </div>
         ) : (
-          chosen &&
-          !locked(piece) && (
+          chosen && (
             <button type="button" id="sel-play" className="tb-play sel-play" onClick={p.play}>
               ▶ {tr("PLAY")}
             </button>
           )
         )}
-        {chosen && p.learn && filmOf(piece) && (
-          <button type="button" id="sel-learn" className="tb-play sel-play sel-learn" onClick={() => p.learn!(piece)}>
+        {chosen && p.learn && filmOf(pairKey) && (
+          <button type="button" id="sel-learn" className="tb-play sel-play sel-learn" onClick={() => p.learn!(pairKey)}>
             ♪ LEARN WITH GLENN
           </button>
         )}
@@ -240,7 +210,7 @@ export function keyWords(key: string): { tonic: string; mode: string } {
 }
 
 /** A tile of the grid: the picture, its number and key, its level; the best grade (or ✓); NEXT. */
-function Tile({ id, on, done, next, grade, old, pick, locked }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void; locked?: number }) {
+function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void }) {
   const f = fugueById(id);
   const lv = liteLevel(id);
   const n = Number(id.slice(-2));
@@ -251,12 +221,7 @@ function Tile({ id, on, done, next, grade, old, pick, locked }: { id: string; on
   const name = full ? `${full} · ${pieceTitle(id)}` : pieceTitle(id);
   return (
     <li>
-      <button type="button" id={`tile-${id}`} className={`sel-tile${on ? " on" : ""}${done ? " done" : ""}${next ? " next" : ""}${locked ? " locked" : ""}`} style={{ ["--tint" as string]: lv.ink }} aria-pressed={on} aria-label={locked ? `${name} · locked, stage ${locked}` : name} aria-disabled={!!locked} onClick={() => pick(id)}>
-        {locked ? (
-          <span className="sel-lock" id={`lock-${id}`}>
-            🔒 {locked}
-          </span>
-        ) : null}
+      <button type="button" id={`tile-${id}`} className={`sel-tile${on ? " on" : ""}${done ? " done" : ""}${next ? " next" : ""}`} style={{ ["--tint" as string]: lv.ink }} aria-pressed={on} aria-label={name} onClick={() => pick(id)}>
         <span className="sel-pic">
           <Emblem id={id} className="sel-emblem" />
           {grade ? (
