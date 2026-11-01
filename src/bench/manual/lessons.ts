@@ -63,7 +63,7 @@ export const SOUND_WORD: Record<SoundName, string> = { chip: "CLASSIC CHIP", har
  * The visual aids (design 4.5), each for its lesson only. D342: dial, trace, repeat, fill, letters,
  * meter, prepared, trend. D360: breath (a comma over the box at each place the line may breathe).
  * D373 (the new tutorial): thumbs (Mario's model A: both thumbs always there, a shadow under each,
- * the ghost of the next move), count (the notes numbered 1, 2, 3…), plan (L or R under each block, from
+ * the ghost of the next move), count (the notes numbered 1, 2, 3…), plan (● or ○ under a block where the plan marks it, D409; was L or R, from
  * the fingering planner), point (an arrow from his words to the next note, a sign named over it), rest
  * (a thumb not in use: its strip dimmed, REST), answer (YOU ANSWER HERE at the player's first note).
  */
@@ -103,6 +103,8 @@ export interface Material {
   notes?: string[];
   /** D373: one thumb takes every note in the hints and his demonstration (Options.side). */
   side?: "left" | "right";
+  /** D409: the fingering marks (● ○) on every note (1.4, where they are introduced), else only where the plan marks them. */
+  everyMark?: boolean;
   /** D373: the timing windows this many times the game's (Parts 1–2: twice). */
   widen?: number;
   /** D373: the lesson's own marks, one per note of the passage (its reading). */
@@ -337,8 +339,8 @@ const COURSE: ManualLesson[] = [
     music: "INVENTION 1, BAR 1",
     aids: ["thumbs", "plan"],
     stages: [
-      st("watch", first8(30), "Now both thumbs: left, right, left, right. The letters under the notes tell you which.", { aids: ["thumbs", "plan", "point"] }),
-      st("try", first8(30, { wait: true }), "Now you: the letter under each note tells you which thumb.", { aids: ["thumbs", "plan", "trace"] }),
+      st("watch", first8(30, { everyMark: true }), "Now both thumbs, taking turns. Under each note: ● one thumb, ○ the other, either way round.", { aids: ["thumbs", "plan", "point"] }),
+      st("try", first8(30, { wait: true, everyMark: true }), "Now you: start with either thumb, then the marks tell you when to change.", { aids: ["thumbs", "plan", "trace"] }),
       st("play", first8(30), "In time, taking turns. I count four."),
       st("play", first8(36), "A little quicker now. The same turns."),
     ],
@@ -348,7 +350,7 @@ const COURSE: ManualLesson[] = [
     told: (x) => (x.alternation.of > 2 && x.alternation.alt / x.alternation.of >= 0.7 ? { text: "And you took turns on {n} of {m} quick notes. Good.", vars: { n: x.alternation.alt, m: x.alternation.of } } : null),
     before: ["Quick notes are easier with two thumbs, one after the other."],
     after: ["Two thumbs walk where one would stumble."],
-    again: ["Left, right, left, right, as the letters say. Again."],
+    again: ["One thumb, then the other, as the marks say. Again."],
   },
   {
     id: "1.5",
@@ -852,6 +854,7 @@ export function runOf(m: Material, demoStyle?: DemoStyle, words?: ManualLesson["
       ? {
           tut: {
             ...(m.side ? { side: m.side } : {}),
+            ...(m.everyMark ? { everyMark: true } : {}),
             ...(m.widen ? { widen: m.widen } : {}),
             ...(m.wait || !click ? {} : { countBeats: 4 }),
             thumbsA: true,
