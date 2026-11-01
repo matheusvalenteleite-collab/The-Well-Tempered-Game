@@ -240,6 +240,12 @@ export interface SampledInstrument {
   damper?: { low: number; high: number; undamped: number; tail: number; stacc: number; crisp: number; slur: number };
   /** D339: dB of brightness (a high shelf at `hz`) per dB of level struck (Play.vel), within [min, max]. */
   velTone?: { perDb: number; hz: number; min: number; max: number };
+  /**
+   * D405: at most this many semitones between a note and the recording it is played from. A struck string
+   * read much faster than it was recorded turns glassy (a glockenspiel), much slower muddy; a pitch past
+   * the recordings' compass by more is played an octave nearer it (`foldInto`), never stretched.
+   */
+  maxShift?: number;
 }
 
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
@@ -266,6 +272,8 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
     soft: { set: "grandSoft", below: 0.8414, gain: 1.6 },
     damper: { low: 0.045, high: 0.016, undamped: 89, tail: 2.5, stacc: 0.16, crisp: 0.02, slur: 1.25 },
     velTone: { perDb: 1.5, hz: 1800, min: -8, max: 5 },
+    // D405: recorded every minor third, so 1.5 semitones at most to the nearest and 2 to a trill's other neighbour (Play.altSample).
+    maxShift: 3,
   },
   // D297: the period presets' instruments (PERIOD's sets); the winds and strings held on their made
   // loops, the harpsichords plucked. Gains set by measurement (II/22 and I/2 rendered offline through
@@ -344,6 +352,22 @@ export function nearestSample(set: string, midi: number, have: (m: number) => bo
   let best: number | null = null;
   for (const m of sampledMidis(set)) if (have(m) && (best === null || Math.abs(m - midi) < Math.abs(best - midi))) best = m;
   return best;
+}
+
+/**
+ * D405: the pitch to play `midi` at on a set retuned at most `maxShift` semitones (SampledInstrument.maxShift):
+ * itself where a recording is that near, else the nearest octave of it within the recordings' compass
+ * widened by `maxShift` (a doubling or a layer above the top recording, a contra note under the lowest).
+ */
+export function foldInto(set: string, midi: number, maxShift: number): number {
+  const ms = sampledMidis(set);
+  if (!ms.length) return midi;
+  const lo = ms[0] - maxShift;
+  const hi = ms[ms.length - 1] + maxShift;
+  let m = midi;
+  while (m > hi && m - 12 >= lo) m -= 12;
+  while (m < lo && m + 12 <= hi) m += 12;
+  return m;
 }
 
 /** The pitch a recording actually sounds (Hz): its name at A = 440, corrected by what was measured. */
