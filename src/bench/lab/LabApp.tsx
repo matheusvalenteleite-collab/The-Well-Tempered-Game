@@ -7,7 +7,7 @@
  * tools/lab/replay.ts); ready-made drills. English only.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MusicBox, ladderGeometry, inkOf, type Frame } from "../../touch/MusicBox.tsx";
+import { MusicBox, rollRect, ladderGeometry, inkOf, type Frame } from "../../touch/MusicBox.tsx";
 import { BOX_PX } from "../../touch/box-zoom.ts";
 import { chromaLiftPx, signatureOf } from "../../touch/chroma.ts";
 import { PlayArea, type Painter, type ThumbEvents } from "../../touch/PlayArea.tsx";
@@ -397,10 +397,9 @@ export function LabApp() {
 
   /** The box's rows in the play area's coordinates (BenchApp boxRows), and their (y0, rowH) for the log. */
   function boxRows(now: number) {
-    const roll = document.querySelector(".tg-roll");
+    const r = rollRect();
     const area = document.querySelector(".tg-play");
-    if (!roll || !area) return null;
-    const r = roll.getBoundingClientRect();
+    if (!r || !area) return null;
     const a = area.getBoundingClientRect();
     const ui = uiRows(f.id, setup.voice, range, r.height);
     const geo = ui ?? ladderGeometry(range.lo, range.hi, r.height);
