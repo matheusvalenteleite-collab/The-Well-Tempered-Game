@@ -156,9 +156,22 @@ export interface Landing {
 export interface LineAt {
   lineDb?: number;
   accentDb?: number;
+  /** D426: a slid note's (the piano's hairpin slide): the level continuous across the bar (pianoHairpinDb), not the zones. */
+  hairpin?: boolean;
+}
+/**
+ * D426, THE PIANO'S HAIRPIN SLIDE: a slid note's weight from where the thumb is across the strip as it
+ * sounds, continuous: the soft side to the strong side mapped smoothly (linearly in dB) over the zones'
+ * own span (PIANO_ZONE_DB: −3 to +3 dB), the middle as written. Never by verdict.
+ */
+export function pianoHairpinDb(x: number): number {
+  const [lo, , hi] = PIANO_ZONE_DB;
+  return lo + (hi - lo) * clamp01(x);
 }
 /** D385: the piano's dB for a landing: the line's level, the zone's weight (an accent's own in the strong zone). */
 export function pianoDb(x: number, line: LineAt = {}): number {
+  // D426: a slid note: continuous across, about the line (no zone, no accent's weight: a slide is no strike).
+  if (line.hairpin) return (line.lineDb ?? 0) + pianoHairpinDb(x);
   const z = pianoZone(x);
   const w = z === 2 && line.accentDb !== undefined ? Math.max(PIANO_ZONE_DB[2], line.accentDb) : PIANO_ZONE_DB[z];
   return (line.lineDb ?? 0) + w;

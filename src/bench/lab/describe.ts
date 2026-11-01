@@ -86,6 +86,8 @@ export function describe(piece: string, e: LabEvent): string[] {
       const name = (m: number) => pitchName(piece, m);
       const took = e.dragMs !== undefined ? ` · the drag took ${Math.round(e.dragMs)} ms` : "";
       if (e.how === "glide") return [`${at} ↝ ${dragLine(name, e.from, e.to, { glideMs: e.ms ?? 0 })}${took}`];
+      // D426: the lute's left-hand slur (no pluck), its glissando over a fourth or more.
+      if (e.how === "slur" || e.how === "gliss") return [`${at} ↝ DRAG: lute ${e.how === "gliss" ? "glissando" : "slur"}, no pluck (${name(e.from)} → ${name(e.to)})${took}`];
       return [`${at} ↝ ${dragLine(name, e.from, e.to, { fill: { kind: e.how, notes: e.fill ?? [] } })}${took}`];
     }
     case "shake":

@@ -12,7 +12,7 @@
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
-import { contextSteps, fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { contextSteps, fallingSecondAfter, freeOrnamentParts, keySignature, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
@@ -28,7 +28,7 @@ import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
-import { exprFamily, GLENN, isKeyboard, joinedByEar, joinedSound, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, slidePitch, SlideSlur, slurRingS, slurTaperDb, touchFamily } from "./glenn.ts";
+import { couleFill, couleTiming, exprFamily, GLENN, isKeyboard, joinedByEar, joinedSound, keyboardSlide, LUTE_SLUR, luteSlur, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, slidePitch, SlideSlur, slurRingS, touchFamily } from "./glenn.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 import { findRuns, runTrend, type Run } from "./runs.ts";
@@ -43,6 +43,9 @@ export const SPLIT_FLOOR_MS = 60;
 export const DOUBLE_MS = 120;
 /** D289: the least travel of a held thumb that slides on to the next note (px). */
 export const SLIDE_MIN_PX = 10;
+/** D426: Herr Bach's slide sets off at this share of the time between its notes, and moves about this often a second on its way. */
+export const DEMO_SLIDE_FROM = 0.6;
+export const DEMO_SLIDE_FPS = 60;
 /**
  * D318, THE SLUR'S SECOND THUMB (slurNext): while the other thumb holds the voice's note before, a landing
  * strikes the next note up to SLUR_EARLY_SHARE of the time between their onsets early (at most
@@ -296,6 +299,12 @@ interface Held {
   glider?: { sd: Sounding; from: number; to: number; t0: number; ms: number };
   /** D424: the pitch (MIDI, fractional) a slide's portamento has carried the held sound to, while it follows the thumb (unset: at its note). */
   bent?: number;
+  /**
+   * D426, THE COULÉ (harpsichord, organ): a slide over a third or more under way: its arrival note (track
+   * index), the fill's notes (MIDI) and their starts (s, the game's clock: timeAt), the next to sound, how
+   * they sound; `dead` once the slide was given up (no more of them).
+   */
+  coule?: { i: number; notes: number[]; at: number[]; next: number; v: ReturnType<typeof voicing>; play: Play; dead?: boolean };
 }
 
 /**
@@ -1365,16 +1374,27 @@ export class ProtoGame {
         if (t.slid && parent >= 0) {
           const pid = 90000 + parent;
           const side = plan[parent].side;
-          q.push({
-            tick: t.on,
-            act: () => {
-              // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
-              const want = rows.yOf(t.step);
-              const dir = t.step > plan[p - 1].step ? -1 : 1;
-              y += dir * Math.max(SLIDE_MIN_PX, dir * (want - y));
-              this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
-            },
-          });
+          // D426: the slide a visible, gradual move from the departure row to the arrival row over the last
+          // part of the time between the notes (from DEMO_SLIDE_FROM of it), a move about every frame
+          // (DEMO_SLIDE_FPS: 3 to 24 of them), arriving on the note's time: the gesture seen, D424's
+          // portamento heard (it was one jump to the note).
+          const prevOn = plan[p - 1].on;
+          const from = prevOn + DEMO_SLIDE_FROM * (t.on - prevOn);
+          const steps = Math.max(3, Math.min(24, Math.round(((t.on - from) / this.tps) * DEMO_SLIDE_FPS)));
+          const way: { y0?: number } = {};
+          for (let k = 1; k <= steps; k++)
+            q.push({
+              tick: k === steps ? t.on : from + ((t.on - from) * k) / steps,
+              act: () => {
+                // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
+                way.y0 ??= y;
+                const want = rows.yOf(t.step);
+                const dir = t.step > plan[p - 1].step ? -1 : 1;
+                const to = way.y0 + dir * Math.max(SLIDE_MIN_PX, dir * (want - way.y0));
+                y = way.y0 + ((to - way.y0) * k) / steps;
+                this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
+              },
+            });
           return;
         }
         parent = p;
@@ -2422,8 +2442,8 @@ export class ProtoGame {
     // once a slide in its phase has gone half a row" starved the reader: the owner's legs are 2–7 rows).
     const gl = MECH.glenn && this.proto.id === "ladder" && this.rows ? this.glennLead(h, ms) : null;
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (this.freeShake(h, c, t)) return void (this.slideTrack(h, null), (h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
-    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return void (this.slideTrack(h, gl && c.y), this.glennSlide(id, h, c, t, ms, gl));
+    if (this.freeShake(h, c, t)) return void (this.slideTrack(h, null), this.couleTrack(h, null), (h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
+    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return void (this.slideTrack(h, gl && c.y), this.couleTrack(h, gl && c.y), this.glennSlide(id, h, c, t, ms, gl));
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
       // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
@@ -2778,7 +2798,7 @@ export class ProtoGame {
       if (h.wait?.prep?.read) h.wait.prep.read.tick(ms);
       if (h.slidePend) this.trySlide(id, h, ms);
     }
-    if (MECH.glenn) this.glennFrames(ms);
+    if (MECH.glenn) (this.glennFrames(ms), this.couleFrames());
   }
   /** D353: slides wait for confirmation where a shake is read (LADDER on a phone, the gestures on, not BLUETOOTH MODE). */
   private slideGuarded(): boolean {
@@ -2867,7 +2887,9 @@ export class ProtoGame {
    */
   private slideTrack(h: Held, y: number | null | undefined) {
     const sd = h.sounds.length === 1 ? h.sounds[0] : undefined;
-    if (!sd?.glide || !touchFamily(preset().id) || h.note < 0) return void (h.bent = undefined);
+    // D426: the lute's slide over a fourth or more a glissando along the string (glenn.ts luteSlur), followed the same way.
+    const lute = keyboardSlide(preset().id) === "slur";
+    if (!sd?.glide || !(touchFamily(preset().id) || lute) || h.note < 0) return void (h.bent = undefined);
     let m = h.midi;
     const notes = this.tracks[h.k].notes;
     const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
@@ -2876,12 +2898,70 @@ export class ProtoGame {
     // turned on the note (its second leg counted, or a shake read: the pitch back to the note held).
     const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
     const going = !!gl && (gl.phase || (h.gStillMs !== undefined && this.evMs() - h.gStillMs >= GLENN.slideConfirmMs));
-    if (gl && going && !shaking && typeof y === "number" && chordOf(notes, notes.indexOf(gl.n)).length === 1 && !(h.slideDir && gl.want !== h.slideDir))
+    if (gl && going && !shaking && typeof y === "number" && chordOf(notes, notes.indexOf(gl.n)).length === 1 && !(h.slideDir && gl.want !== h.slideDir) && !(lute && !luteSlur(h.midi, gl.n.midi).gliss))
       m = slidePitch(h.midi, gl.n.midi, h.ay, gl.target, y, MECH.slideMinPx, GLENN.slideReachRows * this.ladderRow);
     const was = h.bent ?? h.midi;
     if (Math.abs(m - was) < 0.01) return;
     sd.glide(m, SLIDE_TRACK_TAU);
     h.bent = m === h.midi ? undefined : m;
+  }
+  /**
+   * D426, THE COULÉ (harpsichord, organ; under MECH.glenn): a slide toward a note a third or more away fills
+   * in the scale steps between (glenn.ts couleFill: the key at the arrival, the accidentals in force in its
+   * bar), quickly, just before the arrival, so that the arrival note stays on time (couleTiming: the
+   * thumb's travel shared out, each no longer than Quantz's ornament unit, none before the departure note's
+   * half; no time, no fill). Planned once the slide is seen going (as D424's portamento: in the slide
+   * phase, or after D376's confirmation; not while a shake turns on the note), sounded each frame as each
+   * is due (couleFrames). Only the sound: free, never judged; the arrival is struck and judged as before
+   * (D376). A step: nothing here (the plain join). `y` null: a shake took the thumb, no fill.
+   */
+  private couleTrack(h: Held, y: number | null | undefined) {
+    if (keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
+    const notes = this.tracks[h.k].notes;
+    const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
+    const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
+    const going = !!gl && (gl.phase || (h.gStillMs !== undefined && this.evMs() - h.gStillMs >= GLENN.slideConfirmMs));
+    const toward = !!gl && typeof y === "number" && gl.want * (h.ay - y) > MECH.slideMinPx;
+    if (!gl || !going || shaking || !toward || chordOf(notes, notes.indexOf(gl.n)).length !== 1 || (h.slideDir && gl.want !== h.slideDir)) {
+      if (h.coule) h.coule.next ? (h.coule.dead = true) : (h.coule = undefined);
+      return;
+    }
+    const i = notes.indexOf(gl.n);
+    if (h.coule) return void (h.coule.i !== i && (h.coule.dead = true));
+    const cur = notes[h.note];
+    const fill = couleFill(cur, gl.n, (l) => this.alterAt(gl.n.on, l));
+    const unit = (60 / this.bpm) * ornamentUnit(this.bpm / 2);
+    const at = couleTiming(fill.length, { now: this.timeAt(this.now), departOn: this.timeAt(cur.on), arriveOn: this.timeAt(gl.n.on), unit });
+    if (!at || !h.tone) return;
+    h.coule = { i, notes: fill, at, next: 0, v: h.tone.v, play: { ...h.tone.play, legato: true } };
+    this.tap?.({ kind: "drag", tick: this.now, track: h.k, i, side: h.side, from: h.midi, to: gl.n.midi, how: "coule", fill, ms: at.length > 1 ? (at[1] - at[0]) * 1000 : (this.timeAt(gl.n.on) - at[0]) * 1000, dragMs: h.dragMs ?? 0 });
+  }
+  /** D426: each frame, a coulé's notes as they come due: each takes over from the one before (which rings into it, the slur's ring). */
+  private couleFrames() {
+    const nowS = this.timeAt(this.now);
+    for (const h of this.held.values()) {
+      const c = h.coule;
+      if (!c) continue;
+      if (this.tracks[h.k].notes[c.i]?.state !== "pending" || h.passive || h.handed) {
+        h.coule = undefined;
+        continue;
+      }
+      while (!c.dead && c.next < c.at.length && nowS >= c.at[c.next]) {
+        const t = this.chip.ctx.currentTime;
+        for (const sd of h.sounds) sd.stop(t + slurRingS(preset().id));
+        h.sounds = [this.touchNote(c.notes[c.next], t, HOLD_MAX, c.v, c.play)];
+        c.next++;
+      }
+    }
+  }
+  /** D426: a letter's alteration (semitones; 0 C … 6 B) at tick `on`: the latest note on it in its bar, in any voice, else the key signature. */
+  private alterAt(on: number, letter: number): number {
+    const barOn = [...this.f.bars].reverse().find((b) => b.on <= on)?.on ?? 0;
+    let best: [number, number] | null = null;
+    for (const v of this.f.voices) for (const n of v) if (n[0] >= barOn && n[0] <= on && ((n[3] % 7) + 7) % 7 === letter && (!best || n[0] >= best[0])) best = [n[0], n[2]];
+    const nat = [0, 2, 4, 5, 7, 9, 11][letter];
+    if (best) return ((((best[1] % 12) + 12) % 12) - nat + 18) % 12 - 6;
+    return keySignature(this.f.key)["CDEFGAB"[letter]] ?? 0;
   }
   /** D376: a slide arrived early sounds from here: half the note's PERFECT window before it. */
   private glennOpen(k: number, n: LaneNote): number {
@@ -2974,6 +3054,8 @@ export class ProtoGame {
     this.tap?.({ kind: "slide", tick: t, track: h.k, i, side: h.side, movedPx: h.ay - c.y });
     h.ay = c.y;
     notes[i].via = "slide";
+    // D426, THE PIANO'S HAIRPIN: the slid note's loudness from where the thumb is across the strip now (play: Play.hairpin).
+    if (MECH.glenn && keyboardSlide(preset().id) === "hairpin") h.land = this.landAt(c);
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
     this.slides++;
     // D286: the thumb is where it slid to, on the note it slid onto.
@@ -3221,6 +3303,8 @@ export class ProtoGame {
   /** Sounds note i (or what was asked for instead) and grades it. A slide glides on; the piano strikes again. */
   private play(id: number, h: Held, i: number, v: Verdict, slide: boolean, d: number) {
     const notes = this.tracks[h.k].notes;
+    // D426: a coulé under way ends with the note struck (its notes ring into it as the slide's slur does).
+    h.coule = undefined;
     if (notes[i]) for (const j of chordOf(notes, i)) this.struckBy.set(notes[j], h.side);
     // D218: struck by a new touch or key while the note before still sounds (held by another thumb or
     // key, or let go no more than legatoGapMs before: D289, a smooth handover, not a simultaneity): legato. A slide is
@@ -3318,7 +3402,10 @@ export class ProtoGame {
       else ss.end();
     }
     if (gPos > 0 && fam === "piano") {
-      expr = { ...expr, group: gPos, level: (expr.level ?? 1) * dbToLevel(slurTaperDb(gPos)) };
+      // D426 (replacing D376's taper): a slid note's level continuous across the strip where the thumb is as it
+      // sounds (touch-expr.ts pianoHairpinDb, about the line's level: a hairpin over the group); a note joined
+      // inside the slur by the other thumb is a landing, its zone its own.
+      expr = { ...expr, group: gPos, ...(slide ? { hairpin: true } : {}) };
     } else if (styleOf(preset().id) === "piano" && !slide) {
       const pos = !slurAt ? 0 : slurAt === "first" || !over ? 0 : Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1);
       this.groupPos.set(h.k, pos);
@@ -3350,6 +3437,17 @@ export class ProtoGame {
     if (MECH.glenn) this.rings.strike(h.k, this.chip.ctx.currentTime);
     if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
+    } else if (kbSlide && keyboardSlide(pid) === "slur" && h.sounds.length === 1 && pitches.length === 1 && h.sounds[0].glide && !(v.ok && this.ornaments.has(`${this.voiceOf(h.k, i)}:${notes[i].on}`))) {
+      // D426, THE LUTE'S LEFT-HAND SLUR: no new pluck; the sounding course goes on at the new pitch (the recording
+      // retuned: a hammer of about 10 ms), about 3 dB under; over a fourth or more the pitch has followed the
+      // thumb along the string (slideTrack's glissando) and lands on the note now (glenn.ts luteSlur).
+      const ls = luteSlur(h.midi, pitches[0]);
+      const sd = h.sounds[0];
+      sd.glide?.(pitches[0], h.bent !== undefined ? SLIDE_TRACK_TAU : ls.tau);
+      sd.dyn?.(ls.level);
+      h.bent = undefined;
+      h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: true } };
+      this.tap?.({ kind: "drag", tick: this.now, track: h.k, i, side: h.side, from: h.midi, to: pitches[0], how: ls.gliss ? "gliss" : "slur", ms: LUTE_SLUR.hammerS * 1000, dragMs: h.dragMs ?? 0 });
     } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1) {
       // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms). D424: on strings,
       // voices and synths the portamento has followed the thumb (slideTrack): it lands on the note now (a
