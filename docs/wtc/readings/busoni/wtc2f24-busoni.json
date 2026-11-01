@@ -424,7 +424,9 @@
    "bar": 55,
    "pos": 0,
    "voices": [
-    1
+    0,
+    1,
+    2
    ],
    "mark": "mf",
    "conf": "sure"
@@ -844,5 +846,8 @@
    "likely": 17,
    "unsure": 1
   }
- }
+ },
+ "notes": [
+  "Game import (WTC 1.96, D404): The mf at bar 55 is printed under the upper staff, between the staves, where the soprano's p sequences end: the whole system, not the alto only (the soprano stayed at the sequences' p for fifteen bars)."
+ ]
 }

@@ -3097,11 +3097,23 @@
    "role": "bass entry"
   },
   {
+   "on": 47040,
+   "bar": 7,
+   "pos": 2,
+   "voices": [
+    0,
+    1
+   ],
+   "mark": "mezza voce",
+   "conf": "sure"
+  },
+  {
    "on": 99840,
    "bar": 14,
    "pos": 0,
    "voices": [
-    0
+    0,
+    1
    ],
    "mark": "p",
    "conf": "sure"
@@ -3781,7 +3793,7 @@
  "counts": {
   "marks": 240,
   "slurs": 91,
-  "dyn": 12,
+  "dyn": 13,
   "hairpins": 26,
   "text": 17,
   "breaths": 2,
@@ -3811,5 +3823,8 @@
    "likely": 164,
    "unsure": 4
   }
- }
+ },
+ "notes": [
+  "Game import (WTC 1.96, D404): \"mezza voce\" (bar 7, under the upper staff: soprano and alto) entered as a level too (it was in text only, so the alto stayed at its entry mf). The p at bar 14 is printed under the upper staff at the cadence: the soprano and the alto (on the lower staff for one quarter, then resting), not the soprano only (the alto stayed mf for 27 bars); the bass keeps its own mp poco pronunciato."
+ ]
 }

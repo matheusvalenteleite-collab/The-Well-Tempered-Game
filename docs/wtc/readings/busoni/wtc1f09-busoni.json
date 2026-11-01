@@ -1105,7 +1105,9 @@
    "bar": 13,
    "pos": 0,
    "voices": [
-    0
+    0,
+    1,
+    2
    ],
    "mark": "p",
    "conf": "sure"
@@ -1189,6 +1191,7 @@
    "bar": 23,
    "pos": 0,
    "voices": [
+    0,
     1,
     2
    ],
@@ -1605,7 +1608,8 @@
    "pos": 4,
    "voices": [
     0,
-    1
+    1,
+    2
    ],
    "text": "poco dim.",
    "en": "a little softer",
@@ -1909,5 +1913,8 @@
    "sure": 79,
    "unsure": 22
   }
- }
+ },
+ "notes": [
+  "Game import (WTC 1.96, D404): The p at bar 13 (before the upper staff, the episode p scorrevole) and the \"poco dim.\" of bar 11 (between the staves) govern all three voices, not the upper ones only: the bass stayed at its entry f, the alto near it, through the p episode. Likewise the p at bar 23, printed between the staves under the soprano's \"poco espress.\": all three voices (the soprano had kept the f of its bar-20 entry to its next entry, f, at bar 25)."
+ ]
 }
