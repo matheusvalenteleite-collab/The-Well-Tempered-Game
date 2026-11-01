@@ -187,7 +187,7 @@ export function PlayPop({ id, voice, singing, setVoice, play, close, learn, rule
           // D265: the piece's own sound until it is finished with an A or S.
           <div className="tb-pop-sounds" id="pop-sound-locked">
             <p className="tb-pop-ask">{tr("SOUND")}: {tr(shortSound(presetById(sound).name))}</p>
-            <p className="tb-pop-lock">{tr("FINISH IT WITH AN A OR S TO CHOOSE ANOTHER SOUND")}</p>
+            <p className="tb-pop-lock">{tr("FINISH IT WITH A B OR BETTER TO CHOOSE ANOTHER SOUND")}</p>
           </div>
         )}
         {sound !== undefined && setSound && !plain && !soundLocked && (

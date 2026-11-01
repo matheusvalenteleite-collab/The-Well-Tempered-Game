@@ -73,7 +73,8 @@ test("D391: I/2's line shows every kind Busoni prints there; the legend explains
   assert.ok(ms.some((m) => m.short) && ms.some((m) => m.accent) && ms.some((m) => m.join === true) && ms.some((m) => m.join === false));
   assert.ok(box.lines.some((l) => l.breaths.length), "the caesura");
   const kinds = wholeLegend(box).map((l) => l.kind);
-  for (const k of ["marcato", "wedge", "tenuto", "portato", "lift", "breath", "fermata", "dynamics", "hairpin", "words"]) assert.ok(kinds.includes(k as never), k);
+  // D419: the lift tick and the caesura's // no longer drawn nor legended (the gap's stroke says it).
+  for (const k of ["marcato", "wedge", "tenuto", "portato", "fermata", "dynamics", "hairpin", "words"]) assert.ok(kinds.includes(k as never), k);
   // sfz is the strong zone (I/1).
   const f1 = fugueById("wtc1f01");
   const b1 = wholeBox(f1, wholeReadingOf("wtc1f01")!, f1.voices.map((_, i) => i))!;

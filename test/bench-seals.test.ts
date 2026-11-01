@@ -26,7 +26,7 @@ test("seals: a clean whole run earns them; a slip, a part run, the wrong tuning 
   const i3 = cardById("wtc1f03")!;
   assert.equal(judgeSeal(i3, run("wtc1f03", 0)).earned, false, "TEMPERAMENT in equal");
   assert.equal(judgeSeal(i3, run("wtc1f03", 0, { tuning: "werckmeister" })).earned, true);
-  assert.equal(judgeSeal(i3, run("wtc1f03", 0, { tuning: "werckmeister", grade: "B" })).earned, false);
+  assert.equal(judgeSeal(i3, run("wtc1f03", 0, { tuning: "werckmeister", grade: "C" })).earned, false);
   const i8 = cardById("wtc1f08")!;
   const giants = fugueById("wtc1f08").entries.filter((e) => e.scale === 2);
   assert.ok(giants.length);

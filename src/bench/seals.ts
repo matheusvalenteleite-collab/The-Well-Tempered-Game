@@ -36,7 +36,8 @@ export interface SealVerdict {
   why: string;
 }
 
-const good = (g: string) => g === "S" || g === "A";
+// D417: a B is good enough for every unlock.
+const good = (g: string) => g === "S" || g === "A" || g === "B";
 
 export function judgeSeal(card: FugueCard, r: RunFacts): SealVerdict {
   if (!card.ready) return { earned: false, why: "This seal is not judged yet." };
