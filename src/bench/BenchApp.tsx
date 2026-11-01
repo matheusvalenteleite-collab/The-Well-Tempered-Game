@@ -104,6 +104,9 @@ import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
 import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
+import { askMotion, gameMotion, hardTapDevice } from "../touch/motion.ts";
+import { calOffered, loadHardCal, markCalOffered, motionStrikes } from "../touch/hard-tap.ts";
+import { HardTapCalibrate, HardTapSetting } from "../touch/HardTapPanel.tsx";
 import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
@@ -671,6 +674,15 @@ export function BenchApp() {
     (globalThis as { __kimiko?: unknown }).__kimiko = h ? { g, her: h, ctx: ch.ctx, map: hm } : undefined;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
+    // D425, THE HARD TAP: each touchdown's strength from the motion sensor (by the calibration kept); none: the strong zone.
+    const hardCal = loadHardCal();
+    if (platform === "mobile") g.strikes = motionStrikes(gameMotion(), () => hardCal);
+    // D425: the calibration offered once, at the start of the first run with accents on a phone whose sensor answers.
+    if (platform === "mobile" && !watching && !prac && hardCal.from === "default" && hardTapDevice() && gameMotion().live && !calOffered() && g.asksAccents()) {
+      markCalOffered();
+      g.pause();
+      setCalOffer(true);
+    }
     // D220: the game under way, for the bench's own checks (driving the keys in a browser).
     (globalThis as { __bench?: unknown }).__bench = g;
     // D223: drawn with the screen's delay taken in.
@@ -957,6 +969,8 @@ export function BenchApp() {
     hintGone.current = false;
     stopHearing();
     if (!now && performance.now() - shownAt.current < 350) return;
+    // D425: the hard tap's motion sensor asked on the PLAY tap (iOS asks only from a gesture), once; never waited for.
+    void askMotion();
     const ch = ensureChip();
     wantHer();
     const go = () => (setNote(""), setPhase({ kind: "play" }));
@@ -984,6 +998,7 @@ export function BenchApp() {
   /** D326, TOOLS: PRACTICE (unscored) or HEAR THE OTHERS, straight into the run. */
   const practise = (s: ToolsState, listen: boolean) => {
     stopHearing();
+    void askMotion();
     const ch = ensureChip();
     setLesson(null);
     practice.current = practiceRun(f, s, pick.voice, bpm, listen);
@@ -1000,6 +1015,8 @@ export function BenchApp() {
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
   const [paused, setPaused] = useState(false);
+  /** D425: the hard tap's calibration offered over the run's start (the run held until it closes). */
+  const [calOffer, setCalOffer] = useState(false);
   // D402: in the tutorial from THE REAL THING on (the full screen).
   const canPause = !kimiko && !lesson && (!man || !!dressNow?.includes("pause"));
   /** `force` (D369): paused also in a lesson or KIMIKO, the phone turned upright on play.html. */
@@ -1057,6 +1074,7 @@ export function BenchApp() {
     }
   };
   const beginLesson = (pl: Platform, n: number) => {
+    void askMotion();
     const l = TRACKS[pl][n];
     // D225: the lesson's mode (D233: the platform stays as guessed or set; the lesson's mode decides the play).
     setAsking(false);
@@ -1093,6 +1111,7 @@ export function BenchApp() {
   const talk = (title: string, lines: Line[], o: { choices?: { label: string; act: () => void }[]; extra?: ReactNode; done?: () => void } = {}) => setPhase({ kind: "mtalk", title, lines, ...o });
   /** `stage` (D369): taken up again at a stage already reached (D373: a chip on the selection screen's tile). */
   function beginManual(id: string, o: { stage?: number } = {}) {
+    void askMotion();
     const l = lessonById(id);
     if (!l) return;
     // D373: Inventions 4, 8 and 12 are MORE BACH's chunk: fetched first.
@@ -1848,6 +1867,7 @@ export function BenchApp() {
           </button>
         </div>
       )}
+      {calOffer && <HardTapCalibrate offer done={() => (setCalOffer(false), game.current?.resume())} />}
       {calib && (
         <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss(), route.dismissRecal())}>
           <p className="tg-panel-note">With the headphones on: tap on each click, eight times.</p>
@@ -1890,6 +1910,8 @@ export function BenchApp() {
           <Choice id="busoni" label="BUSONI'S MARKINGS" options={BUSONI_SWITCH[lang()] ?? BUSONI_SWITCH.en} value={busoni ? "on" : "off"} set={(v) => (setBusoniOn(v === "on"), setBusoni(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
+          {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
+          {platform === "mobile" && <HardTapSetting />}
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
@@ -1951,6 +1973,8 @@ export function BenchApp() {
           <InterfaceFold frame={frame.current} />
           <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
+          {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
+          {platform === "mobile" && <HardTapSetting />}
           {platform === "computer" && (
             <div className="tg-set">
               <span>MIDI</span>

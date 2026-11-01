@@ -1136,6 +1136,8 @@ function thumbsShown(c: CanvasRenderingContext2D, w: number, h: number, g: Proto
     const wob = d.shaking ? Math.sin(now / 45) * g.ladderRow * 0.5 : 0;
     const x = Math.max(size * 0.6, Math.min(w - size * 0.6, d.fx * w));
     drawThumb(c, x, d.y + wob, size, d.side, "down");
+    // D425: a hard tap (an accent struck hard) named over the thumb a moment after it lands.
+    if (d.hard && d.t0 !== undefined && now - d.t0 < 450) label(c, "HARD TAP", x, d.y - size * 1.5, t.gold, 8);
   }
   const plan = g.plan;
   const notes = g.tracks[0].notes;

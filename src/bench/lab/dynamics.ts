@@ -52,15 +52,9 @@ export const zoneOf = (across: number): Zone => (across < 0.5 ? "inner" : "outer
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 const clamp01 = (x: number) => clamp(x, 0, 1);
 
-/**
- * A peak as strength on a LOG scale (the owner's peaks run 0.07-2.7 m/s², soft and hard a factor of
- * about four apart): the calibration's soft median at 0.25, the hard's at 0.75, clamped 0..1 (so 0 at
- * soft ÷ √(hard/soft), 1 at hard × √(hard/soft)).
- */
-export function logStrength(peak: number, cal: Pick<Calibration, "soft" | "hard">): number {
-  if (!(peak > 0) || !(cal.soft > 0) || !(cal.hard > cal.soft)) return peak > 0 ? 0.5 : 0;
-  return clamp01(0.25 + (0.5 * Math.log(peak / cal.soft)) / Math.log(cal.hard / cal.soft));
-}
+/** D425: a peak as strength on a LOG scale (the soft median at 0.25, the hard's at 0.75): now the game's (touch/hard-tap.ts), shared. */
+import { logStrength } from "../../touch/hard-tap.ts";
+export { logStrength };
 /** A strength's word for the feed. */
 export function strikeWord(s: number): string {
   return s < 0.2 ? "soft" : s < 0.4 ? "light" : s < 0.6 ? "medium" : s < 0.8 ? "firm" : "hard";

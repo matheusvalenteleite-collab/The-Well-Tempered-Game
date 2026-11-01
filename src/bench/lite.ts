@@ -380,8 +380,8 @@ export const RULE_LEVELS: Record<string, RuleLevels> = {
       "In fast runs either thumb may lead: keep the run moving the right way, and it is judged as a whole.",
       // D325b: expressive time.
       "Time is a little yours too: a strong beat or a dissonance held back, a breath at a rest or a cadence, a broadening at the end are still PERFECT if you come back to the beat.",
-      // D338: the reading's accent by time.
-      "An accent (>) is weight on time: land it in the strong zone of the bar (the third by the box), on the beat, and on the piano it sounds heavier. A late or soft landing is no accent; a wrong note never sounds different.",
+      // D338: the reading's accent by time. D425: the hard tap.
+      "An accent (>) is a hard tap: strike the note harder, anywhere on its bar, in its time; the phone feels how hard (calibrate it in SETTINGS). On the piano a hard tap sounds heavier. On a computer, land the accent in the strong zone (the third by the box). Striking hard never makes a note wrong.",
       // D186, D194: the bonuses.
       "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.",
       // D311: the across axis, the player's (shapes the sound, never the score). D314: its strong side by STRONG_SIDE.
