@@ -109,12 +109,16 @@ export const PLAYER_SHARE = 0.4;
 export const PLAYER_FLOOR_DB = -3;
 export const playerDb = (d: number): number => (d >= 0 ? d : PLAYER_FLOOR_DB * Math.tanh((PLAYER_SHARE * d) / PLAYER_FLOOR_DB));
 /**
- * D404, revised by D407: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB
+ * D404, revised by D407 and D487: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB
  * under the loudest sounding band voice for more than LINE_GAP_BARS bars (lifted over a bar from LINE_GAP_BARS − 1).
  * D404's exemption (a printed p against a printed f) is gone: the compressed line plays inside the texture.
+ * D487 (the owner: "my voice was lower than all others"): D407 let the line sit 4 dB under the loudest voice for good
+ * and further under for two bars; measured over the 48 fugues, 9.6% of the player's sounding beats were more than 1 dB
+ * under the loudest other voice's printed level (mean 2.5 dB, worst 8.6). Now never under it, on the beat: the gap 0,
+ * no grace (LINE_GAP_BARS 0: the lift whole from the first beat).
  */
-export const LINE_GAP_DB = 4;
-export const LINE_GAP_BARS = 2;
+export const LINE_GAP_DB = 0;
+export const LINE_GAP_BARS = 0;
 /** The band's marks (dB, on time): the report's §2 (the band +3 dB for ">"), Glenn's version C for the rest. */
 export const BAND_MARK_DB: Readonly<Record<"accent" | "marcato" | "wedge" | "portato" | "tenuto", number>> = { accent: 3, marcato: 4.5, wedge: 1.5, portato: 1, tenuto: 0.5 };
 /** The player's accent in the strong zone (dB): ">" +4, "^" +6 (touch-expr.ts PIANO_ZONE_DB's strong +3 otherwise). */

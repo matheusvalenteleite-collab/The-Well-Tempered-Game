@@ -677,6 +677,8 @@ export function BenchApp() {
     if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
     const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(!run && !prac && !manLesson && proto.layout === "bars" ? { obbligato: true } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
     // D485: the game open to the hit-tests (`?dev=1` only): its OBBLIGATO offer can be put up from the console.
+    // D487: the player's voice never quieter than the others: its lift on the player's own bus, with TOOLS' balance.
+    if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift;
     if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
