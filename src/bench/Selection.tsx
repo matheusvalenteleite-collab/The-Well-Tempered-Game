@@ -69,6 +69,8 @@ export interface SelectionProps {
   /** D440, PROGRESSION MODE (the Lab): the stages open, the tutorial to redo, the profile to reset. */
   /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
   learn?: (id: string) => void;
+  /** D442, the Glenn pilot: a key's prelude or fugue played (the fugue only once its prelude is finished). */
+  playPiece?: (id: string) => void;
   prog?: { open: number; built: number; taught: readonly string[]; redo: (id: string) => void; reset: () => void };
 }
 
@@ -89,6 +91,9 @@ export function Selection(p: SelectionProps) {
   const locked = (id: string) => !!prog && (stageOf(id)?.n ?? 99) > prog.open;
   const next = prog ? (STAGES[prog.open - 1]?.fugues.find((id) => !won.has(id)) ?? null) : grid ? liteSuggested(ids, won, first) : null;
   const choose = (id: string) => (locked(id) ? undefined : (setChosen(true), p.select(id)));
+  // D442, the Glenn pilot: a tile is a key (its prelude and fugue); the fugue open once the prelude is finished.
+  const pairKey = piece.replace(/^wtc1p/, "wtc1f");
+  const fugueOpen = won.has(pairKey.replace(/^wtc1f/, "wtc1p")) || won.has(pairKey);
   const learning = !!tutorial && tutorial.done < tutorial.of;
   return (
     <div className={`tb-sel${first ? " tb-sel-first" : ""}`} id="selection" role="main" aria-label="Pieces">
@@ -168,7 +173,7 @@ export function Selection(p: SelectionProps) {
             </header>
             <ol className="sel-grid" id="sel-grid">
               {ids.map((id) => (
-                <Tile key={id} id={id} on={chosen && id === piece} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} locked={locked(id) ? (stageOf(id)?.n ?? 0) : undefined} />
+                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} locked={locked(id) ? (stageOf(id)?.n ?? 0) : undefined} />
               ))}
             </ol>
           </>
@@ -188,7 +193,7 @@ export function Selection(p: SelectionProps) {
           </div>
         </div>
         {chosen ? (
-          <Chosen {...p} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
+          <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
         ) : (
           <p className="sel-hint" id="sel-hint">
             {prog ? "Your first fugue is lit in the middle. Tap it, then PLAY: Bach will show you how." : tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.")}
@@ -200,10 +205,23 @@ export function Selection(p: SelectionProps) {
             ↺ REDO TUTORIAL
           </button>
         )}
-        {chosen && !locked(piece) && (
-          <button type="button" id="sel-play" className="tb-play sel-play" onClick={p.play}>
-            ▶ {tr("PLAY")}
-          </button>
+        {chosen && p.playPiece ? (
+          <div className="sel-pair" id="sel-pair">
+            <button type="button" id="sel-play-prelude" className="tb-play sel-play" onClick={() => p.playPiece!(pairKey.replace(/^wtc1f/, "wtc1p"))}>
+              ▶ PRELUDE
+            </button>
+            <button type="button" id="sel-play-fugue" className="tb-play sel-play" disabled={!fugueOpen} onClick={() => p.playPiece!(pairKey)}>
+              {fugueOpen ? "▶ FUGUE" : "🔒 FUGUE"}
+            </button>
+            {!fugueOpen && <p className="sel-pair-note">Finish the prelude to open its fugue.</p>}
+          </div>
+        ) : (
+          chosen &&
+          !locked(piece) && (
+            <button type="button" id="sel-play" className="tb-play sel-play" onClick={p.play}>
+              ▶ {tr("PLAY")}
+            </button>
+          )
         )}
         {chosen && p.learn && filmOf(piece) && (
           <button type="button" id="sel-learn" className="tb-play sel-play sel-learn" onClick={() => p.learn!(piece)}>

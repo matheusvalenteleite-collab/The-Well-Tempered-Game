@@ -46,7 +46,8 @@ import { BtLite, HeadphonesFold, keepBtLag, lagBook, rememberRoute, useHeadphone
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
-import { barAt, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
+import { barAt, barStart, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
+import { arcOf } from "./arc.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
@@ -211,7 +212,7 @@ export function sane(p: Pick): Pick {
   // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
   const mob = APP.lite && litePlatform() === "mobile";
   // D275: and Book II's fugues. D343: those and the MORE BACH and CHORALES pieces only once unlocked (unlock.ts).
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) ? fugueOf(pair) : pair) : (unlocked() && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : (unlocked() && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
@@ -794,7 +795,13 @@ export function BenchApp() {
         // D327: on the two bars the legend stands in the right side bar (SideLegend), off the first subject.
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
-      if (hintRef.current && proto.layout === "bars") placeHint(hintRef.current, g, from, !!man);
+      // D442, THE REVEAL: Glenn's word for each new step, from a bar before it to a bar and a half into it.
+      if (hintRef.current && proto.layout === "bars" && revealPlan && !man) {
+        placeHint(hintRef.current, g, from, true);
+        const ahead = revealPlan.steps.find((s) => g.now >= barStart(f, s.bar) - f.barTicks && g.now < barStart(f, s.bar) + 1.5 * f.barTicks);
+        if (ahead?.cue && hintRef.current.textContent !== ahead.cue) hintRef.current.textContent = ahead.cue;
+        hintRef.current.style.opacity = ahead ? "1" : "0";
+      } else if (hintRef.current && proto.layout === "bars") placeHint(hintRef.current, g, from, !!man);
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
       // D391: the word in force on the player's line, translated in the side bar (changed only when another word is passed).
       if (glossRef.current && marks.whole) {
@@ -1100,7 +1107,9 @@ export function BenchApp() {
   /** D237: the minimal page's one-line instruction, at the start of the first game in each mode (played past: gone). */
   const hintSeen = APP.lite ? lite.seen : benchSeen;
   // D282: in a tutorial step, its goal (the demonstration: WATCH).
-  const hintLine = tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? hostLine(manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
+  // D442: THE REVEAL's prelude (the Glenn pilot): Glenn's word for each step in the hint card (set each frame).
+  const revealPlan = APP.glennPilot && phase.kind === "play" && !man && !lesson ? arcOf(f)?.reveal : undefined;
+  const hintLine = revealPlan ? (revealPlan.steps[0].cue ?? "") : tr(phase.kind === "play" && man ? (manLesson && isCourse(manLesson) ? (dressNow?.includes("hint") ? hostLine(manLesson.stages[man.stage]?.say ?? "") : "") : watching ? watchWord(man.style) : "") : phase.kind === "play" && lesson ? (watching ? "WATCH THE THUMBS" : (TRACKS[lesson.pl][lesson.n].goal ?? "")) : phase.kind === "play" && !hintSeen.includes(proto.id) ? (LITE_HINT[proto.id] ?? "") : "");
   const seen = () => {
     if (!hintLine) return;
     seenId(proto.id);
@@ -2064,6 +2073,8 @@ export function BenchApp() {
           tutorial={{ ...manualProgress(readManual()), start: startManual }}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
+          // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
+          playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           // D440, PROGRESSION MODE (the Lab): the stages open, REDO TUTORIAL, and a fresh start.
           prog={APP.progression ? { open: openStage(lite.beaten), built: BUILT_STAGES, taught: readProg().taught, redo: (id: string) => void progTutor(id, true), reset: () => (resetProfile(), location.reload()) } : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
