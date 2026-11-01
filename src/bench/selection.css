@@ -149,3 +149,9 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-news-go { font-size: 9px; color: #5fdc6a; }
 @keyframes sel-news-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .sel-news { animation: none; } }
+
+/* D442, the Glenn pilot: a key's prelude and fugue, side by side; the fugue locked until the prelude is finished. */
+.sel-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sel-pair .sel-play { margin: 0; font-size: 9px; padding: 10px 4px; }
+.sel-pair .sel-play:disabled { opacity: 0.45; cursor: default; }
+.sel-pair-note { grid-column: 1 / -1; margin: 0; font-size: 11px; color: var(--tg-muted); }

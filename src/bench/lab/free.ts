@@ -21,9 +21,8 @@
  *     down is that thumb rolling, ignored (proto-game.ts thumbSide, rollOf).
  *   - D321, DRAGS (MECH.dragMeaning "connect", drag.ts): on a sound that bends the pitch follows the
  *     thumb between the rows (follow, arrive); on a keyboard a slide plays the coulé or the Schleifer
- *     before its note. PLAY WITH IT (FreeOptions.sense, sensor.ts): the attack from the contact's size
- *     or the motion sensor's spike in place of the place across.
- * Each event a plain line for the lab's feed (WHAT HAPPENED), as the game's are. Nothing is judged,
+ *     before its note.
+ * Each event a plain line for the lab's feed (over the box), as the game's are. Nothing is judged,
  * scored or logged for replay. The clock is the audio clock: ticks = seconds × tps at the tempo chosen
  * (the ornaments' speed and the metronome's beat).
  */
@@ -31,7 +30,7 @@ import { voicing, type Chip, type Play, type Sounding } from "../../touch/chip.t
 import { beatOf, type TouchFugue } from "../../touch/fugue.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture } from "../../touch/free-ornament.ts";
 import { freeOrnamentParts } from "../../touch/ornament-play.ts";
-import { holdValue, PIANO_DB, STRONG_SIDE, TOUCH_NEUTRAL, touchKind } from "../../touch/touch-expr.ts";
+import { holdValue, STRONG_SIDE, TOUCH_NEUTRAL } from "../../touch/touch-expr.ts";
 import type { Side } from "../../touch/thumbs.ts";
 import { MECH } from "../mechanics.ts";
 import { dragFamily, dragFill, dragLine, fillNoteMs, pitchAtRow, scaleOfKey, snappedRow } from "../drag.ts";
@@ -315,11 +314,6 @@ interface Held {
    * row it is now in tune on and since when (arrived after SLIDE_DWELL_MS there).
    */
   gl?: { refRow: number; refY: number; leftAt: number; at?: { row: number; since: number } };
-  /** D321, PLAY WITH IT by contact size: the strength and size it landed with, the size's sustain now (the thumb flattening). */
-  size0?: number;
-  sizeFrom?: number;
-  sizeSv?: number;
-  sizeTo?: number;
 }
 
 export interface FreeOptions {
@@ -330,20 +324,7 @@ export interface FreeOptions {
   /** D330, scale "keyboard": which notes are white, the keys' shape, the pitch names drawn on the keys. */
   kb?: { white: WhiteMode; shape: KbShape; labels: boolean };
   /**
-   * D321, SENSOR's PLAY WITH IT: the touch's strength (0..1; null: nothing measured or no calibration
-   * yet) in place of the place across the bar, from `source`:
-   *   "size": the contact's size (sensor.ts sizeOf; `size(id)` now): the size at landing the attack, at
-   *   once; the thumb flattening while it holds (its size growing) the sustain (D311's shape);
-   *   "motion": the motion sensor's spike, `motion(ts, waitMs, done)` answered once its window is read
-   *   or `waitMs` on at the latest (the note neutral meanwhile, or MECH.tapDelayMs held back).
-   */
-  sense?: {
-    source: "size" | "motion";
-    motion: (ts: number, waitMs: number, done: (r: { peak: number | null; strength: number | null; cal: string }) => void) => void;
-    size: (id: number) => { size: number | null; strength: number | null; cal: string };
-  };
-  /**
-   * D335, DYNAMICS (dynamics.ts; the sampled piano only, in place of PLAY WITH IT): `mode`, and the
+   * D335, DYNAMICS (dynamics.ts; the sampled piano only): `mode`, and the
    * strike: the motion peak after `ts`, answered once read or `waitMs` on at the latest, its strength
    * by the calibration of the zone it landed in (null: no samples, or no calibration).
    */
@@ -351,18 +332,6 @@ export interface FreeOptions {
     mode: DynMode;
     strike: (ts: number, zone: Zone, waitMs: number, done: (r: { peak: number | null; strength: number | null; cal: string }) => void) => void;
   };
-}
-
-/** D321: the sensor's strength on a note already sounding: the piano's level (D311's ±4 dB), the others' sustain shape (brightness, the swell). */
-export function applyStrength(sounds: readonly Sounding[], strength: number, presetId: string): string {
-  if (touchKind(presetId) === "piano") {
-    const db = (strength - 0.5) * 2 * PIANO_DB;
-    for (const s of sounds) s.dyn?.(10 ** (db / 20));
-    return `${db >= 0 ? "+" : "−"}${Math.abs(db).toFixed(1)} dB`;
-  }
-  const sv = 2 * strength - 1;
-  for (const s of sounds) s.shape ? s.shape(sv) : s.dyn?.(10 ** ((sv * 3) / 20));
-  return `shape ${sv >= 0 ? "+" : "−"}${Math.abs(sv).toFixed(2)}`;
 }
 
 export class FreePlay {
@@ -509,29 +478,19 @@ export class FreePlay {
     const gap = this.lastLift ? (now - this.lastLift.at) * 1000 : Infinity;
     const handover = !joined && gap <= MECH.legatoGapMs;
     const v = voicing(this.voice, this.f.voices.length, true);
-    // D321, PLAY WITH IT: the attack the tap's strength (the sensor's), not the place across: the note
-    // starts neutral and is set when the spike is read, or (MECH.tapDelayMs) waits for it.
     // D335, DYNAMICS on the sampled piano: the level known at touchdown (the place, the pedal; the strike
     // neutral) at once, the strike's correction when read (dynStrike), or (MECH.dynWait) the attack held for it.
     const dm = this.dynMode();
     const dynC = dm === "place" ? (this.kbOn ? 0.5 : strength) : dm === "pedal" ? (this.kbOn ? 0.5 : ((this.pedal.windowMs = MECH.dynPedalMs), this.pedal.add(ts, strength))) : 0.5;
     const dyn0 = dm === "off" ? null : dynLevel(dm, dynC, null);
-    const sense = dyn0 ? undefined : this.o.sense;
-    const bySize = sense?.source === "size" ? sense.size(id) : null;
-    const delay = dyn0 ? (MECH.dynWait ? MECH.dynWaitMs : 0) : sense?.source === "motion" ? MECH.tapDelayMs : 0;
+    const delay = dyn0 && MECH.dynWait ? MECH.dynWaitMs : 0;
     const on0 = dyn0 ? pianoOnset(dyn0.total) : null;
-    const touch = on0 ? on0.touch : bySize ? (bySize.strength ?? TOUCH_NEUTRAL) : sense ? TOUCH_NEUTRAL : land;
+    const touch = on0 ? on0.touch : land;
     const base = dynamic(0.5);
     const play: Play = { ...base, ...(on0 ? { level: (base.level ?? 1) * on0.level } : {}), lead: true, envelope: "synth", touch, legato: joined || (handover && MECH.joinedSound) };
     const sounds = delay > 0 ? [] : [this.chip.note(midi, now, HOLD_MAX, v, play)];
     const hd: Held = { side, row, midi, land, ax: x, ay: y, setY: y, setX: x, at: now, sounds, v, play: { ...play, legato: true }, sMin: 0, sMax: 0, sNow: 0, shapes: 0, shake: this.reader(x, y, ts), pts: 1, lastLeg: -Infinity, cx: x, cy: y, still: ts };
     this.held.set(id, hd);
-    if (bySize) {
-      hd.size0 = bySize.strength ?? undefined;
-      hd.sizeFrom = bySize.size ?? undefined;
-      const st = bySize.strength === null ? (bySize.size === null ? "" : " · no calibration yet (SENSOR › LEARN): struck neutral") : ` → strength ${bySize.strength.toFixed(2)} (${bySize.cal}), the attack at once`;
-      this.say(`◉ TAP ${this.name(midi)} · contact size ${bySize.size === null ? "not reported" : `${bySize.size.toFixed(1)} px`}${st}`);
-    } else if (sense) this.sensed(sense.motion, id, hd, ts, delay, play);
     this.played.push({ row, on: now, side, id });
     if (this.played.length > 200) this.played.splice(0, this.played.length - 200);
     const th = `${side === "left" ? "L thumb" : "R thumb"}${side !== half ? " (crossed: landed on the other half, D318)" : ""}`;
@@ -587,26 +546,6 @@ export class FreePlay {
     });
   }
 
-  /** D321: the tap's strength from the sensor, applied to the note sounding (delay 0) or striking it (the attack held back up to `delay` ms). */
-  private sensed(sense: NonNullable<FreeOptions["sense"]>["motion"], id: number, hd: Held, ts: number, delay: number, play: Play) {
-    sense(ts, delay > 0 ? delay : MECH.tapWindowMs + 40, (r) => {
-      const ms = Math.round(performance.now() - ts);
-      const s = r.strength;
-      const here = this.held.get(id) === hd && !hd.passive;
-      const now = this.chip.ctx.currentTime;
-      const pk = r.peak === null ? "no motion samples" : `peak ${r.peak.toFixed(2)} m/s²`;
-      const st = s === null ? (r.peak === null ? "" : " · no calibration yet (SENSOR: a guided session, or eight taps)") : ` → strength ${s.toFixed(2)} (${r.cal})`;
-      if (delay > 0) {
-        const p = { ...play, touch: s ?? TOUCH_NEUTRAL };
-        if (here && !hd.sounds.length && !hd.ornament) hd.sounds = [this.chip.note(hd.midi, now, HOLD_MAX, hd.v, p)];
-        else if (!here && !hd.passive) this.chip.note(hd.midi, now, 0.15, hd.v, p);
-        return this.say(`◉ TAP ${this.name(hd.midi)} · ${pk}${st} · the attack waited ${ms} ms${s === null ? " (struck neutral)" : ""}`);
-      }
-      const how = s !== null && here ? applyStrength(hd.sounds, s, preset().id) : "";
-      this.say(`◉ TAP ${this.name(hd.midi)} · ${pk}${st} · read ${ms} ms after the touch${how ? ` · applied after the attack: ${how}` : ""}`);
-    });
-  }
-
   move(id: number, x: number, y: number, w: number, h: number, ts: number) {
     const hd = this.held.get(id);
     if (!hd) return;
@@ -616,23 +555,7 @@ export class FreePlay {
     this.h = h;
     this.w = w;
     hd.pts++;
-    // D321, PLAY WITH IT by contact size: the thumb flattening (its size growing) swells the note, as
-    // D311's sustain (twice the strength gained, −1..1); in place of the sideways move.
-    const sense = this.o.sense;
-    if (sense?.source === "size") {
-      const r = sense.size(id);
-      if (r.size !== null) hd.sizeTo = r.size;
-      if (r.strength !== null && hd.size0 !== undefined) {
-        const sv = Math.max(-1, Math.min(1, 2 * (r.strength - hd.size0)));
-        if (Math.abs(sv - (hd.sizeSv ?? 0)) > 0.05) {
-          hd.sizeSv = sv;
-          hd.shapes++;
-          hd.sMin = Math.min(hd.sMin, sv);
-          hd.sMax = Math.max(hd.sMax, sv);
-          for (const s of hd.sounds) s.shape?.(sv);
-        }
-      }
-    } else if (MECH.expression && !this.kbOn) {
+    if (MECH.expression && !this.kbOn) {
       // D311: the sustain, sideways from where it landed (D330: not on the keyboard, where sideways is pitch).
       const sv = holdValue(barDynamic(x, w) - hd.land);
       if (Math.abs(sv - hd.sNow) > 0.05) {
@@ -821,7 +744,7 @@ export class FreePlay {
     if (p) p.off = now;
     this.lastLift = { side: hd.side, at: now, midi: hd.midi };
     const held = Math.round((now - hd.at) * 1000);
-    const sus = hd.sizeFrom !== undefined ? ` · contact size ${hd.sizeFrom.toFixed(1)} → ${(hd.sizeTo ?? hd.sizeFrom).toFixed(1)} px (flattening: ${hd.shapes} sustain moves${hd.shapes ? `, up to ${hd.sMax.toFixed(2)}` : ""})` : !MECH.expression ? "" : hd.shapes ? ` · sustain moves: ${hd.shapes}, from ${hd.sMin.toFixed(2)} to ${hd.sMax.toFixed(2)} (−1 toward the soft side, +1 the strong)` : " · no sustain move";
+    const sus = !MECH.expression ? "" : hd.shapes ? ` · sustain moves: ${hd.shapes}, from ${hd.sMin.toFixed(2)} to ${hd.sMax.toFixed(2)} (−1 toward the soft side, +1 the strong)` : " · no sustain move";
     this.say(`${cancelled ? "! IOS CANCEL" : "↑ LIFT"} ${this.name(hd.midi)} after ${held} ms${sus}${hd.ornament ? ` · ${hd.ornament}` : ""}`);
   }
 

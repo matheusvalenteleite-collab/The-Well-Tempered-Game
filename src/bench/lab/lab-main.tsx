@@ -3,8 +3,7 @@
  * D376: lab.html?glenn=1, THE EXPRESSION LAB: play.html's selection screen and game (BenchApp) with
  * Glenn's mechanics on (MECH.glenn, glenn.ts), every collection open for this page (nothing written to
  * the device), every take recorded and kept with the Lab's RUNS, a way back in the corner.
- * D378 (WTC 1.83): Glenn's mechanics are the game's: ?glenn=1 is the game's own (PLAY ALL PIECES, no
- * badge); ?glenn=0 the same page with MECHANICS: CLASSIC (the game before WTC 1.83), its badge saying so.
+ * D378 (WTC 1.83): Glenn's mechanics are the game's: ?glenn=1 is the game's own (PLAY ALL PIECES, no badge).
  */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -15,6 +14,7 @@ import { markVersion } from "../version.ts";
 import { labPlayParam } from "../glenn.ts";
 import { setMech } from "../mechanics.ts";
 import { forceUnlocked } from "../unlock.ts";
+import { installProfile } from "../lab-profile.ts";
 import { BenchApp } from "../BenchApp.tsx";
 import { Sideways, lockOnFirstTap } from "../Sideways.tsx";
 import "../tools.css";
@@ -30,24 +30,44 @@ forceUi("classic");
 
 markVersion();
 const page = labPlayParam(location.search);
-const glenn = page !== null;
-const classic = page === "classic";
+// D441: THE GLENN PILOT (lab.html?pilot=glenn): play.html's game as a new player meets it (a profile of its
+// own: nothing of the device's progress read or written), Part 1 of the tutorial hosted by Glenn, and
+// LEARN WITH GLENN on Fugue I/1.
+const pilot = new URLSearchParams(location.search).get("pilot") === "glenn";
+if (pilot) {
+  installProfile();
+  APP.glennPilot = true;
+  document.documentElement.classList.add("tb-play-page", "glenn-page");
+  document.title = "WTC Lab: Glenn";
+  lockOnFirstTap();
+}
+const glenn = page === "glenn";
 if (glenn) {
   APP.glenn = true;
-  setMech({ glenn: !classic });
+  setMech({ glenn: true });
   forceUnlocked();
   document.documentElement.classList.add("tb-play-page", "glenn-page");
-  document.title = classic ? "WTC Lab: Classic" : "WTC Lab: Play";
+  document.title = "WTC Lab: Play";
   lockOnFirstTap();
 }
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {glenn ? (
+    {pilot ? (
+      <>
+        <BenchApp />
+        <Sideways />
+        <div className="glenn-badge" id="pilot-badge">
+          <b>GLENN PILOT</b>
+          <a href="./lab.html" id="pilot-back">
+            ◀ LAB
+          </a>
+        </div>
+      </>
+    ) : glenn ? (
       <>
         <BenchApp />
         <Sideways />
         <div className="glenn-badge" id="glenn-badge">
-          {classic && <b>MECHANICS: CLASSIC</b>}
           <a href="./lab.html" id="glenn-back">
             ◀ LAB
           </a>

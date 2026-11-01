@@ -21,6 +21,8 @@ import { Emblem } from "./FuguePicker.tsx";
 import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LangPick, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
+import { filmOf } from "./films.ts";
+import { APP } from "./config.ts";
 import { BEFORE_JUDGING, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
@@ -63,6 +65,10 @@ export interface SelectionProps {
   note?: ReactNode;
   /** D382: Book II just earned: the note is shown; called once it is seen (tapped, or BOOK II opened). */
   bookTwo?: () => void;
+  /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
+  learn?: (id: string) => void;
+  /** D442, the Glenn pilot: a key's prelude or fugue played (the fugue only once its prelude is finished). */
+  playPiece?: (id: string) => void;
 }
 
 export function Selection(p: SelectionProps) {
@@ -79,6 +85,9 @@ export function Selection(p: SelectionProps) {
   const ids = grid ? gridIds(tab) : [];
   const next = grid ? liteSuggested(ids, won, first) : null;
   const choose = (id: string) => (setChosen(true), p.select(id));
+  // D442, the Glenn pilot: a tile is a key (its prelude and fugue); the fugue open once the prelude is finished.
+  const pairKey = piece.replace(/^wtc1p/, "wtc1f");
+  const fugueOpen = won.has(pairKey.replace(/^wtc1f/, "wtc1p")) || won.has(pairKey);
   const learning = !!tutorial && tutorial.done < tutorial.of;
   return (
     <div className={`tb-sel${first ? " tb-sel-first" : ""}`} id="selection" role="main" aria-label="Pieces">
@@ -96,11 +105,11 @@ export function Selection(p: SelectionProps) {
           <button type="button" id="card-tutorial" className={`sel-tutorial${first ? " sel-glow" : ""}`} onClick={tutorial.start}>
             <span className="sel-tut-head">
               <span className="sel-tut-face" aria-hidden="true">
-                <Portrait talking={false} />
+                <Portrait talking={false} who={APP.glennPilot ? "glenn" : undefined} />
               </span>
               <span className="sel-tut-words">
                 <span className="sel-tut-title">{tr("TUTORIAL")}</span>
-                <span className="sel-tut-sub">{tr("LEARN TO PLAY WITH HERR BACH")}</span>
+                <span className="sel-tut-sub">{APP.glennPilot ? "LEARN TO PLAY WITH GLENN" : tr("LEARN TO PLAY WITH HERR BACH")}</span>
               </span>
             </span>
             <span className="sel-tut-bar" aria-hidden="true">
@@ -140,7 +149,7 @@ export function Selection(p: SelectionProps) {
             </header>
             <ol className="sel-grid" id="sel-grid">
               {ids.map((id) => (
-                <Tile key={id} id={id} on={chosen && id === piece} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} />
+                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} />
               ))}
             </ol>
           </>
@@ -160,16 +169,33 @@ export function Selection(p: SelectionProps) {
           </div>
         </div>
         {chosen ? (
-          <Chosen {...p} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
+          <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
         ) : (
           <p className="sel-hint" id="sel-hint">
             {tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.")}
           </p>
         )}
         {chosen && p.note}
-        {chosen && (
-          <button type="button" id="sel-play" className="tb-play sel-play" onClick={p.play}>
-            ▶ {tr("PLAY")}
+        {chosen && p.playPiece ? (
+          <div className="sel-pair" id="sel-pair">
+            <button type="button" id="sel-play-prelude" className="tb-play sel-play" onClick={() => p.playPiece!(pairKey.replace(/^wtc1f/, "wtc1p"))}>
+              ▶ PRELUDE
+            </button>
+            <button type="button" id="sel-play-fugue" className="tb-play sel-play" disabled={!fugueOpen} onClick={() => p.playPiece!(pairKey)}>
+              {fugueOpen ? "▶ FUGUE" : "🔒 FUGUE"}
+            </button>
+            {!fugueOpen && <p className="sel-pair-note">Finish the prelude to open its fugue.</p>}
+          </div>
+        ) : (
+          chosen && (
+            <button type="button" id="sel-play" className="tb-play sel-play" onClick={p.play}>
+              ▶ {tr("PLAY")}
+            </button>
+          )
+        )}
+        {chosen && p.learn && filmOf(pairKey) && (
+          <button type="button" id="sel-learn" className="tb-play sel-play sel-learn" onClick={() => p.learn!(pairKey)}>
+            ♪ LEARN WITH GLENN
           </button>
         )}
       </aside>

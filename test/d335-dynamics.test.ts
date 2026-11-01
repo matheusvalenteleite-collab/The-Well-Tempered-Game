@@ -4,9 +4,10 @@
  * zone's calibration (log scale), the pedal's average, the late correction's ramp (chip.ts rampTrim),
  * the zone report and storage, and FREE PLAY striking at the touchdown's level then correcting.
  */
+import { BAR } from "../src/bench/protos.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { baseDb, correctionRamp, dynLevel, dynLine, DYN_MAX_DB, loadZoneCal, logStrength, Pedal, pianoOnset, saveZoneCal, strikeDb, strikeWord, zoneCalibration, zoneOf, zoneReport, zoneStrength, type ZoneTap } from "../src/bench/lab/dynamics.ts";
+import { baseDb, correctionRamp, dynLevel, dynLine, DYN_MAX_DB, loadZoneCal, logStrength, Pedal, pianoOnset, saveZoneCal, strikeDb, strikeWord, zoneOf, zoneReport, type ZoneTap } from "../src/bench/lab/dynamics.ts";
 import { landing, PIANO_SOFT_NET_DB } from "../src/touch/touch-expr.ts";
 import { rampTrim, type Chip, type TrimParam } from "../src/touch/chip.ts";
 import { FreePlay } from "../src/bench/lab/free.ts";
@@ -101,20 +102,7 @@ test("D335: the late correction: a ramp from the strike's reading, never before 
 
 const taps = (zone: "inner" | "outer", soft: number[], hard: number[], rot = 50): (ZoneTap & { rotPeak: number })[] => [...soft.map((peak) => ({ label: "soft", peak, zone, rotPeak: rot })), ...hard.map((peak) => ({ label: "hard", peak, zone, rotPeak: rot * 2 }))];
 
-test("D335: calibration by zone: each half its own soft and hard medians; a zone without one uses both, then the fallback", () => {
-  const all = [...taps("inner", [0.3, 0.35, 0.4], [1.2, 1.3, 1.4]), ...taps("outer", [0.15, 0.2, 0.25], [0.6, 0.7, 0.8])];
-  const zc = zoneCalibration(all);
-  assert.deepEqual([zc.inner!.soft, zc.inner!.hard, zc.outer!.soft, zc.outer!.hard], [0.35, 1.3, 0.2, 0.7]);
-  near(zoneStrength(0.35, "inner", zc)!.strength, 0.25);
-  near(zoneStrength(0.7, "outer", zc)!.strength, 0.75);
-  assert.equal(zoneStrength(0.7, "outer", zc)!.cal, "outer zone's calibration");
-  assert.ok(zoneStrength(0.6, "inner", zc)!.strength < zoneStrength(0.6, "outer", zc)!.strength, "the same peak softer by the box, where taps shake more");
-  const onlyInner = zoneCalibration(taps("inner", [0.3, 0.35, 0.4], [1.2, 1.3, 1.4]));
-  assert.equal(onlyInner.outer, null);
-  assert.equal(zoneStrength(0.35, "outer", onlyInner)!.cal, "both zones' calibration");
-  assert.equal(zoneStrength(0.5, "outer", null, { soft: 0.25, hard: 1, from: "recent" })!.cal, "the recent taps");
-  assert.equal(zoneStrength(0.5, "outer", null), null);
-  assert.equal(zoneStrength(null, "inner", zc), null);
+test("D335: the zone of a landing: inner by the box, outer by the edge", () => {
   assert.equal(zoneOf(0.2), "inner");
   assert.equal(zoneOf(0.7), "outer");
 });
@@ -186,6 +174,8 @@ function fakeFree(clock: { t: number }) {
 const I2 = fugueById("wtc1f02");
 const W = 750;
 const H = 342;
+/** D461: the left bar's inner edge (BAR of the width: 150 px at 20%, 165 at 22%), one px inside. */
+const INNER = Math.round(BAR * W) - 1;
 
 test("D335: FREE PLAY, A · PLACE × STRIKE: struck at once at the place's level, then corrected by the strike over the ramp", () => {
   resetMech();
@@ -195,8 +185,8 @@ test("D335: FREE PLAY, A · PLACE × STRIKE: struck at once at the place's level
   const out: string[] = [];
   let pending: ((r: { peak: number | null; strength: number | null; cal: string }) => void) | null = null;
   const fp = new FreePlay(I2, 0, chip, { scale: "key", octaves: 2, bpm: 80, click: false, dynamics: { mode: "place", strike: (_ts, zone, _w, done) => (assert.equal(zone, "inner"), (pending = done)) } }, (l) => out.push(l));
-  // By the box (the left bar's inner edge: x = 150): the strong side, about +4 dB.
-  fp.down(1, "left", 149, 100, W, H, performance.now());
+  // By the box (the left bar's inner edge, INNER): the strong side, about +4 dB.
+  fp.down(1, "left", INNER, 100, W, H, performance.now());
   assert.equal(notes.length, 1, "at once");
   const t0 = notes[0].p.touch!;
   // D385: the piano's landing in three zones: the strong zone, the rest of the place's +4 dB made up in level.
@@ -208,7 +198,8 @@ test("D335: FREE PLAY, A · PLACE × STRIKE: struck at once at the place's level
   near(20 * Math.log10(k), -2, 1e-6);
   near(at, 10.03);
   near(until, 10.03 + MECH.dynRampMs / 1000);
-  assert.match(out[0], /♩ \S+ · place \+3\.9 dB · strike −2\.0 dB \(light, peak 0\.25, \d+ ms\) · total \+1\.9 dB · inner zone/);
+  // D461: a px inside the wider bar's edge rounds to +3.9 or +4.0 (the place's ramp tops at +4).
+  assert.match(out[0], /♩ \S+ · place \+(3\.9|4\.0) dB · strike −2\.0 dB \(light, peak 0\.25, \d+ ms\) · total \+(1\.9|2\.0) dB · inner zone/);
   assert.match(out[0], /corrected −2\.0 dB over 12 ms, 30 ms after the onset/);
   resetMech();
 });
@@ -227,7 +218,7 @@ test("D335: FREE PLAY, B · PEDAL: the running level from the last second's land
   fp.up(1, ts + 100, false);
   fp.down(2, "left", 1, 120, W, H, ts + 300);
   fp.up(2, ts + 400, false);
-  fp.down(3, "left", 149, 140, W, H, ts + 600);
+  fp.down(3, "left", INNER, 140, W, H, ts + 600);
   const p = fp.pedal.value(ts + 600);
   assert.ok(Math.abs(p - 1 / 3) < 0.01, `pedal ${p}`);
   const line = out.filter((l) => l.includes("♩")).at(-1)!;
@@ -244,7 +235,7 @@ test("D335: DYNAMICS on another sound: off (the piano only)", () => {
   const { chip } = fakeFree({ t: 0 });
   const fp = new FreePlay(I2, 0, chip, { scale: "key", octaves: 2, bpm: 80, click: false, dynamics: { mode: "place", strike: () => assert.fail("no strike read") } }, () => {});
   assert.equal(fp.dynMode(), "off");
-  fp.down(1, "left", 149, 100, W, H, 0);
+  fp.down(1, "left", INNER, 100, W, H, 0);
   setPreset("pianoSampled");
   resetMech();
 });

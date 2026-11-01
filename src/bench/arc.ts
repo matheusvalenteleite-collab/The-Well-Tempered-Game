@@ -14,6 +14,8 @@
  * No percussion (the owner: none unless the piece calls for it). Pure: the piece in, numbers out.
  */
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
+import { APP } from "./config.ts";
+import { REVEAL_I1, type RevealPlan } from "./reveal.ts";
 
 /** A pedal the player holds: from bar, to bar (exclusive), its pitch, its name, its lane (0 the leftmost). */
 export interface ArcPedal {
@@ -83,6 +85,8 @@ export interface Arc {
    * not slid, by themselves on time).
    */
   trace?: [from: number, to: number];
+  /** D442, THE REVEAL (on a phone): the player's notes chosen bar by bar from both hands (reveal.ts); the rest the game's. */
+  reveal?: RevealPlan;
   /** D258: the player's line handed to another voice for these bars (from, to exclusive), announced a bar ahead. */
   takeover?: { from: number; to: number; voice: number; cue: string };
 }
@@ -167,7 +171,10 @@ ARCS.wtc1p04 = {
   ],
 };
 
-export const arcOf = (f: TouchFugue): Arc | undefined => ARCS[f.id];
+/** D442: THE REVEAL for Prelude I/1 (the Glenn pilot only, for now): the whole piece drawn and heard, the player's part growing bar by bar. */
+const REVEAL_ARCS: Record<string, Arc> = { wtc1p01: { rides: [[1, 1]], reveal: REVEAL_I1 } };
+
+export const arcOf = (f: TouchFugue): Arc | undefined => (APP.glennPilot ? (REVEAL_ARCS[f.id] ?? ARCS[f.id]) : ARCS[f.id]);
 
 const tickOfBar = (f: TouchFugue, bar: number) => barStart(f, Math.floor(bar)) + (bar % 1) * f.barTicks;
 

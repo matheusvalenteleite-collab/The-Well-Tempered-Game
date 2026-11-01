@@ -2,7 +2,7 @@
  * D336: THE LAB's DYNAMICS in PASSAGE (src/bench/lab/passage-dyn.ts, ProtoGame.noteDyn): the player's own
  * notes (struck, hammer-ons, pull-offs) shaped as in FREE PLAY, the verdicts and points untouched; one
  * calibration, ADAPTIVE (dynamics.ts AdaptiveCal); the strike's curve trusting a firm tap more than a
- * soft one; the STUDY never with it.
+ * soft one.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -201,10 +201,9 @@ test("D336: in the game: every note of the player's asked (struck, hammer-ons, p
   assert.deepEqual(d2.summary, p2.summary);
 });
 
-test("D336: the lab wires it: PASSAGE with the sampled piano, never a STUDY (its own settings: DYNAMICS OFF), never BLUETOOTH; one setting shown in both tabs", () => {
+test("D336: the lab wires it: PASSAGE with the sampled piano, never BLUETOOTH; one setting shown in both tabs", () => {
   const src = readFileSync(new URL("../src/bench/lab/LabApp.tsx", import.meta.url), "utf8");
-  assert.match(src, /const dynOn = !forStudy && s\.dynMode !== "off" && presetById\(sound\)\.id === "pianoSampled" && !passage\.bt;/);
-  assert.match(src, /sound: STUDY_SOUND, loop: false, drill: undefined, mode: "passage", dynMode: "off" \}/);
+  assert.match(src, /const dynOn = s\.dynMode !== "off" && presetById\(sound\)\.id === "pianoSampled" && !passage\.bt;/);
   assert.match(src, /<DynPick id="lab-passage-dyn"/);
   assert.match(src, /<DynPick id="lab-free-dyn"/);
   assert.match(src, /dynAdaptive: s\.dynAdaptive !== false/, "ADAPTIVE on by default");

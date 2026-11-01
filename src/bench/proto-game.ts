@@ -74,6 +74,7 @@ import { metricPlace, phraseArchDb, PLAYER_ACCENT_DB, slurShapeDb, wholeMarks, w
 import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
+import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { PATCHES, preset } from "../touch/sound.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -634,7 +635,24 @@ export class ProtoGame {
     const sweepKeys = new Set<string>();
     // D261: the player's own voice's notes given to the others (each thumb only its top or bass notes).
     const movedOut = new Set<string>();
+    // D442, THE REVEAL: on a phone, the prelude's plan picks the player's notes from both hands, bar by bar.
+    const rv = !line && !handsOn && f.kind === "prelude" && arc?.reveal ? reveal(f, arc.reveal) : null;
     this.tracks = line ? this.lineTracks(line, msBetween) : voiceList.map((v) => {
+      if (rv && v === 0) {
+        const inSpan = (on: number) => on >= from && (o.until === undefined || on < o.until);
+        const mine0 = rv.mine.get(0)!.filter((n) => inSpan(n[0]));
+        const mine1 = rv.mine.get(1)!.filter((n) => inSpan(n[0]));
+        const notes = [...laneNotes(mine0, this.beat, 0), ...laneNotes(mine1, this.beat, 1)].sort((a, b) => a.on - b.on || b.midi - a.midi);
+        for (const n of notes) n.ride = false;
+        const taken = new Set(mine0.map((n) => lineKey(0, n[0], n[2])));
+        const slid = new Set([...rv.traces.values()].flat().map((q) => lineKey(0, q.on, q.midi)));
+        // The right hand's other notes are the game's (the slid ones the slide's, or sounding by themselves on time); the left's, but those taken and the pedals' repeats.
+        for (const [on, , midi] of f.voices[0]) if (!taken.has(lineKey(0, on, midi)) && !slid.has(lineKey(0, on, midi))) movedOut.add(lineKey(0, on, midi));
+        for (const [on, , midi] of mine1) sweepKeys.add(lineKey(1, on, midi));
+        for (const k of rv.drop) sweepKeys.add(k);
+        const traces = new Map([...rv.traces].filter(([on]) => inSpan(on)));
+        return { voice: 0, notes, moves: moves(notes, this.beat), traces: traces.size ? traces : undefined };
+      }
       const src = take && v === 0 ? [...f.voices[0].filter(([on]) => !inTake(on)), ...f.voices[take.voice].filter(([on]) => inTake(on))].sort((a, b) => a[0] - b[0] || b[2] - a[2]) : f.voices[v];
       const notes = laneNotes(
         src.filter(([on]) => on >= from && (o.until === undefined || on < o.until) && (!handsOn || v !== 1 || lhMine(on))),

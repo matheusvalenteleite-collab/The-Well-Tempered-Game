@@ -305,6 +305,7 @@ export const PT: Record<string, string> = {
   MISS: "ERROU",
   HELD: "SUSTENTOU",
   "TOO SOON": "CEDO DEMAIS",
+  STAGE: "CENÁRIO",
   "REST!": "PAUSA!",
   CLEAN: "LIMPO",
   SWEEP: "VARREDURA",
