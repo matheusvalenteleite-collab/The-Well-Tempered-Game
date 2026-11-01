@@ -57,11 +57,12 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["chamberOrgan", "PIPE ORGAN"],
   ["vocalSynth", "VOCAL SYNTH"],
   ["soloVoices", "SOLO VOICES"],
-  ["modular", "BLEEPS AND BLOOPS"],
   ["tomita", "TOMITA"],
   // D365: D358's two presets on D349's way, offered.
   ["stringConsort", "STRING CONSORT"],
   ["lute", "LUTE"],
+  // D430: the trials' BAROQUE BAND, offered (D433: BLEEPS AND BLOOPS retired).
+  ["baroqueBand", "BAROQUE BAND"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

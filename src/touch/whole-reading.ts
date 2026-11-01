@@ -42,6 +42,14 @@ export const SFZ = /sf|\bfz\b|\bfp\b|\brinf/;
 /** D394: a ramp word: cresc., dim., decresc., and Busoni's "sempre aumentando" (II/1), a crescendo. */
 export const RAMP = /\b(cresc|dim|decresc|aumentando)/;
 export const RAMP_UP = /cresc|aumentando/;
+/**
+ * D421: on a phone the printed levels are played in a narrower range (×0.65 about mf: p −4.2 dB instead of
+ * −6.5, pp −7.2, ff +4.2): a phone's speaker and a room's noise leave about 16 dB of usable range (D335), and
+ * Busoni's p exposition sat 14 dB under the harpsichord there. The terraces, the swells and their order are his;
+ * only their size is scaled. A computer plays them as printed.
+ */
+export const PHONE_DYN_RANGE = 0.65;
+const PHONE_RANGE = () => (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0 ? PHONE_DYN_RANGE : 1);
 export const LEVEL_DB: Readonly<Record<string, number>> = {
   pp: -11,
   p: -6.5,
@@ -109,12 +117,16 @@ export const PLAYER_SHARE = 0.4;
 export const PLAYER_FLOOR_DB = -3;
 export const playerDb = (d: number): number => (d >= 0 ? d : PLAYER_FLOOR_DB * Math.tanh((PLAYER_SHARE * d) / PLAYER_FLOOR_DB));
 /**
- * D404, revised by D407: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB
+ * D404, revised by D407 and D487: the safety net of the player's line (WholePlan.lineDynAt): never more than LINE_GAP_DB
  * under the loudest sounding band voice for more than LINE_GAP_BARS bars (lifted over a bar from LINE_GAP_BARS − 1).
  * D404's exemption (a printed p against a printed f) is gone: the compressed line plays inside the texture.
+ * D487 (the owner: "my voice was lower than all others"): D407 let the line sit 4 dB under the loudest voice for good
+ * and further under for two bars; measured over the 48 fugues, 9.6% of the player's sounding beats were more than 1 dB
+ * under the loudest other voice's printed level (mean 2.5 dB, worst 8.6). Now never under it, on the beat: the gap 0,
+ * no grace (LINE_GAP_BARS 0: the lift whole from the first beat).
  */
-export const LINE_GAP_DB = 4;
-export const LINE_GAP_BARS = 2;
+export const LINE_GAP_DB = 0;
+export const LINE_GAP_BARS = 0;
 /** The band's marks (dB, on time): the report's §2 (the band +3 dB for ">"), Glenn's version C for the rest. */
 export const BAND_MARK_DB: Readonly<Record<"accent" | "marcato" | "wedge" | "portato" | "tenuto", number>> = { accent: 3, marcato: 4.5, wedge: 1.5, portato: 1, tenuto: 0.5 };
 /** The player's accent in the strong zone (dB): ">" +4, "^" +6 (touch-expr.ts PIANO_ZONE_DB's strong +3 otherwise). */
@@ -269,6 +281,10 @@ export interface WholePlan {
   fermatas: { a: number; d: number; x: number }[];
   /** The subject's notes ("voice:onset"): an entry brought out where a palette asks. */
   subject: Set<string>;
+  /** TRIAL (EXPRESSIVE_ALL): voice v's printed level at a tick alone (dB, LEVEL_DB; no hairpin, no phone range): the registration's terrace. */
+  levelAt?: (v: number, tick: number) => number;
+  /** TRIAL: the hairpins' and fp's swell on it (dB). */
+  swellAt?: (v: number, tick: number) => number;
 }
 
 const memo = new WeakMap<WholeReading, Map<string, WholePlan>>();
@@ -533,7 +549,7 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     }
     return 0;
   };
-  const dynAt = (v: number, t: number) => base(v, t) + env(v, t) + fpAt(v, t);
+  const dynAt = (v: number, t: number) => PHONE_RANGE() * (base(v, t) + env(v, t) + fpAt(v, t));
   // D404/D407: the player's line: dynAt compressed under mf (playerDb), then its safety net, by beats: where the voice
   // sounds with others, the gap under the loudest of them counted while over LINE_GAP_DB (reset where it is not; a rest
   // of the voice neither counts nor resets), and past LINE_GAP_BARS − 1 bars lifted, over a bar, to LINE_GAP_DB under it.
@@ -597,7 +613,10 @@ export function buildWhole(f: TouchFugue, W: WholeReading): WholePlan {
     if (f.voices.some((ns) => ns.some((n) => n[0] > on && n[0] < on + d))) continue;
     fermatas.push({ a: on, d, x: FERMATA_HOLD * d });
   }
-  return { notes, dynAt, lineDynAt, paletteAt, ending: endingOf(W, f.length, f.barTicks), fermatas, subject };
+  // TRIAL (sound.ts EXPRESSIVE_ALL): the printed terrace alone (dB, as printed: no phone range), and the swell on it (hairpins, fp).
+  const printedAt = (v: number, t: number) => base(v, t);
+  const swellAt = (v: number, t: number) => env(v, t) + fpAt(v, t);
+  return { notes, dynAt, lineDynAt, paletteAt, ending: endingOf(W, f.length, f.barTicks), fermatas, subject, levelAt: printedAt, swellAt };
 }
 
 /** A note's place in the metre: 0 the bar's first beat, 1 another beat, 2 between (the palettes' weight, the slur's shape). `inBar`: fugue.ts inBar. */

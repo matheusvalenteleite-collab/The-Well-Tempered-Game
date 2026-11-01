@@ -60,7 +60,8 @@ test("D338: the accent's verdict: on time or leaned up to 15% of a beat, the not
   // The legend says what is asked, by time.
   const l = markLegend("outer").find((x) => x.kind === "strong")!;
   // D385: weight on time.
-  assert.match(l.text, /ACCENT: LAND IN THE STRONG ZONE, BY THE BOX, ON TIME/);
+  // D425: no motion sensor here (node: a computer): the fallback's words.
+  assert.match(l.text, /ACCENT: STRONG ZONE/);
   assert.equal(markLegend("inner").find((x) => x.kind === "strong")!.text, l.text);
   }));
 

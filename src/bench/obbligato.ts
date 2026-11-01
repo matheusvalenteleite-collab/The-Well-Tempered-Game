@@ -99,6 +99,11 @@ const ROWS: readonly Row[] = [
   ["consViolin", "VIOLIN", "strings", ["soprano", "alto"]],
   ["consViola", "VIOLA", "strings", ["alto", "tenor"]],
   ["consCello", "CELLO", "strings", ["tenor", "bass"]],
+  // D438: the instruments session's BAROQUE BAND (D430), its own patches (the oboe with its strings: the band's family).
+  ["bandViolin", "BAROQUE VIOLIN", "strings", ["soprano", "alto"]],
+  ["bandOboe", "OBOE", "strings", ["soprano", "alto"]],
+  ["bandViola", "BAROQUE VIOLA", "strings", ["alto", "tenor"]],
+  ["bandCello", "BAROQUE CELLO", "strings", ["tenor", "bass"]],
   ["singS", "SOPRANO VOICE", "voice", ["soprano"]],
   ["singS2", "MEZZO VOICE", "voice", ["soprano", "alto"]],
   ["singA", "ALTO VOICE", "voice", ["alto"]],

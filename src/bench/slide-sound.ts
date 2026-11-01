@@ -37,6 +37,38 @@
  */
 import { passingNote, stepBelow } from "./drag.ts";
 
+/**
+ * D438, THE TWO SLIDE SOUNDS, PENDING THE OWNER'S EAR. "d486" (the default): each instrument's slide gesture
+ * above (proto-game.ts slideColour). "instruments": the instruments session's slide sounds instead (D424's
+ * portamento following the thumb, proto-game.ts slideTrack; D426's coulé fill on the harpsichord and organ,
+ * couleTrack; the lute's left-hand slur and glissando, glenn.ts luteSlur); never both. The detection is
+ * D486's in either (slide-rule.ts), and the piano's hairpin (D426, a level) plays in both. Set it with
+ * `setSlideSound`, or from the page's address: `?slide=instruments`.
+ */
+export type SlideSoundMode = "d486" | "instruments";
+export let SLIDE_SOUND: SlideSoundMode = slideSoundParam(typeof location !== "undefined" ? location.search : "");
+export function setSlideSound(mode: SlideSoundMode): void {
+  SLIDE_SOUND = mode;
+}
+/** D438: `f` run under `mode`, the mode then restored (the tests render both designs). */
+export function withSlideSound<T>(mode: SlideSoundMode, f: () => T): T {
+  const was = SLIDE_SOUND;
+  SLIDE_SOUND = mode;
+  try {
+    return f();
+  } finally {
+    SLIDE_SOUND = was;
+  }
+}
+/** D438: the mode from a page's address (`?slide=instruments`); else "d486". */
+export function slideSoundParam(search: string): SlideSoundMode {
+  try {
+    return new URLSearchParams(search).get("slide") === "instruments" ? "instruments" : "d486";
+  } catch {
+    return "d486";
+  }
+}
+
 export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "voice" | "flute" | "chip" | "slide8" | "fm" | "synth";
 export type IntervalClass = "half" | "step" | "third" | "leap";
 
@@ -64,6 +96,7 @@ export function slideFamily(presetId: string): SlideFamily {
     case "organSampled":
       return "organ";
     case "stringConsort":
+    case "baroqueBand": // D438: the instruments session's BAROQUE BAND, a string band (glenn.ts touchFamily "strings")
       return "bowed";
     case "vocalSynth":
     case "soloVoices":

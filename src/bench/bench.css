@@ -32,6 +32,17 @@
 .tb-bars .tg-box { padding-left: 0; padding-right: 0; }
 .tb-bars .tg-hud, .tb-bars .tg-legend { padding-left: 8px; padding-right: 8px; }
 .tb-bars .tg-play { position: absolute; inset: 0 var(--tg-sar) 0 var(--tg-sal); }
+/* D487 (the owner: "a black rectangle at the bottom"): touch.css padded the whole page (:root) by the top and bottom safe
+   areas, so on a sideways iPhone (21 px under the home indicator, in Safari and from the Home Screen) the game stopped
+   21 px short of the glass and the page's black showed beneath it. The page now runs to the edges; the game's own
+   screen keeps the safe areas inside it: the bars and the roll's backdrop reach the glass, the box's words, the stops
+   and the buttons stay above the home indicator. The layouts other than the bars (not on play.html) keep the old inset. */
+:root { padding-top: 0; padding-bottom: 0; }
+.tg-app { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tg-app.tb-bars, .tg-app.tg-wide { padding-top: 0; padding-bottom: 0; }
+.tg-wide .tg-box { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+.tb-bars .tg-box { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+.tg-wide:not(.tb-bars) .tg-play { padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
 /* D415 (design studio; the owner: "we ought to be able to see the music flowing behind the buttons"): the roll runs
    under both bars, to the safe edges (D461: each bar --tb-bar of the area, the box the rest); the bars,
    painted over it, are translucent (paint-proto.ts BAR_VEIL). Only the classic box (MusicBox sets tg-box-wide);
@@ -1001,16 +1012,24 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 /* D369: the stops at the feet of the two bars (the thumbs' bars), not in the music box's title bar: a strip
    as tall as a thumb's target (44 px), beside the box's legend, which grows to the same height so the box's
    rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
-.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; gap: 3px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); }
+/* D420: now the three THUMB PISTONS at each bar's foot (all three on both bars: whichever thumb is free
+   reaches them), one row of large targets (58 px tall, a third of the bar wide), the legend as tall. */
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); }
 .tb-stops-left { left: calc(var(--tg-sal) + 6px); }
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
-.tb-stops-side .tg-stop { min-width: 44px; height: 44px; margin: 0; padding: 0 2px; font-size: 7px; background: var(--tg-bg); overflow: hidden; }
-.tb-stops-side .tg-stop.on { background: var(--tg-shine); }
-/* D415: the stops translucent with the bars (the stage shows through); a lit stop stays solid. */
-html:not(.tb-paper) .tb-stops-side .tg-stop:not(.on) { background: color-mix(in srgb, var(--tg-bg) 55%, transparent); }
-.tb-stops-side .tg-stop::after { inset: -2px; }
-.tb-stops-side .tg-room-name { top: auto; bottom: calc(100% + 6px); }
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 2px); align-items: center; box-sizing: border-box; }
+.tb-stops-side .tg-piston { height: 58px; }
+.tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
+/* D420: what each piston holds, in the piece's pop-up (folded). */
+.tb-pop-pistons { margin: 6px 0; text-align: left; }
+.tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }
+.tb-pop-piston { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 5px 0; }
+.tb-pop-piston-n { width: 34px; font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); }
+.tb-pop-piston .tg-stop { height: 30px; }
+.tb-pop-piston-more { padding-left: 38px; }
+/* D415: translucent with the bars (the stage shows through); a lit piston stays solid. */
+html:not(.tb-paper) .tb-stops-side .tg-piston:not(.on) { background: color-mix(in srgb, var(--tg-bg) 55%, transparent); }
+/* D487: 20 px more under the roll, so OBBLIGATO's button (34 px), stacked over the pistons, stays clear of the lowest row a note can ask for. */
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 35px); }
 
 /* D369: the voice legend: the player's voice a chip of its own (its colour block and VOCÊ: …), the others after it, dimmer. */
 .tg-legend:has(.tb-you-chip) { align-items: center; overflow: visible; }
@@ -1195,13 +1214,28 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .glenn-film-scrub::-moz-range-thumb { width: 14px; height: 18px; background: #f2eee0; border: 2px solid #12101a; border-radius: 0; }
 .sel-learn { margin-top: 6px; background: transparent; color: var(--tg-fg); border: 2px solid #6fb3ff; }
 
-/* D485, OBBLIGATO: the offer's button at each bar's outer top corner, in the strip above the box's roll (no row is drawn
-   there; D369 kept the top for something else), over the play area outside it in the page: a touch on it is the button's,
-   never a note. Glowing, the bars tinged under it (paint-proto.ts OBB_TINGE). */
-.tb-obbligato { position: fixed; z-index: 13; top: calc(env(safe-area-inset-top, 0px) + 3px); box-sizing: border-box; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); height: 27px; margin: 0; padding: 2px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: var(--tg-pixel); line-height: 1; color: #eafff6; background: color-mix(in srgb, #1c6b5e 78%, transparent); border: 2px solid #8fe8c8; border-radius: 4px; cursor: pointer; touch-action: none; overflow: hidden; white-space: nowrap; animation: tb-obb-glow 1.1s ease-in-out infinite alternate; }
+/* D485, OBBLIGATO: the offer's button on each bar, over the play area outside it in the page: a touch on it is the button's,
+   never a note. Glowing, the bars tinged under it (paint-proto.ts OBB_TINGE). D487 (the owner: "obbligato at bottom of
+   buttons instead"): at each bar's foot, no longer its outer top corner (where the right one covered the "1 / 31" bar
+   counter): above the home indicator, or stacked just above the registration stops where they stand at the bars' feet
+   (each foot its own rows, --tb-stop-rows and --tb-stop-rows-right, 47 px a row). 34 px tall, so it lies in the strip under
+   the roll's lowest row (the roll's bottom margin row and the gap above the stops; the legend's floor 20 px deeper over
+   the stops): no row a note can ask for is under it. */
+.tb-obbligato { position: fixed; z-index: 13; bottom: calc(env(safe-area-inset-bottom, 0px) + 3px); box-sizing: border-box; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); height: 34px; margin: 0; padding: 2px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--tg-pixel); line-height: 1; color: #ffffff; background: #0a3f37; border: 2px solid #a8ffe0; text-shadow: 1px 1px 0 #000; border-radius: 4px; cursor: pointer; touch-action: none; overflow: hidden; white-space: nowrap; animation: tb-obb-glow 1.1s ease-in-out infinite alternate; }
 .tb-obbligato-left { left: calc(var(--tg-sal) + 6px); }
 .tb-obbligato-right { right: calc(var(--tg-sar) + 6px); }
-.tb-obbligato-name { font-size: 6px; letter-spacing: 1px; color: #bff5e2; }
-.tb-obbligato-inst { font-size: 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.tb-has-side-stops .tb-obbligato-left { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows, 1) * 47px + 1px); }
+.tb-has-side-stops .tb-obbligato-right { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + 1px); }
+/* The word in force (Busoni's, the right foot) and the side legend step up over the button while it shows. */
+html:has(.tb-obbligato) .tb-side-gloss { bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 40px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 44px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 64px); }
+/* D487 (the owner: "it was also unreadable"): the instrument in the box's title size (9 px, the HUD's), white on an opaque deep
+   green with a dark shadow, whatever the tinted bar under it; a long name (or its translation) in 8 px on two lines, in full. */
+.tb-obbligato-name { font-size: 7px; letter-spacing: 1px; color: #a8ffe0; }
+.tb-obbligato-inst { font-size: 9px; max-width: 100%; overflow: hidden; text-align: center; }
+.tb-obbligato-long .tb-obbligato-inst { font-size: 8px; line-height: 1.15; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.tb-obbligato-long { gap: 2px; }
 @keyframes tb-obb-glow { from { box-shadow: 0 0 4px 1px rgba(143, 232, 200, 0.45); } to { box-shadow: 0 0 12px 4px rgba(143, 232, 200, 0.85); } }
 @media (prefers-reduced-motion: reduce) { .tb-obbligato { animation: none; box-shadow: 0 0 8px 2px rgba(143, 232, 200, 0.7); } }

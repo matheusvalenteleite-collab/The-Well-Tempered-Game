@@ -278,17 +278,9 @@ test("D311: SWITCHED-ON and TOMITA: the filter's brightness by the landing; a he
   assert.ok(Math.abs((wah[0].frequency as FakeParam).events.at(-1)!.v / ((wah[0].frequency as FakeParam).value) - 2 ** 1.2) < 1e-6, "swept up 1.2 octaves");
 });
 
-test("D311: BLEEPS AND BLOOPS: the mallet's hardness by the landing; held, the vibraphone's motor faster or slower", async () => {
-  const idx = async (x: number) => {
-    const s = await strike("modular", { touch: x });
-    return Math.max(...s.made.filter((n) => n.kind === "gain").map((n) => (n.gain as FakeParam).events.find((e) => e.type === "set" && e.t === DOWN)?.v ?? 0));
-  };
-  assert.ok(Math.abs((await idx(1)) / (await idx(0)) - 4) < 0.05, "×0.5 to ×2 at the strike");
-  const s = await strike("modular", { touch: 0.5 });
-  const lfo = s.made.find((n) => n.kind === "oscillator" && Math.abs((n.frequency as FakeParam).value - 5.5) < 1e-9)!;
-  s.ctx.advance(DOWN + 0.5);
-  s.sd.shape?.(1);
-  assert.ok(Math.abs((lfo.frequency as FakeParam).events.at(-1)!.v - 5.5 * 2 ** 1.2) < 1e-9);
+test("D311, D433: BLEEPS AND BLOOPS retired: no offered sound takes the mallets' touch; the landing's hardness kept in the engine", () => {
+  assert.equal(TOUCH_KINDS.modular, undefined);
+  assert.ok(Math.abs(landing("bleeps", 1, 64, PATCHES.modVibe).strike! / landing("bleeps", 0, 64, PATCHES.modVibe).strike! - 4) < 0.05, "×0.5 to ×2 at the strike");
 });
 
 test("D311: a note without a touch (the band's) is as before: no expression stage, no shape", async () => {

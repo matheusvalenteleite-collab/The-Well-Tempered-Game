@@ -1,6 +1,7 @@
 /** D327: the reading's marks a round has, as the side bar's legend lines (readings.ts markLegend, in its order). */
 import { markLegend, marksHas, type MarkNote } from "../touch/readings.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
+import { hardTapDevice } from "../touch/motion.ts";
 
 /** D370: a reading's mark with its place in a slur (readings.ts markOf). */
 export type Mark = MarkNote;
@@ -31,3 +32,8 @@ export const SHORT_LEGEND: Record<string, string> = {
   hairpin: "HAIRPINS: THE LINE FOLLOWS",
   words: "WORDS: TRANSLATED BELOW",
 };
+
+/** D425 over D483: the accent's short line a hard tap where the phone feels one (motion.ts hardTapDevice), else the strong zone. */
+export function shortLegend(kind: string): string | undefined {
+  return kind === "strong" && hardTapDevice() ? "ACCENT: TAP HARD, ON TIME" : SHORT_LEGEND[kind];
+}

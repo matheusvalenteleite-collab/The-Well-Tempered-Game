@@ -26,6 +26,8 @@
  *   STRINGS, WINDS, VOICES: two thumbs give a new bow (the string's own re-bow), a soft new tongue or
  *     syllable; a slide glides, its time constant a quarter of the slide's (10–90 ms); chips and synths
  *     keep the slide's portamento, timed the same way.
+ *   D424: on strings, voices and synths a SET-AND-RELEASE is the slur and a slide's portamento follows the
+ *     thumb (touchFamily, joinedSound, slidePitch below); a two-thumb join on a synth retriggers.
  */
 import { MECH } from "./mechanics.ts";
 import type { TouchFugue } from "../touch/fugue.ts";
@@ -73,7 +75,10 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "harpsichordSampled" || presetId === "lute") return "plucked";
   if (presetId === "pianoSampled") return "piano";
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
-  if (presetId === "stringConsort") return "bowed";
+  // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
+  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "trialBrass") return "bowed";
+  // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato).
+  if (presetId === "trialJazz" || presetId === "trialClavichord") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
@@ -219,4 +224,158 @@ export function labPlayParam(search: string): "glenn" | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * D424, THE OWNER'S TOUCHES, EACH ITS OWN SOUND (on sustaining sounds; under MECH.glenn). The owner named
+ * them: TAP (one thumb, note after note: always a gap); HANDOFF, JOIN, OVERLAP (the thumbs take turns: a
+ * small gap, no audible gap (≤ 25 ms), the next landing before the first lifts); SET-AND-RELEASE (the
+ * game's PREPARED + PULL-OFF, D334: the next thumb rests silently on the next note, which sounds as the
+ * other lifts; and HOLD-OVER, D364, its appoggiatura); SLIDE (one thumb moves to the next note without
+ * lifting). The rule: a slide does only what continuous contact can do; two thumbs cover joining; on a
+ * sustaining sound SET-AND-RELEASE is the slur (deliberate, so it carries its own sound and an accidental
+ * overlap is never punished by it).
+ *
+ *   STRINGS (STRING CONSORT): a TAP a separate bow with space; a JOIN a new bow, joined (Patch.bow);
+ *     SET-AND-RELEASE a SLUR: the same bow, no bite (Play.slur: the recording's slur path), the left hand
+ *     changes the note; a SLIDE a portamento inside the slur, the pitch following the thumb.
+ *   VOICES (SOLO VOICES, VOCAL SYNTH): a TAP a separate syllable; a JOIN a soft new syllable (D376);
+ *     SET-AND-RELEASE a slur on one vowel (no consonant, no new onset); a SLIDE a portamento in the vowel.
+ *   SYNTHS (the chips, consoles and synthesizer records): a JOIN retriggered (a new attack); SET-AND-
+ *     RELEASE the mono-synth legato (Play.legato: no retrigger, the pitch changed under the held
+ *     envelope); a SLIDE the tracker's pitch slide (3xx), the pitch following the thumb.
+ *
+ * Keyboards (harpsichord, piano, organ), the lute and TRAVERSO: unchanged (null here).
+ */
+export type TouchFamily = "strings" | "voices" | "synths";
+const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
+  stringConsort: "strings",
+  // D430: BAROQUE BAND as the consort; its oboe's Patch.bow a tongue (sound.ts WIND_TONGUE).
+  baroqueBand: "strings",
+  // TRIALS: the winds and brass as the strings (Patch.bow as a tongue, sound.ts WIND_TONGUE): a JOIN a soft new tongue, SET-AND-RELEASE the legato (slur).
+  trialWinds: "strings",
+  trialBrass: "strings",
+  soloVoices: "voices",
+  vocalSynth: "voices",
+  chip: "synths",
+  gameboy: "synths",
+  super16: "synths",
+  nocturne32: "synths",
+  megaFm: "synths",
+  sid64: "synths",
+  tracker: "synths",
+  analog: "synths",
+  tomita: "synths",
+};
+/** D424: a preset's family for the touches' sounds (null: a keyboard, the lute, any other: unchanged). */
+export const touchFamily = (presetId: string): TouchFamily | null => TOUCH_FAMILIES[presetId] ?? null;
+
+/** How a joined note was joined, for its sound (D424): two thumbs taking turns, a set thumb released, or a slide. */
+export type JoinTouch = "join" | "set-release" | "slide";
+/**
+ * D424: whether a note sounds legato (no new attack, bow, consonant or retrigger) and whether it is a
+ * slur (Play.slur: a bowed string's same bow), by family and touch. `joined` false: a separate note (a
+ * TAP). A null family: the old rule (joined is legato: D302; D358's new bow on a string).
+ */
+export function joinedSound(fam: TouchFamily | null, joined: boolean, how: JoinTouch): { legato: boolean; slur: boolean } {
+  if (!joined) return { legato: false, slur: false };
+  if (!fam) return { legato: true, slur: false };
+  if (how === "set-release" || how === "slide") return { legato: true, slur: true };
+  // A JOIN, HANDOFF or OVERLAP: strings a new bow (legato, Patch.bow), voices a soft new syllable (proto-game.ts), synths retriggered.
+  return { legato: fam !== "synths", slur: false };
+}
+
+/** D424: the portamento's smoothing while it follows the thumb (s, a time constant). */
+export const SLIDE_TRACK_TAU = 0.02;
+/**
+ * D424: a slide's pitch from the thumb's height (fretless): from the departure row `y0` (the note held,
+ * `from`) toward the arrival row `yTo` (the next note, `to`), linear in semitones; nothing within `deadPx`
+ * of the departure (a resting thumb's wander) or the other way; the whole step once within `reachPx` of
+ * the arrival (the slide's own arrival, D376), never past it.
+ */
+export function slidePitch(from: number, to: number, y0: number, yTo: number, y: number, deadPx: number, reachPx: number): number {
+  const dist = Math.abs(yTo - y0);
+  if (!(dist > 0) || from === to) return from;
+  const travel = (y - y0) * Math.sign(yTo - y0);
+  if (travel <= deadPx) return from;
+  const span = Math.max(1, dist - reachPx - deadPx);
+  return from + (to - from) * Math.min(1, (travel - deadPx) / span);
+}
+
+/**
+ * D426, THE KEYBOARDS' AND THE LUTE'S SLIDES (the rest of D424's touches; under MECH.glenn). The owner's
+ * rule: "the slide will not do the same thing as something one can do with two thumbs alternating or
+ * intersecting": two thumbs cover every grade of joining, so a slide does only what continuous contact can.
+ *
+ *   PIANO, THE HAIRPIN: each slid note's loudness from where the thumb is across the strip as it sounds,
+ *     continuous (touch-expr.ts pianoHairpinDb: soft side to strong side over the zones' ±3 dB, about the
+ *     line's level): drifting across while sliding a crescendo or diminuendo over the group. It replaces
+ *     D376's taper inside a slide's slur; the slide's first note, a landing, keeps its zone.
+ *   HARPSICHORD, ORGAN, THE COULÉ: a slide over a third or more fills in the scale steps between
+ *     (couleFill), played quickly just before the arrival so the arrival stays on time (couleTiming); a
+ *     slide over a step stays the plain join (D376: struck on arrival).
+ *   LUTE, THE LEFT-HAND SLUR: the next note without a new pluck: the sounding course retuned (a quick
+ *     hammer, about 10 ms), about 3 dB under; over a fourth or more a glissando along the string, the pitch
+ *     following the thumb (slidePitch, as D424's portamento), and no pluck (luteSlur).
+ */
+export type KeyboardSlide = "hairpin" | "coule" | "slur";
+/** D426: what a slide does on a sound (null: D424's families, TRAVERSO, any other: as before). */
+export function keyboardSlide(presetId: string): KeyboardSlide | null {
+  if (presetId === "pianoSampled") return "hairpin";
+  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled" || presetId === "trialClavichord") return "coule";
+  if (presetId === "lute") return "slur";
+  return null;
+}
+
+const NATURAL_PC = [0, 2, 4, 5, 7, 9, 11];
+/** A staff step's natural pitch (protos.ts stepPitch's numbering). */
+const naturalOf = (s: number): number => NATURAL_PC[((s % 7) + 7) % 7] + 12 * (Math.floor(s / 7) + 1);
+/**
+ * D426, THE COULÉ's notes: the scale steps strictly between two notes a third or more apart (by staff
+ * step), in the order the slide travels; each its letter's pitch as `alter` gives it (the accidentals in
+ * force at the arrival, else the key signature: semitones, by letter 0 C … 6 B). A step, a repeat: none.
+ * A pitch that would not lie strictly between the two (a strange spelling) is left out.
+ */
+export function couleFill(from: { step: number; midi: number }, to: { step: number; midi: number }, alter: (letter: number) => number): number[] {
+  const d = to.step - from.step;
+  if (Math.abs(d) < 2) return [];
+  const dir = Math.sign(d);
+  // The step numbering's octave offset (the two notes' own alteration is within ±2 semitones).
+  const off = 12 * Math.round((from.midi - naturalOf(from.step)) / 12);
+  const lo = Math.min(from.midi, to.midi);
+  const hi = Math.max(from.midi, to.midi);
+  const out: number[] = [];
+  for (let s = from.step + dir; s !== to.step; s += dir) {
+    const m = naturalOf(s) + off + alter(((s % 7) + 7) % 7);
+    if (m > lo && m < hi && !out.includes(m)) out.push(m);
+  }
+  return out;
+}
+
+/** D426: a coulé's note no shorter than this (s): under it, there is no time and no fill. */
+export const COULE_MIN_S = 0.025;
+/**
+ * D426, THE COULÉ's timing (s on one clock): `n` notes ending at the arrival note's time (`arriveOn`: the
+ * arrival stays on time), each the time of the thumb's travel shared out, but no longer than the piece's
+ * ornament unit (`unit`: Quantz's, as ornament-play.ts uses), none before `now` (the slide seen) nor before
+ * the departure note's half (from its onset `departOn` to the arrival). Their starts, or null: no time
+ * (each under COULE_MIN_S), no fill.
+ */
+export function couleTiming(n: number, o: { now: number; departOn: number; arriveOn: number; unit: number }): number[] | null {
+  if (n <= 0) return null;
+  const start = Math.max(o.now, o.departOn + (o.arriveOn - o.departOn) / 2, o.arriveOn - n * o.unit);
+  const each = (o.arriveOn - start) / n;
+  if (!(each >= COULE_MIN_S)) return null;
+  return Array.from({ length: n }, (_, k) => start + k * each);
+}
+
+/** D426: the lute's left-hand slur: about 3 dB under a pluck, a hammer of about 10 ms, a glissando from a fourth (5 semitones) up. */
+export const LUTE_SLUR = { db: -3, hammerS: 0.01, glissFrom: 5 } as const;
+/**
+ * D426: the lute's slide from `from` to `to` (MIDI): never a new pluck; its level (a factor on the
+ * sounding course, Sounding.dyn) and the pitch's time constant (a third of the hammer: 95% there in
+ * 10 ms); over a fourth or more a glissando (the pitch has followed the thumb: slidePitch).
+ */
+export function luteSlur(from: number, to: number): { pluck: false; gliss: boolean; level: number; tau: number } {
+  return { pluck: false, gliss: Math.abs(to - from) >= LUTE_SLUR.glissFrom, level: 10 ** (LUTE_SLUR.db / 20), tau: LUTE_SLUR.hammerS / 3 };
 }

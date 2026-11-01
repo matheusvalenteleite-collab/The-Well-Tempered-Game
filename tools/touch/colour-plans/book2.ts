@@ -83,8 +83,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f08: {
-    sound: "nocturne32",
-    soundWhy: "Heavy melancholy and great seriousness (Keller), one of the fugues Mozart arranged for string quartet (K.405, 1782): NOCTURNE 32-BIT's violin and viola over the organ's pedal.",
+    sound: "stringConsort",
+    soundWhy: "Heavy melancholy and great seriousness (Keller), one of the fugues Mozart arranged for string quartet (K. 405, 1782): STRING CONSORT, a quartet one to a part, as Mozart scored it.",
     character: "Cadences in F♯ (30), A♯ minor (35), D♯ minor (43); an episode 36-40; the inversion in stretto at 43.",
     plans: {
       nocturne32: [at(36, { tone: -2 }, "The episode 36-40 darker."), at(E("wtc2f08", 40), OWN, "The bass's entry."), at(43, { room: 0.1 }, "The last stretto (43) further into the hall.")],
@@ -127,11 +127,10 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f12: {
-    sound: "modular",
-    soundWhy: "'With caprice and a certain humour, softening to ease in the episodes' (Keller): BLEEPS AND BLOOPS' vibraphone, combo organ and synth upright, whose mallets can soften.",
+    sound: "tracker",
+    soundWhy: "'With caprice and a certain humour, softening to ease in the episodes' (Keller): TRACKER's violin, harpsichord and bass, dry and panned.",
     character: "Episodes 15-24, 33-40, 54-71, 78-85; the relative major 24-31 (Ledbetter); dominant pedals 50-53 and 80-83.",
     plans: {
-      modular: [at(15, { strike: 0.7 }, "The episode softening (Keller): soft mallets."), at(E("wtc2f12", 24), OWN, "The relative major (24)."), at(54, { strike: 0.7 }, "The long episode 54-71."), at(E("wtc2f12", 71), OWN, "The last entries.")],
       harpsichordSampled: [at(1, H84, "8′+4′."), at(15, H8, "The episodes on the 8′ (Keller's softening)."), at(E("wtc2f12", 24), H84, "The entry."), at(54, H8, "The episode 54-71."), at(E("wtc2f12", 71), H84, "The last entries.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(15, OFLUTE, "The episode on the flutes."), at(E("wtc2f12", 24), OPRIN, "The entry."), at(54, OFLUTE, "The episode 54-71."), at(E("wtc2f12", 71), OPRIN, "The entry."), at(80, OFONDS, "The dominant pedal (80-83).")],
     },
@@ -177,8 +176,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f16: {
-    sound: "harpsichordSampled",
-    soundWhy: "Molto feroce (Bodky), a declamation 'with raised voice, a hurled protest' (Keller): Bodky's many terraces on the two-manual harpsichord.",
+    sound: "baroqueBand",
+    soundWhy: "Molto feroce (Bodky), 'a hurled protest' (Keller), four voices: BAROQUE BAND, the bass entering last (bar 13) on the cello with the continuo harpsichord.",
     character: "Bodky's terraces (both hands): f, p 17, f 20, p 24, f 28, p 40, f 45; the right hand alone p 59-63; coupled 67.",
     plans: {
       harpsichordSampled: [
@@ -198,8 +197,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f17: {
-    sound: "super16",
-    soundWhy: "A festive concerto subject with grace and solemnity (Keller): SUPER 16-BIT's violin, harpsichord, strings and bassoon, a baroque band (D275's reading).",
+    sound: "baroqueBand",
+    soundWhy: "A festive concerto subject with grace and solemnity (Keller): BAROQUE BAND (D275's reading), the bass entering last (bar 8) on the cello with the continuo harpsichord.",
     character: "Bodky's terraces: f, p (10⅛), f (16), p (27), f (35), full (46).",
     plans: {
       super16: [at(10.125, { room: 0.18 }, "Bodky's piano span (10-16) in the SPC echo."), at(16, OWN, "Dry (16)."), at(27, { room: 0.18 }, "The piano span 27-35."), at(35, OWN, "Dry (35).")],
@@ -240,8 +239,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f21: {
-    sound: "super16",
-    soundWhy: "Lightly animated, with grace and serene unconcern (Keller), a 'cradle', peace on earth (Bodky): SUPER 16-BIT's violin, harpsichord and bassoon, its echo for the cradle.",
+    sound: "baroqueBand",
+    soundWhy: "Lightly animated, with grace and serene unconcern (Keller), a 'cradle' (Bodky): BAROQUE BAND, the bass entering last (bar 13) on the cello with the continuo harpsichord.",
     character: "A first half 1-32 (Ledbetter) to the cadence in F; Bodky's spans pp, p (32), f (78).",
     plans: {
       super16: [at(1, { room: 0.12 }, "Bodky's pp first half in the SPC echo."), at(B("wtc2f21", 32), OWN, "Dry after the cadence in F (32).")],

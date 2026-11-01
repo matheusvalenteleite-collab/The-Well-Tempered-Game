@@ -41,10 +41,11 @@ function layerCalls(preset: string, fx: SubjectFx) {
   return { v, vs };
 }
 
-test("D405: the cause: I/2's glass spark (an FM bell an octave up) sounds over the harpsichord, never over the recorded piano", () => {
+test("D405, D428: I/2's glass spark (an FM bell an octave up) sounds over no sound now: not the piano, not the harpsichord", () => {
   const glass = TAILORED.wtc1f02[1];
   assert.equal(glass.layers[0].kind, "ping");
-  assert.ok(layerCalls("harpsichordSampled", glass).vs.length > 0, "the harpsichord keeps it");
+  assert.equal(layerCalls("harpsichordSampled", glass).vs.length, 0, "not on the harpsichord (D428)");
+  assert.equal(layerCalls("stringConsort", glass).vs.length, 0, "not on the consort (D428)");
   assert.equal(layerCalls("pianoSampled", glass).vs.length, 0, "not on the piano");
 });
 
@@ -60,7 +61,7 @@ test("D405: on the recorded piano no effect of any fugue sounds a synthesized pa
   assert.ok(own > 0, "I/10's echo and I/4's second choir still sound");
 });
 
-test("D405 regression, I/2 on the piano with BUSONI: every note the band and the player make is the piano's recording, none synthesized; on the harpsichord the spark stays", () => {
+test("D405 regression, I/2 on the piano with BUSONI: every note the band and the player make is the piano's recording, none synthesized; D428: on the harpsichord none either", () => {
   setLab({});
   const f = fugueById("wtc1f02");
   const run = (preset: string) => {
@@ -88,7 +89,7 @@ test("D405 regression, I/2 on the piano with BUSONI: every note the band and the
   assert.equal(bad.length, 0, `synthesized on the piano: ${bad.slice(0, 5).map((x) => x.midi).join(", ")}`);
   assert.ok(Math.max(...piano.map((x) => x.midi)) <= 84, "nothing an octave over the soprano's C6");
   const harp = run("harpsichordSampled");
-  assert.ok(harp.some((x) => x.v.patch?.sample !== "harpsichord"), "the harpsichord's glass spark");
+  assert.equal(harp.filter((x) => x.v.patch?.sample !== "harpsichord").length, 0, "no glass spark on the harpsichord (D428)");
   setPreset("pianoSampled");
 });
 

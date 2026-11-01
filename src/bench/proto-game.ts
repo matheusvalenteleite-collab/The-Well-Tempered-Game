@@ -12,7 +12,7 @@
  * it sounds by itself once that note is played right, and is neither judged nor counted.
  */
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
-import { contextSteps, fallingSecondAfter, freeOrnamentParts, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { contextSteps, fallingSecondAfter, freeOrnamentParts, keySignature, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
@@ -23,7 +23,8 @@ import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMark, type Touch } from "./fingering.ts";
 import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
-import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentWhy } from "./accent.ts";
+import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentBy, type AccentWhy } from "./accent.ts";
+import { HARD_RAMP_MS, hardDb, hardForAccent, StrikeSlot, type HardFamily, type StrikeSource } from "../touch/hard-tap.ts";
 import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
@@ -31,7 +32,7 @@ import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
 import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
 /** D445: an entry's points, whole (paid by the share of its notes right). */
 const ENTRY_POINTS = 20;
-import { exprFamily, GLENN, isKeyboard, joinedByEar, nextStrongBeat, overHoldS, RingList, slideGlideTau, slidePhase, SlideSlur, slurRingS, slurTaperDb } from "./glenn.ts";
+import { couleFill, couleTiming, exprFamily, GLENN, isKeyboard, joinedByEar, joinedSound, keyboardSlide, LUTE_SLUR, luteSlur, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, slidePitch, SlideSlur, slurRingS, touchFamily } from "./glenn.ts";
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 import { findRuns, runTrend, type Run } from "./runs.ts";
@@ -46,6 +47,9 @@ export const SPLIT_FLOOR_MS = 60;
 export const DOUBLE_MS = 120;
 /** D289: the least travel of a held thumb that slides on to the next note (px). */
 export const SLIDE_MIN_PX = 10;
+/** D426: Herr Bach's slide sets off at this share of the time between its notes, and moves about this often a second on its way. */
+export const DEMO_SLIDE_FROM = 0.6;
+export const DEMO_SLIDE_FPS = 60;
 /**
  * D318, THE SLUR'S SECOND THUMB (slurNext): while the other thumb holds the voice's note before, a landing
  * strikes the next note up to SLUR_EARLY_SHARE of the time between their onsets early (at most
@@ -78,14 +82,15 @@ import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
-import { slideGesture } from "./slide-sound.ts";
+import { SLIDE_SOUND, slideGesture } from "./slide-sound.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
-import { PATCHES, preset } from "../touch/sound.ts";
+import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
+import { liftGain } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
-import { colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
+import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
@@ -172,6 +177,8 @@ export interface Contact {
   y: number;
   w: number;
   h: number;
+  /** D425: how hard it struck (0 soft .. 1 hard), where known at touchdown: Herr Bach's demonstration, a test's player (else read by ProtoGame.strikes). */
+  strike?: number;
 }
 
 /** A key of a computer or a MIDI keyboard: a pitch (MIDI), or a move (the computer's arrows and WASD). */
@@ -244,7 +251,11 @@ interface Held {
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
   wantShort?: boolean;
   /** D338: its note is the reading's accent, struck on time or leaned and not joined from the note before (or not: why): its hold judged at its end. */
-  wantAccent?: { why: AccentWhy | null };
+  wantAccent?: { why: AccentWhy | null; pending?: boolean; then?: () => void };
+  /** D425: how hard the touch struck (the motion sensor's peak by the calibration, or given), read once after its touchdown. */
+  strike?: StrikeSlot;
+  /** D425: its strike already given to a note (a slide, a pull-off or a press after it strikes nothing). */
+  strikeUsed?: boolean;
   /** D314: how its note sounds (the voicing and play it was struck with), for a free ornament's notes. */
   tone?: { v: ReturnType<typeof voicing>; play: Play };
   /** D314: a shake under way on its note (D353: free-ornament.ts ShakeReader), the note it is on, the legs counted. */
@@ -330,6 +341,14 @@ interface Held {
   slLate?: { on: number; curY: number; nextY: number; off: number; until: number; short?: number };
   /** D321, "connect": a glide under way (the sound, from and to MIDI, its start on the audio clock, its length in ms). */
   glider?: { sd: Sounding; from: number; to: number; t0: number; ms: number };
+  /** D424: the pitch (MIDI, fractional) a slide's portamento has carried the held sound to, while it follows the thumb (unset: at its note). */
+  bent?: number;
+  /**
+   * D426, THE COULÉ (harpsichord, organ): a slide over a third or more under way: its arrival note (track
+   * index), the fill's notes (MIDI) and their starts (s, the game's clock: timeAt), the next to sound, how
+   * they sound; `dead` once the slide was given up (no more of them).
+   */
+  coule?: { i: number; notes: number[]; at: number[]; next: number; v: ReturnType<typeof voicing>; play: Play; dead?: boolean };
 }
 
 /**
@@ -576,6 +595,12 @@ export class ProtoGame {
   /** When a banner was raised (performance.now()), and which. */
   banner: { text: string; at: number } | null = null;
   private chip: Chip;
+  /**
+   * D487: the player's voice's lift (a gain, 1: none) for the run: to the loudest other voice of the piece on this sound,
+   * and a little over (player-lift.ts). The game's owner applies it on the player's own bus (BenchApp: Chip.mine). A
+   * constant of the piece, the voice and the sound: never of the play. None WITH KIMIKO, alone, or with two voices played.
+   */
+  readonly lift: number;
   beat: number;
   private perBar: number;
   private anchorAt: number;
@@ -614,8 +639,11 @@ export class ProtoGame {
     this.subj = new SubjectSound(f);
     this.o = o;
     this.chip = chip;
+    const mine = Array.isArray(voices) ? voices : [voices];
+    this.lift = o.her || o.solo || mine.length !== 1 ? 1 : liftGain(f.id, preset().id, mine[0], f.voices.length);
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
-    if (!o.her) {
+    // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
+    if (!o.her && !busoniLeads(o.reading?.whole, busoniReaches(preset().id))) {
       if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
       else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
     }
@@ -939,6 +967,12 @@ export class ProtoGame {
    * with it or without it (the game never sets it).
    */
   noteDyn: ((n: NoteDynAsk) => NoteDynAnswer | null) | null = null;
+  /**
+   * D425, THE HARD TAP: where each touchdown's strength is read from (the motion sensor: hard-tap.ts
+   * motionStrikes; set by the page when the sensor answers). Null: none (a computer, refused): the accent
+   * falls back on the strong zone.
+   */
+  strikes: StrikeSource | null = null;
   /** D317: how LADDER judged the last touch's height (for the tap). */
   private ladderWhy: LadderWhy | undefined;
   /** D317: the note nearest a stray touch (for the tap). */
@@ -1291,6 +1325,12 @@ export class ProtoGame {
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
       if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
+      // D429: a bowed band note (Patch.bow) joined as a string player joins: inside one of the reading's slurs the
+      // same bow (a slur), any other join a new bow (bow change); its give-way to the next likewise.
+      const bowed = !!vv.patch?.bow && MECH.glenn;
+      const place = bowed && this.whole ? wholeAsks(this.whole).get(`${n.voice}:${n.on}`)?.slur : undefined;
+      const bowIn: Play = bowed && jn.legato ? (place === "mid" || place === "last" ? { slur: true } : { bowChange: true }) : {};
+      const bowOut: Play = bowed && jn.tie ? { give: place === "first" || place === "mid" ? "slur" : "bow" } : {};
       // D355: the band's colour where the note starts (colour.ts).
       const cl = this.colour?.at(n.on, n.voice) ?? null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
@@ -1303,7 +1343,7 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         // D485: a boosted entry's note (a later entry in stretto with the player's): its layer.
         this.layerOf(n.voice, n.on, pmidi, pat, plen, vv, { ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
@@ -1429,8 +1469,8 @@ export class ProtoGame {
     return [...this.held.values()].map((h) => ({ side: h.side, y: h.ay, ...(h.wait?.prep ? { armed: true } : {}), ...(h.land !== undefined && h.across !== undefined && this.proto.layout === "bars" ? { across: barAcross(h.across * this.touchW, this.touchW), land: strengthOf(h.land) } : {}) }));
   }
   /** D280: the thumbs down now: side, height, where across (0..1 of the width), shaking. */
-  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean; t0?: number; was?: number }[] {
-    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done, t0: h.t0, was: wasAt(h.trail) }));
+  thumbsDown(): { side: Side; y: number; fx: number; shaking: boolean; t0?: number; was?: number; hard?: boolean }[] {
+    return [...this.held.values()].filter((h) => !h.passive).map((h) => ({ side: h.side, y: h.trail.at(-1)?.y ?? h.ay, fx: h.across ?? 0.1, shaking: !!h.orn && !h.orn.done, t0: h.t0, was: wasAt(h.trail), ...(hardForAccent(h.strike?.value ?? null) ? { hard: true } : {}) }));
   }
 
   /**
@@ -1455,8 +1495,11 @@ export class ProtoGame {
     const planNotes: PlanNote[] = heads.map(({ n, i }, k) => {
       const o = this.ornaments.get(`${this.voiceOf(0, i)}:${n.on}`);
       const place = rd ? this.readingIndex().get(`0:${n.on}`) : undefined;
-      const rn = rd && place !== undefined ? rd.notes[place] : undefined;
-      const d = rn?.accent ? 0.9 : rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
+      // D422: under a whole-piece reading (BUSONI) his demonstration asks of every note what the box draws
+      // (wholeAsks: the countersubjects and free voices too), not only the subject's entries.
+      const wa = this.wholeAsking() ? this.wholeAskOf(0, i) : undefined;
+      const rn = wa ? { join: wa.portato || wa.tenuto ? false : wa.join, short: wa.short, accent: wa.accent } : rd && place !== undefined ? rd.notes[place] : undefined;
+      const d = rn?.accent ? 0.9 : !wa && rd?.level && place !== undefined ? LEVEL_D[rd.level] : (sigh(k) ?? loud(n.on));
       return { at: n.on, dur: n.dur, step: n.step, d, join: rn?.join ?? null, short: rn?.short ?? null, accent: rn?.accent ?? null, shake: o ? shakeOf(o) : null };
     });
     // D370: the thumbs by the music's intent (fingering.ts planFingerings: the best plan).
@@ -1510,21 +1553,40 @@ export class ProtoGame {
         if (t.slid && parent >= 0) {
           const pid = 90000 + parent;
           const side = plan[parent].side;
-          q.push({
-            tick: t.on,
-            act: () => {
-              // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
-              // D414: to the note's block as drawn (its shift included).
-              const want = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 });
-              const dir = t.step > plan[p - 1].step ? -1 : 1;
-              y += dir * Math.max(SLIDE_MIN_PX, dir * (want - y));
-              this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
-            },
-          });
+          // D426: the slide a visible, gradual move from the departure row to the arrival row over the last
+          // part of the time between the notes (from DEMO_SLIDE_FROM of it), a move about every frame
+          // (DEMO_SLIDE_FPS: 3 to 24 of them), arriving on the note's time: the gesture seen, D424's
+          // portamento heard (it was one jump to the note). D438 (D414, D486): to the next note's block as
+          // drawn, in the thumb's own frame (its offset from the note it landed on kept); D486's rule sounds it
+          // as the move passes halfway (in its phase, from the note's opening: slide-rule.ts), the move then
+          // carried on to the block, never past it (no TOO FAR); the slide's sound by SLIDE_SOUND (slideColour,
+          // or D424's portamento along the move).
+          const prevOn = plan[p - 1].on;
+          const from = prevOn + DEMO_SLIDE_FROM * (t.on - prevOn);
+          const steps = Math.max(3, Math.min(24, Math.round(((t.on - from) / this.tps) * DEMO_SLIDE_FPS)));
+          const way: { y0?: number } = {};
+          for (let k = 1; k <= steps; k++)
+            q.push({
+              tick: k === steps ? t.on : from + ((t.on - from) * k) / steps,
+              act: () => {
+                // D289: a slide goes to the note's own height (at least SLIDE_MIN_PX), always the way the line goes (D271: one way).
+                way.y0 ??= y;
+                // D414: to the note's block as drawn (its shift included), the thumb's offset from the block it landed on kept (D486's frame).
+                const prev = plan[p - 1];
+                const off = way.y0 - this.drawnY({ step: prev.step, midi: demoNotes[prev.i]?.midi ?? 0 });
+                const want = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 }) + off;
+                const dir = t.step > plan[p - 1].step ? -1 : 1;
+                const to = way.y0 + dir * Math.max(SLIDE_MIN_PX, dir * (want - way.y0));
+                y = way.y0 + ((to - way.y0) * k) / steps;
+                this.move(pid, { side, x: xOf(side, t.d), y, w: W, h: H }, performance.now());
+              },
+            });
           return;
         }
         parent = p;
-        q.push({ tick: t.land ?? t.on, act: () => ((y = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 })), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H }, performance.now())) });
+        // D425: his accents struck hard (a synthetic strength, as a phone would read it), the rest softly.
+        const strike = this.asksAccent(0, t.i) ? 1 : 0.25;
+        q.push({ tick: t.land ?? t.on, act: () => ((y = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 })), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H, strike }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
           // D353: the legs as quick as the contour reader asks (each within half its mordent leg), from the landing.
@@ -2058,6 +2120,12 @@ export class ProtoGame {
     h.land = this.landAt(c);
     this.lastLand[h.k] = h.land;
     this.landNow[c.side] = h.land;
+    // D425: the strike's strength, given (the demonstration) or read from the motion sensor just after the touchdown.
+    h.strike = new StrikeSlot(c.strike !== undefined ? Math.max(0, Math.min(1, c.strike)) : this.strikes ? undefined : null);
+    if (h.strike.value === undefined) {
+      const slot = h.strike;
+      this.strikes!.read(ts, (s) => slot.set(s));
+    }
     this.held.set(id, h);
     this.strikeWith(id, h, ts, { c }, d);
     // HIGHWAY: where the hand is now.
@@ -2290,13 +2358,14 @@ export class ProtoGame {
    * note sounds it now, judged at this moment (from the note's own early window on; let go before that, it
    * stays prepared and silent). MECH.prepLate "lift": the note waits past its late window for this.
    */
-  private prepLift(h: Held, tk: number) {
+  private prepLift(h: Held, tk: number): boolean {
+    let sounded = false;
     if (h.overFrom) {
       const n = this.tracks[h.k].notes[h.overFrom.i];
       this.tap?.({ kind: "prep", what: "overlap", tick: tk, track: h.k, i: h.overFrom.i, midi: n?.midi ?? 0, side: h.side, ms: this.msOf(h.overFrom.tick, tk) });
       h.overFrom = undefined;
     }
-    if (h.wait || h.note < 0) return;
+    if (h.wait || h.note < 0) return false;
     for (const [wid, w] of this.held) {
       const p = w.wait;
       if (!p?.prep || w.k !== h.k) continue;
@@ -2318,6 +2387,7 @@ export class ProtoGame {
         this.appo = { grace: ho.grace, short };
       } else this.tap?.({ kind: "prep", what: "pull-off", ...base });
       this.gesture = "pull-off";
+      sounded = true;
       try {
         this.strikeWaiting(wid, w, false, tk);
       } finally {
@@ -2325,6 +2395,7 @@ export class ProtoGame {
         this.appo = null;
       }
     }
+    return sounded;
   }
   /** D364: the appoggiatura sounding now by the lift (prepLift → play): the held note's MIDI, short or long. */
   private appo: { grace: number; short: boolean } | null = null;
@@ -2588,8 +2659,8 @@ export class ProtoGame {
       }
     }
     // D314: any other held note: a shake along the bar is a free ornament (and, once begun, no slide).
-    if (this.freeShake(h, c, t)) return void ((h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
-    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return this.glennSlide(id, h, c, t, ms, gl);
+    if (this.freeShake(h, c, t)) return void (this.slideTrack(h, null), this.couleTrack(h, null), (h.slidePend = undefined), (h.gNear = undefined), (h.gWait = undefined));
+    if (MECH.glenn && this.proto.id === "ladder" && this.rows) return void (this.slideTrack(h, gl && c.y), this.couleTrack(h, gl && c.y), this.glennSlide(id, h, c, t, ms, gl));
     if (this.proto.id === "ladder" && this.rows) {
       // D208: a slide plays on only after a deliberate travel: a thumb's contact point wanders as it rolls
       // and lifts, and that wander took the next note from the other thumb. D289: the travel is the
@@ -2944,7 +3015,7 @@ export class ProtoGame {
       if (h.wait?.prep?.read) h.wait.prep.read.tick(ms);
       if (h.slidePend) this.trySlide(id, h, ms);
     }
-    if (MECH.glenn) this.glennFrames(ms);
+    if (MECH.glenn) (this.glennFrames(ms), this.couleFrames());
   }
   /** D353: slides wait for confirmation where a shake is read (LADDER on a phone, the gestures on, not BLUETOOTH MODE). */
   private slideGuarded(): boolean {
@@ -3118,6 +3189,94 @@ export class ProtoGame {
     if (y === undefined) return true;
     const reach = this.shakeTh().reach;
     return ys.every((p) => ms - p.ms > SLIDE.settleMs || Math.abs(p.y - y) < reach);
+  }
+  /**
+   * D424, THE SLIDE'S PORTAMENTO (strings, voices, synths; under MECH.glenn): while a thumb travels toward
+   * the next note, the note it holds follows it (fretless: the thumb's height between the departure row
+   * and the arrival row as pitch, glenn.ts slidePitch, smoothed SLIDE_TRACK_TAU), landing on the note as
+   * the slide arrives (play). Only the sound: the slide's judging (D376/D378) is unchanged. `y` null (a
+   * shake took the thumb, no slide to make): back to the note held. Keyboards, the lute: never (touchFamily null).
+   */
+  private slideTrack(h: Held, y: number | null | undefined) {
+    const sd = h.sounds.length === 1 ? h.sounds[0] : undefined;
+    // D438: only under SLIDE_SOUND "instruments" (the default "d486" sounds the slide's gesture at arrival: slideColour).
+    if (SLIDE_SOUND !== "instruments") return void (h.bent = undefined);
+    // D426: the lute's slide over a fourth or more a glissando along the string (glenn.ts luteSlur), followed the same way.
+    const lute = keyboardSlide(preset().id) === "slur";
+    if (!sd?.glide || !(touchFamily(preset().id) || lute) || h.note < 0) return void (h.bent = undefined);
+    let m = h.midi;
+    const notes = this.tracks[h.k].notes;
+    const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
+    // In the slide phase (D376: where slides travel), or else once the move has gone on for D376's
+    // confirmation (40 ms: a quick shake's leg is not bent toward the next note); never once a shake has
+    // turned on the note (its second leg counted, or a shake read: the pitch back to the note held).
+    const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
+    const going = !!gl && (gl.phase || (h.gStillMs !== undefined && this.evMs() - h.gStillMs >= GLENN.slideConfirmMs));
+    if (gl && going && !shaking && typeof y === "number" && chordOf(notes, notes.indexOf(gl.n)).length === 1 && !(h.slideDir && gl.want !== h.slideDir) && !(lute && !luteSlur(h.midi, gl.n.midi).gliss))
+      m = slidePitch(h.midi, gl.n.midi, h.ay, gl.target, y, MECH.slideMinPx, GLENN.slideReachRows * this.ladderRow);
+    const was = h.bent ?? h.midi;
+    if (Math.abs(m - was) < 0.01) return;
+    sd.glide(m, SLIDE_TRACK_TAU);
+    h.bent = m === h.midi ? undefined : m;
+  }
+  /**
+   * D426, THE COULÉ (harpsichord, organ; under MECH.glenn): a slide toward a note a third or more away fills
+   * in the scale steps between (glenn.ts couleFill: the key at the arrival, the accidentals in force in its
+   * bar), quickly, just before the arrival, so that the arrival note stays on time (couleTiming: the
+   * thumb's travel shared out, each no longer than Quantz's ornament unit, none before the departure note's
+   * half; no time, no fill). Planned once the slide is seen going (as D424's portamento: in the slide
+   * phase, or after D376's confirmation; not while a shake turns on the note), sounded each frame as each
+   * is due (couleFrames). Only the sound: free, never judged; the arrival is struck and judged as before
+   * (D376). A step: nothing here (the plain join). `y` null: a shake took the thumb, no fill.
+   */
+  private couleTrack(h: Held, y: number | null | undefined) {
+    // D438: only under SLIDE_SOUND "instruments" (the default "d486": slideColour's coulé, mordent, Pralltriller...).
+    if (SLIDE_SOUND !== "instruments" || keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
+    const notes = this.tracks[h.k].notes;
+    const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
+    const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
+    const going = !!gl && (gl.phase || (h.gStillMs !== undefined && this.evMs() - h.gStillMs >= GLENN.slideConfirmMs));
+    const toward = !!gl && typeof y === "number" && gl.want * (h.ay - y) > MECH.slideMinPx;
+    if (!gl || !going || shaking || !toward || chordOf(notes, notes.indexOf(gl.n)).length !== 1 || (h.slideDir && gl.want !== h.slideDir)) {
+      if (h.coule) h.coule.next ? (h.coule.dead = true) : (h.coule = undefined);
+      return;
+    }
+    const i = notes.indexOf(gl.n);
+    if (h.coule) return void (h.coule.i !== i && (h.coule.dead = true));
+    const cur = notes[h.note];
+    const fill = couleFill(cur, gl.n, (l) => this.alterAt(gl.n.on, l));
+    const unit = (60 / this.bpm) * ornamentUnit(this.bpm / 2);
+    const at = couleTiming(fill.length, { now: this.timeAt(this.now), departOn: this.timeAt(cur.on), arriveOn: this.timeAt(gl.n.on), unit });
+    if (!at || !h.tone) return;
+    h.coule = { i, notes: fill, at, next: 0, v: h.tone.v, play: { ...h.tone.play, legato: true } };
+    this.tap?.({ kind: "drag", tick: this.now, track: h.k, i, side: h.side, from: h.midi, to: gl.n.midi, how: "coule", fill, ms: at.length > 1 ? (at[1] - at[0]) * 1000 : (this.timeAt(gl.n.on) - at[0]) * 1000, dragMs: h.dragMs ?? 0 });
+  }
+  /** D426: each frame, a coulé's notes as they come due: each takes over from the one before (which rings into it, the slur's ring). */
+  private couleFrames() {
+    const nowS = this.timeAt(this.now);
+    for (const h of this.held.values()) {
+      const c = h.coule;
+      if (!c) continue;
+      if (this.tracks[h.k].notes[c.i]?.state !== "pending" || h.passive || h.handed) {
+        h.coule = undefined;
+        continue;
+      }
+      while (!c.dead && c.next < c.at.length && nowS >= c.at[c.next]) {
+        const t = this.chip.ctx.currentTime;
+        for (const sd of h.sounds) sd.stop(t + slurRingS(preset().id));
+        h.sounds = [this.touchNote(c.notes[c.next], t, HOLD_MAX, c.v, c.play)];
+        c.next++;
+      }
+    }
+  }
+  /** D426: a letter's alteration (semitones; 0 C … 6 B) at tick `on`: the latest note on it in its bar, in any voice, else the key signature. */
+  private alterAt(on: number, letter: number): number {
+    const barOn = [...this.f.bars].reverse().find((b) => b.on <= on)?.on ?? 0;
+    let best: [number, number] | null = null;
+    for (const v of this.f.voices) for (const n of v) if (n[0] >= barOn && n[0] <= on && ((n[3] % 7) + 7) % 7 === letter && (!best || n[0] >= best[0])) best = [n[0], n[2]];
+    const nat = [0, 2, 4, 5, 7, 9, 11][letter];
+    if (best) return ((((best[1] % 12) + 12) % 12) - nat + 18) % 12 - 6;
+    return keySignature(this.f.key)["CDEFGAB"[letter]] ?? 0;
   }
   /** D376: a slide arrived early sounds from here: half the note's PERFECT window before it. */
   private glennOpen(k: number, n: LaneNote): number {
@@ -3318,6 +3477,8 @@ export class ProtoGame {
     this.tap?.({ kind: "slide", tick: t, track: h.k, i, side: h.side, movedPx: h.ay - c.y });
     h.ay = c.y;
     notes[i].via = "slide";
+    // D426, THE PIANO'S HAIRPIN: the slid note's loudness from where the thumb is across the strip now (play: Play.hairpin).
+    if (MECH.glenn && keyboardSlide(preset().id) === "hairpin") h.land = this.landAt(c);
     this.play(id, h, i, { ok: true }, true, this.dynamicAt(c));
     this.slides++;
     // D286: the thumb is where it slid to, on the note it slid onto.
@@ -3596,8 +3757,10 @@ export class ProtoGame {
     else if (h.note >= 0 && h.sounds.length && !h.passive && this.tracks[h.k].notes[h.note]?.state === "hit") this.lastOff = { k: h.k, i: h.note, tick: this.tickOf(ts) };
     // D329: WHEN THE OTHER THUMB LIFTS: this release sounds a thumb resting early on the next note.
     if (MECH.waitSounds === "lift" && this.proto.id === "ladder") this.liftSounds(h, this.tickOf(ts));
-    // D334, PULL-OFF: this release sounds a thumb prepared on the next note.
-    if (MECH.prepare && this.proto.id === "ladder") this.prepLift(h, this.tickOf(ts));
+    // D334, PULL-OFF: this release sounds a thumb prepared on the next note. D427: on a bowed string the
+    // note let go then gives way as a slur (held to the new onset, crossing into it: chip.ts giveWay).
+    const pulled = MECH.prepare && this.proto.id === "ladder" && this.prepLift(h, this.tickOf(ts));
+    const giveWay = pulled && MECH.glenn && touchFamily(preset().id) ? ("slur" as const) : undefined;
     // Flicked upwards as it let go: the swoosh.
     const tr = h.trail;
     if (h.sounds.length && tr.length >= 2) {
@@ -3617,12 +3780,17 @@ export class ProtoGame {
     const a = h.armed;
     const own = a ? a.own.map((sd) => ({ stop: (when?: number) => sd.stop(Math.max(when ?? this.chip.ctx.currentTime, a.at + 0.05)), bend() {} })) : [];
     if (this.pedalDown) this.pedalled.push(...h.sounds, ...(h.fx ?? []), ...own);
-    else for (const sd of [...h.sounds, ...(h.fx ?? []), ...own]) sd.stop();
+    else {
+      for (const sd of h.sounds) sd.stop(undefined, giveWay);
+      for (const sd of [...(h.fx ?? []), ...own]) sd.stop();
+    }
   }
 
   /** Sounds note i (or what was asked for instead) and grades it. A slide glides on; the piano strikes again. */
   private play(id: number, h: Held, i: number, v: Verdict, slide: boolean, d: number) {
     const notes = this.tracks[h.k].notes;
+    // D426: a coulé under way ends with the note struck (its notes ring into it as the slide's slur does).
+    h.coule = undefined;
     if (notes[i]) for (const j of chordOf(notes, i)) this.struckBy.set(notes[j], h.side);
     // D218: struck by a new touch or key while the note before still sounds (held by another thumb or
     // key, or let go no more than legatoGapMs before: D289, a smooth handover, not a simultaneity): legato. A slide is
@@ -3703,6 +3871,17 @@ export class ProtoGame {
     const pid = preset().id;
     const fam = exprFamily(pid);
     const kbSlide = MECH.glenn && slide && isKeyboard(pid);
+    // D424: the owner's touches, each its own sound on strings, voices and synths (glenn.ts touchFamily,
+    // joinedSound): SET-AND-RELEASE (a pull-off, a hold-over's resolution) and a SLIDE the slur (the same
+    // bow, one vowel, the mono-synth legato); a JOIN, HANDOFF or OVERLAP a new bow, a soft new syllable, a
+    // retrigger. Keyboards and the lute (null) as before. Only the sound: the verdicts are untouched.
+    const touchFam = MECH.glenn ? touchFamily(pid) : null;
+    const setRelease = this.gesture === "pull-off";
+    const joinPlay = (e: Play, joined: boolean): Play => {
+      if (piano) return { ...e, legato: false };
+      const js = joinedSound(touchFam, joined, setRelease ? "set-release" : slide ? "slide" : "join");
+      return { ...e, legato: js.legato, ...(js.slur ? { slur: true } : {}) };
+    };
     let gPos = 0;
     if (MECH.glenn) {
       const ss = this.slideSlurOf(h.k);
@@ -3711,7 +3890,10 @@ export class ProtoGame {
       else ss.end();
     }
     if (gPos > 0 && fam === "piano") {
-      expr = { ...expr, group: gPos, level: (expr.level ?? 1) * dbToLevel(slurTaperDb(gPos)) };
+      // D426 (replacing D376's taper): a slid note's level continuous across the strip where the thumb is as it
+      // sounds (touch-expr.ts pianoHairpinDb, about the line's level: a hairpin over the group); a note joined
+      // inside the slur by the other thumb is a landing, its zone its own.
+      expr = { ...expr, group: gPos, ...(slide ? { hairpin: true } : {}) };
     } else if (styleOf(preset().id) === "piano" && !slide) {
       const pos = !slurAt ? 0 : slurAt === "first" || !over ? 0 : Math.min(SLUR_DB.length - 1, (this.groupPos.get(h.k) ?? 0) + 1);
       this.groupPos.set(h.k, pos);
@@ -3721,7 +3903,22 @@ export class ProtoGame {
     }
     // D385: the piano's line: the reading's level (a whole-piece reading's printed dynamics, its phrase arcs and
     // palette), the thumb's zone about it (touch-expr.ts pianoDb), a reading's accent weighted in the strong zone.
-    if (styleOf(preset().id) === "piano" && expr.touch !== undefined) expr = { ...expr, ...this.lineAt(h.k, i) };
+    // D425: the touch's strike (the hard tap), given to the first note it sounds (a slide or a lift strikes nothing).
+    const strike = !slide && !h.strikeUsed && this.gesture !== "pull-off" && this.gesture !== "press" ? h.strike : undefined;
+    if (strike) h.strikeUsed = true;
+    const byTap = !!strike && strike.value !== null && !dynAns;
+    // TRIAL (sound.ts EXPRESSIVE_ALL): and on a sustaining sound that can make dynamics (chip.ts landed: Play.lineDb as its level).
+    const line = (styleOf(preset().id) === "piano" || expressiveAll(preset().id) || toneAll(preset().id) || registerAll(preset().id)) && expr.touch !== undefined ? this.lineAt(h.k, i) : null;
+    // D425: with the hard tap the strong zone no longer gives the accent's weight (the strike does, below); the three zones stay.
+    if (line) expr = { ...expr, ...line, ...(byTap ? { accentDb: undefined } : {}) };
+    const hardFam: HardFamily = fam;
+    const markDb = this.markDbAt(h.k, i);
+    let hardLate = false;
+    if (byTap && strike.value !== undefined) {
+      // Read already (given, or a thumb that landed early and waited): struck at the whole level.
+      const db = hardDb(hardFam, strike.value, markDb);
+      if (db) expr = { ...expr, level: (expr.level ?? 1) * dbToLevel(db), ...(hardFam === "bowed" || hardFam === "sung" ? { accent: Math.max(expr.accent ?? 0, 0.3) } : {}) };
+    } else if (byTap) hardLate = true;
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
@@ -3745,11 +3942,26 @@ export class ProtoGame {
     if (MECH.glenn) this.rings.strike(h.k, this.chip.ctx.currentTime);
     if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
-    } else if ((slide || h.slideInFrom !== undefined) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
-      /* D486: the slide's own gesture, by instrument (slide-sound.ts) */
+    } else if (((slide && SLIDE_SOUND === "d486") || (!slide && h.slideInFrom !== undefined)) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
+      /* D486: the slide's own gesture, by instrument (slide-sound.ts; D438: the default SLIDE_SOUND). D488's slide-in from
+         silence has no counterpart in the instruments session's sounds: its gesture in both modes. */
+    } else if (kbSlide && SLIDE_SOUND === "instruments" && keyboardSlide(pid) === "slur" && h.sounds.length === 1 && pitches.length === 1 && h.sounds[0].glide && !(v.ok && this.ornaments.has(`${this.voiceOf(h.k, i)}:${notes[i].on}`))) {
+      // D426, THE LUTE'S LEFT-HAND SLUR (D438: under SLIDE_SOUND "instruments"): no new pluck; the sounding course goes on at the new pitch (the recording
+      // retuned: a hammer of about 10 ms), about 3 dB under; over a fourth or more the pitch has followed the
+      // thumb along the string (slideTrack's glissando) and lands on the note now (glenn.ts luteSlur).
+      const ls = luteSlur(h.midi, pitches[0]);
+      const sd = h.sounds[0];
+      sd.glide?.(pitches[0], h.bent !== undefined ? SLIDE_TRACK_TAU : ls.tau);
+      sd.dyn?.(ls.level);
+      h.bent = undefined;
+      h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: true } };
+      this.tap?.({ kind: "drag", tick: this.now, track: h.k, i, side: h.side, from: h.midi, to: pitches[0], how: ls.gliss ? "gliss" : "slur", ms: LUTE_SLUR.hammerS * 1000, dragMs: h.dragMs ?? 0 });
     } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1) {
-      // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms).
-      if (MECH.glenn) h.sounds[0].glide?.(pitches[0], slideGlideTau(h.gStillMs !== undefined ? this.evMs() - h.gStillMs : 0));
+      // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms). D424: on strings,
+      // voices and synths the portamento has followed the thumb (slideTrack): it lands on the note now (a
+      // slide begun before its phase, not followed, glides over its own travel as before).
+      if (MECH.glenn && touchFam && h.bent !== undefined) (h.sounds[0].glide?.(pitches[0], SLIDE_TRACK_TAU), (h.bent = undefined));
+      else if (MECH.glenn) h.sounds[0].glide?.(pitches[0], slideGlideTau(h.gStillMs !== undefined ? this.evMs() - h.gStillMs : 0));
       else h.sounds[0].glide?.(pitches[0]);
     } else {
       // D376 (MECH.glenn): a keyboard's slide strikes the next note (no bend); the note slid from rings into it (the slur's ring).
@@ -3760,6 +3972,8 @@ export class ProtoGame {
       // within the legato window (a handover with a hair's gap, or a touch iOS took back): joined as it is
       // judged, the sound too (no fresh attack where the instrument can join; a plucked one plucks).
       let legato = slide || (MECH.joinedSound && over && !piano && v.ok);
+      // D427: a JOIN, HANDOFF or OVERLAP on the strings: a new bow (glenn.ts joinedSound), its change heard.
+      const bowChange = touchFam === "strings" && !setRelease && !slide;
       for (const [hid, o] of this.held) {
         if (hid === id || o.k !== h.k) continue;
         o.passive = true;
@@ -3775,6 +3989,8 @@ export class ProtoGame {
           const cap = overHoldS(pid);
           const min = gPos > 1 && cap > 0 ? slurRingS(pid) : GLENN.minRingS;
           if (cap > 0) this.rings.add({ k: h.k, holder: o, stops: o.sounds, min: now + min, max: now + Math.max(cap, min) });
+          // D427: on a bowed string a two-thumb join is a bow change: the note given way to stops at the change (chip.ts giveWay).
+          else if (bowChange) for (const sd of o.sounds) sd.stop(now, "bow");
           else for (const sd of o.sounds) sd.stop(now + min);
           o.sounds = [];
           continue;
@@ -3793,7 +4009,7 @@ export class ProtoGame {
         // (D353: read by the contour reader from the landing).
         const prev = this.before(i, h.k);
         const v = sv?.v ?? voiceV;
-        const play = { ...expr, legato: legato && !piano };
+        const play = joinPlay(expr, legato);
         const now = this.chip.ctx.currentTime;
         if (shake.kind === "trill" && styleOf(preset().id) === "piano" && !this.whole) {
           // D385: on the piano a landing on a written trill strikes its upper note at once (Bach's start: no main
@@ -3831,12 +4047,24 @@ export class ProtoGame {
         h.trace = { queue: q.map((x) => ({ ...x })), x: h.ax, slid: 0, count: q.length, voice: sv?.v ?? voiceV, play: { ...expr, legato: false } };
       } else {
         // D376 (MECH.glenn): on a voice or a wind, two thumbs re-articulate (a soft new syllable or tongue); a slide glides.
-        const rearticulate = MECH.glenn && fam === "sung" && !slide && legato && !piano;
-        const play: Play = rearticulate ? { ...expr, legato: false, soft: Math.max(expr.soft ?? 0, GLENN.rearticSoft) } : { ...expr, legato: legato && !piano };
+        // D424: not on a SET-AND-RELEASE (the slur on one vowel: no consonant, no new onset).
+        const rearticulate = MECH.glenn && fam === "sung" && !slide && legato && !piano && !(touchFam && setRelease);
+        const play: Play = rearticulate ? { ...expr, legato: false, soft: Math.max(expr.soft ?? 0, GLENN.rearticSoft) } : joinPlay(expr, legato);
         h.sounds = pitches.map((m) => this.touchNote(m, this.chip.ctx.currentTime, HOLD_MAX, sv?.v ?? voiceV, play));
       }
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };
       dynAns?.sounded?.(h.sounds, this.chip.ctx.currentTime);
+      // D425: the strike read after the onset (the note began at once at its zone's level: no latency): a hard
+      // one weighs the note by a 12 ms ramp (chip.ts Sounding.trim, rampTrim), as the Lab's DYNAMICS does.
+      if (hardLate && strike) {
+        const struck = h.sounds;
+        strike.on((s) => {
+          const db = hardDb(hardFam, s, markDb);
+          if (!db) return;
+          const at = this.chip.ctx.currentTime;
+          for (const sd of struck) sd.trim?.(dbToLevel(db), at, at + HARD_RAMP_MS / 1000);
+        });
+      }
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
@@ -4015,10 +4243,22 @@ export class ProtoGame {
           const gap = !joinedBefore ? null : lw.holding ? "held" : (lw.gapMs ?? null);
           // D385: weight on time (accent.ts accentWeighted): struck in the strong zone, within PERFECT; D338's
           // lean and silence only under the Lab's CLASSIC mechanics.
-          const why = MECH.glenn ? (slide ? "soft" : accentWeighted(offMs, perfMs, this.strengthAsked() ? (h.land ?? TOUCH_NEUTRAL) : null)) : slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
-          // D419 (the audit): Glenn's accent is judged at the strike, so ACCENT ✓ shows there, not at the lift.
-          if (MECH.glenn) this.styled(why === null, at, "ACCENT ✓");
-          else h.wantAccent = { why };
+          // D425: the hard tap, within the GOOD window, anywhere across the strip; no strength read: the strong zone, within GOOD.
+          // D419 (the audit): Glenn's accent judged at the strike, ACCENT ✓ shown there (a strength still being read, 3-36 ms
+          // after the touch: shown as it comes).
+          if (MECH.glenn) {
+            if (slide) this.styled(false, at, "ACCENT ✓");
+            else {
+              const win = this.goodWinMs(h.k, i);
+              const by = (hard: boolean | null): AccentBy => (hard !== null ? { hard } : this.strengthAsked() ? { zone: h.land ?? TOUCH_NEUTRAL } : null);
+              const read = strike?.value;
+              if (strike && read === undefined) strike.on((sv) => this.styled(accentWeighted(offMs, win, by(sv === null ? null : hardForAccent(sv))) === null, at, "ACCENT ✓"));
+              else this.styled(accentWeighted(offMs, win, by(strike && read !== null && read !== undefined ? hardForAccent(read) : null)) === null, at, "ACCENT ✓");
+            }
+          } else {
+            const why = slide ? "joined" : (accentTimely(offMs, perfMs, this.msOf(n.on, n.on + this.beat)) ?? accentSeparated(gap));
+            h.wantAccent = { why };
+          }
         }
         if (ask?.short) h.wantShort = true;
       }
@@ -4377,9 +4617,13 @@ export class ProtoGame {
     const len = this.msOf(n.on, n.on + n.dur);
     // D338: the reading's accent: struck on time or leaned, not joined from the note before, and held.
     if (h.wantAccent) {
-      const why = h.wantAccent.why ?? (MECH.glenn ? null : accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort }));
+      const wa = h.wantAccent;
+      const held = MECH.glenn ? null : accentHeld(this.msOf(n.on, off), len, { riders, short: h.wantShort });
       h.wantAccent = undefined;
-      this.styled(why === null, performance.now(), "ACCENT ✓");
+      const settle = () => this.styled((wa.why ?? held) === null, performance.now(), "ACCENT ✓");
+      // D425: a strike still being read (a note let go within a few ms): its verdict once read.
+      if (wa.pending) wa.then = settle;
+      else settle();
     }
     if (riders) return;
     // D261: a prelude's tap (no tail) is not judged for its release.
@@ -5137,6 +5381,30 @@ export class ProtoGame {
     const p = this.before(i, k);
     return p >= 0 ? (this.wholeAskOf(k, p)?.join ?? null) : null;
   }
+  /** D425: the GOOD window about track k's note i (ms early, late): how far from its time a right note may be struck. */
+  private goodWinMs(k: number, i: number): { early: number; late: number } {
+    const notes = this.tracks[k].notes;
+    const n = notes[i];
+    const w = windowOf(notes, n, this.leanOpt(k));
+    return { early: this.msOf(n.on - w.early, n.on), late: this.msOf(n.on, n.on + w.late) };
+  }
+  /** D425: the reading asks an accent of track k's note i (">", "^", sfz, marcato; a subject reading's accent). */
+  asksAccent(k: number, i: number): boolean {
+    const n = this.tracks[k]?.notes[i];
+    if (!n || !this.o.reading) return false;
+    if (this.wholeAsking()) return !!this.wholeAskOf(k, i)?.accent;
+    const place = this.readingIndex().get(`${k}:${n.on}`);
+    return place !== undefined && !!this.o.reading.notes[place]?.accent;
+  }
+  /** D425: the run asks an accent somewhere (the calibration offered at its start). */
+  asksAccents(): boolean {
+    return this.tracks.some((t, k) => t.notes.some((_, i) => this.asksAccent(k, i)));
+  }
+  /** D425: the reading's accent weight on track k's note i on the piano (PLAYER_ACCENT_DB: ">" +4, "^" +6), where marked. */
+  private markDbAt(k: number, i: number): number | undefined {
+    const own = styleOf(preset().id) === "piano" || expressiveAll(preset().id) ? this.lineAt(k, i).accentDb : undefined;
+    return own ?? (this.asksAccent(k, i) ? PLAYER_ACCENT_DB.accent : undefined);
+  }
   /** D385: a landing's strength is asked of an accent where the thumbs land on bars (a computer's keys cannot weigh a note). */
   private strengthAsked(): boolean {
     return this.proto.layout === "bars";
@@ -5146,16 +5414,18 @@ export class ProtoGame {
    * reading's printed level, its phrase arch, its palette's weight, colour, dampers and room; a reading's accent
    * (">" +4, "^" +6 dB) given by the strong zone. Never by the verdict: the place in the music, not right or wrong.
    */
-  lineAt(k: number, i: number): { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number } {
+  lineAt(k: number, i: number): { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number; terrace?: number; swell?: number } {
     const n = this.tracks[k].notes[i];
     if (!n) return {};
     const v = this.voiceOf(k, i);
     const W = this.whole;
-    const out: { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number } = {};
+    const out: { lineDb?: number; accentDb?: number; dampMul?: number; roomMul?: number; terrace?: number; swell?: number } = {};
     if (W) {
       const g = W.notes.get(`${v}:${n.on}`);
       const pal = W.paletteAt(v, n.on);
       const place = metricPlace((t) => inBar(this.f, t), n.on, this.beat);
+      // TRIAL (sound.ts registerAll): the harpsichord's and the organ's terrace and swell (chip.ts noteNow).
+      if (W.levelAt && W.swellAt && registerAll(preset().id)) (out.terrace = W.levelAt(v, n.on)), (out.swell = W.swellAt(v, n.on) + pal.weight[place]);
       out.lineDb = W.lineDynAt(v, n.on) + pal.weight[place] + (g?.phrase ? phraseArchDb(g.phrase.x) : 0) + (v === this.f.voices.length - 1 ? pal.bassDb : 0) + (W.subject.has(`${v}:${n.on}`) ? pal.entryDb : pal.othersDb);
       if (pal.dampMul !== 1) out.dampMul = pal.dampMul;
       if (pal.roomMul !== 1) out.roomMul = pal.roomMul;

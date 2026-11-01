@@ -122,10 +122,11 @@ test("in the game (SUBJECT SOUND on; D293: off by default): the subject brighter
 
 test("the effect's layers are cheap: every node released, few more made", () => {
   for (const [piece, preset] of [
-    ["wtc1f04", "harpsichordSampled"],
+    // D428: the real instruments take no synthesized layer now; the cost is measured on the synthesizers.
+    ["wtc1f04", "gameboy"],
     ["bwv1080-14", "chip"],
     ["wtc1f05", "analog"],
-    ["wtc1f10", "harpsichordSampled"],
+    ["wtc1f10", "sid64"],
   ] as const) {
     const on = run(piece, preset, {}, 90);
     const off = run(piece, preset, { subject: false, effect: false }, 90);
@@ -140,11 +141,12 @@ test("the effect's layers are cheap: every node released, few more made", () => 
 
 test("D221: the other seventeen Book I effects cheap too: every node released, few more made", () => {
   // D249: the organ, withdrawn from the choices, still played as a preset object.
-  const presets = ["harpsichordSampled", "chip", "gameboy", ORGAN_SAMPLED];
+  // D428: the real instruments take no synthesized layer now; the cost is measured on the synthesizers.
+  const presets = ["analog", "chip", "gameboy", "sid64"];
   const ratios: string[] = [];
   FUGUES.filter((f) => f.book === 1 && !TESTBENCH.includes(f.id)).forEach((f, i) => {
     const preset = presets[i % presets.length];
-    const pid = typeof preset === "string" ? preset : preset.id;
+    const pid = preset;
     const on = run(f.id, preset, {}, 60);
     const off = run(f.id, preset, { subject: false, effect: false }, 60);
     assert.ok(on.calls.length > off.calls.length, `${f.id}: layers played`);

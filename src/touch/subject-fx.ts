@@ -467,7 +467,14 @@ function patchOf(l: Layer): Patch {
 /** D405: the layers made of a synthesized patch (the rest, echo and halo, are the voice's own instrument). */
 export const SYNTH_LAYERS: ReadonlySet<Layer["kind"]> = new Set(["ping", "brass", "shimmer"]);
 /** D405: a voice that takes no synthesized layer: the recorded piano (its strings and the reading carry the subject). */
-export const synthFree = (v: Voicing) => v.patch?.sample === "piano";
+// D428: on every real instrument now (recorded, piped, bowed, sung: the piano, harpsichord, organ, lute, consort,
+// voices; the consoles and synthesizer records keep theirs, bands on purpose) (the owner: "I'm still hearing the weird glockenspiel sound on many samples"; D411: the
+// jumping cube the only subject effect): I/2's glass spark rang over the harpsichord, the lute, the consort and the
+// synths, and the other fugues' bells, brass blips and shimmers likewise. The voice's own echo and second choir stay.
+export const synthFree = (v: Voicing) => {
+  const pt = v.patch;
+  return !!pt && !!(pt.sample || pt.pipe || pt.one || pt.bow || pt.sing || pt.syllable);
+};
 
 /**
  * D213: the effect's layers for one subject note (at `at`, `len` s, in voicing `v`, at the note's

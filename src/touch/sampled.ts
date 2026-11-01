@@ -115,6 +115,15 @@ export const PERIOD: Record<string, Bake> = {
   voiceT: { folder: "soloTenor", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceB: { folder: "soloBass", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   choirAah: { folder: "choirAahs", rate: 32000, lp: 11000, bits: 16, loop: [0.9, 2.5] },
+  // TRIALS (instruments-trials): the winds, the brass and the jazz bass at full fidelity, as the consort's (32 kHz, 16 bits), the held ones on a made loop.
+  trialOboe: { folder: "oboe", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialFlute: { folder: "flute", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialClarinet: { folder: "clarinet", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialHorn: { folder: "horn", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialBassoon: { folder: "bassoon", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialTrumpet: { folder: "trumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialTrombone: { folder: "sackbut", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialBassPizz: { folder: "bassPizz", rate: 32000, lp: 11000, bits: 16 },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -153,12 +162,19 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   soloBass: { D2: -0.5, Ds2: -0.8, E2: -0.9, F2: -0.4, Fs2: 0.7, G2: 0.9, Gs2: 1.2, A2: -0.2, As2: -0.2, B2: 0.4, C3: -0.1, Cs3: -0.1, D3: 0.7, Ds3: 0.2, E3: 0.7, F3: 0.9, Fs3: 0.1, G3: -0.8, Gs3: -0.1, A3: -0.8, As3: -0.5, B3: 0, C4: 0, Cs4: 0.3, D4: 0, Ds4: -0.2, E4: -0.4, F4: -0.1, Fs4: 0.1 },
   // D358 (measured as the guitar's, autocorrelation over 0.8-2.0 s; E2 and E3 as recorded, flat).
   cello: { A2: -0.1, A3: -1.1, A4: 0.3, As2: 0.3, As3: -3.6, B2: 0, B3: 0.9, B4: 0.9, C2: -0.3, C3: -0.7, C4: 1.6, C5: 1.1, Cs3: 0.1, Cs4: 1.8, D2: -0.6, D3: -0.5, D4: 3.7, Ds2: -0.2, Ds3: -0.6, Ds4: -1, E2: -38.6, E3: -14.7, E4: 0.9, F2: -1, F3: -0.5, F4: -3.2, Fs3: 1.7, Fs4: -2.6, G2: -0.2, G3: -0.1, G4: -1.5, Gs2: 0.8, Gs3: 0.9, Gs4: -0.4 },
+  // TRIALS (measured as the cello's: autocorrelation over 1-3 s; the bass pizzicato's the median of its 2nd-4th
+  // partials' peaks over its first 0.95 s, the pitch of a plucked bass string being unsteady at the onset).
+  sackbut: { As1: 0.1, As2: 0.3, As3: 0.3, C3: 0, C4: 0.1, Cs2: 0, Cs4: 0, D3: 0, D4: -0.9, Ds2: 0, Ds3: 0.1, Ds4: 0.1, F2: 0, F3: 0.1, F4: 0, Gs2: -0.7, Gs3: -0.4 },
+  bassPizz: { A2: 14.7, As1: 5.9, B3: -9.4, C2: 4.6, Cs3: 4.2, D2: 12.2, E1: -2.6, E2: -8.3, E3: 1.2, Fs2: 1, G1: 9.3, Gs2: 9.3, Gs3: 25 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
 };
 /** D297: the recordings shorter than 4.545 s (s, measured). */
 const SHORT: Record<string, Record<string, number>> = {
   // D358: the cello's recordings (s, measured).
   cello: { A2: 4.122, A3: 3.02, A4: 2.485, As2: 3.805, As3: 2.756, B2: 3.463, B3: 3.434, B4: 2.631, C2: 3.847, C3: 3.126, C4: 3.308, C5: 3.359, Cs3: 3.175, Cs4: 2.735, D2: 4.226, D3: 3.364, D4: 2.711, Ds2: 3.41, Ds3: 2.68, Ds4: 2.939, E2: 3.441, E3: 2.944, E4: 2.748, F2: 3.941, F3: 2.944, F4: 2.935, Fs3: 2.622, Fs4: 2.494, G2: 3.856, G3: 2.913, G4: 2.531, Gs2: 3.596, Gs3: 2.336, Gs4: 2.532 },
+  // TRIALS (s, measured).
+  sackbut: { As1: 4.827, As2: 5, As3: 5, C3: 5, C4: 5, Cs2: 5, Cs4: 5, D3: 5, D4: 5, Ds2: 5, Ds3: 5, Ds4: 5, F2: 5, F3: 5, F4: 5, Gs2: 5, Gs3: 5 },
+  bassPizz: { A2: 2, As1: 1.794, B3: 2, C2: 1.382, Cs3: 2, D2: 2, E1: 2, E2: 1.573, E3: 2, Fs2: 2, G1: 0.9, Gs2: 2, Gs3: 1.919 },
   harp: { A2: 4.5, A4: 4.5, A6: 3.58, B1: 4.5, B3: 4.5, B5: 4.394, C3: 4.5, C5: 4.5, D2: 4.5, D4: 4.5, D6: 3.878, D7: 2.19, E1: 4.5, E3: 4.5, E5: 4.5, F2: 4.5, F4: 4.5, F6: 2.332, F7: 1.848, G1: 4.5, G3: 4.5, G5: 4.5 },
   xylophone: { C5: 3.369, C6: 1.884, C7: 1.467, C8: 1.138, G4: 3.619, G5: 2.507, G6: 1.614, G7: 1.383 },
   horn: {},
@@ -197,7 +213,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -311,6 +327,18 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   consortViola: { set: "consortViola", plucked: false, gain: 2.2 },
   consortCello: { set: "consortCello", plucked: false, gain: 2.2 },
   luteGuitar: { set: "luteGuitar", plucked: true, gain: 2.2 },
+  // TRIALS (instruments-trials). `maxShift` (D405) where a voice leaves the instrument's compass: past the
+  // recordings by more, the note an octave nearer (the oboe under F#3, the clarinet under C3, the trumpet under
+  // D#3 and over D6, the horn and the trombone 3 semitones past theirs; the bassoon's 7 notes, G2-C5: retuned
+  // within them (at most 3.5 semitones), 5 under G2 to D2, the bass's rarer notes under D2 an octave up).
+  trialOboe: { set: "trialOboe", plucked: false, gain: 2.2, maxShift: 4 },
+  trialFlute: { set: "trialFlute", plucked: false, gain: 2.2, maxShift: 3 },
+  trialClarinet: { set: "trialClarinet", plucked: false, gain: 2.2, maxShift: 2 },
+  trialHorn: { set: "trialHorn", plucked: false, gain: 2.2, maxShift: 3 },
+  trialBassoon: { set: "trialBassoon", plucked: false, gain: 2.2, maxShift: 5 },
+  trialTrumpet: { set: "trialTrumpet", plucked: false, gain: 2.2, maxShift: 2 },
+  trialTrombone: { set: "trialTrombone", plucked: false, gain: 2.2, maxShift: 3 },
+  trialBassPizz: { set: "trialBassPizz", plucked: true, gain: 2.2, maxShift: 4 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
@@ -648,7 +676,18 @@ function toMono(ctx: BaseAudioContext, b: AudioBuffer): AudioBuffer {
   const d = out.getChannelData(0);
   const l = b.getChannelData(0);
   const r = b.getChannelData(1);
-  for (let i = 0; i < d.length; i++) d[i] = 0.5 * (l[i] + r[i]);
+  let pl = 0;
+  let pm = 0;
+  for (let i = 0; i < d.length; i++) {
+    d[i] = 0.5 * (l[i] + r[i]);
+    pl += l[i] * l[i] + r[i] * r[i];
+    pm += d[i] * d[i];
+  }
+  // D421: the fold keeps the recording's power. A spaced pair (the Salamander grand's channels correlate
+  // about 0.15) averaged to one channel lost 3-4 dB on a phone (the budget's fold, monoFor): the piano was
+  // the quietest sound there. Scaled back to the channels' mean power (at most +6 dB).
+  const k = pm > 0 ? Math.min(2, Math.sqrt(pl / 2 / pm)) : 1;
+  if (k !== 1) for (let i = 0; i < d.length; i++) d[i] *= k;
   return out;
 }
 

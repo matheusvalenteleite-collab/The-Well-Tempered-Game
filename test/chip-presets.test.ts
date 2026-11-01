@@ -5,8 +5,8 @@ import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 
 test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
-  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "modular", "tomita", "stringConsort", "lute"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "BLEEPS AND BLOOPS", "TOMITA", "STRING CONSORT", "LUTE"]);
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita", "stringConsort", "lute", "baroqueBand"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "LUTE", "BAROQUE BAND"]);
   // D302: TEMPLE 64 and AGENT 64 remade; D304: their successors withdrawn too: a stored choice of any opens on NOCTURNE 32-BIT.
   for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "nocturne32", gone);
   const ids = PRESETS.map((p) => p.id);

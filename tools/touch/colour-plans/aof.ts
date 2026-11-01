@@ -164,11 +164,10 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-c16": {
-    sound: "modular",
-    soundWhy: "A canon at the tenth in 12/8, lilting: BLEEPS AND BLOOPS' vibraphone and synth upright.",
+    sound: "lute",
+    soundWhy: "A canon at the tenth in 12/8, lilting, two voices: the LUTE's plucked courses, one player's two lines.",
     character: "Two voices in compound time; a cadence in F (17).",
     plans: {
-      modular: [at(B("bwv1080-c16", 17), { strike: 0.7 }, "After the cadence in F (17), softer mallets."), at(42, OWN, "The second half (42).")],
       harpsichordSampled: [at(1, H8, "The 8′."), at(42, H84, "The second half: 8′+4′.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes.")],
     },

@@ -14,7 +14,7 @@
  */
 import { accompaniment, type OtherNote } from "./voice-mode.ts";
 import type { TouchFugue } from "./fugue.ts";
-import { preset } from "./sound.ts";
+import { expressiveAll, preset, registerAll, STEPPED_SOUNDS, toneAll, toneLevelDb } from "./sound.ts";
 import { characterOf, type Character } from "./character.ts";
 import { bandDb, CAESURA_S, metricPlace, PHRASE_BREATH_HOLD, slurShapeDb, WHOLE_HOLD, type WholePlan } from "./whole-reading.ts";
 import { BREATH, dbToLevel, decide, GAP_MAX_SHARE, kindsOf, noteHash, phraseBounds, pianoLevels, suspensions, type Kind, type KeyKind } from "./practice.ts";
@@ -28,8 +28,9 @@ import { BREATH, dbToLevel, decide, GAP_MAX_SHARE, kindsOf, noteHash, phraseBoun
 export type Style = "plain" | "harpsichord" | "piano" | "organ" | "sung" | "solo" | "switched";
 /** D305: VOCAL SYNTH sung as singers sing (SUNG below), SWITCHED-ON's bass apart (SWITCHED); D309: PIPE ORGAN "organ", SOLO VOICES "solo"; the other synthesized sounds "plain". */
 export const styleOf = (soundId: string): Style =>
-  // D358: the trial LUTE plucked as the harpsichord is (one player: the chord spread, the finger pedal).
-  soundId === "harpsichordSampled" || soundId === "lute" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : soundId === "chamberOrgan" || soundId === "organSampled" ? "organ" : soundId === "vocalSynth" ? "sung" : soundId === "soloVoices" ? "solo" : soundId === "analog" ? "switched" : "plain";
+  // D358: the trial LUTE plucked as the harpsichord is (one player: the chord spread, the finger pedal). TRIALS:
+  // the CLAVICHORD played as a harpsichord is (its dynamics the player's touch).
+  soundId === "harpsichordSampled" || soundId === "lute" || soundId === "trialClavichord" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : soundId === "chamberOrgan" || soundId === "organSampled" ? "organ" : soundId === "vocalSynth" ? "sung" : soundId === "soloVoices" ? "solo" : soundId === "analog" ? "switched" : "plain";
 
 /**
  * D294, the numbers (seconds, shares of the written length):
@@ -126,6 +127,9 @@ export interface Shape {
   tone?: number;
   dampMul?: number;
   roomMul?: number;
+  /** TRIAL (sound.ts registerAll): the printed level here (dB: the registration's terrace) and the swell on it (hairpins, fp, the palette's weight: a brightness). */
+  terrace?: number;
+  swell?: number;
   /**
    * D339: seconds added to the note's sounding length (the band's offset at its release less at its
    * onset: RUBATO), so a note let go before the next ends where the shaped time puts it; 0 when joined
@@ -285,11 +289,18 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     }
   }
   // D309: the piano's levels from the whole score (practice.ts pianoLevels).
-  const dbs = style === "piano" ? pianoLevels(score, { beat, inBar, bar: art.bar ?? 4 * beat, cadences: art.cadences, harmony }) : null;
+  const W = art.whole;
+  // TRIAL (sound.ts EXPRESSIVE_ALL): a whole-piece reading's printed dynamics and palette on a sustaining sound
+  // that can make them (expressiveAll), over its own level shaping (phrasePlain's metric weights), as on the piano.
+  // On a chip, console or synthesizer (toneAll) the plan's dB is carried to the note (Shape.db, Play.vel) as its tone, its loudness a little only.
+  // D431: only for the style of the sound set (a harpsichord's or an organ's phrasing asked under another sound takes none).
+  const levelled = style !== "piano" && style === styleOf(preset().id);
+  const toned = levelled && !!W && toneAll(preset().id);
+  const wide = (levelled && !!W && expressiveAll(preset().id)) || toned;
+  const dbs = style === "piano" ? pianoLevels(score, { beat, inBar, bar: art.bar ?? 4 * beat, cadences: art.cadences, harmony }) : wide ? new Map<string, number>() : null;
   // D385: the piano's slurs shaped by their place in the bar (whole-reading.ts slurShapeDb); a whole-piece reading's
   // dynamics, marks, slurs, phrase arcs and palette (bandDb). D293's clamp ("the subject never louder") removed:
   // an entry is as loud as the reading prints it.
-  const W = art.whole;
   if (dbs && W)
     for (const x of score) {
       const key = `${x.voice}:${x.on}:${x.midi}`;
@@ -326,7 +337,8 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
     let db: number | undefined;
     if (dbs) {
       db = dbs.get(`${n.voice}:${n.on}:${n.midi}`) ?? 0;
-      level = dbToLevel(db);
+      // D432: CLASSIC CHIP's and GAME BOY's level stepped in the chip (chip.ts Chip.stepped), not here.
+      level = toned ? sh.level * (STEPPED_SOUNDS.has(preset().id) ? 1 : dbToLevel(toneLevelDb(db))) : wide ? sh.level * dbToLevel(db) : dbToLevel(db);
     } else if (style === "harpsichord" || style === "organ") level = 1;
     // A reading's detached note's gap at most GAP_BEATS of a beat.
     const apart = (share: number) => Math.max(share, 1 - (GAP_BEATS * beat) / n.dur);
@@ -408,15 +420,17 @@ export function phrase(notes: readonly OtherNote[], beat: number, inBar: (tick: 
         if (g.caesura) (a = "nonlegato"), (hold = Math.max(0.4, Math.min(hold, 1 - CAESURA_S / (n.dur * spt))));
       }
       if (g?.spread) nudge += g.spread;
-      if (style === "piano") {
+      if (style === "piano" || wide) {
         pal = W.paletteAt(n.voice, n.on);
         if (a !== "join" && a !== "syllable" && gapLater) hold = Math.max(0.15, Math.min(0.98, hold * pal.holdMul));
         if (a === "join" && pal.overS) overS[i] += pal.overS;
       }
     }
     const final = !after || after.on > n.on + n.dur;
+    // TRIAL (registerAll): the harpsichord's and the organ's terrace and swell.
+    const reg = W?.levelAt && W.swellAt && registerAll(preset().id) ? { terrace: W.levelAt(n.voice, n.on), swell: W.swellAt(n.voice, n.on) + W.paletteAt(n.voice, n.on).weight[metricPlace(inBar, n.on, beat)] } : {};
     const stretch = rb && a !== "join" && a !== "syllable" ? rb(n.on + n.dur * hold) - rb(n.on) : 0;
-    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, stretch, ...(db !== undefined ? { db } : {}), ...(pal ? { ...(pal.toneDb ? { tone: pal.toneDb } : {}), ...(pal.dampMul !== 1 ? { dampMul: pal.dampMul } : {}), ...(pal.roomMul !== 1 ? { roomMul: pal.roomMul } : {}) } : {}) };
+    return { level, hold, nudge, subject: sh.subject, art: a, legato: false, over: 0, final, stretch, ...reg, ...(db !== undefined ? { db } : {}), ...(pal ? { ...(pal.toneDb ? { tone: pal.toneDb } : {}), ...(pal.dampMul !== 1 ? { dampMul: pal.dampMul } : {}), ...(pal.roomMul !== 1 ? { roomMul: pal.roomMul } : {}) } : {}) };
   });
   // D370: a slur's first leaned on (SLUR_SHAPE.lean) where the note before was let go, within ±20 ms.
   if (art.marks?.size) {
@@ -498,8 +512,8 @@ function nextIndex(notes: readonly OtherNote[]): Map<number, number | undefined>
  * D304: `apart`, detached or staccato by a reading's mark (Play.apart: its gap heard on every sound).
  * D339: `vel`, the piano's level in dB (Play.vel: its colour, brighter struck harder).
  */
-export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean; apart?: boolean; vel?: number; dampMul?: number; roomMul?: number } {
-  return { ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}), ...(sh.art === "detach" || sh.art === "short" ? { apart: true } : {}), ...(sh.db !== undefined ? { vel: sh.db + (sh.tone ?? 0) } : {}), ...(sh.dampMul ? { dampMul: sh.dampMul } : {}), ...(sh.roomMul ? { roomMul: sh.roomMul } : {}) };
+export function joins(sh: Shape): { legato?: boolean; tie?: number; from?: number; final?: boolean; apart?: boolean; vel?: number; dampMul?: number; roomMul?: number; terrace?: number; swell?: number } {
+  return { ...(sh.terrace !== undefined ? { terrace: sh.terrace, swell: sh.swell } : {}), ...(sh.legato ? { legato: true, ...(sh.from !== undefined ? { from: sh.from } : {}) } : {}), ...(sh.over > 0 ? { tie: sh.over } : {}), ...(sh.final ? { final: true } : {}), ...(sh.art === "detach" || sh.art === "short" ? { apart: true } : {}), ...(sh.db !== undefined ? { vel: sh.db + (sh.tone ?? 0) } : {}), ...(sh.dampMul ? { dampMul: sh.dampMul } : {}), ...(sh.roomMul ? { roomMul: sh.roomMul } : {}) };
 }
 
 /** D179: the synthesized sounds' phrasing (and the base of the others'): each note's level and its fixed unevenness (D302: the holds are ARTICULATION's). */

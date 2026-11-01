@@ -25,6 +25,8 @@ export interface PlayerStyle {
   holdOf?: (k: number) => number | "written";
   /** D379: where across its strip note k lands (0..1, 0 the inner edge by the box; default the outer quarter). */
   acrossOf?: (k: number) => number;
+  /** D425: how hard note k is struck (0 soft .. 1 hard: the hard tap), as a phone's sensor would read it; default none read. */
+  strikeOf?: (k: number) => number;
   /** D379: note k reached by sliding the thumb that holds the note before (no new touch). */
   slideAt?: (k: number) => boolean;
   seed?: number;
@@ -73,7 +75,8 @@ export function playerRun(m: Material, s: PlayerStyle = {}, demo?: DemoStyle) {
     }
     const id = k + 1;
     const up: E = { t: t1, k: 0, fn: () => g.up(id, 0) };
-    evs.push({ t: t0, k: 1, fn: () => g.down(id, { side, x, y, w: 800, h: 1000 }, 0) });
+    const strike = s.strikeOf?.(k);
+    evs.push({ t: t0, k: 1, fn: () => g.down(id, { side, x, y, w: 800, h: 1000, ...(strike !== undefined ? { strike } : {}) }, 0) });
     evs.push(up);
     held = { id, side, x, up };
   });
