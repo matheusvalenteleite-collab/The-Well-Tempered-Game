@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boostedSpans, drawLayer, familyOf, LAYERS, LAYER_FLOOR, octavesFor, offerWindow, OBBLIGATO, OCTAVE_ODDS, playedWell, presetPatchIds, registerOf, tierOf, TIER_ODDS, WACKIEST, WELL, type Family, type GradedNote, type Register } from "../src/bench/obbligato.ts";
+import { boostedSpans, drawLayer, familyOf, LAYERS, LAYER_FLOOR, LEGACY_OCTAVE_ODDS, LEGACY_TIER_ODDS, octavesFor, offerWindow, OBBLIGATO, OBBLIGATO_MODE, OCTAVE_ODDS, playedWell, presetPatchIds, registerOf, setObbligatoMode, tierOf, TIER_ODDS, WACKIEST, WELL, type Family, type GradedNote, type Register } from "../src/bench/obbligato.ts";
 import { PT } from "../src/i18n/pt.ts";
 import { ES } from "../src/i18n/es.ts";
 import { synthRun } from "../tools/lab/lab-synth.ts";
@@ -13,6 +13,17 @@ import { obbRun } from "./d485-sim.ts";
 import { labGame } from "../src/bench/lab/game.ts";
 import { silentChip } from "../src/bench/lab/replay.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
+
+/** D439: a test run in another OBBLIGATO mode (the mode put back after). */
+function inMode<T>(m: Parameters<typeof setObbligatoMode>[0], f: () => T): T {
+  const was = OBBLIGATO_MODE;
+  setObbligatoMode(m);
+  try {
+    return f();
+  } finally {
+    setObbligatoMode(was);
+  }
+}
 
 /** A seeded generator (the tests' draws repeatable). */
 function rng(seed = 12345) {
@@ -171,7 +182,7 @@ const REGISTERS: [Register, number[]][] = [
   ["bass", [40, 43, 45, 47, 48, 50]],
 ];
 
-test("D485: the draw's tiers: the musical most often, the wackier less, the wackiest about one offer in sixteen (never more than one in six)", () => {
+test("D485 (legacy, D439): the draw's tiers as first built: the musical most often, the wackier less, the wackiest about one offer in sixteen", () => inMode("legacy", () => {
   for (const [fam, main] of FAMILIES)
     for (const [reg, midis] of REGISTERS) {
       assert.equal(familyOf(main as never), fam);
@@ -188,9 +199,27 @@ test("D485: the draw's tiers: the musical most often, the wackier less, the wack
       const share = count.map((c) => c / n);
       assert.ok(share[0] > share[1] && share[1] > share[2], `${fam} ${reg} ${share}`);
       assert.ok(share[2] <= 1 / 6 && share[2] >= 0.03, `${fam} ${reg} wackiest ${share[2]}`);
-      for (const t of [0, 1, 2]) assert.ok(Math.abs(share[t] - TIER_ODDS[t]) < 0.03, `${fam} ${reg} tier ${t}: ${share[t]}`);
+      for (const t of [0, 1, 2]) assert.ok(Math.abs(share[t] - LEGACY_TIER_ODDS[t]) < 0.03, `${fam} ${reg} tier ${t}: ${share[t]}`);
     }
-});
+}));
+
+test("D439: the merged layer's draw: the musical mix about nine times in ten, the wackier rarely, the wackiest never", () => inMode("layer", () => {
+  for (const [fam, main] of FAMILIES)
+    for (const [reg, midis] of REGISTERS) {
+      const r = rng(99);
+      const n = 10000;
+      const count = [0, 0, 0];
+      for (let i = 0; i < n; i++) {
+        const d = drawLayer({ main: main as never, midis, rng: r })!;
+        count[d.tier]++;
+        assert.ok(!WACKIEST.includes(d.layer.id), `${fam} ${reg}: ${d.layer.id}`);
+        assert.ok(Math.abs(d.octave) <= 1, "never two octaves");
+      }
+      const share = count.map((c) => c / n);
+      assert.equal(share[2], 0);
+      for (const t of [0, 1]) assert.ok(Math.abs(share[t] - TIER_ODDS[t]) < 0.03, `${fam} ${reg} tier ${t}: ${share[t]}`);
+    }
+}));
 
 test("D485: the musical tier is the obvious mix: a cello on a piano's bass, a tenor on its tenor, never a synthesizer", () => {
   const t0 = (fam: Family, reg: Register) => LAYERS.filter((l) => tierOf(l, fam, reg) === 0).map((l) => l.id);
@@ -210,7 +239,7 @@ test("D485: the draw's pool filter (later: only the instruments met), and every 
   for (const id of presetPatchIds()) assert.ok(ids.has(id) || ["orgPleno", "orgPedalPleno"].includes(id), `${id} missing from LAYERS`);
 });
 
-test("D485: the octave: the same most of the time, one octave either way rarer, two rarest, always within the instrument's compass", () => {
+test("D485 (legacy, D439): the octave as first built: the same most of the time, one octave either way rarer, two rarest, always within the instrument's compass", () => inMode("legacy", () => {
   // An alto entry on wide instruments (every octave open).
   const midis = [60, 62, 64, 65, 67];
   const wide = (l: { id: string }) => ["pianoSampled", "fmPiano", "chip", "orgPrincipal", "sidSaw", "modOrgan", "tomStrings", "solNasal", "fmClav"].includes(l.id);
@@ -222,7 +251,7 @@ test("D485: the octave: the same most of the time, one octave either way rarer, 
     by.set(d.octave, (by.get(d.octave) ?? 0) + 1);
   }
   const s = (k: number) => (by.get(k) ?? 0) / n;
-  assert.ok(Math.abs(s(0) - OCTAVE_ODDS[0]) < 0.02, `unison ${s(0)}`);
+  assert.ok(Math.abs(s(0) - LEGACY_OCTAVE_ODDS[0]) < 0.02, `unison ${s(0)}`);
   assert.ok(Math.abs(s(1) + s(-1) - 0.15) < 0.02 && Math.abs(s(2) + s(-2) - 0.05) < 0.01, `±1 ${s(1) + s(-1)}, ±2 ${s(2) + s(-2)}`);
   assert.ok(s(0) > s(1) + s(-1) && s(1) + s(-1) > s(2) + s(-2) && s(2) > 0 && s(-2) > 0);
   // Every draw within its instrument's compass (and over the floor), whatever the register.
@@ -234,7 +263,27 @@ test("D485: the octave: the same most of the time, one octave either way rarer, 
       const hi = Math.max(...ms) + 12 * d.octave;
       assert.ok(lo >= d.layer.lo && hi <= d.layer.hi && lo >= LAYER_FLOOR, `${d.layer.id} ${d.octave}`);
     }
-});
+}));
+
+test("D439: the merged layer's octave: unison far more often, one octave only where the instrument's register suits, never two", () => inMode("layer", () => {
+  const midis = [60, 62, 64, 65, 67];
+  // Wide instruments that belong in the alto and an octave either way (the piano, the E-piano: every register).
+  const wide = (l: { id: string }) => ["pianoSampled", "fmPiano"].includes(l.id);
+  const r = rng(5);
+  const n = 20000;
+  const by = new Map<number, number>();
+  for (let i = 0; i < n; i++) {
+    const d = drawLayer({ main: "consCello", midis, pool: wide, rng: r })!;
+    by.set(d.octave, (by.get(d.octave) ?? 0) + 1);
+  }
+  const s = (k: number) => (by.get(k) ?? 0) / n;
+  assert.ok(Math.abs(s(0) - OCTAVE_ODDS[0]) < 0.02, `unison ${s(0)}`);
+  assert.ok(s(1) > 0 && s(-1) > 0 && s(1) + s(-1) < 0.12, `±1 ${s(1) + s(-1)}`);
+  assert.equal(s(2) + s(-2), 0);
+  // An instrument of one register (the alto voice) never an octave away from it.
+  const alto = LAYERS.find((l) => l.id === "singA")!;
+  assert.deepEqual(octavesFor(alto, 60, 67, midis), [0]);
+}));
 
 test("D485: OBBLIGATO and every instrument's name have Portuguese and Spanish", () => {
   for (const k of [OBBLIGATO, ...LAYERS.map((l) => l.name)]) {

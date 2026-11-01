@@ -598,4 +598,9 @@ export const ES: Record<string, string> = {
   "SYNTH SINGER (RO)": "CANTANTE SINTÉTICO (RO)",
   "SYNTH SINGER (NE)": "CANTANTE SINTÉTICO (NE)",
   "SYNTH SINGER (DA)": "CANTANTE SINTÉTICO (DA)",
+  // D439: OBBLIGATO's colours (the "effect" mode).
+  "GRAND HALL": "GRAN SALA",
+  "ENSEMBLE": "CONJUNTO",
+  "PING-PONG ECHO": "ECO PING-PONG",
+  "FLANGER": "FLANGER",
 };
