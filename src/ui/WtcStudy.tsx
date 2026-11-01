@@ -19,7 +19,7 @@
 import type { Mode } from "./Root.tsx";
 import { ModeSelect } from "./ModeSelect.tsx";
 import { keyBelongsToControl } from "./keys.ts";
-import { keySteps, ornamentUnit, ORNAMENT_STYLES, realise, trillUnit, type OrnamentStyle } from "../music/ornaments.ts";
+import { keySteps, mordentUnit, ornamentUnit, ORNAMENT_STYLES, realise, trillUnit, type OrnamentStyle } from "../music/ornaments.ts";
 import { openClefs, setStaffLayout, useStaffLayout } from "./staff-layout.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chordName, chordTones, figurationChanges, figurationShare, findCadences, keyPlan, readHarmony, romanOf, type Chord } from "../wtc/harmony.ts";
@@ -127,7 +127,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
     const n = P.notes[i];
     const o = ornaments ? P.orn.get(i) : undefined;
     if (!o) return [{ midi, at: n.at, dur: n.dur }];
-    return realise({ midi, at: n.at, dur: n.dur }, o.signs, o.grace, { unit: ornamentUnit(audio.tempo), trillUnit: trillUnit(30 / audio.tempo), prevMidi: prevInVoice[i], ...steps, style: ornamentStyleRef.current });
+    return realise({ midi, at: n.at, dur: n.dur }, o.signs, o.grace, { unit: ornamentUnit(audio.tempo), quick: mordentUnit(30 / audio.tempo), trillUnit: trillUnit(30 / audio.tempo), prevMidi: prevInVoice[i], ...steps, style: ornamentStyleRef.current });
   };
   const notes: FullNote[] = P.notes;
   const subject = useMemo(() => FG.subject.map((n) => ({ midi: parsePitch(n.pitch).midi, at: n.at, dur: n.dur })), [FG]);

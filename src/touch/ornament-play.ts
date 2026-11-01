@@ -7,7 +7,7 @@
  * computer's keys the ornamented note, once struck, plays its ornament and holds its main note.
  */
 import ornamentsData from "../../data/wtc/ornaments.json" with { type: "json" };
-import { keySteps, ornamentUnit, realise, trillUnit } from "../music/ornaments.ts";
+import { keySteps, mordentUnit, ornamentUnit, realise, trillUnit } from "../music/ornaments.ts";
 import { MECH } from "../bench/mechanics.ts";
 import { parsePitch } from "../music/pitch.ts";
 import { beatOf, type TouchFugue, type TouchNote } from "./fugue.ts";
@@ -137,7 +137,7 @@ export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number,
   const q = f.tpq;
   const steps = contextSteps(f, on, midi, o.signs);
   const nachschlag = /[TtO]/.test(o.signs) && !o.signs.includes("R") && nachschlagAt(f, on, midi, dur, bpm);
-  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag });
+  const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), quick: mordentUnit(60 / bpm), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag });
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
 }
 
@@ -197,12 +197,12 @@ export function freeOrnamentParts(f: TouchFugue, kind: FreeKind, noteOn: number,
   if (until - from < q / 8) return [];
   const signs = written ?? (kind === "mordent" ? "M" : kind === "trill" ? "T" : kind === "turn" ? "S" : "W");
   const steps = contextSteps(f, noteOn, midi, signs);
-  let unit = ornamentUnit(bpm / 2);
-  // The Pralltriller "with extraordinary speed" (I.2.3 §32), but no faster than the beat's 32nds.
-  if (!written && kind === "pralltriller") unit = Math.max(unit / 2, beatOf(f).ticks / q / 8);
+  const unit = ornamentUnit(bpm / 2);
+  // The Pralltriller "with extraordinary speed" (I.2.3 §32): D408, as the mordent (realise's `quick`: main, upper,
+  // main back within about 80 ms at any tempo; D353's unit / 2, no faster than the beat's 32nds, was 125 ms a note at 60).
   // The up-down forms named (the Pralltriller, the Schneller: main, upper, main) are W's snapped form, from the main note.
   const prevMidi = !written && (kind === "pralltriller" || kind === "schneller") ? midi + 1 : opts.prevMidi;
-  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit, trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag: !!opts.nachschlag && /[TtO]/.test(signs) && !signs.includes("R") });
+  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit, quick: mordentUnit(60 / bpm), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag: !!opts.nachschlag && /[TtO]/.test(signs) && !signs.includes("R") });
   if (parts.length > 1 && parts[0].midi === midi) {
     const shift = parts[1].at - parts[0].at;
     parts = parts.slice(1).map((p, k, a) => ({ ...p, at: p.at - shift, dur: k === a.length - 1 ? p.dur + shift : p.dur }));

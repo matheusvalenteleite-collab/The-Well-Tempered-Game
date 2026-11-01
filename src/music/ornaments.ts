@@ -12,7 +12,9 @@
  *   (the owner: "trills are not lasting for as long as they ought"; C. P. E. Bach, Versuch I.2.3 §21:
  *   beaten for the note's whole value), the main note settling only at the end of a long note (about
  *   its last 15%), at about ten notes a second on the beat's grid (trillUnit, trillPitches);
- * - mordent (Mordant): main, below, main held;
+ * - mordent (Mordant): main, below, main held. D408: quick, on the beat, starting the note: the main and
+ *   the step below MORDENT_NOTE_S each (the main back after about 80 ms at any tempo), never shared out
+ *   over the note; the main note then sustains. The up-mordent (the snapped trill: main, above, main) alike;
  * - turn (Cadence): above, main, below, main;
  * - the short wavy sign: a snapped trill (C. P. E. Bach's Pralltriller: main, above, main) on a note
  *   reached by a falling step, as he says it only occurs there (Versuch I, ch. 2, sect. 3, §34);
@@ -36,6 +38,11 @@ export interface OrnamentContext {
   trillUnit?: number;
   /** D319: the share of a long note its trill's main note settles for (TRILL_SETTLE when not given). */
   settle?: number;
+  /**
+   * D408: a mordent's (and the up-mordent's: the snapped trill, main, above, main) first two notes' length, in
+   * quarters (`mordentUnit`: MORDENT_NOTE_S at the tempo); `unit` when not given (as before).
+   */
+  quick?: number;
   /** The note before in the same voice (for the snapped trill), if any. */
   prevMidi?: number;
   /** The key's step above and below a note (in semitones), for signs that do not say (S, $, O, W). */
@@ -117,6 +124,18 @@ export function trillStep(dur: number, g: number, count: number): number {
   return Math.floor(dur / g + 1e-9) >= 4 ? g : dur / count;
 }
 
+/**
+ * D408: a mordent's first two notes (main, the step below; the up-mordent's main, the step above) last this long
+ * each (s): the main note back after about 80 ms whatever the tempo (the owner: "a mordent in the Baroque style is
+ * a quick way to start the note, not something that happens during the note's length"). Quantz's eleven notes a
+ * second (`ornamentUnit`, 91 ms a note) had the main back only after 180 ms.
+ */
+export const MORDENT_NOTE_S = 0.04;
+/** D408: a mordent note's length in quarters at a tempo (`quarterSec`: a quarter's length in seconds). */
+export function mordentUnit(quarterSec: number): number {
+  return MORDENT_NOTE_S / Math.max(1e-3, quarterSec);
+}
+
 /** The ornament notes' length in quarters at a tempo (`tempo`: the engine's half notes a minute). */
 export function ornamentUnit(tempo: number, perSecond = 11): number {
   const quarter = 30 / tempo; // seconds
@@ -137,8 +156,8 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
   }
   const N = n.midi;
   /** The ornament's notes, each `u` long (a trill's: its grid, `trillStep`), the last held to the end of the note. */
-  const seq = (pitches: number[], trill = false) => {
-    const u = trill ? trillStep(dur, ctx.trillUnit ?? ctx.unit, pitches.length) : Math.min(ctx.unit, dur / 4);
+  const seq = (pitches: number[], trill = false, quick = false) => {
+    const u = trill ? trillStep(dur, ctx.trillUnit ?? ctx.unit, pitches.length) : Math.min(quick ? (ctx.quick ?? ctx.unit) : ctx.unit, dur / 4);
     pitches.forEach((midi, k) => {
       const s = at + k * u;
       out.push({ midi, at: s, dur: k === pitches.length - 1 ? n.at + n.dur - s : u });
@@ -156,11 +175,12 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
     const closing = has("R") || (cpe && n.dur >= LONG_FOR_NACHSCHLAG) || !!ctx.nachschlag;
     seq(trillPitches(N, N + trillUp, N - ctx.stepBelow(N), dur, ctx.trillUnit ?? ctx.unit, closing, cpe || ctx.nachschlag ? 0 : (ctx.settle ?? TRILL_SETTLE)), true);
   } else if (has("M") || has("m")) {
-    seq([N, N - (ctx.diatonic ? ctx.stepBelow(N) : has("M") ? 2 : 1), N]);
+    seq([N, N - (ctx.diatonic ? ctx.stepBelow(N) : has("M") ? 2 : 1), N], false, true);
   } else if (has("W") || has("w")) {
     const up = ctx.diatonic ? ctx.stepAbove(N) : has("W") ? 2 : 1;
     const fromAbove = ctx.prevMidi !== undefined && ctx.prevMidi - N > 0 && ctx.prevMidi - N <= 2;
-    seq(fromAbove ? [N, N + up, N] : [N + up, N, N + up, N]);
+    if (fromAbove) seq([N, N + up, N], false, true);
+    else seq([N + up, N, N + up, N]);
   } else if (has("S")) {
     seq([N + ctx.stepAbove(N), N, N - ctx.stepBelow(N), N]);
   } else if (has("$")) {

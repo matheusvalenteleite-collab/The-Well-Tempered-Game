@@ -91,7 +91,7 @@ import { LiteGrid } from "./LiteGrid.tsx";
 import { Selection } from "./Selection.tsx";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
-import { bachNotes } from "./intro-sound.ts";
+import { INTRO_CHORD, INTRO_PRESET, playIntro, type IntroPlaying } from "./intro-sound.ts";
 import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
@@ -1451,8 +1451,9 @@ export function BenchApp() {
   }, [hearing]);
   /**
    * D371: play.html's title page (Intro.tsx), on every launch. Its first touch makes the sound (the phone's
-   * gesture) and plays B♭–A–C–B♮ on the PIPE ORGAN (intro-sound.ts), the last note faded; resolves with
-   * the seconds until it is heard. Its end (or a skip) stops it and gives the piece's sound back.
+   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D406: on a
+   * soft traverso, then C♯–D with the string consort's D major under the D, which rings on into the
+   * selection screen; a skip fades it out quickly. Its end gives the piece's sound back.
    */
   // D376: not in THE EXPRESSION LAB (straight to the selection screen).
   const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
@@ -1460,30 +1461,22 @@ export function BenchApp() {
   useEffect(() => {
     if (APP.glenn) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
   }, [phase.kind]);
-  const introSounds = useRef<Sounding[]>([]);
+  const introPlaying = useRef<IntroPlaying | null>(null);
   const introOver = useRef(false);
   const introBegin = async (): Promise<number> => {
     const ch = ensureChip();
-    setPreset("chamberOrgan");
-    const notes = bachNotes();
-    await ch.prepare(notes.map((n) => n.midi), notes.map((n) => n.midi)).catch(() => {});
+    setPreset(INTRO_PRESET);
+    // The flute is synthesized (heard at once); the consort's recordings load meanwhile, for the D's chord.
+    const ready = ch.prepare(INTRO_CHORD.map((c) => c.midi)).catch(() => {});
     if (introOver.current) return 0;
-    // The organ's voice as a tenor of four (where the subject is, Contrapunctus XIV's tenor): its Principal 8'.
-    const v = voicing(2, 4, true);
-    const t0 = ch.ctx.currentTime + 0.12;
-    for (const n of notes) {
-      const sd = ch.note(n.midi, t0 + n.at, n.len, v, { lead: true, ...(n.fade ? { final: true } : {}) });
-      // The last note dies away over its length (the church's tail after it).
-      if (n.fade) sd.trim?.(0.001, t0 + n.at + 0.3, t0 + n.at + n.len);
-      introSounds.current.push(sd);
-    }
+    introPlaying.current = playIntro(ch, ready);
     return 0.12 + (ch.lag ?? 0);
   };
   const introEnd = (skipped: boolean) => {
     introOver.current = true;
-    const now = chip.current?.ctx.currentTime ?? 0;
-    if (skipped) for (const sd of introSounds.current) sd.stop(now + 0.08);
-    introSounds.current = [];
+    // Not skipped: the chord rings on (and fades) over the selection screen.
+    if (skipped) introPlaying.current?.fadeOut();
+    introPlaying.current = null;
     setPreset(presetById(soundNow).id);
     setIntro(false);
   };
