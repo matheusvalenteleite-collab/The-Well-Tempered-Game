@@ -444,6 +444,8 @@ export interface Play {
   roomMul?: number;
   /** D385: the player's line on the piano: the reading's level here (dB about the middle), the touch's zone added (touch-expr.ts landing). */
   lineDb?: number;
+  /** D426: a slid note on the piano (the hairpin slide): its level continuous across the strip (touch-expr.ts pianoHairpinDb), not the zones. */
+  hairpin?: boolean;
   /** D385: the player's note is a reading's accent (">" +4, "^" +6 dB): what the strong zone gives it. */
   accentDb?: number;
   /** D385: a trill's note: the other pitch of its alternation; where both would sound one recording, this one takes the other neighbouring recording (no shared hammer). */
@@ -858,7 +860,7 @@ export class Chip {
     const pt = v.patch ?? null;
     const pulse = !pt && v.timbre !== "triangle";
     // D349: the pedal has no echo manual (an organist's feet stay on the one pedalboard).
-    const l = kind === "organ" && isPedal(pt) ? {} : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb });
+    const l = kind === "organ" && isPedal(pt) ? {} : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb, ...(p.hairpin ? { hairpin: true } : {}) });
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
     const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };

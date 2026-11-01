@@ -266,11 +266,15 @@ test("D376: a slide on a keyboard strikes the next note (no bend), rings 110 ms 
   assert.ok(Math.abs(slid!.offMs) < 40, `on time: ${slid!.offMs}`);
 });
 
-test("D376: the piano's slide-slur tapers the joins after it; a detach ends it", () => {
+test("D376: the piano's slide-slur carries the joins after it; a detach ends it (D426: the hairpin, not the taper)", () => {
   const joined = run("pianoSampled", slidePlan({}), ON);
   const third = joined.heard[2];
   assert.equal(third.p.group, 2, "the third note in the slur");
-  assert.ok((third.p.level ?? 1) < (joined.heard[0].p.level ?? 1), "lighter than the first (−2.5 dB)");
+  // D426 (deliberately): the taper (−1.5, −2.5…) replaced: the slid note takes the hairpin (its level from the
+  // thumb across, d426-keyboard-slides.test.ts); a note joined by the other thumb is a landing, its own zone, untapered.
+  assert.equal(joined.heard[1].p.hairpin, true, "the slid note: the hairpin");
+  assert.equal(third.p.hairpin, undefined);
+  assert.equal(third.p.level ?? 1, joined.heard[0].p.level ?? 1, "no taper");
   const detached = run("pianoSampled", slidePlan({ gapS: 0.1 }), ON);
   assert.equal(detached.heard[2].p.group, undefined, "a detach: plain");
   // Off: the piano's slide bends nothing here either way: no group without a reading.
