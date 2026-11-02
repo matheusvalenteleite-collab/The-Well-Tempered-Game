@@ -111,7 +111,7 @@ test("D504: every instrument has a compass; a note outside it is played an octav
   }
 });
 
-test("D504: the layout with the fewest folds: by's unless it folds over 1% of the notes; I/11 none, II/23 two", () => {
+test("D504: the layout with the fewest folds: by's unless it folds over 1% of the notes; I/11 and I/13 none, II/23 two", () => {
   let total = 0;
   for (const f of FUGUES) {
     const l = trioLayout(f);
@@ -122,10 +122,15 @@ test("D504: the layout with the fewest folds: by's unless it folds over 1% of th
     total += sum(l.folds);
   }
   assert.ok(total < 400, `${total}`);
+  // I/11's alto reaches Bb2: oboe I, the bassoon and the cello (no folds); I/13 (the trio's) the two oboes and the bassoon, none folded.
   const i11 = trioLayout(fugueById("wtc1f11"));
   assert.ok(i11.alt);
   assert.deepEqual(i11.slots.map(([id]) => id), ["trioOboe1", "trioBassoon", "trioCello"]);
   assert.deepEqual(i11.folds, [0, 0, 0]);
+  const i13 = trioLayout(fugueById("wtc1f13"));
+  assert.ok(!i13.alt);
+  assert.deepEqual(i13.slots.map(([id]) => id), ["trioOboe1", "trioOboe2", "trioBassoon"]);
+  assert.deepEqual(i13.folds, [0, 0, 0]);
   const ii23 = trioLayout(fugueById("wtc2f23"));
   assert.ok(!ii23.alt);
   assert.ok(ii23.folds.reduce((a, b) => a + b, 0) <= 2);
@@ -153,9 +158,9 @@ test("D504: through the chip, an oboe's note under Bb3 sounds an octave up (the 
   setPreset("chip");
 });
 
-const assigned = ["wtc1f11", "wtc2f23"];
+const assigned = ["wtc1f13", "wtc2f23"];
 
-test("D504: the continuo scripts: I/11 and II/23 each a script, every moment with its reason, in and out in turn", () => {
+test("D504: the continuo scripts: I/13 and II/23 each a script, every moment with its reason, in and out in turn", () => {
   for (const id of assigned) {
     const ms = TRIO_CONTINUO_SCRIPTS[id];
     assert.ok(ms && ms.length >= 5, id);
@@ -168,13 +173,16 @@ test("D504: the continuo scripts: I/11 and II/23 each a script, every moment wit
     });
     assert.equal(continuoMoments(f), ms);
   }
-  // I/11: the bass's entry (9-10) brings it in; it is silent in the exposition's upper voices and the light episodes.
-  const f = fugueById("wtc1f11");
+  // I/13: the bass's entry (5) brings it in; it is silent in the exposition's upper voices and the light episodes.
+  const f = fugueById("wtc1f13");
   const c = new ContinuoScript(f);
   const bv = f.voices.length - 1;
   const firstIn = f.voices[bv].find((n) => c.at(n[0], bv));
-  assert.ok(firstIn && firstIn[0] >= tickOfBar(f, 9) && firstIn[0] < tickOfBar(f, 11), "with the bass's entry at bar 9-10");
-  assert.equal(c.at(tickOfBar(f, 32), bv), null, "the episode 30-36: the bass alone");
+  assert.ok(firstIn && firstIn[0] >= tickOfBar(f, 5) && firstIn[0] < tickOfBar(f, 6), "with the bass's entry at bar 5");
+  const inEpisode = f.voices[bv].filter((n) => n[0] >= tickOfBar(f, 13) && n[0] < tickOfBar(f, 15));
+  assert.ok(inEpisode.length && inEpisode.every((n) => c.at(n[0], bv) === null), "the episode 12-15: the bass alone");
+  // No script for I/11 any more: its sound is TOMITA (on the trio it would take the rule).
+  assert.equal(TRIO_CONTINUO_SCRIPTS.wtc1f11, undefined);
 });
 
 test("D504: the continuo only in its spans, entering and leaving at the bass's phrase starts, never mid-note", () => {

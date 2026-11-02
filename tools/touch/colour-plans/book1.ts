@@ -265,8 +265,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f11: {
-    sound: "oboeTrio",
-    soundWhy: "A passepied, pastoral (Bodky, Keller: 'with deliberate grace'): the reeds' own dance, D504's ZELENKA TRIO: oboe I on the tune, the bassoon on the alto (it reaches Bb2, under any oboe), the continuo cello on the bass, the harpsichord joining at the bass's entries, the stretto and the close.",
+    sound: "tomita",
+    soundWhy: "A passepied, pastoral (Bodky, Keller: 'with deliberate grace'): TOMITA's synthesized flutes and whistles over its bass, a shepherd's dance in the space echo, the outer voices nearly dry for a phone.",
     character: "Bodky's three terraces (1-17, 17-34, 35-46, 46-56, 56-72); first section 1-46, stretto 46-56 (Ledbetter).",
     plans: {
       harpsichordSampled: [
@@ -314,8 +314,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f13: {
-    sound: "tomita",
-    soundWhy: "Euphonious, soft and gently flowing (Keller), the 'little brook' of water figures (Bodky): TOMITA's whistle and flute over its bass, the outer voices nearly dry so the lines stay clear on a phone.",
+    sound: "oboeTrio",
+    soundWhy: "Euphonious, soft and gently flowing (Keller), the 'little brook' of water figures (Bodky): D504's ZELENKA TRIO, two oboes of different breath in conversation and the bassoon, the continuo at the bass's entries, the cadences and the close.",
     character: "Exposition 1-7, then 7-23 and 23-35 (Ledbetter); episodes 7-11, 12-15, 17-20, 22-28.",
     plans: {
       tomita: [

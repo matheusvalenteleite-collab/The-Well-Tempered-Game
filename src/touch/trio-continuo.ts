@@ -12,16 +12,18 @@
 export type ContinuoMoment = readonly [bar: number, inOut: "in" | "out", why: string];
 
 export const TRIO_CONTINUO_SCRIPTS: Readonly<Record<string, readonly ContinuoMoment[]>> = {
-  // I/11 in F, the passepied (3/8; Ledbetter: first section 1-46, stretto 46-56, the close 56-72). Three voices: oboe I,
-  // the bassoon (the alto, Bb2-D5, under any oboe's compass) and the cello on the bass: the harpsichord joins the cello.
-  wtc1f11: [
-    [9, "in", "The subject enters in the bass (9-10): the continuo with it, the trio's foundation laid under the two upper voices' exposition."],
-    [18, "out", "The cadence in Bb (18) reached; the episode after it (18-25) light, the bass alone, then silent (22-24)."],
-    [25, "in", "The subject in the bass again, in F (25), under the alto's entry (27)."],
-    [30, "out", "The sequential episode (30-36): the dance's lightness, the bass alone."],
-    [40, "in", "The bass's entry in D minor (40) after the soprano's and the alto's (36, 38): the tension toward the cadence in D minor (46)."],
-    [56, "out", "The stretto 46-56 (Ledbetter) and the cadence in G minor (56) past; the last section opens lightly."],
-    [64, "in", "The approach to the close: the last sequence and the cadences in Bb (71) and F (72) over the full continuo."],
+  // I/13 in F#, euphonious, the "little brook" (4/4; Ledbetter: exposition 1-7, then 7-23 and 23-35; episodes 7-11, 12-15,
+  // 17-20, 22-28). Three voices: the two oboes and the bassoon: the cello and the harpsichord join the bassoon.
+  wtc1f13: [
+    [5, "in", "The subject enters in the bass (5), closing the exposition: the continuo with it, under the two oboes' entries (1, 3)."],
+    [8, "out", "The first episode (7-11), its water figures light: the reeds alone after the cadence in F# (7)."],
+    [10, "in", "The approach to the perfect cadence in C# (11) and the soprano's return (11)."],
+    [12, "out", "The episode 12-15 and the alto's entry (15): the oboes' conversation over the bassoon alone."],
+    [16, "in", "Toward the perfect cadence in C# (17)."],
+    [18, "out", "The episode 17-20, light again."],
+    [20, "in", "The bass's entry in D# minor (20) and the cadences in D# minor (22, 23): the fugue's darkest moment."],
+    [24, "out", "The long episode (23-28) and the alto's B major entry (28): the reeds alone."],
+    [30, "in", "The last entry, the soprano's in F# (31), and the close (34-35) over the full continuo."],
   ],
   // II/23 in B, a double fugue in long notes (2/2: Keller, "quietly flowing, singing"; the second subject from 27, a long
   // episode 63-75 with the bass silent 61-74, a pedal on E 94-95). Four voices: the oboes, the bassoon and the cello on
