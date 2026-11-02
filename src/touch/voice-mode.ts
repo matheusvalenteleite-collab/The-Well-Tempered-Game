@@ -101,11 +101,13 @@ export function entrySpans(f: TouchFugue): Span[] {
     for (const [on, , , step] of f.voices[voice]) steps.set(on, Math.max(step, steps.get(on) ?? -Infinity));
     return steps;
   };
+  // D493: a fugue of several subjects numbers them all, the first too (its flags read SUBJECT 1, 2, 3).
+  const multi = f.entries.some((e) => e.theme);
   const entries: Span[] = f.entries.map((e) => {
     const steps = stepsOf(e.voice);
     const seen = new Set<number>();
     const path = e.notes.filter(([on]) => steps.has(on) && !seen.has(on) && (seen.add(on), true)).map(([on, dur]) => ({ on, dur, step: steps.get(on)! }));
-    return { voice: e.voice, on: e.on, end: e.end, form: e.form, key: e.key, path, shape: entryShape(e), theme: e.theme };
+    return { voice: e.voice, on: e.on, end: e.end, form: e.form, key: e.key, path, shape: entryShape(e), theme: e.theme ?? (multi ? 1 : undefined), inverted: e.inverted, scale: e.scale };
   });
   // D194: the countersubjects, drawn beside their entries (silver).
   const counters: Span[] = (f.countersubject ?? []).map((c) => {
