@@ -1543,7 +1543,8 @@ export class ProtoGame {
         }
         parent = p;
         // D425: his accents struck hard (a synthetic strength, as a phone would read it), the rest softly.
-        const strike = this.asksAccent(0, t.i) ? 1 : 0.25;
+        // D506: only with the Lab's hard tap on; off (the game's), he lands them in the strong zone, as a player does.
+        const strike = !MECH.hardTap ? undefined : this.asksAccent(0, t.i) ? 1 : 0.25;
         q.push({ tick: t.land ?? t.on, act: () => ((y = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 })), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H, strike }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
@@ -3890,7 +3891,7 @@ export class ProtoGame {
     const n1 = notes[i];
     // D485, D509: the note's octave (touchNote) where the player's boosted entry covers it, right or wrong alike.
     this.layerFor = { voice: this.voiceOf(h.k, i), on: n1.on };
-    h.fx = sv ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
+    h.fx = sv ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1, true) : [];
     // D494: in BLUETOOTH MODE too the touch sounds its note (nothing is on the schedule ahead of it).
     // D321, "connect": the drag's own connection, by the instrument: a glide as long as the drag took, or
     // on a keyboard the coulé or the Schleifer into the note (dragConnect); else the slide glides on as before.

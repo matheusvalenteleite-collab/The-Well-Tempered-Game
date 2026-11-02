@@ -119,8 +119,9 @@ test("D304: a singer's subject not belled (the tinkling): I/2's glass spark on t
     playFx(chip, fx, sn, 72, 0, 0.5, voicing(0, 3));
     return notes;
   };
-  // D428: no real instrument is belled now (the harpsichord neither); a synthesizer still is.
-  assert.ok(count("megaFm") > 0);
+  // D428: no real instrument is belled now (the harpsichord neither); D505 (deliberately): nor a synthesizer.
+  assert.equal(count("megaFm"), 0);
+  assert.equal(count("chip"), 0);
   assert.equal(count("harpsichordSampled"), 0);
   assert.equal(count("vocalSynth"), 0);
   assert.equal(count("soloVoices"), 0);

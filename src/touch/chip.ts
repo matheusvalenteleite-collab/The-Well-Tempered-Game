@@ -14,7 +14,7 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
@@ -126,6 +126,8 @@ export function softClipCurve(n = 2048): Float32Array<ArrayBuffer> {
   return c;
 }
 /** D346: SOLO VOICES on a phone: about 1.7 dB lower into the limiter, and a 2.5 dB dip in the low mids. */
+/** D505: the metronome's click (Chip.tick): noise through a broad band-pass, its loudness matched to the old pitched tick's by measurement. */
+export const TICK = { hz: 1400, accentHz: 2000, q: 1.2, decay: 0.015, gain: 6 };
 export const PHONE_VOICES = { sets: ["voiceS", "voiceA", "voiceT", "voiceB", "choirAah"], trim: 0.82, dipHz: 320, dipQ: 0.8, dipDb: -2.5 };
 /** D249: the room's impulse, shorter on a phone (its convolver the costliest node there). */
 export const ROOM_S = { phone: 0.8, computer: 1.3 };
@@ -1508,12 +1510,13 @@ export class Chip {
     const main = inst ? setFor(inst, midi) : "";
     if (v.patch && inst && !setUnreachable(main)) {
       // D405: never a recording read more than `maxShift` semitones off (glassy above, muddy below): a pitch past the compass an octave nearer.
-      if (inst.maxShift !== undefined) midi = foldInto(main, midi, inst.maxShift);
+      // D505: and on every recorded set, never more than MAX_SHIFT_ANY fast (sampled.ts guardedPitch).
+      midi = guardedPitch(inst, main, midi, !!(v.patch.sing || v.patch.syllable));
       let near = nearestSample(main, midi);
       // D385: a piano trill's two pitches never from one recording: the one not recorded itself takes the other
       // neighbouring recording (G#4 from F#4 up where A4 sounds A4), where that recording is loaded.
       if (p.altSample !== undefined && near !== null && near !== midi && nearestSample(main, p.altSample) === near && !(near !== p.altSample && midi < p.altSample)) {
-        const other = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= (inst.maxShift ?? 4));
+        const other = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= (inst.maxShift ?? MAX_SHIFT_ANY));
         if (other !== null && loaded(main, other)) near = other;
       }
       // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
@@ -1526,12 +1529,16 @@ export class Chip {
         const lighter = inst.soft && (p.layer ? p.layer === "soft" : (p.level ?? 1) < inst.soft.below) ? inst.soft.set : null;
         const alt = hard ?? lighter;
         const an = alt ? nearestSample(alt, midi) : null;
-        const ar = alt && an !== null && Math.abs(an - midi) <= (inst.maxShift ?? 4) ? loaded(alt, an) : undefined;
+        const ar = alt && an !== null && Math.abs(an - midi) <= (inst.maxShift ?? MAX_SHIFT_ANY) ? loaded(alt, an) : undefined;
         if (alt && an !== null && ar) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, alt, an, ar, bag);
         if (alt && an !== null) loadOne(this.ctx, alt, an);
         const mr = near === null ? undefined : loaded(main, near);
         if (mr && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, main, near, mr, bag);
         if (near !== null) loadOne(this.ctx, main, near);
+        // D505: a loaded neighbour within the guard before the synthesized stand-in (as below).
+        const nb = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= (inst.maxShift ?? MAX_SHIFT_ANY) && !!loaded(main, m));
+        const nr = nb === null ? undefined : loaded(main, nb);
+        if (nb !== null && nr) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, main, nb, nr, bag);
         return v.patch.sing ? this.singNote(midi, at, dur, v, v.patch, p, bag) : this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
       }
       const soft = inst.soft && (p.layer ? p.layer === "soft" : (p.level ?? 1) < inst.soft.below) ? inst.soft.set : null;
@@ -1553,6 +1560,11 @@ export class Chip {
       }
       if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, set, near, rec, bag);
       if (near !== null) loadOne(this.ctx, main, near);
+      // D505: its own recording still on its way (a slow phone): a neighbour already loaded, retuned within the
+      // set's guard, rather than the synthesized stand-in (a different instrument, D190's); the stand-in only where none is.
+      const nb = nearestSample(main, midi, (m) => m !== near && Math.abs(m - midi) <= (inst.maxShift ?? MAX_SHIFT_ANY) && !!loaded(main, m));
+      const nr = nb === null ? undefined : loaded(main, nb);
+      if (nb !== null && nr) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, main, nb, nr, bag);
     }
     if (v.patch?.sing) return this.singNote(midi, at, dur, v, v.patch, p, bag);
     if (v.patch) return this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
@@ -1714,7 +1726,8 @@ export class Chip {
     if (!inst) return true;
     const set = setFor(inst, midi);
     if (setUnreachable(set)) return false;
-    const near = nearestSample(set, inst.maxShift !== undefined ? foldInto(set, midi, inst.maxShift) : midi);
+    // D505: never more than MAX_SHIFT_ANY fast (sampled.ts guardedPitch), as the note itself will be read.
+    const near = nearestSample(set, guardedPitch(inst, set, midi, !!(v.patch?.sing || v.patch?.syllable)));
     if (near === null) return false;
     if (loaded(set, near) || (inst.soft && loaded(inst.soft.set, near))) return true;
     loadOne(this.ctx, set, near);
@@ -1849,14 +1862,18 @@ export class Chip {
   }
 
 
-  /** The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within an octave, retuned. */
+  /**
+   * The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within
+   * MAX_SHIFT_ANY, retuned. D505: it took the nearest loaded within an octave: the harpsichord's 4' (and second 8')
+   * choir could read a string up to twelve semitones fast, a glassy ring an octave over the note.
+   */
   private nearestLoaded(set: string, m: number): { set: string; m: number; rec: Loaded } | null {
     const own = nearestSample(set, m);
     if (own === null || Math.abs(own - m) > 2) return null;
     const rec = loaded(set, own);
     if (rec) return { set, m: own, rec };
     loadOne(this.ctx, set, own);
-    const alt = nearestSample(set, m, (x) => loadedMidis(set).includes(x) && Math.abs(x - m) <= 12);
+    const alt = nearestSample(set, m, (x) => loadedMidis(set).includes(x) && Math.abs(x - m) <= MAX_SHIFT_ANY);
     const altRec = alt === null ? undefined : loaded(set, alt);
     return alt !== null && altRec ? { set, m: alt, rec: altRec } : null;
   }
@@ -3406,19 +3423,27 @@ export class Chip {
   /** D345: the room's level last asked for (NaN: set directly since, by `period`). */
   private roomGoal = NaN;
 
-  /** A metronome tick: a short, soft click, brighter on the bar's first beat. */
+  /**
+   * A metronome tick: a short, soft click, brighter on the bar's first beat. D505: no longer a pitch: it was a
+   * square wave at C7 (2093 Hz) or G6 dying over 30 ms, a tiny struck bell (partials at 2.1, 6.3, 10.5 kHz, as a
+   * glockenspiel's bar), heard as one over the count-in and after a pause; now a wooden click, a burst of noise
+   * through a broad band-pass (Q 1.2, 1.4 or 2 kHz), gone in 15 ms: no narrow partial anywhere.
+   */
   tick(at: number, accent: boolean, gain = 0.1) {
     const ctx = this.ctx;
     const bag = new Bag();
-    const o = bag.src(ctx.createOscillator());
+    const n = bag.src(this.noise());
+    const bp = bag.add(ctx.createBiquadFilter());
+    bp.type = "bandpass";
+    bp.frequency.value = accent ? TICK.accentHz : TICK.hz;
+    bp.Q.value = TICK.q;
     const g = bag.add(ctx.createGain());
-    o.type = "square";
-    o.frequency.value = accent ? 2093 : 1568;
-    g.gain.setValueAtTime(gain, at);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.03);
-    o.connect(g).connect(this.master);
-    o.start(at);
-    halt(o, at + 0.04);
+    g.gain.setValueAtTime(0, at);
+    g.gain.linearRampToValueAtTime(gain * TICK.gain, at + 0.001);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + TICK.decay);
+    n.connect(bp).connect(g).connect(this.master);
+    n.start(at, (at * 7.31) % 0.9);
+    halt(n, at + TICK.decay + 0.01);
   }
 
 }
