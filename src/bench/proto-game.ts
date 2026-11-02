@@ -93,6 +93,7 @@ import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { TRIO_ID, continuoFor, trioLayout, type ContinuoScript } from "../touch/trio.ts";
 import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
+import { FormLayer, withForm } from "../touch/fugue-form.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
@@ -649,6 +650,9 @@ export class ProtoGame {
       if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
       else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
     }
+    // D513: the subjects and the episodes, the climax (fugue-form.ts: where the fugue's contrast is clear); D514: the drums' piece.
+    if (!o.her && f.kind === "fugue") this.form = new FormLayer(f);
+    chip.drumsFor?.(f);
     // D504: ZELENKA TRIO's layout for the piece (trio.ts trioLayout: the fewest notes out of compass) and its continuo script.
     const tl = preset().id === TRIO_ID ? trioLayout(f) : null;
     setPieceLayout(tl ? { preset: TRIO_ID, count: tl.count, slots: tl.slots } : null);
@@ -1331,7 +1335,7 @@ export class ProtoGame {
       // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
       // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here.
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat) });
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f });
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
@@ -1382,7 +1386,10 @@ export class ProtoGame {
       const bowIn: Play = bowed && jn.legato ? (place === "mid" || place === "last" ? { slur: true } : { bowChange: true }) : {};
       const bowOut: Play = bowed && jn.tie ? { give: place === "first" || place === "mid" ? "slur" : "bow" } : {};
       // D355: the band's colour where the note starts (colour.ts).
-      const cl = this.colour?.at(n.on, n.voice) ?? null;
+      // D513: and the form's (a subject zone, an episode, the climax): its shelf, room and registration, its level below.
+      const fm = this.form?.at(preset().id, n.on) ?? null;
+      const cl = withForm(this.colour?.at(n.on, n.voice) ?? null, fm?.colour ?? null);
+      const fdb = fm ? 10 ** (fm.db / 20) : 1;
       // D504: the continuo on the bass's note where the piece's script has it (an ornamented note: the bass alone).
       const ct = parts.length === 1 && !n.band ? (this.continuo?.at(n.on, n.voice) ?? null) : null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
@@ -1395,7 +1402,7 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * fdb, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         // D485: a boosted entry's note (a later entry in stretto with the player's): its layer.
         this.layerOf(n.voice, n.on, pmidi, pat, plen, vv, { ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
@@ -5186,6 +5193,8 @@ export class ProtoGame {
   readonly subj: SubjectSound;
   /** D355: the piece's colour plan for the sound playing (colour.ts), null where it has none. */
   colour: ColourPlan | null = null;
+  /** D513: the fugue's subjects and episodes in the band's playing (fugue-form.ts), null for KIMIKO's recording. */
+  form: FormLayer | null = null;
   /** D504: ZELENKA TRIO's continuo script for the piece (trio.ts: by its structure alone), null on any other sound. */
   continuo: ContinuoScript | null = null;
   /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */

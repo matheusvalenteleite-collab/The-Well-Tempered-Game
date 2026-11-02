@@ -1916,7 +1916,8 @@ export function placeFor(voice: number, count: number): { pan: number; level: nu
   return by ? { pan: by[1], level: by[2] ?? 1 } : null;
 }
 
-export type Drum = "kick" | "snare" | "hat" | "ride" | "rim" | "brush" | "shaker" | "clap";
+// D514: and the drum presets' crash, open hat and toms (drum-presets.ts), synthesized where a recording is not loaded.
+export type Drum = "kick" | "snare" | "hat" | "ride" | "rim" | "brush" | "shaker" | "clap" | "crash" | "openhat" | "tomHigh" | "tomLow";
 
 /**
  * The rhythm section's hits in one beat: which drum, where in the beat (0 to 1), how strong. `b` is
