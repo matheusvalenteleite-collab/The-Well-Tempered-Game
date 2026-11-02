@@ -1,7 +1,7 @@
 /**
- * D223, D299: headphones. BLUETOOTH MODE (D299) puts the player's notes on the schedule at their written
- * times and lengths, at their usual level, touched or not; a touch scores and makes no sound; nothing
- * is armed, confirmed or faded; the window 20 ms wider early and 25 ms late. The delay kept per
+ * D223, D299: headphones. BLUETOOTH MODE: the window 20 ms wider early and 25 ms late, the clock smoothed;
+ * D494: nothing of the player's on the schedule, every note of it sounded by a touch (D299's scheduled
+ * notes and silent touches withdrawn). The delay kept per
  * listening setup; AUTO's threshold; the quick calibration; the screen's delay drawn ahead; the default
  * path untouched.
  */
@@ -67,29 +67,21 @@ function scheduled(r: ReturnType<typeof game>, i: number) {
   return r.notes.find((x) => x.p.lead && x.midi === n.midi && Math.abs(x.at - r.g.timeAt(n.on)) < 1e-9);
 }
 
-test("D299, D306: the player's notes are scheduled ahead at their written times and lengths, at full level; untouched, a note is cut when missed", () => {
+test("D494: BLUETOOTH MODE puts nothing of the player's on the schedule; untouched, a note is missed and never sounds", () => {
   const lag = 0.16;
   const r = game(lag, true);
   const i = firstHead(r.g);
   const n = r.g.notes[i];
   const at = r.g.timeAt(n.on);
-  // Scheduled ahead (D306: ARM_AHEAD_S, less than the band's horizon): before the note's time on the audio clock.
   r.until(at - 0.1);
-  const rec = scheduled(r, i);
-  assert.ok(rec, "the note is on the schedule");
-  assert.ok(rec.asked < at, "asked for ahead of its time");
-  assert.equal(rec.at, at, "at its written time on the audio clock (heard on time through the delay)");
-  assert.ok(rec.p.lead, "as the player's own");
-  assert.equal(rec.p.into, undefined, "no gate");
-  assert.ok(Math.abs(rec.dur - (r.g.timeAt(n.on + n.dur) - at)) < 1e-6 || rec.dur < r.g.timeAt(n.on + n.dur) - at, "its written length (or up to its first rider)");
-  assert.equal(r.g.armedAt(0, n.on)?.state, "sounding");
-  // No touch: the window closes: a miss, as without the mode; D306: the voice silenced, the note cut then.
+  assert.equal(scheduled(r, i), undefined, "not on the schedule");
+  assert.equal(r.g.armedAt(0, n.on), undefined);
   r.until(at + lag + 0.8);
   assert.equal(n.state, "miss");
-  assert.ok(rec.stopAt !== undefined && rec.stopAt <= at + lag + 0.8, "cut when missed (it does not play on by itself)");
+  assert.equal(r.notes.filter((x) => x.p.lead).length, 0, "no note of the player's voice without a touch");
 });
 
-test("D299, D306: a touch in the window scores the note and sounds nothing; letting go cuts it", () => {
+test("D494: in BLUETOOTH MODE a touch in the window scores the note and sounds it at the touch; letting go cuts it", () => {
   const lag = 0.16;
   const r = game(lag, true);
   const i = firstHead(r.g);
@@ -97,50 +89,27 @@ test("D299, D306: a touch in the window scores the note and sounds nothing; lett
   const at = r.g.timeAt(n.on);
   // The touch heard on time: lag after the note's audio time; 40 ms late of that, to be sure.
   r.until(at + lag + 0.04);
-  const before = r.notes.length;
   r.g.keyDown(1, { velocity: 0.9 }, r.g.wall());
   assert.equal(n.state, "hit");
-  assert.equal(r.g.armedAt(0, n.on)?.state, "hit");
-  assert.equal(r.notes.length, before, "no sound made by the touch");
+  const rec = r.notes.find((x) => x.p.lead && x.midi === n.midi && x.asked === r.clock.t);
+  assert.ok(rec, "struck at the touch");
   r.until(at + lag + 0.1);
   r.g.keyUp(1, r.g.wall());
-  const rec = scheduled(r, i)!;
-  assert.ok(rec.stopAt !== undefined && Math.abs(rec.stopAt - r.clock.t) < 1e-9, "D306: let go, the note is cut (a staccato heard)");
+  assert.ok(rec.stopAt !== undefined && Math.abs(rec.stopAt - r.clock.t) < 1e-9, "let go, the note is cut");
   // D218: the release judged from the touch (as heard), not from the sound.
   assert.ok(n.off !== undefined && Math.abs(r.g.timeAt(n.off) - (r.clock.t - lag)) < 0.01, `off ${n.off}`);
-  // D299: how late it was, as heard, kept for the retune.
   assert.equal(r.g.btOffsets.length, 1);
   assert.ok(Math.abs(r.g.btOffsets[0] - 40) < 1, `${r.g.btOffsets[0]}`);
 });
 
-test("D299, D306: a wrong key sounds nothing; it silences the voice: the note scheduled is cut", () => {
-  const lag = 0.16;
-  const r = game(lag, true, "piano");
-  const i = firstHead(r.g);
-  const n = r.g.notes[i];
-  const at = r.g.timeAt(n.on);
-  r.until(at + lag);
-  const before = r.notes.length;
-  r.g.keyDown(1, { midi: n.midi + 1, velocity: 0.5 }, r.g.wall());
-  assert.equal(n.state, "miss");
-  assert.equal(r.notes.length, before, "the wrong key not heard (it would be a delay late)");
-  assert.notEqual(scheduled(r, i)?.stopAt, undefined, "cut");
-  assert.equal(r.g.armedAt(0, n.on), undefined, "off the schedule");
-});
-
-test("D299: the level never follows the touch; every scheduled note at the same expression", () => {
-  const r = game(0.2, true);
-  r.until(r.g.timeAt(r.g.notes[firstHead(r.g)].on) + 0.25);
-  r.g.keyDown(1, { velocity: 0.1 }, r.g.wall());
-  r.until(r.g.timeAt(r.g.end) + 1);
-  const mine = r.notes.filter((x) => x.p.lead && x.p.level !== undefined);
-  // D306: missed notes silence the voice, so few are scheduled; those that are, alike.
-  assert.ok(mine.length >= 1);
-  const lv = new Set(mine.map((x) => x.p.level!.toFixed(4)));
-  // The subject's shape may differ by note; the touches never: soft and missed notes alike.
-  const missed = r.g.notes.filter((n) => n.state === "miss").length;
-  assert.ok(missed > 5, "most notes missed");
-  assert.ok(lv.size <= 3, `levels ${[...lv]}`);
+test("D494: a whole run untouched sounds no note of the player's voice, in BLUETOOTH MODE or not, on every layout", () => {
+  for (const proto of ["keys", "piano", "ladder"] as ProtoId[])
+    for (const bt of [true, false]) {
+      const r = game(bt ? 0.2 : 0, bt, proto);
+      r.until(r.g.timeAt(r.g.end) + 1);
+      assert.equal(r.notes.filter((x) => x.p.lead).length, 0, `${proto} bt=${bt}`);
+      assert.ok(r.g.notes.every((n) => n.state !== "pending" && n.state !== "hit"), `${proto} bt=${bt}: all missed`);
+    }
 });
 
 test("D299: BLUETOOTH MODE's window 20 ms wider early, 25 ms late; off, nothing is scheduled (the default path)", () => {
@@ -201,7 +170,7 @@ test("D223: the delay kept per setup and restored; a change noticed; AUTO's thre
   assert.equal(BT_AUTO_S, 0.08);
   assert.equal(btOn("auto", 0.08), false);
   assert.equal(btOn("auto", 0.081), true);
-  assert.equal(btOn("auto", null, 0.15), true);
+  assert.equal(btOn("auto", null, 0.15), false, "D494: a reported latency alone never turns it on");
   assert.equal(btOn("auto", 0.03, 0.15), false, "the tap beats the estimate");
   assert.equal(btOn("on", 0), true);
   assert.equal(btOn("off", 0.3), false);

@@ -1141,6 +1141,17 @@ export const PATCHES = {
   consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
   consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
   consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT }),
+  // D512, the consort's articulation stops (consort-stops.ts): SPICCATO and PIZZICATO, each voice's own recordings
+  // (VSCO 2 CE), dying away by themselves (the bow bounced, the string plucked), at the arco's level (sampled.ts
+  // CONSORT_STOP_GAIN, measured), in the same room at the same send; the cello's phone lift kept. A pizzicato's
+  // energy lies under a phone's speaker (its partials die first: measured 5-14 dB weaker than the arco through the
+  // phone model at the arco's level elsewhere): its upper partials lifted on a phone (Patch.phoneLift), as the cello's.
+  consViolinSpicc: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.1 }, amp: { a: 0.006, d: 0.18, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolinSpicc", one: {}, phoneLift: { hz: 700, db: 4 } }),
+  consViolaSpicc: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.1 }, amp: { a: 0.006, d: 0.18, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolaSpicc", one: {} }),
+  consCelloSpicc: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.1 }, amp: { a: 0.006, d: 0.2, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloSpicc", one: {}, phoneLift: CELLO_PHONE_LIFT }),
+  consViolinPizz: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.5, q: 1, env: 1.5, envDecay: 0.08 }, amp: { a: 0.003, d: 0.5, s: 0, r: 0.1 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolinPizz", one: {}, phoneLift: { hz: 700, db: 7 } }),
+  consViolaPizz: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.08 }, amp: { a: 0.003, d: 0.6, s: 0, r: 0.1 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolaPizz", one: {}, phoneLift: { hz: 600, db: 10 } }),
+  consCelloPizz: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.08 }, amp: { a: 0.003, d: 0.8, s: 0, r: 0.1 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloPizz", one: {}, phoneLift: { hz: 700, db: 10 } }),
   // LUTE: one lute (a classical guitar's recordings, gut-like nylon) with a lute's courses (Patch.one.courses:
   // each note's second string a few cents off and 3 ms later; below G3 an octave string in its place), each
   // note placed by its course (key) across the instrument, a fretted instrument's slightly uneven frets
@@ -1530,6 +1541,8 @@ export const PRESETS: Preset[] = [
     slots: ["consViolin", "consViolin", "consViola", "consViola", "consCello"],
     room: 0,
     fx: "salon",
+    // D512: the articulation stops' recordings ready too (consort-stops.ts: SPICCATO, PIZZICATO), short notes.
+    also: ["consViolinSpicc", "consViolaSpicc", "consCelloSpicc", "consViolinPizz", "consViolaPizz", "consCelloPizz"],
     by: {
       1: [["consViolin", 0]],
       2: [["consViolin", -0.15], ["consCello", 0.15]],

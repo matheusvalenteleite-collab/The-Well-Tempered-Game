@@ -19,8 +19,9 @@ import {
   ECHO_GAIN,
   holdValue,
   landing,
-  LUTE_FROM,
+  LUTE_BELOW,
   MESSA_DB,
+  TOUCH_LEVEL_DB,
   PIANO_SOFT_NET_DB,
   pulseWidth,
   STRONG_SIDE,
@@ -114,16 +115,16 @@ test("D311: the landing's numbers at the extremes, the middle the sound as it wa
     const net = db(l.level!) + (l.layer === "soft" ? PIANO_SOFT_NET_DB : 0);
     assert.ok(PIANO_ZONE_DB.some((z) => Math.abs(net - z) < 1e-9), `piano ${x}: ${net.toFixed(2)} dB`);
   }
-  // HARPSICHORD: no loudness; the lute only at the outer edge (D315: a place, whichever side is strong;
-  // landing takes strength, strengthOf the place's).
-  assert.deepEqual(landing("harpsichord", strengthOf(0.6), 64, PATCHES.harpsiSampled), {});
-  assert.deepEqual(landing("harpsichord", strengthOf(0), 64, PATCHES.harpsiSampled), {});
-  const lute = landing("harpsichord", strengthOf(1), 64, PATCHES.harpsiSampled);
+  // HARPSICHORD (D511: by strength, the piano's zones): the lute in the soft zone, darker to the soft edge; the plain
+  // 8′ in the middle; a brighter pluck in the strong zone (its level TOUCH_LEVEL_DB's, chip.ts).
+  assert.deepEqual(landing("harpsichord", 0.5, 64, PATCHES.harpsiSampled), {});
+  const lute = landing("harpsichord", 0, 64, PATCHES.harpsiSampled);
   assert.ok(lute.lute && lute.level === undefined && Math.round(lute.lp!) === 1200);
-  assert.equal(Math.round(landing("harpsichord", strengthOf(LUTE_FROM), 64, PATCHES.harpsiSampled).lp!), 2000);
-  // D315: with the strong side by the box, the lute is on the soft side.
-  if (STRONG_SIDE === "inner") assert.ok(landing("harpsichord", 0, 64, PATCHES.harpsiSampled).lute && !landing("harpsichord", 1, 64, PATCHES.harpsiSampled).lute);
-  // PIPE ORGAN: the echo manual toward the box.
+  assert.equal(Math.round(landing("harpsichord", LUTE_BELOW - 1e-9, 64, PATCHES.harpsiSampled).lp!), 2000);
+  assert.ok(!landing("harpsichord", 1, 64, PATCHES.harpsiSampled).lute && landing("harpsichord", 1, 64, PATCHES.harpsiSampled).tone! > 0);
+  void STRONG_SIDE;
+  void strengthOf;
+  // PIPE ORGAN: the echo manual in the soft zone (D511: the swell box's brightness with it).
   assert.equal(landing("organ", 0.1, 64, PATCHES.orgFlute).level, ECHO_GAIN);
   assert.deepEqual(landing("organ", 0.5, 64, PATCHES.orgFlute), {});
   // CHIPS: 12.5 / 25 / 50 %; the SID any width between.
@@ -153,11 +154,11 @@ test("D311, D385: PIANO (SAMPLED): soft to strong 6 dB edge to edge (three zones
   assert.equal(events(firm), n0, "nothing moves");
 });
 
-test("D311: HARPSICHORD: the lute stop at the outer edge (a lowpass 2 to 1.2 kHz, a short ring), no loudness; the inner part plain", async () => {
-  // D315: touch is strength; the places (inner 0.2, the outer edge) through strengthOf, whichever side is strong.
-  const plain = await strike("harpsichordSampled", { touch: strengthOf(0.2) });
-  const lute = await strike("harpsichordSampled", { touch: strengthOf(1) });
-  assert.ok(Math.abs(db(lute.peak) - db(plain.peak)) < 0.1, "no loudness of touch");
+test("D311, D511: HARPSICHORD: the lute stop on the soft side (a lowpass 2 to 1.2 kHz, a short ring, a little softer); the middle plain", async () => {
+  // D511: by strength (the soft zone the lute), its level TOUCH_LEVEL_DB's; the middle plain and as it was.
+  const plain = await strike("harpsichordSampled", { touch: 0.5 });
+  const lute = await strike("harpsichordSampled", { touch: 0 });
+  assert.ok(Math.abs(db(lute.peak) - db(plain.peak) - TOUCH_LEVEL_DB.harpsichordSampled[0]) < 0.1, "the buff's softer note");
   assert.ok(lowpasses(lute).some((f) => Math.round(f) === 1200));
   assert.ok(!lowpasses(plain).some((f) => f < 5000), "the plain 8': no lowpass of the touch");
   const at = DOWN + 0.6;
@@ -166,12 +167,14 @@ test("D311: HARPSICHORD: the lute stop at the outer edge (a lowpass 2 to 1.2 kHz
   assert.ok(ringLute < -15 && ringPlain > -3, `0.6 s on: lute ${ringLute.toFixed(1)} dB, plain ${ringPlain.toFixed(1)} dB`);
 });
 
-test("D311, D349: PIPE ORGAN: the echo manual toward the box (the second manual's soft flutes, quieter, veiled) for that note alone; steady wind held; none on the pedal", async () => {
+test("D311, D349, D511: PIPE ORGAN: the echo manual in the soft zone (the second manual's soft flutes, quieter, veiled) for that note alone; the swell box; none of the echo on the pedal", async () => {
+  // D511: the swell box's level (TOUCH_LEVEL_DB) on both, the echo's under it.
+  const swell = (x: number) => (x < 0.5 ? TOUCH_LEVEL_DB.chamberOrgan[0] * (1 - 2 * x) : TOUCH_LEVEL_DB.chamberOrgan[1] * (2 * x - 1));
   for (const voice of [0, 1]) {
     const main = await strike("chamberOrgan", { touch: 0.8 }, voice);
     const echo = await strike("chamberOrgan", { touch: 0.1 }, voice);
     // (The peak counts the pipe's speech: the flutes' chiff a little stronger than the Principal's.)
-    const drop = db(echo.peak) - db(main.peak);
+    const drop = db(echo.peak) - db(main.peak) - (swell(0.1) - swell(0.8));
     assert.ok(drop <= db(ECHO_GAIN) + 0.5 && drop >= db(ECHO_GAIN) - 4, `voice ${voice}: ${drop.toFixed(2)} dB`);
     assert.ok(echo.waves.includes("stopGedackt") && !echo.waves.includes("stopPrincipal"), `the flutes: ${echo.waves}`);
     assert.ok(main.waves.includes("stopPrincipal") && !main.waves.includes("stopGedackt"));
@@ -179,10 +182,11 @@ test("D311, D349: PIPE ORGAN: the echo manual toward the box (the second manual'
     echo.sd.shape?.(1);
     assert.equal(ofType(echo, "peaking").length, 0);
   }
-  // The pedal (the bass of three): one pedalboard, no echo.
+  // The pedal (the bass of three): one pedalboard, no echo; the swell box's level alone.
   const pedal = await strike("chamberOrgan", { touch: 0.8 }, 2);
   const soft = await strike("chamberOrgan", { touch: 0.1 }, 2);
-  assert.ok(Math.abs(db(soft.peak) - db(pedal.peak)) < 0.1);
+  assert.ok(Math.abs(db(soft.peak) - db(pedal.peak) - (swell(0.1) - swell(0.8))) < 0.1);
+  assert.deepEqual(soft.waves, pedal.waves, "the same pipes");
 });
 
 test("D311: VOCAL SYNTH: the vowel closed toward the box, open at the edge; a held swell of ±3 dB; a little vibrato blooms when held still", async () => {
@@ -226,10 +230,11 @@ test("D311: SOLO VOICES: closed (a lowpass to 3 kHz) toward the box, open (+3 dB
   assert.ok(!mid.made.some((n) => n.kind === "oscillator"), "straight: no LFO");
 });
 
-test("D311: CLASSIC CHIP: 12.5, 25, 50 % by the landing; a held move deepens or takes away its vibrato", async () => {
-  const thin = await strike("chip", { touch: 0 });
+test("D311, D511: CLASSIC CHIP: 50, 25, 12.5 % soft to strong by the landing; a held move deepens or takes away its vibrato", async () => {
+  // D511: the thin pulse on the strong side (measured the brighter and the louder).
+  const thin = await strike("chip", { touch: 1 });
   const hollow = await strike("chip", { touch: 0.5 });
-  const square = await strike("chip", { touch: 1 });
+  const square = await strike("chip", { touch: 0 });
   assert.equal(thin.waves[0], "pulse12");
   assert.equal(hollow.waves[0], "pulse25");
   assert.equal(square.waves[0], "pulse50");
@@ -242,8 +247,9 @@ test("D311: CLASSIC CHIP: 12.5, 25, 50 % by the landing; a held move deepens or 
 });
 
 test("D311: GAME BOY, SID 64, MEGA FM: the pulse width (its loudness kept), the SID's width any between, the FM index", async () => {
-  const gb0 = await strike("gameboy", { touch: 0 });
-  const gb1 = await strike("gameboy", { touch: 1 });
+  // D511: the thin pulse on the strong side.
+  const gb0 = await strike("gameboy", { touch: 1 });
+  const gb1 = await strike("gameboy", { touch: 0 });
   assert.equal(gb0.waves[0], "pulse12");
   assert.equal(gb1.waves[0], "pulse50");
   // The SID's lead: its width the delay of the sawtooth less itself.
@@ -252,7 +258,7 @@ test("D311: GAME BOY, SID 64, MEGA FM: the pulse width (its loudness kept), the 
     const dl = s.made.find((n) => n.kind === "delay")!;
     return (dl.delayTime as FakeParam).value * 329.63;
   };
-  assert.ok(Math.abs((await width(0)) - 0.125) < 0.003 && Math.abs((await width(1)) - 0.5) < 0.005);
+  assert.ok(Math.abs((await width(1)) - 0.125) < 0.003 && Math.abs((await width(0)) - 0.5) < 0.005);
   const fmIndex = async (x: number) => {
     const s = await strike("megaFm", { touch: x });
     return Math.max(...s.made.filter((n) => n.kind === "gain").map((n) => (n.gain as FakeParam).events.find((e) => e.type === "set" && e.t === DOWN)?.v ?? 0));
@@ -383,13 +389,12 @@ test("D311: the dynamics lesson keeps its own loudness (no touch); elsewhere the
   assert.deepEqual(band(a.heard), band(b.heard), "the other voices' levels alike, however the player touches");
 });
 
-test("D311: BLUETOOTH MODE: the notes scheduled ahead take the voice's latest landing; the touch's sideways move shapes the note it scored", () => {
+test("D311, D494: BLUETOOTH MODE: each note sounds from its touch with that touch's landing; the sideways move shapes it", () => {
   const { heard, lands } = run((i, side) => (i < 4 ? (side === "left" ? 3 : W - 3) : side === "left" ? bw - 3 : W - bw + 3), 0, { bt: true });
   const own = heard.filter((h) => h.touch !== undefined);
   assert.ok(own.length > 10);
-  // The first note, scheduled before any touch: the middle; later ones a landing before them.
-  assert.equal(own[0].touch, 0.5);
-  const set = new Set([0.5, ...lands].map((x) => x.toFixed(4)));
+  // D494: nothing scheduled before a touch: every touch is a landing.
+  const set = new Set(lands.map((x) => x.toFixed(4)));
   for (const h of own) assert.ok(set.has(h.touch!.toFixed(4)));
   assert.ok(own.some((h) => h.shapes.length > 0), "a scored note answers the sideways move");
 });

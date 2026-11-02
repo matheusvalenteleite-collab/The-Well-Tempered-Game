@@ -54,7 +54,8 @@ test("D449: the picture opens ABOUT THIS FUGUE (the ? glowing); the subject and 
   const { FugueAbout } = await import("../src/bench/FugueAbout.tsx");
   const html = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc1f04" }));
   assert.match(html, /id="sel-piece-pic" role="button"/);
-  assert.match(html, /class="sel-about sel-about-glow"/);
+  assert.match(html, /class="sel-piece-pic sel-piece-pic-open"/, "D452: the whole picture glows");
+  assert.doesNotMatch(html, /id="sel-about"/, "D452: no ?");
   assert.doesNotMatch(html, /id="hear-wtc1f04"/);
   const box = renderToStaticMarkup(createElement(FugueAbout, { id: "wtc1f04", close: () => {}, subject: { play: async () => 0, stop: () => {} } }));
   assert.match(box, /id="about-subject"/);

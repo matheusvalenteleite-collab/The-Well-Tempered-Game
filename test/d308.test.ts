@@ -7,9 +7,10 @@ import assert from "node:assert/strict";
 import { btAuto, BT_AUTO_S, setupKey } from "../src/touch/headphones.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 
-test("D308: AUTO: on by the reported latency; a stored delay only for the output it was tapped with, or (no latency reported) only in the page load it was tapped in", () => {
-  // The browser reports a Bluetooth latency: on, whatever is stored.
-  assert.equal(btAuto(null, 0.2, { fresh: false }), true);
+test("D308/D494: AUTO: never on by the reported latency alone; a stored delay only for the output it was tapped with, or (no latency reported) only in the page load it was tapped in", () => {
+  // D494: the browser reports a Bluetooth latency, nothing tapped: off (no automatic compensation).
+  assert.equal(btAuto(null, 0.2, { fresh: false }), false);
+  assert.equal(btAuto(0, 0.2, { fresh: true }), false, "wired 0 ms tapped: off whatever is reported");
   // Nothing stored, a speaker's latency: off.
   assert.equal(btAuto(null, 0.02, { fresh: false }), false);
   // A delay tapped with earbuds (reported 0.2 s), now the speaker (0.02 s): off.
