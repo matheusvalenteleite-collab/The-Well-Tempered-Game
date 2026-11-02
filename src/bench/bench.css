@@ -1041,6 +1041,10 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
 .tb-stops-side .tg-piston { height: 58px; min-width: 0; padding: 2px 1px; gap: 3px; }
 .tb-stops-side .tg-piston-name { font-size: 5px; line-height: 1.3; letter-spacing: 0; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; max-width: 100%; }
+/* D472: STRING CONSORT's five stops in the pistons' place and height, three over two (each its name in full). */
+.tb-stops-side.tb-consort { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+.tb-consort .tg-piston { grid-column: span 2; height: 28px; padding: 1px; }
+.tb-consort .tg-piston:nth-child(n + 4) { grid-column: span 3; }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
 /* D487 (refreshed for D420's pistons: --tb-stop-rows 1.28, a 58 px piston in 47 px rows): the floor 88 px (the pistons' 62 + 26), so OBBLIGATO's button (34 px), stacked over
    the pistons, stays clear of the lowest row a note can ask for. */
