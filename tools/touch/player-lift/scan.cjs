@@ -37,6 +37,8 @@ const [out, ...jobs] = process.argv.slice(2);
       const r = await p.evaluate(async ([id, voice, snd, nolift]) => {
         window.__sound = snd || undefined;
         window.__nolift = nolift;
+        // D508: raw (WTG_NOLIFT=1): no balance at all (no lift, no band trims, no entries brought forward, no tone).
+        (await import('/src/touch/player-lift.ts')).BALANCE.raw = !!nolift;
         const SR = 24000, N = 512, dt = N / SR;
         const { fugueById } = await import('/src/touch/fugue.ts');
         const chipM = await import('/src/touch/chip.ts');
@@ -86,7 +88,7 @@ const [out, ...jobs] = process.argv.slice(2);
           src.gain.value = lead ? ch.mine.gain.value : 1;
           t.connect(src);
           const an = (pre) => { const a = ac.createAnalyser(); a.fftSize = N; let n = src; for (const x of pre) { n.connect(x); n = x; } n.connect(a); return a; };
-          const tap = { t, K: an([bq('highpass', 38, 0.5), bq('highshelf', 1500, 0.7, 4)]), P: an([bq('highpass', 550, 0.7), bq('highpass', 550, 0.7), bq('highshelf', 1500, 0.7, 4)]), w: [], notes: 0, lv: 0 };
+          const tap = { t, K: an([bq('highpass', 38, 0.5), bq('highshelf', 1500, 0.7, 4)]), P: an([bq('highpass', 550, 0.7), bq('highpass', 550, 0.7), bq('highshelf', 1500, 0.7, 4)]), H: an([bq('highpass', 2500, 0.7), bq('highpass', 2500, 0.7)]), w: [], notes: 0, lv: 0 };
           taps.set(k, tap);
           return tap;
         };
@@ -108,6 +110,7 @@ const [out, ...jobs] = process.argv.slice(2);
         const buf = new Float32Array(N);
         const ms = (a) => { a.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < N; i++) s += buf[i] * buf[i]; return s / N; };
         let done = false;
+        const ticks = [];
         const end = g.timeAt(f.length) + 3;
         const step = () => {
           const now = ac.currentTime;
@@ -123,7 +126,9 @@ const [out, ...jobs] = process.argv.slice(2);
           }
           if (held && typeof held === 'object' && now >= held.end) { g.up(held.id, 0); held = null; }
           if (!done) done = g.step();
-          for (const tap of taps.values()) tap.w.push([ms(tap.K), ms(tap.P), tap.w.length]);
+          ticks.push(g.now);
+          // every tap a window each step (a tap made late: its earlier windows silent), so the windows line up in time
+          for (const tap of taps.values()) { while (tap.w.length < ticks.length - 1) tap.w.push([0, 0, 0]); tap.w.push([ms(tap.K), ms(tap.P), ms(tap.H)]); }
         };
         let k = 1;
         const tick = () => {
@@ -158,6 +163,41 @@ const [out, ...jobs] = process.argv.slice(2);
             v.segs = segs; v.segsUnder1dB = under; v.worst2s = +worst.toFixed(2);
           }
           res.voices[kk] = v;
+        }
+        // D508: each voice's level in its own subject entries and outside them (the windows by the tick then), the
+        // brightness (energy over 2.5 kHz against the K-weighted, dB), and every 2 s stretch's level per voice
+        // (the mean of K and phone, dB; null where it sounds under a third of the stretch) with Busoni's printed level.
+        const inE = (u, tk) => f.entries.some((e) => e.voice === u && e.on <= tk && tk < e.end);
+        // a voice sounding by the score at each window (a note of it held there), for the 2 s stretches: a tail dying
+        // away under a rest is not the voice lost.
+        const byScore = f.voices.map((ns) => ticks.map((tk) => ns.some((n) => n[0] <= tk && tk < n[0] + n[1])));
+        for (const [kk, t] of taps) {
+          const u = kk === 'P' ? voice : +kk.slice(1);
+          let a = [0, 0, 0], b2 = [0, 0, 0];
+          for (let i = 0; i < nW; i++) if (on(t, i)) { const x = inE(u, ticks[i] ?? 0) ? a : b2; x[0]++; x[1] += t.w[i][0] + t.w[i][1]; x[2] += t.w[i][2]; }
+          const v = res.voices[kk];
+          let eK = 0, eH = 0;
+          for (let i = 0; i < nW; i++) if (on(t, i)) { eK += t.w[i][0]; eH += t.w[i][2]; }
+          v.bright = eK > 0 && eH > 0 ? +(10 * Math.log10(eH / eK)).toFixed(2) : null;
+          v.inEntry = a[0] > 20 ? +(10 * Math.log10(a[1] / a[0] / 2)).toFixed(2) : null;
+          v.outEntry = b2[0] > 20 ? +(10 * Math.log10(b2[1] / b2[0] / 2)).toFixed(2) : null;
+          v.entryWindows = a[0];
+          const seg = Math.round(2 / dt);
+          v.seg = [];
+          for (let s0 = 0; s0 < nW; s0 += seg) {
+            let c = 0, e = 0;
+            for (let i = s0; i < Math.min(nW, s0 + seg); i++) if (on(t, i) && byScore[u]?.[i]) { c++; e += (t.w[i][0] + t.w[i][1]) / 2; }
+            v.seg.push(c > seg / 3 ? +(10 * Math.log10(e / c)).toFixed(1) : null);
+          }
+        }
+        {
+          const seg = Math.round(2 / dt);
+          res.segTick = []; res.printed = [];
+          for (let s0 = 0; s0 < nW; s0 += seg) {
+            const tk = ticks[Math.min(nW - 1, s0 + (seg >> 1))] ?? 0;
+            res.segTick.push(tk);
+            res.printed.push(g.whole?.levelAt ? f.voices.map((_, u) => +g.whole.levelAt(u, tk).toFixed(1)) : null);
+          }
         }
         res.marks = g.marks?.length; res.hits = g.hits;
         return res;
