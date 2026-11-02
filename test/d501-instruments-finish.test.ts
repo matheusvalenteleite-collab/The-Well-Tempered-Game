@@ -1,13 +1,13 @@
 /**
  * D501, THE INSTRUMENTS FINISHED (the owner: "Just implement it all"): OBBLIGATO's sound by the player's
- * instrument ("auto": an effect on a keyboard or plucked sound, a merged layer on every other); the slide's
+ * instrument (D509 retired its modes: three effects drawn on every sound, d509-obbligato-effects.test.ts); the slide's
  * sound by family ("auto": the strings, the voices and the lute the instruments session's, the keyboards,
  * chips, consoles and synths D486's gestures); CLAVICHORD offered, and its two fugues (I/6, II/18).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
-import { EFFECT_SOUNDS, OBBLIGATO_MODE, effectFor, mainKind, obbligatoModeFor, obbligatoParam, setObbligatoMode, LAYERS, LOUDNESS } from "../src/bench/obbligato.ts";
+import { compassOf, mainKind, struck, LAYERS } from "../src/bench/obbligato.ts";
 import { SLIDE_SOUND, slideFamily, slideSoundFor, slideSoundParam, withSlideSound } from "../src/bench/slide-sound.ts";
 import { exprFamily, keyboardSlide } from "../src/bench/glenn.ts";
 import { CLAVI_GAIN, CLAVI_PHONE_GAIN, CLAVI_PHONE_LIFT, PATCHES, PRESETS, TRIALS, busoniReaches, expressiveAll, offered, presetById, setPreset } from "../src/touch/sound.ts";
@@ -31,30 +31,9 @@ const { SOUND_GROUPS } = await import("../src/bench/SoundSelect.tsx");
 
 // ---------- OBBLIGATO by the player's sound ----------
 
-test("D501: OBBLIGATO \"auto\" by default: an effect on the keyboards and the plucked, a merged layer on every other sound", () => {
-  assert.equal(OBBLIGATO_MODE, "auto");
-  assert.equal(obbligatoParam(""), "auto");
-  for (const m of ["layer", "effect", "legacy"] as const) assert.equal(obbligatoParam(`?obbligato=${m}`), m);
-  assert.equal(obbligatoParam("?obbligato=nonsense"), "auto");
-  const effect = ["pianoSampled", "harpsichordSampled", "chamberOrgan", "lute", "clavichord"];
-  assert.deepEqual([...EFFECT_SOUNDS].filter((id) => offered(id)).sort(), [...effect].sort());
-  for (const id of effect) assert.equal(obbligatoModeFor(id), "effect", id);
-  for (const p of PRESETS.filter((p) => !effect.includes(p.id))) assert.equal(obbligatoModeFor(p.id), "layer", p.id);
-  // The clavichord's effect the harpsichord's echo (a struck string dying away), never the synths' flanger.
+test("D501, D509: OBBLIGATO's modes gone (three effects on every sound); the clavichord a struck keyboard (the chorus's faint wobble, no full vibrato)", () => {
   assert.equal(mainKind("clavichord", PATCHES.clavichord), "harpsichord");
-  assert.equal(effectFor("clavichord").fx, "echo");
-});
-
-test("D501: the global switch overrides every sound (\"layer\", \"effect\", \"legacy\")", () => {
-  const was = OBBLIGATO_MODE;
-  try {
-    for (const m of ["layer", "effect", "legacy"] as const) {
-      setObbligatoMode(m);
-      for (const id of ["harpsichordSampled", "pianoSampled", "stringConsort", "chip"]) assert.equal(obbligatoModeFor(id), m, `${m} ${id}`);
-    }
-  } finally {
-    setObbligatoMode(was);
-  }
+  assert.ok(struck("clavichord"));
 });
 
 // ---------- The slide's sound by family ----------
@@ -166,9 +145,10 @@ test("D501: CLAVICHORD offered: among the instruments, named in three languages,
   const phoneDb = 20 * Math.log10(CLAVI_GAIN * CLAVI_PHONE_GAIN);
   assert.ok(phoneDb > 2 && phoneDb < 2.6, `+${phoneDb.toFixed(1)} dB on a phone`);
   assert.deepEqual(PATCHES.clavichord.phoneLift, CLAVI_PHONE_LIFT);
-  // OBBLIGATO's pool has it, measured.
+  // OBBLIGATO's instruments have it, with its compass (D509: the octave's room).
   assert.ok(LAYERS.some((l) => l.id === "clavichord"));
-  assert.ok(LOUDNESS.clavichord < -20 && LOUDNESS.clavichord > -36);
+  const [lo, hi] = compassOf("clavichord");
+  assert.ok(lo < 48 && hi > 80);
 });
 
 test("D501: the allocation's two clavichord fugues: I/6 and II/18 open on the clavichord, with their reasons", () => {
