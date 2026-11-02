@@ -1123,9 +1123,10 @@ export class ProtoGame {
   offer: ({ layer: Layer; octave: number; entryOn: number; spans: EntryLike[] } & Effect) | null = null;
   /**
    * The boosts taken: each the entries it covers (the player's and the later ones overlapping it: the bars'
-   * tinge) and its effect, sounded over the player's own entry (spans[0]); `fxSet` once scheduled (obbFx).
+   * tinge) and its effect, sounded over the player's own entry (spans[0]); `layer` and `octave` (0) name it on the
+   * button (ObbligatoOffer, D469); `fxSet` once scheduled (obbFx).
    */
-  boosts: ({ layer: Layer; spans: EntryLike[]; until: number; fxSet?: boolean } & Effect)[] = [];
+  boosts: ({ layer: Layer; octave: number; spans: EntryLike[]; until: number; fxSet?: boolean } & Effect)[] = [];
   /** The judge's grade of each note struck right (PERFECT or GOOD), for the offer's window. */
   private obbGrade = new Map<LaneNote, "perfect" | "good">();
   /** The note being sounded by a touch now (its voice and onset), for touchNote's octave. */
@@ -1174,7 +1175,7 @@ export class ProtoGame {
   acceptOffer(): boolean {
     const o = this.offer;
     if (!o || this.now >= o.entryOn) return false;
-    this.boosts.push({ layer: o.layer, spans: o.spans, until: Math.max(...o.spans.map((x) => x.end)), fx: o.fx, shift: o.shift, vib: o.vib, dies: o.dies });
+    this.boosts.push({ layer: o.layer, octave: 0, spans: o.spans, until: Math.max(...o.spans.map((x) => x.end)), fx: o.fx, shift: o.shift, vib: o.vib, dies: o.dies });
     this.offer = null;
     return true;
   }
