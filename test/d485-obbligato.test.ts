@@ -215,7 +215,7 @@ test("D509: the draw: the three effects about evenly; the octave's share to the 
   assert.equal(effectOf("octave", "jqVibes", [50, 60, 79, 86]), null);
   // The vibrato: a sustaining sound's gentle one, a plucked or struck sound's only a faint wobble.
   for (const id of ["consViolin", "singA", "orgPrincipal", "bachHorn", "gbLead", null] as const) assert.equal(vibratoCents(id), VIBRATO_CENTS.sustained, String(id));
-  for (const id of ["pianoSampled", "harpsiSampled", "lute2", "clavichord", "jqVibes", "jqBass", "jqPiano"] as const) assert.equal(vibratoCents(id), VIBRATO_CENTS.struck, id);
+  for (const id of ["pianoSampled", "harpsiSampled", "jqVibes", "jqBass", "jqPiano"] as const) assert.equal(vibratoCents(id), VIBRATO_CENTS.struck, id);
   assert.ok(VIBRATO_CENTS.sustained <= 15 && VIBRATO_CENTS.struck <= 4 && VIBRATO_HZ > 4.5 && VIBRATO_HZ < 6);
 });
 

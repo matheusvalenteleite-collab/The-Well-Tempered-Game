@@ -49,7 +49,6 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["analog", "SWITCHED-ON"],
   // D297: the new presets, after the five (for the owner to judge).
   ["super16", "SUPER 16-BIT"],
-  ["nocturne32", "NOCTURNE 32-BIT"],
   ["megaFm", "MEGA FM"],
   ["sid64", "SID 64"],
   ["tracker", "TRACKER"],
@@ -60,11 +59,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["tomita", "TOMITA"],
   // D365: D358's two presets on D349's way, offered.
   ["stringConsort", "STRING CONSORT"],
-  ["lute", "LUTE"],
   // D430: the trials' BAROQUE BAND, offered (D433: BLEEPS AND BLOOPS retired).
   ["baroqueBand", "BAROQUE BAND"],
-  // D501: the trials' CLAVICHORD, offered.
-  ["clavichord", "CLAVICHORD"],
   // D504: ZELENKA TRIO, two oboes, the bassoon and a continuo that enters where the music asks.
   ["oboeTrio", "ZELENKA TRIO"],
   // D502: the trials' BACH BRASS, remade and offered.

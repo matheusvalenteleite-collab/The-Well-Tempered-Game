@@ -136,8 +136,10 @@ test("D503: the player's touch: LANDING the mallet, the weight, the pluck (three
   const scale = new Set([0, 2, 4, 5, 7, 9, 11]);
   const g = slideGesture("jazzQuartet", 60, 64, 600, scale, "schleifer", vib);
   assert.ok(g.kind === "notes" && g.name === "grace" && g.notes.length === 1 && g.notes[0] === 63, "the vibist's crushed grace from below");
-  const b = slideGesture("jazzQuartet", 40, 43, 600, scale, "schleifer", PATCHES.jqBass);
-  assert.ok(b.kind === "glide" && b.name === "slide", "the bassist's slide");
+  const b = slideGesture("jazzQuartet", 40, 42, 600, scale, "schleifer", PATCHES.jqBass);
+  assert.ok(b.kind === "glide" && b.name === "slide", "the bassist's slide (D510: a tone at most)");
+  // D510: wider, a fresh pluck (no glide across the leap).
+  assert.deepEqual(slideGesture("jazzQuartet", 40, 43, 600, scale, "schleifer", PATCHES.jqBass), { kind: "notes", name: "pluck", notes: [], eachS: 0 });
   assert.deepEqual(slideGesture("jazzQuartet", 60, 62, 600, scale, "schleifer", PATCHES.jqPiano), slideGesture("pianoSampled", 60, 62, 600, scale));
 });
 

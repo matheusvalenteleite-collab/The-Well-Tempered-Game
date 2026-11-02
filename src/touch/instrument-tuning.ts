@@ -35,7 +35,6 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   oboeTrio: { id: "vallotti", a: 415 },
   // D502: BACH BRASS as the band (Kammerton: a baroque brass choir at A = 415).
   bachBrass: { id: "vallotti", a: 415 },
-  lute: { id: "equal", a: 415 },
   // D503: JAZZ QUARTET: a vibraphone and a modern grand, tuned equal at A = 440.
   jazzQuartet: { id: "equal", a: 440 },
 };

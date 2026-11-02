@@ -7,10 +7,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
-import { compassOf, mainKind, struck, LAYERS } from "../src/bench/obbligato.ts";
+import { mainKind, struck, LAYERS } from "../src/bench/obbligato.ts";
 import { SLIDE_SOUND, slideFamily, slideSoundFor, slideSoundParam, withSlideSound } from "../src/bench/slide-sound.ts";
 import { exprFamily, keyboardSlide } from "../src/bench/glenn.ts";
-import { CLAVI_GAIN, CLAVI_PHONE_GAIN, CLAVI_PHONE_LIFT, PATCHES, PRESETS, TRIALS, busoniReaches, expressiveAll, offered, presetById, setPreset } from "../src/touch/sound.ts";
+import { PATCHES, PRESETS, TRIALS, busoniReaches, expressiveAll, offered, presetById, setPreset } from "../src/touch/sound.ts";
 import { styleOf } from "../src/touch/phrasing.ts";
 import { TOUCH_KINDS } from "../src/touch/touch-expr.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -31,9 +31,11 @@ const { SOUND_GROUPS } = await import("../src/bench/SoundSelect.tsx");
 
 // ---------- OBBLIGATO by the player's sound ----------
 
-test("D501, D509: OBBLIGATO's modes gone (three effects on every sound); the clavichord a struck keyboard (the chorus's faint wobble, no full vibrato)", () => {
-  assert.equal(mainKind("clavichord", PATCHES.clavichord), "harpsichord");
-  assert.ok(struck("clavichord"));
+test("D501, D509, D510: OBBLIGATO's modes gone (three effects on every sound); the harpsichord a struck keyboard (the chorus's faint wobble, no full vibrato)", () => {
+  assert.equal(mainKind("harpsiSampled", PATCHES.harpsiSampled), "harpsichord");
+  assert.ok(struck("harpsiSampled"));
+  // D510: the lute and the clavichord withdrawn (no patch of theirs left to be struck).
+  assert.ok(!("clavichord" in PATCHES) && !("lute2" in PATCHES));
 });
 
 // ---------- The slide's sound by family ----------
@@ -43,14 +45,14 @@ test("D501: SLIDE_SOUND \"auto\" by default: the strings, the voices, the lute t
   assert.equal(slideSoundParam(""), "auto");
   assert.equal(slideSoundParam("?slide=instruments"), "instruments");
   assert.equal(slideSoundParam("?slide=d486"), "d486");
-  const instruments = ["stringConsort", "baroqueBand", "soloVoices", "vocalSynth", "lute"];
+  const instruments = ["stringConsort", "baroqueBand", "soloVoices", "vocalSynth"];
   for (const id of instruments) assert.equal(slideSoundFor(id), "instruments", id);
   for (const p of PRESETS.filter((p) => !instruments.includes(p.id))) assert.equal(slideSoundFor(p.id), "d486", p.id);
   // Forced: one sound for every family.
   for (const m of ["d486", "instruments"] as const) withSlideSound(m, () => {
     for (const p of PRESETS) assert.equal(slideSoundFor(p.id), m, `${m} ${p.id}`);
   });
-  assert.equal(slideFamily("clavichord"), "plucked", "the clavichord's slide the harpsichord's ornaments");
+  assert.equal(slideFamily("harpsichordSampled"), "plucked");
 });
 
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
@@ -99,9 +101,7 @@ test("D501: in the engine, each family's slide under \"auto\" is its forced mode
     ["baroqueBand", "instruments"],
     ["vocalSynth", "instruments"],
     ["soloVoices", "instruments"],
-    ["lute", "instruments"],
     ["harpsichordSampled", "d486"],
-    ["clavichord", "d486"],
     ["chamberOrgan", "d486"],
     ["pianoSampled", "d486"],
     ["chip", "d486"],
@@ -121,41 +121,26 @@ test("D501: in the engine, each family's slide under \"auto\" is its forced mode
   assert.ok(differs >= 5, `the modes differ on ${differs} sounds`);
 });
 
-// ---------- CLAVICHORD offered ----------
+// ---------- CLAVICHORD offered (D501), withdrawn (D510) ----------
 
-test("D501: CLAVICHORD offered: among the instruments, named in three languages, the piano's touch, Busoni's dynamics, matched on a phone", () => {
-  assert.ok(offered("clavichord"));
-  assert.equal(presetById("clavichord").name, "CLAVICHORD");
-  assert.ok(POP_SOUNDS.some(([s, n]) => s === "clavichord" && n === "CLAVICHORD"));
-  assert.ok(SOUND_GROUPS.find(([g]) => g === "INSTRUMENTS")![1].includes("clavichord"));
-  assert.equal(PT.CLAVICHORD, "CLAVICÓRDIO");
-  assert.equal(ES.CLAVICHORD, "CLAVICORDIO");
+test("D510: CLAVICHORD withdrawn (the owner: \"an uninteresting synth with no distinctive features\"): a stored choice on the piano; its fugues reassigned", () => {
+  assert.ok(!offered("clavichord") && !POP_SOUNDS.some(([s]) => s === "clavichord"));
+  assert.ok(!SOUND_GROUPS.some(([, ids]) => ids.includes("clavichord")));
+  assert.equal(presetById("clavichord").id, "pianoSampled");
+  assert.equal(presetById("trialClavichord").id, "pianoSampled", "a stored trial id too");
   assert.ok(!TRIALS.some((p) => p.id === "clavichord" || p.id === "trialClavichord"));
-  assert.equal(presetById("trialClavichord").id, "clavichord", "a stored trial id opens on it");
-  assert.equal(TOUCH_KINDS.clavichord, "piano", "the touch's three zones");
-  assert.equal(styleOf("clavichord"), "harpsichord");
-  assert.equal(exprFamily("clavichord"), "plucked");
-  assert.equal(keyboardSlide("clavichord"), "coule");
-  assert.ok(expressiveAll("clavichord") && busoniReaches("clavichord"), "Busoni's dynamics reach it");
-  assert.ok(busoniLeads(wholeReadingOf("wtc1f06")?.whole, busoniReaches("clavichord")), "I/6: Busoni leads");
-  // Lifted (measured 1.4 dB under the median on a computer, 2.3 under through the phone model), more on a phone.
-  const p = presetById("clavichord");
-  assert.ok(p.gain === CLAVI_GAIN && CLAVI_GAIN > 1 && CLAVI_GAIN < 1.2);
-  assert.ok(p.phoneGain === CLAVI_PHONE_GAIN && CLAVI_PHONE_GAIN > 1);
-  const phoneDb = 20 * Math.log10(CLAVI_GAIN * CLAVI_PHONE_GAIN);
-  assert.ok(phoneDb > 2 && phoneDb < 2.6, `+${phoneDb.toFixed(1)} dB on a phone`);
-  assert.deepEqual(PATCHES.clavichord.phoneLift, CLAVI_PHONE_LIFT);
-  // OBBLIGATO's instruments have it, with its compass (D509: the octave's room).
-  assert.ok(LAYERS.some((l) => l.id === "clavichord"));
-  const [lo, hi] = compassOf("clavichord");
-  assert.ok(lo < 48 && hi > 80);
-});
-
-test("D501: the allocation's two clavichord fugues: I/6 and II/18 open on the clavichord, with their reasons", () => {
+  assert.equal(TOUCH_KINDS.clavichord, undefined);
+  assert.ok(!expressiveAll("clavichord") || busoniReaches("pianoSampled"));
+  assert.ok(!LAYERS.some((l) => (l.id as string) === "clavichord"), "out of OBBLIGATO's pool");
+  assert.equal(exprFamily("pianoSampled"), "piano");
+  assert.equal(keyboardSlide("harpsichordSampled"), "coule");
+  assert.equal(styleOf("harpsichordSampled"), "harpsichord");
+  assert.ok(busoniLeads(wholeReadingOf("wtc1f06")?.whole, busoniReaches(PIECE_SOUND.wtc1f06)), "I/6: Busoni leads on its new sound");
   for (const id of ["wtc1f06", "wtc2f18"]) {
-    assert.equal(PIECE_SOUND[id], "clavichord", id);
-    assert.equal(COLOURS[id].sound, "clavichord", id);
+    assert.equal(PIECE_SOUND[id], "jazzQuartet", id);
+    assert.equal(COLOURS[id].sound, "jazzQuartet", id);
   }
   assert.match(COLOURS.wtc1f06.soundWhy, /Bodky's clavichord fugue/);
-  assert.match(COLOURS.wtc2f18.soundWhy, /C\. P\. E\. Bach's instrument/);
+  assert.equal(PT.CLAVICHORD, "CLAVICÓRDIO");
+  assert.equal(ES.CLAVICHORD, "CLAVICORDIO");
 });

@@ -29,7 +29,7 @@ const GRAND_SHORT: Record<string, number> = { A6: 6.766, C6: 6.296, C7: 4.519, D
 const GRAND_NOTES = Object.fromEntries((SAMPLE_MANIFEST.grand?.notes ?? []).map((n) => [n, { cents: 0, len: GRAND_SHORT[n] ?? 7.027 }]));
 
 /**
- * D297, the period presets' recordings (sound.ts SUPER 16-BIT, NOCTURNE 32-BIT): a set of its own per
+ * D297, the period presets' recordings (sound.ts SUPER 16-BIT; NOCTURNE 32-BIT's until D510): a set of its own per
  * voice, the files of `folder` made over once decoded (`bake`) as a console's sound memory held them:
  * mono; band-limited and resampled to `rate` (a 4-pole lowpass at 0.45 of it, then read back by linear
  * interpolation); a 2-pole lowpass (Q 0.5) at `lp` Hz standing in for the 4-point Gaussian
@@ -83,14 +83,7 @@ export const PERIOD: Record<string, Bake> = {
   bassoon16: { folder: "bassoon", rate: 16000, lp: 5000, bits: 11, loop: true },
   // D358: the concertos' continuo on a cello (the band a string band: SOUND-PRINCIPLES.md), as the console held it.
   cello16: { folder: "cello", rate: 22050, lp: 6000, bits: 11, loop: CELLO_LOOP },
-  // NOCTURNE 32-BIT (§6.2: 22.05 kHz; violin and oboe LP 8 kHz, harpsichord 8.8 kHz, viola 7 kHz, organ 6 kHz; 13 bits).
-  violin32: { folder: "violin", rate: 22050, lp: 8000, bits: 13, loop: true },
-  oboe32: { folder: "oboe", rate: 22050, lp: 8000, bits: 13, loop: true },
-  harpsi32: { folder: "harpsichord", rate: 22050, lp: 8800, bits: 13 },
-  harpsiRel32: { folder: "harpsichordRel", rate: 22050, lp: 8800, bits: 13 },
-  viola32: { folder: "violaSus", rate: 22050, lp: 7000, bits: 13, loop: true },
-  pedal32: { folder: "pipePedal", rate: 22050, lp: 6000, bits: 13 },
-  manual32: { folder: "pipeOrgan", rate: 22050, lp: 6000, bits: 13 },
+  // (D510: NOCTURNE 32-BIT's sets, 22.05 kHz and 13 bits, withdrawn with it; their folders stay, others' recordings.)
   // TRACKER (the Amiga's 8-bit samples at 8-16 kHz, held, no smoothing; short loops of 0.5 s).
   violinMod: { folder: "violin", rate: 12000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
   fluteMod: { folder: "flute", rate: 10000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
@@ -120,8 +113,6 @@ export const PERIOD: Record<string, Bake> = {
   consortViolinPizz: { folder: "violinPizz", rate: 32000, lp: 11000, bits: 16 },
   consortViolaPizz: { folder: "violaPizz", rate: 32000, lp: 11000, bits: 16 },
   consortCelloPizz: { folder: "celloPizz", rate: 32000, lp: 11000, bits: 16 },
-  // D358, LUTE: the classical guitar's gut-like nylon (Freesound 11573), plucked, as recorded.
-  luteGuitar: { folder: "guitar", rate: 32000, lp: 11000, bits: 16 },
   voiceS: { folder: "soloSoprano", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceA: { folder: "soloAlto", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceT: { folder: "soloTenor", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
@@ -303,6 +294,18 @@ const JAZZ_CENTS: Record<string, Record<string, number>> = {
   jazzBass: { E1: 0, F1: -2.5, Fs1: 2.5, G1: 11, Gs1: 12, A1: 4, As1: 11.5, B1: 0, C2: 7.5, Cs2: 9, D2: -10.5, Ds2: 12, E2: -2.5, F2: 2.5, Fs2: 3.5, G2: -4, Gs2: 1.5, A2: -4.5, As2: -2.5, B2: 1.5, C3: -6.5, Cs3: -8, D3: -1.5, Ds3: 7, E3: -4.5, F3: -5, Fs3: -8.5, G3: 0.5, Gs3: -3, A3: -2.5, As3: -14, B3: 3.5, C4: 2, Cs4: 14, D4: -0.5, Ds4: -9.5, E4: -8, F4: -4.5, Fs4: -7.5, G4: -9.5 },
   jazzBassHard: { E1: 15, Fs1: 1, Gs1: 19.5, As1: 4, C2: 0, D2: -7.5, E2: -2.5, Fs2: 35, Gs2: 6.5, As2: -0.5, C3: -4.5, D3: 3, E3: -1, Fs3: -7, Gs3: -2.5, As3: -6.5, C4: 0.5, D4: 7, E4: -11.5, Fs4: -3 },
 };
+/**
+ * D510, the bass on a phone: each recording's pluck through the 600 Hz phone model (its first 0.15 s) differs from its
+ * neighbours' by a median 3.3 dB (mf; ff 3.0), up to 11 dB from the line over pitch (the overtones the small speaker
+ * hears vary note by note: D2 and D#2 bright, C#2 dull): a line's notes jumped in and out of hearing on a leap. Each
+ * recording's trim (dB, on a phone only: chip.ts sampledNote) against a straight fit over pitch (0.68 dB a semitone
+ * kept: the register's own), within -6 and +4 (a boost no more than 4 dB, for the limiter): the neighbours then a median
+ * 0.8 dB apart (ff 1.3). Measured by scratchpad realloc/phonetrim.py (D510).
+ */
+const JAZZ_PHONE_DB: Record<string, Record<string, number>> = {
+  jazzBass: { E1: -2.5, F1: -3, Fs1: 1, G1: -6, Gs1: -3, A1: 2, As1: 4, B1: 3, C2: 0.5, Cs2: 4, D2: -6, Ds2: -6, E2: -2, F2: -0.5, Fs2: 1.5, G2: 3, Gs2: -2.5, A2: 1.5, As2: 1.5, B2: -1, C3: 0, Cs3: -4.5, D3: 3, Ds3: 4, E3: -1.5, F3: 3, Fs3: 4, G3: 4, Gs3: 2.5, A3: 4, As3: -1.5, B3: -5.5, C4: -6, Cs4: -5, D4: -6, Ds4: -4.5, E4: 1.5, F4: 2.5, Fs4: -5, G4: 2 },
+  jazzBassHard: { E1: -3, Fs1: -1, Gs1: -2, As1: 0.5, C2: -1, D2: -4.5, E2: 0, Fs2: 4, Gs2: 1.5, As2: 2, C3: 3, D3: 1.5, E3: 0.5, Fs3: 4, Gs3: 4, As3: -2, C4: -4.5, D4: -5.5, E4: -0.5, Fs4: -5 },
+};
 const JAZZ_LEN: Record<string, number> = { jazzVibes: 4, jazzVibesSoft: 4, jazzVibesHard: 4, jazzBass: 2.6, jazzBassHard: 2.6 };
 /**
  * D503: the brush kit's pieces, filed under note names in jazzBrushes (build_jazz.py): the brushed snare's taps at
@@ -322,12 +325,13 @@ const BRUSH_LEN: Record<number, number> = { 48: 0.9, 49: 0.9, 50: 0.9, 51: 0.9, 
 /** D503: every brush file (MIDI), for the kit's plan. */
 export const BRUSH_MIDIS: readonly number[] = Object.keys(BRUSH_LEN).map(Number);
 const noteName = (m: number) => `${["C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B"][m % 12]}${Math.floor(m / 12) - 1}`;
-const JAZZ_NOTES: Record<string, Record<string, { cents: number; len: number }>> = {
-  ...Object.fromEntries(Object.entries(JAZZ_CENTS).map(([set, cs]) => [set, Object.fromEntries(Object.entries(cs).map(([n, cents]) => [n, { cents, len: JAZZ_LEN[set] }]))])),
+const JAZZ_NOTES: Record<string, Record<string, { cents: number; len: number; phoneDb?: number }>> = {
+  ...Object.fromEntries(Object.entries(JAZZ_CENTS).map(([set, cs]) => [set, Object.fromEntries(Object.entries(cs).map(([n, cents]) => [n, { cents, len: JAZZ_LEN[set], ...(JAZZ_PHONE_DB[set]?.[n] ? { phoneDb: JAZZ_PHONE_DB[set][n] } : {}) }]))])),
   [BRUSH_SET]: Object.fromEntries(Object.entries(BRUSH_LEN).map(([m, len]) => [noteName(Number(m)), { cents: 0, len }])),
 };
 
-const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES, ...PERIOD_NOTES, ...JAZZ_NOTES };
+/** D510: `phoneDb`, a recording's own trim on a phone (JAZZ_PHONE_DB). */
+const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number]; phoneDb?: number }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES, ...PERIOD_NOTES, ...JAZZ_NOTES };
 
 /**
  * D294: a set that is another folder's velocity layer (its files "C4-v7.mp3" beside the layer played):
@@ -337,7 +341,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -417,6 +421,8 @@ export const TRIO_SOFT_GAIN = 0.84;
 /** D504: a note this short (s, as written and not joined) the trio's short recordings play. */
 export const TRIO_SHORT_S = 0.16;
 
+/** D510: the band's level from which the jazz bass plays its ff recordings (+4.1 dB). */
+export const JAZZ_BASS_HARD_ABOVE = 1.6;
 /** D512: the consort's spiccato and pizzicato sets' gains (measured against the arco: DECISIONS D512). */
 export const CONSORT_STOP_GAIN = { violinSpicc: 3.5, violaSpicc: 2.47, celloSpicc: 2.93, violinPizz: 3.91, violaPizz: 1.75, celloPizz: 4.92 } as const;
 
@@ -455,13 +461,6 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
   strings16: { set: "strings16", plucked: false, gain: 2.2 },
   bassoon16: { set: "bassoon16", plucked: false, gain: 2.2 },
-  violin32: { set: "violin32", plucked: false, gain: 2.2 },
-  oboe32: { set: "oboe32", plucked: false, gain: 2.2 },
-  // The key-up noise 12 dB under the note (§6.2).
-  harpsi32: { set: "harpsi32", release: "harpsiRel32", relGain: 0.23, plucked: true, gain: 1.8 },
-  viola32: { set: "viola32", plucked: false, gain: 2.2 },
-  // The organ's pedal up to F#3 (its compass), the manual above (§6.2).
-  organ32: { set: "pedal32", above: { set: "manual32", from: 55 }, plucked: false, gain: 2.5 },
   // TRACKER's.
   violinMod: { set: "violinMod", plucked: false, gain: 2.2 },
   fluteMod: { set: "fluteMod", plucked: false, gain: 2.2 },
@@ -477,12 +476,11 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   organPedal: { set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5, speak: 0.02 },
   // D349, PIPE ORGAN's PLENUM: the same organ's recorded plenum on the manuals (a set of its own, so its plan and the pedal's never let go of each other's notes).
   organPleno: { set: "plenoOrg", plucked: false, gain: 5, speak: 0.02 },
-  // D358: SUPER 16-BIT's continuo cello; STRING CONSORT's violin, viola and cello; LUTE's strings. Gains set by measurement (each voice alone, gated loudness).
+  // D358: SUPER 16-BIT's continuo cello; STRING CONSORT's violin, viola and cello (D510: LUTE's strings withdrawn; the guitar's folder stays, the Lab's). Gains set by measurement (each voice alone, gated loudness).
   cello16: { set: "cello16", plucked: false, gain: 2.2 },
   consortViolin: { set: "consortViolin", plucked: false, gain: 2.2 },
   consortViola: { set: "consortViola", plucked: false, gain: 2.2 },
   consortCello: { set: "consortCello", plucked: false, gain: 2.2 },
-  luteGuitar: { set: "luteGuitar", plucked: true, gain: 2.2 },
   // D512, the consort's stops (consort-stops.ts): spiccato and pizzicato, the louder layer (v2), each dying away by itself
   // and damped at the written end; retuned 2-3 semitones at most (recorded every minor or major third), then an octave
   // nearer. Gains measured against the arco (DECISIONS D512: the same phrase, the voice alone, through the phone model too).
@@ -521,7 +519,9 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // a harder strike a little brighter too (velTone), retuned a whole tone at most (the pp and ff sets' every other
   // note); the double bass pizzicato (mf, ff), a bass line folded an octave in only where it leaves E1-G4 by more than 3.
   jazzVibes: { set: "jazzVibes", plucked: true, gain: 5.5, soft: { set: "jazzVibesSoft", below: 0.794, gain: 1 }, hard: { set: "jazzVibesHard", above: 1.26, gain: 1 }, pedal: { short: 0.22, shortTau: 0.03, tau: 0.11 }, velTone: { perDb: 0.6, hz: 2600, min: -3, max: 3 }, maxShift: 2 },
-  jazzBass: { set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: 1.26, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
+  // D510: the band's bass on its ff recordings only from +4 dB (Busoni's f with an accent), not +2: at +2 the line's notes
+  // flipped between the two sets (every whole tone, each its own tuning and colour) on 24 of I/8's first 75 notes, 6 now.
+  jazzBass: { set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: JAZZ_BASS_HARD_ABOVE, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
