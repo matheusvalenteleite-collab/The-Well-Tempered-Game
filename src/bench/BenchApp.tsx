@@ -1,3 +1,4 @@
+import "./drum-presets-link.ts";
 /**
  * The testbench (D170; D175; D178; D179-D180): prototypes of the instrument tried on the game itself,
  * judged. ⚙ chooses the prototype (protos.ts), the piece (D192: a wheel of the fugues' cards,

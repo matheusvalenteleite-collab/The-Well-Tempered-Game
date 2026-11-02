@@ -25,6 +25,7 @@
  * in the climax, a break before the final entry, a flourish on the final cadence.
  */
 import { beatOf, type TouchFugue } from "./fugue.ts";
+import { entrySpans } from "./voice-mode.ts";
 import type { Colour } from "./colour.ts";
 import type { StopId } from "./registration.ts";
 
@@ -70,13 +71,13 @@ export const CLIMAX_TAIL = 0.15;
 /** The band's level (dB) in a subject zone, an episode, the climax; the arc's start, reaching 0 at ARC_FULL of the piece. */
 export const SUBJECT_DB = 0.4;
 export const EPISODE_DB = -0.8;
-export const CLIMAX_DB = 1;
+export const CLIMAX_DB = 0.6;
 export const ARC_FROM_DB = -0.6;
 export const ARC_FULL = 0.6;
 /** The band's high shelf (dB) in each (a brighter band reads as a fuller one; colour.ts TONE_RANGE bounds it). */
 export const SUBJECT_TONE = 0.5;
 export const EPISODE_TONE = -1.5;
-export const CLIMAX_TONE = 1;
+export const CLIMAX_TONE = 0.5;
 /** The send into the sound's own room added in the climax. */
 export const CLIMAX_ROOM = 0.05;
 
@@ -111,7 +112,8 @@ export function formOf(f: TouchFugue): FugueForm {
   const hit = memo.get(key);
   if (hit) return hit;
   const beat = beatOf(f).ticks;
-  const spans = f.entries.map((e) => [e.on, e.end] as [number, number]).sort((a, b) => a[0] - b[0]);
+  // The entries as the box draws them (voice-mode.ts entrySpans: the subject's, not the countersubjects').
+  const spans = entrySpans(f).filter((s) => s.form !== "counter").map((s) => [s.on, s.end] as [number, number]).sort((a, b) => a[0] - b[0]);
   const merged: [number, number][] = [];
   for (const s of spans) {
     const l = merged[merged.length - 1];

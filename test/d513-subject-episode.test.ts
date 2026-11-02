@@ -35,7 +35,7 @@ test("D513: the form follows the entries as the data says (a changed entry list 
   const b = formOf(g);
   assert.notDeepEqual(a.zones, b.zones);
   // No entry list of its own: the module reads TouchFugue.entries.
-  assert.match(readFileSync("src/touch/fugue-form.ts", "utf8"), /f\.entries\.map/);
+  assert.match(readFileSync("src/touch/fugue-form.ts", "utf8"), /entrySpans\(f\)/);
 });
 
 test("D513: the fugues with a clear contrast, by the data (at least 3 inner episodes, 20 % of the piece); I/12 and I/24 among them", () => {

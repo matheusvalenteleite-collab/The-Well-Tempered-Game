@@ -251,7 +251,9 @@ export interface GrooveContext {
  * `ref` dB (KIT_RMS), and the seats (a drummer's kit as heard from the front, within ±0.3).
  */
 export const KIT_DRUMS = {
-  level: 0.5,
+  level: 4.2,
+  // Each style's share (the drums alone measured against I/12's band: about 11 LU under it, D514's table); the synthesized kits on chip.ts drum's scale.
+  style: { rock: 1, jazz: 1, frame: 0.8, timpani: 0.6, chip: 5, machine: 5, brushes: 1 } satisfies Record<DrumStyle, number>,
   phone: 1.2,
   hp: 120,
   timpHp: 55,
@@ -3298,7 +3300,7 @@ export class Chip {
   }
 
   /** The rhythm section (D177; D181): a synthesized kit (a band's, a console's, an analog machine's), quiet under the music. */
-  drum(d: Drum, at: number, vel: number, kit: Kit = "acoustic") {
+  drum(d: Drum, at: number, vel: number, kit: Kit = "acoustic", gain = 1) {
     const ctx = this.ctx;
     const bag = new Bag();
     const g = bag.add(ctx.createGain());
@@ -3311,7 +3313,7 @@ export class Chip {
       hp.Q.value = 0.7;
       g.connect(hp).connect(this.master);
     } else g.connect(this.master);
-    const lvl = 0.22 * vel * (back ? BACKING_LEVEL : 1);
+    const lvl = 0.22 * vel * gain * (back ? BACKING_LEVEL : 1);
     const noise = (type: BiquadFilterType, f: number, q: number, len: number, attack = 0.001) => {
       const n = bag.src(this.noise());
       const fl = bag.add(ctx.createBiquadFilter());
@@ -3495,7 +3497,7 @@ export class Chip {
     const t = Math.max(at, ctx.currentTime);
     const synth = (k: Kit, v: number) => {
       const d: Drum = h.piece === "tamb" || h.piece === "triangle" ? "shaker" : h.piece === "congaHigh" || h.piece === "bongo" ? "tomHigh" : h.piece === "congaLow" || h.piece === "timp" || h.piece === "bassDrum" ? "tomLow" : h.piece;
-      this.drum(d, t, v, k);
+      this.drum(d, t, v, k, KIT_DRUMS.style.chip);
     };
     if (style === "chip" || style === "machine") return synth(style === "chip" ? "chip" : "analog", h.vel);
     let set: string;
@@ -3530,7 +3532,7 @@ export class Chip {
     hp.frequency.value = h.piece === "timp" || h.piece === "bassDrum" ? KIT_DRUMS.timpHp : KIT_DRUMS.hp;
     hp.Q.value = 0.7;
     const out = bag.add(ctx.createGain());
-    out.gain.value = KIT_DRUMS.level * (this.phone ? KIT_DRUMS.phone : 1);
+    out.gain.value = KIT_DRUMS.level * KIT_DRUMS.style[style] * (this.phone ? KIT_DRUMS.phone : 1);
     src.connect(g).connect(hp).connect(out);
     let last: AudioNode = out;
     if (ctx.createStereoPanner) {
