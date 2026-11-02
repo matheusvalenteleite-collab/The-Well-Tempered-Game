@@ -280,7 +280,7 @@ export interface Patch {
    * rising over `a` s while the note before crossfades out (the bow change's small dip). D427: the
    * player's bow change STRING_BOW_CHANGE, a slur STRING_SLUR (bowEntry, giveWayFall).
    */
-  bow?: { skip: number; a: number };
+  bow?: { skip: number; a: number; join?: BowEntry };
   /**
    * D365 (SOUND-PRINCIPLES.md §10): on a phone only, a high shelf of `db` from `hz` up (chip.ts sampledNote):
    * a bass instrument's upper partials, the band its small speaker gives, lifted (never its fundamental,
@@ -295,6 +295,36 @@ export interface Patch {
    * pluck is heard as its own entrance, not a blur in the cello's attack); `phoneLevel` its level on a phone, where it differs.
    */
   double?: { patch: Patch; level: number; phoneLevel?: number; pan?: number; late?: number };
+  /**
+   * D504, ZELENKA TRIO: the instrument's compass (MIDI, inclusive): a note outside it played an octave nearer
+   * (chip.ts Chip.note, `inCompass`), the band's and the player's alike; trio.ts chooses which voice each
+   * instrument takes so that this happens as seldom as the music allows (and counts it).
+   */
+  compass?: { lo: number; hi: number };
+  /**
+   * D504: the basso continuo on this line: the instruments that join the bass (each `level` of it, its own
+   * seat and a moment late), sounding only on the notes the piece's continuo script gives them (Play.continuo:
+   * trio.ts, by the music's structure, never by the player's score). `octave`: on a strong beat (Play.continuo
+   * "strong") the harpsichordist's left hand takes the octave below too, spread `spread` s from the bass up.
+   */
+  continuo?: readonly ContinuoPart[];
+  /**
+   * D504, a wind player's shading of a long note (the band's; the player's is the thumb's, Sounding.shape): a
+   * note of `min` s or more swells by `db` to two fifths of its length and eases back by its end (to `db` under
+   * where it is not joined on); the brightness follows it (`tone` dB of high shelf at the top of the swell).
+   */
+  swell?: { db: number; min: number; tone: number };
+}
+
+/** D504: one instrument of a basso continuo (Patch.continuo). */
+export interface ContinuoPart {
+  patch: Patch;
+  level: number;
+  phoneLevel?: number;
+  pan?: number;
+  late?: number;
+  octave?: boolean;
+  spread?: number;
 }
 
 /**
@@ -432,7 +462,8 @@ export function bowEntry(bow: Patch["bow"] | undefined, p: { legato?: boolean; s
   if (p.slur) return { skip: 0.25, still: 0, floor: 0, a: STRING_SLUR.a, accentDb: 0, accentS: 0 };
   // D429: the band's bow change (Play.bowChange) as the player's.
   if (!p.lead && !p.bowChange) return { skip: bow.skip, still: 0, floor: 0, a: bow.a, accentDb: 0, accentS: 0 };
-  const c = STRING_BOW_CHANGE;
+  // D504: a wind's two-thumb join its own: a soft new tongue (Patch.bow.join: TRIO_JOIN), not a bow's bite.
+  const c = bow.join ?? STRING_BOW_CHANGE;
   return { skip: c.skip, still: c.still, floor: c.floor, a: c.a, accentDb: c.accentDb, accentS: c.accentS };
 }
 /**
@@ -496,6 +527,63 @@ export const BAND_SEND = 0.18;
 export const CONTINUO = { db: -8, phoneDb: -4.5, pan: -0.06, late: 0.015 } as const;
 /** D430: BAROQUE BAND's cello on a phone (as the consort's, CELLO_PHONE_LIFT, measured for the band). */
 export const BAND_CELLO_PHONE_LIFT = { hz: 700, db: 5 } as const;
+/**
+ * D504, ZELENKA TRIO (the owner: "can we get anywhere close to a proper oboe oboe bassoon trio? something that sounds
+ * like Zelenka played by a great trio? with the basso continuo entering at key spots"): two oboes of distinct
+ * characters, a bassoon, and a continuo (cello and harpsichord) that enters only where the piece's script says
+ * (trio.ts). One intimate room (chip.ts REVERBS.chamber) at one send.
+ */
+export const TRIO_SEND = 0.16;
+/**
+ * D504: the trio's tongue (Patch.bow read as a tongue, as WIND_TONGUE): the band's joined note entered 35 ms past
+ * its onset, rising over 25 ms (a soft tongue); a SLUR (SET-AND-RELEASE, the reading's slurs) past the attack, the
+ * fingers changing the note under the air (Play.slur); the player's two-thumb JOIN its own (`join`): the air
+ * stopped an instant (8 ms at 0.3 of the level: no bow to grip, so less of a dip than a bow change), then a soft
+ * new tongue entered 30 ms into the recording, rising in 20 ms, a small accent (0.6 dB) falling back.
+ */
+export const TRIO_JOIN = { skip: 0.03, still: 0.008, floor: 0.3, a: 0.02, accentDb: 0.6, accentS: 0.08 } as const;
+export const TRIO_TONGUE = { skip: 0.035, a: 0.025, join: TRIO_JOIN } as const;
+/** D504: a wind player's shading of the band's long notes (Patch.swell): +1.5 dB at two fifths of a note of 0.8 s or more, 1.5 dB brighter there. */
+export const TRIO_SWELL = { db: 1.5, min: 0.8, tone: 1.5 } as const;
+/**
+ * D504: the compasses (MIDI, inclusive; Patch.compass). The oboes Bb3-F6 (Iowa's and VSCO's lowest note, the
+ * baroque oboe's D6 and a little over); the bassoon Bb1-Eb5 (Iowa's recordings to D5); the continuo cello C2-A5
+ * (its open C; a continuo cellist's high register); the harpsichord its keyboard (A1-F6, HARPSI_ONE).
+ */
+export const TRIO_COMPASS = {
+  oboe: { lo: 58, hi: 89 },
+  bassoon: { lo: 34, hi: 75 },
+  cello: { lo: 36, hi: 81 },
+  harpsichord: { lo: 33, hi: 89 },
+} as const;
+/**
+ * D504: the continuo's instruments on the bass (Patch.continuo), set by measurement (D504's renders): the cello
+ * doubling the bassoon `cello` dB under it; the harpsichord `harpsi` dB under the bass line it realises (on a
+ * phone `harpsiPhone`, its low strings losing more there), centre-left behind (`pan`), `late` s after the bow or
+ * tongue (its pluck heard as its own), the strong beats' octave below spread `spread` s ahead of the unison.
+ */
+export const TRIO_CONTINUO = { cello: -3, celloPan: 0.02, harpsi: -4, harpsiPhone: 3, harpsiPan: -0.08, late: 0.015, spread: 0.014 } as const;
+/** D504: a pitch played within a compass (Patch.compass): the nearest octave of it inside, the pitch itself if it is. */
+export function inCompass(midi: number, c: { lo: number; hi: number }): number {
+  if (c.hi - c.lo < 11) return midi;
+  let m = midi;
+  while (m < c.lo) m += 12;
+  while (m > c.hi) m -= 12;
+  return m;
+}
+/** D504: the trio's cello on a phone (its upper partials lifted, as the band's: BAND_CELLO_PHONE_LIFT) and the bassoon's (its reed's partials). */
+export const TRIO_BASSOON_PHONE_LIFT = { hz: 500, db: 9 } as const;
+export const TRIO_CELLO_PHONE_LIFT = { hz: 700, db: 8 } as const;
+
+/** D504: the trio's continuo cello (the consort's recordings, bowed), as a voice and as a continuo part. */
+const TRIO_CELLO: Patch = { osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: TRIO_SEND, level: 0.66, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: TRIO_CELLO_PHONE_LIFT, compass: TRIO_COMPASS.cello };
+/** D504: the trio's harpsichord (the game's recorded one, placed by key), in the trio's room. */
+const TRIO_HARPSI: Patch = { ...HARPSI_SAMPLED, send: TRIO_SEND, compass: TRIO_COMPASS.harpsichord };
+const dbGain = (db: number) => 10 ** (db / 20);
+/** D504: the continuo's two instruments on the bass (Patch.continuo; TRIO_CONTINUO's levels and seats). */
+export const CONTINUO_CELLO: ContinuoPart = { patch: TRIO_CELLO, level: dbGain(TRIO_CONTINUO.cello), pan: TRIO_CONTINUO.celloPan, late: 0.006 };
+export const CONTINUO_HARPSI: ContinuoPart = { patch: TRIO_HARPSI, level: dbGain(TRIO_CONTINUO.harpsi), phoneLevel: dbGain(TRIO_CONTINUO.harpsiPhone), pan: TRIO_CONTINUO.harpsiPan, late: TRIO_CONTINUO.late, octave: true, spread: TRIO_CONTINUO.spread };
+
 /** CLAVICHORD: one instrument, placed by its key (a small instrument: ±0.1), each key's pair of strings a fixed fraction of a cent off. */
 export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
 /** D501: the clavichord on a phone: its upper partials lifted (Patch.phoneLift), where the small speaker hears its thin tone. */
@@ -1024,6 +1112,17 @@ export const PATCHES = {
   bandOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: BAND_SEND, level: 0.46, sample: "trialOboe", bow: WIND_TONGUE, one: {} }),
   bandViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
   bandCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.59, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: BAND_CELLO_PHONE_LIFT, double: { patch: { ...HARPSI_SAMPLED, send: BAND_SEND }, level: 10 ** (CONTINUO.db / 20), phoneLevel: 10 ** (CONTINUO.phoneDb / 20), pan: CONTINUO.pan, late: CONTINUO.late } }),
+  // D504, ZELENKA TRIO: oboe I (Iowa's: straight, bright, the leader), oboe II (VSCO's: darker, its own vibrato), the
+  // bassoon (Iowa's, every semitone Bb1-D5, two dynamics and its own short notes), each tongued (TRIO_TONGUE), each
+  // shading its long notes (TRIO_SWELL), within its compass (TRIO_COMPASS); the continuo cello (the consort's) as a
+  // voice of four or five; the harpsichord (the game's) as the fifth's inner voice. The continuo on the bass line
+  // (Patch.continuo: the cello and the harpsichord on the bassoon, the harpsichord on the cello) only where the
+  // piece's script has it (trio.ts). One room (REVERBS.chamber) at one send (TRIO_SEND).
+  trioOboe1: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.6, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 0.69, sample: "trioOboe1", bow: TRIO_TONGUE, one: {}, compass: TRIO_COMPASS.oboe, swell: TRIO_SWELL }),
+  trioOboe2: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.6, q: 1.2, env: 1, envDecay: 0.1 }, amp: { a: 0.035, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.035, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 0.52, sample: "trioOboe2", vib: { depth: 0, rate: 5.2, delay: 0.2 }, bow: TRIO_TONGUE, one: {}, compass: TRIO_COMPASS.oboe, swell: TRIO_SWELL }),
+  trioBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 1, sample: "trioBassoon", bow: TRIO_TONGUE, one: {}, phoneLift: TRIO_BASSOON_PHONE_LIFT, compass: TRIO_COMPASS.bassoon, swell: TRIO_SWELL, continuo: [CONTINUO_CELLO, CONTINUO_HARPSI] }),
+  trioCello: P({ ...TRIO_CELLO, continuo: [CONTINUO_HARPSI] }),
+  trioHarpsi: P(TRIO_HARPSI),
   // ---- TRIALS (instruments-trials): full-fidelity recordings (sampled.ts PERIOD's trial sets, as the consort's: 32 kHz,
   // 16 bits, a made loop), one envelope per family (winds in 30 ms, brass 20 ms, out 100-120 ms), one send, the
   // player's line played as the band's (Patch.one), a joined note a new tongue or a slur (WIND_TONGUE as Patch.bow).
@@ -1068,7 +1167,7 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
 export type Kit = "acoustic" | "chip" | "analog";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber";
 
 export interface Preset {
   id: string;
@@ -1108,6 +1207,12 @@ export interface Preset {
    */
   gain?: number;
   phoneGain?: number;
+  /**
+   * D504: other layouts a number of voices may take in a piece (each as `by`'s), where the piece's ranges ask
+   * (trio.ts trioLayout: the one with fewest notes out of its instruments' compasses), set for a piece by
+   * setPieceLayout. Their patches are loaded with the preset's own.
+   */
+  alts?: Partial<Record<number, readonly (readonly (readonly [patch: PatchId, pan: number, level?: number])[])[]>>;
 }
 
 /**
@@ -1405,6 +1510,33 @@ export const PRESETS: Preset[] = [
   // D501 (the trials' CLAVICHORD, offered): one clavichord (synthesized), every voice on it, placed by its key.
   // Its level matched through the phone model (gain, phoneGain: D501's measurements).
   { id: "clavichord", name: "CLAVICHORD", gain: CLAVI_GAIN, phoneGain: CLAVI_PHONE_GAIN, slots: ["clavichord", "clavichord", "clavichord", "clavichord", "clavichord"], room: 0, fx: "salon", by: oneKeyboard("clavichord") },
+  // D504, ZELENKA TRIO: oboe I left, oboe II right (a pair facing each other across the music, as a trio sonata's
+  // two trebles sit), the bassoon between them a little right, the continuo cello in the middle, the harpsichord
+  // behind centre-left; within ±0.2. Three voices: the two oboes and the bassoon (the continuo on the bassoon's
+  // line where the script has it); where the middle voice lies under the oboe's compass (I/11's alto reaches Bb2),
+  // oboe I, the bassoon on the middle voice and the cello on the bass (trio.ts trioLayout). Two: oboe I and the
+  // bassoon. Four: the oboes, the bassoon and the cello (the continuo instrument as the fourth voice, the
+  // harpsichord joining it where the script has it). Five: the harpsichordist's right hand the middle voice.
+  {
+    id: "oboeTrio",
+    name: "ZELENKA TRIO",
+    // D504: matched to the median of the offered sounds (D436's way: I/21 1-8 and II/9 1-5, Herr Bach on the top voice).
+    gain: 0.71,
+    phoneGain: 0.54,
+    slots: ["trioOboe1", "trioOboe2", "trioHarpsi", "trioBassoon", "trioCello"],
+    room: 0,
+    fx: "chamber",
+    by: {
+      1: [["trioOboe1", 0]],
+      2: [["trioOboe1", -0.14], ["trioBassoon", 0.08]],
+      3: [["trioOboe1", -0.18], ["trioOboe2", 0.18], ["trioBassoon", 0.06]],
+      4: [["trioOboe1", -0.2], ["trioOboe2", 0.2], ["trioBassoon", 0.1], ["trioCello", -0.02]],
+      5: [["trioOboe1", -0.2], ["trioOboe2", 0.2], ["trioHarpsi", -0.08], ["trioBassoon", 0.1], ["trioCello", 0]],
+    },
+    alts: {
+      3: [[["trioOboe1", -0.16], ["trioBassoon", 0.12], ["trioCello", -0.02]]],
+    },
+  },
 ];
 
 /**
@@ -1484,7 +1616,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ, the lute: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "trialJazz", "clavichord"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "trialJazz", "clavichord"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1611,7 +1743,9 @@ export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPS
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TROMBONE VERSILIAN STUDIOS VSO2 CE · CC BY 3.0";
 export const JAZZ_CREDIT = `${PIANO_CREDIT} · BASS ${VSCO_CREDIT}`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT, baroqueBand: BAROQUE_CREDIT, trialWinds: WINDS_CREDIT, trialBrass: BRASS_CREDIT, trialJazz: JAZZ_CREDIT };
+/** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
+export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT, baroqueBand: BAROQUE_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, trialBrass: BRASS_CREDIT, trialJazz: JAZZ_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1668,15 +1802,29 @@ export function grooveNow(): { groove: Groove; kit: Kit } | null {
 
 /** D190: the recorded instruments the ensemble now plays, if any. */
 export function sampledNow(): SampledId[] {
-  const ids = [...(current.slots ?? []), ...Object.values(current.by ?? {}).flatMap((vs) => (vs ?? []).map(([id]) => id)), ...(current.also ?? [])];
-  // TRIAL: and a doubling instrument's (Patch.double: BAROQUE BAND's continuo harpsichord).
-  const pts: Patch[] = ids.flatMap((id) => { const p: Patch = PATCHES[id]; return p.double ? [p, p.double.patch] : [p]; });
+  const alts = Object.values(current.alts ?? {}).flatMap((ls) => (ls ?? []).flatMap((vs) => vs.map(([id]) => id)));
+  const ids = [...(current.slots ?? []), ...Object.values(current.by ?? {}).flatMap((vs) => (vs ?? []).map(([id]) => id)), ...alts, ...(current.also ?? [])];
+  // TRIAL: and a doubling instrument's (Patch.double: BAROQUE BAND's continuo harpsichord). D504: and a continuo's (Patch.continuo).
+  const pts: Patch[] = ids.flatMap((id) => {
+    const p: Patch = PATCHES[id];
+    return [p, ...(p.double ? [p.double.patch] : []), ...(p.continuo ?? []).map((c) => c.patch)];
+  });
   return [...new Set(pts.map((p) => p.sample).filter((s): s is SampledId => !!s))];
 }
 
+/**
+ * D504: a piece's own layout for a preset (Preset.alts, chosen by trio.ts trioLayout from the piece's ranges): for
+ * that preset and that number of voices, in place of `by`'s. Set when a piece starts (proto-game.ts); null: none.
+ */
+let pieceLayout: { preset: string; count: number; slots: readonly Slot[] } | null = null;
+export function setPieceLayout(l: { preset: string; count: number; slots: readonly Slot[] } | null) {
+  pieceLayout = l;
+}
+export const pieceLayoutNow = () => pieceLayout;
+
 /** D297: a voice's entry in the preset's own layout for its number of voices (Preset.by), if it has one. */
 const byOf = (voice: number, count: number) => {
-  const vs = current.by?.[count];
+  const vs = pieceLayout && pieceLayout.preset === current.id && pieceLayout.count === count ? pieceLayout.slots : current.by?.[count];
   return vs ? vs[Math.min(voice, vs.length - 1)] : null;
 };
 
