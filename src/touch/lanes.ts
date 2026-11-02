@@ -28,6 +28,8 @@ export interface LaneNote {
   up?: number;
   /** D419 (the audit): struck JOINED from the note before as the judge heard it (held, or within its gap), so the box draws the join the judge counted. */
   joinedIn?: boolean;
+  /** D469: a slide-in's (D488) starting place, as a staff step, so the box draws the slide that reached the note. */
+  slideFrom?: number;
   /** The voice. */
   voice?: number;
   /** EASY: a short note that plays by itself after a hit, and does not score (D166); the testbench: a note too quick to strike (D191 quickRides). */

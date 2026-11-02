@@ -21,6 +21,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type MouseEvent as ReactMouseEvent } from "react";
 import type { Patch } from "./sound.ts";
 import { tr } from "../i18n/index.ts";
+import { rollRect } from "./MusicBox.tsx";
 import {
   actsOn,
   defaultPistons,
@@ -82,9 +83,10 @@ export const roomLabel = (r: RoomId) => tr(r === "dry" ? "DRY" : r === "church" 
 /** Under this title bar width (px) there is no room for the pistons (a phone upright). */
 const HIDE_BELOW_PX = 360;
 /** D420: how long a piston glows after its press (ms). */
+/** D469: the roll's top row left free above the pistons' columns (the pinned SUBJECT tabs stand there, D466). */
+const TAB_ROW = 20;
 const GLOW_MS = 450;
 /** D483 on the pistons: the feet's height in the old stops' rows (44 px and a 3 px gap): one 58 px row, 2 px up. */
-const PISTON_ROWS = Math.round(((58 + 2) / 47) * 100) / 100;
 
 /** D420: the defaults' names (the organ's flutes, principals, plenum; the harpsichord's buff, 8′, full). */
 const DEFAULT_NAMES: Readonly<Record<string, readonly string[]>> = {
@@ -158,6 +160,22 @@ export function RegistrationStops({ presetId, patch, piece, voice = 0, barNow, s
     return () => clearTimeout(id);
   }, [glow]);
 
+  // D469 (design studio; the owner: the stops "are not readable … Their location can be refitted inside the music box,
+  // on the blue area … stacked vertically on the left and right border"): on the bars, a column of the three pistons
+  // down each inner edge of the box, inside its blue frame, over the roll's ends; placed from the roll's own rect.
+  const [frameAt, setFrameAt] = useState<{ left: number; right: number; top: number; height: number } | null>(null);
+  useLayoutEffect(() => {
+    if (!sides) return;
+    const measure = () => {
+      const r = rollRect();
+      if (r) setFrameAt((o) => (o && o.left === r.left && o.right === window.innerWidth - r.right && o.top === r.top && o.height === r.height ? o : { left: r.left, right: window.innerWidth - r.right, top: r.top, height: r.height }));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const id = window.setInterval(measure, 500);
+    return () => (window.removeEventListener("resize", measure), clearInterval(id));
+  }, [sides]);
+
   // The title bar's width (a phone upright shows none).
   useLayoutEffect(() => {
     const hud = wrap.current?.closest(".tg-hud") as HTMLElement | null;
@@ -211,9 +229,17 @@ export function RegistrationStops({ presetId, patch, piece, voice = 0, barNow, s
         <span ref={wrap} hidden />
         {/* D483 on the pistons: the side legend and the word in force end above the right foot (bench.css
             counts the foot in the old stops' 47 px rows; the pistons' one row is 58 px, 2 px off the foot). */}
-        <style>{`.tb-has-side-stops { --tb-stop-rows: ${PISTON_ROWS}; --tb-stop-rows-right: ${PISTON_ROWS}; }`}</style>
+        {/* D469: the pistons no longer stand at the bars' feet: nothing there to keep clear of. */}
+        <style>{`.tb-has-side-stops { --tb-stop-rows: 0; --tb-stop-rows-right: 0; }`}</style>
         {(["left", "right"] as const).map((s) => (
-          <span key={s} className={`${cls} tb-stops-side tb-stops-${s}`} id={`stops-${s}`} role="group" aria-label={tr("PISTONS")}>
+          <span
+            key={s}
+            className={`${cls} tb-stops-side tb-stops-${s}`}
+            id={`stops-${s}`}
+            role="group"
+            aria-label={tr("PISTONS")}
+            style={frameAt ? { top: frameAt.top + TAB_ROW, height: Math.max(60, frameAt.height - TAB_ROW - 3), ...(s === "left" ? { left: frameAt.left + 3 } : { right: frameAt.right + 3 }) } : { visibility: "hidden" }}
+          >
             {row(s)}
           </span>
         ))}

@@ -3498,6 +3498,8 @@ export class ProtoGame {
     }
     h.slideIn = undefined;
     notes[i].via = "slide";
+    // D469: where the slide-in set off (its staff step as drawn), for the box's slide.
+    notes[i].slideFrom = this.rows ? this.rows.stepAt(si.y0) : undefined;
     // The pitch where the thumb is (its staff step as drawn), or a semitone the approach's side when it is on the note's own row.
     const way = c.y < si.y0 ? 1 : -1;
     const at = stepPitch(this.rows!.stepAt(c.y), n);
