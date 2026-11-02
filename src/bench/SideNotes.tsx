@@ -25,10 +25,13 @@ export function SideHint({ text, fade = false, hintRef }: { text: string; fade?:
  * wholeLegend), and under the legend, kept while it fades, the word in force on the player's line as
  * printed and translated (BenchApp sets it through `glossRef` as each word is passed).
  */
-export function SideLegend({ marks, legendRef, whole, glossRef }: { marks: Iterable<Mark>; legendRef: Ref<HTMLDivElement>; whole?: WholeBox; glossRef?: Ref<HTMLParagraphElement> }) {
+export function SideLegend({ marks, legendRef, whole, glossRef, glossOnly = false }: { marks: Iterable<Mark>; legendRef: Ref<HTMLDivElement>; whole?: WholeBox; glossRef?: Ref<HTMLParagraphElement>; glossOnly?: boolean }) {
   const lines = legendLines(marks);
   const more = whole ? wholeLegend(whole) : [];
   if (!lines.length && !more.length) return null;
+  // D469 (design studio; the owner: remove the instructions and symbol explanations from the right column at the
+  // start of play): in a game the legend is gone; Busoni's word in force (the gloss, D484) stays.
+  if (glossOnly) return whole ? <p className="tb-side-gloss" id="side-gloss" ref={glossRef} aria-live="polite" /> : null;
   // D483: with BUSONI's signs, the short lines (they fit between the crowd and the stops at 375 px).
   const say = (l: { kind: string; text: string }) => {
     const s = more.length ? shortLegend(l.kind) : undefined;

@@ -115,7 +115,7 @@ test("D409: marks are sparse: the start, every same-thumb repeat, a rest, a slid
   assert.deepEqual(suggestionMarks(ns, tc).map((m) => `${m.k}${m.thumb}${m.why}`), ["0Astart", "2Arest", "3Arepeat", "4Bleap"]);
 });
 
-test("D409: no L or R in the suggestion marks: ● and ○ with their legend; the button FINGERING SUGGESTION n OF m, nothing more", () => {
+test("D409, D492: no L or R in the suggestion marks: ● and ○ with their legend; HEAR THE SUBJECT shows no fingering suggestion", () => {
   assert.deepEqual(THUMB_GLYPH, { A: "●", B: "○" });
   assert.equal(THUMB_LEGEND, "● ○ = your two thumbs, either way round");
   const hear = readFileSync(new URL("../src/bench/HearSubject.tsx", import.meta.url), "utf8");
@@ -124,10 +124,11 @@ test("D409: no L or R in the suggestion marks: ● and ○ with their legend; th
   // D444 (the owner: "eliminate the bloody white and black balls … from anywhere, except the TUTORIALS"): the tutorial's aid draws them; HEAR THE SUBJECT no longer does.
   assert.match(aids, /drawThumbMark/, "aids: the neutral marks drawn");
   assert.doesNotMatch(hear, /drawThumbMark|THUMB_LEGEND|hear-thumbs-key/, "HearSubject: no ● ○ under the notes");
-  assert.match(hear, /"FINGERING SUGGESTION \{n\} OF \{m\}"/);
+  // D492 (the owner: "Eliminate FINGERING SUGGESTIONS from HEAR THE SUBJECT"): no button, no thumbs drawn there.
+  assert.doesNotMatch(hear, /FINGERING SUGGESTION|subjectFingerings|drawThumb|hear-fingering/);
   assert.doesNotMatch(hear, /THUMBS \{n\} OF \{m\}|tr\(fg\.name\)|ONE THUMB WHERE DETACHED/);
-  assert.equal(PT["FINGERING SUGGESTION {n} OF {m}"], "SUGESTÃO DE DEDILHADO {n} DE {m}");
-  assert.equal(ES["FINGERING SUGGESTION {n} OF {m}"], "SUGERENCIA DE DIGITACIÓN {n} DE {m}");
+  assert.equal(PT["FINGERING SUGGESTION {n} OF {m}"], undefined);
+  assert.equal(ES["FINGERING SUGGESTION {n} OF {m}"], undefined);
   assert.ok(PT[THUMB_LEGEND] && ES[THUMB_LEGEND]);
   assert.equal(PT["THUMBS {n} OF {m}"], undefined);
 });
