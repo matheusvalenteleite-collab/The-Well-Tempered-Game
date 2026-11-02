@@ -65,6 +65,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["baroqueBand", "BAROQUE BAND"],
   // D501: the trials' CLAVICHORD, offered.
   ["clavichord", "CLAVICHORD"],
+  // D504: ZELENKA TRIO, two oboes, the bassoon and a continuo that enters where the music asks.
+  ["oboeTrio", "ZELENKA TRIO"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

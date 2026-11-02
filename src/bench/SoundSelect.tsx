@@ -13,7 +13,7 @@ export const SOUND_GROUPS: readonly [group: string, ids: readonly string[]][] = 
   // D501: and CLAVICHORD.
   ["INSTRUMENTS", ["harpsichordSampled", "pianoSampled", "chamberOrgan", "lute", "clavichord"]],
   // D430: BAROQUE BAND an ensemble; D433: BLEEPS AND BLOOPS retired.
-  ["ENSEMBLES", ["stringConsort", "baroqueBand"]],
+  ["ENSEMBLES", ["stringConsort", "baroqueBand", "oboeTrio"]],
   ["GAME CONSOLES", ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker"]],
   ["SYNTHESIZERS", ["analog", "tomita"]],
   ["VOICES", ["vocalSynth", "soloVoices"]],

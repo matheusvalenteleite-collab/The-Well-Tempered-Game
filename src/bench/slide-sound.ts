@@ -86,7 +86,7 @@ export function slideSoundFor(presetId: string): SlideSoundMode {
   return fam === "bowed" || fam === "voice" || presetId === "lute" ? "instruments" : "d486";
 }
 
-export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "voice" | "flute" | "chip" | "slide8" | "fm" | "synth";
+export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "voice" | "flute" | "reed" | "chip" | "slide8" | "fm" | "synth";
 export type IntervalClass = "half" | "step" | "third" | "leap";
 
 export const GESTURE = {
@@ -121,6 +121,8 @@ export function slideFamily(presetId: string): SlideFamily {
       return "voice";
     case "traverso":
       return "flute";
+    case "oboeTrio": // D504: ZELENKA TRIO's reeds (glenn.ts touchFamily "strings": Patch.bow as a tongue)
+      return "reed";
     case "gameboy":
     case "tracker":
       return "slide8";
@@ -158,6 +160,8 @@ const GLIDE_MS: Record<"bowed" | "voice" | "slide8" | "fm" | "synth", Record<Int
   fm: { half: 30, step: 30, third: 45, leap: 60 },
   synth: { half: 40, step: 40, third: 65, leap: 95 },
 };
+/** D504: a reed's short portamento into a semitone and a tone (ms, its time constant). */
+export const REED_GLIDE_MS = { half: 22, step: 28 } as const;
 /** In a quick passage a glide no longer than this share of the note (a portamento that never smears the next). */
 const GLIDE_SHARE = 0.25;
 
@@ -174,6 +178,14 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
     const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : 1);
     const names = { bowed: "shift", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide" } as const;
     return { kind: "glide", name: names[fam], tau: Math.max(0.008, Math.min(ms, GLIDE_SHARE * noteMs)) / 1000 };
+  }
+  if (fam === "reed") {
+    // D504: a reed's slide: into a step a short portamento (the fingers sliding off the hole, the lip easing the
+    // pitch: REED_GLIDE_MS); into a third or a leap a quick grace from the side it comes from (an appoggiatura, as
+    // the flute's); in a quick passage the plain slur.
+    if (quick) return { kind: "glide", name: "slur", tau: 0.008 };
+    if (ic === "half" || ic === "step") return { kind: "glide", name: "portamento", tau: Math.min(REED_GLIDE_MS[ic], GLIDE_SHARE * noteMs) / 1000 };
+    return fit("grace", [up ? stepBelow(to, scale) : stepAbove(to, scale)], noteMs);
   }
   if (fam === "flute") {
     if (ic === "half" || ic === "step" || quick) return { kind: "glide", name: "slur", tau: 0.008 };
