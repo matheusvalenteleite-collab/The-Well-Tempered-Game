@@ -265,8 +265,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f11: {
-    sound: "super16",
-    soundWhy: "A passepied (Bodky, Keller: 'with deliberate grace'), light and dancing: SUPER 16-BIT's violin, harpsichord and bassoon, three attacks a phone tells apart.",
+    sound: "oboeTrio",
+    soundWhy: "A passepied, pastoral (Bodky, Keller: 'with deliberate grace'): the reeds' own dance, D504's ZELENKA TRIO: oboe I on the tune, the bassoon on the alto (it reaches Bb2, under any oboe), the continuo cello on the bass, the harpsichord joining at the bass's entries, the stretto and the close.",
     character: "Bodky's three terraces (1-17, 17-34, 35-46, 46-56, 56-72); first section 1-46, stretto 46-56 (Ledbetter).",
     plans: {
       harpsichordSampled: [

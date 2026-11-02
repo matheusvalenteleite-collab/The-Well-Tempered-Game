@@ -31,6 +31,8 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   stringConsort: { id: "vallotti", a: 415 },
   // D430: BAROQUE BAND as the consort (its harpsichord with it).
   baroqueBand: { id: "vallotti", a: 415 },
+  // D504: ZELENKA TRIO at chamber pitch (A = 415, Vallotti, as the baroque band).
+  oboeTrio: { id: "vallotti", a: 415 },
   lute: { id: "equal", a: 415 },
 };
 /** Every other sound (the consoles, the synthesizers): equal temperament, A = 440. */

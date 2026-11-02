@@ -104,6 +104,12 @@ const ROWS: readonly Row[] = [
   ["bandOboe", "OBOE", "strings", ["soprano", "alto"]],
   ["bandViola", "BAROQUE VIOLA", "strings", ["alto", "tenor"]],
   ["bandCello", "BAROQUE CELLO", "strings", ["tenor", "bass"]],
+  // D504: ZELENKA TRIO's own (the reeds with the strings' family, as the band's oboe; the harpsichord the keyboard's).
+  ["trioOboe1", "OBOE I", "strings", ["soprano", "alto"]],
+  ["trioOboe2", "OBOE II", "strings", ["soprano", "alto"]],
+  ["trioBassoon", "BASSOON", "strings", ["tenor", "bass"]],
+  ["trioCello", "CONTINUO CELLO", "strings", ["tenor", "bass"]],
+  ["trioHarpsi", "CONTINUO HARPSICHORD", "keys", ALL],
   ["singS", "SOPRANO VOICE", "voice", ["soprano"]],
   ["singS2", "MEZZO VOICE", "voice", ["soprano", "alto"]],
   ["singA", "ALTO VOICE", "voice", ["alto"]],

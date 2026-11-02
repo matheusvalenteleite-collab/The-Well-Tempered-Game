@@ -18,7 +18,7 @@ import type { Patch, Wave } from "./sound.ts";
 import { SAMPLED } from "./sampled.ts";
 
 /** The instruments' families, each with its own design. */
-export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps";
+export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps" | "winds";
 
 /** Each preset's family (by its id; presets not named here, as TRAVERSO with KIMIKO, take no expression). */
 export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
@@ -44,6 +44,9 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   lute: "harpsichord",
   // D430: BAROQUE BAND as the consort (a bow's or the breath's pressure, the messa).
   baroqueBand: "singers",
+  // D504: ZELENKA TRIO a wind's: the breath's attack (the soft side a round start on the softer layer, the strong
+  // side a firm, reedy one, brighter) and a held note's swell (BREATH_DB, its brightness, oboe II's vibrato).
+  oboeTrio: "winds",
   // TRIALS (instruments-trials): the bands of held instruments as the consort (a bow's or the breath's pressure,
   // the messa); the jazz quartet and the clavichord as the piano (the touch's three zones: their dynamics).
   trialWinds: "singers",
@@ -158,7 +161,26 @@ export interface Landing {
   echo?: boolean;
   /** D385: the piano's level as struck (dB about the middle): its colour (chip.ts Play.vel). */
   vel?: number;
+  /** D504: a wind's attack softened (0 to 1: Play.soft, a slower rise: the breath starting the note, no tongue). */
+  soft?: number;
 }
+
+/**
+ * D504, THE WINDS (ZELENKA TRIO): the landing the breath's attack: toward the soft side a soft, round start (the
+ * softer recording, its rise up to WIND_SOFT_S slower, its top a little rounded down to WIND_ROUND_HZ at the edge);
+ * toward the strong side a firm, reedy start (the louder recording, up to WIND_REEDY_DB brighter). Held and swayed:
+ * a swell, a messa di voce of ±BREATH_DB with ±BREATH_TONE_DB of brightness, and on a patch with a vibrato (oboe
+ * II's: Patch.vib) up to BREATH_VIB_CENTS more of it as it swells. No level from the landing: the line's own.
+ */
+export const WIND_ROUND_HZ = 5000;
+export const WIND_REEDY_DB = 2.5;
+export const BREATH_DB = 4;
+export const BREATH_TONE_DB = 2;
+export const BREATH_VIB_CENTS = 7;
+/** D504: the swell's gain, its brightness (dB) and its added vibrato (cents) at sustain value s. */
+export const breathGain = (s: number) => 10 ** ((BREATH_DB * clampS(s)) / 20);
+export const breathTone = (s: number) => BREATH_TONE_DB * clampS(s);
+export const breathVib = (base: number, s: number) => Math.max(0, base + BREATH_VIB_CENTS * Math.max(0, clampS(s)));
 
 /** D385: the line around a landing on the piano: the reading's level here (`lineDb`) and an accent's weight in the strong zone (`accentDb`). */
 export interface LineAt {
@@ -222,13 +244,20 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       return { bright: BRIGHT_SPAN.synth * (c - 0.5) };
     case "bleeps":
       return { strike: 2 ** (STRIKE_OCTAVES * (c - 0.5)) };
+    case "winds": {
+      if (c < 0.5) {
+        const k = (0.5 - c) / 0.5;
+        return { layer: "soft", soft: k, ...(k > 0.05 ? { lp: 16000 * (WIND_ROUND_HZ / 16000) ** k } : {}) };
+      }
+      return { layer: "firm", tone: WIND_REEDY_DB * ((c - 0.5) / 0.5) };
+    }
   }
 }
 
 // ---- Holding sideways: the sustain ----
 
 /** How a held note answers a sideways move: none (a struck string, an organ's steady wind), a swell (messa di voce), the vibrato's depth, a filter sweep (wah), the tremolo's speed. */
-export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem";
+export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem" | "breath";
 
 /** A sideways travel of this share of the bar's width is the full range (half the bar). */
 export const HOLD_SPAN = 0.5;
@@ -267,6 +296,8 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
     case "voice":
     case "singers":
       return "messa";
+    case "winds":
+      return plucked ? "none" : "breath";
     case "synth":
       return "wah";
     case "bleeps":
