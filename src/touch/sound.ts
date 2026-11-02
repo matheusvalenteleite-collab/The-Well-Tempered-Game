@@ -494,8 +494,6 @@ export const CONSORT_SEND = 0.22;
 export const CELLO_PHONE_LIFT = { hz: 700, db: 4 } as const;
 /** D421: the grand on a phone: its upper partials lifted (Patch.phoneLift), never its fundamentals; the speaker hears little under 600 Hz, where most of the grand's sound is. */
 export const PIANO_PHONE_LIFT = { hz: 800, db: 5 } as const;
-/** D358: LUTE: placed by its key across the instrument (E2-A5), uneven frets, its courses (unisons above G3, octave strings below; D365: the octave strings 0.25 → 0.4, heard); D365: its bass courses 3.5 dB lighter below D#3, eased in from A3 (the guitar recordings' low strings stood 2.5 dB over the top on a computer, 5 on a phone). */
-export const LUTE_ONE = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.4, shelf: 0 } }, low: { from: 57, over: 6, db: -3.5 } } as const;
 /** D358: SOLO VOICES' one send into its room (the plate), every singer's. */
 export const VOICE_SEND = 0.15;
 /**
@@ -613,8 +611,6 @@ export const BRASS_BASS_PHONE_LIFT = { hz: 600, db: 4.5 } as const;
 /** D502: the horn on a phone (its recordings dark: measured 9-10 dB under the trumpet through the phone model, 1.5-2 on a computer): its upper partials lifted. */
 export const BRASS_HORN_PHONE_LIFT = { hz: 700, db: 6 } as const;
 export const BRASS_TONGUE = { skip: 0.03, a: 0.02, join: { skip: 0.008, still: 0.01, floor: 0.12, a: 0.008, accentDb: 1.5, accentS: 0.08 } } as const;
-/** CLAVICHORD: one instrument, placed by its key (a small instrument: ±0.1), each key's pair of strings a fixed fraction of a cent off. */
-export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
 /**
  * D503, JAZZ QUARTET (the Modern Jazz Quartet's sound, which recorded Bach): one club (chip.ts REVERBS.club: short and
  * warm) at one send for every player (JAZZ_SEND); the vibraphone's motor slow, as Milt Jackson kept it (JAZZ_MOTOR); the
@@ -627,15 +623,6 @@ export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
 export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
-/** D501: the clavichord on a phone: its upper partials lifted (Patch.phoneLift), where the small speaker hears its thin tone. */
-export const CLAVI_PHONE_LIFT = { hz: 900, db: 3 } as const;
-/**
- * D501: the clavichord's level against the offered sounds' median (D436's way: I/21 b. 1-8 and II/9 b. 1-5,
- * Herr Bach on the top voice; measured 1.4 dB under on a computer, 2.3 under through the phone model with
- * CLAVI_PHONE_LIFT): +0.8 dB everywhere, +1.4 dB more on a phone (about -0.6 and -0.1 now; peaks under -7 dBFS).
- */
-export const CLAVI_GAIN = 1.1;
-export const CLAVI_PHONE_GAIN = 1.18;
 
 /** The instruments. */
 export const PATCHES = {
@@ -860,16 +847,6 @@ export const PATCHES = {
    */
   s16Cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, send: 0.3, level: 0.6, sample: "cello16", bow: STRING_BOW }),
   s16Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.012, d: 0.25, s: 0.78, r: 0.08 }, rec: { a: 0.012, d: 0.25, s: 0.78, fade: 4, r: 0.08 }, send: 0.12, hp: 120, level: 0.64, sample: "bassoon16" }),
-  // NOCTURNE 32-BIT (the PlayStation's SPU, after the Baroque-Gothic palette of 1997: violin,
-  // harpsichord, strings and organ through a dark half-rate hall): violin on top, oboe (five voices),
-  // harpsichord with its key-up noise, a sustained viola, the pipe organ's pedal (its manual above F#3)
-  // in the bass; recordings at about 22 kHz, a milder lowpass, 13 bits (sampled.ts PERIOD); each voice
-  // its own send to the hall (Preset.fx "hall": 25 ms pre-delay, high-passed send, dark return).
-  n32Violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }, { wave: "saw", detune: 7, gain: 0.3 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.03, d: 0.2, s: 0.85, r: 0.16 }, rec: { a: 0.03, d: 0.2, s: 0.85, r: 0.16 }, vib: { depth: 15, rate: 5.5, delay: 0.3 }, send: 0.18, level: 0.4, sample: "violin32" }),
-  n32Oboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.015, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.015, d: 0.1, s: 0.9, r: 0.12 }, vib: { depth: 12, rate: 6.2, delay: 0.26 }, send: 0.14, level: 0.36, sample: "oboe32" }),
-  n32Harpsi: P({ osc: [{ wave: "saw" }, { wave: "pulse25", octave: 1, gain: 0.35 }], filter: { freq: 10, q: 1, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 0.9, s: 0, r: 0.08 }, rec: { a: 0.001, d: 0, s: 1, r: 0.08 }, send: 0.1, hp: 120, level: 0.72, sample: "harpsi32" }),
-  n32Viola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.02, d: 0.25, s: 0.8, r: 0.14 }, rec: { a: 0.02, d: 0.25, s: 0.8, r: 0.14 }, vib: { depth: 10, rate: 4.8, delay: 0.38 }, send: 0.16, level: 0.56, sample: "viola32" }),
-  n32Organ: P({ osc: [{ wave: "organ" }, { wave: "organ", octave: 1, gain: 0.3 }], amp: { a: 0.025, d: 0.1, s: 1, r: 0.14 }, rec: { a: 0.025, d: 0, s: 1, r: 0.14 }, send: 0.12, hp: 120, level: 0.4, sample: "organ32" }),
   // MEGA FM (the Mega Drive's YM2612: every channel its own two-operator instrument, the modulation
   // index decaying on every note, no reverb; a 9-bit grain and a 7 kHz lowpass at the output).
   // D302, remade (the owner rated it 3: "boring, dull, flat"): the chip's punch: the modulator fed back
@@ -1141,11 +1118,6 @@ export const PATCHES = {
   consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
   consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
   consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT }),
-  // LUTE: one lute (a classical guitar's recordings, gut-like nylon) with a lute's courses (Patch.one.courses:
-  // each note's second string a few cents off and 3 ms later; below G3 an octave string in its place), each
-  // note placed by its course (key) across the instrument, a fretted instrument's slightly uneven frets
-  // (1.5 cents, fixed per key), in the salon; played as the harpsichord is (phrasing.ts styleOf).
-  lute2: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1.2, env: 2, envDecay: 0.1 }, amp: { a: 0.003, d: 0.7, s: 0, r: 0.1 }, send: SALON_SEND, level: 0.5, sample: "luteGuitar", one: LUTE_ONE }),
   // D430, BAROQUE BAND: the consort's violins, viola and cello (their recordings, Patch.bow: D427's bow changes and
   // D429's slurs), VSCO's oboe (its tongue: WIND_TONGUE), the continuo harpsichord on the cello's line (Patch.double);
   // one room (REVERBS.band) at one send (BAND_SEND), the player's line the band's (Patch.one).
@@ -1195,22 +1167,12 @@ export const PATCHES = {
   trialVibe: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], fm: { ratio: 4, index: 1.2, to: 0.05, time: 0.12 }, amp: { a: 0.001, d: 1.6, s: 0, r: 0.25 }, trem: { depth: 0.25, rate: 3 }, send: SALON_SEND, level: 0.33, one: {} }),
   /** VSCO 2 CE's solo contrabass, pizzicato: the jazz bassist's line (Percy Heath's), plucked, lifted on a phone. */
   trialBassPizz: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.8, s: 0, r: 0.1 }, send: SALON_SEND, level: 1.38, sample: "trialBassPizz", one: {}, phoneLift: PIZZ_PHONE_LIFT }),
-  /**
-   * CLAVICHORD (D358's proposal; synthesized: no CC0/CC BY recording found): a brass tangent strikes a pair of
-   * strings and stays on them while the key is held: a thin, bright, quiet tone (two strings 2 cents apart, a
-   * hollow octave), the tangent's thud at the onset (a short noise about the 5th harmonic), the pitch a few
-   * cents sharp as it strikes and settling (the tangent's pressure), a short sustain (dying over about a
-   * second, longer low), damped at once by the listing cloth when the key rises. Its dynamics are the
-   * player's touch (touch-expr.ts "piano": three zones). D501: offered as CLAVICHORD (PRESETS); on a phone its
-   * upper partials lifted (CLAVI_PHONE_LIFT) and the whole raised (the preset's phoneGain), matched to the others.
-   */
   // D503, JAZZ QUARTET: the vibraphone on top (the Iowa recordings at pp, mf, ff: the mallet's hardness; the motor added),
   // the grand on the middle voices (lighter, a little brighter), the double bass pizzicato on the bass; one club, one
   // send, the player's line the band's (Patch.one). The `osc`/`amp` stand in until a recording has loaded (D190).
   jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
   jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
-  clavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE, phoneLift: CLAVI_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1319,7 +1281,6 @@ function concertoLayouts(h: PatchId, hLevel: number, band: readonly Slot[], flut
     13: [...hands(-0.24), ...hands(-0.08), ...hands(0.08), ...hands(0.24), inner(0, 0.62), ...band],
   };
 }
-const N32_BAND: readonly Slot[] = [["n32Violin", SEATS.violin1], ["n32Violin", SEATS.violin2, 0.9], ["n32Viola", SEATS.viola, 0.7], ["n32Organ", SEATS.bass]];
 const TRK_BAND: readonly Slot[] = [["trkViolin", 0.35], ["trkViolin", 0.2, 0.9], ["trkViolin", -0.2, 0.9], ["trkBass", 0]];
 
 export const PRESETS: Preset[] = [
@@ -1380,23 +1341,6 @@ export const PRESETS: Preset[] = [
       10: [...HPSI(-0.12), ...HPSI(0.12), ["s16Harpsi", -0.12, 0.6], ["s16Harpsi", 0.12, 0.6], ...BAND],
       11: [...HPSI(-0.18), ...HPSI(0), ...HPSI(0.18), ["s16Harpsi", 0, 0.5], ...BAND],
       13: [...HPSI(-0.24), ...HPSI(-0.08), ...HPSI(0.08), ...HPSI(0.24), ["s16Harpsi", 0, 0.5], ...BAND],
-    },
-  },
-  // NOCTURNE 32-BIT: violin, harpsichord, viola, the organ's pedal; oboe as the fifth voice; the dark hall.
-  {
-    id: "nocturne32",
-    name: "NOCTURNE 32-BIT",
-    slots: ["n32Violin", "n32Oboe", "n32Harpsi", "n32Viola", "n32Organ"],
-    room: 0,
-    fx: "hall",
-    by: {
-      2: [["n32Violin", 0.25], ["n32Organ", 0]],
-      3: [["n32Violin", 0.25], ["n32Harpsi", -0.25], ["n32Organ", 0]],
-      4: [["n32Violin", 0.25], ["n32Harpsi", -0.25], ["n32Viola", -0.05], ["n32Organ", 0]],
-      5: [["n32Violin", 0.25], ["n32Oboe", -0.3, 0.84], ["n32Harpsi", 0.1], ["n32Viola", -0.1, 0.94], ["n32Organ", 0]],
-      // D351: six voices (BWV 1043's two solo violins and band; BWV 54's violins, violas and alto on the strings), the organ's continuo.
-      6: [["n32Violin", 0.25], ["n32Violin", -0.25], ["n32Violin", 0.15, 0.84], ["n32Viola", -0.15, 0.84], ["n32Viola", 0, 0.84], ["n32Organ", 0]],
-      ...concertoLayouts("n32Harpsi", 0.5, N32_BAND, "n32Oboe"),
     },
   },
   // MEGA FM (D302 remade): a fed-back lead, brass (five voices), an e-piano (four), a clav (three to five), the slap bass; a short dark echo.
@@ -1539,9 +1483,6 @@ export const PRESETS: Preset[] = [
       6: [["consViolin", -0.24], ["consViolin", -0.14], ["consViola", -0.04], ["consViola", 0.06], ["consCello", 0.16], ["consCello", 0.24]],
     },
   },
-  // D358 (a trial), D365 (offered): LUTE: one lute, every voice on it, in the middle (each note placed by its key, Patch.one).
-  // D436: -1 dB on a phone (+1.7 over the median there; a computer within it).
-  { id: "lute", name: "LUTE", slots: ["lute2", "lute2", "lute2", "lute2", "lute2"], room: 0, fx: "salon", by: oneKeyboard("lute2"), phoneGain: 0.89 },
   // D430 (the trials' BAROQUE BAND, offered): two violins, the oboe, the viola, the cello with the continuo harpsichord
   // on its line (Patch.double: the harpsichord enters with the bass). Seated as a baroque band within ±0.22: the first
   // violin left, a second right (antiphonal), the oboe in front a little left, the viola right of centre, the cello in
@@ -1563,9 +1504,6 @@ export const PRESETS: Preset[] = [
       5: [["bandViolin", -0.22, 1.11], ["bandViolin", 0.22, 1.11], ["bandOboe", -0.06, 0.85], ["bandViola", 0.12, 1.32], ["bandCello", 0.04]],
     },
   },
-  // D501 (the trials' CLAVICHORD, offered): one clavichord (synthesized), every voice on it, placed by its key.
-  // Its level matched through the phone model (gain, phoneGain: D501's measurements).
-  { id: "clavichord", name: "CLAVICHORD", gain: CLAVI_GAIN, phoneGain: CLAVI_PHONE_GAIN, slots: ["clavichord", "clavichord", "clavichord", "clavichord", "clavichord"], room: 0, fx: "salon", by: oneKeyboard("clavichord") },
   // D504, ZELENKA TRIO: oboe I left, oboe II right (a pair facing each other across the music, as a trio sonata's
   // two trebles sit), the bassoon between them a little right, the continuo cello in the middle, the harpsichord
   // behind centre-left; within ±0.2. Three voices: the two oboes and the bassoon (the continuo on the bassoon's
@@ -1652,7 +1590,7 @@ export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["tra
  * each voice's level by measurement (each voice rendered alone: about equal loudness, the bass heard through
  * the phone filter). The by-levels below are those measurements' (see the commit). D430: BAROQUE BAND offered
  * (PRESETS); D437: ORGAN TRIO dropped (the owner: "organ trio sounds horrible"), the others kept unoffered;
- * D501: CLAVICHORD offered (PRESETS); D502: BACH BRASS remade on its own recordings and offered (PRESETS `bachBrass`;
+ * D501: CLAVICHORD offered (PRESETS; D510: withdrawn, RETIRED); D502: BACH BRASS remade on its own recordings and offered (PRESETS `bachBrass`;
  * a stored "trialBrass" opens on it).
  */
 export const TRIALS: Preset[] = [
@@ -1672,7 +1610,7 @@ export const TRIALS: Preset[] = [
       5: [["trialFlute", -0.22], ["trialOboe", -0.08], ["trialClarinet", 0.08], ["trialHorn", 0.22], ["trialBassoon", 0.14]],
     },
   },
-  // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered.)
+  // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered, D510 withdrawn.)
 ];
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
@@ -1685,8 +1623,8 @@ export let EXPRESSIVE_ALL = true;
 export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
-/** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ, the lute: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds", "clavichord"]);
+/** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1696,7 +1634,7 @@ export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_
  * (touch-expr.ts landing, as if the thumb landed TONE_DB_SPAN dB further toward the strong side per bar's
  * width), and the loudness only a little (a quarter of it, within ±TONE_LEVEL_DB): chip.ts Chip.toned.
  */
-export const TONE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "sid64", "megaFm", "super16", "nocturne32", "tracker", "analog", "tomita"]);
+export const TONE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "sid64", "megaFm", "super16", "tracker", "analog", "tomita"]);
 export const toneAll = (id: string): boolean => EXPRESSIVE_ALL && TONE_SOUNDS.has(id);
 /**
  * TRIAL, EXPRESSIVE_ALL on the harpsichord and the organ (the owner: "give harpsichord and organ some tone
@@ -1783,22 +1721,31 @@ export const RETIRED: Readonly<Record<string, string>> = {
   chipLight: "chip",
   chipBlur: "chip",
   // D302: the N64 presets remade; D304: withdrawn (the owner gave FOREST 64 and PARTY 64 a 0): a stored
-  // choice opens on NOCTURNE 32-BIT (sampled instruments of the next console generation, the nearest kin).
-  temple64: "nocturne32",
-  agent64: "nocturne32",
-  forest64: "nocturne32",
-  party64: "nocturne32",
+  // choice opened on NOCTURNE 32-BIT (sampled instruments of the next console generation, the nearest kin); D510: on
+  // SUPER 16-BIT now, NOCTURNE 32-BIT's own stand-in.
+  temple64: "super16",
+  agent64: "super16",
+  forest64: "super16",
+  party64: "super16",
   // D433: BLEEPS AND BLOOPS retired (the owner: "bleeps and bloops is bad, retire"): a stored choice opens on CLASSIC CHIP.
   modular: "chip",
   // D430: the trial BAROQUE BAND, offered under its own id; D437: the trial ORGAN TRIO dropped ("organ trio sounds horrible"): the organ.
   trialBaroque: "baroqueBand",
   trialOrganTrio: "chamberOrgan",
-  // D501: the trial CLAVICHORD, offered under its own id.
-  trialClavichord: "clavichord",
+  // D501: the trial CLAVICHORD, offered under its own id; D510: withdrawn with it (below).
+  trialClavichord: "pianoSampled",
   // D502: the trial BACH BRASS remade and offered.
   trialBrass: "bachBrass",
   // D503: the trial MODERN JAZZ QUARTET remade and offered as JAZZ QUARTET.
   trialJazz: "jazzQuartet",
+  // D510, three sounds withdrawn (the owner: LUTE "sucks balls"; CLAVICHORD "an uninteresting synth with no distinctive
+  // features"; NOCTURNE 32-BIT "the mix doesn't work"): a stored choice opens on the nearest kept sound: the lute on the
+  // recorded harpsichord (a plucked keyboard of the same music), the clavichord on the recorded piano (the touch-sensitive
+  // keyboard: its dynamics, the three zones), NOCTURNE 32-BIT on SUPER 16-BIT (the console sound of the same palette:
+  // violin, harpsichord, strings, the echo; its patches and recordings gone with it).
+  lute: "harpsichordSampled",
+  clavichord: "pianoSampled",
+  nocturne32: "super16",
 };
 /** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
 export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";
@@ -1807,9 +1754,8 @@ export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM 
 export const VOICES_CREDIT = "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A. WAHL, B. PARDO · CC BY 4.0";
 export const CHOIR_CREDIT = "CHOIR: FLUIDR3_GM · FRANK WEN · MIDI-JS-SOUNDFONTS · CC BY 3.0";
 // D358: SOLO VOICES sings without FluidR3's choir now (its second soprano a soprano): VocalSet's credit alone.
-/** D358, D365: STRING CONSORT's and LUTE's recordings (CC BY asks for credit). */
+/** D358, D365: STRING CONSORT's recordings (CC BY asks for credit). (D510: LUTE's credit gone with it.) */
 export const CONSORT_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0";
-export const LUTE_CREDIT = "LUTE: CLASSICAL GUITAR, FREESOUND 11573, QUARTERTONE · CC BY 3.0";
 /** TRIALS' recordings (VSCO 2 CE is CC0, credit encouraged; VSO2 CE, the cello and TinySOL ask for it). */
 export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC0";
 /** D430: BAROQUE BAND's (the consort's strings, VSCO's oboe, VCSL's harpsichord). */
@@ -1820,7 +1766,7 @@ export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRO
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT };
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);

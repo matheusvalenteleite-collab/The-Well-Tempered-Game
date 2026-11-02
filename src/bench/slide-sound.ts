@@ -26,9 +26,9 @@
  *  fm        · bend 30 ms           · bend 30 ms                · bend 45 ms               · bend 60 ms
  *  synth     · portamento 40 ms     · portamento 40 ms          · portamento 65 ms         · portamento 95 ms
  *
- * (N the written note, U the scale step above, L below; plucked: harpsichord, lute, clavichord; organ: pipe and
+ * (N the written note, U the scale step above, L below; plucked: harpsichord (D510: the lute and the clavichord withdrawn); organ: pipe and
  * sampled; bowed: string consort; brass: BACH BRASS (D502: the lip slur, a rising leap the rip, a quick smear up into the note); voice: vocal synth, solo voices; flute: traverso; chip: classic chip,
- * SID 64, super 16-bit, nocturne 32-bit; slide8: Game Boy, tracker (their pitch-slide effect); fm: Mega FM;
+ * SID 64, super 16-bit; slide8: Game Boy, tracker (their pitch-slide effect); fm: Mega FM;
  * synth: Switched-On, Tomita, bleeps and bloops.) A glide's time is its time constant (an exponential
  * approach, Sounding.glide): about two thirds of the way there in that time.
  *
@@ -85,7 +85,7 @@ export function slideSoundParam(search: string): SlideSoundSetting {
 export function slideSoundFor(presetId: string): SlideSoundMode {
   if (SLIDE_SOUND !== "auto") return SLIDE_SOUND;
   const fam = slideFamily(presetId);
-  return fam === "bowed" || fam === "voice" || presetId === "lute" ? "instruments" : "d486";
+  return fam === "bowed" || fam === "voice" ? "instruments" : "d486";
 }
 
 export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "brass" | "voice" | "flute" | "reed" | "chip" | "slide8" | "fm" | "synth" | "mallet" | "bass";
@@ -113,8 +113,6 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
   if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
   switch (presetId) {
     case "harpsichordSampled":
-    case "lute":
-    case "clavichord": // D501: the clavichord's slide C. P. E. Bach's ornaments, as the harpsichord's
       return "plucked";
     case "pianoSampled":
       return "piano";
@@ -176,6 +174,12 @@ const GLIDE_MS: Record<"bowed" | "brass" | "voice" | "slide8" | "fm" | "synth" |
 };
 /** D504: a reed's short portamento into a semitone and a tone (ms, its time constant). */
 export const REED_GLIDE_MS = { half: 22, step: 28 } as const;
+/**
+ * D510: the bassist's slide only along a semitone or a tone (the finger sliding up the string); a third or a leap a new
+ * pluck (the next note struck afresh), never a glide (nor "plain": proto-game.ts then glides as before): across I/8's octaves the pizzicato's ringing recording was
+ * retuned an octave, a whoop and a read far from any recording.
+ */
+export const BASS_SLIDE_MAX = 2;
 /** In a quick passage a glide no longer than this share of the note (a portamento that never smears the next). */
 const GLIDE_SHARE = 0.25;
 
@@ -188,6 +192,8 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
   const ic = intervalClass(from, to);
   const up = to > from;
   const quick = noteMs < GESTURE.minNoteMs;
+  // (A gesture of no grace notes: proto-game.ts slideColour plucks the written note afresh, the note slid from let go 20 ms on.)
+  if (fam === "bass" && Math.abs(to - from) > BASS_SLIDE_MAX) return { kind: "notes", name: "pluck", notes: [], eachS: 0 };
   if (fam === "bowed" || fam === "brass" || fam === "voice" || fam === "slide8" || fam === "fm" || fam === "synth" || fam === "bass" || (fam === "chip" && (ic === "half" || ic === "step" || quick))) {
     const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : fam === "brass" && ic === "leap" && !up ? 35 / 45 : 1);
     const names = { bowed: "shift", brass: ic === "leap" && up ? "rip" : "lip slur", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide", bass: "slide" } as const;

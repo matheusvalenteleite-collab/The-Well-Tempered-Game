@@ -2055,7 +2055,9 @@ export class Chip {
     const end = Math.max(t + 0.05, at + dur - 0.01);
     const plucked = inst.plucked;
     const layer = inst.soft && set === inst.soft.set ? inst.soft.gain : inst.hard && set === inst.hard.set ? inst.hard.gain : 1;
-    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
+    // D510: on a phone a recording's own trim (sampled.ts JAZZ_PHONE_DB: the jazz bass's plucks evened through the phone model).
+    const trimDb = this.phone ? (noteInfo(set, near)?.phoneDb ?? 0) : 0;
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (trimDb ? 10 ** (trimDb / 20) : 1);
     const mix = bag.add(ctx.createGain());
     // D249: ORGANO PLENO's three sources brought back to about one note's level.
     if (p.pleno) mix.gain.value = PLENO_SCALE;
@@ -2516,7 +2518,8 @@ export class Chip {
       },
       glide: (to: number, tau?: number) => {
         if (stopped) return;
-        baseHz = hz(to);
+        // D510: folded as the note itself was (voiceNote, D405's maxShift): a slide never reads a recording an octave off.
+        baseHz = hz(inst.maxShift !== undefined ? foldInto(set, to, inst.maxShift) : to);
         retune(tau ?? 0.025);
       },
       muffle: () => {

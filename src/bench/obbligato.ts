@@ -126,9 +126,7 @@ const ROWS: readonly Row[] = [
   ["singB", "BASS VOICE", "voice", ["bass"]],
   ["pianoSampled", "PIANO", "keys", ALL],
   ["harpsiSampled", "HARPSICHORD", "keys", ALL],
-  ["lute2", "LUTE", "keys", ["alto", "tenor"]],
-  // D501: CLAVICHORD, offered (synthesized: no recording to wait for).
-  ["clavichord", "CLAVICHORD", "keys", ALL],
+  // (D510: LUTE and CLAVICHORD withdrawn with their sounds.)
   ["orgPrincipal", "ORGAN", "keys", ["soprano", "alto", "tenor"], 36, 96],
   ["orgPedal", "PEDAL ORGAN", "keys", ["bass"], 24, 60],
   // The consoles' imitations of real instruments.
@@ -138,11 +136,7 @@ const ROWS: readonly Row[] = [
   ["s16Strings", "16-BIT STRINGS", "console", ["alto", "tenor"]],
   ["s16Cello", "16-BIT CELLO", "console", ["tenor", "bass"]],
   ["s16Bassoon", "16-BIT BASSOON", "console", ["tenor", "bass"]],
-  ["n32Violin", "32-BIT VIOLIN", "console", ["soprano", "alto"]],
-  ["n32Oboe", "32-BIT OBOE", "console", ["soprano", "alto"]],
-  ["n32Harpsi", "32-BIT HARPSICHORD", "console", ALL],
-  ["n32Viola", "32-BIT VIOLA", "console", ["alto", "tenor"]],
-  ["n32Organ", "32-BIT ORGAN", "console", ["tenor", "bass"]],
+  // (D510: NOCTURNE 32-BIT's five withdrawn with it.)
   ["trkViolin", "TRACKER VIOLIN", "console", ["soprano", "alto"]],
   ["trkFlute", "TRACKER FLUTE", "console", ["soprano"]],
   ["trkHarpsi", "TRACKER HARPSICHORD", "console", ALL],
@@ -245,7 +239,7 @@ export function registerOf(midis: readonly number[]): Register {
  * - "legacy": D485 as first built (0.75 of the level, its odds, the stand-in): internal, for the A/B renders.
  * D501 (the owner: "Just implement it all"; the instruments session chose by the player's sound): "auto", the
  * default, picks the mode by the player's own sound (`obbligatoModeFor`): "effect" on a keyboard or plucked
- * sound (EFFECT_SOUNDS: the piano, the harpsichord, the pipe organ, the lute, the clavichord: one player's
+ * sound (EFFECT_SOUNDS: the piano, the harpsichord, the pipe organ (D510: the lute, the clavichord withdrawn): one player's
  * instrument, which a second instrument only muddies), "layer" on every other (an ensemble, voices, the
  * chips, consoles and synths, where a second instrument joins the band). "layer", "effect" and "legacy" force
  * that mode for every sound (the renders' A/B, the tests; `?obbligato=layer` on a page's address).
@@ -268,7 +262,7 @@ export function obbligatoParam(search: string): ObbligatoSetting {
   }
 }
 /** D501: the player's sounds whose boost is an effect on their own voice under "auto" (the keyboards and the plucked). */
-export const EFFECT_SOUNDS: ReadonlySet<string> = new Set(["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled", "lute", "clavichord"]);
+export const EFFECT_SOUNDS: ReadonlySet<string> = new Set(["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled"]);
 /** D501: the mode a boost takes on the player's sound `presetId` (the setting, or under "auto" the sound's own). */
 export function obbligatoModeFor(presetId: string): ObbligatoMode | "legacy" {
   return OBBLIGATO_MODE === "auto" ? (EFFECT_SOUNDS.has(presetId) ? "effect" : "layer") : OBBLIGATO_MODE;
@@ -384,16 +378,16 @@ export const layerLevel = () => (OBBLIGATO_MODE === "legacy" ? LEGACY_LAYER_LEVE
  */
 export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
   chip: -33.3, consCello: -27.1, consViola: -27.8, consViolin: -26.7, fmBass: -26.7, fmBrass: -30.0, fmClav: -23.6, fmLead: -29.1, fmPiano: -26.2,
-  gbBass: -26.9, gbHarm: -29.6, gbLead: -28.4, gbThin: -28.3, gbWave: -29.9, harpsiSampled: -27.4, lute2: -26.0, modBass: -25.2, modBell: -24.7,
-  modBongo: -25.4, modOrgan: -27.3, modVibe: -25.0, n32Harpsi: -27.4, n32Oboe: -26.6, n32Organ: -31.5, n32Viola: -26.9, n32Violin: -29.0,
+  gbBass: -26.9, gbHarm: -29.6, gbLead: -28.4, gbThin: -28.3, gbWave: -29.9, harpsiSampled: -27.4, modBass: -25.2, modBell: -24.7,
+  modBongo: -25.4, modOrgan: -27.3, modVibe: -25.0,
   orgPedal: -26.2, orgPrincipal: -27.2, pianoSampled: -26.9, s16Bassoon: -27.9, s16Cello: -29.3, s16Flute: -25.7, s16Harpsi: -27.2,
   s16Strings: -25.8, s16Violin: -26.5, sidBass: -29.2, sidLead: -28.2, sidSaw: -26.8, sidThin: -28.3, sidTri: -26.5, singA: -29.6, singB: -30.6,
   singS: -30.2, singS2: -30.8, singT: -29.6, solBass: -28.5, solBloop: -26.5, solLead: -28.8, solNasal: -28.1, solSquare: -27.7, tomBass: -28.0,
   tomChoir: -32.1, tomFlute: -28.0, tomStrings: -33.8, tomWhistle: -28.6, trkBass: -24.0, trkChoir: -29.5, trkFlute: -29.1, trkHarpsi: -27.1,
   trkViolin: -29.9, vocDa: -28.9, vocLa: -28.6, vocMi: -25.1, vocNe: -24.8, vocRo: -27.3,
-  // D501: BAROQUE BAND's own patches (D438) and CLAVICHORD, probed the same way (their preset's own gain taken out;
-  // the cello with its continuo harpsichord).
-  bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0, clavichord: -29.1,
+  // D501: BAROQUE BAND's own patches (D438) and CLAVICHORD (D510: withdrawn), probed the same way (their preset's own gain
+  // taken out; the cello with its continuo harpsichord).
+  bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0,
   // D504: ZELENKA TRIO's (the same probe, its gains taken out; BAROQUE BAND's oboe and violin probed again beside them: -25.0, -26.9).
   trioOboe1: -23.0, trioOboe2: -23.7, trioBassoon: -16.8, trioCello: -21.9, trioHarpsi: -28.1,
   // D502: BACH BRASS's (probed the same way, its phoneGain taken out; offset by the band violin's probe beside them).
@@ -435,8 +429,7 @@ export type MainKind = "piano" | "harpsichord" | "organ" | "strings" | "voice" |
 export function mainKind(id: PatchId | null, pt: Patch | null): MainKind {
   if (!pt) return "chip";
   if (id === "pianoSampled") return "piano";
-  // D501: the clavichord (offered) a struck keyboard that dies away, as the harpsichord: its echo.
-  if (id === "harpsiSampled" || id === "lute2" || id === "clavichord") return "harpsichord";
+  if (id === "harpsiSampled") return "harpsichord";
   if (pt.pipe || (id && id.startsWith("org"))) return "organ";
   if (id && (id.startsWith("voc") || id === "tomChoir")) return "voice";
   const fam = familyOf(id);

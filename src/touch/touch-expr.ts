@@ -33,7 +33,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   megaFm: "chip",
   tracker: "console",
   super16: "console",
-  nocturne32: "console",
   analog: "synth",
   tomita: "synth",
   // D433: BLEEPS AND BLOOPS ("modular", "bleeps": the mallets' hardness) retired; the kind kept for its patches.
@@ -41,7 +40,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // messa di voce a string player makes too); LUTE as the harpsichord (plucked near the rose at the outer
   // edge: the lute stop's muted, darker pluck).
   stringConsort: "singers",
-  lute: "harpsichord",
   // D430: BAROQUE BAND as the consort (a bow's or the breath's pressure, the messa).
   baroqueBand: "singers",
   // D504: ZELENKA TRIO a wind's: the breath's attack (the soft side a round start on the softer layer, the strong
@@ -52,8 +50,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   trialWinds: "singers",
   // D502: BACH BRASS its own: the landing its brassiness, a held sway its swell (brassLanding, holdMode "swell").
   bachBrass: "brass",
-  // D501: CLAVICHORD (offered) as the piano: the touch's three zones, its dynamics (the tangent's own).
-  clavichord: "piano",
   // D503: JAZZ QUARTET, each instrument its own touch in the piano's three zones (landing "jazz"): the mallet's hardness on
   // the vibraphone, the weight on the piano, the pluck on the bass; a held vibraphone note's SWAY the motor's speed.
   jazzQuartet: "jazz",
