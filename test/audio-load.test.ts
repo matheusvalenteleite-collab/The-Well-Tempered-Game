@@ -45,7 +45,8 @@ test("every note's nodes are disconnected once it has ended: a whole fugue leave
     const chip = new Chip();
     const ctx = ctxOf();
     const r = playFugue("wtc1f02", preset, chip, ctx);
-    assert.ok(r.made > 3000, `${preset}: the fugue was played (${r.made} nodes made)`);
+    // D505: no synthesized subject layers now (fewer nodes on the synthesizers).
+    assert.ok(r.made > 2500, `${preset}: the fugue was played (${r.made} nodes made)`);
     assert.ok(r.left <= (presetById(preset).fx ? FX_NODES : 0), `${preset}: ${r.left} nodes left wired after the fugue`);
     // Before D210 the graph held every node ever made (4,700 to 8,500 by the end of this fugue).
     assert.ok(r.peak.wired < 400, `${preset}: at most ${r.peak.wired} nodes wired at once`);

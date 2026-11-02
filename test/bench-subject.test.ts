@@ -128,7 +128,8 @@ test("D214, D217: a perfect two-row run through each testbench fugue is all hits
         const before = log.length;
         g.down(++id2, touchOf(g, k, i), performance.now());
         g.up(id2, performance.now());
-        const struck = log.slice(before).find((e) => e.lead && e.midi === n.midi);
+        // D505: the touch's own subject layers (its second choir) are lead too, made before the note itself: the note is the last.
+        const struck = log.slice(before).filter((e) => e.lead && e.midi === n.midi).at(-1);
         assert.ok(struck, `${id}: note ${k}/${i} sounded`);
         assert.deepEqual(struck.v, voicing(n.voice!, f.voices.length, true), `${id}: note ${i} in its voice ${n.voice}`);
       }
@@ -263,7 +264,7 @@ test("D221: every Book I fugue's SUBJECT line is the stretto rule's (from the st
       const before = log.length;
       g.down(++id2, touchOf(g, k, i), performance.now());
       g.up(id2, performance.now());
-      const struck = log.slice(before).find((e) => e.lead && e.midi === n.midi);
+      const struck = log.slice(before).filter((e) => e.lead && e.midi === n.midi).at(-1); // D505: the note after its own layers
       assert.ok(struck, `${id}: note ${k}/${i} sounded`);
       assert.deepEqual(struck.v, voicing(n.voice!, f.voices.length, true), `${id}: note ${i} in its voice ${n.voice}`);
     }

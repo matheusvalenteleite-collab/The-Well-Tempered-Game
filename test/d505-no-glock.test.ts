@@ -11,7 +11,7 @@ import { installFakeAudio } from "./fake-audio.ts";
 import { Chip, TICK, voicing, type Voicing } from "../src/touch/chip.ts";
 import { PATCHES, PRESETS, setPreset, type Patch } from "../src/touch/sound.ts";
 import { GENERIC, playFx, SYNTH_LAYERS, TAILORED, type SubjectFx } from "../src/touch/subject-fx.ts";
-import { foldDown, guardedPitch, MAX_SHIFT_ANY, nearestSample, SAMPLED, sampledMidis, setFor } from "../src/touch/sampled.ts";
+import { foldDown, guardedPitch, MAX_SHIFT_ANY, SAMPLED, sampledMidis, setFor } from "../src/touch/sampled.ts";
 
 const ctxOf = installFakeAudio(0, true);
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
