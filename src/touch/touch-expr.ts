@@ -18,7 +18,7 @@ import type { Patch, Wave } from "./sound.ts";
 import { SAMPLED } from "./sampled.ts";
 
 /** The instruments' families, each with its own design. */
-export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps" | "winds" | "brass";
+export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps" | "winds" | "brass" | "jazz";
 
 /** Each preset's family (by its id; presets not named here, as TRAVERSO with KIMIKO, take no expression). */
 export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
@@ -52,9 +52,11 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   trialWinds: "singers",
   // D502: BACH BRASS its own: the landing its brassiness, a held sway its swell (brassLanding, holdMode "swell").
   bachBrass: "brass",
-  trialJazz: "piano",
   // D501: CLAVICHORD (offered) as the piano: the touch's three zones, its dynamics (the tangent's own).
   clavichord: "piano",
+  // D503: JAZZ QUARTET, each instrument its own touch in the piano's three zones (landing "jazz"): the mallet's hardness on
+  // the vibraphone, the weight on the piano, the pluck on the bass; a held vibraphone note's SWAY the motor's speed.
+  jazzQuartet: "jazz",
 };
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;
@@ -195,7 +197,7 @@ export interface Landing {
   level?: number;
   tone?: number;
   bright?: number;
-  layer?: "soft" | "firm";
+  layer?: "soft" | "firm" | "hard";
   lp?: number;
   lute?: boolean;
   pw?: number;
@@ -264,6 +266,15 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       const db = pianoDb(c, line);
       const soft = db < PIANO_SOFT_BELOW_DB;
       return { layer: soft ? "soft" : "firm", level: 10 ** ((db - (soft ? PIANO_SOFT_NET_DB : 0)) / 20), vel: db };
+    }
+    case "jazz": {
+      // D503, JAZZ QUARTET: the piano's three zones about the line (pianoDb: Busoni's level, the zone's weight, an accent's
+      // own), each instrument's recording by the zone: the vibraphone's soft, middle or hard mallet (pp, mf, ff), the bass's
+      // lighter or stronger pluck (mf, ff), the grand's layers as the piano's; the level the zone's, the colour (vel) with it.
+      if (pt?.sample === "piano") return landing("piano", c, midi, pt, pulse, line);
+      const db = pianoDb(c, line);
+      const z = line.hairpin ? (db < PIANO_ZONE_DB[0] / 2 ? 0 : db > PIANO_ZONE_DB[2] / 2 ? 2 : 1) : pianoZone(c);
+      return { layer: z === 0 ? "soft" : z === 2 ? "hard" : "firm", level: 10 ** (db / 20), vel: db };
     }
     case "harpsichord": {
       // D315: the lute stop stays where the owner put it, at the outer edge (the phone's), whichever side is
@@ -355,6 +366,9 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
       return "swell";
     case "synth":
       return "wah";
+    case "jazz":
+      // D503: a held vibraphone note: its motor's speed (Patch.motor); the piano and the bass, struck: nothing.
+      return pt?.motor ? "trem" : "none";
     case "bleeps":
       if (pt?.trem) return "trem";
       return plucked ? "none" : "vibrato";

@@ -33,7 +33,8 @@ test("D424: the families: strings, voices, the chips and synths; keyboards and t
   for (const p of PRESETS) {
     const kind = TOUCH_KINDS[p.id];
     if (!kind) continue;
-    const keyboard = kind === "piano" || kind === "harpsichord" || kind === "organ";
+    // (D503: JAZZ QUARTET struck and plucked: no family, as the keyboards.)
+    const keyboard = kind === "piano" || kind === "harpsichord" || kind === "organ" || kind === "jazz";
     assert.equal(touchFamily(p.id) === null, keyboard, `${p.id} (${kind})`);
   }
 });

@@ -130,8 +130,9 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f12: {
-    sound: "tracker",
-    soundWhy: "'With caprice and a certain humour, softening to ease in the episodes' (Keller): TRACKER's violin, harpsichord and bass, dry and panned.",
+    // D503: JAZZ QUARTET (was TRACKER, D435).
+    sound: "jazzQuartet",
+    soundWhy: "Caprice and humour, swung by the vibes. 'With caprice and a certain humour, softening to ease in the episodes' (Keller): the vibraphone, piano and bass, the brushes' fills into the episodes.",
     character: "Episodes 15-24, 33-40, 54-71, 78-85; the relative major 24-31 (Ledbetter); dominant pedals 50-53 and 80-83.",
     plans: {
       harpsichordSampled: [at(1, H84, "8′+4′."), at(15, H8, "The episodes on the 8′ (Keller's softening)."), at(E("wtc2f12", 24), H84, "The entry."), at(54, H8, "The episode 54-71."), at(E("wtc2f12", 71), H84, "The last entries.")],

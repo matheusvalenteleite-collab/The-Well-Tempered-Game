@@ -128,3 +128,23 @@ brassTrumpet/ brassTrumpetP/ brassHorn/ brassHornP/ brassTrombone/ brassTrombone
          horn F2-F5, tenor trombone E2-C5, bass trombone Bb1-G4. Changed: mono; cut from the scales by measured pitch; onset
          kept 1 ms before the attack; held on to 4.3 s by crossfaded passages of each note's own steady stretch, a 0.3 s fade;
          each note's steady loudness (K-weighted) evened; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/brass/build_brass.py.
+D503, the touch game's JAZZ QUARTET (the vibraphone, the double bass pizzicato and the brushes; its piano is grand/ above):
+jazzVibes/ jazzVibesSoft/ jazzVibesHard/  University of Iowa Electronic Music Studios, Musical Instrument Samples (MIS):
+         Vibraphone, sustain (motor off, pedal down), mf every semitone C3-F6 (jazzVibes), pp (jazzVibesSoft) and ff
+         (jazzVibesHard) every whole tone. Source: https://theremin.music.uiowa.edu/MIS.html ("may be downloaded and used
+         for any projects, without restrictions"); credit to the studios given as a courtesy.
+jazzBass/ jazzBassHard/  University of Iowa MIS, Double Bass, pizzicato: mf every semitone E1-G4 (jazzBass), ff every whole
+         tone (jazzBassHard), each from the string a jazz bassist would take it on (E1-G#1 the E string, A1-C#2 the A,
+         D2-F#2 the D, G2 up the G). Same source and terms.
+jazzBrushes/  Swirly Drums, Karoryfer Samples. CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+         Source: https://github.com/sfzinstruments/karoryfer.swirly-drums (Samples/: the dry mics). The brushed snare's
+         taps at four dynamics (layers 4, 6, 8, 12; top and bottom mics mixed), two strokes each (C3-G3); two stirs (C4, D4:
+         stir_dl2 and dl3, 4 s, made loopable); two flutters (E4, F4: 3 s, loopable); the brushed ride (C5, D5, E5: layers
+         6, 9, 12); the hi-hat's foot (C6-D#6: layers 5 and 8, two strokes each). Filed under note names (src/touch/sampled.ts
+         BRUSH_FILES says which is which).
+Processing (tools/playback/jazz/build_jazz.py): the scale files cut at their onsets (a 90 Hz high-pass first: the
+         recordings' rumble lies under 50 Hz), each segment's pitch checked; onset kept 2 ms before the strike; the
+         vibraphone 4 s and the bass 2.6 s with a fade, high-passed (90 Hz; the bass at 0.8 of its fundamental, above the
+         room's hum); each note's loudness over its first 0.5 s (K-weighted) evened within its set, one gain per
+         instrument (its loudest peak at -1 dBFS); tuning measured into src/touch/sampled.ts; mono 44.1 kHz MP3 (the
+         vibraphone 72 kbit/s, the bass and the brushes 64 kbit/s). About 4.4 MB in all.

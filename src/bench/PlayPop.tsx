@@ -69,6 +69,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["oboeTrio", "ZELENKA TRIO"],
   // D502: the trials' BACH BRASS, remade and offered.
   ["bachBrass", "BACH BRASS"],
+  // D503: JAZZ QUARTET (the trials' jazz band remade, with its brushes).
+  ["jazzQuartet", "JAZZ QUARTET"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

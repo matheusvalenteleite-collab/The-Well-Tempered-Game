@@ -47,7 +47,8 @@ test("D502: BACH BRASS offered: an ensemble, named in three languages, credited 
   assert.ok(offered("bachBrass"));
   const p = presetById("bachBrass");
   assert.equal(p.name, "BACH BRASS");
-  assert.equal(PRESETS.at(-1)!.id, "bachBrass");
+  // (D503: JAZZ QUARTET after it.)
+  assert.equal(PRESETS.at(-2)!.id, "bachBrass");
   assert.ok(POP_SOUNDS.some(([s, n]) => s === "bachBrass" && n === "BACH BRASS"));
   assert.ok(SOUND_GROUPS.find(([g]) => g === "ENSEMBLES")![1].includes("bachBrass"));
   assert.equal(PT["BACH BRASS"], "METAIS DE BACH");

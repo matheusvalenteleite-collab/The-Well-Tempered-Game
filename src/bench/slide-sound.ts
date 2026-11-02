@@ -37,6 +37,7 @@
  * landing; the grace notes take the side of the approach (from below or above), the first a fresh attack.
  */
 import { passingNote, stepBelow } from "./drag.ts";
+import type { Patch } from "../touch/sound.ts";
 
 /**
  * D438, THE TWO SLIDE SOUNDS. "d486": each instrument's slide gesture above (proto-game.ts slideColour).
@@ -87,7 +88,7 @@ export function slideSoundFor(presetId: string): SlideSoundMode {
   return fam === "bowed" || fam === "voice" || presetId === "lute" ? "instruments" : "d486";
 }
 
-export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "brass" | "voice" | "flute" | "reed" | "chip" | "slide8" | "fm" | "synth";
+export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "brass" | "voice" | "flute" | "reed" | "chip" | "slide8" | "fm" | "synth" | "mallet" | "bass";
 export type IntervalClass = "half" | "step" | "third" | "leap";
 
 export const GESTURE = {
@@ -103,7 +104,13 @@ export const GESTURE = {
   minEachMs: 22,
 } as const;
 
-export function slideFamily(presetId: string): SlideFamily {
+/**
+ * D503: JAZZ QUARTET's slide is the player's instrument's own (`patch`, the voice's): on the vibraphone a quick grace
+ * ("mallet": a crushed grace note from the side it comes from, a vibist's ornament), on the bass a slide ("bass": the
+ * finger sliding up or down the string), on the piano the piano's.
+ */
+export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily {
+  if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
   switch (presetId) {
     case "harpsichordSampled":
     case "lute":
@@ -156,7 +163,9 @@ export function stepAbove(m: number, scale: ReadonlySet<number>): number {
 /** What a slide sounds: a glide (its time constant, s), or quick notes before the written note (MIDI, each `eachS`), or a plain legato. */
 export type Gesture = { kind: "glide"; name: string; tau: number } | { kind: "notes"; name: string; notes: number[]; eachS: number } | { kind: "plain"; name: string };
 
-const GLIDE_MS: Record<"bowed" | "brass" | "voice" | "slide8" | "fm" | "synth", Record<IntervalClass, number>> = {
+const GLIDE_MS: Record<"bowed" | "brass" | "voice" | "slide8" | "fm" | "synth" | "bass", Record<IntervalClass, number>> = {
+  // D503: the bassist's slide along the string (a little slower than a violinist's shift: a longer string).
+  bass: { half: 30, step: 35, third: 55, leap: 80 },
   bowed: { half: 25, step: 25, third: 45, leap: 70 },
   // D502: a brass player's lip slur (quicker than a string's shift: the lips find the next partial), a rising leap's rip.
   brass: { half: 18, step: 18, third: 30, leap: 45 },
@@ -174,14 +183,14 @@ const GLIDE_SHARE = 0.25;
  * The gesture of a slide from `from` to `to` (MIDI) on `presetId`, the arriving note `noteMs` long, in a key
  * of `scale` (pitch classes). `upThird` is the Lab's MECH.upThird (the harpsichord's rising third).
  */
-export function slideGesture(presetId: string, from: number, to: number, noteMs: number, scale: ReadonlySet<number>, upThird: "coule" | "schleifer" = "schleifer"): Gesture {
-  const fam = slideFamily(presetId);
+export function slideGesture(presetId: string, from: number, to: number, noteMs: number, scale: ReadonlySet<number>, upThird: "coule" | "schleifer" = "schleifer", patch?: Patch | null): Gesture {
+  const fam = slideFamily(presetId, patch);
   const ic = intervalClass(from, to);
   const up = to > from;
   const quick = noteMs < GESTURE.minNoteMs;
-  if (fam === "bowed" || fam === "brass" || fam === "voice" || fam === "slide8" || fam === "fm" || fam === "synth" || (fam === "chip" && (ic === "half" || ic === "step" || quick))) {
+  if (fam === "bowed" || fam === "brass" || fam === "voice" || fam === "slide8" || fam === "fm" || fam === "synth" || fam === "bass" || (fam === "chip" && (ic === "half" || ic === "step" || quick))) {
     const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : fam === "brass" && ic === "leap" && !up ? 35 / 45 : 1);
-    const names = { bowed: "shift", brass: ic === "leap" && up ? "rip" : "lip slur", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide" } as const;
+    const names = { bowed: "shift", brass: ic === "leap" && up ? "rip" : "lip slur", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide", bass: "slide" } as const;
     return { kind: "glide", name: names[fam], tau: Math.max(0.008, Math.min(ms, GLIDE_SHARE * noteMs)) / 1000 };
   }
   if (fam === "reed") {
@@ -202,6 +211,10 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
   const lower = stepBelow(to, scale);
   const schleifer = () => fit("Schleifer", [stepBelow(lower, scale), lower], noteMs);
   switch (fam) {
+    case "mallet":
+      // D503: the vibist's quick grace: a crushed note a semitone from the side it comes from (a half step: plain).
+      if (ic === "half") return { kind: "plain", name: "legato" };
+      return fit("grace", [up ? to - 1 : to + 1], noteMs, 0.6);
     case "plucked":
       // The quick trill into the note: on a falling second the Pralltriller proper (Versuch I.2.3 §31); rising, the same.
       if (ic === "half" || ic === "step") return fit("Pralltriller", [to, up ? upper : from], noteMs);

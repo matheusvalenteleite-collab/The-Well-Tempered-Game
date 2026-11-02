@@ -286,7 +286,8 @@ export interface Patch {
    * a bass instrument's upper partials, the band its small speaker gives, lifted (never its fundamental,
    * which only feeds the phone's limiter); the same for the band's notes and the player's.
    */
-  phoneLift?: { hz: number; db: number };
+  /** D503: and `cut`, a high-pass (Hz) under it on a phone (a fundamental its speaker cannot give): it only fed its limiter (JAZZ QUARTET's bass). */
+  phoneLift?: { hz: number; db: number; cut?: number };
   /** D502: on a phone only, a high-pass (Hz, 2 poles) under the useful range of a low instrument's fundamental there (BACH BRASS's bass). */
   phoneHp?: number;
   /**
@@ -297,6 +298,15 @@ export interface Patch {
    * pluck is heard as its own entrance, not a blur in the cello's attack); `phoneLevel` its level on a phone, where it differs.
    */
   double?: { patch: Patch; level: number; phoneLevel?: number; pan?: number; late?: number };
+  /**
+   * D503, the vibraphone's motor (chip.ts sampledNote; the Iowa recordings are motor off): the resonators' discs
+   * turning, the level beaten at `rate` Hz down to 1 - `depth`, coming in over `rise` s after the strike (the bar's
+   * own attack is not beaten), its phase the audio clock's (one motor turns every disc); a struck note too. The
+   * player's held note's SWAY sets its speed (touch-expr.ts holdMode "trem").
+   */
+  motor?: { rate: number; depth: number; rise: number };
+  /** D503: a high shelf on every note of the patch (`db` from `hz`): JAZZ QUARTET's piano voiced a little brighter. */
+  shelf?: { hz: number; db: number };
   /**
    * D504, ZELENKA TRIO: the instrument's compass (MIDI, inclusive): a note outside it played an octave nearer
    * (chip.ts Chip.note, `inCompass`), the band's and the player's alike; trio.ts chooses which voice each
@@ -605,6 +615,18 @@ export const BRASS_HORN_PHONE_LIFT = { hz: 700, db: 6 } as const;
 export const BRASS_TONGUE = { skip: 0.03, a: 0.02, join: { skip: 0.008, still: 0.01, floor: 0.12, a: 0.008, accentDb: 1.5, accentS: 0.08 } } as const;
 /** CLAVICHORD: one instrument, placed by its key (a small instrument: ±0.1), each key's pair of strings a fixed fraction of a cent off. */
 export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
+/**
+ * D503, JAZZ QUARTET (the Modern Jazz Quartet's sound, which recorded Bach): one club (chip.ts REVERBS.club: short and
+ * warm) at one send for every player (JAZZ_SEND); the vibraphone's motor slow, as Milt Jackson kept it (JAZZ_MOTOR); the
+ * piano lighter and a little brighter than the solo grand (JAZZ_PIANO_SHELF); the bass's upper partials lifted on a
+ * phone (JAZZ_BASS_PHONE_LIFT, as the trials' pizzicato: its sound lies under the small speaker's band).
+ */
+export const JAZZ_SEND = 0.16;
+export const JAZZ_MOTOR = { rate: 3.6, depth: 0.32, rise: 0.12 } as const;
+export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
+export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
+/** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
+export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
 /** D501: the clavichord on a phone: its upper partials lifted (Patch.phoneLift), where the small speaker hears its thin tone. */
 export const CLAVI_PHONE_LIFT = { hz: 900, db: 3 } as const;
 /**
@@ -1182,18 +1204,26 @@ export const PATCHES = {
    * player's touch (touch-expr.ts "piano": three zones). D501: offered as CLAVICHORD (PRESETS); on a phone its
    * upper partials lifted (CLAVI_PHONE_LIFT) and the whole raised (the preset's phoneGain), matched to the others.
    */
+  // D503, JAZZ QUARTET: the vibraphone on top (the Iowa recordings at pp, mf, ff: the mallet's hardness; the motor added),
+  // the grand on the middle voices (lighter, a little brighter), the double bass pizzicato on the bass; one club, one
+  // send, the player's line the band's (Patch.one). The `osc`/`amp` stand in until a recording has loaded (D190).
+  jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
+  jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
+  jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
   clavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE, phoneLift: CLAVI_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
 export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMarch" | "chipDrive" | "chipHalf" | "chipArcade" | "chipBounce" | "chipFunk" | "cr78" | "funk808" | "analogRock" | "analogSoft"
   // D200: loops once given to single fugues (withdrawn in D208).
-  | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet";
-/** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits. */
-export type Kit = "acoustic" | "chip" | "analog";
+  | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet"
+  // D503: JAZZ QUARTET's brushes (jazz-drums.ts: a pattern per metre on the game's beat, the scripted fills).
+  | "brushJazz";
+/** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums). */
+export type Kit = "acoustic" | "chip" | "analog" | "brushes";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club";
 
 export interface Preset {
   id: string;
@@ -1582,6 +1612,30 @@ export const PRESETS: Preset[] = [
       5: [["bachTrumpet", -0.2], ["bachTrumpet", -0.08], ["bachHorn", 0.02], ["bachTrombone", 0.16], ["bachBass", 0.1]],
     },
   },
+  // D503 (the trials' MODERN JAZZ QUARTET, remade): the vibraphone on the top voice, the grand on the middle voices, the
+  // double bass pizzicato on the bass, and the brushes (groove "brushJazz": jazz-drums.ts, always with this sound, never
+  // with another). Seated as the Modern Jazz Quartet sat, seen from the room: Milt Jackson's vibraphone left, John
+  // Lewis's piano right (its notes placed by key about its seat), Percy Heath's bass behind in the middle a little
+  // right, Connie Kay's drums behind a little left (JAZZ_DRUMS.pan); one club (REVERBS.club) at one send.
+  {
+    id: "jazzQuartet",
+    name: "JAZZ QUARTET",
+    // D503 (D436's way): +0.5 dB, and on a phone +2.6 dB more (measured -1.2 under the median on a computer, -4.0 through the phone model; its peaks kept under -7 dBFS).
+    gain: 1.06,
+    phoneGain: 1.5,
+    slots: ["jqVibes", "jqPiano", "jqPiano", "jqPiano", "jqBass"],
+    groove: "brushJazz",
+    kit: "brushes",
+    room: 0,
+    fx: "club",
+    by: {
+      1: [["jqVibes", 0]],
+      2: [["jqVibes", -0.14], ["jqBass", 0.04]],
+      3: [["jqVibes", -0.18], ["jqPiano", 0.16], ["jqBass", 0.04]],
+      4: [["jqVibes", -0.18], ["jqPiano", 0.14], ["jqPiano", 0.18], ["jqBass", 0.04]],
+      5: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.16], ["jqPiano", 0.2], ["jqBass", 0.04]],
+    },
+  },
 ];
 
 /**
@@ -1618,22 +1672,7 @@ export const TRIALS: Preset[] = [
       5: [["trialFlute", -0.22], ["trialOboe", -0.08], ["trialClarinet", 0.08], ["trialHorn", 0.22], ["trialBassoon", 0.14]],
     },
   },
-  // MODERN JAZZ QUARTET (who recorded Bach): the vibraphone on top (left), the grand on the middle voices
-  // (right, its notes placed by key), the pizzicato bass in the middle; no drums.
-  {
-    id: "trialJazz",
-    name: "MODERN JAZZ QUARTET",
-    slots: ["trialVibe", "pianoSampled", "pianoSampled", "pianoSampled", "trialBassPizz"],
-    room: 0,
-    fx: "salon",
-    by: {
-      1: [["trialVibe", 0]],
-      2: [["trialVibe", -0.12], ["trialBassPizz", 0.05]],
-      3: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.1], ["trialBassPizz", 0]],
-      4: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.2], ["pianoSampled", 0.12, 0.95], ["trialBassPizz", 0]],
-      5: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.2], ["pianoSampled", 0.12, 1.05], ["pianoSampled", 0.12, 0.95], ["trialBassPizz", 0]],
-    },
-  },
+  // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered.)
 ];
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
@@ -1647,7 +1686,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ, the lute: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "trialJazz", "clavichord"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds", "clavichord"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1758,6 +1797,8 @@ export const RETIRED: Readonly<Record<string, string>> = {
   trialClavichord: "clavichord",
   // D502: the trial BACH BRASS remade and offered.
   trialBrass: "bachBrass",
+  // D503: the trial MODERN JAZZ QUARTET remade and offered as JAZZ QUARTET.
+  trialJazz: "jazzQuartet",
 };
 /** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
 export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";
@@ -1774,12 +1815,12 @@ export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC
 /** D430: BAROQUE BAND's (the consort's strings, VSCO's oboe, VCSL's harpsichord). */
 export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
+export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D502: BACH BRASS's (University of Iowa MIS: free for any use, credit given as asked of good practice). */
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
-export const JAZZ_CREDIT = `${PIANO_CREDIT} · BASS ${VSCO_CREDIT}`;
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, trialBrass: BRASS_CREDIT, trialJazz: JAZZ_CREDIT };
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, lute: LUTE_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1914,6 +1955,11 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.28 : 0.42 });
       if (b === 0) out.push({ drum: "kick", at: 0, vel: 0.42 });
       if (b === per - 1) out.push({ drum: "rim", at: subs[subs.length - 1], vel: 0.35 });
+      break;
+    // D503: JAZZ QUARTET's brushes, synthesized where the recordings are not loaded (chip.ts brushes plays jazz-drums.ts on them).
+    case "brushJazz":
+      out.push({ drum: "brush", at: 0, vel: 0.5 }, { drum: "ride", at: 0, vel: 0.4 });
+      if (back) out.push({ drum: "hat", at: 0, vel: 0.35 });
       break;
     case "brushes":
       out.push({ drum: "brush", at: 0, vel: 0.7 });
