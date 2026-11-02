@@ -82,7 +82,7 @@ import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
-import { SLIDE_SOUND, slideGesture } from "./slide-sound.ts";
+import { slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
@@ -100,7 +100,7 @@ import { afterCadence, artBonus, broadenClose, artRoom, dissonantAt, graceMs, he
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { blendFor, boostedSpans, drawLayer, effectFor, layerGain, layerLevel, layerVoicing, mainPatchId, offerWindow, playedWell, withLayer, FX_QUARTERS, OBBLIGATO_MODE, type EntryLike, type Grade as ObbGrade, type Layer } from "./obbligato.ts";
+import { blendFor, boostedSpans, drawLayer, effectFor, layerGain, layerLevel, layerVoicing, mainPatchId, offerWindow, playedWell, withLayer, FX_QUARTERS, obbligatoModeFor, type EntryLike, type Grade as ObbGrade, type Layer } from "./obbligato.ts";
 import { BAR, barAcross, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
@@ -1206,8 +1206,10 @@ export class ProtoGame {
       const graded = notes.map((n) => ({ on: n.on, grade: (n.state === "miss" ? "miss" : n.state === "pending" ? "pending" : (this.obbGrade.get(n) ?? "good")) as ObbGrade }));
       if (!playedWell(graded, pl.win)) continue;
       const main = mainPatchId(voicing(pl.e.voice, this.f.voices.length).patch);
+      // D501: the mode by the player's sound ("auto": an effect on a keyboard or plucked sound, else a layer).
+      const mode = obbligatoModeFor(preset().id);
       // D439, the "effect" mode: no instrument drawn; the button names the colour the voice will take.
-      if (OBBLIGATO_MODE === "effect") {
+      if (mode === "effect") {
         const e = effectFor(main);
         this.offer = { layer: e.shown, octave: 0, tier: 0, entryOn: pl.e.on, spans: pl.spans, fx: e.fx };
         continue;
@@ -1215,7 +1217,7 @@ export class ProtoGame {
       const d = drawLayer({ main, midis: pl.midis, pool: this.o.obbPool, rng: this.o.obbRng });
       if (!d) continue;
       // D439, the "layer" mode: merged under the voice (blendFor); "legacy": D485 as first built.
-      const blend = OBBLIGATO_MODE === "layer" ? blendFor(main, d.layer, pl.midis.map((m) => m + 12 * d.octave)) : undefined;
+      const blend = mode === "layer" ? blendFor(main, d.layer, pl.midis.map((m) => m + 12 * d.octave)) : undefined;
       this.offer = { layer: d.layer, octave: d.octave, tier: d.tier, entryOn: pl.e.on, spans: pl.spans, ...(blend ? { blend, gain: layerGain(main, d.layer) } : {}) };
       // Its recordings asked for now, a bar ahead (D485: its synthesized sound standing in till they arrive; D439, merged: nothing till then).
       this.chip.ready?.(layerVoicing(d.layer, 0).patch, pl.midis.map((m) => m + 12 * d.octave));
@@ -1588,7 +1590,7 @@ export class ProtoGame {
           // portamento heard (it was one jump to the note). D438 (D414, D486): to the next note's block as
           // drawn, in the thumb's own frame (its offset from the note it landed on kept); D486's rule sounds it
           // as the move passes halfway (in its phase, from the note's opening: slide-rule.ts), the move then
-          // carried on to the block, never past it (no TOO FAR); the slide's sound by SLIDE_SOUND (slideColour,
+          // carried on to the block, never past it (no TOO FAR); the slide's sound by slideSoundFor (slideColour,
           // or D424's portamento along the move).
           const prevOn = plan[p - 1].on;
           const from = prevOn + DEMO_SLIDE_FROM * (t.on - prevOn);
@@ -3228,8 +3230,8 @@ export class ProtoGame {
    */
   private slideTrack(h: Held, y: number | null | undefined) {
     const sd = h.sounds.length === 1 ? h.sounds[0] : undefined;
-    // D438: only under SLIDE_SOUND "instruments" (the default "d486" sounds the slide's gesture at arrival: slideColour).
-    if (SLIDE_SOUND !== "instruments") return void (h.bent = undefined);
+    // D438, D501: only where the slide sound is "instruments" (the strings', the voices', the lute's under "auto"; "d486" sounds the gesture at arrival: slideColour).
+    if (slideSoundFor(preset().id) !== "instruments") return void (h.bent = undefined);
     // D426: the lute's slide over a fourth or more a glissando along the string (glenn.ts luteSlur), followed the same way.
     const lute = keyboardSlide(preset().id) === "slur";
     if (!sd?.glide || !(touchFamily(preset().id) || lute) || h.note < 0) return void (h.bent = undefined);
@@ -3259,8 +3261,8 @@ export class ProtoGame {
    * (D376). A step: nothing here (the plain join). `y` null: a shake took the thumb, no fill.
    */
   private couleTrack(h: Held, y: number | null | undefined) {
-    // D438: only under SLIDE_SOUND "instruments" (the default "d486": slideColour's coulé, mordent, Pralltriller...).
-    if (SLIDE_SOUND !== "instruments" || keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
+    // D438, D501: only where the slide sound is "instruments" (forced: under "auto" the keyboards play "d486", slideColour's coulé, mordent, Pralltriller...).
+    if (slideSoundFor(preset().id) !== "instruments" || keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
     const notes = this.tracks[h.k].notes;
     const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
     const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
@@ -3971,11 +3973,11 @@ export class ProtoGame {
     if (MECH.glenn) this.rings.strike(h.k, this.chip.ctx.currentTime);
     if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
-    } else if (((slide && SLIDE_SOUND === "d486") || (!slide && h.slideInFrom !== undefined)) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
-      /* D486: the slide's own gesture, by instrument (slide-sound.ts; D438: the default SLIDE_SOUND). D488's slide-in from
+    } else if (((slide && slideSoundFor(pid) === "d486") || (!slide && h.slideInFrom !== undefined)) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
+      /* D486: the slide's own gesture, by instrument (slide-sound.ts; D501: where the slide sound is "d486"). D488's slide-in from
          silence has no counterpart in the instruments session's sounds: its gesture in both modes. */
-    } else if (kbSlide && SLIDE_SOUND === "instruments" && keyboardSlide(pid) === "slur" && h.sounds.length === 1 && pitches.length === 1 && h.sounds[0].glide && !(v.ok && this.ornaments.has(`${this.voiceOf(h.k, i)}:${notes[i].on}`))) {
-      // D426, THE LUTE'S LEFT-HAND SLUR (D438: under SLIDE_SOUND "instruments"): no new pluck; the sounding course goes on at the new pitch (the recording
+    } else if (kbSlide && slideSoundFor(pid) === "instruments" && keyboardSlide(pid) === "slur" && h.sounds.length === 1 && pitches.length === 1 && h.sounds[0].glide && !(v.ok && this.ornaments.has(`${this.voiceOf(h.k, i)}:${notes[i].on}`))) {
+      // D426, THE LUTE'S LEFT-HAND SLUR (D438, D501: where the slide sound is "instruments", the lute's own under "auto"): no new pluck; the sounding course goes on at the new pitch (the recording
       // retuned: a hammer of about 10 ms), about 3 dB under; over a fourth or more the pitch has followed the
       // thumb along the string (slideTrack's glissando) and lands on the note now (glenn.ts luteSlur).
       const ls = luteSlur(h.midi, pitches[0]);

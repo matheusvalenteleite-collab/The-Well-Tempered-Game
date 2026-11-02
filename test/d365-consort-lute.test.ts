@@ -48,8 +48,8 @@ test("D365: STRING CONSORT and LUTE offered: in the sound list, grouped, named i
   assert.match(CONSORT_CREDIT, /TINYSOL.*CC BY 4\.0/);
   assert.match(CONSORT_CREDIT, /FREESOUND 12408/);
   assert.equal(creditFor("lute"), LUTE_CREDIT);
-  // Then the list's last: D430's BAROQUE BAND. (D435: I/4 and II/8 now open on STRING CONSORT, I/14 on LUTE.)
-  assert.deepEqual(PRESETS.slice(-3).map((p) => p.id), ["stringConsort", "lute", "baroqueBand"]);
+  // Then the list's last: D430's BAROQUE BAND and D501's CLAVICHORD. (D435: I/4 and II/8 now open on STRING CONSORT, I/14 on LUTE.)
+  assert.deepEqual(PRESETS.slice(-4).map((p) => p.id), ["stringConsort", "lute", "baroqueBand", "clavichord"]);
 });
 
 test("D365: the consort's viola a solo viola (TinySOL), every whole tone C3-D6, one player to a part", () => {

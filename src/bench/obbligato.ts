@@ -112,6 +112,8 @@ const ROWS: readonly Row[] = [
   ["pianoSampled", "PIANO", "keys", ALL],
   ["harpsiSampled", "HARPSICHORD", "keys", ALL],
   ["lute2", "LUTE", "keys", ["alto", "tenor"]],
+  // D501: CLAVICHORD, offered (synthesized: no recording to wait for).
+  ["clavichord", "CLAVICHORD", "keys", ALL],
   ["orgPrincipal", "ORGAN", "keys", ["soprano", "alto", "tenor"], 36, 96],
   ["orgPedal", "PEDAL ORGAN", "keys", ["bass"], 24, 60],
   // The consoles' imitations of real instruments.
@@ -219,20 +221,42 @@ export function registerOf(midis: readonly number[]): Register {
 /**
  * D439, the owner on D485's first hearing: "harsh and silly … maybe we can just try to improve the mix of
  * the new voice with player's voice, so that the two layers merge better", or "add effects to the player's
- * voice … depending on the instrument a distinct thing". Both built, the owner to pick:
+ * voice … depending on the instrument a distinct thing". Both built:
  * - "layer": D485's second instrument, merged into one ensemble colour (LAYER_DB under the voice, filtered,
  *   its envelope following the main instrument's, 15 ms late and a little aside, the main voice's reverb
  *   send; unison far more often; the wackiest tier gone; no synthesized stand-in: nothing till it loads).
  * - "effect": no second instrument; the player's own voice coloured for the entry (effectFor: an echo, a
  *   hall, a cathedral, a section's chorus, a ping-pong delay, a flanger), ramped in and out, never louder.
  * - "legacy": D485 as first built (0.75 of the level, its odds, the stand-in): internal, for the A/B renders.
- * Pending the owner's pick; "layer" until then. The trigger (the window, playedWell, the button) is the same in every mode.
+ * D501 (the owner: "Just implement it all"; the instruments session chose by the player's sound): "auto", the
+ * default, picks the mode by the player's own sound (`obbligatoModeFor`): "effect" on a keyboard or plucked
+ * sound (EFFECT_SOUNDS: the piano, the harpsichord, the pipe organ, the lute, the clavichord: one player's
+ * instrument, which a second instrument only muddies), "layer" on every other (an ensemble, voices, the
+ * chips, consoles and synths, where a second instrument joins the band). "layer", "effect" and "legacy" force
+ * that mode for every sound (the renders' A/B, the tests; `?obbligato=layer` on a page's address).
+ * The trigger (the window, playedWell, the button) is the same in every mode.
  */
 export type ObbligatoMode = "layer" | "effect";
-export let OBBLIGATO_MODE: ObbligatoMode | "legacy" = "layer";
+export type ObbligatoSetting = "auto" | ObbligatoMode | "legacy";
+export let OBBLIGATO_MODE: ObbligatoSetting = obbligatoParam(typeof location !== "undefined" ? location.search : "");
 /** The mode set (the renders' A/B, the tests). */
-export function setObbligatoMode(m: ObbligatoMode | "legacy") {
+export function setObbligatoMode(m: ObbligatoSetting) {
   OBBLIGATO_MODE = m;
+}
+/** D501: the setting from a page's address (`?obbligato=layer|effect|legacy`); else "auto". */
+export function obbligatoParam(search: string): ObbligatoSetting {
+  try {
+    const v = new URLSearchParams(search).get("obbligato");
+    return v === "layer" || v === "effect" || v === "legacy" ? v : "auto";
+  } catch {
+    return "auto";
+  }
+}
+/** D501: the player's sounds whose boost is an effect on their own voice under "auto" (the keyboards and the plucked). */
+export const EFFECT_SOUNDS: ReadonlySet<string> = new Set(["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled", "lute", "clavichord"]);
+/** D501: the mode a boost takes on the player's sound `presetId` (the setting, or under "auto" the sound's own). */
+export function obbligatoModeFor(presetId: string): ObbligatoMode | "legacy" {
+  return OBBLIGATO_MODE === "auto" ? (EFFECT_SOUNDS.has(presetId) ? "effect" : "layer") : OBBLIGATO_MODE;
 }
 
 /** D485's three tiers' odds as first built: the obvious, musical mixes; the wackier; the wackiest (about one offer in sixteen). */
@@ -352,6 +376,9 @@ export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
   singS: -30.2, singS2: -30.8, singT: -29.6, solBass: -28.5, solBloop: -26.5, solLead: -28.8, solNasal: -28.1, solSquare: -27.7, tomBass: -28.0,
   tomChoir: -32.1, tomFlute: -28.0, tomStrings: -33.8, tomWhistle: -28.6, trkBass: -24.0, trkChoir: -29.5, trkFlute: -29.1, trkHarpsi: -27.1,
   trkViolin: -29.9, vocDa: -28.9, vocLa: -28.6, vocMi: -25.1, vocNe: -24.8, vocRo: -27.3,
+  // D501: BAROQUE BAND's own patches (D438) and CLAVICHORD, probed the same way (their preset's own gain taken out;
+  // the cello with its continuo harpsichord).
+  bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0, clavichord: -29.1,
 } as Record<Layer["id"], number>;
 /** D439: the evening out at most this many dB either way. */
 export const LOUDNESS_SPAN = 6;
@@ -387,7 +414,8 @@ export type MainKind = "piano" | "harpsichord" | "organ" | "strings" | "voice" |
 export function mainKind(id: PatchId | null, pt: Patch | null): MainKind {
   if (!pt) return "chip";
   if (id === "pianoSampled") return "piano";
-  if (id === "harpsiSampled" || id === "lute2") return "harpsichord";
+  // D501: the clavichord (offered) a struck keyboard that dies away, as the harpsichord: its echo.
+  if (id === "harpsiSampled" || id === "lute2" || id === "clavichord") return "harpsichord";
   if (pt.pipe || (id && id.startsWith("org"))) return "organ";
   if (id && (id.startsWith("voc") || id === "tomChoir")) return "voice";
   const fam = familyOf(id);

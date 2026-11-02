@@ -37,6 +37,8 @@ export const ES: Record<string, string> = {
   STRINGS: "CUERDA",
   // D430: BAROQUE BAND, offered again (the trials' ensemble): BANDA BARROCA.
   "BAROQUE BAND": "BANDA BARROCA",
+  // D501: CLAVICHORD, offered.
+  CLAVICHORD: "CLAVICORDIO",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOE, VIOLA Y FAGOT",

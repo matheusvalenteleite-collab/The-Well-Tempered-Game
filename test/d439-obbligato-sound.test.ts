@@ -32,8 +32,8 @@ const args = (c: string) => JSON.parse(c.slice(c.indexOf("(") + 1, c.lastIndexOf
 const isLayer = (c: string) => c.startsWith("note(") && c.includes('"couple":false');
 const log = () => synthRun(passage("wtc1f02", 0, 31), { gap: 0.03, jitter: 0.03, seed: 3 });
 
-test("D439: the mode is \"layer\" until the owner picks; every mode's names have Portuguese and Spanish", () => {
-  assert.equal(OBBLIGATO_MODE, "layer");
+test("D439, D501: the mode \"auto\" (by the player's sound: test/d501-instruments-finish.test.ts); every mode's names have Portuguese and Spanish", () => {
+  assert.equal(OBBLIGATO_MODE, "auto");
   assert.equal(new Set(Object.values(EFFECTS)).size, 6);
   for (const id of ["pianoSampled", "harpsiSampled", "orgPrincipal", "consCello", "singA", "s16Violin", "fmLead", null] as const) {
     const n = effectFor(id).shown.name;
