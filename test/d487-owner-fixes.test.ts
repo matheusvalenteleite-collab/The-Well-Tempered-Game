@@ -66,10 +66,13 @@ test("D487 (2): OBBLIGATO's buttons at the bars' feet (no longer the top corners
   assert.ok(/--tb-stop-rows, 1\) \* 47px/.test(rule(".tb-has-side-stops .tb-obbligato-left")), "the left one over the left foot's pistons (D420, 58 px a row)");
   assert.ok(/--tb-stop-rows-right/.test(rule(".tb-has-side-stops .tb-obbligato-right")), "the right one over the right foot's");
   assert.ok(/font-size: 9px/.test(rule(".tb-obbligato-inst")), "the instrument in the HUD's 9 px");
-  const h = Number(/height: (\d+)px/.exec(b)![1]);
-  // The legend's floor over the stops: the strip under the roll deep enough for the button (bench.css: 26 px over the pistons).
-  const floor = /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ (\d+)px\); \}/.exec(css);
-  assert.ok(floor && Number(floor[1]) >= h - 10, `the floor ${floor?.[1]} px for a ${h} px button`);
+  // D495: no floor under the roll; over the compact feet (28 px pistons) the button is 18 px, so its top stays under the
+  // lowest row a note can ask for (at least 12 px over the roll's foot at 844 × 390 over the 48 fugues: 2 + 28 + 3 + 18 − 42 ≤ 12).
+  assert.ok(!/\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height/.test(css), "no floor under the roll");
+  const h = Number(/height: (\d+)px/.exec(rule(".tb-has-side-stops .tb-obbligato"))![1]);
+  const last = css.lastIndexOf("\n.tb-stops-side .tg-piston {");
+  const feet = Number(/height: (\d+)px/.exec(css.slice(last, css.indexOf("}", last)))![1]);
+  assert.ok(2 + feet + 3 + h - 42 <= 12, `a ${h} px button over ${feet} px feet`);
 });
 
 test("D487 (3), D508: every voice of the 48 fugues measured on its own sound; the player matched to the band's sounding of its voice (no standing lift)", () => {

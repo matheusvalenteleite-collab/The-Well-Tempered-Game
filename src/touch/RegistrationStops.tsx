@@ -83,8 +83,8 @@ export const roomLabel = (r: RoomId) => tr(r === "dry" ? "DRY" : r === "church" 
 const HIDE_BELOW_PX = 360;
 /** D420: how long a piston glows after its press (ms). */
 const GLOW_MS = 450;
-/** D483 on the pistons: the feet's height in the old stops' rows (44 px and a 3 px gap): one 58 px row, 2 px up. */
-const PISTON_ROWS = Math.round(((58 + 2) / 47) * 100) / 100;
+/** D483 on the pistons: the feet's height in the old stops' rows (44 px and a 3 px gap): one row, 2 px up (D495: 28 px, was 58). */
+const PISTON_ROWS = Math.round(((28 + 2) / 47) * 100) / 100;
 
 /** D420: the defaults' names (the organ's flutes, principals, plenum; the harpsichord's buff, 8′, full). */
 const DEFAULT_NAMES: Readonly<Record<string, readonly string[]>> = {
