@@ -139,7 +139,7 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
     // D343: play.html is played on phones only (a computer is shown MOBILE ONLY): no preludes there, so a
     // prelude kept from before gives its fugue, and Book II waits behind the owner's unlock.
     assert.equal(sane(was).piece, "wtc1f01");
-    assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc1f01", "Book II hidden from the friends");
+    assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc2f07", "D489: Book II open to the friends");
     // Unlocked (a computer may then play, as before D343): a prelude's own part, whatever was chosen.
     store.set("tb-unlock-all", "1");
     assert.equal(sane(was).piece, "wtc1p01", "unlocked: the computer's preludes");
@@ -199,11 +199,10 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   const html = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {} }));
   // D264: all open from the start (48 cards on a computer, 24 fugues on a phone), each with its difficulty.
   assert.equal(html.match(/class="tb-lite-card/g)?.length, 48);
-  // D343: for the friends Book I alone: no tab bar, a plain heading; Book II asked for still gives Book I.
-  assert.doesNotMatch(html, /tb-lite-tabs|id="tab-book-/);
-  assert.match(html, /id="lite-book-head"/);
-  const locked = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true, book: "II" }));
-  assert.doesNotMatch(locked, /id="card-wtc2f/);
+  // D489: for the friends Book I and Book II from the start (D343's Book I alone retired).
+  assert.match(html, /id="tab-book-II"/);
+  const two = renderToStaticMarkup(createElement(LiteGrid, { beaten: [], open: () => {}, settings: () => {}, fuguesOnly: true, book: "II" }));
+  assert.match(two, /id="card-wtc2f/);
   // D276: once unlocked (unlock.ts), Book I's tab first (Book II's fugues behind the other tab).
   store.set("tb-unlock-all", "1");
   try {
@@ -240,7 +239,8 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
     // D343: every device on play.html is a phone or tablet, so its tutorial is the manual's card (D342),
     // not the bench's; and for the friends no TOOLS, no other book or tab.
     assert.match(app, /id="card-tutorial"/);
-    for (const id of ["lite-tools", "tab-book-II", "tab-book-MORE", "tab-book-CHORALES"]) assert.doesNotMatch(app, new RegExp(`id="${id}"`), id);
+    assert.match(app, /id="tab-book-II"/, "D489: Book II open from the start");
+    for (const id of ["lite-tools", "tab-book-MORE", "tab-book-CHORALES"]) assert.doesNotMatch(app, new RegExp(`id="${id}"`), id);
   } finally {
     APP.lite = false;
   }
