@@ -1,5 +1,5 @@
 /**
- * D191: notes too quick to strike ride; FINGERING's articulation and thumbs after the music audit;
+ * D191: notes too quick to strike ride (D490: no longer in the game; the rule kept in lanes.ts for the prelude tiers' load); FINGERING's articulation and thumbs after the music audit;
  * the engine audit's low items.
  */
 import { test } from "node:test";
@@ -125,39 +125,36 @@ function play(g: ProtoGame, clock: { t: number }, strike: (i: number) => boolean
   while (clock.t < g.timeAt(g.end) + 0.5) (clock.t += 0.02), g.step();
 }
 
-test("riders in the game: played for the player after the note before, drawn as hit, never counted, never a slip", () => {
+test("D490: no riders in the game: I/8's alto at ♩76, the 32nds once riding are the player's, struck and counted", () => {
   const log: { midi: number; at: number }[] = [];
   const { g, clock } = aGame(76, log);
-  const riders = g.notes.map((n, i) => (n.ride ? i : -1)).filter((i) => i >= 0);
-  assert.ok(riders.length >= 2, "I/8's alto has riders at ♩76");
-  assert.equal(aGame(40).g.notes.filter((n) => n.ride).length, 0, "none at ♩40: the threshold follows the tempo");
-  // The player strikes every other note, and strikes the riders too (as one might): no stray, no slip.
-  play(g, clock, () => true, () => true);
+  assert.equal(g.notes.filter((n) => n.ride).length, 0, "no note rides");
+  // The quick notes quickRides would still pick (lanes.ts keeps the rule for the prelude tiers' load) are in the player's part.
+  const ns = g.notes.map((n) => ({ ...n }));
+  quickRides(ns, g.beat, (a, b) => ((g.timeAt(b) - g.timeAt(a)) * 1000));
+  const quick = ns.map((n, i) => (n.ride ? i : -1)).filter((i) => i >= 0);
+  assert.ok(quick.length >= 2, "I/8's alto has quick notes at ♩76");
+  play(g, clock, () => true);
   const r = g.results();
   assert.equal(r.right, r.of, `${r.right}/${r.of}`);
-  assert.equal(r.stray, 0);
-  assert.equal(r.missed, 0);
-  assert.equal(r.of, headsOf(g.notes).filter((i) => !g.notes[i].ride).length, "the riders are not counted");
-  assert.equal(g.maxStreak, r.of, "the streak unbroken");
-  for (const i of riders) {
-    assert.equal(g.notes[i].state, "hit");
-    // Sounded at its time.
-    assert.ok(log.some((l) => l.midi === g.notes[i].midi && Math.abs(l.at - g.timeAt(g.notes[i].on)) < 0.03));
-  }
-  assert.ok(g.entries.every((e) => e.state === "captured"), "every entry captured");
+  assert.equal(r.of, headsOf(g.notes).length, "every note counted");
+  for (const i of quick) assert.equal(g.notes[i].state, "hit");
 });
 
-test("a rider's note missed: the rider stays silent and unjudged; only the note struck counts as missed", () => {
-  const { g, clock } = aGame();
-  const first = g.notes.findIndex((n) => n.ride);
-  let anchor = first - 1;
-  while (g.notes[anchor].ride || (anchor > 0 && g.notes[anchor - 1].on === g.notes[anchor].on)) anchor--;
-  play(g, clock, (i) => i !== anchor);
+test("D490: a quick note not touched is missed, and nothing sounds it for the player", () => {
+  const log: { midi: number; at: number }[] = [];
+  const { g, clock } = aGame(76, log);
+  const ns = g.notes.map((n) => ({ ...n }));
+  quickRides(ns, g.beat, (a, b) => ((g.timeAt(b) - g.timeAt(a)) * 1000));
+  const quick = new Set(ns.map((n, i) => (n.ride ? i : -1)).filter((i) => i >= 0));
+  play(g, clock, (i) => !quick.has(i));
   const r = g.results();
-  assert.equal(r.missed, 1);
-  assert.equal(r.right, r.of - 1);
-  assert.notEqual(g.notes[first].state, "miss");
-  assert.notEqual(g.notes[first].state, "hit");
+  assert.equal(r.missed, quick.size);
+  assert.equal(r.right, r.of - quick.size);
+  for (const i of quick) {
+    assert.equal(g.notes[i].state, "miss");
+    assert.ok(!log.some((l) => l.midi === g.notes[i].midi && Math.abs(l.at - g.timeAt(g.notes[i].on)) < 0.005), "not played for the player");
+  }
 });
 
 test("engine audit: the ritard in the PERFECT check and the drums' beat (D337: A · CLASSIC's fixed windows)", () =>

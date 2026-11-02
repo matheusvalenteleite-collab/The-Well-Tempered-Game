@@ -31,6 +31,9 @@ export interface Span {
   /** D194: "INVERSION", "AUGMENTATION"…; the later subjects of a double or triple fugue (2, 3). */
   shape?: string;
   theme?: number;
+  /** D493: the entry's form, for its label (formText): upside down, stretched, pressed. */
+  inverted?: boolean;
+  scale?: number;
   key: string;
   path: { on: number; dur: number; step: number }[];
 }
@@ -113,6 +116,57 @@ function letters(text: string): [string, string[]][] {
 }
 export const textWidth = (text: string, scale = 1) => letters(text).length * 4 * scale;
 
+/**
+ * D493: AN ENTRY'S LABEL IN ITS FORM. The owner: "inverted and augmented and diminished subjects can be named
+ * in the flag correspondingly. A good idea is to put, for example, SUBJECT 1 upside down in the flag. As for
+ * augmented and diminished, they can have augmented flags and diminished ones." The word drawn in the pixel
+ * font through a target that moves its pixels: an augmentation's every column twice as wide (the flag at the
+ * entry's longer length, twice the word), a diminution's letters drawn without the gap between them (the
+ * flag pressed to three quarters), an inversion's whole word turned through 180° (upside down and back to
+ * front, as a score's turned entry letter). `formWidth` is the width the label takes (as textWidth).
+ */
+export interface EntryForm {
+  inverted?: boolean;
+  scale?: number;
+}
+const formStep = (f: EntryForm | undefined) => (f?.scale === 2 ? 8 : f?.scale === 0.5 ? 3 : 4);
+export function formWidth(text: string, f?: EntryForm): number {
+  return letters(trCanvas(text.toUpperCase())).length * formStep(f);
+}
+export function formText(g: CanvasRenderingContext2D, text: string, x: number, y: number, color: string, form?: EntryForm): number {
+  const f = form ?? {};
+  if (!f.inverted && (f.scale ?? 1) === 1) return pixText(g, text, x, y, color);
+  const x0 = Math.round(x);
+  const y0 = Math.round(y);
+  const w = formWidth(text, f);
+  const k = f.scale === 2 ? 2 : 1;
+  const press = f.scale === 0.5;
+  const target: PixTarget = {
+    get fillStyle() {
+      return g.fillStyle;
+    },
+    set fillStyle(v) {
+      g.fillStyle = v;
+    },
+    fillRect(px: number, py: number, pw: number, ph: number) {
+      let dx = px - x0;
+      // A diminution: each letter one pixel nearer the one before (no gap); an augmentation: twice as wide.
+      if (press) dx -= Math.floor(dx / 4);
+      let nx = x0 + dx * k;
+      const nw = pw * k;
+      let ny = py;
+      // An inversion: turned about the label's middle (its 3 by 5 letters' rows 0-4, the gap column last).
+      if (f.inverted) {
+        nx = x0 + (w - (press ? 0 : k)) - (nx - x0) - nw;
+        ny = y0 + 4 - (py - y0) - (ph - 1);
+      }
+      g.fillRect(nx, ny, nw, ph);
+    },
+  };
+  pixRaw(target, trCanvas(text.toUpperCase()), x0, y0, color);
+  return w;
+}
+
 /** "c" → "C MINOR", "Eb" → "E♭ MAJOR". */
 export function keyWords(key: string): string {
   const minor = key[0] === key[0].toLowerCase();
@@ -165,7 +219,7 @@ export function flags(c: Ctx, spans: readonly Span[], blocked: (x0: number, x1: 
     const alpha = past <= 0 ? 1 : 1 - past / FLAG_FADE_S;
     if (alpha <= 0) continue;
     const word = `${tr("SUBJECT")}${s.theme ? ` ${s.theme}` : ""}`;
-    const tw = textWidth(word);
+    const tw = formWidth(word, s);
     if (px + tw + 4 < 0) continue;
     const top = yOf(first.step);
     const bot = top + (c.hOf ? c.hOf(first.step) : bh);
@@ -191,7 +245,7 @@ export function flags(c: Ctx, spans: readonly Span[], blocked: (x0: number, x1: 
     g.fillStyle = FLAG_BG;
     g.fillRect(px, poleY, 1, poleH);
     g.fillRect(fx0, fy, fw, 7);
-    pixText(g, word, fx0 + 1, fy + 1, FLAG_INK);
+    formText(g, word, fx0 + 1, fy + 1, FLAG_INK, s);
   }
   g.globalAlpha = 1;
 }
@@ -276,7 +330,7 @@ export function entryMarks(
     const first = s.path[0];
     g.globalAlpha = a;
     if (variant === "a") {
-      const fw = textWidth(word) + 1;
+      const fw = formWidth(word, s) + 1;
       // D466 (design studio; the owner chose B, "careful so that the fixed flag not interfere with gameplay … the
       // player ought to be able to see things near the line"): while an entry sounds its tab is PINNED at the box's
       // top, ending just before the play line (over the music already played, never over what is coming), with a
@@ -287,7 +341,7 @@ export function entryMarks(
         const ty = 1 + Math.max(0, lane[order[oi]]) * (TAB_H + 4);
         g.fillStyle = ink;
         g.fillRect(tx, ty, fw, TAB_H);
-        pixText(g, word, tx + 1, ty + 1, DARK);
+        formText(g, word, tx + 1, ty + 1, DARK, s);
         const left = Math.max(0, Math.min(1, (s.end - c.now) / Math.max(1, s.end - s.on)));
         g.fillStyle = DARK;
         g.fillRect(tx, ty + TAB_H + 1, fw, 1);
@@ -339,7 +393,7 @@ export function entryMarks(
       }
       g.fillStyle = ink;
       g.fillRect(tx, ty, tw, th);
-      if (tw === fw) pixText(g, word, tx + 1, ty + 1, DARK);
+      if (tw === fw) formText(g, word, tx + 1, ty + 1, DARK, s);
       continue;
     }
     if (variant === "b") {
@@ -356,11 +410,11 @@ export function entryMarks(
         continue;
       }
       // The word under the bracket's start, only where no note is (it moves with the start, held at the edge).
-      const tw = textWidth(word);
+      const tw = formWidth(word, s);
       const tx = Math.max(2, Math.min(x0, x1 - tw));
       const ty = ly + 2;
       if (ty + 5 > h || blocked(tx - 1, tx + tw, ty - 1, ty + 6, -1, s.on)) continue;
-      pixText(g, word, tx, ty, ink);
+      formText(g, word, tx, ty, ink, s);
       continue;
     }
     // c, the rail.
@@ -381,11 +435,11 @@ export function entryMarks(
       const n = spans[q];
       if (n.on < s.end && n.end > s.on) lanes = Math.max(lanes, lane[q] + 1);
     }
-    const tw = textWidth(word);
+    const tw = formWidth(word, s);
     const tx = Math.max(2, Math.min(x0 + 3, x1 - tw));
     const ty = 1 + 3 * lanes;
     if (tx + tw > w || noteTop(tx - 1, tx + tw) < ty + 6) continue;
-    pixText(g, word, tx, ty, ink);
+    formText(g, word, tx, ty, ink, s);
   }
   g.globalAlpha = 1;
 }
