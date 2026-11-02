@@ -105,8 +105,8 @@ test("the emblem's colours come from the key's hue (keyTint's circle of fifths)"
   assert.equal(keyHue("B"), 10);
 });
 
-test("the stretto count matches the study (I/1: 13 of 24 entries, D242: the soprano's head at b. 15 counted)", () => {
+test("the stretto count matches the study (I/1: 16 of 26 entries, D493: the experts' entries, the incomplete bass of b. 20 and soprano of b. 24 with them)", () => {
   const f = FUGUES.find((x) => x.id === "wtc1f01")!;
-  assert.equal(f.entries.length, 24);
-  assert.equal(strettoCount(f), 13);
+  assert.equal(f.entries.length, 26);
+  assert.equal(strettoCount(f), 16);
 });

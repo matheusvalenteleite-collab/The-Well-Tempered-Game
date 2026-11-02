@@ -28,23 +28,47 @@ export const LONG_NAME = 13;
 
 export function ObbligatoOffer({ game }: { game: MutableRefObject<ProtoGame | null> }) {
   const [offer, setOffer] = useState<{ name: string; octave: number; on: number } | null>(null);
+  // D469 (design studio; the owner: "Write down the added effect while active in the region where the button appears"):
+  // the boost taken, named in the button's place for the whole boosted entry.
+  const [active, setActive] = useState<{ name: string; octave: number } | null>(null);
   useEffect(() => {
     let raf = 0;
     let last = "";
+    let lastActive = "";
     const loop = () => {
-      const o = game.current?.offer ?? null;
+      const gm = game.current;
+      const o = gm?.offer ?? null;
       const key = o ? `${o.entryOn}:${o.layer.id}:${o.octave}` : "";
       if (key !== last) {
         last = key;
         setOffer(o ? { name: o.layer.name, octave: o.octave, on: o.entryOn } : null);
+      }
+      const b = gm ? gm.boosts.find((x) => x.spans.some((sp) => gm.now >= sp.on && gm.now < sp.end)) : undefined;
+      const ak = b ? `${b.layer.id}:${b.octave}` : "";
+      if (ak !== lastActive) {
+        lastActive = ak;
+        setActive(b ? { name: b.layer.name, octave: b.octave } : null);
       }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [game]);
-  if (!offer) return null;
-  const take = (e: React.PointerEvent | React.MouseEvent) => {
+  if (!offer) {
+    if (!active) return null;
+    const words = `${tr(OBBLIGATO)} · ${instrumentLabel(active.name, active.octave)}`;
+    return (
+      <>
+        {(["left", "right"] as const).map((side) => (
+          <p key={side} className={`tb-obbligato tb-obbligato-${side} tb-obbligato-on`} id={`obbligato-on-${side}`} role="status" aria-label={words}>
+            <span className="tb-obbligato-name">{tr(OBBLIGATO)}</span>
+            <span className="tb-obbligato-inst">{instrumentLabel(active.name, active.octave)}</span>
+          </p>
+        ))}
+      </>
+    );
+  }
+  const take = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (game.current?.acceptOffer()) setOffer(null);
@@ -56,7 +80,7 @@ export function ObbligatoOffer({ game }: { game: MutableRefObject<ProtoGame | nu
   return (
     <>
       {(["left", "right"] as const).map((side) => (
-        <button key={side} type="button" className={`tb-obbligato tb-obbligato-${side}${long ? " tb-obbligato-long" : ""}`} onPointerDown={take} onClick={take} aria-label={label}>
+        <button key={side} type="button" className={`tb-obbligato tb-obbligato-${side}${long ? " tb-obbligato-long" : ""}`} onPointerDown={take} onTouchStart={take} onClick={take} aria-label={label}>
           <span className="tb-obbligato-name">{tr(OBBLIGATO)}</span>
           <span className="tb-obbligato-inst">{inst}</span>
         </button>

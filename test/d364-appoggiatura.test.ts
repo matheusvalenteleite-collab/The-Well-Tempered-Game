@@ -69,7 +69,7 @@ test("D364: the owner's logs replayed with the hold-over on and off: every verdi
   }
   // His thumbs rest PREPARED again and again in these runs (replayed with today's parameters), and each
   // is lifted at its note's time (a pull-off) or before it, never held over: nothing to arm.
-  assert.deepEqual([rests, pullOffs, early], [113, 98, 15]);
+  assert.deepEqual([rests, pullOffs, early], [114, 99, 15]); // D490: one more rest and pull-off, on a note that rode before
 });
 
 const I22: Material = { piece: "wtc1f22", voice: 0, fromBar: 13, toBar: 17, tempo: { pct: 100 }, label: "I/22 soprano I 13–17", badge: "IN GAME" };

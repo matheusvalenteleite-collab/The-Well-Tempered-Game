@@ -59,21 +59,21 @@ test("D393: the one switch is in play.html's Settings (en, pt, es); no other tog
   const { HearSubject } = await import("../src/bench/HearSubject.tsx");
   const { setBusoniOn } = await import("../src/touch/readings.ts");
   store.clear();
-  const html = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc1f03", play: async () => 0, close: () => {} }));
+  const html = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc1f03", play: async () => 0, stop: () => {}, close: () => {} }));
   assert.match(html, /id="reading-one"[^>]*>[^<]*BUSONI/);
   for (const other of ["none", "keller", "bodky", "riemann", "busoni"]) assert.doesNotMatch(html, new RegExp(`id="reading-${other}"`), other);
   setBusoniOn(false);
-  const off = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc1f03", play: async () => 0, close: () => {} }));
+  const off = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc1f03", play: async () => 0, stop: () => {}, close: () => {} }));
   assert.doesNotMatch(off, /id="reading-one"/);
   assert.match(off, /BUSONI&#x27;S MARKINGS ARE OFF|BUSONI'S MARKINGS ARE OFF/);
   store.clear();
   // D394: Book II shows BUSONI (its own year); a fugue with no whole reading shows none.
-  const b2 = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc2f02", play: async () => 0, close: () => {} }));
+  const b2 = renderToStaticMarkup(React.createElement(HearSubject, { id: "wtc2f02", play: async () => 0, stop: () => {}, close: () => {} }));
   assert.match(b2, /id="reading-one"[^>]*>[^<]*BUSONI 1915/);
   const { FUGUES } = await import("../src/touch/fugue.ts");
   const { wholeReadingOf } = await import("../src/touch/readings.ts");
   const bare = FUGUES.find((x) => !wholeReadingOf(x.id))!;
-  const none = renderToStaticMarkup(React.createElement(HearSubject, { id: bare.id, play: async () => 0, close: () => {} }));
+  const none = renderToStaticMarkup(React.createElement(HearSubject, { id: bare.id, play: async () => 0, stop: () => {}, close: () => {} }));
   assert.doesNotMatch(none, /id="reading-/);
 });
 

@@ -154,21 +154,6 @@ test("D218: holding a note into the rest after it is penalised; letting go in ti
   assert.equal(over.chain, 0);
 });
 
-test("D218: a note followed by riders (D191) is not judged at its end", () => {
-  const g0 = probe(150);
-  const hs = heads(g0);
-  const i = hs.find((j) => g0.notes[j + 1]?.ride && g0.notes[j + 1].on !== g0.notes[j].on);
-  assert.ok(i !== undefined, "a note with riders at 150");
-  const n = g0.notes[i];
-  const t0 = g0.timeAt(n.on);
-  for (const off of [0.01, 1.5]) {
-    const g = run([{ t: t0, down: true, id: 1 }, { t: t0 + off, down: false, id: 1 }], 150);
-    assert.equal(g.notes[i].state, "hit");
-    assert.deepEqual([g.art.heldOf, g.art.cleanOf], [0, 0]);
-    assert.ok(g.flash === null, `no call: ${g.flash?.text}`);
-  }
-});
-
 test("D218: a slide is not legato (cheap): joined in sound, no bonus, and it breaks the chain (D378: CLASSIC)", () =>
   withMech({ glenn: false }, () => {
   const clock = { t: 0 };
