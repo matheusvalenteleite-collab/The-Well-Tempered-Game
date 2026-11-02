@@ -1094,15 +1094,15 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     }
   }
   // D244: THE FUGUE'S BUILDING on the phone: the map, small. D469 (design studio): no longer across the box's top
-  // bar, where it ran through the fugue's title, but at the left bar's foot (the stops now stand in the box's frame).
+  // bar, where it ran through the fugue's title, but low on the left bar, above its pistons and OBBLIGATO's place (D471).
   if (!paper && !g.o.quiet && builds(g.f) && g.f.entries.length) {
     const m = fugueMap(g.f);
     const mw = bw - 16;
     const x0 = 8;
     const span = Math.max(1, m.end - m.start);
     const row = 4;
-    // Above OBBLIGATO's button's place at the bar's foot (34 px).
-    const y0 = h - 46 - m.rows * row;
+    // D471: above the pistons at the bar's foot (58 px) and OBBLIGATO's button stacked over them (34 px).
+    const y0 = h - 112 - m.rows * row;
     const X = (tick: number) => x0 + ((tick - m.start) / span) * mw;
     buildMap(c, m, g.now, new Set(g.tracks.map((x) => x.voice)), X, (v) => y0 + v * row, g.f.tpq, 2, mw);
     c.fillStyle = "rgba(255,255,255,0.8)";
