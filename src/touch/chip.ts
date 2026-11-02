@@ -468,7 +468,50 @@ export interface Play {
   terrace?: number;
   /** TRIAL: the hairpins' and the palette's dB here: a small brightness (sound.ts swellToneDb). */
   swell?: number;
+  /**
+   * D439: a note blended into another as one sound (OBBLIGATO's merged layer): filtered, a little late, its
+   * own envelope under the note's (`Blend`), into its own way to the master; a recorded patch's note not yet
+   * loaded is not sounded at all (no synthesized stand-in).
+   */
+  blend?: Blend;
+  /** D439: the note's send to its preset's own effect in place of its patch's (Patch.send). */
+  sendAs?: number;
 }
+
+/** D439: how a blended note (Play.blend) sits under another: its filters, its delay, its envelope (s), its effect send. */
+export interface Blend {
+  /** High-pass and low-pass corners (Hz). */
+  hp: number;
+  lp: number;
+  /** Late by (s). */
+  delay: number;
+  /** Rising over (s), at least; let go over (s), at most. */
+  attack: number;
+  release: number;
+  /** Dying away (a time constant, s) to this share of its level, as a plucked or struck note it doubles does. */
+  follow?: { tau: number; floor: number };
+  /** Its send to the preset's own effect (the note it doubles' Patch.send). */
+  send: number;
+}
+
+/** D439: a colour put on the player's own notes for a while (Chip.voiceFx). */
+export type VoiceFx = "echo" | "hall" | "cathedral" | "ensemble" | "pingpong" | "flanger";
+
+/**
+ * D439, the colours (Chip.voiceFx): each its wet level (the share sent), and the dry's trim while it
+ * sounds (measured so the whole is no louder than the dry alone). Delays in s, the echoes' feedback,
+ * their filters (Hz); the halls' impulse (s) and decay (RT60, s).
+ */
+export const VOICE_FX = {
+  echo: { wet: 0.3, trim: 0.94, feedback: 0.24, hp: 350, lp: 2800, pan: 0.3 },
+  pingpong: { wet: 0.32, trim: 0.93, feedback: 0.34, hp: 300, lp: 3000 },
+  hall: { wet: 0.65, trim: 0.9, seconds: 2.8, rt60: 2.3, brightness: 0.4, predelay: 0.022, hp: 200 },
+  cathedral: { wet: 0.55, trim: 0.9, seconds: 5.2, rt60: 4.8, brightness: 0.32, predelay: 0.035, hp: 180 },
+  ensemble: { wet: 0.34, trim: 0.86, delays: [0.019, 0.026], rates: [0.31, 0.43], depth: 0.0022, pans: [-0.55, 0.55], hall: 0.35, seconds: 3.0, rt60: 2.6, brightness: 0.42, hp: 200 },
+  flanger: { wet: 0.55, trim: 0.82, delay: 0.0032, depth: 0.0024, rate: 0.16, feedback: 0.45 },
+} as const;
+/** D439: a colour comes in and goes over this long (s). */
+export const VOICE_FX_RAMP = 0.15;
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
 function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
@@ -664,13 +707,17 @@ export class Chip {
     // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
     this.mine = ctx.createGain();
-    this.mine.connect(this.master);
+    // D439: the player's own notes' dry level (a colour on them trims it: voiceFx).
+    this.mineOut = ctx.createGain();
+    this.mine.connect(this.mineOut).connect(this.master);
     this.recIn = ctx.createGain();
     this.recIn.connect(limit);
   }
 
   /** D216: the player's own notes' level (1: as they are). */
   readonly mine: GainNode;
+  /** D439: the player's own notes' dry way on to the master (trimmed while a colour sounds). */
+  private mineOut: GainNode;
   /** D215: where a recording joins the sound (past the room and the compressor). */
   readonly recIn: GainNode;
   /** Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. */
@@ -1074,6 +1121,7 @@ export class Chip {
   }
 
   private single(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
+    if (p.blend) return this.blended(midi, at, dur, v, p, p.blend);
     // D210: within the cap (the oldest let go first), and every node disconnected once the note has ended.
     const t = Math.max(at, this.ctx.currentTime);
     this.makeRoom(t);
@@ -1522,6 +1570,212 @@ export class Chip {
     }
   }
 
+  /**
+   * D439, a blended note (Play.blend: OBBLIGATO's merged layer): a recorded patch's note sounds only once
+   * its recording is loaded (no synthesized stand-in: nothing at all till then); its envelope under the
+   * note's own (rising over `attack`, dying away with a plucked note it doubles, let go over `release`),
+   * then filtered and delayed on its own way to the master (blendWay), sending to the preset's effect as
+   * the note it doubles does.
+   */
+  private blended(midi: number, at: number, dur: number, v: Voicing, p: Play, b: Blend): Sounding {
+    const none: Sounding = { stop: () => {}, bend: () => {} };
+    const inst = v.patch?.sample ? SAMPLED[v.patch.sample] : null;
+    if (inst) {
+      const set = setFor(inst, midi);
+      if (setUnreachable(set)) return none;
+      const near = nearestSample(set, inst.maxShift !== undefined ? foldInto(set, midi, inst.maxShift) : midi);
+      if (near === null) return none;
+      if (!loaded(set, near) && !(inst.soft && loaded(inst.soft.set, near))) {
+        loadOne(this.ctx, set, near);
+        return none;
+      }
+    }
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const env = ctx.createGain();
+    const gate = ctx.createGain();
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(1, t + b.attack);
+    if (b.follow) env.gain.setTargetAtTime(b.follow.floor, t + b.attack, b.follow.tau);
+    let closed = Math.max(t + b.attack, at + dur);
+    gate.gain.setValueAtTime(1, t);
+    gate.gain.setTargetAtTime(0, closed, b.release / 4);
+    env.connect(gate).connect(this.blendWay(b));
+    const sd = this.single(midi, at, dur, v, { ...p, blend: undefined, into: env, sendAs: 0 });
+    const free = () => {
+      try {
+        env.disconnect();
+        gate.disconnect();
+      } catch {
+        /* already */
+      }
+    };
+    const later = (w: number) => setTimeout(free, Math.max(0, w - ctx.currentTime + b.release + 1.5) * 1000);
+    let timer = later(closed);
+    return {
+      ...sd,
+      stop: (when?: number) => {
+        const w = Math.max(when ?? ctx.currentTime, ctx.currentTime);
+        if (w < closed) {
+          gate.gain.cancelScheduledValues(w);
+          gate.gain.setValueAtTime(1, w);
+          gate.gain.setTargetAtTime(0, w, b.release / 4);
+          closed = w;
+          clearTimeout(timer);
+          timer = later(w);
+        }
+        sd.stop(when);
+      },
+    };
+  }
+
+  /** D439: the blended notes' ways to the master (a high-pass, a low-pass, a delay; the effect's send), one per blend. */
+  private ways = new Map<string, { input: AudioNode; fx: AudioNode | null }>();
+  private blendWay(b: Blend): AudioNode {
+    const key = `${b.hp}|${b.lp}|${b.delay}|${b.send}`;
+    const fx = b.send ? this.fxInput() : null;
+    const w = this.ways.get(key);
+    if (w && w.fx === fx) return w.input;
+    const ctx = this.ctx;
+    const input = ctx.createGain();
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = b.hp;
+    hp.Q.value = 0.6;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = b.lp;
+    lp.Q.value = 0.6;
+    const dl = ctx.createDelay(0.1);
+    dl.delayTime.value = b.delay;
+    input.connect(hp).connect(lp).connect(dl).connect(this.bus);
+    if (fx) {
+      const g = ctx.createGain();
+      g.gain.value = b.send;
+      dl.connect(g).connect(fx);
+    }
+    this.ways.set(key, { input, fx });
+    return input;
+  }
+
+  /** D439: the colours built (each its send from the player's own notes, silent till asked for). */
+  private colours = new Map<string, GainNode>();
+  /**
+   * D439, a colour on the player's own notes (OBBLIGATO's "effect" mode) from `from` to `until` (audio
+   * time, s), coming in and going over VOICE_FX_RAMP: their dry level trimmed as it sounds (VOICE_FX: the
+   * whole no louder). `delay` (s) is the echoes' length (a note value at the tempo); a send's input is
+   * gated, so an echo's or a hall's tail rings out past `until`.
+   */
+  voiceFx(kind: VoiceFx, delay: number, from: number, until: number) {
+    const ctx = this.ctx;
+    const key = `${kind}|${delay.toFixed(3)}`;
+    let send = this.colours.get(key);
+    if (!send) this.colours.set(key, (send = this.colourOf(kind, delay)));
+    const R = VOICE_FX_RAMP;
+    const a = Math.max(from, ctx.currentTime);
+    const z = Math.max(a + R, until);
+    const fx = VOICE_FX[kind];
+    for (const [param, rest, on] of [
+      [send.gain, 0, fx.wet],
+      [this.mineOut.gain, 1, fx.trim],
+    ] as const) {
+      param.setValueAtTime(rest, a);
+      param.linearRampToValueAtTime(on, a + R);
+      param.setValueAtTime(on, z);
+      param.linearRampToValueAtTime(rest, z + R);
+    }
+  }
+
+  /** D439: a colour's nodes, from the player's own notes to the master; its send (silent) returned. */
+  private colourOf(kind: VoiceFx, delay: number): GainNode {
+    const ctx = this.ctx;
+    const out = this.master;
+    const send = ctx.createGain();
+    send.gain.value = 0;
+    this.mine.connect(send);
+    const filter = (type: BiquadFilterType, f: number) => {
+      const b = ctx.createBiquadFilter();
+      b.type = type;
+      b.frequency.value = f;
+      b.Q.value = 0.6;
+      return b;
+    };
+    const gain = (v: number) => {
+      const g = ctx.createGain();
+      g.gain.value = v;
+      return g;
+    };
+    const panned = (p: number) => {
+      const s = ctx.createStereoPanner();
+      s.pan.value = p;
+      return s;
+    };
+    const hall = (from: AudioNode, h: { seconds: number; rt60: number; brightness: number; hp: number }, predelay = 0.02) => {
+      const pre = ctx.createDelay(0.1);
+      pre.delayTime.value = predelay;
+      const conv = ctx.createConvolver();
+      conv.buffer = darkHall(ctx, this.phone ? h.seconds * 0.7 : h.seconds, this.phone ? h.rt60 * 0.7 : h.rt60, h.brightness);
+      from.connect(pre).connect(filter("highpass", h.hp)).connect(conv).connect(out);
+    };
+    const lfo = (rate: number, depth: number, param: AudioParam) => {
+      const o = ctx.createOscillator();
+      o.frequency.value = rate;
+      o.connect(gain(depth)).connect(param);
+      o.start();
+    };
+    if (kind === "echo") {
+      // An eighth-note echo: each repeat darker (the low-pass in the loop), low feedback, a little aside.
+      const E = VOICE_FX.echo;
+      const sum = ctx.createGain();
+      const dl = ctx.createDelay(2);
+      dl.delayTime.value = delay;
+      const lp = filter("lowpass", E.lp);
+      send.connect(filter("highpass", E.hp)).connect(sum).connect(dl).connect(lp);
+      lp.connect(gain(E.feedback)).connect(sum);
+      lp.connect(panned(E.pan)).connect(out);
+    } else if (kind === "pingpong") {
+      // A dotted-eighth ping-pong: the first repeat left, the next right, and so on, each darker and softer.
+      const E = VOICE_FX.pingpong;
+      const merge = ctx.createChannelMerger(2);
+      const dL = ctx.createDelay(2);
+      const dR = ctx.createDelay(2);
+      dL.delayTime.value = dR.delayTime.value = delay;
+      const lL = filter("lowpass", E.lp);
+      const lR = filter("lowpass", E.lp);
+      send.connect(filter("highpass", E.hp)).connect(dL).connect(lL);
+      lL.connect(merge, 0, 0);
+      lL.connect(gain(E.feedback)).connect(dR).connect(lR);
+      lR.connect(merge, 0, 1);
+      lR.connect(gain(E.feedback)).connect(dL);
+      merge.connect(out);
+    } else if (kind === "hall" || kind === "cathedral") {
+      // A bigger room than the preset's own: a hall for the piano, a cathedral for the organ.
+      const H = VOICE_FX[kind];
+      hall(send, H, H.predelay);
+    } else if (kind === "ensemble") {
+      // A section joining: two more players a little late and a little off (slow chorus), either side, in a richer hall.
+      const E = VOICE_FX.ensemble;
+      E.delays.forEach((d, i) => {
+        const dl = ctx.createDelay(0.1);
+        dl.delayTime.value = d;
+        lfo(E.rates[i], E.depth, dl.delayTime);
+        send.connect(dl).connect(panned(E.pans[i])).connect(out);
+      });
+      hall(send.connect(gain(E.hall)), E);
+    } else {
+      // A flanger: a short swept delay fed back on itself, mixed with the dry.
+      const E = VOICE_FX.flanger;
+      const sum = ctx.createGain();
+      const dl = ctx.createDelay(0.05);
+      dl.delayTime.value = E.delay;
+      lfo(E.rate, E.depth, dl.delayTime);
+      send.connect(sum).connect(dl).connect(out);
+      dl.connect(gain(E.feedback)).connect(sum);
+    }
+    return send;
+  }
+
+
   /** The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within an octave, retuned. */
   private nearestLoaded(set: string, m: number): { set: string; m: number; rec: Loaded } | null {
     const own = nearestSample(set, m);
@@ -1846,7 +2100,7 @@ export class Chip {
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     // D385: a whole-piece reading's palette (Play.roomMul): more or less of the room.
-    this.fxSend(pan ?? dyn, pt.send !== undefined && p.roomMul ? pt.send * p.roomMul : pt.send, bag);
+    this.fxSend(pan ?? dyn, p.sendAs ?? (pt.send !== undefined && p.roomMul ? pt.send * p.roomMul : pt.send), bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = tremLfo ? [tremLfo] : [];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
@@ -2435,7 +2689,7 @@ export class Chip {
     } else src.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
-    this.fxSend(pan ?? dyn, pt.send, bag);
+    this.fxSend(pan ?? dyn, p.sendAs ?? pt.send, bag);
     if (pt.chiff && !p.legato) {
       // D297, CHAMBER ORGAN: the pipe's chiff: band-passed noise about the `at`th harmonic, past the
       // envelope (the pipe's slower speech), up in 3 ms and gone within `time`.
@@ -2639,7 +2893,7 @@ export class Chip {
       tail.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
     } else tail.connect(g).connect(dyn).connect(this.busOf(p));
     this.send(pan ?? dyn, p.room, bag);
-    this.fxSend(pan ?? dyn, pt.send, bag);
+    this.fxSend(pan ?? dyn, p.sendAs ?? pt.send, bag);
     o.start(t);
     nz.start(t);
     halt(o, end + 0.05);

@@ -63,6 +63,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["lute", "LUTE"],
   // D430: the trials' BAROQUE BAND, offered (D433: BLEEPS AND BLOOPS retired).
   ["baroqueBand", "BAROQUE BAND"],
+  // D501: the trials' CLAVICHORD, offered.
+  ["clavichord", "CLAVICHORD"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
