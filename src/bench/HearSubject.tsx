@@ -4,29 +4,32 @@
  * with a gap, short ones dotted, accents marked, the level written; a light runs along as it sounds.
  * The readings (at most three) as buttons, the author's words and pages below. D325: NONE (my own
  * articulation) first, the default, and every reading open from the start; the one chosen is the run's.
+ * D492: no fingering suggestions (the thumbs on the strips and their button gone); the playback stops
+ * whenever the view closes, by any route (the close button, the backdrop, Escape, or the view taken away).
  */
 import { lang, pieceName, tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { bestReading, busoniOn, chooseReading, chosenReading, NO_READING, OFFER_READINGS, performSubject, playReading, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
-import { acrossBar, drawThumb, type Touch } from "./fingering.ts";
-import { drawThumbProxy } from "./thumb-proxy.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { paleOf } from "../touch/subject-hue.ts";
-import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
+import { STRONG_SIDE } from "../touch/touch-expr.ts";
 import { markLegend } from "../touch/readings.ts";
 import { tempoOf } from "../touch/tempi.ts";
 import { kindsOf } from "../touch/practice.ts";
 import { characterOf } from "../touch/character.ts";
 import { preset } from "../touch/sound.ts";
-import { firstEntry, subjectFingerings, subjectSounds, type Performed } from "./hear-sound.ts";
+import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
 
 export type { Performed };
 export { firstEntry };
 
-/** D344: `single` (play.html for the friends): the one reading chosen for the fugue (readings.ts BEST_READING), no tabs. */
-export function HearSubject({ id, play, close, single = false }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; close: () => void; single?: boolean }) {
+/**
+ * D344: `single` (play.html for the friends): the one reading chosen for the fugue (readings.ts BEST_READING), no tabs.
+ * D492: `stop` silences what `play` scheduled; called on every close and when the view is unmounted (wherever it is shown).
+ */
+export function HearSubject({ id, play, stop, close: onClose, single = false }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; stop: () => void; close: () => void; single?: boolean }) {
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
@@ -38,14 +41,22 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
   const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
-  // D280: the thumbs that play it: landing and lifting as the reading asks, loud or soft across the bar,
-  // the ornaments shaken. D370: the thumbs chosen by the music's intent (fingering.ts planFingerings): the
-  // reading's marks, else the joins and gaps it is played with here. D409: alternation first; a plan and its
-  // mirror one suggestion; the others a tap away only where their repeats fall differently.
-  const [alt, setAlt] = useState(0);
-  const fingerings = e ? subjectFingerings(f, e, perf, reading) : [];
-  const shown = fingerings[Math.min(alt, fingerings.length - 1)];
-  const touches = shown?.touches ?? [];
+  // D492: the playback stopped on every close, and when the view goes (unmounted) by any other route.
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+  useEffect(() => () => stopRef.current(), []);
+  const close = () => {
+    stopRef.current();
+    started.current = null;
+    onClose();
+  };
+  useEffect(() => {
+    const key = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") close();
+    };
+    addEventListener("keydown", key);
+    return () => removeEventListener("keydown", key);
+  });
   const hear = () => {
     if (!e) return;
     const last = perf.at(-1);
@@ -59,7 +70,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     let raf = 0;
     const draw = () => {
       const c = canvas.current;
-      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current, touches);
+      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -69,7 +80,6 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
   const pick = (r: Reading | null) => {
     chooseReading(id, r?.id ?? NO_READING);
     setReading(r);
-    setAlt(0);
     setPicking(false);
   };
   const nick = fugueName(id, lang());
@@ -128,12 +138,6 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
               {reading ? `${reading.author} ${reading.year}` : tr("NO READING")} ▾
             </button>
           )}
-          {/* D409 (the owner): "FINGERING SUGGESTION 1 OF X", nothing more; no cycling where only one remains. */}
-          {fingerings.length > 1 && (
-            <button type="button" id="hear-fingering" className="tb-hear-btn2" onClick={() => setAlt((a) => (a + 1) % fingerings.length)}>
-              {tr("FINGERING SUGGESTION {n} OF {m}", { n: Math.min(alt, fingerings.length - 1) + 1, m: fingerings.length })} ↻
-            </button>
-          )}
           <span className="tb-hear-tempo">♩ = {tempoOf(id)}</span>
         </div>
         {legend.length > 0 && (
@@ -178,10 +182,9 @@ const GOLD_LINE = "#f3d26b";
 /**
  * Design studio (D398): the subject drawn as the play screen draws it: the box between the two strips, its
  * blocks in the voice's subject ink (D368) with their rims, the reading's marks over them (D374), a gold
- * line where it sounds; both thumbs always on their strips (D374's mark, glowing as it presses, D396); the
- * fingering shown by the thumbs alone (D444: no ● ○ under the notes outside the tutorial).
+ * line where it sounds. D492: no fingering drawn (the thumbs that stood on the strips, D374/D396/D444, gone).
  */
-function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null, touches: Touch[] = []) {
+function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], ink: string, r: Reading | null, started: { at: number; total: number } | null) {
   const cssW = c.clientWidth || 300;
   const cssH = c.clientHeight || 160;
   const dpr = Math.min(3, devicePixelRatio || 1);
@@ -215,7 +218,6 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   }
   const now = started ? performance.now() / 1000 - started.at : -1;
   const playing = !!started && now >= -0.3 && now <= started.total + 0.4;
-  const finished = !!started && now > started.total + 0.4;
   // The design studio: the subject in its voice's own ink (no subject hue), a pale rim of the same ink.
   const fill = ink;
   const rim = paleOf(ink);
@@ -282,26 +284,5 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
   if (started && now >= 0 && now <= started.total) {
     g.fillStyle = GOLD_LINE;
     g.fillRect(X(now) - 1, 4, 2, cssH - 8);
-  }
-  const t = playing ? now : finished ? Infinity : -1;
-  const size = Math.max(12, Math.min(22, bar * 0.34));
-  // D444: no ● ○ under the notes here (the owner: only in the tutorials); the thumbs on the strips show the fingering.
-  // Both thumbs, always on their strips: pressing (glowing) while they play a note, else resting where they last were.
-  for (const side of ["left", "right"] as const) {
-    const mine = touches.filter((x) => x.side === side && !x.slid);
-    if (!mine.length) continue;
-    const down = mine.find((tc) => {
-      const off = touches.filter((x) => x.slid && x.side === side && x.on > tc.on).reduce((m, x) => Math.max(m, x.off), tc.off);
-      return t >= tc.on && t < off;
-    });
-    const at = down ?? [...mine].reverse().find((tc) => tc.on <= t) ?? mine[0];
-    const across = strengthOf(acrossBar(at.d)) * (bar - size);
-    const x = side === "left" ? bar - size * 0.2 - across : cssW - bar + size * 0.2 + across;
-    const slidTo = down ? touches.filter((x2) => x2.slid && x2.side === side && x2.on > down.on && x2.on <= t).at(-1) : undefined;
-    const yc = Y(perf[slidTo ? slidTo.i : at.i].midi) + rowH / 2;
-    if (down) {
-      const wob = down.shake && t < down.on + (perf[down.i].len || 0) * 0.8 ? Math.sin(t * 48) * rowH * 1.2 : 0;
-      drawThumb(g, x, yc + wob, size, side, "down");
-    } else drawThumbProxy(g, x, yc, size, side, "rest", 0.75);
   }
 }

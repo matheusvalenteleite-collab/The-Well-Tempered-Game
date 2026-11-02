@@ -2073,7 +2073,7 @@ export function BenchApp() {
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D373: THE TUTORIAL's selection screen (three columns, nothing scrolls). */}
       {APP.lite && steps && phase.kind === "home" && <TutorialSelect begin={beginManual} focus={tutFocus} close={() => setSteps(false)} relang={() => setLite(readLite())} />}
-      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} stop={stopHearing} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
           {APP.lite && !full && <LiteDrumsSwitch />}
