@@ -13,6 +13,7 @@
  */
 import { useState, type ReactNode } from "react";
 import { FugueAbout } from "./FugueAbout.tsx";
+import type { Performed } from "./HearSubject.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
 import { fugueById } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
@@ -73,6 +74,10 @@ export interface SelectionProps {
   playPiece?: (id: string) => void;
   /** Design studio (D463): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
   tempo?: { word: string; beat: string; locked: boolean; cycle: () => void };
+  /** D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE: the sound's play, and its stop (the box closed). */
+  subject?: { play: (notes: Performed, voice: number) => Promise<number>; stop: () => void };
+  /** D450 (the owner: "Move the DRUMS button to the right column … 3 DRUM presets … the player can cycle through"): on or off, and the piece's presets. */
+  drums?: { on: boolean; toggle: () => void; presets: readonly { id: string; name: string }[]; preset?: string; cycle: () => void };
   /** Design studio (D463): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
   sound?: { locked?: boolean; value: string; name: string; sounds: readonly (readonly [id: string, name: string])[]; own?: string; set: (id: string) => void };
 }
@@ -173,8 +178,14 @@ export function Selection(p: SelectionProps) {
         {grid ? (
           <>
             <header className="sel-strip">
+              {/* D447 (the owner: "ought to include the name of the book, i.e. J. S. Bach's Well-Tempered Clavier BOOK I – 24 FUGUES"): the work's name over the book's. */}
               <h2 className="sel-strip-title" id="lite-book-head">
-                {tr("BOOK")} {tab} · {tr("{n} FUGUES", { n: ids.length })}
+                <span className="sel-strip-work" id="lite-work-head">
+                  {tr("J. S. BACH · THE WELL-TEMPERED CLAVIER")}
+                </span>
+                <span className="sel-strip-book">
+                  {tr("BOOK")} {tab} · {tr("{n} FUGUES", { n: ids.length })}
+                </span>
               </h2>
               <span className="sel-strip-order">{tr("MAJOR · MINOR, BY KEY")}</span>
             </header>
@@ -290,7 +301,7 @@ export function shortPart(name: string): string {
 
 /** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
  * voices, its best (D463: no secrets for now), the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D463). */
-function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, bestOld, scoresOld, tempo, sound }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
+function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, bestOld, scoresOld, tempo, sound, subject, drums }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
   const f = fugueById(piece);
   const lv = liteLevel(piece);
   const wtc = /^wtc[12][fp]\d\d$/.test(piece);
@@ -298,22 +309,24 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
   const nick = fugueName(piece, lang());
   const grade = best[piece] ?? bestOld[piece];
   const [about, setAbout] = useState(false);
+  const aboutable = f.kind === "fugue" && wtc;
   // D445: the best in the voice chosen (another voice's is its own).
   const mine = bestScore(scores, piece, voice);
   const score = mine ?? scoresOld[piece];
   return (
     <div className="sel-piece" id="sel-piece">
-      <span className="sel-piece-pic">
+      {/* D449: the whole picture opens ABOUT THIS FUGUE (the ? glows to say so). */}
+      <span className={`sel-piece-pic${aboutable ? " sel-piece-pic-open" : ""}`} id="sel-piece-pic" role={aboutable ? "button" : undefined} tabIndex={aboutable ? 0 : undefined} aria-label={aboutable ? tr("ABOUT THIS FUGUE") : undefined} onClick={aboutable ? () => setAbout(true) : undefined}>
         <Emblem id={piece} className="sel-piece-emblem" />
         {grade && (
           <span className={`sel-grade${best[piece] ? "" : " sel-old"}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }}>
             {grade}
           </span>
         )}
-        {f.kind === "fugue" && wtc && (
-          <button type="button" id="sel-about" className="sel-about" aria-label={tr("ABOUT THIS FUGUE")} onClick={() => setAbout(true)}>
+        {aboutable && (
+          <span id="sel-about" className="sel-about sel-about-glow" aria-hidden="true">
             ?
-          </button>
+          </span>
         )}
       </span>
       {nick && (
@@ -394,16 +407,33 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
           )}
         </div>
       )}
-      {hear && f.kind === "fugue" && (
+      {/* D449: a WTC fugue's subject lives in its ABOUT box; other fugues keep the button. */}
+      {hear && f.kind === "fugue" && !aboutable && (
         <button type="button" id={`hear-${piece}`} className="sel-hear" onClick={() => hear(piece)}>
           <span aria-hidden="true">♪</span> {tr("HEAR THE SUBJECT")}
         </button>
+      )}
+      {drums && (
+        <div className="sel-drums" id="sel-drums" role="group" aria-label={tr("DRUMS")}>
+          <button type="button" id="sel-drums-on" className={`sel-knob sel-drums-on${drums.on ? " on" : ""}`} aria-pressed={drums.on} onClick={drums.toggle}>
+            <span className="sel-knob-k">{tr("DRUMS")}</span>
+            <b>{drums.on ? tr("ON") : tr("OFF")}</b>
+          </button>
+          {drums.presets.length > 1 && (
+            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-label={`${tr("DRUMS")}: ${drums.presets.find((d) => d.id === drums.preset)?.name ?? drums.presets[0].name}`} onClick={drums.cycle}>
+              <span className="sel-knob-k">
+                {tr("STYLE")} {Math.max(0, drums.presets.findIndex((d) => d.id === drums.preset)) + 1}/{drums.presets.length}
+              </span>
+              <b>{drums.presets.find((d) => d.id === drums.preset)?.name ?? drums.presets[0].name} ↻</b>
+            </button>
+          )}
+        </div>
       )}
       {/* D463: the piece's pop-up kept within reach (how to play, the drums, the tuning, the display). */}
       <button type="button" id="sel-options" className="sel-link" onClick={options}>
         ? {tr("HOW TO PLAY")} · {tr("OPTIONS")}
       </button>
-      {about && <FugueAbout id={piece} close={() => setAbout(false)} />}
+      {about && <FugueAbout id={piece} subject={subject} close={() => setAbout(false)} />}
     </div>
   );
 }
