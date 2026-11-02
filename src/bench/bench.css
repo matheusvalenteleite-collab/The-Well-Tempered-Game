@@ -1032,17 +1032,23 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
    rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
 /* D420: now the three THUMB PISTONS at each bar's foot (all three on both bars: whichever thumb is free
    reaches them), one row of large targets (58 px tall, a third of the bar wide), the legend as tall. */
-/* D469 (design studio): the pistons in the box's blue frame, a column of three down each inner edge (RegistrationStops
-   places each from the roll's rect: top, height, left or right), readable: each piston its numeral and its stops' name in
-   full, on two lines where long; acting on pointerdown (a thumb holding a note never stops the other pressing one). */
-.tb-stops-side { position: fixed; z-index: 12; display: grid; grid-template-columns: 1fr; grid-auto-rows: minmax(0, 1fr); gap: 4px; margin: 0; padding: 3px; box-sizing: border-box; width: 56px; background: color-mix(in srgb, var(--tg-box, #161a2c) 86%, transparent); border: 1px solid var(--tg-grid); border-radius: 3px; }
-.tb-stops-side .tg-piston { height: 100%; min-height: 0; min-width: 0; padding: 2px 1px; gap: 2px; }
-.tb-stops-side .tg-piston-n { font-size: 10px; }
-.tb-stops-side .tg-piston-name { font-size: 6px; line-height: 1.25; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; }
+/* D471 (design studio; the owner: "It was a mistake to relocate the slot buttons … They ought to return to the bottom
+   of buttons"): D469's move undone: the three pistons back at each bar's foot as D420 had them (acting on pointerdown).
+   The owner's first complaint answered in place: each piston's stops' name fits inside it, in a smaller pixel size, on
+   two lines where it must, never cut. */
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); }
+.tb-stops-left { left: calc(var(--tg-sal) + 6px); }
+.tb-stops-right { right: calc(var(--tg-sar) + 6px); }
+.tb-stops-side .tg-piston { height: 58px; min-width: 0; padding: 2px 1px; gap: 3px; }
+.tb-stops-side .tg-piston-name { font-size: 5px; line-height: 1.3; letter-spacing: 0; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; max-width: 100%; }
+/* D472: STRING CONSORT's five stops in the pistons' place and height, three over two (each its name in full). */
+.tb-stops-side.tb-consort { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+.tb-consort .tg-piston { grid-column: span 2; height: 28px; padding: 1px; }
+.tb-consort .tg-piston:nth-child(n + 4) { grid-column: span 3; }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
 /* D487 (refreshed for D420's pistons: --tb-stop-rows 1.28, a 58 px piston in 47 px rows): the floor 88 px (the pistons' 62 + 26), so OBBLIGATO's button (34 px), stacked over
    the pistons, stays clear of the lowest row a note can ask for. */
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 40px); } /* D469: the pistons in the box (rows 0): the floor keeps OBBLIGATO's 34 px button at the bars' feet clear of the lowest row. */
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 28px); }
 /* D420: what each piston holds, in the piece's pop-up (folded). */
 .tb-pop-pistons { margin: 6px 0; text-align: left; }
 .tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }

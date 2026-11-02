@@ -82,15 +82,19 @@ test("D505: the harpsichord's choirs and a stand-in never read a string more tha
   assert.equal((chip.match(/const nb = nearestSample\(main, midi, \(m\) => m !== near && Math\.abs\(m - midi\) <= \(inst\.maxShift \?\? MAX_SHIFT_ANY\) && !!loaded\(main, m\)\);/g) ?? []).length, 2);
 });
 
-test("D505: OBBLIGATO never draws a struck bar or bell (vibraphone, marimba, tube, FM e-piano) as a boost's layer", async () => {
-  const { BELL_LIKE, drawLayer, LAYERS } = await import("../src/bench/obbligato.ts");
-  for (const id of BELL_LIKE) assert.ok(LAYERS.some((l) => l.id === id), `${id} still in the pool's list`);
+test("D505, D509: OBBLIGATO never sounds a struck bar or bell (vibraphone, marimba, tube, FM e-piano) on strings, winds or voices: its effects play only the player's own instrument", async () => {
+  const { drawEffect, shownFor, OBB_FX, LAYERS } = await import("../src/bench/obbligato.ts");
+  const BELL_LIKE = new Set(["jqVibes", "modVibe", "modBongo", "modBell", "fmPiano"]);
+  for (const id of BELL_LIKE) assert.ok(LAYERS.some((l) => l.id === id), `${id} still in the compass list`);
   let seed = 7;
   const rng = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   for (const main of ["consViolin", "bandOboe", "trioOboe1", "bachTrumpet", "singS", "gbLead", null] as const)
     for (const midis of [[72, 74, 76, 77], [60, 62, 64], [55, 57, 59]])
       for (let k = 0; k < 400; k++) {
-        const d = drawLayer({ main, midis, rng });
-        assert.ok(!d || !BELL_LIKE.has(d.layer.id), `${main}: ${d?.layer.id}`);
+        const e = drawEffect({ main, midis, rng });
+        assert.ok(OBB_FX.includes(e.fx), `${main}: ${e.fx}`);
+        const shown = shownFor(e.fx, main);
+        assert.equal(shown.id, main ?? "chip", `${main}: the effect's instrument is the player's own`);
+        assert.ok(!BELL_LIKE.has(shown.id), `${main}: ${shown.id}`);
       }
 });
