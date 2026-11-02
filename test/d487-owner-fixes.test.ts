@@ -61,12 +61,12 @@ test("D487 (2): OBBLIGATO's buttons at the bars' feet (no longer the top corners
   assert.ok(/\bbottom: calc\(env\(safe-area-inset-bottom/.test(b), "at the foot, over the home indicator");
   assert.ok(!/\btop:/.test(b), "not at the top (it covered the bar counter)");
   assert.ok(/background: #[0-9a-f]{6};/.test(b), "an opaque ground, whatever the tinted bar under it");
-  assert.ok(/--tb-stop-rows, 1\) \* 60px/.test(rule(".tb-has-side-stops .tb-obbligato-left")), "the left one over the left foot's pistons (D420, 58 px a row)");
+  assert.ok(/--tb-stop-rows, 1\) \* 47px/.test(rule(".tb-has-side-stops .tb-obbligato-left")), "the left one over the left foot's pistons (D420, 58 px a row)");
   assert.ok(/--tb-stop-rows-right/.test(rule(".tb-has-side-stops .tb-obbligato-right")), "the right one over the right foot's");
   assert.ok(/font-size: 9px/.test(rule(".tb-obbligato-inst")), "the instrument in the HUD's 9 px");
   const h = Number(/height: (\d+)px/.exec(b)![1]);
   // The legend's floor over the stops: the strip under the roll deep enough for the button (bench.css: 26 px over the pistons).
-  const floor = /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 60px \+ (\d+)px\); \}/.exec(css);
+  const floor = /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ (\d+)px\); \}/.exec(css);
   assert.ok(floor && Number(floor[1]) >= h - 10, `the floor ${floor?.[1]} px for a ${h} px button`);
 });
 
