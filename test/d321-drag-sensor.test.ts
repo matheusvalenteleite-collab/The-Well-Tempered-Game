@@ -29,7 +29,7 @@ test("D321: the defaults: a drag joins (the game's D218), and every new paramete
   assert.equal(dragFamily("pianoSampled"), "fill");
   assert.equal(dragFamily("harpsichordSampled"), "fill");
   assert.equal(dragFamily("chamberOrgan"), "fill");
-  for (const id of ["soloVoices", "vocalSynth", "analog", "tomita", "chip", "gameboy", "sid64", "megaFm", "tracker", "super16", "nocturne32", "modular"]) assert.equal(dragFamily(id), "glide", id);
+  for (const id of ["soloVoices", "vocalSynth", "analog", "tomita", "chip", "gameboy", "sid64", "megaFm", "tracker", "super16", "modular"]) assert.equal(dragFamily(id), "glide", id);
 });
 
 test("D321: the glide: as long as the drag, capped by a share of the note; an exponential approach arriving on time", () => {

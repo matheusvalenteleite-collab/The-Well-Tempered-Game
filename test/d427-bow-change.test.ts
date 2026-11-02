@@ -148,7 +148,7 @@ test("D427: on STRING CONSORT a join gives way as a bow change at the onset, a p
 });
 
 test("D427: keyboards and the lute give way as before (no bow change, no slur)", () => {
-  for (const k of ["harpsichordSampled", "lute", "pianoSampled"]) {
+  for (const k of ["harpsichordSampled", "pianoSampled"]) {
     for (const plan of [join, setRelease]) {
       const r = run(k, plan);
       assert.ok(r.heard[0].stops.every((x) => x.how === undefined), `${k}`);

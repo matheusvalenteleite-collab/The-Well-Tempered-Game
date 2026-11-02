@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { INSTRUMENT_TUNING, TUNING_FALLBACK, instrumentTuning, resolveTuning, tuningOfValue, tuningPrefOf, tuningShort, tuningValue } from "../src/touch/instrument-tuning.ts";
 import { PRESETS } from "../src/touch/sound.ts";
-const CONSOLES_AND_SYNTHS = ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker", "analog", "modular", "tomita"];
+const CONSOLES_AND_SYNTHS = ["chip", "gameboy", "super16", "megaFm", "sid64", "tracker", "analog", "modular", "tomita"];
 import { hz, setTuning, TEMPERAMENTS } from "../src/touch/tuning.ts";
 import { rateFor, sampleHz } from "../src/touch/sampled.ts";
 import { DISPLAY_BY_PIECE_KEY, DISPLAY_KEY, displayFor, saveDisplay, saveDisplayFor } from "../src/bench/sheet-format.ts";

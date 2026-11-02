@@ -9,7 +9,6 @@ import assert from "node:assert/strict";
 import { FakeNode, FakeParam, installFakeAudio } from "./fake-audio.ts";
 import { Chip, oneInstrument, voicing, type Play } from "../src/touch/chip.ts";
 import { HARPSI_ONE, PATCHES, VOICE_SEND, creditFor, offered, playerSound, presetById, sampledNow, setPreset } from "../src/touch/sound.ts";
-import { styleOf } from "../src/touch/phrasing.ts";
 
 const ctxOf = installFakeAudio(0, false);
 const of = (made: FakeNode[], kind: string) => made.filter((n) => n.kind === kind);
@@ -53,7 +52,7 @@ test("D358: a keyboard's note placed by its key (bass left), its key's own fract
 });
 
 test("D358: the player's note on one instrument or ensemble is the band's: neither louder nor brighter", () => {
-  for (const id of ["harpsichordSampled", "pianoSampled", "soloVoices", "stringConsort", "lute"]) {
+  for (const id of ["harpsichordSampled", "pianoSampled", "soloVoices", "stringConsort"]) {
     const peak = (made: FakeNode[]) => Math.max(...of(made, "gain").map((g) => Math.max(...(g.gain as FakeParam).events.map((e) => Math.abs(e.v ?? 0)), 0)));
     const shelf = (made: FakeNode[]) => of(made, "filter").filter((f) => (f as unknown as { type: string }).type === "highshelf").map((f) => (f.gain as FakeParam).value);
     const band = strike(id, 1, 3, {});
@@ -96,21 +95,22 @@ test("D358: the concertos' band seated (first violins left, seconds right), the 
   assert.equal(PATCHES.s16Bassoon.bow, undefined);
 });
 
-test("D358: the trial presets (D365: offered): found by id; the lute's courses and the harpsichord's touch", () => {
-  for (const id of ["stringConsort", "lute"]) {
+test("D358: the trial presets (D365: offered): found by id; a lute's courses (Patch.one.courses: D510, the LUTE withdrawn, the engine kept)", () => {
+  for (const id of ["stringConsort"]) {
     const pr = presetById(id);
     assert.equal(pr.id, id);
     assert.ok(offered(pr.id));
     assert.equal(playerSound(pr.id), pr.id);
     assert.ok(creditFor(pr.id));
   }
-  assert.equal(styleOf("lute"), "harpsichord");
-  const [, low] = oneInstrument(45, voicing(0, 2), PATCHES.lute2.one!, {}, true);
-  const [, high] = oneInstrument(67, voicing(0, 2), PATCHES.lute2.one!, {}, true);
+  assert.equal(presetById("lute").id, "harpsichordSampled");
+  const one = { span: 0.24, lo: 40, hi: 81, cents: 1.5, courses: { split: 55, unison: { gain: 0.55, cents: 2.5, delay: 0.003, shelf: 0 }, octave: { gain: 0.4, shelf: 0 } } };
+  const [, low] = oneInstrument(45, voicing(0, 2), one, {}, true);
+  const [, high] = oneInstrument(67, voicing(0, 2), one, {}, true);
   assert.ok(low.choirs?.four && !low.choirs.unison, "an octave string in the bass");
   assert.ok(high.choirs?.unison && !high.choirs.four, "a unison course above");
   // Not on a synthesized stand-in (no second string to pluck).
-  const [, synth] = oneInstrument(45, voicing(0, 2), PATCHES.lute2.one!, {}, false);
+  const [, synth] = oneInstrument(45, voicing(0, 2), one, {}, false);
   assert.equal(synth.choirs, undefined);
   const consort = presetById("stringConsort");
   for (const n of [2, 3, 4, 5, 6]) assert.ok(consort.by![n]!.every(([, pan]) => Math.abs(pan) <= 0.25), `${n}`);

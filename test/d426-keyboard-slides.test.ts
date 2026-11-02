@@ -8,7 +8,7 @@
 import { withSlideSound } from "../src/bench/slide-sound.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { COULE_MIN_S, couleFill, couleTiming, keyboardSlide, LUTE_SLUR, luteSlur, SLIDE_TRACK_TAU } from "../src/bench/glenn.ts";
+import { COULE_MIN_S, couleFill, couleTiming, keyboardSlide, LUTE_SLUR, luteSlur } from "../src/bench/glenn.ts";
 import { MECH } from "../src/bench/mechanics.ts";
 import { replay } from "../src/bench/lab/replay.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
@@ -28,7 +28,8 @@ test("D426: what a slide does, by sound", () => {
   assert.equal(keyboardSlide("harpsichordSampled"), "coule");
   assert.equal(keyboardSlide("chamberOrgan"), "coule");
   assert.equal(keyboardSlide("organSampled"), "coule");
-  assert.equal(keyboardSlide("lute"), "slur");
+  // D510: the lute withdrawn: no sound takes the "slur" (the mechanism kept in proto-game.ts).
+  assert.equal(keyboardSlide("lute"), null);
   for (const id of ["stringConsort", "vocalSynth", "chip", "traverso"]) assert.equal(keyboardSlide(id), null, id);
 });
 
@@ -223,37 +224,7 @@ test("D426: the coulé on the harpsichord and the organ: the step between, just 
   assert.ok(notesOf(late.events).find((e) => e.slide)?.ok);
 }));
 
-test("D426: the lute's slide plucks nothing: the course retuned with a quick hammer, 3 dB under; over a fourth a glissando", () =>
-  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
-  withSlideSound("instruments", () => {
-  const r = run("lute", slide(third, 0.2));
-  assert.ok(notesOf(r.events).find((e) => e.slide)?.ok, "the slide judged as before");
-  assert.equal(r.heard.length, 1, `no new pluck: ${r.heard.map((h) => h.midi)}`);
-  const [a] = r.heard;
-  assert.equal(a.glides.length, 1, "no glissando under a fourth: the hammer only");
-  assert.ok(Math.abs(a.glides[0].tau! - LUTE_SLUR.hammerS / 3) < 1e-9);
-  assert.notEqual(a.glides[0].to, a.midi);
-  assert.ok(a.dyn.length === 1 && Math.abs(20 * Math.log10(a.dyn[0]) - LUTE_SLUR.db) < 0.01, `about 3 dB under: ${a.dyn}`);
-  const g = run("lute", slide(fourthUp, 0.3));
-  assert.ok(notesOf(g.events).find((e) => e.slide)?.ok);
-  assert.equal(g.heard.length, 1, "a glissando: no pluck");
-  const gs = g.heard[0].glides;
-  assert.ok(gs.length >= 3 && gs.every((x) => x.tau === SLIDE_TRACK_TAU), `the pitch follows the thumb: ${JSON.stringify(gs)}`);
-  assert.ok(gs.some((x) => !Number.isInteger(x.to)), "between the notes");
-  assert.ok(Number.isInteger(gs.at(-1)!.to) && gs.at(-1)!.to !== g.heard[0].midi, "landed on the note");
-  // Two thumbs stay plucked.
-  const two = run("lute", (notes, t, rows) => {
-    const a = pairWhere(notes, third);
-    return [
-      { t: t(notes[a].on), k: 1, kind: "d", id: 1, side: "left", x: 40, y: rows.yOf(notes[a].step) },
-      { t: t(notes[a + 1].on), k: 1, kind: "d", id: 2, side: "right", x: 804, y: rows.yOf(notes[a + 1].step) },
-      { t: t(notes[a + 1].on) + 0.01, k: 0, kind: "u", id: 1 },
-      { t: t(notes[a + 1].on) + 0.6, k: 0, kind: "u", id: 2 },
-    ];
-  });
-  assert.equal(two.heard.length, 2, "a join plucks the next");
-  assert.equal(two.heard[0].glides.length, 0);
-}));
+// D510: the lute's left-hand slur test removed with the LUTE (no sound takes keyboardSlide "slur"; glenn.ts luteSlur's numbers above).
 
 test("D426: the judge unchanged: the same slides, the same verdicts and times on every sound", () => {
   for (const [pick, dur] of [
@@ -263,7 +234,7 @@ test("D426: the judge unchanged: the same slides, the same verdicts and times on
     [fourthUp, 0.3],
   ] as const) {
     const ref = verdicts(run("chip", slide(pick, dur)).events);
-    for (const sound of ["pianoSampled", "harpsichordSampled", "chamberOrgan", "lute", "stringConsort"]) assert.equal(verdicts(run(sound, slide(pick, dur)).events), ref, `${sound} ${dur}`);
+    for (const sound of ["pianoSampled", "harpsichordSampled", "chamberOrgan", "stringConsort"]) assert.equal(verdicts(run(sound, slide(pick, dur)).events), ref, `${sound} ${dur}`);
   }
 });
 

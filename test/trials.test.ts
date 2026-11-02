@@ -24,7 +24,7 @@ test("the trials are found by id, never offered", () => {
   assert.equal(presetById("trialOrganTrio").id, "chamberOrgan");
   assert.equal(presetById("trialBaroque").id, "baroqueBand");
   assert.equal(presetById("trialJazz").id, "jazzQuartet");
-  assert.equal(presetById("trialClavichord").id, "clavichord");
+  assert.equal(presetById("trialClavichord").id, "pianoSampled", "D510: the clavichord withdrawn");
   // D502: the trial brass remade and offered as BACH BRASS.
   assert.equal(presetById("trialBrass").id, "bachBrass");
 });
@@ -66,9 +66,9 @@ test("their recordings exist and are credited (CC0 / CC BY)", () => {
 test("EXPRESSIVE_ALL (D431: on by default): the sustaining sounds, the tone sounds, the harpsichord's and organ's registration; off, none", () => {
   assert.equal(EXPRESSIVE_ALL, true);
   for (const id of DYNAMIC_SOUNDS) assert.ok(expressiveAll(id));
-  for (const id of ["harpsichordSampled", "chamberOrgan", "lute", "pianoSampled"]) assert.ok(!expressiveAll(id), id);
-  assert.ok(toneAll("sid64") && !toneAll("lute"));
-  assert.ok(registerAll("harpsichordSampled") && !registerAll("lute"));
+  for (const id of ["harpsichordSampled", "chamberOrgan", "pianoSampled"]) assert.ok(!expressiveAll(id), id);
+  assert.ok(toneAll("sid64") && !toneAll("harpsichordSampled"));
+  assert.ok(registerAll("harpsichordSampled") && !registerAll("pianoSampled"));
   setExpressiveAll(false);
   try {
     assert.ok(!expressiveAll("stringConsort") && !toneAll("chip") && !registerAll("chamberOrgan"));

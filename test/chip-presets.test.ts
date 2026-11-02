@@ -5,10 +5,12 @@ import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 
 test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
-  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "nocturne32", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita", "stringConsort", "lute", "baroqueBand", "clavichord", "oboeTrio", "bachBrass", "jazzQuartet"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "NOCTURNE 32-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "LUTE", "BAROQUE BAND", "CLAVICHORD", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET"]);
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita", "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET"]);
   // D302: TEMPLE 64 and AGENT 64 remade; D304: their successors withdrawn too: a stored choice of any opens on NOCTURNE 32-BIT.
-  for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "nocturne32", gone);
+  for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "super16", gone);
+  // D510: LUTE, CLAVICHORD and NOCTURNE 32-BIT withdrawn: a stored choice on the nearest kept sound.
+  assert.deepEqual(["lute", "clavichord", "nocturne32", "trialClavichord"].map(playerSound), ["harpsichordSampled", "pianoSampled", "super16", "pianoSampled"]);
   const ids = PRESETS.map((p) => p.id);
   // D340: the MORE BACH and CHORALES tabs' exceptions, asked for: the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT's strings. D348: and the harpsichord concertos on its harpsichord and strings.
   const D340 = /^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/;

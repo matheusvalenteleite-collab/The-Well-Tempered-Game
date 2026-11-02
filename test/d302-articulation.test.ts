@@ -211,14 +211,14 @@ test("D302: an FM sound (MEGA FM's reed): joined, no gap and no burst of the ind
   assert.ok(index(d, 1, d.on2 + 0.001) > index(d, 1, d.on2 + 0.4) * 1.3, "a detached note's onset bright (the index falling)");
 });
 
-test("D302: a recorded sustained sound (NOCTURNE 32-BIT's violin): joined, crossfaded past the attack; detached, a gap", async () => {
-  setPreset("nocturne32");
+test("D302: a recorded sustained sound (TRACKER's violin; D510: NOCTURNE 32-BIT's withdrawn): joined, crossfaded past the attack; detached, a gap", async () => {
+  setPreset("tracker");
   await new Chip().prepare(I2.voices.flat().map((n) => n[2]));
-  const j = pair("nocturne32", 0, 3, 0);
+  const j = pair("tracker", 0, 3, 0);
   assert.ok(dip(j) > 0.6, `dip ${dip(j).toFixed(2)}`);
   const src = j.made[1].find((n) => n instanceof FakeSource && n.kind === "buffer") as FakeSource;
   assert.ok(src.offset >= 0.2, `started past its attack (${src.offset.toFixed(3)} s in)`);
-  const d = pair("nocturne32", 2, 3, 0);
+  const d = pair("tracker", 2, 3, 0);
   assert.ok(silence(d) >= 0.2 * d.value, `silent ${silence(d).toFixed(3)} s`);
   const src2 = d.made[1].find((n) => n instanceof FakeSource && n.kind === "buffer") as FakeSource;
   assert.ok(src2.offset < 0.05, "a detached note from its attack");

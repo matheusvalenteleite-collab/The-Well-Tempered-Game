@@ -27,8 +27,8 @@ test("D424: the families: strings, voices, the chips and synths; keyboards and t
   assert.equal(touchFamily("soloVoices"), "voices");
   assert.equal(touchFamily("vocalSynth"), "voices");
   // D433: BLEEPS AND BLOOPS retired (its id no family now).
-  for (const id of ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker", "analog", "tomita"]) assert.equal(touchFamily(id), "synths", id);
-  for (const id of ["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled", "lute", "traverso"]) assert.equal(touchFamily(id), null, id);
+  for (const id of ["chip", "gameboy", "super16", "megaFm", "sid64", "tracker", "analog", "tomita"]) assert.equal(touchFamily(id), "synths", id);
+  for (const id of ["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled", "traverso"]) assert.equal(touchFamily(id), null, id);
   // Every offered preset with a touch family is placed: the sustaining ones in a family, the keyboards and the lute not.
   for (const p of PRESETS) {
     const kind = TOUCH_KINDS[p.id];
@@ -168,7 +168,7 @@ test("D424: a pull-off is the slur on strings, voices and synths; a join is not"
 });
 
 test("D424: keyboards and the lute unchanged: a pull-off and a join sound alike (joined, no slur)", () => {
-  for (const k of ["harpsichordSampled", "lute", "chamberOrgan"]) {
+  for (const k of ["harpsichordSampled", "chamberOrgan"]) {
     const pull = run(k, setRelease).heard[1].p;
     const j = run(k, join).heard[1].p;
     assert.equal(pull.slur, undefined, k);

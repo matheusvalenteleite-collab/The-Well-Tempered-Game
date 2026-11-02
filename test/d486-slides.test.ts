@@ -68,7 +68,7 @@ test("D486: each instrument family colours a slide its own way, by interval", ()
   assert.equal(name("harpsichordSampled", 60, 64), "Schleifer");
   assert.equal(name("harpsichordSampled", 64, 60), "coulé");
   assert.equal(name("harpsichordSampled", 60, 67), "Schleifer");
-  assert.equal(name("lute", 67, 60), "legato");
+  assert.equal(name("harpsichordSampled", 67, 60), "legato");
   // The piano: a crushed grace note, a turn into a leap; the organ: legato, coulé, mordent.
   assert.equal(name("pianoSampled", 60, 61), "legato");
   assert.equal(name("pianoSampled", 60, 62), "acciaccatura");
@@ -106,7 +106,7 @@ test("D486: each instrument family colours a slide its own way, by interval", ()
 
 test("D486: a gesture is colour only: within 130 ms and a third of the note, none on a quick note", () => {
   const c = scaleOfKey("c");
-  for (const id of ["harpsichordSampled", "lute", "pianoSampled", "chamberOrgan", "organSampled", "traverso", "chip", "sid64"])
+  for (const id of ["harpsichordSampled", "pianoSampled", "chamberOrgan", "organSampled", "traverso", "chip", "sid64"])
     for (const [a, b] of [[60, 61], [60, 62], [62, 60], [60, 63], [63, 60], [60, 67], [67, 60], [60, 72]])
       for (const ms of [120, 210, 300, 600, 2000]) {
         const g = slideGesture(id, a, b, ms, c);
