@@ -86,11 +86,12 @@ import { slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { fillsFor } from "../touch/jazz-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
-import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
+import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
 import { liftGain } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
+import { TRIO_ID, continuoFor, trioLayout, type ContinuoScript } from "../touch/trio.ts";
 import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
@@ -648,6 +649,10 @@ export class ProtoGame {
       if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
       else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
     }
+    // D504: ZELENKA TRIO's layout for the piece (trio.ts trioLayout: the fewest notes out of compass) and its continuo script.
+    const tl = preset().id === TRIO_ID ? trioLayout(f) : null;
+    setPieceLayout(tl ? { preset: TRIO_ID, count: tl.count, slots: tl.slots } : null);
+    this.continuo = o.her ? null : continuoFor(f, preset().id);
     if (chip.coupling) chip.coupling = { up: 0, down: 0, split: 48 };
     const b = beatOf(f);
     this.beat = b.ticks;
@@ -1052,6 +1057,9 @@ export class ProtoGame {
         // D311: the attack from the voice's latest landing (the note is scheduled before its touch); its sustain the touch's (move: shape).
         let expr: Play = { ...dynamic(NEUTRAL_D), lead: true, envelope, legato: !piano && this.joinedAt(i, k), touch: this.touchFor(this.lastLand[k], k, n.on) };
         if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
+        // D504: the continuo on the player's bass note where the script has it (by the note's place in the piece alone).
+        const ct = this.continuo?.at(n.on, voice);
+        if (ct) expr = { ...expr, continuo: ct };
         if (this.arc?.echo && k === 0 && this.rowOf(i, 0) === 1) expr = { ...expr, level: (expr.level ?? 1) * ECHO_LEVEL, bright: (expr.bright ?? 0) - ECHO_DARK };
         const v = sv?.v ?? voiceV;
         const sounds: Sounding[] = [];
@@ -1375,6 +1383,8 @@ export class ProtoGame {
       const bowOut: Play = bowed && jn.tie ? { give: place === "first" || place === "mid" ? "slur" : "bow" } : {};
       // D355: the band's colour where the note starts (colour.ts).
       const cl = this.colour?.at(n.on, n.voice) ?? null;
+      // D504: the continuo on the bass's note where the piece's script has it (an ornamented note: the bass alone).
+      const ct = parts.length === 1 && !n.band ? (this.continuo?.at(n.on, n.voice) ?? null) : null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
         const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
         const last = q === parts.length - 1;
@@ -1385,7 +1395,7 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         // D485: a boosted entry's note (a later entry in stretto with the player's): its layer.
         this.layerOf(n.voice, n.on, pmidi, pat, plen, vv, { ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
@@ -3878,6 +3888,9 @@ export class ProtoGame {
     const base = dynamic(this.heardAt(d, h.k, notes[i].on));
     // D311: where the thumb landed across its bar shapes the attack (Play.touch), right or wrong alike.
     let expr: Play = { ...base, trill: this.trillNext, muffleable: true, lead: true, envelope: piano ? "piano" : "synth", touch: this.touchFor(h.land, h.k, notes[i].on) };
+    // D504: the continuo on the player's bass note where the script has it (by the note's place in the piece alone, right or wrong alike).
+    const ct = this.continuo?.at(notes[i].on, this.voiceOf(h.k, i));
+    if (ct) expr = { ...expr, continuo: ct };
     // D336: the lab's DYNAMICS (its own touch, never with a reading's level or the dynamics lesson).
     const dynAns =
       this.noteDyn && !slide && !this.bt && expr.touch !== undefined
@@ -5173,6 +5186,8 @@ export class ProtoGame {
   readonly subj: SubjectSound;
   /** D355: the piece's colour plan for the sound playing (colour.ts), null where it has none. */
   colour: ColourPlan | null = null;
+  /** D504: ZELENKA TRIO's continuo script for the piece (trio.ts: by its structure alone), null on any other sound. */
+  continuo: ContinuoScript | null = null;
   /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */
   readonly ornaments: Map<string, Ornament>;
   private lastOther = new Map<number, number>();

@@ -17,6 +17,7 @@
  *            ·                      ·  semitone, approach side) ·  passing note, crushed)  ·  (U N L N)
  *  organ     · plain legato         · plain legato              · coulé (passing note)     · mordent on arrival (N L N)
  *  bowed     · shift glide 25 ms    · shift glide 25 ms         · shift glide 45 ms        · audible shift 70 ms (down 85)
+ *  brass     · lip slur 18 ms       · lip slur 18 ms            · lip slur 30 ms           · up: rip 45 ms; down: lip slur 35 ms
  *  voice     · portamento 35 ms     · portamento 35 ms          · portamento 55 ms         · portamento 80 ms
  *  flute     · slur (8 ms)          · slur (8 ms)               · appoggiatura (approach   · appoggiatura (approach
  *            ·                      ·                           ·  side: below rising)     ·  side)
@@ -26,7 +27,7 @@
  *  synth     · portamento 40 ms     · portamento 40 ms          · portamento 65 ms         · portamento 95 ms
  *
  * (N the written note, U the scale step above, L below; plucked: harpsichord, lute, clavichord; organ: pipe and
- * sampled; bowed: string consort; voice: vocal synth, solo voices; flute: traverso; chip: classic chip,
+ * sampled; bowed: string consort; brass: BACH BRASS (D502: the lip slur, a rising leap the rip, a quick smear up into the note); voice: vocal synth, solo voices; flute: traverso; chip: classic chip,
  * SID 64, super 16-bit, nocturne 32-bit; slide8: Game Boy, tracker (their pitch-slide effect); fm: Mega FM;
  * synth: Switched-On, Tomita, bleeps and bloops.) A glide's time is its time constant (an exponential
  * approach, Sounding.glide): about two thirds of the way there in that time.
@@ -87,7 +88,7 @@ export function slideSoundFor(presetId: string): SlideSoundMode {
   return fam === "bowed" || fam === "voice" || presetId === "lute" ? "instruments" : "d486";
 }
 
-export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "voice" | "flute" | "chip" | "slide8" | "fm" | "synth" | "mallet" | "bass";
+export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "brass" | "voice" | "flute" | "reed" | "chip" | "slide8" | "fm" | "synth" | "mallet" | "bass";
 export type IntervalClass = "half" | "step" | "third" | "leap";
 
 export const GESTURE = {
@@ -123,11 +124,15 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
     case "stringConsort":
     case "baroqueBand": // D438: the instruments session's BAROQUE BAND, a string band (glenn.ts touchFamily "strings")
       return "bowed";
+    case "bachBrass": // D502
+      return "brass";
     case "vocalSynth":
     case "soloVoices":
       return "voice";
     case "traverso":
       return "flute";
+    case "oboeTrio": // D504: ZELENKA TRIO's reeds (glenn.ts touchFamily "strings": Patch.bow as a tongue)
+      return "reed";
     case "gameboy":
     case "tracker":
       return "slide8";
@@ -158,15 +163,19 @@ export function stepAbove(m: number, scale: ReadonlySet<number>): number {
 /** What a slide sounds: a glide (its time constant, s), or quick notes before the written note (MIDI, each `eachS`), or a plain legato. */
 export type Gesture = { kind: "glide"; name: string; tau: number } | { kind: "notes"; name: string; notes: number[]; eachS: number } | { kind: "plain"; name: string };
 
-const GLIDE_MS: Record<"bowed" | "voice" | "slide8" | "fm" | "synth" | "bass", Record<IntervalClass, number>> = {
+const GLIDE_MS: Record<"bowed" | "brass" | "voice" | "slide8" | "fm" | "synth" | "bass", Record<IntervalClass, number>> = {
   // D503: the bassist's slide along the string (a little slower than a violinist's shift: a longer string).
   bass: { half: 30, step: 35, third: 55, leap: 80 },
   bowed: { half: 25, step: 25, third: 45, leap: 70 },
+  // D502: a brass player's lip slur (quicker than a string's shift: the lips find the next partial), a rising leap's rip.
+  brass: { half: 18, step: 18, third: 30, leap: 45 },
   voice: { half: 35, step: 35, third: 55, leap: 80 },
   slide8: { half: 20, step: 30, third: 45, leap: 60 },
   fm: { half: 30, step: 30, third: 45, leap: 60 },
   synth: { half: 40, step: 40, third: 65, leap: 95 },
 };
+/** D504: a reed's short portamento into a semitone and a tone (ms, its time constant). */
+export const REED_GLIDE_MS = { half: 22, step: 28 } as const;
 /** In a quick passage a glide no longer than this share of the note (a portamento that never smears the next). */
 const GLIDE_SHARE = 0.25;
 
@@ -179,10 +188,18 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
   const ic = intervalClass(from, to);
   const up = to > from;
   const quick = noteMs < GESTURE.minNoteMs;
-  if (fam === "bowed" || fam === "voice" || fam === "slide8" || fam === "fm" || fam === "synth" || fam === "bass" || (fam === "chip" && (ic === "half" || ic === "step" || quick))) {
-    const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : 1);
-    const names = { bowed: "shift", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide", bass: "slide" } as const;
+  if (fam === "bowed" || fam === "brass" || fam === "voice" || fam === "slide8" || fam === "fm" || fam === "synth" || fam === "bass" || (fam === "chip" && (ic === "half" || ic === "step" || quick))) {
+    const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : fam === "brass" && ic === "leap" && !up ? 35 / 45 : 1);
+    const names = { bowed: "shift", brass: ic === "leap" && up ? "rip" : "lip slur", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide", bass: "slide" } as const;
     return { kind: "glide", name: names[fam], tau: Math.max(0.008, Math.min(ms, GLIDE_SHARE * noteMs)) / 1000 };
+  }
+  if (fam === "reed") {
+    // D504: a reed's slide: into a step a short portamento (the fingers sliding off the hole, the lip easing the
+    // pitch: REED_GLIDE_MS); into a third or a leap a quick grace from the side it comes from (an appoggiatura, as
+    // the flute's); in a quick passage the plain slur.
+    if (quick) return { kind: "glide", name: "slur", tau: 0.008 };
+    if (ic === "half" || ic === "step") return { kind: "glide", name: "portamento", tau: Math.min(REED_GLIDE_MS[ic], GLIDE_SHARE * noteMs) / 1000 };
+    return fit("grace", [up ? stepBelow(to, scale) : stepAbove(to, scale)], noteMs);
   }
   if (fam === "flute") {
     if (ic === "half" || ic === "step" || quick) return { kind: "glide", name: "slur", tau: 0.008 };

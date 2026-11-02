@@ -11,8 +11,8 @@ export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 import { hz } from "./tuning.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
-import { BRIGHT_SPAN, formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
+import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -199,6 +199,11 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // 0.9 s: a phone's speaker smears a tail), darkening as it decays, high-passed at 150 Hz (the cello's and the
   // harpsichord's lines heard in the room too, not dry under it), nothing over 6 kHz. Sent BAND_SEND (sound.ts).
   band: { predelay: 0.022, hp: 150, lp: 6000, seconds: 1.3, phoneSeconds: 0.9, rt60: 1.25, phoneRt60: 0.85, brightness: 0.38 },
+  // D504, ZELENKA TRIO's room: intimate, a music room of a Dresden court with three or four players close to the
+  // listener: the first reflection 14 ms on, RT60 1.05 s (on a phone 0.75 s on a 0.8 s impulse), darkening as it
+  // decays, high-passed at 140 Hz (the bassoon's and the continuo's lines in the room too), nothing over 6.5 kHz
+  // (the reeds' edge not glittering in the tail). Sent TRIO_SEND (sound.ts).
+  chamber: { predelay: 0.014, hp: 140, lp: 6500, seconds: 1.1, phoneSeconds: 0.8, rt60: 1.05, phoneRt60: 0.75, brightness: 0.4 },
   // D503, JAZZ QUARTET's club: a small room with people in it, short and warm (RT60 0.8 s, on a phone 0.6 s), the first
   // reflection close (12 ms), darker than the salon (5 kHz at most, darkening as it decays), the bass's line in it from
   // 140 Hz. Sent JAZZ_SEND (sound.ts), the brushes a little less (JAZZ_DRUMS.send).
@@ -503,6 +508,12 @@ export interface Play {
   /** TRIAL: the hairpins' and the palette's dB here: a small brightness (sound.ts swellToneDb). */
   swell?: number;
   /**
+   * D504: the basso continuo joins this note (Patch.continuo), by the piece's continuo script where the note
+   * starts (trio.ts ContinuoScript: the music's structure, never the player's score); "strong": on a strong beat
+   * (the harpsichord's octave below too). Unset: the bass alone.
+   */
+  continuo?: "on" | "strong";
+  /**
    * D439: a note blended into another as one sound (OBBLIGATO's merged layer): filtered, a little late, its
    * own envelope under the note's (`Blend`), into its own way to the master; a recorded patch's note not yet
    * loaded is not sounded at all (no synthesized stand-in).
@@ -510,6 +521,12 @@ export interface Play {
   blend?: Blend;
   /** D439: the note's send to its preset's own effect in place of its patch's (Patch.send). */
   sendAs?: number;
+  /**
+   * D502, BACH BRASS's brassiness (0 mellow: the piano recording, darker; 1 blazing: the forte, brighter, a presence
+   * shelf): the player's from the landing (touch-expr.ts landing "brass"); unset, the band's from its reading's level
+   * (Play.vel: touch-expr.ts brassOf). Only an instrument with two layers (SampledInstrument.blend) hears it.
+   */
+  brass?: number;
 }
 
 /** D439: how a blended note (Play.blend) sits under another: its filters, its delay, its envelope (s), its effect send. */
@@ -560,6 +577,22 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
     trim: (l, at, until) => both.forEach((x) => x.trim?.(l, at, until)),
   };
 }
+
+/** D504: notes sounding as one (the continuo's instruments with the bass), each `shift` semitones from the first. */
+function togetherAll(list: [Sounding, number][]): Sounding {
+  const all = list.map(([s]) => s);
+  return {
+    stop: (t, how) => all.forEach((x, i) => (i === 0 ? x.stop(t, how) : x.stop(t))),
+    bend: (cents) => all.forEach((x) => x.bend(cents)),
+    glide: (m, tau) => list.forEach(([x, sh]) => x.glide?.(m + sh, tau)),
+    muffle: () => all.forEach((x) => x.muffle?.()),
+    dyn: (l) => all.forEach((x) => x.dyn?.(l)),
+    shape: (x) => all[0].shape?.(x),
+    trim: (l, at, until) => all.forEach((x) => x.trim?.(l, at, until)),
+  };
+}
+/** D504: the harpsichord's octave below on a strong beat, against its unison (a left hand's lower note, a little lighter). */
+export const CONTINUO_OCTAVE = 0.7;
 
 /** D420: an organ note held (Chip.note), as it was asked for, its registration and what has been done to it since. */
 interface Held {
@@ -837,6 +870,8 @@ export class Chip {
     const pr = preset();
     const pg = (pr.gain ?? 1) * (this.phone ? (pr.phoneGain ?? 1) : 1);
     if (pg !== 1) v = { ...v, gain: v.gain * pg };
+    // D504: never outside the instrument's compass (Patch.compass): an octave nearer, the band's note and the player's alike.
+    if (v.patch?.compass) midi = inCompass(midi, v.patch.compass);
     const sd = this.noteNow(midi, at, dur, v, p);
     // D420: on the organ a registration changed under a held key reaches it (thumb pistons): the note kept to be taken up again.
     const id = preset().id;
@@ -943,6 +978,27 @@ export class Chip {
       const twin = this.single(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: dbl.patch, ...(dbl.pan !== undefined ? { pan: dbl.pan } : {}) }, { ...p, couple: false, slur: false, bowChange: false, give: undefined, legato: false, level: (p.level ?? 1) * (this.phone ? (dbl.phoneLevel ?? dbl.level) : dbl.level) });
       return together([main, twin], 0);
     }
+    // D504: the basso continuo on the bass line (Patch.continuo: ZELENKA TRIO's cello and harpsichord), only where the
+    // piece's continuo script gives the note to it (Play.continuo: trio.ts, by the music's structure, the band's
+    // note and the player's alike, never by the score); each in its seat, a moment late, at its level; on a strong
+    // beat the harpsichordist's left hand takes the octave below too, spread from the bass up.
+    const cont = v.patch?.continuo;
+    if (cont?.length && p.continuo && p.couple !== false) {
+      const main = this.coupled(midi, at, dur, v, p);
+      const parts: [Sounding, number][] = [[main, 0]];
+      for (const c of cont) {
+        const late = c.late ?? 0;
+        const m = c.patch.compass ? inCompass(midi, c.patch.compass) : midi;
+        const cv: Voicing = { ...v, patch: c.patch, ...(c.pan !== undefined ? { pan: c.pan } : {}) };
+        const plucked = !!(c.patch.sample && SAMPLED[c.patch.sample].plucked);
+        const cp: Play = { level: (p.level ?? 1) * (this.phone ? (c.phoneLevel ?? c.level) : c.level), couple: false, ...(p.apart ? { apart: true } : {}), ...(p.vel !== undefined ? { vel: p.vel } : {}), ...(p.roomMul ? { roomMul: p.roomMul } : {}), ...(!plucked && p.tie ? { tie: p.tie } : {}), ...(!plucked && p.legato ? { legato: true } : {}) };
+        const low = c.octave && p.continuo === "strong" && c.patch.compass ? m - 12 >= c.patch.compass.lo : false;
+        if (low) parts.push([this.single(m - 12, at + late, Math.max(0.03, dur - late), cv, { ...cp, level: (cp.level ?? 1) * CONTINUO_OCTAVE }), m - 12 - midi]);
+        const up = late + (low ? (c.spread ?? 0) : 0);
+        parts.push([this.single(m, at + up, Math.max(0.03, dur - up), cv, cp), m - midi]);
+      }
+      return togetherAll(parts);
+    }
     return this.coupled(midi, at, dur, v, p);
   }
 
@@ -1033,7 +1089,7 @@ export class Chip {
     if (l.bright !== undefined) q.bright = l.bright;
     // D385: the piano's colour by the level struck (the line's and the zone's), when the note has none of its own.
     if (l.vel !== undefined && p.vel === undefined) q.vel = l.vel + 20 * Math.log10(Math.max(1e-3, p.level ?? 1));
-    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open", "echo"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
+    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open", "echo", "soft", "brass"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
     // The classic chip: the pulse of that width (its level by the chip's own table: voiceNote).
     if (pulse && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
     return [q, v];
@@ -1091,7 +1147,7 @@ export class Chip {
   }
 
   /** D311: the player's note's expression stage: the landing's lowpass, and for holding a swell (messa di voce) or a wah's peak (at rest, none). */
-  private touchStage(src: AudioNode, p: Play, f0: number, bag: Bag): { out: AudioNode; messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number } } {
+  private touchStage(src: AudioNode, p: Play, f0: number, bag: Bag): { out: AudioNode; messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode } } {
     const ctx = this.ctx;
     let out = src;
     if (p.lp) {
@@ -1112,12 +1168,24 @@ export class Chip {
       out = out.connect(node);
       wah = { node, f0 };
     }
-    if (p.hold === "messa") {
+    if (p.hold === "messa" || p.hold === "swell") {
       messa = bag.add(ctx.createGain());
       messa.gain.value = 1;
       out = out.connect(messa);
     }
-    return { out, messa, wah };
+    // D504: a wind's swell (touch-expr.ts "breath"): the level and, with it, the brightness (a high shelf).
+    let breath: { gain: GainNode; shelf: BiquadFilterNode } | undefined;
+    if (p.hold === "breath") {
+      const gain = bag.add(ctx.createGain());
+      gain.gain.value = 1;
+      const shelf = bag.add(ctx.createBiquadFilter());
+      shelf.type = "highshelf";
+      shelf.frequency.value = Math.max(1500, Math.min(4000, f0 * 4));
+      shelf.gain.value = 0;
+      out = out.connect(gain).connect(shelf);
+      breath = { gain, shelf };
+    }
+    return { out, messa, wah, breath };
   }
 
   /** D311: the player's vibrato (in place of the voice's own): `base` cents after `delay`, its depth then the thumb's (vibDepth). */
@@ -1139,12 +1207,23 @@ export class Chip {
   }
 
   /** D311: a held note's answer to the thumb's sideways move (Sounding.shape), from the parts it has. */
-  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number }; trem?: { lfo: OscillatorNode; rate: number } }, live: () => boolean): (s: number) => void {
+  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number }; trem?: { lfo: OscillatorNode; rate: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; breathVib?: GainNode; swell?: boolean; blend?: { forte: GainNode; piano: GainNode; b0: number } }, live: () => boolean): (s: number) => void {
     const ctx = this.ctx;
     return (s: number) => {
       if (!live()) return;
       const now = ctx.currentTime;
-      if (parts.messa) parts.messa.gain.setTargetAtTime(messaGain(s), now, TOUCH_TAU);
+      // D502: BACH BRASS's swell: its own range (±BRASS_SWELL_DB), the layers' crossfade following (brighter as it swells).
+      if (parts.messa) parts.messa.gain.setTargetAtTime(parts.swell ? swellGain(s) : messaGain(s), now, TOUCH_TAU);
+      if (parts.blend) {
+        const mx = brassMix(swellBrass(parts.blend.b0, s));
+        parts.blend.forte.gain.setTargetAtTime(mx.forte, now, TOUCH_TAU);
+        parts.blend.piano.gain.setTargetAtTime(mx.piano, now, TOUCH_TAU);
+      }
+      if (parts.breath) {
+        parts.breath.gain.gain.setTargetAtTime(breathGain(s), now, TOUCH_TAU);
+        parts.breath.shelf.gain.setTargetAtTime(breathTone(s), now, TOUCH_TAU);
+      }
+      if (parts.breathVib) retarget(parts.breathVib.gain, breathVib(0, s), now);
       if (parts.wah) {
         const w = wahAt(s, parts.wah.f0);
         parts.wah.node.frequency.setTargetAtTime(w.hz, now, TOUCH_TAU);
@@ -1465,6 +1544,15 @@ export class Chip {
         set = soft ? inst.set : inst.soft.set;
         rec = loaded(set, near);
       }
+      // D504: a short note (as written, not joined) from the instrument's own short recordings (a tongued short
+      // note), where its recording has loaded; else the sustain, as before.
+      const sh = inst.short;
+      if (sh && near !== null && dur <= sh.under && !p.legato) {
+        const sn = nearestSample(sh.set, midi);
+        const sr = sn === null ? undefined : loaded(sh.set, sn);
+        if (sr && sn !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, sh.set, sn, sr, bag);
+        if (sn !== null) loadOne(this.ctx, sh.set, sn);
+      }
       if (rec && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, set, near, rec, bag);
       if (near !== null) loadOne(this.ctx, main, near);
     }
@@ -1604,7 +1692,7 @@ export class Chip {
     // An instrument the ensemble no longer plays lets all its recordings go.
     const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
       const inst = SAMPLED[id];
-      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.hard?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
+      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
     });
     // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
     plans.push([{ set: BRUSH_SET, notes: grooveNow()?.kit === "brushes" ? [...BRUSH_MIDIS] : [] }]);
@@ -2003,8 +2091,22 @@ export class Chip {
       src.start(t + (choir?.delay ?? 0), from);
       srcs.push({ src, set, m, mult });
       if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
+      return g;
     };
-    play(set, near, rec, 1, 1);
+    const g0 = play(set, near, rec, 1, 1);
+    // D502, BACH BRASS: the second dynamic layer (SampledInstrument.blend: the piano recording at the same pitch) with
+    // the forte, crossfaded by the note's brassiness (the player's landing, else the band's reading's level), at equal
+    // power (touch-expr.ts brassMix); the forte alone until the piano layer has loaded.
+    let blend: { forte: GainNode; piano: GainNode; b0: number } | undefined;
+    const brass = inst.blend ? (p.brass ?? brassOf(BRASS_NEUTRAL, p.vel ?? 0)) : undefined;
+    if (inst.blend && brass !== undefined) {
+      const pr = loaded(inst.blend.set, near);
+      if (pr) {
+        const mx = brassMix(brass);
+        g0.gain.value = mx.forte;
+        blend = { forte: g0, piano: play(inst.blend.set, near, pr, 1, mx.piano), b0: brass };
+      } else loadOne(ctx, inst.blend.set, near);
+    }
     if (p.choirs && plucked) {
       // D322, the harpsichord's registration: the second 8' (the neighbouring key's string retuned: another
       // string, not a copy; a few cents off, a few ms later) and the 4' (the octave above), in this note.
@@ -2061,6 +2163,23 @@ export class Chip {
       sh.frequency.value = pt.shelf.hz;
       sh.gain.value = pt.shelf.db;
       src = src.connect(sh);
+    }
+    // D502: on a phone, a low instrument high-passed under the useful range of its fundamental there (Patch.phoneHp:
+    // BACH BRASS's bass): the small speaker gives nothing of it, and it only fed the limiter (the "air" it took up).
+    if (this.phone && pt.phoneHp) {
+      const hp = bag.add(ctx.createBiquadFilter());
+      hp.type = "highpass";
+      hp.frequency.value = pt.phoneHp;
+      hp.Q.value = 0.7071;
+      src = src.connect(hp);
+    }
+    // D502: BACH BRASS's presence shelf by its brassiness (touch-expr.ts brassEdgeDb): darker mellow, the edge blazing.
+    if (brass !== undefined) {
+      const edge = bag.add(ctx.createBiquadFilter());
+      edge.type = "highshelf";
+      edge.frequency.value = BRASS_EDGE.hz;
+      edge.gain.value = brassEdgeDb(brass);
+      src = src.connect(edge);
     }
     // D302, SOLO VOICES: a new syllable's consonant: the voice opening from a lowpass (CONSONANTS.open),
     // softer at first; joined, none (the vowel goes on).
@@ -2202,6 +2321,26 @@ export class Chip {
       dyn.gain.linearRampToValueAtTime(up, t + 0.4 * (end - t));
       dyn.gain.linearRampToValueAtTime(p.tie ? 1 : 1 / up, end);
     }
+    // D504, a wind player's long note shaded (Patch.swell: the band's; the player's is the thumb's sway): a gentle
+    // swell to two fifths of it and back, a little brighter at its top (the reed opening), from its length alone.
+    const sw = pt.swell;
+    if (sw && !p.lead && !plucked && end - t >= sw.min) {
+      const up = 10 ** (sw.db / 20);
+      const top = t + 0.4 * (end - t);
+      dyn.gain.setValueAtTime(1, t + 0.05);
+      dyn.gain.linearRampToValueAtTime(up, top);
+      dyn.gain.linearRampToValueAtTime(p.tie ? 1 : 1 / up, end);
+      if (sw.tone && pan) {
+        const br = bag.add(ctx.createBiquadFilter());
+        br.type = "highshelf";
+        br.frequency.value = Math.max(1500, Math.min(4000, baseHz * 4));
+        br.gain.setValueAtTime(0, t + 0.05);
+        br.gain.linearRampToValueAtTime(sw.tone, top);
+        br.gain.linearRampToValueAtTime(0, end);
+        dyn.disconnect();
+        dyn.connect(br).connect(pan);
+      }
+    }
     if (p.trill && ctx.createConstantSource) {
       const lfo = bag.src(ctx.createOscillator());
       lfo.type = "square";
@@ -2250,8 +2389,10 @@ export class Chip {
     }
     // D311: the player's held recording: its vibrato's depth the thumb's (the patch's own the base).
     const xvib = p.hold === "vibrato" && !plucked ? this.touchVibrato(det, t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
+    // D504: a wind's swell held (touch-expr.ts "breath"): on a patch with a vibrato (oboe II), more of it as it swells (none at rest).
+    const bvib = p.hold === "breath" && pt.vib && !plucked ? this.touchVibrato(det, t, 0, pt.vib.delay, pt.vib.rate, bag, lfos) : null;
     // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
-    if (!xvib && pt.vib && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
+    if (!xvib && pt.vib && pt.vib.depth > 0 && !plucked && det.length && end - t > pt.vib.delay + 0.1) {
       const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
       lfo.frequency.value = pt.vib.rate;
@@ -2353,7 +2494,7 @@ export class Chip {
     let stopped = false;
     let cents = 0;
     let muffled = false;
-    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, ...(bvib ? { breathVib: bvib } : {}), swell: p.hold === "swell", blend, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
     const retune = (tc: number) => {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);

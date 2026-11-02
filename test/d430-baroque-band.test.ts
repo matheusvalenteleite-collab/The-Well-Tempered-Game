@@ -104,7 +104,8 @@ test("D430: the continuo: the harpsichord on the bass's notes only, lighter (5-8
 test("D435: the allocation: BAROQUE BAND where the bass enters last with the continuo, the consort, the lute, SID 64", () => {
   for (const id of ["wtc1f09", "wtc2f16", "wtc2f17", "wtc2f21"]) assert.equal(PIECE_SOUND[id], "baroqueBand", id);
   // (D503: II/12 now opens on JAZZ QUARTET, I/19 too.)
-  for (const [id, s] of [["wtc1f04", "stringConsort"], ["wtc2f08", "stringConsort"], ["wtc1f14", "lute"], ["wtc1f21", "sid64"], ["wtc1f11", "super16"], ["wtc2f12", "jazzQuartet"]] as const) assert.equal(PIECE_SOUND[id], s, id);
+  for (const [id, s] of [["wtc1f04", "stringConsort"], ["wtc2f08", "stringConsort"], ["wtc1f14", "lute"], ["wtc1f21", "sid64"], ["wtc2f12", "jazzQuartet"]] as const) assert.equal(PIECE_SOUND[id], s, id);
+  // D504: I/11 now opens on TOMITA (I/13 on ZELENKA TRIO: test/d504-oboe-trio.test.ts), no longer SUPER 16-BIT.
   for (const s of Object.values(PIECE_SOUND)) assert.ok(offered(s), s);
 });
 

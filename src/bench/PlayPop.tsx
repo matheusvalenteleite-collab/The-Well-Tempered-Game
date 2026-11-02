@@ -65,6 +65,10 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["baroqueBand", "BAROQUE BAND"],
   // D501: the trials' CLAVICHORD, offered.
   ["clavichord", "CLAVICHORD"],
+  // D504: ZELENKA TRIO, two oboes, the bassoon and a continuo that enters where the music asks.
+  ["oboeTrio", "ZELENKA TRIO"],
+  // D502: the trials' BACH BRASS, remade and offered.
+  ["bachBrass", "BACH BRASS"],
   // D503: JAZZ QUARTET (the trials' jazz band remade, with its brushes).
   ["jazzQuartet", "JAZZ QUARTET"],
 ];

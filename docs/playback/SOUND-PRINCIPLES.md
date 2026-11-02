@@ -26,6 +26,9 @@ Every other rule depends on this. A preset is one of three things:
   concerto's band. The players differ (a violin is not a cello, a soprano is not a bass), but they share
   one room, one family of envelopes, one way of articulating, and a seating plan. BAROQUE BAND (D430) is
   one: violins, oboe, viola and the cello with its continuo harpsichord, in one room at one send.
+  ZELENKA TRIO (D504) is another: two oboes of different players (and so of different tone), a bassoon,
+  and a continuo that joins the bass only where the piece's structure asks (trio.ts), each instrument
+  kept inside its own compass (a note outside it an octave nearer, the band's and the player's alike).
 - **A band of unlike instruments on purpose**: the consoles (GAME BOY, SID 64, MEGA FM, TRACKER) and the
   synthesizer records (SWITCHED-ON, TOMITA; BLEEPS AND BLOOPS retired, D433). Here "each line its own colour" is the
   idiom: Wendy Carlos's one patch per line, a Game Boy's two pulses and a wave channel, a tracker's four
@@ -155,7 +158,10 @@ measured through the phone-speaker approximation (mono; two 2-pole high-passes a
 A recorded bass whose overtones are too weak there takes a phone-only high shelf over its fundamentals
 (`Patch.phoneLift`, D365: STRING CONSORT's cello, +4 dB from 700 Hz, the band's notes and the player's alike).
 An instrument whose low register is too heavy is lightened by register, never by voice (`Patch.one.low`,
-D365: the lute's bass courses, -3.5 dB below D♯3).
+D365: the lute's bass courses, -3.5 dB below D♯3). A low brass bass, whose fundamental a phone cannot give and whose
+energy there only feeds its limiter, is also high-passed on a phone under its fundamental's useful range (`Patch.phoneHp`,
+D502: BACH BRASS's bass trombone, 2 poles at 180 Hz, with its lift of +6 dB from 600 Hz), let go sooner and sent a
+little less into the room: a tight bass under the trumpets, not a boom.
 
 ## Checklist for a new preset
 

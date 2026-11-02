@@ -1,6 +1,7 @@
 /**
  * instruments-trials: listening prototypes (not offered) and the audit's EXPRESSIVE_ALL switch. D430: BAROQUE BAND
- * offered (test/d430-baroque-band.test.ts); D437: ORGAN TRIO dropped; D431: EXPRESSIVE_ALL on by default.
+ * offered (test/d430-baroque-band.test.ts); D437: ORGAN TRIO dropped; D431: EXPRESSIVE_ALL on by default; D502: BACH BRASS
+ * offered (test/d502-brass.test.ts).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -9,8 +10,8 @@ import { folderOf, PERIOD, SAMPLED } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { terraceStops } from "../src/touch/registration.ts";
 
-// D501: CLAVICHORD offered (test/d501-instruments-finish.test.ts); D503: the jazz quartet (test/d503-jazz.test.ts).
-const IDS = ["trialWinds", "trialBrass"];
+// D501: CLAVICHORD offered (test/d501-instruments-finish.test.ts); D502: BACH BRASS (test/d502-brass.test.ts); D503: the jazz quartet (test/d503-jazz.test.ts).
+const IDS = ["trialWinds"];
 
 test("the trials are found by id, never offered", () => {
   for (const id of IDS) {
@@ -24,6 +25,8 @@ test("the trials are found by id, never offered", () => {
   assert.equal(presetById("trialBaroque").id, "baroqueBand");
   assert.equal(presetById("trialJazz").id, "jazzQuartet");
   assert.equal(presetById("trialClavichord").id, "clavichord");
+  // D502: the trial brass remade and offered as BACH BRASS.
+  assert.equal(presetById("trialBrass").id, "bachBrass");
 });
 
 test("seated narrowly, every layout's patches real", () => {
@@ -55,7 +58,7 @@ test("their recordings exist and are credited (CC0 / CC BY)", () => {
   }
   setPreset("baroqueBand");
   assert.ok(sampledNow().includes("harpsichord"), "the continuo's harpsichord loads");
-  for (const id of ["baroqueBand", "trialWinds", "trialBrass", "jazzQuartet"]) assert.ok(creditFor(id));
+  for (const id of ["baroqueBand", "trialWinds", "bachBrass", "jazzQuartet"]) assert.ok(creditFor(id));
   for (const s of ["trialOboe", "trialTrombone", "trialBassPizz"]) assert.equal(PERIOD[s].bits, 16);
   setPreset("chip");
 });

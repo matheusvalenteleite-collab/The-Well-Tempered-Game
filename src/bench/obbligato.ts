@@ -104,6 +104,17 @@ const ROWS: readonly Row[] = [
   ["bandOboe", "OBOE", "strings", ["soprano", "alto"]],
   ["bandViola", "BAROQUE VIOLA", "strings", ["alto", "tenor"]],
   ["bandCello", "BAROQUE CELLO", "strings", ["tenor", "bass"]],
+  // D504: ZELENKA TRIO's own (the reeds with the strings' family, as the band's oboe; the harpsichord the keyboard's).
+  ["trioOboe1", "OBOE I", "strings", ["soprano", "alto"]],
+  ["trioOboe2", "OBOE II", "strings", ["soprano", "alto"]],
+  ["trioBassoon", "BASSOON", "strings", ["tenor", "bass"]],
+  ["trioCello", "CONTINUO CELLO", "strings", ["tenor", "bass"]],
+  ["trioHarpsi", "CONTINUO HARPSICHORD", "keys", ALL],
+  // D502: BACH BRASS's recorded brass (the orchestra's real instruments: the strings' family for the tiers).
+  ["bachTrumpet", "TRUMPET", "strings", ["soprano", "alto"]],
+  ["bachHorn", "HORN", "strings", ["alto", "tenor"]],
+  ["bachTrombone", "TROMBONE", "strings", ["tenor", "bass"]],
+  ["bachBass", "BASS TROMBONE", "strings", ["bass"]],
   // D503: JAZZ QUARTET's (the vibraphone C3-F6 recorded, the bass pizzicato E1-G4).
   ["jqVibes", "VIBRAPHONE", "keys", ["soprano", "alto"], 48, 89],
   ["jqPiano", "JAZZ PIANO", "keys", ALL],
@@ -383,6 +394,10 @@ export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
   // D501: BAROQUE BAND's own patches (D438) and CLAVICHORD, probed the same way (their preset's own gain taken out;
   // the cello with its continuo harpsichord).
   bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0, clavichord: -29.1,
+  // D504: ZELENKA TRIO's (the same probe, its gains taken out; BAROQUE BAND's oboe and violin probed again beside them: -25.0, -26.9).
+  trioOboe1: -23.0, trioOboe2: -23.7, trioBassoon: -16.8, trioCello: -21.9, trioHarpsi: -28.1,
+  // D502: BACH BRASS's (probed the same way, its phoneGain taken out; offset by the band violin's probe beside them).
+  bachTrumpet: -28.1, bachHorn: -27.0, bachTrombone: -29.4, bachBass: -29.1,
   // D503: JAZZ QUARTET's (the same way, its preset's gain taken out; the bass's six notes an octave lower, C3-A3).
   jqVibes: -27.1, jqPiano: -28.7, jqBass: -36.8,
 } as Record<Layer["id"], number>;

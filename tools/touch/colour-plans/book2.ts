@@ -52,11 +52,14 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f05: {
-    sound: "vocalSynth",
-    soundWhy: "A serious, vocal (choral) fugue (Keller), sung by the Swingle Singers (Jazz Sébastien Bach, 1963): VOCAL SYNTH's four voices, light like their scat, its plate clear on a phone.",
+    // D502: BACH BRASS (was VOCAL SYNTH, D355).
+    sound: "bachBrass",
+    soundWhy: "The Bell Tower: a maestoso alla breve in D, a serious choral fugue (Keller) that is a brass chorale from a tower (the Stadtpfeifer's Abblasen): BACH BRASS's four players, the stretti ringing in the church, the bass clean on a phone.",
     character: "Sections 1-10, 10-16, 20-27 (Ledbetter); Bodky's terraces (8′, 8″+4″, coupled, full) by his right hand.",
     plans: {
       vocalSynth: [at(16, { open: 0.35 }, "Bodky's quieter 16-22 on a closed vowel."), at(22, OWN, "Open again (22).")],
+      // D502: Bodky's terraces as the brass's colour (the band only): mellower 16-22, the coupled spans brighter, the stretti in more of the church.
+      bachBrass: [at(16, { tone: -2 }, "Bodky's quieter 16-22: the choir mellower."), at(22, OWN, "As written again (22)."), at(27, { tone: 1.5, room: 0.16 }, "Bodky's coupled span after the cadence (27-33): brighter, ringing."), at(33, OWN, "8″+4″ again (33-44)."), at(44, { tone: 2, room: 0.18 }, "The last stretti (44-45) blazing from the tower.")],
       harpsichordSampled: [at(1, H8, "Bodky: 8′."), at(10, H84, "Bodky: 8″+4″ (10-16)."), at(16, H8, "8′ (16-22)."), at(22, H84, "8″+4″ (22-27)."), at(27, HFULL, "Coupled after the cadence in F♯ minor (27-33)."), at(33, H84, "8″+4″ (33-44)."), at(44, HFULL, "The full work to the end (44).")],
       chamberOrgan: [at(1, OFLUTE, "Bodky's 8′: the flutes."), at(10, OPRIN, "The principals."), at(16, OFLUTE, "The flutes."), at(22, OPRIN, "The principals."), at(27, OPLENO, "Bodky's coupled span: the plenum."), at(33, OPRIN, "The principals."), at(44, OPLENO, "The full work to the end.")],
       soloVoices: [at(27, { room: 0.12 }, "The stretti after 27 in more of the hall."), at(33, OWN, "Closer."), at(44, { room: 0.12 }, "The last stretti (44-45).")],
@@ -260,8 +263,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f23: {
-    sound: "tomita",
-    soundWhy: "'Quietly flowing, singing; gentle euphony' (Keller), a double fugue in long notes: TOMITA's whistle, strings, flute and bass, the outer voices nearly dry for a phone.",
+    sound: "oboeTrio",
+    soundWhy: "'Quietly flowing, singing; gentle euphony' (Keller), a double fugue in long notes: D504's ZELENKA TRIO, two oboes of different breath, the bassoon and the cello, each long note shaded by the reeds' swell, the harpsichord joining at the bass's entries, the stretto and the close.",
     character: "The second subject from 27; a long episode 63-75 (claims); Bodky's ff and f spans; a pedal on E (94-95).",
     plans: {
       tomita: [at(63, { room: 0.2 }, "The long episode 63-75 in the space echo."), at(E("wtc2f23", 75), OWN, "The bass's entry (75).")],

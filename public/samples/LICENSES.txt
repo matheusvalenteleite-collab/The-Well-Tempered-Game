@@ -102,6 +102,32 @@ violaSolo/  TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent Lostanlen, F
          Changed: mono; onset kept 1 ms before the attack; 4.5 s with a 0.3 s fade; each note's steady loudness (0.5-3 s,
          K-weighted) evened; the loudest peak at -1 dBFS; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/viola/build_viola.py.
 
+D504, the touch game's ZELENKA TRIO (two oboes, the bassoon; its continuo the cello/ and harpsichord/ above):
+trioOboe/ trioOboeMf/ trioOboeShort/ trioBassoon/ trioBassoonMf/ trioBassoonShort/   University of Iowa Electronic Music Studios,
+         Musical Instrument Samples (theremin.music.uiowa.edu/MIS.html): oboe and bassoon. "These recordings may be downloaded and
+         used for any projects, without restrictions." The 2012-2014 chromatic fortissimo singles (oboe Bb3-Ab6, bassoon Bb1-D5,
+         its B3 not recorded; 24-bit stereo) and the 1997 mezzoforte chromatic scale files (16-bit mono), cut into notes by pitch.
+         Changed: mono; onset kept 1 ms before the attack; each note retuned to its name by resampling (measured over its steady
+         stretch: the scale files drift by up to 27 cents); lengthened to 3.4 s by crossfading later passages of its own
+         steady stretch onto it (60 ms, period-matched), a 0.25 s fade; each note's steady loudness evened (K-weighted), the
+         mezzoforte layer at the fortissimo's loudness; short notes (*Short) the first 0.5 s of the same sustains, held 90 ms
+         then falling (60 ms); one gain per instrument, the loudest peak at -1 dBFS; mono 44.1 kHz 64 kbit/s MP3. The
+         pianissimo files left out (the bassoon's 49 dB of noise, its pitch drifting by up to 33 cents).
+oboeSoft/ oboeStac/   VS Chamber Orchestra 2: Community Edition, Versilian Studios: Oboe, vibrato, soft layer (Woodwinds/Oboe/Vib
+         *_v1), and staccato (Woodwinds/Oboe/Stacc *_v2_rr1; D5 *_v1_rr1). CC0 1.0. Source: https://github.com/sgossner/VSCO-2-CE
+         Changed: mono; onset kept 1 ms before the attack; the soft layer 4.5 s with a 0.3 s fade, the staccato 0.6 s; each note's
+         steady loudness (the staccato's first 0.15 s) matched to the loud layer's (oboe/) note; mono 44.1 kHz 64 kbit/s MP3.
+         Script for both: tools/playback/trio/build_trio.py.
+D502, the touch game's BACH BRASS (two dynamic layers each: the folder, the forte; the folder with P, the piano):
+brassTrumpet/ brassTrumpetP/ brassHorn/ brassHornP/ brassTrombone/ brassTromboneP/ brassBass/ brassBassP/
+         University of Iowa Electronic Music Studios, Musical Instrument Samples (Lawrence Fritts; theremin.music.uiowa.edu/MIS.html):
+         "may be downloaded and used for any projects, without restrictions"; credited in the game. Bb trumpet without vibrato,
+         horn, tenor trombone: the 2014 single notes, ff, 24-bit stereo; their piano layer the 1997 pp chromatic scales (the
+         horn's, too noisy and missing C3-B3, made from its forte by the trumpet's and trombone's measured pp/ff difference by
+         harmonic); the bass trombone's 1997 mf and pp scales (its ff low notes a blare). Every minor third: trumpet E3-C#6,
+         horn F2-F5, tenor trombone E2-C5, bass trombone Bb1-G4. Changed: mono; cut from the scales by measured pitch; onset
+         kept 1 ms before the attack; held on to 4.3 s by crossfaded passages of each note's own steady stretch, a 0.3 s fade;
+         each note's steady loudness (K-weighted) evened; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/brass/build_brass.py.
 D503, the touch game's JAZZ QUARTET (the vibraphone, the double bass pizzicato and the brushes; its piano is grand/ above):
 jazzVibes/ jazzVibesSoft/ jazzVibesHard/  University of Iowa Electronic Music Studios, Musical Instrument Samples (MIS):
          Vibraphone, sustain (motor off, pedal down), mf every semitone C3-F6 (jazzVibes), pp (jazzVibesSoft) and ff

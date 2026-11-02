@@ -67,9 +67,14 @@ import { playerSound } from "./sound.ts";
  * reason, and the sound's colour plans, in tools/touch/colour-plans/ (test/d355-colour-plans.test.ts keeps
  * the two in step). The friends' page plays each piece in this sound.
  * D435 (the owner: "i accept allocation"): BAROQUE BAND (D430) where the bass enters last, with the continuo (I/9,
- * II/16, II/17, II/21); STRING CONSORT for I/4 (a five-voice ricercar, a viol consort's music) and II/8 (Mozart's
+ * II/16, II/17, II/21); D502: BACH BRASS for I/5 (The Coronation: a French overture, trumpets in D) and II/5 (The Bell
+ * Tower: a maestoso brass chorale); STRING CONSORT for I/4 (a five-voice ricercar, a viol consort's music) and II/8 (Mozart's
  * K. 405 quartet); LUTE for I/14; SID 64 for I/21; BLEEPS AND BLOOPS' I/11 and II/12 (D433: retired) on SUPER
  * 16-BIT and TRACKER. Every sound a fugue opens on is one the players have.
+ * D504: ZELENKA TRIO (two oboes, the bassoon, a continuo entering at the music's key moments) for I/13 (the
+ * euphonious "little brook": two oboes in conversation; I/11 then on TOMITA, its passepied on synthesized flutes and
+ * whistles) and II/23 (a singing double fugue in long notes: the reeds' breath and
+ * their swells), each with its continuo script (trio-continuo.ts).
  * D503: JAZZ QUARTET for I/19 (the delicate 9/8 scherzo: the Modern Jazz Quartet played Bach) and II/12 (caprice and
  * humour, swung by the vibes), each with its brushes' scripted fills (jazz-drums.ts DRUM_SCRIPTS).
  */
@@ -84,7 +89,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p04: "chip",
   wtc1f04: "stringConsort",
   wtc1p05: "chip",
-  wtc1f05: "harpsichordSampled",
+  wtc1f05: "bachBrass",
   wtc1p06: "chip",
   wtc1f06: "clavichord", // D501: Bodky's clavichord fugue
   wtc1p07: "harpsichordSampled",
@@ -96,11 +101,11 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p10: "chip",
   wtc1f10: "chip",
   wtc1p11: "chip",
-  wtc1f11: "super16",
+  wtc1f11: "tomita",
   wtc1p12: "chip",
   wtc1f12: "nocturne32",
   wtc1p13: "harpsichordSampled",
-  wtc1f13: "tomita",
+  wtc1f13: "oboeTrio",
   wtc1p14: "harpsichordSampled",
   wtc1f14: "lute",
   wtc1p15: "chip",
@@ -133,7 +138,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p04: "chip",
   wtc2f04: "pianoSampled",
   wtc2p05: "chip",
-  wtc2f05: "vocalSynth",
+  wtc2f05: "bachBrass",
   wtc2p06: "chip",
   wtc2f06: "harpsichordSampled",
   wtc2p07: "chip",
@@ -169,7 +174,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p22: "chip",
   wtc2f22: "chamberOrgan",
   wtc2p23: "chip",
-  wtc2f23: "tomita",
+  wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",
   wtc2f24: "gameboy",
   // The Art of Fugue
