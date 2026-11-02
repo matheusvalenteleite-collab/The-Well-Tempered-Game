@@ -22,15 +22,15 @@ import { OWN_LOUD, SOUND_LOUD } from "./player-lift-data.ts";
 /** How far forward the player's voice stands over the loudest other voice (dB): 1, so the measuring's own spread (±0.5 dB, the engine moving on) never leaves it under. */
 export const LIFT_FORWARD_DB = 1;
 /** The most the player's voice is lifted (dB). */
-export const LIFT_MAX_DB = 9;
+export const LIFT_MAX_DB = 10;
 
 type Loud = readonly number[];
 
 /** The measured levels for a piece on a sound: the player's in `voice` and every voice's as the band plays it ([K, phone] dB). */
-export function loudness(id: string, sound: string, voice: number, count: number): { p: Loud; b: readonly Loud[] } | null {
+export function loudness(id: string, sound: string, voice: number, count: number): { p: Loud; b: readonly Loud[]; d?: readonly Loud[] } | null {
   if (count < 2) return null;
   const own = OWN_LOUD[id];
-  if (own && own.s === sound && own.b.length === count && own.p[voice]) return { p: own.p[voice], b: own.b };
+  if (own && own.s === sound && own.b.length === count && own.p[voice]) return { p: own.p[voice], b: own.b, d: own.d[voice] };
   const by = SOUND_LOUD[sound];
   if (!by) return null;
   const ns = Object.keys(by).map(Number);
@@ -50,6 +50,10 @@ export function liftDb(id: string, sound: string, voice: number, count: number):
   let gap = -Infinity;
   L.b.forEach((u, k) => {
     if (k !== voice) gap = Math.max(gap, u[0] - L.p[0], u[1] - L.p[1]);
+  });
+  // The piece's own sound: also where they sound together (the player measured against each voice over those windows).
+  L.d?.forEach((x, k) => {
+    if (k !== voice && x[0] < 99) gap = Math.max(gap, -x[0], -x[1]);
   });
   if (!Number.isFinite(gap)) return 0;
   return Math.max(0, Math.min(LIFT_MAX_DB, gap + LIFT_FORWARD_DB));
