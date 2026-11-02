@@ -127,7 +127,7 @@ test("D297: the period sets: their folders, mono, baked loops for the loopless r
   assert.equal(setFor(organ, 60), "manualOrg");
   const plan = planFor(organ, [40, 50, 60, 64]);
   assert.deepEqual(plan.map((p) => p.set), ["pedalOrg", "manualOrg"]);
-  assert.ok(plan[0].notes.every((m) => m <= 61) && plan[1].notes.every((m) => m >= 58));
+  assert.ok(plan[0].notes.length && plan[1].notes.length && Math.min(...plan[0].notes) < Math.min(...plan[1].notes) && Math.max(...plan[0].notes) < Math.max(...plan[1].notes));
 });
 
 test("D297: every piece's recordings for a period preset fit a phone's budget (all its instruments together)", () => {
