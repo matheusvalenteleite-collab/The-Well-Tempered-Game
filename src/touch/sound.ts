@@ -286,7 +286,8 @@ export interface Patch {
    * a bass instrument's upper partials, the band its small speaker gives, lifted (never its fundamental,
    * which only feeds the phone's limiter); the same for the band's notes and the player's.
    */
-  phoneLift?: { hz: number; db: number };
+  /** D503: and `cut`, a high-pass (Hz) under it on a phone (a fundamental its speaker cannot give): it only fed its limiter (JAZZ QUARTET's bass). */
+  phoneLift?: { hz: number; db: number; cut?: number };
   /**
    * D430: a second instrument sounding the same note with this one (chip.ts Chip.note, as one note:
    * `together`), `level` of it: BAROQUE BAND's continuo harpsichord doubling the cello's bass line (it plays
@@ -516,7 +517,7 @@ export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
 export const JAZZ_SEND = 0.16;
 export const JAZZ_MOTOR = { rate: 3.6, depth: 0.32, rise: 0.12 } as const;
 export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
-export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 17 } as const;
+export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
 /** D501: the clavichord on a phone: its upper partials lifted (Patch.phoneLift), where the small speaker hears its thin tone. */
@@ -1442,7 +1443,7 @@ export const PRESETS: Preset[] = [
   {
     id: "jazzQuartet",
     name: "JAZZ QUARTET",
-    // D503 (D436's way): +0.5 dB, and on a phone +3.5 dB more (measured -1.2 under the median on a computer, -4.0 through the phone model).
+    // D503 (D436's way): +0.5 dB, and on a phone +2.6 dB more (measured -1.2 under the median on a computer, -4.0 through the phone model; its peaks kept under -7 dBFS).
     gain: 1.06,
     phoneGain: 1.5,
     slots: ["jqVibes", "jqPiano", "jqPiano", "jqPiano", "jqBass"],

@@ -383,6 +383,8 @@ export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
   // D501: BAROQUE BAND's own patches (D438) and CLAVICHORD, probed the same way (their preset's own gain taken out;
   // the cello with its continuo harpsichord).
   bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0, clavichord: -29.1,
+  // D503: JAZZ QUARTET's (the same way, its preset's gain taken out; the bass's six notes an octave lower, C3-A3).
+  jqVibes: -27.1, jqPiano: -28.7, jqBass: -36.8,
 } as Record<Layer["id"], number>;
 /** D439: the evening out at most this many dB either way. */
 export const LOUDNESS_SPAN = 6;

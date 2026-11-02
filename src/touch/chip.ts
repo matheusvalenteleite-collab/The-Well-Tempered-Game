@@ -2045,6 +2045,14 @@ export class Chip {
       lift.frequency.value = pt.phoneLift.hz;
       lift.gain.value = pt.phoneLift.db;
       src = src.connect(lift);
+      // D503: the fundamental under the small speaker's band cut (Patch.phoneLift.cut): it only fed the limiter.
+      if (pt.phoneLift.cut) {
+        const cut = bag.add(ctx.createBiquadFilter());
+        cut.type = "highpass";
+        cut.frequency.value = pt.phoneLift.cut;
+        cut.Q.value = 0.7;
+        src = src.connect(cut);
+      }
     }
     // D503: the patch's own voicing (Patch.shelf: JAZZ QUARTET's piano a little brighter than the solo grand).
     if (pt.shelf) {

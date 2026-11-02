@@ -84,7 +84,7 @@ test("D503: the band: vibraphone on top, the grand inside, the bass on the bass;
   assert.equal(PATCHES.jqPiano.sample, "piano");
   assert.ok(PATCHES.jqPiano.level < PATCHES.pianoSampled.level && PATCHES.jqPiano.shelf!.db > 0);
   assert.equal(PATCHES.jqBass.sample, "jazzBass");
-  assert.ok(PATCHES.jqBass.phoneLift && PATCHES.jqBass.phoneLift.hz >= 400, "the bass's upper partials on a phone, never its fundamental");
+  assert.ok(PATCHES.jqBass.phoneLift && PATCHES.jqBass.phoneLift.hz >= 300, "the bass's upper partials on a phone (above its line's fundamentals, E1-D4)");
   assert.equal(styleOf("jazzQuartet"), "plain", "the band's notes not swung (no style that moves them)");
 });
 

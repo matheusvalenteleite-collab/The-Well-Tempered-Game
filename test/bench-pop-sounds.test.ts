@@ -43,11 +43,11 @@ test("D246: the pop-up's row holds the piece's own sound, marked", async () => {
   assert.deepEqual(p4.filter(([, , own]) => own).map(([id]) => id), ["chip"]);
   // D355: a fugue's own sound (I/22: SOLO VOICES) marked.
   const antico = popSounds("wtc1f22");
-  assert.equal(antico.length, 18);
+  assert.equal(antico.length, 19);
   assert.equal(antico[0][0], "chip", "the row in its order");
   assert.deepEqual(antico.filter(([, , own]) => own).map(([id]) => id), ["soloVoices"]);
   assert.ok(antico.every(([id]) => id !== "organSampled"));
   const harp = popSounds("wtc1p01");
-  assert.equal(harp.length, 18);
+  assert.equal(harp.length, 19);
   assert.deepEqual(harp.filter(([, , own]) => own).map(([id]) => id), ["harpsichordSampled"]);
 });
