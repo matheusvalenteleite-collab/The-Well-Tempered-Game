@@ -76,7 +76,8 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "pianoSampled") return "piano";
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
   // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
-  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "trialBrass") return "bowed";
+  // D502: BACH BRASS as the consort (its joined notes tongued: Patch.bow, BRASS_TONGUE).
+  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
   // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato).
   if (presetId === "trialJazz" || presetId === "trialClavichord") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
@@ -254,7 +255,8 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   baroqueBand: "strings",
   // TRIALS: the winds and brass as the strings (Patch.bow as a tongue, sound.ts WIND_TONGUE): a JOIN a soft new tongue, SET-AND-RELEASE the legato (slur).
   trialWinds: "strings",
-  trialBrass: "strings",
+  // D502: BACH BRASS: a JOIN re-tongued (BRASS_TONGUE.change), SET-AND-RELEASE the slur (the legato tongue), the SLIDE its lip slur.
+  bachBrass: "strings",
   soloVoices: "voices",
   vocalSynth: "voices",
   chip: "synths",

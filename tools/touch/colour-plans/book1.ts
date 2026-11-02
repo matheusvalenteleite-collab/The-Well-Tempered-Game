@@ -122,8 +122,9 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f05: {
-    sound: "harpsichordSampled",
-    soundWhy: "A French overture fugue, pompous and dotted, which 'lends itself excellently to the full work of the harpsichord' (Bodky): the plucked attack keeps the dotted rhythms crisp on a phone.",
+    // D502: BACH BRASS (was the harpsichord, D355).
+    sound: "bachBrass",
+    soundWhy: "The Coronation: a French overture fugue, eroico, sempre f, its dotted rhythms and its pomp the trumpets in D of a festive cantata (Bodky's 'full work'): BACH BRASS, the trumpets on top, the tongued dots crisp, its bass tight on a phone.",
     character: "Dignified, strong, with fire (Keller); the right hand on the softer manual 6-8, 9-11, 21-22, the left 17-20 (Bodky).",
     plans: {
       harpsichordSampled: [
@@ -147,6 +148,14 @@ export const BOOK1: Record<string, PieceColours> = {
       soloVoices: [
         at(1, OWN, "The Swingle Singers sang this fugue (Jazz Sébastien Bach, 1963)."),
         at(20, { room: 0.12 }, "The stretto close (20-24) with more of the hall."),
+      ],
+      // D502: Bodky's softer manual as the brass's mellower colour (the band only), the full work blazing again.
+      bachBrass: [
+        at(1, OWN, "The overture's pomp: the trumpets in D, sempre f."),
+        at(6.25, { tone: -2, voices: [0, 1] }, "Bodky's softer right hand (6-8) as the upper brass a shade mellower."),
+        at(8, OWN, "The full choir again from the first chord of 8."),
+        at(17, { tone: -2, voices: [2, 3] }, "Bodky's softer left hand (17-20): the low brass mellower."),
+        at(20, { tone: 1.5, room: 0.15 }, "The close blazing, into more of the church."),
       ],
       super16: [at(6.25, { room: 0.18, voices: [0, 1] }, "The upper voices' quieter bars (Bodky 6-8) echoed by the SPC."), at(8, OWN, "Dry again.")],
     },

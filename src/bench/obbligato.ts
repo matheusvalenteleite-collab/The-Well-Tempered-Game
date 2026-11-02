@@ -104,6 +104,11 @@ const ROWS: readonly Row[] = [
   ["bandOboe", "OBOE", "strings", ["soprano", "alto"]],
   ["bandViola", "BAROQUE VIOLA", "strings", ["alto", "tenor"]],
   ["bandCello", "BAROQUE CELLO", "strings", ["tenor", "bass"]],
+  // D502: BACH BRASS's recorded brass (the orchestra's real instruments: the strings' family for the tiers).
+  ["bachTrumpet", "TRUMPET", "strings", ["soprano", "alto"]],
+  ["bachHorn", "HORN", "strings", ["alto", "tenor"]],
+  ["bachTrombone", "TROMBONE", "strings", ["tenor", "bass"]],
+  ["bachBass", "BASS TROMBONE", "strings", ["bass"]],
   ["singS", "SOPRANO VOICE", "voice", ["soprano"]],
   ["singS2", "MEZZO VOICE", "voice", ["soprano", "alto"]],
   ["singA", "ALTO VOICE", "voice", ["alto"]],

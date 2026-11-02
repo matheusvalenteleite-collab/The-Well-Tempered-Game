@@ -155,7 +155,10 @@ measured through the phone-speaker approximation (mono; two 2-pole high-passes a
 A recorded bass whose overtones are too weak there takes a phone-only high shelf over its fundamentals
 (`Patch.phoneLift`, D365: STRING CONSORT's cello, +4 dB from 700 Hz, the band's notes and the player's alike).
 An instrument whose low register is too heavy is lightened by register, never by voice (`Patch.one.low`,
-D365: the lute's bass courses, -3.5 dB below D♯3).
+D365: the lute's bass courses, -3.5 dB below D♯3). A low brass bass, whose fundamental a phone cannot give and whose
+energy there only feeds its limiter, is also high-passed on a phone under its fundamental's useful range (`Patch.phoneHp`,
+D502: BACH BRASS's bass trombone, 2 poles at 180 Hz, with its lift of +6 dB from 600 Hz), let go sooner and sent a
+little less into the room: a tight bass under the trumpets, not a boom.
 
 ## Checklist for a new preset
 

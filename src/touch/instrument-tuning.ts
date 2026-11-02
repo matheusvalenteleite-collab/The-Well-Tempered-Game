@@ -31,6 +31,8 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   stringConsort: { id: "vallotti", a: 415 },
   // D430: BAROQUE BAND as the consort (its harpsichord with it).
   baroqueBand: { id: "vallotti", a: 415 },
+  // D502: BACH BRASS as the band (Kammerton: a baroque brass choir at A = 415).
+  bachBrass: { id: "vallotti", a: 415 },
   lute: { id: "equal", a: 415 },
 };
 /** Every other sound (the consoles, the synthesizers): equal temperament, A = 440. */

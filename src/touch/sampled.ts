@@ -124,6 +124,17 @@ export const PERIOD: Record<string, Bake> = {
   trialTrumpet: { folder: "trumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialTrombone: { folder: "sackbut", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialBassPizz: { folder: "bassPizz", rate: 32000, lp: 11000, bits: 16 },
+  // D502, BACH BRASS: the University of Iowa's trumpet, horn, tenor and bass trombone (tools/playback/brass/build_brass.py),
+  // two layers each (the forte and the piano, the same pitches: SampledInstrument.blend), at full fidelity as the
+  // consort's, each held on the made loop (WIND_LOOP: the build holds every note on to 4.3 s in steady tone).
+  brassTrumpet: { folder: "brassTrumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassTrumpetP: { folder: "brassTrumpetP", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassHorn: { folder: "brassHorn", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassHornP: { folder: "brassHornP", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassTrombone: { folder: "brassTrombone", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassTromboneP: { folder: "brassTromboneP", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassBass: { folder: "brassBass", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassBassP: { folder: "brassBassP", rate: 32000, lp: 11000, bits: 16, loop: true },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -166,8 +177,19 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   // partials' peaks over its first 0.95 s, the pitch of a plucked bass string being unsteady at the onset).
   sackbut: { As1: 0.1, As2: 0.3, As3: 0.3, C3: 0, C4: 0.1, Cs2: 0, Cs4: 0, D3: 0, D4: -0.9, Ds2: 0, Ds3: 0.1, Ds4: 0.1, F2: 0, F3: 0.1, F4: 0, Gs2: -0.7, Gs3: -0.4 },
   bassPizz: { A2: 14.7, As1: 5.9, B3: -9.4, C2: 4.6, Cs3: 4.2, D2: 12.2, E1: -2.6, E2: -8.3, E3: 1.2, Fs2: 1, G1: 9.3, Gs2: 9.3, Gs3: 25 },
+  // D502 (build_brass.py: autocorrelation over 0.4-1.6 s of each note as built; the 1997 scales' notes up to 33 cents off, each retuned).
+  brassTrumpet: { E3: 7.6, G3: -9.4, As3: -10.8, Cs4: -0.6, E4: -3.3, G4: 8.8, As4: 6.8, Cs5: 1.3, E5: 11.2, G5: 7.7, As5: 3.2, Cs6: -8.6 },
+  brassTrumpetP: { E3: -10.0, G3: -13.3, As3: -28.0, Cs4: -16.7, E4: -13.3, G4: -3.1, As4: -0.8, Cs5: 0.2, E5: 16.9, G5: 12.6, As5: 16.2, Cs6: -8.6 },
+  brassTrombone: { E2: 26.7, G2: -6.4, As2: -0.7, Cs3: -8.3, E3: -5.7, G3: -0.6, As3: 11.1, Cs4: 6.8, E4: 12.7, G4: 19.7, As4: 10.0, C5: 14.5 },
+  brassTromboneP: { E2: 11.1, G2: 7.3, As2: -0.6, Cs3: -25.0, E3: -6.0, G3: -3.5, As3: 4.0, Cs4: 5.9, E4: 10.0, G4: 19.6, As4: 10.5, C5: 13.7 },
+  brassHorn: { F2: -38.4, Gs2: -7.4, B2: -6.2, D3: 18.4, F3: 12.4, Gs3: -8.6, B3: -3.3, D4: 7.2, F4: 15.8, Gs4: 2.5, B4: 3.7, D5: -18.5, F5: -3.0 },
+  brassHornP: { F2: -37.9, Gs2: -7.5, B2: -6.3, D3: 18.5, F3: 12.5, Gs3: -8.7, B3: -3.2, D4: 7.1, F4: 15.8, Gs4: 2.6, B4: 3.8, D5: -18.5, F5: -3.0 },
+  brassBass: { As1: 11.5, C2: 26.6, Ds2: 14.6, Fs2: 1.3, A2: 9.3, C3: -5.0, Ds3: -3.5, Fs3: -32.7, A3: 1.1, C4: 4.2, Ds4: 17.8, G4: 0.0 },
+  brassBassP: { As1: 3.1, C2: 3.6, Ds2: -11.9, Fs2: -7.7, A2: -12.2, C3: -0.3, Ds3: 0.8, Fs3: -13.0, A3: 5.7, C4: -3.7, Ds4: 9.4, G4: -16.2 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
 };
+/** D502: BACH BRASS's folders (build_brass.py), each layer its own. */
+export const BRASS_FOLDERS = ["brassTrumpet", "brassTrumpetP", "brassHorn", "brassHornP", "brassTrombone", "brassTromboneP", "brassBass", "brassBassP"] as const;
 /** D297: the recordings shorter than 4.545 s (s, measured). */
 const SHORT: Record<string, Record<string, number>> = {
   // D358: the cello's recordings (s, measured).
@@ -175,6 +197,8 @@ const SHORT: Record<string, Record<string, number>> = {
   // TRIALS (s, measured).
   sackbut: { As1: 4.827, As2: 5, As3: 5, C3: 5, C4: 5, Cs2: 5, Cs4: 5, D3: 5, D4: 5, Ds2: 5, Ds3: 5, Ds4: 5, F2: 5, F3: 5, F4: 5, Gs2: 5, Gs3: 5 },
   bassPizz: { A2: 2, As1: 1.794, B3: 2, C2: 1.382, Cs3: 2, D2: 2, E1: 2, E2: 1.573, E3: 2, Fs2: 2, G1: 0.9, Gs2: 2, Gs3: 1.919 },
+  // D502: every note built to 4.3 s.
+  ...Object.fromEntries(BRASS_FOLDERS.map((f) => [f, Object.fromEntries((SAMPLE_MANIFEST[f]?.notes ?? []).map((n) => [n, 4.3]))])),
   harp: { A2: 4.5, A4: 4.5, A6: 3.58, B1: 4.5, B3: 4.5, B5: 4.394, C3: 4.5, C5: 4.5, D2: 4.5, D4: 4.5, D6: 3.878, D7: 2.19, E1: 4.5, E3: 4.5, E5: 4.5, F2: 4.5, F4: 4.5, F6: 2.332, F7: 1.848, G1: 4.5, G3: 4.5, G5: 4.5 },
   xylophone: { C5: 3.369, C6: 1.884, C7: 1.467, C8: 1.138, G4: 3.619, G5: 2.507, G6: 1.614, G7: 1.383 },
   horn: {},
@@ -213,7 +237,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -256,6 +280,12 @@ export interface SampledInstrument {
   damper?: { low: number; high: number; undamped: number; tail: number; stacc: number; crisp: number; slur: number };
   /** D339: dB of brightness (a high shelf at `hz`) per dB of level struck (Play.vel), within [min, max]. */
   velTone?: { perDb: number; hz: number; min: number; max: number };
+  /**
+   * D502, BACH BRASS: a second dynamic layer recorded at the same pitches (`set`: the piano recordings), played with the
+   * main (the forte) and crossfaded by the note's brassiness (Play.brass, 0 the piano layer to 1 the forte: equal power,
+   * touch-expr.ts brassMix), live while held (Sounding.shape: the swell's brightness follows).
+   */
+  blend?: { set: string };
   /**
    * D405: at most this many semitones between a note and the recording it is played from. A struck string
    * read much faster than it was recorded turns glassy (a glockenspiel), much slower muddy; a pitch past
@@ -339,6 +369,13 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   trialTrumpet: { set: "trialTrumpet", plucked: false, gain: 2.2, maxShift: 2 },
   trialTrombone: { set: "trialTrombone", plucked: false, gain: 2.2, maxShift: 3 },
   trialBassPizz: { set: "trialBassPizz", plucked: true, gain: 2.2, maxShift: 4 },
+  // D502, BACH BRASS (every minor third: 1.5 semitones at most to the nearest). `maxShift` (D405) 3 past the compass,
+  // then an octave nearer: the trumpet under C#3 and over E6, the horn under D2 and over G#5, the trombone under C#2 and
+  // over D#5, the bass under G1 and over A#4 (the folds: test/d502-brass.test.ts).
+  brassTrumpet: { set: "brassTrumpet", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
+  brassHorn: { set: "brassHorn", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassHornP" } },
+  brassTrombone: { set: "brassTrombone", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
+  brassBass: { set: "brassBass", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassBassP" } },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
@@ -446,6 +483,8 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
   const plan: Plan = [{ set: inst.set, notes }];
   if (above) plan.push({ set: above.set, notes: notesFor(above.set, wanted.filter((m) => m >= above.from)) });
   if (inst.soft) plan.push({ set: inst.soft.set, notes });
+  // D502: the second dynamic layer, the same pitches (SampledInstrument.blend).
+  if (inst.blend) plan.push({ set: inst.blend.set, notes });
   if (inst.release) plan.push({ set: inst.release, notes: notes.filter((m) => sampledMidis(inst.release!).includes(m)) });
   if (inst.low) {
     const lows = sampledMidis(inst.low);

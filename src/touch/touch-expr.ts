@@ -18,7 +18,7 @@ import type { Patch, Wave } from "./sound.ts";
 import { SAMPLED } from "./sampled.ts";
 
 /** The instruments' families, each with its own design. */
-export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps";
+export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps" | "brass";
 
 /** Each preset's family (by its id; presets not named here, as TRAVERSO with KIMIKO, take no expression). */
 export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
@@ -47,7 +47,8 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // TRIALS (instruments-trials): the bands of held instruments as the consort (a bow's or the breath's pressure,
   // the messa); the jazz quartet and the clavichord as the piano (the touch's three zones: their dynamics).
   trialWinds: "singers",
-  trialBrass: "singers",
+  // D502: BACH BRASS its own: the landing its brassiness, a held sway its swell (brassLanding, holdMode "swell").
+  bachBrass: "brass",
   trialJazz: "piano",
   trialClavichord: "piano",
 };
@@ -104,6 +105,50 @@ export const ECHO_LP: readonly [number, number] = [1200, 4000];
 /** SOLO VOICES: closed toward the soft side (a lowpass down to this at its edge), open toward the strong side (a high shelf up to this, dB). */
 export const SING_CLOSED_HZ = 3000;
 export const SING_OPEN_DB = 3;
+/**
+ * D502, BACH BRASS: the landing across the strip is BRASSINESS, continuous: 0 the soft side (mellow: the piano
+ * recording, darker) to 1 the strong side (blazing: the forte recording, brighter, the brass's edge). The two layers
+ * crossfaded at equal power (brassMix), a gentle presence shelf (BRASS_EDGE: -1.5 dB at the soft edge to +3 dB at the
+ * strong, a high shelf at BRASS_EDGE.hz), and a little level (BRASS_LEVEL_DB: a brass player blows harder for the
+ * edge): the middle is the sound as the band plays it. Busoni's printed level moves the brassiness too
+ * (BRASS_DB_SPAN dB the whole range: an f brighter as well as louder), the band's notes and the player's alike.
+ * Never by verdict.
+ */
+export const BRASS_NEUTRAL = 0.5;
+export const BRASS_EDGE = { hz: 2200, soft: -1.5, strong: 3 } as const;
+export const BRASS_LEVEL_DB: readonly [number, number] = [-2, 1.5];
+export const BRASS_DB_SPAN = 12;
+/** D502: the two layers' gains at brassiness b (equal power: the piano layer at 0, the forte at 1, both -3 dB at the middle). */
+export function brassMix(b: number): { forte: number; piano: number } {
+  const c = clamp01(b);
+  return { forte: Math.sin((c * Math.PI) / 2), piano: Math.cos((c * Math.PI) / 2) };
+}
+/** D502: the presence shelf (dB) at brassiness b: BRASS_EDGE.soft at 0, nothing at the middle, BRASS_EDGE.strong at 1. */
+export function brassEdgeDb(b: number): number {
+  const c = clamp01(b);
+  return c < 0.5 ? BRASS_EDGE.soft * (1 - 2 * c) : BRASS_EDGE.strong * (2 * c - 1);
+}
+/** D502: the player's landing's own level (dB) at brassiness b (linear, BRASS_LEVEL_DB edge to edge; +0 a little past the middle). */
+export function brassLevelDb(b: number): number {
+  const [lo, hi] = BRASS_LEVEL_DB;
+  return lo + (hi - lo) * clamp01(b);
+}
+/** D502: a note's brassiness from a landing (`x`, strength; the band's: BRASS_NEUTRAL) moved by the reading's level (dB). */
+export function brassOf(x: number, db = 0): number {
+  return clamp01(clamp01(x) + (Number.isFinite(db) ? db : 0) / BRASS_DB_SPAN);
+}
+/**
+ * D502, THE SWELL: the held thumb swayed across the strip is a messa di voce on the held note, as brass players
+ * crescendo on a long note: ±BRASS_SWELL_DB of level (toward the strong side louder) with the brightness following
+ * (the brassiness moved BRASS_SWELL_MOVE either way: the crossfade toward the forte as it swells, the piano as it fades).
+ */
+export const BRASS_SWELL_DB = 4;
+export const BRASS_SWELL_MOVE = 0.35;
+/** D502: the swell's gain at sustain value s (-1..1). */
+export const swellGain = (s: number) => 10 ** ((BRASS_SWELL_DB * clampS(s)) / 20);
+/** D502: the brassiness a held note's swell has moved it to, from its landing's `b0`. */
+export const swellBrass = (b0: number, s: number) => clamp01(b0 + BRASS_SWELL_MOVE * clampS(s));
+
 /** SYNTH, CONSOLE and the chips without a pulse: the filter's brightness (Play.bright, -1..1) at the edges: ±span/2. */
 export const BRIGHT_SPAN: Readonly<Record<"synth" | "console" | "chip", number>> = { synth: 1.2, console: 1.4, chip: 1.2 };
 /** MEGA FM: the FM index scaled over this many octaves edge to edge (×0.62 to ×1.62). */
@@ -158,6 +203,8 @@ export interface Landing {
   echo?: boolean;
   /** D385: the piano's level as struck (dB about the middle): its colour (chip.ts Play.vel). */
   vel?: number;
+  /** D502: BACH BRASS's brassiness (0 mellow .. 1 blazing: chip.ts Play.brass). */
+  brass?: number;
 }
 
 /** D385: the line around a landing on the piano: the reading's level here (`lineDb`) and an accent's weight in the strong zone (`accentDb`). */
@@ -222,13 +269,18 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       return { bright: BRIGHT_SPAN.synth * (c - 0.5) };
     case "bleeps":
       return { strike: 2 ** (STRIKE_OCTAVES * (c - 0.5)) };
+    case "brass": {
+      // D502: the brassiness (the layers' crossfade and the presence shelf: chip.ts) from where it landed and the
+      // reading's level; the landing's own little level from where it landed alone (the reading's level is the line's).
+      return { brass: brassOf(c, line.lineDb ?? 0), level: 10 ** (brassLevelDb(c) / 20) };
+    }
   }
 }
 
 // ---- Holding sideways: the sustain ----
 
 /** How a held note answers a sideways move: none (a struck string, an organ's steady wind), a swell (messa di voce), the vibrato's depth, a filter sweep (wah), the tremolo's speed. */
-export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem";
+export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem" | "swell";
 
 /** A sideways travel of this share of the bar's width is the full range (half the bar). */
 export const HOLD_SPAN = 0.5;
@@ -267,6 +319,8 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
     case "voice":
     case "singers":
       return "messa";
+    case "brass":
+      return "swell";
     case "synth":
       return "wah";
     case "bleeps":

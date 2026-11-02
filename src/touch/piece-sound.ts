@@ -67,7 +67,8 @@ import { playerSound } from "./sound.ts";
  * reason, and the sound's colour plans, in tools/touch/colour-plans/ (test/d355-colour-plans.test.ts keeps
  * the two in step). The friends' page plays each piece in this sound.
  * D435 (the owner: "i accept allocation"): BAROQUE BAND (D430) where the bass enters last, with the continuo (I/9,
- * II/16, II/17, II/21); STRING CONSORT for I/4 (a five-voice ricercar, a viol consort's music) and II/8 (Mozart's
+ * II/16, II/17, II/21); D502: BACH BRASS for I/5 (The Coronation: a French overture, trumpets in D) and II/5 (The Bell
+ * Tower: a maestoso brass chorale); STRING CONSORT for I/4 (a five-voice ricercar, a viol consort's music) and II/8 (Mozart's
  * K. 405 quartet); LUTE for I/14; SID 64 for I/21; BLEEPS AND BLOOPS' I/11 and II/12 (D433: retired) on SUPER
  * 16-BIT and TRACKER. Every sound a fugue opens on is one the players have.
  */
@@ -82,7 +83,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p04: "chip",
   wtc1f04: "stringConsort",
   wtc1p05: "chip",
-  wtc1f05: "harpsichordSampled",
+  wtc1f05: "bachBrass",
   wtc1p06: "chip",
   wtc1f06: "pianoSampled",
   wtc1p07: "harpsichordSampled",
@@ -131,7 +132,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p04: "chip",
   wtc2f04: "pianoSampled",
   wtc2p05: "chip",
-  wtc2f05: "vocalSynth",
+  wtc2f05: "bachBrass",
   wtc2p06: "chip",
   wtc2f06: "harpsichordSampled",
   wtc2p07: "chip",
