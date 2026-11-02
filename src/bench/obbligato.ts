@@ -88,6 +88,17 @@ export interface Layer {
   hi: number;
 }
 
+/**
+ * D505 (the owner: "I'm still getting the weird glockenspiel sound sometimes … probably a vestige of the times when
+ * we had effects upon correct play"): the struck bars and bells never drawn as a boost's layer. A boost is offered
+ * for playing well, and D503's recorded vibraphone, a keyboard and so the musical tier on every strings, winds and
+ * voices sound, doubled the player's subject in unison about one boost in fifteen on STRING CONSORT, BAROQUE BAND,
+ * ZELENKA TRIO, BACH BRASS and SOLO VOICES (6.3-6.9%, 4.6%: 21,400 draws each, scratchpad glock2/obb-*.txt), and the
+ * synthesized vibraphone, marimba, tube bell and FM e-piano (its tine a 1:14 bell) about one in 170 on the others.
+ * Kept in LAYERS (the pool lists every instrument the sounds play), never drawn.
+ */
+export const BELL_LIKE: ReadonlySet<Layer["id"]> = new Set(["jqVibes", "modVibe", "modBongo", "modBell", "fmPiano"]);
+
 /** The wackiest instruments: the rarest draw. */
 export const WACKIEST: readonly Layer["id"][] = ["tomWhistle", "modBell", "solBloop", "trkChoir"];
 
@@ -343,7 +354,7 @@ export function drawLayer(o: { main: Layer["id"] | null; midis: readonly number[
   const reg = registerOf(o.midis);
   const lo = Math.min(...o.midis);
   const hi = Math.max(...o.midis);
-  const ok = LAYERS.filter((l) => l.id !== (o.main ?? "chip") && (o.pool ? o.pool(l) : true) && octavesFor(l, lo, hi).length > 0);
+  const ok = LAYERS.filter((l) => l.id !== (o.main ?? "chip") && !BELL_LIKE.has(l.id) && (o.pool ? o.pool(l) : true) && octavesFor(l, lo, hi).length > 0);
   const tiers = [0, 1, 2].map((t) => ok.filter((l) => tierOf(l, fam, reg) === t));
   const odds = tierOdds();
   const t = pick([0, 1, 2] as const, (k) => (tiers[k].length ? odds[k] : 0), rng());

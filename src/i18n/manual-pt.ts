@@ -325,6 +325,7 @@ export const MANUAL_PT: Record<string, string> = {
   "{n} of {m} marks missed. SHORT, the dot: lift before three fifths of the note. DETACHED, the stroke: a small silence before the next note.": "{n} de {m} sinais perdidos. CURTA, o ponto: levante antes de três quintos da nota. DESTACADO, o traço: um pequeno silêncio antes da próxima nota.",
   "{n} of {m} missed. Legato under the slur; a small silence after its last note.": "{n} de {m} perdidos. Ligado sob a ligadura; um pequeno silêncio depois da última nota.",
   "{n} of {m} accents missed. Tap the accent hard, in its time (on a computer: land it in the strong zone, by the box).": "{n} de {m} acentos perdidos. Toque o acento forte, no tempo dele (no computador: pouse-o na zona forte, junto à caixa).",
+  "{n} of {m} accents missed. Weight on time: land the accent by the box, in the strong zone, on the beat.": "{n} de {m} acentos perdidos. Peso no tempo: pouse o acento junto à caixa, na zona forte, no tempo.",
   "You came in exactly on time after every rest. Breathe: enter a hair late, then go on.": "Você entrou exatamente no tempo depois de cada pausa. Respire: entre um fio atrasado, depois siga.",
   "You leaned, then stayed late. After the lean, the next note is back on the beat.": "Você se demorou e ficou atrasado. Depois da demora, a próxima nota volta ao tempo.",
   "No lean yet. On a bar's first note, arrive a moment late; the next note on time.": "Nenhuma demora ainda. Na primeira nota do compasso, chegue um instante atrasado; a próxima no tempo.",

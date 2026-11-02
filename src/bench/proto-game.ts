@@ -1637,7 +1637,8 @@ export class ProtoGame {
         }
         parent = p;
         // D425: his accents struck hard (a synthetic strength, as a phone would read it), the rest softly.
-        const strike = this.asksAccent(0, t.i) ? 1 : 0.25;
+        // D506: only with the Lab's hard tap on; off (the game's), he lands them in the strong zone, as a player does.
+        const strike = !MECH.hardTap ? undefined : this.asksAccent(0, t.i) ? 1 : 0.25;
         q.push({ tick: t.land ?? t.on, act: () => ((y = this.drawnY({ step: t.step, midi: demoNotes[t.i]?.midi ?? 0 })), this.down(id, { side: t.side, x: xOf(t.side, t.d), y, w: W, h: H, strike }, performance.now())) });
         if (t.shake) {
           const sh = t.shake;
@@ -3980,7 +3981,7 @@ export class ProtoGame {
     const n1 = notes[i];
     // D485: the note's layer (touchNote) where a boost covers it, right or wrong alike.
     this.layerFor = { voice: this.voiceOf(h.k, i), on: n1.on };
-    h.fx = sv && !this.bt ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
+    h.fx = sv && !this.bt ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1, true) : [];
     // D299, BLUETOOTH MODE: the note is already on the schedule (arm); a right touch only scores it (its
     // riders then shown as they sound). Below, every sound a touch would make is silent (touchNote).
     const armed = this.bt && v.ok ? this.armed.get(`${h.k}:${notes[i].on}`) : undefined;

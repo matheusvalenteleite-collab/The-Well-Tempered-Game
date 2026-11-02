@@ -546,6 +546,26 @@ export function foldInto(set: string, midi: number, maxShift: number): number {
   return m;
 }
 
+/**
+ * D505: every recorded set's guard against the glassy read (the piano's D405 maxShift was the only one): a pitch
+ * more than MAX_SHIFT_ANY semitones over the set's top recording is played an octave (or two) lower, never read
+ * fast. Below the compass nothing changes where the instrument sets no maxShift (a slow read is dull, not a bell,
+ * and folding a bass up would cross the voices: the scan's downward reads, D505, are the period sets' inner voices).
+ */
+export const MAX_SHIFT_ANY = 3;
+export function foldDown(set: string, midi: number, maxShift = MAX_SHIFT_ANY): number {
+  const ms = sampledMidis(set);
+  if (!ms.length) return midi;
+  let m = midi;
+  while (m > ms[ms.length - 1] + maxShift && m - 12 >= ms[0] - maxShift) m -= 12;
+  return m;
+}
+/** D505: the pitch a recorded instrument's note is read at: its own maxShift both ways (D405), else the upward guard (singers excepted: an alto's high note read a few semitones fast is not a bell, an octave down would break its line). */
+export function guardedPitch(inst: SampledInstrument, set: string, midi: number, sung = false): number {
+  if (inst.maxShift !== undefined) return foldInto(set, midi, inst.maxShift);
+  return sung ? midi : foldDown(set, midi);
+}
+
 /** The pitch a recording actually sounds (Hz): its name at A = 440, corrected by what was measured. */
 export function sampleHz(set: string, m: number): number {
   const cents = SAMPLED_NOTES[set]?.[nameOfMidi(m)]?.cents ?? 0;

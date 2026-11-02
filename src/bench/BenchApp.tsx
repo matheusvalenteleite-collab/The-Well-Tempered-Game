@@ -690,7 +690,8 @@ export function BenchApp() {
     game.current = g;
     // D425, THE HARD TAP: each touchdown's strength from the motion sensor (by the calibration kept); none: the strong zone.
     const hardCal = loadHardCal();
-    if (platform === "mobile") g.strikes = motionStrikes(gameMotion(), () => hardCal);
+    // D506: only with the Lab's hard tap on (MECH.hardTap); off (the game's), the strong zone and no sensor at all.
+    if (platform === "mobile" && MECH.hardTap) g.strikes = motionStrikes(gameMotion(), () => hardCal);
     // D425: the calibration offered once, at the start of the first run with accents on a phone whose sensor answers.
     if (platform === "mobile" && !watching && !prac && hardCal.from === "default" && hardTapDevice() && gameMotion().live && !calOffered() && g.asksAccents()) {
       markCalOffered();
@@ -1499,8 +1500,8 @@ export function BenchApp() {
   }, [hearing]);
   /**
    * D371: play.html's title page (Intro.tsx), on every launch. Its first touch makes the sound (the phone's
-   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D500: on
-   * STRING CONSORT's cello, then C♯–D and BAROQUE BAND's cadence from the D, which rings on into the
+   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D507: on
+   * the recorded piano, softly, then C♯–D and the left hand's D–A–D under the D, which rings on into the
    * selection screen; a skip fades it out quickly. Its end gives the piece's sound back.
    */
   // D376: not in THE EXPRESSION LAB (straight to the selection screen).
@@ -1514,7 +1515,7 @@ export function BenchApp() {
   const introBegin = async (): Promise<number> => {
     const ch = ensureChip();
     setPreset(INTRO_PRESET);
-    // D500: the cello and the band are recordings: loaded first (a moment, at most INTRO_LOAD_WAIT_MS: any not
+    // D500, D507: the intro is recordings (the piano): loaded first (a moment, at most INTRO_LOAD_WAIT_MS: any not
     // in by then synthesized), so the cello's first bow is its own; the picture waits for it (Intro.tsx).
     await Promise.race([ch.prepare(introPitches()).catch(() => {}), new Promise((r) => setTimeout(r, INTRO_LOAD_WAIT_MS))]);
     if (introOver.current) return 0;
@@ -1945,7 +1946,7 @@ export function BenchApp() {
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
-          {platform === "mobile" && <HardTapSetting />}
+          {platform === "mobile" && MECH.hardTap && <HardTapSetting />}
           <p className="tg-panel-note">{tr("With headphones on, tap along to the clicks so the music and your taps line up.")}</p>
           {/* D299: BLUETOOTH MODE explained when on, the clearest sounds, the check, the last Bluetooth delay. */}
           <BtLite lag={lag} setLag={setLag} chip={ensureChip} on={btLite()} />
@@ -2008,7 +2009,7 @@ export function BenchApp() {
           <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
           {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
-          {platform === "mobile" && <HardTapSetting />}
+          {platform === "mobile" && MECH.hardTap && <HardTapSetting />}
           {platform === "computer" && (
             <div className="tg-set">
               <span>MIDI</span>

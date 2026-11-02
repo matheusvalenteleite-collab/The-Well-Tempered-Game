@@ -84,9 +84,11 @@ for (const p of PRESETS)
   });
 
 test("D308: the subject's layers (h.fx) on a touched note stop with it", async () => {
-  const f = fugueById("wtc1f22");
+  // D505 (deliberately): I/4's second subject, its second choir (the voice's own instrument doubled; I/22's
+  // synthesized 16' sounds on no sound now).
+  const f = fugueById("wtc1f04");
   const cues = new SubjectCues(f);
-  const e = f.entries[0];
+  const e = f.entries.find((x) => x.theme === 2 && x.notes[0][2] === 62)!;
   const sn = cues.note(e.voice, e.notes[0][0])!;
   let tested = 0;
   for (const p of PRESETS) {
@@ -98,7 +100,8 @@ test("D308: the subject's layers (h.fx) on a touched note stop with it", async (
     const before = new Set(ctx.nodes);
     const { SubjectSound } = await import("../src/touch/subject-fx.ts");
     const subj = new SubjectSound(f);
-    const layers = subj.layers(chip, sn, e.notes[0][2], DOWN, 1, voicing(0, 5, true), 1);
+    // D505: a touched note's layers, as the game asks for them (lead: let go with it).
+    const layers = subj.layers(chip, sn, e.notes[0][2], DOWN, 1, voicing(0, 5, true), 1, true);
     const made = [...ctx.nodes].filter((x) => !before.has(x));
     if (!layers.length) continue;
     ctx.advance(UP);
