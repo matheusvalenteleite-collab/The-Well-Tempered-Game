@@ -384,9 +384,9 @@ export const HOWTO: Section[] = [
         "pistons",
         L("Pistons (organ and harpsichord)", "Pistões (órgão e cravo)", "Pistones (órgano y clave)"),
         p(
-          "On the organ and the harpsichord, three pistons stand on the inner edges of the box: each draws a set of stops at one touch, even while your other thumb holds a note. What each piston holds is set in SETTINGS › PISTONS for the chosen fugue.",
-          "No órgão e no cravo, três pistões ficam nas bordas internas da caixa: cada um aciona um conjunto de registros com um toque, mesmo enquanto o outro polegar segura uma nota. O que cada pistão aciona se escolhe em CONFIGURAÇÕES › PISTÕES, para a fuga escolhida.",
-          "En el órgano y el clave, tres pistones están en los bordes interiores de la caja: cada uno activa un conjunto de registros con un toque, incluso mientras el otro pulgar mantiene una nota. Lo que activa cada pistón se elige en AJUSTES › PISTONES, para la fuga elegida.",
+          "On the organ and the harpsichord, three pistons sit at the foot of the thumb bars: each draws a set of stops at one touch, even while your other thumb holds a note. What each piston holds is set in SETTINGS › PISTONS for the chosen fugue.",
+          "No órgão e no cravo, três pistões ficam no pé das barras dos polegares: cada um aciona um conjunto de registros com um toque, mesmo enquanto o outro polegar segura uma nota. O que cada pistão aciona se escolhe em CONFIGURAÇÕES › PISTÕES, para a fuga escolhida.",
+          "En el órgano y el clave, tres pistones están al pie de las barras de los pulgares: cada uno activa un conjunto de registros con un toque, incluso mientras el otro pulgar mantiene una nota. Lo que activa cada pistón se elige en AJUSTES › PISTONES, para la fuga elegida.",
         ),
       ),
     ],
