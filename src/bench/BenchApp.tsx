@@ -40,6 +40,7 @@ import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
+import { fugueName } from "../touch/fugue-names.ts";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
@@ -1732,7 +1733,7 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? liteTitle(f) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
             {playing && practice.current && (
               // D326: a practice run (or THE OTHERS) named in the title bar.
@@ -1862,12 +1863,13 @@ export function BenchApp() {
           )}
         </div>
       )}
-      {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man && !dressIntro} hintRef={hintRef} /> : (
+      {/* D469: on the bars no instructions at the start of a game (the tutorial's and THE REVEAL's words stay). */}
+      {hintLine && (layout !== "bars" || man || revealPlan) && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man && !dressIntro} hintRef={hintRef} /> : (
         <p className="tb-lite-hint" id="lite-hint" role="status">
           {hintLine}
         </p>
       ))}
-      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson) && !dressNow?.includes("marks")) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} />}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson) && !dressNow?.includes("marks")) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} glossOnly={!man} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
@@ -2172,6 +2174,15 @@ export function VoiceLegend({ names, played, ink, paper = false, alone = false }
   );
 }
 
+/**
+ * D469 (design studio; the owner: the fugue's title in the box's top bar during play): the fugue's name before its
+ * formal title ("THE IMP · FUGUE 2 IN C MINOR"); the map that ran through it now stands at the left bar's foot.
+ */
+function liteTitle(f: TouchFugue): string {
+  const formal = lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number);
+  const name = f.kind === "fugue" ? fugueName(f.id, lang()) : null;
+  return name ? `${name.toUpperCase()} · ${formal}` : formal;
+}
 /** D462: the words of Settings' STAGE switch (the fugue's world behind the box). */
 const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
   en: [["full", "FULL"], ["quiet", "QUIET"], ["off", "OFF"]],
