@@ -9,12 +9,12 @@ import { readFileSync } from "node:fs";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("pistons: a column of three in the box's frame on each side, placed from the roll, acting on pointerdown", () => {
+test("D471: the pistons back at the bars' feet (D469's move undone), acting on pointerdown, the floor for OBBLIGATO kept", () => {
   const r = src("src/touch/RegistrationStops.tsx");
-  assert.match(r, /const r = rollRect\(\);/);
-  assert.match(r, /top: frameAt\.top \+ TAB_ROW/);
+  assert.ok(!r.includes("rollRect") && !r.includes("TAB_ROW"));
+  assert.match(r, /--tb-stop-rows: \$\{PISTON_ROWS\}/);
   assert.match(r, /onPointerDown=\{\(e: ReactPointerEvent\) => \{/);
-  assert.match(r, /--tb-stop-rows: 0;/);
+  assert.match(src("src/bench/bench.css"), /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ 28px\); \}/);
 });
 
 test("slides drawn in the box: from the note slid from, or from a slide-in's start", () => {

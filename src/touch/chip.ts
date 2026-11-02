@@ -701,7 +701,8 @@ export class Chip {
   /**
    * The delay between the audio clock and what the player hears and does, in seconds, measured by
    * tapping along (D173: Bluetooth headphones add a fifth of a second or more, which the system often
-   * does not report). Null: the system's own figure.
+   * does not report). Null: none (D494: wired, 0 ms; the system's own figure, `outputLatency`, is never
+   * taken off by itself: nothing compensates for Bluetooth unless the player taps a delay).
    */
   lag: number | null = null;
   /**
@@ -839,7 +840,7 @@ export class Chip {
 
   /** The audio clock as the ear hears it (the output's latency taken off), for drawing in sync. */
   heard(): number {
-    return (this.smooth ? this.clock() : this.ctx.currentTime) - (this.lag ?? (this.ctx.outputLatency || this.ctx.baseLatency || 0));
+    return (this.smooth ? this.clock() : this.ctx.currentTime) - (this.lag ?? 0);
   }
 
   /**

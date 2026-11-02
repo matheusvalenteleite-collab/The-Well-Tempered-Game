@@ -383,13 +383,12 @@ test("D311: the dynamics lesson keeps its own loudness (no touch); elsewhere the
   assert.deepEqual(band(a.heard), band(b.heard), "the other voices' levels alike, however the player touches");
 });
 
-test("D311: BLUETOOTH MODE: the notes scheduled ahead take the voice's latest landing; the touch's sideways move shapes the note it scored", () => {
+test("D311, D494: BLUETOOTH MODE: each note sounds from its touch with that touch's landing; the sideways move shapes it", () => {
   const { heard, lands } = run((i, side) => (i < 4 ? (side === "left" ? 3 : W - 3) : side === "left" ? bw - 3 : W - bw + 3), 0, { bt: true });
   const own = heard.filter((h) => h.touch !== undefined);
   assert.ok(own.length > 10);
-  // The first note, scheduled before any touch: the middle; later ones a landing before them.
-  assert.equal(own[0].touch, 0.5);
-  const set = new Set([0.5, ...lands].map((x) => x.toFixed(4)));
+  // D494: nothing scheduled before a touch: every touch is a landing.
+  const set = new Set(lands.map((x) => x.toFixed(4)));
   for (const h of own) assert.ok(set.has(h.touch!.toFixed(4)));
   assert.ok(own.some((h) => h.shapes.length > 0), "a scored note answers the sideways move");
 });

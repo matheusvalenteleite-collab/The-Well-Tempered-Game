@@ -49,6 +49,10 @@
    the sheet and the interface templates keep the space between the bars. Its frame's shadow stays with the box. */
 .tb-bars .tg-box-wide .tg-roll { margin: 0 calc(-100% * var(--tb-bar) / (1 - 2 * var(--tb-bar))); pointer-events: none; }
 /* D416: the widened roll lies over the bars, so it takes no touches (they fall through to the play area under it). */
+/* But what is drawn inside the roll for the player to touch takes them again: Herr Bach's card between a lesson's
+   steps (BachTalk, .tb-bach-low) and a card. Without this his card let every tap through to the box beneath, and a
+   lesson stood at his first message (the owner, WTC 2.31: "it remains stuck at the first message from Herr Bach"). */
+.tb-bars .tg-box-wide .tg-roll > .tb-bach, .tb-bars .tg-box-wide .tg-roll > .tg-card { pointer-events: auto; }
 .tb-bars .tg-half, .tb-bars .tg-half-on { background: transparent; border: 0; }
 .tb-quit { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); z-index: 5; background: var(--tg-veil); }
 .tb-bars .tb-quit { right: calc(var(--tg-sar) + (100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 8px); }
@@ -59,6 +63,12 @@
 .tb-pause-box { gap: 14px; padding: 22px 26px; width: min(300px, 100%); }
 .tb-pause-title { margin: 0; font-family: var(--tg-pixel); font-size: 16px; font-weight: 400; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; }
 .tb-pause-quit { min-height: 40px; padding: 8px 14px; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-fg); background: none; border: 2px solid var(--tg-muted); cursor: pointer; }
+/* D494: the Bluetooth warning on PLAY (BtWarn.tsx): over everything, sized for a sideways phone. */
+.tb-bt-warn-veil { z-index: 70; }
+.tb-bt-warn-box { gap: 12px; width: min(460px, 100%); padding: 18px 20px; }
+.tb-bt-warn-title { margin: 0; font-family: var(--tg-pixel); font-size: 13px; font-weight: 400; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; }
+.tb-bt-warn-text { margin: 0; font-size: 14px; line-height: 1.4; color: var(--tg-fg); text-align: left; }
+.tb-bt-warn-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 /* D220: the computer's HIGHWAY: the road alone, the whole window, the music box gone while playing. */
 .tg-wide.tb-road { max-width: 1400px; grid-template-rows: 1fr; }
 .tb-road .tg-box { display: none; }
@@ -634,6 +644,8 @@
 .tb-lite > .tb-lite-grid { max-width: 1100px; margin: 0 auto 16px; }
 /* D308: ⚙ on play.html opens over the cards (they stay behind it, veiled), not over the music box. */
 .tg-picker.tb-lite-settings { z-index: 45; box-shadow: 0 0 0 100vmax rgba(5, 6, 12, 0.72); }
+/* D494: the sound's calibration opened from the Bluetooth warning, over SETTINGS (which it closes back to). */
+.tg-picker.tb-calib-panel { z-index: 46; box-shadow: 0 0 0 100vmax rgba(5, 6, 12, 0.72); }
 /* D265: the pieces as a list, first to last: the card's picture (numbered) on the left, what the piece is on the right. */
 .tb-lite-list { list-style: none; max-width: 760px; margin: 0 auto 16px; padding: 0; display: grid; gap: 10px; }
 .tb-lite-list .tb-lite-card { grid-template-columns: minmax(120px, 42%) 1fr; align-items: center; gap: 12px; width: 100%; padding: 6px; }
@@ -1020,17 +1032,19 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
    rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
 /* D420: now the three THUMB PISTONS at each bar's foot (all three on both bars: whichever thumb is free
    reaches them), one row of large targets (58 px tall, a third of the bar wide), the legend as tall. */
-/* D469 (design studio): the pistons in the box's blue frame, a column of three down each inner edge (RegistrationStops
-   places each from the roll's rect: top, height, left or right), readable: each piston its numeral and its stops' name in
-   full, on two lines where long; acting on pointerdown (a thumb holding a note never stops the other pressing one). */
-.tb-stops-side { position: fixed; z-index: 12; display: grid; grid-template-columns: 1fr; grid-auto-rows: minmax(0, 1fr); gap: 4px; margin: 0; padding: 3px; box-sizing: border-box; width: 56px; background: color-mix(in srgb, var(--tg-box, #161a2c) 86%, transparent); border: 1px solid var(--tg-grid); border-radius: 3px; }
-.tb-stops-side .tg-piston { height: 100%; min-height: 0; min-width: 0; padding: 2px 1px; gap: 2px; }
-.tb-stops-side .tg-piston-n { font-size: 10px; }
-.tb-stops-side .tg-piston-name { font-size: 6px; line-height: 1.25; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; }
+/* D471 (design studio; the owner: "It was a mistake to relocate the slot buttons … They ought to return to the bottom
+   of buttons"): D469's move undone: the three pistons back at each bar's foot as D420 had them (acting on pointerdown).
+   The owner's first complaint answered in place: each piston's stops' name fits inside it, in a smaller pixel size, on
+   two lines where it must, never cut. */
+.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); }
+.tb-stops-left { left: calc(var(--tg-sal) + 6px); }
+.tb-stops-right { right: calc(var(--tg-sar) + 6px); }
+.tb-stops-side .tg-piston { height: 58px; min-width: 0; padding: 2px 1px; gap: 3px; }
+.tb-stops-side .tg-piston-name { font-size: 5px; line-height: 1.3; letter-spacing: 0; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; max-width: 100%; }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
 /* D487 (refreshed for D420's pistons: --tb-stop-rows 1.28, a 58 px piston in 47 px rows): the floor 88 px (the pistons' 62 + 26), so OBBLIGATO's button (34 px), stacked over
    the pistons, stays clear of the lowest row a note can ask for. */
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 40px); } /* D469: the pistons in the box (rows 0): the floor keeps OBBLIGATO's 34 px button at the bars' feet clear of the lowest row. */
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 28px); }
 /* D420: what each piston holds, in the piece's pop-up (folded). */
 .tb-pop-pistons { margin: 6px 0; text-align: left; }
 .tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }

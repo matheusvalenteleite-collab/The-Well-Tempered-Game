@@ -2,36 +2,21 @@
  * D381: play.html watches the audio route while it is open (src/touch/route.ts decides): the output
  * latency every POLL_MS and again just after any sign of a change (`devicechange`, the AudioContext's
  * state, iOS's `audioSession`, the silent keep-alive <audio> paused by the system, the page back after a
- * while away). The headphones gone: the Bluetooth delay dropped at once and a brief notice, HEADPHONES
- * DISCONNECTED: DELAY RESET; back: the delay given back. Where the browser cannot tell, a chip, USING
- * SPEAKER? TAP TO RESET DELAY. A run playing is paused first (its timing changes with the delay).
+ * while away). D494: the delay is never changed by itself (no drop, no restore, no recalibration
+ * banner): where the route seems to have left the Bluetooth headphones while a Bluetooth delay is in
+ * force, a chip, USING SPEAKER? TAP TO RESET DELAY (a run playing paused first); tapped, the delay reset
+ * and a brief notice, HEADPHONES DISCONNECTED: DELAY RESET. Each reading also tells the Bluetooth warning
+ * (BtWarn.tsx) when the route reads as not Bluetooth, so that Bluetooth again warns again.
  */
 import { useEffect, useRef, useState } from "react";
 import { tr } from "../i18n/index.ts";
 import type { Chip } from "../touch/chip.ts";
-import { latencyOf, POLL_MS, type LagBook } from "../touch/headphones.ts";
-import { AWAY_MS, REREAD_MS, routeDecision, routeSign, type Held, type RouteSignal } from "../touch/route.ts";
+import { latencyOf, POLL_MS } from "../touch/headphones.ts";
+import { AWAY_MS, REREAD_MS, routeDecision, routeSign, type RouteSignal } from "../touch/route.ts";
+import { noteRoute } from "./BtWarn.tsx";
 
-const HELD_KEY = "tg-lag-held";
 /** How long the notice stays (ms). */
 const NOTICE_MS = 3500;
-
-function heldNow(): Held | null {
-  try {
-    const v = JSON.parse(sessionStorage.getItem(HELD_KEY) ?? "null") as Held | null;
-    return v && typeof v.lag === "number" && typeof v.at === "number" ? v : null;
-  } catch {
-    return null;
-  }
-}
-function keepHeld(h: Held | null) {
-  try {
-    if (h) sessionStorage.setItem(HELD_KEY, JSON.stringify(h));
-    else sessionStorage.removeItem(HELD_KEY);
-  } catch {
-    /* this page only */
-  }
-}
 
 export interface RouteDeps {
   chip: { current: Chip | null };
@@ -39,9 +24,7 @@ export interface RouteDeps {
   lag: () => number | null;
   /** The latency reported when the delay in force was tapped (s), if one was. */
   tappedAt: () => number | undefined;
-  /** D223's delays by setup. */
-  book: () => LagBook;
-  /** Sets the delay (null: none) with the latency it now belongs to. */
+  /** Sets the delay (null: none): only when the player says so (USING SPEAKER? tapped). */
   apply: (lag: number | null) => void;
   /** A run under way: paused before its delay changes. */
   pause: () => void;
@@ -55,7 +38,6 @@ export function useRoute(d: RouteDeps) {
   deps.current = d;
   const [notice, setNotice] = useState<Notice>(null);
   const [ask, setAsk] = useState(false);
-  const [recal, setRecal] = useState(false);
   /** The chip dismissed: not asked again until the next sign of a change. */
   const quiet = useRef(false);
   const say = (text: string) => setNotice({ text, at: Date.now() });
@@ -66,26 +48,15 @@ export function useRoute(d: RouteDeps) {
     if (!x.on || !ch) return;
     if (routeSign(signal)) quiet.current = false;
     const lag = x.lag();
-    const act = routeDecision({ lag, reported: latencyOf(ch.ctx), tappedAt: x.tappedAt(), held: heldNow(), book: x.book(), signal });
-    if (act.kind === "drop" && lag !== null) {
-      x.pause();
-      keepHeld({ lag, at: x.tappedAt() ?? 0 });
-      x.apply(null);
-      setAsk(false);
-      say(tr("Headphones disconnected: delay reset"));
-    } else if (act.kind === "restore") {
-      x.pause();
-      keepHeld(null);
-      x.apply(act.lag);
-      setRecal(false);
-      say(tr("Headphones back: delay {ms} ms restored", { ms: Math.round(act.lag * 1000) }));
-    } else if (act.kind === "ask") {
+    const reported = latencyOf(ch.ctx);
+    noteRoute(reported);
+    const act = routeDecision({ lag, reported, tappedAt: x.tappedAt(), signal });
+    if (act.kind === "ask") {
       if (!quiet.current) {
         if (routeSign(signal)) x.pause();
         setAsk(true);
       }
-    } else if (act.kind === "recalibrate") setRecal(true);
-    else if (lag === null || lag <= 0.08) setAsk(false);
+    } else if (lag === null || lag <= 0.08) setAsk(false);
   };
 
   useEffect(() => {
@@ -152,14 +123,11 @@ export function useRoute(d: RouteDeps) {
   return {
     notice,
     ask,
-    recal,
     /** The first reading once the sound starts (the chip made on the first touch). */
     started: () => check("start"),
-    /** USING SPEAKER? tapped: the delay reset (kept to give back). */
+    /** USING SPEAKER? tapped: the delay reset (wired, 0 ms). */
     reset() {
       const x = deps.current;
-      const lag = x.lag();
-      if (lag !== null) keepHeld({ lag, at: x.tappedAt() ?? 0 });
       x.apply(null);
       setAsk(false);
       say(tr("Headphones disconnected: delay reset"));
@@ -168,12 +136,9 @@ export function useRoute(d: RouteDeps) {
       quiet.current = true;
       setAsk(false);
     },
-    dismissRecal: () => setRecal(false),
-    /** A delay tapped by hand: nothing held any more, nothing to ask. */
+    /** A delay tapped by hand: nothing to ask. */
     tapped() {
-      keepHeld(null);
       setAsk(false);
-      setRecal(false);
     },
   };
 }

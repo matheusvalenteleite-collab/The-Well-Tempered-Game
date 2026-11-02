@@ -233,7 +233,8 @@ test("D504: no score in it: the script reads the piece alone, and the game asks 
   assert.doesNotMatch(src, /score|streak|combo|multiplier|accuracy|crowd|hits|grade|verdict|judge/i);
   const game = readFileSync(new URL("../src/bench/proto-game.ts", import.meta.url), "utf8");
   const calls = [...game.matchAll(/this\.continuo\?\.at\((n\.on, voice|n\.on, n\.voice|notes\[i\]\.on, this\.voiceOf\(h\.k, i\))?/g)];
-  assert.equal(calls.length, 3);
+  // D494: two (the touch, the band); BLUETOOTH MODE's scheduling of the player's notes withdrawn.
+  assert.equal(calls.length, 2);
   for (const m of calls) assert.ok(m[1], `asked by onset and voice only: ${m[0]}`);
   // The same question, the same answer, whatever else has happened.
   const c = new ContinuoScript(fugueById("wtc2f23"));
