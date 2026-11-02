@@ -7,9 +7,9 @@
  * (D293: where the run asks for dynamics); a thumb
  * flicked upwards as it lets go sends its note off with a swoosh. The player's voice sounds as the
  * others do (D208; chip.ts leadOf). It can also be played from a computer's keys or a MIDI keyboard. On the audio
- * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat. A note
- * too quick to strike at the tempo played rides after the note before (D191: lanes.ts quickRides):
- * it sounds by itself once that note is played right, and is neither judged nor counted.
+ * clock as heard; the others phrased (phrasing.ts); a band's rhythm section keeps the beat. D490: every
+ * note of the player's part is played by a touch, a slide (D486) or a slide-in (D488), or it is missed:
+ * no note rides (D191's riders, D229's prelude riders and D253's repeated bass are gone).
  */
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
 import { contextSteps, fallingSecondAfter, freeOrnamentParts, keySignature, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
@@ -25,7 +25,7 @@ import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMar
 import { LEVEL_D, readingMarks, slurRole, type SlurRole } from "../touch/readings.ts";
 import { accentHeld, accentSeparated, accentTimely, accentWeighted, type AccentBy, type AccentWhy } from "./accent.ts";
 import { HARD_RAMP_MS, hardDb, hardForAccent, StrikeSlot, type HardFamily, type StrikeSource } from "../touch/hard-tap.ts";
-import { barAt, barStart, beatOf, cadenceName, countInBeats, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
+import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type TouchFugue } from "../touch/fugue.ts";
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
@@ -73,7 +73,7 @@ export const EDGE_SHARE = 0.12;
 /** D296: the move (in rows) the line's travel over a fourth or more asks of a thumb, the right way. */
 export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => ((TRAVEL_MIN = v), (MECH.travelMin = v));
-import { chordOf, laneNotes, options, preludeRides, quickRides, release, strike, strikeNext, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
+import { chordOf, laneNotes, options, release, strike, strikeNext, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
 import { follow, joins, phrase, phraseContext, ritard, styleOf, withHolds, withSpeed, type Shape } from "../touch/phrasing.ts";
@@ -85,7 +85,7 @@ import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-
 import { slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { fillsFor } from "../touch/jazz-drums.ts";
 import { reveal } from "./reveal.ts";
-import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
+import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
 import { liftGain } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -102,7 +102,6 @@ import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoGapMs, releaseVerdict
 import { firstAtOrAfter } from "../touch/visible.ts";
 import { afterCadence, artBonus, broadenClose, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
-import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
 import { blendFor, boostedSpans, drawLayer, effectFor, layerGain, layerLevel, layerVoicing, mainPatchId, offerWindow, playedWell, withLayer, FX_QUARTERS, obbligatoModeFor, type EntryLike, type Grade as ObbGrade, type Layer } from "./obbligato.ts";
 import { BAR, barAcross, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
@@ -120,6 +119,9 @@ const TRILL_AHEAD_S = 0.06;
 export const CROWD_START = 0.6;
 /** D413: his demonstration's silent lead (s, at most a beat), instead of a count-in. */
 const DEMO_LEAD_S = 0.6;
+/** D491: the count after a pause: 3-2-1, the box still, each count a beat (or as many beats as make it RESUME_COUNT_MIN_S at least). */
+export const RESUME_COUNTS = 3;
+export const RESUME_COUNT_MIN_S = 0.45;
 /** D353: the quickest leg a free ornament's room allows for (ms): a note shorter than two such legs and two ornament notes is not read. */
 const FREE_LEG_MIN_MS = 50;
 
@@ -161,7 +163,7 @@ interface Armed {
   own: Sounding[];
   /** D306: when its note starts (audio clock). */
   at: number;
-  /** "sounding": on the schedule; "hit": a right touch has scored it (its riders shown as they sound). */
+  /** "sounding": on the schedule; "hit": a right touch has scored it. */
   state: "sounding" | "hit";
   /** When (audio clock) the record may be dropped. */
   until: number;
@@ -680,8 +682,6 @@ export class ProtoGame {
       const tempo = arc.tempo;
       this.rit = withSpeed(this.rit, (t) => lineAt(f, tempo, t), f.length, f.tpq / 4);
     }
-    // D191: how far apart two ticks sound, in ms (at this tempo, the final ritard included).
-    const msBetween = (a: number, c: number) => ((this.rit.warp(c) - this.rit.warp(a)) / this.tps) * 1000;
     // D214, SUBJECT: one line, the subject's notes in every entry, whichever voice (subject-line.ts).
     const line = proto.id === "subject" ? subjectLine(f, from, o.until) : null;
     this.line = line;
@@ -705,7 +705,7 @@ export class ProtoGame {
     const movedOut = new Set<string>();
     // D442, THE REVEAL: on a phone, the prelude's plan picks the player's notes from both hands, bar by bar.
     const rv = !line && !handsOn && f.kind === "prelude" && arc?.reveal ? reveal(f, arc.reveal) : null;
-    this.tracks = line ? this.lineTracks(line, msBetween) : voiceList.map((v) => {
+    this.tracks = line ? this.lineTracks(line) : voiceList.map((v) => {
       if (rv && v === 0) {
         const inSpan = (on: number) => on >= from && (o.until === undefined || on < o.until);
         const mine0 = rv.mine.get(0)!.filter((n) => inSpan(n[0]));
@@ -763,24 +763,8 @@ export class ProtoGame {
           else movedOut.add(lineKey(notes[i].voice ?? v, notes[i].on, notes[i].midi)), notes.splice(i, 1);
         }
       }
-      // D191: the notes too quick to strike ride after the note before; D229: in a prelude, more of them (the strong notes struck; D232: its threshold by its fugue's tier).
-      const rideMs = preludeRideMs(f.id);
-      const lhFactor = (t: number) => handsAt(f, arc, t) ?? 1;
-      if (pick) {
-        /* D261: every note left is struck */
-      } else if (f.kind === "prelude") preludeRides(notes, this.beat, msBetween, (t) => inBar(f, t), this.beat === f.tpq * (4 / Number(f.meter.split("/")[1])) * 3 ? 3 : 2, arc ? (t: number) => rideMs * (handsOn && v === 1 ? lhFactor(t) : stepAt(f, arc.rides, t)) : rideMs);
-      else quickRides(notes, this.beat, msBetween);
-      // D253: the left hand strikes only where its bass changes: the same bass again within the bar
-      // (Prelude 1's second half) plays itself, so a thumb held on it is right (the owner: errors while
-      // "playing correctly", the left thumb held).
-      if (handsOn && v === 1 && !pick) {
-        let last: LaneNote | null = null;
-        for (const n of notes) {
-          if (n.ride) continue;
-          if (last && n.midi === last.midi && barAt(f, n.on) === barAt(f, last.on)) n.ride = true;
-          else last = n;
-        }
-      }
+      // D490: no note rides (D191's quick notes, D229's prelude riders, D253's repeated bass): every note left is the player's to play.
+      for (const n of notes) n.ride = false;
       // D258, SWEEP: a note of a quarter or more begun with the inner voice under it becomes a chord, spread upward when struck.
       let sweeps: Set<number> | undefined;
       if (arc?.sweeps && f.kind === "prelude" && v === 0 && !handsOn) {
@@ -886,25 +870,16 @@ export class ProtoGame {
   /** D214, SUBJECT: the subject line (its entries, their labels), or null. */
   readonly line: SubjectLine | null;
   /**
-   * D214: the line as a track: each note in its own voice; an entry's first note never rides (it is
-   * free: any lane). D217: and the second line (the older entry in a stretto, the lower row) as a
-   * second track, reduced to its "special moves": only its notes on a beat or of half a beat or more
-   * are struck, the quicker ones ride (D191, played for the player); each stretto's first note there
-   * is struck and free.
+   * D214: the line as a track: each note in its own voice; an entry's first note is free (any lane).
+   * D217: and the second line (the older entry in a stretto, the lower row) as a second track; each
+   * stretto's first note there is free. D490: every note of both is struck (none rides).
    */
-  private lineTracks(line: SubjectLine, msBetween: (a: number, c: number) => number): Track[] {
+  private lineTracks(line: SubjectLine): Track[] {
     const asNotes = (ns: SubjectLine["notes"]): LaneNote[] => ns.map(([on, dur, midi, step, voice]) => ({ on, dur, midi, step, long: dur >= this.beat, state: "pending", voice }));
     const notes = asNotes(line.notes);
-    quickRides(notes, this.beat, msBetween);
     const heads = new Set(line.entries.map((e) => e.on));
-    for (const n of notes) if (heads.has(n.on)) n.ride = false;
     const second = asNotes(line.second);
-    quickRides(second, this.beat, msBetween);
     const fresh2 = new Set(line.secondHeads);
-    for (const n of second) {
-      if (inBar(this.f, n.on) % this.beat !== 0 && n.dur < this.beat / 2) n.ride = true;
-      if (fresh2.has(n.on)) n.ride = false;
-    }
     return [
       { voice: line.entries[0]?.voice ?? 0, notes, moves: moves(notes, this.beat), fresh: heads },
       { voice: line.entries.find((e) => e.on === line.second[0]?.[0])?.voice ?? line.second[0]?.[4] ?? 0, notes: second, moves: moves(second, this.beat), fresh: fresh2 },
@@ -948,8 +923,13 @@ export class ProtoGame {
   readonly bandT: BandTime | null = null;
   /** D328: the timestamp of the touch being handled (null within a frame), for when a note was struck. */
   private evTs: number | null = null;
-  /** The clock, with the last cadence held back (phrasing.ts ritard). */
+  /** The clock, with the last cadence held back (phrasing.ts ritard). D491: held at the pause point while the count after a pause runs. */
   private tickAt(t: number) {
+    const v = this.runningTickAt(t);
+    return this.holdTick !== null ? Math.max(this.holdTick, v) : v;
+  }
+  /** D491: the clock running behind the still box during the count after a pause (a touch is judged by it: the first note's early window whole). */
+  private runningTickAt(t: number) {
     if (this.bandT) return this.rit.unwarp(this.bandT.wAt(t));
     return this.rit.unwarp(this.rit.warp(this.anchorTick) + (t - this.anchorAt) * this.tps);
   }
@@ -963,7 +943,7 @@ export class ProtoGame {
     return this.anchorAt + (this.rit.warp(tick) - this.rit.warp(this.anchorTick)) / this.tps;
   }
   private tickOf(ts: number) {
-    return this.tickAt(this.chip.heard() - (this.wall() - ts) / 1000);
+    return this.runningTickAt(this.chip.heard() - (this.wall() - ts) / 1000);
   }
   /** D317: the clock the events' timestamps are on (performance.now; a replay injects its own, so judging is deterministic). */
   wall: () => number = () => performance.now();
@@ -1075,34 +1055,20 @@ export class ProtoGame {
           if (mine) own.push(sd);
           end = Math.max(end, from + secs);
         };
-        // The notes riding after it (D191), at their times; the note gives way to the first.
-        let j = i + 1;
-        while (j < notes.length && notes[j].on === n.on) j++;
-        let first = Infinity;
-        for (; j < notes.length && notes[j].ride; j++) {
-          const r = notes[j];
-          if (r.state !== "pending") continue;
-          first = Math.min(first, this.timeAt(r.on));
-          const rv = r.voice ?? t.voice;
-          const rs = this.subj.shape(rv, r.on, voicing(rv, count, true));
-          // D284: a riding note's ornament sounds too.
-          for (const [pon, pdur, pm] of this.rideParts(rv, notes, j)) put(pm, this.timeAt(pon), len(pon, pdur), { ...rs.play, lead: true, envelope }, rs.v, false);
-        }
         const chord = chordOf(notes, i);
-        const cut = (secs: number) => (Number.isFinite(first) ? Math.max(0.03, Math.min(secs, first - at)) : secs);
         const orn = chord.length === 1 ? this.ornaments.get(`${voice}:${n.on}`) : undefined;
         if (orn) {
           const prev = this.before(i, k);
           const parts = realiseNote(this.f, orn, n.on, n.dur, n.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
           parts.forEach(([pon, pdur, pmidi], q) => {
             const pat = Math.max(at, this.timeAt(pon));
-            put(pmidi, pat, q === parts.length - 1 ? cut(Math.max(0.03, this.timeAt(n.on + n.dur) - pat)) : len(pon, pdur), { ...expr, legato: q > 0 || expr.legato });
+            put(pmidi, pat, q === parts.length - 1 ? Math.max(0.03, this.timeAt(n.on + n.dur) - pat) : len(pon, pdur), { ...expr, legato: q > 0 || expr.legato });
           });
         } else if (chord.length > 1 && t.sweeps?.has(n.on)) {
           // D258: the swept chord upward, a note every SWEEP_GAP_S, as it sounds by itself.
           const up = chord.map((c) => notes[c]).sort((a, b) => a.midi - b.midi);
-          up.forEach((c, q) => put(c.midi, at + q * SWEEP_GAP_S, cut(len(c.on, c.dur)), { ...expr, legato: false }));
-        } else for (const c of chord) put(notes[c].midi, at, cut(len(notes[c].on, notes[c].dur)), expr);
+          up.forEach((c, q) => put(c.midi, at + q * SWEEP_GAP_S, len(c.on, c.dur), { ...expr, legato: false }));
+        } else for (const c of chord) put(notes[c].midi, at, len(notes[c].on, notes[c].dur), expr);
         // D262: a traced line's other notes, at their written times.
         for (const q of t.traces?.get(n.on) ?? []) put(q.midi, this.timeAt(q.on), Math.max(0.12, len(q.on, q.dur)), { ...expr, legato: false }, v, false);
         if (sv && !this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len(n.on, n.dur), v, expr.level ?? 1)) (sounds.push(x), own.push(x));
@@ -1275,6 +1241,8 @@ export class ProtoGame {
     // D345: sounds past their own schedule let go even where the browser never reports their end.
     ch.sweep?.();
     this.bandT?.frame(ch.heard());
+    // D491: the count after a pause over: the clock runs on from the pause point.
+    if (this.goAt !== null && ch.heard() >= this.goAt) (this.holdTick = null), (this.goAt = null);
     this.now = this.tickAt(ch.heard());
     // D332: runs whose last note was struck: their trend told (RUN ✗ re-judges the run rule's notes).
     if (this.runDue.length) this.runsDue();
@@ -1308,6 +1276,12 @@ export class ProtoGame {
     // D328: nothing scheduled past a point where the band may wait for the player (and FOLLOWS: each beat's tempo set as it is reached).
     if (this.bandT) horizon = this.bandT.plan(horizon, [...this.held.values()].some((h) => !h.wait));
     while (this.nextBeat <= horizon) {
+      // D491: the count after a pause clicked, the beats back on the bar's grid (the first at or after the pause point).
+      if (this.snapBeat !== null && this.nextBeat >= this.snapBeat - 1e-6) {
+        this.nextBeat = this.start + Math.ceil((this.snapBeat - this.start) / this.beat - 1e-6) * this.beat;
+        this.snapBeat = null;
+        continue;
+      }
       // Beats gone by while the clock ran unwatched (a hidden tab): not played late in a burst.
       if (this.timeAt(this.nextBeat) < ch.ctx.currentTime - 0.03) {
         this.nextBeat += this.beat;
@@ -1419,7 +1393,6 @@ export class ProtoGame {
     }
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
     if (this.bandPerformed.length > 32) this.bandPerformed = this.bandPerformed.filter((p) => p.end > this.now - 2 * this.tps);
-    this.sounding();
     this.tieStep();
     this.trills();
     this.shakeFrames();
@@ -1437,6 +1410,10 @@ export class ProtoGame {
       const ho = h.wait?.prep?.hold;
       if (ho && ho.at >= 0 && this.now <= ho.until) kept.add(this.tracks[h.k].notes[h.wait!.i]);
     }
+    // D491: a note already due when the game was paused keeps a whole late window from the pause point.
+    const od = this.overdue;
+    if (od && this.now > od.until) this.overdue = null;
+    else if (od) for (const t of this.tracks) for (const n of t.notes) if (n.state === "pending" && n.on < od.at) kept.add(n);
     for (const t of this.tracks) {
       const ons = new Set<number>();
       for (const n of t.notes) if (n.state === "pending" && !n.ride && !kept.has(n) && this.now - grace > n.on + this.opt.late) ons.add(n.on);
@@ -1488,7 +1465,11 @@ export class ProtoGame {
   countIn(): number {
     // D413: no count-in over his demonstration (the owner: "We don't need a countdown for Bach when he's the one playing").
     if (this.o.demo) return 0;
-    if (this.resumeAt !== null && this.now < this.resumeAt) return Math.ceil((this.resumeAt - this.now) / this.beat);
+    // D491: the count after a pause, 3-2-1, while the box stands still.
+    if (this.goAt !== null) {
+      const left = this.goAt - this.chip.heard();
+      if (left > 0) return Math.min(RESUME_COUNTS, Math.max(1, Math.ceil(left / this.countEach - 1e-6)));
+    }
     return this.now < this.entry ? Math.ceil((this.entry - this.now) / this.beat) : 0;
   }
 
@@ -2572,8 +2553,10 @@ export class ProtoGame {
     const wo = this.leanOpt(h.k);
     // D488: a landing far from the coming note's row, inside its early window after a rest, may be a slide-in's (it waits; struck from its landing if it does not slide).
     if (key === undefined && at.c && this.slideInStart(h, at.c, tk, true)) return;
-    let i = key !== undefined ? strike(notesK, tk, wo, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
-    if (i < 0) i = strike(notesK, tk, wo);
+    // D491: a note already due when the game was paused is judged from the pause point.
+    const tj = this.overdueTick(h.k, tk);
+    let i = key !== undefined ? strike(notesK, tj, wo, (j) => chordOf(notesK, j).some((x) => notesK[x].midi === key)) : -1;
+    if (i < 0) i = strike(notesK, tj, wo);
     if (i < 0 && at.c && this.slideTaken(id, h, at.c, tk)) return;
     if (i < 0 && MECH.slurNext && this.proto.id === "ladder" && at.c) {
       const sl = this.slurNext(id, h, at.c, tk);
@@ -2600,8 +2583,6 @@ export class ProtoGame {
         return;
       }
     }
-    // D191: a strike on a note that rides (the player striking it anyway) is no slip; it is played for them.
-    if (i < 0 && notesK.some((n) => n.ride && Math.abs(n.on - tk) <= Math.max(this.opt.early, this.opt.late))) return;
     // D290: a second contact on a note just struck (a rolling thumb, a re-land): ignored, not a slip.
     // D329: MECH.doubleSameThumb: only the thumb that struck it (a rolling or re-landing contact is the same thumb's).
     if (i < 0 && this.proto.id === "ladder" && notesK.some((n) => n.state === "hit" && n.at !== undefined && Math.abs(this.msOf(Math.min(n.at, tk), Math.max(n.at, tk))) <= MECH.doubleMs && (!MECH.doubleSameThumb || this.struckBy.get(n) === h.side))) {
@@ -3505,6 +3486,8 @@ export class ProtoGame {
     }
     h.slideIn = undefined;
     notes[i].via = "slide";
+    // D469: where the slide-in set off (its staff step as drawn), for the box's slide.
+    notes[i].slideFrom = this.rows ? this.rows.stepAt(si.y0) : undefined;
     // The pitch where the thumb is (its staff step as drawn), or a semitone the approach's side when it is on the note's own row.
     const way = c.y < si.y0 ? 1 : -1;
     const at = stepPitch(this.rows!.stepAt(c.y), n);
@@ -4336,66 +4319,7 @@ export class ProtoGame {
     // D364: the appoggiatura drawn over its note (D353's overlay): the held note on its row from the beat, then the note from the lift.
     if (appo) this.performed.set(`${h.k}:${i}`, { kind: "appoggiatura", free: true, band: false, voice: this.voiceOf(h.k, i), step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts: [[n.on, Math.max(1, tk - n.on), appo.grace], [tk, Math.max(1, n.on + n.dur - tk), n.midi]] });
     tapNote(true, perfect, offMs);
-    this.ride(h, i, offMs / 1000);
   }
-
-  /**
-   * D191: the notes riding after note i (too quick to strike) are played for the player: each at its
-   * time, moved by as much as note i was early or late, the note struck giving way to the first.
-   */
-  private ride(h: Held, i: number, offS: number) {
-    const notes = this.tracks[h.k].notes;
-    let j = i + 1;
-    while (j < notes.length && notes[j].on === notes[i].on) j++;
-    const ch = this.chip;
-    let first = true;
-    // D299: in BLUETOOTH MODE on the schedule with their note (arm): only shown as they sound.
-    const pre = this.bt;
-    for (; j < notes.length && notes[j].ride; j++) {
-      const n = notes[j];
-      if (n.state !== "pending") continue;
-      if (pre) {
-        this.riders.push({ k: h.k, j, at: this.timeAt(n.on) });
-        continue;
-      }
-      const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + offS);
-      const len = Math.max(0.03, this.timeAt(n.on + n.dur) - this.timeAt(n.on));
-      if (first) for (const sd of h.sounds) sd.stop(at);
-      first = false;
-      const nv = n.voice ?? this.tracks[h.k].voice;
-      const sv = this.subj.shape(nv, n.on, voicing(nv, this.f.voices.length, true));
-      for (const [pon, pdur, pm] of this.rideParts(nv, notes, j)) {
-        const pat = Math.max(ch.ctx.currentTime, this.timeAt(pon) + offS);
-        const sd = ch.note(pm, pat, Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), sv.v, { ...sv.play, lead: true, envelope: this.proto.id === "piano" ? "piano" : "synth" });
-        if (sd) this.band.push({ sd, until: pat + len + 0.6 });
-        this.layerOf(nv, n.on, pm, pat, Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), sv.v, { lead: true });
-      }
-      if (!this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len, sv.v, sv.play.level ?? 1)) this.band.push({ sd: x, until: at + len + 0.8 });
-      this.riders.push({ k: h.k, j, at });
-    }
-  }
-
-  /** D284: a riding note as it sounds, its ornament realised ([onset, length, MIDI] in ticks). */
-  private rideParts(voice: number, notes: { on: number; dur: number; midi: number }[], j: number): [number, number, number][] {
-    const n = notes[j];
-    const orn = this.ornaments.get(`${voice}:${n.on}`);
-    return orn ? realiseNote(this.f, orn, n.on, n.dur, n.midi, j > 0 ? notes[j - 1].midi : undefined, this.bpm) : [[n.on, n.dur, n.midi]];
-  }
-
-  /** D191: the riding notes played for the player, shown as they sound. */
-  private riders: { k: number; j: number; at: number }[] = [];
-  private sounding() {
-    if (!this.riders.length) return;
-    const t = this.chip.ctx.currentTime;
-    this.riders = this.riders.filter((r) => {
-      if (r.at > t) return true;
-      const n = this.tracks[r.k].notes[r.j];
-      if (n.state === "pending") Object.assign(n, { state: "hit", at: n.on });
-      return false;
-    });
-  }
-
-
 
   /**
    * A slip. D249 (small mistakes don't cost the whole run): the streak and the combo lose a quarter (at
@@ -5246,8 +5170,29 @@ export class ProtoGame {
   /** The window lost (blur, a hidden tab): every key and the pedal let go, as if released now. */
   /** D308: the tick where the game was paused (null: not paused). */
   private pausedAt: number | null = null;
-  /** D308: where the music takes up again after a pause, a bar of count-in before it. */
+  /** D308: where the music takes up again after a pause (D491: the pause point itself). */
   private resumeAt: number | null = null;
+  /** D491: the tick the box stands still at during the count after a pause (null: the clock runs). */
+  private holdTick: number | null = null;
+  /** D491: when (audio clock) the count after a pause ends and the music goes on; each count's length (s). */
+  private goAt: number | null = null;
+  private countEach = 1;
+  /** D491: the count's clicks done at this tick, the beats return to the bar's grid. */
+  private snapBeat: number | null = null;
+  /** D491: the notes already due at the pause point (onsets before it) keep a late window from it, until this tick. */
+  private overdue: { at: number; until: number } | null = null;
+  /**
+   * D491: a touch soon after the pause point, for a note already due when the game was paused: judged as if
+   * that note had come at the pause point (its whole late window from there). Otherwise the touch's own tick.
+   */
+  private overdueTick(k: number, tk: number): number {
+    const od = this.overdue;
+    if (!od || tk > od.until) return tk;
+    const n = this.tracks[k].notes.find((x) => x.state === "pending" && !x.ride && x.on < od.at && x.on >= od.at - this.opt.late - SWEEP_GRACE_S * this.tps);
+    if (!n) return tk;
+    const shifted = n.on + (tk - od.at);
+    return shifted >= n.on - this.opt.early && shifted <= n.on + this.opt.late ? shifted : tk;
+  }
   get paused(): boolean {
     return this.pausedAt !== null;
   }
@@ -5267,31 +5212,43 @@ export class ProtoGame {
     if (this.pausedAt !== null || this.failedAt !== null || this.now > this.end) return;
     this.now = this.tickAt(this.chip.heard());
     this.pausedAt = Math.max(this.now, this.start);
+    // D491: a count under way (paused again during it) starts afresh on the next resume.
+    this.goAt = null;
     for (const p of this.pedalList) ((p.id = null), (p.from = null));
     this.pedalDown = false;
     this.keysDown.clear();
     this.stopAll();
   }
   /**
-   * D308: on again from the beat the pause fell in (or on), after a count-in (D338) clicked as at the
-   * start: the band and the player's notes from there scheduled afresh.
+   * D308: on again after a pause. D491 (the owner: "Pausing and then playing again should not lead to a
+   * moving countdown. The countdown should happen statically, with the music stopped exactly where the
+   * player paused."): the box stands still at the pause point while 3-2-1 is counted (clicked, a beat
+   * each, or more beats where a beat is quick), then the music goes on from exactly there: no rewind,
+   * nothing scrolls during the count. The clock runs behind the still box, so a touch just before the
+   * "go" is early for the first note, as at the start; a note already due at the pause keeps a whole late
+   * window from the pause point. D413: his demonstration after its short silent lead (no count).
    */
   resume() {
     const at = this.pausedAt;
     if (at === null) return;
     this.pausedAt = null;
-    const grid = this.start + Math.floor((at - this.start) / this.beat) * this.beat;
-    // D338: the count-in as at the start (by time, at least two beats), no longer a whole bar.
-    // D413: his demonstration again after its short silent lead, not a count-in.
-    const from = grid - (this.o.demo ? this.demoLead() : countInBeats(this.f, this.tps) * this.beat);
-    this.resumeAt = Math.max(grid, this.entry);
+    const beatS = (this.rit.warp(at + this.beat) - this.rit.warp(at)) / this.tps;
+    const per = Math.max(1, Math.ceil(RESUME_COUNT_MIN_S / Math.max(1e-3, beatS) - 1e-6)) * this.beat;
+    const lead = this.o.demo ? this.demoLead() : RESUME_COUNTS * per;
+    const from = at - lead;
+    this.resumeAt = at;
+    this.holdTick = at;
+    this.snapBeat = at;
     this.anchorTick = from;
     this.anchorAt = this.chip.ctx.currentTime + 0.15;
-    this.nextBeat = this.o.demo ? grid - this.beat : from;
     this.bandT?.reset(this.anchorAt, from);
+    this.goAt = this.timeAt(at);
+    this.countEach = (this.rit.warp(at) - this.rit.warp(at - per)) / this.tps;
+    this.nextBeat = from;
+    this.overdue = { at, until: at + this.opt.late };
     this.now = this.tickAt(this.chip.heard());
     const firstAt = <T extends { on: number }>(xs: T[]) => {
-      const i = xs.findIndex((n) => n.on >= grid);
+      const i = xs.findIndex((n) => n.on >= at);
       return i < 0 ? xs.length : i;
     };
     this.nextOther = firstAt(this.others);

@@ -826,6 +826,34 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         }
       }
     }
+  // D469 (design studio; the owner: "When the player connects two notes by a slide, the music box draws a connecting
+  // slide between them"): a note taken by a slide (D486) gets a ribbon from the note it slid from, the last stretch of
+  // that note to its own start; a slide-in (D488) one from where the thumb set off, a little before the note.
+  for (const [, pnotes] of played)
+    for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
+      const n = pnotes[ni];
+      const xn = xOf(n.on);
+      if (xn > w) break;
+      if (n.state !== "hit" || n.via !== "slide") continue;
+      const yn = yOf(n.step) + Math.floor(bh / 2);
+      let xs: number;
+      let ys: number;
+      if (n.slideFrom !== undefined) {
+        xs = xn - 10;
+        ys = yOf(n.slideFrom) + Math.floor(bh / 2);
+      } else {
+        let p: LaneNote | undefined;
+        for (let q = ni - 1; q >= 0 && !p; q--) if (pnotes[q].on < n.on) p = pnotes[q];
+        if (!p) continue;
+        xs = Math.max(xOf(p.on) + 2, xn - 12);
+        ys = yOf(p.step) + Math.floor(bh / 2);
+      }
+      if (Math.abs(ys - yn) < 1 && xn - xs < 3) continue;
+      g.globalAlpha = 0.9;
+      g.fillStyle = shine;
+      seg(g, xs, ys, xn + 1, yn, 2, 1);
+      g.globalAlpha = 1;
+    }
   // D372: the subject's effect over the player's own subject notes, then each entry's mark (the design
   // studio: the tabs and words, only where no note is; FLAG_VARIANT).
   if (spans) {

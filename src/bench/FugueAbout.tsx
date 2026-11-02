@@ -7,6 +7,8 @@
  * the text is not yet written, the box says so.
  */
 import { useEffect } from "react";
+import { CITATIONS } from "./citations.ts";
+import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { lang, partName, tr } from "../i18n/index.ts";
 import { fugueById } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
@@ -30,20 +32,30 @@ export function entryFacts(id: string) {
   let stretti = 0;
   let inverted = 0;
   let augmented = 0;
+  let diminished = 0;
   const sorted = [...firsts].sort((a, b) => a.on - b.on);
   sorted.forEach((e, i) => {
     per[e.voice] = (per[e.voice] ?? 0) + 1;
     if (i > 0 && sorted.slice(0, i).some((x) => x.end > e.on)) stretti++;
     if (e.inverted) inverted++;
     if (e.scale === 2) augmented++;
+    if (e.scale === 0.5) diminished++;
   });
   const keys = [...new Set(f.keys.map((k) => k.key))];
-  return { per, themes, total: firsts.length, stretti, inverted, augmented, keys, cadences: f.cadences.length, bars: f.bars.length, meter: f.meter };
+  return { per, themes, total: firsts.length, stretti, inverted, augmented, diminished, keys, cadences: f.cadences.length, bars: f.bars.length, meter: f.meter };
 }
 
-export function FugueAbout({ id, close }: { id: string; close: () => void }) {
+/**
+ * D449 (the owner: "Clicking on the picture in the right column, anywhere on it … opens the informative box.
+ * Relocate the HEAR THE SUBJECT material to inside this box … Add some citation about each fugue … Add a
+ * scrolling wheel if necessary"): the subject, heard and seen, first in the box (`subject`: the sound's play
+ * and stop, the subject silenced when the box closes); Busoni's words on the fugue (citations.ts) after the
+ * facts; the box scrolls when it is taller than the screen.
+ */
+export function FugueAbout({ id, close, subject }: { id: string; close: () => void; subject?: { play: (notes: Performed, voice: number) => Promise<number>; stop: () => void } }) {
   const f = fugueById(id);
   const facts = entryFacts(id);
+  const cite = CITATIONS[id];
   const note = NOTES[`wtc${f.book}.${String(f.number).padStart(2, "0")}`]?.fugue;
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
@@ -75,6 +87,12 @@ export function FugueAbout({ id, close }: { id: string; close: () => void }) {
           </dl>
         </div>
         <div className="sel-about-main">
+          {subject && (
+            <>
+              <h2 className="sel-about-h">{tr("THE SUBJECT")}</h2>
+              <HearSubject id={id} play={subject.play} stop={subject.stop} close={close} embedded />
+            </>
+          )}
           <h2 className="sel-about-h">{tr("THE SUBJECT, VOICE BY VOICE")}</h2>
           <ul className="sel-about-entries" aria-label={tr("ENTRIES")}>
             {f.voiceNames.map((vn, i) => (
@@ -91,12 +109,28 @@ export function FugueAbout({ id, close }: { id: string; close: () => void }) {
             {facts.total} {tr("ENTRIES")} · {facts.stretti} {tr("IN STRETTO")}
             {facts.themes > 1 && <> · {tr("{n} SUBJECTS", { n: facts.themes })}</>}
             {facts.inverted > 0 && <> · {facts.inverted} {tr("INVERTED")}</>}
-            {facts.augmented > 0 && <> · {facts.augmented} {tr("AUGMENTED")}</>} · {facts.cadences} {tr("CADENCES")}
+            {facts.augmented > 0 && <> · {facts.augmented} {tr("AUGMENTED")}</>}
+            {facts.diminished > 0 && <> · {facts.diminished} {tr("DIMINISHED")}</>} · {facts.cadences} {tr("CADENCES")}
           </p>
           {note && (
             <>
               <h2 className="sel-about-h">{tr("THE PIECE")}</h2>
               <p className="sel-about-text">{note}</p>
+            </>
+          )}
+          {cite && (
+            <>
+              <h2 className="sel-about-h">{tr("BUSONI ON THIS FUGUE")}</h2>
+              <blockquote className="sel-about-cite" id="about-cite" lang={/[äöüßÄÖÜ]|\b(der|die|das|und|ist)\b/.test(cite.original) ? "de" : "it"}>
+                <p className="sel-about-cite-orig">“{cite.original}”</p>
+                <p className="sel-about-cite-tr">
+                  {lang() === "pt" ? cite.pt : lang() === "es" ? cite.es : cite.en} <span className="sel-about-cite-note">({tr("our translation")})</span>
+                </p>
+                <cite>
+                  J. S. Bach, <i>{cite.title}</i>, ed. Ferruccio Busoni ({cite.imprint}), {cite.pages}
+                  {cite.kind === "heading" ? ` · ${tr("his heading")}` : ` · ${tr("his footnote")}`}
+                </cite>
+              </blockquote>
             </>
           )}
           {/* D463: history and recordings wait for Glenn's sourced texts (no placeholder shown). */}

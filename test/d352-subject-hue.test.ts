@@ -53,11 +53,11 @@ test("I/2: the alto's first entry and the soprano's answer at bar 3 are the subj
   for (const c of cs) for (const p of c.path) if (!f.entries.some((e) => e.voice === c.voice && e.notes.some(([on]) => on === p.on))) assert.equal(themeAt(f, c.voice, p.on), 0);
 });
 
-test("I/4: its three subjects told apart (soprano I's second subject at bar 36, the alto's third at bar 49, the bass's first at bar 1)", () => {
+test("I/4: its three subjects told apart (soprano I's second subject at bar 35, D493: from its upbeat, the alto's third at bar 49, the bass's first at bar 1)", () => {
   const f = fugueById("wtc1f04");
   const at = (v: number, theme: number, bar: number) => f.entries.find((e) => e.voice === v && (e.theme ?? 1) === theme && e.bar === bar)!;
   assert.equal(themeAt(f, 4, at(4, 1, 1).on), 1);
-  assert.equal(themeAt(f, 0, at(0, 2, 36).on), 2);
+  assert.equal(themeAt(f, 0, at(0, 2, 35).on), 2);
   assert.equal(themeAt(f, 2, at(2, 3, 49).on), 3);
   // Every entry's notes carry its own theme (the first entry to claim a note keeps it, as the ear's cues do).
   const cues = new SubjectCues(f);

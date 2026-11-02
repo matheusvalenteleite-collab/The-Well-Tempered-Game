@@ -17,10 +17,10 @@
 /* His shadow on the floor. */
 .tb-intro-face::after { content: ""; position: absolute; left: 8%; right: 8%; bottom: -12px; height: 8px; border-radius: 50%; background: rgba(0, 0, 0, 0.45); }
 .tb-intro-words { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
-.tb-intro-mark { display: block; max-width: min(62vw, 440px); height: auto; image-rendering: pixelated; }
+/* D468: the old 8-bit title, an SVG in whole pixels (crisp at any scale): 4 px a pixel, narrower where the screen is. */
+.tb-intro-mark { display: block; width: min(62vw, 416px); height: auto; }
 .tb-intro-tag { margin: 0; font-size: 7px; line-height: 1.6; color: #a0968a; letter-spacing: 0.14em; text-align: center; }
 .tb-intro-version { position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 6px; color: #646482; letter-spacing: 0.1em; text-align: center; }
-.tb-wordmark-text { font-family: Georgia, "Times New Roman", serif; font-weight: 700; color: var(--tg-shine); letter-spacing: 0.08em; }
 /* Each image on its note (a half note apart), everything out with the last one's decay. */
 .tb-intro-n1, .tb-intro-n2, .tb-intro-n3, .tb-intro-n4 { opacity: 0; animation: tb-intro-in 1.2s ease-out forwards; }
 .tb-intro-n2 { animation-delay: var(--note, 1.5s); }
@@ -38,14 +38,8 @@
 /* Left: the wordmark, the version, the TUTORIAL, the collections. */
 .sel-brand { flex: none; text-align: center; }
 .sel-title { margin: 0; line-height: 0; }
-.sel-mark { display: inline-block; max-width: 100%; height: auto; image-rendering: pixelated; }
-.sel-title .tb-wordmark-text { font-size: 10px; line-height: 1.4; }
-/* Drawn at its pixel size, never scaled down: 12 px where the column is wide, 10 px on a narrower phone. */
-.sel-mark-narrow { display: none !important; }
-@media (max-width: 799px) {
-  .sel-mark-wide { display: none !important; }
-  .sel-mark-narrow { display: inline-block !important; }
-}
+/* D468: the SVG wordmark, 1.5 px a pixel, as wide as the column at most. */
+.sel-mark { display: inline-block; width: 100%; max-width: 156px; height: auto; }
 .sel-version { margin: 4px 0 0; font-size: 5px; color: #6e6e8c; letter-spacing: 0.1em; }
 .sel-tutorial { flex: none; display: grid; gap: 5px; padding: 6px; text-align: left; font-family: var(--tg-pixel); color: var(--tg-fg); background: #2c345c; border: 2px solid #78789f; box-shadow: 3px 3px 0 #b8322a; cursor: pointer; }
 .sel-tutorial:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
@@ -280,3 +274,58 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
   .sel-tile .sel-tile-key i { font-size: 4px; }
   .sel-tile .sel-tile-name, .sel-tile .sel-tile-name.long { font-size: 5px; letter-spacing: -0.5px; max-height: 4em; }
 }
+
+/* D447: the heading names the work: "J. S. BACH · THE WELL-TEMPERED CLAVIER" small over "BOOK I · 24 FUGUES". */
+.sel-strip { height: 28px; }
+.sel-strip-title { display: grid; gap: 2px; line-height: 1.15; }
+.sel-strip-work { font-size: 5px; letter-spacing: 0.05em; color: #f3d78a; }
+.sel-strip-book { font-size: 7px; }
+
+/* D448 (the owner: "the key is slightly overposed on top of the title of the fugue … drag the key a bit upwards"): the key lifted clear of
+   the name, and the name never cut (up to three lines; the band grows upwards over the picture). */
+.sel-tile .sel-tile-key { margin-bottom: 2px; line-height: 1.25; overflow: visible; }
+.sel-tile .sel-tile-name, .sel-tile .sel-tile-name.long { max-height: none; line-height: 1.3; }
+@media (max-width: 700px) {
+  .sel-strip { height: 26px; }
+  .sel-strip-work { font-size: 4.5px; }
+  .sel-tile .sel-tile-key { margin-bottom: 2px; }
+  .sel-tile .sel-tile-name, .sel-tile .sel-tile-name.long { max-height: none; }
+}
+/* D448: NEXT under the level chip, not over it (DIFÍCIL and PRÓXIMA both fit a narrow card). */
+.sel-tile .sel-next { left: 0; right: auto; top: 10px; font-size: 5px; padding: 2px 3px 1px; }
+
+/* D449: the whole picture opens ABOUT THIS FUGUE; its ? glows. */
+.sel-piece-pic-open { cursor: pointer; }
+.sel-piece-pic-open:active { filter: brightness(1.15); }
+.sel-about-glow { animation: sel-about-glow 1.4s ease-in-out infinite; pointer-events: none; }
+@keyframes sel-about-glow { 0%, 100% { box-shadow: 1px 1px 0 #b8322a, 0 0 0 0 rgba(255, 226, 120, 0); } 50% { box-shadow: 1px 1px 0 #b8322a, 0 0 8px 3px rgba(255, 226, 120, 0.85); } }
+@media (prefers-reduced-motion: reduce) { .sel-about-glow { animation: none; box-shadow: 1px 1px 0 #b8322a, 0 0 6px 2px rgba(255, 226, 120, 0.7); } }
+
+/* D449: the box scrolls (a wheel where it is taller than the screen); the subject inside it, no card of its own. */
+.sel-about-pop { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; }
+.sel-about-pop::-webkit-scrollbar { width: 6px; }
+.sel-about-pop::-webkit-scrollbar-thumb { background: var(--tg-shine); }
+.sel-about-pop::-webkit-scrollbar-track { background: #1c1f2c; }
+.tb-hear.tb-hear-in { width: 100%; max-width: none; margin: 0; padding: 0; background: none; border: 0; box-shadow: none; }
+.tb-hear.tb-hear-in .tb-hear-canvas { width: 100%; height: 110px; }
+.sel-about-cite { margin: 2px 0 0; padding: 0 0 0 8px; border-left: 2px solid var(--tg-shine); display: grid; gap: 4px; }
+.sel-about-cite p { margin: 0; }
+.sel-about-cite-orig { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12px; line-height: 1.45; color: var(--tg-fg); }
+.sel-about-cite-tr { font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 1.45; color: #d8d4ea; }
+.sel-about-cite-note { font-size: 10px; color: #8c88aa; }
+.sel-about-cite cite { font-family: Georgia, "Times New Roman", serif; font-style: normal; font-size: 10px; line-height: 1.4; color: #a8a6c8; }
+
+/* D450: DRUMS under TEMPO and SOUND: ON/OFF and the piece's preset (cycled). */
+.sel-drums { flex: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.sel-drums .sel-knob { min-width: 0; }
+.sel-drums-on.on { border-color: var(--tg-shine); }
+.sel-drums-on.on b { color: var(--tg-shine); }
+.sel-drums-preset.off { opacity: 0.6; }
+/* D449: each column scrolls on its own (the ✕ stays in view); a voice's name never runs into its dots. */
+.sel-about-pop { overflow: hidden; }
+.sel-about-side, .sel-about-main { max-height: calc(100dvh - 60px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; padding-right: 4px; }
+.sel-about-side::-webkit-scrollbar, .sel-about-main::-webkit-scrollbar { width: 6px; }
+.sel-about-side::-webkit-scrollbar-thumb, .sel-about-main::-webkit-scrollbar-thumb { background: var(--tg-shine); }
+.sel-about-side::-webkit-scrollbar-track, .sel-about-main::-webkit-scrollbar-track { background: #1c1f2c; }
+.sel-about-entries li { grid-template-columns: max-content minmax(0, 1fr) auto; }
+.sel-about-entries { padding-right: 26px; }
