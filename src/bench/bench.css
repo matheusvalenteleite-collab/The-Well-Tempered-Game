@@ -1019,6 +1019,9 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
 .tb-stops-side .tg-piston { height: 58px; }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
+/* D487 (refreshed for D420's pistons: --tb-stop-rows 1.28, a 58 px piston in 47 px rows): the floor 88 px (the pistons' 62 + 26), so OBBLIGATO's button (34 px), stacked over
+   the pistons, stays clear of the lowest row a note can ask for. */
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 28px); }
 /* D420: what each piston holds, in the piece's pop-up (folded). */
 .tb-pop-pistons { margin: 6px 0; text-align: left; }
 .tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }
@@ -1028,8 +1031,6 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-pop-piston-more { padding-left: 38px; }
 /* D415: translucent with the bars (the stage shows through); a lit piston stays solid. */
 html:not(.tb-paper) .tb-stops-side .tg-piston:not(.on) { background: color-mix(in srgb, var(--tg-bg) 55%, transparent); }
-/* D487: 20 px more under the roll, so OBBLIGATO's button (34 px), stacked over the pistons, stays clear of the lowest row a note can ask for. */
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 35px); }
 
 /* D369: the voice legend: the player's voice a chip of its own (its colour block and VOCÊ: …), the others after it, dimmer. */
 .tg-legend:has(.tb-you-chip) { align-items: center; overflow: visible; }
@@ -1224,13 +1225,13 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-obbligato { position: fixed; z-index: 13; bottom: calc(env(safe-area-inset-bottom, 0px) + 3px); box-sizing: border-box; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); height: 34px; margin: 0; padding: 2px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--tg-pixel); line-height: 1; color: #ffffff; background: #0a3f37; border: 2px solid #a8ffe0; text-shadow: 1px 1px 0 #000; border-radius: 4px; cursor: pointer; touch-action: none; overflow: hidden; white-space: nowrap; animation: tb-obb-glow 1.1s ease-in-out infinite alternate; }
 .tb-obbligato-left { left: calc(var(--tg-sal) + 6px); }
 .tb-obbligato-right { right: calc(var(--tg-sar) + 6px); }
-.tb-has-side-stops .tb-obbligato-left { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows, 1) * 47px + 1px); }
-.tb-has-side-stops .tb-obbligato-right { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + 1px); }
+.tb-has-side-stops .tb-obbligato-left { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows, 1) * 47px + 3px); }
+.tb-has-side-stops .tb-obbligato-right { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + 3px); }
 /* The word in force (Busoni's, the right foot) and the side legend step up over the button while it shows. */
 html:has(.tb-obbligato) .tb-side-gloss { bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 40px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 44px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 64px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 42px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 46px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 66px); }
 /* D487 (the owner: "it was also unreadable"): the instrument in the box's title size (9 px, the HUD's), white on an opaque deep
    green with a dark shadow, whatever the tinted bar under it; a long name (or its translation) in 8 px on two lines, in full. */
 .tb-obbligato-name { font-size: 7px; letter-spacing: 1px; color: #a8ffe0; }
