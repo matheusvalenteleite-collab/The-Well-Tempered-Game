@@ -9,8 +9,8 @@ import { folderOf, PERIOD, SAMPLED } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { terraceStops } from "../src/touch/registration.ts";
 
-// (D503: the jazz quartet remade and offered: test/d503-jazz.test.ts.)
-const IDS = ["trialWinds", "trialBrass", "trialClavichord"];
+// D501: CLAVICHORD offered (test/d501-instruments-finish.test.ts); D503: the jazz quartet (test/d503-jazz.test.ts).
+const IDS = ["trialWinds", "trialBrass"];
 
 test("the trials are found by id, never offered", () => {
   for (const id of IDS) {
@@ -23,6 +23,7 @@ test("the trials are found by id, never offered", () => {
   assert.equal(presetById("trialOrganTrio").id, "chamberOrgan");
   assert.equal(presetById("trialBaroque").id, "baroqueBand");
   assert.equal(presetById("trialJazz").id, "jazzQuartet");
+  assert.equal(presetById("trialClavichord").id, "clavichord");
 });
 
 test("seated narrowly, every layout's patches real", () => {

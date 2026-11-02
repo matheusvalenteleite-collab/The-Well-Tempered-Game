@@ -152,8 +152,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f06: {
-    sound: "pianoSampled",
-    soundWhy: "Strict, violent, a controlled allegro marcato (Keller), meant by Bodky for the clavichord, whose touch shapes every note: the recorded grand is the nearest of the sounds, and its three registers stay distinct on a phone.",
+    sound: "clavichord",
+    soundWhy: "Bodky's clavichord fugue; Busoni's dolce and swells on the Baroque keyboard that has dynamics.",
     character: "Stretti massing throughout; a first half 1-21 and a second half in inversion 21-44 (Ledbetter); episodes 9-13, 30-33.",
     plans: {
       pianoSampled: [

@@ -516,9 +516,18 @@ export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
 export const JAZZ_SEND = 0.16;
 export const JAZZ_MOTOR = { rate: 3.6, depth: 0.32, rise: 0.12 } as const;
 export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
-export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 15 } as const;
+export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 17 } as const;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
+/** D501: the clavichord on a phone: its upper partials lifted (Patch.phoneLift), where the small speaker hears its thin tone. */
+export const CLAVI_PHONE_LIFT = { hz: 900, db: 3 } as const;
+/**
+ * D501: the clavichord's level against the offered sounds' median (D436's way: I/21 b. 1-8 and II/9 b. 1-5,
+ * Herr Bach on the top voice; measured 1.4 dB under on a computer, 2.3 under through the phone model with
+ * CLAVI_PHONE_LIFT): +0.8 dB everywhere, +1.4 dB more on a phone (about -0.6 and -0.1 now; peaks under -7 dBFS).
+ */
+export const CLAVI_GAIN = 1.1;
+export const CLAVI_PHONE_GAIN = 1.18;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1066,15 +1075,16 @@ export const PATCHES = {
    * hollow octave), the tangent's thud at the onset (a short noise about the 5th harmonic), the pitch a few
    * cents sharp as it strikes and settling (the tangent's pressure), a short sustain (dying over about a
    * second, longer low), damped at once by the listing cloth when the key rises. Its dynamics are the
-   * player's touch (touch-expr.ts "piano": three zones).
+   * player's touch (touch-expr.ts "piano": three zones). D501: offered as CLAVICHORD (PRESETS); on a phone its
+   * upper partials lifted (CLAVI_PHONE_LIFT) and the whole raised (the preset's phoneGain), matched to the others.
    */
   // D503, JAZZ QUARTET: the vibraphone on top (the Iowa recordings at pp, mf, ff: the mallet's hardness; the motor added),
   // the grand on the middle voices (lighter, a little brighter), the double bass pizzicato on the bass; one club, one
   // send, the player's line the band's (Patch.one). The `osc`/`amp` stand in until a recording has loaded (D190).
   jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
   jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
-  jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 1.07, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
-  trialClavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE }),
+  jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  clavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE, phoneLift: CLAVI_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1421,6 +1431,9 @@ export const PRESETS: Preset[] = [
       5: [["bandViolin", -0.22, 1.11], ["bandViolin", 0.22, 1.11], ["bandOboe", -0.06, 0.85], ["bandViola", 0.12, 1.32], ["bandCello", 0.04]],
     },
   },
+  // D501 (the trials' CLAVICHORD, offered): one clavichord (synthesized), every voice on it, placed by its key.
+  // Its level matched through the phone model (gain, phoneGain: D501's measurements).
+  { id: "clavichord", name: "CLAVICHORD", gain: CLAVI_GAIN, phoneGain: CLAVI_PHONE_GAIN, slots: ["clavichord", "clavichord", "clavichord", "clavichord", "clavichord"], room: 0, fx: "salon", by: oneKeyboard("clavichord") },
   // D503 (the trials' MODERN JAZZ QUARTET, remade): the vibraphone on the top voice, the grand on the middle voices, the
   // double bass pizzicato on the bass, and the brushes (groove "brushJazz": jazz-drums.ts, always with this sound, never
   // with another). Seated as the Modern Jazz Quartet sat, seen from the room: Milt Jackson's vibraphone left, John
@@ -1429,7 +1442,8 @@ export const PRESETS: Preset[] = [
   {
     id: "jazzQuartet",
     name: "JAZZ QUARTET",
-    // D503 (D436's way): +3.5 dB on a phone (measured -4.0 under the median there, -0.7 on a computer).
+    // D503 (D436's way): +0.5 dB, and on a phone +3.5 dB more (measured -1.2 under the median on a computer, -4.0 through the phone model).
+    gain: 1.06,
     phoneGain: 1.5,
     slots: ["jqVibes", "jqPiano", "jqPiano", "jqPiano", "jqBass"],
     groove: "brushJazz",
@@ -1459,7 +1473,8 @@ export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["tra
  * (within ±0.25), one room and one send (SOUND-PRINCIPLES.md), one instrument per voice from the top down,
  * each voice's level by measurement (each voice rendered alone: about equal loudness, the bass heard through
  * the phone filter). The by-levels below are those measurements' (see the commit). D430: BAROQUE BAND offered
- * (PRESETS); D437: ORGAN TRIO dropped (the owner: "organ trio sounds horrible"), the others kept unoffered.
+ * (PRESETS); D437: ORGAN TRIO dropped (the owner: "organ trio sounds horrible"), the others kept unoffered;
+ * D501: CLAVICHORD offered (PRESETS).
  */
 export const TRIALS: Preset[] = [
   // WIND QUINTET: flute, oboe, clarinet, horn, bassoon, seated in an arc (flute left, bassoon and horn right);
@@ -1493,9 +1508,7 @@ export const TRIALS: Preset[] = [
       5: [["trialTrumpet", -0.24], ["trialTrumpet", -0.12, 1.27], ["trialBrassHorn", 0], ["trialBrassHorn", 0.12], ["trialTrombone", 0.24]],
     },
   },
-  // (D503: MODERN JAZZ QUARTET remade and offered as JAZZ QUARTET: RETIRED.trialJazz.)
-  // CLAVICHORD: one instrument (synthesized), every voice on it, placed by its key.
-  { id: "trialClavichord", name: "CLAVICHORD", slots: ["trialClavichord", "trialClavichord", "trialClavichord", "trialClavichord", "trialClavichord"], room: 0, fx: "salon", by: oneKeyboard("trialClavichord") },
+  // (D503: MODERN JAZZ QUARTET remade and offered as JAZZ QUARTET: RETIRED.trialJazz; D501: CLAVICHORD offered.)
 ];
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
@@ -1509,7 +1522,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ, the lute: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "trialClavichord"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "clavichord"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1616,6 +1629,8 @@ export const RETIRED: Readonly<Record<string, string>> = {
   // D430: the trial BAROQUE BAND, offered under its own id; D437: the trial ORGAN TRIO dropped ("organ trio sounds horrible"): the organ.
   trialBaroque: "baroqueBand",
   trialOrganTrio: "chamberOrgan",
+  // D501: the trial CLAVICHORD, offered under its own id.
+  trialClavichord: "clavichord",
   // D503: the trial MODERN JAZZ QUARTET remade and offered as JAZZ QUARTET.
   trialJazz: "jazzQuartet",
 };

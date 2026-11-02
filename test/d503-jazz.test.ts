@@ -318,7 +318,7 @@ test("D503: no tempo change: the pieces keep their tempo, the band's notes their
     }
   }
   // The preset carries no tempo, no swing of the written notes, no step of its own.
-  assert.deepEqual(Object.keys(JAZZ).sort(), ["by", "fx", "groove", "id", "kit", "name", "phoneGain", "room", "slots"]);
+  assert.deepEqual(Object.keys(JAZZ).sort(), ["by", "fx", "gain", "groove", "id", "kit", "name", "phoneGain", "room", "slots"]);
 });
 
 test("D503: the allocation: I/19 and II/12 open on JAZZ QUARTET, with their reasons", () => {
