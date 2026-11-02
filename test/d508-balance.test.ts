@@ -76,10 +76,10 @@ test("D508: every inner voice audible: no voice more than 6 dB under the loudest
   }
 });
 
-test("D508: II/18 (the owner's case, CLAVICHORD): the alto heard with the player on the soprano; the two mixes alike", () => {
+test("D508, D510: II/18 (the owner's case, CLAVICHORD; now JAZZ QUARTET): the alto heard with the player on the soprano; the two mixes alike", () => {
   const sop = mix("wtc2f18", 0);
   const alt = mix("wtc2f18", 1);
-  assert.equal(OWN_LOUD.wtc2f18.s, "clavichord");
+  assert.equal(OWN_LOUD.wtc2f18.s, "jazzQuartet", "D510: CLAVICHORD withdrawn, II/18 reallocated");
   // The alto (the band's) against the player's soprano: within 2 dB.
   assert.ok(sop[0] - sop[1] <= 2, `the alto ${(sop[0] - sop[1]).toFixed(1)} dB under the player's soprano`);
   // Comparably balanced: each voice's level within 1.5 dB between the two mixes, the spreads within 1 dB.
@@ -94,7 +94,7 @@ const quietChip = (clock: { t: number }, log: { at: number; p: Play }[]) =>
 /** The band's notes of II/18's first 24 bars (the player on the soprano): when, and at what level. */
 function band(raw: boolean): { tick: number; level: number }[] {
   BALANCE.raw = raw;
-  setPreset("clavichord");
+  setPreset("jazzQuartet"); // D510: II/18's sound now (CLAVICHORD withdrawn)
   const f = fugueById("wtc2f18");
   const clock = { t: 0 };
   const log: { at: number; p: Play }[] = [];
@@ -111,7 +111,7 @@ test("D508: the band's notes take their voice's trim and, in a subject entry, BA
   const b = band(false);
   assert.equal(a.length, b.length);
   assert.ok(a.length > 100);
-  const trims = f.voices.map((_, u) => bandTrimDb("wtc2f18", "clavichord", u, 3));
+  const trims = f.voices.map((_, u) => bandTrimDb("wtc2f18", "jazzQuartet", u, 3));
   let lifted = 0;
   for (let i = 0; i < a.length; i++) {
     const r = dB(b[i].level / a[i].level);
@@ -120,14 +120,16 @@ test("D508: the band's notes take their voice's trim and, in a subject entry, BA
     assert.ok(plain || entry, `note ${i}: ${r.toFixed(2)} dB`);
     if (entry && !plain) {
       lifted++;
-      assert.ok(f.entries.some((e) => e.voice !== 0 && e.on <= a[i].tick + 1 && a[i].tick < e.end + 1), `a lifted note in a band entry (tick ${a[i].tick})`);
+      // D510: JAZZ QUARTET plays a note a few ticks off its written place (its feel): the score's place within that.
+      const tol = f.barTicks / 192;
+      assert.ok(f.entries.some((e) => e.voice !== 0 && e.on <= a[i].tick + tol && a[i].tick < e.end + tol), `a lifted note in a band entry (tick ${a[i].tick})`);
     }
   }
   assert.ok(lifted > 10, `the band's entries forward (${lifted} notes)`);
 });
 
 test("D508: the player's note forward in its own entry, by the note's place (right or wrong alike), and its tone", () => {
-  setPreset("clavichord");
+  setPreset("jazzQuartet"); // D510: II/18's sound now (CLAVICHORD withdrawn)
   const f = fugueById("wtc2f18");
   const g = new ProtoGame(f, 0, 0, protoById("ladder"), { bpm: 60, legato: false, easy: "direction", fail: false }, quietChip({ t: 0 }, []));
   const bal = (g as unknown as { balanced: (e: Play, v: number, on: number) => Play }).balanced.bind(g);

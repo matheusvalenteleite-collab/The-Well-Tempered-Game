@@ -77,6 +77,10 @@ import { playerSound } from "./sound.ts";
  * their swells), each with its continuo script (trio-continuo.ts).
  * D503: JAZZ QUARTET for I/19 (the delicate 9/8 scherzo: the Modern Jazz Quartet played Bach) and II/12 (caprice and
  * humour, swung by the vibes), each with its brushes' scripted fills (jazz-drums.ts DRUM_SCRIPTS).
+ * D510: LUTE, CLAVICHORD and NOCTURNE 32-BIT withdrawn (the owner's verdicts): their fugues reassigned with the owner's
+ * requests: I/14 and II/18 on JAZZ QUARTET, II/17 on CLASSIC CHIP, I/12 on VOCAL SYNTH, I/10 on SOLO VOICES (its soprano
+ * and bass, measured the best-blended pair); JAZZ QUARTET also for I/6 (3/4), II/4 (12/16) and II/24 (3/8), SID 64 for II/3
+ * and II/6, STRING CONSORT for I/24, SUPER 16-BIT for II/19 (tools/touch/colour-plans: each reason).
  */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
@@ -91,7 +95,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p05: "chip",
   wtc1f05: "bachBrass",
   wtc1p06: "chip",
-  wtc1f06: "clavichord", // D501: Bodky's clavichord fugue
+  wtc1f06: "jazzQuartet",
   wtc1p07: "harpsichordSampled",
   wtc1f07: "analog",
   wtc1p08: "chip",
@@ -99,15 +103,15 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p09: "chip",
   wtc1f09: "baroqueBand",
   wtc1p10: "chip",
-  wtc1f10: "chip",
+  wtc1f10: "soloVoices",
   wtc1p11: "chip",
   wtc1f11: "tomita",
   wtc1p12: "chip",
-  wtc1f12: "nocturne32",
+  wtc1f12: "vocalSynth",
   wtc1p13: "harpsichordSampled",
   wtc1f13: "oboeTrio",
   wtc1p14: "harpsichordSampled",
-  wtc1f14: "lute",
+  wtc1f14: "jazzQuartet",
   wtc1p15: "chip",
   wtc1f15: "megaFm",
   wtc1p16: "chip",
@@ -127,20 +131,20 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p23: "chip",
   wtc1f23: "vocalSynth",
   wtc1p24: "chip",
-  wtc1f24: "nocturne32",
+  wtc1f24: "stringConsort",
   // Book II
   wtc2p01: "harpsichordSampled",
   wtc2f01: "megaFm",
   wtc2p02: "harpsichordSampled",
   wtc2f02: "chamberOrgan",
   wtc2p03: "harpsichordSampled",
-  wtc2f03: "harpsichordSampled",
+  wtc2f03: "sid64",
   wtc2p04: "chip",
-  wtc2f04: "pianoSampled",
+  wtc2f04: "jazzQuartet",
   wtc2p05: "chip",
   wtc2f05: "bachBrass",
   wtc2p06: "chip",
-  wtc2f06: "harpsichordSampled",
+  wtc2f06: "sid64",
   wtc2p07: "chip",
   wtc2f07: "chamberOrgan",
   wtc2p08: "harpsichordSampled",
@@ -162,11 +166,11 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p16: "chip",
   wtc2f16: "baroqueBand",
   wtc2p17: "chip",
-  wtc2f17: "baroqueBand",
+  wtc2f17: "chip",
   wtc2p18: "harpsichordSampled",
-  wtc2f18: "clavichord", // D501: galant, "not exceeding mf"
+  wtc2f18: "jazzQuartet",
   wtc2p19: "harpsichordSampled",
-  wtc2f19: "nocturne32",
+  wtc2f19: "super16",
   wtc2p20: "harpsichordSampled",
   wtc2f20: "analog",
   wtc2p21: "harpsichordSampled",
@@ -176,7 +180,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p23: "chip",
   wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",
-  wtc2f24: "gameboy",
+  wtc2f24: "jazzQuartet",
   // The Art of Fugue
   "bwv1080-14": "harpsichordSampled",
   ...moreBachSounds(),
@@ -212,7 +216,7 @@ function moreBachSounds(): Record<string, string> {
     "bwv1080-01": "chamberOrgan",
     "bwv1080-02": "harpsichordSampled",
     "bwv1080-03": "pianoSampled",
-    "bwv1080-04": "nocturne32",
+    "bwv1080-04": "stringConsort",
     "bwv1080-05": "super16",
     "bwv1080-06": "harpsichordSampled",
     "bwv1080-07": "chamberOrgan",
@@ -226,7 +230,7 @@ function moreBachSounds(): Record<string, string> {
     "bwv1080-13i": "harpsichordSampled",
     "bwv1080-c14": "chip",
     "bwv1080-c15": "gameboy",
-    "bwv1080-c16": "lute",
+    "bwv1080-c16": "harpsichordSampled",
     "bwv1080-c17": "analog",
     "bwv1079-ric3": "pianoSampled",
     "bwv1079-ric6": "chamberOrgan",

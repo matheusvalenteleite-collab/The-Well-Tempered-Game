@@ -59,11 +59,11 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-04": {
-    sound: "nocturne32",
-    soundWhy: "The longest simple fugue, on the inversion, with long sequential episodes: NOCTURNE 32-BIT's violin and viola over the organ's pedal, as the many string-quartet recordings play the work.",
+    sound: "stringConsort",
+    soundWhy: "D510 (NOCTURNE 32-BIT withdrawn): the longest simple fugue, on the inversion, with long sequential episodes: STRING CONSORT's quartet, as the many string-quartet recordings play the work.",
     character: "Expositions 1-39, 61-77, 107-133, between them long episodes (43-61, 81-107); a tonic pedal (135-138).",
     plans: {
-      nocturne32: [at(43, { tone: -2 }, "The episode 43-61 darker."), at(E("bwv1080-04", 61), OWN, "The bass's entry."), at(81, { tone: -2 }, "The episode 81-107."), at(E("bwv1080-04", 107), OWN, "The tenor's entry."), at(135, { room: 0.1 }, "The closing pedal into the hall.")],
+      stringConsort: [at(43, { tone: -2 }, "The episode 43-61 darker."), at(E("bwv1080-04", 61), OWN, "The bass's entry."), at(81, { tone: -2 }, "The episode 81-107."), at(E("bwv1080-04", 107), OWN, "The tenor's entry."), at(135, { room: 0.1 }, "The closing pedal into the hall.")],
       harpsichordSampled: [at(1, H84, "8′+4′."), at(43, H8, "The episode on the 8′."), at(E("bwv1080-04", 61), H84, "The entry."), at(81, H8, "The episode."), at(E("bwv1080-04", 107), H84, "The entry."), at(E("bwv1080-04", 129), HFULL, "The last entries: coupled.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(43, OFLUTE, "The episode on the flutes."), at(E("bwv1080-04", 61), OPRIN, "The entry."), at(81, OFLUTE, "The episode."), at(E("bwv1080-04", 107), OPRIN, "The entry."), at(E("bwv1080-04", 129), OPLENO, "The last entries and the pedal: the plenum.")],
     },
@@ -164,8 +164,8 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-c16": {
-    sound: "lute",
-    soundWhy: "A canon at the tenth in 12/8, lilting, two voices: the LUTE's plucked courses, one player's two lines.",
+    sound: "harpsichordSampled",
+    soundWhy: "D510 (the lute withdrawn): a canon at the tenth in 12/8, lilting, two voices: the HARPSICHORD, one player's two lines.",
     character: "Two voices in compound time; a cadence in F (17).",
     plans: {
       harpsichordSampled: [at(1, H8, "The 8′."), at(42, H84, "The second half: 8′+4′.")],

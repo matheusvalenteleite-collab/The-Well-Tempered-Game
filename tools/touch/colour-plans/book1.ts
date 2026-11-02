@@ -161,8 +161,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f06: {
-    sound: "clavichord",
-    soundWhy: "Bodky's clavichord fugue; Busoni's dolce and swells on the Baroque keyboard that has dynamics.",
+    sound: "jazzQuartet",
+    soundWhy: "D510: Bodky's clavichord fugue, its running semiquavers over 3/4 (the clavichord withdrawn): JAZZ QUARTET's waltz, the vibraphone on the subject, the piano inside, the plucked bass, Busoni's dolce and swells in the band's dynamics, the brushes in three.",
     character: "Stretti massing throughout; a first half 1-21 and a second half in inversion 21-44 (Ledbetter); episodes 9-13, 30-33.",
     plans: {
       pianoSampled: [
@@ -255,8 +255,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f10: {
-    sound: "chip",
-    soundWhy: "The only two-voice fugue, aggressive and richly coloured (Keller), its two voices meeting in octaves (19, 38): the chip's pulse over its triangle is the console's own two-channel writing; on a phone the bass is a pulse.",
+    sound: "soloVoices",
+    soundWhy: "D510: the only two-voice fugue, its lines singing in long arcs and meeting in octaves (19, 38): SOLO VOICES' recorded soprano and bass, two distinct voices that blend (measured: within 1.4 dB of each other on a computer, 0.4 on a phone; the most even of four pairs tried).",
     character: "Two halves, the second a mirror of the first (Ledbetter 1-19, 20-38); the famous unisons in 19 and 38.",
     plans: {
       chip: [
@@ -289,11 +289,11 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f12: {
-    sound: "nocturne32",
-    soundWhy: "Deeply earnest, an anguished chromatic subject that 'must sing' (Bodky, Keller): NOCTURNE 32-BIT's violin and viola sustain it, over the organ's pedal, in its dark hall.",
+    sound: "vocalSynth",
+    soundWhy: "D510 (the owner: \"I tested vocal synth and prefer it\"): the anguished chromatic subject that 'must sing' (Bodky, Keller): VOCAL SYNTH's four singers sustain it in the plate, the calm interludes a shade darker.",
     character: "The chromatic entries against calm diatonic interludes (10-13, 16-18, 22-26, 50-52: Ledbetter), the contrast to be underlined (Keller).",
     plans: {
-      nocturne32: [
+      vocalSynth: [
         at(10, { tone: -3 }, "The interlude 10-13 darker, against the chromatic subject (Keller)."),
         at(E("wtc1f12", 13), OWN, "The soprano's entry."),
         at(22, { tone: -3 }, "The interlude 22-26."),
@@ -342,8 +342,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f14: {
-    sound: "lute",
-    soundWhy: "Pensive, with a sobbing countersubject (Keller, Bodky), four voices in 6/4: the LUTE's plucked courses, a lutenist's lament, its bass courses still heard on a phone.",
+    sound: "jazzQuartet",
+    soundWhy: "D510 (the owner's choice: JAZZ QUARTET): pensive, a sobbing countersubject in 6/4 (Keller, Bodky): the vibraphone's held notes and the plucked bass in two beats a bar, the brushes soft.",
     character: "An episode 11-14 (Ledbetter), the cadence in C♯ minor (20) and the inversion's entry, a bass pedal on C♯ 37-39.",
     plans: {
       pianoSampled: [
@@ -509,11 +509,11 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f24: {
-    sound: "nocturne32",
-    soundWhy: "'A solemn, broad largo, laden with Affekt', the sigh-motive subject (Keller), mourning (Bodky): NOCTURNE 32-BIT's violin and viola sustain the sighs over the organ's pedal, in its dark hall.",
+    sound: "stringConsort",
+    soundWhy: "D510 (NOCTURNE 32-BIT withdrawn): 'a solemn, broad largo, laden with Affekt' (Keller): STRING CONSORT's quartet sustains the sighs one to a part, as the string-quartet arrangements of Förster and Mozart's circle played it.",
     character: "Long episodes (16-21, 24-30, 63-69) between the entries; a cadence in F♯ minor (24); the last entries 69-74.",
     plans: {
-      nocturne32: [
+      stringConsort: [
         at(16, { tone: -2 }, "The episode 16-21 darker."),
         at(E("wtc1f24", 21), OWN, "The alto's entry."),
         at(B("wtc1f24", 24), { tone: -2 }, "The episode after the cadence in F♯ minor."),

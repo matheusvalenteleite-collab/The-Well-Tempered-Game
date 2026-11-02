@@ -126,9 +126,7 @@ const ROWS: readonly Row[] = [
   ["singB", "BASS VOICE", "voice", ["bass"]],
   ["pianoSampled", "PIANO", "keys", ALL],
   ["harpsiSampled", "HARPSICHORD", "keys", ALL],
-  ["lute2", "LUTE", "keys", ["alto", "tenor"]],
-  // D501: CLAVICHORD, offered (synthesized: no recording to wait for).
-  ["clavichord", "CLAVICHORD", "keys", ALL],
+  // (D510: LUTE and CLAVICHORD withdrawn with their sounds.)
   ["orgPrincipal", "ORGAN", "keys", ["soprano", "alto", "tenor"], 36, 96],
   ["orgPedal", "PEDAL ORGAN", "keys", ["bass"], 24, 60],
   // The consoles' imitations of real instruments.
@@ -138,11 +136,7 @@ const ROWS: readonly Row[] = [
   ["s16Strings", "16-BIT STRINGS", "console", ["alto", "tenor"]],
   ["s16Cello", "16-BIT CELLO", "console", ["tenor", "bass"]],
   ["s16Bassoon", "16-BIT BASSOON", "console", ["tenor", "bass"]],
-  ["n32Violin", "32-BIT VIOLIN", "console", ["soprano", "alto"]],
-  ["n32Oboe", "32-BIT OBOE", "console", ["soprano", "alto"]],
-  ["n32Harpsi", "32-BIT HARPSICHORD", "console", ALL],
-  ["n32Viola", "32-BIT VIOLA", "console", ["alto", "tenor"]],
-  ["n32Organ", "32-BIT ORGAN", "console", ["tenor", "bass"]],
+  // (D510: NOCTURNE 32-BIT's five withdrawn with it.)
   ["trkViolin", "TRACKER VIOLIN", "console", ["soprano", "alto"]],
   ["trkFlute", "TRACKER FLUTE", "console", ["soprano"]],
   ["trkHarpsi", "TRACKER HARPSICHORD", "console", ALL],
@@ -271,8 +265,7 @@ export type MainKind = "piano" | "harpsichord" | "organ" | "strings" | "voice" |
 export function mainKind(id: PatchId | null, pt: Patch | null): MainKind {
   if (!pt) return "chip";
   if (id === "pianoSampled") return "piano";
-  // D501: the clavichord a struck keyboard that dies away, as the harpsichord and the lute.
-  if (id === "harpsiSampled" || id === "lute2" || id === "clavichord") return "harpsichord";
+  if (id === "harpsiSampled") return "harpsichord";
   if (pt.pipe || (id && id.startsWith("org"))) return "organ";
   if (id && (id.startsWith("voc") || id === "tomChoir")) return "voice";
   const fam = familyOf(id);

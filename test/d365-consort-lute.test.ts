@@ -10,10 +10,9 @@ import assert from "node:assert/strict";
 import { register } from "node:module";
 import { FakeNode, FakeParam, installFakeAudio } from "./fake-audio.ts";
 import { CHIP_PAN, CHIP_TRIANGLE, Chip, voicing, type Play } from "../src/touch/chip.ts";
-import { CELLO_PHONE_LIFT, CONSORT_CREDIT, LUTE_CREDIT, LUTE_ONE, PATCHES, PRESETS, creditFor, offered, presetById, setPreset } from "../src/touch/sound.ts";
+import { CELLO_PHONE_LIFT, CONSORT_CREDIT, PATCHES, PRESETS, creditFor, offered, presetById, setPreset } from "../src/touch/sound.ts";
 import { folderOf, PERIOD } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
-import { TOUCH, styleOf, phrase } from "../src/touch/phrasing.ts";
 import { TOUCH_KINDS } from "../src/touch/touch-expr.ts";
 import { PT } from "../src/i18n/pt.ts";
 import { ES } from "../src/i18n/es.ts";
@@ -33,24 +32,23 @@ function strike(id: string, voice: number, count: number, play: Play, midi = 64,
   return [...ctx.nodes].filter((x) => !before.has(x));
 }
 
-test("D365: STRING CONSORT and LUTE offered: in the sound list, grouped, named in three languages, credited, with a touch", () => {
-  for (const [id, name] of [["stringConsort", "STRING CONSORT"], ["lute", "LUTE"]] as const) {
+test("D365: STRING CONSORT offered (D510: LUTE withdrawn): in the sound list, grouped, named in three languages, credited, with a touch", () => {
+  for (const [id, name] of [["stringConsort", "STRING CONSORT"]] as const) {
     assert.ok(offered(id), id);
     assert.equal(presetById(id).name, name);
     assert.ok(POP_SOUNDS.some(([s, n]) => s === id && n === name), id);
     assert.ok(TOUCH_KINDS[id], id);
     for (const dict of [PT, ES] as Record<string, string>[]) assert.ok(dict[name] && dict[name] !== name, `${name} translated`);
   }
-  assert.ok(SOUND_GROUPS.find(([g]) => g === "INSTRUMENTS")![1].includes("lute"));
+  assert.ok(!SOUND_GROUPS.some(([, ids]) => ids.includes("lute")) && !offered("lute") && presetById("lute").id === "harpsichordSampled");
   assert.ok(SOUND_GROUPS.find(([g]) => g === "ENSEMBLES")![1].includes("stringConsort"));
   for (const dict of [PT, ES] as Record<string, string>[]) assert.ok(dict.ENSEMBLES);
   assert.equal(creditFor("stringConsort"), CONSORT_CREDIT);
   assert.match(CONSORT_CREDIT, /TINYSOL.*CC BY 4\.0/);
   assert.match(CONSORT_CREDIT, /FREESOUND 12408/);
-  assert.equal(creditFor("lute"), LUTE_CREDIT);
   // Then the list's last: D430's BAROQUE BAND and D501's CLAVICHORD. (D435: I/4 and II/8 now open on STRING CONSORT, I/14 on LUTE.)
   // (D504: ZELENKA TRIO, D502: BACH BRASS and D503: JAZZ QUARTET after them.)
-  assert.deepEqual(PRESETS.slice(-7, -3).map((p) => p.id), ["stringConsort", "lute", "baroqueBand", "clavichord"]);
+  assert.deepEqual(PRESETS.slice(-5, -3).map((p) => p.id), ["stringConsort", "baroqueBand"]);
 });
 
 test("D365: the consort's viola a solo viola (TinySOL), every whole tone C3-D6, one player to a part", () => {
@@ -82,20 +80,6 @@ test("D365: the cello's upper partials lifted on a phone (a high shelf over its 
     setPhone(false);
     setPreset("chip");
   }
-});
-
-test("D365: the lute: its chords spread from the bass wider than the harpsichord's, within the band's 20 ms; its octave strings heard", () => {
-  assert.equal(styleOf("lute"), "harpsichord");
-  assert.ok(TOUCH.lute.spread > TOUCH.harpsichord.spread && TOUCH.lute.spread * 2 <= 0.02);
-  assert.ok(LUTE_ONE.courses.octave.gain >= 0.35 && LUTE_ONE.courses.octave.gain < LUTE_ONE.courses.unison.gain);
-  // A four-note chord: struck from the bass up, each later than the one below.
-  setPreset("lute");
-  const notes = [0, 1, 2, 3].map((v) => ({ on: 0, dur: 480, midi: 72 - v * 7, step: 0, voice: v }));
-  const sh = phrase(notes, 480, () => 0.5, new Set());
-  const at = sh.map((s) => s.nudge);
-  assert.ok(at[3] < at[2] && at[2] < at[1] && at[1] < at[0], `${at}`);
-  assert.ok(at[0] - at[3] >= 2 * TOUCH.lute.spread - 2 * TOUCH.lute.jitter - 1e-9);
-  setPreset("chip");
 });
 
 test("D365: CLASSIC CHIP within ±0.35; its triangle 3 dB lighter on a computer, as before on a phone", () => {

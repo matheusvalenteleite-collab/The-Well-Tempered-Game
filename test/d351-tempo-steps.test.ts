@@ -110,7 +110,7 @@ test("D351, D434: every tempo the piece's own sound (the owner: \"keep each fugu
   assert.equal((steps as Record<string, unknown>).STEP_SOUNDS, undefined);
   for (const id of [...MORE, ...CHORALE_IDS]) assert.ok(PRESETS.some((x) => x.id === (PIECE_SOUND[id] ?? "chip")), id);
   // The concertos at SLOW and FAST, as SUPER 16-BIT (D348): the harpsichords on a harpsichord, never louder than a string line.
-  for (const [pid, harp] of [["nocturne32", PATCHES.n32Harpsi], ["tracker", PATCHES.trkHarpsi]] as const) {
+  for (const [pid, harp] of [["tracker", PATCHES.trkHarpsi]] as const) {
     setPreset(pid);
     for (const f of MORE_BACH.filter((x) => x.collection === "hconcerto")) {
       const n = f.voices.length;

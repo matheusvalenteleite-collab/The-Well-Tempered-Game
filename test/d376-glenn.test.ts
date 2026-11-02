@@ -47,15 +47,13 @@ test("D376/D378: the flag a Lab parameter; on in the game (D378); lab.html?glenn
 
 test("D376: the families and their numbers", () => {
   assert.equal(exprFamily("harpsichordSampled"), "plucked");
-  assert.equal(exprFamily("lute"), "plucked");
   assert.equal(exprFamily("pianoSampled"), "piano");
   assert.equal(exprFamily("chamberOrgan"), "organ");
   assert.equal(exprFamily("stringConsort"), "bowed");
   assert.equal(exprFamily("vocalSynth"), "sung");
   assert.equal(exprFamily("chip"), "synth");
-  assert.ok(isKeyboard("lute") && isKeyboard("pianoSampled") && !isKeyboard("stringConsort"));
+  assert.ok(isKeyboard("harpsichordSampled") && isKeyboard("pianoSampled") && !isKeyboard("stringConsort"));
   assert.equal(overHoldS("harpsichordSampled"), 0.4);
-  assert.equal(overHoldS("lute"), 0.4);
   assert.equal(overHoldS("pianoSampled"), 0.25);
   assert.equal(overHoldS("chamberOrgan"), 0);
   assert.equal(overHoldS("vocalSynth"), 0);
