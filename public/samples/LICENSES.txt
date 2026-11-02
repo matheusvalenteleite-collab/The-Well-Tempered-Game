@@ -118,3 +118,13 @@ oboeSoft/ oboeStac/   VS Chamber Orchestra 2: Community Edition, Versilian Studi
          Changed: mono; onset kept 1 ms before the attack; the soft layer 4.5 s with a 0.3 s fade, the staccato 0.6 s; each note's
          steady loudness (the staccato's first 0.15 s) matched to the loud layer's (oboe/) note; mono 44.1 kHz 64 kbit/s MP3.
          Script for both: tools/playback/trio/build_trio.py.
+D502, the touch game's BACH BRASS (two dynamic layers each: the folder, the forte; the folder with P, the piano):
+brassTrumpet/ brassTrumpetP/ brassHorn/ brassHornP/ brassTrombone/ brassTromboneP/ brassBass/ brassBassP/
+         University of Iowa Electronic Music Studios, Musical Instrument Samples (Lawrence Fritts; theremin.music.uiowa.edu/MIS.html):
+         "may be downloaded and used for any projects, without restrictions"; credited in the game. Bb trumpet without vibrato,
+         horn, tenor trombone: the 2014 single notes, ff, 24-bit stereo; their piano layer the 1997 pp chromatic scales (the
+         horn's, too noisy and missing C3-B3, made from its forte by the trumpet's and trombone's measured pp/ff difference by
+         harmonic); the bass trombone's 1997 mf and pp scales (its ff low notes a blare). Every minor third: trumpet E3-C#6,
+         horn F2-F5, tenor trombone E2-C5, bass trombone Bb1-G4. Changed: mono; cut from the scales by measured pitch; onset
+         kept 1 ms before the attack; held on to 4.3 s by crossfaded passages of each note's own steady stretch, a 0.3 s fade;
+         each note's steady loudness (K-weighted) evened; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/brass/build_brass.py.

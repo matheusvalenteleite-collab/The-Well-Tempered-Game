@@ -110,6 +110,11 @@ const ROWS: readonly Row[] = [
   ["trioBassoon", "BASSOON", "strings", ["tenor", "bass"]],
   ["trioCello", "CONTINUO CELLO", "strings", ["tenor", "bass"]],
   ["trioHarpsi", "CONTINUO HARPSICHORD", "keys", ALL],
+  // D502: BACH BRASS's recorded brass (the orchestra's real instruments: the strings' family for the tiers).
+  ["bachTrumpet", "TRUMPET", "strings", ["soprano", "alto"]],
+  ["bachHorn", "HORN", "strings", ["alto", "tenor"]],
+  ["bachTrombone", "TROMBONE", "strings", ["tenor", "bass"]],
+  ["bachBass", "BASS TROMBONE", "strings", ["bass"]],
   ["singS", "SOPRANO VOICE", "voice", ["soprano"]],
   ["singS2", "MEZZO VOICE", "voice", ["soprano", "alto"]],
   ["singA", "ALTO VOICE", "voice", ["alto"]],
@@ -387,6 +392,8 @@ export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
   bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0, clavichord: -29.1,
   // D504: ZELENKA TRIO's (the same probe, its gains taken out; BAROQUE BAND's oboe and violin probed again beside them: -25.0, -26.9).
   trioOboe1: -23.0, trioOboe2: -23.7, trioBassoon: -16.8, trioCello: -21.9, trioHarpsi: -28.1,
+  // D502: BACH BRASS's (probed the same way, its phoneGain taken out; offset by the band violin's probe beside them).
+  bachTrumpet: -28.1, bachHorn: -27.0, bachTrombone: -29.4, bachBass: -29.1,
 } as Record<Layer["id"], number>;
 /** D439: the evening out at most this many dB either way. */
 export const LOUDNESS_SPAN = 6;
