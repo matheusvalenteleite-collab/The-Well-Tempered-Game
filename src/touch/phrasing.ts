@@ -28,9 +28,9 @@ import { BREATH, dbToLevel, decide, GAP_MAX_SHARE, kindsOf, noteHash, phraseBoun
 export type Style = "plain" | "harpsichord" | "piano" | "organ" | "sung" | "solo" | "switched";
 /** D305: VOCAL SYNTH sung as singers sing (SUNG below), SWITCHED-ON's bass apart (SWITCHED); D309: PIPE ORGAN "organ", SOLO VOICES "solo"; the other synthesized sounds "plain". */
 export const styleOf = (soundId: string): Style =>
-  // D358: the trial LUTE plucked as the harpsichord is (one player: the chord spread, the finger pedal). TRIALS:
-  // the CLAVICHORD played as a harpsichord is (its dynamics the player's touch).
-  soundId === "harpsichordSampled" || soundId === "lute" || soundId === "trialClavichord" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : soundId === "chamberOrgan" || soundId === "organSampled" ? "organ" : soundId === "vocalSynth" ? "sung" : soundId === "soloVoices" ? "solo" : soundId === "analog" ? "switched" : "plain";
+  // D358: the trial LUTE plucked as the harpsichord is (one player: the chord spread, the finger pedal). D501:
+  // the CLAVICHORD played as a harpsichord is (its dynamics the player's touch and Busoni's, EXPRESSIVE_ALL).
+  soundId === "harpsichordSampled" || soundId === "lute" || soundId === "clavichord" ? "harpsichord" : soundId === "pianoSampled" ? "piano" : soundId === "chamberOrgan" || soundId === "organSampled" ? "organ" : soundId === "vocalSynth" ? "sung" : soundId === "soloVoices" ? "solo" : soundId === "analog" ? "switched" : "plain";
 
 /**
  * D294, the numbers (seconds, shares of the written length):

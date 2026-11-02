@@ -37,6 +37,8 @@ export const PT: Record<string, string> = {
   STRINGS: "CORDAS",
   // D430: BAROQUE BAND, offered again (the trials' ensemble): BANDA BARROCA.
   "BAROQUE BAND": "BANDA BARROCA",
+  // D501: CLAVICHORD, offered.
+  CLAVICHORD: "CLAVICÓRDIO",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOÉ, VIOLA E FAGOTE",
@@ -645,4 +647,9 @@ export const PT: Record<string, string> = {
   "LIFT TO TURN": "LEVANTE PARA VOLTAR",
   // D488: the slide-in's line in HOW TO PLAY.
   "SLIDE IN: after a rest, put a thumb down above or below the coming note before its time, then slide it in: the note sounds when you are halfway there, entering with your instrument's slide. Putting the thumb down there never counts as a mistake.": "DESLIZAR PARA ENTRAR: depois de uma pausa, apoie um polegar acima ou abaixo da próxima nota antes do tempo dela e deslize até ela: a nota soa quando você chega à metade do caminho, entrando com o deslize do seu instrumento. Apoiar o polegar ali nunca conta como erro.",
+  // D439: OBBLIGATO's colours (the "effect" mode).
+  "GRAND HALL": "GRANDE SALA",
+  "ENSEMBLE": "CONJUNTO",
+  "PING-PONG ECHO": "ECO PINGUE-PONGUE",
+  "FLANGER": "FLANGER",
 };

@@ -498,6 +498,15 @@ export const CONTINUO = { db: -8, phoneDb: -4.5, pan: -0.06, late: 0.015 } as co
 export const BAND_CELLO_PHONE_LIFT = { hz: 700, db: 5 } as const;
 /** CLAVICHORD: one instrument, placed by its key (a small instrument: ±0.1), each key's pair of strings a fixed fraction of a cent off. */
 export const CLAVI_ONE = { span: 0.2, lo: 36, hi: 89, cents: 0.6 } as const;
+/** D501: the clavichord on a phone: its upper partials lifted (Patch.phoneLift), where the small speaker hears its thin tone. */
+export const CLAVI_PHONE_LIFT = { hz: 900, db: 3 } as const;
+/**
+ * D501: the clavichord's level against the offered sounds' median (D436's way: I/21 b. 1-8 and II/9 b. 1-5,
+ * Herr Bach on the top voice; measured 1.4 dB under on a computer, 2.3 under through the phone model with
+ * CLAVI_PHONE_LIFT): +0.8 dB everywhere, +1.4 dB more on a phone (about -0.6 and -0.1 now; peaks under -7 dBFS).
+ */
+export const CLAVI_GAIN = 1.1;
+export const CLAVI_PHONE_GAIN = 1.18;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1045,9 +1054,10 @@ export const PATCHES = {
    * hollow octave), the tangent's thud at the onset (a short noise about the 5th harmonic), the pitch a few
    * cents sharp as it strikes and settling (the tangent's pressure), a short sustain (dying over about a
    * second, longer low), damped at once by the listing cloth when the key rises. Its dynamics are the
-   * player's touch (touch-expr.ts "piano": three zones).
+   * player's touch (touch-expr.ts "piano": three zones). D501: offered as CLAVICHORD (PRESETS); on a phone its
+   * upper partials lifted (CLAVI_PHONE_LIFT) and the whole raised (the preset's phoneGain), matched to the others.
    */
-  trialClavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE }),
+  clavichord: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "saw", detune: 2, gain: 0.42 }, { wave: "pulse25", octave: 1, gain: 0.1 }], filter: { freq: 6, q: 0.9, env: 1.8, envDecay: 0.1 }, scoop: { cents: 7, time: 0.015 }, chiff: { level: 0.22, time: 0.016, at: 5 }, amp: { a: 0.002, d: 0.85, s: 0, r: 0.04 }, hp: 70, send: 0.14, level: 0.45, one: CLAVI_ONE, phoneLift: CLAVI_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1392,6 +1402,9 @@ export const PRESETS: Preset[] = [
       5: [["bandViolin", -0.22, 1.11], ["bandViolin", 0.22, 1.11], ["bandOboe", -0.06, 0.85], ["bandViola", 0.12, 1.32], ["bandCello", 0.04]],
     },
   },
+  // D501 (the trials' CLAVICHORD, offered): one clavichord (synthesized), every voice on it, placed by its key.
+  // Its level matched through the phone model (gain, phoneGain: D501's measurements).
+  { id: "clavichord", name: "CLAVICHORD", gain: CLAVI_GAIN, phoneGain: CLAVI_PHONE_GAIN, slots: ["clavichord", "clavichord", "clavichord", "clavichord", "clavichord"], room: 0, fx: "salon", by: oneKeyboard("clavichord") },
 ];
 
 /**
@@ -1407,7 +1420,8 @@ export const TRAVERSO: Preset = { id: "traverso", name: "TRAVERSO", slots: ["tra
  * (within ±0.25), one room and one send (SOUND-PRINCIPLES.md), one instrument per voice from the top down,
  * each voice's level by measurement (each voice rendered alone: about equal loudness, the bass heard through
  * the phone filter). The by-levels below are those measurements' (see the commit). D430: BAROQUE BAND offered
- * (PRESETS); D437: ORGAN TRIO dropped (the owner: "organ trio sounds horrible"), the others kept unoffered.
+ * (PRESETS); D437: ORGAN TRIO dropped (the owner: "organ trio sounds horrible"), the others kept unoffered;
+ * D501: CLAVICHORD offered (PRESETS).
  */
 export const TRIALS: Preset[] = [
   // WIND QUINTET: flute, oboe, clarinet, horn, bassoon, seated in an arc (flute left, bassoon and horn right);
@@ -1457,8 +1471,6 @@ export const TRIALS: Preset[] = [
       5: [["trialVibe", -0.18], ["pianoSampled", 0.12, 1.2], ["pianoSampled", 0.12, 1.05], ["pianoSampled", 0.12, 0.95], ["trialBassPizz", 0]],
     },
   },
-  // CLAVICHORD: one instrument (synthesized), every voice on it, placed by its key.
-  { id: "trialClavichord", name: "CLAVICHORD", slots: ["trialClavichord", "trialClavichord", "trialClavichord", "trialClavichord", "trialClavichord"], room: 0, fx: "salon", by: oneKeyboard("trialClavichord") },
 ];
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
@@ -1472,7 +1484,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ, the lute: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "trialJazz", "trialClavichord"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "soloVoices", "vocalSynth", "trialWinds", "trialBrass", "trialJazz", "clavichord"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1579,6 +1591,8 @@ export const RETIRED: Readonly<Record<string, string>> = {
   // D430: the trial BAROQUE BAND, offered under its own id; D437: the trial ORGAN TRIO dropped ("organ trio sounds horrible"): the organ.
   trialBaroque: "baroqueBand",
   trialOrganTrio: "chamberOrgan",
+  // D501: the trial CLAVICHORD, offered under its own id.
+  trialClavichord: "clavichord",
 };
 /** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
 export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";

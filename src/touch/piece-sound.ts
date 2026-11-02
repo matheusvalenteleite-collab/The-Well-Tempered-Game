@@ -84,7 +84,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p05: "chip",
   wtc1f05: "harpsichordSampled",
   wtc1p06: "chip",
-  wtc1f06: "pianoSampled",
+  wtc1f06: "clavichord", // D501: Bodky's clavichord fugue
   wtc1p07: "harpsichordSampled",
   wtc1f07: "analog",
   wtc1p08: "chip",
@@ -157,7 +157,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p17: "chip",
   wtc2f17: "baroqueBand",
   wtc2p18: "harpsichordSampled",
-  wtc2f18: "pianoSampled",
+  wtc2f18: "clavichord", // D501: galant, "not exceeding mf"
   wtc2p19: "harpsichordSampled",
   wtc2f19: "nocturne32",
   wtc2p20: "harpsichordSampled",
