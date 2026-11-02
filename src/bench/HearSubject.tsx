@@ -26,7 +26,8 @@ export type { Performed };
 export { firstEntry };
 
 /** D344: `single` (play.html for the friends): the one reading chosen for the fugue (readings.ts BEST_READING), no tabs. */
-export function HearSubject({ id, play, close, single = false }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; close: () => void; single?: boolean }) {
+/** D449: `embedded`, inside ABOUT THIS FUGUE: no veil, no title or ✕, heard only when ▶ is tapped; `stop` silences it when the box closes. */
+export function HearSubject({ id, play, close, single = false, embedded = false, stop }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; close: () => void; single?: boolean; embedded?: boolean; stop?: () => void }) {
   const f = fugueById(id);
   const e = firstEntry(id);
   const readings = readingsOf(id);
@@ -51,10 +52,17 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     const last = perf.at(-1);
     void play(subjectSounds(f, e, perf, tempoOf(id)), e.voice).then((at) => (started.current = { at, total: last ? last.at + last.len : 0 }));
   };
+  const shownOnce = useRef(false);
   useEffect(() => {
-    hear();
+    // D449: embedded, the first showing waits for ▶ (the box opens in silence); a reading chosen is heard at once.
+    if (!embedded || shownOnce.current) hear();
+    shownOnce.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reading?.id]);
+  // D449: the subject stops when its box closes (the latest `stop`, read at the close).
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+  useEffect(() => () => stopRef.current?.(), []);
   useEffect(() => {
     let raf = 0;
     const draw = () => {
@@ -79,10 +87,9 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
     ? { short: ns.some((n) => !!n.short), apart: ns.some((n) => n.join === false), joined: ns.some((n, i) => !!n.join && !slurredJoin(reading, i)), slur: (reading.slurs ?? []).length > 0, strong: ns.some((n) => !!n.accent) }
     : null;
   const legend = has ? markLegend(STRONG_SIDE).filter((l) => has[l.kind]) : [];
-  return (
-    <div className="tb-hear-wrap" role="dialog" aria-label="Hear the subject" onClick={close}>
-      <div className="tg-card tb-hear" onClick={(ev) => ev.stopPropagation()}>
-        <div className="tb-hear-top">
+  const card = (
+      <div className={embedded ? "tb-hear tb-hear-in" : "tg-card tb-hear"} id={embedded ? "about-subject" : undefined} onClick={(ev) => ev.stopPropagation()}>
+        {!embedded && <div className="tb-hear-top">
           {nick && <span className="tb-hear-nick">{nick.toUpperCase()}</span>}
           <h2 className="tb-hear-title">
             {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)} · {tr("THE SUBJECT")}
@@ -90,7 +97,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
           <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
             ✕
           </button>
-        </div>
+        </div>}
         <div className="tb-hear-stage">
           <canvas ref={canvas} className="tb-hear-canvas" />
           {offered && readings.length > 0 && (
@@ -113,7 +120,7 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
         </div>
         <div className="tb-hear-row">
           <button type="button" id="hear-again" className="tb-hear-btn2 tb-hear-again" onClick={hear}>
-            ▶ {tr("HEAR IT AGAIN")}
+            ▶ {embedded ? tr("HEAR THE SUBJECT") : tr("HEAR IT AGAIN")}
           </button>
           {!offered || !readings.length ? (
             reading ? (
@@ -157,6 +164,11 @@ export function HearSubject({ id, play, close, single = false }: { id: string; p
         )}
         {!reading && <p className="tb-hear-lock">{!OFFER_READINGS && !busoniOn() && readings.some((r) => r.whole) ? tr("BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION") : !offered ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
       </div>
+  );
+  if (embedded) return card;
+  return (
+    <div className="tb-hear-wrap" role="dialog" aria-label="Hear the subject" onClick={close}>
+      {card}
     </div>
   );
 }
