@@ -1,0 +1,1062 @@
+# THE EXPERT ENTRIES (D493): every entry of every subject in the 48 fugues, as the published analyses
+# give them. The game's entries (data/touch/pieces.json) are built from this table (tools/touch/expert.ts
+# placeExpert, run by tools/touch/extract.ts); docs/wtc/entries/EXPERT-AUDIT.md says what changed and why.
+#
+# Sources (keys used below):
+#   P  Ebenezer Prout, Analysis of J. S. Bach's Forty-Eight Fugues, ed. Louis B. Prout (London: Ashdown, 1910)
+#      (archive.org analysisofjsbach00prouuoft). Bars as here: the first complete bar is bar 1.
+#   I  Frederick Iliffe, The Forty-Eight Preludes and Fugues of John Sebastian Bach Analysed for the Use of
+#      Students (London: Novello, 1897): a bar-by-bar table of every entry (archive.org fortyeightprelud00ilifuoft).
+#   B  Busoni's edition (Schirmer, 1894; docs/wtc/readings/busoni/): his entry labels (S A T B, turned letters for
+#      inversion, V variation, D diminution, augmentation brackets) and footnotes.
+#   L  Ledbetter, Bach's Well-tempered Clavier (Yale, 2002): data/wtc/ledbetter-claims.txt, later-subjects.json.
+#   G  the game's own entry, which no source names and none denies: kept (never invented, never dropped unseen).
+#
+# Grammar: "== id | sources" opens a fugue; then one entry a line:
+#   BAR[+Q] VOICE [flags] [; source keys] [# note]
+#   BAR: the bar as the sources number it; +Q: quarter-notes after the barline where the start is known.
+#   VOICE: S A T B (four voices), S A B (three), S1 S2 A T B (five), U L (two).
+#   flags: ans (the answer), inv (inverted), aug (augmented), dim (diminished), part (partial: only the head
+#   or part of it), mod (modified: notes changed, still an entry), t2 / t3 (the second / third subject),
+#   len=N (a first statement's length in quarter-notes, for a later subject), n=N (an entry N notes long).
+#   "multi" after the sources marks a fugue of several subjects (its flags read SUBJECT 1, 2, 3).
+#   "% text" lines record where the sources disagree.
+
+== wtc1f01 | P I B L
+1 A
+2 S ans
+4 T ans
+5 B
+7 S
+7 T ans
+9 A ans
+10 B
+10 A
+12 T
+14 A
+14 T ans part ; P I
+15 B ans ; P I L
+15 S ans part ; P I
+16 S
+16 A ans
+17 T ans
+17 B mod ; P I   # its first note lengthened (P)
+19 T
+19 A ans
+20+3 B part ; I   # "Subject in Bass (incomplete)", bars 20-21 (I); not in P
+20 S ans
+21 T ans
+24 T
+24 A ans
+24+3 S ans part ; I B   # I: "Answer (incomplete) in Treble"; B prints (S) over the soprano's C-D-E-F
+% b. 20 bass: only I names the incomplete bass entry; P names the treble and tenor only.
+
+== wtc1f02 | P I B L
+1 A
+3 S ans
+7 B
+11 S
+15 A ans
+20 S
+26 B
+29 S
+
+== wtc1f03 | P I B L
+1 S
+3 A ans
+5 B
+10 S ans
+14 B
+19 A
+24 S ans
+26 A
+42 S
+44 A ans
+46 B
+51 S
+% bb. 22-23 and 35-40: P and I read the subject's first bar treated in sequence (episodes IV and V), not
+% entries; the game had flagged six. B prints "marcato" on the bass at b. 39 (its gloss: the subject brought
+% out): followed P and I, the more detailed.
+
+== wtc1f04 | P I B L multi
+1 B
+4 T ans
+7 A
+12 S2 ans mod ; P I   # the tonal form, towards F sharp minor
+14 S1
+19 T ans
+22 T mod ; P I   # first note shortened (P)
+25 A
+29 B ans
+32 A
+35 T
+35+2 S1 t2 len=12 ; I B L   # the second subject (P, I: countersubject I) enters
+38 A ans
+38+2 S1 t2 ; I
+41 T t2 inv ; I   # "the Tenor is an inversion of the Counter-subject" (I, P)
+44 S2
+44+2 B t2
+46+1 S1 t2 mod ; I   # its head varied (C B flat C E flat), then the running quavers
+49 S1
+49 S2 t2
+49 A t3 len=8 ; P I B L   # the third subject (P, I: countersubject II)
+51 T ; P B
+52 A t2
+52 S1 t3
+54 S1 ; B
+54 S2 ans
+55 A t2
+55 B t3
+57 S2 t3 ; I
+58 S1 t2
+59 S1
+60 S2 t2
+60 T t3
+62 S1 t3 ; I
+62 S2 t2 ; I
+64 A t3
+65 B t3
+66 S1
+67 B t2
+67 S2 t3
+69 S1 t2
+69 A t3
+71+2 S2 t3 ; I
+73 B
+74 A t2
+74 T t3
+76 S1
+77 B t2
+77 S2 t3
+79 S2 t2
+79 B t3
+81 T
+82 S1 t2
+82 A t3
+84 S1 t2 ; I
+84 T t3
+85 S2 t3
+86 S1 t2 ; I
+86 B t3
+89 S1
+90 B t3
+92 T t2
+
+94 S2 ; P I B   # the parts cross (P): the sources' first treble here is the game's second soprano line, and back
+95+2 S1 ans ; I B
+96+2 S2 ; I B
+96 T t3
+97 B ans ; I B
+97 A t3
+98 S2 t3
+98 T t3 ; I
+99 S1 t3 ; I
+102 T t3 ; I
+
+104 S2 t3 ; I
+105 T t3 ; G
+107 S1
+107 S2 t3
+107 A t3
+108 T t3 ; I
+112 S2 mod ; P B   # the plagal close: the subject in F sharp minor (P), "A.I." (B)
+% Three subjects: B (his "Contrasubject I, II", "three subjects labelled throughout"), L and the game read a
+% triple fugue; P ("a fugue with two countersubjects") and I (countersubjects I and II) read one subject with
+% two countersubjects. Followed B and L (the owner's reading too): SUBJECT 1, 2, 3, the statements as P and I place
+% the countersubjects.
+% b. 49, the third subject's first statement: alto (P, the game), tenor (I), second soprano (B's label).
+% b. 51: tenor (P, B's label), bass (I). bb. 60-74: I gives several third-subject statements to the other inner
+% voice (alto for tenor); the game's voices kept. I's third-subject statements at bb. 92 (first soprano) and 103 (alto) are not in those voices' notes: left out.
+% Dropped (no source; I's table lists every voice): the game's bb. 34 bass, 44 first soprano, 70 first
+% soprano, 72 second soprano, 101 first soprano.
+
+== wtc1f05 | P I
+1 B
+2 T ans
+4 A
+5 S ans
+7 B
+8 S ans
+10 B part ; P   # "on the last note of the phrase the commencement of the subject is heard in the bass" (P)
+11 B part ; P   # the same, "sequentially repeated a note lower" (P)
+11 S
+12 A ans
+13 S ans ; P
+13 B ans part ; I   # "Answer (incomplete) in Bass" (I)
+14 T
+15 B
+20 S part ; P I   # "the beginning of the subject is heard, as if in stretto, in all the voices" (P)
+20 A part ; P I
+20 T part ; P I
+20 B part ; P I
+% b. 13: P names the treble's answer, I the bass's incomplete answer (and not the treble): both kept.
+% bb. 22-25: P ("the complete subject is never heard after bar 15 ... bars 23, 24 are built on repetitions of
+% the first figure") and I ("coda founded on figures of the Subject"): the game's four entries there dropped.
+
+== wtc1f06 | P I B
+1 S
+3 A ans
+6 B
+8 S mod ; P I B   # "an irregular redundant entry of the subject in the treble, commencing on the supertonic" (P)
+13 S ans
+14 A ans inv
+17 B ans
+18 A ans
+21 B ans
+22 S inv
+23 B inv
+27 S inv
+28 A
+29 B inv
+34 B
+39 B
+40 A
+
+== wtc1f07 | P I L
+1 S
+3 A ans
+6 B
+11 S ans
+17 A
+20 B
+26 B ans
+29 S mod ; P I L   # its first note altered (P)
+34 A ans mod ; P I L   # one note chromatically altered (P)
+
+== wtc1f08 | P I B L
+1 A
+3 S ans
+8 B
+12 B ans
+19 A ans
+20 S ans
+24 S
+24+1 A mod ; P I   # "the alto in a rhythmically modified form" (P)
+24+2 B part ; P I   # "the bass incomplete" (P)
+27 S
+27 A
+30 S inv
+36 A inv
+39 B inv ans ; P I B   # "somewhat disguised by the ornamentation of its opening note" (P); B: the turned B
+43 S mod part ; I   # "Subject (altered) in Treble" (I)
+44 B inv
+45 S inv
+47 A inv
+47+3 S inv part ; I B   # "Fragment of Subject by inversion in Treble" (I); B: the turned S
+52 B part ; P I B   # "two neat little canons ... not completing the subject" (P)
+52 A part
+52 S part
+54 B inv part ; P I B
+54 A inv part
+54 S inv part
+57 S
+61 A
+62 B aug
+64 S ans inv
+67 B
+67 A aug
+69 S
+72 A ans
+77 B
+77+1 A mod ; I B   # "Subject (altered) in Alto" (I); B labels A
+77 S aug
+80 A ; B
+% b. 49, alto: the game's entry; no source names it (I lists every entry of bb. 47-52): dropped.
+% b. 80, alto: only B labels it.
+
+== wtc1f09 | P I L
+1 A
+2 S ans
+3 B
+6 S
+8 A ans
+10 B ans
+12+1 S mod ; P I   # "a rhythmically irregular entry of the subject in the treble at the second beat of bar 12" (P)
+16 A
+19 B
+20 S ans mod ; P I L   # "answer (altered)" (P)
+21 A
+25 S
+28 B ans part ; P I L   # "Answer (fragment) in Bass, slightly altered for the conclusion" (I)
+
+== wtc1f10 | P I L
+1 U
+3 L ans
+11 U
+13 L ans
+20 L
+22 U ans
+30 L
+32 U ans
+39 U part ; P I   # "uncompleted" (P), "Fragment of Subject in Treble" (I)
+40 L part ; P I   # "still more" fragmentary (P), "Fragment of Subject in Bass" (I)
+
+== wtc1f11 | P I L
+1 A
+4 S ans
+9 B
+17 S
+21 A ans
+25 B
+27 A
+36 S
+38 A
+40 B
+46 B
+48 A
+50 S
+64+2 S mod ; P I   # "at the last semiquaver of bar 64 ... its first note shortened and the following bar ornamented" (P)
+65+2 A ans part ; P I   # "a bar later ... the closest stretto", abandoned at b. 68 (P)
+
+== wtc1f12 | P I B L
+1 T
+4 A ans
+7 B
+13 S
+19 T ans
+27 B
+34 A
+40 T ans
+47 S ans
+53 B
+
+== wtc1f13 | P I L
+1 S
+3 A ans
+5 B
+11 S
+15 A ans
+20 B
+28 A
+31 S
+% bb. 30-31: I hears "imitations of the Subject" in the treble and alto, which P does not name: not taken as entries.
+
+== wtc1f14 | P I B L
+1 T
+4 A ans
+8 B
+15 S
+20 A ans inv ; P I B L
+25 S ans mod ; P I B L   # "a shortened, figurative form of the answer" (B); the head varied (L)
+29 T
+32 B inv
+37 S ans
+
+== wtc1f15 | P I L
+1 S
+5 A ans
+11 B
+20 A inv
+24 S ans inv
+28 B inv
+38 S
+43 A inv
+51 S
+52 B
+60 A ans
+61 S ans
+69 B inv
+77 A inv
+78 B inv
+79 S
+79 A mod ; I L   # the subject's first part in thirds below the treble (I); "the tonic entry beginning on the 3rd" (L)
+
+== wtc1f16 | P I B L
+1 A
+2 S ans
+5 B
+6 T ans
+12 A
+13 B ans
+15 S ans
+17 B
+17 A ans
+20 B
+21 S
+23 A ans
+28 S
+28 T
+29 B ; I   # "Subject in Bass, completing the Stretto" (I)
+31 A
+33 T
+
+== wtc1f17 | P I B L
+1 T
+2 B ans
+5 S
+6 A ans
+10 T
+13 A
+17 T
+18 A ans
+21 A part ; I   # "Fragment of Subject in Alto and of Answer in Treble" (I), bb. 21-22
+21 S ans part ; I
+23 A ans mod ; I   # "altered at 5th note" (I)
+24 S
+24 A mod ; I   # "Subject (varied) in Alto and developed into a sequence of suspended 9ths" (I)
+27 B
+28 T ans
+29 A ans
+30 S ans
+33 S
+
+== wtc1f18 | P I B L
+1 T
+3 A ans
+5 S
+7 B ans
+11 T ans
+15 B ans
+17 T
+19 A ans
+24 S
+26 B ans
+32 T
+37 S ans
+% Dropped: the tenor's head at b. 24 (D242) and the alto's inversion at b. 33 (the game's): P and I list every
+% entry (P: entries at bb. 11, 15, 17, 19, 24, 26, 32, 37) and name neither.
+
+== wtc1f19 | P I B L
+1 S
+2 A ans
+4 B
+6 B ans
+9 S
+13 B
+16 B ans part ; P I L   # "irregular and incomplete ... modulating into E" (P)
+23 B
+25 S ans mod ; P L   # "a tonal answer in the treble (varied at the end)" (P); L's stretto
+27 A ans mod ; P I   # "its first note an octave higher than would have been regular" (P)
+31 A mod ; P I B   # "both irregular" (P)
+33 B mod ; P I L   # "chromatically altered" (I)
+39 B ans mod ; P I   # "the initial note and rests wanting" (P)
+42 A mod ; P I   # "the first note altered" (P)
+44 B ans mod ; P I   # "Answer (altered) in Bass" (I)
+% b. 25: P's treble (tonal answer), I's alto; the game's two lines there (the finder's and D242's) were one entry.
+% b. 21, alto: the game's; P ("it is only necessary to indicate the various entries") and I name none there
+% (B's transcription glosses a "non cresc." there as the alto's entry): dropped.
+
+== wtc1f20 | P I B L
+1 A
+4 S ans
+8 B
+11 T ans
+14 S inv
+17 A inv part ; P I   # "fragmentary" (P), "first part" (I)
+18 T inv
+21 B inv
+24 A inv
+27 S
+28 T
+31 A ans
+32 B ans
+36 T
+37 A
+43 S
+43 B
+48 A ans inv
+49 T ans inv
+53 B inv
+53 S inv
+57 S inv
+58 A inv
+62 B ans inv part ; P I   # "incomplete" (P)
+62 T ans inv part ; P I
+64 B
+65 T ans
+67 S ans inv
+68 A inv
+73 B inv ; I
+73 A inv ; I
+76 T ans inv part ; P I   # "three incomplete entries for the upper voices, the tenor by inverse movement" (P)
+77 A part ; P I
+77 S part ; P I
+80 A part ; P I   # "incomplete stretti between alto and treble at the fifth" (P)
+81 S ans part ; P I
+84 S part ; P I   # the four-voice stretto on the tonic pedal (P): treble and alto direct
+85 A part ; P I
+% b. 53: P hears the inverse form (alto and bass), I the direct (bass and treble); the notes have the inverse in
+% the bass and treble: kept so. bb. 73-76: inverted (I); P does not say.
+% Not taken: the closing section's imitations at bb. 45-46 (tenor, alto: the subject's second part, P and I),
+% and the coda's inverted bass and tenor over the pedal (P), which do not lie in the game's voices as P puts them.
+% b. 32, soprano: the game's; P and I name the alto and bass only there: dropped.
+
+== wtc1f21 | P I L
+1 S
+5 A ans
+9 B
+13 S ans
+22 A
+26 B
+35 A ans ; P I   # "an entry of answer in alto, with CS 1 in treble and CS 2 in bass" (P)
+37 S
+41 A ans
+
+== wtc1f22 | P I B L
+1 S1
+3 S2 ans
+10 A
+12 T ans
+15 B
+25 S1
+27 S2 ans
+29 T
+32 B ans
+37 S2 ans ; P I   # P and I: the alto's answer; in the game's voices that line is the second soprano's (the parts cross)
+46 A ans part ; P I B L   # P, I: the tenor's answer (B's label on the same notes); the game's alto line here
+48 B ans part ; P I
+50 S1 ans part ; P I L   # "the first treble leads, the second treble and alto follow at a minim's distance" (P)
+50 S2 ans part ; P I L
+51 A ; P I
+52 B ans mod ; P I   # "the bass (varied)" (P), "slightly altered" (I)
+53 T ans ; P I
+55 S2
+55 A ans
+61+3 S2 ; G   # the game's (the owner's report, D308): no source names it
+67 S1
+68 S2 ans
+68 A
+69 T ans
+69 B
+% b. 36, tenor: the game's; P lists the group of bb. 25-39 as five entries (first and second treble, tenor, bass,
+% alto) and I the same: dropped. bb. 46-50: P and I give whole answers; the notes go their own way after six or
+% seven (D242): marked partial. b. 61: the game keeps the owner's entry (D308), which no source names. b. 73: P's
+% other "abortive" answers (bb. 73-74; I: "reminiscence of the first limb of Answer in Alto", b. 74) are not in the
+% game's voices as named: not placed.
+
+== wtc1f23 | P I B L
+1 T
+3 A ans
+5 S
+7 B ans
+11 T
+16 A ans
+18 S inv
+20 A ans inv
+21 B
+24 T ans
+29 A
+31 S ans
+
+== wtc1f24 | P I B L
+1 A
+4 T ans
+9 B
+13 S ans
+21 A
+30 T
+34 A ans part ; I L   # "Stretto I. (incomplete)" (I); half the subject (L)
+35 S part ; I L
+38 B
+41 S part ; I L   # "Subject (first part)" (I)
+42 A part ; I L
+43 B part ; I L
+44 T
+47 B ans ; I   # "Answer in Bass. Counter-subject in Treble" (I)
+53 T ans
+57 B
+60 T
+69 T part ; I   # "Subject (first part) in Tenor" (I)
+70 B
+74 A
+% I points out three-note fragments of the subject in the episodes (alto b. 19, tenor b. 28): not taken as entries.
+
+== wtc2f01 | P I B
+1 A
+5 S ans
+9 B
+21 A
+25 S ans
+39 B ans
+47 A
+51 S ans
+68 B part ; I   # "Subject (first limb of) reiterated in Bass in a descending sequence" (I)
+72 A part ; I
+76 S part ; I   # "Fragments of the Subject reiterated in similar manner in Treble" (I)
+
+== wtc2f02 | P I B L
+1 A
+2 S ans
+4 T
+7 T ans
+8 S mod ; P I   # "the subject in the treble (bar 8) slightly varies the rhythm" (P)
+10 A ans
+11 T
+14 S
+14 A aug
+15 T ans inv ; P I   # "answered by inverse movement in the tenor" (P); "by Free Inversion" (I)
+16 A ans
+16 S
+17 T
+17 S ans
+18 A
+19 B aug
+19 S inv ; I   # "Subject in Treble by Inversion" (I); not in P
+21 B ans inv ; P I
+22 B ans
+23 A
+23 S ans
+24 S
+25 A
+25 T
+26 B inv mod ; P I B   # "the bass brings it in, inverted and somewhat modified" (P); B: "più marcato", the bass entry
+% b. 7: P (and the notes) give the answer to the tenor, I to the bass; the bass enters only at b. 19 (P).
+
+== wtc2f03 | P I B
+# I's table, read from the page image (the OCR lost it): every start to the beat.
+1+0.5 B
+1+2.5 S ans
+2+0.5 A inv
+4+0.5 S
+4+2.5 A ans
+5+0.5 B
+5+2 S dim ; I   # "Subject in Treble by Diminution" (I)
+5+3.5 A ans dim ; I
+6 B dim inv ; I   # "Subject in Bass by Diminution and Inversion" (I)
+7+0.5 B ans
+7+2 A ans
+8+0.5 S ans
+9+1.5 B inv
+9+2.5 A inv
+9+3.5 S ans inv ; I   # I: "Answer in Treble" without "by Inversion"; the notes (E flat C E flat A flat) are the inversion: kept so
+10+3.5 B inv
+11+0.5 S inv
+11+1.5 A ans
+11+2.5 B ; I
+14+2.5 B
+14+3.5 S inv
+15+0.5 A ans
+15+2.5 S inv ; I
+17+0.5 B ; I B
+18+3 A inv dim ; I   # "Subject in Alto by Inversion and Diminution" (I)
+19 B inv dim ; I
+19+3 B dim ; I   # "Subject in Bass by Diminution" (I)
+24+0.5 B ans
+25+0.5 S inv
+25+1 A ans aug ; I   # "Answer in Alto by Augmentation" (I)
+25+2.5 B ans
+27+1 B ans aug ; I   # "Answer in Bass by Augmentation" (I)
+28+0.5 S inv ; I   # "on Dominant of C sharp" (I)
+28+2.5 S ans
+29+0.5 A ans mod ; I   # "Answer in Alto (varied)" (I)
+30+1.5 A inv mod ; I
+30+3.5 A inv mod ; I
+31+2.5 B ans
+% b. 3, bass (an inversion, the game's): not in I's table, which lists every entry: dropped.
+
+== wtc2f04 | P I L multi
+1 B
+2 S ans
+5 A
+16 S
+17 A ans
+20 B
+24 S inv
+26 A ans inv
+28 B inv
+30 A
+35+1.5 S t2 ; L   # the second subject (L: "a quasi-exposition in all parts to b. 38"); P: "the theme given in the treble of bars 35, 36 ... combined with the subject in double counterpoint"
+36+1.5 A t2 ; L
+38 B t2 ; L
+48 S
+48+1.5 B t2 ; P   # combined with the subject (P: "see bars 48, 49")
+53 A inv mod ; P I   # "inverse movement (bar 53), the form somewhat varied, and the tonality, that of A" (P)
+55 B
+55+1.5 S t2 ; P   # (P: "and 55, 56")
+61 A ans ; I
+61+1.5 B t2 ; G
+66 A
+66+1.5 S t2 ; G
+67 B ans mod ; P I   # "a final appearance in bar 67 (second half), in the direct form but also somewhat varied" (P)
+68+1.5 A t2 ; G
+% Two subjects: L (and the game) read a double fugue, the second subject from b. 35; P and I a single subject
+% (P: the treble's theme of bb. 35-36, combined with the subject in double counterpoint at the twelfth).
+% b. 51, bass: the game's; P and I put the varied inversion of this passage in the alto at b. 53: replaced.
+
+== wtc2f05 | P I B L
+1 T
+2 A ans
+5 S
+6 B ans
+10 A
+11 S ans
+14 A ans
+14 S
+21 T
+22 S ans
+22 A mod ; I   # "Subject (altered) in Alto" (I)
+25 B ans
+27 B ans
+27 S ans
+28 A ans part ; I   # "Fragment of Answer in Alto" (I)
+33 T
+33 A
+33 S
+40 T
+43 B ans mod ; I L   # "Answer (altered) in Bass" (I), "chromatically altered" (L)
+44 T ans part ; I   # "Answer (early fragment) in Tenor" (I)
+44 S ans
+44 A
+45 T
+45 B
+
+== wtc2f06 | P I B L
+1 A
+3 S ans
+6 B
+10 B part ; P I   # "the bass really breaks away from the subject before the treble enters" (P); "first portion only" (I)
+10+3 S part ; P I   # "Subject in Treble (incomplete)" (I)
+14 A
+14+1 S ans
+17 A ans inv
+17+1 B inv
+18+2 B part ; P I   # "Subject in Bass (fragment)" (I)
+18+3 S ; I   # I: the treble (P: the alto)
+25 A
+25+1 B inv part ; I   # "Subject (fragment) in Bass by Inversion" (I)
+25+2 S
+% Dropped: the treble's inversion at b. 5 (P: the codetta "made from the inversion of the first half bar of the
+% subject"), the treble's inversion at b. 10 and the treble and bass at b. 21 (episode III, bb. 19-24, P and I).
+% b. 18: the answering voice is the treble (I) or the alto (P).
+
+== wtc2f07 | P I B L
+1 B
+7 T ans
+14 A
+21 S ans
+30+2 T ans
+31+2 B
+37 A ans
+38 S
+53+2 T mod ; P I B L   # "Subject (altered) in Tenor" (I)
+56 A part ; B   # B's bracketed "(A)": the alto carries the subject's line
+59 S ans
+60 B
+
+== wtc2f08 | P I B L
+1 A
+3 T ans
+7 B
+9 S ans
+15 B ans mod ; I B   # "Answer (altered) in Bass" (I)
+17 A mod ; I B L
+19 T mod ; I B
+21 S
+23+2 A ; B L   # B labels it; I hears "Stretto I., first limb of Subject in Tenor" at b. 24
+24 T part ; I
+25 B
+27+2 S
+30 A
+32 T mod ; I B   # "Subject (altered) in Tenor" (I)
+40+2 B
+43+2 S
+43+2 T ans inv ; I B   # "with Answer in Tenor simultaneously by Inversion" (I)
+
+== wtc2f09 | P I B L
+1 B
+2+4 T ans
+4 A
+5+4 S ans
+9+2 A ans
+9+4 T
+10+4 B ans
+11 S
+16 A
+17 S ans
+19 B ans
+20 T
+20+7.5 B ; B   # B's label (likely)
+23 S mod ; B L   # "SV": the soprano, in variation (B)
+23+2 A mod ; L   # L's stretto, soprano and alto
+25 B mod ; B L   # "BV": the bass, in variation (B)
+25+2 T mod ; L
+26+6 S dim ; P I B   # "SD": the soprano in diminution (B)
+27+2 A dim ; I B
+28+2 T dim ; I B
+28+6 B dim ; I B
+30+2 B dim ; I
+30+4 A ; I B
+31+7 S mod ; B   # "SV" (B, likely)
+32+7 A inv dim ; B   # one of B's bracketed hidden entries (b. 32)
+35+2 A ans ; I
+35+2 S inv dim ; I B   # "Subject in Treble by Inversion and Diminution" (I); B's turned S with D
+35+4 T
+36+4 B ans
+37+6 S
+40 B ans
+% One subject: B and I label the entries of bb. 16-20 as the subject's (alto, soprano, bass, tenor); L reads "two
+% new subjects in double counterpoint, bb. 16-22" there. Followed B and I.
+% Dropped (the game's diminutions which neither B nor I names): bass b. 23, soprano b. 25, alto b. 28, soprano b. 39.
+
+== wtc2f10 | P I B L
+0+3.33 S
+6+3.33 A ans
+12+3.33 B
+23+3.33 S
+29+3.33 A ans
+41+3.33 B ans
+49+3.33 A
+59+3.33 S
+71+3.33 B
+% I also notes the subject's last fragment in the bass (b. 70) and, inverted, in the treble (b. 71): tails, not taken.
+
+== wtc2f11 | P I L
+1 S
+5 A ans
+14 B
+21 B ans ; P I   # L: "false entry"
+52 A
+66 B
+85 S ; I L   # "Subject in Treble" (I); "reharmonised" (L)
+89 B mod ; I L   # "gap filled" (L)
+% b. 91, bass: the game's second bass entry two bars after b. 89; I and L name only b. 89: dropped.
+% b. 21: I counts the bass's answer; L calls it a false entry: kept.
+
+== wtc2f12 | P I B L
+0+1.5 S
+4+1.5 A ans
+11+1.5 B
+24+1.5 S
+28+1.5 A
+40+1.5 B
+50+1.5 A
+71+1.5 S
+74+1.5 A
+
+== wtc2f13 | P I B L
+0+2 A
+4+2 S ans
+8+2 B
+20+2 S
+32+2 B ans
+36+2 A
+40+2 S
+52+2 A
+64+2 B
+70+2 A ans
+76+2 S
+
+== wtc2f14 | P I B L multi
+1+1.5 A
+4+1.5 S ans
+8+3.5 B
+14 B ans mod ; P I   # "real instead of tonal, is somewhat varied in bar 15, and breaks off at the second beat of bar 16" (P)
+16+1.5 S
+20+2.5 B t2 ; P L   # the second theme (P: "the first new theme ... given out by the bass"; L: subject 2)
+21+2.5 S t2 ; G
+22+2.5 A t2 ; G
+23+2.5 B t2 ; G
+28+3.5 A
+29 S t2 ; P   # "combined with the counterpoint (from Episode 2) in the treble in bar 29 and bass in bar 30" (P)
+30 B t2 ; P
+34+1.5 B ans
+36+2 A t3 ; P L   # the third theme (P: "the second new theme, slightly overlapping the preceding appearance of the subject")
+37+2 S t3 ; P
+38+2 B t3 ; P
+39+2 A t3 ; G
+41 B t3 ; G
+42+2 A t3 ; G
+44 S t3 ; B
+45 B t3 ; B   # B's bracket at b. 44, beat 4
+46 S t3 ; B   # B's bracket at b. 45, beat 4
+49 S t3 ; G
+51+3.5 A
+54 S mod ; P I   # "in the treble, in the tonic key, slightly modified at its commencement" (P)
+55+2 B t3
+56+0.5 A t2
+60+1.75 B ans
+61 S t3
+61+2.5 A t2
+66+2 A t3
+66+3.5 S
+67+2 A t3
+68+0.5 B t2
+% Three subjects: B (his "subject 3" brackets) and L read a triple fugue; P ("sometimes described as a triple
+% fugue, but this is not strictly accurate": two counterpoints introduced later, bb. 20 and 36) and I (who counts
+% them as episodes) one subject. Followed B and L.
+% Dropped: the alto at b. 17 and the bass at b. 30 (P: "only two voices participate" in the counter-exposition;
+% the bass of b. 30 is the second theme, P).
+
+== wtc2f15 | P I B L
+1 S
+8 A ans
+15 B
+33 B
+40 S ans
+65 A
+% bb. 23-31: P ("two episodes (bars 23 to 33 ...) ... only one middle entry of the subject, namely, in the bass from
+% bar 33") and I: the game's four entries there (bass bb. 23, 27, 31, soprano b. 25) dropped.
+
+== wtc2f16 | P I B
+1 T
+5 A ans
+9 S
+13 B ans
+20 T
+28 A ans
+32 S
+36 B ans
+45 A
+45 T ans
+51 S
+51 A
+59 T
+59 B
+67 T
+69 S
+69 T mod ; I   # "Subject in Treble and Tenor" (I): the tenor with it
+79 B mod ; I   # "Subject (slightly altered) in Bass" (I), in the coda
+
+== wtc2f17 | P I B L
+1 A
+3 S ans
+6 T
+8 B ans
+13+2 B
+16+2 A ans
+18+2 T
+22 S
+24 A
+32 T ans
+35 S
+37+1 B
+41 T
+42+2 B ; P I B
+48+2 T ; I L   # "Subject in First Tenor" (I); L calls it the chromatic countersubject, not the subject
+% b. 5, alto (a seven-note answer, the game's): I's codetta, bb. 5-6: dropped.
+
+== wtc2f18 | P I L multi
+1 S
+5 A ans
+13 B
+19 A
+33 B ans
+45 S ans ; I   # I: the answer in the treble (D sharp minor)
+55 B
+61+1 S t2 ; L   # the second subject (L: "second section, bb. 61-97"); I calls it the countersubject, "theme absent"
+66+1 A t2 ; I
+71+1 B t2 ; I
+79+1 S t2 ; I
+97 B
+97+1 A t2
+103 S ans
+103+1 A t2
+111 A
+111+1 S t2
+125 A
+125+1 B t2
+135 S
+135+1 A t2
+% Two subjects: L and the game read a double fugue (the second subject's own exposition, bb. 61-83); I a single
+% subject whose countersubject is first given alone ("Theme absent. Counter-subject in Treble"). Followed L.
+
+== wtc2f19 | P I L
+1 B
+2 A ans
+5 S
+7 B ans
+9 S
+12 A ans
+16 B mod ; I L   # "Subject (slightly altered) in Bass" (I)
+20 S
+23 A ans mod ; I L   # "Answer (slightly altered) in Alto" (I)
+27 S mod ; I L   # "Subject in Treble (slightly altered)" (I)
+% bb. 24-26: the game's three entries (alto b. 24, soprano bb. 25, 26) lie in I's episode IV (bb. 25-27): dropped.
+
+== wtc2f20 | P I L
+1 B
+3 A ans
+6 S
+9 B
+13 S ans
+17 A
+21 S
+25 B
+
+== wtc2f21 | P I B L
+1 A
+5 S ans
+13 B
+21 B ans
+32 A ans
+40 S
+47 B
+54 A
+63 S
+78 S ans mod ; I L   # "Answer in Treble (slightly altered)" (I)
+% Dropped (the game's, inside I's episodes II, VI and the coda): soprano b. 25, bass b. 27, alto b. 62, soprano b. 85.
+
+== wtc2f22 | P I B L
+1 A
+5 S ans
+11 B
+17 T ans
+27 T
+27+2 A ans
+33 S
+33+2 B ans
+42 T ans inv
+46 A inv
+52 S inv
+58 B ans inv
+67 T inv
+67+2 S ans inv
+73 A inv
+73+2 B ans inv
+80 S inv
+80+2 T ans ; I B   # "Stretto V., Answer in Tenor" (I): direct
+89 B
+89+2 A ans inv
+96 S
+96 A mod ; I B   # "Subject in Treble and Alto, simultaneously in 3rds" (I)
+96+2 T ans inv
+96+2 B ans inv mod ; I   # "Answer in Tenor and Bass, simultaneously in 3rds by Inversion" (I)
+
+== wtc2f23 | P I B L multi
+1 B
+5 T ans
+10 A
+14 S ans
+19 B
+27 T ans
+28+2 S t2 ; I B L   # the second subject (L: "no separate exposition; it dominates the rest of the fugue"); I: "Counter-subject II", B: "the new countersubject"
+31+2 B t2 ; G
+33+2 S t2 ; G
+35 A
+36+2 B t2 ; I
+42 S ans
+43+2 A t2 ; I
+48 B
+49+2 S t2 ; I
+53 T
+54+2 A t2 ; I
+54+3 B t2 ; G
+60 T
+61 S t2 ; I
+71 T t2 ; G
+73+2 T t2 ; G
+75 B
+85 T ans
+86+2 A t2 ; I
+89 B t2 ; B   # B: "tematico", bring out
+91 B t2 ; G
+93 S
+94+2 T t2 ; I
+100+2 S t2 ; G
+% Two subjects: L and the game read the theme of b. 28 as a second subject; I ("Counter-subject II") and B ("the
+% new countersubject") as a countersubject. Followed L.
+
+== wtc2f24 | P I L
+0+1 A
+6+1 S ans
+15+1 B
+26+1 A ans
+35+1 S
+44+1 B
+54+1 A ans
+70 A
+70+1.25 B
+81+1 S
+97 A part ; I L   # "Subject in Alto" (I), in the coda; four notes in the notes (D248)
+98 B part ; I L   # "Stretto II. Subject in Bass" (I)
+99 S mod ; I   # "Subject in Treble, ornamented by passing notes" (I)
