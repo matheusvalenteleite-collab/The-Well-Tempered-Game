@@ -207,8 +207,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f18: {
-    sound: "pianoSampled",
-    soundWhy: "A gently flowing, galant double fugue whose dynamics 'do not exceed mf' (Keller): the recorded grand, its soft layer for the first two sections.",
+    sound: "clavichord",
+    soundWhy: "Galant, 'not exceeding mf': C. P. E. Bach's instrument.",
     character: "Section 1 on the first subject (1-61), section 2 on the second (61-97), the double fugue (97-143) (Ledbetter); Bodky's 8″ (pp), 8′ (p), 8″+4″ (f) by section.",
     plans: {
       pianoSampled: [at(1, { layer: "soft" }, "Bodky's pp and p (1-97): the soft layer."), at(97, OWN, "The double fugue (97) in the full tone.")],

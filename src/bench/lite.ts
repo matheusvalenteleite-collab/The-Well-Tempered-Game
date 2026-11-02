@@ -38,10 +38,12 @@ export const bookTwoEarned = (beaten: readonly string[] = readLite().beaten): bo
   return BOOK_ONE_FUGUES.every((id) => won.has(id));
 };
 /** D382: Book II open on play.html: earned, or everything unlocked by the owner's passphrase (unlock.ts). */
-export const bookTwoOpen = (beaten?: readonly string[]): boolean => unlocked() || bookTwoEarned(beaten);
+// D489 (the owner: "make sure that Book II is available from the beginning"): open from the start; D382's gate retired.
+export const bookTwoOpen = (_beaten?: readonly string[]): boolean => true;
 /** D382: the selection's note for a Book II just earned: shown until seen (kept in `seen` under this id). */
 export const BOOK_TWO_SEEN = "book2-open";
-export const bookTwoNews = (st: Pick<LiteState, "beaten" | "seen"> = readLite()): boolean => !unlocked() && bookTwoEarned(st.beaten) && !st.seen.includes(BOOK_TWO_SEEN);
+// D489: Book II open from the start, so there is no "just earned" note.
+export const bookTwoNews = (_st: Pick<LiteState, "beaten" | "seen"> = readLite()): boolean => false;
 /** D340: the MORE BACH tab's sections, in order, each its pieces (Contrapunctus 14, the unfinished fugue of pieces.json, closes the Art of Fugue). */
 const SECTION_OF: readonly [Collection, string][] = [
   ["aof", "ART OF FUGUE"],

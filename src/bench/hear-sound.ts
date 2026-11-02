@@ -17,6 +17,28 @@ export function firstEntry(id: string) {
 
 /** What sounds: each performed note, or its ornament's notes (the last, the main note, to the note's end). */
 export function subjectSounds(f: TouchFugue, e: ReturnType<typeof firstEntry>, perf: Performed, bpm: number): Performed {
+  const tps = (f.tpq * bpm) / 60;
+  return withEnding(soundsOf(f, e, perf, bpm), perf, e.notes.at(-1)?.[1] ?? 0, f.tpq, tps);
+}
+
+/**
+ * D487 (the owner: "hear the subject no endings"): HEAR THE SUBJECT stopped as the subject's last written note did,
+ * and in most fugues that is a semiquaver or a quaver (the voice runs on into the countersubject), played at 92% of
+ * its length or shorter (a reading's dot, a detached mark): the playback broke off mid-run, gone 0.2-0.7 s after the
+ * note began. The last note now ends it: held its full written length and at least a beat (ENDING_BEATS), never
+ * shortened by a mark, and let go with its own release (not a detached note's quick one).
+ */
+export const ENDING_BEATS = 1;
+export function withEnding(sounds: Performed, perf: Performed, lastDur: number, tpq: number, tps: number): Performed {
+  const fin = sounds.at(-1);
+  const p = perf.at(-1);
+  if (!fin || !p) return sounds;
+  const ring = Math.max(lastDur, ENDING_BEATS * tpq) / tps;
+  const { apart: _apart, ...rest } = fin;
+  return [...sounds.slice(0, -1), { ...rest, len: Math.max(fin.len, p.at + ring - fin.at), final: true }];
+}
+
+function soundsOf(f: TouchFugue, e: ReturnType<typeof firstEntry>, perf: Performed, bpm: number): Performed {
   const orns = ornamentsOf(f);
   const tps = (f.tpq * bpm) / 60;
   return perf.flatMap((p, i) => {

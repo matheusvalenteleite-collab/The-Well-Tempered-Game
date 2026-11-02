@@ -48,11 +48,12 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // side a firm, reedy one, brighter) and a held note's swell (BREATH_DB, its brightness, oboe II's vibrato).
   oboeTrio: "winds",
   // TRIALS (instruments-trials): the bands of held instruments as the consort (a bow's or the breath's pressure,
-  // the messa); the jazz quartet and the clavichord as the piano (the touch's three zones: their dynamics).
+  // the messa); the jazz quartet as the piano (the touch's three zones: their dynamics).
   trialWinds: "singers",
   trialBrass: "singers",
   trialJazz: "piano",
-  trialClavichord: "piano",
+  // D501: CLAVICHORD (offered) as the piano: the touch's three zones, its dynamics (the tangent's own).
+  clavichord: "piano",
 };
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;

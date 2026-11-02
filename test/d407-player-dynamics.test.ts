@@ -1,7 +1,8 @@
 /**
  * D407 (WTC 1.99): the player's line compressed under mf. Busoni's p, pp and the like reach the band in full; the
  * player's line takes 40% of a drop under mf (a soft knee into −3 dB), loud levels as printed, and D404's safety net
- * folded in: never more than 4 dB under the loudest sounding band voice for more than 2 bars.
+ * folded in: never more than 4 dB under the loudest sounding band voice for more than 2 bars. D487: never under it
+ * (LINE_GAP_DB 0, LINE_GAP_BARS 0: the player's line at least the loudest sounding band voice's printed level, at once).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -40,7 +41,7 @@ test("D407: the band keeps Busoni's full range; the player's line takes the comp
   assert.ok(p.lineDynAt(1, t) > -2.5);
 });
 
-test("D407: the scan of all 48 with a player in each voice: never under −3 dB, never > 4 dB under the loudest band voice for > 2 bars", () => {
+test("D407: the scan of all 48 with a player in each voice: never under −3 dB, never under the loudest band voice (D487)", () => {
   for (const id of IDS) {
     const { f, p } = of(id);
     for (let v = 0; v < f.voices.length; v++) {
@@ -60,7 +61,7 @@ test("D407: the scan of all 48 with a player in each voice: never under −3 dB,
   }
 });
 
-test("D407: the safety net lifts the line under a printed f too (D404's exemption gone), to 4 dB under", () => {
+test("D407/D487: the safety net lifts the line under a printed f too (D404's exemption gone), to the loudest voice's level", () => {
   const f = fugueById("wtc1f02")!;
   const base = readingsOf("wtc1f02").find((x) => x.whole)!.whole!;
   const make = (loud: string): WholeReading => ({ ...base, dyn: [{ on: 0, voices: [0], mark: "p" }, { on: 0, voices: [1, 2], mark: loud }], hairpins: [], text: [] });
@@ -68,10 +69,10 @@ test("D407: the safety net lifts the line under a printed f too (D404's exemptio
   const both = Array.from({ length: 16 }, (_, i) => i + 1).filter((b) => sounds(f, 0, t(b)) && sounds(f, 1, t(b)));
   const late = both.filter((b) => b >= both[0] + LINE_GAP_BARS);
   assert.ok(late.length > 0);
-  // Under mf: the compressed p (−2.1) sits within 4 dB already: nothing lifted.
+  // Under mf (D487): the compressed p (−2.1) lifted to the band's mf (0 dB) where both sound.
   const mf = buildWhole(f, make("mf"));
-  for (const b of both) assert.ok(Math.abs(mf.lineDynAt(0, t(b)) - playerDb(LEVEL_DB.p)) < 1e-6, `mf, bar ${b}`);
-  // Under ff (+6.5): the band keeps its p, the player's line is brought to 4 dB under after the net's bars.
+  for (const b of both) assert.ok(Math.abs(mf.lineDynAt(0, t(b)) - Math.max(playerDb(LEVEL_DB.p), LEVEL_DB.mf ?? 0)) < 1e-6, `mf, bar ${b}`);
+  // Under ff (+6.5): the band keeps its p, the player's line is brought to the ff (D487: at once).
   const ff = buildWhole(f, make("ff"));
   assert.equal(ff.dynAt(0, t(12)), LEVEL_DB.p);
   assert.ok(Math.abs(ff.lineDynAt(0, t(late[late.length - 1])) - (LEVEL_DB.ff - LINE_GAP_DB)) < 1e-6);
