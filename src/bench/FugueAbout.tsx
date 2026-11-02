@@ -7,6 +7,8 @@
  * the text is not yet written, the box says so.
  */
 import { useEffect } from "react";
+import { CITATIONS } from "./citations.ts";
+import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { lang, partName, tr } from "../i18n/index.ts";
 import { fugueById } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
@@ -41,9 +43,17 @@ export function entryFacts(id: string) {
   return { per, themes, total: firsts.length, stretti, inverted, augmented, keys, cadences: f.cadences.length, bars: f.bars.length, meter: f.meter };
 }
 
-export function FugueAbout({ id, close }: { id: string; close: () => void }) {
+/**
+ * D449 (the owner: "Clicking on the picture in the right column, anywhere on it … opens the informative box.
+ * Relocate the HEAR THE SUBJECT material to inside this box … Add some citation about each fugue … Add a
+ * scrolling wheel if necessary"): the subject, heard and seen, first in the box (`subject`: the sound's play
+ * and stop, the subject silenced when the box closes); Busoni's words on the fugue (citations.ts) after the
+ * facts; the box scrolls when it is taller than the screen.
+ */
+export function FugueAbout({ id, close, subject }: { id: string; close: () => void; subject?: { play: (notes: Performed, voice: number) => Promise<number>; stop: () => void } }) {
   const f = fugueById(id);
   const facts = entryFacts(id);
+  const cite = CITATIONS[id];
   const note = NOTES[`wtc${f.book}.${String(f.number).padStart(2, "0")}`]?.fugue;
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
@@ -75,6 +85,12 @@ export function FugueAbout({ id, close }: { id: string; close: () => void }) {
           </dl>
         </div>
         <div className="sel-about-main">
+          {subject && (
+            <>
+              <h2 className="sel-about-h">{tr("THE SUBJECT")}</h2>
+              <HearSubject id={id} play={subject.play} stop={subject.stop} close={close} embedded />
+            </>
+          )}
           <h2 className="sel-about-h">{tr("THE SUBJECT, VOICE BY VOICE")}</h2>
           <ul className="sel-about-entries" aria-label={tr("ENTRIES")}>
             {f.voiceNames.map((vn, i) => (
@@ -97,6 +113,21 @@ export function FugueAbout({ id, close }: { id: string; close: () => void }) {
             <>
               <h2 className="sel-about-h">{tr("THE PIECE")}</h2>
               <p className="sel-about-text">{note}</p>
+            </>
+          )}
+          {cite && (
+            <>
+              <h2 className="sel-about-h">{tr("BUSONI ON THIS FUGUE")}</h2>
+              <blockquote className="sel-about-cite" id="about-cite" lang={/[äöüßÄÖÜ]|\b(der|die|das|und|ist)\b/.test(cite.original) ? "de" : "it"}>
+                <p className="sel-about-cite-orig">“{cite.original}”</p>
+                <p className="sel-about-cite-tr">
+                  {lang() === "pt" ? cite.pt : lang() === "es" ? cite.es : cite.en} <span className="sel-about-cite-note">({tr("our translation")})</span>
+                </p>
+                <cite>
+                  J. S. Bach, <i>{cite.title}</i>, ed. Ferruccio Busoni ({cite.imprint}), {cite.pages}
+                  {cite.kind === "heading" ? ` · ${tr("his heading")}` : ` · ${tr("his footnote")}`}
+                </cite>
+              </blockquote>
             </>
           )}
           {/* D463: history and recordings wait for Glenn's sourced texts (no placeholder shown). */}
