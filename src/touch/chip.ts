@@ -9,9 +9,10 @@
 export type Timbre = "pulse12" | "pulse25" | "pulse50" | "triangle";
 
 import { hz } from "./tuning.ts";
+import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
-import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
+import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
@@ -928,9 +929,15 @@ export class Chip {
     // TRIAL (sound.ts toneAll): the reading's planned level as the tone on a chip, console or synthesizer.
     // D432: on CLASSIC CHIP and GAME BOY the channel's volume step, its duty and a long note's vibrato (Chip.stepped), after the landing.
     const fresh = p.hold === undefined;
+    // D512: STRING CONSORT's articulation stop (consort-stops.ts), read as the note starts (a change sounds from the
+    // next note): the player's voice, every consort voice under its TUTTI. SPICCATO, PIZZICATO and TREMOLO their own
+    // patch (before the landing: a plucked note answers no sway); CON SORDINO the mute, after it (below).
+    const cons = p.couple === false || !hasConsortStops(preset().id) ? null : consortNote(preset().id, consortStop(preset().id), v.patch, !!p.lead);
+    if (cons?.patch) v = { ...v, patch: cons.patch };
     const stepped = fresh && toneAll(preset().id) && STEPPED_SOUNDS.has(preset().id);
+    const own = p.touch;
     if (fresh && !stepped && toneAll(preset().id)) [p, v] = this.toned(midi, v, p);
-    if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p);
+    if (p.touch !== undefined && p.hold === undefined) [p, v] = this.landed(midi, v, p, own);
     if (stepped) [p, v] = this.stepped(dur, v, p);
     // D252: the player's own a touch brighter and louder.
     // D349: not on the organ: the player's pipes are the band's (same manual, never louder).
@@ -956,6 +963,8 @@ export class Chip {
       // The buff stop on every note so registered (the touch's own lute, D311, may darken it further).
       if (reg.lute) p = { ...p, lute: true, lp: Math.min(p.lp ?? LUTE_LP, LUTE_LP), hold: p.hold ?? "none" };
     }
+    // D512: CON SORDINO, the mute on the bridge: darker (the touch's own lowpass may darken it further) and softer.
+    if (cons?.lp) p = { ...p, lp: Math.min(p.lp ?? cons.lp, cons.lp), level: (p.level ?? 1) * (cons.level ?? 1), hold: p.hold ?? "none" };
     if (id === "chamberOrgan" && p.couple !== false) {
       // D482: ORGANO PLENO no longer draws the mixture (D349's crowning): a bonus earned by right notes never changes the sound.
       // D349, the echo manual (the player's touch toward the box): the note on the second manual's soft
@@ -1072,17 +1081,21 @@ export class Chip {
    * the mallet's hardness) and how it will answer a sideways move (`hold`). The brightness replaces the
    * touch's (D293 left it at the neutral dynamic's); the level and tone multiply and add.
    */
-  private landed(midi: number, v: Voicing, p: Play): [Play, Voicing] {
+  private landed(midi: number, v: Voicing, p: Play, own = p.touch): [Play, Voicing] {
     const kind = touchKind(preset().id);
     if (!kind) return [{ ...p, hold: "none" }, v];
     const pt = v.patch ?? null;
     const pulse = !pt && v.timbre !== "triangle";
-    // D349: the pedal has no echo manual (an organist's feet stay on the one pedalboard).
-    const l = kind === "organ" && isPedal(pt) ? {} : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb, ...(p.hairpin ? { hairpin: true } : {}) });
+    const l0 = landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb, ...(p.hairpin ? { hairpin: true } : {}) });
+    // D349: the pedal has no echo manual (an organist's feet stay on the one pedalboard); D511: the swell box's brightness it has.
+    const l = kind === "organ" && isPedal(pt) ? (l0.tone ? { tone: l0.tone } : {}) : l0;
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
     const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
+    // D511: the landing's level on every offered sound (TOUCH_LEVEL_DB), from where the thumb landed (`own`: not moved by the reading's tone).
+    const tl = touchLevelDb(preset().id, own ?? TOUCH_NEUTRAL);
+    if (tl) q.level = (q.level ?? p.level ?? 1) * 10 ** (tl / 20);
     // TRIAL (sound.ts EXPRESSIVE_ALL): the reading's line level on a sustaining sound (the piano's own is in its landing, pianoDb).
     // (D503: JAZZ QUARTET's landing has the line's level in it, as the piano's.)
     if (kind !== "piano" && kind !== "jazz" && p.lineDb !== undefined && expressiveAll(preset().id)) q.level = (q.level ?? p.level ?? 1) * 10 ** (p.lineDb / 20);
