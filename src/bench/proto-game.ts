@@ -87,7 +87,7 @@ import { fillsFor } from "../touch/jazz-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
-import { liftGain } from "../touch/player-lift.ts";
+import { bandTrimDb, entryGain, liftGain, playerToneDb } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -604,6 +604,13 @@ export class ProtoGame {
    * constant of the piece, the voice and the sound: never of the play. None WITH KIMIKO, alone, or with two voices played.
    */
   readonly lift: number;
+  /**
+   * D508: the band's voices brought up where one stands more than BAND_SPREAD_DB under the loudest of the piece (a gain
+   * per voice, player-lift.ts bandTrimDb), the player's tone (a bright voice shelved down a little: Play.tone dB). The
+   * subject's entries forward note by note (entryGain): the player's own PLAYER_ENTRY_DB, the band's BAND_ENTRY_DB.
+   */
+  readonly trims: readonly number[];
+  readonly tone: number;
   beat: number;
   private perBar: number;
   private anchorAt: number;
@@ -644,6 +651,8 @@ export class ProtoGame {
     this.chip = chip;
     const mine = Array.isArray(voices) ? voices : [voices];
     this.lift = o.her || o.solo || mine.length !== 1 ? 1 : liftGain(f.id, preset().id, mine[0], f.voices.length);
+    this.trims = f.voices.map((_, u) => 10 ** (bandTrimDb(f.id, preset().id, u, f.voices.length) / 20));
+    this.tone = o.her || o.solo || mine.length !== 1 ? 0 : playerToneDb(f.id, preset().id, mine[0], f.voices.length);
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
     // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
     if (!o.her && !busoniLeads(o.reading?.whole, busoniReaches(preset().id))) {
@@ -1255,6 +1264,8 @@ export class ProtoGame {
       // D213: the subject brighter and crisper, the others duller during an entry; the fugue's effect on the subject.
       const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
       const vv = sv.v;
+      // D508: the band's balance: the voice's trim, and its subject's entry a little forward (not where Busoni's palette brings it out).
+      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1);
       const prev = this.lastOther.get(n.voice);
       // D363: a band-only voice's note (a divisi) sounds as its parent but is not its line: no ornament of the line's, not its line's last note.
       if (!n.band) this.lastOther.set(n.voice, n.midi);
@@ -1289,10 +1300,10 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * bal, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
-        // D485, D509: a note of the player's own boosted entry sounded by the band: its octave.
-        this.layerOf(n.voice, n.on, pmidi, pat, plen, vv, { ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
+        // D485, D509, D508: a note of a boosted entry sounded by the band: its octave, at the band's balance.
+        this.layerOf(n.voice, n.on, pmidi, pat, plen, vv, { ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) * bal });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
       for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel))) {
@@ -3801,6 +3812,8 @@ export class ProtoGame {
     // D219: WITH KIMIKO ISHIZAKA the player's voice is plain (no subject effects over her piano).
     const sv = v.ok && !this.o.her ? this.subj.shape(this.voiceOf(h.k, i), notes[i].on, voiceV) : null;
     if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
+    // D508: the player's own subject entries forward, its tone matched (by the note's place in the score, right or wrong alike).
+    if (!this.o.her) expr = this.balanced(expr, this.voiceOf(h.k, i), notes[i].on);
     // D262, THE TWO KEYBOARDS: the lower row sounds on the quieter one (the row touched, on a phone; the
     // note's own on a computer); the echo played there, a small bonus.
     if (this.arc?.echo && h.k === 0) {
@@ -5337,6 +5350,13 @@ export class ProtoGame {
     let sum = 0;
     for (let v = 0; v < n; v++) sum += W.dynAt(v, tick);
     return n ? sum / n : 0;
+  }
+  /** D508: a note of the player's: its subject entry forward (PLAYER_ENTRY_DB), its tone (Play.tone) matched to the band's. */
+  private balanced(e: Play, voice: number, on: number): Play {
+    const sn = this.subj.cues.note(voice, on);
+    const lv = sn ? entryGain(true) : 1;
+    if (lv === 1 && !this.tone) return e;
+    return { ...e, ...(lv !== 1 ? { level: (e.level ?? 1) * lv } : {}), ...(this.tone ? { tone: (e.tone ?? 0) + this.tone } : {}) };
   }
   /**
    * D385: the piano's line at track k's note i (chip.ts Play.lineDb, accentDb, dampMul, roomMul): a whole-piece

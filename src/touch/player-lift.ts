@@ -1,63 +1,98 @@
 /**
- * D487 (the owner: "I was playing some fugues and constantly had the impression that my voice was lower than all
- * others. For example, in C sharp major Book I. What is happening?!"). Measured on the whole game rendered offline
- * (tools/touch/player-lift/scan.cjs: the 48 fugues on their own sounds, the player in each voice): the player's notes
- * are not struck softer than the band's (as the player sounds a voice, it is within ±3 dB of the band sounding it, 0.3 dB
- * louder on average), but the voices are not level: the bass stands 4 to 7 dB over the upper voices on most sounds (a
- * phone's bass gain, D291, the bass patches, the organ's Subbass 16'), an inner voice often 1 to 3 dB under the top, and
- * Busoni's printed dynamics (on the piano) left the player's line up to 4 dB under the loudest voice for good (D407). In
- * I/3 on GAME BOY the soprano was 5.8 dB under the bass, the alto 4.9 dB under it; over the 48 fugues 116 of the 166
- * voices played sat more than 0.5 dB under some other voice (K-weighted), the worst 7.5 dB.
+ * D487 → D508, THE VOICES' BALANCE: the player's voice and the band's, measured.
  *
- * The player's voice is now lifted, for the whole run, by the gap to the loudest other voice of the piece on the sound
- * (both K-weighted and through a phone speaker, the larger), and LIFT_FORWARD_DB more: never quieter, slightly
- * forward. Applied as one gain on the player's own bus (Chip.mine, with TOOLS' balance), so every note the player
- * sounds, its touch and its expression included, is lifted alike; a constant of the piece, the voice and the sound,
- * never of the play (the standing rule: loudness is never tied to right or wrong). A voice already the loudest is not
- * lowered. The measured levels: player-lift-data.ts (the piece's own sound exactly; another sound by its balance over
- * twelve fugues).
+ * D487 (the owner: "my voice was lower than all others") lifted the player's voice for the whole run to the loudest
+ * other voice of the piece and 1 dB over: a standing lift, often 3 to 8 dB. D508 (the owner, on II/18 G♯ minor: "the
+ * ALTO is almost inaudible when I'm playing soprano … my own voice … dominating a bit given its bright sound … we need
+ * careful considerations of whether we have let the polyphony down"; "find a middle ground: dominant when it's playing
+ * the subject … merge with the others in other occasions … when other voices play the subject, they might get a bit
+ * of dominance, though not too much"): measured on the whole game rendered offline (tools/touch/player-lift/scan.cjs,
+ * every voice of the 48 fugues on its own sound, raw: none of this applied), the balance is now three things, all
+ * constants of the piece, the voice, the sound and the place in the score, never of the play (the standing rule:
+ * loudness is never tied to right or wrong):
+ *
+ *   LEVEL. The player's voice matched to the band's own sounding of that voice (`l`: the player's way of sounding it,
+ *     its touch and its expression, against the band's, the mean of K-weighted and through a phone speaker): merged,
+ *     no standing lift over the others. Where the player's voice measures much brighter than the band sounding it
+ *     (over 2.5 kHz against the K-weighted, by more than BRIGHT_SLACK_DB), a gentle high shelf down (`h`, Play.tone).
+ *   THE BAND'S VOICES. A voice standing more than BAND_SPREAD_DB under the loudest of the piece (an inner voice under
+ *     the bass's phone gain, an alto under a bright soprano) brought up by the rest (`t`, at most BAND_TRIM_MAX_DB),
+ *     the player's target with it; nothing is lowered (the bass audible on a phone).
+ *   THE SUBJECT. The player's own subject entries forward by PLAYER_ENTRY_DB (each note of the entry, by its place in
+ *     the score, right or wrong alike); the band's entries by BAND_ENTRY_DB (not more), never as much as the player's,
+ *     and not where Busoni's palette brings the entry out itself (his marcato's entryDb: the reading's own).
+ *
+ * The levels: player-lift-data.ts (the piece's own sound exactly; another sound by its balance over twelve fugues).
  */
 import { OWN_LOUD, SOUND_LOUD } from "./player-lift-data.ts";
 
-/** How far forward the player's voice stands over the loudest other voice (dB): 1, so the measuring's own spread (±0.5 dB, the engine moving on) never leaves it under. */
-export const LIFT_FORWARD_DB = 1;
-/** The most the player's voice is lifted (dB). */
-export const LIFT_MAX_DB = 10;
+/** The player's own subject entries forward (dB, each note of the entry). */
+export const PLAYER_ENTRY_DB = 2;
+/** The band's subject entries forward (dB): a slight lift, never as much as the player's. */
+export const BAND_ENTRY_DB = 1;
+/** A band voice under the loudest voice of the piece by more than this (dB) is brought up by the rest. */
+export const BAND_SPREAD_DB = 2;
+/** The most a band voice is brought up (dB). */
+export const BAND_TRIM_MAX_DB = 6;
+/** The player's level match, its bounds (dB): never over LIFT_MAX_DB, never more than LIFT_MIN_DB down. */
+export const LIFT_MAX_DB = 6;
+export const LIFT_MIN_DB = -4;
+/** The player's voice brighter than the band sounding it by more than this (dB over 2.5 kHz) is shelved down. */
+export const BRIGHT_SLACK_DB = 1.5;
+/** The most the player's voice is shelved down (dB). */
+export const BRIGHT_MAX_DB = 3;
+/** For the measurement (scan.cjs): raw, nothing of the balance applied. */
+export const BALANCE = { raw: false };
 
-type Loud = readonly number[];
+/** A piece's balance on a sound: per voice the band's trim `t`, the player's level `l`, the player's tone `h` (dB). */
+export interface Balance {
+  t: readonly number[];
+  l: readonly number[];
+  h: readonly number[];
+}
 
-/** The measured levels for a piece on a sound: the player's in `voice` and every voice's as the band plays it ([K, phone] dB). */
-export function loudness(id: string, sound: string, voice: number, count: number): { p: Loud; b: readonly Loud[]; d?: readonly Loud[] } | null {
+/** The balance for a piece on a sound with `count` voices (the piece's own measured; else the sound's by the count). */
+export function balanceOf(id: string, sound: string, count: number): Balance | null {
   if (count < 2) return null;
   const own = OWN_LOUD[id];
-  if (own && own.s === sound && own.b.length === count && own.p[voice]) return { p: own.p[voice], b: own.b, d: own.d[voice] };
+  if (own && own.s === sound && own.t.length === count) return own;
   const by = SOUND_LOUD[sound];
   if (!by) return null;
   const ns = Object.keys(by).map(Number);
   // A count not measured (six voices, say): the nearest one measured, its last voice standing for the lowest.
   const n = ns.includes(count) ? count : ns.reduce((a, x) => (Math.abs(x - count) < Math.abs(a - count) ? x : a), ns[0]);
-  const t = by[n];
-  const at = (v: number) => (count === n ? v : v === count - 1 ? n - 1 : Math.min(n - 2, Math.round((v * (n - 1)) / Math.max(1, count - 1))));
-  const b = Array.from({ length: count }, (_, v) => t.b[Math.max(0, at(v))]);
-  const me = Math.max(0, at(voice));
-  return { p: [t.b[me][0] + t.off[me][0], t.b[me][1] + t.off[me][1]], b };
+  const s = by[n];
+  const at = (v: number) => Math.max(0, count === n ? v : v === count - 1 ? n - 1 : Math.min(n - 2, Math.round((v * (n - 1)) / Math.max(1, count - 1))));
+  const map = (xs: readonly number[]) => Array.from({ length: count }, (_, v) => xs[at(v)]);
+  return { t: map(s.t), l: map(s.l), h: map(s.h) };
 }
 
-/** The player's lift in dB for `voice` of `count` in piece `id` on `sound`: to the loudest other voice, and a little over. */
+/** The player's level in dB for `voice` (the match to the band's sounding of it, with its trim). */
 export function liftDb(id: string, sound: string, voice: number, count: number): number {
-  const L = loudness(id, sound, voice, count);
-  if (!L) return 0;
-  let gap = -Infinity;
-  L.b.forEach((u, k) => {
-    if (k !== voice) gap = Math.max(gap, u[0] - L.p[0], u[1] - L.p[1]);
-  });
-  // The piece's own sound: also where they sound together (the player measured against each voice over those windows).
-  L.d?.forEach((x, k) => {
-    if (k !== voice && x[0] < 99) gap = Math.max(gap, -x[0], -x[1]);
-  });
-  if (!Number.isFinite(gap)) return 0;
-  return Math.max(0, Math.min(LIFT_MAX_DB, gap + LIFT_FORWARD_DB));
+  if (BALANCE.raw) return 0;
+  const b = balanceOf(id, sound, count);
+  return b ? Math.max(LIFT_MIN_DB, Math.min(LIFT_MAX_DB, b.l[voice] ?? 0)) : 0;
+}
+/** The level as a gain on the player's own bus (1: none). */
+export const liftGain = (id: string, sound: string, voice: number, count: number): number => 10 ** (liftDb(id, sound, voice, count) / 20);
+
+/** The band's trim for `voice` (dB, 0 or more). */
+export function bandTrimDb(id: string, sound: string, voice: number, count: number): number {
+  if (BALANCE.raw) return 0;
+  const b = balanceOf(id, sound, count);
+  return b ? Math.max(0, Math.min(BAND_TRIM_MAX_DB, b.t[voice] ?? 0)) : 0;
 }
 
-/** The lift as a gain on the player's own bus (1: none). */
-export const liftGain = (id: string, sound: string, voice: number, count: number): number => 10 ** (liftDb(id, sound, voice, count) / 20);
+/** The player's tone for `voice` (Play.tone dB, 0 or less): a bright voice shelved down a little. */
+export function playerToneDb(id: string, sound: string, voice: number, count: number): number {
+  if (BALANCE.raw) return 0;
+  const b = balanceOf(id, sound, count);
+  return b ? Math.max(-BRIGHT_MAX_DB, Math.min(0, b.h[voice] ?? 0)) : 0;
+}
+
+/** A subject note's lift (a gain): the player's PLAYER_ENTRY_DB; the band's BAND_ENTRY_DB, none where Busoni's palette brings it out. */
+export function entryGain(player: boolean, busoniEntryDb = 0): number {
+  if (BALANCE.raw) return 1;
+  const db = player ? PLAYER_ENTRY_DB : busoniEntryDb > 0 ? 0 : BAND_ENTRY_DB;
+  return 10 ** (db / 20);
+}
