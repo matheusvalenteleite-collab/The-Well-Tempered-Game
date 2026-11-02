@@ -10,7 +10,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
-type Tap = { windows: number; K: number; Ph: number };
+type Tap = { windows: number; K: number; Ph: number; shared?: number; playerMinusK?: number; playerMinusPh?: number };
 type Run = { id: string; voice: number; sound: string; voices: Record<string, Tap> };
 const [ownF, soundsF, ...over] = process.argv.slice(2);
 const load = (f: string): Record<string, Run> => JSON.parse(readFileSync(f, "utf8"));
@@ -50,12 +50,18 @@ const group = (R: Record<string, Run>) => {
 };
 
 // OWN_LOUD: every voice of every fugue on its own sound.
-const OWN: Record<string, { s: string; p: number[][]; b: number[][] }> = {};
+const OWN: Record<string, { s: string; p: number[][]; b: number[][]; d: number[][][] }> = {};
 for (const [key, runs] of group(own)) {
   const L = levels(runs);
   const [id, s] = key.split("@");
   if (!L || L.p.some((x) => !x)) throw new Error(`${key}: a voice not measured`);
-  OWN[id] = { s, p: L.p.map((x) => x!.map(r1)), b: L.b.map((x) => x!.map(r1)) };
+  // The player against each other voice where both sound ([K, phone] dB, the player's run): a voice entering late into
+  // a louder texture can stand over the player there while its whole-piece level does not (II/2's bass).
+  const d = L.p.map((_, v) => L.p.map((__, u) => {
+    const t = runs.find((r) => r.voice === v)?.voices[`v${u}`];
+    return u !== v && t && (t.shared ?? 0) > 50 && Number.isFinite(t.playerMinusK) ? [r1(t.playerMinusK!), r1(t.playerMinusPh!)] : [99, 99];
+  }));
+  OWN[id] = { s, p: L.p.map((x) => x!.map(r1)), b: L.b.map((x) => x!.map(r1)), d };
 }
 // SOUND_LOUD: by sound and number of voices, the band's levels under the loudest voice and the player's offset.
 const acc = new Map<string, { b: number[][][]; off: number[][][] }>();
@@ -91,11 +97,11 @@ const lines = [
   " * D487: the voices' loudness as the game sounds them, measured (tools/touch/player-lift/scan.cjs, an offline render of",
   " * the whole game; built by tools/touch/player-lift/build.ts). Each pair is [K-weighted, through a phone speaker] in dB.",
   " * OWN_LOUD: each fugue on its own sound (PIECE_SOUND), `p` the player's voice as the player sounds it, `b` each voice",
-  " * as the band sounds it. SOUND_LOUD: by sound and number of voices, `b` each voice's level under the loudest (the",
+  " * as the band sounds it, `d` the player in each voice against each other voice where both sound (99: never together). SOUND_LOUD: by sound and number of voices, `b` each voice's level under the loudest (the",
   " * band's balance), `off` what the player's way of sounding that voice adds to the band's. Generated: do not edit.",
   " */",
-  `export const OWN_LOUD: Readonly<Record<string, { s: string; p: number[][]; b: number[][] }>> = {`,
-  ...Object.keys(OWN).sort().map((id) => `  ${id}: { s: ${fmt(OWN[id].s)}, p: ${fmt(OWN[id].p)}, b: ${fmt(OWN[id].b)} },`),
+  `export const OWN_LOUD: Readonly<Record<string, { s: string; p: number[][]; b: number[][]; d: number[][][] }>> = {`,
+  ...Object.keys(OWN).sort().map((id) => `  ${id}: { s: ${fmt(OWN[id].s)}, p: ${fmt(OWN[id].p)}, b: ${fmt(OWN[id].b)}, d: ${fmt(OWN[id].d)} },`),
   "};",
   `export const SOUND_LOUD: Readonly<Record<string, Readonly<Record<number, { b: number[][]; off: number[][] }>>>> = {`,
   ...Object.keys(SOUND).sort().map((s) => `  ${s}: { ${Object.entries(SOUND[s]).map(([n, x]) => `${n}: { b: ${fmt(x.b)}, off: ${fmt(x.off)} }`).join(", ")} },`),

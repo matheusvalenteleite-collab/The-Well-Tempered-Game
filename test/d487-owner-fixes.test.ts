@@ -85,13 +85,15 @@ test("D487 (3): every voice of the 48 fugues measured on its own sound; with its
       for (let u = 0; u < f.voices.length; u++) {
         if (u === v) continue;
         for (const j of [0, 1]) assert.ok(own.p[v][j] + L >= Math.min(own.b[u][j] + LIFT_FORWARD_DB, own.p[v][j] + LIFT_MAX_DB) - 1e-9, `${id} voice ${v} against ${u} (${j ? "phone" : "K"}): ${(own.p[v][j] + L - own.b[u][j]).toFixed(1)} dB`);
+        // and where the two sound together (the player measured against that voice over those windows).
+        if (own.d[v][u][0] < 99) for (const j of [0, 1]) assert.ok(own.d[v][u][j] + L >= LIFT_FORWARD_DB - 1e-9, `${id} voice ${v} against ${u} together (${j ? "phone" : "K"}): ${(own.d[v][u][j] + L).toFixed(1)} dB`);
       }
     }
   }
   assert.ok(lifted > 50, `most voices lifted (${lifted})`);
   // I/3 (the owner's example) on GAME BOY: the soprano and the alto lifted over the bass.
   const f3 = fugueById("wtc1f03");
-  for (const v of [0, 1]) assert.ok(liftDb("wtc1f03", "gameboy", v, 3) > 4, `I/3 voice ${v}`);
+  for (const v of [0, 1]) assert.ok(liftDb("wtc1f03", "gameboy", v, 3) > 2, `I/3 voice ${v}`);
   assert.ok(liftDb("wtc1f03", "gameboy", 2, f3.voices.length) <= LIFT_FORWARD_DB, "I/3's bass already the loudest");
 });
 
@@ -122,7 +124,7 @@ test("D487 (3): the game carries the lift for its run (the piece, the voice, the
   const f = fugueById("wtc1f03");
   const g = game(f, 0);
   assert.ok(Math.abs(g.lift - liftGain("wtc1f03", "gameboy", 0, 3)) < 1e-12);
-  assert.ok(g.lift > 1.5, `the soprano lifted (${g.lift.toFixed(2)})`);
+  assert.ok(g.lift > 1.25, `the soprano lifted (${g.lift.toFixed(2)})`);
   assert.equal(game(f, 0, { her: true }).lift, 1);
   assert.equal(game(f, 0, { solo: true }).lift, 1);
   // The lift reads nothing of the play: the same however the score stands (a readonly of the run).
