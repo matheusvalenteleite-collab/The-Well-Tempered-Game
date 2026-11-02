@@ -12,11 +12,13 @@
  * stretches in a row, Busoni's printed asks excepted) before and after the balance.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { BAND_SPREAD_DB, BAND_TRIM_MAX_DB, BRIGHT_MAX_DB, BRIGHT_SLACK_DB, LIFT_MAX_DB, LIFT_MIN_DB } from "../../../src/touch/player-lift.ts";
+import { fugueById } from "../../../src/touch/fugue.ts";
+import { entrySpans } from "../../../src/touch/voice-mode.ts";
+import { BAND_ENTRY_DB, BAND_SPREAD_DB, BAND_TRIM_MAX_DB, PLAYER_ENTRY_DB, BRIGHT_MAX_DB, BRIGHT_SLACK_DB, LIFT_MAX_DB, LIFT_MIN_DB } from "../../../src/touch/player-lift.ts";
 import { SOUND_LOUD as OLD_SOUND } from "../../../src/touch/player-lift-data.ts";
 
 type Tap = { windows: number; K: number; Ph: number; bright?: number | null; seg?: (number | null)[] };
-type Run = { id: string; voice: number; sound: string; voices: Record<string, Tap>; printed?: (number[] | null)[] };
+type Run = { id: string; voice: number; sound: string; voices: Record<string, Tap>; printed?: (number[] | null)[]; segTick?: number[] };
 const [ownF, ...soundFs] = process.argv.slice(2);
 const load = (f: string): Record<string, Run> => JSON.parse(readFileSync(f, "utf8"));
 const own: Record<string, Run> = load(ownF);
@@ -73,15 +75,21 @@ function balance(b: readonly (readonly number[])[], off: readonly number[]) {
 }
 
 /** The lost stretches of one run (the player in `r.voice`), with the balance `t`, `l` applied to its 2-s levels. */
-function stretches(r: Run, n: number, t: readonly number[], l: readonly number[]): { u: number; segs: number; worst: number }[] {
+function stretches(r: Run, n: number, t: readonly number[], l: readonly number[], raw = false): { u: number; segs: number; worst: number }[] {
   const seg = (u: number) => (u === r.voice ? r.voices.P : r.voices[`v${u}`])?.seg;
   const S = Array.from({ length: n }, (_, u) => seg(u));
   const len = Math.max(0, ...S.map((s) => s?.length ?? 0));
   const out: { u: number; segs: number; worst: number }[] = [];
+  // The subject's entries forward as the game plays them (the player's PLAYER_ENTRY_DB, the band's BAND_ENTRY_DB), by the stretch's middle.
+  const spans = entrySpans(fugueById(r.id)).filter((e) => e.form !== "counter");
+  const ent = (k: number, i: number) => {
+    const tk = r.segTick?.[i];
+    return !raw && tk !== undefined && spans.some((e) => e.voice === k && e.on <= tk && tk < e.end) ? (k === r.voice ? PLAYER_ENTRY_DB : BAND_ENTRY_DB) : 0;
+  };
   for (let u = 0; u < n; u++) {
     let run = 0, best = 0, worst = 0;
     for (let i = 0; i < len; i++) {
-      const lv = (k: number) => { const x = S[k]?.[i]; return x == null ? null : x + (k === r.voice ? l[k] : t[k]); };
+      const lv = (k: number) => { const x = S[k]?.[i]; return x == null ? null : x + (k === r.voice ? l[k] : t[k]) + ent(k, i); };
       const me = lv(u);
       const others = [...Array(n).keys()].filter((k) => k !== u && lv(k) !== null);
       const pr = r.printed?.[i];
@@ -105,6 +113,7 @@ function stretches(r: Run, n: number, t: readonly number[], l: readonly number[]
 const OWN: Record<string, { s: string; p: number[][]; b: number[][]; t: number[]; l: number[]; h: number[] }> = {};
 const report: string[] = [];
 let lostBefore = 0, lostAfter = 0;
+const mixUp: number[] = [];
 for (const [key, runs] of group(own)) {
   const L = levels(runs);
   const [id, s] = key.split("@");
@@ -114,7 +123,7 @@ for (const [key, runs] of group(own)) {
   const zero = Array(L.n).fill(0);
   // the D487 lift as it stood (to the loudest other voice and 1 dB over, K or phone): for the before
   const old = OLD_LIFT[id]?.length === L.n ? OLD_LIFT[id] : L.p.map((x, v) => clamp(Math.max(...L.b.flatMap((y, u) => (u === v ? [] : [y[0] - x![0], y[1] - x![1]]))) + 1, 0, 10));
-  const before = runs.flatMap((r) => stretches(r, L.n, zero, old));
+  const before = runs.flatMap((r) => stretches(r, L.n, zero, old, true));
   lostBefore += before.length;
   // A voice still lost for a long stretch: brought up by half a dB more until it is not (or at the most).
   for (let k = 0; k < 40; k++) {
@@ -124,12 +133,17 @@ for (const [key, runs] of group(own)) {
     for (const u of new Set(lost.map((x) => x.u)))
       if (t[u] < BAND_TRIM_MAX_DB) (t = t.map((x, i) => (i === u ? r1(Math.min(BAND_TRIM_MAX_DB, x + 0.5)) : x))), (moved = true);
     if (!moved) break;
+    // no common gain: the least-trimmed voice at 0 (the band brought into balance, not made louder all through)
+    const m = Math.min(...t);
+    if (m > 0) t = t.map((x) => r1(x - m));
     l = L.b.map((_, v) => r1(clamp(t[v] - off[v], LIFT_MIN_DB, LIFT_MAX_DB)));
   }
   const after = runs.flatMap((r) => stretches(r, L.n, t, l));
   lostAfter += after.length;
   const h = L.p.map((_, v) => (L.pb[v] != null && L.bb[v] != null ? r1(-clamp(L.pb[v]! - L.bb[v]! - BRIGHT_SLACK_DB, 0, BRIGHT_MAX_DB)) : 0));
-  report.push(`${id} ${s} t=${JSON.stringify(t)} l=${JSON.stringify(l)} h=${JSON.stringify(h)} old=${JSON.stringify(old.map(r1))} lost before ${before.map((x) => `v${x.u}:${x.segs}x2s(${x.worst})`).join(",") || "-"} after ${after.map((x) => `v${x.u}:${x.segs}x2s(${x.worst})`).join(",") || "-"}`);
+  const pow = (tt: readonly number[]) => 10 * Math.log10(L.b.reduce((acc, x, u) => acc + 10 ** ((comb(x) + tt[u]) / 10), 0));
+  mixUp.push(pow(t) - pow(zero));
+  report.push(`${id} ${s} mix +${r1(pow(t) - pow(zero))} dB t=${JSON.stringify(t)} l=${JSON.stringify(l)} h=${JSON.stringify(h)} old=${JSON.stringify(old.map(r1))} lost before ${before.map((x) => `v${x.u}:${x.segs}x2s(${x.worst})`).join(",") || "-"} after ${after.map((x) => `v${x.u}:${x.segs}x2s(${x.worst})`).join(",") || "-"}`);
   OWN[id] = { s, p: L.p.map((x) => x!.map(r1)), b: L.b.map((x) => x.map(r1)), t, l, h };
 }
 // SOUND_LOUD: by sound and number of voices; D487's measured balance carried over, a sound re-measured replaced.
@@ -183,4 +197,5 @@ const lines = [
 ];
 if (!process.env.DRY) writeFileSync(new URL("../../../src/touch/player-lift-data.ts", import.meta.url), lines.join("\n"));
 console.log(report.join("\n"));
+console.log(`the band's mix brought up by the trims: mean ${r1(mean(mixUp))} dB, most ${r1(Math.max(...mixUp))} dB`);
 console.log(`OWN_LOUD ${Object.keys(OWN).length} fugues, SOUND_LOUD ${Object.keys(SOUND).length} sounds; lost stretches (voice x run): before ${lostBefore}, after ${lostAfter}`);

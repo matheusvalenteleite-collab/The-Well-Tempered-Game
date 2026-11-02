@@ -33,7 +33,7 @@ export const BAND_ENTRY_DB = 1;
 /** A band voice under the loudest voice of the piece by more than this (dB) is brought up by the rest. */
 export const BAND_SPREAD_DB = 2;
 /** The most a band voice is brought up (dB). */
-export const BAND_TRIM_MAX_DB = 4;
+export const BAND_TRIM_MAX_DB = 6;
 /** The player's level match, its bounds (dB): never over LIFT_MAX_DB, never more than LIFT_MIN_DB down. */
 export const LIFT_MAX_DB = 6;
 export const LIFT_MIN_DB = -4;

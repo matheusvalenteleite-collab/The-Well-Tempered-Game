@@ -167,7 +167,9 @@ const [out, ...jobs] = process.argv.slice(2);
         // D508: each voice's level in its own subject entries and outside them (the windows by the tick then), the
         // brightness (energy over 2.5 kHz against the K-weighted, dB), and every 2 s stretch's level per voice
         // (the mean of K and phone, dB; null where it sounds under a third of the stretch) with Busoni's printed level.
-        const inE = (u, tk) => f.entries.some((e) => e.voice === u && e.on <= tk && tk < e.end);
+        // the entries through the game's own API (voice-mode.ts entrySpans; D493's entries), not the countersubjects
+        const spans = (await import('/src/touch/voice-mode.ts')).entrySpans(f).filter((e) => e.form !== 'counter');
+        const inE = (u, tk) => spans.some((e) => e.voice === u && e.on <= tk && tk < e.end);
         // a voice sounding by the score at each window (a note of it held there), for the 2 s stretches: a tail dying
         // away under a rest is not the voice lost.
         const byScore = f.voices.map((ns) => ticks.map((tk) => ns.some((n) => n[0] <= tk && tk < n[0] + n[1])));

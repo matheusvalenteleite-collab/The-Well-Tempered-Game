@@ -118,7 +118,8 @@ test("D487 (3): the game carries the lift for its run (the piece, the voice, the
   const f = fugueById("wtc1f03");
   const g = game(f, 0);
   assert.ok(Math.abs(g.lift - liftGain("wtc1f03", "gameboy", 0, 3)) < 1e-12);
-  assert.ok(g.lift > 1.25, `the soprano lifted (${g.lift.toFixed(2)})`);
+  // D508: a level match, no longer a standing lift (I/3's soprano a little down: the player sounds it louder than the band).
+  assert.ok(Math.abs(g.lift - 10 ** (liftDb("wtc1f03", "gameboy", 0, 3) / 20)) < 1e-12);
   assert.equal(game(f, 0, { her: true }).lift, 1);
   assert.equal(game(f, 0, { solo: true }).lift, 1);
   // The lift reads nothing of the play: the same however the score stands (a readonly of the run).
