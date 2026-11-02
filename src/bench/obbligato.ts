@@ -115,6 +115,10 @@ const ROWS: readonly Row[] = [
   ["bachHorn", "HORN", "strings", ["alto", "tenor"]],
   ["bachTrombone", "TROMBONE", "strings", ["tenor", "bass"]],
   ["bachBass", "BASS TROMBONE", "strings", ["bass"]],
+  // D503: JAZZ QUARTET's (the vibraphone C3-F6 recorded, the bass pizzicato E1-G4).
+  ["jqVibes", "VIBRAPHONE", "keys", ["soprano", "alto"], 48, 89],
+  ["jqPiano", "JAZZ PIANO", "keys", ALL],
+  ["jqBass", "DOUBLE BASS", "strings", ["bass"], 28, 70],
   ["singS", "SOPRANO VOICE", "voice", ["soprano"]],
   ["singS2", "MEZZO VOICE", "voice", ["soprano", "alto"]],
   ["singA", "ALTO VOICE", "voice", ["alto"]],
@@ -394,6 +398,8 @@ export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
   trioOboe1: -23.0, trioOboe2: -23.7, trioBassoon: -16.8, trioCello: -21.9, trioHarpsi: -28.1,
   // D502: BACH BRASS's (probed the same way, its phoneGain taken out; offset by the band violin's probe beside them).
   bachTrumpet: -28.1, bachHorn: -27.0, bachTrombone: -29.4, bachBass: -29.1,
+  // D503: JAZZ QUARTET's (the same way, its preset's gain taken out; the bass's six notes an octave lower, C3-A3).
+  jqVibes: -27.1, jqPiano: -28.7, jqBass: -36.8,
 } as Record<Layer["id"], number>;
 /** D439: the evening out at most this many dB either way. */
 export const LOUDNESS_SPAN = 6;

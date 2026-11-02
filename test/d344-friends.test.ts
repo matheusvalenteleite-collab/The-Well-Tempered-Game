@@ -7,7 +7,7 @@ import { FUGUES, fugueById, beatOf } from "../src/touch/fugue.ts";
 import { RULE_LEVELS, RULES } from "../src/bench/lite.ts";
 import { PT } from "../src/i18n/pt.ts";
 import { ES } from "../src/i18n/es.ts";
-import { BACKING_GROOVE, BACKING_LEVEL, BACKING_HIGHPASS_HZ, grooveHits, grooveNow, PRESETS, setBacking, setDrums, setPreset } from "../src/touch/sound.ts";
+import { BACKING_GROOVE, BACKING_LEVEL, BACKING_HIGHPASS_HZ, grooveHits, grooveNow, presetById, PRESETS, setBacking, setDrums, setPreset } from "../src/touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
 const book1 = FUGUES.filter((f) => f.book === 1).map((f) => f.id);
@@ -54,7 +54,9 @@ test("D344: DRUMS (the friends' backing) plays under every Book I fugue's sound,
   setBacking(false);
   for (const id of book1) {
     setPreset(soundFor(id, {}, "chip"));
-    assert.equal(grooveNow(), null, `${id}: silent while off`);
+    // (D503: JAZZ QUARTET's own brushes play whatever the switch: its sound's own rhythm section.)
+    if (presetById(soundFor(id, {}, "chip")).groove) assert.equal(grooveNow()?.kit, "brushes", id);
+    else assert.equal(grooveNow(), null, `${id}: silent while off`);
   }
   setBacking(true);
   try {

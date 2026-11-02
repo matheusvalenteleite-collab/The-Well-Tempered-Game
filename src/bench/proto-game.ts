@@ -83,6 +83,7 @@ import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
 import { slideGesture, slideSoundFor } from "./slide-sound.ts";
+import { fillsFor } from "../touch/jazz-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
@@ -1329,7 +1330,8 @@ export class ProtoGame {
       }
       // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound);
+      // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here.
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat) });
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
@@ -3585,7 +3587,7 @@ export class ProtoGame {
   private slideColour(h: Held, i: number, to: number, expr: Play, v: ReturnType<typeof voicing>, fresh = false): boolean {
     const n = this.tracks[h.k].notes[i];
     if (!n || this.ornaments.has(`${this.voiceOf(h.k, i)}:${n.on}`)) return false;
-    const g = slideGesture(preset().id, h.midi, to, this.msOf(n.on, n.on + n.dur), scaleOfKey(keyAt(this.f, n.on)), MECH.upThird);
+    const g = slideGesture(preset().id, h.midi, to, this.msOf(n.on, n.on + n.dur), scaleOfKey(keyAt(this.f, n.on)), MECH.upThird, v.patch);
     this.slideGestures.push({ i, name: g.name, from: h.midi, to });
     if (this.slideGestures.length > 64) this.slideGestures.shift();
     if (g.kind === "plain") return false;
@@ -5463,6 +5465,18 @@ export class ProtoGame {
   /** D385: a landing's strength is asked of an accent where the thumbs land on bars (a computer's keys cannot weigh a note). */
   private strengthAsked(): boolean {
     return this.proto.layout === "bars";
+  }
+  /**
+   * D503: Busoni's printed level at a tick, the voices' mean (dB; 0 without a whole-piece reading, or where Busoni does
+   * not reach the sound): the brushes quieter in his p, a little busier in his f. The reading's place, never a verdict.
+   */
+  bandDynAt(tick: number): number {
+    const W = this.whole;
+    if (!W || !busoniReaches(preset().id)) return 0;
+    const n = this.f.voices.length;
+    let sum = 0;
+    for (let v = 0; v < n; v++) sum += W.dynAt(v, tick);
+    return n ? sum / n : 0;
   }
   /**
    * D385: the piano's line at track k's note i (chip.ts Play.lineDb, accentDb, dampMul, roomMul): a whole-piece

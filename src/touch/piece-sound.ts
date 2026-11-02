@@ -75,6 +75,8 @@ import { playerSound } from "./sound.ts";
  * euphonious "little brook": two oboes in conversation; I/11 then on TOMITA, its passepied on synthesized flutes and
  * whistles) and II/23 (a singing double fugue in long notes: the reeds' breath and
  * their swells), each with its continuo script (trio-continuo.ts).
+ * D503: JAZZ QUARTET for I/19 (the delicate 9/8 scherzo: the Modern Jazz Quartet played Bach) and II/12 (caprice and
+ * humour, swung by the vibes), each with its brushes' scripted fills (jazz-drums.ts DRUM_SCRIPTS).
  */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
@@ -115,7 +117,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p18: "harpsichordSampled",
   wtc1f18: "pianoSampled",
   wtc1p19: "harpsichordSampled",
-  wtc1f19: "tracker",
+  wtc1f19: "jazzQuartet",
   wtc1p20: "harpsichordSampled",
   wtc1f20: "harpsichordSampled",
   wtc1p21: "chip",
@@ -150,7 +152,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p11: "chip",
   wtc2f11: "chip",
   wtc2p12: "chip",
-  wtc2f12: "tracker",
+  wtc2f12: "jazzQuartet",
   wtc2p13: "chip",
   wtc2f13: "harpsichordSampled",
   wtc2p14: "chip",

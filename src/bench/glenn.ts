@@ -79,7 +79,8 @@ export function exprFamily(presetId: string): ExprFamily {
   // D504: ZELENKA TRIO likewise (its reeds tongued, its continuo cello bowed: Patch.bow); D502: BACH BRASS (tongued: BRASS_TONGUE).
   if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "oboeTrio" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
   // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too.
-  if (presetId === "trialJazz" || presetId === "clavichord") return "plucked";
+  // D503: JAZZ QUARTET (the trials' jazz band remade): struck and plucked, one player's over-legato.
+  if (presetId === "jazzQuartet" || presetId === "clavichord") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }

@@ -13,9 +13,10 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { chainOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
+import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -203,7 +204,40 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // decays, high-passed at 140 Hz (the bassoon's and the continuo's lines in the room too), nothing over 6.5 kHz
   // (the reeds' edge not glittering in the tail). Sent TRIO_SEND (sound.ts).
   chamber: { predelay: 0.014, hp: 140, lp: 6500, seconds: 1.1, phoneSeconds: 0.8, rt60: 1.05, phoneRt60: 0.75, brightness: 0.4 },
+  // D503, JAZZ QUARTET's club: a small room with people in it, short and warm (RT60 0.8 s, on a phone 0.6 s), the first
+  // reflection close (12 ms), darker than the salon (5 kHz at most, darkening as it decays), the bass's line in it from
+  // 140 Hz. Sent JAZZ_SEND (sound.ts), the brushes a little less (JAZZ_DRUMS.send).
+  club: { predelay: 0.012, hp: 140, lp: 5000, seconds: 0.9, phoneSeconds: 0.7, rt60: 0.8, phoneRt60: 0.6, brightness: 0.32 },
 };
+/**
+ * D503, JAZZ QUARTET's brushes (chip.ts Chip.brushes): each piece's level against the others (`tap`, `stir`, `flutter`,
+ * `ride`, `foot`, the recordings first evened to `ref` dB: BRUSH_RMS), the kit's `level` (measured: under the band, the
+ * bass heard through a phone's speaker), a phone's `phone` share, the cut under `hp` Hz (the bass's room), the share of
+ * the club (`send`), and the seats (`pan`: Connie Kay behind, a little left; the ride left, the hi-hat right of him).
+ */
+export const JAZZ_DRUMS = {
+  level: 2,
+  phone: 1,
+  hp: 150,
+  send: 0.12,
+  ref: -30,
+  tap: 0.55,
+  stir: 0.8,
+  flutter: 0.5,
+  ride: 0.3,
+  foot: 0.32,
+  pan: { tap: -0.06, stir: -0.06, flutter: -0.06, ride: -0.14, foot: 0.02 },
+} as const;
+/** D503: the brush recordings' loudness as prepared (dB, K-weighted over each file: tools/playback/jazz/build_jazz.py). */
+export const BRUSH_RMS: Readonly<Record<number, number>> = { 48: -46, 49: -43.8, 50: -38.7, 51: -41.1, 52: -35.5, 53: -37.3, 54: -24.6, 55: -24.8, 60: -26.9, 62: -26.9, 64: -26.9, 65: -26.9, 72: -49.7, 74: -43.8, 76: -41.5, 84: -30, 85: -29, 86: -31.4, 87: -27.9 };
+/** D503: what the game tells the rhythm section about a beat (proto-game.ts): its tick and beat, the piece's fills and end (ticks), Busoni's level there. */
+export interface GrooveContext {
+  tick: number;
+  beat: number;
+  fills: readonly Fill[];
+  end: number;
+  dynDb?: number;
+}
 export const HALL = REVERBS.hall;
 
 /**
@@ -424,7 +458,7 @@ export interface Play {
    */
   touch?: number;
   /** D311: the piano's recording (layer 7 "soft", layer 12 "firm"), whatever the level. */
-  layer?: "soft" | "firm";
+  layer?: "soft" | "firm" | "hard";
   /** D311: a lowpass on the note (Hz): the harpsichord's lute stop, the organ's echo manual, a singer's closed vowel. */
   lp?: number;
   /** D311: the harpsichord's lute (buff) stop: a muted, shorter pluck. */
@@ -1049,7 +1083,8 @@ export class Chip {
     const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
     // TRIAL (sound.ts EXPRESSIVE_ALL): the reading's line level on a sustaining sound (the piano's own is in its landing, pianoDb).
-    if (kind !== "piano" && p.lineDb !== undefined && expressiveAll(preset().id)) q.level = (q.level ?? p.level ?? 1) * 10 ** (p.lineDb / 20);
+    // (D503: JAZZ QUARTET's landing has the line's level in it, as the piano's.)
+    if (kind !== "piano" && kind !== "jazz" && p.lineDb !== undefined && expressiveAll(preset().id)) q.level = (q.level ?? p.level ?? 1) * 10 ** (p.lineDb / 20);
     if (l.tone) q.tone = (p.tone ?? 0) + l.tone;
     if (l.bright !== undefined) q.bright = l.bright;
     // D385: the piano's colour by the level struck (the line's and the zone's), when the note has none of its own.
@@ -1486,6 +1521,21 @@ export class Chip {
       // D294: a lighter note (the phrasing's level under `below`) on the softer layer, where the
       // instrument has one; either layer stands in for the other until it has loaded.
       // D311: the player's touch chooses the piano's recording (Play.layer), whatever the level.
+      // D503: layers of their own notes (JAZZ QUARTET's vibraphone at pp and ff, its bass at ff: every whole tone): the
+      // band's softer or louder notes (or the player's soft or strong zone) on them, the main set standing in until loaded.
+      if (inst.hard || (inst.soft && folderOf(inst.soft.set) !== folderOf(inst.set))) {
+        const hard = inst.hard && (p.layer ? p.layer === "hard" : (p.level ?? 1) > inst.hard.above) ? inst.hard.set : null;
+        const lighter = inst.soft && (p.layer ? p.layer === "soft" : (p.level ?? 1) < inst.soft.below) ? inst.soft.set : null;
+        const alt = hard ?? lighter;
+        const an = alt ? nearestSample(alt, midi) : null;
+        const ar = alt && an !== null && Math.abs(an - midi) <= (inst.maxShift ?? 4) ? loaded(alt, an) : undefined;
+        if (alt && an !== null && ar) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, alt, an, ar, bag);
+        if (alt && an !== null) loadOne(this.ctx, alt, an);
+        const mr = near === null ? undefined : loaded(main, near);
+        if (mr && near !== null) return this.sampledNote(midi, at, dur, v, v.patch, p, inst, main, near, mr, bag);
+        if (near !== null) loadOne(this.ctx, main, near);
+        return v.patch.sing ? this.singNote(midi, at, dur, v, v.patch, p, bag) : this.patchNote(midi, at, dur, v, p.lead ? leadOf(v.patch) : v.patch, p, bag);
+      }
       const soft = inst.soft && (p.layer ? p.layer === "soft" : (p.level ?? 1) < inst.soft.below) ? inst.soft.set : null;
       let set = soft ?? main;
       let rec = near === null ? undefined : loaded(set, near);
@@ -1642,8 +1692,10 @@ export class Chip {
     // An instrument the ensemble no longer plays lets all its recordings go.
     const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
       const inst = SAMPLED[id];
-      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
+      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
     });
+    // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
+    plans.push([{ set: BRUSH_SET, notes: grooveNow()?.kit === "brushes" ? [...BRUSH_MIDIS] : [] }]);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
@@ -2002,7 +2054,7 @@ export class Chip {
     const t = Math.max(at, ctx.currentTime);
     const end = Math.max(t + 0.05, at + dur - 0.01);
     const plucked = inst.plucked;
-    const layer = inst.soft && set === inst.soft.set ? inst.soft.gain : 1;
+    const layer = inst.soft && set === inst.soft.set ? inst.soft.gain : inst.hard && set === inst.hard.set ? inst.hard.gain : 1;
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1);
     const mix = bag.add(ctx.createGain());
     // D249: ORGANO PLENO's three sources brought back to about one note's level.
@@ -2095,6 +2147,22 @@ export class Chip {
       lift.frequency.value = pt.phoneLift.hz;
       lift.gain.value = pt.phoneLift.db;
       src = src.connect(lift);
+      // D503: the fundamental under the small speaker's band cut (Patch.phoneLift.cut): it only fed the limiter.
+      if (pt.phoneLift.cut) {
+        const cut = bag.add(ctx.createBiquadFilter());
+        cut.type = "highpass";
+        cut.frequency.value = pt.phoneLift.cut;
+        cut.Q.value = 0.7;
+        src = src.connect(cut);
+      }
+    }
+    // D503: the patch's own voicing (Patch.shelf: JAZZ QUARTET's piano a little brighter than the solo grand).
+    if (pt.shelf) {
+      const sh = bag.add(ctx.createBiquadFilter());
+      sh.type = "highshelf";
+      sh.frequency.value = pt.shelf.hz;
+      sh.gain.value = pt.shelf.db;
+      src = src.connect(sh);
     }
     // D502: on a phone, a low instrument high-passed under the useful range of its fundamental there (Patch.phoneHp:
     // BACH BRASS's bass): the small speaker gives nothing of it, and it only fed the limiter (the "air" it took up).
@@ -2172,6 +2240,28 @@ export class Chip {
       src = src.connect(tg);
       tremLfo.start(t);
     }
+    // D503: the vibraphone's motor (Patch.motor; the recordings are motor off): the level beaten at its rate, struck
+    // notes too, the beating coming in over `rise` after the strike; the LFO started on the clock's phase (one motor for
+    // every bar: a cosine from its peak at whole periods of the audio clock); the player's held note's SWAY its speed.
+    let motor: { lfo: OscillatorNode; rate: number } | undefined;
+    if (pt.motor) {
+      const mo = pt.motor;
+      const lfo = bag.src(ctx.createOscillator());
+      lfo.frequency.value = mo.rate;
+      const depth = bag.add(ctx.createGain());
+      const tg = bag.add(ctx.createGain());
+      // The level 1 - depth/2 + depth/2·sin: from 1 down to 1 - depth; the depth in over `rise` s.
+      depth.gain.setValueAtTime(0, t);
+      depth.gain.linearRampToValueAtTime(mo.depth * 0.5, t + mo.rise);
+      tg.gain.setValueAtTime(1, t);
+      tg.gain.linearRampToValueAtTime(1 - mo.depth * 0.5, t + mo.rise);
+      lfo.connect(depth).connect(tg.gain);
+      src = src.connect(tg);
+      const period = 1 / mo.rate;
+      const phase = t - Math.floor(t / period) * period;
+      lfo.start(Math.max(ctx.currentTime, t - phase));
+      motor = { lfo, rate: mo.rate };
+    }
     const g = bag.add(ctx.createGain());
     g.gain.setValueAtTime(0, t);
     // D297: a period preset's envelope on the recording (Patch.rec): its attack, a fall to its sustain,
@@ -2221,7 +2311,7 @@ export class Chip {
     // D385: a whole-piece reading's palette (Play.roomMul): more or less of the room.
     this.fxSend(pan ?? dyn, p.sendAs ?? (pt.send !== undefined && p.roomMul ? pt.send * p.roomMul : pt.send), bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
-    const lfos: AudioScheduledSourceNode[] = tremLfo ? [tremLfo] : [];
+    const lfos: AudioScheduledSourceNode[] = [...(tremLfo ? [tremLfo] : []), ...(motor ? [motor.lfo] : [])];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
     // joined to the next (tie), back to its level by then (no step into the next).
     const messa = pt.syllable?.messa ?? 0;
@@ -2340,6 +2430,9 @@ export class Chip {
         tau = stacc ? Math.min(damp, dm.crisp) : lift && !handover && (p.group ?? 0) >= 1 ? damp * dm.slur : damp;
         if (!stacc && (!lift || handover || (p.group ?? 0) >= 1)) tail = tau * dm.tail;
       }
+      // D503: the vibraphone's pedal, the bass's left hand (SampledInstrument.pedal): by how long the note was held.
+      // (D308: a thumb lifted is -40 dB within 120 ms all the same.)
+      if (inst.pedal && !tie) tau = Math.min(s - t < inst.pedal.short ? inst.pedal.shortTau : inst.pedal.tau, lift ? LIFT_TAU : Infinity);
       // D385: a palette's sparing half pedal, a trill's half-seated dampers (Play.dampMul: the dampers slower).
       // D405: never past DAMP_MUL_MAX (D389's x1.8), nor DAMP_MUL_HIGH from C6, where a ringing string carries most.
       const mul = dm && damp && p.dampMul ? dampMulFor(midi, p.dampMul) : 1;
@@ -2401,7 +2494,7 @@ export class Chip {
     let stopped = false;
     let cents = 0;
     let muffled = false;
-    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, ...(bvib ? { breathVib: bvib } : {}), swell: p.hold === "swell", blend }, () => !stopped) : undefined;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, ...(bvib ? { breathVib: bvib } : {}), swell: p.hold === "swell", blend, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
     const retune = (tc: number) => {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
@@ -3259,13 +3352,108 @@ export class Chip {
    * The rhythm section's hits for one beat (the ensemble's groove), scheduled at `at`, a beat lasting
    * `beatS` seconds. D482: D186's layers that grew with the player's run (shaker, clap, kick) gone.
    */
-  groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean) {
+  groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, cx?: GrooveContext) {
     this.roomTo();
     this.sweep();
     const gr = grooveNow();
     if (!gr) return false;
+    // D503: JAZZ QUARTET's brushes: their pattern, Busoni's level and the piece's fills (jazz-drums.ts), recorded.
+    if (gr.kit === "brushes") return (this.brushes(at, beatS, b, per, compound, cx), true);
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
+  }
+
+  /** D503: the brushes asked for (the tests: each piece, its time in the context's clock, its level). */
+  readonly brushLog: { piece: string; at: number; vel: number; len?: number }[] = [];
+  /** D503: where the stir and the flutter loops have got to (s into the recording): one brush going on, beat to beat. */
+  private brushPos = { stir: 0, flutter: 0 };
+  private brushRr = 0;
+  /**
+   * D503: one beat of JAZZ QUARTET's brushes (jazz-drums.ts brushBeat) on its recordings (sampled.ts BRUSH_FILES): the
+   * taps, the ride and the foot struck; the stir and the flutter swept, each beat's stretch taken on from where the last
+   * left off (one brush circling, one roll) and shaped by its swell, crossfaded 30 ms into the next. Behind the band
+   * (JAZZ_DRUMS: seated behind, a little left; under 150 Hz nothing, the bass's room), in the club at a little of its send.
+   */
+  private brushes(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext) {
+    const bb = brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity);
+    for (const h of bb.hits) this.brushHit(h.piece, at + h.at * beatS, h.vel);
+    for (const s of bb.sweeps) this.brushSweep(s, at + s.at * beatS, s.len * beatS);
+  }
+
+  /** D503: the brush kit's output for one sound: its level, its seat, the cut under the bass, and its share of the club. */
+  private brushOut(bag: Bag, pan: number): AudioNode {
+    const ctx = this.ctx;
+    const hp = bag.add(ctx.createBiquadFilter());
+    hp.type = "highpass";
+    hp.frequency.value = JAZZ_DRUMS.hp;
+    hp.Q.value = 0.7;
+    const g = bag.add(ctx.createGain());
+    g.gain.value = JAZZ_DRUMS.level * (this.phone ? JAZZ_DRUMS.phone : 1);
+    hp.connect(g);
+    let out: AudioNode = g;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = pan;
+      out = g.connect(p);
+    }
+    out.connect(this.master);
+    this.fxSend(out, JAZZ_DRUMS.send, bag);
+    return hp;
+  }
+
+  private brushHit(piece: "tap" | "ride" | "foot", at: number, vel: number) {
+    this.brushLog.push({ piece, at, vel });
+    if (this.brushLog.length > 512) this.brushLog.splice(0, 256);
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const rr = this.brushRr++ % 2;
+    // The recording of that strength (its colour), its level set by `vel` (the recordings evened: BRUSH_RMS).
+    const m = piece === "tap" ? BRUSH_FILES.tap[Math.min(3, Math.floor(vel / 0.22))][rr] : piece === "ride" ? BRUSH_FILES.ride[vel < 0.38 ? 0 : vel < 0.6 ? 1 : 2] : BRUSH_FILES.foot[vel < 0.42 ? 0 : 1][rr];
+    const rec = loaded(BRUSH_SET, m);
+    if (!rec) {
+      loadOne(ctx, BRUSH_SET, m);
+      return this.drum(piece === "tap" ? "brush" : piece === "ride" ? "ride" : "hat", t, vel * 0.6);
+    }
+    const bag = new Bag();
+    const src = bag.src(ctx.createBufferSource());
+    src.buffer = rec.buffer;
+    const g = bag.add(ctx.createGain());
+    g.gain.value = JAZZ_DRUMS[piece] * vel * 10 ** ((JAZZ_DRUMS.ref - (BRUSH_RMS[m] ?? JAZZ_DRUMS.ref)) / 20);
+    src.connect(g).connect(this.brushOut(bag, JAZZ_DRUMS.pan[piece]));
+    src.start(t, rec.onset);
+    halt(src, t + (piece === "ride" ? 2.4 : 0.9));
+  }
+
+  private brushSweep(s: BrushSweep, at: number, len: number) {
+    this.brushLog.push({ piece: s.piece, at, vel: s.peak, len });
+    if (this.brushLog.length > 512) this.brushLog.splice(0, 256);
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const m = BRUSH_FILES[s.piece][s.firm ? 1 : 0];
+    const rec = loaded(BRUSH_SET, m);
+    if (!rec) {
+      loadOne(ctx, BRUSH_SET, m);
+      if (s.piece === "flutter") this.drum("brush", t, s.peak * 0.5);
+      return;
+    }
+    const xf = 0.03;
+    const loopLen = (s.piece === "stir" ? 4 : 3) - 0.3;
+    let pos = this.brushPos[s.piece];
+    if (pos + len + xf > loopLen) pos = 0.05 + ((pos * 7.31) % 0.5);
+    this.brushPos[s.piece] = pos + len;
+    const bag = new Bag();
+    const src = bag.src(ctx.createBufferSource());
+    src.buffer = rec.buffer;
+    const g = bag.add(ctx.createGain());
+    const k = JAZZ_DRUMS[s.piece] * 10 ** ((JAZZ_DRUMS.ref - (BRUSH_RMS[m] ?? JAZZ_DRUMS.ref)) / 20);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(k * s.from, t + xf);
+    g.gain.linearRampToValueAtTime(k * s.peak, t + Math.max(xf * 1.5, s.peakAt * len));
+    g.gain.linearRampToValueAtTime(k * s.to, t + len);
+    g.gain.linearRampToValueAtTime(0, t + len + xf);
+    src.connect(g).connect(this.brushOut(bag, JAZZ_DRUMS.pan[s.piece]));
+    src.start(t, pos);
+    halt(src, t + len + xf + 0.01);
   }
 
   private roomTo() {
