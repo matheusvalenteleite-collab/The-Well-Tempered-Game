@@ -475,12 +475,22 @@ export const synthFree = (v: Voicing) => {
   const pt = v.patch;
   return !!pt && !!(pt.sample || pt.pipe || pt.one || pt.bow || pt.sing || pt.syllable);
 };
+/**
+ * D505 (the owner, again: "I'm still getting the weird glockenspiel sound sometimes … probably a vestige of the
+ * times when we had effects upon correct play"): no synthesized layer on any sound now, the consoles and the
+ * synthesizers too. D428 had kept them there, and the scan (scratchpad glock2/, 21 sounds × 6 passages, the
+ * player's voice played) found them the only notes the chip played that were not the sound's own: 100 layer
+ * notes on each of CLASSIC CHIP, GAME BOY, SWITCHED-ON, MEGA FM, SID 64 and TOMITA (MEGA FM's I/2 an FM bell at C6
+ * over the alto's eighths, 16 of 56 notes in 3 bars, inharmonic partials at 5.2-6.8 kHz); none now. The layers
+ * kept are the voice's own instrument: its echo and its second choir (halo).
+ */
+export const SYNTH_LAYERS_SOUND = false;
 
 /**
  * D213: the effect's layers for one subject note (at `at`, `len` s, in voicing `v`, at the note's
  * level): returns their sounds, to be stopped with the game. Layers out of the keyboard's range are left out.
  */
-export function playFx(chip: Chip, fx: SubjectFx, sn: SubjectNote, midi: number, at: number, len: number, v: Voicing, level = 1): Sounding[] {
+export function playFx(chip: Chip, fx: SubjectFx, sn: SubjectNote, midi: number, at: number, len: number, v: Voicing, level = 1, lead = false): Sounding[] {
   const out: Sounding[] = [];
   // D304: singers' subjects not belled (VOCAL SYNTH, SOLO VOICES): a bell's ping or a brass blip an
   // octave over voices was the "tinkling sound in the background" (I/2's glass spark: in SOLO VOICES
@@ -493,12 +503,15 @@ export function playFx(chip: Chip, fx: SubjectFx, sn: SubjectNote, midi: number,
   const struck = synthFree(v);
   for (const l of fx.layers) {
     if (!fires(l.on, sn)) continue;
+    // D505: a synthesized layer (a ping, a brass blip, a shimmer) on no sound at all.
+    if (!SYNTH_LAYERS_SOUND && SYNTH_LAYERS.has(l.kind)) continue;
     if (sung && (l.kind === "ping" || l.kind === "brass")) continue;
     if (struck && SYNTH_LAYERS.has(l.kind)) continue;
     if (l.kind === "echo") {
-      out.push(chip.note(midi, at + l.delay, len * 0.9, { ...v, pan: v.pan ? -v.pan * 0.8 : 0.4 }, { level: level * l.level, tone: -4, room: fx.room }));
+      // D505: a layer of the player's note let go as the note is (Play.lead: D308's release), not by the band's dampers.
+      out.push(chip.note(midi, at + l.delay, len * 0.9, { ...v, pan: v.pan ? -v.pan * 0.8 : 0.4 }, { level: level * l.level, tone: -4, room: fx.room, ...(lead ? { lead: true } : {}) }));
     } else if (l.kind === "halo") {
-      out.push(chip.note(midi, at, len, { ...v, pan: v.pan * 0.6 }, { level: level * l.level, detune: l.cents }));
+      out.push(chip.note(midi, at, len, { ...v, pan: v.pan * 0.6 }, { level: level * l.level, detune: l.cents, ...(lead ? { lead: true } : {}) }));
     } else {
       const m = midi + (l.kind === "brass" ? 0 : l.interval);
       if (m < 24 || m > 108) continue;
@@ -529,8 +542,8 @@ export class SubjectSound {
     return { v, play: dulling(this.cues.dullness(voice, on), this.lab) };
   }
   /** The effect's layers for a subject note (none when the effect is off). */
-  layers(chip: Chip, sn: SubjectNote | undefined, midi: number, at: number, len: number, v: Voicing, level = 1): Sounding[] {
+  layers(chip: Chip, sn: SubjectNote | undefined, midi: number, at: number, len: number, v: Voicing, level = 1, lead = false): Sounding[] {
     if (!sn || !this.lab.effect) return [];
-    return playFx(chip, fxFor(this.f.id, sn), sn, midi, at, len, v, level);
+    return playFx(chip, fxFor(this.f.id, sn), sn, midi, at, len, v, level, lead);
   }
 }

@@ -12,7 +12,11 @@
  *
  * The pure functions (tapPeak, baseline, median, stampOf, windowEnd) are tested (test/d321-drag-sensor,
  * test/d425-hard-tap); MotionReader is the browser's side (the Lab's MotionHub extends it).
+ *
+ * D506: behind the Lab's switch (mechanics.ts MECH.hardTap, off): the game asks nothing and reads nothing (askMotion,
+ * hardTapDevice); the accent is the strong zone. The Lab's SENSOR tab keeps its own reader.
  */
+import { MECH } from "../bench/mechanics.ts";
 
 /** One motion sample. t: its time (ms, the page's clock, performance.now's); rt: when the page received it. */
 export interface MotionSample {
@@ -268,6 +272,8 @@ let asked: Promise<Permission> | null = null;
  */
 export function askMotion(again = false): Promise<Permission> {
   const r = gameMotion();
+  // D506: the hard tap off (the game's): never asked, never listened to (no permission dialog).
+  if (!MECH.hardTap) return Promise.resolve(r.permission);
   if (!MotionReader.supported()) return Promise.resolve((r.permission = "unavailable"));
   if (!MotionReader.needsPermission()) {
     r.permission = "not-needed";
@@ -292,6 +298,7 @@ export function askMotion(again = false): Promise<Permission> {
 
 /** D425: a touch device that may feel a tap's strength (a motion sensor, not refused); a computer never. */
 export function hardTapDevice(): boolean {
+  if (!MECH.hardTap) return false;
   if (typeof navigator === "undefined" || !(navigator.maxTouchPoints > 0) || !MotionReader.supported()) return false;
   const r = gameMotion();
   if (r.permission === "denied" || r.permission === "unavailable" || r.silent) return false;

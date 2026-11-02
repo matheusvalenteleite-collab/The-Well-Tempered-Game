@@ -250,6 +250,7 @@ test("D425: the slot: read once, answered at once when known; Herr Bach's demons
   s.on((v) => got.push(v));
   assert.deepEqual(got, [0.8, 0.8]);
   const pg = src("src/bench/proto-game.ts");
-  assert.match(pg, /const strike = this\.asksAccent\(0, t\.i\) \? 1 : 0\.25;/);
+  // D506 (deliberately): only with the Lab's hard tap on.
+  assert.match(pg, /const strike = !MECH\.hardTap \? undefined : this\.asksAccent\(0, t\.i\) \? 1 : 0\.25;/);
   assert.match(src("src/bench/BenchApp.tsx"), /void askMotion\(\);\n    const ch = ensureChip\(\);/, "asked on the PLAY tap");
 });
