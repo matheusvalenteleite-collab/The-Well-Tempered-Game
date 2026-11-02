@@ -189,18 +189,21 @@ export const ES: Record<string, string> = {
   COMPUTER: "ORDENADOR",
   "With headphones on, tap along to the clicks so the music and your taps line up.": "Con auriculares, toca al ritmo de los clics para que la música y tus toques coincidan.",
   "SOUND DELAY": "RETARDO DEL SONIDO",
-  "AS THE PHONE SAYS": "EL QUE INDICA EL MÓVIL",
+  "WIRED · 0 MS": "CON CABLE · 0 MS",
+  // D494: the Bluetooth warning on PLAY (BtWarn.tsx).
+  "BLUETOOTH?": "¿BLUETOOTH?",
+  "PLAY ANYWAY": "JUGAR DE TODOS MODOS",
+  "It looks like you're using Bluetooth headphones or speakers. Unfortunately the game won't work properly with them: the sound arrives late. For the full experience, turn Bluetooth off! Otherwise you can calibrate in SETTINGS, but you won't get the real experience that way.": "Parece que estás usando auriculares o altavoces Bluetooth. Lamentablemente el juego no funciona bien con ellos: el sonido llega tarde. Para la experiencia completa, ¡apaga el Bluetooth! Si no, puedes calibrar en AJUSTES, pero así no tendrás la experiencia real.",
   "SET BY TAPPING": "AJUSTAR TOCANDO",
   Reset: "Restablecer",
   "TAP HERE ON EACH CLICK": "TOCA AQUÍ EN CADA CLIC",
   "TOO FEW TAPS": "DEMASIADO POCOS TOQUES",
   // D299: BLUETOOTH MODE.
-  "BLUETOOTH MODE is on: the whole piece plays on time through the delay; your touches score but make no sound.": "El MODO BLUETOOTH está activado: toda la pieza suena a tiempo pese al retraso; tus toques puntúan, pero no suenan.",
+  "BLUETOOTH MODE is on: your taps are judged by the delay you set, with a little more leeway. Your notes still sound late.": "El MODO BLUETOOTH está activado: tus toques se juzgan según el retraso que fijaste, con un poco más de margen. Tus notas siguen sonando tarde.",
   "Clearest sounds for Bluetooth:": "Sonidos más nítidos para Bluetooth:",
   "USE MY LAST BLUETOOTH DELAY ({ms} MS)": "USAR MI ÚLTIMO RETRASO BLUETOOTH ({ms} MS)",
   "CHECK THE DELAY": "COMPROBAR EL RETRASO",
   "DOES EACH CLICK COME WITH THE LIGHT?": "¿CADA CLIC LLEGA CON LA LUZ?",
-  "SOUND DELAY {from} → {to} MS (TUNED TO YOUR PLAYING)": "RETRASO DEL SONIDO {from} → {to} MS (AJUSTADO A TU FORMA DE TOCAR)",
   "TOO UNEVEN: TRY AGAIN": "DEMASIADO IRREGULAR: INTÉNTALO OTRA VEZ",
   // The tutorial
   LESSON: "LECCIÓN",
@@ -557,7 +560,7 @@ export const ES: Record<string, string> = {
   "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.": "Bonificaciones: una entrada entera del sujeto sin fallo (ORGANO PLENO!; la última entrada de una voz es su JEFE FINAL), y una cadencia alcanzada sin romper la racha.",
   // D371: the title page and the selection screen (Mario and Luigi's report).
   "TOUCH TO BEGIN": "TOCA PARA EMPEZAR",
-  "24 FUGUES FOR TWO THUMBS": "24 FUGAS PARA DOS PULGARES",
+  "48 FUGUES FOR TWO THUMBS": "48 FUGAS PARA DOS PULGARES",
   "VERSION {v}": "VERSIÓN {v}",
   "YOU · {voice}": "TÚ · {voice}",
   "LEARN TO PLAY WITH HERR BACH": "APRENDE A TOCAR CON HERR BACH",
@@ -588,7 +591,6 @@ export const ES: Record<string, string> = {
   "INSTALL THE GAME": "INSTALAR EL JUEGO",
   "Installed, it opens full screen and plays offline.": "Instalado, se abre en pantalla completa y funciona sin conexión.",
   "Headphones disconnected: delay reset": "Auriculares desconectados: retardo reiniciado",
-  "Headphones back: delay {ms} ms restored": "Auriculares de vuelta: retardo de {ms} ms restaurado",
   "Using speaker? Tap to reset delay": "¿Usas el altavoz? Toca para reiniciar el retardo",
   Dismiss: "Cerrar",
   // D485, OBBLIGATO: the boost and the instruments it offers (obbligato.ts LAYERS).

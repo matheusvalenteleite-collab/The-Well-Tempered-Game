@@ -148,10 +148,11 @@ export interface Performed {
  * is heard in time; a touch makes no sound (it would be heard a delay late): it scores, judged against
  * the music as heard and drawn. A note missed sounds all the same (provisional: the owner's Decision 8).
  * The window a little wider on both sides (the headphones' jitter).
+ * D494: withdrawn but for the wider window and the smoothed clock: nothing of the player's voice is put on
+ * the schedule; every note of it sounds from a touch (a Bluetooth delay late: "you won't get the real
+ * experience that way"), judged by the delay the player tapped.
  */
 export const BT_EARLY_MS = 20;
-/** D306: how far ahead (s) the player's own notes go on the schedule in BLUETOOTH MODE (the band's go further). */
-export const ARM_AHEAD_S = 0.15;
 export const BT_LATE_MS = 25;
 /** D299: the player's own note in BLUETOOTH MODE, scheduled ahead ("track:onset"). */
 interface Armed {
@@ -167,8 +168,6 @@ interface Armed {
   /** When (audio clock) the record may be dropped. */
   until: number;
 }
-/** D299: what a touch "sounds" in BLUETOOTH MODE: nothing (the note is already on the schedule). */
-const SILENT = (): Sounding => ({ stop() {}, bend() {}, glide() {}, muffle() {}, dyn() {} });
 /** D191: notes gone by are swept as missed this long (s) after their window closes: a frame's grace. */
 export const SWEEP_GRACE_S = 0.035;
 /** A thumb let go moving upwards at least this fast (px per ms), over this far (px): a swoosh. */
@@ -992,119 +991,16 @@ export class ProtoGame {
   readonly bt: boolean;
   /** D299: each note struck right, how early (-) or late (+) it was as heard (ms), in BLUETOOTH MODE. */
   readonly btOffsets: number[] = [];
-  /** D299: the player's notes put on the schedule ("track:onset"), and where each track's scheduling has reached. */
+  /** D299: the player's notes put on the schedule ("track:onset"). D494: none any more (kept empty). */
   private armed = new Map<string, Armed>();
-  private armNext: number[] = [];
-  /**
-   * D306, BLUETOOTH MODE: whether each track's voice is live (the owner: "why the hell is player's voice
-   * playing by itself even if player doesn't do shit?"). Only a live voice's coming notes go on the
-   * schedule; a miss (or a wrong note) silences the voice and cuts its notes already scheduled; the next
-   * right touch sounds at once (a headphones' delay late) and makes the voice live again. Live at the start.
-   */
-  private live: boolean[] = [];
-  /** D306: a right touch on a note not on the schedule (the voice was silenced): it sounds, even in BLUETOOTH MODE. */
-  private voiced = false;
-  /** D299: the pedals (D250) put on the schedule. */
-  private armedPedals = new Set<number>();
-  /**
-   * D299, BLUETOOTH MODE: each of the player's notes coming within the horizon put on the schedule, as
-   * the band's are: at its written time and for its written length (heard on time through the
-   * headphones' delay), at the level a right touch on time would give it (never louder or softer for how
-   * it is played: D293), whether or not it is then touched. With it its chord (a swept chord's notes a
-   * moment apart, D258), its ornament realised (D205), the notes riding after it (D191), a traced line's
-   * notes (D262), the row's echo (D262), the subject's layers (D213).
-   */
-  private arm(horizon: number) {
-    const ch = this.chip;
-    const piano = this.proto.id === "piano";
-    const count = this.f.voices.length;
-    const envelope = piano ? "piano" : "synth";
-    const len = (on: number, dur: number) => Math.max(0.03, this.timeAt(on + dur) - this.timeAt(on));
-    // D306: the player's notes a moment ahead only (a miss then leaves little scheduled to cut).
-    const near = Math.min(horizon, this.tickAt(ch.ctx.currentTime + ARM_AHEAD_S));
-    this.tracks.forEach((t, k) => {
-      if (this.live[k] === false) return;
-      const notes = t.notes;
-      let i = this.armNext[k] ?? 0;
-      for (; i < notes.length && notes[i].on <= near; i++) {
-        const n = notes[i];
-        if (n.ride || n.state !== "pending" || (i > 0 && notes[i - 1].on === n.on)) continue;
-        const at = this.timeAt(n.on);
-        if (at < ch.ctx.currentTime) continue;
-        const voice = this.voiceOf(k, i);
-        const voiceV = voicing(voice, count, true);
-        const sv = this.o.her ? null : this.subj.shape(voice, n.on, voiceV);
-        // D311: the attack from the voice's latest landing (the note is scheduled before its touch); its sustain the touch's (move: shape).
-        let expr: Play = { ...dynamic(NEUTRAL_D), lead: true, envelope, legato: !piano && this.joinedAt(i, k), touch: this.touchFor(this.lastLand[k], k, n.on) };
-        if (sv) expr = { ...expr, ...sv.play, level: (expr.level ?? 1) * (sv.play.level ?? 1) };
-        // D504: the continuo on the player's bass note where the script has it (by the note's place in the piece alone).
-        const ct = this.continuo?.at(n.on, voice);
-        if (ct) expr = { ...expr, continuo: ct };
-        if (this.arc?.echo && k === 0 && this.rowOf(i, 0) === 1) expr = { ...expr, level: (expr.level ?? 1) * ECHO_LEVEL, bright: (expr.bright ?? 0) - ECHO_DARK };
-        const v = sv?.v ?? voiceV;
-        const sounds: Sounding[] = [];
-        const own: Sounding[] = [];
-        let end = at;
-        const put = (midi: number, from: number, secs: number, p: Play, rv = v, mine = true) => {
-          const sd = ch.note(midi, from, secs, rv, p);
-          sounds.push(sd);
-          if (mine) own.push(sd);
-          end = Math.max(end, from + secs);
-        };
-        const chord = chordOf(notes, i);
-        const orn = chord.length === 1 ? this.ornaments.get(`${voice}:${n.on}`) : undefined;
-        if (orn) {
-          const prev = this.before(i, k);
-          const parts = realiseNote(this.f, orn, n.on, n.dur, n.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
-          parts.forEach(([pon, pdur, pmidi], q) => {
-            const pat = Math.max(at, this.timeAt(pon));
-            put(pmidi, pat, q === parts.length - 1 ? Math.max(0.03, this.timeAt(n.on + n.dur) - pat) : len(pon, pdur), { ...expr, legato: q > 0 || expr.legato });
-          });
-        } else if (chord.length > 1 && t.sweeps?.has(n.on)) {
-          // D258: the swept chord upward, a note every SWEEP_GAP_S, as it sounds by itself.
-          const up = chord.map((c) => notes[c]).sort((a, b) => a.midi - b.midi);
-          up.forEach((c, q) => put(c.midi, at + q * SWEEP_GAP_S, len(c.on, c.dur), { ...expr, legato: false }));
-        } else for (const c of chord) put(notes[c].midi, at, len(notes[c].on, notes[c].dur), expr);
-        // D262: a traced line's other notes, at their written times.
-        for (const q of t.traces?.get(n.on) ?? []) put(q.midi, this.timeAt(q.on), Math.max(0.12, len(q.on, q.dur)), { ...expr, legato: false }, v, false);
-        if (sv && !this.o.her) for (const x of this.subj.layers(ch, sv.sn, n.midi, at, len(n.on, n.dur), v, expr.level ?? 1)) (sounds.push(x), own.push(x));
-        this.armed.set(`${k}:${n.on}`, { k, i, sounds, own, at, state: "sounding", until: end + 1 });
-      }
-      this.armNext[k] = i;
-    });
-    // D250: the pedal's bourdon from its start to its end, held or not (holding it still scores and builds).
-    this.pedalList.forEach((p, q) => {
-      if (this.armedPedals.has(q) || p.on > horizon) return;
-      this.armedPedals.add(q);
-      const at = Math.max(ch.ctx.currentTime, this.timeAt(p.on));
-      const until = this.timeAt(p.end);
-      const v = { timbre: "triangle" as const, pan: 0, gain: 1, patch: PATCHES.pedalBourdon };
-      if (until > at) for (const [m, level] of [[p.midi, 1.2], [p.midi - 12, 0.9]] as const) this.band.push({ sd: ch.note(m, at, until - at, v, { level, lead: true }), until: until + 0.6 });
-    });
-  }
-  /** D223, D299: the player's note scheduled at a track's onset, if any. */
+  /** D223, D299: the player's note scheduled at a track's onset, if any. D494: never any (nothing of the player's is scheduled ahead of a touch). */
   armedAt(k: number, on: number): { state: Armed["state"]; sounds: number } | undefined {
     const a = this.armed.get(`${k}:${on}`);
     return a && { state: a.state, sounds: a.sounds.length };
   }
-  /** D306: a track's voice silenced (BLUETOOTH MODE): its notes on the schedule and not touched cut now, nothing more scheduled till a right touch. */
-  private silence(k: number) {
-    this.live[k] = false;
-    const t = this.chip.ctx.currentTime;
-    for (const [key, a] of this.armed) {
-      if (a.k !== k || a.state === "hit") continue;
-      for (const sd of a.sounds) sd.stop(Math.max(t, a.at));
-      this.armed.delete(key);
-    }
-  }
-  /** D299: records of notes done sounding dropped (nothing is faded: a note scheduled sounds out). */
-  private watchArmed() {
-    const t = this.chip.ctx.currentTime;
-    for (const [key, a] of this.armed) if (t > a.until) this.armed.delete(key);
-  }
-  /** D299: a touch's sound: nothing in BLUETOOTH MODE (its note is already on the schedule). */
+  /** A touch's sound (D494: in BLUETOOTH MODE too: D299's silent touch over a scheduled note withdrawn). */
   private touchNote(...args: Parameters<Chip["note"]>): Sounding {
-    const sd = this.bt && !this.voiced ? SILENT() : this.chip.note(...args);
+    const sd = this.chip.note(...args);
     // D485, OBBLIGATO: the note struck now inside a boosted entry: its layer with it, as one sound.
     const lf = this.layerFor;
     const b = lf ? this.boostAt(lf.voice, lf.on) : null;
@@ -1323,7 +1219,7 @@ export class ProtoGame {
       if (this.o.mute?.includes(n.voice)) continue;
       // D250: the bass's pedal sounds only while the player holds it.
       const bp = this.bassPedal;
-      if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null && !this.bt) continue;
+      if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null) continue;
       const sh = this.shapes[this.nextOther - 1];
       // D302: a joined note held over the next one's onset (sh.over), crossfaded into it.
       // D328: a sound held over a point where the band may wait, scheduled longer, stopped once it is settled.
@@ -1380,10 +1276,9 @@ export class ProtoGame {
         if (ext) this.bandT!.hold(hx, sd, n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
     }
-    if (this.bt) {
-      this.arm(horizon);
-      this.watchArmed();
-    }
+    // D494: BLUETOOTH MODE no longer puts the player's notes on the schedule (arm): a note of the player's
+    // voice sounds only from a touch, under any audio setting (the owner: "it was playing the first note of
+    // the player's voice automatically even if I didn't tap").
     if (this.band.length > 64) this.band = this.band.filter((b) => b.until > ch.ctx.currentTime);
     if (this.bandPerformed.length > 32) this.bandPerformed = this.bandPerformed.filter((p) => p.end > this.now - 2 * this.tps);
     this.tieStep();
@@ -1415,14 +1310,9 @@ export class ProtoGame {
       for (const on of ons) this.runMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
       for (const on of ons) this.slideMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
       if (this.tap) for (const on of ons) this.tap({ kind: "miss", tick: on, track: this.tracks.indexOf(t), i: t.notes.findIndex((n) => n.on === on), midi: t.notes.find((n) => n.on === on)?.midi ?? 0 });
-      // D262: a traced line's first note missed: the line plays itself.
-      for (const on of ons) {
-        const q = t.traces?.get(on);
-        if (q) this.loose.push({ queue: q.map((x) => ({ ...x })), x: 0, slid: 0, count: 0, voice: voicing(t.voice, this.f.voices.length, true), play: { ...dynamic(0.5), lead: true } });
-      }
+      // D262's traced line, its first note missed: D494, no longer played by itself (only touches sound the player's voice).
       sweep(kept.size ? t.notes.filter((n) => !kept.has(n)) : t.notes, this.now - grace, this.opt);
       missed += ons.size;
-      if (this.bt) this.silence(this.tracks.indexOf(t));
     }
     if (missed) {
       for (let s = 0; s < missed; s++) this.slip(0);
@@ -2468,7 +2358,7 @@ export class ProtoGame {
    * fermata). The owner's logs: 177 prepared rests, 0 lifted late (the report): never by accident.
    */
   private holdOvers() {
-    if (!MECH.prepare || this.bt || this.o.wait || this.proto.id !== "ladder") return;
+    if (!MECH.prepare || this.o.wait || this.proto.id !== "ladder") return;
     for (const w of this.held.values()) {
       const p = w.wait?.prep;
       if (!p || p.hold) continue;
@@ -2849,7 +2739,7 @@ export class ProtoGame {
   }
   /** D314/D353: a held note a free ornament may be read on (see freeShake). */
   private freeReadable(h: Held): boolean {
-    if (!MECH.ornGestures || !MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    if (!MECH.ornGestures || !MECH.freeOrnaments || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || !this.rows) return false;
     // D369: none in THE MANUAL's practice room but Part V's (Options.quiet without `ornaments`). The owner:
     // "Why is TUTORIAL predicting my notes and playing them even if i don't? … one, sometimes even two
     // notes": at the lessons' slow tempi nearly every note is long enough for one, and a thumb's settling
@@ -3052,7 +2942,7 @@ export class ProtoGame {
   }
   /** D353: slides wait for confirmation where a shake is read (LADDER on a phone, the gestures on, not BLUETOOTH MODE). */
   private slideGuarded(): boolean {
-    return MECH.slideConfirmMs > 0 && MECH.ornGestures && this.proto.platform === "mobile" && !this.bt;
+    return MECH.slideConfirmMs > 0 && MECH.ornGestures && this.proto.platform === "mobile";
   }
   /**
    * D353, THE SLIDE GUARD: a slide that reached its note fires only once the thumb has not turned back
@@ -3264,7 +3154,7 @@ export class ProtoGame {
    */
   private couleTrack(h: Held, y: number | null | undefined) {
     // D438, D501: only where the slide sound is "instruments" (forced: under "auto" the keyboards play "d486", slideColour's coulé, mordent, Pralltriller...).
-    if (slideSoundFor(preset().id) !== "instruments" || keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
+    if (slideSoundFor(preset().id) !== "instruments" || keyboardSlide(preset().id) !== "coule" || h.note < 0) return void (h.coule = undefined);
     const notes = this.tracks[h.k].notes;
     const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
     const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
@@ -3415,7 +3305,7 @@ export class ProtoGame {
    * is a slide-in instead, silent and costing nothing. It sounds the note as a slide does (slideInMove).
    */
   private slideInStart(h: Held, c: Contact, tk: number, inWin = false): boolean {
-    if (!MECH.glenn || !MECH.slides || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || this.bt || !this.rows) return false;
+    if (!MECH.glenn || !MECH.slides || this.proto.id !== "ladder" || this.proto.platform !== "mobile" || !this.rows) return false;
     const notes = this.tracks[h.k].notes;
     const i = notes.findIndex((n) => n.state === "pending" && !n.ride);
     if (i < 0 || chordOf(notes, i).length !== 1 || tk >= notes[i].on) return false;
@@ -3806,7 +3696,7 @@ export class ProtoGame {
       if (-dy >= SWOOSH_PX && -dy / dt >= SWOOSH_V) {
         for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
         for (const sd of h.armed?.own ?? []) sd.stop(Math.max(this.chip.ctx.currentTime + 0.02, (h.armed?.at ?? 0) + 0.05));
-        if (!this.bt) this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
+        this.chip.swoosh(h.midi, voicing(h.note >= 0 ? this.voiceOf(h.k, h.note) : this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
         return;
       }
     }
@@ -3876,7 +3766,7 @@ export class ProtoGame {
     if (ct) expr = { ...expr, continuo: ct };
     // D336: the lab's DYNAMICS (its own touch, never with a reading's level or the dynamics lesson).
     const dynAns =
-      this.noteDyn && !slide && !this.bt && expr.touch !== undefined
+      this.noteDyn && !slide && expr.touch !== undefined
         ? this.noteDyn({ k: h.k, i, midi: v.ok || v.wrong === undefined ? notes[i].midi : v.wrong, side: h.side, land: h.land ?? TOUCH_NEUTRAL, across: h.across !== undefined && this.proto.layout === "bars" ? barAcross(h.across * this.touchW, this.touchW) : undefined, ts: h.t0 ?? null, gesture: this.gesture ?? (MECH.prepare && lw.holding ? "hammer-on" : undefined), ok: v.ok })
         : null;
     if (dynAns) expr = { ...expr, touch: dynAns.touch, level: (expr.level ?? 1) * dynAns.level };
@@ -3963,17 +3853,8 @@ export class ProtoGame {
     const n1 = notes[i];
     // D485: the note's layer (touchNote) where a boost covers it, right or wrong alike.
     this.layerFor = { voice: this.voiceOf(h.k, i), on: n1.on };
-    h.fx = sv && !this.bt ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
-    // D299, BLUETOOTH MODE: the note is already on the schedule (arm); a right touch only scores it (its
-    // riders then shown as they sound). Below, every sound a touch would make is silent (touchNote).
-    const armed = this.bt && v.ok ? this.armed.get(`${h.k}:${notes[i].on}`) : undefined;
-    if (armed) (armed.state = "hit", (h.armed = armed));
-    // D306: a right touch on a silenced voice sounds itself and brings the voice back; a wrong one silences it.
-    if (this.bt) {
-      this.voiced = v.ok && !armed;
-      if (v.ok) this.live[h.k] = true;
-      else this.silence(h.k);
-    }
+    h.fx = sv ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
+    // D494: in BLUETOOTH MODE too the touch sounds its note (nothing is on the schedule ahead of it).
     // D321, "connect": the drag's own connection, by the instrument: a glide as long as the drag took, or
     // on a keyboard the coulé or the Schleifer into the note (dragConnect); else the slide glides on as before.
     // D376 (MECH.glenn): over-legato's notes given way to before the last ring no further (never past the next note but one).
@@ -4106,7 +3987,6 @@ export class ProtoGame {
       // D293: a note judged wrong sounds as written, at its level: the verdict is seen (it was muffled:
       // darkened to 600 Hz and flattened, which on a phone's speaker all but silenced it).
     }
-    this.voiced = false;
     this.layerFor = null;
     // A touch on the screen (not a key) is the next note's reference.
     if (h.trail.length) (this.lastTouch = { side: h.side, y: h.ay }), this.remember(h.side, { y: h.ay, step: this.tracks[h.k].notes[i].step, tick: this.now }), this.runLanding(h.k, i, h.ay);
@@ -5148,7 +5028,7 @@ export class ProtoGame {
       if (!h.sounds.length) continue;
       for (const sd of h.sounds) sd.stop(this.chip.ctx.currentTime + 0.02);
       h.sounds = [];
-      if (!this.bt) this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
+      this.chip.swoosh(h.midi, voicing(this.tracks[h.k].voice, this.f.voices.length, true), levelOf(this.heard(h.d0)));
       return;
     }
   }
@@ -5243,7 +5123,6 @@ export class ProtoGame {
       return i < 0 ? xs.length : i;
     };
     this.nextOther = firstAt(this.others);
-    this.armNext = this.tracks.map((t) => firstAt(t.notes));
   }
 
   releaseAll(ts: number) {

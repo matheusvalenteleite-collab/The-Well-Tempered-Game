@@ -98,7 +98,7 @@ export function Intro({ begin, end }: { begin: () => Promise<number>; end: (skip
             <div className="tb-intro-n2">
               <Wordmark unit={4} className="tb-intro-mark" />
             </div>
-            <p className="tb-intro-tag tb-intro-n3">{tr("24 FUGUES FOR TWO THUMBS")}</p>
+            <p className="tb-intro-tag tb-intro-n3">{tr("48 FUGUES FOR TWO THUMBS")}</p>
           </div>
           <p className="tb-intro-version tb-intro-n4" id="intro-version">
             {versionLine()}
