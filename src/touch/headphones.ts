@@ -10,7 +10,7 @@
 export const JUMP_S = 0.05;
 /** How often the output latency is read (ms) while the app is open. */
 export const POLL_MS = 2000;
-/** BLUETOOTH MODE's AUTO: on when the sound's delay is over this (s). */
+/** BLUETOOTH MODE's AUTO: on when the delay tapped is over this (s); D494: a reported latency over it reads as Bluetooth (the warning). */
 export const BT_AUTO_S = 0.08;
 /** The verdict's line between a wired-like delay and a Bluetooth one (s). */
 export const WIRED_MAX_S = 0.08;
@@ -72,11 +72,15 @@ export function withLag(book: LagBook, key: string, lag: number | null): LagBook
 
 export type BtMode = "auto" | "on" | "off";
 
-/** BLUETOOTH MODE: ON, OFF, or AUTO (on when the delay, tapped or else reported, is over BT_AUTO_S). */
-export function btOn(mode: BtMode, lag: number | null, reported = 0): boolean {
+/**
+ * BLUETOOTH MODE: ON, OFF, or AUTO (on when the delay the player tapped is over BT_AUTO_S). D494: the
+ * reported latency (`reported`, kept in the signature for the callers) no longer turns it on: nothing
+ * compensates for Bluetooth by itself.
+ */
+export function btOn(mode: BtMode, lag: number | null, _reported = 0): boolean {
   if (mode === "on") return true;
   if (mode === "off") return false;
-  return (lag ?? reported) > BT_AUTO_S;
+  return (lag ?? 0) > BT_AUTO_S;
 }
 
 /**
@@ -89,20 +93,36 @@ export interface LagOrigin {
 }
 
 /**
- * D308: BLUETOOTH MODE's AUTO on the minimal page. A delay tapped once for earbuds stayed in force on the
- * phone's speaker (the owner: "the notes keep ringing in the player's voice even when they let it go"):
- * on when the latency the browser reports is over BT_AUTO_S; a stored delay over it counts only for the
- * output it was tapped with: where the browser reports a latency, the same setup (its 50 ms bucket or
- * the next); where it reports none (Safari), only until the page is loaded again (a phone cannot tell
- * earbuds from its speaker: tap again with them on).
+ * D308: BLUETOOTH MODE's AUTO on the minimal page: a stored delay over BT_AUTO_S counts only for the
+ * output it was tapped with: where the browser reports a latency, the same setup (its 50 ms bucket or the
+ * next); where it reports none (Safari), only until the page is loaded again. D494 (the owner: "Don't
+ * compensate for bluetooth automatically"): only a delay the player tapped turns it on; a Bluetooth-like
+ * reported latency alone no longer does (it raises the warning on PLAY instead: btWarnGate).
  */
 export function btAuto(lag: number | null, reported: number | undefined, origin: LagOrigin): boolean {
-  if ((reported ?? 0) > BT_AUTO_S) return true;
   if (lag === null || lag <= BT_AUTO_S) return false;
   if (reported === undefined) return origin.fresh;
   if (origin.setup === undefined) return false;
   const now = setupKey(reported);
   return lagFor({ [origin.setup]: 1 }, now) !== undefined;
+}
+
+/**
+ * D494: whether the browser's reported output latency says Bluetooth headphones or speakers: over
+ * BT_AUTO_S (the line BLUETOOTH MODE's AUTO used). Nothing reported (no `outputLatency`, or 0 before the
+ * sound has started): unsure, so no.
+ */
+export const btSeen = (reported: number | undefined): boolean => reported !== undefined && reported > BT_AUTO_S;
+
+/**
+ * D494, the Bluetooth warning on PLAY: shown when the route reads Bluetooth, at most once until the route
+ * has read as not Bluetooth again (the headphones off, then on again: warned again). `warned` is kept
+ * by the caller (sessionStorage: once per app session). Pure: the state in, the state out.
+ */
+export function btWarnGate(warned: boolean, reported: number | undefined): { show: boolean; warned: boolean } {
+  if (reported !== undefined && !btSeen(reported)) return { show: false, warned: false };
+  if (!btSeen(reported)) return { show: false, warned };
+  return { show: !warned, warned: true };
 }
 
 export function verdictOf(lag: number): "WIRED-LIKE" | "BLUETOOTH" {
@@ -180,7 +200,8 @@ export const DRIFT_SHARE = 0.5;
 export const DRIFT_STEP_MS = 30;
 
 /**
- * D299: after a run in BLUETOOTH MODE, the change to the sound's delay (s) its touches suggest: the
+ * D299: after a run in BLUETOOTH MODE, the change to the sound's delay (s) its touches suggest (D494: no
+ * longer applied after a run: the delay stays as the player tapped it): the
  * median of how late (+) or early (-) the notes struck right were, as heard; nothing (0) under
  * DRIFT_MIN_NOTES notes, a middle half wider than DRIFT_MAX_SPREAD_MS, or a median within DRIFT_DEAD_MS;
  * else half of it, at most DRIFT_STEP_MS either way. A Bluetooth route's delay moves as it settles (by

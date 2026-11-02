@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { tr } from "../i18n/index.ts";
 import { presetById } from "../touch/sound.ts";
 import type { Chip } from "../touch/chip.ts";
-import { BT_AUTO_S, BT_LAG_KEY, BT_SOUNDS, btOn, lagFor, latencyOf, OutputWatch, POLL_MS, setupKey, withLag, type BtMode, type LagBook } from "../touch/headphones.ts";
+import { BT_AUTO_S, BT_LAG_KEY, BT_SOUNDS, btOn, latencyOf, OutputWatch, POLL_MS, setupKey, withLag, type BtMode, type LagBook } from "../touch/headphones.ts";
 import { Choice, LagSetting, VisualTapper } from "../touch/Panels.tsx";
 
 const BOOK_KEY = "tg-lag-book";
@@ -66,9 +66,7 @@ export function useHeadphones(chip: { current: Chip | null }, applyLag: (l: numb
       const first = key.current === null;
       if (k === key.current && !jumped && !device) return;
       key.current = k;
-      // A setup seen before: its delay back.
-      const stored = lagFor(book.current, k);
-      if (stored !== undefined) apply.current(stored);
+      // D494: a setup seen before no longer gets its delay back by itself (the banner asks to recalibrate).
       if (!first && (jumped || device)) setChanged(true);
     };
     const timer = window.setInterval(() => check(false), POLL_MS);
@@ -132,7 +130,8 @@ export function rememberRoute(lag: number | null, reported: number | undefined) 
   save(BOOK_KEY, withLag(lagBook(), setupKey(reported), lag));
 }
 
-const MODE_NOTE = "The whole piece, your notes too, plays on time through the headphones' delay; your touches score but make no sound (a missed note sounds all the same).";
+// D494: the player's notes no longer scheduled ahead (every note sounds from a touch).
+const MODE_NOTE = "Touches judged by the delay tapped, the window a little wider; your notes sound from your touches (a delay late).";
 
 export function HeadphonesFold({ hp, lag, setLag, chip }: { hp: Headphones; lag: number | null; setLag: (l: number | null) => void; chip: () => Chip }) {
   const [open, setOpen] = useState(false);
@@ -236,7 +235,7 @@ export function BtLite({ lag, setLag, chip, on }: { lag: number | null; setLag: 
   const last = lag === null ? storedBtLag() : null;
   return (
     <>
-      {on && <p className="tg-panel-note" id="bt-on-note">{tr("BLUETOOTH MODE is on: the whole piece plays on time through the delay; your touches score but make no sound.")}</p>}
+      {on && <p className="tg-panel-note" id="bt-on-note">{tr("BLUETOOTH MODE is on: your taps are judged by the delay you set, with a little more leeway. Your notes still sound late.")}</p>}
       {on && (
         <p className="tg-panel-note" id="bt-sounds">
           {tr("Clearest sounds for Bluetooth:")} {BT_SOUNDS.map((id) => presetById(id).name).join(" · ")}
