@@ -262,8 +262,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f23: {
-    sound: "tomita",
-    soundWhy: "'Quietly flowing, singing; gentle euphony' (Keller), a double fugue in long notes: TOMITA's whistle, strings, flute and bass, the outer voices nearly dry for a phone.",
+    sound: "oboeTrio",
+    soundWhy: "'Quietly flowing, singing; gentle euphony' (Keller), a double fugue in long notes: D504's ZELENKA TRIO, two oboes of different breath, the bassoon and the cello, each long note shaded by the reeds' swell, the harpsichord joining at the bass's entries, the stretto and the close.",
     character: "The second subject from 27; a long episode 63-75 (claims); Bodky's ff and f spans; a pedal on E (94-95).",
     plans: {
       tomita: [at(63, { room: 0.2 }, "The long episode 63-75 in the space echo."), at(E("wtc2f23", 75), OWN, "The bass's entry (75).")],

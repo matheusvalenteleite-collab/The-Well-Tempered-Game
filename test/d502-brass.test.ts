@@ -258,7 +258,7 @@ test("D502: articulation: a JOIN re-tongued, SET-AND-RELEASE slurred, the SLIDE 
   assert.deepEqual(joinedSound("strings", true, "set-release"), { legato: true, slur: true });
   // The player's join: the brass's own re-tongue (the air stopped about 10 ms, the attack kept: entered near the onset).
   const join = bowEntry(BRASS_TONGUE, { legato: true, lead: true })!;
-  assert.deepEqual(join, BRASS_TONGUE.change);
+  assert.deepEqual(join, BRASS_TONGUE.join);
   assert.ok(join.skip <= 0.01 && join.still > 0 && join.still <= 0.015);
   // The slur: past the attack, no new tongue.
   assert.equal(bowEntry(BRASS_TONGUE, { legato: true, slur: true, lead: true })!.skip, 0.25);

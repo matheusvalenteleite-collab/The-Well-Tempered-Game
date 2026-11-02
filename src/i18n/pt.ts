@@ -37,6 +37,7 @@ export const PT: Record<string, string> = {
   STRINGS: "CORDAS",
   // D430: BAROQUE BAND, offered again (the trials' ensemble): BANDA BARROCA.
   "BAROQUE BAND": "BANDA BARROCA",
+  "ZELENKA TRIO": "TRIO DE OBOÉS",
   // D501: CLAVICHORD, offered.
   CLAVICHORD: "CLAVICÓRDIO",
   // D502: BACH BRASS.
@@ -594,6 +595,11 @@ export const PT: Record<string, string> = {
   "OBOE": "OBOÉ",
   "BAROQUE VIOLA": "VIOLA BARROCA",
   "BAROQUE CELLO": "VIOLONCELO BARROCO",
+  "OBOE I": "OBOÉ I",
+  "OBOE II": "OBOÉ II",
+  "BASSOON": "FAGOTE",
+  "CONTINUO CELLO": "VIOLONCELO DO CONTÍNUO",
+  "CONTINUO HARPSICHORD": "CRAVO DO CONTÍNUO",
   "TRUMPET": "TROMPETE",
   "HORN": "TROMPA",
   "TROMBONE": "TROMBONE",

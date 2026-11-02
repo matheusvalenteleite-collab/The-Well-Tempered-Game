@@ -60,6 +60,8 @@ export interface Bake {
    * file keeps its `loop` for the chorales (audio/voice.ts).
    */
   chain?: [number, number];
+  /** D504: the high-pass under the note (Hz; 120 where not given: the presets' floor). */
+  floor?: number;
 }
 /** D297: TRACKER's short loops (s from the onset): half a second, as a MOD's samples looped a short stretch. */
 export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
@@ -67,6 +69,8 @@ export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
 export const VOICE_CHAIN: [number, number] = [0.45, 3.0];
 /** D358: the cello's made loop (s from the onset): its recordings are 2.3-4.2 s, steady from about 0.5 s to 2.2 s (measured). */
 export const CELLO_LOOP: [number, number] = [0.8, 2.0];
+/** D504: the trio's Iowa notes' made loop (s from the onset): build_trio.py's files are 3.4 s, steady from 0.35 s to 3.15 s. */
+export const TRIO_LOOP: [number, number] = [1.0, 2.9];
 export const PERIOD: Record<string, Bake> = {
   // SUPER 16-BIT (§6.1: oboe 16 kHz LP 5.8 kHz, harpsichord 16 kHz 6 kHz, clarinet 14 kHz 5 kHz, violin 16 kHz 6 kHz, bassoon 12 kHz 4.3 kHz; 11 bits).
   // D302: brighter (22 kHz, 6-7.5 kHz: they were muffled), the oboe and clarinet replaced by a flute and
@@ -124,6 +128,18 @@ export const PERIOD: Record<string, Bake> = {
   trialTrumpet: { folder: "trumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialTrombone: { folder: "sackbut", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialBassPizz: { folder: "bassPizz", rate: 32000, lp: 11000, bits: 16 },
+  // D504, ZELENKA TRIO (tools/playback/trio/build_trio.py): Iowa's oboe and bassoon, every semitone, a fortissimo and a
+  // mezzoforte layer and short notes cut from the same player's sustains; VSCO's vibrato oboe (its loud layer the
+  // trials' oboe/, its soft layer and its staccato); at full fidelity as the consort's, the held ones on a made loop
+  // of their lengthened steady stretch (TRIO_LOOP); the bassoon's floor at 50 Hz, not the presets' 120 (its Bb1 is 58 Hz).
+  trioOboe1: { folder: "trioOboe", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP },
+  trioOboe1Mf: { folder: "trioOboeMf", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP },
+  trioOboe1Short: { folder: "trioOboeShort", rate: 32000, lp: 11000, bits: 16 },
+  trioOboe2Soft: { folder: "oboeSoft", rate: 32000, lp: 11000, bits: 16, loop: true },
+  trioOboe2Short: { folder: "oboeStac", rate: 32000, lp: 11000, bits: 16 },
+  trioBassoon: { folder: "trioBassoon", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP, floor: 50 },
+  trioBassoonMf: { folder: "trioBassoonMf", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP, floor: 50 },
+  trioBassoonShort: { folder: "trioBassoonShort", rate: 32000, lp: 11000, bits: 16, floor: 50 },
   // D502, BACH BRASS: the University of Iowa's trumpet, horn, tenor and bass trombone (tools/playback/brass/build_brass.py),
   // two layers each (the forte and the piano, the same pitches: SampledInstrument.blend), at full fidelity as the
   // consort's, each held on the made loop (WIND_LOOP: the build holds every note on to 4.3 s in steady tone).
@@ -143,6 +159,9 @@ export const PERIOD: Record<string, Bake> = {
 export const BAKE_RATE = 0.5;
 /** D297: the made loop of the loopless recordings (s from the onset): within the steady stretch (all hold 1-4 s, measured). */
 export const WIND_LOOP: [number, number] = [1.4, 3.6];
+/** D504: every note of a folder at one value (a set retuned when built: 0 cents; its files' one length). */
+const allOf = (folder: string, v: number): Record<string, number> => Object.fromEntries((SAMPLE_MANIFEST[folder]?.notes ?? []).map((n) => [n, v]));
+const zeroCents = (folder: string) => allOf(folder, 0);
 /**
  * D297: the VSCO and other recordings' tuning (cents, measured: autocorrelation over 1-3 s of each file,
  * the plucked ones over 0.2-1 s); every note 4.545 s (the plucked ones as SHORT says).
@@ -187,6 +206,17 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   brassBass: { As1: 11.5, C2: 26.6, Ds2: 14.6, Fs2: 1.3, A2: 9.3, C3: -5.0, Ds3: -3.5, Fs3: -32.7, A3: 1.1, C4: 4.2, Ds4: 17.8, G4: 0.0 },
   brassBassP: { As1: 3.1, C2: 3.6, Ds2: -11.9, Fs2: -7.7, A2: -12.2, C3: -0.3, Ds3: 0.8, Fs3: -13.0, A3: 5.7, C4: -3.7, Ds4: 9.4, G4: -16.2 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
+  // D504 (tools/playback/trio/build_trio.py): Iowa's notes retuned to their names by resampling (measured over each
+  // note's steady stretch: within 0.5 cent after; checked again by their harmonics' peaks: within 3 cents); VSCO's
+  // soft oboe and its staccato as recorded (autocorrelation over 1-3 s; the staccato's over 30-180 ms).
+  trioOboe: zeroCents("trioOboe"),
+  trioOboeMf: zeroCents("trioOboeMf"),
+  trioOboeShort: zeroCents("trioOboeShort"),
+  trioBassoon: zeroCents("trioBassoon"),
+  trioBassoonMf: zeroCents("trioBassoonMf"),
+  trioBassoonShort: zeroCents("trioBassoonShort"),
+  oboeSoft: { As3: 1.5, D4: -0.1, F4: 0.1, As4: -0.5, D5: 1.3, F5: 2.0, As5: 1.7, D6: -3.2, F6: -2.5 },
+  oboeStac: { As3: -5.3, D4: 5.3, F4: -1.8, As4: -1.2, D5: 0, F5: 4.5, As5: 6.3, D6: 9.5, F6: 24.0 },
 };
 /** D502: BACH BRASS's folders (build_brass.py), each layer its own. */
 export const BRASS_FOLDERS = ["brassTrumpet", "brassTrumpetP", "brassHorn", "brassHornP", "brassTrombone", "brassTromboneP", "brassBass", "brassBassP"] as const;
@@ -212,6 +242,15 @@ const SHORT: Record<string, Record<string, number>> = {
   soloTenor: Object.fromEntries((SAMPLE_MANIFEST.soloTenor?.notes ?? []).map((n) => [n, 3.25])),
   soloBass: Object.fromEntries((SAMPLE_MANIFEST.soloBass?.notes ?? []).map((n) => [n, 3.25])),
   choirAahs: Object.fromEntries((SAMPLE_MANIFEST.choirAahs?.notes ?? []).map((n) => [n, 3.08])),
+  // D504: build_trio.py's lengths.
+  trioOboe: allOf("trioOboe", 3.4),
+  trioOboeMf: allOf("trioOboeMf", 3.4),
+  trioOboeShort: allOf("trioOboeShort", 0.5),
+  trioBassoon: allOf("trioBassoon", 3.4),
+  trioBassoonMf: allOf("trioBassoonMf", 3.4),
+  trioBassoonShort: allOf("trioBassoonShort", 0.5),
+  oboeSoft: allOf("oboeSoft", 4.5),
+  oboeStac: allOf("oboeStac", 0.6),
 };
 /** D313: a period set's chained stretch (Bake.chain), if it is held so rather than looped. */
 export const chainOf = (set: string): [number, number] | undefined => PERIOD[set]?.chain;
@@ -237,7 +276,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -292,7 +331,18 @@ export interface SampledInstrument {
    * the recordings' compass by more is played an octave nearer it (`foldInto`), never stretched.
    */
   maxShift?: number;
+  /**
+   * D504: a short note's own recordings: a note written `under` s or shorter (not joined) played from `set` (a
+   * tongued short note, not a sustain cut off), where it has loaded; else the sustain.
+   */
+  short?: { set: string; under: number };
 }
+
+/** D504: the trio's softer layer under this level (-1.5 dB, as the piano's), at this gain against the loud one (-1.5 dB). */
+export const TRIO_SOFT_BELOW = 0.8414;
+export const TRIO_SOFT_GAIN = 0.84;
+/** D504: a note this short (s, as written and not joined) the trio's short recordings play. */
+export const TRIO_SHORT_S = 0.16;
 
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsichord: { set: "harpsichord", release: "harpsichordRel", plucked: true, gain: 1.8 },
@@ -369,6 +419,12 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   trialTrumpet: { set: "trialTrumpet", plucked: false, gain: 2.2, maxShift: 2 },
   trialTrombone: { set: "trialTrombone", plucked: false, gain: 2.2, maxShift: 3 },
   trialBassPizz: { set: "trialBassPizz", plucked: true, gain: 2.2, maxShift: 4 },
+  // D504, ZELENKA TRIO: a lighter note (the phrasing's level under -1.5 dB, as the piano's soft layer) or the player's
+  // soft side on the mezzoforte (oboe II: VSCO's soft) layer, its loudness evened with the loud one's when built and
+  // brought 1.5 dB under it here, so the layer is the colour and the level the reading's; short notes their own.
+  trioOboe1: { set: "trioOboe1", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe1Mf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe1Short", under: TRIO_SHORT_S } },
+  trioOboe2: { set: "trialOboe", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe2Soft", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe2Short", under: TRIO_SHORT_S } },
+  trioBassoon: { set: "trioBassoon", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioBassoonMf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioBassoonShort", under: TRIO_SHORT_S } },
   // D502, BACH BRASS (every minor third: 1.5 semitones at most to the nearest). `maxShift` (D405) 3 past the compass,
   // then an octave nearer: the trumpet under C#3 and over E6, the horn under D2 and over G#5, the trombone under C#2 and
   // over D#5, the bass under G1 and over A#4 (the folds: test/d502-brass.test.ts).
@@ -483,6 +539,8 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
   const plan: Plan = [{ set: inst.set, notes }];
   if (above) plan.push({ set: above.set, notes: notesFor(above.set, wanted.filter((m) => m >= above.from)) });
   if (inst.soft) plan.push({ set: inst.soft.set, notes });
+  // D504: the short notes' own recordings, for the same pitches.
+  if (inst.short) plan.push({ set: inst.short.set, notes: notesFor(inst.short.set, wanted) });
   // D502: the second dynamic layer, the same pitches (SampledInstrument.blend).
   if (inst.blend) plan.push({ set: inst.blend.set, notes });
   if (inst.release) plan.push({ set: inst.release, notes: notes.filter((m) => sampledMidis(inst.release!).includes(m)) });
@@ -605,7 +663,7 @@ export function bake(chans: Float32Array[], sr0: number, b: Bake): Float32Array 
   else for (let i = 0; i < n; i++) x[i] = lerpAt(low, (i * b.rate) / sr);
   // The Gaussian interpolation's dulling (2 poles, Q 0.5; not on a tracker's held samples), and the 120 Hz floor.
   if (!b.hold) biquad(x, "lowpass", b.lp, 0.5, sr);
-  biquad(x, "highpass", 120, 0.7071, sr);
+  biquad(x, "highpass", b.floor ?? 120, 0.7071, sr);
   // The grain: so many bits against the note's peak (no dither, as the hardware).
   let peak = 0;
   for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(x[i]));

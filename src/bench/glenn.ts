@@ -76,8 +76,8 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "pianoSampled") return "piano";
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
   // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
-  // D502: BACH BRASS as the consort (its joined notes tongued: Patch.bow, BRASS_TONGUE).
-  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
+  // D504: ZELENKA TRIO likewise (its reeds tongued, its continuo cello bowed: Patch.bow); D502: BACH BRASS (tongued: BRASS_TONGUE).
+  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "oboeTrio" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
   // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too.
   if (presetId === "trialJazz" || presetId === "clavichord") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
@@ -253,6 +253,8 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   stringConsort: "strings",
   // D430: BAROQUE BAND as the consort; its oboe's Patch.bow a tongue (sound.ts WIND_TONGUE).
   baroqueBand: "strings",
+  // D504: ZELENKA TRIO as the strings (Patch.bow as a tongue, TRIO_TONGUE): a JOIN a soft new tongue (TRIO_JOIN), SET-AND-RELEASE the slur.
+  oboeTrio: "strings",
   // TRIALS: the winds and brass as the strings (Patch.bow as a tongue, sound.ts WIND_TONGUE): a JOIN a soft new tongue, SET-AND-RELEASE the legato (slur).
   trialWinds: "strings",
   // D502: BACH BRASS: a JOIN re-tongued (BRASS_TONGUE.change), SET-AND-RELEASE the slur (the legato tongue), the SLIDE its lip slur.

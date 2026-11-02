@@ -26,6 +26,9 @@ Every other rule depends on this. A preset is one of three things:
   concerto's band. The players differ (a violin is not a cello, a soprano is not a bass), but they share
   one room, one family of envelopes, one way of articulating, and a seating plan. BAROQUE BAND (D430) is
   one: violins, oboe, viola and the cello with its continuo harpsichord, in one room at one send.
+  ZELENKA TRIO (D504) is another: two oboes of different players (and so of different tone), a bassoon,
+  and a continuo that joins the bass only where the piece's structure asks (trio.ts), each instrument
+  kept inside its own compass (a note outside it an octave nearer, the band's and the player's alike).
 - **A band of unlike instruments on purpose**: the consoles (GAME BOY, SID 64, MEGA FM, TRACKER) and the
   synthesizer records (SWITCHED-ON, TOMITA; BLEEPS AND BLOOPS retired, D433). Here "each line its own colour" is the
   idiom: Wendy Carlos's one patch per line, a Game Boy's two pulses and a wave channel, a tracker's four

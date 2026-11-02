@@ -71,6 +71,10 @@ import { playerSound } from "./sound.ts";
  * Tower: a maestoso brass chorale); STRING CONSORT for I/4 (a five-voice ricercar, a viol consort's music) and II/8 (Mozart's
  * K. 405 quartet); LUTE for I/14; SID 64 for I/21; BLEEPS AND BLOOPS' I/11 and II/12 (D433: retired) on SUPER
  * 16-BIT and TRACKER. Every sound a fugue opens on is one the players have.
+ * D504: ZELENKA TRIO (two oboes, the bassoon, a continuo entering at the music's key moments) for I/13 (the
+ * euphonious "little brook": two oboes in conversation; I/11 then on TOMITA, its passepied on synthesized flutes and
+ * whistles) and II/23 (a singing double fugue in long notes: the reeds' breath and
+ * their swells), each with its continuo script (trio-continuo.ts).
  */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
@@ -95,11 +99,11 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p10: "chip",
   wtc1f10: "chip",
   wtc1p11: "chip",
-  wtc1f11: "super16",
+  wtc1f11: "tomita",
   wtc1p12: "chip",
   wtc1f12: "nocturne32",
   wtc1p13: "harpsichordSampled",
-  wtc1f13: "tomita",
+  wtc1f13: "oboeTrio",
   wtc1p14: "harpsichordSampled",
   wtc1f14: "lute",
   wtc1p15: "chip",
@@ -168,7 +172,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p22: "chip",
   wtc2f22: "chamberOrgan",
   wtc2p23: "chip",
-  wtc2f23: "tomita",
+  wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",
   wtc2f24: "gameboy",
   // The Art of Fugue
