@@ -86,6 +86,7 @@ import { slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
+import { liftGain } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -594,6 +595,12 @@ export class ProtoGame {
   /** When a banner was raised (performance.now()), and which. */
   banner: { text: string; at: number } | null = null;
   private chip: Chip;
+  /**
+   * D487: the player's voice's lift (a gain, 1: none) for the run: to the loudest other voice of the piece on this sound,
+   * and a little over (player-lift.ts). The game's owner applies it on the player's own bus (BenchApp: Chip.mine). A
+   * constant of the piece, the voice and the sound: never of the play. None WITH KIMIKO, alone, or with two voices played.
+   */
+  readonly lift: number;
   beat: number;
   private perBar: number;
   private anchorAt: number;
@@ -632,6 +639,8 @@ export class ProtoGame {
     this.subj = new SubjectSound(f);
     this.o = o;
     this.chip = chip;
+    const mine = Array.isArray(voices) ? voices : [voices];
+    this.lift = o.her || o.solo || mine.length !== 1 ? 1 : liftGain(f.id, preset().id, mine[0], f.voices.length);
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
     // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
     if (!o.her && !busoniLeads(o.reading?.whole, busoniReaches(preset().id))) {
