@@ -329,3 +329,14 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-about-side::-webkit-scrollbar-track, .sel-about-main::-webkit-scrollbar-track { background: #1c1f2c; }
 .sel-about-entries li { grid-template-columns: max-content minmax(0, 1fr) auto; }
 .sel-about-entries { padding-right: 26px; }
+
+/* D451 (the main board, 2 Nov 2026: "long names now break in the middle of a word … Never break inside a word"): the
+   names wrap only between words (and after a hyphen); a card whose longest word is long gets a smaller size
+   (Selection.tsx: data-word, the longest word's letters), so the word fits the card's width whole. */
+.sel-tile .sel-tile-name { overflow-wrap: normal; word-break: normal; hyphens: manual; }
+.sel-tile .sel-tile-name[data-word="10"] { font-size: 5.5px; }
+.sel-tile .sel-tile-name[data-word="11"], .sel-tile .sel-tile-name[data-word="12"] { font-size: 5px; letter-spacing: -0.2px; }
+@media (max-width: 700px) {
+  .sel-tile .sel-tile-name[data-word="10"] { font-size: 4.5px; }
+  .sel-tile .sel-tile-name[data-word="11"], .sel-tile .sel-tile-name[data-word="12"] { font-size: 4.5px; letter-spacing: -0.6px; }
+}

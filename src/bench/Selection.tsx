@@ -282,7 +282,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
               <b>{n}</b> {key.tonic} <i>{key.mode}</i>
             </span>
             {nick && (
-              <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`}>
+              <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`} data-word={longestWord(nick)}>
                 {nick}
               </span>
             )}
@@ -291,6 +291,12 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
       </button>
     </li>
   );
+}
+
+/** D451: the letters of a name's longest word (split at spaces and after hyphens), 9 and under as "short": the card's name size follows it. */
+export function longestWord(name: string): string {
+  const n = Math.max(0, ...name.split(/[\s]+|(?<=-)/).map((w) => [...w].length));
+  return n <= 9 ? "short" : String(Math.min(12, n));
 }
 
 /** D446: a voice's name short enough for four voices on one line (SOPRANO II → SOP II, TENOR → TEN). */
