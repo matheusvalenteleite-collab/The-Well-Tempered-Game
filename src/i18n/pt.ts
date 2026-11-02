@@ -37,6 +37,10 @@ export const PT: Record<string, string> = {
   STRINGS: "CORDAS",
   // D430: BAROQUE BAND, offered again (the trials' ensemble): BANDA BARROCA.
   "BAROQUE BAND": "BANDA BARROCA",
+  // D503: JAZZ QUARTET (the trials' MODERN JAZZ QUARTET, remade and offered); its instruments for OBBLIGATO.
+  "JAZZ QUARTET": "QUARTETO DE JAZZ",
+  "JAZZ PIANO": "PIANO DE JAZZ",
+  "DOUBLE BASS": "CONTRABAIXO",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOÉ, VIOLA E FAGOTE",

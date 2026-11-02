@@ -12,7 +12,8 @@ export const SOUND_GROUPS: readonly [group: string, ids: readonly string[]][] = 
   // D365: and LUTE among the instruments, STRING CONSORT an ensemble of its own.
   ["INSTRUMENTS", ["harpsichordSampled", "pianoSampled", "chamberOrgan", "lute"]],
   // D430: BAROQUE BAND an ensemble; D433: BLEEPS AND BLOOPS retired.
-  ["ENSEMBLES", ["stringConsort", "baroqueBand"]],
+  // D503: and JAZZ QUARTET.
+  ["ENSEMBLES", ["stringConsort", "baroqueBand", "jazzQuartet"]],
   ["GAME CONSOLES", ["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker"]],
   ["SYNTHESIZERS", ["analog", "tomita"]],
   ["VOICES", ["vocalSynth", "soloVoices"]],

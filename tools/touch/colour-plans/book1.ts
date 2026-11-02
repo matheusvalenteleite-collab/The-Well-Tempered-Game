@@ -418,8 +418,9 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f19: {
-    sound: "tracker",
-    soundWhy: "A strange subject, 'a delicate and complicated scherzo' in 9/8 (Keller after Tovey): TRACKER's violin, harpsichord and slapped bass, hard left and right, light and clear on a phone.",
+    // D503: JAZZ QUARTET (was TRACKER, D355).
+    sound: "jazzQuartet",
+    soundWhy: "Delicate 9/8 scherzo: the Modern Jazz Quartet played Bach. 'A delicate and complicated scherzo' (Keller after Tovey): the vibraphone on top, the piano inside, the plucked bass, the brushes rolling into the sections.",
     character: "Sections 1-20, 23-42 and the reprise 42-54 (Ledbetter); dolce e molto espressivo (Bodky).",
     plans: {
       tracker: [at(23, { vib: 12 }, "The middle section with the tracker's vibrato command."), at(42, OWN, "The reprise plain.")],

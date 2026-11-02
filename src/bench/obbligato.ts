@@ -104,6 +104,10 @@ const ROWS: readonly Row[] = [
   ["bandOboe", "OBOE", "strings", ["soprano", "alto"]],
   ["bandViola", "BAROQUE VIOLA", "strings", ["alto", "tenor"]],
   ["bandCello", "BAROQUE CELLO", "strings", ["tenor", "bass"]],
+  // D503: JAZZ QUARTET's (the vibraphone C3-F6 recorded, the bass pizzicato E1-G4).
+  ["jqVibes", "VIBRAPHONE", "keys", ["soprano", "alto"], 48, 89],
+  ["jqPiano", "JAZZ PIANO", "keys", ALL],
+  ["jqBass", "DOUBLE BASS", "strings", ["bass"], 28, 70],
   ["singS", "SOPRANO VOICE", "voice", ["soprano"]],
   ["singS2", "MEZZO VOICE", "voice", ["soprano", "alto"]],
   ["singA", "ALTO VOICE", "voice", ["alto"]],

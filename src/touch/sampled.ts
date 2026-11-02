@@ -203,7 +203,45 @@ const PERIOD_NOTES = Object.fromEntries(
 );
 
 /** Every recorded note's measured tuning, length and loop (the harpsichord and organ's, D190; D288: the ensembles' withdrawn; D292: the grand piano's; D297: the period sets'). */
-const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES, ...PERIOD_NOTES };
+/**
+ * D503, JAZZ QUARTET's recordings (tools/playback/jazz/build_jazz.py): the University of Iowa MIS vibraphone (motor
+ * off, pedal down) at mf every semitone C3-F6, at pp and ff every whole tone; the double bass pizzicato at mf every
+ * semitone E1-G4, at ff every whole tone; Karoryfer's Swirly Drums brushes (jazzBrushes, BRUSH_FILES). The tuning
+ * measured there (cents: the harmonic sum's peak over 0.25-1.25 s, the bass's over 0.12-0.7 s; the vibraphone was
+ * tuned about 10 cents sharp, A = 442.6); the lengths as trimmed.
+ */
+const JAZZ_CENTS: Record<string, Record<string, number>> = {
+  jazzVibes: { C3: 10.5, Cs3: 10.5, D3: 10.5, Ds3: 10.5, E3: 10.5, F3: 10.5, Fs3: 12, G3: 10.5, Gs3: 11.5, A3: 10.5, As3: 10.5, B3: 11, C4: 10.5, Cs4: 10.5, D4: 10, Ds4: 10.5, E4: 10.5, F4: 10.5, Fs4: 10.5, G4: 10, Gs4: 10, A4: 10.5, As4: 10.5, B4: 10.5, C5: 11, Cs5: 10.5, D5: 10.5, Ds5: 10.5, E5: 10.5, F5: 10, Fs5: 9.5, G5: 10.5, Gs5: 10, A5: 10, As5: 10, B5: 10.5, C6: 10.5, Cs6: 10.5, D6: 10, Ds6: 10, E6: 10.5, F6: 10.5 },
+  jazzVibesSoft: { C3: 15.5, D3: 13.5, E3: 9, Fs3: 15.5, Gs3: 13.5, As3: 12, C4: 11, D4: 9.5, Fs4: 12, Gs4: 7.5, As4: 12, C5: 11, D5: 9, E5: 12.5, Fs5: 11.5, Gs5: 8, As5: 10.5, C6: 10, D6: 9.5, E6: 10 },
+  jazzVibesHard: { C3: 9.5, D3: 10, E3: 9.5, Fs3: 11, Gs3: 11, As3: 10.5, C4: 10.5, D4: 10.5, E4: 10.5, Fs4: 10.5, Gs4: 10, As4: 10.5, C5: 10.5, D5: 10, E5: 10.5, Fs5: 9.5, Gs5: 10, As5: 10, C6: 10, D6: 10, E6: 10 },
+  jazzBass: { E1: 0, F1: -2.5, Fs1: 2.5, G1: 11, Gs1: 12, A1: 4, As1: 11.5, B1: 0, C2: 7.5, Cs2: 9, D2: -10.5, Ds2: 12, E2: -2.5, F2: 2.5, Fs2: 3.5, G2: -4, Gs2: 1.5, A2: -4.5, As2: -2.5, B2: 1.5, C3: -6.5, Cs3: -8, D3: -1.5, Ds3: 7, E3: -4.5, F3: -5, Fs3: -8.5, G3: 0.5, Gs3: -3, A3: -2.5, As3: -14, B3: 3.5, C4: 2, Cs4: 14, D4: -0.5, Ds4: -9.5, E4: -8, F4: -4.5, Fs4: -7.5, G4: -9.5 },
+  jazzBassHard: { E1: 15, Fs1: 1, Gs1: 19.5, As1: 4, C2: 0, D2: -7.5, E2: -2.5, Fs2: 35, Gs2: 6.5, As2: -0.5, C3: -4.5, D3: 3, E3: -1, Fs3: -7, Gs3: -2.5, As3: -6.5, C4: 0.5, D4: 7, E4: -11.5, Fs4: -3 },
+};
+const JAZZ_LEN: Record<string, number> = { jazzVibes: 4, jazzVibesSoft: 4, jazzVibesHard: 4, jazzBass: 2.6, jazzBassHard: 2.6 };
+/**
+ * D503: the brush kit's pieces, filed under note names in jazzBrushes (build_jazz.py): the brushed snare's taps at
+ * four dynamics, two strokes each (C3-G3, soft to loud: Swirly's layers 4, 6, 8, 12); the two stirs (C4 softer, D4
+ * firmer: the brush circling the head, 4 s loops); the two flutters (E4, F4: the buzz roll, 3 s loops); the brushed
+ * ride at three dynamics (C5, D5, E5: layers 6, 9, 12); the hi-hat's foot at two (C6/C#6 soft, D6/D#6 firm, two strokes).
+ */
+export const BRUSH_FILES = {
+  tap: [[48, 49], [50, 51], [52, 53], [54, 55]],
+  stir: [60, 62],
+  flutter: [64, 65],
+  ride: [72, 74, 76],
+  foot: [[84, 85], [86, 87]],
+} as const;
+export const BRUSH_SET = "jazzBrushes";
+const BRUSH_LEN: Record<number, number> = { 48: 0.9, 49: 0.9, 50: 0.9, 51: 0.9, 52: 0.9, 53: 0.9, 54: 0.9, 55: 0.9, 60: 4, 62: 4, 64: 3, 65: 3, 72: 2.5, 74: 2.5, 76: 2.5, 84: 0.6, 85: 0.6, 86: 0.6, 87: 0.6 };
+/** D503: every brush file (MIDI), for the kit's plan. */
+export const BRUSH_MIDIS: readonly number[] = Object.keys(BRUSH_LEN).map(Number);
+const noteName = (m: number) => `${["C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B"][m % 12]}${Math.floor(m / 12) - 1}`;
+const JAZZ_NOTES: Record<string, Record<string, { cents: number; len: number }>> = {
+  ...Object.fromEntries(Object.entries(JAZZ_CENTS).map(([set, cs]) => [set, Object.fromEntries(Object.entries(cs).map(([n, cents]) => [n, { cents, len: JAZZ_LEN[set] }]))])),
+  [BRUSH_SET]: Object.fromEntries(Object.entries(BRUSH_LEN).map(([m, len]) => [noteName(Number(m)), { cents: 0, len }])),
+};
+
+const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number] }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES, ...PERIOD_NOTES, ...JAZZ_NOTES };
 
 /**
  * D294: a set that is another folder's velocity layer (its files "C4-v7.mp3" beside the layer played):
@@ -213,7 +251,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violin32" | "oboe32" | "harpsi32" | "viola32" | "organ32" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "luteGuitar" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "jazzVibes" | "jazzBass";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -234,6 +272,18 @@ export interface SampledInstrument {
    * colour than in loudness: layer 7 is about 5 dB under layer 12 as recorded).
    */
   soft?: { set: string; below: number; gain: number };
+  /**
+   * D503: a harder layer (its own set), played for the notes the phrasing gives a level over `above` (the band's
+   * louder notes: Busoni's f) or a landing in the strong zone (Play.layer "hard"), at `gain` against the main one:
+   * the vibraphone's hard mallet, the bass's stronger pluck. Its notes may be fewer (every whole tone): the nearest.
+   */
+  hard?: { set: string; above: number; gain: number };
+  /**
+   * D503, the vibraphone's pedal and the bass's left hand (chip.ts sampledNote): a note held under `short` s is
+   * damped at its end with a time constant of `shortTau` (a dead stroke: the mallet or the finger on the bar or the
+   * string), a longer one with `tau` (the pedal let up as the next note sounds: a little ring into it).
+   */
+  pedal?: { short: number; shortTau: number; tau: number };
   /** D297: the key-up noise's level against the note (0.9 if not given). */
   relGain?: number;
   /**
@@ -339,6 +389,11 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   trialTrumpet: { set: "trialTrumpet", plucked: false, gain: 2.2, maxShift: 2 },
   trialTrombone: { set: "trialTrombone", plucked: false, gain: 2.2, maxShift: 3 },
   trialBassPizz: { set: "trialBassPizz", plucked: true, gain: 2.2, maxShift: 4 },
+  // D503, JAZZ QUARTET: the vibraphone (pp, mf, ff: the mallet's hardness), struck, its pedal by the note's length,
+  // a harder strike a little brighter too (velTone), retuned a whole tone at most (the pp and ff sets' every other
+  // note); the double bass pizzicato (mf, ff), a bass line folded an octave in only where it leaves E1-G4 by more than 3.
+  jazzVibes: { set: "jazzVibes", plucked: true, gain: 5.5, soft: { set: "jazzVibesSoft", below: 0.794, gain: 1 }, hard: { set: "jazzVibesHard", above: 1.26, gain: 1 }, pedal: { short: 0.22, shortTau: 0.03, tau: 0.11 }, velTone: { perDb: 0.6, hz: 2600, min: -3, max: 3 }, maxShift: 2 },
+  jazzBass: { set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: 1.26, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
@@ -445,7 +500,9 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
   const notes = notesFor(inst.set, above ? wanted.filter((m) => m < above.from) : wanted);
   const plan: Plan = [{ set: inst.set, notes }];
   if (above) plan.push({ set: above.set, notes: notesFor(above.set, wanted.filter((m) => m >= above.from)) });
-  if (inst.soft) plan.push({ set: inst.soft.set, notes });
+  // D503: a layer's own notes (the jazz sets' pp and ff every whole tone; the grand's layers the same keys).
+  if (inst.soft) plan.push({ set: inst.soft.set, notes: inst.soft.set === "grandSoft" ? notes : notesFor(inst.soft.set, wanted) });
+  if (inst.hard) plan.push({ set: inst.hard.set, notes: notesFor(inst.hard.set, wanted) });
   if (inst.release) plan.push({ set: inst.release, notes: notes.filter((m) => sampledMidis(inst.release!).includes(m)) });
   if (inst.low) {
     const lows = sampledMidis(inst.low);

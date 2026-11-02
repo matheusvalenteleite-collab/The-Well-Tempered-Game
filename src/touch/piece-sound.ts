@@ -70,6 +70,8 @@ import { playerSound } from "./sound.ts";
  * II/16, II/17, II/21); STRING CONSORT for I/4 (a five-voice ricercar, a viol consort's music) and II/8 (Mozart's
  * K. 405 quartet); LUTE for I/14; SID 64 for I/21; BLEEPS AND BLOOPS' I/11 and II/12 (D433: retired) on SUPER
  * 16-BIT and TRACKER. Every sound a fugue opens on is one the players have.
+ * D503: JAZZ QUARTET for I/19 (the delicate 9/8 scherzo: the Modern Jazz Quartet played Bach) and II/12 (caprice and
+ * humour, swung by the vibes), each with its brushes' scripted fills (jazz-drums.ts DRUM_SCRIPTS).
  */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
@@ -110,7 +112,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p18: "harpsichordSampled",
   wtc1f18: "pianoSampled",
   wtc1p19: "harpsichordSampled",
-  wtc1f19: "tracker",
+  wtc1f19: "jazzQuartet",
   wtc1p20: "harpsichordSampled",
   wtc1f20: "harpsichordSampled",
   wtc1p21: "chip",
@@ -145,7 +147,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p11: "chip",
   wtc2f11: "chip",
   wtc2p12: "chip",
-  wtc2f12: "tracker",
+  wtc2f12: "jazzQuartet",
   wtc2p13: "chip",
   wtc2f13: "harpsichordSampled",
   wtc2p14: "chip",

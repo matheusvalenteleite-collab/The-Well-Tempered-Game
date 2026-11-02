@@ -9,7 +9,8 @@ import { folderOf, PERIOD, SAMPLED } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { terraceStops } from "../src/touch/registration.ts";
 
-const IDS = ["trialWinds", "trialBrass", "trialJazz", "trialClavichord"];
+// (D503: the jazz quartet remade and offered: test/d503-jazz.test.ts.)
+const IDS = ["trialWinds", "trialBrass", "trialClavichord"];
 
 test("the trials are found by id, never offered", () => {
   for (const id of IDS) {
@@ -21,6 +22,7 @@ test("the trials are found by id, never offered", () => {
   // D437: the organ trio gone (a stored id opens on the organ); D430: the trial band under its offered id.
   assert.equal(presetById("trialOrganTrio").id, "chamberOrgan");
   assert.equal(presetById("trialBaroque").id, "baroqueBand");
+  assert.equal(presetById("trialJazz").id, "jazzQuartet");
 });
 
 test("seated narrowly, every layout's patches real", () => {
@@ -52,7 +54,7 @@ test("their recordings exist and are credited (CC0 / CC BY)", () => {
   }
   setPreset("baroqueBand");
   assert.ok(sampledNow().includes("harpsichord"), "the continuo's harpsichord loads");
-  for (const id of ["baroqueBand", "trialWinds", "trialBrass", "trialJazz"]) assert.ok(creditFor(id));
+  for (const id of ["baroqueBand", "trialWinds", "trialBrass", "jazzQuartet"]) assert.ok(creditFor(id));
   for (const s of ["trialOboe", "trialTrombone", "trialBassPizz"]) assert.equal(PERIOD[s].bits, 16);
   setPreset("chip");
 });

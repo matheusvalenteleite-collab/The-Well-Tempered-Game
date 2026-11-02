@@ -78,7 +78,8 @@ export function exprFamily(presetId: string): ExprFamily {
   // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
   if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "trialBrass") return "bowed";
   // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato).
-  if (presetId === "trialJazz" || presetId === "trialClavichord") return "plucked";
+  // D503: JAZZ QUARTET as the trials' jazz band: struck and plucked, one player's over-legato.
+  if (presetId === "jazzQuartet" || presetId === "trialClavichord") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
