@@ -557,7 +557,7 @@ export const PT: Record<string, string> = {
   "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.": "Bônus: uma entrada inteira do sujeito sem erro (ORGANO PLENO!; a última entrada de uma voz é o seu CHEFÃO), e uma cadência alcançada sem interromper a sequência.",
   // D371: the title page and the selection screen (Mario and Luigi's report).
   "TOUCH TO BEGIN": "TOQUE PARA COMEÇAR",
-  "24 FUGUES FOR TWO THUMBS": "24 FUGAS PARA DOIS POLEGARES",
+  "48 FUGUES FOR TWO THUMBS": "48 FUGAS PARA DOIS POLEGARES",
   "VERSION {v}": "VERSÃO {v}",
   "YOU · {voice}": "VOCÊ · {voice}",
   "LEARN TO PLAY WITH HERR BACH": "APRENDA A TOCAR COM HERR BACH",
