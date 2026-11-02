@@ -59,6 +59,12 @@
 .tb-pause-box { gap: 14px; padding: 22px 26px; width: min(300px, 100%); }
 .tb-pause-title { margin: 0; font-family: var(--tg-pixel); font-size: 16px; font-weight: 400; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; }
 .tb-pause-quit { min-height: 40px; padding: 8px 14px; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-fg); background: none; border: 2px solid var(--tg-muted); cursor: pointer; }
+/* D494: the Bluetooth warning on PLAY (BtWarn.tsx): over everything, sized for a sideways phone. */
+.tb-bt-warn-veil { z-index: 70; }
+.tb-bt-warn-box { gap: 12px; width: min(460px, 100%); padding: 18px 20px; }
+.tb-bt-warn-title { margin: 0; font-family: var(--tg-pixel); font-size: 13px; font-weight: 400; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; }
+.tb-bt-warn-text { margin: 0; font-size: 14px; line-height: 1.4; color: var(--tg-fg); text-align: left; }
+.tb-bt-warn-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 /* D220: the computer's HIGHWAY: the road alone, the whole window, the music box gone while playing. */
 .tg-wide.tb-road { max-width: 1400px; grid-template-rows: 1fr; }
 .tb-road .tg-box { display: none; }
@@ -634,6 +640,8 @@
 .tb-lite > .tb-lite-grid { max-width: 1100px; margin: 0 auto 16px; }
 /* D308: ⚙ on play.html opens over the cards (they stay behind it, veiled), not over the music box. */
 .tg-picker.tb-lite-settings { z-index: 45; box-shadow: 0 0 0 100vmax rgba(5, 6, 12, 0.72); }
+/* D494: the sound's calibration opened from the Bluetooth warning, over SETTINGS (which it closes back to). */
+.tg-picker.tb-calib-panel { z-index: 46; box-shadow: 0 0 0 100vmax rgba(5, 6, 12, 0.72); }
 /* D265: the pieces as a list, first to last: the card's picture (numbered) on the left, what the piece is on the right. */
 .tb-lite-list { list-style: none; max-width: 760px; margin: 0 auto 16px; padding: 0; display: grid; gap: 10px; }
 .tb-lite-list .tb-lite-card { grid-template-columns: minmax(120px, 42%) 1fr; align-items: center; gap: 12px; width: 100%; padding: 6px; }

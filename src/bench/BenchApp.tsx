@@ -44,7 +44,8 @@ import { fugueName } from "../touch/fugue-names.ts";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
-import { BtLite, HeadphonesFold, keepBtLag, lagBook, rememberRoute, useHeadphones } from "./Headphones.tsx";
+import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.tsx";
+import { BtWarn, btWarnNow } from "./BtWarn.tsx";
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
@@ -109,7 +110,7 @@ import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, ty
 import { tt } from "./tools-i18n.ts";
 import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
-import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
+import { btAuto, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { askMotion, gameMotion, hardTapDevice } from "../touch/motion.ts";
 import { calOffered, loadHardCal, markCalOffered, motionStrikes } from "../touch/hard-tap.ts";
@@ -296,17 +297,11 @@ export function BenchApp() {
   const setLag = (l: number | null) => {
     applyLag(l);
     if (!APP.lite) hp.record(l);
-    // D381: on play.html a Bluetooth delay tapped where the browser told the route apart is kept for that
-    // setup (D223's book), to be given back when that latency returns; nothing held or asked any more.
-    else {
-      rememberRoute(l, chip.current ? latencyOf(chip.current.ctx) : undefined);
-      route.tapped();
-    }
+    // D381: on play.html nothing asked any more. D494: nothing kept to be given back by itself (no book).
+    else route.tapped();
     // D299: a Bluetooth delay kept on the device, to be offered again (never applied by itself).
     keepBtLag(l);
   };
-  // D299: the sound's delay retuned after a run in BLUETOOTH MODE (from, to: s), shown on the result.
-  const [retuned, setRetuned] = useState<{ from: number; to: number } | null>(null);
   const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
   // D351: the tempo step chosen for each MORE BACH and CHORALES piece (tempo-steps.ts), kept on the device.
   const [tempoSteps, setTempoSteps] = useState<Record<string, TempoStep>>(readSteps);
@@ -564,12 +559,11 @@ export function BenchApp() {
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
   // D381: play.html watches the route itself (RouteWatch.tsx): D223's watcher off there.
   const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag, !APP.lite);
-  // D381: the headphones gone, the Bluetooth delay dropped at once (and given back when they return).
+  // D381: the headphones gone: D494, the player asked (USING SPEAKER?), the delay never changed by itself.
   const route = useRoute({
     chip,
     lag: () => chip.current?.lag ?? null,
     tappedAt: () => latOfSetup(sessionLagSetup()),
-    book: lagBook,
     apply: applyLag,
     pause: () => phaseNow.current === "play" && pauseNow(),
     on: APP.lite && !APP.glenn,
@@ -857,14 +851,7 @@ export function BenchApp() {
         const r = g.results();
         // D314: an ornament shaken: its first-time hint is done.
         if (r.shakes.hit > 0 && !run) seenId("ornament");
-        // D299: every run in BLUETOOTH MODE retunes a tapped delay a little by how late or early its notes were.
-        const was = ch.lag;
-        const drift = g.bt && was !== null && !lesson && !man ? driftOf(g.btOffsets) : 0;
-        if (drift && was !== null) {
-          const to = Math.round((was + drift) * 1000) / 1000;
-          setLag(to);
-          setRetuned({ from: was, to });
-        } else setRetuned(null);
+        // D299's retune of a Bluetooth delay after each run: D494, gone (the delay stays as the player tapped it).
         if (man) {
           // D342: THE MANUAL's step over: its lens read, the next step chosen.
           recRef.current = null;
@@ -987,8 +974,20 @@ export function BenchApp() {
     }
   }
 
+  /**
+   * D494: the Bluetooth warning, before a fugue's PLAY or the TUTORIAL: shown (and `go` held until PLAY
+   * ANYWAY) when the route reads Bluetooth, once per app session (BtWarn.tsx); else `go` at once.
+   */
+  const [btWarn, setBtWarn] = useState<(() => void) | null>(null);
+  const warnFirst = (go: () => void): boolean => {
+    if (!APP.lite || APP.glenn) return false;
+    const ch = ensureChip();
+    if (!btWarnNow(latencyOf(ch.ctx))) return false;
+    setBtWarn(() => go);
+    return true;
+  };
   /** PLAY (the pop-up, AGAIN); `now`: CONTINUE and NEXT, which start at once (no guard against a double tap). */
-  const start = (now = false) => {
+  const start = (now = false, warned = false) => {
     practice.current = null;
     hintGone.current = false;
     stopHearing();
@@ -996,6 +995,7 @@ export function BenchApp() {
     // D425: the hard tap's motion sensor asked on the PLAY tap (iOS asks only from a gesture), once; never waited for.
     void askMotion();
     const ch = ensureChip();
+    if (!warned && warnFirst(() => start(true, true))) return;
     wantHer();
     const go = () => (setNote(""), setPhase({ kind: "play" }));
     // D216, KIMIKO: only with her track (loading: the game begins once it is ready; not to be had: tap to try again).
@@ -1351,7 +1351,8 @@ export function BenchApp() {
   /** Back to the tutorial's selection screen, the lesson just left chosen there. */
   const toMap = () => (setHost("bach"), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
-  const startManual = () => {
+  const startManual = (warned = false) => {
+    if (!warned && warnFirst(() => startManual(true))) return;
     const s = readManual();
     if (!Object.keys(s.lessons).length) return beginManual("1.1");
     setTutFocus(null);
@@ -1803,11 +1804,6 @@ export function BenchApp() {
                 {phase.tempo.apart ? ` · ${tr("KEPT APART FROM YOUR BEST")}` : ""}
               </p>
             )}
-            {retuned && (
-              <p className="tb-lane-line" id="bt-retune">
-                {tr("SOUND DELAY {from} → {to} MS (TUNED TO YOUR PLAYING)", { from: Math.round(retuned.from * 1000), to: Math.round(retuned.to * 1000) })}
-              </p>
-            )}
             {phase.stage?.won && <p className="tb-result-seal tb-stage-line earned">PRELUDE BEATEN · FUGUE UNLOCKED</p>}
             {phase.opened?.map((t) => (
               <p key={t} id={`tier-toast-${t.toLowerCase()}`} className={`tb-tier-toast tb-tier-${t.toLowerCase()}`} role="status">
@@ -1898,19 +1894,30 @@ export function BenchApp() {
       {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib || !!film} />}
       {/* D381: the headphones gone or back (a brief notice), or USING SPEAKER? where the browser cannot tell. */}
       {APP.lite && !APP.glenn && <RouteNotice route={route} busy={playing && !paused} />}
-      {(hp.changed || route.recal) && !playing && !calib && (
+      {hp.changed && !playing && !calib && (
         <div className="tb-hp-banner" role="status">
           <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
             {tr("HEADPHONES CHANGED? · RECALIBRATE (5 s)")}
           </button>
-          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={() => (hp.dismiss(), route.dismissRecal())}>
+          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={hp.dismiss}>
             ✕
           </button>
         </div>
       )}
+      {/* D494: Bluetooth seen at PLAY: PLAY ANYWAY, or SETTINGS with the sound's calibration open. */}
+      {btWarn && (
+        <BtWarn
+          play={() => {
+            const go = btWarn;
+            setBtWarn(null);
+            go();
+          }}
+          settings={() => (setBtWarn(null), setPhase({ kind: "settings" }), setCalib(true))}
+        />
+      )}
       {calOffer && <HardTapCalibrate offer done={() => (setCalOffer(false), game.current?.resume())} />}
       {calib && (
-        <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss(), route.dismissRecal())}>
+        <Panel title="SOUND DELAY" className="tb-calib-panel" close={() => (setCalib(false), hp.dismiss())}>
           <p className="tg-panel-note">With the headphones on: tap on each click, eight times.</p>
           <Tapper chip={ensureChip} done={(l) => (l !== null && setLag(l), setCalib(false), hp.dismiss())} />
         </Panel>
@@ -2058,7 +2065,7 @@ export function BenchApp() {
           soundOf={soundAt}
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
-          tutorial={{ ...manualProgress(readManual()), start: startManual }}
+          tutorial={{ ...manualProgress(readManual()), start: () => startManual() }}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
