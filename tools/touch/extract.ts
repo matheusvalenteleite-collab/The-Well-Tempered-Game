@@ -38,6 +38,7 @@ import { laterSubjects } from "../../src/wtc/subjects.ts";
 import { readMidi } from "./midi.ts";
 import { buildEntries, countersubjects, findCadences, homeward, keySpeller, type RawEntry } from "./analysis.ts";
 import { splitDivisi } from "./divisi.ts";
+import { parseExpert, placeExpert, type ExpertEntry, type ExpertFugue, type Placed } from "./expert.ts";
 
 const read = (f: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../data/wtc/${f}`, import.meta.url)), "utf8"));
 const corpus: WtcPiece[] = read("fugues.json");
@@ -223,6 +224,17 @@ const keyName = (k: string) => {
   return `${k[0].toUpperCase()}${k.slice(1).replace("b", "♭").replace("#", "♯")} ${minor ? "minor" : "major"}`;
 };
 
+/**
+ * D493: the entries are the experts' (data/wtc/expert-entries.txt; tools/touch/expert.ts places them in the
+ * notes). The finders below (the library's, MORE_ENTRIES, the heads, the later subjects) only offer what the
+ * table may take; what it does not name is dropped. The placements go to docs/wtc/entries/expert-entries.json.
+ */
+const EXPERT = parseExpert(
+  readFileSync(fileURLToPath(new URL("../../data/wtc/expert-entries.txt", import.meta.url)), "utf8"),
+  (id) => corpus.find((p) => p.id === id)?.voices.length ?? 0,
+);
+const expertOut: Record<string, { fugue: ExpertFugue; placed: Placed[]; unplaced: ExpertEntry[] }> = {};
+
 const fugues = corpus
   .filter((p) => p.kind === "fugue")
   .sort((a, b) => a.book - b.book || a.number - b.number)
@@ -282,12 +294,27 @@ const fugues = corpus
     for (const h of shortHeads(voices, raw, NOT_HEADS[p.id] ?? [], barAt)) raw.push(h);
     // D197: the later subjects of the double and triple fugues (the library's: where each first
     // enters is Ledbetter's, its statements are found in the notes), as theme 2 and 3.
-    if (LATER_SUBJECTS.has(p.id))
+    const ex = EXPERT.get(p.id);
+    if (LATER_SUBJECTS.has(p.id) || ex?.multi)
       for (const e of lib.later)
         raw.push({ voice: lib.voice[e.notes[0]], on: Math.round((e.at - pad) * TPQ), len: Math.round((e.end - e.at) * TPQ), shift: e.shift, inverted: false, scale: 1, theme: e.subject ?? 2 });
+    // D493: the experts' entries, placed in the notes (the finders' entries above only offer them).
+    if (ex) {
+      const res = placeExpert({ tpq: TPQ, barTicks, length: p.length, bars: p.bars, voices }, ex, raw);
+      for (const u of res.unplaced) console.warn(`${p.id}: expert entry not found in the notes: ${u.line}`);
+      // Two lines of the table on one statement: kept once.
+      const seen = new Set<string>();
+      const placed = res.placed.filter((x) => {
+        const k = `${x.raw.voice}:${x.raw.on}`;
+        if (seen.has(k)) console.warn(`${p.id}: two expert entries on one statement: ${x.expert.line}`);
+        return !seen.has(k) && (seen.add(k), true);
+      });
+      raw.splice(0, raw.length, ...placed.map((x) => x.raw));
+      expertOut[p.id] = { fugue: ex, placed, unplaced: res.unplaced };
+    }
     const entries = buildEntries(piece, raw, speller, hand?.keys);
-    // D242: shortened once keyed (the key read from the whole span, as before).
-    for (const [bar, voice, count] of HEAD_ONLY[p.id] ?? []) {
+    // D242: shortened once keyed (the key read from the whole span, as before); D493: the table's n= instead.
+    for (const [bar, voice, count] of ex ? [] : (HEAD_ONLY[p.id] ?? [])) {
       const e = entries.find((x) => x.voice === voice && x.bar === bar);
       if (!e) throw new Error(`${p.id}: no entry at b. ${bar}, voice ${voice}, to shorten`);
       e.end = e.on + lenOf(voice, e.on, count);
@@ -598,6 +625,47 @@ const out = [...preludes, ...fugues, contrapunctus()].sort((a, b) => (a.book || 
 const dir = fileURLToPath(new URL("../../data/touch/", import.meta.url));
 mkdirSync(dir, { recursive: true });
 writeFileSync(`${dir}pieces.json`, JSON.stringify(out) + "\n");
+// D493: the experts' entries as placed, with their sources (docs/wtc/entries/expert-entries.json).
+{
+  const doc: Record<string, unknown> = {};
+  for (const f of fugues) {
+    const x = expertOut[f.id];
+    if (!x) continue;
+    const beatOf = (on: number) => {
+      const b = [...f.bars].reverse().find((y) => y.on <= on) ?? f.bars[0];
+      return { bar: on < b.on ? b.n - 1 : b.n, q: Math.round(((on - (on < b.on ? b.on - f.barTicks : b.on)) / TPQ) * 100) / 100 };
+    };
+    doc[f.id] = {
+      title: f.title,
+      sources: x.fugue.sources,
+      subjects: x.fugue.multi ? Math.max(...x.placed.map((pl) => pl.expert.theme)) : 1,
+      entries: f.entries.map((e) => {
+        const pl = x.placed.find((y) => y.raw.voice === e.voice && y.raw.on === e.on)!;
+        const ee = pl.expert;
+        const at = beatOf(e.on);
+        return {
+          bar: at.bar,
+          beat: at.q,
+          voice: f.voiceNames[e.voice],
+          key: e.key,
+          role: ee.answer ? "answer" : "subject",
+          subject: ee.theme,
+          form: [ee.inverted && "inverted", ee.scale === 2 && "augmented", ee.scale === 0.5 && "diminished", ee.partial && "partial", ee.modified && "modified"].filter(Boolean),
+          notes: e.notes.length,
+          sources: ee.sources,
+          ...(ee.note ? { note: ee.note } : {}),
+          placed: pl.how,
+          fit: Math.round(pl.fit * 100) / 100,
+        };
+      }),
+      unplaced: x.unplaced.map((u) => u.line),
+      disagreements: x.fugue.disagreements,
+    };
+  }
+  const edir = fileURLToPath(new URL("../../docs/wtc/entries/", import.meta.url));
+  mkdirSync(edir, { recursive: true });
+  writeFileSync(`${edir}expert-entries.json`, JSON.stringify(doc, null, 1) + "\n");
+}
 const notes = out.reduce((s, f) => s + f.voices.reduce((t, v) => t + v.length, 0), 0);
 console.log(`wrote data/touch/pieces.json: ${out.length} pieces, ${notes} notes, ${out.reduce((s, f) => s + f.sections.length, 0)} sections`);
 for (const f of out.slice(0, 4)) console.log(`  ${f.id} ${f.voiceNames.join("/")}; sections ${f.sections.map((s) => `${s.fromBar}-${s.toBar}`).join(" ")}; keys ${f.keys.map((k) => k.key).join(" ")}`);

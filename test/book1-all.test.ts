@@ -99,8 +99,9 @@ test("D221, D217: the crossbars of every Book I fugue: HIGHWAY a few in a hundre
     const line = subjectLine(f, 0);
     const minutes = (g.timeAt(f.length) - g.timeAt(0)) / 60;
     assert.ok(free / heads < 0.06, `${id} HIGHWAY crossbars ${free}/${heads}`);
-    // SUBJECT: every entry head and each stretto's first lower-row note are free; little else.
-    assert.ok(sfree <= line.entries.length + line.strettos.length + Math.ceil(0.05 * sh), `${id} SUBJECT crossbars ${sfree}/${sh}`);
+    // SUBJECT: every entry head and each stretto's first lower-row note are free; little else. D493: the experts'
+    // entries leave longer gaps between some entries (I/19's bar 21, no entry to them), each gap's first note free.
+    assert.ok(sfree <= line.entries.length + line.strettos.length + Math.ceil(0.1 * sh), `${id} SUBJECT crossbars ${sfree}/${sh}`);
     rows.push(
       `${id} HIGHWAY ${free}/${heads} ${((100 * free) / heads).toFixed(1)}% · SUBJECT ${sfree}/${sh} ${((100 * sfree) / sh).toFixed(1)}% (${line.entries.length} entries, ${line.strettos.length} strettos) · ${(free / minutes / f.voices.length).toFixed(1)}/${(sfree / minutes).toFixed(1)} a minute`,
     );

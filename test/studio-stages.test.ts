@@ -62,3 +62,13 @@ test("D464: the worlds follow the music: an entry in the other mode turns the li
   assert.match(s, /k\.stretto > 0\.5/);
   assert.match(s, /k\.cadence = Math\.max\(0, 1 - \(now - lastCad\) \/ \(2 \* f\.barTicks\)\)/);
 });
+
+test("D464: the characters wander on their own clock, not on the play line", () => {
+  const s = src("src/touch/stage-bg.ts");
+  assert.match(s, /wander\(period: number, phase = 0, from = 0\.14, to = 0\.86\)/);
+  for (const id of ["wtc1f02", "wtc1f09", "wtc1f18", "wtc2f15", "wtc2f19"]) {
+    const at = s.indexOf(`  ${id}: (k) => {`);
+    const body = s.slice(at, s.indexOf("\n  },\n", at));
+    assert.ok(body.includes("k.wander(") && !body.includes("k.xOf(k.now())"), id);
+  }
+});

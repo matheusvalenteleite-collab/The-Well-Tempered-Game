@@ -43,7 +43,8 @@ test("D308: the subject's head stated alone (six or seven notes, then Bach's own
   assert.ok(at("wtc1f13", 11, 0), "I/13 b. 11, soprano");
   assert.ok(at("wtc1f24", 74, 1), "I/24 b. 74, alto");
   assert.ok(at("wtc2f01", 68, 2) && at("wtc2f01", 72, 1), "II/1 bb. 68 and 72");
-  assert.ok(at("wtc2f04", 51, 2), "II/4 b. 51, bass");
+  // D493: Prout and Iliffe hear this passage as the varied inversion in the alto at b. 53, not the bass's head at b. 51.
+  assert.ok(at("wtc2f04", 53, 1) && !at("wtc2f04", 51, 2), "II/4 b. 53, alto (the experts'), not b. 51");
   assert.ok(at("wtc2f16", 67, 2), "II/16 b. 67, tenor");
   assert.ok(!at("wtc2f15", 58, 0), "not II/15's broken chord at b. 58");
 });
