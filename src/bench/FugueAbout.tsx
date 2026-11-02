@@ -32,15 +32,17 @@ export function entryFacts(id: string) {
   let stretti = 0;
   let inverted = 0;
   let augmented = 0;
+  let diminished = 0;
   const sorted = [...firsts].sort((a, b) => a.on - b.on);
   sorted.forEach((e, i) => {
     per[e.voice] = (per[e.voice] ?? 0) + 1;
     if (i > 0 && sorted.slice(0, i).some((x) => x.end > e.on)) stretti++;
     if (e.inverted) inverted++;
     if (e.scale === 2) augmented++;
+    if (e.scale === 0.5) diminished++;
   });
   const keys = [...new Set(f.keys.map((k) => k.key))];
-  return { per, themes, total: firsts.length, stretti, inverted, augmented, keys, cadences: f.cadences.length, bars: f.bars.length, meter: f.meter };
+  return { per, themes, total: firsts.length, stretti, inverted, augmented, diminished, keys, cadences: f.cadences.length, bars: f.bars.length, meter: f.meter };
 }
 
 /**
@@ -107,7 +109,8 @@ export function FugueAbout({ id, close, subject }: { id: string; close: () => vo
             {facts.total} {tr("ENTRIES")} · {facts.stretti} {tr("IN STRETTO")}
             {facts.themes > 1 && <> · {tr("{n} SUBJECTS", { n: facts.themes })}</>}
             {facts.inverted > 0 && <> · {facts.inverted} {tr("INVERTED")}</>}
-            {facts.augmented > 0 && <> · {facts.augmented} {tr("AUGMENTED")}</>} · {facts.cadences} {tr("CADENCES")}
+            {facts.augmented > 0 && <> · {facts.augmented} {tr("AUGMENTED")}</>}
+            {facts.diminished > 0 && <> · {facts.diminished} {tr("DIMINISHED")}</>} · {facts.cadences} {tr("CADENCES")}
           </p>
           {note && (
             <>

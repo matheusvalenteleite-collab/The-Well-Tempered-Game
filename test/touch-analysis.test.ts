@@ -145,11 +145,12 @@ test("augmentation, diminution and inversion are marked; an inverted entry is no
   );
   for (const e of i8.entries.filter((x) => x.scale === 2)) assert.ok(e.end - e.on > 2 * (i8.entries[0].end - i8.entries[0].on) - i8.tpq, "twice as long");
   // Book II no. 9: the diminished subject in stretto, bb. 23-40 (Ledbetter's section b. 23-34, "low stretti";
-  // his stretto at b. 27, "diminution and inversion"): ten statements, one inverted (b. 32).
+  // his stretto at b. 27, "diminution and inversion"). D493: the statements Busoni labels D and Iliffe names
+  // (bb. 26-30), Busoni's bracketed inversion of b. 32 and the treble's inverted diminution of b. 35: seven, two inverted.
   const ii9 = fugueById("wtc2f09").entries.filter((e) => e.scale === 0.5);
-  assert.equal(ii9.length, 10);
+  assert.equal(ii9.length, 7);
   assert.ok(ii9.every((e) => e.bar >= 23 && e.bar <= 40));
-  assert.equal(ii9.filter((e) => e.inverted).length, 1);
+  assert.equal(ii9.filter((e) => e.inverted).length, 2);
   // Book II no. 22: the inverted entries from b. 42 (Ledbetter's inverted-subject exposition, b. 42-63) keep the inverted shape.
   const inv = fugueById("wtc2f22").entries.filter((e) => e.inverted && e.bar >= 42 && e.bar < 64);
   assert.equal(inv.length, 4);
@@ -217,11 +218,12 @@ test("the later subjects of the WTC's double and triple fugues, where Ledbetter 
   assert.deepEqual(at("wtc2f23", 2), [28, 0]);
   // Book II no. 9: Ledbetter's "two new subjects" of bb. 16-22 are not carried (a doubtful reading).
   assert.ok(!fugueById("wtc2f09").entries.some((e) => e.theme));
-  // Every voice has every later subject, so the SUBJECTS seal can be earned in any voice; none is inverted or scaled.
+  // Every voice has every later subject, so the SUBJECTS seal can be earned in any voice.
   for (const [id, themes] of [["wtc1f04", [2, 3]], ["wtc2f04", [2]], ["wtc2f14", [2, 3]], ["wtc2f18", [2]], ["wtc2f23", [2]]] as const) {
     const f = fugueById(id);
     for (const t of themes) assert.equal(new Set(f.entries.filter((e) => e.theme === t).map((e) => e.voice)).size, f.voices.length, `${id} ${t}`);
-    assert.ok(f.entries.filter((e) => e.theme).every((e) => !e.inverted && !e.scale), id);
+    // D493: none scaled; inverted only I/4's tenor at bb. 40-41 (Iliffe: "an inversion of the Counter-subject").
+    assert.ok(f.entries.filter((e) => e.theme).every((e) => (!e.inverted || (id === "wtc1f04" && (e.bar === 40 || e.bar === 41))) && !e.scale), id);
   }
   const overlap = (f: TouchFugue, a: TouchFugue["entries"][number]) => f.entries.filter((b) => b !== a && b.voice !== a.voice && b.on < a.end && a.on < b.end);
   // Book II no. 18: from b. 97 the two subjects together, five times (Ledbetter's first-subject entries at bb. 97, 103, 111, 125, 135).
