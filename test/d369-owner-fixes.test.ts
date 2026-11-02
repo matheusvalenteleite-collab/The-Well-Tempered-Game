@@ -179,8 +179,9 @@ test("D369 (4): on the two bars the stops leave the title bar for the bars' feet
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /\{stopsOn && layout === "bars" && playing && <RegistrationStops sides /);
   const css = src("src/bench/bench.css");
-  assert.match(css, /\.tb-stops-side \.tg-piston \{ height: 58px; \}/);
-  assert.match(css, /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: 62px;/);
+  // D469 (design studio): the pistons in the box's blue frame, a column down each inner edge, each filling its row.
+  assert.match(css, /\.tb-stops-side \{ position: fixed; z-index: 12; display: grid; grid-template-columns: 1fr;/);
+  assert.match(css, /\.tb-stops-side \.tg-piston \{ height: 100%;/);
 });
 
 test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: MÃO ESQUERDA), the others after it, dimmer; accents kept", async () => {

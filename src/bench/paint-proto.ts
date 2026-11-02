@@ -26,8 +26,8 @@ import { arcOf, pedalSpan } from "./arc.ts";
 import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
-/** D314: how long (s from the run's start) the bars say where SOFT and STRONG are. */
-const SIDES_HINT_S = 6;
+/** D469: the y of SOFT / STRONG (and the dynamics' marks) at the bars' top, under the bar count (CSS px). */
+const SIDES_Y = 26;
 /** D371: the thumb bar's inner edge in the player's voice colour (px; the report's 4 px). */
 export const STRIP_EDGE = 4;
 
@@ -1068,44 +1068,45 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.fillRect(n ? s.x : bw - STRIP_EDGE, 0, STRIP_EDGE, h);
     }
     // The dynamics along the foot, pp on the soft side to ff on the strong (STRONG_SIDE; D296: only where touch dynamics are heard, D293).
+    // D469 (design studio; the owner: "The soft/strong indication … ought always to be visible, but at the TOP of
+    // buttons, not BOTTOM"): the dynamics' marks and SOFT / STRONG at the bars' top, always, under the bar count.
     if (g.touchDynamics) MARKS.forEach((m, j) => {
       const u = strengthOf((j + 0.5) / MARKS.length);
-      label(c, m, n ? s.x + u * bw : bw - u * bw, h - 9, t.muted, 6);
+      label(c, m, n ? s.x + u * bw : bw - u * bw, SIDES_Y, t.muted, 6);
     });
     // D314: where across the bar is SOFT and where STRONG (D311's attack; the reading's ">"), for the
     // first seconds of the round (through the count-in), then fading out.
     else if (g.proto.layout === "bars" && !g.o.quiet) {
-      const left = (g.startTick + SIDES_HINT_S * g.tps - g.now) / g.tps;
-      if (left > 0) {
-        const a = Math.min(1, left / 2);
-        const xAt = (u: number) => (n ? s.x + u * bw : bw - u * bw);
-        const weak = strengthOf(0.22);
-        const strong = strengthOf(0.78);
-        c.globalAlpha = 0.85 * a;
-        label(c, "SOFT", xAt(weak), h - 14, "#7fd6e8", 7);
-        label(c, "STRONG", xAt(strong), h - 14, "#ff8a3d", 7);
-        // A hairline from soft to strong, thicker toward the strong side.
-        for (let k = 0; k < 12; k++) {
-          const u = 0.12 + (k / 11) * 0.76;
-          c.fillStyle = strengthOf(u) < 0.5 ? "#7fd6e8" : "#ff8a3d";
-          const th = 1 + Math.round(2 * strengthOf(u));
-          c.fillRect(Math.round(xAt(u)) - 1, h - 26 - th, 3, th);
-        }
-        c.globalAlpha = 1;
+      const xAt = (u: number) => (n ? s.x + u * bw : bw - u * bw);
+      const weak = strengthOf(0.22);
+      const strong = strengthOf(0.78);
+      c.globalAlpha = 0.75;
+      label(c, "SOFT", xAt(weak), SIDES_Y, "#7fd6e8", 7);
+      label(c, "STRONG", xAt(strong), SIDES_Y, "#ff8a3d", 7);
+      // A hairline from soft to strong, thicker toward the strong side, under the words.
+      for (let k = 0; k < 12; k++) {
+        const u = 0.12 + (k / 11) * 0.76;
+        c.fillStyle = strengthOf(u) < 0.5 ? "#7fd6e8" : "#ff8a3d";
+        const th = 1 + Math.round(2 * strengthOf(u));
+        c.fillRect(Math.round(xAt(u)) - 1, SIDES_Y + 6, 3, th);
       }
+      c.globalAlpha = 1;
     }
   }
-  // D244: THE FUGUE'S BUILDING on the phone: the map, small, across the top of the box.
+  // D244: THE FUGUE'S BUILDING on the phone: the map, small. D469 (design studio): no longer across the box's top
+  // bar, where it ran through the fugue's title, but at the left bar's foot (the stops now stand in the box's frame).
   if (!paper && !g.o.quiet && builds(g.f) && g.f.entries.length) {
     const m = fugueMap(g.f);
-    const mw = w - 2 * bw - 24;
-    const x0 = bw + 12;
+    const mw = bw - 16;
+    const x0 = 8;
     const span = Math.max(1, m.end - m.start);
     const row = 4;
+    // Above OBBLIGATO's button's place at the bar's foot (34 px).
+    const y0 = h - 46 - m.rows * row;
     const X = (tick: number) => x0 + ((tick - m.start) / span) * mw;
-    buildMap(c, m, g.now, new Set(g.tracks.map((x) => x.voice)), X, (v) => 8 + v * row, g.f.tpq, 2, mw);
+    buildMap(c, m, g.now, new Set(g.tracks.map((x) => x.voice)), X, (v) => y0 + v * row, g.f.tpq, 2, mw);
     c.fillStyle = "rgba(255,255,255,0.8)";
-    c.fillRect(Math.round(X(Math.max(m.start, Math.min(m.end, g.now)))), 5, 1, m.rows * row + 6);
+    c.fillRect(Math.round(X(Math.max(m.start, Math.min(m.end, g.now)))), y0 - 3, 1, m.rows * row + 6);
   }
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {
@@ -1287,6 +1288,12 @@ function dynamicsCoach(c: CanvasRenderingContext2D, w: number, h: number, bw: nu
   void t;
 }
 
+/** D469: how long a failure's word (MISS, ✕ WRONG, a slide's FURTHER or TOO LATE, TOO SOON…) stays (ms). */
+export const BAD_WORD_MS = 1800;
+/** D469: the last failure's word, kept in its own slot while a PERFECT or GOOD follows it. */
+const lastBad: { at: number; side?: "left" | "right"; text: string | null; why?: string } = { at: -Infinity, text: null };
+const badWord = (why: string | undefined, g: ProtoGame) =>
+  ({ legato: "✕ LEGATO", gesture: "✕ WRONG", staccato: "✕ STACCATO", tenuto: "✕ TENUTO", hand: g.proto.id === "subject" ? "✕ OTHER ROW" : "✕ OTHER THUMB", height: "✕ HIGHER/LOWER", dynamic: "✕ FORTE/PIANO" })[why ?? ""] ?? "✕ OFF TIME";
 function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t: Tok) {
   const gr = g.grade;
   if (!gr) return;
@@ -1298,8 +1305,20 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
     c.fillRect(0, 0, w, h);
     c.globalAlpha = 1;
   }
-  if (age < 500) {
-    c.globalAlpha = 1 - age / 500;
+  // D469 (design studio; the owner: the verdict words "ought to remain on the screen for a longer time"): a failure's word
+  // stays BAD_WORD_MS, fading over its last 600 ms, in its own slot just above (a PERFECT after it never hides it);
+  // PERFECT and GOOD as before, brief. One word a slot: a new one replaces the old, nothing stacks.
+  if (!ok && gr.at !== lastBad.at) Object.assign(lastBad, { at: gr.at, side: gr.side, text: gr.text === "✕" ? null : gr.text, why: gr.why });
+  const badAge = performance.now() - lastBad.at;
+  if (ok && badAge < BAD_WORD_MS && g.proto.layout === "bars") {
+    c.globalAlpha = badAge < BAD_WORD_MS - 600 ? 1 : (BAD_WORD_MS - badAge) / 600;
+    const bx = lastBad.side === "left" ? w * BAR * 0.5 : w * (1 - BAR * 0.5);
+    label(c, lastBad.text ?? badWord(lastBad.why, g), bx, h * 0.45 - 14, t.wrong, 8);
+    c.globalAlpha = 1;
+  }
+  const life = ok ? 500 : BAD_WORD_MS;
+  if (age < life) {
+    c.globalAlpha = ok ? 1 - age / 500 : age < BAD_WORD_MS - 600 ? 1 : (BAD_WORD_MS - age) / 600;
     const why: Record<string, string> = { legato: "✕ LEGATO", gesture: "✕ WRONG", staccato: "✕ STACCATO", tenuto: "✕ TENUTO", hand: "✕ OTHER THUMB", height: "✕ HIGHER/LOWER", dynamic: "✕ FORTE/PIANO" };
     // D217: SUBJECT's stretto: a note struck in the other row of pads.
     if (g.proto.id === "subject") why.hand = "✕ OTHER ROW";
@@ -1317,7 +1336,7 @@ function verdict(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame
 }
 
 /** D486: how long a failed slide's word shows at the thumb (ms). */
-export const SLIDE_CUE_MS = 1100;
+export const SLIDE_CUE_MS = 1800;
 /**
  * D486: why a slide failed, at the thumb that tried it: its word (FURTHER, TOO FAR, TOO EARLY, TOO LATE,
  * LIFTED, LIFT TO TURN) on its bar just above where the thumb was, a thin ring
@@ -1331,7 +1350,7 @@ function slideCue(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGam
   const bw = w * BAR;
   const x = q.side === "left" ? bw / 2 : w - bw / 2;
   const y = Math.max(24, Math.min(h - 14, q.y - 26)) - age / 80;
-  c.globalAlpha = age < 800 ? 1 : 1 - (age - 800) / (SLIDE_CUE_MS - 800);
+  c.globalAlpha = age < SLIDE_CUE_MS - 600 ? 1 : 1 - (age - (SLIDE_CUE_MS - 600)) / 600;
   // A thin ring where the thumb was: the place the word speaks of.
   c.strokeStyle = SLIDE_CUE_INK;
   c.lineWidth = 1.5;
@@ -1408,13 +1427,15 @@ function articulationWord(c: CanvasRenderingContext2D, w: number, h: number, g: 
   // (The reading's words, DETACHED ✓, ACCENT ✓, SHORT ✓, are of the kind "legato".)
   if (g.o.quiet && !g.o.quiet.words?.includes(f.kind)) return;
   const age = performance.now() - f.at;
-  if (age > ART_WORD_MS) return;
+  // D469: a fault's word (TOO SOON, REST!) stays as long as a failure's verdict; a good one as before.
+  const life = f.good ? ART_WORD_MS : BAD_WORD_MS;
+  if (age > life) return;
   const bars = g.proto.layout === "bars";
   const desk = g.proto.layout === "desk";
   const x = bars ? (g.grade?.side === "right" ? w * (1 - BAR * 0.5) : w * BAR * 0.5) : desk ? w - 90 : w / 2;
-  const y = (bars ? h * 0.45 + 14 : desk ? 26 : 44) - age / 60 - lift;
+  const y = (bars ? h * 0.45 + 14 : desk ? 26 : 44) - Math.min(age, 650) / 60 - lift;
   const ink = f.kind === "legato" ? LEGATO_INK : f.kind === "held" ? HELD_INK : f.kind === "clean" ? CLEAN_INK : t.wrong;
-  c.globalAlpha = age < 450 ? 1 : 1 - (age - 450) / 200;
+  c.globalAlpha = f.good ? (age < 450 ? 1 : 1 - (age - 450) / 200) : age < life - 600 ? 1 : (life - age) / 600;
   // D220: on the computer's road, under the verdict over the strike line, larger.
   if (g.proto.id === "keys") label(c, f.text, w / 2, deskGeom(w, h).y1 - 44 - age / 30 - lift * 1.3, ink, 9);
   else label(c, f.text, x, y, ink, 7);

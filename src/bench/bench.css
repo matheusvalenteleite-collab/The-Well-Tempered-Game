@@ -580,8 +580,14 @@
 .tb-upright-title { margin: 0; font-family: var(--tg-pixel); font-size: 12px; color: var(--tg-shine); }
 .tb-upright-why { margin: 0; max-width: 300px; font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.4; color: var(--tg-fg); }
 .tb-upright-back { min-height: 40px; padding: 8px 14px; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-fg); background: none; border: 2px solid var(--tg-muted); cursor: pointer; }
-.tb-result { position: absolute; }
-.tb-result-x { position: absolute; top: 8px; right: 8px; }
+/* D470 (design studio; the owner: the SCORE screen "ought to be resized to occupy the whole screen; it's leaving a gap at
+   the bottom … looking stretched down"): the result covers the whole viewport, the safe areas included (its own padding
+   keeps its words clear of them), opaque over the game, its content centred in the height it has and scrolling only
+   where the sheet is taller than the screen. */
+.tb-result { position: fixed; inset: 0; z-index: 50; box-sizing: border-box; width: 100vw; height: 100vh; height: 100dvh; min-height: -webkit-fill-available; padding: calc(8px + env(safe-area-inset-top, 0px)) max(44px, calc(env(safe-area-inset-right, 0px) + 44px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, calc(env(safe-area-inset-left, 0px) + 12px)); overflow-y: auto; }
+.tb-result.tg-card-low { background: #090b14; }
+.tb-result:has(.tb-sheet) { justify-content: safe center; }
+.tb-result-x { position: absolute; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(8px, calc(env(safe-area-inset-right, 0px) + 8px)); }
 .tb-result .tb-result-nav .tb-play { font-size: 12px; padding: 12px 22px; }
 .tb-lite { box-sizing: border-box; position: fixed; inset: 0; z-index: 40; overflow-y: auto; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tg-bg); }
 .tb-lite-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; max-width: 1100px; margin: 0 auto 10px; }
@@ -649,7 +655,7 @@
 .tb-lite-list li:has(.tb-hear-btn) .tb-lite-info { padding-bottom: 30px; }
 .tb-pop-lock { margin: 4px 0 0; font-family: var(--tg-pixel); font-size: 6px; line-height: 1.6; color: var(--tg-muted); }
 /* D268: the score sheet on the result (two columns where there is room: a phone held sideways is short). */
-.tb-result:has(.tb-sheet) { justify-content: flex-start; padding-top: 14px; }
+.tb-result:has(.tb-sheet) { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
 .tb-sheet { display: grid; gap: 10px 22px; width: min(640px, 100%); grid-template-columns: 1fr; text-align: center; }
 @media (min-width: 560px) { .tb-sheet { grid-template-columns: 1fr 1fr; align-items: start; } .tb-sheet-points { grid-column: 1 / -1; } }
 .tb-sheet p { margin: 0; }
@@ -676,7 +682,7 @@
 .tb-sheet-qualities li { grid-template-columns: 12em 1fr 3.2em; }
 /* A short screen (a phone held sideways): the sheet in one view, AGAIN in reach; each count kept in its row's tooltip. */
 @media (max-height: 520px) {
-  .tb-result:has(.tb-sheet) { gap: 6px; padding: 8px 44px 8px 12px; }
+  .tb-result:has(.tb-sheet) { gap: 6px; padding: calc(8px + env(safe-area-inset-top, 0px)) max(44px, calc(env(safe-area-inset-right, 0px) + 44px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, calc(env(safe-area-inset-left, 0px) + 12px)); }
   .tb-sheet { gap: 6px 18px; }
   .tb-sheet-head { gap: 3px; }
   .tb-sheet-head .tb-grade { font-size: 28px !important; line-height: 1.1; }
@@ -1014,14 +1020,17 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
    rows (the notes' heights on the bars) end above it. Over the play area: a touch there is the button's. */
 /* D420: now the three THUMB PISTONS at each bar's foot (all three on both bars: whichever thumb is free
    reaches them), one row of large targets (58 px tall, a third of the bar wide), the legend as tall. */
-.tb-stops-side { position: absolute; z-index: 12; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0; width: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); }
-.tb-stops-left { left: calc(var(--tg-sal) + 6px); }
-.tb-stops-right { right: calc(var(--tg-sar) + 6px); }
-.tb-stops-side .tg-piston { height: 58px; }
+/* D469 (design studio): the pistons in the box's blue frame, a column of three down each inner edge (RegistrationStops
+   places each from the roll's rect: top, height, left or right), readable: each piston its numeral and its stops' name in
+   full, on two lines where long; acting on pointerdown (a thumb holding a note never stops the other pressing one). */
+.tb-stops-side { position: fixed; z-index: 12; display: grid; grid-template-columns: 1fr; grid-auto-rows: minmax(0, 1fr); gap: 4px; margin: 0; padding: 3px; box-sizing: border-box; width: 56px; background: color-mix(in srgb, var(--tg-box, #161a2c) 86%, transparent); border: 1px solid var(--tg-grid); border-radius: 3px; }
+.tb-stops-side .tg-piston { height: 100%; min-height: 0; min-width: 0; padding: 2px 1px; gap: 2px; }
+.tb-stops-side .tg-piston-n { font-size: 10px; }
+.tb-stops-side .tg-piston-name { font-size: 6px; line-height: 1.25; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; }
 .tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
 /* D487 (refreshed for D420's pistons: --tb-stop-rows 1.28, a 58 px piston in 47 px rows): the floor 88 px (the pistons' 62 + 26), so OBBLIGATO's button (34 px), stacked over
    the pistons, stays clear of the lowest row a note can ask for. */
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 28px); }
+.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 40px); } /* D469: the pistons in the box (rows 0): the floor keeps OBBLIGATO's 34 px button at the bars' feet clear of the lowest row. */
 /* D420: what each piston holds, in the piece's pop-up (folded). */
 .tb-pop-pistons { margin: 6px 0; text-align: left; }
 .tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }
@@ -1235,6 +1244,8 @@ html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: c
 /* D487 (the owner: "it was also unreadable"): the instrument in the box's title size (9 px, the HUD's), white on an opaque deep
    green with a dark shadow, whatever the tinted bar under it; a long name (or its translation) in 8 px on two lines, in full. */
 .tb-obbligato-name { font-size: 7px; letter-spacing: 1px; color: #a8ffe0; }
+/* D469: the boost taken, named where its button was, for the whole boosted entry: still (no glow), not a target. */
+.tb-obbligato-on { animation: none; pointer-events: none; background: color-mix(in srgb, #0a3f37 80%, transparent); border-style: dashed; }
 .tb-obbligato-inst { font-size: 9px; max-width: 100%; overflow: hidden; text-align: center; }
 .tb-obbligato-long .tb-obbligato-inst { font-size: 8px; line-height: 1.15; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .tb-obbligato-long { gap: 2px; }

@@ -1,7 +1,7 @@
 /** D214, SUBJECT: the player follows the subject through all of its entries, whichever voice. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { everyNote, fugueById, inBar, type TouchFugue } from "../src/touch/fugue.ts";
+import { everyNote, fugueById, type TouchFugue } from "../src/touch/fugue.ts";
 import { voicing, type Chip, type Voicing } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById, type EasyLevel } from "../src/bench/protos.ts";
@@ -160,17 +160,14 @@ test("D217: the strettos of I/1, I/4, I/8 and Contrapunctus XIV are played in tw
   }
 });
 
-test("D217: the second line is reduced: only its notes on a beat or of half a beat or more are struck; the quicker ones ride", () => {
+test("D217, D490: the second line keeps every note (none rides; its stretto heads free)", () => {
   for (const id of ["wtc1f01", "wtc1f04", "bwv1080-14"]) {
     const f = fugueById(id);
     const { g } = game(f, 0, "exact");
     const t = g.tracks[1];
     assert.ok(t.notes.length > 0, id);
-    for (const n of t.notes) {
-      const quick = inBar(f, n.on) % g.beat !== 0 && n.dur < g.beat / 2;
-      if (quick && !t.fresh!.has(n.on)) assert.ok(n.ride, `${id}: a quick note at ${n.on} rides`);
-    }
-    assert.ok(t.notes.some((n) => n.ride), `${id}: some ride`);
+    assert.ok(t.notes.every((n) => !n.ride), `${id}: none rides`);
+    assert.equal(t.notes.length, g.line!.second.length, `${id}: every note of the second line`);
   }
 });
 

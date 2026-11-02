@@ -23,8 +23,11 @@ const frac = (p: Piece, tick: number) => {
 export function entry(id: string, bar: number): number {
   const p = piece(id);
   const e = p.entries.filter((x) => x.bar === bar).sort((a, b) => a.on - b.on)[0];
-  if (!e) throw new Error(`${id}: no entry in bar ${bar}`);
-  return frac(p, e.on);
+  if (e) return frac(p, e.on);
+  // D493: the entries are the experts' now, and a few the plans were written against are gone (the head of the
+  // subject in an episode's sequence, I/3 b. 35): the moment keeps its bar, at the downbeat.
+  if (!p.bars.some((x) => x.n === bar)) throw new Error(`${id}: no bar ${bar}`);
+  return bar;
 }
 /** So many beats (the metre's: a quarter in 4/4, a dotted quarter in 6/8) into a bar: just past a cadence's arrival. */
 export function beat(id: string, bar: number, k = 1): number {

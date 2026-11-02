@@ -1,0 +1,59 @@
+/**
+ * The design studio (D469, D470): the owner's last batch before the friends test: the pistons in the box's frame,
+ * slides drawn, the fugue's name in the title (the map off it), no legend or hint at a game's start, SOFT / STRONG
+ * always at the bars' top, OBBLIGATO named while it plays, failure words that stay; the score screen on the whole screen.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+
+test("pistons: a column of three in the box's frame on each side, placed from the roll, acting on pointerdown", () => {
+  const r = src("src/touch/RegistrationStops.tsx");
+  assert.match(r, /const r = rollRect\(\);/);
+  assert.match(r, /top: frameAt\.top \+ TAB_ROW/);
+  assert.match(r, /onPointerDown=\{\(e: ReactPointerEvent\) => \{/);
+  assert.match(r, /--tb-stop-rows: 0;/);
+});
+
+test("slides drawn in the box: from the note slid from, or from a slide-in's start", () => {
+  assert.match(src("src/touch/MusicBox.tsx"), /if \(n\.state !== "hit" \|\| n\.via !== "slide"\) continue;/);
+  assert.match(src("src/touch/MusicBox.tsx"), /if \(n\.slideFrom !== undefined\)/);
+  assert.match(src("src/bench/proto-game.ts"), /notes\[i\]\.slideFrom = this\.rows \? this\.rows\.stepAt\(si\.y0\) : undefined;/);
+});
+
+test("the title bar: the fugue's name before its title; the map moved to the left bar's foot", () => {
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /return name \? `\$\{name\.toUpperCase\(\)\} · \$\{formal\}` : formal;/);
+  const p = src("src/bench/paint-proto.ts");
+  assert.match(p, /const mw = bw - 16;\s*const x0 = 8;/);
+});
+
+test("no legend, no instructions at a game's start (the tutorial keeps them; the gloss stays)", () => {
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /glossOnly=\{!man\}/);
+  assert.match(app, /\{hintLine && \(layout !== "bars" \|\| man \|\| revealPlan\)/);
+  assert.match(src("src/bench/SideNotes.tsx"), /if \(glossOnly\) return whole \?/);
+});
+
+test("SOFT / STRONG always, at the bars' top; failure words stay 1.8 s, one slot each", () => {
+  const p = src("src/bench/paint-proto.ts");
+  assert.match(p, /const SIDES_Y = 26;/);
+  assert.match(p, /label\(c, "SOFT", xAt\(weak\), SIDES_Y/);
+  assert.ok(!/SIDES_HINT_S/.test(p), "no longer only the first seconds");
+  assert.match(p, /export const BAD_WORD_MS = 1800;/);
+  assert.match(p, /export const SLIDE_CUE_MS = 1800;/);
+});
+
+test("OBBLIGATO: taken on pointerdown or touchstart; named in its place for the whole boosted entry", () => {
+  const o = src("src/bench/ObbligatoOffer.tsx");
+  assert.match(o, /onPointerDown=\{take\} onTouchStart=\{take\}/);
+  assert.match(o, /tb-obbligato-on/);
+  assert.match(o, /gm\.boosts\.find\(\(x\) => x\.spans\.some\(\(sp\) => gm\.now >= sp\.on && gm\.now < sp\.end\)\)/);
+});
+
+test("the score screen on the whole screen, the safe areas inside its padding", () => {
+  const css = src("src/bench/bench.css");
+  assert.match(css, /\.tb-result \{ position: fixed; inset: 0; z-index: 50; box-sizing: border-box; width: 100vw; height: 100vh; height: 100dvh;/);
+});
