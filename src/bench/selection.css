@@ -340,3 +340,70 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
   .sel-tile .sel-tile-name[data-word="10"] { font-size: 4.5px; }
   .sel-tile .sel-tile-name[data-word="11"], .sel-tile .sel-tile-name[data-word="12"] { font-size: 4.5px; letter-spacing: -0.6px; }
 }
+
+/* D452 (the owner on the iPhone, 2.29): real clearance between a card's key and its name; the right column's
+   picture fills its frame (no black bands above and below: cropped a little at the edges, never letterboxed) and
+   the whole picture glows, gently, to say it opens the fugue's box (the ? gone). */
+.sel-tile .sel-tile-key { margin-bottom: 3px; }
+.sel-right .sel-piece-pic { background: transparent; }
+.sel-right .sel-piece-emblem { width: 100%; height: 100%; max-width: none; max-height: none; aspect-ratio: auto; object-fit: cover; object-position: center 45%; background: transparent; }
+.sel-piece-pic-open { outline: 2px solid rgba(255, 226, 120, 0.55); outline-offset: -2px; animation: sel-pic-glow 2.2s ease-in-out infinite; }
+@keyframes sel-pic-glow { 0%, 100% { outline-color: rgba(255, 226, 120, 0.35); box-shadow: 0 0 0 0 rgba(255, 226, 120, 0); } 50% { outline-color: rgba(255, 226, 120, 0.95); box-shadow: 0 0 10px 2px rgba(255, 226, 120, 0.55); } }
+@media (prefers-reduced-motion: reduce) { .sel-piece-pic-open { animation: none; outline-color: rgba(255, 226, 120, 0.8); } }
+.sel-right .sel-piece-pic-open { overflow: visible; }
+.sel-right .sel-piece-pic-open > .sel-piece-emblem { display: block; }
+
+/* D452: HOW TO PLAY, the left column's button under SETTINGS. */
+.sel-left-foot .sel-howto { margin-top: 6px; width: 100%; }
+.sel-left-foot .sel-howto span:first-child { color: var(--tg-shine); }
+
+/* D452: the guide. The whole screen; the header (✕) fixed, the sections scrolling under it with a thin gold bar. */
+.howto-veil { position: fixed; inset: 0; z-index: 60; display: flex; align-items: stretch; justify-content: center; padding: max(6px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); background: rgba(5, 6, 12, 0.8); }
+.howto { box-sizing: border-box; display: flex; flex-direction: column; width: min(760px, 100%); min-height: 0; background: var(--tg-box, #12162a); border: 3px solid var(--tg-shine); box-shadow: 6px 6px 0 #b8322a; }
+.howto-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px 6px 14px; border-bottom: 2px solid #2c345c; }
+.howto-head h1 { margin: 0; font-family: var(--tg-pixel); font-size: 11px; font-weight: 400; color: var(--tg-shine); letter-spacing: 0.06em; }
+.howto-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 6px 14px 18px; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.5; color: var(--tg-fg); }
+.howto-body::-webkit-scrollbar { width: 7px; }
+.howto-body::-webkit-scrollbar-thumb { background: var(--tg-shine); }
+.howto-body::-webkit-scrollbar-track { background: #1c1f2c; }
+.howto-body p { margin: 6px 0; }
+.howto-sec { border-bottom: 1px solid #2c345c; }
+.howto-sec > summary, .howto-sub > summary { cursor: pointer; list-style: none; font-family: var(--tg-pixel); font-weight: 400; }
+.howto-sec > summary::-webkit-details-marker, .howto-sub > summary::-webkit-details-marker { display: none; }
+.howto-sec > summary { padding: 10px 0; font-size: 9px; color: var(--tg-shine); letter-spacing: 0.05em; }
+.howto-sec > summary::before, .howto-sub > summary::before { content: "▸ "; color: #8c88aa; }
+.howto-sec[open] > summary::before, .howto-sub[open] > summary::before { content: "▾ "; }
+.howto-sub { margin: 4px 0 6px 6px; padding-left: 8px; border-left: 2px solid #2c345c; }
+.howto-sub > summary { padding: 6px 0; font-size: 7px; color: #f3d78a; letter-spacing: 0.04em; }
+.howto-list { margin: 6px 0; padding-left: 18px; }
+.howto-list li { margin: 3px 0; }
+.howto-fig { margin: 8px 0; display: grid; gap: 4px; }
+.howto-fig figcaption { font-size: 12px; color: #a8a6c8; font-style: italic; }
+.howto-clip { position: relative; }
+.howto-clip-canvas { display: block; width: 100%; height: 120px; image-rendering: pixelated; border: 1px solid #2c345c; }
+.howto-play { position: absolute; right: 6px; bottom: 6px; padding: 5px 8px; font-family: var(--tg-pixel); font-size: 7px; color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; cursor: pointer; }
+.howto-play.on { background: #f0784a; }
+.howto-play:active { transform: translate(2px, 2px); box-shadow: none; }
+.howto-bars { display: grid; grid-template-columns: 1fr 2.4fr 1fr; gap: 0; height: 90px; font-family: var(--tg-pixel); font-size: 6px; max-width: 420px; }
+.howto-bar { display: grid; grid-template-columns: 1fr 1fr; align-items: center; text-align: center; background: #1c1f2c; border: 1px solid #4b8ef0; }
+.howto-bar-left { grid-column: 1; grid-row: 1; }
+.howto-bar-right { grid-column: 3; grid-row: 1; }
+.howto-bar span { display: grid; place-items: center; height: 100%; }
+.howto-bar-left span:first-child, .howto-bar-right span:last-child { background: linear-gradient(to right, rgba(140, 136, 170, 0.08), rgba(140, 136, 170, 0.08)); color: #8c88aa; }
+.howto-bar-left span:last-child, .howto-bar-right span:first-child { background: rgba(243, 210, 107, 0.16); color: var(--tg-shine); }
+.howto-bar-box { grid-column: 2; grid-row: 1; display: grid; place-items: center; background: #0f1730; color: #8c88aa; }
+.howto-flags { display: flex; gap: 10px; align-items: flex-start; }
+.howto-flags-canvas { image-rendering: pixelated; }
+.howto-flags-names { margin: 0; padding: 0; list-style: none; font-family: var(--tg-pixel); font-size: 6px; color: #a8a6c8; display: grid; grid-auto-rows: 36px; align-items: center; padding-top: 0; margin-top: -4px; }
+.howto-grades { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--tg-pixel); font-size: 8px; }
+.howto-grade { padding: 4px 6px; border: 2px solid; background: rgba(10, 8, 16, 0.86); }
+.howto-grade b { font-weight: 400; font-size: 11px; }
+.howto-parts { display: flex; height: 22px; font-family: var(--tg-pixel); font-size: 6px; color: #14101a; }
+.howto-parts span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; min-width: 0; }
+.howto-marks, .howto-words { margin: 4px 0; padding: 0; list-style: none; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.8; }
+.howto-words { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.howto-marks b { display: inline-block; min-width: 1.6em; color: var(--tg-shine); }
+@media (max-width: 700px) {
+  .howto-body { font-size: 13px; }
+  .howto-clip-canvas { height: 104px; }
+}
