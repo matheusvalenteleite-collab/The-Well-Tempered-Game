@@ -18,7 +18,7 @@ import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
-import { isPhone, voicing, type Chip, type Play, type Sounding, type Voicing } from "../touch/chip.ts";
+import { isPhone, voicing, type Blend, type Chip, type Play, type Sounding, type Voicing, type VoiceFx } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMark, type Touch } from "./fingering.ts";
@@ -82,7 +82,7 @@ import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
-import { SLIDE_SOUND, slideGesture } from "./slide-sound.ts";
+import { slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, stepAt, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, toneAll } from "../touch/sound.ts";
@@ -101,7 +101,7 @@ import { afterCadence, artBonus, broadenClose, artRoom, dissonantAt, graceMs, he
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { preludeRideMs } from "./tiers.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { boostedSpans, drawLayer, layerVoicing, mainPatchId, offerWindow, playedWell, withLayer, LAYER_LEVEL, type EntryLike, type Grade as ObbGrade, type Layer } from "./obbligato.ts";
+import { blendFor, boostedSpans, drawLayer, effectFor, layerGain, layerLevel, layerVoicing, mainPatchId, offerWindow, playedWell, withLayer, FX_QUARTERS, obbligatoModeFor, type EntryLike, type Grade as ObbGrade, type Layer } from "./obbligato.ts";
 import { BAR, barAcross, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
@@ -1133,16 +1133,21 @@ export class ProtoGame {
     // D485, OBBLIGATO: the note struck now inside a boosted entry: its layer with it, as one sound.
     const lf = this.layerFor;
     const b = lf ? this.boostAt(lf.voice, lf.on) : null;
-    if (!b) return sd;
+    // D439: the "effect" mode layers nothing (the player's voice itself coloured: obbFx).
+    if (!b || b.fx) return sd;
     const [midi, at, dur, v, p] = args;
-    return withLayer(sd, this.chip.note(midi + 12 * b.octave, at, dur, layerVoicing(b.layer, v.pan), this.layerPlay(p ?? {})), 12 * b.octave);
+    return withLayer(sd, this.chip.note(midi + 12 * b.octave, at, dur, layerVoicing(b.layer, v.pan), this.layerPlay(p ?? {}, b)), 12 * b.octave);
   }
 
   // ---------- D485, OBBLIGATO (obbligato.ts): the subject boost ----------
   /** The offer standing now (the instrument shown on the bars' buttons), till the entry's first note. */
-  offer: { layer: Layer; octave: number; tier: number; entryOn: number; spans: EntryLike[] } | null = null;
-  /** The boosts taken: each the entries it covers (the player's and the later ones overlapping it) and its layer. */
-  boosts: { layer: Layer; octave: number; spans: EntryLike[]; until: number }[] = [];
+  offer: { layer: Layer; octave: number; tier: number; entryOn: number; spans: EntryLike[]; blend?: Blend; gain?: number; fx?: VoiceFx } | null = null;
+  /**
+   * The boosts taken: each the entries it covers (the player's and the later ones overlapping it) and its layer.
+   * D439: its blend (the "layer" mode's merge, chip.ts Play.blend), or its colour on the player's own voice
+   * instead (the "effect" mode: `fx`, no layer; `layer` then only names it), set when it is scheduled.
+   */
+  boosts: { layer: Layer; octave: number; spans: EntryLike[]; until: number; blend?: Blend; gain?: number; fx?: VoiceFx; fxSet?: boolean }[] = [];
   /** The judge's grade of each note struck right (PERFECT or GOOD), for the offer's window. */
   private obbGrade = new Map<LaneNote, "perfect" | "good">();
   /** The note being sounded by a touch now (its voice and onset), for touchNote's layer. */
@@ -1163,27 +1168,33 @@ export class ProtoGame {
   get boosting(): boolean {
     return this.boosts.some((b) => b.spans.some((x) => this.now >= x.on && this.now < x.end));
   }
-  /** The layer's note: the note's own shape, at LAYER_LEVEL of its level, never registered or coupled. */
-  private layerPlay(p: Play): Play {
-    return { level: (p.level ?? 1) * LAYER_LEVEL, lead: p.lead, legato: p.legato, envelope: p.envelope, couple: false, ...(p.tie ? { tie: p.tie } : {}), ...(p.apart ? { apart: true } : {}) };
+  /**
+   * The layer's note: the note's own shape, at LAYER_LEVEL of its level (D439: `gain`, layerGain), never
+   * registered or coupled. D439, merged: blended under it, and landing as the note did (its touch, the
+   * piano's line and accent: the same level as the note's as heard, not as asked for).
+   */
+  private layerPlay(p: Play, b: { blend?: Blend; gain?: number }): Play {
+    const land = b.blend ? { ...(p.touch !== undefined ? { touch: p.touch } : {}), ...(p.lineDb !== undefined ? { lineDb: p.lineDb } : {}), ...(p.accentDb !== undefined ? { accentDb: p.accentDb } : {}) } : {};
+    return { level: (p.level ?? 1) * (b.gain ?? layerLevel()), lead: p.lead, legato: p.legato, envelope: p.envelope, couple: false, ...(p.tie ? { tie: p.tie } : {}), ...(p.apart ? { apart: true } : {}), ...(b.blend ? { blend: b.blend } : {}), ...land };
   }
   /** A band's or a riding note's layer, where a boost covers it (pushed with the band's sounds). */
   private layerOf(voice: number, on: number, midi: number, at: number, dur: number, v: Voicing, p: Play) {
     const b = this.boostAt(voice, on);
-    if (!b) return;
-    const sd = this.chip.note(midi + 12 * b.octave, at, dur, layerVoicing(b.layer, v.pan), this.layerPlay(p));
+    if (!b || b.fx) return;
+    const sd = this.chip.note(midi + 12 * b.octave, at, dur, layerVoicing(b.layer, v.pan), this.layerPlay(p, b));
     if (sd) this.band.push({ sd, until: at + dur + 0.6 });
   }
   /** Takes the offer standing (the button): the boost from the entry's first note. False where none stands or it lapsed. */
   acceptOffer(): boolean {
     const o = this.offer;
     if (!o || this.now >= o.entryOn) return false;
-    this.boosts.push({ layer: o.layer, octave: o.octave, spans: o.spans, until: Math.max(...o.spans.map((x) => x.end)) });
+    this.boosts.push({ layer: o.layer, octave: o.octave, spans: o.spans, until: Math.max(...o.spans.map((x) => x.end)), ...(o.blend ? { blend: o.blend, gain: o.gain } : {}), ...(o.fx ? { fx: o.fx } : {}) });
     this.offer = null;
     return true;
   }
   /** Each frame: an entry's window judged as it closes (a bar before the entry); an offer lapses at the entry. */
   private obbStep() {
+    this.obbFx();
     if (!this.obbligatoOn) return;
     if (!this.obbPlans) {
       const all: EntryLike[] = this.f.entries;
@@ -1203,11 +1214,40 @@ export class ProtoGame {
       const notes = this.tracks[pl.k].notes.filter((n) => !n.ride);
       const graded = notes.map((n) => ({ on: n.on, grade: (n.state === "miss" ? "miss" : n.state === "pending" ? "pending" : (this.obbGrade.get(n) ?? "good")) as ObbGrade }));
       if (!playedWell(graded, pl.win)) continue;
-      const d = drawLayer({ main: mainPatchId(voicing(pl.e.voice, this.f.voices.length).patch), midis: pl.midis, pool: this.o.obbPool, rng: this.o.obbRng });
+      const main = mainPatchId(voicing(pl.e.voice, this.f.voices.length).patch);
+      // D501: the mode by the player's sound ("auto": an effect on a keyboard or plucked sound, else a layer).
+      const mode = obbligatoModeFor(preset().id);
+      // D439, the "effect" mode: no instrument drawn; the button names the colour the voice will take.
+      if (mode === "effect") {
+        const e = effectFor(main);
+        this.offer = { layer: e.shown, octave: 0, tier: 0, entryOn: pl.e.on, spans: pl.spans, fx: e.fx };
+        continue;
+      }
+      const d = drawLayer({ main, midis: pl.midis, pool: this.o.obbPool, rng: this.o.obbRng });
       if (!d) continue;
-      this.offer = { layer: d.layer, octave: d.octave, tier: d.tier, entryOn: pl.e.on, spans: pl.spans };
-      // Its recordings asked for now, a bar ahead (until they arrive its synthesized sound stands in).
+      // D439, the "layer" mode: merged under the voice (blendFor); "legacy": D485 as first built.
+      const blend = mode === "layer" ? blendFor(main, d.layer, pl.midis.map((m) => m + 12 * d.octave)) : undefined;
+      this.offer = { layer: d.layer, octave: d.octave, tier: d.tier, entryOn: pl.e.on, spans: pl.spans, ...(blend ? { blend, gain: layerGain(main, d.layer) } : {}) };
+      // Its recordings asked for now, a bar ahead (D485: its synthesized sound standing in till they arrive; D439, merged: nothing till then).
       this.chip.ready?.(layerVoicing(d.layer, 0).patch, pl.midis.map((m) => m + 12 * d.octave));
+    }
+  }
+
+  /**
+   * D439, the "effect" mode: a boost's colour on the player's own voice (chip.ts voiceFx), scheduled as its
+   * entry nears: over the player's own entry only (the later entries in stretto are the band's), coming in
+   * at its first note and going at its end; the echoes' length a note value at the tempo there.
+   */
+  private obbFx() {
+    const ch = this.chip;
+    for (const b of this.boosts) {
+      if (!b.fx || b.fxSet) continue;
+      const e = b.spans[0];
+      const from = this.timeAt(e.on);
+      if (from - ch.ctx.currentTime > 0.5) continue;
+      b.fxSet = true;
+      const q = FX_QUARTERS[b.fx] ?? 0.5;
+      ch.voiceFx?.(b.fx, this.timeAt(e.on + q * this.f.tpq) - from, from - 0.05, this.timeAt(e.end) - 0.05);
     }
   }
 
@@ -1559,7 +1599,7 @@ export class ProtoGame {
           // portamento heard (it was one jump to the note). D438 (D414, D486): to the next note's block as
           // drawn, in the thumb's own frame (its offset from the note it landed on kept); D486's rule sounds it
           // as the move passes halfway (in its phase, from the note's opening: slide-rule.ts), the move then
-          // carried on to the block, never past it (no TOO FAR); the slide's sound by SLIDE_SOUND (slideColour,
+          // carried on to the block, never past it (no TOO FAR); the slide's sound by slideSoundFor (slideColour,
           // or D424's portamento along the move).
           const prevOn = plan[p - 1].on;
           const from = prevOn + DEMO_SLIDE_FROM * (t.on - prevOn);
@@ -3199,8 +3239,8 @@ export class ProtoGame {
    */
   private slideTrack(h: Held, y: number | null | undefined) {
     const sd = h.sounds.length === 1 ? h.sounds[0] : undefined;
-    // D438: only under SLIDE_SOUND "instruments" (the default "d486" sounds the slide's gesture at arrival: slideColour).
-    if (SLIDE_SOUND !== "instruments") return void (h.bent = undefined);
+    // D438, D501: only where the slide sound is "instruments" (the strings', the voices', the lute's under "auto"; "d486" sounds the gesture at arrival: slideColour).
+    if (slideSoundFor(preset().id) !== "instruments") return void (h.bent = undefined);
     // D426: the lute's slide over a fourth or more a glissando along the string (glenn.ts luteSlur), followed the same way.
     const lute = keyboardSlide(preset().id) === "slur";
     if (!sd?.glide || !(touchFamily(preset().id) || lute) || h.note < 0) return void (h.bent = undefined);
@@ -3230,8 +3270,8 @@ export class ProtoGame {
    * (D376). A step: nothing here (the plain join). `y` null: a shake took the thumb, no fill.
    */
   private couleTrack(h: Held, y: number | null | undefined) {
-    // D438: only under SLIDE_SOUND "instruments" (the default "d486": slideColour's coulé, mordent, Pralltriller...).
-    if (SLIDE_SOUND !== "instruments" || keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
+    // D438, D501: only where the slide sound is "instruments" (forced: under "auto" the keyboards play "d486", slideColour's coulé, mordent, Pralltriller...).
+    if (slideSoundFor(preset().id) !== "instruments" || keyboardSlide(preset().id) !== "coule" || this.bt || h.note < 0) return void (h.coule = undefined);
     const notes = this.tracks[h.k].notes;
     const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
     const shaking = h.free?.note === h.note && (h.free.r.count > 1 || !!h.free.r.kind);
@@ -3942,11 +3982,11 @@ export class ProtoGame {
     if (MECH.glenn) this.rings.strike(h.k, this.chip.ctx.currentTime);
     if (slide && !kbSlide && MECH.dragMeaning === "connect" && pitches.length === 1 && this.dragConnect(h, i, pitches[0], expr, sv?.v ?? voiceV)) {
       /* sounded */
-    } else if (((slide && SLIDE_SOUND === "d486") || (!slide && h.slideInFrom !== undefined)) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
-      /* D486: the slide's own gesture, by instrument (slide-sound.ts; D438: the default SLIDE_SOUND). D488's slide-in from
+    } else if (((slide && slideSoundFor(pid) === "d486") || (!slide && h.slideInFrom !== undefined)) && MECH.glenn && !piano && v.ok && pitches.length === 1 && this.slideColour(h, i, pitches[0], expr, sv?.v ?? voiceV, !slide)) {
+      /* D486: the slide's own gesture, by instrument (slide-sound.ts; D501: where the slide sound is "d486"). D488's slide-in from
          silence has no counterpart in the instruments session's sounds: its gesture in both modes. */
-    } else if (kbSlide && SLIDE_SOUND === "instruments" && keyboardSlide(pid) === "slur" && h.sounds.length === 1 && pitches.length === 1 && h.sounds[0].glide && !(v.ok && this.ornaments.has(`${this.voiceOf(h.k, i)}:${notes[i].on}`))) {
-      // D426, THE LUTE'S LEFT-HAND SLUR (D438: under SLIDE_SOUND "instruments"): no new pluck; the sounding course goes on at the new pitch (the recording
+    } else if (kbSlide && slideSoundFor(pid) === "instruments" && keyboardSlide(pid) === "slur" && h.sounds.length === 1 && pitches.length === 1 && h.sounds[0].glide && !(v.ok && this.ornaments.has(`${this.voiceOf(h.k, i)}:${notes[i].on}`))) {
+      // D426, THE LUTE'S LEFT-HAND SLUR (D438, D501: where the slide sound is "instruments", the lute's own under "auto"): no new pluck; the sounding course goes on at the new pitch (the recording
       // retuned: a hammer of about 10 ms), about 3 dB under; over a fourth or more the pitch has followed the
       // thumb along the string (slideTrack's glissando) and lands on the note now (glenn.ts luteSlur).
       const ls = luteSlur(h.midi, pitches[0]);

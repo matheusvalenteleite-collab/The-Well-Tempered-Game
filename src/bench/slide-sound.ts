@@ -25,7 +25,7 @@
  *  fm        · bend 30 ms           · bend 30 ms                · bend 45 ms               · bend 60 ms
  *  synth     · portamento 40 ms     · portamento 40 ms          · portamento 65 ms         · portamento 95 ms
  *
- * (N the written note, U the scale step above, L below; plucked: harpsichord, lute; organ: pipe and
+ * (N the written note, U the scale step above, L below; plucked: harpsichord, lute, clavichord; organ: pipe and
  * sampled; bowed: string consort; voice: vocal synth, solo voices; flute: traverso; chip: classic chip,
  * SID 64, super 16-bit, nocturne 32-bit; slide8: Game Boy, tracker (their pitch-slide effect); fm: Mega FM;
  * synth: Switched-On, Tomita, bleeps and bloops.) A glide's time is its time constant (an exponential
@@ -38,20 +38,30 @@
 import { passingNote, stepBelow } from "./drag.ts";
 
 /**
- * D438, THE TWO SLIDE SOUNDS, PENDING THE OWNER'S EAR. "d486" (the default): each instrument's slide gesture
- * above (proto-game.ts slideColour). "instruments": the instruments session's slide sounds instead (D424's
- * portamento following the thumb, proto-game.ts slideTrack; D426's coulé fill on the harpsichord and organ,
- * couleTrack; the lute's left-hand slur and glissando, glenn.ts luteSlur); never both. The detection is
- * D486's in either (slide-rule.ts), and the piano's hairpin (D426, a level) plays in both. Set it with
- * `setSlideSound`, or from the page's address: `?slide=instruments`.
+ * D438, THE TWO SLIDE SOUNDS. "d486": each instrument's slide gesture above (proto-game.ts slideColour).
+ * "instruments": the instruments session's slide sounds instead (D424's portamento following the thumb,
+ * proto-game.ts slideTrack; D426's coulé fill on the harpsichord and organ, couleTrack; the lute's left-hand
+ * slur and glissando, glenn.ts luteSlur); never both on one note. The detection is D486's in either
+ * (slide-rule.ts), and the piano's hairpin (D426, a level) plays in both. D488's slide-in keeps its own
+ * gesture (slideColour) in every mode.
+ *
+ * D501 (the owner: "Just implement it all"; the instruments session chose by family): "auto", the default,
+ * picks the sound by the player's instrument (`slideSoundFor`): the bowed strings (STRING CONSORT, BAROQUE
+ * BAND) and the voices (SOLO VOICES, VOCAL SYNTH) "instruments" (D424's portamento that follows the thumb:
+ * a string player's or a singer's slide is the hand's own, as slow as the hand); the LUTE "instruments"
+ * (D426's left-hand slur: no new pluck); the harpsichord, the clavichord, the organ, the piano (with its
+ * hairpin, as in both), the chips, consoles and synths "d486" (the gesture at arrival: a keyboard's slide
+ * is an ornament, a chip's an effect command). "d486" and "instruments" force that sound on every
+ * instrument: `setSlideSound`, `withSlideSound` for the tests, `?slide=d486` or `?slide=instruments`.
  */
 export type SlideSoundMode = "d486" | "instruments";
-export let SLIDE_SOUND: SlideSoundMode = slideSoundParam(typeof location !== "undefined" ? location.search : "");
-export function setSlideSound(mode: SlideSoundMode): void {
+export type SlideSoundSetting = "auto" | SlideSoundMode;
+export let SLIDE_SOUND: SlideSoundSetting = slideSoundParam(typeof location !== "undefined" ? location.search : "");
+export function setSlideSound(mode: SlideSoundSetting): void {
   SLIDE_SOUND = mode;
 }
 /** D438: `f` run under `mode`, the mode then restored (the tests render both designs). */
-export function withSlideSound<T>(mode: SlideSoundMode, f: () => T): T {
+export function withSlideSound<T>(mode: SlideSoundSetting, f: () => T): T {
   const was = SLIDE_SOUND;
   SLIDE_SOUND = mode;
   try {
@@ -60,13 +70,20 @@ export function withSlideSound<T>(mode: SlideSoundMode, f: () => T): T {
     SLIDE_SOUND = was;
   }
 }
-/** D438: the mode from a page's address (`?slide=instruments`); else "d486". */
-export function slideSoundParam(search: string): SlideSoundMode {
+/** D438, D501: the setting from a page's address (`?slide=d486`, `?slide=instruments`); else "auto". */
+export function slideSoundParam(search: string): SlideSoundSetting {
   try {
-    return new URLSearchParams(search).get("slide") === "instruments" ? "instruments" : "d486";
+    const v = new URLSearchParams(search).get("slide");
+    return v === "instruments" || v === "d486" ? v : "auto";
   } catch {
-    return "d486";
+    return "auto";
   }
+}
+/** D501: the slide sound on the player's instrument `presetId` (the setting, or under "auto" the family's own). */
+export function slideSoundFor(presetId: string): SlideSoundMode {
+  if (SLIDE_SOUND !== "auto") return SLIDE_SOUND;
+  const fam = slideFamily(presetId);
+  return fam === "bowed" || fam === "voice" || presetId === "lute" ? "instruments" : "d486";
 }
 
 export type SlideFamily = "plucked" | "piano" | "organ" | "bowed" | "voice" | "flute" | "chip" | "slide8" | "fm" | "synth";
@@ -89,6 +106,7 @@ export function slideFamily(presetId: string): SlideFamily {
   switch (presetId) {
     case "harpsichordSampled":
     case "lute":
+    case "clavichord": // D501: the clavichord's slide C. P. E. Bach's ornaments, as the harpsichord's
       return "plucked";
     case "pianoSampled":
       return "piano";

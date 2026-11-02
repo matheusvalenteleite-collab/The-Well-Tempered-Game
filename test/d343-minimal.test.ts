@@ -48,8 +48,9 @@ test("D343: locked, play.html is Book I's fugues on a phone; unlocked, all four 
   store.clear();
   assert.equal(unlocked(), false);
   assert.equal(litePlatform(), "mobile");
-  assert.deepEqual(liteTabs().map(([t]) => t), ["I"]);
-  assert.equal(nextIn(liteNextOrder("wtc1f24", true), "wtc1f24"), "wtc1f01", "NEXT after Book I's last wraps to its first");
+  // D489: Book II open from the start.
+  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II"]);
+  assert.equal(nextIn(liteNextOrder("wtc1f24", true), "wtc1f24"), "wtc2f01", "NEXT after Book I's last goes on into Book II");
   store.set(UNLOCK_KEY, "1");
   try {
     assert.equal(unlocked(), true);
@@ -72,7 +73,9 @@ test("D343: the first screen: SETTINGS labelled, EN · PT · ES at hand, the tut
   assert.match(html, /id="lite-settings" class="tb-settings-btn"[^>]*>.*?<svg.*?<span>SETTINGS<\/span>/);
   for (const l of ["en", "pt", "es"]) assert.match(html, new RegExp(`id="head-lang-${l}"`));
   assert.match(html, /id="card-tutorial"[^>]*>.*?▶ BEGIN.*?START HERE/);
-  assert.match(html, /BOOK I · 24 FUGUES/);
+  // D489: Book I's tab first, Book II beside it.
+  assert.match(html, /id="tab-book-I"/);
+  assert.match(html, /id="tab-book-II"/);
   assert.doesNotMatch(html, /BWV|SOUND:/);
   assert.equal(html.match(/class="tb-lite-card/g)?.length, 25, "the tutorial and Book I's 24 fugues");
   const app = src("src/bench/BenchApp.tsx");

@@ -77,8 +77,8 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
   // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
   if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "trialBrass") return "bowed";
-  // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato).
-  if (presetId === "trialJazz" || presetId === "trialClavichord") return "plucked";
+  // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too.
+  if (presetId === "trialJazz" || presetId === "clavichord") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
@@ -322,7 +322,7 @@ export type KeyboardSlide = "hairpin" | "coule" | "slur";
 /** D426: what a slide does on a sound (null: D424's families, TRAVERSO, any other: as before). */
 export function keyboardSlide(presetId: string): KeyboardSlide | null {
   if (presetId === "pianoSampled") return "hairpin";
-  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled" || presetId === "trialClavichord") return "coule";
+  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled" || presetId === "clavichord") return "coule";
   if (presetId === "lute") return "slur";
   return null;
 }
