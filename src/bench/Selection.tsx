@@ -105,8 +105,7 @@ export function Selection(p: SelectionProps) {
       <aside className="sel-col sel-left" id="sel-left">
         <div className="sel-brand">
           <h1 className="sel-title">
-            <Wordmark big={12} scale={1} className="sel-mark sel-mark-wide" />
-            <Wordmark big={10} scale={1} className="sel-mark sel-mark-narrow" />
+            <Wordmark unit={1.5} className="sel-mark" />
           </h1>
           <p className="sel-version" id="sel-version">
             {versionLine()}
