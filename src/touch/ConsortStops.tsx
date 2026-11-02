@@ -10,8 +10,8 @@ import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "rea
 import { lang, tr } from "../i18n/index.ts";
 import { CONSORT_STOPS, chooseConsortStop, consortStop, consortStopLabel, hasConsortStops, onConsortStop, openConsortPiece, type ConsortStop } from "./consort-stops.ts";
 
-/** The floor the bars' rows keep over the stops (bench.css --tb-stop-rows: the pistons' 58 px in 47 px rows). */
-const CONSORT_ROWS = Math.round(((58 + 2) / 47) * 100) / 100;
+/** The feet's height (bench.css --tb-stop-rows, in 47 px rows): the pistons' strip, D495's 28 px (was 58). */
+const CONSORT_ROWS = Math.round(((28 + 2) / 47) * 100) / 100;
 
 export function ConsortStops({ presetId, piece }: { presetId: string; piece: string }) {
   const [stop, setStop] = useState<ConsortStop>(() => consortStop(presetId).stop);
