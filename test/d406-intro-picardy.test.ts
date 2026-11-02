@@ -2,6 +2,7 @@
  * D406 (WTC 1.99): the intro's B-A-C-H on a soft traverso, the H longer, then the third subject's own
  * continuation C♯–D, the D under the string consort's D major (the Picardy third), on the cross-fade
  * from the title page into the selection screen; a skip fades the sound out instead of cutting it.
+ * D500: now the cello's line and BAROQUE BAND's cadence (test/d500-intro-cadence.test.ts); updated deliberately.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -13,7 +14,7 @@ const store = new Map<string, string>();
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 register("./tsx-hooks.mjs", import.meta.url);
 
-test("D406: the data's tenor goes on B♭ A C B♮ C♯ D; the intro plays them an octave up, the H longer, the D on the resolve", async () => {
+test("D406: the data's tenor goes on B♭ A C B♮ C♯ D; the intro plays them in the tenor's octave (D500), the H longer, the D on the resolve", async () => {
   const m = await import("../src/bench/intro-sound.ts");
   const { fugueById } = await import("../src/touch/fugue.ts");
   const f = fugueById(m.BACH_SOURCE.piece);
@@ -21,26 +22,19 @@ test("D406: the data's tenor goes on B♭ A C B♮ C♯ D; the intro plays them 
   const line = f.voices[m.BACH_SOURCE.voice].filter(([on]) => on >= bar.on);
   const k = line.findIndex(([, , p]) => p === 58);
   assert.deepEqual(line.slice(k, k + 6).map(([, , p]) => p), [58, 57, 60, 59, 61, 62], "the continuation is C♯–D in the data");
+  // D500: the cello in the tenor's own octave (deliberately: was the flute's, an octave up).
   const notes = m.bachNotes();
-  assert.deepEqual(notes.map((n) => n.midi), [70, 69, 72, 71, 73, 74]);
+  assert.deepEqual(notes.map((n) => n.midi), [58, 57, 60, 59, 61, 62]);
   const len = (i: number) => notes[i + 1].at - notes[i].at;
   assert.ok(len(3) > len(0) && len(3) > len(1) && len(3) > len(2), "the H longer than the first three");
   assert.ok(len(4) < len(0), "the C♯ a short step into the D");
   assert.equal(notes[5].at, m.INTRO_RESOLVE_S);
-  assert.deepEqual(notes.map((n) => n.fade), [false, false, false, false, false, true]);
   assert.equal(m.INTRO_S, m.INTRO_RESOLVE_S + m.INTRO_CROSS_S);
-  assert.ok(m.INTRO_TAIL_S >= 2 && m.INTRO_TAIL_S <= 3.2 && m.INTRO_TAIL_S > m.INTRO_CROSS_S, "the chord outlasts the cross-fade, dying over the selection");
-  // D410: the harpsichord's arpeggio D A D G, the G (a suspension) resolving to F♯ (the Picardy third), rising, the D in the bass.
-  assert.deepEqual(m.INTRO_CHORD.map((c) => c.midi), [50, 57, 62, 67, 66]);
-  assert.ok(m.INTRO_CHORD.every((c, i, a) => i === 0 || c.at > a[i - 1].at), "broken upward, slowly");
-  assert.ok(m.INTRO_CHORD.every((c) => c.midi < 74 && c.patch.startsWith("harpsi")));
-  // D410: two slurs, B♭–A and C–H: the first of each held into the second, a breath after the A.
-  assert.ok(notes[0].at + notes[0].len > notes[1].at && notes[2].at + notes[2].len > notes[3].at, "B♭–A and C–H joined");
-  assert.ok(notes[1].at + notes[1].len < notes[2].at - 0.1, "the A lifted before the C");
-  assert.equal(m.INTRO_PRESET.slots?.[0], "traverso");
+  assert.ok(m.INTRO_TAIL_S > m.INTRO_CROSS_S + 1, "the close outlasts the cross-fade, dying over the selection");
+  assert.equal(m.INTRO_PRESET.slots?.[0], "consCello");
 });
 
-test("D406: playIntro: the flute's notes at once, the chord on the D once the strings are in, a skip fading the sound out", async () => {
+test("D406, D500: playIntro: the cello's notes and the band's close scheduled at once, a skip fading the sound out", async () => {
   const m = await import("../src/bench/intro-sound.ts");
   const { setPreset, PATCHES } = await import("../src/touch/sound.ts");
   setPreset(m.INTRO_PRESET);
@@ -61,20 +55,19 @@ test("D406: playIntro: the flute's notes at once, the chord on the D once the st
       return { stop: (t: number) => void (n.stop = t), bend() {}, trim: (l: number, a: number, u: number) => void n.trims.push([l, a, u]) };
     },
   };
-  let loaded!: () => void;
-  const ready = new Promise<void>((r) => (loaded = r));
   // deno-lint-ignore no-explicit-any
-  const p = m.playIntro(chip as any, ready, 0.12);
+  const p = m.playIntro(chip as any, 0.12, (fn) => (fn(), () => {}));
   assert.equal(p.t0, 1.12);
-  assert.deepEqual(played.map((n) => n.midi), [70, 69, 72, 71, 73, 74]);
-  assert.ok(played.every((n) => n.patch === PATCHES.traverso));
-  loaded();
-  await ready;
-  await new Promise((r) => setTimeout(r, 0));
-  const chord = played.slice(6);
-  assert.deepEqual(chord.map((n) => n.midi), m.INTRO_CHORD.map((c) => c.midi));
-  assert.ok(chord.every((n, i) => Math.abs(n.at - (1.12 + m.INTRO_RESOLVE_S + m.INTRO_CHORD[i].at)) < 1e-9), "the arpeggio from the D");
-  assert.ok(chord.every((n) => n.trims.at(-1)![0] < 0.01 && Math.abs(n.trims.at(-1)![2] - (1.12 + m.INTRO_RESOLVE_S + m.INTRO_TAIL_S)) < 1e-9), "faded to nothing at the tail's end");
+  // D500: the cello's six notes on STRING CONSORT's cello, then the band's close from the D, all at once.
+  assert.deepEqual(played.slice(0, 6).map((n) => n.midi), [58, 57, 60, 59, 61, 62]);
+  assert.ok(played.slice(0, 6).every((n) => n.patch === PATCHES.consCello));
+  const band = played.slice(6);
+  // Handed over harmony by harmony (INTRO_LOOKAHEAD_S ahead: run at once here).
+  const order = [...m.INTRO_BAND].sort((a, b) => a.at - b.at);
+  assert.deepEqual(band.map((n) => n.midi), order.map((c) => c.midi));
+  assert.ok(band.every((n, i) => n.at >= 1.12 + m.INTRO_RESOLVE_S + order[i].at - 1e-9 && n.at < 1.12 + m.INTRO_RESOLVE_S + order[i].at + 0.25), "the close from the D (the keys a little spread)");
+  const ends = band.filter((n) => n.trims.length);
+  assert.ok(ends.length >= 6 && ends.every((n) => n.trims.at(-1)![0] < 0.01 && Math.abs(n.trims.at(-1)![2] - (1.12 + m.INTRO_RESOLVE_S + m.INTRO_TAIL_S)) < 1e-9), "the last chord faded to nothing at the tail's end");
   ctx.currentTime = 3;
   p.fadeOut();
   const out = gains[0].evs;

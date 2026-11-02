@@ -6,7 +6,8 @@
  * and, small, the version, each fading in on its note. D406: on the D (the subject's continuation, the
  * consort's D major under it) the whole page cross-fades into the selection screen beneath it
  * (INTRO_CROSS_S from INTRO_RESOLVE_S), the chord dying away over the selection. Any further touch skips
- * straight to it (the sound faded out quickly).
+ * straight to it (the sound faded out quickly). D500: the subject on the cello, then BAROQUE BAND's cadence from
+ * the D; the cross-fade (now as long as the cadence) gone as its D major lands.
  */
 import { useEffect, useRef, useState } from "react";
 import { lang, tr, WORDMARK, type Lang } from "../i18n/index.ts";
@@ -60,7 +61,7 @@ export function Intro({ begin, end }: { begin: () => Promise<number>; end: (skip
       timers.current.push(setTimeout(() => setStage("show"), Math.max(0, lead * 1000)));
       timers.current.push(setTimeout(() => finish(false), (Math.max(0, lead) + INTRO_S) * 1000));
     };
-    // The picture never waits long for the sound to start (D406: the flute needs no loading).
+    // The picture never waits long for the sound to start (D500: the recordings waited for at most INTRO_LOAD_WAIT_MS).
     let started = false;
     const once = (lead: number) => {
       if (started) return;

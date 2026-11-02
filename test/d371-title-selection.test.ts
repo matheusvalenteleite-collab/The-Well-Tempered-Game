@@ -26,9 +26,9 @@ test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read
   assert.ok(line[k][0] < bar.on + f.barTicks, "in bar 193");
   assert.deepEqual(line.slice(k, k + 4).map(([, , m]) => m), [58, 57, 60, 59]);
   assert.deepEqual(line.slice(k, k + 3).map(([, d]) => d), [f.tpq * 2, f.tpq * 2, f.tpq * 2], "half notes");
-  // D406: the first four notes still B♭ A C B♮ (an octave up, on the traverso: d406's test), on their half notes.
+  // D406, D500: the first four notes still B♭ A C B♮ (D500: in the tenor's own octave, on the cello; updated deliberately), on their half notes.
   const notes = bachNotes();
-  assert.deepEqual(notes.slice(0, 4).map((n) => n.midi - 12), [...BACH_PITCHES]);
+  assert.deepEqual(notes.slice(0, 4).map((n) => n.midi), [...BACH_PITCHES]);
   assert.deepEqual(notes.slice(0, 4).map((n) => n.at), [0, INTRO_HALF_S, 2 * INTRO_HALF_S, 3 * INTRO_HALF_S]);
   assert.ok(INTRO_S >= 8 && INTRO_S <= 10, "about nine seconds to the selection");
   // Through the game's own sound (BenchApp's chip), every touch after the first skipping.
@@ -98,7 +98,8 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   assert.doesNotMatch(first, /id="sel-play"|id="next-/);
   // D463 (design studio, D412's selection): the tab is the book and its share finished.
   assert.match(first, /id="tab-book-I"[^>]*><span class="sel-tab-name">BOOK I<\/span><span class="sel-tab-pct" id="pct-book-I">0%</);
-  assert.doesNotMatch(first, /id="tab-book-II"|id="tab-book-MORE"/);
+  assert.match(first, /id="tab-book-II"/, "D489: Book II open from the start");
+  assert.doesNotMatch(first, /id="tab-book-MORE"/);
   // Played before: NEXT on the first unfinished, the grades stamped, the chosen piece and PLAY on the right.
   const later = renderToStaticMarkup(createElement(Selection, { ...base, beaten: ["wtc1f01", "wtc1f02"], best: { wtc1f01: "A" }, scores: { "wtc1f02@1": 12340 }, tutorial: { done: 3, of: 12, start: () => {} } }));
   assert.match(later, /id="next-wtc1f03"/);

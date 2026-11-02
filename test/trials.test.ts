@@ -10,7 +10,8 @@ import { folderOf, PERIOD, SAMPLED } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { terraceStops } from "../src/touch/registration.ts";
 
-const IDS = ["trialWinds", "trialJazz", "trialClavichord"];
+// D501: CLAVICHORD offered (test/d501-instruments-finish.test.ts); D502: BACH BRASS (test/d502-brass.test.ts).
+const IDS = ["trialWinds", "trialJazz"];
 
 test("the trials are found by id, never offered", () => {
   for (const id of IDS) {
@@ -22,6 +23,7 @@ test("the trials are found by id, never offered", () => {
   // D437: the organ trio gone (a stored id opens on the organ); D430: the trial band under its offered id.
   assert.equal(presetById("trialOrganTrio").id, "chamberOrgan");
   assert.equal(presetById("trialBaroque").id, "baroqueBand");
+  assert.equal(presetById("trialClavichord").id, "clavichord");
   // D502: the trial brass remade and offered as BACH BRASS.
   assert.equal(presetById("trialBrass").id, "bachBrass");
 });
