@@ -46,8 +46,10 @@ export interface SelectionProps {
   setVoice: (v: number) => void;
   select: (id: string) => void;
   play: () => void;
-  /** The pop-up (DRUMS, TEMPO, HOW TO PLAY, the credits). */
+  /** The pop-up (the credits; D452: no longer linked from the selection's right column). */
   options: () => void;
+  /** D452: HOW TO PLAY, the guide, from the left column. */
+  howTo?: () => void;
   /** A MORE BACH or CHORALES card: the pop-up straight away, as before. */
   open: (id: string) => void;
   hear?: (id: string) => void;
@@ -163,6 +165,13 @@ export function Selection(p: SelectionProps) {
               <span>{tr("SETTINGS")}</span>
             </button>
           </div>
+          {/* D452: HOW TO PLAY, the game in words, under SETTINGS. */}
+          {p.howTo && (
+            <button type="button" id="lite-howto" className="tb-settings-btn sel-settings sel-howto" onClick={p.howTo}>
+              <span aria-hidden="true">?</span>
+              <span>{tr("HOW TO PLAY")}</span>
+            </button>
+          )}
         </div>
       </aside>
       <section className="sel-col sel-centre" id="sel-centre" aria-label={tr("BOOK")}>
@@ -282,7 +291,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
               <b>{n}</b> {key.tonic} <i>{key.mode}</i>
             </span>
             {nick && (
-              <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`}>
+              <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`} data-word={longestWord(nick)}>
                 {nick}
               </span>
             )}
@@ -293,6 +302,12 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
   );
 }
 
+/** D451: the letters of a name's longest word (split at spaces and after hyphens), 9 and under as "short": the card's name size follows it. */
+export function longestWord(name: string): string {
+  const n = Math.max(0, ...name.split(/[\s]+|(?<=-)/).map((w) => [...w].length));
+  return n <= 9 ? "short" : String(Math.min(12, n));
+}
+
 /** D446: a voice's name short enough for four voices on one line (SOPRANO II → SOP II, TENOR → TEN). */
 export function shortPart(name: string): string {
   return name.replace(/^SOPRANO\b/, "SOP").replace(/^TENOR\b/, "TEN").replace(/^CONTRALTO\b/, "ALTO").replace(/^SOPRANO\s/, "SOP ");
@@ -300,7 +315,7 @@ export function shortPart(name: string): string {
 
 /** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
  * voices, its best (D463: no secrets for now), the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D463). */
-function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, bestOld, scoresOld, tempo, sound, subject, drums }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
+function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound, subject, drums }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
   const f = fugueById(piece);
   const lv = liteLevel(piece);
   const wtc = /^wtc[12][fp]\d\d$/.test(piece);
@@ -314,7 +329,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
   const score = mine ?? scoresOld[piece];
   return (
     <div className="sel-piece" id="sel-piece">
-      {/* D449: the whole picture opens ABOUT THIS FUGUE (the ? glows to say so). */}
+      {/* D449, D452: the whole picture opens ABOUT THIS FUGUE, and the whole picture glows to say so (no ?). */}
       <span className={`sel-piece-pic${aboutable ? " sel-piece-pic-open" : ""}`} id="sel-piece-pic" role={aboutable ? "button" : undefined} tabIndex={aboutable ? 0 : undefined} aria-label={aboutable ? tr("ABOUT THIS FUGUE") : undefined} onClick={aboutable ? () => setAbout(true) : undefined}>
         <Emblem id={piece} className="sel-piece-emblem" />
         {grade && (
@@ -322,11 +337,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
             {grade}
           </span>
         )}
-        {aboutable && (
-          <span id="sel-about" className="sel-about sel-about-glow" aria-hidden="true">
-            ?
-          </span>
-        )}
+
       </span>
       {nick && (
         <p className="sel-piece-nick" id="sel-piece-nick">
@@ -428,10 +439,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, options, best, scores, 
           )}
         </div>
       )}
-      {/* D463: the piece's pop-up kept within reach (how to play, the drums, the tuning, the display). */}
-      <button type="button" id="sel-options" className="sel-link" onClick={options}>
-        ? {tr("HOW TO PLAY")} · {tr("OPTIONS")}
-      </button>
+      {/* D452 (the owner: "this has become redundant now"): no OPTIONS link; HOW TO PLAY is the left column's own button. */}
       {about && <FugueAbout id={piece} subject={subject} close={() => setAbout(false)} />}
     </div>
   );

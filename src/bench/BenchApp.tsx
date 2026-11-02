@@ -44,7 +44,8 @@ import { fugueName } from "../touch/fugue-names.ts";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
-import { BtLite, HeadphonesFold, keepBtLag, lagBook, rememberRoute, useHeadphones } from "./Headphones.tsx";
+import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.tsx";
+import { BtWarn, btWarnNow } from "./BtWarn.tsx";
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
 import { Chip, voicing, type Sounding } from "../touch/chip.ts";
@@ -95,7 +96,8 @@ import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
-import { Selection } from "./Selection.tsx";
+import { pieceTitle, Selection } from "./Selection.tsx";
+import { HowTo, type ClipNote } from "./HowTo.tsx";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
 import { INTRO_LOAD_WAIT_MS, INTRO_PRESET, introPitches, playIntro, type IntroPlaying } from "./intro-sound.ts";
@@ -109,7 +111,7 @@ import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, ty
 import { tt } from "./tools-i18n.ts";
 import { tierCards } from "./tiers.ts";
 import { bookCards } from "./cards.ts";
-import { btAuto, driftOf, latencyOf, setupKey } from "../touch/headphones.ts";
+import { btAuto, latencyOf, setupKey } from "../touch/headphones.ts";
 import { LagSetting } from "../touch/Panels.tsx";
 import { askMotion, gameMotion, hardTapDevice } from "../touch/motion.ts";
 import { calOffered, loadHardCal, markCalOffered, motionStrikes } from "../touch/hard-tap.ts";
@@ -296,17 +298,11 @@ export function BenchApp() {
   const setLag = (l: number | null) => {
     applyLag(l);
     if (!APP.lite) hp.record(l);
-    // D381: on play.html a Bluetooth delay tapped where the browser told the route apart is kept for that
-    // setup (D223's book), to be given back when that latency returns; nothing held or asked any more.
-    else {
-      rememberRoute(l, chip.current ? latencyOf(chip.current.ctx) : undefined);
-      route.tapped();
-    }
+    // D381: on play.html nothing asked any more. D494: nothing kept to be given back by itself (no book).
+    else route.tapped();
     // D299: a Bluetooth delay kept on the device, to be offered again (never applied by itself).
     keepBtLag(l);
   };
-  // D299: the sound's delay retuned after a run in BLUETOOTH MODE (from, to: s), shown on the result.
-  const [retuned, setRetuned] = useState<{ from: number; to: number } | null>(null);
   const [chosen, setChosen] = useState<Record<string, string>>(() => load<Record<string, string>>(SOUND_KEY, {}));
   // D351: the tempo step chosen for each MORE BACH and CHORALES piece (tempo-steps.ts), kept on the device.
   const [tempoSteps, setTempoSteps] = useState<Record<string, TempoStep>>(readSteps);
@@ -564,12 +560,11 @@ export function BenchApp() {
   // D223: other headphones noticed (a setup seen before gets its delay back), BLUETOOTH MODE, the screen's delay.
   // D381: play.html watches the route itself (RouteWatch.tsx): D223's watcher off there.
   const hp = useHeadphones(chip, APP.lite ? () => {} : applyLag, !APP.lite);
-  // D381: the headphones gone, the Bluetooth delay dropped at once (and given back when they return).
+  // D381: the headphones gone: D494, the player asked (USING SPEAKER?), the delay never changed by itself.
   const route = useRoute({
     chip,
     lag: () => chip.current?.lag ?? null,
     tappedAt: () => latOfSetup(sessionLagSetup()),
-    book: lagBook,
     apply: applyLag,
     pause: () => phaseNow.current === "play" && pauseNow(),
     on: APP.lite && !APP.glenn,
@@ -858,14 +853,7 @@ export function BenchApp() {
         const r = g.results();
         // D314: an ornament shaken: its first-time hint is done.
         if (r.shakes.hit > 0 && !run) seenId("ornament");
-        // D299: every run in BLUETOOTH MODE retunes a tapped delay a little by how late or early its notes were.
-        const was = ch.lag;
-        const drift = g.bt && was !== null && !lesson && !man ? driftOf(g.btOffsets) : 0;
-        if (drift && was !== null) {
-          const to = Math.round((was + drift) * 1000) / 1000;
-          setLag(to);
-          setRetuned({ from: was, to });
-        } else setRetuned(null);
+        // D299's retune of a Bluetooth delay after each run: D494, gone (the delay stays as the player tapped it).
         if (man) {
           // D342: THE MANUAL's step over: its lens read, the next step chosen.
           recRef.current = null;
@@ -988,8 +976,20 @@ export function BenchApp() {
     }
   }
 
+  /**
+   * D494: the Bluetooth warning, before a fugue's PLAY or the TUTORIAL: shown (and `go` held until PLAY
+   * ANYWAY) when the route reads Bluetooth, once per app session (BtWarn.tsx); else `go` at once.
+   */
+  const [btWarn, setBtWarn] = useState<(() => void) | null>(null);
+  const warnFirst = (go: () => void): boolean => {
+    if (!APP.lite || APP.glenn) return false;
+    const ch = ensureChip();
+    if (!btWarnNow(latencyOf(ch.ctx))) return false;
+    setBtWarn(() => go);
+    return true;
+  };
   /** PLAY (the pop-up, AGAIN); `now`: CONTINUE and NEXT, which start at once (no guard against a double tap). */
-  const start = (now = false) => {
+  const start = (now = false, warned = false) => {
     practice.current = null;
     hintGone.current = false;
     stopHearing();
@@ -997,6 +997,7 @@ export function BenchApp() {
     // D425: the hard tap's motion sensor asked on the PLAY tap (iOS asks only from a gesture), once; never waited for.
     void askMotion();
     const ch = ensureChip();
+    if (!warned && warnFirst(() => start(true, true))) return;
     wantHer();
     const go = () => (setNote(""), setPhase({ kind: "play" }));
     // D216, KIMIKO: only with her track (loading: the game begins once it is ready; not to be had: tap to try again).
@@ -1352,7 +1353,8 @@ export function BenchApp() {
   /** Back to the tutorial's selection screen, the lesson just left chosen there. */
   const toMap = () => (setHost("bach"), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
-  const startManual = () => {
+  const startManual = (warned = false) => {
+    if (!warned && warnFirst(() => startManual(true))) return;
     const s = readManual();
     if (!Object.keys(s.lessons).length) return beginManual("1.1");
     setTutFocus(null);
@@ -1502,6 +1504,18 @@ export function BenchApp() {
     for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true, ...(n.legato ? { legato: true, from: n.from } : {}), ...(n.tie ? { tie: n.tie } : {}), ...(n.final ? { final: true } : {}), ...(n.apart ? { apart: true } : {}) }));
     return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
   };
+  /** D452: HOW TO PLAY's examples: bars of a fugue, every voice, the player's led (the rest a little softer); returns when heard. */
+  const playClip = async (notes: ClipNote[], voices: number, mine: number): Promise<number> => {
+    stopHearing();
+    const gen = hearGen.current;
+    const ch = ensureChip();
+    await ch.prepare(notes.map((n) => n.midi), notes.map((n) => n.midi));
+    if (gen !== hearGen.current) return performance.now() / 1000;
+    const t0 = ch.ctx.currentTime + 0.15;
+    for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(n.voice, voices, n.voice === mine), { ...dynamic(n.voice === mine || mine < 0 ? 0.6 : 0.4), lead: n.voice === mine }));
+    return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
+  };
+  const [howTo, setHowTo] = useState(false);
   useEffect(() => {
     if (!hearing) stopHearing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1804,11 +1818,6 @@ export function BenchApp() {
                 {phase.tempo.apart ? ` · ${tr("KEPT APART FROM YOUR BEST")}` : ""}
               </p>
             )}
-            {retuned && (
-              <p className="tb-lane-line" id="bt-retune">
-                {tr("SOUND DELAY {from} → {to} MS (TUNED TO YOUR PLAYING)", { from: Math.round(retuned.from * 1000), to: Math.round(retuned.to * 1000) })}
-              </p>
-            )}
             {phase.stage?.won && <p className="tb-result-seal tb-stage-line earned">PRELUDE BEATEN · FUGUE UNLOCKED</p>}
             {phase.opened?.map((t) => (
               <p key={t} id={`tier-toast-${t.toLowerCase()}`} className={`tb-tier-toast tb-tier-${t.toLowerCase()}`} role="status">
@@ -1899,19 +1908,30 @@ export function BenchApp() {
       {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib || !!film} />}
       {/* D381: the headphones gone or back (a brief notice), or USING SPEAKER? where the browser cannot tell. */}
       {APP.lite && !APP.glenn && <RouteNotice route={route} busy={playing && !paused} />}
-      {(hp.changed || route.recal) && !playing && !calib && (
+      {hp.changed && !playing && !calib && (
         <div className="tb-hp-banner" role="status">
           <button type="button" id="hp-recalibrate" onClick={() => setCalib(true)}>
             {tr("HEADPHONES CHANGED? · RECALIBRATE (5 s)")}
           </button>
-          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={() => (hp.dismiss(), route.dismissRecal())}>
+          <button type="button" id="hp-dismiss" className="tg-x" aria-label="Dismiss" onClick={hp.dismiss}>
             ✕
           </button>
         </div>
       )}
+      {/* D494: Bluetooth seen at PLAY: PLAY ANYWAY, or SETTINGS with the sound's calibration open. */}
+      {btWarn && (
+        <BtWarn
+          play={() => {
+            const go = btWarn;
+            setBtWarn(null);
+            go();
+          }}
+          settings={() => (setBtWarn(null), setPhase({ kind: "settings" }), setCalib(true))}
+        />
+      )}
       {calOffer && <HardTapCalibrate offer done={() => (setCalOffer(false), game.current?.resume())} />}
       {calib && (
-        <Panel title="SOUND DELAY" close={() => (setCalib(false), hp.dismiss(), route.dismissRecal())}>
+        <Panel title="SOUND DELAY" className="tb-calib-panel" close={() => (setCalib(false), hp.dismiss())}>
           <p className="tg-panel-note">With the headphones on: tap on each click, eight times.</p>
           <Tapper chip={ensureChip} done={(l) => (l !== null && setLag(l), setCalib(false), hp.dismiss())} />
         </Panel>
@@ -1953,6 +1973,15 @@ export function BenchApp() {
           {/* D462 (design studio): each fugue's world behind its box. */}
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
+          {/* D452: the chosen fugue's PISTONS (D420), moved from the pop-up the selection no longer opens: only where its sound has stops. */}
+          {hasStops(presetById(soundNow).id) && (
+            <section className="tb-set-pistons" id="settings-pistons" aria-label={tr("PISTONS")}>
+              <p className="tb-owner-head">
+                {tr("PISTONS")} · {pieceTitle(f.id)}
+              </p>
+              <PistonSettings presetId={presetById(soundNow).id} piece={f.id} />
+            </section>
+          )}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
           {platform === "mobile" && MECH.hardTap && <HardTapSetting />}
@@ -2059,7 +2088,7 @@ export function BenchApp() {
           soundOf={soundAt}
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
-          tutorial={{ ...manualProgress(readManual()), start: startManual }}
+          tutorial={{ ...manualProgress(readManual()), start: () => startManual() }}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
@@ -2067,6 +2096,8 @@ export function BenchApp() {
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
           // D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE, silenced when the box closes.
           subject={{ play: playSubject, stop: stopHearing }}
+          // D452: HOW TO PLAY, the guide, under SETTINGS.
+          howTo={() => (stopHearing(), setHowTo(true))}
           // D450: DRUMS on the right column (moved from the pop-up): ON/OFF and the piece's presets.
           drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumPresets(f.id), preset: drumPresetOf(f.id), cycle: () => (cycleDrumPreset(f.id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
@@ -2082,6 +2113,7 @@ export function BenchApp() {
         />
       )}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
+      {APP.lite && howTo && <HowTo sound={{ play: playClip, stop: stopHearing }} close={() => (stopHearing(), setHowTo(false))} />}
       {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}
       {APP.lite && platform !== "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}

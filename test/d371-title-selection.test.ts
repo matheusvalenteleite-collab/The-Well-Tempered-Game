@@ -52,10 +52,10 @@ test("D371: the title page: TOUCH TO BEGIN in the three languages first; the wor
     assert.match(html, /TOUCH TO BEGIN/);
     assert.match(html, /TOCA PARA EMPEZAR/);
     assert.match(versionLine(), /^VERSÃO \d+\.\d+$/);
-    assert.equal(i18n.tr("24 FUGUES FOR TWO THUMBS"), "24 FUGAS PARA DOIS POLEGARES");
+    assert.equal(i18n.tr("48 FUGUES FOR TWO THUMBS"), "48 FUGAS PARA DOIS POLEGARES");
     i18n.useLang("es");
     assert.match(versionLine(), /^VERSIÓN \d+\.\d+$/);
-    assert.equal(i18n.tr("24 FUGUES FOR TWO THUMBS"), "24 FUGAS PARA DOS PULGARES");
+    assert.equal(i18n.tr("48 FUGUES FOR TWO THUMBS"), "48 FUGAS PARA DOS PULGARES");
   } finally {
     i18n.useLang("en");
   }
