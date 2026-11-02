@@ -1,22 +1,24 @@
 /**
  * D485, OBBLIGATO: the subject boost. Playing well in the stretch just before one of the player's own
- * subject entries offers a second instrument for that entry: a layer added on top of the player's own
- * instrument, in unison (or, rarely, an octave or two away), drawn at random from the game's instruments
- * with unequal odds (the obvious, musical mixes most often, the wackiest least). The player sees the
- * instrument on the button before taking it; an offer not taken by the entry's first note lapses.
+ * subject entries offers a boost for that entry; the player sees its name on the button before taking it;
+ * an offer not taken by the entry's first note lapses. D509: the boost is one of three effects on the
+ * player's own voice, drawn at each offer (an octave doubling, a tape echo, a chorus with a vibrato); D485's
+ * second instrument (D439's merged layer) and D439's colours by instrument are gone.
  *
  * This file is pure (no sound, no screen): the offer's window and its test, the entries a boost covers
- * (the stretto rule), the instruments, their tiers and the weighted draws of the instrument and the octave.
- * proto-game.ts runs it; chip.ts never hears of it (the layer is an ordinary note on another patch).
+ * (the stretto rule), the effects and their draw, the instruments' compasses (LAYERS: the octave's room).
+ * proto-game.ts runs it; chip.ts sounds the effects (Chip.voiceFx; the octave is an ordinary note of the
+ * player's own patch).
  *
  * D485 retires D482 (the sound takes no input from the score) for this feature: an offer is gated by how
  * the player played. The main instrument's level is never changed by it; scoring and judging are unchanged.
  */
 import { PATCHES, PRESETS, type PatchId, type Patch } from "../touch/sound.ts";
 import { SAMPLED, sampledMidis } from "../touch/sampled.ts";
-import type { Blend, Sounding, Timbre, VoiceFx } from "../touch/chip.ts";
+import type { Sounding } from "../touch/chip.ts";
+import { tr } from "../i18n/index.ts";
 
-/** The boost's name, in one place (the button reads `${OBBLIGATO} · CELLO`; tr() translates the instrument). */
+/** The boost's name, in one place (the button reads `${OBBLIGATO} · TAPE ECHO`: obbligatoLabel translates the effect). */
 export const OBBLIGATO = "OBBLIGATO";
 
 // ---------- the window ----------
@@ -70,7 +72,7 @@ export function boostedSpans(e: EntryLike, all: readonly EntryLike[]): EntryLike
 
 // ---------- the instruments ----------
 
-/** A main instrument's family, for the tiers. */
+/** An instrument's family. */
 export type Family = "keys" | "strings" | "voice" | "console" | "chip" | "synth";
 /** A voice's register (by the entry's mean pitch). */
 export type Register = "soprano" | "alto" | "tenor" | "bass";
@@ -81,15 +83,13 @@ export interface Layer {
   /** Its name on the button (English; tr() gives pt and es). */
   name: string;
   family: Family;
-  /** The registers it doubles naturally (the musical tier). */
+  /** The registers it doubles naturally (where it belongs). */
   regs: readonly Register[];
   /** The lowest and highest MIDI it plays (a recording's own compass where it has one). */
   lo: number;
   hi: number;
 }
 
-/** The wackiest instruments: the rarest draw. */
-export const WACKIEST: readonly Layer["id"][] = ["tomWhistle", "modBell", "solBloop", "trkChoir"];
 
 const ALL: readonly Register[] = ["soprano", "alto", "tenor", "bass"];
 type Row = [id: Layer["id"], name: string, family: Family, regs: readonly Register[], lo?: number, hi?: number];
@@ -110,7 +110,7 @@ const ROWS: readonly Row[] = [
   ["trioBassoon", "BASSOON", "strings", ["tenor", "bass"]],
   ["trioCello", "CONTINUO CELLO", "strings", ["tenor", "bass"]],
   ["trioHarpsi", "CONTINUO HARPSICHORD", "keys", ALL],
-  // D502: BACH BRASS's recorded brass (the orchestra's real instruments: the strings' family for the tiers).
+  // D502: BACH BRASS's recorded brass (the orchestra's real instruments: the strings' family).
   ["bachTrumpet", "TRUMPET", "strings", ["soprano", "alto"]],
   ["bachHorn", "HORN", "strings", ["alto", "tenor"]],
   ["bachTrombone", "TROMBONE", "strings", ["tenor", "bass"]],
@@ -191,7 +191,7 @@ function compass(id: Layer["id"], lo = 28, hi = 100): [number, number] {
   return ms.length ? [Math.min(...ms) - 2, Math.max(...ms) + 2] : [lo, hi];
 }
 
-/** The instruments a boost can add: every one the game's sounds play. */
+/** Every instrument the game's sounds play, with its compass (D509: the octave's room). */
 export const LAYERS: readonly Layer[] = ROWS.map(([id, name, family, regs, lo, hi]) => {
   const [a, b] = compass(id, lo, hi);
   return { id, name, family, regs, lo: a, hi: b };
@@ -225,206 +225,42 @@ export function registerOf(midis: readonly number[]): Register {
   return m >= 67 ? "soprano" : m >= 60 ? "alto" : m >= 52 ? "tenor" : "bass";
 }
 
-// ---------- D439: how the boost sounds (the owner's A/B: a layer merged, or an effect instead) ----------
+// ---------- D509: how the boost sounds (three effects on the player's own voice) ----------
 
 /**
- * D439, the owner on D485's first hearing: "harsh and silly … maybe we can just try to improve the mix of
- * the new voice with player's voice, so that the two layers merge better", or "add effects to the player's
- * voice … depending on the instrument a distinct thing". Both built:
- * - "layer": D485's second instrument, merged into one ensemble colour (LAYER_DB under the voice, filtered,
- *   its envelope following the main instrument's, 15 ms late and a little aside, the main voice's reverb
- *   send; unison far more often; the wackiest tier gone; no synthesized stand-in: nothing till it loads).
- * - "effect": no second instrument; the player's own voice coloured for the entry (effectFor: an echo, a
- *   hall, a cathedral, a section's chorus, a ping-pong delay, a flanger), ramped in and out, never louder.
- * - "legacy": D485 as first built (0.75 of the level, its odds, the stand-in): internal, for the A/B renders.
- * D501 (the owner: "Just implement it all"; the instruments session chose by the player's sound): "auto", the
- * default, picks the mode by the player's own sound (`obbligatoModeFor`): "effect" on a keyboard or plucked
- * sound (EFFECT_SOUNDS: the piano, the harpsichord, the pipe organ (D510: the lute, the clavichord withdrawn): one player's
- * instrument, which a second instrument only muddies), "layer" on every other (an ensemble, voices, the
- * chips, consoles and synths, where a second instrument joins the band). "layer", "effect" and "legacy" force
- * that mode for every sound (the renders' A/B, the tests; `?obbligato=layer` on a page's address).
- * The trigger (the window, playedWell, the button) is the same in every mode.
+ * D509, the owner on D439/D501's layer and effect modes: "OBBLIGATO's effects on sound are disappointing and
+ * dumb … one possibility would be that it octaves the player's voice during the subject entrance … another
+ * adds a bit of delay … that sounds analog and cool but will not dominate … a flanger … a vibrato". Both modes
+ * (the second instrument, the six colours by instrument) gone; each offer draws one of three effects, all on
+ * the player's own voice over the player's own entry, ramped in and out with it (chip.ts VOICE_FX_RAMP), the
+ * whole as loud as the voice without it (chip.ts VOICE_FX's trims, measured on the renders):
+ * - "octave": the player's own notes doubled an octave away on the player's own instrument (the same patch,
+ *   envelope, touch and room: the same Play), OCTAVE_DB under each note; up for a low voice, down for a high
+ *   one (octaveShift), the other way where that would leave the instrument's compass, none where both would.
+ * - "tape": a tape echo a dotted eighth late at the tempo there (TAPE_QUARTERS), low feedback, band-limited
+ *   and a little saturated, its delay swaying (wow and flutter: a slow, slight pitch drift of the echoes).
+ * - "chorus": a gentle chorus-flanger on the voice, and a gentle vibrato (VIBRATO_HZ) on a sustaining sound;
+ *   on a plucked or struck one only the faintest wobble (vibratoCents).
+ * The trigger (the window, playedWell, the stretto rule, the button) is D485's, unchanged.
  */
-export type ObbligatoMode = "layer" | "effect";
-export type ObbligatoSetting = "auto" | ObbligatoMode | "legacy";
-export let OBBLIGATO_MODE: ObbligatoSetting = obbligatoParam(typeof location !== "undefined" ? location.search : "");
-/** The mode set (the renders' A/B, the tests). */
-export function setObbligatoMode(m: ObbligatoSetting) {
-  OBBLIGATO_MODE = m;
-}
-/** D501: the setting from a page's address (`?obbligato=layer|effect|legacy`); else "auto". */
-export function obbligatoParam(search: string): ObbligatoSetting {
-  try {
-    const v = new URLSearchParams(search).get("obbligato");
-    return v === "layer" || v === "effect" || v === "legacy" ? v : "auto";
-  } catch {
-    return "auto";
-  }
-}
-/** D501: the player's sounds whose boost is an effect on their own voice under "auto" (the keyboards and the plucked). */
-export const EFFECT_SOUNDS: ReadonlySet<string> = new Set(["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled"]);
-/** D501: the mode a boost takes on the player's sound `presetId` (the setting, or under "auto" the sound's own). */
-export function obbligatoModeFor(presetId: string): ObbligatoMode | "legacy" {
-  return OBBLIGATO_MODE === "auto" ? (EFFECT_SOUNDS.has(presetId) ? "effect" : "layer") : OBBLIGATO_MODE;
-}
-
-/** D485's three tiers' odds as first built: the obvious, musical mixes; the wackier; the wackiest (about one offer in sixteen). */
-export const LEGACY_TIER_ODDS = [0.72, 0.22, 0.06] as const;
-/** D439: the merged layer's odds: the musical mix nine times in ten, the wackier rarely, the wackiest never. */
-export const TIER_ODDS = [0.9, 0.1, 0] as const;
-/** The tiers' odds in the mode now. */
-export const tierOdds = (): readonly number[] => (OBBLIGATO_MODE === "legacy" ? LEGACY_TIER_ODDS : TIER_ODDS);
-
-/**
- * The tier of `l` as a layer on main family `main` in register `reg`: 0 the musical (a real instrument
- * of another family that belongs in that register: a cello on a piano's bass, a tenor on its tenor; on a
- * consort the voices and keyboards; on the voices the strings and keyboards; on a chip or synth sound the
- * real strings and voices), 2 the wackiest (WACKIEST), 1 everything else.
- */
-export function tierOf(l: Layer, main: Family, reg: Register): 0 | 1 | 2 {
-  if (WACKIEST.includes(l.id)) return 2;
-  const real = l.family === "keys" || l.family === "strings" || l.family === "voice";
-  if (!real || !l.regs.includes(reg)) return 1;
-  if (main === "keys") return l.family === "keys" ? 1 : 0;
-  if (main === "strings") return l.family === "strings" ? 1 : 0;
-  if (main === "voice") return l.family === "voice" ? 1 : 0;
-  // A chip, a synth or a console's imitation: the real strings and voices are the obvious mix.
-  return l.family === "keys" ? 1 : 0;
-}
-
-/** D485's octave odds as first built: the same octave most often, one either way rarer, two rarest. */
-export const LEGACY_OCTAVE_ODDS: Readonly<Record<number, number>> = { 0: 0.8, 1: 0.075, [-1]: 0.075, 2: 0.025, [-2]: 0.025 };
-/** D439: unison far more often, an octave either way rarely (and only where the instrument's register suits: octavesFor), never two. */
-export const OCTAVE_ODDS: Readonly<Record<number, number>> = { 0: 0.92, 1: 0.04, [-1]: 0.04 };
-/** The octave odds in the mode now. */
-export const octaveOdds = (): Readonly<Record<number, number>> => (OBBLIGATO_MODE === "legacy" ? LEGACY_OCTAVE_ODDS : OCTAVE_ODDS);
-/** No layer below this MIDI (a phone's speaker gives nothing there; the bass stays clear). */
+export type ObbFx = "octave" | "tape" | "chorus";
+export const OBB_FX: readonly ObbFx[] = ["octave", "tape", "chorus"];
+/** The effects' names on the button (tr() gives pt and es: obbligatoLabel). */
+export const FX_NAMES: Readonly<Record<ObbFx, string>> = { octave: "OCTAVE", tape: "TAPE ECHO", chorus: "CHORUS" };
+/** The draw's odds: even (an effect not open to the entry, the octave out of compass, its share to the others). */
+export const FX_ODDS: Readonly<Record<ObbFx, number>> = { octave: 1, tape: 1, chorus: 1 };
+/** The octave's level under each note it doubles (dB of the note's own level). */
+export const OCTAVE_DB = -9;
+export const OCTAVE_LEVEL = 10 ** (OCTAVE_DB / 20);
+/** The tape echo's delay in quarter notes: a dotted eighth. */
+export const TAPE_QUARTERS = 0.75;
+/** The vibrato's rate (Hz) and depth (cents, peak): a sustaining sound's, and a plucked or struck one's faint wobble. */
+export const VIBRATO_HZ = 5.2;
+export const VIBRATO_CENTS = { sustained: 12, struck: 3 } as const;
+/** No octave below this MIDI (a phone's speaker gives nothing there; the bass stays clear). */
 export const LAYER_FLOOR = 36;
 
-/** The octaves `l` may take for an entry spanning lo..hi (MIDI): within its compass, and not under LAYER_FLOOR. */
-export function octavesFor(l: Layer, lo: number, hi: number, midis?: readonly number[]): number[] {
-  const ks = OBBLIGATO_MODE === "legacy" ? [0, 1, -1, 2, -2] : [0, 1, -1];
-  // D439: an octave away only where the instrument belongs in the register it would sound in.
-  const suits = (k: number) => k === 0 || OBBLIGATO_MODE === "legacy" || !midis || l.regs.includes(registerOf(midis.map((m) => m + 12 * k)));
-  return ks.filter((k) => lo + 12 * k >= Math.max(l.lo, LAYER_FLOOR) && hi + 12 * k <= l.hi && suits(k));
-}
-
-/** A weighted pick (`rnd` in [0, 1)). */
-function pick<T>(items: readonly T[], weight: (t: T) => number, rnd: number): T | null {
-  const total = items.reduce((a, t) => a + weight(t), 0);
-  if (!(total > 0)) return null;
-  let x = rnd * total;
-  for (const t of items) if ((x -= weight(t)) < 0) return t;
-  return items[items.length - 1];
-}
-
-export interface Draw {
-  layer: Layer;
-  tier: 0 | 1 | 2;
-  /** Octaves from unison (0 most of the time). */
-  octave: number;
-}
-
-/**
- * The layer offered: a tier by TIER_ODDS (an empty tier's share spread over the others), an instrument
- * within it evenly, then an octave by OCTAVE_ODDS among those its compass allows for the entry's notes.
- * `pool` filters the instruments (for now every one; later perhaps only those the player has met); the
- * main instrument itself is never drawn.
- */
-export function drawLayer(o: { main: Layer["id"] | null; midis: readonly number[]; pool?: (l: Layer) => boolean; rng?: () => number }): Draw | null {
-  const rng = o.rng ?? Math.random;
-  const fam = familyOf(o.main);
-  const reg = registerOf(o.midis);
-  const lo = Math.min(...o.midis);
-  const hi = Math.max(...o.midis);
-  const ok = LAYERS.filter((l) => l.id !== (o.main ?? "chip") && (o.pool ? o.pool(l) : true) && octavesFor(l, lo, hi).length > 0);
-  const tiers = [0, 1, 2].map((t) => ok.filter((l) => tierOf(l, fam, reg) === t));
-  const odds = tierOdds();
-  const t = pick([0, 1, 2] as const, (k) => (tiers[k].length ? odds[k] : 0), rng());
-  if (t === null) return null;
-  const list = tiers[t];
-  const layer = list[Math.min(list.length - 1, Math.floor(rng() * list.length))];
-  const oo = octaveOdds();
-  const octave = pick(octavesFor(layer, lo, hi, o.midis), (k) => oo[k] ?? 0, rng()) ?? 0;
-  return { layer, tier: t, octave };
-}
-
-/** D439: the merged layer's place: this far beside the main voice (away from the centre), a little width. */
-export const LAYER_ASIDE = 0.12;
-
-/** The layer's voicing: its patch (the classic chip's pulse for "chip"), at the main voice's place (D439: a little aside). */
-export function layerVoicing(l: Layer, pan: number): { timbre: Timbre; pan: number; gain: number; patch: Patch | null } {
-  const p = OBBLIGATO_MODE === "legacy" ? pan : Math.max(-1, Math.min(1, pan + (pan < 0 ? -LAYER_ASIDE : LAYER_ASIDE)));
-  return { timbre: "pulse25", pan: p, gain: 1, patch: l.id === "chip" ? null : PATCHES[l.id] };
-}
-
-/** D485's layer level as first built: 0.75 of each note's level (about -2.5 dB). */
-export const LEGACY_LAYER_LEVEL = 0.75;
-/**
- * D439: the merged layer's level under the main voice (dB of each note's own level), set by the renders'
- * measurements (the D439 row): the layer alone well under the voice alone, a colour of it, not a second line.
- */
-export const LAYER_DB = -9;
-/** The layer's share of the note's level: it colours the voice, never swamps it (the main note's own level is untouched). */
-export const LAYER_LEVEL = 10 ** (LAYER_DB / 20);
-/** The layer's level in the mode now. */
-export const layerLevel = () => (OBBLIGATO_MODE === "legacy" ? LEGACY_LAYER_LEVEL : LAYER_LEVEL);
-
-/**
- * D439: each instrument's loudness at level 1 (LUFS: six notes about middle C alone through the game's
- * Chip, on a phone, the render harness). The instruments differ by up to 10 dB at one level (a tracker's
- * slap bass -24, the space strings -34): a layer's level is evened out by the difference from the main
- * instrument's (at most LOUDNESS_SPAN either way), so LAYER_DB means the same mix whatever is drawn.
- */
-export const LOUDNESS: Readonly<Record<Layer["id"], number>> = {
-  chip: -33.3, consCello: -27.1, consViola: -27.8, consViolin: -26.7, fmBass: -26.7, fmBrass: -30.0, fmClav: -23.6, fmLead: -29.1, fmPiano: -26.2,
-  gbBass: -26.9, gbHarm: -29.6, gbLead: -28.4, gbThin: -28.3, gbWave: -29.9, harpsiSampled: -27.4, modBass: -25.2, modBell: -24.7,
-  modBongo: -25.4, modOrgan: -27.3, modVibe: -25.0,
-  orgPedal: -26.2, orgPrincipal: -27.2, pianoSampled: -26.9, s16Bassoon: -27.9, s16Cello: -29.3, s16Flute: -25.7, s16Harpsi: -27.2,
-  s16Strings: -25.8, s16Violin: -26.5, sidBass: -29.2, sidLead: -28.2, sidSaw: -26.8, sidThin: -28.3, sidTri: -26.5, singA: -29.6, singB: -30.6,
-  singS: -30.2, singS2: -30.8, singT: -29.6, solBass: -28.5, solBloop: -26.5, solLead: -28.8, solNasal: -28.1, solSquare: -27.7, tomBass: -28.0,
-  tomChoir: -32.1, tomFlute: -28.0, tomStrings: -33.8, tomWhistle: -28.6, trkBass: -24.0, trkChoir: -29.5, trkFlute: -29.1, trkHarpsi: -27.1,
-  trkViolin: -29.9, vocDa: -28.9, vocLa: -28.6, vocMi: -25.1, vocNe: -24.8, vocRo: -27.3,
-  // D501: BAROQUE BAND's own patches (D438) and CLAVICHORD (D510: withdrawn), probed the same way (their preset's own gain
-  // taken out; the cello with its continuo harpsichord).
-  bandViolin: -26.9, bandOboe: -24.6, bandViola: -27.0, bandCello: -24.0,
-  // D504: ZELENKA TRIO's (the same probe, its gains taken out; BAROQUE BAND's oboe and violin probed again beside them: -25.0, -26.9).
-  trioOboe1: -23.0, trioOboe2: -23.7, trioBassoon: -16.8, trioCello: -21.9, trioHarpsi: -28.1,
-  // D502: BACH BRASS's (probed the same way, its phoneGain taken out; offset by the band violin's probe beside them).
-  bachTrumpet: -28.1, bachHorn: -27.0, bachTrombone: -29.4, bachBass: -29.1,
-  // D503: JAZZ QUARTET's (the same way, its preset's gain taken out; the bass's six notes an octave lower, C3-A3).
-  jqVibes: -27.1, jqPiano: -28.7, jqBass: -36.8,
-} as Record<Layer["id"], number>;
-/** D439: the evening out at most this many dB either way. */
-export const LOUDNESS_SPAN = 6;
-/**
- * D439: the main instrument as heard in the game against LOUDNESS (dB): its line, its touch and its
- * envelope (the piano's soft recordings and phrasing well under its level 1; a sustained layer over a
- * harpsichord's quick decay dying away with it). Measured on the renders (a violin or a soprano layer alone
- * against the voice alone, Fugue I/2's soprano entry at bar 11) so LAYER_DB is what is heard; 0 where unmeasured.
- */
-export const HEARD_DB: Readonly<Partial<Record<MainKind, number>>> = { piano: -5.5, harpsichord: 3, organ: 1, chip: -2.5 };
-/** D439: the layer's level (a share of each note's own) in the mode now: LAYER_DB under the main instrument, evened out by their loudness. */
-export function layerGain(main: PatchId | null, l: Layer): number {
-  if (OBBLIGATO_MODE === "legacy") return LEGACY_LAYER_LEVEL;
-  const a = LOUDNESS[main ?? "chip"];
-  const b = LOUDNESS[l.id];
-  const even = a === undefined || b === undefined ? 0 : Math.max(-LOUDNESS_SPAN, Math.min(LOUDNESS_SPAN, a - b));
-  const heard = HEARD_DB[mainKind(main, main ? PATCHES[main] : null)] ?? 0;
-  return 10 ** ((LAYER_DB + even + heard) / 20);
-}
-
-/** MIDI to Hz (equal temperament, A = 440: for the filters' corners only). */
-const hzOf = (m: number) => 440 * 2 ** ((m - 69) / 12);
-
-/** A patch's sound plucked or struck (it dies away by itself). */
-function decays(pt: Patch | null): boolean {
-  if (!pt) return false;
-  if (pt.sample) return SAMPLED[pt.sample].plucked;
-  return pt.amp.s === 0;
-}
-
-/** The main instrument's kind, for its envelope and its effect. */
+/** The main instrument's kind (its envelope: struck or plucked, bowed, blown, sung, a chip's or a synth's). */
 export type MainKind = "piano" | "harpsichord" | "organ" | "strings" | "voice" | "chip" | "synth";
 export function mainKind(id: PatchId | null, pt: Patch | null): MainKind {
   if (!pt) return "chip";
@@ -439,64 +275,80 @@ export function mainKind(id: PatchId | null, pt: Patch | null): MainKind {
   return "synth";
 }
 
-/** D439: how the main instruments speak and stop (s): the layer never speaks sooner nor rings longer; over a plucked or struck voice it dies away with it. */
-const SPEAK: Readonly<Record<MainKind, { attack: number; release: number; follow?: { tau: number; floor: number } }>> = {
-  piano: { attack: 0.004, release: 0.25, follow: { tau: 1.1, floor: 0.2 } },
-  harpsichord: { attack: 0.003, release: 0.1, follow: { tau: 0.45, floor: 0.12 } },
-  organ: { attack: 0.03, release: 0.06 },
-  strings: { attack: 0.06, release: 0.12 },
-  voice: { attack: 0.045, release: 0.15 },
-  chip: { attack: 0.005, release: 0.05 },
-  synth: { attack: 0.008, release: 0.08 },
-};
-
-/** D439: the filter's top for a bright or synthesized layer (Hz); a real instrument's left open. */
-export const LAYER_LP = { synthetic: 4500, real: 9000 } as const;
-/** D439: the layer this late behind the main voice (s): the two heard as one note, a little wider. */
-export const LAYER_DELAY = 0.015;
-
-/**
- * D439, the merged layer's blend (chip.ts Play.blend): a high-pass under the main voice's lowest fundamental
- * (the layer adds colour, not weight), a low-pass on the synthetic ones, 15 ms late, the main voice's
- * attack at least, its release at most, and over a plucked or struck main voice a sustained layer dying
- * away with it; the main voice's reverb send.
- */
-export function blendFor(mainId: PatchId | null, layer: Layer, midis: readonly number[]): Blend {
-  const main = mainId ? PATCHES[mainId] : null;
-  const sp = SPEAK[mainKind(mainId, main)];
-  const lp = layer.family === "chip" || layer.family === "console" || layer.family === "synth" ? LAYER_LP.synthetic : LAYER_LP.real;
-  const follow = sp.follow && !decays(layerVoicing(layer, 0).patch) ? sp.follow : undefined;
-  return { hp: Math.round(hzOf(Math.min(...midis)) * 0.7), lp, delay: LAYER_DELAY, attack: sp.attack, release: sp.release, ...(follow ? { follow } : {}), send: main?.send ?? 0 };
+/** The player's sound dies away by itself (plucked or struck: a recording's own, or a patch with no sustain). */
+export function struck(id: PatchId | null): boolean {
+  const pt = id ? PATCHES[id] : null;
+  if (!pt) return false;
+  const k = mainKind(id, pt);
+  if (k === "piano" || k === "harpsichord") return true;
+  if (pt.sample) return SAMPLED[pt.sample].plucked;
+  return pt.amp.s === 0;
 }
 
-// ---------- D439, "effect": the player's own voice coloured instead ----------
-
-/**
- * The effect by the main instrument: the harpsichord (and lute) an eighth-note echo, low feedback,
- * filtered; the piano a bigger hall; the organ a cathedral; strings and voices a richer hall and a
- * section's gentle chorus (more players joining); the chips and consoles a dotted-eighth ping-pong delay
- * (as the console composers did); the synthesizers a flanger.
- */
-export const EFFECTS: Readonly<Record<MainKind, VoiceFx>> = {
-  harpsichord: "echo",
-  piano: "hall",
-  organ: "cathedral",
-  strings: "ensemble",
-  voice: "ensemble",
-  chip: "pingpong",
-  synth: "flanger",
-};
-/** The effects' names on the button (tr() gives pt and es). */
-export const EFFECT_NAMES: Readonly<Record<VoiceFx, string>> = { echo: "ECHO", hall: "GRAND HALL", cathedral: "CATHEDRAL", ensemble: "ENSEMBLE", pingpong: "PING-PONG ECHO", flanger: "FLANGER" };
-/** The delays' lengths in quarter notes: the echo an eighth, the ping-pong a dotted eighth. */
-export const FX_QUARTERS: Readonly<Partial<Record<VoiceFx, number>>> = { echo: 0.5, pingpong: 0.75 };
-
-/** The effect for a main instrument, and the offer's stand-in "layer" (its name on the button; nothing is layered). */
-export function effectFor(mainId: PatchId | null): { fx: VoiceFx; shown: Layer } {
-  const fx = EFFECTS[mainKind(mainId, mainId ? PATCHES[mainId] : null)];
-  return { fx, shown: { id: mainId ?? "chip", name: EFFECT_NAMES[fx], family: familyOf(mainId), regs: [], lo: 0, hi: 127 } };
+/** The vibrato's depth (cents) on the player's instrument: a sustaining sound's, or a struck one's faint wobble. */
+export function vibratoCents(id: PatchId | null): number {
+  return struck(id) ? VIBRATO_CENTS.struck : VIBRATO_CENTS.sustained;
 }
 
+/** The player's instrument's compass (MIDI): its LAYERS row (a recording's own compass), else its recordings', else the chip's. */
+export function compassOf(id: PatchId | null): [number, number] {
+  const row = LAYERS.find((l) => l.id === (id ?? "chip"));
+  return row ? [row.lo, row.hi] : compass(id ?? "chip");
+}
+
+/** The octave for an entry's notes on the player's instrument: up (+1) for a low voice, down (-1) for a high one; the other way where that leaves the compass; null where both do. */
+export function octaveShift(id: PatchId | null, midis: readonly number[]): 1 | -1 | null {
+  if (!midis.length) return null;
+  const [lo, hi] = compassOf(id);
+  const a = Math.min(...midis);
+  const b = Math.max(...midis);
+  const reg = registerOf(midis);
+  const prefer: (1 | -1)[] = reg === "tenor" || reg === "bass" ? [1, -1] : [-1, 1];
+  return prefer.find((k) => a + 12 * k >= Math.max(lo, LAYER_FLOOR) && b + 12 * k <= hi) ?? null;
+}
+
+/** A weighted pick (`rnd` in [0, 1)). */
+function pick<T>(items: readonly T[], weight: (t: T) => number, rnd: number): T | null {
+  const total = items.reduce((a, t) => a + weight(t), 0);
+  if (!(total > 0)) return null;
+  let x = rnd * total;
+  for (const t of items) if ((x -= weight(t)) < 0) return t;
+  return items[items.length - 1];
+}
+
+/** An effect drawn for an entry: which, the octave's direction (0 for the others), the vibrato's depth (cents; the chorus's only), the player's sound plucked or struck (the chorus's trim). */
+export interface Effect {
+  fx: ObbFx;
+  shift: 0 | 1 | -1;
+  vib: number;
+  dies: boolean;
+}
+
+/** The effect offered for an entry of `midis` on the player's instrument `main` (FX_ODDS; the octave only where octaveShift allows). */
+export function drawEffect(o: { main: PatchId | null; midis: readonly number[]; rng?: () => number }): Effect {
+  const shift = octaveShift(o.main, o.midis);
+  const fx = pick(OBB_FX, (k) => (k === "octave" && shift === null ? 0 : FX_ODDS[k]), (o.rng ?? Math.random)()) ?? "tape";
+  return effectOf(fx, o.main, o.midis) ?? { fx: "tape", shift: 0, vib: 0, dies: struck(o.main) };
+}
+
+/** The effect `fx` on an entry of `midis` on `main` (null: the octave, where it has no room). */
+export function effectOf(fx: ObbFx, main: PatchId | null, midis: readonly number[]): Effect | null {
+  if (fx === "octave") {
+    const shift = octaveShift(main, midis);
+    return shift === null ? null : { fx, shift, vib: 0, dies: struck(main) };
+  }
+  return { fx, shift: 0, vib: fx === "chorus" ? vibratoCents(main) : 0, dies: struck(main) };
+}
+
+/** The offer's stand-in "instrument" (the button's `layer`: its name the effect's; nothing else is played). */
+export function shownFor(fx: ObbFx, main: PatchId | null): Layer {
+  return { id: main ?? "chip", name: FX_NAMES[fx], family: familyOf(main), regs: [], lo: 0, hi: 127 };
+}
+
+/** The button's label for an offer (or a boost): the drawn effect's name in the language chosen ("OCTAVE", "TAPE ECHO", "CHORUS"). */
+export function obbligatoLabel(o: { fx: ObbFx } | null | undefined): string {
+  return o ? tr(FX_NAMES[o.fx]) : "";
+}
 
 /**
  * The player's note with its layer, as one sound: stopped, bent and glided together (the layer `shift`

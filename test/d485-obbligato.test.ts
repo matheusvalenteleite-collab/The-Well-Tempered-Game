@@ -1,11 +1,12 @@
 /**
  * D485, OBBLIGATO (the subject boost): playing well in the stretch just before one of the player's own
- * subject entries offers a layer (another instrument, on top of the player's own) for that entry and for
- * the later entries overlapping it; the player takes it with the button or it lapses at the entry.
+ * subject entries offers a boost for that entry and for the later entries overlapping it; the player takes
+ * it with the button or it lapses at the entry. D509: the boost one of three effects on the player's own
+ * voice (the octave here; the tape echo and the chorus in d509-obbligato-effects.test.ts).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boostedSpans, drawLayer, familyOf, LAYERS, LAYER_FLOOR, LEGACY_OCTAVE_ODDS, LEGACY_TIER_ODDS, octavesFor, offerWindow, OBBLIGATO, OBBLIGATO_MODE, OCTAVE_ODDS, playedWell, presetPatchIds, registerOf, setObbligatoMode, tierOf, TIER_ODDS, WACKIEST, WELL, type Family, type GradedNote, type Register } from "../src/bench/obbligato.ts";
+import { boostedSpans, compassOf, drawEffect, effectOf, FX_NAMES, LAYERS, LAYER_FLOOR, OBB_FX, obbligatoLabel, octaveShift, OCTAVE_DB, OCTAVE_LEVEL, offerWindow, OBBLIGATO, playedWell, presetPatchIds, vibratoCents, VIBRATO_CENTS, VIBRATO_HZ, WELL, type GradedNote } from "../src/bench/obbligato.ts";
 import { PT } from "../src/i18n/pt.ts";
 import { ES } from "../src/i18n/es.ts";
 import { synthRun } from "../tools/lab/lab-synth.ts";
@@ -13,17 +14,6 @@ import { obbRun } from "./d485-sim.ts";
 import { labGame } from "../src/bench/lab/game.ts";
 import { silentChip } from "../src/bench/lab/replay.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
-
-/** D439: a test run in another OBBLIGATO mode (the mode put back after). */
-function inMode<T>(m: Parameters<typeof setObbligatoMode>[0], f: () => T): T {
-  const was = OBBLIGATO_MODE;
-  setObbligatoMode(m);
-  try {
-    return f();
-  } finally {
-    setObbligatoMode(was);
-  }
-}
 
 /** A seeded generator (the tests' draws repeatable). */
 function rng(seed = 12345) {
@@ -71,7 +61,7 @@ test("D485: the simulated players: a careful player is offered the entry about a
   assert.ok(clean.offers.length >= 2, `offers ${clean.offers.length}`);
   const bar = clean.g.f.barTicks;
   for (const o of clean.offers) assert.ok(o.entryOn - o.at >= 0.95 * bar && o.entryOn - o.at <= 1.1 * bar, `shown ${(o.entryOn - o.at) / bar} bars ahead`);
-  // Never taken: each lapsed at its entry; no layer ever sounded, no boost.
+  // Never taken: each lapsed at its entry; no octave ever sounded, no boost.
   assert.equal(clean.g.offer, null);
   assert.equal(clean.calls.filter((c) => c.includes('"couple":false')).length, 0);
   // A wrong note every 8: no offer. A scatter of ±120 ms (GOOD rather than PERFECT): hardly ever.
@@ -109,185 +99,138 @@ test("D485: the stretto rule: the player's entry and the later entries overlappi
   assert.deepEqual(boostedSpans(P, all), [P, { voice: 2, on: 1200, end: 1700 }]);
 });
 
-test("D485: in the game, a boost taken sounds its layer on the later entry in stretto, never on the earlier one", () => {
-  // Fugue I/16, the bass's entry at bar 13: the alto's (bar 12) began before it, the soprano's (bar 15) after.
-  const run = obbRun(synthRun(passage("wtc1f16", 3, 17), { gap: 0.03, jitter: 0.03, seed: 3 }), { on: true, take: true, rng: rng(7) });
-  const f = run.g.f;
-  const P = f.entries.find((e) => e.voice === 3 && e.bar === 13)!;
-  const offer = run.offers.find((o) => o.entryOn === P.on);
-  assert.ok(offer, "the bass's entry offered");
-  const earlier = f.entries.find((e) => e.voice === 1 && e.bar === 12)!;
-  const later = f.entries.find((e) => e.voice === 0 && e.bar === 15)!;
-  assert.deepEqual(offer.spans.map((s) => s.voice), [3, 0]);
-  assert.ok(run.layered.some((x) => x.voice === 0 && x.on >= later.on && x.on < later.end), "the soprano's later entry layered");
-  assert.ok(!run.layered.some((x) => x.voice === 1 && x.on >= earlier.on && x.on < earlier.end), "the alto's earlier entry never layered");
-  const spans = run.offers.flatMap((o) => o.spans);
-  assert.ok(run.layered.every((x) => spans.some((s) => s.voice === x.voice && x.on >= s.on && x.on < s.end)), "only inside the boosted entries");
-  assert.ok(earlier.end > P.on && later.on < P.end, "a stretto both ways");
-});
+// ---------- D509: the octave, the main instrument untouched ----------
 
-// ---------- the level: a layer added, the main instrument untouched ----------
+const args = (c: string) => JSON.parse(c.slice(c.indexOf("(") + 1, c.lastIndexOf(") -> "))) as unknown[];
+const isOctave = (c: string) => c.startsWith("note(") && c.includes('"couple":false');
 
-/** The calls with the layer's (and every call on a layer's sound) taken out, the sounds renumbered. */
-function withoutLayers(calls: string[]): string[] {
-  const layerTags = new Set(calls.filter((c) => c.startsWith("note(") && c.includes('"couple":false')).map((c) => c.split(" -> ")[1]));
-  const kept = calls.filter((c) => !(c.startsWith("note(") && c.includes('"couple":false')) && !layerTags.has(c.split(".")[0]));
+/** The calls with the octave's (and every call on an octave's sound) and the effect's taken out, the sounds renumbered. */
+function withoutOctaves(calls: string[]): string[] {
+  const tags = new Set(calls.filter(isOctave).map((c) => c.split(" -> ")[1]));
+  const kept = calls.filter((c) => !isOctave(c) && !tags.has(c.split(".")[0]) && !c.startsWith("voiceFx("));
   const ren = new Map<string, string>();
   const tag = (t: string) => (ren.has(t) ? ren.get(t)! : (ren.set(t, `s${ren.size}`), ren.get(t)!));
   return kept.map((c) => c.replace(/\bs\d+\b/g, (t) => tag(t)));
 }
 
-test("D485: the boost adds a layer and changes nothing else: the main instrument's every call (its level included) as without it", () => {
-  const log = synthRun(passage("wtc1f02", 0, 31), { gap: 0.03, jitter: 0.03, seed: 3 });
-  const plain = obbRun(log, { on: true, take: false, rng: rng(1) });
-  const boosted = obbRun(log, { on: true, take: true, rng: rng(1) });
-  const layers = boosted.calls.filter((c) => c.startsWith("note(") && c.includes('"couple":false'));
-  assert.ok(layers.length > 5, `layer notes ${layers.length}`);
-  assert.deepEqual(withoutLayers(boosted.calls), plain.calls);
-  // The layer in unison or whole octaves, at LAYER_LEVEL of its note's level, its own patch.
-  const notes = plain.calls.filter((c) => c.startsWith("note("));
-  assert.ok(notes.length > 100);
-  // Only during the boosted entries: every layer note starts inside one (audio time of its onset).
-  const g = boosted.g;
-  const spans = boosted.offers.flatMap((o) => o.spans);
-  for (const c of layers) {
-    const at = JSON.parse(c.slice(5, c.lastIndexOf(") -> ")))[1] as number;
-    const tick = (g as unknown as { tickAt: (t: number) => number }).tickAt(at);
-    assert.ok(spans.some((s) => tick >= s.on - g.beat && tick < s.end + g.beat), `layer at tick ${tick}`);
+test("D485, D509: in the game, a boost covers the later entry in stretto (the bars' tinge), its octave sounds only on the player's own entry", () => {
+  // Fugue I/16, the bass's entry at bar 13: the alto's (bar 12) began before it, the soprano's (bar 15) after.
+  // An rng low enough to draw the octave (the first of the three).
+  const run = obbRun(synthRun(passage("wtc1f16", 3, 17), { gap: 0.03, jitter: 0.03, seed: 3 }), { on: true, take: true, rng: () => 0.05 });
+  const f = run.g.f;
+  const P = f.entries.find((e) => e.voice === 3 && e.bar === 13)!;
+  const offer = run.offers.find((o) => o.entryOn === P.on);
+  assert.ok(offer, "the bass's entry offered");
+  assert.equal(offer.fx, "octave");
+  assert.equal(offer.shift, 1, "a bass entry doubled an octave up");
+  const earlier = f.entries.find((e) => e.voice === 1 && e.bar === 12)!;
+  const later = f.entries.find((e) => e.voice === 0 && e.bar === 15)!;
+  assert.deepEqual(offer.spans.map((s) => s.voice), [3, 0]);
+  assert.ok(run.layered.some((x) => x.voice === 0 && x.on >= later.on && x.on < later.end), "the soprano's later entry inside the boost");
+  assert.ok(!run.layered.some((x) => x.voice === 1 && x.on >= earlier.on && x.on < earlier.end), "the alto's earlier entry never");
+  assert.ok(earlier.end > P.on && later.on < P.end, "a stretto both ways");
+  // The octave's notes: only while one of the player's own boosted entries sounds (never the soprano's after the bass's ends).
+  const g = run.g as unknown as { tickAt: (t: number) => number };
+  const oct = run.calls.filter(isOctave);
+  assert.ok(oct.length > 5, `octave notes ${oct.length}`);
+  const own = run.offers.map((o) => o.spans[0]);
+  assert.ok(own.every((s) => s.voice === 3));
+  for (const c of oct) {
+    const tick = g.tickAt(args(c)[1] as number);
+    assert.ok(own.some((s) => tick >= s.on - run.g.beat && tick < s.end + run.g.beat), `octave at tick ${tick}`);
   }
-  // The scores alike: judging and scoring take nothing from the boost.
+  assert.ok(oct.some((c) => Math.abs(g.tickAt(args(c)[1] as number) - P.on) < run.g.beat), "the bass's entry doubled from its first note");
+});
+
+test("D509: the octave adds the player's own notes an octave away at OCTAVE_LEVEL, on the same patch and Play, and changes nothing else", () => {
+  const log = synthRun(passage("wtc1f02", 0, 31), { gap: 0.03, jitter: 0.03, seed: 3 });
+  const plain = obbRun(log, { on: true, take: false, rng: () => 0.05 });
+  const boosted = obbRun(log, { on: true, take: true, rng: () => 0.05 });
+  assert.ok(boosted.offers.length >= 2 && boosted.offers.every((o) => o.fx === "octave" && Math.abs(o.shift) === 1));
+  const oct = boosted.calls.filter(isOctave);
+  assert.ok(oct.length > 5, `octave notes ${oct.length}`);
+  assert.deepEqual(withoutOctaves(boosted.calls), plain.calls);
+  // Each touch's octave straight after its note: the pitch an octave away, the voicing the same, the level OCTAVE_LEVEL of the note's.
+  let pairs = 0;
+  boosted.calls.forEach((c, i) => {
+    const prev = boosted.calls[i - 1];
+    if (!isOctave(c) || !prev?.startsWith("note(") || isOctave(prev)) return;
+    const [m, , , v, p] = args(c) as [number, number, number, unknown, { level?: number; recordedOnly?: boolean }];
+    const [m0, , , v0, p0] = args(prev) as [number, number, number, unknown, { level?: number }];
+    assert.equal(Math.abs(m - m0), 12);
+    assert.deepEqual(v, v0, "the player's own instrument, at its place");
+    assert.ok(Math.abs((p.level ?? 1) / (p0.level ?? 1) - OCTAVE_LEVEL) < 1e-3, `${p.level} / ${p0.level}`);
+    assert.equal(p.recordedOnly, true);
+    pairs++;
+  });
+  assert.ok(pairs > 3, `pairs ${pairs}`);
+  // The dry trimmed with it over the entry (one voiceFx a boost), the scores alike.
+  assert.equal(boosted.calls.filter((c) => c.startsWith('voiceFx(["octave"')).length, boosted.offers.length);
   assert.equal(boosted.g.score, plain.g.score);
   assert.equal(boosted.g.slips, plain.g.slips);
+  assert.ok(OCTAVE_DB <= -8 && OCTAVE_DB >= -10);
 });
 
-test("D485: the bass stays clear: no layer under LAYER_FLOOR; downward octaves only where the instrument and the floor allow", () => {
-  for (const l of LAYERS) for (const k of octavesFor(l, 40, 55)) assert.ok(40 + 12 * k >= Math.max(l.lo, LAYER_FLOOR) && 55 + 12 * k <= l.hi, `${l.id} ${k}`);
-  assert.ok(LAYER_FLOOR >= 36);
-});
-
-// ---------- the weighted draw ----------
-
-const FAMILIES: [Family, string | null][] = [
-  ["keys", "pianoSampled"],
-  ["strings", "consCello"],
-  ["voice", "singA"],
-  ["console", "s16Violin"],
-  ["chip", null],
-  ["synth", "fmLead"],
-];
-const REGISTERS: [Register, number[]][] = [
-  ["soprano", [67, 69, 71, 72, 74, 76, 77]],
-  ["alto", [60, 62, 63, 65, 67, 68]],
-  ["tenor", [52, 53, 55, 57, 58, 60]],
-  ["bass", [40, 43, 45, 47, 48, 50]],
-];
-
-test("D485 (legacy, D439): the draw's tiers as first built: the musical most often, the wackier less, the wackiest about one offer in sixteen", () => inMode("legacy", () => {
-  for (const [fam, main] of FAMILIES)
-    for (const [reg, midis] of REGISTERS) {
-      assert.equal(familyOf(main as never), fam);
-      assert.equal(registerOf(midis), reg);
-      const r = rng(99);
-      const n = 20000;
-      const count = [0, 0, 0];
-      for (let i = 0; i < n; i++) {
-        const d = drawLayer({ main: main as never, midis, rng: r })!;
-        count[d.tier]++;
-        assert.notEqual(d.layer.id, main ?? "chip", "never the main instrument");
-        assert.equal(tierOf(d.layer, fam, reg), d.tier);
-      }
-      const share = count.map((c) => c / n);
-      assert.ok(share[0] > share[1] && share[1] > share[2], `${fam} ${reg} ${share}`);
-      assert.ok(share[2] <= 1 / 6 && share[2] >= 0.03, `${fam} ${reg} wackiest ${share[2]}`);
-      for (const t of [0, 1, 2]) assert.ok(Math.abs(share[t] - LEGACY_TIER_ODDS[t]) < 0.03, `${fam} ${reg} tier ${t}: ${share[t]}`);
+test("D509: the octave's direction: up for a low voice, down for a high one, the other way at the compass's edge, none where both leave it; never under LAYER_FLOOR", () => {
+  assert.equal(octaveShift("pianoSampled", [40, 43, 45, 47, 48, 50]), 1, "bass: up");
+  assert.equal(octaveShift("pianoSampled", [52, 53, 55, 57, 58, 60]), 1, "tenor: up");
+  assert.equal(octaveShift("pianoSampled", [60, 62, 63, 65, 67, 68]), -1, "alto: down");
+  assert.equal(octaveShift("pianoSampled", [67, 69, 71, 72, 74, 76, 77]), -1, "soprano: down");
+  // The jazz quartet's vibraphone (C3-F6 recorded): a soprano entry down where it fits, else up; a low one up.
+  const [vlo, vhi] = compassOf("jqVibes");
+  assert.ok(vlo >= 46 && vhi <= 91);
+  assert.equal(octaveShift("jqVibes", [52, 55, 57, 60]), 1);
+  assert.equal(octaveShift("jqVibes", [55, 60, 64, 67]), 1, "an alto with no room below goes up");
+  // The jazz bass's pizzicato (E1-G4): a bass entry up; the floor keeps an octave down from the bass clear.
+  assert.equal(octaveShift("jqBass", [36, 40, 43, 45]), 1);
+  assert.equal(octaveShift("jqVibes", [50, 60, 79, 86]), null, "nowhere to go: no octave");
+  for (const l of LAYERS)
+    for (const ms of [[40, 47, 52], [55, 60, 64], [64, 69, 76], [72, 79, 84]]) {
+      const k = octaveShift(l.id === "chip" ? null : l.id, ms);
+      if (k === null) continue;
+      const [lo, hi] = compassOf(l.id === "chip" ? null : l.id);
+      assert.ok(Math.min(...ms) + 12 * k >= Math.max(lo, LAYER_FLOOR) && Math.max(...ms) + 12 * k <= hi, `${l.id} ${ms} ${k}`);
     }
-}));
-
-test("D439: the merged layer's draw: the musical mix about nine times in ten, the wackier rarely, the wackiest never", () => inMode("layer", () => {
-  for (const [fam, main] of FAMILIES)
-    for (const [reg, midis] of REGISTERS) {
-      const r = rng(99);
-      const n = 10000;
-      const count = [0, 0, 0];
-      for (let i = 0; i < n; i++) {
-        const d = drawLayer({ main: main as never, midis, rng: r })!;
-        count[d.tier]++;
-        assert.ok(!WACKIEST.includes(d.layer.id), `${fam} ${reg}: ${d.layer.id}`);
-        assert.ok(Math.abs(d.octave) <= 1, "never two octaves");
-      }
-      const share = count.map((c) => c / n);
-      assert.equal(share[2], 0);
-      for (const t of [0, 1]) assert.ok(Math.abs(share[t] - TIER_ODDS[t]) < 0.03, `${fam} ${reg} tier ${t}: ${share[t]}`);
-    }
-}));
-
-test("D485: the musical tier is the obvious mix: a cello on a piano's bass, a tenor on its tenor, never a synthesizer", () => {
-  const t0 = (fam: Family, reg: Register) => LAYERS.filter((l) => tierOf(l, fam, reg) === 0).map((l) => l.id);
-  assert.ok(t0("keys", "bass").includes("consCello"));
-  assert.ok(t0("keys", "tenor").includes("singT"));
-  assert.ok(!t0("keys", "bass").includes("pianoSampled"));
-  for (const [fam] of FAMILIES) for (const [reg] of REGISTERS) for (const id of t0(fam, reg)) assert.ok(["keys", "strings", "voice"].includes(LAYERS.find((l) => l.id === id)!.family), id);
-  for (const id of WACKIEST) assert.ok(LAYERS.some((l) => l.id === id), id);
 });
 
-test("D485: the draw's pool filter (later: only the instruments met), and every instrument the sounds play is in the pool", () => {
-  const met = new Set(["consCello", "singB", "s16Bassoon", "gbWave"]);
-  const r = rng(3);
-  for (let i = 0; i < 2000; i++) assert.ok(met.has(drawLayer({ main: "pianoSampled", midis: [40, 45, 50], pool: (l) => met.has(l.id), rng: r })!.layer.id));
-  assert.equal(drawLayer({ main: "pianoSampled", midis: [40, 45, 50], pool: () => false, rng: r }), null);
+test("D509: the draw: the three effects about evenly; the octave's share to the others where it has no room; the chorus's vibrato by the instrument", () => {
+  const r = rng(99);
+  const n = 30000;
+  const by = new Map<string, number>();
+  for (let i = 0; i < n; i++) {
+    const e = drawEffect({ main: "pianoSampled", midis: [60, 62, 64, 65, 67], rng: r });
+    by.set(e.fx, (by.get(e.fx) ?? 0) + 1);
+    assert.equal(e.shift, e.fx === "octave" ? -1 : 0);
+    assert.equal(e.vib, e.fx === "chorus" ? VIBRATO_CENTS.struck : 0);
+  }
+  for (const fx of OBB_FX) assert.ok(Math.abs((by.get(fx) ?? 0) / n - 1 / 3) < 0.02, `${fx} ${by.get(fx)}`);
+  // No room for the octave: tape and chorus half and half.
+  const by2 = new Map<string, number>();
+  for (let i = 0; i < n; i++) {
+    const e = drawEffect({ main: "jqVibes", midis: [50, 60, 79, 86], rng: r });
+    by2.set(e.fx, (by2.get(e.fx) ?? 0) + 1);
+  }
+  assert.equal(by2.get("octave") ?? 0, 0);
+  assert.ok(Math.abs((by2.get("tape") ?? 0) / n - 0.5) < 0.02);
+  assert.equal(effectOf("octave", "jqVibes", [50, 60, 79, 86]), null);
+  // The vibrato: a sustaining sound's gentle one, a plucked or struck sound's only a faint wobble.
+  for (const id of ["consViolin", "singA", "orgPrincipal", "bachHorn", "gbLead", null] as const) assert.equal(vibratoCents(id), VIBRATO_CENTS.sustained, String(id));
+  for (const id of ["pianoSampled", "harpsiSampled", "jqVibes", "jqBass", "jqPiano"] as const) assert.equal(vibratoCents(id), VIBRATO_CENTS.struck, id);
+  assert.ok(VIBRATO_CENTS.sustained <= 15 && VIBRATO_CENTS.struck <= 4 && VIBRATO_HZ > 4.5 && VIBRATO_HZ < 6);
+});
+
+test("D485: every instrument the sounds play has its compass (LAYERS: the octave's room)", () => {
   const ids = new Set(LAYERS.map((l) => l.id as string));
   for (const id of presetPatchIds()) assert.ok(ids.has(id) || ["orgPleno", "orgPedalPleno"].includes(id), `${id} missing from LAYERS`);
+  for (const l of LAYERS) assert.ok(l.lo < l.hi && l.lo >= 20 && l.hi <= 110, l.id);
 });
 
-test("D485 (legacy, D439): the octave as first built: the same most of the time, one octave either way rarer, two rarest, always within the instrument's compass", () => inMode("legacy", () => {
-  // An alto entry on wide instruments (every octave open).
-  const midis = [60, 62, 64, 65, 67];
-  const wide = (l: { id: string }) => ["pianoSampled", "fmPiano", "chip", "orgPrincipal", "sidSaw", "modOrgan", "tomStrings", "solNasal", "fmClav"].includes(l.id);
-  const r = rng(5);
-  const n = 30000;
-  const by = new Map<number, number>();
-  for (let i = 0; i < n; i++) {
-    const d = drawLayer({ main: "consCello", midis, pool: (l) => wide(l) && octavesFor(l, 60, 67).length === 5, rng: r })!;
-    by.set(d.octave, (by.get(d.octave) ?? 0) + 1);
-  }
-  const s = (k: number) => (by.get(k) ?? 0) / n;
-  assert.ok(Math.abs(s(0) - LEGACY_OCTAVE_ODDS[0]) < 0.02, `unison ${s(0)}`);
-  assert.ok(Math.abs(s(1) + s(-1) - 0.15) < 0.02 && Math.abs(s(2) + s(-2) - 0.05) < 0.01, `±1 ${s(1) + s(-1)}, ±2 ${s(2) + s(-2)}`);
-  assert.ok(s(0) > s(1) + s(-1) && s(1) + s(-1) > s(2) + s(-2) && s(2) > 0 && s(-2) > 0);
-  // Every draw within its instrument's compass (and over the floor), whatever the register.
-  const r2 = rng(11);
-  for (const [, ms] of REGISTERS)
-    for (let i = 0; i < 3000; i++) {
-      const d = drawLayer({ main: "pianoSampled", midis: ms, rng: r2 })!;
-      const lo = Math.min(...ms) + 12 * d.octave;
-      const hi = Math.max(...ms) + 12 * d.octave;
-      assert.ok(lo >= d.layer.lo && hi <= d.layer.hi && lo >= LAYER_FLOOR, `${d.layer.id} ${d.octave}`);
-    }
-}));
-
-test("D439: the merged layer's octave: unison far more often, one octave only where the instrument's register suits, never two", () => inMode("layer", () => {
-  const midis = [60, 62, 64, 65, 67];
-  // Wide instruments that belong in the alto and an octave either way (the piano, the E-piano: every register).
-  const wide = (l: { id: string }) => ["pianoSampled", "fmPiano"].includes(l.id);
-  const r = rng(5);
-  const n = 20000;
-  const by = new Map<number, number>();
-  for (let i = 0; i < n; i++) {
-    const d = drawLayer({ main: "consCello", midis, pool: wide, rng: r })!;
-    by.set(d.octave, (by.get(d.octave) ?? 0) + 1);
-  }
-  const s = (k: number) => (by.get(k) ?? 0) / n;
-  assert.ok(Math.abs(s(0) - OCTAVE_ODDS[0]) < 0.02, `unison ${s(0)}`);
-  assert.ok(s(1) > 0 && s(-1) > 0 && s(1) + s(-1) < 0.12, `±1 ${s(1) + s(-1)}`);
-  assert.equal(s(2) + s(-2), 0);
-  // An instrument of one register (the alto voice) never an octave away from it.
-  const alto = LAYERS.find((l) => l.id === "singA")!;
-  assert.deepEqual(octavesFor(alto, 60, 67, midis), [0]);
-}));
-
-test("D485: OBBLIGATO and every instrument's name have Portuguese and Spanish", () => {
-  for (const k of [OBBLIGATO, ...LAYERS.map((l) => l.name)]) {
+test("D485, D509: OBBLIGATO and the effects' names have Portuguese and Spanish (obbligatoLabel)", () => {
+  for (const k of [OBBLIGATO, ...Object.values(FX_NAMES)]) {
     assert.ok(PT[k], `pt lacks ${k}`);
     assert.ok(ES[k], `es lacks ${k}`);
   }
+  assert.equal(obbligatoLabel({ fx: "tape" }), "TAPE ECHO");
+  assert.equal(obbligatoLabel(null), "");
+  assert.deepEqual(Object.values(FX_NAMES), ["OCTAVE", "TAPE ECHO", "CHORUS"]);
 });

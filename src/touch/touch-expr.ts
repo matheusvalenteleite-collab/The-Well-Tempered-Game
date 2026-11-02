@@ -8,8 +8,9 @@
  * phone's edge), mirrored for the two bars, and read as strength (protos.ts barDynamic, by STRONG_SIDE:
  * D315, the strong side by the box). One rule for every sound: toward the soft side softer, darker, more
  * closed; toward the strong side firmer, brighter, more open. The bar's middle (0.5) is the sound as it
- * was. The harpsichord is the one exception the owner placed himself: its outer edge is the lute stop (a
- * muted pluck), the rest the plain 8'.
+ * was. The harpsichord's lute stop (a muted pluck) is where the owner placed it, at the outer edge (D315: the
+ * soft side). D511: and every offered sound softer to stronger by level too (TOUCH_LEVEL_DB, measured): the
+ * harpsichord's strong zone a brighter pluck, the organ's swell box, the chips' thin pulse on the strong side.
  *
  * Pure numbers here (tested in test/d311-expression.test.ts); chip.ts makes them sound (Play.touch, the
  * fields `landPlay` sets, Sounding.shape).
@@ -94,14 +95,26 @@ export const STRONG_ZONE_FROM = 2 / 3;
 export const PIANO_SOFT_BELOW_DB = -1.5;
 /** Layer 7 against layer 12 at the same level (sampled.ts: 5 dB softer as recorded, raised by its gain): about -2 dB. */
 export const PIANO_SOFT_NET_DB = 20 * Math.log10(SAMPLED.piano.soft?.gain ?? 1) - 5;
-/** HARPSICHORD: the lute (buff) stop from here out (a place across, toward the outer edge: D315): a lowpass from LUTE_HZ[0] (at its start) to LUTE_HZ[1] (at the edge), and a shorter ring. */
-export const LUTE_FROM = 0.75;
+/**
+ * HARPSICHORD (D511: the piano's three zones): the soft zone the lute (buff) stop, a lowpass from LUTE_HZ[0] (at the
+ * zone's start) to LUTE_HZ[1] (at the soft edge) and a shorter ring; the middle the plain 8′; the strong zone the 8′
+ * plucked nearer the nut, brighter (a high shelf rising to HARPSI_BRIGHT_DB at the strong edge). D311 put the lute at
+ * the outer edge, which D315 made the soft side; D511 keeps it there by strength (whichever side is strong).
+ */
+export const LUTE_BELOW = 1 / 3;
 export const LUTE_HZ: readonly [number, number] = [2000, 1200];
+export const HARPSI_BRIGHT_DB = 4;
 /** The lute stop's ring (s, a time constant after 30 ms; the plain string rings 1-4 s). */
 export const LUTE_TAU = 0.22;
-/** PIPE ORGAN: the echo manual under this (toward the soft side): quieter and flutier (D262's two keyboards; D349: the second manual's soft flutes, chip.ts). */
-export const ECHO_BELOW = 0.35;
-export const ECHO_GAIN = 0.6;
+/**
+ * PIPE ORGAN: the echo manual under this (the soft zone): quieter and flutier (D262's two keyboards; D349: the second
+ * manual's soft flutes, chip.ts). D511: and the SWELL BOX across the whole strip (the player's division enclosed): its
+ * shutters closed toward the soft side, open toward the strong, the level (TOUCH_LEVEL_DB) and the brightness (a high
+ * shelf, ORGAN_SWELL_TONE dB at the edges) together; held, the swell pedal moved (holdMode "messa").
+ */
+export const ECHO_BELOW = 1 / 3;
+export const ECHO_GAIN = 0.7;
+export const ORGAN_SWELL_TONE: readonly [number, number] = [-2, 3];
 /** The echo manual's flute-like top: a lowpass at four times the note's pitch, within these (Hz). */
 export const ECHO_LP: readonly [number, number] = [1200, 4000];
 /** SOLO VOICES: closed toward the soft side (a lowpass down to this at its edge), open toward the strong side (a high shelf up to this, dB). */
@@ -150,6 +163,53 @@ export const BRASS_SWELL_MOVE = 0.35;
 export const swellGain = (s: number) => 10 ** ((BRASS_SWELL_DB * clampS(s)) / 20);
 /** D502: the brassiness a held note's swell has moved it to, from its landing's `b0`. */
 export const swellBrass = (b0: number, s: number) => clamp01(b0 + BRASS_SWELL_MOVE * clampS(s));
+
+/**
+ * D511, SOFT TO STRONG ON EVERY INSTRUMENT (the owner: "All instruments ought to have something in the horizontal
+ * axis which makes them softer to strong (even if it's not just a volume change)"): each offered sound's landing a
+ * level as well as its own colour (the family's: the lute and the brighter pluck, the swell box, the pulse's width,
+ * the filter, the vowel, the bow's or the breath's pressure), so that the soft edge to the strong edge is clearly
+ * heard: at least TOUCH_SPAN_MIN_DB of loudness through the phone's speaker and a computer's (measured, rendered:
+ * DECISIONS D511), whatever the colour does to the loudness on its own (a closed vowel louder, a thin pulse louder,
+ * a lowpass softer). The dB at the soft edge and at the strong edge about the middle (0: the sound as it was), linear
+ * between; the piano and the jazz quartet's zones (and BACH BRASS's brassiness) carry their own. Never by verdict.
+ */
+export const TOUCH_SPAN_MIN_DB = 5;
+export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, strong: number]>> = {
+  // The piano's and the jazz quartet's three zones (±3 dB and their recordings' colour) already measured 6-9 dB.
+  pianoSampled: [0, 0],
+  jazzQuartet: [0, 0],
+  // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
+  harpsichordSampled: [-0.5, 1.5],
+  // The swell box's shutters: the level with its brightness (ORGAN_SWELL_TONE), the echo manual's under it.
+  chamberOrgan: [-1.5, 2.5],
+  // The chips: the pulse's width (the thin one strong), the FM index, with a level.
+  chip: [-2, 2.5],
+  gameboy: [-3, 1],
+  sid64: [-3, 1],
+  megaFm: [-3.5, 1],
+  // The consoles' and the synthesizers' filter (TOMITA's patches hardly answer it: the level does).
+  super16: [-5, 1],
+  tracker: [-5, 1],
+  analog: [-4, 3],
+  tomita: [-4, 2.5],
+  // The closed vowel is the louder (measured 6-8 dB over the open at the same gain): the level the other way.
+  vocalSynth: [-7, 5],
+  // The bow's, the breath's, the singer's pressure: the closed, darker sound softer too.
+  soloVoices: [-4.5, 2.5],
+  stringConsort: [-3.5, 1.5],
+  baroqueBand: [-3.5, 1.5],
+  oboeTrio: [-3, 2],
+  // BACH BRASS's brassiness and its own level (BRASS_LEVEL_DB) a little more on the soft side.
+  bachBrass: [-1, 0.5],
+};
+/** D511: the player's landing's level (dB) on a preset at strength x (0 soft .. 1 strong). */
+export function touchLevelDb(presetId: string, x: number): number {
+  const t = TOUCH_LEVEL_DB[presetId];
+  if (!t) return 0;
+  const c = clamp01(x);
+  return c < 0.5 ? t[0] * (1 - 2 * c) : t[1] * (2 * c - 1);
+}
 
 /** SYNTH, CONSOLE and the chips without a pulse: the filter's brightness (Play.bright, -1..1) at the edges: ±span/2. */
 export const BRIGHT_SPAN: Readonly<Record<"synth" | "console" | "chip", number>> = { synth: 1.2, console: 1.4, chip: 1.2 };
@@ -273,24 +333,31 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       return { layer: z === 0 ? "soft" : z === 2 ? "hard" : "firm", level: 10 ** (db / 20), vel: db };
     }
     case "harpsichord": {
-      // D315: the lute stop stays where the owner put it, at the outer edge (the phone's), whichever side is
-      // strong: `c` is strength, its place across the same flip (with the strong side inner, the soft side).
-      const place = strengthOf(c);
-      if (place < LUTE_FROM) return {};
-      const k = (place - LUTE_FROM) / (1 - LUTE_FROM);
-      return { lute: true, lp: LUTE_HZ[0] * (LUTE_HZ[1] / LUTE_HZ[0]) ** k };
+      // D511: the soft zone the lute stop (darker toward the edge), the strong zone a brighter pluck (brighter toward the edge).
+      if (c < LUTE_BELOW) {
+        const k = (LUTE_BELOW - c) / LUTE_BELOW;
+        return { lute: true, lp: LUTE_HZ[0] * (LUTE_HZ[1] / LUTE_HZ[0]) ** k };
+      }
+      return c >= STRONG_ZONE_FROM ? { tone: HARPSI_BRIGHT_DB * Math.min(1, (c - STRONG_ZONE_FROM) / (1 - STRONG_ZONE_FROM) + 0.25) } : {};
     }
-    case "organ":
-      return c < ECHO_BELOW ? { echo: true, level: ECHO_GAIN, lp: Math.max(ECHO_LP[0], Math.min(ECHO_LP[1], 4 * 440 * 2 ** ((midi - 69) / 12))) } : {};
+    case "organ": {
+      // D511: the swell box's brightness everywhere (the level is TOUCH_LEVEL_DB's), the echo manual in the soft zone.
+      const tone = c < 0.5 ? ORGAN_SWELL_TONE[0] * (1 - 2 * c) : ORGAN_SWELL_TONE[1] * (2 * c - 1);
+      const sw = tone ? { tone } : {};
+      return c < ECHO_BELOW ? { echo: true, level: ECHO_GAIN, lp: Math.max(ECHO_LP[0], Math.min(ECHO_LP[1], 4 * 440 * 2 ** ((midi - 69) / 12))), ...sw } : sw;
+    }
     case "voice":
       return { open: c };
     case "singers":
       return c < 0.5 ? { lp: 16000 * (SING_CLOSED_HZ / 16000) ** ((0.5 - c) / 0.5) } : { tone: SING_OPEN_DB * ((c - 0.5) / 0.5) };
     case "chip": {
-      if (!pt) return pulse ? { pw: pulseWidth(c) } : {};
+      // D511: the pulse's width the other way about: the soft side the round square (50%), the strong side the thin,
+      // bright, cutting pulse (12.5%): measured both the brighter and, at equal RMS, the louder (pulseRms keeps the
+      // RMS; the ear and LUFS hear its upper harmonics), so the strong side is that on every chip.
+      if (!pt) return pulse ? { pw: pulseWidth(1 - c) } : {};
       if (pt.fm) return { fmScale: 2 ** (FM_OCTAVES * (c - 0.5)) };
-      if (pt.pwm) return { pw: pulseWidth(c, true), pwContinuous: true };
-      if (pt.osc.some((o) => o.wave === "pulse12" || o.wave === "pulse25" || o.wave === "pulse50")) return { pw: pulseWidth(c) };
+      if (pt.pwm) return { pw: pulseWidth(1 - c, true), pwContinuous: true };
+      if (pt.osc.some((o) => o.wave === "pulse12" || o.wave === "pulse25" || o.wave === "pulse50")) return { pw: pulseWidth(1 - c) };
       return { bright: BRIGHT_SPAN.chip * (c - 0.5) };
     }
     case "console":
@@ -351,11 +418,15 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
   switch (kind) {
     case "piano":
     case "harpsichord":
-    case "organ":
       return "none";
-    case "voice":
-    case "singers":
+    // D511: the organ's swell pedal moved while a key is held (the messa's ±MESSA_DB on the pipes).
+    case "organ":
       return "messa";
+    case "voice":
+      return "messa";
+    // D512: a plucked consort note (PIZZICATO, SPICCATO) has nothing to swell once played.
+    case "singers":
+      return plucked ? "none" : "messa";
     case "winds":
       return plucked ? "none" : "breath";
     case "brass":

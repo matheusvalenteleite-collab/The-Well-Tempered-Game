@@ -105,6 +105,14 @@ export const PERIOD: Record<string, Bake> = {
   // D365: a solo viola (TinySOL, IRCAM, CC BY 4.0), in place of VSCO 2 CE's viola section: one player to a part.
   consortViola: { folder: "violaSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
   consortCello: { folder: "cello", rate: 32000, lp: 11000, bits: 16, loop: CELLO_LOOP },
+  // D512, the consort's articulation stops (consort-stops.ts): VSCO 2 CE's spiccato and pizzicato (the solo violin's, the
+  // viola and cello sections'), their louder layer (v2), at the consort's fidelity, played through (no loop: short notes).
+  consortViolinSpicc: { folder: "violinStac", rate: 32000, lp: 11000, bits: 16 },
+  consortViolaSpicc: { folder: "violaStac", rate: 32000, lp: 11000, bits: 16 },
+  consortCelloSpicc: { folder: "celloStac", rate: 32000, lp: 11000, bits: 16 },
+  consortViolinPizz: { folder: "violinPizz", rate: 32000, lp: 11000, bits: 16 },
+  consortViolaPizz: { folder: "violaPizz", rate: 32000, lp: 11000, bits: 16 },
+  consortCelloPizz: { folder: "celloPizz", rate: 32000, lp: 11000, bits: 16 },
   voiceS: { folder: "soloSoprano", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceA: { folder: "soloAlto", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
   voiceT: { folder: "soloTenor", rate: 32000, lp: 11000, bits: 16, loop: [1.0, 3.0], chain: VOICE_CHAIN },
@@ -208,6 +216,14 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   trioBassoonShort: zeroCents("trioBassoonShort"),
   oboeSoft: { As3: 1.5, D4: -0.1, F4: 0.1, As4: -0.5, D5: 1.3, F5: 2.0, As5: 1.7, D6: -3.2, F6: -2.5 },
   oboeStac: { As3: -5.3, D4: 5.3, F4: -1.8, As4: -1.2, D5: 0, F5: 4.5, As5: 6.3, D6: 9.5, F6: 24.0 },
+  // D512 (the louder layer, v2; autocorrelation searched within a semitone of each name: the spiccati over 40-180 ms
+  // from the onset, the pizzicati over 60-300 ms, past the pluck's sharp start).
+  violinStac: { A3: 0.4, A4: -0.9, A5: -8.2, A6: -0.2, C4: 3.2, C5: -0.2, C6: 2.2, C7: 0.4, E4: -9.5, E5: -1.3, E6: 0.5, G3: 5.6, G4: 0.8, G5: 1.2, G6: 0.3 },
+  violinPizz: { A3: -3.8, A4: -5.5, A5: -19.0, C4: -20.1, C5: -8.1, E4: -14.3, E5: 5.6, G3: -12.2, G4: -13.1, G5: -4.9 },
+  violaStac: { A4: -8.0, B3: -3.4, B5: -5.0, C3: 11.4, C5: -18.9, D4: -1.3, D6: 6.1, E3: -3.7, E5: 13.5, F4: 5.0, G3: 4.8, G5: -4.1 },
+  violaPizz: { A4: -27.4, B3: -17.0, B5: -2.7, C3: 6.0, C5: -6.8, D4: -2.2, E3: 5.6, E5: -2.5, F4: 5.4, G3: 22.4, G5: -9.3 },
+  celloStac: { A3: 3.4, B2: 2.9, B4: 1.8, C2: 16.7, C4: -13.2, D3: 8.3, D5: 4.1, E2: 11.1, E4: 2.6, F3: -1.5, F5: -4.1, G2: -0.8, G4: -3.8 },
+  celloPizz: { A3: -5.7, B2: -21.8, B4: 1.0, C2: 1.6, C4: 6.6, D3: -13.3, D5: 15.0, E2: 22.6, E4: -10.8, F3: -5.9, F5: -9.2, G2: 0, G4: -14.7 },
 };
 /** D502: BACH BRASS's folders (build_brass.py), each layer its own. */
 export const BRASS_FOLDERS = ["brassTrumpet", "brassTrumpetP", "brassHorn", "brassHornP", "brassTrombone", "brassTromboneP", "brassBass", "brassBassP"] as const;
@@ -242,6 +258,13 @@ const SHORT: Record<string, Record<string, number>> = {
   trioBassoonShort: allOf("trioBassoonShort", 0.5),
   oboeSoft: allOf("oboeSoft", 4.5),
   oboeStac: allOf("oboeStac", 0.6),
+  // D512 (s, measured).
+  violinStac: { A3: 0.8, A4: 0.8, A5: 0.8, A6: 0.702, C4: 0.755, C5: 0.604, C6: 0.453, C7: 0.8, E4: 0.8, E5: 0.8, E6: 0.8, G3: 0.8, G4: 0.8, G5: 0.627, G6: 0.8 },
+  violinPizz: { A3: 1.5, A4: 1.5, A5: 0.917, C4: 1.347, C5: 0.685, E4: 1.5, E5: 1.5, G3: 1.5, G4: 1.004, G5: 0.755 },
+  violaStac: { A4: 0.8, B3: 0.8, B5: 0.778, C3: 0.8, C5: 0.8, D4: 0.8, D6: 0.441, E3: 0.8, E5: 0.8, F4: 0.697, G3: 0.8, G5: 0.447 },
+  violaPizz: { A4: 0.702, B3: 1.5, B5: 0.499, C3: 1.5, C5: 0.778, D4: 1.5, E3: 0.935, E5: 1.138, F4: 0.789, G3: 1.5, G5: 0.755 },
+  celloStac: { A3: 0.8, B2: 0.8, B4: 0.8, C2: 0.8, C4: 0.8, D3: 0.8, D5: 0.8, E2: 0.8, E4: 0.8, F3: 0.8, F5: 0.54, G2: 0.8, G4: 0.8 },
+  celloPizz: { A3: 1.5, B2: 1.5, B4: 0.569, C2: 1.5, C4: 1.5, D3: 1.5, D5: 0.83, E2: 1.5, E4: 1.306, F3: 1.5, F5: 0.737, G2: 1.5, G4: 1.5 },
 };
 /** D313: a period set's chained stretch (Bake.chain), if it is held so rather than looped. */
 export const chainOf = (set: string): [number, number] | undefined => PERIOD[set]?.chain;
@@ -318,7 +341,7 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
 export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -400,6 +423,9 @@ export const TRIO_SHORT_S = 0.16;
 
 /** D510: the band's level from which the jazz bass plays its ff recordings (+4.1 dB). */
 export const JAZZ_BASS_HARD_ABOVE = 1.6;
+/** D512: the consort's spiccato and pizzicato sets' gains (measured against the arco: DECISIONS D512). */
+export const CONSORT_STOP_GAIN = { violinSpicc: 3.5, violaSpicc: 2.47, celloSpicc: 2.93, violinPizz: 3.91, violaPizz: 1.75, celloPizz: 4.92 } as const;
+
 export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsichord: { set: "harpsichord", release: "harpsichordRel", plucked: true, gain: 1.8 },
   organ: { set: "pipeOrgan", low: "pipePedal", plucked: false, gain: 5 },
@@ -455,6 +481,15 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   consortViolin: { set: "consortViolin", plucked: false, gain: 2.2 },
   consortViola: { set: "consortViola", plucked: false, gain: 2.2 },
   consortCello: { set: "consortCello", plucked: false, gain: 2.2 },
+  // D512, the consort's stops (consort-stops.ts): spiccato and pizzicato, the louder layer (v2), each dying away by itself
+  // and damped at the written end; retuned 2-3 semitones at most (recorded every minor or major third), then an octave
+  // nearer. Gains measured against the arco (DECISIONS D512: the same phrase, the voice alone, through the phone model too).
+  consortViolinSpicc: { set: "consortViolinSpicc", plucked: true, gain: CONSORT_STOP_GAIN.violinSpicc, layer: 2, maxShift: 2 },
+  consortViolaSpicc: { set: "consortViolaSpicc", plucked: true, gain: CONSORT_STOP_GAIN.violaSpicc, layer: 2, maxShift: 3 },
+  consortCelloSpicc: { set: "consortCelloSpicc", plucked: true, gain: CONSORT_STOP_GAIN.celloSpicc, layer: 2, maxShift: 3 },
+  consortViolinPizz: { set: "consortViolinPizz", plucked: true, gain: CONSORT_STOP_GAIN.violinPizz, layer: 2, maxShift: 2 },
+  consortViolaPizz: { set: "consortViolaPizz", plucked: true, gain: CONSORT_STOP_GAIN.violaPizz, layer: 2, maxShift: 3 },
+  consortCelloPizz: { set: "consortCelloPizz", plucked: true, gain: CONSORT_STOP_GAIN.celloPizz, layer: 2, maxShift: 3 },
   // TRIALS (instruments-trials). `maxShift` (D405) where a voice leaves the instrument's compass: past the
   // recordings by more, the note an octave nearer (the oboe under F#3, the clarinet under C3, the trumpet under
   // D#3 and over D6, the horn and the trombone 3 semitones past theirs; the bassoon's 7 notes, G2-C5: retuned

@@ -18,7 +18,7 @@ import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
-import { isPhone, voicing, type Blend, type Chip, type Play, type Sounding, type Voicing, type VoiceFx } from "../touch/chip.ts";
+import { isPhone, voicing, type Chip, type Play, type Sounding, type Voicing } from "../touch/chip.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMark, type Touch } from "./fingering.ts";
@@ -102,7 +102,7 @@ import { firstAtOrAfter } from "../touch/visible.ts";
 import { afterCadence, artBonus, broadenClose, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
-import { blendFor, boostedSpans, drawLayer, effectFor, layerGain, layerLevel, layerVoicing, mainPatchId, offerWindow, playedWell, withLayer, FX_QUARTERS, obbligatoModeFor, type EntryLike, type Grade as ObbGrade, type Layer } from "./obbligato.ts";
+import { boostedSpans, drawEffect, effectOf, mainPatchId, octaveShift, offerWindow, playedWell, shownFor, withLayer, OCTAVE_LEVEL, TAPE_QUARTERS, type Effect, type EntryLike, type Grade as ObbGrade, type Layer, type ObbFx } from "./obbligato.ts";
 import { BAR, barAcross, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
 export const PERFECT_MS = 70;
@@ -1000,28 +1000,32 @@ export class ProtoGame {
   }
   /** A touch's sound (D494: in BLUETOOTH MODE too: D299's silent touch over a scheduled note withdrawn). */
   private touchNote(...args: Parameters<Chip["note"]>): Sounding {
+    // D485, OBBLIGATO; D509: the note struck now inside a boosted entry of the player's: its octave with it, as one sound
+    // (the other effects add no notes: the player's voice itself coloured, obbFx).
     const sd = this.chip.note(...args);
-    // D485, OBBLIGATO: the note struck now inside a boosted entry: its layer with it, as one sound.
     const lf = this.layerFor;
-    const b = lf ? this.boostAt(lf.voice, lf.on) : null;
-    // D439: the "effect" mode layers nothing (the player's voice itself coloured: obbFx).
-    if (!b || b.fx) return sd;
+    const b = lf ? this.ownBoost(lf.voice, lf.on) : null;
+    if (!b?.shift) return sd;
     const [midi, at, dur, v, p] = args;
-    return withLayer(sd, this.chip.note(midi + 12 * b.octave, at, dur, layerVoicing(b.layer, v.pan), this.layerPlay(p ?? {}, b)), 12 * b.octave);
+    return withLayer(sd, this.chip.note(midi + 12 * b.shift, at, dur, v, this.octavePlay(p ?? {})), 12 * b.shift);
   }
 
   // ---------- D485, OBBLIGATO (obbligato.ts): the subject boost ----------
-  /** The offer standing now (the instrument shown on the bars' buttons), till the entry's first note. */
-  offer: { layer: Layer; octave: number; tier: number; entryOn: number; spans: EntryLike[]; blend?: Blend; gain?: number; fx?: VoiceFx } | null = null;
   /**
-   * The boosts taken: each the entries it covers (the player's and the later ones overlapping it) and its layer.
-   * D439: its blend (the "layer" mode's merge, chip.ts Play.blend), or its colour on the player's own voice
-   * instead (the "effect" mode: `fx`, no layer; `layer` then only names it), set when it is scheduled.
+   * The offer standing now (its name on the bars' buttons: obbligatoLabel), till the entry's first note.
+   * D509: the effect drawn (`fx`, the octave's `shift`, the chorus's vibrato `vib`: obbligato.ts Effect);
+   * `layer` is the button's stand-in (its name the effect's), `octave` the button's octave mark (none).
    */
-  boosts: { layer: Layer; octave: number; spans: EntryLike[]; until: number; blend?: Blend; gain?: number; fx?: VoiceFx; fxSet?: boolean }[] = [];
+  offer: ({ layer: Layer; octave: number; entryOn: number; spans: EntryLike[] } & Effect) | null = null;
+  /**
+   * The boosts taken: each the entries it covers (the player's and the later ones overlapping it: the bars'
+   * tinge) and its effect, sounded over the player's own entry (spans[0]); `layer` and `octave` (0) name it on the
+   * button (ObbligatoOffer, D469); `fxSet` once scheduled (obbFx).
+   */
+  boosts: ({ layer: Layer; octave: number; spans: EntryLike[]; until: number; fxSet?: boolean } & Effect)[] = [];
   /** The judge's grade of each note struck right (PERFECT or GOOD), for the offer's window. */
   private obbGrade = new Map<LaneNote, "perfect" | "good">();
-  /** The note being sounded by a touch now (its voice and onset), for touchNote's layer. */
+  /** The note being sounded by a touch now (its voice and onset), for touchNote's octave. */
   private layerFor: { voice: number; on: number } | null = null;
   /** The player's entries, each its window and the entries a boost would cover (built at the first frame). */
   private obbPlans: { k: number; e: EntryLike; win: { from: number; close: number }; spans: EntryLike[]; midis: number[]; done: boolean }[] | null = null;
@@ -1039,27 +1043,35 @@ export class ProtoGame {
   get boosting(): boolean {
     return this.boosts.some((b) => b.spans.some((x) => this.now >= x.on && this.now < x.end));
   }
-  /**
-   * The layer's note: the note's own shape, at LAYER_LEVEL of its level (D439: `gain`, layerGain), never
-   * registered or coupled. D439, merged: blended under it, and landing as the note did (its touch, the
-   * piano's line and accent: the same level as the note's as heard, not as asked for).
-   */
-  private layerPlay(p: Play, b: { blend?: Blend; gain?: number }): Play {
-    const land = b.blend ? { ...(p.touch !== undefined ? { touch: p.touch } : {}), ...(p.lineDb !== undefined ? { lineDb: p.lineDb } : {}), ...(p.accentDb !== undefined ? { accentDb: p.accentDb } : {}) } : {};
-    return { level: (p.level ?? 1) * (b.gain ?? layerLevel()), lead: p.lead, legato: p.legato, envelope: p.envelope, couple: false, ...(p.tie ? { tie: p.tie } : {}), ...(p.apart ? { apart: true } : {}), ...(b.blend ? { blend: b.blend } : {}), ...land };
+  /** D509: the boost on the player's own entry (its first span) covering a note of `voice` at `on`, if one was taken. */
+  private ownBoost(voice: number, on: number) {
+    for (const b of this.boosts) {
+      const e = b.spans[0];
+      if (e && e.voice === voice && on >= e.on && on < e.end) return b;
+    }
+    return null;
   }
-  /** A band's or a riding note's layer, where a boost covers it (pushed with the band's sounds). */
+  /**
+   * D509, the octave's note: the note's own Play (its patch, envelope, touch and room the same) at OCTAVE_LEVEL
+   * of its level, never coupled, nothing that joins it to another sounding (a glide's start, a continuo, a
+   * held touch's shaping: the main note's alone), and only once its recording is there (no stand-in).
+   */
+  private octavePlay(p: Play): Play {
+    const { from: _f, give: _g, retake: _r, into: _i, continuo: _c, hold: _h, altSample: _a, group: _gr, slur: _s, ...rest } = p;
+    return { ...rest, level: (p.level ?? 1) * OCTAVE_LEVEL, couple: false, recordedOnly: true };
+  }
+  /** A band's or a riding note of the player's own boosted entry: its octave (pushed with the band's sounds). */
   private layerOf(voice: number, on: number, midi: number, at: number, dur: number, v: Voicing, p: Play) {
-    const b = this.boostAt(voice, on);
-    if (!b || b.fx) return;
-    const sd = this.chip.note(midi + 12 * b.octave, at, dur, layerVoicing(b.layer, v.pan), this.layerPlay(p, b));
+    const b = this.ownBoost(voice, on);
+    if (!b?.shift) return;
+    const sd = this.chip.note(midi + 12 * b.shift, at, dur, v, this.octavePlay(p));
     if (sd) this.band.push({ sd, until: at + dur + 0.6 });
   }
   /** Takes the offer standing (the button): the boost from the entry's first note. False where none stands or it lapsed. */
   acceptOffer(): boolean {
     const o = this.offer;
     if (!o || this.now >= o.entryOn) return false;
-    this.boosts.push({ layer: o.layer, octave: o.octave, spans: o.spans, until: Math.max(...o.spans.map((x) => x.end)), ...(o.blend ? { blend: o.blend, gain: o.gain } : {}), ...(o.fx ? { fx: o.fx } : {}) });
+    this.boosts.push({ layer: o.layer, octave: 0, spans: o.spans, until: Math.max(...o.spans.map((x) => x.end)), fx: o.fx, shift: o.shift, vib: o.vib, dies: o.dies });
     this.offer = null;
     return true;
   }
@@ -1075,6 +1087,12 @@ export class ProtoGame {
         const win = fe ? offerWindow(fe, all, this.f.barTicks, this.startTick) : null;
         if (fe && win) this.obbPlans.push({ k: e.k, e: fe, win, spans: boostedSpans(fe, all), midis: fe.notes.map((n) => n[2]), done: false });
       }
+      // D509: the octave's recordings asked for now (an offer stands only a bar ahead: too little for a phone to fetch them).
+      for (const pl of this.obbPlans) {
+        const main = mainPatchId(voicing(pl.e.voice, this.f.voices.length).patch);
+        const k = main && PATCHES[main].sample ? octaveShift(main, pl.midis) : null;
+        if (k) this.chip.ready?.(PATCHES[main!], pl.midis.map((m) => m + 12 * k));
+      }
     }
     if (this.offer && this.now >= this.offer.entryOn) this.offer = null;
     this.boosts = this.boosts.filter((b) => this.now < b.until);
@@ -1085,40 +1103,46 @@ export class ProtoGame {
       const notes = this.tracks[pl.k].notes.filter((n) => !n.ride);
       const graded = notes.map((n) => ({ on: n.on, grade: (n.state === "miss" ? "miss" : n.state === "pending" ? "pending" : (this.obbGrade.get(n) ?? "good")) as ObbGrade }));
       if (!playedWell(graded, pl.win)) continue;
+      // D509: one of the three effects drawn (the octave only where the instrument's compass has room).
       const main = mainPatchId(voicing(pl.e.voice, this.f.voices.length).patch);
-      // D501: the mode by the player's sound ("auto": an effect on a keyboard or plucked sound, else a layer).
-      const mode = obbligatoModeFor(preset().id);
-      // D439, the "effect" mode: no instrument drawn; the button names the colour the voice will take.
-      if (mode === "effect") {
-        const e = effectFor(main);
-        this.offer = { layer: e.shown, octave: 0, tier: 0, entryOn: pl.e.on, spans: pl.spans, fx: e.fx };
-        continue;
-      }
-      const d = drawLayer({ main, midis: pl.midis, pool: this.o.obbPool, rng: this.o.obbRng });
-      if (!d) continue;
-      // D439, the "layer" mode: merged under the voice (blendFor); "legacy": D485 as first built.
-      const blend = mode === "layer" ? blendFor(main, d.layer, pl.midis.map((m) => m + 12 * d.octave)) : undefined;
-      this.offer = { layer: d.layer, octave: d.octave, tier: d.tier, entryOn: pl.e.on, spans: pl.spans, ...(blend ? { blend, gain: layerGain(main, d.layer) } : {}) };
-      // Its recordings asked for now, a bar ahead (D485: its synthesized sound standing in till they arrive; D439, merged: nothing till then).
-      this.chip.ready?.(layerVoicing(d.layer, 0).patch, pl.midis.map((m) => m + 12 * d.octave));
+      this.putOffer(pl.e.on, pl.spans, pl.midis, main, drawEffect({ main, midis: pl.midis, rng: this.o.obbRng }));
     }
+  }
+  /** D509: the offer of effect `ef` for the entry at `entryOn` (its notes `midis`; the octave's recordings asked for now, a bar ahead). */
+  private putOffer(entryOn: number, spans: EntryLike[], midis: readonly number[], main: ReturnType<typeof mainPatchId>, ef: Effect) {
+    this.offer = { layer: shownFor(ef.fx, main), octave: 0, entryOn, spans, ...ef };
+    if (ef.shift) this.chip.ready?.(main ? PATCHES[main] : null, midis.map((m) => m + 12 * ef.shift));
+  }
+  /**
+   * D509: the offer of effect `fx` put up for the player's next entry (the renders' and the `?dev=1` console's;
+   * the game's own offers are drawn by obbStep). False where no entry of the player's is ahead or the octave has no room.
+   */
+  offerEffect(fx: ObbFx): boolean {
+    const e = this.entries.find((x) => x.on > this.now && this.f.entries.some((fe) => fe.voice === x.voice && fe.on === x.on));
+    const fe = e && this.f.entries.find((x) => x.voice === e.voice && x.on === e.on);
+    if (!fe) return false;
+    const main = mainPatchId(voicing(fe.voice, this.f.voices.length).patch);
+    const midis = fe.notes.map((n) => n[2]);
+    const ef = effectOf(fx, main, midis);
+    if (!ef) return false;
+    this.putOffer(fe.on, boostedSpans(fe, this.f.entries), midis, main, ef);
+    return true;
   }
 
   /**
-   * D439, the "effect" mode: a boost's colour on the player's own voice (chip.ts voiceFx), scheduled as its
-   * entry nears: over the player's own entry only (the later entries in stretto are the band's), coming in
-   * at its first note and going at its end; the echoes' length a note value at the tempo there.
+   * D439, D509: a boost's effect on the player's own voice (chip.ts voiceFx), scheduled as its entry nears:
+   * over the player's own entry only (the later entries in stretto are the band's), coming in at its first
+   * note and going at its end; the tape echo's length a dotted eighth at the tempo there; the chorus's vibrato.
    */
   private obbFx() {
     const ch = this.chip;
     for (const b of this.boosts) {
-      if (!b.fx || b.fxSet) continue;
+      if (b.fxSet) continue;
       const e = b.spans[0];
       const from = this.timeAt(e.on);
       if (from - ch.ctx.currentTime > 0.5) continue;
       b.fxSet = true;
-      const q = FX_QUARTERS[b.fx] ?? 0.5;
-      ch.voiceFx?.(b.fx, this.timeAt(e.on + q * this.f.tpq) - from, from - 0.05, this.timeAt(e.end) - 0.05);
+      ch.voiceFx?.(b.fx, this.timeAt(e.on + TAPE_QUARTERS * this.f.tpq) - from, from - 0.05, this.timeAt(e.end) - 0.05, b.vib, b.dies);
     }
   }
 
@@ -1267,7 +1291,7 @@ export class ProtoGame {
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
         const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20), ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
-        // D485: a boosted entry's note (a later entry in stretto with the player's): its layer.
+        // D485, D509: a note of the player's own boosted entry sounded by the band: its octave.
         this.layerOf(n.voice, n.on, pmidi, pat, plen, vv, { ...art, level: follow(sh, this.feel) * (sv.play.level ?? 1) });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
@@ -3851,7 +3875,7 @@ export class ProtoGame {
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
     const n1 = notes[i];
-    // D485: the note's layer (touchNote) where a boost covers it, right or wrong alike.
+    // D485, D509: the note's octave (touchNote) where the player's boosted entry covers it, right or wrong alike.
     this.layerFor = { voice: this.voiceOf(h.k, i), on: n1.on };
     h.fx = sv ? this.subj.layers(this.chip, sv.sn, pitches[0], this.chip.ctx.currentTime, this.timeAt(n1.on + n1.dur) - this.timeAt(n1.on), sv.v, expr.level ?? 1) : [];
     // D494: in BLUETOOTH MODE too the touch sounds its note (nothing is on the schedule ahead of it).

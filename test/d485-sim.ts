@@ -36,9 +36,9 @@ export function recordingChip(clock: { t: number }, log: string[]): Chip {
 
 export interface ObbRun {
   calls: string[];
-  /** Each offer as first seen: the entry's onset, the tick it appeared, the instrument and its octave. */
-  offers: { entryOn: number; at: number; id: string; octave: number; tier: number; spans: { voice: number; on: number; end: number }[] }[];
-  /** The band's and riders' notes given a layer (voice, onset). */
+  /** Each offer as first seen: the entry's onset, the tick it appeared, the effect drawn (D509) and its stand-in. */
+  offers: { entryOn: number; at: number; id: string; octave: number; fx: string; shift: number; vib: number; spans: { voice: number; on: number; end: number }[] }[];
+  /** The band's and riders' notes inside a boost's spans (voice, onset; D509: only the player's own entry's are doubled). */
   layered: { voice: number; on: number }[];
   g: ProtoGame;
 }
@@ -65,7 +65,7 @@ export function obbRun(log: LabLog, o: { on: boolean; take: boolean; rng?: () =>
     let done = false;
     const look = () => {
       const f = g.offer;
-      if (f && !offers.some((x) => x.entryOn === f.entryOn)) offers.push({ entryOn: f.entryOn, at: g.now, id: f.layer.id, octave: f.octave, tier: f.tier, spans: f.spans });
+      if (f && !offers.some((x) => x.entryOn === f.entryOn)) offers.push({ entryOn: f.entryOn, at: g.now, id: f.layer.id, octave: f.octave, fx: f.fx, shift: f.shift, vib: f.vib, spans: f.spans });
       if (f && o.take) g.acceptOffer();
     };
     for (const e of log.ev) {
