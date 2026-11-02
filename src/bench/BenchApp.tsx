@@ -117,6 +117,8 @@ import { askMotion, gameMotion, hardTapDevice } from "../touch/motion.ts";
 import { calOffered, loadHardCal, markCalOffered, motionStrikes } from "../touch/hard-tap.ts";
 import { HardTapCalibrate, HardTapSetting } from "../touch/HardTapPanel.tsx";
 import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
+import { ConsortStops } from "../touch/ConsortStops.tsx";
+import { hasConsortStops } from "../touch/consort-stops.ts";
 import { ObbligatoOffer } from "./ObbligatoOffer.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
@@ -1737,11 +1739,14 @@ export function BenchApp() {
   // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
   // D402: in the tutorial from THE REAL THING on (the full screen).
   const stopsOn = hasStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && (full || playing);
+  // D472 (design studio): STRING CONSORT's articulation stops (D512) at the bars' feet, as the pistons stand there.
+  const consortOn = hasConsortStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && layout === "bars" && playing;
 
   return (
-    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${stopsOn && layout === "bars" && playing ? " tb-has-side-stops" : ""}`}>
+    <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${(stopsOn && layout === "bars" && playing) || consortOn ? " tb-has-side-stops" : ""}`}>
       {/* D485: OBBLIGATO's buttons at the bars' outer top corners while an offer stands. */}
       {layout === "bars" && playing && <ObbligatoOffer game={game} />}
+      {consortOn && <ConsortStops presetId={presetById(soundNow).id} piece={f.id} />}
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
         frame={frame}
