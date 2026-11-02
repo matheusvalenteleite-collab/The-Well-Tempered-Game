@@ -61,7 +61,7 @@ test("D449: the picture opens ABOUT THIS FUGUE (the ? glowing); the subject and 
   assert.match(box, /id="about-cite"/);
   assert.match(box, /Contrasubject I sollen in ruhig-fliessender Bewegung/);
   assert.match(box, /G\. Schirmer, New York, 1894\), p/);
-  assert.match(src("src/bench/HearSubject.tsx"), /useEffect\(\(\) => \(\) => stopRef\.current\?\.\(\), \[\]\)/, "silenced when the box closes");
+  assert.match(src("src/bench/HearSubject.tsx"), /useEffect\(\(\) => \(\) => stopRef\.current(\?\.)?\(\), \[\]\)/, "silenced when the box closes");
 });
 
 test("D450: DRUMS on the right column: ON/OFF; the piece's presets cycled, kept, applied, and turning the drums on", async () => {
