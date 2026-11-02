@@ -40,6 +40,7 @@ import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
+import { fugueName } from "../touch/fugue-names.ts";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
 import { detectedPlatform, midiInputNames, platformOf, type PlatformPref } from "./home.ts";
@@ -76,7 +77,7 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
-import { applyLiteDrums, liteDrums, LiteDrumsSwitch } from "./LiteDrums.tsx";
+import { applyDrumPreset, applyLiteDrums, cycleDrumPreset, drumPresetOf, drumPresets, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
@@ -1470,6 +1471,13 @@ export function BenchApp() {
   };
   /** D272, HEAR THE SUBJECT: the subject played as performed (its samples loaded first); returns when it starts, on the page's clock (s). */
   const [hearing, setHearing] = useState<string | null>(null);
+  /** D450: DRUMS on the selection (ON/OFF kept on the device), and a tick to show a preset newly chosen. */
+  const [drumsOn, setDrumsOn] = useState(liteDrums);
+  const [, setDrumTick] = useState(0);
+  // D450: the chosen piece's drum preset given to the backing.
+  useEffect(() => {
+    if (APP.lite) applyDrumPreset(f.id);
+  }, [f.id]);
   /** D441: Glenn's film open (the Glenn pilot). */
   const [film, setFilm] = useState<string | null>(null);
   // D301: what HEAR THE SUBJECT has scheduled, stopped by anything that starts or changes the sound (the owner:
@@ -1726,7 +1734,7 @@ export function BenchApp() {
         frame={frame}
         hud={
           <>
-            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? (lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number)) : `BENCH · ${proto.name}`}</span>
+            <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? liteTitle(f) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
             {playing && practice.current && (
               // D326: a practice run (or THE OTHERS) named in the title bar.
@@ -1856,12 +1864,13 @@ export function BenchApp() {
           )}
         </div>
       )}
-      {hintLine && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man && !dressIntro} hintRef={hintRef} /> : (
+      {/* D469: on the bars no instructions at the start of a game (the tutorial's and THE REVEAL's words stay). */}
+      {hintLine && (layout !== "bars" || man || revealPlan) && (layout === "bars" ? <SideHint key={man ? `${man.id}-${man.stage}-${man.style ?? ""}` : "hint"} text={hintLine} fade={!!man && !dressIntro} hintRef={hintRef} /> : (
         <p className="tb-lite-hint" id="lite-hint" role="status">
           {hintLine}
         </p>
       ))}
-      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson) && !dressNow?.includes("marks")) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} />}
+      {playing && layout === "bars" && marks.readingMarks.size > 0 && !(manLesson && isCourse(manLesson) && !dressNow?.includes("marks")) && <SideLegend marks={marks.readingMarks.values()} whole={marks.whole} legendRef={legendRef} glossRef={glossRef} glossOnly={!man} />}
       {(layout === "full" || roadAlone(proto, playing)) && playing && (
         <button type="button" id="quit-full" className="tg-x tb-quit" aria-label="Quit" onClick={quit}>
           ✕
@@ -2056,6 +2065,10 @@ export function BenchApp() {
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
           playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
+          // D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE, silenced when the box closes.
+          subject={{ play: playSubject, stop: stopHearing }}
+          // D450: DRUMS on the right column (moved from the pop-up): ON/OFF and the piece's presets.
+          drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumPresets(f.id), preset: drumPresetOf(f.id), cycle: () => (cycleDrumPreset(f.id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
           tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}
@@ -2074,10 +2087,9 @@ export function BenchApp() {
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {/* D373: THE TUTORIAL's selection screen (three columns, nothing scrolls). */}
       {APP.lite && steps && phase.kind === "home" && <TutorialSelect begin={beginManual} focus={tutFocus} close={() => setSteps(false)} relang={() => setLite(readLite())} />}
-      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} close={() => setHearing(null)} />}
+      {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} stop={stopHearing} close={() => setHearing(null)} />}
       {phase.kind === "title" && (
         <PlayPop id={f.id} voice={pick.voice} singing={voicesFrom(f, from)} setVoice={(v) => setPick({ voice: v })} play={() => start()} close={home} rules={RULE_LEVELS[proto.id]} {...(APP.lite ? { sound, setSound, tuning: tuningShort(tuning), plain: !full } : {})} learn={APP.dev && TRACKS[platform].some((l) => l.mode === proto.id) ? () => setPhase({ kind: "lessons", focus: proto.id }) : undefined}>
-          {APP.lite && !full && <LiteDrumsSwitch />}
           {/* D420: what each thumb piston holds (the single stops, TUTTI, ROOM, the pedal's 16′), set before the run. */}
           {hasStops(presetById(soundNow).id) && !lesson && !man && <PistonSettings presetId={presetById(soundNow).id} piece={f.id} />}
           {tempi && (
@@ -2163,6 +2175,15 @@ export function VoiceLegend({ names, played, ink, paper = false, alone = false }
   );
 }
 
+/**
+ * D469 (design studio; the owner: the fugue's title in the box's top bar during play): the fugue's name before its
+ * formal title ("THE IMP · FUGUE 2 IN C MINOR"); the map that ran through it now stands at the left bar's foot.
+ */
+function liteTitle(f: TouchFugue): string {
+  const formal = lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number);
+  const name = f.kind === "fugue" ? fugueName(f.id, lang()) : null;
+  return name ? `${name.toUpperCase()} · ${formal}` : formal;
+}
 /** D462: the words of Settings' STAGE switch (the fugue's world behind the box). */
 const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
   en: [["full", "FULL"], ["quiet", "QUIET"], ["off", "OFF"]],

@@ -79,7 +79,8 @@ test("D332: the run's trend: the fitted travel (least squares × time span) the 
 const II10: LabPassage = { piece: "wtc2f10", voice: 0, fromBar: 1, toBar: 12, bpm: 110, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 
 test("D332: LENIENT judges run notes from either thumb, tells RUN ✓/✗, and changes nothing outside runs", () => {
-  const log = synthRun(II10, { gap: -0.02, jitter: 0.03, scatterPx: 18, seed: 2 });
+  // D490: the run's quick notes no longer ride (the synthetic player strikes them too): its scatter a little wider.
+  const log = synthRun(II10, { gap: -0.02, jitter: 0.03, scatterPx: 22, seed: 1 });
   const strict = replay(log, { ...MECH_CLASSIC } as Mech).events;
   const lenient = replay(log, { ...MECH_CLASSIC, runs: "lenient" } as Mech).events;
   const key = (e: { track: number; i: number }) => `${e.track}:${e.i}`;

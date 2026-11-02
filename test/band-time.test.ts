@@ -124,7 +124,10 @@ test("D328: pause and resume with the band following", () => {
     clock.t += 2;
     g.resume();
     const at = g.now;
+    // D491: still through the 3-2-1, then on from the pause point.
     for (let n = 0; n < 60; n++) (clock.t += 1 / 60), g.step();
+    assert.equal(g.now, at, "the box still during the count");
+    for (let n = 0; n < 300; n++) (clock.t += 1 / 60), g.step();
     assert.ok(g.now > at, "the clock goes on after a pause");
   });
 });

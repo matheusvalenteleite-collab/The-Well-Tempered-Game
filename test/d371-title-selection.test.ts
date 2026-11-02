@@ -62,9 +62,39 @@ test("D371: the title page: TOUCH TO BEGIN in the three languages first; the wor
   assert.deepEqual(i18n.WORDMARK.en, ["THE", "WELL-TEMPERED", "GAME"]);
   assert.deepEqual(i18n.WORDMARK.pt, ["O JOGO", "BEM TEMPERADO", ""]);
   assert.deepEqual(i18n.WORDMARK.es, ["EL JUEGO", "BIEN TEMPERADO", ""]);
-  // Without a canvas (here) the wordmark is its words.
-  const { wordmark } = await import("../src/bench/wordmark.ts");
-  assert.equal(wordmark("en"), null);
+  // D468: the wordmark is an SVG in whole pixels now (no canvas needed); see the D468 test below.
+});
+
+test("D468: the logo is the old 8-bit title as a crisp SVG (Press Start 2P's pixels, the red shadow), on the intro and the selection alike", async () => {
+  const { createElement } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const i18n = await import("../src/i18n/index.ts");
+  const { Wordmark } = await import("../src/bench/Intro.tsx");
+  const { wordmarkPixels, GLYPHS } = await import("../src/bench/wordmark.ts");
+  const html = renderToStaticMarkup(createElement(Wordmark, { unit: 4, className: "tb-intro-mark" }));
+  assert.match(html, /^<svg class="tb-wordmark tb-intro-mark"/);
+  assert.match(html, /shape-rendering="crispEdges"/);
+  assert.match(html, /role="img"/);
+  assert.match(html, /aria-label="THE WELL-TEMPERED GAME"/);
+  assert.match(html, /fill="#b8322a"/, "the old title's red shadow");
+  assert.doesNotMatch(html, /<img|<image|data:/, "no raster");
+  // Whole pixels: the viewBox in integers, the size a whole multiple of it.
+  const p = wordmarkPixels("en");
+  assert.equal(p.w, 13 * 8); // WELL-TEMPERED's 13 letters on an 8-pixel advance (+1 for the shadow, -1 for the last gap)
+  assert.equal(p.h, 3 * 7 + 2 * 4 + 1);
+  assert.match(html, new RegExp(`viewBox="0 0 ${p.w} ${p.h}" width="${p.w * 4}" height="${p.h * 4}"`));
+  // Every letter of the three languages' lines is in the face.
+  for (const l of ["en", "pt", "es"] as const) for (const ch of i18n.WORDMARK[l].join("")) assert.ok(ch === " " || GLYPHS[ch], `${l}: ${ch}`);
+  i18n.useLang("pt");
+  try {
+    assert.match(renderToStaticMarkup(createElement(Wordmark, { unit: 1 })), /aria-label="O JOGO BEM TEMPERADO"/);
+  } finally {
+    i18n.useLang("en");
+  }
+  // The same component in both places.
+  assert.match(src("src/bench/Intro.tsx"), /<Wordmark unit=\{4\} className="tb-intro-mark" \/>/);
+  assert.match(src("src/bench/Selection.tsx"), /<Wordmark unit=\{[\d.]+\} className="sel-mark" \/>/);
+  assert.doesNotMatch(src("src/bench/selection.css"), /\.(sel-mark|tb-intro-mark)[^}]*image-rendering/);
 });
 
 test("D371: NEXT is the first fugue not yet finished, in Bach's order; none on the first visit or once all are finished", async () => {
