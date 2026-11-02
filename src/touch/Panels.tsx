@@ -180,7 +180,7 @@ export function LagSetting({ lag, setLag, chip }: { lag: number | null; setLag: 
     <>
       <div className="tg-set">
         <span>{tr("SOUND DELAY")}</span>
-        <span className="tg-panel-val">{lag === null ? tr("AS THE PHONE SAYS") : `${Math.round(lag * 1000)} MS · ${trCanvas(verdictOf(lag))}`}</span>
+        <span className="tg-panel-val">{lag === null ? tr("WIRED · 0 MS") : `${Math.round(lag * 1000)} MS · ${trCanvas(verdictOf(lag))}`}</span>
       </div>
       {tapping ? (
         <Tapper chip={chip} done={(lag) => (lag !== null && setLag(lag), setTapping(false))} />
