@@ -36,6 +36,8 @@
 }
 
 html, body { height: 100%; }
+/* D452: no text enlarged by iOS Safari in landscape (it grew the selection's card words onto each other on the owner's iPhone; every size here is set by hand). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
   margin: 0;

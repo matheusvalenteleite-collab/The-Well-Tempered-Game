@@ -96,7 +96,8 @@ import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
-import { Selection } from "./Selection.tsx";
+import { pieceTitle, Selection } from "./Selection.tsx";
+import { HowTo, type ClipNote } from "./HowTo.tsx";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
 import { INTRO_LOAD_WAIT_MS, INTRO_PRESET, introPitches, playIntro, type IntroPlaying } from "./intro-sound.ts";
@@ -1502,6 +1503,18 @@ export function BenchApp() {
     for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(v, f.voices.length, true), { ...dynamic(n.d), lead: true, ...(n.legato ? { legato: true, from: n.from } : {}), ...(n.tie ? { tie: n.tie } : {}), ...(n.final ? { final: true } : {}), ...(n.apart ? { apart: true } : {}) }));
     return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
   };
+  /** D452: HOW TO PLAY's examples: bars of a fugue, every voice, the player's led (the rest a little softer); returns when heard. */
+  const playClip = async (notes: ClipNote[], voices: number, mine: number): Promise<number> => {
+    stopHearing();
+    const gen = hearGen.current;
+    const ch = ensureChip();
+    await ch.prepare(notes.map((n) => n.midi), notes.map((n) => n.midi));
+    if (gen !== hearGen.current) return performance.now() / 1000;
+    const t0 = ch.ctx.currentTime + 0.15;
+    for (const n of notes) hearSounds.current.push(ch.note(n.midi, t0 + n.at, n.len, voicing(n.voice, voices, n.voice === mine), { ...dynamic(n.voice === mine || mine < 0 ? 0.6 : 0.4), lead: n.voice === mine }));
+    return performance.now() / 1000 + 0.15 + (ch.lag ?? 0);
+  };
+  const [howTo, setHowTo] = useState(false);
   useEffect(() => {
     if (!hearing) stopHearing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1959,6 +1972,15 @@ export function BenchApp() {
           {/* D462 (design studio): each fugue's world behind its box. */}
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
+          {/* D452: the chosen fugue's PISTONS (D420), moved from the pop-up the selection no longer opens: only where its sound has stops. */}
+          {hasStops(presetById(soundNow).id) && (
+            <section className="tb-set-pistons" id="settings-pistons" aria-label={tr("PISTONS")}>
+              <p className="tb-owner-head">
+                {tr("PISTONS")} · {pieceTitle(f.id)}
+              </p>
+              <PistonSettings presetId={presetById(soundNow).id} piece={f.id} />
+            </section>
+          )}
           <LagSetting lag={lag} setLag={setLag} chip={ensureChip} />
           {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
           {platform === "mobile" && <HardTapSetting />}
@@ -2073,6 +2095,8 @@ export function BenchApp() {
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
           // D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE, silenced when the box closes.
           subject={{ play: playSubject, stop: stopHearing }}
+          // D452: HOW TO PLAY, the guide, under SETTINGS.
+          howTo={() => (stopHearing(), setHowTo(true))}
           // D450: DRUMS on the right column (moved from the pop-up): ON/OFF and the piece's presets.
           drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumPresets(f.id), preset: drumPresetOf(f.id), cycle: () => (cycleDrumPreset(f.id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
@@ -2088,6 +2112,7 @@ export function BenchApp() {
         />
       )}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
+      {APP.lite && howTo && <HowTo sound={{ play: playClip, stop: stopHearing }} close={() => (stopHearing(), setHowTo(false))} />}
       {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}
       {APP.lite && platform !== "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
