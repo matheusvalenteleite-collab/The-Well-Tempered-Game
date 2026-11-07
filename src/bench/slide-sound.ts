@@ -112,9 +112,10 @@ export const GESTURE = {
 export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily {
   if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
   // D520 SALSA: the player's instrument's own (the trumpet's and trombone's lip, the bassist's slide, the piano's).
-  if (presetId === "salsa") {
+  // D522 CHORINHO: the flute's, the clarinet's, the guitars' and the piano's.
+  if (presetId === "salsa" || presetId === "chorinho") {
     const smp = patch?.sample;
-    return smp === "brassTrumpet" || smp === "brassTrombone" ? "brass" : smp === "jazzBass" ? "bass" : "piano";
+    return smp === "brassTrumpet" || smp === "brassTrombone" ? "brass" : smp === "trialFlute" ? "flute" : smp === "trialClarinet" ? "reed" : smp === "jazzBass" ? "bass" : smp === "choroGuitar" ? "plucked" : "piano";
   }
   switch (presetId) {
     case "harpsichordSampled":

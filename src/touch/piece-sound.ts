@@ -83,6 +83,8 @@ import { playerSound } from "./sound.ts";
  * and II/6, STRING CONSORT for I/24, SUPER 16-BIT for II/19 (tools/touch/colour-plans: each reason).
  * D520: SALSA for II/10 (2/2 in quaver triplets: salsa's cut time under the 6/8 bell; the impatient E minor subject's
  * repeated notes and leaps on trumpet, piano and baby bass), with its percussion's scripted moments (latin-drums.ts LATIN_SCRIPTS).
+ * D522: CHORINHO for II/1 (2/4, choro's own metre, Keller's high spirits: flute, piano and the seven-string), with its
+ * percussion's scripted moments.
  */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
@@ -136,7 +138,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1f24: "stringConsort",
   // Book II
   wtc2p01: "harpsichordSampled",
-  wtc2f01: "megaFm",
+  wtc2f01: "chorinho",
   wtc2p02: "harpsichordSampled",
   wtc2f02: "chamberOrgan",
   wtc2p03: "harpsichordSampled",

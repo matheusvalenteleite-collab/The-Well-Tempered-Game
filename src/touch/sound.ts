@@ -631,6 +631,18 @@ export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
  * (latin-drums.ts, unpitched), one room at one send (SALSA_SEND). One instrument to a voice, Bach's notes only: no
  * montuno, bass line, chord or stab added (the owner: "Don't meddle with the MUSIC. Make the music shine.").
  */
+/**
+ * D522, CHORINHO (a regional: Pixinguinha's flute, Jacob do Bandolim's cavaquinho, Dino's seven-string): the flute on top
+ * (the trials' VSO2 flute), a clarinet in five voices, the cavaquinho in four or five (the classical guitar's recordings,
+ * brighter and thinner: CHORO_CAVACO_SHELF, nothing under CHORO_CAVACO_HP), the grand on a middle voice (Nazareth's),
+ * the seven-string guitar on Bach's bass (the guitar's low strings, lifted on a phone: CHORO_BASS_PHONE_LIFT), the
+ * pandeiro, surdo, tamborim, agogo and ganza (latin-drums.ts, unpitched); one room at one send (CHORO_SEND). One
+ * instrument to a voice, Bach's notes only (the owner: "Don't meddle with the MUSIC. Make the music shine.").
+ */
+export const CHORO_SEND = 0.16;
+export const CHORO_CAVACO_SHELF = { hz: 2200, db: 5 } as const;
+export const CHORO_CAVACO_HP = 150;
+export const CHORO_BASS_PHONE_LIFT = { hz: 500, db: 9 } as const;
 export const SALSA_SEND = 0.16;
 export const SALSA_PIANO_SHELF = { hz: 2500, db: 3 } as const;
 export const SALSA_BASS_ROUND = { hz: 700, db: -1 } as const;
@@ -1202,6 +1214,12 @@ export const PATCHES = {
   salTrombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: SALSA_SEND, level: 1.3, sample: "brassTrombone", bow: BRASS_TONGUE, one: {} }),
   salPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALSA_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: SALSA_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   salBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: SALSA_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT }),
+  // D522, CHORINHO: the flute and the clarinet (the trials' recordings, tongued), the cavaquinho and the seven-string (the guitar's), the grand.
+  choFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: CHORO_SEND, level: 0.43, sample: "trialFlute", bow: WIND_TONGUE, one: {} }),
+  choClarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: CHORO_SEND, level: 0.55, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
+  choCavaco: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 4, q: 0.7, env: 2, envDecay: 0.12 }, amp: { a: 0.002, d: 0.6, s: 0, r: 0.08 }, send: CHORO_SEND, level: 0.45, sample: "choroGuitar", one: {}, shelf: CHORO_CAVACO_SHELF, hp: CHORO_CAVACO_HP }),
+  choPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: CHORO_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, phoneLift: PIANO_PHONE_LIFT }),
+  cho7: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.5, envDecay: 0.12 }, amp: { a: 0.003, d: 0.9, s: 0, r: 0.08 }, send: CHORO_SEND, level: 0.15, sample: "choroGuitar", one: {}, phoneLift: CHORO_BASS_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1632,6 +1650,30 @@ export const PRESETS: Preset[] = [
       5: [["salTrumpet", -0.2], ["salTrumpet", -0.1], ["salPiano", 0.16], ["salTrombone", -0.02], ["salBass", 0.02]],
     },
   },
+  // D522: CHORINHO: the flute on top (the clarinet second in five voices), the cavaquinho in four and five, the grand on a
+  // middle voice, the seven-string on Bach's bass; the regional's percussion (groove "choroBand": latin-drums.ts, always
+  // with this sound). Seated as a roda: the flute left, the cavaquinho right, the piano right of the middle, the
+  // seven-string a little left (LATIN_KIT: the pandeiro in the middle, the tamborim left, the agogo right).
+  {
+    id: "chorinho",
+    name: "CHORINHO",
+    // D522 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +1.7 dB, and on a phone 1.85 dB less of it (measured -1.7
+    // under the median of six sounds on a computer, +0.15 over it through the phone model on a phone).
+    gain: 1.22,
+    phoneGain: 0.81,
+    slots: ["choFlute", "choCavaco", "choPiano", "choPiano", "cho7"],
+    groove: "choroBand",
+    kit: "latin",
+    room: 0,
+    fx: "club",
+    by: {
+      1: [["choPiano", 0]],
+      2: [["choFlute", -0.16], ["cho7", -0.04]],
+      3: [["choFlute", -0.18], ["choPiano", 0.14], ["cho7", -0.04]],
+      4: [["choFlute", -0.18], ["choCavaco", 0.22], ["choPiano", 0.1], ["cho7", -0.04]],
+      5: [["choFlute", -0.2], ["choClarinet", -0.08], ["choCavaco", 0.22], ["choPiano", 0.1], ["cho7", -0.04]],
+    },
+  },
 ];
 
 /**
@@ -1682,7 +1724,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "soloVoices", "vocalSynth", "trialWinds"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1826,7 +1868,9 @@ export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UN
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 /** D520: SALSA's recordings. */
 export const SALSA_CREDIT = `TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT };
+/** D522: CHORINHO's recordings. */
+export const CHORINHO_CREDIT = `FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · ${PIANO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);

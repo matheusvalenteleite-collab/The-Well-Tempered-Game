@@ -31,7 +31,7 @@ export type LatinPiece =
   | "pandJingle" | "pandHit" | "pandBass" | "pandSlap" | "surdo" | "tamborim" | "agogoHi" | "agogoLo" | "ganza";
 
 /** The presets that play these drums, and which band's. */
-export const LATIN_SOUNDS: Readonly<Record<string, LatinBand>> = { salsa: "salsa" };
+export const LATIN_SOUNDS: Readonly<Record<string, LatinBand>> = { salsa: "salsa", chorinho: "chorinho" };
 
 export type LatinKind = "fill" | "lift" | "break" | "final";
 /** A scripted moment: the bar (Bach's numbering) and the beat of it (a fraction allowed: an upbeat entry) it leads into. */
@@ -100,6 +100,20 @@ export const LATIN_SCRIPTS: Readonly<Record<string, readonly LatinMoment[]>> = {
     { bar: 59, beat: 5 / 3, kind: "fill", why: "the soprano's subject in A minor after the episode 56-59" },
     { bar: 71, beat: 5 / 3, kind: "break", why: "the last entry, the bass's subject in E minor: the band stops for a beat and lands it together" },
     { bar: 86, kind: "final", why: "the final cadence in E minor: the timbales' fill and the last chord struck by all" },
+  ],
+  // II/1 in C major, 2/4 (two crotchets a bar), its entries a quaver into the bar; the episodes 14-21, 30-39, 56-68.
+  wtc2f01: [
+    { bar: 5, beat: 0.5, kind: "lift", why: "the soprano's subject over the alto's: the tamborim brings it in" },
+    { bar: 9, beat: 0.5, kind: "lift", why: "the bass's subject, the exposition complete" },
+    { bar: 21, beat: 0.5, kind: "fill", why: "the alto's subject in D minor after the first episode (14-21) and the half cadence on G" },
+    { bar: 25, beat: 0.5, kind: "lift", why: "the soprano answers it in D minor" },
+    { bar: 39, beat: 0.5, kind: "fill", why: "the bass's subject in C after the long episode (30-39)" },
+    { bar: 47, beat: 0.5, kind: "fill", why: "the alto's subject in C after a bar's rest from the subject" },
+    { bar: 51, beat: 0.5, kind: "lift", why: "the soprano's answer in G over it" },
+    { bar: 68, beat: 0.5, kind: "fill", why: "the bass's entry after the last episode (56-68): the close's high spirits begin (Keller)" },
+    { bar: 72, beat: 0.5, kind: "lift", why: "the alto's entry, one after another toward the close" },
+    { bar: 76, beat: 0.5, kind: "break", why: "the last entry, the soprano's: the regional stops for a beat and lands it together" },
+    { bar: 83, kind: "final", why: "the final cadence in C: the pandeiro's roll and the last chord struck by all" },
   ],
 };
 
