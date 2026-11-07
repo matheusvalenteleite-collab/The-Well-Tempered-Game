@@ -180,6 +180,8 @@ export interface KitContext {
   dynDb?: number;
   /** The key sounding at a tick ("b", "F#"), for the timpani. */
   keyAt?: (tick: number) => string;
+  /** The fugue's home key: the timpani are tuned to its tonic and dominant (else the key sounding at the tick). */
+  home?: string;
 }
 
 /** The roll into a subject zone: this many beats (two at a quick beat), the closest strokes this far apart (s). */
@@ -247,11 +249,30 @@ export function timpaniPitches(key: string): { tonic: number; dominant: number }
  * zone's pattern.
  */
 export function kitBeat(style: Exclude<DrumStyle, "brushes">, cx: KitContext): KitHit[] {
+  const hits = kitBeatRaw(style, cx);
+  if (style !== "timpani" || timpaniTuned(cx.home ?? cx.keyAt?.(cx.tick) ?? "c", cx.keyAt ? cx.keyAt(cx.tick) : (cx.home ?? "c"))) return hits;
+  // Away from the home key's harmony the timpani are silent as pitches: the bass drum takes their strokes (unpitched).
+  return hits.map((h) => (h.piece === "timp" ? { piece: "bassDrum" as const, at: h.at, vel: h.vel * TIMP_AWAY_VEL } : h));
+}
+/** The bass drum's share of a timpani stroke it takes away from the home key. */
+export const TIMP_AWAY_VEL = 0.8;
+/**
+ * Whether the timpani, tuned to the home key's tonic and dominant (as Bach's were: two drums, set for the piece), can
+ * play under the key sounding: the home key, its dominant's key, its subdominant's (where the home tonic is the dominant).
+ */
+export function timpaniTuned(home: string, local: string): boolean {
+  const h = timpaniPitches(home);
+  const l = timpaniPitches(local);
+  const pc = (m: number) => m % 12;
+  return pc(l.tonic) === pc(h.tonic) || pc(l.tonic) === pc(h.dominant) || pc(l.dominant) === pc(h.tonic);
+}
+function kitBeatRaw(style: Exclude<DrumStyle, "brushes">, cx: KitContext): KitHit[] {
   const { per, beatS, tick, beat, form } = cx;
   const out: KitHit[] = [];
   const g = dynGain(cx.dynDb ?? 0);
   const arc = ARC_VEL + (1 - ARC_VEL) * Math.min(1, tick / Math.max(1, 0.6 * form.end));
-  const pitches = timpaniPitches(cx.keyAt ? cx.keyAt(tick) : "c");
+  // The timpani on the HOME key's tonic and dominant only (rhythm, never a line: the owner, "Don't meddle with the MUSIC").
+  const pitches = timpaniPitches(cx.home ?? (cx.keyAt ? cx.keyAt(tick) : "c"));
   const L = landings(form);
   const rollLen = (beatS < ROLL_QUICK_S ? ROLL_BEATS.quick : ROLL_BEATS.slow) * beat;
   const hit = (piece: KitPiece, at: number, vel: number, midi?: number) => out.push({ piece, at, vel: Math.max(0.02, Math.min(1, vel)), ...(midi !== undefined ? { midi } : {}) });
@@ -429,11 +450,20 @@ function patternHits(style: Exclude<DrumStyle, "brushes">, cx: KitContext, kind:
       if (!ep && b === per - 1 && per > 1) hit("rim", subs > 1 ? last : 0, 0.32);
       if (top && back) hit("snare", 0, 0.5);
       break;
-    case "chip":
     case "machine":
+      // The drum machine's own way (unlike the kits'): the kick on every beat of a subject zone (four on the floor),
+      // the clap with the snare on the backbeat, the closed hat on the off-beats, the open hat at the bar's end; the
+      // episodes the kick on the bar alone, the rim, the hat on the off-beats.
+      if (!ep || b === 0) hit("kick", 0, b === 0 ? 0.75 : 0.62);
+      if (back) hit(ep ? "rim" : "snare", 0, ep ? 0.42 : 0.55);
+      if (back && !ep) hit("clap", 0, top ? 0.5 : 0.38);
+      if (subs > 1) for (let s = 1; s < subs; s++) hit("hat", s / subs, ep ? 0.28 : 0.36);
+      else if (b % 2 === 1 || per === 1) hit("hat", 0, ep ? 0.26 : 0.32);
+      if (!ep && subs > 1 && b === per - 1) hit("openhat", last, top ? 0.4 : 0.3);
+      break;
+    case "chip":
       if (b === 0 || mid || top) hit("kick", 0, b === 0 ? 0.75 : 0.6);
       if (back) hit(ep ? "rim" : "snare", 0, ep ? 0.42 : 0.6);
-      if (back && top && style === "machine") hit("clap", 0, 0.42);
       if (ep) hit("hat", 0, 0.32);
       else for (let s = 0; s < subs; s++) hit("hat", s / subs, s ? 0.26 : 0.36);
       if (top && b === per - 1 && subs > 1) hit("openhat", last, 0.34);

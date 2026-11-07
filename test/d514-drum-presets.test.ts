@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { FakeAudioContext, installFakeAudio } from "./fake-audio.ts";
 import { Chip, KIT_DRUMS, KIT_RMS, kitFiles, kitSource, type GrooveContext } from "../src/touch/chip.ts";
 import { setBacking, setDrums, setPreset } from "../src/touch/sound.ts";
-import { FUGUES, beatOf, fugueById } from "../src/touch/fugue.ts";
+import { FUGUES, beatOf, fugueById, keyAt } from "../src/touch/fugue.ts";
 import { formOf } from "../src/touch/fugue-form.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -30,6 +30,7 @@ import {
   setDrumPreset,
   stylesFor,
   timpaniPitches,
+  timpaniTuned,
   type DrumStyle,
   type KitContext,
   type KitHit,
@@ -48,7 +49,7 @@ test("D514: three presets per fugue, one of each character, stable ids, short na
     for (const p of ps) assert.ok(p.name.length <= 10 && p.name === p.name.toUpperCase(), `${f.id} ${p.name}`);
     const s = PIECE_SOUND[f.id];
     if (s === "jazzQuartet" || s === "pianoSampled") assert.equal(ps[0].id, "acoustic", f.id);
-    if (s === "chip" || s === "gameboy" || s === "nocturne32") assert.equal(ps[0].id, "electronic", f.id);
+    if (s === "chip" || s === "gameboy" || s === "super16") assert.equal(ps[0].id, "electronic", f.id);
     if (s === "chamberOrgan" || s === "harpsichordSampled" || s === "bachBrass") assert.equal(ps[0].id, "percussion", f.id);
   }
   // Customised: the acoustic kit by tempo (brushes at a largo, sticks on the ride at a walking beat, rock at a quick one).
@@ -60,7 +61,8 @@ test("D514: three presets per fugue, one of each character, stable ids, short na
   assert.equal(stylesFor("wtc1f15").percussion, "frame");
   assert.equal(stylesFor("wtc1f24").percussion, "timpani");
   // The electronic: the console's kit under the chip sounds, the drum machine under the others.
-  assert.equal(stylesFor("wtc1f12").electronic, "chip");
+  assert.equal(stylesFor("wtc2f11").electronic, "chip");
+  assert.equal(stylesFor("wtc1f12").electronic, "machine", "VOCAL SYNTH's (D510)");
   assert.equal(stylesFor("wtc1f01").electronic, "machine");
   const styles = new Set(WTC.flatMap((f) => Object.values(stylesFor(f.id))));
   assert.equal(styles.size, 7);
@@ -174,6 +176,30 @@ test("D514: the timpani on the key's tonic and dominant, within the recorded dru
   }
 });
 
+test("D514: the timpani tuned to the HOME key's tonic and dominant (rhythm only, never a line: the owner); away from its harmony the bass drum takes their strokes", () => {
+  assert.ok(timpaniTuned("f", "f") && timpaniTuned("f", "c") && timpaniTuned("f", "Bb") && timpaniTuned("b", "e") && timpaniTuned("b", "f#"));
+  assert.ok(!timpaniTuned("f", "Ab") && !timpaniTuned("f", "a") && !timpaniTuned("b", "A") && !timpaniTuned("f", "d"));
+  for (const id of ["wtc1f12", "wtc1f24", "wtc2f09"]) {
+    const f = fugueById(id);
+    const b = beatOf(f);
+    const beatS = (b.ticks / f.tpq) * (60 / tempoOf(id));
+    const form = formOf(f);
+    const home = timpaniPitches(f.key);
+    let away = 0;
+    for (let tick = 0, n = 0; tick < f.length; tick += b.ticks, n++) {
+      const cx: KitContext = { b: n % b.perBar, per: b.perBar, compound: false, beatS, tick, beat: b.ticks, form, keyAt: (t) => keyAt(f, t), home: f.key };
+      const hits = kitBeat("timpani", cx);
+      for (const h of hits) if (h.piece === "timp") assert.ok(h.midi === home.tonic || h.midi === home.dominant, `${id} ${tick}: ${h.midi}`);
+      if (!timpaniTuned(f.key, keyAt(f, tick))) (away += 1), assert.ok(hits.every((h) => h.piece !== "timp"), `${id} ${tick}`);
+    }
+    if (id === "wtc1f12") assert.ok(away > 0, "I/12's A flat and E flat: the bass drum alone");
+  }
+});
+
+test("D514: on a phone the low drums' harmonics carry them (the timpani measured -50 LUFS on the phone model before)", () => {
+  assert.ok(KIT_DRUMS.phoneLow.hp >= 300 && KIT_DRUMS.phoneLow.level > 0 && KIT_DRUMS.phoneLow.timpani >= 1);
+});
+
 test("D514: the recorded kits read in place (public/samples/drums), every file there, measured, evened", () => {
   for (const set of ["kitRock", "kitClub"] as const) {
     for (const v of KIT_VOICES[set]) for (const loud of [false, true]) {
@@ -219,9 +245,9 @@ test("D514: with DRUMS on, the chosen drummer plays (JAZZ QUARTET's brushes give
   nb = chip.brushLog.length;
   chip.groove(t0 + 2, 0.9, 0, 2, 3, true, cx);
   assert.ok(chip.brushLog.length > nb);
-  // Under another sound, the electronic kit for I/12 (the chip's).
-  setPreset("nocturne32");
-  const g = fugueById("wtc1f12");
+  // Under another sound, the electronic kit for II/11 (the chip's).
+  setPreset("chip");
+  const g = fugueById("wtc2f11");
   setDrumPreset(g.id, "electronic");
   nk = chip.kitLog.length;
   chip.groove(t0 + 3, 1.2, 0, 2, 4, false, { tick: g.barTicks * 4, beat: g.tpq, fills: [], end: g.length, piece: g });
@@ -243,4 +269,28 @@ test("D514: JAZZ BRUSHES on a fugue not the quartet's: the form's fills (into ea
   assert.ok(brushDb(f, ep.from + 1) < 0 && brushDb(f, form.climax + 1) > 0);
   // D503's own fugues keep their script.
   assert.equal(brushDb(fugueById("wtc1f19"), 960 * 20), 0);
+});
+
+test("D514: the link registers the presets with the selection's DRUMS (D450): STYLE n/3 cycles through the three, the choice reaching the drummer", async () => {
+  const { register } = await import("node:module");
+  register("./tsx-hooks.mjs", import.meta.url);
+  const lite = await import("../src/bench/LiteDrums.tsx");
+  await import("../src/bench/drum-presets-link.ts");
+  for (const id of ["wtc1f12", "wtc1f24"]) {
+    localStorage.removeItem(STORED_PRESET_KEY(id));
+    setDrumPreset(id, drumPresetsFor(id)[0].id);
+    const ps = lite.drumPresets(id);
+    assert.deepEqual(ps.map((p) => p.id), drumPresetsFor(id).map((p) => p.id), id);
+    const seen: string[] = [];
+    for (let k = 0; k < 3; k++) {
+      const at = ps.findIndex((p) => p.id === lite.drumPresetOf(id)) + 1;
+      seen.push(`${at}/${ps.length}`);
+      lite.cycleDrumPreset(id);
+      assert.equal(drumPresetOf(id), lite.drumPresetOf(id), "the drummer follows the row");
+    }
+    assert.deepEqual(seen, ["1/3", "2/3", "3/3"], id);
+    assert.equal(lite.drumPresetOf(id), ps[0].id, "round to the first");
+  }
+  setBacking(false);
+  setDrums(false);
 });

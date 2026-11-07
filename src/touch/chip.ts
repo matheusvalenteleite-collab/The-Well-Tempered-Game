@@ -258,6 +258,10 @@ export const KIT_DRUMS = {
   // Each style's share (the drums alone measured against I/12's band: about 11 LU under it, D514's table); the synthesized kits on chip.ts drum's scale.
   style: { rock: 1, jazz: 1, frame: 0.8, timpani: 0.6, chip: 5, machine: 5, brushes: 1 } satisfies Record<DrumStyle, number>,
   phone: 1.2,
+  // A phone's speaker has nothing under about 600 Hz: the timpani's and the bass drum's fundamentals (87-200 Hz) are
+  // lost and the drums measured -50 LUFS there. On a phone their harmonics are made (a soft clip, the way a phone's own
+  // "bass enhancer" implies a fundamental it cannot play) and given above phoneLow.hp, and the timpani a little more.
+  phoneLow: { drive: 6, hp: 450, lp: 3200, level: 1.6, timpani: 1.5 },
   hp: 120,
   timpHp: 55,
   send: 0.1,
@@ -265,6 +269,12 @@ export const KIT_DRUMS = {
   piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85 } satisfies Record<KitPiece, number>,
   pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1 } satisfies Record<KitPiece, number>,
 } as const;
+/** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
+const PHONE_LOW_CURVE = (() => {
+  const c = new Float32Array(1025);
+  for (let i = 0; i < c.length; i++) c[i] = Math.tanh(((i / 512) - 1) * 3);
+  return c;
+})();
 /** D514: the kits' recordings' loudness (dB: the strongest 50 ms, tools/playback/drums/measure_kits.py). */
 export const KIT_RMS: Readonly<Record<string, number>> = { "kitRock/kick-1": -17.9, "kitRock/kick-2": -10.1, "kitRock/snare-1": -20.8, "kitRock/snare-2": -15.6, "kitRock/rim-1": -27.4, "kitRock/rim-2": -20.0, "kitRock/hat-1": -33.7, "kitRock/hat-2": -25.2, "kitRock/openhat-1": -26.4, "kitRock/openhat-2": -22.5, "kitRock/crash-1": -25.2, "kitRock/crash-2": -21.7, "kitRock/ride-1": -35.2, "kitRock/ride-2": -28.1, "kitRock/tomHigh-1": -19.9, "kitRock/tomHigh-2": -13.8, "kitRock/tomLow-1": -20.9, "kitRock/tomLow-2": -13.6, "kitClub/kick-1": -15.3, "kitClub/kick-2": -7.5, "kitClub/snare-1": -21.2, "kitClub/snare-2": -13.2, "kitClub/rim-1": -30.3, "kitClub/rim-2": -22.3, "kitClub/hat-1": -32.8, "kitClub/hat-2": -21.6, "kitClub/openhat-1": -30.7, "kitClub/openhat-2": -18.7, "kitClub/crash-1": -23.5, "kitClub/crash-2": -17.1, "kitClub/ride-1": -32.8, "kitClub/ride-2": -27.8, "kitClub/tomHigh-1": -19.6, "kitClub/tomHigh-2": -12.3, "kitClub/tomLow-1": -19.2, "kitClub/tomLow-2": -11.3, "kitClub/cowbell-1": -28.2, "kitClub/cowbell-2": -17.3, "kitClub/tambourine-1": -22.2, "kitClub/tambourine-2": -18.5, "kitClub/shaker-1": -28.1, "kitClub/shaker-2": -19.8, "kitClub/congaHigh-1": -14.2, "kitClub/congaHigh-2": -10.4, "kitClub/congaLow-1": -20.1, "kitClub/congaLow-2": -11.2, "kitClub/bongo-1": -25.1, "kitClub/bongo-2": -15.3, "kitClub/woodblock-1": -28.2, "kitClub/woodblock-2": -22.1, "kitClub/claves-1": -35.4, "kitClub/claves-2": -29.5, "kitClub/triangle-1": -33.3, "kitClub/triangle-2": -23.2, "kitClub/guiro-1": -34.4, "kitClub/guiro-2": -27.1, "timpLoud/B2-v2": -10.7, "timpLoud/Cs3-v2": -15.1, "timpLoud/E3-v2": -18.6, "timpLoud/F2-v2": -27.0, "timpLoud/G3-v2": -20.9 };
 /** D514: a drum piece as a style's kit plays it: the recorded set and its file's name there (null: synthesized). */
@@ -3411,7 +3421,7 @@ export class Chip {
         const fills = brushFills(piece, cx?.beat ?? 1, per);
         return (this.brushes(at, beatS, b, per, compound, { tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, fills, end: cx?.end ?? piece.length, dynDb: (cx?.dynDb ?? 0) + brushDb(piece, cx?.tick ?? 0) }), true);
       }
-      const hits = kitBeat(style, { b, per, compound, beatS, tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece) });
+      const hits = kitBeat(style, { b, per, compound, beatS, tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key });
       for (const h of hits) this.kit(style, h, at + h.at * beatS);
       return true;
     }
@@ -3485,8 +3495,27 @@ export class Chip {
     hp.frequency.value = h.piece === "timp" || h.piece === "bassDrum" ? KIT_DRUMS.timpHp : KIT_DRUMS.hp;
     hp.Q.value = 0.7;
     const out = bag.add(ctx.createGain());
-    out.gain.value = KIT_DRUMS.level * KIT_DRUMS.style[style] * (this.phone ? KIT_DRUMS.phone : 1);
+    out.gain.value = KIT_DRUMS.level * KIT_DRUMS.style[style] * (this.phone ? KIT_DRUMS.phone * (style === "timpani" ? KIT_DRUMS.phoneLow.timpani : 1) : 1);
     src.connect(g).connect(hp).connect(out);
+    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum")) {
+      // The low drums' harmonics for the phone's speaker (their pitch the same: the tonic or the dominant, implied).
+      const L = KIT_DRUMS.phoneLow;
+      const pre = bag.add(ctx.createGain());
+      pre.gain.value = L.drive;
+      const ws = bag.add(ctx.createWaveShaper());
+      ws.curve = PHONE_LOW_CURVE;
+      const bh = bag.add(ctx.createBiquadFilter());
+      bh.type = "highpass";
+      bh.frequency.value = L.hp;
+      bh.Q.value = 0.7;
+      const bl = bag.add(ctx.createBiquadFilter());
+      bl.type = "lowpass";
+      bl.frequency.value = L.lp;
+      bl.Q.value = 0.7;
+      const xg = bag.add(ctx.createGain());
+      xg.gain.value = L.level / L.drive;
+      hp.connect(pre).connect(ws).connect(bh).connect(bl).connect(xg).connect(out);
+    }
     let last: AudioNode = out;
     if (ctx.createStereoPanner) {
       const p = bag.add(ctx.createStereoPanner());
