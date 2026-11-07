@@ -438,8 +438,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f20: {
-    sound: "harpsichordSampled",
-    soundWhy: "'Among Bach's wild A minor pieces, where the virtuoso element prevails' (Bodky), a didactic stretto proving-ground (Keller): the composer's own keyboard showpiece, Bodky's pedal-harpsichord plan made the band's.",
+    sound: "krautrock",
+    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the piano on the subject's top, the echoed guitar behind, the combo organ and the picked bass, each on its own voice, the trance kept from the first bar to the last.",
     character: "Exposition recto 1-14½, inverso 14½-27½, stretto recto 27½-48, stretto inverso 48-64½ (Ledbetter); pedal points on E (60-62) and A (83-87).",
     plans: {
       harpsichordSampled: [
