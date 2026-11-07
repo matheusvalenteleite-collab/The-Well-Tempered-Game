@@ -28,6 +28,8 @@ export interface Form {
   climax: { rise: number; peak: number; arrival: number };
   /** Held bass notes (a bar and a half or more) in the last quarter: the pedal points. */
   pedals: { on: number; end: number }[];
+  /** The final chord's onset (the last attack in any voice). */
+  last: number;
   end: number;
 }
 
@@ -44,7 +46,7 @@ export function formOf(f: TouchFugue): Form {
   const seen = new Set<number>();
   let ei = 0;
   while (ei < ents.length && seen.size < nv) seen.add(ents[ei++].voice);
-  const expoEnd = ents.slice(0, Math.max(1, ei)).reduce((m, e) => Math.max(m, e.end), 0);
+  let expoEnd = ents.slice(0, Math.max(1, ei)).reduce((m, e) => Math.max(m, e.end), 0);
   // The later entries in groups: an entry beginning before the group's last ends (or within a bar of it) joins it.
   const groups: { on: number; end: number; n: number; stretto: boolean }[] = [];
   for (const e of ents.slice(ei)) {
@@ -55,8 +57,10 @@ export function formOf(f: TouchFugue): Form {
       g.n++;
     } else groups.push({ on: e.on, end: e.end, n: 1, stretto: false });
   }
-  // An entry group still inside the exposition's tail folds into it.
-  while (groups.length && groups[0].on < expoEnd) groups.shift();
+  // An entry group inside the exposition's tail folds into it; one that runs on past it ends the exposition where it begins
+  // (II/2: the bass enters last, in a chain of strettos that runs to the end).
+  while (groups.length && groups[0].on < expoEnd && groups[0].end <= expoEnd + bar) groups.shift();
+  if (groups.length && groups[0].on < expoEnd) expoEnd = groups[0].on;
   const final = groups.pop();
   // The acts: the exposition, the middle entries (two acts where there are two or more groups, split nearest 60%), the final.
   const split = groups.length >= 2 ? nearest(groups.slice(1).map((g) => g.on), end * 0.55) : -1;
@@ -74,7 +78,8 @@ export function formOf(f: TouchFugue): Form {
   const lastOn = ents.length ? ents[ents.length - 1].on : 0;
   const arrival = lastCad > lastOn + bar ? Math.min(end, lastCad) : Math.max(t, Math.min(end, lastCad));
   if (arrival - t >= bar * 0.75) seams.push({ kind: "episode", on: t, end: arrival, act: acts - 1 });
-  if (end - arrival >= bar * 0.5) seams.push({ kind: "coda", on: arrival, end, act: acts - 1 });
+  const codaOn = Math.max(arrival, t);
+  if (end - codaOn >= bar * 0.5) seams.push({ kind: "coda", on: codaOn, end, act: acts - 1 });
   const actOn = [0];
   for (let a = 1; a < acts; a++) actOn.push(seams.find((s) => s.act === a && s.kind !== "episode")?.on ?? end);
   const lastEntry = ents.length ? lastOn : end;
@@ -82,7 +87,9 @@ export function formOf(f: TouchFugue): Form {
   // The pedals: the lowest voice's notes held a bar and a half or more in the last quarter.
   const low = f.voices[nv - 1] ?? [];
   const pedals = low.filter((n) => n[0] >= end * 0.75 && n[1] >= bar * 1.5).map((n) => ({ on: n[0], end: n[0] + n[1] }));
-  const form: Form = { seams, acts, actOn, climax: { rise, peak: Math.max(rise, lastEntry), arrival }, pedals, end };
+  let last = 0;
+  for (const v of f.voices) for (const n of v) if (n[0] > last) last = n[0];
+  const form: Form = { seams, acts, actOn, climax: { rise, peak: Math.max(rise, lastEntry), arrival }, pedals, last, end };
   memo.set(f.id, form);
   return form;
 }
@@ -104,6 +111,17 @@ export function formAt(form: Form, tick: number): { seam: Seam; act: number; mix
   const climax = tick < c.rise ? 0 : tick < c.peak ? smooth((tick - c.rise) / Math.max(1, c.peak - c.rise)) : 1;
   const resolved = tick < c.arrival ? 0 : smooth((tick - c.arrival) / Math.max(1, (form.end - c.arrival) * 0.6 || 1));
   return { seam, act, mix, episode, climax, resolved };
+}
+
+/**
+ * The sound's reading (Instruments' D513/D514): "subject" in the exposition, a middle group or the final group,
+ * "episode" between, "coda" after the last cadence; `climax` 0..1 (smoothstep from `climax.rise` to `climax.peak`,
+ * held to the end), `resolved` 0..1 after the arrival. The kinds and the ramp are a contract: keep them stable.
+ */
+export function phaseAt(form: Form, tick: number): { phase: "subject" | "episode" | "coda"; kind: SeamKind; act: number; stretto: boolean; climax: number; resolved: number; pedal: boolean } {
+  const a = formAt(form, tick);
+  const phase = a.seam.kind === "episode" ? "episode" : a.seam.kind === "coda" ? "coda" : "subject";
+  return { phase, kind: a.seam.kind, act: a.act, stretto: !!a.seam.stretto, climax: a.climax, resolved: a.resolved, pedal: form.pedals.some((p) => tick >= p.on && tick < p.end) };
 }
 
 const smooth = (x: number) => {
