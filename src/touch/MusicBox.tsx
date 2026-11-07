@@ -266,14 +266,14 @@ export interface Frame {
   clear?: { l: number; r: number };
   /**
    * Design studio (D473): the CSS px at the roll's foot that something lies over (the voice legend's strip, the
-   * stops, OBBLIGATO's slot): the ladder keeps every row above it, the music still drawn behind. Set by MusicBox.
+   * stops; D496: OBBLIGATO's slot gone): the ladder keeps every row above it, the music still drawn behind. Set by MusicBox.
    */
   foot?: number;
 }
 
 /** D473: the ladder's rows clear of what lies over the roll's foot, a 2 px gap kept. */
 const FOOT_GAP = 2;
-const FOOT_OVER = ".tg-legend, .tb-stops-side, .tb-obbligato-slot";
+const FOOT_OVER = ".tg-legend, .tb-stops-side";
 let footPx = 0;
 /** D473: the CSS px kept free at the roll's foot (MusicBox measures it each frame; 0 off the wide box). */
 export const rollFoot = () => footPx;

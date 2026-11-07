@@ -120,7 +120,6 @@ import { HardTapCalibrate, HardTapSetting } from "../touch/HardTapPanel.tsx";
 import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
 import { ConsortStops } from "../touch/ConsortStops.tsx";
 import { hasConsortStops } from "../touch/consort-stops.ts";
-import { ObbligatoOffer } from "./ObbligatoOffer.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 
@@ -676,8 +675,8 @@ export function BenchApp() {
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(!run && !prac && !manLesson && proto.layout === "bars" ? { obbligato: true } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
-    // D485: the game open to the hit-tests (`?dev=1` only): its OBBLIGATO offer can be put up from the console.
+    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    // D485: the game open to the hit-tests (`?dev=1` only).
     // D487: the player's voice never quieter than the others: its lift on the player's own bus, with TOOLS' balance.
     if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift;
     if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
@@ -936,7 +935,7 @@ export function BenchApp() {
     const area = document.querySelector(".tg-play");
     if (!r || !area) return null;
     const a = area.getBoundingClientRect();
-    // D473: the rows clear of what lies over the roll's foot (the legend, the stops, OBBLIGATO), as MusicBox draws them.
+    // D473: the rows clear of what lies over the roll's foot (the legend, the stops), as MusicBox draws them.
     const fl = floorOf(r.height, boxFloor);
     const rh = r.height * (1 - fl);
     // D377: CLASSIC's rows exactly as drawn, the zoom's ease included (box-zoom.ts touchRows).
@@ -1748,9 +1747,6 @@ export function BenchApp() {
 
   return (
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${(stopsOn && layout === "bars" && playing) || consortOn ? " tb-has-side-stops" : ""}`}>
-      {/* D485: OBBLIGATO's buttons at the bars' outer top corners while an offer stands. */}
-      {layout === "bars" && playing && <ObbligatoOffer game={game} />}
-      {layout === "bars" && <i className="tb-obbligato-slot" aria-hidden="true" />}
       {consortOn && <ConsortStops presetId={presetById(soundNow).id} piece={f.id} />}
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
