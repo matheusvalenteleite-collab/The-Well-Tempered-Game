@@ -37,6 +37,8 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   bachBrass: { id: "vallotti", a: 415 },
   // D503: JAZZ QUARTET: a vibraphone and a modern grand, tuned equal at A = 440.
   jazzQuartet: { id: "equal", a: 440 },
+  // D524: PET SOUNDS: a 1966 Hollywood session, equal at A = 440.
+  petSounds: { id: "equal", a: 440 },
 };
 /** Every other sound (the consoles, the synthesizers): equal temperament, A = 440. */
 export const TUNING_FALLBACK: TuningAt = { id: "equal", a: 440 };

@@ -117,7 +117,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p16: "chip",
   wtc1f16: "harpsichordSampled",
   wtc1p17: "chip",
-  wtc1f17: "chamberOrgan",
+  wtc1f17: "petSounds",
   wtc1p18: "harpsichordSampled",
   wtc1f18: "pianoSampled",
   wtc1p19: "harpsichordSampled",

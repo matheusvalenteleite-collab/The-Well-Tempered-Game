@@ -14,10 +14,12 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, PET_KIT_FILES, PET_KIT_MIDIS, PET_KIT_SET, PET_TIMP_MIDIS, PET_TIMP_SETS, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
+import { petBeat, petPlan, TIMP_MIDIS, type PetHit } from "./pet-drums.ts";
+import type { TouchFugue } from "./fugue.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -211,6 +213,10 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // reflection close (12 ms), darker than the salon (5 kHz at most, darkening as it decays), the bass's line in it from
   // 140 Hz. Sent JAZZ_SEND (sound.ts), the brushes a little less (JAZZ_DRUMS.send).
   club: { predelay: 0.012, hp: 140, lp: 5000, seconds: 0.9, phoneSeconds: 0.7, rt60: 0.8, phoneRt60: 0.6, brightness: 0.32 },
+  // D524, PET SOUNDS' room: the echo chamber of a 1966 Hollywood session (Gold Star's, Western's): a live, bright-ish tail
+  // (RT60 1.5 s, on a phone 0.95 s), the first reflection 20 ms on, nothing under 160 Hz in it (the bass's line dry, as the
+  // records kept it) and nothing over 6 kHz. Sent PET_SEND (sound.ts); the snare and the timpani a good share of it.
+  goldStar: { predelay: 0.02, hp: 160, lp: 6000, seconds: 1.6, phoneSeconds: 1.0, rt60: 1.5, phoneRt60: 0.95, brightness: 0.4 },
 };
 /**
  * D503, JAZZ QUARTET's brushes (chip.ts Chip.brushes): each piece's level against the others (`tap`, `stir`, `flutter`,
@@ -231,6 +237,27 @@ export const JAZZ_DRUMS = {
   foot: 0.32,
   pan: { tap: -0.06, stir: -0.06, flutter: -0.06, ride: -0.14, foot: 0.02 },
 } as const;
+/**
+ * D524, PET SOUNDS' drums (chip.ts Chip.petDrums: pet-drums.ts on petKit and the timpani): each piece's level (the files as
+ * recorded), the kit's `level` (measured: where JAZZ QUARTET's brushes sit against their band), a phone's share, the cut
+ * under `hp` Hz (the bass's room; the bass drum's and the timpani's own `lowHp`, their thump kept), each piece's share of
+ * the echo chamber, and the seats (the kit behind, a little left; the timpani behind, right).
+ */
+export const PET_DRUMS = {
+  level: 3.5,
+  phone: 1.8,
+  hp: 150,
+  lowHp: 45,
+  kick: 0.5,
+  snare: 0.35,
+  tomHigh: 0.35,
+  tomLow: 0.4,
+  crash: 0.22,
+  tamb: 0.3,
+  timp: 0.55,
+  send: { kick: 0.04, snare: 0.3, tomHigh: 0.2, tomLow: 0.2, crash: 0.15, tamb: 0.12, timp: 0.25 },
+  pan: { kick: -0.06, snare: -0.08, tomHigh: -0.12, tomLow: -0.02, crash: -0.14, tamb: 0.1, timp: 0.16 },
+} as const;
 /** D503: the brush recordings' loudness as prepared (dB, K-weighted over each file: tools/playback/jazz/build_jazz.py). */
 export const BRUSH_RMS: Readonly<Record<number, number>> = { 48: -46, 49: -43.8, 50: -38.7, 51: -41.1, 52: -35.5, 53: -37.3, 54: -24.6, 55: -24.8, 60: -26.9, 62: -26.9, 64: -26.9, 65: -26.9, 72: -49.7, 74: -43.8, 76: -41.5, 84: -30, 85: -29, 86: -31.4, 87: -27.9 };
 /** D503: what the game tells the rhythm section about a beat (proto-game.ts): its tick and beat, the piece's fills and end (ticks), Busoni's level there. */
@@ -240,6 +267,8 @@ export interface GrooveContext {
   fills: readonly Fill[];
   end: number;
   dynDb?: number;
+  /** D524: the piece (PET SOUNDS' drums read its form and its bass: pet-drums.ts petPlan). */
+  piece?: TouchFugue;
 }
 export const HALL = REVERBS.hall;
 
@@ -1674,6 +1703,9 @@ export class Chip {
     });
     // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
     plans.push([{ set: BRUSH_SET, notes: grooveNow()?.kit === "brushes" ? [...BRUSH_MIDIS] : [] }]);
+    // D524: PET SOUNDS' kit (12 short files) and its timpani (five drums, two dynamics).
+    const pet = grooveNow()?.kit === "pet";
+    plans.push([{ set: PET_KIT_SET, notes: pet ? [...PET_KIT_MIDIS] : [] }, ...PET_TIMP_SETS.map((set) => ({ set, notes: pet ? [...PET_TIMP_MIDIS] : [] }))]);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
@@ -3127,6 +3159,8 @@ export class Chip {
     if (!gr) return false;
     // D503: JAZZ QUARTET's brushes: their pattern, Busoni's level and the piece's fills (jazz-drums.ts), recorded.
     if (gr.kit === "brushes") return (this.brushes(at, beatS, b, per, compound, cx), true);
+    // D524: PET SOUNDS' drums: the ballad's kit, the tambourine, the timpani on the bass's note; the piece's form (pet-drums.ts).
+    if (gr.kit === "pet") return (this.petDrums(at, beatS, b, per, compound, cx), true);
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
   }
@@ -3222,6 +3256,62 @@ export class Chip {
     src.connect(g).connect(this.brushOut(bag, JAZZ_DRUMS.pan[s.piece]));
     src.start(t, pos);
     halt(src, t + len + xf + 0.01);
+  }
+
+  /** D524: one beat of PET SOUNDS' drums (pet-drums.ts petBeat, the piece's plan); without the piece the pattern alone. */
+  private petDrums(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext) {
+    const beat = cx?.beat ?? 1;
+    const f = cx?.piece;
+    const plan = f ? petPlan(f, beat, per) : { moments: [], quiet: [], bass: [], end: Infinity };
+    for (const h of petBeat(b, per, compound, cx?.tick ?? 0, beat, plan, cx?.dynDb ?? 0)) this.petHit(h, at + h.at * beatS);
+  }
+
+  /** D524: one stroke: the soft or the firm recording by its strength, the timpani's drum nearest its pitch (retuned to it). */
+  private petHit(h: PetHit, at: number) {
+    this.brushLog.push({ piece: h.piece, at, vel: h.vel });
+    if (this.brushLog.length > 512) this.brushLog.splice(0, 256);
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const firm = h.vel >= 0.45 ? 1 : 0;
+    let set: string = PET_KIT_SET;
+    let m: number;
+    let rate = 1;
+    if (h.piece === "timp") {
+      set = PET_TIMP_SETS[firm];
+      const want = h.midi ?? TIMP_MIDIS[0];
+      m = TIMP_MIDIS.reduce((a, x) => (Math.abs(x - want) < Math.abs(a - want) ? x : a), TIMP_MIDIS[0] as number);
+      rate = 2 ** ((want - m) / 12);
+    } else m = PET_KIT_FILES[h.piece][firm];
+    const rec = loaded(set, m);
+    if (!rec) {
+      loadOne(ctx, set, m);
+      const stand: Record<PetHit["piece"], Drum> = { kick: "kick", snare: "snare", tomHigh: "snare", tomLow: "kick", crash: "ride", tamb: "shaker", timp: "kick" };
+      return this.drum(stand[h.piece], t, h.vel * 0.6);
+    }
+    const bag = new Bag();
+    const src = bag.src(ctx.createBufferSource());
+    src.buffer = rec.buffer;
+    src.playbackRate.value = rate;
+    const g = bag.add(ctx.createGain());
+    // The firm recordings are about 5 dB over the soft as recorded: scaled so `vel` alone sets the loudness.
+    g.gain.value = PET_DRUMS[h.piece] * h.vel * (firm ? 0.56 : 1);
+    const hp = bag.add(ctx.createBiquadFilter());
+    hp.type = "highpass";
+    hp.frequency.value = h.piece === "kick" || h.piece === "timp" ? PET_DRUMS.lowHp : PET_DRUMS.hp;
+    hp.Q.value = 0.7;
+    const lv = bag.add(ctx.createGain());
+    lv.gain.value = PET_DRUMS.level * (this.phone ? PET_DRUMS.phone : 1);
+    src.connect(g).connect(hp).connect(lv);
+    let out: AudioNode = lv;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = PET_DRUMS.pan[h.piece];
+      out = lv.connect(p);
+    }
+    out.connect(this.master);
+    this.fxSend(out, PET_DRUMS.send[h.piece], bag);
+    src.start(t, rec.onset);
+    halt(src, t + (h.piece === "crash" ? 3 : h.piece === "timp" ? 2.5 : 1.5));
   }
 
   private roomTo() {

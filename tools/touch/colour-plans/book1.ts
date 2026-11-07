@@ -399,8 +399,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f17: {
-    sound: "chamberOrgan",
-    soundWhy: "'Noble and warm, organ- or choral-like; solemnly slow' (Keller): four voices with a reprise (Ledbetter 27-35) that a plenum crowns.",
+    sound: "petSounds",
+    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the piano, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
