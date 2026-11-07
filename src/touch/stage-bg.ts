@@ -17,6 +17,7 @@
  * rest of the game.
  */
 import type { TouchFugue } from "./fugue.ts";
+import { formAt, formOf } from "./form-points.ts";
 
 export type StageMode = "full" | "quiet" | "off";
 const STAGE_KEY = "tb-stage-v1";
@@ -88,6 +89,19 @@ class Kit {
    * `cadence` 1 at a cadence's arrival, fading over two bars.
    */
   turn = 0;
+  /**
+   * D474: the drama (form-points.ts): `acts` weights, how much of each act's scene stands now (the episode before an
+   * act turning from the last to it), `climax` 0..1 into the last entry, `rest` 0..1 after the last chord, `calm`
+   * 0..1 in an episode. A world that knows its acts draws its scenes from these; every world gets the look in SCRIPTS.
+   */
+  acts: number[] = [1];
+  climax = 0;
+  rest = 0;
+  calm = 0;
+  /** How much of act `a` stands (0..1). */
+  act(a: number) {
+    return this.acts[a] ?? 0;
+  }
   homeMinor = false;
   stretto = 0;
   busy = 0;
@@ -560,6 +574,23 @@ const WORLDS: Record<string, World> = {
     k.R(k.w * 0.6, k.h * 0.76, 3, 12, "rgba(10,8,10,1)");
     const n = Math.min(12, Math.max(2, k.ents.length));
     for (let i = 0; i < n; i++) k.candle(k.w * (0.16 + (0.68 * i) / (n - 1)), k.h * 0.84, 8, k.passed > i);
+    // D474: II the moon in the tall windows; III the vault's gold, the censer's smoke; the end: the rose window at dawn.
+    const moon = k.act(1) + 0.4 * k.act(2);
+    for (let i = 0; i < 4; i++) if (moon > 0.01) {
+      const x = (i + 1) * (k.w / 4) - 6;
+      k.R(x, k.h * 0.18, 10, k.h * 0.34, `rgba(120,150,220,${0.35 * moon})`);
+      k.R(x + 4, k.h * 0.18, 2, k.h * 0.34, `rgba(10,10,20,${0.6 * moon})`);
+    }
+    if (k.act(2) > 0.01) {
+      k.vgrad(0, k.h * 0.3, [[0, `rgba(120,90,40,${0.5 * k.act(2)})`], [1, "rgba(120,90,40,0)"]]);
+      for (let j = 0; j < 5; j++) k.glow(k.w * 0.5 + Math.sin(k.t * 0.2 + j) * 30, k.h * (0.6 - j * 0.1) - wrap(k.t * 3, 20), 26, [200, 190, 170], 0.08 * k.act(2));
+    }
+    const rose = Math.max(k.act(3), k.climax);
+    if (rose > 0.01) {
+      const cx = k.w * 0.5, cy = k.h * 0.14;
+      k.disc(cx, cy, 16, `rgba(255,220,170,${0.55 * rose})`);
+      for (let i = 0; i < 8; i++) k.R(cx + Math.cos((i * Math.PI) / 4) * 10 - 1, cy + Math.sin((i * Math.PI) / 4) * 10 - 1, 3, 3, `rgba(120,60,90,${0.7 * rose})`);
+    }
   },
   // The Aquarium: the box is the tank; fish drifting, bubbles where each entry comes in.
   wtc1f13: (k) => {
@@ -810,6 +841,18 @@ const WORLDS: Record<string, World> = {
     k.R(k.w * 0.5, k.h * 0.7, k.w * 0.4, 5, "rgba(40,26,18,1)");
     k.R(k.w * 0.58, k.h * 0.66, 18, 4, "rgba(230,220,190,0.7)");
     k.candle(k.w * 0.82, k.h * 0.7, 9, true);
+    // D474: II the storm at the window (cloud running, the panes wet); III the sign's red hour, the room gone dark round it.
+    const storm = k.act(1);
+    if (storm > 0.01) {
+      const X = k.w * 0.44, Y = k.h * 0.12, W = k.w * 0.14, H = k.h * 0.3;
+      k.R(X - 2, Y - 2, W + 4, H + 4, `rgba(40,30,26,${storm})`);
+      k.R(X, Y, W, H, `rgba(30,40,70,${storm})`);
+      for (let i = 0; i < 3; i++) k.R(X + wrap(k.t * 8 + i * 20, W + 20) - 20, Y + 4 + i * 8, 20, 5, `rgba(70,80,110,${0.8 * storm})`);
+      k.R(X + W / 2 - 1, Y, 2, H, `rgba(40,30,26,${storm})`);
+      k.R(X, Y + H / 2 - 1, W, 2, `rgba(40,30,26,${storm})`);
+    }
+    const red = k.act(2);
+    if (red > 0.01) k.glow(cx, cy, 70, [220, 60, 50], 0.3 * red);
   },
 
   // ---- BOOK II ----
@@ -1153,12 +1196,21 @@ const WORLDS: Record<string, World> = {
   // The Colossus: a giant statue over a harbour; ships pass small at its feet.
   wtc2f22: (k) => {
     k.sky([90, 120, 160], [220, 200, 170], [50, 60, 100], [230, 150, 110], 0.7);
+    // D474: II the afternoon; III dusk over the harbour, the beacon lit in the statue's hand; the end: the low sun behind it.
+    const dusk = k.act(2) + k.act(3) * (1 - k.climax);
+    if (k.act(1) > 0.01) k.vgrad(0, k.h * 0.7, [[0, `rgba(200,140,80,${0.3 * k.act(1)})`], [1, `rgba(255,190,120,${0.45 * k.act(1)})`]]);
+    if (dusk > 0.01) k.vgrad(0, k.h * 0.7, [[0, `rgba(30,20,60,${0.75 * dusk})`], [1, `rgba(150,70,90,${0.6 * dusk})`]]);
     const sx = k.w * 0.65;
     const firm = 0.4 + 0.6 * Math.min(1, k.passed / Math.max(1, k.ents.length));
     const c = `rgba(60,56,60,${firm})`;
     k.R(sx - 10, k.h * 0.22, 20, k.h * 0.5, c);
     k.disc(sx, k.h * 0.18, 7, c);
     k.R(sx + 8, k.h * 0.08, 4, k.h * 0.16, c);
+    const fire = Math.max(k.act(2), k.act(3));
+    if (fire > 0.01) {
+      k.glow(sx + 10, k.h * 0.07, 20, [255, 170, 80], 0.6 * fire);
+      k.R(sx + 8, k.h * 0.04, 4, 4, `rgba(255,210,120,${fire})`);
+    }
     k.R(sx - 16, k.h * 0.72 - 6, 32, 6, c);
     k.vgrad(k.h * 0.7, k.h * 0.3, [[0, "rgba(60,90,120,1)"], [1, "rgba(30,50,70,1)"]]);
     for (let y = k.h * 0.74; y < k.h; y += 6) k.R(wrap(y * 17 - k.bar * k.pxBar * 0.3, k.w), y, 12, 1, "rgba(200,220,240,0.18)");
@@ -1198,6 +1250,135 @@ const WORLDS: Record<string, World> = {
   },
 };
 
+/**
+ * D474 (design studio; the owner: "visual changes, background variety during the fugue, climactic changes"; "Don't
+ * meddle with the MUSIC. Make the music shine"): the world as a drama in the fugue's form (form-points.ts). Each act
+ * (the exposition, the middle entries in one or two acts, the final group) has its own look: the light (a grade over
+ * the world), the weather, the camera (a tilt and a slight zoom about the play line, so what the world sets for an
+ * entry still passes the line as it sounds); an episode is the way from one act's look to the next, and dimmer,
+ * sparser, slower; an entry is charged. The climax builds into the last entry and holds to the last cadence: the
+ * world lit, a light breaking where the world keeps it; at the last chord the image is held still.
+ */
+type Weather = "none" | "rain" | "snow" | "mist" | "motes" | "stars" | "embers" | "shafts";
+interface Look {
+  /** The light over the world: a colour and how much of it. */
+  grade?: [C3, number];
+  weather?: Weather;
+  /** The camera: a slight zoom (1 to 1.08: zoom subtly) and a tilt (a share of the height, + down). */
+  zoom?: number;
+  tilt?: number;
+}
+interface Script {
+  acts: Look[];
+  /** Where the climax's light breaks (shares of the canvas) and its colour. */
+  climax: { x: number; y: number; c: C3; rays?: boolean };
+  /** The held image at the last chord. */
+  rest: [C3, number];
+}
+const NIGHT_BLUE: C3 = [40, 60, 120];
+const DUSK_GOLD: C3 = [230, 150, 80];
+const SCRIPTS: Record<string, Script> = {
+  // The Requiem: the dark nave; moonlight through the windows; the vaults, incense in the air; dawn through the rose window.
+  wtc1f12: {
+    acts: [{}, { grade: [NIGHT_BLUE, 0.2], weather: "shafts", tilt: 0.03, zoom: 1.03 }, { grade: [[150, 110, 60], 0.14], weather: "motes", tilt: -0.05, zoom: 1.06 }, { grade: [[255, 220, 170], 0.1], zoom: 1 }],
+    climax: { x: 0.5, y: 0.1, c: [255, 226, 180], rays: true },
+    rest: [[220, 210, 190], 0.1],
+  },
+  // Faust: the study at night; the storm at the window; the sign's red hour, embers; the sign blazes, the room revealed.
+  wtc1f24: {
+    acts: [{}, { grade: [NIGHT_BLUE, 0.22], weather: "rain", tilt: 0.02, zoom: 1.03 }, { grade: [[150, 40, 40], 0.16], weather: "embers", tilt: -0.04, zoom: 1.07 }, { grade: [[200, 230, 255], 0.08], zoom: 1 }],
+    climax: { x: 0.68, y: 0.36, c: [200, 235, 255], rays: true },
+    rest: [[150, 160, 180], 0.14],
+  },
+  // The Colossus: the harbour by day; the afternoon; dusk and the sea mist; the low sun breaking behind the statue.
+  wtc2f22: {
+    acts: [{}, { grade: [DUSK_GOLD, 0.14], weather: "motes", tilt: 0.02, zoom: 1.03 }, { grade: [[90, 60, 120], 0.24], weather: "mist", tilt: -0.03, zoom: 1.06 }, { grade: [[255, 180, 100], 0.1], zoom: 1 }],
+    climax: { x: 0.65, y: 0.3, c: [255, 200, 120], rays: true },
+    rest: [[30, 40, 90], 0.22],
+  },
+};
+/** The look between two (the episode's way from one act to the next). */
+function blend(a: Look, b: Look, t: number): Required<Omit<Look, "weather">> & { wa: Weather; wb: Weather; t: number } {
+  const ga = a.grade ?? [b.grade?.[0] ?? [0, 0, 0], 0];
+  const gb = b.grade ?? [a.grade?.[0] ?? [0, 0, 0], 0];
+  return {
+    grade: [mix(ga[0], gb[0], t), ga[1] + (gb[1] - ga[1]) * t],
+    zoom: (a.zoom ?? 1) + ((b.zoom ?? 1) - (a.zoom ?? 1)) * t,
+    tilt: (a.tilt ?? 0) + ((b.tilt ?? 0) - (a.tilt ?? 0)) * t,
+    wa: a.weather ?? "none",
+    wb: b.weather ?? "none",
+    t,
+  };
+}
+/** The weather over the world: `amt` 0..1 (an episode's sparser). Slow and soft: nothing flashes. */
+function weather(k: Kit, kind: Weather, amt: number) {
+  if (kind === "none" || amt <= 0.01) return;
+  const { g, w, h } = k;
+  const t = k.t;
+  if (kind === "rain") {
+    const n = Math.round(70 * amt);
+    for (let i = 0; i < n; i++) {
+      const x = wrap(hash(i) * w * 1.2 - t * 60 * (0.8 + hash(i + 7) * 0.4), w * 1.2) - w * 0.1;
+      const y = wrap(hash(i + 3) * h + t * 160 * (0.8 + hash(i + 9) * 0.4), h + 10) - 10;
+      k.R(x, y, 1, 4, `rgba(170,190,230,${0.32 * amt})`);
+    }
+  } else if (kind === "snow") {
+    for (let i = 0; i < 50 * amt; i++) k.R(wrap(hash(i) * w + Math.sin(t * 0.6 + i) * 6, w), wrap(hash(i + 3) * h + t * 14, h), 1, 1, `rgba(240,240,255,${0.5 * amt})`);
+  } else if (kind === "mist") {
+    for (let i = 0; i < 4; i++) {
+      const y = h * (0.55 + i * 0.1);
+      const x = wrap(t * (3 + i) + i * 90, w * 1.5) - w * 0.25;
+      k.glow(x, y, w * 0.4, [200, 190, 220], 0.14 * amt);
+      k.glow(x - w * 0.55, y, w * 0.4, [200, 190, 220], 0.14 * amt);
+    }
+  } else if (kind === "motes" || kind === "embers") {
+    const c = kind === "embers" ? "255,140,70" : "255,230,170";
+    for (let i = 0; i < 40 * amt; i++) {
+      const x = wrap(hash(i) * w + Math.sin(t * 0.3 + i) * 10, w);
+      const y = wrap(hash(i + 5) * h - t * (kind === "embers" ? 10 : 3) * (0.5 + hash(i + 2)), h);
+      k.R(x, y, 1, 1, `rgba(${c},${(0.35 + 0.35 * Math.sin(t + i)) * amt})`);
+    }
+  } else if (kind === "stars") {
+    for (let i = 0; i < 60 * amt; i++) k.R(hash(i) * w, hash(i + 11) * h * 0.5, 1, 1, `rgba(255,255,240,${(0.3 + 0.3 * Math.sin(t * 0.7 + i * 3)) * amt})`);
+  } else if (kind === "shafts") {
+    g.fillStyle = `rgba(150,170,230,${0.12 * amt})`;
+    for (let r = 0; r < 3; r++) {
+      const x0 = w * (0.2 + r * 0.25);
+      g.beginPath();
+      g.moveTo(x0, 0);
+      g.lineTo(x0 + 14, 0);
+      g.lineTo(x0 + w * 0.12 + 22, h);
+      g.lineTo(x0 + w * 0.12, h);
+      g.closePath();
+      g.fill();
+    }
+  }
+}
+/** The climax's light: a slow bloom where the world keeps it, and soft rays; `a` 0..1. */
+function bloom(k: Kit, s: Script["climax"], a: number) {
+  if (a <= 0.01) return;
+  const { g, w, h } = k;
+  const x = w * s.x;
+  const y = h * s.y;
+  k.glow(x, y, h * (0.6 + 0.9 * a), s.c, 0.5 * a);
+  g.fillStyle = rgba(s.c, 0.05 * a);
+  g.fillRect(0, 0, w, h);
+  if (!s.rays) return;
+  g.fillStyle = rgba(s.c, 0.06 * a);
+  const turn = k.t * 0.02;
+  for (let r = 0; r < 7; r++) {
+    const th = turn + (r * Math.PI * 2) / 7;
+    const th2 = th + 0.12;
+    const L = w * 1.2;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + Math.cos(th) * L, y + Math.sin(th) * L);
+    g.lineTo(x + Math.cos(th2) * L, y + Math.sin(th2) * L);
+    g.closePath();
+    g.fill();
+  }
+}
+
 /** The daylight worlds: a heavier veil, so the notes keep their contrast over a bright sky. */
 const BRIGHT = new Set(["wtc1f03", "wtc1f07", "wtc1f09", "wtc1f10", "wtc1f11", "wtc2f06", "wtc2f11", "wtc2f14", "wtc2f19", "wtc2f22", "wtc2f15"]);
 
@@ -1233,6 +1414,8 @@ function piece(f: TouchFugue): Piece {
 /** D464: the eased states, kept per piece between frames (and the wall clock of the last frame). */
 const eased = new Map<string, { turn: number; stretto: number; busy: number; at: number }>();
 const ease = (from: number, to: number, dt: number, s: number) => from + (to - from) * Math.min(1, dt / s);
+/** D474: an episode's calm, eased per piece. */
+const calm = new Map<string, { calm: number; at: number }>();
 
 
 /**
@@ -1285,10 +1468,52 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   k.nowTick = clock.now;
   k.barTicks = f.barTicks;
   k.end = k.xOf(m.end);
+  // D474: the act's look (the episode before an act turning to it), the climax and the last chord.
+  const sc = SCRIPTS[f.id];
+  const fa = sc ? formAt(formOf(f), now) : null;
+  const look = sc && fa ? blend(sc.acts[Math.max(0, fa.mix < 1 ? fa.act - 1 : fa.act)] ?? {}, sc.acts[fa.act] ?? {}, fa.mix < 1 ? fa.mix : 1) : null;
+  const calmNow = fa && fa.episode && fa.climax < 0.5 ? 1 : 0;
+  const ce = calm.get(f.id) ?? { calm: calmNow, at: clock.sec };
+  ce.calm = ease(ce.calm, calmNow, Math.max(0, Math.min(0.25, clock.sec - ce.at)), 1.5);
+  ce.at = clock.sec;
+  calm.set(f.id, ce);
+  const climax = fa ? fa.climax * (1 - 0.4 * fa.resolved) : 0;
+  if (fa && fa.resolved > 0.5) k.still = true;
+  const weights = k.acts;
+  weights.length = 0;
+  if (fa) {
+    for (let i = 0; i <= fa.act; i++) weights.push(0);
+    weights[fa.act] = fa.mix;
+    if (fa.mix < 1 && fa.act > 0) weights[fa.act - 1] = 1 - fa.mix;
+  } else weights.push(1);
+  k.climax = climax;
+  k.rest = fa ? fa.resolved : 0;
+  k.calm = ce.calm;
   g.save();
+  if (look && (look.zoom !== 1 || look.tilt !== 0)) {
+    // About the play line (a quarter of the box between the bars): what the world sets for an entry keeps its place.
+    const px = k.xOf(now);
+    g.translate(px, h * (0.5 + look.tilt));
+    g.scale(look.zoom, look.zoom);
+    g.translate(-px, -h * 0.5);
+  }
   world(k);
   g.restore();
   g.globalAlpha = 1;
+  if (look && sc && fa) {
+    if (look.grade[1] > 0.005) {
+      g.fillStyle = rgba(look.grade[0], look.grade[1]);
+      g.fillRect(0, 0, w, h);
+    }
+    const amt = 1 - 0.55 * ce.calm;
+    weather(k, look.wa, (1 - look.t) * amt);
+    weather(k, look.wb, look.t * amt);
+    bloom(k, sc.climax, climax);
+    if (fa.resolved > 0.01) {
+      g.fillStyle = rgba(sc.rest[0], sc.rest[1] * fa.resolved);
+      g.fillRect(0, 0, w, h);
+    }
+  }
   // D464: the subject in the other mode lights the world for its length: in a minor fugue a major entry, the sun
   // breaking through (warm light from above, a few rays); in a major fugue a minor entry, a cloud passing (cool shade).
   if (k.turn > 0.01) {
@@ -1312,11 +1537,13 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
     }
   }
   // The veil: the world kept under the music (QUIET heavier), darkest in the middle band where the notes run.
-  const a = (mode === "quiet" ? 0.62 : 0.4) + (BRIGHT.has(f.id) ? 0.14 : 0);
+  // D474: an episode's world dimmer (calm), an entry's a shade brighter, the climax's lifted at the edges only (the middle band kept).
+  const a = (mode === "quiet" ? 0.62 : 0.4) + (BRIGHT.has(f.id) ? 0.14 : 0) + (sc ? 0.12 * ce.calm - 0.04 * (1 - ce.calm) : 0);
+  const lift = mode === "quiet" ? 0.15 * climax : 0.35 * climax;
   const gr = g.createLinearGradient(0, 0, 0, h);
-  gr.addColorStop(0, `rgba(8,8,16,${a * 0.75})`);
-  gr.addColorStop(0.5, `rgba(8,8,16,${a})`);
-  gr.addColorStop(1, `rgba(8,8,16,${a * 0.75})`);
+  gr.addColorStop(0, `rgba(8,8,16,${a * 0.75 * (1 - lift)})`);
+  gr.addColorStop(0.5, `rgba(8,8,16,${a * (1 - 0.3 * lift)})`);
+  gr.addColorStop(1, `rgba(8,8,16,${a * 0.75 * (1 - lift)})`);
   g.fillStyle = gr;
   g.fillRect(0, 0, w, h);
   return true;
