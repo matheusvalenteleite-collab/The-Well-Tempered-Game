@@ -135,7 +135,8 @@ export function formOf(f: TouchFugue): FugueForm {
     if (z.kind === "episode" && i > 0 && i < zones.length - 1) (inner++, (innerTicks += z.to - z.from));
   });
   const final = [...pts.seams].reverse().find((sm) => sm.kind === "final");
-  const lastSubject = [...zones].reverse().find((z) => z.kind === "subject")!;
+  // (A piece with no entry at all, a concerto's movement: one subject zone, its last.)
+  const lastSubject = [...zones].reverse().find((z) => z.kind === "subject") ?? zones[zones.length - 1];
   const finalEntry = final?.on ?? lastSubject.from;
   const climax = Math.min(finalEntry, pts.climax.rise > 0 ? pts.climax.rise : finalEntry);
   const lastBar = f.bars.length ? f.bars[f.bars.length - 1].on : Math.max(0, f.length - f.barTicks);

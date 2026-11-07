@@ -260,8 +260,13 @@ export const KIT_DRUMS = {
   phone: 1.2,
   // A phone's speaker has nothing under about 600 Hz: the timpani's and the bass drum's fundamentals (87-200 Hz) are
   // lost and the drums measured -50 LUFS there. On a phone their harmonics are made (a soft clip, the way a phone's own
-  // "bass enhancer" implies a fundamental it cannot play) and given above phoneLow.hp, and the timpani a little more.
-  phoneLow: { drive: 6, hp: 450, lp: 3200, level: 1.6, timpani: 1.5 },
+  // "bass enhancer" implies a fundamental it cannot play) and given above phoneLow.hp.
+  // The harmonics' level by style (measured on the phone model, a 600 Hz high-pass, against the band: I/12 bars 1-11 on
+  // VOCAL SYNTH, D514's table, about 10.5 LU under it): the timpani's -50 LUFS raised to it, the drum machine's sine
+  // kick and toms with them; the full-band level as before, so headphones on a phone hear the kit as elsewhere.
+  phoneLow: { drive: 6, hp: 450, lp: 3200, level: 1.6, style: { rock: 1, jazz: 1, frame: 1, timpani: 5, chip: 0, machine: 7, brushes: 0 } satisfies Record<DrumStyle, number> },
+  // The jazz kit's share on a phone (its ride carries there: measured 9.4 LU under the band, so 1.4 dB less).
+  phoneStyle: { rock: 1, jazz: 0.85, frame: 1, timpani: 1, chip: 1, machine: 0.8, brushes: 1 } satisfies Record<DrumStyle, number>,
   hp: 120,
   timpHp: 55,
   send: 0.1,
@@ -3263,10 +3268,12 @@ export class Chip {
   }
 
   /** The rhythm section (D177; D181): a synthesized kit (a band's, a console's, an analog machine's), quiet under the music. */
-  drum(d: Drum, at: number, vel: number, kit: Kit = "acoustic", gain = 1) {
+  drum(d: Drum, at: number, vel: number, kit: Kit = "acoustic", gain = 1, low = 0) {
     const ctx = this.ctx;
     const bag = new Bag();
     const g = bag.add(ctx.createGain());
+    // D514: on a phone, a drum machine's low drums' harmonics (lowHarmonics), `low` their level.
+    if (low > 0 && (d === "kick" || d === "tomLow" || d === "tomHigh")) this.lowHarmonics(bag, g, this.master, low);
     // D344: the friends' backing drums below and behind: softer, and nothing under BACKING_HIGHPASS_HZ (the bass's room).
     const back = backingOn();
     if (back) {
@@ -3460,7 +3467,7 @@ export class Chip {
     const t = Math.max(at, ctx.currentTime);
     const synth = (k: Kit, v: number) => {
       const d: Drum = h.piece === "tamb" || h.piece === "triangle" ? "shaker" : h.piece === "congaHigh" || h.piece === "bongo" ? "tomHigh" : h.piece === "congaLow" || h.piece === "timp" || h.piece === "bassDrum" ? "tomLow" : h.piece;
-      this.drum(d, t, v, k, KIT_DRUMS.style.chip);
+      this.drum(d, t, v, k, KIT_DRUMS.style.chip * (this.phone ? KIT_DRUMS.phoneStyle[style] : 1), this.phone ? KIT_DRUMS.phoneLow.level * KIT_DRUMS.phoneLow.style[style] * 0.25 : 0);
     };
     if (style === "chip" || style === "machine") return synth(style === "chip" ? "chip" : "analog", h.vel);
     let set: string;
@@ -3495,27 +3502,10 @@ export class Chip {
     hp.frequency.value = h.piece === "timp" || h.piece === "bassDrum" ? KIT_DRUMS.timpHp : KIT_DRUMS.hp;
     hp.Q.value = 0.7;
     const out = bag.add(ctx.createGain());
-    out.gain.value = KIT_DRUMS.level * KIT_DRUMS.style[style] * (this.phone ? KIT_DRUMS.phone * (style === "timpani" ? KIT_DRUMS.phoneLow.timpani : 1) : 1);
+    out.gain.value = KIT_DRUMS.level * KIT_DRUMS.style[style] * (this.phone ? KIT_DRUMS.phone * KIT_DRUMS.phoneStyle[style] : 1);
     src.connect(g).connect(hp).connect(out);
-    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum")) {
-      // The low drums' harmonics for the phone's speaker (their pitch the same: the tonic or the dominant, implied).
-      const L = KIT_DRUMS.phoneLow;
-      const pre = bag.add(ctx.createGain());
-      pre.gain.value = L.drive;
-      const ws = bag.add(ctx.createWaveShaper());
-      ws.curve = PHONE_LOW_CURVE;
-      const bh = bag.add(ctx.createBiquadFilter());
-      bh.type = "highpass";
-      bh.frequency.value = L.hp;
-      bh.Q.value = 0.7;
-      const bl = bag.add(ctx.createBiquadFilter());
-      bl.type = "lowpass";
-      bl.frequency.value = L.lp;
-      bl.Q.value = 0.7;
-      const xg = bag.add(ctx.createGain());
-      xg.gain.value = L.level / L.drive;
-      hp.connect(pre).connect(ws).connect(bh).connect(bl).connect(xg).connect(out);
-    }
+    // On a phone the low drums' harmonics (their pitch the same: the tonic or the dominant, implied).
+    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum")) this.lowHarmonics(bag, hp, out, KIT_DRUMS.phoneLow.level * KIT_DRUMS.phoneLow.style[style]);
     let last: AudioNode = out;
     if (ctx.createStereoPanner) {
       const p = bag.add(ctx.createStereoPanner());
@@ -3526,6 +3516,30 @@ export class Chip {
     this.fxSend(last, KIT_DRUMS.send, bag);
     src.start(t, rec.onset);
     halt(src, t + (h.piece === "crash" || h.piece === "ride" || h.piece === "timp" ? 3 : 1.6));
+  }
+  /**
+   * D514: a phone's speaker plays nothing under about 600 Hz: a low drum's harmonics made (a soft clip, as a phone's own
+   * "bass enhancer" implies a fundamental it cannot play), kept between phoneLow.hp and .lp, added at `level` from
+   * `from` into `to`. Above the speaker's floor only: through headphones the drum's own low end is as before.
+   */
+  private lowHarmonics(bag: Bag, from: AudioNode, to: AudioNode, level: number) {
+    const ctx = this.ctx;
+    const L = KIT_DRUMS.phoneLow;
+    const pre = bag.add(ctx.createGain());
+    pre.gain.value = L.drive;
+    const ws = bag.add(ctx.createWaveShaper());
+    ws.curve = PHONE_LOW_CURVE;
+    const bh = bag.add(ctx.createBiquadFilter());
+    bh.type = "highpass";
+    bh.frequency.value = L.hp;
+    bh.Q.value = 0.7;
+    const bl = bag.add(ctx.createBiquadFilter());
+    bl.type = "lowpass";
+    bl.frequency.value = L.lp;
+    bl.Q.value = 0.7;
+    const xg = bag.add(ctx.createGain());
+    xg.gain.value = level / L.drive;
+    from.connect(pre).connect(ws).connect(bh).connect(bl).connect(xg).connect(to);
   }
   /** D503: the brushes asked for (the tests: each piece, its time in the context's clock, its level). */
   readonly brushLog: { piece: string; at: number; vel: number; len?: number }[] = [];

@@ -197,7 +197,7 @@ test("D514: the timpani tuned to the HOME key's tonic and dominant (rhythm only,
 });
 
 test("D514: on a phone the low drums' harmonics carry them (the timpani measured -50 LUFS on the phone model before)", () => {
-  assert.ok(KIT_DRUMS.phoneLow.hp >= 300 && KIT_DRUMS.phoneLow.level > 0 && KIT_DRUMS.phoneLow.timpani >= 1);
+  assert.ok(KIT_DRUMS.phoneLow.hp >= 300 && KIT_DRUMS.phoneLow.level > 0 && KIT_DRUMS.phoneStyle.timpani > 2 && KIT_DRUMS.phoneStyle.machine > 1);
 });
 
 test("D514: the recorded kits read in place (public/samples/drums), every file there, measured, evened", () => {
