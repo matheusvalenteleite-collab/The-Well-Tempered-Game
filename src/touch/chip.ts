@@ -264,9 +264,9 @@ export const KIT_DRUMS = {
   // The harmonics' level by style (measured on the phone model, a 600 Hz high-pass, against the band: I/12 bars 1-11 on
   // VOCAL SYNTH, D514's table, about 10.5 LU under it): the timpani's -50 LUFS raised to it, the drum machine's sine
   // kick and toms with them; the full-band level as before, so headphones on a phone hear the kit as elsewhere.
-  phoneLow: { drive: 6, hp: 450, lp: 3200, level: 1.6, style: { rock: 1, jazz: 1, frame: 1, timpani: 5, chip: 0, machine: 7, brushes: 0 } satisfies Record<DrumStyle, number> },
+  phoneLow: { drive: 6, hp: 450, lp: 3200, level: 1.6, style: { rock: 1, jazz: 1, frame: 1, timpani: 4.2, chip: 0, machine: 7, brushes: 0 } satisfies Record<DrumStyle, number> },
   // The jazz kit's share on a phone (its ride carries there: measured 9.4 LU under the band, so 1.4 dB less).
-  phoneStyle: { rock: 1, jazz: 0.85, frame: 1, timpani: 1, chip: 1, machine: 0.8, brushes: 1 } satisfies Record<DrumStyle, number>,
+  phoneStyle: { rock: 1, jazz: 0.85, frame: 1, timpani: 0.84, chip: 1, machine: 0.8, brushes: 1 } satisfies Record<DrumStyle, number>,
   hp: 120,
   timpHp: 55,
   send: 0.1,
