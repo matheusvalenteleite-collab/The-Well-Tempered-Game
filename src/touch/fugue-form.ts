@@ -4,15 +4,12 @@
  * rolls to enter the subject, rolls to get out and become calmer in the episodes) … not only the drums … the whole
  * playback … I/24 B minor … is a bit underwhelming for its position."
  *
- * THE FORM, read from the piece's own data through the existing API (never copied: another session corrects the
- * entries against the experts, and this follows): the subject's entries (TouchFugue.entries, the same the subject's
- * cues and effects read, subject-fx.ts SubjectCues) merged into SUBJECT zones (entries less than MERGE_BEATS apart
- * are one zone); a stretch of at least EPISODE_MIN_BARS bars (and EPISODE_MIN_BEATS beats) with no entry sounding is
- * an EPISODE; the last subject zone, from its first entry, is the CLIMAX (the final entries, their stretti and the
- * pedal under them, to the final cadence), unless it begins before CLIMAX_FROM of the piece, when the climax is the
- * last CLIMAX_TAIL of it (from a bar line). A fugue gets the layer where the contrast is CLEAR by the data: at least
- * MIN_EPISODES inner episodes (between two subject zones) covering at least MIN_EPISODE_SHARE of the piece
- * (`clearContrast`; the list is in FORM_FUGUES, measured and tested).
+ * THE FORM, read from the design studio's form-points.ts (D474, the one source for the stage's scenes and the sound:
+ * the experts' entries, D493, and the cadences): its exposition, middle groups and final group are SUBJECT zones, the
+ * stretches with no entry for three quarters of a bar or more EPISODES; the CLIMAX builds from two bars before the
+ * final group to the last entry (climaxRamp) and resolves on the last cadence (`arrival`). A fugue gets the layer
+ * where the contrast is CLEAR by the data: at least MIN_EPISODES inner episodes (between two subject zones) covering
+ * at least MIN_EPISODE_SHARE of the piece (`clearContrast`, measured and tested).
  *
  * WHAT CHANGES (formColour; the band only, never the player's note; never the score; no tempo): in a subject zone
  * the band a shade fuller (SUBJECT_DB) and brighter (a high shelf), the harpsichord's second 8′ coupled and the
@@ -25,7 +22,7 @@
  * in the climax, a break before the final entry, a flourish on the final cadence.
  */
 import { beatOf, type TouchFugue } from "./fugue.ts";
-import { entrySpans } from "./voice-mode.ts";
+import { formOf as pointsOf, phaseAt, type Form as FormPoints } from "./form-points.ts";
 import type { Colour } from "./colour.ts";
 import type { StopId } from "./registration.ts";
 
@@ -42,8 +39,14 @@ export interface FugueForm {
   zones: FormZone[];
   /** The climax's start (tick): the last subject zone's first entry, or the last CLIMAX_TAIL of the piece. */
   climax: number;
-  /** The final entry's start (tick): the last subject zone's (where the drums break before it). */
+  /** The final entry's start (tick): the final group's (where the drums break before it). */
   finalEntry: number;
+  /** The climax's top (tick): the last entry's onset (form-points' peak); the build rises from `climax` to it. */
+  peak: number;
+  /** The last chord's arrival (tick): the last cadence (form-points' arrival), where the climax resolves. */
+  arrival: number;
+  /** The studio's form (form-points.ts) it was read from: phaseAt drives the build and the resolution. */
+  points?: FormPoints;
   /** The last bar's start (tick): the final cadence's bar (the drums' flourish). */
   lastBar: number;
   end: number;
@@ -56,16 +59,10 @@ export interface FugueForm {
   clear: boolean;
 }
 
-/** Entries closer than this many beats are one subject zone. */
-export const MERGE_BEATS = 1;
-/** An episode: at least this many bars, and this many beats, with no entry sounding. */
-export const EPISODE_MIN_BARS = 1.5;
-export const EPISODE_MIN_BEATS = 4;
 /** A clear contrast: at least this many inner episodes, covering at least this share of the piece. */
 export const MIN_EPISODES = 3;
 export const MIN_EPISODE_SHARE = 0.2;
-/** The climax is the last subject zone where it begins after this share of the piece; else the piece's last CLIMAX_TAIL. */
-export const CLIMAX_FROM = 0.6;
+/** Where form-points gives no climax: the piece's last share, from a bar line. */
 export const CLIMAX_TAIL = 0.15;
 
 /** The band's level (dB) in a subject zone, an episode, the climax; the arc's start, reaching 0 at ARC_FULL of the piece. */
@@ -78,8 +75,11 @@ export const ARC_FULL = 0.6;
 export const SUBJECT_TONE = 0.5;
 export const EPISODE_TONE = -1.5;
 export const CLIMAX_TONE = 0.5;
-/** The send into the sound's own room added in the climax. */
+/** The send into the sound's own room added in the climax (at its top). */
 export const CLIMAX_ROOM = 0.05;
+/** The last chord, a resolution: the climax's brightness let go (its shelf), the room opening a little more. */
+export const RESOLVE_TONE = 0;
+export const RESOLVE_ROOM = 0.05;
 
 /** The registrations (the band's, where no colour plan and no player's TUTTI sets one: colour.ts bandRegistration). */
 export const FORM_REG: Readonly<Record<string, Readonly<Record<"subject" | "episode" | "climax", readonly StopId[]>>>> = {
@@ -106,51 +106,48 @@ function barFloor(f: TouchFugue, tick: number): number {
   return on;
 }
 
-/** A fugue's form (memoised by its id and its entries' count and ends, so a corrected entry list is read anew). */
+/**
+ * A fugue's form, read from the design studio's form-points.ts (D474: one source for the stage's scenes and the
+ * sound's sections, so what is seen and what is heard turn on the same bars): its exposition, middle and final groups
+ * are SUBJECT zones, its episodes EPISODE zones, its coda part of the last; the climax builds from form-points' `rise`
+ * (two bars before the final group) to its `peak` (the last entry) and the last chord is reached at `arrival`.
+ * Memoised by the entries, so a corrected entry list is read anew.
+ */
 export function formOf(f: TouchFugue): FugueForm {
   const key = `${f.id}:${f.entries.length}:${f.entries.reduce((s, e) => s + e.on * 3 + e.end, 0)}`;
   const hit = memo.get(key);
   if (hit) return hit;
   const beat = beatOf(f).ticks;
-  // The entries as the box draws them (voice-mode.ts entrySpans: the subject's, not the countersubjects').
-  const spans = entrySpans(f).filter((s) => s.form !== "counter").map((s) => [s.on, s.end] as [number, number]).sort((a, b) => a[0] - b[0]);
-  const merged: [number, number][] = [];
-  for (const s of spans) {
-    const l = merged[merged.length - 1];
-    if (l && s[0] <= l[1] + MERGE_BEATS * beat) l[1] = Math.max(l[1], s[1]);
-    else merged.push([s[0], s[1]]);
-  }
-  const minGap = Math.max(EPISODE_MIN_BARS * f.barTicks, EPISODE_MIN_BEATS * beat);
-  // Gaps too short for an episode join the zones either side.
-  const subj: [number, number][] = [];
-  for (const m of merged) {
-    const l = subj[subj.length - 1];
-    if (l && m[0] - l[1] < minGap) l[1] = Math.max(l[1], m[1]);
-    else subj.push([m[0], m[1]]);
-  }
+  const pts = pointsOf(f);
   const zones: FormZone[] = [];
+  for (const sm of pts.seams) {
+    const kind: ZoneKind = sm.kind === "episode" ? "episode" : "subject";
+    const l = zones[zones.length - 1];
+    if (sm.end <= sm.on) continue;
+    if (l && l.kind === kind) l.to = Math.max(l.to, sm.end);
+    else zones.push({ kind, from: l ? l.to : 0, to: sm.end });
+  }
+  if (!zones.length) zones.push({ kind: "subject", from: 0, to: f.length });
+  zones[zones.length - 1].to = f.length;
   let inner = 0;
   let innerTicks = 0;
-  subj.forEach(([a, b], i) => {
-    const prev = zones[zones.length - 1];
-    if (prev && a > prev.to) {
-      zones.push({ kind: "episode", from: prev.to, to: a });
-      inner++;
-      innerTicks += a - prev.to;
-    }
-    zones.push({ kind: "subject", from: a, to: b });
-    if (i === subj.length - 1 && b < f.length) zones.push({ kind: "episode", from: b, to: f.length });
+  zones.forEach((z, i) => {
+    if (z.kind === "episode" && i > 0 && i < zones.length - 1) (inner++, (innerTicks += z.to - z.from));
   });
-  if (!zones.length) zones.push({ kind: "subject", from: 0, to: f.length });
+  const final = [...pts.seams].reverse().find((sm) => sm.kind === "final");
   const lastSubject = [...zones].reverse().find((z) => z.kind === "subject")!;
-  const climax = lastSubject.from >= CLIMAX_FROM * f.length ? lastSubject.from : barFloor(f, f.length * (1 - CLIMAX_TAIL));
+  const finalEntry = final?.on ?? lastSubject.from;
+  const climax = Math.min(finalEntry, pts.climax.rise > 0 ? pts.climax.rise : finalEntry);
   const lastBar = f.bars.length ? f.bars[f.bars.length - 1].on : Math.max(0, f.length - f.barTicks);
   const episodeShare = f.length ? innerTicks / f.length : 0;
   const form: FugueForm = {
     id: f.id,
     zones,
-    climax,
-    finalEntry: lastSubject.from,
+    climax: climax > 0 ? climax : barFloor(f, f.length * (1 - CLIMAX_TAIL)),
+    finalEntry,
+    peak: Math.max(climax, pts.climax.peak),
+    arrival: Math.max(climax, Math.min(lastBar, pts.climax.arrival)),
+    points: pts,
     lastBar,
     end: f.length,
     beat,
@@ -162,6 +159,11 @@ export function formOf(f: TouchFugue): FugueForm {
   memo.set(key, form);
   return form;
 }
+
+/** The climax's build at a tick (form-points phaseAt: a smoothstep from its rise to the last entry, held after). */
+export const climaxRamp = (form: FugueForm, tick: number): number => (form.points ? phaseAt(form.points, tick).climax : tick >= form.climax ? 1 : 0);
+/** The last chord's resolution at a tick (form-points phaseAt: rising after the last cadence). */
+export const resolvedAt = (form: FugueForm, tick: number): number => (form.points ? phaseAt(form.points, tick).resolved : 0);
 
 /** Whether a fugue's subjects and episodes are clearly apart by the data (the layer applies). */
 export const clearContrast = (f: TouchFugue): boolean => formOf(f).clear;
@@ -199,11 +201,25 @@ export function formColour(form: FugueForm, presetId: string, tick: number): For
   if (!form.clear) return null;
   const at = formAt(form, tick);
   const k = at.kind;
-  const reg = FORM_REG[presetId]?.[k];
-  const trim = REG_TRIM_DB[presetId]?.[k] ?? 0;
-  const db = (k === "climax" ? CLIMAX_DB : k === "subject" ? SUBJECT_DB + arcDb(at.progress) : EPISODE_DB + arcDb(at.progress)) + trim;
-  const colour: Colour = { tone: k === "climax" ? CLIMAX_TONE : k === "subject" ? SUBJECT_TONE : EPISODE_TONE };
-  if (k === "climax") colour.room = CLIMAX_ROOM;
+  if (k !== "climax") {
+    const reg = FORM_REG[presetId]?.[k];
+    const db = (k === "subject" ? SUBJECT_DB : EPISODE_DB) + arcDb(at.progress) + (REG_TRIM_DB[presetId]?.[k] ?? 0);
+    const colour: Colour = { tone: k === "subject" ? SUBJECT_TONE : EPISODE_TONE };
+    if (reg) colour.reg = [...reg];
+    return { db, colour };
+  }
+  // The climax builds (climaxRamp) from the zone it begins in to its top at the last entry; its registration from the
+  // final entry (a registration changes at an entry, as a player's would); the last chord a resolution.
+  const r = climaxRamp(form, tick);
+  const from = (at.zone?.kind ?? "subject") as ZoneKind;
+  const top = tick >= form.finalEntry;
+  const lerp = (a: number, b: number) => a + (b - a) * r;
+  const db = lerp((from === "subject" ? SUBJECT_DB : EPISODE_DB) + arcDb(at.progress), CLIMAX_DB) + (REG_TRIM_DB[presetId]?.[top ? "climax" : from] ?? 0);
+  // The last chord a resolution (phaseAt's resolved, after the last cadence): the brightness let go, the room opening.
+  const q = resolvedAt(form, tick);
+  const tone = lerp(from === "subject" ? SUBJECT_TONE : EPISODE_TONE, CLIMAX_TONE);
+  const colour: Colour = { tone: tone + (RESOLVE_TONE - tone) * q, room: CLIMAX_ROOM * r + RESOLVE_ROOM * q };
+  const reg = FORM_REG[presetId]?.[top ? "climax" : from];
   if (reg) colour.reg = [...reg];
   return { db, colour };
 }

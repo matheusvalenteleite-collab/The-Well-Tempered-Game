@@ -35,7 +35,8 @@ test("D513: the form follows the entries as the data says (a changed entry list 
   const b = formOf(g);
   assert.notDeepEqual(a.zones, b.zones);
   // No entry list of its own: the module reads TouchFugue.entries.
-  assert.match(readFileSync("src/touch/fugue-form.ts", "utf8"), /entrySpans\(f\)/);
+  assert.match(readFileSync("src/touch/fugue-form.ts", "utf8"), /pointsOf\(f\)/);
+  assert.doesNotMatch(readFileSync("src/touch/form-points.ts", "utf8"), /memo\.get\(f\.id\)/);
 });
 
 test("D513: the fugues with a clear contrast, by the data (at least 3 inner episodes, 20 % of the piece); I/12 and I/24 among them", () => {
@@ -71,8 +72,10 @@ test("D513: the band's colour by zone: fuller in the subjects, lighter in the ep
   for (const id of ["nocturne32", "pianoSampled", "harpsichordSampled", "chamberOrgan", "chip"]) {
     const e = formColour(m, id, ep.from + 1)!;
     const s = formColour(m, id, sj.from + 1)!;
-    const c = formColour(m, id, m.climax + 1)!;
-    assert.ok(e.db < s.db && s.db < c.db, id);
+    const c = formColour(m, id, m.peak + 1)!;
+    const c0 = formColour(m, id, m.climax + 1)!;
+    assert.ok(e.db < s.db && s.db < c.db && c0.db < c.db, id);
+    assert.ok((c0.colour.room ?? 0) < (c.colour.room ?? 0), `${id}: the room opens as the climax builds`);
     for (const x of [e, s, c]) assert.ok(Math.abs(x.db) <= 1.5, `${id} ${x.db}`);
     assert.ok((e.colour.tone ?? 0) < (s.colour.tone ?? 0) && (s.colour.tone ?? 0) <= (c.colour.tone ?? 0));
     assert.ok((c.colour.room ?? 0) > 0 && !e.colour.room);
@@ -85,7 +88,7 @@ test("D513: the band's colour by zone: fuller in the subjects, lighter in the ep
     const r = FORM_REG[id];
     assert.ok(r.episode.length < r.subject.length + 1 && r.subject.length < r.climax.length + 1, id);
     assert.deepEqual(formColour(m, id, ep.from + 1)!.colour.reg, [...r.episode]);
-    assert.deepEqual(formColour(m, id, m.climax + 1)!.colour.reg, [...r.climax]);
+    assert.deepEqual(formColour(m, id, m.finalEntry + 1)!.colour.reg, [...r.climax], "the full registration from the final entry");
   }
   assert.ok(FORM_REG.harpsichordSampled.climax.includes("four") && FORM_REG.chamberOrgan.climax.includes("mixture"));
 });

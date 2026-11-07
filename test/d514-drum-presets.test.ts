@@ -263,10 +263,10 @@ test("D514: JAZZ BRUSHES on a fugue not the quartet's: the form's fills (into ea
   const fills = brushFills(f, b.ticks, b.perBar);
   const form = formOf(f);
   assert.ok(fills.some((x) => x.kind === "final"));
-  assert.ok(fills.some((x) => x.at === form.climax && x.kind === "fill"));
+  assert.ok(fills.some((x) => x.at === form.finalEntry && x.kind === "fill"), "into the final entry");
   assert.ok(fills.filter((x) => x.kind === "lift").length >= 3);
   const ep = form.zones.find((z) => z.kind === "episode")!;
-  assert.ok(brushDb(f, ep.from + 1) < 0 && brushDb(f, form.climax + 1) > 0);
+  assert.ok(brushDb(f, ep.from + 1) < 0 && brushDb(f, form.climax + 1) > 0 && brushDb(f, form.climax + 1) < brushDb(f, form.peak + 1), "the climax builds");
   // D503's own fugues keep their script.
   assert.equal(brushDb(fugueById("wtc1f19"), 960 * 20), 0);
 });

@@ -30,7 +30,7 @@
  * those very brushes with D503's scripted fills.
  */
 import { fugueById, keyAt, beatOf, type TouchFugue } from "./fugue.ts";
-import { formAt, formOf, type FormKind, type FugueForm } from "./fugue-form.ts";
+import { climaxRamp, resolvedAt, formAt, formOf, type FormKind, type FugueForm } from "./fugue-form.ts";
 import { backbeats, DRUM_SCRIPTS, dynGain, fillsFor, type Fill } from "./jazz-drums.ts";
 import { PIECE_SOUND } from "./piece-sound.ts";
 import { tempoOf } from "./tempi.ts";
@@ -191,9 +191,13 @@ export const ROLL_STROKE_S = 0.09;
 /** The strokes closest in a pattern (s). */
 export const PATTERN_STROKE_S = 0.18;
 /** The velocity by the form: episodes this share of the subject's, the climax this; the arc from ARC_VEL to 1 by 60% of the piece. */
-export const EPISODE_VEL = 0.62;
+export const EPISODE_VEL = 0.55;
 export const CLIMAX_VEL = 1.12;
 export const ARC_VEL = 0.82;
+/** The climax's build past this (climaxRamp), its busier pattern (the ride or the crash, the kick on more beats). */
+export const CLIMAX_PATTERN_AT = 0.5;
+/** How far a coda's pattern falls once the last cadence is reached (resolved 1). */
+export const RESOLVE_FALL = 0.4;
 
 /** The subdivisions a pattern's lighter strokes take in a beat. */
 export function patternSubs(beatS: number, compound: boolean): number {
@@ -219,12 +223,13 @@ function landings(form: FugueForm): { into: number[]; out: number[] } {
       else out.push(z.from);
     });
   }
-  if (form.climax > 0 && form.climax < form.lastBar) into.add(form.climax);
+  // Into the final entry (the climax's build under way: form-points' final group).
+  if (form.finalEntry > 0 && form.finalEntry < form.lastBar) into.add(form.finalEntry);
   return { into: [...into].sort((a, b) => a - b), out };
 }
 /** Whether an episode (of a bar and a half or more) precedes the final entry: the drums break before it. */
 export function breaksBefore(form: FugueForm): boolean {
-  if (form.finalEntry !== form.climax || form.climax <= 0) return false;
+  if (form.finalEntry <= 0) return false;
   const i = form.zones.findIndex((z) => z.from === form.finalEntry);
   return i > 0 && form.zones[i - 1].kind === "episode";
 }
@@ -422,11 +427,14 @@ function patternHits(style: Exclude<DrumStyle, "brushes">, cx: KitContext, kind:
   const back = backbeats(per).includes(b);
   const mid = per === 4 && b === 2;
   const subs = patternSubs(beatS, compound);
-  const k = (kind === "episode" ? EPISODE_VEL : kind === "climax" ? CLIMAX_VEL : 1) * arc * g;
+  // The climax builds (fugue-form.ts climaxRamp: from two bars before the final group to the last entry).
+  // A coda after the last cadence settles (phaseAt's resolved).
+  const k = (kind === "episode" ? EPISODE_VEL : kind === "climax" ? (1 + (CLIMAX_VEL - 1) * climaxRamp(cx.form, cx.tick)) * (1 - RESOLVE_FALL * resolvedAt(cx.form, cx.tick)) : 1) * arc * g;
   const hit = (piece: KitPiece, at: number, vel: number, midi?: number) => out.push({ piece, at, vel: Math.max(0.02, Math.min(1, vel * k)), ...(midi !== undefined ? { midi } : {}) });
   const last = subs > 1 ? (subs - 1) / subs : 0;
   const ep = kind === "episode";
-  const top = kind === "climax";
+  // The climax's busier pattern once its build is past half (its level rises first).
+  const top = kind === "climax" && climaxRamp(cx.form, cx.tick) >= CLIMAX_PATTERN_AT;
   switch (style) {
     case "rock":
       if (b === 0 || mid || (top && !back)) hit("kick", 0, b === 0 ? 0.75 : 0.6);
@@ -516,7 +524,7 @@ export function brushFills(f: TouchFugue, beat: number, per: number): Fill[] {
   const form = formOf(f);
   const L = landings(form);
   const out: Fill[] = [];
-  for (const at of L.into) out.push({ kind: at >= form.climax ? "fill" : "lift", from: Math.max(0, at - (at >= form.climax ? 2 : 1) * beat), at, why: at >= form.climax ? "the climax: the final entries" : "a subject zone after an episode" });
+  for (const at of L.into) out.push({ kind: at >= form.finalEntry ? "fill" : "lift", from: Math.max(0, at - (at >= form.climax ? 2 : 1) * beat), at, why: at >= form.climax ? "the climax: the final entries" : "a subject zone after an episode" });
   out.push({ kind: "fill", from: Math.max(0, form.lastBar - Math.min(per, 3) * beat), at: form.lastBar, why: "the final cadence's approach" });
   out.push({ kind: "final", from: form.lastBar, at: form.lastBar + beat, why: "the final chord: a soft flutter, fading" });
   out.sort((a, b) => a.at - b.at);
@@ -527,7 +535,7 @@ export function brushFills(f: TouchFugue, beat: number, per: number): Fill[] {
 export function brushDb(f: TouchFugue, tick: number): number {
   if (DRUM_SCRIPTS[f.id]) return 0;
   const k = drumKind(formOf(f), tick);
-  return k === "episode" ? BRUSH_EPISODE_DB : k === "climax" ? BRUSH_CLIMAX_DB : 0;
+  return k === "episode" ? BRUSH_EPISODE_DB : k === "climax" ? BRUSH_CLIMAX_DB * climaxRamp(formOf(f), tick) : 0;
 }
 
 /** The key at a tick for the timpani (fugue.ts keyAt). */
