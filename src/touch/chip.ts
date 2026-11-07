@@ -549,39 +549,12 @@ export interface Play {
    */
   continuo?: "on" | "strong";
   /**
-   * D509, OBBLIGATO's octave: a recorded patch's note sounds only once its recording is loaded (no
-   * synthesized stand-in: nothing at all till then; Chip.ready asks for it a bar ahead).
-   */
-  recordedOnly?: boolean;
-  /**
    * D502, BACH BRASS's brassiness (0 mellow: the piano recording, darker; 1 blazing: the forte, brighter, a presence
    * shelf): the player's from the landing (touch-expr.ts landing "brass"); unset, the band's from its reading's level
    * (Play.vel: touch-expr.ts brassOf). Only an instrument with two layers (SampledInstrument.blend) hears it.
    */
   brass?: number;
 }
-
-/** D439, D509: a colour put on the player's own notes for a while (Chip.voiceFx: OBBLIGATO's three effects). */
-export type VoiceFx = "octave" | "tape" | "chorus";
-
-/**
- * D509, OBBLIGATO's effects (Chip.voiceFx): each its wet level (the share sent), and the dry's trim while it
- * sounds (measured on the renders so the whole is as loud as the dry alone, within half a dB: the D509 row).
- * "octave" sends nothing (its notes are the player's own, on the dry's way, trimmed with it). "tape": the
- * echo's feedback, its band (Hz), its saturation's drive, its delay's wow and flutter (Hz; s either way), a
- * little aside. "chorus": two swept delays (s; the shorter fed back a little: the flanger's edge), either
- * side; the vibrato on the dry itself (a delay swept at VIB_HZ, its depth per call in cents); a plucked or
- * struck sound's dry trimmed less (`trimStruck`: its chorus blends less with it, measured).
- */
-export const VOICE_FX = {
-  octave: { wet: 0, trim: 0.95 },
-  tape: { wet: 0.26, trim: 0.97, feedback: 0.24, hp: 320, lp: 2600, drive: 2.2, wow: { rate: 0.55, depth: 0.0011 }, flutter: { rate: 6.3, depth: 0.00004 }, pan: 0.2 },
-  chorus: { wet: 0.28, trim: 0.8, trimStruck: 0.86, delays: [0.0035, 0.011], rates: [0.19, 0.31], depths: [0.0016, 0.0024], feedback: 0.25, pans: [-0.45, 0.45], lp: 7000 },
-} as const;
-/** D509: the vibrato's rate (Hz) on the dry (OBBLIGATO's chorus: obbligato.ts VIBRATO_HZ). */
-export const VIB_HZ = 5.2;
-/** D439: a colour comes in and goes over this long (s). */
-export const VOICE_FX_RAMP = 0.15;
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
 function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
@@ -794,17 +767,13 @@ export class Chip {
     // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
     this.mine = ctx.createGain();
-    // D439: the player's own notes' dry level (a colour on them trims it: voiceFx).
-    this.mineOut = ctx.createGain();
-    this.mine.connect(this.mineOut).connect(this.master);
+    this.mine.connect(this.master);
     this.recIn = ctx.createGain();
     this.recIn.connect(limit);
   }
 
   /** D216: the player's own notes' level (1: as they are). */
   readonly mine: GainNode;
-  /** D439: the player's own notes' dry way on to the master (trimmed while a colour sounds). */
-  private mineOut: GainNode;
   /** D215: where a recording joins the sound (past the room and the compressor). */
   readonly recIn: GainNode;
   /** Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. */
@@ -1267,7 +1236,6 @@ export class Chip {
   }
 
   private single(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
-    if (p.recordedOnly && !this.recordedNow(midi, v)) return { stop: () => {}, bend: () => {} };
     // D210: within the cap (the oldest let go first), and every node disconnected once the note has ended.
     const t = Math.max(at, this.ctx.currentTime);
     this.makeRoom(t);
@@ -1743,159 +1711,6 @@ export class Chip {
     plans.push([{ set: BOSSA_KIT_SET, notes: kit === "bossa" ? [...BOSSA_KIT_MIDIS] : [] }]);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
-
-  /** D485, OBBLIGATO: a boost's layer's recordings asked for ahead of its entry (till they arrive its synthesized sound stands in). */
-  ready(pt: Patch | null, midis: readonly number[]) {
-    const inst = pt?.sample ? SAMPLED[pt.sample] : null;
-    if (!inst) return;
-    for (const m of midis) {
-      const set = setFor(inst, m);
-      const near = nearestSample(set, m);
-      if (near !== null) loadOne(this.ctx, set, near);
-    }
-  }
-
-  /** D509: a recorded patch's note at `midi` has its recording loaded (asked for if not); a synthesized patch always. */
-  private recordedNow(midi: number, v: Voicing): boolean {
-    const inst = v.patch?.sample ? SAMPLED[v.patch.sample] : null;
-    if (!inst) return true;
-    const set = setFor(inst, midi);
-    if (setUnreachable(set)) return false;
-    // D505: never more than MAX_SHIFT_ANY fast (sampled.ts guardedPitch), as the note itself will be read.
-    const near = nearestSample(set, guardedPitch(inst, set, midi, !!(v.patch?.sing || v.patch?.syllable)));
-    if (near === null) return false;
-    if (loaded(set, near) || (inst.soft && loaded(inst.soft.set, near))) return true;
-    loadOne(this.ctx, set, near);
-    return false;
-  }
-
-  /** D439: the colours built (each its send from the player's own notes, silent till asked for). */
-  private colours = new Map<string, GainNode>();
-  /** D509: the vibrato's way (the dry swept), built at its first use: its depth (s either way) and its level. */
-  private vibWay: { depth: GainNode; out: GainNode } | null = null;
-  /**
-   * D439, D509: a colour on the player's own notes (OBBLIGATO's effects) from `from` to `until` (audio time,
-   * s), coming in and going over VOICE_FX_RAMP: their dry level trimmed as it sounds (VOICE_FX: the whole as
-   * loud). `delay` (s) is the tape echo's length (a dotted eighth at the tempo); `vib` the chorus's vibrato
-   * (cents, peak), the dry crossfaded into its swept way and back; `struck` a plucked or struck sound (its
-   * trim). A send's input is gated, so the echo's
-   * tail rings out past `until`.
-   */
-  voiceFx(kind: VoiceFx, delay: number, from: number, until: number, vib = 0, struck = false) {
-    const ctx = this.ctx;
-    const R = VOICE_FX_RAMP;
-    const a = Math.max(from, ctx.currentTime);
-    const z = Math.max(a + R, until);
-    const fx = VOICE_FX[kind];
-    const trim = struck && "trimStruck" in fx ? fx.trimStruck : fx.trim;
-    const ramps: [AudioParam, number, number][] = [];
-    if (fx.wet > 0) {
-      const key = `${kind}|${delay.toFixed(3)}`;
-      let send = this.colours.get(key);
-      if (!send) this.colours.set(key, (send = this.colourOf(kind, delay)));
-      ramps.push([send.gain, 0, fx.wet]);
-    }
-    if (vib > 0) {
-      const w = this.vibratoWay();
-      // The sweep's depth (s): a delay swept sinusoidally at f by A bends the pitch by 2πfA at most.
-      const A = (2 ** (vib / 1200) - 1) / (2 * Math.PI * VIB_HZ);
-      w.depth.gain.setValueAtTime(A, a);
-      ramps.push([this.mineOut.gain, 1, 0], [w.out.gain, 0, trim]);
-    } else ramps.push([this.mineOut.gain, 1, trim]);
-    for (const [param, rest, on] of ramps) {
-      param.setValueAtTime(rest, a);
-      param.linearRampToValueAtTime(on, a + R);
-      param.setValueAtTime(on, z);
-      param.linearRampToValueAtTime(rest, z + R);
-    }
-  }
-
-  /** D509: the vibrato's way: the player's own notes through a delay swept at VIB_HZ, silent till asked for. */
-  private vibratoWay(): { depth: GainNode; out: GainNode } {
-    if (this.vibWay) return this.vibWay;
-    const ctx = this.ctx;
-    const dl = ctx.createDelay(0.05);
-    // A little over the deepest sweep (24 cents: 0.43 ms), so the delay never reaches zero.
-    dl.delayTime.value = 0.0006;
-    const o = ctx.createOscillator();
-    o.frequency.value = VIB_HZ;
-    const depth = ctx.createGain();
-    depth.gain.value = 0;
-    o.connect(depth).connect(dl.delayTime);
-    o.start();
-    const out = ctx.createGain();
-    out.gain.value = 0;
-    this.mine.connect(dl).connect(out).connect(this.master);
-    return (this.vibWay = { depth, out });
-  }
-
-  /** D439, D509: a colour's nodes, from the player's own notes to the master; its send (silent) returned. */
-  private colourOf(kind: VoiceFx, delay: number): GainNode {
-    const ctx = this.ctx;
-    const out = this.master;
-    const send = ctx.createGain();
-    send.gain.value = 0;
-    this.mine.connect(send);
-    const filter = (type: BiquadFilterType, f: number, q = 0.6) => {
-      const b = ctx.createBiquadFilter();
-      b.type = type;
-      b.frequency.value = f;
-      b.Q.value = q;
-      return b;
-    };
-    const gain = (v: number) => {
-      const g = ctx.createGain();
-      g.gain.value = v;
-      return g;
-    };
-    const panned = (p: number) => {
-      const s = ctx.createStereoPanner();
-      s.pan.value = p;
-      return s;
-    };
-    const lfo = (rate: number, depth: number, param: AudioParam) => {
-      const o = ctx.createOscillator();
-      o.frequency.value = rate;
-      o.connect(gain(depth)).connect(param);
-      o.start();
-    };
-    if (kind === "tape") {
-      // A tape echo: band-limited, a little saturated (a soft clip in the loop: each repeat warmer), low
-      // feedback, its delay swaying slowly (wow) and quickly (flutter): the echoes' pitch drifting a few cents.
-      const E = VOICE_FX.tape;
-      const sat = ctx.createWaveShaper();
-      const n = 1024;
-      const curve = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        const x = (i / (n - 1)) * 2 - 1;
-        curve[i] = Math.tanh(E.drive * x) / E.drive;
-      }
-      sat.curve = curve;
-      sat.oversample = "2x";
-      const sum = ctx.createGain();
-      const dl = ctx.createDelay(2);
-      dl.delayTime.value = delay;
-      lfo(E.wow.rate, E.wow.depth, dl.delayTime);
-      lfo(E.flutter.rate, E.flutter.depth, dl.delayTime);
-      const lp = filter("lowpass", E.lp, 0.7);
-      send.connect(filter("highpass", E.hp)).connect(sum).connect(sat).connect(dl).connect(lp);
-      lp.connect(gain(E.feedback)).connect(sum);
-      lp.connect(panned(E.pan)).connect(out);
-    } else if (kind === "chorus") {
-      // A chorus-flanger: two short delays swept slowly either side, the shorter fed back a little (the flanger's edge).
-      const E = VOICE_FX.chorus;
-      E.delays.forEach((d, i) => {
-        const dl = ctx.createDelay(0.05);
-        dl.delayTime.value = d;
-        lfo(E.rates[i], E.depths[i], dl.delayTime);
-        const lp = filter("lowpass", E.lp);
-        send.connect(dl).connect(lp).connect(panned(E.pans[i])).connect(out);
-        if (i === 0) lp.connect(gain(E.feedback)).connect(dl);
-      });
-    }
-    return send;
-  }
-
 
   /**
    * The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within

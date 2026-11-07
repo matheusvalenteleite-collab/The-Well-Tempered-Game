@@ -1,8 +1,8 @@
 /**
  * D487 (WTC 2.16, no version bump): four of the owner's reports.
  * (1) "hear the subject no endings": HEAR THE SUBJECT ends on its last note held a beat at least, let go naturally.
- * (2) "obbligato at bottom of buttons instead": OBBLIGATO's buttons at the bars' feet, over the stops (the live hit-test
- *     is in the decision row: it needs the production build in a browser).
+ * (2) "obbligato at bottom of buttons instead": OBBLIGATO's buttons at the bars' feet (retired by D496 with OBBLIGATO:
+ *     d496-no-obbligato.test.ts).
  * (3) "my voice was lower than all others": the player's voice lifted to the loudest other voice and a little over,
  *     measured (player-lift-data.ts); Busoni's line never under the loudest voice (d407-player-dynamics.test.ts).
  *     D508 replaced the standing lift: the player matched to the band's sounding of its voice, the band's quiet
@@ -28,11 +28,6 @@ import type { Chip } from "../src/touch/chip.ts";
 
 const IDS = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 const css = readFileSync(new URL("../src/bench/bench.css", import.meta.url), "utf8");
-const rule = (sel: string) => {
-  const i = css.indexOf(`\n${sel} {`);
-  assert.ok(i >= 0, `rule ${sel}`);
-  return css.slice(i, css.indexOf("}", i));
-};
 
 test("D487 (1): HEAR THE SUBJECT's last note held its full length and a beat at least, never detached; the notes before it as they were", () => {
   for (const id of IDS) {
@@ -56,23 +51,6 @@ test("D487 (1): HEAR THE SUBJECT's last note held its full length and a beat at 
       if (at >= 0 && at < s.length - 1 && s[at + 1].at > q.at + q.len - 1e-9) assert.ok(Math.abs(s[at].len - q.len) < 1e-9, `${id} note ${i}`);
     });
   }
-});
-
-test("D487 (2): OBBLIGATO's buttons at the bars' feet (no longer the top corners), over the stops where there are any, readable", () => {
-  const b = rule(".tb-obbligato");
-  assert.ok(/\bbottom: calc\(env\(safe-area-inset-bottom/.test(b), "at the foot, over the home indicator");
-  assert.ok(!/\btop:/.test(b), "not at the top (it covered the bar counter)");
-  assert.ok(/background: #[0-9a-f]{6};/.test(b), "an opaque ground, whatever the tinted bar under it");
-  assert.ok(/--tb-stop-rows, 1\) \* 47px/.test(rule(".tb-has-side-stops .tb-obbligato-left")), "the left one over the left foot's pistons (D420, 58 px a row)");
-  assert.ok(/--tb-stop-rows-right/.test(rule(".tb-has-side-stops .tb-obbligato-right")), "the right one over the right foot's");
-  assert.ok(/font-size: 9px/.test(rule(".tb-obbligato-inst")), "the instrument in the HUD's 9 px");
-  // D495: no floor under the roll; over the compact feet (28 px pistons) the button is 18 px, so its top stays under the
-  // lowest row a note can ask for (at least 12 px over the roll's foot at 844 × 390 over the 48 fugues: 2 + 28 + 3 + 18 − 42 ≤ 12).
-  assert.ok(!/\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height/.test(css), "no floor under the roll");
-  const h = Number(/height: (\d+)px/.exec(rule(".tb-has-side-stops .tb-obbligato"))![1]);
-  const last = css.lastIndexOf("\n.tb-stops-side .tg-piston {");
-  const feet = Number(/height: (\d+)px/.exec(css.slice(last, css.indexOf("}", last)))![1]);
-  assert.ok(2 + feet + 3 + h - 42 <= 12, `a ${h} px button over ${feet} px feet`);
 });
 
 test("D487 (3), D508: every voice of the 48 fugues measured on its own sound; the player matched to the band's sounding of its voice (no standing lift)", () => {
