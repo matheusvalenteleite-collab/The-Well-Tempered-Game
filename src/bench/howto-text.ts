@@ -351,7 +351,7 @@ export const HOWTO: Section[] = [
   },
   {
     id: "extras",
-    title: L("TEMPO, SOUND, DRUMS, OBBLIGATO, PISTONS", "ANDAMENTO, SOM, BATERIA, OBBLIGATO, PISTÕES", "TEMPO, SONIDO, BATERÍA, OBBLIGATO, PISTONES"),
+    title: L("TEMPO, SOUND, DRUMS, PISTONS", "ANDAMENTO, SOM, BATERIA, PISTÕES", "TEMPO, SONIDO, BATERÍA, PISTONES"),
     blocks: [
       sub(
         "tempo",
@@ -369,15 +369,6 @@ export const HOWTO: Section[] = [
           "DRUMS, on the right of the selection screen, add a backing beat under the fugue: on or off, and, where the fugue has them, a choice of styles (STYLE). They are sound only, never scored.",
           "BATERIA, à direita da tela de seleção, acrescenta uma batida de acompanhamento sob a fuga: ligada ou desligada e, onde a fuga tiver, uma escolha de estilos (ESTILO). É só som, nunca conta pontos.",
           "BATERÍA, a la derecha de la pantalla de selección, añade un ritmo de acompañamiento bajo la fuga: activada o desactivada y, donde la fuga los tenga, una elección de estilos (ESTILO). Es solo sonido, nunca puntúa.",
-        ),
-      ),
-      sub(
-        "obbligato",
-        L("Obbligato", "Obbligato", "Obbligato"),
-        p(
-          "Play the bars before one of your own subject entries cleanly (no miss, no wrong note, mostly PERFECT) and the bars turn sea-green: an OBBLIGATO button appears at their foot. Tap it with a free thumb before the entry begins, and your entry takes the effect the button names: OCTAVE (your notes doubled an octave away), TAPE ECHO or CHORUS (with a gentle vibrato). It changes nothing in the score; if you don't tap it, nothing is lost.",
-          "Toque os compassos antes de uma das entradas do sujeito na sua voz sem erros (nenhuma nota perdida ou errada, quase tudo PERFEITO) e as barras ficam verde-mar: um botão OBBLIGATO aparece no pé delas. Toque nele com o polegar livre antes de a entrada começar, e a sua entrada ganha o efeito que o botão diz: OITAVA (suas notas dobradas uma oitava acima ou abaixo), ECO DE FITA ou CHORUS (com um vibrato suave). Isso não muda nada na pontuação; se você não tocar, nada se perde.",
-          "Toca sin errores los compases anteriores a una de las entradas del sujeto en tu voz (ninguna nota fallada ni equivocada, casi todo PERFECTO) y las barras se vuelven verde mar: aparece un botón OBBLIGATO al pie de ellas. Púlsalo con el pulgar libre antes de que empiece la entrada, y tu entrada toma el efecto que nombra el botón: OCTAVA (tus notas dobladas una octava arriba o abajo), ECO DE CINTA o CHORUS (con un vibrato suave). No cambia nada en la puntuación; si no lo pulsas, no pierdes nada.",
         ),
       ),
       sub(

@@ -108,10 +108,6 @@ export interface Options {
    * Absent: D359's practice room as it was.
    */
   dress?: readonly string[];
-  /** D485, OBBLIGATO (the game only, never a lesson): playing well before one of the player's subject entries offers a boost for it (obbligato.ts; D509: one of three effects on the player's voice). */
-  obbligato?: boolean;
-  /** D485: the draw's random numbers (the tests'; default Math.random). */
-  obbRng?: () => number;
 }
 
 /**
