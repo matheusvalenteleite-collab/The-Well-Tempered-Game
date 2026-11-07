@@ -217,6 +217,10 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // a first reflection 20 ms on, RT60 1.1 s (on a phone 0.8 s), a little brighter than the club (the chamber's tiled
   // walls: 6 kHz), nothing under 200 Hz (the bass and the kick kept dry, as the engineers kept them out of the chamber).
   studio: { predelay: 0.02, hp: 200, lp: 6000, seconds: 1.2, phoneSeconds: 0.9, rt60: 1.1, phoneRt60: 0.8, brightness: 0.4 },
+  // D525, KRAUTROCK's: a dry working room (Can's Inner Space, a converted cinema hung with mattresses; Conny Plank's
+  // studio): short (RT60 0.6 s, a phone 0.45), close (10 ms), dark (5 kHz), from 180 Hz: the motorik pulse kept tight;
+  // the guitar's space its tape echo (BAND_ECHO), not the room.
+  inner: { predelay: 0.01, hp: 180, lp: 5000, seconds: 0.7, phoneSeconds: 0.55, rt60: 0.6, phoneRt60: 0.45, brightness: 0.34 },
 };
 /**
  * D503, JAZZ QUARTET's brushes (chip.ts Chip.brushes): each piece's level against the others (`tap`, `stir`, `flutter`,
@@ -266,11 +270,18 @@ export const ROCK_DRUMS = {
   pan: { kick: -0.06, snare: -0.08, rim: -0.08, hat: -0.2, openhat: -0.2, crash: 0.06, ride: 0.1, tomHigh: -0.12, tomLow: 0.08 } as Record<KitPiece, number>,
   styles: {
     abbey: { level: 1, phone: 1.8, send: 0.14 },
-    motorik: { level: 1, phone: 1, send: 0.08 },
+    motorik: { level: 1, phone: 1.25, send: 0.08 },
   } as Record<RockStyle, { level: number; phone: number; send: number }>,
 };
 /** D523: the groove each rock band's drums play (sound.ts Preset.groove), by style. */
-export const ROCK_GROOVES: Readonly<Record<string, RockStyle>> = { abbeyRock: "abbey" };
+export const ROCK_GROOVES: Readonly<Record<string, RockStyle>> = { abbeyRock: "abbey", motorik: "motorik" };
+/**
+ * D525, KRAUTROCK's guitar echo (Patch.echo, its send): a tape echo (its own band, saturation, wow and flutter: D509's
+ * tape's values) of `beats` of the beat as it sounds (three sixteenths of a crotchet beat: 0.75, the dotted eighth),
+ * fed back `feedback`, a little to the other side (`pan`), its return `wet`: the repeats heard behind the line, never
+ * over it. An effect on the guitar's own notes: nothing added to Bach's.
+ */
+export const BAND_ECHO = { beats: 0.75, feedback: 0.32, wet: 1, pan: 0.18, fallback: 0.36, min: 0.12, max: 0.7, hp: 320, lp: 2600, drive: 2.2, wow: { rate: 0.55, depth: 0.0011 }, flutter: { rate: 6.3, depth: 0.00004 } } as const;
 export const HALL = REVERBS.hall;
 
 /**
@@ -2110,6 +2121,8 @@ export class Chip {
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     // D385: a whole-piece reading's palette (Play.roomMul): more or less of the room.
     this.fxSend(pan ?? dyn, pt.send !== undefined && p.roomMul ? pt.send * p.roomMul : pt.send, bag);
+    // D525: KRAUTROCK's guitar into the band's tape echo (Patch.echo).
+    if (pt.echo) this.echoSend(pan ?? dyn, pt.echo, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
     const lfos: AudioScheduledSourceNode[] = [...(tremLfo ? [tremLfo] : []), ...(motor ? [motor.lfo] : [])];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
@@ -3161,6 +3174,7 @@ export class Chip {
     // D503: JAZZ QUARTET's brushes: their pattern, Busoni's level and the piece's fills (jazz-drums.ts), recorded.
     if (gr.kit === "brushes") return (this.brushes(at, beatS, b, per, compound, cx), true);
     // D523, D525: ABBEY ROAD's and KRAUTROCK's kit: their pattern, the fugue's form and Busoni's level (rock-drums.ts), recorded.
+    this.lastBeatS = beatS;
     if (gr.kit === "rock") return (this.rockDrums(ROCK_GROOVES[gr.groove] ?? "abbey", at, beatS, b, per, compound, cx), true);
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
@@ -3259,6 +3273,8 @@ export class Chip {
     halt(src, t + len + xf + 0.01);
   }
 
+  /** D525: the beat's length as it last sounded (s): BAND_ECHO's time. */
+  private lastBeatS = 0;
   /** D523: the kit's strokes asked for (the tests: each piece, its time in the context's clock, its level). */
   readonly rockLog: { piece: KitPiece; at: number; vel: number }[] = [];
   /**
@@ -3310,6 +3326,61 @@ export class Chip {
     src.start(t, rec.onset);
     // A closed hat or a stroke soon choked by the next is let go short; the cymbals ring.
     halt(src, t + (piece === "crash" || piece === "ride" ? 3 : piece === "openhat" ? 1.2 : piece === "tomLow" || piece === "tomHigh" ? 1.5 : 0.9));
+  }
+
+  /** D525: the band's echo (BAND_ECHO), built at its first send; its delay follows the beat as it sounds. */
+  private echoBus: { input: GainNode; delay: DelayNode } | null = null;
+  private echoSend(from: AudioNode, amount: number, bag: Bag) {
+    const ctx = this.ctx;
+    const len = Math.max(BAND_ECHO.min, Math.min(BAND_ECHO.max, this.lastBeatS ? BAND_ECHO.beats * this.lastBeatS : BAND_ECHO.fallback));
+    if (!this.echoBus) {
+      const E = BAND_ECHO;
+      const input = ctx.createGain();
+      const sat = ctx.createWaveShaper();
+      const n = 1024;
+      const curve = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const x = (i / (n - 1)) * 2 - 1;
+        curve[i] = Math.tanh(E.drive * x) / E.drive;
+      }
+      sat.curve = curve;
+      const sum = ctx.createGain();
+      const delay = ctx.createDelay(2);
+      delay.delayTime.value = len;
+      const lfo = (rate: number, depth: number) => {
+        const o = ctx.createOscillator();
+        o.frequency.value = rate;
+        const d = ctx.createGain();
+        d.gain.value = depth;
+        o.connect(d).connect(delay.delayTime);
+        o.start();
+      };
+      lfo(E.wow.rate, E.wow.depth);
+      lfo(E.flutter.rate, E.flutter.depth);
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = E.hp;
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = E.lp;
+      const fb = ctx.createGain();
+      fb.gain.value = E.feedback;
+      const wet = ctx.createGain();
+      wet.gain.value = E.wet;
+      input.connect(hp).connect(sum).connect(sat).connect(delay).connect(lp);
+      lp.connect(fb).connect(sum);
+      let out: AudioNode = lp.connect(wet);
+      if (ctx.createStereoPanner) {
+        const p = ctx.createStereoPanner();
+        p.pan.value = E.pan;
+        out = wet.connect(p);
+      }
+      out.connect(this.master);
+      this.echoBus = { input, delay };
+    } else if (Math.abs(this.echoBus.delay.delayTime.value - len) > 0.01) this.echoBus.delay.delayTime.setTargetAtTime(len, ctx.currentTime, 0.05);
+    const g = bag.add(ctx.createGain());
+    g.gain.value = amount;
+    from.connect(g).connect(this.echoBus.input);
   }
 
   private roomTo() {

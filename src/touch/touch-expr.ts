@@ -57,6 +57,8 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // D523: ABBEY ROAD as JAZZ QUARTET (landing "jazz": the piano's three zones, the piano's own
   // weight on the piano, the level and the pluck's brightness on the guitars and the bass; nothing held to sway).
   abbeyRoad: "jazz",
+  // D525: KRAUTROCK likewise (its organ sustained: nothing held to sway).
+  krautrock: "jazz",
 };
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;
@@ -183,6 +185,7 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   pianoSampled: [0, 0],
   jazzQuartet: [0, 0],
   abbeyRoad: [0, 0],
+  krautrock: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
   harpsichordSampled: [-0.5, 1.5],
   // The swell box's shutters: the level with its brightness (ORGAN_SWELL_TONE), the echo manual's under it.

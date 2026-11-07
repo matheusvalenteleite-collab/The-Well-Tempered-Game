@@ -69,6 +69,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["jazzQuartet", "JAZZ QUARTET"],
   // D523: ABBEY ROAD (with its drums).
   ["abbeyRoad", "ABBEY ROAD"],
+  // D525: KRAUTROCK (with its motorik drums).
+  ["krautrock", "KRAUTROCK"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
