@@ -1,7 +1,7 @@
 /**
  * The design studio (D469, D470): the owner's last batch before the friends test: the pistons in the box's frame,
  * slides drawn, the fugue's name in the title (the map off it), no legend or hint at a game's start, SOFT / STRONG
- * always at the bars' top, OBBLIGATO named while it plays, failure words that stay; the score screen on the whole screen.
+ * always at the bars' top, (OBBLIGATO named while it plays: retired by D496), failure words that stay; the score screen on the whole screen.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("D471: the pistons back at the bars' feet (D469's move undone), acting on pointerdown, the floor for OBBLIGATO kept", () => {
+test("D471: the pistons back at the bars' feet (D469's move undone), acting on pointerdown", () => {
   const r = src("src/touch/RegistrationStops.tsx");
   assert.ok(!r.includes("rollRect") && !r.includes("TAB_ROW"));
   assert.match(r, /--tb-stop-rows: \$\{PISTON_ROWS\}/);
@@ -48,13 +48,6 @@ test("SOFT / STRONG always, at the bars' top; failure words stay 1.8 s, one slot
   assert.ok(!/SIDES_HINT_S/.test(p), "no longer only the first seconds");
   assert.match(p, /export const BAD_WORD_MS = 1800;/);
   assert.match(p, /export const SLIDE_CUE_MS = 1800;/);
-});
-
-test("OBBLIGATO: taken on pointerdown or touchstart; named in its place for the whole boosted entry", () => {
-  const o = src("src/bench/ObbligatoOffer.tsx");
-  assert.match(o, /onPointerDown=\{take\} onTouchStart=\{take\}/);
-  assert.match(o, /tb-obbligato-on/);
-  assert.match(o, /gm\.boosts\.find\(\(x\) => x\.spans\.some\(\(sp\) => gm\.now >= sp\.on && gm\.now < sp\.end\)\)/);
 });
 
 test("the score screen on the whole screen, the safe areas inside its padding", () => {

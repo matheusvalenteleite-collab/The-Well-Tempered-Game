@@ -67,7 +67,7 @@ const [out, ...jobs] = process.argv.slice(2);
         const all = f.voices.flat().map((n) => n[2]);
         await ch.prepare(all, f.voices[voice].map((n) => n[2]));
         const proto = protoById('ladder');
-        const g = new ProtoGame(f, [voice], 0, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false, obbligato: false }, ch);
+        const g = new ProtoGame(f, [voice], 0, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false }, ch);
         g.wall = () => 0;
         window.__g = g;
         // D487: the player's lift as BenchApp applies it (the player's own bus), unless measuring without it.

@@ -1,6 +1,6 @@
 /**
  * The design studio (D472): STRING CONSORT's five articulation stops (D512's API) at both bars' feet, three over two,
- * names fitting, the stop in force lit, chosen on pointerdown; only for the consort; the floor kept for OBBLIGATO.
+ * names fitting, the stop in force lit, chosen on pointerdown; only for the consort.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
