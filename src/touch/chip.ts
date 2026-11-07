@@ -14,10 +14,11 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
+import { LOUD_FROM, latinBeat, type LatinBand, type LatinPiece, type LatinPlan } from "./latin-drums.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -240,7 +241,50 @@ export interface GrooveContext {
   fills: readonly Fill[];
   end: number;
   dynDb?: number;
+  /** D520/D522: the piece's plan for SALSA's and CHORINHO's percussion (latin-drums.ts latinPlan). */
+  latin?: LatinPlan;
 }
+/**
+ * D520 SALSA's and D522 CHORINHO's percussion (chip.ts Chip.latin, latin-drums.ts): the kit's `level` (measured: where
+ * JAZZ QUARTET's brushes sit under their band, the bass heard through a phone's speaker), a phone's share, the cut under
+ * `hp` Hz (the bass's room: the surdo and the tumba keep their thump above it), the share of the room (`send`); each
+ * piece's level (the recordings evened in the build) and its seat (`pan`, seen from the room: salsa's congas right of
+ * the band's middle, the bongos left, the timbales behind a little left, the clave in the middle; chorinho's pandeiro
+ * in the middle, the tamborim left, the agogo right, the ganza left, the surdo behind).
+ */
+export const LATIN_KIT: { level: number; phone: number; hp: number; send: number; pieces: Readonly<Record<LatinPiece, readonly [level: number, pan: number]>> } = {
+  level: 0.54,
+  phone: 1.57,
+  hp: 90,
+  send: 0.1,
+  pieces: {
+    conga: [0.9, 0.22],
+    slap: [0.8, 0.22],
+    tumba: [0.9, 0.3],
+    bongoHi: [0.7, -0.24],
+    bongoMute: [0.55, -0.24],
+    bongoLo: [0.7, -0.2],
+    bell: [0.42, -0.2],
+    bellLow: [0.45, -0.2],
+    timbalBell: [0.38, -0.1],
+    clave: [0.45, 0.04],
+    hembra: [0.75, -0.12],
+    macho: [0.7, -0.08],
+    rimshot: [0.7, -0.1],
+    cascara: [0.45, -0.1],
+    pandJingle: [0.5, 0.04],
+    pandHit: [0.55, 0.04],
+    pandBass: [0.9, 0.04],
+    pandSlap: [0.75, 0.04],
+    surdo: [1, 0],
+    tamborim: [0.5, -0.2],
+    agogoHi: [0.3, 0.22],
+    agogoLo: [0.32, 0.22],
+    ganza: [0.35, -0.24],
+  },
+};
+/** D520/D522: the band a groove's percussion is. */
+export const LATIN_GROOVE: Readonly<Record<string, LatinBand>> = { salsaBand: "salsa", choroBand: "chorinho" };
 export const HALL = REVERBS.hall;
 
 /**
@@ -1706,6 +1750,9 @@ export class Chip {
     });
     // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
     plans.push([{ set: BRUSH_SET, notes: grooveNow()?.kit === "brushes" ? [...BRUSH_MIDIS] : [] }]);
+    // D520/D522: SALSA's or CHORINHO's percussion (its band's pieces), let go under any other sound.
+    const gl = grooveNow();
+    plans.push([{ set: LATIN_SET, notes: gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? latinMidis(LATIN_GROOVE[gl.groove]) : [] }]);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
@@ -3312,6 +3359,8 @@ export class Chip {
     if (!gr) return false;
     // D503: JAZZ QUARTET's brushes: their pattern, Busoni's level and the piece's fills (jazz-drums.ts), recorded.
     if (gr.kit === "brushes") return (this.brushes(at, beatS, b, per, compound, cx), true);
+    // D520/D522: SALSA's and CHORINHO's percussion: the piece's plan, Busoni's level, recorded (latin-drums.ts).
+    if (gr.kit === "latin" && LATIN_GROOVE[gr.groove] && cx?.latin) return (this.latin(LATIN_GROOVE[gr.groove], at, beatS, cx), true);
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
   }
@@ -3407,6 +3456,57 @@ export class Chip {
     src.connect(g).connect(this.brushOut(bag, JAZZ_DRUMS.pan[s.piece]));
     src.start(t, pos);
     halt(src, t + len + xf + 0.01);
+  }
+
+  /** D520/D522: the percussion asked for (the tests: each piece, its time, its level). */
+  readonly latinLog: { piece: LatinPiece; at: number; vel: number }[] = [];
+  private latinRr = 0;
+  /**
+   * D520/D522: one beat of SALSA's or CHORINHO's percussion (latin-drums.ts latinBeat) on its recordings (sampled.ts
+   * LATIN_FILES): each stroke the louder recording from LOUD_FROM, the round robins alternating, its level by `vel`; a
+   * muted stroke (`damp`: the surdo's left hand, the pandeiro's thumb pressed) damped after that long. Seated by
+   * LATIN_KIT, under its cut, in the band's room at a little of its send.
+   */
+  private latin(band: LatinBand, at: number, beatS: number, cx: GrooveContext) {
+    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0)) this.latinHit(h.piece, at + h.at * beatS, h.vel, h.damp);
+  }
+
+  private latinHit(piece: LatinPiece, at: number, vel: number, damp?: number) {
+    this.latinLog.push({ piece, at, vel });
+    if (this.latinLog.length > 1024) this.latinLog.splice(0, 512);
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const layers = LATIN_FILES[piece];
+    const row = layers[vel >= LOUD_FROM ? layers.length - 1 : 0];
+    const m = row[this.latinRr++ % row.length];
+    const rec = loaded(LATIN_SET, m);
+    if (!rec) {
+      loadOne(ctx, LATIN_SET, m);
+      return;
+    }
+    const [lv, pan] = LATIN_KIT.pieces[piece];
+    const bag = new Bag();
+    const src = bag.src(ctx.createBufferSource());
+    src.buffer = rec.buffer;
+    const g = bag.add(ctx.createGain());
+    const k = LATIN_KIT.level * (this.phone ? LATIN_KIT.phone : 1) * lv * vel;
+    g.gain.setValueAtTime(k, t);
+    if (damp) g.gain.setTargetAtTime(0, t + damp, 0.03);
+    const hp = bag.add(ctx.createBiquadFilter());
+    hp.type = "highpass";
+    hp.frequency.value = LATIN_KIT.hp;
+    hp.Q.value = 0.7;
+    src.connect(g).connect(hp);
+    let out: AudioNode = hp;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = pan;
+      out = hp.connect(p);
+    }
+    out.connect(this.master);
+    this.fxSend(out, LATIN_KIT.send, bag);
+    src.start(t, rec.onset);
+    halt(src, t + (damp ? damp + 0.2 : 1.5));
   }
 
   private roomTo() {

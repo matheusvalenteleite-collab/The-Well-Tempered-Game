@@ -623,6 +623,19 @@ export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
 export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
+/**
+ * D520, SALSA (an Afro-Cuban conjunto: Eddie Palmieri's and the Fania sound): the trumpet on top (Iowa's, BACH BRASS's
+ * recordings, its brassiness by the touch), a second trumpet and a trombone in five or four voices, the grand on the
+ * middle voices a little brighter (SALSA_PIANO_SHELF: its attack forward), the baby bass on the bass
+ * (the Iowa pizzicato, rounder than the jazz bassist's: SALSA_BASS_ROUND, the phone's lift as his), the percussion
+ * (latin-drums.ts, unpitched), one room at one send (SALSA_SEND). One instrument to a voice, Bach's notes only: no
+ * montuno, bass line, chord or stab added (the owner: "Don't meddle with the MUSIC. Make the music shine.").
+ */
+export const SALSA_SEND = 0.16;
+export const SALSA_PIANO_SHELF = { hz: 2500, db: 3 } as const;
+export const SALSA_BASS_ROUND = { hz: 700, db: -1 } as const;
+/** D520: the baby bass on a phone: the jazz bassist's lift (JAZZ_BASS_PHONE_LIFT) 3 dB more (measured: II/10's bass 7 dB under the trumpet through the phone model with his). */
+export const SALSA_BASS_PHONE_LIFT = { hz: 320, db: 15, cut: 280 } as const;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1184,6 +1197,11 @@ export const PATCHES = {
   jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
   jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  // D520, SALSA: Iowa's trumpet and trombone (BACH BRASS's recordings and envelope), the grand, the baby bass. Stand-ins until loaded (D190).
+  salTrumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: SALSA_SEND, level: 1.3, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {} }),
+  salTrombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: SALSA_SEND, level: 1.3, sample: "brassTrombone", bow: BRASS_TONGUE, one: {} }),
+  salPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: SALSA_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: SALSA_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
+  salBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: SALSA_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1191,9 +1209,12 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
   // D200: loops once given to single fugues (withdrawn in D208).
   | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet"
   // D503: JAZZ QUARTET's brushes (jazz-drums.ts: a pattern per metre on the game's beat, the scripted fills).
-  | "brushJazz";
-/** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums). */
-export type Kit = "acoustic" | "chip" | "analog" | "brushes";
+  | "brushJazz"
+  // D520 SALSA's and D522 CHORINHO's percussion (latin-drums.ts: the clave, the bells and the congas; the pandeiro and the surdo).
+  | "salsaBand"
+  | "choroBand";
+/** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums); D520/D522: the recorded Latin percussion (VCSL). */
+export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
 export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club";
@@ -1587,6 +1608,30 @@ export const PRESETS: Preset[] = [
       5: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.16], ["jqPiano", 0.2], ["jqBass", 0.04]],
     },
   },
+  // D520: SALSA: the trumpet on top (a second trumpet in five voices, the trombone in four and five), the grand on the
+  // middle voices, the baby bass; the percussion (groove "salsaBand": latin-drums.ts, always with this sound). Seated
+  // as a conjunto stands, seen from the room: the horns left, the piano right, the bass in the middle (LATIN_KIT: the
+  // congas right, the bongos left, the timbales behind a little left).
+  {
+    id: "salsa",
+    name: "SALSA",
+    // D520 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3 dB, and on a phone 1.6 dB less of it (measured -3.0
+    // under the median of six sounds on a computer, -1.4 through the phone model on a phone).
+    gain: 1.41,
+    phoneGain: 0.83,
+    slots: ["salTrumpet", "salPiano", "salPiano", "salTrombone", "salBass"],
+    groove: "salsaBand",
+    kit: "latin",
+    room: 0,
+    fx: "club",
+    by: {
+      1: [["salPiano", 0]],
+      2: [["salPiano", 0.1], ["salBass", 0.02]],
+      3: [["salTrumpet", -0.18], ["salPiano", 0.16], ["salBass", 0.02]],
+      4: [["salTrumpet", -0.18], ["salPiano", 0.16], ["salTrombone", -0.06], ["salBass", 0.02]],
+      5: [["salTrumpet", -0.2], ["salTrumpet", -0.1], ["salPiano", 0.16], ["salTrombone", -0.02], ["salBass", 0.02]],
+    },
+  },
 ];
 
 /**
@@ -1637,7 +1682,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1779,7 +1824,9 @@ export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRO
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT };
+/** D520: SALSA's recordings. */
+export const SALSA_CREDIT = `TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1919,6 +1966,15 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
     case "brushJazz":
       out.push({ drum: "brush", at: 0, vel: 0.5 }, { drum: "ride", at: 0, vel: 0.4 });
       if (back) out.push({ drum: "hat", at: 0, vel: 0.35 });
+      break;
+    // D520/D522: the Latin bands' stand-ins (chip.ts latin plays latin-drums.ts on the recordings, given the piece's plan).
+    case "salsaBand":
+      out.push({ drum: "rim", at: 0, vel: 0.45 });
+      if (back) out.push({ drum: "shaker", at: subs[subs.length - 1], vel: 0.35 });
+      break;
+    case "choroBand":
+      for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.3 : 0.45 });
+      if (back) out.push({ drum: "kick", at: 0, vel: 0.4 });
       break;
     case "brushes":
       out.push({ drum: "brush", at: 0, vel: 0.7 });

@@ -148,3 +148,16 @@ Processing (tools/playback/jazz/build_jazz.py): the scale files cut at their ons
          room's hum); each note's loudness over its first 0.5 s (K-weighted) evened within its set, one gain per
          instrument (its loudest peak at -1 dBFS); tuning measured into src/touch/sampled.ts; mono 44.1 kHz MP3 (the
          vibraphone 72 kbit/s, the bass and the brushes 64 kbit/s). About 4.4 MB in all.
+D520/D522, the touch game's SALSA and CHORINHO percussion (one kit for both; SALSA's trumpet and trombone are brassTrumpet/ and
+brassTrombone/ above, its bass jazzBass/, its piano grand/):
+latinPerc/  Versilian Community Sample Library (VCSL), Versilian Studios LLC. CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/);
+         credit encouraged. Source: https://github.com/sgossner/VCSL (Membranophones/Struck Membranophones: Conga, Bongos, Frame Drum,
+         Bass Drum 1, Snare Drum, Modern 1 with the snares off as the timbales; Idiophones/Struck Idiophones: Cowbells, Claves,
+         Tambourine 1, Agogo Bells, Shaker, Small). Filed under note names C2-F7 (src/touch/sampled.ts LATIN_FILES says which is
+         which): conga open and slap, tumba, bongos (high open, high muted, low), bongo bell, timbal bell, claves, timbales hembra
+         and macho (the macho the same snare 5 semitones up), rimshot, cascara; the pandeiro (the tambourine's jingles, the small
+         frame drum's head with the jingles mixed in: thumb and slap), the surdo, the tamborim (the frame drum's muted hit
+         7 semitones up), agogo, ganza.
+         Processing (tools/playback/latin/build_latin.py): mono; cut 2 ms before the strike; high-passed at 45 Hz (the surdo 30 Hz);
+         trimmed with a fade (0.3-1.4 s); each hit's loudness over its first 0.15 s (K-weighted) evened, one gain for all (the
+         loudest peak at -1 dBFS); mono 44.1 kHz 64 kbit/s MP3. About 0.5 MB.
