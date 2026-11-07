@@ -59,6 +59,11 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   salsa: "band",
   // D522 CHORINHO likewise: the breath on the flute and the clarinet (a held sway the breath), the pluck on the guitars.
   chorinho: "band",
+  // D523: ABBEY ROAD as JAZZ QUARTET (landing "jazz": the piano's three zones, the piano's own
+  // weight on the piano, the level and the pluck's brightness on the guitars and the bass; nothing held to sway).
+  abbeyRoad: "jazz",
+  // D525: KRAUTROCK likewise (its organ sustained: nothing held to sway).
+  krautrock: "jazz",
 };
 /** D520/D522: the family a band instrument's touch is (by its recordings). */
 export function bandFamily(pt: Patch | null): "piano" | "brass" | "winds" | "jazz" {
@@ -196,6 +201,8 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   salsa: [0, 0],
   // D522: the winds' breath a level as ZELENKA TRIO's (the piano's and the guitars' zones on top of it).
   chorinho: [-2, 2],
+  abbeyRoad: [0, 0],
+  krautrock: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
   harpsichordSampled: [-0.5, 1.5],
   // The swell box's shutters: the level with its brightness (ORGAN_SWELL_TONE), the echo manual's under it.

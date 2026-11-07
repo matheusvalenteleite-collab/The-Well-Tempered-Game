@@ -71,6 +71,10 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["salsa", "SALSA"],
   // D522: CHORINHO (a choro regional, with its percussion).
   ["chorinho", "CHORINHO"],
+  // D523: ABBEY ROAD (with its drums).
+  ["abbeyRoad", "ABBEY ROAD"],
+  // D525: KRAUTROCK (with its motorik drums).
+  ["krautrock", "KRAUTROCK"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

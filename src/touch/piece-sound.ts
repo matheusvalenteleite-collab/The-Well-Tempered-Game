@@ -86,12 +86,13 @@ import { playerSound } from "./sound.ts";
  * D522: CHORINHO for II/1 (2/4, choro's own metre, Keller's high spirits: flute, piano and the seven-string), with its
  * percussion's scripted moments.
  */
+/** D523: I/2 and I/16 on ABBEY ROAD; D525: I/20 on KRAUTROCK (tools/touch/colour-plans: each reason). */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
   wtc1f01: "chamberOrgan",
   wtc1p02: "chip",
-  wtc1f02: "harpsichordSampled",
+  wtc1f02: "abbeyRoad",
   wtc1p03: "chip",
   wtc1f03: "gameboy",
   wtc1p04: "chip",
@@ -119,7 +120,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p15: "chip",
   wtc1f15: "megaFm",
   wtc1p16: "chip",
-  wtc1f16: "harpsichordSampled",
+  wtc1f16: "abbeyRoad",
   wtc1p17: "chip",
   wtc1f17: "chamberOrgan",
   wtc1p18: "harpsichordSampled",
@@ -127,7 +128,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p19: "harpsichordSampled",
   wtc1f19: "jazzQuartet",
   wtc1p20: "harpsichordSampled",
-  wtc1f20: "harpsichordSampled",
+  wtc1f20: "krautrock",
   wtc1p21: "chip",
   wtc1f21: "sid64",
   wtc1p22: "chip",

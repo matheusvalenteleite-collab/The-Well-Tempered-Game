@@ -48,6 +48,10 @@ export const ES: Record<string, string> = {
   "SALSA": "SALSA",
   // D522: CHORINHO.
   "CHORINHO": "CHORINHO",
+  // D523: ABBEY ROAD (a name: kept).
+  "ABBEY ROAD": "ABBEY ROAD",
+  // D525: KRAUTROCK (a name: kept).
+  KRAUTROCK: "KRAUTROCK",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOE, VIOLA Y FAGOT",
