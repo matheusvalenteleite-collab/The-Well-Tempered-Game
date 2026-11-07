@@ -27,7 +27,7 @@ import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
+import { floorOf, ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
@@ -935,10 +935,12 @@ export function BenchApp() {
     const area = document.querySelector(".tg-play");
     if (!r || !area) return null;
     const a = area.getBoundingClientRect();
-    const rh = r.height * (1 - boxFloor);
+    // D473: the rows clear of what lies over the roll's foot (the legend, the stops, OBBLIGATO), as MusicBox draws them.
+    const fl = floorOf(r.height, boxFloor);
+    const rh = r.height * (1 - fl);
     // D377: CLASSIC's rows exactly as drawn, the zoom's ease included (box-zoom.ts touchRows).
     const other = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null);
-    const geo = other ?? ladderGeometry(zv.lo, zv.hi, r.height, boxFloor, zv.from, zv.mix);
+    const geo = other ?? ladderGeometry(zv.lo, zv.hi, r.height, fl, zv.from, zv.mix);
     // D414: CLASSIC draws an altered note a third of a row off its row (D332): a slide aims at the block as drawn.
     const sig = other ? null : signatureOf(f.key);
     const top = r.top - a.top;
@@ -1747,6 +1749,7 @@ export function BenchApp() {
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${(stopsOn && layout === "bars" && playing) || consortOn ? " tb-has-side-stops" : ""}`}>
       {/* D485: OBBLIGATO's buttons at the bars' outer top corners while an offer stands. */}
       {layout === "bars" && playing && <ObbligatoOffer game={game} />}
+      {layout === "bars" && <i className="tb-obbligato-slot" aria-hidden="true" />}
       {consortOn && <ConsortStops presetId={presetById(soundNow).id} piece={f.id} />}
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
       <MusicBox
