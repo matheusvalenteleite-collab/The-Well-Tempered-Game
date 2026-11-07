@@ -55,7 +55,8 @@ test("D344: DRUMS (the friends' backing) plays under every Book I fugue's sound,
   for (const id of book1) {
     setPreset(soundFor(id, {}, "chip"));
     // (D503: JAZZ QUARTET's own brushes play whatever the switch: its sound's own rhythm section.)
-    if (presetById(soundFor(id, {}, "chip")).groove) assert.equal(grooveNow()?.kit, "brushes", id);
+    // (D523: ABBEY ROAD's own rock kit likewise.)
+    if (presetById(soundFor(id, {}, "chip")).groove) assert.equal(grooveNow()?.kit, presetById(soundFor(id, {}, "chip")).kit, id);
     else assert.equal(grooveNow(), null, `${id}: silent while off`);
   }
   setBacking(true);
