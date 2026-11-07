@@ -18,6 +18,7 @@ import { TOUCH_KINDS, holdMode, landing } from "../src/touch/touch-expr.ts";
 import { KICK_8THS, MIN_GAP_BARS, RIM_8THS, bossaBeat, bossaPlan, eighthsPerBeat } from "../src/touch/bossa-drums.ts";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
 import { entrySpans } from "../src/touch/voice-mode.ts";
+import { formOf } from "../src/touch/form-points.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { slideFamily } from "../src/bench/slide-sound.ts";
 import { exprFamily } from "../src/bench/glenn.ts";
@@ -42,8 +43,8 @@ const ctxOf = (c: Chip) => (c as unknown as { ctx: FakeAudioContext }).ctx;
 test("D521: BOSSA NOVA offered: in the lists, an ensemble, named in three languages, credited, Busoni's dynamics reach it", () => {
   assert.ok(offered("bossaNova"));
   assert.equal(BOSSA.name, "BOSSA NOVA");
-  assert.ok(POP_SOUNDS.some(([id]: [string]) => id === "bossaNova"));
-  assert.ok(SOUND_GROUPS.find(([g]: [string]) => g === "ENSEMBLES")[1].includes("bossaNova"));
+  assert.ok(POP_SOUNDS.some((r: readonly unknown[]) => r[0] === "bossaNova"));
+  assert.ok(SOUND_GROUPS.find((r: readonly unknown[]) => r[0] === "ENSEMBLES")![1].includes("bossaNova"));
   assert.equal(PT["BOSSA NOVA"], "BOSSA NOVA");
   assert.equal(ES["BOSSA NOVA"], "BOSSA NOVA");
   assert.equal(creditFor("bossaNova"), BOSSA_CREDIT);
@@ -147,11 +148,11 @@ test("D521: the form: a fill into entries, spaced; the episodes quieter; a bar's
     if (brk) {
       const inBreak = out.filter((h) => h.tick >= brk.from && h.tick < brk.at - 1);
       assert.ok(inBreak.length <= 1 && inBreak.every((h) => h.piece === "tap"), id);
-      assert.ok(spans[spans.length - 1].on - brk.at < beat, id);
+      assert.ok(spans.some((x) => x.on - brk.at < beat && x.on >= brk.at), id);
     }
     // The flourish: the last downbeat struck, nothing after it.
     const fin = plan.moments.find((m) => m.kind === "final")!;
-    assert.equal(fin.at, f.bars[f.bars.length - 1].on);
+    assert.ok(fin.at <= formOf(f).last && formOf(f).last - fin.at < beat, id);
     assert.ok(out.some((h) => h.tick === fin.at && h.piece === "ride"));
     assert.ok(!out.some((h) => h.tick > fin.at + 1), id);
     // An episode's pattern: the stir, no brush eighths, quieter.

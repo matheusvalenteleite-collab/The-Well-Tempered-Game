@@ -221,7 +221,8 @@ test("D509: the draw: the three effects about evenly; the octave's share to the 
 
 test("D485: every instrument the sounds play has its compass (LAYERS: the octave's room)", () => {
   const ids = new Set(LAYERS.map((l) => l.id as string));
-  for (const id of presetPatchIds()) assert.ok(ids.has(id) || ["orgPleno", "orgPedalPleno"].includes(id), `${id} missing from LAYERS`);
+  // D521: BOSSA NOVA's instruments (bn*) are not given to OBBLIGATO, which the owner withdrew (D496: removed on the main board).
+  for (const id of presetPatchIds()) assert.ok(ids.has(id) || ["orgPleno", "orgPedalPleno"].includes(id) || id.startsWith("bn"), `${id} missing from LAYERS`);
   for (const l of LAYERS) assert.ok(l.lo < l.hi && l.lo >= 20 && l.hi <= 110, l.id);
 });
 

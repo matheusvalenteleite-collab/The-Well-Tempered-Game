@@ -17,14 +17,15 @@
  *
  * THE FORM (bossaPlan, from the game's own subject marks: voice-mode.ts entrySpans):
  *   - a FILL into each subject entry after the first (one beat of a roll; two out of an episode), no two within MIN_GAP_BARS;
- *   - the EPISODES (no entry sounding for a bar or more) the quiet pattern;
+ *   - the EPISODES (the form's: form-points.ts formOf, D474, the stage's own) the quiet pattern;
  *   - a BREAK before the final entry: a bar with no drums at all, a single pick-up tap at its end, and the entry landed;
- *   - the CLOSING FLOURISH: a roll over the last bar's lead-in, the final downbeat struck (bass drum, rim, the ride), then
+ *   - the CLOSING FLOURISH: a roll into the last chord (formOf's `last`), struck (bass drum, rim, the ride), then
  *     nothing (the band's last chord alone).
  * Never the score, the streak or the verdicts (D482).
  */
 import type { TouchFugue } from "./fugue.ts";
 import { entrySpans } from "./voice-mode.ts";
+import { formOf } from "./form-points.ts";
 import { dynGain, type BrushSweep } from "./jazz-drums.ts";
 
 export type BossaKind = "fill" | "break" | "final";
@@ -71,7 +72,6 @@ export function bossaPlan(f: TouchFugue, beat: number, per: number): BossaPlan {
   if (hit) return hit;
   const bar = f.barTicks;
   const bars = f.bars.map((b) => b.on);
-  const lastOn = bars[bars.length - 1] ?? 0;
   const floorBeat = (t: number) => {
     const b0 = bars.filter((x) => x <= t).pop() ?? 0;
     return b0 + Math.floor((t - b0) / beat + 1e-6) * beat;
@@ -79,28 +79,26 @@ export function bossaPlan(f: TouchFugue, beat: number, per: number): BossaPlan {
   const spans = entrySpans(f)
     .filter((s) => s.form !== "counter")
     .sort((a, b) => a.on - b.on);
-  // The episodes: stretches of a bar or more that no entry covers (from the first entry's end to the last's start).
-  const quiet: [number, number][] = [];
-  let covered = spans[0]?.end ?? 0;
-  for (const s of spans.slice(1)) {
-    // (from the next beat: a beat is the pattern's or the quiet pattern's, whole)
-    if (s.on - covered >= EPISODE_BARS * bar) quiet.push([floorBeat(covered + beat - 1), s.on]);
-    covered = Math.max(covered, s.end);
-  }
+  // The episodes: the form's (form-points.ts formOf, D474: the stage's scenes turn on the same bars), from the next beat.
+  const form = formOf(f);
+  const quiet: [number, number][] = form.seams.filter((x) => x.kind === "episode").map((x) => [floorBeat(x.on + beat - 1), x.end] as [number, number]).filter(([a, z]) => z > a);
   const moments: BossaMoment[] = [];
-  // The final flourish: a roll into the last bar's downbeat.
-  const finalFrom = Math.max(0, lastOn - Math.min(per, 2) * beat);
-  moments.push({ kind: "final", from: finalFrom, at: lastOn, why: "the closing flourish: a roll into the last downbeat, struck, then the band's chord alone" });
-  // The break before the final entry (if it is not in the last two bars: there the flourish speaks).
-  const last = spans[spans.length - 1];
+  // The final flourish: a roll into the last chord (the last attack in any voice, on its beat).
+  const lastChord = floorBeat(form.last);
+  const finalFrom = Math.max(0, lastChord - Math.min(per, 2) * beat);
+  moments.push({ kind: "final", from: finalFrom, at: lastChord, why: "the closing flourish: a roll into the last chord, struck, then the band's chord alone" });
+  // The break before the final entry (the form's final group's first: in a closing stretto, before it all), if it is not
+  // in the last two bars (there the flourish speaks).
+  const finalOn = form.seams.find((x) => x.kind === "final")?.on;
+  const last = spans.find((x) => finalOn !== undefined && x.on >= finalOn) ?? spans[spans.length - 1];
   if (last && spans.length > 1) {
     const at = floorBeat(last.on);
     if (at < finalFrom - bar && at - bar > 0) moments.push({ kind: "break", from: at - bar, at, why: `the final entry (${last.form}, ${last.key}): a bar's break, then the entry landed` });
   }
   // A fill into each entry after the first, spaced; out of an episode a longer roll.
-  for (const s of spans.slice(1, last && spans.length > 1 ? -1 : undefined)) {
+  for (const s of spans.slice(1).filter((x) => !last || x.on < last.on)) {
     const at = floorBeat(s.on);
-    const afterEpisode = quiet.some(([, to]) => to === s.on);
+    const afterEpisode = quiet.some(([, to]) => Math.abs(to - s.on) < beat);
     const n = Math.min(per, afterEpisode ? 2 : 1);
     const from = at - n * beat;
     if (from <= 0) continue;

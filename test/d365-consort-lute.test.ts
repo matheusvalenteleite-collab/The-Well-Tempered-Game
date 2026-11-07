@@ -48,7 +48,7 @@ test("D365: STRING CONSORT offered (D510: LUTE withdrawn): in the sound list, gr
   assert.match(CONSORT_CREDIT, /FREESOUND 12408/);
   // Then the list's last: D430's BAROQUE BAND and D501's CLAVICHORD. (D435: I/4 and II/8 now open on STRING CONSORT, I/14 on LUTE.)
   // (D504: ZELENKA TRIO, D502: BACH BRASS and D503: JAZZ QUARTET after them.)
-  assert.deepEqual(PRESETS.slice(-5, -3).map((p) => p.id), ["stringConsort", "baroqueBand"]);
+  assert.deepEqual(PRESETS.slice(PRESETS.findIndex((p) => p.id === "stringConsort"), PRESETS.findIndex((p) => p.id === "stringConsort") + 2).map((p) => p.id), ["stringConsort", "baroqueBand"]);
 });
 
 test("D365: the consort's viola a solo viola (TinySOL), every whole tone C3-D6, one player to a part", () => {
