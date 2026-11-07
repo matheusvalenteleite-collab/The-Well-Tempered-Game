@@ -38,7 +38,7 @@ export const GLENN = {
   /** Over-legato's cap (s): plucked (harpsichord, lute) and piano. */
   overHoldS: { plucked: 0.4, piano: 0.25 },
   /** Inside a slide's slur, the note given way to rings at least this long (s). */
-  slurRingS: { harpsichordSampled: 0.11, lute: 0.15, pianoSampled: 0.035, other: 0.015 } as Record<string, number>,
+  slurRingS: { harpsichordSampled: 0.11, pianoSampled: 0.035, other: 0.015 } as Record<string, number>,
   /** The piano's taper inside a slide's slur (dB by place: 0 the note slid from). */
   slurTaperDb: [0, -1.5, -2.5, -3.5, -4] as readonly number[],
   /** A slur ends after this many notes. */
@@ -72,15 +72,15 @@ export const glennOn = (): boolean => MECH.glenn;
 /** How each sound answers the gestures (by preset id). */
 export type ExprFamily = "plucked" | "piano" | "organ" | "bowed" | "sung" | "synth";
 export function exprFamily(presetId: string): ExprFamily {
-  if (presetId === "harpsichordSampled" || presetId === "lute") return "plucked";
+  if (presetId === "harpsichordSampled") return "plucked";
   if (presetId === "pianoSampled") return "piano";
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
   // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
   // D504: ZELENKA TRIO likewise (its reeds tongued, its continuo cello bowed: Patch.bow); D502: BACH BRASS (tongued: BRASS_TONGUE).
   if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "oboeTrio" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
-  // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too.
+  // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too (D510: withdrawn).
   // D503: JAZZ QUARTET (the trials' jazz band remade): struck and plucked, one player's over-legato.
-  if (presetId === "jazzQuartet" || presetId === "clavichord") return "plucked";
+  if (presetId === "jazzQuartet") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
@@ -265,7 +265,6 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   chip: "synths",
   gameboy: "synths",
   super16: "synths",
-  nocturne32: "synths",
   megaFm: "synths",
   sid64: "synths",
   tracker: "synths",
@@ -327,8 +326,8 @@ export type KeyboardSlide = "hairpin" | "coule" | "slur";
 /** D426: what a slide does on a sound (null: D424's families, TRAVERSO, any other: as before). */
 export function keyboardSlide(presetId: string): KeyboardSlide | null {
   if (presetId === "pianoSampled") return "hairpin";
-  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled" || presetId === "clavichord") return "coule";
-  if (presetId === "lute") return "slur";
+  if (presetId === "harpsichordSampled" || presetId === "chamberOrgan" || presetId === "organSampled") return "coule";
+  // ("slur": the lute's, D426; D510: no sound takes it since the lute was withdrawn, the mechanism kept in proto-game.ts.)
   return null;
 }
 

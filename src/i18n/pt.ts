@@ -285,6 +285,7 @@ export const PT: Record<string, string> = {
   "That is a fugue in small: one subject, passed from voice to voice.": "Isso é uma fuga em miniatura: um sujeito passado de voz em voz.",
   "The subject must be said whole, or it is not the subject. Again.": "O sujeito precisa ser dito inteiro, ou não é o sujeito. De novo.",
   "PLAY THE SUBJECT AS THE MARKS SAY: ‾ LEGATO · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (TAP HARD)": "TOQUE O SUJEITO COMO OS SINAIS DIZEM: ‾ LIGADO · ⌒ LIGADURA · | DESTACADO · · CURTA · > ACENTO (TOQUE FORTE)",
+  "PLAY THE SUBJECT AS THE MARKS SAY: ‾ LEGATO · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (STRONG ZONE, ON TIME)": "TOQUE O SUJEITO COMO OS SINAIS DIZEM: ‾ LIGADO · ⌒ LIGADURA · | DESTACADO · · CURTA · > ACENTO (ZONA FORTE, NO TEMPO)",
   "Now one of my fugues. Players have written how its subject should go: some notes legato, some apart.": "Agora uma das minhas fugas. Músicos escreveram como o sujeito deve soar: algumas notas ligadas, outras separadas.",
   "The marks show it. In HEAR THE SUBJECT, choose a reading or none. Here, follow the marks.": "Os sinais mostram isso. Em OUÇA O SUJEITO, escolha uma leitura ou nenhuma. Aqui, siga os sinais.",
   "So. You played my subject as a thinking musician would.": "So. Você tocou meu sujeito como um músico que pensa.",
@@ -557,6 +558,7 @@ export const PT: Record<string, string> = {
   "Your touch is yours: legato, ordinary or detached. ARTICULATION scores a touch kept even, not legato itself.": "Seu toque é seu: ligado, ordinário ou destacado. A ARTICULAÇÃO pontua um toque constante, não o ligado em si.",
   "Marks over the subject (dot, stroke, slur, wedge) come from a book on playing the fugue: follow them and the subject's notes earn a little more; missing them costs nothing. HEAR THE SUBJECT plays and draws them.": "Os sinais sobre o sujeito (ponto, traço, ligadura, cunha) vêm de um livro sobre como tocar a fuga: siga-os e as notas do sujeito valem um pouco mais; não segui-los não custa nada. OUÇA O SUJEITO os toca e desenha.",
   "An accent (>) is a hard tap: strike the note harder, anywhere on its bar, in its time; the phone feels how hard (calibrate it in SETTINGS). On the piano a hard tap sounds heavier. On a computer, land the accent in the strong zone (the third by the box). Striking hard never makes a note wrong.": "Um acento (>) é um toque forte: toque a nota com mais força, em qualquer ponto da barra, no tempo dela; o celular sente a força (calibre em CONFIGURAÇÕES). No piano um toque forte soa mais pesado. No computador, pouse o acento na zona forte (o terço junto à caixa). Tocar forte nunca torna uma nota errada.",
+  "An accent (>) is weight on time: land it in the strong zone of the bar (the third by the box), on the beat, and on the piano it sounds heavier. A late or soft landing is no accent; a wrong note never sounds different.": "Um acento (>) é peso no tempo: pouse-o na zona forte da barra (o terço junto à caixa), no tempo, e no piano ele soa mais pesado. Uma pousada atrasada ou fraca não é acento; uma nota errada nunca soa diferente.",
   "Bonuses: a whole entry of the subject without a miss (ORGANO PLENO!; a voice's last entry is its BOSS), and a cadence reached on an unbroken run.": "Bônus: uma entrada inteira do sujeito sem erro (ORGANO PLENO!; a última entrada de uma voz é o seu CHEFÃO), e uma cadência alcançada sem interromper a sequência.",
   // D371: the title page and the selection screen (Mario and Luigi's report).
   "TOUCH TO BEGIN": "TOQUE PARA COMEÇAR",
@@ -680,9 +682,8 @@ export const PT: Record<string, string> = {
   "LIFT TO TURN": "LEVANTE PARA VOLTAR",
   // D488: the slide-in's line in HOW TO PLAY.
   "SLIDE IN: after a rest, put a thumb down above or below the coming note before its time, then slide it in: the note sounds when you are halfway there, entering with your instrument's slide. Putting the thumb down there never counts as a mistake.": "DESLIZAR PARA ENTRAR: depois de uma pausa, apoie um polegar acima ou abaixo da próxima nota antes do tempo dela e deslize até ela: a nota soa quando você chega à metade do caminho, entrando com o deslize do seu instrumento. Apoiar o polegar ali nunca conta como erro.",
-  // D439: OBBLIGATO's colours (the "effect" mode).
-  "GRAND HALL": "GRANDE SALA",
-  "ENSEMBLE": "CONJUNTO",
-  "PING-PONG ECHO": "ECO PINGUE-PONGUE",
-  "FLANGER": "FLANGER",
+  // D509: OBBLIGATO's three effects (obbligato.ts FX_NAMES, obbligatoLabel).
+  "OCTAVE": "OITAVA",
+  "TAPE ECHO": "ECO DE FITA",
+  "CHORUS": "CHORUS",
 };

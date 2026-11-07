@@ -237,7 +237,8 @@ test("D385 (D425: within GOOD, not only PERFECT): the accent judged as weight on
   const lesson = src("src/bench/manual/lessons.ts");
   assert.doesNotMatch(lesson, /hair late: the little silence|you make room before the note|lift the note before it a moment early/);
   // D425: the hard tap: struck harder, in its time.
-  assert.match(lesson, /strike it harder: tap it hard, anywhere on its bar, in its time/);
+  // D506 (deliberately): D387's weight on time in the strong zone again (the hard tap behind the Lab's switch).
+  assert.match(lesson, /press it harder, on time: land it in the strong zone of the bar, by the box/);
   for (const f of ["src/i18n/pt.ts", "src/i18n/es.ts", "src/i18n/course2-pt.ts", "src/i18n/course2-es.ts", "src/i18n/manual-pt.ts", "src/i18n/manual-es.ts"]) assert.doesNotMatch(src(f), /LEAN IN A HAIR LATE|land on this one a hair late|A small silence before the note/, f);
   assert.match(src("src/i18n/pt.ts"), /"ACENTO: TOQUE FORTE"/);
   assert.match(src("src/i18n/es.ts"), /"ACENTO: TOCA FUERTE"/);

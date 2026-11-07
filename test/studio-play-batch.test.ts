@@ -14,7 +14,11 @@ test("D471: the pistons back at the bars' feet (D469's move undone), acting on p
   assert.ok(!r.includes("rollRect") && !r.includes("TAB_ROW"));
   assert.match(r, /--tb-stop-rows: \$\{PISTON_ROWS\}/);
   assert.match(r, /onPointerDown=\{\(e: ReactPointerEvent\) => \{/);
-  assert.match(src("src/bench/bench.css"), /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ 28px\); \}/);
+  // D495: the legend's floor gone (the roll as tall as without stops); the feet a strip over the roll's foot that takes no touch but on its buttons.
+  const css = src("src/bench/bench.css");
+  assert.ok(!/\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height/.test(css), "no floor under the roll");
+  assert.match(css, /\.tb-stops-side \{ pointer-events: none; \}/);
+  assert.match(css, /\.tb-stops-side \.tg-piston \{ pointer-events: auto; height: 28px;/);
 });
 
 test("slides drawn in the box: from the note slid from, or from a slide-in's start", () => {

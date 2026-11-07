@@ -281,6 +281,11 @@ export const MECH_DEFAULTS = {
   dynWait: false,
   /** dynWait on: the longest the attack waits (ms). */
   dynWaitMs: 35,
+  /**
+   * D506, THE HARD TAP (D425) behind a Lab switch, off: the motion sensor never asked for (no iOS permission dialog), the
+   * calibration never offered, the accent the strong zone (D387) within GOOD. On (the Lab only): D425 as it was.
+   */
+  hardTap: false,
   // BAND TIME (D328: a prototype, the lab only; band-time.ts). The game's band keeps the written time.
   /** "fixed" (the game's), "waits" (at cadences, the final chord and a breath, until the player's note), "follows" (waits, and its tempo follows the player's onsets, bounded). */
   bandTime: "fixed" as "fixed" | "waits" | "follows",
@@ -510,6 +515,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "dynRampMs", group: "DYNAMICS", label: "Strike: correction ramp", help: "D335: the note starts at once at the place's or the pedal's level; when the motion peak is read (≤ ~40 ms) its level moves to include the strike over this long (no click).", kind: "number", min: 2, max: 40, step: 1, unit: "ms" },
   { key: "dynWait", group: "DYNAMICS", label: "Strike: wait for it", help: "D335: hold every attack back until the motion peak is read (at most the wait below) and strike it at the whole level, the piano's layer included. Off (default): at once, corrected.", kind: "bool" },
   { key: "dynWaitMs", group: "DYNAMICS", label: "Strike: wait at most", help: "D335, wait for it on: the longest the attack waits for the peak.", kind: "number", min: 5, max: 60, step: 5, unit: "ms" },
+  { key: "hardTap", group: "DYNAMICS", label: "Hard tap (motion sensor)", help: "D506: off (the game's): the accent is the strong zone on time; the phone's motion sensor is never asked for (no permission dialog). On: D425's hard tap: the sensor asked on the PLAY tap, an accent a hard tap anywhere across the strip, the piano +3 dB on a hard unmarked note, Settings › TAP STRENGTH and its calibration.", kind: "bool" },
   { key: "bandTime", group: "BAND TIME", label: "The band's time", help: "A prototype (D328): FIXED is the game's. WAITS: the pulse fixed, but at a cadence, the final chord and after your breath (a lift at a rest) the band holds what it sounds until your next note, at most the wait below. FOLLOWS: that, and its tempo follows your onsets, smoothed and bounded; you are judged against where the band is.", kind: "choice", options: [["fixed", "FIXED (the game's)"], ["waits", "WAITS at cadences and breaths"], ["follows", "FOLLOWS (and waits)"]] },
   { key: "bandWaitMaxMs", group: "BAND TIME", label: "Waits at most", help: "The longest the band holds for your note; then it goes on.", kind: "number", min: 0, max: 1000, step: 20, unit: "ms" },
   { key: "bandSmooth", group: "BAND TIME", label: "Following: smoothing", help: "FOLLOWS: each new note's weight in the band's estimate of your lateness (lower: smoother, slower to follow).", kind: "number", min: 0.05, max: 1, step: 0.05 },

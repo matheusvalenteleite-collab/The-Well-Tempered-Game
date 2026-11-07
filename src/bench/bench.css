@@ -1041,10 +1041,23 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-stops-right { right: calc(var(--tg-sar) + 6px); }
 .tb-stops-side .tg-piston { height: 58px; min-width: 0; padding: 2px 1px; gap: 3px; }
 .tb-stops-side .tg-piston-name { font-size: 5px; line-height: 1.3; letter-spacing: 0; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-align: center; max-width: 100%; }
-.tb-has-side-stops.tb-bars .tg-legend { min-height: 62px; align-items: center; box-sizing: border-box; }
-/* D487 (refreshed for D420's pistons: --tb-stop-rows 1.28, a 58 px piston in 47 px rows): the floor 88 px (the pistons' 62 + 26), so OBBLIGATO's button (34 px), stacked over
-   the pistons, stays clear of the lowest row a note can ask for. */
-.tb-has-side-stops.tb-bars .tg-legend { min-height: calc(var(--tb-stop-rows, 1) * 47px + 28px); }
+/* D472: STRING CONSORT's five stops in the pistons' place and height, three over two (each its name in full). */
+.tb-stops-side.tb-consort { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+.tb-consort .tg-piston { grid-column: span 2; height: 28px; padding: 1px; }
+.tb-consort .tg-piston:nth-child(n + 4) { grid-column: span 3; }
+/* D495 (the owner: "the bottom bar should be translucent just like the buttons. The music passes by behind it … The slots
+   and the YOU SOPRANO – ALTO – BASS line are reduced in size and relocated to the very bottom of the screen"): the legend's
+   floor (D420, D471, D487: 62 px, then the pistons' rows + 28 px) gone, so the roll is as tall as on a sound without stops,
+   the legend its own one line at the box's foot as there. The feet are a compact strip over the roll's foot, translucent
+   like the bars (D415), pinned above the home indicator: one row of 28 px pistons (the consort's five three over two,
+   13 px each), the roll's margin row behind them, clear of the lowest row a note can ask for. The strip takes no touch
+   (a touch between its buttons is the bar's); its buttons do, on pointerdown. --tb-stop-rows (RegistrationStops,
+   ConsortStops) counts the strip's 28 px and 2 px in the old 47 px rows. */
+.tb-stops-side { pointer-events: none; }
+.tb-stops-side .tg-piston { pointer-events: auto; height: 28px; padding: 1px; gap: 2px; border-radius: 5px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35); }
+.tb-stops-side .tg-piston-n { font-size: 8px; }
+.tb-stops-side.tb-consort { row-gap: 2px; }
+.tb-consort .tg-piston { height: 13px; padding: 0 1px; border-width: 1px; border-radius: 3px; box-shadow: none; }
 /* D420: what each piston holds, in the piece's pop-up (folded). */
 .tb-pop-pistons { margin: 6px 0; text-align: left; }
 .tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }
@@ -1250,11 +1263,18 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-obbligato-right { right: calc(var(--tg-sar) + 6px); }
 .tb-has-side-stops .tb-obbligato-left { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows, 1) * 47px + 3px); }
 .tb-has-side-stops .tb-obbligato-right { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + 3px); }
+/* D495: over the compact feet (28 px) the button is 18 px, one line each for its name and the instrument (5 px and 7 px,
+   the instrument on one line in full: the longest offered, 12 characters and an octave's mark, is 105 px of the narrowest
+   bar's 123), so it still lies under the lowest row a note can ask for now the roll keeps no floor (over the 48 fugues'
+   widest ranges that row's foot is at least 12 px over the roll's at 844 × 390; the button's top 9 px over it: 3 px clear). */
+.tb-has-side-stops .tb-obbligato { height: 18px; padding: 1px 3px; gap: 2px; border-width: 1px; }
+.tb-has-side-stops .tb-obbligato-name { font-size: 5px; letter-spacing: 0.5px; }
+.tb-has-side-stops .tb-obbligato-inst, .tb-has-side-stops .tb-obbligato-long .tb-obbligato-inst { font-size: 7px; line-height: 1; white-space: nowrap; display: block; }
 /* The word in force (Busoni's, the right foot) and the side legend step up over the button while it shows. */
 html:has(.tb-obbligato) .tb-side-gloss { bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 42px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 46px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 66px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 26px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 30px); }
+html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 50px); }
 /* D487 (the owner: "it was also unreadable"): the instrument in the box's title size (9 px, the HUD's), white on an opaque deep
    green with a dark shadow, whatever the tinted bar under it; a long name (or its translation) in 8 px on two lines, in full. */
 .tb-obbligato-name { font-size: 7px; letter-spacing: 1px; color: #a8ffe0; }

@@ -5,6 +5,8 @@
  *     is in the decision row: it needs the production build in a browser).
  * (3) "my voice was lower than all others": the player's voice lifted to the loudest other voice and a little over,
  *     measured (player-lift-data.ts); Busoni's line never under the loudest voice (d407-player-dynamics.test.ts).
+ *     D508 replaced the standing lift: the player matched to the band's sounding of its voice, the band's quiet
+ *     voices brought up, the subject's entries forward (d508-balance.test.ts).
  * (4) "a black rectangle at the bottom": the page no longer padded by the safe areas; the game's screen keeps them inside.
  */
 import { test } from "node:test";
@@ -18,7 +20,7 @@ import { kindsOf } from "../src/touch/practice.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { PRESETS, playerSound, preset, setPreset } from "../src/touch/sound.ts";
 import { ENDING_BEATS, firstEntry, subjectSounds } from "../src/bench/hear-sound.ts";
-import { LIFT_FORWARD_DB, LIFT_MAX_DB, liftDb, liftGain, loudness } from "../src/touch/player-lift.ts";
+import { BAND_SPREAD_DB, LIFT_MAX_DB, LIFT_MIN_DB, bandTrimDb, liftDb, liftGain } from "../src/touch/player-lift.ts";
 import { OWN_LOUD, SOUND_LOUD } from "../src/touch/player-lift-data.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
@@ -64,14 +66,16 @@ test("D487 (2): OBBLIGATO's buttons at the bars' feet (no longer the top corners
   assert.ok(/--tb-stop-rows, 1\) \* 47px/.test(rule(".tb-has-side-stops .tb-obbligato-left")), "the left one over the left foot's pistons (D420, 58 px a row)");
   assert.ok(/--tb-stop-rows-right/.test(rule(".tb-has-side-stops .tb-obbligato-right")), "the right one over the right foot's");
   assert.ok(/font-size: 9px/.test(rule(".tb-obbligato-inst")), "the instrument in the HUD's 9 px");
-  const h = Number(/height: (\d+)px/.exec(b)![1]);
-  // The legend's floor over the stops: the strip under the roll deep enough for the button (bench.css: 26 px over the pistons).
-  const floor = /\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height: calc\(var\(--tb-stop-rows, 1\) \* 47px \+ (\d+)px\); \}/.exec(css);
-  assert.ok(floor && Number(floor[1]) >= h - 10, `the floor ${floor?.[1]} px for a ${h} px button`);
+  // D495: no floor under the roll; over the compact feet (28 px pistons) the button is 18 px, so its top stays under the
+  // lowest row a note can ask for (at least 12 px over the roll's foot at 844 × 390 over the 48 fugues: 2 + 28 + 3 + 18 − 42 ≤ 12).
+  assert.ok(!/\.tb-has-side-stops\.tb-bars \.tg-legend \{ min-height/.test(css), "no floor under the roll");
+  const h = Number(/height: (\d+)px/.exec(rule(".tb-has-side-stops .tb-obbligato"))![1]);
+  const last = css.lastIndexOf("\n.tb-stops-side .tg-piston {");
+  const feet = Number(/height: (\d+)px/.exec(css.slice(last, css.indexOf("}", last)))![1]);
+  assert.ok(2 + feet + 3 + h - 42 <= 12, `a ${h} px button over ${feet} px feet`);
 });
 
-test("D487 (3): every voice of the 48 fugues measured on its own sound; with its lift the player never under another voice, a little forward", () => {
-  let lifted = 0;
+test("D487 (3), D508: every voice of the 48 fugues measured on its own sound; the player matched to the band's sounding of its voice (no standing lift)", () => {
   for (const id of IDS) {
     const f = fugueById(id);
     const own = OWN_LOUD[id];
@@ -80,34 +84,27 @@ test("D487 (3): every voice of the 48 fugues measured on its own sound; with its
     assert.equal(own.p.length, f.voices.length);
     for (let v = 0; v < f.voices.length; v++) {
       const L = liftDb(id, own.s, v, f.voices.length);
-      assert.ok(L >= 0 && L <= LIFT_MAX_DB);
-      if (L > 0.5) lifted++;
-      for (let u = 0; u < f.voices.length; u++) {
-        if (u === v) continue;
-        for (const j of [0, 1]) assert.ok(own.p[v][j] + L >= Math.min(own.b[u][j] + LIFT_FORWARD_DB, own.p[v][j] + LIFT_MAX_DB) - 1e-9, `${id} voice ${v} against ${u} (${j ? "phone" : "K"}): ${(own.p[v][j] + L - own.b[u][j]).toFixed(1)} dB`);
-        // and where the two sound together (the player measured against that voice over those windows).
-        if (own.d[v][u][0] < 99) for (const j of [0, 1]) assert.ok(own.d[v][u][j] + L >= LIFT_FORWARD_DB - 1e-9, `${id} voice ${v} against ${u} together (${j ? "phone" : "K"}): ${(own.d[v][u][j] + L).toFixed(1)} dB`);
-      }
+      assert.ok(L >= LIFT_MIN_DB && L <= LIFT_MAX_DB);
+      // D508: the player's voice where the band would sound it (its trim included), the mean of K and phone.
+      const mine = (own.p[v][0] + own.p[v][1]) / 2 + L;
+      const band = (own.b[v][0] + own.b[v][1]) / 2 + own.t[v];
+      if (L > LIFT_MIN_DB && L < LIFT_MAX_DB) assert.ok(Math.abs(mine - band) <= 0.15, `${id} voice ${v}: ${(mine - band).toFixed(2)} dB from the band's`);
     }
   }
-  assert.ok(lifted > 50, `most voices lifted (${lifted})`);
-  // I/3 (the owner's example) on GAME BOY: the soprano and the alto lifted over the bass.
-  const f3 = fugueById("wtc1f03");
-  for (const v of [0, 1]) assert.ok(liftDb("wtc1f03", "gameboy", v, 3) > 2, `I/3 voice ${v}`);
-  assert.ok(liftDb("wtc1f03", "gameboy", 2, f3.voices.length) <= LIFT_FORWARD_DB, "I/3's bass already the loudest");
+  // I/3 (D487's example) on GAME BOY: the soprano no longer under the bass by more than the band's spread.
+  const o3 = OWN_LOUD.wtc1f03;
+  const c = (x: number[]) => (x[0] + x[1]) / 2;
+  assert.ok(c(o3.p[0]) + liftDb("wtc1f03", "gameboy", 0, 3) >= c(o3.b[2]) + o3.t[2] - BAND_SPREAD_DB - 0.15, "I/3's soprano within the spread of the bass");
 });
 
-test("D487 (3): on every offered sound and number of voices the balance is measured; the lift holds there too", () => {
+test("D487 (3), D508: on every offered sound and number of voices the balance is measured and built", () => {
   for (const p of PRESETS) {
     const by = SOUND_LOUD[p.id];
     assert.ok(by, `${p.id} measured`);
     for (const n of [2, 3, 4, 5]) {
       assert.ok(by[n], `${p.id}, ${n} voices`);
-      for (let v = 0; v < n; v++) {
-        const L = loudness("none", p.id, v, n)!;
-        const lift = liftDb("none", p.id, v, n);
-        for (let u = 0; u < n; u++) if (u !== v) for (const j of [0, 1]) assert.ok(L.p[j] + lift >= Math.min(L.b[u][j] + LIFT_FORWARD_DB, L.p[j] + LIFT_MAX_DB) - 1e-9, `${p.id} ${n}:${v}/${u}`);
-      }
+      assert.equal(by[n].t.length, n);
+      for (let v = 0; v < n; v++) assert.ok(Number.isFinite(liftDb("none", p.id, v, n)) && bandTrimDb("none", p.id, v, n) >= 0);
     }
     // A piece of six voices or one: still an answer (the nearest count; none alone).
     assert.ok(Number.isFinite(liftDb("none", p.id, 5, 6)));
@@ -124,7 +121,8 @@ test("D487 (3): the game carries the lift for its run (the piece, the voice, the
   const f = fugueById("wtc1f03");
   const g = game(f, 0);
   assert.ok(Math.abs(g.lift - liftGain("wtc1f03", "gameboy", 0, 3)) < 1e-12);
-  assert.ok(g.lift > 1.25, `the soprano lifted (${g.lift.toFixed(2)})`);
+  // D508: a level match, no longer a standing lift (I/3's soprano a little down: the player sounds it louder than the band).
+  assert.ok(Math.abs(g.lift - 10 ** (liftDb("wtc1f03", "gameboy", 0, 3) / 20)) < 1e-12);
   assert.equal(game(f, 0, { her: true }).lift, 1);
   assert.equal(game(f, 0, { solo: true }).lift, 1);
   // The lift reads nothing of the play: the same however the score stands (a readonly of the run).

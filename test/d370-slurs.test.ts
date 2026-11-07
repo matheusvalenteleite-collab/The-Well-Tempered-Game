@@ -125,7 +125,6 @@ test("D370: the player's voice: the slur's piano dB by place only on a reading's
   assert.ok(SLUR_LAST_DB < SLUR_DB[1]);
   assert.equal(SLUR_HANDOVER_S.plucked, 0.07);
   assert.equal(slurHandoverS("harpsichordSampled"), 0.07);
-  assert.equal(slurHandoverS("lute"), 0.07);
   assert.ok(slurHandoverS("pianoSampled") >= 0.025 && slurHandoverS("pianoSampled") <= 0.04);
   assert.equal(slurHandoverS("chamberOrgan"), 0.03);
 });

@@ -27,12 +27,12 @@ export const BOOK2: Record<string, PieceColours> = {
     plans: {
       chamberOrgan: [at(1, OPRIN, "The principals."), at(14.5, OFLUTE, "Bodky's piano from 14½: the flutes."), at(21.25, OPRIN, "Bodky's forte from 21¼."), at(23.625, OPLENO, "Bodky couples the manuals at 23⅝: the plenum for the stretti in augmentation.")],
       harpsichordSampled: [at(1, H84, "Bodky: 8″+4″."), at(14.5, H8, "Bodky: 8′ from 14½."), at(21.25, H84, "Bodky: 8″+4″ from 21¼."), at(23.625, HFULL, "Bodky: coupled from 23⅝.")],
-      nocturne32: [at(14.5, { tone: -2 }, "Mozart arranged it for strings (K.405, 1782): the strings' quieter span (Bodky 14½-21¼) darker."), at(21.25, OWN, "The full tone for the stretti.")],
+      stringConsort: [at(14.5, { tone: -2 }, "Mozart arranged it for strings (K.405, 1782): the strings' quieter span (Bodky 14½-21¼) darker."), at(21.25, OWN, "The full tone for the stretti.")],
     },
   },
   wtc2f03: {
-    sound: "harpsichordSampled",
-    soundWhy: "Bathed in euphony, neither pompous nor scherzo (Keller), three voices in stretto from the first bar: the plucked string keeps them apart on a phone; Bodky's harpsichord terraces.",
+    sound: "sid64",
+    soundWhy: "D510 (SID 64 given more): short, bright, a wealth of stretti in three voices: SID 64's moving pulse lead, saw and filtered bass keep the close entries apart, crisp on a phone.",
     character: "Stretti and inversions; Bodky's terraces f, p (7⅝), f (11⅝), p (14⅝), f (25⅝); a dominant pedal (25-29) and the tonic pedal (33-35).",
     plans: {
       harpsichordSampled: [at(1, H84, "Bodky: 8″+4″."), at(7.625, H8, "Bodky: 8′ from 7⅝."), at(11.625, H84, "Bodky: 8″+4″ from 11⅝."), at(14.625, H8, "Bodky: 8′ from 14⅝."), at(25.625, H84, "Bodky: 8″+4″ from 25⅝, over the dominant pedal."), at(33, HFULL, "The tonic pedal: the manuals coupled.")],
@@ -41,8 +41,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f04: {
-    sound: "pianoSampled",
-    soundWhy: "A flowing 12/16 double fugue for the clavichord (Bodky): the recorded grand's legato and its three registers, clear on a phone.",
+    sound: "jazzQuartet",
+    soundWhy: "D510: a flowing 12/16 double fugue, a gigue's lilt: JAZZ QUARTET swings its compound beat (the brushes on 2 and 4 of the four dotted beats), the vibraphone and the plucked bass apart, the piano inside.",
     character: "A second exposition 16-24 and an inversion 24-35 (Ledbetter), the second subject from 35, both together from 48.",
     plans: {
       pianoSampled: [at(24, { layer: "soft" }, "The inversion (Ledbetter 24-35) in the soft layer."), at(E("wtc2f04", 35), OWN, "The second subject (35).")],
@@ -66,8 +66,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f06: {
-    sound: "harpsichordSampled",
-    soundWhy: "A short work of great forcefulness and terseness (Keller), 'the entire piece full work' (Bodky): the full harpsichord.",
+    sound: "sid64",
+    soundWhy: "D510 (SID 64 given more): a short work of great forcefulness and terseness (Keller), triplet runs and stretti: SID 64's pulses, crisp and driving, its bass a filtered pulse heard on a phone.",
     character: "Triplet runs, stretti throughout; Bodky's one exception, bar 20, beats 2-3, on 8″+4″.",
     plans: {
       harpsichordSampled: [at(1, HFULL, "Bodky: the full work throughout."), at(20.25, H84, "Bodky's option: bar 20, beats 2-3, on the upper manual."), at(20.75, HFULL, "The full work again.")],
@@ -90,7 +90,7 @@ export const BOOK2: Record<string, PieceColours> = {
     soundWhy: "Heavy melancholy and great seriousness (Keller), one of the fugues Mozart arranged for string quartet (K. 405, 1782): STRING CONSORT, a quartet one to a part, as Mozart scored it.",
     character: "Cadences in F♯ (30), A♯ minor (35), D♯ minor (43); an episode 36-40; the inversion in stretto at 43.",
     plans: {
-      nocturne32: [at(36, { tone: -2 }, "The episode 36-40 darker."), at(E("wtc2f08", 40), OWN, "The bass's entry."), at(43, { room: 0.1 }, "The last stretto (43) further into the hall.")],
+      stringConsort: [at(36, { tone: -2 }, "The episode 36-40 darker."), at(E("wtc2f08", 40), OWN, "The bass's entry."), at(43, { room: 0.1 }, "The last stretto (43) further into the hall.")],
       harpsichordSampled: [at(1, H8, "The 8′."), at(B("wtc2f08", 30), H84, "After the cadence in F♯ (30): 8′+4′."), at(36, H8, "The episode."), at(E("wtc2f08", 40), H84, "The entry."), at(43, H88, "The last stretto: the coupled unison.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(36, OFLUTE, "The episode on the flutes."), at(E("wtc2f08", 40), OPRIN, "The entry."), at(43, OFONDS, "The last stretto: the foundations.")],
       pianoSampled: [at(36, { layer: "soft" }, "The episode in the soft layer."), at(E("wtc2f08", 40), OWN, "The entry.")],
@@ -201,8 +201,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f17: {
-    sound: "baroqueBand",
-    soundWhy: "A festive concerto subject with grace and solemnity (Keller): BAROQUE BAND (D275's reading), the bass entering last (bar 8) on the cello with the continuo harpsichord.",
+    sound: "chip",
+    soundWhy: "D510 (the owner's choice: CLASSIC CHIP): a festive concerto subject (Keller), four voices: the 2A03's pulses over its triangle, Bodky's terraces in their widths.",
     character: "Bodky's terraces: f, p (10⅛), f (16), p (27), f (35), full (46).",
     plans: {
       super16: [at(10.125, { room: 0.18 }, "Bodky's piano span (10-16) in the SPC echo."), at(16, OWN, "Dry (16)."), at(27, { room: 0.18 }, "The piano span 27-35."), at(35, OWN, "Dry (35).")],
@@ -211,8 +211,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f18: {
-    sound: "clavichord",
-    soundWhy: "Galant, 'not exceeding mf': C. P. E. Bach's instrument.",
+    sound: "jazzQuartet",
+    soundWhy: "D510 (the owner's choice: JAZZ QUARTET; the clavichord withdrawn): galant, 'not exceeding mf', in 6/8: the vibraphone and the plucked bass in the brushes' two-beat lilt, the double fugue (97) in the full band.",
     character: "Section 1 on the first subject (1-61), section 2 on the second (61-97), the double fugue (97-143) (Ledbetter); Bodky's 8″ (pp), 8′ (p), 8″+4″ (f) by section.",
     plans: {
       pianoSampled: [at(1, { layer: "soft" }, "Bodky's pp and p (1-97): the soft layer."), at(97, OWN, "The double fugue (97) in the full tone.")],
@@ -222,11 +222,11 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f19: {
-    sound: "nocturne32",
-    soundWhy: "Simple and unpretentious, 'a quiet walk' (Keller): NOCTURNE 32-BIT's violin and harpsichord over the organ's pedal, mild in its hall.",
+    sound: "super16",
+    soundWhy: "D510 (NOCTURNE 32-BIT withdrawn, SUPER 16-BIT its stand-in): simple and unpretentious, 'a quiet walk' (Keller): SUPER 16-BIT's violin and harpsichord over the bassoon, mild in the SPC echo.",
     character: "Cadences in E (12) and A (16); the closing entries in stretto (23-27).",
     plans: {
-      nocturne32: [at(E("wtc2f19", 23), { room: 0.1 }, "The closing entries a little further into the hall.")],
+      super16: [at(E("wtc2f19", 23), { room: 0.1 }, "The closing entries a little further into the hall.")],
       harpsichordSampled: [at(1, H8, "Mild: the 8′."), at(E("wtc2f19", 23), H88, "The closing entries: the coupled unison.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(E("wtc2f19", 23), OPRIN, "The closing entries.")],
     },
@@ -273,8 +273,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f24: {
-    sound: "gameboy",
-    soundWhy: "A passepied, 'comfortable grace', an unassuming 'Ausklang' for the whole collection (Keller, Bodky): the Game Boy's pulses, light and clear on a phone.",
+    sound: "jazzQuartet",
+    soundWhy: "D510 (JAZZ QUARTET given more): a passepied in 3/8, 'comfortable grace', the collection's Ausklang (Keller, Bodky): the jazz waltz, the vibraphone light on top, the brushes in three.",
     character: "A long episode 61-81 and the close 90-100.",
     plans: {
       gameboy: [...widths(61, [0.125, 0.125], "The long episode (61-81) on thin pulses."), at(E("wtc2f24", 81), OWN, "The soprano's entry (81).")],
