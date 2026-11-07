@@ -36,8 +36,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f02: {
-    sound: "harpsichordSampled",
-    soundWhy: "The keyboard's own capricious, half-jesting fugue (Keller), three clean voices that a plucked string keeps apart on a phone; Bodky plans it on a two-manual harpsichord, the plan the sound now plays.",
+    sound: "abbeyRoad",
+    soundWhy: "D523: 4/4 at a crotchet of 70, its subject a riff of semiquavers (Keller's capricious, half-jesting fugue) that a rock band's backbeat carries without a note changed: ABBEY ROAD, the Gretsch on the subject's top, the rock piano inside, the picked bass, the drums' fills into each entry and the break before the last entry (bar 29).",
     character: "Regular alternation of entries and episodes (Bodky); episodes 5-7, 9-11, 13-15, 17-20, 22-26; the bass entry at 26 after the dominant pedal; a forte close (Keller).",
     plans: {
       harpsichordSampled: [
@@ -372,8 +372,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f16: {
-    sound: "harpsichordSampled",
-    soundWhy: "Molto energico (Bodky), quietly moving (Keller), with an echo episode Bodky marks forte and piano: the two-manual harpsichord's own effect, which the plan plays.",
+    sound: "abbeyRoad",
+    soundWhy: "D523: four voices in 4/4 at a crotchet of 58, molto energico (Bodky), its dotted subject a heavy late-Beatles stride: ABBEY ROAD's two guitars, rock piano and picked bass one to a voice, the sixteenth hi-hat under the slow beat, Bodky's echo episode the drums' quieter cross-stick.",
     character: "Cadences in G minor (10) and B♭ (12); the echo of 18-20; the episode after the cadence of 24; stretto 28 (Bodky).",
     plans: {
       harpsichordSampled: [

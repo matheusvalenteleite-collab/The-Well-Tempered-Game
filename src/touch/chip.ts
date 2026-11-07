@@ -14,10 +14,12 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
+import { formOf, rockBeat, type KitPiece, type RockStyle } from "./rock-drums.ts";
+import type { TouchFugue } from "./fugue.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -211,6 +213,10 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // reflection close (12 ms), darker than the salon (5 kHz at most, darkening as it decays), the bass's line in it from
   // 140 Hz. Sent JAZZ_SEND (sound.ts), the brushes a little less (JAZZ_DRUMS.send).
   club: { predelay: 0.012, hp: 140, lp: 5000, seconds: 0.9, phoneSeconds: 0.7, rt60: 0.8, phoneRt60: 0.6, brightness: 0.32 },
+  // D523, ABBEY ROAD's: EMI Studio Two and its echo chamber (the room the band played in, fed to the chamber below it):
+  // a first reflection 20 ms on, RT60 1.1 s (on a phone 0.8 s), a little brighter than the club (the chamber's tiled
+  // walls: 6 kHz), nothing under 200 Hz (the bass and the kick kept dry, as the engineers kept them out of the chamber).
+  studio: { predelay: 0.02, hp: 200, lp: 6000, seconds: 1.2, phoneSeconds: 0.9, rt60: 1.1, phoneRt60: 0.8, brightness: 0.4 },
 };
 /**
  * D503, JAZZ QUARTET's brushes (chip.ts Chip.brushes): each piece's level against the others (`tap`, `stir`, `flutter`,
@@ -240,7 +246,31 @@ export interface GrooveContext {
   fills: readonly Fill[];
   end: number;
   dynDb?: number;
+  /** D523: the piece itself (ABBEY ROAD's and KRAUTROCK's drums read its form: rock-drums.ts formOf). */
+  piece?: TouchFugue;
 }
+/**
+ * D523, ABBEY ROAD's drums, and D525, KRAUTROCK's (chip.ts Chip.rockDrums: rock-drums.ts on Big Rusty Drums): each piece's
+ * level against the others (the recordings first evened to `ref` LUFS: ROCK_KIT_RMS), the kit's `level` (measured: as
+ * far under its band as JAZZ QUARTET's brushes under theirs, the D523 and D525 rows), a phone's `phone` share, the cut
+ * under `hp` Hz (the bass's room: the kick's thump kept, its boom not), the share of the preset's room (`send`), the
+ * seats (`pan`, seen from the room: the kit behind, a little left, the hi-hat left of it, the floor tom right), and the
+ * strokes' own variation (`vary`: each stroke's level within ±`db` dB and its pitch within ±`cents`, a hash of its time:
+ * no two strokes the same recording played the same, as no drummer strikes twice alike). `styles`: each band's own.
+ */
+export const ROCK_DRUMS = {
+  ref: -30,
+  hp: 45,
+  vary: { db: 1, cents: 8 },
+  pieces: { kick: 0.7, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.42, ride: 0.3, tomHigh: 0.55, tomLow: 0.6 } as Record<KitPiece, number>,
+  pan: { kick: -0.06, snare: -0.08, rim: -0.08, hat: -0.2, openhat: -0.2, crash: 0.06, ride: 0.1, tomHigh: -0.12, tomLow: 0.08 } as Record<KitPiece, number>,
+  styles: {
+    abbey: { level: 1, phone: 1.8, send: 0.14 },
+    motorik: { level: 1, phone: 1, send: 0.08 },
+  } as Record<RockStyle, { level: number; phone: number; send: number }>,
+};
+/** D523: the groove each rock band's drums play (sound.ts Preset.groove), by style. */
+export const ROCK_GROOVES: Readonly<Record<string, RockStyle>> = { abbeyRock: "abbey" };
 export const HALL = REVERBS.hall;
 
 /**
@@ -1674,6 +1704,8 @@ export class Chip {
     });
     // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
     plans.push([{ set: BRUSH_SET, notes: grooveNow()?.kit === "brushes" ? [...BRUSH_MIDIS] : [] }]);
+    // D523: ABBEY ROAD's and KRAUTROCK's kit (18 short files), let go under any other sound.
+    plans.push([{ set: ROCK_KIT_SET, notes: grooveNow()?.kit === "rock" ? [...ROCK_KIT_MIDIS] : [] }]);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
@@ -1821,7 +1853,8 @@ export class Chip {
     const plucked = inst.plucked;
     const layer = inst.soft && set === inst.soft.set ? inst.soft.gain : inst.hard && set === inst.hard.set ? inst.hard.gain : 1;
     // D510: on a phone a recording's own trim (sampled.ts JAZZ_PHONE_DB: the jazz bass's plucks evened through the phone model).
-    const trimDb = this.phone ? (noteInfo(set, near)?.phoneDb ?? 0) : 0;
+    // D523: and everywhere a recording's own (sampled.ts ROCK_DB: the guitars' and the bass's plucks evened).
+    const trimDb = (noteInfo(set, near)?.db ?? 0) + (this.phone ? (noteInfo(set, near)?.phoneDb ?? 0) : 0);
     const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (trimDb ? 10 ** (trimDb / 20) : 1);
     const mix = bag.add(ctx.createGain());
     // D249: ORGANO PLENO's three sources brought back to about one note's level.
@@ -3127,6 +3160,8 @@ export class Chip {
     if (!gr) return false;
     // D503: JAZZ QUARTET's brushes: their pattern, Busoni's level and the piece's fills (jazz-drums.ts), recorded.
     if (gr.kit === "brushes") return (this.brushes(at, beatS, b, per, compound, cx), true);
+    // D523, D525: ABBEY ROAD's and KRAUTROCK's kit: their pattern, the fugue's form and Busoni's level (rock-drums.ts), recorded.
+    if (gr.kit === "rock") return (this.rockDrums(ROCK_GROOVES[gr.groove] ?? "abbey", at, beatS, b, per, compound, cx), true);
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
   }
@@ -3222,6 +3257,59 @@ export class Chip {
     src.connect(g).connect(this.brushOut(bag, JAZZ_DRUMS.pan[s.piece]));
     src.start(t, pos);
     halt(src, t + len + xf + 0.01);
+  }
+
+  /** D523: the kit's strokes asked for (the tests: each piece, its time in the context's clock, its level). */
+  readonly rockLog: { piece: KitPiece; at: number; vel: number }[] = [];
+  /**
+   * D523, D525: one beat of a rock band's drums (rock-drums.ts rockBeat, by the fugue's form: formOf) on the rock kit's
+   * recordings (sampled.ts ROCK_KIT: Big Rusty Drums), each stroke from the recording of its strength, evened
+   * (ROCK_KIT_RMS) and set by its level, a little varied; behind the band (ROCK_DRUMS), in the preset's room at a little of its send.
+   */
+  private rockDrums(style: RockStyle, at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext) {
+    const f = cx?.piece;
+    const beat = cx?.beat ?? 1;
+    const form = f ? formOf(f, beat, style) : { intro: 0, moments: [], episodes: [], finalAt: Infinity };
+    for (const h of rockBeat(style, b, per, compound, cx?.tick ?? 0, beat, beatS, form, cx?.dynDb ?? 0)) this.kitHit(style, h.piece, at + h.at * beatS, h.vel);
+  }
+
+  private kitHit(style: RockStyle, piece: KitPiece, at: number, vel: number) {
+    this.rockLog.push({ piece, at, vel });
+    if (this.rockLog.length > 512) this.rockLog.splice(0, 256);
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const m = rockKitMidi(piece, vel >= 0.5);
+    const rec = loaded(ROCK_KIT_SET, m);
+    if (!rec) {
+      loadOne(ctx, ROCK_KIT_SET, m);
+      const syn: Drum = piece === "kick" ? "kick" : piece === "snare" || piece === "tomHigh" || piece === "tomLow" ? "snare" : piece === "rim" ? "rim" : piece === "crash" || piece === "ride" ? "ride" : "hat";
+      return this.drum(syn, t, vel * 0.6);
+    }
+    const S = ROCK_DRUMS.styles[style];
+    const h = Math.sin(at * 91.137 + m * 12.9898) * 43758.5453;
+    const r = h - Math.floor(h) - 0.5;
+    const bag = new Bag();
+    const src = bag.src(ctx.createBufferSource());
+    src.buffer = rec.buffer;
+    src.playbackRate.value = 2 ** ((ROCK_DRUMS.vary.cents * 2 * r) / 1200);
+    const g = bag.add(ctx.createGain());
+    g.gain.value = S.level * (this.phone ? S.phone : 1) * ROCK_DRUMS.pieces[piece] * vel * 10 ** ((ROCK_DRUMS.ref - (ROCK_KIT_RMS[m] ?? ROCK_DRUMS.ref) + ROCK_DRUMS.vary.db * 2 * r) / 20);
+    const hp = bag.add(ctx.createBiquadFilter());
+    hp.type = "highpass";
+    hp.frequency.value = ROCK_DRUMS.hp;
+    hp.Q.value = 0.7;
+    src.connect(g).connect(hp);
+    let out: AudioNode = hp;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = ROCK_DRUMS.pan[piece];
+      out = hp.connect(p);
+    }
+    out.connect(this.master);
+    this.fxSend(out, S.send, bag);
+    src.start(t, rec.onset);
+    // A closed hat or a stroke soon choked by the next is let go short; the cymbals ring.
+    halt(src, t + (piece === "crash" || piece === "ride" ? 3 : piece === "openhat" ? 1.2 : piece === "tomLow" || piece === "tomHigh" ? 1.5 : 0.9));
   }
 
   private roomTo() {

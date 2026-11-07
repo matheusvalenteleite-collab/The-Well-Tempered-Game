@@ -44,6 +44,8 @@ export const ES: Record<string, string> = {
   "BACH BRASS": "METALES DE BACH",
   // D503: JAZZ QUARTET (the trials' MODERN JAZZ QUARTET, remade and offered).
   "JAZZ QUARTET": "CUARTETO DE JAZZ",
+  // D523: ABBEY ROAD (a name: kept).
+  "ABBEY ROAD": "ABBEY ROAD",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOE, VIOLA Y FAGOT",
