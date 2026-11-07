@@ -82,7 +82,7 @@ import { playerSound } from "./sound.ts";
  * and bass, measured the best-blended pair); JAZZ QUARTET also for I/6 (3/4), II/4 (12/16) and II/24 (3/8), SID 64 for II/3
  * and II/6, STRING CONSORT for I/24, SUPER 16-BIT for II/19 (tools/touch/colour-plans: each reason).
  */
-/** D523: I/2 and I/16 on ABBEY ROAD (tools/touch/colour-plans: each reason). */
+/** D523: I/2 and I/16 on ABBEY ROAD; D525: I/20 on KRAUTROCK (tools/touch/colour-plans: each reason). */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
@@ -124,7 +124,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p19: "harpsichordSampled",
   wtc1f19: "jazzQuartet",
   wtc1p20: "harpsichordSampled",
-  wtc1f20: "harpsichordSampled",
+  wtc1f20: "krautrock",
   wtc1p21: "chip",
   wtc1f21: "sid64",
   wtc1p22: "chip",

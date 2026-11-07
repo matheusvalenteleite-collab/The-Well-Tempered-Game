@@ -82,7 +82,7 @@ export function exprFamily(presetId: string): ExprFamily {
   // D503: JAZZ QUARTET (the trials' jazz band remade): struck and plucked, one player's over-legato.
   if (presetId === "jazzQuartet") return "plucked";
   // D523: ABBEY ROAD likewise (struck and plucked).
-  if (presetId === "abbeyRoad") return "plucked";
+  if (presetId === "abbeyRoad" || presetId === "krautrock") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }

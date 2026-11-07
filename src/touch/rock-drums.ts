@@ -25,7 +25,7 @@
  * Dinger's motorik beat (Neu!, "Hallogallo"), the kick on 1, 3 and the and of 3, the snare on 2 and 4, the hi-hat in
  * even eighths, all the way through; under a slow beat (MOTORIK_DOUBLE_FROM_S: the fugue's quaver the drummer's
  * crotchet) the motorik bar fills two of the fugue's beats, at the fugue's own tempo. The form heard only in subtle
- * ways: an open hi-hat on the last eighth before an entry (a crash, soft, on an entry after an episode); the EPISODES a
+ * ways: an open hi-hat on the last eighth before an entry (a crash, soft, on one not in stretto); the EPISODES a
  * little quieter (DRIFT); the BREAK, a bar of the hi-hat alone before the final entry; the end, the crash and the kick
  * on the final chord, then nothing. No roll anywhere.
  */
