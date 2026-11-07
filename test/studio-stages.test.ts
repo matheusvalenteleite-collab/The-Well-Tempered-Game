@@ -47,7 +47,9 @@ test("each world draws at the opening, the middle and the close, in FULL and QUI
 
 test("the veil keeps the music readable (heavier in QUIET and over daylight); drawing only, never judged", () => {
   const s = src("src/touch/stage-bg.ts");
-  assert.match(s, /const a = \(mode === "quiet" \? 0\.62 : 0\.4\) \+ \(BRIGHT\.has\(f\.id\) \? 0\.14 : 0\);/);
+  // D475: an episode's veil heavier, an entry's lighter, the climax lifting the edges (never the middle band past 30%).
+  assert.match(s, /const a = \(mode === "quiet" \? 0\.62 : 0\.4\) \+ \(BRIGHT\.has\(f\.id\) \? 0\.14 : 0\) \+ \(sc \? 0\.12 \* ce\.calm - 0\.04 \* \(1 - ce\.calm\) : 0\);/);
+  assert.match(s, /gr\.addColorStop\(0\.5, `rgba\(8,8,16,\$\{a \* \(1 - 0\.3 \* lift\)\}\)`\);/);
   assert.ok(!/state|"hit"|"miss"|score|grade/.test(s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")), "nothing reads right or wrong");
   for (const p of ["src/bench/proto-game.ts", "src/touch/engine.ts"]) assert.ok(!/stage-bg/.test(src(p)), p);
   assert.match(src("src/touch/MusicBox.tsx"), /!fr\.floor && hasStage\(fr\.piece\) && paintStage\(/);
@@ -71,4 +73,14 @@ test("D464: the characters wander on their own clock, not on the play line", () 
     const body = s.slice(at, s.indexOf("\n  },\n", at));
     assert.ok(body.includes("k.wander(") && !body.includes("k.xOf(k.now())"), id);
   }
+});
+
+test("D475: every world has its script of acts, and the director reads the form (form-points.ts)", async () => {
+  const s = src("src/touch/stage-bg.ts");
+  const { STAGE_IDS } = await import("../src/touch/stage-bg.ts");
+  for (const id of STAGE_IDS) assert.ok(new RegExp(`\\n  ${id}: (sk\\(|\\{\\n    acts:)`).test(s.slice(s.indexOf("const SCRIPTS"))), `${id} has no script`);
+  assert.match(s, /const fa = fm \? formAt\(fm, now\) : null;/);
+  assert.match(s, /zoom: a\[4\] \?\? 1/);
+  // The zoom stays subtle (at most 7%).
+  for (const m of s.matchAll(/, (1\.\d+)\]\)/g)) assert.ok(+m[1] <= 1.07, m[0]);
 });

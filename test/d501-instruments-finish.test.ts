@@ -1,16 +1,14 @@
 /**
- * D501, THE INSTRUMENTS FINISHED (the owner: "Just implement it all"): OBBLIGATO's sound by the player's
- * instrument (D509 retired its modes: three effects drawn on every sound, d509-obbligato-effects.test.ts); the slide's
- * sound by family ("auto": the strings, the voices and the lute the instruments session's, the keyboards,
+ * D501, THE INSTRUMENTS FINISHED (the owner: "Just implement it all"): (OBBLIGATO's sound by the player's
+ * instrument retired by D496 with OBBLIGATO itself: d496-no-obbligato.test.ts); the slide's sound by family ("auto": the strings, the voices and the lute the instruments session's, the keyboards,
  * chips, consoles and synths D486's gestures); CLAVICHORD offered, and its two fugues (I/6, II/18).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
-import { mainKind, struck, LAYERS } from "../src/bench/obbligato.ts";
 import { SLIDE_SOUND, slideFamily, slideSoundFor, slideSoundParam, withSlideSound } from "../src/bench/slide-sound.ts";
 import { exprFamily, keyboardSlide } from "../src/bench/glenn.ts";
-import { PATCHES, PRESETS, TRIALS, busoniReaches, expressiveAll, offered, presetById, setPreset } from "../src/touch/sound.ts";
+import { PRESETS, TRIALS, busoniReaches, expressiveAll, offered, presetById, setPreset } from "../src/touch/sound.ts";
 import { styleOf } from "../src/touch/phrasing.ts";
 import { TOUCH_KINDS } from "../src/touch/touch-expr.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -28,15 +26,6 @@ import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-s
 register("./tsx-hooks.mjs", import.meta.url);
 const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
 const { SOUND_GROUPS } = await import("../src/bench/SoundSelect.tsx");
-
-// ---------- OBBLIGATO by the player's sound ----------
-
-test("D501, D509, D510: OBBLIGATO's modes gone (three effects on every sound); the harpsichord a struck keyboard (the chorus's faint wobble, no full vibrato)", () => {
-  assert.equal(mainKind("harpsiSampled", PATCHES.harpsiSampled), "harpsichord");
-  assert.ok(struck("harpsiSampled"));
-  // D510: the lute and the clavichord withdrawn (no patch of theirs left to be struck).
-  assert.ok(!("clavichord" in PATCHES) && !("lute2" in PATCHES));
-});
 
 // ---------- The slide's sound by family ----------
 
@@ -131,7 +120,6 @@ test("D510: CLAVICHORD withdrawn (the owner: \"an uninteresting synth with no di
   assert.ok(!TRIALS.some((p) => p.id === "clavichord" || p.id === "trialClavichord"));
   assert.equal(TOUCH_KINDS.clavichord, undefined);
   assert.ok(!expressiveAll("clavichord") || busoniReaches("pianoSampled"));
-  assert.ok(!LAYERS.some((l) => (l.id as string) === "clavichord"), "out of OBBLIGATO's pool");
   assert.equal(exprFamily("pianoSampled"), "piano");
   assert.equal(keyboardSlide("harpsichordSampled"), "coule");
   assert.equal(styleOf("harpsichordSampled"), "harpsichord");
