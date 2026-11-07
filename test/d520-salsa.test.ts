@@ -41,8 +41,8 @@ const planOf = (id: string) => {
 
 test("D520: offered, one instrument a voice, Bach's notes only (the patches play the voices, nothing more)", () => {
   assert.equal(SALSA.name, "SALSA");
-  assert.ok(POP_SOUNDS.some(([id]: [string]) => id === "salsa"));
-  assert.ok(SOUND_GROUPS.some(([, ids]: [string, string[]]) => ids.includes("salsa")));
+  assert.ok(POP_SOUNDS.some(([id]) => id === "salsa"));
+  assert.ok(SOUND_GROUPS.some(([, ids]) => ids.includes("salsa")));
   assert.equal(SALSA.groove, "salsaBand");
   assert.equal(SALSA.kit, "latin");
   for (let n = 1; n <= 5; n++) assert.equal(SALSA.by?.[n]?.length, n, `${n} voices, ${n} instruments`);
