@@ -1285,3 +1285,21 @@ html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: c
 .tb-obbligato-long { gap: 2px; }
 @keyframes tb-obb-glow { from { box-shadow: 0 0 4px 1px rgba(143, 232, 200, 0.45); } to { box-shadow: 0 0 12px 4px rgba(143, 232, 200, 0.85); } }
 @media (prefers-reduced-motion: reduce) { .tb-obbligato { animation: none; box-shadow: 0 0 8px 2px rgba(143, 232, 200, 0.7); } }
+
+/* D473 (design studio; the owner: "the YOU SOPRANO – ALTO – BASS line [is] reduced in size and relocated to the very bottom
+   of the screen", the music passing behind it as behind the bars): on the classic box between the bars the roll runs to
+   the glass (no foot padding, no frame) and the voice legend is a small translucent strip laid over its foot, 2 px above
+   the home indicator, one line (five voices too). It takes no touch, as the roll. MusicBox measures what lies over the
+   roll's foot (this strip, the stops, OBBLIGATO's slot) and keeps every row of the ladder above it (rollFoot). */
+.tb-bars .tg-box-wide { grid-template-rows: auto 1fr; padding-bottom: 0; border-bottom: 0; }
+.tb-bars .tg-box-wide > .tg-legend { position: absolute; z-index: 3; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); margin: 0; padding: 2px 6px; box-sizing: border-box; height: 16px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: safe center; column-gap: 6px; overflow: hidden; font-size: 6px; line-height: 1; background: color-mix(in srgb, var(--tg-box) 52%, transparent); pointer-events: none; }
+.tb-bars .tg-box-wide > .tg-legend .tb-you-chip { gap: 3px; padding: 2px 4px 1px; font-size: 6px; line-height: 1.2; border-width: 1px; box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
+.tb-bars .tg-box-wide > .tg-legend .tb-legend-other { padding-top: 1px; line-height: 1.2; opacity: 0.85 !important; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
+/* D473: OBBLIGATO compact on every sound (D495 made it so over the stops): 18 px at the bar's foot, beside the legend. */
+.tb-obbligato { height: 18px; padding: 1px 3px; gap: 2px; border-width: 1px; }
+.tb-obbligato .tb-obbligato-name { font-size: 5px; letter-spacing: 0.5px; }
+.tb-obbligato .tb-obbligato-inst, .tb-obbligato.tb-obbligato-long .tb-obbligato-inst { font-size: 7px; line-height: 1; white-space: nowrap; display: block; -webkit-line-clamp: none; }
+html:has(.tb-obbligato) .tb-side-gloss { bottom: calc(env(safe-area-inset-bottom, 0px) + 25px); }
+/* Where OBBLIGATO's button would stand (the left bar's foot), always: the rows keep clear of it whether or not an offer stands. */
+.tb-obbligato-slot { position: fixed; left: calc(var(--tg-sal) + 6px); bottom: calc(env(safe-area-inset-bottom, 0px) + 3px); width: 1px; height: 18px; visibility: hidden; pointer-events: none; }
+.tb-has-side-stops .tb-obbligato-slot { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows, 1) * 47px + 3px); }
