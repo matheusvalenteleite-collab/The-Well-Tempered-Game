@@ -1251,37 +1251,12 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .glenn-film-scrub::-moz-range-thumb { width: 14px; height: 18px; background: #f2eee0; border: 2px solid #12101a; border-radius: 0; }
 .sel-learn { margin-top: 6px; background: transparent; color: var(--tg-fg); border: 2px solid #6fb3ff; }
 
-/* D485, OBBLIGATO: the offer's button on each bar, over the play area outside it in the page: a touch on it is the button's,
-   never a note. Glowing, the bars tinged under it (paint-proto.ts OBB_TINGE). D487 (the owner: "obbligato at bottom of
-   buttons instead"): at each bar's foot, no longer its outer top corner (where the right one covered the "1 / 31" bar
-   counter): above the home indicator, or stacked just above the registration stops where they stand at the bars' feet
-   (each foot its own rows, --tb-stop-rows and --tb-stop-rows-right, 47 px a row). 34 px tall, so it lies in the strip under
-   the roll's lowest row (the roll's bottom margin row and the gap above the stops; the legend's floor 20 px deeper over
-   the stops): no row a note can ask for is under it. */
-.tb-obbligato { position: fixed; z-index: 13; bottom: calc(env(safe-area-inset-bottom, 0px) + 3px); box-sizing: border-box; width: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); height: 34px; margin: 0; padding: 2px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--tg-pixel); line-height: 1; color: #ffffff; background: #0a3f37; border: 2px solid #a8ffe0; text-shadow: 1px 1px 0 #000; border-radius: 4px; cursor: pointer; touch-action: none; overflow: hidden; white-space: nowrap; animation: tb-obb-glow 1.1s ease-in-out infinite alternate; }
-.tb-obbligato-left { left: calc(var(--tg-sal) + 6px); }
-.tb-obbligato-right { right: calc(var(--tg-sar) + 6px); }
-.tb-has-side-stops .tb-obbligato-left { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows, 1) * 47px + 3px); }
-.tb-has-side-stops .tb-obbligato-right { bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + 3px); }
-/* D495: over the compact feet (28 px) the button is 18 px, one line each for its name and the instrument (5 px and 7 px,
-   the instrument on one line in full: the longest offered, 12 characters and an octave's mark, is 105 px of the narrowest
-   bar's 123), so it still lies under the lowest row a note can ask for now the roll keeps no floor (over the 48 fugues'
-   widest ranges that row's foot is at least 12 px over the roll's at 844 × 390; the button's top 9 px over it: 3 px clear). */
-.tb-has-side-stops .tb-obbligato { height: 18px; padding: 1px 3px; gap: 2px; border-width: 1px; }
-.tb-has-side-stops .tb-obbligato-name { font-size: 5px; letter-spacing: 0.5px; }
-.tb-has-side-stops .tb-obbligato-inst, .tb-has-side-stops .tb-obbligato-long .tb-obbligato-inst { font-size: 7px; line-height: 1; white-space: nowrap; display: block; }
-/* The word in force (Busoni's, the right foot) and the side legend step up over the button while it shows. */
-html:has(.tb-obbligato) .tb-side-gloss { bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 26px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend { max-height: calc(60vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 30px); }
-html:has(.tb-obbligato) .tb-has-side-stops .tb-side-legend-whole { max-height: calc(70vh - var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px - env(safe-area-inset-bottom, 0px) - 50px); }
-/* D487 (the owner: "it was also unreadable"): the instrument in the box's title size (9 px, the HUD's), white on an opaque deep
-   green with a dark shadow, whatever the tinted bar under it; a long name (or its translation) in 8 px on two lines, in full. */
-.tb-obbligato-name { font-size: 7px; letter-spacing: 1px; color: #a8ffe0; }
-/* D469: the boost taken, named where its button was, for the whole boosted entry: still (no glow), not a target. */
-.tb-obbligato-on { animation: none; pointer-events: none; background: color-mix(in srgb, #0a3f37 80%, transparent); border-style: dashed; }
-.tb-obbligato-inst { font-size: 9px; max-width: 100%; overflow: hidden; text-align: center; }
-.tb-obbligato-long .tb-obbligato-inst { font-size: 8px; line-height: 1.15; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.tb-obbligato-long { gap: 2px; }
-@keyframes tb-obb-glow { from { box-shadow: 0 0 4px 1px rgba(143, 232, 200, 0.45); } to { box-shadow: 0 0 12px 4px rgba(143, 232, 200, 0.85); } }
-@media (prefers-reduced-motion: reduce) { .tb-obbligato { animation: none; box-shadow: 0 0 8px 2px rgba(143, 232, 200, 0.7); } }
+/* D473 (design studio; the owner: "the YOU SOPRANO – ALTO – BASS line [is] reduced in size and relocated to the very bottom
+   of the screen", the music passing behind it as behind the bars): on the classic box between the bars the roll runs to
+   the glass (no foot padding, no frame) and the voice legend is a small translucent strip laid over its foot, 2 px above
+   the home indicator, one line (five voices too). It takes no touch, as the roll. MusicBox measures what lies over the
+   roll's foot (this strip, the stops; D496: OBBLIGATO's slot gone) and keeps every row of the ladder above it (rollFoot). */
+.tb-bars .tg-box-wide { grid-template-rows: auto 1fr; padding-bottom: 0; border-bottom: 0; }
+.tb-bars .tg-box-wide > .tg-legend { position: absolute; z-index: 3; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); margin: 0; padding: 2px 6px; box-sizing: border-box; height: 16px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: safe center; column-gap: 6px; overflow: hidden; font-size: 6px; line-height: 1; background: color-mix(in srgb, var(--tg-box) 52%, transparent); pointer-events: none; }
+.tb-bars .tg-box-wide > .tg-legend .tb-you-chip { gap: 3px; padding: 2px 4px 1px; font-size: 6px; line-height: 1.2; border-width: 1px; box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
+.tb-bars .tg-box-wide > .tg-legend .tb-legend-other { padding-top: 1px; line-height: 1.2; opacity: 0.85 !important; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }

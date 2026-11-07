@@ -9,7 +9,6 @@ import { PATCHES, PRESETS, RETIRED, offered, presetById } from "../src/touch/sou
 import { JAZZ_BASS_HARD_ABOVE, SAMPLED, noteInfo, sampledMidis } from "../src/touch/sampled.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { BASS_SLIDE_MAX, slideGesture } from "../src/bench/slide-sound.ts";
-import { LAYERS } from "../src/bench/obbligato.ts";
 import { OWN_LOUD, SOUND_LOUD } from "../src/touch/player-lift-data.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 
@@ -23,7 +22,6 @@ test("D510: the three withdrawn, a stored choice on the nearest kept sound; noth
     assert.ok(!Object.values(PIECE_SOUND).includes(gone), gone);
   }
   for (const p of ["lute2", "clavichord", "n32Violin", "n32Organ"]) assert.equal((PATCHES as Record<string, unknown>)[p], undefined, p);
-  assert.ok(!LAYERS.some((l) => /^(lute2|clavichord|n32)/.test(l.id)), "out of OBBLIGATO's pool");
   for (const id of Object.keys(SAMPLED)) assert.ok(!/32$|^luteGuitar$/.test(id), id);
   for (const s of ["lute", "clavichord", "nocturne32"]) assert.equal(SOUND_LOUD[s], undefined, s);
 });

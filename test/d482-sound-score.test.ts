@@ -13,6 +13,7 @@
  * Retired by D485 (the owner scrapped D482; OBBLIGATO's layer is offered on the player's grades before an
  * entry). No assertion here contradicts the boost, so none was removed: the score state thrown about
  * (streak, combo, multiplier, crowd, hits) still reaches no call, and THE LAB's game runs without OBBLIGATO.
+ * D496 retired OBBLIGATO (and with it D485's exception): the player's grades again reach no sound at all.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";

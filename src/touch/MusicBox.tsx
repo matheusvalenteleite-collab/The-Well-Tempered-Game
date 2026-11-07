@@ -264,7 +264,21 @@ export interface Frame {
    * under the left bar the music just gone, under the right the music coming. Set by MusicBox each frame.
    */
   clear?: { l: number; r: number };
+  /**
+   * Design studio (D473): the CSS px at the roll's foot that something lies over (the voice legend's strip, the
+   * stops; D496: OBBLIGATO's slot gone): the ladder keeps every row above it, the music still drawn behind. Set by MusicBox.
+   */
+  foot?: number;
 }
+
+/** D473: the ladder's rows clear of what lies over the roll's foot, a 2 px gap kept. */
+const FOOT_GAP = 2;
+const FOOT_OVER = ".tg-legend, .tb-stops-side";
+let footPx = 0;
+/** D473: the CSS px kept free at the roll's foot (MusicBox measures it each frame; 0 off the wide box). */
+export const rollFoot = () => footPx;
+/** D473: the ladder's floor (a share of the box's height): the frame's own (a lesson's), or what covers the foot. */
+export const floorOf = (cssH: number, floor = 0, foot = footPx) => Math.max(floor, cssH > 0 ? Math.min(0.6, foot / cssH) : 0);
 
 /**
  * D415: the music box's roll between the side bars (where the time scale is set and the play line stands),
@@ -297,6 +311,14 @@ export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefOb
         const r = el.getBoundingClientRect();
         const b = box?.getBoundingClientRect();
         frame.current.clear = wide && b ? { l: Math.max(0, b.left - r.left), r: Math.max(0, r.right - b.right) } : undefined;
+        // D473: what lies over the roll's foot (only the wide box runs under it; elsewhere the legend is below the roll).
+        let top = r.bottom;
+        if (wide) for (const o of document.querySelectorAll(FOOT_OVER)) {
+          const q = o.getBoundingClientRect();
+          if (q.height > 0 && q.top < top && q.bottom > r.bottom - r.height / 2) top = q.top;
+        }
+        footPx = top < r.bottom ? Math.ceil(r.bottom - top + FOOT_GAP) : 0;
+        frame.current.foot = footPx;
         paint(canvas.current, el.clientWidth, el.clientHeight, frame.current);
       }
       raf = requestAnimationFrame(loop);
@@ -380,7 +402,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D375: the ladder keeps clear of the box's foot where something sits over it (Herr Bach's words).
   // D377: while the range eases, the rows blended (box-zoom.ts ladderRows: the touch rows the same).
   const easing = !!fr.zoomFrom && (fr.zoomMix ?? 1) < 1;
-  const L = ladderRows(ladderHeight(cssH, fr.floor ?? 0), fr.lo, fr.hi, easing ? fr.zoomFrom : undefined, fr.zoomMix ?? 1);
+  const L = ladderRows(ladderHeight(cssH, floorOf(cssH, fr.floor ?? 0, fr.foot ?? 0)), fr.lo, fr.hi, easing ? fr.zoomFrom : undefined, fr.zoomMix ?? 1);
   const rowH = L.rowH;
   const lin = (step: number) => Math.round(L.a - step * rowH);
   const bh = Math.max(2, Math.round(rowH));
