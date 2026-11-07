@@ -111,6 +111,8 @@ export const GESTURE = {
  */
 export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily {
   if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
+  // D521: BOSSA NOVA's, likewise: the flutist's slur, the guitarist's quick ornament (a plucked grace), the bassist's slide, the piano's.
+  if (presetId === "bossaNova") return patch?.sample === "trialFlute" ? "flute" : patch?.sample === "bossaGuitar" ? "plucked" : patch?.sample === "jazzBass" ? "bass" : "piano";
   switch (presetId) {
     case "harpsichordSampled":
       return "plucked";

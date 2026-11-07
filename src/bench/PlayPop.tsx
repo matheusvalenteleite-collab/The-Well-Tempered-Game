@@ -67,6 +67,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["bachBrass", "BACH BRASS"],
   // D503: JAZZ QUARTET (the trials' jazz band remade, with its brushes).
   ["jazzQuartet", "JAZZ QUARTET"],
+  // D521: BOSSA NOVA (the flute, the nylon guitar, the piano, the upright bass and its drums).
+  ["bossaNova", "BOSSA NOVA"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

@@ -46,6 +46,8 @@ export const ES: Record<string, string> = {
   "JAZZ QUARTET": "CUARTETO DE JAZZ",
   "JAZZ PIANO": "PIANO DE JAZZ",
   "DOUBLE BASS": "CONTRABAJO",
+  // D521: BOSSA NOVA (the name as in Portuguese and Spanish).
+  "BOSSA NOVA": "BOSSA NOVA",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOE, VIOLA Y FAGOT",

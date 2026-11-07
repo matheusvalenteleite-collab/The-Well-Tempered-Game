@@ -623,6 +623,15 @@ export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
 export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
+/**
+ * D521, BOSSA NOVA (Getz/Gilberto, Jobim's own records): one small studio (chip.ts REVERBS.bossa) at one send (BOSSA_SEND);
+ * the nylon guitar's upper partials a little lifted on a phone (BOSSA_GUITAR_PHONE_LIFT: its body's warmth lies under the
+ * small speaker); the piano softer and darker than the solo grand (BOSSA_PIANO_SHELF: Jobim's quiet single lines); the bass
+ * JAZZ QUARTET's (the Iowa pizzicato, its phone handling and its wood).
+ */
+export const BOSSA_SEND = 0.15;
+export const BOSSA_GUITAR_PHONE_LIFT = { hz: 700, db: 5 } as const;
+export const BOSSA_PIANO_SHELF = { hz: 2800, db: -2 } as const;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1184,6 +1193,13 @@ export const PATCHES = {
   jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
   jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  // D521, BOSSA NOVA: the flute on top (VSO2's, held on its made loop, tongued), the nylon guitar (Iowa's Raimundo, mf and
+  // pp), the grand (softer, darker), the double bass pizzicato (JAZZ QUARTET's); one studio, one send, the player's line the
+  // band's (Patch.one). The `osc`/`amp` stand in until a recording has loaded (D190).
+  bnFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.12 }, send: BOSSA_SEND, level: 0.43, sample: "trialFlute", bow: WIND_TONGUE, one: {} }),
+  bnGuitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 3, q: 0.7, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.1 }, send: BOSSA_SEND, level: 0.5, sample: "bossaGuitar", one: {}, phoneLift: BOSSA_GUITAR_PHONE_LIFT }),
+  bnPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: BOSSA_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: BOSSA_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
+  bnBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: BOSSA_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1191,12 +1207,14 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
   // D200: loops once given to single fugues (withdrawn in D208).
   | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet"
   // D503: JAZZ QUARTET's brushes (jazz-drums.ts: a pattern per metre on the game's beat, the scripted fills).
-  | "brushJazz";
-/** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums). */
-export type Kit = "acoustic" | "chip" | "analog" | "brushes";
+  | "brushJazz"
+  // D521: BOSSA NOVA's drums (bossa-drums.ts: the bossa on the score's eighths, the piece's form).
+  | "bossaNova";
+/** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums); D521: the brushes with a cross-stick and a bass drum (Big Rusty). */
+export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "bossa";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "bossa";
 
 export interface Preset {
   id: string;
@@ -1587,6 +1605,33 @@ export const PRESETS: Preset[] = [
       5: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.16], ["jqPiano", 0.2], ["jqBass", 0.04]],
     },
   },
+  // D521, BOSSA NOVA: the flute on the top voice, the grand on the upper middle, the nylon guitar on the lower middle (its
+  // own register: E2-B5, the tenor's), the double bass pizzicato on the bass, and the drums (groove "bossaNova": bossa-drums.ts,
+  // always with this sound, never with another). Seated as a small studio session, seen from the room: the flute left, the
+  // piano right, the guitar a little right of centre between them, the bass behind in the middle a little left, the drums
+  // behind a little right (BOSSA_DRUMS.pan); one studio (REVERBS.bossa) at one send. Two voices: the flute and the guitar
+  // (the duo of the bossa's intimate records); three: the flute, the guitar, the bass. Each voice's level measured (D521:
+  // II/7 b. 21-34, each voice alone: the flute 5 dB over the others, the piano and the guitar a little under).
+  {
+    id: "bossaNova",
+    name: "BOSSA NOVA",
+    // D521 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3.6 dB, and on a phone 1.3 dB less (measured -3.6 under
+    // the median of the offered ensembles on a computer, -2.25 through the phone model).
+    gain: 1.51,
+    phoneGain: 0.86,
+    slots: ["bnFlute", "bnPiano", "bnGuitar", "bnGuitar", "bnBass"],
+    groove: "bossaNova",
+    kit: "bossa",
+    room: 0,
+    fx: "bossa",
+    by: {
+      1: [["bnGuitar", 0]],
+      2: [["bnFlute", -0.14, 0.56], ["bnGuitar", 0.08, 1.12]],
+      3: [["bnFlute", -0.18, 0.56], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
+      4: [["bnFlute", -0.18, 0.56], ["bnPiano", 0.18, 1.19], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
+      5: [["bnFlute", -0.18, 0.56], ["bnPiano", 0.14, 1.19], ["bnPiano", 0.2, 1.19], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
+    },
+  },
 ];
 
 /**
@@ -1637,7 +1682,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "soloVoices", "vocalSynth", "trialWinds"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "bossaNova", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1775,11 +1820,13 @@ export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC
 export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
 export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
+/** D521: BOSSA NOVA's (the Iowa guitar and bass: free for any use; VSO2's flute: CC BY 3.0; the grand's; the brushes and Big Rusty's kit: CC0). */
+export const BOSSA_CREDIT = `GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · FLUTE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · ${PIANO_CREDIT} · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D502: BACH BRASS's (University of Iowa MIS: free for any use, credit given as asked of good practice). */
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT };
+const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, bossaNova: BOSSA_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1920,6 +1967,14 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       out.push({ drum: "brush", at: 0, vel: 0.5 }, { drum: "ride", at: 0, vel: 0.4 });
       if (back) out.push({ drum: "hat", at: 0, vel: 0.35 });
       break;
+    // D521: BOSSA NOVA's drums, synthesized where the recordings are not loaded (chip.ts bossaDrums plays bossa-drums.ts on them).
+    case "bossaNova": {
+      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.5 });
+      out.push({ drum: "brush", at: 0, vel: 0.4 });
+      const pattern = bar % 2 === 0 ? [0, 3, 6] : [2, 5];
+      for (const k of pattern) if (Math.floor(k / subs.length) === b) out.push({ drum: "rim", at: subs[k % subs.length], vel: 0.45 });
+      break;
+    }
     case "brushes":
       out.push({ drum: "brush", at: 0, vel: 0.7 });
       if (back) out.push({ drum: "hat", at: 0, vel: 0.4 });
