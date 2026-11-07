@@ -39,6 +39,8 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   jazzQuartet: { id: "equal", a: 440 },
   // D520: SALSA: a modern band with a grand, equal at A = 440.
   salsa: { id: "equal", a: 440 },
+  abbeyRoad: { id: "equal", a: 440 },
+  krautrock: { id: "equal", a: 440 },
 };
 /** Every other sound (the consoles, the synthesizers): equal temperament, A = 440. */
 export const TUNING_FALLBACK: TuningAt = { id: "equal", a: 440 };

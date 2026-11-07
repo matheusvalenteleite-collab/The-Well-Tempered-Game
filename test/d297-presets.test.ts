@@ -278,8 +278,8 @@ test("D304: FOREST 64 and PARTY 64 withdrawn (the owner: 0 each), they and TEMPL
     assert.ok(!PRESETS.some((p) => p.id === gone), gone);
   }
   for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.equal(PERIOD[id], undefined, id);
-  // (D305: BLEEPS AND BLOOPS' spring, kept with its patches; D339: the sampled piano's and harpsichord's salon; D430: BAROQUE BAND's room; D504: ZELENKA TRIO's chamber; D503: JAZZ QUARTET's club.)
-  assert.deepEqual(Object.keys(REVERBS).sort(), ["band", "cathedral", "chamber", "club", "hall", "plate", "salon", "space", "spring"]);
+  // (D305: BLEEPS AND BLOOPS' spring, kept with its patches; D339: the sampled piano's and harpsichord's salon; D430: BAROQUE BAND's room; D504: ZELENKA TRIO's chamber; D503: JAZZ QUARTET's club; D523: ABBEY ROAD's studio; D525: KRAUTROCK's inner room.)
+  assert.deepEqual(Object.keys(REVERBS).sort(), ["band", "cathedral", "chamber", "club", "hall", "inner", "plate", "salon", "space", "spring", "studio"]);
 });
 
 test("D297, D302: TRACKER: 8-bit samples held without smoothing, short loops, hard left and right, a tone portamento", () => {

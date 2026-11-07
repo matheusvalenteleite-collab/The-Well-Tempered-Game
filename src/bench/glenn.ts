@@ -83,6 +83,8 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "jazzQuartet") return "plucked";
   // D520 SALSA: the piano and the bass struck and plucked (its horns tongued: Patch.bow).
   if (presetId === "salsa") return "plucked";
+  // D523: ABBEY ROAD likewise (struck and plucked).
+  if (presetId === "abbeyRoad" || presetId === "krautrock") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
