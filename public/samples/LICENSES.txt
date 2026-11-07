@@ -150,3 +150,8 @@ Processing (tools/playback/jazz/build_jazz.py): the scale files cut at their ons
          room's hum); each note's loudness over its first 0.5 s (K-weighted) evened within its set, one gain per
          instrument (its loudest peak at -1 dBFS); tuning measured into src/touch/sampled.ts; mono 44.1 kHz MP3 (the
          vibraphone 72 kbit/s, the bass and the brushes 64 kbit/s). About 4.4 MB in all.
+D523, the touch game's ABBEY ROAD (and D525's KRAUTROCK), no new files: their recordings are those listed above, played
+         by the touch game: cleanGuitar/ (Black And Green Guitars' Gretsch, Karoryfer, CC0) the first guitar; eguitar/
+         (Karoryfer via tonejs-instruments, CC BY 3.0) the second guitar; rickBass/ (Black And Blue Basses' picked
+         "babyblue", Karoryfer, CC0) the bass; drums/bigRusty/ (Big Rusty Drums, Karoryfer, CC0) the kit; grand/ the piano.
+         Their tuning and each note's loudness trim measured into src/touch/sampled.ts (ROCK_CENTS, ROCK_DB, ROCK_PHONE_DB).
