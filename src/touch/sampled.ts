@@ -476,11 +476,14 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
  * (loud). Big Rusty Drums (ROCK KIT) and Virtuosity Drums (JAZZ KIT, FRAME DRUMS, and TIMPANI's cymbal, bass drum and
  * triangle), both Karoryfer's, CC0. And the timpani (TIMP_SET: VSCO-2's loud layer, F2 B2 C#3 E3 G3, retuned by rate).
  */
-export type KitSet = "kitRock" | "kitClub";
-export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity" };
+// D532: and the period kit (kitPeriod, drums/period: VCSL's rope-tension drum, frame drums, tambourine, bass drum, clash
+// cymbals and triangle, FreePats' castanets; all CC0), for the score-driven orchestral and period styles (score-drums.ts).
+export type KitSet = "kitRock" | "kitClub" | "kitPeriod";
+export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity", kitPeriod: "drums/period" };
 export const KIT_VOICES: Readonly<Record<KitSet, readonly string[]>> = {
   kitRock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
   kitClub: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow", "cowbell", "tambourine", "shaker", "congaHigh", "congaLow", "bongo", "woodblock", "claves", "triangle", "guiro"],
+  kitPeriod: ["sideDrum", "fieldDrum", "tabor", "drumStick", "frameDum", "frameTek", "tambourine", "castanets", "bassDrum", "cymbals", "triangle"],
 };
 /** A kit piece's file as its set's MIDI number (null: the kit has no such piece). */
 export function kitMidi(set: KitSet, voice: string, loud: boolean): number | null {
@@ -854,7 +857,8 @@ export interface PlanSlim {
   rate: number;
   maxS?: number;
 }
-export type Plan = { set: string; notes: number[]; slim?: PlanSlim }[];
+/** D542: `first`, the notes the opening bars play (fetched first: priority 1); `soon`, a set wanted next (the drums: 1.5); the rest after them (2). */
+export type Plan = { set: string; notes: number[]; slim?: PlanSlim; first?: number[]; soon?: boolean }[];
 
 /**
  * The plan for an instrument: every voice's pitches (`pitches`), and the player's own (`lead`) also an
@@ -1081,10 +1085,93 @@ async function slot<T>(f: () => Promise<T>): Promise<T> {
 }
 
 /** A note's file: from the browser's cache, else the page's own folder, else the website (P13). */
-async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
-  const file = fileOf(set, m);
+/**
+ * D542, the wire: each recording also as Opus (.webm) and AAC (.m4a), smaller than its MP3 (tools/playback/codec, the
+ * manifest's `alt`); a browser takes the first of them it decodes (two 60 ms probes decoded once, here), the MP3 where it
+ * decodes neither or a file is missing.
+ */
+export type Wire = "webm" | "m4a" | "mp3";
+const PROBES: Record<"webm" | "m4a", string> = {
+  webm: "GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwEAAAAAAALHEU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHYTbuMU6uEElTDZ1OsggFCTbuMU6uEHFO7a1OsggKx7AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmsirXsYMPQkBNgI1MYXZmNjAuMTYuMTAwV0GNTGF2ZjYwLjE2LjEwMESJiEBRAAAAAAAAFlSua+WuAQAAAAAAAFzXgQFzxYhNVasU68KUypyBACK1nIN1bmSIgQCGhkFfT1BVU1aqg2MuoFa7hATEtACDgQLhkZ+BAbWIQOdwAAAAAABiZIEQY6KTT3B1c0hlYWQBATgBgLsAAAAAABJUw2f9c3OgY8CAZ8iaRaOHRU5DT0RFUkSHjUxhdmY2MC4xNi4xMDBzc9djwItjxYhNVasU68KUymfIokWjh0VOQ09ERVJEh5VMYXZjNjAuMzEuMTAyIGxpYm9wdXNnyKFFo4hEVVJBVElPTkSHkzAwOjAwOjAwLjA2ODAwMDAwMAAfQ7Z1QOfngQCjyYEAAIB4ggG3bH5A5gAACr6ap77/toXXCnHg3Wug48bFwzLGZB5uY1I6RQyKU49EGLCMZKvsmJZ5bFRTMFVOguQWyllJ2McJXVmjsYEAFYB4oz/3rJiFA1dPztF2E5YxwGEgAOWM5a9HAbfKTi8lKVEQj79FpKyH2RDta1ijtoEAKYB4m6MSVs4jdnLtXAyLUVgo4LdjKazwtCQwtFvpHFbkw9IY9q7KYI2OqMPA0QBqOgfkoqCsoaOBAD0AeAZNpoExSNI1qNkfdAYtx4QWFNggG3ooolh9BZBiZ3WihADN/mAcU7trkbuPs4EAt4r3gQHxggHE8IED",
+  m4a: "AAAAHGZ0eXBNNEEgAAACAE00QSBpc29taXNvMgAAAwttb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAPAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACNXRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAPAAAAAAAAAAAAAAAAQEAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAADwAAAQAAAEAAAAAAa1tZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAAKxEAAAOVlXEAAAAAAAtaGRscgAAAAAAAAAAc291bgAAAAAAAAAAAAAAAFNvdW5kSGFuZGxlcgAAAAFYbWluZgAAABBzbWhkAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcc3RibAAAAGpzdHNkAAAAAAAAAAEAAABabXA0YQAAAAAAAAABAAAAAAAAAAAAAQAQAAAAAKxEAAAAAAA2ZXNkcwAAAAADgICAJQABAASAgIAXQBUAAAAAAJXUAACV1AWAgIAFEghW5QAGgICAAQIAAAAgc3R0cwAAAAAAAAACAAAAAwAABAAAAAABAAACVgAAABxzdHNjAAAAAAAAAAEAAAABAAAABAAAAAEAAAAkc3RzegAAAAAAAAAAAAAABAAAAHwAAAB5AAAAYwAAADcAAAAUc3RjbwAAAAAAAAABAAADNwAAABpzZ3BkAQAAAHJvbGwAAAACAAAAAf//AAAAHHNiZ3AAAAAAcm9sbAAAAAEAAAAEAAAAAQAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNjAuMTYuMTAwAAAACGZyZWUAAAGXbWRhdN4CAExhdmM2MC4zMS4xMDIAAmCeUdI6Ow6JeevU65z6u8kiS4s8pP/mw27gfgvVexd9orTBXj/HpeDq/9uv8G+rfVvq2hgY2DAwMiRIjZs2bRUKEps2bNokSKWXE2blRSyy440CD8NKoftUui+1TKH2b0Hy70mWg/Ey8DgBOJDayN1UU4spxZLhz/Ptrhs8f/Wv3641xr/6eP588a41/6e/8+eNdaDf62jo9kYhdAmWELP1Os3lMbc4DOcBgZ3CZgYGdwkJBgZ3CQmE2Eu/whVhup85cr0pW9KE3szcoSVJZg0oSEkrwNKEhLHLxDUUUUGoooo4AUKRtglRVkeLJXUfr1xqa/4+f3641xr/x9v588W3LEncIe6l75EaEtfyGv5D6fLmA+n0wDYwD1Mj/iojKhtLdIoGqbzzfzmfz1ax/P+esfz/nrmrWujMvDDChVHNR8qDfJXAATaRttLg5Dl8Sry9CM/SRTADbZ4TqoB/b+nw5n29s5Po9NydvR1zm5oPlx5fJNA48vlxxUYDgA==",
+};
+let wireOrder: Promise<Wire[]> | null = null;
+/** D542: the loading as it was before (the measurements' "before": MP3 only, every fetch at once, no order), or as now. */
+const policy: { wire: Wire[] | null; queue: boolean } = { wire: null, queue: true };
+export function setLoadPolicy(p: { wire?: Wire[] | null; queue?: boolean }) {
+  if (p.wire !== undefined) policy.wire = p.wire;
+  if (p.queue !== undefined) policy.queue = p.queue;
+}
+export function wireFormats(ctx: BaseAudioContext): Promise<Wire[]> {
+  if (policy.wire) return Promise.resolve(policy.wire);
+  if (!wireOrder)
+    wireOrder = (async () => {
+      const ok: Wire[] = [];
+      for (const w of ["webm", "m4a"] as const) {
+        try {
+          const bin = typeof atob === "function" ? Uint8Array.from(atob(PROBES[w]), (c) => c.charCodeAt(0)) : new Uint8Array(0);
+          const b = await ctx.decodeAudioData(bin.buffer.slice(0));
+          if (b && b.length > 0) ok.push(w);
+        } catch {
+          /* this browser cannot decode it */
+        }
+      }
+      return [...ok, "mp3"];
+    })();
+  return wireOrder;
+}
+/** D542: a file's name in a wire format, if that copy exists (the manifest's `alt`: by the MP3's name, its length). */
+export function wireFile(set: string, m: number, w: Wire): { file: string; v: number } | null {
+  const mp3 = fileOf(set, m);
+  const entry = SAMPLE_MANIFEST[folderOf(set)];
+  if (w === "mp3") return { file: mp3, v: entry?.pack[mp3]?.[1] ?? 0 };
+  const len = entry?.alt?.[w]?.[mp3];
+  return len ? { file: mp3.replace(/\.mp3$/, `.${w}`), v: len } : null;
+}
+/** D542: the bytes a note's file takes on the wire in a format (its MP3's where it has no such copy). */
+export const wireBytes = (set: string, m: number, w: Wire = "mp3") => (wireFile(set, m, w) ?? wireFile(set, m, "mp3"))!.v;
+
+/**
+ * D542, the fetches by priority: at most FETCH_MAX at once (a browser's six a host; on a slow line more only share it), the
+ * most urgent first: 0 a note asked for now (loadOne), 1 the opening's zones (Chip.prepare's `opening`), 1.5 the drums, 2 the rest.
+ */
+export const FETCH_MAX = 6;
+let fetching = 0;
+const fetchQueue: { prio: number; seq: number; go: () => void }[] = [];
+let fetchSeq = 0;
+/** Waiting entries by note, so a more urgent ask raises one already queued. */
+const queuedFetch = new Map<string, { prio: number; seq: number; go: () => void }>();
+function fetchTurn(key: string, prio: number): Promise<void> {
+  if ((fetching < FETCH_MAX || !policy.queue) && !fetchQueue.length) {
+    fetching++;
+    return Promise.resolve();
+  }
+  return new Promise<void>((go) => {
+    const e = { prio, seq: fetchSeq++, go: () => (queuedFetch.delete(key), go()) };
+    fetchQueue.push(e);
+    queuedFetch.set(key, e);
+  });
+}
+function fetchDone() {
+  fetchQueue.sort((a, b) => a.prio - b.prio || a.seq - b.seq);
+  const next = fetchQueue.shift();
+  if (next) next.go();
+  else fetching--;
+}
+/** D542: a waiting fetch made more urgent. */
+function raise(key: string, prio: number) {
+  const e = queuedFetch.get(key);
+  if (e && prio < e.prio) e.prio = prio;
+}
+/** D542: the fetches waiting now (the tests'). */
+export const fetchesWaiting = () => fetchQueue.length;
+
+async function fileBytes(set: string, m: number, w: Wire = "mp3", prio = 2): Promise<ArrayBuffer | null> {
+  const wf = wireFile(set, m, w);
+  if (!wf) return null;
+  const file = wf.file;
   // The file's length versions the URL: a re-made recording is fetched anew, past the site's own cache.
-  const v = SAMPLE_MANIFEST[folderOf(set)]?.pack[file]?.[1] ?? 0;
+  const v = wf.v;
   const here = typeof document !== "undefined" ? document.baseURI : SITE;
   const bases = [...new Set([baseOf.get(set), here, SITE].filter((b): b is string => !!b))];
   let cache: Cache | null = null;
@@ -1101,13 +1188,22 @@ async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
     } catch {
       /* the cache refused: fetch it */
     }
-    const res = await fetch(url).catch(() => null);
-    if (!res || !res.ok) continue;
-    const bytes = await res.arrayBuffer();
+    await fetchTurn(`${set}:${m}`, prio);
+    let res: Response | null = null;
+    let bytes: ArrayBuffer;
+    try {
+      res = await fetch(url).catch(() => null);
+      if (!res || !res.ok) continue;
+      bytes = await res.arrayBuffer();
+    } catch {
+      continue;
+    } finally {
+      fetchDone();
+    }
     // A page that serves its own index for a missing file (some hosts) is not a recording.
     if (bytes.byteLength < 256 || /^\s*</.test(new TextDecoder().decode(bytes.slice(0, 16)))) continue;
     baseOf.set(set, base);
-    if (cache) cache.put(url, new Response(bytes.slice(0), { headers: { "content-type": "audio/mpeg" } })).catch(() => {});
+    if (cache) cache.put(url, new Response(bytes.slice(0), { headers: { "content-type": w === "webm" ? "audio/webm" : w === "m4a" ? "audio/mp4" : "audio/mpeg" } })).catch(() => {});
     return bytes;
   }
   return null;
@@ -1202,26 +1298,34 @@ function baked(ctx: BaseAudioContext, b: AudioBuffer, spec: Bake): AudioBuffer {
   return out;
 }
 
-function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> {
+function loadNote(ctx: BaseAudioContext, set: string, m: number, prio = 2): Promise<void> {
   const key = `${set}:${m}`;
   const busy = inFlight.get(key);
-  if (busy) return busy;
+  if (busy) return (raise(key, prio), busy);
   if (banks.get(set)?.has(m) || unreachable.has(set) || heldOff.has(set)) return Promise.resolve();
   if (Date.now() - (failedAt.get(key) ?? -Infinity) < 20000) return Promise.resolve();
   const gen = generation.get(set) ?? 0;
   const p = (async () => {
-    const bytes = await fileBytes(set, m);
-    if (!bytes) {
+    // D542: the smallest copy this browser decodes, then the next (a missing file, a failed decode), the MP3 last.
+    const period = PERIOD[set];
+    const slim = period ? undefined : slimNow.get(set);
+    const decoder = slim ? (decoderAt(slim.rate) ?? ctx) : ctx;
+    let bytes: ArrayBuffer | null = null;
+    let decoded: AudioBuffer | null = null;
+    for (const w of await wireFormats(ctx)) {
+      bytes = await fileBytes(set, m, w, prio);
+      if (!bytes) continue;
+      const got = bytes;
+      decoded = await slot(() => decoder.decodeAudioData(got)).catch(() => null);
+      if (decoded) break;
+    }
+    if (!bytes || !decoded) {
       failedAt.set(key, Date.now());
       failures.set(set, (failures.get(set) ?? 0) + 1);
       // Nothing answered for this set: the page has no route to the recordings.
       if ((failures.get(set) ?? 0) >= 3 && !banks.get(set)?.size && !baseOf.has(set)) unreachable.add(set);
       return;
     }
-    const period = PERIOD[set];
-    const slim = period ? undefined : slimNow.get(set);
-    const decoder = slim ? (decoderAt(slim.rate) ?? ctx) : ctx;
-    const decoded = await slot(() => decoder.decodeAudioData(bytes));
     // D540: released (or its slimming changed) while it was fetched and decoded: not kept.
     if ((generation.get(set) ?? 0) !== gen) return;
     let buffer: AudioBuffer;
@@ -1247,6 +1351,10 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
  * buffer until it ends). Over the budget, the stereo sets are folded to mono as they are decoded.
  */
 export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
+  return loadPlanStaged(ctx, plan, phone).all;
+}
+/** D542: loadPlan, with the opening's notes (Plan `first`) asked for first and awaited apart (`first`). */
+export function loadPlanStaged(ctx: BaseAudioContext, plan: Plan, phone: boolean): { first: Promise<void>; all: Promise<void> } {
   if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
   for (const { set, notes, slim } of plan) {
     slimFor(set, slim);
@@ -1255,7 +1363,11 @@ export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Pro
     // D540: a set let go entirely: the decodes still on their way are dropped when they land.
     if (!notes.length) generation.set(set, (generation.get(set) ?? 0) + 1);
   }
-  return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
+  const first: Promise<void>[] = [];
+  // The opening's notes asked for before the rest (the queue serves them first in any case).
+  for (const { set, notes, first: f } of plan) for (const m of notes) if (f?.includes(m)) first.push(loadNote(ctx, set, m, 1));
+  const rest = plan.flatMap(({ set, notes, first: f, soon }) => notes.filter((m) => !f?.includes(m)).map((m) => loadNote(ctx, set, m, soon ? 1.5 : 2)));
+  return { first: Promise.all(first).then(() => {}), all: Promise.all([...first, ...rest]).then(() => {}) };
 }
 
 /**
@@ -1280,4 +1392,4 @@ function slimFor(set: string, slim: PlanSlim | undefined) {
 }
 
 /** Ask for one note's recording (a note played before the plan reached it). */
-export const loadOne = (ctx: BaseAudioContext, set: string, m: number) => void loadNote(ctx, set, m);
+export const loadOne = (ctx: BaseAudioContext, set: string, m: number) => void loadNote(ctx, set, m, 0);

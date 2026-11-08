@@ -14,6 +14,7 @@ import { SAMPLED, latinMidis } from "../src/touch/sampled.ts";
 import { TOUCH_KINDS, bandFamily, holdMode } from "../src/touch/touch-expr.ts";
 import { GROOVES, LATIN_SCRIPTS, LATIN_SOUNDS, inEntry, latinBeat, latinPlan } from "../src/touch/latin-drums.ts";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
+import { setDrumStyle } from "../src/touch/drum-library.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { slideFamily } from "../src/bench/slide-sound.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
@@ -114,11 +115,17 @@ test("D522: the chip plays the regional's percussion with this sound only", asyn
   const n0 = chip.latinLog.length;
   assert.equal(chip.groove(chip.ctx.currentTime + 0.1, 0.72, 0, 2, 2, false, cx), true);
   assert.ok(chip.latinLog.slice(n0).some((l) => l.piece.startsWith("pand")));
-  // DRUMS on (D514): the chosen drummer in place of the regional's own percussion.
+  // DRUMS on (D514): the chosen drummer in place of the regional's own percussion; D526: by default the sound's HOME,
+  // the regional's own (the library's CHORO), and another style chosen, that one alone.
   setBacking(true);
-  const nb = chip.latinLog.length;
+  let nb = chip.latinLog.length;
   chip.groove(chip.ctx.currentTime + 1, 0.72, 0, 2, 2, false, { ...cx, piece: f });
+  assert.ok(chip.latinLog.slice(nb).some((l) => l.piece.startsWith("pand")), "HOME: CHORINHO's own");
+  setDrumStyle(f.id, "house");
+  nb = chip.latinLog.length;
+  chip.groove(chip.ctx.currentTime + 1.5, 0.72, 0, 2, 2, false, { ...cx, piece: f });
   assert.equal(chip.latinLog.length, nb);
+  setDrumStyle(f.id, "home");
   setBacking(false);
   setPreset("chip");
 });

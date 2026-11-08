@@ -50,7 +50,7 @@ import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.t
 import { BtWarn, btWarnNow } from "./BtWarn.tsx";
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
-import { Chip, voicing, type Sounding } from "../touch/chip.ts";
+import { Chip, openingOf, voicing, type Sounding } from "../touch/chip.ts";
 import { barAt, barStart, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
 import { arcOf } from "./arc.ts";
 import { laneNotes } from "../touch/lanes.ts";
@@ -650,6 +650,8 @@ export function BenchApp() {
     void chip.current?.prepare(
       everyNote(f).map((n) => n[2]),
       played.flatMap((v) => (f.voices[v] ?? []).map((n) => n[2])),
+      // D542: the opening bars' recordings first.
+      openingOf(f),
     );
   }
   // (ensureChip may run from the first render's listener: it reaches this render's piece through a ref.)

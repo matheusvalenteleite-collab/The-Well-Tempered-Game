@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PATCHES, presetById, V2_OWN, type PatchId } from "../src/touch/sound.ts";
 import { BAND_CHAINS, buildChain } from "../src/touch/band-fx.ts";
+import { homeStyleFor } from "../src/touch/drum-library.ts";
 import { installFakeAudio } from "./fake-audio.ts";
 import { Chip } from "../src/touch/chip.ts";
 
@@ -38,6 +39,12 @@ test("D543-D545: the rebuilt rock v2s: no piano, one instrument a voice, their l
   const c = buildChain(ctxOf() as unknown as BaseAudioContext, BAND_CHAINS.abbeyRoad);
   assert.ok(c.lane("organ") && c.lane("guitar") && c.lane("bass"));
   c.dispose();
+});
+
+test("D543-D545: a v2's HOME drums are its band's", () => {
+  assert.equal(homeStyleFor("krautrockV2"), "motorik");
+  assert.equal(homeStyleFor("abbeyRoadV2"), "abbey");
+  assert.equal(homeStyleFor("petSoundsV2"), "pet");
 });
 
 test("D543-D545: the originals keep their instruments (defaults unchanged)", () => {

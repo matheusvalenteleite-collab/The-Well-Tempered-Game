@@ -100,7 +100,7 @@ test("D503: the recordings: the vibraphone C3-F6 (mf every semitone, pp and ff e
   assert.equal(BRUSH_FILES.tap.length, 4, "four dynamics of the brushed snare");
   let bytes = 0;
   for (const d of ["jazzVibes", "jazzVibesSoft", "jazzVibesHard", "jazzBass", "jazzBassHard", "jazzBrushes"])
-    for (const f of readdirSync(new URL(`../public/samples/${d}/`, import.meta.url))) if (f !== "pack.mp3") bytes += statSync(new URL(`../public/samples/${d}/${f}`, import.meta.url)).size;
+    for (const f of readdirSync(new URL(`../public/samples/${d}/`, import.meta.url))) if (f !== "pack.mp3" && f.endsWith(".mp3")) bytes += statSync(new URL(`../public/samples/${d}/${f}`, import.meta.url)).size;
   assert.ok(bytes < 8e6, `${(bytes / 1e6).toFixed(2)} MB`);
   const lic = readFileSync(new URL("../public/samples/LICENSES.txt", import.meta.url), "utf8");
   for (const d of ["jazzVibes/", "jazzBass/", "jazzBrushes/"]) assert.ok(lic.includes(d), d);

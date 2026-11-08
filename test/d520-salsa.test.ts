@@ -16,6 +16,7 @@ import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { TOUCH_KINDS, bandFamily, holdMode, landing } from "../src/touch/touch-expr.ts";
 import { EPISODE_DB, GROOVES, LATIN_SCRIPTS, LATIN_SOUNDS, inEntry, latinBeat, latinMoments, latinPlan, pulseOf } from "../src/touch/latin-drums.ts";
 import { FUGUES, beatOf, fugueById } from "../src/touch/fugue.ts";
+import { setDrumStyle } from "../src/touch/drum-library.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 import { PT } from "../src/i18n/pt.ts";
@@ -153,11 +154,17 @@ test("D520: the chip plays it on the recordings with this sound only, given the 
   const n0 = chip.latinLog.length;
   assert.equal(chip.groove(chip.ctx.currentTime + 0.1, 1.1, 0, 2, 2, false, cx), true);
   assert.ok(chip.latinLog.length > n0);
-  // DRUMS on (D514): the chosen drummer in place of the band's own percussion, as for ABBEY ROAD.
+  // DRUMS on (D514): the chosen drummer in place of the band's own percussion, as for ABBEY ROAD; D526: by default the
+  // sound's HOME, SALSA's own percussion (the library's style), and another style chosen, that one alone.
   setBacking(true);
-  const nb = chip.latinLog.length;
+  let nb = chip.latinLog.length;
   chip.groove(chip.ctx.currentTime + 1, 1.1, 0, 2, 2, false, { ...cx, piece: f });
+  assert.ok(chip.latinLog.length > nb, "HOME: SALSA's own");
+  setDrumStyle(f.id, "rock");
+  nb = chip.latinLog.length;
+  chip.groove(chip.ctx.currentTime + 1.5, 1.1, 0, 2, 2, false, { ...cx, piece: f });
   assert.equal(chip.latinLog.length, nb);
+  setDrumStyle(f.id, "home");
   setBacking(false);
   setPreset("jazzQuartet");
   const n1 = chip.latinLog.length;

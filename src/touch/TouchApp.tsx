@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MusicBox, inkOf, type Frame } from "./MusicBox.tsx";
 import { PlayArea, type Painter, type ThumbEvents } from "./PlayArea.tsx";
 import { PiecePicker } from "./PiecePicker.tsx";
-import { Chip } from "./chip.ts";
+import { Chip, openingOf } from "./chip.ts";
 import { Game, INSTRUMENTS, prepare, type Grade, type Instrument } from "./engine.ts";
 import { paintPiano, pianoView } from "./paint-piano.ts";
 import { paintSynth } from "./paint-synth.ts";
@@ -230,6 +230,8 @@ export function TouchApp() {
     void chip.current?.prepare(
       everyNote(f).map((n) => n[2]),
       (f.voices[voice] ?? []).map((n) => n[2]),
+      // D542: the opening bars' recordings first.
+      openingOf(f),
     );
   }
   const prepared = useRef(prepareSound);
