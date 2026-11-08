@@ -7,7 +7,8 @@
 import { barAt, beatOf, type TouchFugue } from "../../touch/fugue.ts";
 import { formOf as pointsOf } from "../../touch/form-points.ts";
 import { CLIMAX_PATTERN_AT, breaksBefore, ROLL_QUICK_S } from "../../touch/drum-presets.ts";
-import { drumPresetsFor } from "../../touch/drum-library.ts";
+import { styleInfo } from "../../touch/drum-library.ts";
+import { padStyle } from "./drum-pad.ts";
 import { FORM_REG, climaxRamp, formOf as soundFormOf } from "../../touch/fugue-form.ts";
 import { busoniLeads, planOf, type Colour } from "../../touch/colour.ts";
 import { busoniReaches, presetById } from "../../touch/sound.ts";
@@ -50,7 +51,8 @@ export function summaryOf(f: TouchFugue, s: LabSettings, sound: string): Summary
   const bar = (t: number) => barAt(f, Math.max(0, Math.min(f.length - 1, t)));
   const pts = pointsOf(f);
   const sf = soundFormOf(f);
-  const drums = s.drums > 0 ? drumPresetsFor(f.id, sound)[s.drums - 1] : null;
+  const st = padStyle(s, sound);
+  const drums = st ? { style: st, name: styleInfo(st).label } : null;
   const ownKit = s.kit && !drums && !!presetById(sound).groove;
   const zonesOn = s.form && sf.clear;
   const reg = FORM_REG[sound];
