@@ -42,11 +42,11 @@ export const IDEAS: readonly Idea[] = [
   I("ambush-waltz", "safe", "wtc1f06", "jazzQuartet", "jazzWaltz", 1, "The D minor 3/4 on a ride across the three instead of the band's brushes."),
   I("pilgrim-brushes", "safe", "wtc1f08", "pianoSampled", "brushes", 1, "The long E-flat minor on the grand, brushes stirring under it: late-night Loussier."),
   I("bicycle-808", "safe", "wtc1f07", "analog", "machine", 1, "Switched-On Bach's own decade, with the drum machine it never had."),
-  I("pinball-linn", "safe", "wtc1f15", "megaFm", "linn", 1, "A 6/8 gigue on FM bells and a LinnDrum: the console's attract mode."),
   I("diary-pet", "safe", "wtc1f17", "petSounds", "pet", 1, "A-flat major, the tambourine and Hal Blaine's tom: the record's own drummer."),
   I("coronation-timp", "safe", "wtc1f05", "bachBrass", "timpani", 1, "D major, trumpets, and the timpani on tonic and dominant, as Bach would have it."),
-  I("hopscotch-break", "safe", "wtc2f15", "tracker", "breakbeat", 1, "A 3/8 G major on the Amiga tracker's own break, the kick doubling on the sixteenth."),
   // BOLD
+  I("gigue-dnb", "bold", "wtc2f18", "tracker", "dnb", 1, "The 6/8 gigue on a 12/8 two-step: the snare on the second beat, the second bar broken."),
+  I("hopscotch-break", "bold", "wtc2f15", "tracker", "breakbeat", 1, "The tracker's own break read in 3/8: the kick doubling on the quaver, the snare ghosting the third."),
   I("requiem-triphop", "bold", "wtc1f12", "vocalSynth", "triphop", 1, "The slow F minor with its chromatic subject, pitched down and heavy: Bristol, 1994."),
   I("faust-triphop", "bold", "wtc1f24", "harpsichordSampled", "triphop", 1, "The twelve-note B minor at 43 on a harpsichord over a lazy break."),
   I("telephone-dnb", "bold", "wtc2f13", "tracker", "dnb", 12, "F-sharp major at 124: the fastest duple fugue, the broken second bar under the episodes."),
@@ -71,8 +71,7 @@ export const IDEAS: readonly Idea[] = [
 
 /** The candidates the proxy dropped (rendered, then read against the fugue's onsets), with the reason: not to offer again. */
 export const DROPPED: Readonly<Record<string, string>> = {
-  "wtc2f18/dnb": "6/8: S1's compound grid turns the two-step into a plain 6/8 backbeat; nothing of drum'n'bass left",
-  "wtc1f15/dnb": "6/8: the same plain backbeat as II/18, stroke for stroke",
+  "wtc1f15/linn": "6/8: the LinnDrum no longer FITS a compound metre (S1's final FITS); its 6/8 is a plain backbeat",
   "wtc1f14/ballad": "6/4: hats in triplet quarters against straight quavers, 42% on the music's grid",
   "wtc1f11/ballad": "3/8: sixteenth triplets against straight semiquavers, 41% on the grid",
   "wtc1f10/bebop": "3/4: a swung ride under straight semiquavers, 63% on the grid",

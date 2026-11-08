@@ -75,6 +75,7 @@ test("D531: IDEAS, 25-30 combinations, each complete, the planned ones not playa
     } else {
       assert.ok(isStyle(it.style), `${it.id}: ${it.style}`);
       assert.ok(ideaPlayable(it));
+      if (it.kind === "safe") assert.ok(fits(it.style, it.piece), `${it.id}: a SAFE match FITS`);
       // Loaded whole: the fugue, the sound (null where it is the fugue's own), the drums on with the style.
       const s = ideaSettings(it);
       assert.equal(s.piece, it.piece);
