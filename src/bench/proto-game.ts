@@ -84,6 +84,7 @@ import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
 import { slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { fillsFor } from "../touch/jazz-drums.ts";
+import { LATIN_SOUNDS, latinPlan } from "../touch/latin-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
 import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
@@ -1098,9 +1099,9 @@ export class ProtoGame {
       }
       // D308: the bar of count-in after a pause clicks as the first count-in does (no band).
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
-      // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here.
-      // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here; D521: the piece itself (BOSSA NOVA's drums read its form).
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f });
+      // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here;
+      // D521: the piece itself (BOSSA NOVA's drums read its form). D520/D522: SALSA's and CHORINHO's plan (latin-drums.ts: the pulse, the entries, the moments).
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f, ...(LATIN_SOUNDS[preset().id] ? { latin: latinPlan(this.f, this.beat, this.perBar) } : {}) });
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.

@@ -57,11 +57,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // The sound switched mid-play: the engine goes on from where it was (not bar 1), on the new sound.
   const before = await st();
-  await page.selectOption("#sl-sound", "harpsichordSampled");
+  await page.click('#sl-sounds [data-sound="harpsichordSampled"]');
   await page.waitForFunction(() => window.__soundlab.status().sound === "harpsichordSampled" && window.__soundlab.status().playing && !window.__soundlab.status().loading, null, { timeout: 30000 });
   await sleep(800);
   const after = await st();
-  ok(after.bar >= before.bar && after.bar <= before.bar + 3, `sound switched mid-play, no restart (bar ${before.bar} → ${after.bar})`);
+  ok(after.bar >= before.bar && after.bar <= before.bar + 3, `sound pad switched mid-play, no restart (bar ${before.bar} → ${after.bar})`);
+  ok(await page.evaluate(() => document.querySelector('#sl-sounds [data-sound="harpsichordSampled"]').classList.contains("on")), "the pad lights the sound playing");
+  ok(await page.evaluate(() => !!document.querySelector('#sl-sounds [data-sound="vocalSynth"].own')), "the pad marks the fugue's default");
   ok((await page.evaluate(() => window.__soundlab.game && window.__soundlab.game.f.id)) === "wtc1f12", "same piece playing");
 
   // The drums switched mid-play: live (the game object is the same: no rebuild), the style followed.
@@ -83,6 +85,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(200);
   ok(await page.evaluate(() => window.__soundlab.game === window.__g0), "subject/episode layer off, live");
 
+  // The summary: an item jumps to its bar (mid-play), and follows the drums chosen.
+  await page.click('[data-drums="1"]');
+  await sleep(200);
+  ok((await page.textContent("#sl-summary")).includes("ELECTRO"), "the summary names the drums now chosen");
+  const target = await page.evaluate(() => { const b = [...document.querySelectorAll("#sl-summary button")].map((x) => Number(x.dataset.bar)).filter((x) => x > 5); return b[Math.floor(b.length / 2)]; });
+  await page.click(`#sl-summary button[data-bar="${target}"]`);
+  await page.waitForFunction((b) => { const x = window.__soundlab.status(); return x.seekMs !== null && x.bar >= b; }, target, { timeout: 10000 });
+  const jb = (await st()).bar;
+  ok(jb >= target && jb <= target + 2, `a summary item jumps to its bar (b.${target}, now ${jb})`);
+  await page.click('[data-drums="0"]');
+  ok(!(await page.textContent("#sl-summary")).includes("ELECTRO"), "drums off: the summary drops them");
+
   // A/B flip: the other setting at the same point.
   const fb = await st();
   await page.click("#sl-flip");
@@ -95,6 +109,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.click("#sl-play");
   await sleep(300);
   ok(!(await st()).playing, "pause");
+
+  // Notes: kept across a reload; SEND a well-formed new-issue address with the note, the settings and the moment.
+  const NOTE = "The episode at b.16 is too dark & the drums roll too often?";
+  await page.fill("#sl-notes", NOTE);
+  await page.reload();
+  await page.waitForFunction(() => !!window.__soundlab);
+  ok((await page.inputValue("#sl-notes")) === NOTE, "notes persist across a reload");
+  const href = await page.getAttribute("#sl-send", "href");
+  const u = new URL(href);
+  ok(u.origin === "https://github.com" && u.pathname === "/matheusvalenteleite-collab/The-Well-Tempered-Game/issues/new", `SEND opens the repository's new issue (${u.pathname})`);
+  ok(u.searchParams.get("title") === "Sound Lab notes: I/12 The Requiem", `its title (${u.searchParams.get("title")})`);
+  const body = u.searchParams.get("body");
+  ok(body.startsWith(NOTE) && /Settings: .*drums/.test(body) && /Moment: http.*soundlab\.html#wtc1f12/.test(body), "its body: the note, the settings, the moment's link");
+  ok((await page.getAttribute("#sl-send", "target")) === "_blank", "SEND opens a new tab");
+  await page.fill("#sl-notes", "");
 
   // Phone width: no horizontal scroll.
   await page.setViewportSize({ width: 375, height: 800 });

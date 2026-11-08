@@ -19,6 +19,7 @@
 import { SAMPLE_MANIFEST } from "../audio/sample-manifest.ts";
 import { SITE } from "../audio/site.ts";
 import { SAMPLED_NOTES as HARPSI_ORGAN } from "./sampled-data.ts";
+import type { LatinPiece } from "./latin-drums.ts";
 
 /**
  * D292: the Salamander Grand's notes (public/samples/grand: every minor third A1-C7, two velocity layers;
@@ -127,6 +128,9 @@ export const PERIOD: Record<string, Bake> = {
   trialTrumpet: { folder: "trumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialTrombone: { folder: "sackbut", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialBassPizz: { folder: "bassPizz", rate: 32000, lp: 11000, bits: 16 },
+  // D522, CHORINHO's guitars: the classical guitar's recordings (guitar/, Freesound 11573 via tonejs-instruments, CC BY 3.0)
+  // at full fidelity, played through: the seven-string on Bach's bass and the cavaquinho's voice (its own brightness: sound.ts).
+  choroGuitar: { folder: "guitar", rate: 32000, lp: 11000, bits: 16 },
   // D504, ZELENKA TRIO (tools/playback/trio/build_trio.py): Iowa's oboe and bassoon, every semitone, a fortissimo and a
   // mezzoforte layer and short notes cut from the same player's sustains; VSCO's vibrato oboe (its loud layer the
   // trials' oboe/, its soft layer and its staccato); at full fidelity as the consort's, the held ones on a made loop
@@ -324,10 +328,49 @@ export const BRUSH_SET = "jazzBrushes";
 const BRUSH_LEN: Record<number, number> = { 48: 0.9, 49: 0.9, 50: 0.9, 51: 0.9, 52: 0.9, 53: 0.9, 54: 0.9, 55: 0.9, 60: 4, 62: 4, 64: 3, 65: 3, 72: 2.5, 74: 2.5, 76: 2.5, 84: 0.6, 85: 0.6, 86: 0.6, 87: 0.6 };
 /** D503: every brush file (MIDI), for the kit's plan. */
 export const BRUSH_MIDIS: readonly number[] = Object.keys(BRUSH_LEN).map(Number);
+/**
+ * D520/D522, SALSA's and CHORINHO's percussion (tools/playback/latin/build_latin.py, from VCSL, CC0): each piece's
+ * files in latinPerc under note names from C2 (MIDI 36), [dynamic layer: soft, loud][round robin]; each file's
+ * loudness over its first 0.15 s evened in the build (the levels per piece are chip.ts LATIN_KIT's).
+ */
+export const LATIN_FILES: Readonly<Record<LatinPiece, readonly (readonly number[])[]>> = {
+  conga: [[36, 37], [38, 39]],
+  slap: [[40, 41], [42, 43]],
+  tumba: [[44, 45], [46, 47]],
+  bongoHi: [[48, 49], [50, 51]],
+  bongoMute: [[52, 53], [54, 55]],
+  bongoLo: [[56, 57], [58, 59]],
+  bell: [[60], [61]],
+  bellLow: [[62]],
+  timbalBell: [[63], [64]],
+  clave: [[65, 66], [67, 68]],
+  hembra: [[69, 70], [71, 72]],
+  macho: [[73, 74], [75, 76]],
+  rimshot: [[77, 78]],
+  cascara: [[79, 80]],
+  pandJingle: [[81, 82]],
+  pandHit: [[83], [84]],
+  pandBass: [[85, 86]],
+  pandSlap: [[87, 88]],
+  surdo: [[89, 90], [91, 92]],
+  tamborim: [[93, 94]],
+  agogoHi: [[95], [96]],
+  agogoLo: [[97]],
+  ganza: [[98, 99], [100, 101]],
+};
+export const LATIN_SET = "latinPerc";
+const LATIN_LEN: Record<number, number> = { 36: 0.79, 37: 0.75, 38: 0.8, 39: 0.8, 40: 0.67, 41: 0.8, 42: 0.8, 43: 0.8, 44: 0.8, 45: 0.72, 46: 0.8, 47: 0.8, 48: 0.8, 49: 0.8, 50: 0.8, 51: 0.8, 52: 0.8, 53: 0.8, 54: 0.8, 55: 0.8, 56: 0.8, 57: 0.8, 58: 0.8, 59: 0.8, 60: 0.9, 61: 0.9, 62: 0.9, 63: 0.9, 64: 0.9, 65: 0.8, 66: 0.8, 67: 0.8, 68: 0.8, 69: 0.8, 70: 0.8, 71: 0.8, 72: 0.8, 73: 0.7, 74: 0.7, 75: 0.71, 76: 0.62, 77: 0.8, 78: 0.8, 79: 0.3, 80: 0.3, 81: 0.3, 82: 0.3, 83: 0.8, 84: 0.8, 85: 0.8, 86: 0.8, 87: 0.8, 88: 0.8, 89: 1.4, 90: 1.4, 91: 1.4, 92: 1.4, 93: 0.4, 94: 0.4, 95: 0.9, 96: 0.9, 97: 1.1, 98: 0.17, 99: 0.18, 100: 0.25, 101: 0.25 };
+/** D520/D522: the files a band's percussion plays (MIDI), for its plan: salsa's pieces or chorinho's. */
+export const LATIN_BAND_PIECES: Readonly<Record<"salsa" | "chorinho", readonly LatinPiece[]>> = {
+  salsa: ["conga", "slap", "tumba", "bongoHi", "bongoMute", "bongoLo", "bell", "bellLow", "timbalBell", "clave", "hembra", "macho", "rimshot", "cascara"],
+  chorinho: ["pandJingle", "pandHit", "pandBass", "pandSlap", "surdo", "tamborim", "agogoHi", "agogoLo", "ganza"],
+};
+export const latinMidis = (band: "salsa" | "chorinho"): number[] => LATIN_BAND_PIECES[band].flatMap((p) => LATIN_FILES[p].flat());
 const noteName = (m: number) => `${["C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B"][m % 12]}${Math.floor(m / 12) - 1}`;
 const JAZZ_NOTES: Record<string, Record<string, { cents: number; len: number; phoneDb?: number }>> = {
   ...Object.fromEntries(Object.entries(JAZZ_CENTS).map(([set, cs]) => [set, Object.fromEntries(Object.entries(cs).map(([n, cents]) => [n, { cents, len: JAZZ_LEN[set], ...(JAZZ_PHONE_DB[set]?.[n] ? { phoneDb: JAZZ_PHONE_DB[set][n] } : {}) }]))])),
   [BRUSH_SET]: Object.fromEntries(Object.entries(BRUSH_LEN).map(([m, len]) => [noteName(Number(m)), { cents: 0, len }])),
+  [LATIN_SET]: Object.fromEntries(Object.entries(LATIN_LEN).map(([m, len]) => [noteName(Number(m)), { cents: 0, len }])),
 };
 
 /**
@@ -446,7 +489,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -626,6 +669,9 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   jazzVibes: { set: "jazzVibes", plucked: true, gain: 5.5, soft: { set: "jazzVibesSoft", below: 0.794, gain: 1 }, hard: { set: "jazzVibesHard", above: 1.26, gain: 1 }, pedal: { short: 0.22, shortTau: 0.03, tau: 0.11 }, velTone: { perDb: 0.6, hz: 2600, min: -3, max: 3 }, maxShift: 2 },
   // D510: the band's bass on its ff recordings only from +4 dB (Busoni's f with an accent), not +2: at +2 the line's notes
   // flipped between the two sets (every whole tone, each its own tuning and colour) on 24 of I/8's first 75 notes, 6 now.
+  // D522, CHORINHO: the classical guitar (recorded every minor third or so, B1-A#5), plucked, its fingers' damping by the note's
+  // length (a short note stopped at once, a longer one let ring a little into the next), retuned 3 semitones at most.
+  choroGuitar: { set: "choroGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.09 }, velTone: { perDb: 0.5, hz: 2000, min: -2.5, max: 2.5 }, maxShift: 3 },
   jazzBass: { set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: JAZZ_BASS_HARD_ABOVE, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
   // D523, ABBEY ROAD (and D525, KRAUTROCK): the Gretsch (cleanGuitar/, every minor third E2-D6), the second electric
   // guitar (eguitar/, every minor third C#2-C6), the picked bass (rickBass/, every minor third E1-G3): plucked strings,

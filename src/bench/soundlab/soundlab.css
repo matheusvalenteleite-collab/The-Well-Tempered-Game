@@ -431,3 +431,109 @@
     font-size: 16px;
   }
 }
+/* D498: the SOUND and DRUMS pads (thumb-sized), the summary, the notes. */
+.sl-pad {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 6px;
+}
+.sl-pad button {
+  min-height: 52px;
+  background: #0f1322;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.sl-pad button.own {
+  border-style: dashed;
+  border-color: var(--dim);
+}
+.sl-pad button.on {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #1a1408 !important;
+}
+.sl-own {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+.sl-drumpad {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.sl-voice-row {
+  margin-top: 10px;
+}
+.sl-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sl-summary button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: 3px solid var(--k, var(--line));
+  padding: 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 0 4px 4px 0;
+}
+.sl-summary button:hover,
+.sl-summary button:focus-visible {
+  background: #0f1322;
+}
+.sl-summary b {
+  font-variant-numeric: tabular-nums;
+  margin-right: 4px;
+}
+.sm-climax {
+  --k: var(--accent);
+}
+.sm-pedal {
+  --k: #e06a6a;
+}
+.sm-busoni {
+  --k: #8fb0e8;
+}
+.sm-colour {
+  --k: #3f9b7a;
+}
+.sm-end {
+  --k: var(--coda);
+}
+.sl-notes {
+  width: 100%;
+  background: #0f1322;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+  font: inherit;
+  color: inherit;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+.sl-send {
+  text-decoration: none;
+  background: var(--accent);
+  color: #1a1408 !important;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.sl-send.off {
+  opacity: 0.45;
+  cursor: default;
+}
