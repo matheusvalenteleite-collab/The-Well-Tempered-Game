@@ -1917,9 +1917,15 @@ export function setBacking(on: boolean) {
   backing = on;
 }
 export const backingOn = () => backing;
+/** D497, THE SOUND LAB's switch (on by default; the game never turns it off): off, a band's own drums (Preset.groove: JAZZ QUARTET's brushes, ABBEY ROAD's and KRAUTROCK's kit) are silent. */
+let ownKit = true;
+export function setOwnKit(on: boolean) {
+  ownKit = on;
+}
+export const ownKitOn = () => ownKit;
 /** The groove playing now, if any: a band's always, CHIP's and MOOG's when DRUMS is on; D344: the friends' backing. */
 export function grooveNow(): { groove: Groove; kit: Kit } | null {
-  const g = current.groove ?? (drumsOn ? current.drums : undefined) ?? (backing ? (current.drums ?? BACKING_GROOVE) : undefined);
+  const g = (ownKit ? current.groove : undefined) ?? (drumsOn ? current.drums : undefined) ?? (backing ? (current.drums ?? BACKING_GROOVE) : undefined);
   return g ? { groove: g, kit: current.kit ?? "acoustic" } : null;
 }
 
