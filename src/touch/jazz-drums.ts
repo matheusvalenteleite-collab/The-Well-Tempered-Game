@@ -19,6 +19,7 @@
  * a LIFT, one beat of flutter into a subject's entry in the bass; the FINAL, a soft flutter over the last bar, fading.
  */
 import type { TouchFugue } from "./fugue.ts";
+import { nudge, swell, uneven, variantsInTurn, seedOf, FLAM_S, RUFF_S, GRACE_VEL } from "./drum-fills.ts";
 import ledbetter from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
 
 export type MomentKind = "fill" | "lift" | "final";
@@ -153,6 +154,10 @@ export interface BrushHit {
   piece: "tap" | "ride" | "foot";
   at: number;
   vel: number;
+  /** D535: a fill's stroke ("roll" into an entry, "fill" into a downbeat), the ticks to its landing; a grace note. */
+  role?: "roll" | "fill";
+  dur?: number;
+  grace?: boolean;
 }
 /** A swept piece: the stir or the flutter, from `at` for `len` beats, its level from `from` to `peak` (at `peakAt` of it) to `to`. */
 export interface BrushSweep {
@@ -178,7 +183,10 @@ export const dynGain = (dynDb: number) => 10 ** ((Math.max(-DYN_DB_MAX, Math.min
  * One beat of the brushes: beat `b` of a bar of `per` (`compound`: the beat in threes), at tick `tick` (a beat of
  * `beat` ticks), the piece's fills, Busoni's level here (`dynDb`, 0 without a reading), the piece's end (tick).
  */
-export function brushBeat(b: number, per: number, compound: boolean, tick: number, beat: number, fills: readonly Fill[], dynDb = 0, end = Infinity): BrushBeat {
+/** D535: the brushes' fills' pick-ups (BRUSH_PICKUPS of them, never the same twice running), off the grid by BRUSH_JITTER_S. */
+export const BRUSH_PICKUPS = 4;
+export const BRUSH_JITTER_S = 0.008;
+export function brushBeat(b: number, per: number, compound: boolean, tick: number, beat: number, fills: readonly Fill[], dynDb = 0, end = Infinity, beatS = 0.6): BrushBeat {
   const hits: BrushHit[] = [];
   const sweeps: BrushSweep[] = [];
   const g = dynGain(dynDb);
@@ -200,16 +208,47 @@ export function brushBeat(b: number, per: number, compound: boolean, tick: numbe
   const quiet = dynDb <= QUIET_DB;
   const off = compound ? 2 / 3 : SWING;
   if (roll) {
-    // The fill: the flutter rising over the beats into the downbeat (or the entry), the foot kept; two pick-up taps at its end.
+    // D535: the fill, a SWEPT CRESCENDO: the flutter rising over its beats (slow, then quicker: `swell`), its swell's peak
+    // drawn late in each beat (seeded), the foot kept; at its end a pick-up of the brush, one of BRUSH_PICKUPS in turn
+    // (never the same twice running): two taps, a triplet's with a flam, the drop on the swung off-beat, a ruff into it.
     const n = Math.max(1, Math.round((roll.at - roll.from) / beat));
     const k = Math.max(0, Math.min(n - 1, Math.round((tick - roll.from) / beat)));
-    const lv = (x: number) => (roll.kind === "lift" ? 0.22 + 0.3 * x : 0.25 + 0.5 * x);
+    const lift = roll.kind === "lift";
+    const seed = seedOf(roll.at, 503);
+    const lv = (x: number) => (lift ? swell(0.22, 0.52, x) : swell(0.25, 0.76, x));
     const lastBeat = k === n - 1;
-    sweeps.push({ piece: "flutter", at: 0, len: 1, from: lv(k / n) * g, peak: lv((k + 0.6) / n) * g, peakAt: 0.6, to: lv((k + 1) / n) * g, firm: lastBeat && roll.kind === "fill" });
-    if (back) hits.push({ piece: "foot", at: 0, vel: 0.4 * g });
+    const peakAt = 0.55 + 0.25 * ((seed >>> 8) % 97) / 96;
+    sweeps.push({ piece: "flutter", at: 0, len: 1, from: lv(k / n) * g, peak: lv((k + peakAt) / n) * g * 1.04, peakAt, to: lv((k + 1) / n) * g, firm: lastBeat && roll.kind === "fill" });
+    if (back) hits.push({ piece: "foot", at: 0, vel: uneven(0.4 * g, seed, 30 + k) });
     if (lastBeat) {
-      if (roll.kind === "fill") hits.push({ piece: "tap", at: compound ? 1 / 3 : 0.5, vel: 0.38 * g }, { piece: "tap", at: compound ? 2 / 3 : 0.75, vel: 0.5 * g });
-      else hits.push({ piece: "tap", at: off, vel: 0.36 * g });
+      const role = lift ? ("roll" as const) : ("fill" as const);
+      const fills0 = fills.filter((x) => x.kind !== "final");
+      const v = variantsInTurn(fills0, BRUSH_PICKUPS, 503)[fills0.indexOf(roll)] ?? 0;
+      const tap = (at: number, vel: number, i: number, grace = false) =>
+        hits.push({ piece: "tap", at: grace ? at : nudge(at, beatS, BRUSH_JITTER_S, seed, i), vel: grace ? vel : uneven(vel * g, seed, i), role, dur: Math.max(0, roll.at - tick - at * beat), ...(grace ? { grace: true } : {}) });
+      const grace = (at: number, main: number, gs: number, i: number) => at - gs / beatS > 0 && tap(at - gs / beatS, Math.max(0.03, main * g * GRACE_VEL), i, true);
+      const a3 = compound ? [1 / 3, 2 / 3] : [1 / 3, 2 / 3];
+      if (lift) {
+        // A lift: the swung off-beat's tap; a later one; a ghost then the off-beat; a ruff into a later one.
+        const late = compound ? 1 / 3 : 0.75;
+        if (v === 0) tap(off, 0.36, 2);
+        else if (v === 1) tap(late, 0.38, 2);
+        else if (v === 2) tap(compound ? 1 / 3 : 0.25, 0.2, 1), tap(off, 0.38, 2);
+        else {
+          for (const [i, gs] of RUFF_S.entries()) grace(late, 0.38, gs, 5 + i);
+          tap(late, 0.4, 2);
+        }
+      } else if (v === 0) {
+        tap(compound ? 1 / 3 : 0.5, 0.38, 1), tap(compound ? 2 / 3 : 0.75, 0.5, 2);
+      } else if (v === 1) {
+        tap(a3[0], 0.32, 1), grace(a3[1], 0.52, FLAM_S, 2), tap(a3[1], 0.52, 3);
+      } else if (v === 2) {
+        tap(off, 0.56, 1);
+        hits.push({ piece: "foot", at: off, vel: uneven(0.3 * g, seed, 4) });
+      } else {
+        for (const [i, gs] of RUFF_S.entries()) grace(off, 0.5, gs, 5 + i);
+        tap(off, 0.5, 7);
+      }
     }
     return { hits, sweeps };
   }

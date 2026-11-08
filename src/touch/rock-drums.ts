@@ -31,6 +31,8 @@
  */
 import type { TouchFugue } from "./fugue.ts";
 import { formOf as formPoints } from "./form-points.ts";
+import { FILL_AFTER_FILL, fillBeats, fillSlice, nextVariant, rand, seedOf } from "./drum-fills.ts";
+import { tempoOf } from "./tempi.ts";
 
 export type RockStyle = "abbey" | "motorik";
 /** The kit's pieces (Big Rusty Drums: sampled.ts ROCK_KIT, two strengths each). */
@@ -40,6 +42,11 @@ export interface KitHit {
   piece: KitPiece;
   at: number;
   vel: number;
+  /** D535: a fill's stroke (into an entry: "roll"; into the final chord: "fill"), the ticks from it to the landing. */
+  role?: "roll" | "fill" | "accent";
+  dur?: number;
+  /** D535: a flam's or a ruff's grace note. */
+  grace?: boolean;
 }
 
 /** A moment of the form on the clock: a roll (or a pick-up) from `from` to `at` (ticks), what lands at `at`, and why. */
@@ -48,6 +55,8 @@ export interface RockMoment {
   from: number;
   at: number;
   why: string;
+  /** D535: which of drum-fills.ts's rock fills (never the one before), for a fill or the final flourish. */
+  variant?: number;
 }
 export interface RockForm {
   /** Ticks where the first entry ends (the band comes in with the second: ABBEY ROAD's hat and cross-stick before). */
@@ -117,6 +126,12 @@ export function formOf(f: TouchFugue, beat: number, style: RockStyle): RockForm 
   const finalEntry = entries.length > 1 ? entries[entries.length - 1] : undefined;
   const finalLand = finalEntry ? beatOf(f, finalEntry.on, beat) : -1;
   let lastFill = -Infinity;
+  // D535: the fills' phrasing and choice (drum-fills.ts): the tempo, the bar, the landing before, the fill before.
+  const beatS = (beat / f.tpq) * (60 / tempoOf(f.id));
+  const per = Math.max(1, Math.round(bar / beat));
+  let prevLand = intro;
+  let prevFilled = false;
+  let prevVar = -1;
   entries.forEach((e, i) => {
     if (i === 0) return;
     const at = beatOf(f, e.on, beat);
@@ -133,13 +148,29 @@ export function formOf(f: TouchFugue, beat: number, style: RockStyle): RockForm 
     const afterEpisode = episodes.some(([, to]) => Math.abs(to - e.on) < bar);
     if (at - lastFill < MIN_FILL_GAP_BARS * bar) {
       moments.push({ kind: "accent", from: at, at, why: `${what}, in stretto: a crash only` });
+      prevLand = at;
       return;
     }
-    const beats = afterEpisode ? 2 : 1;
-    moments.push({ kind: "fill", from: Math.max(0, at - beats * beat), at, why: `${afterEpisode ? "after the episode, " : ""}${what}` });
+    // D535: not every entry: after a fill the next is left to its crash more often than not (seeded: the same each time).
+    const seed = seedOf(at, 17);
+    if (prevFilled && rand(seed, 2) >= FILL_AFTER_FILL) {
+      moments.push({ kind: "accent", from: at, at, why: `${what}: a crash only (the fill before it enough)` });
+      prevFilled = false;
+      prevLand = at;
+      return;
+    }
+    // Its length by the phrase it ends (the bars since the landing before: 1, 2 or 4) and the tempo, two beats at least
+    // after an episode; never the fill before it.
+    const room = Math.max(1, Math.floor((at - prevLand) / beat + 1e-6) - 1);
+    const beats = Math.max(afterEpisode ? Math.min(2, room) : 1, fillBeats((at - prevLand) / bar, beatS, per, room));
+    const variant = nextVariant("rock", prevVar, seed);
+    moments.push({ kind: "fill", from: Math.max(0, at - beats * beat), at, why: `${afterEpisode ? "after the episode, " : ""}${what}`, variant });
+    prevVar = variant;
+    prevFilled = true;
+    prevLand = at;
     lastFill = at;
   });
-  if (finalLand !== finalAt) moments.push({ kind: "final", from: Math.max(0, finalAt - 2 * beat), at: finalAt, why: "the final chord: the closing flourish" });
+  if (finalLand !== finalAt) moments.push({ kind: "final", from: Math.max(0, finalAt - 2 * beat), at: finalAt, why: "the final chord: the closing flourish", variant: nextVariant("rock", prevVar, seedOf(finalAt, 17)) });
   const out: RockForm = { intro, moments: moments.sort((a, b) => a.at - b.at), episodes, finalAt };
   memo.set(key, out);
   return out;
@@ -203,18 +234,17 @@ function abbey(b: number, per: number, compound: boolean, tick: number, beat: nu
     return out;
   }
   if (c.roll) {
-    // The fill: Ringo's tumble, the snare then down the toms, rising, the kick under its first note.
-    const n = Math.max(1, Math.round((c.roll.at - c.roll.from) / beat));
-    const k = Math.max(0, Math.min(n - 1, Math.round((tick - c.roll.from) / beat)));
-    const steps = compound ? [0, 1 / 3, 2 / 3] : [0, 0.25, 0.5, 0.75];
-    const total = n * steps.length;
-    steps.forEach((at, j) => {
-      const i = k * steps.length + j;
-      const x = i / Math.max(1, total - 1);
-      const piece: KitPiece = x < 0.4 ? "snare" : x < 0.75 ? "tomHigh" : "tomLow";
-      hit(piece, at, 0.5 + 0.4 * x);
-    });
-    if (k === 0) hit("kick", 0, 0.6);
+    // D535: the fill: Ringo's tumble (drum-fills.ts's rock fills: down the toms, the kick under them, flams and ruffs, the
+    // hands uneven, a little off the grid), rising to the crash on the entry; never the same fill twice running.
+    const r = c.roll;
+    const beats = Math.max(1, Math.round((r.at - r.from) / beat));
+    const role = r.kind === "final" ? ("fill" as const) : ("roll" as const);
+    const spec = { feel: "rock" as const, variant: r.variant ?? 0, beats, beatS, compound, lo: 0.42, hi: 0.9, seed: seedOf(r.at, 17) };
+    for (const h of fillSlice(spec, r.from, beat, tick, r.at)) {
+      const before = out.length;
+      hit(h.piece as KitPiece, h.t, h.vel);
+      if (out.length > before) Object.assign(out[out.length - 1], { role, dur: Math.max(0, r.at - (tick + h.t * beat)) }, h.grace ? { grace: true } : {});
+    }
     return out;
   }
   if (tick < form.intro) {

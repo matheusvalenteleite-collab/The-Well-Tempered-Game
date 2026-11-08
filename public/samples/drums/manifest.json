@@ -100,5 +100,21 @@
       "woodblock"
     ],
     "notes": "Unruly Drums (CC0, snare wires on every drum): kick in + out + OH, 14in snare top + OH pair, rim = sidestick, toms = 13in and 22in drums, clean tom articulation, 16in crash, 20in ride, woodblock close + OH."
+  },
+  "period": {
+    "voices": [
+      "sideDrum",
+      "fieldDrum",
+      "tabor",
+      "drumStick",
+      "frameDum",
+      "frameTek",
+      "tambourine",
+      "castanets",
+      "bassDrum",
+      "cymbals",
+      "triangle"
+    ],
+    "notes": "D532, the period kit (all CC0 1.0): Versilian Community Sample Library (Versilian Studios LLC): the rope-tension snare (sideDrum: high head, snares on; fieldDrum: low head, snares on; tabor: low head, snares off; drumStick: stick on the rim), Frame Drum (frameDum: the large hand drum; frameTek: the small), Tambourine 1, Bass Drum 2, Clash Cymbals 1, Triangle 1; FreePats World Percussion (Xavimart, Gonzalo, Roberto): castanets. Built by tools/playback/period-drums/build_period.py."
   }
 }

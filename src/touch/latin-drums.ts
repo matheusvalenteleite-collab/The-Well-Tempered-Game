@@ -23,6 +23,7 @@
 import type { TouchFugue } from "./fugue.ts";
 import { entrySpans } from "./voice-mode.ts";
 import { TEMPO } from "./tempi.ts";
+import { nudge, uneven, variantsInTurn, seedOf, FLAM_S, RUFF_S, GRACE_VEL } from "./drum-fills.ts";
 
 export type LatinBand = "salsa" | "chorinho";
 /** The kit's pieces (sampled.ts LATIN_FILES files each). */
@@ -201,6 +202,10 @@ export interface LatinHit {
   at: number;
   vel: number;
   damp?: number;
+  /** D535: a fill's stroke ("roll" a lift's, "fill" a fill's or the final's), the ticks to its landing; a grace note. */
+  role?: "roll" | "fill";
+  dur?: number;
+  grace?: boolean;
 }
 /** The louder recording from this velocity. */
 export const LOUD_FROM = 0.6;
@@ -318,17 +323,38 @@ const mod = (a: number, n: number) => ((a % n) + n) % n;
 /** Whether a subject or answer sounds at `tick`. */
 export const inEntry = (plan: LatinPlan, tick: number) => plan.entries.some(([on, end]) => tick >= on && tick < end);
 
-/** One pulse of a roll at `x` of its way (0-1), pulse `j` of it: salsa's timbales (macho and hembra, a rimshot to end), the
- * bongos' lick for a lift; chorinho's tamborim virada over the pandeiro's jingles, the surdo to end; a lift the tamborim. */
-function rollHit(band: LatinBand, kind: LatinKind, x: number, j: number, last: boolean, g: number): LatinHit[] {
+/**
+ * D535: one pulse of a roll, pulse `j` of `steps`, at `x` of its way (0-1), in its band's style, one of LATIN_FILLS in
+ * turn (never the same twice running). SALSA's timbalero: the ABANICO (the cáscara's rhythm on the drums, then a
+ * ruff on the hembra into the rimshot), the TIMBAL RUN (macho down to hembra, the clave's 3-3-2 accented), CÁSCARA AND
+ * DRUMS (the shell's pattern, the drums on its accents, the abanico to end); a lift the bongocero's lick (martillo or
+ * its turn). CHORINHO's: the tamborim's VIRADA (3-3-2 over the pandeiro's jingles), the PANDEIRO's roll (the tamborim
+ * last), the TELECOTECO (the tamborim's syncopation); the surdo to end; a lift the tamborim's lick. `grace`: a ruff's or
+ * a flam's grace notes ahead of it (seconds, negative).
+ */
+export const LATIN_FILLS = { salsa: 3, chorinho: 3 } as const;
+const CASCARA = "x.xx.x.x";
+const TELECO = "x.x.xx.x.xx.x.x.";
+function rollHit(band: LatinBand, kind: LatinKind, x: number, j: number, steps: number, v: number, g: number): (LatinHit & { graceS?: readonly number[] })[] {
   const lift = kind === "lift";
-  const vel = (lift ? 0.25 + 0.3 * x : 0.3 + 0.5 * x) * g;
+  const last = j === steps - 1;
+  const acc = (p: number) => p % 8 === 0 || p % 8 === 3 || p % 8 === 6;
+  const base = (lift ? 0.25 + 0.3 * x ** 1.2 : 0.3 + 0.5 * x ** 1.3) * g;
+  const vel = base * (acc(j) ? 1.12 : j % 2 ? 0.84 : 0.95);
   if (band === "salsa") {
-    if (lift) return [{ piece: j % 2 ? "bongoLo" : "bongoHi", at: 0, vel }];
-    return last ? [{ piece: "rimshot", at: 0, vel: 0.62 * g }] : [{ piece: j % 3 === 2 ? "hembra" : "macho", at: 0, vel }];
+    if (lift) return v % 2 ? [{ piece: (["bongoHi", "bongoMute", "bongoHi", "bongoLo"] as const)[j % 4], at: 0, vel }] : [{ piece: j % 2 ? "bongoLo" : "bongoHi", at: 0, vel }];
+    if (last) return [{ piece: "rimshot", at: 0, vel: 0.62 * g, ...(v !== 1 ? { graceS: RUFF_S } : {}) }];
+    if (v === 1) return [{ piece: j / steps < 0.5 ? "macho" : "hembra", at: 0, vel, ...(acc(j) && j > 0 ? { graceS: [FLAM_S] } : {}) }];
+    const shell = CASCARA[j % 8] === "x";
+    if (v === 0) return j === 0 || shell ? [{ piece: j % 3 === 2 ? "hembra" : "macho", at: 0, vel: shell ? vel : vel * 0.7 }] : [];
+    // Cáscara and drums: the shell on its pattern, the drums on the clave's accents (the first always a drum).
+    return j === 0 || acc(j) ? [{ piece: j % 2 ? "hembra" : "macho", at: 0, vel }] : shell ? [{ piece: "cascara", at: 0, vel: vel * 0.75 }] : [];
   }
-  if (lift) return [{ piece: "tamborim", at: 0, vel }];
-  return [{ piece: "tamborim", at: 0, vel }, { piece: j % 2 ? "pandJingle" : "pandHit", at: 0, vel: vel * 0.8 }, ...(last ? [{ piece: "surdo" as const, at: 0, vel: 0.5 * g }] : [])];
+  if (lift) return v % 2 && j % 3 === 1 ? [] : [{ piece: "tamborim", at: 0, vel }];
+  const surdo = last ? [{ piece: "surdo" as const, at: 0, vel: 0.5 * g }] : [];
+  if (v === 0) return [{ piece: "tamborim", at: 0, vel: acc(j) ? vel : vel * 0.7 }, { piece: j % 2 ? "pandJingle" : "pandHit", at: 0, vel: vel * 0.75 }, ...surdo];
+  if (v === 1) return [{ piece: j % 2 ? "pandJingle" : "pandHit", at: 0, vel: vel * 0.9 }, ...(x >= 0.66 ? [{ piece: "tamborim" as const, at: 0, vel, ...(x - 1 / steps < 0.66 ? { graceS: [FLAM_S] } : {}) }] : []), ...surdo];
+  return [...(TELECO[j % 16] === "x" ? [{ piece: "tamborim" as const, at: 0, vel }] : []), { piece: "pandJingle", at: 0, vel: vel * 0.6 }, ...surdo];
 }
 
 /** The landing on the downbeat or the entry a moment leads into: the band's strongest strokes together. */
@@ -344,7 +370,9 @@ function landing(band: LatinBand, kind: LatinKind, g: number): LatinHit[] {
  * (`at` in beats from the beat), pulse by pulse: past the final's landing nothing; in a break nothing; in a roll its
  * stroke; on a moment's tick the landing; else the groove, FULL under an entry, QUIET (EPISODE_DB) in an episode.
  */
-export function latinBeat(band: LatinBand, plan: LatinPlan, tick: number, beat: number, dynDb = 0): LatinHit[] {
+/** D535: the fills' strokes off the grid by this much (s) at most. */
+export const LATIN_JITTER_S = 0.005;
+export function latinBeat(band: LatinBand, plan: LatinPlan, tick: number, beat: number, dynDb = 0, beatS = 0.6): LatinHit[] {
   const g = dynGain(dynDb);
   const sub = Math.max(1, Math.round(beat / plan.pulse));
   const q = plan.pulse / 2;
@@ -365,7 +393,17 @@ export function latinBeat(band: LatinBand, plan: LatinPlan, tick: number, beat: 
     if (r) {
       const steps = Math.max(1, Math.round((r.at - r.from) / plan.pulse));
       const i = Math.round((t - r.from) / plan.pulse);
-      put(rollHit(band, r.kind, i / steps, i, i === steps - 1, g));
+      const moves = plan.fills.filter((x) => x.kind !== "break");
+      const v = variantsInTurn(moves, LATIN_FILLS[band], 520)[moves.indexOf(r)] ?? 0;
+      const seed = seedOf(r.at, 520);
+      const role = r.kind === "lift" ? ("roll" as const) : ("fill" as const);
+      for (const [n, h] of rollHit(band, r.kind, i / steps, i, steps, v, g).entries()) {
+        const { graceS, ...hit } = h;
+        const when = nudge(at, beatS, LATIN_JITTER_S, seed, 4 * i + n);
+        const dur = Math.max(0, r.at - (tick + when * beat));
+        for (const gs of graceS ?? []) if (when - gs / beatS >= 0) out.push({ piece: hit.piece === "rimshot" ? "hembra" : hit.piece, at: when - gs / beatS, vel: Math.max(0.03, hit.vel * GRACE_VEL), role, dur, grace: true });
+        out.push({ ...hit, at: when, vel: uneven(hit.vel, seed, 4 * i + n), role, dur });
+      }
       continue;
     }
     const full = inEntry(plan, t);

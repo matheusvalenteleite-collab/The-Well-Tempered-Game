@@ -7,7 +7,9 @@
  * A patch is played by chip.ts; the player's own voice takes its patch, shaped by the touch.
  * D292: the players now choose among five sounds only (PRESETS); the other patches are kept for later.
  */
-import type { SampledId } from "./sampled.ts";
+import type { SampledId, Slim } from "./sampled.ts";
+import { BAND_CHAINS, V2_BANDS, baseSound, v2Id, type ChainSpec } from "./band-fx.ts";
+export { V2_BANDS, baseSound, v2Id };
 
 export type Wave = "saw" | "square" | "triangle" | "sine" | "pulse12" | "pulse25" | "pulse50" | "organ" | "reed" | "bell" | ShapedWave;
 
@@ -112,6 +114,23 @@ export const SHAPES = {
   hardSync: (x: number) => (0.7 * (2 * ((1.5 * x) % 1) - 1) + 0.6 * (2 * x - 1)) / 1.3,
   /** D302: a 4' flute (Rohrflöte): the fundamental, a little of the 2nd and 3rd (the chimney's). */
   stopFlute4: (x: number) => partials(x, [1, 0.1, 0.2, 0.04]),
+  /**
+   * D543, KRAUTROCK v2: a transistor combo organ's tone (the Farfisa Compact's divider boards, Irmin Schmidt's in Can): a
+   * square (the dividers' flip-flops: the odd harmonics) with a 25% pulse (its "oboe"/"trumpet" tabs: the even ones too,
+   * all but every fourth), reedy and buzzing; the patch adds the 4' an octave up, the lane the formant.
+   */
+  comboOrgan: (x: number) => 0.6 * ((x % 1) < 0.5 ? 1 : -1) + 0.4 * ((x % 1) < 0.25 ? 1 : -1),
+  /**
+   * D544, ABBEY ROAD v2: a tonewheel organ's drawbars (a Hammond's, Billy Preston's on the 1969 sessions), as one wave over
+   * the 16' (played an octave under the note): 16' at 6, 8' at 8, 5 1/3' at 7, 4' at 6, 2 2/3' at 3, 2' at 4 (each drawbar
+   * step about 3 dB): "68 7603 400", the gospel-rock registration, the 8' the pitch heard. Each tonewheel a pure sine.
+   */
+  tonewheel: (x: number) => partials(x, [0.5, 1, 0.7, 0.5, 0, 0.18, 0, 0.25]),
+  /**
+   * D545, PET SOUNDS v2: an accordion's free reed (the brass tongue through its slot: every harmonic, falling slowly, the
+   * even ones nearly as strong as the odd: brighter and more open than a clarinet's), for the musette's three reeds.
+   */
+  freeReed: (x: number) => partials(x, [1, 0.75, 0.62, 0.5, 0.42, 0.33, 0.28, 0.22, 0.18, 0.15, 0.12, 0.1, 0.08, 0.06]),
 } satisfies Record<string, (x: number) => number>;
 export type ShapedWave = keyof typeof SHAPES;
 /** D297: a periodic wave from its partials' amplitudes (sines in phase), over their sum (within -1..1; the PeriodicWave normalises it anyway). */
@@ -328,6 +347,8 @@ export interface Patch {
    * where it is not joined on); the brightness follows it (`tone` dB of high shelf at the top of the swell).
    */
   swell?: { db: number; min: number; tone: number };
+  /** D540: the lane of a v2 band's chain (band-fx.ts ChainSpec.lanes) this patch's notes join: the organ's Leslie, the guitar's fuzz. */
+  lane?: string;
 }
 
 /** D504: one instrument of a basso continuo (Patch.continuo). */
@@ -677,6 +698,27 @@ export const SALSA_BASS_PHONE_LIFT = { hz: 320, db: 15, cut: 280 } as const;
  * JAZZ QUARTET's (the Iowa pizzicato, its phone handling and its wood).
  */
 export const BOSSA_SEND = 0.15;
+/**
+ * D546-D548, the Latin bands' v2 (STUDY.md §3-5; band-fx.ts BAND_CHAINS salsa, bossaNova, chorinho). SALSA v2: each brass
+ * note's bite (Patch.rec: a 12 ms tongue, the accent falling to 80% with a 40 ms time constant); the tres's courses (Patch.one
+ * .courses: under C4 the course's octave string at -9 dB, from C4 its unison twin 6 cents apart and 4 ms later, both a
+ * little brighter); its pick's edge (a 2.5 kHz shelf). BOSSA NOVA v2: the sax subtoned (-7 dB from 1.8 kHz), the guitar's
+ * thumb (-3 dB from 2.6 kHz: Iowa's mf stroke without its nail). CHORINHO v2: the bandolim's paired steel courses (its
+ * twin 7 cents apart, 3 ms later, brighter; no octave strings), its tremolo (Patch.motor: 13 Hz, 30% deep, in over 0.35 s,
+ * so a short note is struck once and a long one shimmers), its brightness; the flute a little brighter.
+ */
+export const SALSA2_SEND = 0.1;
+export const SALSA2_BITE = { a: 0.012, d: 0.12, s: 0.8, r: 0.1 } as const;
+export const SALSA2_TRES_COURSES = { split: 60, unison: { gain: 0.85, cents: 6, delay: 0.004, shelf: 2 }, octave: { gain: 0.35, shelf: 2 } } as const;
+export const SALSA2_TRES_SHELF = { hz: 2500, db: 3 } as const;
+export const BOSSA2_SEND = 0.14;
+export const BOSSA2_SUBTONE = { hz: 1800, db: -7 } as const;
+export const BOSSA2_THUMB = { hz: 2600, db: -3 } as const;
+export const CHORO2_SEND = 0.12;
+export const CHORO2_COURSES = { split: 0, unison: { gain: 0.9, cents: 7, delay: 0.003, shelf: 3 }, octave: { gain: 0, shelf: 0 } } as const;
+export const CHORO2_TREMOLO = { rate: 13, depth: 0.3, rise: 0.35 } as const;
+export const CHORO2_BANDOLIM_SHELF = { hz: 2800, db: 2 } as const;
+export const CHORO2_FLUTE_SHELF = { hz: 3000, db: 1.5 } as const;
 export const BOSSA_GUITAR_PHONE_LIFT = { hz: 700, db: 5 } as const;
 export const BOSSA_PIANO_SHELF = { hz: 2800, db: -2 } as const;
 /**
@@ -688,6 +730,12 @@ export const BOSSA_PIANO_SHELF = { hz: 2800, db: -2 } as const;
 export const PET_SEND = 0.2;
 export const PET_BASS_SEND = 0.04;
 export const PET_BASS_PHONE_LIFT = { hz: 500, db: 11 } as const;
+/** D543-D545: the v2 rock bands' sends (into the chain's one reverb) and their instruments' levels (measured: NOTES.md in scratchpad/bands2/<band>). */
+export const KRAUT2_SEND = 0.06;
+export const KRAUT2_LEVEL = { organ: 0.28, moog: 0.3, fuzz: 0.5, tron: 0.36, clean: 0.5 } as const;
+export const ABBEY2_SEND = 0.2;
+export const ABBEY2_LEVEL = { moog: 0.185, guitar: 1.1, hammond: 0.35, trumpet: 1.3, bass: 0.25 } as const;
+export const PET2_LEVEL = { accordion: 0.23 } as const;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1287,6 +1335,55 @@ export const PATCHES = {
   psHarpsi: P({ ...HARPSI_SAMPLED, send: PET_SEND }),
   psPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: PET_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, phoneLift: PIANO_PHONE_LIFT }),
   psBass: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "sine" }], filter: { freq: 2.5, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1, s: 0, r: 0.06 }, send: PET_BASS_SEND, level: 0.85, sample: "rockBass", one: {}, phoneLift: PET_BASS_PHONE_LIFT }),
+  // D546, SALSA v2 (Fania's New York, 1968-75: STUDY.md §3): the brass front line, trombone-led (Palmieri's two trombones
+  // "for a heavier sound"), each note's bite (SALSA2_BITE: a hard tongue, an accent falling to 80% within 0.12 s); the tres
+  // (the guitar's recordings strung as its three doubled courses: SALSA2_TRES_COURSES, the low course in octaves, the upper
+  // in unison), crisp and damped; the baby bass's round "boom". Lanes of the band's chain: "horns", "tres".
+  s2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.15, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "horns" }),
+  s2Trombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.5, sample: "brassTrombone", bow: BRASS_TONGUE, one: {}, lane: "horns", phoneLift: BRASS_HORN_PHONE_LIFT }),
+  s2Tres: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 5, q: 0.8, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.06 }, send: SALSA2_SEND, level: 0.5, sample: "choroGuitar", one: { courses: SALSA2_TRES_COURSES }, shelf: SALSA2_TRES_SHELF, lane: "tres" }),
+  s2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.6, s: 0, r: 0.06 }, send: SALSA2_SEND * 0.3, level: 1.7, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT }),
+  // D547, BOSSA NOVA v2 (Rio and A&R New York, 1959-64: STUDY.md §4): the alto flute (Iowa's: the breathy low flute of the
+  // period's arrangements), slow-tongued; the Rhodes as FM (a tine: 1:1 with a 14:1 bell transient, its index falling; the
+  // Suitcase's tremolo panning at 4 Hz); the tenor saxophone subtoned (Getz's: the top rolled off); the nylon guitar's
+  // thumb (its nails darkened); the double bass soft and damped. Lane of the band's chain: "keys".
+  b2Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.1 }], amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.16 }, rec: { a: 0.055, d: 0.2, s: 0.92, r: 0.16 }, send: BOSSA2_SEND, level: 0.62, sample: "bossaAltoFlute", bow: WIND_TONGUE, one: {} }),
+  b2Rhodes: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 1.5, to: 0.35, time: 0.4, mod2: { ratio: 14, index: 0.55, to: 0, time: 0.04 } }, filter: { freq: 5000, hz: true, q: 0.5 }, amp: { a: 0.002, d: 2.2, s: 0, r: 0.22 }, autopan: { rate: 4, depth: 0.2 }, send: BOSSA2_SEND, level: 0.14, one: {}, lane: "keys" }),
+  b2Sax: P({ osc: [{ wave: "saw", gain: 0.4 }, { wave: "sine" }], filter: { freq: 2.2, q: 0.7 }, amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.14 }, rec: { a: 0.06, d: 0.2, s: 0.92, r: 0.14 }, send: BOSSA2_SEND, level: 0.5, sample: "bossaSax", bow: WIND_TONGUE, one: {}, shelf: BOSSA2_SUBTONE }),
+  b2Guitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.15 }], filter: { freq: 2.5, q: 0.7, env: 1.6, envDecay: 0.15 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.12 }, send: BOSSA2_SEND, level: 0.55, sample: "bossaGuitar", one: {}, shelf: BOSSA2_THUMB, phoneLift: BOSSA_GUITAR_PHONE_LIFT }),
+  b2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 2.5, q: 1, env: 1.2, envDecay: 0.1 }, amp: { a: 0.006, d: 0.8, s: 0, r: 0.1 }, send: BOSSA2_SEND * 0.4, level: 1.07, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  // D548, CHORINHO v2 (a regional on the radio, the 1950s: STUDY.md §5): the bandolim (the steel-strung guitar's recordings
+  // strung as its paired courses, a few cents apart, bright; a note held past a third of a second tremolo-picked: the
+  // course re-struck at 13 Hz, its level beaten, no new pitch: CHORO2_TREMOLO), the flute tongued and bright, the clarinet
+  // legato, the cavaquinho bright and short, the seven-string's baixaria. Lanes: "bandolim", "plucked".
+  c2Bandolim: P({ osc: [{ wave: "pulse12" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 6, q: 0.8, env: 2, envDecay: 0.06 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.05 }, send: CHORO2_SEND, level: 0.8, sample: "rockGuitar", one: { courses: CHORO2_COURSES }, motor: CHORO2_TREMOLO, shelf: CHORO2_BANDOLIM_SHELF, lane: "bandolim" }),
+  c2Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.08 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.08 }, send: CHORO2_SEND, level: 0.43, sample: "trialFlute", bow: WIND_TONGUE, one: {}, shelf: CHORO2_FLUTE_SHELF }),
+  c2Clarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: CHORO2_SEND, level: 0.55, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
+  c2Cavaco: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 4, q: 0.7, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.35, s: 0, r: 0.05 }, send: CHORO2_SEND, level: 0.45, sample: "choroGuitar", one: {}, shelf: CHORO_CAVACO_SHELF, hp: CHORO_CAVACO_HP, lane: "plucked" }),
+  c27: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.5, envDecay: 0.12 }, amp: { a: 0.003, d: 0.9, s: 0, r: 0.08 }, send: CHORO2_SEND * 0.6, level: 0.19, sample: "choroGuitar", one: {}, phoneLift: CHORO_BASS_PHONE_LIFT, lane: "plucked" }),
+  // D543, KRAUTROCK v2 (STUDY.md §1): the combo organ (synthesised: comboOrgan at 8' and 4', no attack but the key's click,
+  // gate-legato, the tab's vibrato off), the Moog bass (two saws 6 cents apart and a square sub through the 24 dB ladder, its
+  // filter snapping 2.6 -> 1.1 kHz over 120 ms on each new note, a 30 ms glide on a joined one), the fuzz guitar (the
+  // electric guitar's recordings, the lane's fuzz and dotted-eighth tape echo), the Mellotron flute (the flute's recordings
+  // "on tape": a 35 ms tape attack, never tongued, each note's own wow, the lane's tape and narrow band), the phased clean
+  // guitar (the Gretsch's, ringing; the lane's phaser). Each plays one of Bach's voices; nothing added.
+  k2Organ: P({ osc: [{ wave: "comboOrgan" }, { wave: "comboOrgan", octave: 1, gain: 0.32 }], filter: { freq: 5200, hz: true, q: 0.6 }, chiff: { level: 0.035, time: 0.004, at: 14 }, amp: { a: 0.003, d: 0.05, s: 1, r: 0.025 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.organ, one: {}, lane: "organ" }),
+  k2Moog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 6, gain: 0.8 }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1100, hz: true, q: 1.5, env: 2.4, envDecay: 0.12, poles: 4 }, slide: 0.03, hp: 38, amp: { a: 0.008, d: 0.6, s: 0.72, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: KRAUT2_SEND * 0.2, level: KRAUT2_LEVEL.moog, one: {} }),
+  k2Fuzz: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.fuzz, sample: "rockGuitar2", one: {}, lane: "guitar" }),
+  k2Tron: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.035, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.035, d: 0.1, s: 0.92, r: 0.09 }, vib: { depth: 7, rate: 0.9, delay: 0 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.tron, sample: "trialFlute", one: {}, lane: "mellotron" }),
+  k2Clean: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND * 1.5, level: KRAUT2_LEVEL.clean, sample: "rockGuitar", one: {}, lane: "clean" }),
+  // D544, ABBEY ROAD v2 (STUDY.md §2): the Moog lead (saw and square through the ladder, a slow-opening filter, a 40 ms
+  // portamento into a joined note: "Because"), the Gretsch through a Leslie and ADT, hard left; the Hammond (tonewheel, the
+  // key click, its Leslie), hard right; the trumpet (Iowa's, tongued, ADT, the Fairchild), right; the picked bass with
+  // flatwound strings (the lane's 1.6 kHz lowpass and 150 Hz bump), in the middle. No piano.
+  a2Moog: P({ osc: [{ wave: "saw" }, { wave: "square", gain: 0.5 }, { wave: "saw", detune: 5, gain: 0.35 }], filter: { freq: 3.2, q: 1.8, env: 1.8, envDecay: 0.25, poles: 4 }, slide: 0.04, amp: { a: 0.025, d: 0.3, s: 0.85, r: 0.08 }, vib: { depth: 7, rate: 5.3, delay: 0.45 }, drift: { cents: 2.5, rate: 0.07 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.moog, one: {}, lane: "moog" }),
+  a2Guitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.guitar, sample: "rockGuitar", one: {}, shelf: ABBEY_GUITAR_SHELF, lane: "guitar" }),
+  a2Hammond: P({ osc: [{ wave: "tonewheel", octave: -1 }], filter: { freq: 4200, hz: true, q: 0.6, env: 1.6, envDecay: 0.06 }, chiff: { level: 0.12, time: 0.005, at: 10 }, amp: { a: 0.004, d: 0.05, s: 1, r: 0.04 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.hammond, one: {}, lane: "organ" }),
+  a2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.015, d: 0.1, s: 0.92, r: 0.12 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.trumpet, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "brass" }),
+  a2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: ABBEY2_SEND * 0.3, level: ABBEY2_LEVEL.bass, sample: "rockBass", one: {}, phoneLift: ROCK_BASS_PHONE_LIFT, lane: "bass" }),
+  // D545, PET SOUNDS v2 (STUDY.md §10): the accordion in musette (two free reeds 20 cents apart, the beating a musette's;
+  // a third reed cost the phone's audio thread underruns at 4× throttle; the bellows' 30 ms attack), in the wall lane with the bass and the harpsichord (the slapback and the unison double).
+  p2Accordion: P({ osc: [{ wave: "freeReed", detune: -7 }, { wave: "freeReed", detune: 13, gain: 0.85 }], filter: { freq: 3400, hz: true, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.92, r: 0.07 }, send: PET_SEND, level: PET2_LEVEL.accordion, one: {}, lane: "wall" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1306,7 +1403,8 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
   // D524: PET SOUNDS' drums (pet-drums.ts: a 1966 ballad's kit, the tambourine, the timpani's rhythm, the piece's form).
   | "petSounds";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums); D520/D522: the recorded Latin percussion (VCSL); D523: the rock kit. */
-export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin" | "rock" | "bossa" | "pet";
+// D527: and the drum library's synthesized kits (drum-grids.ts): a 909, a LinnDrum, a glitch kit.
+export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin" | "rock" | "bossa" | "pet" | "tr909" | "linn" | "glitch";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
 export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "studio" | "inner" | "bossa" | "goldStar";
@@ -1355,6 +1453,18 @@ export interface Preset {
    * setPieceLayout. Their patches are loaded with the preset's own.
    */
   alts?: Partial<Record<number, readonly (readonly (readonly [patch: PatchId, pan: number, level?: number])[])[]>>;
+  /**
+   * D540, BANDS v2: the band's processing chain (band-fx.ts: lanes, the bus, its one reverb), shared by all its notes; with
+   * a reverb it takes the place of `fx`. `lanes`: a patch's lane in this preset (by its id), where the patch names none.
+   */
+  chain?: ChainSpec;
+  lanes?: Partial<Record<PatchId, string>>;
+  /** D540: a v2 preset's original (its id): the identity the rest of the game knows it by (baseSound). */
+  v2Of?: string;
+  /** D540: how its recordings are held once decoded (sampled.ts Slim: one channel, the rate, the plucked notes' length). */
+  slim?: Slim;
+  /** D540: held to the budget (budget.ts PRESET_MB, RESIDENT_MB; test/d540-budget.test.ts): phase 2 sets it on a v2 once rebuilt. */
+  budgeted?: boolean;
 }
 
 /**
@@ -1888,6 +1998,147 @@ export const TRIALS: Preset[] = [
   // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered, D510 withdrawn.)
 ];
 /**
+ * D540, BANDS v2 (the owner: "There's an overuse of piano in the new presets … Krautrock, Salsa, Chorinho, Bossa Nova and
+ * Abbey Road are sounding way too uninteresting and similar … Feel free to use more configs, like fx effects, eqs"): each
+ * band's "<BAND> v2" beside the original, for the Sound Lab's A/B, never a default until the owner approves (V2_BANDS;
+ * offered nowhere else; band-fx.ts V2_BANDS, v2Id, baseSound). Each begins as its original with the band's chain (band-fx.ts BAND_CHAINS) and the v2 memory
+ * policy (V2_SLIM); phase 2 (rows D543-D559) rebuilds each after scratchpad/bands2/STUDY.md.
+ */
+/**
+ * D540: the v2 bands' recordings held as the budget asks (BRIEF-BANDS2: mono, at most 32 kHz, at most 25 MB a preset):
+ * one channel, decoded at 24 kHz (the master's own lowpass is 6.5 kHz, Q 0.5: over 12 kHz it is 10 dB down already), a
+ * plucked note's recording cut at 3 s with a fade (the Salamander grand's 7 s: damped by the written end in all but the
+ * longest notes), the player's line without ORGANO PLENO's octave doubles (the organ's alone), a slimmed band's drums at 24 kHz,
+ * the recordings every third semitone at least (sparse zones: a chromatic set's third) and one dynamic layer (the soft, hard,
+ * short and blend sets held off; the velocity's colour the patches' filters'). Phase 2 may give a band its own.
+ */
+export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
+/**
+ * D546-D548, the Latin bands rebuilt (in V2_OWN below) (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums its
+ * original's HOME (drum-library.ts homeStyleFor reads a v2 as its original), its chain (BAND_CHAINS). Seated as each band stood, seen
+ * from the room, within ±0.35. Levels measured (scratchpad/bands2/<band>/NOTES.md): the whole matched to its original
+ * within 1 dB through the phone model, each voice alone within about 2 dB of the others.
+ * SALSA v2: trombone-led (2: trumpet, bass, as the trombone's compass leaves a 2-voice top; 3: trumpet, trombone, bass;
+ * 4: trumpet, trombone, tres, bass; 5: trumpet, two trombones, tres, bass: Palmieri's front line). No piano: the study's
+ * montuno piano (5 voices) took the band over 25 MB, and the tres carries the montuno's clave colour.
+ * BOSSA NOVA v2: 2: alto flute, guitar; 3: alto flute, guitar, bass; 4: alto flute, Rhodes, guitar, bass; 5: alto flute,
+ * Rhodes, tenor sax, guitar, bass. CHORINHO v2: 2: bandolim, seven-string; 3: flute, bandolim, seven-string; 4: flute,
+ * bandolim, cavaquinho, seven-string; 5: flute, clarinet, bandolim, cavaquinho, seven-string. No piano in either.
+ */
+/**
+ * D543-D545: the rebuilt v2s' own instruments (STUDY.md's signature designs; their gain matched on a phone, NOTES.md), each
+ * one instrument a voice from the top down, none a piano. KRAUTROCK v2: the combo organ, the Moog bass, the fuzz guitar,
+ * the Mellotron flute, the phased clean guitar (the organ on the upper inner voice of four and five, where the study had the
+ * Mellotron: the alto opens most four-voice fugues, I/20 among them, and the Mellotron's flute is CHORINHO's and BOSSA's
+ * recording; the band's signature instrument opens). ABBEY ROAD v2: the Moog lead, the Leslie guitar (hard left), the
+ * Hammond (hard right), the trumpet (right), the flatwound bass. PET SOUNDS v2: v1's strings, horn, harpsichord and bass
+ * with the musette accordion in the piano's place, the bass, the accordion and the harpsichord in the wall lane.
+ *
+ * D549-D552, the classic four's v2s (the owner likes them: JAZZ QUARTET his favourite, BAROQUE BAND's continuo entering
+ * with the bass loved): their instruments, seats and continuo kept, the chain the study's (band-fx.ts BAND_CHAINS), the
+ * level matched to the original's through the phone model (within 1 dB) and on a computer. JAZZ v2: the vibraphone in its
+ * lane, its soft and hard mallets kept (Slim.keep: the budget has the room), the piano's two inner voices spread by register.
+ */
+export const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>> = {
+  krautrock: {
+    gain: 1.19,
+    phoneGain: 0.8,
+    slots: ["k2Tron", "k2Organ", "k2Clean", "k2Fuzz", "k2Moog"],
+    by: {
+      1: [["k2Organ", 0]],
+      2: [["k2Organ", -0.05], ["k2Moog", 0]],
+      3: [["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
+      4: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
+      5: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Clean", 0], ["k2Fuzz", 0], ["k2Moog", 0]],
+    },
+  },
+  abbeyRoad: {
+    gain: 0.93,
+    phoneGain: 0.99,
+    slots: ["a2Moog", "a2Guitar", "a2Trumpet", "a2Hammond", "a2Bass"],
+    by: {
+      1: [["a2Guitar", 0]],
+      2: [["a2Guitar", 0], ["a2Bass", 0]],
+      3: [["a2Moog", 0], ["a2Guitar", 0], ["a2Bass", 0]],
+      4: [["a2Moog", 0], ["a2Guitar", 0], ["a2Hammond", 0], ["a2Bass", 0]],
+      5: [["a2Moog", 0], ["a2Guitar", 0], ["a2Trumpet", 0], ["a2Hammond", 0], ["a2Bass", 0]],
+    },
+  },
+  petSounds: {
+    gain: 0.81,
+    phoneGain: 0.69,
+    slots: ["psStrings", "psHarpsi", "psHorn", "p2Accordion", "psBass"],
+    lanes: { psBass: "wall", psHarpsi: "wall" },
+    by: {
+      1: [["psStrings", 0]],
+      2: [["psStrings", 0], ["psBass", 0, 0.6]],
+      3: [["psStrings", 0], ["psHorn", 0, 1.12], ["psBass", 0, 0.6]],
+      4: [["psStrings", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
+      5: [["psStrings", 0], ["psHarpsi", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
+    },
+  },
+  jazzQuartet: {
+    gain: 1.06,
+    phoneGain: 1.72,
+    lanes: { jqVibes: "vibes" },
+    slim: { ...V2_SLIM, keep: ["jazzVibesSoft", "jazzVibesHard"] },
+    by: {
+      1: [["jqVibes", 0]],
+      2: [["jqVibes", -0.14], ["jqBass", 0.04]],
+      3: [["jqVibes", -0.18], ["jqPiano", 0.16], ["jqBass", 0.04]],
+      4: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.2], ["jqBass", 0.04]],
+      5: [["jqVibes", -0.18], ["jqPiano", 0.1], ["jqPiano", 0.16], ["jqPiano", 0.22], ["jqBass", 0.04]],
+    },
+  },
+  baroqueBand: { gain: 0.83, phoneGain: 0.83 },
+  bachBrass: { gain: 1, phoneGain: 0.79 },
+  oboeTrio: { gain: 0.539, phoneGain: 0.534, slim: { ...V2_SLIM, keep: ["trioOboe1Short", "trioOboe2Short", "trioBassoonShort"] } },
+  // D546-D548: the Latin bands (the note above).
+  salsa: {
+    slots: ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"],
+    gain: 1.41,
+    phoneGain: 0.83,
+    by: {
+      1: [["s2Trombone", 0]],
+      2: [["s2Trumpet", -0.14], ["s2Bass", 0.02]],
+      3: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Bass", 0.02]],
+      4: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Tres", 0.24], ["s2Bass", 0.02]],
+      5: [["s2Trumpet", -0.24], ["s2Trombone", -0.12], ["s2Trombone", -0.02], ["s2Tres", 0.24], ["s2Bass", 0.04]],
+    },
+  },
+  bossaNova: {
+    slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
+    gain: 1.51,
+    phoneGain: 0.86,
+    by: {
+      1: [["b2Guitar", 0]],
+      2: [["b2Flute", -0.1], ["b2Guitar", 0.06]],
+      3: [["b2Flute", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]],
+      4: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+      5: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Sax", -0.2], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+    },
+  },
+  chorinho: {
+    slots: ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"],
+    gain: 1.22,
+    phoneGain: 0.81,
+    by: {
+      1: [["c2Bandolim", 0]],
+      2: [["c2Bandolim", 0.08], ["c27", -0.06]],
+      3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]],
+      4: [["c2Flute", -0.18], ["c2Bandolim", 0.12], ["c2Cavaco", 0.24], ["c27", -0.04]],
+      5: [["c2Flute", -0.2], ["c2Clarinet", -0.08], ["c2Bandolim", 0.1], ["c2Cavaco", 0.24], ["c27", -0.04]],
+    },
+  },
+};
+export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
+  const p = PRESETS.find((x) => x.id === band)!;
+  const own = V2_OWN[band];
+  // (PET SOUNDS' original five instruments, the grand and the harpsichord among them, cut their plucked notes at 2.5 s to keep within 25 MB.)
+  const slim = own?.slim ?? (band === "petSounds" && !own ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM);
+  return { ...p, ...own, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim, budgeted: true };
+});
+/**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
  * Play.lineDb: proto-game.ts lineAt) reach every sustaining sound that can make dynamics (DYNAMIC_SOUNDS),
@@ -1901,7 +2152,7 @@ export function setExpressiveAll(on: boolean) {
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
 export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
-export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
+export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(baseSound(id));
 /**
  * TRIAL, EXPRESSIVE_ALL on the chips, consoles and synthesizers (the owner: "chipsets might not have dynamic
  * variations but tone variations"): the reading's planned level (dB: its printed level, hairpins, palette weight;
@@ -2055,7 +2306,12 @@ const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENT
 export const ABBEY_ROAD_CREDIT = `GUITARS: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · ${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 export const KRAUTROCK_CREDIT = `${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
-export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
+/** D546-D548: the rebuilt Latin v2s' own recordings (their originals' credits no longer theirs: no piano, other instruments). */
+export const SALSA_V2_CREDIT = "TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TRES: GUITAR FREESOUND 11573, QUARTERTONE · CC BY 3.0 · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0";
+export const BOSSA_V2_CREDIT = "ALTO FLUTE, GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TENOR SAX: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
+export const CHORINHO_V2_CREDIT = `BANDOLIM: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
+const V2_CREDITS: Record<string, string> = { salsaV2: SALSA_V2_CREDIT, bossaNovaV2: BOSSA_V2_CREDIT, chorinhoV2: CHORINHO_V2_CREDIT };
+export const creditFor = (id: string): string | null => V2_CREDITS[presetById(id).id] ?? CREDITS[baseSound(presetById(id).id)] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
 /** D292: a stored choice as one of the five: a withdrawn one's stand-in (RETIRED), anything else not offered (TRAVERSO, an unknown id) CLASSIC CHIP. */
@@ -2064,7 +2320,7 @@ export function playerSound(id: string): string {
   return offered(r) ? r : "chip";
 }
 /** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
-export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
+export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS, ...V2_PRESETS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {
@@ -2379,3 +2635,24 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
 }
 
 // D482: D186's layerHits (drums added as the player's run grew) removed: no sound follows the streak.
+
+/**
+ * D536, THE OUTPUT'S LEVEL for the studio (music-events.ts: the picture's light follows the sound's real level): the Chip
+ * master's meter, post-limiter (chip.ts Chip.meterLevel: the RMS past the ceiling, 0..1, smoothed). The Chip gives its
+ * meter as it is made (`chipMeter`); the first gives music-events.ts this reading (its setOutputLevel, passed in: sound.ts
+ * imports nothing of the studio's, no cycle). The meter is made on the first reading, and the studio reads it only while
+ * its stage is drawn (event-fx.ts): with the stage off, nothing is measured.
+ */
+let meterOf: (() => number) | null = null;
+let levelGiven = false;
+export function chipMeter(fn: () => number, give?: (f: () => number) => void) {
+  meterOf = fn;
+  if (!levelGiven && give) {
+    levelGiven = true;
+    give(outputLevel);
+  }
+}
+/** The output's level now (0..1; 0 before a Chip is made). */
+export function outputLevel(): number {
+  return meterOf ? meterOf() : 0;
+}

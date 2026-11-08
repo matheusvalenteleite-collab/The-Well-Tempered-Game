@@ -28,6 +28,7 @@ import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { resetLive } from "../touch/music-events.ts";
 import { floorOf, ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
@@ -49,7 +50,7 @@ import { BtLite, HeadphonesFold, keepBtLag, useHeadphones } from "./Headphones.t
 import { BtWarn, btWarnNow } from "./BtWarn.tsx";
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
-import { Chip, voicing, type Sounding } from "../touch/chip.ts";
+import { Chip, openingOf, voicing, type Sounding } from "../touch/chip.ts";
 import { barAt, barStart, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
 import { arcOf } from "./arc.ts";
 import { laneNotes } from "../touch/lanes.ts";
@@ -79,7 +80,8 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
-import { applyDrumPreset, applyLiteDrums, cycleDrumPreset, drumPresetOf, drumPresets, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
+import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
+import { curatedFor, drumMenuFor, homeStyleFor } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
@@ -122,6 +124,8 @@ import { ConsortStops } from "../touch/ConsortStops.tsx";
 import { hasConsortStops } from "../touch/consort-stops.ts";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
+/** D453: the DRUMS row's quick round: HOME, then the sound's family and the fugue's own picks. */
+const quickDrums = (piece: string, sound: string) => 1 + curatedFor(piece, sound).filter((s) => s !== homeStyleFor(sound)).length;
 
 /** D314: how long (s, from the start of play) the reading's marks are explained in the box. */
 const LEGEND_S = 6;
@@ -649,6 +653,8 @@ export function BenchApp() {
     void chip.current?.prepare(
       everyNote(f).map((n) => n[2]),
       played.flatMap((v) => (f.voices[v] ?? []).map((n) => n[2])),
+      // D542: the opening bars' recordings first.
+      openingOf(f),
     );
   }
   // (ensureChip may run from the first render's listener: it reaches this render's piece through a ref.)
@@ -686,6 +692,8 @@ export function BenchApp() {
     (globalThis as { __kimiko?: unknown }).__kimiko = h ? { g, her: h, ctx: ch.ctx, map: hm } : undefined;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
+    // D477: a new run: the sound's reported events (music-events.ts) start again with its ticks.
+    resetLive();
     // D425, THE HARD TAP: each touchdown's strength from the motion sensor (by the calibration kept); none: the strong zone.
     const hardCal = loadHardCal();
     // D506: only with the Lab's hard tap on (MECH.hardTap); off (the game's), the strong zone and no sensor at all.
@@ -2104,7 +2112,8 @@ export function BenchApp() {
           // D452: HOW TO PLAY, the guide, under SETTINGS.
           howTo={() => (stopHearing(), setHowTo(true))}
           // D450: DRUMS on the right column (moved from the pop-up): ON/OFF and the piece's presets.
-          drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumPresets(f.id), preset: drumPresetOf(f.id), cycle: () => (cycleDrumPreset(f.id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
+          // D453: the whole drum library for this fugue in its sound (HOME first); the quick round HOME and the sound's family; MORE every style.
+          drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumMenuFor(f.id, presetById(sound).id), preset: drumPresetOf(f.id, presetById(sound).id), quick: quickDrums(f.id, presetById(sound).id), cycle: () => (cycleDrumPreset(f.id, presetById(sound).id, quickDrums(f.id, presetById(sound).id)), setDrumsOn(true), setDrumTick((t) => t + 1)), choose: (id: string) => (chooseDrumPreset(f.id, id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
           tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}

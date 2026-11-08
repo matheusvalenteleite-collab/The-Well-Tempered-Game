@@ -13,18 +13,24 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
-import { LOUD_FROM, latinBeat, type LatinBand, type LatinPiece, type LatinPlan } from "./latin-drums.ts";
-import { brushDb, brushFills, drumPiece, drumStyleFor, keyFor, kitBeat, type DrumStyle, type KitHit, type KitPiece } from "./drum-presets.ts";
+import { LOUD_FROM, latinBeat, latinPlan, type LatinBand, type LatinPiece, type LatinPlan } from "./latin-drums.ts";
+import { brushDb, brushFills, keyFor, kitBeat, type DrumStyle, type KitHit, type KitPiece } from "./drum-presets.ts";
+import { drumPiece, drumStyleFor, styleInfo } from "./drum-library.ts";
+import { GRIDS, gridPieces, type KitVoice } from "./drum-grids.ts";
 import { formOf } from "./fugue-form.ts";
 import { formOf as rockFormOf, rockBeat, type KitPiece as RockPiece, type RockStyle } from "./rock-drums.ts";
 import { bossaBeat, bossaPlan } from "./bossa-drums.ts";
 import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
+import { isScoreStyle, SCORE_STYLES, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
 import type { TouchFugue } from "./fugue.ts";
+import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
+import { stageMode } from "./stage-bg.ts";
+import { buildChain, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -323,7 +329,10 @@ export interface GrooveContext {
 export const KIT_DRUMS = {
   level: 4.2,
   // Each style's share (the drums alone measured against I/12's band: about 11 LU under it, D514's table); the synthesized kits on chip.ts drum's scale.
-  style: { rock: 1, jazz: 1, frame: 0.8, timpani: 0.6, chip: 5, machine: 5, brushes: 1 } satisfies Record<DrumStyle, number>,
+  // D529: each set to -43 LUFS alone on the phone model (I/2 bars 3-14), 15.5 dB under the bands' median there (-27.5),
+  // where JAZZ QUARTET's brushes sit under theirs (14.7): D514's kits stood 7-14 dB louder (8-11 under; the timpani 1.7).
+  // (jazz and machine are written styles now, drum-grids.ts SWING and 808: these their levels.)
+  style: { rock: 0.44, jazz: 0.44, frame: 0.38, timpani: 0.08, chip: 3.3, machine: 3.4, brushes: 1 } satisfies Record<DrumStyle, number>,
   phone: 1.2,
   // A phone's speaker has nothing under about 600 Hz: the timpani's and the bass drum's fundamentals (87-200 Hz) are
   // lost and the drums measured -50 LUFS there. On a phone their harmonics are made (a soft clip, the way a phone's own
@@ -338,8 +347,8 @@ export const KIT_DRUMS = {
   timpHp: 55,
   send: 0.1,
   ref: -20,
-  piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85 } satisfies Record<KitPiece, number>,
-  pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1 } satisfies Record<KitPiece, number>,
+  piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85, sideDrum: 0.5, fieldDrum: 0.56, tabor: 0.52, drumStick: 0.34, frameDum: 0.6, frameTek: 0.42, castanets: 0.44, cymbals: 0.34 } satisfies Record<KitPiece, number>,
+  pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1, sideDrum: -0.06, fieldDrum: 0.04, tabor: -0.04, drumStick: -0.06, frameDum: -0.06, frameTek: 0.1, castanets: 0.14, cymbals: -0.2 } satisfies Record<KitPiece, number>,
 } as const;
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
@@ -348,27 +357,82 @@ const PHONE_LOW_CURVE = (() => {
   return c;
 })();
 /** D514: the kits' recordings' loudness (dB: the strongest 50 ms, tools/playback/drums/measure_kits.py). */
-export const KIT_RMS: Readonly<Record<string, number>> = { "kitRock/kick-1": -17.9, "kitRock/kick-2": -10.1, "kitRock/snare-1": -20.8, "kitRock/snare-2": -15.6, "kitRock/rim-1": -27.4, "kitRock/rim-2": -20.0, "kitRock/hat-1": -33.7, "kitRock/hat-2": -25.2, "kitRock/openhat-1": -26.4, "kitRock/openhat-2": -22.5, "kitRock/crash-1": -25.2, "kitRock/crash-2": -21.7, "kitRock/ride-1": -35.2, "kitRock/ride-2": -28.1, "kitRock/tomHigh-1": -19.9, "kitRock/tomHigh-2": -13.8, "kitRock/tomLow-1": -20.9, "kitRock/tomLow-2": -13.6, "kitClub/kick-1": -15.3, "kitClub/kick-2": -7.5, "kitClub/snare-1": -21.2, "kitClub/snare-2": -13.2, "kitClub/rim-1": -30.3, "kitClub/rim-2": -22.3, "kitClub/hat-1": -32.8, "kitClub/hat-2": -21.6, "kitClub/openhat-1": -30.7, "kitClub/openhat-2": -18.7, "kitClub/crash-1": -23.5, "kitClub/crash-2": -17.1, "kitClub/ride-1": -32.8, "kitClub/ride-2": -27.8, "kitClub/tomHigh-1": -19.6, "kitClub/tomHigh-2": -12.3, "kitClub/tomLow-1": -19.2, "kitClub/tomLow-2": -11.3, "kitClub/cowbell-1": -28.2, "kitClub/cowbell-2": -17.3, "kitClub/tambourine-1": -22.2, "kitClub/tambourine-2": -18.5, "kitClub/shaker-1": -28.1, "kitClub/shaker-2": -19.8, "kitClub/congaHigh-1": -14.2, "kitClub/congaHigh-2": -10.4, "kitClub/congaLow-1": -20.1, "kitClub/congaLow-2": -11.2, "kitClub/bongo-1": -25.1, "kitClub/bongo-2": -15.3, "kitClub/woodblock-1": -28.2, "kitClub/woodblock-2": -22.1, "kitClub/claves-1": -35.4, "kitClub/claves-2": -29.5, "kitClub/triangle-1": -33.3, "kitClub/triangle-2": -23.2, "kitClub/guiro-1": -34.4, "kitClub/guiro-2": -27.1, "timpLoud/B2-v2": -10.7, "timpLoud/Cs3-v2": -15.1, "timpLoud/E3-v2": -18.6, "timpLoud/F2-v2": -27.0, "timpLoud/G3-v2": -20.9 };
+export const KIT_RMS: Readonly<Record<string, number>> = { "kitRock/kick-1": -17.9, "kitRock/kick-2": -10.1, "kitRock/snare-1": -20.8, "kitRock/snare-2": -15.6, "kitRock/rim-1": -27.4, "kitRock/rim-2": -20.0, "kitRock/hat-1": -33.7, "kitRock/hat-2": -25.2, "kitRock/openhat-1": -26.4, "kitRock/openhat-2": -22.5, "kitRock/crash-1": -25.2, "kitRock/crash-2": -21.7, "kitRock/ride-1": -35.2, "kitRock/ride-2": -28.1, "kitRock/tomHigh-1": -19.9, "kitRock/tomHigh-2": -13.8, "kitRock/tomLow-1": -20.9, "kitRock/tomLow-2": -13.6, "kitClub/kick-1": -15.3, "kitClub/kick-2": -7.5, "kitClub/snare-1": -21.2, "kitClub/snare-2": -13.2, "kitClub/rim-1": -30.3, "kitClub/rim-2": -22.3, "kitClub/hat-1": -32.8, "kitClub/hat-2": -21.6, "kitClub/openhat-1": -30.7, "kitClub/openhat-2": -18.7, "kitClub/crash-1": -23.5, "kitClub/crash-2": -17.1, "kitClub/ride-1": -32.8, "kitClub/ride-2": -27.8, "kitClub/tomHigh-1": -19.6, "kitClub/tomHigh-2": -12.3, "kitClub/tomLow-1": -19.2, "kitClub/tomLow-2": -11.3, "kitClub/cowbell-1": -28.2, "kitClub/cowbell-2": -17.3, "kitClub/tambourine-1": -22.2, "kitClub/tambourine-2": -18.5, "kitClub/shaker-1": -28.1, "kitClub/shaker-2": -19.8, "kitClub/congaHigh-1": -14.2, "kitClub/congaHigh-2": -10.4, "kitClub/congaLow-1": -20.1, "kitClub/congaLow-2": -11.2, "kitClub/bongo-1": -25.1, "kitClub/bongo-2": -15.3, "kitClub/woodblock-1": -28.2, "kitClub/woodblock-2": -22.1, "kitClub/claves-1": -35.4, "kitClub/claves-2": -29.5, "kitClub/triangle-1": -33.3, "kitClub/triangle-2": -23.2, "kitClub/guiro-1": -34.4, "kitClub/guiro-2": -27.1, "timpLoud/B2-v2": -10.7, "timpLoud/Cs3-v2": -15.1, "timpLoud/E3-v2": -18.6, "timpLoud/F2-v2": -27.0, "timpLoud/G3-v2": -20.9, "kitPeriod/sideDrum-1": -9.6, "kitPeriod/sideDrum-2": -12.4, "kitPeriod/fieldDrum-1": -10.4, "kitPeriod/fieldDrum-2": -12.5, "kitPeriod/tabor-1": -7.3, "kitPeriod/tabor-2": -11.8, "kitPeriod/drumStick-1": -15.0, "kitPeriod/drumStick-2": -15.0, "kitPeriod/frameDum-1": -8.0, "kitPeriod/frameDum-2": -9.4, "kitPeriod/frameTek-1": -7.9, "kitPeriod/frameTek-2": -14.6, "kitPeriod/tambourine-1": -10.8, "kitPeriod/tambourine-2": -12.4, "kitPeriod/castanets-1": -22.2, "kitPeriod/castanets-2": -21.9, "kitPeriod/bassDrum-1": -9.2, "kitPeriod/bassDrum-2": -9.6, "kitPeriod/cymbals-1": -14.4, "kitPeriod/cymbals-2": -13.3, "kitPeriod/triangle-1": -15.5, "kitPeriod/triangle-2": -14.0 };
 /** D514: a drum piece as a style's kit plays it: the recorded set and its file's name there (null: synthesized). */
-export function kitSource(style: DrumStyle, piece: KitPiece): { set: KitSet; voice: string } | null {
-  if (style === "chip" || style === "machine" || style === "brushes" || piece === "timp") return null;
+export function kitSource(style: string, piece: KitPiece): { set: KitSet; voice: string } | null {
+  const voice = kitVoiceOf(style);
+  if (voice === null || piece === "timp") return null;
+  // D532: the score-driven styles on the period kit (VCSL's orchestral bass drum and triangle, its tambourine).
+  if (voice === "kitPeriod") {
+    const pv = piece === "tamb" ? "tambourine" : piece;
+    return KIT_VOICES.kitPeriod.includes(pv) ? { set: "kitPeriod", voice: pv } : null;
+  }
   const v = piece === "tamb" ? "tambourine" : piece === "clap" ? "snare" : piece === "bassDrum" ? "kick" : piece;
-  if (style === "rock" && KIT_VOICES.kitRock.includes(v)) return { set: "kitRock", voice: v };
+  if (voice === "kitRock" && KIT_VOICES.kitRock.includes(v)) return { set: "kitRock", voice: v };
   return KIT_VOICES.kitClub.includes(v) ? { set: "kitClub", voice: v } : null;
 }
-/** D514: the pieces each recorded style strikes (its plan, loaded when DRUMS is on). */
-const STYLE_PIECES: Record<"rock" | "jazz" | "frame" | "timpani", KitPiece[]> = {
-  rock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
-  jazz: ["kick", "snare", "rim", "hat", "crash", "ride", "tomHigh", "tomLow"],
-  frame: ["congaHigh", "congaLow", "bongo", "tamb", "shaker", "crash"],
-  timpani: ["bassDrum", "crash", "triangle"],
+/**
+ * D527: the kit that sounds a style kitBeat plays: a written style's own (drum-grids.ts), D514's rock on Big Rusty, its
+ * jazz, frame and timpani on the club kit (null: a synthesized kit, or not a kit style: the brushes, the bands' own).
+ */
+export function kitVoiceOf(style: string): KitVoice | "kitClub" | "kitRock" | "kitPeriod" | null {
+  const g = GRIDS[style];
+  if (g) return g.kit === "kitRock" || g.kit === "kitClub" ? g.kit : null;
+  if (style === "rock") return "kitRock";
+  // D532: the score-driven orchestral and period styles (timpani, frame drums, side drum, tabor, castanets, Janissary, field drums).
+  if (isScoreStyle(style)) return "kitPeriod";
+  return null;
+}
+/** D527: the synthesized kit of a style (chip.ts drum's), or null where it is recorded. */
+export function synthKitOf(style: string): Kit | null {
+  if (style === "chip") return "chip";
+  const k = GRIDS[style]?.kit;
+  return k === "analog" || k === "tr909" || k === "linn" || k === "glitch" || k === "chip" ? k : null;
+}
+/** D527: a kit style's level (its share of KIT_DRUMS.level; a synthesized kit's on chip.ts drum's scale), a phone's share, its low drums' harmonics on a phone. */
+export function kitMix(style: string): { share: number; phone: number; low: number } {
+  const sm = SCORE_MIX[style as ScoreStyle];
+  if (sm) return sm;
+  const L = style as DrumStyle;
+  if (L in KIT_DRUMS.style) return { share: KIT_DRUMS.style[L], phone: KIT_DRUMS.phoneStyle[L], low: KIT_DRUMS.phoneLow.style[L] };
+  const g = GRIDS[style];
+  const sk = g?.kit;
+  return { share: g?.share ?? 1, phone: g?.phone ?? 1, low: g?.low ?? (sk === "analog" || sk === "tr909" ? 7 : sk === "linn" ? 4 : sk === "glitch" ? 2 : sk === "chip" ? 0 : 1) };
+}
+/**
+ * D532: the score-driven styles' levels (their share of KIT_DRUMS.level, a phone's share, the low drums' harmonics on a
+ * phone): measured as the other kits, the drums alone against the band (scratchpad/drumorch, NOTES.md), under it where
+ * JAZZ QUARTET's brushes sit (D508, D529): 14-16 LU under on the phone model. (D529 set D514's TIMPANI to 0.08 for the
+ * same reason: the drum's 0.6 stood 1.7 dB under the band.)
+ */
+export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: number; low: number }>> = {
+  timpani: { share: 0.11, phone: 0.84, low: 4.2 },
+  frame: { share: 0.8, phone: 1, low: 0.5 },
+  military: { share: 0.9, phone: 1, low: 0.9 },
+  tabor: { share: 0.85, phone: 0.8, low: 1 },
+  castanets: { share: 1, phone: 0.85, low: 1 },
+  janissary: { share: 0.53, phone: 1.2, low: 3 },
+  fieldDrums: { share: 1, phone: 1, low: 0.47 },
 };
-/** D514: every file a style may play. */
-export function kitFiles(style: DrumStyle): { set: string; notes: number[] }[] {
-  if (style === "chip" || style === "machine") return [];
+/**
+ * D532: the period kit's drums that a phone's speaker barely plays (the rope-tension drums' and the large frame drum's
+ * body is under 600 Hz: the side drum measured 13 dB quieter on the phone model than in full): their harmonics made on a
+ * phone, as the timpani's (lowHarmonics).
+ */
+const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek", "drumStick"]);
+/** D514: the pieces each recorded style strikes (its plan, loaded when DRUMS is on). */
+const STYLE_PIECES: Record<string, KitPiece[]> = {
+  rock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
+  // D532: the score-driven styles' pieces (score-drums.ts SCORE_KITS).
+  ...Object.fromEntries(SCORE_STYLES.map((st) => [st, scoreKitPieces(st)])),
+};
+/** D514, D527: every file a kit style may play. */
+export function kitFiles(style: string): { set: string; notes: number[] }[] {
   if (style === "brushes") return [{ set: BRUSH_SET, notes: [...BRUSH_MIDIS] }];
+  if (synthKitOf(style) || kitVoiceOf(style) === null) return [];
+  const pieces = GRIDS[style] ? gridPieces(GRIDS[style]) : (STYLE_PIECES[style] ?? []);
   const by = new Map<string, Set<number>>();
-  for (const pc of STYLE_PIECES[style]) {
+  for (const pc of pieces) {
     const src = kitSource(style, pc);
     if (!src) continue;
     for (const loud of [false, true]) {
@@ -382,6 +446,70 @@ export function kitFiles(style: DrumStyle): { set: string; notes: number[] }[] {
   if (style === "timpani") out.push({ set: TIMP_SET, notes: [...TIMP_MIDIS] });
   return out;
 }
+/** D526: the band a library style's latin engine plays (SALSA's, CHORINHO's). */
+export const LATIN_STYLE: Readonly<Record<string, LatinBand>> = { salsa: "salsa", choro: "chorinho" };
+/** D526: the rock band a library style's engine plays (ABBEY ROAD's, KRAUTROCK's). */
+export const ROCK_STYLE: Readonly<Record<string, RockStyle>> = { abbey: "abbey", motorik: "motorik" };
+/** D526: every file any library style may play (its engine's recordings; none for a synthesized kit). */
+export function drumFilesFor(style: string): { set: string; notes: number[] }[] {
+  switch (styleInfo(style).engine) {
+    case "brushes":
+      return [{ set: BRUSH_SET, notes: [...BRUSH_MIDIS] }];
+    case "rockBand":
+      return [{ set: ROCK_KIT_SET, notes: [...ROCK_KIT_MIDIS] }];
+    case "latin":
+      return [{ set: LATIN_SET, notes: latinMidis(LATIN_STYLE[style] ?? "salsa") }];
+    case "bossa":
+      return [{ set: BRUSH_SET, notes: [...BRUSH_MIDIS] }, { set: BOSSA_KIT_SET, notes: [...BOSSA_KIT_MIDIS] }];
+    case "pet":
+      return [{ set: ROCK_KIT_SET, notes: [...ROCK_KIT_MIDIS] }, { set: "kitClub", notes: [kitMidi("kitClub", "tambourine", false)!, kitMidi("kitClub", "tambourine", true)!] }, { set: TIMP_SET, notes: [...TIMP_MIDIS] }];
+    default:
+      return kitFiles(style);
+  }
+}
+/**
+ * D526: one stroke of any drummer, as the single choke point sees it (Chip.scheduleKitHit): the engine (`voice`), the
+ * style, the piece struck, the fugue's tick it falls on, the time (audio clock), the velocity played (0-1), and its role
+ * where the engine knows it (a roll, a fill, a landing's accent).
+ */
+export interface KitEvent {
+  voice: "kit" | "rock" | "latin" | "brush" | "sweep" | "bossa" | "pet" | "drum";
+  style: string;
+  piece: string;
+  tick: number;
+  when: number;
+  vel: number;
+  role?: "roll" | "fill" | "accent";
+  /** D535: a roll's or a fill's stroke: the ticks from it to the landing. */
+  dur?: number;
+}
+/** D536: a registration not heard for this long (s) is new when it comes (a change reported once, not per note). */
+export const REG_NEW_S = 2;
+/** D536: the output meter: its window (samples), its floor (dBFS: 0 there), how quickly it rises and falls (s). */
+export const METER_FFT = 1024;
+export const METER_FLOOR_DB = -48;
+export const METER_RISE_S = 0.03;
+export const METER_FALL_S = 0.3;
+/** D536: the bass drums (the studio's "kick"), the snares (its "snare"), by every engine's names. */
+const KICKS = new Set(["kick", "bassDrum", "surdo", "tumba", "pandBass"]);
+const SNARES = new Set(["snare", "rim", "clap", "rimshot", "pandSlap", "slap"]);
+/**
+ * D536: the studio's live event a stroke is (music-events.ts LiveKind), or null (the hats, the shakers, a brush's sweep:
+ * the time-keeping, not events): a roll's or a fill's stroke, a crash, the timpani, a landing's accent, the kick, the snare.
+ */
+export function musicKindOf(e: KitEvent): LiveKind | null {
+  if (e.voice === "sweep") return null;
+  if (e.role === "roll") return "roll";
+  if (e.role === "fill") return "fill";
+  if (e.piece === "crash") return "crash";
+  if (e.piece === "timp") return "timp";
+  if (e.role === "accent") return "accent";
+  if (KICKS.has(e.piece)) return "kick";
+  if (SNARES.has(e.piece)) return "snare";
+  return null;
+}
+/** D536: the studio's events are reported only while its stage is drawn (stage-bg.ts: FULL or QUIET); OFF, none. */
+export const musicLive = () => stageMode() !== "off";
 /**
  * D520 SALSA's and D522 CHORINHO's percussion (chip.ts Chip.latin, latin-drums.ts): the kit's `level` (measured: where
  * JAZZ QUARTET's brushes sit under their band, the bass heard through a phone's speaker), a phone's share, the cut under
@@ -844,6 +972,95 @@ function retarget(a: AudioParam, v: number, now: number, tau = TOUCH_TAU) {
   a.setTargetAtTime(v, now, tau);
 }
 
+/**
+ * D540 (D190's, D503-D524's, taken out of Chip.prepare for the budget's test): the recordings the sound now needs for a piece,
+ * as plans (each loaded with loadPlan): every instrument the ensemble plays, for every voice's pitches and the player's
+ * own an octave either side, slimmed as the preset asks (Preset.slim: a plucked one's notes cut at `pluckedS`); every other
+ * instrument's sets let go (a set another instrument now plays kept); the drums' sets the sound or the DRUMS `style` plays.
+ */
+export function soundPlans(pitches: number[], lead: number[], style: string | null, opening?: Opening): Plan[] {
+  const now = sampledNow();
+  const sl = preset().slim;
+  const slimOf = (inst: SampledInstrument): PlanSlim | undefined => (sl ? { rate: sl.rate, ...(inst.plucked && sl.pluckedS ? { maxS: sl.pluckedS } : {}) } : undefined);
+  // D540: a slimmed preset's sparse zones and its one layer (sampled.ts setZones, holdOff); any other sound's sets whole.
+  const layers = (inst: SampledInstrument) => [inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set].filter((s): s is string => !!s && s !== inst.set);
+  const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id])).filter((set) => !sl.keep?.includes(set))) : new Set<string>();
+  for (const id of Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]) {
+    const inst = SAMPLED[id];
+    for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? sl.stride : null);
+  }
+  holdOff(off);
+  const used = now.map((id) => {
+    const inst = SAMPLED[id];
+    const s = slimOf(inst);
+    // (A slimmed band plans no octave doubles of the player's line: ORGANO PLENO's, D181, is the organ's alone.)
+    return planFor(inst, pitches, sl ? [] : lead)
+      .filter((e) => !off.has(e.set))
+      .map((e) => (s ? { ...e, slim: s } : e));
+  });
+  const wanted = new Set(used.flat().map((e) => e.set));
+  // An instrument the ensemble no longer plays lets all its recordings go (but a set a playing instrument shares).
+  const plans: Plan[] = [
+    ...used,
+    // (A layer held off is let go too: the original's soft grand, say, still held from the sound before.)
+    ...[...off].filter((set) => !wanted.has(set)).map((set) => [{ set, notes: [] }]),
+    ...(Object.keys(SAMPLED) as (keyof typeof SAMPLED)[])
+      .filter((id) => !now.includes(id))
+      .map((id) => {
+        const inst = SAMPLED[id];
+        return [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s && !wanted.has(s)).map((set) => ({ set, notes: [] }));
+      }),
+  ];
+  // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
+  // D514: and, with DRUMS on, the chosen drummer's for the piece; the others let go.
+  // D526: the drums that play: with DRUMS on the chosen style's (drum-library.ts; the sound's HOME by default), else
+  // the sound's own band drummer's (D503 brushes, D520/D522 latin, D521 bossa, D523/D525 rock, D524 pet); the rest let go.
+  const gl = grooveNow();
+  const own = gl?.kit === "brushes" ? "brushes" : gl?.kit === "bossa" ? "bossa" : gl?.kit === "pet" ? "pet" : gl?.kit === "rock" ? "abbey" : gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? (LATIN_GROOVE[gl.groove] === "salsa" ? "salsa" : "choro") : null;
+  const want = style ? drumFilesFor(style) : own ? drumFilesFor(own) : [];
+  for (const set of [BRUSH_SET, "kitRock", "kitClub", "kitPeriod", TIMP_SET, LATIN_SET, ROCK_KIT_SET, BOSSA_KIT_SET]) plans.push([{ set, notes: [...new Set(want.filter((w) => w.set === set).flatMap((w) => w.notes))] }]);
+  // D540: a slimmed band's drums at its rate too (their length their own: a cymbal rings).
+  if (sl) for (const plan of plans.slice(used.length)) for (const e of plan) if (e.notes.length && !e.slim) e.slim = { rate: sl.rate };
+  // D542: the opening's zones first: for each of the opening's notes the recording its voice's instrument plays it from (the
+  // main set, the pitch guarded as it is played: no neighbours, no layers); the drums soon after (few and short), the rest last.
+  if (opening?.notes.length) {
+    const want = new Map<string, Set<number>>();
+    for (const [v, midi] of opening.notes) {
+      const pt = patchFor(v, opening.count);
+      const inst = pt?.sample ? SAMPLED[pt.sample] : null;
+      if (!inst) continue;
+      const set = setFor(inst, midi);
+      const near = nearestSample(set, guardedPitch(inst, set, midi, !!(pt!.sing || pt!.syllable)));
+      if (near === null) continue;
+      if (!want.has(set)) want.set(set, new Set());
+      want.get(set)!.add(near);
+    }
+    for (let i = 0; i < plans.length; i++)
+      for (const e of plans[i]) {
+        if (!e.notes.length) continue;
+        if (i >= used.length) e.soon = true;
+        else e.first = e.notes.filter((m) => want.get(e.set)?.has(m));
+      }
+  }
+  return plans;
+}
+/** D542: the opening's notes (Chip.prepare `opening`): each voice's (voice, pitch) of its first `bars` bars of sound. */
+export interface Opening {
+  count: number;
+  notes: readonly (readonly [voice: number, midi: number])[];
+}
+export function openingOf(f: TouchFugue, bars = 2): Opening {
+  const start = Math.min(...f.voices.flat().map((n) => n[0]));
+  const b0 = [...f.bars].reverse().find((b) => b.on <= start) ?? f.bars[0];
+  const until = f.bars.find((b) => b.n === (b0?.n ?? 1) + bars)?.on ?? f.length;
+  const notes: [number, number][] = [];
+  f.voices.forEach((vs, v) => {
+    for (const n of vs) if (n[0] < until && !notes.some(([w, m]) => w === v && m === n[2])) notes.push([v, n[2]]);
+  });
+  return { count: f.voices.length, notes };
+}
+
+
 export class Chip {
   readonly ctx: AudioContext;
   private master: GainNode;
@@ -934,6 +1151,8 @@ export class Chip {
     ceiling.curve = softClipCurve();
     ceiling.oversample = "4x";
     this.master.connect(soften).connect(squeeze).connect(limit).connect(trim).connect(ceilIn).connect(ceiling).connect(ctx.destination);
+    // D536: the output's meter (sound.ts outputLevel, the studio's music-events.ts): read only when asked for.
+    chipMeter(() => this.meterLevel(), setOutputLevel);
     // The room: a second of decaying noise, a little of it under everything (more for the bands).
     const room = (this.room = ctx.createConvolver());
     room.buffer = impulse(ctx, this.phone ? ROOM_S.phone : ROOM_S.computer);
@@ -944,22 +1163,114 @@ export class Chip {
     this.sends.connect(room);
     this.roomIn = this.sends;
     // D482: CON FUOCO's warm drive (D249) gone: a streak never changes the sound.
-    this.bus = this.master;
+    // D540: the notes join the band's way in (straight to the master, or through a v2 band's chain: Chip.period).
+    this.bandIn = ctx.createGain();
+    this.bandIn.connect(this.master);
+    this.bus = this.bandIn;
     // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
     this.mine = ctx.createGain();
-    this.mine.connect(this.master);
+    this.mine.connect(this.bandIn);
     this.recIn = ctx.createGain();
     this.recIn.connect(limit);
+  }
+
+  /** D536: the meter on the output (post-limiter, past the soft clip), made on the first reading: none, no cost. */
+  private meter: { an: AnalyserNode; buf: Float32Array<ArrayBuffer>; level: number; at: number } | null = null;
+  /**
+   * D536: the output's level now, 0..1 (the RMS of the last METER_FFT samples after the limiter and the ceiling, on a
+   * dB scale from METER_FLOOR_DB to full scale; smoothed: quick to rise, METER_FALL_S to fall).
+   */
+  meterLevel(): number {
+    if (!this.meter) {
+      if (!this.ctx.createAnalyser) return 0;
+      const an = this.ctx.createAnalyser();
+      an.fftSize = METER_FFT;
+      this.ceiling.connect(an);
+      this.meter = { an, buf: new Float32Array(METER_FFT), level: 0, at: this.ctx.currentTime };
+    }
+    const m = this.meter;
+    let sum = 0;
+    if (m.an.getFloatTimeDomainData) {
+      m.an.getFloatTimeDomainData(m.buf);
+      for (let i = 0; i < m.buf.length; i++) sum += m.buf[i] * m.buf[i];
+    }
+    const rms = Math.sqrt(sum / m.buf.length);
+    const db = rms > 0 ? 20 * Math.log10(rms) : -Infinity;
+    const now = Math.max(0, Math.min(1, (db - METER_FLOOR_DB) / -METER_FLOOR_DB));
+    const t = this.ctx.currentTime;
+    const dt = Math.max(0, t - m.at);
+    m.at = t;
+    m.level = now >= m.level ? m.level + (now - m.level) * Math.min(1, dt / METER_RISE_S + 0.5) : m.level + (now - m.level) * Math.min(1, dt / METER_FALL_S);
+    return Number.isFinite(m.level) ? m.level : 0;
   }
 
   /** D216: the player's own notes' level (1: as they are). */
   readonly mine: GainNode;
   /** D215: where a recording joins the sound (past the room and the compressor). */
   readonly recIn: GainNode;
-  /** Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. */
-  private busOf(p: Play): AudioNode {
-    return p.into ?? (p.lead ? this.mine : this.bus);
+  /**
+   * Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. D540: a
+   * v2 band's note into its patch's lane of the band's chain (Patch.lane, Preset.lanes), the player's through the lane's
+   * own copy of their level.
+   */
+  private busOf(p: Play, pt?: Patch | null): AudioNode {
+    if (p.into) return p.into;
+    const lane = this.chain && pt ? this.laneOf(pt) : null;
+    if (lane) {
+      if (!p.lead) return lane;
+      let m = this.laneMine.get(lane);
+      if (!m) {
+        m = this.ctx.createGain();
+        m.connect(lane);
+        this.laneMine.set(lane, m);
+        this.chain!.nodes.push(m);
+      }
+      m.gain.value = this.mine.gain.value;
+      return m;
+    }
+    return p.lead ? this.mine : this.bus;
+  }
+  /** D540: the band's chain playing now (a v2 preset's `chain`), built at its first note; its lanes' copies of `mine`. */
+  private chain: BandChain | null = null;
+  private laneMine = new Map<AudioNode, GainNode>();
+  /** D540: where every note joins (the master, or the chain's input). */
+  private bandIn: GainNode;
+  /** D540: a patch's lane in the preset now (Preset.lanes by its id, else Patch.lane). */
+  private laneOf(pt: Patch): AudioNode | null {
+    const pr = preset();
+    let name = pt.lane;
+    if (pr.lanes) for (const [id, l] of Object.entries(pr.lanes)) if (PATCHES[id as keyof typeof PATCHES] === pt) name = l;
+    return this.chain?.lane(name) ?? null;
+  }
+  /** D540: the band chain the preset now asks for, built or taken down (its tail let ring out, then disconnected). */
+  private bandChain() {
+    const spec = preset().chain ?? null;
+    if ((this.chain?.spec ?? null) === spec) return;
+    const old = this.chain;
+    this.chain = null;
+    this.laneMine.clear();
+    try {
+      this.bandIn.disconnect();
+    } catch {
+      /* none */
+    }
+    if (old) {
+      const t = this.ctx.currentTime;
+      const g = this.ctx.createGain();
+      // The old chain rings out from its last notes (its input no longer fed), then is taken down.
+      old.output.disconnect();
+      old.output.connect(g).connect(this.master);
+      g.gain.setValueAtTime(1, t);
+      g.gain.setTargetAtTime(0, t + Math.min(2, old.tail), 0.2);
+      setTimeout(() => (old.dispose(), g.disconnect()), (Math.min(2, old.tail) + 1.2) * 1000);
+    }
+    if (spec) {
+      this.chain = buildChain(this.ctx, spec, { phone: this.phone });
+      this.bandIn.connect(this.chain.input);
+      this.chain.output.connect(this.master);
+      if (this.lastBeatS) this.chain.setBeat(this.lastBeatS);
+    } else this.bandIn.connect(this.master);
   }
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
@@ -1125,6 +1436,8 @@ export class Chip {
     }
     const pedal = isPedal(v.patch);
     const reg = p.couple === false ? null : registeredNote(id, live, v.patch, !!p.lead, midi);
+    // D536: a change of registration reported to the studio (music-events.ts), only while its stage is drawn.
+    if (reg && musicLive()) this.noteRegistration(id, live, !!p.lead, at);
     if (reg) {
       if (reg.patch) v = { ...v, patch: reg.patch };
       if (reg.choirs) p = { ...p, choirs: reg.choirs };
@@ -1527,6 +1840,7 @@ export class Chip {
    */
   private period() {
     const pr = preset();
+    this.bandChain();
     const dry = pr.room === 0;
     if (dry !== this.dry) {
       this.dry = dry;
@@ -1565,6 +1879,8 @@ export class Chip {
 
   /** D297: the input of the preset's own effect (built once, kept while the preset plays), or null. */
   private fxInput(): AudioNode | null {
+    // D540: a v2 band's own reverb (its chain's one convolver) in place of the preset's effect.
+    if (this.chain?.send) return this.chain.send;
     const kind = preset().fx;
     if (!kind) return null;
     const room = roomOf(preset().id);
@@ -1836,8 +2152,8 @@ export class Chip {
     const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: end - t > 0.45 ? 9 : 0 } : undefined }, () => !stopped) : undefined;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(pan).connect(this.busOf(p));
-    } else src.connect(g).connect(this.busOf(p));
+      src.connect(g).connect(pan).connect(this.busOf(p, v.patch));
+    } else src.connect(g).connect(this.busOf(p, v.patch));
     this.send(pan ?? g, p.room, bag);
     o.start(t);
     halt(o, end + 0.05);
@@ -1877,34 +2193,16 @@ export class Chip {
    * own an octave either side (ORGANO PLENO). A phone keeps less (sampled.ts BUDGET). Notes played
    * before their recording arrives are synthesized.
    */
-  prepare(pitches: number[], lead: number[] = []): Promise<void> {
+  prepare(pitches: number[], lead: number[] = [], opening?: Opening): Promise<void> {
     const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
-    const now = sampledNow();
-    // An instrument the ensemble no longer plays lets all its recordings go.
-    const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
-      const inst = SAMPLED[id];
-      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
-    });
-    // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
-    // D514: and, with DRUMS on, the chosen drummer's (drum-presets.ts) for the piece; the others let go.
-    const style = backingOn() ? this.drumStyle() : null;
-    const want = style ? kitFiles(style) : [];
-    const brushes = grooveNow()?.kit === "brushes" || grooveNow()?.kit === "bossa" || style === "brushes";
-    plans.push([{ set: BRUSH_SET, notes: brushes ? [...BRUSH_MIDIS] : [] }]);
-    // D524: PET SOUNDS' own (DRUMS off): the tambourine (the club kit's) and the timpani (TIMP_SET), its kit the rock kit's.
-    const pet = !style && grooveNow()?.kit === "pet";
-    const petWants: Record<string, number[]> = pet ? { kitClub: [kitMidi("kitClub", "tambourine", false)!, kitMidi("kitClub", "tambourine", true)!], [TIMP_SET]: [...TIMP_MIDIS] } : {};
-    for (const set of ["kitRock", "kitClub", TIMP_SET]) plans.push([{ set, notes: [...new Set([...(want.find((w) => w.set === set)?.notes ?? []), ...(petWants[set] ?? [])])] }]);
-    // D520/D522: SALSA's or CHORINHO's own percussion (its band's pieces), with DRUMS off; with DRUMS on the chosen drummer's instead.
-    const gl = grooveNow();
-    plans.push([{ set: LATIN_SET, notes: !style && gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? latinMidis(LATIN_GROOVE[gl.groove]) : [] }]);
-    // D523: ABBEY ROAD's and KRAUTROCK's kit (18 short files), let go under any other sound.
-    plans.push([{ set: ROCK_KIT_SET, notes: grooveNow()?.kit === "rock" || pet ? [...ROCK_KIT_MIDIS] : [] }]);
-    const kit = grooveNow()?.kit;
-    // D521: BOSSA NOVA's cross-stick and bass drum (4 short files), with the brushes.
-    plans.push([{ set: BOSSA_KIT_SET, notes: kit === "bossa" ? [...BOSSA_KIT_MIDIS] : [] }]);
-    return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
+    const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null, opening);
+    const staged = plans.map((plan) => loadPlanStaged(this.ctx, plan, phone));
+    // D542: the opening's zones (the first bars' recordings) awaited apart: the first notes with real samples.
+    this.openingReady = Promise.all(staged.map((x) => x.first)).then(() => {});
+    return Promise.all(staged.map((x) => x.all)).then(() => {});
   }
+  /** D542: the last prepare's opening zones loaded (resolved at once where no `opening` was given). */
+  openingReady: Promise<void> = Promise.resolve();
 
   /**
    * The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within
@@ -2301,8 +2599,8 @@ export class Chip {
     const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
-    } else src.connect(g).connect(dyn).connect(this.busOf(p));
+      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p, pt));
+    } else src.connect(g).connect(dyn).connect(this.busOf(p, pt));
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     // D385: a whole-piece reading's palette (Play.roomMul): more or less of the room.
@@ -2919,8 +3217,8 @@ export class Chip {
       // D302, TOMITA's theatrical stereo: the voice wandering slowly about its place (within ±0.35, a phone's mix).
       const ap = pt.autopan;
       if (ap) clocked(pan.pan, t, end + pt.amp.r, (x) => Math.max(-0.35, Math.min(0.35, v.pan + ap.depth * Math.sin(2 * Math.PI * ap.rate * x))));
-      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
-    } else src.connect(g).connect(dyn).connect(this.busOf(p));
+      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p, pt));
+    } else src.connect(g).connect(dyn).connect(this.busOf(p, pt));
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     this.fxSend(pan ?? dyn, pt.send, bag);
@@ -3124,8 +3422,8 @@ export class Chip {
     const dyn = bag.add(ctx.createGain());
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      tail.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
-    } else tail.connect(g).connect(dyn).connect(this.busOf(p));
+      tail.connect(g).connect(dyn).connect(pan).connect(this.busOf(p, pt));
+    } else tail.connect(g).connect(dyn).connect(this.busOf(p, pt));
     this.send(pan ?? dyn, p.room, bag);
     this.fxSend(pan ?? dyn, pt.send, bag);
     o.start(t);
@@ -3348,6 +3646,107 @@ export class Chip {
           return tone("sine", 170, 100, 0.4, lvl * 1.8);
       }
     }
+    // D527: the drum library's synthesized machines (drum-grids.ts kit): a 909 (house, techno), a LinnDrum (80s synth-pop),
+    // a glitch kit (IDM: clicks, blips, cut-short noise).
+    const clap = (f: number, tail: number) => {
+      for (const k of [0, 0.01, 0.021]) {
+        const n = bag.src(this.noise());
+        const fl = bag.add(ctx.createBiquadFilter());
+        fl.type = "bandpass";
+        fl.frequency.value = f;
+        const ng = bag.add(ctx.createGain());
+        ng.gain.setValueAtTime(lvl, at + k);
+        ng.gain.exponentialRampToValueAtTime(0.0001, at + k + (k === 0.021 ? tail : 0.011));
+        n.connect(fl).connect(ng).connect(g);
+        n.start(at + k);
+        halt(n, at + k + tail + 0.02);
+      }
+    };
+    if (kit === "tr909") {
+      switch (d) {
+        case "kick":
+          noise("highpass", 3000, 0.7, 0.012);
+          return tone("sine", 160, 48, 0.38, lvl * 2.4);
+        case "snare":
+          noise("bandpass", 3200, 0.5, 0.2);
+          return tone("triangle", 205, 180, 0.09, lvl * 0.9);
+        case "clap":
+          return clap(1150, 0.16);
+        case "hat":
+        case "shaker":
+          noise("highpass", 9000, 1.4, 0.045);
+          return tone("square", 620, 610, 0.03, lvl * 0.06);
+        case "openhat":
+          noise("highpass", 8500, 1.2, 0.32);
+          return tone("square", 620, 610, 0.12, lvl * 0.05);
+        case "ride":
+          noise("bandpass", 7000, 1.6, 0.6);
+          return tone("square", 760, 755, 0.4, lvl * 0.07);
+        case "crash":
+          return noise("highpass", 5000, 0.6, 1.2);
+        case "rim":
+          return tone("triangle", 1650, 1600, 0.025, lvl * 0.9);
+        case "brush":
+          return noise("highpass", 6500, 0.8, 0.05, 0.008);
+        case "tomHigh":
+          return tone("sine", 240, 160, 0.3, lvl * 1.6);
+        case "tomLow":
+          return tone("sine", 150, 95, 0.36, lvl * 1.8);
+      }
+    }
+    if (kit === "linn") {
+      switch (d) {
+        case "kick":
+          return tone("sine", 120, 52, 0.26, lvl * 2.3);
+        case "snare":
+          noise("bandpass", 1800, 0.6, 0.26);
+          return tone("triangle", 185, 165, 0.12, lvl * 1.0);
+        case "clap":
+          return clap(1400, 0.2);
+        case "hat":
+        case "shaker":
+        case "brush":
+          return noise("highpass", 7200, 0.9, 0.05);
+        case "openhat":
+          return noise("highpass", 7000, 0.9, 0.3);
+        case "ride":
+          return noise("bandpass", 5500, 1.2, 0.5);
+        case "crash":
+          return noise("highpass", 4200, 0.6, 1.3);
+        case "rim":
+          return tone("square", 1500, 1450, 0.03, lvl * 0.6);
+        case "tomHigh":
+          return tone("sine", 280, 150, 0.32, lvl * 1.6);
+        case "tomLow":
+          return tone("sine", 180, 92, 0.38, lvl * 1.8);
+      }
+    }
+    if (kit === "glitch") {
+      switch (d) {
+        case "kick":
+          return tone("sine", 210, 40, 0.13, lvl * 2.4);
+        case "snare":
+        case "clap":
+          noise("highpass", 2600, 0.9, 0.06);
+          return tone("square", 330, 300, 0.02, lvl * 0.5);
+        case "hat":
+        case "shaker":
+        case "brush":
+          return noise("highpass", 10000, 1.5, 0.014);
+        case "openhat":
+          return noise("bandpass", 9000, 3, 0.09);
+        case "ride":
+          return tone("square", 2900, 2850, 0.05, lvl * 0.12);
+        case "crash":
+          return noise("bandpass", 6000, 1.2, 0.35);
+        case "rim":
+          return tone("square", 2400, 2300, 0.012, lvl * 0.7);
+        case "tomHigh":
+          return tone("square", 420, 260, 0.08, lvl * 0.7);
+        case "tomLow":
+          return tone("square", 260, 150, 0.1, lvl * 0.8);
+      }
+    }
     switch (d) {
       case "clap":
         return noise("bandpass", 1300, 0.7, 0.12);
@@ -3385,19 +3784,43 @@ export class Chip {
    */
   groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, cx?: GrooveContext) {
     this.roomTo();
+    // D540: a v2 band's echoes follow the beat.
+    if (this.chain && beatS > 0) this.chain.setBeat(beatS);
     this.sweep();
-    // D514: the friends' DRUMS: the drummer chosen for the piece (drum-presets.ts), in place of any sound's own drums
-    // (JAZZ QUARTET's brushes too: never two drummers).
+    // D514, D526: the friends' DRUMS: the style chosen for the piece (drum-library.ts; else the sound's HOME), in place of
+    // any sound's own drums (never two drummers): a written or D514 pattern on a kit, or a band's own drummer.
     const piece = cx?.piece ?? this.drumF;
+    this.lastBeatS = beatS;
+    // D536: the clock's tick (the studio's registration events land on it).
+    if (cx && beatS > 0) this.tickClock = { tick: cx.tick, at, tps: cx.beat / beatS };
+    const tickOf = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
     if (backingOn() && piece) {
       if (piece !== this.drumF) this.drumsFor(piece);
       const style = drumStyleFor(piece.id);
-      if (style === "brushes") {
-        const fills = brushFills(piece, cx?.beat ?? 1, per);
-        return (this.brushes(at, beatS, b, per, compound, { tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, fills, end: cx?.end ?? piece.length, dynDb: (cx?.dynDb ?? 0) + brushDb(piece, cx?.tick ?? 0) }), true);
+      const pcx: GrooveContext = { tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, fills: cx?.fills ?? [], end: cx?.end ?? piece.length, dynDb: cx?.dynDb ?? 0, piece };
+      switch (styleInfo(style).engine) {
+        case "brushes": {
+          const fills = brushFills(piece, pcx.beat, per);
+          return (this.brushes(at, beatS, b, per, compound, { ...pcx, fills, dynDb: (cx?.dynDb ?? 0) + brushDb(piece, pcx.tick) }, style), true);
+        }
+        case "rockBand":
+          return (this.rockDrums(ROCK_STYLE[style] ?? "abbey", at, beatS, b, per, compound, pcx), true);
+        case "latin":
+          return (this.latin(LATIN_STYLE[style] ?? "salsa", at, beatS, { ...pcx, latin: latinPlan(piece, pcx.beat, per) }, style), true);
+        case "bossa":
+          return (this.bossaDrums(at, beatS, b, per, compound, pcx), true);
+        case "pet":
+          return (this.petDrums(at, beatS, b, per, compound, pcx), true);
+        case "score": {
+          // D532: the score-driven orchestral and period styles (score-drums.ts): the plan's strokes in this beat, each
+          // logged at the tick it belongs to (a flam's grace a few ms before it).
+          if (!isScoreStyle(style)) break;
+          for (const h of scoreBeat(piece, style, pcx.tick, pcx.beat, beatS, cx?.dynDb ?? 0)) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: h.tick ?? tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
+          return true;
+        }
       }
-      const hits = kitBeat(style, { b, per, compound, beatS, tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key });
-      for (const h of hits) this.kit(style, h, at + h.at * beatS);
+      const hits = kitBeat(style, { b, per, compound, beatS, tick: pcx.tick, beat: pcx.beat, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key });
+      for (const h of hits) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
       return true;
     }
     const gr = grooveNow();
@@ -3407,14 +3830,52 @@ export class Chip {
     // D520/D522: SALSA's and CHORINHO's percussion: the piece's plan, Busoni's level, recorded (latin-drums.ts).
     if (gr.kit === "latin" && LATIN_GROOVE[gr.groove] && cx?.latin) return (this.latin(LATIN_GROOVE[gr.groove], at, beatS, cx), true);
     // D523, D525: ABBEY ROAD's and KRAUTROCK's kit: their pattern, the fugue's form and Busoni's level (rock-drums.ts), recorded.
-    this.lastBeatS = beatS;
     if (gr.kit === "rock") return (this.rockDrums(ROCK_GROOVES[gr.groove] ?? "abbey", at, beatS, b, per, compound, cx), true);
     // D521: BOSSA NOVA's drums: the bossa on the score's eighths, the piece's form (bossa-drums.ts), recorded.
     if (gr.kit === "bossa") return (this.bossaDrums(at, beatS, b, per, compound, cx), true);
     // D524: PET SOUNDS' drums: the ballad's kit, the tambourine, the timpani on the bass's note; the piece's form (pet-drums.ts).
     if (gr.kit === "pet") return (this.petDrums(at, beatS, b, per, compound, cx), true);
-    for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
+    for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.scheduleKitHit({ voice: "drum", style: gr.groove, piece: h.drum, tick: tickOf(h.at), when: at + h.at * beatS, vel: h.vel }, (w, v) => this.drum(h.drum, w, v, gr.kit));
     return true;
+  }
+
+  /** D526: every stroke scheduled (the tests, and the studio's music events later: the tick and the velocity played). */
+  readonly kitEvents: KitEvent[] = [];
+  /**
+   * D526, THE SINGLE CHOKE POINT: every drummer's every stroke (the library's styles, the bands' own drummers, CLASSIC
+   * CHIP's loop; the rolls, fills and landings too) is scheduled here, with the fugue's tick it falls on, its time on the
+   * audio clock and the velocity it is played at; `sound` then strikes it.
+   */
+  scheduleKitHit(e: KitEvent, sound: (when: number, vel: number) => void) {
+    this.kitEvents.push(e);
+    if (this.kitEvents.length > 1024) this.kitEvents.splice(0, 512);
+    sound(e.when, e.vel);
+    // D536: the studio's live events (music-events.ts): the stroke as played, its level the velocity; a roll its length.
+    if (musicLive()) {
+      const kind = musicKindOf(e);
+      if (kind) emitMusic({ tick: e.tick, kind, level: Math.max(0, Math.min(1, e.vel)), piece: e.piece, ...(e.dur !== undefined ? { dur: e.dur } : kind === "roll" ? { dur: 0 } : {}) });
+    }
+  }
+  /** D536: the fugue's tick at a time on the audio clock (from the last beat the rhythm section was given), or null. */
+  private tickClock: { tick: number; at: number; tps: number } | null = null;
+  tickAtTime(t: number): number | null {
+    const c = this.tickClock;
+    return c ? Math.round(c.tick + (t - c.at) * c.tps) : null;
+  }
+  /** D536: the registrations last heard (a key of the stops: the time last used), to report a change once. */
+  private regSeen = new Map<string, number>();
+  /** D536: a note's registration (the organ's, the harpsichord's), reported to the studio when it is new (not heard in REG_NEW_S). */
+  private noteRegistration(id: string, live: Registration, lead: boolean, at: number) {
+    if (!musicLive()) return;
+    const key = `${id}:${lead ? "L" : "B"}:${live.tutti ? "T" : ""}${live.stops ? live.stops.join("+") : "-"}`;
+    const last = this.regSeen.get(key);
+    this.regSeen.set(key, at);
+    if (last !== undefined && at - last < REG_NEW_S) return;
+    // The first registration of a run is no change.
+    const first = ![...this.regSeen.entries()].some(([k, t]) => k !== key && k.startsWith(`${id}:${lead ? "L" : "B"}:`) && at - t < REG_NEW_S * 4);
+    if (first) return;
+    const tick = this.tickAtTime(at);
+    if (tick !== null) emitMusic({ tick, kind: "registration", level: lead ? 1 : 0.6, piece: live.stops ? live.stops.join(" ") : live.tutti ? "tutti" : "default" });
   }
 
   /** D514: the piece the drums play for (set as a piece starts, proto-game.ts; else from the first beat's context). */
@@ -3423,30 +3884,34 @@ export class Chip {
   drumsFor(f: TouchFugue) {
     this.drumF = f;
     if (!backingOn()) return;
-    for (const plan of kitFiles(drumStyleFor(f.id))) for (const m of plan.notes) loadOne(this.ctx, plan.set, m);
+    for (const plan of drumFilesFor(drumStyleFor(f.id))) for (const m of plan.notes) loadOne(this.ctx, plan.set, m);
   }
   /** D514: the style the drums play now: for the piece playing, else the piece last chosen on the selection screen. */
-  private drumStyle(): DrumStyle | null {
+  private drumStyle(): string | null {
     const id = this.drumF?.id ?? drumPiece();
     return id ? drumStyleFor(id) : null;
   }
   /** D514: the drum hits asked for (the tests: the style, the piece, its time, its level, a timpani's pitch). */
-  readonly kitLog: { style: DrumStyle; piece: KitPiece; at: number; vel: number; midi?: number }[] = [];
+  readonly kitLog: { style: string; piece: KitPiece; at: number; vel: number; midi?: number }[] = [];
   /**
    * D514: one stroke of a drum preset: the synthesized kits (CHIP DRUMS on the console's kit, DRUM MACHINE on the analog
    * one, chip.ts drum: the backing's level and its cut under the bass), or a recording (the kit's piece at the layer of
    * its strength, evened by KIT_RMS; the timpani retuned to the key's tonic or dominant by rate) through the kit's way.
    */
-  private kit(style: DrumStyle, h: KitHit, at: number) {
+  private kit(style: string, h: KitHit, at: number) {
     this.kitLog.push({ style, piece: h.piece, at, vel: h.vel, ...(h.midi !== undefined ? { midi: h.midi } : {}) });
     if (this.kitLog.length > 512) this.kitLog.splice(0, 256);
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const synth = (k: Kit, v: number) => {
-      const d: Drum = h.piece === "tamb" || h.piece === "triangle" ? "shaker" : h.piece === "congaHigh" || h.piece === "bongo" ? "tomHigh" : h.piece === "congaLow" || h.piece === "timp" || h.piece === "bassDrum" ? "tomLow" : h.piece;
-      this.drum(d, t, v, k, KIT_DRUMS.style.chip * (this.phone ? KIT_DRUMS.phoneStyle[style] : 1), this.phone ? KIT_DRUMS.phoneLow.level * KIT_DRUMS.phoneLow.style[style] * 0.25 : 0);
+      const STAND: Partial<Record<KitPiece, Drum>> = { tamb: "shaker", triangle: "shaker", castanets: "rim", drumStick: "rim", cymbals: "crash", congaHigh: "tomHigh", bongo: "tomHigh", frameTek: "tomHigh", congaLow: "tomLow", timp: "tomLow", bassDrum: "tomLow", frameDum: "tomLow", sideDrum: "snare", fieldDrum: "snare", tabor: "tomHigh" };
+      const d: Drum = STAND[h.piece] ?? (h.piece as Drum);
+      // (the low drums' harmonics with the level: D529, a synthesized kit's share against D514's 5)
+      this.drum(d, t, v, k, mx.share * (this.phone ? mx.phone : 1), this.phone ? KIT_DRUMS.phoneLow.level * mx.low * 0.25 * (mx.share / 5) : 0);
     };
-    if (style === "chip" || style === "machine") return synth(style === "chip" ? "chip" : "analog", h.vel);
+    const mx = kitMix(style);
+    const sk = synthKitOf(style);
+    if (sk) return synth(sk, h.vel);
     let set: string;
     let m: number;
     let rate = 1;
@@ -3470,7 +3935,7 @@ export class Chip {
     const bag = new Bag();
     const src = bag.src(ctx.createBufferSource());
     src.buffer = rec.buffer;
-    src.playbackRate.value = rate;
+    src.playbackRate.value = rate * (h.piece === "timp" ? 1 : (GRIDS[style]?.rate ?? 1));
     const g = bag.add(ctx.createGain());
     const rms = KIT_RMS[`${set}/${fileOf(set, m).replace(/\.mp3$/, "")}`] ?? KIT_DRUMS.ref;
     g.gain.value = KIT_DRUMS.piece[h.piece] * h.vel * 10 ** ((KIT_DRUMS.ref - rms) / 20);
@@ -3479,10 +3944,21 @@ export class Chip {
     hp.frequency.value = h.piece === "timp" || h.piece === "bassDrum" ? KIT_DRUMS.timpHp : KIT_DRUMS.hp;
     hp.Q.value = 0.7;
     const out = bag.add(ctx.createGain());
-    out.gain.value = KIT_DRUMS.level * KIT_DRUMS.style[style] * (this.phone ? KIT_DRUMS.phone * KIT_DRUMS.phoneStyle[style] : 1);
-    src.connect(g).connect(hp).connect(out);
+    out.gain.value = KIT_DRUMS.level * mx.share * (this.phone ? KIT_DRUMS.phone * mx.phone : 1);
+    src.connect(g).connect(hp);
+    // D527: a written style's dulled top (trip-hop's, lo-fi's: a sampled break's colour).
+    const lpHz = GRIDS[style]?.lp;
+    let pre: AudioNode = hp;
+    if (lpHz) {
+      const lp = bag.add(ctx.createBiquadFilter());
+      lp.type = "lowpass";
+      lp.frequency.value = lpHz;
+      lp.Q.value = 0.7;
+      pre = hp.connect(lp);
+    }
+    pre.connect(out);
     // On a phone the low drums' harmonics (their pitch the same: the tonic or the dominant, implied).
-    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum")) this.lowHarmonics(bag, hp, out, KIT_DRUMS.phoneLow.level * KIT_DRUMS.phoneLow.style[style]);
+    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum" || (isScoreStyle(style) && PHONE_LOW_PIECES.has(h.piece)))) this.lowHarmonics(bag, hp, out, KIT_DRUMS.phoneLow.level * mx.low);
     let last: AudioNode = out;
     if (ctx.createStereoPanner) {
       const p = bag.add(ctx.createStereoPanner());
@@ -3492,7 +3968,7 @@ export class Chip {
     last.connect(this.master);
     this.fxSend(last, KIT_DRUMS.send, bag);
     src.start(t, rec.onset);
-    halt(src, t + (h.piece === "crash" || h.piece === "ride" || h.piece === "timp" ? 3 : 1.6));
+    halt(src, t + (h.piece === "crash" || h.piece === "ride" || h.piece === "timp" || h.piece === "cymbals" || h.piece === "triangle" ? 3 : h.piece === "bassDrum" ? 2 : 1.6));
   }
   /**
    * D514: a phone's speaker plays nothing under about 600 Hz: a low drum's harmonics made (a soft clip, as a phone's own
@@ -3529,10 +4005,11 @@ export class Chip {
    * left off (one brush circling, one roll) and shaped by its swell, crossfaded 30 ms into the next. Behind the band
    * (JAZZ_DRUMS: seated behind, a little left; under 150 Hz nothing, the bass's room), in the club at a little of its send.
    */
-  private brushes(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext) {
-    const bb = brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity);
-    for (const h of bb.hits) this.brushHit(h.piece, at + h.at * beatS, h.vel);
-    for (const s of bb.sweeps) this.brushSweep(s, at + s.at * beatS, s.len * beatS);
+  private brushes(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext, style = "brushes") {
+    const bb = brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS);
+    const tk = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
+    for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.brushHit(h.piece, w, v));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS));
   }
 
   /** D503: the brush kit's output for one sound: its level, its seat, the cut under the bass, and its share of the club. */
@@ -3620,8 +4097,8 @@ export class Chip {
    * muted stroke (`damp`: the surdo's left hand, the pandeiro's thumb pressed) damped after that long. Seated by
    * LATIN_KIT, under its cut, in the band's room at a little of its send.
    */
-  private latin(band: LatinBand, at: number, beatS: number, cx: GrooveContext) {
-    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0)) this.latinHit(h.piece, at + h.at * beatS, h.vel, h.damp, LATIN_KIT.band[band]);
+  private latin(band: LatinBand, at: number, beatS: number, cx: GrooveContext, style: string = band === "salsa" ? "salsa" : "choro") {
+    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0, beatS)) this.scheduleKitHit({ voice: "latin", style, piece: h.piece, tick: cx.tick + h.at * cx.beat, when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.latinHit(h.piece, w, v, h.damp, LATIN_KIT.band[band]));
   }
 
   private latinHit(piece: LatinPiece, at: number, vel: number, damp?: number, share = 1) {
@@ -3675,7 +4152,7 @@ export class Chip {
     const f = cx?.piece;
     const beat = cx?.beat ?? 1;
     const form = f ? rockFormOf(f, beat, style) : { intro: 0, moments: [], episodes: [], finalAt: Infinity };
-    for (const h of rockBeat(style, b, per, compound, cx?.tick ?? 0, beat, beatS, form, cx?.dynDb ?? 0)) this.kitHit(style, h.piece, at + h.at * beatS, h.vel);
+    for (const h of rockBeat(style, b, per, compound, cx?.tick ?? 0, beat, beatS, form, cx?.dynDb ?? 0)) this.scheduleKitHit({ voice: "rock", style, piece: h.piece, tick: (cx?.tick ?? 0) + h.at * beat, when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.kitHit(style, h.piece, w, v));
   }
 
   private kitHit(style: RockStyle, piece: RockPiece, at: number, vel: number) {
@@ -3781,13 +4258,13 @@ export class Chip {
     const beat = cx?.beat ?? 1;
     const f = cx?.piece;
     const plan = f ? bossaPlan(f, beat, per) : { moments: [], quiet: [], bars: [0], end: Infinity };
-    const bb = bossaBeat(b, per, compound, cx?.tick ?? 0, beat, f?.tpq ?? beat, plan, cx?.dynDb ?? 0);
+    const bb = bossaBeat(b, per, compound, cx?.tick ?? 0, beat, f?.tpq ?? beat, plan, cx?.dynDb ?? 0, beatS);
+    const tk = (a: number) => (cx?.tick ?? 0) + a * beat;
     for (const h of bb.hits) {
       const t = at + h.at * beatS;
-      if (h.piece === "kick" || h.piece === "rim") this.bossaHit(h.piece, t, h.vel);
-      else this.brushHit(h.piece, t, h.vel, BOSSA_DRUMS);
+      this.scheduleKitHit({ voice: "bossa", style: "bossa", piece: h.piece, tick: tk(h.at), when: t, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => (h.piece === "kick" || h.piece === "rim" ? this.bossaHit(h.piece, w, v) : this.brushHit(h.piece, w, v, BOSSA_DRUMS)));
     }
-    for (const s of bb.sweeps) this.brushSweep(s, at + s.at * beatS, s.len * beatS, BOSSA_DRUMS);
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS, BOSSA_DRUMS));
   }
 
   /** D521: the cross-stick or the bass drum (Big Rusty's, as recorded: the soft or the firm stroke by `vel`). */
@@ -3818,7 +4295,7 @@ export class Chip {
     const beat = cx?.beat ?? 1;
     const f = cx?.piece;
     const plan = f ? petPlan(f, beat, per) : { moments: [], quiet: [], bass: [], end: Infinity };
-    for (const h of petBeat(b, per, compound, cx?.tick ?? 0, beat, plan, cx?.dynDb ?? 0)) this.petHit(h, at + h.at * beatS);
+    for (const h of petBeat(b, per, compound, cx?.tick ?? 0, beat, plan, cx?.dynDb ?? 0, beatS)) this.scheduleKitHit({ voice: "pet", style: "pet", piece: h.piece, tick: (cx?.tick ?? 0) + h.at * beat, when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.petHit({ ...h, vel: v }, w));
   }
 
   /** D524: one stroke: the soft or the firm recording by its strength, the timpani's drum nearest its pitch (retuned to it). */

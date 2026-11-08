@@ -219,13 +219,21 @@ export class FakeAudioContext {
     return this.node("gain", { gain: 1 });
   }
   createBiquadFilter() {
-    return this.node("filter", { frequency: 350, Q: 1, gain: 0 });
+    return this.node("filter", { frequency: 350, Q: 1, gain: 0, detune: 0 });
   }
   createStereoPanner() {
     return this.node("panner", { pan: 0 });
   }
   createWaveShaper() {
     return this.node("shaper", {});
+  }
+  /** D536: an analyser reading a steady `meterValue` (the output meter's tests). */
+  meterValue = 0;
+  createAnalyser() {
+    const n = this.node("analyser", {}) as FakeNode & { fftSize: number; getFloatTimeDomainData: (b: Float32Array) => void };
+    n.fftSize = 2048;
+    n.getFloatTimeDomainData = (b: Float32Array) => b.fill(this.meterValue);
+    return n;
   }
   createConvolver() {
     return this.node("convolver", {});

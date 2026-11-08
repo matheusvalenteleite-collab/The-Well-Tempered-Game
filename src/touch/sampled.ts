@@ -158,6 +158,10 @@ export const PERIOD: Record<string, Bake> = {
   // on the made loop) and the electric bass (Karoryfer's Black And Blue "babyblue", picked: Carol Kaye's pick on a P-bass's
   // kind of line), at full fidelity as the consort's; the bass's floor at 40 Hz (its E1 is 41 Hz).
   petStrings: { folder: "violaSus", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D547, BOSSA NOVA v2: Iowa's alto flute (tools/playback/bossa/build_altoflute.py: every minor third G3-Db6 and F6, held to
+  // 4.3 s as BACH BRASS's notes) and Karoryfer's tenor saxophone (sax/, the Lab's), each held on the made loop.
+  bossaAltoFlute: { folder: "altoFlute", rate: 32000, lp: 11000, bits: 16, loop: true },
+  bossaSax: { folder: "sax", rate: 32000, lp: 11000, bits: 16, loop: true },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -212,6 +216,8 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   brassHornP: { F2: -37.9, Gs2: -7.5, B2: -6.3, D3: 18.5, F3: 12.5, Gs3: -8.7, B3: -3.2, D4: 7.1, F4: 15.8, Gs4: 2.6, B4: 3.8, D5: -18.5, F5: -3.0 },
   brassBass: { As1: 11.5, C2: 26.6, Ds2: 14.6, Fs2: 1.3, A2: 9.3, C3: -5.0, Ds3: -3.5, Fs3: -32.7, A3: 1.1, C4: 4.2, Ds4: 17.8, G4: 0.0 },
   brassBassP: { As1: 3.1, C2: 3.6, Ds2: -11.9, Fs2: -7.7, A2: -12.2, C3: -0.3, Ds3: 0.8, Fs3: -13.0, A3: 5.7, C4: -3.7, Ds4: 9.4, G4: -16.2 },
+  // D547 (build_altoflute.py: autocorrelation over 0.4-1.6 s of each note as built; Iowa's alto flute plays sharp at ff, up to a third of a semitone).
+  altoFlute: { G3: 4.4, As3: -9.8, Cs4: -16.6, E4: 17.6, G4: 27.6, As4: -0.8, Cs5: 5.6, E5: 21.2, G5: 30.4, As5: 32.7, Cs6: 25.4, F6: 29.6 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
   // D504 (tools/playback/trio/build_trio.py): Iowa's notes retuned to their names by resampling (measured over each
   // note's steady stretch: within 0.5 cent after; checked again by their harmonics' peaks: within 3 cents); VSCO's
@@ -257,6 +263,8 @@ const SHORT: Record<string, Record<string, number>> = {
   soloTenor: Object.fromEntries((SAMPLE_MANIFEST.soloTenor?.notes ?? []).map((n) => [n, 3.25])),
   soloBass: Object.fromEntries((SAMPLE_MANIFEST.soloBass?.notes ?? []).map((n) => [n, 3.25])),
   choirAahs: Object.fromEntries((SAMPLE_MANIFEST.choirAahs?.notes ?? []).map((n) => [n, 3.08])),
+  // D547: build_altoflute.py's notes, every one 4.3 s.
+  altoFlute: allOf("altoFlute", 4.3),
   // D504: build_trio.py's lengths.
   trioOboe: allOf("trioOboe", 3.4),
   trioOboeMf: allOf("trioOboeMf", 3.4),
@@ -476,11 +484,14 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
  * (loud). Big Rusty Drums (ROCK KIT) and Virtuosity Drums (JAZZ KIT, FRAME DRUMS, and TIMPANI's cymbal, bass drum and
  * triangle), both Karoryfer's, CC0. And the timpani (TIMP_SET: VSCO-2's loud layer, F2 B2 C#3 E3 G3, retuned by rate).
  */
-export type KitSet = "kitRock" | "kitClub";
-export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity" };
+// D532: and the period kit (kitPeriod, drums/period: VCSL's rope-tension drum, frame drums, tambourine, bass drum, clash
+// cymbals and triangle, FreePats' castanets; all CC0), for the score-driven orchestral and period styles (score-drums.ts).
+export type KitSet = "kitRock" | "kitClub" | "kitPeriod";
+export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity", kitPeriod: "drums/period" };
 export const KIT_VOICES: Readonly<Record<KitSet, readonly string[]>> = {
   kitRock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
   kitClub: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow", "cowbell", "tambourine", "shaker", "congaHigh", "congaLow", "bongo", "woodblock", "claves", "triangle", "guiro"],
+  kitPeriod: ["sideDrum", "fieldDrum", "tabor", "drumStick", "frameDum", "frameTek", "tambourine", "castanets", "bassDrum", "cymbals", "triangle"],
 };
 /** A kit piece's file as its set's MIDI number (null: the kit has no such piece). */
 export function kitMidi(set: KitSet, voice: string, loud: boolean): number | null {
@@ -493,7 +504,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -692,6 +703,10 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D524, PET SOUNDS: the string section held on its loop, retuned 3 semitones at most (recorded every major or minor third);
   // its bass is ABBEY ROAD's (rockBass: the same picked babyblue, D523's trims).
   petStrings: { set: "petStrings", plucked: false, gain: 2.2, maxShift: 3 },
+  // D547, BOSSA NOVA v2: the alto flute (every minor third: 1.5 semitones at most to the nearest, 3 past its compass, then an
+  // octave nearer) and the tenor saxophone (every minor third Cs3-G5), each held on its made loop.
+  bossaAltoFlute: { set: "bossaAltoFlute", plucked: false, gain: 2.2, maxShift: 3 },
+  bossaSax: { set: "bossaSax", plucked: false, gain: 2.2, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
@@ -730,9 +745,35 @@ export const nameOfMidi = (m: number) => `${NAMES[((m % 12) + 12) % 12]}${Math.f
 const midisOf = new Map<string, number[]>();
 /** The MIDI numbers recorded in a set, low to high. */
 export function sampledMidis(set: string): number[] {
+  const z = zoned.get(set);
+  if (z) return z;
+  return recordedMidis(set);
+}
+function recordedMidis(set: string): number[] {
   let list = midisOf.get(set);
   if (!list) midisOf.set(set, (list = (SAMPLE_MANIFEST[folderOf(set)]?.notes ?? []).map(midiOfName).sort((a, b) => a - b)));
   return list;
+}
+/**
+ * D540, sparse zones (Slim.stride): while a slimmed preset plays, a set's recordings thinned to one every `stride` semitones
+ * or more (from its lowest up), so its plan, its nearest recording and its folds all see only those (a chromatic set's every
+ * third note: a third of its memory, each note retuned 1.5 semitones at most). Null: all of them again.
+ */
+const zoned = new Map<string, number[]>();
+export function zonesOf(midis: readonly number[], stride: number): number[] {
+  const out: number[] = [];
+  for (const m of midis) if (!out.length || m - out[out.length - 1] >= stride) out.push(m);
+  return out;
+}
+export function setZones(set: string, stride: number | null) {
+  if (!stride || stride <= 1) zoned.delete(set);
+  else zoned.set(set, zonesOf(recordedMidis(set), stride));
+}
+/** D540: sets held off while a slimmed preset plays (its one-layer rule, Slim.oneLayer): never loaded, their instrument's main set standing in. */
+const heldOff = new Set<string>();
+export function holdOff(sets: Iterable<string>) {
+  heldOff.clear();
+  for (const s of sets) heldOff.add(s);
 }
 
 /** The recording nearest a pitch (the lower of two equally near), among those `have` allows. */
@@ -809,7 +850,29 @@ export function notesFor(set: string, pitches: Iterable<number>, pad = 2): numbe
 }
 
 /** What to load, set by set. */
-export type Plan = { set: string; notes: number[] }[];
+/**
+ * D540, the bands v2's memory policy (sound.ts V2_SLIM, Preset.slim): a set's recordings decoded at `rate` (Hz, by an
+ * offline context of that rate: the browser's own resampler), folded to one channel, and a plucked instrument's cut at
+ * `pluckedS` s with a 60 ms fade (PlanSlim.maxS). Decoded audio is Float32 at the context's rate whatever the file's:
+ * a 32 kHz mono note holds a third of a 48 kHz stereo one.
+ */
+export interface Slim {
+  rate: number;
+  pluckedS?: number;
+  /** Sparse zones: a recording every `stride` semitones at least (setZones). */
+  stride?: number;
+  /** One dynamic layer: the instruments' soft, hard, short and blend sets held off (holdOff). */
+  oneLayer?: boolean;
+  /** D549: layers kept under `oneLayer` (their sets by name): a band's own colour where the budget has room (JAZZ v2's vibraphone mallets). */
+  keep?: readonly string[];
+}
+/** D540: one set's slimming in a plan (Slim, for one instrument: maxS only where it is plucked). */
+export interface PlanSlim {
+  rate: number;
+  maxS?: number;
+}
+/** D542: `first`, the notes the opening bars play (fetched first: priority 1); `soon`, a set wanted next (the drums: 1.5); the rest after them (2). */
+export type Plan = { set: string; notes: number[]; slim?: PlanSlim; first?: number[]; soon?: boolean }[];
 
 /**
  * The plan for an instrument: every voice's pitches (`pitches`), and the player's own (`lead`) also an
@@ -844,11 +907,13 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
 /** Bytes the plan's recordings take once decoded (Float32 at the context's rate), stereo where recorded so unless `mono`. */
 export function decodedBytes(plan: Plan, sampleRate = 48000, mono = false): number {
   let total = 0;
-  for (const { set, notes } of plan) {
-    const ch = STEREO.has(set) && !mono ? 2 : 1;
+  for (const { set, notes, slim } of plan) {
+    // D540: a slimmed set one channel at its own rate, a plucked one's notes no longer than maxS.
+    const sl = slim && !PERIOD[set] ? slim : null;
+    const ch = STEREO.has(set) && !mono && !sl ? 2 : 1;
     // D297: a period set's notes kept at half the rate.
-    const rate = PERIOD[set] ? sampleRate * BAKE_RATE : sampleRate;
-    for (const m of notes) total += Math.ceil((noteInfo(set, m)?.len ?? 0) * rate) * ch * 4;
+    const rate = sl ? sl.rate : PERIOD[set] ? sampleRate * BAKE_RATE : sampleRate;
+    for (const m of notes) total += Math.ceil(Math.min(noteInfo(set, m)?.len ?? 0, sl?.maxS ?? Infinity) * rate) * ch * 4;
   }
   return total;
 }
@@ -1000,6 +1065,17 @@ const baseOf = new Map<string, string>();
 /** Sets that could not be had from anywhere (three notes failed, none came): synthesized (as P13). */
 const unreachable = new Set<string>();
 const failures = new Map<string, number>();
+/** D540: each set's slimming now (PlanSlim's key; "" none), and its generation (a decode finishing after a release, or after the slimming changed, is dropped). */
+const slimKey = new Map<string, string>();
+const slimNow = new Map<string, PlanSlim>();
+const generation = new Map<string, number>();
+const keyOfSlim = (s?: PlanSlim) => (s ? `${s.rate}/${s.maxS ?? ""}` : "");
+/** D540: the decoded audio held now (bytes): every set's loaded recordings (the budget's resident figure). */
+export function residentBytes(): number {
+  let total = 0;
+  for (const bank of banks.values()) for (const r of bank.values()) total += r.buffer.length * r.buffer.numberOfChannels * 4;
+  return total;
+}
 
 /** The decoded recording of a note, if it is ready. */
 export const loaded = (set: string, m: number): Loaded | undefined => banks.get(set)?.get(m);
@@ -1023,10 +1099,93 @@ async function slot<T>(f: () => Promise<T>): Promise<T> {
 }
 
 /** A note's file: from the browser's cache, else the page's own folder, else the website (P13). */
-async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
-  const file = fileOf(set, m);
+/**
+ * D542, the wire: each recording also as Opus (.webm) and AAC (.m4a), smaller than its MP3 (tools/playback/codec, the
+ * manifest's `alt`); a browser takes the first of them it decodes (two 60 ms probes decoded once, here), the MP3 where it
+ * decodes neither or a file is missing.
+ */
+export type Wire = "webm" | "m4a" | "mp3";
+const PROBES: Record<"webm" | "m4a", string> = {
+  webm: "GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwEAAAAAAALHEU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHYTbuMU6uEElTDZ1OsggFCTbuMU6uEHFO7a1OsggKx7AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmsirXsYMPQkBNgI1MYXZmNjAuMTYuMTAwV0GNTGF2ZjYwLjE2LjEwMESJiEBRAAAAAAAAFlSua+WuAQAAAAAAAFzXgQFzxYhNVasU68KUypyBACK1nIN1bmSIgQCGhkFfT1BVU1aqg2MuoFa7hATEtACDgQLhkZ+BAbWIQOdwAAAAAABiZIEQY6KTT3B1c0hlYWQBATgBgLsAAAAAABJUw2f9c3OgY8CAZ8iaRaOHRU5DT0RFUkSHjUxhdmY2MC4xNi4xMDBzc9djwItjxYhNVasU68KUymfIokWjh0VOQ09ERVJEh5VMYXZjNjAuMzEuMTAyIGxpYm9wdXNnyKFFo4hEVVJBVElPTkSHkzAwOjAwOjAwLjA2ODAwMDAwMAAfQ7Z1QOfngQCjyYEAAIB4ggG3bH5A5gAACr6ap77/toXXCnHg3Wug48bFwzLGZB5uY1I6RQyKU49EGLCMZKvsmJZ5bFRTMFVOguQWyllJ2McJXVmjsYEAFYB4oz/3rJiFA1dPztF2E5YxwGEgAOWM5a9HAbfKTi8lKVEQj79FpKyH2RDta1ijtoEAKYB4m6MSVs4jdnLtXAyLUVgo4LdjKazwtCQwtFvpHFbkw9IY9q7KYI2OqMPA0QBqOgfkoqCsoaOBAD0AeAZNpoExSNI1qNkfdAYtx4QWFNggG3ooolh9BZBiZ3WihADN/mAcU7trkbuPs4EAt4r3gQHxggHE8IED",
+  m4a: "AAAAHGZ0eXBNNEEgAAACAE00QSBpc29taXNvMgAAAwttb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAPAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACNXRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAPAAAAAAAAAAAAAAAAQEAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAADwAAAQAAAEAAAAAAa1tZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAAKxEAAAOVlXEAAAAAAAtaGRscgAAAAAAAAAAc291bgAAAAAAAAAAAAAAAFNvdW5kSGFuZGxlcgAAAAFYbWluZgAAABBzbWhkAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEcc3RibAAAAGpzdHNkAAAAAAAAAAEAAABabXA0YQAAAAAAAAABAAAAAAAAAAAAAQAQAAAAAKxEAAAAAAA2ZXNkcwAAAAADgICAJQABAASAgIAXQBUAAAAAAJXUAACV1AWAgIAFEghW5QAGgICAAQIAAAAgc3R0cwAAAAAAAAACAAAAAwAABAAAAAABAAACVgAAABxzdHNjAAAAAAAAAAEAAAABAAAABAAAAAEAAAAkc3RzegAAAAAAAAAAAAAABAAAAHwAAAB5AAAAYwAAADcAAAAUc3RjbwAAAAAAAAABAAADNwAAABpzZ3BkAQAAAHJvbGwAAAACAAAAAf//AAAAHHNiZ3AAAAAAcm9sbAAAAAEAAAAEAAAAAQAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNjAuMTYuMTAwAAAACGZyZWUAAAGXbWRhdN4CAExhdmM2MC4zMS4xMDIAAmCeUdI6Ow6JeevU65z6u8kiS4s8pP/mw27gfgvVexd9orTBXj/HpeDq/9uv8G+rfVvq2hgY2DAwMiRIjZs2bRUKEps2bNokSKWXE2blRSyy440CD8NKoftUui+1TKH2b0Hy70mWg/Ey8DgBOJDayN1UU4spxZLhz/Ptrhs8f/Wv3641xr/6eP588a41/6e/8+eNdaDf62jo9kYhdAmWELP1Os3lMbc4DOcBgZ3CZgYGdwkJBgZ3CQmE2Eu/whVhup85cr0pW9KE3szcoSVJZg0oSEkrwNKEhLHLxDUUUUGoooo4AUKRtglRVkeLJXUfr1xqa/4+f3641xr/x9v588W3LEncIe6l75EaEtfyGv5D6fLmA+n0wDYwD1Mj/iojKhtLdIoGqbzzfzmfz1ax/P+esfz/nrmrWujMvDDChVHNR8qDfJXAATaRttLg5Dl8Sry9CM/SRTADbZ4TqoB/b+nw5n29s5Po9NydvR1zm5oPlx5fJNA48vlxxUYDgA==",
+};
+let wireOrder: Promise<Wire[]> | null = null;
+/** D542: the loading as it was before (the measurements' "before": MP3 only, every fetch at once, no order), or as now. */
+const policy: { wire: Wire[] | null; queue: boolean } = { wire: null, queue: true };
+export function setLoadPolicy(p: { wire?: Wire[] | null; queue?: boolean }) {
+  if (p.wire !== undefined) policy.wire = p.wire;
+  if (p.queue !== undefined) policy.queue = p.queue;
+}
+export function wireFormats(ctx: BaseAudioContext): Promise<Wire[]> {
+  if (policy.wire) return Promise.resolve(policy.wire);
+  if (!wireOrder)
+    wireOrder = (async () => {
+      const ok: Wire[] = [];
+      for (const w of ["webm", "m4a"] as const) {
+        try {
+          const bin = typeof atob === "function" ? Uint8Array.from(atob(PROBES[w]), (c) => c.charCodeAt(0)) : new Uint8Array(0);
+          const b = await ctx.decodeAudioData(bin.buffer.slice(0));
+          if (b && b.length > 0) ok.push(w);
+        } catch {
+          /* this browser cannot decode it */
+        }
+      }
+      return [...ok, "mp3"];
+    })();
+  return wireOrder;
+}
+/** D542: a file's name in a wire format, if that copy exists (the manifest's `alt`: by the MP3's name, its length). */
+export function wireFile(set: string, m: number, w: Wire): { file: string; v: number } | null {
+  const mp3 = fileOf(set, m);
+  const entry = SAMPLE_MANIFEST[folderOf(set)];
+  if (w === "mp3") return { file: mp3, v: entry?.pack[mp3]?.[1] ?? 0 };
+  const len = entry?.alt?.[w]?.[mp3];
+  return len ? { file: mp3.replace(/\.mp3$/, `.${w}`), v: len } : null;
+}
+/** D542: the bytes a note's file takes on the wire in a format (its MP3's where it has no such copy). */
+export const wireBytes = (set: string, m: number, w: Wire = "mp3") => (wireFile(set, m, w) ?? wireFile(set, m, "mp3"))!.v;
+
+/**
+ * D542, the fetches by priority: at most FETCH_MAX at once (a browser's six a host; on a slow line more only share it), the
+ * most urgent first: 0 a note asked for now (loadOne), 1 the opening's zones (Chip.prepare's `opening`), 1.5 the drums, 2 the rest.
+ */
+export const FETCH_MAX = 6;
+let fetching = 0;
+const fetchQueue: { prio: number; seq: number; go: () => void }[] = [];
+let fetchSeq = 0;
+/** Waiting entries by note, so a more urgent ask raises one already queued. */
+const queuedFetch = new Map<string, { prio: number; seq: number; go: () => void }>();
+function fetchTurn(key: string, prio: number): Promise<void> {
+  if ((fetching < FETCH_MAX || !policy.queue) && !fetchQueue.length) {
+    fetching++;
+    return Promise.resolve();
+  }
+  return new Promise<void>((go) => {
+    const e = { prio, seq: fetchSeq++, go: () => (queuedFetch.delete(key), go()) };
+    fetchQueue.push(e);
+    queuedFetch.set(key, e);
+  });
+}
+function fetchDone() {
+  fetchQueue.sort((a, b) => a.prio - b.prio || a.seq - b.seq);
+  const next = fetchQueue.shift();
+  if (next) next.go();
+  else fetching--;
+}
+/** D542: a waiting fetch made more urgent. */
+function raise(key: string, prio: number) {
+  const e = queuedFetch.get(key);
+  if (e && prio < e.prio) e.prio = prio;
+}
+/** D542: the fetches waiting now (the tests'). */
+export const fetchesWaiting = () => fetchQueue.length;
+
+async function fileBytes(set: string, m: number, w: Wire = "mp3", prio = 2): Promise<ArrayBuffer | null> {
+  const wf = wireFile(set, m, w);
+  if (!wf) return null;
+  const file = wf.file;
   // The file's length versions the URL: a re-made recording is fetched anew, past the site's own cache.
-  const v = SAMPLE_MANIFEST[folderOf(set)]?.pack[file]?.[1] ?? 0;
+  const v = wf.v;
   const here = typeof document !== "undefined" ? document.baseURI : SITE;
   const bases = [...new Set([baseOf.get(set), here, SITE].filter((b): b is string => !!b))];
   let cache: Cache | null = null;
@@ -1043,13 +1202,22 @@ async function fileBytes(set: string, m: number): Promise<ArrayBuffer | null> {
     } catch {
       /* the cache refused: fetch it */
     }
-    const res = await fetch(url).catch(() => null);
-    if (!res || !res.ok) continue;
-    const bytes = await res.arrayBuffer();
+    await fetchTurn(`${set}:${m}`, prio);
+    let res: Response | null = null;
+    let bytes: ArrayBuffer;
+    try {
+      res = await fetch(url).catch(() => null);
+      if (!res || !res.ok) continue;
+      bytes = await res.arrayBuffer();
+    } catch {
+      continue;
+    } finally {
+      fetchDone();
+    }
     // A page that serves its own index for a missing file (some hosts) is not a recording.
     if (bytes.byteLength < 256 || /^\s*</.test(new TextDecoder().decode(bytes.slice(0, 16)))) continue;
     baseOf.set(set, base);
-    if (cache) cache.put(url, new Response(bytes.slice(0), { headers: { "content-type": "audio/mpeg" } })).catch(() => {});
+    if (cache) cache.put(url, new Response(bytes.slice(0), { headers: { "content-type": w === "webm" ? "audio/webm" : w === "m4a" ? "audio/mp4" : "audio/mpeg" } })).catch(() => {});
     return bytes;
   }
   return null;
@@ -1077,6 +1245,64 @@ function toMono(ctx: BaseAudioContext, b: AudioBuffer): AudioBuffer {
   return out;
 }
 
+/** D540: offline contexts by rate, to decode a slimmed set at its own rate (null where there is none: decoded, then resampled here). */
+const decoders = new Map<number, BaseAudioContext | null>();
+function decoderAt(rate: number): BaseAudioContext | null {
+  if (!decoders.has(rate)) {
+    let c: BaseAudioContext | null = null;
+    try {
+      c = typeof OfflineAudioContext !== "undefined" ? new OfflineAudioContext(1, 1, rate) : null;
+    } catch {
+      c = null;
+    }
+    decoders.set(rate, c);
+  }
+  return decoders.get(rate) ?? null;
+}
+/**
+ * D540: a decoded recording slimmed (Slim): one channel (its power kept, as toMono), at `rate` (linear interpolation where
+ * the browser did not decode it there), no longer than `maxS` with a 60 ms fade at its end.
+ */
+export function slimData(chans: Float32Array[], sr: number, slim: PlanSlim): Float32Array {
+  const n0 = chans[0].length;
+  let mono: Float32Array;
+  if (chans.length === 1) mono = chans[0];
+  else {
+    mono = new Float32Array(n0);
+    let pl = 0;
+    let pm = 0;
+    for (let i = 0; i < n0; i++) {
+      let x = 0;
+      for (const c of chans) (x += c[i]), (pl += c[i] * c[i]);
+      x /= chans.length;
+      mono[i] = x;
+      pm += x * x;
+    }
+    // The channels' mean power kept (as toMono), and 3 dB more: a mono note through its seat's StereoPannerNode at the
+    // middle leaves at cos(π/4) a side where the stereo recording passed whole (measured: the slimmed harpsichord 3.2 LU
+    // under its stereo self on II/2's opening, level with it so).
+    const k = pm > 0 ? Math.min(2, Math.sqrt(pl / chans.length / pm)) * Math.SQRT2 : 1;
+    if (k !== 1) for (let i = 0; i < n0; i++) mono[i] *= k;
+  }
+  const ratio = sr / slim.rate;
+  const n1 = Math.floor(n0 / ratio);
+  const keep = Math.min(n1, slim.maxS ? Math.floor(slim.maxS * slim.rate) : n1);
+  const out = new Float32Array(keep);
+  if (ratio === 1) out.set(mono.subarray(0, keep));
+  else
+    for (let i = 0; i < keep; i++) {
+      const x = i * ratio;
+      const j = Math.floor(x);
+      const f = x - j;
+      out[i] = (mono[j] ?? 0) * (1 - f) + (mono[j + 1] ?? 0) * f;
+    }
+  if (keep < n1) {
+    const fade = Math.min(keep, Math.floor(0.06 * slim.rate));
+    for (let i = 0; i < fade; i++) out[keep - 1 - i] *= 0.5 - 0.5 * Math.cos((Math.PI * i) / fade);
+  }
+  return out;
+}
+
 /** D297: a decoded recording made over for a period set (`bake`), one channel at half its rate; the decoded one let go. */
 function baked(ctx: BaseAudioContext, b: AudioBuffer, spec: Bake): AudioBuffer {
   const chans = Array.from({ length: b.numberOfChannels }, (_, c) => b.getChannelData(c));
@@ -1086,24 +1312,43 @@ function baked(ctx: BaseAudioContext, b: AudioBuffer, spec: Bake): AudioBuffer {
   return out;
 }
 
-function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> {
+function loadNote(ctx: BaseAudioContext, set: string, m: number, prio = 2): Promise<void> {
   const key = `${set}:${m}`;
   const busy = inFlight.get(key);
-  if (busy) return busy;
-  if (banks.get(set)?.has(m) || unreachable.has(set)) return Promise.resolve();
+  if (busy) return (raise(key, prio), busy);
+  if (banks.get(set)?.has(m) || unreachable.has(set) || heldOff.has(set)) return Promise.resolve();
   if (Date.now() - (failedAt.get(key) ?? -Infinity) < 20000) return Promise.resolve();
+  const gen = generation.get(set) ?? 0;
   const p = (async () => {
-    const bytes = await fileBytes(set, m);
-    if (!bytes) {
+    // D542: the smallest copy this browser decodes, then the next (a missing file, a failed decode), the MP3 last.
+    const period = PERIOD[set];
+    const slim = period ? undefined : slimNow.get(set);
+    const decoder = slim ? (decoderAt(slim.rate) ?? ctx) : ctx;
+    let bytes: ArrayBuffer | null = null;
+    let decoded: AudioBuffer | null = null;
+    for (const w of await wireFormats(ctx)) {
+      bytes = await fileBytes(set, m, w, prio);
+      if (!bytes) continue;
+      const got = bytes;
+      decoded = await slot(() => decoder.decodeAudioData(got)).catch(() => null);
+      if (decoded) break;
+    }
+    if (!bytes || !decoded) {
       failedAt.set(key, Date.now());
       failures.set(set, (failures.get(set) ?? 0) + 1);
       // Nothing answered for this set: the page has no route to the recordings.
       if ((failures.get(set) ?? 0) >= 3 && !banks.get(set)?.size && !baseOf.has(set)) unreachable.add(set);
       return;
     }
-    const decoded = await slot(() => ctx.decodeAudioData(bytes));
-    const period = PERIOD[set];
-    const buffer = period ? baked(ctx, decoded, period) : monoSets.has(set) ? toMono(ctx, decoded) : decoded;
+    // D540: released (or its slimming changed) while it was fetched and decoded: not kept.
+    if ((generation.get(set) ?? 0) !== gen) return;
+    let buffer: AudioBuffer;
+    if (period) buffer = baked(ctx, decoded, period);
+    else if (slim) {
+      const data = slimData(Array.from({ length: decoded.numberOfChannels }, (_, c) => decoded.getChannelData(c)), decoded.sampleRate, slim);
+      buffer = ctx.createBuffer(1, Math.max(1, data.length), slim.rate);
+      buffer.getChannelData(0).set(data);
+    } else buffer = monoSets.has(set) ? toMono(ctx, decoded) : decoded;
     let bank = banks.get(set);
     if (!bank) banks.set(set, (bank = new Map()));
     const onset = onsetOf(buffer.getChannelData(0), buffer.sampleRate);
@@ -1120,12 +1365,23 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
  * buffer until it ends). Over the budget, the stereo sets are folded to mono as they are decoded.
  */
 export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
+  return loadPlanStaged(ctx, plan, phone).all;
+}
+/** D542: loadPlan, with the opening's notes (Plan `first`) asked for first and awaited apart (`first`). */
+export function loadPlanStaged(ctx: BaseAudioContext, plan: Plan, phone: boolean): { first: Promise<void>; all: Promise<void> } {
   if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
-  for (const { set, notes } of plan) {
+  for (const { set, notes, slim } of plan) {
+    slimFor(set, slim);
     const bank = banks.get(set);
     if (bank) for (const m of [...bank.keys()]) if (!notes.includes(m)) bank.delete(m);
+    // D540: a set let go entirely: the decodes still on their way are dropped when they land.
+    if (!notes.length) generation.set(set, (generation.get(set) ?? 0) + 1);
   }
-  return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
+  const first: Promise<void>[] = [];
+  // The opening's notes asked for before the rest (the queue serves them first in any case).
+  for (const { set, notes, first: f } of plan) for (const m of notes) if (f?.includes(m)) first.push(loadNote(ctx, set, m, 1));
+  const rest = plan.flatMap(({ set, notes, first: f, soon }) => notes.filter((m) => !f?.includes(m)).map((m) => loadNote(ctx, set, m, soon ? 1.5 : 2)));
+  return { first: Promise.all(first).then(() => {}), all: Promise.all([...first, ...rest]).then(() => {}) };
 }
 
 /**
@@ -1134,8 +1390,20 @@ export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Pro
  */
 export function loadPlanKeep(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
   if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
+  for (const { set, notes, slim } of plan) if (notes.length) slimFor(set, slim);
   return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
 }
 
+/** D540: a set's slimming as a plan asks (a change lets its recordings go, to be decoded again the new way). */
+function slimFor(set: string, slim: PlanSlim | undefined) {
+  const k = keyOfSlim(slim);
+  if ((slimKey.get(set) ?? "") === k) return;
+  slimKey.set(set, k);
+  if (slim) slimNow.set(set, slim);
+  else slimNow.delete(set);
+  banks.get(set)?.clear();
+  generation.set(set, (generation.get(set) ?? 0) + 1);
+}
+
 /** Ask for one note's recording (a note played before the plan reached it). */
-export const loadOne = (ctx: BaseAudioContext, set: string, m: number) => void loadNote(ctx, set, m);
+export const loadOne = (ctx: BaseAudioContext, set: string, m: number) => void loadNote(ctx, set, m, 0);

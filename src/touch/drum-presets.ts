@@ -33,7 +33,9 @@ import { fugueById, keyAt, beatOf, type TouchFugue } from "./fugue.ts";
 import { climaxRamp, resolvedAt, formAt, formOf, type FormKind, type FugueForm } from "./fugue-form.ts";
 import { backbeats, DRUM_SCRIPTS, dynGain, fillsFor, type Fill } from "./jazz-drums.ts";
 import { PIECE_SOUND } from "./piece-sound.ts";
+import { GRIDS, gridBeat, type FillVoice } from "./drum-grids.ts";
 import { tempoOf } from "./tempi.ts";
+import { FILL_STROKE_S, JITTER_S, fillPlan, fillSlice, rand, seedOf, styleSalt, type FillFeel, type FillSpec, type PlannedFill } from "./drum-fills.ts";
 
 export type DrumCharacter = "electronic" | "acoustic" | "percussion";
 /** The drummer's own sound and way: two of each character, one chosen for each fugue. */
@@ -113,49 +115,23 @@ export function firstCharacter(id: string): DrumCharacter {
   return "acoustic";
 }
 
-/** The three presets of a piece, the first its default (the API: Progression's DRUMS button). */
-export function drumPresetsFor(pieceId: string): readonly [DrumPreset, DrumPreset, DrumPreset] {
+/** D514's three presets of a piece (legacy: D526's drum-library.ts drumMenuFor replaces them on the DRUMS row). */
+export function legacyPresetsFor(pieceId: string): readonly [DrumPreset, DrumPreset, DrumPreset] {
   const st = stylesFor(pieceId);
   const first = firstCharacter(pieceId);
   const order = [first, ...CHARACTERS.filter((c) => c !== first)] as [DrumCharacter, DrumCharacter, DrumCharacter];
   const mk = (c: DrumCharacter): DrumPreset => ({ id: c, name: STYLE_NAMES[st[c]], character: c, style: st[c] });
   return [mk(order[0]), mk(order[1]), mk(order[2])];
 }
-
-/** The selection screen's stored choice (its key, src/bench/LiteDrums.tsx), read where nothing was set this visit. */
-export const STORED_PRESET_KEY = (pieceId: string) => `tb-lite-drum-preset:${pieceId}`;
-const chosen = new Map<string, DrumCharacter>();
-let currentPiece: string | null = null;
-
-const isCharacter = (s: unknown): s is DrumCharacter => s === "electronic" || s === "acoustic" || s === "percussion";
-
-/** Chooses the drums the backing plays for a piece (an unknown id: the first). It does not turn DRUMS on. */
-export function setDrumPreset(pieceId: string, presetId: string) {
-  chosen.set(pieceId, isCharacter(presetId) ? presetId : drumPresetsFor(pieceId)[0].id);
-  currentPiece = pieceId;
-}
-/** The preset chosen for a piece: set this visit, else stored by the selection screen, else the first. */
-export function drumPresetOf(pieceId: string): DrumCharacter {
-  const c = chosen.get(pieceId);
-  if (c) return c;
-  try {
-    const s = typeof localStorage !== "undefined" ? localStorage.getItem(STORED_PRESET_KEY(pieceId)) : null;
-    if (isCharacter(s)) return s;
-  } catch {
-    /* no storage */
-  }
-  return drumPresetsFor(pieceId)[0].id;
-}
-/** The style the drums play for a piece now. */
-export const drumStyleFor = (pieceId: string): DrumStyle => stylesFor(pieceId)[drumPresetOf(pieceId)];
-/** The piece last chosen for (the sound's loading asks it before a piece's first beat). */
-export const drumPiece = () => currentPiece;
+export const isCharacter = (s: unknown): s is DrumCharacter => s === "electronic" || s === "acoustic" || s === "percussion";
 
 // ---------------------------------------------------------------------------------------------------------------
 // The drumming.
 
 /** The pieces a drummer strikes (chip.ts Chip.kit: the recordings of KIT_PIECES, or the synthesized kit). */
-export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp";
+export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp"
+  // D532: the period kit's (score-drums.ts): the side drum, the field drum, the tabor, a stick on the rim, the frame drums' dum and tek, the castanets, the clash cymbals.
+  | "sideDrum" | "fieldDrum" | "tabor" | "drumStick" | "frameDum" | "frameTek" | "castanets" | "cymbals";
 export interface KitHit {
   piece: KitPiece;
   /** Beats from the beat's start. */
@@ -164,6 +140,14 @@ export interface KitHit {
   vel: number;
   /** The timpani's pitch (MIDI). */
   midi?: number;
+  /** D526: a stroke of a roll (into an entry), of a fill (into the climax, the flourish, a roll out), or a landing's accent. */
+  role?: "roll" | "fill" | "accent";
+  /** D535: a roll's or a fill's stroke: the ticks from it to the landing (the studio's music events: a roll carries its length). */
+  dur?: number;
+  /** D535: a flam's or a ruff's grace note (closer to its stroke than a roll's strokes are to each other). */
+  grace?: boolean;
+  /** D532: the fugue's tick the stroke belongs to (a score-driven stroke; a flam's grace sounds a few ms before it). */
+  tick?: number;
 }
 /** What the game tells the drummer about a beat (chip.ts GrooveContext's, read through the fugue). */
 export interface KitContext {
@@ -253,7 +237,11 @@ export function timpaniPitches(key: string): { tonic: number; dominant: number }
  * computed sub by sub, each by where its tick falls: the final bar's flourish, the break, a roll in or out, or the
  * zone's pattern.
  */
-export function kitBeat(style: Exclude<DrumStyle, "brushes">, cx: KitContext): KitHit[] {
+/** A style kitBeat plays: D514's own (rock, chip, timpani, frame) or a written one (drum-grids.ts GRIDS). */
+export type KitStyle = string;
+/** The fills' voice of a style (D514's styles their own). */
+export const fillVoiceOf = (style: KitStyle): FillVoice => GRIDS[style]?.fill ?? (style as FillVoice);
+export function kitBeat(style: KitStyle, cx: KitContext): KitHit[] {
   const hits = kitBeatRaw(style, cx);
   if (style !== "timpani" || timpaniTuned(cx.home ?? cx.keyAt?.(cx.tick) ?? "c", cx.keyAt ? cx.keyAt(cx.tick) : (cx.home ?? "c"))) return hits;
   // Away from the home key's harmony the timpani are silent as pitches: the bass drum takes their strokes (unpitched).
@@ -271,7 +259,146 @@ export function timpaniTuned(home: string, local: string): boolean {
   const pc = (m: number) => m % 12;
   return pc(l.tonic) === pc(h.tonic) || pc(l.tonic) === pc(h.dominant) || pc(l.dominant) === pc(h.tonic);
 }
-function kitBeatRaw(style: Exclude<DrumStyle, "brushes">, cx: KitContext): KitHit[] {
+function kitBeatRaw(pattern: KitStyle, cx: KitContext): KitHit[] {
+  const voice = fillVoiceOf(pattern);
+  // D535: the drummers' fills humanised (drum-fills.ts); the orchestral ones (timpani, frame drums: S3's) as D514 wrote them.
+  return voice === "timpani" || voice === "frame" ? kitBeatOrchestral(pattern, cx) : kitBeatFills(pattern, voice, cx);
+}
+
+/** D535: the fill's feel of a fills' voice. */
+const FEEL: Partial<Record<FillVoice, FillFeel>> = { rock: "rock", jazz: "jazz", chip: "chip", machine: "machine", latin: "latin" };
+/** D535: the fills' level (the contour's first and last strokes): into an entry, into the climax and the last bar. */
+/** D535: the most beats the final entry's fill takes after the break. */
+export const BREAK_FILL_BEATS = 3;
+export const FILL_LEVEL = { in: [0.26, 0.64], big: [0.32, 0.86] } as const;
+const planMemo = new Map<string, PlannedFill[]>();
+/** D535: the fills a piece's drummer plays (drum-fills.ts fillPlan): which landings, how long, which fill. */
+export function kitFillPlan(pattern: KitStyle, form: FugueForm, beat: number, beatS: number, per: number): PlannedFill[] {
+  const feel = FEEL[fillVoiceOf(pattern)] ?? "rock";
+  const key = `${pattern}:${form.end}:${form.lastBar}:${form.climax}:${form.finalEntry}:${beat}:${beatS.toFixed(3)}:${per}:${form.zones.length}`;
+  const hit = planMemo.get(key);
+  if (hit) return hit;
+  const L = landings(form);
+  // After the break the final entry's fill is short (at most the bar, or BREAK_FILL_BEATS), the silence heard.
+  const brk = breaksBefore(form);
+  const plan = fillPlan(feel, L.into, form.lastBar, (at) => at >= form.climax || at === form.finalEntry, beat, form.barTicks, beatS, per, styleSalt(pattern), (at) => (brk && at === form.finalEntry ? Math.min(per, BREAK_FILL_BEATS) : Infinity));
+  if (planMemo.size > 256) planMemo.clear();
+  planMemo.set(key, plan);
+  return plan;
+}
+
+/** D535: a beat of a drummer whose fills are humanised: the plan's fills, the landings, the break, the roll out, the pattern. */
+function kitBeatFills(pattern: KitStyle, style: FillVoice, cx: KitContext): KitHit[] {
+  const { beatS, tick, beat, form } = cx;
+  const feel = FEEL[style] ?? "rock";
+  const out: KitHit[] = [];
+  const g = dynGain(cx.dynDb ?? 0);
+  const arc = ARC_VEL + (1 - ARC_VEL) * Math.min(1, tick / Math.max(1, 0.6 * form.end));
+  const pitches = timpaniPitches(cx.home ?? (cx.keyAt ? cx.keyAt(tick) : "c"));
+  const L = landings(form);
+  const plan = kitFillPlan(pattern, form, beat, beatS, cx.per);
+  const hit = (piece: KitPiece, at: number, vel: number) => out.push({ piece, at, vel: Math.max(0.02, Math.min(1, vel)) });
+  const end = tick + beat;
+  const spec = (p: PlannedFill): FillSpec => {
+    const [lo, hi] = p.kind === "in" ? FILL_LEVEL.in : FILL_LEVEL.big;
+    return { feel, variant: p.variant, beats: p.beats, beatS, compound: cx.compound, lo: lo * g, hi: hi * g, seed: seedOf(p.at, styleSalt(pattern)) };
+  };
+  const landOn = landPieces(style);
+  const strokes = (p: PlannedFill, stop: number): KitHit[] => {
+    const role = p.kind === "in" ? ("roll" as const) : ("fill" as const);
+    return fillSlice(spec(p), p.from, beat, tick, stop, landOn).map((h): KitHit => ({ piece: h.piece, at: h.t, vel: Math.max(0.02, Math.min(1, h.vel)), role, dur: Math.max(0, p.at - (tick + h.t * beat)), ...(h.grace ? { grace: true } : {}) }));
+  };
+
+  // THE LAST BAR: its downbeat struck (the kick, the crash, the snare), then nothing.
+  if (tick >= form.lastBar - beat / 2) {
+    if (Math.abs(tick - form.lastBar) < beat / 2) {
+      const v = 0.95 * g;
+      if (style === "latin") hit("congaLow", 0, v), hit("tamb", 0, 0.8 * g), hit("crash", 0, 0.4 * g);
+      else hit("kick", 0, v), hit("crash", 0, 0.8 * g), style !== "jazz" && hit("snare", 0, 0.6 * g);
+      for (const h of out) h.role = "accent";
+    }
+    return out;
+  }
+  const flourish = plan.find((p) => p.kind === "flourish");
+  if (flourish && tick >= flourish.from - beat / 2 - 1e-6 && tick + beat > flourish.from) return strokes(flourish, flourish.at);
+
+  // THE BREAK: a bar's silence before the final entry's fill (only where an episode precedes it).
+  if (breaksBefore(form)) {
+    const fin = plan.find((p) => p.at === form.finalEntry);
+    const bEnd = fin && fin.filled ? fin.from : form.finalEntry - beat;
+    const bFrom = bEnd - form.barTicks;
+    if (tick >= bFrom - beat / 2 && tick < bEnd - beat / 2) return out;
+  }
+
+  // A FILL INTO an entry (or the climax), as planned; its landing on the entry. An entry left unfilled: its landing alone.
+  for (const p of plan) {
+    if (p.kind === "flourish") continue;
+    const big = p.kind === "climax";
+    // The landing's beat: the one the entry falls in.
+    if (p.at >= tick - 1e-6 && p.at < end - 1e-6) {
+      const cut = (p.at - tick) / beat;
+      const land = landHits(style, cut, g, pitches, big).map((h): KitHit => ({ ...h, role: "accent" }));
+      if (cut < 1e-6) return land.concat(patternHits(pattern, cx, drumKind(form, p.at), g, arc, pitches).filter((h) => h.at > 0.02));
+      const before = p.filled ? strokes(p, p.at) : patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches).filter((h) => h.at < cut - FILL_STROKE_S / beatS);
+      return before.concat(land);
+    }
+    if (p.filled && tick + beat > p.from + 1e-6 && tick < p.at) {
+      const s = strokes(p, p.at);
+      // The fill begun inside this beat: the pattern before it.
+      const start = (p.from - tick) / beat;
+      if (start > 0) return patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches).filter((h) => h.at < start - FILL_STROKE_S / beatS).concat(s);
+      return s;
+    }
+  }
+
+  // A ROLL OUT into an episode: a few strokes falling away over the beat before it, the episode's pattern after.
+  for (const at of L.out) {
+    if (tick >= at - beat - beat / 2 && tick < at - beat / 2) return outFill(style, beatS, g * arc, seedOf(at, styleSalt(pattern))).map((h) => ({ ...h, role: "fill" as const, dur: Math.max(0, at - tick - h.at * beat) }));
+  }
+
+  return patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches);
+}
+
+/**
+ * D535: the roll out, humanised: two or three strokes falling away over the beat, which drums and how they fall drawn
+ * (seeded) from a few, the levels uneven, the strokes a little off the grid (not the machines').
+ */
+const OUT_FALLS: Readonly<Record<"kit" | "latin", readonly KitPiece[][]>> = {
+  kit: [
+    ["tomHigh", "tomLow", "tomLow"],
+    ["snare", "tomHigh", "tomLow"],
+    ["tomHigh", "tomHigh", "tomLow"],
+    ["snare", "tomLow", "tomLow"],
+  ],
+  latin: [
+    ["congaHigh", "congaHigh", "congaLow"],
+    ["bongo", "congaHigh", "congaLow"],
+    ["congaHigh", "bongo", "congaLow"],
+  ],
+};
+function outFill(style: FillVoice, beatS: number, g: number, seed: number): KitHit[] {
+  const n = Math.min(3, Math.max(2, Math.floor(beatS / PATTERN_STROKE_S)));
+  const falls = OUT_FALLS[style === "latin" ? "latin" : "kit"];
+  const fall = falls[Math.floor(rand(seed, 11) * falls.length)];
+  const feel = FEEL[style] ?? "rock";
+  const jit = JITTER_S[feel] / beatS;
+  const out: KitHit[] = [];
+  for (let j = 0; j < n; j++) {
+    const piece = j === n - 1 ? fall[2] : fall[j];
+    const at = Math.max(0, Math.min(0.99, j / n + (j ? jit * (rand(seed, 12 + j) * 2 - 1) : 0)));
+    out.push({ piece, at, vel: Math.max(0.03, g * (0.52 - 0.13 * j) * (1 + 0.1 * (rand(seed, 20 + j) - 0.5))) });
+  }
+  return out;
+}
+
+/** D535: the drums a landing strikes (the fill's strokes of these kept clear of it). */
+function landPieces(style: FillVoice): KitPiece[] {
+  return style === "latin" || style === "frame" ? ["congaLow", "tamb"] : style === "timpani" ? ["timp", "crash", "bassDrum"] : ["kick", "crash"];
+}
+
+/** D514's beat, as written: the timpani's and the frame drums' (the orchestral styles: S3's to change). */
+function kitBeatOrchestral(pattern: KitStyle, cx: KitContext): KitHit[] {
+  const style = fillVoiceOf(pattern);
   const { per, beatS, tick, beat, form } = cx;
   const out: KitHit[] = [];
   const g = dynGain(cx.dynDb ?? 0);
@@ -302,7 +429,7 @@ function kitBeatRaw(style: Exclude<DrumStyle, "brushes">, cx: KitContext): KitHi
   }
   if (tick >= fillFrom - beat / 2) {
     const x = Math.max(0, Math.min(1, (tick - fillFrom) / Math.max(1, form.lastBar - fillFrom)));
-    return fillStrokes(style, beatS, x, 1 / Math.max(1, Math.round((form.lastBar - fillFrom) / beat)), g, pitches, "flourish");
+    return fillStrokes(style, beatS, x, 1 / Math.max(1, Math.round((form.lastBar - fillFrom) / beat)), g, pitches, "flourish").map((h) => ({ ...h, role: "fill" as const }));
   }
 
   // THE BREAK: a bar's silence before the final entry's roll (only where an episode precedes it).
@@ -323,28 +450,34 @@ function kitBeatRaw(style: Exclude<DrumStyle, "brushes">, cx: KitContext): KitHi
       const cut = (at - tick) / beat;
       // And those before the roll's start (an entry off the beat: the roll begins in the beat).
       const start = (from - tick) / beat;
-      return strokes.filter((h) => h.at < cut - (ROLL_STROKE_S * 0.999) / beatS && h.at >= start - 0.02).concat(cut < 1 ? landHits(style, cut, g, pitches, at >= form.climax) : []);
+      const role = at >= form.climax ? ("fill" as const) : ("roll" as const);
+      return strokes
+        .filter((h) => h.at < cut - (ROLL_STROKE_S * 0.999) / beatS && h.at >= start - 0.02)
+        .map((h): KitHit => ({ ...h, role }))
+        .concat(cut < 1 ? landHits(style, cut, g, pitches, at >= form.climax).map((h) => ({ ...h, role: "accent" as const })) : []);
     }
     // The landing beat: the landing, then the zone's pattern.
     if (Math.abs(tick - at) < beat / 2) {
-      const pat = patternHits(style, cx, drumKind(form, at), g, arc, pitches).filter((h) => h.at > 0.02);
-      return landHits(style, 0, g, pitches, at >= form.climax).concat(pat);
+      const pat = patternHits(pattern, cx, drumKind(form, at), g, arc, pitches).filter((h) => h.at > 0.02);
+      return landHits(style, 0, g, pitches, at >= form.climax)
+        .map((h): KitHit => ({ ...h, role: "accent" }))
+        .concat(pat);
     }
   }
 
   // A ROLL OUT into an episode: a few strokes falling away over the beat before it, the episode's pattern after.
   for (const at of L.out) {
-    if (tick >= at - beat - beat / 2 && tick < at - beat / 2) return outStrokes(style, beatS, g * arc, pitches);
+    if (tick >= at - beat - beat / 2 && tick < at - beat / 2) return outStrokes(style, beatS, g * arc, pitches).map((h) => ({ ...h, role: "fill" as const }));
   }
 
-  return patternHits(style, cx, drumKind(form, tick), g, arc, pitches);
+  return patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches);
 }
 
 /** The strokes of a roll in a beat at a beat of `beatS` s (the closest ROLL_STROKE_S apart, at most 8). */
 export const rollStrokes = (beatS: number) => Math.max(2, Math.min(8, Math.floor(beatS / ROLL_STROKE_S)));
 
 /** A roll's strokes in one beat: x, how far into the roll it is (0-1); share, the beat's share of it. */
-function fillStrokes(style: Exclude<DrumStyle, "brushes">, beatS: number, x: number, share: number, g: number, p: { tonic: number; dominant: number }, kind: "in" | "climax" | "flourish"): KitHit[] {
+function fillStrokes(style: FillVoice, beatS: number, x: number, share: number, g: number, p: { tonic: number; dominant: number }, kind: "in" | "climax" | "flourish"): KitHit[] {
   const out: KitHit[] = [];
   const n = rollStrokes(beatS);
   const top = kind === "in" ? 0.62 : 0.85;
@@ -381,7 +514,7 @@ function fillStrokes(style: Exclude<DrumStyle, "brushes">, beatS: number, x: num
 }
 
 /** The landing of a roll (on the entry): a cymbal over the low drum; fuller into the climax. */
-function landHits(style: Exclude<DrumStyle, "brushes">, at: number, g: number, p: { tonic: number }, climax: boolean): KitHit[] {
+function landHits(style: FillVoice, at: number, g: number, p: { tonic: number }, climax: boolean): KitHit[] {
   const k = climax ? 1 : 0.8;
   switch (style) {
     case "rock":
@@ -399,6 +532,7 @@ function landHits(style: Exclude<DrumStyle, "brushes">, at: number, g: number, p
         ...(climax ? [{ piece: "bassDrum" as const, at, vel: 0.6 * g }] : []),
       ];
     case "frame":
+    case "latin":
       return [
         { piece: "congaLow", at, vel: 0.85 * k * g },
         { piece: "tamb", at, vel: 0.6 * k * g },
@@ -407,21 +541,21 @@ function landHits(style: Exclude<DrumStyle, "brushes">, at: number, g: number, p
 }
 
 /** The roll out: three strokes falling away over the beat (the toms down, the timpani's dominant to tonic). */
-function outStrokes(style: Exclude<DrumStyle, "brushes">, beatS: number, g: number, p: { tonic: number; dominant: number }): KitHit[] {
+function outStrokes(style: FillVoice, beatS: number, g: number, p: { tonic: number; dominant: number }): KitHit[] {
   const n = Math.min(3, Math.max(2, Math.floor(beatS / PATTERN_STROKE_S)));
   const out: KitHit[] = [];
   for (let j = 0; j < n; j++) {
     const at = j / n;
     const v = g * (0.5 - 0.12 * j);
     if (style === "timpani") out.push({ piece: "timp", at, vel: v, midi: j === n - 1 ? p.tonic : p.dominant });
-    else if (style === "frame") out.push({ piece: j === n - 1 ? "congaLow" : "congaHigh", at, vel: v });
+    else if (style === "frame" || style === "latin") out.push({ piece: j === n - 1 ? "congaLow" : "congaHigh", at, vel: v });
     else out.push({ piece: j === 0 ? "tomHigh" : "tomLow", at, vel: v });
   }
   return out;
 }
 
 /** A beat of the zone's pattern. */
-function patternHits(style: Exclude<DrumStyle, "brushes">, cx: KitContext, kind: FormKind, g: number, arc: number, p: { tonic: number; dominant: number }): KitHit[] {
+function patternHits(style: KitStyle, cx: KitContext, kind: FormKind, g: number, arc: number, p: { tonic: number; dominant: number }): KitHit[] {
   const { b, per, compound, beatS } = cx;
   const out: KitHit[] = [];
   const back = backbeats(per).includes(b);
@@ -435,6 +569,13 @@ function patternHits(style: Exclude<DrumStyle, "brushes">, cx: KitContext, kind:
   const ep = kind === "episode";
   // The climax's busier pattern once its build is past half (its level rises first).
   const top = kind === "climax" && climaxRamp(cx.form, cx.tick) >= CLIMAX_PATTERN_AT;
+  // D527: a written style (drum-grids.ts): its grid for the metre, at the drummer's pulse for the tempo.
+  const grid = GRIDS[style];
+  if (grid) {
+    const bar = Math.max(0, Math.floor((cx.tick - b * cx.beat) / Math.max(1, cx.form.barTicks) + 0.5));
+    for (const h of gridBeat(grid, b, per, compound, beatS, bar, kind, top)) hit(h.piece, h.at, h.vel);
+    return out;
+  }
   switch (style) {
     case "rock":
       if (b === 0 || mid || (top && !back)) hit("kick", 0, b === 0 ? 0.75 : 0.6);
@@ -447,27 +588,6 @@ function patternHits(style: Exclude<DrumStyle, "brushes">, cx: KitContext, kind:
         if (b === per - 1 && subs > 1 && (top || cx.tick % (2 * cx.form.barTicks) >= cx.form.barTicks)) hit("openhat", last, 0.38);
         if (per >= 3 && b === per - 1 && subs > 1) hit("kick", last, 0.45);
       }
-      break;
-    case "jazz":
-      // The ride on every beat, its skip note before the backbeat (straight: Bach's), the hi-hat's foot on the backbeat,
-      // the bass drum feathered; the cross-stick on the bar's last beat; the snare in the climax.
-      hit("ride", 0, ep ? 0.42 : 0.55);
-      if (!ep && subs > 1 && (back || top)) hit("ride", last, 0.36);
-      if (back) hit("hat", 0, ep ? 0.32 : 0.42);
-      if (b === 0) hit("kick", 0, ep ? 0.25 : 0.35);
-      if (!ep && b === per - 1 && per > 1) hit("rim", subs > 1 ? last : 0, 0.32);
-      if (top && back) hit("snare", 0, 0.5);
-      break;
-    case "machine":
-      // The drum machine's own way (unlike the kits'): the kick on every beat of a subject zone (four on the floor),
-      // the clap with the snare on the backbeat, the closed hat on the off-beats, the open hat at the bar's end; the
-      // episodes the kick on the bar alone, the rim, the hat on the off-beats.
-      if (!ep || b === 0) hit("kick", 0, b === 0 ? 0.75 : 0.62);
-      if (back) hit(ep ? "rim" : "snare", 0, ep ? 0.42 : 0.55);
-      if (back && !ep) hit("clap", 0, top ? 0.5 : 0.38);
-      if (subs > 1) for (let s = 1; s < subs; s++) hit("hat", s / subs, ep ? 0.28 : 0.36);
-      else if (b % 2 === 1 || per === 1) hit("hat", 0, ep ? 0.26 : 0.32);
-      if (!ep && subs > 1 && b === per - 1) hit("openhat", last, top ? 0.4 : 0.3);
       break;
     case "chip":
       if (b === 0 || mid || top) hit("kick", 0, b === 0 ? 0.75 : 0.6);

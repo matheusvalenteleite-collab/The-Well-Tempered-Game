@@ -19,15 +19,12 @@ import {
   CHARACTERS,
   PATTERN_STROKE_S,
   ROLL_STROKE_S,
-  STORED_PRESET_KEY,
   breaksBefore,
   brushDb,
   brushFills,
-  drumPresetOf,
-  drumPresetsFor,
-  drumStyleFor,
   kitBeat,
-  setDrumPreset,
+  kitFillPlan,
+  legacyPresetsFor,
   stylesFor,
   timpaniPitches,
   timpaniTuned,
@@ -35,6 +32,8 @@ import {
   type KitContext,
   type KitHit,
 } from "../src/touch/drum-presets.ts";
+// D526: the selection moved to the drum library (the three presets per fugue are D514's legacy, read for a stored choice).
+import { STORED_PRESET_KEY, chosenStyle, drumPresetsFor, drumStyleFor, setDrumPreset, HOME_ID, homeStyleFor } from "../src/touch/drum-library.ts";
 
 installFakeAudio(0, true);
 const store = new Map<string, string>();
@@ -43,7 +42,7 @@ const WTC = FUGUES.filter((f) => /^wtc/.test(f.id));
 
 test("D514: three presets per fugue, one of each character, stable ids, short names; the first suits the default sound", () => {
   for (const f of FUGUES) {
-    const ps = drumPresetsFor(f.id);
+    const ps = legacyPresetsFor(f.id);
     assert.equal(ps.length, 3);
     assert.deepEqual([...ps.map((p) => p.id)].sort(), [...CHARACTERS].sort(), f.id);
     for (const p of ps) assert.ok(p.name.length <= 10 && p.name === p.name.toUpperCase(), `${f.id} ${p.name}`);
@@ -68,16 +67,17 @@ test("D514: three presets per fugue, one of each character, stable ids, short na
   assert.equal(styles.size, 7);
 });
 
-test("D514: get/set per piece: the choice this visit, else the selection screen's stored one, else the first", () => {
+test("D514 (D526): get/set per piece: the choice this visit, else the selection screen's stored one (D514's characters read as that piece's style), else the sound's HOME", () => {
   const id = "wtc1f12";
-  assert.equal(drumPresetOf("wtc2f20"), drumPresetsFor("wtc2f20")[0].id);
+  assert.equal(chosenStyle("wtc2f20"), null);
+  assert.equal(drumStyleFor("wtc2f20", "analog"), homeStyleFor("analog"));
   setDrumPreset(id, "percussion");
-  assert.equal(drumPresetOf(id), "percussion");
+  assert.equal(chosenStyle(id), stylesFor(id).percussion);
   assert.equal(drumStyleFor(id), stylesFor(id).percussion);
   setDrumPreset(id, "nonsense");
-  assert.equal(drumPresetOf(id), drumPresetsFor(id)[0].id);
+  assert.equal(chosenStyle(id), null);
   localStorage.setItem(STORED_PRESET_KEY("wtc2f19"), "acoustic");
-  assert.equal(drumPresetOf("wtc2f19"), "acoustic");
+  assert.equal(chosenStyle("wtc2f19"), stylesFor("wtc2f19").acoustic);
   localStorage.removeItem(STORED_PRESET_KEY("wtc2f19"));
 });
 
@@ -111,13 +111,22 @@ test("D514: I/12 for every style: sparser and softer in the episodes, fuller in 
   }
 });
 
+// D535: not every entry is filled now (drum-fills.ts fillPlan): the timpani and the frame drums roll into each (D514's), the
+// others into those their plan fills, and leave at least one to its landing alone; every entry still lands.
 test("D514: a roll into each subject zone after an episode (rising, landing on the entry with a cymbal or the low drum), a roll out into each episode", () => {
   for (const style of STYLES) {
-    const { form, beats, beat } = play("wtc1f12", style);
+    const { form, beats, beat, beatS } = play("wtc1f12", style);
     const entries = form.zones.filter((z, i) => i > 0 && z.kind === "subject" && z.from < form.climax);
+    const orch = style === "timpani" || style === "frame";
+    const plan = kitFillPlan(style, form, beat, beatS, 4);
+    const filled = (at: number) => orch || plan.some((p) => p.at === at && p.filled);
+    if (!orch) assert.ok(entries.some((z) => filled(z.from)) && entries.some((z) => !filled(z.from)), `${style}: some entries filled, not all`);
     for (const z of entries) {
+      const land0 = beats.find((x) => z.from >= x.tick && z.from < x.tick + beat)!;
+      assert.ok(land0.hits.some((h) => Math.abs(h.at - (z.from - land0.tick) / beat) < 1e-6 && (h.piece === "crash" || h.piece === "congaLow" || h.piece === "timp")), `${style} lands at ${z.from}`);
+      if (!filled(z.from)) continue;
       const before = beats.filter((x) => x.tick < z.from && x.tick >= z.from - 2 * beat).flatMap((x) => x.hits.map((h) => ({ ...h, t: x.tick + h.at * beat })));
-      const roll = before.filter((h) => h.piece === "snare" || h.piece === "timp" || h.piece === "congaHigh" || h.piece === "bongo" || h.piece === "tomHigh" || h.piece === "tomLow");
+      const roll = before.filter((h) => !h.grace).filter((h) => h.piece === "snare" || h.piece === "timp" || h.piece === "congaHigh" || h.piece === "bongo" || h.piece === "tomHigh" || h.piece === "tomLow");
       assert.ok(roll.length >= 2, `${style} roll before ${z.from}`);
       assert.ok(roll[roll.length - 1].vel > roll[0].vel, `${style} crescendo`);
       const land = beats.find((x) => z.from >= x.tick && z.from < x.tick + beat)!;
@@ -149,7 +158,8 @@ test("D514: a break before the final entry (where an episode precedes it), a flo
       // The strokes of one piece in a beat: never closer than a roll's.
       for (const x of beats) {
         const by = new Map<string, number[]>();
-        for (const h of x.hits) by.set(h.piece, [...(by.get(h.piece) ?? []), h.at]);
+        // D535: a flam's or a ruff's grace note (h.grace) lies closer to its stroke by design.
+        for (const h of x.hits) if (!h.grace) by.set(h.piece, [...(by.get(h.piece) ?? []), h.at]);
         for (const ats of by.values()) {
           ats.sort((a, b) => a - b);
           for (let i = 1; i < ats.length; i++) assert.ok((ats[i] - ats[i - 1]) * beatS >= ROLL_STROKE_S - 1e-6 || ats[i] === ats[i - 1], `${f.id} ${style}`);
@@ -271,7 +281,7 @@ test("D514: JAZZ BRUSHES on a fugue not the quartet's: the form's fills (into ea
   assert.equal(brushDb(fugueById("wtc1f19"), 960 * 20), 0);
 });
 
-test("D514: the link registers the presets with the selection's DRUMS (D450): STYLE n/3 cycles through the three, the choice reaching the drummer", async () => {
+test("D514 (D526): the link registers the library with the selection's DRUMS (D450): STYLE n/N cycles through it (HOME first), the choice reaching the drummer", async () => {
   const { register } = await import("node:module");
   register("./tsx-hooks.mjs", import.meta.url);
   const lite = await import("../src/bench/LiteDrums.tsx");
@@ -281,14 +291,16 @@ test("D514: the link registers the presets with the selection's DRUMS (D450): ST
     setDrumPreset(id, drumPresetsFor(id)[0].id);
     const ps = lite.drumPresets(id);
     assert.deepEqual(ps.map((p) => p.id), drumPresetsFor(id).map((p) => p.id), id);
+    assert.equal(ps[0].id, HOME_ID);
     const seen: string[] = [];
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < ps.length; k++) {
       const at = ps.findIndex((p) => p.id === lite.drumPresetOf(id)) + 1;
       seen.push(`${at}/${ps.length}`);
       lite.cycleDrumPreset(id);
-      assert.equal(drumPresetOf(id), lite.drumPresetOf(id), "the drummer follows the row");
+      const row = drumPresetsFor(id).find((p) => p.id === lite.drumPresetOf(id))!;
+      assert.equal(drumStyleFor(id), row.style, "the drummer follows the row");
     }
-    assert.deepEqual(seen, ["1/3", "2/3", "3/3"], id);
+    assert.deepEqual(seen, ps.map((_, i) => `${i + 1}/${ps.length}`), id);
     assert.equal(lite.drumPresetOf(id), ps[0].id, "round to the first");
   }
   setBacking(false);
