@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BAND_CHAINS } from "../src/touch/band-fx.ts";
+import { BAND_CHAINS, type ReverbOpts } from "../src/touch/band-fx.ts";
 import { presetBudget, PRESET_MB } from "../src/touch/budget.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { SAMPLED } from "../src/touch/sampled.ts";
@@ -58,9 +58,10 @@ test("D549, D552: the layers a v2 keeps are its instruments' own, and it stays w
 
 test("D549-D552: each chain's room returns at most as much as the original's (calibrated levels), a phone's less", () => {
   for (const band of CLASSIC) {
-    const r = BAND_CHAINS[band].reverb;
-    assert.ok(r.level < 0.6, band);
-    assert.ok((r.phoneLevel ?? r.level) < r.level, band);
+    const r: ReverbOpts = BAND_CHAINS[band].reverb;
+    const level = r.level ?? 1;
+    assert.ok(level < 0.6, band);
+    assert.ok((r.phoneLevel ?? level) < level, band);
   }
 });
 
