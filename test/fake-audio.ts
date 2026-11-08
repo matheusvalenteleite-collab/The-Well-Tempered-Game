@@ -219,7 +219,7 @@ export class FakeAudioContext {
     return this.node("gain", { gain: 1 });
   }
   createBiquadFilter() {
-    return this.node("filter", { frequency: 350, Q: 1, gain: 0 });
+    return this.node("filter", { frequency: 350, Q: 1, gain: 0, detune: 0 });
   }
   createStereoPanner() {
     return this.node("panner", { pan: 0 });
