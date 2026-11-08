@@ -772,6 +772,13 @@ export function buildChain(ctx: BaseAudioContext, spec: ChainSpec, opts: { phone
 export const KRAUT2_TRIM_DB = -13.2;
 export const ABBEY2_TRIM_DB = -11.5;
 export const PET2_TRIM_DB = -12;
+/**
+ * (The wetness, measured after the classic bands found their drafted rooms 6-10 dB too wet: the reverb's share of the band's
+ * energy, without drums, I/20 b. 11-14, I/16 b. 7-9, I/17 b. 7-9, the reverb's return on and off. KRAUTROCK v2 1.7% against
+ * v1's 1.5%: kept. ABBEY ROAD v2 2.2% (direct-to-reverberant 16 dB) against v1's under 0.1%, PET SOUNDS v2 4.9% (13 dB)
+ * against v1's 0.1%: the chamber's return pulled back 10 and 9 dB (0.9 → 0.28, 1 → 0.35), measured after 0.6% (22.5 dB) and 0.9% (20.7 dB): EMI's
+ * 1969 sound close and dry, the echo chamber Gold Star's but behind the wall.)
+ */
 export const BAND_CHAINS = {
   // D543, KRAUTROCK v2: Conny Plank's Star Studio / Can's Inner Space, 1971-72 (STUDY.md §1). Dry and close; the space from
   // tape. The combo organ: its "oboe" formant (2.5 kHz) and a slow 4-stage phaser, a little left. The guitar: driven into
@@ -803,7 +810,7 @@ export const BAND_CHAINS = {
       bass: [{ kind: "eq", bands: [{ type: "peaking", hz: 150, db: 2.5, q: 0.9 }, { type: "lowpass", hz: 1600, q: 0.7 }] }],
     },
     bus: [{ kind: "eq", era: "emi67" }, { kind: "comp", model: "fairchild" }, { kind: "tape", drive: 2.2, bias: 0.1, bump: { hz: 110, db: 1.5 }, rolloff: 11000 }, { kind: "gain", db: ABBEY2_TRIM_DB }],
-    reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.02, hp: 250, lp: 7000, brightness: 0.5, level: 0.9 },
+    reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.02, hp: 250, lp: 7000, brightness: 0.5, level: 0.28 },
   },
   // 1970s New York salsa (Fania): the brass section's lane bright and pushed; the tres crisp; bright console EQ, a fast
   // compressor on the horns, a short bright plate; no tape drive to speak of (the clean 16-track).
@@ -872,7 +879,7 @@ export const BAND_CHAINS = {
       wall: [{ kind: "echo", time: 0.09, feedback: 0.12, mix: 0.25, lp: 3500, hp: 250 }, { kind: "adt", delay: 0.012, depth: 0.0008, rate: 0.4, spread: 0, level: 0.5 }],
     },
     bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.15 }, { kind: "gain", db: PET2_TRIM_DB }],
-    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 0.9, rt60: 1.6, predelay: 0.02, hp: 200, lp: 6000, brightness: 0.45, level: 1 },
+    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 0.9, rt60: 1.6, predelay: 0.02, hp: 200, lp: 6000, brightness: 0.45, level: 0.35 },
   },
 } as const satisfies Record<string, ChainSpec>;
 export type ChainBand = keyof typeof BAND_CHAINS;
