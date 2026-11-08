@@ -17,7 +17,8 @@ import { drumFilesFor } from "../../touch/chip.ts";
 import { barAt, barStart, everyNote, fugueById, type TouchFugue } from "../../touch/fugue.ts";
 import { grooveNow, preset, PRESETS, presetById, sampledNow, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
 import { BRUSH_MIDIS, BRUSH_SET, loadPlanKeep, planFor, ROCK_KIT_MIDIS, ROCK_KIT_SET, SAMPLED, type Plan } from "../../touch/sampled.ts";
-import { drumPresetsFor, setDrumPreset } from "../../touch/drum-library.ts";
+import { setDrumStyle } from "../../touch/drum-library.ts";
+import { padChoice, padStyle } from "./drum-pad.ts";
 import { setClimaxLayer, setFormLayer } from "../../touch/fugue-form.ts";
 import { setColourPlansOn } from "../../touch/colour.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
@@ -65,8 +66,8 @@ function rowsFor(f: TouchFugue): Rows {
   return { yOf: (st) => 1200 - st * rh, stepAt: (y) => Math.round((1200 - y) / rh), rowH: rh, xOf: () => 400, lift: (st, m) => chromaLiftPx(rh, st, m, sig) };
 }
 
-/** The recordings a sound and the drums need for a piece (as Chip.prepare asks them, nothing let go). */
-export function planOf(soundId: string, f: TouchFugue, voice: number, drums: number): Plan {
+/** The recordings a sound and the drums need for a piece (as Chip.prepare asks them, nothing let go); `drums` the style (D530 padStyle), null off; a number: D497's drums 0-3. */
+export function planOf(soundId: string, f: TouchFugue, voice: number, drums: string | null | number): Plan {
   const was = preset();
   const wasLayout = pieceLayoutNow();
   setPreset(soundId);
@@ -78,8 +79,9 @@ export function planOf(soundId: string, f: TouchFugue, voice: number, drums: num
   const gr = grooveNow();
   if (gr?.kit === "brushes") plan.push({ set: BRUSH_SET, notes: [...BRUSH_MIDIS] });
   if (gr?.kit === "rock") plan.push({ set: ROCK_KIT_SET, notes: [...ROCK_KIT_MIDIS] });
-  // D526: the drum library's menu for this sound (HOME first): its style's files, whatever its engine.
-  if (drums > 0) plan.push(...drumFilesFor(drumPresetsFor(f.id, soundId)[drums - 1].style));
+  // D526: the style's files, whatever its engine (D530: the style the pad chose, else the sound's HOME).
+  const style = typeof drums === "number" ? padStyle({ piece: f.id, drums, style: null }, soundId) : drums;
+  if (style) plan.push(...drumFilesFor(style));
   setPreset(was);
   setPieceLayout(wasLayout);
   return plan;
@@ -165,7 +167,7 @@ export class LabEngine {
     // play.html's DRUMS (LiteDrums.tsx applyLiteDrums): CLASSIC CHIP's own loop off, the backing on or off; the style chosen.
     setDrums(false);
     setBacking(s.drums > 0);
-    if (s.drums > 0) setDrumPreset(s.piece, drumPresetsFor(s.piece, snd)[s.drums - 1].id);
+    if (s.drums > 0) setDrumStyle(s.piece, padChoice(s, snd));
     setFormLayer(s.form);
     setClimaxLayer(s.climax);
     setColourPlansOn(s.colour);
@@ -188,11 +190,12 @@ export class LabEngine {
   }
 
   /** The recordings of the setting (and, where given, another sound's: the A/B's), awaited. */
-  async load(extra: { sound: string | null; drums: number }[] = []): Promise<void> {
+  async load(extra: { sound: string | null; drums: number; style?: string | null }[] = []): Promise<void> {
     const ch = this.ensureChip();
     const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
     const bach = bachVoice(this.f, this.s);
-    const plans = [planOf(soundOf(this.s), this.f, bach, this.s.drums), ...extra.map((x) => planOf(soundOf({ ...this.s, sound: x.sound }), this.f, bach, x.drums))];
+    const styleOf = (x: { sound: string | null; drums: number; style?: string | null }) => padStyle({ piece: this.s.piece, drums: x.drums, style: x.style ?? null }, soundOf({ ...this.s, sound: x.sound }));
+    const plans = [planOf(soundOf(this.s), this.f, bach, styleOf(this.s)), ...extra.map((x) => planOf(soundOf({ ...this.s, sound: x.sound }), this.f, bach, styleOf(x)))];
     this.loading = true;
     this.emit();
     try {
@@ -292,7 +295,7 @@ export class LabEngine {
   }
 
   /** A new setting: live where it can be, else the game rebuilt at the tick heard (once the recordings are in). */
-  async set(next: LabSettings, extra: { sound: string | null; drums: number }[] = []): Promise<void> {
+  async set(next: LabSettings, extra: { sound: string | null; drums: number; style?: string | null }[] = []): Promise<void> {
     const kind = changeKind(this.s, next);
     if (kind === "none") return;
     const pieceChanged = next.piece !== this.s.piece;
@@ -318,6 +321,14 @@ export class LabEngine {
     // (Paused or moved on meanwhile: the latest wins.)
     if (!this.playing || this.s !== next) return;
     this.relaunch(pieceChanged ? 0 : at);
+  }
+
+  /** D531: a whole setting loaded and played from a bar (an IDEA): the old run stopped, the recordings awaited, then the bar. */
+  async start(next: LabSettings, bar: number): Promise<void> {
+    this.pause();
+    await this.set(next);
+    this.seekBar(bar);
+    await this.play();
   }
 
   /** Whether the fugue has Busoni's whole reading at all. */
