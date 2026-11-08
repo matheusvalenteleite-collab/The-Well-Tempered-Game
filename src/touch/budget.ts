@@ -6,9 +6,9 @@
  * preset's own and the largest DRUMS kit with it (the game lets every other sound's go: soundPlans). Reported by
  * tools/playback/budget/report.ts and held by test/d540-budget.test.ts.
  */
-import { soundPlans } from "./chip.ts";
+import { openingOf, soundPlans } from "./chip.ts";
 import { FUGUES, everyNote, fugueById } from "./fugue.ts";
-import { BUDGET, decodedBytes, monoFor, type Plan } from "./sampled.ts";
+import { BUDGET, decodedBytes, FETCH_MAX, monoFor, wireBytes, type Plan, type Wire } from "./sampled.ts";
 import { preset, presetById, setPreset, V2_SLIM, type Preset } from "./sound.ts";
 import type { Slim } from "./sampled.ts";
 import { styleIds } from "./drum-library.ts";
@@ -78,4 +78,43 @@ export function overBudget(b: PresetBudget): string | null {
 /** D540: a preset's MB now and slimmed (V2_SLIM: 24 kHz mono, plucked notes 3 s, every third semitone, one layer). */
 export function slimSaving(id: string, slim: Slim = V2_SLIM): { now: PresetBudget; slim: PresetBudget } {
   return { now: presetBudget(id), slim: presetBudget(id, undefined, slim) };
+}
+
+/**
+ * D542, the wire: what a preset's worst fugue fetches (each file in a format: Opus, AAC, the MP3), all of it and the opening's
+ * zones (Plan `first`), and the time those take by a simple model of a line (`rtt` s a round of FETCH_MAX fetches, then the
+ * bytes at `mbps`), for slow 4G (Lighthouse's: 150 ms, 1.6 Mbit/s) and a mid 4G (85 ms, 9 Mbit/s). Measured in a browser
+ * by tools/playback/cpu/load-cost.mjs; this is the test's reported estimate.
+ */
+export const LINES = { slow4g: { rtt: 0.15, mbps: 1.6 }, mid4g: { rtt: 0.085, mbps: 9 } } as const;
+export interface WireBudget {
+  id: string;
+  files: number;
+  firstFiles: number;
+  /** MB on the wire, all and the opening, by format. */
+  mb: Record<Wire, number>;
+  firstMb: Record<Wire, number>;
+  /** Seconds to the opening's zones and to all, by line (the format this browser would take: `w`). */
+  firstS: Record<keyof typeof LINES, number>;
+  allS: Record<keyof typeof LINES, number>;
+}
+const lineS = (files: number, bytes: number, l: { rtt: number; mbps: number }) => Math.ceil(files / FETCH_MAX) * l.rtt + (bytes * 8) / (l.mbps * 1e6);
+export function wireBudget(id: string, w: Wire = "m4a"): WireBudget {
+  const b = presetBudget(id);
+  const was = preset();
+  setPreset(presetById(id));
+  try {
+    const f = fugueById(b.piece || "wtc1f01");
+    const plans = soundPlans(everyNote(f).map((n) => n[2]), (f.voices[b.voice] ?? []).map((n) => n[2]), null, openingOf(f)).flat();
+    const all = plans.flatMap((e) => e.notes.map((m) => [e.set, m] as const));
+    const first = plans.flatMap((e) => (e.first ?? []).map((m) => [e.set, m] as const));
+    const sum = (xs: readonly (readonly [string, number])[], ww: Wire) => xs.reduce((t, [s, m]) => t + wireBytes(s, m, ww), 0) / 1e6;
+    const fmt = (xs: readonly (readonly [string, number])[]) => ({ webm: sum(xs, "webm"), m4a: sum(xs, "m4a"), mp3: sum(xs, "mp3") });
+    const mb = fmt(all);
+    const firstMb = fmt(first);
+    const t = (n: number, x: number) => ({ slow4g: lineS(n, x * 1e6, LINES.slow4g), mid4g: lineS(n, x * 1e6, LINES.mid4g) });
+    return { id, files: all.length, firstFiles: first.length, mb, firstMb, firstS: t(first.length, firstMb[w]), allS: t(all.length, mb[w]) };
+  } finally {
+    setPreset(was);
+  }
 }
