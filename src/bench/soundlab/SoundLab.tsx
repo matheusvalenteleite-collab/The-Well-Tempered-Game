@@ -12,9 +12,13 @@ import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { FUGUE_NAMES } from "../../touch/fugue-names.ts";
 import { Emblem } from "../FuguePicker.tsx";
 import { stepTempi } from "../tempo-steps.ts";
+import { VERSION } from "../version.ts";
 import { bachVoice, bpmOf, FUGUES, LAB_SOUNDS, LabEngine, soundName, soundOf, type LabStatus } from "./lab-engine.ts";
 import { defaults, linkOf, parseLink, type ABSlot, type LabSettings } from "./lab-state.ts";
 import { seatsOf, voiceName } from "./facts.ts";
+import { summaryOf } from "./summary.ts";
+import { issueUrl, loadNote, noteBody, saveNote } from "./notes.ts";
+import { loadColours } from "../../touch/colour.ts";
 
 const nameOf = (id: string) => FUGUE_NAMES[id]?.en.full ?? id;
 const tagOf = (id: string) => `${id.startsWith("wtc1") ? "I" : "II"}/${Number(id.slice(-2))}`;
@@ -36,6 +40,17 @@ export function SoundLab() {
   const [drag, setDrag] = useState<number | null>(null);
   const [loopSec, setLoopSec] = useState<number | null>(null);
   const strip = useRef<HTMLDivElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  const [note, setNote] = useState(() => loadNote(init.s.piece));
+  const [copied, setCopied] = useState(false);
+  const [plansIn, setPlansIn] = useState(0);
+  useEffect(() => {
+    void loadColours().then(() => setPlansIn(1), () => {});
+  }, []);
+  useEffect(() => {
+    setNote(loadNote(s.piece));
+    setCopied(false);
+  }, [s.piece]);
   const f = useMemo(() => fugueById(s.piece), [s.piece]);
   const form = useMemo(() => pointsOf(f), [f]);
   const sform = useMemo(() => soundFormOf(f), [f]);
@@ -60,7 +75,7 @@ export function SoundLab() {
   }, [s, st.bar, b]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "SELECT") return;
+      if (["INPUT", "SELECT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName ?? "")) return;
       if (e.key === " ") (e.preventDefault(), engine.toggle());
       else if (e.key === "ArrowRight") engine.seekBar(Math.min(lastBar, engine.status().bar + 1));
       else if (e.key === "ArrowLeft") engine.seekBar(Math.max(f.bars[0]?.n ?? 1, engine.status().bar - 1));
@@ -133,6 +148,22 @@ export function SoundLab() {
   const bach = bachVoice(f, s);
   const link = `${location.origin}${location.pathname}${linkOf(s, st.bar)}`;
   const drumName = (d: number) => (d ? `${d} · ${presets[d - 1].name}${d === 1 ? " (default)" : ""}` : "OFF");
+  const summary = useMemo(() => summaryOf(f, s, snd), [f, s, snd, plansIn]);
+  const settingsWords = `${soundName(snd)}${s.sound ? "" : " (own)"} · drums ${drumName(s.drums)} · tempo ${s.tempo} · Herr Bach on ${voiceName(bach, n)}${(["form", "climax", "busoni", "colour", "kit"] as const).filter((k) => !s[k]).map((k) => ` · ${k} off`).join("")}${s.solo !== null ? ` · solo ${voiceName(s.solo, n)}` : ""}${s.mute.length ? ` · muted ${s.mute.map((v) => voiceName(v, n)).join(", ")}` : ""} · bar ${st.bar} · ${VERSION}`;
+  const sendUrl = issueUrl(`${tagOf(s.piece)} ${nameOf(s.piece)}`, noteBody(note, settingsWords, link));
+  const copy = () => {
+    const text = `Sound Lab notes: ${tagOf(s.piece)} ${nameOf(s.piece)}\n\n${noteBody(note, settingsWords, link)}`;
+    const done = () => setCopied(true);
+    const fallback = () => {
+      const t = noteRef.current;
+      if (t) (t.focus(), t.select());
+    };
+    try {
+      void navigator.clipboard.writeText(text).then(done, fallback);
+    } catch {
+      fallback();
+    }
+  };
 
   return (
     <div className="sl">
@@ -261,16 +292,15 @@ export function SoundLab() {
 
       <section className="sl-panel">
         <h2>SOUND</h2>
-        <div className="sl-row wrap">
-          <select id="sl-sound" value={snd} onChange={(e) => change({ sound: e.target.value === own ? null : e.target.value })}>
-            {LAB_SOUNDS.map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.name}
-                {x.id === own ? " (own)" : ""}
-                {x.trial ? " (trial)" : ""}
-              </option>
-            ))}
-          </select>
+        <div className="sl-pad" id="sl-sounds">
+          {LAB_SOUNDS.filter((x) => !x.trial).map((x) => (
+            <button type="button" key={x.id} className={`${snd === x.id ? "on" : ""}${x.id === own ? " own" : ""}`} onClick={() => change({ sound: x.id === own ? null : x.id })} data-sound={x.id} aria-pressed={snd === x.id}>
+              {x.name.replace(" (SAMPLED)", "")}
+              {x.id === own && <span className="sl-own">DEFAULT</span>}
+            </button>
+          ))}
+        </div>
+        <div className="sl-row wrap sl-voice-row">
           <span className="sl-label">HERR BACH PLAYS</span>
           <select id="sl-voice" value={bach} onChange={(e) => change({ voice: Number(e.target.value) })}>
             {f.voices.map((_, v) => (
@@ -281,10 +311,11 @@ export function SoundLab() {
           </select>
         </div>
         <h2>DRUMS</h2>
-        <div className="sl-seg" id="sl-drums">
+        <div className="sl-pad sl-drumpad" id="sl-drums">
           {[0, 1, 2, 3].map((d) => (
-            <button type="button" key={d} className={s.drums === d ? "on" : ""} onClick={() => change({ drums: d })} data-drums={d}>
-              {drumName(d)}
+            <button type="button" key={d} className={s.drums === d ? "on" : ""} onClick={() => change({ drums: d })} data-drums={d} aria-pressed={s.drums === d}>
+              {d ? `STYLE ${d}` : "OFF"}
+              {d > 0 && <span className="sl-own">{presets[d - 1].name}{d === 1 ? " · DEFAULT" : ""}</span>}
             </button>
           ))}
         </div>
@@ -313,6 +344,43 @@ export function SoundLab() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="sl-panel">
+        <h2>WHAT TO LISTEN FOR</h2>
+        <ol className="sl-summary" id="sl-summary">
+          {summary.map((it, i) => (
+            <li key={i} className={`sm-${it.kind}`}>
+              <button type="button" onClick={() => engine.seekBar(it.bar)} data-bar={it.bar}>
+                <b>
+                  b.{it.bar}
+                  {it.to && it.to !== it.bar ? `–${it.to}` : ""}
+                </b>{" "}
+                {it.text}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="sl-panel">
+        <h2>
+          <label htmlFor="sl-notes">NOTES FOR CLAUDE · {tagOf(s.piece)}</label>
+        </h2>
+        <textarea id="sl-notes" ref={noteRef} className="sl-notes" rows={5} value={note} placeholder={`What you hear in ${tagOf(s.piece)}, what to change…`} onChange={(e) => {
+          setNote(e.target.value);
+          setCopied(false);
+          saveNote(s.piece, e.target.value);
+        }} />
+        <div className="sl-row wrap">
+          <a className={`sl-btn sl-send${note.trim() ? "" : " off"}`} id="sl-send" href={sendUrl} target="_blank" rel="noopener" aria-disabled={!note.trim()} onClick={(e) => !note.trim() && e.preventDefault()}>
+            SEND TO CLAUDE
+          </a>
+          <button type="button" className="sl-btn" id="sl-copy" onClick={copy}>
+            {copied ? "COPIED" : "COPY"}
+          </button>
+        </div>
+        <p className="sl-note">Notes save on this device. SEND opens a GitHub issue Claude can read (the repo is public).</p>
       </section>
 
       <section className="sl-panel">
