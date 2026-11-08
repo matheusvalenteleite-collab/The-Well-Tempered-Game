@@ -28,6 +28,7 @@ import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { resetLive } from "../touch/music-events.ts";
 import { floorOf, ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
@@ -686,6 +687,8 @@ export function BenchApp() {
     (globalThis as { __kimiko?: unknown }).__kimiko = h ? { g, her: h, ctx: ch.ctx, map: hm } : undefined;
     const arrows = proto.id === "arrows" ? g.moves.map(arrowOf) : g.cues;
     game.current = g;
+    // D477: a new run: the sound's reported events (music-events.ts) start again with its ticks.
+    resetLive();
     // D425, THE HARD TAP: each touchdown's strength from the motion sensor (by the calibration kept); none: the strong zone.
     const hardCal = loadHardCal();
     // D506: only with the Lab's hard tap on (MECH.hardTap); off (the game's), the strong zone and no sensor at all.
