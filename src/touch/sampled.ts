@@ -476,11 +476,14 @@ const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft
  * (loud). Big Rusty Drums (ROCK KIT) and Virtuosity Drums (JAZZ KIT, FRAME DRUMS, and TIMPANI's cymbal, bass drum and
  * triangle), both Karoryfer's, CC0. And the timpani (TIMP_SET: VSCO-2's loud layer, F2 B2 C#3 E3 G3, retuned by rate).
  */
-export type KitSet = "kitRock" | "kitClub";
-export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity" };
+// D532: and the period kit (kitPeriod, drums/period: VCSL's rope-tension drum, frame drums, tambourine, bass drum, clash
+// cymbals and triangle, FreePats' castanets; all CC0), for the score-driven orchestral and period styles (score-drums.ts).
+export type KitSet = "kitRock" | "kitClub" | "kitPeriod";
+export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity", kitPeriod: "drums/period" };
 export const KIT_VOICES: Readonly<Record<KitSet, readonly string[]>> = {
   kitRock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
   kitClub: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow", "cowbell", "tambourine", "shaker", "congaHigh", "congaLow", "bongo", "woodblock", "claves", "triangle", "guiro"],
+  kitPeriod: ["sideDrum", "fieldDrum", "tabor", "drumStick", "frameDum", "frameTek", "tambourine", "castanets", "bassDrum", "cymbals", "triangle"],
 };
 /** A kit piece's file as its set's MIDI number (null: the kit has no such piece). */
 export function kitMidi(set: KitSet, voice: string, loud: boolean): number | null {

@@ -26,6 +26,7 @@ import { formOf } from "./fugue-form.ts";
 import { formOf as rockFormOf, rockBeat, type KitPiece as RockPiece, type RockStyle } from "./rock-drums.ts";
 import { bossaBeat, bossaPlan } from "./bossa-drums.ts";
 import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
+import { isScoreStyle, SCORE_STYLES, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
 import type { TouchFugue } from "./fugue.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
@@ -340,8 +341,8 @@ export const KIT_DRUMS = {
   timpHp: 55,
   send: 0.1,
   ref: -20,
-  piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85 } satisfies Record<KitPiece, number>,
-  pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1 } satisfies Record<KitPiece, number>,
+  piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85, sideDrum: 0.5, fieldDrum: 0.56, tabor: 0.52, drumStick: 0.34, frameDum: 0.6, frameTek: 0.42, castanets: 0.44, cymbals: 0.34 } satisfies Record<KitPiece, number>,
+  pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1, sideDrum: -0.06, fieldDrum: 0.04, tabor: -0.04, drumStick: -0.06, frameDum: -0.06, frameTek: 0.1, castanets: 0.14, cymbals: -0.2 } satisfies Record<KitPiece, number>,
 } as const;
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
@@ -350,11 +351,16 @@ const PHONE_LOW_CURVE = (() => {
   return c;
 })();
 /** D514: the kits' recordings' loudness (dB: the strongest 50 ms, tools/playback/drums/measure_kits.py). */
-export const KIT_RMS: Readonly<Record<string, number>> = { "kitRock/kick-1": -17.9, "kitRock/kick-2": -10.1, "kitRock/snare-1": -20.8, "kitRock/snare-2": -15.6, "kitRock/rim-1": -27.4, "kitRock/rim-2": -20.0, "kitRock/hat-1": -33.7, "kitRock/hat-2": -25.2, "kitRock/openhat-1": -26.4, "kitRock/openhat-2": -22.5, "kitRock/crash-1": -25.2, "kitRock/crash-2": -21.7, "kitRock/ride-1": -35.2, "kitRock/ride-2": -28.1, "kitRock/tomHigh-1": -19.9, "kitRock/tomHigh-2": -13.8, "kitRock/tomLow-1": -20.9, "kitRock/tomLow-2": -13.6, "kitClub/kick-1": -15.3, "kitClub/kick-2": -7.5, "kitClub/snare-1": -21.2, "kitClub/snare-2": -13.2, "kitClub/rim-1": -30.3, "kitClub/rim-2": -22.3, "kitClub/hat-1": -32.8, "kitClub/hat-2": -21.6, "kitClub/openhat-1": -30.7, "kitClub/openhat-2": -18.7, "kitClub/crash-1": -23.5, "kitClub/crash-2": -17.1, "kitClub/ride-1": -32.8, "kitClub/ride-2": -27.8, "kitClub/tomHigh-1": -19.6, "kitClub/tomHigh-2": -12.3, "kitClub/tomLow-1": -19.2, "kitClub/tomLow-2": -11.3, "kitClub/cowbell-1": -28.2, "kitClub/cowbell-2": -17.3, "kitClub/tambourine-1": -22.2, "kitClub/tambourine-2": -18.5, "kitClub/shaker-1": -28.1, "kitClub/shaker-2": -19.8, "kitClub/congaHigh-1": -14.2, "kitClub/congaHigh-2": -10.4, "kitClub/congaLow-1": -20.1, "kitClub/congaLow-2": -11.2, "kitClub/bongo-1": -25.1, "kitClub/bongo-2": -15.3, "kitClub/woodblock-1": -28.2, "kitClub/woodblock-2": -22.1, "kitClub/claves-1": -35.4, "kitClub/claves-2": -29.5, "kitClub/triangle-1": -33.3, "kitClub/triangle-2": -23.2, "kitClub/guiro-1": -34.4, "kitClub/guiro-2": -27.1, "timpLoud/B2-v2": -10.7, "timpLoud/Cs3-v2": -15.1, "timpLoud/E3-v2": -18.6, "timpLoud/F2-v2": -27.0, "timpLoud/G3-v2": -20.9 };
+export const KIT_RMS: Readonly<Record<string, number>> = { "kitRock/kick-1": -17.9, "kitRock/kick-2": -10.1, "kitRock/snare-1": -20.8, "kitRock/snare-2": -15.6, "kitRock/rim-1": -27.4, "kitRock/rim-2": -20.0, "kitRock/hat-1": -33.7, "kitRock/hat-2": -25.2, "kitRock/openhat-1": -26.4, "kitRock/openhat-2": -22.5, "kitRock/crash-1": -25.2, "kitRock/crash-2": -21.7, "kitRock/ride-1": -35.2, "kitRock/ride-2": -28.1, "kitRock/tomHigh-1": -19.9, "kitRock/tomHigh-2": -13.8, "kitRock/tomLow-1": -20.9, "kitRock/tomLow-2": -13.6, "kitClub/kick-1": -15.3, "kitClub/kick-2": -7.5, "kitClub/snare-1": -21.2, "kitClub/snare-2": -13.2, "kitClub/rim-1": -30.3, "kitClub/rim-2": -22.3, "kitClub/hat-1": -32.8, "kitClub/hat-2": -21.6, "kitClub/openhat-1": -30.7, "kitClub/openhat-2": -18.7, "kitClub/crash-1": -23.5, "kitClub/crash-2": -17.1, "kitClub/ride-1": -32.8, "kitClub/ride-2": -27.8, "kitClub/tomHigh-1": -19.6, "kitClub/tomHigh-2": -12.3, "kitClub/tomLow-1": -19.2, "kitClub/tomLow-2": -11.3, "kitClub/cowbell-1": -28.2, "kitClub/cowbell-2": -17.3, "kitClub/tambourine-1": -22.2, "kitClub/tambourine-2": -18.5, "kitClub/shaker-1": -28.1, "kitClub/shaker-2": -19.8, "kitClub/congaHigh-1": -14.2, "kitClub/congaHigh-2": -10.4, "kitClub/congaLow-1": -20.1, "kitClub/congaLow-2": -11.2, "kitClub/bongo-1": -25.1, "kitClub/bongo-2": -15.3, "kitClub/woodblock-1": -28.2, "kitClub/woodblock-2": -22.1, "kitClub/claves-1": -35.4, "kitClub/claves-2": -29.5, "kitClub/triangle-1": -33.3, "kitClub/triangle-2": -23.2, "kitClub/guiro-1": -34.4, "kitClub/guiro-2": -27.1, "timpLoud/B2-v2": -10.7, "timpLoud/Cs3-v2": -15.1, "timpLoud/E3-v2": -18.6, "timpLoud/F2-v2": -27.0, "timpLoud/G3-v2": -20.9, "kitPeriod/sideDrum-1": -9.6, "kitPeriod/sideDrum-2": -12.4, "kitPeriod/fieldDrum-1": -10.4, "kitPeriod/fieldDrum-2": -12.5, "kitPeriod/tabor-1": -7.3, "kitPeriod/tabor-2": -11.8, "kitPeriod/drumStick-1": -15.0, "kitPeriod/drumStick-2": -15.0, "kitPeriod/frameDum-1": -8.0, "kitPeriod/frameDum-2": -9.4, "kitPeriod/frameTek-1": -7.9, "kitPeriod/frameTek-2": -14.6, "kitPeriod/tambourine-1": -10.8, "kitPeriod/tambourine-2": -12.4, "kitPeriod/castanets-1": -22.2, "kitPeriod/castanets-2": -21.9, "kitPeriod/bassDrum-1": -9.2, "kitPeriod/bassDrum-2": -9.6, "kitPeriod/cymbals-1": -14.4, "kitPeriod/cymbals-2": -13.3, "kitPeriod/triangle-1": -15.5, "kitPeriod/triangle-2": -14.0 };
 /** D514: a drum piece as a style's kit plays it: the recorded set and its file's name there (null: synthesized). */
 export function kitSource(style: string, piece: KitPiece): { set: KitSet; voice: string } | null {
   const voice = kitVoiceOf(style);
   if (voice === null || piece === "timp") return null;
+  // D532: the score-driven styles on the period kit (VCSL's orchestral bass drum and triangle, its tambourine).
+  if (voice === "kitPeriod") {
+    const pv = piece === "tamb" ? "tambourine" : piece;
+    return KIT_VOICES.kitPeriod.includes(pv) ? { set: "kitPeriod", voice: pv } : null;
+  }
   const v = piece === "tamb" ? "tambourine" : piece === "clap" ? "snare" : piece === "bassDrum" ? "kick" : piece;
   if (voice === "kitRock" && KIT_VOICES.kitRock.includes(v)) return { set: "kitRock", voice: v };
   return KIT_VOICES.kitClub.includes(v) ? { set: "kitClub", voice: v } : null;
@@ -363,11 +369,12 @@ export function kitSource(style: string, piece: KitPiece): { set: KitSet; voice:
  * D527: the kit that sounds a style kitBeat plays: a written style's own (drum-grids.ts), D514's rock on Big Rusty, its
  * jazz, frame and timpani on the club kit (null: a synthesized kit, or not a kit style: the brushes, the bands' own).
  */
-export function kitVoiceOf(style: string): KitVoice | "kitClub" | "kitRock" | null {
+export function kitVoiceOf(style: string): KitVoice | "kitClub" | "kitRock" | "kitPeriod" | null {
   const g = GRIDS[style];
   if (g) return g.kit === "kitRock" || g.kit === "kitClub" ? g.kit : null;
   if (style === "rock") return "kitRock";
-  if (style === "frame" || style === "timpani") return "kitClub";
+  // D532: the score-driven orchestral and period styles (timpani, frame drums, side drum, tabor, castanets, Janissary, field drums).
+  if (isScoreStyle(style)) return "kitPeriod";
   return null;
 }
 /** D527: the synthesized kit of a style (chip.ts drum's), or null where it is recorded. */
@@ -378,17 +385,40 @@ export function synthKitOf(style: string): Kit | null {
 }
 /** D527: a kit style's level (its share of KIT_DRUMS.level; a synthesized kit's on chip.ts drum's scale), a phone's share, its low drums' harmonics on a phone. */
 export function kitMix(style: string): { share: number; phone: number; low: number } {
+  const sm = SCORE_MIX[style as ScoreStyle];
+  if (sm) return sm;
   const L = style as DrumStyle;
   if (L in KIT_DRUMS.style) return { share: KIT_DRUMS.style[L], phone: KIT_DRUMS.phoneStyle[L], low: KIT_DRUMS.phoneLow.style[L] };
   const g = GRIDS[style];
   const sk = g?.kit;
   return { share: g?.share ?? 1, phone: g?.phone ?? 1, low: g?.low ?? (sk === "analog" || sk === "tr909" ? 7 : sk === "linn" ? 4 : sk === "glitch" ? 2 : sk === "chip" ? 0 : 1) };
 }
+/**
+ * D532: the score-driven styles' levels (their share of KIT_DRUMS.level, a phone's share, the low drums' harmonics on a
+ * phone): measured as the other kits, the drums alone against the band (scratchpad/drumorch, NOTES.md), under it where
+ * JAZZ QUARTET's brushes sit (D508). The timpani's and the frame drums' as D514's (TIMPANI 0.6, FRAME 0.8), rebalanced for
+ * their sparser strokes.
+ */
+export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: number; low: number }>> = {
+  timpani: { share: 0.11, phone: 0.84, low: 4.2 },
+  frame: { share: 0.8, phone: 1, low: 0.5 },
+  military: { share: 0.9, phone: 1, low: 0.9 },
+  tabor: { share: 0.85, phone: 0.8, low: 1 },
+  castanets: { share: 1, phone: 0.85, low: 1 },
+  janissary: { share: 0.53, phone: 1.2, low: 3 },
+  fieldDrums: { share: 1, phone: 1, low: 0.47 },
+};
+/**
+ * D532: the period kit's drums that a phone's speaker barely plays (the rope-tension drums' and the large frame drum's
+ * body is under 600 Hz: the side drum measured 13 dB quieter on the phone model than in full): their harmonics made on a
+ * phone, as the timpani's (lowHarmonics).
+ */
+const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek", "drumStick"]);
 /** D514: the pieces each recorded style strikes (its plan, loaded when DRUMS is on). */
 const STYLE_PIECES: Record<string, KitPiece[]> = {
   rock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
-  frame: ["congaHigh", "congaLow", "bongo", "tamb", "shaker", "crash"],
-  timpani: ["bassDrum", "crash", "triangle"],
+  // D532: the score-driven styles' pieces (score-drums.ts SCORE_KITS).
+  ...Object.fromEntries(SCORE_STYLES.map((st) => [st, scoreKitPieces(st)])),
 };
 /** D514, D527: every file a kit style may play. */
 export function kitFiles(style: string): { set: string; notes: number[] }[] {
@@ -1956,7 +1986,7 @@ export class Chip {
     const gl = grooveNow();
     const own = gl?.kit === "brushes" ? "brushes" : gl?.kit === "bossa" ? "bossa" : gl?.kit === "pet" ? "pet" : gl?.kit === "rock" ? "abbey" : gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? (LATIN_GROOVE[gl.groove] === "salsa" ? "salsa" : "choro") : null;
     const want = style ? drumFilesFor(style) : own ? drumFilesFor(own) : [];
-    for (const set of [BRUSH_SET, "kitRock", "kitClub", TIMP_SET, LATIN_SET, ROCK_KIT_SET, BOSSA_KIT_SET]) plans.push([{ set, notes: [...new Set(want.filter((w) => w.set === set).flatMap((w) => w.notes))] }]);
+    for (const set of [BRUSH_SET, "kitRock", "kitClub", "kitPeriod", TIMP_SET, LATIN_SET, ROCK_KIT_SET, BOSSA_KIT_SET]) plans.push([{ set, notes: [...new Set(want.filter((w) => w.set === set).flatMap((w) => w.notes))] }]);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
@@ -3563,6 +3593,13 @@ export class Chip {
           return (this.bossaDrums(at, beatS, b, per, compound, pcx), true);
         case "pet":
           return (this.petDrums(at, beatS, b, per, compound, pcx), true);
+        case "score": {
+          // D532: the score-driven orchestral and period styles (score-drums.ts): the plan's strokes in this beat, each
+          // logged at the tick it belongs to (a flam's grace a few ms before it).
+          if (!isScoreStyle(style)) break;
+          for (const h of scoreBeat(piece, style, pcx.tick, pcx.beat, beatS, cx?.dynDb ?? 0)) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: h.tick ?? tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
+          return true;
+        }
       }
       const hits = kitBeat(style, { b, per, compound, beatS, tick: pcx.tick, beat: pcx.beat, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key });
       for (const h of hits) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
@@ -3623,7 +3660,8 @@ export class Chip {
     const ctx = this.ctx;
     const t = Math.max(at, ctx.currentTime);
     const synth = (k: Kit, v: number) => {
-      const d: Drum = h.piece === "tamb" || h.piece === "triangle" ? "shaker" : h.piece === "congaHigh" || h.piece === "bongo" ? "tomHigh" : h.piece === "congaLow" || h.piece === "timp" || h.piece === "bassDrum" ? "tomLow" : h.piece;
+      const STAND: Partial<Record<KitPiece, Drum>> = { tamb: "shaker", triangle: "shaker", castanets: "rim", drumStick: "rim", cymbals: "crash", congaHigh: "tomHigh", bongo: "tomHigh", frameTek: "tomHigh", congaLow: "tomLow", timp: "tomLow", bassDrum: "tomLow", frameDum: "tomLow", sideDrum: "snare", fieldDrum: "snare", tabor: "tomHigh" };
+      const d: Drum = STAND[h.piece] ?? (h.piece as Drum);
       this.drum(d, t, v, k, mx.share * (this.phone ? mx.phone : 1), this.phone ? KIT_DRUMS.phoneLow.level * mx.low * 0.25 : 0);
     };
     const mx = kitMix(style);
@@ -3675,7 +3713,7 @@ export class Chip {
     }
     pre.connect(out);
     // On a phone the low drums' harmonics (their pitch the same: the tonic or the dominant, implied).
-    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum")) this.lowHarmonics(bag, hp, out, KIT_DRUMS.phoneLow.level * mx.low);
+    if (this.phone && (h.piece === "timp" || h.piece === "bassDrum" || (isScoreStyle(style) && PHONE_LOW_PIECES.has(h.piece)))) this.lowHarmonics(bag, hp, out, KIT_DRUMS.phoneLow.level * mx.low);
     let last: AudioNode = out;
     if (ctx.createStereoPanner) {
       const p = bag.add(ctx.createStereoPanner());
@@ -3685,7 +3723,7 @@ export class Chip {
     last.connect(this.master);
     this.fxSend(last, KIT_DRUMS.send, bag);
     src.start(t, rec.onset);
-    halt(src, t + (h.piece === "crash" || h.piece === "ride" || h.piece === "timp" ? 3 : 1.6));
+    halt(src, t + (h.piece === "crash" || h.piece === "ride" || h.piece === "timp" || h.piece === "cymbals" || h.piece === "triangle" ? 3 : h.piece === "bassDrum" ? 2 : 1.6));
   }
   /**
    * D514: a phone's speaker plays nothing under about 600 Hz: a low drum's harmonics made (a soft clip, as a phone's own

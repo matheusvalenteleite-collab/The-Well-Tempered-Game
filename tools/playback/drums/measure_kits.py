@@ -10,7 +10,7 @@ import subprocess
 import numpy as np
 
 ROOT = "public/samples"
-SETS = {"kitRock": "bigRusty", "kitClub": "virtuosity"}
+SETS = {"kitRock": "bigRusty", "kitClub": "virtuosity", "kitPeriod": "period"}
 
 
 def peak_rms(path):

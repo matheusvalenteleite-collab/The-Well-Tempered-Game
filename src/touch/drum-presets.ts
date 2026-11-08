@@ -128,7 +128,9 @@ export const isCharacter = (s: unknown): s is DrumCharacter => s === "electronic
 // The drumming.
 
 /** The pieces a drummer strikes (chip.ts Chip.kit: the recordings of KIT_PIECES, or the synthesized kit). */
-export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp";
+export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp"
+  // D532: the period kit's (score-drums.ts): the side drum, the field drum, the tabor, a stick on the rim, the frame drums' dum and tek, the castanets, the clash cymbals.
+  | "sideDrum" | "fieldDrum" | "tabor" | "drumStick" | "frameDum" | "frameTek" | "castanets" | "cymbals";
 export interface KitHit {
   piece: KitPiece;
   /** Beats from the beat's start. */
@@ -139,6 +141,8 @@ export interface KitHit {
   midi?: number;
   /** D526: a stroke of a roll (into an entry), of a fill (into the climax, the flourish, a roll out), or a landing's accent. */
   role?: "roll" | "fill" | "accent";
+  /** D532: the fugue's tick the stroke belongs to (a score-driven stroke; a flam's grace sounds a few ms before it). */
+  tick?: number;
 }
 /** What the game tells the drummer about a beat (chip.ts GrooveContext's, read through the fugue). */
 export interface KitContext {

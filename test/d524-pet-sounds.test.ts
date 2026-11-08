@@ -13,7 +13,8 @@ import { Chip, REVERBS, type GrooveContext } from "../src/touch/chip.ts";
 import { DYNAMIC_SOUNDS, PATCHES, PET_CREDIT, PET_SEND, PRESETS, creditFor, grooveNow, offered, presetById, setDrums, setPreset } from "../src/touch/sound.ts";
 import { SAMPLED, TIMP_MIDIS as D514_TIMP, TIMP_SET, kitMidi, sampledMidis } from "../src/touch/sampled.ts";
 import { TOUCH_KINDS, holdMode } from "../src/touch/touch-expr.ts";
-import { MIN_GAP_BARS, TIMP_MIDIS, bassAt, petBeat, petPlan, timpPitch } from "../src/touch/pet-drums.ts";
+import { MIN_GAP_BARS, TIMP_MIDIS, bassAt, petBeat, petPlan } from "../src/touch/pet-drums.ts";
+import { arrivals, homeTimpani } from "../src/touch/score-drums.ts";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
 import { entrySpans } from "../src/touch/voice-mode.ts";
 import { formOf } from "../src/touch/form-points.ts";
@@ -98,23 +99,26 @@ function hitsOf(id: string, dynDb = 0) {
   return { f, beat, per, plan, out };
 }
 
-test("D524: the timpani give rhythm only: every stroke the pitch class of the bass's own note there, within F2-E3", () => {
+test("D532: PET SOUNDS' timpani under the timpani rule: the home tonic and dominant only, only at structural arrivals (and the rolls into them)", () => {
   for (const id of ["wtc1f17", "wtc1f21", "wtc2f17"]) {
-    const { plan, out } = hitsOf(id);
+    const { f, beat, plan, out } = hitsOf(id);
     const timp = out.filter((h) => h.piece === "timp");
-    assert.ok(timp.length > 10, id);
+    const home = homeTimpani(f.key);
+    const arr = arrivals(f).filter((a) => a.midi !== null && a.kind !== "pedal");
+    assert.ok(timp.length > 0 && timp.length < 60, `${id}: ${timp.length}`);
     for (const h of timp) {
-      const bass = bassAt(plan, h.beatOn + 1);
-      // (a fill's strokes fall inside the beat: the bass sounding at the beat's start or at the stroke)
-      assert.ok(bass !== null, id);
-      assert.equal(h.midi, timpPitch(bass!));
-      assert.equal(((h.midi! - bass!) % 12 + 12) % 12, 0, `${id}: no pitch of its own`);
-      assert.ok(h.midi! >= 41 && h.midi! <= 52);
+      assert.ok(h.midi === home.tonic || h.midi === home.dominant, `${id}: ${h.midi} not the home tonic or dominant`);
+      // On an arrival, or in the fill (or the flourish) that lands on one.
+      const m = plan.moments.find((x) => h.tick >= x.from - beat / 2 && h.tick <= x.at + beat / 2);
+      assert.ok(arr.some((a) => Math.abs(a.tick - h.beatOn) < beat || (m && Math.abs(a.tick - m.at) < beat)), `${id} ${h.tick}: no arrival`);
     }
+    // The final chord is one: struck on the tonic.
+    const fin = plan.moments.find((x) => x.kind === "final")!;
+    assert.ok(timp.some((h) => Math.abs(h.tick - fin.at) < 1 && h.midi === home.tonic), id);
   }
 });
 
-test("D524: the pattern in 4/4: the bass drum on 1 and 3, the snare on 2 and 4, the tambourine's eighths, the timpani on 1", () => {
+test("D524: the pattern in 4/4: the bass drum on 1 and 3, the snare on 2 and 4, the tambourine's eighths (D532: no timpani between the arrivals)", () => {
   const { f, plan, out } = hitsOf("wtc1f17");
   const bar = f.bars.find((b) => bassAt(plan, b.on + 1) !== null && !plan.moments.some((m) => m.from < b.on + f.barTicks && m.at >= b.on - f.barTicks / 2) && !plan.quiet.some(([a, z]) => a < b.on + f.barTicks && z > b.on))!;
   const q = f.tpq;
@@ -122,7 +126,7 @@ test("D524: the pattern in 4/4: the bass drum on 1 and 3, the snare on 2 and 4, 
   assert.deepEqual(at("kick"), [0, 1.5, 2]);
   assert.deepEqual(at("snare"), [1, 3]);
   assert.deepEqual(at("tamb"), [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]);
-  assert.deepEqual(at("timp"), [0]);
+  assert.deepEqual(at("timp"), []);
 });
 
 test("D524: the form: fills into entries, spaced; the episodes quieter; a break before the final group; the flourish, then nothing", () => {
