@@ -62,8 +62,9 @@ export interface ReverbOpts {
   lp?: number;
   /** 0 dark .. 1 bright (how slowly the impulse darkens). */
   brightness?: number;
-  /** The return's level. */
+  /** The return's level, and on a phone (D549: the v1 rooms' phone tails are shorter, so their phone returns softer). */
   level?: number;
+  phoneLevel?: number;
   /** A spring's round trip (s): its "drip". */
   spring?: number;
 }
@@ -496,7 +497,7 @@ export class FxKit {
     conv.buffer = buf;
     const lp = this.filter("lowpass", o.lp ?? 6000);
     lp.gain.value = 0;
-    const out = this.gain(o.level ?? 1);
+    const out = this.gain(this.phone ? (o.phoneLevel ?? o.level ?? 1) : (o.level ?? 1));
     input.connect(pre).connect(hp).connect(conv).connect(lp).connect(out);
     return this.block(input, out);
   }
@@ -828,7 +829,7 @@ export const BAND_CHAINS = {
     // D546: no bus compressor (the horns' 1176 is the band's squeeze; the glue cost the audio thread at 4× throttle for
     // little: tools/playback/cpu), the plate's impulse 1.0 s (0.7 on a phone).
     bus: [{ kind: "eq", era: "fania72" }, { kind: "tape", drive: 1.2, rolloff: 14000 }, { kind: "gain", ...SALSA2_TRIM }],
-    reverb: { ir: "plate", seconds: 1.0, phoneSeconds: 0.7, rt60: 1.0, predelay: 0.015, hp: 300, lp: 7000, brightness: 0.65, level: 0.7 },
+    reverb: { ir: "plate", seconds: 1.0, phoneSeconds: 0.7, rt60: 1.0, predelay: 0.015, hp: 300, lp: 7000, brightness: 0.65, level: 0.41, phoneLevel: 0.088 },
   },
   // Rio / New York, 1959-64: close, soft and narrow; the guitar and the voice-like flute in the middle; the Rhodes warm
   // (a slow vibrato-free tremolo is the Suitcase's, not the Fender's: none); the LA-2A; a small dark chamber.
@@ -838,7 +839,7 @@ export const BAND_CHAINS = {
       keys: [{ kind: "tape", drive: 1.3, rolloff: 7000 }],
     },
     bus: [{ kind: "eq", era: "rio63" }, { kind: "comp", model: "la2a", threshold: -26 }, { kind: "place", width: 0.6 }, { kind: "tape", drive: 1.3, bump: { hz: 120, db: 1 }, rolloff: 10000 }, { kind: "gain", ...BOSSA2_TRIM }],
-    reverb: { ir: "chamber", seconds: 1.1, phoneSeconds: 0.75, rt60: 0.9, predelay: 0.012, hp: 180, lp: 5000, brightness: 0.35, level: 0.8 },
+    reverb: { ir: "chamber", seconds: 1.1, phoneSeconds: 0.75, rt60: 0.9, predelay: 0.012, hp: 180, lp: 5000, brightness: 0.35, level: 0.95, phoneLevel: 0.75 },
   },
   // A regional on the radio, 1950s (Jacob do Bandolim's broadcasts and 78s): the bandolim's and the cavaquinho's
   // brightness kept, the whole a little narrowed (AM's band), compressed as a broadcast chain is; a short spring.
@@ -852,7 +853,7 @@ export const BAND_CHAINS = {
       plucked: [{ kind: "eq", bands: [{ type: "peaking", hz: 3000, db: 2, q: 1 }] }],
     },
     bus: [{ kind: "lofi", hp: 110, lp: 7500, crunch: 0.15 }, { kind: "eq", bands: [{ type: "highpass", hz: 150, q: 0.7 }, { type: "peaking", hz: 1500, db: 3, q: 0.8 }] }, { kind: "comp", model: "la2a", threshold: -22 }, { kind: "place", width: 0.5 }, { kind: "gain", ...CHORO2_TRIM }],
-    reverb: { ir: "spring", seconds: 1.1, phoneSeconds: 0.8, rt60: 1.0, predelay: 0.008, hp: 300, lp: 4500, spring: 0.031, level: 0.6 },
+    reverb: { ir: "spring", seconds: 1.1, phoneSeconds: 0.8, rt60: 1.0, predelay: 0.008, hp: 300, lp: 4500, spring: 0.031, level: 0.41, phoneLevel: 0.24 },
   },
   // Atlantic / Van Gelder, the 1950s: the vibraphone's motor in its own lane (the slow tremolo as the Leslie's drum only:
   // no Doppler), the bass round, warm tape, a small plate.

@@ -2014,7 +2014,7 @@ export const TRIALS: Preset[] = [
  */
 export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
 /**
- * D546-D548, the Latin bands rebuilt (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums its
+ * D546-D548, the Latin bands rebuilt (in V2_OWN below) (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums its
  * original's HOME (drum-library.ts homeStyleFor reads a v2 as its original), its chain (BAND_CHAINS). Seated as each band stood, seen
  * from the room, within ±0.35. Levels measured (scratchpad/bands2/<band>/NOTES.md): the whole matched to its original
  * within 1 dB through the phone model, each voice alone within about 2 dB of the others.
@@ -2025,44 +2025,6 @@ export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: tr
  * Rhodes, tenor sax, guitar, bass. CHORINHO v2: 2: bandolim, seven-string; 3: flute, bandolim, seven-string; 4: flute,
  * bandolim, cavaquinho, seven-string; 5: flute, clarinet, bandolim, cavaquinho, seven-string. No piano in either.
  */
-const LATIN_V2: Partial<Record<string, Partial<Preset>>> = {
-  salsa: {
-    slots: ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"],
-    gain: 1.41,
-    phoneGain: 0.83,
-    by: {
-      1: [["s2Trombone", 0]],
-      2: [["s2Trumpet", -0.14], ["s2Bass", 0.02]],
-      3: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Bass", 0.02]],
-      4: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Tres", 0.24], ["s2Bass", 0.02]],
-      5: [["s2Trumpet", -0.24], ["s2Trombone", -0.12], ["s2Trombone", -0.02], ["s2Tres", 0.24], ["s2Bass", 0.04]],
-    },
-  },
-  bossaNova: {
-    slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
-    gain: 1.51,
-    phoneGain: 0.86,
-    by: {
-      1: [["b2Guitar", 0]],
-      2: [["b2Flute", -0.1], ["b2Guitar", 0.06]],
-      3: [["b2Flute", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]],
-      4: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
-      5: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Sax", -0.2], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
-    },
-  },
-  chorinho: {
-    slots: ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"],
-    gain: 1.22,
-    phoneGain: 0.81,
-    by: {
-      1: [["c2Bandolim", 0]],
-      2: [["c2Bandolim", 0.08], ["c27", -0.06]],
-      3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]],
-      4: [["c2Flute", -0.18], ["c2Bandolim", 0.12], ["c2Cavaco", 0.24], ["c27", -0.04]],
-      5: [["c2Flute", -0.2], ["c2Clarinet", -0.08], ["c2Bandolim", 0.1], ["c2Cavaco", 0.24], ["c27", -0.04]],
-    },
-  },
-};
 /**
  * D543-D545: the rebuilt v2s' own instruments (STUDY.md's signature designs; their gain matched on a phone, NOTES.md), each
  * one instrument a voice from the top down, none a piano. KRAUTROCK v2: the combo organ, the Moog bass, the fuzz guitar,
@@ -2110,10 +2072,47 @@ export const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>>
       5: [["psStrings", 0], ["psHarpsi", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
     },
   },
+  // D546-D548: the Latin bands (the note above).
+  salsa: {
+    slots: ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"],
+    gain: 1.41,
+    phoneGain: 0.83,
+    by: {
+      1: [["s2Trombone", 0]],
+      2: [["s2Trumpet", -0.14], ["s2Bass", 0.02]],
+      3: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Bass", 0.02]],
+      4: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Tres", 0.24], ["s2Bass", 0.02]],
+      5: [["s2Trumpet", -0.24], ["s2Trombone", -0.12], ["s2Trombone", -0.02], ["s2Tres", 0.24], ["s2Bass", 0.04]],
+    },
+  },
+  bossaNova: {
+    slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
+    gain: 1.51,
+    phoneGain: 0.86,
+    by: {
+      1: [["b2Guitar", 0]],
+      2: [["b2Flute", -0.1], ["b2Guitar", 0.06]],
+      3: [["b2Flute", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]],
+      4: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+      5: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Sax", -0.2], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+    },
+  },
+  chorinho: {
+    slots: ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"],
+    gain: 1.22,
+    phoneGain: 0.81,
+    by: {
+      1: [["c2Bandolim", 0]],
+      2: [["c2Bandolim", 0.08], ["c27", -0.06]],
+      3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]],
+      4: [["c2Flute", -0.18], ["c2Bandolim", 0.12], ["c2Cavaco", 0.24], ["c27", -0.04]],
+      5: [["c2Flute", -0.2], ["c2Clarinet", -0.08], ["c2Bandolim", 0.1], ["c2Cavaco", 0.24], ["c27", -0.04]],
+    },
+  },
 };
 export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
   const p = PRESETS.find((x) => x.id === band)!;
-  const own = V2_OWN[band] ?? LATIN_V2[band];
+  const own = V2_OWN[band];
   // (PET SOUNDS' original five instruments, the grand and the harpsichord among them, cut their plucked notes at 2.5 s to keep within 25 MB.)
   const slim = band === "petSounds" && !own ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM;
   return { ...p, ...own, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim, budgeted: true };
