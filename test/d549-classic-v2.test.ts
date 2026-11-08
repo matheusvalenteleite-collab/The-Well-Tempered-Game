@@ -69,3 +69,11 @@ test("D549-D552: no default sound moved to a v2", () => {
   for (const s of Object.values(PIECE_SOUND)) assert.ok(!s.endsWith("V2"), s);
   for (const p of PRESETS) assert.ok(!p.id.endsWith("V2"), p.id);
 });
+
+test("D549-D552: a v2's DRUMS HOME and family are its original's (drum-library.ts)", async () => {
+  const { homeStyleFor, familyFor } = await import("../src/touch/drum-library.ts");
+  for (const band of CLASSIC) {
+    assert.equal(homeStyleFor(`${band}V2`), homeStyleFor(band), band);
+    assert.deepEqual(familyFor(`${band}V2`), familyFor(band), band);
+  }
+});
