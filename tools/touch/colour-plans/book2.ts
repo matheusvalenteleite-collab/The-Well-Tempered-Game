@@ -142,10 +142,11 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f13: {
-    sound: "bossaNova",
-    soundWhy: "High spirits, grace and playful lightness (Keller) in 2/2 at a half of 62, the bossa's cut time: a gavotte's lilt is a bossa's, the flute, the nylon guitar and the bass over the brushes' soft clave, the episodes (12-20, 24-32, 44-52, 56-64) the drums' quieter pattern.",
+    sound: "sid64",
+    soundWhy: "High spirits, grace and playful lightness (Keller): a gavotte in 2/2 whose three clear lines the SID's three voices (each its own waveform, D297) keep apart, lively and bright; the episodes' two-bar echoes in the pulses' width. (D521: given to SID 64, the owner wanting it used more.)",
     character: "Expositions 1-12, 32-44, 64-84; episode 1 (12-20) and its return (44-52), episode 2 (24-32) and its return (56-64) (Ledbetter). The two-bar echoes are placed in episode 1 and its return (a reading of Keller).",
     plans: {
+      sid64: [at(14, { pw: 0.2 }, "The echo (Keller's two bars piano): the SID's pulses narrower."), at(16, OWN, "Forte: the voices' own sweep."), at(46, { pw: 0.2 }, "The echo in the return."), at(48, OWN, "Forte.")],
       harpsichordSampled: [
         at(1, H84, "8′+4′."),
         at(14, H8, "Keller's gavotte echo: two bars forte (12-13), two piano (14-15)…"),

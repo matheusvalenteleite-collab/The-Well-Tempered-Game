@@ -193,10 +193,11 @@ test("D521: the drums on the game's clock: only with BOSSA NOVA, always with it;
   setPreset("chip");
 });
 
-test("D521: the allocation: II/7 and II/13 open on BOSSA NOVA, with their reasons", () => {
-  for (const id of ["wtc2f07", "wtc2f13"]) {
-    assert.equal(PIECE_SOUND[id], "bossaNova");
-    assert.equal(COLOURS[id].sound, "bossaNova");
-    assert.match(COLOURS[id].soundWhy, /bossa/);
-  }
+test("D521: the allocation: II/7 opens on BOSSA NOVA, with its reason; II/13 on SID 64 (the owner wanting it used more)", () => {
+  assert.equal(PIECE_SOUND.wtc2f07, "bossaNova");
+  assert.equal(COLOURS.wtc2f07.sound, "bossaNova");
+  assert.match(COLOURS.wtc2f07.soundWhy, /bossa/);
+  assert.equal(PIECE_SOUND.wtc2f13, "sid64");
+  assert.equal(COLOURS.wtc2f13.sound, "sid64");
+  assert.equal(PIECE_SOUND.wtc1f09, "baroqueBand", "I/9 stays BAROQUE BAND's (its bass enters last, with the continuo)");
 });

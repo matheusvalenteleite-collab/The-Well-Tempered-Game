@@ -237,11 +237,10 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f09: {
-    sound: "sid64",
-    soundWhy: "Cheeky and high-spirited (Keller): three clear voices in quaver staccato, a light running subject that the SID's three voices (D297: each its own waveform) keep apart, lively and bright; the bass entering last (bar 4) on its own wave. (D521: given to SID 64, the owner wanting it used more.)",
+    sound: "baroqueBand",
+    soundWhy: "Cheeky and high-spirited (Keller), three voices like a trio sonata: BAROQUE BAND's violin and oboe, and the bass entering last (bar 4) on the cello with the continuo harpsichord.",
     character: "Vocal in idiom (Bodky); a long episode 10-16, a reprise from 19 (Ledbetter).",
     plans: {
-      sid64: [at(10, { pw: 0.2 }, "The long episode (Ledbetter 10-16): the SID's pulses narrower."), at(19, OWN, "The reprise (from 19) in the voices' own sweep.")],
       super16: [
         at(10, { room: 0.2 }, "The long episode 10-16 in the SPC's echo, the console's own effect."),
         at(E("wtc1f09", 16), OWN, "Dry at the alto's entry."),
