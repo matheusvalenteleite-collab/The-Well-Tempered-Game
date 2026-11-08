@@ -94,6 +94,7 @@ import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { TRIO_ID, continuoFor, trioLayout, type ContinuoScript } from "../touch/trio.ts";
 import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
+import { FormLayer, withForm } from "../touch/fugue-form.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
 import { BandTime, waitPoints, type BandEvent } from "./band-time.ts";
@@ -611,6 +612,11 @@ export class ProtoGame {
    */
   readonly trims: readonly number[];
   readonly tone: number;
+  /**
+   * D497, THE SOUND LAB (soundlab.html only; never set by the game): a gain per band voice over everything else
+   * (its mixer and its solo/mute), read as each band note is scheduled. Null (the game): no change.
+   */
+  labGain: readonly number[] | null = null;
   beat: number;
   private perBar: number;
   private anchorAt: number;
@@ -659,6 +665,9 @@ export class ProtoGame {
       if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
       else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
     }
+    // D513: the subjects and the episodes, the climax (fugue-form.ts: where the fugue's contrast is clear); D514: the drums' piece.
+    if (!o.her && f.kind === "fugue") this.form = new FormLayer(f);
+    chip.drumsFor?.(f);
     // D504: ZELENKA TRIO's layout for the piece (trio.ts trioLayout: the fewest notes out of compass) and its continuo script.
     const tl = preset().id === TRIO_ID ? trioLayout(f) : null;
     setPieceLayout(tl ? { preset: TRIO_ID, count: tl.count, slots: tl.slots } : null);
@@ -1123,7 +1132,7 @@ export class ProtoGame {
       const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
       const vv = sv.v;
       // D508: the band's balance: the voice's trim, and its subject's entry a little forward (not where Busoni's palette brings it out).
-      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1);
+      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1);
       const prev = this.lastOther.get(n.voice);
       // D363: a band-only voice's note (a divisi) sounds as its parent but is not its line: no ornament of the line's, not its line's last note.
       if (!n.band) this.lastOther.set(n.voice, n.midi);
@@ -1145,7 +1154,10 @@ export class ProtoGame {
       const bowIn: Play = bowed && jn.legato ? (place === "mid" || place === "last" ? { slur: true } : { bowChange: true }) : {};
       const bowOut: Play = bowed && jn.tie ? { give: place === "first" || place === "mid" ? "slur" : "bow" } : {};
       // D355: the band's colour where the note starts (colour.ts).
-      const cl = this.colour?.at(n.on, n.voice) ?? null;
+      // D513: and the form's (a subject zone, an episode, the climax): its shelf, room and registration, its level below.
+      const fm = this.form?.at(preset().id, n.on) ?? null;
+      const cl = withForm(this.colour?.at(n.on, n.voice) ?? null, fm?.colour ?? null);
+      const fdb = fm ? 10 ** (fm.db / 20) : 1;
       // D504: the continuo on the bass's note where the piece's script has it (an ornamented note: the bass alone).
       const ct = parts.length === 1 && !n.band ? (this.continuo?.at(n.on, n.voice) ?? null) : null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
@@ -1158,11 +1170,11 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * bal, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * bal * fdb, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
-      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel))) {
+      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel) * (this.labGain?.[n.voice] ?? 1))) {
         this.band.push({ sd, until: at + len + ext + 0.8 });
         if (ext) this.bandT!.hold(hx, sd, n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
@@ -4879,6 +4891,8 @@ export class ProtoGame {
   readonly subj: SubjectSound;
   /** D355: the piece's colour plan for the sound playing (colour.ts), null where it has none. */
   colour: ColourPlan | null = null;
+  /** D513: the fugue's subjects and episodes in the band's playing (fugue-form.ts), null for KIMIKO's recording. */
+  form: FormLayer | null = null;
   /** D504: ZELENKA TRIO's continuo script for the piece (trio.ts: by its structure alone), null on any other sound. */
   continuo: ContinuoScript | null = null;
   /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */

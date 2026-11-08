@@ -10,7 +10,7 @@ import { register } from "node:module";
 import { existsSync } from "node:fs";
 import { FakeAudioContext, installFakeAudio } from "./fake-audio.ts";
 import { Chip, LATIN_KIT, type GrooveContext } from "../src/touch/chip.ts";
-import { DYNAMIC_SOUNDS, PATCHES, SALSA_CREDIT, creditFor, grooveNow, presetById, setPreset } from "../src/touch/sound.ts";
+import { DYNAMIC_SOUNDS, PATCHES, SALSA_CREDIT, creditFor, grooveNow, presetById, setBacking, setPreset } from "../src/touch/sound.ts";
 import { LATIN_FILES, LATIN_SET, latinMidis, nameOfMidi } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { TOUCH_KINDS, bandFamily, holdMode, landing } from "../src/touch/touch-expr.ts";
@@ -153,6 +153,12 @@ test("D520: the chip plays it on the recordings with this sound only, given the 
   const n0 = chip.latinLog.length;
   assert.equal(chip.groove(chip.ctx.currentTime + 0.1, 1.1, 0, 2, 2, false, cx), true);
   assert.ok(chip.latinLog.length > n0);
+  // DRUMS on (D514): the chosen drummer in place of the band's own percussion, as for ABBEY ROAD.
+  setBacking(true);
+  const nb = chip.latinLog.length;
+  chip.groove(chip.ctx.currentTime + 1, 1.1, 0, 2, 2, false, { ...cx, piece: f });
+  assert.equal(chip.latinLog.length, nb);
+  setBacking(false);
   setPreset("jazzQuartet");
   const n1 = chip.latinLog.length;
   chip.groove(chip.ctx.currentTime + 2, 1.1, 0, 2, 2, false, cx);
