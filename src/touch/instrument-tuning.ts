@@ -37,6 +37,10 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   bachBrass: { id: "vallotti", a: 415 },
   // D503: JAZZ QUARTET: a vibraphone and a modern grand, tuned equal at A = 440.
   jazzQuartet: { id: "equal", a: 440 },
+  // D520: SALSA: a modern band with a grand, equal at A = 440.
+  salsa: { id: "equal", a: 440 },
+  // D522: CHORINHO likewise.
+  chorinho: { id: "equal", a: 440 },
   abbeyRoad: { id: "equal", a: 440 },
   krautrock: { id: "equal", a: 440 },
   // D524: PET SOUNDS: a 1966 Hollywood session, equal at A = 440.

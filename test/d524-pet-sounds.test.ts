@@ -8,12 +8,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
-import { readdirSync, statSync } from "node:fs";
 import { FakeAudioContext, installFakeAudio } from "./fake-audio.ts";
 import { Chip, REVERBS, type GrooveContext } from "../src/touch/chip.ts";
 import { DYNAMIC_SOUNDS, PATCHES, PET_CREDIT, PET_SEND, PRESETS, creditFor, grooveNow, offered, presetById, setDrums, setPreset } from "../src/touch/sound.ts";
-import { PET_KIT_MIDIS, PET_KIT_SET, PET_TIMP_SETS, SAMPLED, sampledMidis } from "../src/touch/sampled.ts";
-import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
+import { SAMPLED, TIMP_MIDIS as D514_TIMP, TIMP_SET, kitMidi, sampledMidis } from "../src/touch/sampled.ts";
 import { TOUCH_KINDS, holdMode } from "../src/touch/touch-expr.ts";
 import { MIN_GAP_BARS, TIMP_MIDIS, bassAt, petBeat, petPlan, timpPitch } from "../src/touch/pet-drums.ts";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
@@ -72,12 +70,10 @@ test("D524: the band: one instrument a voice (strings, horn, harpsichord, piano,
 test("D524: the recordings reused (no new pitched set): the strings, the horn, the harpsichord, the bass E1-G3, the rock kit, the tambourine, the timpani", () => {
   assert.equal(SAMPLED.petStrings.set, "petStrings");
   assert.equal(sampledMidis("rickBass")[0], 28);
-  assert.equal(sampledMidis(PET_KIT_SET).length, PET_KIT_MIDIS.length);
-  for (const set of PET_TIMP_SETS) assert.deepEqual(sampledMidis(set), [...TIMP_MIDIS]);
-  assert.ok(SAMPLE_MANIFEST.timpani.layers.includes(1) && SAMPLE_MANIFEST.timpani.layers.includes(2));
-  let bytes = 0;
-  for (const f of readdirSync("public/samples/petKit")) if (f !== "pack.mp3") bytes += statSync(`public/samples/petKit/${f}`).size;
-  assert.ok(bytes < 0.05e6, `${bytes} bytes`);
+  // The kit the rock kit's, the tambourine the club kit's, the timpani D514's: no new files.
+  assert.ok(kitMidi("kitClub", "tambourine", true) !== null);
+  assert.deepEqual([...D514_TIMP], [...TIMP_MIDIS]);
+  assert.equal(TIMP_SET, "timpLoud");
 });
 
 test("D524: the touch as JAZZ QUARTET's; a held string or horn note's sway its breath; the slide each instrument's own", () => {

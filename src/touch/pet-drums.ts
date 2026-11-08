@@ -3,7 +3,7 @@
  * form, with rolls and fills into subject entries, quieter episodes, a break before the final entry and a closing
  * flourish", sitting where JAZZ QUARTET's brushes sit; "Don't meddle with the MUSIC. Make the music shine": the timpani give
  * rhythm only. Pure numbers here (tested in test/d524-pet-sounds.test.ts); chip.ts `petDrums` sounds them on Big Rusty's kit
- * and Virtuosity's tambourine (sampled.ts PET_KIT_FILES) and VSCO's timpani (PET_TIMP_SETS).
+ * (the rock kit) and Virtuosity's tambourine (D514's club kit) and VSCO's timpani (D514's TIMP_SET).
  *
  * THE PATTERN, a Wrecking Crew ballad's on the game's own beat (no tempo of the piece changes for it, Bach's notes never
  * move): the bass drum on 1 and 3 (and softly on 2-and), the snare on the backbeat (2 and 4; 2/2 and 2/4 beat 2; a triple
@@ -13,7 +13,7 @@
  * (jazz-drums.ts dynGain); in his p (or an episode) the QUIET pattern: the bass drum on 1, the snare soft, no tambourine, no
  * timpani.
  *
- * THE FORM (petPlan: the game's subject marks, voice-mode.ts entrySpans, and D474's form, form-points.ts formOf):
+ * THE FORM (petPlan, from form-points.ts alone: formOf's seams and the entries it reads):
  *   - a FILL into each subject entry after the first (one beat of a tom fill over a timpani roll, on the bass's note where
  *     the bass sounds; two beats out of an episode),
  *     no two within MIN_GAP_BARS, landed with the bass drum and the timpani;
@@ -24,7 +24,6 @@
  * Never the score, the streak or the verdicts (D482).
  */
 import type { TouchFugue } from "./fugue.ts";
-import { entrySpans } from "./voice-mode.ts";
 import { formOf } from "./form-points.ts";
 import { dynGain } from "./jazz-drums.ts";
 
@@ -47,7 +46,7 @@ export const MIN_GAP_BARS = 2;
 /** Busoni's level (dB) at or under which the quiet pattern plays. */
 export const QUIET_DB = -3;
 export const QUIET_GAIN = 0.8;
-/** The timpani's drums (VSCO's: F2, B2, C#3, E3, G3) and the compass a stroke is tuned within. */
+/** The timpani's drums (VSCO's: F2, B2, C#3, E3, G3: D514's TIMP_SET) and the compass a stroke is tuned within. */
 export const TIMP_MIDIS = [41, 47, 49, 52, 55] as const;
 export const TIMP_LO = 41;
 
@@ -64,9 +63,8 @@ export function petPlan(f: TouchFugue, beat: number, per: number): PetPlan {
     const b0 = bars.filter((x) => x <= t).pop() ?? 0;
     return b0 + Math.floor((t - b0) / beat + 1e-6) * beat;
   };
-  const spans = entrySpans(f)
-    .filter((s) => s.form !== "counter")
-    .sort((a, b) => a.on - b.on);
+  // The entries as form-points.ts reads them (the piece's own, D493), the one form source.
+  const spans = [...f.entries].sort((a, b) => a.on - b.on);
   const form = formOf(f);
   const quiet = form.seams
     .filter((x) => x.kind === "episode")

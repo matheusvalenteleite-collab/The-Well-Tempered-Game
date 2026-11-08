@@ -36,7 +36,9 @@ export interface Form {
 const memo = new Map<string, Form>();
 
 export function formOf(f: TouchFugue): Form {
-  const hit = memo.get(f.id);
+  // Hand override (Instruments, D513): memoised by the entries too, so a corrected entry list is read anew.
+  const key = `${f.id}:${f.entries.length}:${f.entries.reduce((s, e) => s + e.on * 3 + e.end, 0)}`;
+  const hit = memo.get(key);
   if (hit) return hit;
   const bar = f.barTicks;
   const ents = [...f.entries].sort((a, b) => a.on - b.on);
@@ -90,7 +92,7 @@ export function formOf(f: TouchFugue): Form {
   let last = 0;
   for (const v of f.voices) for (const n of v) if (n[0] > last) last = n[0];
   const form: Form = { seams, acts, actOn, climax: { rise, peak: Math.max(rise, lastEntry), arrival }, pedals, last, end };
-  memo.set(f.id, form);
+  memo.set(key, form);
   return form;
 }
 
