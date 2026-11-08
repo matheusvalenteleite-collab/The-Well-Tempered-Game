@@ -681,6 +681,27 @@ export const SALSA_BASS_PHONE_LIFT = { hz: 320, db: 15, cut: 280 } as const;
  * JAZZ QUARTET's (the Iowa pizzicato, its phone handling and its wood).
  */
 export const BOSSA_SEND = 0.15;
+/**
+ * D546-D548, the Latin bands' v2 (STUDY.md §3-5; band-fx.ts BAND_CHAINS salsa, bossaNova, chorinho). SALSA v2: each brass
+ * note's bite (Patch.rec: a 12 ms tongue, the accent falling to 80% with a 40 ms time constant); the tres's courses (Patch.one
+ * .courses: under C4 the course's octave string at -9 dB, from C4 its unison twin 6 cents apart and 4 ms later, both a
+ * little brighter); its pick's edge (a 2.5 kHz shelf). BOSSA NOVA v2: the sax subtoned (-7 dB from 1.8 kHz), the guitar's
+ * thumb (-3 dB from 2.6 kHz: Iowa's mf stroke without its nail). CHORINHO v2: the bandolim's paired steel courses (its
+ * twin 7 cents apart, 3 ms later, brighter; no octave strings), its tremolo (Patch.motor: 13 Hz, 30% deep, in over 0.35 s,
+ * so a short note is struck once and a long one shimmers), its brightness; the flute a little brighter.
+ */
+export const SALSA2_SEND = 0.1;
+export const SALSA2_BITE = { a: 0.012, d: 0.12, s: 0.8, r: 0.1 } as const;
+export const SALSA2_TRES_COURSES = { split: 60, unison: { gain: 0.85, cents: 6, delay: 0.004, shelf: 2 }, octave: { gain: 0.35, shelf: 2 } } as const;
+export const SALSA2_TRES_SHELF = { hz: 2500, db: 3 } as const;
+export const BOSSA2_SEND = 0.14;
+export const BOSSA2_SUBTONE = { hz: 1800, db: -7 } as const;
+export const BOSSA2_THUMB = { hz: 2600, db: -3 } as const;
+export const CHORO2_SEND = 0.12;
+export const CHORO2_COURSES = { split: 0, unison: { gain: 0.9, cents: 7, delay: 0.003, shelf: 3 }, octave: { gain: 0, shelf: 0 } } as const;
+export const CHORO2_TREMOLO = { rate: 13, depth: 0.3, rise: 0.35 } as const;
+export const CHORO2_BANDOLIM_SHELF = { hz: 2800, db: 2 } as const;
+export const CHORO2_FLUTE_SHELF = { hz: 3000, db: 1.5 } as const;
 export const BOSSA_GUITAR_PHONE_LIFT = { hz: 700, db: 5 } as const;
 export const BOSSA_PIANO_SHELF = { hz: 2800, db: -2 } as const;
 /**
@@ -1291,6 +1312,32 @@ export const PATCHES = {
   psHarpsi: P({ ...HARPSI_SAMPLED, send: PET_SEND }),
   psPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: PET_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, phoneLift: PIANO_PHONE_LIFT }),
   psBass: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "sine" }], filter: { freq: 2.5, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1, s: 0, r: 0.06 }, send: PET_BASS_SEND, level: 0.85, sample: "rockBass", one: {}, phoneLift: PET_BASS_PHONE_LIFT }),
+  // D546, SALSA v2 (Fania's New York, 1968-75: STUDY.md §3): the brass front line, trombone-led (Palmieri's two trombones
+  // "for a heavier sound"), each note's bite (SALSA2_BITE: a hard tongue, an accent falling to 80% within 0.12 s); the tres
+  // (the guitar's recordings strung as its three doubled courses: SALSA2_TRES_COURSES, the low course in octaves, the upper
+  // in unison), crisp and damped; the baby bass's round "boom". Lanes of the band's chain: "horns", "tres".
+  s2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.15, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "horns" }),
+  s2Trombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.5, sample: "brassTrombone", bow: BRASS_TONGUE, one: {}, lane: "horns", phoneLift: BRASS_HORN_PHONE_LIFT }),
+  s2Tres: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 5, q: 0.8, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.06 }, send: SALSA2_SEND, level: 0.5, sample: "choroGuitar", one: { courses: SALSA2_TRES_COURSES }, shelf: SALSA2_TRES_SHELF, lane: "tres" }),
+  s2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.6, s: 0, r: 0.06 }, send: SALSA2_SEND * 0.3, level: 1.7, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT }),
+  // D547, BOSSA NOVA v2 (Rio and A&R New York, 1959-64: STUDY.md §4): the alto flute (Iowa's: the breathy low flute of the
+  // period's arrangements), slow-tongued; the Rhodes as FM (a tine: 1:1 with a 14:1 bell transient, its index falling; the
+  // Suitcase's tremolo panning at 4 Hz); the tenor saxophone subtoned (Getz's: the top rolled off); the nylon guitar's
+  // thumb (its nails darkened); the double bass soft and damped. Lane of the band's chain: "keys".
+  b2Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.1 }], amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.16 }, rec: { a: 0.055, d: 0.2, s: 0.92, r: 0.16 }, send: BOSSA2_SEND, level: 0.62, sample: "bossaAltoFlute", bow: WIND_TONGUE, one: {} }),
+  b2Rhodes: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 1.5, to: 0.35, time: 0.4, mod2: { ratio: 14, index: 0.55, to: 0, time: 0.04 } }, filter: { freq: 5000, hz: true, q: 0.5 }, amp: { a: 0.002, d: 2.2, s: 0, r: 0.22 }, autopan: { rate: 4, depth: 0.2 }, send: BOSSA2_SEND, level: 0.14, one: {}, lane: "keys" }),
+  b2Sax: P({ osc: [{ wave: "saw", gain: 0.4 }, { wave: "sine" }], filter: { freq: 2.2, q: 0.7 }, amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.14 }, rec: { a: 0.06, d: 0.2, s: 0.92, r: 0.14 }, send: BOSSA2_SEND, level: 0.5, sample: "bossaSax", bow: WIND_TONGUE, one: {}, shelf: BOSSA2_SUBTONE }),
+  b2Guitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.15 }], filter: { freq: 2.5, q: 0.7, env: 1.6, envDecay: 0.15 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.12 }, send: BOSSA2_SEND, level: 0.55, sample: "bossaGuitar", one: {}, shelf: BOSSA2_THUMB, phoneLift: BOSSA_GUITAR_PHONE_LIFT }),
+  b2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 2.5, q: 1, env: 1.2, envDecay: 0.1 }, amp: { a: 0.006, d: 0.8, s: 0, r: 0.1 }, send: BOSSA2_SEND * 0.4, level: 1.07, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  // D548, CHORINHO v2 (a regional on the radio, the 1950s: STUDY.md §5): the bandolim (the steel-strung guitar's recordings
+  // strung as its paired courses, a few cents apart, bright; a note held past a third of a second tremolo-picked: the
+  // course re-struck at 13 Hz, its level beaten, no new pitch: CHORO2_TREMOLO), the flute tongued and bright, the clarinet
+  // legato, the cavaquinho bright and short, the seven-string's baixaria. Lanes: "bandolim", "plucked".
+  c2Bandolim: P({ osc: [{ wave: "pulse12" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 6, q: 0.8, env: 2, envDecay: 0.06 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.05 }, send: CHORO2_SEND, level: 0.8, sample: "rockGuitar", one: { courses: CHORO2_COURSES }, motor: CHORO2_TREMOLO, shelf: CHORO2_BANDOLIM_SHELF, lane: "bandolim" }),
+  c2Flute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.08 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.08 }, send: CHORO2_SEND, level: 0.43, sample: "trialFlute", bow: WIND_TONGUE, one: {}, shelf: CHORO2_FLUTE_SHELF }),
+  c2Clarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: CHORO2_SEND, level: 0.55, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
+  c2Cavaco: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 4, q: 0.7, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.35, s: 0, r: 0.05 }, send: CHORO2_SEND, level: 0.45, sample: "choroGuitar", one: {}, shelf: CHORO_CAVACO_SHELF, hp: CHORO_CAVACO_HP, lane: "plucked" }),
+  c27: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.5, envDecay: 0.12 }, amp: { a: 0.003, d: 0.9, s: 0, r: 0.08 }, send: CHORO2_SEND * 0.6, level: 0.19, sample: "choroGuitar", one: {}, phoneLift: CHORO_BASS_PHONE_LIFT, lane: "plucked" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1919,10 +1966,60 @@ export const TRIALS: Preset[] = [
  * short and blend sets held off; the velocity's colour the patches' filters'). Phase 2 may give a band its own.
  */
 export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
+/**
+ * D546-D548, the Latin bands rebuilt (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums the
+ * original's (the drum library's HOME styles had not merged), its chain (BAND_CHAINS). Seated as each band stood, seen
+ * from the room, within ±0.35. Levels measured (scratchpad/bands2/<band>/NOTES.md): the whole matched to its original
+ * within 1 dB through the phone model, each voice alone within about 2 dB of the others.
+ * SALSA v2: trombone-led (2: trumpet, bass, as the trombone's compass leaves a 2-voice top; 3: trumpet, trombone, bass;
+ * 4: trumpet, trombone, tres, bass; 5: trumpet, two trombones, tres, bass: Palmieri's front line). No piano: the study's
+ * montuno piano (5 voices) took the band over 25 MB, and the tres carries the montuno's clave colour.
+ * BOSSA NOVA v2: 2: alto flute, guitar; 3: alto flute, guitar, bass; 4: alto flute, Rhodes, guitar, bass; 5: alto flute,
+ * Rhodes, tenor sax, guitar, bass. CHORINHO v2: 2: bandolim, seven-string; 3: flute, bandolim, seven-string; 4: flute,
+ * bandolim, cavaquinho, seven-string; 5: flute, clarinet, bandolim, cavaquinho, seven-string. No piano in either.
+ */
+const LATIN_V2: Partial<Record<string, Partial<Preset>>> = {
+  salsa: {
+    slots: ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"],
+    gain: 1.41,
+    phoneGain: 0.83,
+    by: {
+      1: [["s2Trombone", 0]],
+      2: [["s2Trumpet", -0.14], ["s2Bass", 0.02]],
+      3: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Bass", 0.02]],
+      4: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Tres", 0.24], ["s2Bass", 0.02]],
+      5: [["s2Trumpet", -0.24], ["s2Trombone", -0.12], ["s2Trombone", -0.02], ["s2Tres", 0.24], ["s2Bass", 0.04]],
+    },
+  },
+  bossaNova: {
+    slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
+    gain: 1.51,
+    phoneGain: 0.86,
+    by: {
+      1: [["b2Guitar", 0]],
+      2: [["b2Flute", -0.1], ["b2Guitar", 0.06]],
+      3: [["b2Flute", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]],
+      4: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+      5: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Sax", -0.2], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+    },
+  },
+  chorinho: {
+    slots: ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"],
+    gain: 1.22,
+    phoneGain: 0.81,
+    by: {
+      1: [["c2Bandolim", 0]],
+      2: [["c2Bandolim", 0.08], ["c27", -0.06]],
+      3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]],
+      4: [["c2Flute", -0.18], ["c2Bandolim", 0.12], ["c2Cavaco", 0.24], ["c27", -0.04]],
+      5: [["c2Flute", -0.2], ["c2Clarinet", -0.08], ["c2Bandolim", 0.1], ["c2Cavaco", 0.24], ["c27", -0.04]],
+    },
+  },
+};
 export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
   const p = PRESETS.find((x) => x.id === band)!;
   // (PET SOUNDS' five instruments, the grand and the harpsichord among them: its plucked notes cut at 2.5 s to keep within 25 MB.)
-  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true };
+  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true, ...(LATIN_V2[band] ?? {}) };
 });
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
@@ -2092,7 +2189,12 @@ const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENT
 export const ABBEY_ROAD_CREDIT = `GUITARS: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · ${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 export const KRAUTROCK_CREDIT = `${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
-export const creditFor = (id: string): string | null => CREDITS[baseSound(presetById(id).id)] ?? null;
+/** D546-D548: the rebuilt Latin v2s' own recordings (their originals' credits no longer theirs: no piano, other instruments). */
+export const SALSA_V2_CREDIT = "TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TRES: GUITAR FREESOUND 11573, QUARTERTONE · CC BY 3.0 · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0";
+export const BOSSA_V2_CREDIT = "ALTO FLUTE, GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TENOR SAX: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
+export const CHORINHO_V2_CREDIT = `BANDOLIM: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
+const V2_CREDITS: Record<string, string> = { salsaV2: SALSA_V2_CREDIT, bossaNovaV2: BOSSA_V2_CREDIT, chorinhoV2: CHORINHO_V2_CREDIT };
+export const creditFor = (id: string): string | null => V2_CREDITS[presetById(id).id] ?? CREDITS[baseSound(presetById(id).id)] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
 /** D292: a stored choice as one of the five: a withdrawn one's stand-in (RETIRED), anything else not offered (TRAVERSO, an unknown id) CLASSIC CHIP. */

@@ -187,3 +187,12 @@ Processing (tools/playback/bossa/build_bossa.py): resampled 96 to 44.1 kHz; the 
 D524, the touch game's PET SOUNDS: no new files. Its strings are violaSus/, its horn brassHorn/ and brassHornP/, its harpsichord
          harpsichord/, its piano grand/, its electric bass rickBass/ (ABBEY ROAD's), its kit drums/bigRusty/, its tambourine
          drums/virtuosity/ and its timpani timpani/ (D514's), all above.
+D547, the touch game's BOSSA NOVA v2 (the Sound Lab's "BANDS v2"): its alto flute.
+altoFlute/  University of Iowa Electronic Music Studios, Musical Instrument Samples (Lawrence Fritts; theremin.music.uiowa.edu/MIS.html):
+         "may be downloaded and used for any projects, without restrictions"; credited in the game. Alto flute with vibrato, the
+         2014 single notes, ff, 24-bit stereo ("MIS Pitches - 2014/Woodwinds/Alto Flute"): every minor third G3-Db6, and F6 (no
+         E6 recorded). Changed: mono; onset kept 1 ms before the attack; held on to 4.3 s by crossfaded passages of each note's own
+         steady stretch, a 0.3 s fade; each note's steady loudness (K-weighted) evened; mono 44.1 kHz 80 kbit/s MP3 (0.52 MB).
+         Script: tools/playback/bossa/build_altoflute.py. Its tenor saxophone is sax/ (above), unchanged.
+D546, D548, SALSA v2 and CHORINHO v2: no new files (brassTrumpet/, brassTrombone/, jazzBass/, guitar/, cleanGuitar/, flute/, clarinet/,
+         latinPerc/, all above).

@@ -174,7 +174,7 @@ export type Stage =
   | ({ kind: "wah" } & WahOpts)
   | ({ kind: "place" } & PlaceOpts)
   | ({ kind: "lofi" } & LofiOpts)
-  | { kind: "gain"; db: number };
+  | { kind: "gain"; db: number; phoneDb?: number };
 
 export interface ChainSpec {
   /** The band (its preset's id, the v1's). */
@@ -680,7 +680,8 @@ export class FxKit {
       case "lofi":
         return this.lofi(s);
       case "gain": {
-        const g = this.gain(dbGain(s.db));
+        // D546: `phoneDb` in place of `db` on a phone (a trim that only the phone's band needs, after the compressors).
+        const g = this.gain(dbGain(this.phone && s.phoneDb !== undefined ? s.phoneDb : s.db));
         return this.block(g, g);
       }
     }
@@ -760,6 +761,17 @@ export function buildChain(ctx: BaseAudioContext, spec: ChainSpec, opts: { phone
 }
 
 /**
+ * D546-D548: the Latin v2 chains' output trims (dB, the bus's last stage): the compressors' makeup, the EQ's lifts and the
+ * tape's small-signal gain put the band 4-9 LU over its original into the master's squeeze and limiter (measured: its
+ * crest factor halved). Trimmed after the chain, so the chain's own compression is as designed and the original's level
+ * into it unchanged; the drums (outside the chain) keep their balance with the band. `phoneDb`: through the game's phone
+ * path and the 600 Hz speaker model each v2 matched to its original within 1 LU (NOTES.md beside the renders).
+ */
+export const SALSA2_TRIM = { db: -11.6, phoneDb: -14.2 } as const;
+export const BOSSA2_TRIM = { db: -5.5, phoneDb: -3.9 } as const;
+export const CHORO2_TRIM = { db: -8.2, phoneDb: -9.9 } as const;
+
+/**
  * One chain a band (the study's signature designs, STUDY.md; phase 2 tunes them by ear-proxy measurement). The v2 presets
  * (sound.ts V2_PRESETS) carry them; the v1 bands play as before.
  */
@@ -797,7 +809,7 @@ export const BAND_CHAINS = {
       horns: [{ kind: "comp", model: "1176", threshold: -20 }, { kind: "eq", bands: [{ type: "peaking", hz: 1400, db: 2, q: 1 }] }],
       tres: [{ kind: "eq", bands: [{ type: "highpass", hz: 180 }, { type: "peaking", hz: 2500, db: 3, q: 1.2 }] }],
     },
-    bus: [{ kind: "eq", era: "fania72" }, { kind: "comp", model: "glue" }, { kind: "tape", drive: 1.2, rolloff: 14000 }],
+    bus: [{ kind: "eq", era: "fania72" }, { kind: "comp", model: "glue" }, { kind: "tape", drive: 1.2, rolloff: 14000 }, { kind: "gain", ...SALSA2_TRIM }],
     reverb: { ir: "plate", seconds: 1.2, phoneSeconds: 0.8, rt60: 1.0, predelay: 0.015, hp: 300, lp: 7000, brightness: 0.65, level: 0.7 },
   },
   // Rio / New York, 1959-64: close, soft and narrow; the guitar and the voice-like flute in the middle; the Rhodes warm
@@ -807,17 +819,21 @@ export const BAND_CHAINS = {
     lanes: {
       keys: [{ kind: "tape", drive: 1.3, rolloff: 7000 }],
     },
-    bus: [{ kind: "eq", era: "rio63" }, { kind: "comp", model: "la2a", threshold: -26 }, { kind: "place", width: 0.6 }, { kind: "tape", drive: 1.3, bump: { hz: 120, db: 1 }, rolloff: 10000 }],
+    bus: [{ kind: "eq", era: "rio63" }, { kind: "comp", model: "la2a", threshold: -26 }, { kind: "place", width: 0.6 }, { kind: "tape", drive: 1.3, bump: { hz: 120, db: 1 }, rolloff: 10000 }, { kind: "gain", ...BOSSA2_TRIM }],
     reverb: { ir: "chamber", seconds: 1.1, phoneSeconds: 0.75, rt60: 0.9, predelay: 0.012, hp: 180, lp: 5000, brightness: 0.35, level: 0.8 },
   },
   // A regional on the radio, 1950s (Jacob do Bandolim's broadcasts and 78s): the bandolim's and the cavaquinho's
   // brightness kept, the whole a little narrowed (AM's band), compressed as a broadcast chain is; a short spring.
   chorinho: {
     band: "chorinho",
+    // D548: the bandolim its own lane (its body's 1.1 kHz and its steel's 3.5 kHz); the bus's broadcast band the lofi's
+    // (110 Hz-7.5 kHz) with radio50's forward mids but not its 5 kHz lowpass (on top of the lofi's it takes 5-8 kHz a
+    // further 2-8 dB down: the steel strings' and the pick's sparkle, the plucked regional's character).
     lanes: {
+      bandolim: [{ kind: "eq", bands: [{ type: "peaking", hz: 1100, db: 2, q: 1.2 }, { type: "peaking", hz: 3500, db: 2, q: 1 }] }],
       plucked: [{ kind: "eq", bands: [{ type: "peaking", hz: 3000, db: 2, q: 1 }] }],
     },
-    bus: [{ kind: "lofi", hp: 110, lp: 7500, crunch: 0.15 }, { kind: "eq", era: "radio50" }, { kind: "comp", model: "la2a", threshold: -22 }, { kind: "place", width: 0.5 }],
+    bus: [{ kind: "lofi", hp: 110, lp: 7500, crunch: 0.15 }, { kind: "eq", bands: [{ type: "highpass", hz: 150, q: 0.7 }, { type: "peaking", hz: 1500, db: 3, q: 0.8 }] }, { kind: "comp", model: "la2a", threshold: -22 }, { kind: "place", width: 0.5 }, { kind: "gain", ...CHORO2_TRIM }],
     reverb: { ir: "spring", seconds: 1.1, phoneSeconds: 0.8, rt60: 1.0, predelay: 0.008, hp: 300, lp: 4500, spring: 0.031, level: 0.6 },
   },
   // Atlantic / Van Gelder, the 1950s: the vibraphone's motor in its own lane (the slow tremolo as the Leslie's drum only:
