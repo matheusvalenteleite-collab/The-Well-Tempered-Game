@@ -467,8 +467,149 @@
   font-weight: 400;
   opacity: 0.8;
 }
-.sl-drumpad {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+/* D530: the drum pad, the whole library by family; HOME dashed, FITS a green mark, COMING dimmed. */
+.sl-drumbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.sl-drumoff {
+  min-height: 44px;
+  min-width: 64px;
+  background: #0f1322;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sl-drumoff.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1408;
+}
+.sl-drumnow {
+  font-size: 12px;
+  color: var(--dim);
+  min-width: 0;
+}
+.sl-fam h3,
+.sl-ideas-h {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  margin: 10px 0 4px;
+  font-weight: 600;
+}
+.sl-fam-pad {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+}
+.sl-fam-pad button {
+  min-height: 48px;
+  background: #0f1322;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sl-fam-pad button.own {
+  border-style: dashed;
+  border-color: var(--accent);
+}
+.sl-fam-pad button.on {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #1a1408;
+}
+.sl-fam-pad button.coming,
+.sl-idea-list button.coming {
+  opacity: 0.45;
+  cursor: default;
+}
+.sl-marks {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.sl-mk {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+  padding: 0 3px;
+}
+.sl-mk.home {
+  background: var(--accent);
+  color: #1a1408;
+}
+.sl-mk.fits {
+  background: #2f6b52;
+  color: #e8fff4;
+}
+.sl-mk.coming {
+  background: var(--line);
+}
+.on .sl-mk.home {
+  background: #1a1408;
+  color: var(--accent);
+}
+/* D531: IDEAS. */
+.sl-head-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.sl-ideas-btn.on {
+  border-color: var(--accent);
+}
+.sl-ideas {
+  margin: 12px 0;
+}
+.sl-idea-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.sl-idea-list button {
+  width: 100%;
+  text-align: left;
+  background: #0f1322;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  min-height: 48px;
+}
+.sl-idea-list button.on {
+  border-color: var(--accent);
+}
+.sl-idea-t {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sl-idea-t .sl-own {
+  margin-left: 6px;
+}
+.sl-idea-w {
+  display: block;
+  font-size: 12px;
+  color: var(--dim);
+  margin-top: 2px;
 }
 .sl-voice-row {
   margin-top: 10px;

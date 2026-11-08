@@ -6,12 +6,12 @@
  * <base href="/"> keeps the recordings on the dev server (samples/…), never the public site.
  */
 import { presetById, setPreset, V2_SLIM } from "../../../src/touch/sound.ts";
-import { Chip } from "../../../src/touch/chip.ts";
+import { Chip, openingOf, soundPlans } from "../../../src/touch/chip.ts";
 import { barStart, everyNote, fugueById } from "../../../src/touch/fugue.ts";
 import { ProtoGame } from "../../../src/bench/proto-game.ts";
 import { easyOf, protoById } from "../../../src/bench/protos.ts";
 import { playReading } from "../../../src/touch/readings.ts";
-import { residentBytes } from "../../../src/touch/sampled.ts";
+import { loaded, residentBytes, setLoadPolicy } from "../../../src/touch/sampled.ts";
 import { tempoOf } from "../../../src/touch/tempi.ts";
 
 const W = window as unknown as Record<string, unknown>;
@@ -42,17 +42,35 @@ const stats = (ctx: AudioContext) => {
   return { underrunEvents: j.underrunEvents, underrunDuration: j.underrunDuration, totalDuration: j.totalDuration };
 };
 
-/** Load a sound's recordings for a piece (the player on `voice`), timed; the decoded MB held after. */
-W.__load = async (o: { sound: string; piece: string; voice?: number; slim?: boolean }) => {
+/**
+ * Load a sound's recordings for a piece (the player on `voice`), timed: until the opening's zones are in (the first notes
+ * with real samples: chip.ts openingOf, soundPlans' `first`, polled every 20 ms) and until all are; the bytes the
+ * recordings took on the wire. `before`: the loading as it was (MP3 only, every fetch at once, no opening first).
+ */
+W.__load = async (o: { sound: string; piece: string; voice?: number; slim?: boolean; before?: boolean }) => {
   use(o.sound, o.slim);
+  setLoadPolicy(o.before ? { wire: ["mp3"], queue: false } : { wire: null, queue: true });
   const ch = theChip();
   await ch.resume();
   const f = fugueById(o.piece);
+  const all = everyNote(f).map((n) => n[2]);
+  const lead = (f.voices[o.voice ?? 0] ?? []).map((n) => n[2]);
+  const opening = openingOf(f);
+  const firsts = soundPlans(all, lead, null, opening)
+    .flat()
+    .flatMap((e) => (e.first ?? []).map((m) => [e.set, m] as const));
   const t0 = performance.now();
-  await ch.prepare(everyNote(f).map((n) => n[2]), (f.voices[o.voice ?? 0] ?? []).map((n) => n[2]));
+  let tFirst = firsts.length ? -1 : 0;
+  const poll = setInterval(() => {
+    if (tFirst < 0 && firsts.every(([s, m]) => loaded(s, m))) tFirst = performance.now() - t0;
+  }, 20);
+  await ch.prepare(all, lead, o.before ? undefined : opening);
   const ms = performance.now() - t0;
-  const files = performance.getEntriesByType("resource").filter((e) => /\/samples\//.test(e.name));
-  return { ms, residentMB: residentBytes() / 1e6, files: files.length, rate: ch.ctx.sampleRate };
+  clearInterval(poll);
+  if (tFirst < 0) tFirst = ms;
+  const files = performance.getEntriesByType("resource").filter((e) => /\/samples\//.test(e.name)) as PerformanceResourceTiming[];
+  const bytes = files.reduce((t, e) => t + (e.encodedBodySize || e.transferSize || 0), 0);
+  return { ms, firstMs: tFirst, firstNotes: firsts.length, residentMB: residentBytes() / 1e6, files: files.length, wireMB: bytes / 1e6, formats: [...new Set(files.map((e) => e.name.split("?")[0].split(".").pop()))], rate: ch.ctx.sampleRate };
 };
 W.__resident = () => residentBytes() / 1e6;
 

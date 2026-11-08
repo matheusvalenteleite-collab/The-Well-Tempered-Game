@@ -7,7 +7,9 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEven
 import { barAt, barStart, cadenceName, fugueById } from "../../touch/fugue.ts";
 import { formOf as pointsOf, phaseAt } from "../../touch/form-points.ts";
 import { formOf as soundFormOf } from "../../touch/fugue-form.ts";
-import { drumPresetsFor } from "../../touch/drum-presets.ts";
+import { homeStyleFor, styleInfo } from "../../touch/drum-library.ts";
+import { FAMILY_LABEL, padGroups, padStyle } from "./drum-pad.ts";
+import { IDEAS, ideaPlayable, ideaSettings, KIND_NAME, type Idea } from "./ideas.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { FUGUE_NAMES } from "../../touch/fugue-names.ts";
 import { Emblem } from "../FuguePicker.tsx";
@@ -37,6 +39,8 @@ export function SoundLab() {
   const [b, setB] = useState<ABSlot>(init.b ?? { sound: null, drums: init.s.drums ? 0 : 1 });
   const [abOn, setAbOn] = useState<"A" | "B">("A");
   const [picker, setPicker] = useState(false);
+  const [ideas, setIdeas] = useState(false);
+  const [ideaOn, setIdeaOn] = useState<string | null>(null);
   const [drag, setDrag] = useState<number | null>(null);
   const [loopSec, setLoopSec] = useState<number | null>(null);
   const strip = useRef<HTMLDivElement>(null);
@@ -91,10 +95,10 @@ export function SoundLab() {
     void engine.set(next, [b]);
   };
   const flip = () => {
-    const other: ABSlot = { sound: s.sound, drums: s.drums };
+    const other: ABSlot = { sound: s.sound, drums: s.drums, style: s.style };
     setB(other);
     setAbOn(abOn === "A" ? "B" : "A");
-    const next = { ...s, sound: b.sound, drums: b.drums };
+    const next = { ...s, sound: b.sound, drums: b.drums, style: b.style ?? null };
     setS(next);
     void engine.set(next, [other]);
   };
@@ -102,9 +106,21 @@ export function SoundLab() {
     setPicker(false);
     setLoopSec(null);
     engine.loop = null;
-    const next = { ...defaults(id), drums: s.drums ? 1 : 0 };
+    const next = { ...defaults(id), drums: s.drums ? 1 : 0, style: s.style };
     setS(next);
     void engine.set(next);
+  };
+  // D531: an IDEA loaded whole (fugue, sound, drums, layers, tempo) and played from its bar.
+  const tryIdea = (it: Idea) => {
+    if (!ideaPlayable(it)) return;
+    setIdeas(false);
+    setPicker(false);
+    setLoopSec(null);
+    engine.loop = null;
+    setIdeaOn(it.id);
+    const next = ideaSettings(it);
+    setS(next);
+    void engine.start(next, it.bar);
   };
   const toggleLoop = (i: number) => {
     const sm = form.seams[i];
@@ -140,16 +156,17 @@ export function SoundLab() {
   const shown = drag ?? st.tick;
   const pct = (t: number) => `${(100 * Math.max(0, Math.min(f.length, t))) / f.length}%`;
   const ph = phaseAt(form, Math.max(0, shown));
-  const presets = drumPresetsFor(s.piece);
   const tempi = stepTempi(s.piece);
   const own = PIECE_SOUND[s.piece] ?? "chip";
   const snd = soundOf(s);
+  const groups = padGroups(s.piece, snd);
+  const styleNow = padStyle(s, snd);
   const seats = seatsOf(snd, f);
   const bach = bachVoice(f, s);
   const link = `${location.origin}${location.pathname}${linkOf(s, st.bar)}`;
-  const drumName = (d: number) => (d ? `${d} · ${presets[d - 1].name}${d === 1 ? " (default)" : ""}` : "OFF");
+  const drumName = (st: string | null) => (st ? `${styleInfo(st).label}${st === homeStyleFor(snd) ? " (home)" : ""}` : "OFF");
   const summary = useMemo(() => summaryOf(f, s, snd), [f, s, snd, plansIn]);
-  const settingsWords = `${soundName(snd)}${s.sound ? "" : " (own)"} · drums ${drumName(s.drums)} · tempo ${s.tempo} · Herr Bach on ${voiceName(bach, n)}${(["form", "climax", "busoni", "colour", "kit"] as const).filter((k) => !s[k]).map((k) => ` · ${k} off`).join("")}${s.solo !== null ? ` · solo ${voiceName(s.solo, n)}` : ""}${s.mute.length ? ` · muted ${s.mute.map((v) => voiceName(v, n)).join(", ")}` : ""} · bar ${st.bar} · ${VERSION}`;
+  const settingsWords = `${soundName(snd)}${s.sound ? "" : " (own)"} · drums ${drumName(styleNow)} · tempo ${s.tempo} · Herr Bach on ${voiceName(bach, n)}${(["form", "climax", "busoni", "colour", "kit"] as const).filter((k) => !s[k]).map((k) => ` · ${k} off`).join("")}${s.solo !== null ? ` · solo ${voiceName(s.solo, n)}` : ""}${s.mute.length ? ` · muted ${s.mute.map((v) => voiceName(v, n)).join(", ")}` : ""} · bar ${st.bar} · ${VERSION}`;
   const sendUrl = issueUrl(`${tagOf(s.piece)} ${nameOf(s.piece)}`, noteBody(note, settingsWords, link));
   const copy = () => {
     const text = `Sound Lab notes: ${tagOf(s.piece)} ${nameOf(s.piece)}\n\n${noteBody(note, settingsWords, link)}`;
@@ -180,10 +197,42 @@ export function SoundLab() {
             {f.title} · {f.meter} · {n} voices · {lastBar} bars · own sound {soundName(own)}
           </div>
         </div>
-        <button type="button" className="sl-btn" onClick={() => setPicker(!picker)}>
-          {picker ? "CLOSE" : "48 FUGUES"}
-        </button>
+        <div className="sl-head-btns">
+          <button type="button" className="sl-btn" onClick={() => (setPicker(!picker), setIdeas(false))}>
+            {picker ? "CLOSE" : "48 FUGUES"}
+          </button>
+          <button type="button" className={`sl-btn sl-ideas-btn${ideas ? " on" : ""}`} id="sl-ideas-btn" onClick={() => (setIdeas(!ideas), setPicker(false))} aria-expanded={ideas}>
+            {ideas ? "CLOSE" : "IDEAS"}
+          </button>
+        </div>
       </header>
+
+      {ideas && (
+        <section className="sl-panel sl-ideas" id="sl-ideas">
+          <h2>IDEAS · {IDEAS.filter(ideaPlayable).length} TO TRY, ONE TAP EACH</h2>
+          <p className="sl-note">Fugue, sound, drums and layers loaded together, played from the bar shown. COMING: S3's period drums, not playable yet.</p>
+          {(["safe", "bold", "coming"] as const).map((k) => (
+            <div key={k}>
+              <h3 className="sl-ideas-h">{KIND_NAME[k]}</h3>
+              <ol className="sl-idea-list">
+                {IDEAS.filter((it) => (k === "coming" ? !ideaPlayable(it) : ideaPlayable(it) && it.kind === k)).map((it) => (
+                  <li key={it.id}>
+                    <button type="button" className={`${ideaOn === it.id ? "on" : ""}${ideaPlayable(it) ? "" : " coming"}`} onClick={() => tryIdea(it)} disabled={!ideaPlayable(it)} data-idea={it.id}>
+                      <span className="sl-idea-t">
+                        {tagOf(it.piece)} {nameOf(it.piece)} · {soundName(it.sound).replace(" (SAMPLED)", "")} · {styleInfo(it.style).id === it.style ? styleInfo(it.style).label : it.styleLabel ?? it.style}
+                        {it.tempo && it.tempo !== "default" ? ` · ${it.tempo.toUpperCase()}` : ""}
+                        {it.layers ? Object.entries(it.layers).map(([lk, on]) => ` · ${lk} ${on ? "on" : "off"}`).join("") : ""} · b.{it.bar}
+                        {!ideaPlayable(it) && <span className="sl-own">COMING</span>}
+                      </span>
+                      <span className="sl-idea-w">{it.why}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </section>
+      )}
 
       {picker && (
         <ol className="sl-grid" id="sl-picker">
@@ -322,12 +371,39 @@ export function SoundLab() {
           </select>
         </div>
         <h2>DRUMS</h2>
-        <div className="sl-pad sl-drumpad" id="sl-drums">
-          {[0, 1, 2, 3].map((d) => (
-            <button type="button" key={d} className={s.drums === d ? "on" : ""} onClick={() => change({ drums: d })} data-drums={d} aria-pressed={s.drums === d}>
-              {d ? `STYLE ${d}` : "OFF"}
-              {d > 0 && <span className="sl-own">{presets[d - 1].name}{d === 1 ? " · DEFAULT" : ""}</span>}
-            </button>
+        <div className="sl-drumbar">
+          <button type="button" className={`sl-drumoff${s.drums === 0 ? " on" : ""}`} onClick={() => change({ drums: 0 })} data-drums={0} aria-pressed={s.drums === 0}>
+            OFF
+          </button>
+          <span className="sl-drumnow">{styleNow ? `${styleInfo(styleNow).label}: ${styleInfo(styleNow).why}` : "Tap a style. HOME: this sound's own; FITS: idiomatic in this fugue's metre."}</span>
+        </div>
+        <div className="sl-drumpad" id="sl-drums">
+          {groups.map((g) => (
+            <div key={g.family} className="sl-fam">
+              <h3>{FAMILY_LABEL[g.family]}</h3>
+              <div className="sl-fam-pad">
+                {g.items.map((it) => (
+                  <button
+                    type="button"
+                    key={it.style}
+                    className={`${styleNow === it.style ? "on" : ""}${it.home ? " own" : ""}${it.fits ? " fits" : ""}${it.coming ? " coming" : ""}`}
+                    disabled={it.coming}
+                    onClick={() => change({ drums: 1, style: it.home ? null : it.style })}
+                    data-style={it.style}
+                    {...(it.home ? { "data-drums": 1 } : {})}
+                    aria-pressed={styleNow === it.style}
+                    title={it.coming ? "S3: score-driven period drums, coming" : styleInfo(it.style).why}
+                  >
+                    {it.name}
+                    <span className="sl-marks">
+                      {it.home && <span className="sl-mk home">HOME</span>}
+                      {it.fits && <span className="sl-mk fits">FITS</span>}
+                      {it.coming && <span className="sl-mk coming">COMING</span>}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
         <h2>LAYERS</h2>
@@ -432,7 +508,7 @@ export function SoundLab() {
         <h2>A/B</h2>
         <div className="sl-ab">
           <div className={abOn === "A" ? "on" : ""}>
-            <b>NOW</b> {soundName(snd)} · DRUMS {drumName(s.drums)}
+            <b>NOW</b> {soundName(snd)} · DRUMS {drumName(styleNow)}
           </div>
           <div>
             <b>OTHER</b>
@@ -443,10 +519,12 @@ export function SoundLab() {
                 </option>
               ))}
             </select>
-            <select value={b.drums} onChange={(e) => setB({ ...b, drums: Number(e.target.value) })} id="sl-b-drums">
-              {[0, 1, 2, 3].map((d) => (
-                <option key={d} value={d}>
-                  DRUMS {drumName(d)}
+            <select value={b.drums ? (b.style ?? "home") : "off"} onChange={(e) => setB({ ...b, drums: e.target.value === "off" ? 0 : 1, style: e.target.value === "off" || e.target.value === "home" ? null : e.target.value })} id="sl-b-drums">
+              <option value="off">DRUMS OFF</option>
+              <option value="home">DRUMS HOME</option>
+              {groups.flatMap((g) => g.items.filter((x) => !x.coming)).map((x) => (
+                <option key={x.style} value={x.style}>
+                  DRUMS {x.name}
                 </option>
               ))}
             </select>

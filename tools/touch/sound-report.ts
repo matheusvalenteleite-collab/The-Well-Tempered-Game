@@ -10,7 +10,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { barAt, beatOf, cadenceName, fugueById, keyAt, type TouchFugue } from "../../src/touch/fugue.ts";
 import { formOf as pointsOf, phaseAt } from "../../src/touch/form-points.ts";
 import { ARC_FROM_DB, CLIMAX_DB, CLIMAX_ROOM, CLIMAX_TONE, EPISODE_DB, EPISODE_TONE, FORM_REG, MIN_EPISODES, MIN_EPISODE_SHARE, RESOLVE_ROOM, SUBJECT_DB, SUBJECT_TONE, climaxRamp, formOf as soundFormOf } from "../../src/touch/fugue-form.ts";
-import { ARC_VEL, BRUSH_BEAT_S, CLIMAX_PATTERN_AT, CLIMAX_VEL, DANCE_BEAT_S, EPISODE_VEL, RESOLVE_FALL, ROCK_BEAT_S, ROLL_QUICK_S, STYLE_NAMES, breaksBefore, brushFills, drumPresetsFor, firstCharacter, stylesFor, timpaniPitches, timpaniTuned } from "../../src/touch/drum-presets.ts";
+import { drumPresetsFor } from "../../src/touch/drum-library.ts";
+import { ARC_VEL, BRUSH_BEAT_S, CLIMAX_PATTERN_AT, CLIMAX_VEL, DANCE_BEAT_S, EPISODE_VEL, RESOLVE_FALL, ROCK_BEAT_S, ROLL_QUICK_S, STYLE_NAMES, breaksBefore, brushFills, firstCharacter, stylesFor, timpaniPitches, timpaniTuned } from "../../src/touch/drum-presets.ts";
 import { DRUM_SCRIPTS } from "../../src/touch/jazz-drums.ts";
 import { momentsAsBars } from "../../src/touch/rock-drums.ts";
 import { PIECE_SOUND } from "../../src/touch/piece-sound.ts";
@@ -138,7 +139,7 @@ function fugueFacts(id: string, stage: Record<string, string>) {
   const bars = f.bars.map((x) => x.on);
   const away = bars.filter((t) => !timpaniTuned(f.key, keyAt(f, t))).length;
   const styles = stylesFor(id);
-  const presets = drumPresetsFor(id).map((p, i) => ({ n: i + 1, id: p.id, name: p.name, style: p.style }));
+  const presets = drumPresetsFor(id, sound).slice(0, 3).map((p, i) => ({ n: i + 1, id: p.id, name: p.name, style: p.style }));
   const fx = TAILORED[id];
   const fxOf = (x: typeof GENERIC) => ({ name: x.name, why: x.why, room: x.room, layers: x.layers.map((l) => ({ kind: l.kind, heard: SYNTH_LAYERS_SOUND || !SYNTH_LAYERS.has(l.kind) })) });
   const seats = seatsOf(sound, f);
