@@ -13,11 +13,11 @@
  * shapes the whole plan), the TEMPO (the clock), the voice Herr Bach plays, the piece; and every seek.
  */
 import { Chip } from "../../touch/chip.ts";
-import { kitFiles } from "../../touch/chip.ts";
+import { drumFilesFor } from "../../touch/chip.ts";
 import { barAt, barStart, everyNote, fugueById, type TouchFugue } from "../../touch/fugue.ts";
 import { grooveNow, preset, PRESETS, presetById, sampledNow, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
 import { BRUSH_MIDIS, BRUSH_SET, loadPlanKeep, planFor, ROCK_KIT_MIDIS, ROCK_KIT_SET, SAMPLED, type Plan } from "../../touch/sampled.ts";
-import { drumPresetsFor, setDrumPreset, stylesFor } from "../../touch/drum-presets.ts";
+import { drumPresetsFor, setDrumPreset } from "../../touch/drum-library.ts";
 import { setClimaxLayer, setFormLayer } from "../../touch/fugue-form.ts";
 import { setColourPlansOn } from "../../touch/colour.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
@@ -78,7 +78,8 @@ export function planOf(soundId: string, f: TouchFugue, voice: number, drums: num
   const gr = grooveNow();
   if (gr?.kit === "brushes") plan.push({ set: BRUSH_SET, notes: [...BRUSH_MIDIS] });
   if (gr?.kit === "rock") plan.push({ set: ROCK_KIT_SET, notes: [...ROCK_KIT_MIDIS] });
-  if (drums > 0) plan.push(...kitFiles(stylesFor(f.id)[drumPresetsFor(f.id)[drums - 1].id]));
+  // D526: the drum library's menu for this sound (HOME first): its style's files, whatever its engine.
+  if (drums > 0) plan.push(...drumFilesFor(drumPresetsFor(f.id, soundId)[drums - 1].style));
   setPreset(was);
   setPieceLayout(wasLayout);
   return plan;
@@ -164,7 +165,7 @@ export class LabEngine {
     // play.html's DRUMS (LiteDrums.tsx applyLiteDrums): CLASSIC CHIP's own loop off, the backing on or off; the style chosen.
     setDrums(false);
     setBacking(s.drums > 0);
-    if (s.drums > 0) setDrumPreset(s.piece, drumPresetsFor(s.piece)[s.drums - 1].id);
+    if (s.drums > 0) setDrumPreset(s.piece, drumPresetsFor(s.piece, snd)[s.drums - 1].id);
     setFormLayer(s.form);
     setClimaxLayer(s.climax);
     setColourPlansOn(s.colour);

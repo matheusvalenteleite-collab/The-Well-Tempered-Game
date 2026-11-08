@@ -2,7 +2,7 @@
  * D497, THE SOUND LAB's settings and its deep links (pure). A link: `soundlab.html#wtc1f12?sound=vocalSynth&drums=2&bar=40`.
  *
  *   sound   a preset id (sound.ts PRESETS, or a trial's); absent: the fugue's own (piece-sound.ts)
- *   drums   0 off, 1 2 3 the fugue's drum STYLE (drum-presets.ts drumPresetsFor, the first its default)
+ *   drums   0 off, 1 2 3 the drum STYLE (drum-library.ts drumPresetsFor for the sound: 1 its HOME, 2 3 its family)
  *   bar     the bar to start from (Bach's numbering)
  *   tempo   slow, default, fast (tempo-steps.ts)
  *   voice   the voice Herr Bach plays (0 the top); absent: the game's first offer (the second to enter)
