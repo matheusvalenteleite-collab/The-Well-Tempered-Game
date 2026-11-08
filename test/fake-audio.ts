@@ -227,6 +227,14 @@ export class FakeAudioContext {
   createWaveShaper() {
     return this.node("shaper", {});
   }
+  /** D536: an analyser reading a steady `meterValue` (the output meter's tests). */
+  meterValue = 0;
+  createAnalyser() {
+    const n = this.node("analyser", {}) as FakeNode & { fftSize: number; getFloatTimeDomainData: (b: Float32Array) => void };
+    n.fftSize = 2048;
+    n.getFloatTimeDomainData = (b: Float32Array) => b.fill(this.meterValue);
+    return n;
+  }
   createConvolver() {
     return this.node("convolver", {});
   }

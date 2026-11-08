@@ -13,7 +13,7 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -27,6 +27,8 @@ import { formOf as rockFormOf, rockBeat, type KitPiece as RockPiece, type RockSt
 import { bossaBeat, bossaPlan } from "./bossa-drums.ts";
 import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
 import type { TouchFugue } from "./fugue.ts";
+import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
+import { stageMode } from "./stage-bg.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -444,7 +446,36 @@ export interface KitEvent {
   when: number;
   vel: number;
   role?: "roll" | "fill" | "accent";
+  /** D535: a roll's or a fill's stroke: the ticks from it to the landing. */
+  dur?: number;
 }
+/** D536: a registration not heard for this long (s) is new when it comes (a change reported once, not per note). */
+export const REG_NEW_S = 2;
+/** D536: the output meter: its window (samples), its floor (dBFS: 0 there), how quickly it rises and falls (s). */
+export const METER_FFT = 1024;
+export const METER_FLOOR_DB = -48;
+export const METER_RISE_S = 0.03;
+export const METER_FALL_S = 0.3;
+/** D536: the bass drums (the studio's "kick"), the snares (its "snare"), by every engine's names. */
+const KICKS = new Set(["kick", "bassDrum", "surdo", "tumba", "pandBass"]);
+const SNARES = new Set(["snare", "rim", "clap", "rimshot", "pandSlap", "slap"]);
+/**
+ * D536: the studio's live event a stroke is (music-events.ts LiveKind), or null (the hats, the shakers, a brush's sweep:
+ * the time-keeping, not events): a roll's or a fill's stroke, a crash, the timpani, a landing's accent, the kick, the snare.
+ */
+export function musicKindOf(e: KitEvent): LiveKind | null {
+  if (e.voice === "sweep") return null;
+  if (e.role === "roll") return "roll";
+  if (e.role === "fill") return "fill";
+  if (e.piece === "crash") return "crash";
+  if (e.piece === "timp") return "timp";
+  if (e.role === "accent") return "accent";
+  if (KICKS.has(e.piece)) return "kick";
+  if (SNARES.has(e.piece)) return "snare";
+  return null;
+}
+/** D536: the studio's events are reported only while its stage is drawn (stage-bg.ts: FULL or QUIET); OFF, none. */
+export const musicLive = () => stageMode() !== "off";
 /**
  * D520 SALSA's and D522 CHORINHO's percussion (chip.ts Chip.latin, latin-drums.ts): the kit's `level` (measured: where
  * JAZZ QUARTET's brushes sit under their band, the bass heard through a phone's speaker), a phone's share, the cut under
@@ -997,6 +1028,8 @@ export class Chip {
     ceiling.curve = softClipCurve();
     ceiling.oversample = "4x";
     this.master.connect(soften).connect(squeeze).connect(limit).connect(trim).connect(ceilIn).connect(ceiling).connect(ctx.destination);
+    // D536: the output's meter (sound.ts outputLevel, the studio's music-events.ts): read only when asked for.
+    chipMeter(() => this.meterLevel(), setOutputLevel);
     // The room: a second of decaying noise, a little of it under everything (more for the bands).
     const room = (this.room = ctx.createConvolver());
     room.buffer = impulse(ctx, this.phone ? ROOM_S.phone : ROOM_S.computer);
@@ -1014,6 +1047,36 @@ export class Chip {
     this.mine.connect(this.master);
     this.recIn = ctx.createGain();
     this.recIn.connect(limit);
+  }
+
+  /** D536: the meter on the output (post-limiter, past the soft clip), made on the first reading: none, no cost. */
+  private meter: { an: AnalyserNode; buf: Float32Array<ArrayBuffer>; level: number; at: number } | null = null;
+  /**
+   * D536: the output's level now, 0..1 (the RMS of the last METER_FFT samples after the limiter and the ceiling, on a
+   * dB scale from METER_FLOOR_DB to full scale; smoothed: quick to rise, METER_FALL_S to fall).
+   */
+  meterLevel(): number {
+    if (!this.meter) {
+      if (!this.ctx.createAnalyser) return 0;
+      const an = this.ctx.createAnalyser();
+      an.fftSize = METER_FFT;
+      this.ceiling.connect(an);
+      this.meter = { an, buf: new Float32Array(METER_FFT), level: 0, at: this.ctx.currentTime };
+    }
+    const m = this.meter;
+    let sum = 0;
+    if (m.an.getFloatTimeDomainData) {
+      m.an.getFloatTimeDomainData(m.buf);
+      for (let i = 0; i < m.buf.length; i++) sum += m.buf[i] * m.buf[i];
+    }
+    const rms = Math.sqrt(sum / m.buf.length);
+    const db = rms > 0 ? 20 * Math.log10(rms) : -Infinity;
+    const now = Math.max(0, Math.min(1, (db - METER_FLOOR_DB) / -METER_FLOOR_DB));
+    const t = this.ctx.currentTime;
+    const dt = Math.max(0, t - m.at);
+    m.at = t;
+    m.level = now >= m.level ? m.level + (now - m.level) * Math.min(1, dt / METER_RISE_S + 0.5) : m.level + (now - m.level) * Math.min(1, dt / METER_FALL_S);
+    return Number.isFinite(m.level) ? m.level : 0;
   }
 
   /** D216: the player's own notes' level (1: as they are). */
@@ -1188,6 +1251,8 @@ export class Chip {
     }
     const pedal = isPedal(v.patch);
     const reg = p.couple === false ? null : registeredNote(id, live, v.patch, !!p.lead, midi);
+    // D536: a change of registration reported to the studio (music-events.ts), only while its stage is drawn.
+    if (reg && musicLive()) this.noteRegistration(id, live, !!p.lead, at);
     if (reg) {
       if (reg.patch) v = { ...v, patch: reg.patch };
       if (reg.choirs) p = { ...p, choirs: reg.choirs };
@@ -3545,6 +3610,8 @@ export class Chip {
     // any sound's own drums (never two drummers): a written or D514 pattern on a kit, or a band's own drummer.
     const piece = cx?.piece ?? this.drumF;
     this.lastBeatS = beatS;
+    // D536: the clock's tick (the studio's registration events land on it).
+    if (cx && beatS > 0) this.tickClock = { tick: cx.tick, at, tps: cx.beat / beatS };
     const tickOf = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
     if (backingOn() && piece) {
       if (piece !== this.drumF) this.drumsFor(piece);
@@ -3565,7 +3632,7 @@ export class Chip {
           return (this.petDrums(at, beatS, b, per, compound, pcx), true);
       }
       const hits = kitBeat(style, { b, per, compound, beatS, tick: pcx.tick, beat: pcx.beat, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key });
-      for (const h of hits) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
+      for (const h of hits) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
       return true;
     }
     const gr = grooveNow();
@@ -3595,6 +3662,32 @@ export class Chip {
     this.kitEvents.push(e);
     if (this.kitEvents.length > 1024) this.kitEvents.splice(0, 512);
     sound(e.when, e.vel);
+    // D536: the studio's live events (music-events.ts): the stroke as played, its level the velocity; a roll its length.
+    if (musicLive()) {
+      const kind = musicKindOf(e);
+      if (kind) emitMusic({ tick: e.tick, kind, level: Math.max(0, Math.min(1, e.vel)), piece: e.piece, ...(e.dur !== undefined ? { dur: e.dur } : kind === "roll" ? { dur: 0 } : {}) });
+    }
+  }
+  /** D536: the fugue's tick at a time on the audio clock (from the last beat the rhythm section was given), or null. */
+  private tickClock: { tick: number; at: number; tps: number } | null = null;
+  tickAtTime(t: number): number | null {
+    const c = this.tickClock;
+    return c ? Math.round(c.tick + (t - c.at) * c.tps) : null;
+  }
+  /** D536: the registrations last heard (a key of the stops: the time last used), to report a change once. */
+  private regSeen = new Map<string, number>();
+  /** D536: a note's registration (the organ's, the harpsichord's), reported to the studio when it is new (not heard in REG_NEW_S). */
+  private noteRegistration(id: string, live: Registration, lead: boolean, at: number) {
+    if (!musicLive()) return;
+    const key = `${id}:${lead ? "L" : "B"}:${live.tutti ? "T" : ""}${live.stops ? live.stops.join("+") : "-"}`;
+    const last = this.regSeen.get(key);
+    this.regSeen.set(key, at);
+    if (last !== undefined && at - last < REG_NEW_S) return;
+    // The first registration of a run is no change.
+    const first = ![...this.regSeen.entries()].some(([k, t]) => k !== key && k.startsWith(`${id}:${lead ? "L" : "B"}:`) && at - t < REG_NEW_S * 4);
+    if (first) return;
+    const tick = this.tickAtTime(at);
+    if (tick !== null) emitMusic({ tick, kind: "registration", level: lead ? 1 : 0.6, piece: live.stops ? live.stops.join(" ") : live.tutti ? "tutti" : "default" });
   }
 
   /** D514: the piece the drums play for (set as a piece starts, proto-game.ts; else from the first beat's context). */
@@ -3869,7 +3962,7 @@ export class Chip {
     const f = cx?.piece;
     const beat = cx?.beat ?? 1;
     const form = f ? rockFormOf(f, beat, style) : { intro: 0, moments: [], episodes: [], finalAt: Infinity };
-    for (const h of rockBeat(style, b, per, compound, cx?.tick ?? 0, beat, beatS, form, cx?.dynDb ?? 0)) this.scheduleKitHit({ voice: "rock", style, piece: h.piece, tick: (cx?.tick ?? 0) + h.at * beat, when: at + h.at * beatS, vel: h.vel }, (w, v) => this.kitHit(style, h.piece, w, v));
+    for (const h of rockBeat(style, b, per, compound, cx?.tick ?? 0, beat, beatS, form, cx?.dynDb ?? 0)) this.scheduleKitHit({ voice: "rock", style, piece: h.piece, tick: (cx?.tick ?? 0) + h.at * beat, when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.kitHit(style, h.piece, w, v));
   }
 
   private kitHit(style: RockStyle, piece: RockPiece, at: number, vel: number) {

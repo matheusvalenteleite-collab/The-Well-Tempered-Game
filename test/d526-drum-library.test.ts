@@ -123,7 +123,8 @@ test("D527: every written style in every fugue: strokes in the beat, never too c
         const by = new Map<string, number[]>();
         for (const h of x.hits) {
           assert.ok(h.vel > 0 && h.vel <= 1 && h.at >= 0 && h.at < 1, `${style} ${f.id}`);
-          by.set(h.piece, [...(by.get(h.piece) ?? []), h.at]);
+          // D535: a flam's or a ruff's grace note (h.grace) lies closer to its stroke by design.
+          if (!h.grace) by.set(h.piece, [...(by.get(h.piece) ?? []), h.at]);
           n++;
         }
         for (const ats of by.values()) {

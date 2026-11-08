@@ -29,8 +29,8 @@ export interface Grid {
   steps: number;
   rows: Partial<Record<KitPiece, string>>;
 }
-/** The fills' voice (drum-presets.ts fillStrokes: the snare and toms, a ride's, a machine's, the timpani's, the frame drums'). */
-export type FillVoice = "rock" | "jazz" | "chip" | "machine" | "timpani" | "frame";
+/** The fills' voice (drum-fills.ts: the snare and toms, the jazz kit's, a machine's, the congas'; D514's timpani and frame drums'). */
+export type FillVoice = "rock" | "jazz" | "chip" | "machine" | "latin" | "timpani" | "frame";
 /** The kit that sounds a style: a recorded one (sampled.ts kitRock: Big Rusty; kitClub: Virtuosity) or a synthesized one (chip.ts drum). */
 export type KitVoice = "kitRock" | "kitClub" | "chip" | "analog" | "tr909" | "linn" | "glitch";
 export interface GridStyle {
@@ -125,7 +125,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     compound: g(4, 3, { kick: "#.x ... .x. ...", snare: "... X.- ... X.-", hat: "xox xox xox xox" }),
     bpm: [88, 115],
     climax: "ride",
-    fill: "rock",
+    fill: "machine",
     kit: "kitRock",
     rate: 1.06,
     share: 1,
@@ -187,7 +187,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     compound: g(4, 3, { kick: "#.x ... #.x ...", tomLow: "... x.. ... x..", rim: ".o. .o. .o. .o.", triangle: "oxo oxo oxo oxo" }),
     bpm: [80, 130],
     climax: "crash",
-    fill: "frame",
+    fill: "latin",
     kit: "kitClub",
     share: 1,
   },
@@ -234,7 +234,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     compound: g(4, 3, { kick: "#.. ... .#. ...", snare: "... X.. ... X.-", hat: "xox xox xox xox" }),
     bpm: [158, 180],
     climax: "ride",
-    fill: "rock",
+    fill: "machine",
     kit: "kitClub",
     rate: 1.1,
     share: 1,
@@ -415,7 +415,7 @@ export function gridPieces(st: GridStyle): KitPiece[] {
   if (st.climax === "ride") set.add("ride");
   if (st.climax === "open") set.add("openhat");
   if (st.climax === "comp") set.add("snare");
-  const fill: Record<FillVoice, KitPiece[]> = { rock: ["snare", "tomHigh", "tomLow"], jazz: ["snare", "tomHigh", "tomLow"], chip: ["snare", "tomLow"], machine: ["snare", "tomHigh", "tomLow"], timpani: ["timp", "bassDrum"], frame: ["congaHigh", "congaLow", "bongo", "tamb"] };
+  const fill: Record<FillVoice, KitPiece[]> = { rock: ["snare", "tomHigh", "tomLow"], jazz: ["snare", "tomHigh", "tomLow"], chip: ["snare", "tomHigh", "tomLow"], machine: ["snare", "tomHigh", "tomLow"], latin: ["congaHigh", "congaLow", "bongo", "tamb"], timpani: ["timp", "bassDrum"], frame: ["congaHigh", "congaLow", "bongo", "tamb"] };
   for (const p of fill[st.fill]) set.add(p);
   return [...set];
 }

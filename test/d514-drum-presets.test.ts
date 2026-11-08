@@ -23,6 +23,7 @@ import {
   brushDb,
   brushFills,
   kitBeat,
+  kitFillPlan,
   legacyPresetsFor,
   stylesFor,
   timpaniPitches,
@@ -110,13 +111,22 @@ test("D514: I/12 for every style: sparser and softer in the episodes, fuller in 
   }
 });
 
+// D535: not every entry is filled now (drum-fills.ts fillPlan): the timpani and the frame drums roll into each (D514's), the
+// others into those their plan fills, and leave at least one to its landing alone; every entry still lands.
 test("D514: a roll into each subject zone after an episode (rising, landing on the entry with a cymbal or the low drum), a roll out into each episode", () => {
   for (const style of STYLES) {
-    const { form, beats, beat } = play("wtc1f12", style);
+    const { form, beats, beat, beatS } = play("wtc1f12", style);
     const entries = form.zones.filter((z, i) => i > 0 && z.kind === "subject" && z.from < form.climax);
+    const orch = style === "timpani" || style === "frame";
+    const plan = kitFillPlan(style, form, beat, beatS, 4);
+    const filled = (at: number) => orch || plan.some((p) => p.at === at && p.filled);
+    if (!orch) assert.ok(entries.some((z) => filled(z.from)) && entries.some((z) => !filled(z.from)), `${style}: some entries filled, not all`);
     for (const z of entries) {
+      const land0 = beats.find((x) => z.from >= x.tick && z.from < x.tick + beat)!;
+      assert.ok(land0.hits.some((h) => Math.abs(h.at - (z.from - land0.tick) / beat) < 1e-6 && (h.piece === "crash" || h.piece === "congaLow" || h.piece === "timp")), `${style} lands at ${z.from}`);
+      if (!filled(z.from)) continue;
       const before = beats.filter((x) => x.tick < z.from && x.tick >= z.from - 2 * beat).flatMap((x) => x.hits.map((h) => ({ ...h, t: x.tick + h.at * beat })));
-      const roll = before.filter((h) => h.piece === "snare" || h.piece === "timp" || h.piece === "congaHigh" || h.piece === "bongo" || h.piece === "tomHigh" || h.piece === "tomLow");
+      const roll = before.filter((h) => !h.grace).filter((h) => h.piece === "snare" || h.piece === "timp" || h.piece === "congaHigh" || h.piece === "bongo" || h.piece === "tomHigh" || h.piece === "tomLow");
       assert.ok(roll.length >= 2, `${style} roll before ${z.from}`);
       assert.ok(roll[roll.length - 1].vel > roll[0].vel, `${style} crescendo`);
       const land = beats.find((x) => z.from >= x.tick && z.from < x.tick + beat)!;
@@ -148,7 +158,8 @@ test("D514: a break before the final entry (where an episode precedes it), a flo
       // The strokes of one piece in a beat: never closer than a roll's.
       for (const x of beats) {
         const by = new Map<string, number[]>();
-        for (const h of x.hits) by.set(h.piece, [...(by.get(h.piece) ?? []), h.at]);
+        // D535: a flam's or a ruff's grace note (h.grace) lies closer to its stroke by design.
+        for (const h of x.hits) if (!h.grace) by.set(h.piece, [...(by.get(h.piece) ?? []), h.at]);
         for (const ats of by.values()) {
           ats.sort((a, b) => a - b);
           for (let i = 1; i < ats.length; i++) assert.ok((ats[i] - ats[i - 1]) * beatS >= ROLL_STROKE_S - 1e-6 || ats[i] === ats[i - 1], `${f.id} ${style}`);
