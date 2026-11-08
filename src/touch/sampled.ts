@@ -154,7 +154,6 @@ export const PERIOD: Record<string, Bake> = {
   // on the made loop) and the electric bass (Karoryfer's Black And Blue "babyblue", picked: Carol Kaye's pick on a P-bass's
   // kind of line), at full fidelity as the consort's; the bass's floor at 40 Hz (its E1 is 41 Hz).
   petStrings: { folder: "violaSus", rate: 32000, lp: 11000, bits: 16, loop: true },
-  petBass: { folder: "rickBass", rate: 32000, lp: 11000, bits: 16, floor: 40 },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -186,8 +185,6 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   ebass: { As1: -0.4, As2: -0.7, As3: 0.2, As4: 3.5, Cs1: 7.8, Cs2: 0.1, Cs3: 0, Cs4: -1.3, Cs5: 0.7, E1: 6.1, E2: -1, E3: -1.7, E4: -1.6, G1: -3.4, G2: -1.9, G3: -0.3, G4: 0.3 },
   // D302 (measured likewise: YIN over 0.05-0.6 s of each plucked file, 0.5-1.5 s of the sax's; the plucked ones over 0.1-0.6 s).
   guitar: { A2: 0.8, A4: -0.8, As5: -10.4, B1: -2.2, B3: 0.2, Cs3: 0.6, Cs5: 11.5, D2: -3.4, Ds4: 0.2, E3: 0.9, E5: -2.6, Fs2: 1.4, Fs4: 1.6, G3: 0.9, G5: -3.7 },
-  // D524 (the harmonic sum's peak over 0.1-0.7 s of each picked note).
-  rickBass: { As1: 4.5, As2: -2, Cs2: 1, Cs3: -3.5, E1: 4.5, E2: -1, E3: -7.5, G1: 10.5, G2: 6, G3: -0.5 },
   cleanGuitar: { As2: 15.5, As3: 12.1, As4: 2.7, As5: -10.9, Cs3: 8.1, Cs4: 8.7, Cs5: -3.5, D6: -14.7, E2: 12.5, E3: 10.4, E4: 4.5, E5: -6.7, G2: 15.4, G3: 11, G4: 5.9, G5: -9.5 },
   sax: { As3: 0, As4: -0.5, Cs3: 0.1, Cs4: 0, Cs5: -0.4, E3: 0.1, E4: 0, E5: 0.1, G3: -0.1, G4: -0.5, G5: 0.1 },
   // (D305: the singers rebuilt as straight tone, each note's pitch held steady by tools/playback/vocalset/
@@ -236,8 +233,6 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
 export const BRASS_FOLDERS = ["brassTrumpet", "brassTrumpetP", "brassHorn", "brassHornP", "brassTrombone", "brassTromboneP", "brassBass", "brassBassP"] as const;
 /** D297: the recordings shorter than 4.545 s (s, measured). */
 const SHORT: Record<string, Record<string, number>> = {
-  // D524: the electric bass as built (4 s).
-  rickBass: allOf("rickBass", 4),
   // D358: the cello's recordings (s, measured).
   cello: { A2: 4.122, A3: 3.02, A4: 2.485, As2: 3.805, As3: 2.756, B2: 3.463, B3: 3.434, B4: 2.631, C2: 3.847, C3: 3.126, C4: 3.308, C5: 3.359, Cs3: 3.175, Cs4: 2.735, D2: 4.226, D3: 3.364, D4: 2.711, Ds2: 3.41, Ds3: 2.68, Ds4: 2.939, E2: 3.441, E3: 2.944, E4: 2.748, F2: 3.941, F3: 2.944, F4: 2.935, Fs3: 2.622, Fs4: 2.494, G2: 3.856, G3: 2.913, G4: 2.531, Gs2: 3.596, Gs3: 2.336, Gs4: 2.532 },
   // TRIALS (s, measured).
@@ -340,14 +335,68 @@ const JAZZ_NOTES: Record<string, Record<string, { cents: number; len: number; ph
 };
 
 /**
- * D524, PET SOUNDS' rhythm section: the kit (petKit: Big Rusty's bass drum, snare, toms and crash, Virtuosity's tambourine,
- * CC0, each soft and firm, filed under note names: tools/playback/petsounds/build_petsounds.sh) and the timpani (VSCO 2 CE's
- * five drums F2, B2, C#3, E3, G3 at two dynamics, CC0: the folder's own files, its layers as two sets), tuned as built.
+ * D523, ABBEY ROAD's and D525, KRAUTROCK's recordings, all already in public/samples (no new files): Karoryfer's
+ * Black And Green Guitars' green Gretsch Anniversary (cleanGuitar/, CC0: George Harrison's Gretsch), Karoryfer's
+ * electric guitar via tonejs-instruments (eguitar/, CC BY 3.0: the second guitar, John Lennon's Casino's part), Black
+ * And Blue Basses' "babyblue", a Thunderbird-style bass played with a pick (rickBass/, CC0: Paul McCartney's picked
+ * Rickenbacker of 1967-69, and Holger Czukay's picked bass). Measured here (scratchpad bands/tools/tune.py): the
+ * tuning (cents: the harmonic sum's peak over 0.15-0.9 s), and each recording's trim (`db`, everywhere) to a straight
+ * line over pitch of the first 0.3 s's loudness (the Gretsch's notes were 3.2 dB about it, up to 12 dB apart; the
+ * electric guitar's 2.0; the bass's 1.0), within -6 and +4 dB, and then on a phone (`phoneDb`) the same through the
+ * 600 Hz phone model: the line's notes as even as the jazz bass's (D510).
  */
-export const PET_KIT_FILES = { kick: [24, 25], snare: [26, 27], tomHigh: [28, 29], tomLow: [30, 31], crash: [32, 33], tamb: [34, 35] } as const;
+const ROCK_CENTS: Record<string, Record<string, number>> = {
+  cleanGuitar: { E2: 10.5, G2: 13.5, As2: 16, Cs3: 8, E3: 10.5, G3: 9.5, As3: 11.5, Cs4: 8, E4: 4.5, G4: 5.5, As4: 2.5, Cs5: -3.5, E5: -7.5, G5: -9.5, As5: -11.5, D6: -15 },
+  eguitar: { Cs2: -0.5, E2: -1, A2: 0.5, C3: -1, Ds3: -0.5, Fs3: -1.5, A3: -1, C4: -3, Ds4: -0.5, Fs4: -0.5, A4: 0, C5: -0.5, Ds5: 3, Fs5: 6, A5: 1, C6: 0 },
+  rickBass: { E1: 5.5, G1: 11.5, As1: 4, Cs2: -0.5, E2: -2, G2: 3, As2: -2, Cs3: -6.5, E3: -10, G3: -4.5 },
+};
+const ROCK_DB: Record<string, Record<string, number>> = {
+  cleanGuitar: { E2: -2, G2: -0.5, As2: 1, Cs3: -1.5, E3: 2, G3: -3.5, As3: -3, Cs4: -1, E4: 4, G4: 1.5, As4: 2, Cs5: 4, E5: 4, G5: -3, As5: -3, D6: -5.5 },
+  eguitar: { Cs2: 4, E2: 0, A2: -1, C3: -0.5, Ds3: -1.5, Fs3: 1, A3: -1, C4: 0, Ds4: -2, Fs4: -0.5, A4: -3, C5: -1, Ds5: -2.5, Fs5: 3, A5: 3.5, C6: 0.5 },
+  rickBass: { E1: -1, G1: -0.5, As1: 0.5, Cs2: 0.5, E2: 1.5, G2: -0.5, As2: 1.5, Cs3: 0.5, E3: -0.5, G3: -1 },
+};
+const ROCK_PHONE_DB: Record<string, Record<string, number>> = {
+  cleanGuitar: { E2: 1, G2: 2.5, As2: 1, Cs3: 1.5, G3: -2.5, As3: -2, Cs4: -2.5, E4: -1.5, G4: -2, As4: -1, Cs5: 1.5, E5: 2, As5: 0.5, D6: 1.5 },
+  eguitar: { Cs2: -0.5, E2: -1.5, A2: 1.5, C3: 2.5, Ds3: 1.5, Fs3: -0.5, A3: -1, C4: -0.5, Ds4: -2.5, Fs4: -1.5, C5: 1.5, Fs5: -0.5, C6: 0.5 },
+  rickBass: { E1: -2, G1: 0.5, Cs2: 1, G2: 2, As2: -1, Cs3: 1, E3: 0.5, G3: -1.5 },
+};
+const ROCK_LEN: Record<string, number> = { cleanGuitar: 4, eguitar: 4.2, rickBass: 4 };
+const ROCK_NOTES: Record<string, Record<string, { cents: number; len: number; db?: number; phoneDb?: number }>> = Object.fromEntries(
+  Object.entries(ROCK_CENTS).map(([set, cs]) => [
+    set,
+    Object.fromEntries(Object.entries(cs).map(([n, cents]) => [n, { cents, len: Math.min(ROCK_LEN[set], (SHORT[set]?.[n] as number | undefined) ?? ROCK_LEN[set]), ...(ROCK_DB[set]?.[n] ? { db: ROCK_DB[set][n] } : {}), ...(ROCK_PHONE_DB[set]?.[n] ? { phoneDb: ROCK_PHONE_DB[set][n] } : {}) }])),
+  ]),
+);
+/**
+ * D523, D525: the rock kit, Karoryfer's Big Rusty Drums (CC0; public/samples/drums/bigRusty, as the Lab's kits keep it:
+ * "<piece>-1.mp3" soft, "<piece>-2.mp3" loud), filed here under MIDI numbers (ROCK_KIT_FILES) so the touch game's
+ * loader plans and keeps it as any set (`fileOf`, `folderOf`); its loudness as prepared (ROCK_KIT_RMS: ffmpeg's
+ * integrated loudness of each file, LUFS), so each piece is evened before its level is set (chip.ts ROCK_DRUMS).
+ */
+export const ROCK_KIT_SET = "rockKit";
+const ROCK_KIT_PIECES = ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"] as const;
+export const ROCK_KIT_FILES: Readonly<Record<number, string>> = Object.fromEntries(ROCK_KIT_PIECES.flatMap((p, i) => [[36 + 2 * i, `${p}-1`], [37 + 2 * i, `${p}-2`]]));
+/** The MIDI of a piece's soft (`loud` false) or loud recording in the rock kit. */
+export const rockKitMidi = (piece: (typeof ROCK_KIT_PIECES)[number], loud: boolean) => 36 + 2 * ROCK_KIT_PIECES.indexOf(piece) + (loud ? 1 : 0);
+export const ROCK_KIT_MIDIS: readonly number[] = Object.keys(ROCK_KIT_FILES).map(Number);
+export const ROCK_KIT_RMS: Readonly<Record<number, number>> = Object.fromEntries(
+  Object.entries({ kick: [-31, -22.5], snare: [-33, -27.3], rim: [-37.5, -30.5], hat: [-41.3, -32.7], openhat: [-34.2, -31], crash: [-36.5, -33], ride: [-47.4, -40.8], tomHigh: [-33.8, -27.4], tomLow: [-33.8, -27.5] }).flatMap(([p, [a, b]]) => [
+    [rockKitMidi(p as (typeof ROCK_KIT_PIECES)[number], false), a],
+    [rockKitMidi(p as (typeof ROCK_KIT_PIECES)[number], true), b],
+  ]),
+);
+const ROCK_KIT_LEN: Record<string, number> = { kick: 0.85, snare: 1.1, rim: 0.86, hat: 0.84, openhat: 1.23, crash: 3.03, ride: 3.03, tomHigh: 1.46, tomLow: 1.6 };
+
+/**
+ * D524, PET SOUNDS' rhythm section: the rock kit's Big Rusty (ROCK_KIT_SET: the bass drum, the snare, the toms, the crash),
+ * Virtuosity's tambourine (petKit, CC0, soft and firm, filed under note names: tools/playback/petsounds/build_petsounds.sh)
+ * and the timpani (VSCO 2 CE's five drums F2, B2, C#3, E3, G3 at two dynamics, CC0: the folder's own files, its layers as
+ * two sets), tuned as built.
+ */
+export const PET_KIT_FILES = { tamb: [24, 25] } as const;
 export const PET_KIT_SET = "petKit";
 export const PET_TIMP_SETS = ["petTimpSoft", "petTimp"] as const;
-const PET_KIT_LEN: Record<number, number> = { 24: 0.84, 25: 0.73, 26: 1.07, 27: 0.65, 28: 1.46, 29: 1.44, 30: 1.41, 31: 1.59, 32: 3.03, 33: 3.03, 34: 0.5, 35: 1.23 };
+const PET_KIT_LEN: Record<number, number> = { 24: 0.5, 25: 1.23 };
 /** D524: every file of the kit (MIDI), and the timpani's drums, for the plan. */
 export const PET_KIT_MIDIS: readonly number[] = Object.keys(PET_KIT_LEN).map(Number);
 export const PET_TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
@@ -356,8 +405,17 @@ const PET_NOTES: Record<string, Record<string, { cents: number; len: number }>> 
   ...Object.fromEntries(PET_TIMP_SETS.map((set) => [set, Object.fromEntries(PET_TIMP_MIDIS.map((m) => [noteName(m), { cents: 0, len: 2.5 }]))])),
 };
 
-/** D510: `phoneDb`, a recording's own trim on a phone (JAZZ_PHONE_DB). */
-const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number]; phoneDb?: number }>> = { ...HARPSI_ORGAN, grand: GRAND_NOTES, grandSoft: GRAND_NOTES, ...PERIOD_NOTES, ...JAZZ_NOTES, ...PET_NOTES };
+/** D510: `phoneDb`, a recording's own trim on a phone (JAZZ_PHONE_DB); D523: `db`, its own trim everywhere (ROCK_DB). */
+const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number]; phoneDb?: number; db?: number }>> = {
+  ...HARPSI_ORGAN,
+  grand: GRAND_NOTES,
+  grandSoft: GRAND_NOTES,
+  ...PERIOD_NOTES,
+  ...JAZZ_NOTES,
+  ...ROCK_NOTES,
+  ...PET_NOTES,
+  [ROCK_KIT_SET]: Object.fromEntries(Object.entries(ROCK_KIT_FILES).map(([m, f]) => [noteName(Number(m)), { cents: 0, len: ROCK_KIT_LEN[f.split("-")[0]] }])),
+};
 
 /**
  * D294: a set that is another folder's velocity layer (its files "C4-v7.mp3" beside the layer played):
@@ -365,9 +423,9 @@ const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number;
  */
 const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft: { folder: "grand", layer: 7 }, petTimp: { folder: "timpani", layer: 2 }, petTimpSoft: { folder: "timpani", layer: 1 } };
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
-export const folderOf = (set: string) => LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set;
+export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "petStrings" | "petBass";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "rockGuitar" | "rockGuitar2" | "rockBass" | "petStrings";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -548,10 +606,17 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D510: the band's bass on its ff recordings only from +4 dB (Busoni's f with an accent), not +2: at +2 the line's notes
   // flipped between the two sets (every whole tone, each its own tuning and colour) on 24 of I/8's first 75 notes, 6 now.
   jazzBass: { set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: JAZZ_BASS_HARD_ABOVE, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
+  // D523, ABBEY ROAD (and D525, KRAUTROCK): the Gretsch (cleanGuitar/, every minor third E2-D6), the second electric
+  // guitar (eguitar/, every minor third C#2-C6), the picked bass (rickBass/, every minor third E1-G3): plucked strings,
+  // dying away by themselves, damped at the written end by the fretting hand (a short note at once, a longer one ringing
+  // a little into the next: `pedal`), a firmer pluck a little brighter (velTone); retuned 2 semitones at most (the
+  // nearest within a minor third: 1.5; the bass 3, its line over A#3 an octave down), then an octave nearer.
+  rockGuitar: { set: "cleanGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
+  rockGuitar2: { set: "eguitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
+  rockBass: { set: "rickBass", plucked: true, gain: 2.2, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
   // D524, PET SOUNDS: the string section held on its loop, retuned 3 semitones at most (recorded every major or minor third);
-  // the electric bass picked, damped at the written end, retuned 3 at most (every minor third E1-G3), past it an octave nearer.
+  // its bass is ABBEY ROAD's (rockBass: the same picked babyblue, D523's trims).
   petStrings: { set: "petStrings", plucked: false, gain: 2.2, maxShift: 3 },
-  petBass: { set: "petBass", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.03, tau: 0.05 }, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
@@ -564,7 +629,7 @@ export const setFor = (inst: SampledInstrument, midi: number) => (inst.above && 
 /** D292: the layer each layered set plays (its files' suffix); D294: and the layer sets'. */
 const LAYER = new Map([...Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!] as const), ...Object.entries(LAYER_SET).map(([s, l]) => [s, l.layer] as const)]);
 /** A note's file in its set: "Cs4.mp3", or with the layer played "Cs4-v12.mp3". */
-export const fileOf = (set: string, m: number) => `${nameOfMidi(m)}${LAYER.has(set) ? `-v${LAYER.get(set)}` : ""}.mp3`;
+export const fileOf = (set: string, m: number) => (set === ROCK_KIT_SET ? `${ROCK_KIT_FILES[m]}.mp3` : `${nameOfMidi(m)}${LAYER.has(set) ? `-v${LAYER.get(set)}` : ""}.mp3`);
 
 /** Sets recorded in stereo (the struck string's image); the rest are mono. */
 const STEREO = new Set(["harpsichord", "grand", "grandSoft"]);

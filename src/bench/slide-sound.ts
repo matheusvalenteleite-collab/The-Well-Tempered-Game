@@ -111,8 +111,12 @@ export const GESTURE = {
  */
 export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily {
   if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
+  // D523: ABBEY ROAD's piano the piano's, the guitars and the bass a finger sliding along the string.
+  if (presetId === "abbeyRoad") return patch?.sample === "piano" ? "piano" : "bass";
+  // D525: KRAUTROCK's likewise, its combo organ an organ's.
+  if (presetId === "krautrock") return patch?.sample === "piano" ? "piano" : patch?.sample ? "bass" : "organ";
   // D524: PET SOUNDS' likewise: the strings bowed, the horn's lip, the harpsichord's and the piano's own, the bassist's slide.
-  if (presetId === "petSounds") return patch?.sample === "petStrings" ? "bowed" : patch?.sample === "brassHorn" ? "brass" : patch?.sample === "harpsichord" ? "plucked" : patch?.sample === "petBass" ? "bass" : "piano";
+  if (presetId === "petSounds") return patch?.sample === "petStrings" ? "bowed" : patch?.sample === "brassHorn" ? "brass" : patch?.sample === "harpsichord" ? "plucked" : patch?.sample === "rockBass" ? "bass" : "piano";
   switch (presetId) {
     case "harpsichordSampled":
       return "plucked";

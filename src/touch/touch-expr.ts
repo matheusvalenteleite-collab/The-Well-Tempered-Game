@@ -54,6 +54,11 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // D503: JAZZ QUARTET, each instrument its own touch in the piano's three zones (landing "jazz"): the mallet's hardness on
   // the vibraphone, the weight on the piano, the pluck on the bass; a held vibraphone note's SWAY the motor's speed.
   jazzQuartet: "jazz",
+  // D523: ABBEY ROAD as JAZZ QUARTET (landing "jazz": the piano's three zones, the piano's own
+  // weight on the piano, the level and the pluck's brightness on the guitars and the bass; nothing held to sway).
+  abbeyRoad: "jazz",
+  // D525: KRAUTROCK likewise (its organ sustained: nothing held to sway).
+  krautrock: "jazz",
   // D524: PET SOUNDS as JAZZ QUARTET (the piano's three zones, each instrument its own): the weight on the piano and the
   // harpsichord's pluck, the bass's pick, the strings' and the horn's level by the zone; a held one's sway its breath.
   petSounds: "jazz",
@@ -182,6 +187,8 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   // The piano's and the jazz quartet's three zones (±3 dB and their recordings' colour) already measured 6-9 dB.
   pianoSampled: [0, 0],
   jazzQuartet: [0, 0],
+  abbeyRoad: [0, 0],
+  krautrock: [0, 0],
   petSounds: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
   harpsichordSampled: [-0.5, 1.5],

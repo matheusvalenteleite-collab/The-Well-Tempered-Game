@@ -307,6 +307,8 @@ export interface Patch {
   motor?: { rate: number; depth: number; rise: number };
   /** D503: a high shelf on every note of the patch (`db` from `hz`): JAZZ QUARTET's piano voiced a little brighter. */
   shelf?: { hz: number; db: number };
+  /** D525: a send (its level) into the band's tape echo (chip.ts BAND_ECHO): KRAUTROCK's guitar, its repeats behind it (an effect: no note added). */
+  echo?: number;
   /**
    * D504, ZELENKA TRIO: the instrument's compass (MIDI, inclusive): a note outside it played an octave nearer
    * (chip.ts Chip.note, `inCompass`), the band's and the player's alike; trio.ts chooses which voice each
@@ -623,6 +625,26 @@ export const JAZZ_PIANO_SHELF = { hz: 2800, db: 2 } as const;
 export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
+/**
+ * D523, ABBEY ROAD (the Beatles of 1967-69 at Abbey Road): one studio (chip.ts REVERBS.studio: Studio Two and its echo
+ * chamber) at one send (ABBEY_SEND); the piano a rock piano, brighter than the solo grand (ABBEY_PIANO_SHELF: the
+ * hammers' attack forward, as "Lady Madonna"'s and "Hey Jude"'s were close-miked); the guitars' pick forward a little
+ * (ABBEY_GUITAR_SHELF); the picked bass's upper partials lifted on a phone and its fundamental there cut (ROCK_BASS_PHONE_LIFT:
+ * its pick's click and second harmonic carry the line through the small speaker).
+ */
+export const ABBEY_SEND = 0.18;
+export const ABBEY_PIANO_SHELF = { hz: 2500, db: 3 } as const;
+export const ABBEY_GUITAR_SHELF = { hz: 2400, db: 1.5 } as const;
+export const ROCK_BASS_PHONE_LIFT = { hz: 400, db: 12, cut: 200 } as const;
+export const ROCK_BASS_WOOD = { hz: 900, db: 2 } as const;
+/**
+ * D525, KRAUTROCK (Can's Tago Mago, Neu!'s "Hallogallo"): one dry room (REVERBS.inner) at a small send (KRAUT_SEND); the
+ * guitar behind the line, its tape echo (Patch.echo: KRAUT_ECHO into chip.ts BAND_ECHO) and a little darker
+ * (KRAUT_GUITAR_SHELF); the combo organ (Irmin Schmidt's Farfisa) a thin, steady reed of a drawbar, no vibrato.
+ */
+export const KRAUT_SEND = 0.1;
+export const KRAUT_ECHO = 0.42;
+export const KRAUT_GUITAR_SHELF = { hz: 3000, db: -2 } as const;
 /**
  * D524, PET SOUNDS (Brian Wilson's 1966 sessions: the Wrecking Crew with strings, horns and keyboards): one echo chamber
  * (chip.ts REVERBS.goldStar) at one send (PET_SEND), the bass nearly dry (PET_BASS_SEND: the records' bass close and
@@ -1193,6 +1215,18 @@ export const PATCHES = {
   jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
   jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  // D523, ABBEY ROAD: the Gretsch on top (George's), the second electric guitar (John's), the rock piano, the picked bass
+  // (Paul's); the `osc`/`amp` stand in until a recording has loaded (D190); the player's line the band's (Patch.one).
+  abGuitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: ABBEY_SEND, level: 1.1, sample: "rockGuitar", one: {}, shelf: ABBEY_GUITAR_SHELF }),
+  abGuitar2: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: ABBEY_SEND, level: 0.85, sample: "rockGuitar2", one: {} }),
+  abPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: ABBEY_SEND, level: 0.29, sample: "piano", one: PIANO_ONE, shelf: ABBEY_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
+  abBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: ABBEY_SEND * 0.4, level: 0.25, sample: "rockBass", one: {}, shelf: ROCK_BASS_WOOD, phoneLift: ROCK_BASS_PHONE_LIFT }),
+  // D525, KRAUTROCK: the piano on top (the keyboard: Irmin Schmidt's), the guitar behind with its tape echo (Michael
+  // Karoli's, Michael Rother's), the combo organ, the picked bass (Holger Czukay's); one dry room. Each plays its voice's notes only.
+  krPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: KRAUT_SEND, level: 0.29, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
+  krGuitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT_SEND, level: 0.5, sample: "rockGuitar2", one: {}, shelf: KRAUT_GUITAR_SHELF, echo: KRAUT_ECHO }),
+  krOrgan: P({ osc: [{ wave: "organ" }, { wave: "square", gain: 0.12 }], filter: { freq: 3200, hz: true, q: 0.7 }, amp: { a: 0.012, d: 0.1, s: 1, r: 0.06 }, send: KRAUT_SEND, level: 0.24, one: {} }),
+  krBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: KRAUT_SEND * 0.4, level: 0.14, sample: "rockBass", one: {}, shelf: ROCK_BASS_WOOD, phoneLift: ROCK_BASS_PHONE_LIFT }),
   // D524, PET SOUNDS: the string section on top (VSCO's viola section, bowed: STRING_BOW), the horn (Iowa's, its two
   // layers: BACH BRASS's), the harpsichord (VCSL's), the grand (with Busoni's reading), the picked electric bass; one echo
   // chamber, one send, the player's line the band's (Patch.one). The `osc`/`amp` stand in until a recording has loaded.
@@ -1200,7 +1234,7 @@ export const PATCHES = {
   psHorn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.14 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.14 }, send: PET_SEND, level: 1.6, sample: "brassHorn", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_HORN_PHONE_LIFT }),
   psHarpsi: P({ ...HARPSI_SAMPLED, send: PET_SEND }),
   psPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: PET_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, phoneLift: PIANO_PHONE_LIFT }),
-  psBass: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "sine" }], filter: { freq: 2.5, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1, s: 0, r: 0.06 }, send: PET_BASS_SEND, level: 0.85, sample: "petBass", one: {}, phoneLift: PET_BASS_PHONE_LIFT }),
+  psBass: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "sine" }], filter: { freq: 2.5, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1, s: 0, r: 0.06 }, send: PET_BASS_SEND, level: 0.85, sample: "rockBass", one: {}, phoneLift: PET_BASS_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1209,13 +1243,16 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
   | "tactus" | "lament" | "toccata" | "gigue" | "passepied" | "minuet" | "sarabande" | "gavotte" | "overture" | "triplet"
   // D503: JAZZ QUARTET's brushes (jazz-drums.ts: a pattern per metre on the game's beat, the scripted fills).
   | "brushJazz"
+  // D523: ABBEY ROAD's rock drums; D525: KRAUTROCK's motorik beat (rock-drums.ts: the fugue's own form, the rock kit).
+  | "abbeyRock"
+  | "motorik"
   // D524: PET SOUNDS' drums (pet-drums.ts: a 1966 ballad's kit, the tambourine, the timpani's rhythm, the piece's form).
   | "petSounds";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums). */
-export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "pet";
+export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "rock" | "pet";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "goldStar";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "studio" | "inner" | "goldStar";
 
 export interface Preset {
   id: string;
@@ -1606,6 +1643,53 @@ export const PRESETS: Preset[] = [
       5: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.16], ["jqPiano", 0.2], ["jqBass", 0.04]],
     },
   },
+  // D523 (the owner: "Beatles 1967-69, two guitars, electric bass, rock piano, acoustic drums"): the Gretsch on the top
+  // voice (left), the rock piano on the middle (right of centre, its notes placed by key about its seat), the second
+  // guitar on the upper inner voice of four and five (right), the picked bass in the middle (a little right), the drums
+  // behind a little left (ROCK_DRUMS.pan); one studio (REVERBS.studio) at one send; the drums (groove "abbeyRock":
+  // rock-drums.ts, the fugue's own form) always with this sound.
+  {
+    id: "abbeyRoad",
+    name: "ABBEY ROAD",
+    // D523 (D436's way, JAZZ QUARTET rendered beside it): -0.6 dB, and on a phone -0.9 dB more.
+    gain: 0.93,
+    phoneGain: 0.9,
+    slots: ["abGuitar", "abGuitar2", "abPiano", "abPiano", "abBass"],
+    groove: "abbeyRock",
+    kit: "rock",
+    room: 0,
+    fx: "studio",
+    by: {
+      1: [["abGuitar", 0]],
+      2: [["abGuitar", -0.16], ["abBass", 0.04]],
+      3: [["abGuitar", -0.2], ["abPiano", 0.14], ["abBass", 0.04]],
+      4: [["abGuitar", -0.22], ["abGuitar2", 0.22], ["abPiano", 0.1], ["abBass", 0.04]],
+      5: [["abGuitar", -0.22], ["abGuitar2", 0.22], ["abPiano", 0.08], ["abPiano", 0.14], ["abBass", 0.04]],
+    },
+  },
+  // D525 (the owner: "motorik drums, hypnotic and constant, electric bass, psychedelic guitar with a slight delay that
+  // isn't protagonist, keyboard (Can, Tago Mago; Neu!, 'Hallogallo')"): the piano on the top voice (the keyboard, a little
+  // left), the guitar with its echo on the next (right, its repeats further right), the combo organ on the inner voice
+  // of four and five (left), the picked bass in the middle; the motorik drums (groove "motorik") always with it.
+  {
+    id: "krautrock",
+    name: "KRAUTROCK",
+    // D525 (D436's way, JAZZ QUARTET rendered beside it): +1.5 dB, on a phone nothing more.
+    gain: 1.19,
+    phoneGain: 1,
+    slots: ["krPiano", "krGuitar", "krOrgan", "krPiano", "krBass"],
+    groove: "motorik",
+    kit: "rock",
+    room: 0,
+    fx: "inner",
+    by: {
+      1: [["krPiano", 0]],
+      2: [["krPiano", -0.12], ["krBass", 0.02]],
+      3: [["krPiano", -0.14], ["krGuitar", 0.2], ["krBass", 0.02]],
+      4: [["krPiano", -0.12], ["krGuitar", 0.2], ["krOrgan", -0.2], ["krBass", 0.02]],
+      5: [["krPiano", -0.12], ["krGuitar", 0.2], ["krOrgan", -0.2], ["krPiano", 0.08], ["krBass", 0.02]],
+    },
+  },
   // D524, PET SOUNDS: the string section on the top voice, the horn on the upper middle, the grand on the lower middle,
   // the picked electric bass on the bass; five voices the harpsichord between the strings and the horn; and the drums
   // (groove "petSounds": pet-drums.ts, always with this sound, never with another). Each instrument one of Bach's voices,
@@ -1683,7 +1767,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "abbeyRoad", "krautrock", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1827,7 +1911,12 @@ export const PET_CREDIT = `STRINGS, TIMPANI: VS CHAMBER ORCHESTRA 2 CE · HARPSI
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
-const CREDITS: Record<string, string> = { pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, petSounds: PET_CREDIT };
+/** D523: the rock band's recordings (Karoryfer's CC0 guitar, bass and kit; the electric guitar via tonejs-instruments, CC BY 3.0). */
+const ROCK_RHYTHM_CREDIT = "BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
+const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0";
+export const ABBEY_ROAD_CREDIT = `GUITARS: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · ${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
+export const KRAUTROCK_CREDIT = `${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
+const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, petSounds: PET_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -1964,6 +2053,18 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
       if (b === per - 1) out.push({ drum: "rim", at: subs[subs.length - 1], vel: 0.35 });
       break;
     // D503: JAZZ QUARTET's brushes, synthesized where the recordings are not loaded (chip.ts brushes plays jazz-drums.ts on them).
+    // D523: ABBEY ROAD's rock drums, synthesized where the kit is not loaded (chip.ts rockDrums plays rock-drums.ts on it).
+    // D525: KRAUTROCK's motorik beat, synthesized likewise (the kick, the snare's backbeat, even hats).
+    case "motorik":
+      if (!back) out.push({ drum: "kick", at: 0, vel: 0.6 });
+      else out.push({ drum: "snare", at: 0, vel: 0.5 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: 0.26 });
+      break;
+    case "abbeyRock":
+      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.6 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.5 });
+      for (const s of subs) out.push({ drum: "hat", at: s, vel: s ? 0.22 : 0.3 });
+      break;
     case "brushJazz":
       out.push({ drum: "brush", at: 0, vel: 0.5 }, { drum: "ride", at: 0, vel: 0.4 });
       if (back) out.push({ drum: "hat", at: 0, vel: 0.35 });

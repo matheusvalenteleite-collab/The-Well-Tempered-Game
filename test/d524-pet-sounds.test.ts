@@ -65,19 +65,19 @@ test("D524: the band: one instrument a voice (strings, horn, harpsichord, piano,
   for (const id of ["psStrings", "psHorn", "psHarpsi", "psPiano"] as const) assert.equal(PATCHES[id].send, PET_SEND, id);
   // No mallet, bell or glockenspiel anywhere in the band (the owner hates stray glockenspiel).
   for (const id of PET.slots!) assert.ok(!PATCHES[id].motor && !/vib|bell|glock|celesta/i.test(String(PATCHES[id].sample)), id);
-  assert.equal(PATCHES.psBass.sample, "petBass");
+  assert.equal(PATCHES.psBass.sample, "rockBass");
   assert.ok((PATCHES.psBass.phoneLift?.db ?? 0) >= 5);
 });
 
-test("D524: the recordings reused (no new pitched set): the strings, the horn, the harpsichord, the bass E1-G3, the kit, the timpani", () => {
+test("D524: the recordings reused (no new pitched set): the strings, the horn, the harpsichord, the bass E1-G3, the rock kit, the tambourine, the timpani", () => {
   assert.equal(SAMPLED.petStrings.set, "petStrings");
-  assert.equal(sampledMidis("petBass")[0], 28);
+  assert.equal(sampledMidis("rickBass")[0], 28);
   assert.equal(sampledMidis(PET_KIT_SET).length, PET_KIT_MIDIS.length);
   for (const set of PET_TIMP_SETS) assert.deepEqual(sampledMidis(set), [...TIMP_MIDIS]);
   assert.ok(SAMPLE_MANIFEST.timpani.layers.includes(1) && SAMPLE_MANIFEST.timpani.layers.includes(2));
   let bytes = 0;
   for (const f of readdirSync("public/samples/petKit")) if (f !== "pack.mp3") bytes += statSync(`public/samples/petKit/${f}`).size;
-  assert.ok(bytes < 0.5e6, `${bytes} bytes`);
+  assert.ok(bytes < 0.05e6, `${bytes} bytes`);
 });
 
 test("D524: the touch as JAZZ QUARTET's; a held string or horn note's sway its breath; the slide each instrument's own", () => {
