@@ -55,11 +55,12 @@ test("D530: the style chosen is the setting's; HOME follows the sound; older lin
   assert.ok(summaryOf(f, { ...s, style: "triphop" }, "vocalSynth").some((it) => it.text.includes("TRIP-HOP")));
 });
 
-test("D531: IDEAS, 25-30 combinations, each complete, the planned ones not playable until S3", () => {
+test("D531: IDEAS, 25-30 combinations, each complete; none \"coming\" whose style is built", () => {
   assert.ok(IDEAS.length >= 25 && IDEAS.length <= 30, `${IDEAS.length} ideas`);
   assert.equal(new Set(IDEAS.map((i) => i.id)).size, IDEAS.length);
   const kinds = new Set(IDEAS.map((i) => i.kind));
-  assert.deepEqual([...kinds].sort(), ["bold", "coming", "safe"]);
+  // D532-D534 (S3) built the period styles: their ideas are SAFE (each FITS its fugue's metre) or BOLD, none "coming".
+  assert.deepEqual([...kinds].sort(), ["bold", "safe"]);
   assert.ok(IDEAS.filter((i) => i.kind === "bold").length >= 8);
   for (const it of IDEAS) assert.ok(!DROPPED[`${it.piece}/${it.style}`], `${it.id} was dropped by the proxy`);
   const sounds = LAB_SOUNDS.map((x) => x.id);
@@ -70,9 +71,9 @@ test("D531: IDEAS, 25-30 combinations, each complete, the planned ones not playa
     assert.ok(it.bar >= (f.bars[0]?.n ?? 1) && it.bar <= f.bars[f.bars.length - 1].n, `${it.id}: bar ${it.bar}`);
     assert.ok(it.why.length > 10 && it.why.length <= 140 && !it.why.includes("\n"), `${it.id}: one dry line`);
     if (it.kind === "coming") {
-      // D532 (S3) has since built the planned styles: a "coming" idea names a planned style or one now real.
-      assert.ok(PLANNED_STYLES.some((p) => p.id === it.style) || isStyle(it.style), `${it.id}: a planned style`);
-      assert.equal(ideaPlayable(it), isStyle(it.style));
+      // Strict: "coming" only for a style not yet built (none now).
+      assert.ok(!isStyle(it.style) && PLANNED_STYLES.some((p) => p.id === it.style), `${it.id}: "coming" but ${it.style} is in styleIds`);
+      assert.equal(ideaPlayable(it), false);
     } else {
       assert.ok(isStyle(it.style), `${it.id}: ${it.style}`);
       assert.ok(ideaPlayable(it));

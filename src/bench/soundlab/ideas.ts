@@ -61,12 +61,12 @@ export const IDEAS: readonly Idea[] = [
   I("switchboard-house", "bold", "wtc2f03", "sid64", "house", 1, "C-sharp major on the SID chip with a 909 under it."),
   I("aquarium-bossa", "bold", "wtc1f13", "oboeTrio", "bossa", 1, "Zelenka's oboes in F-sharp major, a cross-stick under them."),
   I("knight-psych", "bold", "wtc1f16", "abbeyRoad", "psych", 1, "G minor in the band's later, looser mood: the ride washing, the floor tom."),
-  // COMING (S3)
-  I("coronation-military", "coming", "wtc1f05", "bachBrass", "military", 1, "The D major's dotted French-overture rhythm on a Lully side drum.", { styleLabel: "SIDE DRUM" }),
-  I("procession-field", "coming", "wtc1f22", "soloVoices", "fieldDrums", 1, "The B-flat minor procession behind rope-tension field drums.", { styleLabel: "FIELD DRUMS" }),
-  I("pinball-tabor", "coming", "wtc1f15", "oboeTrio", "tabor", 1, "The 6/8 G major as a pipe-and-tabor dance.", { styleLabel: "TABOR" }),
-  I("lastdance-castanets", "coming", "wtc2f24", "harpsichordSampled", "castanets", 1, "The 3/8 B minor dance on a harpsichord and castanets: Scarlatti's Spain.", { styleLabel: "CASTANETS" }),
-  I("belltower-janissary", "coming", "wtc2f05", "bachBrass", "janissary", 1, "The D major cut time alla turca: bass drum, cymbals, triangle.", { styleLabel: "JANISSARY" }),
+  // THE PERIOD STYLES (S3, D532-D534, now built): SAFE, each FITS its fugue's metre.
+  I("coronation-military", "safe", "wtc1f05", "bachBrass", "military", 1, "The D major's dotted French-overture rhythm on a Lully side drum."),
+  I("procession-field", "safe", "wtc1f22", "soloVoices", "fieldDrums", 1, "The B-flat minor procession behind rope-tension field drums."),
+  I("pinball-tabor", "safe", "wtc1f15", "oboeTrio", "tabor", 1, "The 6/8 G major as a pipe-and-tabor dance."),
+  I("lastdance-castanets", "safe", "wtc2f24", "harpsichordSampled", "castanets", 1, "The 3/8 B minor dance on a harpsichord and castanets: Scarlatti's Spain."),
+  I("belltower-janissary", "safe", "wtc2f05", "bachBrass", "janissary", 1, "The D major cut time alla turca: bass drum, cymbals, triangle."),
 ];
 
 /** The candidates the proxy dropped (rendered, then read against the fugue's onsets), with the reason: not to offer again. */

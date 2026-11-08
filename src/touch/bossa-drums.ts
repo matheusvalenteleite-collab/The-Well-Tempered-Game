@@ -26,6 +26,7 @@
 import type { TouchFugue } from "./fugue.ts";
 import { formOf } from "./form-points.ts";
 import { dynGain, type BrushSweep } from "./jazz-drums.ts";
+import { nudge, swell, thinFills, uneven, variantsInTurn, seedOf, FLAM_S, RUFF_S, GRACE_VEL } from "./drum-fills.ts";
 
 export type BossaKind = "fill" | "break" | "final";
 /** A scripted moment on the clock: from `from` (tick) to `at` (the downbeat or entry it leads into), what and why. */
@@ -104,6 +105,12 @@ export function bossaPlan(f: TouchFugue, beat: number, per: number): BossaPlan {
     moments.push({ kind: "fill", from, at, why: `the ${["soprano", "alto", "tenor", "bass", "fifth"][s.voice] ?? "voice"}'s entry (${s.form}, ${s.key})${afterEpisode ? " out of an episode: two beats' roll" : ""}` });
   }
   moments.sort((a, b) => a.at - b.at);
+  // D535: not every entry: after a fill the next only drum-fills.ts FILL_AFTER_FILL of the time (two at least kept).
+  const fills = moments.filter((m) => m.kind === "fill");
+  const kept = new Set(thinFills(fills, 521));
+  const thinned = moments.filter((m) => m.kind !== "fill" || kept.has(m));
+  moments.length = 0;
+  moments.push(...thinned);
   const plan = { moments, quiet, bars, end: f.length };
   memo.set(key, plan);
   return plan;
@@ -114,6 +121,10 @@ export interface BossaHit {
   piece: "kick" | "rim" | "tap" | "ride" | "foot";
   at: number;
   vel: number;
+  /** D535: a fill's stroke (into an entry "roll", the flourish "fill"), the ticks to its landing; a grace note. */
+  role?: "roll" | "fill";
+  dur?: number;
+  grace?: boolean;
 }
 export interface BossaBeat {
   hits: BossaHit[];
@@ -129,7 +140,12 @@ const eighthAt = (k: number, n: number, compound: boolean) => (compound ? (k ===
  * One beat of the bossa: beat `b` of a bar of `per` (`compound`: in threes), at tick `tick` (a beat of `beat` ticks, a
  * quarter `tpq`), the piece's plan, Busoni's level here (`dynDb`, 0 without a reading).
  */
-export function bossaBeat(b: number, per: number, compound: boolean, tick: number, beat: number, tpq: number, plan: BossaPlan, dynDb = 0): BossaBeat {
+/** D535: the bossa's fills (BOSSA_FILLS, in turn, never the same twice running), off the grid by BOSSA_JITTER_S at most. */
+export const BOSSA_FILLS = 3;
+export const BOSSA_JITTER_S = 0.006;
+/** The bossa's rim figure over a fill's sixteenths (the clave's 3-3-2), and the fills' strokes. */
+const RIM_FIG = "x..x..x.";
+export function bossaBeat(b: number, per: number, compound: boolean, tick: number, beat: number, tpq: number, plan: BossaPlan, dynDb = 0, beatS = 0.6): BossaBeat {
   const hits: BossaHit[] = [];
   const sweeps: BrushSweep[] = [];
   const g = dynGain(dynDb);
@@ -147,19 +163,43 @@ export function bossaBeat(b: number, per: number, compound: boolean, tick: numbe
     return { hits, sweeps };
   }
   if (roll) {
-    // The roll: the flutter rising over its beats with sixteenths on the snare over it, the last two firmer.
+    // D535: the roll, one of BOSSA_FILLS in turn: the RIM FIGURE (the cross-stick on the clave's 3-3-2 over the
+    // sixteenths, the brush's ghosts between), the TAPS' TUMBLE (the brush's sixteenths rising, a flam into the last), the
+    // RIM AND THE BASS DRUM (the felt kick on the beats, the rim on their "and"s, a ruff of the brush to end); under each
+    // the flutter, a swept crescendo; the strokes uneven and a little off the grid.
     const n = Math.max(1, Math.round((roll.at - roll.from) / beat));
     const k = Math.max(0, Math.min(n - 1, Math.round((tick - roll.from) / beat)));
     const big = roll.kind === "final" ? 1.15 : 1;
-    const lv = (x: number) => (0.2 + 0.4 * x) * big;
-    sweeps.push({ piece: "flutter", at: 0, len: 1, from: lv(k / n) * g, peak: lv((k + 0.6) / n) * g, peakAt: 0.6, to: lv((k + 1) / n) * g, firm: k === n - 1 });
+    const moves = plan.moments.filter((m) => m.kind !== "break");
+    const v = variantsInTurn(moves, BOSSA_FILLS, 521)[moves.indexOf(roll)] ?? 0;
+    const seed = seedOf(roll.at, 521);
+    const role = roll.kind === "final" ? ("fill" as const) : ("roll" as const);
+    const lv = (x: number) => swell(0.2, 0.6, x) * big;
+    sweeps.push({ piece: "flutter", at: 0, len: 1, from: lv(k / n) * g, peak: lv((k + 0.65) / n) * g, peakAt: 0.65, to: lv((k + 1) / n) * g, firm: k === n - 1 });
     const n16 = compound ? 3 : 2 * n8;
+    const put = (piece: BossaHit["piece"], j: number, vel: number, i: number, gr?: readonly number[]) => {
+      const at = nudge(j / n16, beatS, BOSSA_JITTER_S, seed, i);
+      const dur = Math.max(0, roll.at - tick - at * beat);
+      for (const gs of gr ?? []) if (at - gs / beatS >= 0) hits.push({ piece: "tap", at: at - gs / beatS, vel: Math.max(0.03, vel * GRACE_VEL * g), role, dur, grace: true });
+      hits.push({ piece, at, vel: uneven(vel * big * g, seed, i), role, dur });
+    };
     for (let j = 0; j < n16; j++) {
       const x = (k + j / n16) / n;
-      const lastTwo = k === n - 1 && j >= n16 - 2;
-      hits.push({ piece: "tap", at: j / n16, vel: (lastTwo ? 0.55 : 0.18 + 0.3 * x) * big * g });
+      const G = k * n16 + j;
+      const lastOne = k === n - 1 && j === n16 - 1;
+      if (v === 0) {
+        if (RIM_FIG[G % 8] === "x" || lastOne) put("rim", j, 0.3 + 0.32 * x, G, lastOne ? [FLAM_S] : undefined);
+        else put("tap", j, 0.14 + 0.16 * x, G);
+      } else if (v === 1) {
+        const lastTwo = k === n - 1 && j >= n16 - 2;
+        put("tap", j, lastTwo ? 0.55 : swell(0.18, 0.46, x), G, lastOne ? [FLAM_S] : undefined);
+      } else {
+        if (j === 0) put("kick", j, 0.3 + 0.1 * x, G);
+        else if (j % 2 === 1 || compound) put("rim", j, 0.28 + 0.3 * x, G, lastOne ? RUFF_S : undefined);
+        else put("tap", j, 0.16 + 0.14 * x, G);
+      }
     }
-    if (k === 0) hits.push({ piece: "kick", at: 0, vel: 0.35 * g });
+    if (k === 0 && v !== 2) hits.push({ piece: "kick", at: 0, vel: 0.35 * g });
     return { hits, sweeps };
   }
   // The pattern: the episode's (or Busoni's p) quiet one, else the full.

@@ -35,6 +35,7 @@ import { backbeats, DRUM_SCRIPTS, dynGain, fillsFor, type Fill } from "./jazz-dr
 import { PIECE_SOUND } from "./piece-sound.ts";
 import { GRIDS, gridBeat, type FillVoice } from "./drum-grids.ts";
 import { tempoOf } from "./tempi.ts";
+import { FILL_STROKE_S, JITTER_S, fillPlan, fillSlice, rand, seedOf, styleSalt, type FillFeel, type FillSpec, type PlannedFill } from "./drum-fills.ts";
 
 export type DrumCharacter = "electronic" | "acoustic" | "percussion";
 /** The drummer's own sound and way: two of each character, one chosen for each fugue. */
@@ -141,6 +142,10 @@ export interface KitHit {
   midi?: number;
   /** D526: a stroke of a roll (into an entry), of a fill (into the climax, the flourish, a roll out), or a landing's accent. */
   role?: "roll" | "fill" | "accent";
+  /** D535: a roll's or a fill's stroke: the ticks from it to the landing (the studio's music events: a roll carries its length). */
+  dur?: number;
+  /** D535: a flam's or a ruff's grace note (closer to its stroke than a roll's strokes are to each other). */
+  grace?: boolean;
   /** D532: the fugue's tick the stroke belongs to (a score-driven stroke; a flam's grace sounds a few ms before it). */
   tick?: number;
 }
@@ -255,6 +260,144 @@ export function timpaniTuned(home: string, local: string): boolean {
   return pc(l.tonic) === pc(h.tonic) || pc(l.tonic) === pc(h.dominant) || pc(l.dominant) === pc(h.tonic);
 }
 function kitBeatRaw(pattern: KitStyle, cx: KitContext): KitHit[] {
+  const voice = fillVoiceOf(pattern);
+  // D535: the drummers' fills humanised (drum-fills.ts); the orchestral ones (timpani, frame drums: S3's) as D514 wrote them.
+  return voice === "timpani" || voice === "frame" ? kitBeatOrchestral(pattern, cx) : kitBeatFills(pattern, voice, cx);
+}
+
+/** D535: the fill's feel of a fills' voice. */
+const FEEL: Partial<Record<FillVoice, FillFeel>> = { rock: "rock", jazz: "jazz", chip: "chip", machine: "machine", latin: "latin" };
+/** D535: the fills' level (the contour's first and last strokes): into an entry, into the climax and the last bar. */
+/** D535: the most beats the final entry's fill takes after the break. */
+export const BREAK_FILL_BEATS = 3;
+export const FILL_LEVEL = { in: [0.26, 0.64], big: [0.32, 0.86] } as const;
+const planMemo = new Map<string, PlannedFill[]>();
+/** D535: the fills a piece's drummer plays (drum-fills.ts fillPlan): which landings, how long, which fill. */
+export function kitFillPlan(pattern: KitStyle, form: FugueForm, beat: number, beatS: number, per: number): PlannedFill[] {
+  const feel = FEEL[fillVoiceOf(pattern)] ?? "rock";
+  const key = `${pattern}:${form.end}:${form.lastBar}:${form.climax}:${form.finalEntry}:${beat}:${beatS.toFixed(3)}:${per}:${form.zones.length}`;
+  const hit = planMemo.get(key);
+  if (hit) return hit;
+  const L = landings(form);
+  // After the break the final entry's fill is short (at most the bar, or BREAK_FILL_BEATS), the silence heard.
+  const brk = breaksBefore(form);
+  const plan = fillPlan(feel, L.into, form.lastBar, (at) => at >= form.climax || at === form.finalEntry, beat, form.barTicks, beatS, per, styleSalt(pattern), (at) => (brk && at === form.finalEntry ? Math.min(per, BREAK_FILL_BEATS) : Infinity));
+  if (planMemo.size > 256) planMemo.clear();
+  planMemo.set(key, plan);
+  return plan;
+}
+
+/** D535: a beat of a drummer whose fills are humanised: the plan's fills, the landings, the break, the roll out, the pattern. */
+function kitBeatFills(pattern: KitStyle, style: FillVoice, cx: KitContext): KitHit[] {
+  const { beatS, tick, beat, form } = cx;
+  const feel = FEEL[style] ?? "rock";
+  const out: KitHit[] = [];
+  const g = dynGain(cx.dynDb ?? 0);
+  const arc = ARC_VEL + (1 - ARC_VEL) * Math.min(1, tick / Math.max(1, 0.6 * form.end));
+  const pitches = timpaniPitches(cx.home ?? (cx.keyAt ? cx.keyAt(tick) : "c"));
+  const L = landings(form);
+  const plan = kitFillPlan(pattern, form, beat, beatS, cx.per);
+  const hit = (piece: KitPiece, at: number, vel: number) => out.push({ piece, at, vel: Math.max(0.02, Math.min(1, vel)) });
+  const end = tick + beat;
+  const spec = (p: PlannedFill): FillSpec => {
+    const [lo, hi] = p.kind === "in" ? FILL_LEVEL.in : FILL_LEVEL.big;
+    return { feel, variant: p.variant, beats: p.beats, beatS, compound: cx.compound, lo: lo * g, hi: hi * g, seed: seedOf(p.at, styleSalt(pattern)) };
+  };
+  const landOn = landPieces(style);
+  const strokes = (p: PlannedFill, stop: number): KitHit[] => {
+    const role = p.kind === "in" ? ("roll" as const) : ("fill" as const);
+    return fillSlice(spec(p), p.from, beat, tick, stop, landOn).map((h): KitHit => ({ piece: h.piece, at: h.t, vel: Math.max(0.02, Math.min(1, h.vel)), role, dur: Math.max(0, p.at - (tick + h.t * beat)), ...(h.grace ? { grace: true } : {}) }));
+  };
+
+  // THE LAST BAR: its downbeat struck (the kick, the crash, the snare), then nothing.
+  if (tick >= form.lastBar - beat / 2) {
+    if (Math.abs(tick - form.lastBar) < beat / 2) {
+      const v = 0.95 * g;
+      if (style === "latin") hit("congaLow", 0, v), hit("tamb", 0, 0.8 * g), hit("crash", 0, 0.4 * g);
+      else hit("kick", 0, v), hit("crash", 0, 0.8 * g), style !== "jazz" && hit("snare", 0, 0.6 * g);
+      for (const h of out) h.role = "accent";
+    }
+    return out;
+  }
+  const flourish = plan.find((p) => p.kind === "flourish");
+  if (flourish && tick >= flourish.from - beat / 2 - 1e-6 && tick + beat > flourish.from) return strokes(flourish, flourish.at);
+
+  // THE BREAK: a bar's silence before the final entry's fill (only where an episode precedes it).
+  if (breaksBefore(form)) {
+    const fin = plan.find((p) => p.at === form.finalEntry);
+    const bEnd = fin && fin.filled ? fin.from : form.finalEntry - beat;
+    const bFrom = bEnd - form.barTicks;
+    if (tick >= bFrom - beat / 2 && tick < bEnd - beat / 2) return out;
+  }
+
+  // A FILL INTO an entry (or the climax), as planned; its landing on the entry. An entry left unfilled: its landing alone.
+  for (const p of plan) {
+    if (p.kind === "flourish") continue;
+    const big = p.kind === "climax";
+    // The landing's beat: the one the entry falls in.
+    if (p.at >= tick - 1e-6 && p.at < end - 1e-6) {
+      const cut = (p.at - tick) / beat;
+      const land = landHits(style, cut, g, pitches, big).map((h): KitHit => ({ ...h, role: "accent" }));
+      if (cut < 1e-6) return land.concat(patternHits(pattern, cx, drumKind(form, p.at), g, arc, pitches).filter((h) => h.at > 0.02));
+      const before = p.filled ? strokes(p, p.at) : patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches).filter((h) => h.at < cut - FILL_STROKE_S / beatS);
+      return before.concat(land);
+    }
+    if (p.filled && tick + beat > p.from + 1e-6 && tick < p.at) {
+      const s = strokes(p, p.at);
+      // The fill begun inside this beat: the pattern before it.
+      const start = (p.from - tick) / beat;
+      if (start > 0) return patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches).filter((h) => h.at < start - FILL_STROKE_S / beatS).concat(s);
+      return s;
+    }
+  }
+
+  // A ROLL OUT into an episode: a few strokes falling away over the beat before it, the episode's pattern after.
+  for (const at of L.out) {
+    if (tick >= at - beat - beat / 2 && tick < at - beat / 2) return outFill(style, beatS, g * arc, seedOf(at, styleSalt(pattern))).map((h) => ({ ...h, role: "fill" as const, dur: Math.max(0, at - tick - h.at * beat) }));
+  }
+
+  return patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches);
+}
+
+/**
+ * D535: the roll out, humanised: two or three strokes falling away over the beat, which drums and how they fall drawn
+ * (seeded) from a few, the levels uneven, the strokes a little off the grid (not the machines').
+ */
+const OUT_FALLS: Readonly<Record<"kit" | "latin", readonly KitPiece[][]>> = {
+  kit: [
+    ["tomHigh", "tomLow", "tomLow"],
+    ["snare", "tomHigh", "tomLow"],
+    ["tomHigh", "tomHigh", "tomLow"],
+    ["snare", "tomLow", "tomLow"],
+  ],
+  latin: [
+    ["congaHigh", "congaHigh", "congaLow"],
+    ["bongo", "congaHigh", "congaLow"],
+    ["congaHigh", "bongo", "congaLow"],
+  ],
+};
+function outFill(style: FillVoice, beatS: number, g: number, seed: number): KitHit[] {
+  const n = Math.min(3, Math.max(2, Math.floor(beatS / PATTERN_STROKE_S)));
+  const falls = OUT_FALLS[style === "latin" ? "latin" : "kit"];
+  const fall = falls[Math.floor(rand(seed, 11) * falls.length)];
+  const feel = FEEL[style] ?? "rock";
+  const jit = JITTER_S[feel] / beatS;
+  const out: KitHit[] = [];
+  for (let j = 0; j < n; j++) {
+    const piece = j === n - 1 ? fall[2] : fall[j];
+    const at = Math.max(0, Math.min(0.99, j / n + (j ? jit * (rand(seed, 12 + j) * 2 - 1) : 0)));
+    out.push({ piece, at, vel: Math.max(0.03, g * (0.52 - 0.13 * j) * (1 + 0.1 * (rand(seed, 20 + j) - 0.5))) });
+  }
+  return out;
+}
+
+/** D535: the drums a landing strikes (the fill's strokes of these kept clear of it). */
+function landPieces(style: FillVoice): KitPiece[] {
+  return style === "latin" || style === "frame" ? ["congaLow", "tamb"] : style === "timpani" ? ["timp", "crash", "bassDrum"] : ["kick", "crash"];
+}
+
+/** D514's beat, as written: the timpani's and the frame drums' (the orchestral styles: S3's to change). */
+function kitBeatOrchestral(pattern: KitStyle, cx: KitContext): KitHit[] {
   const style = fillVoiceOf(pattern);
   const { per, beatS, tick, beat, form } = cx;
   const out: KitHit[] = [];
@@ -389,6 +532,7 @@ function landHits(style: FillVoice, at: number, g: number, p: { tonic: number },
         ...(climax ? [{ piece: "bassDrum" as const, at, vel: 0.6 * g }] : []),
       ];
     case "frame":
+    case "latin":
       return [
         { piece: "congaLow", at, vel: 0.85 * k * g },
         { piece: "tamb", at, vel: 0.6 * k * g },
@@ -404,7 +548,7 @@ function outStrokes(style: FillVoice, beatS: number, g: number, p: { tonic: numb
     const at = j / n;
     const v = g * (0.5 - 0.12 * j);
     if (style === "timpani") out.push({ piece: "timp", at, vel: v, midi: j === n - 1 ? p.tonic : p.dominant });
-    else if (style === "frame") out.push({ piece: j === n - 1 ? "congaLow" : "congaHigh", at, vel: v });
+    else if (style === "frame" || style === "latin") out.push({ piece: j === n - 1 ? "congaLow" : "congaHigh", at, vel: v });
     else out.push({ piece: j === 0 ? "tomHigh" : "tomLow", at, vel: v });
   }
   return out;
