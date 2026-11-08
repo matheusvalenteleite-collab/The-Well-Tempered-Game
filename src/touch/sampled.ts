@@ -1048,5 +1048,14 @@ export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Pro
   return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
 }
 
+/**
+ * D497, THE SOUND LAB: a plan's recordings asked for and awaited, nothing let go (its A/B keeps two sounds ready; the
+ * game's own loading is loadPlan above). Folded to mono over the budget as loadPlan folds them.
+ */
+export function loadPlanKeep(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
+  if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
+  return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
+}
+
 /** Ask for one note's recording (a note played before the plan reached it). */
 export const loadOne = (ctx: BaseAudioContext, set: string, m: number) => void loadNote(ctx, set, m);

@@ -611,6 +611,11 @@ export class ProtoGame {
    */
   readonly trims: readonly number[];
   readonly tone: number;
+  /**
+   * D497, THE SOUND LAB (soundlab.html only; never set by the game): a gain per band voice over everything else
+   * (its mixer and its solo/mute), read as each band note is scheduled. Null (the game): no change.
+   */
+  labGain: readonly number[] | null = null;
   beat: number;
   private perBar: number;
   private anchorAt: number;
@@ -1125,7 +1130,7 @@ export class ProtoGame {
       const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
       const vv = sv.v;
       // D508: the band's balance: the voice's trim, and its subject's entry a little forward (not where Busoni's palette brings it out).
-      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1);
+      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1);
       const prev = this.lastOther.get(n.voice);
       // D363: a band-only voice's note (a divisi) sounds as its parent but is not its line: no ornament of the line's, not its line's last note.
       if (!n.band) this.lastOther.set(n.voice, n.midi);
@@ -1167,7 +1172,7 @@ export class ProtoGame {
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
-      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel))) {
+      for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel) * (this.labGain?.[n.voice] ?? 1))) {
         this.band.push({ sd, until: at + len + ext + 0.8 });
         if (ext) this.bandT!.hold(hx, sd, n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }

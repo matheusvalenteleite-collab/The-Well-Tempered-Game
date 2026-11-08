@@ -100,7 +100,7 @@ export class ColourPlan {
   /** The colour of a voice's note starting at `tick` (null: the sound's own). */
   at(tick: number, voice: number): Colour | null {
     const list = this.byVoice[voice];
-    if (!list) return null;
+    if (!list || !plansOn) return null;
     let c: Colour | null = null;
     for (const e of list) {
       if (e.on > tick) break;
@@ -109,6 +109,13 @@ export class ColourPlan {
     return c && Object.keys(c).length ? c : null;
   }
 }
+
+/** D497, THE SOUND LAB's switch (on by default; the game never turns it off): off, every plan's moments stand aside, at once. */
+let plansOn = true;
+export function setColourPlansOn(on: boolean) {
+  plansOn = on;
+}
+export const colourPlansOn = () => plansOn;
 
 /** The plan for a piece on a sound, ready (null where it has none or the plans are not loaded). */
 export function colourPlanFor(f: TouchFugue, presetId: string, phone = false): ColourPlan | null {
