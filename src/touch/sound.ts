@@ -2008,9 +2008,15 @@ export function setBacking(on: boolean) {
   backing = on;
 }
 export const backingOn = () => backing;
+/** D497, THE SOUND LAB's switch (on by default; the game never turns it off): off, a band's own drums (Preset.groove: JAZZ QUARTET's brushes, ABBEY ROAD's and KRAUTROCK's kit) are silent. */
+let ownKit = true;
+export function setOwnKit(on: boolean) {
+  ownKit = on;
+}
+export const ownKitOn = () => ownKit;
 /** The groove playing now, if any: a band's always, CHIP's and MOOG's when DRUMS is on; D344: the friends' backing. */
 export function grooveNow(): { groove: Groove; kit: Kit } | null {
-  const g = current.groove ?? (drumsOn ? current.drums : undefined) ?? (backing ? (current.drums ?? BACKING_GROOVE) : undefined);
+  const g = (ownKit ? current.groove : undefined) ?? (drumsOn ? current.drums : undefined) ?? (backing ? (current.drums ?? BACKING_GROOVE) : undefined);
   return g ? { groove: g, kit: current.kit ?? "acoustic" } : null;
 }
 
@@ -2055,7 +2061,8 @@ export function placeFor(voice: number, count: number): { pan: number; level: nu
   return by ? { pan: by[1], level: by[2] ?? 1 } : null;
 }
 
-export type Drum = "kick" | "snare" | "hat" | "ride" | "rim" | "brush" | "shaker" | "clap";
+// D514: and the drum presets' crash, open hat and toms (drum-presets.ts), synthesized where a recording is not loaded.
+export type Drum = "kick" | "snare" | "hat" | "ride" | "rim" | "brush" | "shaker" | "clap" | "crash" | "openhat" | "tomHigh" | "tomLow";
 
 /**
  * The rhythm section's hits in one beat: which drum, where in the beat (0 to 1), how strong. `b` is

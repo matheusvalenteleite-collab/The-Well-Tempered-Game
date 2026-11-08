@@ -28,6 +28,8 @@ drums/retro/       Retro Drum Sample Set 1, Seven Graylands / The Tic Tok Men (f
 drums/unruly/      Unruly Drums, Karoryfer Samples. CC0 1.0.
          Source: https://github.com/sfzinstruments/karoryfer.unruly-drums
 Drums: trimmed (onset kept, drums/hats <= 1.2 s, toms <= 1.6 s, cymbals <= 3 s, with a fade), multi-mic hits mixed to mono, re-encoded as mono 44.1 kHz 96 kbit/s MP3.
+Also the touch game's DRUMS presets (D514, src/touch/drum-presets.ts): Big Rusty Drums as ROCK KIT; Virtuosity Drums as JAZZ KIT, FRAME DRUM and
+         TIMPANI's bass drum, cymbal and triangle (both CC0); with timpani/ (VSCO 2 CE, below; its loud layer, retuned) and jazzBrushes/ (Swirly Drums, CC0).
 
 Orchestral articulations and rock instruments (one sample about every minor third; "-v1"/"-v2" = soft/loud velocity layers):
 violinStac/ violinPizz/   Solo violin, spiccato and pizzicato. VS Chamber Orchestra 2: Community Edition, Versilian Studios (Sam Gossner,

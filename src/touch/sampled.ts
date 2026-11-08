@@ -441,9 +441,30 @@ const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number;
  * D294: a set that is another folder's velocity layer (its files "C4-v7.mp3" beside the layer played):
  * the grand's softer layer 7 as "grandSoft". Its own bank, plan and mono fold; the folder's manifest.
  */
-const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft: { folder: "grand", layer: 7 } };
-/** The folder of public/samples a set's files are in (D297: a period set's, its folder's). */
-export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
+// D514: and the timpani's loud hits (VSCO-2 CE, public/samples/timpani; their soft layer is uneven, -26 to -54 dB), for TIMPANI.
+const LAYER_SET: Record<string, { folder: string; layer: number }> = { grandSoft: { folder: "grand", layer: 7 }, timpLoud: { folder: "timpani", layer: 2 } };
+/**
+ * D514, the drum presets' recorded kits (drum-presets.ts): the one-shots of public/samples/drums/<kit>/ (D107's, each
+ * piece soft "-1" and loud "-2"), read in place as a set: piece i of KIT_VOICES at MIDI 24 + 2i (soft) and 25 + 2i
+ * (loud). Big Rusty Drums (ROCK KIT) and Virtuosity Drums (JAZZ KIT, FRAME DRUMS, and TIMPANI's cymbal, bass drum and
+ * triangle), both Karoryfer's, CC0. And the timpani (TIMP_SET: VSCO-2's loud layer, F2 B2 C#3 E3 G3, retuned by rate).
+ */
+export type KitSet = "kitRock" | "kitClub";
+export const KIT_FOLDER: Readonly<Record<KitSet, string>> = { kitRock: "drums/bigRusty", kitClub: "drums/virtuosity" };
+export const KIT_VOICES: Readonly<Record<KitSet, readonly string[]>> = {
+  kitRock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
+  kitClub: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow", "cowbell", "tambourine", "shaker", "congaHigh", "congaLow", "bongo", "woodblock", "claves", "triangle", "guiro"],
+};
+/** A kit piece's file as its set's MIDI number (null: the kit has no such piece). */
+export function kitMidi(set: KitSet, voice: string, loud: boolean): number | null {
+  const i = KIT_VOICES[set].indexOf(voice);
+  return i < 0 ? null : 24 + 2 * i + (loud ? 1 : 0);
+}
+export const TIMP_SET = "timpLoud";
+/** The timpani's recorded drums (MIDI): F2, B2, C#3, E3, G3. */
+export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
+/** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
+export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
 export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass";
 
@@ -649,7 +670,14 @@ export const setFor = (inst: SampledInstrument, midi: number) => (inst.above && 
 /** D292: the layer each layered set plays (its files' suffix); D294: and the layer sets'. */
 const LAYER = new Map([...Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!] as const), ...Object.entries(LAYER_SET).map(([s, l]) => [s, l.layer] as const)]);
 /** A note's file in its set: "Cs4.mp3", or with the layer played "Cs4-v12.mp3". */
-export const fileOf = (set: string, m: number) => (set === ROCK_KIT_SET ? `${ROCK_KIT_FILES[m]}.mp3` : `${nameOfMidi(m)}${LAYER.has(set) ? `-v${LAYER.get(set)}` : ""}.mp3`);
+export const fileOf = (set: string, m: number) => {
+  // D523: the rock kit's piece by its MIDI number.
+  if (set === ROCK_KIT_SET) return `${ROCK_KIT_FILES[m]}.mp3`;
+  // D514: a drum kit's piece ("kick-2.mp3").
+  const kit = KIT_VOICES[set as KitSet];
+  if (kit) return `${kit[Math.floor((m - 24) / 2)]}-${(m - 24) % 2 ? 2 : 1}.mp3`;
+  return `${nameOfMidi(m)}${LAYER.has(set) ? `-v${LAYER.get(set)}` : ""}.mp3`;
+};
 
 /** Sets recorded in stereo (the struck string's image); the rest are mono. */
 const STEREO = new Set(["harpsichord", "grand", "grandSoft"]);
@@ -1063,6 +1091,15 @@ export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Pro
     const bank = banks.get(set);
     if (bank) for (const m of [...bank.keys()]) if (!notes.includes(m)) bank.delete(m);
   }
+  return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
+}
+
+/**
+ * D497, THE SOUND LAB: a plan's recordings asked for and awaited, nothing let go (its A/B keeps two sounds ready; the
+ * game's own loading is loadPlan above). Folded to mono over the budget as loadPlan folds them.
+ */
+export function loadPlanKeep(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
+  if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
   return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
 }
 
