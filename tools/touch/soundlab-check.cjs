@@ -89,24 +89,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   ok(await page.evaluate(() => window.__soundlab.game === window.__g0), "subject/episode layer off, live");
 
   // The summary: an item jumps to its bar (mid-play), and follows the drums chosen.
-  await page.click('[data-drums="1"]');
+  await page.click('[data-style="bebop"]');
   await sleep(200);
-  ok((await page.textContent("#sl-summary")).includes("SWING"), "the summary names the drums now chosen");
+  ok((await page.textContent("#sl-summary")).includes("BEBOP"), "the summary names the drums now chosen");
   const target = await page.evaluate(() => { const b = [...document.querySelectorAll("#sl-summary button")].map((x) => Number(x.dataset.bar)).filter((x) => x > 5); return b[Math.floor(b.length / 2)]; });
   await page.click(`#sl-summary button[data-bar="${target}"]`);
   await page.waitForFunction((b) => { const x = window.__soundlab.status(); return x.seekMs !== null && x.bar >= b; }, target, { timeout: 10000 });
   const jb = (await st()).bar;
   ok(jb >= target && jb <= target + 2, `a summary item jumps to its bar (b.${target}, now ${jb})`);
   await page.click('[data-drums="0"]');
-  ok(!(await page.textContent("#sl-summary")).includes("SWING"), "drums off: the summary drops them");
+  ok(!(await page.textContent("#sl-summary")).includes("BEBOP"), "drums off: the summary drops them");
 
-  // D531: an IDEA loads its fugue, sound and drums and plays from its bar.
-  await page.click("#sl-ideas-btn");
-  const idea = await page.$eval("#sl-ideas button[data-idea]:not([disabled])", (b) => b.dataset.idea);
-  await page.click(`#sl-ideas button[data-idea="${idea}"]`);
-  await page.waitForFunction(() => window.__soundlab.status().playing && window.__soundlab.s.drums > 0, null, { timeout: 20000 });
-  ok(true, `IDEA ${idea} loaded and playing`);
-  ok((await page.$$eval("#sl-ideas button[disabled]", (b) => b.length)) === 0, "the list closes on a tap");
 
   // A/B flip: the other setting at the same point.
   const fb = await st();
@@ -143,6 +136,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   ok(wide <= 1, `phone width fits (overflow ${wide}px)`);
   await page.screenshot({ path: process.env.SHOT || "/tmp/soundlab-phone.png", fullPage: false });
 
+  // D531: an IDEA loads its fugue, sound and drums and plays from its bar.
+  await page.click("#sl-ideas-btn");
+  const idea = await page.$eval("#sl-ideas button[data-idea]:not([disabled])", (b) => b.dataset.idea);
+  await page.click(`#sl-ideas button[data-idea="${idea}"]`);
+  await page.waitForFunction(() => window.__soundlab.status().playing && window.__soundlab.s.drums > 0, null, { timeout: 20000 });
+  ok(true, `IDEA ${idea} loaded and playing`);
+  ok(!(await page.$("#sl-ideas")), "the list closes on a tap");
+  ok(await eng("return !!e.game && e.game.f.id === e.s.piece && e.s.piece === 'wtc1f02'"), "the idea's fugue playing (I/2)");
   ok(errors.length === 0, `no page errors${errors.length ? `: ${errors.join(" | ")}` : ""}`);
   const log = await page.evaluate(() => window.__soundlab.seekLog);
   const avg = seeks.reduce((a, b) => a + b, 0) / seeks.length;
