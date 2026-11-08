@@ -28,7 +28,7 @@ test("D543-D545: the rebuilt rock v2s: no piano, one instrument a voice, their l
         if (lane) assert.ok(lanes.has(lane), `${band}: ${id}'s lane ${lane}`);
       }
     }
-    for (const id of p.slots) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
+    for (const id of p.slots ?? []) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
     const last = BAND_CHAINS[band].bus.at(-1)!;
     assert.equal(last.kind, "gain", `${band}: the trim ends the bus`);
     assert.ok(last.kind === "gain" && last.db < -9 && last.db > -15);
