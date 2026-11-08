@@ -2441,3 +2441,24 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
 }
 
 // D482: D186's layerHits (drums added as the player's run grew) removed: no sound follows the streak.
+
+/**
+ * D536, THE OUTPUT'S LEVEL for the studio (music-events.ts: the picture's light follows the sound's real level): the Chip
+ * master's meter, post-limiter (chip.ts Chip.meterLevel: the RMS past the ceiling, 0..1, smoothed). The Chip gives its
+ * meter as it is made (`chipMeter`); the first gives music-events.ts this reading (its setOutputLevel, passed in: sound.ts
+ * imports nothing of the studio's, no cycle). The meter is made on the first reading, and the studio reads it only while
+ * its stage is drawn (event-fx.ts): with the stage off, nothing is measured.
+ */
+let meterOf: (() => number) | null = null;
+let levelGiven = false;
+export function chipMeter(fn: () => number, give?: (f: () => number) => void) {
+  meterOf = fn;
+  if (!levelGiven && give) {
+    levelGiven = true;
+    give(outputLevel);
+  }
+}
+/** The output's level now (0..1; 0 before a Chip is made). */
+export function outputLevel(): number {
+  return meterOf ? meterOf() : 0;
+}
