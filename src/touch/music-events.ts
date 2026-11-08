@@ -147,3 +147,16 @@ export function resetLive() {
 }
 /** For the tests: how many runs began. */
 export const runsBegun = () => listeners;
+
+// --- The sound's real level (Instruments' Chip master meter, post-limiter, 0..1 smoothed): loud reads loud.
+let levelSource: (() => number) | null = null;
+/** The sound gives its meter (sound.ts outputLevel); null takes it away. */
+export function setOutputLevel(fn: (() => number) | null) {
+  levelSource = fn;
+}
+/** The output's level now (0..1), or null where no meter is given (the picture then goes by the events' own levels). */
+export function outputLevelNow(): number | null {
+  if (!levelSource) return null;
+  const v = levelSource();
+  return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : null;
+}
