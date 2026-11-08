@@ -231,11 +231,15 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     share: 2.09,
   },
   // DRUM'N'BASS (jungle): the two-step at 170 (the kick on 1 and the and of 3, the snare on 2 and 4), the ghosts, the
-  // second bar's broken kick; the club kit read fast.
+  // second bar's broken kick; the club kit read fast. FITS duple and compound (its 12/8 a half-time two-step); in a
+  // triple metre it plays a squeezed form and is not marked FITS.
   dnb: {
     duple: g(4, 4, { kick: "#... .... ..#. ....|#... .... ..x. ...x", snare: ".... X... .... X..-|.... X..- .-.. X...", hat: "x.x. x.x. x.x. x.x." }),
     triple: g(3, 4, { kick: "#... .... ..#.", snare: ".... X... ...-", hat: "x.x. x.x. x.x." }),
-    compound: g(4, 3, { kick: "#.. ... .#. ...", snare: "... X.. ... X.-", hat: "xox xox xox xox" }),
+    // 12/8 (6/8 two bars at a time): the half-time two-step over the dotted beats, each split in six (the triplet's
+    // sixteenths): the kick on 1 and the middle of 3, the snare on 2 and 4 with its ghosts, the hats in the triplets
+    // (written firmer: the sparser bar measured 19.5 dB under II/18's band at the duple's strengths; now 16.6).
+    compound: g(4, 6, { kick: "#..... ...... ...#.. ......|#..... ...... ...X.. .....x", snare: "...... #..... ...... #...o.|...... #...o. ..o... #.....", hat: "X.x.x. X.x.x. X.x.x. X.x.x.", ride: "...... ...... ...... ......|o..... ...... ...... ......" }),
     bpm: [158, 180],
     climax: "ride",
     fill: "rock",
