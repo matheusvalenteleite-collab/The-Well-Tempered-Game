@@ -325,7 +325,10 @@ export interface GrooveContext {
 export const KIT_DRUMS = {
   level: 4.2,
   // Each style's share (the drums alone measured against I/12's band: about 11 LU under it, D514's table); the synthesized kits on chip.ts drum's scale.
-  style: { rock: 1, jazz: 1, frame: 0.8, timpani: 0.6, chip: 5, machine: 5, brushes: 1 } satisfies Record<DrumStyle, number>,
+  // D529: each set to -43 LUFS alone on the phone model (I/2 bars 3-14), 15.5 dB under the bands' median there (-27.5),
+  // where JAZZ QUARTET's brushes sit under theirs (14.7): D514's kits stood 7-14 dB louder (8-11 under; the timpani 1.7).
+  // (jazz and machine are written styles now, drum-grids.ts SWING and 808: these their levels.)
+  style: { rock: 0.44, jazz: 0.44, frame: 0.38, timpani: 0.08, chip: 3.3, machine: 3.4, brushes: 1 } satisfies Record<DrumStyle, number>,
   phone: 1.2,
   // A phone's speaker has nothing under about 600 Hz: the timpani's and the bass drum's fundamentals (87-200 Hz) are
   // lost and the drums measured -50 LUFS there. On a phone their harmonics are made (a soft clip, the way a phone's own
@@ -3624,7 +3627,8 @@ export class Chip {
     const t = Math.max(at, ctx.currentTime);
     const synth = (k: Kit, v: number) => {
       const d: Drum = h.piece === "tamb" || h.piece === "triangle" ? "shaker" : h.piece === "congaHigh" || h.piece === "bongo" ? "tomHigh" : h.piece === "congaLow" || h.piece === "timp" || h.piece === "bassDrum" ? "tomLow" : h.piece;
-      this.drum(d, t, v, k, mx.share * (this.phone ? mx.phone : 1), this.phone ? KIT_DRUMS.phoneLow.level * mx.low * 0.25 : 0);
+      // (the low drums' harmonics with the level: D529, a synthesized kit's share against D514's 5)
+      this.drum(d, t, v, k, mx.share * (this.phone ? mx.phone : 1), this.phone ? KIT_DRUMS.phoneLow.level * mx.low * 0.25 * (mx.share / 5) : 0);
     };
     const mx = kitMix(style);
     const sk = synthKitOf(style);
