@@ -108,8 +108,9 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f10: {
-    sound: "sid64",
-    soundWhy: "A powerfully controlled allegro, an impatient subject pressing forward (Keller): SID 64's moving pulses and filtered bass, bright through a phone's speaker.",
+    // D520: SALSA (was SID 64, D510).
+    sound: "salsa",
+    soundWhy: "A powerfully controlled allegro, an impatient subject pressing forward (Keller), in 2/2 written in quaver triplets: salsa's cut time with the Afro-Cuban 6/8 bell over it, the clave a bar; the E minor subject's repeated notes and leaps, as written, on the trumpet, the piano and the baby bass (one to a voice), the timbales' fills into the entries after its episodes and a break before the bass's last entry.",
     character: "A tonic exposition 1-18 (Ledbetter), Bodky's spans f (to 23 10/12), p (to 49 10/12), f, coupled (71⅜); a dominant pedal 68-70.",
     plans: {
       sid64: [at(23.833, { pw: 0.2 }, "Bodky's piano span (23-49) on narrower pulses."), at(49.833, OWN, "The own sweep (49)."), at(71.375, { pw: 0.5 }, "Bodky's coupled close: the pulses square.")],

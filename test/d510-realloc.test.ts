@@ -31,7 +31,8 @@ test("D510: the allocation: the owner's requests, neighbours different, JAZZ QUA
   for (const [id, s] of Object.entries(want)) assert.equal(PIECE_SOUND[id], s, id);
   for (let k = 1; k < 48; k++) if (k !== 24) assert.notEqual(PIECE_SOUND[FUGUES[k]], PIECE_SOUND[FUGUES[k - 1]], `${FUGUES[k - 1]}, ${FUGUES[k]}`);
   const count = (s: string) => FUGUES.filter((id) => PIECE_SOUND[id] === s).length;
-  assert.ok(count("jazzQuartet") >= 7 && count("sid64") >= 4);
+  // (D520: II/10 to SALSA, SID 64 keeps three.)
+  assert.ok(count("jazzQuartet") >= 7 && count("sid64") >= 3);
   for (const id of FUGUES) {
     assert.equal(COLOURS[id].sound, PIECE_SOUND[id], id);
     assert.equal(OWN_LOUD[id]?.s, PIECE_SOUND[id], `${id}: the lift measured on its own sound`);

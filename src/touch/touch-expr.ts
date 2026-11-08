@@ -19,7 +19,7 @@ import type { Patch, Wave } from "./sound.ts";
 import { SAMPLED } from "./sampled.ts";
 
 /** The instruments' families, each with its own design. */
-export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps" | "winds" | "brass" | "jazz";
+export type TouchKind = "piano" | "harpsichord" | "organ" | "voice" | "singers" | "chip" | "console" | "synth" | "bleeps" | "winds" | "brass" | "jazz" | "band";
 
 /** Each preset's family (by its id; presets not named here, as TRAVERSO with KIMIKO, take no expression). */
 export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
@@ -54,12 +54,23 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // D503: JAZZ QUARTET, each instrument its own touch in the piano's three zones (landing "jazz"): the mallet's hardness on
   // the vibraphone, the weight on the piano, the pluck on the bass; a held vibraphone note's SWAY the motor's speed.
   jazzQuartet: "jazz",
+  // D520 SALSA: each instrument its own family's touch (landing "band"): the piano's zones on the grand, the brassiness
+  // on the trumpet and the trombone (a held sway the swell), the pluck in the piano's zones on the bass (the jazz bassist's).
+  salsa: "band",
   // D523: ABBEY ROAD as JAZZ QUARTET (landing "jazz": the piano's three zones, the piano's own
   // weight on the piano, the level and the pluck's brightness on the guitars and the bass; nothing held to sway).
   abbeyRoad: "jazz",
   // D525: KRAUTROCK likewise (its organ sustained: nothing held to sway).
   krautrock: "jazz",
 };
+/** D520/D522: the family a band instrument's touch is (by its recordings). */
+export function bandFamily(pt: Patch | null): "piano" | "brass" | "winds" | "jazz" {
+  const inst = pt?.sample ? SAMPLED[pt.sample] : null;
+  if (pt?.sample === "piano") return "piano";
+  if (inst?.blend) return "brass";
+  if (inst && !inst.plucked) return "winds";
+  return "jazz";
+}
 
 export const touchKind = (presetId: string): TouchKind | null => TOUCH_KINDS[presetId] ?? null;
 
@@ -184,6 +195,8 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   // The piano's and the jazz quartet's three zones (±3 dB and their recordings' colour) already measured 6-9 dB.
   pianoSampled: [0, 0],
   jazzQuartet: [0, 0],
+  // D520: the piano's zones, the brass's brassiness and the bass's zones carry their own.
+  salsa: [0, 0],
   abbeyRoad: [0, 0],
   krautrock: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
@@ -380,6 +393,9 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
       }
       return { layer: "firm", tone: WIND_REEDY_DB * ((c - 0.5) / 0.5) };
     }
+    case "band":
+      // D520/D522: the instrument's own family (bandFamily): the grand's zones, the brass's brassiness, the breath, the pluck.
+      return landing(bandFamily(pt), c, midi, pt, pulse, line);
     case "brass": {
       // D502: the brassiness (the layers' crossfade and the presence shelf: chip.ts) from where it landed and the
       // reading's level; the landing's own little level from where it landed alone (the reading's level is the line's).
@@ -440,6 +456,10 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
       return "swell";
     case "synth":
       return "wah";
+    case "band": {
+      const fam = bandFamily(pt);
+      return fam === "brass" ? "swell" : fam === "winds" ? (plucked ? "none" : "breath") : "none";
+    }
     case "jazz":
       // D503: a held vibraphone note: its motor's speed (Patch.motor); the piano and the bass, struck: nothing.
       return pt?.motor ? "trem" : "none";

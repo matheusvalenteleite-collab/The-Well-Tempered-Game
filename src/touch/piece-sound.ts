@@ -81,6 +81,8 @@ import { playerSound } from "./sound.ts";
  * requests: I/14 and II/18 on JAZZ QUARTET, II/17 on CLASSIC CHIP, I/12 on VOCAL SYNTH, I/10 on SOLO VOICES (its soprano
  * and bass, measured the best-blended pair); JAZZ QUARTET also for I/6 (3/4), II/4 (12/16) and II/24 (3/8), SID 64 for II/3
  * and II/6, STRING CONSORT for I/24, SUPER 16-BIT for II/19 (tools/touch/colour-plans: each reason).
+ * D520: SALSA for II/10 (2/2 in quaver triplets: salsa's cut time under the 6/8 bell; the impatient E minor subject's
+ * repeated notes and leaps on trumpet, piano and baby bass), with its percussion's scripted moments (latin-drums.ts LATIN_SCRIPTS).
  */
 /** D523: I/2 and I/16 on ABBEY ROAD; D525: I/20 on KRAUTROCK (tools/touch/colour-plans: each reason). */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
@@ -153,7 +155,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p09: "chip",
   wtc2f09: "soloVoices",
   wtc2p10: "harpsichordSampled",
-  wtc2f10: "sid64",
+  wtc2f10: "salsa",
   wtc2p11: "chip",
   wtc2f11: "chip",
   wtc2p12: "chip",
