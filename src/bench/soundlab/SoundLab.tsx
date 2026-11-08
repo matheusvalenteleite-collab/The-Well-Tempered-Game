@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEven
 import { barAt, barStart, cadenceName, fugueById } from "../../touch/fugue.ts";
 import { formOf as pointsOf, phaseAt } from "../../touch/form-points.ts";
 import { formOf as soundFormOf } from "../../touch/fugue-form.ts";
-import { drumPresetsFor } from "../../touch/drum-presets.ts";
+import { drumPresetsFor } from "../../touch/drum-library.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { FUGUE_NAMES } from "../../touch/fugue-names.ts";
 import { Emblem } from "../FuguePicker.tsx";
@@ -140,10 +140,10 @@ export function SoundLab() {
   const shown = drag ?? st.tick;
   const pct = (t: number) => `${(100 * Math.max(0, Math.min(f.length, t))) / f.length}%`;
   const ph = phaseAt(form, Math.max(0, shown));
-  const presets = drumPresetsFor(s.piece);
   const tempi = stepTempi(s.piece);
   const own = PIECE_SOUND[s.piece] ?? "chip";
   const snd = soundOf(s);
+  const presets = drumPresetsFor(s.piece, snd);
   const seats = seatsOf(snd, f);
   const bach = bachVoice(f, s);
   const link = `${location.origin}${location.pathname}${linkOf(s, st.bar)}`;

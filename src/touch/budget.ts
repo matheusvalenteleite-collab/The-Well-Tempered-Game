@@ -11,14 +11,15 @@ import { FUGUES, everyNote, fugueById } from "./fugue.ts";
 import { BUDGET, decodedBytes, monoFor, type Plan } from "./sampled.ts";
 import { preset, presetById, setPreset, V2_SLIM, type Preset } from "./sound.ts";
 import type { Slim } from "./sampled.ts";
-import type { DrumStyle } from "./drum-presets.ts";
+import { styleIds } from "./drum-library.ts";
 
 export const PRESET_MB = 25;
 export const RESIDENT_MB = 40;
 /** The context's rate on the phones measured (an iPhone's AudioContext: 48 kHz). */
 export const BUDGET_RATE = 48000;
 /** The DRUMS styles that load recordings (chip.ts kitFiles). */
-export const KIT_STYLES: readonly DrumStyle[] = ["rock", "jazz", "frame", "timpani", "brushes"];
+// D526: every style of the drum library (its recordings by its engine: chip.ts drumFilesFor).
+export const KIT_STYLES: readonly string[] = styleIds;
 
 /** Bytes a set of plans holds as loadPlan would hold them on a phone. */
 export function plansBytes(plans: Plan[], rate = BUDGET_RATE): number {

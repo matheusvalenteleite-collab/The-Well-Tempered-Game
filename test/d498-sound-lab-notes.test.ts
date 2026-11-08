@@ -33,11 +33,12 @@ test("D498: the summary follows the drums, the layers and the sound", async () =
   assert.ok(!off.includes("ELECTRO"));
   assert.match(off, /episode \(band lighter, darker\)/);
   assert.match(off, /Busoni p/);
+  // D526: the drums 1 2 3 are the sound's HOME and its family (VOCAL SYNTH: HOUSE 909, LINNDRUM, TECHNO).
   const on = summaryLine(summaryOf(f, { ...s, drums: 1 }, "vocalSynth"));
-  assert.match(on, /ELECTRO rolls in/);
-  assert.match(on, /ELECTRO break/);
-  assert.match(on, /ELECTRO flourish/);
-  assert.match(summaryLine(summaryOf(f, { ...s, drums: 3 }, "vocalSynth")), /TIMPANI/);
+  assert.match(on, /HOUSE 909 rolls in/);
+  assert.match(on, /HOUSE 909 break/);
+  assert.match(on, /HOUSE 909 flourish/);
+  assert.match(summaryLine(summaryOf(f, { ...s, drums: 3 }, "vocalSynth")), /TECHNO/);
   // The layer off: no band colour; Busoni off: his marks gone and the colour plan heard.
   assert.ok(!summaryLine(summaryOf(f, { ...s, form: false }, "vocalSynth")).includes("band lighter"));
   const nob = summaryLine(summaryOf(f, { ...s, busoni: false }, "vocalSynth"));
