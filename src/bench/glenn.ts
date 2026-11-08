@@ -81,6 +81,8 @@ export function exprFamily(presetId: string): ExprFamily {
   // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too (D510: withdrawn).
   // D503: JAZZ QUARTET (the trials' jazz band remade): struck and plucked, one player's over-legato.
   if (presetId === "jazzQuartet") return "plucked";
+  // D523: ABBEY ROAD likewise (struck and plucked).
+  if (presetId === "abbeyRoad" || presetId === "krautrock") return "plucked";
   // D521: BOSSA NOVA likewise (the guitar, the piano and the bass plucked or struck; the flute tongued: Patch.bow).
   if (presetId === "bossaNova") return "plucked";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";

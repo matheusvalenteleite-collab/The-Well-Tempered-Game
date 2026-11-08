@@ -111,6 +111,10 @@ export const GESTURE = {
  */
 export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily {
   if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
+  // D523: ABBEY ROAD's piano the piano's, the guitars and the bass a finger sliding along the string.
+  if (presetId === "abbeyRoad") return patch?.sample === "piano" ? "piano" : "bass";
+  // D525: KRAUTROCK's likewise, its combo organ an organ's.
+  if (presetId === "krautrock") return patch?.sample === "piano" ? "piano" : patch?.sample ? "bass" : "organ";
   // D521: BOSSA NOVA's, likewise: the flutist's slur, the guitarist's quick ornament (a plucked grace), the bassist's slide, the piano's.
   if (presetId === "bossaNova") return patch?.sample === "trialFlute" ? "flute" : patch?.sample === "bossaGuitar" ? "plucked" : patch?.sample === "jazzBass" ? "bass" : "piano";
   switch (presetId) {

@@ -36,8 +36,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f02: {
-    sound: "harpsichordSampled",
-    soundWhy: "The keyboard's own capricious, half-jesting fugue (Keller), three clean voices that a plucked string keeps apart on a phone; Bodky plans it on a two-manual harpsichord, the plan the sound now plays.",
+    sound: "abbeyRoad",
+    soundWhy: "D523: 4/4 at a crotchet of 70, its subject a riff of semiquavers (Keller's capricious, half-jesting fugue) that a rock band's backbeat carries without a note changed: ABBEY ROAD, the Gretsch on the subject's top, the rock piano inside, the picked bass, the drums' fills into each entry and the break before the last entry (bar 29).",
     character: "Regular alternation of entries and episodes (Bodky); episodes 5-7, 9-11, 13-15, 17-20, 22-26; the bass entry at 26 after the dominant pedal; a forte close (Keller).",
     plans: {
       harpsichordSampled: [
@@ -237,10 +237,11 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f09: {
-    sound: "baroqueBand",
-    soundWhy: "Cheeky and high-spirited (Keller), three voices like a trio sonata: BAROQUE BAND's violin and oboe, and the bass entering last (bar 4) on the cello with the continuo harpsichord.",
+    sound: "sid64",
+    soundWhy: "Cheeky and high-spirited (Keller): three clear voices in quaver staccato, a light running subject that the SID's three voices (D297: each its own waveform) keep apart, lively and bright; the bass entering last (bar 4) on its own wave. (D521: given to SID 64, the owner wanting it used more.)",
     character: "Vocal in idiom (Bodky); a long episode 10-16, a reprise from 19 (Ledbetter).",
     plans: {
+      sid64: [at(10, { pw: 0.2 }, "The long episode (Ledbetter 10-16): the SID's pulses narrower."), at(19, OWN, "The reprise (from 19) in the voices' own sweep.")],
       super16: [
         at(10, { room: 0.2 }, "The long episode 10-16 in the SPC's echo, the console's own effect."),
         at(E("wtc1f09", 16), OWN, "Dry at the alto's entry."),
@@ -372,8 +373,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f16: {
-    sound: "harpsichordSampled",
-    soundWhy: "Molto energico (Bodky), quietly moving (Keller), with an echo episode Bodky marks forte and piano: the two-manual harpsichord's own effect, which the plan plays.",
+    sound: "abbeyRoad",
+    soundWhy: "D523: four voices in 4/4 at a crotchet of 58, molto energico (Bodky), its dotted subject a heavy late-Beatles stride: ABBEY ROAD's two guitars, rock piano and picked bass one to a voice, the sixteenth hi-hat under the slow beat, Bodky's echo episode the drums' quieter cross-stick.",
     character: "Cadences in G minor (10) and B♭ (12); the echo of 18-20; the episode after the cadence of 24; stretto 28 (Bodky).",
     plans: {
       harpsichordSampled: [
@@ -438,8 +439,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f20: {
-    sound: "harpsichordSampled",
-    soundWhy: "'Among Bach's wild A minor pieces, where the virtuoso element prevails' (Bodky), a didactic stretto proving-ground (Keller): the composer's own keyboard showpiece, Bodky's pedal-harpsichord plan made the band's.",
+    sound: "krautrock",
+    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the piano on the subject's top, the echoed guitar behind, the combo organ and the picked bass, each on its own voice, the trance kept from the first bar to the last.",
     character: "Exposition recto 1-14½, inverso 14½-27½, stretto recto 27½-48, stretto inverso 48-64½ (Ledbetter); pedal points on E (60-62) and A (83-87).",
     plans: {
       harpsichordSampled: [

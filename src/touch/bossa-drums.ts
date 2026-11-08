@@ -15,7 +15,7 @@
  * across the beats. Busoni's level (the voices' mean at the beat) shades it within ±4 dB (jazz-drums.ts dynGain), and in
  * his p (or an episode) it is the QUIET pattern: the stir in place of the taps, the bass drum on 1 and 3 only.
  *
- * THE FORM (bossaPlan, from the game's own subject marks: voice-mode.ts entrySpans):
+ * THE FORM (bossaPlan, from form-points.ts alone: formOf's seams and the entries it reads):
  *   - a FILL into each subject entry after the first (one beat of a roll; two out of an episode), no two within MIN_GAP_BARS;
  *   - the EPISODES (the form's: form-points.ts formOf, D474, the stage's own) the quiet pattern;
  *   - a BREAK before the final entry: a bar with no drums at all, a single pick-up tap at its end, and the entry landed;
@@ -24,7 +24,6 @@
  * Never the score, the streak or the verdicts (D482).
  */
 import type { TouchFugue } from "./fugue.ts";
-import { entrySpans } from "./voice-mode.ts";
 import { formOf } from "./form-points.ts";
 import { dynGain, type BrushSweep } from "./jazz-drums.ts";
 
@@ -76,9 +75,8 @@ export function bossaPlan(f: TouchFugue, beat: number, per: number): BossaPlan {
     const b0 = bars.filter((x) => x <= t).pop() ?? 0;
     return b0 + Math.floor((t - b0) / beat + 1e-6) * beat;
   };
-  const spans = entrySpans(f)
-    .filter((s) => s.form !== "counter")
-    .sort((a, b) => a.on - b.on);
+  // The entries as form-points.ts reads them (the piece's own, D493), the one form source.
+  const spans = [...f.entries].sort((a, b) => a.on - b.on);
   // The episodes: the form's (form-points.ts formOf, D474: the stage's scenes turn on the same bars), from the next beat.
   const form = formOf(f);
   const quiet: [number, number][] = form.seams.filter((x) => x.kind === "episode").map((x) => [floorBeat(x.on + beat - 1), x.end] as [number, number]).filter(([a, z]) => z > a);
