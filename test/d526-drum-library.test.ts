@@ -201,7 +201,7 @@ test("D526: with DRUMS on, every style plays through the one choke point (Chip.s
       for (const e of ev) {
         assert.ok(e.style === style && Number.isFinite(e.tick) && e.tick >= f.barTicks * 3 - 1 && e.vel > 0 && e.vel <= 1.5, `${style} ${JSON.stringify(e)}`);
       }
-      const voice = { brushes: "brush", rockBand: "rock", latin: "latin", bossa: "bossa", pet: "pet", grid: "kit", kit: "kit" }[styleInfo(style).engine];
+      const voice = { brushes: "brush", rockBand: "rock", latin: "latin", bossa: "bossa", pet: "pet", grid: "kit", kit: "kit", score: "kit" }[styleInfo(style).engine];
       assert.ok(ev.some((e) => e.voice === voice || (voice === "brush" && e.voice === "sweep") || (voice === "bossa" && e.voice === "sweep")), `${style}: ${voice}`);
     }
   }

@@ -8,15 +8,16 @@
  * THE PATTERN, a Wrecking Crew ballad's on the game's own beat (no tempo of the piece changes for it, Bach's notes never
  * move): the bass drum on 1 and 3 (and softly on 2-and), the snare on the backbeat (2 and 4; 2/2 and 2/4 beat 2; a triple
  * metre 2 and 3, the third lighter), the tambourine on the eighths (the backbeat's firmer: the session's shaken tambourine),
- * and the TIMPANI on the bar's first beat, soft: one stroke, never a line, tuned to the note the bass is sounding there (the
- * drum nearest its pitch class, so the timpani add no pitch of their own: rhythm only). Busoni's level shades it within ±4 dB
- * (jazz-drums.ts dynGain); in his p (or an episode) the QUIET pattern: the bass drum on 1, the snare soft, no tambourine, no
- * timpani.
+ * and (D532) the TIMPANI under the game's one timpani rule: the home key's tonic and dominant only, and only at the
+ * structural arrivals (score-drums.ts arrivals: the acts' arrivals, the home cadences, the final chord, where the bass is on
+ * the tonic or the dominant), with the rolls into them (D524 had them strike each bar on the bass's own note). Busoni's
+ * level shades it within ±4 dB (jazz-drums.ts dynGain); in his p (or an episode) the QUIET pattern: the bass drum on 1, the
+ * snare soft, no tambourine.
  *
  * THE FORM (petPlan, from form-points.ts alone: formOf's seams and the entries it reads):
- *   - a FILL into each subject entry after the first (one beat of a tom fill over a timpani roll, on the bass's note where
- *     the bass sounds; two beats out of an episode),
- *     no two within MIN_GAP_BARS, landed with the bass drum and the timpani;
+ *   - a FILL into each subject entry after the first (one beat of a tom fill, over a timpani roll where it lands on a
+ *     structural arrival; two beats out of an episode),
+ *     no two within MIN_GAP_BARS, landed with the bass drum (and the timpani at an arrival);
  *   - the EPISODES (formOf's) the quiet pattern;
  *   - a BREAK before the final group's first entry: a bar with no drums, a single pick-up snare at its end;
  *   - the CLOSING FLOURISH: a timpani roll with the toms into the last chord, struck (bass drum, timpani, the crash), then
@@ -26,6 +27,7 @@
 import type { TouchFugue } from "./fugue.ts";
 import { formOf } from "./form-points.ts";
 import { dynGain } from "./jazz-drums.ts";
+import { arrivals } from "./score-drums.ts";
 
 export type PetKind = "fill" | "break" | "final";
 export interface PetMoment {
@@ -37,8 +39,10 @@ export interface PetMoment {
 export interface PetPlan {
   moments: PetMoment[];
   quiet: [number, number][];
-  /** The bass voice's notes (on, end, MIDI), for the timpani's tuning. */
+  /** The bass voice's notes (on, end, MIDI). */
   bass: [number, number, number][];
+  /** D532: the structural arrivals where the timpani may play (score-drums.ts arrivals: the bass on the home tonic or dominant), with the drum's pitch. */
+  timp?: { tick: number; midi: number }[];
   end: number;
 }
 /** No two fills within this many bars. */
@@ -91,7 +95,10 @@ export function petPlan(f: TouchFugue, beat: number, per: number): PetPlan {
   }
   moments.sort((a, b) => a.at - b.at);
   const low = f.voices[f.voices.length - 1] ?? [];
-  const plan: PetPlan = { moments, quiet, bass: low.map((n) => [n[0], n[0] + n[1], n[2]]), end: f.length };
+  const timp = arrivals(f)
+    .filter((a) => a.midi !== null && a.kind !== "pedal")
+    .map((a) => ({ tick: floorBeat(a.tick), midi: a.midi! }));
+  const plan: PetPlan = { moments, quiet, bass: low.map((n) => [n[0], n[0] + n[1], n[2]]), end: f.length, timp };
   memo.set(key, plan);
   return plan;
 }
@@ -127,11 +134,13 @@ export function petBeat(b: number, per: number, compound: boolean, tick: number,
   const subs = compound ? [0, 1 / 3, 2 / 3] : [0, 0.5];
   const fin = plan.moments.find((m) => m.kind === "final");
   if (fin && tick > fin.at + half) return hits;
-  const bass = bassAt(plan, tick + 1);
-  // A stroke only where the bass sounds, on its pitch class: never a pitch of the timpani's own.
-  const timp = (vel: number, at = 0): PetHit => ({ piece: "timp", at, vel: bass === null ? 0 : vel, midi: timpPitch(bass ?? TIMP_LO) });
+  // D532: THE TIMPANI RULE (as every timpani in the game): the home key's tonic and dominant only, and only at the
+  // structural arrivals (score-drums.ts arrivals) and in the rolls into them; no longer each bar's stroke on the bass's note.
   const land = plan.moments.find((m) => Math.abs(tick - m.at) < half);
   const roll = plan.moments.find((m) => tick >= m.from - half && tick < m.at - half);
+  const arrivalAt = (t: number) => plan.timp?.find((a) => Math.abs(a.tick - t) < half) ?? null;
+  const drum = arrivalAt(roll ? roll.at : tick);
+  const timp = (vel: number, at = 0): PetHit => ({ piece: "timp", at, vel: drum ? vel : 0, midi: drum?.midi ?? TIMP_LO });
   if (roll?.kind === "break") {
     if (tick + beat >= roll.at - half) hits.push({ piece: "snare", at: subs[subs.length - 1], vel: 0.45 * g });
     return hits;
@@ -157,7 +166,6 @@ export function petBeat(b: number, per: number, compound: boolean, tick: number,
   if (!quiet && per === 4 && b === 1) hits.push({ piece: "kick", at: subs[subs.length - 1], vel: 0.28 * g });
   if (back) hits.push({ piece: "snare", at: 0, vel: (per === 3 && b === 2 ? 0.38 : 0.48) * (quiet ? 0.7 : 1) * g });
   if (!quiet) for (const s of subs) hits.push({ piece: "tamb", at: s, vel: (s === 0 ? (back ? 0.42 : 0.32) : 0.24) * g });
-  if (!quiet && b === 0) hits.push(timp(0.32 * g));
   if (land) {
     const fv = land.kind === "final" ? 0.7 : 0.6;
     for (const h of hits) if (h.at === 0 && (h.piece === "kick" || h.piece === "timp")) h.vel = 0;

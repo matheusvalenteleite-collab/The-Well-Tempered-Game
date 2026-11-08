@@ -75,6 +75,11 @@ export function Credits({ onClose }: { onClose(): void }) {
           Drum Sample Set 1 (Seven Graylands / The Tic Tok Men, after S. Christian Collins; Sequential Drumtraks, Casio RZ-1, Roland
           CR-8000; offered for free use). SFZ ports by kinwie and the sfzinstruments project.
         </p>
+        <p>
+          The period and orchestral drums (D532): the rope-tension side drum, field drum and tabor, the frame drums, tambourine, bass
+          drum, clash cymbals and triangle from the Versilian Community Sample Library (Versilian Studios; github.com/sgossner/VCSL;
+          CC0); the castanets from FreePats World Percussion (recorded by Xavimart, Gonzalo and Roberto; freepats.zenvoid.org; CC0).
+        </p>
         <button onClick={onClose}>{t("ui.close")}</button>
       </div>
     </div>
