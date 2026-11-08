@@ -65,7 +65,9 @@ test("D540: each band has its v2 beside it, in no default and offered nowhere bu
     assert.ok(!PRESETS.includes(v), `${band}: the v2 not among the players' sounds`);
     assert.ok(!o.chain && !o.slim, `${band}: the original unchanged`);
     assert.equal(baseSound(v.id), band);
-    assert.equal(creditFor(v.id), creditFor(band));
+    // D546-D548: a rebuilt v2 credits its own recordings (SALSA, BOSSA NOVA, CHORINHO: no piano, other instruments).
+    if (["salsa", "bossaNova", "chorinho"].includes(band)) assert.ok(creditFor(v.id) && creditFor(v.id) !== creditFor(band));
+    else assert.equal(creditFor(v.id), creditFor(band));
     assert.equal(expressiveAll(v.id), expressiveAll(band));
   }
   assert.equal(baseSound("pianoSampled"), "pianoSampled");

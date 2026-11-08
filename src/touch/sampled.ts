@@ -158,6 +158,10 @@ export const PERIOD: Record<string, Bake> = {
   // on the made loop) and the electric bass (Karoryfer's Black And Blue "babyblue", picked: Carol Kaye's pick on a P-bass's
   // kind of line), at full fidelity as the consort's; the bass's floor at 40 Hz (its E1 is 41 Hz).
   petStrings: { folder: "violaSus", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D547, BOSSA NOVA v2: Iowa's alto flute (tools/playback/bossa/build_altoflute.py: every minor third G3-Db6 and F6, held to
+  // 4.3 s as BACH BRASS's notes) and Karoryfer's tenor saxophone (sax/, the Lab's), each held on the made loop.
+  bossaAltoFlute: { folder: "altoFlute", rate: 32000, lp: 11000, bits: 16, loop: true },
+  bossaSax: { folder: "sax", rate: 32000, lp: 11000, bits: 16, loop: true },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -212,6 +216,8 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   brassHornP: { F2: -37.9, Gs2: -7.5, B2: -6.3, D3: 18.5, F3: 12.5, Gs3: -8.7, B3: -3.2, D4: 7.1, F4: 15.8, Gs4: 2.6, B4: 3.8, D5: -18.5, F5: -3.0 },
   brassBass: { As1: 11.5, C2: 26.6, Ds2: 14.6, Fs2: 1.3, A2: 9.3, C3: -5.0, Ds3: -3.5, Fs3: -32.7, A3: 1.1, C4: 4.2, Ds4: 17.8, G4: 0.0 },
   brassBassP: { As1: 3.1, C2: 3.6, Ds2: -11.9, Fs2: -7.7, A2: -12.2, C3: -0.3, Ds3: 0.8, Fs3: -13.0, A3: 5.7, C4: -3.7, Ds4: 9.4, G4: -16.2 },
+  // D547 (build_altoflute.py: autocorrelation over 0.4-1.6 s of each note as built; Iowa's alto flute plays sharp at ff, up to a third of a semitone).
+  altoFlute: { G3: 4.4, As3: -9.8, Cs4: -16.6, E4: 17.6, G4: 27.6, As4: -0.8, Cs5: 5.6, E5: 21.2, G5: 30.4, As5: 32.7, Cs6: 25.4, F6: 29.6 },
   choirAahs: { B3: -12.4, B4: -0.3, D4: -20.2, D5: -25.3, F3: -25.7, F4: -11.9, F5: -4.4, Gs3: -32.1, Gs4: 6.8 },
   // D504 (tools/playback/trio/build_trio.py): Iowa's notes retuned to their names by resampling (measured over each
   // note's steady stretch: within 0.5 cent after; checked again by their harmonics' peaks: within 3 cents); VSCO's
@@ -257,6 +263,8 @@ const SHORT: Record<string, Record<string, number>> = {
   soloTenor: Object.fromEntries((SAMPLE_MANIFEST.soloTenor?.notes ?? []).map((n) => [n, 3.25])),
   soloBass: Object.fromEntries((SAMPLE_MANIFEST.soloBass?.notes ?? []).map((n) => [n, 3.25])),
   choirAahs: Object.fromEntries((SAMPLE_MANIFEST.choirAahs?.notes ?? []).map((n) => [n, 3.08])),
+  // D547: build_altoflute.py's notes, every one 4.3 s.
+  altoFlute: allOf("altoFlute", 4.3),
   // D504: build_trio.py's lengths.
   trioOboe: allOf("trioOboe", 3.4),
   trioOboeMf: allOf("trioOboeMf", 3.4),
@@ -496,7 +504,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -695,6 +703,10 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D524, PET SOUNDS: the string section held on its loop, retuned 3 semitones at most (recorded every major or minor third);
   // its bass is ABBEY ROAD's (rockBass: the same picked babyblue, D523's trims).
   petStrings: { set: "petStrings", plucked: false, gain: 2.2, maxShift: 3 },
+  // D547, BOSSA NOVA v2: the alto flute (every minor third: 1.5 semitones at most to the nearest, 3 past its compass, then an
+  // octave nearer) and the tenor saxophone (every minor third Cs3-G5), each held on its made loop.
+  bossaAltoFlute: { set: "bossaAltoFlute", plucked: false, gain: 2.2, maxShift: 3 },
+  bossaSax: { set: "bossaSax", plucked: false, gain: 2.2, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
