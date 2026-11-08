@@ -43,6 +43,8 @@ export const PT: Record<string, string> = {
   // D502: BACH BRASS.
   "BACH BRASS": "METAIS DE BACH",
   // D503: JAZZ QUARTET (the trials' MODERN JAZZ QUARTET, remade and offered).
+  // D524: PET SOUNDS (the album's title, as it is known in Portuguese and Spanish).
+  "PET SOUNDS": "PET SOUNDS",
   "JAZZ QUARTET": "QUARTETO DE JAZZ",
   // D520: SALSA.
   "SALSA": "SALSA",

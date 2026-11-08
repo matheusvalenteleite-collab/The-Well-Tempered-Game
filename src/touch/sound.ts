@@ -679,6 +679,15 @@ export const SALSA_BASS_PHONE_LIFT = { hz: 320, db: 15, cut: 280 } as const;
 export const BOSSA_SEND = 0.15;
 export const BOSSA_GUITAR_PHONE_LIFT = { hz: 700, db: 5 } as const;
 export const BOSSA_PIANO_SHELF = { hz: 2800, db: -2 } as const;
+/**
+ * D524, PET SOUNDS (Brian Wilson's 1966 sessions: the Wrecking Crew with strings, horns and keyboards): one echo chamber
+ * (chip.ts REVERBS.goldStar) at one send (PET_SEND), the bass nearly dry (PET_BASS_SEND: the records' bass close and
+ * plain); the picked electric bass's upper partials lifted on a phone (PET_BASS_PHONE_LIFT: the pick's click and the
+ * string's growl are what a small speaker hears of it).
+ */
+export const PET_SEND = 0.2;
+export const PET_BASS_SEND = 0.04;
+export const PET_BASS_PHONE_LIFT = { hz: 500, db: 11 } as const;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1270,6 +1279,14 @@ export const PATCHES = {
   bnGuitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 3, q: 0.7, env: 2, envDecay: 0.15 }, amp: { a: 0.002, d: 1.2, s: 0, r: 0.1 }, send: BOSSA_SEND, level: 0.5, sample: "bossaGuitar", one: {}, phoneLift: BOSSA_GUITAR_PHONE_LIFT }),
   bnPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: BOSSA_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: BOSSA_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   bnBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: BOSSA_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  // D524, PET SOUNDS: the string section on top (VSCO's viola section, bowed: STRING_BOW), the horn (Iowa's, its two
+  // layers: BACH BRASS's), the harpsichord (VCSL's), the grand (with Busoni's reading), the picked electric bass; one echo
+  // chamber, one send, the player's line the band's (Patch.one). The `osc`/`amp` stand in until a recording has loaded.
+  psStrings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.07, d: 0.2, s: 0.9, r: 0.18 }, rec: { a: 0.07, d: 0.2, s: 0.9, r: 0.18 }, send: PET_SEND, level: 0.5, sample: "petStrings", bow: STRING_BOW, one: {} }),
+  psHorn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.14 }, rec: { a: 0.02, d: 0.1, s: 0.92, r: 0.14 }, send: PET_SEND, level: 1.6, sample: "brassHorn", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_HORN_PHONE_LIFT }),
+  psHarpsi: P({ ...HARPSI_SAMPLED, send: PET_SEND }),
+  psPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: PET_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, phoneLift: PIANO_PHONE_LIFT }),
+  psBass: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "sine" }], filter: { freq: 2.5, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1, s: 0, r: 0.06 }, send: PET_BASS_SEND, level: 0.85, sample: "rockBass", one: {}, phoneLift: PET_BASS_PHONE_LIFT }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1285,12 +1302,14 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
   | "abbeyRock"
   | "motorik"
   // D521: BOSSA NOVA's drums (bossa-drums.ts: the bossa on the score's eighths, the piece's form).
-  | "bossaNova";
+  | "bossaNova"
+  // D524: PET SOUNDS' drums (pet-drums.ts: a 1966 ballad's kit, the tambourine, the timpani's rhythm, the piece's form).
+  | "petSounds";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums); D520/D522: the recorded Latin percussion (VCSL); D523: the rock kit. */
-export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin" | "rock" | "bossa";
+export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin" | "rock" | "bossa" | "pet";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
-export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "studio" | "inner" | "bossa";
+export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "studio" | "inner" | "bossa" | "goldStar";
 
 export interface Preset {
   id: string;
@@ -1803,6 +1822,33 @@ export const PRESETS: Preset[] = [
       5: [["bnFlute", -0.18, 0.56], ["bnPiano", 0.14, 1.19], ["bnPiano", 0.2, 1.19], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
     },
   },
+  // D524, PET SOUNDS: the string section on the top voice, the horn on the upper middle, the grand on the lower middle,
+  // the picked electric bass on the bass; five voices the harpsichord between the strings and the horn; and the drums
+  // (groove "petSounds": pet-drums.ts, always with this sound, never with another). Each instrument one of Bach's voices,
+  // nothing added; the timpani rhythm only. Seated as a 1966 session within ±0.2, seen from the room: the strings left,
+  // the harpsichord right, the horn a little left of centre, the piano right of centre, the bass in the middle, the kit
+  // behind a little left, the timpani behind right (PET_DRUMS.pan); one echo chamber (REVERBS.goldStar) at one send. Each voice's level measured (D524: I/17
+  // b. 6-20, each voice alone: the bass 6 dB over the others on a computer, the piano 2-3 under).
+  {
+    id: "petSounds",
+    name: "PET SOUNDS",
+    // D524 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top, with D508's balance): -1.8 dB, and on a phone 1.3 dB more
+    // (measured +1.8 over the offered ensembles' median on a computer, +3.1 through the phone model).
+    gain: 0.81,
+    phoneGain: 0.86,
+    slots: ["psStrings", "psHarpsi", "psHorn", "psPiano", "psBass"],
+    groove: "petSounds",
+    kit: "pet",
+    room: 0,
+    fx: "goldStar",
+    by: {
+      1: [["psPiano", 0]],
+      2: [["psStrings", -0.14], ["psBass", 0.02, 0.6]],
+      3: [["psStrings", -0.18], ["psPiano", 0.14, 1.4], ["psBass", 0.02, 0.6]],
+      4: [["psStrings", -0.18], ["psHorn", -0.04, 1.12], ["psPiano", 0.14, 1.4], ["psBass", 0.02, 0.6]],
+      5: [["psStrings", -0.18], ["psHarpsi", 0.2], ["psHorn", -0.04, 1.12], ["psPiano", 0.12, 1.4], ["psBass", 0.02, 0.6]],
+    },
+  },
 ];
 
 /**
@@ -1853,7 +1899,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "soloVoices", "vocalSynth", "trialWinds"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -1993,6 +2039,8 @@ export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 
 export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D521: BOSSA NOVA's (the Iowa guitar and bass: free for any use; VSO2's flute: CC BY 3.0; the grand's; the brushes and Big Rusty's kit: CC0). */
 export const BOSSA_CREDIT = `GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · FLUTE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · ${PIANO_CREDIT} · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0`;
+/** D524: PET SOUNDS' (VSCO's strings and timpani, VCSL's harpsichord, Karoryfer's bass and kits: CC0; Iowa's horn; the grand's). */
+export const PET_CREDIT = `STRINGS, TIMPANI: VS CHAMBER ORCHESTRA 2 CE · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0`;
 /** D502: BACH BRASS's (University of Iowa MIS: free for any use, credit given as asked of good practice). */
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
@@ -2006,7 +2054,7 @@ const ROCK_RHYTHM_CREDIT = "BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY DRUM
 const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0";
 export const ABBEY_ROAD_CREDIT = `GUITARS: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · ${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 export const KRAUTROCK_CREDIT = `${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
-const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT };
+const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
@@ -2174,6 +2222,11 @@ export function grooveHits(g: Groove, b: number, bar: number, per: number, compo
     case "choroBand":
       for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.3 : 0.45 });
       if (back) out.push({ drum: "kick", at: 0, vel: 0.4 });
+    // D524: PET SOUNDS' drums, synthesized where the recordings are not loaded (chip.ts petDrums plays pet-drums.ts on them).
+    case "petSounds":
+      if (b === 0 || (per === 4 && b === 2)) out.push({ drum: "kick", at: 0, vel: 0.55 });
+      if (back) out.push({ drum: "snare", at: 0, vel: 0.45 });
+      for (const s of subs) out.push({ drum: "shaker", at: s, vel: s ? 0.25 : 0.35 });
       break;
     // D521: BOSSA NOVA's drums, synthesized where the recordings are not loaded (chip.ts bossaDrums plays bossa-drums.ts on them).
     case "bossaNova": {

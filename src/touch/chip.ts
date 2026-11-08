@@ -23,6 +23,7 @@ import { brushDb, brushFills, drumPiece, drumStyleFor, keyFor, kitBeat, type Dru
 import { formOf } from "./fugue-form.ts";
 import { formOf as rockFormOf, rockBeat, type KitPiece as RockPiece, type RockStyle } from "./rock-drums.ts";
 import { bossaBeat, bossaPlan } from "./bossa-drums.ts";
+import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
 import type { TouchFugue } from "./fugue.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
@@ -228,6 +229,10 @@ export const REVERBS: Record<Exclude<FxKind, "spc" | "echo">, Reverb> = {
   // D521, BOSSA NOVA's studio: a small, warm room of the Rio and New York sessions (the players close, a short plate-like
   // tail): the first reflection 15 ms on, RT60 0.95 s (on a phone 0.65 s), darkening, the bass's line in it from 150 Hz,
   // nothing over 5.5 kHz (the flute's breath and the guitar's nails not glittering). Sent BOSSA_SEND (sound.ts).
+  // D524, PET SOUNDS' room: the echo chamber of a 1966 Hollywood session (Gold Star's, Western's): a live, bright-ish tail
+  // (RT60 1.5 s, on a phone 0.95 s), the first reflection 20 ms on, nothing under 160 Hz in it (the bass's line dry, as the
+  // records kept it) and nothing over 6 kHz. Sent PET_SEND (sound.ts); the snare and the timpani a good share of it.
+  goldStar: { predelay: 0.02, hp: 160, lp: 6000, seconds: 1.6, phoneSeconds: 1.0, rt60: 1.5, phoneRt60: 0.95, brightness: 0.4 },
   bossa: { predelay: 0.015, hp: 150, lp: 5500, seconds: 1.0, phoneSeconds: 0.75, rt60: 0.95, phoneRt60: 0.65, brightness: 0.36 },
 };
 /**
@@ -248,6 +253,27 @@ export const JAZZ_DRUMS = {
   ride: 0.3,
   foot: 0.32,
   pan: { tap: -0.06, stir: -0.06, flutter: -0.06, ride: -0.14, foot: 0.02 },
+} as const;
+/**
+ * D524, PET SOUNDS' drums (chip.ts Chip.petDrums: pet-drums.ts on petKit and the timpani): each piece's level (the files as
+ * recorded), the kit's `level` (measured: where JAZZ QUARTET's brushes sit against their band), a phone's share, the cut
+ * under `hp` Hz (the bass's room; the bass drum's and the timpani's own `lowHp`, their thump kept), each piece's share of
+ * the echo chamber, and the seats (the kit behind, a little left; the timpani behind, right).
+ */
+export const PET_DRUMS = {
+  level: 3.5,
+  phone: 1.8,
+  hp: 150,
+  lowHp: 45,
+  kick: 0.5,
+  snare: 0.35,
+  tomHigh: 0.35,
+  tomLow: 0.4,
+  crash: 0.22,
+  tamb: 0.3,
+  timp: 0.55,
+  send: { kick: 0.04, snare: 0.3, tomHigh: 0.2, tomLow: 0.2, crash: 0.15, tamb: 0.12, timp: 0.25 },
+  pan: { kick: -0.06, snare: -0.08, tomHigh: -0.12, tomLow: -0.02, crash: -0.14, tamb: 0.1, timp: 0.16 },
 } as const;
 /**
  * D521, BOSSA NOVA's drums (chip.ts Chip.bossaDrums: bossa-drums.ts on the brush kit and Big Rusty's cross-stick and bass
@@ -284,7 +310,7 @@ export interface GrooveContext {
   dynDb?: number;
   /** D520/D522: the piece's plan for SALSA's and CHORINHO's percussion (latin-drums.ts latinPlan). */
   latin?: LatinPlan;
-  /** D514, D523: the piece (the drum presets read its form, its keys, its chosen drummer; ABBEY ROAD's and KRAUTROCK's drums its form: rock-drums.ts formOf; D521: BOSSA NOVA's its form: bossa-drums.ts bossaPlan). */
+  /** D514, D523: the piece (the drum presets read its form, its keys, its chosen drummer; ABBEY ROAD's and KRAUTROCK's drums its form: rock-drums.ts formOf; D521: BOSSA NOVA's its form: bossa-drums.ts bossaPlan; D524: PET SOUNDS' its form and its bass, pet-drums.ts petPlan). */
   piece?: TouchFugue;
 }
 
@@ -1865,12 +1891,15 @@ export class Chip {
     const want = style ? kitFiles(style) : [];
     const brushes = grooveNow()?.kit === "brushes" || grooveNow()?.kit === "bossa" || style === "brushes";
     plans.push([{ set: BRUSH_SET, notes: brushes ? [...BRUSH_MIDIS] : [] }]);
-    for (const set of ["kitRock", "kitClub", TIMP_SET]) plans.push([{ set, notes: want.find((w) => w.set === set)?.notes ?? [] }]);
+    // D524: PET SOUNDS' own (DRUMS off): the tambourine (the club kit's) and the timpani (TIMP_SET), its kit the rock kit's.
+    const pet = !style && grooveNow()?.kit === "pet";
+    const petWants: Record<string, number[]> = pet ? { kitClub: [kitMidi("kitClub", "tambourine", false)!, kitMidi("kitClub", "tambourine", true)!], [TIMP_SET]: [...TIMP_MIDIS] } : {};
+    for (const set of ["kitRock", "kitClub", TIMP_SET]) plans.push([{ set, notes: [...new Set([...(want.find((w) => w.set === set)?.notes ?? []), ...(petWants[set] ?? [])])] }]);
     // D520/D522: SALSA's or CHORINHO's own percussion (its band's pieces), with DRUMS off; with DRUMS on the chosen drummer's instead.
     const gl = grooveNow();
     plans.push([{ set: LATIN_SET, notes: !style && gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? latinMidis(LATIN_GROOVE[gl.groove]) : [] }]);
     // D523: ABBEY ROAD's and KRAUTROCK's kit (18 short files), let go under any other sound.
-    plans.push([{ set: ROCK_KIT_SET, notes: grooveNow()?.kit === "rock" ? [...ROCK_KIT_MIDIS] : [] }]);
+    plans.push([{ set: ROCK_KIT_SET, notes: grooveNow()?.kit === "rock" || pet ? [...ROCK_KIT_MIDIS] : [] }]);
     const kit = grooveNow()?.kit;
     // D521: BOSSA NOVA's cross-stick and bass drum (4 short files), with the brushes.
     plans.push([{ set: BOSSA_KIT_SET, notes: kit === "bossa" ? [...BOSSA_KIT_MIDIS] : [] }]);
@@ -3382,6 +3411,8 @@ export class Chip {
     if (gr.kit === "rock") return (this.rockDrums(ROCK_GROOVES[gr.groove] ?? "abbey", at, beatS, b, per, compound, cx), true);
     // D521: BOSSA NOVA's drums: the bossa on the score's eighths, the piece's form (bossa-drums.ts), recorded.
     if (gr.kit === "bossa") return (this.bossaDrums(at, beatS, b, per, compound, cx), true);
+    // D524: PET SOUNDS' drums: the ballad's kit, the tambourine, the timpani on the bass's note; the piece's form (pet-drums.ts).
+    if (gr.kit === "pet") return (this.petDrums(at, beatS, b, per, compound, cx), true);
     for (const h of grooveHits(gr.groove, b, bar, per, compound)) this.drum(h.drum, at + h.at * beatS, h.vel, gr.kit);
     return true;
   }
@@ -3780,6 +3811,68 @@ export class Chip {
     src.connect(g).connect(this.brushOut(bag, BOSSA_DRUMS.pan[piece], BOSSA_DRUMS, piece === "kick" ? BOSSA_DRUMS.kickHp : BOSSA_DRUMS.hp));
     src.start(t, rec.onset);
     halt(src, t + 0.9);
+  }
+
+  /** D524: one beat of PET SOUNDS' drums (pet-drums.ts petBeat, the piece's plan); without the piece the pattern alone. */
+  private petDrums(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext) {
+    const beat = cx?.beat ?? 1;
+    const f = cx?.piece;
+    const plan = f ? petPlan(f, beat, per) : { moments: [], quiet: [], bass: [], end: Infinity };
+    for (const h of petBeat(b, per, compound, cx?.tick ?? 0, beat, plan, cx?.dynDb ?? 0)) this.petHit(h, at + h.at * beatS);
+  }
+
+  /** D524: one stroke: the soft or the firm recording by its strength, the timpani's drum nearest its pitch (retuned to it). */
+  private petHit(h: PetHit, at: number) {
+    this.brushLog.push({ piece: h.piece, at, vel: h.vel });
+    if (this.brushLog.length > 512) this.brushLog.splice(0, 256);
+    const ctx = this.ctx;
+    const t = Math.max(at, ctx.currentTime);
+    const firm = h.vel >= 0.45 ? 1 : 0;
+    let set: string = ROCK_KIT_SET;
+    let m: number;
+    let rate = 1;
+    // (the timpani's loud recordings only, D514's: their soft layer uneven; a soft stroke the loud one at its level)
+    let scale = firm ? 0.56 : 1;
+    if (h.piece === "timp") {
+      set = TIMP_SET;
+      const want = h.midi ?? TIMP_MIDIS[0];
+      m = TIMP_MIDIS.reduce((a, x) => (Math.abs(x - want) < Math.abs(a - want) ? x : a), TIMP_MIDIS[0]);
+      rate = 2 ** ((want - m) / 12);
+      scale = 0.56;
+    } else if (h.piece === "tamb") {
+      set = "kitClub";
+      m = kitMidi("kitClub", "tambourine", firm === 1)!;
+    } else m = rockKitMidi(h.piece, firm === 1);
+    const rec = loaded(set, m);
+    if (!rec) {
+      loadOne(ctx, set, m);
+      const stand: Record<PetHit["piece"], Drum> = { kick: "kick", snare: "snare", tomHigh: "snare", tomLow: "kick", crash: "ride", tamb: "shaker", timp: "kick" };
+      return this.drum(stand[h.piece], t, h.vel * 0.6);
+    }
+    const bag = new Bag();
+    const src = bag.src(ctx.createBufferSource());
+    src.buffer = rec.buffer;
+    src.playbackRate.value = rate;
+    const g = bag.add(ctx.createGain());
+    // The firm recordings are about 5 dB over the soft as recorded: scaled so `vel` alone sets the loudness.
+    g.gain.value = PET_DRUMS[h.piece] * h.vel * scale;
+    const hp = bag.add(ctx.createBiquadFilter());
+    hp.type = "highpass";
+    hp.frequency.value = h.piece === "kick" || h.piece === "timp" ? PET_DRUMS.lowHp : PET_DRUMS.hp;
+    hp.Q.value = 0.7;
+    const lv = bag.add(ctx.createGain());
+    lv.gain.value = PET_DRUMS.level * (this.phone ? PET_DRUMS.phone : 1);
+    src.connect(g).connect(hp).connect(lv);
+    let out: AudioNode = lv;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = PET_DRUMS.pan[h.piece];
+      out = lv.connect(p);
+    }
+    out.connect(this.master);
+    this.fxSend(out, PET_DRUMS.send[h.piece], bag);
+    src.start(t, rec.onset);
+    halt(src, t + (h.piece === "crash" ? 3 : h.piece === "timp" ? 2.5 : 1.5));
   }
 
   private roomTo() {

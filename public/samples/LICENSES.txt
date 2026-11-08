@@ -184,3 +184,6 @@ Processing (tools/playback/bossa/build_bossa.py): resampled 96 to 44.1 kHz; the 
          each note's loudness over its first 0.4 s (K-weighted) evened, both sets at one gain (the loudest peak at -1 dBFS); a cut whose
          evened peak stood over 3 times the median left out; tuning measured into src/touch/sampled.ts (about 20 cents flat as tuned);
          mono 44.1 kHz 64 kbit/s MP3. About 1.8 MB in all.
+D524, the touch game's PET SOUNDS: no new files. Its strings are violaSus/, its horn brassHorn/ and brassHornP/, its harpsichord
+         harpsichord/, its piano grand/, its electric bass rickBass/ (ABBEY ROAD's), its kit drums/bigRusty/, its tambourine
+         drums/virtuosity/ and its timpani timpani/ (D514's), all above.

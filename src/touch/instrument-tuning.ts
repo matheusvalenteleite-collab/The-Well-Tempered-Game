@@ -44,6 +44,8 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   abbeyRoad: { id: "equal", a: 440 },
   krautrock: { id: "equal", a: 440 },
   bossaNova: { id: "equal", a: 440 },
+  // D524: PET SOUNDS: a 1966 Hollywood session, equal at A = 440.
+  petSounds: { id: "equal", a: 440 },
 };
 /** Every other sound (the consoles, the synthesizers): equal temperament, A = 440. */
 export const TUNING_FALLBACK: TuningAt = { id: "equal", a: 440 };

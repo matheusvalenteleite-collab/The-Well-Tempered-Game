@@ -77,6 +77,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["krautrock", "KRAUTROCK"],
   // D521: BOSSA NOVA (the flute, the nylon guitar, the piano, the upright bass and its drums).
   ["bossaNova", "BOSSA NOVA"],
+  // D524: PET SOUNDS (the strings, the horn, the harpsichord, the piano, the electric bass, its drums and timpani).
+  ["petSounds", "PET SOUNDS"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

@@ -87,6 +87,8 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "abbeyRoad" || presetId === "krautrock") return "plucked";
   // D521: BOSSA NOVA likewise (the guitar, the piano and the bass plucked or struck; the flute tongued: Patch.bow).
   if (presetId === "bossaNova") return "plucked";
+  // D524: PET SOUNDS on top its strings and its horn (bowed, tongued: Patch.bow), as the consort.
+  if (presetId === "petSounds") return "bowed";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }

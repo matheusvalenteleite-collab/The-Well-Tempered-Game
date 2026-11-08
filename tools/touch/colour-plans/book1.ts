@@ -399,8 +399,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f17: {
-    sound: "chamberOrgan",
-    soundWhy: "'Noble and warm, organ- or choral-like; solemnly slow' (Keller): four voices with a reprise (Ledbetter 27-35) that a plenum crowns.",
+    sound: "petSounds",
+    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the piano, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
@@ -509,8 +509,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f24: {
-    sound: "stringConsort",
-    soundWhy: "D510 (NOCTURNE 32-BIT withdrawn): 'a solemn, broad largo, laden with Affekt' (Keller): STRING CONSORT's quartet sustains the sighs one to a part, as the string-quartet arrangements of Förster and Mozart's circle played it.",
+    sound: "harpsichordSampled",
+    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): four voices whose sighing pairs the two manuals keep distinct, each line clear as the plucked string sounds it; the largo's weight on the coupled unison, the 8′ for the long episodes (16-21, 24-30, 63-69), the full harpsichord for the last entries (69-74). STRING CONSORT, its sound since D510, a choice away.",
     character: "Long episodes (16-21, 24-30, 63-69) between the entries; a cadence in F♯ minor (24); the last entries 69-74.",
     plans: {
       stringConsort: [
