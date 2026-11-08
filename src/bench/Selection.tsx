@@ -11,7 +11,7 @@
  * play) and a big ▶ PLAY under the right thumb. The first visit (nothing played, no lesson done): the
  * TUTORIAL glows, the grid is dimmed but works, and the right column says in one sentence where to start.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { FugueAbout } from "./FugueAbout.tsx";
 import type { Performed } from "./HearSubject.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
@@ -79,7 +79,18 @@ export interface SelectionProps {
   /** D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE: the sound's play, and its stop (the box closed). */
   subject?: { play: (notes: Performed, voice: number) => Promise<number>; stop: () => void };
   /** D450 (the owner: "Move the DRUMS button to the right column … 3 DRUM presets … the player can cycle through"): on or off, and the piece's presets. */
-  drums?: { on: boolean; toggle: () => void; presets: readonly { id: string; name: string }[]; preset?: string; cycle: () => void };
+  drums?: {
+    on: boolean;
+    toggle: () => void;
+    /** D453: the whole menu (drum-library.ts drumMenuFor: HOME first, then the sound's family, then every other style). */
+    presets: readonly { id: string; name: string; family?: string; home?: boolean; fits?: boolean }[];
+    preset?: string;
+    /** D453: how many of the menu the quick round goes through (HOME and the sound's family); all where unset. */
+    quick?: number;
+    cycle: () => void;
+    /** D453: a style chosen in MORE's grid. */
+    choose?: (id: string) => void;
+  };
   /** Design studio (D463): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
   sound?: { locked?: boolean; value: string; name: string; sounds: readonly (readonly [id: string, name: string])[]; own?: string; set: (id: string) => void };
 }
@@ -323,6 +334,9 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
   const nick = fugueName(piece, lang());
   const grade = best[piece] ?? bestOld[piece];
   const [about, setAbout] = useState(false);
+  // D453: DRUMS' grid open, and the style playing now.
+  const [drumGrid, setDrumGrid] = useState(false);
+  const nowDrum = drums ? (drums.presets.find((d) => d.id === drums.preset) ?? drums.presets[0]) : undefined;
   const aboutable = f.kind === "fugue" && wtc;
   // D445: the best in the voice chosen (another voice's is its own).
   const mine = bestScore(scores, piece, voice);
@@ -424,23 +438,97 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
         </button>
       )}
       {drums && (
+        <>
+        <p className="sel-ask sel-drums-ask">{tr("DRUMS")}</p>
         <div className="sel-drums" id="sel-drums" role="group" aria-label={tr("DRUMS")}>
-          <button type="button" id="sel-drums-on" className={`sel-knob sel-drums-on${drums.on ? " on" : ""}`} aria-pressed={drums.on} onClick={drums.toggle}>
-            <span className="sel-knob-k">{tr("DRUMS")}</span>
-            <b>{drums.on ? tr("ON") : tr("OFF")}</b>
+          {/* D453 (the owner: every drum style for every fugue, quick to reach): ON/OFF; the style's name, a tap the next of HOME and the sound's family; MORE, every style. */}
+          <button type="button" id="sel-drums-on" className={`sel-knob sel-drums-on${drums.on ? " on" : ""}`} role="switch" aria-checked={drums.on} aria-label={`${tr("DRUMS")}: ${drums.on ? tr("ON") : tr("OFF")}`} onClick={drums.toggle}>
+            <span className="sel-switch" aria-hidden="true">
+              <i />
+            </span>
           </button>
           {drums.presets.length > 1 && (
-            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-label={`${tr("DRUMS")}: ${drums.presets.find((d) => d.id === drums.preset)?.name ?? drums.presets[0].name}`} onClick={drums.cycle}>
-              <span className="sel-knob-k">
-                {tr("STYLE")} {Math.max(0, drums.presets.findIndex((d) => d.id === drums.preset)) + 1}/{drums.presets.length}
-              </span>
-              <b>{drums.presets.find((d) => d.id === drums.preset)?.name ?? drums.presets[0].name} ↻</b>
+            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-label={`${tr("DRUMS")}: ${nowDrum?.name ?? ""}`} onClick={drums.cycle}>
+              <span className="sel-knob-k">{nowDrum?.home ? tr("HOME") : tr("STYLE")}</span>
+              <b>{nowDrum?.name} ↻</b>
+            </button>
+          )}
+          {drums.presets.length > 1 && drums.choose && (
+            <button type="button" id="sel-drums-more" className="sel-knob sel-drums-more" aria-haspopup="dialog" aria-label={`${tr("MORE")} (${drums.presets.length})`} title={tr("MORE")} onClick={() => setDrumGrid(true)}>
+              <b aria-hidden="true">▦</b>
+              <span className="sel-knob-k">{drums.presets.length}</span>
             </button>
           )}
         </div>
+        </>
       )}
+      {drumGrid && drums?.choose && <DrumGrid drums={drums} close={() => setDrumGrid(false)} />}
       {/* D452 (the owner: "this has become redundant now"): no OPTIONS link; HOW TO PLAY is the left column's own button. */}
       {about && <FugueAbout id={piece} subject={subject} close={() => setAbout(false)} />}
+    </div>
+  );
+}
+
+/** D453: the families in the drum library's order, their names (as the Sound Lab's pad, drum-pad.ts FAMILY_LABEL). */
+const DRUM_FAMILIES: readonly [string, string][] = [
+  ["rock", "ROCK"],
+  ["jazz", "JAZZ"],
+  ["latin", "LATIN · BRAZIL"],
+  ["electronic", "ELECTRONIC"],
+  ["orchestral", "ORCHESTRAL · PERIOD"],
+];
+
+/**
+ * D453, DRUMS' MORE: every style of the drum library for this fugue and sound, as the Sound Lab's pad lays them out:
+ * grouped by family, each a big button with its name, marked HOME (the sound's own) and FITS (idiomatic in the
+ * fugue's metre), the one playing lit. A tap chooses it (and turns the drums on) and the grid stays, so another can
+ * be tried; ✕, the veil or Escape closes it.
+ */
+function DrumGrid({ drums, close }: { drums: NonNullable<SelectionProps["drums"]>; close: () => void }) {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
+    window.addEventListener("keydown", esc, true);
+    return () => window.removeEventListener("keydown", esc, true);
+  }, [close]);
+  return (
+    <div className="tb-pop-veil" onClick={(e) => e.target === e.currentTarget && close()}>
+      <div className="sel-drumgrid" role="dialog" aria-modal="true" aria-label={tr("DRUMS")} id="drum-grid">
+        <header className="sel-drumgrid-head">
+          <h2>{tr("DRUMS")}</h2>
+          <button type="button" id="drum-grid-off" className={`sel-drumgrid-off${drums.on ? "" : " on"}`} aria-pressed={!drums.on} onClick={() => drums.on && drums.toggle()}>
+            {tr("OFF")}
+          </button>
+          <p className="sel-drumgrid-note">{tr("HOME: THIS SOUND'S OWN · FITS: SUITS THIS FUGUE'S METRE")}</p>
+          <button type="button" id="drum-grid-close" className="tg-x" aria-label="Close" onClick={close}>
+            ✕
+          </button>
+        </header>
+        <div className="sel-drumgrid-body">
+          {DRUM_FAMILIES.map(([fam, label]) => {
+            const items = drums.presets.filter((d) => d.family === fam);
+            if (!items.length) return null;
+            return (
+              <section key={fam} className="sel-drumgrid-fam" aria-label={tr(label)}>
+                <h3>{tr(label)}</h3>
+                <div className="sel-drumgrid-pad">
+                  {items.map((d) => {
+                    const on = drums.on && d.id === drums.preset;
+                    return (
+                      <button key={d.id} type="button" id={`drum-${d.id}`} className={`${on ? "on" : ""}${d.home ? " home" : ""}${d.fits ? " fits" : ""}`} aria-pressed={on} onClick={() => drums.choose?.(d.id)}>
+                        <b>{d.name}</b>
+                        <span className="sel-drumgrid-marks">
+                          {d.home && <i className="home">{tr("HOME")}</i>}
+                          {d.fits && <i className="fits">{tr("FITS")}</i>}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
