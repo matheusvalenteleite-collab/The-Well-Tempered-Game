@@ -14,7 +14,7 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
@@ -978,7 +978,7 @@ function retarget(a: AudioParam, v: number, now: number, tau = TOUCH_TAU) {
  * own an octave either side, slimmed as the preset asks (Preset.slim: a plucked one's notes cut at `pluckedS`); every other
  * instrument's sets let go (a set another instrument now plays kept); the drums' sets the sound or the DRUMS `style` plays.
  */
-export function soundPlans(pitches: number[], lead: number[], style: string | null): Plan[] {
+export function soundPlans(pitches: number[], lead: number[], style: string | null, opening?: Opening): Plan[] {
   const now = sampledNow();
   const sl = preset().slim;
   const slimOf = (inst: SampledInstrument): PlanSlim | undefined => (sl ? { rate: sl.rate, ...(inst.plucked && sl.pluckedS ? { maxS: sl.pluckedS } : {}) } : undefined);
@@ -1021,8 +1021,45 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
   for (const set of [BRUSH_SET, "kitRock", "kitClub", "kitPeriod", TIMP_SET, LATIN_SET, ROCK_KIT_SET, BOSSA_KIT_SET]) plans.push([{ set, notes: [...new Set(want.filter((w) => w.set === set).flatMap((w) => w.notes))] }]);
   // D540: a slimmed band's drums at its rate too (their length their own: a cymbal rings).
   if (sl) for (const plan of plans.slice(used.length)) for (const e of plan) if (e.notes.length && !e.slim) e.slim = { rate: sl.rate };
+  // D542: the opening's zones first: for each of the opening's notes the recording its voice's instrument plays it from (the
+  // main set, the pitch guarded as it is played: no neighbours, no layers); the drums soon after (few and short), the rest last.
+  if (opening?.notes.length) {
+    const want = new Map<string, Set<number>>();
+    for (const [v, midi] of opening.notes) {
+      const pt = patchFor(v, opening.count);
+      const inst = pt?.sample ? SAMPLED[pt.sample] : null;
+      if (!inst) continue;
+      const set = setFor(inst, midi);
+      const near = nearestSample(set, guardedPitch(inst, set, midi, !!(pt!.sing || pt!.syllable)));
+      if (near === null) continue;
+      if (!want.has(set)) want.set(set, new Set());
+      want.get(set)!.add(near);
+    }
+    for (let i = 0; i < plans.length; i++)
+      for (const e of plans[i]) {
+        if (!e.notes.length) continue;
+        if (i >= used.length) e.soon = true;
+        else e.first = e.notes.filter((m) => want.get(e.set)?.has(m));
+      }
+  }
   return plans;
 }
+/** D542: the opening's notes (Chip.prepare `opening`): each voice's (voice, pitch) of its first `bars` bars of sound. */
+export interface Opening {
+  count: number;
+  notes: readonly (readonly [voice: number, midi: number])[];
+}
+export function openingOf(f: TouchFugue, bars = 2): Opening {
+  const start = Math.min(...f.voices.flat().map((n) => n[0]));
+  const b0 = [...f.bars].reverse().find((b) => b.on <= start) ?? f.bars[0];
+  const until = f.bars.find((b) => b.n === (b0?.n ?? 1) + bars)?.on ?? f.length;
+  const notes: [number, number][] = [];
+  f.voices.forEach((vs, v) => {
+    for (const n of vs) if (n[0] < until && !notes.some(([w, m]) => w === v && m === n[2])) notes.push([v, n[2]]);
+  });
+  return { count: f.voices.length, notes };
+}
+
 
 export class Chip {
   readonly ctx: AudioContext;
@@ -2156,11 +2193,16 @@ export class Chip {
    * own an octave either side (ORGANO PLENO). A phone keeps less (sampled.ts BUDGET). Notes played
    * before their recording arrives are synthesized.
    */
-  prepare(pitches: number[], lead: number[] = []): Promise<void> {
+  prepare(pitches: number[], lead: number[] = [], opening?: Opening): Promise<void> {
     const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
-    const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null);
-    return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
+    const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null, opening);
+    const staged = plans.map((plan) => loadPlanStaged(this.ctx, plan, phone));
+    // D542: the opening's zones (the first bars' recordings) awaited apart: the first notes with real samples.
+    this.openingReady = Promise.all(staged.map((x) => x.first)).then(() => {});
+    return Promise.all(staged.map((x) => x.all)).then(() => {});
   }
+  /** D542: the last prepare's opening zones loaded (resolved at once where no `opening` was given). */
+  openingReady: Promise<void> = Promise.resolve();
 
   /**
    * The recording to play for pitch `m` of a set: its own if loaded (else asked for), or the nearest loaded within
