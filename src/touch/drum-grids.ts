@@ -48,7 +48,11 @@ export interface GridStyle {
   /** A recorded kit read faster (> 1) or slower, and its top cut (Hz): a sampled break's colour. */
   rate?: number;
   lp?: number;
-  /** The level's share (chip.ts Chip.kit: KIT_DRUMS.level times this; a synthesized kit on chip.ts drum's scale), and on a phone. */
+  /**
+   * The level's share (chip.ts Chip.kit: KIT_DRUMS.level times this; a synthesized kit on chip.ts drum's scale), and on a
+   * phone. D529: each measured alone on I/2 bars 3-14 on the phone model and set to -43 LUFS there, 15.5 dB under the
+   * bands' median (-27.5; JAZZ QUARTET's brushes sit 14.7 under theirs).
+   */
   share: number;
   phone?: number;
   /** A phone's low drums' harmonics (chip.ts KIT_DRUMS.phoneLow: this style's share). */
@@ -83,7 +87,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "open",
     fill: "rock",
     kit: "kitRock",
-    share: 1,
+    share: 0.34,
   },
   // PSYCHEDELIC: loose, cymbal-washed (the ride in eighths, a soft crash on the bar), the floor tom answering the snare.
   psych: {
@@ -94,7 +98,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "crash",
     fill: "rock",
     kit: "kitRock",
-    share: 1,
+    share: 0.32,
   },
   // 6/8 ROCK BALLAD: the triplets on the hats, the kick on 1 and 3, the snare on 2 and 4 (a 12/8 ballad; 4/4 felt in 12/8).
   ballad: {
@@ -105,7 +109,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "ride",
     fill: "rock",
     kit: "kitRock",
-    share: 1,
+    share: 0.55,
   },
   // SHUFFLE: the long-short of the triplet on the hats, the snare's ghosts on the triplet's last, the kick's push.
   shuffle: {
@@ -116,7 +120,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "ride",
     fill: "rock",
     kit: "kitRock",
-    share: 1,
+    share: 0.37,
   },
   // BREAKBEAT: a sampled funk break (the kick's double, the snare's ghosts), Big Rusty read a little fast.
   breakbeat: {
@@ -128,7 +132,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     fill: "machine",
     kit: "kitRock",
     rate: 1.06,
-    share: 1,
+    share: 0.5,
   },
   // TRIP-HOP: slow and heavy, the sixteenths lazy; the kit read slow (pitched down), its top dulled.
   triphop: {
@@ -142,7 +146,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     kit: "kitRock",
     rate: 0.84,
     lp: 4500,
-    share: 1,
+    share: 0.44,
   },
   // JAZZ ------------------------------------------------------------------------------------------------------
   // SWING (the JAZZ KIT): the ride's "ding, ding-a", the hi-hat's foot on 2 and 4, the bass drum feathered, the snare comping.
@@ -154,7 +158,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "comp",
     fill: "jazz",
     kit: "kitClub",
-    share: 1,
+    share: 0.44,
   },
   // BEBOP: the ride quick, the bass drum's "bombs" off the beat, the snare comping more.
   bebop: {
@@ -165,7 +169,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "comp",
     fill: "jazz",
     kit: "kitClub",
-    share: 1,
+    share: 0.25,
   },
   // JAZZ WALTZ: the ride across the three ("1, 2-let, 3-let"), the foot on 2 and 3, the bass drum on 1.
   jazzWaltz: {
@@ -176,7 +180,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "comp",
     fill: "jazz",
     kit: "kitClub",
-    share: 1,
+    share: 0.36,
   },
   // LATIN / BRAZIL --------------------------------------------------------------------------------------------
   // BAIÃO: the zabumba's open stroke on 1 and its "a", the muted one on 2 (the low tom), the bacalhau's stick (the rim)
@@ -189,7 +193,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "crash",
     fill: "latin",
     kit: "kitClub",
-    share: 1,
+    share: 0.5,
   },
   // ELECTRONIC ------------------------------------------------------------------------------------------------
   // 808 (the analog drum machine, D514's ELECTRO): the electro kick's syncopation, the clap and the snare on the
@@ -202,7 +206,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "open",
     fill: "machine",
     kit: "analog",
-    share: 5,
+    share: 3.4,
   },
   // HOUSE 909: four on the floor, the clap on 2 and 4, the open hat off the beat.
   house: {
@@ -213,7 +217,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "crash",
     fill: "machine",
     kit: "tr909",
-    share: 5,
+    share: 1.88,
   },
   // TECHNO: four on the floor, the closed hats' sixteenths with the off-beat stressed, the rim's syncopation, a soft clap.
   techno: {
@@ -224,20 +228,24 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "open",
     fill: "machine",
     kit: "tr909",
-    share: 5,
+    share: 2.09,
   },
   // DRUM'N'BASS (jungle): the two-step at 170 (the kick on 1 and the and of 3, the snare on 2 and 4), the ghosts, the
-  // second bar's broken kick; the club kit read fast.
+  // second bar's broken kick; the club kit read fast. FITS duple and compound (its 12/8 a half-time two-step); in a
+  // triple metre it plays a squeezed form and is not marked FITS.
   dnb: {
     duple: g(4, 4, { kick: "#... .... ..#. ....|#... .... ..x. ...x", snare: ".... X... .... X..-|.... X..- .-.. X...", hat: "x.x. x.x. x.x. x.x." }),
     triple: g(3, 4, { kick: "#... .... ..#.", snare: ".... X... ...-", hat: "x.x. x.x. x.x." }),
-    compound: g(4, 3, { kick: "#.. ... .#. ...", snare: "... X.. ... X.-", hat: "xox xox xox xox" }),
+    // 12/8 (6/8 two bars at a time): the half-time two-step over the dotted beats, each split in six (the triplet's
+    // sixteenths): the kick on 1 and the middle of 3, the snare on 2 and 4 with its ghosts, the hats in the triplets
+    // (written firmer: the sparser bar measured 19.5 dB under II/18's band at the duple's strengths; now 16.6).
+    compound: g(4, 6, { kick: "#..... ...... ...#.. ......|#..... ...... ...X.. .....x", snare: "...... #..... ...... #...o.|...... #...o. ..o... #.....", hat: "X.x.x. X.x.x. X.x.x. X.x.x.", ride: "...... ...... ...... ......|o..... ...... ...... ......" }),
     bpm: [158, 180],
     climax: "ride",
     fill: "machine",
     kit: "kitClub",
     rate: 1.1,
-    share: 1,
+    share: 0.46,
   },
   // LINNDRUM (80s synth-pop): the big snare with the clap on the backbeat, the sixteenth hats, the kick on 1, 3 and its push.
   linn: {
@@ -248,7 +256,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "crash",
     fill: "machine",
     kit: "linn",
-    share: 5,
+    share: 2.45,
   },
   // LO-FI HIP-HOP: the lazy sixteenths, the kick behind the beat, a ghosted rim; the club kit slow and dull.
   lofi: {
@@ -262,7 +270,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     kit: "kitClub",
     rate: 0.9,
     lp: 3200,
-    share: 1,
+    share: 0.84,
   },
   // IDM / GLITCH: the kick and snare displaced, the hats' sixteenths of uneven weight, the clicks of a cut-up rim.
   idm: {
@@ -273,7 +281,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     climax: "crash",
     fill: "machine",
     kit: "glitch",
-    share: 5,
+    share: 2.98,
   },
 };
 

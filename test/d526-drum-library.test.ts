@@ -15,7 +15,7 @@ import { formOf } from "../src/touch/fugue-form.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
 import { fileOf, folderOf } from "../src/touch/sampled.ts";
 import { kitBeat, ROLL_STROKE_S, type KitContext, type KitHit } from "../src/touch/drum-presets.ts";
-import { GRIDS, GRID_STEP_S, layoutOf } from "../src/touch/drum-grids.ts";
+import { GRIDS, GRID_STEP_S, gridBeat, layoutOf } from "../src/touch/drum-grids.ts";
 import { FAMILIES, HOME_ID, PLANNED_STYLES, SOUND_STYLES, chosenStyle, drumMenuFor, drumStyleFor, familyFor, fits, homeStyleFor, metreOf, setDrumStyle, styleIds, styleInfo, stylesIn } from "../src/touch/drum-library.ts";
 
 installFakeAudio(0, true);
@@ -68,6 +68,13 @@ test("D526: FITS by the fugue's metre; every metre of the 48 has styles of most 
   assert.ok(fits("jazzWaltz", "wtc1f11") && !fits("jazzWaltz", "wtc1f12"));
   assert.ok(fits("ballad", "wtc2f18") && !fits("ballad", "wtc1f12"));
   assert.ok(fits("dnb", "wtc2f01") && fits("abbey", "wtc1f02"));
+  // Where a style has no real form in a metre it is not FITS (S2's finding: no squeezed TECHNO in 3/2, BAIÃO or SALSA in 3/4 or 3/8).
+  assert.ok(!fits("techno", "wtc2f22") && !fits("baiao", "wtc2f21") && !fits("salsa", "wtc2f24") && !fits("dnb", "wtc2f21"));
+  // DRUM&BASS's 12/8: the half-time two-step (the kick on 1, the snare on the second dotted beat; the bars alternate in 6/8).
+  assert.ok(fits("dnb", "wtc2f18"));
+  const two = [0, 1, 2, 3].map((k) => gridBeat(GRIDS.dnb, k % 2, 2, true, 1.08, Math.floor(k / 2), "subject", false));
+  assert.ok(two[0].some((h) => h.piece === "kick" && h.at === 0) && two[1].some((h) => h.piece === "snare" && h.at === 0), "kick on 1, snare on 2");
+  assert.ok(two[2].some((h) => h.piece === "kick" && h.at > 0.3 && h.at < 0.7) && two[3].some((h) => h.piece === "snare" && h.at === 0), "the kick in the middle of 3, the snare on 4");
   for (const f of WTC) {
     const fam = new Set(styleIds.filter((s) => fits(s, f)).map((s) => styleInfo(s).family));
     assert.ok(fam.size >= 3, `${f.id} ${f.meter}: ${[...fam]}`);

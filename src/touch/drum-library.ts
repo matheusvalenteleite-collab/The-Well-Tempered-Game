@@ -88,7 +88,7 @@ export const STYLES: readonly StyleInfo[] = [
   S("house", "electronic", "HOUSE 909", [D], "grid", "a 909's four on the floor, the clap on 2 and 4, the open hat off the beat"),
   S("techno", "electronic", "TECHNO", [D], "grid", "techno: four on the floor, the hats' sixteenths, the rim's syncopation"),
   S("breakbeat", "electronic", "BREAKBEAT", [D], "grid", "a sampled funk break: the kick's double, the snare's ghosts"),
-  S("dnb", "electronic", "DRUM&BASS", [D], "grid", "jungle / drum'n'bass at 170: the two-step, the broken second bar (for the quick fugues)"),
+  S("dnb", "electronic", "DRUM&BASS", [D, C], "grid", "jungle / drum'n'bass at 170: the two-step, the broken second bar (for the quick fugues)"),
   S("triphop", "electronic", "TRIP-HOP", [D, C], "grid", "trip-hop: slow, heavy, pitched down, the sixteenths lazy (for the slow fugues)"),
   S("linn", "electronic", "LINNDRUM", [D], "grid", "an 80s LinnDrum: the big snare and clap, the sixteenth hats"),
   S("lofi", "electronic", "LO-FI", [D, C], "grid", "lo-fi hip-hop: the kick behind the beat, the sixteenths lazy, the kit dull"),

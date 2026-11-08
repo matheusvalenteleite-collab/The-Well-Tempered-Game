@@ -22,6 +22,7 @@
 import type { TouchFugue } from "./fugue.ts";
 import { tickOfBar } from "./colour.ts";
 import { PATCHES, PRESETS, inCompass, type PatchId } from "./sound.ts";
+import { baseSound } from "./band-fx.ts";
 import sectionsData from "../../data/wtc/ledbetter-sections.json" with { type: "json" };
 import { TRIO_CONTINUO_SCRIPTS, type ContinuoMoment } from "./trio-continuo.ts";
 
@@ -179,5 +180,5 @@ export class ContinuoScript {
 
 /** For a piece on a sound: the continuo script (null on any sound but the trio, or with one voice). */
 export function continuoFor(f: Fugue, presetId: string): ContinuoScript | null {
-  return presetId === TRIO_ID && f.voices.length > 1 ? new ContinuoScript(f) : null;
+  return baseSound(presetId) === TRIO_ID && f.voices.length > 1 ? new ContinuoScript(f) : null;
 }
