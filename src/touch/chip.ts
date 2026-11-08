@@ -857,7 +857,7 @@ export function soundPlans(pitches: number[], lead: number[], style: DrumStyle |
   const slimOf = (inst: SampledInstrument): PlanSlim | undefined => (sl ? { rate: sl.rate, ...(inst.plucked && sl.pluckedS ? { maxS: sl.pluckedS } : {}) } : undefined);
   // D540: a slimmed preset's sparse zones and its one layer (sampled.ts setZones, holdOff); any other sound's sets whole.
   const layers = (inst: SampledInstrument) => [inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set].filter((s): s is string => !!s && s !== inst.set);
-  const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id]))) : new Set<string>();
+  const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id])).filter((set) => !sl.keep?.includes(set))) : new Set<string>();
   for (const id of Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]) {
     const inst = SAMPLED[id];
     for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? sl.stride : null);

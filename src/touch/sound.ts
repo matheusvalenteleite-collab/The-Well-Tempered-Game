@@ -1919,10 +1919,34 @@ export const TRIALS: Preset[] = [
  * short and blend sets held off; the velocity's colour the patches' filters'). Phase 2 may give a band its own.
  */
 export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
+/**
+ * D549-D552, the classic four's v2s (the owner likes them: JAZZ QUARTET his favourite, BAROQUE BAND's continuo entering
+ * with the bass loved): their instruments, seats and continuo kept, the chain the study's (band-fx.ts BAND_CHAINS), the
+ * level matched to the original's through the phone model (within 1 dB) and on a computer. JAZZ v2: the vibraphone in its
+ * lane, its soft and hard mallets kept (Slim.keep: the budget has the room), the piano's two inner voices spread by register.
+ */
+const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>> = {
+  jazzQuartet: {
+    gain: 1.06,
+    phoneGain: 1.72,
+    lanes: { jqVibes: "vibes" },
+    slim: { ...V2_SLIM, keep: ["jazzVibesSoft", "jazzVibesHard"] },
+    by: {
+      1: [["jqVibes", 0]],
+      2: [["jqVibes", -0.14], ["jqBass", 0.04]],
+      3: [["jqVibes", -0.18], ["jqPiano", 0.16], ["jqBass", 0.04]],
+      4: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.2], ["jqBass", 0.04]],
+      5: [["jqVibes", -0.18], ["jqPiano", 0.1], ["jqPiano", 0.16], ["jqPiano", 0.22], ["jqBass", 0.04]],
+    },
+  },
+  baroqueBand: { gain: 0.83, phoneGain: 0.83 },
+  bachBrass: { gain: 1, phoneGain: 0.79 },
+  oboeTrio: { gain: 0.539, phoneGain: 0.534, slim: { ...V2_SLIM, keep: ["trioOboe1Short", "trioOboe2Short", "trioBassoonShort"] } },
+};
 export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
   const p = PRESETS.find((x) => x.id === band)!;
   // (PET SOUNDS' five instruments, the grand and the harpsichord among them: its plucked notes cut at 2.5 s to keep within 25 MB.)
-  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true };
+  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true, ...V2_OWN[band] };
 });
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
