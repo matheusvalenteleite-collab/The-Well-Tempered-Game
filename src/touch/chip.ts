@@ -335,11 +335,13 @@ export function kitFiles(style: DrumStyle): { set: string; notes: number[] }[] {
  * the band's middle, the bongos left, the timbales behind a little left, the clave in the middle; chorinho's pandeiro
  * in the middle, the tamborim left, the agogo right, the ganza left, the surdo behind).
  */
-export const LATIN_KIT: { level: number; phone: number; hp: number; send: number; pieces: Readonly<Record<LatinPiece, readonly [level: number, pan: number]>> } = {
+export const LATIN_KIT: { level: number; phone: number; hp: number; send: number; band: Readonly<Record<LatinBand, number>>; pieces: Readonly<Record<LatinPiece, readonly [level: number, pan: number]>> } = {
   level: 0.54,
   phone: 1.57,
   hp: 90,
   send: 0.1,
+  // Each band's share (D522: CHORINHO's regional measured 1.4 dB under where JAZZ's brushes sit).
+  band: { salsa: 1, chorinho: 1.17 },
   pieces: {
     conga: [0.9, 0.22],
     slap: [0.8, 0.22],
@@ -3554,10 +3556,10 @@ export class Chip {
    * LATIN_KIT, under its cut, in the band's room at a little of its send.
    */
   private latin(band: LatinBand, at: number, beatS: number, cx: GrooveContext) {
-    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0)) this.latinHit(h.piece, at + h.at * beatS, h.vel, h.damp);
+    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0)) this.latinHit(h.piece, at + h.at * beatS, h.vel, h.damp, LATIN_KIT.band[band]);
   }
 
-  private latinHit(piece: LatinPiece, at: number, vel: number, damp?: number) {
+  private latinHit(piece: LatinPiece, at: number, vel: number, damp?: number, share = 1) {
     this.latinLog.push({ piece, at, vel });
     if (this.latinLog.length > 1024) this.latinLog.splice(0, 512);
     const ctx = this.ctx;
@@ -3575,7 +3577,7 @@ export class Chip {
     const src = bag.src(ctx.createBufferSource());
     src.buffer = rec.buffer;
     const g = bag.add(ctx.createGain());
-    const k = LATIN_KIT.level * (this.phone ? LATIN_KIT.phone : 1) * lv * vel;
+    const k = LATIN_KIT.level * (this.phone ? LATIN_KIT.phone : 1) * share * lv * vel;
     g.gain.setValueAtTime(k, t);
     if (damp) g.gain.setTargetAtTime(0, t + damp, 0.03);
     const hp = bag.add(ctx.createBiquadFilter());

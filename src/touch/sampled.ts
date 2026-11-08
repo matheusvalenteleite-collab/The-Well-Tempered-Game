@@ -128,6 +128,9 @@ export const PERIOD: Record<string, Bake> = {
   trialTrumpet: { folder: "trumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialTrombone: { folder: "sackbut", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialBassPizz: { folder: "bassPizz", rate: 32000, lp: 11000, bits: 16 },
+  // D522, CHORINHO's guitars: the classical guitar's recordings (guitar/, Freesound 11573 via tonejs-instruments, CC BY 3.0)
+  // at full fidelity, played through: the seven-string on Bach's bass and the cavaquinho's voice (its own brightness: sound.ts).
+  choroGuitar: { folder: "guitar", rate: 32000, lp: 11000, bits: 16 },
   // D504, ZELENKA TRIO (tools/playback/trio/build_trio.py): Iowa's oboe and bassoon, every semitone, a fortissimo and a
   // mezzoforte layer and short notes cut from the same player's sustains; VSCO's vibrato oboe (its loud layer the
   // trials' oboe/, its soft layer and its staccato); at full fidelity as the consort's, the held ones on a made loop
@@ -463,7 +466,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "rockGuitar" | "rockGuitar2" | "rockBass";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -643,6 +646,9 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   jazzVibes: { set: "jazzVibes", plucked: true, gain: 5.5, soft: { set: "jazzVibesSoft", below: 0.794, gain: 1 }, hard: { set: "jazzVibesHard", above: 1.26, gain: 1 }, pedal: { short: 0.22, shortTau: 0.03, tau: 0.11 }, velTone: { perDb: 0.6, hz: 2600, min: -3, max: 3 }, maxShift: 2 },
   // D510: the band's bass on its ff recordings only from +4 dB (Busoni's f with an accent), not +2: at +2 the line's notes
   // flipped between the two sets (every whole tone, each its own tuning and colour) on 24 of I/8's first 75 notes, 6 now.
+  // D522, CHORINHO: the classical guitar (recorded every minor third or so, B1-A#5), plucked, its fingers' damping by the note's
+  // length (a short note stopped at once, a longer one let ring a little into the next), retuned 3 semitones at most.
+  choroGuitar: { set: "choroGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.09 }, velTone: { perDb: 0.5, hz: 2000, min: -2.5, max: 2.5 }, maxShift: 3 },
   jazzBass: { set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: JAZZ_BASS_HARD_ABOVE, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
   // D523, ABBEY ROAD (and D525, KRAUTROCK): the Gretsch (cleanGuitar/, every minor third E2-D6), the second electric
   // guitar (eguitar/, every minor third C#2-C6), the picked bass (rickBass/, every minor third E1-G3): plucked strings,

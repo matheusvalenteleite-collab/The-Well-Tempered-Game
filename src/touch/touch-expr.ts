@@ -57,6 +57,8 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // D520 SALSA: each instrument its own family's touch (landing "band"): the piano's zones on the grand, the brassiness
   // on the trumpet and the trombone (a held sway the swell), the pluck in the piano's zones on the bass (the jazz bassist's).
   salsa: "band",
+  // D522 CHORINHO likewise: the breath on the flute and the clarinet (a held sway the breath), the pluck on the guitars.
+  chorinho: "band",
   // D523: ABBEY ROAD as JAZZ QUARTET (landing "jazz": the piano's three zones, the piano's own
   // weight on the piano, the level and the pluck's brightness on the guitars and the bass; nothing held to sway).
   abbeyRoad: "jazz",
@@ -197,6 +199,8 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   jazzQuartet: [0, 0],
   // D520: the piano's zones, the brass's brassiness and the bass's zones carry their own.
   salsa: [0, 0],
+  // D522: the winds' breath a level as ZELENKA TRIO's (the piano's and the guitars' zones on top of it).
+  chorinho: [-2, 2],
   abbeyRoad: [0, 0],
   krautrock: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).

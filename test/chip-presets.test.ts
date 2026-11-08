@@ -5,8 +5,8 @@ import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
 
 test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYNTH now SWITCHED-ON), then the ten new presets, in order; every piece opens on one of the five", () => {
-  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita", "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "abbeyRoad", "krautrock"]);
-  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET", "SALSA", "ABBEY ROAD", "KRAUTROCK"]);
+  assert.deepEqual(PRESETS.map((p) => p.id), ["chip", "gameboy", "harpsichordSampled", "pianoSampled", "analog", "super16", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita", "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock"]);
+  assert.deepEqual(PRESETS.map((p) => p.name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD (SAMPLED)", "PIANO (SAMPLED)", "SWITCHED-ON", "SUPER 16-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET", "SALSA", "CHORINHO", "ABBEY ROAD", "KRAUTROCK"]);
   // D302: TEMPLE 64 and AGENT 64 remade; D304: their successors withdrawn too: a stored choice of any opens on NOCTURNE 32-BIT.
   for (const gone of ["temple64", "agent64", "forest64", "party64"]) assert.equal(playerSound(gone), "super16", gone);
   // D510: LUTE, CLAVICHORD and NOCTURNE 32-BIT withdrawn: a stored choice on the nearest kept sound.
@@ -38,8 +38,8 @@ test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYN
   for (const p of PRESETS) {
     if (p.slots) for (const s of p.slots) assert.ok(PATCHES[s], `${p.id}: ${s}`);
     assert.equal(!!p.drums, p.id === "chip", p.id);
-    // (D503: JAZZ QUARTET's brushes play with it always; D520: SALSA's percussion; D523: ABBEY ROAD's drums; D525: KRAUTROCK's.)
-    assert.equal(p.groove, p.id === "jazzQuartet" ? "brushJazz" : p.id === "salsa" ? "salsaBand" : p.id === "abbeyRoad" ? "abbeyRock" : p.id === "krautrock" ? "motorik" : undefined, p.id);
+    // (D503: JAZZ QUARTET's brushes play with it always; D520, D522: SALSA's and CHORINHO's percussion; D523: ABBEY ROAD's drums; D525: KRAUTROCK's.)
+    assert.equal(p.groove, p.id === "jazzQuartet" ? "brushJazz" : p.id === "salsa" ? "salsaBand" : p.id === "chorinho" ? "choroBand" : p.id === "abbeyRoad" ? "abbeyRock" : p.id === "krautrock" ? "motorik" : undefined, p.id);
   }
   setPreset("chip");
   assert.equal(patchFor(0, 3), null, "the classic sound is chip.ts's own");

@@ -11,8 +11,9 @@ const B = beat;
 
 export const BOOK2: Record<string, PieceColours> = {
   wtc2f01: {
-    sound: "megaFm",
-    soundWhy: "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), on organ-fugue figures (Bodky): MEGA FM's lead, clav and slap bass, crisp in 2/4 and loud enough through a phone's speaker.",
+    // D522: CHORINHO (was MEGA FM).
+    sound: "chorinho",
+    soundWhy: "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), in 2/4, choro's and samba's own metre, its running semiquavers the pandeiro's: the flute on top, the piano in the middle, the seven-string guitar on Bach's bass (one to a voice), the regional's fills into the entries after its episodes and a break before the last.",
     character: "Long episodes (29-39, 61-68, 74-83), the cadence on G (21-22), a dominant pedal (50-52), an intensifying close.",
     plans: {
       megaFm: [at(29, { fm: 0.7 }, "The episode 29-39 mellower."), at(E("wtc2f01", 39), OWN, "The bass's entry (39)."), at(61, { fm: 0.7 }, "The episode 61-68."), at(E("wtc2f01", 68), OWN, "The bass's entry (68)."), at(74, { fm: 1.2 }, "Keller's intensifying close a little brighter.")],
