@@ -49,6 +49,7 @@ import { beatOf, fugueById, type TouchFugue } from "./fugue.ts";
 import { isCharacter, stylesFor } from "./drum-presets.ts";
 import { metreClass, type MetreClass } from "./drum-grids.ts";
 import { preset } from "./sound.ts";
+import { baseSound } from "./band-fx.ts";
 
 export type Family = "rock" | "jazz" | "latin" | "electronic" | "orchestral";
 export type Metre = MetreClass;
@@ -177,8 +178,9 @@ export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
 };
 /** D532: a fugue's curated styles for a sound: the sound's family, then the fugue's own picks. */
 export const curatedFor = (pieceId: string, sound: string): readonly StyleId[] => [...new Set([...familyFor(sound), ...(FUGUE_PICKS[pieceId] ?? [])])];
-export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[sound]?.[0] ?? HOME_FALLBACK;
-export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[sound] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
+// (D543: a "<BAND> v2" is its band: KRAUTROCK v2's HOME is the motorik, not the fallback.)
+export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[baseSound(sound)]?.[0] ?? HOME_FALLBACK;
+export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[baseSound(sound)] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 
 const fugueOf = (f: TouchFugue | string): TouchFugue | null => {
   if (typeof f !== "string") return f;
