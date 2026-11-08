@@ -30,6 +30,7 @@
  *     thumb (touchFamily, joinedSound, slidePitch below); a two-thumb join on a synth retriggers.
  */
 import { MECH } from "./mechanics.ts";
+import { baseSound } from "../touch/band-fx.ts";
 import type { TouchFugue } from "../touch/fugue.ts";
 
 export const GLENN = {
@@ -71,7 +72,9 @@ export const glennOn = (): boolean => MECH.glenn;
 
 /** How each sound answers the gestures (by preset id). */
 export type ExprFamily = "plucked" | "piano" | "organ" | "bowed" | "sung" | "synth";
-export function exprFamily(presetId: string): ExprFamily {
+export function exprFamily(id: string): ExprFamily {
+  // D540: a v2 band plays as its original.
+  const presetId = baseSound(id);
   if (presetId === "harpsichordSampled") return "plucked";
   if (presetId === "pianoSampled") return "piano";
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";

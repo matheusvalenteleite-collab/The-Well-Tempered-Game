@@ -14,7 +14,7 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { BACKING_HIGHPASS_HZ, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
+import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, loadPlan, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
@@ -25,6 +25,7 @@ import { formOf as rockFormOf, rockBeat, type KitPiece as RockPiece, type RockSt
 import { bossaBeat, bossaPlan } from "./bossa-drums.ts";
 import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
 import type { TouchFugue } from "./fugue.ts";
+import { buildChain, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -844,6 +845,62 @@ function retarget(a: AudioParam, v: number, now: number, tau = TOUCH_TAU) {
   a.setTargetAtTime(v, now, tau);
 }
 
+/**
+ * D540 (D190's, D503-D524's, taken out of Chip.prepare for the budget's test): the recordings the sound now needs for a piece,
+ * as plans (each loaded with loadPlan): every instrument the ensemble plays, for every voice's pitches and the player's
+ * own an octave either side, slimmed as the preset asks (Preset.slim: a plucked one's notes cut at `pluckedS`); every other
+ * instrument's sets let go (a set another instrument now plays kept); the drums' sets the sound or the DRUMS `style` plays.
+ */
+export function soundPlans(pitches: number[], lead: number[], style: DrumStyle | null): Plan[] {
+  const now = sampledNow();
+  const sl = preset().slim;
+  const slimOf = (inst: SampledInstrument): PlanSlim | undefined => (sl ? { rate: sl.rate, ...(inst.plucked && sl.pluckedS ? { maxS: sl.pluckedS } : {}) } : undefined);
+  // D540: a slimmed preset's sparse zones and its one layer (sampled.ts setZones, holdOff); any other sound's sets whole.
+  const layers = (inst: SampledInstrument) => [inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set].filter((s): s is string => !!s && s !== inst.set);
+  const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id]))) : new Set<string>();
+  for (const id of Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]) {
+    const inst = SAMPLED[id];
+    for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? sl.stride : null);
+  }
+  holdOff(off);
+  const used = now.map((id) => {
+    const inst = SAMPLED[id];
+    const s = slimOf(inst);
+    return planFor(inst, pitches, lead)
+      .filter((e) => !off.has(e.set))
+      .map((e) => (s ? { ...e, slim: s } : e));
+  });
+  const wanted = new Set(used.flat().map((e) => e.set));
+  // An instrument the ensemble no longer plays lets all its recordings go (but a set a playing instrument shares).
+  const plans: Plan[] = [
+    ...used,
+    ...(Object.keys(SAMPLED) as (keyof typeof SAMPLED)[])
+      .filter((id) => !now.includes(id))
+      .map((id) => {
+        const inst = SAMPLED[id];
+        return [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s && !wanted.has(s)).map((set) => ({ set, notes: [] }));
+      }),
+  ];
+  // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
+  // D514: and, with DRUMS on, the chosen drummer's (drum-presets.ts) for the piece; the others let go.
+  const want = style ? kitFiles(style) : [];
+  const brushes = grooveNow()?.kit === "brushes" || grooveNow()?.kit === "bossa" || style === "brushes";
+  plans.push([{ set: BRUSH_SET, notes: brushes ? [...BRUSH_MIDIS] : [] }]);
+  // D524: PET SOUNDS' own (DRUMS off): the tambourine (the club kit's) and the timpani (TIMP_SET), its kit the rock kit's.
+  const pet = !style && grooveNow()?.kit === "pet";
+  const petWants: Record<string, number[]> = pet ? { kitClub: [kitMidi("kitClub", "tambourine", false)!, kitMidi("kitClub", "tambourine", true)!], [TIMP_SET]: [...TIMP_MIDIS] } : {};
+  for (const set of ["kitRock", "kitClub", TIMP_SET]) plans.push([{ set, notes: [...new Set([...(want.find((w) => w.set === set)?.notes ?? []), ...(petWants[set] ?? [])])] }]);
+  // D520/D522: SALSA's or CHORINHO's own percussion (its band's pieces), with DRUMS off; with DRUMS on the chosen drummer's instead.
+  const gl = grooveNow();
+  plans.push([{ set: LATIN_SET, notes: !style && gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? latinMidis(LATIN_GROOVE[gl.groove]) : [] }]);
+  // D523: ABBEY ROAD's and KRAUTROCK's kit (18 short files), let go under any other sound.
+  plans.push([{ set: ROCK_KIT_SET, notes: grooveNow()?.kit === "rock" || pet ? [...ROCK_KIT_MIDIS] : [] }]);
+  const kit = grooveNow()?.kit;
+  // D521: BOSSA NOVA's cross-stick and bass drum (4 short files), with the brushes.
+  plans.push([{ set: BOSSA_KIT_SET, notes: kit === "bossa" ? [...BOSSA_KIT_MIDIS] : [] }]);
+  return plans;
+}
+
 export class Chip {
   readonly ctx: AudioContext;
   private master: GainNode;
@@ -944,11 +1001,14 @@ export class Chip {
     this.sends.connect(room);
     this.roomIn = this.sends;
     // D482: CON FUOCO's warm drive (D249) gone: a streak never changes the sound.
-    this.bus = this.master;
+    // D540: the notes join the band's way in (straight to the master, or through a v2 band's chain: Chip.period).
+    this.bandIn = ctx.createGain();
+    this.bandIn.connect(this.master);
+    this.bus = this.bandIn;
     // D216: the player's own notes (lead) through their own level (KIMIKO: YOUR VOICE ON / SOFT / OFF),
     // and a recording's way in, past the room and the compressor (it has its own room), into the limiter.
     this.mine = ctx.createGain();
-    this.mine.connect(this.master);
+    this.mine.connect(this.bandIn);
     this.recIn = ctx.createGain();
     this.recIn.connect(limit);
   }
@@ -957,9 +1017,68 @@ export class Chip {
   readonly mine: GainNode;
   /** D215: where a recording joins the sound (past the room and the compressor). */
   readonly recIn: GainNode;
-  /** Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. */
-  private busOf(p: Play): AudioNode {
-    return p.into ?? (p.lead ? this.mine : this.bus);
+  /**
+   * Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. D540: a
+   * v2 band's note into its patch's lane of the band's chain (Patch.lane, Preset.lanes), the player's through the lane's
+   * own copy of their level.
+   */
+  private busOf(p: Play, pt?: Patch | null): AudioNode {
+    if (p.into) return p.into;
+    const lane = this.chain && pt ? this.laneOf(pt) : null;
+    if (lane) {
+      if (!p.lead) return lane;
+      let m = this.laneMine.get(lane);
+      if (!m) {
+        m = this.ctx.createGain();
+        m.connect(lane);
+        this.laneMine.set(lane, m);
+        this.chain!.nodes.push(m);
+      }
+      m.gain.value = this.mine.gain.value;
+      return m;
+    }
+    return p.lead ? this.mine : this.bus;
+  }
+  /** D540: the band's chain playing now (a v2 preset's `chain`), built at its first note; its lanes' copies of `mine`. */
+  private chain: BandChain | null = null;
+  private laneMine = new Map<AudioNode, GainNode>();
+  /** D540: where every note joins (the master, or the chain's input). */
+  private bandIn: GainNode;
+  /** D540: a patch's lane in the preset now (Preset.lanes by its id, else Patch.lane). */
+  private laneOf(pt: Patch): AudioNode | null {
+    const pr = preset();
+    let name = pt.lane;
+    if (pr.lanes) for (const [id, l] of Object.entries(pr.lanes)) if (PATCHES[id as keyof typeof PATCHES] === pt) name = l;
+    return this.chain?.lane(name) ?? null;
+  }
+  /** D540: the band chain the preset now asks for, built or taken down (its tail let ring out, then disconnected). */
+  private bandChain() {
+    const spec = preset().chain ?? null;
+    if ((this.chain?.spec ?? null) === spec) return;
+    const old = this.chain;
+    this.chain = null;
+    this.laneMine.clear();
+    try {
+      this.bandIn.disconnect();
+    } catch {
+      /* none */
+    }
+    if (old) {
+      const t = this.ctx.currentTime;
+      const g = this.ctx.createGain();
+      // The old chain rings out from its last notes (its input no longer fed), then is taken down.
+      old.output.disconnect();
+      old.output.connect(g).connect(this.master);
+      g.gain.setValueAtTime(1, t);
+      g.gain.setTargetAtTime(0, t + Math.min(2, old.tail), 0.2);
+      setTimeout(() => (old.dispose(), g.disconnect()), (Math.min(2, old.tail) + 1.2) * 1000);
+    }
+    if (spec) {
+      this.chain = buildChain(this.ctx, spec, { phone: this.phone });
+      this.bandIn.connect(this.chain.input);
+      this.chain.output.connect(this.master);
+      if (this.lastBeatS) this.chain.setBeat(this.lastBeatS);
+    } else this.bandIn.connect(this.master);
   }
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
@@ -1527,6 +1646,7 @@ export class Chip {
    */
   private period() {
     const pr = preset();
+    this.bandChain();
     const dry = pr.room === 0;
     if (dry !== this.dry) {
       this.dry = dry;
@@ -1565,6 +1685,8 @@ export class Chip {
 
   /** D297: the input of the preset's own effect (built once, kept while the preset plays), or null. */
   private fxInput(): AudioNode | null {
+    // D540: a v2 band's own reverb (its chain's one convolver) in place of the preset's effect.
+    if (this.chain?.send) return this.chain.send;
     const kind = preset().fx;
     if (!kind) return null;
     const room = roomOf(preset().id);
@@ -1836,8 +1958,8 @@ export class Chip {
     const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: end - t > 0.45 ? 9 : 0 } : undefined }, () => !stopped) : undefined;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(pan).connect(this.busOf(p));
-    } else src.connect(g).connect(this.busOf(p));
+      src.connect(g).connect(pan).connect(this.busOf(p, v.patch));
+    } else src.connect(g).connect(this.busOf(p, v.patch));
     this.send(pan ?? g, p.room, bag);
     o.start(t);
     halt(o, end + 0.05);
@@ -1879,30 +2001,7 @@ export class Chip {
    */
   prepare(pitches: number[], lead: number[] = []): Promise<void> {
     const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
-    const now = sampledNow();
-    // An instrument the ensemble no longer plays lets all its recordings go.
-    const plans = (Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]).map((id) => {
-      const inst = SAMPLED[id];
-      return now.includes(id) ? planFor(inst, pitches, lead) : [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set].filter((s): s is string => !!s).map((set) => ({ set, notes: [] }));
-    });
-    // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
-    // D514: and, with DRUMS on, the chosen drummer's (drum-presets.ts) for the piece; the others let go.
-    const style = backingOn() ? this.drumStyle() : null;
-    const want = style ? kitFiles(style) : [];
-    const brushes = grooveNow()?.kit === "brushes" || grooveNow()?.kit === "bossa" || style === "brushes";
-    plans.push([{ set: BRUSH_SET, notes: brushes ? [...BRUSH_MIDIS] : [] }]);
-    // D524: PET SOUNDS' own (DRUMS off): the tambourine (the club kit's) and the timpani (TIMP_SET), its kit the rock kit's.
-    const pet = !style && grooveNow()?.kit === "pet";
-    const petWants: Record<string, number[]> = pet ? { kitClub: [kitMidi("kitClub", "tambourine", false)!, kitMidi("kitClub", "tambourine", true)!], [TIMP_SET]: [...TIMP_MIDIS] } : {};
-    for (const set of ["kitRock", "kitClub", TIMP_SET]) plans.push([{ set, notes: [...new Set([...(want.find((w) => w.set === set)?.notes ?? []), ...(petWants[set] ?? [])])] }]);
-    // D520/D522: SALSA's or CHORINHO's own percussion (its band's pieces), with DRUMS off; with DRUMS on the chosen drummer's instead.
-    const gl = grooveNow();
-    plans.push([{ set: LATIN_SET, notes: !style && gl?.kit === "latin" && LATIN_GROOVE[gl.groove] ? latinMidis(LATIN_GROOVE[gl.groove]) : [] }]);
-    // D523: ABBEY ROAD's and KRAUTROCK's kit (18 short files), let go under any other sound.
-    plans.push([{ set: ROCK_KIT_SET, notes: grooveNow()?.kit === "rock" || pet ? [...ROCK_KIT_MIDIS] : [] }]);
-    const kit = grooveNow()?.kit;
-    // D521: BOSSA NOVA's cross-stick and bass drum (4 short files), with the brushes.
-    plans.push([{ set: BOSSA_KIT_SET, notes: kit === "bossa" ? [...BOSSA_KIT_MIDIS] : [] }]);
+    const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null);
     return Promise.all(plans.map((plan) => loadPlan(this.ctx, plan, phone))).then(() => {});
   }
 
@@ -2301,8 +2400,8 @@ export class Chip {
     const pan = ctx.createStereoPanner ? bag.add(ctx.createStereoPanner()) : null;
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
-    } else src.connect(g).connect(dyn).connect(this.busOf(p));
+      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p, pt));
+    } else src.connect(g).connect(dyn).connect(this.busOf(p, pt));
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     // D385: a whole-piece reading's palette (Play.roomMul): more or less of the room.
@@ -2919,8 +3018,8 @@ export class Chip {
       // D302, TOMITA's theatrical stereo: the voice wandering slowly about its place (within ±0.35, a phone's mix).
       const ap = pt.autopan;
       if (ap) clocked(pan.pan, t, end + pt.amp.r, (x) => Math.max(-0.35, Math.min(0.35, v.pan + ap.depth * Math.sin(2 * Math.PI * ap.rate * x))));
-      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
-    } else src.connect(g).connect(dyn).connect(this.busOf(p));
+      src.connect(g).connect(dyn).connect(pan).connect(this.busOf(p, pt));
+    } else src.connect(g).connect(dyn).connect(this.busOf(p, pt));
     this.send(pan ?? dyn, p.room, bag);
     // D297: the preset's own effect (the echo, the hall), from this voice's patch.
     this.fxSend(pan ?? dyn, pt.send, bag);
@@ -3124,8 +3223,8 @@ export class Chip {
     const dyn = bag.add(ctx.createGain());
     if (pan) {
       pan.pan.value = Math.max(-1, Math.min(1, v.pan));
-      tail.connect(g).connect(dyn).connect(pan).connect(this.busOf(p));
-    } else tail.connect(g).connect(dyn).connect(this.busOf(p));
+      tail.connect(g).connect(dyn).connect(pan).connect(this.busOf(p, pt));
+    } else tail.connect(g).connect(dyn).connect(this.busOf(p, pt));
     this.send(pan ?? dyn, p.room, bag);
     this.fxSend(pan ?? dyn, pt.send, bag);
     o.start(t);
@@ -3385,6 +3484,8 @@ export class Chip {
    */
   groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, cx?: GrooveContext) {
     this.roomTo();
+    // D540: a v2 band's echoes follow the beat.
+    if (this.chain && beatS > 0) this.chain.setBeat(beatS);
     this.sweep();
     // D514: the friends' DRUMS: the drummer chosen for the piece (drum-presets.ts), in place of any sound's own drums
     // (JAZZ QUARTET's brushes too: never two drummers).
