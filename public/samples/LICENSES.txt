@@ -27,6 +27,16 @@ drums/retro/       Retro Drum Sample Set 1, Seven Graylands / The Tic Tok Men (f
          Source: https://github.com/sfzinstruments/TicTokMen.RetroDrums1
 drums/unruly/      Unruly Drums, Karoryfer Samples. CC0 1.0.
          Source: https://github.com/sfzinstruments/karoryfer.unruly-drums
+drums/period/      D532, the period kit (the touch game's score-driven TIMPANI, FRAME DRUM, SIDE DRUM, TABOR, CASTANETS, JANISSARY and
+         FIELD DRUM styles, src/touch/score-drums.ts). All CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/).
+         sideDrum, fieldDrum, tabor, drumStick (Snare Drum, Rope Tension: high head snares on; low head snares on; low head
+         snares off; stick), frameDum, frameTek (Frame Drum, large and small), tambourine (Tambourine 1), bassDrum (Bass Drum 2),
+         cymbals (Clash Cymbals 1), triangle (Triangles, Triangle1): Versilian Community Sample Library, Versilian Studios LLC.
+         Source: https://github.com/sgossner/VCSL
+         castanets: FreePats World Percussion 2020-09-05 (recorded by Xavimart, Gonzalo and Roberto, January 2019).
+         Source: https://freepats.zenvoid.org/Percussion/world-and-rare-percussion.html
+         Built by tools/playback/period-drums/build_period.py: mono, leading silence removed, trimmed with a fade, peak -1 dBFS,
+         mono 44.1 kHz 96 kbit/s MP3.
 Drums: trimmed (onset kept, drums/hats <= 1.2 s, toms <= 1.6 s, cymbals <= 3 s, with a fade), multi-mic hits mixed to mono, re-encoded as mono 44.1 kHz 96 kbit/s MP3.
 Also the touch game's DRUMS presets (D514, src/touch/drum-presets.ts): Big Rusty Drums as ROCK KIT; Virtuosity Drums as JAZZ KIT, FRAME DRUM and
          TIMPANI's bass drum, cymbal and triangle (both CC0); with timpani/ (VSCO 2 CE, below; its loud layer, retuned) and jazzBrushes/ (Swirly Drums, CC0).
@@ -196,3 +206,7 @@ altoFlute/  University of Iowa Electronic Music Studios, Musical Instrument Samp
          Script: tools/playback/bossa/build_altoflute.py. Its tenor saxophone is sax/ (above), unchanged.
 D546, D548, SALSA v2 and CHORINHO v2: no new files (brassTrumpet/, brassTrombone/, jazzBass/, guitar/, cleanGuitar/, flute/, clarinet/,
          latinPerc/, all above).
+
+Wire copies (D542): every <note>.mp3 here also as <note>.webm (Opus) and <note>.m4a (AAC-LC), transcoded from that MP3
+(tools/playback/codec/transcode.mjs: Opus 64/32/24 kbit/s stereo/mono/low and drums, AAC 80/48/40). Same recordings, same
+sources and licences as the MP3 they were made from, listed above.

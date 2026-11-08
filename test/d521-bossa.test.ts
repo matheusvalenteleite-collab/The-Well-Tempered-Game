@@ -85,7 +85,7 @@ test("D521: the recordings: the guitar E2-B5 (mf every semitone but C5 and E3, p
   assert.ok(SAMPLED.bossaGuitar.plucked);
   assert.deepEqual(SAMPLE_MANIFEST[BOSSA_KIT_SET].notes.length, BOSSA_KIT_MIDIS.length);
   let bytes = 0;
-  for (const d of ["bossaGuitar", "bossaGuitarSoft", "bossaKit"]) for (const f of readdirSync(`public/samples/${d}`)) if (f !== "pack.mp3") bytes += statSync(`public/samples/${d}/${f}`).size;
+  for (const d of ["bossaGuitar", "bossaGuitarSoft", "bossaKit"]) for (const f of readdirSync(`public/samples/${d}`)) if (f !== "pack.mp3" && f.endsWith(".mp3")) bytes += statSync(`public/samples/${d}/${f}`).size;
   assert.ok(bytes < 2.2e6, `${bytes} bytes`);
 });
 
