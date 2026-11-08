@@ -851,6 +851,8 @@ export interface Slim {
   stride?: number;
   /** One dynamic layer: the instruments' soft, hard, short and blend sets held off (holdOff). */
   oneLayer?: boolean;
+  /** D549: layers kept under `oneLayer` (their sets by name): a band's own colour where the budget has room (JAZZ v2's vibraphone mallets). */
+  keep?: readonly string[];
 }
 /** D540: one set's slimming in a plan (Slim, for one instrument: maxS only where it is plucked). */
 export interface PlanSlim {

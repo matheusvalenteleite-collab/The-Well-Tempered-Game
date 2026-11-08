@@ -62,8 +62,9 @@ export interface ReverbOpts {
   lp?: number;
   /** 0 dark .. 1 bright (how slowly the impulse darkens). */
   brightness?: number;
-  /** The return's level. */
+  /** The return's level, and on a phone (D549: the v1 rooms' phone tails are shorter, so their phone returns softer). */
   level?: number;
+  phoneLevel?: number;
   /** A spring's round trip (s): its "drip". */
   spring?: number;
 }
@@ -496,7 +497,7 @@ export class FxKit {
     conv.buffer = buf;
     const lp = this.filter("lowpass", o.lp ?? 6000);
     lp.gain.value = 0;
-    const out = this.gain(o.level ?? 1);
+    const out = this.gain(this.phone ? (o.phoneLevel ?? o.level ?? 1) : (o.level ?? 1));
     input.connect(pre).connect(hp).connect(conv).connect(lp).connect(out);
     return this.block(input, out);
   }
@@ -837,32 +838,34 @@ export const BAND_CHAINS = {
     reverb: { ir: "spring", seconds: 1.1, phoneSeconds: 0.8, rt60: 1.0, predelay: 0.008, hp: 300, lp: 4500, spring: 0.031, level: 0.6 },
   },
   // Atlantic / Van Gelder, the 1950s: the vibraphone's motor in its own lane (the slow tremolo as the Leslie's drum only:
-  // no Doppler), the bass round, warm tape, a small plate.
+  // no Doppler), the bass round, warm tape, a small plate. D549-D552 (the classic four): each return calibrated to the
+  // original's room (this unit-energy impulse returned 6-10 dB more than the v1 rooms' normalised ones), each bus trimmed
+  // back to the original's level (the compressor's automatic makeup, the tape's small-signal gain, the slim fold's 3 dB).
   jazzQuartet: {
     band: "jazzQuartet",
     lanes: {
       vibes: [{ kind: "eq", bands: [{ type: "peaking", hz: 2500, db: 1.5, q: 1 }] }],
     },
-    bus: [{ kind: "eq", era: "ny58" }, { kind: "comp", model: "la2a", threshold: -26 }, { kind: "tape", drive: 1.4, bump: { hz: 100, db: 1 }, rolloff: 11000 }],
-    reverb: { ir: "plate", seconds: 1.3, phoneSeconds: 0.85, rt60: 1.1, predelay: 0.015, hp: 200, lp: 5500, brightness: 0.45, level: 0.8 },
+    bus: [{ kind: "eq", era: "ny58" }, { kind: "comp", model: "la2a", threshold: -18 }, { kind: "tape", drive: 1.4, bump: { hz: 100, db: 1 }, rolloff: 11000 }, { kind: "gain", db: -10.7 }],
+    reverb: { ir: "plate", seconds: 1.3, phoneSeconds: 0.85, rt60: 1.1, predelay: 0.015, hp: 200, lp: 5500, brightness: 0.45, level: 0.32, phoneLevel: 0.265 },
   },
   // A modern period-instrument session in a hall: clean (no tape), the room's mud cut, the air lifted; a chamber.
   baroqueBand: {
     band: "baroqueBand",
     bus: [{ kind: "eq", era: "hip" }],
-    reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.022, hp: 150, lp: 6500, brightness: 0.4, level: 0.9 },
+    reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.022, hp: 150, lp: 6500, brightness: 0.4, level: 0.33, phoneLevel: 0.25 },
   },
-  // Brass in a church: a gentle bus compressor (the brass's peaks), the hall long; no tape.
+  // Brass in a church: a gentle bus compressor (the brass's peaks only, D551), the hall long (its impulse 1.8 s: 4x CPU); no tape.
   bachBrass: {
     band: "bachBrass",
-    bus: [{ kind: "eq", era: "hip" }, { kind: "comp", model: "la2a", threshold: -20 }],
-    reverb: { ir: "chamber", seconds: 2.6, phoneSeconds: 1.6, rt60: 2.4, predelay: 0.03, hp: 120, lp: 5500, brightness: 0.3, level: 1 },
+    bus: [{ kind: "eq", era: "hip" }, { kind: "comp", model: "la2a", threshold: -10 }, { kind: "gain", db: -3.4 }],
+    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.6, rt60: 2.4, predelay: 0.03, hp: 120, lp: 5500, brightness: 0.3, level: 0.52, phoneLevel: 0.385 },
   },
   // A 1970s Archiv / Telefunken analog trio recording: close, the reeds' edge softened a touch, warm tape, a small room.
   oboeTrio: {
     band: "oboeTrio",
     bus: [{ kind: "eq", bands: [{ type: "peaking", hz: 3200, db: -1.5, q: 1 }, { type: "lowshelf", hz: 180, db: 1 }] }, { kind: "tape", drive: 1.2, rolloff: 13000 }],
-    reverb: { ir: "chamber", seconds: 1.2, phoneSeconds: 0.8, rt60: 1.05, predelay: 0.014, hp: 140, lp: 6500, brightness: 0.4, level: 0.9 },
+    reverb: { ir: "chamber", seconds: 1.2, phoneSeconds: 0.8, rt60: 1.05, predelay: 0.014, hp: 140, lp: 6500, brightness: 0.4, level: 0.3, phoneLevel: 0.23 },
   },
   // Gold Star / Western, 1966: Brian Wilson's mono wall: everything folded to one image (width 0.15), the Fairchild-like
   // squeeze, hot 3-track tape, the echo chamber; the bass and the doubled keyboards in one lane with a tape slap.
