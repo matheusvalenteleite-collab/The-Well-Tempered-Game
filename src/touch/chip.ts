@@ -875,6 +875,8 @@ export function soundPlans(pitches: number[], lead: number[], style: DrumStyle |
   // An instrument the ensemble no longer plays lets all its recordings go (but a set a playing instrument shares).
   const plans: Plan[] = [
     ...used,
+    // (A layer held off is let go too: the original's soft grand, say, still held from the sound before.)
+    ...[...off].filter((set) => !wanted.has(set)).map((set) => [{ set, notes: [] }]),
     ...(Object.keys(SAMPLED) as (keyof typeof SAMPLED)[])
       .filter((id) => !now.includes(id))
       .map((id) => {

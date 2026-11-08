@@ -15,6 +15,8 @@ import { residentBytes } from "../../../src/touch/sampled.ts";
 import { tempoOf } from "../../../src/touch/tempi.ts";
 
 const W = window as unknown as Record<string, unknown>;
+// (Every recording counted: the dev server's hundreds of modules fill the default buffer of 250.)
+performance.setResourceTimingBufferSize(100000);
 let chip: Chip | null = null;
 const longTasks: number[] = [];
 try {

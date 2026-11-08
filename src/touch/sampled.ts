@@ -1168,7 +1168,10 @@ export function slimData(chans: Float32Array[], sr: number, slim: PlanSlim): Flo
       mono[i] = x;
       pm += x * x;
     }
-    const k = pm > 0 ? Math.min(2, Math.sqrt(pl / chans.length / pm)) : 1;
+    // The channels' mean power kept (as toMono), and 3 dB more: a mono note through its seat's StereoPannerNode at the
+    // middle leaves at cos(π/4) a side where the stereo recording passed whole (measured: the slimmed harpsichord 3.2 LU
+    // under its stereo self on II/2's opening, level with it so).
+    const k = pm > 0 ? Math.min(2, Math.sqrt(pl / chans.length / pm)) * Math.SQRT2 : 1;
     if (k !== 1) for (let i = 0; i < n0; i++) mono[i] *= k;
   }
   const ratio = sr / slim.rate;

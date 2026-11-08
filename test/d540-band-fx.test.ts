@@ -99,7 +99,7 @@ test("D540: a slimmed recording is one channel at its rate, a plucked one cut wi
   assert.equal(out.length, 4 * 32000);
   assert.ok(Math.abs(out[out.length - 1]) < 1e-3, "faded at the cut");
   const rms = (d: Float32Array) => Math.sqrt(d.subarray(1000, 20000).reduce((s, x) => s + x * x, 0) / 19000);
-  assert.ok(Math.abs(rms(out) - rms(l)) < 0.05, "the fold keeps the power");
+  assert.ok(Math.abs(rms(out) - Math.SQRT2 * rms(l)) < 0.07, "the fold keeps the power, and the middle seat's 3 dB");
   const plan = [{ set: "grand", notes: [60, 63, 66] }];
   const full = decodedBytes(plan, 48000);
   const slim = decodedBytes([{ ...plan[0], slim: { rate: 32000, maxS: 4 } }], 48000);
@@ -125,4 +125,11 @@ test("D540: the plans let go of every other sound's sets, never a set the sound 
   setPreset("jazzQuartet");
   soundPlans([], [], null);
   assert.ok(sampledMidis("jazzVibes").length > 30, "the zones undone under the original");
+});
+
+test("D540: a slimmed band lets go of the layers it holds off (the soft grand loaded under the piano before it)", () => {
+  setPreset(v2Id("krautrock"));
+  const plans = soundPlans([60, 64, 67], [60], null).flat();
+  assert.ok(plans.some((e) => e.set === "grandSoft" && e.notes.length === 0), "the soft grand emptied");
+  setPreset("pianoSampled");
 });
