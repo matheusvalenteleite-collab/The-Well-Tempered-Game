@@ -187,3 +187,7 @@ Processing (tools/playback/bossa/build_bossa.py): resampled 96 to 44.1 kHz; the 
 D524, the touch game's PET SOUNDS: no new files. Its strings are violaSus/, its horn brassHorn/ and brassHornP/, its harpsichord
          harpsichord/, its piano grand/, its electric bass rickBass/ (ABBEY ROAD's), its kit drums/bigRusty/, its tambourine
          drums/virtuosity/ and its timpani timpani/ (D514's), all above.
+
+Wire copies (D542): every <note>.mp3 here also as <note>.webm (Opus) and <note>.m4a (AAC-LC), transcoded from that MP3
+(tools/playback/codec/transcode.mjs: Opus 64/32/24 kbit/s stereo/mono/low and drums, AAC 80/48/40). Same recordings, same
+sources and licences as the MP3 they were made from, listed above.

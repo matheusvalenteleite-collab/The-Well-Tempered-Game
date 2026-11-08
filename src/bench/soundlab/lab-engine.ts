@@ -13,10 +13,10 @@
  * shapes the whole plan), the TEMPO (the clock), the voice Herr Bach plays, the piece; and every seek.
  */
 import { Chip } from "../../touch/chip.ts";
-import { kitFiles } from "../../touch/chip.ts";
+import { openingOf, soundPlans } from "../../touch/chip.ts";
 import { barAt, barStart, everyNote, fugueById, type TouchFugue } from "../../touch/fugue.ts";
-import { baseSound, V2_PRESETS, grooveNow, preset, PRESETS, presetById, sampledNow, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
-import { BRUSH_MIDIS, BRUSH_SET, loadPlanKeep, planFor, ROCK_KIT_MIDIS, ROCK_KIT_SET, SAMPLED, type Plan } from "../../touch/sampled.ts";
+import { baseSound, V2_PRESETS, preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
+import { loadPlanKeep, type Plan } from "../../touch/sampled.ts";
 import { drumPresetsFor, setDrumPreset, stylesFor } from "../../touch/drum-presets.ts";
 import { setClimaxLayer, setFormLayer } from "../../touch/fugue-form.ts";
 import { setColourPlansOn } from "../../touch/colour.ts";
@@ -74,13 +74,15 @@ export function planOf(soundId: string, f: TouchFugue, voice: number, drums: num
   setPieceLayout(tl ? { preset: soundId, count: tl.count, slots: tl.slots } : null);
   const pitches = everyNote(f).map((n) => n[2]);
   const lead = (f.voices[voice] ?? []).map((n) => n[2]);
-  const plan: Plan = sampledNow().flatMap((id) => planFor(SAMPLED[id], pitches, lead));
-  const gr = grooveNow();
-  if (gr?.kit === "brushes") plan.push({ set: BRUSH_SET, notes: [...BRUSH_MIDIS] });
-  if (gr?.kit === "rock") plan.push({ set: ROCK_KIT_SET, notes: [...ROCK_KIT_MIDIS] });
-  if (drums > 0) plan.push(...kitFiles(stylesFor(f.id)[drumPresetsFor(f.id)[drums - 1].id]));
+  // D542: as the game plans it (chip.ts soundPlans: a v2's slimming, zones and one layer too), the opening first.
+  const style = drums > 0 ? stylesFor(f.id)[drumPresetsFor(f.id)[drums - 1].id] : null;
+  const plan: Plan = soundPlans(pitches, lead, style, openingOf(f))
+    .flat()
+    .filter((e) => e.notes.length);
   setPreset(was);
   setPieceLayout(wasLayout);
+  // (The zones and the held-off layers are the sound heard now's again: soundPlans set them for this one.)
+  soundPlans(pitches, lead, null);
   return plan;
 }
 
