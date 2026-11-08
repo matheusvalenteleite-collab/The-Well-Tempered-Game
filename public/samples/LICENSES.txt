@@ -169,3 +169,18 @@ D523, the touch game's ABBEY ROAD (and D525's KRAUTROCK), no new files: their re
          (Karoryfer via tonejs-instruments, CC BY 3.0) the second guitar; rickBass/ (Black And Blue Basses' picked
          "babyblue", Karoryfer, CC0) the bass; drums/bigRusty/ (Big Rusty Drums, Karoryfer, CC0) the kit; grand/ the piano.
          Their tuning and each note's loudness trim measured into src/touch/sampled.ts (ROCK_CENTS, ROCK_DB, ROCK_PHONE_DB).
+D521, the touch game's BOSSA NOVA (the nylon guitar and the bass drum and cross-stick; its flute is flute/ (VSO2 CE, CC BY 3.0), its
+piano grand/, its bass jazzBass/, its brushes jazzBrushes/, all above):
+bossaGuitar/ bossaGuitarSoft/  University of Iowa Electronic Music Studios, Musical Instrument Samples (MIS): Guitar (a Raimundo 118
+         nylon-string classical guitar, Brian Penkrot, 2011, anechoic chamber), the mono scale files, one string per file: mf every
+         semitone E2-B5 (bossaGuitar; C5 and E3 not cut, read from their neighbours), pp every whole tone (bossaGuitarSoft; E2 and E3
+         likewise), each note from the string a guitarist takes it on in the first positions. Source:
+         https://theremin.music.uiowa.edu/MISguitar.html ("may be downloaded and used for any projects, without restrictions");
+         credit to the studios given as a courtesy.
+bossaKit/  Big Rusty Drums, Karoryfer Samples. CC0 1.0: drums/bigRusty/rim-1, rim-2 (the cross-stick: C3, D3) and kick-1, kick-2
+         (the bass drum: C2, D2), copied unchanged under note names.
+Processing (tools/playback/bossa/build_bossa.py): resampled 96 to 44.1 kHz; the scale files cut at their onsets (build_jazz.py's way),
+         each segment's pitch checked; onset kept 2 ms before the pluck; 3.5 s with a 0.7 s fade, high-passed at 0.8 of the fundamental;
+         each note's loudness over its first 0.4 s (K-weighted) evened, both sets at one gain (the loudest peak at -1 dBFS); a cut whose
+         evened peak stood over 3 times the median left out; tuning measured into src/touch/sampled.ts (about 20 cents flat as tuned);
+         mono 44.1 kHz 64 kbit/s MP3. About 1.8 MB in all.

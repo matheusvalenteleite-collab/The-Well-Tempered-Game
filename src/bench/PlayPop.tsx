@@ -75,6 +75,8 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["abbeyRoad", "ABBEY ROAD"],
   // D525: KRAUTROCK (with its motorik drums).
   ["krautrock", "KRAUTROCK"],
+  // D521: BOSSA NOVA (the flute, the nylon guitar, the piano, the upright bass and its drums).
+  ["bossaNova", "BOSSA NOVA"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */

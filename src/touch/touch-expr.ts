@@ -64,6 +64,9 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   abbeyRoad: "jazz",
   // D525: KRAUTROCK likewise (its organ sustained: nothing held to sway).
   krautrock: "jazz",
+  // D521: BOSSA NOVA as JAZZ QUARTET (the piano's three zones, each instrument its own): the pluck on the guitar (its pp or mf
+  // recording) and the bass, the weight on the piano, the breath on the flute (the zone's level; a held sway its swell).
+  bossaNova: "jazz",
 };
 /** D520/D522: the family a band instrument's touch is (by its recordings). */
 export function bandFamily(pt: Patch | null): "piano" | "brass" | "winds" | "jazz" {
@@ -203,6 +206,7 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   chorinho: [-2, 2],
   abbeyRoad: [0, 0],
   krautrock: [0, 0],
+  bossaNova: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
   harpsichordSampled: [-0.5, 1.5],
   // The swell box's shutters: the level with its brightness (ORGAN_SWELL_TONE), the echo manual's under it.
@@ -465,8 +469,9 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
       return fam === "brass" ? "swell" : fam === "winds" ? (plucked ? "none" : "breath") : "none";
     }
     case "jazz":
-      // D503: a held vibraphone note: its motor's speed (Patch.motor); the piano and the bass, struck: nothing.
-      return pt?.motor ? "trem" : "none";
+      // D503: a held vibraphone note: its motor's speed (Patch.motor); the piano and the bass, struck: nothing. D521: a held
+      // (wind) note, BOSSA NOVA's flute: the breath's swell.
+      return pt?.motor ? "trem" : plucked ? "none" : "breath";
     case "bleeps":
       if (pt?.trem) return "trem";
       return plucked ? "none" : "vibrato";

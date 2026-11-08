@@ -426,6 +426,28 @@ export const ROCK_KIT_RMS: Readonly<Record<number, number>> = Object.fromEntries
 );
 const ROCK_KIT_LEN: Record<string, number> = { kick: 0.85, snare: 1.1, rim: 0.86, hat: 0.84, openhat: 1.23, crash: 3.03, ride: 3.03, tomHigh: 1.46, tomLow: 1.6 };
 
+/**
+ * D521, BOSSA NOVA's nylon guitar (tools/playback/bossa/build_bossa.py): the University of Iowa MIS guitar (a Raimundo 118
+ * classical guitar, 2011, anechoic) at mf every semitone E2-B5 (C5 not cut from its scale and E3's cut a breath, not a pluck: read from
+ * their neighbours), at pp every whole tone (E2 and E3 likewise), each from the string a bossa guitarist would take it on. The tuning measured there (cents: the
+ * harmonic sum's peak over 0.15-0.9 s: the guitar was tuned about 20 cents flat, its low strings flatter); 3.5 s as trimmed.
+ * And the rhythm section's cross-stick and bass drum (bossaKit: Big Rusty's, CC0, BOSSA_KIT_FILES).
+ */
+const BOSSA_CENTS: Record<string, Record<string, number>> = {
+  bossaGuitar: { E2: -39.5, F2: -31.5, Fs2: -34.5, G2: -37.5, Gs2: -31, A2: -37, As2: -21.5, B2: -22, C3: -23.5, Cs3: -19.5, D3: -25, Ds3: -18.5, F3: -19, Fs3: -14.5, G3: -30, Gs3: -12.5, A3: -14, As3: -11, B3: -10.5, C4: -13, Cs4: -13.5, D4: -12.5, Ds4: -8.5, E4: -25.5, F4: -20.5, Fs4: -19.5, G4: -19, Gs4: -18, A4: -19.5, As4: -17.5, B4: -17.5, Cs5: -21, D5: -21.5, Ds5: -17, E5: -19, F5: -20.5, Fs5: -20, G5: -16.5, Gs5: -21, A5: -24.5, As5: -21.5, B5: -15.5 },
+  bossaGuitarSoft: { Fs2: -35, Gs2: -32, As2: -24, C3: -24.5, D3: -24.5, Fs3: -16.5, Gs3: -13.5, As3: -13, C4: -14.5, D4: -13.5, E4: -25, Fs4: -19.5, Gs4: -18, As4: -21, C5: -18.5, D5: -20, E5: -14, Fs5: -18, Gs5: -9.5, As5: -24 },
+};
+/** D521: the cross-stick (soft, firm) and the bass drum (soft, firm), filed under note names in bossaKit. */
+export const BOSSA_KIT_FILES = { rim: [48, 50], kick: [36, 38] } as const;
+export const BOSSA_KIT_SET = "bossaKit";
+const BOSSA_KIT_LEN: Record<number, number> = { 36: 0.84, 38: 0.73, 48: 0.86, 50: 0.73 };
+/** D521: every file of the kit (MIDI), for the plan. */
+export const BOSSA_KIT_MIDIS: readonly number[] = Object.keys(BOSSA_KIT_LEN).map(Number);
+const BOSSA_NOTES: Record<string, Record<string, { cents: number; len: number }>> = {
+  ...Object.fromEntries(Object.entries(BOSSA_CENTS).map(([set, cs]) => [set, Object.fromEntries(Object.entries(cs).map(([n, cents]) => [n, { cents, len: 3.5 }]))])),
+  [BOSSA_KIT_SET]: Object.fromEntries(Object.entries(BOSSA_KIT_LEN).map(([m, len]) => [noteName(Number(m)), { cents: 0, len }])),
+};
+
 /** D510: `phoneDb`, a recording's own trim on a phone (JAZZ_PHONE_DB); D523: `db`, its own trim everywhere (ROCK_DB). */
 const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number; loop?: [number, number]; phoneDb?: number; db?: number }>> = {
   ...HARPSI_ORGAN,
@@ -434,6 +456,7 @@ const SAMPLED_NOTES: Record<string, Record<string, { cents: number; len: number;
   ...PERIOD_NOTES,
   ...JAZZ_NOTES,
   ...ROCK_NOTES,
+  ...BOSSA_NOTES,
   [ROCK_KIT_SET]: Object.fromEntries(Object.entries(ROCK_KIT_FILES).map(([m, f]) => [noteName(Number(m)), { cents: 0, len: ROCK_KIT_LEN[f.split("-")[0]] }])),
 };
 
@@ -466,7 +489,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -658,6 +681,10 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   rockGuitar: { set: "cleanGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
   rockGuitar2: { set: "eguitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
   rockBass: { set: "rickBass", plucked: true, gain: 2.2, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
+  // D521, BOSSA NOVA's nylon guitar (mf, and pp for the lighter notes and the soft side: the thumb's rounder stroke), plucked,
+  // the left hand's damping by the note's length (a short note stopped by the finger lifting, a longer one ringing a little into
+  // the next, as a guitarist lets a line sing), a firmer stroke a little brighter (velTone: the nail), retuned a tone at most.
+  bossaGuitar: { set: "bossaGuitar", plucked: true, gain: 2.2, soft: { set: "bossaGuitarSoft", below: 0.794, gain: 1 }, pedal: { short: 0.2, shortTau: 0.04, tau: 0.1 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
