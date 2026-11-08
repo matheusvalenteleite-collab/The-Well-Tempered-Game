@@ -103,7 +103,9 @@ test("D430: the continuo: the harpsichord on the bass's notes only, lighter (5-8
 
 test("D435: the allocation: BAROQUE BAND where the bass enters last with the continuo, the consort, the lute, SID 64", () => {
   // D510: II/17 on CLASSIC CHIP (the owner's choice), I/14 on JAZZ QUARTET (the lute withdrawn).
-  for (const id of ["wtc1f09", "wtc2f16", "wtc2f21"]) assert.equal(PIECE_SOUND[id], "baroqueBand", id);
+  // D521: I/9 given to SID 64 (the owner wanting it used more).
+  for (const id of ["wtc2f16", "wtc2f21"]) assert.equal(PIECE_SOUND[id], "baroqueBand", id);
+  assert.equal(PIECE_SOUND.wtc1f09, "sid64");
   assert.equal(PIECE_SOUND.wtc2f17, "chip");
   // (D503: II/12 now opens on JAZZ QUARTET, I/19 too.)
   for (const [id, s] of [["wtc1f04", "stringConsort"], ["wtc2f08", "stringConsort"], ["wtc1f14", "jazzQuartet"], ["wtc1f21", "sid64"], ["wtc2f12", "jazzQuartet"]] as const) assert.equal(PIECE_SOUND[id], s, id);
