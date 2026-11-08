@@ -9,7 +9,8 @@
 import { soundPlans } from "./chip.ts";
 import { FUGUES, everyNote, fugueById } from "./fugue.ts";
 import { BUDGET, decodedBytes, monoFor, type Plan } from "./sampled.ts";
-import { preset, presetById, setPreset } from "./sound.ts";
+import { preset, presetById, setPreset, V2_SLIM, type Preset } from "./sound.ts";
+import type { Slim } from "./sampled.ts";
 import type { DrumStyle } from "./drum-presets.ts";
 
 export const PRESET_MB = 25;
@@ -40,9 +41,11 @@ export interface PresetBudget {
 
 const MB = 1e6;
 /** One preset's budget over the 48 fugues (each voice the player's, the top and the bottom: the octave doubles at each end). */
-export function presetBudget(id: string, pieces = FUGUES.map((f) => f.id)): PresetBudget {
+export function presetBudget(id: string, pieces = FUGUES.map((f) => f.id), slim?: Slim): PresetBudget {
   const was = preset();
-  setPreset(id);
+  // (`slim`: the preset as it would be held slimmed: what a slim version of it would save.)
+  const p: Preset = presetById(id);
+  setPreset(slim ? { ...p, slim } : p);
   try {
     let worst = { b: 0, piece: "", voice: 0, drums: 0 };
     for (const pid of pieces) {
@@ -62,4 +65,16 @@ export function presetBudget(id: string, pieces = FUGUES.map((f) => f.id)): Pres
   } finally {
     setPreset(was);
   }
+}
+
+/** Why a preset's budget fails (null: within it). */
+export function overBudget(b: PresetBudget): string | null {
+  if (b.mb > PRESET_MB) return `${b.id}: ${b.mb.toFixed(1)} MB decoded (${b.piece} v${b.voice}) over ${PRESET_MB} MB`;
+  if (b.residentMb > RESIDENT_MB) return `${b.id}: ${b.residentMb.toFixed(1)} MB resident with the DRUMS kit over ${RESIDENT_MB} MB`;
+  return null;
+}
+
+/** D540: a preset's MB now and slimmed (V2_SLIM: 24 kHz mono, plucked notes 3 s, every third semitone, one layer). */
+export function slimSaving(id: string, slim: Slim = V2_SLIM): { now: PresetBudget; slim: PresetBudget } {
+  return { now: presetBudget(id), slim: presetBudget(id, undefined, slim) };
 }

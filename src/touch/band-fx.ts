@@ -227,14 +227,15 @@ export const COMP_MODELS = {
  * round at 100 Hz, a gentle presence at 4 kHz, the top rolled at 9 kHz. fania72: the 1970s New York salsa: bright,
  * horns forward (a lift at 1.2 and 4 kHz), the lows lean. plank72: Conny Plank's and Can's: lows tight and solid at 80
  * Hz, the low mids scooped at 400 Hz, a dry, forward 2 kHz. radio50: a 1950s broadcast of a regional (AM, 150 Hz-5 kHz,
- * the mids forward). hip: a modern early-music session (flat but for the air at 10 kHz and the room's low mud cut).
+ * the mids forward). (emi67 retuned to the 1969 TG12345's extended lows and clarity: highpass 35 Hz, lowpass 12 kHz; the
+ * study's section 2.) hip: a modern early-music session (flat but for the air at 10 kHz and the room's low mud cut).
  */
 export type EraId = "emi67" | "goldStar66" | "rio63" | "ny58" | "fania72" | "plank72" | "radio50" | "hip";
 export const ERA_EQ: Readonly<Record<EraId, readonly EqBand[]>> = {
   emi67: [
-    { type: "highpass", hz: 50, q: 0.7 },
-    { type: "peaking", hz: 2800, db: 2.5, q: 0.9 },
-    { type: "lowpass", hz: 10000, q: 0.6 },
+    { type: "highpass", hz: 35, q: 0.7 },
+    { type: "peaking", hz: 3000, db: 2, q: 0.9 },
+    { type: "lowpass", hz: 12000, q: 0.6 },
   ],
   goldStar66: [
     { type: "highpass", hz: 70, q: 0.6 },
@@ -407,8 +408,8 @@ export function chainCost(spec: ChainSpec): { nodes: number; oscillators: number
   if (spec.reverb) (sum.nodes += 6), (sum.convolvers += 1);
   return sum;
 }
-/** At most this many nodes in a chain, two convolvers' worth never (one reverb a band), and six LFOs. */
-export const CHAIN_CAP = { nodes: 90, convolvers: 1, oscillators: 6 } as const;
+/** At most this many nodes in a chain (a band's one: a note makes 10-30 of its own, a fugue sounds 30-60 at once), never two convolvers (one reverb a band), and six LFOs. */
+export const CHAIN_CAP = { nodes: 120, convolvers: 1, oscillators: 6 } as const;
 
 /** The builders, on one context. Every node is recorded in `nodes`, every LFO in `sources`. */
 export class FxKit {
@@ -770,7 +771,7 @@ export const BAND_CHAINS = {
     lanes: {
       organ: [{ kind: "phaser", rate: 0.25, hz: 900, sweep: 1500, mix: 0.45 }],
       guitar: [{ kind: "fuzz", drive: 6, tone: 2600, level: 0.45 }, { kind: "echo", time: 0.36, beats: 0.75, feedback: 0.35, mix: 0.45, pan: 0.3, wow: { rate: 0.55, depth: 0.0011 } }],
-      synth: [{ kind: "tape", drive: 1.4, rolloff: 9000 }],
+      mellotron: [{ kind: "tape", drive: 1.4, rolloff: 9000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 120, lp: 6000 }],
     },
     bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: -18 }, { kind: "tape", drive: 1.8, bump: { hz: 90, db: 1.5 }, rolloff: 12000 }],
     reverb: { ir: "plate", seconds: 1.4, phoneSeconds: 0.9, rt60: 1.2, predelay: 0.01, hp: 250, lp: 6000, level: 0.8 },
@@ -780,10 +781,10 @@ export const BAND_CHAINS = {
   abbeyRoad: {
     band: "abbeyRoad",
     lanes: {
-      organ: [{ kind: "leslie", speed: "chorale" }, { kind: "tape", drive: 1.5 }],
-      guitar: [{ kind: "adt", delay: 0.018, depth: 0.0018, rate: 0.6, spread: 0.7, level: 0.8 }],
-      left: [{ kind: "place", pan: -0.8 }],
-      right: [{ kind: "place", pan: 0.8 }],
+      guitar: [{ kind: "leslie", speed: "chorale" }, { kind: "adt", delay: 0.018, depth: 0.0018, rate: 0.6, spread: 0.3, level: 0.8 }, { kind: "place", pan: -0.8 }],
+      organ: [{ kind: "leslie", speed: "chorale" }, { kind: "tape", drive: 1.5 }, { kind: "place", pan: 0.8 }],
+      moog: [{ kind: "tape", drive: 1.3 }],
+      brass: [{ kind: "adt", delay: 0.014, depth: 0.0012, rate: 0.5, spread: 0.4, level: 0.7 }, { kind: "comp", model: "fairchild" }, { kind: "place", pan: 0.6 }],
     },
     bus: [{ kind: "eq", era: "emi67" }, { kind: "comp", model: "fairchild" }, { kind: "tape", drive: 2.2, bias: 0.1, bump: { hz: 110, db: 1.5 }, rolloff: 11000 }],
     reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.02, hp: 250, lp: 7000, brightness: 0.5, level: 0.9 },
@@ -852,7 +853,7 @@ export const BAND_CHAINS = {
   petSounds: {
     band: "petSounds",
     lanes: {
-      wall: [{ kind: "echo", time: 0.09, feedback: 0.12, mix: 0.25, lp: 3500, hp: 250 }],
+      wall: [{ kind: "echo", time: 0.09, feedback: 0.12, mix: 0.25, lp: 3500, hp: 250 }, { kind: "adt", delay: 0.012, depth: 0.0008, rate: 0.4, spread: 0, level: 0.5 }],
     },
     bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.15 }],
     reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.1, rt60: 1.6, predelay: 0.02, hp: 200, lp: 6000, brightness: 0.45, level: 1 },

@@ -1369,6 +1369,8 @@ export interface Preset {
   v2Of?: string;
   /** D540: how its recordings are held once decoded (sampled.ts Slim: one channel, the rate, the plucked notes' length). */
   slim?: Slim;
+  /** D540: held to the budget (budget.ts PRESET_MB, RESIDENT_MB; test/d540-budget.test.ts): phase 2 sets it on a v2 once rebuilt. */
+  budgeted?: boolean;
 }
 
 /**
@@ -1910,15 +1912,17 @@ export const TRIALS: Preset[] = [
  */
 /**
  * D540: the v2 bands' recordings held as the budget asks (BRIEF-BANDS2: mono, at most 32 kHz, at most 25 MB a preset):
- * one channel, decoded at 32 kHz (the master's own lowpass is 6.5 kHz: nothing above 16 kHz is heard), a plucked note's
- * recording cut at 4 s with a fade (the Salamander grand's 7 s: its last 3 s are 30 dB down and damped by the written end),
+ * one channel, decoded at 24 kHz (the master's own lowpass is 6.5 kHz, Q 0.5: over 12 kHz it is 10 dB down already), a
+ * plucked note's recording cut at 3 s with a fade (the Salamander grand's 7 s: damped by the written end in all but the
+ * longest notes), the player's line without ORGANO PLENO's octave doubles (the organ's alone), a slimmed band's drums at 24 kHz,
  * the recordings every third semitone at least (sparse zones: a chromatic set's third) and one dynamic layer (the soft, hard,
  * short and blend sets held off; the velocity's colour the patches' filters'). Phase 2 may give a band its own.
  */
-export const V2_SLIM: Slim = { rate: 32000, pluckedS: 4, stride: 3, oneLayer: true };
+export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
 export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
   const p = PRESETS.find((x) => x.id === band)!;
-  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: V2_SLIM };
+  // (PET SOUNDS' five instruments, the grand and the harpsichord among them: its plucked notes cut at 2.5 s to keep within 25 MB.)
+  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true };
 });
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics

@@ -120,7 +120,7 @@ test("D540: the plans let go of every other sound's sets, never a set the sound 
   assert.ok(plans.some((e) => e.set === "jazzVibes" && e.notes.length === 0), "the vibraphone's let go");
   setPreset(v2Id("jazzQuartet"));
   const v2 = soundPlans([60, 62, 64, 67, 72], [60], null).flat();
-  assert.ok(v2.filter((e) => e.set === "jazzVibes").every((e) => e.slim?.rate === 32000 && e.slim.maxS === 4));
+  assert.ok(v2.filter((e) => e.set === "jazzVibes").every((e) => e.slim?.rate === 24000 && e.slim.maxS === 3));
   assert.ok(!v2.some((e) => e.set === "jazzVibesSoft" && e.notes.length), "one layer: the soft vibraphone held off");
   setPreset("jazzQuartet");
   soundPlans([], [], null);

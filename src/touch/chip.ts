@@ -866,7 +866,8 @@ export function soundPlans(pitches: number[], lead: number[], style: DrumStyle |
   const used = now.map((id) => {
     const inst = SAMPLED[id];
     const s = slimOf(inst);
-    return planFor(inst, pitches, lead)
+    // (A slimmed band plans no octave doubles of the player's line: ORGANO PLENO's, D181, is the organ's alone.)
+    return planFor(inst, pitches, sl ? [] : lead)
       .filter((e) => !off.has(e.set))
       .map((e) => (s ? { ...e, slim: s } : e));
   });
@@ -898,6 +899,8 @@ export function soundPlans(pitches: number[], lead: number[], style: DrumStyle |
   const kit = grooveNow()?.kit;
   // D521: BOSSA NOVA's cross-stick and bass drum (4 short files), with the brushes.
   plans.push([{ set: BOSSA_KIT_SET, notes: kit === "bossa" ? [...BOSSA_KIT_MIDIS] : [] }]);
+  // D540: a slimmed band's drums at its rate too (their length their own: a cymbal rings).
+  if (sl) for (const plan of plans.slice(used.length)) for (const e of plan) if (e.notes.length && !e.slim) e.slim = { rate: sl.rate };
   return plans;
 }
 
