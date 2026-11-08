@@ -407,3 +407,48 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
   .howto-body { font-size: 13px; }
   .howto-clip-canvas { height: 104px; }
 }
+
+/* D453: DRUMS: ON/OFF, the style (a tap the next of HOME and the sound's family), MORE (every style). */
+.sel-drums { grid-auto-flow: unset; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) minmax(0, 0.7fr); }
+.sel-drums .sel-knob { min-height: 34px; }
+.sel-drums-more { text-align: center; }
+.sel-drums-more b { color: var(--tg-fg); }
+
+/* D453: the MORE grid, after the Sound Lab's pad: the families in rows, each style a big button, HOME and FITS marked. */
+.sel-drumgrid { box-sizing: border-box; display: flex; flex-direction: column; width: min(820px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); background: var(--tg-box, #12162a); border: 3px solid var(--tg-shine); box-shadow: 6px 6px 0 #b8322a; font-family: var(--tg-pixel); }
+.sel-drumgrid-head { flex: none; display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 2px solid #2c345c; }
+.sel-drumgrid-head h2 { margin: 0; font-size: 10px; font-weight: 400; color: var(--tg-shine); }
+.sel-drumgrid-off { min-height: 34px; min-width: 64px; padding: 0 10px; font-family: inherit; font-size: 7px; color: var(--tg-fg); background: #1e1c32; border: 1px solid #78789f; cursor: pointer; }
+.sel-drumgrid-off.on { color: #14101a; background: var(--tg-shine); border-color: var(--tg-shine); }
+.sel-drumgrid-note { margin: 0; font-size: 5px; line-height: 1.5; color: #8c88aa; }
+.sel-drumgrid-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 10px 10px; display: grid; gap: 8px; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; }
+.sel-drumgrid-fam h3 { margin: 0 0 4px; font-size: 6px; font-weight: 400; color: #f3d78a; letter-spacing: 0.06em; }
+.sel-drumgrid-pad { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 5px; }
+.sel-drumgrid-pad button { position: relative; display: grid; align-content: center; gap: 3px; min-height: 44px; padding: 4px 5px; font-family: inherit; text-align: left; color: var(--tg-fg); background: #1e1c32; border: 1px solid #78789f; cursor: pointer; }
+.sel-drumgrid-pad button b { font-weight: 400; font-size: 7px; line-height: 1.3; overflow-wrap: normal; }
+.sel-drumgrid-pad button.home { border-color: #f3d78a; }
+.sel-drumgrid-pad button.on { color: #14101a; background: var(--tg-shine); border-color: var(--tg-shine); box-shadow: 0 0 8px 1px rgba(255, 226, 120, 0.6); }
+.sel-drumgrid-pad button:active { transform: translate(1px, 1px); }
+.sel-drumgrid-marks { display: flex; gap: 3px; flex-wrap: wrap; }
+.sel-drumgrid-marks i { font-style: normal; font-size: 4.5px; padding: 1px 2px; color: #14101a; }
+.sel-drumgrid-marks i.home { background: #f3d78a; }
+.sel-drumgrid-marks i.fits { background: #5fdc6a; }
+@media (max-width: 700px) {
+  .sel-drumgrid-pad { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .sel-drumgrid-pad button b { font-size: 6px; }
+}
+/* D453: the row fits every language: ON/OFF and the style share the width, MORE a square with the grid's sign and the count. */
+.sel-drums { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) 30px; }
+.sel-drums .sel-knob b { white-space: normal; overflow: visible; overflow-wrap: normal; word-break: normal; }
+.sel-drums-on b { font-size: 5.5px; line-height: 1.3; }
+.sel-drums-more { display: grid; place-items: center; padding: 2px 0; }
+.sel-drums-more b { font-family: system-ui, sans-serif; font-size: 14px; line-height: 1; color: var(--tg-shine); }
+.sel-drums-more .sel-knob-k { font-size: 5px; }
+/* D453: DRUMS named over the row (as YOUR VOICE); ON/OFF a switch, no words to cut in any language. */
+.sel-drums-ask { margin-top: 2px; }
+.sel-drums { grid-template-columns: 44px minmax(0, 1fr) 30px; }
+.sel-drums-on { display: grid; place-items: center; padding: 0; }
+.sel-switch { position: relative; display: block; width: 28px; height: 14px; background: #3a3858; border: 1px solid #78789f; }
+.sel-switch i { position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; background: #8c88aa; transition: left 0.12s steps(3); }
+.sel-drums-on.on .sel-switch { background: #2f6b3a; border-color: #5fdc6a; }
+.sel-drums-on.on .sel-switch i { left: 15px; background: #5fdc6a; }

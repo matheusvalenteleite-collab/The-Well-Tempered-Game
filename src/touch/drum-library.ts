@@ -178,7 +178,7 @@ export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
 };
 /** D532: a fugue's curated styles for a sound: the sound's family, then the fugue's own picks. */
 export const curatedFor = (pieceId: string, sound: string): readonly StyleId[] => [...new Set([...familyFor(sound), ...(FUGUE_PICKS[pieceId] ?? [])])];
-// D546: a v2 band ("<BAND> v2", band-fx.ts baseSound) has its original's HOME and family (it was given the fallback, "rock").
+// (D543: a "<BAND> v2" is its band: KRAUTROCK v2's HOME is the motorik, not the fallback.)
 export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[baseSound(sound)]?.[0] ?? HOME_FALLBACK;
 export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[baseSound(sound)] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 

@@ -775,21 +775,36 @@ export const CHORO2_TRIM = { db: -8.2, phoneDb: -9.9 } as const;
  * One chain a band (the study's signature designs, STUDY.md; phase 2 tunes them by ear-proxy measurement). The v2 presets
  * (sound.ts V2_PRESETS) carry them; the v1 bands play as before.
  */
+/**
+ * D543-D545: the rebuilt rock bands' trims at the end of the bus: the chain's makeup (the tape's small-signal gain, drive over
+ * tanh(drive); the compressors' makeup; a lane's tape) took the band 10.6-11 LU over its original, measured without drums
+ * (I/20 b. 11-14, I/16 b. 7-9, I/17 b. 7-9), so the master's limiter squashed it (crest 6.7-8.1 dB against 14-17). The trim
+ * gives the drums, which bypass the chain, their place back; the presets' gains then match the originals on a phone.
+ */
+export const KRAUT2_TRIM_DB = -13.2;
+export const ABBEY2_TRIM_DB = -11.5;
+export const PET2_TRIM_DB = -12;
 export const BAND_CHAINS = {
-  // Conny Plank / Can / Neu!: the combo organ and the fuzz guitar each their lane; a phased, echoing guitar; the bus
-  // tight, scooped and driven onto 1972 tape; a short EMT-like plate.
+  // D543, KRAUTROCK v2: Conny Plank's Star Studio / Can's Inner Space, 1971-72 (STUDY.md §1). Dry and close; the space from
+  // tape. The combo organ: its "oboe" formant (2.5 kHz) and a slow 4-stage phaser, a little left. The guitar: driven into
+  // the fuzz (the pedal's input gain, then the clip), right, its tape echo at a dotted eighth (following the beat) crossing
+  // to the left. The clean guitar: its own faster phaser. The Mellotron: its tape's wow and its narrow band, right of centre.
+  // The Moog in the middle. The bus: Plank's curve, the 1176, the 1972 tape; a short plate, used sparingly.
   krautrock: {
     band: "krautrock",
     lanes: {
-      organ: [{ kind: "phaser", rate: 0.25, hz: 900, sweep: 1500, mix: 0.45 }],
-      guitar: [{ kind: "fuzz", drive: 6, tone: 2600, level: 0.45 }, { kind: "echo", time: 0.36, beats: 0.75, feedback: 0.35, mix: 0.45, pan: 0.3, wow: { rate: 0.55, depth: 0.0011 } }],
-      mellotron: [{ kind: "tape", drive: 1.4, rolloff: 9000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 120, lp: 6000 }],
+      organ: [{ kind: "eq", bands: [{ type: "peaking", hz: 2500, db: 3, q: 1.2 }, { type: "lowpass", hz: 7000, q: 0.6 }] }, { kind: "phaser", rate: 0.25, hz: 900, sweep: 1500, mix: 0.45 }, { kind: "place", pan: -0.35 }],
+      guitar: [{ kind: "gain", db: 22 }, { kind: "fuzz", drive: 6, tone: 2600, level: 0.06 }, { kind: "place", pan: 0.4 }, { kind: "echo", time: 0.36, beats: 0.75, feedback: 0.38, mix: 0.5, pan: -0.6, wow: { rate: 0.55, depth: 0.0011 } }],
+      clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "place", pan: 0.55 }],
+      mellotron: [{ kind: "tape", drive: 1.6, rolloff: 8000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 140, lp: 5500 }, { kind: "place", pan: 0.25 }],
     },
-    bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: -18 }, { kind: "tape", drive: 1.8, bump: { hz: 90, db: 1.5 }, rolloff: 12000 }],
+    bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: -18 }, { kind: "tape", drive: 1.8, bump: { hz: 90, db: 1.5 }, rolloff: 12000 }, { kind: "gain", db: KRAUT2_TRIM_DB }],
     reverb: { ir: "plate", seconds: 1.4, phoneSeconds: 0.9, rt60: 1.2, predelay: 0.01, hp: 250, lp: 6000, level: 0.8 },
   },
-  // EMI Studio Two, 1967-69: the Hammond through its Leslie; the guitar double-tracked by ADT; the bass dry and round;
-  // the REDD desk's curve, the Fairchild, the bounce onto 4-track tape; the chamber (and the EMT plate's brightness).
+  // D544, ABBEY ROAD v2: EMI Studio Two, February-August 1969 (STUDY.md §2): the TG12345's eight tracks. The Gretsch through a
+  // Leslie (chorale) and ADT, hard left; the Hammond through its own Leslie and a hot track, hard right; the Moog onto tape in
+  // the middle; the trumpet double-tracked and through a Fairchild, right; the bass's flatwounds (a lowpass at 1.6 kHz and a
+  // bump at 150 Hz), in the middle. The bus: the TG's curve, the Fairchild, the tape; the EMI chamber.
   abbeyRoad: {
     band: "abbeyRoad",
     lanes: {
@@ -797,8 +812,9 @@ export const BAND_CHAINS = {
       organ: [{ kind: "leslie", speed: "chorale" }, { kind: "tape", drive: 1.5 }, { kind: "place", pan: 0.8 }],
       moog: [{ kind: "tape", drive: 1.3 }],
       brass: [{ kind: "adt", delay: 0.014, depth: 0.0012, rate: 0.5, spread: 0.4, level: 0.7 }, { kind: "comp", model: "fairchild" }, { kind: "place", pan: 0.6 }],
+      bass: [{ kind: "eq", bands: [{ type: "peaking", hz: 150, db: 2.5, q: 0.9 }, { type: "lowpass", hz: 1600, q: 0.7 }] }],
     },
-    bus: [{ kind: "eq", era: "emi67" }, { kind: "comp", model: "fairchild" }, { kind: "tape", drive: 2.2, bias: 0.1, bump: { hz: 110, db: 1.5 }, rolloff: 11000 }],
+    bus: [{ kind: "eq", era: "emi67" }, { kind: "comp", model: "fairchild" }, { kind: "tape", drive: 2.2, bias: 0.1, bump: { hz: 110, db: 1.5 }, rolloff: 11000 }, { kind: "gain", db: ABBEY2_TRIM_DB }],
     reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.02, hp: 250, lp: 7000, brightness: 0.5, level: 0.9 },
   },
   // 1970s New York salsa (Fania): the brass section's lane bright and pushed; the tres crisp; bright console EQ, a fast
@@ -873,8 +889,8 @@ export const BAND_CHAINS = {
     lanes: {
       wall: [{ kind: "echo", time: 0.09, feedback: 0.12, mix: 0.25, lp: 3500, hp: 250 }, { kind: "adt", delay: 0.012, depth: 0.0008, rate: 0.4, spread: 0, level: 0.5 }],
     },
-    bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.15 }],
-    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.1, rt60: 1.6, predelay: 0.02, hp: 200, lp: 6000, brightness: 0.45, level: 1 },
+    bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.15 }, { kind: "gain", db: PET2_TRIM_DB }],
+    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 0.9, rt60: 1.6, predelay: 0.02, hp: 200, lp: 6000, brightness: 0.45, level: 1 },
   },
 } as const satisfies Record<string, ChainSpec>;
 export type ChainBand = keyof typeof BAND_CHAINS;

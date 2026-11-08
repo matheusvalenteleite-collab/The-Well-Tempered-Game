@@ -80,7 +80,8 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
-import { applyDrumPreset, applyLiteDrums, cycleDrumPreset, drumPresetOf, drumPresets, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
+import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
+import { curatedFor, drumMenuFor, homeStyleFor } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
@@ -123,6 +124,8 @@ import { ConsortStops } from "../touch/ConsortStops.tsx";
 import { hasConsortStops } from "../touch/consort-stops.ts";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
+/** D453: the DRUMS row's quick round: HOME, then the sound's family and the fugue's own picks. */
+const quickDrums = (piece: string, sound: string) => 1 + curatedFor(piece, sound).filter((s) => s !== homeStyleFor(sound)).length;
 
 /** D314: how long (s, from the start of play) the reading's marks are explained in the box. */
 const LEGEND_S = 6;
@@ -2109,7 +2112,8 @@ export function BenchApp() {
           // D452: HOW TO PLAY, the guide, under SETTINGS.
           howTo={() => (stopHearing(), setHowTo(true))}
           // D450: DRUMS on the right column (moved from the pop-up): ON/OFF and the piece's presets.
-          drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumPresets(f.id), preset: drumPresetOf(f.id), cycle: () => (cycleDrumPreset(f.id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
+          // D453: the whole drum library for this fugue in its sound (HOME first); the quick round HOME and the sound's family; MORE every style.
+          drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumMenuFor(f.id, presetById(sound).id), preset: drumPresetOf(f.id, presetById(sound).id), quick: quickDrums(f.id, presetById(sound).id), cycle: () => (cycleDrumPreset(f.id, presetById(sound).id, quickDrums(f.id, presetById(sound).id)), setDrumsOn(true), setDrumTick((t) => t + 1)), choose: (id: string) => (chooseDrumPreset(f.id, id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
           tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}

@@ -114,6 +114,23 @@ export const SHAPES = {
   hardSync: (x: number) => (0.7 * (2 * ((1.5 * x) % 1) - 1) + 0.6 * (2 * x - 1)) / 1.3,
   /** D302: a 4' flute (Rohrflöte): the fundamental, a little of the 2nd and 3rd (the chimney's). */
   stopFlute4: (x: number) => partials(x, [1, 0.1, 0.2, 0.04]),
+  /**
+   * D543, KRAUTROCK v2: a transistor combo organ's tone (the Farfisa Compact's divider boards, Irmin Schmidt's in Can): a
+   * square (the dividers' flip-flops: the odd harmonics) with a 25% pulse (its "oboe"/"trumpet" tabs: the even ones too,
+   * all but every fourth), reedy and buzzing; the patch adds the 4' an octave up, the lane the formant.
+   */
+  comboOrgan: (x: number) => 0.6 * ((x % 1) < 0.5 ? 1 : -1) + 0.4 * ((x % 1) < 0.25 ? 1 : -1),
+  /**
+   * D544, ABBEY ROAD v2: a tonewheel organ's drawbars (a Hammond's, Billy Preston's on the 1969 sessions), as one wave over
+   * the 16' (played an octave under the note): 16' at 6, 8' at 8, 5 1/3' at 7, 4' at 6, 2 2/3' at 3, 2' at 4 (each drawbar
+   * step about 3 dB): "68 7603 400", the gospel-rock registration, the 8' the pitch heard. Each tonewheel a pure sine.
+   */
+  tonewheel: (x: number) => partials(x, [0.5, 1, 0.7, 0.5, 0, 0.18, 0, 0.25]),
+  /**
+   * D545, PET SOUNDS v2: an accordion's free reed (the brass tongue through its slot: every harmonic, falling slowly, the
+   * even ones nearly as strong as the odd: brighter and more open than a clarinet's), for the musette's three reeds.
+   */
+  freeReed: (x: number) => partials(x, [1, 0.75, 0.62, 0.5, 0.42, 0.33, 0.28, 0.22, 0.18, 0.15, 0.12, 0.1, 0.08, 0.06]),
 } satisfies Record<string, (x: number) => number>;
 export type ShapedWave = keyof typeof SHAPES;
 /** D297: a periodic wave from its partials' amplitudes (sines in phase), over their sum (within -1..1; the PeriodicWave normalises it anyway). */
@@ -713,6 +730,12 @@ export const BOSSA_PIANO_SHELF = { hz: 2800, db: -2 } as const;
 export const PET_SEND = 0.2;
 export const PET_BASS_SEND = 0.04;
 export const PET_BASS_PHONE_LIFT = { hz: 500, db: 11 } as const;
+/** D543-D545: the v2 rock bands' sends (into the chain's one reverb) and their instruments' levels (measured: NOTES.md in scratchpad/bands2/<band>). */
+export const KRAUT2_SEND = 0.06;
+export const KRAUT2_LEVEL = { organ: 0.28, moog: 0.3, fuzz: 0.5, tron: 0.36, clean: 0.5 } as const;
+export const ABBEY2_SEND = 0.2;
+export const ABBEY2_LEVEL = { moog: 0.185, guitar: 1.1, hammond: 0.35, trumpet: 1.3, bass: 0.25 } as const;
+export const PET2_LEVEL = { accordion: 0.23 } as const;
 
 /** The instruments. */
 export const PATCHES = {
@@ -1338,6 +1361,29 @@ export const PATCHES = {
   c2Clarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: CHORO2_SEND, level: 0.55, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
   c2Cavaco: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 4, q: 0.7, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.35, s: 0, r: 0.05 }, send: CHORO2_SEND, level: 0.45, sample: "choroGuitar", one: {}, shelf: CHORO_CAVACO_SHELF, hp: CHORO_CAVACO_HP, lane: "plucked" }),
   c27: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.5, envDecay: 0.12 }, amp: { a: 0.003, d: 0.9, s: 0, r: 0.08 }, send: CHORO2_SEND * 0.6, level: 0.19, sample: "choroGuitar", one: {}, phoneLift: CHORO_BASS_PHONE_LIFT, lane: "plucked" }),
+  // D543, KRAUTROCK v2 (STUDY.md §1): the combo organ (synthesised: comboOrgan at 8' and 4', no attack but the key's click,
+  // gate-legato, the tab's vibrato off), the Moog bass (two saws 6 cents apart and a square sub through the 24 dB ladder, its
+  // filter snapping 2.6 -> 1.1 kHz over 120 ms on each new note, a 30 ms glide on a joined one), the fuzz guitar (the
+  // electric guitar's recordings, the lane's fuzz and dotted-eighth tape echo), the Mellotron flute (the flute's recordings
+  // "on tape": a 35 ms tape attack, never tongued, each note's own wow, the lane's tape and narrow band), the phased clean
+  // guitar (the Gretsch's, ringing; the lane's phaser). Each plays one of Bach's voices; nothing added.
+  k2Organ: P({ osc: [{ wave: "comboOrgan" }, { wave: "comboOrgan", octave: 1, gain: 0.32 }], filter: { freq: 5200, hz: true, q: 0.6 }, chiff: { level: 0.035, time: 0.004, at: 14 }, amp: { a: 0.003, d: 0.05, s: 1, r: 0.025 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.organ, one: {}, lane: "organ" }),
+  k2Moog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 6, gain: 0.8 }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1100, hz: true, q: 1.5, env: 2.4, envDecay: 0.12, poles: 4 }, slide: 0.03, hp: 38, amp: { a: 0.008, d: 0.6, s: 0.72, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: KRAUT2_SEND * 0.2, level: KRAUT2_LEVEL.moog, one: {} }),
+  k2Fuzz: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.fuzz, sample: "rockGuitar2", one: {}, lane: "guitar" }),
+  k2Tron: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.035, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.035, d: 0.1, s: 0.92, r: 0.09 }, vib: { depth: 7, rate: 0.9, delay: 0 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.tron, sample: "trialFlute", one: {}, lane: "mellotron" }),
+  k2Clean: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND * 1.5, level: KRAUT2_LEVEL.clean, sample: "rockGuitar", one: {}, lane: "clean" }),
+  // D544, ABBEY ROAD v2 (STUDY.md §2): the Moog lead (saw and square through the ladder, a slow-opening filter, a 40 ms
+  // portamento into a joined note: "Because"), the Gretsch through a Leslie and ADT, hard left; the Hammond (tonewheel, the
+  // key click, its Leslie), hard right; the trumpet (Iowa's, tongued, ADT, the Fairchild), right; the picked bass with
+  // flatwound strings (the lane's 1.6 kHz lowpass and 150 Hz bump), in the middle. No piano.
+  a2Moog: P({ osc: [{ wave: "saw" }, { wave: "square", gain: 0.5 }, { wave: "saw", detune: 5, gain: 0.35 }], filter: { freq: 3.2, q: 1.8, env: 1.8, envDecay: 0.25, poles: 4 }, slide: 0.04, amp: { a: 0.025, d: 0.3, s: 0.85, r: 0.08 }, vib: { depth: 7, rate: 5.3, delay: 0.45 }, drift: { cents: 2.5, rate: 0.07 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.moog, one: {}, lane: "moog" }),
+  a2Guitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.guitar, sample: "rockGuitar", one: {}, shelf: ABBEY_GUITAR_SHELF, lane: "guitar" }),
+  a2Hammond: P({ osc: [{ wave: "tonewheel", octave: -1 }], filter: { freq: 4200, hz: true, q: 0.6, env: 1.6, envDecay: 0.06 }, chiff: { level: 0.12, time: 0.005, at: 10 }, amp: { a: 0.004, d: 0.05, s: 1, r: 0.04 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.hammond, one: {}, lane: "organ" }),
+  a2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.015, d: 0.1, s: 0.92, r: 0.12 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.trumpet, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "brass" }),
+  a2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: ABBEY2_SEND * 0.3, level: ABBEY2_LEVEL.bass, sample: "rockBass", one: {}, phoneLift: ROCK_BASS_PHONE_LIFT, lane: "bass" }),
+  // D545, PET SOUNDS v2 (STUDY.md §10): the accordion in musette (two free reeds 20 cents apart, the beating a musette's;
+  // a third reed cost the phone's audio thread underruns at 4× throttle; the bellows' 30 ms attack), in the wall lane with the bass and the harpsichord (the slapback and the unison double).
+  p2Accordion: P({ osc: [{ wave: "freeReed", detune: -7 }, { wave: "freeReed", detune: 13, gain: 0.85 }], filter: { freq: 3400, hz: true, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.92, r: 0.07 }, send: PET_SEND, level: PET2_LEVEL.accordion, one: {}, lane: "wall" }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -2017,10 +2063,60 @@ const LATIN_V2: Partial<Record<string, Partial<Preset>>> = {
     },
   },
 };
+/**
+ * D543-D545: the rebuilt v2s' own instruments (STUDY.md's signature designs; their gain matched on a phone, NOTES.md), each
+ * one instrument a voice from the top down, none a piano. KRAUTROCK v2: the combo organ, the Moog bass, the fuzz guitar,
+ * the Mellotron flute, the phased clean guitar (the organ on the upper inner voice of four and five, where the study had the
+ * Mellotron: the alto opens most four-voice fugues, I/20 among them, and the Mellotron's flute is CHORINHO's and BOSSA's
+ * recording; the band's signature instrument opens). ABBEY ROAD v2: the Moog lead, the Leslie guitar (hard left), the
+ * Hammond (hard right), the trumpet (right), the flatwound bass. PET SOUNDS v2: v1's strings, horn, harpsichord and bass
+ * with the musette accordion in the piano's place, the bass, the accordion and the harpsichord in the wall lane.
+ */
+export const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>> = {
+  krautrock: {
+    gain: 1.19,
+    phoneGain: 0.8,
+    slots: ["k2Tron", "k2Organ", "k2Clean", "k2Fuzz", "k2Moog"],
+    by: {
+      1: [["k2Organ", 0]],
+      2: [["k2Organ", -0.05], ["k2Moog", 0]],
+      3: [["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
+      4: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
+      5: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Clean", 0], ["k2Fuzz", 0], ["k2Moog", 0]],
+    },
+  },
+  abbeyRoad: {
+    gain: 0.93,
+    phoneGain: 0.99,
+    slots: ["a2Moog", "a2Guitar", "a2Trumpet", "a2Hammond", "a2Bass"],
+    by: {
+      1: [["a2Guitar", 0]],
+      2: [["a2Guitar", 0], ["a2Bass", 0]],
+      3: [["a2Moog", 0], ["a2Guitar", 0], ["a2Bass", 0]],
+      4: [["a2Moog", 0], ["a2Guitar", 0], ["a2Hammond", 0], ["a2Bass", 0]],
+      5: [["a2Moog", 0], ["a2Guitar", 0], ["a2Trumpet", 0], ["a2Hammond", 0], ["a2Bass", 0]],
+    },
+  },
+  petSounds: {
+    gain: 0.81,
+    phoneGain: 0.69,
+    slots: ["psStrings", "psHarpsi", "psHorn", "p2Accordion", "psBass"],
+    lanes: { psBass: "wall", psHarpsi: "wall" },
+    by: {
+      1: [["psStrings", 0]],
+      2: [["psStrings", 0], ["psBass", 0, 0.6]],
+      3: [["psStrings", 0], ["psHorn", 0, 1.12], ["psBass", 0, 0.6]],
+      4: [["psStrings", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
+      5: [["psStrings", 0], ["psHarpsi", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
+    },
+  },
+};
 export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
   const p = PRESETS.find((x) => x.id === band)!;
-  // (PET SOUNDS' five instruments, the grand and the harpsichord among them: its plucked notes cut at 2.5 s to keep within 25 MB.)
-  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true, ...(LATIN_V2[band] ?? {}) };
+  const own = V2_OWN[band] ?? LATIN_V2[band];
+  // (PET SOUNDS' original five instruments, the grand and the harpsichord among them, cut their plucked notes at 2.5 s to keep within 25 MB.)
+  const slim = band === "petSounds" && !own ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM;
+  return { ...p, ...own, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim, budgeted: true };
 });
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics

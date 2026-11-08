@@ -71,7 +71,8 @@ export interface DrumPreset {
   name: string;
 }
 interface PresetSource {
-  presetsFor: (pieceId: string) => readonly DrumPreset[];
+  /** D453: the menu for a piece in a sound (the sound playing where none is given). */
+  presetsFor: (pieceId: string, sound?: string) => readonly DrumPreset[];
   apply: (pieceId: string, presetId: string) => void;
 }
 let source: PresetSource | null = null;
@@ -79,13 +80,13 @@ let source: PresetSource | null = null;
 export function registerDrumPresets(s: PresetSource) {
   source = s;
 }
-export const drumPresets = (pieceId: string): readonly DrumPreset[] => source?.presetsFor(pieceId) ?? [];
+export const drumPresets = (pieceId: string, sound?: string): readonly DrumPreset[] => source?.presetsFor(pieceId, sound) ?? [];
 const PRESET_KEY = (id: string) => `tb-lite-drum-preset:${id}`;
 /** This visit's choices, when the device keeps nothing. */
 const chosen = new Map<string, string>();
 /** The piece's preset (its first unless another was chosen). */
-export function drumPresetOf(pieceId: string): string | undefined {
-  const all = drumPresets(pieceId);
+export function drumPresetOf(pieceId: string, sound?: string): string | undefined {
+  const all = drumPresets(pieceId, sound);
   let kept: string | null = chosen.get(pieceId) ?? null;
   try {
     kept = localStorage.getItem(PRESET_KEY(pieceId)) ?? kept;
@@ -99,11 +100,27 @@ export function applyDrumPreset(pieceId: string) {
   const p = drumPresetOf(pieceId);
   if (p && source) source.apply(pieceId, p);
 }
-/** The next preset of the piece's (round), kept and applied; the drums turned on with it. */
-export function cycleDrumPreset(pieceId: string): string | undefined {
-  const all = drumPresets(pieceId);
+/** D453: a preset chosen for the piece (the MORE grid), kept and applied; the drums turned on with it. */
+export function chooseDrumPreset(pieceId: string, id: string): string {
+  chosen.set(pieceId, id);
+  try {
+    localStorage.setItem(PRESET_KEY(pieceId), id);
+  } catch {
+    /* this visit only */
+  }
+  applyDrumPreset(pieceId);
+  if (!liteDrums()) setLiteDrums(true);
+  return id;
+}
+/**
+ * The next preset of the piece's (round), kept and applied; the drums turned on with it. D453: `within`, the
+ * first so many of the menu (HOME and the sound's family), the quick round; a preset beyond it (chosen in MORE)
+ * steps back to the round's first.
+ */
+export function cycleDrumPreset(pieceId: string, sound?: string, within?: number): string | undefined {
+  const all = drumPresets(pieceId, sound).slice(0, within && within > 0 ? within : undefined);
   if (!all.length) return undefined;
-  const now = all.findIndex((p) => p.id === drumPresetOf(pieceId));
+  const now = all.findIndex((p) => p.id === drumPresetOf(pieceId, sound));
   const next = all[(now + 1) % all.length].id;
   chosen.set(pieceId, next);
   try {
