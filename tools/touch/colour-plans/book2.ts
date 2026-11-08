@@ -22,8 +22,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f02: {
-    sound: "chamberOrgan",
-    soundWhy: "Severe and reflective (Keller), four voices closing in stretti and augmentation, for which Bodky allows the pedal clavichord 'or even the organ': the organ's pedal carries the augmented bass.",
+    sound: "harpsichordSampled",
+    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): severe and reflective (Keller), a short subject in clear stretti and augmentation, a keyboard fugue Bodky plans for the pedal clavichord: the two manuals' terraces carry its four voices apart. PIPE ORGAN, its earlier sound, a choice away.",
     character: "Entries to 14, then stretti and the augmentations (from 14); Bodky's terraces f, p (14½), f (21¼), coupled (23⅝).",
     plans: {
       chamberOrgan: [at(1, OPRIN, "The principals."), at(14.5, OFLUTE, "Bodky's piano from 14½: the flutes."), at(21.25, OPRIN, "Bodky's forte from 21¼."), at(23.625, OPLENO, "Bodky couples the manuals at 23⅝: the plenum for the stretti in augmentation.")],
@@ -77,8 +77,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f07: {
-    sound: "chamberOrgan",
-    soundWhy: "'Saturated with euphony like a choral fugue' (Keller), 'best on the (home) organ' (Bodky): four voices in long alla breve notes.",
+    sound: "bossaNova",
+    soundWhy: "Alla breve at a half of 62, the bossa nova's own cut time and tempo, and 'saturated with euphony' (Keller): four voices in long, serene notes over a soft bossa (flute, piano, nylon guitar, upright bass), the calm of a slow Jobim song; the stretti at the close (59-60) out of a bar's break.",
     character: "Bodky's spans: full to 30¾, 8″+4″ to 55¼, full from 55¾ (his milder option one degree down); the last entries in stretto (59-60).",
     plans: {
       chamberOrgan: [at(1, OPRIN, "Bodky's milder option: the principals for his full work."), at(30.75, OFLUTE, "His lighter middle (30¾-55¼): the flutes."), at(55.75, OPRIN, "The principals again (55¾)."), at(59, OPLENO, "The last stretto (59-60): the plenum, a player's choice beyond Bodky's.")],
@@ -98,8 +98,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f09: {
-    sound: "soloVoices",
-    soundWhy: "'Pure, transfigured vocal beauty in the style of Palestrina' (Keller), in 4/2, each voice within a singer's compass: SOLO VOICES' singers; Mozart also arranged it (K.405).",
+    sound: "harpsichordSampled",
+    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): 'pure, transfigured vocal beauty in the style of Palestrina' (Keller), the classic ricercar in 4/2 whose four clear lines a plucked string sets out note by note, the low stretti on the coupled unison. SOLO VOICES, its earlier sound, a choice away.",
     character: "Stretti of subject and countersubject 9-15, two new subjects 16-22, low stretti and diminutions 23-34, a final section 35-43 (Ledbetter).",
     plans: {
       soloVoices: [at(16, { room: 0.1 }, "The two new subjects (16-22) a little further away."), at(23, OWN, "Closer for the low stretti."), at(35, { room: 0.15 }, "The final section (35-43) in more of the hall.")],
@@ -142,10 +142,11 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f13: {
-    sound: "harpsichordSampled",
-    soundWhy: "High spirits, grace and playful lightness, with gavotte episodes 'commonly played two bars forte, two bars piano … entirely in the style of Bach's time' (Keller): the two manuals' own game.",
+    sound: "sid64",
+    soundWhy: "High spirits, grace and playful lightness (Keller): a gavotte in 2/2 whose three clear lines the SID's three voices (each its own waveform, D297) keep apart, lively and bright; the episodes' two-bar echoes in the pulses' width. (D521: given to SID 64, the owner wanting it used more.)",
     character: "Expositions 1-12, 32-44, 64-84; episode 1 (12-20) and its return (44-52), episode 2 (24-32) and its return (56-64) (Ledbetter). The two-bar echoes are placed in episode 1 and its return (a reading of Keller).",
     plans: {
+      sid64: [at(14, { pw: 0.2 }, "The echo (Keller's two bars piano): the SID's pulses narrower."), at(16, OWN, "Forte: the voices' own sweep."), at(46, { pw: 0.2 }, "The echo in the return."), at(48, OWN, "Forte.")],
       harpsichordSampled: [
         at(1, H84, "8′+4′."),
         at(14, H8, "Keller's gavotte echo: two bars forte (12-13), two piano (14-15)…"),

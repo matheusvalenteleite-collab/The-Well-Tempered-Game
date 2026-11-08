@@ -43,6 +43,8 @@ export const ES: Record<string, string> = {
   // D502: BACH BRASS.
   "BACH BRASS": "METALES DE BACH",
   // D503: JAZZ QUARTET (the trials' MODERN JAZZ QUARTET, remade and offered).
+  // D524: PET SOUNDS (the album's title, as it is known in Portuguese and Spanish).
+  "PET SOUNDS": "PET SOUNDS",
   "JAZZ QUARTET": "CUARTETO DE JAZZ",
   // D520: SALSA.
   "SALSA": "SALSA",
@@ -52,6 +54,8 @@ export const ES: Record<string, string> = {
   "ABBEY ROAD": "ABBEY ROAD",
   // D525: KRAUTROCK (a name: kept).
   KRAUTROCK: "KRAUTROCK",
+  // D521: BOSSA NOVA (the name as in Portuguese and Spanish).
+  "BOSSA NOVA": "BOSSA NOVA",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOE, VIOLA Y FAGOT",
