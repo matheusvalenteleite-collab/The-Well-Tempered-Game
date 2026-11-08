@@ -162,7 +162,7 @@ export function formOf(f: TouchFugue): FugueForm {
 }
 
 /** The climax's build at a tick (form-points phaseAt: a smoothstep from its rise to the last entry, held after). */
-export const climaxRamp = (form: FugueForm, tick: number): number => (form.points ? phaseAt(form.points, tick).climax : tick >= form.climax ? 1 : 0);
+export const climaxRamp = (form: FugueForm, tick: number): number => (!climaxOn ? 0 : form.points ? phaseAt(form.points, tick).climax : tick >= form.climax ? 1 : 0);
 /** The last chord's resolution at a tick (form-points phaseAt: rising after the last cadence). */
 export const resolvedAt = (form: FugueForm, tick: number): number => (form.points ? phaseAt(form.points, tick).resolved : 0);
 
@@ -180,7 +180,7 @@ export interface FormAt {
 export function formAt(form: FugueForm, tick: number): FormAt {
   const progress = form.end ? Math.max(0, Math.min(1, tick / form.end)) : 0;
   const zone = form.zones.find((z) => tick >= z.from && tick < z.to) ?? null;
-  if (tick >= form.climax) return { kind: "climax", zone, progress };
+  if (climaxOn && tick >= form.climax) return { kind: "climax", zone, progress };
   // Before the first entry (an upbeat): as a subject (the exposition is under way).
   return { kind: zone?.kind ?? "subject", zone, progress };
 }
@@ -249,6 +249,17 @@ export class FormLayer {
     return layerOn ? formColour(this.form, presetId, tick) : null;
   }
 }
+
+/**
+ * D497, THE SOUND LAB's climax switch (on by default; the game never turns it off): off, the climax is not read (formAt
+ * gives the zone's own kind, climaxRamp 0): the band's climax level, shelf, room and full registration and the drums'
+ * climax build and busier pattern stand aside; the roll into the final entry, the break and the flourish stay.
+ */
+let climaxOn = true;
+export function setClimaxLayer(on: boolean) {
+  climaxOn = on;
+}
+export const climaxLayerOn = () => climaxOn;
 
 /** The layer's switch (on by default; off: the band as before D513, for comparison renders and the Lab). */
 let layerOn = true;
