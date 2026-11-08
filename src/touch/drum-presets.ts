@@ -129,7 +129,9 @@ export const isCharacter = (s: unknown): s is DrumCharacter => s === "electronic
 // The drumming.
 
 /** The pieces a drummer strikes (chip.ts Chip.kit: the recordings of KIT_PIECES, or the synthesized kit). */
-export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp";
+export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp"
+  // D532: the period kit's (score-drums.ts): the side drum, the field drum, the tabor, a stick on the rim, the frame drums' dum and tek, the castanets, the clash cymbals.
+  | "sideDrum" | "fieldDrum" | "tabor" | "drumStick" | "frameDum" | "frameTek" | "castanets" | "cymbals";
 export interface KitHit {
   piece: KitPiece;
   /** Beats from the beat's start. */
@@ -144,6 +146,8 @@ export interface KitHit {
   dur?: number;
   /** D535: a flam's or a ruff's grace note (closer to its stroke than a roll's strokes are to each other). */
   grace?: boolean;
+  /** D532: the fugue's tick the stroke belongs to (a score-driven stroke; a flam's grace sounds a few ms before it). */
+  tick?: number;
 }
 /** What the game tells the drummer about a beat (chip.ts GrooveContext's, read through the fugue). */
 export interface KitContext {

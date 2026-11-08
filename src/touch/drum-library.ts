@@ -24,16 +24,19 @@
  *   chosenStyle(pieceId): StyleId | null    the style chosen for a piece (this visit, else stored), null = HOME
  *   drumStyleFor(pieceId, sound?): StyleId  the style that plays (chosen, else HOME of `sound`, default the sound now)
  *   drumMenuFor(pieceId, sound?): DrumMenuItem[]   the DRUMS row's list: HOME first (id "home"), then the sound's family,
- *                                             then every other style; each { id, name, style, family, home, fits }
+ *                                             then the fugue's own picks (FUGUE_PICKS, D532), then every other style;
+ *                                             each { id, name, style, family, home, fits }
+ *   FUGUE_PICKS, curatedFor(pieceId, sound)  D532: a fugue's own period picks; its curated styles (family + picks)
  *   drumPresetsFor = drumMenuFor; setDrumPreset = setDrumStyle   (the names src/bench/drum-presets-link.ts registers
  *                                             with LiteDrums.tsx registerDrumPresets, D450: the row cycles the menu)
- *   PLANNED_STYLES                          S3's period/orchestral styles, named but not yet playable (not in styleIds)
+ *   PLANNED_STYLES                          empty since D532 (S3's styles all playable)
  *
  * ENGINES: "grid" a written pattern (drum-grids.ts GRIDS) under D514's form machinery (drum-presets.ts kitBeat) on a
  * recorded or synthesized kit; "kit" D514's own patterns (rock, chip, timpani, frame); the bands' own drummers, folded in
  * as styles, not copied: "brushes" (D503 JAZZ QUARTET, jazz-drums.ts), "rockBand" (D523 ABBEY ROAD, D525 KRAUTROCK,
  * rock-drums.ts), "latin" (D520 SALSA, D522 CHORINHO, latin-drums.ts), "bossa" (D521, bossa-drums.ts), "pet" (D524 PET
- * SOUNDS, pet-drums.ts). chip.ts Chip.groove plays each; every stroke goes through Chip.scheduleKitHit.
+ * SOUNDS, pet-drums.ts); "score" (D532: the orchestral and period styles read from the fugue's score, score-drums.ts).
+ * chip.ts Chip.groove plays each; every stroke goes through Chip.scheduleKitHit.
  *
  * To add a style: a GRIDS entry (or an engine), a STYLES row here (family, label, metres), and it is in styleIds,
  * the menus, the Sound Lab and the tests (test/d526-drum-library.test.ts plays every style on every fugue).
@@ -49,7 +52,7 @@ import { preset } from "./sound.ts";
 
 export type Family = "rock" | "jazz" | "latin" | "electronic" | "orchestral";
 export type Metre = MetreClass;
-export type Engine = "grid" | "kit" | "brushes" | "rockBand" | "latin" | "bossa" | "pet";
+export type Engine = "grid" | "kit" | "brushes" | "rockBand" | "latin" | "bossa" | "pet" | "score";
 export interface StyleInfo {
   id: string;
   family: Family;
@@ -94,8 +97,15 @@ export const STYLES: readonly StyleInfo[] = [
   S("lofi", "electronic", "LO-FI", [D, C], "grid", "lo-fi hip-hop: the kick behind the beat, the sixteenths lazy, the kit dull"),
   S("idm", "electronic", "IDM GLITCH", [D, T, C], "grid", "IDM / glitch: displaced kicks, uneven sixteenths, clicks"),
   S("chip", "electronic", "CHIP KIT", [D, T, C], "kit", "a console's noise channel, a tracker's kit (D514's CHIP DRUMS)"),
-  S("timpani", "orchestral", "TIMPANI", [D, T, C], "kit", "the timpani on the home key's tonic and dominant, a bass drum, a triangle (D514)"),
-  S("frame", "orchestral", "FRAME DRUM", [T, C], "kit", "frame drums, tambourine and shaker for the dances (D514)"),
+  // D532: the orchestral and period styles are SCORE-DRIVEN (score-drums.ts): no loop; the bass's accents, the subject's
+  // rhythm in its entries, the cadences, the structural arrivals, read from each fugue's own score.
+  S("timpani", "orchestral", "TIMPANI", [D, T, C], "score", "the timpani on the home tonic and dominant at the structural arrivals only; a soft bass drum on the bass line's own accents (D532)"),
+  S("frame", "orchestral", "FRAME DRUM", [T, C], "score", "frame drums on the bass's accents and the subject's rhythm, the tambourine shaken into the entries (D532)"),
+  S("military", "orchestral", "SIDE DRUM", [D, T], "score", "Lully's side drum, for the French overture: the dotted rhythm of the subject, flams on the bass's accents, ruffs at the cadences (D532)"),
+  S("tabor", "orchestral", "TABOR", [T, C], "score", "pipe and tabor: the tabor on the bass's accents, the tambourine on the subject's rhythm, for the dances and gigues (D532)"),
+  S("castanets", "orchestral", "CASTANETS", [T, C], "score", "Spanish baroque castanets: the subject's rhythm, the bass's accents, carretillas into the cadences (D532)"),
+  S("janissary", "orchestral", "JANISSARY", [D], "score", "alla turca: the bass drum on the bass's accents, the cymbals with the strongest, the triangle on the subject (D532)"),
+  S("fieldDrums", "orchestral", "FIELD DRUM", [D, T], "score", "rope-tension field drums: long rolls into the arrivals and on the pedals, flammed accents on the bass (D532)"),
 ];
 export type StyleId = (typeof STYLES)[number]["id"];
 const BY_ID = new Map(STYLES.map((s) => [s.id, s]));
@@ -106,14 +116,8 @@ export const isStyle = (id: unknown): id is StyleId => typeof id === "string" &&
 export const styleInfo = (id: string): StyleInfo => BY_ID.get(id) ?? BY_ID.get(HOME_FALLBACK)!;
 export const stylesIn = (family: Family): StyleId[] => styleIds.filter((id) => styleInfo(id).family === family);
 
-/** S3's period and orchestral styles (named, not yet playable): score-driven, D532-D534. */
-export const PLANNED_STYLES: readonly { id: string; family: Family; label: string }[] = [
-  { id: "military", family: "orchestral", label: "SIDE DRUM" },
-  { id: "tabor", family: "orchestral", label: "TABOR" },
-  { id: "castanets", family: "orchestral", label: "CASTANETS" },
-  { id: "janissary", family: "orchestral", label: "JANISSARY" },
-  { id: "fieldDrums", family: "orchestral", label: "FIELD DRUMS" },
-];
+/** S3's period and orchestral styles: all playable since D532 (military, tabor, castanets, janissary, fieldDrums in STYLES). */
+export const PLANNED_STYLES: readonly { id: string; family: Family; label: string }[] = [];
 
 /**
  * Each sound's HOME (first) and family: the styles that suit it. The bands their own drummers; the chips the console's
@@ -138,15 +142,41 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
   analog: ["machine", "techno", "house", "linn", "idm"],
   tomita: ["triphop", "idm", "machine", "lofi", "psych"],
   vocalSynth: ["house", "linn", "techno", "machine", "triphop"],
-  harpsichordSampled: ["frame", "timpani", "brushes"],
-  chamberOrgan: ["timpani", "frame"],
-  soloVoices: ["frame", "timpani", "brushes"],
-  stringConsort: ["frame", "timpani", "ballad"],
-  baroqueBand: ["timpani", "frame"],
-  oboeTrio: ["frame", "timpani", "baiao"],
-  bachBrass: ["timpani", "frame"],
-  trialWinds: ["frame", "timpani"],
+  // D532: the period sounds' families take the period kits: the court's band and the brass the side drum and the
+  // Janissaries, the dances' sounds the tabor and the castanets, the church's and the consort's the field drums.
+  harpsichordSampled: ["frame", "castanets", "tabor", "timpani", "brushes"],
+  chamberOrgan: ["timpani", "fieldDrums", "frame"],
+  soloVoices: ["frame", "tabor", "timpani", "brushes"],
+  stringConsort: ["frame", "fieldDrums", "timpani", "ballad"],
+  baroqueBand: ["timpani", "military", "castanets", "janissary", "frame"],
+  oboeTrio: ["frame", "tabor", "castanets", "timpani", "baiao"],
+  bachBrass: ["timpani", "military", "janissary", "fieldDrums", "frame"],
+  trialWinds: ["frame", "tabor", "timpani"],
 };
+/**
+ * D532: a fugue's own period picks (after its sound's family on the DRUMS menu): the French overture (I/5) the side drum,
+ * the festive D major (II/5) the Janissaries, the gigues and passepieds the tabor or the castanets, the laments the field
+ * drums. Each with a tailored tweak (score-drums.ts TWEAKS).
+ */
+export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
+  wtc1f05: ["military", "fieldDrums"],
+  wtc2f05: ["janissary", "military"],
+  wtc1f09: ["castanets"],
+  wtc1f10: ["castanets", "tabor"],
+  wtc1f11: ["tabor", "castanets"],
+  wtc1f15: ["tabor", "frame"],
+  wtc1f21: ["tabor"],
+  wtc1f22: ["fieldDrums"],
+  wtc1f24: ["fieldDrums"],
+  wtc2f11: ["tabor"],
+  wtc2f13: ["tabor"],
+  wtc2f15: ["tabor", "castanets"],
+  wtc2f16: ["castanets"],
+  wtc2f21: ["castanets", "tabor"],
+  wtc2f24: ["castanets"],
+};
+/** D532: a fugue's curated styles for a sound: the sound's family, then the fugue's own picks. */
+export const curatedFor = (pieceId: string, sound: string): readonly StyleId[] => [...new Set([...familyFor(sound), ...(FUGUE_PICKS[pieceId] ?? [])])];
 export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[sound]?.[0] ?? HOME_FALLBACK;
 export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[sound] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 
@@ -213,7 +243,8 @@ export interface DrumMenuItem {
 /** The whole library for a piece and sound: HOME first, then the sound's family, then the rest (styleIds' order). */
 export function drumMenuFor(pieceId: string, sound: string = soundNow()): DrumMenuItem[] {
   const home = homeStyleFor(sound);
-  const order = [home, ...familyFor(sound).filter((s) => s !== home), ...styleIds.filter((s) => s !== home && !familyFor(sound).includes(s))];
+  const cur = curatedFor(pieceId, sound);
+  const order = [home, ...cur.filter((s) => s !== home), ...styleIds.filter((s) => s !== home && !cur.includes(s))];
   return order.map((style, i) => ({ id: i === 0 ? HOME_ID : style, name: styleInfo(style).label, style, family: styleInfo(style).family, home: i === 0, fits: fits(style, pieceId) }));
 }
 /** The names the selection screen's link registers (D450's row: STYLE n/N cycles the menu). */

@@ -1,6 +1,6 @@
 {
  "generated": "2026-11-08",
- "version": "WTC 2.45",
+ "version": "WTC 2.48",
  "constants": {
   "form": {
    "SUBJECT_DB": 0.4,
@@ -581,7 +581,9 @@
    },
    "credit": null,
    "defaultFor": [
-    "wtc2f13"
+    "wtc1f24",
+    "wtc2f02",
+    "wtc2f09"
    ],
    "drumFirst": "percussion"
   },
@@ -1300,8 +1302,7 @@
    "formReg": null,
    "credit": null,
    "defaultFor": [
-    "wtc1f15",
-    "wtc2f01"
+    "wtc1f15"
    ],
    "drumFirst": "electronic"
   },
@@ -1487,7 +1488,7 @@
     "wtc1f21",
     "wtc2f03",
     "wtc2f06",
-    "wtc2f10"
+    "wtc2f13"
    ],
    "drumFirst": "electronic"
   },
@@ -1863,9 +1864,6 @@
    "credit": null,
    "defaultFor": [
     "wtc1f01",
-    "wtc1f17",
-    "wtc2f02",
-    "wtc2f07",
     "wtc2f22"
    ],
    "drumFirst": "percussion"
@@ -2234,8 +2232,7 @@
    "credit": "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A. WAHL, B. PARDO · CC BY 4.0",
    "defaultFor": [
     "wtc1f10",
-    "wtc1f22",
-    "wtc2f09"
+    "wtc1f22"
    ],
    "drumFirst": "percussion"
   },
@@ -2600,7 +2597,6 @@
    "credit": "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0",
    "defaultFor": [
     "wtc1f04",
-    "wtc1f24",
     "wtc2f08"
    ],
    "drumFirst": "percussion"
@@ -3337,6 +3333,379 @@
    "drumFirst": "acoustic"
   },
   {
+   "id": "salsa",
+   "name": "SALSA",
+   "offered": true,
+   "trial": false,
+   "fx": "club",
+   "room": 0,
+   "gain": 1.41,
+   "phoneGain": 0.83,
+   "ownDrums": {
+    "groove": "salsaBand",
+    "kit": "latin"
+   },
+   "loopDrums": null,
+   "layouts": {
+    "2": [
+     {
+      "voice": 0,
+      "patch": "salPiano",
+      "name": "salPiano",
+      "pan": 0.1,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 1,
+      "patch": "salBass",
+      "name": "salBass",
+      "pan": 0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ],
+    "3": [
+     {
+      "voice": 0,
+      "patch": "salTrumpet",
+      "name": "salTrumpet",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "brassTrumpet"
+     },
+     {
+      "voice": 1,
+      "patch": "salPiano",
+      "name": "salPiano",
+      "pan": 0.16,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 2,
+      "patch": "salBass",
+      "name": "salBass",
+      "pan": 0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ],
+    "4": [
+     {
+      "voice": 0,
+      "patch": "salTrumpet",
+      "name": "salTrumpet",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "brassTrumpet"
+     },
+     {
+      "voice": 1,
+      "patch": "salPiano",
+      "name": "salPiano",
+      "pan": 0.16,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 2,
+      "patch": "salTrombone",
+      "name": "salTrombone",
+      "pan": -0.06,
+      "level": 1,
+      "sample": "brassTrombone"
+     },
+     {
+      "voice": 3,
+      "patch": "salBass",
+      "name": "salBass",
+      "pan": 0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ],
+    "5": [
+     {
+      "voice": 0,
+      "patch": "salTrumpet",
+      "name": "salTrumpet",
+      "pan": -0.2,
+      "level": 1,
+      "sample": "brassTrumpet"
+     },
+     {
+      "voice": 1,
+      "patch": "salTrumpet",
+      "name": "salTrumpet",
+      "pan": -0.1,
+      "level": 1,
+      "sample": "brassTrumpet"
+     },
+     {
+      "voice": 2,
+      "patch": "salPiano",
+      "name": "salPiano",
+      "pan": 0.16,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 3,
+      "patch": "salTrombone",
+      "name": "salTrombone",
+      "pan": -0.02,
+      "level": 1,
+      "sample": "brassTrombone"
+     },
+     {
+      "voice": 4,
+      "patch": "salBass",
+      "name": "salBass",
+      "pan": 0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ]
+   },
+   "patches": [
+    {
+     "id": "salPiano",
+     "name": "salPiano"
+    },
+    {
+     "id": "salBass",
+     "name": "salBass"
+    },
+    {
+     "id": "salTrumpet",
+     "name": "salTrumpet"
+    },
+    {
+     "id": "salTrombone",
+     "name": "salTrombone"
+    }
+   ],
+   "touch": {
+    "expr": "plucked",
+    "touchKind": "band",
+    "touchFamily": null,
+    "phrasing": "plain",
+    "drag": "glide",
+    "keyboardSlide": null
+   },
+   "slide": {
+    "families": [
+     "piano",
+     "bass",
+     "brass"
+    ],
+    "mode": "d486",
+    "setting": "auto"
+   },
+   "busoni": {
+    "reaches": true,
+    "how": "level, hairpins and palette (EXPRESSIVE_ALL: dynamic sounds)"
+   },
+   "stops": null,
+   "consortStops": null,
+   "formReg": null,
+   "credit": "TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0 · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0",
+   "defaultFor": [
+    "wtc2f10"
+   ],
+   "drumFirst": "acoustic"
+  },
+  {
+   "id": "chorinho",
+   "name": "CHORINHO",
+   "offered": true,
+   "trial": false,
+   "fx": "club",
+   "room": 0,
+   "gain": 1.22,
+   "phoneGain": 0.81,
+   "ownDrums": {
+    "groove": "choroBand",
+    "kit": "latin"
+   },
+   "loopDrums": null,
+   "layouts": {
+    "2": [
+     {
+      "voice": 0,
+      "patch": "choFlute",
+      "name": "choFlute",
+      "pan": -0.16,
+      "level": 1,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "cho7",
+      "name": "cho7",
+      "pan": -0.04,
+      "level": 1,
+      "sample": "choroGuitar"
+     }
+    ],
+    "3": [
+     {
+      "voice": 0,
+      "patch": "choFlute",
+      "name": "choFlute",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "choPiano",
+      "name": "choPiano",
+      "pan": 0.14,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 2,
+      "patch": "cho7",
+      "name": "cho7",
+      "pan": -0.04,
+      "level": 1,
+      "sample": "choroGuitar"
+     }
+    ],
+    "4": [
+     {
+      "voice": 0,
+      "patch": "choFlute",
+      "name": "choFlute",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "choCavaco",
+      "name": "choCavaco",
+      "pan": 0.22,
+      "level": 1,
+      "sample": "choroGuitar"
+     },
+     {
+      "voice": 2,
+      "patch": "choPiano",
+      "name": "choPiano",
+      "pan": 0.1,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 3,
+      "patch": "cho7",
+      "name": "cho7",
+      "pan": -0.04,
+      "level": 1,
+      "sample": "choroGuitar"
+     }
+    ],
+    "5": [
+     {
+      "voice": 0,
+      "patch": "choFlute",
+      "name": "choFlute",
+      "pan": -0.2,
+      "level": 1,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "choClarinet",
+      "name": "choClarinet",
+      "pan": -0.08,
+      "level": 1,
+      "sample": "trialClarinet"
+     },
+     {
+      "voice": 2,
+      "patch": "choCavaco",
+      "name": "choCavaco",
+      "pan": 0.22,
+      "level": 1,
+      "sample": "choroGuitar"
+     },
+     {
+      "voice": 3,
+      "patch": "choPiano",
+      "name": "choPiano",
+      "pan": 0.1,
+      "level": 1,
+      "sample": "piano"
+     },
+     {
+      "voice": 4,
+      "patch": "cho7",
+      "name": "cho7",
+      "pan": -0.04,
+      "level": 1,
+      "sample": "choroGuitar"
+     }
+    ]
+   },
+   "patches": [
+    {
+     "id": "choFlute",
+     "name": "choFlute"
+    },
+    {
+     "id": "cho7",
+     "name": "cho7"
+    },
+    {
+     "id": "choPiano",
+     "name": "choPiano"
+    },
+    {
+     "id": "choCavaco",
+     "name": "choCavaco"
+    },
+    {
+     "id": "choClarinet",
+     "name": "choClarinet"
+    }
+   ],
+   "touch": {
+    "expr": "plucked",
+    "touchKind": "band",
+    "touchFamily": null,
+    "phrasing": "plain",
+    "drag": "glide",
+    "keyboardSlide": null
+   },
+   "slide": {
+    "families": [
+     "flute",
+     "plucked",
+     "piano",
+     "reed"
+    ],
+    "mode": "d486",
+    "setting": "auto"
+   },
+   "busoni": {
+    "reaches": true,
+    "how": "level, hairpins and palette (EXPRESSIVE_ALL: dynamic sounds)"
+   },
+   "stops": null,
+   "consortStops": null,
+   "formReg": null,
+   "credit": "FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC0 · PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0 · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0",
+   "defaultFor": [
+    "wtc2f01"
+   ],
+   "drumFirst": "acoustic"
+  },
+  {
    "id": "abbeyRoad",
    "name": "ABBEY ROAD",
    "offered": true,
@@ -3701,6 +4070,381 @@
    "credit": "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0 · PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0",
    "defaultFor": [
     "wtc1f20"
+   ],
+   "drumFirst": "acoustic"
+  },
+  {
+   "id": "bossaNova",
+   "name": "BOSSA NOVA",
+   "offered": true,
+   "trial": false,
+   "fx": "bossa",
+   "room": 0,
+   "gain": 1.51,
+   "phoneGain": 0.86,
+   "ownDrums": {
+    "groove": "bossaNova",
+    "kit": "bossa"
+   },
+   "loopDrums": null,
+   "layouts": {
+    "2": [
+     {
+      "voice": 0,
+      "patch": "bnFlute",
+      "name": "bnFlute",
+      "pan": -0.14,
+      "level": 0.56,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "bnGuitar",
+      "name": "bnGuitar",
+      "pan": 0.08,
+      "level": 1.12,
+      "sample": "bossaGuitar"
+     }
+    ],
+    "3": [
+     {
+      "voice": 0,
+      "patch": "bnFlute",
+      "name": "bnFlute",
+      "pan": -0.18,
+      "level": 0.56,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "bnGuitar",
+      "name": "bnGuitar",
+      "pan": 0.06,
+      "level": 1.12,
+      "sample": "bossaGuitar"
+     },
+     {
+      "voice": 2,
+      "patch": "bnBass",
+      "name": "bnBass",
+      "pan": -0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ],
+    "4": [
+     {
+      "voice": 0,
+      "patch": "bnFlute",
+      "name": "bnFlute",
+      "pan": -0.18,
+      "level": 0.56,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "bnPiano",
+      "name": "bnPiano",
+      "pan": 0.18,
+      "level": 1.19,
+      "sample": "piano"
+     },
+     {
+      "voice": 2,
+      "patch": "bnGuitar",
+      "name": "bnGuitar",
+      "pan": 0.06,
+      "level": 1.12,
+      "sample": "bossaGuitar"
+     },
+     {
+      "voice": 3,
+      "patch": "bnBass",
+      "name": "bnBass",
+      "pan": -0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ],
+    "5": [
+     {
+      "voice": 0,
+      "patch": "bnFlute",
+      "name": "bnFlute",
+      "pan": -0.18,
+      "level": 0.56,
+      "sample": "trialFlute"
+     },
+     {
+      "voice": 1,
+      "patch": "bnPiano",
+      "name": "bnPiano",
+      "pan": 0.14,
+      "level": 1.19,
+      "sample": "piano"
+     },
+     {
+      "voice": 2,
+      "patch": "bnPiano",
+      "name": "bnPiano",
+      "pan": 0.2,
+      "level": 1.19,
+      "sample": "piano"
+     },
+     {
+      "voice": 3,
+      "patch": "bnGuitar",
+      "name": "bnGuitar",
+      "pan": 0.06,
+      "level": 1.12,
+      "sample": "bossaGuitar"
+     },
+     {
+      "voice": 4,
+      "patch": "bnBass",
+      "name": "bnBass",
+      "pan": -0.02,
+      "level": 1,
+      "sample": "jazzBass"
+     }
+    ]
+   },
+   "patches": [
+    {
+     "id": "bnFlute",
+     "name": "bnFlute"
+    },
+    {
+     "id": "bnGuitar",
+     "name": "bnGuitar"
+    },
+    {
+     "id": "bnBass",
+     "name": "bnBass"
+    },
+    {
+     "id": "bnPiano",
+     "name": "bnPiano"
+    }
+   ],
+   "touch": {
+    "expr": "plucked",
+    "touchKind": "jazz",
+    "touchFamily": null,
+    "phrasing": "plain",
+    "drag": "glide",
+    "keyboardSlide": null
+   },
+   "slide": {
+    "families": [
+     "flute",
+     "plucked",
+     "bass",
+     "piano"
+    ],
+    "mode": "d486",
+    "setting": "auto"
+   },
+   "busoni": {
+    "reaches": true,
+    "how": "level, hairpins and palette (EXPRESSIVE_ALL: dynamic sounds)"
+   },
+   "stops": null,
+   "consortStops": null,
+   "formReg": null,
+   "credit": "GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · FLUTE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0 · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0",
+   "defaultFor": [
+    "wtc2f07"
+   ],
+   "drumFirst": "acoustic"
+  },
+  {
+   "id": "petSounds",
+   "name": "PET SOUNDS",
+   "offered": true,
+   "trial": false,
+   "fx": "goldStar",
+   "room": 0,
+   "gain": 0.81,
+   "phoneGain": 0.86,
+   "ownDrums": {
+    "groove": "petSounds",
+    "kit": "pet"
+   },
+   "loopDrums": null,
+   "layouts": {
+    "2": [
+     {
+      "voice": 0,
+      "patch": "psStrings",
+      "name": "psStrings",
+      "pan": -0.14,
+      "level": 1,
+      "sample": "petStrings"
+     },
+     {
+      "voice": 1,
+      "patch": "psBass",
+      "name": "psBass",
+      "pan": 0.02,
+      "level": 0.6,
+      "sample": "rockBass"
+     }
+    ],
+    "3": [
+     {
+      "voice": 0,
+      "patch": "psStrings",
+      "name": "psStrings",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "petStrings"
+     },
+     {
+      "voice": 1,
+      "patch": "psPiano",
+      "name": "psPiano",
+      "pan": 0.14,
+      "level": 1.4,
+      "sample": "piano"
+     },
+     {
+      "voice": 2,
+      "patch": "psBass",
+      "name": "psBass",
+      "pan": 0.02,
+      "level": 0.6,
+      "sample": "rockBass"
+     }
+    ],
+    "4": [
+     {
+      "voice": 0,
+      "patch": "psStrings",
+      "name": "psStrings",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "petStrings"
+     },
+     {
+      "voice": 1,
+      "patch": "psHorn",
+      "name": "psHorn",
+      "pan": -0.04,
+      "level": 1.12,
+      "sample": "brassHorn"
+     },
+     {
+      "voice": 2,
+      "patch": "psPiano",
+      "name": "psPiano",
+      "pan": 0.14,
+      "level": 1.4,
+      "sample": "piano"
+     },
+     {
+      "voice": 3,
+      "patch": "psBass",
+      "name": "psBass",
+      "pan": 0.02,
+      "level": 0.6,
+      "sample": "rockBass"
+     }
+    ],
+    "5": [
+     {
+      "voice": 0,
+      "patch": "psStrings",
+      "name": "psStrings",
+      "pan": -0.18,
+      "level": 1,
+      "sample": "petStrings"
+     },
+     {
+      "voice": 1,
+      "patch": "psHarpsi",
+      "name": "psHarpsi",
+      "pan": 0.2,
+      "level": 1,
+      "sample": "harpsichord"
+     },
+     {
+      "voice": 2,
+      "patch": "psHorn",
+      "name": "psHorn",
+      "pan": -0.04,
+      "level": 1.12,
+      "sample": "brassHorn"
+     },
+     {
+      "voice": 3,
+      "patch": "psPiano",
+      "name": "psPiano",
+      "pan": 0.12,
+      "level": 1.4,
+      "sample": "piano"
+     },
+     {
+      "voice": 4,
+      "patch": "psBass",
+      "name": "psBass",
+      "pan": 0.02,
+      "level": 0.6,
+      "sample": "rockBass"
+     }
+    ]
+   },
+   "patches": [
+    {
+     "id": "psStrings",
+     "name": "psStrings"
+    },
+    {
+     "id": "psBass",
+     "name": "psBass"
+    },
+    {
+     "id": "psPiano",
+     "name": "psPiano"
+    },
+    {
+     "id": "psHorn",
+     "name": "psHorn"
+    },
+    {
+     "id": "psHarpsi",
+     "name": "psHarpsi"
+    }
+   ],
+   "touch": {
+    "expr": "bowed",
+    "touchKind": "jazz",
+    "touchFamily": null,
+    "phrasing": "plain",
+    "drag": "glide",
+    "keyboardSlide": null
+   },
+   "slide": {
+    "families": [
+     "bowed",
+     "bass",
+     "piano",
+     "brass",
+     "plucked"
+    ],
+    "mode": "d486",
+    "setting": "auto"
+   },
+   "busoni": {
+    "reaches": true,
+    "how": "level, hairpins and palette (EXPRESSIVE_ALL: dynamic sounds)"
+   },
+   "stops": null,
+   "consortStops": null,
+   "formReg": null,
+   "credit": "STRINGS, TIMPANI: VS CHAMBER ORCHESTRA 2 CE · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0 · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0",
+   "defaultFor": [
+    "wtc1f17"
    ],
    "drumFirst": "acoustic"
   },
@@ -10987,11 +11731,12 @@
     "compound": false
    },
    "sound": {
-    "id": "chamberOrgan",
-    "name": "PIPE ORGAN",
-    "why": "'Noble and warm, organ- or choral-like; solemnly slow' (Keller): four voices with a reprise (Ledbetter 27-35) that a plenum crowns.",
+    "id": "petSounds",
+    "name": "PET SOUNDS",
+    "why": "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the piano, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
     "character": "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     "otherPlans": [
+     "chamberOrgan",
      "harpsichordSampled",
      "soloVoices"
     ]
@@ -11000,13 +11745,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": 0.05,
+     "patch": "psStrings",
+     "name": "psStrings",
+     "pan": -0.18,
      "level": 1,
      "voiceName": "SOPRANO",
-     "trimDb": 0.1,
-     "playerLiftDb": -1.2,
+     "trimDb": 3.3,
+     "playerLiftDb": 3,
      "playerToneDb": 0,
      "notes": 210,
      "lo": 67,
@@ -11015,13 +11760,13 @@
     },
     {
      "voice": 1,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": -0.02,
-     "level": 1,
+     "patch": "psHorn",
+     "name": "psHorn",
+     "pan": -0.04,
+     "level": 1.12,
      "voiceName": "ALTO",
-     "trimDb": 0.4,
-     "playerLiftDb": -1.1,
+     "trimDb": 1.5,
+     "playerLiftDb": 0,
      "playerToneDb": 0,
      "notes": 191,
      "lo": 56,
@@ -11030,13 +11775,13 @@
     },
     {
      "voice": 2,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": 0.02,
-     "level": 1,
+     "patch": "psPiano",
+     "name": "psPiano",
+     "pan": 0.14,
+     "level": 1.4,
      "voiceName": "TENOR",
-     "trimDb": 1.3,
-     "playerLiftDb": -0.2,
+     "trimDb": 4.6,
+     "playerLiftDb": 3,
      "playerToneDb": 0,
      "notes": 237,
      "lo": 44,
@@ -11045,13 +11790,13 @@
     },
     {
      "voice": 3,
-     "patch": "orgPedal",
-     "name": "organ pedal 16′ 8′ 4′ (recorded)",
-     "pan": 0,
-     "level": 1,
+     "patch": "psBass",
+     "name": "psBass",
+     "pan": 0.02,
+     "level": 0.6,
      "voiceName": "BASS",
      "trimDb": 0,
-     "playerLiftDb": -1.7,
+     "playerLiftDb": -0.6,
      "playerToneDb": 0,
      "notes": 253,
      "lo": 36,
@@ -11062,9 +11807,9 @@
    "balance": {
     "measured": true,
     "t": [
-     0.1,
-     0.4,
-     1.3,
+     3.3,
+     1.5,
+     4.6,
      0
     ]
    },
@@ -11281,21 +12026,7 @@
     "peak": 33,
     "arrival": 35,
     "lastBar": 35,
-    "formReg": {
-     "episode": [
-      "flute",
-      "sub16"
-     ],
-     "subject": [
-      "principal",
-      "sub16"
-     ],
-     "climax": [
-      "principal",
-      "mixture",
-      "sub16"
-     ]
-    }
+    "formReg": null
    },
    "busoni": {
     "has": true,
@@ -11335,64 +12066,8 @@
    },
    "colourPlan": {
     "active": false,
-    "moments": [
-     {
-      "bar": 1,
-      "c": {
-       "reg": [
-        "principal"
-       ]
-      },
-      "why": "The principals."
-     },
-     {
-      "bar": 8,
-      "c": {
-       "reg": [
-        "flute"
-       ]
-      },
-      "why": "The solo bars 8-9 (Ledbetter) and the episode on a second manual."
-     },
-     {
-      "bar": 10.25,
-      "c": {
-       "reg": [
-        "principal"
-       ]
-      },
-      "why": "The tenor's entry (10)."
-     },
-     {
-      "bar": 19,
-      "c": {
-       "reg": [
-        "flute"
-       ]
-      },
-      "why": "The episode 19-20."
-     },
-     {
-      "bar": 23.25,
-      "c": {
-       "reg": [
-        "principal"
-       ]
-      },
-      "why": "The alto's entry after the cadence in E♭."
-     },
-     {
-      "bar": 27,
-      "c": {
-       "reg": [
-        "principal",
-        "mixture"
-       ]
-      },
-      "why": "The reprise (27-35) on the plenum."
-     }
-    ],
-    "standsAsideForBusoni": true
+    "moments": [],
+    "standsAsideForBusoni": false
    },
    "subjectFx": {
     "tailored": true,
@@ -11416,9 +12091,9 @@
     "presets": [
      {
       "n": 1,
-      "id": "percussion",
-      "name": "TIMPANI",
-      "style": "timpani"
+      "id": "acoustic",
+      "name": "JAZZ KIT",
+      "style": "jazz"
      },
      {
       "n": 2,
@@ -11428,9 +12103,9 @@
      },
      {
       "n": 3,
-      "id": "acoustic",
-      "name": "JAZZ KIT",
-      "style": "jazz"
+      "id": "percussion",
+      "name": "TIMPANI",
+      "style": "timpani"
      }
     ],
     "styles": {
@@ -11466,7 +12141,10 @@
     },
     "brushes": null,
     "jazzScript": null,
-    "ownKit": null
+    "ownKit": {
+     "groove": "petSounds",
+     "moments": null
+    }
    },
    "stage": "The Diary: the afternoon sun; evening rain at the window; the sunset through it."
   },
@@ -14472,12 +15150,12 @@
     "compound": false
    },
    "sound": {
-    "id": "stringConsort",
-    "name": "STRING CONSORT",
-    "why": "D510 (NOCTURNE 32-BIT withdrawn): 'a solemn, broad largo, laden with Affekt' (Keller): STRING CONSORT's quartet sustains the sighs one to a part, as the string-quartet arrangements of Förster and Mozart's circle played it.",
+    "id": "harpsichordSampled",
+    "name": "HARPSICHORD (SAMPLED)",
+    "why": "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): four voices whose sighing pairs the two manuals keep distinct, each line clear as the plucked string sounds it; the largo's weight on the coupled unison, the 8′ for the long episodes (16-21, 24-30, 63-69), the full harpsichord for the last entries (69-74). STRING CONSORT, its sound since D510, a choice away.",
     "character": "Long episodes (16-21, 24-30, 63-69) between the entries; a cadence in F♯ minor (24); the last entries 69-74.",
     "otherPlans": [
-     "harpsichordSampled",
+     "stringConsort",
      "chamberOrgan",
      "pianoSampled"
     ]
@@ -14486,13 +15164,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "consViolin",
-     "name": "violin (recorded)",
-     "pan": -0.24,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "SOPRANO",
-     "trimDb": 3.8,
-     "playerLiftDb": 2.8,
+     "trimDb": 0.8,
+     "playerLiftDb": 2,
      "playerToneDb": 0,
      "notes": 526,
      "lo": 64,
@@ -14501,13 +15179,13 @@
     },
     {
      "voice": 1,
-     "patch": "consViolin",
-     "name": "violin (recorded)",
-     "pan": -0.08,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "ALTO",
-     "trimDb": 5.2,
-     "playerLiftDb": 4.3,
+     "trimDb": 1.9,
+     "playerLiftDb": 3.6,
      "playerToneDb": 0,
      "notes": 519,
      "lo": 55,
@@ -14516,13 +15194,13 @@
     },
     {
      "voice": 2,
-     "patch": "consViola",
-     "name": "viola (recorded)",
-     "pan": 0.08,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "TENOR",
-     "trimDb": 5.3,
-     "playerLiftDb": 4.6,
+     "trimDb": 0.4,
+     "playerLiftDb": 2.1,
      "playerToneDb": 0,
      "notes": 423,
      "lo": 47,
@@ -14531,13 +15209,13 @@
     },
     {
      "voice": 3,
-     "patch": "consCello",
-     "name": "cello (recorded)",
-     "pan": 0.24,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "BASS",
      "trimDb": 0,
-     "playerLiftDb": -0.6,
+     "playerLiftDb": 1.5,
      "playerToneDb": 0,
      "notes": 334,
      "lo": 37,
@@ -14548,9 +15226,9 @@
    "balance": {
     "measured": true,
     "t": [
-     3.8,
-     5.2,
-     5.3,
+     0.8,
+     1.9,
+     0.4,
      0
     ]
    },
@@ -14728,7 +15406,16 @@
     "peak": 74,
     "arrival": 76,
     "lastBar": 76,
-    "formReg": null
+    "formReg": {
+     "episode": [],
+     "subject": [
+      "unison"
+     ],
+     "climax": [
+      "unison",
+      "four"
+     ]
+    }
    },
    "busoni": {
     "has": true,
@@ -14770,42 +15457,62 @@
     "active": false,
     "moments": [
      {
+      "bar": 1,
+      "c": {
+       "reg": [
+        "unison"
+       ]
+      },
+      "why": "The largo's weight: the coupled unison."
+     },
+     {
       "bar": 16,
       "c": {
-       "tone": -2
+       "reg": []
       },
-      "why": "The episode 16-21 darker."
+      "why": "The episode 16-21 on the 8′."
      },
      {
       "bar": 21.13,
-      "c": {},
-      "why": "The alto's entry."
+      "c": {
+       "reg": [
+        "unison"
+       ]
+      },
+      "why": "The entry."
      },
      {
       "bar": 24.25,
       "c": {
-       "tone": -2
+       "reg": []
       },
-      "why": "The episode after the cadence in F♯ minor."
+      "why": "The episode after the cadence."
      },
      {
       "bar": 30.13,
-      "c": {},
-      "why": "The tenor's entry."
+      "c": {
+       "reg": [
+        "unison"
+       ]
+      },
+      "why": "The entry."
      },
      {
       "bar": 63,
       "c": {
-       "tone": -2
+       "reg": []
       },
       "why": "The episode 63-69."
      },
      {
       "bar": 69.13,
       "c": {
-       "room": 0.1
+       "reg": [
+        "unison",
+        "four"
+       ]
       },
-      "why": "The last entries further into the hall."
+      "why": "The last entries: the full harpsichord."
      }
     ],
     "standsAsideForBusoni": true
@@ -14943,11 +15650,12 @@
     "compound": false
    },
    "sound": {
-    "id": "megaFm",
-    "name": "MEGA FM",
-    "why": "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), on organ-fugue figures (Bodky): MEGA FM's lead, clav and slap bass, crisp in 2/4 and loud enough through a phone's speaker.",
+    "id": "chorinho",
+    "name": "CHORINHO",
+    "why": "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), in 2/4, choro's and samba's own metre, its running semiquavers the pandeiro's: the flute on top, the piano in the middle, the seven-string guitar on Bach's bass (one to a voice), the regional's fills into the entries after its episodes and a break before the last.",
     "character": "Long episodes (29-39, 61-68, 74-83), the cadence on G (21-22), a dominant pedal (50-52), an intensifying close.",
     "otherPlans": [
+     "megaFm",
      "harpsichordSampled",
      "chamberOrgan"
     ]
@@ -14956,13 +15664,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "fmLead",
-     "name": "FM lead (fed back)",
-     "pan": 0.3,
+     "patch": "choFlute",
+     "name": "choFlute",
+     "pan": -0.18,
      "level": 1,
      "voiceName": "SOPRANO",
-     "trimDb": 0.1,
-     "playerLiftDb": -0.8,
+     "trimDb": 0,
+     "playerLiftDb": -0.5,
      "playerToneDb": 0,
      "notes": 307,
      "lo": 57,
@@ -14971,13 +15679,13 @@
     },
     {
      "voice": 1,
-     "patch": "fmClav",
-     "name": "FM clavinet",
-     "pan": -0.3,
+     "patch": "choPiano",
+     "name": "choPiano",
+     "pan": 0.14,
      "level": 1,
      "voiceName": "ALTO",
-     "trimDb": 0,
-     "playerLiftDb": -2.8,
+     "trimDb": 3.7,
+     "playerLiftDb": -0.5,
      "playerToneDb": 0,
      "notes": 350,
      "lo": 48,
@@ -14986,14 +15694,14 @@
     },
     {
      "voice": 2,
-     "patch": "fmBass",
-     "name": "FM slap bass",
-     "pan": 0,
+     "patch": "cho7",
+     "name": "cho7",
+     "pan": -0.04,
      "level": 1,
      "voiceName": "BASS",
-     "trimDb": 0,
-     "playerLiftDb": -3.1,
-     "playerToneDb": -0.5,
+     "trimDb": 1.5,
+     "playerLiftDb": -3.4,
+     "playerToneDb": 0,
      "notes": 375,
      "lo": 36,
      "hi": 69,
@@ -15003,9 +15711,9 @@
    "balance": {
     "measured": true,
     "t": [
-     0.1,
      0,
-     0
+     3.7,
+     1.5
     ]
    },
    "trio": null,
@@ -15282,40 +15990,8 @@
    },
    "colourPlan": {
     "active": false,
-    "moments": [
-     {
-      "bar": 29,
-      "c": {
-       "fm": 0.7
-      },
-      "why": "The episode 29-39 mellower."
-     },
-     {
-      "bar": 39.25,
-      "c": {},
-      "why": "The bass's entry (39)."
-     },
-     {
-      "bar": 61,
-      "c": {
-       "fm": 0.7
-      },
-      "why": "The episode 61-68."
-     },
-     {
-      "bar": 68.25,
-      "c": {},
-      "why": "The bass's entry (68)."
-     },
-     {
-      "bar": 74,
-      "c": {
-       "fm": 1.2
-      },
-      "why": "Keller's intensifying close a little brighter."
-     }
-    ],
-    "standsAsideForBusoni": true
+    "moments": [],
+    "standsAsideForBusoni": false
    },
    "subjectFx": {
     "tailored": false,
@@ -15339,15 +16015,15 @@
     "presets": [
      {
       "n": 1,
-      "id": "electronic",
-      "name": "CHIP KIT",
-      "style": "chip"
-     },
-     {
-      "n": 2,
       "id": "acoustic",
       "name": "ROCK KIT",
       "style": "rock"
+     },
+     {
+      "n": 2,
+      "id": "electronic",
+      "name": "ELECTRO",
+      "style": "machine"
      },
      {
       "n": 3,
@@ -15357,7 +16033,7 @@
      }
     ],
     "styles": {
-     "electronic": "chip",
+     "electronic": "machine",
      "acoustic": "rock",
      "percussion": "timpani"
     },
@@ -15388,7 +16064,10 @@
     },
     "brushes": null,
     "jazzScript": null,
-    "ownKit": null
+    "ownKit": {
+     "groove": "choroBand",
+     "moments": null
+    }
    },
    "stage": "The Olympian: the floodlights whiter; rain on the track; the floodlights full."
   },
@@ -15415,12 +16094,12 @@
     "compound": false
    },
    "sound": {
-    "id": "chamberOrgan",
-    "name": "PIPE ORGAN",
-    "why": "Severe and reflective (Keller), four voices closing in stretti and augmentation, for which Bodky allows the pedal clavichord 'or even the organ': the organ's pedal carries the augmented bass.",
+    "id": "harpsichordSampled",
+    "name": "HARPSICHORD (SAMPLED)",
+    "why": "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): severe and reflective (Keller), a short subject in clear stretti and augmentation, a keyboard fugue Bodky plans for the pedal clavichord: the two manuals' terraces carry its four voices apart. PIPE ORGAN, its earlier sound, a choice away.",
     "character": "Entries to 14, then stretti and the augmentations (from 14); Bodky's terraces f, p (14½), f (21¼), coupled (23⅝).",
     "otherPlans": [
-     "harpsichordSampled",
+     "chamberOrgan",
      "stringConsort"
     ]
    },
@@ -15428,13 +16107,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": 0.05,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "SOPRANO",
-     "trimDb": 0.9,
-     "playerLiftDb": -0.3,
+     "trimDb": 0,
+     "playerLiftDb": -0.4,
      "playerToneDb": 0,
      "notes": 208,
      "lo": 60,
@@ -15443,13 +16122,13 @@
     },
     {
      "voice": 1,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": -0.02,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "ALTO",
-     "trimDb": 1.2,
-     "playerLiftDb": 0.3,
+     "trimDb": 0,
+     "playerLiftDb": -0.4,
      "playerToneDb": 0,
      "notes": 204,
      "lo": 55,
@@ -15458,13 +16137,13 @@
     },
     {
      "voice": 2,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": 0.02,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "TENOR",
-     "trimDb": 2.5,
-     "playerLiftDb": 1.5,
+     "trimDb": 0,
+     "playerLiftDb": -0.6,
      "playerToneDb": 0,
      "notes": 193,
      "lo": 36,
@@ -15473,8 +16152,8 @@
     },
     {
      "voice": 3,
-     "patch": "orgPedal",
-     "name": "organ pedal 16′ 8′ 4′ (recorded)",
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
      "pan": 0,
      "level": 1,
      "voiceName": "BASS",
@@ -15490,9 +16169,9 @@
    "balance": {
     "measured": true,
     "t": [
-     0.9,
-     1.2,
-     2.5,
+     0,
+     0,
+     0,
      0
     ]
    },
@@ -15575,18 +16254,13 @@
     "arrival": 28,
     "lastBar": 28,
     "formReg": {
-     "episode": [
-      "flute",
-      "sub16"
-     ],
+     "episode": [],
      "subject": [
-      "principal",
-      "sub16"
+      "unison"
      ],
      "climax": [
-      "principal",
-      "mixture",
-      "sub16"
+      "unison",
+      "four"
      ]
     }
    },
@@ -15629,38 +16303,36 @@
       "bar": 1,
       "c": {
        "reg": [
-        "principal"
+        "four"
        ]
       },
-      "why": "The principals."
+      "why": "Bodky: 8″+4″."
      },
      {
       "bar": 14.5,
       "c": {
-       "reg": [
-        "flute"
-       ]
+       "reg": []
       },
-      "why": "Bodky's piano from 14½: the flutes."
+      "why": "Bodky: 8′ from 14½."
      },
      {
       "bar": 21.25,
       "c": {
        "reg": [
-        "principal"
+        "four"
        ]
       },
-      "why": "Bodky's forte from 21¼."
+      "why": "Bodky: 8″+4″ from 21¼."
      },
      {
       "bar": 23.63,
       "c": {
        "reg": [
-        "principal",
-        "mixture"
+        "unison",
+        "four"
        ]
       },
-      "why": "Bodky couples the manuals at 23⅝: the plenum for the stretti in augmentation."
+      "why": "Bodky: coupled from 23⅝."
      }
     ],
     "standsAsideForBusoni": true
@@ -17485,11 +18157,12 @@
     "compound": false
    },
    "sound": {
-    "id": "chamberOrgan",
-    "name": "PIPE ORGAN",
-    "why": "'Saturated with euphony like a choral fugue' (Keller), 'best on the (home) organ' (Bodky): four voices in long alla breve notes.",
+    "id": "bossaNova",
+    "name": "BOSSA NOVA",
+    "why": "Alla breve at a half of 62, the bossa nova's own cut time and tempo, and 'saturated with euphony' (Keller): four voices in long, serene notes over a soft bossa (flute, piano, nylon guitar, upright bass), the calm of a slow Jobim song; the stretti at the close (59-60) out of a bar's break.",
     "character": "Bodky's spans: full to 30¾, 8″+4″ to 55¼, full from 55¾ (his milder option one degree down); the last entries in stretto (59-60).",
     "otherPlans": [
+     "chamberOrgan",
      "harpsichordSampled",
      "soloVoices"
     ]
@@ -17498,13 +18171,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": 0.05,
-     "level": 1,
+     "patch": "bnFlute",
+     "name": "bnFlute",
+     "pan": -0.18,
+     "level": 0.56,
      "voiceName": "SOPRANO",
-     "trimDb": 0.3,
-     "playerLiftDb": -1.6,
+     "trimDb": 0,
+     "playerLiftDb": -1,
      "playerToneDb": 0,
      "notes": 127,
      "lo": 63,
@@ -17513,13 +18186,13 @@
     },
     {
      "voice": 1,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": -0.02,
-     "level": 1,
+     "patch": "bnPiano",
+     "name": "bnPiano",
+     "pan": 0.18,
+     "level": 1.19,
      "voiceName": "ALTO",
-     "trimDb": 0.6,
-     "playerLiftDb": -1.1,
+     "trimDb": 0,
+     "playerLiftDb": -0.9,
      "playerToneDb": 0,
      "notes": 171,
      "lo": 58,
@@ -17528,13 +18201,13 @@
     },
     {
      "voice": 2,
-     "patch": "orgPrincipal",
-     "name": "organ manual, Principal 8′ 4′ (recorded)",
-     "pan": 0.02,
-     "level": 1,
+     "patch": "bnGuitar",
+     "name": "bnGuitar",
+     "pan": 0.06,
+     "level": 1.12,
      "voiceName": "TENOR",
-     "trimDb": 1.2,
-     "playerLiftDb": -1,
+     "trimDb": 0,
+     "playerLiftDb": -0.3,
      "playerToneDb": 0,
      "notes": 180,
      "lo": 50,
@@ -17543,13 +18216,13 @@
     },
     {
      "voice": 3,
-     "patch": "orgPedal",
-     "name": "organ pedal 16′ 8′ 4′ (recorded)",
-     "pan": 0,
+     "patch": "bnBass",
+     "name": "bnBass",
+     "pan": -0.02,
      "level": 1,
      "voiceName": "BASS",
-     "trimDb": 0,
-     "playerLiftDb": -1.9,
+     "trimDb": 2.5,
+     "playerLiftDb": -0.3,
      "playerToneDb": 0,
      "notes": 229,
      "lo": 39,
@@ -17560,10 +18233,10 @@
    "balance": {
     "measured": true,
     "t": [
-     0.3,
-     0.6,
-     1.2,
-     0
+     0,
+     0,
+     0,
+     2.5
     ]
    },
    "trio": null,
@@ -17707,21 +18380,7 @@
     "peak": 60,
     "arrival": 70,
     "lastBar": 70,
-    "formReg": {
-     "episode": [
-      "flute",
-      "sub16"
-     ],
-     "subject": [
-      "principal",
-      "sub16"
-     ],
-     "climax": [
-      "principal",
-      "mixture",
-      "sub16"
-     ]
-    }
+    "formReg": null
    },
    "busoni": {
     "has": true,
@@ -17761,46 +18420,8 @@
    },
    "colourPlan": {
     "active": false,
-    "moments": [
-     {
-      "bar": 1,
-      "c": {
-       "reg": [
-        "principal"
-       ]
-      },
-      "why": "Bodky's milder option: the principals for his full work."
-     },
-     {
-      "bar": 30.75,
-      "c": {
-       "reg": [
-        "flute"
-       ]
-      },
-      "why": "His lighter middle (30¾-55¼): the flutes."
-     },
-     {
-      "bar": 55.75,
-      "c": {
-       "reg": [
-        "principal"
-       ]
-      },
-      "why": "The principals again (55¾)."
-     },
-     {
-      "bar": 59,
-      "c": {
-       "reg": [
-        "principal",
-        "mixture"
-       ]
-      },
-      "why": "The last stretto (59-60): the plenum, a player's choice beyond Bodky's."
-     }
-    ],
-    "standsAsideForBusoni": true
+    "moments": [],
+    "standsAsideForBusoni": false
    },
    "subjectFx": {
     "tailored": false,
@@ -17824,9 +18445,9 @@
     "presets": [
      {
       "n": 1,
-      "id": "percussion",
-      "name": "TIMPANI",
-      "style": "timpani"
+      "id": "acoustic",
+      "name": "JAZZ KIT",
+      "style": "jazz"
      },
      {
       "n": 2,
@@ -17836,9 +18457,9 @@
      },
      {
       "n": 3,
-      "id": "acoustic",
-      "name": "JAZZ KIT",
-      "style": "jazz"
+      "id": "percussion",
+      "name": "TIMPANI",
+      "style": "timpani"
      }
     ],
     "styles": {
@@ -17866,7 +18487,10 @@
     },
     "brushes": null,
     "jazzScript": null,
-    "ownKit": null
+    "ownKit": {
+     "groove": "bossaNova",
+     "moments": null
+    }
    },
    "stage": "The Organist: candlelight; a cool light in shafts; the pipes ablaze."
   },
@@ -18232,13 +18856,13 @@
     "compound": false
    },
    "sound": {
-    "id": "soloVoices",
-    "name": "SOLO VOICES",
-    "why": "'Pure, transfigured vocal beauty in the style of Palestrina' (Keller), in 4/2, each voice within a singer's compass: SOLO VOICES' singers; Mozart also arranged it (K.405).",
+    "id": "harpsichordSampled",
+    "name": "HARPSICHORD (SAMPLED)",
+    "why": "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): 'pure, transfigured vocal beauty in the style of Palestrina' (Keller), the classic ricercar in 4/2 whose four clear lines a plucked string sets out note by note, the low stretti on the coupled unison. SOLO VOICES, its earlier sound, a choice away.",
     "character": "Stretti of subject and countersubject 9-15, two new subjects 16-22, low stretti and diminutions 23-34, a final section 35-43 (Ledbetter).",
     "otherPlans": [
+     "soloVoices",
      "chamberOrgan",
-     "harpsichordSampled",
      "vocalSynth"
     ]
    },
@@ -18246,13 +18870,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "singS",
-     "name": "soprano (VocalSet)",
-     "pan": -0.18,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "SOPRANO",
-     "trimDb": 0,
-     "playerLiftDb": 0.4,
+     "trimDb": 0.2,
+     "playerLiftDb": 1.1,
      "playerToneDb": 0,
      "notes": 165,
      "lo": 63,
@@ -18261,13 +18885,13 @@
     },
     {
      "voice": 1,
-     "patch": "singA",
-     "name": "alto (VocalSet)",
-     "pan": -0.06,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "ALTO",
      "trimDb": 0,
-     "playerLiftDb": 0.3,
+     "playerLiftDb": 0.7,
      "playerToneDb": 0,
      "notes": 210,
      "lo": 54,
@@ -18276,13 +18900,13 @@
     },
     {
      "voice": 2,
-     "patch": "singT",
-     "name": "tenor (VocalSet)",
-     "pan": 0.06,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "TENOR",
-     "trimDb": 0,
-     "playerLiftDb": 0.3,
+     "trimDb": 0.1,
+     "playerLiftDb": 0.7,
      "playerToneDb": 0,
      "notes": 206,
      "lo": 47,
@@ -18291,9 +18915,9 @@
     },
     {
      "voice": 3,
-     "patch": "singB",
-     "name": "bass (VocalSet)",
-     "pan": 0.18,
+     "patch": "harpsiSampled",
+     "name": "harpsichord (recorded)",
+     "pan": 0,
      "level": 1,
      "voiceName": "BASS",
      "trimDb": 0,
@@ -18308,9 +18932,9 @@
    "balance": {
     "measured": true,
     "t": [
+     0.2,
      0,
-     0,
-     0,
+     0.1,
      0
     ]
    },
@@ -18496,7 +19120,16 @@
     "peak": 40,
     "arrival": 43,
     "lastBar": 43,
-    "formReg": null
+    "formReg": {
+     "episode": [],
+     "subject": [
+      "unison"
+     ],
+     "climax": [
+      "unison",
+      "four"
+     ]
+    }
    },
    "busoni": {
     "has": true,
@@ -18513,23 +19146,29 @@
     "active": true,
     "moments": [
      {
-      "bar": 16,
+      "bar": 1,
       "c": {
-       "room": 0.1
+       "reg": []
       },
-      "why": "The two new subjects (16-22) a little further away."
+      "why": "The 8′."
      },
      {
       "bar": 23,
-      "c": {},
-      "why": "Closer for the low stretti."
+      "c": {
+       "reg": [
+        "unison"
+       ]
+      },
+      "why": "The low stretti: the coupled unison."
      },
      {
       "bar": 35,
       "c": {
-       "room": 0.15
+       "reg": [
+        "four"
+       ]
       },
-      "why": "The final section (35-43) in more of the hall."
+      "why": "The final section: 8′+4′."
      }
     ],
     "standsAsideForBusoni": false
@@ -18626,11 +19265,12 @@
     "compound": false
    },
    "sound": {
-    "id": "sid64",
-    "name": "SID 64",
-    "why": "A powerfully controlled allegro, an impatient subject pressing forward (Keller): SID 64's moving pulses and filtered bass, bright through a phone's speaker.",
+    "id": "salsa",
+    "name": "SALSA",
+    "why": "A powerfully controlled allegro, an impatient subject pressing forward (Keller), in 2/2 written in quaver triplets: salsa's cut time with the Afro-Cuban 6/8 bell over it, the clave a bar; the E minor subject's repeated notes and leaps, as written, on the trumpet, the piano and the baby bass (one to a voice), the timbales' fills into the entries after its episodes and a break before the bass's last entry.",
     "character": "A tonic exposition 1-18 (Ledbetter), Bodky's spans f (to 23 10/12), p (to 49 10/12), f, coupled (71⅜); a dominant pedal 68-70.",
     "otherPlans": [
+     "sid64",
      "harpsichordSampled",
      "chamberOrgan",
      "chip"
@@ -18640,13 +19280,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "sidLead",
-     "name": "SID pulse lead (moving width)",
-     "pan": 0.3,
+     "patch": "salTrumpet",
+     "name": "salTrumpet",
+     "pan": -0.18,
      "level": 1,
      "voiceName": "SOPRANO",
      "trimDb": 0,
-     "playerLiftDb": -1.5,
+     "playerLiftDb": -0.6,
      "playerToneDb": 0,
      "notes": 536,
      "lo": 55,
@@ -18655,13 +19295,13 @@
     },
     {
      "voice": 1,
-     "patch": "sidSaw",
-     "name": "SID sawtooth",
-     "pan": -0.3,
+     "patch": "salPiano",
+     "name": "salPiano",
+     "pan": 0.16,
      "level": 1,
      "voiceName": "ALTO",
      "trimDb": 0,
-     "playerLiftDb": -1.7,
+     "playerLiftDb": -2.3,
      "playerToneDb": 0,
      "notes": 407,
      "lo": 48,
@@ -18670,13 +19310,13 @@
     },
     {
      "voice": 2,
-     "patch": "sidBass",
-     "name": "SID filtered pulse bass",
-     "pan": 0,
+     "patch": "salBass",
+     "name": "salBass",
+     "pan": 0.02,
      "level": 1,
      "voiceName": "BASS",
-     "trimDb": 0,
-     "playerLiftDb": -1.8,
+     "trimDb": 2.2,
+     "playerLiftDb": 0.6,
      "playerToneDb": 0,
      "notes": 486,
      "lo": 39,
@@ -18689,7 +19329,7 @@
     "t": [
      0,
      0,
-     0
+     2.2
     ]
    },
    "trio": null,
@@ -18921,28 +19561,8 @@
     ]
    },
    "colourPlan": {
-    "active": true,
-    "moments": [
-     {
-      "bar": 23.83,
-      "c": {
-       "pw": 0.2
-      },
-      "why": "Bodky's piano span (23-49) on narrower pulses."
-     },
-     {
-      "bar": 49.83,
-      "c": {},
-      "why": "The own sweep (49)."
-     },
-     {
-      "bar": 71.38,
-      "c": {
-       "pw": 0.5
-      },
-      "why": "Bodky's coupled close: the pulses square."
-     }
-    ],
+    "active": false,
+    "moments": [],
     "standsAsideForBusoni": false
    },
    "subjectFx": {
@@ -18967,15 +19587,15 @@
     "presets": [
      {
       "n": 1,
-      "id": "electronic",
-      "name": "CHIP KIT",
-      "style": "chip"
-     },
-     {
-      "n": 2,
       "id": "acoustic",
       "name": "JAZZ KIT",
       "style": "jazz"
+     },
+     {
+      "n": 2,
+      "id": "electronic",
+      "name": "ELECTRO",
+      "style": "machine"
      },
      {
       "n": 3,
@@ -18985,7 +19605,7 @@
      }
     ],
     "styles": {
-     "electronic": "chip",
+     "electronic": "machine",
      "acoustic": "jazz",
      "percussion": "timpani"
     },
@@ -19015,7 +19635,10 @@
     },
     "brushes": null,
     "jazzScript": null,
-    "ownKit": null
+    "ownKit": {
+     "groove": "salsaBand",
+     "moments": null
+    }
    },
    "stage": "The Crook: the string lights; rain on the fair; the whole fair aglow."
   },
@@ -19970,11 +20593,12 @@
     "compound": false
    },
    "sound": {
-    "id": "harpsichordSampled",
-    "name": "HARPSICHORD (SAMPLED)",
-    "why": "High spirits, grace and playful lightness, with gavotte episodes 'commonly played two bars forte, two bars piano … entirely in the style of Bach's time' (Keller): the two manuals' own game.",
+    "id": "sid64",
+    "name": "SID 64",
+    "why": "High spirits, grace and playful lightness (Keller): a gavotte in 2/2 whose three clear lines the SID's three voices (each its own waveform, D297) keep apart, lively and bright; the episodes' two-bar echoes in the pulses' width. (D521: given to SID 64, the owner wanting it used more.)",
     "character": "Expositions 1-12, 32-44, 64-84; episode 1 (12-20) and its return (44-52), episode 2 (24-32) and its return (56-64) (Ledbetter). The two-bar echoes are placed in episode 1 and its return (a reading of Keller).",
     "otherPlans": [
+     "harpsichordSampled",
      "chamberOrgan",
      "chip"
     ]
@@ -19983,13 +20607,13 @@
    "seats": [
     {
      "voice": 0,
-     "patch": "harpsiSampled",
-     "name": "harpsichord (recorded)",
-     "pan": 0,
+     "patch": "sidLead",
+     "name": "SID pulse lead (moving width)",
+     "pan": 0.3,
      "level": 1,
      "voiceName": "SOPRANO",
      "trimDb": 0,
-     "playerLiftDb": -0.2,
+     "playerLiftDb": -1.8,
      "playerToneDb": 0,
      "notes": 324,
      "lo": 61,
@@ -19998,13 +20622,13 @@
     },
     {
      "voice": 1,
-     "patch": "harpsiSampled",
-     "name": "harpsichord (recorded)",
-     "pan": 0,
+     "patch": "sidSaw",
+     "name": "SID sawtooth",
+     "pan": -0.3,
      "level": 1,
      "voiceName": "ALTO",
-     "trimDb": 0.2,
-     "playerLiftDb": -0.3,
+     "trimDb": 0,
+     "playerLiftDb": -1.4,
      "playerToneDb": 0,
      "notes": 349,
      "lo": 54,
@@ -20013,13 +20637,13 @@
     },
     {
      "voice": 2,
-     "patch": "harpsiSampled",
-     "name": "harpsichord (recorded)",
+     "patch": "sidBass",
+     "name": "SID filtered pulse bass",
      "pan": 0,
      "level": 1,
      "voiceName": "BASS",
      "trimDb": 0,
-     "playerLiftDb": -1.1,
+     "playerLiftDb": -1.9,
      "playerToneDb": 0,
      "notes": 450,
      "lo": 39,
@@ -20031,7 +20655,7 @@
     "measured": true,
     "t": [
      0,
-     0.2,
+     0,
      0
     ]
    },
@@ -20273,16 +20897,7 @@
     "peak": 76,
     "arrival": 84,
     "lastBar": 84,
-    "formReg": {
-     "episode": [],
-     "subject": [
-      "unison"
-     ],
-     "climax": [
-      "unison",
-      "four"
-     ]
-    }
+    "formReg": null
    },
    "busoni": {
     "has": true,
@@ -20324,77 +20939,28 @@
     "active": false,
     "moments": [
      {
-      "bar": 1,
-      "c": {
-       "reg": [
-        "four"
-       ]
-      },
-      "why": "8′+4′."
-     },
-     {
       "bar": 14,
       "c": {
-       "reg": []
+       "pw": 0.2
       },
-      "why": "Keller's gavotte echo: two bars forte (12-13), two piano (14-15)…"
+      "why": "The echo (Keller's two bars piano): the SID's pulses narrower."
      },
      {
       "bar": 16,
-      "c": {
-       "reg": [
-        "four"
-       ]
-      },
-      "why": "…forte (16-17)…"
-     },
-     {
-      "bar": 18,
-      "c": {
-       "reg": []
-      },
-      "why": "…piano (18-19)."
-     },
-     {
-      "bar": 20.5,
-      "c": {
-       "reg": [
-        "four"
-       ]
-      },
-      "why": "The soprano's entry."
+      "c": {},
+      "why": "Forte: the voices' own sweep."
      },
      {
       "bar": 46,
       "c": {
-       "reg": []
+       "pw": 0.2
       },
-      "why": "The episode's return (44-52): the echo again."
+      "why": "The echo in the return."
      },
      {
       "bar": 48,
-      "c": {
-       "reg": [
-        "four"
-       ]
-      },
+      "c": {},
       "why": "Forte."
-     },
-     {
-      "bar": 50,
-      "c": {
-       "reg": []
-      },
-      "why": "Piano."
-     },
-     {
-      "bar": 52.5,
-      "c": {
-       "reg": [
-        "four"
-       ]
-      },
-      "why": "The alto's entry."
      }
     ],
     "standsAsideForBusoni": true
@@ -20421,25 +20987,25 @@
     "presets": [
      {
       "n": 1,
-      "id": "percussion",
-      "name": "TIMPANI",
-      "style": "timpani"
+      "id": "electronic",
+      "name": "CHIP KIT",
+      "style": "chip"
      },
      {
       "n": 2,
-      "id": "electronic",
-      "name": "ELECTRO",
-      "style": "machine"
-     },
-     {
-      "n": 3,
       "id": "acoustic",
       "name": "JAZZ KIT",
       "style": "jazz"
+     },
+     {
+      "n": 3,
+      "id": "percussion",
+      "name": "TIMPANI",
+      "style": "timpani"
      }
     ],
     "styles": {
-     "electronic": "machine",
+     "electronic": "chip",
      "acoustic": "jazz",
      "percussion": "timpani"
     },
