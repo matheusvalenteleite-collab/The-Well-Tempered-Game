@@ -1974,6 +1974,11 @@ export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: tr
  * recording; the band's signature instrument opens). ABBEY ROAD v2: the Moog lead, the Leslie guitar (hard left), the
  * Hammond (hard right), the trumpet (right), the flatwound bass. PET SOUNDS v2: v1's strings, horn, harpsichord and bass
  * with the musette accordion in the piano's place, the bass, the accordion and the harpsichord in the wall lane.
+ *
+ * D549-D552, the classic four's v2s (the owner likes them: JAZZ QUARTET his favourite, BAROQUE BAND's continuo entering
+ * with the bass loved): their instruments, seats and continuo kept, the chain the study's (band-fx.ts BAND_CHAINS), the
+ * level matched to the original's through the phone model (within 1 dB) and on a computer. JAZZ v2: the vibraphone in its
+ * lane, its soft and hard mallets kept (Slim.keep: the budget has the room), the piano's two inner voices spread by register.
  */
 export const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>> = {
   krautrock: {
@@ -2013,12 +2018,28 @@ export const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>>
       5: [["psStrings", 0], ["psHarpsi", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
     },
   },
+  jazzQuartet: {
+    gain: 1.06,
+    phoneGain: 1.72,
+    lanes: { jqVibes: "vibes" },
+    slim: { ...V2_SLIM, keep: ["jazzVibesSoft", "jazzVibesHard"] },
+    by: {
+      1: [["jqVibes", 0]],
+      2: [["jqVibes", -0.14], ["jqBass", 0.04]],
+      3: [["jqVibes", -0.18], ["jqPiano", 0.16], ["jqBass", 0.04]],
+      4: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.2], ["jqBass", 0.04]],
+      5: [["jqVibes", -0.18], ["jqPiano", 0.1], ["jqPiano", 0.16], ["jqPiano", 0.22], ["jqBass", 0.04]],
+    },
+  },
+  baroqueBand: { gain: 0.83, phoneGain: 0.83 },
+  bachBrass: { gain: 1, phoneGain: 0.79 },
+  oboeTrio: { gain: 0.539, phoneGain: 0.534, slim: { ...V2_SLIM, keep: ["trioOboe1Short", "trioOboe2Short", "trioBassoonShort"] } },
 };
 export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
   const p = PRESETS.find((x) => x.id === band)!;
   const own = V2_OWN[band];
   // (PET SOUNDS' original five instruments, the grand and the harpsichord among them, cut their plucked notes at 2.5 s to keep within 25 MB.)
-  const slim = band === "petSounds" && !own ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM;
+  const slim = own?.slim ?? (band === "petSounds" && !own ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM);
   return { ...p, ...own, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim, budgeted: true };
 });
 /**
