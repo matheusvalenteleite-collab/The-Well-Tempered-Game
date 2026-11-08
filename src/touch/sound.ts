@@ -1968,8 +1968,8 @@ export const TRIALS: Preset[] = [
  */
 export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
 /**
- * D546-D548, the Latin bands rebuilt (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums the
- * original's (the drum library's HOME styles had not merged), its chain (BAND_CHAINS). Seated as each band stood, seen
+ * D546-D548, the Latin bands rebuilt (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums its
+ * original's HOME (drum-library.ts homeStyleFor reads a v2 as its original), its chain (BAND_CHAINS). Seated as each band stood, seen
  * from the room, within ±0.35. Levels measured (scratchpad/bands2/<band>/NOTES.md): the whole matched to its original
  * within 1 dB through the phone model, each voice alone within about 2 dB of the others.
  * SALSA v2: trombone-led (2: trumpet, bass, as the trombone's compass leaves a 2-voice top; 3: trumpet, trombone, bass;

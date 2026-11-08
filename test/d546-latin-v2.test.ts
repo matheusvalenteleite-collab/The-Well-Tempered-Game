@@ -91,3 +91,14 @@ test("D546-D548: the originals as they were, the v2s offered nowhere but the Sou
     assert.ok(!Object.values(PIECE_SOUND).includes(id));
   }
 });
+
+test("D546: a v2 band's drums: its original's HOME and family (drum-library.ts), not the fallback", async () => {
+  const { homeStyleFor, familyFor } = await import("../src/touch/drum-library.ts");
+  for (const [band, id] of Object.entries(LATIN)) {
+    assert.equal(homeStyleFor(id), homeStyleFor(band));
+    assert.deepEqual(familyFor(id), familyFor(band));
+  }
+  assert.equal(homeStyleFor("salsaV2"), "salsa");
+  assert.equal(homeStyleFor("bossaNovaV2"), "bossa");
+  assert.equal(homeStyleFor("chorinhoV2"), "choro");
+});

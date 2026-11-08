@@ -767,7 +767,7 @@ export function buildChain(ctx: BaseAudioContext, spec: ChainSpec, opts: { phone
  * into it unchanged; the drums (outside the chain) keep their balance with the band. `phoneDb`: through the game's phone
  * path and the 600 Hz speaker model each v2 matched to its original within 1 LU (NOTES.md beside the renders).
  */
-export const SALSA2_TRIM = { db: -11.6, phoneDb: -14.2 } as const;
+export const SALSA2_TRIM = { db: -11.5, phoneDb: -14.7 } as const;
 export const BOSSA2_TRIM = { db: -5.5, phoneDb: -3.9 } as const;
 export const CHORO2_TRIM = { db: -8.2, phoneDb: -9.9 } as const;
 
@@ -809,8 +809,10 @@ export const BAND_CHAINS = {
       horns: [{ kind: "comp", model: "1176", threshold: -20 }, { kind: "eq", bands: [{ type: "peaking", hz: 1400, db: 2, q: 1 }] }],
       tres: [{ kind: "eq", bands: [{ type: "highpass", hz: 180 }, { type: "peaking", hz: 2500, db: 3, q: 1.2 }] }],
     },
-    bus: [{ kind: "eq", era: "fania72" }, { kind: "comp", model: "glue" }, { kind: "tape", drive: 1.2, rolloff: 14000 }, { kind: "gain", ...SALSA2_TRIM }],
-    reverb: { ir: "plate", seconds: 1.2, phoneSeconds: 0.8, rt60: 1.0, predelay: 0.015, hp: 300, lp: 7000, brightness: 0.65, level: 0.7 },
+    // D546: no bus compressor (the horns' 1176 is the band's squeeze; the glue cost the audio thread at 4× throttle for
+    // little: tools/playback/cpu), the plate's impulse 1.0 s (0.7 on a phone).
+    bus: [{ kind: "eq", era: "fania72" }, { kind: "tape", drive: 1.2, rolloff: 14000 }, { kind: "gain", ...SALSA2_TRIM }],
+    reverb: { ir: "plate", seconds: 1.0, phoneSeconds: 0.7, rt60: 1.0, predelay: 0.015, hp: 300, lp: 7000, brightness: 0.65, level: 0.7 },
   },
   // Rio / New York, 1959-64: close, soft and narrow; the guitar and the voice-like flute in the middle; the Rhodes warm
   // (a slow vibrato-free tremolo is the Suitcase's, not the Fender's: none); the LA-2A; a small dark chamber.
