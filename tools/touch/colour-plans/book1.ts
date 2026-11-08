@@ -509,8 +509,8 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f24: {
-    sound: "stringConsort",
-    soundWhy: "D510 (NOCTURNE 32-BIT withdrawn): 'a solemn, broad largo, laden with Affekt' (Keller): STRING CONSORT's quartet sustains the sighs one to a part, as the string-quartet arrangements of Förster and Mozart's circle played it.",
+    sound: "harpsichordSampled",
+    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): four voices whose sighing pairs the two manuals keep distinct, each line clear as the plucked string sounds it; the largo's weight on the coupled unison, the 8′ for the long episodes (16-21, 24-30, 63-69), the full harpsichord for the last entries (69-74). STRING CONSORT, its sound since D510, a choice away.",
     character: "Long episodes (16-21, 24-30, 63-69) between the entries; a cadence in F♯ minor (24); the last entries 69-74.",
     plans: {
       stringConsort: [

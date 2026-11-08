@@ -22,8 +22,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f02: {
-    sound: "chamberOrgan",
-    soundWhy: "Severe and reflective (Keller), four voices closing in stretti and augmentation, for which Bodky allows the pedal clavichord 'or even the organ': the organ's pedal carries the augmented bass.",
+    sound: "harpsichordSampled",
+    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): severe and reflective (Keller), a short subject in clear stretti and augmentation, a keyboard fugue Bodky plans for the pedal clavichord: the two manuals' terraces carry its four voices apart. PIPE ORGAN, its earlier sound, a choice away.",
     character: "Entries to 14, then stretti and the augmentations (from 14); Bodky's terraces f, p (14½), f (21¼), coupled (23⅝).",
     plans: {
       chamberOrgan: [at(1, OPRIN, "The principals."), at(14.5, OFLUTE, "Bodky's piano from 14½: the flutes."), at(21.25, OPRIN, "Bodky's forte from 21¼."), at(23.625, OPLENO, "Bodky couples the manuals at 23⅝: the plenum for the stretti in augmentation.")],
@@ -98,8 +98,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f09: {
-    sound: "soloVoices",
-    soundWhy: "'Pure, transfigured vocal beauty in the style of Palestrina' (Keller), in 4/2, each voice within a singer's compass: SOLO VOICES' singers; Mozart also arranged it (K.405).",
+    sound: "harpsichordSampled",
+    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): 'pure, transfigured vocal beauty in the style of Palestrina' (Keller), the classic ricercar in 4/2 whose four clear lines a plucked string sets out note by note, the low stretti on the coupled unison. SOLO VOICES, its earlier sound, a choice away.",
     character: "Stretti of subject and countersubject 9-15, two new subjects 16-22, low stretti and diminutions 23-34, a final section 35-43 (Ledbetter).",
     plans: {
       soloVoices: [at(16, { room: 0.1 }, "The two new subjects (16-22) a little further away."), at(23, OWN, "Closer for the low stretti."), at(35, { room: 0.15 }, "The final section (35-43) in more of the hall.")],
