@@ -70,7 +70,8 @@ test("D531: IDEAS, 25-30 combinations, each complete, the planned ones not playa
     assert.ok(it.bar >= (f.bars[0]?.n ?? 1) && it.bar <= f.bars[f.bars.length - 1].n, `${it.id}: bar ${it.bar}`);
     assert.ok(it.why.length > 10 && it.why.length <= 140 && !it.why.includes("\n"), `${it.id}: one dry line`);
     if (it.kind === "coming") {
-      assert.ok(PLANNED_STYLES.some((p) => p.id === it.style), `${it.id}: a planned style`);
+      // D532 (S3) has since built the planned styles: a "coming" idea names a planned style or one now real.
+      assert.ok(PLANNED_STYLES.some((p) => p.id === it.style) || isStyle(it.style), `${it.id}: a planned style`);
       assert.equal(ideaPlayable(it), isStyle(it.style));
     } else {
       assert.ok(isStyle(it.style), `${it.id}: ${it.style}`);
