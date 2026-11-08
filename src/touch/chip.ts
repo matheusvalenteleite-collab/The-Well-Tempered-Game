@@ -3926,9 +3926,9 @@ export class Chip {
    * (JAZZ_DRUMS: seated behind, a little left; under 150 Hz nothing, the bass's room), in the club at a little of its send.
    */
   private brushes(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext, style = "brushes") {
-    const bb = brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity);
+    const bb = brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS);
     const tk = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
-    for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel }, (w, v) => this.brushHit(h.piece, w, v));
+    for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.brushHit(h.piece, w, v));
     for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS));
   }
 
@@ -4018,7 +4018,7 @@ export class Chip {
    * LATIN_KIT, under its cut, in the band's room at a little of its send.
    */
   private latin(band: LatinBand, at: number, beatS: number, cx: GrooveContext, style: string = band === "salsa" ? "salsa" : "choro") {
-    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0)) this.scheduleKitHit({ voice: "latin", style, piece: h.piece, tick: cx.tick + h.at * cx.beat, when: at + h.at * beatS, vel: h.vel }, (w, v) => this.latinHit(h.piece, w, v, h.damp, LATIN_KIT.band[band]));
+    for (const h of latinBeat(band, cx.latin!, cx.tick, cx.beat, cx.dynDb ?? 0, beatS)) this.scheduleKitHit({ voice: "latin", style, piece: h.piece, tick: cx.tick + h.at * cx.beat, when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.latinHit(h.piece, w, v, h.damp, LATIN_KIT.band[band]));
   }
 
   private latinHit(piece: LatinPiece, at: number, vel: number, damp?: number, share = 1) {
@@ -4178,11 +4178,11 @@ export class Chip {
     const beat = cx?.beat ?? 1;
     const f = cx?.piece;
     const plan = f ? bossaPlan(f, beat, per) : { moments: [], quiet: [], bars: [0], end: Infinity };
-    const bb = bossaBeat(b, per, compound, cx?.tick ?? 0, beat, f?.tpq ?? beat, plan, cx?.dynDb ?? 0);
+    const bb = bossaBeat(b, per, compound, cx?.tick ?? 0, beat, f?.tpq ?? beat, plan, cx?.dynDb ?? 0, beatS);
     const tk = (a: number) => (cx?.tick ?? 0) + a * beat;
     for (const h of bb.hits) {
       const t = at + h.at * beatS;
-      this.scheduleKitHit({ voice: "bossa", style: "bossa", piece: h.piece, tick: tk(h.at), when: t, vel: h.vel }, (w, v) => (h.piece === "kick" || h.piece === "rim" ? this.bossaHit(h.piece, w, v) : this.brushHit(h.piece, w, v, BOSSA_DRUMS)));
+      this.scheduleKitHit({ voice: "bossa", style: "bossa", piece: h.piece, tick: tk(h.at), when: t, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => (h.piece === "kick" || h.piece === "rim" ? this.bossaHit(h.piece, w, v) : this.brushHit(h.piece, w, v, BOSSA_DRUMS)));
     }
     for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS, BOSSA_DRUMS));
   }
@@ -4215,7 +4215,7 @@ export class Chip {
     const beat = cx?.beat ?? 1;
     const f = cx?.piece;
     const plan = f ? petPlan(f, beat, per) : { moments: [], quiet: [], bass: [], end: Infinity };
-    for (const h of petBeat(b, per, compound, cx?.tick ?? 0, beat, plan, cx?.dynDb ?? 0)) this.scheduleKitHit({ voice: "pet", style: "pet", piece: h.piece, tick: (cx?.tick ?? 0) + h.at * beat, when: at + h.at * beatS, vel: h.vel }, (w, v) => this.petHit({ ...h, vel: v }, w));
+    for (const h of petBeat(b, per, compound, cx?.tick ?? 0, beat, plan, cx?.dynDb ?? 0, beatS)) this.scheduleKitHit({ voice: "pet", style: "pet", piece: h.piece, tick: (cx?.tick ?? 0) + h.at * beat, when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.petHit({ ...h, vel: v }, w));
   }
 
   /** D524: one stroke: the soft or the firm recording by its strength, the timpani's drum nearest its pitch (retuned to it). */

@@ -217,3 +217,60 @@ test("D536: the studio's live events from the single choke point: the kinds, the
     setDrumStyle(f.id, HOME_ID);
   }
 });
+
+test("D535: the bands' own drummers humanised: the brushes' swept crescendo, salsa's abanico, chorinho's virada, the bossa's rim figure, PET SOUNDS' toms", async () => {
+  const { brushFills } = await import("../src/touch/drum-presets.ts");
+  const { brushBeat } = await import("../src/touch/jazz-drums.ts");
+  const { latinPlan, latinBeat } = await import("../src/touch/latin-drums.ts");
+  const { bossaPlan, bossaBeat } = await import("../src/touch/bossa-drums.ts");
+  const { petPlan, petBeat } = await import("../src/touch/pet-drums.ts");
+  const { f, b, beatS, compound } = timing("wtc1f12");
+  const beat = b.ticks;
+  const per = b.perBar;
+  // The brushes: the flutter rising through each fill, its pick-ups not all the same.
+  const fills = brushFills(f, beat, per).filter((x) => x.kind !== "final");
+  const picks = new Set<string>();
+  for (const x of fills) {
+    let last = 0;
+    for (let t = x.from; t < x.at - beat / 2; t += beat) {
+      const bb = brushBeat(0, per, compound, t, beat, brushFills(f, beat, per), 0, f.length, beatS);
+      const fl = bb.sweeps.find((s) => s.piece === "flutter")!;
+      assert.ok(fl.to > fl.from && fl.from >= last - 1e-9);
+      last = fl.to;
+      if (t + beat >= x.at - beat / 2) picks.add(bb.hits.filter((h) => h.piece === "tap").map((h) => `${h.grace ? "g" : ""}${h.at.toFixed(2)}`).join(","));
+    }
+  }
+  assert.ok(picks.size >= 3, [...picks].join(" | "));
+  // Salsa's fills: the timbales and the abanico's ruff into the rimshot; chorinho's tamborim; both uneven and off the grid.
+  const plan = latinPlan(f, beat, per);
+  for (const band of ["salsa", "chorinho"] as const) {
+    const hs = plan.fills.filter((x) => x.kind === "fill").flatMap((x) => {
+      const out = [];
+      for (let t = Math.floor(x.from / beat) * beat; t < x.at; t += beat) out.push(...latinBeat(band, plan, t, beat, 0, beatS).filter((h) => h.role));
+      return out;
+    });
+    assert.ok(hs.length > 4, band);
+    if (band === "salsa") assert.ok(hs.some((h) => h.piece === "rimshot") && hs.some((h) => h.grace) && hs.some((h) => h.piece === "macho" || h.piece === "hembra"));
+    else assert.ok(hs.some((h) => h.piece === "tamborim"));
+    const main = hs.filter((h) => !h.grace);
+    assert.ok(repetition(main.map((h, i) => ({ t: i + h.at, vel: h.vel })), beatS).velSame < 0.3, band);
+  }
+  // The bossa and PET SOUNDS: fewer fills than entries, never the same twice running, the rim figure and the toms.
+  const bp = bossaPlan(f, beat, per);
+  const pp = petPlan(f, beat, per);
+  assert.ok(bp.moments.filter((m) => m.kind === "fill").length >= 2 && pp.moments.filter((m) => m.kind === "fill").length >= 2);
+  const pm = pp.moments.filter((m) => m.kind !== "break");
+  for (let i = 1; i < pm.length; i++) assert.notEqual(pm[i].variant, pm[i - 1].variant);
+  const bf = bp.moments.filter((m) => m.kind === "fill").flatMap((m) => {
+    const out = [];
+    for (let t = m.from; t < m.at - beat / 2; t += beat) out.push(...bossaBeat(0, per, compound, t, beat, f.tpq, bp, 0, beatS).hits);
+    return out;
+  });
+  assert.ok(bf.every((h) => h.at >= 0 && h.at < 1) && bf.some((h) => h.role === "roll"));
+  const pf = pm.flatMap((m) => {
+    const out = [];
+    for (let t = m.from; t < m.at - beat / 2; t += beat) out.push(...petBeat(0, per, compound, t, beat, pp, 0, beatS));
+    return out;
+  });
+  assert.ok(pf.some((h) => h.piece === "tomHigh" || h.piece === "tomLow") && pf.some((h) => h.grace));
+});

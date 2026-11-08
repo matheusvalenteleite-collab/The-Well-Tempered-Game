@@ -417,3 +417,53 @@ export function repetition(strokes: readonly { t: number; vel: number }[], beatS
   for (let i = 1; i < s.length; i++) if (Math.abs(s[i].vel - s[i - 1].vel) < 0.01) vel++;
   return { ioiSame: pairs ? ioi / pairs : 0, velSame: s.length > 1 ? vel / (s.length - 1) : 0, n: s.length };
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// D535 (S4, second pass): the bands' own drummers (the brushes, salsa and chorinho, the bossa, PET SOUNDS) humanised
+// with the same means: their fills chosen in turn (never the same twice running), a little off the grid, uneven.
+
+/** The fills of a list of moments in turn: each one's variant of `n`, never the one before (seeded by its tick). */
+const turnMemo = new WeakMap<object, number[]>();
+export function variantsInTurn(moments: readonly { at: number }[], n: number, salt: number): number[] {
+  const hit = turnMemo.get(moments);
+  if (hit && hit.length === moments.length) return hit;
+  const out: number[] = [];
+  let prev = -1;
+  for (const m of moments) {
+    let v: number;
+    if (n <= 1) v = 0;
+    else if (prev < 0) v = Math.floor(rand(seedOf(m.at, salt), 1) * n);
+    else {
+      v = Math.floor(rand(seedOf(m.at, salt), 1) * (n - 1));
+      if (v >= prev) v++;
+    }
+    out.push(v);
+    prev = v;
+  }
+  turnMemo.set(moments, out);
+  return out;
+}
+/** A stroke a little off the grid (`jitterS` s at most either way, seeded; never before 0 nor past the beat). */
+export function nudge(at: number, beatS: number, jitterS: number, seed: number, i: number): number {
+  if (!jitterS || at <= 0) return at;
+  const dt = (jitterS / beatS) * (rand(seed, 3 * i + 8) + rand(seed, 3 * i + 9) - 1);
+  return Math.max(0, Math.min(0.995, at + dt));
+}
+/** A level a little uneven (±`share`/2, seeded). */
+export const uneven = (vel: number, seed: number, i: number, share = 0.14) => Math.max(0.03, Math.min(1, vel * (1 + share * (rand(seed, 3 * i + 7) - 0.5))));
+/** A swept crescendo's level at x (0-1) of its way: from `lo` to `hi`, slow then quicker (a curve). */
+export const swell = (lo: number, hi: number, x: number, curve = 1.4) => lo + (hi - lo) * Math.max(0, Math.min(1, x)) ** curve;
+/** Which fills to keep of a list (in tick order): after a kept one the next only FILL_AFTER_FILL of the time; at least `min`. */
+export function thinFills<T extends { at: number }>(fills: readonly T[], salt: number, min = 2): T[] {
+  if (fills.length <= min) return [...fills];
+  const keep: boolean[] = [];
+  let prevKept = false;
+  for (const m of fills) {
+    const k: boolean = !prevKept || rand(seedOf(m.at, salt), 2) < FILL_AFTER_FILL;
+    keep.push(k);
+    prevKept = k;
+  }
+  // Never fewer than `min`: the dropped ones restored, the earliest first.
+  for (let i = 0; i < keep.length && keep.filter(Boolean).length < min; i++) keep[i] = true;
+  return fills.filter((_, i) => keep[i]);
+}

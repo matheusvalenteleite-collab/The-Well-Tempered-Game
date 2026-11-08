@@ -25,6 +25,7 @@
  */
 import type { TouchFugue } from "./fugue.ts";
 import { formOf } from "./form-points.ts";
+import { fillSlice, nextVariant, thinFills, seedOf } from "./drum-fills.ts";
 import { dynGain } from "./jazz-drums.ts";
 
 export type PetKind = "fill" | "break" | "final";
@@ -33,6 +34,8 @@ export interface PetMoment {
   from: number;
   at: number;
   why: string;
+  /** D535: which rock fill (drum-fills.ts), never the one before. */
+  variant?: number;
 }
 export interface PetPlan {
   moments: PetMoment[];
@@ -90,6 +93,16 @@ export function petPlan(f: TouchFugue, beat: number, per: number): PetPlan {
     moments.push({ kind: "fill", from, at, why: `the ${["soprano", "alto", "tenor", "bass", "fifth"][s.voice] ?? "voice"}'s entry (${s.form}, ${s.key})${afterEpisode ? " out of an episode: two beats' fill" : ""}` });
   }
   moments.sort((a, b) => a.at - b.at);
+  // D535: not every entry: after a fill the next only drum-fills.ts FILL_AFTER_FILL of the time (two at least kept);
+  // each fill (and the flourish) one of the rock fills, never the one before.
+  const kept = new Set(thinFills(moments.filter((m) => m.kind === "fill"), 524));
+  const thinned = moments.filter((m) => m.kind !== "fill" || kept.has(m));
+  moments.length = 0;
+  let prev = -1;
+  for (const m of thinned) {
+    if (m.kind !== "break") prev = m.variant = nextVariant("rock", prev, seedOf(m.at, 524));
+    moments.push(m);
+  }
   const low = f.voices[f.voices.length - 1] ?? [];
   const plan: PetPlan = { moments, quiet, bass: low.map((n) => [n[0], n[0] + n[1], n[2]]), end: f.length };
   memo.set(key, plan);
@@ -112,6 +125,10 @@ export interface PetHit {
   piece: "kick" | "snare" | "tomHigh" | "tomLow" | "crash" | "tamb" | "timp";
   at: number;
   vel: number;
+  /** D535: a fill's stroke (into an entry "roll", the flourish "fill"), the ticks to its landing; a grace note. */
+  role?: "roll" | "fill";
+  dur?: number;
+  grace?: boolean;
   /** The timpani's pitch (MIDI). */
   midi?: number;
 }
@@ -120,7 +137,7 @@ export interface PetHit {
  * One beat: beat `b` of a bar of `per` (`compound`: in threes), at tick `tick` (a beat of `beat` ticks), the piece's plan,
  * Busoni's level here (`dynDb`, 0 without a reading).
  */
-export function petBeat(b: number, per: number, compound: boolean, tick: number, beat: number, plan: PetPlan, dynDb = 0): PetHit[] {
+export function petBeat(b: number, per: number, compound: boolean, tick: number, beat: number, plan: PetPlan, dynDb = 0, beatS = 0.9): PetHit[] {
   const hits: PetHit[] = [];
   const g = dynGain(dynDb);
   const half = beat / 2;
@@ -142,10 +159,13 @@ export function petBeat(b: number, per: number, compound: boolean, tick: number,
     const k = Math.max(0, Math.min(n - 1, Math.round((tick - roll.from) / beat)));
     const big = roll.kind === "final" ? 1.2 : 1;
     const steps = compound ? 6 : 4;
+    // D535: Hal Blaine's toms, humanised (drum-fills.ts's rock fills: down the toms, flams, ruffs, the hands uneven, a
+    // little off the grid), the fill chosen in turn; the timpani's roll under it as it was (S3's to change).
+    const role = roll.kind === "final" ? ("fill" as const) : ("roll" as const);
+    const spec = { feel: "rock" as const, variant: roll.variant ?? 0, beats: n, beatS, compound, lo: 0.25 * big * g, hi: 0.6 * big * g, seed: seedOf(roll.at, 524) };
+    for (const h of fillSlice(spec, roll.from, beat, tick, roll.at)) hits.push({ piece: h.piece as PetHit["piece"], at: h.t, vel: h.vel, role, dur: Math.max(0, roll.at - tick - h.t * beat), ...(h.grace ? { grace: true } : {}) });
     for (let j = 0; j < steps; j++) {
       const x = (k + j / steps) / n;
-      const piece = x < 0.5 ? "tomHigh" : x < 0.85 ? "tomLow" : "snare";
-      hits.push({ piece, at: j / steps, vel: (0.25 + 0.35 * x) * big * g });
       hits.push(timp((0.15 + 0.3 * x) * big * g, (j + 0.5) / steps));
     }
     return hits.filter((h) => h.vel > 0);
