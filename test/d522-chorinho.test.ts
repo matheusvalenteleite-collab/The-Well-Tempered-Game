@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { register } from "node:module";
 import { FakeAudioContext, installFakeAudio } from "./fake-audio.ts";
 import { Chip, type GrooveContext } from "../src/touch/chip.ts";
-import { CHORINHO_CREDIT, DYNAMIC_SOUNDS, PATCHES, creditFor, grooveNow, presetById, setPreset } from "../src/touch/sound.ts";
+import { CHORINHO_CREDIT, DYNAMIC_SOUNDS, PATCHES, creditFor, grooveNow, presetById, setBacking, setPreset } from "../src/touch/sound.ts";
 import { SAMPLED, latinMidis } from "../src/touch/sampled.ts";
 import { TOUCH_KINDS, bandFamily, holdMode } from "../src/touch/touch-expr.ts";
 import { GROOVES, LATIN_SCRIPTS, LATIN_SOUNDS, inEntry, latinBeat, latinPlan } from "../src/touch/latin-drums.ts";
@@ -114,5 +114,11 @@ test("D522: the chip plays the regional's percussion with this sound only", asyn
   const n0 = chip.latinLog.length;
   assert.equal(chip.groove(chip.ctx.currentTime + 0.1, 0.72, 0, 2, 2, false, cx), true);
   assert.ok(chip.latinLog.slice(n0).some((l) => l.piece.startsWith("pand")));
+  // DRUMS on (D514): the chosen drummer in place of the regional's own percussion.
+  setBacking(true);
+  const nb = chip.latinLog.length;
+  chip.groove(chip.ctx.currentTime + 1, 0.72, 0, 2, 2, false, { ...cx, piece: f });
+  assert.equal(chip.latinLog.length, nb);
+  setBacking(false);
   setPreset("chip");
 });
