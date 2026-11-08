@@ -54,6 +54,8 @@ export const PT: Record<string, string> = {
   "ABBEY ROAD": "ABBEY ROAD",
   // D525: KRAUTROCK (a name: kept).
   KRAUTROCK: "KRAUTROCK",
+  // D521: BOSSA NOVA (the name as in Portuguese and Spanish).
+  "BOSSA NOVA": "BOSSA NOVA",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOÉ, VIOLA E FAGOTE",

@@ -77,8 +77,8 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f07: {
-    sound: "chamberOrgan",
-    soundWhy: "'Saturated with euphony like a choral fugue' (Keller), 'best on the (home) organ' (Bodky): four voices in long alla breve notes.",
+    sound: "bossaNova",
+    soundWhy: "Alla breve at a half of 62, the bossa nova's own cut time and tempo, and 'saturated with euphony' (Keller): four voices in long, serene notes over a soft bossa (flute, piano, nylon guitar, upright bass), the calm of a slow Jobim song; the stretti at the close (59-60) out of a bar's break.",
     character: "Bodky's spans: full to 30¾, 8″+4″ to 55¼, full from 55¾ (his milder option one degree down); the last entries in stretto (59-60).",
     plans: {
       chamberOrgan: [at(1, OPRIN, "Bodky's milder option: the principals for his full work."), at(30.75, OFLUTE, "His lighter middle (30¾-55¼): the flutes."), at(55.75, OPRIN, "The principals again (55¾)."), at(59, OPLENO, "The last stretto (59-60): the plenum, a player's choice beyond Bodky's.")],
@@ -142,10 +142,11 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f13: {
-    sound: "harpsichordSampled",
-    soundWhy: "High spirits, grace and playful lightness, with gavotte episodes 'commonly played two bars forte, two bars piano … entirely in the style of Bach's time' (Keller): the two manuals' own game.",
+    sound: "sid64",
+    soundWhy: "High spirits, grace and playful lightness (Keller): a gavotte in 2/2 whose three clear lines the SID's three voices (each its own waveform, D297) keep apart, lively and bright; the episodes' two-bar echoes in the pulses' width. (D521: given to SID 64, the owner wanting it used more.)",
     character: "Expositions 1-12, 32-44, 64-84; episode 1 (12-20) and its return (44-52), episode 2 (24-32) and its return (56-64) (Ledbetter). The two-bar echoes are placed in episode 1 and its return (a reading of Keller).",
     plans: {
+      sid64: [at(14, { pw: 0.2 }, "The echo (Keller's two bars piano): the SID's pulses narrower."), at(16, OWN, "Forte: the voices' own sweep."), at(46, { pw: 0.2 }, "The echo in the return."), at(48, OWN, "Forte.")],
       harpsichordSampled: [
         at(1, H84, "8′+4′."),
         at(14, H8, "Keller's gavotte echo: two bars forte (12-13), two piano (14-15)…"),
