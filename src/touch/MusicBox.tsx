@@ -20,7 +20,8 @@ import { paintUi, uiActive } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
-import { hasStage, paintStage } from "./stage-bg.ts";
+import { hasStage, paintStage, stageMode } from "./stage-bg.ts";
+import { fxState, paintFx } from "./event-fx.ts";
 import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
@@ -440,6 +441,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   for (let t = Math.floor(t0 / fr.beatTicks) * fr.beatTicks; t < t0 + span; t += fr.beatTicks) {
     g.fillStyle = tok(t % fr.barTicks === 0 ? "--tg-barline" : "--tg-grid");
     g.fillRect(xOf(t), 0, 1, h);
+  }
+
+  // D477 (design studio): the musical events seen (event-fx.ts, the stream of music-events.ts), under the notes, with the stage.
+  if (staged) {
+    const mode = stageMode();
+    paintFx(g, w, h, fxState(fugueById(fr.piece!), fr.now, fr.tps, mode === "quiet"), xOf, (s) => yOf(s), bh, [Math.round(cl), Math.round(w - cr)], playX);
   }
 
   // D332: a note altered against the piece's key signature drawn a fraction of a row up (raised) or down
