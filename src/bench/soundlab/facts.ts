@@ -4,7 +4,7 @@
  * Nothing here changes a sound.
  */
 import type { TouchFugue } from "../../touch/fugue.ts";
-import { presetById, slotOf, type Preset } from "../../touch/sound.ts";
+import { baseSound, presetById, slotOf, type Preset } from "../../touch/sound.ts";
 import { TRIO_ID, trioLayout } from "../../touch/trio.ts";
 
 /** Each patch an offered sound plays, in plain words. */
@@ -113,7 +113,7 @@ export interface VoiceSeat {
 export function seatsOf(presetId: string, f: Pick<TouchFugue, "voices">): VoiceSeat[] {
   const p: Preset = presetById(presetId);
   const n = f.voices.length;
-  const by = p.id === TRIO_ID ? trioLayout(f).slots : p.by?.[n];
+  const by = baseSound(p.id) === TRIO_ID ? trioLayout(f).slots : p.by?.[n];
   return f.voices.map((_, v) => {
     if (by) {
       const s = by[Math.min(v, by.length - 1)];

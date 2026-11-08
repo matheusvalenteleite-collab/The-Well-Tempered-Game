@@ -733,9 +733,35 @@ export const nameOfMidi = (m: number) => `${NAMES[((m % 12) + 12) % 12]}${Math.f
 const midisOf = new Map<string, number[]>();
 /** The MIDI numbers recorded in a set, low to high. */
 export function sampledMidis(set: string): number[] {
+  const z = zoned.get(set);
+  if (z) return z;
+  return recordedMidis(set);
+}
+function recordedMidis(set: string): number[] {
   let list = midisOf.get(set);
   if (!list) midisOf.set(set, (list = (SAMPLE_MANIFEST[folderOf(set)]?.notes ?? []).map(midiOfName).sort((a, b) => a - b)));
   return list;
+}
+/**
+ * D540, sparse zones (Slim.stride): while a slimmed preset plays, a set's recordings thinned to one every `stride` semitones
+ * or more (from its lowest up), so its plan, its nearest recording and its folds all see only those (a chromatic set's every
+ * third note: a third of its memory, each note retuned 1.5 semitones at most). Null: all of them again.
+ */
+const zoned = new Map<string, number[]>();
+export function zonesOf(midis: readonly number[], stride: number): number[] {
+  const out: number[] = [];
+  for (const m of midis) if (!out.length || m - out[out.length - 1] >= stride) out.push(m);
+  return out;
+}
+export function setZones(set: string, stride: number | null) {
+  if (!stride || stride <= 1) zoned.delete(set);
+  else zoned.set(set, zonesOf(recordedMidis(set), stride));
+}
+/** D540: sets held off while a slimmed preset plays (its one-layer rule, Slim.oneLayer): never loaded, their instrument's main set standing in. */
+const heldOff = new Set<string>();
+export function holdOff(sets: Iterable<string>) {
+  heldOff.clear();
+  for (const s of sets) heldOff.add(s);
 }
 
 /** The recording nearest a pitch (the lower of two equally near), among those `have` allows. */
@@ -812,7 +838,26 @@ export function notesFor(set: string, pitches: Iterable<number>, pad = 2): numbe
 }
 
 /** What to load, set by set. */
-export type Plan = { set: string; notes: number[] }[];
+/**
+ * D540, the bands v2's memory policy (sound.ts V2_SLIM, Preset.slim): a set's recordings decoded at `rate` (Hz, by an
+ * offline context of that rate: the browser's own resampler), folded to one channel, and a plucked instrument's cut at
+ * `pluckedS` s with a 60 ms fade (PlanSlim.maxS). Decoded audio is Float32 at the context's rate whatever the file's:
+ * a 32 kHz mono note holds a third of a 48 kHz stereo one.
+ */
+export interface Slim {
+  rate: number;
+  pluckedS?: number;
+  /** Sparse zones: a recording every `stride` semitones at least (setZones). */
+  stride?: number;
+  /** One dynamic layer: the instruments' soft, hard, short and blend sets held off (holdOff). */
+  oneLayer?: boolean;
+}
+/** D540: one set's slimming in a plan (Slim, for one instrument: maxS only where it is plucked). */
+export interface PlanSlim {
+  rate: number;
+  maxS?: number;
+}
+export type Plan = { set: string; notes: number[]; slim?: PlanSlim }[];
 
 /**
  * The plan for an instrument: every voice's pitches (`pitches`), and the player's own (`lead`) also an
@@ -847,11 +892,13 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
 /** Bytes the plan's recordings take once decoded (Float32 at the context's rate), stereo where recorded so unless `mono`. */
 export function decodedBytes(plan: Plan, sampleRate = 48000, mono = false): number {
   let total = 0;
-  for (const { set, notes } of plan) {
-    const ch = STEREO.has(set) && !mono ? 2 : 1;
+  for (const { set, notes, slim } of plan) {
+    // D540: a slimmed set one channel at its own rate, a plucked one's notes no longer than maxS.
+    const sl = slim && !PERIOD[set] ? slim : null;
+    const ch = STEREO.has(set) && !mono && !sl ? 2 : 1;
     // D297: a period set's notes kept at half the rate.
-    const rate = PERIOD[set] ? sampleRate * BAKE_RATE : sampleRate;
-    for (const m of notes) total += Math.ceil((noteInfo(set, m)?.len ?? 0) * rate) * ch * 4;
+    const rate = sl ? sl.rate : PERIOD[set] ? sampleRate * BAKE_RATE : sampleRate;
+    for (const m of notes) total += Math.ceil(Math.min(noteInfo(set, m)?.len ?? 0, sl?.maxS ?? Infinity) * rate) * ch * 4;
   }
   return total;
 }
@@ -1003,6 +1050,17 @@ const baseOf = new Map<string, string>();
 /** Sets that could not be had from anywhere (three notes failed, none came): synthesized (as P13). */
 const unreachable = new Set<string>();
 const failures = new Map<string, number>();
+/** D540: each set's slimming now (PlanSlim's key; "" none), and its generation (a decode finishing after a release, or after the slimming changed, is dropped). */
+const slimKey = new Map<string, string>();
+const slimNow = new Map<string, PlanSlim>();
+const generation = new Map<string, number>();
+const keyOfSlim = (s?: PlanSlim) => (s ? `${s.rate}/${s.maxS ?? ""}` : "");
+/** D540: the decoded audio held now (bytes): every set's loaded recordings (the budget's resident figure). */
+export function residentBytes(): number {
+  let total = 0;
+  for (const bank of banks.values()) for (const r of bank.values()) total += r.buffer.length * r.buffer.numberOfChannels * 4;
+  return total;
+}
 
 /** The decoded recording of a note, if it is ready. */
 export const loaded = (set: string, m: number): Loaded | undefined => banks.get(set)?.get(m);
@@ -1080,6 +1138,64 @@ function toMono(ctx: BaseAudioContext, b: AudioBuffer): AudioBuffer {
   return out;
 }
 
+/** D540: offline contexts by rate, to decode a slimmed set at its own rate (null where there is none: decoded, then resampled here). */
+const decoders = new Map<number, BaseAudioContext | null>();
+function decoderAt(rate: number): BaseAudioContext | null {
+  if (!decoders.has(rate)) {
+    let c: BaseAudioContext | null = null;
+    try {
+      c = typeof OfflineAudioContext !== "undefined" ? new OfflineAudioContext(1, 1, rate) : null;
+    } catch {
+      c = null;
+    }
+    decoders.set(rate, c);
+  }
+  return decoders.get(rate) ?? null;
+}
+/**
+ * D540: a decoded recording slimmed (Slim): one channel (its power kept, as toMono), at `rate` (linear interpolation where
+ * the browser did not decode it there), no longer than `maxS` with a 60 ms fade at its end.
+ */
+export function slimData(chans: Float32Array[], sr: number, slim: PlanSlim): Float32Array {
+  const n0 = chans[0].length;
+  let mono: Float32Array;
+  if (chans.length === 1) mono = chans[0];
+  else {
+    mono = new Float32Array(n0);
+    let pl = 0;
+    let pm = 0;
+    for (let i = 0; i < n0; i++) {
+      let x = 0;
+      for (const c of chans) (x += c[i]), (pl += c[i] * c[i]);
+      x /= chans.length;
+      mono[i] = x;
+      pm += x * x;
+    }
+    // The channels' mean power kept (as toMono), and 3 dB more: a mono note through its seat's StereoPannerNode at the
+    // middle leaves at cos(π/4) a side where the stereo recording passed whole (measured: the slimmed harpsichord 3.2 LU
+    // under its stereo self on II/2's opening, level with it so).
+    const k = pm > 0 ? Math.min(2, Math.sqrt(pl / chans.length / pm)) * Math.SQRT2 : 1;
+    if (k !== 1) for (let i = 0; i < n0; i++) mono[i] *= k;
+  }
+  const ratio = sr / slim.rate;
+  const n1 = Math.floor(n0 / ratio);
+  const keep = Math.min(n1, slim.maxS ? Math.floor(slim.maxS * slim.rate) : n1);
+  const out = new Float32Array(keep);
+  if (ratio === 1) out.set(mono.subarray(0, keep));
+  else
+    for (let i = 0; i < keep; i++) {
+      const x = i * ratio;
+      const j = Math.floor(x);
+      const f = x - j;
+      out[i] = (mono[j] ?? 0) * (1 - f) + (mono[j + 1] ?? 0) * f;
+    }
+  if (keep < n1) {
+    const fade = Math.min(keep, Math.floor(0.06 * slim.rate));
+    for (let i = 0; i < fade; i++) out[keep - 1 - i] *= 0.5 - 0.5 * Math.cos((Math.PI * i) / fade);
+  }
+  return out;
+}
+
 /** D297: a decoded recording made over for a period set (`bake`), one channel at half its rate; the decoded one let go. */
 function baked(ctx: BaseAudioContext, b: AudioBuffer, spec: Bake): AudioBuffer {
   const chans = Array.from({ length: b.numberOfChannels }, (_, c) => b.getChannelData(c));
@@ -1093,8 +1209,9 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
   const key = `${set}:${m}`;
   const busy = inFlight.get(key);
   if (busy) return busy;
-  if (banks.get(set)?.has(m) || unreachable.has(set)) return Promise.resolve();
+  if (banks.get(set)?.has(m) || unreachable.has(set) || heldOff.has(set)) return Promise.resolve();
   if (Date.now() - (failedAt.get(key) ?? -Infinity) < 20000) return Promise.resolve();
+  const gen = generation.get(set) ?? 0;
   const p = (async () => {
     const bytes = await fileBytes(set, m);
     if (!bytes) {
@@ -1104,9 +1221,19 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
       if ((failures.get(set) ?? 0) >= 3 && !banks.get(set)?.size && !baseOf.has(set)) unreachable.add(set);
       return;
     }
-    const decoded = await slot(() => ctx.decodeAudioData(bytes));
     const period = PERIOD[set];
-    const buffer = period ? baked(ctx, decoded, period) : monoSets.has(set) ? toMono(ctx, decoded) : decoded;
+    const slim = period ? undefined : slimNow.get(set);
+    const decoder = slim ? (decoderAt(slim.rate) ?? ctx) : ctx;
+    const decoded = await slot(() => decoder.decodeAudioData(bytes));
+    // D540: released (or its slimming changed) while it was fetched and decoded: not kept.
+    if ((generation.get(set) ?? 0) !== gen) return;
+    let buffer: AudioBuffer;
+    if (period) buffer = baked(ctx, decoded, period);
+    else if (slim) {
+      const data = slimData(Array.from({ length: decoded.numberOfChannels }, (_, c) => decoded.getChannelData(c)), decoded.sampleRate, slim);
+      buffer = ctx.createBuffer(1, Math.max(1, data.length), slim.rate);
+      buffer.getChannelData(0).set(data);
+    } else buffer = monoSets.has(set) ? toMono(ctx, decoded) : decoded;
     let bank = banks.get(set);
     if (!bank) banks.set(set, (bank = new Map()));
     const onset = onsetOf(buffer.getChannelData(0), buffer.sampleRate);
@@ -1124,9 +1251,12 @@ function loadNote(ctx: BaseAudioContext, set: string, m: number): Promise<void> 
  */
 export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
   if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
-  for (const { set, notes } of plan) {
+  for (const { set, notes, slim } of plan) {
+    slimFor(set, slim);
     const bank = banks.get(set);
     if (bank) for (const m of [...bank.keys()]) if (!notes.includes(m)) bank.delete(m);
+    // D540: a set let go entirely: the decodes still on their way are dropped when they land.
+    if (!notes.length) generation.set(set, (generation.get(set) ?? 0) + 1);
   }
   return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
 }
@@ -1137,7 +1267,19 @@ export function loadPlan(ctx: BaseAudioContext, plan: Plan, phone: boolean): Pro
  */
 export function loadPlanKeep(ctx: BaseAudioContext, plan: Plan, phone: boolean): Promise<void> {
   if (monoFor(plan, ctx.sampleRate, phone ? BUDGET.phone : BUDGET.computer)) for (const { set } of plan) if (STEREO.has(set)) monoSets.add(set);
+  for (const { set, notes, slim } of plan) if (notes.length) slimFor(set, slim);
   return Promise.all(plan.flatMap(({ set, notes }) => notes.map((m) => loadNote(ctx, set, m)))).then(() => {});
+}
+
+/** D540: a set's slimming as a plan asks (a change lets its recordings go, to be decoded again the new way). */
+function slimFor(set: string, slim: PlanSlim | undefined) {
+  const k = keyOfSlim(slim);
+  if ((slimKey.get(set) ?? "") === k) return;
+  slimKey.set(set, k);
+  if (slim) slimNow.set(set, slim);
+  else slimNow.delete(set);
+  banks.get(set)?.clear();
+  generation.set(set, (generation.get(set) ?? 0) + 1);
 }
 
 /** Ask for one note's recording (a note played before the plan reached it). */

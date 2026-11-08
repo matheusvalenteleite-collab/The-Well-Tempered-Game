@@ -87,7 +87,7 @@ import { fillsFor } from "../touch/jazz-drums.ts";
 import { LATIN_SOUNDS, latinPlan } from "../touch/latin-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
-import { busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
+import { baseSound, busoniReaches, expressiveAll, PATCHES, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
 import { bandTrimDb, entryGain, liftGain, playerToneDb } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
@@ -669,8 +669,8 @@ export class ProtoGame {
     if (!o.her && f.kind === "fugue") this.form = new FormLayer(f);
     chip.drumsFor?.(f);
     // D504: ZELENKA TRIO's layout for the piece (trio.ts trioLayout: the fewest notes out of compass) and its continuo script.
-    const tl = preset().id === TRIO_ID ? trioLayout(f) : null;
-    setPieceLayout(tl ? { preset: TRIO_ID, count: tl.count, slots: tl.slots } : null);
+    const tl = baseSound(preset().id) === TRIO_ID ? trioLayout(f) : null;
+    setPieceLayout(tl ? { preset: preset().id, count: tl.count, slots: tl.slots } : null);
     this.continuo = o.her ? null : continuoFor(f, preset().id);
     if (chip.coupling) chip.coupling = { up: 0, down: 0, split: 48 };
     const b = beatOf(f);
@@ -1101,7 +1101,7 @@ export class ProtoGame {
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
       // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here;
       // D521: the piece itself (BOSSA NOVA's drums read its form). D520/D522: SALSA's and CHORINHO's plan (latin-drums.ts: the pulse, the entries, the moments).
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f, ...(LATIN_SOUNDS[preset().id] ? { latin: latinPlan(this.f, this.beat, this.perBar) } : {}) });
+      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f, ...(LATIN_SOUNDS[baseSound(preset().id)] ? { latin: latinPlan(this.f, this.beat, this.perBar) } : {}) });
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.

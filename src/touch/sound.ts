@@ -7,7 +7,9 @@
  * A patch is played by chip.ts; the player's own voice takes its patch, shaped by the touch.
  * D292: the players now choose among five sounds only (PRESETS); the other patches are kept for later.
  */
-import type { SampledId } from "./sampled.ts";
+import type { SampledId, Slim } from "./sampled.ts";
+import { BAND_CHAINS, V2_BANDS, baseSound, v2Id, type ChainSpec } from "./band-fx.ts";
+export { V2_BANDS, baseSound, v2Id };
 
 export type Wave = "saw" | "square" | "triangle" | "sine" | "pulse12" | "pulse25" | "pulse50" | "organ" | "reed" | "bell" | ShapedWave;
 
@@ -328,6 +330,8 @@ export interface Patch {
    * where it is not joined on); the brightness follows it (`tone` dB of high shelf at the top of the swell).
    */
   swell?: { db: number; min: number; tone: number };
+  /** D540: the lane of a v2 band's chain (band-fx.ts ChainSpec.lanes) this patch's notes join: the organ's Leslie, the guitar's fuzz. */
+  lane?: string;
 }
 
 /** D504: one instrument of a basso continuo (Patch.continuo). */
@@ -1356,6 +1360,18 @@ export interface Preset {
    * setPieceLayout. Their patches are loaded with the preset's own.
    */
   alts?: Partial<Record<number, readonly (readonly (readonly [patch: PatchId, pan: number, level?: number])[])[]>>;
+  /**
+   * D540, BANDS v2: the band's processing chain (band-fx.ts: lanes, the bus, its one reverb), shared by all its notes; with
+   * a reverb it takes the place of `fx`. `lanes`: a patch's lane in this preset (by its id), where the patch names none.
+   */
+  chain?: ChainSpec;
+  lanes?: Partial<Record<PatchId, string>>;
+  /** D540: a v2 preset's original (its id): the identity the rest of the game knows it by (baseSound). */
+  v2Of?: string;
+  /** D540: how its recordings are held once decoded (sampled.ts Slim: one channel, the rate, the plucked notes' length). */
+  slim?: Slim;
+  /** D540: held to the budget (budget.ts PRESET_MB, RESIDENT_MB; test/d540-budget.test.ts): phase 2 sets it on a v2 once rebuilt. */
+  budgeted?: boolean;
 }
 
 /**
@@ -1889,6 +1905,27 @@ export const TRIALS: Preset[] = [
   // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered, D510 withdrawn.)
 ];
 /**
+ * D540, BANDS v2 (the owner: "There's an overuse of piano in the new presets … Krautrock, Salsa, Chorinho, Bossa Nova and
+ * Abbey Road are sounding way too uninteresting and similar … Feel free to use more configs, like fx effects, eqs"): each
+ * band's "<BAND> v2" beside the original, for the Sound Lab's A/B, never a default until the owner approves (V2_BANDS;
+ * offered nowhere else; band-fx.ts V2_BANDS, v2Id, baseSound). Each begins as its original with the band's chain (band-fx.ts BAND_CHAINS) and the v2 memory
+ * policy (V2_SLIM); phase 2 (rows D543-D559) rebuilds each after scratchpad/bands2/STUDY.md.
+ */
+/**
+ * D540: the v2 bands' recordings held as the budget asks (BRIEF-BANDS2: mono, at most 32 kHz, at most 25 MB a preset):
+ * one channel, decoded at 24 kHz (the master's own lowpass is 6.5 kHz, Q 0.5: over 12 kHz it is 10 dB down already), a
+ * plucked note's recording cut at 3 s with a fade (the Salamander grand's 7 s: damped by the written end in all but the
+ * longest notes), the player's line without ORGANO PLENO's octave doubles (the organ's alone), a slimmed band's drums at 24 kHz,
+ * the recordings every third semitone at least (sparse zones: a chromatic set's third) and one dynamic layer (the soft, hard,
+ * short and blend sets held off; the velocity's colour the patches' filters'). Phase 2 may give a band its own.
+ */
+export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
+export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
+  const p = PRESETS.find((x) => x.id === band)!;
+  // (PET SOUNDS' five instruments, the grand and the harpsichord among them: its plucked notes cut at 2.5 s to keep within 25 MB.)
+  return { ...p, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim: band === "petSounds" ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM, budgeted: true };
+});
+/**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
  * Play.lineDb: proto-game.ts lineAt) reach every sustaining sound that can make dynamics (DYNAMIC_SOUNDS),
@@ -1902,7 +1939,7 @@ export function setExpressiveAll(on: boolean) {
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
 export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
-export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
+export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(baseSound(id));
 /**
  * TRIAL, EXPRESSIVE_ALL on the chips, consoles and synthesizers (the owner: "chipsets might not have dynamic
  * variations but tone variations"): the reading's planned level (dB: its printed level, hairpins, palette weight;
@@ -2056,7 +2093,7 @@ const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENT
 export const ABBEY_ROAD_CREDIT = `GUITARS: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · ${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 export const KRAUTROCK_CREDIT = `${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
 const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
-export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
+export const creditFor = (id: string): string | null => CREDITS[baseSound(presetById(id).id)] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
 /** D292: a stored choice as one of the five: a withdrawn one's stand-in (RETIRED), anything else not offered (TRAVERSO, an unknown id) CLASSIC CHIP. */
@@ -2065,7 +2102,7 @@ export function playerSound(id: string): string {
   return offered(r) ? r : "chip";
 }
 /** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
-export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
+export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS, ...V2_PRESETS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {
