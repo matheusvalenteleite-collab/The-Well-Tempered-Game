@@ -38,7 +38,6 @@
  */
 import { passingNote, stepBelow } from "./drag.ts";
 import type { Patch } from "../touch/sound.ts";
-import { baseSound } from "../touch/band-fx.ts";
 
 /**
  * D438, THE TWO SLIDE SOUNDS. "d486": each instrument's slide gesture above (proto-game.ts slideColour).
@@ -110,9 +109,7 @@ export const GESTURE = {
  * ("mallet": a crushed grace note from the side it comes from, a vibist's ornament), on the bass a slide ("bass": the
  * finger sliding up or down the string), on the piano the piano's.
  */
-export function slideFamily(id: string, patch?: Patch | null): SlideFamily {
-  // D540: a v2 band slides as its original.
-  const presetId = baseSound(id);
+export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily {
   if (presetId === "jazzQuartet") return patch?.motor ? "mallet" : patch?.sample === "jazzBass" ? "bass" : "piano";
   // D520 SALSA: the player's instrument's own (the trumpet's and trombone's lip, the bassist's slide, the piano's).
   // D522 CHORINHO: the flute's, the clarinet's, the guitars' and the piano's.

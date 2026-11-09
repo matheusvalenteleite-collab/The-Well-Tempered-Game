@@ -37,7 +37,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f02: {
     sound: "abbeyRoad",
-    soundWhy: "D523: 4/4 at a crotchet of 70, its subject a riff of semiquavers (Keller's capricious, half-jesting fugue) that a rock band's backbeat carries without a note changed: ABBEY ROAD, the Gretsch on the subject's top, the rock piano inside, the picked bass, the drums' fills into each entry and the break before the last entry (bar 29).",
+    soundWhy: "D523: 4/4 at a crotchet of 70, its subject a riff of semiquavers (Keller's capricious, half-jesting fugue) that a rock band's backbeat carries without a note changed: ABBEY ROAD (D544, 1969's Studio Two), the Moog on the subject's top, the Leslie guitar inside, the flatwound bass, the drums' fills into each entry and the break before the last entry (bar 29).",
     character: "Regular alternation of entries and episodes (Bodky); episodes 5-7, 9-11, 13-15, 17-20, 22-26; the bass entry at 26 after the dominant pedal; a forte close (Keller).",
     plans: {
       harpsichordSampled: [
@@ -373,7 +373,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f16: {
     sound: "abbeyRoad",
-    soundWhy: "D523: four voices in 4/4 at a crotchet of 58, molto energico (Bodky), its dotted subject a heavy late-Beatles stride: ABBEY ROAD's two guitars, rock piano and picked bass one to a voice, the sixteenth hi-hat under the slow beat, Bodky's echo episode the drums' quieter cross-stick.",
+    soundWhy: "D523: four voices in 4/4 at a crotchet of 58, molto energico (Bodky), its dotted subject a heavy late-Beatles stride: ABBEY ROAD's Moog, Leslie guitar, Hammond and flatwound bass one to a voice, the sixteenth hi-hat under the slow beat, Bodky's echo episode the drums' quieter cross-stick.",
     character: "Cadences in G minor (10) and B♭ (12); the echo of 18-20; the episode after the cadence of 24; stretto 28 (Bodky).",
     plans: {
       harpsichordSampled: [
@@ -400,7 +400,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f17: {
     sound: "petSounds",
-    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the piano, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
+    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the musette accordion, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
@@ -439,7 +439,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f20: {
     sound: "krautrock",
-    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the piano on the subject's top, the echoed guitar behind, the combo organ and the picked bass, each on its own voice, the trance kept from the first bar to the last.",
+    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the Mellotron's flute on the subject's top, the combo organ, the fuzz guitar with its tape echo and the Moog bass, each on its own voice, the trance kept from the first bar to the last.",
     character: "Exposition recto 1-14½, inverso 14½-27½, stretto recto 27½-48, stretto inverso 48-64½ (Ledbetter); pedal points on E (60-62) and A (83-87).",
     plans: {
       harpsichordSampled: [

@@ -1163,7 +1163,7 @@ export class Chip {
     this.sends.connect(room);
     this.roomIn = this.sends;
     // D482: CON FUOCO's warm drive (D249) gone: a streak never changes the sound.
-    // D540: the notes join the band's way in (straight to the master, or through a v2 band's chain: Chip.period).
+    // D540: the notes join the band's way in (straight to the master, or through a band's chain: Chip.period).
     this.bandIn = ctx.createGain();
     this.bandIn.connect(this.master);
     this.bus = this.bandIn;
@@ -1211,7 +1211,7 @@ export class Chip {
   readonly recIn: GainNode;
   /**
    * Where a note joins the sound: the player's own (lead) through their level, the others straight to the master. D540: a
-   * v2 band's note into its patch's lane of the band's chain (Patch.lane, Preset.lanes), the player's through the lane's
+   * band's note into its patch's lane of the band's chain (Patch.lane, Preset.lanes), the player's through the lane's
    * own copy of their level.
    */
   private busOf(p: Play, pt?: Patch | null): AudioNode {
@@ -1231,7 +1231,7 @@ export class Chip {
     }
     return p.lead ? this.mine : this.bus;
   }
-  /** D540: the band's chain playing now (a v2 preset's `chain`), built at its first note; its lanes' copies of `mine`. */
+  /** D540: the band's chain playing now (a band preset's `chain`), built at its first note; its lanes' copies of `mine`. */
   private chain: BandChain | null = null;
   private laneMine = new Map<AudioNode, GainNode>();
   /** D540: where every note joins (the master, or the chain's input). */
@@ -1879,7 +1879,7 @@ export class Chip {
 
   /** D297: the input of the preset's own effect (built once, kept while the preset plays), or null. */
   private fxInput(): AudioNode | null {
-    // D540: a v2 band's own reverb (its chain's one convolver) in place of the preset's effect.
+    // D540: a band's own reverb (its chain's one convolver) in place of the preset's effect.
     if (this.chain?.send) return this.chain.send;
     const kind = preset().fx;
     if (!kind) return null;
@@ -3784,7 +3784,7 @@ export class Chip {
    */
   groove(at: number, beatS: number, b: number, bar: number, per: number, compound: boolean, cx?: GrooveContext) {
     this.roomTo();
-    // D540: a v2 band's echoes follow the beat.
+    // D540: a band's echoes follow the beat.
     if (this.chain && beatS > 0) this.chain.setBeat(beatS);
     this.sweep();
     // D514, D526: the friends' DRUMS: the style chosen for the piece (drum-library.ts; else the sound's HOME), in place of

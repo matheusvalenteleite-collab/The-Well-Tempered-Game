@@ -1,13 +1,13 @@
 /**
- * D546-D548, the Latin bands' v2 (STUDY.md §3-5): SALSA v2, BOSSA NOVA v2 and CHORINHO v2 each their own instruments, one
- * to a Bach voice, no piano (the five bands' one piano was SALSA's to take: it is not taken), their lanes in the band's
- * chain, their new recordings (the alto flute, the saxophone) planned and budgeted, the originals untouched.
+ * D546-D548, the Latin bands rebuilt (STUDY.md §3-5; D560: promoted in their originals' place): SALSA, BOSSA NOVA and
+ * CHORINHO each their own instruments, one to a Bach voice, no piano (the five bands' one piano was SALSA's to take: it is
+ * not taken), their lanes in the band's chain, their new recordings (the alto flute, the saxophone) planned and budgeted.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
 import { BAND_CHAINS, CHAIN_CAP, chainCost, type ChainSpec } from "../src/touch/band-fx.ts";
-import { PATCHES, PRESETS, V2_PRESETS, presetById, type PatchId } from "../src/touch/sound.ts";
+import { PATCHES, PRESETS, presetById, type PatchId } from "../src/touch/sound.ts";
 import { SAMPLED } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -15,7 +15,9 @@ import { presetBudget, PRESET_MB, RESIDENT_MB } from "../src/touch/budget.ts";
 
 installFakeAudio(0, false);
 
-const LATIN = { salsa: "salsaV2", bossaNova: "bossaNovaV2", chorinho: "chorinhoV2" } as const;
+const LATIN = { salsa: "salsa", bossaNova: "bossaNova", chorinho: "chorinho" } as const;
+/** The v1 bands' patches (D520-D522), gone with them. */
+const V1: Record<string, readonly PatchId[]> = { salsa: ["salTrumpet", "salPiano", "salTrombone", "salBass"], bossaNova: ["bnFlute", "bnPiano", "bnGuitar", "bnBass"], chorinho: ["choFlute", "choCavaco", "choPiano", "choClarinet", "cho7"] };
 const PIANOS = new Set(["piano"]);
 const patchesOf = (id: string) => {
   const p = presetById(id);
@@ -24,13 +26,12 @@ const patchesOf = (id: string) => {
   return out;
 };
 
-test("D546-D548: each Latin v2 has its own patches (none of the original's), one instrument a voice for 1-5 voices", () => {
+test("D546-D548: each Latin band has its own patches (none of the v1's), one instrument a voice for 1-5 voices", () => {
   for (const [band, id] of Object.entries(LATIN)) {
-    const v1 = patchesOf(band);
     const v2 = patchesOf(id);
-    for (const pt of v2) assert.ok(!v1.has(pt), `${id}: ${pt} is the original's`);
+    for (const pt of v2) assert.ok(!V1[band].includes(pt), `${id}: ${pt} is the v1's`);
     const p = presetById(id);
-    assert.equal(p.v2Of, band);
+    assert.equal(p.id, band);
     for (let n = 1; n <= 5; n++) assert.equal(p.by?.[n]?.length, n, `${id}: ${n} voices, ${n} instruments`);
     for (const row of Object.values(p.by ?? {})) for (const [, pan] of row ?? []) assert.ok(Math.abs(pan) <= 0.35, `${id}: pan ${pan}`);
   }
@@ -44,12 +45,12 @@ test("D546-D548: no piano in any of the three (the owner: 'overuse of piano'); B
 
 test("D546-D548: the instruments the study signs for each band, top down", () => {
   const top = (id: string, n: number) => presetById(id).by![n]!.map(([pt]) => PATCHES[pt].sample ?? "synth");
-  assert.deepEqual(top("salsaV2", 5), ["brassTrumpet", "brassTrombone", "brassTrombone", "choroGuitar", "jazzBass"]);
-  assert.deepEqual(top("salsaV2", 3), ["brassTrumpet", "brassTrombone", "jazzBass"]);
-  assert.deepEqual(top("bossaNovaV2", 5), ["bossaAltoFlute", "synth", "bossaSax", "bossaGuitar", "jazzBass"]);
-  assert.deepEqual(top("bossaNovaV2", 2), ["bossaAltoFlute", "bossaGuitar"]);
-  assert.deepEqual(top("chorinhoV2", 5), ["trialFlute", "trialClarinet", "rockGuitar", "choroGuitar", "choroGuitar"]);
-  assert.deepEqual(top("chorinhoV2", 2), ["rockGuitar", "choroGuitar"]);
+  assert.deepEqual(top("salsa", 5), ["brassTrumpet", "brassTrombone", "brassTrombone", "choroGuitar", "jazzBass"]);
+  assert.deepEqual(top("salsa", 3), ["brassTrumpet", "brassTrombone", "jazzBass"]);
+  assert.deepEqual(top("bossaNova", 5), ["bossaAltoFlute", "synth", "bossaSax", "bossaGuitar", "jazzBass"]);
+  assert.deepEqual(top("bossaNova", 2), ["bossaAltoFlute", "bossaGuitar"]);
+  assert.deepEqual(top("chorinho", 5), ["trialFlute", "trialClarinet", "rockGuitar", "choroGuitar", "choroGuitar"]);
+  assert.deepEqual(top("chorinho", 2), ["rockGuitar", "choroGuitar"]);
   // The articulations: the brass's bite, the tres's and the bandolim's courses, the bandolim's tremolo, the Suitcase's pan.
   assert.equal(PATCHES.s2Trombone.rec?.s, 0.8);
   assert.ok(PATCHES.s2Tres.one?.courses && PATCHES.c2Bandolim.one?.courses);
@@ -57,7 +58,7 @@ test("D546-D548: the instruments the study signs for each band, top down", () =>
   assert.ok(PATCHES.b2Rhodes.autopan);
 });
 
-test("D546-D548: every lane a v2 patch names is in its band's chain, and the chains stay within CHAIN_CAP", () => {
+test("D546-D548: every lane a band's patch names is in its band's chain, and the chains stay within CHAIN_CAP", () => {
   for (const [band, id] of Object.entries(LATIN)) {
     const spec = BAND_CHAINS[band as keyof typeof BAND_CHAINS] as ChainSpec;
     assert.equal(presetById(id).chain, spec);
@@ -81,24 +82,19 @@ test("D547: the new recordings are in the manifest, every minor third or closer,
   }
 });
 
-test("D546-D548: the originals as they were, the v2s offered nowhere but the Sound Lab", () => {
-  assert.deepEqual(presetById("salsa").slots, ["salTrumpet", "salPiano", "salPiano", "salTrombone", "salBass"]);
-  assert.deepEqual(presetById("bossaNova").slots, ["bnFlute", "bnPiano", "bnGuitar", "bnGuitar", "bnBass"]);
-  assert.deepEqual(presetById("chorinho").slots, ["choFlute", "choCavaco", "choPiano", "choPiano", "cho7"]);
+test("D560: the bands offered under their own ids, each still some fugue's default", () => {
+  assert.deepEqual(presetById("salsa").slots, ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"]);
+  assert.deepEqual(presetById("bossaNova").slots, ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"]);
+  assert.deepEqual(presetById("chorinho").slots, ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"]);
   for (const id of Object.values(LATIN)) {
-    assert.ok(!PRESETS.some((p) => p.id === id));
-    assert.ok(V2_PRESETS.some((p) => p.id === id));
-    assert.ok(!Object.values(PIECE_SOUND).includes(id));
+    assert.ok(PRESETS.some((p) => p.id === id));
+    assert.ok(Object.values(PIECE_SOUND).includes(id));
   }
 });
 
-test("D546: a v2 band's drums: its original's HOME and family (drum-library.ts), not the fallback", async () => {
-  const { homeStyleFor, familyFor } = await import("../src/touch/drum-library.ts");
-  for (const [band, id] of Object.entries(LATIN)) {
-    assert.equal(homeStyleFor(id), homeStyleFor(band));
-    assert.deepEqual(familyFor(id), familyFor(band));
-  }
-  assert.equal(homeStyleFor("salsaV2"), "salsa");
-  assert.equal(homeStyleFor("bossaNovaV2"), "bossa");
-  assert.equal(homeStyleFor("chorinhoV2"), "choro");
+test("D546: the bands' drums: their HOME and family (drum-library.ts), not the fallback", async () => {
+  const { homeStyleFor } = await import("../src/touch/drum-library.ts");
+  assert.equal(homeStyleFor("salsa"), "salsa");
+  assert.equal(homeStyleFor("bossaNova"), "bossa");
+  assert.equal(homeStyleFor("chorinho"), "choro");
 });

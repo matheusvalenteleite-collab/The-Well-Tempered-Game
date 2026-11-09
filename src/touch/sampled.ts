@@ -851,7 +851,7 @@ export function notesFor(set: string, pitches: Iterable<number>, pad = 2): numbe
 
 /** What to load, set by set. */
 /**
- * D540, the bands v2's memory policy (sound.ts V2_SLIM, Preset.slim): a set's recordings decoded at `rate` (Hz, by an
+ * D540, the sounds' memory policy (sound.ts BAND_SLIM, KEYS_SLIM, Preset.slim): a set's recordings decoded at `rate` (Hz, by an
  * offline context of that rate: the browser's own resampler), folded to one channel, and a plucked instrument's cut at
  * `pluckedS` s with a 60 ms fade (PlanSlim.maxS). Decoded audio is Float32 at the context's rate whatever the file's:
  * a 32 kHz mono note holds a third of a 48 kHz stereo one.
@@ -863,7 +863,7 @@ export interface Slim {
   stride?: number;
   /** One dynamic layer: the instruments' soft, hard, short and blend sets held off (holdOff). */
   oneLayer?: boolean;
-  /** D549: layers kept under `oneLayer` (their sets by name): a band's own colour where the budget has room (JAZZ v2's vibraphone mallets). */
+  /** D549: layers kept under `oneLayer` (their sets by name): a band's own colour where the budget has room (JAZZ QUARTET's vibraphone mallets). */
   keep?: readonly string[];
 }
 /** D540: one set's slimming in a plan (Slim, for one instrument: maxS only where it is plucked). */

@@ -46,9 +46,11 @@ test("D522: offered, one instrument a voice, the seven-string on Bach's bass", (
   assert.equal(CHORO.groove, "choroBand");
   assert.equal(CHORO.kit, "latin");
   for (let n = 1; n <= 5; n++) assert.equal(CHORO.by?.[n]?.length, n, `${n} voices, ${n} instruments`);
-  assert.deepEqual(CHORO.by?.[3]?.map(([p]) => p), ["choFlute", "choPiano", "cho7"]);
-  assert.deepEqual(CHORO.by?.[5]?.map(([p]) => p), ["choFlute", "choClarinet", "choCavaco", "choPiano", "cho7"]);
-  for (let n = 2; n <= 5; n++) assert.equal(CHORO.by?.[n]?.at(-1)?.[0], "cho7", `${n}: the bass the seven-string's`);
+  // D560: D548's band promoted (the bandolim, no piano).
+  assert.deepEqual(CHORO.by?.[3]?.map(([p]) => p), ["c2Flute", "c2Bandolim", "c27"]);
+  assert.deepEqual(CHORO.by?.[5]?.map(([p]) => p), ["c2Flute", "c2Clarinet", "c2Bandolim", "c2Cavaco", "c27"]);
+  for (let n = 2; n <= 5; n++) assert.equal(CHORO.by?.[n]?.at(-1)?.[0], "c27", `${n}: the bass the seven-string's`);
+  assert.equal(PATCHES.c27.sample, "choroGuitar");
   assert.equal(PATCHES.cho7.sample, "choroGuitar");
   assert.equal(SAMPLED.choroGuitar.plucked, true);
   assert.ok(DYNAMIC_SOUNDS.has("chorinho"));

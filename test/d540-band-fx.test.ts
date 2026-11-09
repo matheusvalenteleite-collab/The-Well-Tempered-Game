@@ -1,13 +1,13 @@
 /**
- * D540, BANDS v2's infrastructure: the shared per-band chains (band-fx.ts), the v2 presets beside the originals (sound.ts
- * V2_PRESETS), the chain built once a band and taken down on a switch (chip.ts Chip.period), the slimmed recordings
- * (sampled.ts Slim) and the plans' release of every other sound's sets (chip.ts soundPlans).
+ * D540, the bands' infrastructure: the shared per-band chains (band-fx.ts), the bands carrying them (D560: the v2s promoted in
+ * their originals' place, sound.ts PRESETS), the chain built once a band and taken down on a switch (chip.ts Chip.period), the
+ * slimmed recordings (sampled.ts Slim) and the plans' release of every other sound's sets (chip.ts soundPlans).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
-import { BAND_CHAINS, CHAIN_CAP, ERA_EQ, baseSound, buildChain, chainCost, fuzzCurve, reverbImpulse, tapeCurve, V2_BANDS, v2Id, type ChainSpec } from "../src/touch/band-fx.ts";
-import { PRESETS, V2_PRESETS, presetById, setPreset, creditFor, expressiveAll } from "../src/touch/sound.ts";
+import { BAND_CHAINS, CHAIN_CAP, ERA_EQ, buildChain, chainCost, fuzzCurve, reverbImpulse, tapeCurve, type ChainSpec } from "../src/touch/band-fx.ts";
+import { PRESETS, RETIRED, playerSound, presetById, setPreset, creditFor, expressiveAll } from "../src/touch/sound.ts";
 import { Chip, soundPlans, voicing } from "../src/touch/chip.ts";
 import { decodedBytes, sampledMidis, slimData, zonesOf, setZones } from "../src/touch/sampled.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
@@ -53,32 +53,31 @@ test("D540: the building blocks' curves and impulses: tape soft and bounded, fuz
   for (const era of Object.keys(ERA_EQ)) assert.ok(ERA_EQ[era as keyof typeof ERA_EQ].length >= 2);
 });
 
-test("D540: each band has its v2 beside it, in no default and offered nowhere but the Sound Lab; it plays as its original elsewhere", () => {
-  assert.equal(V2_PRESETS.length, V2_BANDS.length);
-  for (const band of V2_BANDS) {
-    const v = presetById(v2Id(band));
-    const o = presetById(band);
-    assert.equal(v.id, v2Id(band));
-    assert.equal(v.name, `${o.name} v2`);
-    assert.equal(v.v2Of, band);
-    assert.equal(v.chain, BAND_CHAINS[band]);
-    assert.ok(!PRESETS.includes(v), `${band}: the v2 not among the players' sounds`);
-    assert.ok(!o.chain && !o.slim, `${band}: the original unchanged`);
-    assert.equal(baseSound(v.id), band);
-    // D546-D548: a rebuilt v2 credits its own recordings (SALSA, BOSSA NOVA, CHORINHO: no piano, other instruments).
-    if (["salsa", "bossaNova", "chorinho"].includes(band)) assert.ok(creditFor(v.id) && creditFor(v.id) !== creditFor(band));
-    else assert.equal(creditFor(v.id), creditFor(band));
-    assert.equal(expressiveAll(v.id), expressiveAll(band));
+test("D560: each band's v2 promoted in its original's place (its id and name, no \"v2\" anywhere); a stored v2 id opens on the band", () => {
+  for (const band of Object.keys(BAND_CHAINS) as (keyof typeof BAND_CHAINS)[]) {
+    const p = presetById(band);
+    assert.ok(PRESETS.includes(p), `${band}: offered`);
+    assert.equal(p.chain, BAND_CHAINS[band]);
+    assert.ok(p.slim, `${band}: slimmed`);
+    assert.ok(!/v2/i.test(p.name), p.name);
+    assert.equal(RETIRED[`${band}V2`], band);
+    assert.equal(presetById(`${band}V2`), p);
+    assert.equal(playerSound(`${band}V2`), band);
+    assert.ok(creditFor(band), `${band}: credited`);
+    assert.equal(expressiveAll(band), true);
   }
-  assert.equal(baseSound("pianoSampled"), "pianoSampled");
-  for (const s of Object.values(PIECE_SOUND)) assert.ok(!String(s).endsWith("V2"), `no fugue's default is a v2 (${s})`);
+  for (const p of PRESETS) assert.ok(!p.id.endsWith("V2") && !/ v2$/i.test(p.name), p.id);
+  for (const s of Object.values(PIECE_SOUND)) assert.ok(!String(s).endsWith("V2"), `no fugue's default a v2 id (${s})`);
+  // The promoted bands credit their own recordings: no piano where none plays.
+  for (const band of ["salsa", "bossaNova", "chorinho", "krautrock", "abbeyRoad", "petSounds"]) assert.ok(!creditFor(band)!.includes("SALAMANDER"), band);
+  assert.ok(creditFor("jazzQuartet")!.includes("SALAMANDER"));
 });
 
-test("D540: a v2's notes pass through its one chain, built at its first note and taken down when another sound plays", () => {
+test("D540: a band's notes pass through its one chain, built at its first note and taken down when another sound plays", () => {
   const chip = new Chip();
   const ctx = ctxOf();
   const count = (k: string) => [...ctx.nodes].filter((n) => n.kind === k).length;
-  setPreset(v2Id("krautrock"));
+  setPreset("krautrock");
   for (let i = 0; i < 6; i++) chip.note(60 + i, 0.1 + 0.2 * i, 0.3, voicing(i % 4, 4));
   const conv = count("convolver");
   const shapers = count("shaper");
@@ -88,9 +87,9 @@ test("D540: a v2's notes pass through its one chain, built at its first note and
   assert.ok(conv >= 1);
   const chain = (chip as unknown as { chain: { spec: ChainSpec } | null }).chain;
   assert.equal(chain?.spec, BAND_CHAINS.krautrock);
-  setPreset("krautrock");
+  setPreset("pianoSampled");
   chip.note(60, 3, 0.3, voicing(0, 4));
-  assert.equal((chip as unknown as { chain: unknown }).chain, null, "the original plays without it");
+  assert.equal((chip as unknown as { chain: unknown }).chain, null, "a sound without a chain plays without it");
 });
 
 test("D540: a slimmed recording is one channel at its rate, a plucked one cut with a fade; the plans hold a third of a 48 kHz stereo set", () => {
@@ -120,20 +119,33 @@ test("D540: the plans let go of every other sound's sets, never a set the sound 
   const oboe = plans.filter((e) => e.set === "trialOboe");
   assert.ok(oboe.length >= 1 && oboe.every((e) => e.notes.length > 0), "the oboe's set loaded, never emptied by oboe II's");
   assert.ok(plans.some((e) => e.set === "jazzVibes" && e.notes.length === 0), "the vibraphone's let go");
-  setPreset(v2Id("jazzQuartet"));
+  setPreset("jazzQuartet");
   const v2 = soundPlans([60, 62, 64, 67, 72], [60], null).flat();
   assert.ok(v2.filter((e) => e.set === "jazzVibes").every((e) => e.slim?.rate === 24000 && e.slim.maxS === 3));
   assert.ok(!v2.some((e) => e.set === "grandSoft" && e.notes.length), "one layer: the soft grand held off");
-  // (D549: JAZZ v2 keeps its vibraphone's soft and hard mallets: Slim.keep.)
+  // (D549: JAZZ QUARTET keeps its vibraphone's soft and hard mallets: Slim.keep.)
   assert.ok(v2.some((e) => e.set === "jazzVibesSoft" && e.notes.length), "the soft vibraphone kept");
-  setPreset("jazzQuartet");
+  setPreset("chamberOrgan");
   soundPlans([], [], null);
-  assert.ok(sampledMidis("jazzVibes").length > 30, "the zones undone under the original");
+  assert.ok(sampledMidis("jazzVibes").length > 30, "the zones undone under a sound that holds it whole");
 });
 
 test("D540: a slimmed band lets go of the layers it holds off (the soft grand loaded under the piano before it)", () => {
-  setPreset(v2Id("krautrock"));
+  setPreset("jazzQuartet");
   const plans = soundPlans([60, 64, 67], [60], null).flat();
   assert.ok(plans.some((e) => e.set === "grandSoft" && e.notes.length === 0), "the soft grand emptied");
   setPreset("pianoSampled");
+});
+
+test("D560: the slim keyboards: the piano keeps its soft layer (Busoni's soft playing), the harpsichord one layer; both 24 kHz, 3 s, every third semitone", () => {
+  setPreset("pianoSampled");
+  const piano = soundPlans([48, 60, 72], [60], null).flat();
+  assert.ok(piano.some((e) => e.set === "grandSoft" && e.notes.length && e.slim?.rate === 24000), "the soft grand kept, slimmed");
+  assert.ok(piano.filter((e) => e.set === "grand").every((e) => e.slim?.rate === 24000 && e.slim.maxS === 3));
+  setPreset("harpsichordSampled");
+  const harpsi = soundPlans([48, 60, 72], [60], null).flat();
+  assert.ok(harpsi.filter((e) => e.set === "harpsichord" && e.notes.length).every((e) => e.slim?.rate === 24000 && e.slim.maxS === 3));
+  assert.ok(sampledMidis("harpsichord").every((m, i, a) => i === 0 || m - a[i - 1] >= 3), "sparse zones");
+  setPreset("chip");
+  soundPlans([], [], null);
 });

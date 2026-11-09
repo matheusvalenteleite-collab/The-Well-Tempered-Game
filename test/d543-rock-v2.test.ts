@@ -1,10 +1,11 @@
 /**
- * D543-D545: KRAUTROCK v2, ABBEY ROAD v2 and PET SOUNDS v2 rebuilt (scratchpad/bands2/STUDY.md): no piano, one instrument a
- * voice from the top down, every lane a patch names is in the band's chain, the trims at the end of the bus.
+ * D543-D545: KRAUTROCK, ABBEY ROAD and PET SOUNDS rebuilt (scratchpad/bands2/STUDY.md; D560: promoted in their originals'
+ * place): no piano, one instrument a voice from the top down, every lane a patch names is in the band's chain, the trims at
+ * the end of the bus.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { PATCHES, presetById, V2_OWN, type PatchId } from "../src/touch/sound.ts";
+import { PATCHES, presetById, type PatchId } from "../src/touch/sound.ts";
 import { BAND_CHAINS, buildChain } from "../src/touch/band-fx.ts";
 import { homeStyleFor } from "../src/touch/drum-library.ts";
 import { installFakeAudio } from "./fake-audio.ts";
@@ -13,10 +14,10 @@ import { Chip } from "../src/touch/chip.ts";
 const ctxOf = installFakeAudio(0, false);
 const BANDS = ["krautrock", "abbeyRoad", "petSounds"] as const;
 
-test("D543-D545: the rebuilt rock v2s: no piano, one instrument a voice, their lanes in the chain", () => {
+test("D543-D545: the rebuilt rock bands: no piano, one instrument a voice, their lanes in the chain", () => {
   for (const band of BANDS) {
-    const p = presetById(`${band}V2`);
-    assert.ok(V2_OWN[band], band);
+    const p = presetById(band);
+    assert.equal(p.id, band);
     const lanes = new Set(Object.keys(BAND_CHAINS[band].lanes ?? {}));
     for (let n = 1; n <= 5; n++) {
       const row = p.by![n]!;
@@ -41,14 +42,14 @@ test("D543-D545: the rebuilt rock v2s: no piano, one instrument a voice, their l
   c.dispose();
 });
 
-test("D543-D545: a v2's HOME drums are its band's", () => {
-  assert.equal(homeStyleFor("krautrockV2"), "motorik");
-  assert.equal(homeStyleFor("abbeyRoadV2"), "abbey");
-  assert.equal(homeStyleFor("petSoundsV2"), "pet");
+test("D543-D545: the bands' HOME drums kept", () => {
+  assert.equal(homeStyleFor("krautrock"), "motorik");
+  assert.equal(homeStyleFor("abbeyRoad"), "abbey");
+  assert.equal(homeStyleFor("petSounds"), "pet");
 });
 
-test("D543-D545: the originals keep their instruments (defaults unchanged)", () => {
-  assert.ok(presetById("krautrock").by![4]!.some((r) => r[0] === "krPiano"));
-  assert.ok(presetById("abbeyRoad").by![3]!.some((r) => r[0] === "abPiano"));
-  assert.ok(presetById("petSounds").by![4]!.some((r) => r[0] === "psPiano"));
+test("D560: the v1 instruments gone from the bands (the rebuilt ones in their place)", () => {
+  assert.ok(!presetById("krautrock").by![4]!.some((r) => r[0] === "krPiano"));
+  assert.ok(!presetById("abbeyRoad").by![3]!.some((r) => r[0] === "abPiano"));
+  assert.ok(!presetById("petSounds").by![4]!.some((r) => r[0] === "psPiano"));
 });

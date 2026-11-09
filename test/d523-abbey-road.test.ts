@@ -37,7 +37,10 @@ test("D523: ABBEY ROAD offered, its instruments one to a voice, recorded, credit
     assert.equal(by?.length, n, `${n} voices: one instrument each`);
     for (const [, pan] of by ?? []) assert.ok(Math.abs(pan) <= 0.25);
   }
-  assert.deepEqual(p.by?.[4]?.map(([id]) => id), ["abGuitar", "abGuitar2", "abPiano", "abBass"]);
+  // D560: D544's band promoted (the Moog, the Leslie guitar, the Hammond, the bass; no piano).
+  assert.deepEqual(p.by?.[4]?.map(([id]) => id), ["a2Moog", "a2Guitar", "a2Hammond", "a2Bass"]);
+  assert.equal(PATCHES.a2Guitar.sample, "rockGuitar");
+  assert.equal(PATCHES.a2Bass.sample, "rockBass");
   assert.equal(PATCHES.abGuitar.sample, "rockGuitar");
   assert.equal(PATCHES.abGuitar2.sample, "rockGuitar2");
   assert.equal(PATCHES.abPiano.sample, "piano");
