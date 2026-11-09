@@ -359,6 +359,11 @@ export interface ContinuoPart {
   late?: number;
   octave?: boolean;
   spread?: number;
+  /**
+   * D590, a STAGED sound (ORCHESTRA & ORGAN): the part joins the line in unison from this stage of the piece's form on
+   * (Play.stage, stage.ts: by the music's structure only, never the player's score), not by the continuo's script.
+   */
+  from?: number;
 }
 
 /**
@@ -737,6 +742,43 @@ export const ABBEY2_LEVEL = { moog: 0.185, guitar: 1.1, hammond: 0.35, trumpet: 
 export const PET2_LEVEL = { accordion: 0.23 } as const;
 
 /** The instruments. */
+/**
+ * D586, BERLIN SCHOOL (I/2): an analog synthesizer setup after Tangerine Dream's and Klaus Schulze's sequencer records
+ * (1974-77): a resonant lead, the sequencer's plucked voice (a four-pole filter snapping shut on every note), a string
+ * machine for the inner voices of four and five, a fat bass; the drift of oscillators that are never quite in tune; a tape
+ * echo and a long room (REVERBS.space) at small sends: colour, not a protagonist. All synthesized (no recordings).
+ */
+export const BERLIN_SEND = { lead: 0.1, seq: 0.07, strings: 0.14, bass: 0.02 } as const;
+/**
+ * D588, VAUDEVILLE (I/19): a pit band for a slapstick short (the 1930s two-reelers' novelty bands): the xylophone on the
+ * top voice, the clarinet inside, the bassoon's staccato on the bass (its short notes from the player's own short
+ * recordings, ZELENKA TRIO's), the bass trombone (BACH BRASS's) under it in four and five voices; a small dry room.
+ */
+export const VAUD_SEND = 0.1;
+/**
+ * D589, FLUTE & HARP (II/18): Debussy's trio's colours (the Sonata for flute, viola and harp, 1915): the alto flute on top
+ * (soft, breathy: Iowa's), the harp's plucked strings left to ring on the middle voice, the cello on the bass (the consort's),
+ * the viola (the consort's) inside in four and five; in a dark hall (REVERBS.hall): flowing, never assertive.
+ */
+export const SEA_SEND = 0.2;
+/**
+ * D590, ORCHESTRA & ORGAN (I/24): the string quartet of Förster's arrangements on the voices, the woodwinds (two oboes and the
+ * bassoon: VSCO 2 CE's), the horn (VSCO's), and the PIPE ORGAN's principals and pedal (synthesized: no recordings) joining
+ * the strings' lines in unison by the form's stages (stage.ts: the exposition the strings alone; the middle entries the
+ * oboe and bassoon, then the second oboe and the horn; the final group the organ), never by the player's score; in the church (REVERBS.cathedral).
+ */
+export const ORCH_SEND = 0.16;
+/** D590: each doubling part's level against the line's strings (dB), and on a phone (its winds lose less there). */
+export const ORCH_STAGE_DB = { winds: -5, horn: -6, organ: -7, pedal: -6 } as const;
+/** D590: the parts that double ORCHESTRA & ORGAN's strings by stage: the oboes and the bassoon (VSCO 2 CE's, the trials'), the horn, the organ's principals and its pedal (PIPE ORGAN's ranks, synthesized). */
+const OR_OBOE: Patch = { osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.12 }, send: ORCH_SEND, level: 0.46, sample: "trialOboe", one: {} };
+const OR_BASSOON: Patch = { osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.12 }, send: ORCH_SEND, level: 0.65, sample: "trialBassoon", one: {}, phoneLift: BASS_PHONE_LIFT };
+const OR_HORN: Patch = { osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.04, d: 0.1, s: 0.9, r: 0.14 }, rec: { a: 0.04, d: 0.1, s: 0.92, r: 0.14 }, send: ORCH_SEND, level: 0.5, sample: "trialHorn", one: {}, phoneLift: BRASS_HORN_PHONE_LIFT };
+const OR_ORGAN: Patch = { osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, detune: 0.7, gain: 0.34 }, { wave: "stopPrincipal", octave: 2, detune: -0.5, gain: 0.13 }], chiff: { level: 0.12, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.035, d: 0.05, s: 1, r: 0.08 }, send: ORCH_SEND * 1.6, level: 0.3, pipe: { case: 0.12, cents: 0.6 } };
+const OR_PEDAL: Patch = { osc: [{ wave: "stopGedackt", octave: -1, gain: 0.4 }, { wave: "stopPrincipal", gain: 0.75 }, { wave: "stopPrincipal", octave: 1, gain: 0.35 }], chiff: { level: 0.1, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.045, d: 0.05, s: 1, r: 0.1 }, send: ORCH_SEND * 1.6, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } };
+/** D590: a doubling part (ContinuoPart.from: from that stage on), its level ORCH_STAGE_DB's, a moment late (a second player's entrance). */
+const stagePart = (patch: Patch, db: number, from: number, pan?: number): ContinuoPart => ({ patch, level: 10 ** (db / 20), from, late: 0.008, ...(pan !== undefined ? { pan } : {}) });
+
 export const PATCHES = {
   // Strings and winds (ACOUSTIC).
   violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }, { wave: "saw", detune: 7, gain: 0.3 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.06, d: 0.2, s: 0.85, r: 0.14 }, vib: { depth: 10, rate: 5.2, delay: 0.3 }, level: 0.42 }),
@@ -1383,6 +1425,33 @@ export const PATCHES = {
   // D545, PET SOUNDS v2 (STUDY.md §10): the accordion in musette (two free reeds 20 cents apart, the beating a musette's;
   // a third reed cost the phone's audio thread underruns at 4× throttle; the bellows' 30 ms attack), in the wall lane with the bass and the harpsichord (the slapback and the unison double).
   p2Accordion: P({ osc: [{ wave: "freeReed", detune: -7 }, { wave: "freeReed", detune: 13, gain: 0.85 }], filter: { freq: 3400, hz: true, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.92, r: 0.07 }, send: PET_SEND, level: PET2_LEVEL.accordion, one: {}, lane: "wall" }),
+  // D586, BERLIN SCHOOL (BERLIN_SEND): the lead a saw and a detuned pulse through a resonant four-pole filter (its envelope
+  // a little slow: a Moog's sweep on every note), a late vibrato; the sequencer's voice a saw and a sub-octave square through
+  // a high-resonance filter snapping shut (the "Phaedra" pluck); the string machine's three saws; the bass a saw and its
+  // square an octave below, driven (its upper harmonics carry it on a phone). Each with an oscillator's drift.
+  bsLead: P({ osc: [{ wave: "saw", gain: 0.8 }, { wave: "pulse25", detune: 7, gain: 0.3 }], filter: { freq: 3, q: 3.2, env: 3, envDecay: 0.16, poles: 4 }, drive: 0.4, amp: { a: 0.004, d: 0.25, s: 0.8, r: 0.06 }, vib: { depth: 5, rate: 5.2, delay: 0.45 }, drift: { cents: 3, rate: 0.09 }, send: BERLIN_SEND.lead, level: 0.22 }),
+  bsSeq: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.3 }], filter: { freq: 2, q: 6, env: 5.5, envDecay: 0.085, poles: 4 }, amp: { a: 0.002, d: 0.22, s: 0.55, r: 0.05 }, drift: { cents: 2.5, rate: 0.13 }, send: BERLIN_SEND.seq, level: 0.34 }),
+  bsStrings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "saw", detune: 11, gain: 0.5 }, { wave: "saw", detune: -11, gain: 0.5 }], filter: { freq: 2.6, q: 0.7 }, amp: { a: 0.03, d: 0.3, s: 0.85, r: 0.18 }, vib: { depth: 4, rate: 4.6, delay: 0.5 }, drift: { cents: 3, rate: 0.07 }, send: BERLIN_SEND.strings, level: 0.16 }),
+  bsBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.45 }, { wave: "triangle", octave: 1, gain: 0.15 }], filter: { freq: 1000, hz: true, q: 2, env: 4, envDecay: 0.1, poles: 4 }, drive: 0.7, hp: 40, amp: { a: 0.002, d: 0.25, s: 0.55, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: BERLIN_SEND.bass, level: 0.27 }),
+  // D588, VAUDEVILLE (VAUD_SEND): the xylophone struck (its recordings, VSCO's), the clarinet held (VSCO's, CHORINHO's), the
+  // bassoon with its short notes (Iowa's, ZELENKA TRIO's, the compass and the tongue), the bass trombone (Iowa's, BACH BRASS's).
+  vdXylo: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.25 }], amp: { a: 0.001, d: 0.5, s: 0, r: 0.08 }, send: VAUD_SEND, level: 0.56, sample: "vaudXylo", one: {} }),
+  vdClarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.08 }, rec: { a: 0.025, d: 0.1, s: 0.92, r: 0.08 }, send: VAUD_SEND, level: 0.55, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
+  vdBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.08 }, rec: { a: 0.025, d: 0.1, s: 0.95, r: 0.08 }, send: VAUD_SEND, level: 0.3, sample: "trioBassoon", bow: TRIO_TONGUE, one: {}, phoneLift: TRIO_BASSOON_PHONE_LIFT, compass: TRIO_COMPASS.bassoon }),
+  vdTuba: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2, q: 0.9, env: 1.6, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: BRASS_BASS_R }, rec: { a: 0.018, d: 0.1, s: 0.92, r: BRASS_BASS_R }, send: VAUD_SEND * 0.5, level: 1.1, sample: "brassBass", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_BASS_PHONE_LIFT, phoneHp: BRASS_BASS_PHONE_HP }),
+  // D589, FLUTE & HARP (SEA_SEND): the alto flute held (BOSSA NOVA's recordings), the harp plucked (VSCO's), the consort's viola and cello.
+  seaFlute: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.1 }], amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.18 }, rec: { a: 0.055, d: 0.2, s: 0.92, r: 0.18 }, send: SEA_SEND, level: 1.3, sample: "bossaAltoFlute", bow: WIND_TONGUE, one: {} }),
+  seaHarp: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.2 }], amp: { a: 0.002, d: 1.5, s: 0, r: 0.25 }, send: SEA_SEND, level: 0.4, phoneLift: { hz: 800, db: 6 }, phoneHp: 110, sample: "seaHarp", one: { span: 0.2, lo: 28, hi: 101, cents: 0.6 } }),
+  seaViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.16 }, rec: { a: 0.06, d: 0.2, s: 0.9, r: 0.16 }, send: SEA_SEND, level: 0.45, sample: "consortViola", bow: STRING_BOW, one: {} }),
+  seaCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.16 }, rec: { a: 0.06, d: 0.2, s: 0.9, r: 0.16 }, send: SEA_SEND * 0.8, level: 0.3, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT }),
+  // D590, ORCHESTRA & ORGAN (ORCH_SEND): the string quartet (the consort's recordings) on the lines, each carrying its doubling
+  // parts by stage (ContinuoPart.from, stage.ts): the first violin oboe I, the second oboe II (Bach's pair; a clarinet would take the
+  // sound past 25 MB), the viola the horn, the
+  // cello the bassoon; at the last stage every line the organ's principals, the bass its pedal.
+  orViolin1: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_OBOE, ORCH_STAGE_DB.winds, 1, -0.12), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
+  orViolin2: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_OBOE, ORCH_STAGE_DB.winds, 2, 0.1), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
+  orViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_HORN, ORCH_STAGE_DB.horn, 2, 0.16), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
+  orCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.4, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT, continuo: [stagePart(OR_BASSOON, ORCH_STAGE_DB.winds, 1, 0.08), stagePart(OR_PEDAL, ORCH_STAGE_DB.pedal, 3, 0)] }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -1999,6 +2068,85 @@ export const PRESETS: Preset[] = [
     chain: BAND_CHAINS.petSounds,
     slim: BAND_SLIM,
   },
+  // D586, BERLIN SCHOOL (BERLIN_SEND): the lead on the top voice, the sequencer's voice inside, the bass under; four and five
+  // voices the string machine between. Seated as a synthesist's rack mixed to stereo (within ±0.3). Synthesized.
+  {
+    id: "berlinSchool",
+    name: "BERLIN SCHOOL",
+    // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
+    gain: 1.32,
+    phoneGain: 1.23,
+    slots: ["bsLead", "bsSeq", "bsStrings", "bsSeq", "bsBass"],
+    room: 0,
+    fx: "space",
+    by: {
+      1: [["bsLead", 0]],
+      2: [["bsLead", 0.2], ["bsBass", -0.05]],
+      3: [["bsLead", 0.25], ["bsSeq", -0.28], ["bsBass", 0]],
+      4: [["bsLead", 0.25], ["bsSeq", -0.28], ["bsStrings", 0.12], ["bsBass", 0]],
+      5: [["bsLead", 0.25], ["bsSeq", -0.28, 0.9], ["bsStrings", 0.12], ["bsSeq", 0.3, 0.84], ["bsBass", 0]],
+    },
+  },
+  // D588, VAUDEVILLE (VAUD_SEND): the xylophone on the top voice, the clarinet inside, the bassoon on the bass; four and five
+  // voices the bassoon on the tenor and the bass trombone on the bass (a second clarinet in five). A pit band seated close.
+  {
+    id: "vaudeville",
+    name: "VAUDEVILLE",
+    // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
+    gain: 0.97,
+    phoneGain: 0.93,
+    slots: ["vdXylo", "vdClarinet", "vdClarinet", "vdBassoon", "vdTuba"],
+    room: 0,
+    fx: "chamber",
+    by: {
+      1: [["vdXylo", 0]],
+      2: [["vdXylo", -0.12], ["vdBassoon", 0.1]],
+      3: [["vdXylo", -0.16], ["vdClarinet", 0.14], ["vdBassoon", 0.04]],
+      4: [["vdXylo", -0.16], ["vdClarinet", 0.14], ["vdBassoon", 0.06], ["vdTuba", -0.04]],
+      5: [["vdXylo", -0.18], ["vdClarinet", 0.16], ["vdClarinet", -0.06, 0.9], ["vdBassoon", 0.08], ["vdTuba", -0.02]],
+    },
+    slim: { ...BAND_SLIM, keep: ["trioBassoonShort"] },
+  },
+  // D589, FLUTE & HARP (SEA_SEND): the alto flute on top, the harp on the middle voice, the cello on the bass; four and five
+  // voices the viola above the harp (a second harp's line in five). Seated as Debussy's trio, the harp in the middle.
+  {
+    id: "fluteHarp",
+    name: "FLUTE & HARP",
+    // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
+    gain: 1,
+    phoneGain: 1.2,
+    slots: ["seaFlute", "seaViola", "seaHarp", "seaHarp", "seaCello"],
+    room: 0,
+    fx: "hall",
+    by: {
+      1: [["seaFlute", 0]],
+      2: [["seaFlute", -0.14], ["seaCello", 0.12]],
+      3: [["seaFlute", -0.16], ["seaHarp", 0], ["seaCello", 0.16]],
+      4: [["seaFlute", -0.18], ["seaViola", 0.1], ["seaHarp", -0.04], ["seaCello", 0.18]],
+      5: [["seaFlute", -0.18], ["seaViola", 0.1], ["seaHarp", -0.06], ["seaHarp", 0.04, 0.9], ["seaCello", 0.18]],
+    },
+    slim: BAND_SLIM,
+  },
+  // D590, ORCHESTRA & ORGAN (ORCH_SEND): the string quartet seated as Förster's (the first violin left, the cello right),
+  // a second viola in five; the woodwinds, the horn and the organ joining the lines by stage (stage.ts), in the church.
+  {
+    id: "orchestraOrgan",
+    name: "ORCHESTRA & ORGAN",
+    // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
+    gain: 0.98,
+    phoneGain: 0.93,
+    slots: ["orViolin1", "orViolin2", "orViola", "orViola", "orCello"],
+    room: 0,
+    fx: "cathedral",
+    by: {
+      1: [["orViolin1", 0]],
+      2: [["orViolin1", -0.16], ["orCello", 0.16]],
+      3: [["orViolin1", -0.2], ["orViola", 0.06], ["orCello", 0.2]],
+      4: [["orViolin1", -0.24], ["orViolin2", -0.08], ["orViola", 0.08], ["orCello", 0.24]],
+      5: [["orViolin1", -0.24], ["orViolin2", -0.1], ["orViola", 0.04], ["orViola", 0.14, 0.92], ["orCello", 0.24]],
+    },
+    slim: BAND_SLIM,
+  },
 ];
 
 /**
@@ -2049,7 +2197,7 @@ export function setExpressiveAll(on: boolean) {
   EXPRESSIVE_ALL = on;
 }
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
-export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
+export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "soloVoices", "vocalSynth", "trialWinds", "vaudeville", "fluteHarp", "orchestraOrgan"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
 export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
@@ -2059,7 +2207,7 @@ export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_
  * (touch-expr.ts landing, as if the thumb landed TONE_DB_SPAN dB further toward the strong side per bar's
  * width), and the loudness only a little (a quarter of it, within ±TONE_LEVEL_DB): chip.ts Chip.toned.
  */
-export const TONE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "sid64", "megaFm", "super16", "tracker", "analog", "tomita"]);
+export const TONE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "sid64", "megaFm", "super16", "tracker", "analog", "tomita", "berlinSchool"]);
 export const toneAll = (id: string): boolean => EXPRESSIVE_ALL && TONE_SOUNDS.has(id);
 /**
  * TRIAL, EXPRESSIVE_ALL on the harpsichord and the organ (the owner: "give harpsichord and organ some tone
@@ -2219,7 +2367,13 @@ const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENT
 export const ABBEY_ROAD_CREDIT = `GUITAR: BLACK AND GREEN GUITARS · BASS: BLACK AND BLUE BASSES · ${ROCK_DRUMS_CREDIT} · TRUMPET: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS`;
 /** D543: the Mellotron's flute (VSO2's), the clean guitar (Black And Green Guitars), the fuzz guitar (tonejs-instruments'), the kit. */
 export const KRAUTROCK_CREDIT = `MELLOTRON FLUTE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · ${EGUITAR_CREDIT} · CLEAN GUITAR: BLACK AND GREEN GUITARS · ${ROCK_DRUMS_CREDIT}`;
-const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
+/** D588: VAUDEVILLE's xylophone (VSO2's), clarinet (VSCO's), bassoon and bass trombone (Iowa's). */
+export const VAUDEVILLE_CREDIT = `XYLOPHONE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · BASSOON, BASS TROMBONE: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS`;
+/** D589: FLUTE & HARP's alto flute (Iowa's), harp (VSO2's), the consort's viola and cello. */
+export const FLUTE_HARP_CREDIT = "ALTO FLUTE: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · HARP: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0 · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0";
+/** D590: ORCHESTRA & ORGAN's strings (the consort's), woodwinds and horn (VSO2's and VSCO's); its organ synthesized. */
+export const ORCHESTRA_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0`;
+const CREDITS: Record<string, string> = { vaudeville: VAUDEVILLE_CREDIT, fluteHarp: FLUTE_HARP_CREDIT, orchestraOrgan: ORCHESTRA_CREDIT, abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);

@@ -70,6 +70,13 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // D524: PET SOUNDS as JAZZ QUARTET (the piano's three zones, each instrument its own): the weight on the piano and the
   // harpsichord's pluck, the bass's pick, the strings' and the horn's level by the zone; a held one's sway its breath.
   petSounds: "jazz",
+  // D586: BERLIN SCHOOL as the synthesizers (the filter's brightness); D588 VAUDEVILLE and D589 FLUTE & HARP each instrument
+  // its own family's touch (landing "band": the breath on the winds, the pluck on the xylophone and the harp, the bow on the
+  // strings, the brassiness on the bass trombone); D590 ORCHESTRA & ORGAN as the consort (a bow's pressure, the messa).
+  berlinSchool: "synth",
+  vaudeville: "band",
+  fluteHarp: "band",
+  orchestraOrgan: "singers",
 };
 /** D520/D522: the family a band instrument's touch is (by its recordings). */
 export function bandFamily(pt: Patch | null): "piano" | "brass" | "winds" | "jazz" {
@@ -234,6 +241,11 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   oboeTrio: [-3, 2],
   // BACH BRASS's brassiness and its own level (BRASS_LEVEL_DB) a little more on the soft side.
   bachBrass: [-1, 0.5],
+  // D586-D590 (the new setups' sounds, by their families' kin: SWITCHED-ON's filter, CHORINHO's band, STRING CONSORT's bow).
+  berlinSchool: [-4, 3],
+  vaudeville: [-2, 2],
+  fluteHarp: [-2, 2],
+  orchestraOrgan: [-3.5, 1.5],
 };
 /** D511: the player's landing's level (dB) on a preset at strength x (0 soft .. 1 strong). */
 export function touchLevelDb(presetId: string, x: number): number {

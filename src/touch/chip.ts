@@ -858,6 +858,11 @@ export interface Play {
    */
   continuo?: "on" | "strong";
   /**
+   * D590: the stage of the piece's form where the note starts (stage.ts StageScript: the music's structure, never the
+   * player's score): a staged sound's doubling parts (ContinuoPart.from) join it from their stage on. Unset: none join.
+   */
+  stage?: number;
+  /**
    * D502, BACH BRASS's brassiness (0 mellow: the piano recording, darker; 1 blazing: the forte, brighter, a presence
    * shelf): the player's from the landing (touch-expr.ts landing "brass"); unset, the band's from its reading's level
    * (Play.vel: touch-expr.ts brassOf). Only an instrument with two layers (SampledInstrument.blend) hears it.
@@ -1473,8 +1478,9 @@ export class Chip {
     // piece's continuo script gives the note to it (Play.continuo: trio.ts, by the music's structure, the band's
     // note and the player's alike, never by the score); each in its seat, a moment late, at its level; on a strong
     // beat the harpsichordist's left hand takes the octave below too, spread from the bass up.
-    const cont = v.patch?.continuo;
-    if (cont?.length && p.continuo && p.couple !== false) {
+    // D590: a staged sound's parts (ContinuoPart.from) join from their stage of the form on (Play.stage), in unison.
+    const cont = v.patch?.continuo?.filter((c) => (c.from === undefined ? !!p.continuo : (p.stage ?? -1) >= c.from));
+    if (cont?.length && p.couple !== false) {
       const main = this.coupled(midi, at, dur, v, p);
       const parts: [Sounding, number][] = [[main, 0]];
       for (const c of cont) {

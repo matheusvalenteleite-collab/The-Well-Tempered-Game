@@ -46,6 +46,11 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   bossaNova: { id: "equal", a: 440 },
   // D524: PET SOUNDS: a 1966 Hollywood session, equal at A = 440.
   petSounds: { id: "equal", a: 440 },
+  // D588, D589: VAUDEVILLE (a 1930s pit band) and FLUTE & HARP (Debussy's trio's instruments): modern, equal at A = 440.
+  vaudeville: { id: "equal", a: 440 },
+  fluteHarp: { id: "equal", a: 440 },
+  // D590: ORCHESTRA & ORGAN: the strings, the winds and the church's organ at A = 440, equal (a modern orchestra with its organ).
+  orchestraOrgan: { id: "equal", a: 440 },
 };
 /** Every other sound (the consoles, the synthesizers): equal temperament, A = 440. */
 export const TUNING_FALLBACK: TuningAt = { id: "equal", a: 440 };

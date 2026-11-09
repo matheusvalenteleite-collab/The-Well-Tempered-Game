@@ -179,6 +179,15 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     why: "I/15 G, a gigue in 6/8: two beats a bar, the subject's skipping head on the tambourine, the bass's dotted crotchets struck.",
     subject: "head",
   },
+  // D588: I/19 on VAUDEVILLE, whose family is the period kits (the frame drum, the tabor, the castanets) until the drums
+  // session's STOOGES lands (drum-library.ts FUGUE_STYLES).
+  wtc1f19: {
+    why: "I/19 A, a scherzo in 9/8 (a dotted crotchet of about 1.1 s), its subject all skips and rests: the whole subject's rhythm on the drum (the rests are the joke), one accent a bar from the bass, every cadence marked (the slapstick's bonk), a roll only into the final group.",
+    perBar: 1,
+    subject: "all",
+    rolls: "final",
+    cadences: "all",
+  },
   wtc1f21: {
     why: "I/21 Bb, a lively 3/4 (0.76 s): its long subject's head only (it runs on in semiquavers), one accent a bar; the tabor's dance.",
     perBar: 1,

@@ -56,6 +56,11 @@ export const PT: Record<string, string> = {
   KRAUTROCK: "KRAUTROCK",
   // D521: BOSSA NOVA (the name as in Portuguese and Spanish).
   "BOSSA NOVA": "BOSSA NOVA",
+  // D586-D590: the setups' new sounds.
+  "BERLIN SCHOOL": "ESCOLA DE BERLIM",
+  VAUDEVILLE: "VAUDEVILLE",
+  "FLUTE & HARP": "FLAUTA E HARPA",
+  "ORCHESTRA & ORGAN": "ORQUESTRA E ÓRGÃO",
   "BAROQUE BAND · SYNTH": "CONJUNTO BARROCO · SINTETIZADO",
   BAROQUE: "BARROCO",
   "OBOE, VIOLA & BASSOON": "OBOÉ, VIOLA E FAGOTE",
