@@ -1438,7 +1438,8 @@ export type Groove = "rock" | "jazz" | "bossa" | "brushes" | "chamber" | "chipMa
   | "petSounds";
 /** The drums' sound: a band's kit, a console's noise channel, an analog drum machine's circuits; D503: the recorded brush kit (Swirly Drums); D520/D522: the recorded Latin percussion (VCSL); D523: the rock kit. */
 // D527: and the drum library's synthesized kits (drum-grids.ts): a 909, a LinnDrum, a glitch kit.
-export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin" | "rock" | "bossa" | "pet" | "tr909" | "linn" | "glitch";
+// D568-D569: an arcade's chip kit (ARCADE) and a modern analog kit read from the score (SCORE SYNTH).
+export type Kit = "acoustic" | "chip" | "analog" | "brushes" | "latin" | "rock" | "bossa" | "pet" | "tr909" | "linn" | "glitch" | "arcade" | "synth";
 
 /** D297: the presets' own effects (chip.ts: the SNES's echo, and the reverbs of REVERBS). */
 export type FxKind = "spc" | "echo" | "hall" | "cathedral" | "plate" | "space" | "spring" | "salon" | "band" | "chamber" | "club" | "studio" | "inner" | "bossa" | "goldStar";
