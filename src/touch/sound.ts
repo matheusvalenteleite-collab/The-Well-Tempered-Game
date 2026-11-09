@@ -364,6 +364,8 @@ export interface ContinuoPart {
    * (Play.stage, stage.ts: by the music's structure only, never the player's score), not by the continuo's script.
    */
   from?: number;
+  /** D590: and until this stage (exclusive): the winds give way to the organ (a phone's cap of 18 sustained notes, D249, held). */
+  until?: number;
 }
 
 /**
@@ -777,7 +779,7 @@ const OR_HORN: Patch = { osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }
 const OR_ORGAN: Patch = { osc: [{ wave: "stopPrincipal", gain: 0.85 }, { wave: "stopPrincipal", octave: 1, detune: 0.7, gain: 0.34 }, { wave: "stopPrincipal", octave: 2, detune: -0.5, gain: 0.13 }], chiff: { level: 0.12, time: 0.035, at: 2 }, breath: 0.005, amp: { a: 0.035, d: 0.05, s: 1, r: 0.08 }, send: ORCH_SEND * 1.6, level: 0.3, pipe: { case: 0.12, cents: 0.6 } };
 const OR_PEDAL: Patch = { osc: [{ wave: "stopGedackt", octave: -1, gain: 0.4 }, { wave: "stopPrincipal", gain: 0.75 }, { wave: "stopPrincipal", octave: 1, gain: 0.35 }], chiff: { level: 0.1, time: 0.045, at: 2 }, breath: 0.004, amp: { a: 0.045, d: 0.05, s: 1, r: 0.1 }, send: ORCH_SEND * 1.6, hp: 28, level: 0.27, pipe: { case: 0.1, cents: 0.4, phoneOsc: [{ wave: "stopPrincipal", octave: 1, gain: 0.15 }, { wave: "stopPrincipal", octave: 2, gain: 0.35 }] } };
 /** D590: a doubling part (ContinuoPart.from: from that stage on), its level ORCH_STAGE_DB's, a moment late (a second player's entrance). */
-const stagePart = (patch: Patch, db: number, from: number, pan?: number): ContinuoPart => ({ patch, level: 10 ** (db / 20), from, late: 0.008, ...(pan !== undefined ? { pan } : {}) });
+const stagePart = (patch: Patch, db: number, from: number, pan?: number, until?: number): ContinuoPart => ({ patch, level: 10 ** (db / 20), from, late: 0.008, ...(pan !== undefined ? { pan } : {}), ...(until !== undefined ? { until } : {}) });
 
 export const PATCHES = {
   // Strings and winds (ACOUSTIC).
@@ -1435,7 +1437,7 @@ export const PATCHES = {
   bsBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.45 }, { wave: "triangle", octave: 1, gain: 0.15 }], filter: { freq: 1000, hz: true, q: 2, env: 4, envDecay: 0.1, poles: 4 }, drive: 0.7, hp: 40, amp: { a: 0.002, d: 0.25, s: 0.55, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: BERLIN_SEND.bass, level: 0.27 }),
   // D588, VAUDEVILLE (VAUD_SEND): the xylophone struck (its recordings, VSCO's), the clarinet held (VSCO's, CHORINHO's), the
   // bassoon with its short notes (Iowa's, ZELENKA TRIO's, the compass and the tongue), the bass trombone (Iowa's, BACH BRASS's).
-  vdXylo: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.25 }], amp: { a: 0.001, d: 0.5, s: 0, r: 0.08 }, send: VAUD_SEND, level: 0.56, sample: "vaudXylo", one: {} }),
+  vdXylo: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.25 }], amp: { a: 0.001, d: 0.5, s: 0, r: 0.08 }, send: VAUD_SEND, level: 0.75, sample: "vaudXylo", one: {} }),
   vdClarinet: P({ osc: [{ wave: "square", gain: 0.7 }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.08 }, rec: { a: 0.025, d: 0.1, s: 0.92, r: 0.08 }, send: VAUD_SEND, level: 0.55, sample: "trialClarinet", bow: WIND_TONGUE, one: {} }),
   vdBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.08 }, rec: { a: 0.025, d: 0.1, s: 0.95, r: 0.08 }, send: VAUD_SEND, level: 0.3, sample: "trioBassoon", bow: TRIO_TONGUE, one: {}, phoneLift: TRIO_BASSOON_PHONE_LIFT, compass: TRIO_COMPASS.bassoon }),
   vdTuba: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2, q: 0.9, env: 1.6, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: BRASS_BASS_R }, rec: { a: 0.018, d: 0.1, s: 0.92, r: BRASS_BASS_R }, send: VAUD_SEND * 0.5, level: 1.1, sample: "brassBass", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_BASS_PHONE_LIFT, phoneHp: BRASS_BASS_PHONE_HP }),
@@ -1447,11 +1449,12 @@ export const PATCHES = {
   // D590, ORCHESTRA & ORGAN (ORCH_SEND): the string quartet (the consort's recordings) on the lines, each carrying its doubling
   // parts by stage (ContinuoPart.from, stage.ts): the first violin oboe I, the second oboe II (Bach's pair; a clarinet would take the
   // sound past 25 MB), the viola the horn, the
-  // cello the bassoon; at the last stage every line the organ's principals, the bass its pedal.
-  orViolin1: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_OBOE, ORCH_STAGE_DB.winds, 1, -0.12), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
-  orViolin2: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_OBOE, ORCH_STAGE_DB.winds, 2, 0.1), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
-  orViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_HORN, ORCH_STAGE_DB.horn, 2, 0.16), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
-  orCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.4, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT, continuo: [stagePart(OR_BASSOON, ORCH_STAGE_DB.winds, 1, 0.08), stagePart(OR_PEDAL, ORCH_STAGE_DB.pedal, 3, 0)] }),
+  // cello the bassoon; at the last stage every line the organ's principals, the bass its pedal, in the winds' place (the
+  // organ takes their parts: a phone's cap of 18 sustained notes, D249, held at three sounds a voice).
+  orViolin1: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_OBOE, ORCH_STAGE_DB.winds, 1, -0.12, 3), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
+  orViolin2: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_OBOE, ORCH_STAGE_DB.winds, 2, 0.1, 3), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
+  orViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {}, continuo: [stagePart(OR_HORN, ORCH_STAGE_DB.horn, 2, 0.16, 3), stagePart(OR_ORGAN, ORCH_STAGE_DB.organ, 3, 0)] }),
+  orCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: ORCH_SEND, level: 0.4, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT, continuo: [stagePart(OR_BASSOON, ORCH_STAGE_DB.winds, 1, 0.08, 3), stagePart(OR_PEDAL, ORCH_STAGE_DB.pedal, 3, 0)] }),
 } satisfies Record<string, Patch>;
 
 export type PatchId = keyof typeof PATCHES;
@@ -2094,7 +2097,9 @@ export const PRESETS: Preset[] = [
     id: "vaudeville",
     name: "VAUDEVILLE",
     // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
-    gain: 0.97,
+    // (I/19, its own fugue, measured 3.5-4.5 dB under the median of four sounds on bars 1-5, the xylophone alone at the
+    // start: the xylophone +2.5 dB, the sound +1.1 dB; I/21 and II/9 then about 1.5 dB over the median.)
+    gain: 1.1,
     phoneGain: 0.93,
     slots: ["vdXylo", "vdClarinet", "vdClarinet", "vdBassoon", "vdTuba"],
     room: 0,

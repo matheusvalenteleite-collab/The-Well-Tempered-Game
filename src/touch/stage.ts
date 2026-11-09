@@ -5,7 +5,7 @@
  * staged climax (instruments joining by form phase, the organ arriving late)".
  *
  * The stages: 0 the strings alone; 1 the oboe on the top line and the bassoon on the bass; 2 the second oboe and the horn on
- * the inner lines too; 3 the organ on every line (the bass its pedal). Written for I/24 bar by bar (STAGE_SCRIPTS, each
+ * the inner lines too; 3 the organ on every line (the bass its pedal), in the winds' place. Written for I/24 bar by bar (STAGE_SCRIPTS, each
  * moment with its reason); any other fugue a player gives the sound takes them from its form (form-points.ts, `stageRule`).
  *
  * The rules (test/d585-setups.test.ts):
@@ -45,7 +45,7 @@ export const STAGE_SCRIPTS: Readonly<Record<string, readonly StageMoment[]>> = {
     [53, 2, "The tenor's and the bass's entries (53, 57, 60): the full woodwinds and the horn."],
     [63, 1, "The episode 63-68 before the last group: the horn and the second oboe out, the tension held back for the organ."],
     [67, 2, "The climax gathering (67-68: the form's rise): the inner winds return."],
-    [69, 3, "The final group (the tenor 69, the bass 70, the alto 74) to the end: the organ arrives on every line, the pedal under the bass, held to the B major chord."],
+    [69, 3, "The final group (the tenor 69, the bass 70, the alto 74) to the end: the organ arrives on every line in the winds' place, the pedal under the bass, held to the B major chord."],
   ],
 };
 

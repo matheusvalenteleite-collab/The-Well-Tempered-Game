@@ -1500,7 +1500,7 @@ export class Chip {
     // note and the player's alike, never by the score); each in its seat, a moment late, at its level; on a strong
     // beat the harpsichordist's left hand takes the octave below too, spread from the bass up.
     // D590: a staged sound's parts (ContinuoPart.from) join from their stage of the form on (Play.stage), in unison.
-    const cont = v.patch?.continuo?.filter((c) => (c.from === undefined ? !!p.continuo : (p.stage ?? -1) >= c.from));
+    const cont = v.patch?.continuo?.filter((c) => (c.from === undefined ? !!p.continuo : (p.stage ?? -1) >= c.from && (c.until === undefined || (p.stage ?? -1) < c.until)));
     if (cont?.length && p.couple !== false) {
       const main = this.coupled(midi, at, dur, v, p);
       const parts: [Sounding, number][] = [[main, 0]];

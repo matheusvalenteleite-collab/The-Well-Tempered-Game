@@ -34,7 +34,8 @@ test("D501: SLIDE_SOUND \"auto\" by default: the strings, the voices, the lute t
   assert.equal(slideSoundParam(""), "auto");
   assert.equal(slideSoundParam("?slide=instruments"), "instruments");
   assert.equal(slideSoundParam("?slide=d486"), "d486");
-  const instruments = ["stringConsort", "baroqueBand", "soloVoices", "vocalSynth"];
+  // (D590: ORCHESTRA & ORGAN's strings carry its lines: bowed, as the consort's.)
+  const instruments = ["stringConsort", "baroqueBand", "soloVoices", "vocalSynth", "orchestraOrgan"];
   for (const id of instruments) assert.equal(slideSoundFor(id), "instruments", id);
   for (const p of PRESETS.filter((p) => !instruments.includes(p.id))) assert.equal(slideSoundFor(p.id), "d486", p.id);
   // Forced: one sound for every family.
@@ -124,7 +125,8 @@ test("D510: CLAVICHORD withdrawn (the owner: \"an uninteresting synth with no di
   assert.equal(keyboardSlide("harpsichordSampled"), "coule");
   assert.equal(styleOf("harpsichordSampled"), "harpsichord");
   assert.ok(busoniLeads(wholeReadingOf("wtc1f06")?.whole, busoniReaches(PIECE_SOUND.wtc1f06)), "I/6: Busoni leads on its new sound");
-  for (const id of ["wtc1f06", "wtc2f18"]) {
+  // (D589: II/18 to FLUTE & HARP, the owner: "you've turned one of my favorite fugues into this mess".)
+  for (const id of ["wtc1f06"]) {
     assert.equal(PIECE_SOUND[id], "jazzQuartet", id);
     assert.equal(COLOURS[id].sound, "jazzQuartet", id);
   }

@@ -128,7 +128,7 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
   // D588: VAUDEVILLE's the player's instrument's own: the xylophone's quick grace (a mallet's), the clarinet's and the bassoon's
   // reed, the bass trombone's lip. D589: FLUTE & HARP's the flutist's slur, the harpist's plucked grace, the strings' bow.
   if (presetId === "vaudeville") return patch?.sample === "vaudXylo" ? "mallet" : patch?.sample === "brassBass" ? "brass" : "reed";
-  if (presetId === "fluteHarp") return patch?.sample === "bossaAltoFlute" ? "flute" : patch?.sample === "seaHarp" ? "plucked" : "bowed";
+  if (presetId === "fluteHarp") return patch?.sample === "seaHarp" ? "plucked" : patch?.sample === "consortViola" || patch?.sample === "consortCello" ? "bowed" : "flute";
   switch (presetId) {
     case "orchestraOrgan": // D590: the strings carry the lines (the winds and the organ join them by stage)
       return "bowed";

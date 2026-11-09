@@ -85,9 +85,10 @@ test("D497: the lab's hooks are on by default (the game unchanged) and take effe
 });
 
 test("D497: the lab plays each fugue's own sound, its voice as play.html offers it, and loads what that sound needs", () => {
-  const s = defaults("wtc1f19");
+  // (D588: I/19 to VAUDEVILLE; II/12 keeps the quartet.)
+  const s = defaults("wtc2f12");
   assert.equal(soundOf(s), "jazzQuartet");
-  const f = fugueById("wtc1f19");
+  const f = fugueById("wtc2f12");
   const v = bachVoice(f, s);
   assert.ok(v >= 0 && v < f.voices.length);
   const plan = planOf("jazzQuartet", f, v, 0);

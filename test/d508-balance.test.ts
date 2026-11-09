@@ -79,7 +79,8 @@ test("D508: every inner voice audible: no voice more than 6 dB under the loudest
 test("D508, D510: II/18 (the owner's case, CLAVICHORD; now JAZZ QUARTET): the alto heard with the player on the soprano; the two mixes alike", () => {
   const sop = mix("wtc2f18", 0);
   const alt = mix("wtc2f18", 1);
-  assert.equal(OWN_LOUD.wtc2f18.s, "jazzQuartet", "D510: CLAVICHORD withdrawn, II/18 reallocated");
+  // (D589: II/18 on FLUTE & HARP now, its balance measured on it.)
+  assert.equal(OWN_LOUD.wtc2f18.s, "fluteHarp", "D510: CLAVICHORD withdrawn, II/18 reallocated; D589 again");
   // The alto (the band's) against the player's soprano: within 2 dB.
   assert.ok(sop[0] - sop[1] <= 2, `the alto ${(sop[0] - sop[1]).toFixed(1)} dB under the player's soprano`);
   // Comparably balanced: each voice's level within 1.5 dB between the two mixes, the spreads within 1 dB.

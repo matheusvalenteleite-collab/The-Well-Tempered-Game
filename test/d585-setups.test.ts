@@ -166,6 +166,11 @@ test("D590: through the chip: a staged line sounds its strings alone at stage 0,
   const n3 = notes(0, 4, { stage: 3 }).length;
   assert.ok(n1 > n0, `the oboe joins the first violin at stage 1 (${n0} → ${n1})`);
   assert.ok(n3 > n1, `the organ at stage 3 (${n1} → ${n3})`);
+  // At the last stage the organ in the winds' place: one recording (the violin's), the oboe's gone (ContinuoPart.until).
+  const recs = (play: Play) => notes(0, 4, play).filter((x) => (x as FakeSource).kind === "buffer").length;
+  assert.equal(recs({ stage: 1 }), recs({}) + 1, "the oboe's recording at stage 1");
+  assert.equal(recs({ stage: 2 }), recs({ stage: 1 }), "the first violin's oboe only (the second's on its own line)");
+  for (const pid of ["orViolin1", "orViolin2", "orViola", "orCello"] as const) for (const c of PATCHES[pid].continuo ?? []) if (c.from! < 3) assert.equal(c.until, 3, pid);
   // The second violin's oboe only from stage 2.
   assert.equal(notes(1, 4, { stage: 1 }).length, notes(1, 4).length);
   assert.ok(notes(1, 4, { stage: 2 }).length > notes(1, 4).length);

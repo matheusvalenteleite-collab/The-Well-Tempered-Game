@@ -282,9 +282,9 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   tracker: "synths",
   analog: "synths",
   tomita: "synths",
-  // D586: BERLIN SCHOOL's synthesizers; D589 FLUTE & HARP and D590 ORCHESTRA & ORGAN as the strings (their bows and the flute's tongue: Patch.bow).
+  // D586: BERLIN SCHOOL's synthesizers; D590 ORCHESTRA & ORGAN as the strings (its bows: Patch.bow). (D589 FLUTE & HARP each
+  // instrument its own, as SALSA: no family.)
   berlinSchool: "synths",
-  fluteHarp: "strings",
   orchestraOrgan: "strings",
 };
 /** D424: a preset's family for the touches' sounds (null: a keyboard, the lute, any other: unchanged). */
