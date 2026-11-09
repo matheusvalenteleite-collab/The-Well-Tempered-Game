@@ -1845,7 +1845,8 @@ export const PRESETS: Preset[] = [
     // Loudness matched to the median of the offered sounds through the 600 Hz phone model (measured: D502; D551 through the chain).
     gain: 1,
     // D560: +3.6 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
-    phoneGain: 0.52,
+    // D583: 1.2 dB less after D576-D579 (the doubles, the presence, the climax's brightness: the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14, I/5 b. 4-7, II/5 b. 4-8 on the phone model).
+    phoneGain: 0.455,
     slots: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
     room: 0,
     fx: "cathedral",
@@ -2027,7 +2028,8 @@ export const PRESETS: Preset[] = [
     // D524 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top, with D508's balance): -1.8 dB; D545 matched to it on a phone.
     gain: 0.81,
     // D560: +0.9 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
-    phoneGain: 0.62,
+    // D583: 1.0 dB less after D580 (the same five-passage mean on the phone model).
+    phoneGain: 0.55,
     // D580: the record's own colours on Bach's voices (the owner: "The instruments themselves don't sound Beach Boys-y"):
     // the tack piano on top (the owner liked the piano), the twelve-string, the musette accordion, the French horn, Carol
     // Kaye's picked bass with its bass harmonica. The strings and the harpsichord out (and their 10.7 MB).
