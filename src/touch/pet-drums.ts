@@ -46,8 +46,14 @@ export interface PetPlan {
   bass: [number, number, number][];
   /** D532: the structural arrivals where the timpani may play (score-drums.ts arrivals: the bass on the home tonic or dominant), with the drum's pitch. */
   timp?: { tick: number; midi: number }[];
+  /** D581: where the sleigh bells shake (formOf's middle and final groups: the subject zones after the exposition). */
+  sleigh?: [number, number][];
   end: number;
 }
+/** D581: the sleigh bells' strength on a beat, on the backbeat; the timpani's stroke at a structural arrival with no fill on it. */
+export const SLEIGH_VEL = 0.3;
+export const SLEIGH_BACK = 0.42;
+export const ARRIVAL_TIMP = 0.5;
 /** No two fills within this many bars. */
 export const MIN_GAP_BARS = 2;
 /** Busoni's level (dB) at or under which the quiet pattern plays. */
@@ -111,7 +117,10 @@ export function petPlan(f: TouchFugue, beat: number, per: number): PetPlan {
   const timp = arrivals(f)
     .filter((a) => a.midi !== null && a.kind !== "pedal")
     .map((a) => ({ tick: floorBeat(a.tick), midi: a.midi! }));
-  const plan: PetPlan = { moments, quiet, bass: low.map((n) => [n[0], n[0] + n[1], n[2]]), end: f.length, timp };
+  // D581: the sleigh bells (the record's: "God Only Knows", "You Still Believe in Me") join with the middle entries and
+  // shake through the final group, never in the exposition or an episode: the colour grows across the form.
+  const sleigh = form.seams.filter((x) => x.kind === "middle" || x.kind === "final").map((x) => [floorBeat(x.on), x.end] as [number, number]);
+  const plan: PetPlan = { moments, quiet, bass: low.map((n) => [n[0], n[0] + n[1], n[2]]), end: f.length, timp, sleigh };
   memo.set(key, plan);
   return plan;
 }
@@ -129,7 +138,7 @@ export function bassAt(plan: PetPlan, tick: number): number | null {
 export const timpPitch = (bass: number) => TIMP_LO + ((((bass - TIMP_LO) % 12) + 12) % 12);
 
 export interface PetHit {
-  piece: "kick" | "snare" | "tomHigh" | "tomLow" | "crash" | "tamb" | "timp";
+  piece: "kick" | "snare" | "tomHigh" | "tomLow" | "crash" | "tamb" | "timp" | "sleigh";
   at: number;
   vel: number;
   /** D535: a fill's stroke (into an entry "roll", the flourish "fill"), the ticks to its landing; a grace note. */
@@ -186,6 +195,10 @@ export function petBeat(b: number, per: number, compound: boolean, tick: number,
   if (!quiet && per === 4 && b === 1) hits.push({ piece: "kick", at: subs[subs.length - 1], vel: 0.28 * g });
   if (back) hits.push({ piece: "snare", at: 0, vel: (per === 3 && b === 2 ? 0.38 : 0.48) * (quiet ? 0.7 : 1) * g });
   if (!quiet) for (const s of subs) hits.push({ piece: "tamb", at: s, vel: (s === 0 ? (back ? 0.42 : 0.32) : 0.24) * g });
+  // D581: the sleigh bells on the beat (the backbeat firmer), in the middle and final groups (petPlan's `sleigh`).
+  if (!quiet && plan.sleigh?.some(([a, z]) => tick >= a && tick < z)) hits.push({ piece: "sleigh", at: 0, vel: (back ? SLEIGH_BACK : SLEIGH_VEL) * g });
+  // D581: the timpani at a structural arrival that no fill lands on (the timpani rule: the home tonic or dominant only).
+  if (!land && !quiet && drum) hits.push(timp(ARRIVAL_TIMP * g));
   if (land) {
     const fv = land.kind === "final" ? 0.7 : 0.6;
     for (const h of hits) if (h.at === 0 && (h.piece === "kick" || h.piece === "timp")) h.vel = 0;

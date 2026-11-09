@@ -13,7 +13,7 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -278,8 +278,10 @@ export const PET_DRUMS = {
   crash: 0.22,
   tamb: 0.3,
   timp: 0.55,
-  send: { kick: 0.04, snare: 0.3, tomHigh: 0.2, tomLow: 0.2, crash: 0.15, tamb: 0.12, timp: 0.25 },
-  pan: { kick: -0.06, snare: -0.08, tomHigh: -0.12, tomLow: -0.02, crash: -0.14, tamb: 0.1, timp: 0.16 },
+  /** D581: the sleigh bells (synthesised: pet-drums.ts's on the beat), their level, a shake's jingles. */
+  sleigh: 0.11,
+  send: { kick: 0.04, snare: 0.3, tomHigh: 0.2, tomLow: 0.2, crash: 0.15, tamb: 0.12, timp: 0.25, sleigh: 0.18 },
+  pan: { kick: -0.06, snare: -0.08, tomHigh: -0.12, tomLow: -0.02, crash: -0.14, tamb: 0.1, timp: 0.16, sleigh: 0.2 },
 } as const;
 /**
  * D521, BOSSA NOVA's drums (chip.ts Chip.bossaDrums: bossa-drums.ts on the brush kit and Big Rusty's cross-stick and bass
@@ -839,6 +841,11 @@ export interface Play {
   dampMul?: number;
   /** D385: the room's send scaled (a palette: drier for leggiero, larger for grave). */
   roomMul?: number;
+  /**
+   * D576: a second instrument in unison with this note (BACH BRASS's entries doubled: band-growth.ts), `level` of it, at
+   * its own seat (`pan`), `late` s after (two players); the band's note and the player's alike, by the note's place alone.
+   */
+  unison?: { patch: Patch; level: number; late?: number; pan?: number };
   /** D385: the player's line on the piano: the reading's level here (dB about the middle), the touch's zone added (touch-expr.ts landing). */
   lineDb?: number;
   /** D426: a slid note on the piano (the hairpin slide): its level continuous across the strip (touch-expr.ts pianoHairpinDb), not the zones. */
@@ -1046,6 +1053,8 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
 }
 /** D542: the opening's notes (Chip.prepare `opening`): each voice's (voice, pitch) of its first `bars` bars of sound. */
 export interface Opening {
+  /** D578: the piece (its own line-up on the sound, Preset.pieces, set before its recordings are planned). */
+  piece?: string;
   count: number;
   notes: readonly (readonly [voice: number, midi: number])[];
 }
@@ -1057,7 +1066,7 @@ export function openingOf(f: TouchFugue, bars = 2): Opening {
   f.voices.forEach((vs, v) => {
     for (const n of vs) if (n[0] < until && !notes.some(([w, m]) => w === v && m === n[2])) notes.push([v, n[2]]);
   });
-  return { count: f.voices.length, notes };
+  return { piece: f.id, count: f.voices.length, notes };
 }
 
 
@@ -1404,6 +1413,15 @@ export class Chip {
   }
 
   private noteNow(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
+    // D576: an entry's unison double (Play.unison: BACH BRASS's), sounding as one note with it: the second player's own
+    // attack, a moment late, in its seat (no touch of its own: the band's note however the player's lands).
+    const uni = p.unison;
+    if (uni) {
+      const late = uni.late ?? 0;
+      const main = this.noteNow(midi, at, dur, v, { ...p, unison: undefined });
+      const twin = this.noteNow(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: uni.patch, ...(uni.pan !== undefined ? { pan: uni.pan } : {}) }, { ...p, unison: undefined, couple: false, lead: false, touch: undefined, trill: undefined, level: (p.level ?? 1) * uni.level });
+      return together([main, twin], 0);
+    }
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
     // TRIAL (sound.ts toneAll): the reading's planned level as the tone on a chip, console or synthesizer.
     // D432: on CLASSIC CHIP and GAME BOY the channel's volume step, its duty and a long note's vibrato (Chip.stepped), after the landing.
@@ -2195,6 +2213,13 @@ export class Chip {
    */
   prepare(pitches: number[], lead: number[] = [], opening?: Opening): Promise<void> {
     const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+    // D578: a piece's own line-up on the sound (Preset.pieces) before its recordings are planned (its own alone loaded);
+    // another piece's let go.
+    if (opening?.piece) {
+      const own = pieceLineUp(preset().id, { id: opening.piece, voices: { length: opening.count } as unknown[] });
+      if (own) setPieceLayout(own);
+      else if (pieceLayoutNow()?.only) setPieceLayout(null);
+    }
     const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null, opening);
     const staged = plans.map((plan) => loadPlanStaged(this.ctx, plan, phone));
     // D542: the opening's zones (the first bars' recordings) awaited apart: the first notes with real samples.
@@ -4310,6 +4335,7 @@ export class Chip {
     let rate = 1;
     // (the timpani's loud recordings only, D514's: their soft layer uneven; a soft stroke the loud one at its level)
     let scale = firm ? 0.56 : 1;
+    if (h.piece === "sleigh") return this.sleighBells(t, h.vel, at);
     if (h.piece === "timp") {
       set = TIMP_SET;
       const want = h.midi ?? TIMP_MIDIS[0];
@@ -4323,7 +4349,7 @@ export class Chip {
     const rec = loaded(set, m);
     if (!rec) {
       loadOne(ctx, set, m);
-      const stand: Record<PetHit["piece"], Drum> = { kick: "kick", snare: "snare", tomHigh: "snare", tomLow: "kick", crash: "ride", tamb: "shaker", timp: "kick" };
+      const stand: Record<PetHit["piece"], Drum> = { kick: "kick", snare: "snare", tomHigh: "snare", tomLow: "kick", crash: "ride", tamb: "shaker", timp: "kick", sleigh: "shaker" };
       return this.drum(stand[h.piece], t, h.vel * 0.6);
     }
     const bag = new Bag();
@@ -4350,6 +4376,50 @@ export class Chip {
     this.fxSend(out, PET_DRUMS.send[h.piece], bag);
     src.start(t, rec.onset);
     halt(src, t + (h.piece === "crash" ? 3 : h.piece === "timp" ? 2.5 : 1.5));
+  }
+
+  /**
+   * D581: a shake of sleigh bells, synthesised (unpitched: no recording, no pitch of its own): noise through three narrow
+   * bands where small bells ring (5.4, 7.3, 9.6 kHz), its level in four jingles 14 ms apart (the bells striking as the
+   * strap is shaken, each softer), then a short ring (90 ms). Each shake a little different (its time on the clock).
+   */
+  private sleighBells(t: number, vel: number, at: number) {
+    const ctx = this.ctx;
+    const bag = new Bag();
+    const nz = bag.src(this.noise());
+    const env = bag.add(ctx.createGain());
+    env.gain.value = 0;
+    const k = PET_DRUMS.sleigh * vel * PET_DRUMS.level * (this.phone ? PET_DRUMS.phone : 1);
+    const wob = Math.sin(at * 37.7) * 0.5 + 0.5;
+    for (let j = 0; j < 4; j++) {
+      const tj = t + j * (0.012 + 0.004 * wob);
+      const pk = k * (j === 0 ? 1 : 0.75 - 0.15 * j);
+      env.gain.setValueAtTime(0.0001, tj);
+      env.gain.linearRampToValueAtTime(pk, tj + 0.002);
+      env.gain.setTargetAtTime(pk * 0.25, tj + 0.002, 0.006);
+    }
+    env.gain.setTargetAtTime(0, t + 0.06, 0.09);
+    const out = bag.add(ctx.createGain());
+    for (const [hz, g] of [[5400, 0.8], [7300, 1], [9600, 0.7]] as const) {
+      const bp = bag.add(ctx.createBiquadFilter());
+      bp.type = "bandpass";
+      bp.frequency.value = hz * (0.98 + 0.04 * wob);
+      bp.Q.value = 9;
+      const bg = bag.add(ctx.createGain());
+      bg.gain.value = g * 3;
+      env.connect(bp).connect(bg).connect(out);
+    }
+    nz.connect(env);
+    let o: AudioNode = out;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = PET_DRUMS.pan.sleigh;
+      o = out.connect(p);
+    }
+    o.connect(this.master);
+    this.fxSend(o, PET_DRUMS.send.sleigh, bag);
+    nz.start(t);
+    halt(nz, t + 0.6);
   }
 
   private roomTo() {
