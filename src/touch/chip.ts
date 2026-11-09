@@ -422,10 +422,10 @@ export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: numb
   fieldDrums: { share: 1, phone: 1, low: 0.47 },
   // D567-D572 (measured: scratchpad/fix3, NOTES.md): MARCH clearly heard under BACH BRASS (the owner: "virtually
   // inaudible"); the others where the library's styles sit (D529); SCORE SYNTH on chip.ts drum's scale.
-  march: { share: 2.2, phone: 1, low: 0.9 },
+  march: { share: 1.4, phone: 1, low: 0.9 },
   stooges: { share: 1, phone: 1, low: 1 },
-  scoreSynth: { share: 3, phone: 0.9, low: 5 },
-  swell: { share: 1, phone: 1, low: 1 },
+  scoreSynth: { share: 1.45, phone: 0.9, low: 5 },
+  swell: { share: 1.25, phone: 1, low: 1 },
 };
 /**
  * D532: the period kit's drums that a phone's speaker barely plays (the rope-tension drums' and the large frame drum's

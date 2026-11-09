@@ -248,6 +248,7 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     cadences: "perfect",
     stage: 0.4,
     climaxKit: true,
+    level: 1.5,
     styles: { fieldDrums: { level: 0.85 } },
   },
   wtc2f02: {

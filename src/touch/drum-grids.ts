@@ -328,7 +328,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     compound: g(4, 6, {
       kick: "#..... ..x... .#.... x.....|#...x. ...... ..#... .x..x.",
       snare: "...... #...-- ..-.X. ......|...... #..-.. -..... #.-.--",
-      hat: "x-o-x- -x-o-x x-x-o- o-x-x-|x-o-.- xx-o-. x-.-o- -oxx-o",
+      hat: "x.o.x. o.x.o. x.o.-- o.x.o.|x.o... x.o.x. -.o.x. o.xxo.",
       rim: "..o... o..... ...o.. .o....|.o.... ...o.. o..... ..o...",
     }),
     bpm: [96, 140],
@@ -374,7 +374,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     episode: "soft",
     trance: true,
     send: 0.02,
-    share: 0.4,
+    share: 0.8,
   },
   // ARCADE (D568): videogame drums for "such a bouncy videogamey fugue … keep the PINBALL vibe": a chip kit (a kick swept
   // down from a pulse's chirp, a noise-channel snare, square clicks for the hats), bouncing: the kick on 1 and the
@@ -388,20 +388,20 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
       openhat: ".... .... .... ....|.... .... .... ..o.",
     }),
     triple: g(3, 4, {
-      kick: "#.o. .... ....|#... ..x. ....",
-      snare: ".... .... X...|.... X... ..o.",
-      hat: "x.ox x.o. x.o.|x.o. x.ox x.o.",
+      kick: "#.x. .... ....|#... ..X. ....",
+      snare: ".... .... #...|.... #... ..x.",
+      hat: "X.xX X.x. X.x.|X.x. X.xX X.x.",
     }),
     compound: g(4, 6, {
-      kick: "#...o. ...... #...o. ......|#...o. ...... #..... ..x...",
-      snare: "...... X..... ...... X...o.|...... X..... ...... X.o.o.",
-      hat: "x.o.x. x.o.x. x.o.x. x.o.xo|x.o.x. x.o.xo x.o.x. x.o.x.",
+      kick: "X...-. ...... x...-. ......|X...-. ...... x..... ..o...",
+      snare: "...... x..... ...... x...-.|...... x..... ...... x.-.-.",
+      hat: "o.-.o. o.-.o. o.-.o. o.-.o-|o.-.o. o.-.o- o.-.o. o.-.o.",
     }),
     bpm: [104, 160],
     climax: "open",
     fill: "chip",
     kit: "arcade",
-    share: 2.6,
+    share: 1.6,
   },
 };
 

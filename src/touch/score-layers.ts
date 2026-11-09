@@ -159,8 +159,8 @@ function scoreSynth(c: LayerCtx) {
     if (s.kind !== "episode") continue;
     for (let t = Math.ceil(s.on / beat) * beat; t < Math.min(s.end, end); t += beat) {
       if (c.inRoll(t)) continue;
-      for (let j = 0; j < subs; j++) strokes.push({ tick: t + (j * beat) / subs, dt: 0, piece: "shaker", vel: contour[j], src: "bass" });
-      if (beatS / 2 >= 0.2) strokes.push({ tick: t + beat / 2, dt: 0, piece: "rim", vel: 0.26, src: "bass" });
+      for (let j = 0; j < subs; j++) if (c.isEpisode(t + (j * beat) / subs)) strokes.push({ tick: t + (j * beat) / subs, dt: 0, piece: "shaker", vel: contour[j], src: "bass" });
+      if (beatS / 2 >= 0.2 && c.isEpisode(t + beat / 2)) strokes.push({ tick: t + beat / 2, dt: 0, piece: "rim", vel: 0.26, src: "bass" });
     }
   }
 }
