@@ -249,7 +249,7 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     stage: 0.4,
     climaxKit: true,
     // D592: against ORCHESTRA & ORGAN (I/24's sound since D590), measured bars 63-76 with the organ: the drums alone -34.5 LUFS
-    // on the phone model against the band's -20.1 (14.4 LU under; -25.0 against -16.4 full range) at 1.5: +2.1 dB, to about 12 under.
+    // on the phone model against the band's -20.1 (14.4 LU under; -25.0 against -16.4 full range) at 1.5; at 1.9 -33.1 (13.0 under; 7.5 on the full range).
     level: 1.9,
     styles: { fieldDrums: { level: 0.85 } },
   },
