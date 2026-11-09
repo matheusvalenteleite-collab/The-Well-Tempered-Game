@@ -5,7 +5,7 @@
  * sound's recordings loaded and timed (Chip.prepare); the decoded audio held (sampled.ts residentBytes). The page's
  * <base href="/"> keeps the recordings on the dev server (samples/…), never the public site.
  */
-import { presetById, setPreset, V2_SLIM } from "../../../src/touch/sound.ts";
+import { presetById, setPreset, BAND_SLIM } from "../../../src/touch/sound.ts";
 import { Chip, openingOf, soundPlans } from "../../../src/touch/chip.ts";
 import { barStart, everyNote, fugueById } from "../../../src/touch/fugue.ts";
 import { ProtoGame } from "../../../src/bench/proto-game.ts";
@@ -26,10 +26,10 @@ try {
 } catch {
   /* no long-task timing */
 }
-/** The sound by its id, or slimmed as a v2 is (V2_SLIM). */
+/** The sound by its id, or slimmed as the bands are (BAND_SLIM). */
 function use(sound: string, slim = false) {
   const p = presetById(sound);
-  setPreset(slim ? { ...p, slim: V2_SLIM } : p);
+  setPreset(slim ? { ...p, slim: BAND_SLIM } : p);
 }
 function theChip(): Chip {
   if (!chip) chip = new Chip();

@@ -342,21 +342,10 @@ export function SoundLab() {
       <section className="sl-panel">
         <h2>SOUND</h2>
         <div className="sl-pad" id="sl-sounds">
-          {LAB_SOUNDS.filter((x) => !x.trial && !x.v2).map((x) => (
+          {LAB_SOUNDS.filter((x) => !x.trial).map((x) => (
             <button type="button" key={x.id} className={`${snd === x.id ? "on" : ""}${x.id === own ? " own" : ""}`} onClick={() => change({ sound: x.id === own ? null : x.id })} data-sound={x.id} aria-pressed={snd === x.id}>
               {x.name.replace(" (SAMPLED)", "")}
               {x.id === own && <span className="sl-own">DEFAULT</span>}
-            </button>
-          ))}
-        </div>
-        {/* D540: BANDS v2, beside the originals for A/B (never a default until the owner approves). */}
-        <div className="sl-row sl-small">
-          <span className="sl-label">BANDS v2</span>
-        </div>
-        <div className="sl-pad" id="sl-sounds-v2">
-          {LAB_SOUNDS.filter((x) => x.v2).map((x) => (
-            <button type="button" key={x.id} className={snd === x.id ? "on" : ""} onClick={() => change({ sound: x.id })} data-sound={x.id} aria-pressed={snd === x.id}>
-              {x.name}
             </button>
           ))}
         </div>

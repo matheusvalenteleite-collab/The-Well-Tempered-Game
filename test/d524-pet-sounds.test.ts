@@ -52,9 +52,10 @@ test("D524: PET SOUNDS offered: in the lists, an ensemble, named in three langua
 
 test("D524: the band: one instrument a voice (strings, horn, harpsichord, piano, electric bass); one echo chamber; within ±0.2; no bells", () => {
   const by = PET.by!;
-  assert.deepEqual(by[3]!.map(([p]) => p), ["psStrings", "psPiano", "psBass"]);
-  assert.deepEqual(by[4]!.map(([p]) => p), ["psStrings", "psHorn", "psPiano", "psBass"]);
-  assert.deepEqual(by[5]!.map(([p]) => p), ["psStrings", "psHarpsi", "psHorn", "psPiano", "psBass"]);
+  // D560: D545's band promoted (the musette accordion in the piano's place).
+  assert.deepEqual(by[3]!.map(([p]) => p), ["psStrings", "psHorn", "psBass"]);
+  assert.deepEqual(by[4]!.map(([p]) => p), ["psStrings", "psHorn", "p2Accordion", "psBass"]);
+  assert.deepEqual(by[5]!.map(([p]) => p), ["psStrings", "psHarpsi", "psHorn", "p2Accordion", "psBass"]);
   for (const [n, vs] of Object.entries(by)) {
     assert.equal(vs!.length, Number(n), "one instrument a voice, nothing added");
     for (const [, pan] of vs!) assert.ok(Math.abs(pan) <= 0.2);

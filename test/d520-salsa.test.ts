@@ -47,8 +47,9 @@ test("D520: offered, one instrument a voice, Bach's notes only (the patches play
   assert.equal(SALSA.groove, "salsaBand");
   assert.equal(SALSA.kit, "latin");
   for (let n = 1; n <= 5; n++) assert.equal(SALSA.by?.[n]?.length, n, `${n} voices, ${n} instruments`);
-  assert.deepEqual(SALSA.by?.[3]?.map(([p]) => p), ["salTrumpet", "salPiano", "salBass"]);
-  assert.deepEqual(SALSA.by?.[4]?.map(([p]) => PATCHES[p].sample), ["brassTrumpet", "piano", "brassTrombone", "jazzBass"]);
+  // D560: D546's band promoted (trombone-led, the tres, no piano).
+  assert.deepEqual(SALSA.by?.[3]?.map(([p]) => p), ["s2Trumpet", "s2Trombone", "s2Bass"]);
+  assert.deepEqual(SALSA.by?.[4]?.map(([p]) => PATCHES[p].sample), ["brassTrumpet", "brassTrombone", "choroGuitar", "jazzBass"]);
   for (const vs of Object.values(SALSA.by ?? {})) for (const [p, pan] of vs ?? []) assert.ok(Math.abs(pan) <= 0.3, `${p} seated within ±0.3`);
   assert.ok(DYNAMIC_SOUNDS.has("salsa"));
   assert.equal(creditFor("salsa"), SALSA_CREDIT);

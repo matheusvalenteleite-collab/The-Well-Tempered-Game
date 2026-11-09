@@ -181,7 +181,8 @@ test("D502: the sway while holding is a swell (±4 dB), the brightness following
 
 test("D502: through the chip: the layers crossfaded by the landing and by the band's level; the swell moves them; the shelf", async () => {
   setPhone(false);
-  setPreset("bachBrass");
+  // (D560: BACH BRASS is held to one layer now, BAND_SLIM: the crossfade's mechanism tested on the band held whole.)
+  setPreset({ ...presetById("bachBrass"), slim: undefined });
   const chip = new Chip();
   await chip.prepare([55, 60, 64, 67, 72, 76], [72]);
   const fresh = (f: () => unknown) => {
