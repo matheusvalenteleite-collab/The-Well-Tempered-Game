@@ -1574,6 +1574,13 @@ export interface Preset {
    * line-up's recordings alone). JAZZ QUARTET's I/6 without the piano.
    */
   pieces?: Readonly<Record<string, Partial<Record<number, readonly (readonly [patch: PatchId, pan: number, level?: number])[]>>>>;
+  /**
+   * D593: a fugue's own level on this sound (by the fugue's id), where the fugue measured under the other defaults on the
+   * phone model and the sound itself did not (D436's passages): the whole mix, the band's notes, the player's, the rooms and
+   * the drums alike (chip.ts Chip.pieceLevel, at the master, set as the piece starts): `gain` on every path, `phoneGain` on a
+   * phone besides. A constant of the piece and the sound, never of the play.
+   */
+  levels?: Readonly<Record<string, { gain?: number; phoneGain?: number }>>;
 }
 
 /**
@@ -1673,6 +1680,8 @@ export const PRESETS: Preset[] = [
       4: [["solLead", 0.3], ["solNasal", -0.25], ["solBloop", 0.15], ["solBass", 0]],
       5: [["solLead", 0.3], ["solSquare", -0.3, 0.84], ["solNasal", 0.1], ["solBloop", -0.1, 0.94], ["solBass", 0]],
     },
+    // D593: II/24 (its own fugue since D587) about 3 dB under the other defaults on the phone model; I/7 on it is not.
+    levels: { wtc2f24: { phoneGain: 1.37 } },
   },
   // D297: three period presets after the research report (§6.1-6.3), after the five, for the owner to
   // judge: no piece opens on them. Named for what they are, not after the consoles (trademarks).
@@ -1962,6 +1971,8 @@ export const PRESETS: Preset[] = [
     },
     // D578: I/6 without the piano: the vibraphone on top, the tenor saxophone on the middle voice (in the piano's seat), the bass.
     pieces: { wtc1f06: { 3: [["jqVibes", -0.18], ["jqSax", 0.16], ["jqBass", 0.04]] } },
+    // D593: I/6 on a phone (its sax line-up, the bass's +6 dB balance trim, D508) about 3 dB under the other defaults on the phone model.
+    levels: { wtc1f06: { phoneGain: 1.45 } },
     lanes: { jqVibes: "vibes" },
     chain: BAND_CHAINS.jazzQuartet,
     slim: { ...BAND_SLIM, keep: ["jazzVibesSoft", "jazzVibesHard"] },
@@ -2163,6 +2174,9 @@ export const PRESETS: Preset[] = [
       5: [["vdXylo", -0.18], ["vdClarinet", 0.16], ["vdClarinet", -0.06, 0.9], ["vdBassoon", 0.08], ["vdTuba", -0.02]],
     },
     slim: { ...BAND_SLIM, keep: ["trioBassoonShort"] },
+    // D593: I/19, its own fugue, about 3 dB under the other defaults on the phone model and 4-5 dB under on a computer; the sound
+    // itself is not under on D436's passages (2.6 dB over their median on the phone model), so the fugue's level, not the sound's.
+    levels: { wtc1f19: { gain: 1.44 } },
   },
   // D589, FLUTE & HARP (SEA_SEND): the alto flute on top, the harp on the middle voice, the cello on the bass; four and five
   // voices the viola above the harp (a second harp's line in five). Seated as Debussy's trio, the harp in the middle.
@@ -2522,6 +2536,11 @@ export function pieceLineUp(presetId: string, f: { id: string; voices: readonly 
   return slots ? { preset: presetId, count: f.voices.length, slots, only: true } : null;
 }
 export const pieceLayoutNow = () => pieceLayout;
+/** D593: a fugue's own level on a sound (Preset.levels: `gain`, and on a phone `phoneGain` too), 1 where it has none. */
+export function pieceLevel(presetId: string, pieceId: string, phone: boolean): number {
+  const l = presetById(presetId).levels?.[pieceId];
+  return l ? (l.gain ?? 1) * (phone ? (l.phoneGain ?? 1) : 1) : 1;
+}
 
 /** D297: a voice's entry in the preset's own layout for its number of voices (Preset.by), if it has one. */
 const byOf = (voice: number, count: number) => {
