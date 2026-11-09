@@ -424,7 +424,7 @@ export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: numb
   // inaudible"); the others where the library's styles sit (D529); SCORE SYNTH on chip.ts drum's scale.
   march: { share: 1.4, phone: 1, low: 0.9 },
   stooges: { share: 1, phone: 1, low: 1 },
-  scoreSynth: { share: 1.45, phone: 0.9, low: 5 },
+  scoreSynth: { share: 4.5, phone: 0.9, low: 5 },
   swell: { share: 1.25, phone: 1, low: 1 },
 };
 /**

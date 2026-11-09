@@ -104,7 +104,7 @@ test("D566: LIEBEZEIT, a trance: no fill but a soft lift into the final entry, t
   for (const x of beats) {
     const bar = Math.round(x.tick / f.barTicks - 0.5 + 1e-9);
     if (phaseAt(formOf(f), x.tick).phase === "episode" || x.tick >= Math.min(form.climax, form.finalEntry - 2 * f.barTicks)) continue;
-    sig.set(bar, (sig.get(bar) ?? "") + x.hits.filter((h) => (h.piece === "tomHigh" || h.piece === "tomLow" || h.piece === "kick") && h.role !== "accent").map((h) => `${h.piece[0]}${(((x.tick % f.barTicks) / beat) + h.at).toFixed(2)}`).join());
+    sig.set(bar, (sig.get(bar) ?? "") + x.hits.filter((h) => (h.piece === "tomHigh" || h.piece === "tomLow" || h.piece === "kick") && h.role !== "accent").map((h) => `${h.piece[0]}${Math.round((((x.tick % f.barTicks) / beat) + h.at) * 4)}`).join());
   }
   // (bars with an episode's beat in them left out: their loop is the softer one)
   for (const x of beats) if (phaseAt(formOf(f), x.tick).phase === "episode" || formAt(form, x.tick).kind !== "subject") sig.delete(Math.round(x.tick / f.barTicks - 0.5 + 1e-9));
