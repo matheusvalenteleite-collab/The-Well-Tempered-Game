@@ -3,15 +3,16 @@
  * I/1's bars (all four voices sounding) through the game's engine with the CPU throttled 4× (CDP Emulation.setCPUThrottlingRate,
  * set once its recordings are loaded), and reports the audio clock's underruns (playbackStats), the scheduler's late notes,
  * long tasks and the frame rate. Usage, with the dev server up (`npx vite --port 5199 --strictPort`):
- *   PORT=5199 node tools/playback/cpu/cpu-fugue.mjs [sounds,comma,separated] [out.json]
+ *   PORT=5199 [PIECE=wtc1f22 VOICE=0 FROM=1 TO=12] node tools/playback/cpu/cpu-fugue.mjs [sounds,comma,separated] [out.json]
  */
 import fs from "node:fs";
 import { LAUNCH, openProbe, playwright } from "./pw.mjs";
 
-const DEFAULT = ["chip", "pianoSampled", "harpsichordSampled", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "krautrockV2", "abbeyRoadV2", "salsaV2", "bossaNovaV2", "chorinhoV2", "jazzQuartetV2", "baroqueBandV2", "bachBrassV2", "oboeTrioV2", "petSoundsV2"];
+const DEFAULT = ["chip", "pianoSampled", "harpsichordSampled", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds"];
 const sounds = process.argv[2] ? process.argv[2].split(",") : DEFAULT;
 const out = process.argv[3];
-const job = { piece: "wtc1f01", voice: 0, fromBar: 7, toBar: 14 };
+// (D560: PIECE, VOICE, FROM, TO for another passage: a five-voice fugue, say I/22 b. 1-12.)
+const job = { piece: process.env.PIECE ?? "wtc1f01", voice: Number(process.env.VOICE ?? 0), fromBar: Number(process.env.FROM ?? 7), toBar: Number(process.env.TO ?? 14) };
 const rate = Number(process.env.THROTTLE ?? 4);
 const { chromium } = await playwright();
 const browser = await chromium.launch(LAUNCH);

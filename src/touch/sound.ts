@@ -8,8 +8,7 @@
  * D292: the players now choose among five sounds only (PRESETS); the other patches are kept for later.
  */
 import type { SampledId, Slim } from "./sampled.ts";
-import { BAND_CHAINS, V2_BANDS, baseSound, v2Id, type ChainSpec } from "./band-fx.ts";
-export { V2_BANDS, baseSound, v2Id };
+import { BAND_CHAINS, type ChainSpec } from "./band-fx.ts";
 
 export type Wave = "saw" | "square" | "triangle" | "sine" | "pulse12" | "pulse25" | "pulse50" | "organ" | "reed" | "bell" | ShapedWave;
 
@@ -347,7 +346,7 @@ export interface Patch {
    * where it is not joined on); the brightness follows it (`tone` dB of high shelf at the top of the swell).
    */
   swell?: { db: number; min: number; tone: number };
-  /** D540: the lane of a v2 band's chain (band-fx.ts ChainSpec.lanes) this patch's notes join: the organ's Leslie, the guitar's fuzz. */
+  /** D540: the lane of a band's chain (band-fx.ts ChainSpec.lanes) this patch's notes join: the organ's Leslie, the guitar's fuzz. */
   lane?: string;
 }
 
@@ -1454,17 +1453,13 @@ export interface Preset {
    */
   alts?: Partial<Record<number, readonly (readonly (readonly [patch: PatchId, pan: number, level?: number])[])[]>>;
   /**
-   * D540, BANDS v2: the band's processing chain (band-fx.ts: lanes, the bus, its one reverb), shared by all its notes; with
+   * D540: a band's processing chain (band-fx.ts: lanes, the bus, its one reverb), shared by all its notes; with
    * a reverb it takes the place of `fx`. `lanes`: a patch's lane in this preset (by its id), where the patch names none.
    */
   chain?: ChainSpec;
   lanes?: Partial<Record<PatchId, string>>;
-  /** D540: a v2 preset's original (its id): the identity the rest of the game knows it by (baseSound). */
-  v2Of?: string;
   /** D540: how its recordings are held once decoded (sampled.ts Slim: one channel, the rate, the plucked notes' length). */
   slim?: Slim;
-  /** D540: held to the budget (budget.ts PRESET_MB, RESIDENT_MB; test/d540-budget.test.ts): phase 2 sets it on a v2 once rebuilt. */
-  budgeted?: boolean;
 }
 
 /**
@@ -1497,6 +1492,21 @@ function oneKeyboard(id: PatchId): Partial<Record<number, readonly Slot[]>> {
   return Object.fromEntries(Array.from({ length: 13 }, (_, k) => [k + 1, Array.from({ length: k + 1 }, (): Slot => [id, 0])]));
 }
 /**
+ * D540 (the bands' memory policy, BRIEF-BANDS2: mono, at most 32 kHz, at most 25 MB a preset), D560 every offered sound's:
+ * one channel, decoded at 24 kHz (the master's own lowpass is 6.5 kHz, Q 0.5: over 12 kHz it is 10 dB down already), a
+ * plucked note's recording cut at 3 s with a fade (the Salamander grand's 7 s: damped by the written end in all but the
+ * longest notes), the player's line without ORGANO PLENO's octave doubles (the organ's alone), a slimmed band's drums at 24 kHz,
+ * the recordings every third semitone at least (sparse zones: a chromatic set's third) and one dynamic layer (the soft, hard,
+ * short and blend sets held off, but those a preset keeps: Slim.keep; the velocity's colour the patches' filters').
+ */
+export const BAND_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
+/**
+ * D560, the slim keyboards (scratchpad/bands2/slim/NOTES.md): the recorded harpsichord as BAND_SLIM holds it (5.5 MB for the
+ * worst fugue against 94.1), the recorded piano the same but its soft layer kept (two layers: Busoni's expressive piano,
+ * D385-D390, plays its soft notes on it): 10.9 MB against 57.6.
+ */
+export const KEYS_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3 };
+/**
  * D351: the concertos' layouts for the two sounds their SLOW and FAST tempi take (bench/tempo-steps.ts):
  * NOCTURNE 32-BIT (its harpsichord for the hands, its violin for the violins, its viola, the organ's
  * continuo) and TRACKER (its harpsichord, its violin for the three string lines, its slapped bass), as
@@ -1527,10 +1537,13 @@ export const PRESETS: Preset[] = [
   // D339: both in a music room of their own (chip.ts REVERBS.salon) in place of the shared room (a white-noise impulse, no pre-delay, undamped).
   // D351: six voices (the Ricercar a 6 at its FAST tempo, bench/tempo-steps.ts): the five upper on the treble, the bass alone on the bass.
   // D358: one harpsichord: every voice its strings, in the middle (each note placed by its key, Patch.one).
-  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled"], room: 0, fx: "salon", by: oneKeyboard("harpsiSampled") },
+  { id: "harpsichordSampled", name: "HARPSICHORD (SAMPLED)", slots: ["harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled", "harpsiSampled"], room: 0, fx: "salon", by: oneKeyboard("harpsiSampled"), slim: BAND_SLIM, phoneGain: 1.12 },
   // D292: the Salamander Grand (Alexander Holm, CC BY 3.0), every voice on it; D294: the inner voices a shade lighter.
   // D358: one piano: every voice on it, in the middle (each note placed by its key, Patch.one).
-  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled"], room: 0, fx: "salon", by: oneKeyboard("pianoSampled") },
+  // D560: slimmed (KEYS_SLIM), the soft layer kept; on a phone -2.6 dB (phoneGain 0.74): the slim fold keeps the stereo
+  // recording's level through the middle seat's panner (sampled.ts slimData, +3 dB), where D421's phone fold (toMono) did not,
+  // and D436's phone levels were set on that. The harpsichord, never folded on a phone (under BUDGET.phone), 1 dB under: +1 dB.
+  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled"], room: 0, fx: "salon", by: oneKeyboard("pianoSampled"), slim: KEYS_SLIM, phoneGain: 0.74 },
   // D294: ANALOG SYNTH (in place of D292's PIANO (FM)): WENDY CARLOS's patches (D209) revived, after Switched-On Bach.
   // D297: remade as SWITCHED-ON (the owner: "lackluster"; the id kept, so a stored choice keeps it): the
   // ladder's spit and resonance, the drift, a bass that snaps; the D294 patches kept above (carlos*).
@@ -1553,6 +1566,8 @@ export const PRESETS: Preset[] = [
   {
     id: "super16",
     name: "SUPER 16-BIT",
+    // D560: held to the budget (25 MB): BAND_SLIM, a recording every fourth semitone (the console's own way: few samples stretched far); 54.1 → 20.9 MB.
+    slim: { ...BAND_SLIM, stride: 4 },
     slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,
     fx: "spc",
@@ -1612,6 +1627,8 @@ export const PRESETS: Preset[] = [
   {
     id: "tracker",
     name: "TRACKER",
+    // D560: held to the budget (25 MB): BAND_SLIM; 44.8 → 24.5 MB.
+    slim: BAND_SLIM,
     slots: ["trkViolin", "trkFlute", "trkHarpsi", "trkChoir", "trkBass"],
     room: 0,
     by: {
@@ -1666,6 +1683,8 @@ export const PRESETS: Preset[] = [
   {
     id: "soloVoices",
     name: "SOLO VOICES",
+    // D560: held to the budget (25 MB): BAND_SLIM; 30.0 → 10.6 MB.
+    slim: BAND_SLIM,
     slots: ["singS", "singS2", "singA", "singT", "singB"],
     room: 0,
     fx: "plate",
@@ -1705,6 +1724,8 @@ export const PRESETS: Preset[] = [
   {
     id: "stringConsort",
     name: "STRING CONSORT",
+    // D560: held to the budget (25 MB): BAND_SLIM; 30.5 → 17.8 MB.
+    slim: BAND_SLIM,
     slots: ["consViolin", "consViolin", "consViola", "consViola", "consCello"],
     room: 0,
     fx: "salon",
@@ -1723,12 +1744,13 @@ export const PRESETS: Preset[] = [
   // on its line (Patch.double: the harpsichord enters with the bass). Seated as a baroque band within ±0.22: the first
   // violin left, a second right (antiphonal), the oboe in front a little left, the viola right of centre, the cello in
   // the middle a little right, the harpsichord behind it centre-left (CONTINUO). Each voice's level measured (D430).
+  // D550 (approved, D560): the hall's chain (band-fx.ts BAND_CHAINS.baroqueBand), the recordings slimmed (BAND_SLIM).
   {
     id: "baroqueBand",
     name: "BAROQUE BAND",
-    // D436: -1.8 dB, and on a phone -1.4 dB more (+3.2 over the median there, +1.8 on a computer).
-    gain: 0.81,
-    phoneGain: 0.85,
+    // D436: -1.8 dB, and on a phone -1.4 dB more (+3.2 over the median there, +1.8 on a computer); D550: matched to it again through the chain.
+    gain: 0.83,
+    phoneGain: 0.83,
     slots: ["bandViolin", "bandViolin", "bandOboe", "bandViola", "bandCello"],
     room: 0,
     fx: "band",
@@ -1739,6 +1761,8 @@ export const PRESETS: Preset[] = [
       4: [["bandViolin", -0.2, 1.11], ["bandOboe", -0.04, 0.85], ["bandViola", 0.16, 1.32], ["bandCello", 0.05]],
       5: [["bandViolin", -0.22, 1.11], ["bandViolin", 0.22, 1.11], ["bandOboe", -0.06, 0.85], ["bandViola", 0.12, 1.32], ["bandCello", 0.04]],
     },
+    chain: BAND_CHAINS.baroqueBand,
+    slim: BAND_SLIM,
   },
   // D504, ZELENKA TRIO: oboe I left, oboe II right (a pair facing each other across the music, as a trio sonata's
   // two trebles sit), the bassoon between them a little right, the continuo cello in the middle, the harpsichord
@@ -1747,12 +1771,13 @@ export const PRESETS: Preset[] = [
   // oboe I, the bassoon on the middle voice and the cello on the bass (trio.ts trioLayout). Two: oboe I and the
   // bassoon. Four: the oboes, the bassoon and the cello (the continuo instrument as the fourth voice, the
   // harpsichord joining it where the script has it). Five: the harpsichordist's right hand the middle voice.
+  // D552 (approved, D560): the Archiv trio's chain; slimmed, the reeds' short notes kept (Slim.keep).
   {
     id: "oboeTrio",
     name: "ZELENKA TRIO",
-    // D504: matched to the median of the offered sounds (D436's way: I/21 1-8 and II/9 1-5, Herr Bach on the top voice).
-    gain: 0.71,
-    phoneGain: 0.54,
+    // D504: matched to the median of the offered sounds (D436's way: I/21 1-8 and II/9 1-5, Herr Bach on the top voice); D552 through the chain.
+    gain: 0.539,
+    phoneGain: 0.534,
     slots: ["trioOboe1", "trioOboe2", "trioHarpsi", "trioBassoon", "trioCello"],
     room: 0,
     fx: "chamber",
@@ -1766,15 +1791,20 @@ export const PRESETS: Preset[] = [
     alts: {
       3: [[["trioOboe1", -0.16], ["trioBassoon", 0.12], ["trioCello", -0.02]]],
     },
+    chain: BAND_CHAINS.oboeTrio,
+    slim: { ...BAND_SLIM, keep: ["trioOboe1Short", "trioOboe2Short", "trioBassoonShort"] },
   },
   // D502 (the trials' BACH BRASS remade): trumpet on top; two voices trumpet and bass; three the horn between; four a second
   // trumpet on the alto; five the tenor trombone on the tenor. Seated narrowly (within ±0.2): the trumpets left, the horn
   // in the middle, the trombones right of centre, the bass behind them; each voice's level measured (D502).
+  // D551 (approved, D560): the church's chain (a gentle bus compressor, the long hall); slimmed.
   {
     id: "bachBrass",
     name: "BACH BRASS",
-    // Loudness matched to the median of the offered sounds through the 600 Hz phone model (measured: D502).
-    phoneGain: 0.75,
+    // Loudness matched to the median of the offered sounds through the 600 Hz phone model (measured: D502; D551 through the chain).
+    gain: 1,
+    // D560: +3.6 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.52,
     slots: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
     room: 0,
     fx: "cathedral",
@@ -1785,18 +1815,22 @@ export const PRESETS: Preset[] = [
       4: [["bachTrumpet", -0.18], ["bachTrumpet", -0.06], ["bachHorn", 0.06], ["bachBass", 0.12]],
       5: [["bachTrumpet", -0.2], ["bachTrumpet", -0.08], ["bachHorn", 0.02], ["bachTrombone", 0.16], ["bachBass", 0.1]],
     },
+    chain: BAND_CHAINS.bachBrass,
+    slim: BAND_SLIM,
   },
   // D503 (the trials' MODERN JAZZ QUARTET, remade): the vibraphone on the top voice, the grand on the middle voices, the
   // double bass pizzicato on the bass, and the brushes (groove "brushJazz": jazz-drums.ts, always with this sound, never
   // with another). Seated as the Modern Jazz Quartet sat, seen from the room: Milt Jackson's vibraphone left, John
   // Lewis's piano right (its notes placed by key about its seat), Percy Heath's bass behind in the middle a little
-  // right, Connie Kay's drums behind a little left (JAZZ_DRUMS.pan); one club (REVERBS.club) at one send.
+  // right, Connie Kay's drums behind a little left (JAZZ_DRUMS.pan). D549 (approved, D560): Van Gelder's chain (the
+  // vibraphone in its lane), the piano's inner voices spread by register; slimmed, the vibraphone's mallets kept (D560: the
+  // grand's soft layer not: it would take the band to 27.0 MB, over the 25).
   {
     id: "jazzQuartet",
     name: "JAZZ QUARTET",
-    // D503 (D436's way): +0.5 dB, and on a phone +2.6 dB more (measured -1.2 under the median on a computer, -4.0 through the phone model; its peaks kept under -7 dBFS).
+    // D503 (D436's way): +0.5 dB, and on a phone +2.6 dB more; D549 matched again through the chain.
     gain: 1.06,
-    phoneGain: 1.5,
+    phoneGain: 1.72,
     slots: ["jqVibes", "jqPiano", "jqPiano", "jqPiano", "jqBass"],
     groove: "brushJazz",
     kit: "brushes",
@@ -1806,158 +1840,164 @@ export const PRESETS: Preset[] = [
       1: [["jqVibes", 0]],
       2: [["jqVibes", -0.14], ["jqBass", 0.04]],
       3: [["jqVibes", -0.18], ["jqPiano", 0.16], ["jqBass", 0.04]],
-      4: [["jqVibes", -0.18], ["jqPiano", 0.14], ["jqPiano", 0.18], ["jqBass", 0.04]],
-      5: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.16], ["jqPiano", 0.2], ["jqBass", 0.04]],
+      4: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.2], ["jqBass", 0.04]],
+      5: [["jqVibes", -0.18], ["jqPiano", 0.1], ["jqPiano", 0.16], ["jqPiano", 0.22], ["jqBass", 0.04]],
     },
+    lanes: { jqVibes: "vibes" },
+    chain: BAND_CHAINS.jazzQuartet,
+    slim: { ...BAND_SLIM, keep: ["jazzVibesSoft", "jazzVibesHard"] },
   },
-  // D520: SALSA: the trumpet on top (a second trumpet in five voices, the trombone in four and five), the grand on the
-  // middle voices, the baby bass; the percussion (groove "salsaBand": latin-drums.ts, always with this sound). Seated
-  // as a conjunto stands, seen from the room: the horns left, the piano right, the bass in the middle (LATIN_KIT: the
-  // congas right, the bongos left, the timbales behind a little left).
+  // D546 (approved, D560), SALSA: Fania's New York, 1968-75 (STUDY.md §3; D520's conjunto before it): trombone-led (2: trumpet,
+  // bass, as the trombone's compass leaves a 2-voice top; 3: trumpet, trombone, bass; 4: trumpet, trombone, tres, bass; 5:
+  // trumpet, two trombones, tres, bass: Palmieri's front line). No piano: the tres carries the montuno's clave colour. The
+  // percussion (groove "salsaBand": latin-drums.ts) always with this sound; the chain BAND_CHAINS.salsa.
   {
     id: "salsa",
     name: "SALSA",
-    // D520 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3 dB, and on a phone 1.6 dB less of it (measured -3.0
-    // under the median of six sounds on a computer, -1.4 through the phone model on a phone).
+    // D520 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3 dB, and on a phone 1.6 dB less of it; D546 matched to it.
     gain: 1.41,
-    phoneGain: 0.83,
-    slots: ["salTrumpet", "salPiano", "salPiano", "salTrombone", "salBass"],
+    // D560: +1.1 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.73,
+    slots: ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"],
     groove: "salsaBand",
     kit: "latin",
     room: 0,
     fx: "club",
     by: {
-      1: [["salPiano", 0]],
-      2: [["salPiano", 0.1], ["salBass", 0.02]],
-      3: [["salTrumpet", -0.18], ["salPiano", 0.16], ["salBass", 0.02]],
-      4: [["salTrumpet", -0.18], ["salPiano", 0.16], ["salTrombone", -0.06], ["salBass", 0.02]],
-      5: [["salTrumpet", -0.2], ["salTrumpet", -0.1], ["salPiano", 0.16], ["salTrombone", -0.02], ["salBass", 0.02]],
+      1: [["s2Trombone", 0]],
+      2: [["s2Trumpet", -0.14], ["s2Bass", 0.02]],
+      3: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Bass", 0.02]],
+      4: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Tres", 0.24], ["s2Bass", 0.02]],
+      5: [["s2Trumpet", -0.24], ["s2Trombone", -0.12], ["s2Trombone", -0.02], ["s2Tres", 0.24], ["s2Bass", 0.04]],
     },
+    chain: BAND_CHAINS.salsa,
+    slim: BAND_SLIM,
   },
-  // D522: CHORINHO: the flute on top (the clarinet second in five voices), the cavaquinho in four and five, the grand on a
-  // middle voice, the seven-string on Bach's bass; the regional's percussion (groove "choroBand": latin-drums.ts, always
-  // with this sound). Seated as a roda: the flute left, the cavaquinho right, the piano right of the middle, the
-  // seven-string a little left (LATIN_KIT: the pandeiro in the middle, the tamborim left, the agogo right).
+  // D548 (approved, D560), CHORINHO: a regional on the radio, the 1950s (STUDY.md §5; D522's before it): 2: bandolim,
+  // seven-string; 3: flute, bandolim, seven-string; 4: flute, bandolim, cavaquinho, seven-string; 5: flute, clarinet,
+  // bandolim, cavaquinho, seven-string. No piano. The regional's percussion (groove "choroBand") always with this sound.
   {
     id: "chorinho",
     name: "CHORINHO",
-    // D522 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +1.7 dB, and on a phone 1.85 dB less of it (measured -1.7
-    // under the median of six sounds on a computer, +0.15 over it through the phone model on a phone).
+    // D522 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +1.7 dB, and on a phone 1.85 dB less of it; D548 matched to it.
     gain: 1.22,
-    phoneGain: 0.81,
-    slots: ["choFlute", "choCavaco", "choPiano", "choPiano", "cho7"],
+    // D560: +2.1 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.64,
+    slots: ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"],
     groove: "choroBand",
     kit: "latin",
     room: 0,
     fx: "club",
     by: {
-      1: [["choPiano", 0]],
-      2: [["choFlute", -0.16], ["cho7", -0.04]],
-      3: [["choFlute", -0.18], ["choPiano", 0.14], ["cho7", -0.04]],
-      4: [["choFlute", -0.18], ["choCavaco", 0.22], ["choPiano", 0.1], ["cho7", -0.04]],
-      5: [["choFlute", -0.2], ["choClarinet", -0.08], ["choCavaco", 0.22], ["choPiano", 0.1], ["cho7", -0.04]],
+      1: [["c2Bandolim", 0]],
+      2: [["c2Bandolim", 0.08], ["c27", -0.06]],
+      3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]],
+      4: [["c2Flute", -0.18], ["c2Bandolim", 0.12], ["c2Cavaco", 0.24], ["c27", -0.04]],
+      5: [["c2Flute", -0.2], ["c2Clarinet", -0.08], ["c2Bandolim", 0.1], ["c2Cavaco", 0.24], ["c27", -0.04]],
     },
+    chain: BAND_CHAINS.chorinho,
+    slim: BAND_SLIM,
   },
-  // D523 (the owner: "Beatles 1967-69, two guitars, electric bass, rock piano, acoustic drums"): the Gretsch on the top
-  // voice (left), the rock piano on the middle (right of centre, its notes placed by key about its seat), the second
-  // guitar on the upper inner voice of four and five (right), the picked bass in the middle (a little right), the drums
-  // behind a little left (ROCK_DRUMS.pan); one studio (REVERBS.studio) at one send; the drums (groove "abbeyRock":
-  // rock-drums.ts, the fugue's own form) always with this sound.
+  // D544 (approved, D560), ABBEY ROAD: EMI Studio Two, 1969 (STUDY.md §2; D523's band before it): the Moog lead, the Leslie
+  // guitar (hard left), the Hammond (hard right), the trumpet (right), the flatwound bass; the drums (groove "abbeyRock":
+  // rock-drums.ts, the fugue's own form) always with this sound; the chain BAND_CHAINS.abbeyRoad.
   {
     id: "abbeyRoad",
     name: "ABBEY ROAD",
-    // D523 (D436's way, JAZZ QUARTET rendered beside it): -0.6 dB, and on a phone -0.9 dB more.
+    // D523 (D436's way, JAZZ QUARTET rendered beside it): -0.6 dB; D544 matched to it on a phone.
     gain: 0.93,
-    phoneGain: 0.9,
-    slots: ["abGuitar", "abGuitar2", "abPiano", "abPiano", "abBass"],
+    // D560: +1.1 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.87,
+    slots: ["a2Moog", "a2Guitar", "a2Trumpet", "a2Hammond", "a2Bass"],
     groove: "abbeyRock",
     kit: "rock",
     room: 0,
     fx: "studio",
     by: {
-      1: [["abGuitar", 0]],
-      2: [["abGuitar", -0.16], ["abBass", 0.04]],
-      3: [["abGuitar", -0.2], ["abPiano", 0.14], ["abBass", 0.04]],
-      4: [["abGuitar", -0.22], ["abGuitar2", 0.22], ["abPiano", 0.1], ["abBass", 0.04]],
-      5: [["abGuitar", -0.22], ["abGuitar2", 0.22], ["abPiano", 0.08], ["abPiano", 0.14], ["abBass", 0.04]],
+      1: [["a2Guitar", 0]],
+      2: [["a2Guitar", 0], ["a2Bass", 0]],
+      3: [["a2Moog", 0], ["a2Guitar", 0], ["a2Bass", 0]],
+      4: [["a2Moog", 0], ["a2Guitar", 0], ["a2Hammond", 0], ["a2Bass", 0]],
+      5: [["a2Moog", 0], ["a2Guitar", 0], ["a2Trumpet", 0], ["a2Hammond", 0], ["a2Bass", 0]],
     },
+    chain: BAND_CHAINS.abbeyRoad,
+    slim: BAND_SLIM,
   },
-  // D525 (the owner: "motorik drums, hypnotic and constant, electric bass, psychedelic guitar with a slight delay that
-  // isn't protagonist, keyboard (Can, Tago Mago; Neu!, 'Hallogallo')"): the piano on the top voice (the keyboard, a little
-  // left), the guitar with its echo on the next (right, its repeats further right), the combo organ on the inner voice
-  // of four and five (left), the picked bass in the middle; the motorik drums (groove "motorik") always with it.
+  // D543 (approved, D560), KRAUTROCK: Plank's Star Studio / Can's Inner Space, 1971-72 (STUDY.md §1; D525's before it): the
+  // combo organ, the Moog bass, the fuzz guitar, the Mellotron flute, the phased clean guitar (the organ on the upper inner
+  // voice of four and five; the band's signature instrument opens); the motorik drums (groove "motorik") always with it.
   {
     id: "krautrock",
     name: "KRAUTROCK",
-    // D525 (D436's way, JAZZ QUARTET rendered beside it): +1.5 dB, on a phone nothing more.
+    // D525 (D436's way, JAZZ QUARTET rendered beside it): +1.5 dB; D543 matched to it on a phone.
     gain: 1.19,
-    phoneGain: 1,
-    slots: ["krPiano", "krGuitar", "krOrgan", "krPiano", "krBass"],
+    // D560: +1.6 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.67,
+    slots: ["k2Tron", "k2Organ", "k2Clean", "k2Fuzz", "k2Moog"],
     groove: "motorik",
     kit: "rock",
     room: 0,
     fx: "inner",
     by: {
-      1: [["krPiano", 0]],
-      2: [["krPiano", -0.12], ["krBass", 0.02]],
-      3: [["krPiano", -0.14], ["krGuitar", 0.2], ["krBass", 0.02]],
-      4: [["krPiano", -0.12], ["krGuitar", 0.2], ["krOrgan", -0.2], ["krBass", 0.02]],
-      5: [["krPiano", -0.12], ["krGuitar", 0.2], ["krOrgan", -0.2], ["krPiano", 0.08], ["krBass", 0.02]],
+      1: [["k2Organ", 0]],
+      2: [["k2Organ", -0.05], ["k2Moog", 0]],
+      3: [["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
+      4: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
+      5: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Clean", 0], ["k2Fuzz", 0], ["k2Moog", 0]],
     },
+    chain: BAND_CHAINS.krautrock,
+    slim: BAND_SLIM,
   },
-  // D521, BOSSA NOVA: the flute on the top voice, the grand on the upper middle, the nylon guitar on the lower middle (its
-  // own register: E2-B5, the tenor's), the double bass pizzicato on the bass, and the drums (groove "bossaNova": bossa-drums.ts,
-  // always with this sound, never with another). Seated as a small studio session, seen from the room: the flute left, the
-  // piano right, the guitar a little right of centre between them, the bass behind in the middle a little left, the drums
-  // behind a little right (BOSSA_DRUMS.pan); one studio (REVERBS.bossa) at one send. Two voices: the flute and the guitar
-  // (the duo of the bossa's intimate records); three: the flute, the guitar, the bass. Each voice's level measured (D521:
-  // II/7 b. 21-34, each voice alone: the flute 5 dB over the others, the piano and the guitar a little under).
+  // D547 (approved, D560), BOSSA NOVA: Rio and A&R New York, 1959-64 (STUDY.md §4; D521's before it): 2: alto flute, guitar;
+  // 3: alto flute, guitar, bass; 4: alto flute, Rhodes, guitar, bass; 5: alto flute, Rhodes, tenor sax, guitar, bass. No
+  // piano. The drums (groove "bossaNova": bossa-drums.ts) always with this sound; the chain BAND_CHAINS.bossaNova.
   {
     id: "bossaNova",
     name: "BOSSA NOVA",
-    // D521 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3.6 dB, and on a phone 1.3 dB less (measured -3.6 under
-    // the median of the offered ensembles on a computer, -2.25 through the phone model).
+    // D521 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3.6 dB, and on a phone 1.3 dB less; D547 matched to it.
     gain: 1.51,
-    phoneGain: 0.86,
-    slots: ["bnFlute", "bnPiano", "bnGuitar", "bnGuitar", "bnBass"],
+    // D560: +2.2 dB (+3.3 through its LA-2A) over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.59,
+    slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
     groove: "bossaNova",
     kit: "bossa",
     room: 0,
     fx: "bossa",
     by: {
-      1: [["bnGuitar", 0]],
-      2: [["bnFlute", -0.14, 0.56], ["bnGuitar", 0.08, 1.12]],
-      3: [["bnFlute", -0.18, 0.56], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
-      4: [["bnFlute", -0.18, 0.56], ["bnPiano", 0.18, 1.19], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
-      5: [["bnFlute", -0.18, 0.56], ["bnPiano", 0.14, 1.19], ["bnPiano", 0.2, 1.19], ["bnGuitar", 0.06, 1.12], ["bnBass", -0.02]],
+      1: [["b2Guitar", 0]],
+      2: [["b2Flute", -0.1], ["b2Guitar", 0.06]],
+      3: [["b2Flute", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]],
+      4: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
+      5: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Sax", -0.2], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
     },
+    chain: BAND_CHAINS.bossaNova,
+    slim: BAND_SLIM,
   },
-  // D524, PET SOUNDS: the string section on the top voice, the horn on the upper middle, the grand on the lower middle,
-  // the picked electric bass on the bass; five voices the harpsichord between the strings and the horn; and the drums
-  // (groove "petSounds": pet-drums.ts, always with this sound, never with another). Each instrument one of Bach's voices,
-  // nothing added; the timpani rhythm only. Seated as a 1966 session within ±0.2, seen from the room: the strings left,
-  // the harpsichord right, the horn a little left of centre, the piano right of centre, the bass in the middle, the kit
-  // behind a little left, the timpani behind right (PET_DRUMS.pan); one echo chamber (REVERBS.goldStar) at one send. Each voice's level measured (D524: I/17
-  // b. 6-20, each voice alone: the bass 6 dB over the others on a computer, the piano 2-3 under).
+  // D545 (approved, D560), PET SOUNDS: Gold Star, 1966 (STUDY.md §10; D524's band before it): the string section, the horn,
+  // the harpsichord and the bass, with the musette accordion in the piano's place; the bass, the accordion and the
+  // harpsichord in the wall lane; the drums (groove "petSounds": pet-drums.ts) always with this sound.
   {
     id: "petSounds",
     name: "PET SOUNDS",
-    // D524 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top, with D508's balance): -1.8 dB, and on a phone 1.3 dB more
-    // (measured +1.8 over the offered ensembles' median on a computer, +3.1 through the phone model).
+    // D524 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top, with D508's balance): -1.8 dB; D545 matched to it on a phone.
     gain: 0.81,
-    phoneGain: 0.86,
-    slots: ["psStrings", "psHarpsi", "psHorn", "psPiano", "psBass"],
+    // D560: +0.9 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
+    phoneGain: 0.62,
+    slots: ["psStrings", "psHarpsi", "psHorn", "p2Accordion", "psBass"],
     groove: "petSounds",
     kit: "pet",
     room: 0,
     fx: "goldStar",
     by: {
-      1: [["psPiano", 0]],
-      2: [["psStrings", -0.14], ["psBass", 0.02, 0.6]],
-      3: [["psStrings", -0.18], ["psPiano", 0.14, 1.4], ["psBass", 0.02, 0.6]],
-      4: [["psStrings", -0.18], ["psHorn", -0.04, 1.12], ["psPiano", 0.14, 1.4], ["psBass", 0.02, 0.6]],
-      5: [["psStrings", -0.18], ["psHarpsi", 0.2], ["psHorn", -0.04, 1.12], ["psPiano", 0.12, 1.4], ["psBass", 0.02, 0.6]],
+      1: [["psStrings", 0]],
+      2: [["psStrings", 0], ["psBass", 0, 0.6]],
+      3: [["psStrings", 0], ["psHorn", 0, 1.12], ["psBass", 0, 0.6]],
+      4: [["psStrings", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
+      5: [["psStrings", 0], ["psHarpsi", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
     },
+    lanes: { psBass: "wall", psHarpsi: "wall" },
+    chain: BAND_CHAINS.petSounds,
+    slim: BAND_SLIM,
   },
 ];
 
@@ -1998,147 +2038,6 @@ export const TRIALS: Preset[] = [
   // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered, D510 withdrawn.)
 ];
 /**
- * D540, BANDS v2 (the owner: "There's an overuse of piano in the new presets … Krautrock, Salsa, Chorinho, Bossa Nova and
- * Abbey Road are sounding way too uninteresting and similar … Feel free to use more configs, like fx effects, eqs"): each
- * band's "<BAND> v2" beside the original, for the Sound Lab's A/B, never a default until the owner approves (V2_BANDS;
- * offered nowhere else; band-fx.ts V2_BANDS, v2Id, baseSound). Each begins as its original with the band's chain (band-fx.ts BAND_CHAINS) and the v2 memory
- * policy (V2_SLIM); phase 2 (rows D543-D559) rebuilds each after scratchpad/bands2/STUDY.md.
- */
-/**
- * D540: the v2 bands' recordings held as the budget asks (BRIEF-BANDS2: mono, at most 32 kHz, at most 25 MB a preset):
- * one channel, decoded at 24 kHz (the master's own lowpass is 6.5 kHz, Q 0.5: over 12 kHz it is 10 dB down already), a
- * plucked note's recording cut at 3 s with a fade (the Salamander grand's 7 s: damped by the written end in all but the
- * longest notes), the player's line without ORGANO PLENO's octave doubles (the organ's alone), a slimmed band's drums at 24 kHz,
- * the recordings every third semitone at least (sparse zones: a chromatic set's third) and one dynamic layer (the soft, hard,
- * short and blend sets held off; the velocity's colour the patches' filters'). Phase 2 may give a band its own.
- */
-export const V2_SLIM: Slim = { rate: 24000, pluckedS: 3, stride: 3, oneLayer: true };
-/**
- * D546-D548, the Latin bands rebuilt (in V2_OWN below) (STUDY.md §3-5): each its own instruments, one to a Bach voice, its drums its
- * original's HOME (drum-library.ts homeStyleFor reads a v2 as its original), its chain (BAND_CHAINS). Seated as each band stood, seen
- * from the room, within ±0.35. Levels measured (scratchpad/bands2/<band>/NOTES.md): the whole matched to its original
- * within 1 dB through the phone model, each voice alone within about 2 dB of the others.
- * SALSA v2: trombone-led (2: trumpet, bass, as the trombone's compass leaves a 2-voice top; 3: trumpet, trombone, bass;
- * 4: trumpet, trombone, tres, bass; 5: trumpet, two trombones, tres, bass: Palmieri's front line). No piano: the study's
- * montuno piano (5 voices) took the band over 25 MB, and the tres carries the montuno's clave colour.
- * BOSSA NOVA v2: 2: alto flute, guitar; 3: alto flute, guitar, bass; 4: alto flute, Rhodes, guitar, bass; 5: alto flute,
- * Rhodes, tenor sax, guitar, bass. CHORINHO v2: 2: bandolim, seven-string; 3: flute, bandolim, seven-string; 4: flute,
- * bandolim, cavaquinho, seven-string; 5: flute, clarinet, bandolim, cavaquinho, seven-string. No piano in either.
- */
-/**
- * D543-D545: the rebuilt v2s' own instruments (STUDY.md's signature designs; their gain matched on a phone, NOTES.md), each
- * one instrument a voice from the top down, none a piano. KRAUTROCK v2: the combo organ, the Moog bass, the fuzz guitar,
- * the Mellotron flute, the phased clean guitar (the organ on the upper inner voice of four and five, where the study had the
- * Mellotron: the alto opens most four-voice fugues, I/20 among them, and the Mellotron's flute is CHORINHO's and BOSSA's
- * recording; the band's signature instrument opens). ABBEY ROAD v2: the Moog lead, the Leslie guitar (hard left), the
- * Hammond (hard right), the trumpet (right), the flatwound bass. PET SOUNDS v2: v1's strings, horn, harpsichord and bass
- * with the musette accordion in the piano's place, the bass, the accordion and the harpsichord in the wall lane.
- *
- * D549-D552, the classic four's v2s (the owner likes them: JAZZ QUARTET his favourite, BAROQUE BAND's continuo entering
- * with the bass loved): their instruments, seats and continuo kept, the chain the study's (band-fx.ts BAND_CHAINS), the
- * level matched to the original's through the phone model (within 1 dB) and on a computer. JAZZ v2: the vibraphone in its
- * lane, its soft and hard mallets kept (Slim.keep: the budget has the room), the piano's two inner voices spread by register.
- */
-export const V2_OWN: Partial<Record<(typeof V2_BANDS)[number], Partial<Preset>>> = {
-  krautrock: {
-    gain: 1.19,
-    phoneGain: 0.8,
-    slots: ["k2Tron", "k2Organ", "k2Clean", "k2Fuzz", "k2Moog"],
-    by: {
-      1: [["k2Organ", 0]],
-      2: [["k2Organ", -0.05], ["k2Moog", 0]],
-      3: [["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
-      4: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Fuzz", 0], ["k2Moog", 0]],
-      5: [["k2Tron", 0], ["k2Organ", -0.1], ["k2Clean", 0], ["k2Fuzz", 0], ["k2Moog", 0]],
-    },
-  },
-  abbeyRoad: {
-    gain: 0.93,
-    phoneGain: 0.99,
-    slots: ["a2Moog", "a2Guitar", "a2Trumpet", "a2Hammond", "a2Bass"],
-    by: {
-      1: [["a2Guitar", 0]],
-      2: [["a2Guitar", 0], ["a2Bass", 0]],
-      3: [["a2Moog", 0], ["a2Guitar", 0], ["a2Bass", 0]],
-      4: [["a2Moog", 0], ["a2Guitar", 0], ["a2Hammond", 0], ["a2Bass", 0]],
-      5: [["a2Moog", 0], ["a2Guitar", 0], ["a2Trumpet", 0], ["a2Hammond", 0], ["a2Bass", 0]],
-    },
-  },
-  petSounds: {
-    gain: 0.81,
-    phoneGain: 0.69,
-    slots: ["psStrings", "psHarpsi", "psHorn", "p2Accordion", "psBass"],
-    lanes: { psBass: "wall", psHarpsi: "wall" },
-    by: {
-      1: [["psStrings", 0]],
-      2: [["psStrings", 0], ["psBass", 0, 0.6]],
-      3: [["psStrings", 0], ["psHorn", 0, 1.12], ["psBass", 0, 0.6]],
-      4: [["psStrings", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
-      5: [["psStrings", 0], ["psHarpsi", 0], ["psHorn", 0, 1.12], ["p2Accordion", 0], ["psBass", 0, 0.6]],
-    },
-  },
-  jazzQuartet: {
-    gain: 1.06,
-    phoneGain: 1.72,
-    lanes: { jqVibes: "vibes" },
-    slim: { ...V2_SLIM, keep: ["jazzVibesSoft", "jazzVibesHard"] },
-    by: {
-      1: [["jqVibes", 0]],
-      2: [["jqVibes", -0.14], ["jqBass", 0.04]],
-      3: [["jqVibes", -0.18], ["jqPiano", 0.16], ["jqBass", 0.04]],
-      4: [["jqVibes", -0.18], ["jqPiano", 0.12], ["jqPiano", 0.2], ["jqBass", 0.04]],
-      5: [["jqVibes", -0.18], ["jqPiano", 0.1], ["jqPiano", 0.16], ["jqPiano", 0.22], ["jqBass", 0.04]],
-    },
-  },
-  baroqueBand: { gain: 0.83, phoneGain: 0.83 },
-  bachBrass: { gain: 1, phoneGain: 0.79 },
-  oboeTrio: { gain: 0.539, phoneGain: 0.534, slim: { ...V2_SLIM, keep: ["trioOboe1Short", "trioOboe2Short", "trioBassoonShort"] } },
-  // D546-D548: the Latin bands (the note above).
-  salsa: {
-    slots: ["s2Trumpet", "s2Trombone", "s2Trombone", "s2Tres", "s2Bass"],
-    gain: 1.41,
-    phoneGain: 0.83,
-    by: {
-      1: [["s2Trombone", 0]],
-      2: [["s2Trumpet", -0.14], ["s2Bass", 0.02]],
-      3: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Bass", 0.02]],
-      4: [["s2Trumpet", -0.22], ["s2Trombone", -0.08], ["s2Tres", 0.24], ["s2Bass", 0.02]],
-      5: [["s2Trumpet", -0.24], ["s2Trombone", -0.12], ["s2Trombone", -0.02], ["s2Tres", 0.24], ["s2Bass", 0.04]],
-    },
-  },
-  bossaNova: {
-    slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
-    gain: 1.51,
-    phoneGain: 0.86,
-    by: {
-      1: [["b2Guitar", 0]],
-      2: [["b2Flute", -0.1], ["b2Guitar", 0.06]],
-      3: [["b2Flute", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]],
-      4: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
-      5: [["b2Flute", -0.12], ["b2Rhodes", 0.16], ["b2Sax", -0.2], ["b2Guitar", 0.04], ["b2Bass", -0.02]],
-    },
-  },
-  chorinho: {
-    slots: ["c2Flute", "c2Bandolim", "c2Bandolim", "c2Cavaco", "c27"],
-    gain: 1.22,
-    phoneGain: 0.81,
-    by: {
-      1: [["c2Bandolim", 0]],
-      2: [["c2Bandolim", 0.08], ["c27", -0.06]],
-      3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]],
-      4: [["c2Flute", -0.18], ["c2Bandolim", 0.12], ["c2Cavaco", 0.24], ["c27", -0.04]],
-      5: [["c2Flute", -0.2], ["c2Clarinet", -0.08], ["c2Bandolim", 0.1], ["c2Cavaco", 0.24], ["c27", -0.04]],
-    },
-  },
-};
-export const V2_PRESETS: Preset[] = V2_BANDS.map((band) => {
-  const p = PRESETS.find((x) => x.id === band)!;
-  const own = V2_OWN[band];
-  // (PET SOUNDS' original five instruments, the grand and the harpsichord among them, cut their plucked notes at 2.5 s to keep within 25 MB.)
-  const slim = own?.slim ?? (band === "petSounds" && !own ? { ...V2_SLIM, pluckedS: 2.5 } : V2_SLIM);
-  return { ...p, ...own, id: v2Id(band), name: `${p.name} v2`, v2Of: band, chain: BAND_CHAINS[band], slim, budgeted: true };
-});
-/**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
  * Play.lineDb: proto-game.ts lineAt) reach every sustaining sound that can make dynamics (DYNAMIC_SOUNDS),
@@ -2152,7 +2051,7 @@ export function setExpressiveAll(on: boolean) {
 /** The sounds EXPRESSIVE_ALL reaches (not the harpsichord, the organ: no dynamics by nature; the piano has them always). */
 export const DYNAMIC_SOUNDS: ReadonlySet<string> = new Set(["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "soloVoices", "vocalSynth", "trialWinds"]);
 /** Whether the whole-reading dynamics reach this sound beyond the piano's (EXPRESSIVE_ALL on and a sound that can make dynamics). */
-export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(baseSound(id));
+export const expressiveAll = (id: string): boolean => EXPRESSIVE_ALL && DYNAMIC_SOUNDS.has(id);
 /**
  * TRIAL, EXPRESSIVE_ALL on the chips, consoles and synthesizers (the owner: "chipsets might not have dynamic
  * variations but tone variations"): the reading's planned level (dB: its printed level, hairpins, palette weight;
@@ -2272,6 +2171,19 @@ export const RETIRED: Readonly<Record<string, string>> = {
   lute: "harpsichordSampled",
   clavichord: "pianoSampled",
   nocturne32: "super16",
+  // D560, the bands' v2s approved (the owner, on the before/after page: "All good") and promoted: each replaced its original
+  // under the original's id and name (a stored choice of the band opens on the new one); the Sound Lab's "<BAND> v2" ids,
+  // stored by its A/B, open on the band.
+  krautrockV2: "krautrock",
+  abbeyRoadV2: "abbeyRoad",
+  salsaV2: "salsa",
+  bossaNovaV2: "bossaNova",
+  chorinhoV2: "chorinho",
+  jazzQuartetV2: "jazzQuartet",
+  baroqueBandV2: "baroqueBand",
+  bachBrassV2: "bachBrass",
+  oboeTrioV2: "oboeTrio",
+  petSoundsV2: "petSounds",
 };
 /** D292: the recorded piano's credit (CC BY 3.0 asks for it), shown wherever the sound is chosen. */
 export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM · CC BY 3.0";
@@ -2288,30 +2200,27 @@ export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC
 export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
 export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
-/** D521: BOSSA NOVA's (the Iowa guitar and bass: free for any use; VSO2's flute: CC BY 3.0; the grand's; the brushes and Big Rusty's kit: CC0). */
-export const BOSSA_CREDIT = `GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · FLUTE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · ${PIANO_CREDIT} · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0`;
-/** D524: PET SOUNDS' (VSCO's strings and timpani, VCSL's harpsichord, Karoryfer's bass and kits: CC0; Iowa's horn; the grand's). */
-export const PET_CREDIT = `STRINGS, TIMPANI: VS CHAMBER ORCHESTRA 2 CE · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0`;
+/** D547 (D521's before it): BOSSA NOVA's (Iowa's alto flute, guitar and bass: free for any use; the tenor sax via tonejs-instruments: CC BY 3.0; the brushes and Big Rusty's kit: CC0). */
+export const BOSSA_CREDIT = "ALTO FLUTE, GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TENOR SAX: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
+/** D545 (D524's before it): PET SOUNDS' (VSCO's strings and timpani, VCSL's harpsichord, Karoryfer's bass and kits: CC0; Iowa's horn; the accordion synthesized). */
+export const PET_CREDIT = "STRINGS, TIMPANI: VS CHAMBER ORCHESTRA 2 CE · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0";
 /** D502: BACH BRASS's (University of Iowa MIS: free for any use, credit given as asked of good practice). */
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
-/** D520: SALSA's recordings. */
-export const SALSA_CREDIT = `TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
-/** D522: CHORINHO's recordings. */
-export const CHORINHO_CREDIT = `FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · ${PIANO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
-/** D523: the rock band's recordings (Karoryfer's CC0 guitar, bass and kit; the electric guitar via tonejs-instruments, CC BY 3.0). */
-const ROCK_RHYTHM_CREDIT = "BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
+/** D546 (D520's before it): SALSA's recordings (no piano: the tres the classical guitar's). */
+export const SALSA_CREDIT = "TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TRES: GUITAR FREESOUND 11573, QUARTERTONE · CC BY 3.0 · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0";
+/** D548 (D522's before it): CHORINHO's recordings (the bandolim Karoryfer's steel-strung guitar; no piano). */
+export const CHORINHO_CREDIT = `BANDOLIM: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
+/** D523, D543-D544: the rock bands' recordings (Karoryfer's CC0 guitar, bass and kit; the electric guitar via tonejs-instruments, CC BY 3.0); their organs, Moogs and the Mellotron's motor synthesized. */
+const ROCK_DRUMS_CREDIT = "DRUMS: BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
 const EGUITAR_CREDIT = "ELECTRIC GUITAR: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0";
-export const ABBEY_ROAD_CREDIT = `GUITARS: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · ${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
-export const KRAUTROCK_CREDIT = `${EGUITAR_CREDIT} · ${ROCK_RHYTHM_CREDIT} · ${PIANO_CREDIT}`;
+/** D544: the Leslie guitar (Black And Green Guitars), the trumpet (Iowa), the flatwound bass (Black And Blue Basses), the kit. */
+export const ABBEY_ROAD_CREDIT = `GUITAR: BLACK AND GREEN GUITARS · BASS: BLACK AND BLUE BASSES · ${ROCK_DRUMS_CREDIT} · TRUMPET: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS`;
+/** D543: the Mellotron's flute (VSO2's), the clean guitar (Black And Green Guitars), the fuzz guitar (tonejs-instruments'), the kit. */
+export const KRAUTROCK_CREDIT = `MELLOTRON FLUTE: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · ${EGUITAR_CREDIT} · CLEAN GUITAR: BLACK AND GREEN GUITARS · ${ROCK_DRUMS_CREDIT}`;
 const CREDITS: Record<string, string> = { abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, tracker: CHOIR_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT, petSounds: PET_CREDIT };
-/** D546-D548: the rebuilt Latin v2s' own recordings (their originals' credits no longer theirs: no piano, other instruments). */
-export const SALSA_V2_CREDIT = "TRUMPET, TROMBONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TRES: GUITAR FREESOUND 11573, QUARTERTONE · CC BY 3.0 · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0";
-export const BOSSA_V2_CREDIT = "ALTO FLUTE, GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TENOR SAX: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
-export const CHORINHO_V2_CREDIT = `BANDOLIM: BLACK AND GREEN GUITARS · KARORYFER SAMPLES · CC0 · FLUTE VERSILIAN STUDIOS VSO2 CE · GUITARS FREESOUND 11573, QUARTERTONE · CC BY 3.0 · CLARINET ${VSCO_CREDIT} · PERCUSSION: VCSL · VERSILIAN STUDIOS · CC0`;
-const V2_CREDITS: Record<string, string> = { salsaV2: SALSA_V2_CREDIT, bossaNovaV2: BOSSA_V2_CREDIT, chorinhoV2: CHORINHO_V2_CREDIT };
-export const creditFor = (id: string): string | null => V2_CREDITS[presetById(id).id] ?? CREDITS[baseSound(presetById(id).id)] ?? null;
+export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */
 export const offered = (id: string) => PRESETS.some((p) => p.id === id);
 /** D292: a stored choice as one of the five: a withdrawn one's stand-in (RETIRED), anything else not offered (TRAVERSO, an unknown id) CLASSIC CHIP. */
@@ -2320,7 +2229,7 @@ export function playerSound(id: string): string {
   return offered(r) ? r : "chip";
 }
 /** A preset by its id (a withdrawn one's stand-in, D249; TRAVERSO for WITH KIMIKO, D219; else CLASSIC CHIP). */
-export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS, ...V2_PRESETS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
+export const presetById = (id: string) => [...PRESETS, TRAVERSO, ...TRIALS].find((p) => p.id === (RETIRED[id] ?? id)) ?? PRESETS[0];
 
 /** Which of the five slots each of n voices takes (from the top down). */
 export function slotOf(voice: number, count: number): number {

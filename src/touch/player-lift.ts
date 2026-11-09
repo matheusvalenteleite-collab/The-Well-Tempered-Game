@@ -25,7 +25,6 @@
  * The levels: player-lift-data.ts (the piece's own sound exactly; another sound by its balance over twelve fugues).
  */
 import { OWN_LOUD, SOUND_LOUD } from "./player-lift-data.ts";
-import { baseSound } from "./band-fx.ts";
 
 /** The player's own subject entries forward (dB, each note of the entry). */
 export const PLAYER_ENTRY_DB = 2;
@@ -53,10 +52,8 @@ export interface Balance {
 }
 
 /** The balance for a piece on a sound with `count` voices (the piece's own measured; else the sound's by the count). */
-export function balanceOf(id: string, asked: string, count: number): Balance | null {
+export function balanceOf(id: string, sound: string, count: number): Balance | null {
   if (count < 2) return null;
-  // D540: a v2 band on its original's measurements until its own are made.
-  const sound = SOUND_LOUD[asked] || OWN_LOUD[id]?.s === asked ? asked : baseSound(asked);
   const own = OWN_LOUD[id];
   if (own && own.s === sound && own.t.length === count) return own;
   const by = SOUND_LOUD[sound];

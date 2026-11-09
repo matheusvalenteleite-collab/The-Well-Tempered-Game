@@ -9,7 +9,7 @@
 import { openingOf, soundPlans } from "./chip.ts";
 import { FUGUES, everyNote, fugueById } from "./fugue.ts";
 import { BUDGET, decodedBytes, FETCH_MAX, monoFor, wireBytes, type Plan, type Wire } from "./sampled.ts";
-import { preset, presetById, setPreset, V2_SLIM, type Preset } from "./sound.ts";
+import { preset, presetById, setPreset, BAND_SLIM, type Preset } from "./sound.ts";
 import type { Slim } from "./sampled.ts";
 import { styleIds } from "./drum-library.ts";
 
@@ -75,8 +75,8 @@ export function overBudget(b: PresetBudget): string | null {
   return null;
 }
 
-/** D540: a preset's MB now and slimmed (V2_SLIM: 24 kHz mono, plucked notes 3 s, every third semitone, one layer). */
-export function slimSaving(id: string, slim: Slim = V2_SLIM): { now: PresetBudget; slim: PresetBudget } {
+/** D540: a preset's MB now and slimmed (BAND_SLIM: 24 kHz mono, plucked notes 3 s, every third semitone, one layer). */
+export function slimSaving(id: string, slim: Slim = BAND_SLIM): { now: PresetBudget; slim: PresetBudget } {
   return { now: presetBudget(id), slim: presetBudget(id, undefined, slim) };
 }
 

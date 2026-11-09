@@ -1,13 +1,14 @@
 grand/   Salamander Grand Piano V3, Alexander Holm. CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/).
          Source: https://github.com/sfzinstruments/SalamanderGrandPiano (velocity layers 7 and 12), trimmed to 7 s, MP3.
-         Also the touch game's PIANO (SAMPLED) (D292, layer 12), credited in its SOUND choices when chosen.
+         Also the touch game's PIANO (SAMPLED) (D292, both layers) and JAZZ QUARTET's piano (D503, the loud layer), credited in
+         their SOUND choices when chosen; D560: decoded slimmed (24 kHz mono, 3 s, every minor third as recorded), the files unchanged.
 organ/   Versilian Studios Orchestra 2 Community Edition, via https://github.com/nbrosowsky/tonejs-instruments (CC BY 3.0).
 sackbut/ Trombone, same source as organ/.
 cello/   Freesound 12408 (flcellogrl, real cello notes), via tonejs-instruments (CC BY 3.0).
 violin/ flute/ bassoon/ horn/ trumpet/ harp/ contrabass/   Versilian Studios Orchestra 2 Community Edition, via tonejs-instruments (CC BY 3.0).
 harmonium/  Freesound 330410 (donyaquick, harmonium samples), via tonejs-instruments (CC BY 3.0).
 guitar/     Freesound 11573 (quartertone, classical guitar multisampled), via tonejs-instruments (CC BY 3.0).
-            Also the touch game's CHORINHO cavaquinho and seven-string (D522), credited in its SOUND choices.
+            Also the touch game's CHORINHO cavaquinho and seven-string (D522, D548) and SALSA's tres (D546), credited in their SOUND choices.
 eguitar/ ebass/ sax/   Karoryfer Samples, via tonejs-instruments (CC BY 3.0).
 xylophone/  Versilian Studios Orchestra 2 Community Edition, via tonejs-instruments (CC BY 3.0).
 The sets added in D54 keep one sample every minor third or more (the nearest is retuned), trimmed to 4.5 s with a fade, mono 80 kbit/s MP3.
@@ -162,7 +163,7 @@ Processing (tools/playback/jazz/build_jazz.py): the scale files cut at their ons
          instrument (its loudest peak at -1 dBFS); tuning measured into src/touch/sampled.ts; mono 44.1 kHz MP3 (the
          vibraphone 72 kbit/s, the bass and the brushes 64 kbit/s). About 4.4 MB in all.
 D520/D522, the touch game's SALSA and CHORINHO percussion (one kit for both; SALSA's trumpet and trombone are brassTrumpet/ and
-brassTrombone/ above, its bass jazzBass/, its piano grand/):
+brassTrombone/ above, its bass jazzBass/, its tres guitar/; D546, D548: no piano in either now):
 latinPerc/  Versilian Community Sample Library (VCSL), Versilian Studios LLC. CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/);
          credit encouraged. Source: https://github.com/sgossner/VCSL (Membranophones/Struck Membranophones: Conga, Bongos, Frame Drum,
          Bass Drum 1, Snare Drum, Modern 1 with the snares off as the timbales; Idiophones/Struck Idiophones: Cowbells, Claves,
@@ -175,12 +176,14 @@ latinPerc/  Versilian Community Sample Library (VCSL), Versilian Studios LLC. CC
          trimmed with a fade (0.3-1.4 s); each hit's loudness over its first 0.15 s (K-weighted) evened, one gain for all (the
          loudest peak at -1 dBFS); mono 44.1 kHz 64 kbit/s MP3. About 0.5 MB.
 D523, the touch game's ABBEY ROAD (and D525's KRAUTROCK), no new files: their recordings are those listed above, played
-         by the touch game: cleanGuitar/ (Black And Green Guitars' Gretsch, Karoryfer, CC0) the first guitar; eguitar/
-         (Karoryfer via tonejs-instruments, CC BY 3.0) the second guitar; rickBass/ (Black And Blue Basses' picked
-         "babyblue", Karoryfer, CC0) the bass; drums/bigRusty/ (Big Rusty Drums, Karoryfer, CC0) the kit; grand/ the piano.
+         by the touch game. D544/D543 (promoted, D560): ABBEY ROAD's Leslie guitar cleanGuitar/ (Black And Green Guitars' Gretsch,
+         Karoryfer, CC0), its trumpet brassTrumpet/ (Iowa MIS), its bass rickBass/ (Black And Blue Basses' picked "babyblue",
+         Karoryfer, CC0); KRAUTROCK's Mellotron flute flute/ (VSO2 CE, CC BY 3.0), its fuzz guitar eguitar/ (Karoryfer via
+         tonejs-instruments, CC BY 3.0), its clean guitar cleanGuitar/; both kits drums/bigRusty/ (Big Rusty Drums, Karoryfer,
+         CC0). Their organs, Moogs and no piano: synthesized.
          Their tuning and each note's loudness trim measured into src/touch/sampled.ts (ROCK_CENTS, ROCK_DB, ROCK_PHONE_DB).
-D521, the touch game's BOSSA NOVA (the nylon guitar and the bass drum and cross-stick; its flute is flute/ (VSO2 CE, CC BY 3.0), its
-piano grand/, its bass jazzBass/, its brushes jazzBrushes/, all above):
+D521, the touch game's BOSSA NOVA (the nylon guitar and the bass drum and cross-stick; D547, promoted D560: its alto flute
+altoFlute/ and its tenor sax sax/, its Rhodes synthesized, no piano; its bass jazzBass/, its brushes jazzBrushes/, all here):
 bossaGuitar/ bossaGuitarSoft/  University of Iowa Electronic Music Studios, Musical Instrument Samples (MIS): Guitar (a Raimundo 118
          nylon-string classical guitar, Brian Penkrot, 2011, anechoic chamber), the mono scale files, one string per file: mf every
          semitone E2-B5 (bossaGuitar; C5 and E3 not cut, read from their neighbours), pp every whole tone (bossaGuitarSoft; E2 and E3
@@ -194,17 +197,17 @@ Processing (tools/playback/bossa/build_bossa.py): resampled 96 to 44.1 kHz; the 
          each note's loudness over its first 0.4 s (K-weighted) evened, both sets at one gain (the loudest peak at -1 dBFS); a cut whose
          evened peak stood over 3 times the median left out; tuning measured into src/touch/sampled.ts (about 20 cents flat as tuned);
          mono 44.1 kHz 64 kbit/s MP3. About 1.8 MB in all.
-D524, the touch game's PET SOUNDS: no new files. Its strings are violaSus/, its horn brassHorn/ and brassHornP/, its harpsichord
-         harpsichord/, its piano grand/, its electric bass rickBass/ (ABBEY ROAD's), its kit drums/bigRusty/, its tambourine
-         drums/virtuosity/ and its timpani timpani/ (D514's), all above.
-D547, the touch game's BOSSA NOVA v2 (the Sound Lab's "BANDS v2"): its alto flute.
+D524, the touch game's PET SOUNDS: no new files. Its strings are violaSus/, its horn brassHorn/, its harpsichord harpsichord/,
+         its electric bass rickBass/ (ABBEY ROAD's), its kit drums/bigRusty/, its tambourine drums/virtuosity/ and its timpani
+         timpani/ (D514's), all above (D545, promoted D560: the musette accordion synthesized in the piano's place).
+D547, the touch game's BOSSA NOVA (D560: promoted from the Sound Lab's v2): its alto flute.
 altoFlute/  University of Iowa Electronic Music Studios, Musical Instrument Samples (Lawrence Fritts; theremin.music.uiowa.edu/MIS.html):
          "may be downloaded and used for any projects, without restrictions"; credited in the game. Alto flute with vibrato, the
          2014 single notes, ff, 24-bit stereo ("MIS Pitches - 2014/Woodwinds/Alto Flute"): every minor third G3-Db6, and F6 (no
          E6 recorded). Changed: mono; onset kept 1 ms before the attack; held on to 4.3 s by crossfaded passages of each note's own
          steady stretch, a 0.3 s fade; each note's steady loudness (K-weighted) evened; mono 44.1 kHz 80 kbit/s MP3 (0.52 MB).
          Script: tools/playback/bossa/build_altoflute.py. Its tenor saxophone is sax/ (above), unchanged.
-D546, D548, SALSA v2 and CHORINHO v2: no new files (brassTrumpet/, brassTrombone/, jazzBass/, guitar/, cleanGuitar/, flute/, clarinet/,
+D546, D548, SALSA and CHORINHO (promoted, D560): no new files (brassTrumpet/, brassTrombone/, jazzBass/, guitar/, cleanGuitar/, flute/, clarinet/,
          latinPerc/, all above).
 
 Wire copies (D542): every <note>.mp3 here also as <note>.webm (Opus) and <note>.m4a (AAC-LC), transcoded from that MP3

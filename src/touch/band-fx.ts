@@ -19,14 +19,6 @@
  * chain under CHAIN_CAP).
  */
 
-/**
- * D540: the bands that have a v2 (sound.ts V2_PRESETS: "<BAND> v2" beside the original, in the Sound Lab), its id from the
- * band's ("krautrock" → "krautrockV2"), and the band a sound is (a v2's original, else itself: the id-keyed tables).
- */
-export const V2_BANDS = ["krautrock", "abbeyRoad", "salsa", "bossaNova", "chorinho", "jazzQuartet", "baroqueBand", "bachBrass", "oboeTrio", "petSounds"] as const;
-export const v2Id = (band: string) => `${band}V2`;
-export const baseSound = (id: string): string => (id.endsWith("V2") && (V2_BANDS as readonly string[]).includes(id.slice(0, -2)) ? id.slice(0, -2) : id);
-
 /** A built block: where sound goes in, where it comes out, every node it made (to disconnect) and its LFOs (to stop). */
 export interface Block {
   input: AudioNode;
@@ -770,11 +762,13 @@ export function buildChain(ctx: BaseAudioContext, spec: ChainSpec, opts: { phone
  */
 export const SALSA2_TRIM = { db: -11.5, phoneDb: -14.7 } as const;
 export const BOSSA2_TRIM = { db: -5.5, phoneDb: -3.9 } as const;
-export const CHORO2_TRIM = { db: -8.2, phoneDb: -9.9 } as const;
+// (D560: the phone's trims 1.2 dB further down for CHORINHO and KRAUTROCK, measured after the promotion: their phoneGain, before
+// the bus compressors, moved the phone level by a third of its change; the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14.)
+export const CHORO2_TRIM = { db: -8.2, phoneDb: -11.1 } as const;
 
 /**
- * One chain a band (the study's signature designs, STUDY.md; phase 2 tunes them by ear-proxy measurement). The v2 presets
- * (sound.ts V2_PRESETS) carry them; the v1 bands play as before.
+ * One chain a band (the study's signature designs, STUDY.md; tuned by ear-proxy measurement, D543-D552). The bands' presets
+ * (sound.ts PRESETS) carry them (D560).
  */
 /**
  * D543-D545: the rebuilt rock bands' trims at the end of the bus: the chain's makeup (the tape's small-signal gain, drive over
@@ -806,7 +800,7 @@ export const BAND_CHAINS = {
       clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "place", pan: 0.55 }],
       mellotron: [{ kind: "tape", drive: 1.6, rolloff: 8000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 140, lp: 5500 }, { kind: "place", pan: 0.25 }],
     },
-    bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: -18 }, { kind: "tape", drive: 1.8, bump: { hz: 90, db: 1.5 }, rolloff: 12000 }, { kind: "gain", db: KRAUT2_TRIM_DB }],
+    bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: -18 }, { kind: "tape", drive: 1.8, bump: { hz: 90, db: 1.5 }, rolloff: 12000 }, { kind: "gain", db: KRAUT2_TRIM_DB, phoneDb: KRAUT2_TRIM_DB - 1.2 }],
     reverb: { ir: "plate", seconds: 1.4, phoneSeconds: 0.9, rt60: 1.2, predelay: 0.01, hp: 250, lp: 6000, level: 0.8 },
   },
   // D544, ABBEY ROAD v2: EMI Studio Two, February-August 1969 (STUDY.md §2): the TG12345's eight tracks. The Gretsch through a

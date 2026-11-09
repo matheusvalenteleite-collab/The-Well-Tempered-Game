@@ -15,7 +15,7 @@
 import { Chip } from "../../touch/chip.ts";
 import { openingOf, soundPlans } from "../../touch/chip.ts";
 import { barAt, barStart, everyNote, fugueById, type TouchFugue } from "../../touch/fugue.ts";
-import { baseSound, V2_PRESETS, preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
+import { preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
 import { loadPlanKeep, type Plan } from "../../touch/sampled.ts";
 import { setDrumStyle } from "../../touch/drum-library.ts";
 import { padChoice, padStyle } from "./drum-pad.ts";
@@ -40,7 +40,7 @@ import { audible, changeKind, voiceGain, type LabSettings } from "./lab-state.ts
 /** The 48 fugues, Book I then Book II. */
 export const FUGUES: readonly string[] = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 /** Every sound the lab offers: the players' (PRESETS), then the trials'. */
-export const LAB_SOUNDS = [...PRESETS, ...TRIALS, ...V2_PRESETS].map((p) => ({ id: p.id, name: p.name, trial: TRIALS.includes(p), v2: V2_PRESETS.includes(p) }));
+export const LAB_SOUNDS = [...PRESETS, ...TRIALS].map((p) => ({ id: p.id, name: p.name, trial: TRIALS.includes(p) }));
 
 /** The sound a setting plays (the fugue's own where none is chosen; a trial by its own id). */
 export function soundOf(s: LabSettings): string {
@@ -71,13 +71,13 @@ export function planOf(soundId: string, f: TouchFugue, voice: number, drums: str
   const was = preset();
   const wasLayout = pieceLayoutNow();
   setPreset(soundId);
-  const tl = baseSound(soundId) === TRIO_ID ? trioLayout(f) : null;
+  const tl = soundId === TRIO_ID ? trioLayout(f) : null;
   setPieceLayout(tl ? { preset: soundId, count: tl.count, slots: tl.slots } : null);
   const pitches = everyNote(f).map((n) => n[2]);
   const lead = (f.voices[voice] ?? []).map((n) => n[2]);
   // D526: the style's files, whatever its engine (D530: the style the pad chose, else the sound's HOME).
   const style = typeof drums === "number" ? padStyle({ piece: f.id, drums, style: null }, soundId) : drums;
-  // D542: as the game plans it (chip.ts soundPlans: a v2's slimming, zones and one layer too; the style's drums), the opening first.
+  // D542: as the game plans it (chip.ts soundPlans: a sound's slimming, zones and one layer too; the style's drums), the opening first.
   const plan: Plan = soundPlans(pitches, lead, style ?? null, openingOf(f))
     .flat()
     .filter((e) => e.notes.length);

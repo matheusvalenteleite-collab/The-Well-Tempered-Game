@@ -31,7 +31,8 @@ test("D525: KRAUTROCK offered, one instrument a voice, the guitar's echo an effe
   assert.equal(p.fx, "inner");
   assert.ok(REVERBS.inner.rt60 < REVERBS.studio.rt60, "a drier room than ABBEY ROAD's");
   for (const n of [1, 2, 3, 4, 5] as const) assert.equal(p.by?.[n]?.length, n);
-  assert.deepEqual(p.by?.[4]?.map(([id]) => id), ["krPiano", "krGuitar", "krOrgan", "krBass"]);
+  // D560: D543's band promoted (the Mellotron, the combo organ, the fuzz guitar, the Moog; no piano); the v1 patches kept below.
+  assert.deepEqual(p.by?.[4]?.map(([id]) => id), ["k2Tron", "k2Organ", "k2Fuzz", "k2Moog"]);
   assert.ok(PATCHES.krGuitar.echo && PATCHES.krGuitar.echo > 0 && PATCHES.krGuitar.echo < 0.6, "a slight delay");
   assert.ok(PATCHES.krGuitar.level * 2.2 < PATCHES.krPiano.level * 3.8 * 1.5, "the guitar not the protagonist");
   for (const id of ["krPiano", "krOrgan", "krBass"] as const) assert.equal(PATCHES[id].echo, undefined, id);

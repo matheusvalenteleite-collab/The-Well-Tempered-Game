@@ -55,10 +55,11 @@ test("D521: BOSSA NOVA offered: in the lists, an ensemble, named in three langua
 
 test("D521: the band: the flute on top, the grand and the guitar inside, the bass on the bass; one studio at one send; within ±0.2", () => {
   const by = BOSSA.by!;
-  assert.deepEqual(by[2]!.map(([p]) => p), ["bnFlute", "bnGuitar"]);
-  assert.deepEqual(by[3]!.map(([p]) => p), ["bnFlute", "bnGuitar", "bnBass"]);
-  assert.deepEqual(by[4]!.map(([p]) => p), ["bnFlute", "bnPiano", "bnGuitar", "bnBass"]);
-  assert.deepEqual(by[5]!.map(([p]) => p), ["bnFlute", "bnPiano", "bnPiano", "bnGuitar", "bnBass"]);
+  // D560: D547's band promoted (the alto flute, the Rhodes, the tenor sax; no piano).
+  assert.deepEqual(by[2]!.map(([p]) => p), ["b2Flute", "b2Guitar"]);
+  assert.deepEqual(by[3]!.map(([p]) => p), ["b2Flute", "b2Guitar", "b2Bass"]);
+  assert.deepEqual(by[4]!.map(([p]) => p), ["b2Flute", "b2Rhodes", "b2Guitar", "b2Bass"]);
+  assert.deepEqual(by[5]!.map(([p]) => p), ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"]);
   for (const vs of Object.values(by)) {
     for (const [, pan] of vs!) assert.ok(Math.abs(pan) <= 0.2);
     // Each instrument its own place: no two different instruments on one seat.

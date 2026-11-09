@@ -13,7 +13,7 @@ export const BOOK2: Record<string, PieceColours> = {
   wtc2f01: {
     // D522: CHORINHO (was MEGA FM).
     sound: "chorinho",
-    soundWhy: "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), in 2/4, choro's and samba's own metre, its running semiquavers the pandeiro's: the flute on top, the piano in the middle, the seven-string guitar on Bach's bass (one to a voice), the regional's fills into the entries after its episodes and a break before the last.",
+    soundWhy: "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), in 2/4, choro's and samba's own metre, its running semiquavers the pandeiro's: the flute on top, the bandolim in the middle, the seven-string guitar on Bach's bass (one to a voice), the regional's fills into the entries after its episodes and a break before the last.",
     character: "Long episodes (29-39, 61-68, 74-83), the cadence on G (21-22), a dominant pedal (50-52), an intensifying close.",
     plans: {
       megaFm: [at(29, { fm: 0.7 }, "The episode 29-39 mellower."), at(E("wtc2f01", 39), OWN, "The bass's entry (39)."), at(61, { fm: 0.7 }, "The episode 61-68."), at(E("wtc2f01", 68), OWN, "The bass's entry (68)."), at(74, { fm: 1.2 }, "Keller's intensifying close a little brighter.")],
@@ -78,7 +78,7 @@ export const BOOK2: Record<string, PieceColours> = {
   },
   wtc2f07: {
     sound: "bossaNova",
-    soundWhy: "Alla breve at a half of 62, the bossa nova's own cut time and tempo, and 'saturated with euphony' (Keller): four voices in long, serene notes over a soft bossa (flute, piano, nylon guitar, upright bass), the calm of a slow Jobim song; the stretti at the close (59-60) out of a bar's break.",
+    soundWhy: "Alla breve at a half of 62, the bossa nova's own cut time and tempo, and 'saturated with euphony' (Keller): four voices in long, serene notes over a soft bossa (alto flute, Rhodes, nylon guitar, upright bass), the calm of a slow Jobim song; the stretti at the close (59-60) out of a bar's break.",
     character: "Bodky's spans: full to 30¾, 8″+4″ to 55¼, full from 55¾ (his milder option one degree down); the last entries in stretto (59-60).",
     plans: {
       chamberOrgan: [at(1, OPRIN, "Bodky's milder option: the principals for his full work."), at(30.75, OFLUTE, "His lighter middle (30¾-55¼): the flutes."), at(55.75, OPRIN, "The principals again (55¾)."), at(59, OPLENO, "The last stretto (59-60): the plenum, a player's choice beyond Bodky's.")],
@@ -111,7 +111,7 @@ export const BOOK2: Record<string, PieceColours> = {
   wtc2f10: {
     // D520: SALSA (was SID 64, D510).
     sound: "salsa",
-    soundWhy: "A powerfully controlled allegro, an impatient subject pressing forward (Keller), in 2/2 written in quaver triplets: salsa's cut time with the Afro-Cuban 6/8 bell over it, the clave a bar; the E minor subject's repeated notes and leaps, as written, on the trumpet, the piano and the baby bass (one to a voice), the timbales' fills into the entries after its episodes and a break before the bass's last entry.",
+    soundWhy: "A powerfully controlled allegro, an impatient subject pressing forward (Keller), in 2/2 written in quaver triplets: salsa's cut time with the Afro-Cuban 6/8 bell over it, the clave a bar; the E minor subject's repeated notes and leaps, as written, on the trumpet, the trombone and the baby bass (one to a voice), the timbales' fills into the entries after its episodes and a break before the bass's last entry.",
     character: "A tonic exposition 1-18 (Ledbetter), Bodky's spans f (to 23 10/12), p (to 49 10/12), f, coupled (71⅜); a dominant pedal 68-70.",
     plans: {
       sid64: [at(23.833, { pw: 0.2 }, "Bodky's piano span (23-49) on narrower pulses."), at(49.833, OWN, "The own sweep (49)."), at(71.375, { pw: 0.5 }, "Bodky's coupled close: the pulses square.")],
