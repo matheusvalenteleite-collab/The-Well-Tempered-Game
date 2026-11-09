@@ -670,6 +670,8 @@ export class ProtoGame {
     // D513: the subjects and the episodes, the climax (fugue-form.ts: where the fugue's contrast is clear); D514: the drums' piece.
     if (!o.her && f.kind === "fugue") this.form = new FormLayer(f);
     chip.drumsFor?.(f);
+    // D593: the fugue's own level on the sound (Preset.levels: the whole mix, a constant of the piece and the sound).
+    chip.pieceLevel?.(f);
     // D504: ZELENKA TRIO's layout for the piece (trio.ts trioLayout: the fewest notes out of compass) and its continuo script.
     // D578: or the piece's own line-up on the sound (Preset.pieces: JAZZ QUARTET's I/6 without the piano).
     const tl = preset().id === TRIO_ID ? trioLayout(f) : null;

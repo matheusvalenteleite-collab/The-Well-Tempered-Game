@@ -13,7 +13,7 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -1113,10 +1113,27 @@ export class Chip {
   private room: ConvolverNode;
   /** D237: the volume (0..1) over the master's own level (0.4, D181). */
   setVolume(v: number) {
-    const k = Math.max(0, Math.min(1, v));
+    this.volume = Math.max(0, Math.min(1, v));
+    this.levelNow();
+  }
+  private volume = 1;
+  /** D593: the piece's own level on the sound now (sound.ts pieceLevel), the whole mix's. */
+  private pieceK = 1;
+  /**
+   * D593: a fugue's own level on the sound (Preset.levels), set as the piece starts (proto-game.ts) and when its
+   * recordings are planned with its opening: at the master, so the band, the player, the rooms and the drums move alike.
+   */
+  pieceLevel(f: { id: string }) {
+    this.pieceK = pieceLevel(preset().id, f.id, this.phone);
+    this.levelNow();
+  }
+  private levelNow() {
+    const k = this.volume * this.pieceK;
     this.master.gain.value = 0.4 * k;
     // D249: the notes' own sends to the room follow the volume too (they bypassed it).
     this.sends.gain.value = k;
+    // D593: and a recording's way in (past the master) the piece's level.
+    this.recIn.gain.value = this.pieceK;
   }
   /** D249: the notes' own room sends (Play.room), through the volume, into the room. */
   private sends: GainNode;
@@ -2246,6 +2263,7 @@ export class Chip {
       const own = pieceLineUp(preset().id, { id: opening.piece, voices: { length: opening.count } as unknown[] });
       if (own) setPieceLayout(own);
       else if (pieceLayoutNow()?.only) setPieceLayout(null);
+      this.pieceLevel({ id: opening.piece });
     }
     const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null, opening);
     const staged = plans.map((plan) => loadPlanStaged(this.ctx, plan, phone));
