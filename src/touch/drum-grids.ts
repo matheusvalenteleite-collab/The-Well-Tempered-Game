@@ -71,6 +71,10 @@ export interface GridStyle {
   trance?: boolean;
   /** D566: the room's share (chip.ts KIT_DRUMS.send by default; a dry, close kit less). */
   send?: number;
+  /** D568: a metre's strokes this much firmer (a sparser grid's level, measured: ARCADE's 6/8 against its 3/8). */
+  metreGain?: Partial<Record<"duple" | "triple" | "compound", number>>;
+  /** D565-D566: a drummer's hands: each stroke off the grid by up to this (s, seeded: the same every time; only where the steps leave room). */
+  humanS?: number;
 }
 
 /** The velocity of each grid char. */
@@ -168,6 +172,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     kit: "kitRock",
     layer: { kick: 1, snare: 1 },
     episode: "soft",
+    humanS: 0.004,
     share: 0.5,
   },
   // TRIP-HOP: slow and heavy, the sixteenths lazy; the kit read slow (pitched down), its top dulled.
@@ -374,6 +379,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     episode: "soft",
     trance: true,
     send: 0.02,
+    humanS: 0.005,
     share: 0.8,
   },
   // ARCADE (D568): videogame drums for "such a bouncy videogamey fugue … keep the PINBALL vibe": a chip kit (a kick swept
@@ -393,15 +399,16 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
       hat: "X.xX X.x. X.x.|X.x. X.xX X.x.",
     }),
     compound: g(4, 6, {
-      kick: "X...-. ...... x...-. ......|X...-. ...... x..... ..o...",
-      snare: "...... x..... ...... x...-.|...... x..... ...... x.-.-.",
-      hat: "o.-.o. o.-.o. o.-.o. o.-.o-|o.-.o. o.-.o- o.-.o. o.-.o.",
+      kick: "#...o. ...... X...o. ......|#...o. ...... X..... ..x...",
+      snare: "...... #..... ...... #...o.|...... #..... ...... #.o.o.",
+      hat: "X.o.x. X.o.x. X.o.x. X.o.xo|X.o.x. X.o.xo X.o.x. X.o.x.",
     }),
     bpm: [104, 160],
     climax: "open",
     fill: "chip",
     kit: "arcade",
-    share: 1.6,
+    metreGain: { compound: 1.4 },
+    share: 2.6,
   },
 };
 
@@ -490,8 +497,10 @@ export function gridBeat(st: GridStyle, b: number, per: number, compound: boolea
       const u0 = s / steps;
       if (u0 < sp.from - 1e-9 || u0 >= sp.to - 1e-9) continue;
       const late = st.swing16 && steps === 4 && s % 2 === 1 ? st.swing16 / steps : 0;
-      const at = sp.at0 + (u0 + late) * sp.width;
+      let at = sp.at0 + (u0 + late) * sp.width;
       if (at < 0 || at >= 1) continue;
+      // D565-D566: the hands a few ms off the grid (never the beat's first stroke, never closer than GRID_STEP_S).
+      if (st.humanS && s > 0 && stepS * stride >= GRID_STEP_S + 2 * st.humanS) at = Math.min(0.999, Math.max(0, at + ((jitter(bar * 97 + sp.i * steps + s, 3) - 0.5) * 2 * st.humanS) / beatS));
       for (const [piece0, row] of Object.entries(grid.rows) as [KitPiece, string][]) {
         const bars = barsOf(row);
         const line = bars[gbar % bars.length];
@@ -519,6 +528,7 @@ export function gridBeat(st: GridStyle, b: number, per: number, compound: boolea
         }
         // The climax a little firmer throughout (its busier half by `climax` besides).
         if (kind === "climax") vel *= CLIMAX_FIRM;
+        vel *= st.metreGain?.[metreClass(per, compound)] ?? 1;
         vel *= 1 + 0.12 * (jitter(bar * 64 + sp.i * steps + s, piece.length) - 0.5);
         out.push({ piece, at, vel });
       }
