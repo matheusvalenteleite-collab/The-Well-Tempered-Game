@@ -32,7 +32,7 @@ export interface Grid {
 /** The fills' voice (drum-fills.ts: the snare and toms, the jazz kit's, a machine's, the congas'; D514's timpani and frame drums'). */
 export type FillVoice = "rock" | "jazz" | "chip" | "machine" | "latin" | "timpani" | "frame";
 /** The kit that sounds a style: a recorded one (sampled.ts kitRock: Big Rusty; kitClub: Virtuosity) or a synthesized one (chip.ts drum). */
-export type KitVoice = "kitRock" | "kitClub" | "chip" | "analog" | "tr909" | "linn" | "glitch";
+export type KitVoice = "kitRock" | "kitClub" | "chip" | "analog" | "tr909" | "linn" | "glitch" | "arcade";
 export interface GridStyle {
   duple: Grid;
   triple: Grid;
@@ -57,6 +57,24 @@ export interface GridStyle {
   phone?: number;
   /** A phone's low drums' harmonics (chip.ts KIT_DRUMS.phoneLow: this style's share). */
   low?: number;
+  /**
+   * D565: a synthesized layer under a recorded (or synthesized) stroke, for weight: the kick's SUB (a sine falling 62 to
+   * 40 Hz, its harmonics on a phone) and CLICK (the beater's 3-6 kHz tick); the snare's BODY (its shell's 180-200 Hz
+   * thump) and CRACK (a band of noise at 2-5 kHz, the snares' rattle). chip.ts Chip.layer.
+   */
+  layer?: { kick?: number; snare?: number };
+  /** D566: a multi-bar pattern held this many bars a variation (a slowly evolving loop: Jaki Liebezeit's, D566). */
+  hold?: number;
+  /** D566: the episodes keep the groove, softer (the toms and cymbals out), in place of D527's thinning to the bar's kick. */
+  episode?: "thin" | "soft";
+  /** D566: a trance: no fills, rolls, breaks or roll-outs; only a soft lift of the snare's ghosts into the final entry (drum-presets.ts kitBeatTrance). */
+  trance?: boolean;
+  /** D566: the room's share (chip.ts KIT_DRUMS.send by default; a dry, close kit less). */
+  send?: number;
+  /** D568: a metre's strokes this much firmer (a sparser grid's level, measured: ARCADE's 6/8 against its 3/8). */
+  metreGain?: Partial<Record<"duple" | "triple" | "compound", number>>;
+  /** D565-D566: a drummer's hands: each stroke off the grid by up to this (s, seeded: the same every time; only where the steps leave room). */
+  humanS?: number;
 }
 
 /** The velocity of each grid char. */
@@ -122,16 +140,39 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     kit: "kitRock",
     share: 0.37,
   },
-  // BREAKBEAT: a sampled funk break (the kick's double, the snare's ghosts), Big Rusty read a little fast.
+  // BREAKBEAT (D565, rewritten: "so flat and feeble"): the classic breaks' family, re-written, not sampled: four bars of
+  // the Funky Drummer's and the Amen's syncopations (the kick's double on 1 and the and of 1, its push on the and of 3 and
+  // the "a" of 3, the backbeat moved a sixteenth late in the fourth bar), the snare's ghosts on the e's and a's, the hats'
+  // sixteenths with an accent contour (the beat strong, the "and" medium, the e and a ghosted, the open hat on the and of
+  // 4), a light swing; Big Rusty at its own speed, each kick layered with a sub and a click and each backbeat with the
+  // shell's body and a noise crack (chip.ts Chip.layer). 12/8 (and 12/16, II/4's): a half-time shuffle in the triplets
+  // (Purdie's family: the backbeat on 2 and 4, the ghosts on each triplet's middle, the hats on its first and last).
   breakbeat: {
-    duple: g(4, 4, { kick: "#.x. .... ..#. ....|#.x. .... ..x. ...o", snare: ".... X..- .-.. X..-|.... X..- .-.. ..X.", hat: "x.x. x.x. x.x. x.x." }),
-    triple: g(3, 4, { kick: "#.x. .... ..x.", snare: ".... X..- .-..", hat: "x.x. x.x. x.x." }),
-    compound: g(4, 3, { kick: "#.x ... .x. ...", snare: "... X.- ... X.-", hat: "xox xox xox xox" }),
-    bpm: [88, 115],
-    climax: "ride",
-    fill: "machine",
+    duple: g(4, 4, {
+      kick: "#.x. ...o ..X. .x..|#.#. .... ..#x ....|#.x. ...o ..X. ..x.|#.#. .... ..X. .xo.",
+      snare: "..-. #..- .-.. #.-.|.... #..- .-.. #..-|..-. #..- .-.- #.-.|.-.. #..- .-#. ..#-",
+      hat: "X-x- x-x- X-x- x-.-|X-x- x-x- X-x- x-x-|X-x- x-x- X-x- x-.-|X-x- x-x- X-x- x-x-",
+      openhat: ".... .... .... ..o.|.... .... .... ....|.... .... .... ..o.|.... .... .... ....",
+    }),
+    triple: g(3, 4, {
+      kick: "#.x. .... ..X.|#.#. ...o ..x.",
+      snare: "..-. #..- .-.-|.... #..- .-#.",
+      hat: "X-x- x-x- x-.-|X-x- x-x- x-x-",
+      openhat: ".... .... ..o.|.... .... ....",
+    }),
+    compound: g(4, 3, {
+      kick: "#.. ..x .x. ...|#.x ... #.. ..o",
+      snare: ".-. #-. .-. #.-|.-. #-. .-- .#-",
+      hat: "X.x x.x X.x x.x",
+    }),
+    bpm: [84, 116],
+    swing16: 0.1,
+    climax: "open",
+    fill: "rock",
     kit: "kitRock",
-    rate: 1.06,
+    layer: { kick: 1, snare: 1 },
+    episode: "soft",
+    humanS: 0.004,
     share: 0.5,
   },
   // TRIP-HOP: slow and heavy, the sixteenths lazy; the kit read slow (pitched down), its top dulled.
@@ -272,16 +313,102 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     lp: 3200,
     share: 0.84,
   },
-  // IDM / GLITCH: the kick and snare displaced, the hats' sixteenths of uneven weight, the clicks of a cut-up rim.
+  // IDM / GLITCH (D565: given the break's weight): the break cut up and displaced: the kick's double and the backbeat
+  // moved by a sixteenth bar by bar, the snare's ghosts in stutters, the hats' sixteenths of uneven weight with drops, the
+  // clicks of a cut-up rim; the glitch kit's kick under a sub and its snare over a crack (Chip.layer). 12/8 (12/16):
+  // the triplet grid split in two (the stutters), the backbeat on 2 and 4 kept.
   idm: {
-    duple: g(4, 4, { kick: "#..x ..x. .#.. x...|#... .x.. ..#. .x.x", snare: ".... X..- ..X. ...-|.... X... -..X ....", hat: "xoxo -x-o x-xo -oxx|x-o- xo-x -xo- x-oo", rim: "..o. o... ...o .o..|.o.. ...o o... ..o." }),
-    triple: g(3, 4, { kick: "#..x .x.. ..#.", snare: ".... X..- ..X.", hat: "xoxo -x-o x-xo", rim: "..o. o... ...o" }),
-    compound: g(4, 3, { kick: "#.x ..x .#. x..", snare: "... X.- .X. ..-", hat: "xox -xo x-x oxo", rim: ".o. o.. ..o .o." }),
+    duple: g(4, 4, {
+      kick: "#.x. ..x. .#.. x...|#... .x.. ..#. .x.x|#.x. .... .x#. ..x.|#..x ..x. ..#. x..o",
+      snare: "..-. #..- ..X. ...-|.... #... -..# ..--|.-.. #.-- .... #..-|..-. .#.- ..-. #-#-",
+      hat: "xoxo -x-o x-xo -oxx|x-o- xo-x -xo- x-oo|xoxo x-.- xoxo -x-x|x-xo -xo- xxo- x.o-",
+      rim: "..o. o... ...o .o..|.o.. ...o o... ..o.|...o .o.. o... ...o|o... ..o. .o.. o...",
+    }),
+    triple: g(3, 4, {
+      kick: "#..x .x.. ..#.|#.x. ...x .x..",
+      snare: ".... #..- ..X.|..-. .#.. -..#",
+      hat: "xoxo -x-o x-xo|x-o- xo-x -xox",
+      rim: "..o. o... ...o|.o.. ...o o...",
+    }),
+    compound: g(4, 6, {
+      kick: "#..... ..x... .#.... x.....|#...x. ...... ..#... .x..x.",
+      snare: "...... #...-- ..-.X. ......|...... #..-.. -..... #.-.--",
+      hat: "x.o.x. o.x.o. x.o.-- o.x.o.|x.o... x.o.x. -.o.x. o.xxo.",
+      rim: "..o... o..... ...o.. .o....|.o.... ...o.. o..... ..o...",
+    }),
     bpm: [96, 140],
     climax: "crash",
     fill: "machine",
     kit: "glitch",
+    layer: { kick: 1, snare: 1 },
     share: 2.98,
+  },
+  // LIEBEZEIT (D566): Jaki Liebezeit on Tago Mago ("Halleluwah", "Mushroom"): a hypnotic loop of interlocking parts, the
+  // hats' sixteenths accented off the beat, the high and the low tom answering each other between the backbeats, the
+  // snare's ghosts, the kick never on all four; six variations, each held six bars (one change every six bars, never a
+  // fill that breaks the trance: drum-presets.ts kitBeatTrance), the episodes the same loop softer. The club kit dry and
+  // close (the room's share a fifth of the others').
+  liebezeit: {
+    duple: g(4, 4, {
+      kick: "#... ..x. ..#. ....|#... ..x. ..#. ....|#... ...x ..#. ..x.|#... ..x. ..#. ....|#..x ..x. ..#. ....|#... ...x ..#. ..x.",
+      snare: "..-. X..- .-.. X.-.|..-. X..- .-.. X.-.|.-.. X..- ..-. X.-.|..-. X.-- .-.. X.-.|..-. X..- .-.. X..-|.-.. X..- ..-. X.--",
+      hat: "x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-.-|x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-.-",
+      openhat: ".... .... .... ....|.... .... .... ....|.... .... .... ....|.... .... .... ..o.|.... .... .... ....|.... .... .... ..o.",
+      tomHigh: ".... .... .o.. ....|.... ...o .... .o..|.... .... .o.. ....|...o .... .o.. ....|.... .... .o.o ....|...o .... .... .o..",
+      tomLow: ".... ..o. .... ..o.|.... .... ..o. ...o|.... ..o. .... ..o.|.... ..o. .... ...o|.... ..o. .... ...o|.... ..o. ..o. ....",
+    }),
+    triple: g(3, 4, {
+      kick: "#... ..x. ....|#... .... ..x.|#..x .... ..x.",
+      snare: "..-. X..- .-..|..-. X..- ..-.|.-.. X.-- .-..",
+      hat: "x-X- x-x- x-X-",
+      tomHigh: ".... .... .o..|...o .... .o..|.... ...o ....",
+      tomLow: ".... ..o. ...o|.... ..o. ....|.... ..o. ..o.",
+    }),
+    compound: g(4, 3, {
+      kick: "#.. .x. #.. ...|#.. .x. #.. ..x|#.x ... #.. .x.",
+      snare: ".-. X.- .-. X..|.-. X.- ..- X.-|.-. X.- .-. X--",
+      hat: "xoX xoX xoX xoX",
+      tomHigh: "... ..o ... o..|..o ... ... ..o|... ..o .o. ...",
+      tomLow: "..o ... ..o ...|... ..o ..o ...|..o ... ... o..",
+    }),
+    bpm: [62, 104],
+    climax: "open",
+    fill: "rock",
+    kit: "kitClub",
+    hold: 6,
+    episode: "soft",
+    trance: true,
+    send: 0.02,
+    humanS: 0.005,
+    share: 0.8,
+  },
+  // ARCADE (D568): videogame drums for "such a bouncy videogamey fugue … keep the PINBALL vibe": a chip kit (a kick swept
+  // down from a pulse's chirp, a noise-channel snare, square clicks for the hats), bouncing: the kick on 1 and the
+  // gigue's lilt (the third quaver of a 6/8 beat), the snare on the backbeat with a pick-up, the hats' clicks skipping.
+  // 3/8 (II/24): the bar's kick, the snare on its third quaver, the next bar answering.
+  arcade: {
+    duple: g(4, 4, {
+      kick: "#..o ..x. #..o ..x.|#..o ..x. #... .x..",
+      snare: ".... X... .... X..o|.... X... .... X.o.",
+      hat: "xox. xoxo xox. xoxo",
+      openhat: ".... .... .... ....|.... .... .... ..o.",
+    }),
+    triple: g(3, 4, {
+      kick: "#.x. .... ....|#... ..X. ....",
+      snare: ".... .... #...|.... #... ..x.",
+      hat: "X.xX X.x. X.x.|X.x. X.xX X.x.",
+    }),
+    compound: g(4, 6, {
+      kick: "#...o. ...... X...o. ......|#...o. ...... X..... ..x...",
+      snare: "...... #..... ...... #...o.|...... #..... ...... #.o.o.",
+      hat: "X.o.x. X.o.x. X.o.x. X.o.xo|X.o.x. X.o.xo X.o.x. X.o.x.",
+    }),
+    bpm: [104, 160],
+    climax: "open",
+    fill: "chip",
+    kit: "arcade",
+    metreGain: { compound: 1.4 },
+    share: 2.6,
   },
 };
 
@@ -363,13 +490,17 @@ export function gridBeat(st: GridStyle, b: number, per: number, compound: boolea
   }
   const ep = kind === "episode";
   for (const sp of spans) {
-    const { gp, gbar } = gridPulse(sp.i, Pb, grid.pulses, bar);
+    const gq = gridPulse(sp.i, Pb, grid.pulses, bar);
+    const gp = gq.gp;
+    const gbar = st.hold ? Math.floor(gq.gbar / st.hold) : gq.gbar;
     for (let s = 0; s < steps; s += stride) {
       const u0 = s / steps;
       if (u0 < sp.from - 1e-9 || u0 >= sp.to - 1e-9) continue;
       const late = st.swing16 && steps === 4 && s % 2 === 1 ? st.swing16 / steps : 0;
-      const at = sp.at0 + (u0 + late) * sp.width;
+      let at = sp.at0 + (u0 + late) * sp.width;
       if (at < 0 || at >= 1) continue;
+      // D565-D566: the hands a few ms off the grid (never the beat's first stroke, never closer than GRID_STEP_S).
+      if (st.humanS && s > 0 && stepS * stride >= GRID_STEP_S + 2 * st.humanS) at = Math.min(0.999, Math.max(0, at + ((jitter(bar * 97 + sp.i * steps + s, 3) - 0.5) * 2 * st.humanS) / beatS));
       for (const [piece0, row] of Object.entries(grid.rows) as [KitPiece, string][]) {
         const bars = barsOf(row);
         const line = bars[gbar % bars.length];
@@ -377,7 +508,12 @@ export function gridBeat(st: GridStyle, b: number, per: number, compound: boolea
         let vel = VEL[ch] ?? 0;
         if (!vel) continue;
         let piece = piece0;
-        if (ep) {
+        if (ep && st.episode === "soft") {
+          // D566: the episodes keep the groove, softer: the toms' and the cymbals' colour out, the kick on the pulses only.
+          if (piece === "crash" || piece === "openhat" || piece === "tomHigh" || piece === "tomLow") continue;
+          if (piece === "kick" && s !== 0) continue;
+          vel *= 0.62;
+        } else if (ep) {
           // The episodes: the bar's kick alone, the cross-stick for the snare (on the pulse), the cymbals lighter; the rest out.
           if (piece === "kick") {
             if (!(sp.i === 0 && s === 0)) continue;
@@ -392,6 +528,7 @@ export function gridBeat(st: GridStyle, b: number, per: number, compound: boolea
         }
         // The climax a little firmer throughout (its busier half by `climax` besides).
         if (kind === "climax") vel *= CLIMAX_FIRM;
+        vel *= st.metreGain?.[metreClass(per, compound)] ?? 1;
         vel *= 1 + 0.12 * (jitter(bar * 64 + sp.i * steps + s, piece.length) - 0.5);
         out.push({ piece, at, vel });
       }

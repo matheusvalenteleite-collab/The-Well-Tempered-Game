@@ -176,11 +176,12 @@ test("D533: tailored: every fugue where a score-driven style is the default or a
   for (const id of Object.keys(TWEAKS)) assert.ok(need.has(id), `${id}: a tweak for a fugue that offers no score-driven style first`);
   // The French overture, the gigues and the dances: their picks.
   assert.ok(FUGUE_PICKS.wtc1f05.includes("military"));
-  assert.ok(FUGUE_PICKS.wtc1f15.includes("tabor") && FUGUE_PICKS.wtc2f15.includes("tabor"));
+  // (D568: I/15's pinball ARCADE's now, the owner: "Didn't like this as tabor and pipe"; the tabor kept for II/15.)
+  assert.ok(FUGUE_PICKS.wtc2f15.includes("tabor") && !FUGUE_PICKS.wtc1f15.includes("tabor") && FUGUE_PICKS.wtc1f15.includes("arcade"));
   assert.ok(FUGUE_PICKS.wtc2f16.includes("castanets"));
   assert.ok(need.size >= 20, `${need.size}`);
   // On the DRUMS menu: the sound's family, then the fugue's picks.
-  const m = drumMenuFor("wtc1f15", "megaFm").map((x) => x.style);
+  const m = drumMenuFor("wtc2f15", "megaFm").map((x) => x.style);
   assert.ok(m.indexOf("tabor") < m.indexOf("rock"));
 });
 
