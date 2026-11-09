@@ -140,7 +140,7 @@ export const BOOK1: Record<string, PieceColours> = {
   wtc1f05: {
     // D502: BACH BRASS (was the harpsichord, D355).
     sound: "bachBrass",
-    soundWhy: "The Coronation: a French overture fugue, eroico, sempre f, its dotted rhythms and its pomp the trumpets in D of a festive cantata (Bodky's 'full work'): BACH BRASS, the trumpets on top, the tongued dots crisp, its bass tight on a phone.",
+    soundWhy: "The Coronation: a French overture fugue, eroico, sempre f, its dotted rhythms and its pomp the trumpets in D of a festive cantata (Bodky's 'full work'): BACH BRASS, the trumpets on top, the tongued dots crisp, each entry doubled, brighter toward the climax, its bass tight on a phone.",
     character: "Dignified, strong, with fire (Keller); the right hand on the softer manual 6-8, 9-11, 21-22, the left 17-20 (Bodky).",
     plans: {
       harpsichordSampled: [
@@ -178,7 +178,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f06: {
     sound: "jazzQuartet",
-    soundWhy: "D510: Bodky's clavichord fugue, its running semiquavers over 3/4 (the clavichord withdrawn): JAZZ QUARTET's waltz, the vibraphone on the subject, the piano inside, the plucked bass, Busoni's dolce and swells in the band's dynamics, the brushes in three.",
+    soundWhy: "D510: Bodky's clavichord fugue, its running semiquavers over 3/4 (the clavichord withdrawn): JAZZ QUARTET's waltz, the vibraphone on the subject, a tenor saxophone inside (no piano: D578), the plucked bass, Busoni's dolce and swells in the band's dynamics, the brushes in three.",
     character: "Stretti massing throughout; a first half 1-21 and a second half in inversion 21-44 (Ledbetter); episodes 9-13, 30-33.",
     plans: {
       pianoSampled: [
@@ -416,7 +416,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f17: {
     sound: "petSounds",
-    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the musette accordion, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
+    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the tack piano, the twelve-string, the French horn, the picked bass with its bass harmonica) over a soft backbeat with tambourine, the sleigh bells from the middle entries and the timpani at the arrivals; the reprise (Ledbetter 27-35) out of a bar's break.",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
@@ -456,7 +456,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f20: {
     sound: "krautrock",
-    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the Mellotron's flute on the subject's top, the combo organ, the fuzz guitar with its tape echo and the Moog bass, each on its own voice, the trance kept from the first bar to the last.",
+    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the Mellotron's flute on the subject's top, the Minimoog-style lead, the fuzz guitar with its tape echo and the Moog bass, each on its own voice, the trance kept from the first bar to the last.",
     character: "Exposition recto 1-14½, inverso 14½-27½, stretto recto 27½-48, stretto inverso 48-64½ (Ledbetter); pedal points on E (60-62) and A (83-87).",
     plans: {
       harpsichordSampled: [

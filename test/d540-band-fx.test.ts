@@ -69,8 +69,9 @@ test("D560: each band's v2 promoted in its original's place (its id and name, no
   for (const p of PRESETS) assert.ok(!p.id.endsWith("V2") && !/ v2$/i.test(p.name), p.id);
   for (const s of Object.values(PIECE_SOUND)) assert.ok(!String(s).endsWith("V2"), `no fugue's default a v2 id (${s})`);
   // The promoted bands credit their own recordings: no piano where none plays.
-  for (const band of ["salsa", "bossaNova", "chorinho", "krautrock", "abbeyRoad", "petSounds"]) assert.ok(!creditFor(band)!.includes("SALAMANDER"), band);
-  assert.ok(creditFor("jazzQuartet")!.includes("SALAMANDER"));
+  for (const band of ["salsa", "bossaNova", "chorinho", "krautrock", "abbeyRoad"]) assert.ok(!creditFor(band)!.includes("SALAMANDER"), band);
+  // (D580: PET SOUNDS' tack piano is the Salamander grand again.)
+  for (const band of ["jazzQuartet", "petSounds"]) assert.ok(creditFor(band)!.includes("SALAMANDER"), band);
 });
 
 test("D540: a band's notes pass through its one chain, built at its first note and taken down when another sound plays", () => {

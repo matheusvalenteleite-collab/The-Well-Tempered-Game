@@ -25,15 +25,17 @@ test("D543-D545: the rebuilt rock bands: no piano, one instrument a voice, their
       if (n >= 2) assert.equal(new Set(row.map((r) => r[0])).size, n, `${band} ${n}: one instrument a voice`);
       for (const [id] of row) {
         const pt = PATCHES[id as PatchId];
-        assert.notEqual(pt.sample, "piano", `${band}: ${id} is a piano`);
+        // D580: PET SOUNDS' tack piano back (the owner liked the piano); the other two none.
+        if (band !== "petSounds") assert.notEqual(pt.sample, "piano", `${band}: ${id} is a piano`);
         const lane = p.lanes?.[id as PatchId] ?? pt.lane;
         if (lane) assert.ok(lanes.has(lane), `${band}: ${id}'s lane ${lane}`);
       }
     }
-    for (const id of p.slots ?? []) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
+    if (band !== "petSounds") for (const id of p.slots ?? []) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
     const last = BAND_CHAINS[band].bus.at(-1)!;
     assert.equal(last.kind, "gain", `${band}: the trim ends the bus`);
-    assert.ok(last.kind === "gain" && last.db < -9 && last.db > -15);
+    // (D580: PET SOUNDS' -15.5: its hotter tape and louder chamber trimmed back to its level.)
+    assert.ok(last.kind === "gain" && last.db < -9 && last.db > -16);
   }
   // The chains still build on one context.
   new Chip();

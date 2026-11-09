@@ -65,7 +65,8 @@ const [out, ...jobs] = process.argv.slice(2);
         ch.lag = 0;
         const ac = ch.ctx;
         const all = f.voices.flat().map((n) => n[2]);
-        await ch.prepare(all, f.voices[voice].map((n) => n[2]));
+        // D578: as the game prepares a piece (TouchApp: its opening, so a piece's own line-up is planned first).
+        await ch.prepare(all, f.voices[voice].map((n) => n[2]), chipM.openingOf(f));
         const proto = protoById('ladder');
         const g = new ProtoGame(f, [voice], 0, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false }, ch);
         g.wall = () => 0;

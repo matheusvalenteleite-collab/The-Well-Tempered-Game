@@ -9,7 +9,7 @@
 import { openingOf, soundPlans } from "./chip.ts";
 import { FUGUES, everyNote, fugueById } from "./fugue.ts";
 import { BUDGET, decodedBytes, FETCH_MAX, monoFor, wireBytes, type Plan, type Wire } from "./sampled.ts";
-import { preset, presetById, setPreset, BAND_SLIM, type Preset } from "./sound.ts";
+import { pieceLayoutNow, pieceLineUp, preset, presetById, setPieceLayout, setPreset, BAND_SLIM, type Preset } from "./sound.ts";
 import type { Slim } from "./sampled.ts";
 import { styleIds } from "./drum-library.ts";
 
@@ -47,11 +47,14 @@ export function presetBudget(id: string, pieces = FUGUES.map((f) => f.id), slim?
   // (`slim`: the preset as it would be held slimmed: what a slim version of it would save.)
   const p: Preset = presetById(id);
   setPreset(slim ? { ...p, slim } : p);
+  const wasLayout = pieceLayoutNow();
   try {
     let worst = { b: 0, piece: "", voice: 0, drums: 0 };
     for (const pid of pieces) {
       const f = fugueById(pid);
       const all = everyNote(f).map((n) => n[2]);
+      // D578: the piece's own line-up where the sound has one (its recordings alone).
+      setPieceLayout(pieceLineUp(id, f));
       for (const voice of [0, f.voices.length - 1]) {
         const lead = (f.voices[voice] ?? []).map((n) => n[2]);
         const plans = soundPlans(all, lead, null);
@@ -59,12 +62,14 @@ export function presetBudget(id: string, pieces = FUGUES.map((f) => f.id), slim?
         if (b > worst.b) worst = { b, piece: pid, voice, drums: 0 };
       }
     }
+    setPieceLayout(null);
     // (No pitches: the instruments' plans are empty, the drums' alone left.)
     worst.drums = plansBytes(soundPlans([], [], null));
     const kit = Math.max(0, ...KIT_STYLES.map((st) => plansBytes(soundPlans([], [], st))));
     return { id, name: presetById(id).name, mb: worst.b / MB, piece: worst.piece, voice: worst.voice, ownDrumsMb: worst.drums / MB, drumsOnMb: kit / MB, residentMb: (worst.b - worst.drums + Math.max(kit, worst.drums)) / MB };
   } finally {
     setPreset(was);
+    setPieceLayout(wasLayout);
   }
 }
 

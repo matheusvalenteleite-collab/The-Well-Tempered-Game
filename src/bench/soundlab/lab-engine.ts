@@ -15,7 +15,7 @@
 import { Chip } from "../../touch/chip.ts";
 import { openingOf, soundPlans } from "../../touch/chip.ts";
 import { barAt, barStart, everyNote, fugueById, type TouchFugue } from "../../touch/fugue.ts";
-import { preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow } from "../../touch/sound.ts";
+import { preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow, pieceLineUp } from "../../touch/sound.ts";
 import { loadPlanKeep, type Plan } from "../../touch/sampled.ts";
 import { setDrumStyle } from "../../touch/drum-library.ts";
 import { padChoice, padStyle } from "./drum-pad.ts";
@@ -72,7 +72,7 @@ export function planOf(soundId: string, f: TouchFugue, voice: number, drums: str
   const wasLayout = pieceLayoutNow();
   setPreset(soundId);
   const tl = soundId === TRIO_ID ? trioLayout(f) : null;
-  setPieceLayout(tl ? { preset: soundId, count: tl.count, slots: tl.slots } : null);
+  setPieceLayout(tl ? { preset: soundId, count: tl.count, slots: tl.slots } : pieceLineUp(soundId, f));
   const pitches = everyNote(f).map((n) => n[2]);
   const lead = (f.voices[voice] ?? []).map((n) => n[2]);
   // D526: the style's files, whatever its engine (D530: the style the pad chose, else the sound's HOME).
