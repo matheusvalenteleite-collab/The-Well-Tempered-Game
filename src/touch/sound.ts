@@ -1314,7 +1314,7 @@ export const PATCHES = {
   jqVibes: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], amp: { a: 0.001, d: 1.6, s: 0, r: 0.12 }, motor: JAZZ_MOTOR, send: JAZZ_SEND, level: 0.3, sample: "jazzVibes", one: {} }),
   jqPiano: P({ osc: [{ wave: "fmPiano" }, { wave: "sine", detune: 3, gain: 0.35 }], filter: { freq: 5, q: 0.6, env: 2.6, envDecay: 0.25 }, amp: { a: 0.002, d: 1.3, s: 0, r: 0.12 }, send: JAZZ_SEND, level: 0.24, sample: "piano", one: PIANO_ONE, shelf: JAZZ_PIANO_SHELF, phoneLift: PIANO_PHONE_LIFT }),
   // D578, JAZZ QUARTET's I/6 without the piano (the owner: "Piano is way too prominent. Substitute it for another kind of
-  // jazzy instrument"; Preset.pieces): the tenor saxophone (VCSL's, as BOSSA NOVA's: a warm, Lester Young-ish tone, its
+  // jazzy instrument"; Preset.pieces): the tenor saxophone (BOSSA NOVA's recordings, sax/: a warm, Lester Young-ish tone, its
   // top a little rounded, the breath's onset) or the jazz guitar (the Gretsch played as an archtop: the neck pickup's
   // dark, round tone, its top rolled off, a soft pick). Each voice's level measured against the piano's it replaces.
   jqSax: P({ osc: [{ wave: "saw", gain: 0.4 }, { wave: "sine" }], filter: { freq: 2.2, q: 0.7 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.14 }, rec: { a: 0.05, d: 0.2, s: 0.92, r: 0.14 }, send: JAZZ_SEND, level: JAZZ_I6_LEVEL.sax, sample: "bossaSax", bow: WIND_TONGUE, one: {}, shelf: JAZZ_SAX_SHELF }),
@@ -2248,11 +2248,11 @@ export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC
 /** D430: BAROQUE BAND's (the consort's strings, VSCO's oboe, VCSL's harpsichord). */
 export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
-export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
+export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · TENOR SAX (I/6): KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D547 (D521's before it): BOSSA NOVA's (Iowa's alto flute, guitar and bass: free for any use; the tenor sax via tonejs-instruments: CC BY 3.0; the brushes and Big Rusty's kit: CC0). */
 export const BOSSA_CREDIT = "ALTO FLUTE, GUITAR, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · TENOR SAX: KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · DRUMS: SWIRLY DRUMS, BIG RUSTY DRUMS · KARORYFER SAMPLES · CC0";
-/** D545 (D524's before it): PET SOUNDS' (VSCO's strings and timpani, VCSL's harpsichord, Karoryfer's bass and kits: CC0; Iowa's horn; the accordion synthesized). */
-export const PET_CREDIT = "STRINGS, TIMPANI: VS CHAMBER ORCHESTRA 2 CE · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0";
+/** D545 (D524's before it); D580: PET SOUNDS' (the Salamander grand as the tack piano: CC BY 3.0; Black And Green's Gretsch as the twelve-string, VSCO's timpani, Karoryfer's bass and kits: CC0; Iowa's horn; the accordion, the bass harmonica and the sleigh bells synthesized). */
+export const PET_CREDIT = `TACK ${PIANO_CREDIT} · TWELVE-STRING: BLACK AND GREEN GUITARS · TIMPANI: VS CHAMBER ORCHESTRA 2 CE · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0`;
 /** D502: BACH BRASS's (University of Iowa MIS: free for any use, credit given as asked of good practice). */
 export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */

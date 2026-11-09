@@ -3679,6 +3679,12 @@ export class ProtoGame {
     if (ct) expr = { ...expr, continuo: ct };
     // D576: the entry's unison double on the player's note too (by the note's place in the piece alone, right or wrong alike).
     expr = { ...expr, ...this.unisonPlay(this.voiceOf(h.k, i), notes[i].on, voiceV.pan ?? 0) };
+    // D577: and the sound's growth with the form on the player's note as on the band's (its shelf and its room; the
+    // episodes' veil, a lowpass, the band's alone: the player's held note keeps its own expression stage).
+    if (this.growth) {
+      const gw = growthAt(this.f, notes[i].on, this.growth);
+      expr = { ...expr, tone: (expr.tone ?? 0) + (gw.colour.tone ?? 0), ...(gw.roomMul !== 1 ? { roomMul: (expr.roomMul ?? 1) * gw.roomMul } : {}) };
+    }
     // D336: the lab's DYNAMICS (its own touch, never with a reading's level or the dynamics lesson).
     const dynAns =
       this.noteDyn && !slide && expr.touch !== undefined

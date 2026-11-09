@@ -45,14 +45,14 @@ export interface GrowthSpec {
 export const BRASS_UNISON: UnisonSpec = {
   with: { bachTrumpet: ["bachHorn", "bachTrumpet"], bachHorn: ["bachTrumpet", "bachTrombone"], bachTrombone: ["bachHorn", "bachBass"], bachBass: ["bachTrombone", "bachHorn"] },
   compass: { bachTrumpet: [52, 86], bachHorn: [41, 77], bachTrombone: [40, 72], bachBass: [34, 67] },
-  level: 0.6,
+  level: 0.8,
   late: 0.012,
   pan: 0.12,
 };
 export const BRASS_GROWTH: GrowthSpec = {
-  episode: { tone: -3, lp: 3200, room: 0.9 },
+  episode: { tone: -3.5, lp: 3000, room: 0.9 },
   subject: { from: -1, to: 0.5, room: 1 },
-  climax: { tone: 2.5, room: 1.6 },
+  climax: { tone: 3, room: 1.7 },
 };
 
 export interface UnisonSpan {

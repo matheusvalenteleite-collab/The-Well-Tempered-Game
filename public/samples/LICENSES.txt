@@ -209,6 +209,10 @@ altoFlute/  University of Iowa Electronic Music Studios, Musical Instrument Samp
          Script: tools/playback/bossa/build_altoflute.py. Its tenor saxophone is sax/ (above), unchanged.
 D546, D548, SALSA and CHORINHO (promoted, D560): no new files (brassTrumpet/, brassTrombone/, jazzBass/, guitar/, cleanGuitar/, flute/, clarinet/,
          latinPerc/, all above).
+D575-D581 (WTC 2.50+, the bands remade after the owner's verdicts): no new files. PET SOUNDS (D580) now plays grand/ (the tack piano, one
+         layer), cleanGuitar/ (the twelve-string), brassHorn/, rickBass/ and its kit as above; its strings (violaSus/) and harpsichord
+         no longer; the accordion, the bass harmonica and the sleigh bells synthesized. JAZZ QUARTET's I/6 (D578) plays sax/ (above) in
+         the piano's place. KRAUTROCK's lead synthesizer (D575) is synthesized.
 
 Wire copies (D542): every <note>.mp3 here also as <note>.webm (Opus) and <note>.m4a (AAC-LC), transcoded from that MP3
 (tools/playback/codec/transcode.mjs: Opus 64/32/24 kbit/s stereo/mono/low and drums, AAC 80/48/40). Same recordings, same
