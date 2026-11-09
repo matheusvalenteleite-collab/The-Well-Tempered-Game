@@ -162,6 +162,10 @@ export const PERIOD: Record<string, Bake> = {
   // 4.3 s as BACH BRASS's notes) and Karoryfer's tenor saxophone (sax/, the Lab's), each held on the made loop.
   bossaAltoFlute: { folder: "altoFlute", rate: 32000, lp: 11000, bits: 16, loop: true },
   bossaSax: { folder: "sax", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D588, VAUDEVILLE: VSCO 2 CE's xylophone (xylophone/, the Lab's, CC BY 3.0: every fourth or fifth, G4-C8), struck; D589,
+  // FLUTE & HARP: VSCO 2 CE's concert harp (harp/, the Lab's, CC BY 3.0: every third or so, E1-F7), plucked; at full fidelity as the consort's.
+  vaudXylo: { folder: "xylophone", rate: 32000, lp: 11000, bits: 16 },
+  seaHarp: { folder: "harp", rate: 32000, lp: 11000, bits: 16 },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -504,7 +508,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -707,6 +711,13 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // octave nearer) and the tenor saxophone (every minor third Cs3-G5), each held on its made loop.
   bossaAltoFlute: { set: "bossaAltoFlute", plucked: false, gain: 2.2, maxShift: 3 },
   bossaSax: { set: "bossaSax", plucked: false, gain: 2.2, maxShift: 3 },
+  // D588, VAUDEVILLE's xylophone: struck, ringing out (a short note stopped by the next stroke's damping: `pedal`), retuned
+  // up to 6 semitones below its lowest recording (G4: the soprano's C#4 at most; the bar's pitch, darker and longer, a marimba's
+  // kin), else within the nearest's fourth; a harder stroke a little brighter (velTone).
+  vaudXylo: { set: "vaudXylo", plucked: true, gain: 2.2, pedal: { short: 0.16, shortTau: 0.04, tau: 0.12 }, velTone: { perDb: 0.5, hz: 3000, min: -2.5, max: 2.5 }, maxShift: 6 },
+  // D589, FLUTE & HARP's harp: plucked, the strings left to ring a little past the written end (the harpist's hand damps late:
+  // `pedal`'s longer tau), retuned 2 semitones at most (recorded every third: 1.5 to the nearest), then an octave nearer.
+  seaHarp: { set: "seaHarp", plucked: true, gain: 2.2, pedal: { short: 0.25, shortTau: 0.08, tau: 0.25 }, velTone: { perDb: 0.4, hz: 2000, min: -2, max: 2 }, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;

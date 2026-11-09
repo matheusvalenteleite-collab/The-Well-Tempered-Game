@@ -94,6 +94,7 @@ import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { TRIO_ID, continuoFor, trioLayout, type ContinuoScript } from "../touch/trio.ts";
+import { stageFor, type StageScript } from "../touch/stage.ts";
 import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
 import { FormLayer, withForm } from "../touch/fugue-form.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
@@ -674,6 +675,8 @@ export class ProtoGame {
     const tl = preset().id === TRIO_ID ? trioLayout(f) : null;
     setPieceLayout(tl ? { preset: preset().id, count: tl.count, slots: tl.slots } : pieceLineUp(preset().id, f));
     this.continuo = o.her ? null : continuoFor(f, preset().id);
+    // D590: a staged sound's stages (stage.ts: by the form alone): its doubling parts join the lines from theirs.
+    this.stage = o.her ? null : stageFor(f, preset().id);
     // D576/D577: BACH BRASS's entries doubled in unison and its colour by the form (band-growth.ts), a fugue's only.
     const bg = o.her || f.kind !== "fugue" ? null : BAND_GROWTH[preset().id];
     this.unisons = bg?.unison ? unisonSpans(f, f.voices.map((_, v) => patchIdFor(v, f.voices.length)), bg.unison) : [];
@@ -1170,6 +1173,7 @@ export class ProtoGame {
       const fdb = fm ? 10 ** (fm.db / 20) : 1;
       // D504: the continuo on the bass's note where the piece's script has it (an ornamented note: the bass alone).
       const ct = parts.length === 1 && !n.band ? (this.continuo?.at(n.on, n.voice) ?? null) : null;
+      const sg = this.stage ? this.stage.at(n.on) : null;
       for (const [q, [pon, pdur, pmidi]] of parts.entries()) {
         const pat = orn ? Math.max(ch.ctx.currentTime, this.timeAt(pon) + sh.nudge) : at;
         const last = q === parts.length - 1;
@@ -1180,7 +1184,7 @@ export class ProtoGame {
         const art = { ...(q === 0 && jn.legato ? { legato: true, from: jn.from } : {}), ...(last && jn.tie ? { tie: jn.tie } : {}), ...(last && jn.final ? { final: true } : {}), ...(last && jn.apart ? { apart: true } : {}), ...(jn.vel !== undefined ? { vel: jn.vel } : {}), ...(jn.dampMul ? { dampMul: jn.dampMul } : {}), ...(jn.roomMul ? { roomMul: jn.roomMul } : {}) };
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
-        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * bal * fdb, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}), ...(gw && gw.roomMul !== 1 ? { roomMul: (art.roomMul ?? 1) * gw.roomMul } : {}), ...(orn ? {} : uni) });
+        const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * bal * fdb, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}), ...(gw && gw.roomMul !== 1 ? { roomMul: (art.roomMul ?? 1) * gw.roomMul } : {}), ...(orn ? {} : uni), ...(sg ? { stage: sg } : {}) });
         if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
@@ -3677,6 +3681,9 @@ export class ProtoGame {
     // D504: the continuo on the player's bass note where the script has it (by the note's place in the piece alone, right or wrong alike).
     const ct = this.continuo?.at(notes[i].on, this.voiceOf(h.k, i));
     if (ct) expr = { ...expr, continuo: ct };
+    // D590: the stage where the player's note falls (by its place in the piece alone, right or wrong alike).
+    const sg = this.stage?.at(notes[i].on);
+    if (sg) expr = { ...expr, stage: sg };
     // D576: the entry's unison double on the player's note too (by the note's place in the piece alone, right or wrong alike).
     expr = { ...expr, ...this.unisonPlay(this.voiceOf(h.k, i), notes[i].on, voiceV.pan ?? 0) };
     // D577: and the sound's growth with the form on the player's note as on the band's (its shelf and its room; the
@@ -4913,6 +4920,8 @@ export class ProtoGame {
   form: FormLayer | null = null;
   /** D504: ZELENKA TRIO's continuo script for the piece (trio.ts: by its structure alone), null on any other sound. */
   continuo: ContinuoScript | null = null;
+  /** D590: a staged sound's stages for the piece (stage.ts: by its form alone), null on any other sound. */
+  stage: StageScript | null = null;
   /** D576: the entries' unison doubles (band-growth.ts unisonSpans), their spec; D577: the colour's growth with the form. */
   unisons: UnisonSpan[] = [];
   unisonSpec: UnisonSpec | null = null;

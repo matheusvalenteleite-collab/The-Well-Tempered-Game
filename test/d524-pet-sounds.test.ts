@@ -191,10 +191,10 @@ test("D524: the allocation: I/17 opens on PET SOUNDS, with its reason", () => {
   assert.match(COLOURS.wtc1f17.soundWhy, /Pet Sounds/);
 });
 
-test("D524: the harpsichord, an honoured core sound, opens at least three fugues (I/24, II/2, II/9); SID 64 keeps four", () => {
+test("D524: the harpsichord, an honoured core sound, opens at least two fugues (II/2, II/9; D590: I/24 to ORCHESTRA & ORGAN, the owner: \"definitely not harpsichord\"); SID 64 keeps four", () => {
   const count = (s: string) => Object.entries(PIECE_SOUND).filter(([id]) => /^wtc[12]f\d+$/.test(id) && PIECE_SOUND[id] === s).length;
-  assert.ok(count("harpsichordSampled") >= 3, `${count("harpsichordSampled")}`);
-  for (const id of ["wtc1f24", "wtc2f02", "wtc2f09"]) {
+  assert.ok(count("harpsichordSampled") >= 2, `${count("harpsichordSampled")}`);
+  for (const id of ["wtc2f02", "wtc2f09"]) {
     assert.equal(PIECE_SOUND[id], "harpsichordSampled", id);
     assert.equal(COLOURS[id].sound, "harpsichordSampled", id);
     assert.ok(COLOURS[id].plans.harpsichordSampled?.length, `${id}: its colour plan`);

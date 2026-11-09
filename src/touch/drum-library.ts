@@ -15,6 +15,8 @@
  *                                             engine (what plays it, below), why (one line) }; an unknown id: HOME_FALLBACK's
  *   stylesIn(family): StyleId[]             a family's styles
  *   homeStyleFor(sound): StyleId            the sound's HOME (a sound id of sound.ts PRESETS/TRIALS; unknown: "rock")
+ *   homeFor(pieceId, sound): StyleId        D585: what DRUMS play with nothing chosen: the fugue's own style (FUGUE_STYLES)
+ *                                             on its own sound (PIECE_SOUND), else the sound's HOME; the menu's HOME entry
  *   familyFor(sound): readonly StyleId[]    the sound's family, HOME first (styles that suit the sound, any family)
  *   metreOf(fugue): Metre                   "duple" | "triple" | "compound" (fugue: a TouchFugue or its id)
  *   fits(style, fugue): boolean             the style is idiomatic in the fugue's metre (FITS); every style still plays
@@ -49,6 +51,7 @@ import { beatOf, fugueById, type TouchFugue } from "./fugue.ts";
 import { isCharacter, stylesFor } from "./drum-presets.ts";
 import { metreClass, type MetreClass } from "./drum-grids.ts";
 import { preset } from "./sound.ts";
+import { PIECE_SOUND } from "./piece-sound.ts";
 
 export type Family = "rock" | "jazz" | "latin" | "electronic" | "orchestral";
 export type Metre = MetreClass;
@@ -160,6 +163,13 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
   // MARCH is BACH BRASS's HOME, the Janissaries out of its family (still in the library).
   bachBrass: ["march", "timpani", "military", "fieldDrums", "frame"],
   trialWinds: ["frame", "tabor", "timpani"],
+  // D586-D590, the setups' new sounds: BERLIN SCHOOL a drum machine of its time; VAUDEVILLE the score's period kits (the
+  // slapstick's blocks and ratchet once the drums session's STOOGES lands, FUGUE_STYLES); FLUTE & HARP the brushes and the frame
+  // cymbal washes (its SWELL likewise); ORCHESTRA & ORGAN the timpani and the field drums.
+  berlinSchool: ["scoreSynth", "machine", "techno", "idm", "linn"],
+  vaudeville: ["stooges", "frame", "tabor", "castanets"],
+  fluteHarp: ["swell", "brushes", "psych", "jazzWaltz"],
+  orchestraOrgan: ["timpani", "fieldDrums", "march", "frame"],
 };
 /**
  * D532: a fugue's own period picks (after its sound's family on the DRUMS menu): the French overture (I/5) the side drum,
@@ -194,6 +204,47 @@ export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
 /** D532: a fugue's curated styles for a sound: the sound's family, then the fugue's own picks. */
 export const curatedFor = (pieceId: string, sound: string): readonly StyleId[] => [...new Set([...familyFor(sound), ...(FUGUE_PICKS[pieceId] ?? [])])];
 export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[sound]?.[0] ?? HOME_FALLBACK;
+/**
+ * D585, THE FUGUE'S OWN DRUMS: a fugue's default style where it plays on its own sound (piece-sound.ts PIECE_SOUND), in
+ * place of the sound's HOME (the owner, on the Sound Lab's IDEAS: I/1's lo-fi, II/12's bebop, II/3's 909, II/4's glitch
+ * "worked out"; the brief's table for the rest). On any other sound the sound's HOME plays, as before. A style the library
+ * does not have yet (the drums session's new ones) plays its nearest kin until it lands (FUGUE_STYLE_STANDIN), with no
+ * change here.
+ */
+export const FUGUE_STYLES: Readonly<Record<string, string>> = {
+  wtc1f01: "lofi",
+  wtc1f02: "scoreSynth",
+  wtc1f05: "march",
+  wtc1f15: "arcade",
+  wtc1f19: "stooges",
+  wtc1f20: "liebezeit",
+  wtc1f24: "timpani",
+  wtc2f03: "house",
+  wtc2f04: "idm",
+  wtc2f05: "march",
+  wtc2f12: "bebop",
+  wtc2f18: "swell",
+  // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
+  // 69% of its gaps alike; the arcade's 45%, sd 0.10.)
+  wtc2f24: "arcade",
+};
+/** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
+export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
+  scoreSynth: "machine",
+  arcade: "chip",
+  stooges: "frame",
+  liebezeit: "motorik",
+  march: "military",
+  swell: "brushes",
+};
+/** D585: the fugue's own style (FUGUE_STYLES, or its stand-in), or null where it has none. */
+export function fugueStyle(pieceId: string): StyleId | null {
+  const want = FUGUE_STYLES[pieceId];
+  if (!want) return null;
+  return isStyle(want) ? want : (FUGUE_STYLE_STANDIN[want] ?? null);
+}
+/** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else the sound's HOME. */
+export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? homeStyleFor(sound);
 export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[sound] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 
 const fugueOf = (f: TouchFugue | string): TouchFugue | null => {
@@ -242,8 +293,8 @@ export function chosenStyle(pieceId: string): StyleId | null {
   }
 }
 const soundNow = () => preset().id;
-/** The style the drums play for a piece: the chosen one, else the HOME of the sound (the one playing, by default). */
-export const drumStyleFor = (pieceId: string, sound: string = soundNow()): StyleId => chosenStyle(pieceId) ?? homeStyleFor(sound);
+/** The style the drums play for a piece: the chosen one, else the fugue's own on its own sound (D585), else the HOME of the sound (the one playing, by default). */
+export const drumStyleFor = (pieceId: string, sound: string = soundNow()): StyleId => chosenStyle(pieceId) ?? homeFor(pieceId, sound);
 /** The piece last chosen for (the sound's loading asks it before a piece's first beat). */
 export const drumPiece = () => currentPiece;
 
@@ -258,7 +309,7 @@ export interface DrumMenuItem {
 }
 /** The whole library for a piece and sound: HOME first, then the sound's family, then the rest (styleIds' order). */
 export function drumMenuFor(pieceId: string, sound: string = soundNow()): DrumMenuItem[] {
-  const home = homeStyleFor(sound);
+  const home = homeFor(pieceId, sound);
   const cur = curatedFor(pieceId, sound);
   const order = [home, ...cur.filter((s) => s !== home), ...styleIds.filter((s) => s !== home && !cur.includes(s))];
   return order.map((style, i) => ({ id: i === 0 ? HOME_ID : style, name: styleInfo(style).label, style, family: styleInfo(style).family, home: i === 0, fits: fits(style, pieceId) }));

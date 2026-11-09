@@ -14,9 +14,9 @@ export const SOUND_GROUPS: readonly [group: string, ids: readonly string[]][] = 
   ["INSTRUMENTS", ["harpsichordSampled", "pianoSampled", "chamberOrgan"]],
   // D430: BAROQUE BAND an ensemble; D433: BLEEPS AND BLOOPS retired.
   // D502: BACH BRASS an ensemble (a brass choir); D504: ZELENKA TRIO; D503: JAZZ QUARTET.
-  ["ENSEMBLES", ["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds"]],
+  ["ENSEMBLES", ["stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "vaudeville", "fluteHarp", "orchestraOrgan"]],
   ["GAME CONSOLES", ["chip", "gameboy", "super16", "megaFm", "sid64", "tracker"]],
-  ["SYNTHESIZERS", ["analog", "tomita"]],
+  ["SYNTHESIZERS", ["analog", "berlinSchool", "tomita"]],
   ["VOICES", ["vocalSynth", "soloVoices"]],
 ];
 

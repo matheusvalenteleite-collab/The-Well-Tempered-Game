@@ -4,7 +4,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FAMILIES, fits, homeStyleFor, isStyle, PLANNED_STYLES, styleIds } from "../src/touch/drum-library.ts";
+import { FAMILIES, FUGUE_STYLES, fits, homeFor, isStyle, PLANNED_STYLES, styleIds } from "../src/touch/drum-library.ts";
 import { padChoice, padGroups, padStyle } from "../src/bench/soundlab/drum-pad.ts";
 import { changeKind, defaults, linkOf, parseLink } from "../src/bench/soundlab/lab-state.ts";
 import { FUGUES, LAB_SOUNDS, planOf } from "../src/bench/soundlab/lab-engine.ts";
@@ -22,7 +22,8 @@ test("D530: the pad shows every style once, by family, HOME and FITS marked, the
     for (const x of g) for (const i of x.items) if (!i.coming) assert.equal(i.family, x.family);
     const homes = g.flatMap((x) => x.items.filter((i) => i.home));
     assert.equal(homes.length, 1);
-    assert.equal(homes[0].style, homeStyleFor(sound));
+    // D585: the HOME the fugue's own style on its own sound (I/5 on BACH BRASS), else the sound's.
+    assert.equal(homes[0].style, homeFor(piece, sound));
     for (const x of g) for (const i of x.items) if (!i.coming) assert.equal(i.fits, fits(i.style, piece), `${i.style} FITS ${piece}`);
     const coming = g.flatMap((x) => x.items.filter((i) => i.coming).map((i) => i.style));
     assert.deepEqual(coming, PLANNED_STYLES.filter((p) => !isStyle(p.id)).map((p) => p.id));
@@ -55,13 +56,19 @@ test("D530: the style chosen is the setting's; HOME follows the sound; older lin
   assert.ok(summaryOf(f, { ...s, style: "triphop" }, "vocalSynth").some((it) => it.text.includes("TRIP-HOP")));
 });
 
-test("D531: IDEAS, 25-30 combinations, each complete; none \"coming\" whose style is built", () => {
-  assert.ok(IDEAS.length >= 25 && IDEAS.length <= 30, `${IDEAS.length} ideas`);
+test("D531, D591: IDEAS, 20-25 combinations, each complete; the bold mismatches gone; COMING only while a style is unbuilt", () => {
+  // D591 (the owner: "I hated most of the bold mismatches"): 20-25, no BOLD kind; OWN, SAFE, TAILORED.
+  assert.ok(IDEAS.length >= 20 && IDEAS.length <= 25, `${IDEAS.length} ideas`);
   assert.equal(new Set(IDEAS.map((i) => i.id)).size, IDEAS.length);
-  const kinds = new Set(IDEAS.map((i) => i.kind));
-  // D532-D534 (S3) built the period styles: their ideas are SAFE (each FITS its fugue's metre) or BOLD, none "coming".
-  assert.deepEqual([...kinds].sort(), ["bold", "safe"]);
-  assert.ok(IDEAS.filter((i) => i.kind === "bold").length >= 8);
+  for (const it of IDEAS) assert.ok(["own", "safe", "tailored"].includes(it.kind), `${it.id}: ${it.kind}`);
+  // The four that worked kept (now their fugues' own); the rejected ones gone.
+  for (const id of ["canon-lofi", "masquerade-bebop", "switchboard-house", "machine-idm"]) assert.ok(IDEAS.some((i) => i.id === id), id);
+  for (const id of ["pinball-tabor", "lastdance-castanets", "stooges-shuffle", "faust-triphop"]) assert.ok(!IDEAS.some((i) => i.id === id), id);
+  // OWN: the fugue's own sound and its own drums (FUGUE_STYLES), as it now opens.
+  for (const it of IDEAS.filter((i) => i.kind === "own")) {
+    assert.equal(it.sound, PIECE_SOUND[it.piece], it.id);
+    assert.equal(it.style, FUGUE_STYLES[it.piece], it.id);
+  }
   for (const it of IDEAS) assert.ok(!DROPPED[`${it.piece}/${it.style}`], `${it.id} was dropped by the proxy`);
   const sounds = LAB_SOUNDS.map((x) => x.id);
   for (const it of IDEAS) {
@@ -70,14 +77,13 @@ test("D531: IDEAS, 25-30 combinations, each complete; none \"coming\" whose styl
     const f = fugueById(it.piece);
     assert.ok(it.bar >= (f.bars[0]?.n ?? 1) && it.bar <= f.bars[f.bars.length - 1].n, `${it.id}: bar ${it.bar}`);
     assert.ok(it.why.length > 10 && it.why.length <= 140 && !it.why.includes("\n"), `${it.id}: one dry line`);
-    if (it.kind === "coming") {
-      // Strict: "coming" only for a style not yet built (none now).
-      assert.ok(!isStyle(it.style) && PLANNED_STYLES.some((p) => p.id === it.style), `${it.id}: "coming" but ${it.style} is in styleIds`);
-      assert.equal(ideaPlayable(it), false);
+    if (!isStyle(it.style)) {
+      // D591: a style the drums session is still building: listed as COMING, not playable until it lands.
+      assert.equal(ideaPlayable(it), false, it.id);
     } else {
       assert.ok(isStyle(it.style), `${it.id}: ${it.style}`);
       assert.ok(ideaPlayable(it));
-      if (it.kind === "safe") assert.ok(fits(it.style, it.piece), `${it.id}: a SAFE match FITS`);
+      if (it.kind === "safe" || it.kind === "tailored") assert.ok(fits(it.style, it.piece), `${it.id}: a ${it.kind} match FITS`);
       // Loaded whole: the fugue, the sound (null where it is the fugue's own), the drums on with the style.
       const s = ideaSettings(it);
       assert.equal(s.piece, it.piece);

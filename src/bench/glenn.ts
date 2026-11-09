@@ -89,6 +89,10 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "bossaNova") return "plucked";
   // D524: PET SOUNDS on top its strings and its horn (bowed, tongued: Patch.bow), as the consort.
   if (presetId === "petSounds") return "bowed";
+  // D588: VAUDEVILLE on top its xylophone (struck: one player's over-legato); D589 FLUTE & HARP its flute and D590 ORCHESTRA
+  // & ORGAN its strings on top (tongued and bowed: Patch.bow), as the consort.
+  if (presetId === "vaudeville") return "plucked";
+  if (presetId === "fluteHarp" || presetId === "orchestraOrgan") return "bowed";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
@@ -278,6 +282,10 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   tracker: "synths",
   analog: "synths",
   tomita: "synths",
+  // D586: BERLIN SCHOOL's synthesizers; D590 ORCHESTRA & ORGAN as the strings (its bows: Patch.bow). (D589 FLUTE & HARP each
+  // instrument its own, as SALSA: no family.)
+  berlinSchool: "synths",
+  orchestraOrgan: "strings",
 };
 /** D424: a preset's family for the touches' sounds (null: a keyboard, the lute, any other: unchanged). */
 export const touchFamily = (presetId: string): TouchFamily | null => TOUCH_FAMILIES[presetId] ?? null;

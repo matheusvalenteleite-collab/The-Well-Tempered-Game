@@ -308,8 +308,9 @@ test("D503: any other fugue: the generic rule (sections, cadences, the bass's en
 });
 
 test("D503: no tempo change: the pieces keep their tempo, the band's notes their place; the drums fit inside each beat", () => {
+  // (D588: I/19 to VAUDEVILLE; its brushes still played on the quartet, a choice away.)
   for (const id of ["wtc1f19", "wtc2f12"]) {
-    assert.equal(PIECE_SOUND[id], "jazzQuartet", id);
+    if (id === "wtc2f12") assert.equal(PIECE_SOUND[id], "jazzQuartet", id);
     assert.ok(tempoOf(id) > 0);
     const { f, beat, per, compound, ticks } = beats(id);
     const fills = fillsFor(f, beat, per);
@@ -324,9 +325,8 @@ test("D503: no tempo change: the pieces keep their tempo, the band's notes their
   assert.deepEqual(Object.keys(JAZZ).sort(), ["by", "chain", "fx", "gain", "groove", "id", "kit", "lanes", "name", "phoneGain", "pieces", "room", "slim", "slots"]);
 });
 
-test("D503: the allocation: I/19 and II/12 open on JAZZ QUARTET, with their reasons", () => {
-  assert.equal(PIECE_SOUND.wtc1f19, "jazzQuartet");
+test("D503: the allocation: II/12 opens on JAZZ QUARTET, with its reason (D588: I/19 to VAUDEVILLE, the owner: \"didn't work out as shuffle\")", () => {
+  assert.equal(PIECE_SOUND.wtc1f19, "vaudeville");
   assert.equal(PIECE_SOUND.wtc2f12, "jazzQuartet");
-  assert.match(COLOURS.wtc1f19.soundWhy, /^Delicate 9\/8 scherzo: the Modern Jazz Quartet played Bach/);
   assert.match(COLOURS.wtc2f12.soundWhy, /^Caprice and humour, swung by the vibes/);
 });
