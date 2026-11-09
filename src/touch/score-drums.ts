@@ -33,13 +33,22 @@ import { formOf, phaseAt } from "./form-points.ts";
 import { dynGain } from "./jazz-drums.ts";
 import { tempoOf } from "./tempi.ts";
 import type { KitHit, KitPiece } from "./drum-presets.ts";
+import { addLayers } from "./score-layers.ts";
 
+/** D532's orchestral and period kits (the period kit's recordings: public/samples/drums/period). */
 export const SCORE_STYLES = ["timpani", "frame", "military", "tabor", "castanets", "janissary", "fieldDrums"] as const;
-export type ScoreStyle = (typeof SCORE_STYLES)[number];
-export const isScoreStyle = (s: string): s is ScoreStyle => (SCORE_STYLES as readonly string[]).includes(s);
+/**
+ * D565-D570's score-driven styles: MARCH (BACH BRASS's HOME: the subject's rhythm on the side drum, rudiments, the bass
+ * drum on the strong beats, the cymbals at the arrivals), STOOGES (slapstick: woodblocks, temple blocks, a ratchet, the
+ * bonk), SCORE SYNTH (an electronic kit whose strokes come from the score), SWELL (mallets, cymbal swells, a brush).
+ */
+export const SCORE_STYLES_D3 = ["march", "stooges", "scoreSynth", "swell"] as const;
+export const ALL_SCORE_STYLES = [...SCORE_STYLES, ...SCORE_STYLES_D3] as const;
+export type ScoreStyle = (typeof ALL_SCORE_STYLES)[number];
+export const isScoreStyle = (s: string): s is ScoreStyle => (ALL_SCORE_STYLES as readonly string[]).includes(s);
 
 /** A style's drums: what takes each of the four sources, its roll, its landings. */
-interface ScoreKit {
+export interface ScoreKit {
   /** The bass's accents (and, for the strongest, `strong` with it). */
   bass: KitPiece;
   bassVel: number;
@@ -78,12 +87,30 @@ export const SCORE_KITS: Readonly<Record<ScoreStyle, ScoreKit>> = {
   janissary: { bass: "bassDrum", bassVel: 0.9, strong: ["cymbals"], subject: "triangle", subjectVel: 0.75, cadence: ["bassDrum", "cymbals"], roll: "triangle", rollS: 0.06, land: ["bassDrum", "cymbals"], final: ["bassDrum", "cymbals", "triangle"] },
   // Field drums: the rope-tension drum's deep head, long rolls (into the arrivals, on the pedals), flammed accents.
   fieldDrums: { bass: "fieldDrum", bassVel: 0.85, subject: "fieldDrum", subjectVel: 0.45, cadence: ["fieldDrum"], roll: "fieldDrum", rollS: 0.065, land: ["fieldDrum", "bassDrum"], final: ["fieldDrum", "bassDrum"], flam: true, pedal: "fieldDrum", rollLen: 1.5 },
+  // D567, MARCH: the bass drum on the bass's accents and the strong beats, the side drum on the subject's rhythm (flams on
+  // its beats, a drag and a five-stroke roll into each entry), ruffs at the cadences, the cymbals at the arrivals only;
+  // the episodes a stick's soft street beat (score-layers.ts).
+  march: { bass: "bassDrum", bassVel: 0.8, subject: "sideDrum", subjectVel: 0.95, cadence: ["sideDrum", "bassDrum"], roll: "sideDrum", rollS: 0.05, land: ["sideDrum", "bassDrum", "cymbals"], final: ["bassDrum", "sideDrum", "cymbals"], ruff: true },
+  // D569, STOOGES: the temple blocks on the bass's accents (the high one where the bass leaps up), the woodblock on the
+  // subject's rhythm, the claves in the episodes; a ratchet into the arrivals with a rising whistle (a noise sweep), the
+  // bonk on the cadences after a cartoon pause and a "ta-da", the slapstick on the perfect ones; the final a bonk, the
+  // slapstick and a falling whistle.
+  stooges: { bass: "templeLo", bassVel: 0.8, episodeBass: "claves", subject: "woodblock", subjectVel: 0.78, cadence: ["bonk"], roll: "ratchet", rollS: 0.045, land: ["slapstick", "bonk"], final: ["bonk", "slapstick", "whistleDown"] },
+  // D570, SCORE SYNTH: an analog kit read from the score: the kick on the bass's accents, the closed hat on the subject's
+  // rhythm (the snare on its long notes on the beat), a lighter figure in the episodes (the shaker's sixteenths, a rim off
+  // the beat), the clap and the cymbal on the cadences, a machine's snare roll into the arrivals.
+  scoreSynth: { bass: "kick", bassVel: 0.85, subject: "hat", subjectVel: 0.85, cadence: ["clap", "crash"], roll: "snare", rollS: 0.07, land: ["kick", "crash"], final: ["kick", "crash", "clap"] },
+  // D572, SWELL: mallets on the toms for the bass's accents, a brush on the subject's head, the cymbal swelled with mallets
+  // into the arrivals and gently every four bars (the sea's swell), a mallet roll on the toms into the acts; the snare only
+  // at the acts' arrivals and on the final group's downbeats.
+  swell: { bass: "malletLow", bassVel: 0.72, subject: "brush", subjectVel: 0.62, cadence: ["malletLow"], roll: "malletHigh", rollS: 0.085, land: ["malletLow", "snare"], final: ["malletLow", "cymSwell"] },
 };
 
 /** Every piece a style strikes but the timpani (its recordings, loaded with DRUMS on). */
 export function scoreKitPieces(style: ScoreStyle): KitPiece[] {
   const k: ScoreKit = SCORE_KITS[style];
-  const all: (KitPiece | undefined)[] = [k.bass, k.subject, k.roll, k.episodeBass, k.pedal, ...(k.strong ?? []), ...k.cadence, ...k.land, ...k.final, ...(style === "timpani" ? (["triangle", "bassDrum"] as const) : [])];
+  const extra: Partial<Record<ScoreStyle, readonly KitPiece[]>> = { timpani: ["triangle", "bassDrum", "cymbals"], march: ["drumStick"], stooges: ["templeHi", "slapstick", "whistleUp"], scoreSynth: ["snare", "shaker", "rim"], swell: ["cymSwell", "snare"] };
+  const all: (KitPiece | undefined)[] = [k.bass, k.subject, k.roll, k.episodeBass, k.pedal, ...(k.strong ?? []), ...k.cadence, ...k.land, ...k.final, ...(extra[style] ?? [])];
   const out: KitPiece[] = [];
   for (const p of all) if (p && p !== "timp" && !out.includes(p)) out.push(p);
   return out;
@@ -124,18 +151,41 @@ export interface TweakSet {
   skip?: number[];
   pedal?: boolean;
   level?: number;
+  /**
+   * D574: a staged build (I/24's finale): the drums' level from this share at the start to the whole at the climax's
+   * peak, the bass's and the subject's strokes thinned early (none at 0, all from the peak).
+   */
+  stage?: number;
+  /** D574: the bass drum and the clash cymbals at the climax's peak, its arrival and the final chord. */
+  climaxKit?: boolean;
+  /** D567: a drag and a five-stroke roll into each entry (MARCH). */
+  entryRolls?: boolean;
 }
 export interface Tweak extends TweakSet {
   why: string;
   styles?: Partial<Record<ScoreStyle, TweakSet & { why?: string }>>;
 }
-const DEFAULT: Required<TweakSet> = { thr: 1, perBar: 2, subject: "all", rolls: "acts", cadences: "all", skip: [], pedal: true, level: 1 };
+const DEFAULT: Required<TweakSet> = { thr: 1, perBar: 2, subject: "all", rolls: "acts", cadences: "all", skip: [], pedal: true, level: 1, stage: 1, climaxKit: false, entryRolls: false };
+/** D565-D570: the new score-driven styles' own defaults (a fugue's tweak over them). */
+const STYLE_DEFAULT: Partial<Record<ScoreStyle, TweakSet>> = { march: { entryRolls: true }, swell: { subject: "head", perBar: 1 } };
 
 /**
  * THE TAILORED FUGUES (each read from its score: the metre and tempo, the subject's rhythm, how its entries overlap,
  * what its bass does, where its cadences and pedals fall). D532's table in docs/DECISIONS.md.
  */
 export const TWEAKS: Readonly<Record<string, Tweak>> = {
+  wtc1f02: {
+    why: "I/2 c, 4/4 at a crotchet of 0.86 s, 31 bars, three voices, eight entries: SYNTH KIT's own (the owner: \"very synchy with the fugue subject and its episodes, something really tailored\"). The subject's whole rhythm on the hats (its semiquaver pairs and quavers, 0.21 s apart at the closest), its quavers on the beat on the snare, the kick on each entry's first note and on the bass's two heaviest notes a bar; the episodes (bars 9-11, 13-15, 17-20, 22-26, 28-29: Bach's sequences) the shaker's sixteenths and the rim off the beat instead; the four cadences (17 g, 22 c, 29 c, 31 c) the clap and the cymbal; rolls into the acts.",
+    styles: { scoreSynth: { thr: 1, perBar: 2, subject: "all", rolls: "acts", cadences: "all", why: "the subject's rhythm itself, every attack" } },
+  },
+  wtc1f19: {
+    why: "I/19 A, 9/8 at a dotted crotchet of 1.08 s, 54 bars, the subject in running quavers (0.36 s): STOOGES' slapstick on it: the woodblock on each entry's first bar (nine quavers, the scherzo's chatter), the temple blocks on the bass's two heaviest notes a bar (the high block where it leaps up), the claves in the episodes; eight cadences (9 A, 13 f#, 16 b, 20 E, 36 b, 42 f#, 49 A, 54 A), each after a half beat's cartoon pause and a ta-da on the blocks, the bonk on it, the slapstick on the perfect ones; a ratchet with a rising whistle into the acts, the final a bonk, the slapstick and a falling whistle.",
+    styles: { stooges: { subject: "head", perBar: 2, thr: 0.95, cadences: "all", rolls: "acts" } },
+  },
+  wtc2f18: {
+    why: "II/18 g#, 6/8 at a dotted crotchet of 1.08 s, 143 bars, its subject five and a half bars of flowing quavers (the owner: \"flow like the sea. It's beautiful but also not overly assuming\"): SWELL: one mallet stroke a bar on the bass's heaviest note (the low tom on the bar, the high one off it), the brush on each entry's first bar, a gentle cymbal swell every four bars, a fuller one into the acts and the final chord, the mallets' roll into the acts; the snare only at the acts' arrivals and on the final group's downbeats (bars 135-140: \"reserve that for only a few parts\"); the two perfect cadences (55, 143) marked.",
+    styles: { swell: { thr: 0.9, perBar: 1, subject: "head", rolls: "acts", cadences: "perfect", level: 0.9 } },
+  },
   wtc1f01: {
     why: "I/1 C, 4/4 at a slow crotchet: 24 entries in 27 bars, stretto on stretto; the subject's head only, else the drum never stops. The bass walks in quavers: only its minims and its leaps struck, two a bar. One episode (bar 22): a roll into the final group; the C pedal (bars 24-27) rolled on the tonic.",
     thr: 1.15,
@@ -152,7 +202,7 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
   wtc1f05: {
     why: "I/5 D, the French overture among the fugues: the subject's run of demisemiquavers and its dotted quavers, the overture's rhythm, on the drum in every entry (the run thinned to a roll's strokes); the bass runs too, so only its leaps and its long notes struck. MILITARY is its curated style: Lully's side drum.",
     thr: 1.2,
-    styles: { military: { perBar: 2, why: "the side drum doubles the dotted rhythm" }, janissary: { subject: "head" }, fieldDrums: { subject: "head" } },
+    styles: { military: { perBar: 2, why: "the side drum doubles the dotted rhythm" }, janissary: { subject: "head" }, fieldDrums: { subject: "head" }, march: { perBar: 1, thr: 1.3, subject: "all", entryRolls: true, why: "MARCH, BACH BRASS's HOME: the side drum takes the overture's whole subject (the run as a roll's strokes, the dotted rhythm flammed), a drag and a five-stroke roll into each entry after a pause, the bass drum on 1 and 3 and on the bass's heaviest leap a bar, the cymbals on the arrivals (bars 9, 17, 21, 23 and the acts')" } },
   },
   wtc1f09: {
     why: "I/9 E, a quick 4/4 (crotchet 0.72 s), its subject a leap then running semiquavers: the head's rhythm only; the bass's crotchets struck where they lean.",
@@ -176,17 +226,8 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     why: "I/13 F#, 4/4 at 0.94 s, its subject's dotted turn and quavers a light dance: the whole subject's rhythm, the bass's two accents a bar.",
   },
   wtc1f15: {
-    why: "I/15 G, a gigue in 6/8: two beats a bar, the subject's skipping head on the tambourine, the bass's dotted crotchets struck.",
+    why: "I/15 G, a gigue in 6/8: two beats a bar, the subject's skipping head on the lighter drum (SYNTH KIT's hats), the bass's dotted crotchets struck; its pinball (the owner: \"keep the PINBALL vibe\") ARCADE's, the tabor gone from its picks.",
     subject: "head",
-  },
-  // D588: I/19 on VAUDEVILLE, whose family is the period kits (the frame drum, the tabor, the castanets) until the drums
-  // session's STOOGES lands (drum-library.ts FUGUE_STYLES).
-  wtc1f19: {
-    why: "I/19 A, a scherzo in 9/8 (a dotted crotchet of about 1.1 s), its subject all skips and rests: the whole subject's rhythm on the drum (the rests are the joke), one accent a bar from the bass, every cadence marked (the slapstick's bonk), a roll only into the final group.",
-    perBar: 1,
-    subject: "all",
-    rolls: "final",
-    cadences: "all",
   },
   wtc1f21: {
     why: "I/21 Bb, a lively 3/4 (0.76 s): its long subject's head only (it runs on in semiquavers), one accent a bar; the tabor's dance.",
@@ -201,10 +242,13 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     styles: { fieldDrums: { level: 0.8 } },
   },
   wtc1f24: {
-    why: "I/24 b, a largo of 76 bars (1.4 s a crotchet), the chromatic subject in even quavers over a walking bass: the subject's head only, the bass's accents where it leaps or holds, rolls into its acts.",
+    why: "I/24 b, a largo of 76 bars (1.4 s a crotchet), the chromatic subject in even quavers over a walking bass: the subject's head only, the bass's accents where it leaps or holds, rolls into its acts. D574, Book I's finale staged: the drums from two fifths of their level and a quarter of their strokes at the start to the whole at the climax's peak (the last entry, bar 74), the timpani on the tonic and the dominant at the arrivals only, the bass drum and the clash cymbals at the climax's peak, its arrival and the final chord.",
     thr: 1.1,
     subject: "head",
     cadences: "perfect",
+    stage: 0.4,
+    climaxKit: true,
+    level: 1.5,
     styles: { fieldDrums: { level: 0.85 } },
   },
   wtc2f02: {
@@ -213,10 +257,11 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     rolls: "final",
   },
   wtc2f05: {
-    why: "II/5 D, 2/2 at a slow minim (1.9 s): the subject's quaver head (its repeated notes, a fanfare) on the drum; strettos throughout, so the head only; the minim beat subdivided: three accents a bar, a lighter threshold. A festive D major: the Janissaries' band, or the side drum.",
+    why: "II/5 D, 2/2 at a slow minim (1.9 s): the subject's quaver head (its repeated notes, a fanfare) on the drum; strettos throughout, so the head only; the minim beat subdivided: three accents a bar, a lighter threshold. A festive D major: MARCH (BACH BRASS's HOME), or the side drum.",
     thr: 0.9,
     perBar: 3,
     subject: "head",
+    styles: { march: { perBar: 2, subject: "head", entryRolls: true, why: "MARCH: the fanfare's repeated quavers on the side drum in each entry's first bar, the bass drum on both minims, a drag and a roll into each entry after a pause, the street beat in the episodes, the cymbals at 20 (A), 27 (f#) and the acts" } },
   },
   wtc2f08: {
     why: "II/8 d#, a slow 4/4 (1.43 s): the subject's quavers and dotted minims all struck, the bass's two accents a bar.",
@@ -267,7 +312,7 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     cadences: "perfect",
   },
   wtc2f24: {
-    why: "II/24 b, a passepied in 3/8: one accent a bar, the subject's quavers' head on the castanets, a roll into the final group.",
+    why: "II/24 b, a passepied in 3/8: one accent a bar, the subject's quavers' head on the lighter drum (SYNTH KIT's hats), a roll into the final group; a synth fugue now (the owner), ARCADE or SYNTH KIT, the castanets gone from its picks.",
     thr: 0.9,
     perBar: 1,
     subject: "head",
@@ -280,7 +325,7 @@ export function tweakFor(id: string, style: ScoreStyle): Required<TweakSet> {
   const { why: _w, styles, ...base } = t ?? { why: "" };
   const own = styles?.[style] ?? {};
   const { why: _x, ...o } = own as TweakSet & { why?: string };
-  return { ...DEFAULT, ...base, ...o };
+  return { ...DEFAULT, ...(STYLE_DEFAULT[style] ?? {}), ...base, ...o };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -448,6 +493,8 @@ export interface ScoreStroke {
   src: StrokeSource;
   /** A flam's or a ruff's grace note (before its stroke). */
   grace?: boolean;
+  /** D569-D572: a swelled stroke's length (s: a cymbal swell, a whistle). */
+  len?: number;
 }
 export interface ScorePlan {
   style: ScoreStyle;
@@ -650,6 +697,10 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
     if (kit.carretilla) for (let j = 4; j >= 1; j--) strokes.push({ tick: end, dt: -j * kit.rollS, piece: "castanets", vel: 0.3 + 0.08 * (4 - j), role: "roll", src: "final" });
   }
 
+  // D565-D574: the new styles' own layers (score-layers.ts: the march's strong beats and rudiments, the slapstick's
+  // cartoon timing, the synth kit's episodes, the swells), and the staged climax's kit.
+  addLayers({ f, fp, style, kit, tw, beat, per, beatS, sToT, barOn, isEpisode, inRoll, arr, strokes, end, windows });
+
   // THE FORM's level (the episodes softer, the climax's build fuller, the coda settling), the tweak's level, the
   // humanising (a few ms, a few per cent), and the strokes too close on one drum merged (the stronger kept).
   const arcAt = (t: number) => 0.86 + 0.14 * Math.min(1, t / Math.max(1, 0.6 * fp.end));
@@ -660,7 +711,11 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
     const ph = phaseAt(fp, s.tick);
     const form = (ph.phase === "episode" && (s.src === "bass" || s.src === "subject") ? EPISODE_VEL : 1) * (1 + CLIMAX_GAIN * ph.climax) * (1 - RESOLVE_FALL * (s.src === "final" ? 0 : ph.resolved));
     const jit = s.role === "roll" ? 0.6 : 1;
-    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
+    // D574: the staged build: the level from tw.stage to the whole at the climax's peak; the bass and the subject thinner early.
+    const sx = tw.stage < 1 ? smooth(s.tick / Math.max(1, fp.climax.peak)) : 1;
+    if (tw.stage < 1 && (s.src === "bass" || s.src === "subject") && hash(s.tick, 29) > 0.25 + 0.75 * sx) continue;
+    const stageG = tw.stage + (1 - tw.stage) * sx;
+    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
     const k = t.piece + (t.midi ?? "");
     const prev = lastOn.get(k);
     const timeOf = (x: ScoreStroke) => x.tick + sToT(x.dt);
@@ -701,7 +756,7 @@ export function scoreBeat(f: TouchFugue, style: ScoreStyle, tick: number, beat: 
   for (let i = lo; i < s.length && s[i].tick < tick + 2 * beat; i++) {
     const x = s[i];
     if (x.tick < tick || x.tick >= tick + beat) continue;
-    out.push({ piece: x.piece, tick: x.tick, at: (x.tick - tick) / beat + x.dt / beatS, vel: clamp(x.vel * g, 0.02, 1), ...(x.midi !== undefined ? { midi: x.midi } : {}), ...(x.role ? { role: x.role } : {}) });
+    out.push({ piece: x.piece, tick: x.tick, at: (x.tick - tick) / beat + x.dt / beatS, vel: clamp(x.vel * g, 0.02, 1), ...(x.midi !== undefined ? { midi: x.midi } : {}), ...(x.role ? { role: x.role } : {}), ...(x.len !== undefined ? { len: x.len } : {}) });
   }
   return out;
 }

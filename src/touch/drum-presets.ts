@@ -33,7 +33,8 @@ import { fugueById, keyAt, beatOf, type TouchFugue } from "./fugue.ts";
 import { climaxRamp, resolvedAt, formAt, formOf, type FormKind, type FugueForm } from "./fugue-form.ts";
 import { backbeats, DRUM_SCRIPTS, dynGain, fillsFor, type Fill } from "./jazz-drums.ts";
 import { PIECE_SOUND } from "./piece-sound.ts";
-import { GRIDS, gridBeat, type FillVoice } from "./drum-grids.ts";
+import { GRIDS, GRID_STEP_S, gridBeat, layoutOf, type FillVoice } from "./drum-grids.ts";
+import { tailorHits, tailoredGrid } from "./drum-tailor.ts";
 import { tempoOf } from "./tempi.ts";
 import { FILL_STROKE_S, JITTER_S, fillPlan, fillSlice, rand, seedOf, styleSalt, type FillFeel, type FillSpec, type PlannedFill } from "./drum-fills.ts";
 
@@ -131,7 +132,12 @@ export const isCharacter = (s: unknown): s is DrumCharacter => s === "electronic
 /** The pieces a drummer strikes (chip.ts Chip.kit: the recordings of KIT_PIECES, or the synthesized kit). */
 export type KitPiece = "kick" | "snare" | "rim" | "hat" | "openhat" | "crash" | "ride" | "tomHigh" | "tomLow" | "clap" | "tamb" | "shaker" | "congaHigh" | "congaLow" | "bongo" | "triangle" | "bassDrum" | "timp"
   // D532: the period kit's (score-drums.ts): the side drum, the field drum, the tabor, a stick on the rim, the frame drums' dum and tek, the castanets, the clash cymbals.
-  | "sideDrum" | "fieldDrum" | "tabor" | "drumStick" | "frameDum" | "frameTek" | "castanets" | "cymbals";
+  | "sideDrum" | "fieldDrum" | "tabor" | "drumStick" | "frameDum" | "frameTek" | "castanets" | "cymbals"
+  // D567, D570: the slapstick's (STOOGES: the club kit's woodblock and claves recorded; the temple blocks, the ratchet, the
+  // slapstick, the whistle-like noise sweeps and the cartoon bonk synthesized, all unpitched) and the swell's (SWELL: mallets
+  // on the toms, a cymbal swelled with mallets, a brush), synthesized in chip.ts Chip.toon.
+  | "woodblock" | "claves" | "templeHi" | "templeLo" | "ratchet" | "slapstick" | "whistleUp" | "whistleDown" | "bonk"
+  | "malletHigh" | "malletLow" | "cymSwell" | "brush";
 export interface KitHit {
   piece: KitPiece;
   /** Beats from the beat's start. */
@@ -148,6 +154,8 @@ export interface KitHit {
   grace?: boolean;
   /** D532: the fugue's tick the stroke belongs to (a score-driven stroke; a flam's grace sounds a few ms before it). */
   tick?: number;
+  /** D570: a swelled stroke's length (s: the cymbal swell's crescendo; a ratchet's or a whistle's run). */
+  len?: number;
 }
 /** What the game tells the drummer about a beat (chip.ts GrooveContext's, read through the fugue). */
 export interface KitContext {
@@ -166,6 +174,8 @@ export interface KitContext {
   keyAt?: (tick: number) => string;
   /** The fugue's home key: the timpani are tuned to its tonic and dominant (else the key sounding at the tick). */
   home?: string;
+  /** D571: the fugue's id (its tailoring, drum-tailor.ts). */
+  piece?: string;
 }
 
 /** The roll into a subject zone: this many beats (two at a quick beat), the closest strokes this far apart (s). */
@@ -242,7 +252,8 @@ export type KitStyle = string;
 /** The fills' voice of a style (D514's styles their own). */
 export const fillVoiceOf = (style: KitStyle): FillVoice => GRIDS[style]?.fill ?? (style as FillVoice);
 export function kitBeat(style: KitStyle, cx: KitContext): KitHit[] {
-  const hits = kitBeatRaw(style, cx);
+  // D571: the fugue's own tailoring of the style (drum-tailor.ts), after the form's machinery.
+  const hits = tailorHits(cx.piece, style, kitBeatRaw(style, cx), cx);
   if (style !== "timpani" || timpaniTuned(cx.home ?? cx.keyAt?.(cx.tick) ?? "c", cx.keyAt ? cx.keyAt(cx.tick) : (cx.home ?? "c"))) return hits;
   // Away from the home key's harmony the timpani are silent as pitches: the bass drum takes their strokes (unpitched).
   return hits.map((h) => (h.piece === "timp" ? { piece: "bassDrum" as const, at: h.at, vel: h.vel * TIMP_AWAY_VEL } : h));
@@ -261,6 +272,8 @@ export function timpaniTuned(home: string, local: string): boolean {
 }
 function kitBeatRaw(pattern: KitStyle, cx: KitContext): KitHit[] {
   const voice = fillVoiceOf(pattern);
+  // D566: a trance (LIEBEZEIT): no fills, no rolls, no break.
+  if (GRIDS[pattern]?.trance) return kitBeatTrance(pattern, cx);
   // D535: the drummers' fills humanised (drum-fills.ts); the orchestral ones (timpani, frame drums: S3's) as D514 wrote them.
   return voice === "timpani" || voice === "frame" ? kitBeatOrchestral(pattern, cx) : kitBeatFills(pattern, voice, cx);
 }
@@ -357,6 +370,53 @@ function kitBeatFills(pattern: KitStyle, style: FillVoice, cx: KitContext): KitH
   }
 
   return patternHits(pattern, cx, drumKind(form, tick), g, arc, pitches);
+}
+
+/** D566: the trance's lift: the snare's ghosts this long at most (s), their levels from and to (a share of the band's). */
+export const LIFT_S = 1.8;
+export const LIFT_VEL = [0.1, 0.3] as const;
+/**
+ * D566, A TRANCE's beat (LIEBEZEIT): the loop throughout, its episodes softer (drum-grids.ts `episode: "soft"`), the
+ * climax a little firmer; no fill, roll, break or roll-out, only the snare's ghosts lifting softly over the beats before
+ * the final entry and the last bar (in the loop's own sixteenths), the final entry landed on the kick, the last bar's
+ * downbeat struck.
+ */
+function kitBeatTrance(pattern: KitStyle, cx: KitContext): KitHit[] {
+  const { beatS, tick, beat, form } = cx;
+  const g = dynGain(cx.dynDb ?? 0);
+  const arc = ARC_VEL + (1 - ARC_VEL) * Math.min(1, tick / Math.max(1, 0.6 * form.end));
+  const pitches = timpaniPitches(cx.home ?? (cx.keyAt ? cx.keyAt(tick) : "c"));
+  if (tick >= form.lastBar - beat / 2) {
+    if (Math.abs(tick - form.lastBar) >= beat / 2) return [];
+    return [
+      { piece: "kick", at: 0, vel: 0.9 * g, role: "accent" },
+      { piece: "crash", at: 0, vel: 0.55 * g, role: "accent" },
+      { piece: "snare", at: 0, vel: 0.5 * g, role: "accent" },
+    ];
+  }
+  const pat = (t: number) => patternHits(pattern, cx, drumKind(form, t), g, arc, pitches);
+  const st = tailoredGrid(cx.piece, pattern, GRIDS[pattern])!;
+  const L = layoutOf(st, cx.per, cx.compound, beatS);
+  // The lift's strokes: the loop's sixteenths (or eighths), never closer than FILL_STROKE_S.
+  let n = Math.max(1, Math.round((beatS / L.pulseS) * L.grid.steps));
+  while (n > 1 && beatS / n < Math.max(FILL_STROKE_S, GRID_STEP_S)) n = n % 2 === 0 ? n / 2 : n - 1;
+  const targets = [form.finalEntry > 0 && form.finalEntry < form.lastBar ? form.finalEntry : -1, form.lastBar].filter((x) => x > 0);
+  for (const at of targets) {
+    const lenB = Math.max(1, Math.min(cx.per, Math.round(LIFT_S / beatS)));
+    const from = at - lenB * beat;
+    if (Math.abs(tick - at) < beat / 2 && at !== form.lastBar) return [{ piece: "kick", at: 0, vel: 0.7 * g, role: "accent" }, ...pat(at).filter((h) => h.at > 0.02 || h.piece !== "kick")];
+    if (tick + beat <= from + 1e-6 || tick >= at - 1e-6) continue;
+    const ghosts: KitHit[] = [];
+    for (let j = 0; j < n; j++) {
+      const t = tick + (j / n) * beat;
+      if (t < from - 1e-6 || t >= at - 1e-6) continue;
+      const x = (t - from) / Math.max(1, at - from);
+      const v = g * (LIFT_VEL[0] + (LIFT_VEL[1] - LIFT_VEL[0]) * x) * (j % 2 ? 0.86 : 1) * (1 + 0.08 * (rand(seedOf(t, 77), 3) - 0.5));
+      ghosts.push({ piece: "snare", at: j / n, vel: Math.max(0.02, v), role: "fill", dur: Math.max(0, at - t) });
+    }
+    return pat(tick).filter((h) => h.piece !== "snare").concat(ghosts);
+  }
+  return pat(tick);
 }
 
 /**
@@ -570,7 +630,7 @@ function patternHits(style: KitStyle, cx: KitContext, kind: FormKind, g: number,
   // The climax's busier pattern once its build is past half (its level rises first).
   const top = kind === "climax" && climaxRamp(cx.form, cx.tick) >= CLIMAX_PATTERN_AT;
   // D527: a written style (drum-grids.ts): its grid for the metre, at the drummer's pulse for the tempo.
-  const grid = GRIDS[style];
+  const grid = tailoredGrid(cx.piece, style, GRIDS[style]);
   if (grid) {
     const bar = Math.max(0, Math.floor((cx.tick - b * cx.beat) / Math.max(1, cx.form.barTicks) + 0.5));
     for (const h of gridBeat(grid, b, per, compound, beatS, bar, kind, top)) hit(h.piece, h.at, h.vel);
