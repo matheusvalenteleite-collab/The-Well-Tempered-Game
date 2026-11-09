@@ -776,9 +776,13 @@ export const CHORO2_TRIM = { db: -8.2, phoneDb: -11.1 } as const;
  * (I/20 b. 11-14, I/16 b. 7-9, I/17 b. 7-9), so the master's limiter squashed it (crest 6.7-8.1 dB against 14-17). The trim
  * gives the drums, which bypass the chain, their place back; the presets' gains then match the originals on a phone.
  */
+/** D579: BACH BRASS's low mids cleared (its bus EQ). */
+export const BRASS_CLEAR: EqBand[] = [{ type: "peaking", hz: 300, db: -3.5, q: 0.9 }, { type: "peaking", hz: 2500, db: 1, q: 0.8 }];
 export const KRAUT2_TRIM_DB = -13.2;
+/** D575: the guitar's tape echo, a colour (was mix 0.5, feedback 0.38, full band): its repeats' level, their regeneration, their band. */
+export const KRAUT_ECHO = { feedback: 0.24, mix: 0.2, hp: 300, lp: 2600 } as const;
 export const ABBEY2_TRIM_DB = -11.5;
-export const PET2_TRIM_DB = -12;
+export const PET2_TRIM_DB = -15.5;
 /**
  * (The wetness, measured after the classic bands found their drafted rooms 6-10 dB too wet: the reverb's share of the band's
  * energy, without drums, I/20 b. 11-14, I/16 b. 7-9, I/17 b. 7-9, the reverb's return on and off. KRAUTROCK v2 1.7% against
@@ -796,7 +800,11 @@ export const BAND_CHAINS = {
     band: "krautrock",
     lanes: {
       organ: [{ kind: "eq", bands: [{ type: "peaking", hz: 2500, db: 3, q: 1.2 }, { type: "lowpass", hz: 7000, q: 0.6 }] }, { kind: "phaser", rate: 0.25, hz: 900, sweep: 1500, mix: 0.45 }, { kind: "place", pan: -0.35 }],
-      guitar: [{ kind: "gain", db: 22 }, { kind: "fuzz", drive: 6, tone: 2600, level: 0.06 }, { kind: "place", pan: 0.4 }, { kind: "echo", time: 0.36, beats: 0.75, feedback: 0.38, mix: 0.5, pan: -0.6, wow: { rate: 0.55, depth: 0.0011 } }],
+      // D575 (the owner: "the guitar is becoming too wet and hard to understand the voice"): the echo a colour behind it,
+      // not a second guitar: its repeats KRAUT_ECHO's (mix and feedback down, the repeats darker and thinner than the line).
+      guitar: [{ kind: "gain", db: 22 }, { kind: "fuzz", drive: 6, tone: 2600, level: 0.06 }, { kind: "place", pan: 0.4 }, { kind: "echo", time: 0.36, beats: 0.75, ...KRAUT_ECHO, pan: -0.6, wow: { rate: 0.55, depth: 0.0011 } }],
+      // D575: the Minimoog-style lead (sound.ts k2Synth): a little presence, the tape, a little left (the organ's seat).
+      synth: [{ kind: "eq", bands: [{ type: "peaking", hz: 1800, db: 1.5, q: 1 }, { type: "lowpass", hz: 7500, q: 0.6 }] }, { kind: "tape", drive: 1.3, rolloff: 9000 }, { kind: "place", pan: -0.3 }],
       clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "place", pan: 0.55 }],
       mellotron: [{ kind: "tape", drive: 1.6, rolloff: 8000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 140, lp: 5500 }, { kind: "place", pan: 0.25 }],
     },
@@ -877,8 +885,10 @@ export const BAND_CHAINS = {
   // Brass in a church: a gentle bus compressor (the brass's peaks only, D551), the hall long (its impulse 1.8 s: 4x CPU); no tape.
   bachBrass: {
     band: "bachBrass",
-    bus: [{ kind: "eq", era: "hip" }, { kind: "comp", model: "la2a", threshold: -10 }, { kind: "gain", db: -3.4 }],
-    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.6, rt60: 2.4, predelay: 0.03, hp: 120, lp: 5500, brightness: 0.3, level: 0.52, phoneLevel: 0.385 },
+    // D579 (the owner: "The sounds are too muddy"): the low mids cleared (a cut at 300 Hz under the tenor's and the bass's
+    // fundamentals' overlap, a little presence at 2.5 kHz), the church's return kept out of the low mids (its high-pass 280 Hz).
+    bus: [{ kind: "eq", era: "hip" }, { kind: "eq", bands: BRASS_CLEAR }, { kind: "comp", model: "la2a", threshold: -10 }, { kind: "gain", db: -3.4 }],
+    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.6, rt60: 2.4, predelay: 0.03, hp: 280, lp: 5500, brightness: 0.3, level: 0.52, phoneLevel: 0.385 },
   },
   // A 1970s Archiv / Telefunken analog trio recording: close, the reeds' edge softened a touch, warm tape, a small room.
   oboeTrio: {
@@ -891,10 +901,12 @@ export const BAND_CHAINS = {
   petSounds: {
     band: "petSounds",
     lanes: {
-      wall: [{ kind: "echo", time: 0.09, feedback: 0.12, mix: 0.25, lp: 3500, hp: 250 }, { kind: "adt", delay: 0.012, depth: 0.0008, rate: 0.4, spread: 0, level: 0.5 }],
+      wall: [{ kind: "echo", time: 0.09, feedback: 0.15, mix: 0.3, lp: 3500, hp: 250 }, { kind: "adt", delay: 0.012, depth: 0.0008, rate: 0.4, spread: 0.2, level: 0.6 }],
     },
-    bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.15 }, { kind: "gain", db: PET2_TRIM_DB }],
-    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 0.9, rt60: 1.6, predelay: 0.02, hp: 200, lp: 6000, brightness: 0.45, level: 0.35 },
+    // D580 ("Lush, not flat"): the bounce's tape hotter (drive 2.6: its saturation), the image a little wider than mono (0.25,
+    // the wall still one image), the Gold Star chamber louder and longer (its bloom on everything).
+    bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2.6, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.25 }, { kind: "gain", db: PET2_TRIM_DB }],
+    reverb: { ir: "chamber", seconds: 2.0, phoneSeconds: 1.0, rt60: 1.9, predelay: 0.025, hp: 220, lp: 6000, brightness: 0.5, level: 0.5 },
   },
 } as const satisfies Record<string, ChainSpec>;
 export type ChainBand = keyof typeof BAND_CHAINS;

@@ -320,8 +320,8 @@ test("D503: no tempo change: the pieces keep their tempo, the band's notes their
     }
   }
   // The preset carries no tempo, no swing of the written notes, no step of its own.
-  // (D560: and, promoted from its v2, its chain, its vibraphone's lane and its slimming.)
-  assert.deepEqual(Object.keys(JAZZ).sort(), ["by", "chain", "fx", "gain", "groove", "id", "kit", "lanes", "name", "phoneGain", "room", "slim", "slots"]);
+  // (D560: and, promoted from its v2, its chain, its vibraphone's lane and its slimming; D578: I/6's own line-up.)
+  assert.deepEqual(Object.keys(JAZZ).sort(), ["by", "chain", "fx", "gain", "groove", "id", "kit", "lanes", "name", "phoneGain", "pieces", "room", "slim", "slots"]);
 });
 
 test("D503: the allocation: I/19 and II/12 open on JAZZ QUARTET, with their reasons", () => {

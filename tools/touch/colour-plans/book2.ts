@@ -55,7 +55,7 @@ export const BOOK2: Record<string, PieceColours> = {
   wtc2f05: {
     // D502: BACH BRASS (was VOCAL SYNTH, D355).
     sound: "bachBrass",
-    soundWhy: "The Bell Tower: a maestoso alla breve in D, a serious choral fugue (Keller) that is a brass chorale from a tower (the Stadtpfeifer's Abblasen): BACH BRASS's four players, the stretti ringing in the church, the bass clean on a phone.",
+    soundWhy: "The Bell Tower: a maestoso alla breve in D, a serious choral fugue (Keller) that is a brass chorale from a tower (the Stadtpfeifer's Abblasen): BACH BRASS's four players, each entry doubled, the stretti ringing in a church that grows toward the climax, the bass clean on a phone.",
     character: "Sections 1-10, 10-16, 20-27 (Ledbetter); Bodky's terraces (8′, 8″+4″, coupled, full) by his right hand.",
     plans: {
       vocalSynth: [at(16, { open: 0.35 }, "Bodky's quieter 16-22 on a closed vowel."), at(22, OWN, "Open again (22).")],
