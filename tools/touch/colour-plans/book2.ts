@@ -282,7 +282,7 @@ export const BOOK2: Record<string, PieceColours> = {
   wtc2f24: {
     // D587: SWITCHED-ON (was JAZZ QUARTET, D510: the owner, "this fugue works great with synth sounds").
     sound: "analog",
-    soundWhy: "D587 (the owner: \"very bad idea to go for this Scarlatti sound. This fugue works great with synth sounds … develop it as a synthy one\"): a passepied in 3/8, 'comfortable grace' (Keller), three voices: SWITCHED-ON's clean analog voices (Carlos's way with Bach), the lead's filter closing for the long episodes and opening for the entries; with DRUMS on, an electronic kit read from the score.",
+    soundWhy: "D587 (the owner: \"very bad idea to go for this Scarlatti sound. This fugue works great with synth sounds … develop it as a synthy one\"): a passepied in 3/8, 'comfortable grace' (Keller), three voices: SWITCHED-ON's clean analog voices (Carlos's way with Bach), the lead's filter closing for the long episodes and opening for the entries; with DRUMS on, the arcade's bouncing chip kit (the synth kit read from the score a choice away).",
     character: "A long episode 61-81 and the close 90-100.",
     plans: {
       gameboy: [...widths(61, [0.125, 0.125], "The long episode (61-81) on thin pulses."), at(E("wtc2f24", 81), OWN, "The soprano's entry (81).")],

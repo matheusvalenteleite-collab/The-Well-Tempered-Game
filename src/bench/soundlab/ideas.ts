@@ -51,7 +51,8 @@ export const IDEAS: readonly Idea[] = [
   I("machine-idm", "own", "wtc2f04", "gameboy", "idm", 1, "A 12/16 perpetual motion on the handheld, glitched: the displaced kicks find the compound beat."),
   I("masquerade-bebop", "own", "wtc2f12", "jazzQuartet", "bebop", 1, "F minor 2/4 for the quartet, with the ride quick and the bombs off the beat."),
   I("sea-swell", "own", "wtc2f18", "fluteHarp", "swell", 1, "The G-sharp minor 6/8 flowing on alto flute, harp and cello, mallets and cymbal swells."),
-  I("lastdance-synth", "own", "wtc2f24", "analog", "scoreSynth", 1, "The 3/8 passepied on Carlos's analog voices, an electronic kit reading its form."),
+  I("lastdance-synth", "own", "wtc2f24", "analog", "arcade", 1, "The 3/8 passepied on Carlos's analog voices, bouncing on an arcade's chip kit."),
+  I("lastdance-kit", "tailored", "wtc2f24", "analog", "scoreSynth", 1, "The same passepied with the synth kit reading its score: the subject's rhythm on the snare."),
   I("coronation-march", "own", "wtc1f05", "bachBrass", "march", 1, "The French overture's dotted rhythm on a march snare: rudiments, flams, rolls into the entries."),
   I("belltower-march", "own", "wtc2f05", "bachBrass", "march", 1, "The D major alla breve from a tower: the bass drum on the strong beats, the snare on the subject."),
   // SAFE: the sound's own drummer or its family's, idiomatic in the metre.
@@ -61,7 +62,6 @@ export const IDEAS: readonly Idea[] = [
   I("pilgrim-brushes", "safe", "wtc1f08", "pianoSampled", "brushes", 1, "The long E-flat minor on the grand, brushes stirring under it: late-night Loussier."),
   I("bicycle-808", "safe", "wtc1f07", "analog", "machine", 1, "Switched-On Bach's own decade, with the drum machine it never had."),
   I("diary-pet", "safe", "wtc1f17", "petSounds", "pet", 1, "A-flat major, the tambourine and Hal Blaine's tom: the record's own drummer."),
-  I("knight-psych", "safe", "wtc1f16", "abbeyRoad", "psych", 1, "G minor in the band's later, looser mood: the ride washing, the floor tom."),
   I("procession-field", "safe", "wtc1f22", "soloVoices", "fieldDrums", 1, "The B-flat minor procession behind rope-tension field drums."),
   // TAILORED: a fugue's character met across the families.
   I("coronation-military", "tailored", "wtc1f05", "bachBrass", "military", 1, "The D major's dotted French-overture rhythm on a Lully side drum."),

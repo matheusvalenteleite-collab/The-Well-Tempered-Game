@@ -35,7 +35,7 @@ test("D585-D590: the fugues' own sounds and drums as the owner's verdicts set th
     wtc2f04: ["gameboy", "idm"],
     wtc1f02: ["berlinSchool", "scoreSynth"],
     wtc1f15: ["megaFm", "arcade"],
-    wtc2f24: ["analog", "scoreSynth"],
+    wtc2f24: ["analog", "arcade"],
     wtc1f19: ["vaudeville", "stooges"],
     wtc2f18: ["fluteHarp", "swell"],
     wtc1f24: ["orchestraOrgan", "timpani"],

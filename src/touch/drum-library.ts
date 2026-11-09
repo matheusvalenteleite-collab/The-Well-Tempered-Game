@@ -224,7 +224,9 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc2f05: "march",
   wtc2f12: "bebop",
   wtc2f18: "swell",
-  wtc2f24: "scoreSynth",
+  // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
+  // 69% of its gaps alike; the arcade's 45%, sd 0.10.)
+  wtc2f24: "arcade",
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
