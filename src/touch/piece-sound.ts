@@ -87,12 +87,20 @@ import { playerSound } from "./sound.ts";
  * percussion's scripted moments.
  */
 /** D523: I/2 and I/16 on ABBEY ROAD; D525: I/20 on KRAUTROCK (tools/touch/colour-plans: each reason). */
+/**
+ * D585-D590, the owner's verdicts after 2.50 (each reason in tools/touch/colour-plans): from the Sound Lab's IDEAS he liked,
+ * I/1 on the grand (the lo-fi combination "worked out better than the organ") and II/4 on GAME BOY (its glitch); I/2 on BERLIN
+ * SCHOOL (ABBEY ROAD "didn't fit at all": "analog synth sounds"); I/19 on VAUDEVILLE ("a more Stooges-y fugue, slapsticky");
+ * II/18 on FLUTE & HARP ("flow like the sea … beautiful but also not overly assuming"); I/24 on ORCHESTRA & ORGAN, staged
+ * (stage.ts: "a much more involved and ambitious setup"); II/24 on SWITCHED-ON ("this fugue works great with synth sounds").
+ * Each fugue's own drums with it (drum-library.ts FUGUE_STYLES).
+ */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
-  wtc1f01: "chamberOrgan",
+  wtc1f01: "pianoSampled",
   wtc1p02: "chip",
-  wtc1f02: "abbeyRoad",
+  wtc1f02: "berlinSchool",
   wtc1p03: "chip",
   wtc1f03: "gameboy",
   wtc1p04: "chip",
@@ -126,7 +134,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p18: "harpsichordSampled",
   wtc1f18: "pianoSampled",
   wtc1p19: "harpsichordSampled",
-  wtc1f19: "jazzQuartet",
+  wtc1f19: "vaudeville",
   wtc1p20: "harpsichordSampled",
   wtc1f20: "krautrock",
   wtc1p21: "chip",
@@ -136,7 +144,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p23: "chip",
   wtc1f23: "vocalSynth",
   wtc1p24: "chip",
-  wtc1f24: "harpsichordSampled",
+  wtc1f24: "orchestraOrgan",
   // Book II
   wtc2p01: "harpsichordSampled",
   wtc2f01: "chorinho",
@@ -145,7 +153,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p03: "harpsichordSampled",
   wtc2f03: "sid64",
   wtc2p04: "chip",
-  wtc2f04: "jazzQuartet",
+  wtc2f04: "gameboy",
   wtc2p05: "chip",
   wtc2f05: "bachBrass",
   wtc2p06: "chip",
@@ -173,7 +181,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p17: "chip",
   wtc2f17: "chip",
   wtc2p18: "harpsichordSampled",
-  wtc2f18: "jazzQuartet",
+  wtc2f18: "fluteHarp",
   wtc2p19: "harpsichordSampled",
   wtc2f19: "super16",
   wtc2p20: "harpsichordSampled",
@@ -185,7 +193,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p23: "chip",
   wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",
-  wtc2f24: "jazzQuartet",
+  wtc2f24: "analog",
   // The Art of Fugue
   "bwv1080-14": "harpsichordSampled",
   ...moreBachSounds(),

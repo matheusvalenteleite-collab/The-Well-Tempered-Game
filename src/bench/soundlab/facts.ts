@@ -110,10 +110,11 @@ export interface VoiceSeat {
 }
 
 /** The seat of each voice of a piece on a sound, top down (its patch, pan and level), as the game lays them out. */
-export function seatsOf(presetId: string, f: Pick<TouchFugue, "voices">): VoiceSeat[] {
+export function seatsOf(presetId: string, f: Pick<TouchFugue, "voices"> & { id?: string }): VoiceSeat[] {
   const p: Preset = presetById(presetId);
   const n = f.voices.length;
-  const by = p.id === TRIO_ID ? trioLayout(f).slots : p.by?.[n];
+  // D578: a piece's own line-up (Preset.pieces).
+  const by = p.id === TRIO_ID ? trioLayout(f).slots : ((f.id ? p.pieces?.[f.id]?.[n] : undefined) ?? p.by?.[n]);
   return f.voices.map((_, v) => {
     if (by) {
       const s = by[Math.min(v, by.length - 1)];

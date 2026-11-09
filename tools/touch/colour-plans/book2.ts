@@ -42,20 +42,22 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f04: {
-    sound: "jazzQuartet",
-    soundWhy: "D510: a flowing 12/16 double fugue, a gigue's lilt: JAZZ QUARTET swings its compound beat (the brushes on 2 and 4 of the four dotted beats), the vibraphone and the plucked bass apart, the piano inside.",
+    // D585: GAME BOY (was JAZZ QUARTET, D510), the Sound Lab's "machine-idm" adopted.
+    sound: "gameboy",
+    soundWhy: "D585 (the owner, of the Sound Lab's glitch idea on the handheld: it worked out): a 12/16 perpetual motion in three voices, a double fugue: the Game Boy's two pulses and its wave channel keep the three lines apart on a phone; with DRUMS on, the IDM glitch's displaced kicks find the compound beat.",
     character: "A second exposition 16-24 and an inversion 24-35 (Ledbetter), the second subject from 35, both together from 48.",
     plans: {
       pianoSampled: [at(24, { layer: "soft" }, "The inversion (Ledbetter 24-35) in the soft layer."), at(E("wtc2f04", 35), OWN, "The second subject (35).")],
       harpsichordSampled: [at(B("wtc2f04", 16), H84, "After the cadence in C♯ minor (16): the second exposition on 8′+4′."), at(24, H8, "The inversion on the 8′."), at(E("wtc2f04", 35), H84, "The second subject."), at(48, H88, "Both subjects together (Ledbetter 48-71): the coupled unison.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(E("wtc2f04", 35), OPRIN, "The second subject on the principals."), at(B("wtc2f04", 57), OFONDS, "After the cadence of 57: the foundations.")],
       tomita: [at(24, { room: 0.15 }, "The inversion in the space echo."), at(E("wtc2f04", 35), OWN, "Closer for the second subject.")],
+      gameboy: [...widths(24, [0.125, 0.25], "D585: the inversion (Ledbetter 24-35) on thinner pulses."), at(E("wtc2f04", 35), OWN, "The second subject (35) on the own widths.")],
     },
   },
   wtc2f05: {
     // D502: BACH BRASS (was VOCAL SYNTH, D355).
     sound: "bachBrass",
-    soundWhy: "The Bell Tower: a maestoso alla breve in D, a serious choral fugue (Keller) that is a brass chorale from a tower (the Stadtpfeifer's Abblasen): BACH BRASS's four players, the stretti ringing in the church, the bass clean on a phone.",
+    soundWhy: "The Bell Tower: a maestoso alla breve in D, a serious choral fugue (Keller) that is a brass chorale from a tower (the Stadtpfeifer's Abblasen): BACH BRASS's four players, each entry doubled, the stretti ringing in a church that grows toward the climax, the bass clean on a phone.",
     character: "Sections 1-10, 10-16, 20-27 (Ledbetter); Bodky's terraces (8′, 8″+4″, coupled, full) by his right hand.",
     plans: {
       vocalSynth: [at(16, { open: 0.35 }, "Bodky's quieter 16-22 on a closed vowel."), at(22, OWN, "Open again (22).")],
@@ -214,14 +216,16 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f18: {
-    sound: "jazzQuartet",
-    soundWhy: "D510 (the owner's choice: JAZZ QUARTET; the clavichord withdrawn): galant, 'not exceeding mf', in 6/8: the vibraphone and the plucked bass in the brushes' two-beat lilt, the double fugue (97) in the full band.",
+    // D589: FLUTE & HARP (was JAZZ QUARTET, D510: the owner, "you've turned one of my favorite fugues into this mess").
+    sound: "fluteHarp",
+    soundWhy: "D589 (the owner: \"let's try something different … flow like the sea. It's beautiful but also not overly assuming\"): galant, 'not exceeding mf' (Keller), 143 bars of 6/8 in G♯ minor: Debussy's trio's colours, the alto flute on top, the harp's ringing strings on the middle voice, the cello on the bass, in a dark hall; with DRUMS on, mallets on the toms and the cymbal's swells, the snare at a few structural moments only.",
     character: "Section 1 on the first subject (1-61), section 2 on the second (61-97), the double fugue (97-143) (Ledbetter); Bodky's 8″ (pp), 8′ (p), 8″+4″ (f) by section.",
     plans: {
       pianoSampled: [at(1, { layer: "soft" }, "Bodky's pp and p (1-97): the soft layer."), at(97, OWN, "The double fugue (97) in the full tone.")],
       harpsichordSampled: [at(1, HLUTE, "Bodky's softest register for the first section: here the buff."), at(61.625, H8, "Bodky: 8′ for the second subject (61⅝)."), at(97, H84, "Bodky: 8″+4″ for both subjects (97).")],
       chamberOrgan: [at(1, OFLUTE, "The flutes for the two single fugues."), at(97, OPRIN, "The double fugue on the principals.")],
       tomita: [at(61.625, { room: 0.15 }, "The second subject in the space echo."), at(97, OWN, "Closer for the double fugue.")],
+      fluteHarp: [at(61.625, { tone: -1.5 }, "D589: the second subject (61⅝, Bodky's p) a shade darker."), at(97, OWN, "The double fugue (97) in the full colour."), at(135, { room: 0.26 }, "The final entries (135-143) further into the hall.")],
     },
   },
   wtc2f19: {
@@ -276,13 +280,22 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f24: {
-    sound: "jazzQuartet",
-    soundWhy: "D510 (JAZZ QUARTET given more): a passepied in 3/8, 'comfortable grace', the collection's Ausklang (Keller, Bodky): the jazz waltz, the vibraphone light on top, the brushes in three.",
+    // D587: SWITCHED-ON (was JAZZ QUARTET, D510: the owner, "this fugue works great with synth sounds").
+    sound: "analog",
+    soundWhy: "D587 (the owner: \"very bad idea to go for this Scarlatti sound. This fugue works great with synth sounds … develop it as a synthy one\"): a passepied in 3/8, 'comfortable grace' (Keller), three voices: SWITCHED-ON's clean analog voices (Carlos's way with Bach), the lead's filter closing for the long episodes and opening for the entries; with DRUMS on, the arcade's bouncing chip kit (the synth kit read from the score a choice away).",
     character: "A long episode 61-81 and the close 90-100.",
     plans: {
       gameboy: [...widths(61, [0.125, 0.125], "The long episode (61-81) on thin pulses."), at(E("wtc2f24", 81), OWN, "The soprano's entry (81).")],
       harpsichordSampled: [at(61, HLUTE, "The long episode on the buff."), at(E("wtc2f24", 81), H8, "The entry on the 8′.")],
       chamberOrgan: [at(1, OFLUTE, "A dance: the flutes throughout.")],
+      analog: [
+        at(B("wtc2f24", 22), { lp: 2600 }, "D587: the first episode (22-26) filtered, as Switched-On Bach changes colour between the entries."),
+        at(E("wtc2f24", 26), OWN, "Open at the entry (26)."),
+        at(B("wtc2f24", 61), { lp: 2200 }, "The long episode (61-70) further closed."),
+        at(E("wtc2f24", 70), OWN, "The entry (70)."),
+        at(B("wtc2f24", 88), { lp: 2600 }, "The episode 88-97 before the last entry."),
+        at(E("wtc2f24", 97), { room: 0.12 }, "The last entry (97) open, a little of the room for the close."),
+      ],
     },
   },
 };

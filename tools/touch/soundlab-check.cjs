@@ -143,7 +143,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.waitForFunction(() => window.__soundlab.status().playing && window.__soundlab.s.drums > 0, null, { timeout: 20000 });
   ok(true, `IDEA ${idea} loaded and playing`);
   ok(!(await page.$("#sl-ideas")), "the list closes on a tap");
-  ok(await eng("return !!e.game && e.game.f.id === e.s.piece && e.s.piece === 'wtc1f02'"), "the idea's fugue playing (I/2)");
+  ok(await eng("return !!e.game && e.game.f.id === e.s.piece && e.s.piece === 'wtc1f01'"), "the idea's fugue playing (I/1, D591's first)");
   ok(errors.length === 0, `no page errors${errors.length ? `: ${errors.join(" | ")}` : ""}`);
   const log = await page.evaluate(() => window.__soundlab.seekLog);
   const avg = seeks.reduce((a, b) => a + b, 0) / seeks.length;

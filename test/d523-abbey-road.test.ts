@@ -147,8 +147,9 @@ test("D523: the chip plays the rock kit for ABBEY ROAD alone, on the clock it is
   assert.ok(ROCK_DRUMS.styles.abbey.level > 0);
 });
 
-test("D523: I/2 and I/16 open on ABBEY ROAD, with their reasons", () => {
-  for (const id of ["wtc1f02", "wtc1f16"]) {
+test("D523: I/16 opens on ABBEY ROAD, with its reason (D586: I/2 to BERLIN SCHOOL, the owner: ABBEY ROAD \"didn't fit at all\")", () => {
+  assert.equal(PIECE_SOUND.wtc1f02, "berlinSchool");
+  for (const id of ["wtc1f16"]) {
     assert.equal(PIECE_SOUND[id], "abbeyRoad", id);
     assert.equal(COLOURS[id].sound, "abbeyRoad", id);
     assert.match(COLOURS[id].soundWhy ?? "", /D523/);

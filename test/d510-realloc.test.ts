@@ -27,17 +27,19 @@ test("D510: the three withdrawn, a stored choice on the nearest kept sound; noth
 });
 
 test("D510: the allocation: the owner's requests, neighbours different, JAZZ QUARTET and SID 64 given more, each fugue's lift measured on its sound", () => {
-  const want: Record<string, string> = { wtc1f14: "jazzQuartet", wtc2f17: "chip", wtc1f12: "vocalSynth", wtc2f18: "jazzQuartet", wtc1f10: "soloVoices" };
+  const want: Record<string, string> = { wtc1f14: "jazzQuartet", wtc2f17: "chip", wtc1f12: "vocalSynth", wtc1f10: "soloVoices" };
   for (const [id, s] of Object.entries(want)) assert.equal(PIECE_SOUND[id], s, id);
   for (let k = 1; k < 48; k++) if (k !== 24) assert.notEqual(PIECE_SOUND[FUGUES[k]], PIECE_SOUND[FUGUES[k - 1]], `${FUGUES[k - 1]}, ${FUGUES[k]}`);
   const count = (s: string) => FUGUES.filter((id) => PIECE_SOUND[id] === s).length;
   // (D520: II/10 to SALSA; D521: I/9 to SID 64, which keeps four.)
-  assert.ok(count("jazzQuartet") >= 7 && count("sid64") >= 4);
+  // (D585-D589: I/19, II/4, II/18, II/24 from JAZZ QUARTET to their new setups, the owner's verdicts.)
+  assert.ok(count("jazzQuartet") >= 3 && count("sid64") >= 4);
   for (const id of FUGUES) {
     assert.equal(COLOURS[id].sound, PIECE_SOUND[id], id);
     assert.equal(OWN_LOUD[id]?.s, PIECE_SOUND[id], `${id}: the lift measured on its own sound`);
   }
-  for (const id of ["wtc1f06", "wtc1f10", "wtc1f12", "wtc1f14", "wtc1f24", "wtc2f03", "wtc2f04", "wtc2f06", "wtc2f17", "wtc2f18", "wtc2f19", "wtc2f24"]) assert.match(COLOURS[id].soundWhy, /D510/, id);
+  // (D585-D590: I/24, II/4, II/18, II/24's reasons now the setups'.)
+  for (const id of ["wtc1f06", "wtc1f10", "wtc1f12", "wtc1f14", "wtc2f03", "wtc2f06", "wtc2f17", "wtc2f19"]) assert.match(COLOURS[id].soundWhy, /D510/, id);
 });
 
 test("D510: the jazz bass: a slide a semitone or a tone, a leap a fresh pluck; its ff from Busoni's f; each recording evened on a phone", () => {

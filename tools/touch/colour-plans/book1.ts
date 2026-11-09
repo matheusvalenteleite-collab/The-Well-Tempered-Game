@@ -14,8 +14,9 @@ const B = beat;
 
 export const BOOK1: Record<string, PieceColours> = {
   wtc1f01: {
-    sound: "chamberOrgan",
-    soundWhy: "Four voices in continuous stretti over pedal points (Ledbetter's last section, bars 19-27), the subject in long, vocal steps: the stile antico of the organ ricercar, which D246 already heard on the organ. The pedal's sustained C under the close carries on a phone through the organ's upper ranks.",
+    // D585: the grand (was PIPE ORGAN, D355), the Sound Lab's "canon-lofi" adopted.
+    sound: "pianoSampled",
+    soundWhy: "D585 (the owner, of the Sound Lab's lo-fi idea: it \"worked out better than the organ\"): four voices in continuous stretti, the subject in long, vocal steps, at a crotchet of 49: the grand alone, Busoni's reading on its three zones, over the LO-FI drums' dull kick behind the beat when DRUMS is on (beats to study counterpoint to). The organ's stile antico a choice away.",
     character: "Quiet, austere (Keller); stretti from bar 7, triple and quadruple stretti 14-19, stretti over pedals 19-27 (Ledbetter); hardly any episode.",
     plans: {
       chamberOrgan: [
@@ -33,11 +34,17 @@ export const BOOK1: Record<string, PieceColours> = {
         at(19, OWN, "Over the pedals: the chip's own widths again."),
       ],
       tomita: [at(24, { room: 0.25 }, "The final tonic pedal (24-27) swells into the space echo.")],
+      pianoSampled: [
+        at(1, { layer: "soft" }, "D585: the exposition (1-7) on the grand's soft layer: Bodky's clavichord plan begins soft."),
+        at(14, OWN, "The triple and quadruple stretto after the cadence in A minor (14-19): the full tone."),
+        at(24, { layer: "soft" }, "The tonic pedal (24-27): Bodky's soft close."),
+      ],
     },
   },
   wtc1f02: {
-    sound: "abbeyRoad",
-    soundWhy: "D523: 4/4 at a crotchet of 70, its subject a riff of semiquavers (Keller's capricious, half-jesting fugue) that a rock band's backbeat carries without a note changed: ABBEY ROAD (D544, 1969's Studio Two), the Moog on the subject's top, the Leslie guitar inside, the flatwound bass, the drums' fills into each entry and the break before the last entry (bar 29).",
+    // D586: BERLIN SCHOOL (was ABBEY ROAD, D523: the owner, "didn't fit at all").
+    sound: "berlinSchool",
+    soundWhy: "D586 (the owner: ABBEY ROAD \"didn't fit at all\"; \"analog synth sounds\"): 4/4 at a crotchet of 70, its subject a riff of semiquavers that never stops, like a step sequencer's: BERLIN SCHOOL (Tangerine Dream's and Schulze's 1974-77 records), the resonant lead on the top voice, the sequencer's snapping pluck inside, the driven analog bass, the tape echo behind; with DRUMS on, an electronic kit read from the score (the subject's rhythm at the entries, a lighter figure in the episodes, the cadences marked).",
     character: "Regular alternation of entries and episodes (Bodky); episodes 5-7, 9-11, 13-15, 17-20, 22-26; the bass entry at 26 after the dominant pedal; a forte close (Keller).",
     plans: {
       harpsichordSampled: [
@@ -67,6 +74,15 @@ export const BOOK1: Record<string, PieceColours> = {
         at(28, OPLENO, "The plenum for the forte close."),
       ],
       soloVoices: [at(25, { room: 0.12 }, "The Swingle Singers sang it (Jazz Sébastien Bach, 1963): a little more of the hall for the close.")],
+      berlinSchool: [
+        at(B("wtc1f02", 9), { lp: 2200 }, "D586: the sequencer records close the filter for a passage between the themes: the episode 9-11."),
+        at(E("wtc1f02", 11), OWN, "Open again at the soprano's entry."),
+        at(B("wtc1f02", 17), { lp: 2600 }, "The episode 17-20 after the cadence in G minor, a little closed."),
+        at(E("wtc1f02", 20), OWN, "The entry in 20."),
+        at(B("wtc1f02", 22), { lp: 2200 }, "The interlude 22-25 filtered."),
+        at(25, OWN, "Open for the dominant pedal, the bass's entry and the close."),
+        at(28, { room: 0.16 }, "The close (28-31) further into the tape echo."),
+      ],
     },
   },
   wtc1f03: {
@@ -124,7 +140,7 @@ export const BOOK1: Record<string, PieceColours> = {
   wtc1f05: {
     // D502: BACH BRASS (was the harpsichord, D355).
     sound: "bachBrass",
-    soundWhy: "The Coronation: a French overture fugue, eroico, sempre f, its dotted rhythms and its pomp the trumpets in D of a festive cantata (Bodky's 'full work'): BACH BRASS, the trumpets on top, the tongued dots crisp, its bass tight on a phone.",
+    soundWhy: "The Coronation: a French overture fugue, eroico, sempre f, its dotted rhythms and its pomp the trumpets in D of a festive cantata (Bodky's 'full work'): BACH BRASS, the trumpets on top, the tongued dots crisp, each entry doubled, brighter toward the climax, its bass tight on a phone.",
     character: "Dignified, strong, with fire (Keller); the right hand on the softer manual 6-8, 9-11, 21-22, the left 17-20 (Bodky).",
     plans: {
       harpsichordSampled: [
@@ -162,7 +178,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f06: {
     sound: "jazzQuartet",
-    soundWhy: "D510: Bodky's clavichord fugue, its running semiquavers over 3/4 (the clavichord withdrawn): JAZZ QUARTET's waltz, the vibraphone on the subject, the piano inside, the plucked bass, Busoni's dolce and swells in the band's dynamics, the brushes in three.",
+    soundWhy: "D510: Bodky's clavichord fugue, its running semiquavers over 3/4 (the clavichord withdrawn): JAZZ QUARTET's waltz, the vibraphone on the subject, a tenor saxophone inside (no piano: D578), the plucked bass, Busoni's dolce and swells in the band's dynamics, the brushes in three.",
     character: "Stretti massing throughout; a first half 1-21 and a second half in inversion 21-44 (Ledbetter); episodes 9-13, 30-33.",
     plans: {
       pianoSampled: [
@@ -400,7 +416,7 @@ export const BOOK1: Record<string, PieceColours> = {
   },
   wtc1f17: {
     sound: "petSounds",
-    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the strings, the horn, the musette accordion, the electric bass) over a soft backbeat with tambourine and the timpani's rhythm; the reprise (Ledbetter 27-35) out of a bar's break.",
+    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the tack piano, the twelve-string, the French horn, the picked bass with its bass harmonica) over a soft backbeat with tambourine, the sleigh bells from the middle entries and the timpani at the arrivals; the reprise (Ledbetter 27-35) out of a bar's break.",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
@@ -427,19 +443,20 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f19: {
-    // D503: JAZZ QUARTET (was TRACKER, D355).
-    sound: "jazzQuartet",
-    soundWhy: "Delicate 9/8 scherzo: the Modern Jazz Quartet played Bach. 'A delicate and complicated scherzo' (Keller after Tovey): the vibraphone on top, the piano inside, the plucked bass, the brushes rolling into the sections.",
+    // D588: VAUDEVILLE (was JAZZ QUARTET, D503: the owner, "didn't work out as shuffle").
+    sound: "vaudeville",
+    soundWhy: "D588 (the owner: \"we need this one to be a more Stooges-y fugue, slapsticky\"): 'a delicate and complicated scherzo' (Keller after Tovey) in 9/8, its subject all skips and rests: a slapstick short's pit band, the xylophone on the top voice, the clarinet inside, the bassoon's staccato on the bass; with DRUMS on, woodblocks, temple blocks and the ratchet on the cadences.",
     character: "Sections 1-20, 23-42 and the reprise 42-54 (Ledbetter); dolce e molto espressivo (Bodky).",
     plans: {
       tracker: [at(23, { vib: 12 }, "The middle section with the tracker's vibrato command."), at(42, OWN, "The reprise plain.")],
+      vaudeville: [at(23, { tone: -1.5 }, "D588: the middle section (23-42) a shade darker, the band's second chorus."), at(42, OWN, "The reprise (42-54) bright again.")],
       harpsichordSampled: [at(1, H8, "Dolce: the 8′."), at(23, HLUTE, "The middle section (23-42) on the buff."), at(42, H84, "The reprise (42-54) on 8′+4′.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(42, OPRIN, "The reprise on the principals.")],
     },
   },
   wtc1f20: {
     sound: "krautrock",
-    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the Mellotron's flute on the subject's top, the combo organ, the fuzz guitar with its tape echo and the Moog bass, each on its own voice, the trance kept from the first bar to the last.",
+    soundWhy: "D525: 87 bars of 4/4 at a crotchet of 70 in constant quavers and semiquavers, a stretto proving-ground (Keller) that never lets up: KRAUTROCK's motorik beat on the quavers (140 to the minute), the Mellotron's flute on the subject's top, the Minimoog-style lead, the fuzz guitar with its tape echo and the Moog bass, each on its own voice, the trance kept from the first bar to the last.",
     character: "Exposition recto 1-14½, inverso 14½-27½, stretto recto 27½-48, stretto inverso 48-64½ (Ledbetter); pedal points on E (60-62) and A (83-87).",
     plans: {
       harpsichordSampled: [
@@ -509,8 +526,9 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f24: {
-    sound: "harpsichordSampled",
-    soundWhy: "D524 (the owner: the harpsichord, an honoured core sound, given its fugues back): four voices whose sighing pairs the two manuals keep distinct, each line clear as the plucked string sounds it; the largo's weight on the coupled unison, the 8′ for the long episodes (16-21, 24-30, 63-69), the full harpsichord for the last entries (69-74). STRING CONSORT, its sound since D510, a choice away.",
+    // D590: ORCHESTRA & ORGAN, staged (was the harpsichord, D524: the owner, "definitely not harpsichord for the big ending of Book I").
+    sound: "orchestraOrgan",
+    soundWhy: "D590 (the owner: \"this requires a much more involved and ambitious setup\"): Book I's finale, 76 bars of largo on the twelve-note subject, built in stages by its form (stage.ts): the exposition on the string quartet alone (Förster's arrangement), the oboe and the bassoon joining the outer lines at the middle entries, the second oboe and the horn the inner ones as the entries crowd (38-47, 53-62), and the organ arriving on every line for the final group (69) to the B major chord, in the church; with DRUMS on, the timpani on tonic and dominant at the arrivals.",
     character: "Long episodes (16-21, 24-30, 63-69) between the entries; a cadence in F♯ minor (24); the last entries 69-74.",
     plans: {
       stringConsort: [
@@ -520,6 +538,14 @@ export const BOOK1: Record<string, PieceColours> = {
         at(E("wtc1f24", 30), OWN, "The tenor's entry."),
         at(63, { tone: -2 }, "The episode 63-69."),
         at(E("wtc1f24", 69), { room: 0.1 }, "The last entries further into the hall."),
+      ],
+      orchestraOrgan: [
+        at(16, { tone: -1.5 }, "D590: the episode 16-21 a shade darker (the strings alone)."),
+        at(E("wtc1f24", 21), OWN, "The alto's entry, the winds joining."),
+        at(B("wtc1f24", 24), { tone: -1.5 }, "The episode after the cadence in F♯ minor."),
+        at(E("wtc1f24", 30), OWN, "The tenor's entry."),
+        at(63, { tone: -1 }, "The episode 63-69 held back before the organ."),
+        at(E("wtc1f24", 69), { room: 0.22 }, "The final group: the organ's church opens."),
       ],
       harpsichordSampled: [
         at(1, H88, "The largo's weight: the coupled unison."),

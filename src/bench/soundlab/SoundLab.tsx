@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEven
 import { barAt, barStart, cadenceName, fugueById } from "../../touch/fugue.ts";
 import { formOf as pointsOf, phaseAt } from "../../touch/form-points.ts";
 import { formOf as soundFormOf } from "../../touch/fugue-form.ts";
-import { homeStyleFor, styleInfo } from "../../touch/drum-library.ts";
+import { homeFor, styleInfo } from "../../touch/drum-library.ts";
 import { FAMILY_LABEL, padGroups, padStyle } from "./drum-pad.ts";
 import { IDEAS, ideaPlayable, ideaSettings, KIND_NAME, type Idea } from "./ideas.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
@@ -164,7 +164,7 @@ export function SoundLab() {
   const seats = seatsOf(snd, f);
   const bach = bachVoice(f, s);
   const link = `${location.origin}${location.pathname}${linkOf(s, st.bar)}`;
-  const drumName = (st: string | null) => (st ? `${styleInfo(st).label}${st === homeStyleFor(snd) ? " (home)" : ""}` : "OFF");
+  const drumName = (st: string | null) => (st ? `${styleInfo(st).label}${st === homeFor(s.piece, snd) ? " (home)" : ""}` : "OFF");
   const summary = useMemo(() => summaryOf(f, s, snd), [f, s, snd, plansIn]);
   const settingsWords = `${soundName(snd)}${s.sound ? "" : " (own)"} · drums ${drumName(styleNow)} · tempo ${s.tempo} · Herr Bach on ${voiceName(bach, n)}${(["form", "climax", "busoni", "colour", "kit"] as const).filter((k) => !s[k]).map((k) => ` · ${k} off`).join("")}${s.solo !== null ? ` · solo ${voiceName(s.solo, n)}` : ""}${s.mute.length ? ` · muted ${s.mute.map((v) => voiceName(v, n)).join(", ")}` : ""} · bar ${st.bar} · ${VERSION}`;
   const sendUrl = issueUrl(`${tagOf(s.piece)} ${nameOf(s.piece)}`, noteBody(note, settingsWords, link));
@@ -211,7 +211,7 @@ export function SoundLab() {
         <section className="sl-panel sl-ideas" id="sl-ideas">
           <h2>IDEAS · {IDEAS.filter(ideaPlayable).length} TO TRY, ONE TAP EACH</h2>
           <p className="sl-note">Fugue, sound, drums and layers loaded together, played from the bar shown. COMING: S3's period drums, not playable yet.</p>
-          {(["safe", "bold", "coming"] as const).map((k) => (
+          {(["own", "safe", "tailored", "coming"] as const).map((k) => (
             <div key={k}>
               <h3 className="sl-ideas-h">{KIND_NAME[k]}</h3>
               <ol className="sl-idea-list">

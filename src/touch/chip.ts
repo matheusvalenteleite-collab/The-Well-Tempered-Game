@@ -13,7 +13,7 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -26,7 +26,8 @@ import { formOf } from "./fugue-form.ts";
 import { formOf as rockFormOf, rockBeat, type KitPiece as RockPiece, type RockStyle } from "./rock-drums.ts";
 import { bossaBeat, bossaPlan } from "./bossa-drums.ts";
 import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
-import { isScoreStyle, SCORE_STYLES, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
+import { ALL_SCORE_STYLES, isScoreStyle, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
+import { tailorBrushes } from "./drum-tailor.ts";
 import type { TouchFugue } from "./fugue.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
@@ -278,8 +279,10 @@ export const PET_DRUMS = {
   crash: 0.22,
   tamb: 0.3,
   timp: 0.55,
-  send: { kick: 0.04, snare: 0.3, tomHigh: 0.2, tomLow: 0.2, crash: 0.15, tamb: 0.12, timp: 0.25 },
-  pan: { kick: -0.06, snare: -0.08, tomHigh: -0.12, tomLow: -0.02, crash: -0.14, tamb: 0.1, timp: 0.16 },
+  /** D581: the sleigh bells (synthesised: pet-drums.ts's on the beat), their level, a shake's jingles. */
+  sleigh: 0.11,
+  send: { kick: 0.04, snare: 0.3, tomHigh: 0.2, tomLow: 0.2, crash: 0.15, tamb: 0.12, timp: 0.25, sleigh: 0.18 },
+  pan: { kick: -0.06, snare: -0.08, tomHigh: -0.12, tomLow: -0.02, crash: -0.14, tamb: 0.1, timp: 0.16, sleigh: 0.2 },
 } as const;
 /**
  * D521, BOSSA NOVA's drums (chip.ts Chip.bossaDrums: bossa-drums.ts on the brush kit and Big Rusty's cross-stick and bass
@@ -347,8 +350,8 @@ export const KIT_DRUMS = {
   timpHp: 55,
   send: 0.1,
   ref: -20,
-  piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85, sideDrum: 0.5, fieldDrum: 0.56, tabor: 0.52, drumStick: 0.34, frameDum: 0.6, frameTek: 0.42, castanets: 0.44, cymbals: 0.34 } satisfies Record<KitPiece, number>,
-  pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1, sideDrum: -0.06, fieldDrum: 0.04, tabor: -0.04, drumStick: -0.06, frameDum: -0.06, frameTek: 0.1, castanets: 0.14, cymbals: -0.2 } satisfies Record<KitPiece, number>,
+  piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85, sideDrum: 0.5, fieldDrum: 0.56, tabor: 0.52, drumStick: 0.34, frameDum: 0.6, frameTek: 0.42, castanets: 0.44, cymbals: 0.34, woodblock: 0.42, claves: 0.36, templeHi: 1, templeLo: 1, ratchet: 1, slapstick: 1, whistleUp: 1, whistleDown: 1, bonk: 1, malletHigh: 1, malletLow: 1, cymSwell: 1, brush: 1 } satisfies Record<KitPiece, number>,
+  pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1, sideDrum: -0.06, fieldDrum: 0.04, tabor: -0.04, drumStick: -0.06, frameDum: -0.06, frameTek: 0.1, castanets: 0.14, cymbals: -0.2, woodblock: 0.16, claves: -0.14, templeHi: 0.2, templeLo: -0.12, ratchet: 0.24, slapstick: -0.1, whistleUp: 0.3, whistleDown: -0.3, bonk: 0, malletHigh: 0.12, malletLow: -0.12, cymSwell: -0.2, brush: 0.06 } satisfies Record<KitPiece, number>,
 } as const;
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
@@ -365,7 +368,9 @@ export function kitSource(style: string, piece: KitPiece): { set: KitSet; voice:
   // D532: the score-driven styles on the period kit (VCSL's orchestral bass drum and triangle, its tambourine).
   if (voice === "kitPeriod") {
     const pv = piece === "tamb" ? "tambourine" : piece;
-    return KIT_VOICES.kitPeriod.includes(pv) ? { set: "kitPeriod", voice: pv } : null;
+    if (KIT_VOICES.kitPeriod.includes(pv)) return { set: "kitPeriod", voice: pv };
+    // D569: STOOGES' woodblock and claves, the club kit's.
+    return KIT_VOICES.kitClub.includes(pv) && (piece === "woodblock" || piece === "claves") ? { set: "kitClub", voice: pv } : null;
   }
   const v = piece === "tamb" ? "tambourine" : piece === "clap" ? "snare" : piece === "bassDrum" ? "kick" : piece;
   if (voice === "kitRock" && KIT_VOICES.kitRock.includes(v)) return { set: "kitRock", voice: v };
@@ -380,14 +385,18 @@ export function kitVoiceOf(style: string): KitVoice | "kitClub" | "kitRock" | "k
   if (g) return g.kit === "kitRock" || g.kit === "kitClub" ? g.kit : null;
   if (style === "rock") return "kitRock";
   // D532: the score-driven orchestral and period styles (timpani, frame drums, side drum, tabor, castanets, Janissary, field drums).
+  // D570, D572: SCORE SYNTH synthesized; SWELL's snare the club kit's (its mallets and swells synthesized).
+  if (style === "scoreSynth") return null;
+  if (style === "swell") return "kitClub";
   if (isScoreStyle(style)) return "kitPeriod";
   return null;
 }
 /** D527: the synthesized kit of a style (chip.ts drum's), or null where it is recorded. */
 export function synthKitOf(style: string): Kit | null {
   if (style === "chip") return "chip";
+  if (style === "scoreSynth") return "synth";
   const k = GRIDS[style]?.kit;
-  return k === "analog" || k === "tr909" || k === "linn" || k === "glitch" || k === "chip" ? k : null;
+  return k === "analog" || k === "tr909" || k === "linn" || k === "glitch" || k === "chip" || k === "arcade" ? k : null;
 }
 /** D527: a kit style's level (its share of KIT_DRUMS.level; a synthesized kit's on chip.ts drum's scale), a phone's share, its low drums' harmonics on a phone. */
 export function kitMix(style: string): { share: number; phone: number; low: number } {
@@ -397,7 +406,7 @@ export function kitMix(style: string): { share: number; phone: number; low: numb
   if (L in KIT_DRUMS.style) return { share: KIT_DRUMS.style[L], phone: KIT_DRUMS.phoneStyle[L], low: KIT_DRUMS.phoneLow.style[L] };
   const g = GRIDS[style];
   const sk = g?.kit;
-  return { share: g?.share ?? 1, phone: g?.phone ?? 1, low: g?.low ?? (sk === "analog" || sk === "tr909" ? 7 : sk === "linn" ? 4 : sk === "glitch" ? 2 : sk === "chip" ? 0 : 1) };
+  return { share: g?.share ?? 1, phone: g?.phone ?? 1, low: g?.low ?? (sk === "analog" || sk === "tr909" ? 7 : sk === "linn" ? 4 : sk === "glitch" ? 2 : sk === "chip" || sk === "arcade" ? 0 : 1) };
 }
 /**
  * D532: the score-driven styles' levels (their share of KIT_DRUMS.level, a phone's share, the low drums' harmonics on a
@@ -413,6 +422,12 @@ export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: numb
   castanets: { share: 1, phone: 0.85, low: 1 },
   janissary: { share: 0.53, phone: 1.2, low: 3 },
   fieldDrums: { share: 1, phone: 1, low: 0.47 },
+  // D567-D572 (measured: scratchpad/fix3, NOTES.md): MARCH clearly heard under BACH BRASS (the owner: "virtually
+  // inaudible"); the others where the library's styles sit (D529); SCORE SYNTH on chip.ts drum's scale.
+  march: { share: 1.4, phone: 1, low: 0.9 },
+  stooges: { share: 1, phone: 1, low: 1 },
+  scoreSynth: { share: 4.5, phone: 0.9, low: 5 },
+  swell: { share: 1.25, phone: 1, low: 1 },
 };
 /**
  * D532: the period kit's drums that a phone's speaker barely plays (the rope-tension drums' and the large frame drum's
@@ -420,11 +435,19 @@ export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: numb
  * phone, as the timpani's (lowHarmonics).
  */
 const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek", "drumStick"]);
+/** D567-D572: the pieces synthesized by Chip.toon (no recording: the slapstick's and the swell's). */
+export const TOON_PIECES: ReadonlySet<KitPiece> = new Set(["templeHi", "templeLo", "ratchet", "slapstick", "whistleUp", "whistleDown", "bonk", "malletHigh", "malletLow", "cymSwell", "brush"]);
+/** D567-D572: each synthesized piece's level (on chip.ts drum's scale; measured with its style, scratchpad/fix3). */
+export const TOON_LEVEL: Partial<Record<KitPiece, number>> = { templeHi: 1, templeLo: 1, ratchet: 1, slapstick: 1, whistleUp: 0.6, whistleDown: 0.6, bonk: 1, malletHigh: 1, malletLow: 1, cymSwell: 0.7, brush: 1 };
+/** D565: the layers' mix (Chip.layer): the sub, its harmonics on a phone, the click, the snare's body and crack. */
+export const LAYER_MIX = { sub: 2.2, subPhone: 0.6, click: 0.9, body: 0.8, crack: 1.1 } as const;
+/** D565: a recorded kit's layers' share against its own level (the synthesized kits' layers on their own scale). */
+export const LAYER_RECORDED = 1;
 /** D514: the pieces each recorded style strikes (its plan, loaded when DRUMS is on). */
 const STYLE_PIECES: Record<string, KitPiece[]> = {
   rock: ["kick", "snare", "rim", "hat", "openhat", "crash", "ride", "tomHigh", "tomLow"],
   // D532: the score-driven styles' pieces (score-drums.ts SCORE_KITS).
-  ...Object.fromEntries(SCORE_STYLES.map((st) => [st, scoreKitPieces(st)])),
+  ...Object.fromEntries(ALL_SCORE_STYLES.map((st) => [st, scoreKitPieces(st)])),
 };
 /** D514, D527: every file a kit style may play. */
 export function kitFiles(style: string): { set: string; notes: number[] }[] {
@@ -491,8 +514,8 @@ export const METER_FLOOR_DB = -48;
 export const METER_RISE_S = 0.03;
 export const METER_FALL_S = 0.3;
 /** D536: the bass drums (the studio's "kick"), the snares (its "snare"), by every engine's names. */
-const KICKS = new Set(["kick", "bassDrum", "surdo", "tumba", "pandBass"]);
-const SNARES = new Set(["snare", "rim", "clap", "rimshot", "pandSlap", "slap"]);
+const KICKS = new Set(["kick", "bassDrum", "surdo", "tumba", "pandBass", "bonk"]);
+const SNARES = new Set(["snare", "rim", "clap", "rimshot", "pandSlap", "slap", "slapstick"]);
 /**
  * D536: the studio's live event a stroke is (music-events.ts LiveKind), or null (the hats, the shakers, a brush's sweep:
  * the time-keeping, not events): a roll's or a fill's stroke, a crash, the timpani, a landing's accent, the kick, the snare.
@@ -839,6 +862,11 @@ export interface Play {
   dampMul?: number;
   /** D385: the room's send scaled (a palette: drier for leggiero, larger for grave). */
   roomMul?: number;
+  /**
+   * D576: a second instrument in unison with this note (BACH BRASS's entries doubled: band-growth.ts), `level` of it, at
+   * its own seat (`pan`), `late` s after (two players); the band's note and the player's alike, by the note's place alone.
+   */
+  unison?: { patch: Patch; level: number; late?: number; pan?: number };
   /** D385: the player's line on the piano: the reading's level here (dB about the middle), the touch's zone added (touch-expr.ts landing). */
   lineDb?: number;
   /** D426: a slid note on the piano (the hairpin slide): its level continuous across the strip (touch-expr.ts pianoHairpinDb), not the zones. */
@@ -857,6 +885,11 @@ export interface Play {
    * (the harpsichord's octave below too). Unset: the bass alone.
    */
   continuo?: "on" | "strong";
+  /**
+   * D590: the stage of the piece's form where the note starts (stage.ts StageScript: the music's structure, never the
+   * player's score): a staged sound's doubling parts (ContinuoPart.from) join it from their stage on. Unset: none join.
+   */
+  stage?: number;
   /**
    * D502, BACH BRASS's brassiness (0 mellow: the piano recording, darker; 1 blazing: the forte, brighter, a presence
    * shelf): the player's from the landing (touch-expr.ts landing "brass"); unset, the band's from its reading's level
@@ -1046,6 +1079,8 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
 }
 /** D542: the opening's notes (Chip.prepare `opening`): each voice's (voice, pitch) of its first `bars` bars of sound. */
 export interface Opening {
+  /** D578: the piece (its own line-up on the sound, Preset.pieces, set before its recordings are planned). */
+  piece?: string;
   count: number;
   notes: readonly (readonly [voice: number, midi: number])[];
 }
@@ -1057,7 +1092,7 @@ export function openingOf(f: TouchFugue, bars = 2): Opening {
   f.voices.forEach((vs, v) => {
     for (const n of vs) if (n[0] < until && !notes.some(([w, m]) => w === v && m === n[2])) notes.push([v, n[2]]);
   });
-  return { count: f.voices.length, notes };
+  return { piece: f.id, count: f.voices.length, notes };
 }
 
 
@@ -1404,6 +1439,15 @@ export class Chip {
   }
 
   private noteNow(midi: number, at: number, dur: number, v: Voicing, p: Play): Sounding {
+    // D576: an entry's unison double (Play.unison: BACH BRASS's), sounding as one note with it: the second player's own
+    // attack, a moment late, in its seat (no touch of its own: the band's note however the player's lands).
+    const uni = p.unison;
+    if (uni) {
+      const late = uni.late ?? 0;
+      const main = this.noteNow(midi, at, dur, v, { ...p, unison: undefined });
+      const twin = this.noteNow(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: uni.patch, ...(uni.pan !== undefined ? { pan: uni.pan } : {}) }, { ...p, unison: undefined, couple: false, lead: false, touch: undefined, trill: undefined, level: (p.level ?? 1) * uni.level });
+      return together([main, twin], 0);
+    }
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
     // TRIAL (sound.ts toneAll): the reading's planned level as the tone on a chip, console or synthesizer.
     // D432: on CLASSIC CHIP and GAME BOY the channel's volume step, its duty and a long note's vibrato (Chip.stepped), after the landing.
@@ -1473,8 +1517,9 @@ export class Chip {
     // piece's continuo script gives the note to it (Play.continuo: trio.ts, by the music's structure, the band's
     // note and the player's alike, never by the score); each in its seat, a moment late, at its level; on a strong
     // beat the harpsichordist's left hand takes the octave below too, spread from the bass up.
-    const cont = v.patch?.continuo;
-    if (cont?.length && p.continuo && p.couple !== false) {
+    // D590: a staged sound's parts (ContinuoPart.from) join from their stage of the form on (Play.stage), in unison.
+    const cont = v.patch?.continuo?.filter((c) => (c.from === undefined ? !!p.continuo : (p.stage ?? -1) >= c.from && (c.until === undefined || (p.stage ?? -1) < c.until)));
+    if (cont?.length && p.couple !== false) {
       const main = this.coupled(midi, at, dur, v, p);
       const parts: [Sounding, number][] = [[main, 0]];
       for (const c of cont) {
@@ -2195,6 +2240,13 @@ export class Chip {
    */
   prepare(pitches: number[], lead: number[] = [], opening?: Opening): Promise<void> {
     const phone = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+    // D578: a piece's own line-up on the sound (Preset.pieces) before its recordings are planned (its own alone loaded);
+    // another piece's let go.
+    if (opening?.piece) {
+      const own = pieceLineUp(preset().id, { id: opening.piece, voices: { length: opening.count } as unknown[] });
+      if (own) setPieceLayout(own);
+      else if (pieceLayoutNow()?.only) setPieceLayout(null);
+    }
     const plans = soundPlans(pitches, lead, backingOn() ? this.drumStyle() : null, opening);
     const staged = plans.map((plan) => loadPlanStaged(this.ctx, plan, phone));
     // D542: the opening's zones (the first bars' recordings) awaited apart: the first notes with real samples.
@@ -3721,6 +3773,69 @@ export class Chip {
           return tone("sine", 180, 92, 0.38, lvl * 1.8);
       }
     }
+    // D568: ARCADE's chip kit (a pinball's, a coin-op's): the kick a pulse's chirp swept down, the noise channel's snare,
+    // square clicks for the hats, the toms a pulse falling.
+    if (kit === "arcade") {
+      switch (d) {
+        case "kick":
+          tone("square", 240, 46, 0.11, lvl * 0.85);
+          return tone("triangle", 130, 42, 0.16, lvl * 1.5);
+        case "snare":
+        case "clap":
+          noise("highpass", 1500, 0.6, 0.11);
+          return tone("square", 360, 300, 0.022, lvl * 0.45);
+        case "hat":
+        case "shaker":
+        case "brush":
+          noise("highpass", 9500, 0.7, 0.012);
+          return tone("square", 6200, 6100, 0.01, lvl * 0.2);
+        case "openhat":
+          noise("highpass", 7600, 0.6, 0.12);
+          return tone("square", 6200, 6100, 0.02, lvl * 0.16);
+        case "ride":
+          noise("highpass", 6800, 0.8, 0.09);
+          return tone("square", 5200, 5150, 0.05, lvl * 0.16);
+        case "crash":
+          return noise("highpass", 4200, 0.5, 0.6);
+        case "rim":
+          return tone("square", 1450, 1400, 0.02, lvl * 0.55);
+        case "tomHigh":
+          return tone("square", 420, 180, 0.12, lvl * 0.7);
+        case "tomLow":
+          return tone("square", 260, 90, 0.16, lvl * 0.8);
+      }
+    }
+    // D570: SCORE SYNTH's kit: a modern analog machine (a sine kick with a click, a noise snare over its tone, a clap,
+    // short noise hats, the toms' sines).
+    if (kit === "synth") {
+      switch (d) {
+        case "kick":
+          noise("highpass", 4000, 0.7, 0.008);
+          return tone("sine", 125, 44, 0.42, lvl * 2.4);
+        case "snare":
+          noise("bandpass", 2400, 0.7, 0.17);
+          return tone("triangle", 200, 180, 0.1, lvl * 0.9);
+        case "clap":
+          return clap(1250, 0.18);
+        case "hat":
+        case "brush":
+          return noise("highpass", 8500, 1, 0.035);
+        case "shaker":
+          return noise("highpass", 7000, 0.9, 0.05, 0.006);
+        case "openhat":
+          return noise("highpass", 8000, 1, 0.25);
+        case "ride":
+          return noise("bandpass", 6500, 1.4, 0.4);
+        case "crash":
+          return noise("highpass", 4600, 0.6, 1.2);
+        case "rim":
+          return tone("triangle", 1200, 1180, 0.03, lvl * 0.8);
+        case "tomHigh":
+          return tone("sine", 220, 150, 0.3, lvl * 1.6);
+        case "tomLow":
+          return tone("sine", 140, 90, 0.36, lvl * 1.8);
+      }
+    }
     if (kit === "glitch") {
       switch (d) {
         case "kick":
@@ -3819,7 +3934,7 @@ export class Chip {
           return true;
         }
       }
-      const hits = kitBeat(style, { b, per, compound, beatS, tick: pcx.tick, beat: pcx.beat, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key });
+      const hits = kitBeat(style, { b, per, compound, beatS, tick: pcx.tick, beat: pcx.beat, form: formOf(piece), dynDb: cx?.dynDb ?? 0, keyAt: keyFor(piece), home: piece.key, piece: piece.id });
       for (const h of hits) this.scheduleKitHit({ voice: "kit", style, piece: h.piece, tick: tickOf(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.kit(style, { ...h, vel: v }, w));
       return true;
     }
@@ -3910,7 +4025,16 @@ export class Chip {
       this.drum(d, t, v, k, mx.share * (this.phone ? mx.phone : 1), this.phone ? KIT_DRUMS.phoneLow.level * mx.low * 0.25 * (mx.share / 5) : 0);
     };
     const mx = kitMix(style);
+    // D567-D572: the synthesized pieces (the slapstick's, the swell's).
+    if (TOON_PIECES.has(h.piece)) return this.toon(h.piece, t, h.vel, mx.share * (this.phone ? mx.phone : 1), h.len);
     const sk = synthKitOf(style);
+    // D565: a style's layers under its kick and over its snare (weight: the sub and the click, the body and the crack).
+    const lay = GRIDS[style]?.layer;
+    if (lay) {
+      const lg = (sk ? mx.share : mx.share * LAYER_RECORDED) * (this.phone ? mx.phone : 1);
+      if (lay.kick && h.piece === "kick") this.layer("kick", t, h.vel * lay.kick, lg);
+      if (lay.snare && (h.piece === "snare" || h.piece === "clap")) this.layer("snare", t, h.vel * lay.snare, lg);
+    }
     if (sk) return synth(sk, h.vel);
     let set: string;
     let m: number;
@@ -3966,9 +4090,157 @@ export class Chip {
       last = out.connect(p);
     }
     last.connect(this.master);
-    this.fxSend(last, KIT_DRUMS.send, bag);
+    // D566: a dry, close kit's smaller share of the room (LIEBEZEIT).
+    this.fxSend(last, GRIDS[style]?.send ?? KIT_DRUMS.send, bag);
     src.start(t, rec.onset);
     halt(src, t + (h.piece === "crash" || h.piece === "ride" || h.piece === "timp" || h.piece === "cymbals" || h.piece === "triangle" ? 3 : h.piece === "bassDrum" ? 2 : 1.6));
+  }
+  /**
+   * D565: a synthesized layer under a style's kick or over its snare (drum-grids.ts `layer`): the kick's SUB (a sine from
+   * 62 to 40 Hz) and its CLICK (the beater's tick, noise at 3-6 kHz and a 1.8 kHz blip), the snare's BODY (the shell's
+   * thump, a triangle at 195 Hz falling) and its CRACK (noise at 3.5 kHz and a hiss over 6 kHz); behind the band as a
+   * backing (the bass's room kept clear: BACKING_HIGHPASS_HZ, the sub's harmonics on a phone).
+   */
+  layer(what: "kick" | "snare", at: number, vel: number, gain: number) {
+    const ctx = this.ctx;
+    const bag = new Bag();
+    const g = bag.add(ctx.createGain());
+    g.gain.value = (backingOn() ? BACKING_LEVEL : 1) * 0.22 * vel * gain;
+    g.connect(this.master);
+    const env = (node: AudioNode, peak: number, len: number, attack = 0.001) => {
+      const e = bag.add(ctx.createGain());
+      e.gain.setValueAtTime(0, at);
+      e.gain.linearRampToValueAtTime(peak, at + attack);
+      e.gain.exponentialRampToValueAtTime(0.0001, at + len);
+      node.connect(e).connect(g);
+      return e;
+    };
+    const noise = (type: BiquadFilterType, f: number, q: number, peak: number, len: number) => {
+      const n = bag.src(this.noise());
+      const fl = bag.add(ctx.createBiquadFilter());
+      fl.type = type;
+      fl.frequency.value = f;
+      fl.Q.value = q;
+      env(n.connect(fl), peak, len);
+      n.start(at, Math.random() * 0.5);
+      halt(n, at + len + 0.02);
+    };
+    const osc = (type: OscillatorType, f0: number, f1: number, peak: number, len: number) => {
+      const o = bag.src(ctx.createOscillator());
+      o.type = type;
+      o.frequency.setValueAtTime(f0, at);
+      o.frequency.exponentialRampToValueAtTime(f1, at + len * 0.5);
+      const e = env(o, peak, len);
+      o.start(at);
+      halt(o, at + len + 0.02);
+      return e;
+    };
+    if (what === "kick") {
+      const sub = osc("sine", 62, 40, LAYER_MIX.sub, 0.36);
+      if (this.phone) this.lowHarmonics(bag, sub, g, KIT_DRUMS.phoneLow.level * LAYER_MIX.subPhone);
+      noise("bandpass", 4200, 0.9, LAYER_MIX.click, 0.012);
+      osc("square", 1800, 1700, LAYER_MIX.click * 0.25, 0.006);
+    } else {
+      osc("triangle", 195, 170, LAYER_MIX.body, 0.09);
+      noise("bandpass", 3500, 0.8, LAYER_MIX.crack, 0.14);
+      noise("highpass", 6000, 0.7, LAYER_MIX.crack * 0.5, 0.06);
+    }
+  }
+  /**
+   * D567-D572: the synthesized pieces of STOOGES (the temple blocks' wooden knock, the ratchet's click, the slapstick's
+   * two boards, the whistle-like noise sweeps, the cartoon bonk) and of SWELL (mallets on the toms, a cymbal swelled with
+   * mallets, a brush). All noise through filters or a membrane's thump: unpitched (the owner: "Percussion is unpitched").
+   * `len` a swell's or a whistle's length (s).
+   */
+  toon(piece: KitPiece, at: number, vel: number, gain: number, len?: number) {
+    const ctx = this.ctx;
+    const bag = new Bag();
+    const g = bag.add(ctx.createGain());
+    const back = backingOn();
+    g.gain.value = (back ? BACKING_LEVEL : 1) * 0.22 * vel * gain * (TOON_LEVEL[piece] ?? 1);
+    let out: AudioNode = g;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = KIT_DRUMS.pan[piece];
+      out = g.connect(p);
+    }
+    out.connect(this.master);
+    this.fxSend(out, piece === "cymSwell" ? 0.18 : 0.08, bag);
+    const env = (node: AudioNode, peak: number, dur: number, attack = 0.001, from = at) => {
+      const e = bag.add(ctx.createGain());
+      e.gain.setValueAtTime(0, from);
+      e.gain.linearRampToValueAtTime(peak, from + attack);
+      e.gain.exponentialRampToValueAtTime(0.0001, from + attack + dur);
+      node.connect(e).connect(g);
+      return e;
+    };
+    const noise = (type: BiquadFilterType, f: number, q: number, peak: number, dur: number, attack = 0.001, from = at, f1?: number) => {
+      const n = bag.src(this.noise());
+      const fl = bag.add(ctx.createBiquadFilter());
+      fl.type = type;
+      fl.frequency.setValueAtTime(f, from);
+      if (f1) fl.frequency.exponentialRampToValueAtTime(f1, from + attack + dur * 0.7);
+      fl.Q.value = q;
+      const e = env(n.connect(fl), peak, dur, attack, from);
+      n.start(from, Math.random() * 0.5);
+      halt(n, from + attack + dur + 0.02);
+      return e;
+    };
+    const thump = (f0: number, f1: number, peak: number, dur: number, attack = 0.002) => {
+      const o = bag.src(ctx.createOscillator());
+      o.type = "sine";
+      o.frequency.setValueAtTime(f0, at);
+      o.frequency.exponentialRampToValueAtTime(f1, at + dur * 0.6);
+      const e = env(o, peak, dur, attack);
+      o.start(at);
+      halt(o, at + attack + dur + 0.02);
+      return e;
+    };
+    switch (piece) {
+      case "templeHi":
+      case "templeLo": {
+        const f = piece === "templeHi" ? 1150 : 720;
+        noise("bandpass", f, 7, 3.2, 0.07);
+        noise("bandpass", f * 2.6, 4, 0.6, 0.02);
+        return;
+      }
+      case "ratchet":
+        noise("bandpass", 2600, 2.2, 1.6, 0.012);
+        return noise("highpass", 5000, 0.7, 0.4, 0.006);
+      case "slapstick":
+        noise("highpass", 1800, 0.7, 1.4, 0.035);
+        noise("bandpass", 2600, 1.2, 1.2, 0.03);
+        return noise("highpass", 1800, 0.7, 1.1, 0.04, 0.001, at + 0.014);
+      case "whistleUp":
+      case "whistleDown": {
+        const d = Math.max(0.25, Math.min(1.6, len ?? 0.8));
+        const up = piece === "whistleUp";
+        return noise("bandpass", up ? 700 : 2600, 14, 4, d * 0.65, d * 0.35, at, up ? 2600 : 600);
+      }
+      case "bonk": {
+        noise("bandpass", 380, 4, 3.4, 0.16, 0.002, at, 150);
+        noise("lowpass", 500, 0.7, 1.2, 0.09);
+        if (this.phone) this.lowHarmonics(bag, g, this.master, 0.6 * gain * vel);
+        return noise("bandpass", 1500, 5, 0.6, 0.03);
+      }
+      case "malletLow":
+      case "malletHigh": {
+        const hi = piece === "malletHigh";
+        const th = thump(hi ? 255 : 165, hi ? 215 : 135, 1.4, hi ? 0.42 : 0.55, 0.008);
+        noise("lowpass", hi ? 900 : 650, 0.7, 0.35, 0.12, 0.006);
+        if (this.phone) this.lowHarmonics(bag, th, this.master, 0.8 * gain * vel);
+        return;
+      }
+      case "cymSwell": {
+        const d = Math.max(0.4, Math.min(4, len ?? 1.5));
+        noise("bandpass", 6200, 0.6, 1, 1.6, d);
+        return noise("highpass", 9000, 0.7, 0.45, 1.2, d);
+      }
+      case "brush":
+        return noise("lowpass", 3800, 0.5, 1, 0.2, 0.04);
+      default:
+        return;
+    }
   }
   /**
    * D514: a phone's speaker plays nothing under about 600 Hz: a low drum's harmonics made (a soft clip, as a phone's own
@@ -4006,7 +4278,8 @@ export class Chip {
    * (JAZZ_DRUMS: seated behind, a little left; under 150 Hz nothing, the bass's room), in the club at a little of its send.
    */
   private brushes(at: number, beatS: number, b: number, per: number, compound: boolean, cx?: GrooveContext, style = "brushes") {
-    const bb = brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS);
+    // D573: a fugue's own tailoring of the brushes (drum-tailor.ts: I/6's subject on the taps).
+    const bb = tailorBrushes(cx?.piece ?? this.drumF, cx?.tick ?? 0, cx?.beat ?? 1, beatS, brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS));
     const tk = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
     for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.brushHit(h.piece, w, v));
     for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS));
@@ -4310,6 +4583,7 @@ export class Chip {
     let rate = 1;
     // (the timpani's loud recordings only, D514's: their soft layer uneven; a soft stroke the loud one at its level)
     let scale = firm ? 0.56 : 1;
+    if (h.piece === "sleigh") return this.sleighBells(t, h.vel, at);
     if (h.piece === "timp") {
       set = TIMP_SET;
       const want = h.midi ?? TIMP_MIDIS[0];
@@ -4323,7 +4597,7 @@ export class Chip {
     const rec = loaded(set, m);
     if (!rec) {
       loadOne(ctx, set, m);
-      const stand: Record<PetHit["piece"], Drum> = { kick: "kick", snare: "snare", tomHigh: "snare", tomLow: "kick", crash: "ride", tamb: "shaker", timp: "kick" };
+      const stand: Record<PetHit["piece"], Drum> = { kick: "kick", snare: "snare", tomHigh: "snare", tomLow: "kick", crash: "ride", tamb: "shaker", timp: "kick", sleigh: "shaker" };
       return this.drum(stand[h.piece], t, h.vel * 0.6);
     }
     const bag = new Bag();
@@ -4350,6 +4624,50 @@ export class Chip {
     this.fxSend(out, PET_DRUMS.send[h.piece], bag);
     src.start(t, rec.onset);
     halt(src, t + (h.piece === "crash" ? 3 : h.piece === "timp" ? 2.5 : 1.5));
+  }
+
+  /**
+   * D581: a shake of sleigh bells, synthesised (unpitched: no recording, no pitch of its own): noise through three narrow
+   * bands where small bells ring (5.4, 7.3, 9.6 kHz), its level in four jingles 14 ms apart (the bells striking as the
+   * strap is shaken, each softer), then a short ring (90 ms). Each shake a little different (its time on the clock).
+   */
+  private sleighBells(t: number, vel: number, at: number) {
+    const ctx = this.ctx;
+    const bag = new Bag();
+    const nz = bag.src(this.noise());
+    const env = bag.add(ctx.createGain());
+    env.gain.value = 0;
+    const k = PET_DRUMS.sleigh * vel * PET_DRUMS.level * (this.phone ? PET_DRUMS.phone : 1);
+    const wob = Math.sin(at * 37.7) * 0.5 + 0.5;
+    for (let j = 0; j < 4; j++) {
+      const tj = t + j * (0.012 + 0.004 * wob);
+      const pk = k * (j === 0 ? 1 : 0.75 - 0.15 * j);
+      env.gain.setValueAtTime(0.0001, tj);
+      env.gain.linearRampToValueAtTime(pk, tj + 0.002);
+      env.gain.setTargetAtTime(pk * 0.25, tj + 0.002, 0.006);
+    }
+    env.gain.setTargetAtTime(0, t + 0.06, 0.09);
+    const out = bag.add(ctx.createGain());
+    for (const [hz, g] of [[5400, 0.8], [7300, 1], [9600, 0.7]] as const) {
+      const bp = bag.add(ctx.createBiquadFilter());
+      bp.type = "bandpass";
+      bp.frequency.value = hz * (0.98 + 0.04 * wob);
+      bp.Q.value = 9;
+      const bg = bag.add(ctx.createGain());
+      bg.gain.value = g * 3;
+      env.connect(bp).connect(bg).connect(out);
+    }
+    nz.connect(env);
+    let o: AudioNode = out;
+    if (ctx.createStereoPanner) {
+      const p = bag.add(ctx.createStereoPanner());
+      p.pan.value = PET_DRUMS.pan.sleigh;
+      o = out.connect(p);
+    }
+    o.connect(this.master);
+    this.fxSend(o, PET_DRUMS.send.sleigh, bag);
+    nz.start(t);
+    halt(nz, t + 0.6);
   }
 
   private roomTo() {

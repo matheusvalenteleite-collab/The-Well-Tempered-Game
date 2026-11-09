@@ -52,10 +52,11 @@ test("D524: PET SOUNDS offered: in the lists, an ensemble, named in three langua
 
 test("D524: the band: one instrument a voice (strings, horn, harpsichord, piano, electric bass); one echo chamber; within ±0.2; no bells", () => {
   const by = PET.by!;
-  // D560: D545's band promoted (the musette accordion in the piano's place).
-  assert.deepEqual(by[3]!.map(([p]) => p), ["psStrings", "psHorn", "psBass"]);
-  assert.deepEqual(by[4]!.map(([p]) => p), ["psStrings", "psHorn", "p2Accordion", "psBass"]);
-  assert.deepEqual(by[5]!.map(([p]) => p), ["psStrings", "psHarpsi", "psHorn", "p2Accordion", "psBass"]);
+  // D560: D545's band promoted (the musette accordion in the piano's place). D580: the record's colours: the tack piano,
+  // the twelve-string, the accordion, the French horn, Carol Kaye's bass (its bass harmonica in unison: Patch.double).
+  assert.deepEqual(by[3]!.map(([p]) => p), ["p3Tack", "psHorn", "p3Bass"]);
+  assert.deepEqual(by[4]!.map(([p]) => p), ["p3Tack", "p3Twelve", "psHorn", "p3Bass"]);
+  assert.deepEqual(by[5]!.map(([p]) => p), ["p3Tack", "p3Twelve", "p2Accordion", "psHorn", "p3Bass"]);
   for (const [n, vs] of Object.entries(by)) {
     assert.equal(vs!.length, Number(n), "one instrument a voice, nothing added");
     for (const [, pan] of vs!) assert.ok(Math.abs(pan) <= 0.2);
@@ -67,6 +68,8 @@ test("D524: the band: one instrument a voice (strings, horn, harpsichord, piano,
   for (const id of PET.slots!) assert.ok(!PATCHES[id].motor && !/vib|bell|glock|celesta/i.test(String(PATCHES[id].sample)), id);
   assert.equal(PATCHES.psBass.sample, "rockBass");
   assert.ok((PATCHES.psBass.phoneLift?.db ?? 0) >= 5);
+  assert.equal(PATCHES.p3Bass.sample, "rockBass");
+  assert.ok((PATCHES.p3Bass.phoneLift?.db ?? 0) >= 5 && PATCHES.p3Bass.double && !PATCHES.p3Bass.double.patch.sample, "the bass lifted on a phone, its harmonica synthesised");
 });
 
 test("D524: the recordings reused (no new pitched set): the strings, the horn, the harpsichord, the bass E1-G3, the rock kit, the tambourine, the timpani", () => {
@@ -188,10 +191,10 @@ test("D524: the allocation: I/17 opens on PET SOUNDS, with its reason", () => {
   assert.match(COLOURS.wtc1f17.soundWhy, /Pet Sounds/);
 });
 
-test("D524: the harpsichord, an honoured core sound, opens at least three fugues (I/24, II/2, II/9); SID 64 keeps four", () => {
+test("D524: the harpsichord, an honoured core sound, opens at least two fugues (II/2, II/9; D590: I/24 to ORCHESTRA & ORGAN, the owner: \"definitely not harpsichord\"); SID 64 keeps four", () => {
   const count = (s: string) => Object.entries(PIECE_SOUND).filter(([id]) => /^wtc[12]f\d+$/.test(id) && PIECE_SOUND[id] === s).length;
-  assert.ok(count("harpsichordSampled") >= 3, `${count("harpsichordSampled")}`);
-  for (const id of ["wtc1f24", "wtc2f02", "wtc2f09"]) {
+  assert.ok(count("harpsichordSampled") >= 2, `${count("harpsichordSampled")}`);
+  for (const id of ["wtc2f02", "wtc2f09"]) {
     assert.equal(PIECE_SOUND[id], "harpsichordSampled", id);
     assert.equal(COLOURS[id].sound, "harpsichordSampled", id);
     assert.ok(COLOURS[id].plans.harpsichordSampled?.length, `${id}: its colour plan`);

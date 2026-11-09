@@ -39,7 +39,8 @@ const LAYOUT = {
   1: ["bachTrumpet"],
   2: ["bachTrumpet", "bachBass"],
   3: ["bachTrumpet", "bachHorn", "bachBass"],
-  4: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachBass"],
+  // D579: the tenor on the tenor trombone (the horn the entries' double: band-growth.ts).
+  4: ["bachTrumpet", "bachTrumpet", "bachTrombone", "bachBass"],
   5: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
 } as const;
 

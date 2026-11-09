@@ -81,7 +81,7 @@ import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
-import { curatedFor, drumMenuFor, homeStyleFor } from "../touch/drum-library.ts";
+import { curatedFor, drumMenuFor, homeFor } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
@@ -125,7 +125,7 @@ import { hasConsortStops } from "../touch/consort-stops.ts";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 /** D453: the DRUMS row's quick round: HOME, then the sound's family and the fugue's own picks. */
-const quickDrums = (piece: string, sound: string) => 1 + curatedFor(piece, sound).filter((s) => s !== homeStyleFor(sound)).length;
+const quickDrums = (piece: string, sound: string) => 1 + curatedFor(piece, sound).filter((s) => s !== homeFor(piece, sound)).length;
 
 /** D314: how long (s, from the start of play) the reading's marks are explained in the box. */
 const LEGEND_S = 6;

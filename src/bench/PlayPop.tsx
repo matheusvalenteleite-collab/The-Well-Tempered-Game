@@ -79,6 +79,11 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["bossaNova", "BOSSA NOVA"],
   // D524: PET SOUNDS (the strings, the horn, the harpsichord, the piano, the electric bass, its drums and timpani).
   ["petSounds", "PET SOUNDS"],
+  // D586-D590: the setups' new sounds (BERLIN SCHOOL's synthesizers; VAUDEVILLE's pit band; FLUTE & HARP; ORCHESTRA & ORGAN, staged).
+  ["berlinSchool", "BERLIN SCHOOL"],
+  ["vaudeville", "VAUDEVILLE"],
+  ["fluteHarp", "FLUTE & HARP"],
+  ["orchestraOrgan", "ORCHESTRA & ORGAN"],
 ];
 
 /** "ORGAN (SAMPLED)" → "ORGAN", "LIGHT WORLD · SNES" → "LIGHT WORLD". */
