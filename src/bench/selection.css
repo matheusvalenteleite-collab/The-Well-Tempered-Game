@@ -475,3 +475,6 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 /* D455 (the main board): the cards' lines in the game's own pixel face, as its other small texts, legible at 667. */
 .sel-soundgrid-blurb { font-family: var(--tg-pixel); font-size: 5.5px; line-height: 1.6; letter-spacing: 0.02em; color: #c8c4dc; }
 @media (max-width: 700px) { .sel-soundgrid-blurb { font-size: 5px; line-height: 1.6; } }
+/* D455 (the main board: 5 px too small for two or three lines): the lines at 6.5 px, 6 px on a small phone; the cards grow to hold them. */
+.sel-soundgrid-blurb { font-size: 6.5px; line-height: 1.55; }
+@media (max-width: 700px) { .sel-soundgrid-blurb { font-size: 6px; line-height: 1.55; } .sel-soundgrid .sel-drumgrid-pad { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); } }
