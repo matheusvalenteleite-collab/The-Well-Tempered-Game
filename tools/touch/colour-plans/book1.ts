@@ -526,11 +526,21 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f24: {
-    // D590: ORCHESTRA & ORGAN, staged (was the harpsichord, D524: the owner, "definitely not harpsichord for the big ending of Book I").
-    sound: "orchestraOrgan",
-    soundWhy: "D590 (the owner: \"this requires a much more involved and ambitious setup\"): Book I's finale, 76 bars of largo on the twelve-note subject, built in stages by its form (stage.ts): the exposition on the string quartet alone (Förster's arrangement), the oboe and the bassoon joining the outer lines at the middle entries, the second oboe and the horn the inner ones as the entries crowd (38-47, 53-62), and the organ arriving on every line for the final group (69) to the B major chord, in the church; with DRUMS on, the timpani on tonic and dominant at the arrivals.",
+    // D594 (the owner: "sucks right now. Too slow and boring. We definitely need to make its fast tempo the default one and
+    // change its instrument"): SID 64 at FAST. D590's ORCHESTRA & ORGAN, staged, kept below as a choice (and in the IDEAS).
+    sound: "sid64",
+    soundWhy: "D594 (the owner: \"too slow and boring … make its fast tempo the default one and change its instrument\"; \"Krautrock and the chip sets have become my favorite ones\"): Book I's finale, its twelve-note subject at FAST (a crotchet of 60, was 43), on SID 64: four sustaining voices, the pulse lead, the sawtooth, the triangle and the filtered pulse bass, each holding its note through the chromatic suspensions (measured: every voice within 12 dB of its peak through b. 13-17, where MEGA FM's e-piano, TRACKER's and SUPER 16-BIT's alto decay), the pulses narrow in the exposition and the episodes and opening square for the final group (69); with DRUMS on, SYNTH KIT read from the score, staged from sparse to the climax's kick and crash (bar 74). Its orchestral setup (ORCHESTRA & ORGAN, D590) a choice away.",
+    // (D590's reason for the orchestral setup, kept as a choice: Book I's finale, 76 bars of largo on the twelve-note subject, built in stages by its form (stage.ts): the exposition on the string quartet alone (Förster's arrangement), the oboe and the bassoon joining the outer lines at the middle entries, the second oboe and the horn the inner ones as the entries crowd (38-47, 53-62), and the organ arriving on every line for the final group (69) to the B major chord, in the church; with DRUMS on, the timpani on tonic and dominant at the arrivals.)
     character: "Long episodes (16-21, 24-30, 63-69) between the entries; a cadence in F♯ minor (24); the last entries 69-74.",
     plans: {
+      sid64: [
+        at(1, { pw: 0.2 }, "D594: the exposition on narrow pulses, the build's thin start."),
+        at(E("wtc1f24", 21), OWN, "The alto's entry: the voices' own sweep."),
+        at(B("wtc1f24", 24), { pw: 0.2 }, "The episode after the cadence in F♯ minor narrower."),
+        at(E("wtc1f24", 30), OWN, "The tenor's entry."),
+        at(63, { pw: 0.2, tone: -1 }, "The episode 63-69 held back."),
+        at(E("wtc1f24", 69), { pw: 0.5 }, "The final group: the pulses square, the fullest, to the B major chord."),
+      ],
       stringConsort: [
         at(16, { tone: -2 }, "The episode 16-21 darker."),
         at(E("wtc1f24", 21), OWN, "The alto's entry."),

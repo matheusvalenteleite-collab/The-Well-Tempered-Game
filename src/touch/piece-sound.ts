@@ -95,6 +95,12 @@ import { playerSound } from "./sound.ts";
  * (stage.ts: "a much more involved and ambitious setup"); II/24 on SWITCHED-ON ("this fugue works great with synth sounds").
  * Each fugue's own drums with it (drum-library.ts FUGUE_STYLES).
  */
+/**
+ * D594-D595, the owner after 2.52 ("Krautrock and the chip sets have become my favorite ones"): I/24 on SID 64 ("sucks right
+ * now. Too slow and boring … change its instrument"; ORCHESTRA & ORGAN kept as a choice and in the IDEAS) with SYNTH KIT's
+ * staged build, and II/22 on KRAUTROCK with LIEBEZEIT ("sounds much cooler as Krautrock"), both opening on FAST (tempi.ts
+ * OPENING_STEP).
+ */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
@@ -144,7 +150,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p23: "chip",
   wtc1f23: "vocalSynth",
   wtc1p24: "chip",
-  wtc1f24: "orchestraOrgan",
+  wtc1f24: "sid64",
   // Book II
   wtc2p01: "harpsichordSampled",
   wtc2f01: "chorinho",
@@ -189,7 +195,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p21: "harpsichordSampled",
   wtc2f21: "baroqueBand",
   wtc2p22: "chip",
-  wtc2f22: "chamberOrgan",
+  wtc2f22: "krautrock",
   wtc2p23: "chip",
   wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",

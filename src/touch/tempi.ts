@@ -60,8 +60,38 @@ const PRELUDES: Record<string, number> = {
 /** D270: the TUTORIAL's invention, a little under the recordings' usual pace (about 66 to 80 a quarter), for learning. */
 const TUTORIAL_TEMPO: Record<string, number> = { inv01: 60 };
 export function tempoOf(id: string): number {
-  return TEMPO[id]?.normal ?? MORE_TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
+  const t = TEMPO[id];
+  // D594: a fugue that opens on its FAST step plays it from the start (the friends' view too, where the button is shut).
+  if (t && OPENING_STEP[id] === "fast") return fastTempo(t);
+  return t?.normal ?? MORE_TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
 }
+
+// D481 (the owner: "some fugues' fast tempo is quite conservative and similar to standard. The fast version
+// ought to be faster"): FAST 1.4× the default, never less than 1.3×, and its own load cap (FAST_LOAD, a
+// challenge chosen by the player) instead of the default's 5.5 notes a second. (D594: here from tempo-steps.ts,
+// which re-exports them, so the opening tempo below can be read without it.)
+export const FAST_SHARE = 1.4;
+/** FAST at least this much quicker than DEFAULT, even past the load (where DEFAULT is already at it). */
+export const FAST_MIN_SHARE = 1.3;
+/** D481: the busiest line's notes a second FAST may reach (DEFAULT keeps STEP_LOAD). */
+export const FAST_LOAD = 7.5;
+/** D481: a piece's FAST step (quarter notes a minute) from its record: 1.4× its NORMAL, at least 1.3×, the busiest line at most FAST_LOAD. */
+export function fastTempo(t: PieceTempo): number {
+  const d = t.normal;
+  const cap = t.busiest > 0 ? (d * FAST_LOAD) / t.busiest : Infinity;
+  return Math.round(Math.max(d * FAST_MIN_SHARE, Math.min(d * FAST_SHARE, cap)));
+}
+
+/**
+ * D594: the tempo step a fugue opens on (tempo-steps.ts SLOW · DEFAULT · FAST; DEFAULT where none is named): the owner,
+ * on I/24 "Too slow and boring. We definitely need to make its fast tempo the default one", and II/22 "sounds much cooler
+ * as Krautrock and fast tempo as default". The step's tempo is what `tempoOf` plays; the button still cycles all three,
+ * and a player's choice of DEFAULT is kept (tempo-steps.ts saveStep). Difficulty, stars and tiers stay on
+ * `standardTempo` (the recordings' median), so the ranking does not move.
+ */
+export type OpeningStep = "default" | "fast";
+export const OPENING_STEP: Readonly<Record<string, OpeningStep>> = { wtc1f24: "fast", wtc2f22: "fast" };
+export const openingStep = (id: string): OpeningStep => OPENING_STEP[id] ?? "default";
 
 /**
  * D285: the measuring tempo: the recordings' median, as before the game slowed down. Difficulty, stars,
