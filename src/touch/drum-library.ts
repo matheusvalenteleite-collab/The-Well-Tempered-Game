@@ -251,8 +251,34 @@ export function fugueStyle(pieceId: string): StyleId | null {
   if (!want) return null;
   return isStyle(want) ? want : (FUGUE_STYLE_STANDIN[want] ?? null);
 }
-/** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else the sound's HOME. */
-export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? homeStyleFor(sound);
+/**
+ * D618, A SOUND'S HOME BY FUGUE: where a sound's HOME does not suit a fugue, the fugue's own HOME on that sound (any
+ * fugue, on its own sound or not; a fugue's own style on its own sound, FUGUE_STYLES, still first). BACH BRASS's MARCH on
+ * its calm fugues (the brass research's drum-fit criteria, section 4: the busiest voice under 3 notes a second, tempi.ts
+ * TEMPO busiest) falls back to the score-driven orchestral drums: FIELD DRUM (the muffled drum: long rolls into the
+ * arrivals and on the pedals) for the laments (I/8, I/12, I/24, II/8, II/22, the research's "pathetic, lament"), TIMPANI
+ * (the tonic and dominant at the structural arrivals only) for the stile antico (I/22, II/9) and the other calm ones (I/16,
+ * I/18, II/2), and for the compound ones whatever their character (I/14 in 6/4, II/18 in 6/8: FIELD DRUM is not idiomatic
+ * in a compound metre, FITS). II/5 (calm by its notes, a festive alla breve: MARCH's own, D600) keeps its MARCH.
+ */
+export const SOUND_FUGUE_HOME: Readonly<Record<string, Readonly<Record<string, StyleId>>>> = {
+  bachBrass: {
+    wtc1f08: "fieldDrums",
+    wtc1f12: "fieldDrums",
+    wtc1f14: "timpani",
+    wtc1f16: "timpani",
+    wtc1f18: "timpani",
+    wtc1f22: "timpani",
+    wtc1f24: "fieldDrums",
+    wtc2f02: "timpani",
+    wtc2f08: "fieldDrums",
+    wtc2f09: "timpani",
+    wtc2f18: "timpani",
+    wtc2f22: "fieldDrums",
+  },
+};
+/** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else (D618) the sound's HOME for that fugue, else the sound's HOME. */
+export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? SOUND_FUGUE_HOME[sound]?.[pieceId] ?? homeStyleFor(sound);
 export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[sound] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 
 const fugueOf = (f: TouchFugue | string): TouchFugue | null => {

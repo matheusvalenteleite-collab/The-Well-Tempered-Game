@@ -89,7 +89,7 @@ import { fillsFor } from "../touch/jazz-drums.ts";
 import { LATIN_SOUNDS, latinPlan } from "../touch/latin-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
-import { BAND_GROWTH, PIECE_GROWTH, growthAt, unisonAt, unisonSpans, type GrowthSpec, type UnisonSpan, type UnisonSpec } from "../touch/band-growth.ts";
+import { BAND_GROWTH, PIECE_GROWTH, growthAt, lengthCaps, unisonAt, unisonLate, unisonSpans, type GrowthSpec, type MuteSpec, type UnisonSpan, type UnisonSpec } from "../touch/band-growth.ts";
 import { busoniReaches, expressiveAll, PATCHES, patchIdFor, pieceLineUp, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
 import { bandTrimDb, entryGain, liftGain, playerToneDb } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -688,6 +688,10 @@ export class ProtoGame {
     const bg = o.her || f.kind !== "fugue" ? null : BAND_GROWTH[preset().id];
     this.unisons = bg?.unison ? unisonSpans(f, f.voices.map((_, v) => patchIdFor(v, f.voices.length)), bg.unison) : [];
     this.unisonSpec = bg?.unison ?? null;
+    // D612: BACH BRASS's low brass articulated (its running quavers shorter: band-growth.ts lengthCaps).
+    this.lengthCaps = bg?.lengths ? lengthCaps(f, f.voices.map((_, v) => patchIdFor(v, f.voices.length)), bg.lengths) : null;
+    // D614: its episodes' trumpets muted (band-growth.ts BRASS_MUTE).
+    this.mute = bg?.mute ?? null;
     // D607: or the fugue's own growth on the sound (II/22 on KRAUTROCK).
     this.growth = (o.her || f.kind !== "fugue" ? null : PIECE_GROWTH[f.id]?.[preset().id]) ?? bg?.growth ?? null;
     if (chip.coupling) chip.coupling = { up: 0, down: 0, split: 48 };
@@ -1138,7 +1142,10 @@ export class ProtoGame {
       // D250: the bass's pedal sounds only while the player holds it.
       const bp = this.bassPedal;
       if (bp && n.midi === bp.midi && n.on >= bp.on && n.on < bp.end && bp.id === null) continue;
-      const sh = this.shapes[this.nextOther - 1];
+      const sh0 = this.shapes[this.nextOther - 1];
+      // D612: a low brass note's length capped (never a joined one: the reading's slurs and ties as they are).
+      const cap = !n.band && sh0.art !== "join" && sh0.art !== "syllable" && !sh0.over ? this.lengthCaps?.get(`${n.voice}:${n.on}`) : undefined;
+      const sh = cap !== undefined && cap < sh0.hold ? { ...sh0, hold: cap } : sh0;
       // D302: a joined note held over the next one's onset (sh.over), crossfaded into it.
       // D328: a sound held over a point where the band may wait, scheduled longer, stopped once it is settled.
       const hx = this.bandT ? this.bandT.crossing(n.on, n.on + n.dur * sh.hold) : -1;
@@ -1148,7 +1155,12 @@ export class ProtoGame {
       const at = Math.max(ch.ctx.currentTime, this.timeAt(n.on) + sh.nudge);
       // D213: the subject brighter and crisper, the others duller during an entry; the fugue's effect on the subject.
       const sv = this.subj.shape(n.voice, n.on, voicing(n.voice, this.f.voices.length, false));
-      const vv = sv.v;
+      // D577: the sound's growth with the form (band-growth.ts: BACH BRASS veiled in the episodes, brighter and in a larger room toward the climax).
+      const gw0 = this.growth ? growthAt(this.f, n.on, this.growth) : null;
+      // D614: a veiled episode's trumpet on its mute (within the mute's recordings), the lowpass off it where the spec says.
+      const mt = this.mute;
+      const muted = !!(mt && gw0?.veiled && sv.v.patch === PATCHES[mt.from] && n.midi >= mt.compass[0] && n.midi <= mt.compass[1]);
+      const vv = muted ? { ...sv.v, patch: PATCHES[mt!.to] } : sv.v;
       // D508: the band's balance: the voice's trim, and its subject's entry a little forward (not where Busoni's palette brings it out).
       const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1);
       const prev = this.lastOther.get(n.voice);
@@ -1174,8 +1186,7 @@ export class ProtoGame {
       // D355: the band's colour where the note starts (colour.ts).
       // D513: and the form's (a subject zone, an episode, the climax): its shelf, room and registration, its level below.
       const fm = this.form?.at(preset().id, n.on) ?? null;
-      // D577: and the sound's growth with the form (band-growth.ts: BACH BRASS veiled in the episodes, brighter and in a larger room toward the climax).
-      const gw = this.growth ? growthAt(this.f, n.on, this.growth) : null;
+      const gw = gw0 && muted && !mt!.lp ? { ...gw0, colour: { tone: gw0.colour.tone } } : gw0;
       const cl = withForm(withForm(this.colour?.at(n.on, n.voice) ?? null, fm?.colour ?? null), gw?.colour ?? null);
       // D602: a manual's change in the script reported to the studio as it sounds (a voice to the other manual, a stop drawn).
       if (this.manuals && cl?.reg && musicLive()) {
@@ -4945,13 +4956,19 @@ export class ProtoGame {
   unisons: UnisonSpan[] = [];
   unisonSpec: UnisonSpec | null = null;
   growth: GrowthSpec | null = null;
+  /** D614: the sound's episode mutes, null on any other sound. */
+  mute: MuteSpec | null = null;
+  /** D612: the low brass's length caps by note ("voice:onset"), null on any other sound. */
+  lengthCaps: Map<string, number> | null = null;
   /** D576: a note's unison double (Play.unison), where its voice's entry is sounding. */
   unisonPlay(voice: number, tick: number, pan: number): Play {
     const u = this.unisonSpec ? unisonAt(this.unisons, voice, tick) : null;
     if (!u || !this.unisonSpec) return {};
     const k = this.unisonSpec;
-    const to = Math.max(-0.35, Math.min(0.35, pan + (pan > 0 ? -k.pan : k.pan)));
-    return { unison: { patch: PATCHES[u.patch], level: k.level, late: k.late, pan: to } };
+    // D616: in its own instrument's seat (the full choir's, a phone's or a computer's), else beside the voice toward the middle.
+    const seat = k.seat?.[u.patch];
+    const to = seat !== undefined ? voicing(seat, k.seatCount ?? 5).pan : Math.max(-0.35, Math.min(0.35, pan + (pan > 0 ? -k.pan : k.pan)));
+    return { unison: { patch: PATCHES[u.patch], level: k.level, late: unisonLate(k, voice, tick), pan: to, ...(k.detune ? { detune: k.detune } : {}) } };
   }
   /** D205: the piece's ornaments ("voice:onset"), and each other voice's last note (for the snapped trill). */
   readonly ornaments: Map<string, Ornament>;

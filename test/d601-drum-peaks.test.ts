@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { strokesOf } from "./drum-strokes.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
-import { FUGUE_PICKS, homeFor } from "../src/touch/drum-library.ts";
+import { FUGUE_PICKS, homeFor, SOUND_FUGUE_HOME } from "../src/touch/drum-library.ts";
 import { pieceLevel } from "../src/touch/sound.ts";
 import { BAND, PIECE_DB, TAIL_S, TAIL_W } from "../src/touch/drum-peak-data.ts";
 import { STREET_MIN_BAR_S, STREET_VEL } from "../src/touch/score-layers.ts";
@@ -29,7 +29,7 @@ const WINDOW_S = (19 * 512) / 24000;
  * drums' side: each stroke at least MARGIN_DB under the band by the model.
  */
 const MARGIN_DB = 1;
-/** The band's measured loudness (dB) over the window from the half beat at or around a tick. */
+/** The band's measured loudness (dB) over the window from the half beat at or around a tick (`id`: a fugue, or D618's "<fugue>@<sound>"). */
 function bandAt(id: string, tick: number): number {
   const b = BAND[id];
   const at = (i: number) => b.db[Math.max(0, Math.min(b.db.length - 1, i))];
@@ -37,32 +37,49 @@ function bandAt(id: string, tick: number): number {
   return Math.max(at(Math.floor(tick / b.beat)), at(Math.ceil(tick / b.beat)));
 }
 
+/** Every stroke of `style` on `sound` over a fugue, against the band measured under `key`: the strokes counted and those not MARGIN_DB under. */
+async function overBand(id: string, sound: string, style: string, key: string, bad: string[]): Promise<number> {
+  const f = fugueById(id);
+  const lv = 20 * Math.log10(pieceLevel(sound, id, true));
+  const db = PIECE_DB[`${style}@${sound}`];
+  assert.ok(db, `${style} on ${sound}: fitted`);
+  assert.ok(BAND[key], `${key}: measured`);
+  let n = 0;
+  const s = (await strokesOf(f, sound, style)).sort((a, b) => a.t - b.t);
+  let lo = 0;
+  for (let i = 0; i < s.length; i++) {
+    const x = s[i];
+    while (s[lo].t < x.t - TAIL_S) lo++;
+    let e = 0;
+    for (let k = lo; k < s.length && s[k].t < x.t + WINDOW_S; k++) e += 10 ** ((db[s[k].piece] ?? -99) / 10) * s[k].vel ** 2 * (s[k].t < x.t - 1e-4 ? TAIL_W : 1);
+    const drum = -0.691 + 10 * Math.log10(Math.max(e, 1e-14)) + lv;
+    const band = bandAt(key, x.tick);
+    n++;
+    if (drum + MARGIN_DB > band) bad.push(`${key} ${style} ${x.piece}/${x.role ?? "-"} v${x.vel.toFixed(2)} at tick ${Math.round(x.tick)}: drums ${drum.toFixed(1)}, the band ${band.toFixed(1)}`);
+  }
+  return n;
+}
+
 test("D601: every fugue's drums (HOME and its picks) under the band at every stroke, on the phone model", async () => {
   const bad: string[] = [];
   let n = 0;
   for (const id of WTC) {
-    const f = fugueById(id);
     const sound = PIECE_SOUND[id];
-    const lv = 20 * Math.log10(pieceLevel(sound, id, true));
-    for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) {
-      const db = PIECE_DB[`${style}@${sound}`];
-      assert.ok(db, `${style} on ${sound}: fitted`);
-      assert.ok(BAND[id], `${id}: measured`);
-      const s = (await strokesOf(f, sound, style)).sort((a, b) => a.t - b.t);
-      let lo = 0;
-      for (let i = 0; i < s.length; i++) {
-        const x = s[i];
-        while (s[lo].t < x.t - TAIL_S) lo++;
-        let e = 0;
-        for (let k = lo; k < s.length && s[k].t < x.t + WINDOW_S; k++) e += 10 ** ((db[s[k].piece] ?? -99) / 10) * s[k].vel ** 2 * (s[k].t < x.t - 1e-4 ? TAIL_W : 1);
-        const drum = -0.691 + 10 * Math.log10(Math.max(e, 1e-14)) + lv;
-        const band = bandAt(id, x.tick);
-        n++;
-        if (drum + MARGIN_DB > band) bad.push(`${id} ${style} ${x.piece}/${x.role ?? "-"} v${x.vel.toFixed(2)} at tick ${Math.round(x.tick)}: drums ${drum.toFixed(1)}, the band ${band.toFixed(1)}`);
-      }
-    }
+    for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
   }
   assert.ok(n > 30000, `${n} strokes`);
+  assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
+});
+
+test("D618: a sound's HOME by fugue (BACH BRASS's calm fugues on TIMPANI and FIELD DRUM) under that sound's band at every stroke", async () => {
+  const bad: string[] = [];
+  let n = 0;
+  for (const [sound, homes] of Object.entries(SOUND_FUGUE_HOME))
+    for (const id of Object.keys(homes)) {
+      assert.equal(homeFor(id, sound), homes[id], `${id} on ${sound}: its HOME`);
+      n += await overBand(id, sound, homes[id], `${id}@${sound}`, bad);
+    }
+  assert.ok(n > 2000, `${n} strokes`);
   assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 

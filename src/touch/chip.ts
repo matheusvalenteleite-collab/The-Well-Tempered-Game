@@ -13,7 +13,7 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -941,7 +941,7 @@ export interface Play {
    * D576: a second instrument in unison with this note (BACH BRASS's entries doubled: band-growth.ts), `level` of it, at
    * its own seat (`pan`), `late` s after (two players); the band's note and the player's alike, by the note's place alone.
    */
-  unison?: { patch: Patch; level: number; late?: number; pan?: number };
+  unison?: { patch: Patch; level: number; late?: number; pan?: number; detune?: number };
   /** D385: the player's line on the piano: the reading's level here (dB about the middle), the touch's zone added (touch-expr.ts landing). */
   lineDb?: number;
   /** D426: a slid note on the piano (the hairpin slide): its level continuous across the strip (touch-expr.ts pianoHairpinDb), not the zones. */
@@ -1537,7 +1537,7 @@ export class Chip {
     if (uni) {
       const late = uni.late ?? 0;
       const main = this.noteNow(midi, at, dur, v, { ...p, unison: undefined });
-      const twin = this.noteNow(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: uni.patch, ...(uni.pan !== undefined ? { pan: uni.pan } : {}) }, { ...p, unison: undefined, couple: false, lead: false, touch: undefined, trill: undefined, level: (p.level ?? 1) * uni.level });
+      const twin = this.noteNow(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: uni.patch, ...(uni.pan !== undefined ? { pan: uni.pan } : {}) }, { ...p, unison: undefined, couple: false, lead: false, touch: undefined, trill: undefined, level: (p.level ?? 1) * uni.level, ...(uni.detune ? { detune: (p.detune ?? 0) + uni.detune } : {}) });
       return together([main, twin], 0);
     }
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
@@ -4834,8 +4834,10 @@ export function voicing(voice: number, count: number, _played = true): Voicing {
   const timbre: Timbre = phoneBass ? (count > 3 ? "pulse25" : "pulse50") : bass || count === 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
   // D297: a period preset places its voices itself (within ±0.35) and may set an inner voice a shade lighter.
   const place = placeFor(voice, count);
+  // D615: a computer's seat where the preset gives one (Preset.desk: BACH BRASS's two choirs); a phone's as before.
+  const desk = isPhone() ? null : deskSeatFor(voice, count);
   // D365: CLASSIC CHIP (no patches) within ±0.35 (it spread ±0.45, the widest of any sound: D358); the others as before.
-  const pan = place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
+  const pan = desk !== null ? desk : place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
   return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count), ...(bass ? { bass: true } : {}) };
 }
