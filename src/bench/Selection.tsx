@@ -20,7 +20,7 @@ import { fugueById } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { Portrait } from "./Bach.tsx";
-import { Emblem } from "./FuguePicker.tsx";
+import { FitEmblem } from "./FitEmblem.tsx";
 import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
@@ -276,7 +276,7 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
     <li>
       <button type="button" id={`tile-${id}`} className={`sel-tile${on ? " on" : ""}${done ? " done" : ""}${next ? " next" : ""}`} style={{ ["--tint" as string]: lv.ink }} aria-pressed={on} aria-label={name} onClick={() => pick(id)}>
         <span className="sel-pic">
-          <Emblem id={id} className="sel-emblem" />
+          <FitEmblem id={id} className="sel-emblem" />
           {grade ? (
             <span className="sel-grade" id={`grade-${id}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }} aria-label={tr("BEST GRADE {g}", { g: grade })}>
               {grade}
@@ -298,16 +298,17 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
             {tr(lv.label)}
           </span>
           {/* D446 (the owner: "fit the name and key of fugue inside the miniature picture … make sure it's readable"): the words over the picture's foot, on a dark band. */}
-          <span className="sel-tile-words">
-            <span className="sel-tile-key">
-              <b>{n}</b> {key.tonic} <i>{key.mode}</i>
-            </span>
-            {nick && (
-              <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`} data-word={longestWord(nick)}>
-                {nick}
-              </span>
-            )}
+        </span>
+        {/* D499: the words in a band under the whole picture (no longer over its foot). */}
+        <span className="sel-tile-words">
+          <span className="sel-tile-key">
+            <b>{n}</b> {key.tonic} <i>{key.mode}</i>
           </span>
+          {nick && (
+            <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`} data-word={longestWord(nick)}>
+              {nick}
+            </span>
+          )}
         </span>
       </button>
     </li>
@@ -348,7 +349,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
     <div className="sel-piece" id="sel-piece">
       {/* D449, D452: the whole picture opens ABOUT THIS FUGUE, and the whole picture glows to say so (no ?). */}
       <span className={`sel-piece-pic${aboutable ? " sel-piece-pic-open" : ""}`} id="sel-piece-pic" role={aboutable ? "button" : undefined} tabIndex={aboutable ? 0 : undefined} aria-label={aboutable ? tr("ABOUT THIS FUGUE") : undefined} onClick={aboutable ? () => setAbout(true) : undefined}>
-        <Emblem id={piece} className="sel-piece-emblem" />
+        <FitEmblem id={piece} className="sel-piece-emblem" />
         {grade && (
           <span className={`sel-grade${best[piece] ? "" : " sel-old"}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }}>
             {grade}

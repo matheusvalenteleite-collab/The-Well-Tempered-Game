@@ -478,3 +478,16 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 /* D455 (the main board: 5 px too small for two or three lines): the lines at 6.5 px, 6 px on a small phone; the cards grow to hold them. */
 .sel-soundgrid-blurb { font-size: 6.5px; line-height: 1.55; }
 @media (max-width: 700px) { .sel-soundgrid-blurb { font-size: 6px; line-height: 1.55; } .sel-soundgrid .sel-drumgrid-pad { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); } }
+/* D499 (design studio; the owner: the pictures "cropped in a weird way instead of resized in a more intelligent manner"):
+   every picture whole, never cropped (FitEmblem: the largest whole multiple of device pixels that fits, else an exact fit
+   from a fine source; the margin the picture's own edge colour, darkened). THE CARDS: the picture at the top at its own
+   64:40 in the space above the words (centred, framed in its edge colour where the card is taller), the number, key and
+   name in a band under it (no longer over the picture's foot); the level over its top left. */
+.tb-fit { display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.tb-fit-img { display: block; flex: none; max-width: none; max-height: none; }
+.sel-tile { display: flex; flex-direction: column; }
+.sel-tile .sel-pic { flex: 1 1 auto; height: auto; width: 100%; min-height: 0; aspect-ratio: auto; background: transparent; }
+.sel-tile .sel-emblem { width: 100%; height: 100%; max-height: none; aspect-ratio: auto; }
+.sel-tile .sel-tile-words { position: static; flex: none; display: flex; flex-direction: column; justify-content: flex-end; padding: 2px 3px 2px; background: rgba(8, 8, 16, 0.9); }
+.sel-tile.on .sel-tile-words { background: rgba(38, 48, 90, 0.95); }
+.sel-right .sel-piece-emblem { width: 100%; height: 100%; max-width: none; max-height: none; aspect-ratio: auto; }
