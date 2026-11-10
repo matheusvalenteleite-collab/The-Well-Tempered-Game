@@ -129,9 +129,10 @@ export const JITTER_S = 0.005;
 /**
  * D601: the military styles' rolls and accents against their grooves (the drum-peak audit, tools/touch/drum-peak: I/5's
  * MARCH rolls into the final group up to 12.9 LU over the band on the phone model, 2.52; its five-stroke drags and the
- * cadences' ruffs 1-5 over): a roll's strokes and an accent's at these shares. Their place and shape as before.
+ * cadences' ruffs 1-5 over): a roll's top strokes and an accent's at these shares (a roll's softer strokes less: its
+ * crescendo kept, its top lower). Their place as before.
  */
-export const ROLL_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.35, military: 0.45, fieldDrums: 0.5, castanets: 0.6, frame: 0.7 };
+export const ROLL_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.25, military: 0.4, fieldDrums: 0.45, castanets: 0.55, frame: 0.45, timpani: 0.8 };
 export const ACCENT_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.75, military: 0.8, fieldDrums: 0.85 };
 /** A grace and its stroke no closer than this (s). */
 export const GRACE_MIN_S = 0.018;
@@ -727,7 +728,7 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
     const sx = tw.stage < 1 ? smooth(s.tick / Math.max(1, fp.climax.peak)) : 1;
     if (tw.stage < 1 && (s.src === "bass" || s.src === "subject") && hash(s.tick, 29) > 0.25 + 0.75 * sx) continue;
     const stageG = tw.stage + (1 - tw.stage) * sx;
-    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (s.role === "roll" ? (ROLL_GAIN[style] ?? 1) : s.role === "accent" ? (ACCENT_GAIN[style] ?? 1) : 1) * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
+    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (s.role === "roll" ? (ROLL_GAIN[style] ?? 1) ** Math.min(1, s.vel / 0.5) : s.role === "accent" ? (ACCENT_GAIN[style] ?? 1) : 1) * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
     const k = t.piece + (t.midi ?? "");
     const prev = lastOn.get(k);
     const timeOf = (x: ScoreStroke) => x.tick + sToT(x.dt);

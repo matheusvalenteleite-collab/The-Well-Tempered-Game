@@ -4,12 +4,12 @@
 # off: measured); for each style, each piece's loudness at velocity 1 on the phone model (dB; a stroke's energy in the
 # 400 ms after it), fitted by non-negative least squares to the drums alone (DRUMS on, every note silenced): the window
 # energy after each stroke as the sum of the strokes in it (velocity squared), a stroke struck up to 0.3 s before the
-# window counted at TAIL. test/d601-drum-peaks.test.ts then plays every stroke of the fugue's styles through the engine
+# window counted at TAIL. The band's curve on half beats (BAND.beat: the half beat's ticks). test/d601-drum-peaks.test.ts then plays every stroke of the fugue's styles through the engine
 # (no audio) and holds each one's modelled loudness under the band's measured loudness there.
 # usage: python3 -I tools/touch/drum-peak/fit.py <renders dir> <finfo.json> <jobs.json> > src/touch/drum-peak-data.ts
 import sys, json, os
 import numpy as np
-from scipy.optimize import nnls
+from scipy.optimize import least_squares
 
 D, FI, JOBS = sys.argv[1:4]
 fi = json.load(open(FI)); jobs = json.load(open(JOBS))
@@ -30,14 +30,16 @@ for j in jobs:
         F = fi[j['piece']]; beat = F['beat']
         cs = np.concatenate([[0], np.cumsum(P)])
         curve = []
-        for b0 in range(0, F['length'] + 1, beat):
-            i = int(np.searchsorted(ticks, b0))
-            if i >= len(P): curve.append(curve[-1] if curve else -99); continue
+        step = beat // 2
+        for b0 in range(0, F['length'] + 1, step):
+            # the last step at or before the tick (a count-in holds the clock at 0: its last frame there)
+            i = max(0, int(np.searchsorted(ticks, b0, side='right')) - 1)
+            if i >= len(P) - 1: curve.append(curve[-1] if curve else -99); continue
             j1 = min(len(P), i + NW)
-            curve.append(round(lu((cs[j1] - cs[i]) / max(1, j1 - i)), 1))
-        band[j['piece']] = {'beat': beat, 'db': curve}
+            curve.append(round(max(-99.0, lu((cs[j1] - cs[i]) / max(1, j1 - i))), 1))
+        band[j['piece']] = {'beat': step, 'db': curve}
     elif j['mode'] == 'drums':
-        by_style.setdefault(j['style'], []).append((j['piece'], r))
+        by_style.setdefault(f"{j['style']}@{j['sound']}", []).append((j['piece'], r))
 pieces_db = {}
 err = {}
 for st, rs in sorted(by_style.items()):
@@ -58,16 +60,20 @@ for st, rs in sorted(by_style.items()):
             lo, hi = np.searchsorted(whens, w - TAIL), np.searchsorted(whens, w + NW * dt)
             for k in kit[lo:hi]:
                 row[col[k[2]]] += (k[3] ** 2) * (1 if k[1] >= w - 1e-4 else TAIL_W) * lv
-            X.append(row / e); y.append(1.0)
+            X.append(row); y.append(e)
     X = np.array(X); y = np.array(y)
-    a, _ = nnls(X, y)
-    # the model's error on the windows (dB)
-    pred = X @ a
-    e_db = 10 * np.log10(np.maximum(pred, 1e-9))
+    # the pieces' energies (log-parametrised, so each is positive) fitted in dB, robustly (a soft L1 loss)
+    ly = 10 * np.log10(y)
+    used = X.sum(axis=0) > 0
+    def res(p):
+        a = np.where(used, 10 ** (p / 10), 0)
+        return 10 * np.log10(np.maximum(X @ a, 1e-16)) - ly
+    p0 = np.full(len(names), float(np.median(ly)))
+    fit = least_squares(res, p0, loss="soft_l1", f_scale=1.0)
+    a = np.where(used, 10 ** (fit.x / 10), 0)
+    e_db = res(fit.x)
     err[st] = (round(float(np.median(np.abs(e_db))), 2), round(float(np.percentile(e_db, 95)), 2), len(y))
-    # a piece the fit left at 0 (always struck with a louder one): the median of the others' (never silent in the model)
-    pos = a[a > 0]
-    fill = float(np.median(pos)) if len(pos) else 1e-6
+    fill = float(np.median(a[used])) if used.any() else 1e-6
     pieces_db[st] = {n: round(lu(a[i] if a[i] > 0 else fill) + 0.691, 1) for n, i in col.items()}
 print("/**")
 print(" * D601, THE DRUM-PEAK DATA (generated: tools/touch/drum-peak/fit.py from render.cjs's offline renders; do not edit by hand).")

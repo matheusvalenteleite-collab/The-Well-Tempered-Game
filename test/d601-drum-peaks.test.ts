@@ -5,7 +5,8 @@
  * window. The band's side measured (src/touch/drum-peak-data.ts BAND: the band alone through the real engine offline,
  * tools/touch/drum-peak/render.cjs and fit.py); the drums' side the engine's every stroke over the whole fugue, as
  * scheduled (Chip.groove through Chip.scheduleKitHit, no audio), each piece's loudness at velocity 1 fitted to the same
- * renders (PIECE_DB); the window's strokes summed as energy (a stroke struck up to TAIL_S before counted at TAIL_W).
+ * renders (PIECE_DB, by style and sound); the window's strokes summed as energy (a stroke struck up to TAIL_S before
+ * counted at TAIL_W); the model's own error allowed (TOL_DB).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -22,13 +23,14 @@ const WTC = Array.from({ length: 48 }, (_, i) => `wtc${i < 24 ? 1 : 2}f${String(
 /** The window (s) a stroke's loudness is read over (render.cjs: 19 steps of 512 samples at 24 kHz). */
 const WINDOW_S = (19 * 512) / 24000;
 
-/** The band's measured loudness (dB) at a tick: the beats' curve, read between the two beats around it. */
+/** The model's tolerance (dB): the fit's median error (PIECE_DB's header: about 1 dB a style). */
+const TOL_DB = 1;
+/** The band's measured loudness (dB) over the window from the half beat at or around a tick. */
 function bandAt(id: string, tick: number): number {
   const b = BAND[id];
-  const x = tick / b.beat;
-  const i = Math.max(0, Math.min(b.db.length - 1, Math.floor(x)));
-  const j = Math.min(b.db.length - 1, i + 1);
-  return Math.min(b.db[i], b.db[j]);
+  const at = (i: number) => b.db[Math.max(0, Math.min(b.db.length - 1, i))];
+  // the half beats either side (the band's window from just before the stroke, or from just after it)
+  return Math.max(at(Math.floor(tick / b.beat)), at(Math.ceil(tick / b.beat)));
 }
 
 test("D601: every fugue's drums (HOME and its picks) under the band at every stroke, on the phone model", async () => {
@@ -39,8 +41,8 @@ test("D601: every fugue's drums (HOME and its picks) under the band at every str
     const sound = PIECE_SOUND[id];
     const lv = 20 * Math.log10(pieceLevel(sound, id, true));
     for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) {
-      const db = PIECE_DB[style];
-      assert.ok(db, `${style}: fitted`);
+      const db = PIECE_DB[`${style}@${sound}`];
+      assert.ok(db, `${style} on ${sound}: fitted`);
       assert.ok(BAND[id], `${id}: measured`);
       const s = (await strokesOf(f, sound, style)).sort((a, b) => a.t - b.t);
       let lo = 0;
@@ -52,7 +54,7 @@ test("D601: every fugue's drums (HOME and its picks) under the band at every str
         const drum = -0.691 + 10 * Math.log10(Math.max(e, 1e-14)) + lv;
         const band = bandAt(id, x.tick);
         n++;
-        if (drum > band) bad.push(`${id} ${style} ${x.piece}/${x.role ?? "-"} v${x.vel.toFixed(2)} at tick ${Math.round(x.tick)}: drums ${drum.toFixed(1)} over the band's ${band.toFixed(1)}`);
+        if (drum > band + TOL_DB) bad.push(`${id} ${style} ${x.piece}/${x.role ?? "-"} v${x.vel.toFixed(2)} at tick ${Math.round(x.tick)}: drums ${drum.toFixed(1)} over the band's ${band.toFixed(1)}`);
       }
     }
   }

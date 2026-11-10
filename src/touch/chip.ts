@@ -375,10 +375,12 @@ export const TEXTURE_S = 0.4;
 export const TEXTURE_FLOOR = 0.35;
 /** D601: the texture's exponent on the amplitude (one voice of four: (1/4)^0.75, 9 dB under the four). */
 export const TEXTURE_EXP = 0.75;
+/** D601: the lowest voice's share of the texture (a phone's speaker hears the bass through its overtones only). */
+export const BASS_TEXTURE = 0.5;
 /** D601: a roll's or a fill's strokes at this share; an accent at most this; the strokes after the last chord's attack at this. */
-export const ROLL_SHARE = 0.85;
-export const ACCENT_MAX = 0.85;
-export const RING_SHARE = 0.6;
+export const ROLL_SHARE = 0.7;
+export const ACCENT_MAX = 0.75;
+export const RING_SHARE = 0.45;
 const lastOn = new Map<string, number>();
 export function lastOnset(f: TouchFugue): number {
   let t = lastOn.get(f.id);
@@ -397,7 +399,10 @@ export function textureGain(f: TouchFugue, tick: number): number {
     const span = Math.max(1, Math.round(f.tpq / 8));
     const n = Math.ceil(f.length / span) + 2;
     const cover = new Float32Array(n);
-    for (const v of f.voices) for (const [on, dur] of v) for (let i = Math.floor(on / span); i * span < on + dur && i < n; i++) cover[i] += Math.min(1, (Math.min(on + dur, (i + 1) * span) - Math.max(on, i * span)) / span);
+    f.voices.forEach((v, u) => {
+      const w = u === f.voices.length - 1 && f.voices.length > 1 ? BASS_TEXTURE : 1;
+      for (const [on, dur] of v) for (let i = Math.floor(on / span); i * span < on + dur && i < n; i++) cover[i] += w * Math.min(1, (Math.min(on + dur, (i + 1) * span) - Math.max(on, i * span)) / span);
+    });
     const win = Math.max(1, Math.round(((tempoOf(f.id) * f.tpq) / 60) * TEXTURE_S / span));
     const at = new Float32Array(n);
     let acc = 0;
@@ -409,7 +414,7 @@ export function textureGain(f: TouchFugue, tick: number): number {
     texMemo.set(f.id, m);
   }
   const i = Math.max(0, Math.min(m.at.length - 1, Math.floor(tick / m.span)));
-  const s = m.at[i] / Math.max(1, f.voices.length);
+  const s = m.at[i] / (f.voices.length > 1 ? f.voices.length - 1 + BASS_TEXTURE : 1);
   if (s <= 1e-3) return 0;
   return Math.max(TEXTURE_FLOOR, Math.min(1, s ** TEXTURE_EXP));
 }
