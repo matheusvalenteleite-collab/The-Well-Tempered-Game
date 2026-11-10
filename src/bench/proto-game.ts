@@ -675,6 +675,9 @@ export class ProtoGame {
     // D513: the subjects and the episodes, the climax (fugue-form.ts: where the fugue's contrast is clear); D514: the drums' piece.
     if (!o.her && f.kind === "fugue") this.form = new FormLayer(f);
     chip.drumsFor?.(f);
+    // D623: the pilot world's effects (world-sfx.ts): the piece whose world the box draws (the tutorial's box draws none:
+    // its floor; Kimiko's recording plays alone).
+    chip.worldFor?.(o.her || o.thumbsA || f.kind !== "fugue" ? null : f);
     // D593: the fugue's own level on the sound (Preset.levels: the whole mix, a constant of the piece and the sound).
     chip.pieceLevel?.(f);
     // D504: ZELENKA TRIO's layout for the piece (trio.ts trioLayout: the fewest notes out of compass) and its continuo script.

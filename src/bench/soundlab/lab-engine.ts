@@ -21,6 +21,7 @@ import { setDrumStyle } from "../../touch/drum-library.ts";
 import { padChoice, padStyle } from "./drum-pad.ts";
 import { setClimaxLayer, setFormLayer } from "../../touch/fugue-form.ts";
 import { setColourPlansOn } from "../../touch/colour.ts";
+import { setSfxLab } from "../../touch/world-sfx.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { wholeReadingOf } from "../../touch/readings.ts";
 import { tempoOf } from "../../touch/tempi.ts";
@@ -174,6 +175,8 @@ export class LabEngine {
     setClimaxLayer(s.climax);
     setColourPlansOn(s.colour);
     setOwnKit(s.kit);
+    // D623: the pilot world's effects heard here by the lab's own switch (it draws no stage); D626 the dropped sweep too.
+    setSfxLab({ on: s.sfx, trial: s.sweep });
   }
 
   /** The live part: the switches above, the drums' recordings asked for, the voices' gains. */
