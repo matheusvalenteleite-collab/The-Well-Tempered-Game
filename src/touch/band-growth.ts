@@ -103,6 +103,18 @@ export function growthAt(f: TouchFugue, tick: number, spec: GrowthSpec = BRASS_G
 }
 
 /** The sounds that double their entries and grow with the form (by preset id). */
+/**
+ * D604: CHORINHO's growth (the owner on II/1: "didn't really feel any climax … very little variation"): the episodes a
+ * little darker (the regional playing softly, no lowpass: the flute and the bandolim keep their attack), the subject
+ * zones opening act by act, the final group brightest and in more of the room (its drums grow with it: latin-drums.ts
+ * choroStage). Timbre and space only; the bass's shelf is a treble shelf (a phone hears the seven-string as before).
+ */
+export const CHORO_GROWTH: GrowthSpec = {
+  episode: { tone: -2, lp: 0, room: 0.85 },
+  subject: { from: -1.5, to: 0.5, room: 1 },
+  climax: { tone: 2, room: 1.5 },
+};
 export const BAND_GROWTH: Readonly<Record<string, { unison?: UnisonSpec; growth?: GrowthSpec }>> = {
   bachBrass: { unison: BRASS_UNISON, growth: BRASS_GROWTH },
+  chorinho: { growth: CHORO_GROWTH },
 };

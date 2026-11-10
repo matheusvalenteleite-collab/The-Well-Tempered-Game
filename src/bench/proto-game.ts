@@ -18,7 +18,9 @@ import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
-import { isPhone, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
+import { isPhone, musicLive, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
+import { emitMusic } from "../touch/music-events.ts";
+import { hasManualScript, manualScript } from "../touch/harpsi-manuals.ts";
 import type { Grade } from "../touch/engine.ts";
 import { scoreSheet, type Sheet } from "./score-sheet.ts";
 import { acrossBar, planTouches, suggestionMarks, type PlanNote, type SuggestMark, type Touch } from "./fingering.ts";
@@ -95,7 +97,7 @@ import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode
 import { SubjectSound } from "../touch/subject-fx.ts";
 import { TRIO_ID, continuoFor, trioLayout, type ContinuoScript } from "../touch/trio.ts";
 import { stageFor, type StageScript } from "../touch/stage.ts";
-import { busoniLeads, colourPlanFor, coloursLoaded, loadColours, type ColourPlan } from "../touch/colour.ts";
+import { busoniLeads, ColourPlan, colourPlanFor, coloursLoaded, loadColours } from "../touch/colour.ts";
 import { FormLayer, withForm } from "../touch/fugue-form.ts";
 import { pianoKey, pianoKeys } from "./placed.ts";
 import type { Clock } from "./her-clock.ts";
@@ -663,7 +665,10 @@ export class ProtoGame {
     this.tone = o.her || o.solo || mine.length !== 1 ? 0 : playerToneDb(f.id, preset().id, mine[0], f.voices.length);
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
     // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
-    if (!o.her && !busoniLeads(o.reading?.whole, busoniReaches(preset().id))) {
+    // D602: the harpsichord's two manuals scripted for the piece (harpsi-manuals.ts: the entries on the brighter manual, the
+    // stops by the form), in place of the plan and of Busoni's terraces for the band; the changes reported (music-events.ts).
+    if (!o.her && hasManualScript(f.id, preset().id)) this.manuals = this.colour = new ColourPlan(f, manualScript(f), isPhone());
+    else if (!o.her && !busoniLeads(o.reading?.whole, busoniReaches(preset().id))) {
       if (coloursLoaded()) this.colour = colourPlanFor(f, preset().id, isPhone());
       else void loadColours().then(() => (this.colour = colourPlanFor(f, preset().id, isPhone())), () => {});
     }
@@ -1171,6 +1176,14 @@ export class ProtoGame {
       // D577: and the sound's growth with the form (band-growth.ts: BACH BRASS veiled in the episodes, brighter and in a larger room toward the climax).
       const gw = this.growth ? growthAt(this.f, n.on, this.growth) : null;
       const cl = withForm(withForm(this.colour?.at(n.on, n.voice) ?? null, fm?.colour ?? null), gw?.colour ?? null);
+      // D602: a manual's change in the script reported to the studio as it sounds (a voice to the other manual, a stop drawn).
+      if (this.manuals && cl?.reg && musicLive()) {
+        const key = cl.reg.join(" ");
+        if (this.manualSeen[n.voice] !== key) {
+          if (this.manualSeen[n.voice] !== undefined) emitMusic({ tick: n.on, kind: "registration", level: 0.6, voice: n.voice, piece: key || "8'" });
+          this.manualSeen[n.voice] = key;
+        }
+      }
       const uni = this.unisonPlay(n.voice, n.on, vv.pan ?? 0);
       const fdb = fm ? 10 ** (fm.db / 20) : 1;
       // D504: the continuo on the bass's note where the piece's script has it (an ornamented note: the bass alone).
@@ -4918,6 +4931,9 @@ export class ProtoGame {
   readonly subj: SubjectSound;
   /** D355: the piece's colour plan for the sound playing (colour.ts), null where it has none. */
   colour: ColourPlan | null = null;
+  /** D602: the harpsichord's scripted manuals (the colour plan it plays), and each voice's registration last reported. */
+  manuals: ColourPlan | null = null;
+  private manualSeen: (string | undefined)[] = [];
   /** D513: the fugue's subjects and episodes in the band's playing (fugue-form.ts), null for KIMIKO's recording. */
   form: FormLayer | null = null;
   /** D504: ZELENKA TRIO's continuo script for the piece (trio.ts: by its structure alone), null on any other sound. */

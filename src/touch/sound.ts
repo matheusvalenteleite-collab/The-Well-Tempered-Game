@@ -1745,6 +1745,11 @@ export const PRESETS: Preset[] = [
       4: [["sidLead", 0.3], ["sidSaw", -0.25], ["sidTri", 0.15], ["sidBass", 0]],
       5: [["sidLead", 0.3], ["sidThin", -0.3, 0.84], ["sidSaw", 0.1], ["sidTri", -0.1, 0.94], ["sidBass", 0]],
     },
+    // D603: II/6's alto on the triangle (the owner: the alto "annoying"): 2.52's raw sawtooth there measured the most
+    // partials (159 within 40 dB of the strongest, against the triangle's 92) and twice the nasal 1-2 kHz share (12.8% /
+    // 6.6%), the lead's own family beside it; the triangle the SID's mellow voice, in the same seat, 1.3 LU louder alone on
+    // the phone model (scratchpad batch5/wtc2f06/NOTES.md).
+    pieces: { wtc2f06: { 3: [["sidLead", 0.3], ["sidTri", -0.3], ["sidBass", 0]] } },
   },
   // TRACKER (D302 punchier): violin, flute (five voices), harpsichord, the 8-bit choir (four and five), a slapped bass; hard left and right (±0.35).
   {

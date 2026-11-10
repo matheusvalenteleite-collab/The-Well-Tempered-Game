@@ -224,6 +224,10 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc2f05: "march",
   wtc2f12: "bebop",
   wtc2f18: "swell",
+  // D603: II/6 (the owner: the drums "don't fit … it wants something energetic and dancey"): HOUSE 909, four on the floor at
+  // 106 (its eighth's pulse), its hats on the music's straight semiquavers: 82% of its strokes on the score's own onsets
+  // (BREAKBEAT 46%, IDM 39%, ARCADE 47%), 5.2 strokes a second against the chip kit's 2.7.
+  wtc2f06: "house",
   // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
   // 69% of its gaps alike; the arcade's 45%, sd 0.10.)
   wtc2f24: "arcade",

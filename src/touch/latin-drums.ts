@@ -23,6 +23,7 @@
 import type { TouchFugue } from "./fugue.ts";
 import { entrySpans } from "./voice-mode.ts";
 import { TEMPO } from "./tempi.ts";
+import { formOf, phaseAt, type Form } from "./form-points.ts";
 import { nudge, uneven, variantsInTurn, seedOf, FLAM_S, RUFF_S, GRACE_VEL } from "./drum-fills.ts";
 
 export type LatinBand = "salsa" | "chorinho";
@@ -61,6 +62,8 @@ export interface LatinPlan {
   entries: readonly [on: number, end: number][];
   fills: readonly LatinFill[];
   end: number;
+  /** D604: the fugue's form (form-points.ts), for CHORINHO's arc (`choroStage`). */
+  form?: Form;
 }
 
 /** A fill's beats when a moment does not say; the final's; the generic rule's spacing (beats). */
@@ -191,7 +194,7 @@ export function latinPlan(f: TouchFugue, beat: number, per: number): LatinPlan {
     const beats = m.beats ?? (m.kind === "fill" ? FILL_BEATS : m.kind === "final" ? FINAL_BEATS : 1);
     return { kind: m.kind, from: Math.max(0, at - beats * beat), at, why: m.why };
   });
-  const plan: LatinPlan = { id: f.id, pulse, cycle, ternary, bar1: barOn(f, 1), entries: entriesOf(f), fills, end: f.length };
+  const plan: LatinPlan = { id: f.id, pulse, cycle, ternary, bar1: barOn(f, 1), entries: entriesOf(f), fills, end: f.length, form: formOf(f) };
   plans.set(key, plan);
   return plan;
 }
@@ -408,11 +411,53 @@ export function latinBeat(band: LatinBand, plan: LatinPlan, tick: number, beat: 
     }
     const full = inEntry(plan, t);
     const p = mod(Math.round((t - plan.bar1) / plan.pulse), plan.cycle);
-    const k = (full ? 1 : 10 ** (EPISODE_DB / 20)) * g;
-    for (const [piece, pulses, vel, damp] of GROOVES[band][plan.cycle][full ? "full" : "quiet"]) {
+    // D604: CHORINHO's arc (the owner on II/1: "didn't really feel any climax … very little variation"): the regional's
+    // layers join act by act and play firmer into the final group (choroStage), on the same written rows.
+    const arc = band === "chorinho" && plan.form ? choroStage(plan.form, t) : null;
+    const k = (full ? 1 : 10 ** (EPISODE_DB / 20)) * g * (arc ? arc.gain : 1);
+    const rows = GROOVES[band][plan.cycle];
+    const use: readonly Row[] = !arc ? rows[full ? "full" : "quiet"] : full ? choroFull(rows, arc.stage) : arc.stage >= 3 ? [...rows.quiet, ...rows.full.filter((r) => r[0] === "tamborim").map((r) => [r[0], r[1], r[2] * 0.7] as Row)] : rows.quiet;
+    for (const [piece, pulses, vel, damp] of use) {
       if (!pulses.includes(p) || (land && (piece === "tumba" || piece === "surdo" || piece === "timbalBell"))) continue;
       out.push({ piece, at, vel: vel * k, ...(damp ? { damp } : {}) });
     }
   }
+  return out;
+}
+
+/**
+ * D604, CHORINHO'S ARC by the form alone (form-points.ts phaseAt; never the player's notes, right or wrong): the
+ * exposition the pandeiro and a muted surdo (the regional's core), the first middle act the tamborim joining and the surdo
+ * open, the later acts the whole written groove (the agogô, the pandeiro's slaps), the final group (and the climax's ramp
+ * into it) the fullest: the ganzá's sixteenths under the groove, the tamborim in its episodes too, the strokes firmer
+ * (CHORO_CLIMAX_GAIN at the climax's peak). No pitch: the regional's unpitched percussion only.
+ */
+export const CHORO_JOIN: Readonly<Partial<Record<LatinPiece, number>>> = { tamborim: 1, agogoHi: 2, agogoLo: 2, pandSlap: 2 };
+/** The stages' level (the exposition a little under the written groove), and the climax's top. */
+export const CHORO_STAGE_GAIN = [0.86, 0.93, 1, 1] as const;
+export const CHORO_CLIMAX_GAIN = 1.2;
+/** The stage (0 the exposition … 3 the final group) and the strokes' gain at a tick. */
+export function choroStage(form: Form, tick: number): { stage: 0 | 1 | 2 | 3; gain: number } {
+  const ph = phaseAt(form, tick);
+  const last = Math.max(1, form.acts - 1);
+  const r = Math.max(ph.climax, ph.resolved);
+  const byAct: 0 | 1 | 2 | 3 = ph.act >= last ? 3 : ph.act === 0 ? 0 : ph.act === 1 ? 1 : 2;
+  const stage: 0 | 1 | 2 | 3 = r >= 0.5 ? 3 : byAct;
+  return { stage, gain: CHORO_STAGE_GAIN[stage] * (1 + (CHORO_CLIMAX_GAIN - 1) * r) };
+}
+/** The full groove's rows at a stage: the later layers out before they join, the surdo muted in the exposition, the ganzá added in the final group. */
+function choroFull(rows: { full: readonly Row[]; quiet: readonly Row[] }, stage: number): readonly Row[] {
+  const out: Row[] = [];
+  for (const r of rows.full) {
+    const from = CHORO_JOIN[r[0]] ?? 0;
+    if (stage < from) continue;
+    if (stage === 0 && r[0] === "surdo") {
+      // the surdo muted on its second-beat stroke only (the quiet groove's)
+      if (r[3] === undefined) out.push([r[0], r[1], r[2] * 0.75, 0.25]);
+      continue;
+    }
+    out.push(stage === from && from === 1 ? [r[0], r[1], r[2] * 0.8, r[3]] : r);
+  }
+  if (stage >= 3) for (const r of rows.quiet) if (r[0] === "ganza") out.push(r);
   return out;
 }

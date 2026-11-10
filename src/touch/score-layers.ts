@@ -6,7 +6,7 @@
  *
  *   MARCH       the bass drum on the bar's strong beats where the bass's accents leave them (1 and 3 of a 4/4, both
  *               beats of a 2/2 or a 6/8, 1 of a 3/4); a flam on each of the subject's strokes on a beat; a drag and a
- *               five-stroke roll into each entry; in the episodes a stick's soft street beat on the beats; the clash
+ *               five-stroke roll into each entry; in the episodes a stick's soft tap on the bar (D600: not every beat); the clash
  *               cymbals on the arrivals only (the cadences home and the acts', form-points' and the score's).
  *   STOOGES     the temple blocks by the bass's contour (the high block where the bass leaps up); the cartoon timing of
  *               the cadences: a half beat's pause before each, a "ta-da" on the blocks into it, the bonk on it (and the
@@ -43,7 +43,9 @@ export interface LayerCtx {
 /** MARCH: the flam's grace (s before), the five-stroke roll's strokes apart (s), the street beat's levels. */
 export const MARCH_FLAM_S = 0.028;
 export const MARCH_ROLL_S = 0.055;
-export const STREET_VEL = [0.34, 0.24] as const;
+export const STREET_VEL = [0.26, 0.2] as const;
+/** D600: a bar at least this long (s) takes the street beat's tap every bar, a shorter one every other bar. */
+export const STREET_MIN_BAR_S = 1.6;
 /** STOOGES: the cartoon pause before a cadence (beats), the "ta-da" at least this far apart (s). */
 export const PAUSE_BEATS = 0.5;
 export const TADA_MIN_S = 0.1;
@@ -66,14 +68,22 @@ export function addLayers(c: LayerCtx): void {
 function march(c: LayerCtx) {
   const { f, beat, per, strokes, end, beatS } = c;
   const bassAt = strokes.filter((s) => s.src === "bass").map((s) => s.tick);
+  const barS = (f.barTicks / beat) * beatS;
+  let streetBar = 0;
   // The bass drum on the strong beats (where the bass's own accents leave them), the street beat in the episodes.
   for (const b0 of barTicks(f, end)) {
     for (let k = 0; k < per; k++) {
       const t = b0 + k * beat;
       if (t >= end || c.inRoll(t)) continue;
       if (c.isEpisode(t)) {
-        strokes.push({ tick: t, dt: 0, piece: "drumStick", vel: k === 0 ? STREET_VEL[0] : STREET_VEL[1], src: "bass" });
-        if (beatS >= 0.9) strokes.push({ tick: t + beat / 2, dt: 0, piece: "drumStick", vel: STREET_VEL[1] * 0.7, src: "bass" });
+        // D600: the street beat a stick's tap on the bar's first beat only (every other bar where a bar is shorter than
+        // STREET_MIN_BAR_S), the taps a little uneven: 2.52's stick on every beat and its half (II/5: every crotchet at one
+        // level) was "a click track ... louder than the music" (the owner).
+        if (k === 0) {
+          const n = streetBar++;
+          const every = barS >= STREET_MIN_BAR_S;
+          if (every || n % 2 === 0) strokes.push({ tick: t, dt: 0, piece: "drumStick", vel: STREET_VEL[(every ? n : n >> 1) % 2], src: "bass" });
+        }
         continue;
       }
       if (!strongBeats(per).includes(k)) continue;
