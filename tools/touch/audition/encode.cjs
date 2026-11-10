@@ -40,7 +40,10 @@ for (const f of fs.readdirSync(inDir).filter((x) => x.endsWith('.json')).sort())
     if (Math.abs(m.lufs - TARGET) <= 0.2) break;
     gainDb += TARGET - m.lufs;
   }
-  clips[info.sound] = { lufs: m.lufs, peakDb: m.peakDb, gainDb: +gainDb.toFixed(2), drums: info.drums, strokes: info.strokes, bytes: fs.statSync(out).size };
+  const notes = [];
+  if (info.stageAt !== null && info.stageAt !== undefined) notes.push(`the full complement: forced to stage ${info.stageAt}, the final group's line-up (the render only)`);
+  if (info.harmony?.length) notes.push(`timpani as at an arrival: ${info.harmony.map((h) => `${h.drum} ${h.midi} at beat ${h.beat} over [${h.sounding.join(' ')}] ${h.ok ? 'struck' : 'not struck (clash)'}`).join('; ')}`);
+  clips[info.sound] = { lufs: m.lufs, peakDb: m.peakDb, gainDb: +gainDb.toFixed(2), drums: info.drums, strokes: info.strokes, ...(info.timp?.length ? { timpAt: info.timp } : {}), ...(notes.length ? { notes } : {}), bytes: fs.statSync(out).size };
   console.log(info.sound, JSON.stringify(clips[info.sound]));
 }
 fs.writeFileSync(path.join(outDir, 'clips.json'), JSON.stringify({ phrase, target: TARGET, model: 'mono, 2x 2nd-order 600 Hz high-pass, ebur128 integrated', kbps: KBPS, clips }, null, 1) + '\n');

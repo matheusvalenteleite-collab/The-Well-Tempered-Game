@@ -35,11 +35,18 @@
    "bytes": 21429
   },
   "baroqueBand": {
-   "lufs": -23,
+   "lufs": -22.9,
    "peakDb": -6.6,
-   "gainDb": 9.4,
+   "gainDb": 9.2,
    "drums": "timpani",
-   "strokes": 3,
+   "strokes": 5,
+   "timpAt": [
+    0.43,
+    2.57
+   ],
+   "notes": [
+    "timpani as at an arrival: tonic 48 at beat 1.5 over [75 72 60] struck; tonic 48 at beat 4 over [79 75 60] struck"
+   ],
    "bytes": 21429
   },
   "berlinSchool": {
@@ -60,10 +67,17 @@
   },
   "chamberOrgan": {
    "lufs": -23,
-   "peakDb": -6.5,
+   "peakDb": -6.6,
    "gainDb": 4.8,
    "drums": "timpani",
-   "strokes": 3,
+   "strokes": 5,
+   "timpAt": [
+    0.43,
+    2.57
+   ],
+   "notes": [
+    "timpani as at an arrival: tonic 48 at beat 1.5 over [75 72 60] struck; tonic 48 at beat 4 over [79 75 60] struck"
+   ],
    "bytes": 21429
   },
   "chip": {
@@ -139,11 +153,19 @@
    "bytes": 21429
   },
   "orchestraOrgan": {
-   "lufs": -23.1,
-   "peakDb": -5.6,
-   "gainDb": 11.9,
+   "lufs": -23,
+   "peakDb": -5.1,
+   "gainDb": 10.4,
    "drums": "timpani",
-   "strokes": 3,
+   "strokes": 5,
+   "timpAt": [
+    0.43,
+    2.57
+   ],
+   "notes": [
+    "the full complement: forced to stage 3, the final group's line-up (the render only)",
+    "timpani as at an arrival: tonic 48 at beat 1.5 over [75 72 60] struck; tonic 48 at beat 4 over [79 75 60] struck"
+   ],
    "bytes": 21429
   },
   "petSounds": {

@@ -62,3 +62,12 @@ test("D630: the clips under 1 MB in all, each matched to -23 LUFS on the phone m
   }
   assert.ok(total < 1024 * 1024, `${total} bytes`);
 });
+
+test("D630: ORCHESTRA & ORGAN's clip at its last stage; the timpani sounds' clips with their tonic strokes", () => {
+  const c = CLIPS.clips as Record<string, { notes?: string[]; timpAt?: number[] }>;
+  assert.match(c.orchestraOrgan.notes?.join(" ") ?? "", /full complement/);
+  for (const id of ["chamberOrgan", "baroqueBand", "orchestraOrgan"]) {
+    assert.ok((c[id].timpAt?.length ?? 0) >= 1 && (c[id].timpAt?.length ?? 0) <= 3, id);
+    assert.ok(!/clash/.test(c[id].notes?.join(" ") ?? ""), `${id}: a stroke on a clash`);
+  }
+});
