@@ -12,6 +12,8 @@ import { voicesFrom } from "../src/touch/voice-mode.ts";
 import { defaultVoice, nextIn } from "../src/bench/flow.ts";
 import { devFlag } from "../src/bench/config.ts";
 import { LITE_KEY, liteLine, liteOrder, litePieces, liteTiers, liteToGo, readLite, recordLite, START_HERE } from "../src/bench/lite.ts";
+import { VOICE_SCORES } from "../src/bench/voice-ease.ts";
+
 
 const store = new Map<string, string>();
 (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, String(v)), removeItem: (k: string) => void store.delete(k) };
@@ -66,16 +68,16 @@ test("D237: a run finished is kept in tb-lite-v1 (a failed one is not), and the 
   assert.ok(![...store.keys()].some((k) => k.startsWith("tb-stages") || k.startsWith("tb-feats")), "the bench's progress untouched");
 });
 
-test("D237: the pop-up's default voice: a prelude's upper hand, a fugue's first entry", () => {
+test("D237: the pop-up's default voice: a prelude's upper hand; D454: a WTC fugue's easiest voice (not the first entry's)", () => {
   const p = fugueById("wtc1p01");
   assert.equal(defaultVoice(p, voicesFrom(p, 0)), 0);
   for (const id of ["wtc1f01", "wtc1f02", "wtc1f04", "wtc1f08", "wtc1f12"]) {
     const f = fugueById(id);
-    const first = [...f.entries].sort((a, b) => a.on - b.on)[0];
-    assert.equal(defaultVoice(f, voicesFrom(f, 0)), first.voice, id);
+    const s = VOICE_SCORES[id];
+    assert.equal(s[defaultVoice(f, voicesFrom(f, 0))], Math.min(...s), id);
   }
-  // I/1 opens with the alto alone.
-  assert.equal(fugueById("wtc1f01").voiceNames[defaultVoice(fugueById("wtc1f01"), voicesFrom(fugueById("wtc1f01"), 0))].toLowerCase(), "alto");
+  // I/1 opens with the alto alone: no longer offered (D454: the tenor, the easiest).
+  assert.equal(fugueById("wtc1f01").voiceNames[defaultVoice(fugueById("wtc1f01"), voicesFrom(fugueById("wtc1f01"), 0))].toLowerCase(), "tenor");
 });
 
 test("D237: NEXT is the next card (wrapping), skipping what is not open", () => {

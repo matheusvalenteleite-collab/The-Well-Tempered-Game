@@ -3,6 +3,7 @@
  */
 import type { TouchFugue } from "../touch/fugue.ts";
 import { preludePart } from "./stages.ts";
+import { VOICE_SCORES } from "./voice-ease.ts";
 
 /**
  * The voice preselected: a prelude's own part (D251: never chosen); a fugue's voice of the first entry
@@ -11,6 +12,15 @@ import { preludePart } from "./stages.ts";
  */
 export function defaultVoice(f: TouchFugue, singing: readonly number[], o: { fresh?: boolean } = {}): number {
   if (!singing.length) return 0;
+  // D454 (the owner, on II/6: don't default the player to the alto, "its subject is tricky"): a WTC fugue offers
+  // its easiest voice (voice-ease.ts, difficulty.ts voiceDifficulty: busy, quick and leaping lines harder; the
+  // voice opening the fugue alone harder still, D369's reason). Ties to the higher voice. Supersedes D369's
+  // second-to-enter and the first entry for these 48.
+  const ease = VOICE_SCORES[f.id];
+  if (ease && f.kind === "fugue") {
+    const open = singing.filter((v) => ease[v] !== undefined);
+    if (open.length) return open.reduce((best, v) => (ease[v] < ease[best] ? v : best), open[0]);
+  }
   // D369 (the owner: "players' first plays of fugues ought to have them playing the second voice to enter,
   // so that they can hear the subject played by the game before they need to repeat it as the answer"):
   // a fugue not yet finished (`fresh`) offers the second voice to enter, the answer's.
