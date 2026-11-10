@@ -94,6 +94,17 @@ class Kit {
    * act turning from the last to it), `climax` 0..1 into the last entry, `rest` 0..1 after the last chord, `calm`
    * 0..1 in an episode. A world that knows its acts draws its scenes from these; every world gets the look in SCRIPTS.
    */
+  /**
+   * D479 (design studio; the owner's ratings of II/1–II/6: the worlds "static scenery"; approved "Subjects lit, worlds
+   * alive"): the entries as events the world acts on. `sounding` the entries sounding now (onset, end, voice);
+   * `strettos` the onsets of the entries that begin while another sounds; `since` bars since the last entry began
+   * (Infinity before the first): what an entry sets in the world appears over the bar it begins.
+   */
+  sounding: { on: number; end: number; voice: number }[] = [];
+  /** The climax's peak (tick: the last entry's onset, form-points.ts), where a world's payoff lands. */
+  peak = Infinity;
+  strettos: number[] = [];
+  since = Infinity;
   acts: number[] = [1];
   climax = 0;
   rest = 0;
@@ -856,27 +867,49 @@ const WORLDS: Record<string, World> = {
   },
 
   // ---- BOOK II ----
-  // The Olympian: a stadium at night, floodlights and crowd; the track rushes; laurels at the close.
+  // The Olympian (D479): a packed stadium at night. The subject is the runner in front; every entry sends one more runner
+  // onto the track, the stands fill as the entries pile up, and at the climax the crowd rises, arms up, under full floodlights.
   wtc2f01: (k) => {
-    k.vgrad(0, k.h, [[0, "#0c1020"], [1, "#1a2030"]]);
-    for (const x of [0.12, 0.88]) {
-      k.R(k.w * x, k.h * 0.05, 2, k.h * 0.4, "rgba(60,60,70,1)");
-      k.glow(k.w * x, k.h * 0.06, 30, [240, 240, 220], 0.25);
+    k.vgrad(0, k.h, [[0, "#0a0e20"], [1, "#1a2030"]]);
+    const fill = Math.min(1, 0.25 + (0.75 * k.passed) / Math.max(1, k.ents.length));
+    const rise = k.climax;
+    for (const x of [0.1, 0.9]) {
+      k.R(k.w * x, k.h * 0.04, 2, k.h * 0.36, "rgba(60,60,70,1)");
+      k.glow(k.w * x, k.h * 0.05, 30 + 30 * rise, [250, 245, 220], 0.25 + 0.3 * rise);
     }
-    for (let y = k.h * 0.3; y < k.h * 0.62; y += 4) for (let x = 0; x < k.w; x += 4) if (hash(x * 3 + y) > 0.45) k.R(x, y, 2, 2, `rgba(${120 + hash(x + y) * 100},${100 + hash(x) * 80},${120},${0.35 + (k.still ? 0 : 0.1 * Math.sin(k.sec * 3 + x))})`);
-    k.R(0, k.h * 0.64, k.w, k.h * 0.36, "rgba(150,60,50,1)");
-    for (let i = 1; i < 4; i++) k.R(0, k.h * (0.64 + i * 0.09), k.w, 1, "rgba(240,230,220,0.5)");
-    for (let x = -wrap(k.bar * k.pxBar * 1.2, 30); x < k.w; x += 30) k.R(x, k.h * 0.64, 1, k.h * 0.36, "rgba(240,230,220,0.25)");
-    if (k.p > 0.92) k.glow(k.w * 0.5, k.h * 0.3, 40, [255, 215, 100], (k.p - 0.92) * 5);
+    for (let r = 0; r < 7; r++) for (let x = 2; x < k.w; x += 4) {
+      const hx = hash(x * 3 + r * 17);
+      if (hx > fill) continue;
+      const up = rise > 0.3 && hash(x + r) > 0.4 && !k.still ? Math.round(Math.abs(Math.sin(k.sec * 4 + x)) * 2 * rise) : 0;
+      const y = k.h * 0.26 + r * 6 - up;
+      k.R(x, y, 2, 3, `rgba(${150 + hx * 100},${110 + hash(x) * 90},${130},${0.5 + 0.3 * fill})`);
+      if (up) k.R(x, y - 2, 1, 2, "rgba(220,200,180,0.8)");
+    }
+    k.R(0, k.h * 0.68, k.w, k.h * 0.32, "rgba(150,60,50,1)");
+    for (let i = 1; i < 4; i++) k.R(0, k.h * (0.68 + i * 0.08), k.w, 1, "rgba(240,230,220,0.5)");
+    for (let x = -wrap(k.bar * k.pxBar * 1.2, 30); x < k.w; x += 30) k.R(x, k.h * 0.68, 1, k.h * 0.32, "rgba(240,230,220,0.2)");
+    const n = Math.min(10, k.passed);
+    for (let i = 0; i < n; i++) {
+      const lane = i % 4;
+      const speed = 22 + hash(i) * 8;
+      const x = wrap(k.t * speed + hash(i + 9) * k.w - i * 18, k.w + 30) - 15;
+      const y = k.h * (0.75 + lane * 0.08);
+      const born = i === k.passed - 1 ? Math.min(1, k.since * 2) : 1;
+      k.figure(x, y, i === 0 ? "rgba(240,220,120,1)" : `rgba(${[220, 120, 200][i % 3]},${[120, 180, 140][i % 3]},${[90, 230, 200][i % 3]},${born})`, Math.floor(k.t * 8 + i) % 2, 2);
+    }
+    if (k.rest > 0.1) k.glow(k.w * 0.5, k.h * 0.3, 40, [255, 215, 100], 0.4 * k.rest);
   },
-  // The Shadows: figures walking at sunset, their shadows twice their length.
+  // The Shadows (D479): the subject is light, the other voices the figures' long shadows. Each entry sounding is a beam
+  // crossing the ground; in a stretto the beams cross and the crossing glows; at the climax the beams fill the field
+  // and the shadows dissolve.
   wtc2f02: (k) => {
     k.sky([90, 60, 90], [240, 150, 90], [40, 30, 60], [190, 80, 70], 0.7);
     k.orb(0.85, 0.55, 0.72, 6, [255, 180, 110], 0.35);
     k.ground(0.7, "rgba(120,80,60,1)");
+    const shade = 0.5 * (1 - 0.8 * k.climax);
     k.atEntries((x, i) => {
       const y = k.h * (0.74 + (i % 3) * 0.06);
-      k.g.fillStyle = "rgba(20,12,16,0.45)";
+      k.g.fillStyle = `rgba(20,12,16,${shade})`;
       k.g.beginPath();
       k.g.moveTo(x - 1, y);
       k.g.lineTo(x - 44, y + 3);
@@ -885,67 +918,131 @@ const WORLDS: Record<string, World> = {
       k.g.fill();
       k.figure(x, y, "rgba(24,16,20,1)", Math.floor(k.bar * 2 + i) % 2, 2);
     });
-  },
-  // The Switchboard: a panel of jacks; a cord plugged for each entry.
-  wtc2f03: (k) => {
-    k.vgrad(0, k.h, [[0, "#2a2018"], [1, "#16100c"]]);
-    for (let y = k.h * 0.12; y < k.h * 0.8; y += 10) for (let x = 10; x < k.w; x += 12) {
-      k.disc(x, y, 2, "rgba(10,8,6,1)");
-      k.R(x - 1, y - 6, 3, 2, "rgba(200,180,120,0.4)");
+    const beams: number[] = [];
+    for (const s of k.sounding) {
+      const x0 = k.xOf(s.on);
+      const tilt = s.voice % 2 ? -1 : 1;
+      const grow = Math.min(1, ((k.now() - s.on) / k.barTicks) * 2);
+      const a = (0.16 + 0.1 * k.climax) * grow;
+      k.g.fillStyle = `rgba(255,232,180,${a})`;
+      k.g.beginPath();
+      k.g.moveTo(x0, 0);
+      k.g.lineTo(x0 + 16, 0);
+      k.g.lineTo(x0 + tilt * k.w * 0.3 + 16, k.h);
+      k.g.lineTo(x0 + tilt * k.w * 0.3, k.h);
+      k.g.closePath();
+      k.g.fill();
+      beams.push(x0, tilt);
     }
-    const cols = ["rgba(200,60,50,0.8)", "rgba(60,120,200,0.8)", "rgba(220,190,70,0.8)", "rgba(80,170,90,0.8)"];
-    for (let i = 0; i < Math.min(k.passed, 14); i++) {
+    for (let i = 0; i < beams.length; i += 2) for (let j = i + 2; j < beams.length; j += 2) {
+      if (beams[i + 1] === beams[j + 1]) continue;
+      const t = (beams[j] - beams[i]) / ((beams[i + 1] - beams[j + 1]) * k.w * 0.3);
+      if (t < 0 || t > 1) continue;
+      k.glow(beams[i] + 8 + beams[i + 1] * k.w * 0.3 * t, k.h * t, 24, [255, 240, 200], 0.45);
+    }
+  },
+  // The Switchboard (D479): each entry patches one more cable, in its voice's colour, its jack lighting with a spark;
+  // the lamps light up jack by jack, synth waves run behind the panel with the music, and at the climax every line is live.
+  wtc2f03: (k) => {
+    k.vgrad(0, k.h, [[0, "#1c1612"], [1, "#100c0a"]]);
+    for (let i = 0; i < 5; i++) {
+      const c = ["120,200,255", "255,140,200", "140,255,180"][i % 3];
+      const amp = 3 + 6 * k.busy + 6 * k.climax;
+      for (let x = 0; x < k.w; x += 2) k.R(x, k.h * (0.1 + i * 0.17) + Math.sin(x / 13 + i * 2 + k.t * (1 + i * 0.3)) * amp, 2, 1, `rgba(${c},${0.1 + 0.15 * k.busy + 0.2 * k.climax})`);
+    }
+    const lit = Math.min(1, k.passed / Math.max(1, k.ents.length) + k.climax);
+    let j = 0;
+    for (let y = k.h * 0.14; y < k.h * 0.8; y += 10) for (let x = 10; x < k.w; x += 12, j++) {
+      k.disc(x, y, 2, "rgba(10,8,6,1)");
+      const on = hash(j) < lit;
+      k.R(x - 1, y - 6, 3, 2, on ? ["rgba(255,210,70,0.95)", "rgba(100,240,140,0.95)", "rgba(255,90,90,0.95)"][j % 3] : "rgba(120,100,70,0.35)");
+    }
+    const cols = ["rgba(92,178,255,0.9)", "rgba(255,140,74,0.9)", "rgba(181,140,255,0.9)", "rgba(95,224,138,0.9)"];
+    const n = Math.min(k.passed, 18);
+    for (let i = 0; i < n; i++) {
       const x0 = 10 + 12 * Math.floor(hash(i) * (k.w / 12 - 1));
-      const y0 = k.h * 0.12 + 10 * Math.floor(hash(i + 3) * 6);
+      const y0 = k.h * 0.14 + 10 * Math.floor(hash(i + 3) * 6);
+      const x1 = 10 + 12 * Math.floor(hash(i + 11) * (k.w / 12 - 1));
+      const y1 = k.h * 0.14 + 10 * Math.floor(hash(i + 13) * 6);
       k.g.strokeStyle = cols[i % 4];
       k.g.lineWidth = 2;
       k.g.beginPath();
       k.g.moveTo(x0, y0);
-      k.g.quadraticCurveTo(x0 + 20, k.h * 1.05, k.w * (0.3 + 0.4 * hash(i + 7)), k.h);
+      k.g.quadraticCurveTo((x0 + x1) / 2, k.h * 0.98, x1, y1);
       k.g.stroke();
+      if (i === k.passed - 1 && k.since < 0.5) k.glow(x1, y1, 14, [220, 245, 255], 0.9 * (1 - k.since * 2));
     }
-    k.R(0, k.h * 0.86, k.w, k.h * 0.14, "rgba(50,34,22,1)");
+    k.R(0, k.h * 0.88, k.w, k.h * 0.12, "rgba(46,32,22,1)");
   },
-  // The Perpetual Motion Machine: the wheel of weights turning, a bar a spoke.
+  // The Chase (D479; the owner renamed II/4): a night road; the bandits' car is the subject's first statement, and every
+  // answer a police car joining the pursuit, the imitation as the chase. The sirens glow slowly (never a strobe), and at
+  // the climax the road is blocked and the bandits caught in the searchlights.
   wtc2f04: (k) => {
-    k.room([50, 40, 34], [30, 24, 20], 0.86, "rgba(46,34,26,1)");
-    const cx = k.w * 0.6;
-    const cy = k.h * 0.48;
-    const r = k.h * 0.34;
-    k.g.strokeStyle = "rgba(90,64,40,1)";
-    k.g.lineWidth = 3;
-    k.g.beginPath();
-    k.g.arc(cx, cy, r, 0, Math.PI * 2);
-    k.g.stroke();
-    const a0 = (k.bar * Math.PI) / 4;
-    for (let i = 0; i < 8; i++) {
-      const a = a0 + (i * Math.PI) / 4;
-      k.line(cx, cy, cx + Math.cos(a) * r, cy + Math.sin(a) * r, "rgba(90,64,40,1)", 2);
-      const out = Math.cos(a) > 0 ? 1.15 : 0.85;
-      k.disc(cx + Math.cos(a) * r * out, cy + Math.sin(a) * r * out, 4, "rgba(60,60,70,1)");
+    k.vgrad(0, k.h, [[0, "#070a18"], [1, "#151a30"]]);
+    k.stars(30, 0, 0.35);
+    skyline(k, 0.62, 0.15, "rgba(14,16,30,1)", 0.5);
+    k.R(0, k.h * 0.62, k.w, k.h * 0.38, "rgba(28,28,32,1)");
+    for (let x = -wrap(k.bar * k.pxBar * 2, 40); x < k.w; x += 40) k.R(x, k.h * 0.8, 18, 2, "rgba(220,200,110,0.8)");
+    const car = (x: number, y: number, body: string, top: string) => {
+      k.R(x, y, 30, 8, body);
+      k.R(x + 6, y - 5, 16, 5, top);
+      k.R(x + 3, y + 7, 6, 4, "rgba(0,0,0,1)");
+      k.R(x + 21, y + 7, 6, 4, "rgba(0,0,0,1)");
+    };
+    const caught = k.climax;
+    const bx = k.w * (0.82 - 0.22 * caught) + (k.still ? 0 : Math.sin(k.sec * 1.3) * 4 * (1 - caught));
+    car(bx, k.h * 0.72, "rgba(60,58,62,1)", "rgba(90,88,96,1)");
+    k.glow(bx + 32, k.h * 0.74, 12, [255, 240, 180], 0.5);
+    const cops = Math.min(6, Math.max(0, k.passed - 1));
+    for (let i = 0; i < cops; i++) {
+      const lane = i % 2;
+      const target = k.w * (0.62 - i * 0.12) + caught * (i % 2 ? 1 : -1) * k.w * 0.08;
+      const born = i === k.passed - 2 ? Math.min(1, k.since * 1.5) : 1;
+      const x = -40 + (target + 40) * born + (k.still ? 0 : Math.sin(k.sec * 1.7 + i) * 3);
+      const y = k.h * (0.72 + lane * 0.12);
+      car(x, y, "rgba(230,230,240,1)", "rgba(30,30,90,1)");
+      // the siren: red and blue in turn, once a second, soft
+      const phase = k.still ? 0 : (Math.sin(k.sec * Math.PI + i) + 1) / 2;
+      k.glow(x + 14, y - 6, 12, [255, 60, 60], 0.35 * phase);
+      k.glow(x + 14, y - 6, 12, [60, 90, 255], 0.35 * (1 - phase));
     }
-    k.disc(cx, cy, 5, "rgba(120,90,50,1)");
-    k.R(cx - 3, cy, 6, k.h * 0.86 - cy, "rgba(70,50,32,1)");
-    k.figure(k.w * 0.25, k.h * 0.86, "rgba(40,30,26,1)", 0, 3);
+    if (caught > 0.05) {
+      k.R(k.w * 0.5, k.h * 0.66, 6, k.h * 0.3, `rgba(200,60,40,${caught})`);
+      for (const sx of [0.3, 0.85]) {
+        k.g.fillStyle = `rgba(255,255,220,${0.16 * caught})`;
+        k.g.beginPath();
+        k.g.moveTo(k.w * sx, 0);
+        k.g.lineTo(k.w * sx + 8, 0);
+        k.g.lineTo(bx + 36, k.h * 0.8);
+        k.g.lineTo(bx - 6, k.h * 0.8);
+        k.g.closePath();
+        k.g.fill();
+      }
+    }
   },
-  // The Bell Tower: evening, the tower; a bell swings for each entry, all four at the close.
+  // The Bell Tower (D479): evening; a tower rises on the skyline for each stretto entry, its bell swinging as it comes in,
+  // so the climax is a skyline of towers, every bell swinging in gold light.
   wtc2f05: (k) => {
     k.sky([60, 50, 90], [220, 140, 100], [14, 14, 34], [60, 40, 70]);
     k.stars(40, 0.5);
     k.hills(0.88, 6, 0.05, 2, "rgba(30,22,30,1)");
-    const tx = k.w * 0.62;
-    k.R(tx - 16, k.h * 0.2, 32, k.h * 0.7, "rgba(36,28,34,1)");
-    k.tri(tx, k.h * 0.2, 40, 26, "rgba(30,22,28,1)");
-    for (let i = 0; i < 4; i++) {
-      const bx = tx - 9 + (i % 2) * 18;
-      const by = k.h * (0.3 + Math.floor(i / 2) * 0.16);
-      k.R(bx - 6, by - 6, 12, 14, "rgba(10,8,12,1)");
-      // D464: in a stretto every bell swings, and wider.
-      const swing = (k.passed > i || k.stretto > 0.5) && !k.still ? Math.sin(k.sec * 3 + i) * (0.4 + 0.3 * k.stretto) : 0;
+    const begun = k.strettos.filter((on) => on <= k.now());
+    const towers = [{ x: 0.5, hgt: 0.62, on: -1 }, ...begun.slice(0, 7).map((on, i) => ({ x: [0.26, 0.74, 0.12, 0.88, 0.38, 0.62, 0.03][i], hgt: 0.4 + hash(i + 2) * 0.18, on }))];
+    for (const [i, t] of towers.entries()) {
+      const grow = t.on < 0 ? 1 : Math.min(1, ((k.now() - t.on) / k.barTicks) * 1.5);
+      const hgt = k.h * t.hgt * grow;
+      const tx = k.w * t.x;
+      const top = k.h * 0.9 - hgt;
+      k.R(tx - 10, top, 20, hgt, "rgba(36,28,34,1)");
+      k.tri(tx, top, 26, 16 * grow, "rgba(30,22,28,1)");
+      if (grow < 0.6) continue;
+      const ringing = k.sounding.some((s) => s.on === t.on) || k.climax > 0.3 || (i === 0 && k.sounding.length > 0);
+      const swing = ringing && !k.still ? Math.sin(k.sec * 3 + i) * (0.35 + 0.3 * k.climax) : 0;
+      k.R(tx - 6, top + 6, 12, 12, "rgba(10,8,12,1)");
       k.g.save();
-      k.g.translate(bx, by - 4);
+      k.g.translate(tx, top + 8);
       k.g.rotate(swing);
-      k.g.fillStyle = k.passed > i || k.stretto > 0.5 ? "rgba(220,170,80,0.9)" : "rgba(90,70,40,0.9)";
+      k.g.fillStyle = ringing ? "rgba(225,175,85,0.95)" : "rgba(100,78,44,0.9)";
       k.g.beginPath();
       k.g.moveTo(-2, 0);
       k.g.lineTo(2, 0);
@@ -953,23 +1050,61 @@ const WORLDS: Record<string, World> = {
       k.g.lineTo(-5, 9);
       k.g.fill();
       k.g.restore();
+      if (ringing) k.glow(tx, top + 12, 16 + 10 * k.climax, [255, 210, 130], 0.3 + 0.25 * k.climax);
     }
   },
-  // The Catapult: castle walls on the hill; the arm cocks with each entry.
+  // The Catapult (D479): the siege advances entry by entry: every entry is a shot, a stone arcing from the catapult to
+  // the gate over the bar it begins; the gate cracks, splinters and burns a little more each time, and at the climax it
+  // falls and light pours through.
   wtc2f06: (k) => {
     k.sky([90, 110, 150], [200, 190, 170], [60, 50, 80], [200, 120, 90]);
     clouds(k, 4, 0.3);
     k.hills(0.62, 8, 0.05, 1, "rgba(80,90,70,1)");
-    const cxl = k.w * 0.72;
-    k.R(cxl, k.h * 0.38, k.w * 0.2, k.h * 0.24, "rgba(110,100,90,1)");
-    for (let x = cxl; x < cxl + k.w * 0.2; x += 8) k.R(x, k.h * 0.34, 5, 5, "rgba(110,100,90,1)");
+    const cxl = k.w * 0.66;
+    const wall = "rgba(110,100,90,1)";
+    k.R(cxl, k.h * 0.34, k.w * 0.3, k.h * 0.28, wall);
+    for (let x = cxl; x < cxl + k.w * 0.3; x += 8) k.R(x, k.h * 0.3, 5, 5, wall);
+    const gx = cxl + k.w * 0.1;
+    const gw = k.w * 0.1;
+    const gy = k.h * 0.42;
+    const gh = k.h * 0.2;
+    // The gate falls on the climax's peak (the last entry's onset), over half a bar.
+    const fall = Math.max(0, Math.min(1, (k.now() - k.peak) / (k.barTicks * 0.5)));
+    const dmg = Math.min(1, k.passed / Math.max(1, k.ents.length - 1));
+    if (fall < 1) {
+      k.g.save();
+      k.g.translate(gx, gy + gh);
+      k.g.rotate((-Math.PI / 2) * fall * fall);
+      k.R(0, -gh, gw, gh, "rgba(90,58,30,1)");
+      for (let i = 0; i < 3; i++) k.R(0, -gh + 4 + i * (gh / 3), gw, 2, "rgba(40,28,16,1)");
+      const cracks = Math.round(dmg * 12);
+      for (let i = 0; i < cracks; i++) k.line(hash(i) * gw, -gh + hash(i + 1) * gh, hash(i + 2) * gw, -gh + hash(i + 3) * gh, "rgba(20,10,4,0.9)", 1);
+      k.g.restore();
+    }
+    if (fall > 0) {
+      k.glow(gx + gw / 2, gy + gh / 2, 30 + 40 * fall, [255, 240, 200], 0.6 * fall);
+      k.R(gx, gy, gw, gh, `rgba(255,236,190,${0.5 * fall})`);
+    } else if (dmg > 0.3) k.glow(gx + gw / 2, gy + gh * 0.8, 10 + 14 * dmg, [255, 140, 50], 0.25 + 0.35 * dmg);
     k.ground(0.8, "rgba(70,80,50,1)");
-    const fx = k.w * 0.25;
+    const fx = k.w * 0.22;
     const fy = k.h * 0.8;
     k.R(fx - 14, fy - 6, 28, 6, "rgba(70,46,28,1)");
     k.tri(fx, fy - 6, 14, 14, "rgba(70,46,28,1)");
-    const cock = (k.passed % 2 ? 1 : 0.3) * Math.PI * 0.4;
+    // The shot: flung 0.7 bar before each entry, the stone landing on the entry's onset (the sound's thud there,
+    // Instruments' table); the splinters fly over the 0.3 bar after it.
+    const next = k.passed < k.ents.length ? k.ents[k.passed] : Infinity;
+    const toNext = (next - k.now()) / k.barTicks;
+    const flying = toNext <= 0.7 && fall < 1;
+    const u = flying ? 1 - toNext / 0.7 : 0;
+    const cock = (flying ? 0.3 + 0.7 * Math.min(1, u * 4) : 0.3) * Math.PI * 0.45;
     k.line(fx, fy - 18, fx - Math.cos(cock) * 26, fy - 18 - Math.sin(cock) * 26 + 10, "rgba(90,60,36,1)", 3);
+    if (flying) {
+      const sx = fx + (gx + gw / 2 - fx) * u;
+      const sy = fy - 30 - Math.sin(u * Math.PI) * k.h * 0.35 + (gy + gh / 2 - fy + 30) * u;
+      k.glow(sx, sy, 8, [255, 160, 70], 0.8);
+      k.R(sx - 2, sy - 2, 4, 4, "rgba(255,225,160,1)");
+    }
+    if (k.since < 0.3 && fall < 1) for (let i = 0; i < 8; i++) k.R(gx + gw / 2 + Math.cos(i) * k.since * 120, gy + gh / 2 + Math.sin(i) * k.since * 60, 2, 2, "rgba(120,90,60,0.9)");
   },
   // The Organist: the organ's pipes, lit in waves as the piece grows.
   wtc2f07: (k) => {
@@ -1363,8 +1498,8 @@ Object.assign(SCRIPTS, {
   wtc2f02: sk([EMBER, 0.14, "none", 0.02, 1.03], [VIOLET, 0.18, "none", -0.02, 1.05], [0.85, 0.55, [255, 190, 110]], [DUSK_NIGHT, 0.2]),
   // The Switchboard: amber; green, sparks; every jack lit.
   wtc2f03: sk([GOLD, 0.1, "none", 0.02, 1.03], [[60, 160, 90], 0.1, "motes", -0.02, 1.05], [0.5, 0.2, [255, 200, 110]], [DUSK_NIGHT, 0.1]),
-  // The Perpetual Motion Machine: the brass; steam; the wheel aglow.
-  wtc2f04: sk([GOLD, 0.1, "motes", 0.02, 1.03], [GREY, 0.14, "mist", -0.02, 1.05], [0.5, 0.3, GOLD], [SEPIA, 0.1]),
+  // The Chase: rain on the road; the mist; the searchlights from above.
+  wtc2f04: sk([COOL, 0.12, "rain", 0.02, 1.03], [GREY, 0.14, "mist", -0.02, 1.05], [0.5, 0, SILVER], [DUSK_NIGHT, 0.14]),
   // The Bell Tower: dusk; night, the stars; the tower lit gold.
   wtc2f05: sk([EMBER, 0.14, "none", -0.02, 1.03], [DUSK_NIGHT, 0.2, "stars", -0.03, 1.05], [0.5, 0.2, GOLD], [DUSK_NIGHT, 0.18]),
   // The Catapult: the afternoon; the storm; the sun breaking.
@@ -1494,7 +1629,7 @@ export const STAGE_IDS: readonly string[] = Object.keys(WORLDS);
 export const hasStage = (id: string | undefined) => !!id && id in WORLDS;
 
 const KIT = new Kit();
-type Piece = { ents: number[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean }[]; dens: number[]; dLo: number; dHi: number };
+type Piece = { ents: number[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean; voice: number }[]; dens: number[]; dLo: number; dHi: number; strettos: number[] };
 const memo = new Map<string, Piece>();
 const isMinor = (key: string) => key.charAt(0) === key.charAt(0).toLowerCase();
 function piece(f: TouchFugue): Piece {
@@ -1510,7 +1645,8 @@ function piece(f: TouchFugue): Piece {
     ents: f.entries.map((e) => e.on).sort((a, b) => a - b),
     cads: f.cadences.map((c) => c.on),
     end: f.length,
-    spans: f.entries.map((e) => ({ on: e.on, end: e.end, other: isMinor(e.key) !== home })),
+    spans: f.entries.map((e) => ({ on: e.on, end: e.end, other: isMinor(e.key) !== home, voice: e.voice })),
+    strettos: f.entries.filter((e) => f.entries.some((o) => o !== e && o.on < e.on && o.end > e.on)).map((e) => e.on).sort((a, b) => a - b),
     dens,
     dLo: sorted[Math.floor(nb * 0.1)] ?? 0,
     dHi: Math.max((sorted[Math.floor(nb * 0.9)] ?? 1), (sorted[Math.floor(nb * 0.1)] ?? 0) + 1),
@@ -1551,6 +1687,10 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   let passed = 0;
   while (passed < m.ents.length && m.ents[passed] <= clock.now) passed++;
   k.passed = passed;
+  k.since = passed ? (clock.now - m.ents[passed - 1]) / f.barTicks : Infinity;
+  k.strettos = m.strettos;
+  k.sounding.length = 0;
+  for (const sp of m.spans) if (sp.on <= clock.now && clock.now < sp.end) k.sounding.push(sp);
   // D464: the music's state, eased (a second or so), so the world turns with it and never jumps.
   const now = clock.now;
   let other = 0;
@@ -1597,6 +1737,7 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
     if (fa.mix < 1 && fa.act > 0) weights[li(fa.act - 1)] = 1 - fa.mix;
   } else weights.push(1);
   k.climax = climax;
+  k.peak = fm ? fm.climax.peak : Infinity;
   k.rest = fa ? fa.resolved : 0;
   k.calm = ce.calm;
   g.save();

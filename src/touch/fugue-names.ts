@@ -71,8 +71,8 @@ export const FUGUE_NAMES: Readonly<Record<string, Row>> = {
   wtc2f02: { en: n("The Shadows", "Shadows"), pt: n("As Sombras", "Sombras"), es: n("Las Sombras", "Sombras") },
   // An operator at an old telephone switchboard, cords crossing; each entry plugs a cord.
   wtc2f03: { en: n("The Switchboard", "Switchboard"), pt: n("A Central Telefônica", "Central"), es: n("La Centralita", "Centralita") },
-  // A wooden wheel of swinging weights, its inventor proudly beside it; it turns and never stops.
-  wtc2f04: { en: n("The Perpetual Motion Machine", "Perpetual"), pt: n("O Moto-Contínuo", "Moto-Contínuo"), es: n("El Móvil Perpetuo", "Perpetuo") },
+  // D479 (the owner renamed it): a night road, the bandits fleeing and the police in pursuit, the imitation as the chase.
+  wtc2f04: { en: n("The Chase", "Chase"), pt: n("A Perseguição", "Perseguição"), es: n("La Persecución", "Persecución") },
   // A bell tower at evening, one bell swinging, others waiting; the final stretto, all four.
   wtc2f05: { en: n("The Bell Tower", "Bell Tower"), pt: n("O Campanário", "Campanário"), es: n("El Campanario", "Campanario") },
   // A siege catapult at the instant of release; each entry draws the arm back.
