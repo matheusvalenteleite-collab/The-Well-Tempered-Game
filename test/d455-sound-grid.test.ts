@@ -22,6 +22,18 @@ test("D455: the knob opens the grid (no list); locked until a B; every sound in 
   assert.match(locked, /id="sel-sound-knob" disabled=""/);
   const s = src("src/bench/Selection.tsx");
   assert.match(s, /function SoundGrid/);
-  assert.match(s, /onClick=\{\(\) => sound\.set\(sid\)\}/, "the list's own setSound");
+  assert.match(s, /const pick = \(sid: string\) => \{\s*sound\.set\(sid\);/, "the list's own setSound");
+  assert.match(s, /onClick=\{\(\) => pick\(sid\)\}/);
+  // The clip: Instruments' auditionUrl, nothing fetched before the tap, stopped by the next tap and by the closing.
+  assert.match(s, /<audio ref=\{clip\} preload="none"/);
+  assert.match(s, /const url = auditionUrl\(sid\);/);
+  assert.match(s, /const a = clip\.current;\s*return \(\) => a\?\.pause\(\);/);
+  assert.match(s, /soundBlurb\(sid, blurbLang\)/);
+  const { auditionUrl, soundBlurb } = await import("../src/touch/sound-blurbs.ts");
+  const { SOUND_GROUPS } = await import("../src/bench/SoundSelect.tsx");
+  for (const [, ids] of SOUND_GROUPS) for (const id of ids) for (const l of ["en", "pt", "es"] as const) {
+    assert.ok(auditionUrl(id), `${id}: a clip`);
+    assert.ok(soundBlurb(id, l).length > 0 && soundBlurb(id, l).length <= 60, `${id} ${l}: a line`);
+  }
   assert.match(s, /\{home && \([\s\S]*?tr\("HOME"\)/);
 });

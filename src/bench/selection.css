@@ -465,3 +465,10 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-soundgrid-fam .sel-drumgrid-pad button { border-left: 4px solid var(--fam); background: color-mix(in srgb, var(--fam) 12%, #1e1c32); }
 .sel-soundgrid-fam .sel-drumgrid-pad button.home { border-color: #f3d78a; border-left-color: var(--fam); }
 .sel-soundgrid-fam .sel-drumgrid-pad button.on { background: var(--tg-shine); border-color: var(--tg-shine); border-left-color: var(--fam); }
+/* D455: each card's line about its sound (Instruments' blurbs), and the ♪ while its clip plays. */
+.sel-soundgrid .sel-drumgrid-pad button { align-content: start; min-height: 58px; }
+.sel-soundgrid-blurb { font-family: Georgia, "Times New Roman", serif; font-size: 10px; line-height: 1.25; color: #c8c4dc; }
+.sel-soundgrid .sel-drumgrid-pad button.on .sel-soundgrid-blurb { color: #2a2216; }
+.sel-soundgrid-note-on { color: var(--fam); }
+.sel-soundgrid .sel-drumgrid-pad button.on .sel-soundgrid-note-on { color: #b8322a; }
+@media (max-width: 700px) { .sel-soundgrid-blurb { font-size: 9px; } }

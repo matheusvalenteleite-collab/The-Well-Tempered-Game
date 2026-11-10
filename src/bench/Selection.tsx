@@ -11,7 +11,8 @@
  * play) and a big ▶ PLAY under the right thumb. The first visit (nothing played, no lesson done): the
  * TUTORIAL glows, the grid is dimmed but works, and the right column says in one sentence where to start.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { auditionUrl, soundBlurb } from "../touch/sound-blurbs.ts";
 import { FugueAbout } from "./FugueAbout.tsx";
 import type { Performed } from "./HearSubject.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
@@ -549,6 +550,32 @@ function SoundGrid({ sound, close }: { sound: NonNullable<SelectionProps["sound"
     window.addEventListener("keydown", esc, true);
     return () => window.removeEventListener("keydown", esc, true);
   }, [close]);
+  // D455 (the owner: one fixed phrase per sound): a tap chooses the sound and plays its clip (Instruments'
+  // sound-blurbs.ts auditionUrl: I/2's third entry, 3.5 s, fetched only on the tap); the next tap, the grid's
+  // closing (and so PLAY, which the grid covers) stop it.
+  const clip = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState<string | null>(null);
+  const stopClip = () => {
+    clip.current?.pause();
+    setPlaying(null);
+  };
+  useEffect(() => {
+    // The element itself, kept for the closing (React clears the ref before this cleanup runs).
+    const a = clip.current;
+    return () => a?.pause();
+  }, []);
+  const pick = (sid: string) => {
+    sound.set(sid);
+    const url = auditionUrl(sid);
+    const a = clip.current;
+    if (!a || !url) return stopClip();
+    a.pause();
+    a.src = url;
+    a.currentTime = 0;
+    setPlaying(sid);
+    void a.play().catch(() => setPlaying(null));
+  };
+  const blurbLang = (lang() === "pt" || lang() === "es" ? lang() : "en") as "en" | "pt" | "es";
   const placed = new Set<string>();
   // The fugue's own sound always offered (as the list did), even where the friends' list leaves it out.
   const all = sound.own && !sound.sounds.some(([id]) => id === sound.own) ? [...sound.sounds, [sound.own, sound.ownName ?? sound.own] as const] : sound.sounds;
@@ -569,6 +596,7 @@ function SoundGrid({ sound, close }: { sound: NonNullable<SelectionProps["sound"
             ✕
           </button>
         </header>
+        <audio ref={clip} preload="none" onEnded={() => setPlaying(null)} />
         <div className="sel-drumgrid-body">
           {groups.map(([group, items]) =>
             items.length ? (
@@ -579,8 +607,12 @@ function SoundGrid({ sound, close }: { sound: NonNullable<SelectionProps["sound"
                     const on = sid === sound.value;
                     const home = sid === sound.own;
                     return (
-                      <button key={sid} type="button" id={`sound-${sid}`} className={`${on ? "on" : ""}${home ? " home" : ""}`} aria-pressed={on} onClick={() => sound.set(sid)}>
-                        <b>{tr(nm)}</b>
+                      <button key={sid} type="button" id={`sound-${sid}`} className={`${on ? "on" : ""}${home ? " home" : ""}${playing === sid ? " playing" : ""}`} aria-pressed={on} onClick={() => pick(sid)}>
+                        <b>
+                          {tr(nm)}
+                          {playing === sid && <span className="sel-soundgrid-note-on" aria-hidden="true"> ♪</span>}
+                        </b>
+                        {soundBlurb(sid, blurbLang) && <span className="sel-soundgrid-blurb">{soundBlurb(sid, blurbLang)}</span>}
                         {home && (
                           <span className="sel-drumgrid-marks">
                             <i className="home">{tr("HOME")}</i>
