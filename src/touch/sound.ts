@@ -633,6 +633,8 @@ export const CONTINUO_HARPSI: ContinuoPart = { patch: TRIO_HARPSI, level: dbGain
  * (BRASS_BASS_PHONE_LIFT), and set under the trumpets (measured: D502).
  */
 export const BRASS_SEND = 0.12;
+/** D613: BACH BRASS's four voices with the second trumpet on the alto (D579's, for an alto over the horn's top). */
+export const TRUMPET_ALTO = [["bachTrumpet", -0.18], ["bachTrumpet", -0.06], ["bachTrombone", 0.08], ["bachBass", 0.12]] as const satisfies readonly (readonly [string, number])[];
 export const BRASS_BASS_SEND = 0.08;
 export const BRASS_BASS_R = 0.07;
 export const BRASS_BASS_PHONE_HP = 180;
@@ -1344,10 +1346,12 @@ export const PATCHES = {
   // D502, BACH BRASS: the University of Iowa's trumpet (no vibrato), horn, tenor and bass trombone, two dynamic layers
   // each (SampledInstrument.blend: the touch's brassiness), the brass's envelope, the re-tongue (BRASS_TONGUE), one
   // church; the bass's own release, room and phone handling (BRASS_BASS_*). Stand-ins the trials' until loaded (D190).
-  bachTrumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {} }),
-  bachHorn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassHorn", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_HORN_PHONE_LIFT }),
-  bachTrombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassTrombone", bow: BRASS_TONGUE, one: {} }),
-  bachBass: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2, q: 0.9, env: 1.6, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: BRASS_BASS_R }, rec: { a: 0.018, d: 0.1, s: 0.92, r: BRASS_BASS_R }, send: BRASS_BASS_SEND, level: 1.3, sample: "brassBass", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_BASS_PHONE_LIFT, phoneHp: BRASS_BASS_PHONE_HP }),
+  bachTrumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassTrumpetMf", bow: BRASS_TONGUE, one: {} , lane: "trumpets"}),
+  // D614: the straight-muted trumpet (VSCO 2 CE): BACH BRASS's episodes' trumpets (band-growth.ts BRASS_MUTE), its second trumpet of five throughout.
+  bachTrumpetMute: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassTrumpetMute", bow: BRASS_TONGUE, one: {} , lane: "trumpets"}),
+  bachHorn: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.25 }, { wave: "sine", gain: 0.4 }], filter: { freq: 2.2, q: 0.8, env: 2, envDecay: 0.3 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassHorn", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_HORN_PHONE_LIFT , lane: "horn"}),
+  bachTrombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: BRASS_SEND, level: 1.6, sample: "brassTromboneMf", bow: BRASS_TONGUE, one: {} , lane: "low"}),
+  bachBass: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2, q: 0.9, env: 1.6, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: BRASS_BASS_R }, rec: { a: 0.018, d: 0.1, s: 0.92, r: BRASS_BASS_R }, send: BRASS_BASS_SEND, level: 1.3, sample: "brassBass", bow: BRASS_TONGUE, one: {}, phoneLift: BRASS_BASS_PHONE_LIFT, phoneHp: BRASS_BASS_PHONE_HP , lane: "low"}),
   /** MODERN JAZZ QUARTET's vibraphone (Milt Jackson's): BLEEPS' FM vibe, its motor slow (3 Hz), no analog drift. */
   trialVibe: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.12 }, { wave: "triangle", gain: 0.2 }], fm: { ratio: 4, index: 1.2, to: 0.05, time: 0.12 }, amp: { a: 0.001, d: 1.6, s: 0, r: 0.25 }, trem: { depth: 0.25, rate: 3 }, send: SALON_SEND, level: 0.33, one: {} }),
   /** VSCO 2 CE's solo contrabass, pizzicato: the jazz bassist's line (Percy Heath's), plucked, lifted on a phone. */
@@ -1545,6 +1549,11 @@ export interface Preset {
    * report's three-voice middle is not its five-voice middle). Counts not given: the slots, the usual pans.
    */
   by?: Partial<Record<number, readonly (readonly [patch: PatchId, pan: number, level?: number])[]>>;
+  /**
+   * D615: the voices' seats on a computer (by count, top down), in place of `by`'s pans there (a phone keeps `by`'s, its
+   * narrow mix, unchanged): BACH BRASS's two choirs.
+   */
+  desk?: Partial<Record<number, readonly number[]>>;
   /** D349: patches the preset's registrations may play (their recordings loaded with the preset's own). */
   also?: readonly PatchId[];
   /**
@@ -1930,10 +1939,13 @@ export const PRESETS: Preset[] = [
     id: "bachBrass",
     name: "BACH BRASS",
     // Loudness matched to the median of the offered sounds through the 600 Hz phone model (measured: D502; D551 through the chain).
-    gain: 1,
+    // D617: v3 (D609-D616) left the band 2.05 LU under 2.55's on a computer (full range, K-weighted) and 2.15 on a phone (the
+    // phone model), the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14, I/5 b. 4-7, II/5 b. 4-8, I/22 b. 12-18: matched back
+    // (and 0.3 / 0.2 LU more for BRASS_CLEAR's deeper cut).
+    gain: 1.34,
     // D560: +3.6 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
     // D583: 1.2 dB less after D576-D579 (the doubles, the presence, the climax's brightness: the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14, I/5 b. 4-7, II/5 b. 4-8 on the phone model).
-    phoneGain: 0.455,
+    phoneGain: 0.445,
     slots: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
     room: 0,
     fx: "cathedral",
@@ -1943,9 +1955,20 @@ export const PRESETS: Preset[] = [
       3: [["bachTrumpet", -0.14], ["bachHorn", 0], ["bachBass", 0.1]],
       // D579: the tenor on the tenor trombone (was the horn: its low register broad and dark in the tenor's compass, the
       // church's low mids its mud), the horn the entries' double (band-growth.ts).
-      4: [["bachTrumpet", -0.18], ["bachTrumpet", -0.06], ["bachTrombone", 0.08], ["bachBass", 0.12]],
-      5: [["bachTrumpet", -0.2], ["bachTrumpet", -0.08], ["bachHorn", 0.02], ["bachTrombone", 0.16], ["bachBass", 0.1]],
+      // D613 (v3): the alto on the horn (the quintet's horn place: four-voice altos lie G3-F#5, median G4, the horn's singing
+      // register), not a second ff trumpet beside the first; the open trumpet II its entries' double (band-growth.ts).
+      4: [["bachTrumpet", -0.18], ["bachHorn", -0.06], ["bachTrombone", 0.08], ["bachBass", 0.12]],
+      // D614 (v3): the second trumpet of five straight-muted throughout (the two top voices apart by colour).
+      5: [["bachTrumpet", -0.2], ["bachTrumpetMute", -0.08], ["bachHorn", 0.02], ["bachTrombone", 0.16], ["bachBass", 0.1]],
     },
+    // D615: on a computer two choirs, as the cori spezzati sat (the research's F8): the trumpets left, the horn in the middle,
+    // the tenor trombone right, the bass in the centre (a phone keeps `by`'s seats, within ±0.2, unchanged). Subtle: ±0.35 at most.
+    desk: { 2: [-0.2, 0], 3: [-0.3, 0.15, 0], 4: [-0.35, 0, 0.25, 0], 5: [-0.35, -0.2, 0, 0.25, 0] },
+    // D613: the two four-voice altos over the horn's top (F5 and three semitones: I/24's A5, II/17's A#5, which it would play
+    // an octave down) keep the second trumpet.
+    pieces: { wtc1f24: { 4: TRUMPET_ALTO }, wtc2f17: { 4: TRUMPET_ALTO } },
+    // (The entries' doubles' horn loaded with those line-ups too.)
+    also: ["bachHorn"],
     chain: BAND_CHAINS.bachBrass,
     slim: BAND_SLIM,
   },
@@ -2429,7 +2452,7 @@ export const BOSSA_CREDIT = "ALTO FLUTE, GUITAR, BASS: UNIVERSITY OF IOWA ELECTR
 /** D545 (D524's before it); D580: PET SOUNDS' (the Salamander grand as the tack piano: CC BY 3.0; Black And Green's Gretsch as the twelve-string, VSCO's timpani, Karoryfer's bass and kits: CC0; Iowa's horn; the accordion, the bass harmonica and the sleigh bells synthesized). */
 export const PET_CREDIT = `TACK ${PIANO_CREDIT} · TWELVE-STRING: BLACK AND GREEN GUITARS · TIMPANI: VS CHAMBER ORCHESTRA 2 CE · CC0 · HORN: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · BASS: BLACK AND BLUE BASSES · DRUMS: BIG RUSTY, VIRTUOSITY · KARORYFER SAMPLES · CC0`;
 /** D502: BACH BRASS's (University of Iowa MIS: free for any use, credit given as asked of good practice). */
-export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES";
+export const BRASS_CREDIT = "BRASS: TRUMPET, HORN, TENOR AND BASS TROMBONE · UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS, MUSICAL INSTRUMENT SAMPLES · MUTED TRUMPET: VSCO 2 COMMUNITY EDITION, VERSILIAN STUDIOS / SAM GOSSNER (CC0)";
 /** D504: ZELENKA TRIO's (Iowa's oboe and bassoon: no licence terms beyond "used for any projects, without restrictions"; credited all the same). */
 export const TRIO_CREDIT = `OBOE I, BASSOON: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · OBOE II ${VSCO_CREDIT} · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 /** D546 (D520's before it): SALSA's recordings (no piano: the tres the classical guitar's). */
@@ -2514,7 +2537,8 @@ export function grooveNow(): { groove: Groove; kit: Kit } | null {
 export function sampledNow(): SampledId[] {
   const alts = Object.values(current.alts ?? {}).flatMap((ls) => (ls ?? []).flatMap((vs) => vs.map(([id]) => id)));
   // D578: a piece's own line-up (Preset.pieces) its recordings alone.
-  const own = pieceLayout?.only && pieceLayout.preset === current.id ? pieceLayout.slots.map(([id]) => id) : null;
+  // (D613: and the preset's `also`: BACH BRASS's entries' horn doubles with a piece's own line-up.)
+  const own = pieceLayout?.only && pieceLayout.preset === current.id ? [...pieceLayout.slots.map(([id]) => id), ...(current.also ?? [])] : null;
   const ids = own ?? [...(current.slots ?? []), ...Object.values(current.by ?? {}).flatMap((vs) => (vs ?? []).map(([id]) => id)), ...alts, ...(current.also ?? [])];
   // TRIAL: and a doubling instrument's (Patch.double: BAROQUE BAND's continuo harpsichord). D504: and a continuo's (Patch.continuo).
   const pts: Patch[] = ids.flatMap((id) => {
@@ -2566,6 +2590,11 @@ export function patchFor(voice: number, count: number): Patch | null {
   return current.slots ? PATCHES[current.slots[slotOf(voice, count)]] : null;
 }
 
+/** D615: a voice's seat on a computer where the preset gives one (Preset.desk), else null (`by`'s pan). */
+export function deskSeatFor(voice: number, count: number): number | null {
+  const d = current.desk?.[count];
+  return d ? (d[Math.min(voice, d.length - 1)] ?? null) : null;
+}
 /** D297: a voice's pan and level in the ensemble now where its preset sets them (Preset.by), else null. */
 export function placeFor(voice: number, count: number): { pan: number; level: number } | null {
   const by = byOf(voice, count);

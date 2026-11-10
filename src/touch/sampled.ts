@@ -154,6 +154,12 @@ export const PERIOD: Record<string, Bake> = {
   brassTromboneP: { folder: "brassTromboneP", rate: 32000, lp: 11000, bits: 16, loop: true },
   brassBass: { folder: "brassBass", rate: 32000, lp: 11000, bits: 16, loop: true },
   brassBassP: { folder: "brassBassP", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D609, BACH BRASS v3: the trumpet's and the tenor trombone's main sets from Iowa's 1997 mf scales (build_brass_mf.py),
+  // BACH BRASS's alone (SALSA's and the others' keep the 2014 ff above); the same pitches, length and level.
+  brassTrumpetMf: { folder: "brassTrumpetMf", rate: 32000, lp: 11000, bits: 16, loop: true },
+  brassTromboneMf: { folder: "brassTromboneMf", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D614: the straight-muted trumpet (VSCO 2 CE, CC0; build_brass_mute.py): the episodes' trumpets, the second of five throughout.
+  brassTrumpetMute: { folder: "brassTrumpetMute", rate: 32000, lp: 11000, bits: 16, loop: true },
   // D524, PET SOUNDS: the string section (VSCO 2 CE's viola section, sustained with vibrato: a 1966 session's strings, held
   // on the made loop) and the electric bass (Karoryfer's Black And Blue "babyblue", picked: Carol Kaye's pick on a P-bass's
   // kind of line), at full fidelity as the consort's; the bass's floor at 40 Hz (its E1 is 41 Hz).
@@ -219,6 +225,9 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   brassHorn: { F2: -38.4, Gs2: -7.4, B2: -6.2, D3: 18.4, F3: 12.4, Gs3: -8.6, B3: -3.3, D4: 7.2, F4: 15.8, Gs4: 2.5, B4: 3.7, D5: -18.5, F5: -3.0 },
   brassHornP: { F2: -37.9, Gs2: -7.5, B2: -6.3, D3: 18.5, F3: 12.5, Gs3: -8.7, B3: -3.2, D4: 7.1, F4: 15.8, Gs4: 2.6, B4: 3.8, D5: -18.5, F5: -3.0 },
   brassBass: { As1: 11.5, C2: 26.6, Ds2: 14.6, Fs2: 1.3, A2: 9.3, C3: -5.0, Ds3: -3.5, Fs3: -32.7, A3: 1.1, C4: 4.2, Ds4: 17.8, G4: 0.0 },
+  brassTrumpetMf: { E3: 8.5, G3: -5.0, As3: -22.0, Cs4: -14.8, E4: -9.5, G4: -8.7, As4: -9.4, Cs5: -6.5, E5: 17.6, G5: 15.5, As5: -1.5, Cs6: -22.1 },
+  brassTrumpetMute: { As3: -7.0, C4: 11.3, D4: -1.1, G4: 2.1, As4: 3.3, D5: -3.9, F5: -2.7, A5: -2.5 },
+  brassTromboneMf: { E2: 36.7, G2: 7.4, As2: 2.4, Cs3: -0.7, E3: -1.7, G3: 9.0, As3: 4.5, Cs4: 10.6, E4: -1.1, G4: 20.6, As4: 13.4, C5: 8.7 },
   brassBassP: { As1: 3.1, C2: 3.6, Ds2: -11.9, Fs2: -7.7, A2: -12.2, C3: -0.3, Ds3: 0.8, Fs3: -13.0, A3: 5.7, C4: -3.7, Ds4: 9.4, G4: -16.2 },
   // D547 (build_altoflute.py: autocorrelation over 0.4-1.6 s of each note as built; Iowa's alto flute plays sharp at ff, up to a third of a semitone).
   altoFlute: { G3: 4.4, As3: -9.8, Cs4: -16.6, E4: 17.6, G4: 27.6, As4: -0.8, Cs5: 5.6, E5: 21.2, G5: 30.4, As5: 32.7, Cs6: 25.4, F6: 29.6 },
@@ -244,7 +253,7 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   celloPizz: { A3: -5.7, B2: -21.8, B4: 1.0, C2: 1.6, C4: 6.6, D3: -13.3, D5: 15.0, E2: 22.6, E4: -10.8, F3: -5.9, F5: -9.2, G2: 0, G4: -14.7 },
 };
 /** D502: BACH BRASS's folders (build_brass.py), each layer its own. */
-export const BRASS_FOLDERS = ["brassTrumpet", "brassTrumpetP", "brassHorn", "brassHornP", "brassTrombone", "brassTromboneP", "brassBass", "brassBassP"] as const;
+export const BRASS_FOLDERS = ["brassTrumpet", "brassTrumpetP", "brassHorn", "brassHornP", "brassTrombone", "brassTromboneP", "brassBass", "brassBassP", "brassTrumpetMf", "brassTromboneMf", "brassTrumpetMute"] as const;
 /** D297: the recordings shorter than 4.545 s (s, measured). */
 const SHORT: Record<string, Record<string, number>> = {
   // D358: the cello's recordings (s, measured).
@@ -508,7 +517,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -682,6 +691,11 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   brassHorn: { set: "brassHorn", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassHornP" } },
   brassTrombone: { set: "brassTrombone", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
   brassBass: { set: "brassBass", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassBassP" } },
+  // D609: BACH BRASS v3's trumpet and tenor trombone on their mf sets (the piano layers as before: one layer under BAND_SLIM).
+  brassTrumpetMf: { set: "brassTrumpetMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
+  brassTromboneMf: { set: "brassTromboneMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
+  // D614: the straight mute's one layer (B-flat 3 to A5, every 2-5 semitones).
+  brassTrumpetMute: { set: "brassTrumpetMute", plucked: false, gain: 2.2, maxShift: 3 },
   // D503, JAZZ QUARTET: the vibraphone (pp, mf, ff: the mallet's hardness), struck, its pedal by the note's length,
   // a harder strike a little brighter too (velTone), retuned a whole tone at most (the pp and ff sets' every other
   // note); the double bass pizzicato (mf, ff), a bass line folded an octave in only where it leaves E1-G4 by more than 3.
