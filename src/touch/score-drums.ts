@@ -131,7 +131,7 @@ export const JITTER_S = 0.005;
  * MARCH rolls into the final group up to 12.9 LU over the band on the phone model, 2.52; its five-stroke drags and the
  * cadences' ruffs 1-5 over): a roll's strokes and an accent's at these shares. Their place and shape as before.
  */
-export const ROLL_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.45, military: 0.55, fieldDrums: 0.6, castanets: 0.8 };
+export const ROLL_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.35, military: 0.45, fieldDrums: 0.5, castanets: 0.6, frame: 0.7 };
 export const ACCENT_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.75, military: 0.8, fieldDrums: 0.85 };
 /** A grace and its stroke no closer than this (s). */
 export const GRACE_MIN_S = 0.018;

@@ -372,7 +372,23 @@ export function firstOnset(f: TouchFugue): number {
  * at least TEXTURE_FLOOR where any sounds; 0 where none does (before the first note, a general rest, after the last).
  */
 export const TEXTURE_S = 0.4;
-export const TEXTURE_FLOOR = 0.4;
+export const TEXTURE_FLOOR = 0.35;
+/** D601: the texture's exponent on the amplitude (one voice of four: (1/4)^0.75, 9 dB under the four). */
+export const TEXTURE_EXP = 0.75;
+/** D601: a roll's or a fill's strokes at this share; an accent at most this; the strokes after the last chord's attack at this. */
+export const ROLL_SHARE = 0.85;
+export const ACCENT_MAX = 0.85;
+export const RING_SHARE = 0.6;
+const lastOn = new Map<string, number>();
+export function lastOnset(f: TouchFugue): number {
+  let t = lastOn.get(f.id);
+  if (t === undefined) {
+    t = 0;
+    for (const v of f.voices) for (const n of v) if (n[0] > t) t = n[0];
+    lastOn.set(f.id, t);
+  }
+  return t;
+}
 const texMemo = new Map<string, { span: number; at: Float32Array }>();
 export function textureGain(f: TouchFugue, tick: number): number {
   let m = texMemo.get(f.id);
@@ -395,7 +411,7 @@ export function textureGain(f: TouchFugue, tick: number): number {
   const i = Math.max(0, Math.min(m.at.length - 1, Math.floor(tick / m.span)));
   const s = m.at[i] / Math.max(1, f.voices.length);
   if (s <= 1e-3) return 0;
-  return Math.max(TEXTURE_FLOOR, Math.min(1, Math.sqrt(s)));
+  return Math.max(TEXTURE_FLOOR, Math.min(1, s ** TEXTURE_EXP));
 }
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
@@ -4032,10 +4048,16 @@ export class Chip {
     if (f && e.tick < firstOnset(f) - 1) return;
     // D601: and under the band's texture: a stroke as soft as the voices sounding over the 400 ms after it are few (the
     // energy with the share of the voices sounding: one voice of four 6 dB under the four), none where none sounds.
+    // The rolls' and fills' dense strokes a share under their written level, an accent at most ACCENT_MAX; past the last
+    // chord's attack the drums let it ring (RING_SHARE).
     if (f) {
-      const g = textureGain(f, e.tick);
+      let g = textureGain(f, e.tick);
       if (g <= 0) return;
-      if (g < 1) e = { ...e, vel: e.vel * g };
+      if (e.role === "roll" || e.role === "fill") g *= ROLL_SHARE;
+      if (e.tick > lastOnset(f) + f.tpq / 4) g *= RING_SHARE;
+      let v = e.vel * g;
+      if (e.role === "accent") v = Math.min(v, ACCENT_MAX);
+      if (v !== e.vel) e = { ...e, vel: v };
     }
     this.kitEvents.push(e);
     if (this.kitEvents.length > 1024) this.kitEvents.splice(0, 512);

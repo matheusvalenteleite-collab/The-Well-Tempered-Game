@@ -83,6 +83,8 @@ export const VEL: Readonly<Record<string, number>> = { "-": 0.18, o: 0.32, x: 0.
 export const GRID_STEP_S = 0.085;
 /** A compound beat longer than this (s) is played as its three pulses (6/4's dotted minim: three crotchets). */
 export const COMPOUND_SPLIT_S = 1.6;
+/** D605: the climax's added hats' level (the open steps filled past the climax's half). */
+export const CLIMAX_GHOST = 0.2;
 /** The climax's strokes this much firmer (the whole of it; drum-presets.ts CLIMAX_VEL's build on top). */
 export const CLIMAX_FIRM = 1.08;
 /** The fugue's own beat as the pulse is preferred by this much (the log-distance to the style's tempo). */
@@ -532,6 +534,9 @@ export function gridBeat(st: GridStyle, b: number, per: number, compound: boolea
         vel *= 1 + 0.12 * (jitter(bar * 64 + sp.i * steps + s, piece.length) - 0.5);
         out.push({ piece, at, vel });
       }
+      // D605 (the climax audit: 2.52's grooves no busier in the final group than in the exposition, I/7, II/4, II/15 ...):
+      // past the climax's half the hats in every step the groove leaves open (a ghost, on the grid), the drummer opening up.
+      if (!ep && top && !st.trance && stride === 1 && s % 2 === 1 && grid.rows.hat && !out.some((h) => Math.abs(h.at - at) < 1e-6 && (h.piece === "hat" || h.piece === "ride" || h.piece === "openhat"))) out.push({ piece: st.climax === "ride" ? "ride" : "hat", at, vel: CLIMAX_GHOST });
       if (!ep && top && s === 0) {
         if ((st.climax === "crash" || st.climax === "ride") && sp.i === 0) out.push({ piece: "crash", at, vel: st.climax === "crash" ? 0.42 : 0.34 });
         if (st.climax === "open" && gp % 2 === 1 && steps > stride) out.push({ piece: "openhat", at: Math.min(0.999, at + (sp.width * (steps - stride)) / steps), vel: 0.4 });
