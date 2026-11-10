@@ -1,0 +1,260 @@
+{
+ "phrase": {
+  "piece": "wtc1f02",
+  "fromBar": 7,
+  "toBar": 8,
+  "secs": 3.5,
+  "voice": 0
+ },
+ "target": -23,
+ "model": "mono, 2x 2nd-order 600 Hz high-pass, ebur128 integrated",
+ "kbps": 48,
+ "clips": {
+  "abbeyRoad": {
+   "lufs": -23,
+   "peakDb": -6,
+   "gainDb": 9.3,
+   "drums": "abbey",
+   "strokes": 14,
+   "bytes": 21429
+  },
+  "analog": {
+   "lufs": -23,
+   "peakDb": -1.5,
+   "gainDb": 8.1,
+   "drums": "machine",
+   "strokes": 18,
+   "bytes": 21429
+  },
+  "bachBrass": {
+   "lufs": -23,
+   "peakDb": -2.9,
+   "gainDb": 13.6,
+   "drums": "march",
+   "strokes": 21,
+   "bytes": 21429
+  },
+  "baroqueBand": {
+   "lufs": -22.9,
+   "peakDb": -6.6,
+   "gainDb": 9.2,
+   "drums": "timpani",
+   "strokes": 5,
+   "timpAt": [
+    0.43,
+    2.57
+   ],
+   "notes": [
+    "timpani as at an arrival: tonic 48 at beat 1.5 over [75 72 60] struck; tonic 48 at beat 4 over [79 75 60] struck"
+   ],
+   "bytes": 21429
+  },
+  "berlinSchool": {
+   "lufs": -23,
+   "peakDb": -2.5,
+   "gainDb": 6.2,
+   "drums": "scoreSynth",
+   "strokes": 17,
+   "bytes": 21429
+  },
+  "bossaNova": {
+   "lufs": -23.1,
+   "peakDb": -1.2,
+   "gainDb": 9.1,
+   "drums": "bossa",
+   "strokes": 14,
+   "bytes": 21429
+  },
+  "chamberOrgan": {
+   "lufs": -23,
+   "peakDb": -6.6,
+   "gainDb": 4.8,
+   "drums": "timpani",
+   "strokes": 5,
+   "timpAt": [
+    0.43,
+    2.57
+   ],
+   "notes": [
+    "timpani as at an arrival: tonic 48 at beat 1.5 over [75 72 60] struck; tonic 48 at beat 4 over [79 75 60] struck"
+   ],
+   "bytes": 21429
+  },
+  "chip": {
+   "lufs": -23,
+   "peakDb": -1.8,
+   "gainDb": 9.1,
+   "drums": "chip",
+   "strokes": 14,
+   "bytes": 21429
+  },
+  "chorinho": {
+   "lufs": -23,
+   "peakDb": -6.3,
+   "gainDb": 7.9,
+   "drums": "choro",
+   "strokes": 25,
+   "bytes": 21429
+  },
+  "fluteHarp": {
+   "lufs": -22.9,
+   "peakDb": -1.8,
+   "gainDb": 12.1,
+   "drums": "swell",
+   "strokes": 12,
+   "bytes": 21429
+  },
+  "gameboy": {
+   "lufs": -23,
+   "peakDb": -4.9,
+   "gainDb": 8.4,
+   "drums": "chip",
+   "strokes": 14,
+   "bytes": 21429
+  },
+  "harpsichordSampled": {
+   "lufs": -23,
+   "peakDb": -5.9,
+   "gainDb": 2.3,
+   "drums": "frame",
+   "strokes": 12,
+   "bytes": 21429
+  },
+  "jazzQuartet": {
+   "lufs": -23,
+   "peakDb": -2.4,
+   "gainDb": 11.7,
+   "drums": "brushes",
+   "strokes": 14,
+   "bytes": 21429
+  },
+  "krautrock": {
+   "lufs": -23,
+   "peakDb": -7,
+   "gainDb": 9.8,
+   "drums": "motorik",
+   "strokes": 28,
+   "bytes": 21429
+  },
+  "megaFm": {
+   "lufs": -23,
+   "peakDb": -3.4,
+   "gainDb": 6.2,
+   "drums": "linn",
+   "strokes": 48,
+   "bytes": 21429
+  },
+  "oboeTrio": {
+   "lufs": -23,
+   "peakDb": -6,
+   "gainDb": 9.4,
+   "drums": "frame",
+   "strokes": 12,
+   "bytes": 21429
+  },
+  "orchestraOrgan": {
+   "lufs": -23,
+   "peakDb": -5.1,
+   "gainDb": 10.4,
+   "drums": "timpani",
+   "strokes": 5,
+   "timpAt": [
+    0.43,
+    2.57
+   ],
+   "notes": [
+    "the full complement: forced to stage 3, the final group's line-up (the render only)",
+    "timpani as at an arrival: tonic 48 at beat 1.5 over [75 72 60] struck; tonic 48 at beat 4 over [79 75 60] struck"
+   ],
+   "bytes": 21429
+  },
+  "petSounds": {
+   "lufs": -23,
+   "peakDb": -7.3,
+   "gainDb": 10,
+   "drums": "pet",
+   "strokes": 4,
+   "bytes": 21429
+  },
+  "pianoSampled": {
+   "lufs": -23,
+   "peakDb": -1.4,
+   "gainDb": 10.4,
+   "drums": "jazz",
+   "strokes": 28,
+   "bytes": 21429
+  },
+  "salsa": {
+   "lufs": -23,
+   "peakDb": -4.5,
+   "gainDb": 10.5,
+   "drums": "salsa",
+   "strokes": 41,
+   "bytes": 21429
+  },
+  "sid64": {
+   "lufs": -23,
+   "peakDb": -1.8,
+   "gainDb": 8.7,
+   "drums": "chip",
+   "strokes": 14,
+   "bytes": 21429
+  },
+  "soloVoices": {
+   "lufs": -23,
+   "peakDb": -5.1,
+   "gainDb": 11.8,
+   "drums": "frame",
+   "strokes": 12,
+   "bytes": 21429
+  },
+  "stringConsort": {
+   "lufs": -23.1,
+   "peakDb": -4.8,
+   "gainDb": 9.7,
+   "drums": "frame",
+   "strokes": 12,
+   "bytes": 21429
+  },
+  "super16": {
+   "lufs": -23,
+   "peakDb": -1.7,
+   "gainDb": 12.2,
+   "drums": "lofi",
+   "strokes": 18,
+   "bytes": 21429
+  },
+  "tomita": {
+   "lufs": -23,
+   "peakDb": -2.4,
+   "gainDb": 8.1,
+   "drums": "triphop",
+   "strokes": 17,
+   "bytes": 21429
+  },
+  "tracker": {
+   "lufs": -23,
+   "peakDb": -2,
+   "gainDb": 8.5,
+   "drums": "breakbeat",
+   "strokes": 30,
+   "bytes": 21429
+  },
+  "vaudeville": {
+   "lufs": -22.9,
+   "peakDb": -3.5,
+   "gainDb": 8.3,
+   "drums": "stooges",
+   "strokes": 12,
+   "bytes": 21429
+  },
+  "vocalSynth": {
+   "lufs": -23,
+   "peakDb": -1.6,
+   "gainDb": 9.1,
+   "drums": "house",
+   "strokes": 30,
+   "bytes": 21429
+  }
+ }
+}

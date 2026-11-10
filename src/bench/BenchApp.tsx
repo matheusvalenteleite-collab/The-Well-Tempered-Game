@@ -2121,7 +2121,7 @@ export function BenchApp() {
           drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumMenuFor(f.id, presetById(sound).id), preset: drumPresetOf(f.id, presetById(sound).id), quick: quickDrums(f.id, presetById(sound).id), cycle: () => (cycleDrumPreset(f.id, presetById(sound).id, quickDrums(f.id, presetById(sound).id)), setDrumsOn(true), setDrumTick((t) => t + 1)), choose: (id: string) => (chooseDrumPreset(f.id, id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
           tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
-          sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], set: setSound } : undefined}
+          sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], ownName: PIECE_SOUND[f.id] ? presetById(PIECE_SOUND[f.id]).name : undefined, set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (
               <p className="tg-note tb-lag-note sel-lag" id="sel-lag-note">
