@@ -32,6 +32,7 @@ import type { TouchFugue } from "./fugue.ts";
 import { tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
+import { SFX_SOUND, sfxKindsNow, sfxPlan, swellEnv, swellSurge, type SfxKind } from "./world-sfx.ts";
 import { buildChain, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
@@ -425,6 +426,29 @@ export function textureGain(f: TouchFugue, tick: number): number {
   const s = m.at[i] / (f.voices.length > 1 ? f.voices.length - 1 + BASS_TEXTURE : 1);
   if (s < TEXTURE_SILENT) return 0;
   return Math.max(TEXTURE_FLOOR, Math.min(1, s ** TEXTURE_EXP));
+}
+/**
+ * D623: an effect's share at a tick (world-sfx.ts, Chip.scheduleSfx): the drums' thinning (D601/D607): 0 before the first
+ * note, 0 past the last chord's attack, else the band's texture over the 400 ms after it (0 in a general rest).
+ */
+export function sfxShare(f: TouchFugue, tick: number): number {
+  if (tick < firstOnset(f) - 1 || tick > lastOnset(f)) return 0;
+  return textureGain(f, tick);
+}
+/** D624: the swell's beats: each piece's filters warmed this long before it (silent), its level ramped over SWELL_XF. */
+export const SWELL_WARM = 0.06;
+export const SWELL_XF = 0.03;
+/** D623: an effect as the choke point schedules it (the swell: one beat's piece, from `when` at `vel` to `until` at `vel1`). */
+export interface SfxScheduled {
+  kind: SfxKind;
+  tick: number;
+  end: number;
+  when: number;
+  until: number;
+  vel: number;
+  vel1: number;
+  /** The plan's event's tick (the swell's start: the noise read on from there). */
+  since: number;
 }
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
@@ -4002,6 +4026,8 @@ export class Chip {
     // D536: the clock's tick (the studio's registration events land on it).
     if (cx && beatS > 0) this.tickClock = { tick: cx.tick, at, tps: cx.beat / beatS };
     const tickOf = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
+    // D623: the pilot world's effects in this beat (world-sfx.ts; whatever the drums do).
+    if (cx && beatS > 0) this.worldBeat(at, beatS, cx);
     if (backingOn() && piece) {
       if (piece !== this.drumF) this.drumsFor(piece);
       const style = drumStyleFor(piece.id);
@@ -4084,6 +4110,132 @@ export class Chip {
     if (musicLive()) {
       const kind = musicKindOf(e);
       if (kind) emitMusic({ tick: e.tick, kind, level: Math.max(0, Math.min(1, e.vel)), piece: e.piece, ...(e.dur !== undefined ? { dur: e.dur } : kind === "roll" ? { dur: 0 } : {}) });
+    }
+  }
+  /**
+   * D623, THE PILOT WORLDS' EFFECTS (world-sfx.ts): the game names the piece whose world its box shows (ProtoGame; null:
+   * none, the tutorial's box, Kimiko's recording); each beat its effects falling in the beat are scheduled through
+   * scheduleSfx. The swell is cut into the beats (each a piece of one noise, ramped beat to beat), so nothing outlasts
+   * the schedule's horizon (a pause stops it within the beat).
+   */
+  private world: { f: TouchFugue; shown: boolean } | null = null;
+  worldFor(f: TouchFugue | null, shown = true) {
+    this.world = f ? { f, shown } : null;
+  }
+  /** D623: every effect scheduled (the tests): its kind, tick, time, velocity as played (the swell: each beat's piece, its end's too). */
+  readonly sfxEvents: SfxScheduled[] = [];
+  private worldBeat(at: number, beatS: number, cx: GrooveContext) {
+    const w = this.world;
+    if (!w) return;
+    const kinds = sfxKindsNow(w.f, w.shown);
+    if (!kinds.length) return;
+    const f = w.f;
+    const t0 = cx.tick;
+    const t1 = cx.tick + cx.beat;
+    const when = (t: number) => at + ((t - t0) / cx.beat) * beatS;
+    for (const e of sfxPlan(f, kinds)) {
+      if (e.kind === "swell") {
+        if (e.end <= t0 || e.tick >= t1) continue;
+        const a = Math.max(t0, e.tick);
+        const b = Math.min(t1, e.end);
+        const k = swellSurge(Math.round(t0 / cx.beat));
+        const k1 = swellSurge(Math.round(t1 / cx.beat));
+        const v1 = swellEnv(f, b) * (b === t1 ? k1 : k) * sfxShare(f, b);
+        this.scheduleSfx({ kind: "swell", tick: a, end: b, when: when(a), until: when(b), vel: swellEnv(f, a) * k, vel1: v1, since: e.tick }, (x) => this.sfxSound(x));
+      } else if (e.tick >= t0 && e.tick < t1) this.scheduleSfx({ kind: e.kind, tick: e.tick, end: e.tick, when: when(e.tick), until: when(e.tick), vel: e.vel, vel1: 0, since: e.tick }, (x) => this.sfxSound(x));
+    }
+  }
+  /**
+   * D623, THE EFFECTS' CHOKE POINT, beside the drums' (scheduleKitHit) with its thinning: none before the first note, none
+   * past the last chord's attack (an effect never rings on it), at the band's texture over the 400 ms after it
+   * (textureGain: none in a general rest).
+   */
+  scheduleSfx(e: SfxScheduled, sound: (e: SfxScheduled) => void) {
+    const f = this.world?.f;
+    if (!f) return;
+    const g = sfxShare(f, e.tick);
+    if (g <= 0) return;
+    e = { ...e, vel: e.vel * g };
+    if (e.vel <= 1e-4 && e.vel1 <= 1e-4) return;
+    this.sfxEvents.push(e);
+    if (this.sfxEvents.length > 1024) this.sfxEvents.splice(0, 512);
+    sound(e);
+  }
+  /** D623: the effects' own noise (7.3 s, not the drums' one-second loop: a swell's repeats unheard), made once. */
+  private sfxNoiseBuf: AudioBuffer | null = null;
+  /** D624: the swell's noise read by the audio clock from its first beat's piece (so the beats' pieces are one noise). */
+  private swellAnchor: { since: number; at: number } | null = null;
+  private sfxNoise(): AudioBufferSourceNode {
+    if (!this.sfxNoiseBuf) {
+      const len = Math.round(this.ctx.sampleRate * 7.3);
+      this.sfxNoiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const d = this.sfxNoiseBuf.getChannelData(0);
+      let seed = 4242;
+      for (let i = 0; i < len; i++) d[i] = ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+    }
+    const n = this.ctx.createBufferSource();
+    n.buffer = this.sfxNoiseBuf;
+    n.loop = true;
+    return n;
+  }
+  /** D624-D627: an effect sounded (world-sfx.ts SFX_SOUND: noise through low-Q filters), into the master as the drums are. */
+  private sfxSound(e: SfxScheduled) {
+    const ctx = this.ctx;
+    const spec = SFX_SOUND[e.kind];
+    const bag = new Bag();
+    const out = bag.add(ctx.createGain());
+    out.gain.value = spec.gain;
+    out.connect(this.master);
+    const at = Math.max(e.when, ctx.currentTime);
+    const len = this.sfxNoiseBuf ? this.sfxNoiseBuf.duration : 7.3;
+    for (const L of spec.layers) {
+      const n = bag.src(this.sfxNoise());
+      let node: AudioNode = n;
+      const fls: BiquadFilterNode[] = [];
+      for (const [type, hz, q] of L.filters) {
+        const fl = bag.add(ctx.createBiquadFilter());
+        fl.type = type;
+        fl.frequency.value = hz;
+        fl.Q.value = q;
+        node.connect(fl);
+        node = fl;
+        fls.push(fl);
+      }
+      const g = bag.add(ctx.createGain());
+      node.connect(g).connect(out);
+      if (e.kind === "swell") {
+        // one noise across the swell's beats (the buffer read on from where the last beat's piece was), the filters
+        // warmed for SWELL_WARM before the beat (silent), each beat's level ramped to the next's over SWELL_XF.
+        const from = at - SWELL_WARM;
+        if (!this.swellAnchor || this.swellAnchor.since !== e.since || from < this.swellAnchor.at) this.swellAnchor = { since: e.since, at: from };
+        const off = (from - this.swellAnchor.at) % len;
+        g.gain.setValueAtTime(0, from);
+        g.gain.setValueAtTime(0, at);
+        g.gain.linearRampToValueAtTime(L.level * e.vel, at + SWELL_XF);
+        g.gain.linearRampToValueAtTime(L.level * e.vel1, Math.max(at + SWELL_XF, e.until));
+        g.gain.linearRampToValueAtTime(0, Math.max(at + SWELL_XF, e.until) + SWELL_XF);
+        const go = Math.max(ctx.currentTime, from);
+        n.start(go, (off + go - from) % len);
+        halt(n, Math.max(at + SWELL_XF, e.until) + SWELL_XF + 0.01);
+        continue;
+      }
+      const v = L.level * e.vel;
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(v, at + L.attack);
+      if (L.hold > 0) g.gain.setValueAtTime(v, at + L.attack + L.hold);
+      g.gain.exponentialRampToValueAtTime(Math.max(1e-5, v * 1e-3), at + L.len);
+      if (spec.sweep) {
+        // the band's centre up and back `cycles` times (exponential ramps), over the sound's length
+        const { lo, hi, cycles } = spec.sweep;
+        const bp = fls.find((x) => x.type === "bandpass");
+        if (bp) {
+          bp.frequency.setValueAtTime(lo, at);
+          const step = L.len / (2 * cycles);
+          for (let i = 1; i <= 2 * cycles; i++) bp.frequency.exponentialRampToValueAtTime(i % 2 ? hi : lo, at + i * step);
+        }
+      }
+      n.start(at, (e.tick * 0.000137) % len);
+      halt(n, at + L.len + 0.02);
     }
   }
   /** D536: the fugue's tick at a time on the audio clock (from the last beat the rhythm section was given), or null. */
