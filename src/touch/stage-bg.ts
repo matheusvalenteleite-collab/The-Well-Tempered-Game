@@ -101,6 +101,8 @@ class Kit {
    * (Infinity before the first): what an entry sets in the world appears over the bar it begins.
    */
   sounding: { on: number; end: number; voice: number }[] = [];
+  /** The climax's peak (tick: the last entry's onset, form-points.ts), where a world's payoff lands. */
+  peak = Infinity;
   strettos: number[] = [];
   since = Infinity;
   acts: number[] = [1];
@@ -1066,7 +1068,8 @@ const WORLDS: Record<string, World> = {
     const gw = k.w * 0.1;
     const gy = k.h * 0.42;
     const gh = k.h * 0.2;
-    const fall = k.climax > 0.6 ? Math.min(1, (k.climax - 0.6) / 0.4) : 0;
+    // The gate falls on the climax's peak (the last entry's onset), over half a bar.
+    const fall = Math.max(0, Math.min(1, (k.now() - k.peak) / (k.barTicks * 0.5)));
     const dmg = Math.min(1, k.passed / Math.max(1, k.ents.length - 1));
     if (fall < 1) {
       k.g.save();
@@ -1087,19 +1090,21 @@ const WORLDS: Record<string, World> = {
     const fy = k.h * 0.8;
     k.R(fx - 14, fy - 6, 28, 6, "rgba(70,46,28,1)");
     k.tri(fx, fy - 6, 14, 14, "rgba(70,46,28,1)");
-    // the shot: the arm flung over the bar the entry begins, the stone arcing to the gate
-    const shot = k.since < 1 ? k.since : 1;
-    const cock = (shot < 1 ? 0.3 + 0.7 * Math.min(1, shot * 4) : 0.3) * Math.PI * 0.45;
+    // The shot: flung 0.7 bar before each entry, the stone landing on the entry's onset (the sound's thud there,
+    // Instruments' table); the splinters fly over the 0.3 bar after it.
+    const next = k.passed < k.ents.length ? k.ents[k.passed] : Infinity;
+    const toNext = (next - k.now()) / k.barTicks;
+    const flying = toNext <= 0.7 && fall < 1;
+    const u = flying ? 1 - toNext / 0.7 : 0;
+    const cock = (flying ? 0.3 + 0.7 * Math.min(1, u * 4) : 0.3) * Math.PI * 0.45;
     k.line(fx, fy - 18, fx - Math.cos(cock) * 26, fy - 18 - Math.sin(cock) * 26 + 10, "rgba(90,60,36,1)", 3);
-    if (shot < 1 && fall < 1) {
-      const u = Math.min(1, shot * 1.4);
+    if (flying) {
       const sx = fx + (gx + gw / 2 - fx) * u;
       const sy = fy - 30 - Math.sin(u * Math.PI) * k.h * 0.35 + (gy + gh / 2 - fy + 30) * u;
-      if (u < 1) {
-        k.glow(sx, sy, 8, [255, 160, 70], 0.8);
-        k.R(sx - 2, sy - 2, 4, 4, "rgba(255,225,160,1)");
-      } else for (let i = 0; i < 8; i++) k.R(gx + gw / 2 + Math.cos(i) * (shot - 0.7) * 60, gy + gh / 2 + Math.sin(i) * (shot - 0.7) * 30, 2, 2, "rgba(120,90,60,0.9)");
+      k.glow(sx, sy, 8, [255, 160, 70], 0.8);
+      k.R(sx - 2, sy - 2, 4, 4, "rgba(255,225,160,1)");
     }
+    if (k.since < 0.3 && fall < 1) for (let i = 0; i < 8; i++) k.R(gx + gw / 2 + Math.cos(i) * k.since * 120, gy + gh / 2 + Math.sin(i) * k.since * 60, 2, 2, "rgba(120,90,60,0.9)");
   },
   // The Organist: the organ's pipes, lit in waves as the piece grows.
   wtc2f07: (k) => {
@@ -1732,6 +1737,7 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
     if (fa.mix < 1 && fa.act > 0) weights[li(fa.act - 1)] = 1 - fa.mix;
   } else weights.push(1);
   k.climax = climax;
+  k.peak = fm ? fm.climax.peak : Infinity;
   k.rest = fa ? fa.resolved : 0;
   k.calm = ce.calm;
   g.save();
