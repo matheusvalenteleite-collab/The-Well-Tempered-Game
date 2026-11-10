@@ -64,3 +64,61 @@ export function difficultyOf(f: TouchFugue): Difficulty {
   const stars = 1 + (f.kind === "prelude" ? PRELUDE_STAR_CUTS : STAR_CUTS).filter((c) => score > c).length;
   return { busiest, average, quick, leaps: leapShare, score, stars };
 }
+
+/**
+ * D454 (the owner, on II/6: don't default the player to the alto, "its subject is tricky"): each VOICE's
+ * difficulty at the standard tempo, by D222's own measures taken one voice at a time: how many notes a second
+ * it plays at its busiest (90th percentile over 4 s windows), how quick its quick notes are (25th percentile
+ * between onsets), how often it leaps (a fourth or more, D222's moves) and how far (the mean interval between
+ * successive notes, in semitones). Hand-crossing does not arise: one voice is played with two thumbs on two
+ * bars, either thumb on either bar. Score = load + 0.15 / quick + 6 × leap share + 0.25 × mean interval (the
+ * first three as D222 weighs them for a fugue), + OPENS_PENALTY for the voice that opens the fugue alone: it must
+ * play the subject before it has heard it (D369's reason for offering the second voice to enter first).
+ */
+export const OPENS_PENALTY = 1;
+export interface VoiceDifficulty {
+  load: number;
+  quick: number;
+  leaps: number;
+  interval: number;
+  /** The voice opens the fugue alone (the first entry's). */
+  opens: boolean;
+  score: number;
+}
+export function voiceDifficulty(f: TouchFugue, v: number): VoiceDifficulty {
+  const sPerTick = 60 / (standardTempo(f.id) * f.tpq);
+  const beat = beatOf(f).ticks;
+  const ns = laneNotes(f.voices[v] ?? [], beat, v).filter((n, i, a) => !(i > 0 && a[i - 1].on === n.on));
+  const ms = moves(ns, beat);
+  const iois: number[] = [];
+  let leaps = 0;
+  let mv = 0;
+  let span = 0;
+  let steps = 0;
+  for (let i = 1; i < ns.length; i++) {
+    const gap = ns[i].on - (ns[i - 1].on + ns[i - 1].dur);
+    iois.push((ns[i].on - ns[i - 1].on) * sPerTick);
+    if (ms[i].size >= 0) (mv++, ms[i].size >= 3 && leaps++);
+    // The interval between successive notes, not across a rest of a beat or more (a new phrase).
+    if (gap < beat) (span += Math.abs(ns[i].midi - ns[i - 1].midi), steps++);
+  }
+  const ons = ns.map((n) => n.on * sPerTick);
+  const w: number[] = [];
+  let a = 0;
+  let b = 0;
+  for (let s = 0; s < (ons.at(-1) ?? 0); s += 1) {
+    while (a < ons.length && ons[a] < s) a++;
+    while (b < ons.length && ons[b] < s + 4) b++;
+    w.push((b - a) / 4);
+  }
+  w.sort((x, y) => x - y);
+  iois.sort((x, y) => x - y);
+  const load = w[Math.floor(w.length * 0.9)] ?? 0;
+  const quick = iois[Math.floor(iois.length * 0.25)] ?? 1;
+  const leapShare = leaps / Math.max(1, mv);
+  const interval = span / Math.max(1, steps);
+  const r = (x: number) => Math.round(x * 100) / 100;
+  const first = [...f.entries].sort((x, y) => x.on - y.on)[0];
+  const opens = f.kind === "fugue" && first?.voice === v;
+  return { load: r(load), quick: r(quick), leaps: r(leapShare), interval: r(interval), opens, score: r(load + 0.15 / Math.max(0.05, quick) + 6 * leapShare + 0.25 * interval + (opens ? OPENS_PENALTY : 0)) };
+}

@@ -442,9 +442,12 @@ export function saveLastVoice(id: string, voice: number) {
     /* this visit only */
   }
 }
-/** D369: the voice a piece offers first on play.html: unfinished, the second to enter; finished, the last played (else as before). */
+/**
+ * D369: the voice a piece offers first on play.html: unfinished, the second to enter; finished, the last played (else as before).
+ * D454: the player's own last choice wins whenever there is one, finished or not; else the fugue's easiest voice (flow.ts defaultVoice).
+ */
 export function liteVoice(f: TouchFugue, singing: readonly number[], finished: boolean): number {
-  const last = finished ? lastVoice(f.id) : undefined;
+  const last = lastVoice(f.id);
   if (last !== undefined && singing.includes(last) && f.kind !== "prelude") return last;
   return defaultVoice(f, singing, { fresh: !finished });
 }
