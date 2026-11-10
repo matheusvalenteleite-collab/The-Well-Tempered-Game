@@ -460,3 +460,8 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-soundgrid .sel-drumgrid-pad { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
 .sel-soundgrid .sel-drumgrid-pad button { min-height: 48px; }
 @media (max-width: 700px) { .sel-soundgrid .sel-drumgrid-pad { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); } }
+/* D455: a colour per family: the heading in it, each card's left edge in it and a faint tint of it; lit and HOME as DRUMS'. */
+.sel-soundgrid-fam h3 { color: var(--fam); }
+.sel-soundgrid-fam .sel-drumgrid-pad button { border-left: 4px solid var(--fam); background: color-mix(in srgb, var(--fam) 12%, #1e1c32); }
+.sel-soundgrid-fam .sel-drumgrid-pad button.home { border-color: #f3d78a; border-left-color: var(--fam); }
+.sel-soundgrid-fam .sel-drumgrid-pad button.on { background: var(--tg-shine); border-color: var(--tg-shine); border-left-color: var(--fam); }

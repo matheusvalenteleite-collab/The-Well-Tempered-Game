@@ -533,6 +533,16 @@ function DrumGrid({ drums, close }: { drums: NonNullable<SelectionProps["drums"]
  * chooses it (BenchApp's setSound, as the list did: the drums' HOME, the stops and the registration follow the
  * sound, and the choice is kept for the fugue) and the grid stays open, to try another; ✕, the veil or Escape closes it.
  */
+/** D455 (the owner: "a colour per family"): each group's ink, readable on the dark ground (its tint under the card, its edge, its heading). */
+const SOUND_FAMILY_INK: Readonly<Record<string, string>> = {
+  INSTRUMENTS: "#e0a95a",
+  ENSEMBLES: "#e57a8c",
+  "GAME CONSOLES": "#4fd1d9",
+  SYNTHESIZERS: "#b58cff",
+  VOICES: "#6fdc8c",
+  MORE: "#8c88aa",
+};
+
 function SoundGrid({ sound, close }: { sound: NonNullable<SelectionProps["sound"]>; close: () => void }) {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
@@ -562,7 +572,7 @@ function SoundGrid({ sound, close }: { sound: NonNullable<SelectionProps["sound"
         <div className="sel-drumgrid-body">
           {groups.map(([group, items]) =>
             items.length ? (
-              <section key={group} className="sel-drumgrid-fam" aria-label={tr(group)}>
+              <section key={group} className="sel-drumgrid-fam sel-soundgrid-fam" aria-label={tr(group)} style={{ ["--fam" as string]: SOUND_FAMILY_INK[group] ?? "#8c88aa" }}>
                 <h3>{tr(group)}</h3>
                 <div className="sel-drumgrid-pad">
                   {items.map(([sid, nm]) => {
