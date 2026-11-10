@@ -378,9 +378,9 @@ export const TEXTURE_EXP = 0.75;
 /** D601: the lowest voice's share of the texture (a phone's speaker hears the bass through its overtones only). */
 export const BASS_TEXTURE = 0.5;
 /** D601: a roll's or a fill's strokes at this share; an accent at most this; the strokes after the last chord's attack at this. */
-export const ROLL_SHARE = 0.7;
-export const ACCENT_MAX = 0.75;
-export const RING_SHARE = 0.45;
+export const ROLL_SHARE = 0.65;
+export const ACCENT_MAX = 0.55;
+export const RING_SHARE = 0.3;
 const lastOn = new Map<string, number>();
 export function lastOnset(f: TouchFugue): number {
   let t = lastOn.get(f.id);
@@ -4054,12 +4054,17 @@ export class Chip {
     // D601: and under the band's texture: a stroke as soft as the voices sounding over the 400 ms after it are few (the
     // energy with the share of the voices sounding: one voice of four 6 dB under the four), none where none sounds.
     // The rolls' and fills' dense strokes a share under their written level, an accent at most ACCENT_MAX; past the last
-    // chord's attack the drums let it ring (RING_SHARE).
+    // chord's attack (and with it, but its accent) the drums let it ring (RING_SHARE).
     if (f) {
       let g = textureGain(f, e.tick);
       if (g <= 0) return;
       if (e.role === "roll" || e.role === "fill") g *= ROLL_SHARE;
-      if (e.tick > lastOnset(f) + f.tpq / 4) g *= RING_SHARE;
+      if (e.tick > lastOnset(f) + f.tpq / 4) {
+        // past the last chord: only a roll dying under it (the timpani's), softly; no groove on a chord left to ring
+        if (e.role !== "roll") return;
+        g *= RING_SHARE;
+      }
+      else if (e.tick >= lastOnset(f) - 1 && e.role !== "accent") g *= RING_SHARE * RING_SHARE;
       let v = e.vel * g;
       if (e.role === "accent") v = Math.min(v, ACCENT_MAX);
       if (v !== e.vel) e = { ...e, vel: v };

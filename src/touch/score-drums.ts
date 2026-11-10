@@ -133,7 +133,11 @@ export const JITTER_S = 0.005;
  * crescendo kept, its top lower). Their place as before.
  */
 export const ROLL_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.25, military: 0.4, fieldDrums: 0.45, castanets: 0.55, frame: 0.45, timpani: 0.8 };
-export const ACCENT_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.75, military: 0.8, fieldDrums: 0.85 };
+/** D601: a roll inside an episode (into the next entry) at this share besides: the band there veiled or thinner. */
+export const EPISODE_ROLL = 0.6;
+/** D601: a roll's landing on the entry (its first piece, the rest): 2.52's 0.6 and 0.42 over the entering voice (I/5's last entry). */
+export const LAND_VEL = [0.45, 0.32] as const;
+export const ACCENT_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.75, military: 0.7, fieldDrums: 0.8, frame: 0.85 };
 /** A grace and its stroke no closer than this (s). */
 export const GRACE_MIN_S = 0.018;
 /** The episodes' share of the level and the threshold added there; the climax's gain at its peak; the coda's fall. */
@@ -691,7 +695,7 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
       if (tp !== null) strokes.push({ tick: to, dt: 0, piece: "timp", vel: 0.62, midi: tp, role: "accent", src: "arrival" });
       else strokes.push({ tick: to, dt: 0, piece: "bassDrum", vel: 0.45, role: "accent", src: "roll" });
       strokes.push({ tick: to, dt: 0, piece: "triangle", vel: 0.3, role: "accent", src: "roll" });
-    } else for (const p of kit.land) strokes.push({ tick: to, dt: 0, piece: p, vel: p === kit.land[0] ? 0.6 : 0.42, role: "accent", src: "roll" });
+    } else for (const p of kit.land) strokes.push({ tick: to, dt: 0, piece: p, vel: p === kit.land[0] ? LAND_VEL[0] : LAND_VEL[1], role: "accent", src: "roll" });
   };
   for (const [a, z] of windows) roll(a, z, 0.5, true);
 
@@ -728,7 +732,7 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
     const sx = tw.stage < 1 ? smooth(s.tick / Math.max(1, fp.climax.peak)) : 1;
     if (tw.stage < 1 && (s.src === "bass" || s.src === "subject") && hash(s.tick, 29) > 0.25 + 0.75 * sx) continue;
     const stageG = tw.stage + (1 - tw.stage) * sx;
-    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (s.role === "roll" ? (ROLL_GAIN[style] ?? 1) ** Math.min(1, s.vel / 0.5) : s.role === "accent" ? (ACCENT_GAIN[style] ?? 1) : 1) * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
+    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (s.role === "roll" ? (ROLL_GAIN[style] ?? 1) ** Math.min(1, s.vel / 0.5) * (ph.phase === "episode" ? EPISODE_ROLL : 1) : s.role === "accent" ? (ACCENT_GAIN[style] ?? 1) : 1) * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
     const k = t.piece + (t.midi ?? "");
     const prev = lastOn.get(k);
     const timeOf = (x: ScoreStroke) => x.tick + sToT(x.dt);
