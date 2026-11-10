@@ -1,12 +1,15 @@
 /**
  * D630, SOUND BLURBS: every offered sound (PRESETS, SoundSelect's SOUND_GROUPS) has a one-line description in English,
- * Brazilian Portuguese and Spanish, each at most 60 characters; an unknown id has none; no audition clips yet.
+ * Brazilian Portuguese and Spanish, each at most 60 characters; an unknown id has none. Every sound's audition clip
+ * (public/audition/<id>.mp3: I/2 from bar 7, 3.5 s) exists, the clips under 1 MB in all, each matched to -23 LUFS on the
+ * phone model within 1 LU (public/audition/clips.json, tools/touch/audition/encode.cjs).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { PRESETS } from "../src/touch/sound.ts";
-import { auditionUrl, soundBlurb } from "../src/touch/sound-blurbs.ts";
+import { AUDITION_SOUNDS, auditionUrl, soundBlurb } from "../src/touch/sound-blurbs.ts";
 
 register("./tsx-hooks.mjs", import.meta.url);
 const { SOUND_GROUPS } = await import("../src/bench/SoundSelect.tsx");
@@ -31,7 +34,31 @@ test("D630: an unknown id has no blurb", () => {
   for (const id of ["", "nope", "toString", "__proto__", "traverso"]) for (const lang of LANGS) assert.equal(soundBlurb(id, lang), "", id);
 });
 
-test("D630: no audition clips yet", () => {
-  for (const id of IDS) assert.equal(auditionUrl("wtc1f01", id), null);
-  assert.equal(auditionUrl("", ""), null);
+const PUBLIC = new URL("../public/", import.meta.url);
+const CLIPS = JSON.parse(readFileSync(new URL("audition/clips.json", PUBLIC), "utf8")) as { target: number; phrase: { piece: string; fromBar: number; secs: number }; clips: Record<string, { lufs: number; drums: string }> };
+
+test("D630: every sound in the list has its audition clip, and an unknown id none", () => {
+  const listed = SOUND_GROUPS.flatMap(([, ids]) => ids);
+  assert.deepEqual([...AUDITION_SOUNDS].sort(), [...new Set(listed)].sort());
+  for (const id of listed) {
+    const url = auditionUrl(id);
+    assert.equal(url, `audition/${id}.mp3`, id);
+    const file = new URL(url!, PUBLIC);
+    assert.ok(existsSync(file), `${id}: ${url} missing`);
+    assert.ok(statSync(file).size > 4000, `${id}: clip too small`);
+  }
+  for (const id of ["", "nope", "toString", "traverso"]) assert.equal(auditionUrl(id), null, id);
+});
+
+test("D630: the clips under 1 MB in all, each matched to -23 LUFS on the phone model within 1 LU", () => {
+  assert.equal(CLIPS.target, -23);
+  assert.deepEqual(CLIPS.phrase && [CLIPS.phrase.piece, CLIPS.phrase.fromBar, CLIPS.phrase.secs], ["wtc1f02", 7, 3.5]);
+  let total = 0;
+  for (const id of AUDITION_SOUNDS) {
+    total += statSync(new URL(`audition/${id}.mp3`, PUBLIC)).size;
+    const c = CLIPS.clips[id];
+    assert.ok(c, `${id}: not measured`);
+    assert.ok(Math.abs(c.lufs - -23) <= 1, `${id}: ${c.lufs} LUFS`);
+  }
+  assert.ok(total < 1024 * 1024, `${total} bytes`);
 });

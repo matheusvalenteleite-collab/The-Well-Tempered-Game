@@ -1,8 +1,9 @@
 /**
- * D630: a sound's line in a few plain words, for the sound list: what you hear (the instruments on the voices, and the
- * drums or the room where they are the sound's own), read from each preset's line-up in sound.ts (PRESETS: its slots and
- * its `by` layouts) and the colour plans' soundWhy notes. One line, at most 60 characters, in English, Brazilian
- * Portuguese and Spanish.
+ * D630: a sound's line in a few plain words, for the sound list: what to expect (the instruments on the voices, and the
+ * groove or the room where they are the sound's own), read from each preset's line-up in sound.ts (PRESETS: its slots and
+ * its `by` layouts), its drums (drum-library.ts: a band's own drummer, a sound's HOME) and the colour plans' soundWhy
+ * notes. One line, at most 60 characters, in English, Brazilian Portuguese and Spanish. And each sound's audition clip:
+ * one fixed phrase, the same on every sound (public/audition/, tools/touch/audition/), fetched only when tapped.
  */
 
 export type BlurbLang = "en" | "pt" | "es";
@@ -26,64 +27,64 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
   },
   // ENSEMBLES
   stringConsort: {
-    en: "Strings one to a part: violins, violas, cello",
-    pt: "Cordas, uma por voz: violinos, violas, violoncelo",
-    es: "Cuerdas, una por voz: violines, violas, violonchelo",
+    en: "Violins, violas and cello one to a part, in a music room",
+    pt: "Violinos, violas e violoncelo, um por voz, numa sala",
+    es: "Violines, violas y violonchelo, uno por voz, en una sala",
   },
   baroqueBand: {
-    en: "Violins, oboe, viola, cello and continuo harpsichord",
-    pt: "Violinos, oboé, viola, violoncelo e cravo no contínuo",
-    es: "Violines, oboe, viola, violonchelo y clave de continuo",
+    en: "Violins, oboe, viola, cello, harpsichord continuo; a hall",
+    pt: "Violinos, oboé, viola, violoncelo e cravo; num salão",
+    es: "Violines, oboe, viola, violonchelo y clave; en una sala",
   },
   oboeTrio: {
-    en: "Two oboes, bassoon, cello and continuo harpsichord",
-    pt: "Dois oboés, fagote, violoncelo e cravo no contínuo",
-    es: "Dos oboes, fagot, violonchelo y clave de continuo",
+    en: "Two oboes, bassoon, cello and harpsichord, in a small room",
+    pt: "Dois oboés, fagote, violoncelo e cravo, numa sala pequena",
+    es: "Dos oboes, fagot, violonchelo y clave, en una sala pequeña",
   },
   bachBrass: {
-    en: "Brass choir: trumpets, horn, tenor and bass trombones",
-    pt: "Metais: trompetes, trompa, trombone tenor e baixo",
-    es: "Metales: trompetas, trompa, trombón tenor y bajo",
+    en: "Brass choir: trumpets, horn, trombones, in a church",
+    pt: "Metais: trompetes, trompa e trombones, numa igreja",
+    es: "Metales: trompetas, trompa y trombones, en una iglesia",
   },
   jazzQuartet: {
-    en: "Vibraphone, piano, plucked double bass, brushed drums",
-    pt: "Vibrafone, piano, contrabaixo e bateria de vassourinha",
-    es: "Vibráfono, piano, contrabajo y batería con escobillas",
+    en: "Vibraphone, piano, double bass; brushes swing the beat",
+    pt: "Vibrafone, piano, contrabaixo; vassourinhas no swing",
+    es: "Vibráfono, piano, contrabajo; swing con escobillas",
   },
   salsa: {
-    en: "Trumpet, trombones, tres, baby bass, Latin percussion",
-    pt: "Trompete, trombones, tres, baby bass e percussão latina",
-    es: "Trompeta, trombones, tres, baby bass y percusión latina",
+    en: "Salsa: trumpet, trombones, tres, bass, clave and timbales",
+    pt: "Salsa: trompete, trombones, tres, baixo, clave e timbales",
+    es: "Salsa: trompeta, trombones, tres, bajo, clave y timbales",
   },
   chorinho: {
-    en: "Flute, clarinet, bandolim, cavaquinho, 7-string, pandeiro",
-    pt: "Flauta, clarinete, bandolim, cavaco, 7 cordas, pandeiro",
-    es: "Flauta, clarinete, bandolim, cavaquinho, 7 cuerdas, pandeiro",
+    en: "Choro: flute, bandolim, cavaquinho, 7-string, pandeiro",
+    pt: "Choro: flauta, bandolim, cavaco, sete cordas e pandeiro",
+    es: "Choro: flauta, bandolim, cavaquinho, 7 cuerdas, pandeiro",
   },
   abbeyRoad: {
-    en: "Moog, Leslie guitar, trumpet, Hammond, bass and drums",
-    pt: "Moog, guitarra no Leslie, trompete, Hammond, baixo, bateria",
-    es: "Moog, guitarra con Leslie, trompeta, Hammond, bajo, batería",
+    en: "Moog, Leslie guitar, Hammond, trumpet, bass, rock drums",
+    pt: "Moog, guitarra no Leslie, Hammond, trompete, baixo, rock",
+    es: "Moog, guitarra con Leslie, Hammond, trompeta, bajo, rock",
   },
   krautrock: {
-    en: "Mellotron flute, synth, guitars, Moog bass, motorik drums",
-    pt: "Flauta de Mellotron, synth, guitarras, baixo Moog, motorik",
-    es: "Flauta de Mellotron, sinte, guitarras, bajo Moog, motorik",
+    en: "Krautrock: Mellotron, synth, guitars, Moog bass, motorik",
+    pt: "Krautrock: Mellotron, synth, guitarras, baixo Moog, motorik",
+    es: "Krautrock: Mellotron, sinte, guitarras, bajo Moog, motorik",
   },
   bossaNova: {
-    en: "Alto flute, Rhodes, tenor sax, nylon guitar, bass, drums",
-    pt: "Flauta contralto, Rhodes, sax tenor, violão, baixo, bateria",
-    es: "Flauta alto, Rhodes, saxo tenor, guitarra, bajo, batería",
+    en: "Bossa nova: alto flute, Rhodes, sax, nylon guitar, bass",
+    pt: "Bossa nova: flauta, Rhodes, sax, violão e baixo",
+    es: "Bossa nova: flauta, Rhodes, saxo, guitarra y bajo",
   },
   petSounds: {
-    en: "Tack piano, 12-string, accordion, horn, bass and drums",
+    en: "Tack piano, 12-string, accordion, horn, bass, soft backbeat",
     pt: "Piano de tachinhas, 12 cordas, acordeom, trompa, baixo",
-    es: "Piano de chinchetas, guitarra de 12, acordeón, trompa, bajo",
+    es: "Piano de chinchetas, 12 cuerdas, acordeón, trompa, bajo",
   },
   vaudeville: {
-    en: "Xylophone, clarinets, bassoon and bass trombone",
-    pt: "Xilofone, clarinetes, fagote e trombone baixo",
-    es: "Xilófono, clarinetes, fagot y trombón bajo",
+    en: "Pit band: xylophone, clarinet, bassoon, bass trombone",
+    pt: "Banda de teatro: xilofone, clarinete, fagote, trombone",
+    es: "Banda de foso: xilófono, clarinete, fagot, trombón bajo",
   },
   fluteHarp: {
     en: "Alto flute, harp, viola and cello, in a hall",
@@ -91,9 +92,9 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     es: "Flauta contralto, arpa, viola y violonchelo, en una sala",
   },
   orchestraOrgan: {
-    en: "String quartet joined by oboes, bassoon, horn and organ",
-    pt: "Quarteto de cordas, depois oboés, fagote, trompa e órgão",
-    es: "Cuarteto de cuerdas, luego oboes, fagot, trompa y órgano",
+    en: "String quartet, then winds, horn and organ, in a church",
+    pt: "Quarteto de cordas, depois sopros, trompa e órgão; igreja",
+    es: "Cuarteto de cuerdas, luego vientos, trompa y órgano; iglesia",
   },
   // GAME CONSOLES
   chip: {
@@ -107,14 +108,14 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     es: "Consola portátil: dos canales de pulso y uno de onda",
   },
   super16: {
-    en: "16-bit console: violin, flute, harpsichord, strings, bassoon",
-    pt: "Console 16 bits: violino, flauta, cravo, cordas, fagote",
-    es: "Consola de 16 bits: violín, flauta, clave, cuerdas, fagot",
+    en: "16-bit console: violin, flute, harpsichord, strings; echo",
+    pt: "Console 16 bits: violino, flauta, cravo, cordas; eco",
+    es: "Consola de 16 bits: violín, flauta, clave, cuerdas; eco",
   },
   megaFm: {
-    en: "FM synth: lead, brass, e-piano, clav, slap bass",
-    pt: "FM: solo, metais, piano elétrico, clavinete, baixo slap",
-    es: "FM: solista, metales, piano eléctrico, clavinet, bajo slap",
+    en: "FM synth: lead, brass, e-piano, clav, slap bass; echo",
+    pt: "FM: solo, metais, piano elétrico, clavinete, baixo; eco",
+    es: "FM: solista, metales, piano eléctrico, clavinet, bajo; eco",
   },
   sid64: {
     en: "Home computer chip: pulse lead, saw, triangle, pulse bass",
@@ -133,9 +134,9 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     es: "Líneas de Moog sobre un bajo de sintetizador, en seco",
   },
   berlinSchool: {
-    en: "Synth lead, sequencer pluck, string machine, bass, echo",
-    pt: "Solo de synth, sequenciador, string machine, baixo, eco",
-    es: "Solista de sinte, secuenciador, string machine, bajo, eco",
+    en: "Synth lead, sequencer, string machine, bass; tape echo",
+    pt: "Synth solo, sequenciador, string machine, baixo; eco",
+    es: "Sinte solista, secuenciador, string machine, bajo; eco",
   },
   tomita: {
     en: "Synth whistle, strings, flute, choir and bass, space echo",
@@ -160,10 +161,19 @@ export function soundBlurb(soundId: string, lang: BlurbLang = "en"): string {
   return Object.hasOwn(BLURBS, soundId) ? BLURBS[soundId][lang] : "";
 }
 
-/** A short clip of the piece on the sound, to audition it before choosing. */
-export function auditionUrl(pieceId: string, soundId: string): string | null {
-  // Pre-rendered audition clips will fill this in later (a clip per piece and sound); until then there are none.
-  void pieceId;
-  void soundId;
-  return null;
+/**
+ * The sounds with an audition clip (public/audition/<id>.mp3, made by tools/touch/audition/: I/2 from bar 7, 3.5 s, the
+ * phone mix with the sound's own drums, matched to -23 LUFS on the phone model; public/audition/clips.json the measurements).
+ */
+export const AUDITION_SOUNDS: readonly string[] = [
+  "harpsichordSampled", "pianoSampled", "chamberOrgan",
+  "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "vaudeville", "fluteHarp", "orchestraOrgan",
+  "chip", "gameboy", "super16", "megaFm", "sid64", "tracker",
+  "analog", "berlinSchool", "tomita",
+  "vocalSynth", "soloVoices",
+];
+
+/** A sound's audition clip, relative to the page (fetched only when the player taps it: never preloaded, never in sample memory); null for a sound without one. */
+export function auditionUrl(soundId: string): string | null {
+  return AUDITION_SOUNDS.includes(soundId) ? `audition/${soundId}.mp3` : null;
 }
