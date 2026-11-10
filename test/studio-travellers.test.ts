@@ -44,7 +44,8 @@ test("each traveller moves forward while the entry sounds (always something draw
 
 test("drawn in place of the per-note effects, the voice's own ink, nothing read from right or wrong", () => {
   const fx = src("src/touch/box-fx.ts");
-  assert.match(fx, /budget -= drawTraveller\(travellerOf\(piece\), TRAVEL_VIEW, \{ g, xOf, now, beat, t, ink: voiceInk, rim, a: mine \? 1 : OTHERS_SCALE \}, budget\);/);
+  // D478: the world's skin (subject-skin.ts) in the travellers' place, every voice's entry alike.
+  assert.match(fx, /budget -= drawSkin\(sk\.skin, sk\.metal, TRAVEL_VIEW, \{ g, xOf, now, beat, t, ink: voiceInk, rowH: bh \}, budget\);/);
   const tr = src("src/touch/travellers.ts").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   assert.ok(!/state|"hit"|"miss"|score/.test(tr));
 });
