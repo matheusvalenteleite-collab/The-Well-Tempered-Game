@@ -26,7 +26,7 @@ import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./c
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
 import { ladderHeight, ladderRows, touchRows, type StepRange } from "./box-zoom.ts";
-import { membership, raiseOf } from "./subject-hue.ts";
+import { membership, paleOf, raiseOf } from "./subject-hue.ts";
 
 /** CSS pixels per canvas pixel: the chunkiness of the 8-bit look. */
 const PX = 2;
@@ -522,6 +522,9 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // The entry marks' leaders, brackets and rails, under every note.
   if (spans && FLAG_VARIANT !== "o") entryMarks(fx, spans, FLAG_VARIANT, "under", noteTop, blockedAt);
   // D345: from the first note that can still show (the notes gone by not walked again every frame).
+  // D478 (design studio; the owner: "use shadows and light intelligently"): over the world, the music that is not the
+  // subject casts shadow, and the subject lights the world round it (brighter on the note sounding). With the stage only.
+  if (staged && spans && stageMode() !== "off") lightAndShadow(g, fr, spans, otherIdx!, { t0, span, w, h, xOf, yOf, hOf, bh });
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
     const x1 = xOf(o.on);
@@ -536,6 +539,18 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const bw = Math.max(1, x2 - x1 - 1);
     const oy = yOf(o.step) - altOf(o.step, o.midi) * shift;
     const r = si >= 0 ? raiseOf(spans![si], fr.now, fr.tps) : 0;
+    // D478 (design studio; the owner: "the subject in other voices looks the same as every other note"): another voice's
+    // subject note drawn full, outlined in its voice's pale light, like the player's own.
+    if (si >= 0 && full && spans![si].form !== "counter") {
+      g.globalAlpha = 1;
+      g.fillStyle = sounding ? "#fffbe6" : paleOf(voiceInk);
+      g.fillRect(x1 - 1, oy - 1, bw + 2, bh + 1);
+      g.fillStyle = voiceInk;
+      g.fillRect(x1, oy, bw, bh - 1);
+      g.fillStyle = "rgba(255,255,255,0.35)";
+      g.fillRect(x1, oy, bw, 1);
+      continue;
+    }
     const th = full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
     const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
     if (sounding && full) {
@@ -1198,4 +1213,53 @@ function dots(g: CanvasRenderingContext2D, x1: number, x2: number, y: number, in
   g.fillStyle = ink;
   for (let x = x1 + 1; x < x2 - 1; x += 2) g.fillRect(x, y, 1, 1);
   g.globalAlpha = a;
+}
+
+/** D478: the subject's light and the music's shadow on the world (under the notes). */
+const LIGHT = { dim: 0.16, shadow: 0.42, glow: 0.2, sounding: 0.38, r: 16, rSounding: 26 } as const;
+export const SUBJECT_LIGHT = LIGHT;
+function lightAndShadow(g: CanvasRenderingContext2D, fr: Frame, spans: readonly Span[], otherIdx: ArrayLike<number>, c: { t0: number; span: number; w: number; h: number; xOf: (t: number) => number; yOf: (s: number) => number; hOf: (s: number) => number; bh: number }) {
+  const { t0, span, w, h, xOf, yOf, hOf, bh } = c;
+  g.fillStyle = `rgba(4,4,10,${LIGHT.dim})`;
+  g.fillRect(0, 0, w, h);
+  g.fillStyle = `rgba(0,0,0,${LIGHT.shadow})`;
+  for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
+    const o = fr.others[oi];
+    const x1 = xOf(o.on);
+    if (x1 > w) break;
+    if (otherIdx[oi] >= 0 || hOf(o.step) !== bh) continue;
+    const x2 = xOf(o.on + o.dur);
+    if (x2 < 0) continue;
+    g.fillRect(x1 + 2, yOf(o.step) + Math.floor(bh / 2) + 2, Math.max(1, x2 - x1 - 1), Math.max(1, Math.ceil(bh / 2)));
+  }
+  for (const s of spans) {
+    if (s.form === "counter" || xOf(s.on) > w || xOf(s.end) < 0) continue;
+    const ink = inkOf(s.voice, fr.count);
+    for (const n of s.path) {
+      const xa = xOf(n.on);
+      const xb = xOf(n.on + n.dur);
+      if (xb < 0 || xa > w || hOf(n.step) !== bh) continue;
+      const on = fr.now >= n.on && fr.now < n.on + n.dur;
+      const x = (xa + xb) / 2;
+      const y = yOf(n.step) + bh / 2;
+      const r = on ? LIGHT.rSounding : LIGHT.r;
+      const gr = g.createRadialGradient(x, y, 1, x, y, r);
+      gr.addColorStop(0, withAlpha(ink, on ? LIGHT.sounding : LIGHT.glow));
+      gr.addColorStop(1, withAlpha(ink, 0));
+      g.fillStyle = gr;
+      g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
+  }
+}
+const alphaMemo = new Map<string, string>();
+function withAlpha(hex: string, a: number): string {
+  const k = hex + a;
+  let v = alphaMemo.get(k);
+  if (!v) {
+    const n = parseInt(hex.replace("#", "").slice(0, 6), 16);
+    v = Number.isFinite(n) ? `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})` : `rgba(255,255,255,${a})`;
+    if (alphaMemo.size > 200) alphaMemo.clear();
+    alphaMemo.set(k, v);
+  }
+  return v;
 }

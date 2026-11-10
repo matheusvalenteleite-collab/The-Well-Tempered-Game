@@ -16,7 +16,9 @@
 import { tr, trCanvas } from "../i18n/index.ts";
 import { paleOf, themeOf } from "./subject-hue.ts";
 import { NOTE_WEIGHT, OTHERS_SCALE, effectOf } from "./subject-cast.ts";
-import { drawTraveller, travellerOf, type TravelNote } from "./travellers.ts";
+import { type TravelNote } from "./travellers.ts";
+import { drawSkin, skinOf } from "./subject-skin.ts";
+import { stageMode } from "./stage-bg.ts";
 /** D465: the subjects drawn by their fugue's traveller (travellers.ts). */
 export const TRAVELLING = true;
 /** D465: one entry's notes for its traveller, the objects and the array kept (nothing allocated a frame once warm). */
@@ -510,15 +512,17 @@ export function subjectFx(c: Ctx, spans: readonly Span[], player: readonly numbe
       const pool = TRAVEL_POOL;
       for (let j = 0; j < s.path.length; j++) {
         const n = s.path[j];
-        const full = (c.hOf ? c.hOf(n.step) : bh) === bh;
         const o = pool[j] ?? (pool[j] = { on: 0, dur: 0, top: 0 });
         o.on = n.on;
         o.dur = n.dur;
-        o.top = mine || !full ? yOf(n.step) - (mine ? 1 : 0) : yOf(n.step) + Math.floor((bh - 1 - Math.max(1, Math.round(bh * 0.5))) / 2);
+        o.top = yOf(n.step) - 1;
       }
       TRAVEL_VIEW.length = 0;
       for (let j = 0; j < s.path.length; j++) TRAVEL_VIEW.push(pool[j]);
-      budget -= drawTraveller(travellerOf(piece), TRAVEL_VIEW, { g, xOf, now, beat, t, ink: voiceInk, rim, a: mine ? 1 : OTHERS_SCALE }, budget);
+      // D478 (design studio): the world's skin (subject-skin.ts), every voice's entry alike; QUIET none.
+      if (stageMode() === "quiet") continue;
+      const sk = skinOf(piece);
+      budget -= drawSkin(sk.skin, sk.metal, TRAVEL_VIEW, { g, xOf, now, beat, t, ink: voiceInk, rowH: bh }, budget);
       continue;
     }
     const inverted = !!s.shape && s.shape.includes("INVERSION");
