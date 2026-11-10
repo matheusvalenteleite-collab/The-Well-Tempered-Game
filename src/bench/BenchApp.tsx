@@ -1989,7 +1989,7 @@ export function BenchApp() {
           {/* D462 (design studio): each fugue's world behind its box. */}
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
           {/* D623 (instruments): the pilot worlds' sound effects (world-sfx.ts), heard only with STAGE FULL; their own off switch. */}
-          <Choice id="world-sounds" label="WORLD SOUNDS" options={BUSONI_SWITCH.en.map(([v]) => [v, v === "on" ? "ON" : "OFF"] as ["on" | "off", string])} value={sfx ? "on" : "off"} set={(v) => (setSfxOn(v === "on"), setSfx(v === "on"))} />
+          <Choice id="world-sounds" label="WORLD SOUNDS" options={SFX_SWITCH[lang()] ?? SFX_SWITCH.en} value={sfx ? "on" : "off"} set={(v) => (setSfxOn(v === "on"), setSfx(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           {/* D452: the chosen fugue's PISTONS (D420), moved from the pop-up the selection no longer opens: only where its sound has stops. */}
           {hasStops(presetById(soundNow).id) && (
@@ -2240,6 +2240,12 @@ const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
   en: [["full", "FULL"], ["quiet", "QUIET"], ["off", "OFF"]],
   pt: [["full", "CHEIO"], ["quiet", "DISCRETO"], ["off", "DESLIGADO"]],
   es: [["full", "COMPLETO"], ["quiet", "DISCRETO"], ["off", "APAGADO"]],
+};
+/** D623: the words of Settings' WORLD SOUNDS switch (the sounds, masculine plural in Portuguese and Spanish). */
+const SFX_SWITCH: Record<string, ["on" | "off", string][]> = {
+  en: [["on", "ON"], ["off", "OFF"]],
+  pt: [["on", "LIGADOS"], ["off", "DESLIGADOS"]],
+  es: [["on", "ACTIVADOS"], ["off", "DESACTIVADOS"]],
 };
 /** D393: the words of Settings' BUSONI'S MARKINGS switch (the markings, plural, in Portuguese and Spanish). */
 const BUSONI_SWITCH: Record<string, ["on" | "off", string][]> = {
