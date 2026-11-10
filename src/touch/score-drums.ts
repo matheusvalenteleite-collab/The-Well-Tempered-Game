@@ -258,6 +258,9 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     // D592: against ORCHESTRA & ORGAN (I/24's sound since D590), measured bars 63-76 with the organ: the drums alone -34.5 LUFS
     // on the phone model against the band's -20.1 (14.4 LU under; -25.0 against -16.4 full range) at 1.5; at 1.9 -33.1 (13.0 under; 7.5 on the full range).
     level: 1.9,
+    // D596: I/24 on SID 64 with SYNTH KIT (its own drums since D594), at FAST, measured bars 63-76: the drums alone -34.9 LUFS
+    // on the phone model against the band's -25.8 (9.1 LU under; -27.2 against -19.2 full, 8.0), at the build's fullest;
+    // I/2's SYNTH KIT under BERLIN SCHOOL (b. 1-12) 10.3 and 10.4: the level kept.
     styles: { fieldDrums: { level: 0.85 } },
   },
   wtc2f02: {

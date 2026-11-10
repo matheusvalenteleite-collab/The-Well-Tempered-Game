@@ -17,6 +17,7 @@
  *       and climax; elsewhere a stick on the closed hats in the entries and, in the episodes, the hi-hat's foot, the
  *       feathered kick and a cross-stick alone.
  *   I/20 (LIEBEZEIT): the loop's variations each six bars, a high tom's call on each entry's first note (rhythm only).
+ *   II/22 (LIEBEZEIT, D595): the same, on its 3/2's minims at FAST.
  */
 import { fugueById, type TouchFugue } from "./fugue.ts";
 import { formOf, phaseAt } from "./form-points.ts";
@@ -89,6 +90,20 @@ export const GRID_TAILORS: Readonly<Record<string, Readonly<Record<string, GridT
   wtc1f20: {
     liebezeit: {
       why: "I/20 a, 87 bars of a long, constant 4/4 (0.86 s): the trance's six variations each held six bars (some fourteen changes in the fugue, none a fill), the high tom's call on each entry's first note answered by the loop's own toms.",
+      grid: (st) => ({ ...st, hold: 6 }),
+      hits: (hits, cx, f) => {
+        const on = entryIn(f, cx.tick, cx.beat);
+        if (on === null || cx.tick >= formOf(f).last - cx.beat) return hits;
+        const at = (on - cx.tick) / cx.beat;
+        const near = hits.some((h) => h.piece === "tomHigh" && Math.abs(h.at - at) * cx.beatS < 0.11);
+        return near ? hits : [...hits, { piece: "tomHigh", at, vel: 0.36, role: "accent" }];
+      },
+    },
+  },
+  // D595: II/22 on KRAUTROCK (the owner: "sounds much cooler as Krautrock and fast tempo as default").
+  wtc2f22: {
+    liebezeit: {
+      why: "II/22 b flat, 101 bars of 3/2 at FAST (a minim of 0.73 s, inside the loop's 62-104 a beat; DEFAULT's 59 under it): the trance's triple loop on the minims, each variation held six bars (about 13 s), the high tom's call on each entry's first note (24 entries, the subject and its inversion in stretto), none a fill.",
       grid: (st) => ({ ...st, hold: 6 }),
       hits: (hits, cx, f) => {
         const on = entryIn(f, cx.tick, cx.beat);

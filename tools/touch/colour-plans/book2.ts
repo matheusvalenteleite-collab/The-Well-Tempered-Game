@@ -260,10 +260,12 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f22: {
-    sound: "chamberOrgan",
-    soundWhy: "'The most majestic fugue of volume II; the organ is more fitting' (Bodky), 'the most powerful' (Keller): four voices in 3/2, stretti recto and inverso over a dominant pedal.",
+    // D595 (the owner: "sounds much cooler as Krautrock and fast tempo as default"); was the PIPE ORGAN (Bodky's reading, below).
+    sound: "krautrock",
+    soundWhy: "D595 (the owner: \"sounds much cooler as Krautrock and fast tempo as default\"): 'the most powerful' fugue of Book II (Keller), 101 bars of 3/2 in stretti recto and inverso, at FAST (a minim of 83, was 59) a trance that never lets up: KRAUTROCK's band, the Mellotron's flute, the Minimoog-style lead, the guitar and the Moog bass each on its own voice, and Jaki Liebezeit's interlocking loop on the minims (LIEBEZEIT, a variation every six bars, the high tom's call on each entry). (D275's reading, the organ: 'the most majestic fugue of volume II; the organ is more fitting', Bodky; a choice away.)",
     character: "Stretto recto 27-37, the inverted subject 42-63, stretto inverso 80-93, at the tenth 96-101 (Ledbetter); Bodky's ff and f spans.",
     plans: {
+      krautrock: [at(27.75, { tone: -1.5 }, "D595: Bodky's lighter span (27¾-42) a shade darker."), at(42, OWN, "The inversion (42)."), at(67, { tone: -1.5 }, "Bodky's lighter 67-80."), at(80, OWN, "The stretto inverso and the close (80).")],
       chamberOrgan: [at(1, OPLENO, "Bodky's full work (with 16′): the plenum."), at(27.75, OPRIN, "Bodky's lighter span (27¾-42): the principals."), at(42, OPLENO, "The inversion (42): the plenum."), at(67, OPRIN, "Bodky's lighter 67-80."), at(80, OPLENO, "The stretto inverso and the close (80): the plenum.")],
       harpsichordSampled: [at(1, HFULL, "Bodky: the full work."), at(27.75, H84, "8″+4″ (27¾)."), at(42, HFULL, "The full work (42)."), at(67, H84, "8″+4″ (67)."), at(80, HFULL, "The full work (80).")],
       soloVoices: [at(80, { room: 0.12 }, "The last stretti in more of the hall.")],

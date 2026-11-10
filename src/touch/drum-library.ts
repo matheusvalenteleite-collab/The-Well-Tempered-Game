@@ -179,7 +179,7 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
 export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
   // D565-D574 (the owner's verdicts after 2.50): I/2 the synth kit read from its score; II/4 the break and the glitch;
   // I/15's and II/24's pinball the arcade's kit (the tabor and the castanets out: "Didn't like this as tabor and pipe");
-  // I/19 the slapstick; I/20 Jaki Liebezeit's trance; II/18 the sea's swell; I/24's finale the staged timpani.
+  // I/19 the slapstick; I/20 Jaki Liebezeit's trance; II/18 the sea's swell; I/24's finale the staged timpani (D596: SYNTH KIT's staged build first, on SID 64).
   wtc1f02: ["scoreSynth"],
   wtc2f04: ["breakbeat", "idm"],
   wtc1f19: ["stooges"],
@@ -193,12 +193,13 @@ export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
   wtc1f15: ["arcade", "scoreSynth"],
   wtc1f21: ["tabor"],
   wtc1f22: ["fieldDrums"],
-  wtc1f24: ["timpani", "fieldDrums"],
+  wtc1f24: ["scoreSynth", "timpani", "fieldDrums"],
   wtc2f11: ["tabor"],
   wtc2f13: ["tabor"],
   wtc2f15: ["tabor", "castanets"],
   wtc2f16: ["castanets"],
   wtc2f21: ["castanets", "tabor"],
+  wtc2f22: ["liebezeit"],
   wtc2f24: ["arcade", "scoreSynth"],
 };
 /** D532: a fugue's curated styles for a sound: the sound's family, then the fugue's own picks. */
@@ -218,7 +219,8 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc1f15: "arcade",
   wtc1f19: "stooges",
   wtc1f20: "liebezeit",
-  wtc1f24: "timpani",
+  // D596: I/24 on SID 64: SYNTH KIT, the score-driven electronic kit, keeps D574's staged build (no timpani on a chip kit).
+  wtc1f24: "scoreSynth",
   wtc2f03: "house",
   wtc2f04: "idm",
   wtc2f05: "march",
@@ -228,6 +230,8 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   // 106 (its eighth's pulse), its hats on the music's straight semiquavers: 82% of its strokes on the score's own onsets
   // (BREAKBEAT 46%, IDM 39%, ARCADE 47%), 5.2 strokes a second against the chip kit's 2.7.
   wtc2f06: "house",
+  // D595: II/22 on KRAUTROCK, Jaki Liebezeit's trance (the owner: "sounds much cooler as Krautrock").
+  wtc2f22: "liebezeit",
   // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
   // 69% of its gaps alike; the arcade's 45%, sd 0.10.)
   wtc2f24: "arcade",

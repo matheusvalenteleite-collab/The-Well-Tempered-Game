@@ -15,7 +15,8 @@
  *               episodes' lighter figure: the shaker's sixteenths (an accent contour) and a rim off the beat.
  *   SWELL       the mallets' two toms by the bass's place (the low on the bar), a gentle cymbal swell every four bars
  *               (the sea's), a fuller one into each act and the final chord, the snare on the final group's downbeats.
- *   climaxKit   (a tweak, I/24's) the bass drum and the clash cymbals at the climax's peak, its arrival, the final chord.
+ *   climaxKit   (a tweak, I/24's) the bass drum and the clash cymbals at the climax's peak, its arrival, the final chord
+ *               (D596: on SYNTH KIT its kick and crash).
  */
 import type { TouchFugue } from "./fugue.ts";
 import type { Form } from "./form-points.ts";
@@ -201,11 +202,16 @@ function swell(c: LayerCtx) {
 
 function climaxKit(c: LayerCtx) {
   const { fp, strokes, end, beat } = c;
+  // D596: on the synthesized kit (SYNTH KIT, I/24's on its chip set) the electronic kick and crash in the orchestral bass
+  // drum's and clash cymbals' place (the synth kit has neither; they stood in as its low tom and crash).
+  const synth = c.style === "scoreSynth";
+  const bd = synth ? "kick" : "bassDrum";
+  const cym = synth ? "crash" : "cymbals";
   const at = [fp.climax.peak, fp.climax.arrival].filter((t, i, a) => t > 0 && t < end - beat && a.indexOf(t) === i);
   for (const t of at) {
-    strokes.push({ tick: t, dt: 0, piece: "bassDrum", vel: 0.62, role: "accent", src: "arrival" });
-    strokes.push({ tick: t, dt: 0, piece: "cymbals", vel: 0.5, role: "accent", src: "arrival" });
+    strokes.push({ tick: t, dt: 0, piece: bd, vel: 0.62, role: "accent", src: "arrival" });
+    strokes.push({ tick: t, dt: 0, piece: cym, vel: 0.5, role: "accent", src: "arrival" });
   }
-  strokes.push({ tick: end, dt: 0, piece: "cymbals", vel: 0.55, role: "accent", src: "final" });
-  if (c.style !== "timpani" || !c.kit.final.includes("bassDrum")) strokes.push({ tick: end, dt: 0, piece: "bassDrum", vel: 0.6, role: "accent", src: "final" });
+  strokes.push({ tick: end, dt: 0, piece: cym, vel: 0.55, role: "accent", src: "final" });
+  if (c.style !== "timpani" || !c.kit.final.includes("bassDrum")) strokes.push({ tick: end, dt: 0, piece: bd, vel: 0.6, role: "accent", src: "final" });
 }

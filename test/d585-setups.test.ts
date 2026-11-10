@@ -38,7 +38,8 @@ test("D585-D590: the fugues' own sounds and drums as the owner's verdicts set th
     wtc2f24: ["analog", "arcade"],
     wtc1f19: ["vaudeville", "stooges"],
     wtc2f18: ["fluteHarp", "swell"],
-    wtc1f24: ["orchestraOrgan", "timpani"],
+    // D594, D596: I/24 then on SID 64 with SYNTH KIT's staged build (the owner: "too slow and boring … change its instrument").
+    wtc1f24: ["sid64", "scoreSynth"],
     wtc1f20: ["krautrock", "liebezeit"],
     wtc1f05: ["bachBrass", "march"],
     wtc2f05: ["bachBrass", "march"],

@@ -56,7 +56,8 @@ export function bachVoice(f: TouchFugue, s: LabSettings): number {
 /** The tempo (quarter notes a minute) of a step. */
 export function bpmOf(id: string, step: LabSettings["tempo"]): number {
   const t = stepTempi(id);
-  return step === "default" || !t ? tempoOf(id) : t[step];
+  // (D594: DEFAULT is the step, not the opening: tempoOf plays a fugue's opening step, FAST for I/24 and II/22.)
+  return !t ? tempoOf(id) : t[step];
 }
 
 /** The rows Herr Bach's thumbs aim by (CLASSIC's, D332's chromatic shift in them, as the game's box draws them). */

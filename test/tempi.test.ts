@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { FUGUES, PIECES } from "../src/touch/fugue.ts";
-import { TEMPO, tempoOf } from "../src/touch/tempi.ts";
+import { TEMPO, fastTempo, OPENING_STEP, tempoOf } from "../src/touch/tempi.ts";
 
 const fugues = PIECES.filter((f) => f.kind === "fugue" || f.id.startsWith("bwv1080"));
 
@@ -24,7 +24,8 @@ test("every fugue and Contrapunctus XIV has a normal and a slow tempo", () => {
     assert.ok(t.normal <= t.median && t.normal >= t.range[0], `${f.id}: normal ${t.normal} in ${t.range[0]}..${t.median}`);
     assert.ok(t.busiest <= 5.55 || t.normal === t.range[0], `${f.id}: ${t.busiest} notes a second`);
     assert.ok(t.n >= 1 && (t.n >= 5) === !t.flag, `${f.id}: flagged iff fewer than 5`);
-    assert.equal(tempoOf(f.id), t.normal);
+    // D594: a fugue that opens on FAST (I/24, II/22) plays it; every other its NORMAL.
+    assert.equal(tempoOf(f.id), OPENING_STEP[f.id] === "fast" ? fastTempo(t) : t.normal, f.id);
   }
   assert.equal(Object.keys(TEMPO).length, 49);
 });
