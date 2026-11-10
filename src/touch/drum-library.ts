@@ -179,7 +179,7 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
 export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
   // D565-D574 (the owner's verdicts after 2.50): I/2 the synth kit read from its score; II/4 the break and the glitch;
   // I/15's and II/24's pinball the arcade's kit (the tabor and the castanets out: "Didn't like this as tabor and pipe");
-  // I/19 the slapstick; I/20 Jaki Liebezeit's trance; II/18 the sea's swell; I/24's finale the staged timpani.
+  // I/19 the slapstick; I/20 Jaki Liebezeit's trance; II/18 the sea's swell; I/24's finale the staged timpani (D596: SYNTH KIT's staged build first, on SID 64).
   wtc1f02: ["scoreSynth"],
   wtc2f04: ["breakbeat", "idm"],
   wtc1f19: ["stooges"],
@@ -193,12 +193,13 @@ export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
   wtc1f15: ["arcade", "scoreSynth"],
   wtc1f21: ["tabor"],
   wtc1f22: ["fieldDrums"],
-  wtc1f24: ["timpani", "fieldDrums"],
+  wtc1f24: ["scoreSynth", "timpani", "fieldDrums"],
   wtc2f11: ["tabor"],
   wtc2f13: ["tabor"],
   wtc2f15: ["tabor", "castanets"],
   wtc2f16: ["castanets"],
   wtc2f21: ["castanets", "tabor"],
+  wtc2f22: ["liebezeit"],
   wtc2f24: ["arcade", "scoreSynth"],
 };
 /** D532: a fugue's curated styles for a sound: the sound's family, then the fugue's own picks. */
@@ -218,12 +219,22 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc1f15: "arcade",
   wtc1f19: "stooges",
   wtc1f20: "liebezeit",
-  wtc1f24: "timpani",
+  // D596: I/24 on SID 64: SYNTH KIT, the score-driven electronic kit, keeps D574's staged build (no timpani on a chip kit).
+  wtc1f24: "scoreSynth",
   wtc2f03: "house",
   wtc2f04: "idm",
   wtc2f05: "march",
   wtc2f12: "bebop",
   wtc2f18: "swell",
+  // D603: II/6 (the owner: the drums "don't fit … it wants something energetic and dancey"): HOUSE 909, four on the floor at
+  // 106 (its eighth's pulse), its hats on the music's straight semiquavers: 82% of its strokes on the score's own onsets
+  // (BREAKBEAT 46%, IDM 39%, ARCADE 47%), 5.2 strokes a second against the chip kit's 2.7.
+  // D622: the owner on HOUSE: "That didn't fit. Try another drum."; of D620's candidates he chose BREAKBEAT as tailored to
+  // II/6's score (drum-tailor.ts GRID_TAILORS.wtc2f06: the semiquavers, swung where the music runs in triplets, the hats on
+  // the subject's run, the leap marked): 93% of its strokes on the score's onsets.
+  wtc2f06: "breakbeat",
+  // D595: II/22 on KRAUTROCK, Jaki Liebezeit's trance (the owner: "sounds much cooler as Krautrock").
+  wtc2f22: "liebezeit",
   // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
   // 69% of its gaps alike; the arcade's 45%, sd 0.10.)
   wtc2f24: "arcade",
@@ -243,8 +254,34 @@ export function fugueStyle(pieceId: string): StyleId | null {
   if (!want) return null;
   return isStyle(want) ? want : (FUGUE_STYLE_STANDIN[want] ?? null);
 }
-/** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else the sound's HOME. */
-export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? homeStyleFor(sound);
+/**
+ * D618, A SOUND'S HOME BY FUGUE: where a sound's HOME does not suit a fugue, the fugue's own HOME on that sound (any
+ * fugue, on its own sound or not; a fugue's own style on its own sound, FUGUE_STYLES, still first). BACH BRASS's MARCH on
+ * its calm fugues (the brass research's drum-fit criteria, section 4: the busiest voice under 3 notes a second, tempi.ts
+ * TEMPO busiest) falls back to the score-driven orchestral drums: FIELD DRUM (the muffled drum: long rolls into the
+ * arrivals and on the pedals) for the laments (I/8, I/12, I/24, II/8, II/22, the research's "pathetic, lament"), TIMPANI
+ * (the tonic and dominant at the structural arrivals only) for the stile antico (I/22, II/9) and the other calm ones (I/16,
+ * I/18, II/2), and for the compound ones whatever their character (I/14 in 6/4, II/18 in 6/8: FIELD DRUM is not idiomatic
+ * in a compound metre, FITS). II/5 (calm by its notes, a festive alla breve: MARCH's own, D600) keeps its MARCH.
+ */
+export const SOUND_FUGUE_HOME: Readonly<Record<string, Readonly<Record<string, StyleId>>>> = {
+  bachBrass: {
+    wtc1f08: "fieldDrums",
+    wtc1f12: "fieldDrums",
+    wtc1f14: "timpani",
+    wtc1f16: "timpani",
+    wtc1f18: "timpani",
+    wtc1f22: "timpani",
+    wtc1f24: "fieldDrums",
+    wtc2f02: "timpani",
+    wtc2f08: "fieldDrums",
+    wtc2f09: "timpani",
+    wtc2f18: "timpani",
+    wtc2f22: "fieldDrums",
+  },
+};
+/** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else (D618) the sound's HOME for that fugue, else the sound's HOME. */
+export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? SOUND_FUGUE_HOME[sound]?.[pieceId] ?? homeStyleFor(sound);
 export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[sound] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 
 const fugueOf = (f: TouchFugue | string): TouchFugue | null => {

@@ -21,6 +21,7 @@ import { setDrumStyle } from "../../touch/drum-library.ts";
 import { padChoice, padStyle } from "./drum-pad.ts";
 import { setClimaxLayer, setFormLayer } from "../../touch/fugue-form.ts";
 import { setColourPlansOn } from "../../touch/colour.ts";
+import { setSfxLab } from "../../touch/world-sfx.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { wholeReadingOf } from "../../touch/readings.ts";
 import { tempoOf } from "../../touch/tempi.ts";
@@ -56,7 +57,8 @@ export function bachVoice(f: TouchFugue, s: LabSettings): number {
 /** The tempo (quarter notes a minute) of a step. */
 export function bpmOf(id: string, step: LabSettings["tempo"]): number {
   const t = stepTempi(id);
-  return step === "default" || !t ? tempoOf(id) : t[step];
+  // (D594: DEFAULT is the step, not the opening: tempoOf plays a fugue's opening step, FAST for I/24 and II/22.)
+  return !t ? tempoOf(id) : t[step];
 }
 
 /** The rows Herr Bach's thumbs aim by (CLASSIC's, D332's chromatic shift in them, as the game's box draws them). */
@@ -173,6 +175,8 @@ export class LabEngine {
     setClimaxLayer(s.climax);
     setColourPlansOn(s.colour);
     setOwnKit(s.kit);
+    // D623: the pilot world's effects heard here by the lab's own switch (it draws no stage); D626 the dropped sweep too.
+    setSfxLab({ on: s.sfx, trial: s.sweep });
   }
 
   /** The live part: the switches above, the drums' recordings asked for, the voices' gains. */

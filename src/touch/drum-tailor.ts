@@ -17,6 +17,9 @@
  *       and climax; elsewhere a stick on the closed hats in the entries and, in the episodes, the hi-hat's foot, the
  *       feathered kick and a cross-stick alone.
  *   I/20 (LIEBEZEIT): the loop's variations each six bars, a high tom's call on each entry's first note (rhythm only).
+ *   II/22 (LIEBEZEIT, D595): the same, on its 3/2's minims at FAST.
+ *   II/6 (BREAKBEAT, D621; a candidate, not its HOME): the break on the score's semiquavers, swung to the triplets where
+ *       the music runs in them, the hats on the subject's winding run, the backbeat and an open hat on its leap.
  */
 import { fugueById, type TouchFugue } from "./fugue.ts";
 import { formOf, phaseAt } from "./form-points.ts";
@@ -99,7 +102,137 @@ export const GRID_TAILORS: Readonly<Record<string, Readonly<Record<string, GridT
       },
     },
   },
+  // D595: II/22 on KRAUTROCK (the owner: "sounds much cooler as Krautrock and fast tempo as default").
+  wtc2f22: {
+    liebezeit: {
+      why: "II/22 b flat, 101 bars of 3/2 at FAST (a minim of 0.73 s, inside the loop's 62-104 a beat; DEFAULT's 59 under it): the trance's triple loop on the minims, each variation held six bars (about 13 s), the high tom's call on each entry's first note (24 entries, the subject and its inversion in stretto), none a fill. D607: the loop grows into the final group (the climax's ramp, form-points.ts phaseAt): the toms interlocking in the steps the loop leaves open, the snare's ghosts between, the hats doubled, past the climax's half an open hat on each minim's last sixteenth; no fill, nothing pitched.",
+      grid: (st) => ({ ...st, hold: 6 }),
+      hits: (hits0, cx, f) => {
+        const fp = formOf(f);
+        let hits = hits0;
+        const on = entryIn(f, cx.tick, cx.beat);
+        if (on !== null && cx.tick < fp.last - cx.beat) {
+          const at = (on - cx.tick) / cx.beat;
+          const near = hits.some((h) => h.piece === "tomHigh" && Math.abs(h.at - at) * cx.beatS < 0.11);
+          if (!near) hits = [...hits, { piece: "tomHigh", at, vel: 0.36, role: "accent" }];
+        }
+        return trance22(hits, cx, f);
+      },
+    },
+  },
+  // D620: II/6 (THE CATAPULT, SID 64; the owner on HOUSE 909: "That didn't fit. Try another drum."). A candidate, not
+  // its HOME (FUGUE_STYLES.wtc2f06 unchanged): BREAKBEAT as chosen on the DRUMS row or in the Sound Lab.
+  wtc2f06: {
+    breakbeat: {
+      why: "II/6 d, 4/4 at a crotchet of 1.13 s (the break's pulse the quaver, 106): its subject two beats of triplet semiquavers winding up (D-E-F-G ... A-B flat-A-G), then the leap up a fourth on the and of beat 3 and the quavers falling; its countersubject and episodes in straight semiquavers. The break re-written on the score's grid (the drummer's eighths the score's semiquavers: none of the as-written sixteenths' 32nds, which missed every onset); in a beat whose music runs in triplets the hats take the score's triplet attacks (a crescendo through an entry's run) and the off-semiquaver kicks and snares swing to the triplet's last; the leap of each entry (the catapult's release) the backbeat accented with an open hat; the episodes the break's own softer groove.",
+      grid: (st) => ({
+        ...st,
+        swing16: 0,
+        duple: {
+          pulses: 4,
+          steps: 6,
+          rows: {
+            kick: "#..x.. ...... X..... ...o..|#..#.. ...... ...#.. ......|#..x.. ...... X..x.. ......|#..#.. ...... X..... ......",
+            snare: "...-.. #..... ...-.. #.....|...... #..-.. ...... #..-..|...-.. #..... ...... #..-..|...-.. #..... ...-.. ...#..",
+            hat: "X..o.. x..o.. X..o.. x.....|X..o.. x..o.. X..o.. x..o..|X..o.. x..o.. X..o.. x.....|X..o.. x..o.. X..o.. x..o..",
+            openhat: "...... ...... ...... ...o..|...... ...... ...... ......|...... ...... ...... ...o..|...... ...... ...... ......",
+          },
+        },
+      }),
+      hits: (hits, cx, f) => catapult(hits, cx, f),
+    },
+  },
 };
+
+/**
+ * D620: II/6's break by its score. CATAPULT.contour: the hats' levels in a triplet beat (its first attack, the quaver's,
+ * the others) against the beat's own written hats; run: the crescendo through an entry's winding run (its first two
+ * beats); launch: the release (the snare and the open hat against the beat's strongest written hat or snare); leap: the
+ * semitones up that make the release.
+ */
+export const CATAPULT = { contour: [1, 0.78, 0.55], run: [0.8, 1.1], launch: { openhat: 0.75, snare: 1.05 }, leap: 5 } as const;
+/** The places (twelfths of the beat) a II/6 pattern stroke may fall: the semiquavers and the triplet semiquavers. */
+const ON_GRID = new Set([0, 2, 3, 4, 6, 8, 9, 10]);
+function catapult(hits: KitHit[], cx: KitContext, f: TouchFugue): KitHit[] {
+  const fp = formOf(f);
+  if (cx.tick >= fp.last - cx.beat / 2) return hits;
+  const end = cx.tick + cx.beat;
+  const twelfth = (t: number) => Math.round(((t - cx.tick) / cx.beat) * 12 * 1000) / 1000;
+  // the beat's attacks (every voice), and whether it runs in triplets
+  const att = new Set<number>();
+  for (const v of f.voices) for (const n of v) if (n[0] >= cx.tick && n[0] < end) att.add(twelfth(n[0]));
+  const trip = [...att].some((x) => x === 2 || x === 4 || x === 8 || x === 10);
+  const out: KitHit[] = [];
+  let ref = 0;
+  let base = 0;
+  for (const h of hits) {
+    if (h.role !== undefined) {
+      out.push(h); // the rolls, fills and landings as the form gives them
+      continue;
+    }
+    const r = Math.round(h.at * 12);
+    if (Math.abs(h.at * 12 - r) > 0.05 || !ON_GRID.has(r)) continue; // off the score's grid (the climax's added steps)
+    if (h.piece === "hat" || h.piece === "snare") base = Math.max(base, h.vel);
+    if (trip && (h.piece === "hat" || h.piece === "ride")) {
+      ref = Math.max(ref, h.vel);
+      continue;
+    }
+    // in a triplet beat the off semiquavers swing to the triplet's last
+    out.push({ ...h, at: (trip && (r === 3 || r === 9) ? r + 1 : r) / 12 });
+  }
+  if (trip && ref > 0) {
+    // the entry whose winding run is in this beat (the newest): the crescendo through it
+    const e = f.entries.filter((x) => x.on <= cx.tick && x.on + 2 * cx.beat > cx.tick).sort((a, b) => b.on - a.on)[0];
+    for (const x of [...att].sort((a, b) => a - b)) {
+      if (x % 2 !== 0) continue;
+      const c = x % 6 === 0 ? CATAPULT.contour[x === 0 ? 0 : 1] : CATAPULT.contour[2];
+      const p = e ? clamp((cx.tick + (x / 12) * cx.beat - e.on) / (2 * cx.beat), 0, 1) : 0;
+      const run = e ? CATAPULT.run[0] + (CATAPULT.run[1] - CATAPULT.run[0]) * p : 1;
+      out.push({ piece: "hat", at: x / 12, vel: clamp(ref * c * run, 0.02, 1) });
+    }
+  }
+  // the release: each entry's first upward leap (a fourth or more) in its first bar, on the backbeat with an open hat
+  if (base > 0)
+    for (const e of f.entries) {
+      const ns = e.notes;
+      for (let i = 1; i < ns.length && ns[i][0] < e.on + f.barTicks; i++) {
+        if (ns[i][2] - ns[i - 1][2] < CATAPULT.leap) continue;
+        const t = ns[i][0];
+        if (t >= cx.tick && t < end) {
+          const at = (t - cx.tick) / cx.beat;
+          const v = clamp(base * CATAPULT.launch.snare, 0.02, 0.62);
+          const sn = out.find((h) => h.piece === "snare" && Math.abs(h.at - at) < 0.02);
+          if (sn) sn.vel = Math.max(sn.vel, v);
+          else out.push({ piece: "snare", at, vel: v });
+          if (!out.some((h) => h.piece === "openhat" && Math.abs(h.at - at) < 0.02)) out.push({ piece: "openhat", at, vel: clamp(base * CATAPULT.launch.openhat, 0.02, 0.5) });
+        }
+        break;
+      }
+    }
+  return out.sort((a, b) => a.at - b.at);
+}
+
+/** D607: II/22's trance grown by the climax's ramp: the interlocking toms, the snare's ghosts, the open hat past its half. */
+export const TRANCE_GROW = { tom: [0.16, 0.3], ghost: 0.12, hat: [0.12, 0.2], hatFrom: 0.25, openhat: 0.3, openFrom: 0.5 } as const;
+function trance22(hits: KitHit[], cx: KitContext, f: TouchFugue): KitHit[] {
+  const fp = formOf(f);
+  const ph = phaseAt(fp, cx.tick);
+  const r = ph.climax;
+  if (r <= 0 || cx.tick >= fp.last - cx.beat / 2 || ph.phase === "episode") return hits;
+  const steps = Math.max(1, Math.min(4, Math.floor(cx.beatS / 0.15)));
+  const out = [...hits];
+  const at = (j: number) => j / steps;
+  const has = (j: number, ps: string[]) => out.some((h) => Math.abs(h.at - at(j)) * cx.beatS < 0.06 && ps.includes(h.piece));
+  const beatN = Math.round(cx.tick / cx.beat);
+  for (let j = 0; j < steps; j++) {
+    if (j % 2 === 1 && !has(j, ["tomHigh", "tomLow"])) out.push({ piece: (beatN + j) % 3 === 0 ? "tomHigh" : "tomLow", at: at(j), vel: TRANCE_GROW.tom[0] + (TRANCE_GROW.tom[1] - TRANCE_GROW.tom[0]) * r });
+    else if (j > 0 && !has(j, ["snare", "tomHigh", "tomLow"])) out.push({ piece: "snare", at: at(j), vel: TRANCE_GROW.ghost * (0.6 + 0.4 * r) });
+  }
+  // the hats doubled between the loop's sixteenths (the drummer's hand opening up), never closer than 0.085 s
+  if (r >= TRANCE_GROW.hatFrom && cx.beatS / steps / 2 >= 0.085) for (let j = 0; j < steps; j++) out.push({ piece: "hat", at: (j + 0.5) / steps, vel: TRANCE_GROW.hat[0] + (TRANCE_GROW.hat[1] - TRANCE_GROW.hat[0]) * r });
+  if (r >= TRANCE_GROW.openFrom && steps > 1 && !has(steps - 1, ["openhat"])) out.push({ piece: "openhat", at: at(steps - 1), vel: TRANCE_GROW.openhat });
+  return out;
+}
 
 const gridMemo = new Map<string, GridStyle>();
 /** A style's pattern tailored for a fugue (undefined: as written). */

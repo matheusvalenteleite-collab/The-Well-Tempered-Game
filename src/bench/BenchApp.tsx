@@ -42,6 +42,7 @@ import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
+import { setSfxOn, sfxOn } from "../touch/world-sfx.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { SoundFold } from "./SoundFold.tsx";
 import { Home } from "./Home.tsx";
@@ -108,7 +109,7 @@ import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
-import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
+import { isWtcFugue, nextStep, openingStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -424,7 +425,8 @@ export function BenchApp() {
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
-  const stepOf = (id: string): TempoStep => (opensTempo(id) ? (tempoSteps[id] ?? "default") : "default");
+  // D594: where nothing is chosen (or the button is shut), the step the piece opens on (tempi.ts OPENING_STEP: I/24's, II/22's FAST).
+  const stepOf = (id: string): TempoStep => (opensTempo(id) ? (tempoSteps[id] ?? openingStep(id)) : openingStep(id));
   const tempi = opensTempo(f.id) ? stepTempi(f.id) : null;
   const step = stepOf(f.id);
   const bpm = run ? run.bpm : tempi ? tempi[step] : tempoOf(f.id);
@@ -459,6 +461,7 @@ export function BenchApp() {
   const [busoni, setBusoni] = useState(busoniOn);
   // D462: the fugue's world behind the box (stage-bg.ts): FULL, QUIET or OFF.
   const [stageBg, setStageBg] = useState(stageBgMode);
+  const [sfx, setSfx] = useState(sfxOn);
   const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (run.reading === "busoni" && !busoni ? null : (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null)) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
@@ -1985,6 +1988,8 @@ export function BenchApp() {
           <Choice id="busoni" label="BUSONI'S MARKINGS" options={BUSONI_SWITCH[lang()] ?? BUSONI_SWITCH.en} value={busoni ? "on" : "off"} set={(v) => (setBusoniOn(v === "on"), setBusoni(v === "on"))} />
           {/* D462 (design studio): each fugue's world behind its box. */}
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
+          {/* D623 (instruments): the pilot worlds' sound effects (world-sfx.ts), heard only with STAGE FULL; their own off switch. */}
+          <Choice id="world-sounds" label="WORLD SOUNDS" options={SFX_SWITCH[lang()] ?? SFX_SWITCH.en} value={sfx ? "on" : "off"} set={(v) => (setSfxOn(v === "on"), setSfx(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
           {/* D452: the chosen fugue's PISTONS (D420), moved from the pop-up the selection no longer opens: only where its sound has stops. */}
           {hasStops(presetById(soundNow).id) && (
@@ -2235,6 +2240,12 @@ const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
   en: [["full", "FULL"], ["quiet", "QUIET"], ["off", "OFF"]],
   pt: [["full", "CHEIO"], ["quiet", "DISCRETO"], ["off", "DESLIGADO"]],
   es: [["full", "COMPLETO"], ["quiet", "DISCRETO"], ["off", "APAGADO"]],
+};
+/** D623: the words of Settings' WORLD SOUNDS switch (the sounds, masculine plural in Portuguese and Spanish). */
+const SFX_SWITCH: Record<string, ["on" | "off", string][]> = {
+  en: [["on", "ON"], ["off", "OFF"]],
+  pt: [["on", "LIGADOS"], ["off", "DESLIGADOS"]],
+  es: [["on", "ACTIVADOS"], ["off", "DESACTIVADOS"]],
 };
 /** D393: the words of Settings' BUSONI'S MARKINGS switch (the markings, plural, in Portuguese and Spanish). */
 const BUSONI_SWITCH: Record<string, ["on" | "off", string][]> = {

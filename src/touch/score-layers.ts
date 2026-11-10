@@ -6,7 +6,7 @@
  *
  *   MARCH       the bass drum on the bar's strong beats where the bass's accents leave them (1 and 3 of a 4/4, both
  *               beats of a 2/2 or a 6/8, 1 of a 3/4); a flam on each of the subject's strokes on a beat; a drag and a
- *               five-stroke roll into each entry; in the episodes a stick's soft street beat on the beats; the clash
+ *               five-stroke roll into each entry; in the episodes a stick's soft tap on the bar (D600: not every beat); the clash
  *               cymbals on the arrivals only (the cadences home and the acts', form-points' and the score's).
  *   STOOGES     the temple blocks by the bass's contour (the high block where the bass leaps up); the cartoon timing of
  *               the cadences: a half beat's pause before each, a "ta-da" on the blocks into it, the bonk on it (and the
@@ -15,7 +15,8 @@
  *               episodes' lighter figure: the shaker's sixteenths (an accent contour) and a rim off the beat.
  *   SWELL       the mallets' two toms by the bass's place (the low on the bar), a gentle cymbal swell every four bars
  *               (the sea's), a fuller one into each act and the final chord, the snare on the final group's downbeats.
- *   climaxKit   (a tweak, I/24's) the bass drum and the clash cymbals at the climax's peak, its arrival, the final chord.
+ *   climaxKit   (a tweak, I/24's) the bass drum and the clash cymbals at the climax's peak, its arrival, the final chord
+ *               (D596: on SYNTH KIT its kick and crash).
  */
 import type { TouchFugue } from "./fugue.ts";
 import type { Form } from "./form-points.ts";
@@ -43,7 +44,9 @@ export interface LayerCtx {
 /** MARCH: the flam's grace (s before), the five-stroke roll's strokes apart (s), the street beat's levels. */
 export const MARCH_FLAM_S = 0.028;
 export const MARCH_ROLL_S = 0.055;
-export const STREET_VEL = [0.34, 0.24] as const;
+export const STREET_VEL = [0.26, 0.2] as const;
+/** D600: a bar at least this long (s) takes the street beat's tap every bar, a shorter one every other bar. */
+export const STREET_MIN_BAR_S = 1.6;
 /** STOOGES: the cartoon pause before a cadence (beats), the "ta-da" at least this far apart (s). */
 export const PAUSE_BEATS = 0.5;
 export const TADA_MIN_S = 0.1;
@@ -66,14 +69,22 @@ export function addLayers(c: LayerCtx): void {
 function march(c: LayerCtx) {
   const { f, beat, per, strokes, end, beatS } = c;
   const bassAt = strokes.filter((s) => s.src === "bass").map((s) => s.tick);
+  const barS = (f.barTicks / beat) * beatS;
+  let streetBar = 0;
   // The bass drum on the strong beats (where the bass's own accents leave them), the street beat in the episodes.
   for (const b0 of barTicks(f, end)) {
     for (let k = 0; k < per; k++) {
       const t = b0 + k * beat;
       if (t >= end || c.inRoll(t)) continue;
       if (c.isEpisode(t)) {
-        strokes.push({ tick: t, dt: 0, piece: "drumStick", vel: k === 0 ? STREET_VEL[0] : STREET_VEL[1], src: "bass" });
-        if (beatS >= 0.9) strokes.push({ tick: t + beat / 2, dt: 0, piece: "drumStick", vel: STREET_VEL[1] * 0.7, src: "bass" });
+        // D600: the street beat a stick's tap on the bar's first beat only (every other bar where a bar is shorter than
+        // STREET_MIN_BAR_S), the taps a little uneven: 2.52's stick on every beat and its half (II/5: every crotchet at one
+        // level) was "a click track ... louder than the music" (the owner).
+        if (k === 0) {
+          const n = streetBar++;
+          const every = barS >= STREET_MIN_BAR_S;
+          if (every || n % 2 === 0) strokes.push({ tick: t, dt: 0, piece: "drumStick", vel: STREET_VEL[(every ? n : n >> 1) % 2], src: "bass" });
+        }
         continue;
       }
       if (!strongBeats(per).includes(k)) continue;
@@ -191,11 +202,16 @@ function swell(c: LayerCtx) {
 
 function climaxKit(c: LayerCtx) {
   const { fp, strokes, end, beat } = c;
+  // D596: on the synthesized kit (SYNTH KIT, I/24's on its chip set) the electronic kick and crash in the orchestral bass
+  // drum's and clash cymbals' place (the synth kit has neither; they stood in as its low tom and crash).
+  const synth = c.style === "scoreSynth";
+  const bd = synth ? "kick" : "bassDrum";
+  const cym = synth ? "crash" : "cymbals";
   const at = [fp.climax.peak, fp.climax.arrival].filter((t, i, a) => t > 0 && t < end - beat && a.indexOf(t) === i);
   for (const t of at) {
-    strokes.push({ tick: t, dt: 0, piece: "bassDrum", vel: 0.62, role: "accent", src: "arrival" });
-    strokes.push({ tick: t, dt: 0, piece: "cymbals", vel: 0.5, role: "accent", src: "arrival" });
+    strokes.push({ tick: t, dt: 0, piece: bd, vel: 0.62, role: "accent", src: "arrival" });
+    strokes.push({ tick: t, dt: 0, piece: cym, vel: 0.5, role: "accent", src: "arrival" });
   }
-  strokes.push({ tick: end, dt: 0, piece: "cymbals", vel: 0.55, role: "accent", src: "final" });
-  if (c.style !== "timpani" || !c.kit.final.includes("bassDrum")) strokes.push({ tick: end, dt: 0, piece: "bassDrum", vel: 0.6, role: "accent", src: "final" });
+  strokes.push({ tick: end, dt: 0, piece: cym, vel: 0.55, role: "accent", src: "final" });
+  if (c.style !== "timpani" || !c.kit.final.includes("bassDrum")) strokes.push({ tick: end, dt: 0, piece: bd, vel: 0.6, role: "accent", src: "final" });
 }

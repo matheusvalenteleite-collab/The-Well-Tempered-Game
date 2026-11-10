@@ -11,8 +11,11 @@
  *   busoni  0: Busoni's dynamics off                  colour 0: the colour plans off
  *   kit     0: a band's own drums off                 mute   voices muted (1,3)   solo  one voice alone
  *   lv      the mixer, dB per voice (0,-3,0,2)
+ *   sfx     0: the pilot world's sound effects off (D623, world-sfx.ts)   sweep 1: II/4's dropped sweep heard (D626)
  *   b       the A/B's second setting, "sound:drums[:style]" (b=pianoSampled:0, b=own:1:triphop)
  */
+import { openingStep } from "../../touch/tempi.ts";
+
 export type TempoStep = "slow" | "default" | "fast";
 export interface LabSettings {
   piece: string;
@@ -34,6 +37,10 @@ export interface LabSettings {
   solo: number | null;
   /** dB per voice (missing: 0). */
   levels: number[];
+  /** D623: the pilot world's sound effects (world-sfx.ts; the lab draws no stage, so heard by this alone). */
+  sfx: boolean;
+  /** D626: II/4's dropped noise-band sweep, for the A/B only. */
+  sweep: boolean;
 }
 export interface ABSlot {
   sound: string | null;
@@ -47,7 +54,8 @@ export interface LabLink {
   b: ABSlot | null;
 }
 
-export const defaults = (piece: string): LabSettings => ({ piece, sound: null, drums: 0, style: null, tempo: "default", voice: null, form: true, climax: true, busoni: true, colour: true, kit: true, mute: [], solo: null, levels: [] });
+// D594: the tempo the piece opens on (tempi.ts OPENING_STEP), as in the game.
+export const defaults = (piece: string): LabSettings => ({ piece, sound: null, drums: 0, style: null, tempo: openingStep(piece), voice: null, form: true, climax: true, busoni: true, colour: true, kit: true, mute: [], solo: null, levels: [], sfx: true, sweep: false });
 
 const ints = (s: string | null): number[] => (s ? s.split(",").map((x) => Number(x)).filter((x) => Number.isFinite(x)) : []);
 
@@ -73,6 +81,8 @@ export function parseLink(hash: string, valid: (id: string) => boolean, fallback
   const so = Number(q.get("solo"));
   if (q.has("solo") && Number.isInteger(so) && so >= 0) s.solo = so;
   s.levels = ints(q.get("lv")).map((x) => Math.max(-24, Math.min(12, x)));
+  if (q.get("sfx") === "0") s.sfx = false;
+  if (q.get("sweep") === "1") s.sweep = true;
   const bar = Number(q.get("bar"));
   let b: ABSlot | null = null;
   const bq = q.get("b");
@@ -92,12 +102,14 @@ export function linkOf(s: LabSettings, bar?: number | null, b?: ABSlot | null): 
   if (s.drums) q.push(`drums=${s.drums}`);
   if (s.style) q.push(`style=${encodeURIComponent(s.style)}`);
   if (bar !== undefined && bar !== null && bar > 0) q.push(`bar=${bar}`);
-  if (s.tempo !== "default") q.push(`tempo=${s.tempo}`);
+  if (s.tempo !== openingStep(s.piece)) q.push(`tempo=${s.tempo}`);
   if (s.voice !== null) q.push(`voice=${s.voice}`);
   for (const k of ["form", "climax", "busoni", "colour", "kit"] as const) if (!s[k]) q.push(`${k}=0`);
   if (s.mute.length) q.push(`mute=${s.mute.join(",")}`);
   if (s.solo !== null) q.push(`solo=${s.solo}`);
   if (s.levels.some((x) => x)) q.push(`lv=${s.levels.map((x) => x || 0).join(",")}`);
+  if (!s.sfx) q.push("sfx=0");
+  if (s.sweep) q.push("sweep=1");
   if (b) q.push(`b=${b.sound ?? "own"}:${b.drums}${b.style ? `:${b.style}` : ""}`);
   return `#${s.piece}${q.length ? `?${q.join("&")}` : ""}`;
 }
@@ -114,6 +126,6 @@ export function voiceGain(s: Pick<LabSettings, "mute" | "solo" | "levels">, v: n
 /** What a change asks of the engine: "live" (applied at once, the music running on) or "relaunch" (the engine restarted at the same tick). */
 export function changeKind(a: LabSettings, b: LabSettings): "none" | "live" | "relaunch" {
   if (a.piece !== b.piece || a.sound !== b.sound || a.tempo !== b.tempo || a.voice !== b.voice || a.busoni !== b.busoni) return "relaunch";
-  const same = a.drums === b.drums && a.style === b.style && a.form === b.form && a.climax === b.climax && a.colour === b.colour && a.kit === b.kit && a.solo === b.solo && a.mute.join() === b.mute.join() && a.levels.join() === b.levels.join();
+  const same = a.drums === b.drums && a.style === b.style && a.form === b.form && a.climax === b.climax && a.colour === b.colour && a.kit === b.kit && a.sfx === b.sfx && a.sweep === b.sweep && a.solo === b.solo && a.mute.join() === b.mute.join() && a.levels.join() === b.levels.join();
   return same ? "none" : "live";
 }

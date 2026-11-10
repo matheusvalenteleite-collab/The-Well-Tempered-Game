@@ -52,7 +52,9 @@ test("D514: three presets per fugue, one of each character, stable ids, short na
     if (s === "chamberOrgan" || s === "harpsichordSampled" || s === "bachBrass") assert.equal(ps[0].id, "percussion", f.id);
   }
   // Customised: the acoustic kit by tempo (brushes at a largo, sticks on the ride at a walking beat, rock at a quick one).
-  assert.equal(stylesFor("wtc1f24").acoustic, "brushes");
+  // (D594: I/24 now plays FAST, a crotchet of 60: a walking beat, the sticks on the ride; I/22's slow 2/2 the brushes.)
+  assert.equal(stylesFor("wtc1f24").acoustic, "jazz");
+  assert.equal(stylesFor("wtc1f22").acoustic, "brushes");
   assert.equal(stylesFor("wtc1f12").acoustic, "jazz");
   assert.equal(stylesFor("wtc1f03").acoustic, "rock");
   assert.equal(stylesFor("wtc1f19").acoustic, "brushes", "JAZZ QUARTET's own");

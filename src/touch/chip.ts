@@ -13,7 +13,7 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
@@ -29,8 +29,10 @@ import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
 import { ALL_SCORE_STYLES, isScoreStyle, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
 import { tailorBrushes } from "./drum-tailor.ts";
 import type { TouchFugue } from "./fugue.ts";
+import { tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
+import { SFX_SOUND, sfxKindsNow, sfxPlan, swellEnv, swellSurge, type SfxKind } from "./world-sfx.ts";
 import { buildChain, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
@@ -353,6 +355,101 @@ export const KIT_DRUMS = {
   piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85, sideDrum: 0.5, fieldDrum: 0.56, tabor: 0.52, drumStick: 0.34, frameDum: 0.6, frameTek: 0.42, castanets: 0.44, cymbals: 0.34, woodblock: 0.42, claves: 0.36, templeHi: 1, templeLo: 1, ratchet: 1, slapstick: 1, whistleUp: 1, whistleDown: 1, bonk: 1, malletHigh: 1, malletLow: 1, cymSwell: 1, brush: 1 } satisfies Record<KitPiece, number>,
   pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1, sideDrum: -0.06, fieldDrum: 0.04, tabor: -0.04, drumStick: -0.06, frameDum: -0.06, frameTek: 0.1, castanets: 0.14, cymbals: -0.2, woodblock: 0.16, claves: -0.14, templeHi: 0.2, templeLo: -0.12, ratchet: 0.24, slapstick: -0.1, whistleUp: 0.3, whistleDown: -0.3, bonk: 0, malletHigh: 0.12, malletLow: -0.12, cymSwell: -0.2, brush: 0.06 } satisfies Record<KitPiece, number>,
 } as const;
+/** D601: a fugue's first attack (any voice), memoised. */
+const firstOn = new Map<string, number>();
+export function firstOnset(f: TouchFugue): number {
+  let t = firstOn.get(f.id);
+  if (t === undefined) {
+    t = Infinity;
+    for (const v of f.voices) for (const n of v) if (n[0] < t) t = n[0];
+    if (!Number.isFinite(t)) t = 0;
+    firstOn.set(f.id, t);
+  }
+  return t;
+}
+/**
+ * D601: the drums' share of the band's texture at a tick: the voices sounding over the TEXTURE_S after it (each voice
+ * the share of the window its notes fill), against all the fugue's voices, as an amplitude (the energy's square root),
+ * at least TEXTURE_FLOOR where any sounds; 0 where none does (before the first note, a general rest, after the last).
+ */
+export const TEXTURE_S = 0.4;
+export const TEXTURE_FLOOR = 0.12;
+/** D607: under this share (one held note dying, of four voices) the drums hold off altogether. */
+export const TEXTURE_SILENT = 0.075;
+/** D607: a note's share of the texture as it is held: e^(-held/HELD_S), at least HELD_MIN. */
+export const HELD_S = 2;
+export const HELD_MIN = 0.25;
+/** D601: the texture's exponent on the amplitude (one voice of four: 1/4, 12 dB under the four (D607: 0.75 before)). */
+export const TEXTURE_EXP = 1;
+/** D601: the lowest voice's share of the texture (a phone's speaker hears the bass through its overtones only). */
+export const BASS_TEXTURE = 0.5;
+/** D601: a roll's or a fill's strokes at this share; an accent at most this; the strokes after the last chord's attack at this. */
+export const ROLL_SHARE = 0.65;
+export const ACCENT_MAX = 0.55;
+export const RING_SHARE = 0.3;
+const lastOn = new Map<string, number>();
+export function lastOnset(f: TouchFugue): number {
+  let t = lastOn.get(f.id);
+  if (t === undefined) {
+    t = 0;
+    for (const v of f.voices) for (const n of v) if (n[0] > t) t = n[0];
+    lastOn.set(f.id, t);
+  }
+  return t;
+}
+const texMemo = new Map<string, { span: number; at: Float32Array }>();
+export function textureGain(f: TouchFugue, tick: number): number {
+  let m = texMemo.get(f.id);
+  if (!m) {
+    // per sixteenth of a beat: the sounding voices' share of the window from there
+    const span = Math.max(1, Math.round(f.tpq / 8));
+    const tps = (tempoOf(f.id) * f.tpq) / 60;
+    // D607: a held note's share falling as it is held (a plucked or struck note dies away; a held one counted less)
+    const held = (s: number) => Math.max(HELD_MIN, Math.exp(-Math.max(0, s) / HELD_S));
+    const n = Math.ceil(f.length / span) + 2;
+    const cover = new Float32Array(n);
+    f.voices.forEach((v, u) => {
+      const w = u === f.voices.length - 1 && f.voices.length > 1 ? BASS_TEXTURE : 1;
+      for (const [on, dur] of v) for (let i = Math.floor(on / span); i * span < on + dur && i < n; i++) cover[i] += w * held((i * span - on) / tps) * Math.min(1, (Math.min(on + dur, (i + 1) * span) - Math.max(on, i * span)) / span);
+    });
+    const win = Math.max(1, Math.round((tps * TEXTURE_S) / span));
+    const at = new Float32Array(n);
+    let acc = 0;
+    for (let i = n - 1; i >= 0; i--) {
+      acc += cover[i] - (i + win < n ? cover[i + win] : 0);
+      at[i] = Math.max(0, acc / win);
+    }
+    m = { span, at };
+    texMemo.set(f.id, m);
+  }
+  const i = Math.max(0, Math.min(m.at.length - 1, Math.floor(tick / m.span)));
+  const s = m.at[i] / (f.voices.length > 1 ? f.voices.length - 1 + BASS_TEXTURE : 1);
+  if (s < TEXTURE_SILENT) return 0;
+  return Math.max(TEXTURE_FLOOR, Math.min(1, s ** TEXTURE_EXP));
+}
+/**
+ * D623: an effect's share at a tick (world-sfx.ts, Chip.scheduleSfx): the drums' thinning (D601/D607): 0 before the first
+ * note, 0 past the last chord's attack, else the band's texture over the 400 ms after it (0 in a general rest).
+ */
+export function sfxShare(f: TouchFugue, tick: number): number {
+  if (tick < firstOnset(f) - 1 || tick > lastOnset(f)) return 0;
+  return textureGain(f, tick);
+}
+/** D624: the swell's beats: each piece's filters warmed this long before it (silent), its level ramped over SWELL_XF. */
+export const SWELL_WARM = 0.06;
+export const SWELL_XF = 0.03;
+/** D623: an effect as the choke point schedules it (the swell: one beat's piece, from `when` at `vel` to `until` at `vel1`). */
+export interface SfxScheduled {
+  kind: SfxKind;
+  tick: number;
+  end: number;
+  when: number;
+  until: number;
+  vel: number;
+  vel1: number;
+  /** The plan's event's tick (the swell's start: the noise read on from there). */
+  since: number;
+}
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
   const c = new Float32Array(1025);
@@ -434,7 +531,9 @@ export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: numb
  * body is under 600 Hz: the side drum measured 13 dB quieter on the phone model than in full): their harmonics made on a
  * phone, as the timpani's (lowHarmonics).
  */
-const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek", "drumStick"]);
+// D600: not the stick (a click with no body under 600 Hz: its "harmonics" were the click itself soft-clipped, II/5's street
+// beat at or over the band on the phone model).
+const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek"]);
 /** D567-D572: the pieces synthesized by Chip.toon (no recording: the slapstick's and the swell's). */
 export const TOON_PIECES: ReadonlySet<KitPiece> = new Set(["templeHi", "templeLo", "ratchet", "slapstick", "whistleUp", "whistleDown", "bonk", "malletHigh", "malletLow", "cymSwell", "brush"]);
 /** D567-D572: each synthesized piece's level (on chip.ts drum's scale; measured with its style, scratchpad/fix3). */
@@ -866,7 +965,7 @@ export interface Play {
    * D576: a second instrument in unison with this note (BACH BRASS's entries doubled: band-growth.ts), `level` of it, at
    * its own seat (`pan`), `late` s after (two players); the band's note and the player's alike, by the note's place alone.
    */
-  unison?: { patch: Patch; level: number; late?: number; pan?: number };
+  unison?: { patch: Patch; level: number; late?: number; pan?: number; detune?: number };
   /** D385: the player's line on the piano: the reading's level here (dB about the middle), the touch's zone added (touch-expr.ts landing). */
   lineDb?: number;
   /** D426: a slid note on the piano (the hairpin slide): its level continuous across the strip (touch-expr.ts pianoHairpinDb), not the zones. */
@@ -1462,7 +1561,7 @@ export class Chip {
     if (uni) {
       const late = uni.late ?? 0;
       const main = this.noteNow(midi, at, dur, v, { ...p, unison: undefined });
-      const twin = this.noteNow(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: uni.patch, ...(uni.pan !== undefined ? { pan: uni.pan } : {}) }, { ...p, unison: undefined, couple: false, lead: false, touch: undefined, trill: undefined, level: (p.level ?? 1) * uni.level });
+      const twin = this.noteNow(midi, at + late, Math.max(0.03, dur - late), { ...v, patch: uni.patch, ...(uni.pan !== undefined ? { pan: uni.pan } : {}) }, { ...p, unison: undefined, couple: false, lead: false, touch: undefined, trill: undefined, level: (p.level ?? 1) * uni.level, ...(uni.detune ? { detune: (p.detune ?? 0) + uni.detune } : {}) });
       return together([main, twin], 0);
     }
     // D311: the player's touch across its bar: its landing shapes the attack, by the preset's family.
@@ -3927,6 +4026,8 @@ export class Chip {
     // D536: the clock's tick (the studio's registration events land on it).
     if (cx && beatS > 0) this.tickClock = { tick: cx.tick, at, tps: cx.beat / beatS };
     const tickOf = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
+    // D623: the pilot world's effects in this beat (world-sfx.ts; whatever the drums do).
+    if (cx && beatS > 0) this.worldBeat(at, beatS, cx);
     if (backingOn() && piece) {
       if (piece !== this.drumF) this.drumsFor(piece);
       const style = drumStyleFor(piece.id);
@@ -3980,6 +4081,28 @@ export class Chip {
    * audio clock and the velocity it is played at; `sound` then strikes it.
    */
   scheduleKitHit(e: KitEvent, sound: (when: number, vel: number) => void) {
+    // D601: never over silence: no stroke before the fugue's first note (a style's bar begun before an upbeat subject:
+    // I/3's kit, I/5's march struck alone a beat or more before the music; the drums sit under the band, and there is none).
+    const f = this.drumF;
+    if (f && e.tick < firstOnset(f) - 1) return;
+    // D601: and under the band's texture: a stroke as soft as the voices sounding over the 400 ms after it are few (the
+    // energy with the share of the voices sounding: one voice of four 6 dB under the four), none where none sounds.
+    // The rolls' and fills' dense strokes a share under their written level, an accent at most ACCENT_MAX; past the last
+    // chord's attack (and with it, but its accent) the drums let it ring (RING_SHARE).
+    if (f) {
+      let g = textureGain(f, e.tick);
+      if (g <= 0) return;
+      if (e.role === "roll" || e.role === "fill") g *= ROLL_SHARE;
+      if (e.tick > lastOnset(f) + f.tpq / 4) {
+        // past the last chord: only a roll dying under it (the timpani's), softly; no groove on a chord left to ring
+        if (e.role !== "roll") return;
+        g *= RING_SHARE;
+      }
+      else if (e.tick >= lastOnset(f) - 1 && e.role !== "accent") g *= RING_SHARE * RING_SHARE;
+      let v = e.vel * g;
+      if (e.role === "accent") v = Math.min(v, ACCENT_MAX);
+      if (v !== e.vel) e = { ...e, vel: v };
+    }
     this.kitEvents.push(e);
     if (this.kitEvents.length > 1024) this.kitEvents.splice(0, 512);
     sound(e.when, e.vel);
@@ -3987,6 +4110,132 @@ export class Chip {
     if (musicLive()) {
       const kind = musicKindOf(e);
       if (kind) emitMusic({ tick: e.tick, kind, level: Math.max(0, Math.min(1, e.vel)), piece: e.piece, ...(e.dur !== undefined ? { dur: e.dur } : kind === "roll" ? { dur: 0 } : {}) });
+    }
+  }
+  /**
+   * D623, THE PILOT WORLDS' EFFECTS (world-sfx.ts): the game names the piece whose world its box shows (ProtoGame; null:
+   * none, the tutorial's box, Kimiko's recording); each beat its effects falling in the beat are scheduled through
+   * scheduleSfx. The swell is cut into the beats (each a piece of one noise, ramped beat to beat), so nothing outlasts
+   * the schedule's horizon (a pause stops it within the beat).
+   */
+  private world: { f: TouchFugue; shown: boolean } | null = null;
+  worldFor(f: TouchFugue | null, shown = true) {
+    this.world = f ? { f, shown } : null;
+  }
+  /** D623: every effect scheduled (the tests): its kind, tick, time, velocity as played (the swell: each beat's piece, its end's too). */
+  readonly sfxEvents: SfxScheduled[] = [];
+  private worldBeat(at: number, beatS: number, cx: GrooveContext) {
+    const w = this.world;
+    if (!w) return;
+    const kinds = sfxKindsNow(w.f, w.shown);
+    if (!kinds.length) return;
+    const f = w.f;
+    const t0 = cx.tick;
+    const t1 = cx.tick + cx.beat;
+    const when = (t: number) => at + ((t - t0) / cx.beat) * beatS;
+    for (const e of sfxPlan(f, kinds)) {
+      if (e.kind === "swell") {
+        if (e.end <= t0 || e.tick >= t1) continue;
+        const a = Math.max(t0, e.tick);
+        const b = Math.min(t1, e.end);
+        const k = swellSurge(Math.round(t0 / cx.beat));
+        const k1 = swellSurge(Math.round(t1 / cx.beat));
+        const v1 = swellEnv(f, b) * (b === t1 ? k1 : k) * sfxShare(f, b);
+        this.scheduleSfx({ kind: "swell", tick: a, end: b, when: when(a), until: when(b), vel: swellEnv(f, a) * k, vel1: v1, since: e.tick }, (x) => this.sfxSound(x));
+      } else if (e.tick >= t0 && e.tick < t1) this.scheduleSfx({ kind: e.kind, tick: e.tick, end: e.tick, when: when(e.tick), until: when(e.tick), vel: e.vel, vel1: 0, since: e.tick }, (x) => this.sfxSound(x));
+    }
+  }
+  /**
+   * D623, THE EFFECTS' CHOKE POINT, beside the drums' (scheduleKitHit) with its thinning: none before the first note, none
+   * past the last chord's attack (an effect never rings on it), at the band's texture over the 400 ms after it
+   * (textureGain: none in a general rest).
+   */
+  scheduleSfx(e: SfxScheduled, sound: (e: SfxScheduled) => void) {
+    const f = this.world?.f;
+    if (!f) return;
+    const g = sfxShare(f, e.tick);
+    if (g <= 0) return;
+    e = { ...e, vel: e.vel * g };
+    if (e.vel <= 1e-4 && e.vel1 <= 1e-4) return;
+    this.sfxEvents.push(e);
+    if (this.sfxEvents.length > 1024) this.sfxEvents.splice(0, 512);
+    sound(e);
+  }
+  /** D623: the effects' own noise (7.3 s, not the drums' one-second loop: a swell's repeats unheard), made once. */
+  private sfxNoiseBuf: AudioBuffer | null = null;
+  /** D624: the swell's noise read by the audio clock from its first beat's piece (so the beats' pieces are one noise). */
+  private swellAnchor: { since: number; at: number } | null = null;
+  private sfxNoise(): AudioBufferSourceNode {
+    if (!this.sfxNoiseBuf) {
+      const len = Math.round(this.ctx.sampleRate * 7.3);
+      this.sfxNoiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const d = this.sfxNoiseBuf.getChannelData(0);
+      let seed = 4242;
+      for (let i = 0; i < len; i++) d[i] = ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+    }
+    const n = this.ctx.createBufferSource();
+    n.buffer = this.sfxNoiseBuf;
+    n.loop = true;
+    return n;
+  }
+  /** D624-D627: an effect sounded (world-sfx.ts SFX_SOUND: noise through low-Q filters), into the master as the drums are. */
+  private sfxSound(e: SfxScheduled) {
+    const ctx = this.ctx;
+    const spec = SFX_SOUND[e.kind];
+    const bag = new Bag();
+    const out = bag.add(ctx.createGain());
+    out.gain.value = spec.gain;
+    out.connect(this.master);
+    const at = Math.max(e.when, ctx.currentTime);
+    const len = this.sfxNoiseBuf ? this.sfxNoiseBuf.duration : 7.3;
+    for (const L of spec.layers) {
+      const n = bag.src(this.sfxNoise());
+      let node: AudioNode = n;
+      const fls: BiquadFilterNode[] = [];
+      for (const [type, hz, q] of L.filters) {
+        const fl = bag.add(ctx.createBiquadFilter());
+        fl.type = type;
+        fl.frequency.value = hz;
+        fl.Q.value = q;
+        node.connect(fl);
+        node = fl;
+        fls.push(fl);
+      }
+      const g = bag.add(ctx.createGain());
+      node.connect(g).connect(out);
+      if (e.kind === "swell") {
+        // one noise across the swell's beats (the buffer read on from where the last beat's piece was), the filters
+        // warmed for SWELL_WARM before the beat (silent), each beat's level ramped to the next's over SWELL_XF.
+        const from = at - SWELL_WARM;
+        if (!this.swellAnchor || this.swellAnchor.since !== e.since || from < this.swellAnchor.at) this.swellAnchor = { since: e.since, at: from };
+        const off = (from - this.swellAnchor.at) % len;
+        g.gain.setValueAtTime(0, from);
+        g.gain.setValueAtTime(0, at);
+        g.gain.linearRampToValueAtTime(L.level * e.vel, at + SWELL_XF);
+        g.gain.linearRampToValueAtTime(L.level * e.vel1, Math.max(at + SWELL_XF, e.until));
+        g.gain.linearRampToValueAtTime(0, Math.max(at + SWELL_XF, e.until) + SWELL_XF);
+        const go = Math.max(ctx.currentTime, from);
+        n.start(go, (off + go - from) % len);
+        halt(n, Math.max(at + SWELL_XF, e.until) + SWELL_XF + 0.01);
+        continue;
+      }
+      const v = L.level * e.vel;
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(v, at + L.attack);
+      if (L.hold > 0) g.gain.setValueAtTime(v, at + L.attack + L.hold);
+      g.gain.exponentialRampToValueAtTime(Math.max(1e-5, v * 1e-3), at + L.len);
+      if (spec.sweep) {
+        // the band's centre up and back `cycles` times (exponential ramps), over the sound's length
+        const { lo, hi, cycles } = spec.sweep;
+        const bp = fls.find((x) => x.type === "bandpass");
+        if (bp) {
+          bp.frequency.setValueAtTime(lo, at);
+          const step = L.len / (2 * cycles);
+          for (let i = 1; i <= 2 * cycles; i++) bp.frequency.exponentialRampToValueAtTime(i % 2 ? hi : lo, at + i * step);
+        }
+      }
+      n.start(at, (e.tick * 0.000137) % len);
+      halt(n, at + L.len + 0.02);
     }
   }
   /** D536: the fugue's tick at a time on the audio clock (from the last beat the rhythm section was given), or null. */
@@ -4300,7 +4549,7 @@ export class Chip {
     const bb = tailorBrushes(cx?.piece ?? this.drumF, cx?.tick ?? 0, cx?.beat ?? 1, beatS, brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS));
     const tk = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
     for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.brushHit(h.piece, w, v));
-    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w, v) => this.brushSweep({ ...s, peak: v }, w, s.len * beatS)); // D607: at the level the choke point gives it
   }
 
   /** D503: the brush kit's output for one sound: its level, its seat, the cut under the bass, and its share of the club. */
@@ -4555,7 +4804,7 @@ export class Chip {
       const t = at + h.at * beatS;
       this.scheduleKitHit({ voice: "bossa", style: "bossa", piece: h.piece, tick: tk(h.at), when: t, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => (h.piece === "kick" || h.piece === "rim" ? this.bossaHit(h.piece, w, v) : this.brushHit(h.piece, w, v, BOSSA_DRUMS)));
     }
-    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS, BOSSA_DRUMS));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w, v) => this.brushSweep({ ...s, peak: v }, w, s.len * beatS, BOSSA_DRUMS));
   }
 
   /** D521: the cross-stick or the bass drum (Big Rusty's, as recorded: the soft or the firm stroke by `vel`). */
@@ -4737,8 +4986,10 @@ export function voicing(voice: number, count: number, _played = true): Voicing {
   const timbre: Timbre = phoneBass ? (count > 3 ? "pulse25" : "pulse50") : bass || count === 1 ? "triangle" : fromTop === 0 ? "pulse12" : fromTop === 1 && count > 3 ? "pulse25" : count > 3 ? "pulse50" : "pulse25";
   // D297: a period preset places its voices itself (within ±0.35) and may set an inner voice a shade lighter.
   const place = placeFor(voice, count);
+  // D615: a computer's seat where the preset gives one (Preset.desk: BACH BRASS's two choirs); a phone's as before.
+  const desk = isPhone() ? null : deskSeatFor(voice, count);
   // D365: CLASSIC CHIP (no patches) within ±0.35 (it spread ±0.45, the widest of any sound: D358); the others as before.
-  const pan = place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
+  const pan = desk !== null ? desk : place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
   return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count), ...(bass ? { bass: true } : {}) };
 }

@@ -74,7 +74,8 @@ export const ARC_FULL = 0.6;
 /** The band's high shelf (dB) in each (a brighter band reads as a fuller one; colour.ts TONE_RANGE bounds it). */
 export const SUBJECT_TONE = 0.5;
 export const EPISODE_TONE = -1.5;
-export const CLIMAX_TONE = 0.5;
+// D605 (the climax audit: the final group no brighter than the opening in 2.52's I/2, I/3, I/7, I/13 ...): 0.5 → 1.5.
+export const CLIMAX_TONE = 1.5;
 /** The send into the sound's own room added in the climax (at its top). */
 export const CLIMAX_ROOM = 0.05;
 /** The last chord, a resolution: the climax's brightness let go (its shelf), the room opening a little more. */
@@ -199,7 +200,7 @@ export interface FormColour {
  * (a fugue without a clear contrast, or not a fugue).
  */
 export function formColour(form: FugueForm, presetId: string, tick: number): FormColour | null {
-  if (!form.clear) return null;
+  if (!form.clear) return climaxOnly(form, presetId, tick);
   const at = formAt(form, tick);
   const k = at.kind;
   if (k !== "climax") {
@@ -223,6 +224,24 @@ export function formColour(form: FugueForm, presetId: string, tick: number): For
   const reg = FORM_REG[presetId]?.[top ? "climax" : from];
   if (reg) colour.reg = [...reg];
   return { db, colour };
+}
+
+/**
+ * D605, THE CLIMAX FOR EVERY FUGUE (the owner on II/1: "didn't really feel any climax"; the climax audit): where the
+ * subjects and episodes are not clearly apart (no zone layer), the climax alone: from its rise to the last entry the band
+ * brightening to CLIMAX_TONE, the room opening by CLIMAX_ROOM, the harpsichord's and the organ's full registration from
+ * the final entry; the last chord's resolution as the layer's. No level (db 0): timbre and space only.
+ */
+function climaxOnly(form: FugueForm, presetId: string, tick: number): FormColour | null {
+  if (!form.points) return null;
+  const r = climaxRamp(form, tick);
+  const q = resolvedAt(form, tick);
+  if (r <= 0 && q <= 0) return null;
+  const tone = CLIMAX_TONE * r;
+  const colour: Colour = { tone: tone + (RESOLVE_TONE - tone) * q, room: CLIMAX_ROOM * r + RESOLVE_ROOM * q };
+  const reg = tick >= form.finalEntry ? FORM_REG[presetId]?.climax : undefined;
+  if (reg) colour.reg = [...reg];
+  return { db: 0, colour };
 }
 
 /**
