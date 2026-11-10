@@ -30,7 +30,7 @@ export const SKIN_CAST: Readonly<Record<string, Cast>> = {
   wtc1f07: "SPARKS", wtc1f08: ["COMET", "gold"], wtc1f09: "SPARKS", wtc1f10: "BOLT", wtc1f11: "PETALS", wtc1f12: "SMOKE",
   wtc1f13: "SNOW", wtc1f14: ["COMET", "silver"], wtc1f15: "SPARKS", wtc1f16: ["COMET", "silver"], wtc1f17: "PETALS", wtc1f18: "SNOW",
   wtc1f19: "SPARKS", wtc1f20: "FIRE", wtc1f21: "SPARKS", wtc1f22: ["COMET", "gold"], wtc1f23: "SMOKE", wtc1f24: "SMOKE",
-  wtc2f01: "FIRE", wtc2f02: ["COMET", "gold"], wtc2f03: "BOLT", wtc2f04: ["COMET", "bronze"], wtc2f05: ["COMET", "bronze"], wtc2f06: "FIRE",
+  wtc2f01: "FIRE", wtc2f02: ["COMET", "gold"], wtc2f03: "BOLT", wtc2f04: ["COMET", "silver"], wtc2f05: ["COMET", "bronze"], wtc2f06: "FIRE",
   wtc2f07: ["COMET", "gold"], wtc2f08: "SNOW", wtc2f09: ["COMET", "gold"], wtc2f10: "SPARKS", wtc2f11: "PETALS", wtc2f12: ["COMET", "silver"],
   wtc2f13: "BOLT", wtc2f14: "PETALS", wtc2f15: "SPARKS", wtc2f16: "BOLT", wtc2f17: ["COMET", "silver"], wtc2f18: "SPARKS",
   wtc2f19: ["COMET", "gold"], wtc2f20: "BOLT", wtc2f21: "FIRE", wtc2f22: "FIRE", wtc2f23: "SNOW", wtc2f24: "SMOKE",

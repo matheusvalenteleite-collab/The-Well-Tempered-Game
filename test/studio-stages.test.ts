@@ -58,10 +58,11 @@ test("the veil keeps the music readable (heavier in QUIET and over daylight); dr
 
 test("D464: the worlds follow the music: an entry in the other mode turns the light, the rain grows, strettos and cadences show", () => {
   const s = src("src/touch/stage-bg.ts");
-  assert.match(s, /spans: f\.entries\.map\(\(e\) => \(\{ on: e\.on, end: e\.end, other: isMinor\(e\.key\) !== home \}\)\)/);
+  assert.match(s, /spans: f\.entries\.map\(\(e\) => \(\{ on: e\.on, end: e\.end, other: isMinor\(e\.key\) !== home, voice: e\.voice \}\)\)/);
   assert.match(s, /if \(k\.turn > 0\.01\) \{\s*if \(k\.homeMinor\)/);
   assert.match(s, /k\.rain\(Math\.round\(25 \+ 120 \* \(0\.2 \+ 0\.8 \* k\.p\) \* \(0\.55 \+ 0\.45 \* k\.busy\) \* \(1 - 0\.7 \* k\.turn\)\)/);
-  assert.match(s, /k\.stretto > 0\.5/);
+  // D479: II/5's bells now ring in its stretto towers (k.strettos); the eased stretto still read by the worlds.
+  assert.match(s, /k\.stretto/);
   assert.match(s, /k\.cadence = Math\.max\(0, 1 - \(now - lastCad\) \/ \(2 \* f\.barTicks\)\)/);
 });
 

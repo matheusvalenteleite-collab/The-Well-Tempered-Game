@@ -281,59 +281,50 @@ def g03():
 
 
 def g04():
-    """THE PERPETUAL MOTION MACHINE: a wooden wheel of swinging weights, its inventor, a woman, proudly beside it."""
+    """THE CHASE (D479, the owner renamed II/4): a night road, the bandits' car fleeing, a police car close behind, its siren red and blue."""
     k = Key("c#")
     p = Pix()
-    wall = k.c(-0.02, -0.12)
-    p.rect(0, 0, W, H, wall)
-    for y in range(0, 32, 6):
-        p.hline(0, W - 1, y, k.c(-0.06, -0.12))
-    p.rect(0, 32, W, 8, (100, 70, 50))
-    p.hline(0, W - 1, 32, (140, 100, 70))
-    wood, wood_d = (176, 120, 70), (120, 80, 46)
-    brass = (230, 180, 70)
-    m = Pix()
-    cx, cy, r = 40, 16, 12
-    m.poly([(cx - 2, cy), (cx + 2, cy), (cx + 8, 32), (cx - 8, 32)], wood_d)  # the stand
-    m.poly([(cx - 1, cy), (cx + 1, cy), (cx + 5, 32), (cx - 5, 32)], wood)
-    for rr in (r, r - 1):
-        m.ring(cx, cy, rr, wood)
-    m.ring(cx, cy, r - 1, wood_d, 90, 270)
-    for i in range(8):
-        a = math.radians(i * 45 + 10)
-        m.line(cx, cy, cx + (r - 1) * math.cos(a), cy + (r - 1) * math.sin(a), wood)
-        # each weight hangs on a hinged arm: swung out on one side, folded in on the other
-        bx = cx + r * math.cos(a)
-        by = cy + r * math.sin(a)
-        out = math.cos(a) > 0
-        ex = bx + (4 if out else 1) * math.cos(a + (0.3 if out else 1.6))
-        ey = by + (4 if out else 1) * math.sin(a + (0.3 if out else 1.6))
-        m.line(bx, by, ex, ey, wood_d)
-        m.disc(ex, ey, 1.4, brass)
-    m.disc(cx, cy, 2, brass)
-    m.set(cx - 1, cy - 1, WHITE)
-    p.paste(m)
-    # motion marks round the rim
-    for a in (200, 215, 230):
-        p.set(cx + (r + 5) * math.cos(math.radians(a)), cy + (r + 5) * math.sin(math.radians(a)), CREAM)
-    s = Pix()
-    ix = 13
-    apron = (220, 210, 180)
-    s.rect(ix - 4, 15, 9, 9, (160, 60, 50))  # her jacket
-    s.rect(ix - 2, 17, 5, 13, apron)
-    s.rect(ix - 4, 24, 9, 6, (70, 60, 70))
-    s.rect(ix - 4, 30, 3, 3, (60, 50, 50))
-    s.rect(ix + 2, 30, 3, 3, (60, 50, 50))
-    head(s, ix, 10, 3, "auburn", "curls", r=3.2, look=1)
-    s.rect(ix - 3, 6, 7, 2, (60, 60, 70))  # goggles pushed up
-    s.set(ix - 2, 6, (160, 220, 240))
-    s.set(ix + 2, 6, (160, 220, 240))
-    arm(s, ix + 4, 17, ix + 12, 12, (160, 60, 50), hand=TONES[3][0])  # showing it off
-    arm(s, ix - 4, 17, ix - 6, 22, (160, 60, 50))
-    s.set(ix - 4, 22, TONES[3][0])  # hand on hip
-    p.paste(s)
-    return p
+    p.rect(0, 0, W, H, k.c(-0.25, -0.2))
+    for y in range(0, 14):
+        p.hline(0, W - 1, y, mix(k.c(-0.3, -0.25), k.c(-0.18, -0.15), y / 14))
+    stars(p, [(5, 3), (14, 6), (27, 2), (39, 5), (52, 3), (60, 7), (33, 9)])
+    town = (26, 28, 46)
+    for x, hh in ((0, 8), (6, 12), (13, 7), (19, 14), (27, 9), (34, 13), (42, 8), (48, 15), (56, 10)):
+        p.rect(x, 22 - hh, 7, hh, town)
+        for wy in range(22 - hh + 2, 21, 3):
+            if (x * 7 + wy) % 5 == 0:
+                p.set(x + 2, wy, (230, 200, 120))
+    p.rect(0, 22, W, 18, (40, 40, 46))
+    p.hline(0, W - 1, 22, (70, 70, 78))
+    for x in range(0, W, 10):
+        p.hline(x, x + 4, 31, (220, 200, 110))
 
+    def car(x, y, body, top, flip=False):
+        c = Pix()
+        c.rect(x, y, 16, 4, body)
+        c.rect(x + 4, y - 3, 8, 3, top)
+        c.rect(x + 5, y - 2, 2, 1, (150, 190, 230))
+        c.rect(x + 9, y - 2, 2, 1, (150, 190, 230))
+        c.rect(x + 2, y + 4, 3, 2, INK)
+        c.rect(x + 11, y + 4, 3, 2, INK)
+        p.paste(c)
+
+    # the bandits ahead (dark, a sack on the roof), their headlights on the road
+    car(40, 27, (80, 76, 84), (110, 104, 114))
+    p.rect(45, 22, 5, 2, (150, 120, 70))
+    for i in range(6):
+        p.hline(56, 56 + 6 + i, 28 + (i // 3), mix((255, 240, 180), (40, 40, 46), i / 6))
+    # the police car behind, its siren red and blue
+    car(14, 29, (235, 235, 240), (40, 40, 110))
+    p.rect(19, 25, 2, 1, (255, 60, 60))
+    p.rect(21, 25, 2, 1, (70, 100, 255))
+    for r in (1, 2):
+        p.set(18 - r, 24 - r, (255, 110, 110))
+        p.set(24 + r, 24 - r, (120, 150, 255))
+    # motion lines
+    for y in (27, 30, 33):
+        p.hline(2, 9, y, (90, 90, 100))
+    return p
 
 
 def g05():
