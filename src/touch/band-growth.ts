@@ -27,8 +27,15 @@ export interface UnisonSpec {
   compass: Partial<Record<PatchId, readonly [lo: number, hi: number]>>;
   level: number;
   late: number;
-  /** The double's pan, this much from the voice's (toward the middle where it would leave ±0.35). */
+  /** The double's pan, this much from the voice's (toward the middle where it would leave ±0.35), where it has no seat. */
   pan: number;
+  /** D616: the delay's spread either side of `late` (s), by note (unisonLate: fixed per note, the same every time). */
+  jitter?: number;
+  /** D616: the double's tuning (cents): two players, not one copy. */
+  detune?: number;
+  /** D616: the double's own seat, as the voice (top down) its instrument plays in the full choir of `seatCount` voices. */
+  seat?: Partial<Record<PatchId, number>>;
+  seatCount?: number;
 }
 /** The growth's colours (Colour: a shelf, a lowpass) and the room's scaling (roomMul), by where the form is. */
 export interface GrowthSpec {
@@ -43,16 +50,32 @@ export interface GrowthSpec {
  * D6, horn F2-F5, tenor trombone E2-C5, bass trombone B♭1-G4).
  */
 export const BRASS_UNISON: UnisonSpec = {
-  with: { bachTrumpet: ["bachHorn", "bachTrumpet"], bachHorn: ["bachTrumpet", "bachTrombone"], bachTrombone: ["bachHorn", "bachBass"], bachBass: ["bachTrombone", "bachHorn"] },
-  compass: { bachTrumpet: [52, 86], bachHorn: [41, 77], bachTrombone: [40, 72], bachBass: [34, 67] },
-  level: 0.8,
-  late: 0.012,
+  with: { bachTrumpet: ["bachHorn", "bachTrumpet"], bachTrumpetMute: ["bachHorn", "bachTrumpet"], bachHorn: ["bachTrumpet", "bachTrombone"], bachTrombone: ["bachHorn", "bachBass"], bachBass: ["bachTrombone", "bachHorn"] },
+  compass: { bachTrumpet: [52, 86], bachTrumpetMute: [55, 84], bachHorn: [41, 77], bachTrombone: [40, 72], bachBass: [34, 67] },
+  // D616 (v3): 6 ± 4 ms late by note (was a fixed 12 ms: where two sources fuse and comb), +3 cents, at 0.7 (was 0.8), in
+  // the double's own instrument's seat in the five-voice choir (the second trumpet's, the horn's, the tenor trombone's,
+  // the bass's) and so through its own lane: an entry wider, not thicker.
+  level: 0.7,
+  late: 0.006,
   pan: 0.12,
+  jitter: 0.004,
+  detune: 3,
+  seat: { bachTrumpet: 1, bachHorn: 2, bachTrombone: 3, bachBass: 4 },
+  seatCount: 5,
 };
+/** D616: a double's delay (s) for a note: `late` ± `jitter`, by the note's voice and onset (deterministic). */
+export function unisonLate(spec: UnisonSpec, voice: number, tick: number): number {
+  if (!spec.jitter) return spec.late;
+  let h = (Math.imul(voice + 1, 0x9e3779b1) ^ Math.imul(Math.round(tick) + 7, 0x85ebca6b)) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d) >>> 0;
+  h = (h ^ (h >>> 12)) >>> 0;
+  return spec.late + spec.jitter * ((h / 0xffffffff) * 2 - 1);
+}
 export const BRASS_GROWTH: GrowthSpec = {
   episode: { tone: -3.5, lp: 3000, room: 0.9 },
   subject: { from: -1, to: 0.5, room: 1 },
-  climax: { tone: 3, room: 1.7 },
+  // D611 (v3): the climax +1.5 dB brighter (was +3: on ff recordings the brightest moment was the harshest), its room ×1.7 kept.
+  climax: { tone: 1.5, room: 1.7 },
 };
 
 export interface UnisonSpan {
@@ -85,8 +108,27 @@ export function unisonSpans(f: TouchFugue, ids: readonly (PatchId | null)[], spe
 /** The double for a note (its voice, its onset), or null. */
 export const unisonAt = (spans: readonly UnisonSpan[], voice: number, tick: number): UnisonSpan | null => spans.find((s) => s.voice === voice && tick >= s.on && tick < s.end) ?? null;
 
-/** The growth at a tick: the band note's colour (a shelf, a lowpass in the episodes) and its room's scaling. */
-export function growthAt(f: TouchFugue, tick: number, spec: GrowthSpec = BRASS_GROWTH): { colour: Colour; roomMul: number } {
+/**
+ * D614, BACH BRASS v3: THE EPISODES' MUTES (the research's F3: Frackenpohl's mutes for a terrace, "the color created by the
+ * insertion of a mute also allows the different instruments to blend more easily"). Where the growth veils an episode
+ * (growthAt `veiled`), a band note of `from` within the mute's recordings (`compass`, MIDI: B-flat 3 to A5 and three
+ * semitones either side) sounds on `to`, the straight-muted trumpet; open again in the subject zones and the climax. `lp`:
+ * whether the episode's lowpass stays on the muted note too (the research: the veil from the mute, the lowpass only on the
+ * instruments without one; measured, D614). The band's notes alone (the player's instrument is the player's).
+ */
+export interface MuteSpec {
+  from: PatchId;
+  to: PatchId;
+  compass: readonly [lo: number, hi: number];
+  lp: boolean;
+}
+// (Measured, D614, the episodes with the player on the bass: the straight mute is brighter than the veiled open trumpet,
+// 2-5 kHz +1.3 to +2.1 dB, 5-12 kHz +10 dB in II/5's; with the episode's lowpass kept on it the air back to within 2.6 dB,
+// the mute's colour kept: the veil stays on the muted notes too, the proposal's "lowpass off" not taken.)
+export const BRASS_MUTE: MuteSpec = { from: "bachTrumpet", to: "bachTrumpetMute", compass: [55, 84], lp: true };
+
+/** The growth at a tick: the band note's colour (a shelf, a lowpass in the episodes), its room's scaling, and whether it is veiled (an episode's, D614). */
+export function growthAt(f: TouchFugue, tick: number, spec: GrowthSpec = BRASS_GROWTH): { colour: Colour; roomMul: number; veiled: boolean } {
   const form = formOf(f);
   const ph = phaseAt(form, tick);
   const lastAct = Math.max(1, form.acts - 1);
@@ -99,7 +141,7 @@ export function growthAt(f: TouchFugue, tick: number, spec: GrowthSpec = BRASS_G
   const tone = base.tone + (spec.climax.tone - base.tone) * r;
   const room = base.room + (spec.climax.room - base.room) * r;
   const lp = base.lp && r < 0.5 ? base.lp : 0;
-  return { colour: { tone: Math.round(tone * 100) / 100, ...(lp ? { lp } : {}) }, roomMul: Math.round(room * 1000) / 1000 };
+  return { colour: { tone: Math.round(tone * 100) / 100, ...(lp ? { lp } : {}) }, roomMul: Math.round(room * 1000) / 1000, veiled: ph.phase === "episode" && r < 0.5 };
 }
 
 /** The sounds that double their entries and grow with the form (by preset id). */
@@ -114,8 +156,44 @@ export const CHORO_GROWTH: GrowthSpec = {
   subject: { from: -1.5, to: 0.5, room: 1 },
   climax: { tone: 2, room: 1.5 },
 };
-export const BAND_GROWTH: Readonly<Record<string, { unison?: UnisonSpec; growth?: GrowthSpec }>> = {
-  bachBrass: { unison: BRASS_UNISON, growth: BRASS_GROWTH },
+/**
+ * D612, BACH BRASS v3: THE LOW BRASS'S LENGTHS (the research's F4: a quintet's bass "high, light and articulated, not low and
+ * heavy"; Frackenpohl's tuba walking bass). The tenor and the bass trombone sound a running note of a quaver or shorter
+ * (the next or the note before it in its voice joined to it, as short) `running` of its value, a lone quaver or a dotted
+ * one `mid`, a crotchet or longer `long`: a length, never a note changed. Only where the reading has not joined the note to
+ * the next (Busoni's slurs and ties, phrasing.ts art "join" or an overlap, stay as they are) and only ever shorter than
+ * the reading holds it. Repeated notes re-tongued as before (BRASS_TONGUE). The band's notes alone (the player's length is
+ * the player's touch).
+ */
+export interface LengthSpec {
+  patches: readonly PatchId[];
+  running: number;
+  mid: number;
+  long: number;
+}
+export const BRASS_LENGTHS: LengthSpec = { patches: ["bachTrombone", "bachBass"], running: 0.7, mid: 0.8, long: 0.9 };
+/** The lengths' caps by note ("voice:onset" -> the share of its value at most), for a piece whose voices play `ids`. */
+export function lengthCaps(f: TouchFugue, ids: readonly (PatchId | null)[], spec: LengthSpec = BRASS_LENGTHS): Map<string, number> {
+  const out = new Map<string, number>();
+  const q = f.tpq / 2;
+  f.voices.forEach((vs, v) => {
+    const id = ids[v];
+    if (!id || !spec.patches.includes(id)) return;
+    const ns = [...vs].sort((a, b) => a[0] - b[0]);
+    ns.forEach((n, i) => {
+      const [on, dur] = n;
+      const nx = ns[i + 1];
+      const pv = ns[i - 1];
+      const short = (x: readonly number[] | undefined) => !!x && x[1] <= q;
+      const running = dur <= q && ((!!nx && nx[0] === on + dur && short(nx)) || (!!pv && pv[0] + pv[1] === on && short(pv)));
+      out.set(`${v}:${on}`, running ? spec.running : dur < f.tpq ? spec.mid : spec.long);
+    });
+  });
+  return out;
+}
+
+export const BAND_GROWTH: Readonly<Record<string, { unison?: UnisonSpec; growth?: GrowthSpec; lengths?: LengthSpec; mute?: MuteSpec }>> = {
+  bachBrass: { unison: BRASS_UNISON, growth: BRASS_GROWTH, lengths: BRASS_LENGTHS, mute: BRASS_MUTE },
   chorinho: { growth: CHORO_GROWTH },
 };
 /**

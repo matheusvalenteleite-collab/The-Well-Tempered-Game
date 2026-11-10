@@ -142,6 +142,19 @@ brassTrumpet/ brassTrumpetP/ brassHorn/ brassHornP/ brassTrombone/ brassTrombone
          horn F2-F5, tenor trombone E2-C5, bass trombone Bb1-G4. Changed: mono; cut from the scales by measured pitch; onset
          kept 1 ms before the attack; held on to 4.3 s by crossfaded passages of each note's own steady stretch, a 0.3 s fade;
          each note's steady loudness (K-weighted) evened; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/brass/build_brass.py.
+D609, BACH BRASS v3's main sets at mf (BACH BRASS's alone; the folders above stay SALSA's, ABBEY ROAD's and the others'):
+brassTrumpetMf/ brassTromboneMf/   University of Iowa MIS as above ("may be downloaded and used for any projects, without
+         restrictions"): the 1997 mezzoforte chromatic scales, Bb trumpet without vibrato (Trumpet.novib.mf E3B3, C4B4, C5B5,
+         C6D6) and tenor trombone (TenorTrombone.mf E2B2, C3B3, C4B4, C5); the same pitches, length, loudness and changes as
+         above. Script: tools/playback/brass/build_brass_mf.py.
+D614, BACH BRASS v3's straight-muted trumpet:
+brassTrumpetMute/   VS Chamber Orchestra 2: Community Edition, Versilian Studios (Sam Gossner). CC0 1.0
+         (https://creativecommons.org/publicdomain/zero/1.0/; the README: "use these samples for ANY purpose", credit asked).
+         Source: https://github.com/sgossner/VSCO-2-CE (Brass/Trumpet/straightM-sus, the soft layer v1, rr1; its files named an
+         octave under what they sound: renamed by measured pitch, Bb3 C4 D4 G4 Bb4 D5 F5 A5; the soft D4's hum replaced by the
+         loud D4 darkened by the soft/loud difference by harmonic). Changed: mono, onset kept 1 ms before the attack, cut to
+         4.3 s with a 0.3 s fade, the steady loudness evened as the brass sets; mono 44.1 kHz 80 kbit/s MP3.
+         Script: tools/playback/brass/build_brass_mute.py. Homepage: http://vis.versilstudios.net/vsco-community.html
 D503, the touch game's JAZZ QUARTET (the vibraphone, the double bass pizzicato and the brushes; its piano is grand/ above):
 jazzVibes/ jazzVibesSoft/ jazzVibesHard/  University of Iowa Electronic Music Studios, Musical Instrument Samples (MIS):
          Vibraphone, sustain (motor off, pedal down), mf every semitone C3-F6 (jazzVibes), pp (jazzVibesSoft) and ff
