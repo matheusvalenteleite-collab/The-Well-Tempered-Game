@@ -404,6 +404,8 @@ export function SoundLab() {
               ["busoni", "BUSONI'S DYNAMICS"],
               ["colour", "COLOUR PLANS"],
               ["kit", "BAND'S OWN KIT"],
+              ["sfx", "WORLD SOUNDS (II/1, II/3, II/6)"],
+              ["sweep", "II/4 SWEEP (DROPPED)"],
             ] as const
           ).map(([k, label]) => (
             <button type="button" key={k} className={s[k] ? "on" : ""} onClick={() => change({ [k]: !s[k] } as Partial<LabSettings>)} data-layer={k}>
