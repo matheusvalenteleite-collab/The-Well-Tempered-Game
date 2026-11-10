@@ -29,6 +29,7 @@ import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
 import { ALL_SCORE_STYLES, isScoreStyle, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
 import { tailorBrushes } from "./drum-tailor.ts";
 import type { TouchFugue } from "./fugue.ts";
+import { tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
 import { buildChain, type BandChain } from "./band-fx.ts";
@@ -353,6 +354,78 @@ export const KIT_DRUMS = {
   piece: { kick: 0.8, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.36, ride: 0.42, tomHigh: 0.58, tomLow: 0.62, clap: 0.5, tamb: 0.36, shaker: 0.3, congaHigh: 0.52, congaLow: 0.62, bongo: 0.48, triangle: 0.26, bassDrum: 0.6, timp: 0.85, sideDrum: 0.5, fieldDrum: 0.56, tabor: 0.52, drumStick: 0.34, frameDum: 0.6, frameTek: 0.42, castanets: 0.44, cymbals: 0.34, woodblock: 0.42, claves: 0.36, templeHi: 1, templeLo: 1, ratchet: 1, slapstick: 1, whistleUp: 1, whistleDown: 1, bonk: 1, malletHigh: 1, malletLow: 1, cymSwell: 1, brush: 1 } satisfies Record<KitPiece, number>,
   pan: { kick: 0, snare: -0.05, rim: -0.05, hat: 0.18, openhat: 0.18, crash: -0.22, ride: -0.18, tomHigh: 0.1, tomLow: -0.12, clap: 0, tamb: 0.22, shaker: 0.15, congaHigh: 0.12, congaLow: -0.08, bongo: 0.2, triangle: 0.25, bassDrum: 0, timp: -0.1, sideDrum: -0.06, fieldDrum: 0.04, tabor: -0.04, drumStick: -0.06, frameDum: -0.06, frameTek: 0.1, castanets: 0.14, cymbals: -0.2, woodblock: 0.16, claves: -0.14, templeHi: 0.2, templeLo: -0.12, ratchet: 0.24, slapstick: -0.1, whistleUp: 0.3, whistleDown: -0.3, bonk: 0, malletHigh: 0.12, malletLow: -0.12, cymSwell: -0.2, brush: 0.06 } satisfies Record<KitPiece, number>,
 } as const;
+/** D601: a fugue's first attack (any voice), memoised. */
+const firstOn = new Map<string, number>();
+export function firstOnset(f: TouchFugue): number {
+  let t = firstOn.get(f.id);
+  if (t === undefined) {
+    t = Infinity;
+    for (const v of f.voices) for (const n of v) if (n[0] < t) t = n[0];
+    if (!Number.isFinite(t)) t = 0;
+    firstOn.set(f.id, t);
+  }
+  return t;
+}
+/**
+ * D601: the drums' share of the band's texture at a tick: the voices sounding over the TEXTURE_S after it (each voice
+ * the share of the window its notes fill), against all the fugue's voices, as an amplitude (the energy's square root),
+ * at least TEXTURE_FLOOR where any sounds; 0 where none does (before the first note, a general rest, after the last).
+ */
+export const TEXTURE_S = 0.4;
+export const TEXTURE_FLOOR = 0.12;
+/** D607: under this share (one held note dying, of four voices) the drums hold off altogether. */
+export const TEXTURE_SILENT = 0.075;
+/** D607: a note's share of the texture as it is held: e^(-held/HELD_S), at least HELD_MIN. */
+export const HELD_S = 2;
+export const HELD_MIN = 0.25;
+/** D601: the texture's exponent on the amplitude (one voice of four: 1/4, 12 dB under the four (D607: 0.75 before)). */
+export const TEXTURE_EXP = 1;
+/** D601: the lowest voice's share of the texture (a phone's speaker hears the bass through its overtones only). */
+export const BASS_TEXTURE = 0.5;
+/** D601: a roll's or a fill's strokes at this share; an accent at most this; the strokes after the last chord's attack at this. */
+export const ROLL_SHARE = 0.65;
+export const ACCENT_MAX = 0.55;
+export const RING_SHARE = 0.3;
+const lastOn = new Map<string, number>();
+export function lastOnset(f: TouchFugue): number {
+  let t = lastOn.get(f.id);
+  if (t === undefined) {
+    t = 0;
+    for (const v of f.voices) for (const n of v) if (n[0] > t) t = n[0];
+    lastOn.set(f.id, t);
+  }
+  return t;
+}
+const texMemo = new Map<string, { span: number; at: Float32Array }>();
+export function textureGain(f: TouchFugue, tick: number): number {
+  let m = texMemo.get(f.id);
+  if (!m) {
+    // per sixteenth of a beat: the sounding voices' share of the window from there
+    const span = Math.max(1, Math.round(f.tpq / 8));
+    const tps = (tempoOf(f.id) * f.tpq) / 60;
+    // D607: a held note's share falling as it is held (a plucked or struck note dies away; a held one counted less)
+    const held = (s: number) => Math.max(HELD_MIN, Math.exp(-Math.max(0, s) / HELD_S));
+    const n = Math.ceil(f.length / span) + 2;
+    const cover = new Float32Array(n);
+    f.voices.forEach((v, u) => {
+      const w = u === f.voices.length - 1 && f.voices.length > 1 ? BASS_TEXTURE : 1;
+      for (const [on, dur] of v) for (let i = Math.floor(on / span); i * span < on + dur && i < n; i++) cover[i] += w * held((i * span - on) / tps) * Math.min(1, (Math.min(on + dur, (i + 1) * span) - Math.max(on, i * span)) / span);
+    });
+    const win = Math.max(1, Math.round((tps * TEXTURE_S) / span));
+    const at = new Float32Array(n);
+    let acc = 0;
+    for (let i = n - 1; i >= 0; i--) {
+      acc += cover[i] - (i + win < n ? cover[i + win] : 0);
+      at[i] = Math.max(0, acc / win);
+    }
+    m = { span, at };
+    texMemo.set(f.id, m);
+  }
+  const i = Math.max(0, Math.min(m.at.length - 1, Math.floor(tick / m.span)));
+  const s = m.at[i] / (f.voices.length > 1 ? f.voices.length - 1 + BASS_TEXTURE : 1);
+  if (s < TEXTURE_SILENT) return 0;
+  return Math.max(TEXTURE_FLOOR, Math.min(1, s ** TEXTURE_EXP));
+}
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
   const c = new Float32Array(1025);
@@ -434,7 +507,9 @@ export const SCORE_MIX: Readonly<Record<ScoreStyle, { share: number; phone: numb
  * body is under 600 Hz: the side drum measured 13 dB quieter on the phone model than in full): their harmonics made on a
  * phone, as the timpani's (lowHarmonics).
  */
-const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek", "drumStick"]);
+// D600: not the stick (a click with no body under 600 Hz: its "harmonics" were the click itself soft-clipped, II/5's street
+// beat at or over the band on the phone model).
+const PHONE_LOW_PIECES: ReadonlySet<KitPiece> = new Set(["sideDrum", "fieldDrum", "frameDum", "frameTek"]);
 /** D567-D572: the pieces synthesized by Chip.toon (no recording: the slapstick's and the swell's). */
 export const TOON_PIECES: ReadonlySet<KitPiece> = new Set(["templeHi", "templeLo", "ratchet", "slapstick", "whistleUp", "whistleDown", "bonk", "malletHigh", "malletLow", "cymSwell", "brush"]);
 /** D567-D572: each synthesized piece's level (on chip.ts drum's scale; measured with its style, scratchpad/fix3). */
@@ -3980,6 +4055,28 @@ export class Chip {
    * audio clock and the velocity it is played at; `sound` then strikes it.
    */
   scheduleKitHit(e: KitEvent, sound: (when: number, vel: number) => void) {
+    // D601: never over silence: no stroke before the fugue's first note (a style's bar begun before an upbeat subject:
+    // I/3's kit, I/5's march struck alone a beat or more before the music; the drums sit under the band, and there is none).
+    const f = this.drumF;
+    if (f && e.tick < firstOnset(f) - 1) return;
+    // D601: and under the band's texture: a stroke as soft as the voices sounding over the 400 ms after it are few (the
+    // energy with the share of the voices sounding: one voice of four 6 dB under the four), none where none sounds.
+    // The rolls' and fills' dense strokes a share under their written level, an accent at most ACCENT_MAX; past the last
+    // chord's attack (and with it, but its accent) the drums let it ring (RING_SHARE).
+    if (f) {
+      let g = textureGain(f, e.tick);
+      if (g <= 0) return;
+      if (e.role === "roll" || e.role === "fill") g *= ROLL_SHARE;
+      if (e.tick > lastOnset(f) + f.tpq / 4) {
+        // past the last chord: only a roll dying under it (the timpani's), softly; no groove on a chord left to ring
+        if (e.role !== "roll") return;
+        g *= RING_SHARE;
+      }
+      else if (e.tick >= lastOnset(f) - 1 && e.role !== "accent") g *= RING_SHARE * RING_SHARE;
+      let v = e.vel * g;
+      if (e.role === "accent") v = Math.min(v, ACCENT_MAX);
+      if (v !== e.vel) e = { ...e, vel: v };
+    }
     this.kitEvents.push(e);
     if (this.kitEvents.length > 1024) this.kitEvents.splice(0, 512);
     sound(e.when, e.vel);
@@ -4300,7 +4397,7 @@ export class Chip {
     const bb = tailorBrushes(cx?.piece ?? this.drumF, cx?.tick ?? 0, cx?.beat ?? 1, beatS, brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS));
     const tk = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
     for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.brushHit(h.piece, w, v));
-    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w, v) => this.brushSweep({ ...s, peak: v }, w, s.len * beatS)); // D607: at the level the choke point gives it
   }
 
   /** D503: the brush kit's output for one sound: its level, its seat, the cut under the bass, and its share of the club. */
@@ -4555,7 +4652,7 @@ export class Chip {
       const t = at + h.at * beatS;
       this.scheduleKitHit({ voice: "bossa", style: "bossa", piece: h.piece, tick: tk(h.at), when: t, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => (h.piece === "kick" || h.piece === "rim" ? this.bossaHit(h.piece, w, v) : this.brushHit(h.piece, w, v, BOSSA_DRUMS)));
     }
-    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS, BOSSA_DRUMS));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w, v) => this.brushSweep({ ...s, peak: v }, w, s.len * beatS, BOSSA_DRUMS));
   }
 
   /** D521: the cross-stick or the bass drum (Big Rusty's, as recorded: the soft or the firm stroke by `vel`). */

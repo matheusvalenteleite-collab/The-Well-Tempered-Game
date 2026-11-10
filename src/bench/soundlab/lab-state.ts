@@ -13,6 +13,8 @@
  *   lv      the mixer, dB per voice (0,-3,0,2)
  *   b       the A/B's second setting, "sound:drums[:style]" (b=pianoSampled:0, b=own:1:triphop)
  */
+import { openingStep } from "../../touch/tempi.ts";
+
 export type TempoStep = "slow" | "default" | "fast";
 export interface LabSettings {
   piece: string;
@@ -47,7 +49,8 @@ export interface LabLink {
   b: ABSlot | null;
 }
 
-export const defaults = (piece: string): LabSettings => ({ piece, sound: null, drums: 0, style: null, tempo: "default", voice: null, form: true, climax: true, busoni: true, colour: true, kit: true, mute: [], solo: null, levels: [] });
+// D594: the tempo the piece opens on (tempi.ts OPENING_STEP), as in the game.
+export const defaults = (piece: string): LabSettings => ({ piece, sound: null, drums: 0, style: null, tempo: openingStep(piece), voice: null, form: true, climax: true, busoni: true, colour: true, kit: true, mute: [], solo: null, levels: [] });
 
 const ints = (s: string | null): number[] => (s ? s.split(",").map((x) => Number(x)).filter((x) => Number.isFinite(x)) : []);
 
@@ -92,7 +95,7 @@ export function linkOf(s: LabSettings, bar?: number | null, b?: ABSlot | null): 
   if (s.drums) q.push(`drums=${s.drums}`);
   if (s.style) q.push(`style=${encodeURIComponent(s.style)}`);
   if (bar !== undefined && bar !== null && bar > 0) q.push(`bar=${bar}`);
-  if (s.tempo !== "default") q.push(`tempo=${s.tempo}`);
+  if (s.tempo !== openingStep(s.piece)) q.push(`tempo=${s.tempo}`);
   if (s.voice !== null) q.push(`voice=${s.voice}`);
   for (const k of ["form", "climax", "busoni", "colour", "kit"] as const) if (!s[k]) q.push(`${k}=0`);
   if (s.mute.length) q.push(`mute=${s.mute.join(",")}`);

@@ -18,7 +18,7 @@
  */
 import { lang, type Lang } from "../i18n/index.ts";
 import { MORE_INDEX, CHORALE_INDEX } from "../touch/fugue.ts";
-import { MORE_TEMPO, TEMPO, type PieceTempo } from "../touch/tempi.ts";
+import { MORE_TEMPO, TEMPO, fastTempo, openingStep, type PieceTempo } from "../touch/tempi.ts";
 
 export type TempoStep = "slow" | "default" | "fast";
 export const TEMPO_STEPS: readonly TempoStep[] = ["slow", "default", "fast"];
@@ -33,14 +33,8 @@ export const stepWord = (s: TempoStep): string => STEP_WORDS[lang()][s];
 /** The game's load (D312): the busiest line at most 5.5 notes a second. */
 export const STEP_LOAD = 5.5;
 export const SLOW_SHARE = 0.75;
-// D481 (the owner: "some fugues' fast tempo is quite conservative and similar to standard. The fast version
-// ought to be faster"): FAST 1.4× the default, never less than 1.3×, and its own load cap (FAST_LOAD, a
-// challenge chosen by the player) instead of the default's 5.5 notes a second.
-export const FAST_SHARE = 1.4;
-/** FAST at least this much quicker than DEFAULT, even past the load (where DEFAULT is already at it). */
-export const FAST_MIN_SHARE = 1.3;
-/** D481: the busiest line's notes a second FAST may reach (DEFAULT keeps STEP_LOAD). */
-export const FAST_LOAD = 7.5;
+// D481: FAST_SHARE, FAST_MIN_SHARE, FAST_LOAD (and fastTempo) live in tempi.ts since D594 (the opening tempo reads them).
+export { FAST_SHARE, FAST_MIN_SHARE, FAST_LOAD, OPENING_STEP, openingStep } from "../touch/tempi.ts";
 /** A chorale: ♩ 48 · 60 · 76. */
 export const CHORALE_SHARES = { slow: 48 / 60, fast: 76 / 60 } as const;
 
@@ -72,9 +66,8 @@ export function stepTempi(id: string): Record<TempoStep, number> | null {
   if (!t || !kind) return null;
   const d = t.normal;
   if (kind === "chorale") return { slow: Math.round(d * CHORALE_SHARES.slow), default: d, fast: Math.round(d * CHORALE_SHARES.fast) };
-  // The busiest line at DEFAULT, in notes a second: the cap is the tempo where it reaches STEP_LOAD.
-  const cap = t.busiest > 0 ? (d * FAST_LOAD) / t.busiest : Infinity;
-  return { slow: Math.round(d * SLOW_SHARE), default: d, fast: Math.round(Math.max(d * FAST_MIN_SHARE, Math.min(d * FAST_SHARE, cap))) };
+  // The busiest line at DEFAULT, in notes a second: FAST's cap is the tempo where it reaches FAST_LOAD (tempi.ts fastTempo).
+  return { slow: Math.round(d * SLOW_SHARE), default: d, fast: fastTempo(t) };
 }
 
 /** The tempo in the meter's beat, for the button ("♩. 44"). */
@@ -94,19 +87,20 @@ export const tempoOpen = (id: string, full: boolean, gradedA: boolean): boolean 
 
 export const nextStep = (s: TempoStep): TempoStep => TEMPO_STEPS[(TEMPO_STEPS.indexOf(s) + 1) % TEMPO_STEPS.length];
 
-/** Kept on the device, a step for each piece (DEFAULT where none). */
+/** Kept on the device, a step for each piece (where none, the step it opens on: DEFAULT, or D594's FAST, tempi.ts OPENING_STEP). */
 export const TEMPO_STEP_KEY = "tb-lite-tempo-v1";
 export function readSteps(): Record<string, TempoStep> {
   try {
     const o = JSON.parse(localStorage.getItem(TEMPO_STEP_KEY) ?? "{}") as Record<string, unknown>;
-    return Object.fromEntries(Object.entries(o).filter(([, v]) => v === "slow" || v === "fast")) as Record<string, TempoStep>;
+    return Object.fromEntries(Object.entries(o).filter(([, v]) => v === "slow" || v === "fast" || v === "default")) as Record<string, TempoStep>;
   } catch {
     return {};
   }
 }
 export function saveStep(id: string, step: TempoStep): Record<string, TempoStep> {
   const next = { ...readSteps() };
-  if (step === "default") delete next[id];
+  // D594: what the piece opens on is not stored; DEFAULT is, on a piece that opens on FAST.
+  if (step === openingStep(id)) delete next[id];
   else next[id] = step;
   try {
     localStorage.setItem(TEMPO_STEP_KEY, JSON.stringify(next));

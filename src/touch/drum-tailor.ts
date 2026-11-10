@@ -17,6 +17,7 @@
  *       and climax; elsewhere a stick on the closed hats in the entries and, in the episodes, the hi-hat's foot, the
  *       feathered kick and a cross-stick alone.
  *   I/20 (LIEBEZEIT): the loop's variations each six bars, a high tom's call on each entry's first note (rhythm only).
+ *   II/22 (LIEBEZEIT, D595): the same, on its 3/2's minims at FAST.
  */
 import { fugueById, type TouchFugue } from "./fugue.ts";
 import { formOf, phaseAt } from "./form-points.ts";
@@ -99,7 +100,47 @@ export const GRID_TAILORS: Readonly<Record<string, Readonly<Record<string, GridT
       },
     },
   },
+  // D595: II/22 on KRAUTROCK (the owner: "sounds much cooler as Krautrock and fast tempo as default").
+  wtc2f22: {
+    liebezeit: {
+      why: "II/22 b flat, 101 bars of 3/2 at FAST (a minim of 0.73 s, inside the loop's 62-104 a beat; DEFAULT's 59 under it): the trance's triple loop on the minims, each variation held six bars (about 13 s), the high tom's call on each entry's first note (24 entries, the subject and its inversion in stretto), none a fill. D607: the loop grows into the final group (the climax's ramp, form-points.ts phaseAt): the toms interlocking in the steps the loop leaves open, the snare's ghosts between, the hats doubled, past the climax's half an open hat on each minim's last sixteenth; no fill, nothing pitched.",
+      grid: (st) => ({ ...st, hold: 6 }),
+      hits: (hits0, cx, f) => {
+        const fp = formOf(f);
+        let hits = hits0;
+        const on = entryIn(f, cx.tick, cx.beat);
+        if (on !== null && cx.tick < fp.last - cx.beat) {
+          const at = (on - cx.tick) / cx.beat;
+          const near = hits.some((h) => h.piece === "tomHigh" && Math.abs(h.at - at) * cx.beatS < 0.11);
+          if (!near) hits = [...hits, { piece: "tomHigh", at, vel: 0.36, role: "accent" }];
+        }
+        return trance22(hits, cx, f);
+      },
+    },
+  },
 };
+
+/** D607: II/22's trance grown by the climax's ramp: the interlocking toms, the snare's ghosts, the open hat past its half. */
+export const TRANCE_GROW = { tom: [0.16, 0.3], ghost: 0.12, hat: [0.12, 0.2], hatFrom: 0.25, openhat: 0.3, openFrom: 0.5 } as const;
+function trance22(hits: KitHit[], cx: KitContext, f: TouchFugue): KitHit[] {
+  const fp = formOf(f);
+  const ph = phaseAt(fp, cx.tick);
+  const r = ph.climax;
+  if (r <= 0 || cx.tick >= fp.last - cx.beat / 2 || ph.phase === "episode") return hits;
+  const steps = Math.max(1, Math.min(4, Math.floor(cx.beatS / 0.15)));
+  const out = [...hits];
+  const at = (j: number) => j / steps;
+  const has = (j: number, ps: string[]) => out.some((h) => Math.abs(h.at - at(j)) * cx.beatS < 0.06 && ps.includes(h.piece));
+  const beatN = Math.round(cx.tick / cx.beat);
+  for (let j = 0; j < steps; j++) {
+    if (j % 2 === 1 && !has(j, ["tomHigh", "tomLow"])) out.push({ piece: (beatN + j) % 3 === 0 ? "tomHigh" : "tomLow", at: at(j), vel: TRANCE_GROW.tom[0] + (TRANCE_GROW.tom[1] - TRANCE_GROW.tom[0]) * r });
+    else if (j > 0 && !has(j, ["snare", "tomHigh", "tomLow"])) out.push({ piece: "snare", at: at(j), vel: TRANCE_GROW.ghost * (0.6 + 0.4 * r) });
+  }
+  // the hats doubled between the loop's sixteenths (the drummer's hand opening up), never closer than 0.085 s
+  if (r >= TRANCE_GROW.hatFrom && cx.beatS / steps / 2 >= 0.085) for (let j = 0; j < steps; j++) out.push({ piece: "hat", at: (j + 0.5) / steps, vel: TRANCE_GROW.hat[0] + (TRANCE_GROW.hat[1] - TRANCE_GROW.hat[0]) * r });
+  if (r >= TRANCE_GROW.openFrom && steps > 1 && !has(steps - 1, ["openhat"])) out.push({ piece: "openhat", at: at(steps - 1), vel: TRANCE_GROW.openhat });
+  return out;
+}
 
 const gridMemo = new Map<string, GridStyle>();
 /** A style's pattern tailored for a fugue (undefined: as written). */

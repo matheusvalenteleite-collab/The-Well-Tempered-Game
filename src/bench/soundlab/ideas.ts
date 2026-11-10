@@ -10,6 +10,7 @@
 import { homeFor, isStyle } from "../../touch/drum-library.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { defaults, type LabSettings, type TempoStep } from "./lab-state.ts";
+import { openingStep } from "../../touch/tempi.ts";
 
 export type IdeaKind = "own" | "safe" | "tailored" | "coming";
 export interface Idea {
@@ -46,13 +47,14 @@ export const IDEAS: readonly Idea[] = [
   I("pinball-arcade", "own", "wtc1f15", "megaFm", "arcade", 1, "The bouncing 6/8 gigue on the FM chip, an arcade's kit: the pinball table."),
   I("stooges-vaudeville", "own", "wtc1f19", "vaudeville", "stooges", 1, "The 9/8 scherzo's skips and rests for a slapstick pit band: xylophone, clarinet, bassoon."),
   I("loco-liebezeit", "own", "wtc1f20", "krautrock", "liebezeit", 1, "Eighty-seven bars of A minor over a Tago Mago loop: toms and hats interlocking."),
-  I("finale-orchestra", "own", "wtc1f24", "orchestraOrgan", "timpani", 63, "Book I's last fugue from bar 63: the winds held back, then the organ arriving at the final group."),
+  // D594-D595: I/24 on SID 64 and II/22 on KRAUTROCK, both at FAST (their opening step); I/24's orchestra now TAILORED.
+  I("faust-sid", "own", "wtc1f24", "sid64", "scoreSynth", 63, "Book I's last fugue at FAST on the SID chip from bar 63: the synth kit's staged build to the last entry's crash."),
+  I("colossus-liebezeit", "own", "wtc2f22", "krautrock", "liebezeit", 27, "The B-flat minor stretti at FAST on the krautrock band, a Tago Mago loop on the minims."),
   I("switchboard-house", "own", "wtc2f03", "sid64", "house", 1, "C-sharp major on the SID chip with a 909 under it."),
   I("machine-idm", "own", "wtc2f04", "gameboy", "idm", 1, "A 12/16 perpetual motion on the handheld, glitched: the displaced kicks find the compound beat."),
   I("masquerade-bebop", "own", "wtc2f12", "jazzQuartet", "bebop", 1, "F minor 2/4 for the quartet, with the ride quick and the bombs off the beat."),
   I("sea-swell", "own", "wtc2f18", "fluteHarp", "swell", 1, "The G-sharp minor 6/8 flowing on alto flute, harp and cello, mallets and cymbal swells."),
   I("lastdance-synth", "own", "wtc2f24", "analog", "arcade", 1, "The 3/8 passepied on Carlos's analog voices, bouncing on an arcade's chip kit."),
-  I("lastdance-kit", "tailored", "wtc2f24", "analog", "scoreSynth", 1, "The same passepied with the synth kit reading its score: the subject's rhythm on the snare."),
   I("coronation-march", "own", "wtc1f05", "bachBrass", "march", 1, "The French overture's dotted rhythm on a march snare: rudiments, flams, rolls into the entries."),
   I("belltower-march", "own", "wtc2f05", "bachBrass", "march", 1, "The D major alla breve from a tower: the bass drum on the strong beats, the snare on the subject."),
   // SAFE: the sound's own drummer or its family's, idiomatic in the metre.
@@ -67,10 +69,13 @@ export const IDEAS: readonly Idea[] = [
   I("coronation-military", "tailored", "wtc1f05", "bachBrass", "military", 1, "The D major's dotted French-overture rhythm on a Lully side drum."),
   I("ombra-castanets", "tailored", "wtc2f16", "baroqueBand", "castanets", 1, "The G minor 3/4 on the baroque band, castanets on its lilting subject: a dark Spanish courante."),
   I("lantern-swing", "tailored", "wtc1f14", "jazzQuartet", "jazz", 1, "The F-sharp minor 6/4 on the ride's swing in twelve: the quartet's compound beat."),
-  I("quake-break", "tailored", "wtc2f20", "analog", "breakbeat", 1, "The chromatic A minor at 58 on the analog voices over a heavy funk break."),
+  // D594: D590's orchestral finale, no longer I/24's own: the strings, the winds held back, the organ at the final group.
+  I("finale-orchestra", "tailored", "wtc1f24", "orchestraOrgan", "timpani", 63, "Book I's last fugue from bar 63: the winds held back, then the organ arriving at the final group."),
 ];
 
 /** The candidates the proxy dropped (rendered, then read against the fugue's onsets), with the reason: not to offer again. */
+// (D594: lastdance-kit, II/24 a second time on another kit, and quake-break, II/20 over a funk break, the nearest to a bold
+// mismatch, left out to keep the list at 25 with I/24's and II/22's new own entries.)
 export const DROPPED: Readonly<Record<string, string>> = {
   "wtc1f15/linn": "6/8: the LinnDrum no longer FITS a compound metre (S1's final FITS); its 6/8 is a plain backbeat",
   "wtc1f14/ballad": "6/4: hats in triplet quarters against straight quavers, 42% on the music's grid",
@@ -102,5 +107,5 @@ export const ideaPlayable = (it: Idea): boolean => isStyle(it.style);
 /** An idea as the lab's whole setting: its fugue, its sound (null where it is the fugue's own), the drums on with its style. */
 export function ideaSettings(it: Idea): LabSettings {
   const own = (PIECE_SOUND[it.piece] ?? "chip") === it.sound;
-  return { ...defaults(it.piece), sound: own ? null : it.sound, drums: 1, style: it.style === homeFor(it.piece, it.sound) ? null : it.style, tempo: it.tempo ?? "default", ...(it.layers ?? {}) };
+  return { ...defaults(it.piece), sound: own ? null : it.sound, drums: 1, style: it.style === homeFor(it.piece, it.sound) ? null : it.style, tempo: it.tempo ?? openingStep(it.piece), ...(it.layers ?? {}) };
 }

@@ -96,7 +96,11 @@ test("D522: full under an entry (tamborim, agogo), quieter in an episode (the ga
   const on3 = f.bars.find((b) => b.n === 3)!.on;
   const on17 = f.bars.find((b) => b.n === 17)!.on;
   assert.ok(inEntry(plan, on3) && !inEntry(plan, on17));
-  assert.ok(latinBeat("chorinho", plan, on3, beat).some((h) => h.piece === "tamborim"));
+  // D604 (changed deliberately): the exposition the pandeiro's alone, the tamborim joining from the first middle act (bar 21).
+  assert.ok(latinBeat("chorinho", plan, on3, beat).some((h) => h.piece === "pandJingle"));
+  assert.ok(!latinBeat("chorinho", plan, on3, beat).some((h) => h.piece === "tamborim"));
+  const on23 = f.bars.find((b) => b.n === 23)!.on;
+  assert.ok(inEntry(plan, on23) && latinBeat("chorinho", plan, on23, beat).some((h) => h.piece === "tamborim"));
   assert.ok(latinBeat("chorinho", plan, on17, beat).some((h) => h.piece === "ganza"));
   assert.ok(!latinBeat("chorinho", plan, on17, beat).some((h) => h.piece === "tamborim"));
   const brk = plan.fills.find((x) => x.kind === "break")!;

@@ -108,7 +108,7 @@ import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
-import { isWtcFugue, nextStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
+import { isWtcFugue, nextStep, openingStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -424,7 +424,8 @@ export function BenchApp() {
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
-  const stepOf = (id: string): TempoStep => (opensTempo(id) ? (tempoSteps[id] ?? "default") : "default");
+  // D594: where nothing is chosen (or the button is shut), the step the piece opens on (tempi.ts OPENING_STEP: I/24's, II/22's FAST).
+  const stepOf = (id: string): TempoStep => (opensTempo(id) ? (tempoSteps[id] ?? openingStep(id)) : openingStep(id));
   const tempi = opensTempo(f.id) ? stepTempi(f.id) : null;
   const step = stepOf(f.id);
   const bpm = run ? run.bpm : tempi ? tempi[step] : tempoOf(f.id);
