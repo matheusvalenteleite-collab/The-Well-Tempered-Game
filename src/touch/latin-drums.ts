@@ -64,6 +64,8 @@ export interface LatinPlan {
   end: number;
   /** D604: the fugue's form (form-points.ts), for CHORINHO's arc (`choroStage`). */
   form?: Form;
+  /** D607: spans (ticks) where the percussion holds its breath with the band (LATIN_HUSH). */
+  rests?: readonly [from: number, to: number][];
 }
 
 /** A fill's beats when a moment does not say; the final's; the generic rule's spacing (beats). */
@@ -119,6 +121,14 @@ export const LATIN_SCRIPTS: Readonly<Record<string, readonly LatinMoment[]>> = {
     { bar: 76, beat: 0.5, kind: "break", why: "the last entry, the soprano's: the regional stops for a beat and lands it together" },
     { bar: 83, kind: "final", why: "the final cadence in C: the pandeiro's roll and the last chord struck by all" },
   ],
+};
+
+/**
+ * D607: where a fugue's band itself falls silent for a moment the percussion keeps out too (the drum-peak audit: II/10's
+ * band under -50 LUFS for 400 ms in bar 31, the groove's timbal bell and conga over it): bar, beat, beats.
+ */
+export const LATIN_HUSH: Readonly<Record<string, readonly { bar: number; beat: number; beats: number }[]>> = {
+  wtc2f10: [{ bar: 31, beat: 0.5, beats: 0.5 }],
 };
 
 /** The subject's entries (and answers) as spans, through entrySpans (the countersubjects left out). */
@@ -194,7 +204,8 @@ export function latinPlan(f: TouchFugue, beat: number, per: number): LatinPlan {
     const beats = m.beats ?? (m.kind === "fill" ? FILL_BEATS : m.kind === "final" ? FINAL_BEATS : 1);
     return { kind: m.kind, from: Math.max(0, at - beats * beat), at, why: m.why };
   });
-  const plan: LatinPlan = { id: f.id, pulse, cycle, ternary, bar1: barOn(f, 1), entries: entriesOf(f), fills, end: f.length, form: formOf(f) };
+  const rests = (LATIN_HUSH[f.id] ?? []).map((h) => [barOn(f, h.bar) + h.beat * beat, barOn(f, h.bar) + (h.beat + h.beats) * beat] as [number, number]);
+  const plan: LatinPlan = { id: f.id, pulse, cycle, ternary, bar1: barOn(f, 1), entries: entriesOf(f), fills, end: f.length, form: formOf(f), rests };
   plans.set(key, plan);
   return plan;
 }
@@ -392,6 +403,7 @@ export function latinBeat(band: LatinBand, plan: LatinPlan, tick: number, beat: 
       if (land.kind === "final") break;
     }
     if (plan.fills.some((x) => x.kind === "break" && t >= x.from - q && t < x.at - q)) continue;
+    if (plan.rests?.some(([a, z]) => t >= a - q && t < z - q)) continue;
     const r = plan.fills.find((x) => x.kind !== "break" && t >= x.from - q && t < x.at - q);
     if (r) {
       const steps = Math.max(1, Math.round((r.at - r.from) / plan.pulse));

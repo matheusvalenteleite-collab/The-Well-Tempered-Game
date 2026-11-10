@@ -76,6 +76,8 @@ const jobs = JSON.parse(fs.readFileSync(jobsFile, 'utf8'));
       };
       const kit = [];
       { const o2 = ch.scheduleKitHit.bind(ch); ch.scheduleKitHit = (e, snd) => { const before = ch.kitEvents.at(-1); o2(e, snd); const x = ch.kitEvents.at(-1); if (x && x !== before) kit.push([+x.tick.toFixed(1), +x.when.toFixed(4), x.piece, +x.vel.toFixed(3), x.role ?? null]); }; }
+      // the band alone: no drummer at all (a band's own, with DRUMS off, silenced too: D607)
+      if (job.mode === 'band') ch.scheduleKitHit = () => {};
       if (job.mode === 'drums') { const o = ch.note.bind(ch); ch.note = (m, at, d, v, pl = {}) => o(m, at, d, v, { ...pl, level: 1e-6 }); }
       const proto = protoById('ladder');
       const g = new ProtoGame(f, [0], 0, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false }, ch);

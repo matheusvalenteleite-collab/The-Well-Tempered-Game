@@ -135,6 +135,8 @@ export const JITTER_S = 0.005;
 export const ROLL_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.25, military: 0.4, fieldDrums: 0.45, castanets: 0.55, frame: 0.45, timpani: 0.8 };
 /** D601: a roll inside an episode (into the next entry) at this share besides: the band there veiled or thinner. */
 export const EPISODE_ROLL = 0.6;
+/** D607: a hushed arrival's roll and accents at this share (TweakSet.hush). */
+export const HUSH = 0.45;
 /** D601: a roll's landing on the entry (its first piece, the rest): 2.52's 0.6 and 0.42 over the entering voice (I/5's last entry). */
 export const LAND_VEL = [0.45, 0.32] as const;
 export const ACCENT_GAIN: Partial<Record<ScoreStyle, number>> = { march: 0.75, military: 0.7, fieldDrums: 0.8, frame: 0.85 };
@@ -161,6 +163,11 @@ export interface TweakSet {
   rolls?: "acts" | "final" | "none";
   cadences?: "all" | "perfect";
   skip?: number[];
+  /**
+   * D607: bars whose arrival is hushed: the roll into it (the bar before it) and every stroke of its first beat at
+   * HUSH (the drum-peak audit's last strokes over the band: a thin moment before an entry).
+   */
+  hush?: number[];
   pedal?: boolean;
   level?: number;
   /**
@@ -177,7 +184,7 @@ export interface Tweak extends TweakSet {
   why: string;
   styles?: Partial<Record<ScoreStyle, TweakSet & { why?: string }>>;
 }
-const DEFAULT: Required<TweakSet> = { thr: 1, perBar: 2, subject: "all", rolls: "acts", cadences: "all", skip: [], pedal: true, level: 1, stage: 1, climaxKit: false, entryRolls: false };
+const DEFAULT: Required<TweakSet> = { thr: 1, perBar: 2, subject: "all", rolls: "acts", cadences: "all", skip: [], hush: [], pedal: true, level: 1, stage: 1, climaxKit: false, entryRolls: false };
 /** D565-D570: the new score-driven styles' own defaults (a fugue's tweak over them). */
 const STYLE_DEFAULT: Partial<Record<ScoreStyle, TweakSet>> = { march: { entryRolls: true }, swell: { subject: "head", perBar: 1 } };
 
@@ -214,6 +221,8 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
   wtc1f05: {
     why: "I/5 D, the French overture among the fugues: the subject's run of demisemiquavers and its dotted quavers, the overture's rhythm, on the drum in every entry (the run thinned to a roll's strokes); the bass runs too, so only its leaps and its long notes struck. MILITARY is its curated style: Lully's side drum.",
     thr: 1.2,
+    // D607: the cadence of bar 17 and the final group's entry (bar 20), each out of a thin bar: their rolls and first beats hushed.
+    hush: [17, 20],
     styles: { military: { perBar: 2, why: "the side drum doubles the dotted rhythm" }, janissary: { subject: "head" }, fieldDrums: { subject: "head" }, march: { perBar: 1, thr: 1.3, subject: "all", entryRolls: true, why: "MARCH, BACH BRASS's HOME: the side drum takes the overture's whole subject (the run as a roll's strokes, the dotted rhythm flammed), a drag and a five-stroke roll into each entry after a pause, the bass drum on 1 and 3 and on the bass's heaviest leap a bar, the cymbals on the arrivals (bars 9, 17, 21, 23 and the acts')" } },
   },
   wtc1f09: {
@@ -233,6 +242,8 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     perBar: 1,
     subject: "head",
     rolls: "final",
+    // D607: the cadence in bar 46 (its carretilla and accent over the passepied's thin bar) hushed.
+    hush: [46],
   },
   wtc1f13: {
     why: "I/13 F#, 4/4 at 0.94 s, its subject's dotted turn and quavers a light dance: the whole subject's rhythm, the bass's two accents a bar.",
@@ -724,6 +735,8 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
   const out: ScoreStroke[] = [];
   const sorted = strokes.filter((s) => s.vel > 0.01 && s.tick <= fp.end).sort((a, b) => a.tick + sToT(a.dt) - (b.tick + sToT(b.dt)));
   const lastOn = new Map<string, ScoreStroke>();
+  const hushed = tw.hush.map((n) => f.bars.find((b) => b.n === n)?.on).filter((t): t is number => t !== undefined);
+  const hushAt = (s: ScoreStroke) => hushed.some((t) => (s.tick >= t && s.tick < t + beat) || ((s.role === "roll" || s.role === "accent") && s.tick >= t - f.barTicks && s.tick < t));
   for (const s of sorted) {
     const ph = phaseAt(fp, s.tick);
     const form = (ph.phase === "episode" && (s.src === "bass" || s.src === "subject") ? EPISODE_VEL : 1) * (1 + CLIMAX_GAIN * ph.climax) * (1 - RESOLVE_FALL * (s.src === "final" ? 0 : ph.resolved));
@@ -732,7 +745,7 @@ export function scorePlan(f: TouchFugue, style: ScoreStyle): ScorePlan {
     const sx = tw.stage < 1 ? smooth(s.tick / Math.max(1, fp.climax.peak)) : 1;
     if (tw.stage < 1 && (s.src === "bass" || s.src === "subject") && hash(s.tick, 29) > 0.25 + 0.75 * sx) continue;
     const stageG = tw.stage + (1 - tw.stage) * sx;
-    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (s.role === "roll" ? (ROLL_GAIN[style] ?? 1) ** Math.min(1, s.vel / 0.5) * (ph.phase === "episode" ? EPISODE_ROLL : 1) : s.role === "accent" ? (ACCENT_GAIN[style] ?? 1) : 1) * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
+    const t = { ...s, dt: s.dt + (hash(s.tick, 7 + s.piece.length) - 0.5) * 2 * JITTER_S * jit, vel: clamp(s.vel * form * arcAt(s.tick) * tw.level * stageG * (s.role === "roll" ? (ROLL_GAIN[style] ?? 1) ** Math.min(1, s.vel / 0.5) * (ph.phase === "episode" ? EPISODE_ROLL : 1) : s.role === "accent" ? (ACCENT_GAIN[style] ?? 1) : 1) * (hushAt(s) ? HUSH : 1) * (0.96 + 0.08 * hash(s.tick, 13)), 0.02, 1) };
     const k = t.piece + (t.midi ?? "");
     const prev = lastOn.get(k);
     const timeOf = (x: ScoreStroke) => x.tick + sToT(x.dt);

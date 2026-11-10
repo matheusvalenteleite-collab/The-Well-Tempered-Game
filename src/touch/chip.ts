@@ -372,9 +372,14 @@ export function firstOnset(f: TouchFugue): number {
  * at least TEXTURE_FLOOR where any sounds; 0 where none does (before the first note, a general rest, after the last).
  */
 export const TEXTURE_S = 0.4;
-export const TEXTURE_FLOOR = 0.35;
-/** D601: the texture's exponent on the amplitude (one voice of four: (1/4)^0.75, 9 dB under the four). */
-export const TEXTURE_EXP = 0.75;
+export const TEXTURE_FLOOR = 0.12;
+/** D607: under this share (one held note dying, of four voices) the drums hold off altogether. */
+export const TEXTURE_SILENT = 0.075;
+/** D607: a note's share of the texture as it is held: e^(-held/HELD_S), at least HELD_MIN. */
+export const HELD_S = 2;
+export const HELD_MIN = 0.25;
+/** D601: the texture's exponent on the amplitude (one voice of four: 1/4, 12 dB under the four (D607: 0.75 before)). */
+export const TEXTURE_EXP = 1;
 /** D601: the lowest voice's share of the texture (a phone's speaker hears the bass through its overtones only). */
 export const BASS_TEXTURE = 0.5;
 /** D601: a roll's or a fill's strokes at this share; an accent at most this; the strokes after the last chord's attack at this. */
@@ -397,13 +402,16 @@ export function textureGain(f: TouchFugue, tick: number): number {
   if (!m) {
     // per sixteenth of a beat: the sounding voices' share of the window from there
     const span = Math.max(1, Math.round(f.tpq / 8));
+    const tps = (tempoOf(f.id) * f.tpq) / 60;
+    // D607: a held note's share falling as it is held (a plucked or struck note dies away; a held one counted less)
+    const held = (s: number) => Math.max(HELD_MIN, Math.exp(-Math.max(0, s) / HELD_S));
     const n = Math.ceil(f.length / span) + 2;
     const cover = new Float32Array(n);
     f.voices.forEach((v, u) => {
       const w = u === f.voices.length - 1 && f.voices.length > 1 ? BASS_TEXTURE : 1;
-      for (const [on, dur] of v) for (let i = Math.floor(on / span); i * span < on + dur && i < n; i++) cover[i] += w * Math.min(1, (Math.min(on + dur, (i + 1) * span) - Math.max(on, i * span)) / span);
+      for (const [on, dur] of v) for (let i = Math.floor(on / span); i * span < on + dur && i < n; i++) cover[i] += w * held((i * span - on) / tps) * Math.min(1, (Math.min(on + dur, (i + 1) * span) - Math.max(on, i * span)) / span);
     });
-    const win = Math.max(1, Math.round(((tempoOf(f.id) * f.tpq) / 60) * TEXTURE_S / span));
+    const win = Math.max(1, Math.round((tps * TEXTURE_S) / span));
     const at = new Float32Array(n);
     let acc = 0;
     for (let i = n - 1; i >= 0; i--) {
@@ -415,7 +423,7 @@ export function textureGain(f: TouchFugue, tick: number): number {
   }
   const i = Math.max(0, Math.min(m.at.length - 1, Math.floor(tick / m.span)));
   const s = m.at[i] / (f.voices.length > 1 ? f.voices.length - 1 + BASS_TEXTURE : 1);
-  if (s <= 1e-3) return 0;
+  if (s < TEXTURE_SILENT) return 0;
   return Math.max(TEXTURE_FLOOR, Math.min(1, s ** TEXTURE_EXP));
 }
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
@@ -4389,7 +4397,7 @@ export class Chip {
     const bb = tailorBrushes(cx?.piece ?? this.drumF, cx?.tick ?? 0, cx?.beat ?? 1, beatS, brushBeat(b, per, compound, cx?.tick ?? 0, cx?.beat ?? 1, cx?.fills ?? [], cx?.dynDb ?? 0, cx?.end ?? Infinity, beatS));
     const tk = (a: number) => (cx?.tick ?? 0) + a * (cx?.beat ?? 1);
     for (const h of bb.hits) this.scheduleKitHit({ voice: "brush", style, piece: h.piece, tick: tk(h.at), when: at + h.at * beatS, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => this.brushHit(h.piece, w, v));
-    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style, piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w, v) => this.brushSweep({ ...s, peak: v }, w, s.len * beatS)); // D607: at the level the choke point gives it
   }
 
   /** D503: the brush kit's output for one sound: its level, its seat, the cut under the bass, and its share of the club. */
@@ -4644,7 +4652,7 @@ export class Chip {
       const t = at + h.at * beatS;
       this.scheduleKitHit({ voice: "bossa", style: "bossa", piece: h.piece, tick: tk(h.at), when: t, vel: h.vel, ...(h.role ? { role: h.role } : {}), ...(h.dur !== undefined ? { dur: h.dur } : {}) }, (w, v) => (h.piece === "kick" || h.piece === "rim" ? this.bossaHit(h.piece, w, v) : this.brushHit(h.piece, w, v, BOSSA_DRUMS)));
     }
-    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w) => this.brushSweep(s, w, s.len * beatS, BOSSA_DRUMS));
+    for (const s of bb.sweeps) this.scheduleKitHit({ voice: "sweep", style: "bossa", piece: s.piece, tick: tk(s.at), when: at + s.at * beatS, vel: s.peak }, (w, v) => this.brushSweep({ ...s, peak: v }, w, s.len * beatS, BOSSA_DRUMS));
   }
 
   /** D521: the cross-stick or the bass drum (Big Rusty's, as recorded: the soft or the firm stroke by `vel`). */

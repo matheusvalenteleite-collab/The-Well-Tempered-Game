@@ -6,7 +6,8 @@
  * tools/touch/drum-peak/render.cjs and fit.py); the drums' side the engine's every stroke over the whole fugue, as
  * scheduled (Chip.groove through Chip.scheduleKitHit, no audio), each piece's loudness at velocity 1 fitted to the same
  * renders (PIECE_DB, by style and sound); the window's strokes summed as energy (a stroke struck up to TAIL_S before
- * counted at TAIL_W); the model's own error allowed (TOL_DB).
+ * counted at TAIL_W); every stroke at least MARGIN_DB under the band by the model (D607: none over, the fit's error
+ * taken against the drums).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -23,8 +24,11 @@ const WTC = Array.from({ length: 48 }, (_, i) => `wtc${i < 24 ? 1 : 2}f${String(
 /** The window (s) a stroke's loudness is read over (render.cjs: 19 steps of 512 samples at 24 kHz). */
 const WINDOW_S = (19 * 512) / 24000;
 
-/** The model's tolerance (dB): the fit's median error (PIECE_DB's header: about 1 dB a style). */
-const TOL_DB = 1;
+/**
+ * D607: strict: no stroke over the band, and the model's own error (PIECE_DB's header: about 1 dB a style) taken on the
+ * drums' side: each stroke at least MARGIN_DB under the band by the model.
+ */
+const MARGIN_DB = 1;
 /** The band's measured loudness (dB) over the window from the half beat at or around a tick. */
 function bandAt(id: string, tick: number): number {
   const b = BAND[id];
@@ -54,12 +58,12 @@ test("D601: every fugue's drums (HOME and its picks) under the band at every str
         const drum = -0.691 + 10 * Math.log10(Math.max(e, 1e-14)) + lv;
         const band = bandAt(id, x.tick);
         n++;
-        if (drum > band + TOL_DB) bad.push(`${id} ${style} ${x.piece}/${x.role ?? "-"} v${x.vel.toFixed(2)} at tick ${Math.round(x.tick)}: drums ${drum.toFixed(1)} over the band's ${band.toFixed(1)}`);
+        if (drum + MARGIN_DB > band) bad.push(`${id} ${style} ${x.piece}/${x.role ?? "-"} v${x.vel.toFixed(2)} at tick ${Math.round(x.tick)}: drums ${drum.toFixed(1)}, the band ${band.toFixed(1)}`);
       }
     }
   }
   assert.ok(n > 30000, `${n} strokes`);
-  assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes over the band`);
+  assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 
 test("D600: II/5's street beat a tap on the bar, not every beat; the stick no phone harmonics", () => {

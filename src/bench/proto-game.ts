@@ -89,7 +89,7 @@ import { fillsFor } from "../touch/jazz-drums.ts";
 import { LATIN_SOUNDS, latinPlan } from "../touch/latin-drums.ts";
 import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
-import { BAND_GROWTH, growthAt, unisonAt, unisonSpans, type GrowthSpec, type UnisonSpan, type UnisonSpec } from "../touch/band-growth.ts";
+import { BAND_GROWTH, PIECE_GROWTH, growthAt, unisonAt, unisonSpans, type GrowthSpec, type UnisonSpan, type UnisonSpec } from "../touch/band-growth.ts";
 import { busoniReaches, expressiveAll, PATCHES, patchIdFor, pieceLineUp, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
 import { bandTrimDb, entryGain, liftGain, playerToneDb } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
@@ -688,7 +688,8 @@ export class ProtoGame {
     const bg = o.her || f.kind !== "fugue" ? null : BAND_GROWTH[preset().id];
     this.unisons = bg?.unison ? unisonSpans(f, f.voices.map((_, v) => patchIdFor(v, f.voices.length)), bg.unison) : [];
     this.unisonSpec = bg?.unison ?? null;
-    this.growth = bg?.growth ?? null;
+    // D607: or the fugue's own growth on the sound (II/22 on KRAUTROCK).
+    this.growth = (o.her || f.kind !== "fugue" ? null : PIECE_GROWTH[f.id]?.[preset().id]) ?? bg?.growth ?? null;
     if (chip.coupling) chip.coupling = { up: 0, down: 0, split: 48 };
     const b = beatOf(f);
     this.beat = b.ticks;

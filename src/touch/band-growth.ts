@@ -118,3 +118,15 @@ export const BAND_GROWTH: Readonly<Record<string, { unison?: UnisonSpec; growth?
   bachBrass: { unison: BRASS_UNISON, growth: BRASS_GROWTH },
   chorinho: { growth: CHORO_GROWTH },
 };
+/**
+ * D607: II/22 on KRAUTROCK (at FAST, defaults4's): the band brightening and its room opening into the final group with the
+ * trance's growth (drum-tailor.ts), the episodes a shade darker. That fugue only (KRAUTROCK's other fugues as they were).
+ */
+export const KRAUT22_GROWTH: GrowthSpec = {
+  episode: { tone: -1, lp: 0, room: 0.9 },
+  subject: { from: -0.5, to: 0.5, room: 1 },
+  climax: { tone: 2, room: 1.6 },
+};
+/** D607: a fugue's own growth on a sound (in place of the sound's), by fugue then sound. */
+export const PIECE_GROWTH: Readonly<Record<string, Readonly<Record<string, GrowthSpec>>>> = { wtc2f22: { krautrock: KRAUT22_GROWTH } };
+

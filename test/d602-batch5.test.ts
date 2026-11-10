@@ -90,3 +90,20 @@ test("D605: a climax for every fugue: where the zones are not apart, the band br
   assert.equal(c.db, 0);
   assert.ok((c.colour.tone ?? 0) >= CLIMAX_TONE - 1e-9 && (c.colour.room ?? 0) > 0);
 });
+
+test("D608: II/22's trance grown into the final group (denser, no fill or roll), the growth II/22's only", async () => {
+  const { strokesOf } = await import("./drum-strokes.ts");
+  const { tempoOf } = await import("../src/touch/tempi.ts");
+  const { PIECE_GROWTH } = await import("../src/touch/band-growth.ts");
+  const f = fugueById("wtc2f22");
+  const fp = pointsOf(f);
+  const tps = (f.tpq * tempoOf(f.id)) / 60;
+  const s = await strokesOf(f, "krautrock", "liebezeit");
+  const ee = fp.seams[0].end;
+  const fin = fp.seams.find((x) => x.kind === "final")!;
+  const rate = (a: number, z: number) => s.filter((x) => x.tick >= a && x.tick < z).length / ((z - a) / tps);
+  assert.ok(rate(fin.on, fin.end) > 1.4 * rate(ee - 20 * tps, ee), "the loop fuller in the final group");
+  // (D566's soft lift of the snare's ghosts into the final entry and the last bar its own; none else)
+  assert.ok(!s.some((x) => x.tick >= fin.on && (x.role === "fill" || x.role === "roll") && x.tick < fp.last - 2 * f.barTicks), "no fill, no roll");
+  assert.ok(PIECE_GROWTH.wtc2f22.krautrock && !PIECE_GROWTH.wtc1f20);
+});
