@@ -1,6 +1,6 @@
 /**
  * D620-D622: II/6's drum candidates after the owner's "That didn't fit. Try another drum." on HOUSE 909: BREAKBEAT
- * tailored to II/6's score (drum-tailor.ts GRID_TAILORS.wtc2f06), a candidate the owner chooses from, not its HOME.
+ * tailored to II/6's score (drum-tailor.ts GRID_TAILORS.wtc2f06), the owner's choice of D620's candidates: II/6's HOME (D622).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -11,8 +11,8 @@ import { homeFor } from "../src/touch/drum-library.ts";
 import { GRIDS } from "../src/touch/drum-grids.ts";
 import { tailoredGrid } from "../src/touch/drum-tailor.ts";
 
-test("D622: II/6's HOME on SID 64 still HOUSE (the owner chooses first); the tailored break II/6's only", () => {
-  assert.equal(homeFor("wtc2f06", "sid64"), "house");
+test("D622: II/6's HOME on SID 64 the tailored BREAKBEAT (the owner's choice); the tailoring II/6's only", () => {
+  assert.equal(homeFor("wtc2f06", "sid64"), "breakbeat");
   assert.notEqual(tailoredGrid("wtc2f06", "breakbeat", GRIDS.breakbeat), GRIDS.breakbeat);
   assert.equal(tailoredGrid("wtc2f04", "breakbeat", GRIDS.breakbeat), GRIDS.breakbeat);
   assert.equal(tailoredGrid("wtc2f06", "house", GRIDS.house), GRIDS.house);

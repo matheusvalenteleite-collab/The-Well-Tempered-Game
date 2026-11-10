@@ -229,7 +229,10 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   // D603: II/6 (the owner: the drums "don't fit … it wants something energetic and dancey"): HOUSE 909, four on the floor at
   // 106 (its eighth's pulse), its hats on the music's straight semiquavers: 82% of its strokes on the score's own onsets
   // (BREAKBEAT 46%, IDM 39%, ARCADE 47%), 5.2 strokes a second against the chip kit's 2.7.
-  wtc2f06: "house",
+  // D622: the owner on HOUSE: "That didn't fit. Try another drum."; of D620's candidates he chose BREAKBEAT as tailored to
+  // II/6's score (drum-tailor.ts GRID_TAILORS.wtc2f06: the semiquavers, swung where the music runs in triplets, the hats on
+  // the subject's run, the leap marked): 93% of its strokes on the score's onsets.
+  wtc2f06: "breakbeat",
   // D595: II/22 on KRAUTROCK, Jaki Liebezeit's trance (the owner: "sounds much cooler as Krautrock").
   wtc2f22: "liebezeit",
   // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
