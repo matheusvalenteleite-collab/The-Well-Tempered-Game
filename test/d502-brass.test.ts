@@ -39,9 +39,10 @@ const LAYOUT = {
   1: ["bachTrumpet"],
   2: ["bachTrumpet", "bachBass"],
   3: ["bachTrumpet", "bachHorn", "bachBass"],
-  // D579: the tenor on the tenor trombone (the horn the entries' double: band-growth.ts).
-  4: ["bachTrumpet", "bachTrumpet", "bachTrombone", "bachBass"],
-  5: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
+  // D579: the tenor on the tenor trombone (the horn the entries' double: band-growth.ts). D613: the alto on the horn.
+  4: ["bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
+  // D614: the second trumpet of five on the straight mute.
+  5: ["bachTrumpet", "bachTrumpetMute", "bachHorn", "bachTrombone", "bachBass"],
 } as const;
 
 test("D502: BACH BRASS offered: an ensemble, named in three languages, credited (Iowa MIS), the trial's id opens on it", () => {
@@ -61,7 +62,7 @@ test("D502: BACH BRASS offered: an ensemble, named in three languages, credited 
   assert.deepEqual(instrumentTuning("bachBrass"), { id: "vallotti", a: 415 });
 });
 
-test("D502: the layouts (2 trumpet and bass; 3 the horn between; 4 a second trumpet; 5 the trombone), seated within ±0.2, one church", () => {
+test("D502: the layouts (2 trumpet and bass; 3 the horn between; 4 the horn on the alto (D613); 5 the trombone), seated within ±0.2, one church", () => {
   const p = presetById("bachBrass");
   assert.equal(p.fx, "cathedral");
   for (const [n, ids] of Object.entries(LAYOUT)) {
@@ -84,8 +85,9 @@ test("D502: the layouts (2 trumpet and bass; 3 the horn between; 4 a second trum
 
 test("D502: the recordings: two layers per instrument at the same pitches, every minor third, looped, 16 bits, about 4 MB", () => {
   setPreset("bachBrass");
-  assert.deepEqual(sampledNow().sort(), ["brassBass", "brassHorn", "brassTrombone", "brassTrumpet"]);
-  for (const s of sampledNow()) {
+  // (D614: and the straight-muted trumpet, one layer.)
+  assert.deepEqual(sampledNow().sort(), ["brassBass", "brassHorn", "brassTromboneMf", "brassTrumpetMf", "brassTrumpetMute"]);
+  for (const s of sampledNow().filter((x) => x !== "brassTrumpetMute")) {
     const inst = SAMPLED[s];
     assert.ok(inst.blend, s);
     const f = sampledMidis(inst.set);

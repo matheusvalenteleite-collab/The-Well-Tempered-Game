@@ -48,12 +48,12 @@ test("D602: II/2 on the harpsichord: the entries on the brighter manual, the sto
   assert.ok(manualAt(f, 0, fin).length >= 1 && manualAt(f, 3, f.length - 1).length === 2);
 });
 
-test("D603: II/6's alto on the triangle (its own line-up), the rest of SID 64 as it was; its drums HOUSE", () => {
+test("D603: II/6's alto on the triangle (its own line-up), the rest of SID 64 as it was; its drums BREAKBEAT since D622 (HOUSE D603's)", () => {
   const f = fugueById("wtc2f06");
   const l = pieceLineUp("sid64", f)!;
   assert.deepEqual(l.slots.map((s) => s[0]), ["sidLead", "sidTri", "sidBass"]);
   assert.equal(pieceLineUp("sid64", fugueById("wtc2f03")), null);
-  assert.equal(homeFor("wtc2f06", PIECE_SOUND.wtc2f06), "house");
+  assert.equal(homeFor("wtc2f06", PIECE_SOUND.wtc2f06), "breakbeat");
 });
 
 test("D604: II/1's regional grows act by act: the tamborim and the agogô join, the final group the firmest; brighter by the form", () => {

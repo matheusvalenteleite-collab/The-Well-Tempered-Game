@@ -776,8 +776,33 @@ export const CHORO2_TRIM = { db: -8.2, phoneDb: -11.1 } as const;
  * (I/20 b. 11-14, I/16 b. 7-9, I/17 b. 7-9), so the master's limiter squashed it (crest 6.7-8.1 dB against 14-17). The trim
  * gives the drums, which bypass the chain, their place back; the presets' gains then match the originals on a phone.
  */
-/** D579: BACH BRASS's low mids cleared (its bus EQ). */
-export const BRASS_CLEAR: EqBand[] = [{ type: "peaking", hz: 300, db: -3.5, q: 0.9 }, { type: "peaking", hz: 2500, db: 1, q: 0.8 }];
+/**
+ * D579: BACH BRASS's low mids cleared (its bus EQ). D610: its +1 dB of presence at 2.5 kHz dropped (the edge is the ff's,
+ * not wanted); the cut at 300 Hz -3.5 -> -5.5 dB: with the mf sets and the horn's alto the band matched back to its
+ * loudness on a phone (D617) stood 1.5-4.2 dB higher at 150-500 Hz than 2.55's (the 150-500 share -9.0 against -10.9 in
+ * I/5 b. 4-7); with -5.5 the share -9.9 (II/5 b. 4-8 -10.2, I/22 b. 12-18 -9.8), the phone 0.2 LU softer (trimmed back).
+ */
+export const BRASS_CLEAR: EqBand[] = [{ type: "peaking", hz: 300, db: -5.5, q: 0.9 }];
+/**
+ * D610, BACH BRASS v3's EQ and room ("air means distance, not treble": the research's F5, Pätynen and Lokki's directivity, the
+ * engineers' two metres and 30 degrees off the bell; Iowa's notes recorded on the bell's axis at five feet, anechoic):
+ * the trumpets' lane as if off-axis (-3 dB at 3.2 kHz, a -2 dB shelf at 7 kHz); the low lane (the tenor and the bass
+ * trombone) a little out of the mud (-2.5 dB at 220 Hz, the sub-bass under 45 Hz off); the horn its own lane (D613: its bell
+ * points away already, but its low mids measured heavy). The bus: the hip era's EQ without its +1 dB at 10 kHz (measured with and without it on the phone model:
+ * the same to 0.1 dB in every band); one early reflection (a dark copy 19 ms behind, no feedback: the hall's first wall); the church
+ * shorter (RT60 2.4 -> 1.95 s), later (predelay 30 -> 40 ms) and darker (its return's lowpass 5.5 -> 4.2 kHz).
+ */
+export const BRASS_TRUMPET_LANE: EqBand[] = [{ type: "peaking", hz: 3200, db: -3, q: 1 }, { type: "highshelf", hz: 7000, db: -2 }];
+export const BRASS_LOW_LANE: EqBand[] = [{ type: "highpass", hz: 45, q: 0.7 }, { type: "peaking", hz: 220, db: -2.5, q: 1 }];
+/**
+ * D613: the horn's lane (BACH BRASS v3's alto of four on the horn): -3 dB at 280 Hz. Measured (render-harness, I/5 b. 4-7 and
+ * II/5 b. 4-8, the alto alone): the Iowa horn on the alto's notes 7-9 dB over the trumpet's at 150-1000 Hz for the same
+ * phone loudness; the whole mix's 150-500 Hz share -10.0 (trumpet alto), -8.6 (horn), -9.1 dB (horn with this cut), the
+ * phone loudness the same. (The research had the horn in no lane: its bell away; measured, its low mids are the issue.)
+ */
+export const BRASS_HORN_LANE: EqBand[] = [{ type: "peaking", hz: 280, db: -3, q: 1 }];
+export const BRASS_HIP: EqBand[] = [{ type: "highpass", hz: 40, q: 0.7 }, { type: "peaking", hz: 250, db: -1, q: 1 }];
+export const BRASS_EARLY = { time: 0.019, feedback: 0, mix: 0.15, lp: 2500, hp: 200, drive: 1 } as const;
 export const KRAUT2_TRIM_DB = -13.2;
 /** D575: the guitar's tape echo, a colour (was mix 0.5, feedback 0.38, full band): its repeats' level, their regeneration, their band. */
 export const KRAUT_ECHO = { feedback: 0.24, mix: 0.2, hp: 300, lp: 2600 } as const;
@@ -887,8 +912,10 @@ export const BAND_CHAINS = {
     band: "bachBrass",
     // D579 (the owner: "The sounds are too muddy"): the low mids cleared (a cut at 300 Hz under the tenor's and the bass's
     // fundamentals' overlap, a little presence at 2.5 kHz), the church's return kept out of the low mids (its high-pass 280 Hz).
-    bus: [{ kind: "eq", era: "hip" }, { kind: "eq", bands: BRASS_CLEAR }, { kind: "comp", model: "la2a", threshold: -10 }, { kind: "gain", db: -3.4 }],
-    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.6, rt60: 2.4, predelay: 0.03, hp: 280, lp: 5500, brightness: 0.3, level: 0.52, phoneLevel: 0.385 },
+    // D610 (v3): the trumpets' and the low brass's lanes, the hip EQ without its air, an early reflection, the church shorter and darker.
+    lanes: { trumpets: [{ kind: "eq", bands: BRASS_TRUMPET_LANE }], horn: [{ kind: "eq", bands: BRASS_HORN_LANE }], low: [{ kind: "eq", bands: BRASS_LOW_LANE }] },
+    bus: [{ kind: "eq", bands: BRASS_HIP }, { kind: "eq", bands: BRASS_CLEAR }, { kind: "echo", ...BRASS_EARLY }, { kind: "comp", model: "la2a", threshold: -10 }, { kind: "gain", db: -3.4 }],
+    reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.6, rt60: 1.95, predelay: 0.04, hp: 280, lp: 4200, brightness: 0.3, level: 0.52, phoneLevel: 0.385 },
   },
   // A 1970s Archiv / Telefunken analog trio recording: close, the reeds' edge softened a touch, warm tape, a small room.
   oboeTrio: {
