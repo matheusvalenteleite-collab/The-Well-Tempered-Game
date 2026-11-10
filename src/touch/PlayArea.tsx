@@ -32,6 +32,17 @@ export function PlayArea(p: {
 }) {
   const { events, paint, labels, hint } = p;
   const area = useRef<HTMLDivElement>(null);
+  // D472 addendum (design studio): the play area declares itself tappable. A phone browser's touch adjustment (Android Chrome)
+  // moves a touch that lands near a button onto it, and the area's own listeners (React's, on the root) do not count:
+  // a thumb on the lowest row just above STRING CONSORT's stops (13 px buttons) was taken by a stop and held no note.
+  // With a click listener of its own, a touch that lands on the area stays there; the stops keep their own touches.
+  useEffect(() => {
+    const el = area.current;
+    if (!el) return;
+    const tappable = () => {};
+    el.addEventListener("click", tappable);
+    return () => el.removeEventListener("click", tappable);
+  }, []);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [touches, setTouches] = useState<Touches>(new Map());
   const state = useRef<Touches>(new Map());
