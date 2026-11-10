@@ -11,7 +11,8 @@
  * play) and a big ▶ PLAY under the right thumb. The first visit (nothing played, no lesson done): the
  * TUTORIAL glows, the grid is dimmed but works, and the right column says in one sentence where to start.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { auditionUrl, soundBlurb } from "../touch/sound-blurbs.ts";
 import { FugueAbout } from "./FugueAbout.tsx";
 import type { Performed } from "./HearSubject.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
@@ -25,7 +26,7 @@ import { GRADE_INK, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.
 import { popTitle } from "./PlayPop.tsx";
 import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
-import { soundOptions } from "./SoundSelect.tsx";
+import { SOUND_GROUPS } from "./SoundSelect.tsx";
 import { BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
@@ -92,7 +93,7 @@ export interface SelectionProps {
     choose?: (id: string) => void;
   };
   /** Design studio (D463): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
-  sound?: { locked?: boolean; value: string; name: string; sounds: readonly (readonly [id: string, name: string])[]; own?: string; set: (id: string) => void };
+  sound?: { locked?: boolean; value: string; name: string; sounds: readonly (readonly [id: string, name: string])[]; own?: string; ownName?: string; set: (id: string) => void };
 }
 
 export function Selection(p: SelectionProps) {
@@ -336,6 +337,8 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
   const [about, setAbout] = useState(false);
   // D453: DRUMS' grid open, and the style playing now.
   const [drumGrid, setDrumGrid] = useState(false);
+  // D455: the sounds' grid open.
+  const [soundGrid, setSoundGrid] = useState(false);
   const nowDrum = drums ? (drums.presets.find((d) => d.id === drums.preset) ?? drums.presets[0]) : undefined;
   const aboutable = f.kind === "fugue" && wtc;
   // D445: the best in the voice chosen (another voice's is its own).
@@ -409,25 +412,15 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
             </button>
           )}
           {sound && (
-            <label className={`sel-knob${sound.locked ? " locked" : ""}`} id="sel-sound-knob" title={sound.locked ? tr("A B ON THIS FUGUE UNLOCKS SOUND") : undefined}>
+            // D455 (the owner: "sounds deserve a selection screen similar to drums, as opposed to this boring unfolding list"): a button opening the sounds' grid.
+            <button type="button" className={`sel-knob${sound.locked ? " locked" : ""}`} id="sel-sound-knob" disabled={sound.locked} aria-haspopup="dialog" title={sound.locked ? tr("A B ON THIS FUGUE UNLOCKS SOUND") : undefined} onClick={() => setSoundGrid(true)}>
               <span className="sel-knob-k">{tr("SOUND")}</span>
               <b>
                 {sound.locked ? "🔒 " : ""}
                 {sound.name}
-                {sound.locked ? "" : " ▾"}
+                {sound.locked ? "" : " ▦"}
               </b>
-              <select disabled={sound.locked} id="sel-sound" value={sound.value} aria-label={tr("SOUND")} onChange={(e) => sound.set(e.target.value)}>
-                {soundOptions(sound.sounds, sound.own).map(({ group, items }) => (
-                  <optgroup key={group} label={tr(group)}>
-                    {items.map(([sid, nm]) => (
-                      <option key={sid} value={sid}>
-                        {sid === sound.own ? `★ ${tr(nm)}` : tr(nm)}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
+            </button>
           )}
         </div>
       )}
@@ -463,6 +456,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
         </>
       )}
       {drumGrid && drums?.choose && <DrumGrid drums={drums} close={() => setDrumGrid(false)} />}
+      {soundGrid && sound && !sound.locked && <SoundGrid sound={sound} close={() => setSoundGrid(false)} />}
       {/* D452 (the owner: "this has become redundant now"): no OPTIONS link; HOW TO PLAY is the left column's own button. */}
       {about && <FugueAbout id={piece} subject={subject} close={() => setAbout(false)} />}
     </div>
@@ -527,6 +521,110 @@ function DrumGrid({ drums, close }: { drums: NonNullable<SelectionProps["drums"]
               </section>
             );
           })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * D455, THE SOUNDS' GRID, in DRUMS' MORE grid's language (D453): every sound the friends may choose, grouped as the
+ * list grouped them (SoundSelect.tsx SOUND_GROUPS: instruments, ensembles, game consoles, synthesizers, voices; the
+ * rest under MORE), each a big card with its name, the fugue's own sound marked HOME, the one playing lit. A tap
+ * chooses it (BenchApp's setSound, as the list did: the drums' HOME, the stops and the registration follow the
+ * sound, and the choice is kept for the fugue) and the grid stays open, to try another; ✕, the veil or Escape closes it.
+ */
+/** D455 (the owner: "a colour per family"): each group's ink, readable on the dark ground (its tint under the card, its edge, its heading). */
+const SOUND_FAMILY_INK: Readonly<Record<string, string>> = {
+  INSTRUMENTS: "#e0a95a",
+  ENSEMBLES: "#e57a8c",
+  "GAME CONSOLES": "#4fd1d9",
+  SYNTHESIZERS: "#b58cff",
+  VOICES: "#6fdc8c",
+  MORE: "#8c88aa",
+};
+
+function SoundGrid({ sound, close }: { sound: NonNullable<SelectionProps["sound"]>; close: () => void }) {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
+    window.addEventListener("keydown", esc, true);
+    return () => window.removeEventListener("keydown", esc, true);
+  }, [close]);
+  // D455 (the owner: one fixed phrase per sound): a tap chooses the sound and plays its clip (Instruments'
+  // sound-blurbs.ts auditionUrl: I/2's third entry, 3.5 s, fetched only on the tap); the next tap, the grid's
+  // closing (and so PLAY, which the grid covers) stop it.
+  const clip = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState<string | null>(null);
+  const stopClip = () => {
+    clip.current?.pause();
+    setPlaying(null);
+  };
+  useEffect(() => {
+    // The element itself, kept for the closing (React clears the ref before this cleanup runs).
+    const a = clip.current;
+    return () => a?.pause();
+  }, []);
+  const pick = (sid: string) => {
+    sound.set(sid);
+    const url = auditionUrl(sid);
+    const a = clip.current;
+    if (!a || !url) return stopClip();
+    a.pause();
+    a.src = url;
+    a.currentTime = 0;
+    setPlaying(sid);
+    void a.play().catch(() => setPlaying(null));
+  };
+  const blurbLang = (lang() === "pt" || lang() === "es" ? lang() : "en") as "en" | "pt" | "es";
+  const placed = new Set<string>();
+  // The fugue's own sound always offered (as the list did), even where the friends' list leaves it out.
+  const all = sound.own && !sound.sounds.some(([id]) => id === sound.own) ? [...sound.sounds, [sound.own, sound.ownName ?? sound.own] as const] : sound.sounds;
+  const groups: [string, (readonly [string, string])[]][] = SOUND_GROUPS.map(([group, ids]) => {
+    const items = all.filter(([id]) => ids.includes(id));
+    items.forEach(([id]) => placed.add(id));
+    return [group, items];
+  });
+  const more = all.filter(([id]) => !placed.has(id));
+  if (more.length) groups.push(["MORE", more]);
+  return (
+    <div className="tb-pop-veil" onClick={(e) => e.target === e.currentTarget && close()}>
+      <div className="sel-drumgrid sel-soundgrid" role="dialog" aria-modal="true" aria-label={tr("SOUND")} id="sound-grid">
+        <header className="sel-drumgrid-head sel-soundgrid-head">
+          <h2>{tr("SOUND")}</h2>
+          <p className="sel-drumgrid-note">{tr("HOME: THIS FUGUE'S OWN SOUND")}</p>
+          <button type="button" id="sound-grid-close" className="tg-x" aria-label="Close" onClick={close}>
+            ✕
+          </button>
+        </header>
+        <audio ref={clip} preload="none" onEnded={() => setPlaying(null)} />
+        <div className="sel-drumgrid-body">
+          {groups.map(([group, items]) =>
+            items.length ? (
+              <section key={group} className="sel-drumgrid-fam sel-soundgrid-fam" aria-label={tr(group)} style={{ ["--fam" as string]: SOUND_FAMILY_INK[group] ?? "#8c88aa" }}>
+                <h3>{tr(group)}</h3>
+                <div className="sel-drumgrid-pad">
+                  {items.map(([sid, nm]) => {
+                    const on = sid === sound.value;
+                    const home = sid === sound.own;
+                    return (
+                      <button key={sid} type="button" id={`sound-${sid}`} className={`${on ? "on" : ""}${home ? " home" : ""}${playing === sid ? " playing" : ""}`} aria-pressed={on} onClick={() => pick(sid)}>
+                        <b>
+                          {tr(nm)}
+                          {playing === sid && <span className="sel-soundgrid-note-on" aria-hidden="true"> ♪</span>}
+                        </b>
+                        {soundBlurb(sid, blurbLang) && <span className="sel-soundgrid-blurb">{soundBlurb(sid, blurbLang)}</span>}
+                        {home && (
+                          <span className="sel-drumgrid-marks">
+                            <i className="home">{tr("HOME")}</i>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null,
+          )}
         </div>
       </div>
     </div>

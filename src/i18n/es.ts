@@ -605,6 +605,7 @@ export const ES: Record<string, string> = {
   "ELECTRONIC": "ELECTRÓNICO",
   "ORCHESTRAL · PERIOD": "ORQUESTAL · DE ÉPOCA",
   "HOME: THIS SOUND'S OWN · FITS: SUITS THIS FUGUE'S METRE": "DE LA CASA: EL PROPIO DE ESTE SONIDO · ENCAJA: VA BIEN CON EL COMPÁS DE ESTA FUGA",
+  "HOME: THIS FUGUE'S OWN SOUND": "DE LA CASA: EL SONIDO PROPIO DE ESTA FUGA",
   "MAJOR · MINOR, BY KEY": "MAYOR · MENOR, POR TONALIDAD",
   OPTIONS: "OPCIONES",
   "Pick a fugue in the middle, or learn first with the TUTORIAL on the left.": "Elige una fuga en el centro, o aprende primero con el TUTORIAL a la izquierda.",
