@@ -472,3 +472,6 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-soundgrid-note-on { color: var(--fam); }
 .sel-soundgrid .sel-drumgrid-pad button.on .sel-soundgrid-note-on { color: #b8322a; }
 @media (max-width: 700px) { .sel-soundgrid-blurb { font-size: 9px; } }
+/* D455 (the main board): the cards' lines in the game's own pixel face, as its other small texts, legible at 667. */
+.sel-soundgrid-blurb { font-family: var(--tg-pixel); font-size: 5.5px; line-height: 1.6; letter-spacing: 0.02em; color: #c8c4dc; }
+@media (max-width: 700px) { .sel-soundgrid-blurb { font-size: 5px; line-height: 1.6; } }
