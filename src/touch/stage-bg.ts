@@ -383,70 +383,139 @@ function arches(k: Kit, c: string, n = 5) {
 
 const WORLDS: Record<string, World> = {
   // ---- BOOK I ----
-  // The Canon: four singers in a row on a stage; each lit in turn as its voice enters.
+  // The Canon (D649): each entry a singer steps forward into a spotlight and stays lit; as the entries pile up the
+  // chorus comes in from the wings; at the climax the whole stage is lit, the curtain's fringe glowing gold.
   wtc1f01: (k) => {
     k.room([30, 16, 24], [14, 8, 14], 0.82, "rgba(40,24,20,1)");
     k.curtains([120, 26, 34]);
+    k.glow(k.w * 0.5, k.h * 0.6, k.w * 0.4, [255, 220, 160], 0.35 * k.climax);
+    k.R(0, k.h * 0.08, k.w, 2, `rgba(240,200,110,${0.25 + 0.6 * k.climax})`);
+    const chorus = Math.min(10, Math.max(0, k.passed - 4));
+    for (let i = 0; i < chorus; i++) {
+      const born = i === chorus - 1 ? Math.min(1, k.since * 2) : 1;
+      const side = i % 2 ? 1 : -1;
+      const x = k.w * (0.5 + side * (0.26 - 0.022 * Math.floor(i / 2))) + side * (1 - born) * 40;
+      k.figure(x, k.h * 0.78, `rgba(60,44,54,${born})`, 0, 2);
+    }
     for (let i = 0; i < 4; i++) {
-      const x = k.w * (0.28 + i * 0.15);
+      const x = k.w * (0.32 + i * 0.12);
       const on = k.passed > i;
-      if (on) k.glow(x, k.h * 0.55, 34, [255, 220, 160], 0.22 + 0.12 * k.stretto);
-      k.figure(x, k.h * 0.82 - i * 3, on ? "rgba(70,50,60,1)" : "rgba(30,20,28,1)", 0, 3);
-      if (on && !k.still && Math.sin(k.sec * 2 + i) > 0) k.R(x + 1, k.h * 0.82 - i * 3 - 22, 2, 2, "rgba(20,10,14,1)");
+      const step = on ? Math.min(1, (i === k.passed - 1 ? k.since : 1) * 2) : 0;
+      if (on) k.glow(x, k.h * 0.55, 30 + 10 * k.climax, [255, 220, 160], 0.22 + 0.12 * k.stretto + 0.2 * k.climax);
+      k.figure(x, k.h * 0.82 - i * 3 + 4 * step, on ? "rgba(90,64,76,1)" : "rgba(30,20,28,1)", 0, 3);
+      if (on && !k.still && Math.sin(k.sec * 2 + i) > 0) k.R(x + 1, k.h * 0.82 - i * 3 + 4 * step - 22, 2, 2, "rgba(20,10,14,1)");
     }
   },
-  // The Imp: a cave lit by a fire, embers rising; the imp hops at the play line.
+  // The Imp (D649): each entry the imp throws a log on the fire and it grows a step; the sparks fly higher and his shadow
+  // on the cave wall grows; at the climax the fire roars up the wall, the imp dancing on its rim, the cave lit red.
   wtc1f02: (k) => {
+    const grow = Math.min(1, k.passed / Math.max(1, k.ents.length));
+    const roar = k.climax;
     k.vgrad(0, k.h, [[0, "#140a10"], [0.7, "#2a1014"], [1, "#3a160e"]]);
+    k.glow(k.w * 0.5, k.h * 0.6, k.w * 0.5, [255, 90, 40], 0.25 * roar);
     k.hills(0.25, 10, 0.05, 2, "rgba(8,4,8,0.9)", true);
     k.g.save();
     k.g.scale(1, -1);
     k.g.translate(0, -k.h);
     k.hills(0.86, 8, 0.1, 5, "rgba(8,4,8,0.9)", true);
     k.g.restore();
-    k.glow(k.w * 0.5, k.h * 0.95, 60 + 30 * k.busy, [255, 110, 40], 0.22 + 0.16 * k.busy);
-    for (let i = 0; i < 14; i++) {
-      const tt = wrap(k.t * 0.15 + hash(i), 1);
-      k.R(k.w * (0.3 + 0.4 * hash(i + 2)) + Math.sin(tt * 9 + i) * 4, k.h * (1 - tt * 0.9), 1, 1, `rgba(255,160,70,${0.7 * (1 - tt)})`);
+    const fx = k.w * 0.5;
+    const fy = k.h * 0.92;
+    const size = 18 + 26 * grow + 40 * roar;
+    k.glow(fx, fy, 50 + 50 * grow + 60 * roar + 20 * k.busy, [255, 110, 40], 0.25 + 0.15 * grow + 0.2 * roar);
+    for (let i = 0; i < 6 + 10 * grow + 12 * roar; i++) {
+      const fl = k.still ? 0.5 : wrap(k.t * 1.3 + hash(i), 1);
+      k.R(fx + (hash(i + 4) - 0.5) * size, fy - fl * size * 1.2, 2, 3, `rgba(255,${Math.round(200 - 120 * fl)},60,${1 - fl})`);
     }
-    const imp = k.wander(14, 0.3);
-    const lx = imp.x;
-    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 1.6)) * 8;
-    k.figure(lx, k.h * 0.9 - hop, "rgba(150,40,40,1)", 0, 2);
-    k.R(lx - 2, k.h * 0.9 - hop - 22, 1, 3, "rgba(150,40,40,1)");
-    k.R(lx + 4, k.h * 0.9 - hop - 22, 1, 3, "rgba(150,40,40,1)");
+    for (let i = 0; i < 10 + 16 * grow; i++) {
+      const tt = wrap(k.t * 0.15 + hash(i), 1);
+      k.R(fx + (hash(i + 2) - 0.5) * k.w * 0.3 + Math.sin(tt * 9 + i) * 4, fy - tt * k.h * (0.4 + 0.5 * grow + 0.3 * roar), 1, 1, `rgba(255,160,70,${0.7 * (1 - tt)})`);
+    }
+    for (let i = 0; i < Math.min(k.passed, 12); i++) k.R(fx - 14 + (i % 4) * 7, fy - 2 - Math.floor(i / 4) * 2, 6, 2, "rgba(70,40,24,1)");
+    const imp = k.wander(14, 0.3, 0.3, 0.7);
+    const throwing = k.since < 0.5;
+    const lx = roar > 0.5 ? fx + Math.sin(k.t * 2) * size * 0.5 : imp.x;
+    const ly = roar > 0.5 ? fy - size * 0.9 : k.h * 0.9;
+    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * (1.6 + roar))) * (8 + 8 * roar);
+    k.g.fillStyle = `rgba(20,6,8,${0.35 + 0.25 * grow})`;
+    k.g.fillRect(lx - 4 - 8 * grow, k.h * 0.2, 12 + 16 * grow, k.h * (0.3 + 0.3 * grow));
+    k.figure(lx, ly - hop, "rgba(170,44,44,1)", 0, 2);
+    k.R(lx - 2, ly - hop - 22, 1, 3, "rgba(170,44,44,1)");
+    k.R(lx + 4, ly - hop - 22, 1, 3, "rgba(170,44,44,1)");
+    if (throwing && roar < 0.5) {
+      const u = k.since / 0.5;
+      k.R(lx + (fx - lx) * u - 3, ly - 20 - Math.sin(u * Math.PI) * 18, 6, 2, "rgba(110,70,40,1)");
+    }
   },
-  // The Stone-Skipper: a pond in the afternoon; each entry a stone's rings on the water.
+  // The Stone-Skipper (D649; the owner: "Little Red Riding Hood in the background … throwing the stones, jumping around"):
+  // she wanders the bank and throws a stone on each entry; its rings stay on the water and cross the others'; at the
+  // climax a stone skips the whole pond and the water is lit gold.
   wtc1f03: (k) => {
     k.sky(DAY_T, [210, 190, 150], [120, 90, 120], [230, 150, 100], 0.55);
     k.hills(0.5, 6, 0.05, 1, "rgba(50,70,60,1)");
     k.along(18, 0.12, (x, i) => roundTree(k, x, k.h * 0.52, 5 + hash(i) * 4, "rgba(34,52,40,1)"));
     k.vgrad(k.h * 0.55, k.h * 0.45, [[0, "rgba(70,100,120,1)"], [1, "rgba(30,50,70,1)"]]);
+    if (k.climax > 0.01) k.vgrad(k.h * 0.55, k.h * 0.45, [[0, `rgba(255,200,110,${0.35 * k.climax})`], [1, `rgba(255,170,80,${0.15 * k.climax})`]]);
     for (let y = k.h * 0.6; y < k.h; y += 7) k.R(wrap(y * 13 - k.bar * k.pxBar * 0.3, k.w), y, 10, 1, "rgba(200,220,230,0.18)");
-    k.atEntries((x, i, begun) => {
-      if (!begun) {
-        k.R(x - 1, k.h * 0.7 + (i % 3) * 6, 3, 2, "rgba(150,150,160,0.8)");
-        return;
-      }
+    const n = Math.min(14, k.passed);
+    for (let i = 0; i < n; i++) {
+      const x = k.w * (0.3 + 0.4 * hash(i + 3));
+      const y = k.h * (0.66 + 0.2 * hash(i + 7));
+      const age = i === n - 1 ? Math.min(1, k.since * 2) : 1;
       for (let r = 1; r <= 3; r++) {
-        k.g.strokeStyle = `rgba(210,230,240,${0.35 / r})`;
+        k.g.strokeStyle = `rgba(210,230,240,${(0.4 / r) * age})`;
         k.g.lineWidth = 1;
         k.g.beginPath();
-        k.g.ellipse(x, k.h * 0.7 + (i % 3) * 6, 5 * r, 1.6 * r, 0, 0, Math.PI * 2);
+        k.g.ellipse(x, y, (4 + 4 * age) * r, (1.3 + 1.3 * age) * r, 0, 0, Math.PI * 2);
         k.g.stroke();
       }
-    });
+    }
+    // Red Riding Hood on the near bank: wandering, hopping, throwing on each entry.
+    const girl = k.wander(16, 0.2, 0.28, 0.72);
+    const gx = girl.x;
+    const gy = k.h * 0.6;
+    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * 3)) * 3;
+    k.R(gx - 3, gy - 10 - hop, 7, 9, "rgba(200,40,40,1)");
+    k.R(gx - 2, gy - 14 - hop, 5, 4, "rgba(200,40,40,1)");
+    k.R(gx - 1, gy - 13 - hop, 3, 3, "rgba(240,200,170,1)");
+    k.R(gx - 1, gy - 1 - hop, 1, 2, "rgba(40,30,30,1)");
+    k.R(gx + 2, gy - 1 - hop, 1, 2, "rgba(40,30,30,1)");
+    if (k.since < 0.6) {
+      const u = k.since / 0.6;
+      const i = n - 1;
+      const tx = k.w * (0.3 + 0.4 * hash(i + 3));
+      const ty = k.h * (0.66 + 0.2 * hash(i + 7));
+      k.R(gx + 3, gy - 14 - hop, 1, 4, "rgba(240,200,170,1)");
+      if (u < 1) k.R(gx + (tx - gx) * u, gy - 10 + (ty - gy + 10) * u - Math.sin(u * Math.PI) * 14, 2, 2, "rgba(150,150,160,1)");
+    }
+    if (k.climax > 0.5) {
+      const u = wrap(k.t * 0.3, 1);
+      for (let j = 0; j < 6; j++) {
+        const x = k.w * (0.25 + 0.5 * Math.min(u * 1.2, (j + 1) / 6));
+        k.g.strokeStyle = `rgba(255,236,190,${0.5 * k.climax})`;
+        k.g.beginPath();
+        k.g.ellipse(x, k.h * 0.72, 5, 1.5, 0, 0, Math.PI * 2);
+        k.g.stroke();
+      }
+    }
     k.along(30, 0.9, (x, i) => {
       for (let j = 0; j < 4; j++) k.R(x + j * 2, k.h - 4 - (6 + hash(i + j) * 10), 1, 6 + hash(i + j) * 10, "rgba(40,60,36,0.9)");
     });
   },
-  // The Cross: a hill at dusk, night falling; a candle lit at its foot for each entry (five).
+  // The Cross (D649): each of the five entries lights a candle at the cross's foot as the night thickens; in the strettos
+  // their light reaches higher up the hill; at the climax dawn breaks behind the cross, the five flames in the first light.
   wtc1f04: (k) => {
     k.sky(DUSK_T, DUSK_L, NIGHT, [40, 24, 50]);
-    k.stars(50, 0.5);
-    k.hills(0.82, 12, 0.03, 3, "rgba(24,16,26,1)");
-    const cx = k.w * 0.62;
+    k.stars(50 * (1 - k.climax), 0.5);
+    const cx = k.w * 0.55;
     const base = k.h * 0.74;
+    if (k.climax > 0.01) {
+      k.glow(cx, base - 10, k.w * 0.5, [255, 200, 140], 0.45 * k.climax);
+      k.vgrad(k.h * 0.4, k.h * 0.34, [[0, "rgba(255,190,130,0)"], [1, `rgba(255,190,130,${0.4 * k.climax})`]]);
+    }
+    k.hills(0.82, 12, 0.03, 3, "rgba(24,16,26,1)");
+    const lit = Math.min(5, k.passed);
+    k.glow(cx, base, 20 + 12 * lit + 40 * k.stretto, [255, 190, 110], 0.12 + 0.05 * lit);
     k.R(cx - 3, base - 70, 6, 70, "rgba(20,12,16,1)");
     k.R(cx - 20, base - 54, 40, 6, "rgba(20,12,16,1)");
     for (let i = 0; i < 5; i++) k.candle(cx - 16 + i * 8, base + 6, 5, k.passed > i);
@@ -467,28 +536,34 @@ const WORLDS: Record<string, World> = {
     }
     for (let i = 0; i < 3; i++) k.vgrad(0, k.h, [[0, "rgba(255,230,180,0.06)"], [1, "rgba(255,230,180,0)"]], k.w * (0.3 + i * 0.15), 10);
   },
-  // The Ambush: a forest road; at each entry, eyes in the trees.
+  // The Ambush (D649): each entry a pair of eyes opens in the trees, more of them as the entries pile up; at the climax
+  // the ambushers break cover with torches and the road is lit orange; then a quiet road at the last chord.
   wtc1f06: (k) => {
     k.sky([20, 30, 30], [50, 60, 50], [8, 12, 16], [24, 30, 30]);
     k.along(14, 0.1, (x, i) => pine(k, x, k.h * 0.6, 26 + hash(i) * 14, "rgba(16,26,22,1)"), 6);
     k.along(22, 0.35, (x, i) => pine(k, x, k.h * 0.82, 40 + hash(i) * 18, "rgba(8,14,12,1)"), 8);
     k.ground(0.82, "rgba(40,34,24,1)", "rgba(120,100,70,0.3)", 1);
-    k.atEntries((x, i) => {
-      const y = k.h * (0.45 + (i % 3) * 0.08);
+    const out = k.climax * (1 - k.rest);
+    const eyes = Math.min(16, k.passed) * (1 - out);
+    for (let i = 0; i < eyes; i++) {
+      const x = k.w * (0.24 + 0.52 * hash(i * 3 + 1));
+      const y = k.h * (0.42 + 0.3 * hash(i * 5 + 2));
       const blink = !k.still && Math.sin(k.sec * 1.3 + i * 2) > 0.95;
       if (!blink) {
-        k.R(x - 3, y, 2, 1, "rgba(240,220,120,0.8)");
-        k.R(x + 2, y, 2, 1, "rgba(240,220,120,0.8)");
+        k.R(x - 3, y, 2, 1, "rgba(240,220,120,0.85)");
+        k.R(x + 2, y, 2, 1, "rgba(240,220,120,0.85)");
       }
-    });
-    // D464: in a stretto, more eyes in the trees.
-    if (k.stretto > 0.3)
-      for (let i = 0; i < 5; i++) {
-        const x = k.w * (0.1 + 0.2 * i) + Math.sin(i * 7) * 10;
-        const y = k.h * (0.42 + (i % 2) * 0.1);
-        k.R(x - 3, y, 2, 1, `rgba(240,220,120,${0.7 * k.stretto})`);
-        k.R(x + 2, y, 2, 1, `rgba(240,220,120,${0.7 * k.stretto})`);
+    }
+    if (out > 0.01) {
+      k.vgrad(k.h * 0.6, k.h * 0.4, [[0, "rgba(255,140,50,0)"], [1, `rgba(255,140,50,${0.3 * out})`]]);
+      for (let i = 0; i < 6; i++) {
+        const x = k.w * (0.26 + 0.09 * i);
+        const y = k.h * 0.84;
+        k.figure(x, y, `rgba(20,14,12,${out})`, Math.floor(k.t * 4 + i) % 2, 2);
+        k.glow(x + 4, y - 22, 14, [255, 150, 60], 0.6 * out);
+        k.R(x + 3, y - 24, 2, 3, `rgba(255,210,120,${out})`);
       }
+    }
   },
   // The Bicycle: a summer road through the country, fence posts flying past.
   wtc1f07: (k) => {
@@ -503,7 +578,8 @@ const WORLDS: Record<string, World> = {
       k.R(x - 8, k.h * 0.76, 16, 1, "rgba(90,60,40,0.8)");
     });
   },
-  // The Pilgrim: one walk, afternoon to night, a waymark for each entry, the shrine at the road's end.
+  // The Pilgrim (D649): one walk, afternoon to night, a waymark lit for each entry; the pilgrim walks on (slower in an
+  // augmented entry); at the climax the shrine's door opens at the road's end and its light pours down the road.
   wtc1f08: (k) => {
     k.sky([70, 58, 96], [200, 130, 80], NIGHT, [30, 24, 50]);
     k.stars(50, 0.45);
@@ -512,50 +588,76 @@ const WORLDS: Record<string, World> = {
     k.hills(0.74, 9, 0.2, 7, "rgba(24,18,30,1)");
     k.along(61, 0.55, (x, i) => cypress(k, x, k.h * 0.86, 18 + (i % 3) * 6, "rgba(10,10,16,0.9)"));
     k.ground(0.86, "rgba(60,44,40,1)", "rgba(220,190,150,0.18)");
+    if (k.climax > 0.01) k.vgrad(k.h * 0.82, k.h * 0.18, [[0, `rgba(255,210,130,${0.4 * k.climax})`], [1, "rgba(255,210,130,0)"]]);
     k.atEntries((x) => {
       k.R(x - 2, k.h * 0.86 - 9, 4, 9, "rgba(150,140,130,0.8)");
       k.R(x - 1, k.h * 0.86 - 7, 2, 1, "rgba(240,220,160,0.8)");
+      k.glow(x, k.h * 0.86 - 7, 8, [255, 210, 130], 0.3);
     });
-    const sx = k.end;
-    if (sx < k.w + 30) {
+    const walker = k.w * (0.3 + 0.1 * Math.sin(k.t * 0.2));
+    k.figure(walker, k.h * 0.86, "rgba(30,24,30,1)", Math.floor(k.t * 2) % 2, 2);
+    k.R(walker + 5, k.h * 0.86 - 24, 1, 24, "rgba(60,44,30,1)");
+    const sx = Math.min(k.end, k.w * 0.74);
+    const near = k.end < k.w + 30 || k.climax > 0.01;
+    if (near) {
       k.R(sx - 8, k.h * 0.86 - 18, 16, 18, "rgba(40,34,40,1)");
       k.tri(sx, k.h * 0.86 - 18, 22, 10, "rgba(40,34,40,1)");
-      k.glow(sx, k.h * 0.86 - 10, 22, [255, 200, 110], 0.5);
+      k.glow(sx, k.h * 0.86 - 10, 22 + 60 * k.climax, [255, 200, 110], 0.5 + 0.3 * k.climax);
       k.R(sx - 2, k.h * 0.86 - 13, 4, 6, "#ffd88a");
     }
   },
-  // The Sparrow: rooftops under a moving sky; the sparrow hops along the ridge.
+  // The Sparrow (D649): each entry another sparrow lands on the ridge, the flock growing along the roof; at the climax
+  // the whole flock takes off together across a clearing sky.
   wtc1f09: (k) => {
     k.sky([110, 150, 190], [200, 210, 220], [150, 120, 150], [240, 190, 150]);
-    clouds(k, 6, 0.4, 0.2);
+    if (k.climax > 0.01) k.glow(k.w * 0.6, k.h * 0.1, k.w * 0.5, [255, 240, 200], 0.3 * k.climax);
+    clouds(k, Math.round(6 * (1 - 0.7 * k.climax)), 0.4, 0.2);
     k.along(40, 0.5, (x, i) => {
       const hh = 20 + hash(i) * 14;
       k.R(x, k.h - hh, 38, hh, "rgba(110,70,60,1)");
       k.tri(x + 19, k.h - hh, 44, 14, "rgba(80,44,40,1)");
       if (hash(i + 2) > 0.5) k.R(x + 26, k.h - hh - 18, 5, 10, "rgba(80,44,40,1)");
     });
-    const bird = k.wander(18, 0.6, 0.2, 0.8);
-    const lx = bird.x;
-    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 2.5)) * 5;
-    k.R(lx - 3, k.h * 0.6 - hop, 6, 4, "rgba(110,80,50,1)");
-    k.R(lx + 2 * bird.dir, k.h * 0.6 - hop - 2, 3, 3, "rgba(110,80,50,1)");
-    k.R(lx - 6 * bird.dir, k.h * 0.6 - hop + 1, 3, 1, "rgba(80,60,40,1)");
+    // The first sparrow wanders the ridge on its own clock (D464); the flock gathers round it.
+    const lead = k.wander(18, 0.6, 0.26, 0.74);
+    const lhop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 2.5)) * 5;
+    const lup = k.climax > 0.3 ? ((k.climax - 0.3) / 0.7) * k.h * 0.5 : 0;
+    k.R(lead.x - 3, k.h * 0.6 - lhop - lup, 6, 4, "rgba(110,80,50,1)");
+    k.R(lead.x + 2 * lead.dir, k.h * 0.6 - lhop - lup - 2, 3, 3, "rgba(110,80,50,1)");
+    const n = Math.min(16, k.passed);
+    const lift = k.climax;
+    for (let i = 0; i < n; i++) {
+      const bx = k.w * (0.26 + 0.48 * (i / 16)) + (hash(i) - 0.5) * 8;
+      const born = i === n - 1 ? Math.min(1, k.since * 2) : 1;
+      const fly = lift > 0.3 ? (lift - 0.3) / 0.7 : 0;
+      const x = bx + fly * (k.w * 0.3 + hash(i + 5) * 40);
+      const y = k.h * 0.6 - (1 - born) * 30 - fly * k.h * (0.4 + 0.2 * hash(i + 2)) - (k.still ? 0 : Math.abs(Math.sin(k.sec * 3 + i)) * (fly ? 3 : 1));
+      k.R(x - 3, y, 6, 3, "rgba(110,80,50,1)");
+      k.R(x + 2, y - 2, 3, 3, "rgba(110,80,50,1)");
+      if (fly > 0 && !k.still && Math.sin(k.sec * 12 + i) > 0) k.R(x - 4, y - 3, 8, 1, "rgba(110,80,50,1)");
+    }
   },
-  // The Two Horsemen: a plain at dawn, two riders far off; fence posts and dust.
+  // The Two Horsemen (D649): each entry a rider appears on the plain, the two voices' riders racing side by side, dust
+  // rising with the music; at the climax they gallop toward the viewer, the dust lit gold by the high sun.
   wtc1f10: (k) => {
     k.sky([40, 40, 70], [200, 120, 90], [110, 140, 180], [230, 200, 160]);
-    k.orb(0.2, 0.75, 0.3, 4, [255, 220, 160], 0.25);
+    k.orb(0.5, 0.75, 0.15 - 0.05 * k.climax, 4 + 3 * k.climax, [255, 220, 160], 0.25 + 0.3 * k.climax);
     k.hills(0.7, 8, 0.04, 4, "rgba(70,60,60,1)");
     k.ground(0.78, "rgba(120,100,70,1)", "rgba(200,180,140,0.25)", 0.9);
-    for (let i = 0; i < 2; i++) {
-      const x = k.w * (0.62 + i * 0.1) + (k.still ? 0 : Math.sin(k.sec + i) * 2);
-      const y = k.h * 0.78;
-      k.R(x - 6, y - 7, 12, 4, "rgba(40,28,24,1)");
-      k.R(x - 5, y - 3, 1, 3, "rgba(40,28,24,1)");
-      k.R(x + 4, y - 3, 1, 3, "rgba(40,28,24,1)");
-      k.R(x + 5, y - 10, 3, 4, "rgba(40,28,24,1)");
-      k.R(x - 1, y - 14, 3, 7, "rgba(40,28,24,1)");
-      k.glow(x - 10, y - 2, 10, [200, 170, 120], 0.25);
+    const n = Math.min(6, Math.max(2, k.passed));
+    const near = k.climax;
+    for (let i = 0; i < n; i++) {
+      const sc = 1 + near * 1.2 + (i < 2 ? 0 : -0.3);
+      const born = i === k.passed - 1 ? Math.min(1, k.since * 2) : 1;
+      const x = k.w * (0.34 + (i % 3) * 0.14 + (i < 2 ? 0 : 0.04)) + (k.still ? 0 : Math.sin(k.sec * 2 + i) * 3);
+      const y = k.h * (0.78 + 0.08 * near - (i >= 2 ? 0.05 : 0));
+      const c = `rgba(40,28,24,${born})`;
+      k.R(x - 6 * sc, y - 7 * sc, 12 * sc, 4 * sc, c);
+      k.R(x - 5 * sc, y - 3 * sc, 1 * sc, 3 * sc, c);
+      k.R(x + 4 * sc, y - 3 * sc, 1 * sc, 3 * sc, c);
+      k.R(x + 5 * sc, y - 10 * sc, 3 * sc, 4 * sc, c);
+      k.R(x - 1 * sc, y - 14 * sc, 3 * sc, 7 * sc, c);
+      k.glow(x - 10 * sc, y - 2, 10 + 8 * k.busy + 16 * near, near > 0.3 ? [255, 210, 130] : [200, 170, 120], 0.25 + 0.2 * near);
     }
     k.along(24, 1, (x) => k.R(x, k.h * 0.74, 2, 8, "rgba(70,50,36,0.8)"));
   },
