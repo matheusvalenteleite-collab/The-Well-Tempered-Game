@@ -15,7 +15,7 @@ import { nearestSample, planFor, SAMPLED, sampledMidis, setFor, STRETCH_MAX, zon
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { folderOf, midiOfName } from "../src/touch/sampled.ts";
 import { AUDIT_SOUNDS, WTC_FUGUES } from "../tools/touch/octaves/audit.ts";
-import { APART, stretches, type Stretch } from "../tools/touch/stretch/audit.ts";
+import { stretches, type Stretch } from "../tools/touch/stretch/audit.ts";
 
 /**
  * D638, THE ALLOW-LIST: what is still read more than STRETCH_MAX from a recording, by sound and recorded instrument (`notes`
@@ -40,24 +40,24 @@ const ALLOWED: readonly { sound: string; inst: string; notes: number; max: numbe
   // ORCHESTRA & ORGAN's stage doublings (stage.ts) follow their line: the second violin's oboe at its E3 (I/16, I/20, II/5:
   // under the oboe's A#3, its lowest note on the instrument too), the viola's horn at I/19's B5 (over the horn's F5).
   { sound: "orchestraOrgan", inst: "trialOboe", notes: 5, max: 6, why: "a stage doubling past the oboe's compass; the violin plays the line" },
-  { sound: "orchestraOrgan", inst: "trialHorn", notes: 2, max: 6, why: "a stage doubling past the horn's compass; the viola plays the line" },
-  // SOLO VOICES: lines wider than any one singer (I/3's alto A#2-G#5, three octaves): the seats chosen for the fewest
-  // stretched (D637), these single notes left at a line's far end, one or two a fugue.
-  { sound: "soloVoices", inst: "voiceA", notes: 8, max: 8, why: "a line's far note past every singer of the band" },
-  { sound: "soloVoices", inst: "voiceS", notes: 2, max: 7, why: "a line's far note past every singer of the band" },
+  { sound: "orchestraOrgan", inst: "trialHorn", notes: 6, max: 6, why: "a stage doubling past the horn's compass (I/19's and II/15's B5); the viola plays the line" },
+  // WIND QUINTET's II/15 alto (G2-F#5) on the clarinet (D632): its G2 7 under the clarinet's D3. The horn covers the line,
+  // but weighing the quintet's seats for the stretch also gives four fugues' horn tenor to a second clarinet.
+  { sound: "trialWinds", inst: "trialClarinet", notes: 2, max: 7, why: "II/15's alto G2, two notes" },
+  // SOLO VOICES: lines wider than any one singer (I/3's alto A#2-G#5, three octaves; II/15's soprano D3-B5): the seats
+  // chosen for the fewest stretched (D637), these notes left at a line's far end, one or two a fugue but II/15's.
+  { sound: "soloVoices", inst: "voiceA", notes: 13, max: 10, why: "a line's far note past every singer of the band" },
+  { sound: "soloVoices", inst: "voiceS", notes: 7, max: 10, why: "a line's far note past every singer of the band" },
   { sound: "soloVoices", inst: "voiceT", notes: 2, max: 7, why: "a line's far note past every singer of the band" },
   { sound: "soloVoices", inst: "voiceB", notes: 2, max: 7, why: "I/3's bass C5-C#5, the bass keeps its singer" },
 ];
-/** D639: II/15 apart: its voice 0 runs D2-B5 in the data (under review); its reads held to what they are now, at most this far. */
-const APART_MAX = 22;
-
 const all: Stretch[] = AUDIT_SOUNDS.flatMap((id) => stretches(id));
 
 test("D635: every note of the 48 fugues on every sound read within STRETCH_MAX semitones of a recording, but the allow-list", () => {
   assert.equal(STRETCH_MAX, 5);
   assert.equal(WTC_FUGUES.length, 48);
   const got = new Map<string, { notes: number; max: number }>();
-  for (const s of all.filter((x) => x.piece !== APART)) {
+  for (const s of all) {
     const k = `${s.sound} ${s.inst}`;
     const e = got.get(k) ?? { notes: 0, max: 0 };
     e.notes += s.n;
@@ -71,10 +71,6 @@ test("D635: every note of the 48 fugues on every sound read within STRETCH_MAX s
     assert.deepEqual(e, { notes: a.notes, max: a.max }, `${k} as listed`);
   }
   for (const a of ALLOWED) assert.ok(got.has(`${a.sound} ${a.inst}`), `${a.sound} ${a.inst} listed, no longer stretched: take it off`);
-});
-
-test("D639: II/15 apart (its voice data under review): no read past APART_MAX", () => {
-  for (const s of all.filter((x) => x.piece === APART)) assert.ok(Math.abs(s.shift) <= APART_MAX, `${s.sound} v${s.voice} ${s.patch} ${s.written} from ${s.from}`);
 });
 
 test("D636: the fills: the trials' horn's hole and the bassoons' low notes from the instrument's other recordings in the repo, every note of their spans within 3 of a recording", () => {
