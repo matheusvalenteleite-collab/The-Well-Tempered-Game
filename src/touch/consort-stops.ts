@@ -44,7 +44,7 @@ export const SORDINO = { lp: 2600, gain: 0.72 } as const;
 export const TREMOLO = { rate: 11, depth: 0.7, trim: 0.93 } as const;
 
 /** The arco patch, its spiccato and its pizzicato (sound.ts PATCHES), by the consort's voices. */
-const VARIANTS: readonly [arco: Patch, spicc: Patch, pizz: Patch][] = [
+export const STOP_FAMILIES: readonly [arco: Patch, spicc: Patch, pizz: Patch][] = [
   [PATCHES.consViolin, PATCHES.consViolinSpicc, PATCHES.consViolinPizz],
   [PATCHES.consViola, PATCHES.consViolaSpicc, PATCHES.consViolaPizz],
   [PATCHES.consCello, PATCHES.consCelloSpicc, PATCHES.consCelloPizz],
@@ -57,7 +57,7 @@ export function tremoloPatch(arco: Patch): Patch {
   return t;
 }
 /** Whether a patch is one of the consort's arco voices. */
-export const isConsortArco = (pt: Patch | null | undefined) => !!pt && VARIANTS.some((v) => v[0] === pt);
+export const isConsortArco = (pt: Patch | null | undefined) => !!pt && STOP_FAMILIES.some((v) => v[0] === pt);
 
 /** What a stop makes of a consort note: its patch (spiccato, pizzicato, tremolo), the mute's lowpass and level. */
 export interface ConsortNote {
@@ -67,7 +67,7 @@ export interface ConsortNote {
 }
 /** A consort voice's note under a stop (null: as it was: ARCO, or a patch the stops do not reach). */
 export function stopNote(stop: ConsortStop, pt: Patch | null | undefined): ConsortNote | null {
-  const v = VARIANTS.find((x) => x[0] === pt);
+  const v = STOP_FAMILIES.find((x) => x[0] === pt);
   if (!v || stop === "arco") return null;
   if (stop === "spicc") return { patch: v[1] };
   if (stop === "pizz") return { patch: v[2] };

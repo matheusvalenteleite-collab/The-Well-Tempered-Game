@@ -11,7 +11,7 @@ import { installFakeAudio } from "./fake-audio.ts";
 import { Chip, TICK, voicing, type Voicing } from "../src/touch/chip.ts";
 import { PATCHES, PRESETS, setPreset, type Patch } from "../src/touch/sound.ts";
 import { GENERIC, playFx, SYNTH_LAYERS, TAILORED, type SubjectFx } from "../src/touch/subject-fx.ts";
-import { foldDown, guardedPitch, MAX_SHIFT_ANY, SAMPLED, sampledMidis, setFor } from "../src/touch/sampled.ts";
+import { MAX_SHIFT_ANY, reachOf, SAMPLED, sampledMidis, setFor } from "../src/touch/sampled.ts";
 
 const ctxOf = installFakeAudio(0, true);
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -53,26 +53,18 @@ test("D505: the count-in's click is band-passed noise, no oscillator (the old sq
   assert.doesNotMatch(src("src/touch/chip.ts"), /accent \? 2093 : 1568/);
 });
 
-test("D505: no recorded set is read more than MAX_SHIFT_ANY semitones fast: a pitch over the top an octave lower (the singers excepted, by their maxShift where set)", () => {
+// D631 (the owner: "no note may sound in a different octave from the one written"): D505's upward fold withdrawn. What it
+// guarded (a set read glassy-fast) is held instead by the choice of instrument and the declared reach (test/d631-octaves).
+test("D505, D631: every recorded set's reach over its top recording MAX_SHIFT_ANY (or its maxShift), past it only where declared (`extend`); the harpsichord's G6 within it", () => {
   assert.equal(MAX_SHIFT_ANY, 3);
   for (const [id, inst] of Object.entries(SAMPLED)) {
-    for (let m = 24; m <= 108; m++) {
-      const set = setFor(inst, m);
-      const ms = sampledMidis(set);
-      if (!ms.length) continue;
-      const sung = /^voice|choir/.test(set);
-      const p = guardedPitch(inst, set, m, sung);
-      assert.equal((((p - m) % 12) + 12) % 12, 0, `${id} ${m}: its pitch class`);
-      if (sung && inst.maxShift === undefined) continue;
-      const lim = inst.maxShift ?? MAX_SHIFT_ANY;
-      // Over the top recording (inside the compass the nearest is at most half the widest gap away: 2.5 on every offered set).
-      if (p > ms[ms.length - 1]) assert.ok(p - ms[ms.length - 1] <= lim || p - 12 < ms[0] - lim, `${id} ${m} read at ${p}: ${p - ms[ms.length - 1]} over the top`);
-      if (inst.maxShift === undefined && m <= ms[ms.length - 1] + lim) assert.equal(p, m, `${id} ${m}: within reach, as written`);
-    }
+    const ms = sampledMidis(setFor(inst, 60));
+    if (!ms.length) continue;
+    const r = reachOf(inst, setFor(inst, 60));
+    assert.equal(r.hi - ms[ms.length - 1], inst.extend?.up ?? inst.maxShift ?? MAX_SHIFT_ANY, id);
   }
-  // The harpsichord's top: F6 the last string; G6 played as G6 (2 over), B6 an octave lower.
-  assert.equal(foldDown("harpsichord", 91), 91);
-  assert.equal(foldDown("harpsichord", 95), 83);
+  // The harpsichord's top: F6 the last string; G6 (2 over) within its reach.
+  assert.equal(reachOf(SAMPLED.harpsichord, "harpsichord").hi, 92);
 });
 
 test("D505: the harpsichord's choirs and a stand-in never read a string more than MAX_SHIFT_ANY off; a loaded neighbour before the synthesized stand-in", () => {

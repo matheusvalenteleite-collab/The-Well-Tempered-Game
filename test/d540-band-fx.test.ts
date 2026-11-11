@@ -109,7 +109,9 @@ test("D540: a slimmed recording is one channel at its rate, a plucked one cut wi
   assert.deepEqual(zonesOf([60, 61, 62, 63, 64, 65, 66], 3), [60, 63, 66]);
   assert.deepEqual(zonesOf([60, 63, 66], 3), [60, 63, 66]);
   setZones("jazzVibes", 3);
-  assert.ok(sampledMidis("jazzVibes").every((m, i, a) => i === 0 || m - a[i - 1] >= 3));
+  // (D631: the top recording kept, however near the zone below it: the compass whole.)
+  assert.ok(sampledMidis("jazzVibes").every((m, i, a) => i === 0 || i === a.length - 1 || m - a[i - 1] >= 3));
+  assert.equal(sampledMidis("jazzVibes").at(-1), 89);
   setZones("jazzVibes", null);
   assert.ok(sampledMidis("jazzVibes").some((m, i, a) => i > 0 && m - a[i - 1] === 1));
 });
@@ -146,7 +148,7 @@ test("D560: the slim keyboards: the piano keeps its soft layer (Busoni's soft pl
   setPreset("harpsichordSampled");
   const harpsi = soundPlans([48, 60, 72], [60], null).flat();
   assert.ok(harpsi.filter((e) => e.set === "harpsichord" && e.notes.length).every((e) => e.slim?.rate === 24000 && e.slim.maxS === 3));
-  assert.ok(sampledMidis("harpsichord").every((m, i, a) => i === 0 || m - a[i - 1] >= 3), "sparse zones");
+  assert.ok(sampledMidis("harpsichord").every((m, i, a) => i === 0 || i === a.length - 1 || m - a[i - 1] >= 3), "sparse zones (D631: the top kept)");
   setPreset("chip");
   soundPlans([], [], null);
 });

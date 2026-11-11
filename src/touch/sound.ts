@@ -9,6 +9,7 @@
  */
 import type { SampledId, Slim } from "./sampled.ts";
 import { BAND_CHAINS, type ChainSpec } from "./band-fx.ts";
+import { OCTAVE_SEATS } from "./octave-seats.ts";
 
 export type Wave = "saw" | "square" | "triangle" | "sine" | "pulse12" | "pulse25" | "pulse50" | "organ" | "reed" | "bell" | ShapedWave;
 
@@ -2284,6 +2285,19 @@ export const TRIALS: Preset[] = [
   },
   // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered, D510 withdrawn.)
 ];
+/** D632: each sound's own per-piece line-ups as written here (Preset.pieces before OCTAVE_SEATS: the seat chooser's starting point). */
+export const OWN_PIECES: Readonly<Record<string, Preset["pieces"]>> = Object.fromEntries([...PRESETS, ...TRIALS].map((p) => [p.id, p.pieces]));
+/**
+ * D632: the per-fugue seats by range (octave-seats.ts, tools/touch/octaves/seats.ts) merged into Preset.pieces: a voice whose
+ * instrument does not cover its written line in a fugue takes the band's instrument that does (no note moved an octave, D631).
+ */
+for (const p of [...PRESETS, ...TRIALS]) {
+  const seats = OCTAVE_SEATS[p.id];
+  if (!seats) continue;
+  const merged: Record<string, Partial<Record<number, readonly Slot[]>>> = { ...(p.pieces ?? {}) };
+  for (const [f, byCount] of Object.entries(seats)) merged[f] = { ...(merged[f] ?? {}), ...byCount };
+  p.pieces = merged;
+}
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
