@@ -451,7 +451,7 @@ export const BED_FALL: Readonly<Record<string, { range: number }>> = { wtc2f24: 
  * (tools/touch/world-sfx/: the least gap at least 6 LU, the median at least 12, phone and desktop, with room to spare).
  */
 export const SFX_TRIM_DB: Readonly<Record<string, number>> = {
-  "wtc1f01": 5.0, "wtc1f02": -0.5, "wtc1f03": 4.5, "wtc1f05:hush": -3.5, "wtc1f05:murmur": 4.5, "wtc1f06": -8.0, "wtc1f07": -1.0, "wtc1f08": 9.5, "wtc1f09": 4.5, "wtc1f10": 7.0, "wtc1f11": 0.0, "wtc1f13": -7.0, "wtc1f15": 2.5, "wtc1f16": 0.0, "wtc1f17": -7.5, "wtc1f19": 5.0, "wtc1f20": 10.0, "wtc1f21": -1.5, "wtc1f22": 10.0, "wtc1f23": 10.0, "wtc1f24": 10.0, "wtc2f08": -1.5, "wtc2f10": -2.0, "wtc2f11": 0.5, "wtc2f12": 2.0, "wtc2f13": -2.5, "wtc2f14": 0.0, "wtc2f15": 6.0, "wtc2f16": 4.5, "wtc2f18": -0.5, "wtc2f19": 7.5, "wtc2f20": 6.0, "wtc2f22": 9.5, "wtc2f24": 3.0,
+  "wtc1f01": 5.0, "wtc1f02": -0.5, "wtc1f03": 4.5, "wtc1f05:hush": -3.5, "wtc1f05:murmur": 4.5, "wtc1f06": -8.0, "wtc1f07": -1.0, "wtc1f08": 9.5, "wtc1f09": 4.5, "wtc1f10": 7.0, "wtc1f11": -1.5, "wtc1f13": -7.0, "wtc1f15": 2.5, "wtc1f16": 0.0, "wtc1f17": -7.5, "wtc1f19": 5.0, "wtc1f20": 10.0, "wtc1f21": -1.5, "wtc1f22": 10.0, "wtc1f23": 10.0, "wtc1f24": 10.0, "wtc2f08": -1.5, "wtc2f10": -2.0, "wtc2f11": 0.5, "wtc2f12": 2.0, "wtc2f13": -2.5, "wtc2f14": 0.0, "wtc2f15": 6.0, "wtc2f16": 4.5, "wtc2f18": -0.5, "wtc2f19": 7.5, "wtc2f20": 6.0, "wtc2f22": 9.5, "wtc2f24": 3.0,
 };
 export function trimOf(id: string, k: SfxKind): number {
   return 10 ** ((SFX_TRIM_DB[`${id}:${k}`] ?? SFX_TRIM_DB[id] ?? 0) / 20);

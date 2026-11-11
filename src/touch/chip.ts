@@ -4359,7 +4359,9 @@ export class Chip {
       const g = bag.add(ctx.createGain());
       node.connect(g).connect(out);
       const warm = Math.max(now, t0 - SWELL_WARM);
-      g.gain.setValueAtTime(0, warm);
+      // silent while the filters warm (no event at the curve's own start: a curve may not overlap one)
+      g.gain.value = 0;
+      if (warm < t0 - 1e-3) g.gain.setValueAtTime(0, warm);
       g.gain.setValueCurveAtTime(cv, t0, Math.max(1e-3, dur));
       const off = flow ? (warm - this.flowAnchor.get(key)! + li * 1.37) % len : ((e.tick * 0.000137) + (e.seed ?? 0) * 0.61 + li * 1.37) % len;
       nsrc.start(warm, off);
