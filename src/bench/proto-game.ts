@@ -75,6 +75,7 @@ export const EDGE_SHARE = 0.12;
 /** D296: the move (in rows) the line's travel over a fourth or more asks of a thumb, the right way. */
 export let TRAVEL_MIN = 0.25;
 export const setTravelMin = (v: number) => ((TRAVEL_MIN = v), (MECH.travelMin = v));
+import { oneLine } from "../touch/one-line.ts";
 import { chordOf, laneNotes, options, release, strike, strikeNext, sweep, windowOf, type LaneNote, type LaneOptions } from "../touch/lanes.ts";
 import type { Keyboard } from "../touch/piano.ts";
 import { holdValue, strengthOf, TOUCH_NEUTRAL, touchKind } from "../touch/touch-expr.ts";
@@ -803,6 +804,14 @@ export class ProtoGame {
       }
       // D490: no note rides (D191's quick notes, D229's prelude riders, D253's repeated bass): every note left is the player's to play.
       for (const n of notes) n.ride = false;
+      // D456: one note per onset: the line's own note the player's, the others the game's (one-line.ts).
+      {
+        const { extra } = oneLine(notes, v === f.voices.length - 1);
+        for (const n of extra) {
+          movedOut.add(lineKey(n.voice ?? v, n.on, n.midi));
+          notes.splice(notes.indexOf(n), 1);
+        }
+      }
       // D258, SWEEP: a note of a quarter or more begun with the inner voice under it becomes a chord, spread upward when struck.
       let sweeps: Set<number> | undefined;
       if (arc?.sweeps && f.kind === "prelude" && v === 0 && !handsOn) {

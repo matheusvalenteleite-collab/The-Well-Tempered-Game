@@ -1,4 +1,5 @@
 import "./drum-presets-link.ts";
+import { createPortal } from "react-dom";
 /**
  * The testbench (D170; D175; D178; D179-D180): prototypes of the instrument tried on the game itself,
  * judged. ⚙ chooses the prototype (protos.ts), the piece (D192: a wheel of the fugues' cards,
@@ -28,7 +29,9 @@ import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
+import { mapFlag, playheadShare, spanFactor } from "../touch/preview-flags.ts";
 import { floorOf, ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
@@ -102,6 +105,7 @@ import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice,
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { pieceTitle, Selection } from "./Selection.tsx";
 import { HowTo, type ClipNote } from "./HowTo.tsx";
+import { oneLine } from "../touch/one-line.ts";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
 import { INTRO_LOAD_WAIT_MS, INTRO_PRESET, introPitches, playIntro, type IntroPlaying } from "./intro-sound.ts";
@@ -602,6 +606,9 @@ export function BenchApp() {
         b.ticks,
         v,
       );
+    // D456: one note per onset in the player's line (one-line.ts), as the game will have it.
+    const mineOne = oneLine(lane(voice), voice === f.voices.length - 1);
+    const mineExtra = new Set(mineOne.extra.map((n) => lineKey(voice, n.on, n.midi)));
     return {
       now: from - b.ticks,
       tps: 1,
@@ -615,8 +622,9 @@ export function BenchApp() {
       floor: boxFloor,
       ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
       voice,
-      notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
-      others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => (n.band || !played.includes(n.voice)) && (!run || n.on < run.until)),
+      notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : mineOne.kept,
+      // D456: the player's extra notes at an onset drawn as the others' (the game plays them).
+      others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, mineExtra.size ? -1 : voice).filter((n) => (n.band || !played.includes(n.voice) || mineExtra.has(lineKey(n.voice, n.on, n.midi))) && (!run || n.on < run.until)),
       ...marks,
       piece: f.id,
     };
@@ -956,13 +964,13 @@ export function BenchApp() {
     const sig = other ? null : signatureOf(f.key);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
-    const span = bars * barTicks;
+    const span = bars * barTicks * spanFactor();
     return {
       yOf: (step: number) => y0 - step * geo.rowH,
       stepAt: (y: number) => Math.round((y0 - y) / geo.rowH),
       rowH: geo.rowH,
       ...(sig ? { lift: (step: number, midi: number) => chromaLiftPx(geo.rowH, step, midi, sig, BOX_PX) } : {}),
-      xOf: (tick: number) => r.left - a.left + ((tick - (now - 0.25 * span)) / span) * r.width,
+      xOf: (tick: number) => r.left - a.left + ((tick - (now - playheadShare() * span)) / span) * r.width,
     };
   }
 
@@ -1787,7 +1795,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} alone={!!dressNow && !dressNow.includes("voices")} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
+        legend={<>{mapFlag && playing && <LegendMap game={game} />}<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} alone={!!dressNow && !dressNow.includes("voices")} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} /></>}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
@@ -1796,8 +1804,10 @@ export function BenchApp() {
         {phase.kind === "mtalk" && (
           <BachTalk key={`m-${phase.title}-${phase.lines.map((l) => l.text).join("|")}`} title={phase.title} lines={phase.lines} onLine={demo} onDone={() => phase.done?.()} choices={phase.choices} extra={phase.extra} className={manLesson && isCourse(manLesson) ? "tb-bach-low" : undefined} />
         )}
-        {phase.kind === "result" && (
+        {phase.kind === "result" && createPortal(
           // D237: the result, minimal: the grade (or where the crowd left), the score, AGAIN, NEXT, ✕ back to the cards.
+          // D499b (main board; the owner, again: the score screen "leaves a gap in the bottom of screen"): drawn on the
+          // page itself (a portal to <body>), never inside the music box, so no ancestor can bound it on any browser.
           <div className="tg-card tg-card-low tb-result" role="dialog" aria-label="Result">
             <button type="button" id="result-close" className="tg-x tb-result-x" aria-label="Back to the cards" onClick={home}>
               ✕
@@ -1870,7 +1880,7 @@ export function BenchApp() {
               )}
             </div>
           </div>
-        )}
+        , document.body)}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
       {playing && man && manLesson && isCourse(manLesson) && (

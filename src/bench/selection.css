@@ -491,3 +491,8 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-tile .sel-tile-words { position: static; flex: none; display: flex; flex-direction: column; justify-content: flex-end; padding: 2px 3px 2px; background: rgba(8, 8, 16, 0.9); }
 .sel-tile.on .sel-tile-words { background: rgba(38, 48, 90, 0.95); }
 .sel-right .sel-piece-emblem { width: 100%; height: 100%; max-width: none; max-height: none; aspect-ratio: auto; }
+/* D499b (main board; the owner: the big picture "only occupies 50% of the square … they ought to fit the whole square,
+   with everything of the picture that is relevant visible"): the frame takes the picture's own shape (64:40), so the
+   picture fills it edge to edge with nothing cropped (a square crop of these wide scenes cut half of each: I/19's three
+   stooges, II/14's three sisters). FitEmblem's cover fill absorbs any part-pixel of difference. */
+.sel-right .sel-piece-pic { flex: none; width: 100%; height: auto; aspect-ratio: 64 / 40; min-height: 0; max-height: none; }

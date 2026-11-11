@@ -349,7 +349,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
     <div className="sel-piece" id="sel-piece">
       {/* D449, D452: the whole picture opens ABOUT THIS FUGUE, and the whole picture glows to say so (no ?). */}
       <span className={`sel-piece-pic${aboutable ? " sel-piece-pic-open" : ""}`} id="sel-piece-pic" role={aboutable ? "button" : undefined} tabIndex={aboutable ? 0 : undefined} aria-label={aboutable ? tr("ABOUT THIS FUGUE") : undefined} onClick={aboutable ? () => setAbout(true) : undefined}>
-        <FitEmblem id={piece} className="sel-piece-emblem" />
+        <FitEmblem id={piece} className="sel-piece-emblem" cover />
         {grade && (
           <span className={`sel-grade${best[piece] ? "" : " sel-old"}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }}>
             {grade}

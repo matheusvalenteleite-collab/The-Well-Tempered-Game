@@ -25,12 +25,13 @@ test("D499: the picture fits whole: a whole multiple of device pixels where it f
   }
 });
 
-test("D499: the cards and the panel use the whole picture (no cover, no fixed crop position); the words under the picture", () => {
+test("D499: the cards and the panel use the whole picture (no fixed crop position); the words under the picture; D499b: the panel's frame in the picture's own shape", () => {
   const sel = src("src/bench/Selection.tsx");
   assert.match(sel, /<FitEmblem id=\{id\} className="sel-emblem" \/>/);
-  assert.match(sel, /<FitEmblem id=\{piece\} className="sel-piece-emblem" \/>/);
+  assert.match(sel, /<FitEmblem id=\{piece\} className="sel-piece-emblem" cover \/>/);
   const css = src("src/bench/selection.css");
   const tail = css.slice(css.indexOf("D499 (design studio"));
   assert.ok(!/object-fit: cover|object-position/.test(tail));
+  assert.match(tail, /\.sel-right \.sel-piece-pic \{ flex: none; width: 100%; height: auto; aspect-ratio: 64 \/ 40;/);
   assert.match(tail, /\.sel-tile \.sel-tile-words \{ position: static; flex: none;/);
 });
