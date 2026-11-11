@@ -458,10 +458,10 @@ export interface SfxScheduled {
   vel1: number;
   /** The plan's event's tick (the swell's start: the noise read on from there). */
   since: number;
-  /** D640: a one-shot's variation (world-sfx.ts SfxEvent.seed). */
+  /** D643: a one-shot's variation (world-sfx.ts SfxEvent.seed). */
   seed?: number;
   /**
-   * D640: a curve effect's levels, one curve per layer (world-sfx.ts CURVE_SOUND), from `when`, a point every `res` s:
+   * D643: a curve effect's levels, one curve per layer (world-sfx.ts CURVE_SOUND), from `when`, a point every `res` s:
    * a flowing one's (a bed's, a climax's shape) its envelope times its textures over the beat's piece and its crossfade,
    * thinned point by point at the choke point (`tps`: the beat's ticks a second, a point's tick read from it).
    */
@@ -4162,7 +4162,7 @@ export class Chip {
         const v1 = swellEnv(f, b) * (b === t1 ? k1 : k) * sfxShare(f, b);
         this.scheduleSfx({ kind: "swell", tick: a, end: b, when: when(a), until: when(b), vel: swellEnv(f, a) * k, vel1: v1, since: e.tick }, (x) => this.sfxSound(x));
       } else if (isFlow(e.kind)) {
-        // D640: a bed or a climax's shape: this beat's piece, each layer's curve its envelope times its textures,
+        // D643: a bed or a climax's shape: this beat's piece, each layer's curve its envelope times its textures,
         // faded in over SWELL_XF from the beat (the last beat's piece fading out over the same), on SWELL_XF past it.
         if (e.end <= t0 || e.tick >= t1) continue;
         const a = Math.max(t0, e.tick);
@@ -4202,7 +4202,7 @@ export class Chip {
     const g = sfxShare(f, e.tick);
     if (g <= 0 && !e.curves) return;
     if (e.curves && e.tps) {
-      // D642: a flowing effect thinned point by point (a general rest inside the beat dips it to nothing).
+      // D6xx-SFX2-2: a flowing effect thinned point by point (a general rest inside the beat dips it to nothing).
       const tps = e.tps;
       const curves = e.curves.map((c, li) => {
         const r = e.res![li];
@@ -4297,10 +4297,10 @@ export class Chip {
       halt(n, at + L.len + 0.02);
     }
   }
-  /** D640: the flowing effects' noise read on by the audio clock from each effect's first piece (one noise across its beats). */
+  /** D643: the flowing effects' noise read on by the audio clock from each effect's first piece (one noise across its beats). */
   private flowAnchor = new Map<string, number>();
   /**
-   * D640-D644, THE SECOND BATCH's sounds (world-sfx.ts CURVE_SOUND): per layer the effects' noise through its low-Q filters,
+   * D6xx-SFX2-3, D644, D6xx-SFX2-1..3, THE SECOND BATCH's sounds (world-sfx.ts CURVE_SOUND): per layer the effects' noise through its low-Q filters,
    * its gain the layer's curve (a flowing effect's: the choke point's, warmed SWELL_WARM before the piece; a one-shot's: its
    * envelope times its textures, at the velocity played), into the master as the drums are.
    */

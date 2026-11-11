@@ -119,7 +119,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
   const FX_MIN_GAP = 6;
   const FX_MEDIAN_GAP = 12;
   const WORLDS = Object.keys(PILOT_SFX).sort();
-  /** D640: the studio's and the owner's list (the pilots, D623; the second batch, D640). */
+  /** D643: the studio's and the owner's list (the pilots, D623; the second batch, D643). */
   const LIST: Record<string, readonly SfxKind[]> = {
     wtc1f01: ["murmur"], wtc1f02: ["crackle"], wtc1f03: ["plop"], wtc1f05: ["hush", "murmur"], wtc1f06: ["rustle"], wtc1f07: ["whirr"], wtc1f08: ["gravel"],
     wtc1f09: ["flutter"], wtc1f10: ["hoof"], wtc1f11: ["grass"], wtc1f13: ["bubble"], wtc1f15: ["flipper"], wtc1f16: ["clack"], wtc1f17: ["page"], wtc1f19: ["clatter"],
@@ -130,7 +130,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
   };
   const flowing = (k: string) => k === "swell" || isFlow(k);
 
-  test("D640: the list: every world its effects, the silent ones silent by design", () => {
+  test("D643: the list: every world its effects, the silent ones silent by design", () => {
     for (const [id, k] of Object.entries(LIST)) assert.deepEqual(PILOT_SFX[id], k, id);
     for (const id of [...SILENT_SFX, "wtc2f02", "wtc2f04", "wtc2f05"]) assert.deepEqual(PILOT_SFX[id], [], `${id}: silent by design`);
     assert.equal(SILENT_SFX.length, 9);
@@ -222,7 +222,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
     assert.deepEqual(bad, []);
   });
 
-  test("D623, D640: nothing before the first note, in a general rest, or past the last chord; the climaxes gone before it; the events the score's", async () => {
+  test("D623, D643: nothing before the first note, in a general rest, or past the last chord; the climaxes gone before it; the events the score's", async () => {
     for (const id of ["wtc2f02", "wtc2f04", "wtc2f05"]) assert.deepEqual(PILOT_SFX[id], []);
     assert.deepEqual(SWEEP_TRIAL.wtc2f04, ["sweep"], "II/4's sweep: the Sound Lab's A/B only");
     for (const id of WORLDS.filter((x) => PILOT_SFX[x].length)) {
@@ -264,7 +264,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
     assert.ok(swellEnv(f1, formOf(f1).climax.peak) === 1 && swellEnv(f1, sw.end) === 0);
   });
 
-  test("D642: the beds step with the entries (II/24 falling), fade over about 1 s before the last chord; II/8's rain stops at the peak", () => {
+  test("D6xx-SFX2-2: the beds step with the entries (II/24 falling), fade over about 1 s before the last chord; II/8's rain stops at the peak", () => {
     for (const id of WORLDS) {
       for (const k of PILOT_SFX[id]) {
         if (CURVE_SOUND[k]?.event !== "bed") continue;
@@ -292,7 +292,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
     }
   });
 
-  test("D642: the pulses on the score's beat (the drums' pulse) or fitted to the entry's notes; the rest irregular", () => {
+  test("D6xx-SFX2-2: the pulses on the score's beat (the drums' pulse) or fitted to the entry's notes; the rest irregular", () => {
     for (const id of WORLDS) {
       const f = fugueById(id);
       const beat = beatOf(f).ticks;
@@ -326,7 +326,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
     }
   });
 
-  test("D623, D640: no pitch (noise through low-Q filters only; murmurs band-passed with a slow flutter); the rumbles under 1 s and high-passed; off by WORLD SOUNDS, STAGE QUIET/OFF, the world not shown", async () => {
+  test("D623, D643: no pitch (noise through low-Q filters only; murmurs band-passed with a slow flutter); the rumbles under 1 s and high-passed; off by WORLD SOUNDS, STAGE QUIET/OFF, the world not shown", async () => {
     for (const [k, s] of Object.entries(SFX_SOUND)) for (const L of s!.layers) for (const [, hz, q] of L.filters) assert.ok(q <= SFX_MAX_Q && hz > 0, `${k}: Q ${q}`);
     for (const [k, s] of Object.entries(CURVE_SOUND)) {
       assert.ok(!(k in SFX_SOUND), `${k}: one engine`);

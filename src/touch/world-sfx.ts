@@ -26,11 +26,11 @@ import { hasStage, stageMode } from "./stage-bg.ts";
 
 export type SfxKind =
   | "swell" | "click" | "sweep" | "thud" | "rumble"
-  // D640-D644, the second batch: the entries' one-shots and figures, the climaxes' shapes, the beds.
+  // D6xx-SFX2-3, D644, D6xx-SFX2-1..3, the second batch: the entries' one-shots and figures, the climaxes' shapes, the beds.
   | "crackle" | "plop" | "rustle" | "hoof" | "bubble" | "flipper" | "clack" | "page" | "rotary" | "hop" | "stamp" | "quake" | "hush"
   | "murmur" | "flutter" | "clatter"
   | "whirr" | "gravel" | "grass" | "rail" | "steps" | "vinyl" | "lowwind" | "rain" | "fair" | "ballroom" | "leaves" | "court" | "wind" | "harbour";
-/** D640: what each effect follows: an entry's onset (a one-shot, or a figure fitted to the entry's own notes), the climax's ramp, or the whole piece (a bed). */
+/** D643: what each effect follows: an entry's onset (a one-shot, or a figure fitted to the entry's own notes), the climax's ramp, or the whole piece (a bed). */
 export type SfxEventKind = "entry" | "climax" | "bed";
 /** The worlds and their effects (an empty list: no sound, deliberately; a fugue not listed: none). */
 export const PILOT_SFX: Readonly<Record<string, readonly SfxKind[]>> = {
@@ -42,7 +42,7 @@ export const PILOT_SFX: Readonly<Record<string, readonly SfxKind[]>> = {
   wtc2f04: [],
   wtc2f05: [],
   wtc2f06: ["thud", "rumble"],
-  // D640-D644, the second batch (the studio's and the owner's list).
+  // D6xx-SFX2-3, D644, D6xx-SFX2-1..3, the second batch (the studio's and the owner's list).
   wtc1f01: ["murmur"],
   wtc1f02: ["crackle"],
   wtc1f03: ["plop"],
@@ -86,7 +86,7 @@ export const PILOT_SFX: Readonly<Record<string, readonly SfxKind[]>> = {
   wtc2f23: [],
   wtc2f24: ["ballroom"],
 };
-/** D640: the worlds silent by design (the list's own). */
+/** D643: the worlds silent by design (the list's own). */
 export const SILENT_SFX: readonly string[] = ["wtc1f04", "wtc1f12", "wtc1f14", "wtc1f18", "wtc2f07", "wtc2f09", "wtc2f17", "wtc2f21", "wtc2f23"];
 /** D626: the dropped sweep, playable on II/4 in the Sound Lab only (its "sweep (dropped)" toggle). */
 export const SWEEP_TRIAL: Readonly<Record<string, readonly SfxKind[]>> = { wtc2f04: ["sweep"] };
@@ -99,7 +99,7 @@ export interface SfxEvent {
   end: number;
   /** The plan's level 0..1 (before the choke point's thinning). */
   vel: number;
-  /** D640: a one-shot's variation (its entry's index: each crackle, rustle or burst of bubbles its own). */
+  /** D643: a one-shot's variation (its entry's index: each crackle, rustle or burst of bubbles its own). */
   seed?: number;
 }
 
@@ -254,7 +254,7 @@ export function sfxKindsNow(f: TouchFugue, shown: boolean): readonly SfxKind[] {
   return PILOT_SFX[f.id] ?? [];
 }
 
-// --- D640-D644, THE SECOND BATCH: one engine for every new effect (CURVE_SOUND). Each sound is a few layers of the
+// --- D6xx-SFX2-3, D644, D6xx-SFX2-1..3, THE SECOND BATCH: one engine for every new effect (CURVE_SOUND). Each sound is a few layers of the
 // effects' one noise through low-Q filters (as the pilots'), its level a CURVE: the event's envelope times its layer's
 // textures (mods), all pure numbers of the score's ticks (and the piece's nominal seconds), the same every run; the chip
 // sets the curve on the layer's gain (Chip.sfxSound). Nothing pitched: no oscillator, no tuned filter, no glide; the
@@ -268,9 +268,9 @@ export type Mod =
   | { t: "gate"; hz: number; th: number; seed: number }
   /** Grains at random times (`rate` a second, each slot's place jittered by `jit` of a slot), each falling in `decay` s, its size floor..1 (`pow` skews to the small). */
   | { t: "grains"; rate: number; decay: number; jit: number; floor: number; pow: number; seed: number }
-  /** D642: strokes ON THE SCORE'S BEAT (the drums' pulse: beatOf; `span` beats apart, or one a bar), each rising in `attack` s and falling in `decay`; between 1-depth and 1; every other stroke at `alt`. */
+  /** D6xx-SFX2-2: strokes ON THE SCORE'S BEAT (the drums' pulse: beatOf; `span` beats apart, or one a bar), each rising in `attack` s and falling in `decay`; between 1-depth and 1; every other stroke at `alt`. */
   | { t: "pulse"; span: number | "bar"; attack: number; decay: number; depth: number; alt?: number }
-  /** D642: a wheel's turn locked to the beat (`per` turns a beat), a smooth dip of `depth`. */
+  /** D6xx-SFX2-2: a wheel's turn locked to the beat (`per` turns a beat), a smooth dip of `depth`. */
   | { t: "wheel"; per: number; depth: number };
 export type Filter = readonly ["highpass" | "lowpass" | "bandpass", number, number];
 export interface CurveLayer {
@@ -288,7 +288,7 @@ export interface CurveSound {
   event: SfxEventKind;
   /** A climax's one-shot (the hush on the rise), else a climax's shape over the rise to the peak and away. */
   shot?: boolean;
-  /** D642: a figure fitted to the entry's own rhythm: the entering voice's first `n` onsets at least `minGap` s apart within `span` s, each at its level. */
+  /** D6xx-SFX2-2: a figure fitted to the entry's own rhythm: the entering voice's first `n` onsets at least `minGap` s apart within `span` s, each at its level. */
   figure?: { n: number; minGap: number; span: number; levels: readonly number[] };
   /** A bed: its level's range over the entries (dB; `fall`: II/24, the other way); `stop`: II/8's rain, gone at the climax's peak. */
   bed?: { range: number; fall?: boolean; stop?: "peak" };
@@ -300,13 +300,13 @@ const LP = (hz: number, q = 0.5): Filter => ["lowpass", hz, q];
 const fl = (hz: number, depth: number, seed: number): Mod => ({ t: "flutter", hz, depth, seed });
 const gr = (rate: number, decay: number, jit: number, floor: number, pow: number, seed: number): Mod => ({ t: "grains", rate, decay, jit, floor, pow, seed });
 const RISE = { range: 9 };
-/** D641-D643: the murmurs (crowd, ballroom, court, audience): band-passed noise, two bands each with its own slow syllabic flutter, no formant, no vowel. */
+/** D6xx-SFX2-1-D6xx-SFX2-3: the murmurs (crowd, ballroom, court, audience): band-passed noise, two bands each with its own slow syllabic flutter, no formant, no vowel. */
 const murmur = (lo: number, hi: number, depth: number, seed: number): CurveLayer[] => [
   { filters: [HP(lo), LP(hi), LP(hi)], level: 1, mods: [fl(3.1, depth, seed), fl(0.35, 0.3, seed + 1)], res: 0.01 },
   { filters: [HP(lo * 1.8), LP(hi * 1.5)], level: 0.6, mods: [fl(4.3, depth, seed + 2), fl(0.27, 0.3, seed + 3)], res: 0.01 },
 ];
 export const CURVE_SOUND: Readonly<Partial<Record<SfxKind, CurveSound>>> = {
-  // ---- the entries' one-shots (D641) ----
+  // ---- the entries' one-shots (D6xx-SFX2-1) ----
   // I/2 THE IMP: the fire catching: a few crackles (grains) over a short breath of flame.
   crackle: { event: "entry", gain: 0.5, layers: [
     { filters: [HP(1500), LP(6500)], level: 1, mods: [gr(16, 0.003, 1, 0.2, 2, 21)], attack: 0.01, hold: 0.25, len: 0.7, res: 0.0005 },
@@ -322,7 +322,7 @@ export const CURVE_SOUND: Readonly<Partial<Record<SfxKind, CurveSound>>> = {
     { filters: [HP(1200), LP(7000)], level: 1, mods: [gr(90, 0.004, 1, 0.3, 1.5, 61)], attack: 0.12, hold: 0.15, len: 0.75, res: 0.0005 },
     { filters: [HP(400), LP(1800)], level: 0.25, mods: [], attack: 0.1, hold: 0.05, len: 0.5, res: 0.005 },
   ] },
-  // I/10 THE TWO HORSEMEN: soft hoofbeats on the entry's own first notes (D642), on turf: a low thud and a little knock.
+  // I/10 THE TWO HORSEMEN: soft hoofbeats on the entry's own first notes (D6xx-SFX2-2), on turf: a low thud and a little knock.
   hoof: { event: "entry", gain: 0.5, figure: { n: 4, minGap: 0.13, span: 1.0, levels: [1, 0.75, 0.85, 0.65] }, layers: [
     { filters: [HP(80), LP(500), LP(500)], level: 1, mods: [], attack: 0.003, hold: 0, len: 0.12, res: 0.001 },
     { filters: [HP(700), LP(2500)], level: 0.25, mods: [], attack: 0.001, hold: 0, len: 0.03, res: 0.0005 },
@@ -352,21 +352,21 @@ export const CURVE_SOUND: Readonly<Partial<Record<SfxKind, CurveSound>>> = {
     { filters: [HP(2200), LP(7000)], level: 1, mods: [gr(11, 0.002, 0.25, 0.7, 1, 213)], attack: 0.001, hold: 0.55, len: 0.65, res: 0.0005 },
     { filters: [HP(600), LP(2000)], level: 0.35, mods: [gr(11, 0.006, 0.25, 0.7, 1, 213)], attack: 0.001, hold: 0.55, len: 0.65, res: 0.0005 },
   ] },
-  // II/15 HOPSCOTCH: a soft hop on the entry's own first notes (D642): a landing and its scuff.
+  // II/15 HOPSCOTCH: a soft hop on the entry's own first notes (D6xx-SFX2-2): a landing and its scuff.
   hop: { event: "entry", gain: 0.5, figure: { n: 3, minGap: 0.25, span: 1.2, levels: [1, 0.8, 0.9] }, layers: [
     { filters: [HP(90), LP(600)], level: 1, mods: [], attack: 0.003, hold: 0, len: 0.1, res: 0.001 },
     { filters: [HP(1500), LP(6000)], level: 0.3, mods: [gr(120, 0.003, 1, 0.4, 1, 215)], attack: 0.005, hold: 0, len: 0.08, res: 0.0005 },
   ] },
-  // II/18 THE GIGUE: stamping feet on the entry's own first notes (D642): a floor's thud and its knock.
+  // II/18 THE GIGUE: stamping feet on the entry's own first notes (D6xx-SFX2-2): a floor's thud and its knock.
   stamp: { event: "entry", gain: 0.5, figure: { n: 3, minGap: 0.2, span: 1.1, levels: [1, 0.8, 0.9] }, layers: [
     { filters: [HP(70), LP(450), LP(450)], level: 1, mods: [], attack: 0.003, hold: 0, len: 0.16, res: 0.001 },
     { filters: [HP(600), LP(2200)], level: 0.35, mods: [], attack: 0.001, hold: 0, len: 0.04, res: 0.0005 },
   ] },
-  // II/20 THE EARTHQUAKE: a short low rumble, high-passed twice off the bass's fundamentals (D643, as II/6's).
+  // II/20 THE EARTHQUAKE: a short low rumble, high-passed twice off the bass's fundamentals (D6xx-SFX2-3, as II/6's).
   quake: { event: "entry", gain: 0.1, layers: [
     { filters: [HP(250), HP(250), LP(900), LP(900)], level: 1, mods: [gr(25, 0.03, 1, 0.5, 1, 220)], attack: 0.05, hold: 0.15, len: 0.8, res: 0.002 },
   ] },
-  // ---- the climaxes (D641) ----
+  // ---- the climaxes (D6xx-SFX2-1) ----
   // I/5 THE CORONATION: the crowd hushed as the climax begins ("shh"), then its murmur (below).
   hush: { event: "climax", shot: true, gain: 0.05, layers: [
     { filters: [HP(2500), LP(7000)], level: 1, mods: [fl(2.5, 0.3, 51)], attack: 0.25, hold: 0.3, len: 1.3, res: 0.01 },
@@ -382,7 +382,7 @@ export const CURVE_SOUND: Readonly<Partial<Record<SfxKind, CurveSound>>> = {
     { filters: [HP(1500), LP(6000)], level: 1, mods: [gr(24, 0.004, 0.35, 0.55, 1, 191)], res: 0.0005 },
     { filters: [HP(300), LP(1200)], level: 0.4, mods: [gr(24, 0.01, 0.35, 0.55, 1, 191)], res: 0.001 },
   ] },
-  // ---- the beds (D642) ----
+  // ---- the beds (D6xx-SFX2-2) ----
   // I/7 THE BICYCLE: the wheel's whirr, its turn locked to the beat (two a beat), and the tyre on the road; no bell.
   whirr: { event: "bed", bed: RISE, gain: 0.05, layers: [
     { filters: [HP(1200), LP(5000)], level: 1, mods: [{ t: "wheel", per: 2, depth: 0.35 }], res: 0.01 },
@@ -411,7 +411,7 @@ export const CURVE_SOUND: Readonly<Partial<Record<SfxKind, CurveSound>>> = {
     { filters: [HP(2000), LP(8000)], level: 1, mods: [gr(6, 0.0012, 1, 0.1, 4, 231)], res: 0.0005 },
     { filters: [HP(3000), LP(9000)], level: 0.04, mods: [], res: 0.02 },
   ] },
-  // I/24 FAUST: low wind at the study's window: slow gusts, high-passed twice (off the bass on a desktop, D643).
+  // I/24 FAUST: low wind at the study's window: slow gusts, high-passed twice (off the bass on a desktop, D6xx-SFX2-3).
   lowwind: { event: "bed", bed: RISE, gain: 0.05, layers: [
     { filters: [HP(150), HP(150), LP(600), LP(600)], level: 1, mods: [fl(0.12, 0.65, 241), fl(0.7, 0.25, 243)], res: 0.01 },
   ] },
@@ -457,7 +457,7 @@ export function trimOf(id: string, k: SfxKind): number {
   return 10 ** ((SFX_TRIM_DB[`${id}:${k}`] ?? SFX_TRIM_DB[id] ?? 0) / 20);
 }
 export const isCurve = (k: string): boolean => k in CURVE_SOUND;
-/** D640: a flowing effect (a bed, a climax's shape): cut into the beats as the swell is; else a one-shot. */
+/** D643: a flowing effect (a bed, a climax's shape): cut into the beats as the swell is; else a one-shot. */
 export const isFlow = (k: string): boolean => {
   const C = CURVE_SOUND[k as SfxKind];
   return !!C && C.event !== "entry" && !C.shot;
@@ -542,7 +542,7 @@ const onsOf = (f: TouchFugue) => {
   if (!o) onsMemo.set(f.id, (o = [...new Set(f.entries.map((e) => e.on))].sort((a, b) => a - b)));
   return o;
 };
-/** D642: a figure's strokes (ticks): the entering voice's first onsets from the entry, at least minGap s apart, within span s. */
+/** D6xx-SFX2-2: a figure's strokes (ticks): the entering voice's first onsets from the entry, at least minGap s apart, within span s. */
 export function figureOf(f: TouchFugue, on: number, fig: NonNullable<CurveSound["figure"]>): number[] {
   const e = f.entries.find((x) => x.on === on);
   const tps = tpsOf(f);
@@ -554,18 +554,18 @@ export function figureOf(f: TouchFugue, on: number, fig: NonNullable<CurveSound[
   }
   return out;
 }
-/** D642: where a bed is gone: the final chord (II/8's rain: the climax's peak). */
+/** D6xx-SFX2-2: where a bed is gone: the final chord (II/8's rain: the climax's peak). */
 export function bedEnd(f: TouchFugue, k: SfxKind): number {
   const F = formOf(f);
   return CURVE_SOUND[k]?.bed?.stop === "peak" ? F.climax.peak : F.last;
 }
-/** D642: the bed's fade before it is gone (s; the rain stops quicker). */
+/** D6xx-SFX2-2: the bed's fade before it is gone (s; the rain stops quicker). */
 export const BED_FADE_S = 1;
 export const RAIN_STOP_S = 0.5;
-/** D642: the bed's fade-in from its first note (s). */
+/** D6xx-SFX2-2: the bed's fade-in from its first note (s). */
 export const BED_IN_S = 1.5;
 /**
- * D642: a bed's level at a tick (0..1, times the fugue's trim): stepping up with each distinct entry begun (from -range dB
+ * D6xx-SFX2-2: a bed's level at a tick (0..1, times the fugue's trim): stepping up with each distinct entry begun (from -range dB
  * at the first to 0 at the last; II/24 the other way), each step eased over a beat; in over BED_IN_S from the first entry,
  * out over BED_FADE_S before the last chord (the rain's over RAIN_STOP_S before the peak). The thinning is the choke point's.
  */
@@ -592,15 +592,15 @@ export function bedEnv(f: TouchFugue, k: SfxKind, tick: number): number {
   const g = Math.min(1, Math.max(0, (tick - ons[0]) / (BED_IN_S * tps)), Math.max(0, (end - tick) / fade));
   return 10 ** (db / 20) * g * trimOf(f.id, k);
 }
-/** D642: the score's silences a flowing effect dips in: at least REST_MIN_S long, the effect falling over REST_DIP_S before one and rising over it after. */
+/** D6xx-SFX2-2: the score's silences a flowing effect dips in: at least REST_MIN_S long, the effect falling over REST_DIP_S before one and rising over it after. */
 export const REST_DIP_S = 0.15;
 export const REST_MIN_S = 0.1;
 /**
- * D642: a world's band taken to hold its notes this much shorter again than the phrasing does (II/10: its SALSA measured
+ * D6xx-SFX2-2: a world's band taken to hold its notes this much shorter again than the phrasing does (II/10: its SALSA measured
  * silent 0.3 s before its detached crotchets' written ends, the band's struck and plucked sounds dying sooner).
  */
 export const SILENT_HOLD: Readonly<Record<string, number>> = { wtc2f10: 0.7 };
-/** D642: under this MIDI pitch a texture is the bass's alone (a phone hears little of it): a flowing effect at LOW_DIP there. */
+/** D6xx-SFX2-2: under this MIDI pitch a texture is the bass's alone (a phone hears little of it): a flowing effect at LOW_DIP there. */
 export const LOW_TOP = 50;
 export const LOW_DIP = 0.15;
 const silMemo = new Map<string, number[]>();
@@ -640,7 +640,7 @@ function silencesOf(f: TouchFugue): number[] {
   return m;
 }
 const topMemo = new Map<string, { step: number; top: Uint8Array }>();
-/** D642: a flowing effect's dip where only the bass sounds (the highest pitch under LOW_TOP, the cells either side counted): LOW_DIP, else 1. */
+/** D6xx-SFX2-2: a flowing effect's dip where only the bass sounds (the highest pitch under LOW_TOP, the cells either side counted): LOW_DIP, else 1. */
 export function lowDip(f: TouchFugue, tick: number): number {
   silencesOf(f);
   const { step, top } = topMemo.get(f.id)!;
@@ -653,7 +653,7 @@ export function lowDip(f: TouchFugue, tick: number): number {
   return s / 5;
 }
 /**
- * D642: the beds' and climax shapes' dip in the music's own silences (a rest, a breath, detached or short notes stopping
+ * D6xx-SFX2-2: the beds' and climax shapes' dip in the music's own silences (a rest, a breath, detached or short notes stopping
  * together: what the drums' 400 ms thinning window is too long to see): 0 in a silence, rising to 1 over REST_DIP_S from it.
  */
 export function restDip(f: TouchFugue, tick: number): number {
@@ -672,7 +672,7 @@ export function restDip(f: TouchFugue, tick: number): number {
   const d = Math.min(tick - prevEnd, nextOn - tick) / tpsOf(f);
   return Math.min(1, d / REST_DIP_S);
 }
-/** D641/D642: a flowing effect's envelope at a tick (a bed's, or a climax's: the swell's shape), with the fugue's trim. */
+/** D6xx-SFX2-1/D6xx-SFX2-2: a flowing effect's envelope at a tick (a bed's, or a climax's: the swell's shape), with the fugue's trim. */
 export function flowEnv(f: TouchFugue, k: SfxKind, tick: number): number {
   const C = CURVE_SOUND[k];
   if (!C) return 0;
