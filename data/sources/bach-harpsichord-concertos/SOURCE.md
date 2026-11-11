@@ -202,6 +202,12 @@ texture and doubling (read up a step: C♯ minor → D minor, `UP_STEP`):
 | II | 133-205 | part 1 staff 1 (the aria's alto line: rests in the ritornelli) / part 2 staff 1 (the organ's obbligato, unbroken semiquavers, tenor register) | — | — | — | part 2 staff 2 | part 1 staff 2 (100% the continuo's); parts 3-4 empty |
 | III | 205-437 | part 3, staves 1 / 2 (the running semiquavers; its left hand the continuo's line an octave lower) | part 1 staff 1 | part 2 staff 1 | part 1 staff 2 | part 2 staff 2 | part 4 empty |
 
+D702: in III the solo's left hand (part 3 staff 2) takes an F clef with `clef-octave-change -1` at measure 205 (the only
+octave clef in the file): all 446 of its notes are the continuo's (part 2 staff 2) an octave lower, on the same attacks, 24 of
+them at C1-E1 (read up a semitone), under any harpsichord's compass. MusicXML gives the sounding pitch, so they are read as
+the file writes them. Whether the octave is the editor's intent or a slip is left open: no witness of Cantata 35 could be
+checked (none in the repo; IMSLP's files behind a bot check; Bach Digital and kern.humdrum.org unreachable from the session).
+
 Movement names: Cantata 35's first Sinfonia and the aria carry no tempo word (verits99's playback: none,
 ♩ 80): "(Allegro)" and "(Andante)", in parentheses as the other unmarked movements; the second Sinfonia is
 Bach's Presto. Reference tempi ♩ 100, ♩ 72, ♩. 88 (concertos.ts).

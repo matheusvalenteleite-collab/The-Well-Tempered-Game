@@ -14,6 +14,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { STRETCH_MAX } from "../src/touch/sampled.ts";
 import { OCTAVE_SEATS } from "../src/touch/octave-seats.ts";
+import { SEATS as MORE_SEATS } from "../src/touch/seats/more-bach.ts";
+import { SEATS as CONCERTO_SEATS } from "../src/touch/seats/concertos.ts";
+import { SEATS as CHORALE_SEATS } from "../src/touch/seats/chorales.ts";
 import { PRESET_MB, RESIDENT_MB, presetBudget } from "../src/touch/budget.ts";
 import { loadExtras } from "../src/touch/fugue.ts";
 import { AUDIT_SOUNDS } from "../tools/touch/octaves/audit.ts";
@@ -50,12 +53,14 @@ test("D640: every playable piece beyond the 48, on every sound: no note in anoth
   assert.ok(notes > 14_000_000, `${notes} notes checked`);
 });
 
-test("D641: beyond the 48 every upper voice on the band's best instrument for its line (octave-seats.ts as seatsForPieces makes it)", () => {
+test("D641, D700: beyond the 48 every upper voice on the band's best instrument for its line (octave-seats.ts and the chunks of src/touch/seats/ as seatsForPieces makes them)", () => {
   const pieces = extra.flatMap(([, ps]) => ps);
   const ids = new Set(pieces.map((p) => p.id));
   for (const sound of AUDIT_SOUNDS) {
     const { seats } = seatsForPieces(sound, pieces);
-    const have = Object.fromEntries(Object.entries(OCTAVE_SEATS[sound] ?? {}).filter(([id]) => ids.has(id)));
+    // (D700: the main file's and the three chunks', together.)
+    const all = [OCTAVE_SEATS, MORE_SEATS, CONCERTO_SEATS, CHORALE_SEATS].flatMap((t) => Object.entries(t[sound] ?? {}));
+    const have = Object.fromEntries(all.filter(([id]) => ids.has(id)));
     assert.deepEqual(have, seats, `${sound}: run tools/touch/octaves/seats.ts`);
   }
 });
