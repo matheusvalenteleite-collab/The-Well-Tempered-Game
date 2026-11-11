@@ -57,6 +57,7 @@ export const ZOOM = {
 
 /** The playhead's place across the box (MusicBox PLAYHEAD). */
 export const BOX_PLAYHEAD = 0.25;
+import { playheadShare, spanFactor } from "./preview-flags.ts";
 
 export type StepRange = { lo: number; hi: number };
 /** A note as the pieces hold it: [onset, length, midi, step, ...] (ticks). */
@@ -77,7 +78,7 @@ function median(xs: number[]): number {
  * the longest of those (a round of whole notes and semiquavers reads at the slower's width).
  */
 /** WIDTH: the bars that show MIN_AHEAD_S of music ahead of the playhead at `tps`. */
-export const aheadBars = (barTicks: number, tps: number) => (ZOOM.minAheadS * tps) / ((1 - BOX_PLAYHEAD) * barTicks);
+export const aheadBars = (barTicks: number, tps: number) => (ZOOM.minAheadS * tps) / ((1 - playheadShare()) * spanFactor() * barTicks);
 
 export function chooseBars(notes: readonly N[], barTicks: number, tps: number): number {
   const ahead = aheadBars(barTicks, tps);

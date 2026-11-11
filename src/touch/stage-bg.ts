@@ -1060,8 +1060,8 @@ const WORLDS: Record<string, World> = {
     k.sky([90, 110, 150], [200, 190, 170], [60, 50, 80], [200, 120, 90]);
     clouds(k, 4, 0.3);
     k.hills(0.62, 8, 0.05, 1, "rgba(80,90,70,1)");
-    const cxl = k.w * 0.52; // D645: the siege in the open box (the bars cover 0–22% and 78–100%)
-    // D645: the castle, the gate and the catapult lighter, rimmed in the evening light, so the siege reads.
+    const cxl = k.w * 0.52; // D650: the siege in the open box (the bars cover 0–22% and 78–100%)
+    // D650: the castle, the gate and the catapult lighter, rimmed in the evening light, so the siege reads.
     const wall = "rgba(150,138,124,1)";
     k.R(cxl, k.h * 0.34, k.w * 0.26, k.h * 0.28, wall);
     for (let x = cxl; x < cxl + k.w * 0.26; x += 8) k.R(x, k.h * 0.3, 5, 5, wall);
@@ -1625,7 +1625,7 @@ function bloom(k: Kit, s: Script["climax"], a: number) {
 }
 
 /**
- * D645 (design studio; the owner: "some backgrounds are too dark. For example, the catapult one is so dark that one can
+ * D650 (design studio; the owner: "some backgrounds are too dark. For example, the catapult one is so dark that one can
  * barely see the catapult attacking the castle"): each dark world lifted, the world itself, never the veil over the note
  * band. Measured (tools: the stage alone, mean luminance over the box between the bars at the exposition, the middle and
  * the climax, with MusicBox's D478 shade): a world whose darkest moment is under 0.17 gets a soft light screened over it,
@@ -1798,7 +1798,7 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
       g.fillRect(0, 0, w, h);
     }
   }
-  // D645: the dark worlds lifted (a light screened over the world, before the veil).
+  // D650: the dark worlds lifted (a light screened over the world, before the veil).
   const worldLift = WORLD_LIFT[f.id] ?? 0;
   if (worldLift > 0) {
     g.globalCompositeOperation = "screen";

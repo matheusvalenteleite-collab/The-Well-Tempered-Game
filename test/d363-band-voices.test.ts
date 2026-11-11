@@ -160,7 +160,8 @@ test("D363: in the game the band plays the divisi as its parent, the player's vo
   assert.ok(lane.every((x) => lane.every((y) => !(y.on < x.on && x.on < y.on + y.dur)) && lane.every((y) => y.on !== x.on || y.dur === x.dur)), "the soprano one note at a time");
   const band = g.others.filter((x) => x.band);
   assert.ok(band.length >= 30 && band.every((x) => x.voice === 0 || x.voice === 1 || x.voice === 3));
-  assert.ok(g.others.filter((x) => !x.band).every((x) => x.voice !== 0), "the soprano's line the player's");
+  // D456: the soprano's line the player's, but for the notes struck with one of its own (a chord's others), which are the game's.
+  assert.ok(g.others.filter((x) => !x.band).every((x) => x.voice !== 0 || lane.some((y) => y.on === x.on)), "the soprano's line the player's");
   // The player on the alto: the soprano's line and its divisi both the band's, as the soprano.
   const alto = run(passage("wtc1f20", 1, 80, 87)).g;
   const sop = alto.others.filter((x) => x.voice === 0);
