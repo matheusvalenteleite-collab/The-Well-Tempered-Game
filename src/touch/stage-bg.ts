@@ -383,7 +383,7 @@ function arches(k: Kit, c: string, n = 5) {
 
 const WORLDS: Record<string, World> = {
   // ---- BOOK I ----
-  // The Canon (D649): each entry a singer steps forward into a spotlight and stays lit; as the entries pile up the
+  // The Canon (D654): each entry a singer steps forward into a spotlight and stays lit; as the entries pile up the
   // chorus comes in from the wings; at the climax the whole stage is lit, the curtain's fringe glowing gold.
   wtc1f01: (k) => {
     k.room([30, 16, 24], [14, 8, 14], 0.82, "rgba(40,24,20,1)");
@@ -406,7 +406,7 @@ const WORLDS: Record<string, World> = {
       if (on && !k.still && Math.sin(k.sec * 2 + i) > 0) k.R(x + 1, k.h * 0.82 - i * 3 + 4 * step - 22, 2, 2, "rgba(20,10,14,1)");
     }
   },
-  // The Imp (D649): each entry the imp throws a log on the fire and it grows a step; the sparks fly higher and his shadow
+  // The Imp (D654): each entry the imp throws a log on the fire and it grows a step; the sparks fly higher and his shadow
   // on the cave wall grows; at the climax the fire roars up the wall, the imp dancing on its rim, the cave lit red.
   wtc1f02: (k) => {
     const grow = Math.min(1, k.passed / Math.max(1, k.ents.length));
@@ -447,7 +447,7 @@ const WORLDS: Record<string, World> = {
       k.R(lx + (fx - lx) * u - 3, ly - 20 - Math.sin(u * Math.PI) * 18, 6, 2, "rgba(110,70,40,1)");
     }
   },
-  // The Stone-Skipper (D649; the owner: "Little Red Riding Hood in the background … throwing the stones, jumping around"):
+  // The Stone-Skipper (D654; the owner: "Little Red Riding Hood in the background … throwing the stones, jumping around"):
   // she wanders the bank and throws a stone on each entry; its rings stay on the water and cross the others'; at the
   // climax a stone skips the whole pond and the water is lit gold.
   wtc1f03: (k) => {
@@ -502,7 +502,7 @@ const WORLDS: Record<string, World> = {
       for (let j = 0; j < 4; j++) k.R(x + j * 2, k.h - 4 - (6 + hash(i + j) * 10), 1, 6 + hash(i + j) * 10, "rgba(40,60,36,0.9)");
     });
   },
-  // The Cross (D649): each of the five entries lights a candle at the cross's foot as the night thickens; in the strettos
+  // The Cross (D654): each of the five entries lights a candle at the cross's foot as the night thickens; in the strettos
   // their light reaches higher up the hill; at the climax dawn breaks behind the cross, the five flames in the first light.
   wtc1f04: (k) => {
     k.sky(DUSK_T, DUSK_L, NIGHT, [40, 24, 50]);
@@ -536,7 +536,7 @@ const WORLDS: Record<string, World> = {
     }
     for (let i = 0; i < 3; i++) k.vgrad(0, k.h, [[0, "rgba(255,230,180,0.06)"], [1, "rgba(255,230,180,0)"]], k.w * (0.3 + i * 0.15), 10);
   },
-  // The Ambush (D649): each entry a pair of eyes opens in the trees, more of them as the entries pile up; at the climax
+  // The Ambush (D654): each entry a pair of eyes opens in the trees, more of them as the entries pile up; at the climax
   // the ambushers break cover with torches and the road is lit orange; then a quiet road at the last chord.
   wtc1f06: (k) => {
     k.sky([20, 30, 30], [50, 60, 50], [8, 12, 16], [24, 30, 30]);
@@ -578,7 +578,7 @@ const WORLDS: Record<string, World> = {
       k.R(x - 8, k.h * 0.76, 16, 1, "rgba(90,60,40,0.8)");
     });
   },
-  // The Pilgrim (D649): one walk, afternoon to night, a waymark lit for each entry; the pilgrim walks on (slower in an
+  // The Pilgrim (D654): one walk, afternoon to night, a waymark lit for each entry; the pilgrim walks on (slower in an
   // augmented entry); at the climax the shrine's door opens at the road's end and its light pours down the road.
   wtc1f08: (k) => {
     k.sky([70, 58, 96], [200, 130, 80], NIGHT, [30, 24, 50]);
@@ -606,7 +606,7 @@ const WORLDS: Record<string, World> = {
       k.R(sx - 2, k.h * 0.86 - 13, 4, 6, "#ffd88a");
     }
   },
-  // The Sparrow (D649): each entry another sparrow lands on the ridge, the flock growing along the roof; at the climax
+  // The Sparrow (D654): each entry another sparrow lands on the ridge, the flock growing along the roof; at the climax
   // the whole flock takes off together across a clearing sky.
   wtc1f09: (k) => {
     k.sky([110, 150, 190], [200, 210, 220], [150, 120, 150], [240, 190, 150]);
@@ -637,7 +637,7 @@ const WORLDS: Record<string, World> = {
       if (fly > 0 && !k.still && Math.sin(k.sec * 12 + i) > 0) k.R(x - 4, y - 3, 8, 1, "rgba(110,80,50,1)");
     }
   },
-  // The Two Horsemen (D649): each entry a rider appears on the plain, the two voices' riders racing side by side, dust
+  // The Two Horsemen (D654): each entry a rider appears on the plain, the two voices' riders racing side by side, dust
   // rising with the music; at the climax they gallop toward the viewer, the dust lit gold by the high sun.
   wtc1f10: (k) => {
     k.sky([40, 40, 70], [200, 120, 90], [110, 140, 180], [230, 200, 160]);

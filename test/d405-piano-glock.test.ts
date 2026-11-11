@@ -14,7 +14,7 @@ import { FakeAudioContext, FakeParam, FakeSource, installFakeAudio } from "./fak
 import { Chip, DAMP_MUL_HIGH, DAMP_MUL_MAX, dampMulFor, RELEASE_MAX_S, voicing, type Play, type Voicing } from "../src/touch/chip.ts";
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
 import { setPreset } from "../src/touch/sound.ts";
-import { foldInto, nearestSample, sampledMidis, SAMPLED } from "../src/touch/sampled.ts";
+import { nearestSample, reachOf, sampledMidis, SAMPLED } from "../src/touch/sampled.ts";
 import { GENERIC, playFx, setLab, SubjectCues, SYNTH_LAYERS, TAILORED, type SubjectFx } from "../src/touch/subject-fx.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
@@ -93,25 +93,21 @@ test("D405 regression, I/2 on the piano with BUSONI: every note the band and the
   setPreset("pianoSampled");
 });
 
-test("D405: the piano's recordings never read more than maxShift semitones off: past the compass an octave nearer", () => {
+// D631: the fold withdrawn (no note in another octave from the one written); the piano's compass covers every pitch of the 48.
+test("D405, D631: the piano's recordings never read more than maxShift semitones off in the 48: every pitch within its compass's reach", () => {
   const ms = SAMPLED.piano.maxShift!;
   assert.ok(ms >= 2 && ms <= 4);
   const grand = sampledMidis("grand");
-  for (let m = 12; m <= 120; m++) {
-    const p = foldInto("grand", m, ms);
-    assert.equal(((p - m) % 12 + 12) % 12, 0, `${m}: its pitch class`);
-    assert.ok(Math.abs(p - nearestSample("grand", p)!) <= ms, `${m} played at ${p}: ${p - nearestSample("grand", p)!} semitones off`);
-    if (m >= grand[0] - ms && m <= grand[grand.length - 1] + ms) assert.equal(p, m, `${m}: within the compass, as written`);
-  }
-  // Every pitch of the 48 fugues within reach as written (the fold a guard only).
-  for (const f of FUGUES.filter((x) => /^wtc[12]f/.test(x.id))) for (const v of f.voices) for (const n of v) assert.equal(foldInto("grand", n[2], ms), n[2], `${f.id}: ${n[2]}`);
+  const r = reachOf(SAMPLED.piano, "grand");
+  assert.deepEqual(r, { lo: grand[0] - ms, hi: grand[grand.length - 1] + ms });
+  for (const f of FUGUES.filter((x) => /^wtc[12]f/.test(x.id))) for (const v of f.voices) for (const n of v) assert.ok(n[2] >= r.lo && n[2] <= r.hi && Math.abs(n[2] - nearestSample("grand", n[2])!) <= ms, `${f.id}: ${n[2]}`);
 });
 
 /** The rates the note's recordings are started at, and the note's sources' last stop. */
 async function struck(midi: number, play: Play, dur = 0.3) {
   setPreset("pianoSampled");
   const chip = new Chip();
-  await chip.prepare([midi, foldInto("grand", midi, SAMPLED.piano.maxShift!)], [midi]);
+  await chip.prepare([midi], [midi]);
   const ctx = ctxOf();
   const before = new Set(ctx.nodes);
   chip.note(midi, 1, dur, voicing(1, 3), play);
@@ -121,13 +117,15 @@ async function struck(midi: number, play: Play, dur = 0.3) {
   return { rates: srcs.map((s) => (s.playbackRate as FakeParam).value), stop: Math.max(...srcs.map((s) => s.stopCall)), end: 1 + dur, taus };
 }
 
-test("D405: a note above the top recording is never a glockenspiel: its recording read within maxShift", async () => {
+test("D405: a note above the top recording is never a glockenspiel: its recording read within maxShift (D631: within the compass's reach, C7 + 3; past it the written pitch, read fast, never an octave down)", async () => {
   const lim = 2 ** (SAMPLED.piano.maxShift! / 12) * 1.01;
-  for (const m of [96, 99, 102, 105, 108]) {
+  for (const m of [96, 97, 98, 99]) {
     const r = await struck(m, {});
     assert.ok(r.rates.length > 0, `${m}: a recording`);
     for (const x of r.rates) assert.ok(x <= lim && x >= 1 / lim, `${m}: rate ${x.toFixed(3)}`);
   }
+  // D631: A7 (no fugue reaches it) at its written pitch: C7's recording read 9 semitones fast, not A6's an octave down.
+  for (const x of (await struck(105, {})).rates) assert.ok(x > 1.6 && x < 1.75, `105: rate ${x.toFixed(3)}`);
 });
 
 test("D405: the dampers capped: a palette or a trill never slows them past ×1.8 (×1.3 from C6), no damped string sounds past RELEASE_MAX_S", async () => {
