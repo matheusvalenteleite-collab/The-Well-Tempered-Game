@@ -575,6 +575,22 @@ const WORLDS: Record<string, World> = {
       k.R(x, k.h * 0.86 - 5, 1, 5, "rgba(40,80,40,1)");
       k.disc(x, k.h * 0.86 - 6, 2, ["rgba(240,200,80,0.9)", "rgba(240,140,160,0.9)", "rgba(200,200,255,0.9)"][i % 3]);
     });
+    // D650 (design studio, drama batch 2): a lamb joins the flock per entry round the shepherdess; at the climax the meadow in full bloom in the light after the rain.
+
+    const sx = k.w * 0.4 + (k.still ? 0 : Math.sin(k.sec * 0.3) * 20);
+    k.figure(sx, k.h * 0.84, "rgba(80,60,90,1)", 0, 2);
+    k.R(sx + 5, k.h * 0.84 - 26, 1, 26, "rgba(90,60,40,1)");
+    for (let i = 0; i < Math.min(12, k.passed); i++) {
+      const born = i === k.passed - 1 ? Math.min(1, k.since * 2) : 1;
+      const x = k.w * (0.46 + 0.026 * i) + (hash(i) - 0.5) * 6;
+      const y = k.h * (0.8 + 0.04 * hash(i + 3));
+      k.R(x, y - 4, 7, 4, `rgba(240,240,230,${born})`);
+      k.R(x + 6, y - 5, 2, 2, `rgba(40,40,40,${born})`);
+    }
+    if (k.climax > 0.01) {
+      k.glow(k.w * 0.3, k.h * 0.1, k.w * 0.5, [255, 236, 190], 0.3 * k.climax);
+      for (let i = 0; i < 60 * k.climax; i++) k.R(k.w * (0.22 + 0.56 * hash(i * 7)), k.h * (0.86 + 0.12 * hash(i * 3)), 2, 2, ["rgba(240,200,80,0.9)", "rgba(240,140,160,0.9)", "rgba(200,200,255,0.9)"][i % 3]);
+    }
   },
   // The Requiem: a dark church, the bier, a row of candles lit one by one.
   wtc1f12: (k) => {
@@ -601,6 +617,23 @@ const WORLDS: Record<string, World> = {
       const cx = k.w * 0.5, cy = k.h * 0.14;
       k.disc(cx, cy, 16, `rgba(255,220,170,${0.55 * rose})`);
       for (let i = 0; i < 8; i++) k.R(cx + Math.cos((i * Math.PI) / 4) * 10 - 1, cy + Math.sin((i * Math.PI) / 4) * 10 - 1, 3, 3, `rgba(120,60,90,${0.7 * rose})`);
+    }
+    // D650 (design studio, drama batch 2): mourners arrive by the bier, one per two entries; at the climax the rose window's light falls down the nave and every flame leans to it.
+
+    for (let i = 0; i < Math.min(8, Math.floor(k.passed / 2)); i++) {
+      const born = i === Math.floor(k.passed / 2) - 1 && k.passed % 2 === 0 ? Math.min(1, k.since * 2) : 1;
+      const x = k.w * (0.34 + 0.045 * i);
+      k.figure(x, k.h * 0.84, `rgba(70,58,78,${born})`, 0, 2);
+    }
+    if (k.climax > 0.01) {
+      k.g.fillStyle = `rgba(255,226,180,${0.12 * k.climax})`;
+      k.g.beginPath();
+      k.g.moveTo(k.w * 0.46, k.h * 0.14);
+      k.g.lineTo(k.w * 0.54, k.h * 0.14);
+      k.g.lineTo(k.w * 0.66, k.h * 0.84);
+      k.g.lineTo(k.w * 0.34, k.h * 0.84);
+      k.g.closePath();
+      k.g.fill();
     }
   },
   // The Aquarium: the box is the tank; fish drifting, bubbles where each entry comes in.
@@ -641,6 +674,17 @@ const WORLDS: Record<string, World> = {
         k.R(x + Math.sin(tt * 12 + j) * 3, k.h - 8 - tt * (k.h - 12), 2, 2, "rgba(220,250,255,0.28)");
       }
     });
+    // D650 (design studio, drama batch 2): a new fish swims in per entry; at the climax a great school turns as one in a shaft of light from the surface.
+
+    const school = k.climax;
+    if (school > 0.01) k.glow(k.w * 0.5, 0, k.h * 0.9, [190, 250, 240], 0.3 * school);
+    for (let i = 0; i < Math.min(24, k.passed * 2); i++) {
+      const dir = school > 0.5 ? 1 : i % 2 ? -1 : 1;
+      const cx = school > 0.5 ? k.w * 0.5 + Math.cos(k.t * 0.6 + i * 0.26) * k.w * 0.18 : wrap(dir * k.t * (8 + (i % 5) * 2) + hash(i) * k.w, k.w * 0.56) + k.w * 0.22;
+      const cy = school > 0.5 ? k.h * 0.45 + Math.sin(k.t * 0.6 + i * 0.26) * k.h * 0.18 : k.h * (0.25 + 0.5 * hash(i + 9));
+      k.R(cx - 3, cy - 1, 6, 3, `rgba(${200 + 50 * hash(i)},${150 + 80 * hash(i + 1)},120,0.6)`);
+      k.R(cx - dir * 5, cy - 2, 2, 4, "rgba(220,180,120,0.5)");
+    }
   },
   // Pierrot: a night stage under a great moon.
   wtc1f14: (k) => {
@@ -652,6 +696,14 @@ const WORLDS: Record<string, World> = {
     const lx = k.w * 0.5;
     k.figure(lx, k.h * 0.86, "rgba(220,220,230,0.9)", 0, 3);
     k.R(lx - 1, k.h * 0.86 - 28, 4, 2, "rgba(20,20,30,1)");
+    // D650 (design studio, drama batch 2): a star lights per entry and Pierrot takes a step of his dance; at the climax the moon full and huge, Pierrot reaching for it.
+
+    for (let i = 0; i < Math.min(20, k.passed); i++) k.glow(k.w * (0.24 + 0.52 * hash(i * 5)), k.h * (0.08 + 0.3 * hash(i * 5 + 1)), 4, [255, 250, 220], 0.8);
+    if (k.climax > 0.01) {
+      k.glow(k.w * 0.5, k.h * 0.3, k.h * 0.6, [235, 230, 210], 0.35 * k.climax);
+      k.disc(k.w * 0.5, k.h * 0.32, 16 + 22 * k.climax, `rgba(240,236,215,${0.5 * k.climax})`);
+      k.R(lx + 1, k.h * 0.86 - 44 - 8 * k.climax, 2, 14 + 8 * k.climax, "rgba(220,220,230,0.9)");
+    }
   },
   // The Pinball: a lit playfield; a bumper lights for each entry, the ball in flight.
   wtc1f15: (k) => {
@@ -671,6 +723,20 @@ const WORLDS: Record<string, World> = {
     k.disc(bx, by, 3, "rgba(230,230,240,0.9)");
     k.R(k.w * 0.35, k.h - 6, 30, 4, "rgba(255,200,60,0.7)");
     k.R(k.w * 0.55, k.h - 6, 30, 4, "rgba(255,200,60,0.7)");
+    // D650 (design studio, drama batch 2): the light row climbs per entry and a ball joins per voice in a stretto (multiball); at the climax JACKPOT: every bumper lit, held, never strobing.
+
+    const lit = Math.min(1, k.passed / Math.max(1, k.ents.length));
+    for (let i = 0; i < 10; i++) k.R(k.w * (0.3 + i * 0.04), 4, k.w * 0.03, 5, i < lit * 10 ? "rgba(255,200,60,0.9)" : "rgba(80,50,30,0.6)");
+    for (let i = 1; i < Math.min(4, k.sounding.length); i++) k.disc(k.w * (0.5 + 0.3 * Math.sin(k.bar * 1.1 + i * 2)), k.h * (0.5 + 0.3 * Math.cos(k.bar * 1.4 + i)), 3, "rgba(230,230,240,0.9)");
+    if (k.climax > 0.5) {
+      for (let i = 0; i < n; i++) {
+        const x = k.w * (0.15 + 0.7 * hash(i * 3));
+        const y = k.h * (0.2 + 0.6 * hash(i * 3 + 1));
+        k.glow(x, y, 20, [255, 90, 200], 0.4);
+        k.disc(x, y, 7, "rgba(255,150,220,0.95)");
+      }
+      k.glow(k.w * 0.5, k.h * 0.15, k.w * 0.3, [255, 220, 120], 0.4 * k.climax);
+    }
   },
   // The Knight: a chessboard in perspective scrolling under the music; pieces at its far edge.
   wtc1f16: (k) => {
@@ -714,6 +780,14 @@ const WORLDS: Record<string, World> = {
     k.R(k.w * 0.18 + 10, k.h * 0.58, 1, 4, "rgba(150,120,100,0.8)");
     k.disc(k.w * 0.23, k.h * 0.57, 2, "rgba(220,110,140,0.8)");
     k.vgrad(0, k.h, [[0, "rgba(255,230,180,0.08)"], [1, "rgba(255,230,180,0)"]], k.w * 0.5, k.w * 0.45);
+    // D650 (design studio, drama batch 2): a line of writing per entry on the diary's page, the leaves outside thickening with the summer; at the climax the sunset through the window lights the page gold.
+
+    for (let i = 0; i < Math.min(8, k.passed); i++) k.R(k.w * 0.185, k.h * 0.585 + 0.6 * (i % 4), 6 + (i % 3) * 3, 1, "rgba(80,60,60,0.7)");
+    for (let i = 0; i < Math.min(16, k.passed); i++) k.disc(k.w * (0.56 + 0.3 * hash(i * 11)), k.h * (0.14 + 0.45 * hash(i * 13)), 3, "rgba(70,120,55,0.85)");
+    if (k.climax > 0.01) {
+      k.glow(k.w * 0.7, k.h * 0.4, k.w * 0.4, [255, 180, 110], 0.4 * k.climax);
+      k.glow(k.w * 0.22, k.h * 0.58, 30, [255, 200, 120], 0.5 * k.climax);
+    }
   },
   // The Sleepwalker: rooftops at night under the moon, chimneys; the walker on the ridge.
   wtc1f18: (k) => {
@@ -730,6 +804,16 @@ const WORLDS: Record<string, World> = {
     const sw = k.wander(40, 0.1);
     k.figure(sw.x, k.h * 0.62, "rgba(210,210,230,0.85)", sw.step, 2);
     k.R(sw.dir > 0 ? sw.x + 2 : sw.x - 8, k.h * 0.62 - 15, 5, 1, "rgba(210,210,230,0.85)");
+    // D650 (design studio, drama batch 2): a window lights in the roofs per entry as the walker goes on along the ridge; at the climax dawn on the roofs, a cat beside the walker.
+
+    for (let i = 0; i < Math.min(14, k.passed); i++) k.R(k.w * (0.24 + 0.52 * hash(i * 7 + 2)), k.h * (0.72 + 0.2 * hash(i * 7 + 3)), 3, 3, "rgba(255,210,120,0.75)");
+    if (k.climax > 0.01) {
+      k.vgrad(k.h * 0.4, k.h * 0.6, [[0, "rgba(255,180,160,0)"], [1, `rgba(255,180,160,${0.35 * k.climax})`]]);
+      k.glow(k.w * 0.25, k.h * 0.9, k.w * 0.4, [255, 200, 170], 0.3 * k.climax);
+      const cx = sw.x + 10 * sw.dir;
+      k.R(cx - 3, k.h * 0.62 - 4, 6, 3, `rgba(30,24,30,${k.climax})`);
+      k.R(cx + 2 * sw.dir, k.h * 0.62 - 6, 2, 2, `rgba(30,24,30,${k.climax})`);
+    }
   },
   // The Three Stooges: a silent film in sepia: a brick wall, grain and scratches.
   wtc1f19: (k) => {
@@ -779,6 +863,19 @@ const WORLDS: Record<string, World> = {
     k.R(0, k.h - 5, k.w, 5, "rgba(26,16,20,1)");
     // D464: the busier the music, the faster the sleepers (the train working harder).
     for (let x = -wrap(k.bar * k.pxBar * (1.2 + 1.2 * k.busy), 12); x < k.w; x += 12) k.R(x, k.h - 4, 7, 2, "rgba(110,70,50,0.6)");
+    // D650 (design studio, drama batch 2): a train on the far hills gains a carriage per entry; at the climax it crests the hill at dawn, the long train in silhouette against the sun.
+
+    const cars = Math.min(14, k.passed);
+    const ty = k.h * 0.6 - 10 * k.climax;
+    const tx = k.w * 0.22 + wrap(k.t * 6, k.w * 0.3) * (1 - k.climax);
+    if (k.climax > 0.01) k.glow(k.w * 0.6, ty, k.w * 0.4, [255, 190, 120], 0.45 * k.climax);
+    k.R(tx + cars * 9, ty - 7, 12, 7, "rgba(20,10,14,1)");
+    k.R(tx + cars * 9 + 8, ty - 11, 3, 4, "rgba(20,10,14,1)");
+    for (let i = 0; i < cars; i++) {
+      const born = i === 0 && k.since < 0.5 ? k.since * 2 : 1;
+      k.R(tx + (cars - 1 - i) * 9, ty - 6, 8 * born, 6, "rgba(20,10,14,1)");
+      k.R(tx + (cars - 1 - i) * 9 + 2, ty - 5, 2, 2, "rgba(255,200,110,0.6)");
+    }
   },
   // The Marionettes: a puppet stage, strings from above; the three dance in step with the bars.
   wtc1f21: (k) => {
