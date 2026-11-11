@@ -326,6 +326,13 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2p15 | written-out repeats taken once (96 measures → 48) |
 | wtc2f15 | b. 40, voice 2, beat 1: B3 → D4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f15 | b. 60, voice 0, beat 0.25: B3 → Bb3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
+| wtc2f15 | b. 62, voice 0, beats 0.75-1.5: D2 E2 F#2 G2 A2 B2 → nothing (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
+| wtc2f15 | b. 63, voice 0, beats 0-1.5: C3 A2 B2 C3 D3 E3 F#3 G3 A3 F#3 G3 A3 → nothing (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
+| wtc2f15 | b. 64, voice 0, beats 0-0.625: B3 C#4 D4 E4 F#4 → nothing (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
+| wtc2f15 | b. 62, voice 2, beats 0.75-1.5: nothing → D2 E2 F#2 G2 A2 B2 (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
+| wtc2f15 | b. 63, voice 2, beats 0-1.5: nothing → C3 A2 B2 C3 D3 E3 F#3 G3 A3 (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
+| wtc2f15 | b. 63, voice 1, beats 0-1.5: nothing → F#3 G3 A3 (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
+| wtc2f15 | b. 64, voice 1, beats 0-0.625: nothing → B3 C#4 D4 E4 F#4 (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
 | wtc2p16 | 2 written-out trills folded back into their notes |
 | wtc2f16 | b. 29, voice 1, beat 0: Eb4 → Bb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f16 | b. 49, voice 3, beat 0.75: C2 → E2 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |

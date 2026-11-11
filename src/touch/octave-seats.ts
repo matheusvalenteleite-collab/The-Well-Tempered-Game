@@ -40,7 +40,7 @@ export const OCTAVE_SEATS: Readonly<Record<string, Readonly<Record<string, Parti
     wtc2f12: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
     wtc2f13: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
     wtc2f14: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
-    wtc2f15: { 3: [["s2Tres", -0.22], ["s2Tres", -0.08], ["s2Bass", 0.02]] },
+    wtc2f15: { 3: [["s2Trumpet", -0.22], ["s2Tres", -0.08], ["s2Bass", 0.02]] },
     wtc2f16: { 4: [["s2Trumpet", -0.22], ["s2Tres", -0.08], ["s2Trombone", 0.24], ["s2Bass", 0.02]] },
     wtc2f17: { 4: [["s2Trumpet", -0.22], ["s2Tres", -0.08], ["s2Trombone", 0.24], ["s2Bass", 0.02]] },
     wtc2f18: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
@@ -105,21 +105,17 @@ export const OCTAVE_SEATS: Readonly<Record<string, Readonly<Record<string, Parti
     wtc1f17: { 4: [["bachTrumpet", -0.18], ["bachHorn", -0.06], ["bachHorn", 0.08], ["bachBass", 0.12]] },
     wtc1f19: { 3: [["bachTrumpet", -0.14], ["bachTrumpet", 0], ["bachBass", 0.1]] },
     wtc1f24: { 4: [["bachTrumpet", -0.18], ["bachTrumpet", -0.06], ["bachHorn", 0.08], ["bachBass", 0.12]] },
-    wtc2f15: { 3: [["bachHorn", -0.14], ["bachHorn", 0], ["bachBass", 0.1]] },
     wtc2f21: { 3: [["bachTrumpet", -0.14], ["bachTrumpet", 0], ["bachBass", 0.1]] },
-  },
-  jazzQuartet: {
-    wtc2f15: { 3: [["jqPiano", -0.18], ["jqVibes", 0.16], ["jqBass", 0.04]] },
   },
   chorinho: {
     wtc1f15: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
     wtc2f03: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
     wtc2f04: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
     wtc2f10: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
-    wtc2f15: { 3: [["c2Bandolim", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
+    wtc2f15: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
   },
   bossaNova: {
-    wtc2f15: { 3: [["b2Guitar", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]] },
+    wtc2f15: { 3: [["b2Sax", -0.12], ["b2Guitar", 0.06], ["b2Bass", -0.02]] },
   },
   vaudeville: {
     wtc1f10: { 2: [["vdClarinet", -0.12], ["vdBassoon", 0.1]] },
@@ -133,7 +129,7 @@ export const OCTAVE_SEATS: Readonly<Record<string, Readonly<Record<string, Parti
     wtc2f20: { 3: [["vdClarinet", -0.16], ["vdClarinet", 0.14], ["vdBassoon", 0.04]] },
   },
   fluteHarp: {
-    wtc2f15: { 3: [["seaHarp", -0.16], ["seaHarp", 0], ["seaCello", 0.16]] },
+    wtc2f15: { 3: [["seaViola", -0.16], ["seaHarp", 0], ["seaCello", 0.16]] },
   },
   orchestraOrgan: {
     wtc1f04: { 5: [["orViolin1", -0.24], ["orViolin2", -0.1], ["orViola", 0.04], ["orCello", 0.14, 0.92], ["orCello", 0.24]] },

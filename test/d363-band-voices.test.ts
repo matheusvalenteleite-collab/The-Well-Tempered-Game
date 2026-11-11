@@ -32,7 +32,8 @@ const WITH_BAND: Record<string, number[]> = {
   wtc2f08: [1],
   wtc2f10: [0],
   wtc2f11: [0, 1, 2],
-  wtc2f15: [0, 1],
+  // II/15: the alto's chord (b. 30) only; the soprano's D2 E2 in b. 62 (Rother's second layer) are the bass's run (tools/wtc/corrections.ts).
+  wtc2f15: [1],
   wtc2f17: [3],
   "bwv1080-05": [0, 1, 3],
   "bwv1080-06": [0],
@@ -41,11 +42,11 @@ const WITH_BAND: Record<string, number[]> = {
 const ALL = [...PIECES, ...MORE_BACH];
 const overlaps = (ns: TouchNote[]) => ns.some((n, i) => ns.some((m, j) => i !== j && m[0] < n[0] && n[0] < m[0] + m[1]));
 
-test("D363: the band-only voices are D361's divisi exactly: 19 voices of 12 of the 48 (D366: the edition's), Contrapunctus 5 (three voices), 6 and 7", () => {
+test("D363: the band-only voices are D361's divisi exactly: 18 voices of 12 of the 48 (D366: the edition's), Contrapunctus 5 (three voices), 6 and 7", () => {
   const found: Record<string, number[]> = {};
   for (const f of ALL) if (f.bandVoices) found[f.id] = f.bandVoices.map((b) => b.of);
   assert.deepEqual(found, WITH_BAND);
-  assert.equal(Object.entries(found).filter(([id]) => id.startsWith("wtc")).reduce((a, [, v]) => a + v.length, 0), 19);
+  assert.equal(Object.entries(found).filter(([id]) => id.startsWith("wtc")).reduce((a, [, v]) => a + v.length, 0), 18);
   for (const f of ALL)
     for (const b of f.bandVoices ?? []) {
       assert.ok(b.of >= 0 && b.of < f.voices.length && b.notes.length > 0, `${f.id} band voice of ${b.of}`);
