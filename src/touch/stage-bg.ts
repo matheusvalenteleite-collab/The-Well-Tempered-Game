@@ -1060,12 +1060,13 @@ const WORLDS: Record<string, World> = {
     k.sky([90, 110, 150], [200, 190, 170], [60, 50, 80], [200, 120, 90]);
     clouds(k, 4, 0.3);
     k.hills(0.62, 8, 0.05, 1, "rgba(80,90,70,1)");
-    const cxl = k.w * 0.66;
-    const wall = "rgba(110,100,90,1)";
-    k.R(cxl, k.h * 0.34, k.w * 0.3, k.h * 0.28, wall);
-    for (let x = cxl; x < cxl + k.w * 0.3; x += 8) k.R(x, k.h * 0.3, 5, 5, wall);
-    const gx = cxl + k.w * 0.1;
-    const gw = k.w * 0.1;
+    const cxl = k.w * 0.52; // D650: the siege in the open box (the bars cover 0–22% and 78–100%)
+    // D650: the castle, the gate and the catapult lighter, rimmed in the evening light, so the siege reads.
+    const wall = "rgba(150,138,124,1)";
+    k.R(cxl, k.h * 0.34, k.w * 0.26, k.h * 0.28, wall);
+    for (let x = cxl; x < cxl + k.w * 0.26; x += 8) k.R(x, k.h * 0.3, 5, 5, wall);
+    const gx = cxl + k.w * 0.09;
+    const gw = k.w * 0.08;
     const gy = k.h * 0.42;
     const gh = k.h * 0.2;
     // The gate falls on the climax's peak (the last entry's onset), over half a bar.
@@ -1075,7 +1076,8 @@ const WORLDS: Record<string, World> = {
       k.g.save();
       k.g.translate(gx, gy + gh);
       k.g.rotate((-Math.PI / 2) * fall * fall);
-      k.R(0, -gh, gw, gh, "rgba(90,58,30,1)");
+      k.R(-1, -gh - 1, gw + 2, gh + 1, "rgba(255,200,130,0.55)");
+      k.R(0, -gh, gw, gh, "rgba(150,96,50,1)");
       for (let i = 0; i < 3; i++) k.R(0, -gh + 4 + i * (gh / 3), gw, 2, "rgba(40,28,16,1)");
       const cracks = Math.round(dmg * 12);
       for (let i = 0; i < cracks; i++) k.line(hash(i) * gw, -gh + hash(i + 1) * gh, hash(i + 2) * gw, -gh + hash(i + 3) * gh, "rgba(20,10,4,0.9)", 1);
@@ -1086,10 +1088,11 @@ const WORLDS: Record<string, World> = {
       k.R(gx, gy, gw, gh, `rgba(255,236,190,${0.5 * fall})`);
     } else if (dmg > 0.3) k.glow(gx + gw / 2, gy + gh * 0.8, 10 + 14 * dmg, [255, 140, 50], 0.25 + 0.35 * dmg);
     k.ground(0.8, "rgba(70,80,50,1)");
-    const fx = k.w * 0.22;
+    const fx = k.w * 0.31;
     const fy = k.h * 0.8;
-    k.R(fx - 14, fy - 6, 28, 6, "rgba(70,46,28,1)");
-    k.tri(fx, fy - 6, 14, 14, "rgba(70,46,28,1)");
+    k.R(fx - 21, fy - 10, 42, 11, "rgba(255,200,130,0.45)");
+    k.R(fx - 20, fy - 9, 40, 9, "rgba(140,96,56,1)");
+    k.tri(fx, fy - 9, 20, 20, "rgba(140,96,56,1)");
     // The shot: flung 0.7 bar before each entry, the stone landing on the entry's onset (the sound's thud there,
     // Instruments' table); the splinters fly over the 0.3 bar after it.
     const next = k.passed < k.ents.length ? k.ents[k.passed] : Infinity;
@@ -1097,7 +1100,7 @@ const WORLDS: Record<string, World> = {
     const flying = toNext <= 0.7 && fall < 1;
     const u = flying ? 1 - toNext / 0.7 : 0;
     const cock = (flying ? 0.3 + 0.7 * Math.min(1, u * 4) : 0.3) * Math.PI * 0.45;
-    k.line(fx, fy - 18, fx - Math.cos(cock) * 26, fy - 18 - Math.sin(cock) * 26 + 10, "rgba(90,60,36,1)", 3);
+    k.line(fx, fy - 26, fx - Math.cos(cock) * 36, fy - 26 - Math.sin(cock) * 36 + 14, "rgba(170,120,70,1)", 4);
     if (flying) {
       const sx = fx + (gx + gw / 2 - fx) * u;
       const sy = fy - 30 - Math.sin(u * Math.PI) * k.h * 0.35 + (gy + gh / 2 - fy + 30) * u;
@@ -1621,6 +1624,14 @@ function bloom(k: Kit, s: Script["climax"], a: number) {
   }
 }
 
+/**
+ * D650 (design studio; the owner: "some backgrounds are too dark. For example, the catapult one is so dark that one can
+ * barely see the catapult attacking the castle"): each dark world lifted, the world itself, never the veil over the note
+ * band. Measured (tools: the stage alone, mean luminance over the box between the bars at the exposition, the middle and
+ * the climax, with MusicBox's D478 shade): a world whose darkest moment is under 0.17 gets a soft light screened over it,
+ * (T - L) / (1 - L), at most 0.13, so night worlds stay night but their objects read.
+ */
+const WORLD_LIFT: Readonly<Record<string, number>> = { wtc1f01: 0.111, wtc1f02: 0.13, wtc1f04: 0.036, wtc1f05: 0.11, wtc1f06: 0.088, wtc1f08: 0.02, wtc1f12: 0.13, wtc1f13: 0.064, wtc1f14: 0.089, wtc1f15: 0.13, wtc1f18: 0.115, wtc1f19: 0.029, wtc1f20: 0.078, wtc1f21: 0.088, wtc1f22: 0.107, wtc1f23: 0.081, wtc1f24: 0.118, wtc2f01: 0.058, wtc2f03: 0.112, wtc2f04: 0.116, wtc2f05: 0.026, wtc2f07: 0.081, wtc2f08: 0.099, wtc2f09: 0.095, wtc2f10: 0.103, wtc2f12: 0.109, wtc2f13: 0.052, wtc2f15: 0.046, wtc2f16: 0.079, wtc2f17: 0.07, wtc2f18: 0.067, wtc2f20: 0.041, wtc2f21: 0.105, wtc2f24: 0.113 };
 /** The daylight worlds: a heavier veil, so the notes keep their contrast over a bright sky. */
 const BRIGHT = new Set(["wtc1f03", "wtc1f07", "wtc1f09", "wtc1f10", "wtc1f11", "wtc2f06", "wtc2f11", "wtc2f14", "wtc2f19", "wtc2f22", "wtc2f15"]);
 
@@ -1786,6 +1797,14 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
       g.fillStyle = `rgba(30,40,80,${0.22 * k.turn})`;
       g.fillRect(0, 0, w, h);
     }
+  }
+  // D650: the dark worlds lifted (a light screened over the world, before the veil).
+  const worldLift = WORLD_LIFT[f.id] ?? 0;
+  if (worldLift > 0) {
+    g.globalCompositeOperation = "screen";
+    g.fillStyle = `rgba(255,248,236,${worldLift})`;
+    g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = "source-over";
   }
   // The veil: the world kept under the music (QUIET heavier), darkest in the middle band where the notes run.
   // D474: an episode's world dimmer (calm), an entry's a shade brighter, the climax's lifted at the edges only (the middle band kept).
