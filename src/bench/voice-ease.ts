@@ -41,7 +41,7 @@ export const VOICE_SCORES: Readonly<Record<string, readonly number[]>> = {
   wtc2f12: [8.05, 6.58, 7.86],
   wtc2f13: [6.01, 7.06, 7.17],
   wtc2f14: [5.26, 6.37, 6.83],
-  wtc2f15: [9.36, 7.98, 8.72],
+  wtc2f15: [9.23, 7.89, 8.59],
   wtc2f16: [5.78, 5.65, 7.58, 6.83],
   wtc2f17: [5.62, 7.02, 5.4, 7.1],
   wtc2f18: [6.15, 5.13, 5.67],

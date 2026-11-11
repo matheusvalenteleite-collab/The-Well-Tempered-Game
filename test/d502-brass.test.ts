@@ -109,8 +109,9 @@ test("D502, D631: the compass and its reach (3 semitones past the recordings; D6
   const reach = (id: keyof typeof PATCHES) => reachOf(inst(id), inst(id).set);
   // The trumpet E3-C#6 recorded: C#3 to E6, and D633's extension to C3 (II/21's alto on the second trumpet).
   assert.deepEqual(reach("bachTrumpet"), { lo: 48, hi: 88 });
-  // The horn F2-F5: D2 to G#5, and D633's extensions to C2 (PET SOUNDS' II/2) and B5 (BACH BRASS's II/15).
-  assert.deepEqual(reach("bachHorn"), { lo: 36, hi: 83 });
+  // The horn F2-F5: D2 to G#5, and D633's extensions to C2 (PET SOUNDS' II/2) and A5 (BACH BRASS's II/1, the alto; II/15's
+  // soprano, which wanted B5, is on the trumpet since its run went back to the bass and alto, tools/wtc/corrections.ts).
+  assert.deepEqual(reach("bachHorn"), { lo: 36, hi: 81 });
   // The bass Bb1-G4 (the bass trombone throughout): G1 to A#4, and to C#5 (I/3's bass, D631).
   assert.deepEqual(reach("bachBass"), { lo: 31, hi: 73 });
   const fold = (id: keyof typeof PATCHES, m: number) => (m >= reach(id).lo && m <= reach(id).hi ? m : NaN);
