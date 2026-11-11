@@ -21,11 +21,21 @@ const IDS = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f
 const c = (x: readonly number[]) => (x[0] + x[1]) / 2;
 const dB = (g: number) => 20 * Math.log10(g);
 
-/** The levels of a fugue on its own sound with the player in `v` (dB, the mean of K and phone): the player's, then the band's (trimmed). */
-function mix(id: string, v: number): number[] {
+/**
+ * The levels of a fugue on its own sound with the player in `v`: the player's, then the band's (trimmed). D703: on a phone
+ * (the mean of K and phone, the phone's balance) or on a computer (K-weighted, `d`, the computer's balance).
+ */
+function mix(id: string, v: number, phone = true): number[] {
   const o = OWN_LOUD[id];
-  return o.b.map((b, u) => (u === v ? c(o.p[v]) + liftDb(id, o.s, v, o.b.length) : c(b) + bandTrimDb(id, o.s, u, o.b.length)));
+  const n = o.b.length;
+  if (!phone && o.d) {
+    const d = o.d;
+    return d.b.map((b, u) => (u === v ? d.p![v] + liftDb(id, o.s, v, n, false) : b + bandTrimDb(id, o.s, u, n, false)));
+  }
+  return o.b.map((b, u) => (u === v ? c(o.p[v]) + liftDb(id, o.s, v, n, true) : c(b) + bandTrimDb(id, o.s, u, n, true)));
 }
+const PATHS = [true, false] as const;
+const pathOf = (phone: boolean) => (phone ? "phone" : "computer");
 
 test("D508: the subject forward: the player's own entries PLAYER_ENTRY_DB (1.5-2.5), the band's BAND_ENTRY_DB (1 at most) and never as much", () => {
   assert.ok(PLAYER_ENTRY_DB >= 1.5 && PLAYER_ENTRY_DB <= 2.5);
@@ -43,36 +53,43 @@ test("D508: no standing lift: the player's voice merged with the band's levels; 
     const f = fugueById(id);
     assert.equal(o.s, playerSound(PIECE_SOUND[id]));
     assert.equal(o.t.length, f.voices.length);
-    // the loudest after the trims (they carry no common gain: the least-trimmed voice at 0)
-    const top = Math.max(...o.b.map((b, u) => c(b) + o.t[u]));
-    assert.equal(Math.min(...o.t), 0, `${id}: no common gain`);
-    for (let u = 0; u < o.b.length; u++) {
-      const t = bandTrimDb(id, o.s, u, o.b.length);
-      assert.ok(t >= 0 && t <= BAND_TRIM_MAX_DB, `${id} ${u}: nothing lowered`);
-      assert.ok(c(o.b[u]) + t >= top - 6, `${id} voice ${u}: ${(top - c(o.b[u]) - t).toFixed(1)} dB under`);
-      voices++;
-      if (c(o.b[u]) + t >= top - BAND_SPREAD_DB - 0.1) within++;
-      assert.ok(playerToneDb(id, o.s, u, o.b.length) <= 0 && playerToneDb(id, o.s, u, o.b.length) >= -BRIGHT_MAX_DB);
-    }
-    // The player in each voice: never standing more than 3 dB over every other voice outside its entries (a voice brought up for its lost stretches, I/14's alto on the lute, the most: 2.8).
-    for (let v = 0; v < o.b.length; v++) {
-      const m = mix(id, v);
-      const others = m.filter((_, u) => u !== v);
-      assert.ok(m[v] <= Math.max(...others) + 3, `${id}: the player in ${v} no longer over the band (${(m[v] - Math.max(...others)).toFixed(1)} dB)`);
+    // D703: each path its own measurement and balance (a computer's measured: `d`)
+    assert.ok(o.d && o.d.b.length === o.b.length && o.d.t.length === o.b.length, `${id}: a computer's measured`);
+    for (const phone of PATHS) {
+      const B: readonly number[] = phone ? o.b.map(c) : o.d!.b;
+      const T: readonly number[] = phone ? o.t : o.d!.t;
+      // the loudest after the trims (they carry no common gain: the least-trimmed voice at 0)
+      const top = Math.max(...B.map((b, u) => b + T[u]));
+      assert.equal(Math.min(...T), 0, `${id} (${pathOf(phone)}): no common gain`);
+      for (let u = 0; u < B.length; u++) {
+        const t = bandTrimDb(id, o.s, u, B.length, phone);
+        assert.ok(t >= 0 && t <= BAND_TRIM_MAX_DB, `${id} ${u}: nothing lowered`);
+        assert.ok(B[u] + t >= top - 6, `${id} voice ${u} (${pathOf(phone)}): ${(top - B[u] - t).toFixed(1)} dB under`);
+        voices++;
+        if (B[u] + t >= top - BAND_SPREAD_DB - 0.1) within++;
+        assert.ok(playerToneDb(id, o.s, u, B.length, phone) <= 0 && playerToneDb(id, o.s, u, B.length, phone) >= -BRIGHT_MAX_DB);
+      }
+      // The player in each voice: never standing more than 3 dB over every other voice outside its entries (a voice brought up for its lost stretches, I/14's alto on the lute, the most: 2.8).
+      for (let v = 0; v < B.length; v++) {
+        const m = mix(id, v, phone);
+        const others = m.filter((_, u) => u !== v);
+        assert.ok(m[v] <= Math.max(...others) + 3, `${id} (${pathOf(phone)}): the player in ${v} no longer over the band (${(m[v] - Math.max(...others)).toFixed(1)} dB)`);
+      }
     }
   }
   // Within the spread but where a voice brought up for its lost stretches stands over another (I/14's alto on the lute).
   assert.ok(within >= 0.9 * voices, `${within} of ${voices} voices within the spread`);
 });
 
-test("D508: every inner voice audible: no voice more than 6 dB under the loudest, with the player on any voice (the whole piece's levels)", () => {
+test("D508, D703: every inner voice audible: no voice more than 6 dB under the loudest, with the player on any voice (the whole piece's levels), on a phone and on a computer", () => {
   for (const id of IDS) {
     const o = OWN_LOUD[id];
-    for (let v = 0; v < o.b.length; v++) {
-      const m = mix(id, v);
-      const top = Math.max(...m);
-      m.forEach((x, u) => assert.ok(x >= top - 6, `${id}, the player in ${v}: voice ${u} ${(top - x).toFixed(1)} dB under`));
-    }
+    for (const phone of PATHS)
+      for (let v = 0; v < o.b.length; v++) {
+        const m = mix(id, v, phone);
+        const top = Math.max(...m);
+        m.forEach((x, u) => assert.ok(x >= top - 6, `${id} (${pathOf(phone)}), the player in ${v}: voice ${u} ${(top - x).toFixed(1)} dB under`));
+      }
   }
 });
 

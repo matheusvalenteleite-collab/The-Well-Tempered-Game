@@ -22,7 +22,8 @@
  *     the score, right or wrong alike); the band's entries by BAND_ENTRY_DB (not more), never as much as the player's,
  *     and not where Busoni's palette brings the entry out itself (his marcato's entryDb: the reading's own).
  *
- * The levels: player-lift-data.ts (the piece's own sound exactly; another sound by its balance over twelve fugues).
+ * The levels: player-lift-data.ts (the piece's own sound exactly; another sound by its balance over four fugues of 2-5
+ * voices, D703). D703: measured after the band's chain, the phone's balance and the computer's each from its own path.
  */
 import { OWN_LOUD, SOUND_LOUD } from "./player-lift-data.ts";
 
@@ -51,42 +52,50 @@ export interface Balance {
   h: readonly number[];
 }
 
-/** The balance for a piece on a sound with `count` voices (the piece's own measured; else the sound's by the count). */
-export function balanceOf(id: string, sound: string, count: number): Balance | null {
+/** D703: the path the game plays on now: a phone (a touch screen) or a computer; each has its own measured balance. */
+export const phoneNow = (): boolean => typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+
+/**
+ * The balance for a piece on a sound with `count` voices (the piece's own measured; else the sound's by the count), on a
+ * phone or a computer (D703: each measured after the band's chain on its own path; the computer's `d` where measured, the
+ * phone's otherwise; `h`, the player's tone, one for both).
+ */
+export function balanceOf(id: string, sound: string, count: number, phone = phoneNow()): Balance | null {
   if (count < 2) return null;
   const own = OWN_LOUD[id];
-  if (own && own.s === sound && own.t.length === count) return own;
+  if (own && own.s === sound && own.t.length === count) return phone || !own.d ? own : { t: own.d.t, l: own.d.l, h: own.h };
   const by = SOUND_LOUD[sound];
   if (!by) return null;
   const ns = Object.keys(by).map(Number);
   // A count not measured (six voices, say): the nearest one measured, its last voice standing for the lowest.
   const n = ns.includes(count) ? count : ns.reduce((a, x) => (Math.abs(x - count) < Math.abs(a - count) ? x : a), ns[0]);
-  const s = by[n];
+  const s0 = by[n];
+  const s = phone || !s0.d ? s0 : { t: s0.d.t, l: s0.d.l, h: s0.h };
   const at = (v: number) => Math.max(0, count === n ? v : v === count - 1 ? n - 1 : Math.min(n - 2, Math.round((v * (n - 1)) / Math.max(1, count - 1))));
   const map = (xs: readonly number[]) => Array.from({ length: count }, (_, v) => xs[at(v)]);
   return { t: map(s.t), l: map(s.l), h: map(s.h) };
 }
 
 /** The player's level in dB for `voice` (the match to the band's sounding of it, with its trim). */
-export function liftDb(id: string, sound: string, voice: number, count: number): number {
+export function liftDb(id: string, sound: string, voice: number, count: number, phone = phoneNow()): number {
   if (BALANCE.raw) return 0;
-  const b = balanceOf(id, sound, count);
+  const b = balanceOf(id, sound, count, phone);
   return b ? Math.max(LIFT_MIN_DB, Math.min(LIFT_MAX_DB, b.l[voice] ?? 0)) : 0;
 }
 /** The level as a gain on the player's own bus (1: none). */
-export const liftGain = (id: string, sound: string, voice: number, count: number): number => 10 ** (liftDb(id, sound, voice, count) / 20);
+export const liftGain = (id: string, sound: string, voice: number, count: number, phone = phoneNow()): number => 10 ** (liftDb(id, sound, voice, count, phone) / 20);
 
 /** The band's trim for `voice` (dB, 0 or more). */
-export function bandTrimDb(id: string, sound: string, voice: number, count: number): number {
+export function bandTrimDb(id: string, sound: string, voice: number, count: number, phone = phoneNow()): number {
   if (BALANCE.raw) return 0;
-  const b = balanceOf(id, sound, count);
+  const b = balanceOf(id, sound, count, phone);
   return b ? Math.max(0, Math.min(BAND_TRIM_MAX_DB, b.t[voice] ?? 0)) : 0;
 }
 
 /** The player's tone for `voice` (Play.tone dB, 0 or less): a bright voice shelved down a little. */
-export function playerToneDb(id: string, sound: string, voice: number, count: number): number {
+export function playerToneDb(id: string, sound: string, voice: number, count: number, phone = phoneNow()): number {
   if (BALANCE.raw) return 0;
-  const b = balanceOf(id, sound, count);
+  const b = balanceOf(id, sound, count, phone);
   return b ? Math.max(-BRIGHT_MAX_DB, Math.min(0, b.h[voice] ?? 0)) : 0;
 }
 

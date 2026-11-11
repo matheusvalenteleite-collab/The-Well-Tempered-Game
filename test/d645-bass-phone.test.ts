@@ -33,7 +33,8 @@ const e = (db: number) => 10 ** (db / 10);
 /** The bass's gap under the loudest other voice (LU) in one run, by the measurement and the engine's gains now. */
 function gapOf(id: string, s: string, run: BassRun, pv: number, dbThen: number | null, dbNow: number | null): number {
   const nv = run.lu.length, b = nv - 1;
-  const now = (u: number) => (u === pv ? liftDb(id, s, u, nv) : bandTrimDb(id, s, u, nv));
+  // D703: the phone's balance (each path its own)
+  const now = (u: number) => (u === pv ? liftDb(id, s, u, nv, true) : bandTrimDb(id, s, u, nv, true));
   const lv = run.lu.map((x, u) => x + now(u) - run.at[u]);
   if (dbNow !== dbThen) {
     assert.ok(run.x && dbNow !== null, `${id}: the bass's exciter changed (${dbThen} → ${dbNow}) and no fit: re-measure`);

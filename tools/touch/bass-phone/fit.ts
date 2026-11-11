@@ -34,7 +34,7 @@ for (const id of ids) {
     const of = (u: number | "mix", x: string | null = null) => ms.find((m) => m.piece === id && m.player === pv && m.solo === u && m.x === x);
     const lu = Array.from({ length: nv }, (_, u) => of(u)?.ph);
     if (lu.some((x) => x === undefined)) throw new Error(`${id} p${pv}: a voice not rendered`);
-    const at = Array.from({ length: nv }, (_, u) => r1(u === pv ? liftDb(id, s, u, nv) : bandTrimDb(id, s, u, nv)));
+    const at = Array.from({ length: nv }, (_, u) => r1(u === pv ? liftDb(id, s, u, nv, true) : bandTrimDb(id, s, u, nv, true)));
     const run: Record<string, unknown> = { lu, at, mix: of("mix")?.ph ?? null };
     // the exciter's fit: the bass alone at its mixes (the render at the patch's own and the variants)
     const pts = ms.filter((m) => m.piece === id && m.player === pv && m.solo === b && m.x !== null).map((m) => ({ g: m.x === "off" ? 0 : e(+m.x!), E: e(m.ph) }));
