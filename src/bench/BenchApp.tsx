@@ -28,7 +28,9 @@ import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
+import { mapFlag, playheadShare, spanFactor } from "../touch/preview-flags.ts";
 import { floorOf, ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
@@ -956,13 +958,13 @@ export function BenchApp() {
     const sig = other ? null : signatureOf(f.key);
     const top = r.top - a.top;
     const y0 = top + geo.yOf(0);
-    const span = bars * barTicks;
+    const span = bars * barTicks * spanFactor();
     return {
       yOf: (step: number) => y0 - step * geo.rowH,
       stepAt: (y: number) => Math.round((y0 - y) / geo.rowH),
       rowH: geo.rowH,
       ...(sig ? { lift: (step: number, midi: number) => chromaLiftPx(geo.rowH, step, midi, sig, BOX_PX) } : {}),
-      xOf: (tick: number) => r.left - a.left + ((tick - (now - 0.25 * span)) / span) * r.width,
+      xOf: (tick: number) => r.left - a.left + ((tick - (now - playheadShare() * span)) / span) * r.width,
     };
   }
 
@@ -1787,7 +1789,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} alone={!!dressNow && !dressNow.includes("voices")} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} />}
+        legend={<>{mapFlag && playing && <LegendMap game={game} />}<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} alone={!!dressNow && !dressNow.includes("voices")} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} /></>}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (

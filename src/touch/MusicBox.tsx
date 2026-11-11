@@ -33,6 +33,7 @@ const PX = 2;
 /** How many bars the box shows at once, and where the playhead stands (fraction of the width). */
 const BARS_SHOWN = 3;
 const PLAYHEAD = 0.25;
+import { archFlag, innerFlag, playheadShare, spanFactor } from "./preview-flags.ts";
 
 /** The voices' colours, top voice first, for two to five voices. */
 const INKS: Record<number, string[]> = {
@@ -383,12 +384,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
 
   // D415: the bars' share of the canvas (clear): the time scale is the part between them, the rest more of the
   // same scale (the past under the left bar, the future under the right); span and t0 cover the whole canvas.
-  const vis = (fr.bars ?? BARS_SHOWN) * fr.barTicks;
+  // Preview flags (D481): the play line centred, the span as it was or widened.
+  const vis = (fr.bars ?? BARS_SHOWN) * fr.barTicks * spanFactor();
   const cl = fr.clear ? fr.clear.l / PX : 0;
   const cr = fr.clear ? fr.clear.r / PX : 0;
   const wi = Math.max(1, w - cl - cr);
   const span = (vis * w) / wi;
-  const t0 = fr.now - PLAYHEAD * vis - (cl / wi) * vis;
+  const t0 = fr.now - (playheadShare() ?? PLAYHEAD) * vis - (cl / wi) * vis;
 
   // D462 (design studio): the fugue's own world behind its music (stage-bg.ts), its key's tint laid faintly over
   // it (the modulations still read); the key's flat tint alone where there is none, STAGE OFF, or a lesson's box.
@@ -549,22 +551,25 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       g.fillRect(x1, oy, bw, bh - 1);
       g.fillStyle = "rgba(255,255,255,0.35)";
       g.fillRect(x1, oy, bw, 1);
+      if (sounding && innerFlag) innerAnim(g, x1, oy, bw, bh - 1, o.on, o.dur, fr.now, fr.tps, 0.5);
       continue;
     }
-    const th = full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
-    const y = oy + (full ? Math.floor((bh - 1 - th) / 2) : 0);
+    // Preview flag ?arch=1 (D483): every voice's note full height and clearly readable; the hierarchy from light and skin.
+    const th = archFlag && full ? bh - 1 : full ? Math.max(1, Math.round(bh * (0.5 + 0.22 * r))) : oh;
+    const y = oy + (full && !archFlag ? Math.floor((bh - 1 - th) / 2) : 0);
     if (sounding && full) {
       g.globalAlpha = 0.22;
       g.fillStyle = voiceInk;
       g.fillRect(x1 - 1, oy - 1, bw + 2, bh + 1);
     }
-    g.globalAlpha = sounding ? 1 : (full ? 0.45 : 0.7) + 0.4 * r;
+    g.globalAlpha = archFlag ? (sounding ? 1 : 0.85) : sounding ? 1 : (full ? 0.45 : 0.7) + 0.4 * r;
     g.fillStyle = voiceInk;
     g.fillRect(x1, y, bw, th);
     if (sounding && th > 1) {
       g.fillStyle = "rgba(255,255,255,0.35)";
       g.fillRect(x1, y, bw, 1);
     }
+    if (sounding && innerFlag) innerAnim(g, x1, y, bw, th, o.on, o.dur, fr.now, fr.tps, 0.5);
     if (!spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;
@@ -645,6 +650,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       g.fillRect(x1 - 1, y - 1, fw + 2, bh + 1);
       g.fillStyle = ink;
       g.fillRect(x1, y, fw, bh - 1);
+      if (innerFlag && fr.now >= n.on && fr.now < n.on + n.dur) innerAnim(g, x1, y, fw, bh - 1, n.on, n.dur, fr.now, fr.tps, 1);
       if (fw < bw) {
         // D374: let go early: the rest of the written length an outline (the long note's in D198's colour).
         // D419 (the audit): never miss-grey on a note the reading asked short (let go early is right there).
@@ -1220,9 +1226,9 @@ const LIGHT = { dim: 0.16, shadow: 0.42, glow: 0.2, sounding: 0.38, r: 16, rSoun
 export const SUBJECT_LIGHT = LIGHT;
 function lightAndShadow(g: CanvasRenderingContext2D, fr: Frame, spans: readonly Span[], otherIdx: ArrayLike<number>, c: { t0: number; span: number; w: number; h: number; xOf: (t: number) => number; yOf: (s: number) => number; hOf: (s: number) => number; bh: number }) {
   const { t0, span, w, h, xOf, yOf, hOf, bh } = c;
-  g.fillStyle = `rgba(4,4,10,${LIGHT.dim})`;
+  g.fillStyle = `rgba(4,4,10,${archFlag ? LIGHT.dim / 2 : LIGHT.dim})`;
   g.fillRect(0, 0, w, h);
-  g.fillStyle = `rgba(0,0,0,${LIGHT.shadow})`;
+  g.fillStyle = `rgba(0,0,0,${archFlag ? LIGHT.shadow / 3 : LIGHT.shadow})`;
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
     const x1 = xOf(o.on);
@@ -1262,4 +1268,28 @@ function withAlpha(hex: string, a: number): string {
     alphaMemo.set(k, v);
   }
   return v;
+}
+
+/**
+ * Preview flag ?inner= (D482): a sounding note's own animation inside its block (rectangles only, D383; no strobe: a
+ * pulse is one soft rise and fall a note). `k` the strength: 1 the player's, 0.5 another voice's.
+ */
+function innerAnim(g: CanvasRenderingContext2D, x: number, y: number, w: number, hh: number, on: number, dur: number, now: number, tps: number, k: number) {
+  if (w < 2 || hh < 1) return;
+  const u = Math.max(0, Math.min(1, (now - on) / Math.max(1, dur)));
+  if (innerFlag === "fill") {
+    g.fillStyle = `rgba(255,255,255,${0.45 * k})`;
+    g.fillRect(x, y, Math.max(1, Math.round(w * u)), hh);
+  } else if (innerFlag === "pulse") {
+    const s = (now - on) / tps;
+    const a = s < 0.08 ? s / 0.08 : Math.max(0, 1 - (s - 0.08) / 0.32);
+    g.fillStyle = `rgba(255,255,255,${0.55 * k * a})`;
+    g.fillRect(x, y, w, hh);
+  } else if (innerFlag === "shimmer") {
+    const sx = x + ((now / tps) * 1.6 + on * 0.001) % 1 * Math.max(1, w - 3);
+    g.fillStyle = `rgba(255,255,255,${0.6 * k})`;
+    g.fillRect(Math.round(sx), y, 3, hh);
+    g.fillStyle = `rgba(255,255,255,${0.2 * k})`;
+    g.fillRect(Math.round(sx) - 3, y, 3, hh);
+  }
 }
