@@ -44,6 +44,8 @@ const GRAND_NOTES = Object.fromEntries((SAMPLE_MANIFEST.grand?.notes ?? []).map(
  */
 export interface Bake {
   folder: string;
+  /** D636: the folder's recordings this set keeps (names), where it is a fill (SampledInstrument.zones): its others never loaded. */
+  only?: readonly string[];
   rate: number;
   lp: number;
   bits: number;
@@ -82,6 +84,10 @@ export const PERIOD: Record<string, Bake> = {
   harpsi16: { folder: "harpsichord", rate: 22050, lp: 7500, bits: 11 },
   strings16: { folder: "violaSus", rate: 22050, lp: 6000, bits: 11, loop: true },
   bassoon16: { folder: "bassoon", rate: 16000, lp: 5000, bits: 11, loop: true },
+  // D636: the bassoon's notes under D2 (bassoon/ ends at G2: C#2 was read six semitones down) on two of the trio's Iowa
+  // bassoon's (trioBassoon/: A#1 and C#2, every note within two of one), baked as the bassoon's above (SampledInstrument.zones),
+  // its level matched at G2 (FILL_DB). Two only: the budget (D540, 25 MB) holds ORCHESTRA & ORGAN's four fill notes, not more.
+  bassoon16Low: { folder: "trioBassoon", only: ["As1", "Cs2"], rate: 16000, lp: 5000, bits: 11, loop: TRIO_LOOP },
   // D358: the concertos' continuo on a cello (the band a string band: SOUND-PRINCIPLES.md), as the console held it.
   cello16: { folder: "cello", rate: 22050, lp: 6000, bits: 11, loop: CELLO_LOOP },
   // (D510: NOCTURNE 32-BIT's sets, 22.05 kHz and 13 bits, withdrawn with it; their folders stay, others' recordings.)
@@ -125,6 +131,11 @@ export const PERIOD: Record<string, Bake> = {
   trialClarinet: { folder: "clarinet", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialHorn: { folder: "horn", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialBassoon: { folder: "bassoon", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D636: the trials' horn over its hole (horn/ has C4 and then D5: C#5 was read seven semitones up from C4) on two of
+  // BACH BRASS's Iowa horn's (brassHorn/: F4 and B4, every note of the hole within three of a recording), and the bassoon under
+  // D2 on two of the trio's Iowa bassoon's (as bassoon16Low), at the trials' fidelity (SampledInstrument.zones; levels: FILL_DB).
+  trialHornMid: { folder: "brassHorn", only: ["F4", "B4"], rate: 32000, lp: 11000, bits: 16, loop: true },
+  trialBassoonLow: { folder: "trioBassoon", only: ["As1", "Cs2"], rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP },
   trialTrumpet: { folder: "trumpet", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialTrombone: { folder: "sackbut", rate: 32000, lp: 11000, bits: 16, loop: true },
   trialBassPizz: { folder: "bassPizz", rate: 32000, lp: 11000, bits: 16 },
@@ -299,12 +310,31 @@ const SHORT: Record<string, Record<string, number>> = {
 export const chainOf = (set: string): [number, number] | undefined => PERIOD[set]?.chain;
 /** D297: a period set's made loop (s from the onset). */
 const loopOf = (b: Bake): [number, number] => (b.loop === true ? WIND_LOOP : b.loop || WIND_LOOP);
+/**
+ * D636, a fill's level (SampledInstrument.zones): each recording's trim (dB) and on a phone its further trim (`phone`), so the
+ * filled notes meet the instrument's own on either side. Measured here (ffmpeg ebur128 over 0.3-1.8 s of each file, and
+ * through the phone model, two 600 Hz high-passes): the trio's Iowa bassoon is evened at -17.8 LUFS, the VSCO bassoon's G2
+ * -13.8 (phone -26.1 against -24.5); BACH BRASS's Iowa horn at -27 (phone about -32), the VSCO horn's C4 -15.4 and D5
+ * -10.2 (phone -29.6 and -16.4): each filled note to the straight line between those two.
+ */
+const FILL_DB: Record<string, Record<string, { db: number; phone: number }>> = {
+  trialBassoonLow: { As1: { db: 3.5, phone: -2 }, Cs2: { db: 3.5, phone: -2 } },
+  bassoon16Low: { As1: { db: 3.5, phone: -2 }, Cs2: { db: 3.5, phone: -2 } },
+  trialHornMid: { F4: { db: 13.3, phone: -7.5 }, B4: { db: 15.2, phone: -3 } },
+};
 const PERIOD_NOTES = Object.fromEntries(
   Object.entries(PERIOD).map(([set, b]) => [
     set,
     HARPSI_ORGAN[b.folder] ??
       // (The key-up noises have no entries, as the harpsichord's own: short, and not retuned.)
-      Object.fromEntries(VSCO_CENTS[b.folder] ? (SAMPLE_MANIFEST[b.folder]?.notes ?? []).map((n) => [n, { cents: VSCO_CENTS[b.folder][n] ?? 0, len: SHORT[b.folder]?.[n] ?? 4.545, ...(b.loop ? { loop: loopOf(b) } : {}) }]) : []),
+      Object.fromEntries(
+        VSCO_CENTS[b.folder]
+          ? (SAMPLE_MANIFEST[b.folder]?.notes ?? []).map((n) => {
+              const f = FILL_DB[set]?.[n];
+              return [n, { cents: VSCO_CENTS[b.folder][n] ?? 0, len: SHORT[b.folder]?.[n] ?? 4.545, ...(b.loop ? { loop: loopOf(b) } : {}), ...(f ? { db: f.db, phoneDb: f.phone } : {}) }];
+            })
+          : [],
+      ),
   ]),
 );
 
@@ -571,6 +601,12 @@ export interface SampledInstrument {
   /** D297: the pitches from `from` up played from `set` (an organ's manual above its pedal's compass). */
   above?: { set: string; from: number };
   /**
+   * D636, a fill: the pitches `lo` to `hi` (MIDI) played from another recording of the same instrument already in the repo
+   * (`set`: the span's nearest recordings are its own within the span), where the instrument's own leave a hole or end: no note read more than
+   * five semitones from a recording (test/d635-stretch.test.ts). Its level per recording: FILL_DB.
+   */
+  zones?: readonly { set: string; lo: number; hi: number }[];
+  /**
    * D339, a piano's dampers (chip.ts sampledNote): the release's time constant (s) from `low` (A1 and
    * under) to `high` (C6 and over), the strings from `undamped` (MIDI) up left to ring (a grand's top
    * octave and a half has no dampers); the felt's last contact a slower `tail` (that many times the
@@ -650,16 +686,16 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   flute16: { set: "flute16", plucked: false, gain: 2.2 },
   harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
   strings16: { set: "strings16", plucked: false, gain: 2.2 },
-  bassoon16: { set: "bassoon16", plucked: false, gain: 2.2 },
+  bassoon16: { set: "bassoon16", zones: [{ set: "bassoon16Low", lo: 0, hi: 37 }], plucked: false, gain: 2.2 },
   // TRACKER's.
   violinMod: { set: "violinMod", plucked: false, gain: 2.2 },
   fluteMod: { set: "fluteMod", plucked: false, gain: 2.2 },
   harpsiMod: { set: "harpsiMod", plucked: true, gain: 1.8 },
-  choirMod: { set: "choirMod", plucked: false, gain: 2.2 },
+  choirMod: { extend: { up: 5 }, set: "choirMod", plucked: false, gain: 2.2 },
   bassMod: { set: "bassMod", plucked: true, gain: 2.2 },
   voiceS: { extend: { up: 4 }, set: "voiceS", plucked: false, gain: 2.2 },
-  voiceA: { extend: { up: 9 }, set: "voiceA", plucked: false, gain: 2.2 },
-  voiceT: { extend: { up: 10 }, set: "voiceT", plucked: false, gain: 2.2 },
+  voiceA: { extend: { up: 8 }, set: "voiceA", plucked: false, gain: 2.2 },
+  voiceT: { extend: { up: 7 }, set: "voiceT", plucked: false, gain: 2.2 },
   voiceB: { extend: { up: 7 }, set: "voiceB", plucked: false, gain: 2.2 },
   choirAah: { set: "choirAah", plucked: false, gain: 2.2 },
   // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
@@ -687,8 +723,8 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   trialOboe: { extend: { down: 6 }, set: "trialOboe", plucked: false, gain: 2.2, maxShift: 4 },
   trialFlute: { set: "trialFlute", plucked: false, gain: 2.2, maxShift: 3 },
   trialClarinet: { extend: { down: 12 }, set: "trialClarinet", plucked: false, gain: 2.2, maxShift: 2 },
-  trialHorn: { extend: { up: 6 }, set: "trialHorn", plucked: false, gain: 2.2, maxShift: 3 },
-  trialBassoon: { extend: { down: 10 }, set: "trialBassoon", plucked: false, gain: 2.2, maxShift: 5 },
+  trialHorn: { extend: { up: 6 }, set: "trialHorn", zones: [{ set: "trialHornMid", lo: 63, hi: 72 }], plucked: false, gain: 2.2, maxShift: 3 },
+  trialBassoon: { set: "trialBassoon", zones: [{ set: "trialBassoonLow", lo: 0, hi: 37 }], plucked: false, gain: 2.2, maxShift: 5 },
   trialTrumpet: { set: "trialTrumpet", plucked: false, gain: 2.2, maxShift: 2 },
   trialTrombone: { set: "trialTrombone", plucked: false, gain: 2.2, maxShift: 3 },
   trialBassPizz: { set: "trialBassPizz", plucked: true, gain: 2.2, maxShift: 4 },
@@ -755,7 +791,7 @@ export const SPEAK_MAX = 0.12;
 export const speakFrom = (inst: SampledInstrument, r: Loaded) => (inst.speak === undefined ? 0 : Math.max(0, Math.min(SPEAK_MAX, (r.speech ?? 0) - inst.speak)));
 
 /** D297: the set a pitch of an instrument is played from (an organ's manual above its pedal). */
-export const setFor = (inst: SampledInstrument, midi: number) => (inst.above && midi >= inst.above.from ? inst.above.set : inst.set);
+export const setFor = (inst: SampledInstrument, midi: number) => inst.zones?.find((z) => midi >= z.lo && midi <= z.hi)?.set ?? (inst.above && midi >= inst.above.from ? inst.above.set : inst.set);
 
 /** D292: the layer each layered set plays (its files' suffix); D294: and the layer sets'. */
 const LAYER = new Map([...Object.values(SAMPLED).filter((i) => i.layer).map((i) => [i.set, i.layer!] as const), ...Object.entries(LAYER_SET).map(([s, l]) => [s, l.layer] as const)]);
@@ -792,7 +828,8 @@ export function sampledMidis(set: string): number[] {
 }
 function recordedMidis(set: string): number[] {
   let list = midisOf.get(set);
-  if (!list) midisOf.set(set, (list = (SAMPLE_MANIFEST[folderOf(set)]?.notes ?? []).map(midiOfName).sort((a, b) => a - b)));
+  const only = PERIOD[set]?.only;
+  if (!list) midisOf.set(set, (list = (SAMPLE_MANIFEST[folderOf(set)]?.notes ?? []).filter((n) => !only || only.includes(n)).map(midiOfName).sort((a, b) => a - b)));
   return list;
 }
 /**
@@ -837,6 +874,13 @@ export function nearestSample(set: string, midi: number, have: (m: number) => bo
  * MAX_SHIFT_ANY stays the limit of a neighbour's retuning (a trill's other recording, a loaded stand-in, a choir's string).
  */
 export const MAX_SHIFT_ANY = 3;
+/**
+ * D635: the furthest a recording is retuned to a written note (semitones, either way), from the nearest recording the
+ * engine has for its set as the fugue's plan leaves it (D540's zones, D636's fills): past it a recording is a different
+ * colour (a horn's C4 read up to C#5, a choir's F3 read down to C2). Held over every sound, the 48 fugues and every voice
+ * by test/d635-stretch.test.ts (tools/touch/stretch/audit.ts), its exceptions listed there with their reasons.
+ */
+export const STRETCH_MAX = 5;
 /**
  * D631: how far past its recorded compass (MIDI) a set is read: `up` over the top (the instrument's `extend.up`, else its
  * maxShift, else MAX_SHIFT_ANY), `down` under the lowest (`extend.down`, else its maxShift, else unbounded: a slow read is
@@ -916,9 +960,15 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
   const wanted = [...all, ...own.flatMap((m) => [m - 12, m + 12])];
   // D297: an organ's manual for the pitches above its pedal's compass.
   const above = inst.above;
-  const notes = notesFor(inst.set, above ? wanted.filter((m) => m < above.from) : wanted);
+  // D636: a fill's pitches from its own set (SampledInstrument.zones), padded within its span only.
+  const inZone = (m: number) => !!inst.zones?.some((z) => m >= z.lo && m <= z.hi);
+  const notes = notesFor(inst.set, wanted.filter((m) => !inZone(m) && !(above && m >= above.from)));
   const plan: Plan = [{ set: inst.set, notes }];
-  if (above) plan.push({ set: above.set, notes: notesFor(above.set, wanted.filter((m) => m >= above.from)) });
+  if (above) plan.push({ set: above.set, notes: notesFor(above.set, wanted.filter((m) => !inZone(m) && m >= above.from)) });
+  for (const z of inst.zones ?? []) {
+    const ps = wanted.filter((m) => m >= z.lo && m <= z.hi).flatMap((m) => [-2, -1, 0, 1, 2].map((d) => m + d)).filter((m) => m >= z.lo && m <= z.hi);
+    if (ps.length) plan.push({ set: z.set, notes: notesFor(z.set, ps, 0) });
+  }
   // D503: a layer's own notes (the jazz sets' pp and ff every whole tone; the grand's layers the same keys).
   if (inst.soft) plan.push({ set: inst.soft.set, notes: inst.soft.set === "grandSoft" ? notes : notesFor(inst.soft.set, wanted) });
   if (inst.hard) plan.push({ set: inst.hard.set, notes: notesFor(inst.hard.set, wanted) });
