@@ -83,38 +83,59 @@ export function seatsFor(sound: string) {
     soundPlans(f.voices.flat().map((n) => n[2]), [], null);
     const lines = f.voices.map((vs, v) => [...vs, ...(f.bandVoices ?? []).filter((b) => b.of === v).flatMap((b) => b.notes)].map((n) => n[2]));
     const seatOf = (v: number) => base[Math.min(v, base.length - 1)];
-    // First the line-up's own instruments traded among the upper voices (the bass keeps its seat): the order that leaves
-    // fewest voices uncovered, then the least missed, then the fewest moved (the line-up itself where it covers).
+    // The instrument a voice ends on from `traded` (its seat's, or another upper seat's): itself where it covers, else a
+    // near substitute that covers (within NEAR_TOL, and better), else past TOL the least missing near or far one.
+    const settle = (traded: PatchId, line: readonly number[], v: number): PatchId => {
+      const mine = excess(traded, line);
+      const s = subs[traded];
+      if (mine === 0 || !s || v === count - 1) return traded;
+      const near = s.near.find((c) => Math.abs(excess(c, line)) <= NEAR_TOL && Math.abs(excess(c, line)) < Math.abs(mine));
+      if (near) return near;
+      // (A far substitute only for the seat's own instrument: never reached through a trade.)
+      let pick = traded;
+      if (Math.abs(mine) > TOL && traded === seatOf(v)[0]) {
+        let least = Math.abs(mine);
+        for (const c of [...s.near, ...(s.far ?? [])]) if (Math.abs(excess(c, line)) < least) (least = Math.abs(excess(c, line))), (pick = c);
+      }
+      return pick;
+    };
+    // A voice is settled well where its instrument covers it within NEAR_TOL, or it keeps its own seat's instrument missing
+    // by TOL or less (that set extended, D633).
+    const fine = (id: PatchId, v: number) => Math.abs(excess(id, lines[v])) <= (id === seatOf(v)[0] ? TOL : NEAR_TOL);
+    // The line-up's own instruments traded among the upper voices (the bass keeps its seat), each then settled: the order
+    // whose result leaves fewest voices unsettled, then the least they miss by, then the fewest of the line-up's instruments lost (SALSA's
+    // trombone kept by trading it to the tenor), then the fewest seats changed, the fewest traded, the least missed (the
+    // line-up itself where it covers).
     const upper = [...Array(count - 1).keys()];
-    let order = upper;
-    let best = [Infinity, Infinity, Infinity];
+    let picks: PatchId[] = [];
+    let traded: PatchId[] = [];
+    let best = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
     for (const perm of permutations(upper)) {
-      const ex = perm.map((from, v) => excess(seatOf(from)[0], lines[v]));
-      const key = [ex.filter((e) => e !== 0).length, ex.reduce((a, e) => a + Math.abs(e), 0), perm.filter((from, v) => seatOf(from)[0] !== seatOf(v)[0]).length];
-      if (key[0] < best[0] || (key[0] === best[0] && (key[1] < best[1] || (key[1] === best[1] && key[2] < best[2])))) (best = key), (order = perm);
+      const tr = [...perm.map((from) => seatOf(from)[0]), seatOf(count - 1)[0]];
+      const pk = tr.map((id, v) => settle(id, lines[v], v));
+      const ex = pk.map((id, v) => excess(id, lines[v]));
+      const left = [...pk];
+      let lost = 0;
+      for (let v = 0; v < count; v++) {
+        const k = left.indexOf(seatOf(v)[0]);
+        if (k < 0) lost++;
+        else left.splice(k, 1);
+      }
+      const key = [pk.filter((id, v) => !fine(id, v)).length, ex.reduce((a, e, v) => a + (fine(pk[v], v) ? 0 : Math.abs(e)), 0), lost, pk.filter((id, v) => id !== seatOf(v)[0]).length, perm.filter((from, v) => from !== v).length, ex.reduce((a, e) => a + Math.abs(e), 0)];
+      const better = key.findIndex((x, i) => x !== best[i]);
+      if (better >= 0 && key[better] < best[better]) (best = key), (picks = pk), (traded = tr);
     }
     const slots: Slot[] = [];
     let changed = false;
     for (let v = 0; v < count; v++) {
       const seat = seatOf(v);
       const line = lines[v];
-      const traded = v < count - 1 ? seatOf(order[v])[0] : seat[0];
-      const mine = excess(traded, line);
-      const s = subs[traded];
-      let pick: PatchId = traded;
-      if (mine !== 0 && s && v < count - 1) {
-        const near = s.near.find((c) => Math.abs(excess(c, line)) <= NEAR_TOL && Math.abs(excess(c, line)) < Math.abs(mine));
-        if (near) pick = near;
-        else if (Math.abs(mine) > TOL) {
-          let least = Math.abs(mine);
-          for (const c of [...s.near, ...(s.far ?? [])]) if (Math.abs(excess(c, line)) < least) (least = Math.abs(excess(c, line))), (pick = c);
-        }
-      }
+      const pick = picks[v];
       if (pick !== seat[0]) {
         changed = true;
         const lo = Math.min(...line);
         const hi = Math.max(...line);
-        log.push(`${sound} ${f.id} v${v} (${nameOfMidi(lo)}-${nameOfMidi(hi)}): ${seat[0]} (misses by ${excess(seat[0], line)}) → ${pick} (${excess(pick, line)})${traded !== seat[0] && pick === traded ? " (traded)" : ""}`);
+        log.push(`${sound} ${f.id} v${v} (${nameOfMidi(lo)}-${nameOfMidi(hi)}): ${seat[0]} (misses by ${excess(seat[0], line)}) → ${pick} (${excess(pick, line)})${traded[v] !== seat[0] && pick === traded[v] ? " (traded)" : ""}`);
       }
       slots.push(seat.length > 2 ? [pick, seat[1], seat[2]] : [pick, seat[1]]);
     }

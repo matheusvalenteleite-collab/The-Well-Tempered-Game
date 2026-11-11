@@ -702,8 +702,8 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // then an octave nearer: the trumpet under C#3 and over E6, the horn under D2 and over G#5, the trombone under C#2 and
   // over D#5, the bass under G1 and over A#4 (the folds: test/d502-brass.test.ts).
   brassTrumpet: { extend: { down: 4 }, set: "brassTrumpet", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
-  brassHorn: { extend: { up: 6 }, set: "brassHorn", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassHornP" } },
-  brassTrombone: { set: "brassTrombone", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
+  brassHorn: { extend: { up: 6, down: 5 }, set: "brassHorn", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassHornP" } },
+  brassTrombone: { extend: { up: 4 }, set: "brassTrombone", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
   brassBass: { extend: { up: 6 }, set: "brassBass", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassBassP" } },
   // D609: BACH BRASS v3's trumpet and tenor trombone on their mf sets (the piano layers as before: one layer under BAND_SLIM).
   brassTrumpetMf: { extend: { down: 4 }, set: "brassTrumpetMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
@@ -733,7 +733,7 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D521, BOSSA NOVA's nylon guitar (mf, and pp for the lighter notes and the soft side: the thumb's rounder stroke), plucked,
   // the left hand's damping by the note's length (a short note stopped by the finger lifting, a longer one ringing a little into
   // the next, as a guitarist lets a line sing), a firmer stroke a little brighter (velTone: the nail), retuned a tone at most.
-  bossaGuitar: { set: "bossaGuitar", plucked: true, gain: 2.2, soft: { set: "bossaGuitarSoft", below: 0.794, gain: 1 }, pedal: { short: 0.2, shortTau: 0.04, tau: 0.1 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
+  bossaGuitar: { extend: { down: 4 }, set: "bossaGuitar", plucked: true, gain: 2.2, soft: { set: "bossaGuitarSoft", below: 0.794, gain: 1 }, pedal: { short: 0.2, shortTau: 0.04, tau: 0.1 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
   // D524, PET SOUNDS: the string section held on its loop, retuned 3 semitones at most (recorded every major or minor third);
   // its bass is ABBEY ROAD's (rockBass: the same picked babyblue, D523's trims).
   petStrings: { set: "petStrings", plucked: false, gain: 2.2, maxShift: 3 },

@@ -107,10 +107,10 @@ test("D502: the recordings: two layers per instrument at the same pitches, every
 test("D502, D631: the compass and its reach (3 semitones past the recordings; D631: no octave fold past it, the reach declared); I/5 and II/5 within it", () => {
   const inst = (id: keyof typeof PATCHES) => SAMPLED[PATCHES[id].sample!];
   const reach = (id: keyof typeof PATCHES) => reachOf(inst(id), inst(id).set);
-  // The trumpet E3-C#6 recorded: C#3 to E6.
-  assert.deepEqual(reach("bachTrumpet"), { lo: 49, hi: 88 });
-  // The horn F2-F5: D2 to G#5, and D631's extension to B5 (II/15's and I/19's top, II/21's A#5).
-  assert.deepEqual(reach("bachHorn"), { lo: 38, hi: 83 });
+  // The trumpet E3-C#6 recorded: C#3 to E6, and D633's extension to C3 (II/21's alto on the second trumpet).
+  assert.deepEqual(reach("bachTrumpet"), { lo: 48, hi: 88 });
+  // The horn F2-F5: D2 to G#5, and D633's extensions to C2 (PET SOUNDS' II/2) and B5 (BACH BRASS's II/15).
+  assert.deepEqual(reach("bachHorn"), { lo: 36, hi: 83 });
   // The bass Bb1-G4 (the bass trombone throughout): G1 to A#4, and to C#5 (I/3's bass, D631).
   assert.deepEqual(reach("bachBass"), { lo: 31, hi: 73 });
   const fold = (id: keyof typeof PATCHES, m: number) => (m >= reach(id).lo && m <= reach(id).hi ? m : NaN);
