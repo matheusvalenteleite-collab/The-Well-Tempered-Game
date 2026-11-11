@@ -1138,7 +1138,7 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
   const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id])).filter((set) => !sl.keep?.includes(set))) : new Set<string>();
   for (const id of Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]) {
     const inst = SAMPLED[id];
-    for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? sl.stride : null);
+    for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? (sl.strides?.[set] ?? sl.stride) : null);
   }
   holdOff(off);
   const used = now.map((id) => {

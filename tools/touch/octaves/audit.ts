@@ -19,6 +19,7 @@ import { TRIO_ID, trioLayout } from "../../../src/touch/trio.ts";
 import { isPedal, organPatchOf } from "../../../src/touch/registration.ts";
 import { BAND_GROWTH, unisonSpans } from "../../../src/touch/band-growth.ts";
 import { STOP_FAMILIES } from "../../../src/touch/consort-stops.ts";
+import { stageFor } from "../../../src/touch/stage.ts";
 
 export const WTC_FUGUES: readonly TouchFugue[] = FUGUES.filter((f) => /^wtc[12]f\d\d$/.test(f.id));
 /** Every sound a player can choose (and the trials and TRAVERSO, which presetById still finds). */
@@ -76,12 +77,13 @@ const idOf = new Map<Patch, string>(Object.entries(PATCHES).map(([k, v]) => [v a
  * on the pedal: registration.ts); STRING CONSORT's stops (consort-stops.ts: the same family's spiccato and pizzicato);
  * BACH BRASS's episodes' mute (band-growth.ts MuteSpec, the notes within its compass).
  */
-function linePatches(sound: string, pt: Patch, line: readonly number[], bass: boolean): [string, Patch, readonly number[]][] {
+function linePatches(sound: string, pt: Patch, line: readonly number[], bass: boolean, staged: boolean): [string, Patch, readonly number[]][] {
   const id = idOf.get(pt) ?? "?";
   const out: [string, Patch, readonly number[]][] = [[id, pt, line]];
   if (pt.double) out.push([`${id}:double(${idOf.get(pt.double.patch) ?? "?"})`, pt.double.patch, line]);
   // A continuo part (no `from`) on the bass alone (trio.ts ContinuoScript.at); a stage part (`from`, stage.ts) on any line.
-  for (const c of pt.continuo ?? []) if (c.from !== undefined || bass) out.push([`${id}:${c.from !== undefined ? "stage" : "continuo"}(${c.patch.sample ?? "synth"})`, c.patch, line]);
+  // (D640: a stage part only where the piece is staged: stage.ts stageFor, a fugue on a staged sound; elsewhere it never joins.)
+  for (const c of pt.continuo ?? []) if ((c.from !== undefined && staged) || (c.from === undefined && bass)) out.push([`${id}:${c.from !== undefined ? "stage" : "continuo"}(${c.patch.sample ?? "synth"})`, c.patch, line]);
   if (sound === "chamberOrgan" && organPatchOf(pt)) out.push([`${id}:pleno`, isPedal(pt) ? PATCHES.orgPedalPleno : PATCHES.orgPleno, line]);
   for (const fam of STOP_FAMILIES) if (fam[0] === pt) for (const q of fam.slice(1)) out.push([`${id}:stop(${idOf.get(q) ?? "?"})`, q, line]);
   const mute = BAND_GROWTH[sound]?.mute;
@@ -118,7 +120,7 @@ export function auditSound(sound: string, pieces: readonly TouchFugue[] = WTC_FU
         const patch = patchFor(v, count);
         if (!patch) continue;
         const line = [...f.voices[v], ...(f.bandVoices ?? []).filter((b) => b.of === v).flatMap((b) => b.notes)].map((n) => n[2]);
-        const parts = linePatches(p.id, patch, line, v === count - 1);
+        const parts = linePatches(p.id, patch, line, v === count - 1, !!stageFor(f, p.id));
         // BACH BRASS's entries' doubles (band-growth.ts unisonSpans: the partner on the entry's notes).
         for (const u of uni.filter((x) => x.voice === v)) parts.push([`unison(${u.patch})`, PATCHES[u.patch], f.voices[v].filter((n) => n[0] >= u.on && n[0] < u.end).map((n) => n[2])]);
         for (const [name, q, notes] of parts) {
@@ -164,10 +166,12 @@ export function summary(a: SoundAudit) {
 }
 
 /** D631: the extension each recorded instrument needs over the 48 on every sound (semitones past its top and its lowest recording). */
-export function extensions(sounds: readonly string[] = AUDIT_SOUNDS): Record<string, { up: number; down: number; where: string[] }> {
-  const out: Record<string, { up: number; down: number; where: string[] }> = {};
+export function extensions(sounds: readonly string[] = AUDIT_SOUNDS, pieces: readonly TouchFugue[] = WTC_FUGUES, within = Infinity, into: Record<string, { up: number; down: number; where: string[] }> = {}): Record<string, { up: number; down: number; where: string[] }> {
+  // (D640: `within`: only the notes read at most that far from a recording; the further ones are D641's, beyond the 48.)
+  const out = into;
   for (const id of sounds)
-    for (const o of auditSound(id).outs) {
+    for (const o of auditSound(id, pieces).outs) {
+      if (Math.abs(o.shift) > within) continue;
       const e = (out[o.inst] ??= { up: 0, down: 0, where: [] });
       const w = `${id} ${o.piece} v${o.voice} ${nameOfMidi(o.written)}`;
       if (o.beyond > e.up) (e.up = o.beyond), e.where.unshift(w);

@@ -669,6 +669,7 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // against layer 12 at C4, level matched, is 8.6 dB darker at 2-4 kHz and 14.6 at 4-8 kHz for about 4
   // dB of level (measured here): about 1.5 dB of brightness a dB, as a shelf, within -8..+5.
   piano: {
+    extend: { down: 5 },
     set: "grand",
     plucked: true,
     gain: 3.8,
@@ -686,14 +687,14 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   flute16: { set: "flute16", plucked: false, gain: 2.2 },
   harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
   strings16: { set: "strings16", plucked: false, gain: 2.2 },
-  bassoon16: { set: "bassoon16", zones: [{ set: "bassoon16Low", lo: 0, hi: 37 }], plucked: false, gain: 2.2 },
+  bassoon16: { extend: { up: 5 }, set: "bassoon16", zones: [{ set: "bassoon16Low", lo: 0, hi: 37 }], plucked: false, gain: 2.2 },
   // TRACKER's.
   violinMod: { set: "violinMod", plucked: false, gain: 2.2 },
   fluteMod: { set: "fluteMod", plucked: false, gain: 2.2 },
   harpsiMod: { set: "harpsiMod", plucked: true, gain: 1.8 },
   choirMod: { extend: { up: 5 }, set: "choirMod", plucked: false, gain: 2.2 },
-  bassMod: { set: "bassMod", plucked: true, gain: 2.2 },
-  voiceS: { extend: { up: 4 }, set: "voiceS", plucked: false, gain: 2.2 },
+  bassMod: { extend: { up: 5 }, set: "bassMod", plucked: true, gain: 2.2 },
+  voiceS: { extend: { up: 5 }, set: "voiceS", plucked: false, gain: 2.2 },
   voiceA: { extend: { up: 8 }, set: "voiceA", plucked: false, gain: 2.2 },
   voiceT: { extend: { up: 7 }, set: "voiceT", plucked: false, gain: 2.2 },
   voiceB: { extend: { up: 7 }, set: "voiceB", plucked: false, gain: 2.2 },
@@ -701,29 +702,29 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D302, PIPE ORGAN's recorded plenum and pedal (the pedal retuned up to B3, past its compass; the plenum above, as an organist takes a high bass on a manual).
   organPedal: { extend: { up: 5 }, set: "pedalOrg", above: { set: "manualOrg", from: 60 }, plucked: false, gain: 5, speak: 0.02 },
   // D349, PIPE ORGAN's PLENUM: the same organ's recorded plenum on the manuals (a set of its own, so its plan and the pedal's never let go of each other's notes).
-  organPleno: { set: "plenoOrg", plucked: false, gain: 5, speak: 0.02 },
+  organPleno: { extend: { up: 5 }, set: "plenoOrg", plucked: false, gain: 5, speak: 0.02 },
   // D358: SUPER 16-BIT's continuo cello; STRING CONSORT's violin, viola and cello (D510: LUTE's strings withdrawn; the guitar's folder stays, the Lab's). Gains set by measurement (each voice alone, gated loudness).
   cello16: { set: "cello16", plucked: false, gain: 2.2 },
   consortViolin: { set: "consortViolin", plucked: false, gain: 2.2 },
   consortViola: { set: "consortViola", plucked: false, gain: 2.2 },
-  consortCello: { set: "consortCello", plucked: false, gain: 2.2 },
+  consortCello: { extend: { up: 5 }, set: "consortCello", plucked: false, gain: 2.2 },
   // D512, the consort's stops (consort-stops.ts): spiccato and pizzicato, the louder layer (v2), each dying away by itself
   // and damped at the written end; retuned 2-3 semitones at most (recorded every minor or major third), then an octave
   // nearer. Gains measured against the arco (DECISIONS D512: the same phrase, the voice alone, through the phone model too).
-  consortViolinSpicc: { extend: { down: 3 }, set: "consortViolinSpicc", plucked: true, gain: CONSORT_STOP_GAIN.violinSpicc, layer: 2, maxShift: 2 },
+  consortViolinSpicc: { extend: { down: 5 }, set: "consortViolinSpicc", plucked: true, gain: CONSORT_STOP_GAIN.violinSpicc, layer: 2, maxShift: 2 },
   consortViolaSpicc: { extend: { down: 5 }, set: "consortViolaSpicc", plucked: true, gain: CONSORT_STOP_GAIN.violaSpicc, layer: 2, maxShift: 3 },
-  consortCelloSpicc: { set: "consortCelloSpicc", plucked: true, gain: CONSORT_STOP_GAIN.celloSpicc, layer: 2, maxShift: 3 },
-  consortViolinPizz: { extend: { up: 4, down: 3 }, set: "consortViolinPizz", plucked: true, gain: CONSORT_STOP_GAIN.violinPizz, layer: 2, maxShift: 2 },
-  consortViolaPizz: { extend: { down: 5 }, set: "consortViolaPizz", plucked: true, gain: CONSORT_STOP_GAIN.violaPizz, layer: 2, maxShift: 3 },
-  consortCelloPizz: { set: "consortCelloPizz", plucked: true, gain: CONSORT_STOP_GAIN.celloPizz, layer: 2, maxShift: 3 },
+  consortCelloSpicc: { extend: { up: 5, down: 5 }, set: "consortCelloSpicc", plucked: true, gain: CONSORT_STOP_GAIN.celloSpicc, layer: 2, maxShift: 3 },
+  consortViolinPizz: { extend: { up: 5, down: 5 }, set: "consortViolinPizz", plucked: true, gain: CONSORT_STOP_GAIN.violinPizz, layer: 2, maxShift: 2 },
+  consortViolaPizz: { extend: { up: 5, down: 5 }, set: "consortViolaPizz", plucked: true, gain: CONSORT_STOP_GAIN.violaPizz, layer: 2, maxShift: 3 },
+  consortCelloPizz: { extend: { up: 5, down: 5 }, set: "consortCelloPizz", plucked: true, gain: CONSORT_STOP_GAIN.celloPizz, layer: 2, maxShift: 3 },
   // TRIALS (instruments-trials). `maxShift` (D405) where a voice leaves the instrument's compass: past the
   // recordings by more, the note an octave nearer (the oboe under F#3, the clarinet under C3, the trumpet under
   // D#3 and over D6, the horn and the trombone 3 semitones past theirs; the bassoon's 7 notes, G2-C5: retuned
   // within them (at most 3.5 semitones), 5 under G2 to D2, the bass's rarer notes under D2 an octave up).
   trialOboe: { extend: { down: 6 }, set: "trialOboe", plucked: false, gain: 2.2, maxShift: 4 },
-  trialFlute: { set: "trialFlute", plucked: false, gain: 2.2, maxShift: 3 },
+  trialFlute: { extend: { down: 5 }, set: "trialFlute", plucked: false, gain: 2.2, maxShift: 3 },
   trialClarinet: { extend: { down: 7 }, set: "trialClarinet", plucked: false, gain: 2.2, maxShift: 2 },
-  trialHorn: { extend: { up: 6 }, set: "trialHorn", zones: [{ set: "trialHornMid", lo: 63, hi: 72 }], plucked: false, gain: 2.2, maxShift: 3 },
+  trialHorn: { extend: { up: 6, down: 5 }, set: "trialHorn", zones: [{ set: "trialHornMid", lo: 63, hi: 72 }], plucked: false, gain: 2.2, maxShift: 3 },
   trialBassoon: { set: "trialBassoon", zones: [{ set: "trialBassoonLow", lo: 0, hi: 37 }], plucked: false, gain: 2.2, maxShift: 5 },
   trialTrumpet: { set: "trialTrumpet", plucked: false, gain: 2.2, maxShift: 2 },
   trialTrombone: { set: "trialTrombone", plucked: false, gain: 2.2, maxShift: 3 },
@@ -731,59 +732,59 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D504, ZELENKA TRIO: a lighter note (the phrasing's level under -1.5 dB, as the piano's soft layer) or the player's
   // soft side on the mezzoforte (oboe II: VSCO's soft) layer, its loudness evened with the loud one's when built and
   // brought 1.5 dB under it here, so the layer is the colour and the level the reading's; short notes their own.
-  trioOboe1: { extend: { down: 4 }, set: "trioOboe1", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe1Mf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe1Short", under: TRIO_SHORT_S } },
+  trioOboe1: { extend: { down: 5 }, set: "trioOboe1", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe1Mf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe1Short", under: TRIO_SHORT_S } },
   trioOboe2: { extend: { down: 5 }, set: "trialOboe", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe2Soft", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe2Short", under: TRIO_SHORT_S } },
-  trioBassoon: { extend: { up: 8 }, set: "trioBassoon", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioBassoonMf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioBassoonShort", under: TRIO_SHORT_S } },
+  trioBassoon: { extend: { up: 8, down: 3 }, set: "trioBassoon", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioBassoonMf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioBassoonShort", under: TRIO_SHORT_S } },
   // D502, BACH BRASS (every minor third: 1.5 semitones at most to the nearest). `maxShift` (D405) 3 past the compass,
   // then an octave nearer: the trumpet under C#3 and over E6, the horn under D2 and over G#5, the trombone under C#2 and
   // over D#5, the bass under G1 and over A#4 (the folds: test/d502-brass.test.ts).
-  brassTrumpet: { extend: { down: 4 }, set: "brassTrumpet", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
-  brassHorn: { extend: { up: 4, down: 5 }, set: "brassHorn", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassHornP" } },
-  brassTrombone: { extend: { up: 4 }, set: "brassTrombone", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
-  brassBass: { extend: { up: 6 }, set: "brassBass", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassBassP" } },
+  brassTrumpet: { extend: { up: 4, down: 5 }, set: "brassTrumpet", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
+  brassHorn: { extend: { up: 5, down: 5 }, set: "brassHorn", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassHornP" } },
+  brassTrombone: { extend: { up: 5, down: 5 }, set: "brassTrombone", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
+  brassBass: { extend: { up: 6, down: 5 }, set: "brassBass", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassBassP" } },
   // D609: BACH BRASS v3's trumpet and tenor trombone on their mf sets (the piano layers as before: one layer under BAND_SLIM).
-  brassTrumpetMf: { extend: { down: 4 }, set: "brassTrumpetMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
-  brassTromboneMf: { extend: { down: 4 }, set: "brassTromboneMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
+  brassTrumpetMf: { extend: { up: 4, down: 5 }, set: "brassTrumpetMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTrumpetP" } },
+  brassTromboneMf: { extend: { up: 5, down: 5 }, set: "brassTromboneMf", plucked: false, gain: 2.2, maxShift: 3, blend: { set: "brassTromboneP" } },
   // D614: the straight mute's one layer (B-flat 3 to A5, every 2-5 semitones).
   brassTrumpetMute: { set: "brassTrumpetMute", plucked: false, gain: 2.2, maxShift: 3 },
   // D503, JAZZ QUARTET: the vibraphone (pp, mf, ff: the mallet's hardness), struck, its pedal by the note's length,
   // a harder strike a little brighter too (velTone), retuned a whole tone at most (the pp and ff sets' every other
   // note); the double bass pizzicato (mf, ff), a bass line folded an octave in only where it leaves E1-G4 by more than 3.
-  jazzVibes: { set: "jazzVibes", plucked: true, gain: 5.5, soft: { set: "jazzVibesSoft", below: 0.794, gain: 1 }, hard: { set: "jazzVibesHard", above: 1.26, gain: 1 }, pedal: { short: 0.22, shortTau: 0.03, tau: 0.11 }, velTone: { perDb: 0.6, hz: 2600, min: -3, max: 3 }, maxShift: 2 },
+  jazzVibes: { extend: { down: 4 }, set: "jazzVibes", plucked: true, gain: 5.5, soft: { set: "jazzVibesSoft", below: 0.794, gain: 1 }, hard: { set: "jazzVibesHard", above: 1.26, gain: 1 }, pedal: { short: 0.22, shortTau: 0.03, tau: 0.11 }, velTone: { perDb: 0.6, hz: 2600, min: -3, max: 3 }, maxShift: 2 },
   // D510: the band's bass on its ff recordings only from +4 dB (Busoni's f with an accent), not +2: at +2 the line's notes
   // flipped between the two sets (every whole tone, each its own tuning and colour) on 24 of I/8's first 75 notes, 6 now.
   // D522, CHORINHO: the classical guitar (recorded every minor third or so, B1-A#5), plucked, its fingers' damping by the note's
   // length (a short note stopped at once, a longer one let ring a little into the next), retuned 3 semitones at most.
-  choroGuitar: { set: "choroGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.09 }, velTone: { perDb: 0.5, hz: 2000, min: -2.5, max: 2.5 }, maxShift: 3 },
-  jazzBass: { extend: { up: 6 }, set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: JAZZ_BASS_HARD_ABOVE, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
+  choroGuitar: { extend: { up: 5, down: 5 }, set: "choroGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.09 }, velTone: { perDb: 0.5, hz: 2000, min: -2.5, max: 2.5 }, maxShift: 3 },
+  jazzBass: { extend: { up: 6, down: 4 }, set: "jazzBass", plucked: true, gain: 2.2, hard: { set: "jazzBassHard", above: JAZZ_BASS_HARD_ABOVE, gain: 1 }, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
   // D523, ABBEY ROAD (and D525, KRAUTROCK): the Gretsch (cleanGuitar/, every minor third E2-D6), the second electric
   // guitar (eguitar/, every minor third C#2-C6), the picked bass (rickBass/, every minor third E1-G3): plucked strings,
   // dying away by themselves, damped at the written end by the fretting hand (a short note at once, a longer one ringing
   // a little into the next: `pedal`), a firmer pluck a little brighter (velTone); retuned 2 semitones at most (the
   // nearest within a minor third: 1.5; the bass 3, its line over A#3 an octave down), then an octave nearer.
-  rockGuitar: { set: "cleanGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
-  rockGuitar2: { set: "eguitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
+  rockGuitar: { extend: { down: 5 }, set: "cleanGuitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
+  rockGuitar2: { extend: { up: 5 }, set: "eguitar", plucked: true, gain: 2.2, pedal: { short: 0.2, shortTau: 0.04, tau: 0.08 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
   // D633: its line over A#3 (the recordings end at G3; the 48's bass lines reach C#5, I/3) on the electric bass's own recordings
   // (ebass/: A#3-C#5, every minor third), never an octave lower (D631) nor read up to 18 semitones fast.
-  rockBass: { set: "rickBass", above: { set: "ebass", from: 59 }, plucked: true, gain: 2.2, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
+  rockBass: { extend: { up: 5, down: 4 }, set: "rickBass", above: { set: "ebass", from: 59 }, plucked: true, gain: 2.2, pedal: { short: 0.18, shortTau: 0.03, tau: 0.06 }, velTone: { perDb: 0.5, hz: 1100, min: -2.5, max: 2.5 }, maxShift: 3 },
   // D521, BOSSA NOVA's nylon guitar (mf, and pp for the lighter notes and the soft side: the thumb's rounder stroke), plucked,
   // the left hand's damping by the note's length (a short note stopped by the finger lifting, a longer one ringing a little into
   // the next, as a guitarist lets a line sing), a firmer stroke a little brighter (velTone: the nail), retuned a tone at most.
-  bossaGuitar: { extend: { down: 4 }, set: "bossaGuitar", plucked: true, gain: 2.2, soft: { set: "bossaGuitarSoft", below: 0.794, gain: 1 }, pedal: { short: 0.2, shortTau: 0.04, tau: 0.1 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
+  bossaGuitar: { extend: { up: 5, down: 5 }, set: "bossaGuitar", plucked: true, gain: 2.2, soft: { set: "bossaGuitarSoft", below: 0.794, gain: 1 }, pedal: { short: 0.2, shortTau: 0.04, tau: 0.1 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
   // D524, PET SOUNDS: the string section held on its loop, retuned 3 semitones at most (recorded every major or minor third);
   // its bass is ABBEY ROAD's (rockBass: the same picked babyblue, D523's trims).
   petStrings: { set: "petStrings", plucked: false, gain: 2.2, maxShift: 3 },
   // D547, BOSSA NOVA v2: the alto flute (every minor third: 1.5 semitones at most to the nearest, 3 past its compass, then an
   // octave nearer) and the tenor saxophone (every minor third Cs3-G5), each held on its made loop.
-  bossaAltoFlute: { set: "bossaAltoFlute", plucked: false, gain: 2.2, maxShift: 3 },
-  bossaSax: { extend: { up: 4 }, set: "bossaSax", plucked: false, gain: 2.2, maxShift: 3 },
+  bossaAltoFlute: { extend: { down: 5 }, set: "bossaAltoFlute", plucked: false, gain: 2.2, maxShift: 3 },
+  bossaSax: { extend: { up: 5, down: 4 }, set: "bossaSax", plucked: false, gain: 2.2, maxShift: 3 },
   // D588, VAUDEVILLE's xylophone: struck, ringing out (a short note stopped by the next stroke's damping: `pedal`), retuned
   // up to 6 semitones below its lowest recording (G4: the soprano's C#4 at most; the bar's pitch, darker and longer, a marimba's
   // kin), else within the nearest's fourth; a harder stroke a little brighter (velTone).
   vaudXylo: { extend: { down: 9 }, set: "vaudXylo", plucked: true, gain: 2.2, pedal: { short: 0.16, shortTau: 0.04, tau: 0.12 }, velTone: { perDb: 0.5, hz: 3000, min: -2.5, max: 2.5 }, maxShift: 6 },
   // D589, FLUTE & HARP's harp: plucked, the strings left to ring a little past the written end (the harpist's hand damps late:
   // `pedal`'s longer tau), retuned 2 semitones at most (recorded every third: 1.5 to the nearest), then an octave nearer.
-  seaHarp: { set: "seaHarp", plucked: true, gain: 2.2, pedal: { short: 0.25, shortTau: 0.08, tau: 0.25 }, velTone: { perDb: 0.4, hz: 2000, min: -2, max: 2 }, maxShift: 3 },
+  seaHarp: { extend: { down: 4 }, set: "seaHarp", plucked: true, gain: 2.2, pedal: { short: 0.25, shortTau: 0.08, tau: 0.25 }, velTone: { perDb: 0.4, hz: 2000, min: -2, max: 2 }, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;
@@ -936,6 +937,8 @@ export interface Slim {
   pluckedS?: number;
   /** Sparse zones: a recording every `stride` semitones at least (setZones). */
   stride?: number;
+  /** D642: a set's own stride where it differs (a chromatic set thinned further to hold a sound's budget: TRACKER's harpsichord). */
+  strides?: Readonly<Record<string, number>>;
   /** One dynamic layer: the instruments' soft, hard, short and blend sets held off (holdOff). */
   oneLayer?: boolean;
   /** D549: layers kept under `oneLayer` (their sets by name): a band's own colour where the budget has room (JAZZ QUARTET's vibraphone mallets). */
