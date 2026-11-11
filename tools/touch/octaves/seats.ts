@@ -16,9 +16,14 @@
  *   node tools/touch/octaves/seats.ts          writes src/touch/octave-seats.ts and lists every swap
  */
 import { writeFileSync } from "node:fs";
-import { soundPlans } from "../../../src/touch/chip.ts";
+import { soundPlans, voicing } from "../../../src/touch/chip.ts";
 import { nameOfMidi, nearestSample, sampledMidis, SAMPLED, setFor, MAX_SHIFT_ANY, STRETCH_MAX } from "../../../src/touch/sampled.ts";
-import { OWN_PIECES, PATCHES, presetById, setPieceLayout, setPreset, type PatchId } from "../../../src/touch/sound.ts";
+import { STOP_FAMILIES } from "../../../src/touch/consort-stops.ts";
+import { stageFor } from "../../../src/touch/stage.ts";
+import { OWN_PIECES, PATCHES, patchIdFor, type Patch, presetById, setPieceLayout, setPreset, type PatchId } from "../../../src/touch/sound.ts";
+import type { TouchFugue } from "../../../src/touch/fugue.ts";
+import { AUDIT_SOUNDS } from "./audit.ts";
+import { COLLECTIONS } from "../stretch/collections.ts";
 import { TRIO_ID, trioLayout } from "../../../src/touch/trio.ts";
 import { WTC_FUGUES } from "./audit.ts";
 
@@ -61,6 +66,8 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
 export const STRETCH_SEATS: ReadonlySet<string> = new Set(["tracker", "super16", "soloVoices", "baroqueBand"]);
 /** D637: an instrument kept on its line though some notes are read past STRETCH_MAX (a band's own colour: test/d635's allow-list). */
 export const STRETCH_KEPT: Readonly<Record<string, readonly PatchId[]>> = { vaudeville: ["vdXylo"] };
+/** D641: beyond the 48 fugues a kept instrument stays on its line only while no note of it is read further than this (the fugues' worst, VAUDEVILLE's A#3). */
+export const KEPT_MAX = 9;
 
 /** D637: the notes of a line a patch reads more than STRETCH_MAX semitones from a recording (its set as planned). */
 export function stretchOf(id: PatchId, line: readonly number[]): number {
@@ -188,6 +195,109 @@ export function seatsFor(sound: string) {
   return { seats: out, log };
 }
 
+/** D641: the stretched notes of a line on a patch and on every part that follows it (its double, its stage parts where the piece is staged, a consort's stops). */
+export function partsStretch(id: PatchId, line: readonly number[], staged: boolean): number {
+  const pt = PATCHES[id];
+  const parts: Patch[] = [pt];
+  if (pt.double) parts.push(pt.double.patch);
+  for (const c of pt.continuo ?? []) if (c.from !== undefined && staged) parts.push(c.patch);
+  for (const fam of STOP_FAMILIES) if (fam[0] === pt) parts.push(...fam.slice(1));
+  let n = 0;
+  for (const q of parts) {
+    const inst = q.sample ? SAMPLED[q.sample] : null;
+    if (!inst) continue;
+    for (const m of line) {
+      const near = nearestSample(setFor(inst, m), m);
+      if (near !== null && Math.abs(m - near) > STRETCH_MAX) n++;
+    }
+  }
+  return n;
+}
+
+/** D641: the worst read of a line on a patch (semitones from its nearest recording, the set as planned). */
+function worstOf(id: PatchId, line: readonly number[]): number {
+  const pt = PATCHES[id];
+  const inst = pt.sample ? SAMPLED[pt.sample] : null;
+  if (!inst) return 0;
+  let w = 0;
+  for (const m of new Set(line)) {
+    const near = nearestSample(setFor(inst, m), m);
+    if (near !== null) w = Math.max(w, Math.abs(m - near));
+  }
+  return w;
+}
+
+/**
+ * D641, THE SEATS BEYOND THE 48 FUGUES (tools/touch/stretch/collections.ts: the preludes, the tutorial, MORE BACH, the
+ * concertos, the chorales, on every sound): a piece of up to 13 voices, so no search over trades. Each upper voice whose
+ * instrument leaves notes read more than STRETCH_MAX from a recording takes the band's recorded instrument (any of its
+ * line-ups' patches) that leaves fewest, then misses its compass least, its own kept on a tie; the bass keeps its own;
+ * STRETCH_KEPT's instruments stay where no note is read past KEPT_MAX. The seat's pan and level stay.
+ */
+export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
+  const p = presetById(sound);
+  setPreset(p);
+  const cands = [...new Set([...Object.values(p.by ?? {}).flatMap((sl) => (sl ?? []).map((x) => x[0])), ...(p.slots ?? [])])].filter((id): id is PatchId => !!id && !!PATCHES[id as PatchId]?.sample);
+  const out: Record<string, Record<number, Slot[]>> = {};
+  const log: string[] = [];
+  if (!cands.length) return { seats: out, log };
+  // (The band's bass instruments: an upper voice takes one only where no other serves.)
+  const basses = new Set(Object.values(p.by ?? {}).map((sl) => sl?.[sl.length - 1]?.[0]).filter(Boolean));
+  for (const f of pieces) {
+    const count = f.voices.length;
+    if (count < 2) continue;
+    const own = OWN_PIECES[sound]?.[f.id]?.[count];
+    let base: readonly Slot[] | undefined = own ?? (sound === TRIO_ID ? trioLayout(f, false).slots : p.by?.[count]);
+    if (!base) {
+      // (No line-up of the preset's own for this many voices: its slots, each voice at the place the engine gives it.)
+      setPieceLayout(null);
+      const b: Slot[] = [];
+      for (let v = 0; v < count; v++) {
+        const id = patchIdFor(v, count);
+        if (!id) break;
+        const vc = voicing(v, count);
+        b.push(vc.gain !== 1 ? [id, +vc.pan.toFixed(4), +vc.gain.toFixed(4)] : [id, +vc.pan.toFixed(4)]);
+      }
+      if (b.length !== count) continue;
+      base = b;
+    }
+    setPieceLayout({ preset: sound, count, slots: base, only: true });
+    soundPlans(f.voices.flat().map((n) => n[2]), [], null);
+    const seatOf = (v: number) => base![Math.min(v, base!.length - 1)];
+    const slots: Slot[] = [];
+    let changed = false;
+    for (let v = 0; v < count; v++) {
+      const seat = seatOf(v);
+      const line = [...f.voices[v], ...(f.bandVoices ?? []).filter((x) => x.of === v).flatMap((x) => x.notes)].map((n) => n[2]);
+      let pick = seat[0];
+      const staged = !!stageFor(f, sound);
+      const st = partsStretch(seat[0], line, staged);
+      const kept = STRETCH_KEPT[sound]?.includes(seat[0]) && worstOf(seat[0], line) <= KEPT_MAX;
+      if (v < count - 1 && st > 0 && !kept && line.length) {
+        // Fewest stretched, then the compass missed least, then not the band's bass, then one of this line-up's own.
+        const inUp = new Set(base.map((x) => x[0]));
+        const key = (c: PatchId) => [partsStretch(c, line, staged), Math.abs(excess(c, line)), basses.has(c) ? 1 : 0, inUp.has(c) ? 0 : 1];
+        let best = [st, Infinity, 0, 0];
+        for (const c of cands) {
+          const k = key(c);
+          const i = k.findIndex((x, j) => x !== best[j]);
+          if (i >= 0 && k[i] < best[i]) (best = k), (pick = c);
+        }
+        // (Its own kept where none does better on the stretch.)
+        if (best[0] >= st) pick = seat[0];
+      }
+      if (pick !== seat[0]) {
+        changed = true;
+        log.push(`${sound} ${f.id} v${v} (${nameOfMidi(Math.min(...line))}-${nameOfMidi(Math.max(...line))}): ${seat[0]} (${st} stretched) → ${pick} (${partsStretch(pick, line, staged)})`);
+      }
+      slots.push(seat.length > 2 ? [pick, seat[1], seat[2]] : [pick, seat[1]]);
+    }
+    if (changed) out[f.id] = { [count]: slots };
+  }
+  setPieceLayout(null);
+  return { seats: out, log };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const all: Record<string, Record<string, Record<number, Slot[]>>> = {};
   const lines: string[] = [];
@@ -196,10 +306,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (Object.keys(seats).length) all[sound] = seats;
     lines.push(...log);
   }
+  // D641: and every other playable piece on every sound.
+  const extra = COLLECTIONS.filter(([name]) => name !== "WTC fugues").flatMap(([, ps]) => ps);
+  for (const sound of AUDIT_SOUNDS) {
+    const { seats, log } = seatsForPieces(sound, extra);
+    if (Object.keys(seats).length) all[sound] = { ...(all[sound] ?? {}), ...seats };
+    lines.push(...log);
+  }
   for (const l of lines) console.log(l);
   console.log(`${lines.length} seats changed`);
   const body = Object.entries(all)
-    .map(([s, fs]) => `  ${s}: {\n${Object.entries(fs).map(([f, c]) => `    ${f}: { ${Object.entries(c).map(([n, sl]) => `${n}: [${sl.map((x) => `[${x.map((y) => JSON.stringify(y)).join(", ")}]`).join(", ")}]`).join(", ")} },`).join("\n")}\n  },`)
+    .map(([s, fs]) => `  ${s}: {\n${Object.entries(fs).map(([f, c]) => `    ${/^[A-Za-z_$][\w$]*$/.test(f) ? f : JSON.stringify(f)}: { ${Object.entries(c).map(([n, sl]) => `${n}: [${sl.map((x) => `[${x.map((y) => JSON.stringify(y)).join(", ")}]`).join(", ")}]`).join(", ")} },`).join("\n")}\n  },`)
     .join("\n");
   writeFileSync(
     new URL("../../../src/touch/octave-seats.ts", import.meta.url),

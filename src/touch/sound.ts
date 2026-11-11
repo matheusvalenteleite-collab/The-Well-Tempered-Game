@@ -1766,7 +1766,8 @@ export const PRESETS: Preset[] = [
     id: "tracker",
     name: "TRACKER",
     // D560: held to the budget (25 MB): BAND_SLIM; 44.8 → 24.5 MB.
-    slim: BAND_SLIM,
+    // D642: the harpsichord (chromatic) thinned to every fourth semitone: the concertos on TRACKER held to 25 MB (bwv1055-1 was 26.1).
+    slim: { ...BAND_SLIM, strides: { harpsiMod: 4 } },
     slots: ["trkViolin", "trkFlute", "trkHarpsi", "trkChoir", "trkBass"],
     room: 0,
     by: {
@@ -2245,7 +2246,8 @@ export const PRESETS: Preset[] = [
       4: [["orViolin1", -0.24], ["orViolin2", -0.08], ["orViola", 0.08], ["orCello", 0.24]],
       5: [["orViolin1", -0.24], ["orViolin2", -0.1], ["orViola", 0.04], ["orViola", 0.14, 0.92], ["orCello", 0.24]],
     },
-    slim: BAND_SLIM,
+    // D642: the cello (chromatic) thinned to every fourth semitone: the concertos held to 25 MB (bwv1043-3 was 25.9).
+    slim: { ...BAND_SLIM, strides: { consortCello: 4 } },
   },
 ];
 
