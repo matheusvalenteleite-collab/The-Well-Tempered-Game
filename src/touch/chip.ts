@@ -2614,6 +2614,7 @@ export class Chip {
     }
     // D365: on a phone, an instrument's upper partials lifted where its small speaker hears them (Patch.phoneLift:
     // STRING CONSORT's cello, its bow and overtones carrying the bass line; never its fundamental), whoever plays it.
+    const dry = src;
     if (this.phone && pt.phoneLift) {
       const lift = bag.add(ctx.createBiquadFilter());
       lift.type = "highshelf";
@@ -2629,6 +2630,8 @@ export class Chip {
         src = src.connect(cut);
       }
     }
+    // D645: on a phone, the bass's harmonics made from its own low band (Patch.phoneExcite), its lift and cut on the note's own path.
+    if (this.phone && pt.phoneExcite) src = this.excite(bag, dry, src, pt.phoneExcite);
     // D503: the patch's own voicing (Patch.shelf: JAZZ QUARTET's piano a little brighter than the solo grand).
     if (pt.shelf) {
       const sh = bag.add(ctx.createBiquadFilter());
@@ -3283,6 +3286,10 @@ export class Chip {
       hp.Q.value = 0.7071;
       src = src.connect(hp);
     }
+    // D645: on a phone, a synthesized bass's upper partials lifted as a recorded one's are (Patch.phoneLift, D365, not a recording's stand-in; its cut
+    // under them), and its harmonics made from its own low band (Patch.phoneExcite).
+    if (this.phone && pt.phoneLift && !pt.sample) src = this.phoneLift(bag, src, pt.phoneLift);
+    if (this.phone && pt.phoneExcite && !pt.sample) src = this.excite(bag, src, src, pt.phoneExcite);
     if (pt.reed) src = this.reedBody(src, pt.reed, f0, midi, t, !!(p.legato && !pluck), bag);
     if (pt.phaser) {
       // D302, TOMITA's phased strings: two allpass stages swept with the clock, beside the dry sound: moving notches.
@@ -4542,6 +4549,48 @@ export class Chip {
     xg.gain.value = level / L.drive;
     from.connect(pre).connect(ws).connect(bh).connect(bl).connect(xg).connect(to);
   }
+  /**
+   * D645: a bass's harmonics on a phone (Patch.phoneExcite; D514's lowHarmonics for an instrument): the note's low band
+   * (`from` through a lowpass at x.lp) driven through the soft clip, its new upper harmonics high-passed (2 poles at x.hp:
+   * nothing of it under the small speaker's band), mixed in x.db under the note (`main`): the line's fundamentals, which
+   * the speaker cannot give, implied by their harmonics where it can. A constant of the patch: the band's notes and the player's alike.
+   */
+  /** D365, D645: a phone's lift of a low instrument's upper partials (Patch.phoneLift: a high shelf, and a high-pass under them where `cut`). */
+  private phoneLift(bag: Bag, src: AudioNode, l: NonNullable<Patch["phoneLift"]>): AudioNode {
+    const lift = bag.add(this.ctx.createBiquadFilter());
+    lift.type = "highshelf";
+    lift.frequency.value = l.hz;
+    lift.gain.value = l.db;
+    src = src.connect(lift);
+    if (l.cut) {
+      const cut = bag.add(this.ctx.createBiquadFilter());
+      cut.type = "highpass";
+      cut.frequency.value = l.cut;
+      cut.Q.value = 0.7;
+      src = src.connect(cut);
+    }
+    return src;
+  }
+  private excite(bag: Bag, from: AudioNode, main: AudioNode, x: NonNullable<Patch["phoneExcite"]>): AudioNode {
+    const ctx = this.ctx;
+    const lp = bag.add(ctx.createBiquadFilter());
+    lp.type = "lowpass";
+    lp.frequency.value = x.lp;
+    lp.Q.value = 0.7071;
+    const pre = bag.add(ctx.createGain());
+    pre.gain.value = x.drive;
+    const ws = bag.add(ctx.createWaveShaper());
+    ws.curve = PHONE_LOW_CURVE;
+    const hp1 = bag.add(ctx.createBiquadFilter());
+    const hp2 = bag.add(ctx.createBiquadFilter());
+    for (const h of [hp1, hp2]) ((h.type = "highpass"), (h.frequency.value = x.hp), (h.Q.value = 0.7071));
+    const wet = bag.add(ctx.createGain());
+    wet.gain.value = 10 ** (x.db / 20) / x.drive;
+    const sum = bag.add(ctx.createGain());
+    main.connect(sum);
+    from.connect(lp).connect(pre).connect(ws).connect(hp1).connect(hp2).connect(wet).connect(sum);
+    return sum;
+  }
   /** D503: the brushes asked for (the tests: each piece, its time in the context's clock, its level). */
   readonly brushLog: { piece: string; at: number; vel: number; len?: number }[] = [];
   /** D503: where the stir and the flutter loops have got to (s into the recording): one brush going on, beat to beat. */
@@ -5000,7 +5049,8 @@ export function voicing(voice: number, count: number, _played = true): Voicing {
   // D365: CLASSIC CHIP (no patches) within ±0.35 (it spread ±0.45, the widest of any sound: D358); the others as before.
   const pan = desk !== null ? desk : place ? place.pan : count > 1 ? (0.5 - fromTop / (count - 1)) * (preset().slots === null ? 2 * CHIP_PAN : 0.9) : 0;
   // D169: the voice played is no louder than the others; it stands out by its colour in the box.
-  return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN : 1) * (place?.level ?? 1), patch: patchFor(voice, count), ...(bass ? { bass: true } : {}) };
+  // D645: and a sound's own bass on a phone (Preset.phoneBass: CLASSIC CHIP's).
+  return { timbre, pan, gain: (phoneBass ? PHONE_BASS_GAIN * (preset().phoneBass ?? 1) : 1) * (place?.level ?? 1), patch: patchFor(voice, count), ...(bass ? { bass: true } : {}) };
 }
 
 /** A decaying stereo noise, for the room. */

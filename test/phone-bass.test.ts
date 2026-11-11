@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PHONE_BASS_GAIN, voicing } from "../src/touch/chip.ts";
+import { presetById } from "../src/touch/sound.ts";
 
 const touch = (n: number) => Object.defineProperty(globalThis, "navigator", { value: { maxTouchPoints: n }, configurable: true });
 
@@ -15,7 +16,8 @@ test("D291: a phone's bass is a pulse no neighbour uses, a little louder", () =>
   touch(5);
   assert.equal(voicing(2, 3).timbre, "pulse50");
   assert.equal(voicing(3, 4).timbre, "pulse25");
-  assert.equal(voicing(3, 4).gain, PHONE_BASS_GAIN);
+  // D645: and CLASSIC CHIP's own phone bass (Preset.phoneBass).
+  assert.equal(voicing(3, 4).gain, PHONE_BASS_GAIN * (presetById("chip").phoneBass ?? 1));
   assert.equal(voicing(0, 4).timbre, "pulse12");
   assert.equal(voicing(0, 1).timbre, "triangle");
   touch(0);
