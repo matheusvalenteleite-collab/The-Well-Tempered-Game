@@ -27,10 +27,10 @@ test("slides drawn in the box: from the note slid from, or from a slide-in's sta
   assert.match(src("src/bench/proto-game.ts"), /notes\[i\]\.slideFrom = this\.rows \? this\.rows\.stepAt\(si\.y0\) : undefined;/);
 });
 
-test("the title bar: the fugue's name before its title; the map in the music box's foot (D646)", () => {
+test("the title bar: the fugue's name before its title; the map in the music box's foot (D651)", () => {
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /return name \? `\$\{name\.toUpperCase\(\)\} · \$\{formal\}` : formal;/);
-  // D646: off the left bar, a strip over the voice legend (LegendMap.tsx).
+  // D651: off the left bar, a strip over the voice legend (LegendMap.tsx).
   assert.ok(!src("src/bench/paint-proto.ts").includes("buildMap("));
   assert.match(app, /legend=\{<>\{playing && builds\(f\) && f\.entries\.length > 0 && <LegendMap game=\{game\} \/>\}/);
   assert.match(src("src/bench/bench.css"), /\.tb-bars \.tg-box-wide > \.tg-legend:has\(\.tb-legend-map\) \{ height: 34px;/);

@@ -6,8 +6,8 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { PATCHES, presetById, setPreset, setPieceLayout, pieceLineUp, sampledNow } from "../src/touch/sound.ts";
-import { SAMPLED, foldInto, sampledMidis } from "../src/touch/sampled.ts";
+import { OWN_PIECES, PATCHES, presetById, setPreset, setPieceLayout, pieceLineUp, sampledNow } from "../src/touch/sound.ts";
+import { SAMPLED, reachOf, sampledMidis } from "../src/touch/sampled.ts";
 import { BAND_CHAINS, BRASS_CLEAR, BRASS_HORN_LANE, BRASS_LOW_LANE, BRASS_TRUMPET_LANE } from "../src/touch/band-fx.ts";
 import { BRASS_GROWTH, BRASS_LENGTHS, BRASS_MUTE, BRASS_UNISON, growthAt, lengthCaps, unisonLate, unisonSpans } from "../src/touch/band-growth.ts";
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
@@ -91,9 +91,11 @@ test("D613: the alto of four on the horn, within its compass (no fold) but where
     const own = p.pieces?.[f.id]?.[4];
     const alto = own ? own[1][0] : "bachHorn";
     if (alto !== "bachHorn") continue;
-    for (const [, , m] of f.voices[1]) assert.equal(foldInto(horn.set, m, horn.maxShift!), m, `${f.id} ${m}`);
+    const r = reachOf(horn, horn.set);
+    for (const [, , m] of f.voices[1]) assert.ok(m >= r.lo && m <= r.hi, `${f.id} ${m}`);
   }
-  assert.deepEqual(Object.keys(p.pieces ?? {}).sort(), ["wtc1f24", "wtc2f17"]);
+  // (D632: and the seats by range, octave-seats.ts, merged into the sound's pieces beside its own two.)
+  assert.deepEqual(Object.keys(OWN_PIECES.bachBrass ?? {}).sort(), ["wtc1f24", "wtc2f17"]);
   setPreset("bachBrass");
   setPieceLayout(pieceLineUp("bachBrass", fugueById("wtc1f24")));
   assert.ok(sampledNow().includes("brassHorn"), "the entries' horn with the piece's own line-up");

@@ -551,7 +551,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       if (sounding) innerAnim(g, x1, oy, bw, bh - 1, o.on, o.dur, fr.now, 0.5);
       continue;
     }
-    // D648 (design studio; the owner: other voices' notes "way too hidden and small … one loses all easy grasp of the
+    // D653 (design studio; the owner: other voices' notes "way too hidden and small … one loses all easy grasp of the
     // fugue's whole architecture"): every voice's note full height and clearly readable; the hierarchy from the
     // subject's light and skin and the player's outline, not from size and darkness.
     const th = full ? bh - 1 : oh;
@@ -1221,7 +1221,7 @@ function dots(g: CanvasRenderingContext2D, x1: number, x2: number, y: number, in
 }
 
 /** D478: the subject's light and the music's shadow on the world (under the notes). */
-// D645: the world's shade 0.06 (was 0.16). D648: the music's shadow at a third (0.14, was 0.42): the architecture first.
+// D650: the world's shade 0.06 (was 0.16). D653: the music's shadow at a third (0.14, was 0.42): the architecture first.
 const LIGHT = { dim: 0.06, shadow: 0.14, glow: 0.2, sounding: 0.38, r: 16, rSounding: 26 } as const;
 export const SUBJECT_LIGHT = LIGHT;
 function lightAndShadow(g: CanvasRenderingContext2D, fr: Frame, spans: readonly Span[], otherIdx: ArrayLike<number>, c: { t0: number; span: number; w: number; h: number; xOf: (t: number) => number; yOf: (s: number) => number; hOf: (s: number) => number; bh: number }) {
@@ -1271,7 +1271,7 @@ function withAlpha(hex: string, a: number): string {
 }
 
 /**
- * D647 (design studio; the owner: "animation inside every note as it sounds", chose FILL): a light filling a sounding
+ * D652 (design studio; the owner: "animation inside every note as it sounds", chose FILL): a light filling a sounding
  * note from left to right over its length, in every voice: `k` 1 on the player's notes, 0.5 on the others'. A
  * rectangle (D383); it grows smoothly, never flashes.
  */

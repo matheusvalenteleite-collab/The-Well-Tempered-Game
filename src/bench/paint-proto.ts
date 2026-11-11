@@ -1079,7 +1079,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.globalAlpha = 1;
     }
   }
-  // D646 (design studio): THE FUGUE'S BUILDING moved into the music box's foot (LegendMap.tsx), off the left bar.
+  // D651 (design studio): THE FUGUE'S BUILDING moved into the music box's foot (LegendMap.tsx), off the left bar.
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {
     // D296: no pitch names on the bars (the bars are not a scale: the way matters, not the spot).

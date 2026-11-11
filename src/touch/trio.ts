@@ -49,9 +49,12 @@ const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 export const TRIO_FOLD_SHARE = 0.01;
 
 /** The trio's layout for a piece (its number of voices), its folds voice by voice, and whether it is an alternative. */
-export function trioLayout(f: Pick<TouchFugue, "voices">): { count: number; slots: readonly Slot[]; folds: number[]; alt: boolean } {
+export function trioLayout(f: Pick<TouchFugue, "voices"> & { id?: string }, pieces = true): { count: number; slots: readonly Slot[]; folds: number[]; alt: boolean } {
   const p = PRESETS.find((x) => x.id === TRIO_ID)!;
   const count = f.voices.length;
+  // D632: the piece's own line-up (Preset.pieces: the seats by range, octave-seats.ts) where it has one.
+  const mine = pieces && f.id ? p.pieces?.[f.id]?.[count] : undefined;
+  if (mine) return { count, slots: mine, folds: foldsOf(f, mine), alt: true };
   const own = p.by?.[count] ?? p.by?.[5] ?? [];
   const notes = f.voices.reduce((a, v) => a + v.length, 0);
   let best = { count, slots: own, folds: foldsOf(f, own), alt: false };

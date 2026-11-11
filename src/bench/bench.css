@@ -1261,7 +1261,7 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-bars .tg-box-wide > .tg-legend .tb-you-chip { gap: 3px; padding: 2px 4px 1px; font-size: 6px; line-height: 1.2; border-width: 1px; box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
 .tb-bars .tg-box-wide > .tg-legend .tb-legend-other { padding-top: 1px; line-height: 1.2; opacity: 0.85 !important; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
 
-/* D646 (design studio; the owner: the map at the left bar's foot "weird", back with the music box "probably in the bottom
+/* D651 (design studio; the owner: the map at the left bar's foot "weird", back with the music box "probably in the bottom
    of music box"): THE FUGUE'S BUILDING a full-width strip over the voice legend's line at the box's foot (LegendMap.tsx).
    The legend 34 px tall where it holds the map, so the ladder's floor rises 18 px with it (D473: every row stays above). */
 .tb-legend-map { display: none; }

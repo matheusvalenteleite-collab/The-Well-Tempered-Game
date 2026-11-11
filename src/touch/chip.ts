@@ -13,8 +13,8 @@ import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
-import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, inCompass, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, foldInto, guardedPitch, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
+import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
+import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
@@ -42,6 +42,15 @@ const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoo
  * D208, the player's voice: the same instrument as the others, at the same level (the voices of a
  * fugue are equals); it only rings while the thumb is down, so a release is never cut short.
  */
+/**
+ * D631: the pitch a patch's note of written pitch `midi` is played at: the written pitch, on every patch (D405's and D505's
+ * folds, D504's compass fold, withdrawn: the owner, "no note may sound in a different octave from the one written"). Chip.note,
+ * voiceNote, a slide's target and the opening's plan read it; the audit (tools/touch/octaves) and test/d631 hold it.
+ */
+export function soundingPitch(_pt: Patch | null | undefined, midi: number): number {
+  return midi;
+}
+
 export function leadOf(pt: Patch): Patch {
   // D349: an organ's pipe is the same pipe whoever plays it (one envelope, one release). D358: and any one instrument's (Patch.one).
   if (pt.pipe || pt.one) return pt;
@@ -1162,7 +1171,7 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
       const inst = pt?.sample ? SAMPLED[pt.sample] : null;
       if (!inst) continue;
       const set = setFor(inst, midi);
-      const near = nearestSample(set, guardedPitch(inst, set, midi, !!(pt!.sing || pt!.syllable)));
+      const near = nearestSample(set, soundingPitch(pt, midi));
       if (near === null) continue;
       if (!want.has(set)) want.set(set, new Set());
       want.get(set)!.add(near);
@@ -1502,8 +1511,8 @@ export class Chip {
     const pr = preset();
     const pg = (pr.gain ?? 1) * (this.phone ? (pr.phoneGain ?? 1) : 1);
     if (pg !== 1) v = { ...v, gain: v.gain * pg };
-    // D504: never outside the instrument's compass (Patch.compass): an octave nearer, the band's note and the player's alike.
-    if (v.patch?.compass) midi = inCompass(midi, v.patch.compass);
+    // D631: the written pitch, on every patch (D504's compass no longer folds a note an octave nearer: trio.ts chooses the layout).
+    midi = soundingPitch(v.patch, midi);
     const sd = this.noteNow(midi, at, dur, v, p);
     // D420: on the organ a registration changed under a held key reaches it (thumb pistons): the note kept to be taken up again.
     const id = preset().id;
@@ -1640,7 +1649,8 @@ export class Chip {
       const parts: [Sounding, number][] = [[main, 0]];
       for (const c of cont) {
         const late = c.late ?? 0;
-        const m = c.patch.compass ? inCompass(midi, c.patch.compass) : midi;
+        // D631: the part in unison at the written pitch (D504's compass fold withdrawn); its octave below only within its compass.
+        const m = soundingPitch(c.patch, midi);
         const cv: Voicing = { ...v, patch: c.patch, ...(c.pan !== undefined ? { pan: c.pan } : {}) };
         const plucked = !!(c.patch.sample && SAMPLED[c.patch.sample].plucked);
         const cp: Play = { level: (p.level ?? 1) * (this.phone ? (c.phoneLevel ?? c.level) : c.level), couple: false, ...(p.apart ? { apart: true } : {}), ...(p.vel !== undefined ? { vel: p.vel } : {}), ...(p.roomMul ? { roomMul: p.roomMul } : {}), ...(!plucked && p.tie ? { tie: p.tie } : {}), ...(!plucked && p.legato ? { legato: true } : {}) };
@@ -2167,9 +2177,8 @@ export class Chip {
     // D297: an organ's manual above its pedal's compass (sampled.ts setFor).
     const main = inst ? setFor(inst, midi) : "";
     if (v.patch && inst && !setUnreachable(main)) {
-      // D405: never a recording read more than `maxShift` semitones off (glassy above, muddy below): a pitch past the compass an octave nearer.
-      // D505: and on every recorded set, never more than MAX_SHIFT_ANY fast (sampled.ts guardedPitch).
-      midi = guardedPitch(inst, main, midi, !!(v.patch.sing || v.patch.syllable));
+      // D631: the written pitch, read from the nearest recording (D405's and D505's octave folds withdrawn: sampled.ts reachOf).
+      midi = soundingPitch(v.patch, midi);
       let near = nearestSample(main, midi);
       // D385: a piano trill's two pitches never from one recording: the one not recorded itself takes the other
       // neighbouring recording (G#4 from F#4 up where A4 sounds A4), where that recording is loaded.
@@ -2982,8 +2991,8 @@ export class Chip {
       },
       glide: (to: number, tau?: number) => {
         if (stopped) return;
-        // D510: folded as the note itself was (voiceNote, D405's maxShift): a slide never reads a recording an octave off.
-        baseHz = hz(inst.maxShift !== undefined ? foldInto(set, to, inst.maxShift) : to);
+        // D510, D631: the slide's target at its written pitch, as the note itself (voiceNote: no octave fold).
+        baseHz = hz(soundingPitch(v.patch, to));
         retune(tau ?? 0.025);
       },
       muffle: () => {
