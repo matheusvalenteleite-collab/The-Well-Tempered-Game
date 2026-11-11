@@ -12,7 +12,8 @@ import { register } from "node:module";
 import { FakeAudioContext, FakeParam, FakeSource, installFakeAudio } from "./fake-audio.ts";
 import { Chip, REVERBS, voicing, type Play } from "../src/touch/chip.ts";
 import { CONTINUO_HARPSI, PATCHES, PRESETS, TRIO_COMPASS, TRIO_CONTINUO, TRIO_CREDIT, TRIO_JOIN, TRIO_SEND, TRIO_TONGUE, bowEntry, busoniReaches, creditFor, inCompass, offered, patchFor, presetById, setPieceLayout, setPreset, type PatchId } from "../src/touch/sound.ts";
-import { SAMPLED, TRIO_SHORT_S } from "../src/touch/sampled.ts";
+import { nearestSample, rateFor, SAMPLED, TRIO_SHORT_S } from "../src/touch/sampled.ts";
+import { hz } from "../src/touch/tuning.ts";
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
 import { ContinuoScript, TRIO_FOLD_SHARE, TRIO_ID, continuoFor, continuoMoments, continuoRule, foldsOf, phraseStarts, spansOf, trioLayout } from "../src/touch/trio.ts";
 import { TRIO_CONTINUO_SCRIPTS } from "../src/touch/trio-continuo.ts";
@@ -114,7 +115,8 @@ test("D504: every instrument has a compass; a note outside it is played an octav
 test("D504: the layout with the fewest folds: by's unless it folds over 1% of the notes; I/11 and I/13 none, II/23 two", () => {
   let total = 0;
   for (const f of FUGUES) {
-    const l = trioLayout(f);
+    // (D632: the fold-share choice itself; a piece's seats by range, octave-seats.ts, come before it: below.)
+    const l = trioLayout(f, false);
     const own = foldsOf(f, trio().by![f.voices.length] ?? trio().by![5]!);
     const sum = (x: number[]) => x.reduce((a, b) => a + b, 0);
     assert.ok(sum(l.folds) <= sum(own), f.id);
@@ -123,6 +125,8 @@ test("D504: the layout with the fewest folds: by's unless it folds over 1% of th
   }
   assert.ok(total < 400, `${total}`);
   // I/11's alto reaches Bb2: oboe I, the bassoon and the cello (no folds); I/13 (the trio's) the two oboes and the bassoon, none folded.
+  // D632: a piece's own line-up (the seats by range) where it has one: II/9's alto on the bassoon.
+  assert.deepEqual(trioLayout(fugueById("wtc2f09")).slots.map(([id]) => id), ["trioOboe1", "trioBassoon", "trioBassoon", "trioCello"]);
   const i11 = trioLayout(fugueById("wtc1f11"));
   assert.ok(i11.alt);
   assert.deepEqual(i11.slots.map(([id]) => id), ["trioOboe1", "trioBassoon", "trioCello"]);
@@ -143,7 +147,8 @@ test("D504: the layout with the fewest folds: by's unless it folds over 1% of th
   setPreset("chip");
 });
 
-test("D504: through the chip, an oboe's note under Bb3 sounds an octave up (the same recording and rate as the octave itself)", async () => {
+// D631 (the owner: "no note may sound in a different octave from the one written"): the compass fold withdrawn.
+test("D504, D631: through the chip, an oboe's note under Bb3 sounds where it is written (its lowest recording read down), never an octave up", async () => {
   setPreset(TRIO_ID);
   const chip = new Chip();
   await chip.prepare([50, 62, 74], []);
@@ -154,7 +159,10 @@ test("D504: through the chip, an oboe's note under Bb3 sounds an octave up (the 
     const src = [...ctx.nodes].filter((x) => !before.has(x) && x instanceof FakeSource && (x as FakeSource).kind === "buffer") as FakeSource[];
     return src.map((s) => +(s as unknown as { playbackRate: FakeParam }).playbackRate.value.toFixed(5));
   };
-  assert.deepEqual(rate(50), rate(62));
+  const set = SAMPLED[PATCHES.trioOboe1.sample!].set;
+  const want = rateFor(set, nearestSample(set, 50)!, hz(50));
+  for (const x of rate(50)) assert.ok(Math.abs(1200 * Math.log2(x / want)) < 1, `D3 read from ${nearestSample(set, 50)} at ${x} (written: ${want.toFixed(5)})`);
+  assert.notDeepEqual(rate(50), rate(62));
   setPreset("chip");
 });
 

@@ -1,8 +1,7 @@
 /**
- * Preview flag ?map= (D480; the owner: THE FUGUE'S BUILDING at the left bar's foot "weird", back with the music box,
- * "probably in the bottom of music box"): the map drawn in the voice legend at the box's foot (D473), as a strip over
- * the legend's line (?map=strip) or beside the voices in the line itself (?map=inline). MusicBox's foot measure keeps
- * every row of the ladder above it (D473).
+ * D651 (design studio; the owner: THE FUGUE'S BUILDING at the left bar's foot "weird", back with the music box,
+ * "probably in the bottom of music box"; chose the strip): the map drawn as a full-width strip over the voice legend's
+ * line at the box's foot (D473). MusicBox's foot measure keeps every row of the ladder above it.
  */
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { buildMap, fugueMap } from "./paint-arch.ts";

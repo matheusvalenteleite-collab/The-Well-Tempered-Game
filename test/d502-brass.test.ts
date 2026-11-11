@@ -11,7 +11,7 @@ import { register } from "node:module";
 import { FakeAudioContext, FakeNode, FakeParam, FakeSource, installFakeAudio } from "./fake-audio.ts";
 import { Chip, voicing } from "../src/touch/chip.ts";
 import { BRASS_BASS_PHONE_HP, BRASS_BASS_PHONE_LIFT, BRASS_BASS_R, BRASS_BASS_SEND, BRASS_CREDIT, BRASS_SEND, BRASS_TONGUE, DYNAMIC_SOUNDS, PATCHES, PRESETS, bowEntry, creditFor, offered, presetById, sampledNow, setPreset } from "../src/touch/sound.ts";
-import { BRASS_FOLDERS, PERIOD, SAMPLED, foldInto, folderOf, sampledMidis } from "../src/touch/sampled.ts";
+import { BRASS_FOLDERS, PERIOD, SAMPLED, folderOf, reachOf, sampledMidis } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { BRASS_DB_SPAN, BRASS_EDGE, BRASS_LEVEL_DB, BRASS_SWELL_DB, BRASS_SWELL_MOVE, TOUCH_KINDS, brassEdgeDb, brassLevelDb, brassMix, brassOf, holdMode, landing, swellBrass, swellGain } from "../src/touch/touch-expr.ts";
 import { exprFamily, joinedSound, touchFamily } from "../src/bench/glenn.ts";
@@ -104,23 +104,17 @@ test("D502: the recordings: two layers per instrument at the same pitches, every
   setPreset("chip");
 });
 
-test("D502: the compass and the folds (an octave nearer only past 3 semitones of the recordings); I/5 and II/5 unfolded", () => {
+test("D502, D631: the compass and its reach (3 semitones past the recordings; D631: no octave fold past it, the reach declared); I/5 and II/5 within it", () => {
   const inst = (id: keyof typeof PATCHES) => SAMPLED[PATCHES[id].sample!];
-  const fold = (id: keyof typeof PATCHES, m: number) => foldInto(inst(id).set, m, inst(id).maxShift!);
-  // The trumpet E3-C#6 recorded: C#3 to E6 kept, past them an octave nearer.
-  assert.equal(fold("bachTrumpet", 49), 49);
-  assert.equal(fold("bachTrumpet", 48), 60);
-  assert.equal(fold("bachTrumpet", 88), 88);
-  assert.equal(fold("bachTrumpet", 89), 77);
-  // The horn F2-F5: D2 to G#5.
-  assert.equal(fold("bachHorn", 38), 38);
-  assert.equal(fold("bachHorn", 37), 49);
-  assert.equal(fold("bachHorn", 81), 69);
-  // The bass Bb1-G4 (the bass trombone throughout): G1 to A#4.
-  assert.equal(fold("bachBass", 31), 31);
-  assert.equal(fold("bachBass", 30), 42);
-  assert.equal(fold("bachBass", 70), 70);
-  assert.equal(fold("bachBass", 71), 59);
+  const reach = (id: keyof typeof PATCHES) => reachOf(inst(id), inst(id).set);
+  // The trumpet E3-C#6 recorded: C#3 to E6, and D633's extension to C3 (II/21's alto on the second trumpet).
+  assert.deepEqual(reach("bachTrumpet"), { lo: 48, hi: 88 });
+  // The horn F2-F5: D2 to G#5, and D633's extensions to C2 (PET SOUNDS' II/2) and A5 (BACH BRASS's II/1, the alto; II/15's
+  // soprano, which wanted B5, is on the trumpet since its run went back to the bass and alto, tools/wtc/corrections.ts).
+  assert.deepEqual(reach("bachHorn"), { lo: 36, hi: 81 });
+  // The bass Bb1-G4 (the bass trombone throughout): G1 to A#4, and to C#5 (I/3's bass, D631).
+  assert.deepEqual(reach("bachBass"), { lo: 31, hi: 73 });
+  const fold = (id: keyof typeof PATCHES, m: number) => (m >= reach(id).lo && m <= reach(id).hi ? m : NaN);
   // The two pieces that open on it: every note in its instrument's compass.
   const p = presetById("bachBrass");
   for (const id of ["wtc1f05", "wtc2f05"]) {

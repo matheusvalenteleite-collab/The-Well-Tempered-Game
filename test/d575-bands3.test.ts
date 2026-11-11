@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
-import { PATCHES, PRESETS, pieceLineUp, presetById, sampledNow, setPieceLayout, setPreset, type PatchId } from "../src/touch/sound.ts";
+import { OWN_PIECES, PATCHES, PRESETS, pieceLineUp, presetById, sampledNow, setPieceLayout, setPreset, type PatchId } from "../src/touch/sound.ts";
 import { BAND_CHAINS, BRASS_CLEAR, KRAUT_ECHO } from "../src/touch/band-fx.ts";
 import { BAND_GROWTH, BRASS_UNISON, growthAt, unisonSpans } from "../src/touch/band-growth.ts";
 import { entrySpans } from "../src/touch/voice-mode.ts";
@@ -97,7 +97,8 @@ test("D578: JAZZ QUARTET's I/6 without the piano (its own line-up, its recording
   assert.equal(pieceLineUp("jazzQuartet", fugueById("wtc1f19")), null);
   assert.equal(pieceLineUp("jazzQuartet", fugueById("wtc2f12")), null);
   // Only JAZZ QUARTET (I/6), SID 64 (II/6's alto on the triangle, D603) and BACH BRASS (I/24's and II/17's altos on the second trumpet, D613) have a piece's own line-up.
-  assert.deepEqual(PRESETS.filter((p) => p.pieces).map((p) => p.id).sort(), ["bachBrass", "jazzQuartet", "sid64"]);
+  // (D632: written here; the seats by range, octave-seats.ts, are merged into Preset.pieces beside them.)
+  assert.deepEqual(PRESETS.filter((p) => OWN_PIECES[p.id]).map((p) => p.id).sort(), ["bachBrass", "jazzQuartet", "sid64"]);
   const b = presetBudget("jazzQuartet", ["wtc1f06"]);
   assert.ok(b.mb < PRESET_MB, `${b.mb}`);
   assert.ok(PATCHES.jqGuitar.sample === "rockGuitar", "the guitar kept (the A/B)");
