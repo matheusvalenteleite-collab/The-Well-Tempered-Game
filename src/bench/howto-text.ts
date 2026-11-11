@@ -23,7 +23,7 @@ export interface Clip {
   /** Slower than the fugue's tempo, below 1. */
   speed?: number;
 }
-export type Fig = { kind: "clip"; clip: Clip } | { kind: "bar" } | { kind: "flags" } | { kind: "grades" } | { kind: "parts" } | { kind: "marks" } | { kind: "words"; words: readonly [string, string][] };
+export type Fig = { kind: "clip"; clip: Clip } | { kind: "bar" } | { kind: "flags" } | { kind: "grades" } | { kind: "parts" } | { kind: "marks" } | { kind: "signs"; where: "in" | "over" } | { kind: "words"; words: readonly [string, string][] };
 export type Block = { p: T } | { list: T[] } | { fig: Fig; cap?: T } | { sub: { id: string; title: T; blocks: Block[] } };
 export interface Section {
   id: string;
@@ -133,6 +133,34 @@ export const HOWTO: Section[] = [
           "Uma nota longa é segurada: mantenha o polegar apoiado durante toda a duração dela (SUSTENTOU). Levantar antes da metade da nota mostra CEDO DEMAIS. Onde a sua voz tem uma pausa, levante; segurar durante a pausa mostra PAUSA!.",
           "Una nota larga se mantiene: deja el pulgar apoyado durante toda su duración (SOSTENIDA). Levantarlo antes de la mitad de la nota muestra DEMASIADO PRONTO. Donde tu voz tiene un silencio, levanta el pulgar; mantenerlo durante el silencio muestra ¡SILENCIO!.",
         ),
+      ),
+    ],
+  },
+  {
+    // D657 (design studio; the owner: "I still don't understand what are the little symbols inside some notes … a 'X' and a 'M'"):
+    // the signs in a note's block (chroma.ts SIGN_PIXELS_5) and the ornaments' signs over it (ornament-play.ts ornamentMark).
+    id: "signs",
+    title: L("SIGNS ON THE NOTES", "SINAIS NAS NOTAS", "SIGNOS EN LAS NOTAS"),
+    blocks: [
+      sub(
+        "in",
+        L("Inside a note: sharps and flats", "Dentro de uma nota: sustenidos e bemóis", "Dentro de una nota: sostenidos y bemoles"),
+        p(
+          "Some notes are not in the piece's key. They carry their sign at the start of the block, as printed music writes it, and the block sits a little off its row: up when the note is raised, down when it is lowered. You play them like any other note: the sign tells you what you hear.",
+          "Algumas notas não pertencem ao tom da peça. Elas levam o seu sinal no começo do bloco, como na partitura impressa, e o bloco fica um pouco fora da sua linha: acima quando a nota sobe, abaixo quando desce. Você as toca como qualquer outra nota: o sinal diz o que você ouve.",
+          "Algunas notas no pertenecen a la tonalidad de la pieza. Llevan su signo al principio del bloque, como en la partitura impresa, y el bloque queda un poco fuera de su fila: arriba cuando la nota sube, abajo cuando baja. Las tocas como cualquier otra nota: el signo te dice lo que oyes.",
+        ),
+        { fig: { kind: "signs", where: "in" } },
+      ),
+      sub(
+        "over",
+        L("Over a note: ornaments", "Sobre uma nota: ornamentos", "Sobre una nota: ornamentos"),
+        p(
+          "Bach's ornaments are written over their note. Touch the note, then rock the thumb; an ornament never costs or earns points.",
+          "Os ornamentos de Bach vêm escritos sobre a sua nota. Toque a nota e depois balance o polegar; um ornamento nunca tira nem dá pontos.",
+          "Los ornamentos de Bach van escritos sobre su nota. Toca la nota y luego balancea el pulgar; un ornamento nunca quita ni da puntos.",
+        ),
+        { fig: { kind: "signs", where: "over" } },
       ),
     ],
   },

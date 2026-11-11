@@ -9,7 +9,7 @@
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { tr } from "../i18n/index.ts";
-import { bossBar, cadenceMarks, entryMarks, flags, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type FlagVariant, type Pop, type Span } from "./box-fx.ts";
+import { bossBar, cadenceMarks, entryMarks, flags, ornText, ornWidth, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type FlagVariant, type Pop, type Span } from "./box-fx.ts";
 import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
 import { markLegend, marksHas } from "./readings.ts";
 import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGeo } from "./box-whole.ts";
@@ -22,7 +22,7 @@ import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
 import { hasStage, paintStage, stageMode } from "./stage-bg.ts";
 import { fxState, paintFx } from "./event-fx.ts";
-import { SIGN_PIXELS, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
+import { SIGN_PIXELS_5, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
 import { firstSounding } from "./visible.ts";
 import { ladderHeight, ladderRows, touchRows, type StepRange } from "./box-zoom.ts";
@@ -664,11 +664,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       }
       if (!fr.spans && fr.subject?.has(`${pv}:${n.on}`)) dots(g, x1, x1 + bw, y, edge);
       // D332: the sign (♯ ♭ ♮), dark on the block's start, where the block holds it.
-      if (alt && bh - 1 >= 4 && fw >= 6) {
-        g.fillStyle = "rgba(0,0,0,0.6)";
-        const gx = x1 + (fw >= 9 ? 3 : 1);
-        const gy = y + Math.floor((bh - 1 - 4) / 2);
-        SIGN_PIXELS[signOf(n.step, n.midi)].forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(gx + rx, gy + ry, 1, 1)));
+      // D657: the signs as print draws them, five rows high (over the edge a row where the block has four).
+      if (alt && bh - 1 >= 4 && fw >= 7) {
+        const glyph = SIGN_PIXELS_5[signOf(n.step, n.midi)];
+        g.fillStyle = "rgba(0,0,0,0.72)";
+        const gx = x1 + (fw >= 10 ? 2 : 1);
+        const gy = y + Math.floor((bh - 1 - glyph.length) / 2);
+        glyph.forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(gx + rx, gy + ry, 1, 1)));
       }
       if (n.state === "hit") {
         g.fillStyle = shine;
@@ -759,7 +761,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const x = xOf(o.on);
       if (x >= w) break;
       const mk = x > -8 ? fr.ornaments.get(`${o.voice}:${o.on}`) : undefined;
-      if (mk) pixText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
+      if (mk) ornText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
     }
     const sounding = new Set((fr.performed ?? []).filter((p) => !p.band && p.parts[0]?.[0] <= fr.now).map((p) => p.on));
     // D314: the player's, to be shaken as THE ORNAMENT lesson teaches: twice the size, on a dark backing, a
@@ -774,18 +776,18 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         // D362: once its ornament sounds, the sign steps up out of the overlay's way, small and dimmed.
         if (sounding.has(n.on)) {
           g.globalAlpha = 0.6;
-          pixText(g, mk, x, Math.max(0, yOf(n.step) - 14), fx.gold);
+          ornText(g, mk, x, Math.max(0, yOf(n.step) - 14), fx.gold);
           g.globalAlpha = 1;
           continue;
         }
-        const sw = textWidth(mk, 2);
+        const sw = ornWidth(mk, 2);
         const y = Math.max(0, yOf(n.step) - 14);
         g.globalAlpha = 0.65;
         g.fillStyle = "#0c0a10";
         g.fillRect(x - 2, y - 2, sw + 2, 14);
         g.globalAlpha = 1;
         const ink = n.state === "miss" ? miss : fx.gold;
-        pixText(g, mk, x, y, ink, 2);
+        ornText(g, mk, x, y, ink, 2);
         g.fillStyle = ink;
         g.fillRect(x, y + 11, 1, Math.max(1, yOf(n.step) - y - 11));
       }
