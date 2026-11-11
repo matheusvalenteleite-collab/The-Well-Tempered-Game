@@ -64,6 +64,8 @@ export interface SoundAudit {
   undeclared: Out[];
   /** The largest distance from a recording a note is read at (written pitch, after any move). */
   worstRead: Read | null;
+  /** D635: every recorded read, one per fugue, voice, patch and pitch (`n` notes): tools/touch/stretch/audit.ts. */
+  reads: (Read & { n: number; inst: string })[];
 }
 
 const idOf = new Map<Patch, string>(Object.entries(PATCHES).map(([k, v]) => [v as Patch, k]));
@@ -101,7 +103,7 @@ export function auditSound(sound: string, pieces: readonly TouchFugue[] = WTC_FU
   const was = preset();
   const p = presetById(sound);
   setPreset(p);
-  const out: SoundAudit = { sound, notes: 0, moves: [], outs: [], undeclared: [], worstRead: null };
+  const out: SoundAudit = { sound, notes: 0, moves: [], outs: [], undeclared: [], worstRead: null, reads: [] };
   try {
     for (const f of pieces) {
       const count = f.voices.length;
@@ -136,6 +138,7 @@ export function auditSound(sound: string, pieces: readonly TouchFugue[] = WTC_FU
               const own = reachOf(inst, setFor(inst, s));
               if (s > own.hi || s < own.lo) out.undeclared.push({ piece: f.id, voice: v, patch: name, written: m, past, shift: r.shift, inst: q.sample!, beyond });
             }
+            if (r && inst) out.reads.push({ piece: f.id, voice: v, patch: name, written: m, ...r, n: k, inst: q.sample! });
             if (r && (!out.worstRead || Math.abs(r.shift) > Math.abs(out.worstRead.shift))) out.worstRead = { piece: f.id, voice: v, patch: name, written: m, ...r };
           }
         }
