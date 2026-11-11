@@ -21,10 +21,9 @@ import { STRONG_SIDE, strengthOf } from "../touch/touch-expr.ts";
 import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, MARKS } from "./protos.ts";
 import { CLEAN_INK, HELD_INK, LEGATO_INK, type ArtFlash } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
-import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
-import { mapFlag } from "../touch/preview-flags.ts";
+import { SHOULDER } from "./paint-arch.ts";
 import { arcOf, pedalSpan } from "./arc.ts";
-import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
+import { echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
 
 /** D469: the y of SOFT / STRONG (and the dynamics' marks) at the bars' top, under the bar count (CSS px). */
@@ -1080,21 +1079,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       c.globalAlpha = 1;
     }
   }
-  // D244: THE FUGUE'S BUILDING on the phone: the map, small. D469 (design studio): no longer across the box's top
-  // bar, where it ran through the fugue's title, but low on the left bar, above its pistons (D471; D496: OBBLIGATO's place above them retired, the map where it was).
-  if (!paper && !g.o.quiet && !mapFlag && builds(g.f) && g.f.entries.length) {
-    const m = fugueMap(g.f);
-    const mw = bw - 16;
-    const x0 = 8;
-    const span = Math.max(1, m.end - m.start);
-    const row = 4;
-    // D471: above the pistons at the bar's foot (58 px), clear of them (D496: OBBLIGATO's 34 px over them retired).
-    const y0 = h - 112 - m.rows * row;
-    const X = (tick: number) => x0 + ((tick - m.start) / span) * mw;
-    buildMap(c, m, g.now, new Set(g.tracks.map((x) => x.voice)), X, (v) => y0 + v * row, g.f.tpq, 2, mw);
-    c.fillStyle = "rgba(255,255,255,0.8)";
-    c.fillRect(Math.round(X(Math.max(m.start, Math.min(m.end, g.now)))), y0 - 3, 1, m.rows * row + 6);
-  }
+  // D646 (design studio): THE FUGUE'S BUILDING moved into the music box's foot (LegendMap.tsx), off the left bar.
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {
     // D296: no pitch names on the bars (the bars are not a scale: the way matters, not the spot).

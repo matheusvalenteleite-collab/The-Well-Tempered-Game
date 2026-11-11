@@ -1261,10 +1261,9 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-bars .tg-box-wide > .tg-legend .tb-you-chip { gap: 3px; padding: 2px 4px 1px; font-size: 6px; line-height: 1.2; border-width: 1px; box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
 .tb-bars .tg-box-wide > .tg-legend .tb-legend-other { padding-top: 1px; line-height: 1.2; opacity: 0.85 !important; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
 
-/* Preview flags ?map= (D480): THE FUGUE'S BUILDING in the box's foot. strip: a band over the legend's line (the legend
-   taller, so the ladder's floor rises with it); inline: beside the voices in the line itself (no height). */
-.tb-legend-map { display: block; flex: none; }
-html.tb-map-strip .tb-bars .tg-box-wide > .tg-legend { height: 34px; flex-wrap: wrap; align-content: flex-end; row-gap: 2px; }
-html.tb-map-strip .tb-bars .tg-box-wide > .tg-legend .tb-legend-map { flex: 0 0 100%; height: 16px; }
-html.tb-map-inline .tb-bars .tg-box-wide > .tg-legend { justify-content: flex-start; }
-html.tb-map-inline .tb-bars .tg-box-wide > .tg-legend .tb-legend-map { order: 9; flex: 1 1 30%; min-width: 80px; height: 13px; margin-left: auto; }
+/* D646 (design studio; the owner: the map at the left bar's foot "weird", back with the music box "probably in the bottom
+   of music box"): THE FUGUE'S BUILDING a full-width strip over the voice legend's line at the box's foot (LegendMap.tsx).
+   The legend 34 px tall where it holds the map, so the ladder's floor rises 18 px with it (D473: every row stays above). */
+.tb-legend-map { display: none; }
+.tb-bars .tg-box-wide > .tg-legend:has(.tb-legend-map) { height: 34px; flex-wrap: wrap; align-content: flex-end; row-gap: 2px; }
+.tb-bars .tg-box-wide > .tg-legend .tb-legend-map { display: block; flex: 0 0 100%; height: 16px; }
