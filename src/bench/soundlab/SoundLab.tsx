@@ -404,7 +404,7 @@ export function SoundLab() {
               ["busoni", "BUSONI'S DYNAMICS"],
               ["colour", "COLOUR PLANS"],
               ["kit", "BAND'S OWN KIT"],
-              ["sfx", "WORLD SOUNDS (II/1, II/3, II/6)"],
+              ["sfx", "WORLD SOUNDS (36 WORLDS)"],
               ["sweep", "II/4 SWEEP (DROPPED)"],
             ] as const
           ).map(([k, label]) => (

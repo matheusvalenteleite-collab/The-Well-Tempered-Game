@@ -3,7 +3,8 @@
 // measured as made) for the effects (world-sfx.ts): mode "band" (WORLD SOUNDS off), "fx" (WORLD SOUNDS on, every note
 // silenced), "bass" (the lowest voice alone); no drummer in any (DRUMS off, a band's own silenced: the band's side
 // conservative); `desktop` a desktop context (no touch: the computer's mix), else a phone's; `trial` the Sound Lab's
-// override with the dropped effects (D626); `pcm` the output kept (<name>.s16, mono 24 kHz) for the spectral check.
+// override with the dropped effects (D626); `pcm` the output kept (<name>.s16, mono 24 kHz) for the spectral check;
+// D644: a flowing effect's envelope at each step (fr.env), what fit.py fits its loudness against.
 // Every effect scheduled is logged (Chip.sfxEvents: kind, tick, time, until, velocity as played, the end's).
 //
 // usage: PORT=<vite, no hot reload> node tools/touch/world-sfx/render.cjs <out dir> <jobs.json>
@@ -92,7 +93,9 @@ const jobs = JSON.parse(fs.readFileSync(jobsFile, 'utf8'));
       let ni = 0, id2 = 0, held = null, done = false;
       const buf = new Float32Array(N);
       const ms = (a) => { a.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < N; i++) s += buf[i] * buf[i]; return s / N; };
-      const fr = { P: [], K: [], H: [], R: [], tick: [] };
+      const fr = { P: [], K: [], H: [], R: [], tick: [], env: [] };
+      // D644: a flowing effect's envelope as the choke point plays it (world-sfx.ts flowEnv times chip.ts sfxShare) at each step
+      const flowK = (sfxM.PILOT_SFX[f.id] ?? []).find((k) => sfxM.isFlow(k));
       const end = g.timeAt(f.length) + 3;
       const step = () => {
         const now = ac.currentTime;
@@ -109,6 +112,7 @@ const jobs = JSON.parse(fs.readFileSync(jobsFile, 'utf8'));
         if (held && typeof held === 'object' && now >= held.end) { g.up(held.id, 0); held = null; }
         if (!done) done = g.step();
         fr.tick.push(Math.round(g.now));
+        if (flowK) fr.env.push(+(sfxM.flowEnv(f, flowK, g.now) * chipM.sfxShare(f, g.now)).toExponential(3));
         for (const k of ['P', 'K', 'H', 'R']) fr[k].push(+ms(A[k]).toExponential(4));
       };
       let k = 1;

@@ -32,6 +32,11 @@ export class FakeParam {
     this.log({ type: "exp", t, v });
     return this;
   }
+  /** D640: a curve (as linear ramps between its points). */
+  setValueCurveAtTime(c: ArrayLike<number>, t = 0, dur = 0) {
+    for (let i = 0; i < c.length; i++) this.log({ type: i ? "linear" : "set", t: t + (c.length > 1 ? (i * dur) / (c.length - 1) : 0), v: c[i] });
+    return this;
+  }
   setTargetAtTime(v: number, t = 0, tau = 0.01) {
     this.log({ type: "target", t, v, tau });
     return this;

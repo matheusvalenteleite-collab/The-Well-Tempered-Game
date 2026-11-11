@@ -32,7 +32,7 @@ import type { TouchFugue } from "./fugue.ts";
 import { tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
-import { SFX_SOUND, sfxKindsNow, sfxPlan, swellEnv, swellSurge, type SfxKind } from "./world-sfx.ts";
+import { CURVE_SOUND, SFX_SOUND, flowEnv, isFlow, modsAt, sfxKindsNow, sfxPlan, shotEnv, shotLen, swellEnv, swellSurge, tpsOf, type SfxKind } from "./world-sfx.ts";
 import { buildChain, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
@@ -449,6 +449,16 @@ export interface SfxScheduled {
   vel1: number;
   /** The plan's event's tick (the swell's start: the noise read on from there). */
   since: number;
+  /** D640: a one-shot's variation (world-sfx.ts SfxEvent.seed). */
+  seed?: number;
+  /**
+   * D640: a curve effect's levels, one curve per layer (world-sfx.ts CURVE_SOUND), from `when`, a point every `res` s:
+   * a flowing one's (a bed's, a climax's shape) its envelope times its textures over the beat's piece and its crossfade,
+   * thinned point by point at the choke point (`tps`: the beat's ticks a second, a point's tick read from it).
+   */
+  curves?: Float32Array[];
+  res?: number[];
+  tps?: number;
 }
 /** D514: the soft clip that makes the low drums' harmonics on a phone (tanh). */
 const PHONE_LOW_CURVE = (() => {
@@ -4142,7 +4152,34 @@ export class Chip {
         const k1 = swellSurge(Math.round(t1 / cx.beat));
         const v1 = swellEnv(f, b) * (b === t1 ? k1 : k) * sfxShare(f, b);
         this.scheduleSfx({ kind: "swell", tick: a, end: b, when: when(a), until: when(b), vel: swellEnv(f, a) * k, vel1: v1, since: e.tick }, (x) => this.sfxSound(x));
-      } else if (e.tick >= t0 && e.tick < t1) this.scheduleSfx({ kind: e.kind, tick: e.tick, end: e.tick, when: when(e.tick), until: when(e.tick), vel: e.vel, vel1: 0, since: e.tick }, (x) => this.sfxSound(x));
+      } else if (isFlow(e.kind)) {
+        // D640: a bed or a climax's shape: this beat's piece, each layer's curve its envelope times its textures,
+        // faded in over SWELL_XF from the beat (the last beat's piece fading out over the same), on SWELL_XF past it.
+        if (e.end <= t0 || e.tick >= t1) continue;
+        const a = Math.max(t0, e.tick);
+        const b = Math.min(t1, e.end);
+        const tps = cx.beat / beatS;
+        const from = when(a);
+        const until = when(b);
+        const spec = CURVE_SOUND[e.kind]!;
+        const nomTps = tpsOf(f);
+        const curves: Float32Array[] = [];
+        const res: number[] = [];
+        for (const L of spec.layers) {
+          const n = Math.max(2, Math.ceil((until + SWELL_XF - from) / L.res) + 1);
+          const c = new Float32Array(n);
+          for (let i = 0; i < n; i++) {
+            const t = from + i * L.res;
+            const tk = Math.min(e.end, a + (t - from) * tps);
+            const xf = Math.max(0, Math.min(1, (t - from) / SWELL_XF, (until + SWELL_XF - t) / SWELL_XF));
+            c[i] = flowEnv(f, e.kind, tk) * modsAt(f, L, tk, tk / nomTps) * xf;
+          }
+          c[n - 1] = 0;
+          curves.push(c);
+          res.push(L.res);
+        }
+        this.scheduleSfx({ kind: e.kind, tick: a, end: b, when: from, until, vel: flowEnv(f, e.kind, a), vel1: flowEnv(f, e.kind, Math.min(b, e.end - 1)), since: e.tick, curves, res, tps }, (x) => this.sfxSound(x));
+      } else if (e.tick >= t0 && e.tick < t1) this.scheduleSfx({ kind: e.kind, tick: e.tick, end: e.tick, when: when(e.tick), until: when(e.tick), vel: e.vel, vel1: 0, since: e.tick, ...(e.seed !== undefined ? { seed: e.seed } : {}) }, (x) => this.sfxSound(x));
     }
   }
   /**
@@ -4154,9 +4191,20 @@ export class Chip {
     const f = this.world?.f;
     if (!f) return;
     const g = sfxShare(f, e.tick);
-    if (g <= 0) return;
-    e = { ...e, vel: e.vel * g };
-    if (e.vel <= 1e-4 && e.vel1 <= 1e-4) return;
+    if (g <= 0 && !e.curves) return;
+    if (e.curves && e.tps) {
+      // D642: a flowing effect thinned point by point (a general rest inside the beat dips it to nothing).
+      const tps = e.tps;
+      const curves = e.curves.map((c, li) => {
+        const r = e.res![li];
+        const out = new Float32Array(c.length);
+        for (let i = 0; i < c.length; i++) out[i] = c[i] * sfxShare(f, Math.min(e.end, e.tick + i * r * tps));
+        return out;
+      });
+      e = { ...e, curves, vel: e.vel * g, vel1: e.vel1 * sfxShare(f, e.end) };
+      if (curves.every((c) => c.every((x) => x <= 1e-5))) return;
+    } else e = { ...e, vel: e.vel * g };
+    if (e.vel <= 1e-4 && e.vel1 <= 1e-4 && !e.curves) return;
     this.sfxEvents.push(e);
     if (this.sfxEvents.length > 1024) this.sfxEvents.splice(0, 512);
     sound(e);
@@ -4180,8 +4228,10 @@ export class Chip {
   }
   /** D624-D627: an effect sounded (world-sfx.ts SFX_SOUND: noise through low-Q filters), into the master as the drums are. */
   private sfxSound(e: SfxScheduled) {
+    if (CURVE_SOUND[e.kind]) return this.curveSound(e);
     const ctx = this.ctx;
     const spec = SFX_SOUND[e.kind];
+    if (!spec) return;
     const bag = new Bag();
     const out = bag.add(ctx.createGain());
     out.gain.value = spec.gain;
@@ -4237,6 +4287,75 @@ export class Chip {
       n.start(at, (e.tick * 0.000137) % len);
       halt(n, at + L.len + 0.02);
     }
+  }
+  /** D640: the flowing effects' noise read on by the audio clock from each effect's first piece (one noise across its beats). */
+  private flowAnchor = new Map<string, number>();
+  /**
+   * D640-D644, THE SECOND BATCH's sounds (world-sfx.ts CURVE_SOUND): per layer the effects' noise through its low-Q filters,
+   * its gain the layer's curve (a flowing effect's: the choke point's, warmed SWELL_WARM before the piece; a one-shot's: its
+   * envelope times its textures, at the velocity played), into the master as the drums are.
+   */
+  private curveSound(e: SfxScheduled) {
+    const ctx = this.ctx;
+    const spec = CURVE_SOUND[e.kind]!;
+    const f = this.world?.f;
+    if (!f) return;
+    const bag = new Bag();
+    const out = bag.add(ctx.createGain());
+    out.gain.value = spec.gain;
+    out.connect(this.master);
+    const now = ctx.currentTime;
+    const flow = !!e.curves;
+    const from = flow ? e.when : Math.max(e.when, now);
+    const key = `${e.kind}:${e.since}`;
+    if (flow) {
+      const an = this.flowAnchor.get(key);
+      if (an === undefined || from - SWELL_WARM < an) this.flowAnchor.set(key, from - SWELL_WARM);
+    }
+    const nom = tpsOf(f);
+    spec.layers.forEach((L, li) => {
+      let c: Float32Array;
+      if (e.curves) c = e.curves[li];
+      else {
+        // a one-shot: its envelope times its textures, at the velocity played
+        const n = Math.max(2, Math.ceil((L.len ?? shotLen(e.kind)) / L.res) + 1);
+        c = new Float32Array(n);
+        const sd = e.seed ?? 0;
+        for (let i = 0; i < n; i++) {
+          const s = i * L.res;
+          c[i] = e.vel * shotEnv(L, s) * modsAt(f, L, e.tick + s * nom, s, sd);
+        }
+        c[n - 1] = 0;
+      }
+      const res = flow ? e.res![li] : L.res;
+      // the curve from now where the piece is late (its start cut)
+      let skip = 0;
+      while (from + skip * res < now && skip < c.length - 2) skip++;
+      const cv = new Float32Array(c.length - skip);
+      for (let i = 0; i < cv.length; i++) cv[i] = c[i + skip] * L.level;
+      const t0 = from + skip * res;
+      const dur = (cv.length - 1) * res;
+      if (!(cv.some((x) => x > 1e-6))) return;
+      const nsrc = bag.src(this.sfxNoise());
+      const len = this.sfxNoiseBuf ? this.sfxNoiseBuf.duration : 7.3;
+      let node: AudioNode = nsrc;
+      for (const [type, hz, q] of L.filters) {
+        const fl = bag.add(ctx.createBiquadFilter());
+        fl.type = type;
+        fl.frequency.value = hz;
+        fl.Q.value = q;
+        node.connect(fl);
+        node = fl;
+      }
+      const g = bag.add(ctx.createGain());
+      node.connect(g).connect(out);
+      const warm = Math.max(now, t0 - SWELL_WARM);
+      g.gain.setValueAtTime(0, warm);
+      g.gain.setValueCurveAtTime(cv, t0, Math.max(1e-3, dur));
+      const off = flow ? (warm - this.flowAnchor.get(key)! + li * 1.37) % len : ((e.tick * 0.000137) + (e.seed ?? 0) * 0.61 + li * 1.37) % len;
+      nsrc.start(warm, off);
+      halt(nsrc, t0 + dur + 0.02);
+    });
   }
   /** D536: the fugue's tick at a time on the audio clock (from the last beat the rhythm section was given), or null. */
   private tickClock: { tick: number; at: number; tps: number } | null = null;

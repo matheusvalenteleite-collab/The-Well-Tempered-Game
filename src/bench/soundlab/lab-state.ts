@@ -11,7 +11,7 @@
  *   busoni  0: Busoni's dynamics off                  colour 0: the colour plans off
  *   kit     0: a band's own drums off                 mute   voices muted (1,3)   solo  one voice alone
  *   lv      the mixer, dB per voice (0,-3,0,2)
- *   sfx     0: the pilot world's sound effects off (D623, world-sfx.ts)   sweep 1: II/4's dropped sweep heard (D626)
+ *   sfx     0: the worlds' sound effects off (D623, D640, world-sfx.ts)   sweep 1: II/4's dropped sweep heard (D626)
  *   b       the A/B's second setting, "sound:drums[:style]" (b=pianoSampled:0, b=own:1:triphop)
  */
 import { openingStep } from "../../touch/tempi.ts";
@@ -37,7 +37,7 @@ export interface LabSettings {
   solo: number | null;
   /** dB per voice (missing: 0). */
   levels: number[];
-  /** D623: the pilot world's sound effects (world-sfx.ts; the lab draws no stage, so heard by this alone). */
+  /** D623, D640: the worlds' sound effects (world-sfx.ts; the lab draws no stage, so heard by this alone). */
   sfx: boolean;
   /** D626: II/4's dropped noise-band sweep, for the A/B only. */
   sweep: boolean;
