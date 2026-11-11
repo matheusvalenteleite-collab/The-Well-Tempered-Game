@@ -99,7 +99,8 @@ test("D405, D631: the piano's recordings never read more than maxShift semitones
   assert.ok(ms >= 2 && ms <= 4);
   const grand = sampledMidis("grand");
   const r = reachOf(SAMPLED.piano, "grand");
-  assert.deepEqual(r, { lo: grand[0] - ms, hi: grand[grand.length - 1] + ms });
+  // (D640: under it as far as the other playable pieces read within 5: extend.down.)
+  assert.deepEqual(r, { lo: grand[0] - (SAMPLED.piano.extend?.down ?? ms), hi: grand[grand.length - 1] + ms });
   for (const f of FUGUES.filter((x) => /^wtc[12]f/.test(x.id))) for (const v of f.voices) for (const n of v) assert.ok(n[2] >= r.lo && n[2] <= r.hi && Math.abs(n[2] - nearestSample("grand", n[2])!) <= ms, `${f.id}: ${n[2]}`);
 });
 

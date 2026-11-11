@@ -63,7 +63,8 @@ const II10 = "the dotted quaver's semiquaver played as a triplet quaver, as the 
 const P1 = "Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check";
 const P1M = "Mutopia agrees with the Humdrum check";
 const P1V = "verits99's score (A = 415 Hz) agrees with the Humdrum check";
-const II3 = "the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's \"sic\", the witness agrees)";
+const II15 = "the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)";
+const II3 ="the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's \"sic\", the witness agrees)";
 
 export const CORRECTIONS: Correction[] = [
   // Book I no. 4: the mezzo's "r2 cis" in bar 25 wants a "," in \relative (it sits above the soprano from
@@ -248,6 +249,22 @@ export const CORRECTIONS: Correction[] = [
   // Book II no. 10: Rother writes the dotted rhythms literally; the game plays them with the triplets
   // around them, as before (the Humdrum check and the witness align them so).
   { id: "wtc2f10", rhythm: "assimilate", kind: "editorial", why: "the dotted quaver's semiquaver played as the triplets' third quaver, as the game has always played it" },
+  // Book II no. 15, bars 62-64: the demisemiquaver run from D2 to C5 (into the soprano's D5, b. 65) is
+  // all on Rother's soprano staff (its first notes a second layer there, the soprano's line reaching
+  // F#2). The Bach-Gesellschaft (the Humdrum check's three spines) hands it up through the voices, each
+  // in its own register: the bass D2-A3 (b. 62, beat 0.75, to b. 63, beat 1), the alto F#3-F#4 (b. 63,
+  // beat 1.125, to b. 64, beat 0.5), the soprano D4-C5 (b. 64, beat 0.625, as before); each voice takes
+  // over a third below where the last left off (A3 F#3, F#4 D4). verits99's witness also gives the
+  // run's first two bars to the bass (left hand) and bar 64 to the soprano. The pitches and times are
+  // the same in all three; only the voice changes. Bar 62's first beat (F#3 E3 D3, D3) left as Rother
+  // has it (the witnesses disagree there).
+  { id: "wtc2f15", voice: 0, bar: 62, span: [0.75, 1.5], notes: "", kind: "editorial", why: II15 },
+  { id: "wtc2f15", voice: 0, bar: 63, span: [0, 1.5], notes: "", kind: "editorial", why: II15 },
+  { id: "wtc2f15", voice: 0, bar: 64, span: [0, 0.625], notes: "", kind: "editorial", why: II15 },
+  { id: "wtc2f15", voice: 2, bar: 62, span: [0.75, 1.5], notes: "D2@0.75/0.125 E2@0.875/0.125 F#2@1/0.125 G2@1.125/0.125 A2@1.25/0.125 B2@1.375/0.125", kind: "editorial", why: II15 },
+  { id: "wtc2f15", voice: 2, bar: 63, span: [0, 1.5], notes: "C3@0/0.125 A2@0.125/0.125 B2@0.25/0.125 C3@0.375/0.125 D3@0.5/0.125 E3@0.625/0.125 F#3@0.75/0.125 G3@0.875/0.125 A3@1/0.125", kind: "editorial", why: II15 },
+  { id: "wtc2f15", voice: 1, bar: 63, span: [0, 1.5], notes: "F#3@1.125/0.125 G3@1.25/0.125 A3@1.375/0.125", kind: "editorial", why: II15 },
+  { id: "wtc2f15", voice: 1, bar: 64, span: [0, 0.625], notes: "B3@0/0.125 C#4@0.125/0.125 D4@0.25/0.125 E4@0.375/0.125 F#4@0.5/0.125", kind: "editorial", why: II15 },
   // Book II no. 5, prelude: verits99 plays the dotted quavers with the triplets (written so); the
   // Bach-Gesellschaft's dotted quaver and semiquaver, as the game has always played them.
   { id: "wtc2p05", rhythm: "dotted", kind: "editorial", why: "the dotted quaver and semiquaver as written (verits99 writes them as triplets), as the game has always played them" },

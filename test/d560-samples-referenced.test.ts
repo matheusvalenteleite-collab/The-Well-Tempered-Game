@@ -16,7 +16,7 @@ import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 installFakeAudio(0, false);
 const ROOT = "public/samples";
 
-const setsOf = (i: (typeof SAMPLED)[keyof typeof SAMPLED]) => [i.set, i.soft?.set, i.hard?.set, i.short?.set, i.blend?.set, i.release, i.low, i.above?.set].filter((s): s is string => !!s);
+const setsOf = (i: (typeof SAMPLED)[keyof typeof SAMPLED]) => [i.set, i.soft?.set, i.hard?.set, i.short?.set, i.blend?.set, i.release, i.low, i.above?.set, ...(i.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s);
 const missingFor = (set: string, notes: Iterable<number>) => {
   const out: string[] = [];
   for (const m of notes) {

@@ -110,9 +110,11 @@ test("D503: the recordings: the vibraphone C3-F6 (mf every semitone, pp and ff e
   const plan = planFor(v, [60, 64, 67, 72]);
   assert.deepEqual(plan.map((p) => p.set), ["jazzVibes", "jazzVibesSoft", "jazzVibesHard"]);
   for (const p of plan) for (const m of p.notes) assert.ok(sampledMidis(p.set).includes(m), `${p.set} ${m}`);
-  // D631: no octave fold; the reach: the bass 3 under E1 and to C#5 over G4 (I/3's top, D633), the vibraphone 5 under C3 (II/15) and 2 over F6.
-  assert.deepEqual(reachOf(SAMPLED.jazzBass, "jazzBass"), { lo: 25, hi: 73 });
-  assert.deepEqual(reachOf(SAMPLED.jazzVibes, "jazzVibes"), { lo: 43, hi: 91 });
+  // D631: no octave fold; the reach: the bass 3 under E1 and to C#5 over G4 (I/3's top, D633), the vibraphone 2 under C3 and 2 over F6 (no extension
+  // since II/15's alto, the one that wanted G2, left the vibraphone: tools/touch/octaves/audit.ts -x).
+  // D640: the bass to C1 and the vibraphone to G#2 (the other playable pieces, every note read within 5: collections.ts -x).
+  assert.deepEqual(reachOf(SAMPLED.jazzBass, "jazzBass"), { lo: 24, hi: 73 });
+  assert.deepEqual(reachOf(SAMPLED.jazzVibes, "jazzVibes"), { lo: 44, hi: 91 });
 });
 
 test("D503: the player's touch: LANDING the mallet, the weight, the pluck (three zones); SWAY the motor's speed; the slide the instrument's own", () => {
