@@ -22,6 +22,7 @@ import { ARROW_KEYS, arrowOf, BAR, contourOk, fits, keyPlace, laneOk, KEY_ROWS, 
 import { CLEAN_INK, HELD_INK, LEGATO_INK, type ArtFlash } from "./articulation.ts";
 import { scaleGem, scaleHands, scaleHow, scaleInk, scaleLetter, scaleStrip } from "./paint-scale.ts";
 import { buildMap, fugueMap, SHOULDER } from "./paint-arch.ts";
+import { mapFlag } from "../touch/preview-flags.ts";
 import { arcOf, pedalSpan } from "./arc.ts";
 import { builds, echoShown, hasJourney, paintBackdrop, paintRoadLight, roadFar } from "./journey.ts";
 import { deskBegin, deskCrowd, deskEnd, deskFlare, deskGeom, deskKeys, deskOver, deskSparks, deskUnder, subjectGem, type Road } from "./paint-desk.ts";
@@ -1081,7 +1082,7 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   }
   // D244: THE FUGUE'S BUILDING on the phone: the map, small. D469 (design studio): no longer across the box's top
   // bar, where it ran through the fugue's title, but low on the left bar, above its pistons (D471; D496: OBBLIGATO's place above them retired, the map where it was).
-  if (!paper && !g.o.quiet && builds(g.f) && g.f.entries.length) {
+  if (!paper && !g.o.quiet && !mapFlag && builds(g.f) && g.f.entries.length) {
     const m = fugueMap(g.f);
     const mw = bw - 16;
     const x0 = 8;
