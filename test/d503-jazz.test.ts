@@ -12,7 +12,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { FakeAudioContext, installFakeAudio } from "./fake-audio.ts";
 import { Chip, REVERBS, type GrooveContext } from "../src/touch/chip.ts";
 import { DYNAMIC_SOUNDS, JAZZ_MOTOR, JAZZ_QUARTET_CREDIT, JAZZ_SEND, PATCHES, PRESETS, busoniReaches, creditFor, grooveNow, offered, presetById, setBacking, setDrums, setPreset } from "../src/touch/sound.ts";
-import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, foldInto, planFor, SAMPLED, sampledMidis } from "../src/touch/sampled.ts";
+import { BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, planFor, reachOf, SAMPLED, sampledMidis } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { TOUCH_KINDS, holdMode, landing, tremRate } from "../src/touch/touch-expr.ts";
 import { DRUM_SCRIPTS, MIN_GAP_BARS, SWING, backbeats, brushBeat, fillsFor, genericMoments, momentsOf, type Fill } from "../src/touch/jazz-drums.ts";
@@ -110,11 +110,9 @@ test("D503: the recordings: the vibraphone C3-F6 (mf every semitone, pp and ff e
   const plan = planFor(v, [60, 64, 67, 72]);
   assert.deepEqual(plan.map((p) => p.set), ["jazzVibes", "jazzVibesSoft", "jazzVibesHard"]);
   for (const p of plan) for (const m of p.notes) assert.ok(sampledMidis(p.set).includes(m), `${p.set} ${m}`);
-  // The bass folded an octave only where it leaves the compass by more than three semitones; the vibraphone likewise.
-  assert.equal(foldInto("jazzBass", 26, SAMPLED.jazzBass.maxShift!), 26);
-  assert.equal(foldInto("jazzBass", 22, SAMPLED.jazzBass.maxShift!), 34);
-  assert.equal(foldInto("jazzBass", 70, SAMPLED.jazzBass.maxShift!), 70);
-  assert.equal(foldInto("jazzVibes", 95, SAMPLED.jazzVibes.maxShift!), 83);
+  // D631: no octave fold; the reach: the bass 3 under E1 and to C#5 over G4 (I/3's top, D633), the vibraphone 5 under C3 (II/15) and 2 over F6.
+  assert.deepEqual(reachOf(SAMPLED.jazzBass, "jazzBass"), { lo: 25, hi: 73 });
+  assert.deepEqual(reachOf(SAMPLED.jazzVibes, "jazzVibes"), { lo: 43, hi: 91 });
 });
 
 test("D503: the player's touch: LANDING the mallet, the weight, the pluck (three zones); SWAY the motor's speed; the slide the instrument's own", () => {
