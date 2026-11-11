@@ -1216,7 +1216,8 @@ function dots(g: CanvasRenderingContext2D, x1: number, x2: number, y: number, in
 }
 
 /** D478: the subject's light and the music's shadow on the world (under the notes). */
-const LIGHT = { dim: 0.16, shadow: 0.42, glow: 0.2, sounding: 0.38, r: 16, rSounding: 26 } as const;
+// D645: the world's shade 0.06 (was 0.16): the hierarchy from the subject's light, not from darkness.
+const LIGHT = { dim: 0.06, shadow: 0.42, glow: 0.2, sounding: 0.38, r: 16, rSounding: 26 } as const;
 export const SUBJECT_LIGHT = LIGHT;
 function lightAndShadow(g: CanvasRenderingContext2D, fr: Frame, spans: readonly Span[], otherIdx: ArrayLike<number>, c: { t0: number; span: number; w: number; h: number; xOf: (t: number) => number; yOf: (s: number) => number; hOf: (s: number) => number; bh: number }) {
   const { t0, span, w, h, xOf, yOf, hOf, bh } = c;
