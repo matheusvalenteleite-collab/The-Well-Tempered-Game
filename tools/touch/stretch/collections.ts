@@ -13,6 +13,10 @@ import { MORE_DATA, CHORALE_DATA } from "../../../src/touch/extras-data.ts";
 import { CONCERTO_DATA } from "../../../src/touch/concertos-data.ts";
 import { nameOfMidi, STRETCH_MAX } from "../../../src/touch/sampled.ts";
 import { AUDIT_SOUNDS, auditSound, extensions } from "../octaves/audit.ts";
+import { loadExtraSeats } from "../../../src/touch/extra-seats.ts";
+
+// D700: the extras' seats (their own chunks in the game, merged with their notes by loadExtras) merged before any audit.
+await loadExtraSeats();
 
 export const COLLECTIONS: readonly (readonly [name: string, pieces: readonly TouchFugue[]])[] = [
   ["WTC fugues", PIECES.filter((p) => /^wtc[12]f\d\d$/.test(p.id))],

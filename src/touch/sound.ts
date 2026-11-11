@@ -2326,13 +2326,18 @@ export const OWN_PIECES: Readonly<Record<string, Preset["pieces"]>> = Object.fro
  * D632: the per-fugue seats by range (octave-seats.ts, tools/touch/octaves/seats.ts) merged into Preset.pieces: a voice whose
  * instrument does not cover its written line in a fugue takes the band's instrument that does (no note moved an octave, D631).
  */
-for (const p of [...PRESETS, ...TRIALS]) {
-  const seats = OCTAVE_SEATS[p.id];
-  if (!seats) continue;
-  const merged: Record<string, Partial<Record<number, readonly Slot[]>>> = { ...(p.pieces ?? {}) };
-  for (const [f, byCount] of Object.entries(seats)) merged[f] = { ...(merged[f] ?? {}), ...byCount };
-  p.pieces = merged;
+export type SeatTable = Readonly<Record<string, Readonly<Record<string, Partial<Record<number, readonly Slot[]>>>>>>;
+/** D632, D700: a seat table (octave-seats.ts, or a lazily loaded one: extra-seats.ts) merged into the presets' Preset.pieces. */
+export function mergeSeats(table: SeatTable) {
+  for (const p of [...PRESETS, ...TRIALS]) {
+    const seats = table[p.id];
+    if (!seats) continue;
+    const merged: Record<string, Partial<Record<number, readonly Slot[]>>> = { ...(p.pieces ?? {}) };
+    for (const [f, byCount] of Object.entries(seats)) merged[f] = { ...(merged[f] ?? {}), ...byCount };
+    p.pieces = merged;
+  }
 }
+mergeSeats(OCTAVE_SEATS);
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
