@@ -604,18 +604,217 @@ const CROC = [
 const BOOK_A = ["pp.pp", "ppppp", ".c.c."] as const;
 const BOOK_B = [".....", "ppppp", "ccccc"] as const;
 
+// D658: batch 1's characters.
+const SINGER = [
+  "..hhh..",
+  ".hhhhh.",
+  ".hsssh.",
+  "..sms..",
+  "...s...",
+  ".wwwww.",
+  "rrrrrrd",
+  "rrrrrrd",
+  "srrrrds",
+  ".rrrrd.",
+  ".rrrrd.",
+  ".rrrrd.",
+  ".rrrrd.",
+  ".rrrrd.",
+  "..b.b..",
+] as const;
+const HOOD = [
+  "..rrr..",
+  ".rrrrr.",
+  "rrsssrr",
+  "rrsksrr",
+  "rrrsrrd",
+  "rrrrrrd",
+  ".rrrrd.",
+  ".rwwwd.",
+  ".rwwwd.",
+  ".rrrrd.",
+  "..l.l..",
+  "..b.b..",
+] as const;
+const HOOD_THROW = [
+  "..rrr.s",
+  ".rrrrrs",
+  "rrsssrs",
+  "rrsksr.",
+  "rrrsrrd",
+  "rrrrrrd",
+  ".rrrrd.",
+  ".rwwwd.",
+  ".rwwwd.",
+  ".rrrrd.",
+  "..l.l..",
+  "..b.b..",
+] as const;
+const KID = [
+  ".hhh.",
+  ".sss.",
+  ".sks.",
+  "ccccc",
+  "scccs",
+  ".ccc.",
+  ".ccc.",
+  ".l.l.",
+  ".b.b.",
+] as const;
+const RAIDER = [
+  "..ddd..",
+  ".ddddd.",
+  ".dkkkd.",
+  ".ddddd.",
+  "ddddddd",
+  "sdddddd",
+  "ddddddd",
+  ".ddddd.",
+  ".ddddd.",
+  ".ddddd.",
+  ".dd.dd.",
+  ".b...b.",
+] as const;
+const PILGRIM = [
+  "..hhhhh..",
+  "hhhhhhhhh",
+  "...sss...",
+  "...sss...",
+  "..ccccc..",
+  ".cccccdd.",
+  ".cccccdd.",
+  "scccccdd.",
+  ".cccccdd.",
+  ".cccccdd.",
+  "..cccdd..",
+  "..cccdd..",
+  "..cc.dd..",
+  "..b...b..",
+] as const;
+const PILGRIM_B = [...PILGRIM.slice(0, 12), "...cdd...", "...bb...."] as const;
+const SPARROW = ["....bb.", "...bbky", "bbbbbb.", ".bwwb..", "..l.l.."] as const;
+const SPARROW_FLY = [".b...b.", "..b.b..", "bbbbbky", "..www..", "......."] as const;
+const HORSE_A = [
+  "......r.........",
+  ".....rrr........",
+  ".....rrr.....hh.",
+  "...hhhrhhhhhhhhh",
+  "..hhhhhhhhhhhh..",
+  ".thhhhhhhhhhh...",
+  "t..hh.....hh....",
+  "..h.h.....h.h...",
+  ".h...h...h...h..",
+] as const;
+const HORSE_B = [
+  "......r.........",
+  ".....rrr........",
+  ".....rrr.....hh.",
+  "...hhhrhhhhhhhhh",
+  "..hhhhhhhhhhhh..",
+  ".thhhhhhhhhhh...",
+  "t...hh...hh.....",
+  "....hh...hh.....",
+  "...h.h...h.h....",
+] as const;
+/** Velvet: soft vertical folds. */
+function velvet(g: CanvasRenderingContext2D, s: number) {
+  for (let x = 0; x < s; x++) {
+    g.fillStyle = `rgba(0,0,0,${0.12 + 0.18 * (0.5 + 0.5 * Math.sin((x / s) * Math.PI * 4))})`;
+    g.fillRect(x, 0, 1, s);
+  }
+  specks(["rgba(255,255,255,0.04)"], 30, 21)(g, s);
+}
+/** Grass: blades and specks. */
+function grass(g: CanvasRenderingContext2D, s: number) {
+  specks(["rgba(0,0,0,0.18)", "rgba(255,255,200,0.08)", "rgba(20,60,20,0.25)"], 140, 31, 1, 2)(g, s);
+}
+/** Roof tiles: rows of scallops. */
+function tiles(g: CanvasRenderingContext2D, s: number) {
+  for (let y = 0; y < s; y += 4) for (let x = (y / 4) % 2 ? 3 : 0; x < s; x += 6) {
+    g.fillStyle = "rgba(0,0,0,0.25)";
+    g.fillRect(x, y + 3, 6, 1);
+    g.fillStyle = "rgba(255,200,170,0.08)";
+    g.fillRect(x + 1, y, 4, 1);
+  }
+}
+
 const WORLDS: Record<string, World> = {
-  // ---- BOOK I ----
-  // The Canon: four singers in a row on a stage; each lit in turn as its voice enters.
+  // D658 (design studio, the art upgrade, batch 1): The Canon. A concert stage in three depths: the velvet back wall
+  // and the proscenium's gilt arch, the curtains in their folds with the gold fringe, the boards in perspective, the
+  // footlights, and the audience's heads in silhouette nearest. The drama (D654): each entry a singer steps into a
+  // spotlight and stays lit; from the fifth entry the chorus comes in from the wings; at the climax the whole stage lit,
+  // the fringe glowing, the lead centre.
   wtc1f01: (k) => {
-    k.room([30, 16, 24], [14, 8, 14], 0.82, "rgba(40,24,20,1)");
-    k.curtains([120, 26, 34]);
+    const { w, h } = k;
+    const cam = sway(k, 33);
+    const cl = k.climax;
+    const floorY = h * 0.72;
+    k.vgrad(0, floorY, [[0, "#2a0c14"], [1, "#4a1620"]]);
+    fillTex(k, texture(k, "velvet", 24, velvet), 0, 0, w, floorY, cam * 0.3);
+    light(k, w * 0.5, floorY - 30, w * 0.4, [255, 200, 150], 0.12 + 0.3 * cl);
+    // the boards in perspective
+    k.vgrad(floorY, h - floorY, [[0, "#5a3a26"], [1, "#2a1a12"]]);
+    for (let i = -8; i <= 8; i++) k.line(w * 0.5 + i * 18 + cam * 0.5, floorY, w * 0.5 + i * 40 + cam * 1.2, h, "rgba(0,0,0,0.25)", 1);
+    // the chorus from the wings, one per entry after the fourth
+    const chorus = Math.min(8, Math.max(0, k.passed - 4)) + (cl > 0.5 ? 8 : 0);
+    for (let i = 0; i < Math.min(8, chorus); i++) {
+      const born = i === chorus - 1 && cl <= 0.5 ? Math.min(1, k.since * 2) : 1;
+      const side = i % 2 ? 1 : -1;
+      const x = w * (0.5 + side * (0.08 + 0.05 * Math.floor(i / 2))) + side * (1 - born) * 60 + cam * 0.5;
+      sprite(k, x, floorY - 2, SINGER, { h: "#2a1a14", s: "#c8a080", m: "#c8a080", w: "#c8c0b0", r: "#4a3040", d: "#2a1a24", b: "#140c0c" }, 1);
+    }
+    // the spotlights and their singers: one per entry, lit and staying lit
+    const lead = Math.min(4, k.passed);
     for (let i = 0; i < 4; i++) {
-      const x = k.w * (0.28 + i * 0.15);
-      const on = k.passed > i;
-      if (on) k.glow(x, k.h * 0.55, 34, [255, 220, 160], 0.22 + 0.12 * k.stretto);
-      k.figure(x, k.h * 0.82 - i * 3, on ? "rgba(70,50,60,1)" : "rgba(30,20,28,1)", 0, 3);
-      if (on && !k.still && Math.sin(k.sec * 2 + i) > 0) k.R(x + 1, k.h * 0.82 - i * 3 - 22, 2, 2, "rgba(20,10,14,1)");
+      const x = w * (0.32 + i * 0.12) + cam * 0.6;
+      const on = k.passed > i || cl > 0.5;
+      const step = on ? Math.min(1, (i === k.passed - 1 ? k.since : 1) * 2) : 0;
+      if (on) {
+        k.g.fillStyle = `rgba(255,236,190,${0.07 + 0.05 * cl})`;
+        k.g.beginPath();
+        k.g.moveTo(x - 4, 0);
+        k.g.lineTo(x + 4, 0);
+        k.g.lineTo(x + 20, floorY + 10);
+        k.g.lineTo(x - 20, floorY + 10);
+        k.g.fill();
+        k.g.fillStyle = `rgba(255,236,190,${0.18 + 0.1 * cl})`;
+        k.g.beginPath();
+        k.g.ellipse(x, floorY + 10, 20, 4, 0, 0, Math.PI * 2);
+        k.g.fill();
+        for (let d = 0; d < 4; d++) {
+          const u = wrap(k.t * 0.05 + hash(d + i * 7), 1);
+          k.R(x - 10 + 20 * hash(d * 3 + i), u * floorY, 1, 1, "rgba(255,240,210,0.5)");
+        }
+      }
+      const sing = on && !k.still && Math.sin(k.sec * 2.2 + i * 1.3) > 0;
+      const centre = cl > 0.5 && i === 0;
+      const sx = centre ? w * 0.5 + cam * 0.6 : x;
+      const robe = ["#8a2a3a", "#2a4a8a", "#6a5a2a", "#3a6a4a"][i];
+      const pal = { h: "#2a1a14", s: on ? "#f0c8a0" : "#3a2a24", m: sing ? "#3a0a10" : on ? "#f0c8a0" : "#3a2a24", w: on ? "#f0ece0" : "#2a2424", r: on ? robe : "#241a20", d: on ? "#20141c" : "#140c12", b: "#140c0c" };
+      if (on) lit(k, sx, floorY + 10 + 6 * step, SINGER, pal, 2, false, "rgba(255,240,210,0.8)", 0, -1);
+      else sprite(k, sx, floorY + 8, SINGER, pal, 2);
+    }
+    // the curtains, the proscenium's gilt arch, the fringe
+    const fr = 0.35 + 0.15 * Math.min(1, lead / 4) + 0.5 * cl;
+    for (const sd of [-1, 1]) {
+      const cx = sd < 0 ? cam * 0.9 : w - w * 0.2 + cam * 0.9;
+      k.vgrad(0, h, [[0, "#6a0e1a"], [1, "#3a0610"]], cx, w * 0.2);
+      fillTex(k, texture(k, "velvet", 24, velvet), cx, 0, w * 0.2, h, (k.still ? 0 : Math.sin(k.sec * 0.6) * 2) + cam * 0.9);
+      k.R(sd < 0 ? cx + w * 0.2 - 2 : cx, 0, 2, h, "rgba(255,200,120,0.25)");
+    }
+    k.vgrad(0, h * 0.12, [[0, "#5a0a16"], [1, "#3a0610"]]);
+    fillTex(k, texture(k, "velvet", 24, velvet), 0, 0, w, h * 0.12, cam * 0.9);
+    for (let x = 0; x < w; x += 4) k.R(x + wrap(cam, 4), h * 0.12, 2, 3 + (x % 8 ? 0 : 2), `rgba(240,190,90,${fr})`);
+    if (cl > 0.01) light(k, w * 0.5, h * 0.12, w * 0.5, [255, 200, 110], 0.2 * cl);
+    // the footlights and the audience's heads, nearest
+    for (let x = w * 0.08; x < w * 0.95; x += 18) {
+      light(k, x + cam * 1.4, h * 0.97, 16, [255, 210, 140], 0.25 + 0.05 * Math.sin(k.t * 3 + x));
+    }
+    for (let i = 0; i < 16; i++) {
+      const x = (i + 0.5) * (w / 16) + cam * 2;
+      const bob = k.still ? 0 : Math.sin(k.sec * 0.8 + i * 1.7) * 0.8;
+      k.disc(x, h + 2 + bob, 9, "#0a0608");
+      k.disc(x, h - 9 + bob, 5, "#0a0608");
     }
   },
   // D656 (design studio, the art upgrade): The Imp. A cave in three depths (the back wall's rock and strata, the
@@ -706,41 +905,171 @@ const WORLDS: Record<string, World> = {
     }
     if (roar > 0.01) light(k, fx, h * 0.2, w * 0.5, [255, 60, 30], 0.22 * roar);
   },
-  // The Stone-Skipper: a pond in the afternoon; each entry a stone's rings on the water.
+  // D658: The Stone-Skipper. A pond in an afternoon going gold: the sky and its clouds drifting, the far hills, the
+  // trees on the far bank rim-lit by the low sun, the water mirroring the sky with its shimmer moving, reeds swaying
+  // nearest and a dragonfly. The drama (D654, the owner: "Little Red Riding Hood … throwing the stones, jumping
+  // around"): she wanders the bank, hopping; each entry she throws a stone that skips, its rings staying on the water;
+  // more children join her; at the climax a stone skips the whole pond and the water is lit gold.
   wtc1f03: (k) => {
-    k.sky(DAY_T, [210, 190, 150], [120, 90, 120], [230, 150, 100], 0.55);
-    k.hills(0.5, 6, 0.05, 1, "rgba(50,70,60,1)");
-    k.along(18, 0.12, (x, i) => roundTree(k, x, k.h * 0.52, 5 + hash(i) * 4, "rgba(34,52,40,1)"));
-    k.vgrad(k.h * 0.55, k.h * 0.45, [[0, "rgba(70,100,120,1)"], [1, "rgba(30,50,70,1)"]]);
-    for (let y = k.h * 0.6; y < k.h; y += 7) k.R(wrap(y * 13 - k.bar * k.pxBar * 0.3, k.w), y, 10, 1, "rgba(200,220,230,0.18)");
-    k.atEntries((x, i, begun) => {
-      if (!begun) {
-        k.R(x - 1, k.h * 0.7 + (i % 3) * 6, 3, 2, "rgba(150,150,160,0.8)");
-        return;
-      }
+    const { w, h } = k;
+    const cam = sway(k, 27);
+    const cl = k.climax;
+    const bank = h * 0.56;
+    k.sky([110, 160, 210], [230, 210, 170], [120, 90, 140], [250, 170, 100], 0.6);
+    const sunX = w * 0.7;
+    const sunY = h * (0.12 + 0.3 * k.p);
+    light(k, sunX, sunY, 60, [255, 230, 170], 0.35);
+    k.disc(sunX, sunY, 7, "rgba(255,246,220,0.95)");
+    clouds(k, 5, 0.35, 0.1);
+    k.hills(0.48, 8, 0.02, 1, "rgba(90,110,130,1)");
+    k.g.save();
+    k.g.translate(cam * 0.6, 0);
+    k.hills(0.53, 5, 0.04, 2, "rgba(56,80,64,1)");
+    for (let i = 0; i < 14; i++) {
+      const x = (i + 0.5) * (w / 13) + (hash(i) - 0.5) * 10;
+      const r = 6 + hash(i + 3) * 5;
+      k.R(x - 1, bank - r, 2, r, "#2a3020");
+      k.disc(x + 1, bank - r * 1.6, r, "rgba(255,210,140,0.5)");
+      k.disc(x, bank - r * 1.6, r, "#2e4a30");
+      k.disc(x - r * 0.3, bank - r * 1.9, r * 0.5, "#3a5a38");
+    }
+    k.g.restore();
+    // the water: the sky mirrored, darker; the shimmer moving; gold at the climax
+    k.vgrad(bank, h - bank, [[0, "rgba(150,170,180,1)"], [1, "rgba(40,60,80,1)"]]);
+    if (cl > 0.01) k.vgrad(bank, h - bank, [[0, `rgba(255,200,110,${0.45 * cl})`], [1, `rgba(255,160,80,${0.2 * cl})`]]);
+    for (let y = bank + 3; y < h; y += 4) k.R(wrap(y * 37 + k.t * 6 * (1 + (y % 3)), w), y, 6 + (y % 7), 1, "rgba(230,240,250,0.22)");
+    k.R(sunX - 6, bank + 2, 12, h - bank, "rgba(255,240,200,0.08)");
+    // the rings, one stone per entry, staying
+    const n = Math.min(14, k.passed);
+    for (let i = 0; i < n; i++) {
+      const x = w * (0.3 + 0.4 * hash(i + 3));
+      const y = h * (0.66 + 0.2 * hash(i + 7));
+      const age = i === n - 1 ? Math.min(1, k.since * 2) : 1;
       for (let r = 1; r <= 3; r++) {
-        k.g.strokeStyle = `rgba(210,230,240,${0.35 / r})`;
+        k.g.strokeStyle = `rgba(230,240,250,${(0.45 / r) * age})`;
         k.g.lineWidth = 1;
         k.g.beginPath();
-        k.g.ellipse(x, k.h * 0.7 + (i % 3) * 6, 5 * r, 1.6 * r, 0, 0, Math.PI * 2);
+        k.g.ellipse(x, y, (4 + 4 * age) * r, (1.3 + 1.3 * age) * r, 0, 0, Math.PI * 2);
         k.g.stroke();
       }
-    });
-    k.along(30, 0.9, (x, i) => {
-      for (let j = 0; j < 4; j++) k.R(x + j * 2, k.h - 4 - (6 + hash(i + j) * 10), 1, 6 + hash(i + j) * 10, "rgba(40,60,36,0.9)");
-    });
+    }
+    if (cl > 0.5) {
+      const u = wrap(k.t * 0.3, 1);
+      for (let j = 0; j < 6; j++) {
+        const x = w * (0.25 + 0.5 * Math.min(u * 1.2, (j + 1) / 6));
+        k.g.strokeStyle = `rgba(255,236,190,${0.6 * cl})`;
+        k.g.beginPath();
+        k.g.ellipse(x, h * 0.72, 5, 1.5, 0, 0, Math.PI * 2);
+        k.g.stroke();
+      }
+    }
+    // the near bank: she wanders, hopping, throwing at each entry; the children who join her
+    k.g.fillStyle = "#4a5a2a";
+    k.g.beginPath();
+    k.g.moveTo(0, h);
+    k.g.lineTo(0, h * 0.62);
+    k.g.quadraticCurveTo(w * 0.3, h * 0.58, w * 0.5, h * 0.62);
+    k.g.quadraticCurveTo(w * 0.7, h * 0.66, w, h * 0.6);
+    k.g.lineTo(w, h * 0.66);
+    k.g.quadraticCurveTo(w * 0.6, h * 0.72, w * 0.2, h * 0.68);
+    k.g.lineTo(0, h * 0.7);
+    k.g.fill();
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.58, w, h * 0.12, cam);
+    const girl = k.wander(16, 0.2, 0.28, 0.72);
+    const gy = h * 0.63;
+    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * 3)) * 3;
+    const throwing = k.since < 0.6;
+    const kids = Math.min(3, Math.floor(k.passed / 3));
+    for (let i = 0; i < kids; i++) {
+      const kx = w * (0.34 + i * 0.12) + (k.still ? 0 : Math.sin(k.sec * 0.5 + i * 2) * 10);
+      const kh = k.still ? 0 : Math.abs(Math.sin(k.sec * 2.6 + i)) * 2;
+      lit(k, kx, gy - 1 - kh, KID, { h: ["#5a3a1a", "#d8b060", "#2a1a10"][i], s: "#f0c8a0", k: "#201010", c: ["#3a6ac0", "#e0a020", "#40a060"][i], l: "#3a2a20", b: "#201410" }, 2, girl.x > kx, "rgba(255,230,170,0.85)", 1);
+    }
+    lit(k, girl.x, gy - hop, throwing ? HOOD_THROW : HOOD, { r: "#d02a2a", d: "#8a1a1a", s: "#f4cca8", k: "#201010", w: "#f0ece0", l: "#f4cca8", b: "#3a2018" }, 2, girl.dir < 0 && !throwing, "rgba(255,230,170,0.9)", 1);
+    if (throwing) {
+      const u = k.since / 0.6;
+      const i = n - 1;
+      const tx = w * (0.3 + 0.4 * hash(i + 3));
+      const ty = h * (0.66 + 0.2 * hash(i + 7));
+      k.R(girl.x + (tx - girl.x) * u, gy - 24 + (ty - gy + 24) * u - Math.sin(u * Math.PI) * 14, 2, 2, "rgba(120,120,130,1)");
+    }
+    // the dragonfly, and the reeds nearest
+    if (!k.still) {
+      const dx = w * (0.5 + 0.3 * Math.sin(k.sec * 0.37)) + Math.sin(k.sec * 5) * 3;
+      const dy = h * (0.5 + 0.08 * Math.sin(k.sec * 0.53));
+      k.R(dx - 3, dy, 7, 1, "rgba(40,120,140,0.9)");
+      k.R(dx - 1, dy - 1 - (Math.floor(k.sec * 10) % 2), 3, 1, "rgba(200,230,255,0.6)");
+    }
+    for (let i = 0; i < 26; i++) {
+      const x = (i < 13 ? i * 6 : w - (i - 13) * 6) + cam * 1.8;
+      const hh = 14 + hash(i) * 16;
+      const sw2 = k.still ? 0 : Math.sin(k.sec * 1.1 + i) * 2;
+      k.line(x, h, x + sw2, h - hh, "rgba(40,56,26,1)", 2);
+      if (i % 3 === 0) k.R(x + sw2 - 1, h - hh - 5, 3, 6, "rgba(90,60,30,1)");
+    }
   },
-  // The Cross: a hill at dusk, night falling; a candle lit at its foot for each entry (five).
+  // D658: The Cross. A hill under a darkening sky in three depths (far ridges, the hill, the near grass swaying), the
+  // cross of rough wood rim-lit by the candles at its foot, clouds passing the moon, a mourner kneeling. The drama (D654):
+  // each of the five entries lights a candle and the night thickens; in the strettos their light reaches higher up the
+  // hill; at the climax dawn breaks behind the cross and the five flames stand in a line in the first light.
   wtc1f04: (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 35);
+    const cl = k.climax;
     k.sky(DUSK_T, DUSK_L, NIGHT, [40, 24, 50]);
-    k.stars(50, 0.5);
-    k.hills(0.82, 12, 0.03, 3, "rgba(24,16,26,1)");
-    const cx = k.w * 0.62;
-    const base = k.h * 0.74;
-    k.R(cx - 3, base - 70, 6, 70, "rgba(20,12,16,1)");
-    k.R(cx - 20, base - 54, 40, 6, "rgba(20,12,16,1)");
-    for (let i = 0; i < 5; i++) k.candle(cx - 16 + i * 8, base + 6, 5, k.passed > i);
-    k.hills(0.92, 6, 0.2, 7, "rgba(12,8,14,1)");
+    k.stars(60 * (1 - cl), 0.4);
+    k.orb(0.28, 0.2, 0.14, 5, [235, 230, 210], 0.2 * (1 - cl), true);
+    clouds(k, 4, 0.25, 0.06);
+    const cx = w * 0.55 + cam * 0.6;
+    const base = h * 0.7;
+    if (cl > 0.01) {
+      k.vgrad(h * 0.3, h * 0.45, [[0, "rgba(255,190,130,0)"], [1, `rgba(255,190,130,${0.55 * cl})`]]);
+      light(k, cx, base - 6, w * 0.45, [255, 200, 140], 0.4 * cl);
+      for (let i = 0; i < 9; i++) {
+        const a = Math.PI + (i * Math.PI) / 8;
+        k.line(cx, base - 4, cx + Math.cos(a) * w * 0.5, base - 4 + Math.sin(a) * h * 0.6, `rgba(255,220,170,${0.12 * cl})`, 3);
+      }
+    }
+    k.g.save();
+    k.g.translate(cam * 0.3, 0);
+    k.hills(0.66, 10, 0.01, 3, "rgba(34,24,40,1)");
+    k.g.restore();
+    // the hill
+    k.g.fillStyle = "#1c1420";
+    k.g.beginPath();
+    k.g.moveTo(-10, h);
+    k.g.quadraticCurveTo(cx - w * 0.2, base - 4, cx, base - 2);
+    k.g.quadraticCurveTo(cx + w * 0.25, base, w + 10, h * 0.9);
+    k.g.lineTo(w + 10, h);
+    k.g.fill();
+    fillTex(k, texture(k, "grass", 32, grass), 0, base, w, h - base, cam * 0.6);
+    // the candles' light, higher in the strettos
+    const lit5 = Math.min(5, k.passed);
+    if (lit5) light(k, cx, base, 26 + 10 * lit5 + 40 * k.stretto, [255, 180, 100], 0.12 + 0.06 * lit5);
+    // the cross: rough wood, rim-lit from below
+    const rim = `rgba(255,190,120,${0.15 + 0.1 * lit5 + 0.4 * cl})`;
+    k.R(cx - 4, base - 72, 8, 72, rim);
+    k.R(cx - 22, base - 56, 44, 8, rim);
+    k.R(cx - 3, base - 71, 6, 71, "#2a1c16");
+    k.R(cx - 21, base - 55, 42, 6, "#2a1c16");
+    for (let y = base - 70; y < base; y += 5) k.R(cx - 2 + (y % 3), y, 1, 3, "rgba(0,0,0,0.35)");
+    for (let i = 0; i < 5; i++) {
+      const x = cx - 16 + i * 8;
+      k.R(x - 1, base - 5, 3, 6, "rgba(230,220,200,0.9)");
+      if (k.passed > i || cl > 0.5) {
+        const fl = k.still ? 0 : Math.sin(k.sec * 8 + i) * 0.5;
+        light(k, x, base - 8, 10, [255, 190, 100], 0.4);
+        k.R(x + fl, base - 9, 2, 3, "rgba(255,226,140,0.95)");
+      }
+    }
+    // a mourner kneeling, rim-lit by the candles
+    lit(k, cx - 34, base + 2, KNEELER, { h: "#2a2232", d: "#18121e", f: "#06040a" }, 2, false, rgba([255, 190, 120], 0.25 + 0.1 * lit5), 1);
+    // the near grass, swaying
+    for (let i = 0; i < 60; i++) {
+      const x = (i / 60) * w + cam * 1.6;
+      const hh = 5 + hash(i) * 8;
+      k.line(x, h, x + (k.still ? 0 : Math.sin(k.sec * 0.9 + i * 0.4) * 2), h - hh, "rgba(14,10,16,1)", 1);
+    }
   },
   // The Coronation: a cathedral, the window's light, banners; more banners hung as the voices enter.
   wtc1f05: (k) => {
@@ -757,28 +1086,68 @@ const WORLDS: Record<string, World> = {
     }
     for (let i = 0; i < 3; i++) k.vgrad(0, k.h, [[0, "rgba(255,230,180,0.06)"], [1, "rgba(255,230,180,0)"]], k.w * (0.3 + i * 0.15), 10);
   },
-  // The Ambush: a forest road; at each entry, eyes in the trees.
+  // D658: The Ambush. A forest road at night in four depths: far pines in moonlight, mid pines rim-lit, mist drifting
+  // between them, near trunks and ferns; a traveller with a lantern on the road. The drama (D654): each entry a pair of
+  // eyes opens among the trees (blinking now and then, slowly); at the climax the ambushers break cover with torches
+  // and the road is lit orange; at the last chord a quiet road again.
   wtc1f06: (k) => {
-    k.sky([20, 30, 30], [50, 60, 50], [8, 12, 16], [24, 30, 30]);
-    k.along(14, 0.1, (x, i) => pine(k, x, k.h * 0.6, 26 + hash(i) * 14, "rgba(16,26,22,1)"), 6);
-    k.along(22, 0.35, (x, i) => pine(k, x, k.h * 0.82, 40 + hash(i) * 18, "rgba(8,14,12,1)"), 8);
-    k.ground(0.82, "rgba(40,34,24,1)", "rgba(120,100,70,0.3)", 1);
-    k.atEntries((x, i) => {
-      const y = k.h * (0.45 + (i % 3) * 0.08);
+    const { w, h } = k;
+    const cam = sway(k, 31);
+    const out = k.climax * (1 - k.rest);
+    k.vgrad(0, h, [[0, "#0a1418"], [0.6, "#14222a"], [1, "#1a1a16"]]);
+    k.orb(0.66, 0.12, 0.1, 6, [220, 230, 240], 0.25, true);
+    k.g.save();
+    k.g.translate(cam * 0.3, 0);
+    k.along(12, 0.05, (x, i) => pine(k, x, h * 0.6, 26 + hash(i) * 14, "rgba(24,40,44,1)"), 6);
+    k.g.restore();
+    for (let i = 0; i < 3; i++) k.glow(wrap(k.t * (3 + i) + i * 150, w + 160) - 80, h * (0.55 + i * 0.06), 70, [160, 180, 190], 0.1);
+    k.g.save();
+    k.g.translate(cam * 0.7, 0);
+    k.along(20, 0.12, (x, i) => {
+      pine(k, x + 1, h * 0.8, 40 + hash(i) * 18, "rgba(120,150,170,0.35)");
+      pine(k, x, h * 0.8, 40 + hash(i) * 18, "rgba(12,20,18,1)");
+    }, 8);
+    k.g.restore();
+    // the road
+    k.R(0, h * 0.8, w, h * 0.2, "#2a241a");
+    for (let x = -wrap(k.bar * k.pxBar * 0.12, 14); x < w; x += 14) k.R(x, h * 0.86, 6, 1, "rgba(120,100,70,0.35)");
+    // the eyes, one pair per entry
+    const eyes = Math.min(16, k.passed) * (1 - out);
+    for (let i = 0; i < eyes; i++) {
+      const x = w * (0.24 + 0.52 * hash(i * 3 + 1)) + cam * 0.7;
+      const y = h * (0.42 + 0.3 * hash(i * 5 + 2));
       const blink = !k.still && Math.sin(k.sec * 1.3 + i * 2) > 0.95;
       if (!blink) {
-        k.R(x - 3, y, 2, 1, "rgba(240,220,120,0.8)");
-        k.R(x + 2, y, 2, 1, "rgba(240,220,120,0.8)");
+        light(k, x, y, 5, [240, 220, 120], 0.25);
+        k.R(x - 3, y, 2, 1, "rgba(250,230,130,0.95)");
+        k.R(x + 2, y, 2, 1, "rgba(250,230,130,0.95)");
       }
-    });
-    // D464: in a stretto, more eyes in the trees.
-    if (k.stretto > 0.3)
-      for (let i = 0; i < 5; i++) {
-        const x = k.w * (0.1 + 0.2 * i) + Math.sin(i * 7) * 10;
-        const y = k.h * (0.42 + (i % 2) * 0.1);
-        k.R(x - 3, y, 2, 1, `rgba(240,220,120,${0.7 * k.stretto})`);
-        k.R(x + 2, y, 2, 1, `rgba(240,220,120,${0.7 * k.stretto})`);
+    }
+    // the traveller and his lantern
+    const tr = k.wander(22, 0.1, 0.3, 0.7);
+    const ty = h * 0.86;
+    light(k, tr.x + 6 * tr.dir, ty - 12, 26, [255, 200, 110], 0.35);
+    lit(k, tr.x, ty, PILGRIM, { h: "#2a2018", s: "#d8b090", c: "#3a3030", d: "#201818", b: "#140c0c" }, 1, tr.dir < 0, "rgba(255,200,120,0.8)", tr.dir);
+    k.R(tr.x + 5 * tr.dir, ty - 12, 2, 3, "rgba(255,220,130,1)");
+    // the ambushers, out of cover with torches
+    if (out > 0.01) {
+      k.vgrad(h * 0.6, h * 0.4, [[0, "rgba(255,140,50,0)"], [1, `rgba(255,140,50,${0.35 * out})`]]);
+      for (let i = 0; i < 6; i++) {
+        const x = w * (0.26 + 0.09 * i) + cam * 0.8;
+        const y = h * 0.86;
+        const step = k.still ? 0 : Math.abs(Math.sin(k.sec * 3 + i)) * 2;
+        light(k, x + 6, y - 28, 20, [255, 150, 60], 0.45 * out);
+        lit(k, x, y - step, RAIDER, { d: `rgba(30,20,18,${out})`, k: `rgba(255,200,120,${out})`, s: `rgba(200,150,110,${out})`, b: `rgba(10,6,6,${out})` }, 2, i % 2 === 1, `rgba(255,160,80,${0.8 * out})`, 1);
+        k.R(x + 6, y - 30 - step, 1, 8, `rgba(80,50,30,${out})`);
+        k.R(x + 5, y - 34 - step + (k.still ? 0 : Math.sin(k.sec * 9 + i)), 3, 4, `rgba(255,200,90,${out})`);
       }
+    }
+    // the near trunks and ferns, darkest, moving most
+    for (const [x0, ww] of [[0.04, 12], [0.9, 16]] as const) k.R(w * x0 + cam * 1.8, 0, ww, h, "#06090a");
+    for (let i = 0; i < 18; i++) {
+      const x = (i < 9 ? i * 9 : w - (i - 9) * 9) + cam * 1.8;
+      k.tri(x, h, 12, 10 + hash(i) * 8, "#0a1210");
+    }
   },
   // The Bicycle: a summer road through the country, fence posts flying past.
   wtc1f07: (k) => {
@@ -793,61 +1162,146 @@ const WORLDS: Record<string, World> = {
       k.R(x - 8, k.h * 0.76, 16, 1, "rgba(90,60,40,0.8)");
     });
   },
-  // The Pilgrim: one walk, afternoon to night, a waymark for each entry, the shrine at the road's end.
+  // D658: The Pilgrim. A road through afternoon into night: the sky turning, the sun setting and the stars coming, far
+  // mountains, mid hills with their cypresses passing, the road with its waymarks, fireflies at dusk. The pilgrim is a
+  // sprite with hat, cloak and staff, walking. The drama (D654): each entry a waymark lights on the road; at the climax
+  // the shrine's door opens at the road's end and light pours out down the road.
   wtc1f08: (k) => {
-    k.sky([70, 58, 96], [200, 130, 80], NIGHT, [30, 24, 50]);
-    k.stars(50, 0.45);
-    k.orb(0.7, 0.45, 0.95, 4, [255, 190, 110], 0.25 * (1 - k.p));
-    k.hills(0.62, 16, 0.05, 2, "rgba(40,30,50,1)");
-    k.hills(0.74, 9, 0.2, 7, "rgba(24,18,30,1)");
-    k.along(61, 0.55, (x, i) => cypress(k, x, k.h * 0.86, 18 + (i % 3) * 6, "rgba(10,10,16,0.9)"));
-    k.ground(0.86, "rgba(60,44,40,1)", "rgba(220,190,150,0.18)");
-    k.atEntries((x) => {
-      k.R(x - 2, k.h * 0.86 - 9, 4, 9, "rgba(150,140,130,0.8)");
-      k.R(x - 1, k.h * 0.86 - 7, 2, 1, "rgba(240,220,160,0.8)");
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    k.sky([90, 120, 170], [230, 170, 110], NIGHT, [40, 30, 60]);
+    k.stars(70, 0.45);
+    k.orb(0.74, 0.3, 0.9, 5, [255, 200, 130], 0.3 * (1 - k.p));
+    k.hills(0.56, 18, 0.02, 2, "rgba(70,60,90,1)");
+    k.hills(0.66, 12, 0.06, 5, "rgba(46,38,56,1)");
+    k.along(54, 0.25, (x, i) => {
+      cypress(k, x + 1, h * 0.8, 22 + (i % 3) * 7, `rgba(255,190,130,${0.3 * (1 - k.p)})`);
+      cypress(k, x, h * 0.8, 22 + (i % 3) * 7, "rgba(20,22,26,1)");
     });
-    const sx = k.end;
-    if (sx < k.w + 30) {
-      k.R(sx - 8, k.h * 0.86 - 18, 16, 18, "rgba(40,34,40,1)");
-      k.tri(sx, k.h * 0.86 - 18, 22, 10, "rgba(40,34,40,1)");
-      k.glow(sx, k.h * 0.86 - 10, 22, [255, 200, 110], 0.5);
-      k.R(sx - 2, k.h * 0.86 - 13, 4, 6, "#ffd88a");
+    k.R(0, h * 0.8, w, h * 0.2, "#4a3a30");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.8, w, h * 0.2, k.bar * k.pxBar * 0.5);
+    k.R(0, h * 0.84, w, h * 0.06, "rgba(200,170,130,0.25)");
+    if (cl > 0.01) k.vgrad(h * 0.78, h * 0.22, [[0, `rgba(255,210,130,${0.45 * cl})`], [1, "rgba(255,210,130,0)"]]);
+    k.atEntries((x, i, begun) => {
+      k.R(x - 2, h * 0.86 - 10, 5, 10, "#8a8078");
+      k.R(x - 2, h * 0.86 - 10, 1, 10, "rgba(255,230,180,0.4)");
+      if (begun) {
+        light(k, x, h * 0.86 - 8, 12, [255, 210, 130], 0.4);
+        k.R(x - 1, h * 0.86 - 8, 3, 2, "#ffe6a0");
+      }
+    });
+    if (k.p > 0.4 && !k.still) for (let i = 0; i < 10; i++) {
+      const fx = wrap(hash(i) * w + Math.sin(k.sec * 0.3 + i) * 20, w);
+      const fy = h * (0.6 + 0.2 * hash(i + 4)) + Math.sin(k.sec * 0.7 + i * 2) * 6;
+      const on = 0.5 + 0.5 * Math.sin(k.sec * 1.2 + i * 3);
+      light(k, fx, fy, 4, [200, 255, 140], 0.4 * on * Math.min(1, (k.p - 0.4) * 4));
     }
+    const sx = Math.min(k.end, w * 0.74);
+    if (k.end < w + 30 || cl > 0.01) {
+      k.R(sx - 10, h * 0.86 - 22, 20, 22, "#4a3e44");
+      k.tri(sx, h * 0.86 - 22, 26, 12, "#3a3036");
+      fillTex(k, texture(k, "stone", 40, stone), sx - 10, h * 0.86 - 22, 20, 22);
+      const open = 0.3 + 0.7 * cl;
+      k.R(sx - 3, h * 0.86 - 14, 6, 14, "#1a1014");
+      k.R(sx - 3, h * 0.86 - 14, 6 * open, 14, "#ffd88a");
+      light(k, sx, h * 0.86 - 8, 26 + 80 * cl, [255, 200, 110], 0.4 + 0.3 * cl);
+      if (cl > 0.01) {
+        k.g.fillStyle = `rgba(255,220,150,${0.18 * cl})`;
+        k.g.beginPath();
+        k.g.moveTo(sx - 3, h * 0.86);
+        k.g.lineTo(sx + 3, h * 0.86);
+        k.g.lineTo(sx - w * 0.2, h);
+        k.g.lineTo(sx - w * 0.5, h);
+        k.g.fill();
+      }
+    }
+    const px = w * (0.36 + 0.06 * Math.sin(k.t * 0.15)) + cam * 0.8;
+    const walk = !k.still && Math.floor(k.sec * (2 + k.busy)) % 2 === 1;
+    lit(k, px, h * 0.87, walk ? PILGRIM_B : PILGRIM, { h: "#3a2a1a", s: "#e0b890", c: "#5a4a3a", d: "#3a2e24", b: "#1a1210" }, 2, false, rgba(mix([255, 190, 120], [150, 160, 220], k.p), 0.85), 1);
+    k.line(px + 10, h * 0.87, px + 12, h * 0.87 - 34, "#5a4028", 2);
   },
-  // The Sparrow: rooftops under a moving sky; the sparrow hops along the ridge.
+  // D658: The Sparrow. Rooftops under a clearing sky in three depths: the far city, the mid roofs with their tiles and
+  // chimneys smoking, the near ridge where the birds land; the sun's rim light on the roofs' edges. The drama (D654):
+  // the first sparrow wanders the ridge on its own clock (D464); each entry another lands beside it, the flock growing;
+  // at the climax the whole flock takes off together across the clearing sky.
   wtc1f09: (k) => {
-    k.sky([110, 150, 190], [200, 210, 220], [150, 120, 150], [240, 190, 150]);
-    clouds(k, 6, 0.4, 0.2);
-    k.along(40, 0.5, (x, i) => {
-      const hh = 20 + hash(i) * 14;
-      k.R(x, k.h - hh, 38, hh, "rgba(110,70,60,1)");
-      k.tri(x + 19, k.h - hh, 44, 14, "rgba(80,44,40,1)");
-      if (hash(i + 2) > 0.5) k.R(x + 26, k.h - hh - 18, 5, 10, "rgba(80,44,40,1)");
+    const { w, h } = k;
+    const cam = sway(k, 29);
+    const cl = k.climax;
+    k.sky([110, 150, 190], [200, 210, 220], [150, 170, 210], [240, 220, 190]);
+    if (cl > 0.01) light(k, w * 0.6, h * 0.1, w * 0.5, [255, 240, 200], 0.3 * cl);
+    clouds(k, Math.round(6 * (1 - 0.7 * cl)), 0.45, 0.2);
+    skyline(k, 0.62, 0.05, "rgba(120,130,160,1)", 2);
+    k.g.save();
+    k.g.translate(cam * 0.6, 0);
+    k.along(46, 0.15, (x, i) => {
+      const hh = 26 + hash(i) * 16;
+      k.R(x, h * 0.86 - hh, 40, hh + 10, "#a06a58");
+      k.tri(x + 20, h * 0.86 - hh, 48, 16, "#7a3a30");
+      fillTex(k, texture(k, "tiles", 24, tiles), x - 4, h * 0.86 - hh - 16, 48, 16);
+      k.R(x - 4, h * 0.86 - hh, 48, 1, "rgba(255,230,190,0.6)");
+      if (hash(i + 2) > 0.4) {
+        const cx2 = x + 30;
+        k.R(cx2, h * 0.86 - hh - 20, 6, 12, "#6a3a30");
+        if (!k.still) for (let s2 = 0; s2 < 4; s2++) {
+          const u = wrap(k.t * 0.15 + s2 / 4 + hash(i), 1);
+          k.glow(cx2 + 3 + u * 16, h * 0.86 - hh - 22 - u * 26, 4 + u * 6, [230, 230, 235], 0.25 * (1 - u));
+        }
+      }
+      for (let j = 0; j < 3; j++) k.R(x + 6 + j * 11, h * 0.86 - hh + 8, 5, 6, hash(i * 3 + j) > 0.5 ? "#f0d890" : "#3a2a30");
     });
-    const bird = k.wander(18, 0.6, 0.2, 0.8);
-    const lx = bird.x;
-    const hop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 2.5)) * 5;
-    k.R(lx - 3, k.h * 0.6 - hop, 6, 4, "rgba(110,80,50,1)");
-    k.R(lx + 2 * bird.dir, k.h * 0.6 - hop - 2, 3, 3, "rgba(110,80,50,1)");
-    k.R(lx - 6 * bird.dir, k.h * 0.6 - hop + 1, 3, 1, "rgba(80,60,40,1)");
-  },
-  // The Two Horsemen: a plain at dawn, two riders far off; fence posts and dust.
-  wtc1f10: (k) => {
-    k.sky([40, 40, 70], [200, 120, 90], [110, 140, 180], [230, 200, 160]);
-    k.orb(0.2, 0.75, 0.3, 4, [255, 220, 160], 0.25);
-    k.hills(0.7, 8, 0.04, 4, "rgba(70,60,60,1)");
-    k.ground(0.78, "rgba(120,100,70,1)", "rgba(200,180,140,0.25)", 0.9);
-    for (let i = 0; i < 2; i++) {
-      const x = k.w * (0.62 + i * 0.1) + (k.still ? 0 : Math.sin(k.sec + i) * 2);
-      const y = k.h * 0.78;
-      k.R(x - 6, y - 7, 12, 4, "rgba(40,28,24,1)");
-      k.R(x - 5, y - 3, 1, 3, "rgba(40,28,24,1)");
-      k.R(x + 4, y - 3, 1, 3, "rgba(40,28,24,1)");
-      k.R(x + 5, y - 10, 3, 4, "rgba(40,28,24,1)");
-      k.R(x - 1, y - 14, 3, 7, "rgba(40,28,24,1)");
-      k.glow(x - 10, y - 2, 10, [200, 170, 120], 0.25);
+    k.g.restore();
+    // the near ridge
+    const ry = h * 0.8;
+    k.R(0, ry, w, h - ry, "#7a3a30");
+    fillTex(k, texture(k, "tiles", 24, tiles), 0, ry, w, h - ry, cam * 1.2);
+    k.R(0, ry - 2, w, 3, "#5a2a24");
+    k.R(0, ry - 2, w, 1, "rgba(255,230,190,0.7)");
+    const pal = { b: "#7a5030", k: "#101010", y: "#e0b040", w: "#e8d8c0", l: "#3a2a20" };
+    const lead = k.wander(18, 0.6, 0.26, 0.74);
+    const fly = cl > 0.3 ? (cl - 0.3) / 0.7 : 0;
+    const lhop = k.still ? 0 : Math.abs(Math.sin(k.sec * Math.PI * 2.5)) * 4;
+    lit(k, lead.x, ry - 2 - lhop - fly * h * 0.5, fly ? SPARROW_FLY : SPARROW, pal, 2, lead.dir < 0, "rgba(255,240,200,0.8)", 0, -1);
+    const n = Math.min(16, k.passed);
+    for (let i = 0; i < n; i++) {
+      const bx = w * (0.26 + 0.48 * (i / 16)) + (hash(i) - 0.5) * 8 + cam * 1.2;
+      const born = i === n - 1 ? Math.min(1, k.since * 2) : 1;
+      const x = bx + fly * (w * 0.3 + hash(i + 5) * 40);
+      const y = ry - 2 - (1 - born) * 30 - fly * h * (0.4 + 0.2 * hash(i + 2)) - (k.still ? 0 : Math.abs(Math.sin(k.sec * 3 + i)) * (fly ? 3 : 1));
+      const flap = born < 1 || fly > 0 ? !k.still && Math.floor(k.sec * 8 + i) % 2 === 0 : false;
+      sprite(k, x, y, flap ? SPARROW_FLY : SPARROW, pal, 2, hash(i + 9) > 0.5);
     }
-    k.along(24, 1, (x) => k.R(x, k.h * 0.74, 2, 8, "rgba(70,50,36,0.8)"));
+  },
+  // D658: The Two Horsemen. A plain under a rising sun: the far mountains, the plain's grass passing at the gallop's
+  // pace, the dust; the riders as sprites, horse and cloak, galloping in two frames. The drama (D654): each entry a
+  // rider appears on the plain, the two first racing side by side, dust rising; at the climax they gallop toward the
+  // viewer, the dust lit gold by the high sun.
+  wtc1f10: (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 25);
+    const near = k.climax;
+    k.sky([60, 70, 110], [230, 150, 100], [120, 150, 190], [240, 210, 170]);
+    k.orb(0.5, 0.75, 0.15 - 0.05 * near, 4 + 3 * near, [255, 230, 170], 0.3 + 0.3 * near);
+    k.hills(0.62, 14, 0.02, 4, "rgba(110,100,120,1)");
+    k.hills(0.7, 8, 0.08, 6, "rgba(90,80,70,1)");
+    k.R(0, h * 0.72, w, h * 0.28, "#9a8050");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.72, w, h * 0.28, k.bar * k.pxBar * 0.9);
+    k.along(24, 1, (x) => k.R(x, h * 0.92, 2, 6, "rgba(70,50,36,0.8)"));
+    const n = Math.min(6, Math.max(2, k.passed));
+    for (let i = n - 1; i >= 0; i--) {
+      const sc = (i < 2 ? 2 : 1) + (i < 2 ? Math.round(near * 2) : 0);
+      const born = i === k.passed - 1 ? Math.min(1, k.since * 2) : 1;
+      const x = w * (0.36 + (i % 3) * 0.14 + (i < 2 ? 0 : 0.04)) + (k.still ? 0 : Math.sin(k.sec * 2 + i) * 4) + cam * (i < 2 ? 1 : 0.5);
+      const y = h * (0.84 + 0.08 * near * (i < 2 ? 1 : 0) - (i >= 2 ? 0.07 : 0)) - (i === 1 ? 6 : 0);
+      for (let d = 0; d < 5; d++) {
+        const u = wrap(k.t * 1.2 + d / 5 + i * 0.3, 1);
+        k.glow(x - 8 * sc - u * 26, y - 2 - u * 8, 3 + u * 8, near > 0.3 ? [255, 210, 130] : [210, 180, 130], (0.35 + 0.2 * near) * (1 - u) * born);
+      }
+      const gal = !k.still && Math.floor(k.sec * 6 + i) % 2 === 0;
+      const pal = { r: ["#2a1a2a", "#5a1a1a", "#1a2a3a", "#2a2a1a", "#3a1a2a", "#1a1a1a"][i], h: ["#3a2418", "#6a4428", "#1e1410", "#8a6a48", "#4a3020", "#2a1c14"][i], t: "#1a100c" };
+      if (born > 0.05) lit(k, x, y, gal ? HORSE_A : HORSE_B, pal, sc, false, `rgba(255,220,160,${0.7 * born})`, 0, -1);
+    }
   },
   // The Shepherdess: a meadow morning, sheep grazing; a flower opens for each entry.
   wtc1f11: (k) => {
