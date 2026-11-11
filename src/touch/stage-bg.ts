@@ -575,7 +575,7 @@ const WORLDS: Record<string, World> = {
       k.R(x, k.h * 0.86 - 5, 1, 5, "rgba(40,80,40,1)");
       k.disc(x, k.h * 0.86 - 6, 2, ["rgba(240,200,80,0.9)", "rgba(240,140,160,0.9)", "rgba(200,200,255,0.9)"][i % 3]);
     });
-    // D650 (design studio, drama batch 2): a lamb joins the flock per entry round the shepherdess; at the climax the meadow in full bloom in the light after the rain.
+    // D655 (design studio, drama batch 2): a lamb joins the flock per entry round the shepherdess; at the climax the meadow in full bloom in the light after the rain.
 
     const sx = k.w * 0.4 + (k.still ? 0 : Math.sin(k.sec * 0.3) * 20);
     k.figure(sx, k.h * 0.84, "rgba(80,60,90,1)", 0, 2);
@@ -618,7 +618,7 @@ const WORLDS: Record<string, World> = {
       k.disc(cx, cy, 16, `rgba(255,220,170,${0.55 * rose})`);
       for (let i = 0; i < 8; i++) k.R(cx + Math.cos((i * Math.PI) / 4) * 10 - 1, cy + Math.sin((i * Math.PI) / 4) * 10 - 1, 3, 3, `rgba(120,60,90,${0.7 * rose})`);
     }
-    // D650 (design studio, drama batch 2): mourners arrive by the bier, one per two entries; at the climax the rose window's light falls down the nave and every flame leans to it.
+    // D655 (design studio, drama batch 2): mourners arrive by the bier, one per two entries; at the climax the rose window's light falls down the nave and every flame leans to it.
 
     for (let i = 0; i < Math.min(8, Math.floor(k.passed / 2)); i++) {
       const born = i === Math.floor(k.passed / 2) - 1 && k.passed % 2 === 0 ? Math.min(1, k.since * 2) : 1;
@@ -674,7 +674,7 @@ const WORLDS: Record<string, World> = {
         k.R(x + Math.sin(tt * 12 + j) * 3, k.h - 8 - tt * (k.h - 12), 2, 2, "rgba(220,250,255,0.28)");
       }
     });
-    // D650 (design studio, drama batch 2): a new fish swims in per entry; at the climax a great school turns as one in a shaft of light from the surface.
+    // D655 (design studio, drama batch 2): a new fish swims in per entry; at the climax a great school turns as one in a shaft of light from the surface.
 
     const school = k.climax;
     if (school > 0.01) k.glow(k.w * 0.5, 0, k.h * 0.9, [190, 250, 240], 0.3 * school);
@@ -696,7 +696,7 @@ const WORLDS: Record<string, World> = {
     const lx = k.w * 0.5;
     k.figure(lx, k.h * 0.86, "rgba(220,220,230,0.9)", 0, 3);
     k.R(lx - 1, k.h * 0.86 - 28, 4, 2, "rgba(20,20,30,1)");
-    // D650 (design studio, drama batch 2): a star lights per entry and Pierrot takes a step of his dance; at the climax the moon full and huge, Pierrot reaching for it.
+    // D655 (design studio, drama batch 2): a star lights per entry and Pierrot takes a step of his dance; at the climax the moon full and huge, Pierrot reaching for it.
 
     for (let i = 0; i < Math.min(20, k.passed); i++) k.glow(k.w * (0.24 + 0.52 * hash(i * 5)), k.h * (0.08 + 0.3 * hash(i * 5 + 1)), 4, [255, 250, 220], 0.8);
     if (k.climax > 0.01) {
@@ -723,7 +723,7 @@ const WORLDS: Record<string, World> = {
     k.disc(bx, by, 3, "rgba(230,230,240,0.9)");
     k.R(k.w * 0.35, k.h - 6, 30, 4, "rgba(255,200,60,0.7)");
     k.R(k.w * 0.55, k.h - 6, 30, 4, "rgba(255,200,60,0.7)");
-    // D650 (design studio, drama batch 2): the light row climbs per entry and a ball joins per voice in a stretto (multiball); at the climax JACKPOT: every bumper lit, held, never strobing.
+    // D655 (design studio, drama batch 2): the light row climbs per entry and a ball joins per voice in a stretto (multiball); at the climax JACKPOT: every bumper lit, held, never strobing.
 
     const lit = Math.min(1, k.passed / Math.max(1, k.ents.length));
     for (let i = 0; i < 10; i++) k.R(k.w * (0.3 + i * 0.04), 4, k.w * 0.03, 5, i < lit * 10 ? "rgba(255,200,60,0.9)" : "rgba(80,50,30,0.6)");
@@ -780,7 +780,7 @@ const WORLDS: Record<string, World> = {
     k.R(k.w * 0.18 + 10, k.h * 0.58, 1, 4, "rgba(150,120,100,0.8)");
     k.disc(k.w * 0.23, k.h * 0.57, 2, "rgba(220,110,140,0.8)");
     k.vgrad(0, k.h, [[0, "rgba(255,230,180,0.08)"], [1, "rgba(255,230,180,0)"]], k.w * 0.5, k.w * 0.45);
-    // D650 (design studio, drama batch 2): a line of writing per entry on the diary's page, the leaves outside thickening with the summer; at the climax the sunset through the window lights the page gold.
+    // D655 (design studio, drama batch 2): a line of writing per entry on the diary's page, the leaves outside thickening with the summer; at the climax the sunset through the window lights the page gold.
 
     for (let i = 0; i < Math.min(8, k.passed); i++) k.R(k.w * 0.185, k.h * 0.585 + 0.6 * (i % 4), 6 + (i % 3) * 3, 1, "rgba(80,60,60,0.7)");
     for (let i = 0; i < Math.min(16, k.passed); i++) k.disc(k.w * (0.56 + 0.3 * hash(i * 11)), k.h * (0.14 + 0.45 * hash(i * 13)), 3, "rgba(70,120,55,0.85)");
@@ -804,7 +804,7 @@ const WORLDS: Record<string, World> = {
     const sw = k.wander(40, 0.1);
     k.figure(sw.x, k.h * 0.62, "rgba(210,210,230,0.85)", sw.step, 2);
     k.R(sw.dir > 0 ? sw.x + 2 : sw.x - 8, k.h * 0.62 - 15, 5, 1, "rgba(210,210,230,0.85)");
-    // D650 (design studio, drama batch 2): a window lights in the roofs per entry as the walker goes on along the ridge; at the climax dawn on the roofs, a cat beside the walker.
+    // D655 (design studio, drama batch 2): a window lights in the roofs per entry as the walker goes on along the ridge; at the climax dawn on the roofs, a cat beside the walker.
 
     for (let i = 0; i < Math.min(14, k.passed); i++) k.R(k.w * (0.24 + 0.52 * hash(i * 7 + 2)), k.h * (0.72 + 0.2 * hash(i * 7 + 3)), 3, 3, "rgba(255,210,120,0.75)");
     if (k.climax > 0.01) {
@@ -863,7 +863,7 @@ const WORLDS: Record<string, World> = {
     k.R(0, k.h - 5, k.w, 5, "rgba(26,16,20,1)");
     // D464: the busier the music, the faster the sleepers (the train working harder).
     for (let x = -wrap(k.bar * k.pxBar * (1.2 + 1.2 * k.busy), 12); x < k.w; x += 12) k.R(x, k.h - 4, 7, 2, "rgba(110,70,50,0.6)");
-    // D650 (design studio, drama batch 2): a train on the far hills gains a carriage per entry; at the climax it crests the hill at dawn, the long train in silhouette against the sun.
+    // D655 (design studio, drama batch 2): a train on the far hills gains a carriage per entry; at the climax it crests the hill at dawn, the long train in silhouette against the sun.
 
     const cars = Math.min(14, k.passed);
     const ty = k.h * 0.6 - 10 * k.climax;
