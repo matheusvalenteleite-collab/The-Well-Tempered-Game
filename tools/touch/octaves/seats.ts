@@ -7,6 +7,9 @@
  *      (within NEAR_TOL semitones: a brass voice kept brass for one note a semitone past the trumpet's reach);
  *   3. else, where the own instrument misses by more than TOL semitones, the near or FAR substitute that misses least;
  *   4. else the own instrument, its set extended to the line (sampled.ts `extend`: the nearest recording retuned).
+ * D637: first of all the line-up that leaves fewest notes read more than STRETCH_MAX semitones from a recording (stretchOf:
+ * the set as the fugue's plan leaves it), the band's own instruments traded or a substitute taken for it; STRETCH_KEPT's
+ * instruments excepted (a band's own colour kept on its line: test/d635's allow-list says why).
  * The bass keeps its instrument (the phone's bass, the band's foundation): its set extended where it must be. The seat's pan
  * and level stay (the mix as it was); only the instrument changes.
  *
@@ -14,7 +17,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { soundPlans } from "../../../src/touch/chip.ts";
-import { nameOfMidi, sampledMidis, SAMPLED, setFor, MAX_SHIFT_ANY } from "../../../src/touch/sampled.ts";
+import { nameOfMidi, nearestSample, sampledMidis, SAMPLED, setFor, MAX_SHIFT_ANY, STRETCH_MAX } from "../../../src/touch/sampled.ts";
 import { OWN_PIECES, PATCHES, presetById, setPieceLayout, setPreset, type PatchId } from "../../../src/touch/sound.ts";
 import { TRIO_ID, trioLayout } from "../../../src/touch/trio.ts";
 import { WTC_FUGUES } from "./audit.ts";
@@ -26,12 +29,13 @@ export const NEAR_TOL = 1;
 export const TOL = 3;
 
 /** The substitutes by sound: for an instrument, the NEAR ones (taken where they cover) and the FAR (where the own misses by more than TOL). */
-export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: readonly PatchId[]; far?: readonly PatchId[] }>>>> = {
+export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: readonly PatchId[]; far?: readonly PatchId[]; stretch?: readonly PatchId[] }>>>> = {
   // SALSA: the brass front line and the tres trade seats; the baby bass keeps the bass.
   salsa: { s2Trombone: { near: ["s2Trumpet", "s2Tres"] }, s2Trumpet: { near: ["s2Trombone", "s2Tres"] }, s2Tres: { near: ["s2Trumpet", "s2Trombone"] } },
   abbeyRoad: { a2Guitar: { near: ["a2Trumpet"] }, a2Trumpet: { near: ["a2Guitar"] } },
   petSounds: { psHorn: { near: ["p3Twelve"] }, p3Twelve: { near: ["psHorn"] } },
-  baroqueBand: { bandOboe: { near: ["bandViola"] }, bandViolin: { near: ["bandViola"] }, bandViola: { near: ["bandViolin", "bandOboe"] } },
+  // (D637: II/2's tenor down to C2, past the viola, on the band's cello: two cellos, as STRING CONSORT's low viola, D632.)
+  baroqueBand: { bandOboe: { near: ["bandViola"] }, bandViolin: { near: ["bandViola"] }, bandViola: { near: ["bandViolin", "bandOboe"], stretch: ["bandCello"] } },
   oboeTrio: { trioOboe1: { near: ["trioOboe2"], far: ["trioHarpsi"] }, trioOboe2: { near: ["trioBassoon"] }, trioBassoon: { near: ["trioOboe2"] } },
   bachBrass: { bachHorn: { near: ["bachTrumpet"] }, bachTrombone: { near: ["bachHorn", "bachTrumpet"] }, bachTrumpet: { near: ["bachHorn", "bachTrombone"] }, bachTrumpetMute: { near: ["bachTrumpet"] } },
   // JAZZ QUARTET: the vibraphone stays the lead (traded only, never replaced: the band's one voice of its own).
@@ -43,7 +47,33 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
   orchestraOrgan: { orViolin1: { near: ["orViola"] }, orViolin2: { near: ["orViola"] }, orViola: { near: ["orCello", "orViolin2"] } },
   stringConsort: { consViolin: { near: ["consViola"] }, consViola: { near: ["consCello", "consViolin"] } },
   trialWinds: { trialOboe: { near: ["trialClarinet"] }, trialFlute: { near: ["trialOboe", "trialClarinet"] }, trialClarinet: { near: ["trialOboe", "trialHorn", "trialBassoon"] } },
+  // D637: the stretched reads' bands (tools/touch/stretch/audit.ts): their own instruments traded among the upper voices
+  // (TRACKER's choir and SUPER 16-BIT's strings with the harpsichord), SOLO VOICES' singers a neighbouring voice's singer
+  // (`stretch`: taken only where they leave fewer notes stretched, never for the compass alone).
+  tracker: {},
+  super16: {},
+  soloVoices: { singS: { near: [], stretch: ["singA"] }, singA: { near: [], stretch: ["singS", "singT"] }, singT: { near: [], stretch: ["singA", "singB"] } },
 };
+/**
+ * D637: the sounds whose line-ups are chosen for the stretch first (the others' stretched notes are on the bass, which keeps
+ * its instrument, or would cost the band its colour: ZELENKA TRIO's alto on the harpsichord for one note; test/d635's allow-list).
+ */
+export const STRETCH_SEATS: ReadonlySet<string> = new Set(["tracker", "super16", "soloVoices", "baroqueBand"]);
+/** D637: an instrument kept on its line though some notes are read past STRETCH_MAX (a band's own colour: test/d635's allow-list). */
+export const STRETCH_KEPT: Readonly<Record<string, readonly PatchId[]>> = { vaudeville: ["vdXylo"] };
+
+/** D637: the notes of a line a patch reads more than STRETCH_MAX semitones from a recording (its set as planned). */
+export function stretchOf(id: PatchId, line: readonly number[]): number {
+  const pt = PATCHES[id];
+  const inst = pt.sample ? SAMPLED[pt.sample] : null;
+  if (!inst) return 0;
+  let n = 0;
+  for (const m of line) {
+    const near = nearestSample(setFor(inst, m), m);
+    if (near !== null && Math.abs(m - near) > STRETCH_MAX) n++;
+  }
+  return n;
+}
 
 /** How far a line leaves a patch's base reach (0: it covers; + over the top, - under the lowest; the larger side). */
 export function excess(id: PatchId, line: readonly number[]): number {
@@ -83,12 +113,25 @@ export function seatsFor(sound: string) {
     soundPlans(f.voices.flat().map((n) => n[2]), [], null);
     const lines = f.voices.map((vs, v) => [...vs, ...(f.bandVoices ?? []).filter((b) => b.of === v).flatMap((b) => b.notes)].map((n) => n[2]));
     const seatOf = (v: number) => base[Math.min(v, base.length - 1)];
+    // D637: a voice's stretched notes on an instrument (none counted on the bass, which keeps its own, nor on a kept one).
+    const stretch = (id: PatchId, v: number) => (!STRETCH_SEATS.has(sound) || v === count - 1 || STRETCH_KEPT[sound]?.includes(id) ? 0 : stretchOf(id, lines[v]));
     // The instrument a voice ends on from `traded` (its seat's, or another upper seat's): itself where it covers, else a
     // near substitute that covers (within NEAR_TOL, and better), else past TOL the least missing near or far one.
     const settle = (traded: PatchId, line: readonly number[], v: number): PatchId => {
       const mine = excess(traded, line);
       const s = subs[traded];
-      if (mine === 0 || !s || v === count - 1) return traded;
+      if (!s || v === count - 1) return traded;
+      // D637: the pick by the compass, and then, where it leaves notes stretched, the near or stretch substitute that leaves fewest.
+      const byCompass = compassPick(traded, line, v, mine, s);
+      const st = stretch(byCompass, v);
+      if (st === 0) return byCompass;
+      let pick = byCompass;
+      let least = st;
+      for (const c of [...s.near, ...(s.stretch ?? [])]) if (stretch(c, v) < least) (least = stretch(c, v)), (pick = c);
+      return pick;
+    };
+    const compassPick = (traded: PatchId, line: readonly number[], v: number, mine: number, s: NonNullable<(typeof subs)[PatchId]>): PatchId => {
+      if (mine === 0) return traded;
       const near = s.near.find((c) => Math.abs(excess(c, line)) <= NEAR_TOL && Math.abs(excess(c, line)) < Math.abs(mine));
       if (near) return near;
       // (A far substitute only for the seat's own instrument: never reached through a trade.)
@@ -109,7 +152,7 @@ export function seatsFor(sound: string) {
     const upper = [...Array(count - 1).keys()];
     let picks: PatchId[] = [];
     let traded: PatchId[] = [];
-    let best = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
+    let best = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
     for (const perm of permutations(upper)) {
       const tr = [...perm.map((from) => seatOf(from)[0]), seatOf(count - 1)[0]];
       const pk = tr.map((id, v) => settle(id, lines[v], v));
@@ -121,7 +164,7 @@ export function seatsFor(sound: string) {
         if (k < 0) lost++;
         else left.splice(k, 1);
       }
-      const key = [pk.filter((id, v) => !fine(id, v)).length, ex.reduce((a, e, v) => a + (fine(pk[v], v) ? 0 : Math.abs(e)), 0), lost, pk.filter((id, v) => id !== seatOf(v)[0]).length, perm.filter((from, v) => from !== v).length, ex.reduce((a, e) => a + Math.abs(e), 0)];
+      const key = [pk.reduce((a, id, v) => a + stretch(id, v), 0), pk.filter((id, v) => !fine(id, v)).length, ex.reduce((a, e, v) => a + (fine(pk[v], v) ? 0 : Math.abs(e)), 0), lost, pk.filter((id, v) => id !== seatOf(v)[0]).length, perm.filter((from, v) => from !== v).length, ex.reduce((a, e) => a + Math.abs(e), 0)];
       const better = key.findIndex((x, i) => x !== best[i]);
       if (better >= 0 && key[better] < best[better]) (best = key), (picks = pk), (traded = tr);
     }
