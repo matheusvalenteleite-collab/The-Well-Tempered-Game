@@ -19,8 +19,17 @@ import { ProtoGame } from "../src/bench/proto-game.ts";
 const db = (g: number) => 20 * Math.log10(g);
 
 test("D593: the levels are the three fugues' own, on their own sounds, about 3 dB; I/6 and II/24 on a phone only", () => {
-  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).map((id) => `${id}@${p.id}`)).sort();
+  // D645: and five rebalances on a phone (a fugue's bass brought up there, the rest a little under it: its phone mix where it was), each under 0 dB, phone only.
+  const D645 = ["wtc1f04@stringConsort", "wtc1f20@krautrock", "wtc2f07@bossaNova", "wtc2f08@stringConsort", "wtc2f22@krautrock"];
+  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).map((id) => `${id}@${p.id}`)).filter((k) => !D645.includes(k)).sort();
   assert.deepEqual(all, ["wtc1f06@jazzQuartet", "wtc1f19@vaudeville", "wtc2f24@analog"]);
+  for (const k of D645) {
+    const [id, snd] = k.split("@");
+    assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
+    const down = db(pieceLevel(snd, id, true));
+    assert.ok(down < 0 && down >= -1.5, `${k}: ${down.toFixed(1)} dB on a phone`);
+    assert.equal(pieceLevel(snd, id, false), 1, `${k}: the computer path as it was`);
+  }
   for (const k of all) {
     const [id, snd] = k.split("@");
     assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
