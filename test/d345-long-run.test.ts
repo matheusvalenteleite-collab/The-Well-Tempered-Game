@@ -69,7 +69,10 @@ test("D345: with the end reports silenced, a 15-minute run of BWV 1043 III keeps
   // Before D345: every node ever made stayed wired (36,700 by the end of one run, 110,000 by the third).
   assert.ok(r.peak.wired < 1200, `at most ${r.peak.wired} nodes wired at once`);
   assert.ok(r.peak.open < 150, `at most ${r.peak.open} sounds not yet let go`);
-  assert.ok(r.peak.voices <= 4 * chip.cap, `the cap's list ${r.peak.voices}`);
+  // The chip prunes its list once it passes 4 × cap (chip.ts steal), so one entry over is its own threshold. D456 made the game
+  // sound the soloist's double stops the player no longer has (this run's peak 63 → 73, the cap 18): more notes at once, no leak
+  // (the leak this guards against was thousands of entries).
+  assert.ok(r.peak.voices <= 4 * chip.cap + 1, `the cap's list ${r.peak.voices}`);
   // And once the music is over, everything goes.
   ctx.advance(ctx.currentTime + SWEEP_GRACE_S + 1);
   chip.sweep();

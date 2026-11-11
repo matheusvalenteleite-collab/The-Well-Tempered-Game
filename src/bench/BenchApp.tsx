@@ -102,6 +102,7 @@ import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice,
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { pieceTitle, Selection } from "./Selection.tsx";
 import { HowTo, type ClipNote } from "./HowTo.tsx";
+import { oneLine } from "../touch/one-line.ts";
 import { Intro } from "./Intro.tsx";
 import { InstallButton, InstallHint } from "./InstallHint.tsx";
 import { INTRO_LOAD_WAIT_MS, INTRO_PRESET, introPitches, playIntro, type IntroPlaying } from "./intro-sound.ts";
@@ -602,6 +603,9 @@ export function BenchApp() {
         b.ticks,
         v,
       );
+    // D456: one note per onset in the player's line (one-line.ts), as the game will have it.
+    const mineOne = oneLine(lane(voice), voice === f.voices.length - 1);
+    const mineExtra = new Set(mineOne.extra.map((n) => lineKey(voice, n.on, n.midi)));
     return {
       now: from - b.ticks,
       tps: 1,
@@ -615,8 +619,9 @@ export function BenchApp() {
       floor: boxFloor,
       ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
       voice,
-      notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : lane(voice),
-      others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, voice).filter((n) => (n.band || !played.includes(n.voice)) && (!run || n.on < run.until)),
+      notes: line ? [...line.notes, ...line.second].sort((a, c) => a[0] - c[0] || c[2] - a[2]).map(([on, dur, midi, step, v]) => ({ on, dur, midi, step, long: dur >= b.ticks, state: "pending" as const, voice: v })) : mineOne.kept,
+      // D456: the player's extra notes at an onset drawn as the others' (the game plays them).
+      others: run?.solo || kimiko ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi))) : accompaniment(f, from, mineExtra.size ? -1 : voice).filter((n) => (n.band || !played.includes(n.voice) || mineExtra.has(lineKey(n.voice, n.on, n.midi))) && (!run || n.on < run.until)),
       ...marks,
       piece: f.id,
     };
