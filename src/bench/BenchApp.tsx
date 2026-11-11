@@ -1,4 +1,5 @@
 import "./drum-presets-link.ts";
+import { createPortal } from "react-dom";
 /**
  * The testbench (D170; D175; D178; D179-D180): prototypes of the instrument tried on the game itself,
  * judged. ⚙ chooses the prototype (protos.ts), the piece (D192: a wheel of the fugues' cards,
@@ -1796,8 +1797,10 @@ export function BenchApp() {
         {phase.kind === "mtalk" && (
           <BachTalk key={`m-${phase.title}-${phase.lines.map((l) => l.text).join("|")}`} title={phase.title} lines={phase.lines} onLine={demo} onDone={() => phase.done?.()} choices={phase.choices} extra={phase.extra} className={manLesson && isCourse(manLesson) ? "tb-bach-low" : undefined} />
         )}
-        {phase.kind === "result" && (
+        {phase.kind === "result" && createPortal(
           // D237: the result, minimal: the grade (or where the crowd left), the score, AGAIN, NEXT, ✕ back to the cards.
+          // D499b (main board; the owner, again: the score screen "leaves a gap in the bottom of screen"): drawn on the
+          // page itself (a portal to <body>), never inside the music box, so no ancestor can bound it on any browser.
           <div className="tg-card tg-card-low tb-result" role="dialog" aria-label="Result">
             <button type="button" id="result-close" className="tg-x tb-result-x" aria-label="Back to the cards" onClick={home}>
               ✕
@@ -1870,7 +1873,7 @@ export function BenchApp() {
               )}
             </div>
           </div>
-        )}
+        , document.body)}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
       {playing && man && manLesson && isCourse(manLesson) && (
