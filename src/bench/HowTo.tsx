@@ -17,8 +17,9 @@ import { useEffect, useRef, useState } from "react";
 import { lang, tr } from "../i18n/index.ts";
 import { barStart, fugueById, type TouchFugue } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
-import { formText, formWidth, pixText } from "../touch/box-fx.ts";
+import { ORN_PIXELS, formText, formWidth, ornText, pixRaw, pixText } from "../touch/box-fx.ts";
 import { markLegend } from "../touch/readings.ts";
+import { SIGN_PIXELS_5, type Sign } from "../touch/chroma.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
 import { tempoOf } from "../touch/tempi.ts";
 import { GRADE_INK } from "./LiteGrid.tsx";
@@ -371,6 +372,68 @@ function MarksFig() {
   );
 }
 
+/**
+ * D657: the signs as the box draws them, each on a block in the player's ink (a pixel an SVG square, crisp at any
+ * size), and the ornaments' signs as the box writes them over a note (pixText's own pixels).
+ */
+const SIGN_ROWS: [Sign, T][] = [
+  ["sharp", { en: "SHARP: a half step higher", pt: "SUSTENIDO: meio tom acima", es: "SOSTENIDO: medio tono más alto" }],
+  ["flat", { en: "FLAT: a half step lower", pt: "BEMOL: meio tom abaixo", es: "BEMOL: medio tono más bajo" }],
+  ["natural", { en: "NATURAL: the key's sharp or flat cancelled", pt: "BEQUADRO: o sustenido ou bemol do tom cancelado", es: "BECUADRO: el sostenido o bemol de la tonalidad cancelado" }],
+  ["double", { en: "DOUBLE SHARP: two half steps higher, a small x as in print", pt: "DOBRADO SUSTENIDO: dois meios tons acima, um x pequeno como na partitura", es: "DOBLE SOSTENIDO: dos medios tonos más alto, una x pequeña como en la partitura" }],
+  ["doubleFlat", { en: "DOUBLE FLAT: two half steps lower", pt: "DOBRADO BEMOL: dois meios tons abaixo", es: "DOBLE BEMOL: dos medios tonos más bajo" }],
+];
+const ORN_ROWS: [string, T][] = [
+  ["TR", { en: "TRILL: the note and the one above, quickly in turn", pt: "TRINADO: a nota e a de cima, rápido, alternadas", es: "TRINO: la nota y la de arriba, rápido, alternadas" }],
+  ["(TR)", { en: "A TRILL BUSONI LEAVES TO YOU", pt: "UM TRINADO QUE BUSONI DEIXA A SEU CRITÉRIO", es: "UN TRINO QUE BUSONI DEJA A TU ELECCIÓN" }],
+  ["~", { en: "SHORT TRILL (PRALLTRILLER): from the note above, a few beats", pt: "TRINADO CURTO (PRALLTRILLER): da nota de cima, poucas batidas", es: "TRINO CORTO (PRALLTRILLER): desde la nota de arriba, pocas batidas" }],
+  ["~|", { en: "MORDENT: the note, the step below, the note", pt: "MORDENTE: a nota, o grau abaixo, a nota", es: "MORDENTE: la nota, el grado de abajo, la nota" }],
+  ["S", { en: "TURN: above, the note, below, the note", pt: "GRUPETO: acima, a nota, abaixo, a nota", es: "GRUPETO: arriba, la nota, abajo, la nota" }],
+];
+function pixSvg(rects: [number, number][], w: number, h: number, ink: string, block?: string) {
+  return (
+    <svg className="howto-sign" viewBox={`0 0 ${w} ${h}`} width={w * 3} height={h * 3} aria-hidden="true" shapeRendering="crispEdges">
+      {block && <rect x={0} y={0} width={w} height={h} fill={block} />}
+      {rects.map(([x, y]) => (
+        <rect key={`${x}:${y}`} x={x} y={y} width={1} height={1} fill={ink} />
+      ))}
+    </svg>
+  );
+}
+function SignsFig({ where }: { where: "in" | "over" }) {
+  if (where === "in")
+    return (
+      <ul className="howto-signs">
+        {SIGN_ROWS.map(([k, t]) => {
+          const g = SIGN_PIXELS_5[k];
+          const rects: [number, number][] = [];
+          g.forEach((row, y) => [...row].forEach((on, x) => on === "1" && rects.push([x + 2, y + 1])));
+          return (
+            <li key={k}>
+              {pixSvg(rects, 14, 7, "rgba(0,0,0,0.72)", inkOf(1, 3))}
+              <span>{say(t)}</span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  return (
+    <ul className="howto-signs">
+      {ORN_ROWS.map(([mk, t]) => {
+        const rects: [number, number][] = [];
+        const at = { fillStyle: "", fillRect: (x: number, y: number) => void rects.push([x, y]) };
+        const wd = ORN_PIXELS[mk] ? (ornText(at as unknown as CanvasRenderingContext2D, mk, 0, 0, "", 1), ORN_PIXELS[mk][0].length) : pixRaw(at, mk, 0, 0, "", 1);
+        return (
+          <li key={mk}>
+            {pixSvg(rects, wd, 5, "#ffd23f")}
+            <span>{say(t)}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 /** The words the box writes as you play (the game's own, in the player's language). */
 function WordsFig({ words }: { words: readonly [string, string][] }) {
   return (
@@ -398,6 +461,8 @@ function Figure({ fig, sound, active, setActive, uid }: { fig: Fig; sound?: HowT
       return <PartsFig />;
     case "marks":
       return <MarksFig />;
+    case "signs":
+      return <SignsFig where={fig.where} />;
     case "words":
       return <WordsFig words={fig.words} />;
   }
