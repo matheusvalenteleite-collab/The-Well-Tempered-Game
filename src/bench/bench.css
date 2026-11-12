@@ -1292,3 +1292,22 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-take-listen { color: var(--tg-shine); border-color: var(--tg-shine); }
 .tb-take-del { color: #ff8a8a; border-color: #ff8a8a; }
 .tb-takes-files { justify-content: center; }
+/* D720: MY FUGUE's mixer over the saved performances. */
+.tb-mix { display: grid; gap: 8px; }
+.tb-mix-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 6px 10px; border: 1px solid rgba(255, 255, 255, 0.14); }
+.tb-mix-who { min-width: 0; display: grid; gap: 2px; }
+.tb-mix-voice { margin: 0; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-fg); }
+.tb-mix-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; }
+.tb-takes:has(.tb-mix) { width: min(760px, 100%); }
+@media (max-width: 560px) { .tb-mix-row { grid-template-columns: 10px minmax(0, 1fr); } .tb-mix-ctl { grid-column: 2; justify-content: flex-start; } }
+.tb-mix-ctl .tb-take-btn { min-width: 36px; }
+.tb-mix-ctl .tb-take-btn.on, .tb-take-star.on { color: #14101a; background: var(--tg-shine); border-color: var(--tg-shine); }
+.tb-mix-ctl .tb-take-btn:disabled { opacity: 0.4; cursor: default; }
+.tb-mix-level { min-width: 44px; text-align: center; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-shine); }
+.tb-mix-rec { color: #ff8a8a; border-color: #ff8a8a; }
+.tb-mix-listen { justify-self: center; }
+.tb-mix-listen:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+.tb-takes-head { margin-top: 6px; text-align: center; }
+/* D722: MY FUGUE's MP3 and MIDI, and the measurements (for a screenshot). */
+.tb-mix-share { justify-content: center; align-items: center; }
+.tb-mix-stats { margin: 0; width: 100%; box-sizing: border-box; padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.5 ui-monospace, Menlo, monospace; color: var(--tg-fg); background: rgba(0, 0, 0, 0.3); border: 1px dashed var(--tg-muted); text-align: left; }

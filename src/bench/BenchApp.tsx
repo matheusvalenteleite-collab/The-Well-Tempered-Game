@@ -128,7 +128,8 @@ import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.ts
 import { ConsortStops } from "../touch/ConsortStops.tsx";
 import { hasConsortStops } from "../touch/consort-stops.ts";
 import { outcomesOf, takeId, TakePlayer, takeName, type Take } from "./takes/take.ts";
-import { askToKeep, lasting, putTake, takeCounts } from "./takes/store.ts";
+import { askToKeep, lasting, putTake, starTake, takeCounts, takesOf } from "./takes/store.ts";
+import { backingFor, gains, readMix } from "./takes/myfugue.ts";
 import { onHomeScreen, TakesPanel, takeVoiceWord } from "./TakesPanel.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
@@ -365,6 +366,10 @@ export function BenchApp() {
   const [takeCount, setTakeCount] = useState<Record<string, number>>({});
   /** D457: a take being listened to (LISTEN), for the run being made. */
   const listening = useRef<Take | null>(null);
+  /** D720, MY FUGUE: the starred takes heard with the take listened to (LISTEN TO MY FUGUE), at the set's tempo; or under a voice being recorded (RECORD). */
+  const listenBacking = useRef<Take[]>([]);
+  const listenBpm = useRef<number | null>(null);
+  const overTakes = useRef<Take[] | null>(null);
   /** D457: the run just finished, as a take not yet saved (the score card's SAVE); then what saving said. */
   const draftTake = useRef<Take | null>(null);
   const [takeSaved, setTakeSaved] = useState<{ name: string; lasting: boolean; home: boolean } | null>(null);
@@ -709,12 +714,22 @@ export function BenchApp() {
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac && !lt) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? lt.bpm : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}) }, ch);
+    // D720: MY FUGUE's takes behind (theirs the voices muted in the band).
+    const backs = lt ? listenBacking.current : (overTakes.current ?? []);
+    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}) }, ch);
     // D457: LISTEN: the take as the player's voice.
     if (lt) g.listen = new TakePlayer(lt);
+    // D720: MY FUGUE: the other voices' takes, and the mixer (the takes', the band's, the live voice's levels).
+    const myFugue = backs.length > 0 || (!!overTakes.current && !lt);
+    const mixGains = myFugue ? gains(readMix(f.id, f.voices.length)) : null;
+    if (myFugue && mixGains) {
+      g.backing = backs.map((t) => new TakePlayer(t));
+      g.mix = mixGains;
+      g.labGain = mixGains;
+    }
     // D485: the game open to the hit-tests (`?dev=1` only).
     // D487: the player's voice never quieter than the others: its lift on the player's own bus, with TOOLS' balance.
-    if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift;
+    if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift * (mixGains && !lt ? (mixGains[played[0] ?? voice] ?? 1) : 1);
     if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
@@ -897,6 +912,7 @@ export function BenchApp() {
         if (lt) {
           // D457: a take listened to its end: back to its fugue's saved performances.
           listening.current = null;
+          listenBacking.current = [];
           setPhase({ kind: platform === "mobile" ? "home" : "title" });
           setTakesOpen(true);
           return;
@@ -1095,7 +1111,7 @@ export function BenchApp() {
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
-  const home = () => ((waitingHer.current = null), (listening.current = null), setLesson(null), setMan(null), setWatching(false), setPhase({ kind: "home" }));
+  const home = () => ((waitingHer.current = null), (listening.current = null), (listenBacking.current = []), (overTakes.current = null), setLesson(null), setMan(null), setWatching(false), setPhase({ kind: "home" }));
   // D373: ✕ in a lesson goes back to the tutorial's selection screen, the lesson chosen there.
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
@@ -1813,7 +1829,13 @@ export function BenchApp() {
             {playing && listening.current && (
               // D457: a take played back, named in the title bar.
               <span className="tb-tools-tag" id="listen-tag">
-                {tr("LISTENING")} · {takeName(listening.current, takeVoiceWord(listening.current.piece))}
+                {tr("LISTENING")} · {listenBacking.current.length ? tr("MY FUGUE") : takeName(listening.current, takeVoiceWord(listening.current.piece))}
+              </span>
+            )}
+            {playing && !listening.current && overTakes.current && (
+              // D720: a voice recorded over MY FUGUE's takes.
+              <span className="tb-tools-tag" id="over-tag">
+                ● {tr("RECORDING OVER MY FUGUE")}
               </span>
             )}
             {playing && practice.current && (
@@ -1911,6 +1933,8 @@ export function BenchApp() {
                       if (!t) return;
                       void askToKeep();
                       void putTake(t).then(async (kept) => {
+                        // D720: a voice's first take is its take in MY FUGUE.
+                        if (!(await takesOf(t.piece)).some((x) => x.voice === t.voice && x.star && x.id !== t.id)) await starTake(t);
                         setTakeSaved({ name: takeName(t, takeVoiceWord(t.piece)), lasting: kept && (await lasting()), home: onHomeScreen() });
                         setTakeCount(await takeCounts());
                       });
@@ -2262,11 +2286,47 @@ export function BenchApp() {
       {APP.lite && takesOpen && (phase.kind === "title" || phase.kind === "home") && (
         <TakesPanel
           piece={f.id}
+          my={{
+            singing: voicesFrom(f, from),
+            sound: soundNow,
+            tempo: tempi ? stepWord(step) : undefined,
+            bpm,
+            listenAll: (set) => {
+              // D720: LISTEN TO MY FUGUE: the starred takes together at the set's tempo, the rest by the game.
+              const { main, backing } = backingFor(set, null);
+              if (!main) return;
+              setTakesOpen(false);
+              listening.current = main;
+              listenBacking.current = backing;
+              listenBpm.current = bpm;
+              overTakes.current = null;
+              setPick({ voice: main.voice });
+              const ch = ensureChip();
+              setNote("");
+              void ch.resume().catch(() => {});
+              setPhase({ kind: "play" });
+            },
+            record: (v, set) => {
+              // D720: RECORD a voice over the starred takes of the others (a run like any, scored and kept as usual).
+              setTakesOpen(false);
+              listening.current = null;
+              listenBacking.current = [];
+              overTakes.current = backingFor(set, v).backing;
+              setPick({ voice: v });
+              const ch = ensureChip();
+              setNote("");
+              void ch.resume().catch(() => {});
+              setPhase({ kind: "play" });
+            },
+          }}
           close={() => (setTakesOpen(false), void takeCounts().then(setTakeCount))}
           listen={(t) => {
             // D457: LISTEN: the take played back as its voice (the run made for it), from the pop-up.
             setTakesOpen(false);
             listening.current = t;
+            listenBacking.current = [];
+            listenBpm.current = null;
+            overTakes.current = null;
             setPick({ voice: t.voice });
             const ch = ensureChip();
             setNote("");
