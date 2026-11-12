@@ -118,14 +118,16 @@ function letters(text: string): [string, string[]][] {
 }
 export const textWidth = (text: string, scale = 1) => letters(text).length * 4 * scale;
 /**
- * D657 (design studio; the owner could not read some of the signs over the notes): the ornaments drawn as print
- * draws them rather than spelt in the pixel font: the short trill a wavy line, the mordent the same line struck
- * through, the turn a lying S (7 by 5 pixels, "1" a pixel). TR stays in letters, as Bach and Busoni write it.
+ * D657 (design studio; the owner could not read some of the signs over the notes, then: "Try to follow the
+ * conventional notation symbols more closely"): the ornaments drawn as Bach's table and print draw them, not spelt in
+ * the pixel font ("1" a pixel): the short trill (Pralltriller, Schneller) the short zigzag of two sharp peaks; the
+ * mordent the same zigzag struck through its middle; the turn the lying S. TR stays in letters, as Bach and Busoni
+ * write it.
  */
 export const ORN_PIXELS: Record<string, string[]> = {
-  "~": ["0000000", "0100010", "1010101", "0001000", "0000000"],
-  "~|": ["0001000", "0101010", "1011101", "0001000", "0001000"],
-  S: ["0000000", "0110000", "1001001", "0000110", "0000000"],
+  "~": ["000000000", "001000100", "010101010", "100010001", "000000000"],
+  "~|": ["000010000", "001010100", "010111010", "100010001", "000010000"],
+  S: ["00000000", "01100010", "10010001", "10001001", "01000110"],
 };
 /** An ornament's sign over its note: its picture where it has one, else its letters; returns the width drawn. */
 export function ornText(g: CanvasRenderingContext2D, mk: string, x: number, y: number, color: string, scale = 1): number {
@@ -133,10 +135,10 @@ export function ornText(g: CanvasRenderingContext2D, mk: string, x: number, y: n
   if (!px) return pixText(g, mk, x, y, color, scale);
   g.fillStyle = color;
   px.forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(Math.round(x) + rx * scale, Math.round(y) + ry * scale, scale, scale)));
-  return 8 * scale;
+  return (px[0].length + 1) * scale;
 }
 /** The width an ornament's sign takes (ornText). */
-export const ornWidth = (mk: string, scale = 1) => (ORN_PIXELS[mk] ? 8 * scale : textWidth(mk, scale));
+export const ornWidth = (mk: string, scale = 1) => (ORN_PIXELS[mk] ? (ORN_PIXELS[mk][0].length + 1) * scale : textWidth(mk, scale));
 
 /**
  * D493: AN ENTRY'S LABEL IN ITS FORM. The owner: "inverted and augmented and diminished subjects can be named

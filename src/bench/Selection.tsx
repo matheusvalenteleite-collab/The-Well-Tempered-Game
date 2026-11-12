@@ -77,6 +77,8 @@ export interface SelectionProps {
   playPiece?: (id: string) => void;
   /** Design studio (D463): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
   tempo?: { word: string; beat: string; locked: boolean; cycle: () => void };
+  /** D458: the chosen piece's SAVED PERFORMANCES (how many; opens them), under PLAY. */
+  takes?: { n: number; open: () => void };
   /** D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE: the sound's play, and its stop (the box closed). */
   subject?: { play: (notes: Performed, voice: number) => Promise<number>; stop: () => void };
   /** D450 (the owner: "Move the DRUMS button to the right column … 3 DRUM presets … the player can cycle through"): on or off, and the piece's presets. */
@@ -244,6 +246,11 @@ export function Selection(p: SelectionProps) {
               ▶ {tr("PLAY")}
             </button>
           )
+        )}
+        {chosen && p.takes && p.takes.n > 0 && (
+          <button type="button" id="sel-takes" className="tb-pop-help sel-takes" onClick={p.takes.open}>
+            ● {tr("SAVED PERFORMANCES ({n})", { n: p.takes.n })}
+          </button>
         )}
         {chosen && p.learn && filmOf(pairKey) && (
           <button type="button" id="sel-learn" className="tb-play sel-play sel-learn" onClick={() => p.learn!(pairKey)}>

@@ -500,3 +500,5 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
    picture fills it edge to edge with nothing cropped (a square crop of these wide scenes cut half of each: I/19's three
    stooges, II/14's three sisters). FitEmblem's cover fill absorbs any part-pixel of difference. */
 .sel-right .sel-piece-pic { flex: none; width: 100%; height: auto; aspect-ratio: 64 / 40; min-height: 0; max-height: none; }
+/* D458: the chosen fugue's SAVED PERFORMANCES, under PLAY. */
+.sel-takes { flex: none; width: 100%; min-height: 36px; margin-top: 6px; font-size: 7px; color: var(--tg-fg); }

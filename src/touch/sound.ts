@@ -310,6 +310,13 @@ export interface Patch {
   /** D502: on a phone only, a high-pass (Hz, 2 poles) under the useful range of a low instrument's fundamental there (BACH BRASS's bass). */
   phoneHp?: number;
   /**
+   * D645: on a phone only, a harmonic exciter (chip.ts sampledNote, the "virtual bass" of a small speaker): the note's
+   * low band (a lowpass at `lp` Hz) driven (`drive`) through a soft clip, its new upper harmonics high-passed (2 poles at
+   * `hp` Hz: none of it under the speaker's band) and mixed in at `db` under the note; the bass line's fundamentals,
+   * which the speaker cannot give, heard by their harmonics where it can. The band's notes and the player's alike.
+   */
+  phoneExcite?: { lp: number; drive: number; hp: number; db: number };
+  /**
    * D430: a second instrument sounding the same note with this one (chip.ts Chip.note, as one note:
    * `together`), `level` of it: BAROQUE BAND's continuo harpsichord doubling the cello's bass line (it plays
    * only where the bass plays: it enters with it). `pan` its own seat (absolute, -1 to 1; absent: the
@@ -522,6 +529,8 @@ export function giveWayFall(how: GiveWay): { tau: number; points: [number, numbe
 export const CONSORT_SEND = 0.22;
 /** D365: STRING CONSORT's cello on a phone: its upper partials lifted (Patch.phoneLift), so the bass line carries there (measured: SOUND-PRINCIPLES.md §10). */
 export const CELLO_PHONE_LIFT = { hz: 700, db: 4 } as const;
+/** D645: STRING CONSORT's cello (arco and spiccato) on a phone 4 dB more (I/4's bass 6.8 LU under its loudest voice on the phone model). */
+export const CONSORT_CELLO_PHONE_LIFT = { hz: 700, db: 8 } as const;
 /** D421: the grand on a phone: its upper partials lifted (Patch.phoneLift), never its fundamentals; the speaker hears little under 600 Hz, where most of the grand's sound is. */
 export const PIANO_PHONE_LIFT = { hz: 800, db: 5 } as const;
 /** D358: SOLO VOICES' one send into its room (the plate), every singer's. */
@@ -657,6 +666,21 @@ export const JAZZ_I6_LEVEL = { sax: 0.33, guitar: 0.89 } as const;
 export const JAZZ_SAX_SHELF = { hz: 2400, db: -3 } as const;
 export const JAZZ_GUITAR_SHELF = { hz: 1800, db: -7 } as const;
 export const JAZZ_BASS_PHONE_LIFT = { hz: 320, db: 12, cut: 280 } as const;
+/**
+ * D645, the bass audible on a phone: the double bass's harmonics made on a phone from its own low band (Patch.phoneExcite;
+ * chip.ts excite): JAZZ QUARTET's (I/6, I/14, II/12 stood 7-10 LU under their loudest voice alone on the phone model),
+ * BOSSA NOVA's (II/7: 10.7), SALSA's (II/10: 17.5, with its level). The mix (db) measured per band (scratchpad bass/).
+ */
+export const BASS_PHONE_EXCITE = { lp: 250, drive: 16, hp: 600 } as const;
+export const JAZZ_BASS_PHONE_EXCITE = { ...BASS_PHONE_EXCITE, db: 6 } as const;
+export const BOSSA2_BASS_PHONE_EXCITE = { ...BASS_PHONE_EXCITE, db: 8 } as const;
+export const SALSA2_BASS_PHONE_EXCITE = { ...BASS_PHONE_EXCITE, db: 12 } as const;
+/** D645: ABBEY ROAD's picked bass (I/16 7.6 LU under), its recordings stronger in the low band: more of the mix. */
+export const ABBEY2_BASS_PHONE_EXCITE = { ...BASS_PHONE_EXCITE, db: 14 } as const;
+/** D645: KRAUTROCK's Moog on a phone (I/20 11.5, II/22 10.7 LU under): its upper partials lifted (Patch.phoneLift on a synthesized patch: chip.ts patchNote). */
+export const KRAUT2_MOOG_PHONE_LIFT = { hz: 400, db: 14 } as const;
+/** D645: SALSA's baby bass a little under its own band on a computer too (II/10: 10 LU under the trumpets, K-weighted): +7 dB. */
+export const SALSA2_BASS_LEVEL = 3.8;
 /** D503: the bass's woody attack (the finger on the string, the body's knock) a little forward, everywhere. */
 export const JAZZ_BASS_WOOD = { hz: 700, db: 3 } as const;
 /**
@@ -1294,7 +1318,7 @@ export const PATCHES = {
   // (Patch.bow), nothing added (the recordings' own vibrato), the player's line played as the others (Patch.one).
   consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
   consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
-  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CELLO_PHONE_LIFT }),
+  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CONSORT_CELLO_PHONE_LIFT }),
   // D512, the consort's articulation stops (consort-stops.ts): SPICCATO and PIZZICATO, each voice's own recordings
   // (VSCO 2 CE), dying away by themselves (the bow bounced, the string plucked), at the arco's level (sampled.ts
   // CONSORT_STOP_GAIN, measured), in the same room at the same send; the cello's phone lift kept. A pizzicato's
@@ -1302,7 +1326,7 @@ export const PATCHES = {
   // phone model at the arco's level elsewhere): its upper partials lifted on a phone (Patch.phoneLift), as the cello's.
   consViolinSpicc: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.1 }, amp: { a: 0.006, d: 0.18, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolinSpicc", one: {}, phoneLift: { hz: 700, db: 4 } }),
   consViolaSpicc: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.1 }, amp: { a: 0.006, d: 0.18, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolaSpicc", one: {} }),
-  consCelloSpicc: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.1 }, amp: { a: 0.006, d: 0.2, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloSpicc", one: {}, phoneLift: CELLO_PHONE_LIFT }),
+  consCelloSpicc: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.1 }, amp: { a: 0.006, d: 0.2, s: 0, r: 0.08 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloSpicc", one: {}, phoneLift: CONSORT_CELLO_PHONE_LIFT }),
   consViolinPizz: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.5, q: 1, env: 1.5, envDecay: 0.08 }, amp: { a: 0.003, d: 0.5, s: 0, r: 0.1 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolinPizz", one: {}, phoneLift: { hz: 700, db: 7 } }),
   consViolaPizz: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.08 }, amp: { a: 0.003, d: 0.6, s: 0, r: 0.1 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolaPizz", one: {}, phoneLift: { hz: 600, db: 10 } }),
   consCelloPizz: P({ osc: [{ wave: "triangle" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.08 }, amp: { a: 0.003, d: 0.8, s: 0, r: 0.1 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloPizz", one: {}, phoneLift: { hz: 700, db: 10 } }),
@@ -1368,7 +1392,7 @@ export const PATCHES = {
   // dark, round tone, its top rolled off, a soft pick). Each voice's level measured against the piano's it replaces.
   jqSax: P({ osc: [{ wave: "saw", gain: 0.4 }, { wave: "sine" }], filter: { freq: 2.2, q: 0.7 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.14 }, rec: { a: 0.05, d: 0.2, s: 0.92, r: 0.14 }, send: JAZZ_SEND, level: JAZZ_I6_LEVEL.sax, sample: "bossaSax", bow: WIND_TONGUE, one: {}, shelf: JAZZ_SAX_SHELF }),
   jqGuitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.2 }], filter: { freq: 3, q: 0.8, env: 1.5, envDecay: 0.12 }, amp: { a: 0.004, d: 1.2, s: 0, r: 0.12 }, send: JAZZ_SEND, level: JAZZ_I6_LEVEL.guitar, sample: "rockGuitar", one: {}, shelf: JAZZ_GUITAR_SHELF }),
-  jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  jqBass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.9, s: 0, r: 0.08 }, send: JAZZ_SEND, level: 0.85, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT, phoneExcite: JAZZ_BASS_PHONE_EXCITE }),
   // D520, SALSA: Iowa's trumpet and trombone (BACH BRASS's recordings and envelope), the grand, the baby bass. Stand-ins until loaded (D190).
   salTrumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: SALSA_SEND, level: 1.3, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {} }),
   salTrombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.018, d: 0.1, s: 0.92, r: 0.12 }, send: SALSA_SEND, level: 1.3, sample: "brassTrombone", bow: BRASS_TONGUE, one: {} }),
@@ -1414,7 +1438,7 @@ export const PATCHES = {
   s2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.15, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "horns" }),
   s2Trombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.5, sample: "brassTrombone", bow: BRASS_TONGUE, one: {}, lane: "horns", phoneLift: BRASS_HORN_PHONE_LIFT }),
   s2Tres: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 5, q: 0.8, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.06 }, send: SALSA2_SEND, level: 0.5, sample: "choroGuitar", one: { courses: SALSA2_TRES_COURSES }, shelf: SALSA2_TRES_SHELF, lane: "tres" }),
-  s2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.6, s: 0, r: 0.06 }, send: SALSA2_SEND * 0.3, level: 1.7, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT }),
+  s2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.6, s: 0, r: 0.06 }, send: SALSA2_SEND * 0.3, level: SALSA2_BASS_LEVEL, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT, phoneExcite: SALSA2_BASS_PHONE_EXCITE }),
   // D547, BOSSA NOVA v2 (Rio and A&R New York, 1959-64: STUDY.md §4): the alto flute (Iowa's: the breathy low flute of the
   // period's arrangements), slow-tongued; the Rhodes as FM (a tine: 1:1 with a 14:1 bell transient, its index falling; the
   // Suitcase's tremolo panning at 4 Hz); the tenor saxophone subtoned (Getz's: the top rolled off); the nylon guitar's
@@ -1423,7 +1447,7 @@ export const PATCHES = {
   b2Rhodes: P({ osc: [{ wave: "sine" }], fm: { ratio: 1, index: 1.5, to: 0.35, time: 0.4, mod2: { ratio: 14, index: 0.55, to: 0, time: 0.04 } }, filter: { freq: 5000, hz: true, q: 0.5 }, amp: { a: 0.002, d: 2.2, s: 0, r: 0.22 }, autopan: { rate: 4, depth: 0.2 }, send: BOSSA2_SEND, level: 0.14, one: {}, lane: "keys" }),
   b2Sax: P({ osc: [{ wave: "saw", gain: 0.4 }, { wave: "sine" }], filter: { freq: 2.2, q: 0.7 }, amp: { a: 0.06, d: 0.2, s: 0.9, r: 0.14 }, rec: { a: 0.06, d: 0.2, s: 0.92, r: 0.14 }, send: BOSSA2_SEND, level: 0.5, sample: "bossaSax", bow: WIND_TONGUE, one: {}, shelf: BOSSA2_SUBTONE }),
   b2Guitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.15 }], filter: { freq: 2.5, q: 0.7, env: 1.6, envDecay: 0.15 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.12 }, send: BOSSA2_SEND, level: 0.55, sample: "bossaGuitar", one: {}, shelf: BOSSA2_THUMB, phoneLift: BOSSA_GUITAR_PHONE_LIFT }),
-  b2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 2.5, q: 1, env: 1.2, envDecay: 0.1 }, amp: { a: 0.006, d: 0.8, s: 0, r: 0.1 }, send: BOSSA2_SEND * 0.4, level: 1.07, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT }),
+  b2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.5 }], filter: { freq: 2.5, q: 1, env: 1.2, envDecay: 0.1 }, amp: { a: 0.006, d: 0.8, s: 0, r: 0.1 }, send: BOSSA2_SEND * 0.4, level: 1.07, sample: "jazzBass", one: {}, shelf: JAZZ_BASS_WOOD, phoneLift: JAZZ_BASS_PHONE_LIFT, phoneExcite: BOSSA2_BASS_PHONE_EXCITE }),
   // D548, CHORINHO v2 (a regional on the radio, the 1950s: STUDY.md §5): the bandolim (the steel-strung guitar's recordings
   // strung as its paired courses, a few cents apart, bright; a note held past a third of a second tremolo-picked: the
   // course re-struck at 13 Hz, its level beaten, no new pitch: CHORO2_TREMOLO), the flute tongued and bright, the clarinet
@@ -1445,7 +1469,7 @@ export const PATCHES = {
   // (a fresh attack; a joined note no new envelope) and closing over 0.35 s to a round, singing tone; a slow drift of 3
   // cents (the oscillators' warmth), a 5-cent vibrato only after 0.45 s on a long note; no glide (every pitch Bach's own).
   k2Synth: P({ osc: [{ wave: "saw" }, { wave: "square", detune: 5, gain: 0.55 }], filter: { freq: 3.6, q: 2.2, env: 2.2, envDecay: 0.35, poles: 4 }, hp: 90, amp: { a: 0.006, d: 0.3, s: 0.82, r: 0.09 }, drift: { cents: 3, rate: 0.07 }, vib: { depth: 5, rate: 5.2, delay: 0.45 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.synth, one: {}, lane: "synth" }),
-  k2Moog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 6, gain: 0.8 }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1100, hz: true, q: 1.5, env: 2.4, envDecay: 0.12, poles: 4 }, slide: 0.03, hp: 38, amp: { a: 0.008, d: 0.6, s: 0.72, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: KRAUT2_SEND * 0.2, level: KRAUT2_LEVEL.moog, one: {} }),
+  k2Moog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 6, gain: 0.8 }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1100, hz: true, q: 1.5, env: 2.4, envDecay: 0.12, poles: 4 }, slide: 0.03, hp: 38, amp: { a: 0.008, d: 0.6, s: 0.72, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: KRAUT2_SEND * 0.2, level: KRAUT2_LEVEL.moog, one: {}, phoneLift: KRAUT2_MOOG_PHONE_LIFT }),
   k2Fuzz: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.fuzz, sample: "rockGuitar2", one: {}, lane: "guitar" }),
   k2Tron: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.035, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.035, d: 0.1, s: 0.92, r: 0.09 }, vib: { depth: 7, rate: 0.9, delay: 0 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.tron, sample: "trialFlute", one: {}, lane: "mellotron" }),
   k2Clean: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND * 1.5, level: KRAUT2_LEVEL.clean, sample: "rockGuitar", one: {}, lane: "clean" }),
@@ -1457,7 +1481,7 @@ export const PATCHES = {
   a2Guitar: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.guitar, sample: "rockGuitar", one: {}, shelf: ABBEY_GUITAR_SHELF, lane: "guitar" }),
   a2Hammond: P({ osc: [{ wave: "tonewheel", octave: -1 }], filter: { freq: 4200, hz: true, q: 0.6, env: 1.6, envDecay: 0.06 }, chiff: { level: 0.12, time: 0.005, at: 10 }, amp: { a: 0.004, d: 0.05, s: 1, r: 0.04 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.hammond, one: {}, lane: "organ" }),
   a2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.015, d: 0.1, s: 0.92, r: 0.12 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.trumpet, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "brass" }),
-  a2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: ABBEY2_SEND * 0.3, level: ABBEY2_LEVEL.bass, sample: "rockBass", one: {}, phoneLift: ROCK_BASS_PHONE_LIFT, lane: "bass" }),
+  a2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: ABBEY2_SEND * 0.3, level: ABBEY2_LEVEL.bass, sample: "rockBass", one: {}, phoneLift: ROCK_BASS_PHONE_LIFT, lane: "bass", phoneExcite: ABBEY2_BASS_PHONE_EXCITE }),
   // D545, PET SOUNDS v2 (STUDY.md §10): the accordion in musette (two free reeds 20 cents apart, the beating a musette's;
   // a third reed cost the phone's audio thread underruns at 4× throttle; the bellows' 30 ms attack), in the wall lane with the bass and the harpsichord (the slapback and the unison double).
   // D580: the tack piano (the slim grand, Brian Wilson's tack treatment: PET3_TACK), the twelve-string (the Gretsch strung in
@@ -1564,6 +1588,8 @@ export interface Preset {
    */
   gain?: number;
   phoneGain?: number;
+  /** D645: the bass voice's own gain on a phone (chip.ts voicing, over PHONE_BASS_GAIN), where its bass sat under the rule there. */
+  phoneBass?: number;
   /**
    * D504: other layouts a number of voices may take in a piece (each as `by`'s), where the piece's ranges ask
    * (trio.ts trioLayout: the one with fewest notes out of its instruments' compasses), set for a piece by
@@ -1661,7 +1687,8 @@ const TRK_BAND: readonly Slot[] = [["trkViolin", 0.35], ["trkViolin", 0.2, 0.9],
 export const PRESETS: Preset[] = [
   // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
   // D436: +2.8 dB, and on a phone +3 dB more (it stood 5.8 dB under the median there, 2.8 on a computer).
-  { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22, gain: 1.38, phoneGain: 1.41 },
+  // D645: its pulse bass on a phone +2 dB more (phoneBass: II/11 6.1 LU under its loudest voice alone on the phone model).
+  { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22, gain: 1.38, phoneGain: 1.41, phoneBass: 1.26 },
   // D294: GAME BOY (in place of D292's ROUND CHIP): the DMG's pulses and wave channel; no drums (DRUMS stays the classic chip's).
   { id: "gameboy", name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
@@ -1766,7 +1793,8 @@ export const PRESETS: Preset[] = [
     id: "tracker",
     name: "TRACKER",
     // D560: held to the budget (25 MB): BAND_SLIM; 44.8 → 24.5 MB.
-    slim: BAND_SLIM,
+    // D642: the harpsichord (chromatic) thinned to every fourth semitone: the concertos on TRACKER held to 25 MB (bwv1055-1 was 26.1).
+    slim: { ...BAND_SLIM, strides: { harpsiMod: 4 } },
     slots: ["trkViolin", "trkFlute", "trkHarpsi", "trkChoir", "trkBass"],
     room: 0,
     by: {
@@ -1865,6 +1893,8 @@ export const PRESETS: Preset[] = [
     // D560: held to the budget (25 MB): BAND_SLIM; 30.5 → 17.8 MB.
     slim: BAND_SLIM,
     slots: ["consViolin", "consViolin", "consViola", "consViola", "consCello"],
+    // D645: the cello lifted on a phone (CONSORT_CELLO_PHONE_LIFT), the rest a little under it there: each fugue's phone mix where it was (the phone model, whole fugue).
+    levels: { wtc1f04: { phoneGain: 0.9 }, wtc2f08: { phoneGain: 0.9 } },
     room: 0,
     fx: "salon",
     // D512: the articulation stops' recordings ready too (consort-stops.ts: SPICCATO, PIZZICATO), short notes.
@@ -2093,6 +2123,8 @@ export const PRESETS: Preset[] = [
     // D560: +1.6 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
     phoneGain: 0.67,
     slots: ["k2Tron", "k2Synth", "k2Clean", "k2Fuzz", "k2Moog"],
+    // D645: the Moog lifted on a phone (KRAUT2_MOOG_PHONE_LIFT), the rest a little under it there: each fugue's phone mix where it was.
+    levels: { wtc1f20: { phoneGain: 0.91 }, wtc2f22: { phoneGain: 0.91 } },
     groove: "motorik",
     kit: "rock",
     room: 0,
@@ -2118,6 +2150,8 @@ export const PRESETS: Preset[] = [
     // D560: +2.2 dB (+3.3 through its LA-2A) over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.
     phoneGain: 0.59,
     slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
+    // D645: the bass's exciter on a phone (BOSSA2_BASS_PHONE_EXCITE), the rest a little under it there: II/7's phone mix where it was.
+    levels: { wtc2f07: { phoneGain: 0.89 } },
     groove: "bossaNova",
     kit: "bossa",
     room: 0,
@@ -2245,7 +2279,8 @@ export const PRESETS: Preset[] = [
       4: [["orViolin1", -0.24], ["orViolin2", -0.08], ["orViola", 0.08], ["orCello", 0.24]],
       5: [["orViolin1", -0.24], ["orViolin2", -0.1], ["orViola", 0.04], ["orViola", 0.14, 0.92], ["orCello", 0.24]],
     },
-    slim: BAND_SLIM,
+    // D642: the cello (chromatic) thinned to every fourth semitone: the concertos held to 25 MB (bwv1043-3 was 25.9).
+    slim: { ...BAND_SLIM, strides: { consortCello: 4 } },
   },
 ];
 
@@ -2291,13 +2326,18 @@ export const OWN_PIECES: Readonly<Record<string, Preset["pieces"]>> = Object.fro
  * D632: the per-fugue seats by range (octave-seats.ts, tools/touch/octaves/seats.ts) merged into Preset.pieces: a voice whose
  * instrument does not cover its written line in a fugue takes the band's instrument that does (no note moved an octave, D631).
  */
-for (const p of [...PRESETS, ...TRIALS]) {
-  const seats = OCTAVE_SEATS[p.id];
-  if (!seats) continue;
-  const merged: Record<string, Partial<Record<number, readonly Slot[]>>> = { ...(p.pieces ?? {}) };
-  for (const [f, byCount] of Object.entries(seats)) merged[f] = { ...(merged[f] ?? {}), ...byCount };
-  p.pieces = merged;
+export type SeatTable = Readonly<Record<string, Readonly<Record<string, Partial<Record<number, readonly Slot[]>>>>>>;
+/** D632, D700: a seat table (octave-seats.ts, or a lazily loaded one: extra-seats.ts) merged into the presets' Preset.pieces. */
+export function mergeSeats(table: SeatTable) {
+  for (const p of [...PRESETS, ...TRIALS]) {
+    const seats = table[p.id];
+    if (!seats) continue;
+    const merged: Record<string, Partial<Record<number, readonly Slot[]>>> = { ...(p.pieces ?? {}) };
+    for (const [f, byCount] of Object.entries(seats)) merged[f] = { ...(merged[f] ?? {}), ...byCount };
+    p.pieces = merged;
+  }
 }
+mergeSeats(OCTAVE_SEATS);
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,

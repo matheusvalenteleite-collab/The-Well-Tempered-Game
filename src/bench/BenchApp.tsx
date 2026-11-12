@@ -28,7 +28,7 @@ import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
 import { builds } from "./journey.ts";
@@ -127,6 +127,11 @@ import { HardTapCalibrate, HardTapSetting } from "../touch/HardTapPanel.tsx";
 import { PistonSettings, RegistrationStops } from "../touch/RegistrationStops.tsx";
 import { ConsortStops } from "../touch/ConsortStops.tsx";
 import { hasConsortStops } from "../touch/consort-stops.ts";
+import { outcomesOf, takeId, TakePlayer, takeName, type Take } from "./takes/take.ts";
+import { askToKeep, lasting, putTake, starTake, takeCounts, takesOf } from "./takes/store.ts";
+import { backingFor, gains, readMix } from "./takes/myfugue.ts";
+import { Filmer, type FilmStats } from "./takes/film.ts";
+import { onHomeScreen, TakesPanel, takeVoiceWord } from "./TakesPanel.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 /** D453: the DRUMS row's quick round: HOME, then the sound's family and the fugue's own picks. */
@@ -269,6 +274,39 @@ export function BenchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "home" });
   /** D357: the phase as the stop row reads it (a stop change made while playing is kept with its bar). */
   const phaseRef = useRef<Phase["kind"]>("home");
+  // D499c (main board; the owner, a third time: the score screen "still looks ugly and doesn't encompass the whole
+  // screen, instead being compressed into the upper part"): the result's content is scaled to fill the screen it owns
+  // (zoom, the largest that fits 94% of the height and 96% of the width, 1 to 2), re-fitted on every resize and turn.
+  const resultBody = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = resultBody.current;
+    if (!el) return;
+    const fit = () => {
+      const box = el.parentElement;
+      if (!box) return;
+      el.style.zoom = "1";
+      el.style.minHeight = "0px";
+      const cs = getComputedStyle(box);
+      const availH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      // The content's own width (its widest block), not the body's 100%.
+      const w = Math.max(1, ...[...el.children].map((c) => (c as HTMLElement).offsetWidth));
+      const h = el.scrollHeight;
+      if (h < 1) return;
+      const z = Math.floor(Math.max(1, Math.min(2, (availH * 0.94) / h, (availW * 0.96) / w)) * 100) / 100;
+      el.style.zoom = String(z);
+      // The blocks spread over the whole height: the body as tall as the screen (in its own zoomed px).
+      el.style.minHeight = `${Math.floor((availH * 0.96) / z)}px`;
+    };
+    fit();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(fit) : null;
+    ro?.observe(el.parentElement ?? el);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  });
   // D357: a run begins: the stop changes of the last one forgotten (registration.ts stopChanges).
   useEffect(() => {
     if (phase.kind === "play") clearStopChanges();
@@ -357,6 +395,23 @@ export function BenchApp() {
   const [steps, setSteps] = useState(false);
   // D326, TOOLS: the panel open; the practice run under way (null: a scored run); the last practice's tally.
   const [toolsOpen, setToolsOpen] = useState(false);
+  /** D458: SAVED PERFORMANCES open over the pop-up; the takes each piece has. */
+  const [takesOpen, setTakesOpen] = useState(false);
+  const [takeCount, setTakeCount] = useState<Record<string, number>>({});
+  /** D457: a take being listened to (LISTEN), for the run being made. */
+  const listening = useRef<Take | null>(null);
+  /** D720, MY FUGUE: the starred takes heard with the take listened to (LISTEN TO MY FUGUE), at the set's tempo; or under a voice being recorded (RECORD). */
+  const listenBacking = useRef<Take[]>([]);
+  const listenBpm = useRef<number | null>(null);
+  const overTakes = useRef<Take[] | null>(null);
+  /** D725: MY FUGUE filmed as it plays (MAKE A VIDEO): the camera, and the film made (or why not). */
+  const filming = useRef(false);
+  const filmer = useRef<Filmer | null>(null);
+  const [filmOn, setFilmOn] = useState(false);
+  const [filmed, setFilmed] = useState<{ blob: Blob; stats: FilmStats } | { error: string } | null>(null);
+  /** D457: the run just finished, as a take not yet saved (the score card's SAVE); then what saving said. */
+  const draftTake = useRef<Take | null>(null);
+  const [takeSaved, setTakeSaved] = useState<{ name: string; lasting: boolean; home: boolean } | null>(null);
   const practice = useRef<PracticeRun | null>(null);
   const [practiced, setPracticed] = useState<{ piece: string; right: number; of: number } | null>(null);
   // D342, THE MANUAL (play.html's phone tutorial): the step under way.
@@ -672,6 +727,10 @@ export function BenchApp() {
   const prepared = useRef(prepareSound);
   prepared.current = prepareSound;
   useEffect(prepareSound, [soundNow, f, voice]);
+  // D458: how many takes each piece has (the pop-up's SAVED PERFORMANCES).
+  useEffect(() => {
+    if (APP.lite) void takeCounts().then(setTakeCount);
+  }, []);
 
   useEffect(wantHer, [phase.kind, f.id, hm]);
 
@@ -681,6 +740,8 @@ export function BenchApp() {
     // count-in; the player's notes at YOUR VOICE's level; all restored after.
     const ch = chip.current;
     const prac = practice.current;
+    // D457: a take listened to: its own span and tempo, nothing judged, nothing kept.
+    const lt = listening.current;
     const herBuf = herBuffer(hm);
     if (kimiko && (!hm || !herBuf)) return setPhase({ kind: "title" });
     const clock = hm && herBuf ? herClock(hm, f, from) : undefined;
@@ -691,11 +752,39 @@ export function BenchApp() {
     // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click or TOOLS practice).
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
     // D369: the voice played kept for the piece (offered again once it is finished).
-    if (APP.lite && !run && !prac) saveLastVoice(f.id, voice);
-    const g = new ProtoGame(f, played, prac ? prac.from : from, proto, { bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}) }, ch);
+    if (APP.lite && !run && !prac && !lt) saveLastVoice(f.id, voice);
+    // D720: MY FUGUE's takes behind (theirs the voices muted in the band).
+    const backs = lt ? listenBacking.current : (overTakes.current ?? []);
+    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}) }, ch);
+    // D457: LISTEN: the take as the player's voice.
+    if (lt) g.listen = new TakePlayer(lt);
+    // D725: MAKE A VIDEO: the box filmed from its first frame (the music's own sound), until the end.
+    if (lt && filming.current) {
+      try {
+        const cv = document.querySelector<HTMLCanvasElement>(".tg-roll canvas");
+        if (!cv) throw new Error("no music box to film");
+        const mine = new Set([lt.voice, ...backs.map((t) => t.voice)]);
+        const word = takeVoiceWord(f.id);
+        filmer.current = new Filmer(cv, ch.ctx, ch.ceiling, popTitle(f.id), `${tr("MY FUGUE")} · J. S. BACH`, f.voiceNames.map((_, v) => ({ name: word(v), colour: inkOf(v, f.voices.length), who: mine.has(v) ? tr("YOU") : tr("PLAYED BY THE GAME") })));
+        filmer.current.start();
+        setFilmOn(true);
+      } catch (e) {
+        filmer.current = null;
+        filming.current = false;
+        setFilmed({ error: String((e as Error)?.message ?? e) });
+      }
+    }
+    // D720: MY FUGUE: the other voices' takes, and the mixer (the takes', the band's, the live voice's levels).
+    const myFugue = backs.length > 0 || (!!overTakes.current && !lt);
+    const mixGains = myFugue ? gains(readMix(f.id, f.voices.length)) : null;
+    if (myFugue && mixGains) {
+      g.backing = backs.map((t) => new TakePlayer(t));
+      g.mix = mixGains;
+      g.labGain = mixGains;
+    }
     // D485: the game open to the hit-tests (`?dev=1` only).
     // D487: the player's voice never quieter than the others: its lift on the player's own bus, with TOOLS' balance.
-    if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift;
+    if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift * (mixGains && !lt ? (mixGains[played[0] ?? voice] ?? 1) : 1);
     if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
@@ -723,8 +812,11 @@ export function BenchApp() {
     const lens = man ? new LensTally(g) : null;
     // D376: THE EXPRESSION LAB records every take too (the Lab's log, tagged GLENN, kept with the Lab's RUNS).
     const glennTake = APP.glenn && !man && !watching;
+    // D457: on play.html every run of a piece is recorded (its take, and its log to judge it again), for SAVE on the score card.
+    const takeable = APP.lite && !APP.glenn && !man && !watching && !run && !prac && !lt && !kimiko;
+    draftTake.current = null;
     const rec =
-      (man || glennTake) && !watching
+      (man || glennTake || takeable) && !watching
         ? new LabRecorder(
             g,
             () => ch.heard(),
@@ -733,7 +825,7 @@ export function BenchApp() {
               at: new Date().toISOString(),
               passage: man
                 ? { piece: f.id, voice, fromBar: manMat?.fromBar ?? 1, toBar: manMat?.toBar ?? 1, bpm, tempoPct: 100, proto: "ladder", wait: !!run?.wait, bt: false, reading: null, sound: soundNow }
-                : { piece: f.id, voice, fromBar: barAt(f, from), toBar: barAt(f, Math.max(from, (run?.until ?? f.length) - 1)), bpm, tempoPct: Math.round((100 * bpm) / tempoOf(f.id)), proto: proto.id === "ladder" ? "ladder" : "keys", wait: !!run?.wait, bt: !!g.bt, reading: reading?.id ?? null, sound: soundNow },
+                : { piece: f.id, voice, fromBar: barAt(f, from), toBar: barAt(f, Math.max(from, (run?.until ?? f.length) - 1)), bpm, tempoPct: Math.round((100 * bpm) / tempoOf(f.id)), proto: proto.id === "ladder" ? "ladder" : "keys", wait: !!run?.wait, bt: !!g.bt, reading: reading?.id ?? null, sound: soundNow, ...(takeable ? { fail: true, legato: pick.legato, ornHint: !hintSeen.includes("ornament") } : {}) },
               device: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1, ua: navigator.userAgent, lag: ch.lag },
               area: { w: 0, h: 0 },
             },
@@ -755,6 +847,7 @@ export function BenchApp() {
       if (!rec) g.tap = lens.feed;
     }
     recRef.current = rec;
+    if (takeable) g.takeRec = g.takeRecorder();
     // D373: a tutorial step's own aids (else the lesson's); its kind (WATCH: his thumbs whole).
     const manStage = man && manLesson ? manLesson.stages[man.stage] : undefined;
     const aids = man && manLesson ? (manStage?.aids ?? manLesson.aids) : [];
@@ -871,7 +964,29 @@ export function BenchApp() {
           setToolsOpen(true);
           return;
         }
+        if (lt) {
+          // D457: a take listened to its end: back to its fugue's saved performances.
+          listening.current = null;
+          listenBacking.current = [];
+          // D725: the film finished with the music.
+          const fm = filmer.current;
+          if (fm) {
+            filmer.current = null;
+            filming.current = false;
+            setFilmOn(false);
+            void fm.stop().then(setFilmed, (e) => setFilmed({ error: String((e as Error)?.message ?? e) }));
+          }
+          setPhase({ kind: platform === "mobile" ? "home" : "title" });
+          setTakesOpen(true);
+          return;
+        }
         const r = g.results();
+        // D457: the run as a take, kept until SAVE (or the next run).
+        if (takeable && rec && g.takeRec) {
+          const at = new Date().toISOString();
+          draftTake.current = { v: 1, id: takeId(at), piece: f.id, voice: played[0] ?? voice, voices: f.voices.length, at, grade: r.failedBar === null ? r.grade : "", score: r.score, failedBar: r.failedBar, sound: soundNow, reading: reading?.id ?? null, bpm, tempoPct: Math.round((100 * bpm) / tempoOf(f.id)), lag: ch.lag ?? 0, app: VERSION, from, until: g.failedAt !== null ? Math.min(g.end, g.failedAt + f.barTicks) : g.end, notes: g.takeRec.notes, calls: g.takeRec.calls, out: outcomesOf(rec.log.verdicts, g.tracks.map((t) => t.notes.length)), log: rec.finish() };
+          setTakeSaved(null);
+        }
         // D314: an ornament shaken: its first-time hint is done.
         if (r.shakes.hit > 0 && !run) seenId("ornament");
         // D299's retune of a Bluetooth delay after each run: D494, gone (the delay stays as the player tapped it).
@@ -936,6 +1051,13 @@ export function BenchApp() {
       cancelAnimationFrame(raf);
       // D376: a take left before its end (QUIT, back to the cards) kept as stopped.
       keepGlenn(true);
+      // D725: a film left before its end: nothing kept.
+      if (filmer.current) {
+        filmer.current.abort();
+        filmer.current = null;
+        filming.current = false;
+        setFilmOn(false);
+      }
       recRef.current = null;
       g.stopAll();
       h?.stop();
@@ -1059,7 +1181,7 @@ export function BenchApp() {
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
-  const home = () => ((waitingHer.current = null), setLesson(null), setMan(null), setWatching(false), setPhase({ kind: "home" }));
+  const home = () => ((waitingHer.current = null), (listening.current = null), (listenBacking.current = []), (overTakes.current = null), setLesson(null), setMan(null), setWatching(false), setPhase({ kind: "home" }));
   // D373: ✕ in a lesson goes back to the tutorial's selection screen, the lesson chosen there.
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
@@ -1580,7 +1702,7 @@ export function BenchApp() {
     // D342: a manual take's touches go through its recorder (the take's lab log), which hands them on to the game.
     // D373: a touch while he plays: JUST WATCH FOR NOW; in 1.1's tour, each strip touched noted (and played, as in the game).
     // D379, SPOT: while he plays, a tap is the player's "there it is" (noted, flashed; it plays nothing).
-    down: (id, side, x, y, w, h, ts) => (watching ? void (spotTap() || setNudge(performance.now())) : practice.current?.listen ? undefined : (layout !== "bars" && seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
+    down: (id, side, x, y, w, h, ts) => (watching ? void (spotTap() || setNudge(performance.now())) : practice.current?.listen || listening.current ? undefined : (layout !== "bars" && seen(), tourTouch(side), recRef.current && game.current ? recRef.current.down(id, side, x, y, w, h, ts) : game.current?.down(id, { side, x, y, w, h }, ts))),
     move: (id, x, y, w, h, ts) => (recRef.current && game.current ? recRef.current.move(id, x, y, w, h, ts) : game.current?.move(id, { side: "left", x, y, w, h }, ts)),
     // D249: a touch the system took back (pointercancel) stops its note unjudged: no early let-go.
     up: (id, ts, cancelled) => (recRef.current && game.current ? recRef.current.up(id, ts, cancelled) : game.current?.up(id, ts, cancelled)),
@@ -1774,6 +1896,24 @@ export function BenchApp() {
           <>
             <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? liteTitle(f) : `BENCH · ${proto.name}`}</span>
             <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
+            {playing && listening.current && (
+              // D457: a take played back, named in the title bar.
+              <span className="tb-tools-tag" id="listen-tag">
+                {tr("LISTENING")} · {listenBacking.current.length ? tr("MY FUGUE") : takeName(listening.current, takeVoiceWord(listening.current.piece))}
+              </span>
+            )}
+            {playing && filmOn && (
+              // D725: MY FUGUE being filmed.
+              <span className="tb-tools-tag tb-film-tag" id="film-tag">
+                ● {tr("FILMING")}
+              </span>
+            )}
+            {playing && !listening.current && overTakes.current && (
+              // D720: a voice recorded over MY FUGUE's takes.
+              <span className="tb-tools-tag" id="over-tag">
+                ● {tr("RECORDING OVER MY FUGUE")}
+              </span>
+            )}
             {playing && practice.current && (
               // D326: a practice run (or THE OTHERS) named in the title bar.
               <span className="tb-tools-tag" id="tools-tag">
@@ -1812,6 +1952,7 @@ export function BenchApp() {
             <button type="button" id="result-close" className="tg-x tb-result-x" aria-label="Back to the cards" onClick={home}>
               ✕
             </button>
+            <div className="tb-result-body" ref={resultBody}>
             {phase.sheet ? (
               <SheetCard
                 head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className="tb-grade" style={{ color: GRADE_INK[phase.grade] }}>{phase.grade}</h1>}
@@ -1851,6 +1992,36 @@ export function BenchApp() {
               </p>
             ))}
             {!APP.lite && phase.feats && phase.feats.length > 0 && <FeatToast fresh={phase.feats} open={() => setPhase({ kind: "achievements", fresh: phase.feats })} />}
+            {draftTake.current && draftTake.current.piece === f.id && (
+              // D457: SAVE: the run kept as a take in the fugue's SAVED PERFORMANCES.
+              <div className="tb-take-save" id="take-save-box">
+                {takeSaved ? (
+                  <p className="tb-take-saved" id="take-saved" role="status">
+                    {tr("SAVED")} · {takeSaved.name}
+                    {!takeSaved.lasting ? <span className="tb-takes-note">{tr("THIS BROWSER KEEPS THEM ONLY UNTIL YOU LEAVE THE PAGE. SAVE A BACKUP TO KEEP THEM.")}</span> : !takeSaved.home ? <span className="tb-takes-note">{tr("ON AN IPHONE, ADD THE GAME TO YOUR HOME SCREEN TO KEEP THEM: SAFARI CLEARS A SITE'S RECORDINGS AFTER SEVEN DAYS WITHOUT A VISIT.")}</span> : null}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    id="take-save"
+                    className="tb-take-btn tb-take-save-btn"
+                    onClick={() => {
+                      const t = draftTake.current;
+                      if (!t) return;
+                      void askToKeep();
+                      void putTake(t).then(async (kept) => {
+                        // D720: a voice's first take is its take in MY FUGUE.
+                        if (!(await takesOf(t.piece)).some((x) => x.voice === t.voice && x.star && x.id !== t.id)) await starTake(t);
+                        setTakeSaved({ name: takeName(t, takeVoiceWord(t.piece)), lasting: kept && (await lasting()), home: onHomeScreen() });
+                        setTakeCount(await takeCounts());
+                      });
+                    }}
+                  >
+                    ● {tr("SAVE THIS PERFORMANCE")}
+                  </button>
+                )}
+              </div>
+            )}
             {phase.report && full && (
               // D259: what went wrong, to copy and send (the owner's reports from the phone).
               <button
@@ -1878,6 +2049,7 @@ export function BenchApp() {
                   ▶ {tr("NEXT")}
                 </button>
               )}
+            </div>
             </div>
           </div>
         , document.body)}
@@ -2129,6 +2301,8 @@ export function BenchApp() {
           // D450: DRUMS on the right column (moved from the pop-up): ON/OFF and the piece's presets.
           // D453: the whole drum library for this fugue in its sound (HOME first); the quick round HOME and the sound's family; MORE every style.
           drums={!full ? { on: drumsOn, toggle: () => (setLiteDrums(!drumsOn), setDrumsOn(!drumsOn)), presets: drumMenuFor(f.id, presetById(sound).id), preset: drumPresetOf(f.id, presetById(sound).id), quick: quickDrums(f.id, presetById(sound).id), cycle: () => (cycleDrumPreset(f.id, presetById(sound).id, quickDrums(f.id, presetById(sound).id)), setDrumsOn(true), setDrumTick((t) => t + 1)), choose: (id: string) => (chooseDrumPreset(f.id, id), setDrumsOn(true), setDrumTick((t) => t + 1)) } : undefined}
+          // D458: the chosen fugue's SAVED PERFORMANCES.
+          takes={{ n: takeCount[f.id] ?? 0, open: () => setTakesOpen(true) }}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
           tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], ownName: PIECE_SOUND[f.id] ? presetById(PIECE_SOUND[f.id]).name : undefined, set: setSound } : undefined}
@@ -2165,6 +2339,12 @@ export function BenchApp() {
               {tr("A B ON THIS FUGUE UNLOCKS TEMPO")}
             </p>
           )}
+          {APP.lite && !lesson && !man && (takeCount[f.id] ?? 0) > 0 && (
+            // D458: the fugue's SAVED PERFORMANCES, with their count.
+            <button type="button" id="pop-takes" className="tb-pop-help tb-pop-takes" onClick={() => setTakesOpen(true)}>
+              ● {tr("SAVED PERFORMANCES ({n})", { n: takeCount[f.id] ?? 0 })}
+            </button>
+          )}
           {herHere && <HerSwitch pick={pick} setPick={setPick} />}
           {kimiko && <p className="tg-card-sub tb-her">{herLine(hm ? herState(hm) : null)}</p>}
           {kimiko && <p className="tg-card-sub tb-her-credit">{HER_CREDIT}</p>}
@@ -2180,6 +2360,76 @@ export function BenchApp() {
             </p>
           )}
         </PlayPop>
+      )}
+      {APP.lite && takesOpen && (phase.kind === "title" || phase.kind === "home") && (
+        <TakesPanel
+          piece={f.id}
+          my={{
+            singing: voicesFrom(f, from),
+            sound: soundNow,
+            tempo: tempi ? stepWord(step) : undefined,
+            bpm,
+            filmed,
+            film: (set) => {
+              // D725: MAKE A VIDEO: LISTEN TO MY FUGUE, filmed as it plays.
+              const { main, backing } = backingFor(set, null);
+              if (!main) return;
+              setFilmed(null);
+              setTakesOpen(false);
+              filming.current = true;
+              listening.current = main;
+              listenBacking.current = backing;
+              listenBpm.current = bpm;
+              overTakes.current = null;
+              setPick({ voice: main.voice });
+              const ch = ensureChip();
+              setNote("");
+              void ch.resume().catch(() => {});
+              setPhase({ kind: "play" });
+            },
+            listenAll: (set) => {
+              // D720: LISTEN TO MY FUGUE: the starred takes together at the set's tempo, the rest by the game.
+              const { main, backing } = backingFor(set, null);
+              if (!main) return;
+              setTakesOpen(false);
+              listening.current = main;
+              listenBacking.current = backing;
+              listenBpm.current = bpm;
+              overTakes.current = null;
+              setPick({ voice: main.voice });
+              const ch = ensureChip();
+              setNote("");
+              void ch.resume().catch(() => {});
+              setPhase({ kind: "play" });
+            },
+            record: (v, set) => {
+              // D720: RECORD a voice over the starred takes of the others (a run like any, scored and kept as usual).
+              setTakesOpen(false);
+              listening.current = null;
+              listenBacking.current = [];
+              overTakes.current = backingFor(set, v).backing;
+              setPick({ voice: v });
+              const ch = ensureChip();
+              setNote("");
+              void ch.resume().catch(() => {});
+              setPhase({ kind: "play" });
+            },
+          }}
+          close={() => (setTakesOpen(false), void takeCounts().then(setTakeCount))}
+          listen={(t) => {
+            // D457: LISTEN: the take played back as its voice (the run made for it), from the pop-up.
+            setTakesOpen(false);
+            listening.current = t;
+            listenBacking.current = [];
+            listenBpm.current = null;
+            overTakes.current = null;
+            setPick({ voice: t.voice });
+            const ch = ensureChip();
+            setNote("");
+            void ch.resume().catch(() => {});
+            setPhase({ kind: "play" });
+          }}
+        />
       )}
       {phase.kind === "achievements" && <Achievements close={back} tab={phase.fresh?.length ? "feats" : "seals"} fresh={phase.fresh} />}
       {phase.kind === "lessons" && <LessonMap platform={platform} focus={phase.focus} play={beginLesson} close={back} />}

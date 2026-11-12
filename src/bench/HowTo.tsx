@@ -386,7 +386,7 @@ const SIGN_ROWS: [Sign, T][] = [
 const ORN_ROWS: [string, T][] = [
   ["TR", { en: "TRILL: the note and the one above, quickly in turn", pt: "TRINADO: a nota e a de cima, rápido, alternadas", es: "TRINO: la nota y la de arriba, rápido, alternadas" }],
   ["(TR)", { en: "A TRILL BUSONI LEAVES TO YOU", pt: "UM TRINADO QUE BUSONI DEIXA A SEU CRITÉRIO", es: "UN TRINO QUE BUSONI DEJA A TU ELECCIÓN" }],
-  ["~", { en: "SHORT TRILL: from the note above, a few beats", pt: "TRINADO CURTO: da nota de cima, poucas batidas", es: "TRINO CORTO: desde la nota de arriba, pocas batidas" }],
+  ["~", { en: "SHORT TRILL (PRALLTRILLER): from the note above, a few beats", pt: "TRINADO CURTO (PRALLTRILLER): da nota de cima, poucas batidas", es: "TRINO CORTO (PRALLTRILLER): desde la nota de arriba, pocas batidas" }],
   ["~|", { en: "MORDENT: the note, the step below, the note", pt: "MORDENTE: a nota, o grau abaixo, a nota", es: "MORDENTE: la nota, el grado de abajo, la nota" }],
   ["S", { en: "TURN: above, the note, below, the note", pt: "GRUPETO: acima, a nota, abaixo, a nota", es: "GRUPETO: arriba, la nota, abajo, la nota" }],
 ];
@@ -422,7 +422,7 @@ function SignsFig({ where }: { where: "in" | "over" }) {
       {ORN_ROWS.map(([mk, t]) => {
         const rects: [number, number][] = [];
         const at = { fillStyle: "", fillRect: (x: number, y: number) => void rects.push([x, y]) };
-        const wd = ORN_PIXELS[mk] ? (ornText(at as unknown as CanvasRenderingContext2D, mk, 0, 0, "", 1), 7) : pixRaw(at, mk, 0, 0, "", 1);
+        const wd = ORN_PIXELS[mk] ? (ornText(at as unknown as CanvasRenderingContext2D, mk, 0, 0, "", 1), ORN_PIXELS[mk][0].length) : pixRaw(at, mk, 0, 0, "", 1);
         return (
           <li key={mk}>
             {pixSvg(rects, wd, 5, "#ffd23f")}

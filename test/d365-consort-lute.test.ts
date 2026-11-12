@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { register } from "node:module";
 import { FakeNode, FakeParam, installFakeAudio } from "./fake-audio.ts";
 import { CHIP_PAN, CHIP_TRIANGLE, Chip, voicing, type Play } from "../src/touch/chip.ts";
-import { CELLO_PHONE_LIFT, CONSORT_CREDIT, PATCHES, PRESETS, creditFor, offered, presetById, setPreset } from "../src/touch/sound.ts";
+import { CONSORT_CELLO_PHONE_LIFT as CELLO_PHONE_LIFT, CONSORT_CREDIT, PATCHES, PRESETS, creditFor, offered, presetById, setPreset } from "../src/touch/sound.ts";
 import { folderOf, PERIOD } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { TOUCH_KINDS } from "../src/touch/touch-expr.ts";
@@ -61,7 +61,8 @@ test("D365: the consort's viola a solo viola (TinySOL), every whole tone C3-D6, 
 });
 
 test("D365: the cello's upper partials lifted on a phone (a high shelf over its fundamentals), not on a computer; the same for the player", async () => {
-  assert.ok(CELLO_PHONE_LIFT.hz >= 400 && CELLO_PHONE_LIFT.db > 0 && CELLO_PHONE_LIFT.db <= 6);
+  // D645: the consort's cello 4 dB more on a phone (CONSORT_CELLO_PHONE_LIFT: I/4's bass by the phone model).
+  assert.ok(CELLO_PHONE_LIFT.hz >= 400 && CELLO_PHONE_LIFT.db > 0 && CELLO_PHONE_LIFT.db <= 8);
   assert.equal(PATCHES.consCello.phoneLift, CELLO_PHONE_LIFT);
   for (const id of ["consViolin", "consViola"] as const) assert.equal(PATCHES[id].phoneLift, undefined, id);
   const lifts = async (phone: boolean, lead: boolean) => {
