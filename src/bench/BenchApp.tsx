@@ -130,6 +130,7 @@ import { hasConsortStops } from "../touch/consort-stops.ts";
 import { outcomesOf, takeId, TakePlayer, takeName, type Take } from "./takes/take.ts";
 import { askToKeep, lasting, putTake, starTake, takeCounts, takesOf } from "./takes/store.ts";
 import { backingFor, gains, readMix } from "./takes/myfugue.ts";
+import { Filmer, type FilmStats } from "./takes/film.ts";
 import { onHomeScreen, TakesPanel, takeVoiceWord } from "./TakesPanel.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
@@ -403,6 +404,11 @@ export function BenchApp() {
   const listenBacking = useRef<Take[]>([]);
   const listenBpm = useRef<number | null>(null);
   const overTakes = useRef<Take[] | null>(null);
+  /** D725: MY FUGUE filmed as it plays (MAKE A VIDEO): the camera, and the film made (or why not). */
+  const filming = useRef(false);
+  const filmer = useRef<Filmer | null>(null);
+  const [filmOn, setFilmOn] = useState(false);
+  const [filmed, setFilmed] = useState<{ blob: Blob; stats: FilmStats } | { error: string } | null>(null);
   /** D457: the run just finished, as a take not yet saved (the score card's SAVE); then what saving said. */
   const draftTake = useRef<Take | null>(null);
   const [takeSaved, setTakeSaved] = useState<{ name: string; lasting: boolean; home: boolean } | null>(null);
@@ -752,6 +758,22 @@ export function BenchApp() {
     const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}) }, ch);
     // D457: LISTEN: the take as the player's voice.
     if (lt) g.listen = new TakePlayer(lt);
+    // D725: MAKE A VIDEO: the box filmed from its first frame (the music's own sound), until the end.
+    if (lt && filming.current) {
+      try {
+        const cv = document.querySelector<HTMLCanvasElement>(".tg-roll canvas");
+        if (!cv) throw new Error("no music box to film");
+        const mine = new Set([lt.voice, ...backs.map((t) => t.voice)]);
+        const word = takeVoiceWord(f.id);
+        filmer.current = new Filmer(cv, ch.ctx, ch.ceiling, popTitle(f.id), `${tr("MY FUGUE")} · J. S. BACH`, f.voiceNames.map((_, v) => ({ name: word(v), colour: inkOf(v, f.voices.length), who: mine.has(v) ? tr("YOU") : tr("PLAYED BY THE GAME") })));
+        filmer.current.start();
+        setFilmOn(true);
+      } catch (e) {
+        filmer.current = null;
+        filming.current = false;
+        setFilmed({ error: String((e as Error)?.message ?? e) });
+      }
+    }
     // D720: MY FUGUE: the other voices' takes, and the mixer (the takes', the band's, the live voice's levels).
     const myFugue = backs.length > 0 || (!!overTakes.current && !lt);
     const mixGains = myFugue ? gains(readMix(f.id, f.voices.length)) : null;
@@ -946,6 +968,14 @@ export function BenchApp() {
           // D457: a take listened to its end: back to its fugue's saved performances.
           listening.current = null;
           listenBacking.current = [];
+          // D725: the film finished with the music.
+          const fm = filmer.current;
+          if (fm) {
+            filmer.current = null;
+            filming.current = false;
+            setFilmOn(false);
+            void fm.stop().then(setFilmed, (e) => setFilmed({ error: String((e as Error)?.message ?? e) }));
+          }
           setPhase({ kind: platform === "mobile" ? "home" : "title" });
           setTakesOpen(true);
           return;
@@ -1021,6 +1051,13 @@ export function BenchApp() {
       cancelAnimationFrame(raf);
       // D376: a take left before its end (QUIT, back to the cards) kept as stopped.
       keepGlenn(true);
+      // D725: a film left before its end: nothing kept.
+      if (filmer.current) {
+        filmer.current.abort();
+        filmer.current = null;
+        filming.current = false;
+        setFilmOn(false);
+      }
       recRef.current = null;
       g.stopAll();
       h?.stop();
@@ -1865,6 +1902,12 @@ export function BenchApp() {
                 {tr("LISTENING")} · {listenBacking.current.length ? tr("MY FUGUE") : takeName(listening.current, takeVoiceWord(listening.current.piece))}
               </span>
             )}
+            {playing && filmOn && (
+              // D725: MY FUGUE being filmed.
+              <span className="tb-tools-tag tb-film-tag" id="film-tag">
+                ● {tr("FILMING")}
+              </span>
+            )}
             {playing && !listening.current && overTakes.current && (
               // D720: a voice recorded over MY FUGUE's takes.
               <span className="tb-tools-tag" id="over-tag">
@@ -2326,6 +2369,24 @@ export function BenchApp() {
             sound: soundNow,
             tempo: tempi ? stepWord(step) : undefined,
             bpm,
+            filmed,
+            film: (set) => {
+              // D725: MAKE A VIDEO: LISTEN TO MY FUGUE, filmed as it plays.
+              const { main, backing } = backingFor(set, null);
+              if (!main) return;
+              setFilmed(null);
+              setTakesOpen(false);
+              filming.current = true;
+              listening.current = main;
+              listenBacking.current = backing;
+              listenBpm.current = bpm;
+              overTakes.current = null;
+              setPick({ voice: main.voice });
+              const ch = ensureChip();
+              setNote("");
+              void ch.resume().catch(() => {});
+              setPhase({ kind: "play" });
+            },
             listenAll: (set) => {
               // D720: LISTEN TO MY FUGUE: the starred takes together at the set's tempo, the rest by the game.
               const { main, backing } = backingFor(set, null);

@@ -14,6 +14,7 @@ import { backupText, deleteTake, lasting, putTake, readBackup, renameTake, starT
 import { clampLevel, gains, LEVEL_STEP, readMix, saveMix, starred, type MixVoice } from "./takes/myfugue.ts";
 import { renderMp3, type RenderStats } from "./takes/render.ts";
 import { midiOf } from "./takes/midi.ts";
+import { filmFile, filmType, type FilmStats } from "./takes/film.ts";
 
 /** A take's voice word, as the pop-up names the voices (ALTO; UPPER for a two-part piece). */
 export function takeVoiceWord(piece: string): (voice: number) => string {
@@ -81,11 +82,17 @@ export async function shareBlob(blob: Blob, name: string, type: string): Promise
   return "saved";
 }
 
+/** D725: the film's measurements, one line each. */
+export function filmLines(s: FilmStats): string[] {
+  const mmss = `${Math.floor(s.seconds / 60)}:${String(Math.round(s.seconds % 60)).padStart(2, "0")}`;
+  return [`filmed ${mmss} · ${s.width}×${s.height} · ${s.frames} frames (${Math.round(s.frames / Math.max(0.1, s.seconds))} a second)`, `${s.type}`, `file ${s.mb} MB (${s.kbps} kbit/s) · finished ${(s.finishMs / 1000).toFixed(1)} s after the music · JS heap ${s.heapMb === null ? "not reported" : `${s.heapMb} MB`}`, typeof navigator !== "undefined" ? navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 160) : ""];
+}
+
 /** D722: the measurements, one line each, for a screenshot. */
 export function statsLines(s: RenderStats): string[] {
   const mmss = `${Math.floor(s.seconds / 60)}:${String(Math.round(s.seconds % 60)).padStart(2, "0")}`;
   return [
-    `rendered ${mmss} · ${s.sampleRate / 1000} kHz stereo · output buffer ${s.outputMb} MB`,
+    `rendered ${mmss} · ${s.sampleRate / 1000} kHz stereo · ${s.parts} parts · peak buffer ${s.outputMb} MB`,
     `load ${(s.loadMs / 1000).toFixed(1)} s · render ${(s.renderMs / 1000).toFixed(1)} s (${s.speed}× real time) · encode ${(s.encodeMs / 1000).toFixed(1)} s`,
     `MP3 ${(s.mp3Kb / 1024).toFixed(1)} MB · JS heap ${s.heapMb === null ? "not reported" : `${s.heapMb} MB`}`,
     `${typeof navigator !== "undefined" ? navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 160) : ""}`,
@@ -102,6 +109,9 @@ export interface MyFugueActs {
   listenAll: (set: Map<number, Take>) => void;
   /** The set's tempo (quarters a minute), for the MP3 and the MIDI file. */
   bpm: number;
+  /** D725: MAKE A VIDEO (LISTEN TO MY FUGUE filmed), and the film made (or why not). */
+  film: (set: Map<number, Take>) => void;
+  filmed: { blob: Blob; stats: FilmStats } | { error: string } | null;
   /** RECORD a voice over the starred takes. */
   record: (voice: number, set: Map<number, Take>) => void;
 }
@@ -192,10 +202,26 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
                     </button>
                   </>
                 )}
+                {filmType() && (
+                  <button type="button" className="tb-take-btn" id="my-film" onClick={() => my.film(set)}>
+                    🎬 {tr("MAKE A VIDEO")}
+                  </button>
+                )}
                 <button type="button" className="tb-take-btn" id="my-midi" onClick={() => void shareBlob(new Blob([midiOf(piece, set, f.voiceNames.map((_, v) => word(v)), my.bpm) as BlobPart], { type: "audio/midi" }), `${fileBase}.mid`, "audio/midi").then((r) => r !== "cancelled" && setSaid(r === "shared" ? tr("SENT") : tr("SAVED AS A FILE")))}>
                   {tr("MIDI FILE")}
                 </button>
                 {made && "error" in made && <p className="tb-takes-note">{tr("THE MP3 COULD NOT BE MADE ON THIS DEVICE")}: {made.error}</p>}
+                {my.filmed && "error" in my.filmed && <p className="tb-takes-note">{tr("THE VIDEO COULD NOT BE MADE ON THIS DEVICE")}: {my.filmed.error}</p>}
+                {my.filmed && "stats" in my.filmed && (
+                  <>
+                    <button type="button" className="tb-take-btn tb-take-listen" id="my-film-share" onClick={() => { const fl = my.filmed; if (!fl || !("blob" in fl)) return; const { ext, mime } = filmFile(fl.stats.type); void shareBlob(fl.blob, `${fileBase}.${ext}`, mime).then((r) => r !== "cancelled" && setSaid(r === "shared" ? tr("SENT") : tr("SAVED AS A FILE"))); }}>
+                      {tr("SHARE THE VIDEO")}
+                    </button>
+                    <pre className="tb-mix-stats" id="my-film-stats">
+                      {filmLines(my.filmed.stats).join("\n")}
+                    </pre>
+                  </>
+                )}
                 {made && "stats" in made && (
                   <pre className="tb-mix-stats" id="my-mp3-stats">
                     {statsLines(made.stats).join("\n")}
