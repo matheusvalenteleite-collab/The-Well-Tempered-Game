@@ -15,6 +15,8 @@ import { clampLevel, gains, LEVEL_STEP, readMix, saveMix, starred, type MixVoice
 import { renderMp3, type RenderStats } from "./takes/render.ts";
 import { midiOf } from "./takes/midi.ts";
 import { filmFile, filmType, type FilmStats } from "./takes/film.ts";
+import { herMap } from "./her-clock.ts";
+import { BesidePanel } from "./BesidePanel.tsx";
 
 /** A take's voice word, as the pop-up names the voices (ALTO; UPPER for a two-part piece). */
 export function takeVoiceWord(piece: string): (voice: number) => string {
@@ -124,6 +126,8 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
   const [renaming, setRenaming] = useState<string | null>(null);
   const [asking, setAsking] = useState<string | null>(null);
   const [said, setSaid] = useState("");
+  /** D726: a take laid beside Kimiko Ishizaka's recording (Book I). */
+  const [beside, setBeside] = useState<Take | null>(null);
   const [mix, setMixState] = useState<MixVoice[]>(() => readMix(piece, f.voices.length));
   const setMix = (i: number, ch: Partial<MixVoice>) => {
     const next = mix.map((v, k) => (k === i ? { ...v, ...ch, level: clampLevel(ch.level ?? v.level) } : v));
@@ -308,6 +312,11 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
                   <button type="button" className="tb-take-btn tb-take-listen" id={`take-listen-${t.id}`} onClick={() => listen(t)}>
                     ▶ {tr("LISTEN")}
                   </button>
+                  {herMap(t.piece) && (
+                    <button type="button" className="tb-take-btn" id={`take-beside-${t.id}`} onClick={() => setBeside(t)}>
+                      {tr("BESIDE KIMIKO")}
+                    </button>
+                  )}
                   <button type="button" className="tb-take-btn" id={`take-send-${t.id}`} onClick={() => void sendTake(t, takeName(t, word)).then((r) => r !== "cancelled" && setSaid(r === "shared" ? tr("SENT") : tr("SAVED AS A FILE: SEND IT TO A FRIEND, WHO OPENS IT WITH OPEN A FILE")))}>
                     {tr("SEND")}
                   </button>
@@ -344,6 +353,7 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
           </button>
           <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => e.currentTarget.files?.[0] && void restore(e.currentTarget.files[0])} />
         </div>
+        {beside && <BesidePanel take={beside} close={() => setBeside(null)} />}
         {said && (
           <p className="tb-takes-note" role="status">
             {said}
