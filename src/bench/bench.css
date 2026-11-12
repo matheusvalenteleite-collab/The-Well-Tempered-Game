@@ -1267,3 +1267,28 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-legend-map { display: none; }
 .tb-bars .tg-box-wide > .tg-legend:has(.tb-legend-map) { height: 34px; flex-wrap: wrap; align-content: flex-end; row-gap: 2px; }
 .tb-bars .tg-box-wide > .tg-legend .tb-legend-map { display: block; flex: 0 0 100%; height: 16px; }
+
+/* D457, D458: RECORD YOUR FUGUE: SAVE on the score card; the fugue's SAVED PERFORMANCES over the pop-up. */
+.tb-take-save { display: grid; justify-items: center; gap: 6px; margin: 4px auto 6px; }
+.tb-take-btn { min-height: 36px; padding: 6px 10px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: none; border: 1px solid var(--tg-muted); cursor: pointer; }
+.tb-take-btn:focus-visible { outline: 2px solid var(--tg-shine); outline-offset: 2px; }
+.tb-take-save-btn { min-height: 40px; padding: 8px 14px; color: var(--tg-shine); border: 2px solid var(--tg-shine); box-shadow: 3px 3px 0 #b8322a; }
+.tb-take-save-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #b8322a; }
+.tb-take-saved { margin: 0; display: grid; gap: 4px; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.7; color: var(--tg-shine); }
+.tb-takes-note { display: block; margin: 0; max-width: 340px; font-family: system-ui, sans-serif; font-size: 12px; line-height: 1.4; color: var(--tg-muted); }
+.tb-pop-takes { color: var(--tg-fg); }
+.tb-takes-veil { z-index: 55; }
+.tb-takes { width: min(520px, 100%); justify-items: stretch; text-align: left; }
+.tb-takes .tb-pop-title { text-align: center; }
+.tb-takes-none { margin: 0; font-family: system-ui, sans-serif; font-size: 13px; color: var(--tg-muted); text-align: center; }
+.tb-takes-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.tb-take { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 10px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.14); }
+.tb-take-dot { width: 10px; height: 10px; margin-top: 3px; }
+.tb-take-what { display: grid; gap: 6px; min-width: 0; }
+.tb-take-name { margin: 0; font-family: var(--tg-pixel); font-size: 9px; line-height: 1.6; color: var(--tg-shine); overflow-wrap: anywhere; }
+.tb-take-name-in { width: 100%; box-sizing: border-box; min-height: 36px; margin-bottom: 6px; padding: 4px 8px; font: 14px system-ui, sans-serif; color: var(--tg-fg); background: var(--tg-bg, #0b0e20); border: 1px solid var(--tg-muted); }
+.tb-take-meta { margin: 0; font-family: system-ui, sans-serif; font-size: 12px; color: var(--tg-muted); }
+.tb-take-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.tb-take-listen { color: var(--tg-shine); border-color: var(--tg-shine); }
+.tb-take-del { color: #ff8a8a; border-color: #ff8a8a; }
+.tb-takes-files { justify-content: center; }

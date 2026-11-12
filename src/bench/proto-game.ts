@@ -19,6 +19,7 @@ import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
 import type { Arrow } from "../touch/MusicBox.tsx";
 import type { Burst, Pop } from "../touch/box-fx.ts";
 import { isPhone, musicLive, voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
+import { TakeRecorder, type TakePlayer } from "./takes/take.ts";
 import { emitMusic } from "../touch/music-events.ts";
 import { hasManualScript, manualScript } from "../touch/harpsi-manuals.ts";
 import type { Grade } from "../touch/engine.ts";
@@ -1052,7 +1053,40 @@ export class ProtoGame {
   }
   /** A touch's sound (D494: in BLUETOOTH MODE too: D299's silent touch over a scheduled note withdrawn). */
   private touchNote(...args: Parameters<Chip["note"]>): Sounding {
-    return this.chip.note(...args);
+    const sd = this.chip.note(...args);
+    // D457: a take being recorded keeps every sound of the player's voice as it is asked for.
+    return this.takeRec ? this.takeRec.note(args[0], args[1], args[2], args[3], args[4] ?? {}, sd) : sd;
+  }
+  /** D457, RECORD YOUR FUGUE: the player's voice recorded as it is played (takes/take.ts); null: not recorded. */
+  takeRec: TakeRecorder | null = null;
+  /** D457: a recorder on this game's clocks (the tick a time sounds at; the headphone delay). */
+  takeRecorder(): TakeRecorder {
+    const ch = this.chip;
+    return new TakeRecorder({ tickAtTime: (t) => this.tickAtTime(t), current: () => ch.ctx.currentTime, behind: () => ch.ctx.currentTime - ch.heard() });
+  }
+  /**
+   * D457: a take played back as the player's voice (LISTEN): its notes and what was done to them at
+   * their times, the score's notes shown as the run judged them; nothing judged, no touch taken.
+   */
+  listen: TakePlayer | null = null;
+  private listenStep(horizon: number) {
+    const l = this.listen!;
+    const ch = this.chip;
+    const t = l.take;
+    const base = voicing(t.voice, this.f.voices.length, true);
+    l.step(horizon, this.tickAt(ch.ctx.currentTime), (tick) => this.timeAt(tick), (n, at, dur) => ch.note(n[2], at, dur, { ...base, pan: n[4].pan, gain: n[4].gain, ...(n[4].bass ? { bass: true } : {}) }, n[5] as Play));
+    // The box shows each note as the run judged it, as its time comes.
+    this.tracks.forEach((tr, k) => {
+      const row = t.out[k] ?? "";
+      for (let i = 0; i < tr.notes.length; i++) {
+        const n = tr.notes[i];
+        if (n.state !== "pending" || n.on > this.now) continue;
+        const o = row[i];
+        if (o === "r") (n.state = "hit"), (n.at = n.on);
+        else if (o === "w") (n.state = "miss"), (n.wrong = true), (n.at = n.on);
+        else if (o === "m") (n.state = "miss"), (n.at = n.on);
+      }
+    });
   }
 
   /** One frame: the beat (or the band) and the others scheduled ahead; the window panned; notes gone by marked missed. True at the end. */
@@ -1246,6 +1280,8 @@ export class ProtoGame {
     // handled after the frame, was refused); each one missed (a chord once) a slip.
     const grace = SWEEP_GRACE_S * this.tps;
     let missed = 0;
+    // D457: a take played back: shown as it was judged, nothing judged now.
+    if (this.listen) this.listenStep(horizon);
     // D334: MECH.prepLate "lift": a note a thumb is still prepared on waits for the other thumb's lift.
     const kept = new Set<LaneNote>();
     if (MECH.prepare && MECH.prepLate === "lift") for (const h of this.held.values()) if (h.wait?.prep) for (const j of chordOf(this.tracks[h.k].notes, h.wait.i)) kept.add(this.tracks[h.k].notes[j]);
@@ -1258,7 +1294,7 @@ export class ProtoGame {
     const od = this.overdue;
     if (od && this.now > od.until) this.overdue = null;
     else if (od) for (const t of this.tracks) for (const n of t.notes) if (n.state === "pending" && n.on < od.at) kept.add(n);
-    for (const t of this.tracks) {
+    for (const t of this.listen ? [] : this.tracks) {
       const ons = new Set<number>();
       for (const n of t.notes) if (n.state === "pending" && !n.ride && !kept.has(n) && this.now - grace > n.on + this.opt.late) ons.add(n.on);
       if (!ons.size) continue;
@@ -5125,6 +5161,8 @@ export class ProtoGame {
   private band: { sd: Sounding; until: number }[] = [];
 
   stopAll() {
+    // D457: a take played back stopped with the rest.
+    this.listen?.stopAll(this.chip.ctx.currentTime);
     // D262: no line left to play on.
     this.loose = [];
     // D252: no coupling left on for the next game; the pedals' bourdons stopped.
