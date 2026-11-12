@@ -908,6 +908,11 @@ export interface Play {
   accent?: number;
   /** D179: the player's own voice: it never dies away quickly, stands a little forward, has a touch of chorus and vibrato. */
   lead?: boolean;
+  /**
+   * D720, MY FUGUE: a take of the player's played back as one voice of several: its sound the lead's as it was
+   * recorded, but routed as the band's (not the player's own bus, whose lift and balance are the live voice's).
+   */
+  asBand?: boolean;
   /** D181, ORGANO PLENO: the note doubled an octave above and below, as on an organ's full stops. */
   pleno?: boolean;
   /** D182: a trill: the note alternating with the step above, about eight times a second. */
@@ -1378,7 +1383,7 @@ export class Chip {
     if (p.into) return p.into;
     const lane = this.chain && pt ? this.laneOf(pt) : null;
     if (lane) {
-      if (!p.lead) return lane;
+      if (!p.lead || p.asBand) return lane;
       let m = this.laneMine.get(lane);
       if (!m) {
         m = this.ctx.createGain();
@@ -1389,7 +1394,7 @@ export class Chip {
       m.gain.value = this.mine.gain.value;
       return m;
     }
-    return p.lead ? this.mine : this.bus;
+    return p.lead && !p.asBand ? this.mine : this.bus;
   }
   /** D540: the band's chain playing now (a band preset's `chain`), built at its first note; its lanes' copies of `mine`. */
   private chain: BandChain | null = null;

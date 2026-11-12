@@ -70,9 +70,10 @@ export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g:
   }
   // D402: the tutorial's screen dressed lesson by lesson: the verdicts from Part 2.
   // D413: nothing judged under his demonstration (a WATCH: Bach plays): no verdicts on his notes.
-  if ((!g.o.dress || g.o.dress.includes("verdicts")) && !g.o.demo) verdict(c, w, h, g, t);
+  // D720: a take listened to: nothing judged now, so no verdicts and no scoreboard (the title bar says LISTENING).
+  if ((!g.o.dress || g.o.dress.includes("verdicts")) && !g.o.demo && !g.listen) verdict(c, w, h, g, t);
   // D359: THE MANUAL's practice room: none of the game's chatter. D402: unless the lesson has dressed it.
-  if (!g.o.quiet || g.o.dress?.includes("score")) scoreboard(c, w, h, g, t);
+  if ((!g.o.quiet || g.o.dress?.includes("score")) && !g.listen) scoreboard(c, w, h, g, t);
   // D251: how far into the piece, along the top edge.
   progress(c, w, g, t);
 }
