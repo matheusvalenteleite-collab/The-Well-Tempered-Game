@@ -178,9 +178,14 @@ export class TakePlayer {
   private readonly sounds = new Map<number, Sounding>();
   private readonly calls: TakeCall[];
   readonly take: Take;
-  constructor(take: Take) {
+  /** `from` (D724, a render in parts): the take's notes and gestures before this tick left out. */
+  constructor(take: Take, from = -Infinity) {
     this.take = take;
     this.calls = [...take.calls].sort((a, b) => a[0] - b[0]);
+    if (from > -Infinity) {
+      while (this.n < take.notes.length && take.notes[this.n][1] < from) this.n++;
+      while (this.c < this.calls.length && this.calls[this.c][0] < from) this.c++;
+    }
   }
   /**
    * One frame. `ahead`: the tick scheduled up to (the band's horizon); `live`: the tick sounding on the
