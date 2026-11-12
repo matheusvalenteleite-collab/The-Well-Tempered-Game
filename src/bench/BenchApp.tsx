@@ -28,7 +28,7 @@ import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
 import { builds } from "./journey.ts";
@@ -273,6 +273,39 @@ export function BenchApp() {
   const [phase, setPhase] = useState<Phase>({ kind: "home" });
   /** D357: the phase as the stop row reads it (a stop change made while playing is kept with its bar). */
   const phaseRef = useRef<Phase["kind"]>("home");
+  // D499c (main board; the owner, a third time: the score screen "still looks ugly and doesn't encompass the whole
+  // screen, instead being compressed into the upper part"): the result's content is scaled to fill the screen it owns
+  // (zoom, the largest that fits 94% of the height and 96% of the width, 1 to 2), re-fitted on every resize and turn.
+  const resultBody = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = resultBody.current;
+    if (!el) return;
+    const fit = () => {
+      const box = el.parentElement;
+      if (!box) return;
+      el.style.zoom = "1";
+      el.style.minHeight = "0px";
+      const cs = getComputedStyle(box);
+      const availH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      // The content's own width (its widest block), not the body's 100%.
+      const w = Math.max(1, ...[...el.children].map((c) => (c as HTMLElement).offsetWidth));
+      const h = el.scrollHeight;
+      if (h < 1) return;
+      const z = Math.floor(Math.max(1, Math.min(2, (availH * 0.94) / h, (availW * 0.96) / w)) * 100) / 100;
+      el.style.zoom = String(z);
+      // The blocks spread over the whole height: the body as tall as the screen (in its own zoomed px).
+      el.style.minHeight = `${Math.floor((availH * 0.96) / z)}px`;
+    };
+    fit();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(fit) : null;
+    ro?.observe(el.parentElement ?? el);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  });
   // D357: a run begins: the stop changes of the last one forgotten (registration.ts stopChanges).
   useEffect(() => {
     if (phase.kind === "play") clearStopChanges();
@@ -1876,6 +1909,7 @@ export function BenchApp() {
             <button type="button" id="result-close" className="tg-x tb-result-x" aria-label="Back to the cards" onClick={home}>
               ✕
             </button>
+            <div className="tb-result-body" ref={resultBody}>
             {phase.sheet ? (
               <SheetCard
                 head={phase.failedBar !== null ? <h1 className="tb-grade tb-failed">{tr("THE CROWD LEFT")}</h1> : <h1 className="tb-grade" style={{ color: GRADE_INK[phase.grade] }}>{phase.grade}</h1>}
@@ -1972,6 +2006,7 @@ export function BenchApp() {
                   ▶ {tr("NEXT")}
                 </button>
               )}
+            </div>
             </div>
           </div>
         , document.body)}
