@@ -186,7 +186,8 @@ export const extrasLoaded = (): boolean => MORE_BACH.length > 0;
 /** D343: brings the MORE BACH and CHORALES notes (once; later calls share the first). */
 export function loadExtras(): Promise<void> {
   // D348: the HARPSICHORD CONCERTOS a chunk of their own (concertos-data.ts), fetched alongside.
-  extras ??= Promise.all([import("./extras-data.ts"), import("./concertos-data.ts")]).then(([{ MORE_DATA, CHORALE_DATA }, { CONCERTO_DATA }]) => {
+  // D700: and their seats (extra-seats.ts), merged before any of their pieces is registered below.
+  extras ??= Promise.all([import("./extras-data.ts"), import("./concertos-data.ts"), import("./extra-seats.ts").then((m) => m.loadExtraSeats())]).then(([{ MORE_DATA, CHORALE_DATA }, { CONCERTO_DATA }]) => {
     if (extrasLoaded()) return;
     CHORALES.push(...(CHORALE_DATA as TouchFugue[]));
     MORE_BACH.push(...(MORE_DATA as TouchFugue[]), ...(CONCERTO_DATA as TouchFugue[]));

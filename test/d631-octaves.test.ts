@@ -19,7 +19,8 @@ import * as sampled from "../src/touch/sampled.ts";
 import { nearestSample, rateFor, reachOf, SAMPLED, sampledMidis, zonesOf } from "../src/touch/sampled.ts";
 import { PATCHES, patchIdFor, pieceLineUp, presetById, setPieceLayout, setPreset } from "../src/touch/sound.ts";
 import { hz } from "../src/touch/tuning.ts";
-import { AUDIT_SOUNDS, WTC_FUGUES, auditSound, extensions } from "../tools/touch/octaves/audit.ts";
+import { AUDIT_SOUNDS, WTC_FUGUES, auditSound } from "../tools/touch/octaves/audit.ts";
+import { allExtensions } from "../tools/touch/stretch/collections.ts";
 
 const ctxOf = installFakeAudio(0, true);
 FakeAudioContext.prototype.decodeAudioData = function (this: FakeAudioContext) {
@@ -64,8 +65,9 @@ test("D633: an extension is a retuning, never an octave's worth: every declared 
     most = Math.max(most, inst.extend.up ?? 0, inst.extend.down ?? 0);
   }
   assert.ok(most <= 12, `the largest extension ${most}`);
-  // Each declared as far as the 48 need it on some sound, and no further (measured: the audit's extensions).
-  const need = extensions();
+  // Each declared as far as the 48 need it on some sound, and every other playable piece within STRETCH_MAX (D640), and no
+  // further (measured: the audits' extensions).
+  const need = allExtensions();
   for (const [id, inst] of Object.entries(SAMPLED)) {
     if (!inst.extend) continue;
     const n = need[id] ?? { up: 0, down: 0 };
