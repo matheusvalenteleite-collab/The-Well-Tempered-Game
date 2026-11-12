@@ -1275,7 +1275,8 @@ export class Chip {
   stolen = 0;
   failed = 0;
 
-  constructor() {
+  /** D722: `offline`, a render's context (RECORD YOUR FUGUE's MP3): the chip plays into it, faster than real time. */
+  constructor(offline?: OfflineAudioContext) {
     // iOS: play through the silent switch (Safari 16.4+), as a game should.
     const nav = navigator as Navigator & { audioSession?: { type: string } };
     try {
@@ -1283,7 +1284,7 @@ export class Chip {
     } catch {
       /* not supported */
     }
-    this.ctx = new AudioContext({ latencyHint: "interactive" });
+    this.ctx = offline ? (offline as unknown as AudioContext) : new AudioContext({ latencyHint: "interactive" });
     const ctx = this.ctx;
     this.master = ctx.createGain();
     // D181: lower, and a limiter at the end, so many voices, a band and the room never clip (as they
