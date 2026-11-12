@@ -2290,6 +2290,7 @@ export function BenchApp() {
             singing: voicesFrom(f, from),
             sound: soundNow,
             tempo: tempi ? stepWord(step) : undefined,
+            bpm,
             listenAll: (set) => {
               // D720: LISTEN TO MY FUGUE: the starred takes together at the set's tempo, the rest by the game.
               const { main, backing } = backingFor(set, null);

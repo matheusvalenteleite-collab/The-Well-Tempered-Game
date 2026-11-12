@@ -11,7 +11,9 @@ import { inkOf } from "../touch/MusicBox.tsx";
 import { presetById } from "../touch/sound.ts";
 import { takeName, type Take } from "./takes/take.ts";
 import { backupText, deleteTake, lasting, putTake, readBackup, renameTake, starTake, takesOf } from "./takes/store.ts";
-import { clampLevel, LEVEL_STEP, readMix, saveMix, starred, type MixVoice } from "./takes/myfugue.ts";
+import { clampLevel, gains, LEVEL_STEP, readMix, saveMix, starred, type MixVoice } from "./takes/myfugue.ts";
+import { renderMp3, type RenderStats } from "./takes/render.ts";
+import { midiOf } from "./takes/midi.ts";
 
 /** A take's voice word, as the pop-up names the voices (ALTO; UPPER for a two-part piece). */
 export function takeVoiceWord(piece: string): (voice: number) => string {
@@ -57,6 +59,39 @@ export async function sendTake(t: Take, name: string): Promise<"shared" | "saved
   return "saved";
 }
 
+/** D722: a file handed on: the phone's share sheet (a fresh tap: the browser allows it only just after one), else a download. */
+export async function shareBlob(blob: Blob, name: string, type: string): Promise<"shared" | "saved" | "cancelled"> {
+  try {
+    const file = new File([blob], name, { type });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: name });
+      return "shared";
+    }
+  } catch (e) {
+    if ((e as { name?: string })?.name === "AbortError") return "cancelled";
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return "saved";
+}
+
+/** D722: the measurements, one line each, for a screenshot. */
+export function statsLines(s: RenderStats): string[] {
+  const mmss = `${Math.floor(s.seconds / 60)}:${String(Math.round(s.seconds % 60)).padStart(2, "0")}`;
+  return [
+    `rendered ${mmss} · ${s.sampleRate / 1000} kHz stereo · output buffer ${s.outputMb} MB`,
+    `load ${(s.loadMs / 1000).toFixed(1)} s · render ${(s.renderMs / 1000).toFixed(1)} s (${s.speed}× real time) · encode ${(s.encodeMs / 1000).toFixed(1)} s`,
+    `MP3 ${(s.mp3Kb / 1024).toFixed(1)} MB · JS heap ${s.heapMb === null ? "not reported" : `${s.heapMb} MB`}`,
+    `${typeof navigator !== "undefined" ? navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 160) : ""}`,
+  ];
+}
+
 export interface MyFugueActs {
   /** The voices the piece lets the player play (the pop-up's). */
   singing: readonly number[];
@@ -65,6 +100,8 @@ export interface MyFugueActs {
   tempo?: string;
   /** LISTEN TO MY FUGUE: the starred takes together (the rest by the game). */
   listenAll: (set: Map<number, Take>) => void;
+  /** The set's tempo (quarters a minute), for the MP3 and the MIDI file. */
+  bpm: number;
   /** RECORD a voice over the starred takes. */
   record: (voice: number, set: Map<number, Take>) => void;
 }
@@ -84,6 +121,22 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
     saveMix(piece, next);
   };
   const set = starred(takes ?? []);
+  // D722: the MP3 being made (its stage and share), then made (the file, the measurements), or failed.
+  const [made, setMade] = useState<{ stage: string; share: number } | { mp3: Blob; stats: RenderStats } | { error: string } | null>(null);
+  const fileBase = `${piece}-my-fugue`;
+  const makeMp3 = () => {
+    if (!my || !set.size) return;
+    const list = [...set.values()].sort((a, b) => a.voice - b.voice);
+    setMade({ stage: "load", share: 0 });
+    let last = 0;
+    void renderMp3({ piece, takes: list, bpm: my.bpm, mix: gains(mix) }, (stage, share) => {
+      const now = performance.now();
+      if (now - last > 200 || share >= 1) (last = now), setMade({ stage, share });
+    }).then(
+      (r) => setMade(r),
+      (e) => setMade({ error: String((e as Error)?.message ?? e) }),
+    );
+  };
   const file = useRef<HTMLInputElement>(null);
   const reload = () => void takesOf(piece).then(setTakes);
   useEffect(() => {
@@ -118,6 +171,38 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
             <button type="button" className="tb-take-btn tb-take-save-btn tb-mix-listen" id="my-listen" disabled={set.size === 0} onClick={() => my.listenAll(set)}>
               ▶ {tr("LISTEN TO MY FUGUE")}
             </button>
+            {set.size > 0 && (
+              // D722, D723: MY FUGUE as an MP3 (made on the phone) and as a MIDI file.
+              <div className="tb-take-acts tb-mix-share" id="my-share">
+                {made === null || "error" in made ? (
+                  <button type="button" className="tb-take-btn" id="my-mp3" onClick={makeMp3}>
+                    ♫ {tr("MAKE AN MP3")}
+                  </button>
+                ) : "stage" in made ? (
+                  <p className="tb-takes-note" id="my-mp3-progress" role="status">
+                    {tr(made.stage === "load" ? "LOADING THE SOUND…" : made.stage === "render" ? "PLAYING IT INTO A FILE… {n}%" : "MAKING THE MP3… {n}%", { n: Math.round(made.share * 100) })}
+                  </p>
+                ) : (
+                  <>
+                    <button type="button" className="tb-take-btn tb-take-listen" id="my-mp3-share" onClick={() => void shareBlob(made.mp3, `${fileBase}.mp3`, "audio/mpeg").then((r) => r !== "cancelled" && setSaid(r === "shared" ? tr("SENT") : tr("SAVED AS A FILE")))}>
+                      {tr("SHARE THE MP3")}
+                    </button>
+                    <button type="button" className="tb-take-btn" id="my-mp3-again" onClick={makeMp3}>
+                      {tr("MAKE IT AGAIN")}
+                    </button>
+                  </>
+                )}
+                <button type="button" className="tb-take-btn" id="my-midi" onClick={() => void shareBlob(new Blob([midiOf(piece, set, f.voiceNames.map((_, v) => word(v)), my.bpm) as BlobPart], { type: "audio/midi" }), `${fileBase}.mid`, "audio/midi").then((r) => r !== "cancelled" && setSaid(r === "shared" ? tr("SENT") : tr("SAVED AS A FILE")))}>
+                  {tr("MIDI FILE")}
+                </button>
+                {made && "error" in made && <p className="tb-takes-note">{tr("THE MP3 COULD NOT BE MADE ON THIS DEVICE")}: {made.error}</p>}
+                {made && "stats" in made && (
+                  <pre className="tb-mix-stats" id="my-mp3-stats">
+                    {statsLines(made.stats).join("\n")}
+                  </pre>
+                )}
+              </div>
+            )}
             <p className="tb-takes-note" id="my-sound">
               {tr("EVERY VOICE ON {sound}", { sound: presetById(my.sound).name })}
               {my.tempo ? ` · ${tr("TEMPO")} ${my.tempo}` : ""} · {tr("CHANGE THEM ON THE SELECTION.")}
