@@ -1021,6 +1021,33 @@ const FIDDLER = [
 const BABY = ["..sss..", ".sksks.", "..sss..", "wwwwwww"] as const;
 const BABY_SLEEP = ["..sss..", ".sssss.", "..sss..", "wwwwwww"] as const;
 
+// D662: the chess pieces (x the body, d its shade).
+const CHESS: Record<string, readonly string[]> = {
+  p: ["..x..", ".xxd.", "..x..", ".xxd.", ".xxd.", "xxxxd", "xxxxd"],
+  r: ["x.x.x", "xxxxd", ".xxd.", ".xxd.", ".xxd.", ".xxd.", "xxxxd", "xxxxd"],
+  n: ["...x..", "..xxx.", ".xxxxd", "xxx.xd", "...xxd", "..xxxd", ".xxxxd", "xxxxxd"],
+  b: ["..x..", ".xxd.", ".x.d.", ".xxd.", "..x..", ".xxd.", "xxxxd", "xxxxd"],
+  q: ["x.x.x", "xxxxd", ".xxd.", "..x..", ".xxd.", ".xxd.", ".xxd.", "xxxxd", "xxxxd"],
+  k: ["..x..", ".xxd.", "..x..", ".xxd.", ".xxd.", ".xxd.", ".xxd.", "xxxxd", "xxxxd"],
+};
+/** I/16's game: the white knight's tour of captures (Warnsdorff from b1), the squares kept clear of the other pieces. */
+const KNIGHT_PATH: [number, number][] = (() => {
+  const busy = new Set(["4,0", "0,0", "7,0", "5,1", "6,1", "7,1", "4,7", "2,1"]);
+  const moves = [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]];
+  const seen = new Set<string>(["1,0"]);
+  const path: [number, number][] = [[1, 0]];
+  const ok = (c: number, r: number) => c >= 0 && c < 8 && r >= 0 && r < 8 && !busy.has(`${c},${r}`) && !seen.has(`${c},${r}`);
+  const deg = (c: number, r: number) => moves.filter(([dc, dr]) => ok(c + dc, r + dr)).length;
+  for (let i = 0; i < 20; i++) {
+    const [c, r] = path[path.length - 1];
+    const next = moves.map(([dc, dr]) => [c + dc, r + dr] as [number, number]).filter(([a, b]) => ok(a, b)).sort((a, b) => deg(a[0], a[1]) - deg(b[0], b[1]) || b[1] - a[1])[0];
+    if (!next) break;
+    seen.add(`${next[0]},${next[1]}`);
+    path.push(next);
+  }
+  return path;
+})();
+
 const WORLDS: Record<string, World> = {
   // D658 (design studio, the art upgrade, batch 1): The Canon. A concert stage in three depths: the velvet back wall
   // and the proscenium's gilt arch, the curtains in their folds with the gold fringe, the boards in perspective, the
@@ -2061,34 +2088,113 @@ const WORLDS: Record<string, World> = {
     k.vgrad(0, h, [[0, "#c0c8d8"], [0.5, "#5a6070"], [1, "#a0a8b8"]], 0, 5);
     k.vgrad(0, h, [[0, "#c0c8d8"], [0.5, "#5a6070"], [1, "#a0a8b8"]], w - 5, 5);
   },
-  // The Knight: a chessboard in perspective scrolling under the music; pieces at its far edge.
+  // D662 (design studio, the art upgrade, the new art; the owner on the old one: "It barely resembled a chessboard"):
+  // The Knight. A real board of 8 by 8 in true perspective on a club table, under a hanging lamp, in a panelled room at
+  // night; the pieces drawn as pieces (pawn, rook, knight, bishop, queen, king), lit from the lamp; the chess clock
+  // ticking at the board's side. The drama: each entry the white knight makes its L move and captures a black piece,
+  // which joins the line of captured pieces on the table; the board empties. At the climax checkmate: the black king
+  // topples and the board is lit white.
   wtc1f16: (k) => {
-    k.vgrad(0, k.h * 0.4, [[0, "#141420"], [1, "#2a2a3a"]]);
-    const hz = k.h * 0.4;
-    const rows = 7;
-    for (let r = 0; r < rows; r++) {
-      const y0 = hz + ((k.h - hz) * r * r) / (rows * rows);
-      const y1 = hz + ((k.h - hz) * (r + 1) * (r + 1)) / (rows * rows);
-      const cw = 12 + r * 8;
-      const off = wrap(k.bar * k.pxBar * 0.4 * (0.3 + r * 0.15), cw * 2);
-      for (let x = -off - cw * 2; x < k.w; x += cw) {
-        const c = Math.floor((x + off) / cw + r) % 2 ? "rgba(70,60,50,1)" : "rgba(180,160,130,1)";
-        k.R(x, y0, cw, y1 - y0 + 1, c);
+    const { w, h } = k;
+    const cam = sway(k, 41);
+    const cl = k.climax;
+    // the room: panelled wall, a window, the lamp hung over the board
+    k.vgrad(0, h, [[0, "#1a1a16"], [1, "#24221c"]]);
+    fillTex(k, texture(k, "panels", 24, panels), 0, 0, w, h * 0.5, cam * 0.3);
+    k.R(w * 0.06 + cam * 0.3, h * 0.08, 34, 44, "#3a2a1a");
+    k.vgrad(h * 0.08 + 2, 40, [[0, "#141a34"], [1, "#2a2a4a"]], w * 0.06 + cam * 0.3 + 2, 30);
+    k.R(w * 0.06 + cam * 0.3 + 16, h * 0.08, 2, 44, "#3a2a1a");
+    const sw2 = k.still ? 0 : Math.sin(k.sec * 0.5) * 2;
+    k.line(w * 0.5, 0, w * 0.5 + sw2, h * 0.12, "#0a0a08", 1);
+    k.tri(w * 0.5 + sw2, h * 0.2, 30, 10, "#2a4a2a");
+    k.R(w * 0.5 + sw2 - 15, h * 0.2 - 1, 30, 2, "#4a6a3a");
+    light(k, w * 0.5 + sw2, h * 0.22, 14, [255, 240, 200], 0.6);
+    // the table
+    k.R(0, h * 0.42, w, h * 0.58, "#3a2414");
+    fillTex(k, texture(k, "panels", 24, panels), 0, h * 0.42, w, h * 0.58, cam);
+    k.R(0, h * 0.42, w, 1, "rgba(255,220,170,0.2)");
+    // the board in perspective: (c, r) its corner, r = 0 the near rank
+    const cx = w * 0.5 + cam;
+    const vy = -h * 0.071;
+    const D = h * 1.041;
+    const S = w * 0.07;
+    const z = (r: number) => 1 + r * 0.12;
+    const P = (c: number, r: number) => [cx + ((c - 4) * S) / z(r), vy + D / z(r)] as const;
+    const quad = (c0: number, r0: number, c1: number, r1: number, col: string) => {
+      const a = P(c0, r0), b = P(c1, r0), c = P(c1, r1), d = P(c0, r1);
+      k.g.fillStyle = col;
+      k.g.beginPath();
+      k.g.moveTo(a[0], a[1]);
+      k.g.lineTo(b[0], b[1]);
+      k.g.lineTo(c[0], c[1]);
+      k.g.lineTo(d[0], d[1]);
+      k.g.closePath();
+      k.g.fill();
+    };
+    quad(-0.35, -0.3, 8.35, 8.35, "#4a2a14");
+    quad(-0.25, -0.2, 8.25, 8.25, "#6a3e1e");
+    k.R(P(-0.35, -0.3)[0], P(0, -0.3)[1], P(8.35, -0.3)[0] - P(-0.35, -0.3)[0], 3, "#2a160a");
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) quad(c, r, c + 1, r + 1, (c + r) % 2 ? "#ecdcb4" : "#7a4e2c");
+    // the lamp's pool on the board, the board lit white at the climax
+    light(k, cx, P(4, 3.5)[1], w * 0.24, [255, 236, 190], 0.18);
+    if (cl > 0.01) light(k, cx, P(4, 4)[1], w * 0.3, [255, 255, 245], 0.35 * cl);
+    // the pieces: the knight's captures from KNIGHT_PATH, one per entry
+    const steps = Math.min(KNIGHT_PATH.length - 1, k.passed);
+    const kinds = "pppbpnprpqppbpprp";
+    const pieces: { c: number; r: number; kind: string; white: boolean; topple?: boolean }[] = [
+      { c: 4, r: 0, kind: "k", white: true }, { c: 0, r: 0, kind: "r", white: true }, { c: 7, r: 0, kind: "r", white: true },
+      { c: 5, r: 1, kind: "p", white: true }, { c: 6, r: 1, kind: "p", white: true }, { c: 7, r: 1, kind: "p", white: true }, { c: 2, r: 1, kind: "p", white: true },
+      { c: 4, r: 7, kind: "k", white: false, topple: cl > 0.5 },
+    ];
+    for (let i = steps + 1; i < KNIGHT_PATH.length; i++) pieces.push({ c: KNIGHT_PATH[i][0], r: KNIGHT_PATH[i][1], kind: kinds[i % kinds.length], white: false });
+    // the knight, leaping its L over the bar its entry begins
+    const [tc, tr] = KNIGHT_PATH[steps];
+    const [fc, fr] = KNIGHT_PATH[Math.max(0, steps - 1)];
+    const u = steps > 0 && k.since < 0.6 ? k.since / 0.6 : 1;
+    const along = (x: number) => Math.min(1, x * 1.5);
+    const kc = u < 1 ? fc + (tc - fc) * along(u) : tc;
+    const kr = u < 1 ? fr + (tr - fr) * Math.max(0, u * 1.5 - 0.5) : tr;
+    const drawPiece = (c: number, r: number, kind: string, white: boolean, lift = 0, topple = false) => {
+      const [x, y] = P(c + 0.5, r + 0.5);
+      const sc = z(r) < 1.45 ? 2 : 1;
+      const rows = CHESS[kind];
+      const pal = white ? { x: "#f6eedc", d: "#b8ac94" } : { x: "#3a3034", d: "#1a1416" };
+      k.g.fillStyle = "rgba(0,0,0,0.3)";
+      k.g.beginPath();
+      k.g.ellipse(x + 1, y + 1, 4 * sc, 1.5 * sc, 0, 0, Math.PI * 2);
+      k.g.fill();
+      if (topple) {
+        k.g.save();
+        k.g.translate(x, y);
+        k.g.rotate(Math.PI / 2 * Math.min(1, (cl - 0.5) * 4));
+        sprite(k, 0, 0, rows, pal, sc);
+        k.g.restore();
+        return;
       }
+      lit(k, x, y - lift, rows, pal, sc, kind === "n" && !white, white ? "rgba(255,240,200,0.9)" : "rgba(255,226,180,0.95)", white ? 0 : 1, -1);
+    };
+    const all = [...pieces.map((p) => ({ ...p, knight: false })), { c: kc, r: kr, kind: "n", white: true, knight: true, topple: false }];
+    all.sort((a, b) => b.r - a.r);
+    {
+      const [nx, ny] = P(kc + 0.5, kr + 0.5);
+      light(k, nx, ny - 6, 18, [255, 230, 160], 0.35);
     }
-    for (let i = 0; i < 5; i++) {
-      const x = k.w * (0.2 + i * 0.15);
-      k.R(x - 3, hz - 10, 6, 10, "rgba(20,18,24,1)");
-      k.disc(x, hz - 12, 3, "rgba(20,18,24,1)");
+    for (const p of all) drawPiece(p.c, p.r, p.kind, p.white, p.knight && u < 1 ? Math.sin(u * Math.PI) * 10 : 0, !!p.topple);
+    // the captured pieces, lined up on the table by the board
+    for (let i = 1; i <= steps; i++) {
+      const x = P(8.6, 0)[0] + 8 + ((i - 1) % 4) * 9;
+      const y = h * (0.97 - Math.floor((i - 1) / 4) * 0.08);
+      sprite(k, x, y, CHESS[kinds[i % kinds.length]], { x: "#2e2628", d: "#141012" }, 1);
     }
-    // The knight leaps its L by itself, a leap every two seconds (two squares across, one in depth).
-    const leap = k.still ? 0 : Math.floor(k.sec / 2);
-    const col = ((leap * 2) % 8 + 8) % 8;
-    const row = leap % 2;
-    const lx = k.w * (0.14 + col * 0.1);
-    const ly = k.h * (0.66 + row * 0.12);
-    k.R(lx - 4, ly - 14, 8, 14, "rgba(240,236,224,0.85)");
-    k.R(lx - 1, ly - 20, 6, 7, "rgba(240,236,224,0.85)");
+    // the chess clock, its hands turning
+    const CX = P(-0.6, 3)[0] - 26, CY = P(0, 3)[1];
+    k.R(CX - 14, CY - 12, 28, 12, "#6a2a1a");
+    k.R(CX - 14, CY - 12, 28, 1, "rgba(255,200,150,0.5)");
+    for (const sd of [-1, 1]) {
+      k.disc(CX + sd * 7, CY - 6, 4, "#f0ead8");
+      const a = (k.still ? 0 : k.sec * (sd < 0 ? 1 : 0.1)) * Math.PI / 30 * 6;
+      k.line(CX + sd * 7, CY - 6, CX + sd * 7 + Math.sin(a) * 3, CY - 6 - Math.cos(a) * 3, "#1a1010", 1);
+    }
   },
   // D659: The Diary. A girl's room on a summer afternoon in three depths: the window with the garden's leaves (more
   // with the summer) and the sky beyond, the papered wall and its shelf, the desk near with the diary and the inkpot;
