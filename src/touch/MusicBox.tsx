@@ -774,7 +774,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         if (x > w) break;
         const mk = x < -16 ? undefined : fr.ornaments.get(`${pv}:${n.on}`);
         if (!mk) continue;
-        g.globalAlpha = sounding.has(n.on) ? 0.6 : 1;
+        if (sounding.has(n.on)) g.globalAlpha = 0.6;
         ornText(g, mk, x, Math.max(0, yOf(n.step) - ORN_RISE), n.state === "miss" ? miss : fx.gold);
         g.globalAlpha = 1;
       }
