@@ -1319,3 +1319,19 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-result-body { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 10px; width: 100%; max-width: 100%; flex: none; }
 .tb-result-body > * { flex: none; max-width: 100%; }
 .tb-result > .tb-result-body { zoom: 1; }
+/* D726: BACH PLAYS WITH YOU: a take beside Kimiko Ishizaka, bar by bar. */
+.tb-beside-veil { z-index: 60; }
+.tb-beside-who { text-align: center; }
+.tb-beside-sum { margin: 0; text-align: center; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-shine); }
+.tb-beside-chart { overflow-x: auto; border: 1px solid rgba(255, 255, 255, 0.14); background: #0b0e20; }
+.tb-beside-chart svg { display: block; }
+.tb-beside-k { font: 9px var(--tg-pixel); fill: #a6a3c4; }
+.tb-beside-n { font: 8px system-ui, sans-serif; fill: #a6a3c4; }
+.tb-beside-axis { stroke: rgba(255, 255, 255, 0.25); stroke-width: 1; }
+.tb-beside-bar { cursor: pointer; }
+.tb-beside-hit { fill: transparent; }
+.tb-beside-hit.with { fill: rgba(111, 220, 140, 0.12); }
+.tb-beside-hit.against { fill: rgba(229, 122, 140, 0.12); }
+.tb-beside-hit.on { fill: rgba(255, 215, 106, 0.18); }
+.tb-beside-sel { display: grid; gap: 4px; justify-items: start; }
+.tb-beside-bar-n { margin: 0; font-family: var(--tg-pixel); font-size: 9px; color: var(--tg-fg); }
