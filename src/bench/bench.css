@@ -1311,3 +1311,11 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 /* D722: MY FUGUE's MP3 and MIDI, and the measurements (for a screenshot). */
 .tb-mix-share { justify-content: center; align-items: center; }
 .tb-mix-stats { margin: 0; width: 100%; box-sizing: border-box; padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.5 ui-monospace, Menlo, monospace; color: var(--tg-fg); background: rgba(0, 0, 0, 0.3); border: 1px dashed var(--tg-muted); text-align: left; }
+/* D499c (main board; the owner: the score screen "still looks ugly and doesn't encompass the whole screen, instead
+   being compressed into the upper part"): the result is its own screen. Opaque (the game no longer shows through it,
+   which made its content read as a small box in the music box's upper part), above every bar and button of the
+   game, its content in one body scaled by BenchApp to fill the height (zoom) and centred in it. */
+.tg-card.tb-result { z-index: 1000; opacity: 1; background: radial-gradient(ellipse 80% 70% at 50% 40%, #1b2142 0%, #0d1024 55%, #07080f 100%); justify-content: center; align-items: center; overflow-y: auto; }
+.tb-result-body { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 10px; width: 100%; max-width: 100%; flex: none; }
+.tb-result-body > * { flex: none; max-width: 100%; }
+.tb-result > .tb-result-body { zoom: 1; }
