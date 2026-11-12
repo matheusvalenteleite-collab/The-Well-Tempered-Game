@@ -9,7 +9,7 @@
  * first note of each entry as it comes, in the voice's colour, gold when the voice is the player's.
  */
 import { tr } from "../i18n/index.ts";
-import { bossBar, cadenceMarks, entryMarks, flags, ornText, ornWidth, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type FlagVariant, type Pop, type Span } from "./box-fx.ts";
+import { ORN_RISE, bossBar, cadenceMarks, entryMarks, flags, ornText, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type FlagVariant, type Pop, type Span } from "./box-fx.ts";
 import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
 import { markLegend, marksHas } from "./readings.ts";
 import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGeo } from "./box-whole.ts";
@@ -761,11 +761,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const x = xOf(o.on);
       if (x >= w) break;
       const mk = x > -8 ? fr.ornaments.get(`${o.voice}:${o.on}`) : undefined;
-      if (mk) ornText(g, mk, x, yOf(o.step) - 6, inkOf(o.voice, fr.count));
+      if (mk) ornText(g, mk, x, Math.max(0, yOf(o.step) - ORN_RISE), inkOf(o.voice, fr.count));
     }
     const sounding = new Set((fr.performed ?? []).filter((p) => !p.band && p.parts[0]?.[0] <= fr.now).map((p) => p.on));
-    // D314: the player's, to be shaken as THE ORNAMENT lesson teaches: twice the size, on a dark backing, a
-    // tick under it to its note (its word over the bars, paint-proto.ts); gone grey once its note is missed.
+    // D314: the player's, to be shaken as THE ORNAMENT lesson teaches, in gold; gone grey once its note is missed.
+    // D657 (the owner: "I hate the mordent sign, why does it look so huge?"): every ornament sign at one size and on
+    // one baseline, the player's as the band's, with no backing; D362: dimmed while its ornament sounds.
     for (const [pv, pnotes] of played)
       for (let ni = firstSounding(pnotes, t0, span); ni < pnotes.length; ni++) {
         const n = pnotes[ni];
@@ -773,23 +774,9 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
         if (x > w) break;
         const mk = x < -16 ? undefined : fr.ornaments.get(`${pv}:${n.on}`);
         if (!mk) continue;
-        // D362: once its ornament sounds, the sign steps up out of the overlay's way, small and dimmed.
-        if (sounding.has(n.on)) {
-          g.globalAlpha = 0.6;
-          ornText(g, mk, x, Math.max(0, yOf(n.step) - 14), fx.gold);
-          g.globalAlpha = 1;
-          continue;
-        }
-        const sw = ornWidth(mk, 2);
-        const y = Math.max(0, yOf(n.step) - 14);
-        g.globalAlpha = 0.65;
-        g.fillStyle = "#0c0a10";
-        g.fillRect(x - 2, y - 2, sw + 2, 14);
+        g.globalAlpha = sounding.has(n.on) ? 0.6 : 1;
+        ornText(g, mk, x, Math.max(0, yOf(n.step) - ORN_RISE), n.state === "miss" ? miss : fx.gold);
         g.globalAlpha = 1;
-        const ink = n.state === "miss" ? miss : fx.gold;
-        ornText(g, mk, x, y, ink, 2);
-        g.fillStyle = ink;
-        g.fillRect(x, y + 11, 1, Math.max(1, yOf(n.step) - y - 11));
       }
   }
   // D353/D362: the ornaments performed, over the written blocks (the plain melody under) and above the signs.

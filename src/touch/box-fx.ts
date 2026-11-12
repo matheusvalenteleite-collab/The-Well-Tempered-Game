@@ -129,6 +129,8 @@ export const ORN_PIXELS: Record<string, string[]> = {
   "~|": ["000010000", "001010100", "010111010", "100010001", "000010000"],
   S: ["00000000", "01100010", "10010001", "10001001", "01000110"],
 };
+/** D657: every ornament sign's baseline, canvas px above its note's row: one height for all, the player's as the band's. */
+export const ORN_RISE = 7;
 /** An ornament's sign over its note: its picture where it has one, else its letters; returns the width drawn. */
 export function ornText(g: CanvasRenderingContext2D, mk: string, x: number, y: number, color: string, scale = 1): number {
   const px = ORN_PIXELS[mk];
@@ -137,8 +139,6 @@ export function ornText(g: CanvasRenderingContext2D, mk: string, x: number, y: n
   px.forEach((row, ry) => [...row].forEach((on, rx) => on === "1" && g.fillRect(Math.round(x) + rx * scale, Math.round(y) + ry * scale, scale, scale)));
   return (px[0].length + 1) * scale;
 }
-/** The width an ornament's sign takes (ornText). */
-export const ornWidth = (mk: string, scale = 1) => (ORN_PIXELS[mk] ? (ORN_PIXELS[mk][0].length + 1) * scale : textWidth(mk, scale));
 
 /**
  * D493: AN ENTRY'S LABEL IN ITS FORM. The owner: "inverted and augmented and diminished subjects can be named
