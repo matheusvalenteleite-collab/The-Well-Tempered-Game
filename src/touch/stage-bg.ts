@@ -334,8 +334,6 @@ type World = (k: Kit) => void;
 const NIGHT: C3 = [10, 12, 28];
 const DUSK_T: C3 = [52, 34, 78];
 const DUSK_L: C3 = [170, 80, 70];
-const DAY_T: C3 = [70, 110, 150];
-const DAY_L: C3 = [170, 180, 170];
 
 function cypress(k: Kit, x: number, y: number, hgt: number, c: string) {
   k.tri(x, y, 8, hgt, c);
@@ -1005,6 +1003,23 @@ function parquet(g: CanvasRenderingContext2D, s: number) {
     g.fillRect(x, y, 7, 3);
   }
 }
+
+// D661: batch 4's characters.
+const FIDDLER = [
+  "..hhh....",
+  ".hsssh...",
+  "..sks..ww",
+  "..sss.wf.",
+  ".cccccf..",
+  "ccccccs..",
+  "scccccc..",
+  ".ccccc...",
+  ".dd.dd...",
+  ".dd.dd...",
+  ".b...b...",
+] as const;
+const BABY = ["..sss..", ".sksks.", "..sss..", "wwwwwww"] as const;
+const BABY_SLEEP = ["..sss..", ".sssss.", "..sss..", "wwwwwww"] as const;
 
 const WORLDS: Record<string, World> = {
   // D658 (design studio, the art upgrade, batch 1): The Canon. A concert stage in three depths: the velvet back wall
@@ -3265,134 +3280,385 @@ const WORLDS: Record<string, World> = {
     k.figure(mx - 10 + sway, k.h * 0.8, "rgba(60,64,84,0.9)", 0, 2.5);
     k.figure(mx + 10 - sway, k.h * 0.8, "rgba(60,64,84,0.9)", 0, 2.5);
   },
-  // The Gigue: a tavern, lanterns swinging with the beat, the fiddler on a barrel.
+  // D661 (design studio, the art upgrade, batch 4): The Gigue. A tavern in three depths: the beams and the plastered
+  // wall, the hearth with its fire, the barrels; lanterns swinging from the beams; the fiddler on his barrel, bowing on
+  // the beat, the dancers hopping round him. The drama: each entry another dancer joins the floor and the lanterns
+  // swing wider; at the climax the whole tavern dancing round the fiddler, the hearth blazing.
   wtc2f18: (k) => {
-    k.room([70, 44, 26], [44, 28, 16], 0.84, "rgba(60,38,22,1)");
+    const { w, h } = k;
+    const cam = sway(k, 27);
+    const cl = k.climax;
+    const grow = Math.min(1, k.passed / Math.max(1, k.ents.length));
+    k.vgrad(0, h, [[0, "#3a2418"], [1, "#4a3020"]]);
+    fillTex(k, texture(k, "stone", 40, stone), 0, 0, w, h * 0.8, cam * 0.3);
+    // the hearth and its fire
+    const HX = w * 0.68 + cam * 0.5, HY = h * 0.78;
+    k.R(HX - 26, HY - 46, 52, 46, "#2a1a14");
+    k.R(HX - 20, HY - 34, 40, 34, "#120806");
+    const fh = 12 + 10 * grow + 18 * cl;
+    for (const [sw2, sh2, c] of [[1, 1, "rgba(200,50,30,0.8)"], [0.7, 0.75, "rgba(255,130,40,0.9)"], [0.4, 0.5, "rgba(255,220,100,0.95)"]] as [number, number, string][])
+      for (let i = 0; i < 5; i++) k.tri(HX + (i - 2) * 6, HY - 2, 10 * sw2, fh * sh2 * (k.still ? 0.9 : 0.75 + 0.25 * Math.sin(k.sec * 6 + i * 2)), c);
+    light(k, HX, HY - 10, 60 + 40 * grow + 60 * cl, [255, 140, 60], 0.25 + 0.1 * grow + 0.2 * cl);
+    // the beams and the swinging lanterns
+    for (let i = 0; i < 4; i++) k.R(0, h * (0.04 + i * 0.0), w, 0, "#000");
+    k.R(0, h * 0.06, w, 6, "#2a180e");
+    const amp = 0.08 + 0.25 * grow + 0.15 * cl;
     for (let i = 0; i < 4; i++) {
-      const x = k.w * (0.15 + i * 0.24);
-      const a = Math.sin(k.bar * Math.PI * 2 + i) * (0.15 + 0.25 * k.busy);
-      const ex = x + Math.sin(a) * 18;
-      const ey = Math.cos(a) * 18;
-      k.line(x, 0, ex, ey, "rgba(40,26,16,1)");
-      k.glow(ex, ey + 3, 16, [255, 190, 100], 0.3);
-      k.R(ex - 2, ey, 4, 5, "rgba(255,210,130,0.9)");
+      const lx = w * (0.26 + i * 0.16) + cam * 0.8;
+      const a = k.still ? 0 : Math.sin(k.sec * 1.6 + i) * amp;
+      const ex = lx + Math.sin(a) * 26, ey = h * 0.08 + Math.cos(a) * 26;
+      k.line(lx, h * 0.08, ex, ey, "#1a1008", 1);
+      k.R(ex - 3, ey, 6, 7, "#3a2a1a");
+      k.R(ex - 2, ey + 1, 4, 5, "#ffd890");
+      light(k, ex, ey + 4, 22, [255, 200, 110], 0.3);
     }
-    k.R(k.w * 0.78, k.h * 0.84 - 14, 14, 14, "rgba(80,50,26,1)");
-    k.figure(k.w * 0.78 + 7, k.h * 0.84 - 14, "rgba(30,20,14,1)", 0, 2);
-    const turn = k.bar * Math.PI;
-    for (let i = 0; i < 2; i++) k.figure(k.w * 0.45 + Math.cos(turn + i * Math.PI) * 12, k.h * 0.84, "rgba(30,20,14,1)", Math.floor(k.bar * 3) % 2, 3);
+    // the floor and the barrels
+    k.R(0, h * 0.8, w, h * 0.2, "#5a3a24");
+    fillTex(k, texture(k, "panels", 24, panels), 0, h * 0.8, w, h * 0.2, cam);
+    for (const bx of [0.24, 0.8]) {
+      const x = w * bx + cam * 1.2;
+      k.R(x - 9, h * 0.8 - 18, 18, 18, "#6a4228");
+      k.R(x - 9, h * 0.8 - 14, 18, 2, "#2a1a10");
+      k.R(x - 9, h * 0.8 - 6, 18, 2, "#2a1a10");
+    }
+    // the fiddler on his barrel, bowing on the beat
+    const FX = w * 0.5 + cam;
+    k.R(FX - 9, h * 0.86 - 16, 18, 16, "#7a4a2a");
+    k.R(FX - 9, h * 0.86 - 12, 18, 2, "#2a1a10");
+    const bow = Math.floor(k.bar * 6) % 2;
+    lit(k, FX, h * 0.86 - 16, FIDDLER, { h: "#3a2010", s: "#f0c8a0", k: "#201010", c: "#3a6a3a", d: "#2a2a20", b: "#140c08", w: "#8a5a2a", f: "#6a3a1a" }, 2, false, "rgba(255,180,100,0.85)", 1);
+    k.line(FX + 6, h * 0.86 - 34 + bow * 2, FX + 18, h * 0.86 - 40 - bow * 2, "#e0d0b0", 1);
+    // the dancers, one more per entry, hopping on the beat round the fiddler
+    const n = Math.min(10, k.passed) + (cl > 0.5 ? 4 : 0);
+    const cols = ["#c03a3a", "#3a5ac0", "#c0a03a", "#3a9a5a", "#9a3ac0", "#e07030", "#6a6a8a"];
+    for (let i = 0; i < n; i++) {
+      const born = i === n - 1 && cl < 0.5 ? Math.min(1, k.since * 2) : 1;
+      const a = k.t * 0.6 + (i * Math.PI * 2) / Math.max(1, n);
+      const x = FX + Math.cos(a) * w * (0.22 + 0.04 * (i % 2)) * born;
+      const y = h * 0.92 + Math.sin(a) * h * 0.05;
+      const hop = k.still ? 0 : Math.abs(Math.sin(k.bar * Math.PI * 2 + i)) * 4;
+      lit(k, x, y - hop, i % 2 ? PERSON : DANCER, { h: "#3a2010", s: "#f0c8a0", m: "#f0c8a0", c: cols[i % 7], g: cols[i % 7], d: "#2a2020", b: "#140c08" }, 2, Math.cos(a) > 0, "rgba(255,180,100,0.8)", Math.sign(HX - x) || 1);
+    }
   },
-  // The Wanderer: a quiet path through gentle hills, day into evening.
+  // D661: The Wanderer. A walk over the hills toward evening: the far ranges and the sky, the hills in many layers
+  // (more of them as the view opens), the near crest with its grass; the wanderer with hat and staff on his own clock
+  // (D464). The drama: each entry the wanderer reaches a new crest and the view opens wider (another range on the
+  // horizon); at the climax the last hill and a valley at sunset spread out below, a river and a village's lights.
   wtc2f19: (k) => {
-    k.sky(DAY_T, DAY_L, [80, 70, 110], [230, 160, 120]);
-    k.orb(0.25, 0.25, 0.6, 4, [255, 230, 180], 0.2);
-    k.hills(0.6, 10, 0.04, 4, "rgba(90,110,90,1)");
-    k.hills(0.72, 8, 0.15, 9, "rgba(70,90,70,1)");
-    k.along(50, 0.4, (x, i) => roundTree(k, x, k.h * 0.82, 6 + hash(i) * 5, "rgba(40,60,40,1)"), 20);
-    k.ground(0.82, "rgba(110,96,70,1)", "rgba(220,200,160,0.2)", 0.8);
-    const wd = k.wander(50, 0.2);
-    k.figure(wd.x, k.h * 0.82, "rgba(40,34,30,1)", wd.step, 2);
-  },
-  // The Earthquake: a city street splitting; the crack lengthens with each entry.
-  wtc2f20: (k) => {
-    k.sky([40, 36, 40], [100, 80, 70], [30, 20, 24], [110, 60, 50]);
-    skyline(k, 0.78, 0.15, "rgba(40,34,36,1)", 0.5);
-    k.ground(0.78, "rgba(60,56,56,1)");
-    const shake = !k.still && (k.stretto > 0.5 || k.ents.some((e) => Math.abs(k.xOf(e) - k.xOf(k.now())) < k.pxBar * 0.15)) ? Math.sin(k.sec * 40) * (1 + 2 * k.stretto) : 0;
-    let x = k.w * 0.05;
-    let y = k.h * 0.88;
-    k.g.strokeStyle = "rgba(10,8,10,0.95)";
-    k.g.lineWidth = 2;
-    k.g.beginPath();
-    k.g.moveTo(x, y);
-    for (let i = 0; i < Math.min(k.passed * 3, 40); i++) {
-      x += 8;
-      y = k.h * 0.88 + (hash(i) - 0.5) * 10;
-      k.g.lineTo(x, y);
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    k.sky([90, 130, 180], [230, 210, 170], [70, 60, 110], [250, 160, 100]);
+    const sunY = h * (0.2 + 0.32 * k.p);
+    light(k, w * 0.66, sunY, 70, [255, 220, 160], 0.35);
+    k.disc(w * 0.66, sunY, 8, "#fff0c8");
+    clouds(k, 4, 0.4, 0.06);
+    // the ranges: one more on the horizon per entry
+    const ranges = Math.min(7, 2 + k.passed);
+    for (let r = ranges - 1; r >= 0; r--) {
+      const t = r / 7;
+      const base = 0.5 + 0.06 * (6 - r) - 0.08 * cl;
+      k.g.save();
+      k.g.translate(cam * (0.2 + 0.2 * (6 - r) / 6), 0);
+      k.hills(base, 8 + r * 2, 0.01 + 0.01 * (6 - r), r + 1, rgba(mix([60, 80, 70], [170, 170, 200], t)));
+      k.g.restore();
     }
-    k.g.stroke();
-    const lp = k.w * 0.7 + shake;
-    k.g.save();
-    k.g.translate(lp, k.h * 0.78);
-    k.g.rotate(-0.04 * Math.min(k.passed, 8));
-    k.R(-1, -40, 3, 40, "rgba(30,28,30,1)");
-    k.glow(0, -42, 12, [255, 210, 140], 0.3);
-    k.g.restore();
-  },
-  // The Cradle: the fireside; the cradle rocks once a bar.
-  wtc2f21: (k) => {
-    k.room([40, 26, 20], [24, 16, 12], 0.84, "rgba(40,26,18,1)");
-    const fx = k.w * 0.22;
-    k.R(fx - 20, k.h * 0.4, 40, k.h * 0.44, "rgba(30,22,20,1)");
-    k.glow(fx, k.h * 0.78, 40, [255, 130, 50], 0.35 + (k.still ? 0 : 0.05 * Math.sin(k.sec * 5)));
-    for (let i = 0; i < 5; i++) k.tri(fx - 10 + i * 5, k.h * 0.84, 6, 8 + (k.still ? 0 : Math.sin(k.sec * 6 + i) * 3), "rgba(255,170,70,0.8)");
-    const cx = k.w * 0.6;
-    const a = Math.sin(k.bar * Math.PI * 2) * 0.12;
-    k.g.save();
-    k.g.translate(cx, k.h * 0.84);
-    k.g.rotate(a);
-    k.g.fillStyle = "rgba(90,60,36,1)";
+    // the valley at the climax: a river, a village's lights
+    if (cl > 0.01) {
+      k.g.strokeStyle = `rgba(255,220,170,${0.7 * cl})`;
+      k.g.lineWidth = 2;
+      k.g.beginPath();
+      k.g.moveTo(w * 0.3, h * 0.75);
+      k.g.bezierCurveTo(w * 0.45, h * 0.62, w * 0.55, h * 0.72, w * 0.72, h * 0.6);
+      k.g.stroke();
+      for (let i = 0; i < 12; i++) light(k, w * (0.48 + 0.12 * hash(i)), h * (0.64 + 0.06 * hash(i + 3)), 4, [255, 210, 130], 0.6 * cl);
+    }
+    // the near crest
+    k.g.fillStyle = "#3a4a2a";
     k.g.beginPath();
-    k.g.arc(0, -10, 16, 0, Math.PI);
+    k.g.moveTo(0, h);
+    k.g.lineTo(0, h * 0.86);
+    k.g.quadraticCurveTo(w * 0.5 + cam * 1.4, h * 0.78, w, h * 0.88);
+    k.g.lineTo(w, h);
     k.g.fill();
-    k.R(-16, -12, 32, 2, "rgba(110,76,44,1)");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.8, w, h * 0.2, cam * 1.4);
+    const wd = k.wander(50, 0.2, 0.26, 0.74);
+    const wy = h * 0.82 + Math.abs(wd.x - w * 0.5) / w * 8;
+    const walk = !k.still && wd.step === 1;
+    lit(k, wd.x, wy, walk ? PILGRIM_B : PILGRIM, { h: "#3a2a1a", s: "#e0b890", c: "#4a5a6a", d: "#2a3440", b: "#1a1210" }, 2, wd.dir < 0, "rgba(255,210,150,0.9)", 1);
+    k.line(wd.x + 10 * wd.dir, wy, wd.x + 12 * wd.dir, wy - 34, "#5a4028", 2);
+    for (let i = 0; i < 30; i++) {
+      const x = (i / 30) * w + cam * 2;
+      k.line(x, h, x + (k.still ? 0 : Math.sin(k.sec + i) * 2), h - 6 - hash(i) * 6, "#2a3a1e", 1);
+    }
+  },
+  // D661: The Earthquake. A city street at dusk in three depths: the far towers, the houses along the street with
+  // their windows, the cobbled road near with the crack running along it; a street lamp. The drama: each entry the
+  // crack lengthens and a building leans (slowly, never a shake); at the climax the street splits wide, dust rising; at
+  // the last chord stillness, the sun through the dust.
+  wtc2f20: (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 33);
+    const cl = k.climax;
+    k.sky([40, 36, 40], [120, 90, 70], [30, 20, 24], [140, 80, 60]);
+    if (k.rest > 0.01) light(k, w * 0.6, h * 0.3, w * 0.5, [255, 210, 150], 0.35 * k.rest);
+    skyline(k, 0.56, 0.02, "rgba(50,42,44,1)", 0.5);
+    // the houses: one more leaning per entry
+    const lean = Math.min(8, k.passed);
+    for (let i = 0; i < 6; i++) {
+      const x = w * (0.08 + i * 0.15) + cam * 0.7;
+      const hh = h * (0.34 + 0.12 * hash(i + 4));
+      const a = i < lean ? (i % 2 ? 1 : -1) * (0.02 + 0.02 * Math.min(1, (i === lean - 1 ? k.since : 1) * 2) + 0.04 * cl) : 0;
+      k.g.save();
+      k.g.translate(x + w * 0.06, h * 0.8);
+      k.g.rotate(a);
+      k.R(-w * 0.06, -hh, w * 0.12, hh, i % 2 ? "#5a4a44" : "#4a3e3c");
+      fillTex(k, texture(k, "stone", 40, stone), -w * 0.06, -hh, w * 0.12, hh);
+      k.tri(0, -hh, w * 0.13, 10, "#3a2e2c");
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) k.R(-w * 0.04 + c * 16, -hh + 10 + r * 16, 6, 8, hash(i * 4 + r * 2 + c) > 0.5 ? "#e0b070" : "#2a2224");
+      k.g.restore();
+    }
+    // the road and the crack
+    k.R(0, h * 0.8, w, h * 0.2, "#4a4446");
+    fillTex(k, texture(k, "cobbles", 24, cobbles), 0, h * 0.8, w, h * 0.2, cam);
+    const gap = 2 + 10 * cl;
+    k.g.fillStyle = "#0a0808";
+    k.g.beginPath();
+    let x = w * 0.05;
+    const pts: [number, number][] = [];
+    for (let i = 0; i <= Math.min(k.passed * 3, 44); i++, x += 8) pts.push([x + cam, h * 0.89 + (hash(i) - 0.5) * 10]);
+    if (pts.length > 1) {
+      k.g.moveTo(pts[0][0], pts[0][1]);
+      pts.forEach(([px, py]) => k.g.lineTo(px, py - gap / 2));
+      for (let i = pts.length - 1; i >= 0; i--) k.g.lineTo(pts[i][0], pts[i][1] + gap / 2);
+      k.g.fill();
+    }
+    if (cl > 0.01 && k.rest < 0.5) for (let i = 0; i < 10; i++) {
+      const u = wrap(k.t * 0.15 + hash(i), 1);
+      k.glow(w * (0.2 + 0.6 * hash(i * 3)), h * (0.88 - 0.4 * u), 10 + 20 * u, [170, 150, 130], 0.25 * cl * (1 - u));
+    }
+    // the lamp, leaning with the street
+    k.g.save();
+    k.g.translate(w * 0.72 + cam * 1.2, h * 0.8);
+    k.g.rotate(-0.04 * lean);
+    k.R(-1, -42, 3, 42, "#1e1a1c");
+    light(k, 0, -44, 18, [255, 210, 140], 0.4);
     k.g.restore();
-    k.figure(k.w * 0.75, k.h * 0.84, "rgba(30,20,16,1)", 0, 3);
   },
-  // The Colossus: a giant statue over a harbour; ships pass small at its feet.
+  // D661: The Cradle. A nursery at night in three depths: the window and its sky, the wall with its paper and a moon
+  // mobile turning slowly, the cradle near and the hearth's low fire. The drama: each entry the cradle rocks and a star
+  // appears in the window; at the climax the child asleep, the window full of stars, the fire low and warm.
+  wtc2f21: (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 39);
+    const cl = k.climax;
+    k.vgrad(0, h * 0.82, [[0, "#2a2438"], [1, "#3a3048"]]);
+    fillTex(k, texture(k, "paper", 24, wallpaper), 0, 0, w, h * 0.82, cam * 0.4);
+    // the window, a star per entry
+    const WX = w * 0.32 + cam * 0.4, WY = h * 0.1, WW = w * 0.2, WH = h * 0.42;
+    k.R(WX - 3, WY - 3, WW + 6, WH + 6, "#e0d8c8");
+    k.vgrad(WY, WH, [[0, "#0c0c2a"], [1, "#24244a"]], WX, WW);
+    const ns = Math.min(30, k.passed * 2) + Math.round(30 * cl);
+    for (let i = 0; i < ns; i++) {
+      const sx = WX + 2 + (WW - 4) * hash(i * 7), sy = WY + 2 + (WH - 4) * hash(i * 11);
+      const tw = k.still ? 1 : 0.6 + 0.4 * Math.sin(k.sec * 0.7 + i);
+      light(k, sx, sy, 3, [255, 250, 220], 0.4 * tw);
+      k.R(sx, sy, 1, 1, "#fffbe8");
+    }
+    k.R(WX + WW / 2 - 1, WY, 2, WH, "#e0d8c8");
+    k.R(WX, WY + WH * 0.5, WW, 2, "#e0d8c8");
+    // the mobile turning
+    const MX = w * 0.6 + cam * 0.7;
+    k.line(MX, 0, MX, h * 0.12, "rgba(220,220,220,0.5)");
+    for (let i = 0; i < 4; i++) {
+      const a = (k.still ? 0 : k.sec * 0.3) + (i * Math.PI) / 2;
+      const ox = Math.cos(a) * 14;
+      k.line(MX, h * 0.12, MX + ox, h * 0.18, "rgba(220,220,220,0.4)");
+      if (i % 2) k.disc(MX + ox, h * 0.21, 3, "#f0e090");
+      else k.tri(MX + ox, h * 0.23, 6, 6, "#f0e090");
+    }
+    // the hearth, low
+    const HX = w * 0.82 + cam * 0.9;
+    k.R(HX - 20, h * 0.5, 40, h * 0.32, "#4a3a34");
+    k.R(HX - 14, h * 0.6, 28, h * 0.22, "#140a08");
+    for (let i = 0; i < 4; i++) k.tri(HX + (i - 1.5) * 6, h * 0.82, 7, 6 + (k.still ? 3 : 3 * Math.sin(k.sec * 4 + i)), i % 2 ? "rgba(255,150,60,0.9)" : "rgba(255,200,90,0.9)");
+    light(k, HX, h * 0.78, 50, [255, 150, 70], 0.3);
+    // the floor, the rug and the cradle, rocking per entry
+    k.R(0, h * 0.82, w, h * 0.18, "#4a3024");
+    k.g.fillStyle = "#6a3a4a";
+    k.g.beginPath();
+    k.g.ellipse(w * 0.5 + cam * 1.2, h * 0.92, w * 0.16, h * 0.05, 0, 0, Math.PI * 2);
+    k.g.fill();
+    const rock = k.still ? 0 : Math.sin(k.sec * 2.2) * 0.12 * Math.max(0.15, Math.exp(-k.since * 1.5)) * (1 - cl);
+    const CX = w * 0.5 + cam * 1.2, CY = h * 0.9;
+    k.g.save();
+    k.g.translate(CX, CY);
+    k.g.rotate(rock);
+    k.g.fillStyle = "#8a5a34";
+    k.g.beginPath();
+    k.g.arc(0, 0, 18, 0, Math.PI);
+    k.g.fill();
+    k.R(-20, -14, 40, 12, "#7a4a2a");
+    k.R(-20, -14, 40, 1, "rgba(255,200,140,0.5)");
+    sprite(k, 0, -12, cl > 0.5 ? BABY_SLEEP : BABY, { s: "#f4d0b0", k: "#3a2020", w: "#e8e0f0" }, 2);
+    k.R(-16, -12, 32, 4, "#d0c0e0");
+    k.g.restore();
+    if (cl > 0.01) light(k, CX, CY - 14, 30, [255, 190, 120], 0.25 * cl);
+  },
+  // D661: The Colossus. A harbour under a giant statue in three depths: the sky and the far headlands, the statue on
+  // its mole, stone-textured and rim-lit, the beacon in its raised hand; the harbour water near with the ships. The
+  // drama: each entry a ship enters the harbour and the beacon brightens (D474's acts: afternoon, dusk, the beacon lit);
+  // at the climax the low sun behind the statue, every ship's sail lit gold.
   wtc2f22: (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 35);
+    const cl = k.climax;
     k.sky([90, 120, 160], [220, 200, 170], [50, 60, 100], [230, 150, 110], 0.7);
-    // D474: II the afternoon; III dusk over the harbour, the beacon lit in the statue's hand; the end: the low sun behind it.
-    const dusk = k.act(2) + k.act(3) * (1 - k.climax);
-    if (k.act(1) > 0.01) k.vgrad(0, k.h * 0.7, [[0, `rgba(200,140,80,${0.3 * k.act(1)})`], [1, `rgba(255,190,120,${0.45 * k.act(1)})`]]);
-    if (dusk > 0.01) k.vgrad(0, k.h * 0.7, [[0, `rgba(30,20,60,${0.75 * dusk})`], [1, `rgba(150,70,90,${0.6 * dusk})`]]);
-    const sx = k.w * 0.65;
-    const firm = 0.4 + 0.6 * Math.min(1, k.passed / Math.max(1, k.ents.length));
-    const c = `rgba(60,56,60,${firm})`;
-    k.R(sx - 10, k.h * 0.22, 20, k.h * 0.5, c);
-    k.disc(sx, k.h * 0.18, 7, c);
-    k.R(sx + 8, k.h * 0.08, 4, k.h * 0.16, c);
-    const fire = Math.max(k.act(2), k.act(3));
-    if (fire > 0.01) {
-      k.glow(sx + 10, k.h * 0.07, 20, [255, 170, 80], 0.6 * fire);
-      k.R(sx + 8, k.h * 0.04, 4, 4, `rgba(255,210,120,${fire})`);
+    const dusk = k.act(2) + k.act(3) * (1 - cl);
+    if (k.act(1) > 0.01) k.vgrad(0, h * 0.7, [[0, `rgba(200,140,80,${0.3 * k.act(1)})`], [1, `rgba(255,190,120,${0.45 * k.act(1)})`]]);
+    if (dusk > 0.01) k.vgrad(0, h * 0.7, [[0, `rgba(30,20,60,${0.75 * dusk})`], [1, `rgba(150,70,90,${0.6 * dusk})`]]);
+    const sx = w * 0.56 + cam * 0.5;
+    if (cl > 0.01) {
+      light(k, sx, h * 0.5, w * 0.5, [255, 190, 110], 0.45 * cl);
+      k.disc(sx + 4, h * 0.56, 18 * cl, `rgba(255,220,150,${cl})`);
     }
-    k.R(sx - 16, k.h * 0.72 - 6, 32, 6, c);
-    k.vgrad(k.h * 0.7, k.h * 0.3, [[0, "rgba(60,90,120,1)"], [1, "rgba(30,50,70,1)"]]);
-    for (let y = k.h * 0.74; y < k.h; y += 6) k.R(wrap(y * 17 - k.bar * k.pxBar * 0.3, k.w), y, 12, 1, "rgba(200,220,240,0.18)");
-    k.along(70, 0.5, (x, i) => {
-      const y = k.h * (0.8 + (i % 2) * 0.08);
-      k.R(x, y, 14, 3, "rgba(50,34,26,1)");
-      k.tri(x + 7, y, 10, 10, "rgba(220,210,190,0.8)");
-    }, 30);
+    k.hills(0.68, 8, 0.01, 2, "rgba(70,70,90,1)");
+    // the statue: legs, robe, head, raised arm, beacon; stone texture, rim light
+    const st = "#5a5660";
+    const rim = cl > 0.01 ? `rgba(255,200,130,${0.4 + 0.5 * cl})` : "rgba(255,230,190,0.35)";
+    const body: [number, number, number, number][] = [[-12, 0.5, 9, 0.22], [3, 0.5, 9, 0.22], [-14, 0.26, 28, 0.25], [-6, 0.17, 12, 0.09], [10, 0.02, 5, 0.26], [-20, 0.3, 6, 0.14]];
+    for (const [dx, y0, ww, hh] of body) {
+      k.R(sx + dx - 1, h * y0, ww + 1, h * hh, rim);
+      k.R(sx + dx, h * y0, ww, h * hh, st);
+    }
+    fillTex(k, texture(k, "stone", 40, stone), sx - 20, h * 0.02, 40, h * 0.7);
+    const fire = Math.max(k.act(2), k.act(3), 0.2) * (0.6 + 0.4 * Math.min(1, k.passed / Math.max(1, k.ents.length)));
+    light(k, sx + 12, h * 0.02, 24, [255, 170, 80], 0.6 * fire);
+    k.R(sx + 10, h * 0.0, 6, 5, `rgba(255,210,120,${Math.min(1, fire + 0.2)})`);
+    k.R(sx - 24, h * 0.72 - 6, 48, 6, "#3a3640");
+    // the water and the ships, one per entry
+    k.vgrad(h * 0.7, h * 0.3, [[0, "rgba(60,90,120,1)"], [1, "rgba(30,50,70,1)"]]);
+    if (cl > 0.01) k.vgrad(h * 0.7, h * 0.3, [[0, `rgba(255,190,110,${0.35 * cl})`], [1, "rgba(255,190,110,0)"]]);
+    for (let y = h * 0.74; y < h; y += 6) k.R(wrap(y * 17 + k.t * 5, w), y, 12, 1, "rgba(200,220,240,0.18)");
+    const n = Math.min(9, k.passed);
+    for (let i = 0; i < n; i++) {
+      const born = i === n - 1 ? Math.min(1, k.since * 1.5) : 1;
+      const tx = w * (0.24 + 0.06 * i + (i % 2) * 0.03);
+      const x = -30 + (tx + 30) * born + cam * (1 + (i % 2) * 0.4) + (k.still ? 0 : Math.sin(k.sec * 0.6 + i) * 2);
+      const y = h * (0.8 + (i % 3) * 0.06) + (k.still ? 0 : Math.sin(k.sec * 1.1 + i) * 1);
+      const sail = cl > 0.01 ? rgba(mix([230, 222, 205], [255, 200, 110], cl)) : "#e6dccc";
+      k.R(x, y, 16, 3, "#3a2618");
+      k.R(x + 2, y - 1, 12, 1, "#5a3a24");
+      k.R(x + 7, y - 14, 1, 14, "#3a2618");
+      k.tri(x + 8, y - 2, 12, 11, sail);
+      k.R(x + 2, y + 4, 14, 1, "rgba(0,0,0,0.25)");
+    }
   },
-  // The Elegy: a willow by a grave at dusk; its branches move, slower as the piece ends, then still.
+  // D661: The Elegy. A churchyard at dusk in three depths: the far church and the hills, the willow over the grave, its
+  // strands swaying, the grave near with the mourner kneeling, fireflies. The drama: each entry a flower is laid at the
+  // grave and the willow stirs; at the climax the moon rises over the grave, the flowers silver, the willow still.
   wtc2f23: (k) => {
-    k.sky([60, 50, 80], [180, 120, 110], [20, 18, 36], [70, 50, 70]);
-    k.stars(30, 0.6);
-    k.hills(0.86, 6, 0.02, 3, "rgba(30,34,30,1)");
-    const tx = k.w * 0.6;
-    k.R(tx - 3, k.h * 0.3, 6, k.h * 0.56, "rgba(26,22,20,1)");
-    const sway = (1 - k.p) * (k.still ? 0 : Math.sin(k.sec * 0.5));
-    for (let i = 0; i < 16; i++) {
-      const bx = tx + (i - 8) * 4;
-      const len = k.h * (0.3 + hash(i) * 0.2);
-      for (let y = 0; y < len; y += 2) k.R(bx + sway * (y / len) * 6, k.h * 0.3 + y, 1, 2, "rgba(40,60,40,0.8)");
+    const { w, h } = k;
+    const cam = sway(k, 41);
+    const cl = k.climax;
+    k.sky([60, 60, 100], [160, 120, 130], [20, 22, 50], [60, 50, 80]);
+    k.stars(40, 0.4);
+    const my = h * (0.6 - 0.45 * cl);
+    if (cl > 0.01) {
+      light(k, w * 0.36, my, 60, [220, 225, 240], 0.35 * cl);
+      k.disc(w * 0.36, my, 9, `rgba(240,240,225,${cl})`);
     }
-    k.R(k.w * 0.32, k.h * 0.86 - 14, 10, 14, "rgba(90,86,84,0.9)");
-    k.disc(k.w * 0.32 + 5, k.h * 0.86 - 14, 5, "rgba(90,86,84,0.9)");
-    k.figure(k.w * 0.42, k.h * 0.86, "rgba(24,20,22,1)", 0, 2);
+    k.hills(0.66, 10, 0.01, 3, "rgba(40,40,60,1)");
+    k.g.save();
+    k.g.translate(cam * 0.4, 0);
+    k.R(w * 0.16, h * 0.46, 22, h * 0.2, "#2a2a3a");
+    k.tri(w * 0.16 + 11, h * 0.46, 26, 12, "#2a2a3a");
+    k.R(w * 0.16 + 8, h * 0.3, 6, h * 0.16, "#2a2a3a");
+    k.tri(w * 0.16 + 11, h * 0.3, 8, 10, "#2a2a3a");
+    k.g.restore();
+    k.R(0, h * 0.8, w, h * 0.2, "#2a3424");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.8, w, h * 0.2, cam);
+    // the willow: strands swaying, still at the climax; stirring at each entry
+    const TX = w * 0.6 + cam * 0.8;
+    k.R(TX - 4, h * 0.34, 8, h * 0.48, "#2a2018");
+    k.disc(TX, h * 0.3, 26, "#2a3a26");
+    const stir = (k.since < 1 ? 1 - k.since : 0) * 3;
+    const swing = (k.still ? 0 : 1) * (1 - cl);
+    for (let i = 0; i < 28; i++) {
+      const x0 = TX + (i - 14) * 3;
+      const len = h * (0.2 + 0.18 * hash(i));
+      const dx = swing * (Math.sin(k.sec * 0.6 + i * 0.3) * 3 + Math.sin(k.sec * 3 + i) * stir);
+      k.line(x0, h * 0.28, x0 + dx, h * 0.28 + len, i % 3 ? "#3a5a34" : "#4a6a3c", 1);
+    }
+    // the grave, the flowers laid one per entry, the mourner
+    const GX = w * 0.46 + cam * 1.2;
+    k.R(GX - 8, h * 0.82 - 22, 16, 22, "#6a6870");
+    k.disc(GX, h * 0.82 - 22, 8, "#6a6870");
+    k.R(GX - 8, h * 0.82 - 24, 1, 22, "rgba(255,255,255,0.15)");
+    k.R(GX - 12, h * 0.82, 24, 3, "#3a3020");
+    const nf = Math.min(12, k.passed);
+    for (let i = 0; i < nf; i++) {
+      const c = cl > 0.3 ? rgba(mix([220, 80, 100], [220, 225, 240], cl)) : ["#d04060", "#f0f0f0", "#e0c040"][i % 3];
+      const fx = GX - 10 + (i % 6) * 4, fy = h * 0.82 - (i >= 6 ? 3 : 0);
+      k.R(fx, fy - 2, 1, 3, "#3a5a2a");
+      k.R(fx - 1, fy - 4, 3, 2, c);
+    }
+    lit(k, GX - 26, h * 0.86, KNEELER, { h: "#2a2232", d: "#18121e", f: "#06040a" }, 2, false, rgba(cl > 0.01 ? [220, 225, 240] : [255, 190, 150], 0.4), 1);
+    if (!k.still) for (let i = 0; i < 8; i++) {
+      const fx = w * (0.3 + 0.5 * hash(i)) + Math.sin(k.sec * 0.4 + i) * 16;
+      const fy = h * (0.6 + 0.2 * hash(i + 2)) + Math.sin(k.sec * 0.7 + i * 2) * 6;
+      light(k, fx, fy, 4, [210, 255, 150], 0.3 * (0.5 + 0.5 * Math.sin(k.sec * 1.1 + i * 2)));
+    }
   },
-  // The Last Dance: an emptying ballroom; the candles go out one by one, one left at the end.
+  // D661: The Last Dance. A ballroom emptying in three depths: the arches and the tall dark windows, the candles in
+  // their sconces going out, the floor with the couples; the light gathering as it fades. The drama: each entry a
+  // couple leaves the ballroom and a candle goes out; at the climax the last couple dances alone in one candle's pool
+  // of light; at the last chord darkness, and the image held.
   wtc2f24: (k) => {
-    k.room([36, 24, 34], [20, 12, 20], 0.86, "rgba(36,24,28,1)");
-    arches(k, "rgba(14,8,14,0.85)", 4);
+    const { w, h } = k;
+    const cam = sway(k, 41);
+    const cl = k.climax;
     const n = 9;
-    const left = Math.max(1, Math.round(n * (1 - k.p)));
-    for (let i = 0; i < n; i++) k.candle(k.w * (0.1 + (0.8 * i) / (n - 1)), k.h * 0.4, 6, i < left);
-    const turn = k.bar * Math.PI * 0.5;
-    k.figure(k.w * 0.5 + Math.cos(turn) * 10, k.h * 0.86, "rgba(26,16,24,1)", 0, 3);
-    k.figure(k.w * 0.5 - Math.cos(turn) * 10, k.h * 0.86, "rgba(40,26,34,1)", 0, 3);
+    const left = Math.max(1, n - k.passed);
+    k.vgrad(0, h * 0.84, [[0, "#241828"], [1, "#342438"]]);
+    fillTex(k, texture(k, "paper", 24, wallpaper), 0, 0, w, h * 0.84, cam * 0.3);
+    arches(k, "rgba(14,8,14,0.85)", 4);
+    for (let i = 0; i < 3; i++) {
+      const x = w * (0.3 + i * 0.2) + cam * 0.3;
+      k.R(x - 8, h * 0.14, 16, h * 0.4, "#141228");
+      k.disc(x, h * 0.14, 8, "#141228");
+      for (let s2 = 0; s2 < 3; s2++) k.R(x - 6 + s2 * 5, h * 0.2 + s2 * 9, 1, 1, "rgba(255,250,220,0.6)");
+    }
+    // the sconces, one going out per entry
+    for (let i = 0; i < n; i++) {
+      const x = w * (0.1 + (0.8 * i) / (n - 1)) + cam * 0.5;
+      const on = i < left || (cl > 0.5 && i === 4);
+      k.R(x - 3, h * 0.42, 7, 2, "#8a7040");
+      k.R(x - 1, h * 0.42 - 6, 3, 6, "rgba(230,220,200,0.85)");
+      if (on) {
+        const fl = k.still ? 0 : Math.sin(k.sec * 8 + i) * 0.5;
+        light(k, x, h * 0.42 - 8, 16, [255, 190, 100], 0.35 * (1 - k.rest));
+        k.R(x + fl, h * 0.42 - 9, 2, 3, "#ffe08a");
+      } else if (!k.still && i === left && k.since < 1.5) k.glow(x, h * 0.42 - 12 - k.since * 8, 4, [200, 200, 210], 0.3 * (1 - k.since / 1.5));
+    }
+    k.R(0, h * 0.84, w, h * 0.16, "#3a2414");
+    fillTex(k, texture(k, "parquet", 16, parquet), 0, h * 0.84, w, h * 0.16, cam);
+    // the couples, one leaving per entry; the last alone in one pool of light
+    const couples = cl > 0.5 ? 1 : Math.max(1, 6 - k.passed);
+    const gowns = ["#c03a5a", "#3a6ac0", "#e0b040", "#5aa070", "#a050c0", "#e07030"];
+    if (cl > 0.01) {
+      k.R(0, 0, w, h, `rgba(0,0,0,${0.35 * cl})`);
+      light(k, w * 0.5, h * 0.84, 50, [255, 200, 120], 0.45 * cl * (1 - k.rest));
+    }
+    for (let i = 0; i < couples; i++) {
+      const a = k.t * 0.5 + (i * Math.PI * 2) / couples;
+      const r = couples === 1 ? 6 : w * 0.18;
+      const x = w * 0.5 + Math.cos(a) * r + cam * 1.1;
+      const y = h * 0.92 + Math.sin(a) * (couples === 1 ? 2 : h * 0.04);
+      lit(k, x - 7, y, DANCER, { h: "#3a2010", m: "#f0c8a0", s: "#f0c8a0", g: gowns[i] }, 2, false, "rgba(255,210,150,0.8)", 0, -1);
+      lit(k, x + 7, y, PARTNER, { h: "#1a1010", m: "#f0c8a0", s: "#f0c8a0", k: "#141018", w: "#f0f0f0", b: "#0a0808" }, 2, true, "rgba(255,210,150,0.8)", 0, -1);
+    }
+    if (k.rest > 0.01) k.R(0, 0, w, h, `rgba(0,0,0,${0.6 * k.rest})`);
   },
 };
 
