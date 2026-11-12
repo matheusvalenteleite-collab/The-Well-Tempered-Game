@@ -6,6 +6,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, type Mech } from "../src/bench/mechanics.ts";
 import { CONFIGS, configById, configMech } from "../src/bench/lab/presets.ts";
 import { findRuns, runTrend, slope } from "../src/bench/runs.ts";
@@ -13,7 +14,7 @@ import { replay, tally } from "../src/bench/lab/replay.ts";
 import { describe } from "../src/bench/lab/describe.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
 import type { LaneNote } from "../src/touch/lanes.ts";
-import { alterAgainst, chromaShift, signOf, signatureOf, SIGN_PIXELS } from "../src/touch/chroma.ts";
+import { alterAgainst, chromaShift, signOf, signatureOf, SIGN_PIXELS_5 } from "../src/touch/chroma.ts";
 import { synthRun } from "../tools/lab/lab-synth.ts";
 
 const note = (on: number, step: number, midi = 60): LaneNote => ({ on, dur: 1, midi, step, long: false, state: "pending" });
@@ -165,5 +166,9 @@ test("D332: the key signature and a note's alteration against it (drawing only)"
   assert.equal(chromaShift(5), 2);
   assert.equal(chromaShift(10), 4);
   assert.equal(chromaShift(2), 0);
-  for (const g of Object.values(SIGN_PIXELS)) assert.ok(g.length === 4 && g.every((r) => r.length === 3));
+  // D657: five rows, at most five wide; the double flat its own sign; the box draws them on blocks of four rows and up.
+  for (const g of Object.values(SIGN_PIXELS_5)) assert.ok(g.length === 5 && g.every((r) => r.length <= 5 && r.length === g[0].length));
+  assert.equal(signOf(C4 + 1, 60), "doubleFlat");
+  assert.equal(signOf(C4, 62), "double");
+  assert.match(readFileSync(new URL("../src/touch/MusicBox.tsx", import.meta.url), "utf8"), /if \(alt && bh - 1 >= 4 && fw >= 7\) \{\n\s*const glyph = SIGN_PIXELS_5\[signOf\(n\.step, n\.midi\)\];/);
 });
