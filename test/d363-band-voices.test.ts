@@ -38,6 +38,8 @@ const WITH_BAND: Record<string, number[]> = {
   "bwv1080-05": [0, 1, 3],
   "bwv1080-06": [0],
   "bwv1080-07": [0],
+  // D753: the Chromatic Fugue's chords at its climaxes and end (bars 53, 94, 135, 158-161), the middle voice's and the bass's.
+  "bwv903-2": [1, 2],
 };
 const ALL = [...PIECES, ...MORE_BACH];
 const overlaps = (ns: TouchNote[]) => ns.some((n, i) => ns.some((m, j) => i !== j && m[0] < n[0] && n[0] < m[0] + m[1]));

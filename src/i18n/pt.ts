@@ -729,4 +729,6 @@ export const PT: Record<string, string> = {
   "INVENTIONS 1–15 · SINFONIAS 1–15": "INVENÇÕES 1–15 · SINFONIAS 1–15",
   // D751: the Four Duets.
   "FOUR DUETS": "QUATRO DUETOS",
+  // D753.
+  "FANTASIAS AND FUGUES": "FANTASIAS E FUGAS",
 };
