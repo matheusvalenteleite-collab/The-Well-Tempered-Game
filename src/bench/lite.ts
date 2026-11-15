@@ -61,6 +61,8 @@ const SECTION_OF: readonly [Collection, string][] = [
   ["mo", "MUSICAL OFFERING"],
   ["inv", "INVENTIONS"],
   ["sin", "SINFONIAS"],
+  // D751: the Four Duets of Clavier-Übung III, BWV 802-805 (Duet 4 held until its notes are checked: bach-duets/SOURCE.md).
+  ["duet", "FOUR DUETS"],
   ["concerto", "CONCERTO"],
   // D348: BWV 1052-1058 and 1060-1065, every movement (D351: and BWV 1059 as a reconstruction) (tools/touch/concertos.ts; MuseScore editions, CC0).
   ["hconcerto", "HARPSICHORD CONCERTOS"],

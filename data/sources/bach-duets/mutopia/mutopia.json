@@ -1,0 +1,79 @@
+[
+ {
+  "id": 1596,
+  "title": "Duetto I",
+  "instruments": "Harpsichord",
+  "opus": "BWV802",
+  "source": "Bach-Gesellschaft Edition / Ernst Naumann 1890",
+  "license": "Creative Commons Attribution-ShareAlike 3.0",
+  "musicId": "Mutopia-2008/11/15-1596",
+  "maintainer": "H. Gillis",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1596",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV802/Bach-Duet1/Bach-Duet1.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV802/Bach-Duet1/Bach-Duet1.mid"
+  ],
+  "kept": [
+   "Bach-Duet1.ly",
+   "Bach-Duet1.mid"
+  ]
+ },
+ {
+  "id": 360,
+  "title": "Duetto II (from the Clavierübung Part III)",
+  "instruments": "Harpsichord, Organ, Piano",
+  "opus": "BWV 803",
+  "source": "Edition Peters",
+  "license": "Public Domain",
+  "musicId": "Mutopia-2013/03/22-360",
+  "maintainer": "Vit Reichel",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=360",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV803/duetto/duetto.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV803/duetto/duetto.mid"
+  ],
+  "kept": [
+   "duetto.ly",
+   "duetto.mid"
+  ]
+ },
+ {
+  "id": 1597,
+  "title": "Duetto III",
+  "instruments": "Harpsichord",
+  "opus": "BWV 804",
+  "source": "Bach-Gesellschaft Edition / Ernst Naumann 1890",
+  "license": "Public Domain",
+  "musicId": "Mutopia-2008/11/21-1597",
+  "maintainer": "H. Gillis",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1597",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV804/Bach-Duet3/Bach-Duet3.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV804/Bach-Duet3/Bach-Duet3.mid"
+  ],
+  "kept": [
+   "Bach-Duet3.ly",
+   "Bach-Duet3.mid",
+   "Bach-Duet3.closed.ly (the .ly with its unclosed \\paper block closed: one '}' appended; nothing else changed)"
+  ]
+ },
+ {
+  "id": 1598,
+  "title": "Duetto IV",
+  "instruments": "Harpsichord",
+  "opus": "BWV 805",
+  "source": "Bach-Gesellschaft Edition / Ernst Naumann 1890",
+  "license": "Public Domain",
+  "musicId": "Mutopia-2008/11/21-1598",
+  "maintainer": "H. Gillis",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1598",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV805/Bach-Duet4/Bach-Duet4.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV805/Bach-Duet4/Bach-Duet4.mid"
+  ],
+  "kept": [
+   "Bach-Duet4.ly",
+   "Bach-Duet4.mid"
+  ]
+ }
+]

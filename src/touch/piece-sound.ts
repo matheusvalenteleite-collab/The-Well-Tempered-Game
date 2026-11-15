@@ -285,6 +285,11 @@ function moreBachSounds(): Record<string, string> {
     "bwv799": "harpsichordSampled",
     "bwv800": "harpsichordSampled",
     "bwv801": "harpsichordSampled",
+    // D751: the Four Duets on the harpsichord, as the Inventions (Instruments may choose otherwise).
+    "bwv802": "harpsichordSampled",
+    "bwv803": "harpsichordSampled",
+    "bwv804": "harpsichordSampled",
+    "bwv805": "harpsichordSampled",
     "bwv1043-2": "super16",
     "bwv228-2": "soloVoices",
     "bwv54-3": "super16",
