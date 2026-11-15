@@ -21,6 +21,7 @@ import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react"
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
 import { hasStage, paintStage, stageMode } from "./stage-bg.ts";
+import { inkOf } from "./voice-inks.ts";
 import { fxState, paintFx } from "./event-fx.ts";
 import { SIGN_PIXELS_5, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
 import type { OtherNote } from "./voice-mode.ts";
@@ -34,16 +35,8 @@ const PX = 2;
 const BARS_SHOWN = 3;
 const PLAYHEAD = 0.25;
 
-/** The voices' colours, top voice first, for two to five voices. */
-const INKS: Record<number, string[]> = {
-  2: ["#5cb2ff", "#5fe08a"],
-  3: ["#5cb2ff", "#ff8c4a", "#5fe08a"],
-  4: ["#5cb2ff", "#ff8c4a", "#c78bff", "#5fe08a"],
-  5: ["#5cb2ff", "#7fe3e0", "#ff8c4a", "#c78bff", "#5fe08a"],
-};
-export function inkOf(voice: number, count: number): string {
-  return (INKS[count] ?? INKS[4])[voice] ?? "#ecead9";
-}
+/** The voices' colours (D670: in voice-inks.ts, the Songbirds' birds share them). */
+export { inkOf };
 
 /** The roll's colour in a key (D167: all 24): the circle of fifths round the hue wheel, minor keys darker. */
 export function keyTint(key: string, light = 0): string {
