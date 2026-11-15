@@ -36,7 +36,7 @@ import { parseExpert, placeExpert, type ExpertFugue } from "./expert.ts";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
 
-export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "concerto" | "motet" | "cantata";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "concerto" | "motet" | "cantata";
 
 interface Spec {
   /**
@@ -87,7 +87,7 @@ interface Spec {
    * D751: the edition corrected where it disagrees with the Bach-Gesellschaft print (read from the print: SOURCE.md):
    * a voice's nth note of a bar given another pitch, or held on from the note before (a tie the edition broke).
    */
-  fixes?: { voice: number; bar: number; nth: number; to?: string; tie?: true }[];
+  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to: string })[];
   /** The voices the player may take (all where unset). */
   playable?: number[];
   /** The edition's typesetter and licence, for the credit line. */
@@ -440,7 +440,45 @@ const DUETS: Spec[] = (
   credit,
 }));
 
-export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...CONCERTO, ...VOCAL];
+/**
+ * D753: the Fugue of the Chromatic Fantasia and Fugue, BWV 903 (data/sources/bach-903/SOURCE.md): three voices, the
+ * middle one changing staff (two LilyPond streams); ten notes corrected from the Bach-Gesellschaft print (Band 36).
+ * The Fantasia, two staves of figuration, arpeggiated chords and recitative, is not taken (the one-note rule).
+ */
+const BWV903_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 2, bar: 27, at: "11/16", from: "B2", to: "Bb2" },
+  { voice: 1, bar: 32, at: "5/8", from: "C4", to: "Eb4" },
+  { voice: 2, bar: 55, at: "1/2", from: "G3", to: "G#3" },
+  { voice: 2, bar: 58, at: "11/16", from: "G3", to: "G#3" },
+  { voice: 1, bar: 90, at: "1/4", from: "F4", to: "G4" },
+  { voice: 2, bar: 94, at: "0", from: "G#3", to: "F#3" },
+  { voice: 1, bar: 111, at: "0", from: "B4", to: "Bb4" },
+  { voice: 2, bar: 114, at: "3/16", from: "E3", to: "D3" },
+  { voice: 2, bar: 127, at: "9/16", from: "D3", to: "F3" },
+  { voice: 1, bar: 157, at: "1/16", from: "E5", to: "D5" },
+];
+const KEYBOARD: Spec[] = [
+  {
+    id: "bwv903-2",
+    collection: "keyboard",
+    number: 1,
+    title: "Chromatic Fantasia and Fugue in D minor, Fugue",
+    short: "CHROMATIC FUGUE",
+    bwv: "903",
+    key: "d",
+    dir: "bach-903",
+    mutopia: 1604,
+    ly: "bwv903fug.ly",
+    mid: "bwv903fug.mid",
+    lyVoices: ["upper:1", "upper:2|lower:1", "lower:2"],
+    voiceNames: THREE,
+    entries: true,
+    fixes: BWV903_FIXES,
+    credit: "MUTOPIA PROJECT · TYPESET BY GREG LOUIS FROM THE BACH-GESELLSCHAFT EDITION, CORRECTED FROM ITS PRINT · PUBLIC DOMAIN",
+  },
+];
+
+export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...CONCERTO, ...VOCAL];
 
 /**
  * D361: a sung part is one line, the MusicXML voice(s) carrying its words. Another voice written on its
@@ -639,7 +677,8 @@ export function readPiece(s: Spec): Read {
     const count = new Map<string, number>();
     for (const n of lyNotes) count.set(n.voice, (count.get(n.voice) ?? 0) + 1);
     const ids = s.lyVoices ?? [...count].filter(([, c]) => c >= 0.03 * lyNotes.length).map(([v]) => v);
-    const home = (v: string) => (ids.includes(v) ? v : ids.includes(v.split(/[:/]/)[0]) ? v.split(/[:/]/)[0] : null);
+    // D753: a voice may be several LilyPond streams ("upper:2|lower:1": a line that changes staff).
+    const home = (v: string) => ids.find((id) => id.split("|").includes(v)) ?? (ids.includes(v.split(/[:/]/)[0]) ? v.split(/[:/]/)[0] : null);
     const unknown = [...count.keys()].filter((v) => !home(v));
     if (unknown.length) throw new Error(`${s.id}: LilyPond voices ${unknown.join(", ")} not in ${ids.join(", ")}`);
     voices = ids.map((id) =>
@@ -648,7 +687,7 @@ export function readPiece(s: Spec): Read {
           .filter((n) => home(n.voice) === id)
           .map((n) => {
             const x = note(ticks(n.on), ticks(n.dur), n.midi, n.pitch);
-            if (n.voice !== id) ASIDE.add(x);
+            if (!id.split("|").includes(n.voice)) ASIDE.add(x);
             return x;
           }),
       ),
@@ -849,6 +888,19 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
     if (from === undefined) throw new Error(`fix: no bar ${x.bar}`);
     const to = r.bars.find((b) => b.n === x.bar + 1)?.on ?? r.length;
     const v = r.voices[x.voice];
+    // D753: a note found by its place in the bar ("11/16" of a whole note in) and its pitch as read, checked.
+    if ("at" in x) {
+      const [a, b] = x.at.split("/").map(Number);
+      const on = from + Math.round(((b ? a / b : a) * 4 * TPQ));
+      const was = parsePitch(x.from).midi;
+      const m = v.find((n) => n[0] === on && n[2] === was);
+      if (!m) throw new Error(`fix: no ${x.from} at ${x.at} of bar ${x.bar}, voice ${x.voice}`);
+      const p = parsePitch(x.to);
+      m[2] = p.midi;
+      m[3] = p.diatonic;
+      r.spell[p.midi] ??= x.to;
+      continue;
+    }
     const n = v.filter((m) => m[0] >= from && m[0] < to)[x.nth - 1];
     if (!n) throw new Error(`fix: no note ${x.nth} in bar ${x.bar}, voice ${x.voice}`);
     if (x.tie) {

@@ -292,6 +292,8 @@ function moreBachSounds(): Record<string, string> {
     "bwv803": "gameboy",
     "bwv804": "jazzQuartet",
     "bwv805": "krautrock",
+    // D753: the Chromatic Fugue on the harpsichord (Instruments may choose otherwise).
+    "bwv903-2": "harpsichordSampled",
     "bwv1043-2": "super16",
     "bwv228-2": "soloVoices",
     "bwv54-3": "super16",
