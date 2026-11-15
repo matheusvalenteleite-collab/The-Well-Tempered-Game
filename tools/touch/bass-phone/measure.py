@@ -30,12 +30,12 @@ json.dump(cache, open(cache_f, 'w'), indent=0, sort_keys=True)
 if '--json' in sys.argv:
     out = []
     for n, v in sorted(cache.items()):
-        m = re.match(r'(wtc\df\d\d|bwv1080-\w+?)-p(\d)-s(\d|mix)(?:@x(off|-?[\d.]+))?$', n)
+        m = re.match(r'(wtc\df\d\d|bwv1080-\w+?|bwv\d{3})-p(\d)-s(\d|mix)(?:@x(off|-?[\d.]+))?$', n)
         if m: out.append({'piece': m.group(1), 'player': int(m.group(2)), 'solo': m.group(3) if m.group(3) == 'mix' else int(m.group(3)), 'x': m.group(4), 'ph': v['ph'], 'full': v['full']})
     print(json.dumps(out)); sys.exit(0)
 runs = {}
 for n, v in cache.items():
-    m = re.match(r'(wtc\df\d\d|bwv1080-\w+?)-p(\d)-s(\d|mix)$', n)
+    m = re.match(r'(wtc\df\d\d|bwv1080-\w+?|bwv\d{3})-p(\d)-s(\d|mix)$', n)
     if not m: continue
     piece, pv, s = m.group(1), int(m.group(2)), m.group(3)
     runs.setdefault(piece, {}).setdefault(pv, {})[s] = v
