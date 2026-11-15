@@ -11,13 +11,10 @@ import { fugueById, FUGUES, type TouchFugue } from "../src/touch/fugue.ts";
 import { accompaniment, entrySpans } from "../src/touch/voice-mode.ts";
 import { membership, paleOf, raiseOf, RAISE_FADE_MS, themeOf } from "../src/touch/subject-hue.ts";
 import { SubjectCues } from "../src/touch/subject-fx.ts";
+// D670: the box's voice inks in their own module (voice-inks.ts), loadable here.
+import { inkOf } from "../src/touch/voice-inks.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-/** The box's voice inks (MusicBox.tsx INKS: a .tsx the tests cannot load), read from its source. */
-const INKS: Record<number, string[]> = Object.fromEntries(
-  [...src("src/touch/MusicBox.tsx").matchAll(/^  (\d): \[([^\]]+)\],$/gm)].map((m) => [Number(m[1]), [...m[2].matchAll(/"(#[0-9a-f]{6})"/g)].map((x) => x[1])]),
-);
-const inkOf = (v: number, count: number) => INKS[count][v];
 const barOn = (f: TouchFugue, n: number) => f.bars.find((b) => b.n === n)!.on;
 
 /** A voice's own notes as the player's list carries them (no voice on each: the list's voice given). */

@@ -19,7 +19,11 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 
 test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes keep their emblems", () => {
   // D664: and the Art of Fugue's 20.
-  assert.equal(Object.keys(PICTURES).length, 68);
+  assert.equal(Object.keys(PICTURES).length, 102);
+  // D671: the Four Duets' 4, the Gallery.
+  for (let b = 802; b <= 805; b++) assert.ok(pictureOf(`bwv${b}`), `bwv${b} drawn`);
+  // D670: the Inventions and Sinfonias' 30, the Songbirds.
+  for (let b = 772; b <= 801; b++) assert.ok(pictureOf(`bwv${b}`), `bwv${b} drawn`);
   const seen = new Set<string>();
   for (const id of THE_48) {
     const px = pictureOf(id);
@@ -32,12 +36,12 @@ test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes
   }
   assert.equal(seen.size, 48, "every picture its own");
   assert.equal(pictureOf("wtc1p01"), null);
-  assert.ok(pictureOf("bwv1080-14"), "D664: XIV drawn (The Last Candle)");
+  assert.ok(pictureOf("bwv1080-14"), "D669: XIV drawn (the Constellation, broken off)");
   assert.ok(pictureOf("bwv1080-c15"), "D664: the canons drawn");
   assert.equal(emblemPixels("wtc1p01").length, EMBLEM_W * EMBLEM_H);
   // The generator is kept beside the data it writes.
   assert.match(src("src/bench/pictures-data.ts"), /tools\/pictures\/build\.py/);
-  for (const f of ["lib.py", "book1.py", "book2.py", "aof.py", "build.py", "sheet.py"]) assert.ok(src(`tools/pictures/${f}`).length > 100, f);
+  for (const f of ["lib.py", "book1.py", "book2.py", "aof.py", "inv.py", "duets.py", "build.py", "sheet.py"]) assert.ok(src(`tools/pictures/${f}`).length > 100, f);
 });
 
 test("names: all 48 in English, Portuguese and Spanish, a short form for the tiles, each its own; II/13 the owner's Telephone (WTC 1.92)", () => {
