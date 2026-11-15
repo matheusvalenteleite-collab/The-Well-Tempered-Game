@@ -18,7 +18,7 @@ function piece(id: string, sound: string, soundWhy: string, character: string, t
   const plans: Record<string, Moment[]> = {
     // D731: the piece's own sound, where no plan of its own is written below: a timbral arc (D714's way), the opening
     // and the middle a shade darker, the return and the close brighter and in more of the room.
-    ...(sound === "harpsichordSampled" || sound === "chamberOrgan" ? {} : { [sound]: arc(id, turn, home) }),
+    ...(sound === "harpsichordSampled" || sound === "chamberOrgan" ? {} : { [sound]: arc(id, sound, turn, home) }),
     harpsichordSampled: [at(1, H8, "The 8′."), at(turn, H84, "The second part (after its cadence): 8′+4′, a terrace."), at(home, H88, "The return and the close: the coupled unison.")],
     chamberOrgan: [at(1, OFLUTE, "The flutes."), at(turn, OPRIN, "The second part on the principals.")],
     ...extra,
@@ -31,12 +31,13 @@ function piece(id: string, sound: string, soundWhy: string, character: string, t
  * from the return (`home`) where the final group comes before the cadence (the motive heard throughout).
  */
 const FINAL: Record<string, number> = {"bwv772": 2.062, "bwv773": 23.125, "bwv774": 56.667, "bwv775": 38.0, "bwv776": 23.062, "bwv777": 56.167, "bwv778": 7.125, "bwv779": 16.167, "bwv780": 29.0, "bwv781": 27.0, "bwv782": 16.5, "bwv783": 18.0, "bwv784": 22.562, "bwv785": 16.562, "bwv786": 18.125, "bwv787": 18.938, "bwv788": 28.0, "bwv789": 19.125, "bwv790": 20.062, "bwv792": 29.0, "bwv793": 35.167, "bwv794": 21.125, "bwv795": 23.875, "bwv796": 31.333, "bwv797": 65.167, "bwv798": 24.0, "bwv799": 53.0, "bwv800": 18.938, "bwv801": 35.333};
-const arc = (id: string, turn: number, home: number): Moment[] => {
+const arc = (id: string, sound: string, turn: number, home: number): Moment[] => {
   const fin = FINAL[id] !== undefined && FINAL[id] > turn ? FINAL[id] : home;
   return [
     at(1, { tone: -1.5 }, "The opening a shade veiled (the sound's tone down)."),
     ...(turn < fin ? [at(turn, { tone: -2 }, "After the cadence, darker.")] : []),
-    at(fin, { tone: 2, room: 0.12 }, fin === home ? "The return and the close: bright, in more of the room." : "The final group of entries: bright, in more of the room."),
+    // (SID 64 and TRACKER have no room to send to: the tone alone.)
+    at(fin, sound === "sid64" || sound === "tracker" ? { tone: 2 } : { tone: 2, room: 0.12 }, fin === home ? "The return and the close: bright, in more of the room." : "The final group of entries: bright, in more of the room."),
   ];
 };
 /** D731: each piece's own sound and why (the voice probe, tools/touch/voice-probe; piece-sound.ts PIECE_SOUND). */
