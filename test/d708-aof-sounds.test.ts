@@ -23,7 +23,7 @@ before(async () => {
 /** The sounds chosen (D708) and the HOME drums (D712). */
 const SOUNDS: Record<string, [string, string]> = {
   "bwv1080-01": ["berlinSchool", "swell"], "bwv1080-02": ["jazzQuartet", "jazz"], "bwv1080-03": ["tomita", "triphop"], "bwv1080-04": ["krautrock", "motorik"],
-  "bwv1080-05": ["bossaNova", "bossa"], "bwv1080-06": ["petSounds", "pet"], "bwv1080-07": ["abbeyRoad", "abbey"], "bwv1080-08": ["sid64", "chip"],
+  "bwv1080-05": ["bossaNova", "bossa"], "bwv1080-06": ["petSounds", "pet"], "bwv1080-07": ["bossaNova", "bossa"], "bwv1080-08": ["sid64", "chip"],
   "bwv1080-09": ["krautrock", "liebezeit"], "bwv1080-10": ["tracker", "triphop"], "bwv1080-11": ["tomita", "fieldDrums"], "bwv1080-12r": ["megaFm", "scoreSynth"],
   "bwv1080-12i": ["megaFm", "scoreSynth"], "bwv1080-13r": ["chip", "chip"], "bwv1080-13i": ["chip", "chip"], "bwv1080-c14": ["vocalSynth", "triphop"],
   "bwv1080-c15": ["gameboy", "chip"], "bwv1080-c16": ["tracker", "tabor"], "bwv1080-c17": ["berlinSchool", "scoreSynth"], "bwv1080-14": ["petSounds", "timpani"],

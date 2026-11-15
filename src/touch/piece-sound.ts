@@ -242,7 +242,7 @@ function moreBachSounds(): Record<string, string> {
     "bwv1080-04": "krautrock",
     "bwv1080-05": "bossaNova",
     "bwv1080-06": "petSounds",
-    "bwv1080-07": "abbeyRoad",
+    "bwv1080-07": "bossaNova",
     "bwv1080-08": "sid64",
     "bwv1080-09": "krautrock",
     "bwv1080-10": "tracker",

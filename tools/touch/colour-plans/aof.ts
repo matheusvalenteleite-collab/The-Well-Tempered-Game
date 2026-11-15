@@ -97,11 +97,11 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-07": {
-    sound: "abbeyRoad",
-    soundWhy: "D708: 'Per Augmentationem et Diminutionem': the subject at three speeds at once, the augmentations in long notes beneath: ABBEY ROAD's Moog, Leslie guitar, Hammond and flatwound bass, one to a voice (the probe's closest pair 2.57 against the organ's 0.92), heavy and slow as the album's own long tracks.",
+    sound: "bossaNova",
+    soundWhy: "D708: 'Per Augmentationem et Diminutionem': the subject at three speeds at once, slow (crotchet 56): BOSSA NOVA's alto flute, Rhodes, nylon guitar and upright bass, one to a voice (the probe's closest pair 2.03 against the organ's 0.92), the quick values on the guitar's attack, the long ones on the flute's breath; a slow bossa, a ballad's pace. (ABBEY ROAD measured 2.57 apart, but its bass stood 6.1 LU under the Moog on a phone and its Hammond 10.8: D709.)",
     character: "Augmented and diminished entries in stretto; cadences in D (33) and F (44), a half cadence (52) before the close.",
     plans: {
-      abbeyRoad: [at(1, { tone: -2 }, "The augmentations' exposition in a darker tone."), at(B("bwv1080-07", 44), { tone: -2 }, "After the cadence in F (44), darker."), at(B("bwv1080-07", 52), { tone: 2 }, "After the half cadence (52): the close, bright.")],
+      bossaNova: [at(1, { tone: -2 }, "The augmentations' exposition in a darker tone."), at(B("bwv1080-07", 44), { tone: -2 }, "After the cadence in F (44), darker."), at(B("bwv1080-07", 52), { tone: 2 }, "After the half cadence (52): the close, bright.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(B("bwv1080-07", 44), OFONDS, "After the cadence in F (44): the foundations."), at(B("bwv1080-07", 52), OPLENO, "After the half cadence (52): the plenum for the close.")],
       harpsichordSampled: [at(1, H84, "8′+4′."), at(B("bwv1080-07", 52), HFULL, "The close: coupled.")],
       pianoSampled: [at(B("bwv1080-07", 33), { layer: "soft" }, "After the cadence in D (33), the soft layer."), at(B("bwv1080-07", 44), OWN, "The full tone from 44.")],

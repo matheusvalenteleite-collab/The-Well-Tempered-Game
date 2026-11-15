@@ -247,7 +247,7 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   "bwv1080-04": "motorik", // the long sequences at 134: KRAUTROCK's own drummer, 96 %
   "bwv1080-05": "bossa", // the lilting counter-fugue: BOSSA NOVA's own, 90 %
   "bwv1080-06": "pet", // the French overture: PET SOUNDS' own (its timpani at the arrivals, tonic and dominant), 92 %
-  "bwv1080-07": "abbey", // the augmentations, heavy and slow: ABBEY ROAD's own, 97 %
+  "bwv1080-07": "bossa", // the augmentations, slow: BOSSA NOVA's own (D709: on ABBEY ROAD the bass stood under), 98 %
   "bwv1080-08": "chip", // angular, a 3, on SID 64: its own chip kit, 89 % (SYNTH KIT's coda roll stood 1.7 LU over the band: D713)
   "bwv1080-09": "liebezeit", // quick and motoric at 140: Jaki Liebezeit's trance at 70 (62-104), 98 %
   "bwv1080-10": "triphop", // calm duple at 84 (68-96): 78 %

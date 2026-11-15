@@ -58,7 +58,7 @@ for (const id of ids) {
 }
 const fmt = (o: unknown) => JSON.stringify(o);
 console.log(`/**
- * ${AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces; " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
+ * ${AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
  * 48 fugues on its own sound: \`band\` the player on the top voice (the bass in the band), \`player\` the player on the
  * bass; \`lu\` each voice alone through the phone model (mono, two 2nd-order 600 Hz high-passes, ebur128: integrated LUFS),
  * \`at\` the balance's gain on it then (dB: the player's level on the player's voice, the band's trim on the others),
@@ -69,5 +69,5 @@ console.log(`/**
 import type { BassRun } from "./bass-phone.ts";
 
 export const ${AOF ? "BASS_PHONE_AOF" : "BASS_PHONE"}: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
-${Object.entries(out).map(([k, v]) => `  ${k}: ${fmt(v)},`).join("\n")}
+${Object.entries(out).map(([k, v]) => `  ${/^\w+$/.test(k) ? k : JSON.stringify(k)}: ${fmt(v)},`).join("\n")}
 };`);
