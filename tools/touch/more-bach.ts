@@ -36,7 +36,7 @@ import { parseExpert, placeExpert, type ExpertFugue } from "./expert.ts";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
 
-export type Collection = "aof" | "mo" | "inv" | "sin" | "concerto" | "motet" | "cantata";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "concerto" | "motet" | "cantata";
 
 interface Spec {
   /**
@@ -78,6 +78,16 @@ interface Spec {
   voiceNames: string[];
   /** Entries found (a fugue, an invention, a sinfonia); none for a canon or the concerto. */
   entries: boolean;
+  /**
+   * D751: the subject and its answer given where the finders take the wrong figure (BWV 802: a bare scale
+   * fragment, found everywhere): each a voice's notes from the start of a bar, that many of them.
+   */
+  theme?: { subject: [voice: number, bar: number, notes: number]; answer: [voice: number, bar: number, notes: number] };
+  /**
+   * D751: the edition corrected where it disagrees with the Bach-Gesellschaft print (read from the print: SOURCE.md):
+   * a voice's nth note of a bar given another pitch, or held on from the note before (a tie the edition broke).
+   */
+  fixes?: { voice: number; bar: number; nth: number; to?: string; tie?: true }[];
   /** The voices the player may take (all where unset). */
   playable?: number[];
   /** The edition's typesetter and licence, for the credit line. */
@@ -379,7 +389,58 @@ const VOCAL: Spec[] = [
   },
 ];
 
-export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...CONCERTO, ...VOCAL];
+/**
+ * D751: the Four Duets of Clavier-Übung III, BWV 802-805 (data/sources/bach-duets/SOURCE.md): two voices,
+ * fugal (entries found). BWV 804's file as fetched leaves its \paper block open: read from a copy closed.
+ * BWV 805 is held until its Mutopia notes are checked against the Bach-Gesellschaft print (a second
+ * edition disagrees in about twenty places).
+ */
+const DUET4_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 1, bar: 16, nth: 1, to: "D#4" },
+  { voice: 1, bar: 19, nth: 5, to: "C#3" },
+  { voice: 0, bar: 22, nth: 3, to: "G5" },
+  { voice: 1, bar: 28, nth: 2, to: "F3" },
+  { voice: 0, bar: 46, nth: 1, to: "D#4" },
+  { voice: 0, bar: 46, nth: 3, to: "D#4" },
+  { voice: 0, bar: 48, nth: 1, to: "D#5" },
+  { voice: 0, bar: 51, nth: 5, to: "G#4" },
+  { voice: 1, bar: 67, nth: 6, to: "F3" },
+  { voice: 0, bar: 68, nth: 1, tie: true },
+  { voice: 1, bar: 74, nth: 2, to: "F#3" },
+  { voice: 0, bar: 80, nth: 5, to: "C#5" },
+  { voice: 1, bar: 91, nth: 1, tie: true },
+];
+const DUET_GILLIS = "MUTOPIA PROJECT · TYPESET BY H. GILLIS FROM THE BACH-GESELLSCHAFT EDITION";
+const DUETS: Spec[] = (
+  [
+    [1, "e", 1596, "Bach-Duet1.ly", "Bach-Duet1.mid", `${DUET_GILLIS} · CC BY-SA 3.0`],
+    [2, "F", 360, "duetto.ly", "duetto.mid", "MUTOPIA PROJECT · TYPESET BY VIT REICHEL FROM EDITION PETERS · PUBLIC DOMAIN"],
+    [3, "G", 1597, "Bach-Duet3.closed.ly", "Bach-Duet3.mid", `${DUET_GILLIS} · PUBLIC DOMAIN`],
+    [4, "a", 1598, "Bach-Duet4.ly", "Bach-Duet4.mid", `${DUET_GILLIS}, CORRECTED FROM THE BACH-GESELLSCHAFT PRINT · PUBLIC DOMAIN`],
+  ] as const
+).map(([n, key, mutopia, ly, mid, credit]): Spec => ({
+  id: `bwv${801 + n}`,
+  collection: "duet",
+  number: n,
+  title: `Duet ${n} in ${keyWords(key)}`,
+  short: `DUET ${n}`,
+  bwv: String(801 + n),
+  key,
+  dir: "bach-duets",
+  mutopia,
+  ly,
+  mid,
+  lyVoices: ["upper", "lower"],
+  voiceNames: TWO_HANDS,
+  entries: true,
+  // D751: Duet 1's subject is the upper voice's opening run and its turn (15 notes), answered by the lower at bar 7.
+  ...(n === 1 ? { theme: { subject: [0, 1, 15] as [number, number, number], answer: [1, 7, 15] as [number, number, number] } } : {}),
+  // D751: Duet 4's twelve corrections, each read from the Bach-Gesellschaft print (Band 3, 1853, pp. 251-253; SOURCE.md).
+  ...(n === 4 ? { fixes: DUET4_FIXES } : {}),
+  credit,
+}));
+
+export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...CONCERTO, ...VOCAL];
 
 /**
  * D361: a sung part is one line, the MusicXML voice(s) carrying its words. Another voice written on its
@@ -645,11 +706,20 @@ function entriesOf(s: Spec, r: Read, piece: { tpq: number; meter: string; bars: 
   // The subject: the first two voices' openings (as the WTC's), kept where it has six notes or more and
   // is found in every voice; else (a bass entering with the first voice, an answer inverted, in
   // diminution or entering late) the first imitation (`imitation`), where it is found twice or more.
-  const pool = s.entries ? finders(wp) : [];
+  const pool = s.entries ? (s.theme ? themed(wp, s.theme) : finders(wp)) : [];
   // D707: the Art of Fugue's entries are its table's (data/touch/aof-entries.txt), the finders' only offered to it.
   const ex = AOF_TABLE.get(s.id);
   if (ex) return tableEntries(s.id, piece, ex, pool, speller);
   return pool.length >= 2 ? buildEntries(piece, pool, speller) : [];
+}
+
+/** D751: the entries of a subject and answer given by hand (Spec.theme). */
+function themed(wp: WtcPiece, t: NonNullable<Spec["theme"]>): RawEntry[] {
+  const take = ([v, bar, count]: [number, number, number]) => {
+    const at = wp.bars.find((b) => b.n === bar)?.on ?? 0;
+    return line(wp.voices[v]).filter((n) => n.on >= at).slice(0, count);
+  };
+  return rawEntries(wp, take(t.subject), take(t.answer), false);
 }
 
 /** The finders' entries (D340): the first two voices' openings, else the first imitation. */
@@ -761,8 +831,31 @@ export function imitation(wp: WtcPiece): { subject: Line[]; answer: Line[]; inve
   return best;
 }
 
+/** D751: a Spec's corrections applied to the notes as read (in order; a tie merges the note into the one before). */
+export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">, fixes: NonNullable<Spec["fixes"]>) {
+  for (const x of fixes) {
+    const from = r.bars.find((b) => b.n === x.bar)?.on;
+    if (from === undefined) throw new Error(`fix: no bar ${x.bar}`);
+    const to = r.bars.find((b) => b.n === x.bar + 1)?.on ?? r.length;
+    const v = r.voices[x.voice];
+    const n = v.filter((m) => m[0] >= from && m[0] < to)[x.nth - 1];
+    if (!n) throw new Error(`fix: no note ${x.nth} in bar ${x.bar}, voice ${x.voice}`);
+    if (x.tie) {
+      const i = v.indexOf(n);
+      v[i - 1][1] += n[1];
+      v.splice(i, 1);
+    } else if (x.to) {
+      const p = parsePitch(x.to);
+      n[2] = p.midi;
+      n[3] = p.diatonic;
+      r.spell[p.midi] ??= x.to;
+    }
+  }
+}
+
 export function build(s: Spec) {
   const r = s.xml ? readXmlPiece(s) : readPiece(s);
+  if (s.fixes) applyFixes(r, s.fixes);
   const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
   const piece = { tpq: TPQ, meter: r.meter, bars: r.bars, length: r.length, voices: r.voices, key: s.key };
   const speller = keySpeller(r.spelled);
