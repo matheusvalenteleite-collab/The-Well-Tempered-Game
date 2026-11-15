@@ -200,8 +200,8 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",
   wtc2f24: "analog",
-  // The Art of Fugue
-  "bwv1080-14": "harpsichordSampled",
+  // The Art of Fugue (D708: Contrapunctus 14 on PET SOUNDS; the rest of the cycle in the D355 block below)
+  "bwv1080-14": "petSounds",
   ...moreBachSounds(),
 };
 
@@ -230,27 +230,29 @@ function moreBachSounds(): Record<string, string> {
   // D348: the harpsichord concertos on SUPER 16-BIT too: its harpsichord for the solo part(s), its strings
   // for the violins and the viola, its bassoon for the continuo bass (sound.ts: a layout for each voice count).
   for (const b of [1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065]) for (let m = 1; m <= 3; m++) out[`bwv${b}-${m}`] = "super16";
+  // D708: the Art of Fugue's sounds chosen by the voices' distinctness (tools/touch/voice-probe), each with its HOME drums
+  // (drum-library.ts FUGUE_STYLES, D712); D718: their player lift measured on these sounds (player-lift-data.ts OWN_LOUD).
   // D355 BEGIN: the Art of Fugue, the ricercars, the Inventions and Sinfonias, each its own sound (tools/touch/colour-plans: aof.ts, more.ts).
   Object.assign(out, {
-    "bwv1080-01": "chamberOrgan",
-    "bwv1080-02": "harpsichordSampled",
-    "bwv1080-03": "pianoSampled",
-    "bwv1080-04": "stringConsort",
-    "bwv1080-05": "super16",
-    "bwv1080-06": "harpsichordSampled",
-    "bwv1080-07": "chamberOrgan",
+    "bwv1080-01": "berlinSchool",
+    "bwv1080-02": "jazzQuartet",
+    "bwv1080-03": "tomita",
+    "bwv1080-04": "krautrock",
+    "bwv1080-05": "bossaNova",
+    "bwv1080-06": "petSounds",
+    "bwv1080-07": "bossaNova",
     "bwv1080-08": "sid64",
-    "bwv1080-09": "vocalSynth",
+    "bwv1080-09": "krautrock",
     "bwv1080-10": "tracker",
-    "bwv1080-11": "chamberOrgan",
-    "bwv1080-12r": "soloVoices",
-    "bwv1080-12i": "soloVoices",
-    "bwv1080-13r": "harpsichordSampled",
-    "bwv1080-13i": "harpsichordSampled",
-    "bwv1080-c14": "chip",
+    "bwv1080-11": "tomita",
+    "bwv1080-12r": "megaFm",
+    "bwv1080-12i": "megaFm",
+    "bwv1080-13r": "chip",
+    "bwv1080-13i": "chip",
+    "bwv1080-c14": "vocalSynth",
     "bwv1080-c15": "gameboy",
-    "bwv1080-c16": "harpsichordSampled",
-    "bwv1080-c17": "analog",
+    "bwv1080-c16": "tracker",
+    "bwv1080-c17": "berlinSchool",
     "bwv1079-ric3": "pianoSampled",
     "bwv1079-ric6": "chamberOrgan",
     "bwv772": "harpsichordSampled",

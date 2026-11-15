@@ -6,14 +6,15 @@
  * the balance's gain now (D508's player level and band trims, against those it was measured with) and the bass at its
  * exciter's mix now (the fit); a fugue whose sound or bass patch has changed since it was measured is re-measured.
  */
-import { test } from "node:test";
+import { before, test } from "node:test";
 import assert from "node:assert/strict";
-import { fugueById } from "../src/touch/fugue.ts";
+import { fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { bandTrimDb, liftDb } from "../src/touch/player-lift.ts";
 import { playerSound } from "../src/touch/sound.ts";
 import { BASS_GAP_DB, bassPatchOf, bassSig, type BassRun } from "../src/touch/bass-phone.ts";
 import { BASS_PHONE } from "../src/touch/bass-phone-data.ts";
+import { BASS_PHONE_AOF } from "../src/touch/bass-phone-aof.ts";
 import { FakeAudioContext, type FakeNode, installFakeAudio } from "./fake-audio.ts";
 import { Chip, PHONE_BASS_GAIN, voicing } from "../src/touch/chip.ts";
 import { KRAUT2_MOOG_PHONE_LIFT, placeFor, presetById, setPreset } from "../src/touch/sound.ts";
@@ -127,4 +128,31 @@ test("D645: the exciter's fit within 1 LU of the render at the measured mix", ()
       assert.ok(Math.abs(dB(e(r.x[0]) + e(r.x[1]) * e(m.db)) - r.lu[b]) <= 1, `${id} ${k}: the fit at the measured mix`);
     }
   }
+});
+
+/** D711: the Art of Fugue's 20 (MORE BACH's, registered by loadExtras), each on its own sound (D708), as the 48. */
+const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17", "14"].map((k) => `bwv1080-${k}`);
+before(async () => {
+  await loadExtras();
+});
+
+test(`D711: the Art of Fugue's every piece measured on its own sound, its bass within ${BASS_GAP_DB} LU of its loudest voice on a phone, in the band and as the player's`, () => {
+  const bad: string[] = [];
+  for (const id of AOF) {
+    const m = BASS_PHONE_AOF[id];
+    assert.ok(m, `${id}: measured`);
+    const f = fugueById(id);
+    assert.equal(f.id, id);
+    const s = playerSound(PIECE_SOUND[id]);
+    assert.equal(m.s, s, `${id}: measured on ${m.s}, its sound now ${s}: re-measure`);
+    assert.equal(m.sig, bassSig(bassPatchOf(s, f)), `${id}: its bass's patch changed since measured: re-measure`);
+    assert.equal(m.band.lu.length, f.voices.length);
+    const b = f.voices.length - 1;
+    const dbNow = bassPatchOf(m.s, f)?.phoneExcite?.db ?? null;
+    for (const [k, pv] of [["band", 0], ["player", b]] as const) {
+      const g = gapOf(id, m.s, m[k], pv, m.db, dbNow);
+      if (g > BASS_GAP_DB) bad.push(`${id} ${k} ${g.toFixed(1)}`);
+    }
+  }
+  assert.deepEqual(bad, []);
 });

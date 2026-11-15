@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { beatOf, CHORALES, fugueById, loadExtras, MORE_BACH } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
-import { MORE_TEMPO, standardTempo, tempoOf } from "../src/touch/tempi.ts";
+import { fastTempo, MORE_TEMPO, OPENING_STEP, standardTempo, tempoOf } from "../src/touch/tempi.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { characterOf } from "../src/touch/character.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
@@ -74,7 +74,7 @@ test("D340: what the pipeline computes for the WTC: entries in the fugues, inven
     assert.ok(f.keys.length > 0 && f.keys.every((k, i) => i === 0 || f.keys[i - 1].on <= k.on), `${f.id}: keys`);
     assert.ok(f.cadences.every((c) => c.on >= 0 && c.on <= f.length), f.id);
     const t = MORE_TEMPO[f.id];
-    assert.ok(t && t.normal >= 40 && t.normal <= 120 && tempoOf(f.id) === t.normal && standardTempo(f.id) === t.median, `${f.id}: tempo`);
+    assert.ok(t && t.normal >= 40 && t.normal <= 120 && tempoOf(f.id) === (OPENING_STEP[f.id] === "fast" ? fastTempo(t) : t.normal) && standardTempo(f.id) === t.median, `${f.id}: tempo`);
     assert.ok(PIECE_SOUND[f.id], `${f.id}: sound`);
     assert.ok(["antico", "neutral", "lively"].includes(characterOf(f.id)));
   }
@@ -88,9 +88,9 @@ test("D340: what the pipeline computes for the WTC: entries in the fugues, inven
   assert.ok(tempoOf("bwv1043-3") >= 84 && tempoOf("bwv1043-3") <= 126);
   assert.equal(PIECE_SOUND["bwv1043-1"], "super16");
   assert.equal(PIECE_SOUND.chor001, "chamberOrgan");
-  // D355: the Art of Fugue each its own sound (Contrapunctus 5, the counter-fugue, on SUPER 16-BIT), Contrapunctus 14 still the harpsichord.
-  assert.equal(PIECE_SOUND["bwv1080-05"], "super16");
-  assert.equal(PIECE_SOUND["bwv1080-14"], "harpsichordSampled");
+  // D355: the Art of Fugue each its own sound; D708: chosen by the voices' distinctness (Contrapunctus 5 on BOSSA NOVA, 14 on PET SOUNDS).
+  assert.equal(PIECE_SOUND["bwv1080-05"], "bossaNova");
+  assert.equal(PIECE_SOUND["bwv1080-14"], "petSounds");
 });
 
 test("D340: the concerto offers the two solo violins only; a chorale its soprano first", () => {

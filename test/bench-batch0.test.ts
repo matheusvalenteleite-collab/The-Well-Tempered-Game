@@ -151,7 +151,8 @@ test("D249: the organ's swell bounded, ORGANO PLENO scaled, and on a phone the l
 
 test("D249: the organ out: no piece opens on it, the players cannot choose it, a stored choice opens on the harpsichord", () => {
   assert.ok(!Object.values(PIECE_SOUND).includes("organSampled"));
-  assert.equal(PIECE_SOUND["bwv1080-14"], "harpsichordSampled");
+  // D708: Contrapunctus 14 on PET SOUNDS now (its own sound by measure: test/d708-aof-sounds.test.ts).
+  assert.equal(PIECE_SOUND["bwv1080-14"], "petSounds");
   // D288: every fugue on classic chip; the recorded ensembles (D266, D275) withdrawn, a stored choice of one plays chip.
   // D355: each fugue its own sound again (tools/touch/colour-plans), always one the players have.
   for (const id of ["wtc1f01", "wtc1f22", "wtc2f02", "wtc2f13"]) assert.ok(PRESETS.some((p) => p.id === PIECE_SOUND[id]), id);
