@@ -38,12 +38,18 @@ export interface ExpertEntry {
   note?: string;
   /** The line in the table, for messages. */
   line: string;
+  /** D707 (the Art of Fugue's table): a canon's leader or follower. */
+  canon?: "dux" | "comes";
+  /** D707: the statement starts on the note at BAR+Q itself (no fitting: a variant the theme's steps do not fit), `n` notes long. */
+  at?: boolean;
 }
 
 export interface ExpertFugue {
   id: string;
   sources: string[];
   multi: boolean;
+  /** D707: the themes whose first statement (the table's shape) is the inversion of the cycle's own form ("upside=1,3"). */
+  upside: number[];
   entries: ExpertEntry[];
   disagreements: string[];
 }
@@ -65,7 +71,15 @@ export function parseExpert(text: string, voicesOf: (id: string) => number): Map
     if (line.startsWith("==")) {
       const [head, src = ""] = line.slice(2).split("|");
       const words = src.trim().split(/\s+/).filter(Boolean);
-      cur = { id: head.trim(), sources: words.filter((w) => w !== "multi"), multi: words.includes("multi"), entries: [], disagreements: [] };
+      const up = words.find((w) => w.startsWith("upside="));
+      cur = {
+        id: head.trim(),
+        sources: words.filter((w) => w !== "multi" && !w.startsWith("upside=")),
+        multi: words.includes("multi"),
+        upside: up ? up.slice(7).split(",").map(Number) : [],
+        entries: [],
+        disagreements: [],
+      };
       out.set(cur.id, cur);
       continue;
     }
@@ -86,7 +100,7 @@ export function parseExpert(text: string, voicesOf: (id: string) => number): Map
     const voice = letters?.indexOf(words[1]) ?? -1;
     if (voice < 0) throw new Error(`expert-entries ${cur.id}: bad voice in "${line}"`);
     const flags = words.slice(2);
-    const known = /^(ans|inv|aug|dim|part|mod|t2|t3|len=\d+(\.\d+)?|n=\d+)$/;
+    const known = /^(ans|inv|aug|dim|part|mod|t2|t3|dux|comes|at|len=\d+(\.\d+)?|n=\d+)$/;
     for (const f of flags) if (!known.test(f)) throw new Error(`expert-entries ${cur.id}: bad flag "${f}" in "${line}"`);
     const num = (k: string) => {
       const f = flags.find((x) => x.startsWith(`${k}=`));
@@ -104,6 +118,8 @@ export function parseExpert(text: string, voicesOf: (id: string) => number): Map
       theme: flags.includes("t3") ? 3 : flags.includes("t2") ? 2 : 1,
       len: num("len"),
       n: num("n"),
+      ...(flags.includes("dux") ? { canon: "dux" as const } : flags.includes("comes") ? { canon: "comes" as const } : {}),
+      ...(flags.includes("at") ? { at: true } : {}),
       // An entry with no keys of its own: the complete analyses consulted (P, I); B, L and G only where named.
       sources: src ? src.split(/\s+/).filter(Boolean) : cur.sources.filter((s) => s === "P" || s === "I"),
       note,
@@ -264,6 +280,19 @@ export function placeExpert(p: Piece, ex: ExpertFugue, pool: RawEntry[]): Expert
     const [w0, w1] = windowOf(e);
     const anchor = anchorOf(e);
     const isFirst = firstStart.has(e);
+    // D707: a statement placed where the table says, on the note there, n notes long.
+    if (e.at && !isFirst) {
+      const n0 = line.find((n) => Math.abs(n[0] - anchor) < p.tpq / 8);
+      if (!n0 || e.q === undefined) {
+        unplaced.push(e);
+        continue;
+      }
+      const end = Math.min(p.length, endOf(line, shape, n0[0], e.scale, e, shape.notes.length - 1));
+      for (const r of pool) if (!taken.has(r) && r.voice === e.voice && r.theme === e.theme && Math.abs(r.on - n0[0]) < p.tpq) taken.add(r);
+      const f = fitAt(line, shape, n0[0], n0[3], sign, e.scale);
+      placed.push({ raw: { voice: e.voice, on: n0[0], len: Math.max(1, end - n0[0]), shift: n0[2] - shape.notes[0].midi, inverted: e.inverted, scale: e.scale, theme: e.theme }, expert: e, how: "notes", fit: Math.max(0, Math.min(1, f.score / shape.notes.length)) });
+      continue;
+    }
     // 1. A finder's entry.
     const cand = pool
       .filter((r) => !taken.has(r) && r.voice === e.voice && r.theme === e.theme && r.on >= w0 && r.on < w1)
