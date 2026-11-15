@@ -4325,7 +4325,7 @@ const WORLDS: Record<string, World> = {
     k.tri(w * 0.6 + 4, h * 0.14, 12, 16, "#2a2238");
     k.g.restore();
     const n = Math.min(10, Math.max(2, k.ents.length));
-    const xs = Array.from({ length: n }, (_, i) => w * (0.24 + (0.54 * i) / (n - 1)));
+    const xs = Array.from({ length: n }, (_, i) => w * (0.3 + (0.46 * i) / (n - 1)));
     // the house fronts and their windows, one more lit per entry
     k.g.save();
     k.g.translate(cam * 0.7, 0);
