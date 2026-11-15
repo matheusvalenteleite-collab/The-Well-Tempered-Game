@@ -2382,6 +2382,29 @@ for (const [sid, lv] of Object.entries(AOF_LEVELS)) {
   p.levels = { ...(p.levels ?? {}), ...lv };
 }
 /**
+ * D738: the Inventions' and Sinfonias' loudness matched on a phone (D715's way): each whole on its own sound with the player
+ * lift (bass-phone/render.cjs `mix`, the player on the top voice, DRUMS off; the phone model), against the 48 defaults'
+ * median there (-27.95 LUFS); those more than 1 LU off brought to about it. A phone's only (the computer's path as it was).
+ */
+export const INV_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  chorinho: { bwv774: { phoneGain: 1.14 } }, // -29.1 LUFS
+  sid64: { bwv775: { phoneGain: 1.47 }, bwv796: { phoneGain: 1.21 } }, // -31.3, -29.6 LUFS
+  analog: { bwv779: { phoneGain: 1.4 }, bwv785: { phoneGain: 1.58 } }, // -30.9, -32.3 LUFS (785 held at D593's 4 dB: -28.6 after)
+  gameboy: { bwv781: { phoneGain: 1.45 } }, // -31.2 LUFS
+  tracker: { bwv782: { phoneGain: 1.13 }, bwv786: { phoneGain: 1.47 } }, // -29.0, -31.3 LUFS
+  jazzQuartet: { bwv783: { phoneGain: 1.28 } }, // -30.1 LUFS
+  petSounds: { bwv784: { phoneGain: 1.4 }, bwv791: { phoneGain: 1.5 } }, // -30.9, -31.5 LUFS
+  tomita: { bwv788: { phoneGain: 1.24 } }, // -29.8 LUFS
+  chip: { bwv797: { phoneGain: 1.22 } }, // -29.7 LUFS
+  super16: { bwv798: { phoneGain: 1.15 } }, // -29.2 LUFS
+  salsa: { bwv800: { phoneGain: 1.18 } }, // -29.4 LUFS
+  krautrock: { bwv801: { phoneGain: 1.3 } }, // -30.2 LUFS
+};
+for (const [sid, lv] of Object.entries(INV_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
+/**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,
  * Play.lineDb: proto-game.ts lineAt) reach every sustaining sound that can make dynamics (DYNAMIC_SOUNDS),

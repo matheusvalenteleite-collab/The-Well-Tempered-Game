@@ -8,6 +8,7 @@
  * E(db) = E0 + Ex·10^(db/10) (the dry note and the exciter's harmonics), so the test reads the bass at the exciter's mix now.
  * usage: node tools/touch/bass-phone/fit.ts <measure.json> > src/touch/bass-phone-data.ts
  *        node tools/touch/bass-phone/fit.ts <measure.json> --aof > src/touch/bass-phone-aof.ts   (D711: the Art of Fugue's 20)
+ *        node tools/touch/bass-phone/fit.ts <measure.json> --inv > src/touch/bass-phone-inv.ts   (D734: the Inventions and Sinfonias)
  */
 import { readFileSync } from "node:fs";
 import { fugueById, loadExtras } from "../../../src/touch/fugue.ts";
@@ -23,8 +24,11 @@ const e = (db: number) => 10 ** (db / 10);
 const dB = (x: number) => 10 * Math.log10(x);
 // D711: the Art of Fugue's 20 (MORE BACH's, registered by loadExtras) into a file of their own.
 const AOF = process.argv.includes("--aof");
-if (AOF) await loadExtras();
-const ids = Object.keys(PIECE_SOUND).filter((k) => (AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
+// D734: the Inventions and Sinfonias' 30 (BWV 772-801) into a file of their own (--inv).
+const INV = process.argv.includes("--inv");
+if (AOF || INV) await loadExtras();
+const isInv = (k: string) => /^bwv(7[789]\d|80[01])$/.test(k) && +k.slice(3) >= 772 && +k.slice(3) <= 801;
+const ids = Object.keys(PIECE_SOUND).filter((k) => (INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
 const out: Record<string, unknown> = {};
 const errs: string[] = [];
 for (const id of ids) {
@@ -58,7 +62,7 @@ for (const id of ids) {
 }
 const fmt = (o: unknown) => JSON.stringify(o);
 console.log(`/**
- * ${AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
+ * ${INV ? "D734, THE INVENTIONS' AND SINFONIAS' BASS ON A PHONE (D645's measure for their 30 pieces, each on its own sound). " : AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
  * 48 fugues on its own sound: \`band\` the player on the top voice (the bass in the band), \`player\` the player on the
  * bass; \`lu\` each voice alone through the phone model (mono, two 2nd-order 600 Hz high-passes, ebur128: integrated LUFS),
  * \`at\` the balance's gain on it then (dB: the player's level on the player's voice, the band's trim on the others),
@@ -68,6 +72,6 @@ console.log(`/**
  */
 import type { BassRun } from "./bass-phone.ts";
 
-export const ${AOF ? "BASS_PHONE_AOF" : "BASS_PHONE"}: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
+export const ${INV ? "BASS_PHONE_INV" : AOF ? "BASS_PHONE_AOF" : "BASS_PHONE"}: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
 ${Object.entries(out).map(([k, v]) => `  ${/^\w+$/.test(k) ? k : JSON.stringify(k)}: ${fmt(v)},`).join("\n")}
 };`);

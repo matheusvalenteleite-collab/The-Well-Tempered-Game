@@ -51,6 +51,13 @@ const REFERENCE: Record<string, number> = {
   // the cantata BWV 54 (the first aria's slow ♩ 56; the fugal aria alla breve, 𝅗𝅥 = 56).
   "bwv228-1": 84, "bwv228-2": 72, "bwv54-1": 56, "bwv54-3": 112,
 };
+/**
+ * D733: where the reference (lowered for the load) is faster than every recording measured (data/tempi/inv-recordings.csv,
+ * track durations on Apple Music's store pages, 14 complete sets of the Inventions and Sinfonias), NORMAL is the
+ * fastest of them, floored: Invention 9 (fastest 66.5, the reference 72) and Sinfonia 4 (50.6, the reference 60). The
+ * reference itself (`median`: difficulty and stars) is unchanged.
+ */
+const RECORDED_MAX: Record<string, number> = { bwv780: 66, bwv790: 50 };
 /** The chorales: the chorale mode's ♩ = 60; a chorale in 3/2 at 𝅗𝅥 = 40. */
 const choraleRef = (p: Piece) => (p.meter === "3/2" ? 80 : 60);
 
@@ -95,7 +102,10 @@ for (const f of pieces) {
   if (!ref) throw new Error(`no reference tempo for ${f.id}`);
   // D348: a concerto movement by the lines the player may take, and the cap holds (no floor): the busiest at most 5.5 notes a second.
   const l = concerto ? busiestOf(f, f.playable) : busiest60(f);
-  const normal = concerto ? Math.min(ref, Math.floor((CONCERTO_LOAD / l) * 60)) : Math.round(Math.max(FLOOR_SHARE * ref, Math.min(ref, (GAME_LOAD / l) * 60)));
+  const normal = Math.min(
+    RECORDED_MAX[f.id] ?? Infinity,
+    concerto ? Math.min(ref, Math.floor((CONCERTO_LOAD / l) * 60)) : Math.round(Math.max(FLOOR_SHARE * ref, Math.min(ref, (GAME_LOAD / l) * 60))),
+  );
   const slow = Math.max(FLOOR, even(Math.max(MIN_SHARE * normal, Math.min(SLOW_SHARE * normal, (LOAD / l) * 60))));
   const { unit, perQuarter } = beatUnit(f.meter);
   const t = {

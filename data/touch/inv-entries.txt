@@ -1,0 +1,524 @@
+# THE INVENTIONS' AND SINFONIAS' ENTRIES (D730): every statement of each piece's themes, the table the game's entries
+# are built from (tools/touch/more-bach.ts places it in the notes with tools/touch/expert.ts placeExpert, as the Art of
+# Fugue's data/touch/aof-entries.txt, D707). No published analysis of the 30 is in the repo; the statements are read
+# from the notes by the Art of Fugue's scanner (tools/touch/aof-entries/scan.py; tools/touch/inv-entries/table.py
+# drafted this table from its finds) and reviewed piece by piece.
+# WHAT AN ENTRY IS HERE. The Inventions are not fugues: an entry is a statement of the Invention's subject (in
+# Inventions 1, 7 and 13 the short motive, a half bar to a bar; in Inventions 2 and 8 the canon's subject, 2 a
+# strict canon: dux and comes, each restatement of the head marked again). Where an Invention opens on two lines at
+# once in double counterpoint, the second line is its countersubject and counted too (theme 2: Inventions 5, 6, 9, 11,
+# 12, 14), as it changes hands. A Sinfonia's entries are its subject's, and its countersubject's where one returns
+# with it (theme 2: Sinfonia 9's chromatic bass, Sinfonia 13's line against the answer). The scan found no fixed
+# countersubject in Sinfonias 1-8, 10-12, 14, 15 (the line against the second entry restated fewer than twice at
+# 0.8 over ten notes): there the subject alone.
+#   S  scan.py: the theme's letter steps and rhythm laid from every note of every voice (prime and inverted; at its
+#      values, and doubled for Inventions 1 and 7); kept where its head fits (one step off by one at most: a tonal
+#      answer) and at least 0.75 of its notes (0.8 for Inventions 1, 2, 4, 7, 13; 0.7 for Sinfonia 11; fit printed),
+#      or the same from its second note (a first note changed: "mod"). Other "mod" lines are D340's finders'
+#      statements the scan's threshold misses (a head bent, a first note moved), checked by eye.
+# Grammar as data/touch/aof-entries.txt (expert.ts): BAR+Q VOICE [flags]; U/L the two hands, S/A/B the three
+# voices; len= the theme's length in quarter notes where it is read; t2 the countersubject; dux/comes a canon's parts.
+
+== bwv772 | S
+1+0.25 U len=2.25   # theme 1 read here
+1+2.25 L   # fit 1.0 full
+2+0.25 U   # fit 1.0 full
+2+2.25 L   # fit 0.94 full
+3+0.25 U inv   # fit 0.88 full
+3+2.25 U inv   # fit 0.88 full
+4+0.25 U inv   # fit 0.88 full
+4+2.25 U inv   # fit 0.88 full
+5+0.25 L   # fit 0.94 full
+5+2.25 U inv   # fit 0.88 full
+7+0.25 L   # fit 1.0 full
+7+2.25 U   # fit 0.88 full
+8+0.25 L   # fit 1.0 full
+8+2.25 U   # fit 0.88 full
+9+0.25 L inv   # fit 0.88 full
+9+2.25 U inv   # fit 0.88 full
+10+0.25 L inv   # fit 0.88 full
+10+2.25 U inv   # fit 0.88 full
+11+0.25 L inv   # fit 0.88 full
+11+2.25 L inv   # fit 0.88 full
+12+0.25 L inv   # fit 0.88 full
+12+2.25 L inv   # fit 0.88 full
+13+0.25 U   # fit 0.88 full
+13+2.25 L inv   # fit 0.88 full
+15+0.25 U inv   # fit 0.88 full
+15+2.25 L inv   # fit 0.88 full
+16+0.25 U   # fit 0.88 full
+16+2.25 L   # fit 0.88 full
+17+0.25 U inv   # fit 0.88 full
+17+2.25 L inv   # fit 0.88 full
+18+0.25 U   # fit 0.88 full
+18+2.25 L   # fit 0.88 full
+19+0.25 U   # fit 0.88 full
+19+2.25 U   # fit 0.88 full
+20+0.25 U   # fit 0.94 full
+20+2.25 L   # fit 0.88 full
+21+0.25 U inv   # fit 0.88 full
+
+== bwv773 | S
+1+0.5 U dux len=8   # theme 1 read here
+3+0.5 L comes   # fit 1.0 full
+11+0.5 L mod dux   # fit 1.0 from2
+13+0.5 U comes   # fit 1.0 full
+23+0.5 U dux   # fit 1.0 full
+25+0.5 L comes   # fit 1.0 full
+
+== bwv774 | S
+0+0 U len=3   # theme 1 read here
+2+1 L   # fit 1.0 full
+18+1 U   # fit 0.75 full
+30+1 L   # fit 0.75 full
+38+1 L   # fit 0.75 full
+44+1 L   # fit 1.0 full
+8+1 U ans mod   # the answer in A, its head bent (A-G#-C#): D340's finder's statement, kept
+32+1 U ans mod   # the answer in A again, the head bent: the finder's, kept
+50+1 U mod   # the return's statements in the upper part, the tail changed (scan 0.61): the finder's, kept
+56+1 L mod   # and in the lower (scan 0.62): the finder's, kept
+
+== bwv775 | S
+1+0 U len=3   # theme 1 read here
+3+0 L   # fit 1.0 full
+5+0 U   # fit 1.0 full
+7+0 U mod   # fit 1.0 from2
+9+0 U mod   # fit 1.0 from2
+11+0 L mod   # fit 1.0 from2
+13+0 L mod   # fit 1.0 from2
+15+0 L mod   # fit 1.0 from2
+18+0 L   # fit 1.0 full
+20+0 L   # fit 1.0 full
+23+0 U mod   # fit 0.91 from2
+26+0 U   # fit 1.0 full
+29+0 U inv mod   # fit 0.91 from2
+31+0 U inv mod   # fit 0.91 from2
+33+0 U inv mod   # fit 0.91 from2
+38+0 L mod   # fit 1.0 from2
+40+0 U mod   # fit 1.0 from2
+42+0 L   # fit 1.0 full
+44+0 U   # fit 1.0 full
+46+0 L   # fit 1.0 full
+
+== bwv776 | S multi
+1+0.5 U len=12.5   # theme 1 read here
+1+2.25 L t2 len=10   # theme 2 read here
+5+0.5 L   # fit 1.0 full
+5+2.25 U t2   # fit 1.0 full
+9+0.5 U   # fit 1.0 full
+9+2.25 L t2   # fit 0.83 full
+12+0.5 L   # fit 1.0 full
+12+2.25 U t2   # fit 1.0 full
+16+0.5 U   # fit 1.0 full
+16+2.25 L t2   # fit 0.92 full
+23+0.25 L t2   # fit 1.0 full
+23+0.5 U   # fit 1.0 full
+27+0.5 U   # fit 1.0 full
+27+2.25 L t2   # fit 1.0 full
+30+0.75 L t2 part   # fit 0.83 full (part: the head only, the rest of the theme not kept)
+
+== bwv777 | S multi
+1+0.25 U len=4   # theme 1 read here
+1+0 L t2 len=3.75   # theme 2 read here
+5+0 U t2   # fit 1.0 full
+5+0.25 L   # fit 1.0 full
+14+0.25 U t2 inv   # fit 0.81 full
+21+0 U t2   # fit 1.0 full
+21+0.25 L   # fit 1.0 full
+25+0 L t2   # fit 1.0 full
+25+0.25 U   # fit 1.0 full
+43+0 U t2   # fit 1.0 full
+43+0.25 L   # fit 1.0 full
+47+0 L t2   # fit 1.0 full
+47+0.25 U   # fit 1.0 full
+56+0.25 L t2 inv   # fit 0.81 full
+
+== bwv778 | S
+1+0.5 U len=2   # theme 1 read here
+1+2.5 L   # fit 1.0 full
+2+0.5 U   # fit 0.86 full
+2+2.5 L   # fit 0.93 full
+3+0.5 U   # fit 0.93 full
+3+2.5 L   # fit 0.93 full
+4+0.5 U   # fit 0.93 full
+4+2.5 L   # fit 0.93 full
+7+0.5 U   # fit 1.0 full
+8+0.25 L inv   # fit 0.86 full
+8+2.25 L inv   # fit 0.93 full
+9+2.5 U   # fit 0.86 full
+10+0.5 L   # fit 0.93 full
+10+2.5 L   # fit 0.93 full
+11+0.5 U   # fit 0.86 full
+11+2.5 U   # fit 0.93 full
+11+3.5 L   # fit 0.86 full
+12+0.5 U   # fit 0.93 full
+12+2.5 L   # fit 0.86 full
+13+2.5 L   # fit 0.93 full
+14+0.5 L   # fit 0.93 full
+14+2.5 L   # fit 0.86 full
+20+0.5 L   # fit 0.93 full
+20+2.5 L   # fit 0.86 full
+21+0.5 L   # fit 0.93 full
+22+0.5 U   # fit 0.93 full
+22+2.5 L   # fit 0.86 full
+4+3 U mod   # the motive, its last leap changed (G-F#-E-D-E-F#): D340's finder's statement, kept
+15+3.5 U mod   # over the B pedal (15-19) the motive in sequence, its tail changed (B-A-G-F#-G-B): the finder's, kept
+16+1.5 U mod   # the sequence (the finder's)
+16+3.5 U mod   # the sequence (the finder's)
+17+1.5 U mod   # the sequence (the finder's)
+17+3.5 L mod   # the sequence in the lower part (the finder's)
+18+1.5 L mod   # the sequence (the finder's)
+18+3.5 L mod   # the sequence (the finder's)
+
+== bwv779 | S
+1+0.5 U len=5.5   # theme 1 read here
+2+0.5 L   # fit 1.0 full
+12+0.5 L   # fit 1.0 full
+13+0.5 U   # fit 1.0 full
+16+0.5 U   # fit 1.0 full
+17+0.5 L   # fit 1.0 full
+
+== bwv780 | S multi
+1+0 U len=12   # theme 1 read here
+1+0 L t2 len=12   # theme 2 read here
+5+0 U t2 mod   # fit 1.0 from2
+5+0 L   # fit 1.0 full
+9+0 L t2 mod   # fit 1.0 from2
+14+1.5 L t2 inv mod   # fit 1.0 from2
+18+0 U t2 mod   # fit 1.0 from2
+29+0 U   # fit 1.0 full
+9+0 U ans mod   # the subject in C minor, its sixth note's leap widened: the finder's statement, kept
+17+0 L ans mod   # the subject in the lower part, its first note an octave up: the finder's, kept
+
+== bwv781 | S
+1+0 U len=5.5   # theme 1 read here
+2+0 L   # fit 0.9 full
+14+0 L   # fit 1.0 full
+15+0 U   # fit 0.9 full
+16+0 L   # fit 0.9 full
+17+0 U   # fit 0.9 full
+27+0 U   # fit 0.9 full
+27+0.5 L   # fit 0.8 full
+28+0 U   # fit 0.9 full
+28+0.5 L   # fit 0.8 full
+
+== bwv782 | S multi
+1+0.25 U len=7.75   # theme 1 read here
+1+0 L t2 len=8   # theme 2 read here
+3+0.25 L   # fit 1.0 full
+3+2.5 U t2 inv mod   # fit 1.0 from2
+6+0.25 U   # fit 1.0 full
+7+0.25 L   # fit 1.0 full
+7+3 U t2 mod   # fit 0.77 from2
+13+0.25 U   # fit 1.0 full
+13+2.5 L t2 inv mod   # fit 1.0 from2
+16+2.25 L   # fit 1.0 full
+18+2.25 U   # fit 1.0 full
+19+1 L t2 mod   # fit 0.77 from2
+
+== bwv783 | S multi
+1+0 L len=6   # theme 1 read here
+1+0 U t2 len=6   # theme 2 read here
+2+4.25 U t2 inv   # fit 0.9 full
+3+0 L t2   # fit 1.0 full
+5+0 U t2   # fit 0.9 full
+5+0 L   # fit 1.0 full
+6+0 U t2   # fit 0.9 full
+6+0 L   # fit 1.0 full
+9+0 U t2   # fit 1.0 full
+9+1.5 L t2 inv mod   # fit 0.88 from2
+10+4.25 U t2 inv   # fit 0.9 full
+11+0 L t2   # fit 1.0 full
+12+1.25 L t2 inv mod   # fit 0.88 from2
+12+3.25 U t2   # fit 0.9 full
+13+3.5 L t2 mod   # fit 0.88 from2
+13+4.25 U t2   # fit 0.9 full
+14+3 L   # fit 1.0 full
+15+3 U t2   # fit 0.9 full
+15+3 L   # fit 1.0 full
+18+0 L t2   # fit 1.0 full
+18+2.5 U t2 inv mod   # fit 0.88 from2
+19+1 L t2 inv mod   # fit 0.88 from2
+19+2 U t2 inv   # fit 0.9 full
+3+0 U mod   # the running theme in the upper part, its first three notes changed (G#-A-G#): read by eye
+
+== bwv784 | S
+1+0.25 U len=2.25   # theme 1 read here
+1+2.25 L   # fit 1.0 full
+2+0.25 U   # fit 1.0 full
+2+2.25 L   # fit 1.0 full
+6+2.25 L   # fit 1.0 full
+7+0.25 U   # fit 1.0 full
+7+2.25 L   # fit 1.0 full
+8+0.25 U   # fit 1.0 full
+18+0.25 U   # fit 1.0 full
+18+2.25 L   # fit 1.0 full
+22+2.25 U   # fit 1.0 full
+
+== bwv785 | S multi
+1+0.25 U len=3.75   # theme 1 read here
+1+0 L t2 len=4   # theme 2 read here
+2+0.25 U   # fit 0.97 full
+6+0 U t2   # fit 1.0 full
+6+0.25 L   # fit 1.0 full
+7+0.25 L   # fit 0.97 full
+9+0.375 U t2 mod   # fit 0.88 from2
+10+0.375 L t2 mod   # fit 0.88 from2
+16+2.25 L   # fit 1.0 full
+16+3.25 U   # fit 0.92 full
+17+2.25 L   # fit 1.0 full
+17+3.25 U   # fit 0.89 full
+18+2.25 L   # fit 0.97 full
+
+== bwv786 | S
+1+0.5 U len=6.75   # theme 1 read here
+3+0.5 L   # fit 1.0 full
+5+2.5 U   # fit 1.0 full
+12+0.5 L   # fit 1.0 full
+14+0.5 U   # fit 1.0 full
+18+0.5 L   # fit 1.0 full
+19+2.5 U   # fit 1.0 full
+
+== bwv787 | S
+1+0.25 S len=4   # theme 1 read here
+2+0.25 A   # fit 0.96 full
+3+0.25 B   # fit 1.0 full
+4+0.25 B inv   # fit 0.96 full
+5+0.25 B   # fit 1.0 full
+6+0.25 A inv   # fit 0.96 full
+8+2.25 B   # fit 1.0 full
+9+2.25 A inv   # fit 0.96 full
+10+2.25 S inv   # fit 0.96 full
+11+0.25 B inv   # fit 0.96 full
+12+0.25 S   # fit 0.96 full
+13+0.25 A   # fit 1.0 full
+14+0.25 B   # fit 1.0 full
+15+0.25 B   # fit 1.0 full
+16+0.25 A   # fit 0.96 full
+16+2.25 B inv   # fit 0.96 full
+19+0.25 B   # fit 1.0 full
+
+== bwv788 | S
+1+0 S len=12   # theme 1 read here
+3+0 A   # fit 1.0 full
+5+0 B part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+7+0 B part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+9+3 B   # fit 1.0 full
+11+3 S   # fit 1.0 full
+13+3 A part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+15+3 A part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+19+0 S   # fit 0.88 full
+21+0 A part   # fit 0.81 full (part: the head only, the rest of the theme not kept)
+28+0 B part   # fit 0.81 full (part: the head only, the rest of the theme not kept)
+29+3 A part   # fit 0.81 full (part: the head only, the rest of the theme not kept)
+30+0 B part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+
+== bwv789 | S
+1+0.5 S len=8   # theme 1 read here
+3+2.5 A   # fit 1.0 full
+6+0.5 B   # fit 1.0 full
+10+0.5 S   # fit 1.0 full
+19+0.5 B   # fit 1.0 full
+21+2.5 A   # fit 1.0 full
+23+2.5 S   # fit 1.0 full
+
+== bwv790 | S
+1+0.25 S len=4   # theme 1 read here
+2+0.25 A   # fit 1.0 full
+4+0.25 B   # fit 1.0 full
+6+0.25 B   # fit 0.75 full
+8+2.25 A   # fit 1.0 full
+9+2.25 S   # fit 1.0 full
+13+2.25 S   # fit 1.0 full
+14+2.25 A   # fit 0.75 full
+15+2.25 B   # fit 1.0 full
+16+2.25 S   # fit 0.75 full
+17+2.25 A   # fit 0.85 full
+20+0.25 B   # fit 1.0 full
+21+2.25 A   # fit 0.9 full
+
+== bwv791 | S
+1+1.75 S len=6   # theme 1 read here
+2+1.75 A   # fit 1.0 full
+3+1.75 S   # fit 1.0 full
+19+1.75 A mod   # fit 0.86 from2
+29+1.75 S   # fit 0.88 full
+30+1.75 A   # fit 1.0 full
+31+1.75 S   # fit 1.0 full
+32+1.75 A   # fit 1.0 full
+
+== bwv792 | S
+1+0 A len=4.5   # theme 1 read here
+2+0 S   # fit 1.0 full
+3+0 B   # fit 1.0 full
+6+0.5 A mod   # fit 1.0 from2
+7+0 B   # fit 1.0 full
+9+0.5 A mod   # fit 1.0 from2
+10+0.5 S mod   # fit 1.0 from2
+16+0.5 A mod   # fit 1.0 from2
+17+0 S inv   # fit 0.83 full
+18+0 B   # fit 1.0 full
+19+0 A   # fit 1.0 full
+20+0 S   # fit 1.0 full
+21+0 S   # fit 1.0 full
+22+0 S   # fit 1.0 full
+22+0 B inv   # fit 0.83 full
+23+0 A inv   # fit 1.0 full
+24+0.5 S inv mod   # fit 1.0 from2
+25+0 B inv   # fit 1.0 full
+26+0.5 A inv mod   # fit 0.81 from2
+29+0 B inv   # fit 1.0 full
+30+0.5 A mod   # fit 1.0 from2
+31+0.5 S mod   # fit 1.0 from2
+32+0.5 A mod   # fit 1.0 from2
+33+0.5 S mod   # fit 1.0 from2
+35+0 S inv   # fit 1.0 full
+35+0 A   # fit 1.0 full
+36+0 B mod   # fit 1.0 from2
+37+0 S inv   # fit 1.0 full
+37+0.5 A mod   # fit 1.0 from2
+38+4 S mod   # fit 1.0 from2
+39+0 A   # fit 1.0 full
+
+== bwv793 | S
+1+0.5 S len=6   # theme 1 read here
+3+0.5 A   # fit 1.0 full
+3+0.75 S mod   # fit 1.0 from2
+7+0.5 B   # fit 1.0 full
+14+0.5 A   # fit 1.0 full
+16+0.5 S   # fit 1.0 full
+25+0.5 S   # fit 1.0 full
+27+0.5 B   # fit 1.0 full
+29+0.5 B   # fit 1.0 full
+35+0.5 B   # fit 0.78 full
+37+0.5 S   # fit 1.0 full
+
+== bwv794 | S
+1+0.5 A len=4   # theme 1 read here
+2+0.5 S mod   # fit 1.0 from2
+3+0.5 B   # fit 1.0 full
+5+2.5 B   # fit 1.0 full
+6+2.5 A   # fit 1.0 full
+7+2.5 S   # fit 1.0 full
+7+3.5 B   # fit 1.0 full
+8+2.5 S   # fit 1.0 full
+8+3.5 B   # fit 1.0 full
+9+2.5 S   # fit 1.0 full
+9+3.5 B   # fit 0.85 full
+10+2.5 A   # fit 1.0 full
+11+2.5 B   # fit 1.0 full
+12+2.5 B mod   # fit 1.0 from2
+13+2.5 S   # fit 1.0 full
+17+2.5 S   # fit 1.0 full
+17+2.5 A   # fit 1.0 full
+18+2.5 S   # fit 1.0 full
+18+3.5 B   # fit 1.0 full
+21+0.5 B   # fit 1.0 full
+22+0.5 S   # fit 1.0 full
+
+== bwv795 | S multi
+1+0.5 A len=8   # theme 1 read here
+1+0 B t2 len=8   # theme 2 read here
+3+0 A t2 mod   # fit 1.0 from2
+3+0.5 S   # fit 1.0 full
+7+0 S t2 mod   # fit 1.0 from2
+7+0.5 B   # fit 1.0 full
+11+0 B t2 mod   # fit 1.0 from2
+11+0.5 A   # fit 1.0 full
+13+0 A t2 mod   # fit 1.0 from2
+13+0.5 S   # fit 1.0 full
+15+0 S t2 inv mod   # fit 1.0 from2
+15+0 B t2 inv mod   # fit 1.0 from2
+16+2 A t2 inv mod   # fit 1.0 from2
+18+0 S t2 mod   # fit 1.0 from2
+24+0.5 S t2 mod   # fit 1.0 from2
+24+0.5 B   # fit 1.0 full
+26+0 A t2 mod   # fit 1.0 from2
+26+0.5 S   # fit 1.0 full
+28+0 A t2 inv mod   # fit 1.0 from2
+28+0 B t2 inv mod   # fit 1.0 from2
+29+2 S t2 inv mod   # fit 1.0 from2
+31+0 A t2 mod   # fit 1.0 from2
+33+0 B t2   # fit 1.0 full
+33+0.5 A   # fit 1.0 full
+
+== bwv796 | S
+1+0.5 S len=6   # theme 1 read here
+3+0.5 A   # fit 1.0 full
+5+0 S mod   # fit 1.0 from2
+5+1 A mod   # fit 0.82 from2
+7+0.5 B   # fit 1.0 full
+11+1 A mod   # fit 1.0 from2
+13+1 S mod   # fit 1.0 from2
+15+1 S mod   # fit 1.0 from2
+20+0 A mod   # fit 1.0 from2
+26+1 A mod   # fit 1.0 from2
+31+1 S mod   # fit 1.0 from2
+
+== bwv797 | S
+% the statements kept at 0.7 and over: the head (the falling triad and the octave) exact, the tail bent to the key; those at 0.64 left out
+1+0.25 S len=4.75   # theme 1 read here
+2+0.25 A   # fit 0.71 full
+4+0.25 B   # fit 0.71 full
+8+0.25 B   # fit 0.86 full
+16+0.25 B   # fit 0.71 full
+17+0.25 A   # fit 0.71 full
+18+0.25 S   # fit 0.71 full
+29+0.25 S   # fit 0.71 full
+48+0.25 B   # fit 0.71 full
+49+0.25 S   # fit 0.71 full
+65+0.25 S   # fit 1.0 full
+66+0.25 A   # fit 0.71 full
+68+0.25 B   # fit 0.71 full
+
+== bwv798 | S
+1+0 S len=8   # theme 1 read here
+3+0 A   # fit 1.0 full
+5+0 B   # fit 1.0 full
+7+2.5 S mod   # fit 1.0 from2
+15+0 B   # fit 1.0 full
+24+0 B   # fit 1.0 full
+25+2 S   # fit 1.0 full
+
+== bwv799 | S multi
+% the countersubject at 14 in the soprano (from the second note) left out: the alto's statement there, a third apart, is the countersubject
+1+0 S len=6   # theme 1 read here
+5+0 S t2 len=6   # theme 2 read here
+5+0 A   # fit 1.0 full
+13+0 A t2   # fit 1.0 full
+13+0 B   # fit 1.0 full
+19+0 S t2 mod   # fit 0.89 from2
+33+0 S   # fit 0.8 full
+53+0 S   # fit 0.8 full
+53+0 B   # fit 0.8 full
+
+== bwv800 | S
+% the fits of 0.75 laid from the second note (a running scale's fragment, too common to tell) were left out; 0.8 and over kept, and the exposition's answer (2+0.5)
+1+0 A len=4.25   # theme 1 read here
+2+0.5 S mod   # fit 0.75 from2
+4+0 B   # fit 1.0 full
+7+0 A   # fit 1.0 full
+7+2 B mod   # fit 0.81 from2
+8+0.5 S mod   # fit 0.94 from2
+9+1 A mod   # fit 0.94 from2
+12+0.5 S mod   # fit 0.94 from2
+12+1 A mod   # fit 0.94 from2
+14+2.5 S mod   # fit 0.94 from2
+15+2.5 A mod   # fit 0.94 from2
+16+3 B mod   # fit 1.0 from2
+19+0.5 B mod   # fit 0.81 from2
+20+0.5 A mod   # fit 0.94 from2
+
+== bwv801 | S
+1+0 S len=5.25   # theme 1 read here
+4+0 B   # fit 1.0 full
+7+0 A part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+9+0 A part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+10+0.25 S mod   # fit 0.82 from2
+14+0 A   # fit 1.0 full
+17+0 S   # fit 1.0 full
+20+0 A part   # fit 0.75 full (part: the head only, the rest of the theme not kept)
+25+0.25 S mod   # fit 0.82 from2
+35+0.75 S mod   # fit 0.86 from2
+
+
