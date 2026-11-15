@@ -36,12 +36,13 @@ export function alterAgainst(step: number, midi: number, sig: readonly number[])
   return d > 0 ? 1 : d < 0 ? -1 : 0;
 }
 
-/** The sign written: ♯ / ♭ for a sharp or flat, ♮ for a natural against the key. */
-export function signOf(step: number, midi: number): "sharp" | "flat" | "natural" | "double" {
+/** The sign written: ♯ / ♭ for a sharp or flat, ♮ for a natural against the key; 𝄪 / 𝄫 for a double sharp or flat. */
+export type Sign = "sharp" | "flat" | "natural" | "double" | "doubleFlat";
+export function signOf(step: number, midi: number): Sign {
   const letter = ((step % 7) + 7) % 7;
   const nat = NATURAL[letter] + 12 * (Math.floor(step / 7) + 1);
   const a = midi - nat;
-  return a === 0 ? "natural" : a === 1 ? "sharp" : a === -1 ? "flat" : "double";
+  return a === 0 ? "natural" : a === 1 ? "sharp" : a === -1 ? "flat" : a > 0 ? "double" : "doubleFlat";
 }
 
 /** The fraction of a row an altered note is drawn off its row, by the canvas pixels a row has (at least 1 px). */
@@ -49,12 +50,20 @@ export function chromaShift(rowPx: number): number {
   return rowPx < 3 ? 0 : Math.max(1, Math.round(rowPx * 0.35));
 }
 
-/** The signs as pixel glyphs, 3 wide and 4 high ("1" a pixel). */
-export const SIGN_PIXELS: Record<"sharp" | "flat" | "natural" | "double", string[]> = {
-  sharp: ["101", "111", "111", "101"],
-  flat: ["100", "110", "101", "110"],
-  natural: ["100", "111", "111", "001"],
-  double: ["101", "010", "010", "101"],
+/**
+ * The signs as pixel glyphs ("1" a pixel), drawn on the block's start. D657 (design studio; the owner: "I still
+ * don't understand what are the little symbols inside some notes … a 'X' and a 'M'"): the sharp at 3 by 4 read as
+ * an M or an H; now the signs are drawn as print draws them, five rows high on every block that shows one
+ * (the sharp a true ♯ with its two stems and two bars, the flat ♭, the natural ♮, the double sharp the small 𝄪 as
+ * print has it, the double flat 𝄫), a row over the block's edge where the block has only four. HOW TO PLAY › SIGNS
+ * ON THE NOTES names each.
+ */
+export const SIGN_PIXELS_5: Record<Sign, string[]> = {
+  sharp: ["01010", "11111", "01010", "11111", "01010"],
+  flat: ["100", "100", "110", "101", "110"],
+  natural: ["100", "111", "101", "111", "001"],
+  double: ["000", "101", "010", "101", "000"],
+  doubleFlat: ["10100", "10100", "11110", "10101", "11110"],
 };
 
 /**
