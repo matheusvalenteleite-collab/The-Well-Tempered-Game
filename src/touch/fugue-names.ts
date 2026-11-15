@@ -2,8 +2,8 @@
  * The 48 fugues' names, en / pt (Brazilian) / es, `full` the name, `short` the tile's (the selection grid:
  * no article, a word or two). The piece's own title (Fugue 1 in C major) stays beside it.
  *
- * D374 named Book I and D383 Book II, one character a fugue, drawn in its picture (tools/pictures/). D664: the
- * Art of Fugue's 20 (the 14 contrapuncti with 12 and 13 as rectus and inversus, and the four canons).
+ * D374 named Book I and D383 Book II, one character a fugue, drawn in its picture (tools/pictures/). D668 (design studio,
+ * the owner): names are for the WTC 48 only; the Art of Fugue's 20 (D664) are gone, its pieces go by their titles.
  * WTC 1.92: the owner's own 48 (docs/design/FUGUE-NAMES-48.md on the design studio's branch, chosen over
  * two rounds of the studio's proposals, 31 Oct 2026) replace them where they differ; kept: I/2, 9, 10, 11,
  * 14, 16, 18, 22 and II/7, 11, 19. The owner's picture for each on the line above it. Where a figure is a
@@ -114,47 +114,6 @@ export const FUGUE_NAMES: Readonly<Record<string, Row>> = {
   wtc2f23: { en: n("The Elegy", "Elegy"), pt: n("A Elegia", "Elegia"), es: n("La Elegía", "Elegía") },
   // Two dancers in an emptying ballroom, the candles burning low; the end, one candle.
   wtc2f24: { en: n("The Last Dance", "Last Dance"), pt: n("A Última Dança", "Última Dança"), es: n("El Último Baile", "Último Baile") },
-  // ---- THE ART OF FUGUE (D664, design studio; the owner approved the cards and the Lamplighter cycle) ----
-  // A woman on a ladder lighting a street lamp at dusk: the subject, plain (the cycle's Lamplighter).
-  "bwv1080-01": { en: n("The Lamplighter", "Lamplighter"), pt: n("A Acendedora de Lampiões", "Acendedora"), es: n("La Farolera", "Farolera") },
-  // A boy drummer mid-stride: the subject against a dotted, marching figure.
-  "bwv1080-02": { en: n("The Drummer", "Drummer"), pt: n("O Tamborileiro", "Tamborileiro"), es: n("El Tamborilero", "Tamborilero") },
-  // A town upside down in still water: the subject inverted, a chromatic mist creeping.
-  "bwv1080-03": { en: n("The Lake", "Lake"), pt: n("O Lago", "Lago"), es: n("El Lago", "Lago") },
-  // A trapeze artist hanging upside down under the big top: the inverted subject.
-  "bwv1080-04": { en: n("The Acrobat", "Acrobat"), pt: n("A Acrobata", "Acrobata"), es: n("La Acróbata", "Acróbata") },
-  // Two dancers in a mirror pose: the counter-fugue, the subject answered by its inversion.
-  "bwv1080-05": { en: n("The Dancers", "Dancers"), pt: n("Os Dançarinos", "Dançarinos"), es: n("Los Bailarines", "Bailarines") },
-  // A king in a gold sun mask, mid-ballet: in Stylo Francese.
-  "bwv1080-06": { en: n("The Sun King", "Sun King"), pt: n("O Rei Sol", "Rei Sol"), es: n("El Rey Sol", "Rey Sol") },
-  // A giant, a man and a mouse on one road: per Augmentationem et Diminutionem.
-  "bwv1080-07": { en: n("The Giant", "Giant"), pt: n("O Gigante", "Gigante"), es: n("El Gigante", "Gigante") },
-  // Three streams meeting under a stone bridge: the triple fugue a 3.
-  "bwv1080-08": { en: n("The Three Rivers", "Three Rivers"), pt: n("Os Três Rios", "Três Rios"), es: n("Los Tres Ríos", "Tres Ríos") },
-  // A hare leaping past a tortoise: the fast new subject against the main one in long notes.
-  "bwv1080-09": { en: n("The Hare and the Tortoise", "Tortoise"), pt: n("A Lebre e a Tartaruga", "Tartaruga"), es: n("La Liebre y la Tortuga", "Tortuga") },
-  // Two halves of a stone bridge reaching for each other: the double fugue alla Decima.
-  "bwv1080-10": { en: n("The Bridge", "Bridge"), pt: n("A Ponte", "Ponte"), es: n("El Puente", "Puente") },
-  // Three weavers at a loom, three threads crossing: the triple fugue a 4.
-  "bwv1080-11": { en: n("The Weavers", "Weavers"), pt: n("As Tecelãs", "Tecelãs"), es: n("Las Tejedoras", "Tejedoras") },
-  // A farmhouse and its tree at noon: the mirror fugue's rectus.
-  "bwv1080-12r": { en: n("The Day", "Day"), pt: n("O Dia", "Dia"), es: n("El Día", "Día") },
-  // The same farmhouse upside down under stars: its inversus, the exact mirror.
-  "bwv1080-12i": { en: n("The Night", "Night"), pt: n("A Noite", "Noite"), es: n("La Noche", "Noche") },
-  // An hourglass running: the mirror fugue a 3, rectus.
-  "bwv1080-13r": { en: n("The Hourglass", "Hourglass"), pt: n("A Ampulheta", "Ampulheta"), es: n("El Reloj de Arena", "Reloj") },
-  // The hourglass turned over: its inversus.
-  "bwv1080-13i": { en: n("The Hourglass Turned", "Turned Glass"), pt: n("A Ampulheta Virada", "Virada"), es: n("El Reloj de Arena Volteado", "Volteado") },
-  // A kite and its shadow, larger and the other way: the canon by augmentation in contrary motion.
-  "bwv1080-c14": { en: n("The Kite", "Kite"), pt: n("A Pipa", "Pipa"), es: n("La Cometa", "Cometa") },
-  // A hiker's call returning across a gorge: the canon at the octave.
-  "bwv1080-c15": { en: n("The Echo", "Echo"), pt: n("O Eco", "Eco"), es: n("El Eco", "Eco") },
-  // Two swallows in parallel, one a little below: the canon at the tenth.
-  "bwv1080-c16": { en: n("The Two Swallows", "Swallows"), pt: n("As Duas Andorinhas", "Andorinhas"), es: n("Las Dos Golondrinas", "Golondrinas") },
-  // Two sets of footprints in snow, one in the other's: the canon at the twelfth.
-  "bwv1080-c17": { en: n("The Footprints", "Footprints"), pt: n("As Pegadas", "Pegadas"), es: n("Las Huellas", "Huellas") },
-  // A composer's desk at night, one candle, the quill stopped mid-line: unfinished, B-A-C-H.
-  "bwv1080-14": { en: n("The Last Candle", "Last Candle"), pt: n("A Última Vela", "Última Vela"), es: n("La Última Vela", "Última Vela") },
 };
 
 /** A piece's name in a language (null where it has none). */
