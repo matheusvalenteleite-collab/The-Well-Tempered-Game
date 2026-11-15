@@ -10,9 +10,10 @@ import { fugueById } from "../src/touch/fugue.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("all 48 fugues have a world, and only they", () => {
+test("all 48 fugues have a world, and only they (D665: and the Art of Fugue's, as they come)", () => {
   const ids = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
-  assert.deepEqual([...STAGE_IDS].sort(), ids);
+  assert.deepEqual([...STAGE_IDS].filter((id) => id.startsWith("wtc")).sort(), ids);
+  assert.ok(STAGE_IDS.filter((id) => !id.startsWith("wtc")).every((id) => /^bwv1080-(\d\d[ri]?|c1[4-7])$/.test(id)));
   assert.ok(!hasStage("wtc1p01") && !hasStage(undefined));
 });
 
@@ -30,7 +31,10 @@ function fakeCanvas() {
   return g as unknown as CanvasRenderingContext2D & { ops: number };
 }
 
-test("each world draws at the opening, the middle and the close, in FULL and QUIET, and draws nothing when OFF", () => {
+test("each world draws at the opening, the middle and the close, in FULL and QUIET, and draws nothing when OFF", async () => {
+  // D665: the Art of Fugue's pieces are in the extras chunk.
+  const { loadExtras } = await import("../src/touch/fugue.ts");
+  await loadExtras();
   for (const id of STAGE_IDS) {
     const f = fugueById(id);
     for (const p of [0, 0.5, 1]) {
@@ -79,7 +83,7 @@ test("D464: the characters wander on their own clock, not on the play line", () 
 test("D475: every world has its script of acts, and the director reads the form (form-points.ts)", async () => {
   const s = src("src/touch/stage-bg.ts");
   const { STAGE_IDS } = await import("../src/touch/stage-bg.ts");
-  for (const id of STAGE_IDS) assert.ok(new RegExp(`\\n  ${id}: (sk\\(|\\{\\n    acts:)`).test(s.slice(s.indexOf("const SCRIPTS"))), `${id} has no script`);
+  for (const id of STAGE_IDS) assert.ok(new RegExp(`\\n  "?${id}"?: (sk\\(|\\{\\n    acts:)`).test(s.slice(s.indexOf("const SCRIPTS"))), `${id} has no script`);
   assert.match(s, /const fa = fm \? formAt\(fm, now\) : null;/);
   assert.match(s, /zoom: a\[4\] \?\? 1/);
   // The zoom stays subtle (at most 7%).
