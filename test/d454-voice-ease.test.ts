@@ -4,17 +4,20 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fugueById } from "../src/touch/fugue.ts";
+import { fugueById, loadExtras, MORE_INDEX } from "../src/touch/fugue.ts";
 import { voiceDifficulty } from "../src/bench/difficulty.ts";
 import { VOICE_SCORES } from "../src/bench/voice-ease.ts";
 import { defaultVoice } from "../src/bench/flow.ts";
 
 const ids = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
+// D727: THE ART OF FUGUE's twenty pieces baked too (their notes load on demand).
+await loadExtras();
+const aof = [...MORE_INDEX.filter(([, c]) => c === "aof").map(([id]) => id), "bwv1080-14"];
 const all = (id: string) => fugueById(id).voices.map((_, i) => i);
 
 test("D454: the baked scores are the notes' (rerun tools/touch/voice-ease.ts after a change)", () => {
-  assert.deepEqual(Object.keys(VOICE_SCORES).sort(), ids);
-  for (const id of ids) {
+  assert.deepEqual(Object.keys(VOICE_SCORES).sort(), [...ids, ...aof].sort());
+  for (const id of [...ids, ...aof]) {
     const f = fugueById(id);
     assert.deepEqual(VOICE_SCORES[id], f.voices.map((_, v) => voiceDifficulty(f, v).score), id);
   }
