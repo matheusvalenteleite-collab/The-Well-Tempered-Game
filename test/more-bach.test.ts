@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { beatOf, CHORALES, fugueById, loadExtras, MORE_BACH } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
-import { MORE_TEMPO, standardTempo, tempoOf } from "../src/touch/tempi.ts";
+import { fastTempo, MORE_TEMPO, OPENING_STEP, standardTempo, tempoOf } from "../src/touch/tempi.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { characterOf } from "../src/touch/character.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
@@ -74,7 +74,7 @@ test("D340: what the pipeline computes for the WTC: entries in the fugues, inven
     assert.ok(f.keys.length > 0 && f.keys.every((k, i) => i === 0 || f.keys[i - 1].on <= k.on), `${f.id}: keys`);
     assert.ok(f.cadences.every((c) => c.on >= 0 && c.on <= f.length), f.id);
     const t = MORE_TEMPO[f.id];
-    assert.ok(t && t.normal >= 40 && t.normal <= 120 && tempoOf(f.id) === t.normal && standardTempo(f.id) === t.median, `${f.id}: tempo`);
+    assert.ok(t && t.normal >= 40 && t.normal <= 120 && tempoOf(f.id) === (OPENING_STEP[f.id] === "fast" ? fastTempo(t) : t.normal) && standardTempo(f.id) === t.median, `${f.id}: tempo`);
     assert.ok(PIECE_SOUND[f.id], `${f.id}: sound`);
     assert.ok(["antico", "neutral", "lively"].includes(characterOf(f.id)));
   }
