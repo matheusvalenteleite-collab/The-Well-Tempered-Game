@@ -4,18 +4,20 @@
  * baked scores still match the notes.
  */
 import { writeFileSync } from "node:fs";
-import { fugueById } from "../../src/touch/fugue.ts";
+import { fugueById, loadExtras, MORE_INDEX } from "../../src/touch/fugue.ts";
 import { voiceDifficulty } from "../../src/bench/difficulty.ts";
 
-const ids = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
+// D727: and THE ART OF FUGUE's twenty pieces (its own tab on play.html), its notes loaded first.
+await loadExtras();
+const ids = [...[1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`)), ...MORE_INDEX.filter(([, c]) => c === "aof").map(([id]) => id), "bwv1080-14"];
 const rows = ids.map((id) => {
   const f = fugueById(id);
-  return `  ${id}: [${f.voices.map((_, v) => voiceDifficulty(f, v).score).join(", ")}],`;
+  return `  ${JSON.stringify(id)}: [${f.voices.map((_, v) => voiceDifficulty(f, v).score).join(", ")}],`;
 });
 writeFileSync(
   new URL("../../src/bench/voice-ease.ts", import.meta.url),
   `/**
- * D454: each WTC fugue's voices' difficulty scores, top voice first (src/bench/difficulty.ts voiceDifficulty, at the
+ * D454: each WTC fugue's voices' difficulty scores (D727: and THE ART OF FUGUE's), top voice first (src/bench/difficulty.ts voiceDifficulty, at the
  * standard tempo; baked by tools/touch/voice-ease.ts). The voice offered first is the easiest (flow.ts defaultVoice).
  */
 export const VOICE_SCORES: Readonly<Record<string, readonly number[]>> = {

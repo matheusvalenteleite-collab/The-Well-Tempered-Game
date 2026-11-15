@@ -79,6 +79,9 @@ class Kit {
   ents: number[] = [];
   /** D660: each entry's subject (1, or 2 and 3 in a double or triple fugue), in the order of `ents`. */
   themes: number[] = [];
+  /** D665: each entry inverted, and its scale (2 augmented, 0.5 diminished), in the order of `ents`. */
+  invs: boolean[] = [];
+  scales: number[] = [];
   cads: number[] = [];
   /** No ambient motion (QUIET). */
   still = false;
@@ -1089,6 +1092,62 @@ const CROOK = [
 const RUNNER_A = ["..hh.", "..ss.", ".jjjs", "sjjj.", "..jj.", ".l..l", "l...."] as const;
 const RUNNER_B = ["..hh.", "..ss.", "sjjj.", ".jjjs", "..jj.", "..ll.", "..l.."] as const;
 const SOLDIER = ["..hhh..", ".hhhhh.", "..sss..", ".ccccc.", "sccccc.", ".ccccc.", ".cc.cc.", ".b...b."] as const;
+
+// D665: the Art of Fugue's cycle: the Lamplighter (the subject) in every world.
+const LAMPLIGHTER = [
+  "...h...",
+  "..hhh..",
+  ".hsssh.",
+  ".hsksh.",
+  "..sss..",
+  ".ddddd.",
+  "dddddds",
+  ".ddddd.",
+  ".ddddd.",
+  "ddddddd",
+  "ddddddd",
+  "ddddddd",
+  "ddddddd",
+  "..b.b..",
+] as const;
+const LAMP_PAL = { h: "#a0402a", s: "#d8a07a", k: "#201010", d: "#3c5a8c", b: "#1a1210" };
+const DRUMMER = ["..hhh..", "..sss..", "..sks..", ".rrrrr.", "srrrrrs", "wwwwwww", "wgwgwgw", "wwwwwww", ".kk.kk.", ".kk.kk.", ".b...b."] as const;
+const KING = [
+  "y.y.y.y",
+  ".yyyyy.",
+  "yyyyyyy",
+  ".ykyky.",
+  ".yyyyy.",
+  "..ggg..",
+  "sggggggs".slice(0, 7),
+  ".ggggg.",
+  ".ggggg.",
+  "ggggggg",
+  "ggggggg",
+  ".w...w.",
+  ".w...w.",
+  ".b...b.",
+] as const;
+/** A street lamp at (x, foot), lit or not, its pool on the ground. */
+function streetLamp(k: Kit, x: number, foot: number, hgt: number, on: boolean, a = 1) {
+  k.R(x, foot - hgt, 2, hgt, "#1a1820");
+  k.R(x - 3, foot - hgt - 5, 8, 5, "#24222c");
+  if (on) {
+    k.R(x - 2, foot - hgt - 4, 6, 3, `rgba(255,224,150,${a})`);
+    light(k, x + 1, foot - hgt - 3, 16, [255, 200, 120], 0.45 * a);
+    k.g.fillStyle = `rgba(255,210,140,${0.12 * a})`;
+    k.g.beginPath();
+    k.g.ellipse(x + 1, foot + 1, 14, 3, 0, 0, Math.PI * 2);
+    k.g.fill();
+  }
+}
+/** A few stars twinkling slowly through the tent's top (more at the climax). */
+function twinkleStars(k: Kit, cl: number) {
+  for (let i = 0; i < 6 + 10 * cl; i++) {
+    const tw = k.still ? 1 : 0.5 + 0.5 * Math.sin(k.sec * 0.8 + i);
+    k.R(k.w * (0.4 + 0.2 * hash(i * 3)), k.h * 0.02 + 6 * hash(i * 5), 1, 1, `rgba(255,250,220,${0.6 * tw})`);
+  }
+}
 
 const WORLDS: Record<string, World> = {
   // D658 (design studio, the art upgrade, batch 1): The Canon. A concert stage in three depths: the velvet back wall
@@ -4244,6 +4303,316 @@ const WORLDS: Record<string, World> = {
     }
     if (k.rest > 0.01) k.R(0, 0, w, h, `rgba(0,0,0,${0.6 * k.rest})`);
   },
+  // D665 (design studio, the Art of Fugue, batch A: the cycle of the Lamplighter, D664): Contrapunctus 1, The
+  // Lamplighter. A street at dusk in three depths: the roofs and the spire against the last light, the house fronts
+  // with their windows, the cobbles near; the lamps along the street. The drama: each entry she lights the next lamp
+  // (walking to it, her pole raised), its pool spreading on the cobbles, a window answering above; at the climax the
+  // whole street lit and the first star over the spire.
+  "bwv1080-01": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 31);
+    const cl = k.climax;
+    k.sky([40, 40, 90], [220, 140, 110], [16, 18, 50], [70, 50, 90]);
+    k.stars(30, 0.5);
+    if (cl > 0.01) {
+      light(k, w * 0.62, h * 0.08, 10, [255, 250, 220], 0.7 * cl);
+      k.R(w * 0.62, h * 0.08, 1, 1, "#fffbe8");
+    }
+    k.g.save();
+    k.g.translate(cam * 0.4, 0);
+    skyline(k, 0.5, 0.01, "rgba(40,30,56,1)", 2);
+    k.R(w * 0.6, h * 0.14, 8, h * 0.4, "#2a2238");
+    k.tri(w * 0.6 + 4, h * 0.14, 12, 16, "#2a2238");
+    k.g.restore();
+    const n = Math.min(10, Math.max(2, k.ents.length));
+    const xs = Array.from({ length: n }, (_, i) => w * (0.3 + (0.46 * i) / (n - 1)));
+    // the house fronts and their windows, one more lit per entry
+    k.g.save();
+    k.g.translate(cam * 0.7, 0);
+    for (let i = 0; i < 8; i++) {
+      const x = w * (0.02 + i * 0.125);
+      const hh = h * (0.38 + 0.08 * hash(i + 3));
+      k.R(x, h * 0.8 - hh, w * 0.12, hh, i % 2 ? "#3a2e3c" : "#342a38");
+      fillTex(k, texture(k, "stone", 40, stone), x, h * 0.8 - hh, w * 0.12, hh);
+      k.tri(x + w * 0.06, h * 0.8 - hh, w * 0.13, 9, "#2a2030");
+      for (let j = 0; j < 2; j++) {
+        const on = hash(i * 5 + j) * 10 < k.passed + (cl > 0.5 ? 10 : 0);
+        k.R(x + 6 + j * 18, h * 0.8 - hh + 10, 5, 7, on ? "#ffd890" : "#16121e");
+        if (on) light(k, x + 8 + j * 18, h * 0.8 - hh + 13, 8, [255, 200, 120], 0.25);
+      }
+    }
+    k.g.restore();
+    k.R(0, h * 0.8, w, h * 0.2, "#3a3440");
+    fillTex(k, texture(k, "cobbles", 24, cobbles), 0, h * 0.8, w, h * 0.2, cam);
+    const nLit = cl > 0.5 ? n : Math.min(n, k.passed);
+    xs.forEach((x, i) => streetLamp(k, x + cam, h * 0.84, 34, i < nLit));
+    // the Lamplighter, walking to the next lamp, her pole raised to it
+    const at = Math.min(n - 1, Math.max(0, nLit - 1));
+    const prev = Math.max(0, at - 1);
+    const u = k.since < 1 ? Math.min(1, k.since) : 1;
+    const lx = (xs[prev] + (xs[at] - xs[prev]) * u) - 10 + cam;
+    const walk = u < 1 && !k.still && Math.floor(k.sec * 4) % 2 === 0;
+    lit(k, lx, h * 0.86 - (walk ? 1 : 0), LAMPLIGHTER, LAMP_PAL, 2, false, "rgba(255,210,140,0.85)", 1);
+    k.line(lx + 6, h * 0.86 - 16, xs[at] + cam - 1, h * 0.84 - 38, "#5a4028", 1);
+    if (!k.still) for (let i = 0; i < nLit; i++) {
+      const a = k.sec * 2 + i;
+      k.R(xs[i] + cam + Math.cos(a) * 5, h * 0.84 - 40 + Math.sin(a * 1.3) * 3, 1, 1, "rgba(255,240,200,0.7)");
+    }
+  },
+  // D665: Contrapunctus 2, The Drummer. A town square on a bright morning in three depths: the clock tower and the
+  // roofs, the bunting across the square, the crowd at the edges and the cobbles near; the Lamplighter at her window.
+  // The drama: each entry another drummer or piper falls in, marching on the dotted beat; the bunting lifts; at the
+  // climax the whole band crosses the square under the clock as it strikes.
+  "bwv1080-02": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 29);
+    const cl = k.climax;
+    k.sky([110, 160, 220], [220, 230, 240], [120, 170, 230], [240, 230, 210]);
+    clouds(k, 4, 0.45, 0.1);
+    const TX = w * 0.5 + cam * 0.4;
+    k.R(TX - 12, h * 0.08, 24, h * 0.6, "#b0a090");
+    fillTex(k, texture(k, "stone", 40, stone), TX - 12, h * 0.08, 24, h * 0.6);
+    k.tri(TX, h * 0.08, 30, 14, "#8a4a3a");
+    k.disc(TX, h * 0.2, 8, "#f4f0e0");
+    const hr = cl > 0.5 ? 0 : (k.p * 6) % 12;
+    k.line(TX, h * 0.2, TX + Math.sin((hr / 12) * Math.PI * 2) * 5, h * 0.2 - Math.cos((hr / 12) * Math.PI * 2) * 5, "#1a1a1a", 1);
+    k.line(TX, h * 0.2, TX, h * 0.2 - 7, "#1a1a1a", 1);
+    if (cl > 0.5) light(k, TX, h * 0.2, 30, [255, 240, 190], 0.3);
+    k.g.save();
+    k.g.translate(cam * 0.7, 0);
+    for (let i = 0; i < 6; i++) {
+      const x = w * (i < 3 ? 0.02 + i * 0.12 : 0.62 + (i - 3) * 0.12);
+      const hh = h * (0.4 + 0.1 * hash(i));
+      k.R(x, h * 0.78 - hh, w * 0.11, hh, ["#d0b090", "#c09070", "#e0c8a0"][i % 3]);
+      k.tri(x + w * 0.055, h * 0.78 - hh, w * 0.12, 10, "#8a4a3a");
+      k.R(x + 8, h * 0.78 - hh + 10, 6, 8, "#3a4a6a");
+    }
+    // the Lamplighter at her window, waving
+    sprite(k, w * 0.08 + 11, h * 0.78 - h * 0.4 + 18, LAMPLIGHTER.slice(0, 8), LAMP_PAL, 1);
+    k.g.restore();
+    // the bunting, lifting with the band
+    const lift = 0.3 + 0.7 * Math.min(1, k.passed / Math.max(1, k.ents.length));
+    for (let i = 0; i < 24; i++) {
+      const x = (i / 23) * w;
+      const y = h * 0.3 + Math.sin((i / 23) * Math.PI) * 14 * (1 - 0.4 * lift) + (k.still ? 0 : Math.sin(k.sec * 2 + i) * lift);
+      k.tri(x, y + 5, 5, -5, ["#d03030", "#f0f0f0", "#3060c0"][i % 3]);
+    }
+    k.R(0, h * 0.78, w, h * 0.22, "#a09080");
+    fillTex(k, texture(k, "cobbles", 24, cobbles), 0, h * 0.78, w, h * 0.22, cam);
+    // the band, one more per entry, marching on the dotted beat
+    const n = Math.min(10, Math.max(1, k.passed));
+    for (let i = n - 1; i >= 0; i--) {
+      const born = i === k.passed - 1 ? Math.min(1, k.since * 2) : 1;
+      const x = wrap(w * 0.2 + k.t * 12 - i * 24, w * 0.7) + w * 0.15 - (1 - born) * 20 + cam;
+      const beat = k.bar * 2;
+      const dotted = beat % 1 < 0.75 ? 0 : 1;
+      const y = h * 0.92 - (k.still ? 0 : dotted * 2);
+      lit(k, x, y, DRUMMER, { h: "#2a2a5a", s: "#e0b090", k: "#201010", r: i % 2 ? "#c03030" : "#3050a0", w: "#e8e0d0", g: "#c0a040", b: "#141010" }, 2, false, "rgba(255,250,220,0.8)", 0, -1);
+    }
+  },
+  // D665: Contrapunctus 3, The Lake. The Lamplighter's town on the far shore and its reflection upside down in the
+  // still lake (the inversion), reeds near; a mist creeping half a step at a time from the edges (the chromatic line).
+  // The drama: each entry another reflected window lights in the water; at the climax the moon rises and lays its path
+  // across the lake.
+  "bwv1080-03": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    const shore = h * 0.42;
+    k.vgrad(0, shore, [[0, "#1a1a40"], [1, "#4a3a60"]]);
+    k.stars(30, 0, 0.4);
+    const town = (y0: number, dir: number, alpha: number) => {
+      for (let i = 0; i < 10; i++) {
+        const x = w * (0.04 + i * 0.1) + cam * 0.4;
+        const hh = 10 + hash(i + 7) * 16;
+        const top = dir > 0 ? y0 - hh : y0;
+        k.R(x, top, w * 0.08, hh, `rgba(30,24,48,${alpha})`);
+        const on = hash(i * 3) * 10 < k.passed + (cl > 0.5 ? 10 : 0);
+        k.R(x + 6, dir > 0 ? y0 - hh + 4 : y0 + hh - 7, 3, 3, on ? `rgba(255,216,144,${alpha})` : `rgba(20,16,30,${alpha})`);
+      }
+      for (let i = 0; i < 4; i++) {
+        const lx = w * (0.28 + i * 0.15) + cam * 0.4;
+        k.R(lx, dir > 0 ? y0 - 12 : y0, 1, 12, `rgba(20,18,26,${alpha})`);
+        k.R(lx - 1, dir > 0 ? y0 - 14 : y0 + 11, 3, 3, `rgba(255,224,150,${alpha})`);
+      }
+    };
+    town(shore, 1, 1);
+    k.vgrad(shore, h - shore, [[0, "#3a3060"], [1, "#141430"]]);
+    town(shore + 1, -1, 0.55);
+    for (let y = shore + 3; y < h; y += 4) k.R(wrap(y * 31 + k.t * 4, w), y, 8, 1, "rgba(220,220,255,0.15)");
+    // the mist, creeping half a step at a time
+    const creep = Math.floor(k.bar * 2) / 2;
+    const reach = Math.min(0.4, 0.05 + 0.012 * creep);
+    k.vgrad(shore - 10, 30, [[0, "rgba(200,200,220,0)"], [0.5, "rgba(200,200,220,0.25)"], [1, "rgba(200,200,220,0)"]], 0, w * reach);
+    k.vgrad(shore - 10, 30, [[0, "rgba(200,200,220,0)"], [0.5, "rgba(200,200,220,0.25)"], [1, "rgba(200,200,220,0)"]], w * (1 - reach), w * reach);
+    // the moon and its path at the climax
+    if (cl > 0.01) {
+      const my = shore - 20 - 20 * cl;
+      light(k, w * 0.5, my, 40, [230, 230, 250], 0.4 * cl);
+      k.disc(w * 0.5, my, 7, `rgba(240,240,230,${cl})`);
+      for (let y = shore + 2; y < h; y += 3) k.R(w * 0.5 - 3 - (y - shore) * 0.1 + (k.still ? 0 : Math.sin(k.sec + y) * 1.5), y, 6 + (y - shore) * 0.2, 1, `rgba(240,240,220,${0.5 * cl})`);
+    }
+    // the reeds near, and the Lamplighter on the far quay
+    sprite(k, w * 0.62 + cam * 0.4, shore, LAMPLIGHTER, LAMP_PAL, 1);
+    for (let i = 0; i < 20; i++) {
+      const x = (i < 10 ? i * 6 : w - (i - 10) * 6) + cam * 1.6;
+      const hh2 = 12 + hash(i) * 14;
+      k.line(x, h, x + (k.still ? 0 : Math.sin(k.sec + i) * 2), h - hh2, "#1a2a1a", 2);
+    }
+  },
+  // D665: Contrapunctus 4, The Acrobat. A circus tent at night in three depths: the striped canvas and its poles, the
+  // rigging and the trapezes, the ring and the audience near (the Lamplighter in the front row, her lantern up). The
+  // drama: each entry she swings to a new trapeze, upside down at the top of each arc, a spotlight following; at the
+  // climax the triple somersault caught in mid-air under every spotlight.
+  "bwv1080-04": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 33);
+    const cl = k.climax;
+    for (let i = 0; i < 16; i++) {
+      k.g.fillStyle = i % 2 ? "#6a1a24" : "#c8b8a0";
+      k.g.beginPath();
+      k.g.moveTo(w * 0.5 + cam * 0.3, -10);
+      k.g.lineTo((i / 16) * w * 1.4 - w * 0.2, h);
+      k.g.lineTo(((i + 1) / 16) * w * 1.4 - w * 0.2, h);
+      k.g.fill();
+    }
+    k.R(0, 0, w, h, "rgba(10,6,20,0.45)");
+    const bars = [0.3, 0.5, 0.7];
+    for (const bx of bars) {
+      const x = w * bx + cam * 0.6;
+      k.line(x - 8, 0, x - 8, h * 0.44, "#c0c0c8");
+      k.line(x + 8, 0, x + 8, h * 0.44, "#c0c0c8");
+      k.R(x - 8, h * 0.44, 16, 2, "#e0c060");
+    }
+    // the acrobat: on the trapeze of the current entry, swinging; upside down at the top of the arc
+    const tb = bars[k.passed % 3];
+    const swing = k.still ? 0 : Math.sin(k.sec * 1.6);
+    const ax = w * tb + cam * 0.6 + swing * 18;
+    const ay = h * 0.44 + 2 + Math.abs(swing) * 2;
+    const spin = cl > 0.5 && !k.still ? (k.sec * 6) % (Math.PI * 2) : Math.PI;
+    light(k, ax, ay + 12, 34, [255, 250, 220], 0.5);
+    k.g.save();
+    k.g.translate(ax, ay + 12);
+    k.g.rotate(spin);
+    sprite(k, 0, 12, LAMPLIGHTER, { ...LAMP_PAL, h: "#1a1010", d: "#c03a7a" }, 2);
+    k.g.restore();
+    // the spotlights: one per entry, every one at the climax
+    const ns = cl > 0.5 ? 6 : Math.min(6, k.passed);
+    for (let i = 0; i < ns; i++) {
+      const sx = w * (0.1 + i * 0.16);
+      k.g.fillStyle = "rgba(255,250,220,0.06)";
+      k.g.beginPath();
+      k.g.moveTo(sx - 3, h);
+      k.g.lineTo(sx + 3, h);
+      k.g.lineTo(ax + 10, ay);
+      k.g.lineTo(ax - 10, ay);
+      k.g.fill();
+    }
+    // the ring and the audience, the Lamplighter's lantern among them
+    k.g.fillStyle = "#6a3a20";
+    k.g.beginPath();
+    k.g.ellipse(w * 0.5 + cam, h * 0.92, w * 0.3, h * 0.06, 0, 0, Math.PI * 2);
+    k.g.fill();
+    for (let i = 0; i < 18; i++) {
+      const x = (i + 0.5) * (w / 18) + cam * 1.8;
+      k.disc(x, h + 3, 8, "#0a060c");
+      k.disc(x, h - 7, 4, "#0a060c");
+    }
+    light(k, w * 0.32 + cam * 1.8, h * 0.88, 14, [255, 210, 130], 0.5);
+    k.R(w * 0.32 + cam * 1.8 - 1, h * 0.88 - 2, 3, 3, "#ffe090");
+    twinkleStars(k, cl);
+  },
+  // D665: Contrapunctus 5, The Dancers. A garden pavilion at evening in three depths: the trees with their lanterns
+  // (lit by the Lamplighter), the musicians' stand, the dance floor near. The drama (the counter-fugue: the subject
+  // answered by its own inversion): each entry a couple steps out, partners moving as mirror images, one rising as the
+  // other falls; at an inverted entry the pair swaps who rises; at the climax every couple turning at once.
+  "bwv1080-05": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 35);
+    const cl = k.climax;
+    k.sky([30, 30, 70], [180, 110, 120], [16, 16, 40], [60, 40, 70]);
+    k.g.save();
+    k.g.translate(cam * 0.5, 0);
+    for (let i = 0; i < 7; i++) roundTree(k, w * (0.04 + i * 0.16), h * 0.62, 16 + hash(i) * 6, "#1a2a24");
+    k.g.restore();
+    const nl = Math.min(14, 3 + k.passed * 2);
+    for (let i = 0; i < nl; i++) {
+      const x = w * (0.08 + 0.84 * (i / 13)) + cam * 0.7;
+      const y = h * (0.18 + 0.08 * Math.sin(i * 1.3));
+      const c = ["#f0a040", "#f05a5a", "#f0d050"][i % 3];
+      k.line(x, y - 6, x, y, "rgba(40,30,30,0.8)");
+      k.R(x - 2, y, 4, 5, c);
+      light(k, x, y + 2, 10, [255, 190, 110], 0.35);
+    }
+    k.R(0, h * 0.68, w, h * 0.32, "#5a3a28");
+    fillTex(k, texture(k, "parquet", 16, parquet), 0, h * 0.68, w, h * 0.32, cam);
+    const n = Math.min(6, Math.max(1, k.passed)) + (cl > 0.5 ? 2 : 0);
+    const gowns = ["#c03a6a", "#3a7ac0", "#e0b040", "#5aa070", "#a050c0", "#e07030", "#f0f0f0", "#40a0a0"];
+    for (let i = 0; i < Math.min(8, n); i++) {
+      const inv = !!k.invs[Math.min(k.invs.length - 1, i)];
+      const turn = cl > 0.5 ? k.t * 0.8 + i : k.t * 0.3 + i * 0.8;
+      const x = w * (0.28 + (i % 4) * 0.15) + Math.cos(turn) * 6 + cam * 1.1;
+      const y = h * (0.86 + Math.floor(i / 4) * 0.08);
+      const ph = k.still ? 0 : Math.sin(k.bar * Math.PI + i);
+      const a = (inv ? -1 : 1) * ph * 3;
+      lit(k, x - 7, y - Math.max(0, a), DANCER, { h: "#3a2010", m: "#f0c8a0", s: "#f0c8a0", g: gowns[i] }, 2, false, "rgba(255,200,140,0.8)", 0, -1);
+      lit(k, x + 7, y - Math.max(0, -a), i === 0 ? LAMPLIGHTER : PARTNER, i === 0 ? LAMP_PAL : { h: "#1a1010", m: "#f0c8a0", s: "#f0c8a0", k: "#141018", w: "#f0f0f0", b: "#0a0808" }, 2, true, "rgba(255,200,140,0.8)", 0, -1);
+    }
+  },
+  // D665: Contrapunctus 6 in Stylo Francese, The Sun King. A baroque palace hall in three depths: the mirrors and the
+  // gilt pilasters, the chandeliers (the Lamplighter lighting them with her pole), the parquet and the courtiers near.
+  // The drama: each entry a courtier bows in the dotted rhythm, small and quick against the king's slow steps (the
+  // diminution against the original); at the climax the king's entrance in gold, every candle lit.
+  "bwv1080-06": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 39);
+    const cl = k.climax;
+    k.vgrad(0, h * 0.7, [[0, "#3a2a40"], [1, "#5a4048"]]);
+    fillTex(k, texture(k, "paper", 24, wallpaper), 0, 0, w, h * 0.7, cam * 0.3);
+    for (let i = 0; i < 5; i++) {
+      const x = w * (0.1 + i * 0.2) + cam * 0.3;
+      k.R(x - 2, h * 0.1, 4, h * 0.6, "#c09040");
+      if (i < 4) {
+        k.R(x + 8, h * 0.14, w * 0.2 - 20, h * 0.46, "#5a5a70");
+        k.line(x + 12, h * 0.16, x + 20, h * 0.5, "rgba(255,255,255,0.12)", 2);
+      }
+    }
+    const nLit = cl > 0.5 ? 3 : Math.min(3, Math.floor(k.passed / 3) + 1);
+    for (let c = 0; c < 3; c++) {
+      const x = w * (0.3 + c * 0.2) + cam * 0.6;
+      k.line(x, 0, x, h * 0.08, "#a08040");
+      k.g.strokeStyle = "#c0a050";
+      k.g.lineWidth = 2;
+      k.g.beginPath();
+      k.g.arc(x, h * 0.08, 10, 0, Math.PI);
+      k.g.stroke();
+      if (c < nLit) {
+        for (let j = -2; j <= 2; j++) k.R(x + j * 4, h * 0.08 + Math.sqrt(100 - (j * 4) ** 2) - 4, 1, 2, "#ffe08a");
+        light(k, x, h * 0.12, 26 + 20 * cl, [255, 220, 150], 0.3);
+      }
+    }
+    // the Lamplighter lighting the next chandelier from her long pole
+    if (nLit < 3) {
+      const x = w * (0.3 + nLit * 0.2) + cam * 0.6;
+      sprite(k, x - 14, h * 0.86, LAMPLIGHTER, LAMP_PAL, 2);
+      k.line(x - 8, h * 0.86 - 18, x, h * 0.12, "#5a4028", 1);
+    }
+    k.R(0, h * 0.7, w, h * 0.3, "#6a4024");
+    fillTex(k, texture(k, "parquet", 16, parquet), 0, h * 0.7, w, h * 0.3, cam);
+    // the courtiers, bowing quickly in the dotted rhythm; the king's slow steps
+    const nc = Math.min(10, k.passed);
+    for (let i = 0; i < nc; i++) {
+      const sd = i % 2 ? 1 : -1;
+      const x = w * 0.5 + sd * w * (0.1 + Math.floor(i / 2) * 0.06) + cam * 1.1;
+      const quick = k.scales[Math.min(k.scales.length - 1, i)] < 1;
+      const bow = k.still ? 0 : (k.bar * (quick ? 4 : 2)) % 1 < 0.75 ? 0 : 2;
+      sprite(k, x, h * 0.92 + bow, SINGER, { h: "#e8e0d0", s: "#f0c8a0", m: "#f0c8a0", w: "#f0f0f0", r: ["#6a3a8a", "#3a6a8a", "#8a3a3a"][i % 3], d: "#2a1a24", b: "#141010" }, 2, sd > 0);
+    }
+    const kx = w * (0.5 + (1 - Math.max(cl, 0.2)) * 0.3) + cam * 1.1;
+    const kstep = k.still ? 0 : Math.floor(k.bar) % 2;
+    if (cl > 0.01) light(k, kx, h * 0.8, 40 + 20 * cl, [255, 210, 110], 0.45 * cl);
+    lit(k, kx, h * 0.94 - kstep, KING, { y: "#f0c040", k: "#3a2010", g: "#d0a030", s: "#f0c8a0", w: "#f0f0f0", b: "#3a2010" }, 2, true, "rgba(255,230,160,0.9)", 0, -1);
+  },
 };
 
 /**
@@ -4399,6 +4768,18 @@ Object.assign(SCRIPTS, {
   wtc2f23: sk([DUSK_NIGHT, 0.16, "stars", -0.02, 1.03], [GREY, 0.16, "mist", 0.02, 1.05], [0.75, 0.2, SILVER], [[200, 200, 220], 0.12]),
   // The Last Dance: the hall deeper; blue; the last candle blooming.
   wtc2f24: sk([EMBER, 0.12, "motes", 0.02, 1.03], [COOL, 0.14, "none", -0.02, 1.05], [0.5, 0.35, GOLD, false], [EMBER, 0.12]),
+  // D665: the Art of Fugue. The Lamplighter: dusk to night, the first star.
+  "bwv1080-01": sk([GOLD, 0.1, "motes", 0.02, 1.03], [DUSK_NIGHT, 0.16, "stars", -0.02, 1.05], [0.62, 0.08, WARM], [GOLD, 0.1]),
+  // The Drummer: the morning; a cloud passing; the clock striking.
+  "bwv1080-02": sk([GOLD, 0.08, "motes", 0.02, 1.03], [COOL, 0.12, "none", -0.02, 1.04], [0.5, 0.2, WARM], [GOLD, 0.1]),
+  // The Lake: mist; night; the moon's path.
+  "bwv1080-03": sk([COOL, 0.14, "mist", 0.02, 1.03], [DUSK_NIGHT, 0.18, "stars", -0.02, 1.05], [0.5, 0.3, SILVER], [COOL, 0.12]),
+  // The Acrobat: the band's glare; the dark before the leap; the spotlights.
+  "bwv1080-04": sk([GOLD, 0.1, "motes", 0.02, 1.04], [VIOLET, 0.16, "none", -0.03, 1.06], [0.5, 0.3, WARM, true], [VIOLET, 0.12]),
+  // The Dancers: evening; the lanterns at night; every couple turning.
+  "bwv1080-05": sk([GOLD, 0.1, "motes", 0.02, 1.03], [VIOLET, 0.14, "stars", -0.02, 1.05], [0.5, 0.4, WARM], [DUSK_NIGHT, 0.12]),
+  // The Sun King: the candles; the shafts through the windows; the king in gold.
+  "bwv1080-06": sk([GOLD, 0.12, "motes", 0.02, 1.03], [SEPIA, 0.14, "shafts", -0.02, 1.05], [0.5, 0.6, GOLD, true], [GOLD, 0.12]),
 });
 /** The look between two (the episode's way from one act to the next). */
 function blend(a: Look, b: Look, t: number): Required<Omit<Look, "weather">> & { wa: Weather; wb: Weather; t: number } {
@@ -4498,7 +4879,7 @@ export const STAGE_IDS: readonly string[] = Object.keys(WORLDS);
 export const hasStage = (id: string | undefined) => !!id && id in WORLDS;
 
 const KIT = new Kit();
-type Piece = { ents: number[]; themes: number[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean; voice: number }[]; dens: number[]; dLo: number; dHi: number; strettos: number[] };
+type Piece = { ents: number[]; themes: number[]; invs: boolean[]; scales: number[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean; voice: number }[]; dens: number[]; dLo: number; dHi: number; strettos: number[] };
 const memo = new Map<string, Piece>();
 const isMinor = (key: string) => key.charAt(0) === key.charAt(0).toLowerCase();
 function piece(f: TouchFugue): Piece {
@@ -4513,6 +4894,8 @@ function piece(f: TouchFugue): Piece {
   m = {
     ents: f.entries.map((e) => e.on).sort((a, b) => a - b),
     themes: [...f.entries].sort((a, b) => a.on - b.on).map((e) => e.theme ?? 1),
+    invs: [...f.entries].sort((a, b) => a.on - b.on).map((e) => !!e.inverted),
+    scales: [...f.entries].sort((a, b) => a.on - b.on).map((e) => e.scale ?? 1),
     cads: f.cadences.map((c) => c.on),
     end: f.length,
     spans: f.entries.map((e) => ({ on: e.on, end: e.end, other: isMinor(e.key) !== home, voice: e.voice })),
@@ -4554,6 +4937,8 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   k.still = mode === "quiet";
   k.ents = m.ents;
   k.themes = m.themes;
+  k.invs = m.invs;
+  k.scales = m.scales;
   k.cads = m.cads;
   let passed = 0;
   while (passed < m.ents.length && m.ents[passed] <= clock.now) passed++;
