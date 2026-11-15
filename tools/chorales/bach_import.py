@@ -186,11 +186,14 @@ def read_chorale(path: Path) -> dict:
 
     one = lambda k: refs[k][0] if k in refs else None  # noqa: E731
     number = int(one("PC#"))
+    # D752: the edition's catalogue reference corrected where it is a typo (the music matched to its cantata
+    # movement): the source kept as fetched, its own reading kept under "references".
+    bwv = BWV_FIXES.get(number) or (one("SCT") or "").removeprefix("BWV ").strip() or None
     return {
         "id": f"bach_{number:03d}",
         "number": number,
         "file": f"kern/{path.name}",
-        "bwv": (one("SCT") or "").removeprefix("BWV ").strip() or None,
+        "bwv": bwv,
         "title": {"de": one("OTL@@DE"), "en": one("OTL@EN")},
         "references": {k: (v[0] if len(v) == 1 else v) for k, v in refs.items()},
         "key": key,
@@ -203,6 +206,11 @@ def read_chorale(path: Path) -> dict:
         "length": frac(cursors[0]),
         "voices": {name: voices[i] for i, name in enumerate(VOICES)},
     }
+
+
+# D752: catalogue typos in the edition's !!!SCT (found by matching the music to other editions, see D752):
+# no. 14 is BWV 184/5 (the file says 185/5), no. 290 is BWV 9/7 (the file says 917).
+BWV_FIXES = {14: "184/5", 290: "9/7"}
 
 
 def main() -> None:
