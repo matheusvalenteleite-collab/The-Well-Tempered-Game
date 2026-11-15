@@ -403,6 +403,10 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .howto-marks, .howto-words { margin: 4px 0; padding: 0; list-style: none; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.8; }
 .howto-words { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .howto-marks b { display: inline-block; min-width: 1.6em; color: var(--tg-shine); }
+/* D657: the signs on the notes, drawn as the box draws them. */
+.howto-signs { margin: 4px 0; padding: 0; list-style: none; display: grid; gap: 6px; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; }
+.howto-signs li { display: flex; align-items: center; gap: 10px; }
+.howto-sign { flex: none; image-rendering: pixelated; }
 @media (max-width: 700px) {
   .howto-body { font-size: 13px; }
   .howto-clip-canvas { height: 104px; }
@@ -496,3 +500,5 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
    picture fills it edge to edge with nothing cropped (a square crop of these wide scenes cut half of each: I/19's three
    stooges, II/14's three sisters). FitEmblem's cover fill absorbs any part-pixel of difference. */
 .sel-right .sel-piece-pic { flex: none; width: 100%; height: auto; aspect-ratio: 64 / 40; min-height: 0; max-height: none; }
+/* D458: the chosen fugue's SAVED PERFORMANCES, under PLAY. */
+.sel-takes { flex: none; width: 100%; min-height: 36px; margin-top: 6px; font-size: 7px; color: var(--tg-fg); }

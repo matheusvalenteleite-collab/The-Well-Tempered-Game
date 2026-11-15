@@ -38,6 +38,10 @@ export interface LabPassage {
   sound?: string;
   loop?: boolean;
   drill?: string;
+  /** D457: a game's run (play.html) judged again as it was played: the crowd can leave, the legato switch, the ornament's hint. */
+  fail?: boolean;
+  legato?: boolean;
+  ornHint?: boolean;
 }
 
 export type LabInput =

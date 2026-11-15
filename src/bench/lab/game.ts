@@ -24,5 +24,5 @@ export function labGame(p: LabPassage, chip: Chip): ProtoGame {
   const { from, until } = passageSpan(f, p);
   const reading = p.reading ? (readingsOf(f.id).find((r) => r.id === p.reading) ?? null) : null;
   const proto = protoById(p.proto);
-  return new ProtoGame(f, [p.voice], from, proto, { bpm: p.bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: p.bt, wait: p.wait, until, reading, ornHint: false, scale: false }, chip);
+  return new ProtoGame(f, [p.voice], from, proto, { bpm: p.bpm, legato: p.legato ?? false, easy: easyOf(proto.id), fail: p.fail ?? false, bt: p.bt, wait: p.wait, until, reading, ornHint: p.ornHint ?? false, scale: false }, chip);
 }
