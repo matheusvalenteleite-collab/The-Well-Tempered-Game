@@ -10,11 +10,17 @@ import { fugueById } from "../src/touch/fugue.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("all 48 fugues have a world, and only they (D665: and the Art of Fugue's, as they come)", () => {
+/** D669: the Art of Fugue's 20 share one setting (the Constellation); no piece of it has a world of its own. */
+const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17", "14"].map((x) => `bwv1080-${x}`);
+
+test("all 48 fugues have a world of their own, and only they; the Art of Fugue its one setting (D669)", () => {
   const ids = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
-  assert.deepEqual([...STAGE_IDS].filter((id) => id.startsWith("wtc")).sort(), ids);
-  assert.ok(STAGE_IDS.filter((id) => !id.startsWith("wtc")).every((id) => /^bwv1080-(\d\d[ri]?|c1[4-7])$/.test(id)));
+  assert.deepEqual([...STAGE_IDS].sort(), ids);
+  for (const id of AOF) assert.ok(hasStage(id), id);
   assert.ok(!hasStage("wtc1p01") && !hasStage(undefined));
+  const s = src("src/touch/stage-bg.ts");
+  assert.ok(!/^  "bwv1080-/m.test(s), "no per-piece Art of Fugue world or script");
+  assert.match(s, /test: \(id\) => id\.startsWith\("bwv1080-"\), world: constellation/);
 });
 
 /** A canvas that only counts what is drawn (the worlds draw without throwing, at the start, middle and end). */
@@ -35,7 +41,7 @@ test("each world draws at the opening, the middle and the close, in FULL and QUI
   // D665: the Art of Fugue's pieces are in the extras chunk.
   const { loadExtras } = await import("../src/touch/fugue.ts");
   await loadExtras();
-  for (const id of STAGE_IDS) {
+  for (const id of [...STAGE_IDS, ...AOF]) {
     const f = fugueById(id);
     for (const p of [0, 0.5, 1]) {
       const now = f.length * p;
