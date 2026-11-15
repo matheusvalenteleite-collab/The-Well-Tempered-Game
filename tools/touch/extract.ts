@@ -583,6 +583,15 @@ function contrapunctusAnalysis(voices: Note[][], spell: Record<number, string>, 
   });
   const piece = { tpq: TPQ, meter: "4/4", bars, length, voices, key: "d" };
   const speller = keySpeller(Object.values(spell));
+  // D707: the entries are the Art of Fugue's table's (data/touch/aof-entries.txt), the finders' above only offered to it.
+  const ex = parseExpert(readFileSync(fileURLToPath(new URL("../../data/touch/aof-entries.txt", import.meta.url)), "utf8"), (id) =>
+    id === "bwv1080-14" ? 4 : (JSON.parse(readFileSync(fileURLToPath(new URL("../../data/touch/more-bach.json", import.meta.url)), "utf8")) as { id: string; voices: unknown[] }[]).find((x) => x.id === id)?.voices.length ?? 0,
+  ).get("bwv1080-14");
+  if (ex) {
+    const res = placeExpert({ tpq: TPQ, barTicks: 4 * TPQ, length, bars, voices }, ex, raw);
+    if (res.unplaced.length) throw new Error(`bwv1080-14: table entries not found in the notes: ${res.unplaced.map((u) => u.line).join(" | ")}`);
+    raw.splice(0, raw.length, ...res.placed.map((x) => x.raw));
+  }
   return { entries: buildEntries(piece, raw, speller), cadences: findCadences(piece, speller, false) };
 }
 

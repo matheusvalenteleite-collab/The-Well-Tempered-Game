@@ -31,6 +31,7 @@ import { readMidi } from "./midi.ts";
 import { hyphensOf, readMusicXml, type XmlPart, type XmlScore } from "./musicxml.ts";
 import { buildEntries, findCadences, homeward, keySpeller, type Note, type RawEntry } from "./analysis.ts";
 import { splitDivisi } from "./divisi.ts";
+import { parseExpert, placeExpert, type ExpertFugue } from "./expert.ts";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
@@ -644,13 +645,61 @@ function entriesOf(s: Spec, r: Read, piece: { tpq: number; meter: string; bars: 
   // The subject: the first two voices' openings (as the WTC's), kept where it has six notes or more and
   // is found in every voice; else (a bass entering with the first voice, an answer inverted, in
   // diminution or entering late) the first imitation (`imitation`), where it is found twice or more.
+  const pool = s.entries ? finders(wp) : [];
+  // D707: the Art of Fugue's entries are its table's (data/touch/aof-entries.txt), the finders' only offered to it.
+  const ex = AOF_TABLE.get(s.id);
+  if (ex) return tableEntries(s.id, piece, ex, pool, speller);
+  return pool.length >= 2 ? buildEntries(piece, pool, speller) : [];
+}
+
+/** The finders' entries (D340): the first two voices' openings, else the first imitation. */
+function finders(wp: WtcPiece): RawEntry[] {
   const sa = subjectAndAnswer(wp);
   const byOpening = sa.subject.length >= 4 ? rawEntries(wp, sa.subject, sa.answer, false) : [];
-  if (sa.subject.length >= 6 && new Set(byOpening.map((e) => e.voice)).size === wp.voices.length) return buildEntries(piece, byOpening, speller);
+  if (sa.subject.length >= 6 && new Set(byOpening.map((e) => e.voice)).size === wp.voices.length) return byOpening;
   const im = imitation(wp);
   const byImitation = im ? rawEntries(wp, im.subject, im.answer, im.inverted || im.scale !== 1) : [];
-  const raw = byImitation.length >= 2 ? byImitation : byOpening;
-  return raw.length >= 2 ? buildEntries(piece, raw, speller) : [];
+  return byImitation.length >= 2 ? byImitation : byOpening;
+}
+
+/**
+ * D707: THE ART OF FUGUE'S ENTRIES FROM ITS TABLE (data/touch/aof-entries.txt, read by expert.ts as the 48's): each
+ * statement placed in the notes (placeExpert: a finder's entry where one is there, else found from the table's bar
+ * and form), keyed and marked by buildEntries; then told against the cycle's own form where the table says the
+ * piece's shape is the inversion ("upside": Contrapunctus 3, 4, 12 inversus; C8's third subject; C10's and C11's
+ * second), and a canon's statements marked dux or comes. Every line of the table must place (else the build stops).
+ */
+export const AOF_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/aof-entries.txt`, "utf8"), (id) =>
+  id === "bwv1080-14" ? 4 : (SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0),
+);
+export function tableEntries(
+  id: string,
+  piece: { tpq: number; meter: string; bars: { n: number; on: number }[]; length: number; voices: Note[][]; key: string },
+  ex: ExpertFugue,
+  pool: RawEntry[],
+  speller: (pc: number, minor: boolean) => string,
+) {
+  const barTicks = ((Number(piece.meter.split("/")[0]) * 4) / Number(piece.meter.split("/")[1])) * TPQ;
+  const res = placeExpert({ tpq: TPQ, barTicks, length: piece.length, bars: piece.bars, voices: piece.voices }, ex, pool);
+  if (res.unplaced.length) throw new Error(`${id}: table entries not found in the notes: ${res.unplaced.map((u) => u.line).join(" | ")}`);
+  const seen = new Set<string>();
+  for (const x of res.placed) {
+    const k = `${x.raw.voice}:${x.raw.on}`;
+    if (seen.has(k)) throw new Error(`${id}: two table lines on one statement: ${x.expert.line}`);
+    seen.add(k);
+  }
+  const built = buildEntries(piece, res.placed.map((x) => x.raw), speller);
+  const canon = new Map(res.placed.filter((x) => x.expert.canon).map((x) => [`${x.raw.voice}:${x.raw.on}`, x.expert.canon!]));
+  return built.map((e) => {
+    const out: typeof e & { canon?: "dux" | "comes" } = { ...e };
+    if (ex.upside.includes(e.theme ?? 1)) {
+      if (out.inverted) delete out.inverted;
+      else out.inverted = true;
+    }
+    const c = canon.get(`${e.voice}:${e.on}`);
+    if (c) out.canon = c;
+    return out;
+  });
 }
 
 /** The entries of a subject (and of its answer, where it is not inverted or rescaled), by the head and transformed. */
@@ -717,7 +766,7 @@ export function build(s: Spec) {
   const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
   const piece = { tpq: TPQ, meter: r.meter, bars: r.bars, length: r.length, voices: r.voices, key: s.key };
   const speller = keySpeller(r.spelled);
-  const entries = s.entries ? entriesOf(s, r, piece, speller) : [];
+  const entries = s.entries || AOF_TABLE.has(s.id) ? entriesOf(s, r, piece, speller) : [];
   const cadences = findCadences(piece, speller);
   const f = {
     id: s.id,
