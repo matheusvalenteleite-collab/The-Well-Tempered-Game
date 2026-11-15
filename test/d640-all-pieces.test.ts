@@ -79,8 +79,9 @@ test("D739: the Inventions and Sinfonias on their own sounds (D731): no note in 
   const { PIECE_SOUND } = await import("../src/touch/piece-sound.ts");
   const more = COLLECTIONS.find(([n]) => n === "more bach")![1];
   // D748: and the Four Duets (BWV 802-805).
-  const inv = more.filter((p) => /^bwv\d{3}$/.test(p.id) && +p.id.slice(3) >= 772 && +p.id.slice(3) <= 805);
-  assert.equal(inv.length, 34);
+  // D778: and the Chromatic Fugue (BWV 903-2).
+  const inv = more.filter((p) => (/^bwv\d{3}$/.test(p.id) && +p.id.slice(3) >= 772 && +p.id.slice(3) <= 805) || p.id === "bwv903-2");
+  assert.equal(inv.length, 35);
   for (const p of inv) {
     const r = auditCollection("more bach", [p], [PIECE_SOUND[p.id]]);
     // (A synthesized sound reads no recording: nothing to audit there.)

@@ -30,7 +30,7 @@ function piece(id: string, sound: string, soundWhy: string, character: string, t
  * in more of the room from the final group (FINAL: form-points.ts formOf's last group of entries, by its first entry), or
  * from the return (`home`) where the final group comes before the cadence (the motive heard throughout).
  */
-const FINAL: Record<string, number> = {"bwv802": 65.667, "bwv803": 141, "bwv804": 38.25, "bwv805": 96.5, "bwv772": 2.062, "bwv773": 23.125, "bwv774": 56.667, "bwv775": 38.0, "bwv776": 23.062, "bwv777": 56.167, "bwv778": 7.125, "bwv779": 16.167, "bwv780": 29.0, "bwv781": 27.0, "bwv782": 16.5, "bwv783": 18.0, "bwv784": 22.562, "bwv785": 16.562, "bwv786": 18.125, "bwv787": 18.938, "bwv788": 28.0, "bwv789": 19.125, "bwv790": 20.062, "bwv792": 29.0, "bwv793": 35.167, "bwv794": 21.125, "bwv795": 23.875, "bwv796": 31.333, "bwv797": 65.167, "bwv798": 24.0, "bwv799": 53.0, "bwv800": 18.938, "bwv801": 35.333};
+const FINAL: Record<string, number> = {"bwv903-2": 154, "bwv802": 65.667, "bwv803": 141, "bwv804": 38.25, "bwv805": 96.5, "bwv772": 2.062, "bwv773": 23.125, "bwv774": 56.667, "bwv775": 38.0, "bwv776": 23.062, "bwv777": 56.167, "bwv778": 7.125, "bwv779": 16.167, "bwv780": 29.0, "bwv781": 27.0, "bwv782": 16.5, "bwv783": 18.0, "bwv784": 22.562, "bwv785": 16.562, "bwv786": 18.125, "bwv787": 18.938, "bwv788": 28.0, "bwv789": 19.125, "bwv790": 20.062, "bwv792": 29.0, "bwv793": 35.167, "bwv794": 21.125, "bwv795": 23.875, "bwv796": 31.333, "bwv797": 65.167, "bwv798": 24.0, "bwv799": 53.0, "bwv800": 18.938, "bwv801": 35.333};
 const arc = (id: string, sound: string, turn: number, home: number): Moment[] => {
   const fin = FINAL[id] !== undefined && FINAL[id] > turn ? FINAL[id] : home;
   return [
@@ -75,7 +75,8 @@ const WHY: Record<string, string> = {
   "bwv802": "D741: the chromatic E minor Duet in 3/8, its runs against a chromatic line: BERLIN SCHOOL's lead over its synth bass, dark and patient (the voice probe's closest pair 4.12 against HARPSICHORD's 2.72).",
   "bwv803": "D741: the bright F major Duet in 2/4, its middle part in close canon: GAME BOY's lead over its bass, the canon's two voices told apart at once (the voice probe's closest pair 5.32 against HARPSICHORD's 2.04).",
   "bwv804": "D741: the G major gigue in 12/8: JAZZ QUARTET's vibraphone over its double bass, the 12/8 swung (the voice probe's closest pair 5.27 against HARPSICHORD's 2.72).",
-  "bwv805": "D741: the strict A minor fugue alla breve, its long chromatic subject: KRAUTROCK's Mellotron over its Moog bass, the motorik pulse under the relentless crotchets (the voice probe's closest pair 3.68 against HARPSICHORD's 1.58)."
+  "bwv805": "D741: the strict A minor fugue alla breve, its long chromatic subject: KRAUTROCK's Mellotron over its Moog bass, the motorik pulse under the relentless crotchets (the voice probe's closest pair 3.68 against HARPSICHORD's 1.58).",
+  "bwv903-2": "D771: the Chromatic Fugue's three voices, a long chromatic subject: FLUTE & HARP's alto flute, harp and cello, a plucked keyboard-like harp among two sustained lines (the voice probe's closest pair 2.20 against HARPSICHORD's 1.14; of the sounds serving fewer than three pieces, the clearest)."
 };
 
 
@@ -118,6 +119,8 @@ export const MORE: Record<string, PieceColours> = {
   ...piece("bwv803", "gameboy", WHY.bwv803, "A-B-A' in 2/4: the subject's fugue (1-37), a middle part in close canon (38-112), the da capo (113).", B("bwv803", 32), 113),
   ...piece("bwv804", "jazzQuartet", WHY.bwv804, "A gigue in 12/8; cadences in B minor (20) and G (36).", B("bwv804", 20), 36),
   ...piece("bwv805", "krautrock", WHY.bwv805, "A strict fugue alla breve on a long chromatic subject; cadences in A minor (33, 42), the last entry (96).", B("bwv805", 33), 96),
+  // D771: the Chromatic Fugue (BWV 903-2) on FLUTE & HARP, the arc as the Inventions' (D736).
+  ...piece("bwv903-2", "fluteHarp", WHY["bwv903-2"], "Three voices on a long chromatic subject; cadences in D minor (39, 71, 75, 147); chords at the climaxes (53, 94, 135) and the close (158-161).", B("bwv903-2", 75), 154),
   "bwv1043-2": {
     sound: "super16",
     soundWhy: "The concerto keeps SUPER 16-BIT, its strings for the band and its violin for the solos (D340, D351).",

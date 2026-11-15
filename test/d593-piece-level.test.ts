@@ -129,3 +129,10 @@ test("D747: the Four Duets' levels: on their own sounds, a phone's only, 1-4 dB"
     assert.equal(pieceLevel(snd, id, false), 1);
   }
 });
+
+test("D777: the Chromatic Fugue's level: FLUTE & HARP, a phone's only, about 1.2 dB", () => {
+  const up = 20 * Math.log10(pieceLevel("fluteHarp", "bwv903-2", true));
+  assert.equal(PIECE_SOUND["bwv903-2"], "fluteHarp");
+  assert.ok(up >= 1 && up <= 4, `${up.toFixed(1)} dB`);
+  assert.equal(pieceLevel("fluteHarp", "bwv903-2", false), 1);
+});

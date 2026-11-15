@@ -299,6 +299,8 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   bwv803: "chip", // the bright 2/4 on GAME BOY: its own chip kit, 95 %
   bwv804: "brushes", // the 12/8 gigue on JAZZ QUARTET: its brushes, 100 %
   bwv805: "motorik", // the alla breve fugue on KRAUTROCK: its own drummer, 92 %
+  // D774: the Chromatic Fugue on FLUTE & HARP: the timpani, tonic and dominant at the arrivals only (the engine's rule), its climaxes marked, 87 % on the onsets.
+  "bwv903-2": "timpani",
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
