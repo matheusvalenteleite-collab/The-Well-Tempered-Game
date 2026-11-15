@@ -9,10 +9,10 @@
  * counted at TAIL_W); every stroke at least MARGIN_DB under the band by the model (D607: none over, the fit's error
  * taken against the drums).
  */
-import { describe, test } from "node:test";
+import { before, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { strokesOf } from "./drum-strokes.ts";
-import { fugueById } from "../src/touch/fugue.ts";
+import { fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { FUGUE_PICKS, homeFor, SOUND_FUGUE_HOME } from "../src/touch/drum-library.ts";
 import { pieceLevel } from "../src/touch/sound.ts";
@@ -75,6 +75,23 @@ test("D601: every fugue's drums (HOME and its picks) under the band at every str
     for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
   }
   assert.ok(n > 30000, `${n} strokes`);
+  assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
+});
+
+/** D713: the Art of Fugue's 20 (MORE BACH's, registered by loadExtras), each on its own sound with its HOME (D712). */
+const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17", "14"].map((k) => `bwv1080-${k}`);
+before(async () => {
+  await loadExtras();
+});
+test("D713: the Art of Fugue's drums (HOME and its picks) under the band at every stroke, on the phone model", async () => {
+  const bad: string[] = [];
+  let n = 0;
+  for (const id of AOF) {
+    assert.equal(fugueById(id).id, id);
+    const sound = PIECE_SOUND[id];
+    for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
+  }
+  assert.ok(n > 10000, `${n} strokes`);
   assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 

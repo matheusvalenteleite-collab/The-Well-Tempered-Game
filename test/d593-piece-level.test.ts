@@ -21,7 +21,7 @@ const db = (g: number) => 20 * Math.log10(g);
 test("D593: the levels are the three fugues' own, on their own sounds, about 3 dB; I/6 and II/24 on a phone only", () => {
   // D645: and five rebalances on a phone (a fugue's bass brought up there, the rest a little under it: its phone mix where it was), each under 0 dB, phone only.
   const D645 = ["wtc1f04@stringConsort", "wtc1f20@krautrock", "wtc2f07@bossaNova", "wtc2f08@stringConsort", "wtc2f22@krautrock"];
-  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).map((id) => `${id}@${p.id}`)).filter((k) => !D645.includes(k)).sort();
+  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).map((id) => `${id}@${p.id}`)).filter((k) => !D645.includes(k) && !k.startsWith("bwv1080-")).sort();
   assert.deepEqual(all, ["wtc1f06@jazzQuartet", "wtc1f19@vaudeville", "wtc2f24@analog"]);
   for (const k of D645) {
     const [id, snd] = k.split("@");
@@ -88,4 +88,15 @@ test("D593: the level at the master, set as the piece starts, constant through t
   setPreset("pianoSampled");
   chip.pieceLevel({ id: "wtc1f19" });
   assert.ok(Math.abs(masterOf(chip) - 0.4) < 1e-9);
+});
+
+test("D715: the Art of Fugue's levels: on their own sounds, a phone's only, raised by 1.5-3.5 dB to about the defaults' median", () => {
+  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter((id) => id.startsWith("bwv1080-")).map((id) => [id, p.id] as const));
+  assert.equal(all.length, 10);
+  for (const [id, snd] of all) {
+    assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
+    const up = 20 * Math.log10(pieceLevel(snd, id, true));
+    assert.ok(up >= 1.5 && up <= 3.5, `${id}: ${up.toFixed(1)} dB on a phone`);
+    assert.equal(pieceLevel(snd, id, false), 1, `${id}: the computer path as it was`);
+  }
 });

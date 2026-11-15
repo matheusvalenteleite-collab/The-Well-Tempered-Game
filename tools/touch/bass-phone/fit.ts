@@ -7,9 +7,10 @@
  * (Patch.phoneExcite), the bass alone at other mixes of it too ("@x<db>", "@xoff"), fitted by least squares in energy:
  * E(db) = E0 + Ex·10^(db/10) (the dry note and the exciter's harmonics), so the test reads the bass at the exciter's mix now.
  * usage: node tools/touch/bass-phone/fit.ts <measure.json> > src/touch/bass-phone-data.ts
+ *        node tools/touch/bass-phone/fit.ts <measure.json> --aof > src/touch/bass-phone-aof.ts   (D711: the Art of Fugue's 20)
  */
 import { readFileSync } from "node:fs";
-import { fugueById } from "../../../src/touch/fugue.ts";
+import { fugueById, loadExtras } from "../../../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../../../src/touch/piece-sound.ts";
 import { bandTrimDb, liftDb } from "../../../src/touch/player-lift.ts";
 import { bassSig, bassPatchOf } from "../../../src/touch/bass-phone.ts";
@@ -20,7 +21,10 @@ const ms: M[] = JSON.parse(readFileSync(process.argv[2], "utf8"));
 const r1 = (x: number) => Math.round(x * 10) / 10;
 const e = (db: number) => 10 ** (db / 10);
 const dB = (x: number) => 10 * Math.log10(x);
-const ids = Object.keys(PIECE_SOUND).filter((k) => /^wtc\df\d\d$/.test(k)).sort();
+// D711: the Art of Fugue's 20 (MORE BACH's, registered by loadExtras) into a file of their own.
+const AOF = process.argv.includes("--aof");
+if (AOF) await loadExtras();
+const ids = Object.keys(PIECE_SOUND).filter((k) => (AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
 const out: Record<string, unknown> = {};
 const errs: string[] = [];
 for (const id of ids) {
@@ -54,7 +58,7 @@ for (const id of ids) {
 }
 const fmt = (o: unknown) => JSON.stringify(o);
 console.log(`/**
- * D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
+ * ${AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces; " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
  * 48 fugues on its own sound: \`band\` the player on the top voice (the bass in the band), \`player\` the player on the
  * bass; \`lu\` each voice alone through the phone model (mono, two 2nd-order 600 Hz high-passes, ebur128: integrated LUFS),
  * \`at\` the balance's gain on it then (dB: the player's level on the player's voice, the band's trim on the others),
@@ -64,6 +68,6 @@ console.log(`/**
  */
 import type { BassRun } from "./bass-phone.ts";
 
-export const BASS_PHONE: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
+export const ${AOF ? "BASS_PHONE_AOF" : "BASS_PHONE"}: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
 ${Object.entries(out).map(([k, v]) => `  ${k}: ${fmt(v)},`).join("\n")}
 };`);

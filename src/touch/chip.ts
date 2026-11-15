@@ -29,7 +29,7 @@ import { petBeat, petPlan, type PetHit } from "./pet-drums.ts";
 import { ALL_SCORE_STYLES, isScoreStyle, scoreBeat, scoreKitPieces, type ScoreStyle } from "./score-drums.ts";
 import { tailorBrushes } from "./drum-tailor.ts";
 import type { TouchFugue } from "./fugue.ts";
-import { tempoOf } from "./tempi.ts";
+import { BREAKS_OFF, tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
 import { SFX_SOUND, sfxKindsNow, sfxPlan, swellEnv, swellSurge, type SfxKind } from "./world-sfx.ts";
@@ -4111,6 +4111,12 @@ export class Chip {
     // energy with the share of the voices sounding: one voice of four 6 dB under the four), none where none sounds.
     // The rolls' and fills' dense strokes a share under their written level, an accent at most ACCENT_MAX; past the last
     // chord's attack (and with it, but its accent) the drums let it ring (RING_SHARE).
+    // D710: a piece that breaks off (Contrapunctus 14): no flourish where the text stops (no roll, fill, accent or landing in
+    // its last bar, nothing past its last attack): the drums do not close what Bach did not.
+    if (f && BREAKS_OFF.has(f.id)) {
+      if (e.tick > lastOnset(f) + f.tpq / 4) return;
+      if (e.tick >= (f.bars.at(-1)?.on ?? f.length) && (e.role === "roll" || e.role === "fill" || e.role === "accent" || e.role === "land")) return;
+    }
     if (f) {
       let g = textureGain(f, e.tick);
       if (g <= 0) return;

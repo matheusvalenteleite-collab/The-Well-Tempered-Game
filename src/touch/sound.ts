@@ -2338,6 +2338,26 @@ export function mergeSeats(table: SeatTable) {
   }
 }
 mergeSeats(OCTAVE_SEATS);
+
+/**
+ * D715: THE ART OF FUGUE'S LEVELS ON A PHONE (D593's Preset.levels: the whole mix, a constant of the piece and its sound).
+ * Each piece on its own sound (D708) measured whole on the phone model (tools/touch/bass-phone/render.cjs `solo: "mix"`,
+ * the player on the top voice, DRUMS off: mono, two 2nd-order 600 Hz high-passes, ebur128), against the 48 defaults'
+ * median there (bass-phone-data.ts, the band runs' mix: -27.95 LUFS); those more than 1 LU under raised to about it.
+ */
+export const AOF_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  jazzQuartet: { "bwv1080-02": { phoneGain: 1.22 } }, // -29.7 LUFS -> about -28
+  petSounds: { "bwv1080-06": { phoneGain: 1.28 }, "bwv1080-14": { phoneGain: 1.31 } }, // -30.1, -30.3
+  sid64: { "bwv1080-08": { phoneGain: 1.3 } }, // -30.2
+  tracker: { "bwv1080-10": { phoneGain: 1.33 } }, // -30.4
+  megaFm: { "bwv1080-12r": { phoneGain: 1.28 }, "bwv1080-12i": { phoneGain: 1.45 } }, // -30.1, -31.2
+  chip: { "bwv1080-13r": { phoneGain: 1.33 }, "bwv1080-13i": { phoneGain: 1.21 } }, // -30.4, -29.6
+  gameboy: { "bwv1080-c15": { phoneGain: 1.31 } }, // -30.3
+};
+for (const [sid, lv] of Object.entries(AOF_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
 /**
  * TRIAL (instruments-trials), a prototype switch for the audit: when on, Busoni's whole-reading dynamics
  * (the band's printed levels, hairpins and palettes: phrasing.ts, as the piano's; the player's line level,

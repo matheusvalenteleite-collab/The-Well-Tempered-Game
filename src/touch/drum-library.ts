@@ -238,6 +238,29 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   // (II/24: ARCADE over SYNTH KIT by ear-proxy, D587: the synth kit's snare on every quaver at one velocity, sd 0.05,
   // 69% of its gaps alike; the arcade's 45%, sd 0.10.)
   wtc2f24: "arcade",
+  // D712: the Art of Fugue, each on its own sound (D708), by the brass research's drum-fit criteria (section 4: the
+  // metre, the energy, the drummer's pulse in the style's band, the character) and the share of the strokes on the score's
+  // own onsets (tools/touch/drum-fit/score.ts), the gap under the band measured (D601's renders; test/d601 holds it).
+  "bwv1080-01": "swell", // stile antico, calm (1.8 notes/s): the washes at the arrivals, no beat (77 % on the onsets)
+  "bwv1080-02": "jazz", // the dotted subject, moderate: the ride's swing at 106 (band 96-200), 93 % on the onsets
+  "bwv1080-03": "triphop", // chromatic, introspective, calm: "at most trip-hop", 72 a minute (68-96), 70 %
+  "bwv1080-04": "motorik", // the long sequences at 134: KRAUTROCK's own drummer, 96 %
+  "bwv1080-05": "bossa", // the lilting counter-fugue: BOSSA NOVA's own, 90 %
+  "bwv1080-06": "pet", // the French overture: PET SOUNDS' own (its timpani at the arrivals, tonic and dominant), 92 %
+  "bwv1080-07": "abbey", // the augmentations, heavy and slow: ABBEY ROAD's own, 97 %
+  "bwv1080-08": "chip", // angular, a 3, on SID 64: its own chip kit, 89 % (SYNTH KIT's coda roll stood 1.7 LU over the band: D713)
+  "bwv1080-09": "liebezeit", // quick and motoric at 140: Jaki Liebezeit's trance at 70 (62-104), 98 %
+  "bwv1080-10": "triphop", // calm duple at 84 (68-96): 78 %
+  "bwv1080-11": "fieldDrums", // the grand chromatic triple fugue: the muffled drum's rolls into the arrivals, 96 %
+  "bwv1080-12r": "scoreSynth", // the slow 3/2 on MEGA FM: the synth kit read from the score, 91 % (FRAME's bass stroke over the band in 12i, b. 24: D713)
+  "bwv1080-12i": "scoreSynth",
+  "bwv1080-13r": "chip", // lively, a 3, on CLASSIC CHIP: its own kit, 90 %
+  "bwv1080-13i": "chip",
+  "bwv1080-c14": "triphop", // the canon by augmentation, calm-moderate: trip-hop at 72 (68-96), 85 %
+  "bwv1080-c15": "chip", // the 9/16 gigue, driving: GAME BOY's own chip kit, 99 %
+  "bwv1080-c16": "tabor", // the 12/8 canon, a dance in compound time: the tabor (idiomatic there), 89 %
+  "bwv1080-c17": "scoreSynth", // brisk triplets at 134: BERLIN SCHOOL's own synth kit from the score, 94 %
+  "bwv1080-14": "timpani", // the unfinished fugue, stile antico: tonic and dominant at the arrivals only, 91 %
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
