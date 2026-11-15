@@ -16,6 +16,7 @@
  * Everything is drawn in the box canvas's own pixels (PX = 2 CSS px), so the worlds are pixel art like the
  * rest of the game.
  */
+import { inkOf } from "./voice-inks.ts";
 import type { TouchFugue } from "./fugue.ts";
 import { formAt, formOf } from "./form-points.ts";
 
@@ -4630,6 +4631,103 @@ function constellation(k: Kit) {
   }
   if (cl > 0.02) light(k, w * 0.5, ground, w * 0.3, [255, 210, 150], 0.15 * cl);
 }
+/** D670: the Inventions (BWV 772-786) and the Sinfonias (787-801). */
+const INV_ID = /^bwv(77[2-9]|78\d|79\d|80[01])$/;
+/**
+ * A piece's light in the Songbirds: the season by its key's place in its book (the books follow the same fifteen
+ * keys, C major to B minor: spring to late autumn), day for a major key, evening for a minor one.
+ */
+function songLight(id: string, minor: boolean): { top: C3; low: C3; leaf: C3; bloom: C3 | null } {
+  const b = Number(id.slice(3));
+  const u = ((b >= 787 ? b - 787 : b - 772) % 15) / 14;
+  const top: C3 = minor ? mix([70, 90, 140], [40, 40, 80], u) : mix([120, 170, 220], [110, 140, 190], u);
+  const low: C3 = minor ? mix([220, 170, 150], [210, 130, 90], u) : mix([235, 236, 220], [240, 210, 160], u);
+  const leaf: C3 = u < 0.3 ? [120, 170, 90] : u < 0.65 ? [70, 130, 60] : u < 0.9 ? [200, 120, 50] : [150, 90, 50];
+  return { top, low, leaf, bloom: u < 0.3 ? [250, 225, 235] : null };
+}
+const BIRD = ["......bbb..", ".....bbkbyy", "....bbbbb..", "..dddbwwb..", "ddddddwwb..", ".dddddwww..", "...dddww...", "....l..l...", "....l..l..."] as const;
+const BIRD_SING = ["......bbb.y", ".....bbkby.", "....bbbbbyy", "..dddbwwb..", "ddddddwwb..", ".dddddwww..", "...dddww...", "....l..l...", "....l..l..."] as const;
+/** How far into its entry voice v is now (0: not stating the motif). */
+function voiceSounding(k: Kit, v: number): number {
+  for (let i = 0; i < k.ents.length; i++)
+    if ((k.voicesOf[i] ?? -1) === v) {
+      const st = entryState(k, i);
+      if (st > 0 && st < 2) return st;
+    }
+  return 0;
+}
+const hex = (c: string): C3 => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+/**
+ * THE SONGBIRDS (the Inventions and Sinfonias, all 30). A branch across a garden sky over a hedge and a stone wall,
+ * one bird for each voice (two in an invention, three in a sinfonia), each in its voice's own colour in the box. A bird
+ * sings while its voice states the motif (beak open, a few rising song-marks, a soft light in its colour): the motif
+ * handed from voice to voice is birds answering. The branch leafs (or blossoms) as the piece goes on; at the climax
+ * all sing; at the last chord they settle. The light is the piece's own (songLight).
+ */
+function songbirds(k: Kit) {
+  const { w, h, g } = k;
+  const minor = k.homeMinor;
+  const L = songLight(k.pid, minor);
+  k.vgrad(0, h, [[0, rgba(L.top)], [0.75, rgba(L.low)], [1, rgba(L.low)]]);
+  // the far hedge and the garden wall
+  const hedge = rgba(mix(L.leaf, [20, 30, 20], 0.62));
+  k.R(0, h * 0.82, w, h * 0.18, hedge);
+  for (let x = 0; x < w; x += 9) k.disc(x + 4, h * 0.82, 6 + hash(x) * 3, hedge);
+  k.R(0, h * 0.9, w, h * 0.1, "#5a4a3e");
+  fillTex(k, texture(k, "stone", 32, stone), 0, h * 0.9, w, h * 0.1);
+  // the branch, low across the box from the left, swaying a little
+  const sw = k.still ? 0 : Math.sin(k.sec * 0.6) * 1.2;
+  const by = (x: number) => h * 0.72 - (x - w * 0.1) * 0.08 + Math.sin(x * 0.03) * 3 + sw * (x / w);
+  g.strokeStyle = "#3a2a1e";
+  g.lineCap = "round";
+  g.lineWidth = 5;
+  g.beginPath();
+  for (let x = -4; x <= w * 0.86; x += 4) x < 0 ? g.moveTo(x, by(x)) : g.lineTo(x, by(x));
+  g.stroke();
+  g.lineWidth = 2;
+  for (const [x0, len, up] of [[w * 0.3, 26, -1], [w * 0.52, 22, 1], [w * 0.7, 20, -1]] as const) {
+    g.beginPath();
+    g.moveTo(x0, by(x0));
+    g.lineTo(x0 + len * 0.7, by(x0) + up * len * 0.45);
+    g.stroke();
+  }
+  // leaves (or blossom), more as the piece goes on
+  let done = 0;
+  for (let i = 0; i < k.ents.length; i++) if (entryState(k, i) === 2) done++;
+  const grow = 0.35 + 0.65 * (k.ents.length ? done / k.ents.length : 0);
+  for (let i = 0; i < 70; i++) {
+    if (hash(i + 3) > grow) continue;
+    const x = w * (0.04 + 0.8 * hash(i));
+    const y = by(x) + (hash(i + 9) - 0.5) * 18;
+    k.R(x, y, 3, 2, rgba(L.bloom && hash(i + 5) > 0.5 ? L.bloom : mix(L.leaf, [0, 0, 0], 0.2 * hash(i + 6))));
+  }
+  // the birds, one a voice, top voice at the left
+  const nb = Math.max(2, Math.min(3, k.nVoices));
+  const cl = k.climax;
+  for (let v = 0; v < nb; v++) {
+    const x = w * (nb === 2 ? [0.38, 0.6][v] : [0.32, 0.5, 0.68][v]);
+    const y = by(x) - 2;
+    const sing = Math.max(voiceSounding(k, v) > 0 ? 1 : 0, cl * (1 - k.rest));
+    const bob = sing && !k.still ? Math.round(Math.sin(k.sec * 9 + v) * 0.8) : 0;
+    const c = hex(inkOf(v, k.nVoices));
+    const face = v % 2 ? -1 : 1;
+    const pal: Pal = { b: rgba(c), d: rgba(mix(c, [20, 20, 30], 0.45)), w: rgba(mix(c, [255, 250, 235], 0.6)), k: "#101018", y: "#f0c040", l: "#3a2a1e" };
+    sprite(k, x, y + 1 + bob, sing ? BIRD_SING : BIRD, pal, 2, face < 0);
+    if (sing > 0) {
+      const bx = x + face * 10, bY = y - 13 + bob;
+      light(k, bx, bY, 20, c, 0.35 * sing);
+      for (let m = 0; m < 3; m++) {
+        const u = wrap(k.t * 0.8 + m / 3, 1);
+        const mx = bx + face * (4 + u * 16), my = bY - 2 - u * 14 - m * 2;
+        const mc = rgba(mix(c, [255, 255, 255], 0.5), (1 - u) * 0.8 * sing);
+        k.R(mx, my, 2, 1, mc);
+        k.R(mx + face, my - 1, 1, 1, mc);
+      }
+    }
+  }
+  if (cl > 0.02) light(k, w * 0.8, h * 0.1, w * 0.5, minor ? [255, 200, 150] : [255, 240, 200], 0.18 * cl);
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -4638,6 +4736,8 @@ interface WorkSetting {
 }
 const WORKS: WorkSetting[] = [
   { test: (id) => id.startsWith("bwv1080-"), world: constellation, script: sk([GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.5, 0.2, [200, 186, 160], false], [DUSK_NIGHT, 0.1]) },
+  // D670: the Inventions and Sinfonias, the Songbirds.
+  { test: (id) => INV_ID.test(id), world: songbirds, script: sk([GOLD, 0.04, "none", 0, 1.01], [COOL, 0.06, "none", 0, 1.02], [0.8, 0.1, WARM, false], [GOLD, 0.06]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
