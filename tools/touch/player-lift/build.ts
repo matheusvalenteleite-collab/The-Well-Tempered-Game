@@ -237,6 +237,28 @@ if (Object.keys(snd).length) {
 } else
   for (const [s, by] of Object.entries(OLD_SOUND))
     for (const [n, x] of Object.entries(by)) (SOUND[s] ??= {})[+n] = { b: x.b, off: x.off, t: x.t, l: x.l, h: x.h, ...((x as SoundRow).d ? { d: (x as SoundRow).d } : {}) };
+// D703: a like-for-like baseline (OLDDATA=<a player-lift-data.ts>): that data's balance (one for both paths, as it was) on
+// these scans' runs, the lost stretches counted the same way, per path; and the new balance's beside it.
+const lostTable: string[] = [];
+if (process.env.OLDDATA) {
+  const old = (await import(process.env.OLDDATA)).OWN_LOUD as Record<string, { t: number[]; l: number[] }>;
+  const tot = { oldP: 0, oldD: 0, newP: 0, newD: 0 };
+  const count = (R: Map<string, Run[]>, key: string, t: readonly number[], l: readonly number[]) => (R.get(key) ?? []).flatMap((r) => stretches(r, t.length, t, l));
+  const fmtL = (xs: { u: number; segs: number; worst: number }[]) => xs.map((x) => `v${x.u}:${x.segs}x2s(${x.worst})`).join(",") || "-";
+  const gp = group(own);
+  for (const [key, runs] of gp) {
+    const id = key.split("@")[0];
+    const o = old[id], n = OWN[id];
+    if (!o || o.t.length !== n.t.length) continue;
+    const oP = runs.flatMap((r) => stretches(r, n.t.length, o.t, o.l));
+    const oD = count(deskGroups, key, o.t, o.l);
+    const nP = runs.flatMap((r) => stretches(r, n.t.length, n.t, n.l));
+    const nD = n.d ? count(deskGroups, key, n.d.t, n.d.l) : [];
+    tot.oldP += oP.length; tot.oldD += oD.length; tot.newP += nP.length; tot.newD += nD.length;
+    if (oP.length + oD.length + nP.length + nD.length) lostTable.push(`${id} ${n.s} | old phone ${oP.length} ${fmtL(oP)} | old computer ${oD.length} ${fmtL(oD)} | new phone ${nP.length} ${fmtL(nP)} | new computer ${nD.length} ${fmtL(nD)}`);
+  }
+  lostTable.push(`TOTAL lost stretches (voice x run): old data phone ${tot.oldP}, computer ${tot.oldD}; new data phone ${tot.newP}, computer ${tot.newD}`);
+}
 const fmt = (x: unknown) => JSON.stringify(x);
 const lines = [
   "/**",
@@ -261,5 +283,6 @@ const lines = [
 ];
 if (!process.env.DRY) writeFileSync(new URL("../../../src/touch/player-lift-data.ts", import.meta.url), lines.join("\n"));
 console.log(report.join("\n"));
+if (lostTable.length) console.log(lostTable.join("\n"));
 console.log(`the band's mix brought up by the trims: mean ${r1(mean(mixUp))} dB, most ${r1(Math.max(...mixUp))} dB`);
 console.log(`OWN_LOUD ${Object.keys(OWN).length} fugues (${Object.values(OWN).filter((o) => o.d).length} with a computer's), SOUND_LOUD ${Object.keys(SOUND).length} sounds; lost stretches (voice x run): raw ${lostBefore}, after phone ${lostAfter}, computer ${lostAfterD}`);

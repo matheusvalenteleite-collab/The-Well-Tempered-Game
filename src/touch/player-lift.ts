@@ -37,7 +37,7 @@ export const BAND_SPREAD_DB = 2;
 export const BAND_TRIM_MAX_DB = 6;
 /** The player's level match, its bounds (dB): never over LIFT_MAX_DB, never more than LIFT_MIN_DB down. */
 export const LIFT_MAX_DB = 6;
-export const LIFT_MIN_DB = -4;
+export const LIFT_MIN_DB = -5;
 /** The player's voice brighter than the band sounding it by more than this (dB over 2.5 kHz) is shelved down. */
 export const BRIGHT_SLACK_DB = 1.5;
 /** The most the player's voice is shelved down (dB). */
