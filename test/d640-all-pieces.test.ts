@@ -74,3 +74,17 @@ test("D642: every sound within D540's budget over every playable piece (25 MB de
     assert.ok(b.residentMb <= RESIDENT_MB, `${sound}: ${b.residentMb.toFixed(2)} MB resident`);
   }
 });
+
+test("D739: the Inventions and Sinfonias on their own sounds (D731): no note in another octave, none read past STRETCH_MAX, none past its set's declared reach", async () => {
+  const { PIECE_SOUND } = await import("../src/touch/piece-sound.ts");
+  const more = COLLECTIONS.find(([n]) => n === "more bach")![1];
+  const inv = more.filter((p) => /^bwv\d{3}$/.test(p.id) && +p.id.slice(3) >= 772 && +p.id.slice(3) <= 801);
+  assert.equal(inv.length, 30);
+  for (const p of inv) {
+    const r = auditCollection("more bach", [p], [PIECE_SOUND[p.id]]);
+    // (A synthesized sound reads no recording: nothing to audit there.)
+    assert.equal(r.moves, 0, `${p.id}: octave moves`);
+    assert.deepEqual(r.stretched, [], `${p.id}: stretched on ${PIECE_SOUND[p.id]}`);
+    assert.deepEqual(r.undeclared, [], `${p.id}: past its declared reach`);
+  }
+});

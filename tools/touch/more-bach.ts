@@ -746,7 +746,8 @@ function entriesOf(s: Spec, r: Read, piece: { tpq: number; meter: string; bars: 
   // is found in every voice; else (a bass entering with the first voice, an answer inverted, in
   // diminution or entering late) the first imitation (`imitation`), where it is found twice or more.
   const pool = s.entries ? (s.theme ? themed(wp, s.theme) : finders(wp)) : [];
-  // D707: the Art of Fugue's entries are its table's (data/touch/aof-entries.txt), the finders' only offered to it.
+  // D707: the Art of Fugue's entries are its table's (data/touch/aof-entries.txt), the finders' only offered to it;
+  // D730: the Inventions' and Sinfonias' theirs (data/touch/inv-entries.txt, merged into AOF_TABLE).
   const ex = AOF_TABLE.get(s.id);
   if (ex) return tableEntries(s.id, piece, ex, pool, speller);
   return pool.length >= 2 ? buildEntries(piece, pool, speller) : [];
@@ -781,6 +782,13 @@ function finders(wp: WtcPiece): RawEntry[] {
 export const AOF_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/aof-entries.txt`, "utf8"), (id) =>
   id === "bwv1080-14" ? 4 : (SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0),
 );
+/**
+ * D730: THE INVENTIONS' AND SINFONIAS' ENTRIES FROM THEIR TABLE (data/touch/inv-entries.txt, the same grammar): an
+ * Invention's subject (or motive, or canon's subject) and the countersubject it opens with in double counterpoint, a
+ * Sinfonia's subject and its returning countersubject; placed as the Art of Fugue's (tableEntries).
+ */
+export const INV_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/inv-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
+for (const [id, ex] of INV_TABLE) AOF_TABLE.set(id, ex);
 export function tableEntries(
   id: string,
   piece: { tpq: number; meter: string; bars: { n: number; on: number }[]; length: number; voices: Note[][]; key: string },
