@@ -42,6 +42,8 @@ const REFERENCE: Record<string, number> = {
   bwv787: 76, bwv788: 69 /* ♩. = 46 */, bwv789: 72, bwv790: 60, bwv791: 50, bwv792: 75 /* ♩. = 50 */,
   bwv793: 56, bwv794: 80, bwv795: 46, bwv796: 96, bwv797: 60 /* ♩. = 40 */, bwv798: 80,
   bwv799: 66 /* ♩. = 44 */, bwv800: 60, bwv801: 63 /* ♪. = 84 */,
+  // D751: the Four Duets (editorial: about what harpsichordists and organists take; 802's runs written in 32nds).
+  bwv802: 44 /* ♪. = 29: a 3/8 bar about two seconds */, bwv803: 84, bwv804: 104 /* ♩. = 69 */, bwv805: 120 /* 𝅗𝅥 = 60 */,
   // The Concerto for Two Violins: moderate, historically informed (period bands play I at about ♩ = 100-112,
   // II at ♩. = 40-46, III at ♩ = 126-144).
   "bwv1043-1": 96, "bwv1043-2": 60 /* ♩. = 40 */, "bwv1043-3": 120,
