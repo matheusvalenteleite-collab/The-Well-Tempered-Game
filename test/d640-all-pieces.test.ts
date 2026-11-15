@@ -28,7 +28,7 @@ const TOTALS: Readonly<Record<string, { pieces: number; stretched: number; undec
   "WTC preludes": { pieces: 48, stretched: 255, undeclared: 69 },
   "other fugues": { pieces: 1, stretched: 0, undeclared: 0 },
   tutorial: { pieces: 1, stretched: 2, undeclared: 0 },
-  "more bach": { pieces: 58, stretched: 106, undeclared: 7 },
+  "more bach": { pieces: 62, stretched: 106, undeclared: 7 }, // D751: and the Four Duets (none stretched)
   concertos: { pieces: 42, stretched: 1104, undeclared: 106 },
   chorales: { pieces: 370, stretched: 52, undeclared: 0 },
 };
