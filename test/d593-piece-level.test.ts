@@ -18,21 +18,27 @@ import { ProtoGame } from "../src/bench/proto-game.ts";
 
 const db = (g: number) => 20 * Math.log10(g);
 
-test("D593: the levels are the three fugues' own, on their own sounds, about 3 dB; I/6 and II/24 on a phone only", () => {
-  // D645: and five rebalances on a phone (a fugue's bass brought up there, the rest a little under it: its phone mix where it was), each under 0 dB, phone only.
+test("D593, D645, D703: the levels are fugues' own, on their own sounds: D593's three up about 3 dB on a phone (I/6 and II/24 there only), D645's phone rebalances, D703's re-matching", () => {
+  // D645: five rebalances on a phone (a fugue's bass brought up there, the rest a little under it); D703: the fugues whose
+  // overall loudness the rebuilt balance moved over 0.5 LU on a path, re-matched to the base there (renders, both paths).
   const D645 = ["wtc1f04@stringConsort", "wtc1f20@krautrock", "wtc2f07@bossaNova", "wtc2f08@stringConsort", "wtc2f22@krautrock"];
-  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).map((id) => `${id}@${p.id}`)).filter((k) => !D645.includes(k) && !k.startsWith("bwv1080-")).sort();
-  assert.deepEqual(all, ["wtc1f06@jazzQuartet", "wtc1f19@vaudeville", "wtc2f24@analog"]);
-  for (const k of D645) {
-    const [id, snd] = k.split("@");
-    assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
-    const down = db(pieceLevel(snd, id, true));
-    assert.ok(down < 0 && down >= -1.5, `${k}: ${down.toFixed(1)} dB on a phone`);
-    assert.equal(pieceLevel(snd, id, false), 1, `${k}: the computer path as it was`);
-  }
+  const D593 = ["wtc1f06@jazzQuartet", "wtc1f19@vaudeville", "wtc2f24@analog"];
+  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).map((id) => `${id}@${p.id}`)).sort();
+  for (const k of [...D593, ...D645]) assert.ok(all.includes(k), k);
   for (const k of all) {
     const [id, snd] = k.split("@");
     assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
+    // each a fugue's own level, within 4 dB on either path
+    for (const phone of [true, false]) assert.ok(Math.abs(db(pieceLevel(snd, id, phone))) <= 4, `${k}: ${db(pieceLevel(snd, id, phone)).toFixed(1)} dB (${phone ? "phone" : "computer"})`);
+  }
+  // D645's: the phone a little under the computer (the rest under the bass there)
+  for (const k of D645) {
+    const [id, snd] = k.split("@");
+    assert.ok(pieceLevel(snd, id, true) < pieceLevel(snd, id, false), `${k}: under on a phone`);
+  }
+  // D593's three: brought up 2-4 dB on a phone
+  for (const k of D593) {
+    const [id, snd] = k.split("@");
     const up = db(pieceLevel(snd, id, true));
     assert.ok(up >= 2 && up <= 4, `${k}: ${up.toFixed(1)} dB on a phone`);
   }

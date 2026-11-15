@@ -18,10 +18,13 @@ test("Mario's names: all 24 of Book I, in English, Portuguese and Spanish, a sho
   }
   assert.equal(fugueName("wtc1f01", "en"), "The Canon");
   assert.equal(fugueName("wtc1f13", "en"), "The Aquarium");
-  // D383: Book II named too (test/d383-pictures-cast.test.ts); nothing beyond the 48.
+  // D383: Book II named too (test/d383-pictures-cast.test.ts). D664: and the Art of Fugue's 20, short forms fitting.
   assert.equal(fugueName("wtc2f13", "en"), "The Telephone");
-  assert.equal(fugueName("bwv1080-14", "en"), null);
-  assert.equal(Object.keys(FUGUE_NAMES).length, 48);
+  assert.equal(fugueName("bwv1080-14", "en"), "The Last Candle");
+  assert.equal(fugueName("bwv1080-12i", "pt"), "A Noite");
+  for (const id of Object.keys(FUGUE_NAMES).filter((k) => k.startsWith("bwv1080-")))
+    for (const l of ["en", "pt", "es"] as const) assert.ok((fugueName(id, l, "short") ?? "").length <= 13, `${id} ${l} short`);
+  assert.equal(Object.keys(FUGUE_NAMES).length, 68);
 });
 
 test("the played shape: release keeps the first lift (before or after the end); off only before the end", () => {
