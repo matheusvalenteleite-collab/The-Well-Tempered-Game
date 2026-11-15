@@ -231,9 +231,7 @@ function moreBachSounds(): Record<string, string> {
   // for the violins and the viola, its bassoon for the continuo bass (sound.ts: a layout for each voice count).
   for (const b of [1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065]) for (let m = 1; m <= 3; m++) out[`bwv${b}-${m}`] = "super16";
   // D708: the Art of Fugue's sounds chosen by the voices' distinctness (tools/touch/voice-probe), each with its HOME drums
-  // (drum-library.ts FUGUE_STYLES, D712). TODO(D718, after D703 lands): re-measure these 20 pieces' player lift (D508's
-  // tools/touch/player-lift scan.cjs, WTG_NOLIFT=1, every voice, on these sounds at their opening tempi) and add their
-  // OWN_LOUD rows; until then the player plays at the balance's defaults on them.
+  // (drum-library.ts FUGUE_STYLES, D712); D718: their player lift measured on these sounds (player-lift-data.ts OWN_LOUD).
   // D355 BEGIN: the Art of Fugue, the ricercars, the Inventions and Sinfonias, each its own sound (tools/touch/colour-plans: aof.ts, more.ts).
   Object.assign(out, {
     "bwv1080-01": "berlinSchool",
