@@ -34,7 +34,7 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
  * D727: THE ART OF FUGUE open to everyone once its tiles are dressed (the studio's names, pictures and worlds
  * for its twenty pieces): until then only behind the unlock, as MORE BACH was. Flip when their work lands.
  */
-export const AOF_FOR_ALL = false;
+export const AOF_FOR_ALL = true;
 export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL)));
 
 /** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
