@@ -38,6 +38,8 @@ export interface TouchEntry {
   scale?: 2 | 0.5;
   /** D189: a later subject of a triple fugue (Contrapunctus XIV: 2 the running subject, 3 B-A-C-H). */
   theme?: 2 | 3;
+  /** D707: in a canon (the Art of Fugue's four), the statement's part: the leader or the follower. */
+  canon?: "dux" | "comes";
 }
 
 /** D189: a cadence, as tools/touch/analysis.ts reads it (findCadences). */
