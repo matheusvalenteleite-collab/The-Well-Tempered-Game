@@ -6,7 +6,7 @@ import json, math, sys
 import numpy as np
 
 M = sys.argv[1]
-# every world with effects (D6xx-SFX2-3, D644, D6xx-SFX2-1..3: the second batch with the pilots); the step (ticks): half a crotchet beat at tpq 1920
+# every world with effects (D706, D644, D704-D706: the second batch with the pilots); the step (ticks): half a crotchet beat at tpq 1920
 PIECES = {p: 960 for p in "wtc1f01 wtc1f02 wtc1f03 wtc1f05 wtc1f06 wtc1f07 wtc1f08 wtc1f09 wtc1f10 wtc1f11 wtc1f13 wtc1f15 wtc1f16 wtc1f17 wtc1f19 wtc1f20 wtc1f21 wtc1f22 wtc1f23 wtc1f24 wtc2f01 wtc2f03 wtc2f04 wtc2f06 wtc2f08 wtc2f10 wtc2f11 wtc2f12 wtc2f13 wtc2f14 wtc2f15 wtc2f16 wtc2f18 wtc2f19 wtc2f20 wtc2f22 wtc2f24".split()}
 # the one-shots' lengths (s: world-sfx.ts, the longest layer); the flowing effects (the swell, D643's beds and climax shapes) cut into beats
 DUR = {"click": 0.1, "thud": 0.26, "rumble": 0.9, "sweep": 2.0, "crackle": 0.7, "plop": 0.25, "rustle": 0.75, "hoof": 0.12, "bubble": 0.6, "flipper": 0.06,

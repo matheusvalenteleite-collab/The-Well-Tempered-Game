@@ -264,7 +264,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
     assert.ok(swellEnv(f1, formOf(f1).climax.peak) === 1 && swellEnv(f1, sw.end) === 0);
   });
 
-  test("D6xx-SFX2-2: the beds step with the entries (II/24 falling), fade over about 1 s before the last chord; II/8's rain stops at the peak", () => {
+  test("D705: the beds step with the entries (II/24 falling), fade over about 1 s before the last chord; II/8's rain stops at the peak", () => {
     for (const id of WORLDS) {
       for (const k of PILOT_SFX[id]) {
         if (CURVE_SOUND[k]?.event !== "bed") continue;
@@ -292,7 +292,7 @@ describe("D628, D644: the worlds' effects under the band", () => {
     }
   });
 
-  test("D6xx-SFX2-2: the pulses on the score's beat (the drums' pulse) or fitted to the entry's notes; the rest irregular", () => {
+  test("D705: the pulses on the score's beat (the drums' pulse) or fitted to the entry's notes; the rest irregular", () => {
     for (const id of WORLDS) {
       const f = fugueById(id);
       const beat = beatOf(f).ticks;

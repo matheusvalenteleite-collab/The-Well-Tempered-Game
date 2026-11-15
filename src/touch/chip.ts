@@ -4209,7 +4209,7 @@ export class Chip {
     const g = sfxShare(f, e.tick);
     if (g <= 0 && !e.curves) return;
     if (e.curves && e.tps) {
-      // D6xx-SFX2-2: a flowing effect thinned point by point (a general rest inside the beat dips it to nothing).
+      // D705: a flowing effect thinned point by point (a general rest inside the beat dips it to nothing).
       const tps = e.tps;
       const curves = e.curves.map((c, li) => {
         const r = e.res![li];
@@ -4307,7 +4307,7 @@ export class Chip {
   /** D643: the flowing effects' noise read on by the audio clock from each effect's first piece (one noise across its beats). */
   private flowAnchor = new Map<string, number>();
   /**
-   * D6xx-SFX2-3, D644, D6xx-SFX2-1..3, THE SECOND BATCH's sounds (world-sfx.ts CURVE_SOUND): per layer the effects' noise through its low-Q filters,
+   * D706, D644, D704-D706, THE SECOND BATCH's sounds (world-sfx.ts CURVE_SOUND): per layer the effects' noise through its low-Q filters,
    * its gain the layer's curve (a flowing effect's: the choke point's, warmed SWELL_WARM before the piece; a one-shot's: its
    * envelope times its textures, at the velocity played), into the master as the drums are.
    */
