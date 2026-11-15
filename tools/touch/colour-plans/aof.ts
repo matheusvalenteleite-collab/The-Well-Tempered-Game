@@ -23,7 +23,7 @@ const C12 = (inv: boolean) => ({
   chamberOrgan: [at(1, OPRIN, "The principals."), at(18, OFLUTE, "After the cadence: the flutes."), at(inv ? 50 : 54, OFONDS, "The closing pedal: the foundations.")],
 });
 const C13 = {
-  chip: [at(1, { tone: -2 }, "The exposition in a darker tone."), ...widths(38, [0.25, 0.25], "The long middle without entries (from 38): the pulses rounder."), at(62, { tone: -1 }, "The entries of 62: the own widths."), at(66, { tone: 2 }, "The last entries and the close (66): bright.")],
+  chip: [at(1, { tone: -2 }, "The exposition in a darker tone."), ...widths(38, [0.25, 0.25], "The long middle without entries (from 38): the pulses rounder."), at(62, { tone: -1 }, "The entries of 62: the own widths."), at(66, { tone: 2, room: 0.12 }, "The last entries and the close (66): bright, in more of the room.")],
   harpsichordSampled: [at(1, H84, "8′+4′."), at(38, H8, "The long middle without entries (from 38) on the 8′."), at(62, H84, "The entries of 62."), at(66, HFULL, "The last entry and the close: the manuals coupled.")],
   chamberOrgan: [at(1, OFLUTE, "Lively, three voices: the flutes."), at(62, OPRIN, "The last entries on the principals.")],
   megaFm: [at(38, { fm: 0.7 }, "The middle without entries, mellower."), at(62, OWN, "The last entries.")],
@@ -35,7 +35,7 @@ export const AOF: Record<string, PieceColours> = {
     soundWhy: "D708: the plain fugue's four long, vocal lines on BERLIN SCHOOL's rack, one synthesizer to a voice (the lead, the sequencer's voice, the string machine, the synth bass; the probe's most alike pair 1.79 against the organ's 0.50, whose ranks blurred the four into one on a phone): the cycle opens slow and spacious, as the Berlin school's long forms do; the bass a filtered synth bass that carries on a phone.",
     character: "Four voices, the subject plain; a half cadence (63) over an A pedal, the pause, the tonic pedal (74-78).",
     plans: {
-      berlinSchool: [at(1, { tone: -2 }, "The plain fugue opens veiled (the filters' tone down)."), at(B("bwv1080-01", 30), { lp: 2400, tone: -2 }, "After the cadence in A minor (30): the filters half closed."), at(E("bwv1080-01", 40), { tone: -2 }, "The tenor's entry (40): open, still veiled."), at(74, { tone: 2, room: 0.12 }, "The final group over the tonic pedal (74-78): the filters bright, in more of the room.")],
+      berlinSchool: [at(1, { tone: -2 }, "The plain fugue opens veiled (the filters' tone down)."), at(B("bwv1080-01", 30), { lp: 2400, tone: -2 }, "After the cadence in A minor (30): the filters half closed."), at(E("bwv1080-01", 40), { tone: -2 }, "The tenor's entry (40): open, still veiled."), at(74, { tone: 2, room: 0.2 }, "The final group over the tonic pedal (74-78): the filters bright, in more of the room.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(B("bwv1080-01", 30), OFLUTE, "After the cadence in A minor (30): the flutes."), at(E("bwv1080-01", 40), OPRIN, "The tenor's entry (40)."), at(74, OPLENO, "The tonic pedal (74-78): the plenum.")],
       harpsichordSampled: [at(1, H8, "The 8′."), at(E("bwv1080-01", 40), H84, "The tenor's entry: 8′+4′."), at(74, HFULL, "The tonic pedal: the manuals coupled.")],
       soloVoices: [at(74, { room: 0.12 }, "The closing pedal in more of the hall.")],
@@ -159,7 +159,7 @@ export const AOF: Record<string, PieceColours> = {
     soundWhy: "D708: a two-voice canon by augmentation in contrary motion, the follower twice as slow and upside down: VOCAL SYNTH's two singers (la and da), the leader's vowel against the follower's (the probe's distance 2.82 against the chip's 1.89), two voices singing the canon as the Swingle Singers sang Bach.",
     character: "Two voices, the second twice as slow and upside down; a break (55-56) between the halves.",
     plans: {
-      vocalSynth: [at(1, { open: 0.5, tone: -2 }, "The canon begins on a half-open vowel, darker."), at(53, { open: 0.35, tone: -2 }, "The second half (53): the parts exchanged, a closed vowel."), at(105, { tone: 2 }, "The leader's head again, the final group (105): open and bright.")],
+      vocalSynth: [at(1, { open: 0.5, tone: -2 }, "The canon begins on a half-open vowel, darker."), at(53, { open: 0.35, tone: -2 }, "The second half (53): the parts exchanged, a closed vowel."), at(105, { tone: 2, room: 0.15 }, "The leader's head again, the final group (105): open and bright, in more of the room.")],
       chip: [...widths(57, [0.25], "The second half: the lead's duty rounder.")],
       harpsichordSampled: [at(1, H8, "The 8′."), at(57, H84, "The second half (57): 8′+4′.")],
       chamberOrgan: [at(1, OFLUTE, "Two voices: the flutes."), at(57, OPRIN, "The second half on the principals.")],
