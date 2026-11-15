@@ -4728,6 +4728,104 @@ function songbirds(k: Kit) {
   if (cl > 0.02) light(k, w * 0.8, h * 0.1, w * 0.5, minor ? [255, 200, 150] : [255, 240, 200], 0.18 * cl);
 }
 
+/** D671: the Four Duets (Clavier-Übung III, 1739), BWV 802-805. */
+const DUET_ID = /^bwv80[2-5]$/;
+/** Each duet's window: its glass by key (E minor, F major, G major, A minor), [lead, second, third]. */
+const DUET_GLASS: Record<string, [C3, C3, C3]> = {
+  bwv802: [[70, 80, 170], [120, 70, 150], [40, 110, 150]],
+  bwv803: [[200, 160, 60], [80, 140, 80], [190, 90, 60]],
+  bwv804: [[220, 140, 70], [200, 90, 110], [230, 190, 110]],
+  bwv805: [[50, 60, 140], [160, 40, 60], [90, 70, 150]],
+};
+/**
+ * THE GALLERY (the Four Duets, all four). A church's organ gallery at night: a tall pointed window of stained glass
+ * in the stone wall, the organ's pipes at either side, the gallery's rail near, and on a music desk an open book with
+ * two candles, one for each voice. A candle flares while its voice states the subject, its light tinged with the
+ * voice's colour in the box; the window's panes light one by one as the piece goes on (moonlight through them, the
+ * glass in the duet's own colours); at the climax the whole window glows and both flames stand high; at the last
+ * chord they settle.
+ */
+function gallery(k: Kit) {
+  const { w, h, g } = k;
+  const glass = DUET_GLASS[k.pid] ?? DUET_GLASS.bwv802;
+  const cl = k.climax;
+  // the wall
+  k.vgrad(0, h, [[0, "#16141c"], [1, "#24202a"]]);
+  fillTex(k, texture(k, "stone", 32, stone), 0, 0, w, h * 0.8);
+  // the window: a lancet in its splay, the panes in a grid under a pointed head
+  const WX = w * 0.5, WW = w * 0.16, WT = h * 0.06, WB = h * 0.6;
+  g.fillStyle = "#0c0b12";
+  g.beginPath();
+  g.moveTo(WX - WW / 2 - 6, WB + 4);
+  g.lineTo(WX - WW / 2 - 6, WT + WW * 0.5);
+  g.quadraticCurveTo(WX - WW / 2 - 6, WT - 6, WX, WT - 10);
+  g.quadraticCurveTo(WX + WW / 2 + 6, WT - 6, WX + WW / 2 + 6, WT + WW * 0.5);
+  g.lineTo(WX + WW / 2 + 6, WB + 4);
+  g.closePath();
+  g.fill();
+  let done = 0;
+  for (let i = 0; i < k.ents.length; i++) if (entryState(k, i) === 2) done++;
+  const lit = Math.max(cl, 0.25 + 0.75 * (k.ents.length ? done / k.ents.length : 0));
+  const cols = 4, rows = 7;
+  const pw = WW / cols, ph = (WB - WT - WW * 0.4) / rows;
+  g.save();
+  g.beginPath();
+  g.moveTo(WX - WW / 2, WB);
+  g.lineTo(WX - WW / 2, WT + WW * 0.5);
+  g.quadraticCurveTo(WX - WW / 2, WT, WX, WT - 4);
+  g.quadraticCurveTo(WX + WW / 2, WT, WX + WW / 2, WT + WW * 0.5);
+  g.lineTo(WX + WW / 2, WB);
+  g.closePath();
+  g.clip();
+  k.R(WX - WW / 2, WT - 6, WW, WB - WT + 6, "#141428");
+  for (let r = -2; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const n = (r + 2) * cols + c;
+      const on = hash(n + 70) < lit;
+      const col = glass[(r + c + 3) % 3];
+      const y = WT + WW * 0.4 + r * ph;
+      k.R(WX - WW / 2 + c * pw + 1, y + 1, pw - 2, ph - 2, rgba(on ? mix(col, [255, 255, 255], 0.12) : mix(col, [10, 10, 20], 0.72)));
+    }
+  g.restore();
+  light(k, WX, (WT + WB) / 2, WW * 1.4, mix(glass[0], [255, 255, 255], 0.3), 0.12 * lit);
+  // the organ's pipes at the sides
+  for (const side of [0, 1]) {
+    for (let p = 0; p < 7; p++) {
+      const pwid = 5;
+      const x = side ? w * 0.8 + p * (pwid + 2) : w * 0.2 - (p + 1) * (pwid + 2);
+      const ph2 = h * (0.28 + 0.05 * Math.abs(3 - p));
+      const top = h * 0.74 - ph2;
+      k.vgrad(top, ph2, [[0, "#8a8070"], [1, "#4a4438"]], x, pwid);
+      k.R(x + 1, top, 1, ph2, "rgba(255,240,210,0.25)");
+      k.R(x, top + ph2 * 0.75, pwid, 2, "#1a1612");
+    }
+  }
+  // the gallery's rail
+  const RY = h * 0.78;
+  k.R(0, RY, w, h - RY, "#2a1e16");
+  for (let x = 2; x < w; x += 9) k.R(x, RY + 3, 3, h * 0.16, "#3c2c20");
+  k.R(0, RY, w, 3, "#4a3624");
+  // the desk, the book, the two candles
+  const DY = h * 0.76;
+  k.R(w * 0.4, DY, w * 0.2, 3, "#5a4030");
+  k.R(w * 0.43, DY - 5, w * 0.065, 5, "#e8dcc0");
+  k.R(w * 0.505, DY - 5, w * 0.065, 5, "#ddd0b0");
+  k.R(w * 0.5 - 0.5, DY - 6, 1, 6, "#8a7a60");
+  for (let v = 0; v < 2; v++) {
+    const x = w * (v ? 0.6 : 0.4);
+    const st = voiceSounding(k, v) > 0 ? 1 : 0;
+    const flare = Math.max(st, cl * (1 - k.rest));
+    const hgt = 12;
+    k.R(x - 1, DY - hgt, 3, hgt, "#e8e0c8");
+    const fl = k.still ? 0 : Math.sin(k.sec * 9 + v * 2) * 0.6;
+    const fh = 3 + 3 * flare;
+    k.R(x + fl, DY - hgt - fh - 1, 2, fh, "#ffe08a");
+    k.R(x + fl, DY - hgt - fh - 2, 1, 1, "#fff2c0");
+    light(k, x, DY - hgt - 3, 18 + 16 * flare, [255, 190, 100], 0.35 + 0.25 * flare);
+    if (flare > 0) light(k, x, DY - hgt - 3, 26, hex(inkOf(v, 2)), 0.18 * flare);
+  }
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -4738,6 +4836,8 @@ const WORKS: WorkSetting[] = [
   { test: (id) => id.startsWith("bwv1080-"), world: constellation, script: sk([GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.5, 0.2, [200, 186, 160], false], [DUSK_NIGHT, 0.1]) },
   // D670: the Inventions and Sinfonias, the Songbirds.
   { test: (id) => INV_ID.test(id), world: songbirds, script: sk([GOLD, 0.04, "none", 0, 1.01], [COOL, 0.06, "none", 0, 1.02], [0.8, 0.1, WARM, false], [GOLD, 0.06]) },
+  // D671: the Four Duets, the Gallery.
+  { test: (id) => DUET_ID.test(id), world: gallery, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [VIOLET, 0.07, "motes", 0, 1.02], [0.5, 0.12, [220, 200, 170], false], [DUSK_NIGHT, 0.08]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
