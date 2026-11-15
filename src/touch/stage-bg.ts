@@ -479,7 +479,7 @@ function light(k: Kit, x: number, y: number, r: number, c: C3, a: number) {
 const GLYPH: Record<string, string> = {
   "0": "111101101101111", "1": "010110010010111", "2": "111001111100111", "3": "111001111001111", "4": "101101111001001",
   "5": "111100111001111", "6": "111100111101111", "7": "111001010010010", "8": "111101111101111", "9": "111101111001111",
-  ",": "000000000010100", J: "001001001101111", A: "111101111101101", C: "111100100100111", K: "101101110101101",
+  ",": "000000000010100", B: "110101110101110", H: "101101111101101", J: "001001001101111", A: "111101111101101", C: "111100100100111", K: "101101110101101",
   P: "111101111100100", O: "111101101101111", T: "111010010010010", " ": "000000000000000",
 };
 function dots(k: Kit, x: number, y: number, text: string, d: number, on: string, off: string | null) {
@@ -1147,6 +1147,77 @@ function twinkleStars(k: Kit, cl: number) {
     const tw = k.still ? 1 : 0.5 + 0.5 * Math.sin(k.sec * 0.8 + i);
     k.R(k.w * (0.4 + 0.2 * hash(i * 3)), k.h * 0.02 + 6 * hash(i * 5), 1, 1, `rgba(255,250,220,${0.6 * tw})`);
   }
+}
+
+// D666: batch B's things.
+const MOUSE = ["...gg", "ggggk", "gggg.", "l.l.."] as const;
+/** A farm valley (C12): by day, or (mirrored top to bottom by the caller) by night. */
+function farmValley(k: Kit, night: boolean, cam: number) {
+  const { w, h } = k;
+  if (night) k.vgrad(0, h * 0.62, [[0, "#0c0e2a"], [1, "#24264a"]]);
+  else k.vgrad(0, h * 0.62, [[0, "#6aa0e0"], [1, "#c8e0f0"]]);
+  k.hills(0.52, 10, 0.01, 2, night ? "rgba(30,34,56,1)" : "rgba(110,150,120,1)");
+  k.R(0, h * 0.6, w, h * 0.4, night ? "#1c2a20" : "#6aa04a");
+  fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.6, w, h * 0.4, cam);
+  const HX = w * 0.42 + cam * 0.8;
+  k.R(HX, h * 0.5, 40, 24, night ? "#4a4450" : "#e8d8b0");
+  k.tri(HX + 20, h * 0.5, 48, 14, night ? "#3a2030" : "#a03a2a");
+  k.R(HX + 16, h * 0.6, 8, 14, night ? "#1a1418" : "#6a4a2a");
+  k.R(HX + 72, h * 0.42, 5, h * 0.32, "#5a3a24");
+  k.disc(HX + 74, h * 0.38, 16, night ? "#1e3a24" : "#3a7a34");
+}
+/** The watchmaker's bench (C13): the wall's clocks, the hourglass (turned or not), the gears; returns the hourglass's centre. */
+function watchBench(k: Kit, turned: boolean, cam: number, fill: number, strike: number) {
+  const { w, h } = k;
+  k.vgrad(0, h * 0.78, [[0, "#3a2a24"], [1, "#4a3428"]]);
+  fillTex(k, texture(k, "panels", 24, panels), 0, 0, w, h * 0.78, cam * 0.3);
+  for (let i = 0; i < 4; i++) {
+    const cx = w * (0.28 + i * 0.15) + cam * 0.4;
+    const cy = h * (0.18 + (i % 2) * 0.08);
+    k.disc(cx, cy, 10, "#d8ccb0");
+    k.g.strokeStyle = "#8a6a3a";
+    k.g.lineWidth = 2;
+    k.g.beginPath();
+    k.g.arc(cx, cy, 10, 0, Math.PI * 2);
+    k.g.stroke();
+    const a = (k.still ? 0 : k.sec * (turned ? -0.5 : 0.5)) + i;
+    k.line(cx, cy, cx + Math.sin(a) * 7, cy - Math.cos(a) * 7, "#1a1010", 1);
+    k.line(cx, cy, cx + Math.sin(a / 12) * 5, cy - Math.cos(a / 12) * 5, "#1a1010", 1);
+    if (strike > 0.01) light(k, cx, cy, 16, [255, 230, 170], 0.35 * strike);
+  }
+  k.R(0, h * 0.78, w, h * 0.22, "#6a4628");
+  k.R(0, h * 0.78, w, 2, "#8a6040");
+  const gx = w * 0.5 + cam * 1.1, gy = h * 0.6;
+  k.R(gx - 14, gy - 26, 28, 4, "#5a3a20");
+  k.R(gx - 14, gy + 22, 28, 4, "#5a3a20");
+  k.R(gx - 12, gy - 22, 2, 44, "#7a5030");
+  k.R(gx + 10, gy - 22, 2, 44, "#7a5030");
+  k.g.fillStyle = "rgba(200,220,235,0.35)";
+  k.g.beginPath();
+  k.g.moveTo(gx - 9, gy - 22);
+  k.g.lineTo(gx + 9, gy - 22);
+  k.g.lineTo(gx + 1, gy);
+  k.g.lineTo(gx + 9, gy + 22);
+  k.g.lineTo(gx - 9, gy + 22);
+  k.g.lineTo(gx - 1, gy);
+  k.g.closePath();
+  k.g.fill();
+  const sand = "#e0c070";
+  const top = Math.max(0, 1 - fill);
+  k.g.fillStyle = sand;
+  k.g.beginPath();
+  k.g.moveTo(gx - 8 * top, gy - 1 - 18 * top);
+  k.g.lineTo(gx + 8 * top, gy - 1 - 18 * top);
+  k.g.lineTo(gx, gy - 1);
+  k.g.fill();
+  k.g.beginPath();
+  k.g.moveTo(gx - 8, gy + 21);
+  k.g.lineTo(gx + 8, gy + 21);
+  k.g.lineTo(gx + 8 * (1 - fill), gy + 21 - 18 * fill);
+  k.g.lineTo(gx - 8 * (1 - fill), gy + 21 - 18 * fill);
+  k.g.fill();
+  if (top > 0.02 && !k.still) k.R(gx, gy, 1, 21 - 18 * fill, sand);
+  return [gx, gy] as const;
 }
 
 const WORLDS: Record<string, World> = {
@@ -4613,6 +4684,223 @@ const WORLDS: Record<string, World> = {
     if (cl > 0.01) light(k, kx, h * 0.8, 40 + 20 * cl, [255, 210, 110], 0.45 * cl);
     lit(k, kx, h * 0.94 - kstep, KING, { y: "#f0c040", k: "#3a2010", g: "#d0a030", s: "#f0c8a0", w: "#f0f0f0", b: "#3a2010" }, 2, true, "rgba(255,230,160,0.9)", 0, -1);
   },
+  // D666 (design studio, the Art of Fugue, batch B): Contrapunctus 7 per Augmentationem et Diminutionem, The Giant.
+  // A long road across fields to the horizon in three depths: the hills and a windmill turning, the fields and the
+  // hedges, the road near. The drama (the subject at three speeds at once): each entry a walker appears at its size and
+  // pace: a mouse scurrying for a diminished entry, the Lamplighter herself for the subject as written, the Lamplighter
+  // as a giant striding slowly for an augmented one, her lantern a moon; at the climax all three side by side on the
+  // hill, the giant's shadow over the fields.
+  "bwv1080-07": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 33);
+    const cl = k.climax;
+    k.sky([90, 140, 200], [230, 220, 190], [60, 70, 120], [240, 180, 130]);
+    clouds(k, 4, 0.4, 0.08);
+    k.hills(0.55, 12, 0.01, 3, "rgba(120,150,120,1)");
+    const MX = w * 0.7 + cam * 0.4;
+    k.R(MX - 3, h * 0.36, 6, h * 0.2, "#d8d0c0");
+    k.tri(MX, h * 0.36, 10, 6, "#8a4a3a");
+    const rot = k.t * 0.5;
+    for (let i = 0; i < 4; i++) {
+      const a = rot + (i * Math.PI) / 2;
+      k.line(MX, h * 0.38, MX + Math.cos(a) * 14, h * 0.38 + Math.sin(a) * 14, "#f0ece0", 2);
+    }
+    k.R(0, h * 0.6, w, h * 0.4, "#8ab04a");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.6, w, h * 0.4, cam);
+    k.g.fillStyle = "#c8b080";
+    k.g.beginPath();
+    k.g.moveTo(w * 0.48, h * 0.6);
+    k.g.lineTo(w * 0.52, h * 0.6);
+    k.g.lineTo(w * 0.9, h);
+    k.g.lineTo(w * 0.1, h);
+    k.g.fill();
+    // the walkers, each at its scale's size and pace
+    const shadow = cl > 0.01 ? cl : 0;
+    if (shadow) {
+      k.g.fillStyle = `rgba(20,30,10,${0.25 * shadow})`;
+      k.g.beginPath();
+      k.g.ellipse(w * 0.62, h * 0.86, w * 0.3, h * 0.06, 0, 0, Math.PI * 2);
+      k.g.fill();
+    }
+    const seen = new Set<number>();
+    for (let i = 0; i < k.passed; i++) seen.add(k.scales[i] ?? 1);
+    const kinds = cl > 0.5 ? [0.5, 1, 2] : [...seen].sort();
+    kinds.forEach((sc, j) => {
+      const pace = sc < 1 ? 26 : sc > 1 ? 6 : 12;
+      const x = cl > 0.5 ? w * (0.36 + j * 0.16) : w * 0.24 + wrap(k.t * pace + j * 70, w * 0.52);
+      const y = h * (0.9 - (cl > 0.5 ? 0.08 : 0));
+      const step = !k.still && Math.floor(k.sec * (sc < 1 ? 8 : sc > 1 ? 1.5 : 3)) % 2 === 0;
+      if (sc < 1) sprite(k, x + cam, y - (step ? 1 : 0), MOUSE, { g: "#8a8090", k: "#101010", l: "#5a5060" }, 2);
+      else if (sc > 1) {
+        lit(k, x + cam, y - (step ? 1 : 0), LAMPLIGHTER, LAMP_PAL, 5, false, "rgba(255,240,200,0.7)", -1);
+        light(k, x + cam + 18, y - 52, 20, [255, 240, 200], 0.4);
+        k.disc(x + cam + 18, y - 52, 5, "#fff4d0");
+      } else lit(k, x + cam, y - (step ? 1 : 0), LAMPLIGHTER, LAMP_PAL, 2, false, "rgba(255,240,200,0.8)", -1);
+    });
+  },
+  // D666: Contrapunctus 12 a 4, rectus, The Day. A farm in a valley at noon in three depths: the far hills, the
+  // fields, the farmhouse and its tree near. The drama: each entry a field turns gold and a figure goes out to work;
+  // at the climax high noon, the whole valley in light. The Lamplighter asleep at her window (her work is at night).
+  "bwv1080-12r": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 35);
+    const cl = k.climax;
+    farmValley(k, false, cam);
+    k.disc(w * 0.66, h * (0.2 - 0.1 * cl), 8 + 3 * cl, "#fff6c8");
+    light(k, w * 0.66, h * (0.2 - 0.1 * cl), 60 + 40 * cl, [255, 245, 200], 0.3 + 0.3 * cl);
+    const gold = Math.min(9, k.passed) + (cl > 0.5 ? 9 : 0);
+    for (let i = 0; i < 9; i++) {
+      const fx = w * (0.08 + (i % 5) * 0.18), fy = h * (0.66 + Math.floor(i / 5) * 0.14);
+      if (i < gold) k.R(fx + cam, fy, w * 0.14, 8, "rgba(230,190,80,0.75)");
+      for (let r = 0; r < 3; r++) k.R(fx + cam, fy + r * 3, w * 0.14, 1, "rgba(0,0,0,0.12)");
+    }
+    for (let i = 0; i < Math.min(9, k.passed); i++) {
+      const x = w * (0.28 + 0.05 * i) + (k.still ? 0 : Math.sin(k.sec * 0.4 + i) * 6) + cam * 1.2;
+      sprite(k, x, h * 0.95, PERSON, { h: ["#3a2a1a", "#d8b060", "#6a4a3a"][i % 3], s: "#e0b090", c: ["#3a6ac0", "#c04a4a", "#4a9a5a"][i % 3], d: "#2a2a30", b: "#1a1010" }, 2);
+    }
+    sprite(k, w * 0.42 + 24 + cam * 0.8, h * 0.6, LAMPLIGHTER.slice(0, 5), { ...LAMP_PAL, k: "#d8a07a" }, 1);
+  },
+  // D666: Contrapunctus 12 a 4, inversus, The Night. The same valley as The Day mirrored top to bottom, at night (the
+  // exact mirror the inversus is): the stars below, the house hanging, the lit windows. The drama: each entry a window
+  // lights and a star appears; at the climax midnight, the valley full of stars. The Lamplighter at work.
+  "bwv1080-12i": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 35);
+    const cl = k.climax;
+    k.g.save();
+    k.g.translate(0, h);
+    k.g.scale(1, -1);
+    farmValley(k, true, cam);
+    const nl = Math.min(9, k.passed) + (cl > 0.5 ? 9 : 0);
+    for (let i = 0; i < Math.min(9, nl); i++) {
+      const x = w * 0.42 + cam * 0.8 + 4 + (i % 4) * 9;
+      const y = h * 0.52 + Math.floor(i / 4) * 7;
+      k.R(x, y, 4, 4, "#ffd890");
+      light(k, x + 2, y + 2, 8, [255, 200, 120], 0.3);
+    }
+    k.g.restore();
+    const ns = 10 + Math.min(30, k.passed * 3) + Math.round(40 * cl);
+    for (let i = 0; i < ns; i++) {
+      const x = w * hash(i * 7), y = h * (0.42 + 0.56 * hash(i * 11));
+      const tw = k.still ? 1 : 0.6 + 0.4 * Math.sin(k.sec * 0.8 + i);
+      k.R(x, y, 1, 1, `rgba(255,250,220,${0.8 * tw})`);
+    }
+    sprite(k, w * 0.3 + cam * 1.2, h * 0.36, LAMPLIGHTER, LAMP_PAL, 2, true);
+    if (cl > 0.01) light(k, w * 0.5, h * 0.8, w * 0.4, [200, 210, 255], 0.15 * cl);
+  },
+  // D666: Contrapunctus 13 a 3, rectus, The Hourglass. A watchmaker's bench in three depths: the clocks on the panelled
+  // wall, the bench and the hourglass, the gears near. The drama: each entry another stream of sand falls and a gear
+  // turns; at the climax the last grain falls as the clocks on the wall all strike.
+  "bwv1080-13r": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    const fill = Math.min(1, k.passed / Math.max(1, k.ents.length) + cl);
+    const [gx] = watchBench(k, false, cam, fill, cl);
+    const ng = Math.min(8, k.passed);
+    for (let i = 0; i < ng; i++) {
+      const x = w * (0.26 + (i % 4) * 0.06) + cam * 1.4, y = h * (0.86 + Math.floor(i / 4) * 0.08);
+      const a = (k.still ? 0 : k.sec * (i % 2 ? 1 : -1)) + i;
+      k.disc(x, y, 5, "#c0a050");
+      for (let t = 0; t < 8; t++) k.R(x + Math.cos(a + (t * Math.PI) / 4) * 6 - 1, y + Math.sin(a + (t * Math.PI) / 4) * 6 - 1, 2, 2, "#c0a050");
+      k.disc(x, y, 1.5, "#5a3a20");
+    }
+    sprite(k, gx + 60 + cam * 0.4, h * 0.78, LAMPLIGHTER, LAMP_PAL, 2, true);
+    light(k, gx, h * 0.5, 40, [255, 220, 160], 0.15 + 0.2 * cl);
+  },
+  // D666: Contrapunctus 13 a 3, inversus, The Hourglass Turned. The same bench seen as in a mirror, the hourglass turned
+  // over: each entry the sand runs again and a gear turns back; at the climax the hourglass full again and the clocks
+  // strike the same hour once more. Time turned back: the Lamplighter's street before dusk through the window.
+  "bwv1080-13i": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    const fill = Math.max(0, 1 - Math.min(1, k.passed / Math.max(1, k.ents.length) + cl));
+    k.g.save();
+    k.g.translate(w, 0);
+    k.g.scale(-1, 1);
+    const [gx] = watchBench(k, true, cam, fill, cl);
+    const ng = Math.min(8, k.passed);
+    for (let i = 0; i < ng; i++) {
+      const x = w * (0.26 + (i % 4) * 0.06) + cam * 1.4, y = h * (0.86 + Math.floor(i / 4) * 0.08);
+      const a = (k.still ? 0 : -k.sec * (i % 2 ? 1 : -1)) + i;
+      k.disc(x, y, 5, "#a0a0b0");
+      for (let t = 0; t < 8; t++) k.R(x + Math.cos(a + (t * Math.PI) / 4) * 6 - 1, y + Math.sin(a + (t * Math.PI) / 4) * 6 - 1, 2, 2, "#a0a0b0");
+      k.disc(x, y, 1.5, "#4a4a5a");
+    }
+    sprite(k, gx + 60 + cam * 0.4, h * 0.78, LAMPLIGHTER, LAMP_PAL, 2, true);
+    k.g.restore();
+    light(k, w * 0.5, h * 0.5, 40, [200, 220, 255], 0.15 + 0.2 * cl);
+  },
+  // D666: Contrapunctus XIV, The Last Candle. A study at night in three depths: the window and the town's lights below
+  // (the Lamplighter going down the street, putting the lamps out), the bookshelves, the desk near with the manuscript
+  // and the candles. The drama: each subject's entries light another candle and fill another stave; with the third
+  // subject's entries the letters B, A, C, H appear in the window's frost. No climax by design: the music breaks off,
+  // the quill stops mid-line, the last candle smokes, the page left unfinished.
+  "bwv1080-14": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 41);
+    const end = Math.max(0, Math.min(1, (k.p - 0.985) * 70));
+    k.vgrad(0, h * 0.74, [[0, "#1a1420"], [1, "#2a2028"]]);
+    fillTex(k, texture(k, "panels", 24, panels), 0, 0, w, h * 0.74, cam * 0.3);
+    // the window, the town below, the frost letters
+    const WX = w * 0.52 + cam * 0.4, WY = h * 0.08, WW = w * 0.2, WH = h * 0.42;
+    k.R(WX - 3, WY - 3, WW + 6, WH + 6, "#2a1a10");
+    k.vgrad(WY, WH, [[0, "#0c0e2a"], [1, "#1c1c40"]], WX, WW);
+    const lamps = 8;
+    const out = Math.round(lamps * k.p);
+    for (let i = 0; i < lamps; i++) {
+      const x = WX + 4 + i * ((WW - 8) / (lamps - 1)), y = WY + WH * 0.82;
+      k.R(x, y, 1, 3, "#0a0a14");
+      if (i >= out) {
+        k.R(x - 1, y - 1, 3, 1, "#ffe090");
+        light(k, x, y - 1, 4, [255, 210, 130], 0.4);
+      }
+    }
+    const nb = Math.min(lamps - 1, out);
+    sprite(k, WX + 4 + nb * ((WW - 8) / (lamps - 1)) + 2, WY + WH * 0.86, LAMPLIGHTER, LAMP_PAL, 1);
+    const third = k.themes.slice(0, k.passed).filter((t) => t === 3).length;
+    const letters = "BACH".slice(0, Math.min(4, third));
+    if (letters) dots(k, WX + WW / 2 - 8, WY + 8, letters, 1, "rgba(220,235,255,0.75)", null);
+    k.R(WX + WW / 2 - 1, WY, 2, WH, "#2a1a10");
+    // the shelves
+    for (let s2 = 0; s2 < 3; s2++) {
+      const y = h * (0.16 + s2 * 0.18);
+      k.R(w * 0.22 + cam * 0.6, y + h * 0.13, w * 0.24, 2, "#3a2414");
+      let x = w * 0.22 + cam * 0.6;
+      for (let b = 0; x < w * 0.46 + cam * 0.6; b++) {
+        const bw = 3 + Math.floor(hash(b + s2 * 9) * 3);
+        k.R(x, y + h * 0.13 - (h * 0.1 - hash(b * 3 + s2) * 6), bw, h * 0.1 - hash(b * 3 + s2) * 6, ["#5a2a2a", "#2a3a5a", "#6a5a2a", "#2a4a3a"][b % 4]);
+        x += bw + 1;
+      }
+    }
+    // the desk, the manuscript filling, the candles: one per subject begun
+    const DY = h * 0.74;
+    k.R(0, DY, w, h - DY, "#4a2e1a");
+    k.R(0, DY, w, 2, "#6a4428");
+    const PX = w * 0.36 + cam * 1.2;
+    k.R(PX, DY - 3, 70, 4, "#f0e8d0");
+    const staves = Math.min(1, k.passed / Math.max(1, k.ents.length));
+    for (let r = 0; r < 3; r++) k.R(PX + 3, DY - 2 + r * 0, 64 * Math.min(1, Math.max(0, staves * 3 - r)), 1, "rgba(60,40,40,0.55)");
+    const qx = PX + 3 + 64 * Math.min(1, staves * 3 - Math.floor(staves * 3 - 0.0001));
+    k.line(qx, DY - 3, qx + 8, DY - 16, "#f0f0e8", 1);
+    const subjects = new Set(k.themes.slice(0, k.passed)).size;
+    for (let c = 0; c < 3; c++) {
+      const x = w * (0.28 + c * 0.06) + cam * 1.2;
+      k.R(x - 1, DY - 10, 3, 10, "#e8e0c8");
+      const on = c < subjects && !(c === subjects - 1 && end > 0.5);
+      if (on) {
+        const fl = k.still ? 0 : Math.sin(k.sec * 8 + c) * 0.5;
+        light(k, x, DY - 13, 18, [255, 190, 100], 0.4);
+        k.R(x + fl, DY - 14, 2, 3, "#ffe08a");
+      } else if (c === subjects - 1 && end > 0) {
+        for (let s3 = 0; s3 < 4; s3++) {
+          const u = wrap(k.t * 0.3 + s3 / 4, 1);
+          k.glow(x + Math.sin(u * 6 + s3) * 3, DY - 14 - u * 30, 3 + u * 6, [170, 160, 170], 0.3 * (1 - u) * end);
+        }
+      }
+    }
+  },
 };
 
 /**
@@ -4780,6 +5068,18 @@ Object.assign(SCRIPTS, {
   "bwv1080-05": sk([GOLD, 0.1, "motes", 0.02, 1.03], [VIOLET, 0.14, "stars", -0.02, 1.05], [0.5, 0.4, WARM], [DUSK_NIGHT, 0.12]),
   // The Sun King: the candles; the shafts through the windows; the king in gold.
   "bwv1080-06": sk([GOLD, 0.12, "motes", 0.02, 1.03], [SEPIA, 0.14, "shafts", -0.02, 1.05], [0.5, 0.6, GOLD, true], [GOLD, 0.12]),
+  // D666: The Giant: the fields; a cloud's shade; the evening hill.
+  "bwv1080-07": sk([GOLD, 0.08, "motes", 0.02, 1.03], [COOL, 0.12, "none", -0.02, 1.04], [0.6, 0.3, WARM], [GOLD, 0.1]),
+  // The Day: morning; a passing cloud; high noon.
+  "bwv1080-12r": sk([GOLD, 0.06, "motes", 0.02, 1.03], [COOL, 0.08, "none", -0.02, 1.04], [0.66, 0.15, WARM], [GOLD, 0.08]),
+  // The Night: dusk; deep night; midnight full of stars.
+  "bwv1080-12i": sk([VIOLET, 0.12, "stars", 0.02, 1.03], [DUSK_NIGHT, 0.18, "stars", -0.02, 1.05], [0.5, 0.8, SILVER], [DUSK_NIGHT, 0.12]),
+  // The Hourglass: the lamp; the dusk at the window; the clocks striking.
+  "bwv1080-13r": sk([GOLD, 0.1, "motes", 0.02, 1.03], [SEPIA, 0.14, "none", -0.02, 1.04], [0.5, 0.5, WARM], [SEPIA, 0.1]),
+  // The Hourglass Turned: the same, cooler, in the mirror.
+  "bwv1080-13i": sk([COOL, 0.1, "motes", -0.02, 1.03], [SEPIA, 0.14, "none", 0.02, 1.04], [0.5, 0.5, SILVER], [COOL, 0.1]),
+  // The Last Candle: candlelight; the deep night; no climax light (it breaks off): the smallest glow, then dark.
+  "bwv1080-14": sk([GOLD, 0.1, "motes", 0.02, 1.02], [DUSK_NIGHT, 0.16, "none", -0.01, 1.03], [0.32, 0.8, [40, 30, 40]], [DUSK_NIGHT, 0.2]),
 });
 /** The look between two (the episode's way from one act to the next). */
 function blend(a: Look, b: Look, t: number): Required<Omit<Look, "weather">> & { wa: Weather; wb: Weather; t: number } {
