@@ -165,7 +165,8 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
       {tab === "MORE" && !waiting && (
         // D340: MORE BACH, in sections; each card as Book I's (the picture, the name, the voices, the level, the sound).
         <>
-          {MORE_SECTIONS.map((s) => (
+          {/* D727: THE ART OF FUGUE has its own tab. */}
+          {MORE_SECTIONS.filter((s) => s.id !== "aof").map((s) => (
             // D350: each collection folded (the owner: "foldable … to ease up navigation"), its count on the fold.
             <details key={s.id} className="tb-lite-section tb-lite-fold" aria-label={s.title}>
               <summary className="tb-lite-book" id={`section-${s.id}`}>

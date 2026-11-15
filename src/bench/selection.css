@@ -502,3 +502,5 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-right .sel-piece-pic { flex: none; width: 100%; height: auto; aspect-ratio: 64 / 40; min-height: 0; max-height: none; }
 /* D458: the chosen fugue's SAVED PERFORMANCES, under PLAY. */
 .sel-takes { flex: none; width: 100%; min-height: 36px; margin-top: 6px; font-size: 7px; color: var(--tg-fg); }
+/* D727: THE ART OF FUGUE's twenty pieces, 5 × 4. */
+.sel-grid.sel-grid-aof { grid-template-columns: repeat(5, minmax(0, 1fr)); }

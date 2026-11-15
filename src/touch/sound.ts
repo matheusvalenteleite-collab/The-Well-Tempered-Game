@@ -1688,9 +1688,9 @@ export const PRESETS: Preset[] = [
   // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
   // D436: +2.8 dB, and on a phone +3 dB more (it stood 5.8 dB under the median there, 2.8 on a computer).
   // D645: its pulse bass on a phone +2 dB more (phoneBass: II/11 6.1 LU under its loudest voice alone on the phone model).
-  { id: "chip", name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22, gain: 1.38, phoneGain: 1.41, phoneBass: 1.26 },
+  { id: "chip", levels: { wtc2f11: { gain: 0.8, phoneGain: 1.24 }, wtc2f17: { gain: 0.76, phoneGain: 1.32 } }, name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22, gain: 1.38, phoneGain: 1.41, phoneBass: 1.26 },
   // D294: GAME BOY (in place of D292's ROUND CHIP): the DMG's pulses and wave channel; no drums (DRUMS stays the classic chip's).
-  { id: "gameboy", name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
+  { id: "gameboy", levels: { wtc1f03: { gain: 1.12, phoneGain: 0.89 }, wtc2f04: { gain: 1.14, phoneGain: 0.88 } }, name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
   // D339: both in a music room of their own (chip.ts REVERBS.salon) in place of the shared room (a white-noise impulse, no pre-delay, undamped).
   // D351: six voices (the Ricercar a 6 at its FAST tempo, bench/tempo-steps.ts): the five upper on the treble, the bass alone on the bass.
@@ -1701,7 +1701,7 @@ export const PRESETS: Preset[] = [
   // D560: slimmed (KEYS_SLIM), the soft layer kept; on a phone -2.6 dB (phoneGain 0.74): the slim fold keeps the stereo
   // recording's level through the middle seat's panner (sampled.ts slimData, +3 dB), where D421's phone fold (toMono) did not,
   // and D436's phone levels were set on that. The harpsichord, never folded on a phone (under BUDGET.phone), 1 dB under: +1 dB.
-  { id: "pianoSampled", name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled"], room: 0, fx: "salon", by: oneKeyboard("pianoSampled"), slim: KEYS_SLIM, phoneGain: 0.74 },
+  { id: "pianoSampled", levels: { wtc1f18: { gain: 1.07 } }, name: "PIANO (SAMPLED)", slots: ["pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled", "pianoSampled"], room: 0, fx: "salon", by: oneKeyboard("pianoSampled"), slim: KEYS_SLIM, phoneGain: 0.74 },
   // D294: ANALOG SYNTH (in place of D292's PIANO (FM)): WENDY CARLOS's patches (D209) revived, after Switched-On Bach.
   // D297: remade as SWITCHED-ON (the owner: "lackluster"; the id kept, so a stored choice keeps it): the
   // ladder's spit and resonance, the drift, a bass that snaps; the D294 patches kept above (carlos*).
@@ -1791,6 +1791,8 @@ export const PRESETS: Preset[] = [
   // TRACKER (D302 punchier): violin, flute (five voices), harpsichord, the 8-bit choir (four and five), a slapped bass; hard left and right (±0.35).
   {
     id: "tracker",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc2f15: { gain: 1.1, phoneGain: 0.91 } },
     name: "TRACKER",
     // D560: held to the budget (25 MB): BAND_SLIM; 44.8 → 24.5 MB.
     // D642: the harpsichord (chromatic) thinned to every fourth semitone: the concertos on TRACKER held to 25 MB (bwv1055-1 was 26.1).
@@ -1830,6 +1832,8 @@ export const PRESETS: Preset[] = [
   // D302: VOCAL SYNTH: five synthesized singers (la, mi, ro, ne, da) in a bright plate.
   {
     id: "vocalSynth",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc1f12: { gain: 1.11, phoneGain: 0.83 } },
     name: "VOCAL SYNTH",
     // D436: -1 dB on a phone (+1.9 over the median there; a computer within it).
     phoneGain: 0.89,
@@ -1872,6 +1876,8 @@ export const PRESETS: Preset[] = [
   // the outer voices kept nearly dry; the voices wide (±0.35).
   {
     id: "tomita",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc1f11: { gain: 1.08, phoneGain: 0.92 } },
     name: "TOMITA",
     // D436: +3.5 dB on a phone (3.5 under the median there; a computer at it).
     phoneGain: 1.5,
@@ -1894,7 +1900,8 @@ export const PRESETS: Preset[] = [
     slim: BAND_SLIM,
     slots: ["consViolin", "consViolin", "consViola", "consViola", "consCello"],
     // D645: the cello lifted on a phone (CONSORT_CELLO_PHONE_LIFT), the rest a little under it there: each fugue's phone mix where it was (the phone model, whole fugue).
-    levels: { wtc1f04: { phoneGain: 0.9 }, wtc2f08: { phoneGain: 0.9 } },
+    // D703: and its fugues re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc1f04: { gain: 1.11, phoneGain: 0.81 }, wtc2f08: { gain: 1.15, phoneGain: 0.71 } },
     room: 0,
     fx: "salon",
     // D512: the articulation stops' recordings ready too (consort-stops.ts: SPICCATO, PIZZICATO), short notes.
@@ -1915,6 +1922,8 @@ export const PRESETS: Preset[] = [
   // D550 (approved, D560): the hall's chain (band-fx.ts BAND_CHAINS.baroqueBand), the recordings slimmed (BAND_SLIM).
   {
     id: "baroqueBand",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc2f16: { gain: 1.12, phoneGain: 0.89 }, wtc2f21: { gain: 1.17, phoneGain: 0.85 } },
     name: "BAROQUE BAND",
     // D436: -1.8 dB, and on a phone -1.4 dB more (+3.2 over the median there, +1.8 on a computer); D550: matched to it again through the chain.
     gain: 0.83,
@@ -1942,6 +1951,8 @@ export const PRESETS: Preset[] = [
   // D552 (approved, D560): the Archiv trio's chain; slimmed, the reeds' short notes kept (Slim.keep).
   {
     id: "oboeTrio",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc1f13: { gain: 1.29, phoneGain: 0.78 }, wtc2f23: { gain: 1.51, phoneGain: 0.8 } },
     name: "ZELENKA TRIO",
     // D504: matched to the median of the offered sounds (D436's way: I/21 1-8 and II/9 1-5, Herr Bach on the top voice); D552 through the chain.
     gain: 0.539,
@@ -2042,6 +2053,8 @@ export const PRESETS: Preset[] = [
   // percussion (groove "salsaBand": latin-drums.ts) always with this sound; the chain BAND_CHAINS.salsa.
   {
     id: "salsa",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc2f10: { gain: 1.14, phoneGain: 1.04 } },
     name: "SALSA",
     // D520 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3 dB, and on a phone 1.6 dB less of it; D546 matched to it.
     gain: 1.41,
@@ -2067,6 +2080,8 @@ export const PRESETS: Preset[] = [
   // bandolim, cavaquinho, seven-string. No piano. The regional's percussion (groove "choroBand") always with this sound.
   {
     id: "chorinho",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc2f01: { gain: 1.08, phoneGain: 0.99 } },
     name: "CHORINHO",
     // D522 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +1.7 dB, and on a phone 1.85 dB less of it; D548 matched to it.
     gain: 1.22,
@@ -2151,7 +2166,8 @@ export const PRESETS: Preset[] = [
     phoneGain: 0.59,
     slots: ["b2Flute", "b2Rhodes", "b2Sax", "b2Guitar", "b2Bass"],
     // D645: the bass's exciter on a phone (BOSSA2_BASS_PHONE_EXCITE), the rest a little under it there: II/7's phone mix where it was.
-    levels: { wtc2f07: { phoneGain: 0.89 } },
+    // D703: and its fugues re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc2f07: { gain: 1.07, phoneGain: 0.95 } },
     groove: "bossaNova",
     kit: "bossa",
     room: 0,
@@ -2171,6 +2187,8 @@ export const PRESETS: Preset[] = [
   // harpsichord in the wall lane; the drums (groove "petSounds": pet-drums.ts) always with this sound.
   {
     id: "petSounds",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc1f17: { gain: 1.07, phoneGain: 1.06 } },
     name: "PET SOUNDS",
     // D524 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top, with D508's balance): -1.8 dB; D545 matched to it on a phone.
     gain: 0.81,
@@ -2239,12 +2257,15 @@ export const PRESETS: Preset[] = [
     slim: { ...BAND_SLIM, keep: ["trioBassoonShort"] },
     // D593: I/19, its own fugue, about 3 dB under the other defaults on the phone model and 4-5 dB under on a computer; the sound
     // itself is not under on D436's passages (2.6 dB over their median on the phone model), so the fugue's level, not the sound's.
-    levels: { wtc1f19: { gain: 1.44 } },
+    // D703: and its fugues re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc1f19: { gain: 1.3, phoneGain: 0.98 } },
   },
   // D589, FLUTE & HARP (SEA_SEND): the alto flute on top, the harp on the middle voice, the cello on the bass; four and five
   // voices the viola above the harp (a second harp's line in five). Seated as Debussy's trio, the harp in the middle.
   {
     id: "fluteHarp",
+    // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
+    levels: { wtc2f18: { gain: 0.92, phoneGain: 1.08 } },
     name: "FLUTE & HARP",
     // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
     gain: 1,

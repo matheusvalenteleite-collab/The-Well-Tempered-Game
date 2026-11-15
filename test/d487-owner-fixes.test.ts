@@ -61,18 +61,22 @@ test("D487 (3), D508: every voice of the 48 fugues measured on its own sound; th
     assert.equal(own.s, playerSound(PIECE_SOUND[id]), `${id} on its own sound`);
     assert.equal(own.p.length, f.voices.length);
     for (let v = 0; v < f.voices.length; v++) {
-      const L = liftDb(id, own.s, v, f.voices.length);
+      // D703: on a phone (the phone's measurement and balance) and on a computer (its own, `d`)
+      const L = liftDb(id, own.s, v, f.voices.length, true);
       assert.ok(L >= LIFT_MIN_DB && L <= LIFT_MAX_DB);
       // D508: the player's voice where the band would sound it (its trim included), the mean of K and phone.
       const mine = (own.p[v][0] + own.p[v][1]) / 2 + L;
       const band = (own.b[v][0] + own.b[v][1]) / 2 + own.t[v];
       if (L > LIFT_MIN_DB && L < LIFT_MAX_DB) assert.ok(Math.abs(mine - band) <= 0.15, `${id} voice ${v}: ${(mine - band).toFixed(2)} dB from the band's`);
+      const d = own.d!;
+      const LD = liftDb(id, own.s, v, f.voices.length, false);
+      if (LD > LIFT_MIN_DB && LD < LIFT_MAX_DB) assert.ok(Math.abs(d.p![v] + LD - d.b[v] - d.t[v]) <= 0.15, `${id} voice ${v} (computer): ${(d.p![v] + LD - d.b[v] - d.t[v]).toFixed(2)} dB from the band's`);
     }
   }
   // I/3 (D487's example) on GAME BOY: the soprano no longer under the bass by more than the band's spread.
   const o3 = OWN_LOUD.wtc1f03;
   const c = (x: number[]) => (x[0] + x[1]) / 2;
-  assert.ok(c(o3.p[0]) + liftDb("wtc1f03", "gameboy", 0, 3) >= c(o3.b[2]) + o3.t[2] - BAND_SPREAD_DB - 0.15, "I/3's soprano within the spread of the bass");
+  assert.ok(c(o3.p[0]) + liftDb("wtc1f03", "gameboy", 0, 3, true) >= c(o3.b[2]) + o3.t[2] - BAND_SPREAD_DB - 0.15, "I/3's soprano within the spread of the bass");
 });
 
 test("D487 (3), D508: on every offered sound and number of voices the balance is measured and built", () => {

@@ -127,12 +127,13 @@ test("D340: CHORALES: Sapp's 370, four voices each, every fermata held a beat lo
 });
 
 test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunctus 14 closing the Art of Fugue), CHORALES", () => {
-  assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "MORE", "CHORALES"]);
+  // D727: THE ART OF FUGUE its own tab (its pieces still kept in MORE_SECTIONS' first, shown under AOF).
+  assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "MORE", "CHORALES"]);
   assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
   assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 3, 42, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
   assert.equal(CHORALE_IDS.length, 370);
-  assert.equal(liteTabOf("bwv1080-14"), "MORE");
+  assert.equal(liteTabOf("bwv1080-14"), "AOF");
   assert.equal(liteTabOf("chor001"), "CHORALES");
   assert.equal(liteTabOf("wtc2f03"), "II");
   assert.ok(liteExtra("bwv772") && !liteExtra("wtc1f01"));
