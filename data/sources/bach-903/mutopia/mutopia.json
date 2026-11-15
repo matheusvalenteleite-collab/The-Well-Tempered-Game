@@ -1,0 +1,20 @@
+[
+ {
+  "id": 1604,
+  "title": "Chromatic Fantasy and Fugue, BWV 903 (Fugue)",
+  "instruments": "Harpsichord",
+  "opus": "BWV 903",
+  "source": "BachGesellschaftAusgabe 1890",
+  "license": "Public Domain",
+  "maintainer": "Greg Louis",
+  "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1604",
+  "files": [
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV903/bwv903fug/bwv903fug.ly",
+   "https://www.mutopiaproject.org/ftp/BachJS/BWV903/bwv903fug/bwv903fug.mid"
+  ],
+  "kept": [
+   "bwv903fug.ly",
+   "bwv903fug.mid"
+  ]
+ }
+]

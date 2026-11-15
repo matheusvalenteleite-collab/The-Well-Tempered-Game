@@ -26,9 +26,9 @@ test("D340: MORE BACH: the Art of Fugue (11 contrapuncti, 2 mirror fugues each r
   // D341: and the motet BWV 228 (two sections) and the cantata BWV 54 (movements 1 and 3), from IMSLP.
   // D348: and the harpsichord concertos, 39 movements (test/d348-concertos.test.ts); D351: 42 with BWV 1059R.
   // D751: and the Four Duets.
-  assert.equal(MORE_BACH.length, 62 + 42);
-  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("duet"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 4, 3, 2, 2, 42]);
-  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 62 + 42);
+  assert.equal(MORE_BACH.length, 63 + 42);
+  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("duet"), count("keyboard"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 4, 1, 3, 2, 2, 42]);
+  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 63 + 42);
   for (const f of MORE_BACH) {
     assert.equal(fugueById(f.id), f);
     assert.equal(f.voices.length, f.voiceNames.length, f.id);
@@ -132,8 +132,8 @@ test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunct
   // D727: THE ART OF FUGUE its own tab (its pieces still kept in MORE_SECTIONS' first, shown under AOF).
   assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
   // D751: and the Four Duets after the Sinfonias.
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "FOUR DUETS", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 4, 3, 42, 2, 2]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "FOUR DUETS", "FANTASIAS AND FUGUES", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 4, 1, 3, 42, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
   assert.equal(CHORALE_IDS.length, 370);
   assert.equal(liteTabOf("bwv1080-14"), "AOF");
