@@ -82,6 +82,8 @@ class Kit {
   /** D665: each entry inverted, and its scale (2 augmented, 0.5 diminished), in the order of `ents`. */
   invs: boolean[] = [];
   scales: number[] = [];
+  /** D667: a canon's statements, "dux" or "comes" ("" elsewhere), in the order of `ents`. */
+  roles: string[] = [];
   cads: number[] = [];
   /** No ambient motion (QUIET). */
   still = false;
@@ -1218,6 +1220,21 @@ function watchBench(k: Kit, turned: boolean, cam: number, fill: number, strike: 
   k.g.fill();
   if (top > 0.02 && !k.still) k.R(gx, gy, 1, 21 - 18 * fill, sand);
   return [gx, gy] as const;
+}
+
+// D667: batch C's creatures.
+const HARE_A = ["......ee.", ".....eee.", "..hhhhhk.", "hhhhhhhh.", ".hhhhhh..", "h.....h..", "........."] as const;
+const HARE_B = ["......ee.", ".....eee.", "..hhhhhk.", "hhhhhhhh.", ".hhhhhh..", "..h..h...", ".h....h.."] as const;
+const TORTOISE = ["...ssss...", "..sSsSss..", ".ssssssssh", ".l.l..l.lh"] as const;
+/** Count of the passed entries of each subject, and of all of each. */
+function byTheme(k: Kit): { passed: number[]; total: number[] } {
+  const passed = [0, 0, 0, 0];
+  const total = [0, 0, 0, 0];
+  k.themes.forEach((t, i) => {
+    total[t]++;
+    if (i < k.passed) passed[t]++;
+  });
+  return { passed, total };
 }
 
 const WORLDS: Record<string, World> = {
@@ -4901,6 +4918,345 @@ const WORLDS: Record<string, World> = {
       }
     }
   },
+  // D667 (design studio, the Art of Fugue, batch C): Contrapunctus 8, The Three Rivers. A valley seen from a hill in
+  // three depths: three hills and their valleys, the three streams running down to the town, the stone bridge near
+  // (the Lamplighter on it). The drama (the triple fugue): each subject's entries run its own stream further down its
+  // valley, the third starting late; at the climax the three meet under the bridge and the river widens in the sun.
+  "bwv1080-08": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 35);
+    const cl = k.climax;
+    k.sky([110, 150, 200], [220, 220, 210], [130, 150, 200], [250, 200, 150]);
+    for (const [cx, c] of [[0.2, "#5a7a5a"], [0.5, "#4a6a50"], [0.8, "#5a7a5a"]] as const) {
+      k.g.fillStyle = c;
+      k.g.beginPath();
+      k.g.moveTo(w * cx - w * 0.3, h * 0.6);
+      k.g.lineTo(w * cx + cam * 0.4, h * 0.14);
+      k.g.lineTo(w * cx + w * 0.3, h * 0.6);
+      k.g.fill();
+    }
+    k.R(0, h * 0.58, w, h * 0.42, "#6a9a4a");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.58, w, h * 0.42, cam);
+    const { passed, total } = byTheme(k);
+    const conf = [w * 0.5 + cam, h * 0.84] as const;
+    const sources: [number, number][] = [[w * 0.2, h * 0.2], [w * 0.5, h * 0.16], [w * 0.8, h * 0.2]];
+    sources.forEach(([sx, sy], t) => {
+      const run = cl > 0.5 ? 1 : total[t + 1] ? passed[t + 1] / total[t + 1] : 0;
+      if (run <= 0) return;
+      const ex = sx + (conf[0] - sx) * run, ey = sy + (conf[1] - sy) * run;
+      k.line(sx + cam * 0.6, sy, ex, ey, "#5a9ad8", 3 + 2 * cl);
+      k.line(sx + cam * 0.6, sy, ex, ey, "rgba(220,240,255,0.5)", 1);
+      if (!k.still) for (let d = 0; d < 3; d++) {
+        const u = wrap(k.t * 0.3 + d / 3, 1) * run;
+        k.R(sx + (conf[0] - sx) * u, sy + (conf[1] - sy) * u, 1, 1, "#ffffff");
+      }
+    });
+    if (cl > 0.01) {
+      k.R(conf[0] - 4 - 6 * cl, conf[1], 8 + 12 * cl, h - conf[1], "#5a9ad8");
+      light(k, conf[0], conf[1], 40, [255, 240, 200], 0.35 * cl);
+    }
+    k.g.strokeStyle = "#b0a090";
+    k.g.lineWidth = 4;
+    k.g.beginPath();
+    k.g.arc(conf[0], h * 0.92, 18, Math.PI, 0);
+    k.g.stroke();
+    k.R(conf[0] - 26, h * 0.92 - 18, 52, 4, "#b0a090");
+    sprite(k, conf[0] + 12, h * 0.92 - 18, LAMPLIGHTER, LAMP_PAL, 1);
+  },
+  // D667: Contrapunctus 9 alla Duodecima, The Hare and the Tortoise. Aesop's race on a country road in three depths:
+  // the far hills, the hedges and trees, the road near with its milestones passing. The drama (the double fugue): the
+  // fast first subject is the hare racing ahead; when the main subject enters in long notes, the tortoise plods on; each
+  // entry a milestone passed; at the climax the tortoise crosses the line, the hare asleep under a tree. The Lamplighter
+  // waits at the finish post with her lantern.
+  "bwv1080-09": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 29);
+    const cl = k.climax;
+    k.sky([110, 160, 220], [230, 225, 200], [140, 150, 200], [250, 200, 150]);
+    clouds(k, 4, 0.4, 0.1);
+    k.hills(0.58, 10, 0.02, 3, "rgba(120,150,110,1)");
+    k.along(40, 0.2, (x, i) => roundTree(k, x, h * 0.66, 8 + hash(i) * 5, "#4a7a3a"));
+    k.R(0, h * 0.66, w, h * 0.34, "#7aa04a");
+    k.R(0, h * 0.78, w, h * 0.1, "#c8b080");
+    k.atEntries((x, i, begun) => {
+      k.R(x, h * 0.74, 5, 6, begun ? "#e8e0d0" : "#a8a090");
+      dots(k, x + 1, h * 0.75, String((i + 1) % 10), 1, "#3a3a3a", null);
+    });
+    const { passed } = byTheme(k);
+    const finish = w * 0.72 + cam;
+    k.R(finish, h * 0.6, 2, h * 0.28, "#f0f0f0");
+    k.R(finish, h * 0.6, 10, 5, "#c03030");
+    sprite(k, finish + 12, h * 0.88, LAMPLIGHTER, LAMP_PAL, 2, true);
+    light(k, finish + 6, h * 0.8, 10, [255, 210, 130], 0.4);
+    const hop = !k.still && Math.floor(k.sec * 6) % 2 === 0;
+    if (cl > 0.5) {
+      roundTree(k, w * 0.6 + cam, h * 0.78, 12, "#3a6a2a");
+      sprite(k, w * 0.6 + cam + 10, h * 0.8, HARE_A, { h: "#c0a070", e: "#c0a070", k: "#3a2a1a" }, 2);
+      for (let z = 0; z < 3; z++) dots(k, w * 0.6 + cam + 18 + z * 4, h * 0.66 - z * 4 - (k.still ? 0 : wrap(k.sec * 4, 4)), "0", 1, "rgba(255,255,255,0.5)", null);
+    } else if (passed[1]) {
+      const hx = w * 0.3 + wrap(k.t * 30, w * 0.4);
+      sprite(k, hx + cam, h * 0.86 - (hop ? 3 : 0), hop ? HARE_A : HARE_B, { h: "#c0a070", e: "#c0a070", k: "#3a2a1a" }, 2);
+    }
+    if (passed[2] || cl > 0.5) {
+      const tx = cl > 0.5 ? finish + 4 : w * (0.26 + 0.4 * Math.min(1, passed[2] / 7)) + (k.still ? 0 : Math.sin(k.sec * 0.5) * 2);
+      sprite(k, tx + cam, h * 0.87, TORTOISE, { s: "#5a7a3a", S: "#8aa050", h: "#8a9a60", l: "#6a7a4a" }, 2);
+    }
+  },
+  // D667: Contrapunctus 10 alla Decima, The Bridge. A river gorge in three depths: the far cliffs, the two banks with
+  // their scaffolds and cranes, the water below. The drama (the double fugue, two subjects, two banks): the first
+  // subject's entries lay stones on the left half, the second's on the right; at the climax the keystone set, the halves
+  // joined, the first cart crossing, and the Lamplighter lighting the first lamp on the bridge.
+  "bwv1080-10": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 33);
+    const cl = k.climax;
+    k.sky([90, 130, 190], [230, 200, 170], [60, 60, 110], [240, 170, 120]);
+    k.hills(0.5, 14, 0.01, 4, "rgba(100,90,100,1)");
+    k.R(0, h * 0.4, w * 0.22, h * 0.6, "#6a5a50");
+    k.R(w * 0.78, h * 0.4, w * 0.22, h * 0.6, "#6a5a50");
+    fillTex(k, texture(k, "rock", 48, specks(["rgba(0,0,0,0.35)", "rgba(120,60,50,0.25)", "rgba(60,24,24,0.4)"], 260, 3, 2, 1)), 0, h * 0.4, w * 0.22, h * 0.6);
+    fillTex(k, texture(k, "rock", 48, specks(["rgba(0,0,0,0.35)", "rgba(120,60,50,0.25)", "rgba(60,24,24,0.4)"], 260, 3, 2, 1)), w * 0.78, h * 0.4, w * 0.22, h * 0.6);
+    k.vgrad(h * 0.8, h * 0.2, [[0, "#4a7aa8"], [1, "#2a4a70"]], w * 0.22, w * 0.56);
+    for (let y = h * 0.82; y < h; y += 4) k.R(w * 0.22 + wrap(y * 13 + k.t * 8, w * 0.56), y, 8, 1, "rgba(220,240,255,0.25)");
+    const { passed, total } = byTheme(k);
+    const L = cl > 0.5 ? 1 : total[1] ? passed[1] / total[1] : 0;
+    const Rr = cl > 0.5 ? 1 : total[2] ? passed[2] / total[2] : 0;
+    const span = w * 0.28;
+    const deck = h * 0.42;
+    k.R(w * 0.22 + cam, deck, span * L, 6, "#c0b090");
+    k.R(w * 0.78 - span * Rr + cam, deck, span * Rr, 6, "#c0b090");
+    k.R(w * 0.22 + cam, deck, span * L, 1, "rgba(255,240,200,0.6)");
+    k.R(w * 0.78 - span * Rr + cam, deck, span * Rr, 1, "rgba(255,240,200,0.6)");
+    for (let i = 0; i < 6; i++) {
+      const lx = w * 0.22 + (span / 6) * i, rx = w * 0.78 - (span / 6) * (i + 1);
+      if (L > i / 6) k.R(lx + cam, deck + 6, 3, h * 0.38, "#a89880");
+      if (Rr > i / 6) k.R(rx + cam + span / 6 - 3, deck + 6, 3, h * 0.38, "#a89880");
+    }
+    if (cl > 0.5) {
+      k.R(w * 0.49 + cam, deck - 3, 8, 4, "#d8c890");
+      const cx = w * 0.3 + wrap(k.t * 10, w * 0.4) + cam;
+      k.R(cx, deck - 8, 14, 7, "#7a4a2a");
+      k.disc(cx + 3, deck - 1, 3, "#3a2a1a");
+      k.disc(cx + 11, deck - 1, 3, "#3a2a1a");
+      streetLamp(k, w * 0.5 + cam, deck, 18, true);
+    }
+    for (const [cx, sd] of [[0.18, 1], [0.82, -1]] as const) {
+      const x = w * cx + cam * 0.8;
+      k.R(x, h * 0.12, 2, h * 0.28, "#3a2a1a");
+      k.line(x, h * 0.12, x + sd * 30, h * 0.16, "#3a2a1a", 2);
+      k.line(x + sd * 30, h * 0.16, x + sd * 30, deck - 6 + (k.still ? 0 : Math.sin(k.sec + cx) * 3), "#8a8a8a", 1);
+    }
+    sprite(k, w * 0.2 + cam, deck, LAMPLIGHTER, LAMP_PAL, 2);
+  },
+  // D667: Contrapunctus 11, The Weavers. A weaving room in three depths: the tall windows, the great loom and its
+  // warp, the three weavers near. The drama (the triple fugue on C8's subjects inverted): each entry a thread crosses
+  // the warp in its subject's colour, the cloth growing row by row; at the climax the tapestry revealed: the three
+  // rivers of C8 woven upside down, the Lamplighter's town at their meeting.
+  "bwv1080-11": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    k.vgrad(0, h, [[0, "#3a3040"], [1, "#4a3c48"]]);
+    fillTex(k, texture(k, "stone", 40, stone), 0, 0, w, h, cam * 0.3);
+    for (const x0 of [0.06, 0.84]) {
+      k.R(w * x0 + cam * 0.3, h * 0.1, 30, h * 0.5, "#c8d8e8");
+      light(k, w * x0 + 15 + cam * 0.3, h * 0.35, 40, [240, 245, 255], 0.2);
+    }
+    const LX = w * 0.3 + cam * 0.7, LY = h * 0.1, LW = w * 0.4, LH = h * 0.6;
+    k.R(LX - 4, LY - 4, LW + 8, LH + 8, "#6a4a2a");
+    k.R(LX, LY, LW, LH, "#e8e0d0");
+    for (let x = LX; x < LX + LW; x += 3) k.R(x, LY, 1, LH, "rgba(120,100,80,0.35)");
+    const cols = ["", "#c03a3a", "#3a6ac0", "#d0a030"];
+    const rows = Math.min(60, k.passed);
+    for (let i = 0; i < rows; i++) {
+      const t = k.themes[i] ?? 1;
+      k.R(LX, LY + LH - 2 - i * (LH / 60), LW, LH / 60 + 0.5, cols[t]);
+    }
+    if (cl > 0.01) {
+      k.g.save();
+      k.g.globalAlpha = cl;
+      for (const [sx, c] of [[0.2, cols[1]], [0.5, cols[2]], [0.8, cols[3]]] as const) k.line(LX + LW * sx, LY + LH, LX + LW * 0.5, LY + 10, c, 3);
+      k.disc(LX + LW * 0.5, LY + 12, 6, "#f0e0a0");
+      k.g.restore();
+      light(k, LX + LW / 2, LY + LH / 2, 60, [255, 240, 210], 0.3 * cl);
+    }
+    const shuttle = !k.still ? Math.sin(k.sec * 2) : 0;
+    k.R(LX + LW / 2 + shuttle * (LW / 2 - 6) - 4, LY + LH - 4 - rows * (LH / 60), 8, 3, "#5a3a1a");
+    const weavers: [number, string, string, number][] = [[0.3, "#d8b060", "#7a3a7a", 0], [0.5, "#1a1010", "#3a7a6a", 3], [0.7, "#a03a1a", "#a0602a", 2]];
+    for (const [x, hair, dress] of weavers) sprite(k, w * x + cam * 1.2, h, SISTER, { h: hair, s: "#e8c0a0", k: "#201010", d: dress, b: "#1a1010" }, 2);
+  },
+  // D667: Canon per Augmentationem in Contrario Motu, The Kite. A windy hill above the town in three depths: the
+  // racing clouds, the town small below, the hill's grass streaming near; a child flying a kite, the Lamplighter on the
+  // hill path. The drama: the kite climbs on the dux; its shadow on the grass, upside down and slower, follows on the
+  // comes (the inverted, augmented answer); at the climax the kite at the top of the sky, its shadow covering the hill.
+  "bwv1080-c14": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 27);
+    const cl = k.climax;
+    k.sky([90, 150, 220], [220, 230, 240], [110, 160, 220], [240, 220, 190]);
+    clouds(k, 6, 0.6, 0.4);
+    skyline(k, 0.66, 0.01, "rgba(110,120,150,1)", 2);
+    k.R(0, h * 0.66, w, h * 0.34, "#6aa04a");
+    fillTex(k, texture(k, "grass", 32, grass), 0, h * 0.66, w, h * 0.34, k.t * 6);
+    const duxN = k.roles.slice(0, k.passed).filter((r) => r === "dux").length;
+    const comN = k.roles.slice(0, k.passed).filter((r) => r === "comes").length;
+    const high = Math.min(1, duxN / 3 + cl);
+    const kx = w * 0.56 + (k.still ? 0 : Math.sin(k.sec * 0.7) * 10) + cam;
+    const ky = h * (0.5 - 0.42 * high) + (k.still ? 0 : Math.sin(k.sec * 1.3) * 3);
+    const cx = w * 0.36 + cam * 1.2, cy = h * 0.9;
+    k.line(cx + 3, cy - 18, kx, ky + 8, "rgba(240,240,240,0.7)", 1);
+    k.g.fillStyle = "#d03030";
+    k.g.beginPath();
+    k.g.moveTo(kx, ky - 8);
+    k.g.lineTo(kx + 6, ky);
+    k.g.lineTo(kx, ky + 8);
+    k.g.lineTo(kx - 6, ky);
+    k.g.fill();
+    k.line(kx, ky - 8, kx, ky + 8, "#f0d040", 1);
+    for (let i = 0; i < 4; i++) k.R(kx - 1 + (k.still ? 0 : Math.sin(k.sec * 3 + i) * 2), ky + 10 + i * 4, 2, 2, ["#f0d040", "#3060c0"][i % 2]);
+    if (comN || cl > 0.5) {
+      const grow = Math.min(1, comN / 2 + cl) * 2;
+      const sx = w * 0.56 - (kx - w * 0.56) * 0.5 + cam, sy = h * 0.82;
+      k.g.fillStyle = "rgba(20,40,10,0.3)";
+      k.g.beginPath();
+      k.g.moveTo(sx, sy + 8 * grow);
+      k.g.lineTo(sx + 9 * grow, sy);
+      k.g.lineTo(sx, sy - 4 * grow);
+      k.g.lineTo(sx - 9 * grow, sy);
+      k.g.fill();
+    }
+    lit(k, cx, cy, KID, { h: "#1a1010", s: "#8a5a3a", k: "#201010", c: "#f0c030", l: "#8a5a3a", b: "#2a1a10" }, 2, false, "rgba(255,250,220,0.8)", 1);
+    sprite(k, w * 0.26 + cam * 1.2, h * 0.86, LAMPLIGHTER, LAMP_PAL, 2);
+  },
+  // D667: Canon alla Ottava, The Echo. A mountain gorge in three depths: the far peaks, the cliff face across the gorge,
+  // the path on the near edge where the hiker stands. The drama: she calls on the dux and the echo returns from the far
+  // cliff on the comes, rings spreading across the gorge; at the climax the gorge full of echoes, an eagle crossing.
+  "bwv1080-c15": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 31);
+    const cl = k.climax;
+    k.sky([100, 140, 200], [220, 220, 230], [90, 110, 170], [240, 200, 170]);
+    for (const [x0, ph, c] of [[0.1, 0.18, "#7a7a9a"], [0.5, 0.1, "#6a6a8a"], [0.85, 0.2, "#7a7a9a"]] as const) {
+      k.g.fillStyle = c;
+      k.g.beginPath();
+      k.g.moveTo(w * x0 - w * 0.25, h * 0.6);
+      k.g.lineTo(w * x0 + cam * 0.3, h * ph);
+      k.g.lineTo(w * x0 + w * 0.25, h * 0.6);
+      k.g.fill();
+      k.tri(w * x0 + cam * 0.3, h * (ph + 0.08), 14, h * 0.08, "#f0f0f8");
+    }
+    k.R(w * 0.66 + cam * 0.7, h * 0.3, w * 0.34, h * 0.7, "#5a5068");
+    fillTex(k, texture(k, "rock", 48, specks(["rgba(0,0,0,0.35)", "rgba(120,60,50,0.25)", "rgba(60,24,24,0.4)"], 260, 3, 2, 1)), w * 0.66 + cam * 0.7, h * 0.3, w * 0.34, h * 0.7);
+    k.R(0, h * 0.7, w * 0.4, h * 0.3, "#4a4258");
+    const sx = w * 0.32 + cam, sy = h * 0.7;
+    const calls = k.roles.slice(0, k.passed).filter((r) => r === "dux").length;
+    const echoes = k.roles.slice(0, k.passed).filter((r) => r === "comes").length + (cl > 0.5 ? 6 : 0);
+    for (let i = 0; i < Math.min(3, calls); i++) {
+      const r = 6 + wrap(k.t * 10 + i * 8, 40);
+      k.g.strokeStyle = `rgba(255,250,220,${0.5 * (1 - r / 46)})`;
+      k.g.lineWidth = 1;
+      k.g.beginPath();
+      k.g.arc(sx + 6, sy - 18, r, -0.5, 0.5);
+      k.g.stroke();
+    }
+    for (let i = 0; i < Math.min(8, echoes); i++) {
+      const r = 6 + wrap(k.t * 8 + i * 6, 50);
+      k.g.strokeStyle = `rgba(220,230,255,${0.4 * (1 - r / 56)})`;
+      k.g.lineWidth = 1;
+      k.g.beginPath();
+      k.g.arc(w * 0.66 + cam * 0.7, h * 0.46, r, Math.PI - 0.6, Math.PI + 0.6);
+      k.g.stroke();
+    }
+    lit(k, sx, sy, LAMPLIGHTER, { ...LAMP_PAL, d: "#c04a3a" }, 2, false, "rgba(255,240,210,0.8)", 1);
+    if (cl > 0.01) {
+      const ex = w * 0.2 + wrap(k.t * 20, w * 0.6), ey = h * 0.22;
+      const fl = !k.still && Math.floor(k.sec * 3) % 2 === 0;
+      k.line(ex - 8, ey + (fl ? -3 : 2), ex, ey, "#2a1a10", 2);
+      k.line(ex, ey, ex + 8, ey + (fl ? -3 : 2), "#2a1a10", 2);
+    }
+  },
+  // D667: Canon alla Decima, The Two Swallows. A summer evening over the rooftops in three depths: the sky and the
+  // church tower, the roofs and their chimneys, the eaves near (the Lamplighter's, the swallows' nest under them). The
+  // drama: the second swallow follows the first, a little below and behind, every turn copied (the comes at the tenth);
+  // each new statement another pair; at the climax a whole flock wheeling round the tower.
+  "bwv1080-c16": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 29);
+    const cl = k.climax;
+    k.sky([80, 90, 160], [250, 180, 130], [40, 40, 100], [240, 140, 110]);
+    const TX = w * 0.6 + cam * 0.4;
+    k.R(TX - 6, h * 0.24, 12, h * 0.5, "#4a3a44");
+    k.tri(TX, h * 0.24, 16, 18, "#3a2a34");
+    k.g.save();
+    k.g.translate(cam * 0.7, 0);
+    k.along(36, 0.03, (x, i) => {
+      const hh = 14 + hash(i) * 12;
+      k.R(x, h * 0.86 - hh, 32, hh + 20, "#5a3a3a");
+      k.tri(x + 16, h * 0.86 - hh, 38, 12, "#7a3a30");
+      fillTex(k, texture(k, "tiles", 24, tiles), x - 3, h * 0.86 - hh - 12, 38, 12);
+    });
+    k.g.restore();
+    k.R(0, h * 0.86, w, h * 0.14, "#3a2a24");
+    k.disc(w * 0.3 + cam * 1.4, h * 0.88, 4, "#6a4a30");
+    sprite(k, w * 0.24 + cam * 1.4, h, LAMPLIGHTER, LAMP_PAL, 2);
+    const pairs = Math.min(4, Math.ceil(k.roles.slice(0, k.passed).filter((r) => r === "dux").length / 2) || 1) + (cl > 0.5 ? 6 : 0);
+    for (let p2 = 0; p2 < pairs; p2++) {
+      const path = (t: number) => {
+        const a = t * 0.8 + p2 * 1.7;
+        return cl > 0.5 ? [TX + Math.cos(a) * w * (0.12 + 0.02 * p2), h * 0.34 + Math.sin(a) * h * 0.14] : [w * 0.5 + Math.cos(a) * w * 0.22 + Math.sin(a * 2.3) * 20, h * (0.3 + 0.1 * p2) + Math.sin(a * 1.7) * 12];
+      };
+      const [x1, y1] = path(k.t);
+      const [x2, y2] = path(k.t - 0.25);
+      const fl = !k.still && Math.floor(k.sec * 8 + p2) % 2 === 0;
+      sprite(k, x1, y1, fl ? SPARROW_FLY : SPARROW, { b: "#1a1a30", k: "#101010", y: "#c04a3a", w: "#e8e0d0", l: "#1a1a30" }, 2);
+      sprite(k, x2, y2 + 6, fl ? SPARROW : SPARROW_FLY, { b: "#1a1a30", k: "#101010", y: "#c04a3a", w: "#e8e0d0", l: "#1a1a30" }, 2);
+    }
+    if (!k.still) for (let i = 0; i < 12; i++) k.R(w * (0.4 + 0.3 * hash(i)) + Math.sin(k.sec * 3 + i) * 3, h * (0.5 + 0.1 * hash(i + 2)) + Math.cos(k.sec * 2 + i) * 3, 1, 1, "rgba(255,230,180,0.6)");
+  },
+  // D667: Canon alla Duodecima, The Footprints. A snowy hillside at dawn in three depths: the sky turning, the pines and
+  // the chapel at the top, the snow near. The drama: a walker climbs on the dux and a second follows exactly in their
+  // footprints on the comes, a little later, the prints accumulating; at the climax both reach the chapel as the sun
+  // rises. The Lamplighter climbs to put out the chapel's lamp at dawn, a child in her footprints.
+  "bwv1080-c17": (k) => {
+    const { w, h } = k;
+    const cam = sway(k, 37);
+    const cl = k.climax;
+    k.sky([40, 50, 100], [200, 150, 160], [120, 150, 210], [255, 210, 170]);
+    if (cl > 0.01) {
+      light(k, w * 0.72, h * 0.4, 60, [255, 220, 170], 0.5 * cl);
+      k.disc(w * 0.72, h * (0.46 - 0.1 * cl), 8 * cl, `rgba(255,236,190,${cl})`);
+    }
+    k.g.fillStyle = "#e8ecf6";
+    k.g.beginPath();
+    k.g.moveTo(0, h);
+    k.g.lineTo(0, h * 0.84);
+    k.g.lineTo(w * 0.66 + cam * 0.6, h * 0.36);
+    k.g.lineTo(w, h * 0.46);
+    k.g.lineTo(w, h);
+    k.g.fill();
+    const CX = w * 0.66 + cam * 0.6, CY = h * 0.36;
+    k.R(CX - 10, CY - 16, 20, 16, "#b0a8a8");
+    k.tri(CX, CY - 16, 24, 10, "#7a3030");
+    const lampOn = cl < 0.5;
+    k.R(CX - 2, CY - 10, 4, 5, lampOn ? "#ffe090" : "#3a3030");
+    if (lampOn) light(k, CX, CY - 8, 12, [255, 210, 130], 0.4);
+    for (const [px, ph] of [[0.16, 30], [0.28, 24], [0.86, 26], [0.94, 32]] as const) pine(k, w * px + cam * 0.8, h * (0.84 - (px < 0.5 ? px : 1 - px) * 0.3), ph, "#2a4a3a");
+    const duxN = k.roles.slice(0, k.passed).filter((r) => r === "dux").length;
+    const comN = k.roles.slice(0, k.passed).filter((r) => r === "comes").length;
+    const pos = (n: number, of: number) => Math.min(1, n / Math.max(1, of) + cl);
+    const along = (u: number) => [w * 0.06 + (CX - 10 - w * 0.06) * u, h * 0.84 + (CY - h * 0.84) * u] as const;
+    const totalDux = Math.max(1, k.roles.filter((r) => r === "dux").length);
+    const totalCom = Math.max(1, k.roles.filter((r) => r === "comes").length);
+    const u1 = pos(duxN, totalDux), u2 = pos(comN, totalCom);
+    for (let i = 0; i < 24 * u1; i++) {
+      const [fx, fy] = along(i / 24);
+      k.R(fx + (i % 2) * 2 + cam, fy - 1, 2, 1, "rgba(130,140,180,0.8)");
+    }
+    const [ax, ay] = along(u1), [bx, by] = along(Math.min(u1, u2) * 0.97);
+    lit(k, ax + cam, ay, LAMPLIGHTER, LAMP_PAL, 2, false, "rgba(255,220,190,0.8)", 1);
+    if (comN || cl > 0.5) lit(k, bx + cam - 12, by, KID, { h: "#5a3a1a", s: "#f0c8a0", k: "#201010", c: "#c03a3a", l: "#3a2a20", b: "#1a1010" }, 2, false, "rgba(255,220,190,0.8)", 1);
+    if (!k.still) for (let i = 0; i < 10; i++) k.R(wrap(hash(i) * w + k.sec * 3, w), wrap(hash(i + 3) * h + k.sec * 8, h), 1, 1, "rgba(255,255,255,0.7)");
+  },
 };
 
 /**
@@ -5080,6 +5436,22 @@ Object.assign(SCRIPTS, {
   "bwv1080-13i": sk([COOL, 0.1, "motes", -0.02, 1.03], [SEPIA, 0.14, "none", 0.02, 1.04], [0.5, 0.5, SILVER], [COOL, 0.1]),
   // The Last Candle: candlelight; the deep night; no climax light (it breaks off): the smallest glow, then dark.
   "bwv1080-14": sk([GOLD, 0.1, "motes", 0.02, 1.02], [DUSK_NIGHT, 0.16, "none", -0.01, 1.03], [0.32, 0.8, [40, 30, 40]], [DUSK_NIGHT, 0.2]),
+  // D667: The Three Rivers: the valley's light; a cloud; the sun on the confluence.
+  "bwv1080-08": sk([GOLD, 0.08, "motes", 0.02, 1.03], [COOL, 0.12, "none", -0.02, 1.04], [0.5, 0.82, WARM], [GOLD, 0.1]),
+  // The Hare and the Tortoise: the morning; the noon haze; the finish.
+  "bwv1080-09": sk([GOLD, 0.08, "motes", 0.02, 1.03], [COOL, 0.1, "none", -0.02, 1.04], [0.72, 0.7, WARM], [GOLD, 0.1]),
+  // The Bridge: the gorge's light; the evening; the keystone set.
+  "bwv1080-10": sk([GOLD, 0.08, "motes", 0.02, 1.03], [VIOLET, 0.12, "none", -0.02, 1.04], [0.5, 0.42, WARM], [DUSK_NIGHT, 0.1]),
+  // The Weavers: the windows' light; the afternoon; the tapestry revealed.
+  "bwv1080-11": sk([GOLD, 0.1, "motes", 0.02, 1.03], [SEPIA, 0.12, "shafts", -0.02, 1.04], [0.5, 0.4, WARM], [SEPIA, 0.1]),
+  // The Kite: the wind; a cloud's shade; the top of the sky.
+  "bwv1080-c14": sk([GOLD, 0.06, "motes", 0.02, 1.03], [COOL, 0.1, "none", -0.02, 1.04], [0.56, 0.1, WARM], [GOLD, 0.08]),
+  // The Echo: the clear air; the cloud on the peaks; the eagle in the sun.
+  "bwv1080-c15": sk([COOL, 0.08, "none", 0.02, 1.03], [COOL, 0.14, "mist", -0.02, 1.04], [0.5, 0.2, WARM], [COOL, 0.1]),
+  // The Two Swallows: the evening; dusk; the flock round the tower.
+  "bwv1080-c16": sk([GOLD, 0.1, "motes", 0.02, 1.03], [VIOLET, 0.14, "none", -0.02, 1.04], [0.6, 0.34, WARM], [DUSK_NIGHT, 0.1]),
+  // The Footprints: the blue before dawn; the snow falling; the sunrise at the chapel.
+  "bwv1080-c17": sk([COOL, 0.12, "snow", 0.02, 1.03], [DUSK_NIGHT, 0.14, "snow", -0.02, 1.04], [0.72, 0.4, WARM, true], [GOLD, 0.1]),
 });
 /** The look between two (the episode's way from one act to the next). */
 function blend(a: Look, b: Look, t: number): Required<Omit<Look, "weather">> & { wa: Weather; wb: Weather; t: number } {
@@ -5179,7 +5551,7 @@ export const STAGE_IDS: readonly string[] = Object.keys(WORLDS);
 export const hasStage = (id: string | undefined) => !!id && id in WORLDS;
 
 const KIT = new Kit();
-type Piece = { ents: number[]; themes: number[]; invs: boolean[]; scales: number[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean; voice: number }[]; dens: number[]; dLo: number; dHi: number; strettos: number[] };
+type Piece = { ents: number[]; themes: number[]; invs: boolean[]; scales: number[]; roles: string[]; cads: number[]; end: number; spans: { on: number; end: number; other: boolean; voice: number }[]; dens: number[]; dLo: number; dHi: number; strettos: number[] };
 const memo = new Map<string, Piece>();
 const isMinor = (key: string) => key.charAt(0) === key.charAt(0).toLowerCase();
 function piece(f: TouchFugue): Piece {
@@ -5196,6 +5568,7 @@ function piece(f: TouchFugue): Piece {
     themes: [...f.entries].sort((a, b) => a.on - b.on).map((e) => e.theme ?? 1),
     invs: [...f.entries].sort((a, b) => a.on - b.on).map((e) => !!e.inverted),
     scales: [...f.entries].sort((a, b) => a.on - b.on).map((e) => e.scale ?? 1),
+    roles: [...f.entries].sort((a, b) => a.on - b.on).map((e) => e.canon ?? ""),
     cads: f.cadences.map((c) => c.on),
     end: f.length,
     spans: f.entries.map((e) => ({ on: e.on, end: e.end, other: isMinor(e.key) !== home, voice: e.voice })),
@@ -5239,6 +5612,7 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   k.themes = m.themes;
   k.invs = m.invs;
   k.scales = m.scales;
+  k.roles = m.roles;
   k.cads = m.cads;
   let passed = 0;
   while (passed < m.ents.length && m.ents[passed] <= clock.now) passed++;
