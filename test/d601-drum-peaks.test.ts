@@ -97,10 +97,12 @@ test("D713: the Art of Fugue's drums (HOME and its picks) under the band at ever
 
 /** D735: the Inventions' and Sinfonias' 30 (MORE BACH's), each on its own sound with its HOME (D731, D735). */
 const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
+/** D744: and the Four Duets. */
+const DUETS = ["bwv802", "bwv803", "bwv804", "bwv805"];
 test("D735: the Inventions' and Sinfonias' HOME drums under the band at every stroke, on the phone model", async () => {
   const bad: string[] = [];
   let n = 0;
-  for (const id of INV) {
+  for (const id of [...INV, ...DUETS]) {
     assert.equal(fugueById(id).id, id);
     const sound = PIECE_SOUND[id];
     for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);

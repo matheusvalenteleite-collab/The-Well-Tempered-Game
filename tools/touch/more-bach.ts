@@ -789,6 +789,9 @@ export const AOF_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${R
  */
 export const INV_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/inv-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
 for (const [id, ex] of INV_TABLE) AOF_TABLE.set(id, ex);
+/** D740: and the Four Duets' (data/touch/duet-entries.txt, the same grammar and ways). */
+export const DUET_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/duet-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
+for (const [id, ex] of DUET_TABLE) AOF_TABLE.set(id, ex);
 export function tableEntries(
   id: string,
   piece: { tpq: number; meter: string; bars: { n: number; on: number }[]; length: number; voices: Note[][]; key: string },

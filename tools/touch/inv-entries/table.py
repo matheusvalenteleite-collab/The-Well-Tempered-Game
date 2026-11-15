@@ -9,7 +9,7 @@ canon's subject); where an Invention opens on two lines in double counterpoint (
 line too (theme 2); a Sinfonia's subject and its countersubject(s) (themes 2, 3), the countersubject read from the
 line the subject's first voice plays against the second entry.
 The draft is reviewed by hand (the table says what was kept, changed or added and why); this only proposes.
-usage: python3 -I tools/touch/inv-entries/table.py [id ...] > draft.txt
+usage: python3 -I tools/touch/inv-entries/table.py [id ...] > draft.txt   (D740: and the Four Duets, BWV 802-805)
 """
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../aof-entries"))
@@ -47,6 +47,11 @@ SPEC = {
     "bwv799": ("multi", [(0, 1, 0, 10, 6, 0.75, (1,), 6), (0, 5, 0, 10, 6, 0.8, (1,), 6)]),
     "bwv800": ("", [(1, 1, 0, 9, 4.25, 0.75, (1,), 6)]),
     "bwv801": ("", [(0, 1, 0, 12, 5.25, 0.75, (1,), 6)]),
+    # D740: the Four Duets (BWV 802-805), the same way (data/touch/duet-entries.txt).
+    "bwv802": ("", [(0, 1, 0, 15, 9, 0.75, (1,), 6)]),
+    "bwv803": ("multi", [(0, 1, 0, 12, 8, 0.75, (1,), 6), (0, 5, 0, 12, 8, 0.75, (1,), 6)]),
+    "bwv804": ("", [(0, 1, 1.5, 12, 10.5, 0.75, (1,), 6)]),
+    "bwv805": ("multi", [(1, 1, 2, 12, 32, 0.75, (1,), 5), (1, 9, 2, 12, 32, 0.75, (1,), 5)]),
 }
 
 

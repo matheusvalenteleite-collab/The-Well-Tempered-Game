@@ -1,0 +1,79 @@
+# THE FOUR DUETS' ENTRIES (D740): every statement of each Duet's themes (BWV 802-805, Clavier-Übung III), the table
+# the game's entries are built from (tools/touch/more-bach.ts places it with tools/touch/expert.ts placeExpert, as the
+# Inventions' data/touch/inv-entries.txt, D730). The Duets are two-part fugues: an entry is a statement of the subject,
+# and of a countersubject where one returns with it twice or more at 0.8 (theme 2: Duets 2 and 4); Duet 2's middle part
+# states the subject in close imitation, marked dux and comes. No published analysis is in the repo: read off the notes by
+# D707's scanner (tools/touch/inv-entries/table.py drafts it) and reviewed; "mod" lines as there (the finders' statements
+# the scan's threshold misses: Duet 4's tonal answers, Duet 3's answer at 34). Grammar as data/touch/aof-entries.txt.
+
+== bwv802 | S
+% the chromatic line the lower part plays against the subject (2+0.5) restated once only at 0.8 (its octave leaps placed anew each time): the subject alone
+1+0 U len=9   # theme 1 read here
+7+0 L   # fit 1.0 full
+18+0 L   # fit 1.0 full
+19+0 U   # fit 1.0 full
+29+0 L   # fit 0.9 full
+29+0.25 U   # fit 1.0 full
+35+0 U   # fit 1.0 full
+35+0.25 L   # fit 1.0 full
+46+0 U   # fit 1.0 full
+47+0 L   # fit 1.0 full
+57+0 U inv   # fit 1.0 full
+58+0 L inv   # fit 1.0 full
+66+0 L   # fit 1.0 full
+66+0.25 U   # fit 1.0 full
+
+== bwv803 | S multi
+% A-B-A' (the A' a da capo of 1-37 at 113); the middle part's statements in close imitation, a beat or two bars apart, marked dux and comes (48, 61, 90, 107); the countersubject from the upper part's run against the answer (5); two finds laid from the second note at 0.77 and the countersubject's at 0.75 and 0.79 left out
+1+0 U len=8   # theme 1 read here
+5+0 U t2 len=8   # theme 2 read here
+5+0 L   # fit 0.96 full
+9+0 L t2   # fit 1.0 full
+17+0 U   # fit 0.88 full
+21+0 U t2   # fit 0.83 full
+29+0 L   # fit 1.0 full
+33+0 L t2   # fit 1.0 full
+48+0 U dux   # fit 0.88 full
+48+1 L comes   # fit 0.88 full
+61+1 U dux   # fit 0.83 full
+63+0 L comes   # fit 0.88 full
+69+0 L   # fit 1.0 full
+73+0 L t2   # fit 1.0 full
+74+0 U inv   # fit 1.0 full
+77+0.25 L t2 mod   # fit 0.82 from2
+90+1 U dux   # fit 0.83 full
+92+0 L comes   # fit 0.88 full
+107+0 U dux   # fit 0.88 full
+107+1 L comes   # fit 0.88 full
+113+0 U   # fit 1.0 full
+117+0 U t2   # fit 1.0 full
+117+0 L   # fit 0.96 full
+121+0 L t2   # fit 1.0 full
+129+0 U   # fit 0.88 full
+133+0 U t2   # fit 0.83 full
+141+0 L   # fit 1.0 full
+145+0 L t2   # fit 1.0 full
+
+== bwv804 | S
+% the subject a bar and a half, its two halves alike: a statement from the half ("mod") is the subject's second half heard first only where the scan says so; the finders' b. 37 is the statement found at 38
+1+1.5 U len=10.5   # theme 1 read here
+3+1.5 L mod   # fit 0.91 from2
+7+1.5 L   # fit 1.0 full
+9+1.5 U mod   # fit 0.91 from2
+16+1.5 L   # fit 1.0 full
+18+1.5 U mod   # fit 0.91 from2
+24+1.5 L   # fit 1.0 full
+38+1.5 U part   # fit 0.83 full (part: the piece ends before the theme would)
+34+1.5 U ans mod   # the answer in D minor, its tail bent (scan 0.67): D340's finder's statement, kept
+
+== bwv805 | S multi
+% the countersubject read against the answer (9+2, lower); its duplicate from the second note (9+3) left out
+1+2 L len=32   # theme 1 read here
+9+2 L t2 len=32   # theme 2 read here
+33+2 U   # fit 1.0 full
+41+3 U t2   # fit 1.0 full
+70+3.5 L t2 mod   # fit 1.0 from2
+96+2 L mod   # fit 1.0 from2
+9+2 U ans mod   # the tonal answer (its first leap a fourth, not a fifth): the finder's statement, kept
+41+2 L ans mod   # the tonal answer in the lower part: the finder's, kept
+70+2 U ans mod   # the tonal answer: the finder's, kept

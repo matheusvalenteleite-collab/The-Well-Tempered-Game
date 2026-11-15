@@ -91,3 +91,23 @@ test("D735: each HOME fits the metre, a grid's pulse in its band, at least 65 % 
     assert.ok(share >= 0.65, `${id}: ${(share * 100).toFixed(0)} % on the onsets`);
   }
 });
+
+/** D741, D744: the Four Duets, each on its own sound, no two alike, with its HOME. */
+const DUETS: Record<string, [string, string]> = { bwv802: ["berlinSchool", "scoreSynth"], bwv803: ["gameboy", "chip"], bwv804: ["jazzQuartet", "brushes"], bwv805: ["krautrock", "motorik"] };
+test("D741, D744: the Four Duets on four sounds (none shared within the group), each with its reason and plan; each HOME fits, its strokes on the score's onsets", async () => {
+  assert.equal(new Set(Object.values(DUETS).map(([s]) => s)).size, 4);
+  for (const [id, [s, st]] of Object.entries(DUETS)) {
+    assert.equal(PIECE_SOUND[id], s, id);
+    assert.equal(COLOURS[id].sound, s, id);
+    assert.ok(/^D741: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy), `${id}: why`);
+    assert.ok(COLOURS[id].plans[s]?.length, `${id}: a plan`);
+    const f = fugueById(id);
+    assert.equal(FUGUE_STYLES[id], st, id);
+    assert.equal(homeFor(id, s), st, id);
+    assert.ok(fits(st, f), `${id}: ${st} in ${f.meter}`);
+    const ons = [...new Set(f.voices.flatMap((v) => v.map((n) => n[0])))];
+    const strokes = await strokesOf(f, s, st);
+    const share = strokes.filter((x) => ons.some((o) => Math.abs(o - x.tick) <= f.tpq / 8)).length / strokes.length;
+    assert.ok(share >= 0.65, `${id}: ${(share * 100).toFixed(0)} %`);
+  }
+});
