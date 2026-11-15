@@ -26,10 +26,12 @@ import { BASS_GAP_DB } from "../../../src/touch/bass-phone.ts";
 import { BASS_PHONE as BASS_48 } from "../../../src/touch/bass-phone-data.ts";
 import { BASS_PHONE_AOF } from "../../../src/touch/bass-phone-aof.ts";
 import { BASS_PHONE_INV } from "../../../src/touch/bass-phone-inv.ts";
+import { BASS_PHONE_DUET } from "../../../src/touch/bass-phone-duet.ts";
 // D718: the Art of Fugue's pieces too (MORE BACH's: registered by loadExtras; their D645 measure in bass-phone-aof.ts).
 await loadExtras();
 // D737: and the Inventions' and Sinfonias' (bass-phone-inv.ts, D734).
-const BASS_PHONE = { ...BASS_48, ...BASS_PHONE_AOF, ...BASS_PHONE_INV };
+// D746: and the Four Duets' (bass-phone-duet.ts, D745).
+const BASS_PHONE = { ...BASS_48, ...BASS_PHONE_AOF, ...BASS_PHONE_INV, ...BASS_PHONE_DUET };
 
 type Tap = { windows: number; K: number; Ph: number; bright?: number | null; seg?: (number | null)[] };
 type Run = { id: string; voice: number; sound: string; voices: Record<string, Tap>; printed?: (number[] | null)[]; segTick?: number[] };

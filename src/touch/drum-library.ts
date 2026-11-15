@@ -294,6 +294,11 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   bwv799: "chip", // CLASSIC CHIP's own
   bwv800: "bossa", // the cheerful B♭ trio on SALSA, moderate (2.6 notes a second): the bossa's lighter groove over SALSA's own, 99 %
   bwv801: "liebezeit", // the driving 9/16 on KRAUTROCK: Jaki Liebezeit's trance, 68 a minute (62-104)
+  // D744: the Four Duets, each on its own sound (D741), by the same criteria (score.ts: FITS, the pulse in its band, the onsets).
+  bwv802: "scoreSynth", // the chromatic 3/8 on BERLIN SCHOOL: its own synth kit read from the score, 99 %
+  bwv803: "chip", // the bright 2/4 on GAME BOY: its own chip kit, 95 %
+  bwv804: "brushes", // the 12/8 gigue on JAZZ QUARTET: its brushes, 100 %
+  bwv805: "motorik", // the alla breve fugue on KRAUTROCK: its own drummer, 92 %
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {

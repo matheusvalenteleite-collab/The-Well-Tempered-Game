@@ -2400,6 +2400,15 @@ export const INV_LEVELS: Readonly<Record<string, Readonly<Record<string, { phone
   salsa: { bwv800: { phoneGain: 1.18 } }, // -29.4 LUFS
   krautrock: { bwv801: { phoneGain: 1.3 } }, // -30.2 LUFS
 };
+/** D747: the Four Duets the same way (whole, with the lift, the phone model): the two more than 1 LU under raised to about -28. */
+export const DUET_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  gameboy: { bwv803: { phoneGain: 1.36 } }, // -30.6 LUFS
+  jazzQuartet: { bwv804: { phoneGain: 1.33 } }, // -30.4 LUFS
+};
+for (const [sid, lv] of Object.entries(DUET_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
 for (const [sid, lv] of Object.entries(INV_LEVELS)) {
   const p = PRESETS.find((x) => x.id === sid)!;
   p.levels = { ...(p.levels ?? {}), ...lv };

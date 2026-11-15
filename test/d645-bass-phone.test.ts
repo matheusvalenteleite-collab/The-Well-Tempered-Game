@@ -16,6 +16,7 @@ import { BASS_GAP_DB, bassPatchOf, bassSig, type BassRun } from "../src/touch/ba
 import { BASS_PHONE } from "../src/touch/bass-phone-data.ts";
 import { BASS_PHONE_AOF } from "../src/touch/bass-phone-aof.ts";
 import { BASS_PHONE_INV } from "../src/touch/bass-phone-inv.ts";
+import { BASS_PHONE_DUET } from "../src/touch/bass-phone-duet.ts";
 import { FakeAudioContext, type FakeNode, installFakeAudio } from "./fake-audio.ts";
 import { Chip, PHONE_BASS_GAIN, voicing } from "../src/touch/chip.ts";
 import { KRAUT2_MOOG_PHONE_LIFT, placeFor, presetById, setPreset } from "../src/touch/sound.ts";
@@ -162,8 +163,9 @@ test(`D711: the Art of Fugue's every piece measured on its own sound, its bass w
 const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
 test(`D734: every Invention and Sinfonia measured on its own sound, its bass within ${BASS_GAP_DB} LU of its loudest voice on a phone, in the band and as the player's`, () => {
   const bad: string[] = [];
-  for (const id of INV) {
-    const m = BASS_PHONE_INV[id];
+  // D745: and the Four Duets'.
+  for (const id of [...INV, "bwv802", "bwv803", "bwv804", "bwv805"]) {
+    const m = BASS_PHONE_INV[id] ?? BASS_PHONE_DUET[id];
     assert.ok(m, `${id}: measured`);
     const f = fugueById(id);
     assert.equal(f.id, id);

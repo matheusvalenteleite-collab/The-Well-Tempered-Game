@@ -118,3 +118,14 @@ test("D738: the Inventions' and Sinfonias' levels: on their own sounds, a phone'
     assert.equal(pieceLevel(snd, id, false), 1, `${id}: the computer path as it was`);
   }
 });
+
+test("D747: the Four Duets' levels: on their own sounds, a phone's only, 1-4 dB", () => {
+  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter((id) => /^bwv80[2-5]$/.test(id)).map((id) => [id, p.id] as const));
+  assert.deepEqual(all.map(([id]) => id).sort(), ["bwv803", "bwv804"]);
+  for (const [id, snd] of all) {
+    assert.equal(PIECE_SOUND[id], snd, id);
+    const up = 20 * Math.log10(pieceLevel(snd, id, true));
+    assert.ok(up >= 1 && up <= 4, `${id}: ${up.toFixed(1)} dB`);
+    assert.equal(pieceLevel(snd, id, false), 1);
+  }
+});
