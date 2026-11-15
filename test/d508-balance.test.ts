@@ -21,7 +21,9 @@ const WTC = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f
 // D718: and the Art of Fugue's 20 on their own sounds (MORE BACH's pieces: registered by loadExtras).
 await loadExtras();
 const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17", "14"].map((k) => `bwv1080-${k}`);
-const IDS = [...WTC, ...AOF];
+// D737: and the Inventions' and Sinfonias' 30 on their own sounds.
+const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
+const IDS = [...WTC, ...AOF, ...INV];
 const c = (x: readonly number[]) => (x[0] + x[1]) / 2;
 const dB = (g: number) => 20 * Math.log10(g);
 

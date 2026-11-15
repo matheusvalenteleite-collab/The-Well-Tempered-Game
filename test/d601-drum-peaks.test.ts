@@ -95,6 +95,20 @@ test("D713: the Art of Fugue's drums (HOME and its picks) under the band at ever
   assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 
+/** D735: the Inventions' and Sinfonias' 30 (MORE BACH's), each on its own sound with its HOME (D731, D735). */
+const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
+test("D735: the Inventions' and Sinfonias' HOME drums under the band at every stroke, on the phone model", async () => {
+  const bad: string[] = [];
+  let n = 0;
+  for (const id of INV) {
+    assert.equal(fugueById(id).id, id);
+    const sound = PIECE_SOUND[id];
+    for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
+  }
+  assert.ok(n > 8000, `${n} strokes`);
+  assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
+});
+
 test("D618: a sound's HOME by fugue (BACH BRASS's calm fugues on TIMPANI and FIELD DRUM) under that sound's band at every stroke", async () => {
   const bad: string[] = [];
   let n = 0;
