@@ -25,7 +25,9 @@ const jobs = JSON.parse(fs.readFileSync(jobsFile, 'utf8'));
     const t0 = Date.now();
     const r = await p.evaluate(async (job) => {
       const SR = 24000, N = 512, dt = N / SR;
-      const { fugueById } = await import('/src/touch/fugue.ts');
+      const { fugueById, loadExtras } = await import('/src/touch/fugue.ts');
+      // D711: the MORE BACH pieces (the Art of Fugue) are registered once their notes and seats load.
+      await loadExtras();
       const chipM = await import('/src/touch/chip.ts');
       const { setPreset, setBacking } = await import('/src/touch/sound.ts');
       const { setDrumStyle } = await import('/src/touch/drum-library.ts');
@@ -42,7 +44,7 @@ const jobs = JSON.parse(fs.readFileSync(jobsFile, 'utf8'));
       if (job.setup) await new Function('W', job.setup)(window);
       const bpm = tempoOf(f.id);
       const reading = playReading(f.id);
-      const dur = Math.min(600, f.length / ((f.tpq * bpm) / 60) + 14);
+      const dur = Math.min(900, f.length / ((f.tpq * bpm) / 60) + 14);
       // The output's taps: every node the chip connects to the destination also feeds the measuring chain.
       const Real = window.AudioContext;
       let ac = null;

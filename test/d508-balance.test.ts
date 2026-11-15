@@ -8,7 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { fugueById } from "../src/touch/fugue.ts";
+import { fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { playerSound, setPreset } from "../src/touch/sound.ts";
 import { BALANCE, BAND_ENTRY_DB, BAND_SPREAD_DB, BAND_TRIM_MAX_DB, BRIGHT_MAX_DB, PLAYER_ENTRY_DB, bandTrimDb, entryGain, liftDb, playerToneDb } from "../src/touch/player-lift.ts";
@@ -17,7 +17,11 @@ import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 
-const IDS = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
+const WTC = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
+// D718: and the Art of Fugue's 20 on their own sounds (MORE BACH's pieces: registered by loadExtras).
+await loadExtras();
+const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17", "14"].map((k) => `bwv1080-${k}`);
+const IDS = [...WTC, ...AOF];
 const c = (x: readonly number[]) => (x[0] + x[1]) / 2;
 const dB = (g: number) => 20 * Math.log10(g);
 

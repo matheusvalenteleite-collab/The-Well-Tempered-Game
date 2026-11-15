@@ -43,7 +43,8 @@ const [out, ...jobs] = process.argv.slice(2);
     const [piece, snd = ''] = main.split('@');
     const [fromBar, secs] = part ? part.split(':').map(Number) : [0, 0];
     const pg = await page();
-    const nv = await pg.evaluate(async (id) => (await import('/src/touch/fugue.ts')).fugueById(id).voices.length, piece);
+    // D718: MORE BACH's pieces (the Art of Fugue) are registered once their notes and seats load.
+    const nv = await pg.evaluate(async (id) => { const m = await import('/src/touch/fugue.ts'); await m.loadExtras(); return m.fugueById(id).voices.length; }, piece);
     const keyOf = (v) => `${piece}:${v}${snd ? '@' + snd : ''}${part ? '~' + part : ''}`;
     if ([...Array(nv).keys()].every((v) => results[keyOf(v)])) continue;
     const t0 = Date.now();
@@ -69,7 +70,7 @@ const [out, ...jobs] = process.argv.slice(2);
       const reading = playReading(id);
       const from = fromBar ? barStart(f, fromBar) : 0;
       const tps = (f.tpq * bpm) / 60;
-      const dur = Math.min(secs || 600, (f.length - from) / tps + 6);
+      const dur = Math.min(secs || 900, (f.length - from) / tps + 6);
       // the output: everything the chip connects to the destination also feeds one mono sum, read every step
       const Real = window.AudioContext;
       let ac = null;

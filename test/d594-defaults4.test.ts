@@ -27,7 +27,8 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 const FUGUES = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 
 test("D594: I/24 and II/22 open on their FAST step (I/24 crotchet 43 → 60, II/22 117 → 164); every other fugue on DEFAULT", () => {
-  assert.deepEqual(OPENING_STEP, { wtc1f24: "fast", wtc2f22: "fast" });
+  // D710: and ten of the Art of Fugue's (their DEFAULT under every recording measured).
+  assert.deepEqual(Object.fromEntries(Object.entries(OPENING_STEP).filter(([id]) => id.startsWith("wtc"))), { wtc1f24: "fast", wtc2f22: "fast" });
   assert.deepEqual(steps.stepTempi("wtc1f24"), { slow: 32, default: 43, fast: 60 });
   assert.deepEqual(steps.stepTempi("wtc2f22"), { slow: 88, default: 117, fast: 164 });
   for (const id of FUGUES) {

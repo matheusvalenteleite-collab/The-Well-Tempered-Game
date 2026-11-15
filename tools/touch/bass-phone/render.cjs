@@ -30,7 +30,9 @@ fs.mkdirSync(outDir, { recursive: true });
     const t0 = Date.now();
     const r = await p.evaluate(async (job) => {
       const SR = 24000, N = 512, dt = N / SR;
-      const { fugueById } = await import('/src/touch/fugue.ts');
+      const { fugueById, loadExtras } = await import('/src/touch/fugue.ts');
+      // D711: the MORE BACH pieces (the Art of Fugue) are registered once their notes and seats load.
+      await loadExtras();
       const chipM = await import('/src/touch/chip.ts');
       const { setPreset, setBacking, playerSound } = await import('/src/touch/sound.ts');
       const { PIECE_SOUND } = await import('/src/touch/piece-sound.ts');

@@ -11,6 +11,7 @@
  * note of the player's part is played by a touch, a slide (D486) or a slide-in (D488), or it is missed:
  * no note rides (D191's riders, D229's prelude riders and D253's repeated bass are gone).
  */
+import { BREAKS_OFF } from "../touch/tempi.ts";
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
 import { contextSteps, fallingSecondAfter, freeOrnamentParts, keySignature, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
@@ -714,7 +715,8 @@ export class ProtoGame {
       // D385: the final slowing where the edition marks it (his words, his bars), else D181's automatic one;
       // and the fermatas it marks held (the only other place the time moves).
       const end = this.whole?.ending;
-      if (o.until === undefined || o.until >= f.length) this.rit = end ? ritard(f.length, f.barTicks, end.from, end.end) : ritard(f.length, f.barTicks);
+      // D710: none where the text breaks off (Contrapunctus 14).
+      if ((o.until === undefined || o.until >= f.length) && !BREAKS_OFF.has(f.id)) this.rit = end ? ritard(f.length, f.barTicks, end.from, end.end) : ritard(f.length, f.barTicks);
       if (this.whole?.fermatas.length) this.rit = withHolds(this.rit, this.whole.fermatas);
     }
     // D250: a prelude's arc (arc.ts): its tempo rising subtly, its notes passing to the player by section.

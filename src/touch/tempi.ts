@@ -62,7 +62,9 @@ const TUTORIAL_TEMPO: Record<string, number> = { inv01: 60 };
 export function tempoOf(id: string): number {
   const t = TEMPO[id];
   // D594: a fugue that opens on its FAST step plays it from the start (the friends' view too, where the button is shut).
-  if (t && OPENING_STEP[id] === "fast") return fastTempo(t);
+  // D710: a MORE BACH piece too (the Art of Fugue's: its record in more-bach.json).
+  const rec = t ?? MORE_TEMPO[id];
+  if (rec && OPENING_STEP[id] === "fast") return fastTempo(rec);
   return t?.normal ?? MORE_TEMPO[id]?.normal ?? PRELUDES[id] ?? TUTORIAL_TEMPO[id] ?? 46;
 }
 
@@ -90,7 +92,14 @@ export function fastTempo(t: PieceTempo): number {
  * `standardTempo` (the recordings' median), so the ranking does not move.
  */
 export type OpeningStep = "default" | "fast";
-export const OPENING_STEP: Readonly<Record<string, OpeningStep>> = { wtc1f24: "fast", wtc2f22: "fast" };
+/**
+ * D710: the Art of Fugue's pieces whose DEFAULT (the editorial reference lowered for the load, D340) sits under the
+ * slowest of the recordings measured (data/tempi/aof-recordings.csv: track durations on Apple Music's store pages,
+ * nine releases, the tempo each implies over the piece's length): they open on FAST, which falls inside that range
+ * for every one of them (test/d710-aof-tempo.test.ts). The others' DEFAULT is already inside it and stays.
+ */
+export const AOF_FAST = ["bwv1080-02", "bwv1080-04", "bwv1080-06", "bwv1080-08", "bwv1080-09", "bwv1080-11", "bwv1080-12r", "bwv1080-12i", "bwv1080-c15", "bwv1080-c17"] as const;
+export const OPENING_STEP: Readonly<Record<string, OpeningStep>> = { wtc1f24: "fast", wtc2f22: "fast", ...Object.fromEntries(AOF_FAST.map((id) => [id, "fast" as const])) };
 export const openingStep = (id: string): OpeningStep => OPENING_STEP[id] ?? "default";
 
 /**
@@ -101,3 +110,10 @@ export const openingStep = (id: string): OpeningStep => OPENING_STEP[id] ?? "def
 export function standardTempo(id: string): number {
   return TEMPO[id]?.median ?? MORE_TEMPO[id]?.median ?? tempoOf(id);
 }
+
+/**
+ * D710: a piece that breaks off where its text stops (Contrapunctus 14: Bach's score ends in bar 239, mid-phrase): no
+ * final ritard there. D181's automatic one slows into a close; this piece has none to hold back, and no reading marks
+ * one (Busoni edited no Art of Fugue). It ends in tempo, on the last note written.
+ */
+export const BREAKS_OFF: ReadonlySet<string> = new Set(["bwv1080-14"]);

@@ -18,12 +18,16 @@
  * stretches in a row, Busoni's printed asks excepted) before and after the balance.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { fugueById } from "../../../src/touch/fugue.ts";
+import { fugueById, loadExtras } from "../../../src/touch/fugue.ts";
 import { entrySpans } from "../../../src/touch/voice-mode.ts";
 import { BAND_ENTRY_DB, BAND_SPREAD_DB, BAND_TRIM_MAX_DB, PLAYER_ENTRY_DB, BRIGHT_MAX_DB, BRIGHT_SLACK_DB, LIFT_MAX_DB, LIFT_MIN_DB } from "../../../src/touch/player-lift.ts";
 import { SOUND_LOUD as OLD_SOUND } from "../../../src/touch/player-lift-data.ts";
 import { BASS_GAP_DB } from "../../../src/touch/bass-phone.ts";
-import { BASS_PHONE } from "../../../src/touch/bass-phone-data.ts";
+import { BASS_PHONE as BASS_48 } from "../../../src/touch/bass-phone-data.ts";
+import { BASS_PHONE_AOF } from "../../../src/touch/bass-phone-aof.ts";
+// D718: the Art of Fugue's pieces too (MORE BACH's: registered by loadExtras; their D645 measure in bass-phone-aof.ts).
+await loadExtras();
+const BASS_PHONE = { ...BASS_48, ...BASS_PHONE_AOF };
 
 type Tap = { windows: number; K: number; Ph: number; bright?: number | null; seg?: (number | null)[] };
 type Run = { id: string; voice: number; sound: string; voices: Record<string, Tap>; printed?: (number[] | null)[]; segTick?: number[] };
@@ -274,7 +278,7 @@ const lines = [
   " */",
   `export type DeskBalance = { b: number[]; t: number[]; l: number[]; p?: number[]; off?: number[] };`,
   `export const OWN_LOUD: Readonly<Record<string, { s: string; p: number[][]; b: number[][]; t: number[]; l: number[]; h: number[]; d?: DeskBalance }>> = {`,
-  ...Object.keys(OWN).sort().map((id) => `  ${id}: { s: ${fmt(OWN[id].s)}, p: ${fmt(OWN[id].p)}, b: ${fmt(OWN[id].b)}, t: ${fmt(OWN[id].t)}, l: ${fmt(OWN[id].l)}, h: ${fmt(OWN[id].h)}${OWN[id].d ? `, d: ${fmt(OWN[id].d)}` : ""} },`),
+  ...Object.keys(OWN).sort().map((id) => `  ${/^\w+$/.test(id) ? id : JSON.stringify(id)}: { s: ${fmt(OWN[id].s)}, p: ${fmt(OWN[id].p)}, b: ${fmt(OWN[id].b)}, t: ${fmt(OWN[id].t)}, l: ${fmt(OWN[id].l)}, h: ${fmt(OWN[id].h)}${OWN[id].d ? `, d: ${fmt(OWN[id].d)}` : ""} },`),
   "};",
   `export const SOUND_LOUD: Readonly<Record<string, Readonly<Record<number, { b: number[][]; off: number[][]; t: number[]; l: number[]; h: number[]; d?: DeskBalance }>>>> = {`,
   ...Object.keys(SOUND).sort().map((s) => `  ${s}: { ${Object.entries(SOUND[s]).map(([n, x]) => `${n}: { b: ${fmt(x.b)}, off: ${fmt(x.off)}, t: ${fmt(x.t)}, l: ${fmt(x.l)}, h: ${fmt(x.h)}${x.d ? `, d: ${fmt(x.d)}` : ""} }`).join(", ")} },`),

@@ -95,3 +95,14 @@ test("D593: the level at the master, set as the piece starts, constant through t
   chip.pieceLevel({ id: "wtc1f19" });
   assert.ok(Math.abs(masterOf(chip) - 0.4) < 1e-9);
 });
+
+test("D715, D718: the Art of Fugue's levels: on their own sounds, a phone's only, about the defaults' median (raised up to 4 dB; C7 lowered 1 dB after the lift)", () => {
+  const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter((id) => id.startsWith("bwv1080-")).map((id) => [id, p.id] as const));
+  assert.equal(all.length, 13);
+  for (const [id, snd] of all) {
+    assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
+    const up = 20 * Math.log10(pieceLevel(snd, id, true));
+    assert.ok(Math.abs(up) >= 0.5 && up >= -1.5 && up <= 4, `${id}: ${up.toFixed(1)} dB on a phone`);
+    assert.equal(pieceLevel(snd, id, false), 1, `${id}: the computer path as it was`);
+  }
+});
