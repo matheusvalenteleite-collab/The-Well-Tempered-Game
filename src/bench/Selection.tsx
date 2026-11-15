@@ -16,7 +16,7 @@ import { auditionUrl, soundBlurb } from "../touch/sound-blurbs.ts";
 import { FugueAbout } from "./FugueAbout.tsx";
 import type { Performed } from "./HearSubject.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
-import { fugueById } from "../touch/fugue.ts";
+import { extrasLoaded, fugueById, loadExtras } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { Portrait } from "./Bach.tsx";
@@ -27,7 +27,8 @@ import { popTitle } from "./PlayPop.tsx";
 import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
 import { SOUND_GROUPS } from "./SoundSelect.tsx";
-import { BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
+import { aofLabel } from "./aof-label.ts";
+import { AOF_IDS, BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
 export function pieceTitle(id: string): string {
@@ -37,7 +38,10 @@ export function pieceTitle(id: string): string {
 }
 
 /** The grid's pieces for a book tab (on a phone the fugues only). */
-export const gridIds = (tab: LiteTab): string[] => liteAll(true).filter((id) => (id.startsWith("wtc2") ? "II" : "I") === tab);
+export const gridIds = (tab: LiteTab): string[] => (tab === "AOF" ? [...AOF_IDS] : liteAll(true).filter((id) => (id.startsWith("wtc2") ? "II" : "I") === tab));
+/** D727: the tabs laid out as a grid of tiles (the books, THE ART OF FUGUE); the others as lists. */
+export const gridTab = (t: LiteTab): boolean => t === "I" || t === "II" || t === "AOF";
+
 
 export interface SelectionProps {
   /** The piece chosen (BenchApp's pick), its voice and the voices that may be taken. */
@@ -102,13 +106,18 @@ export function Selection(p: SelectionProps) {
   const { piece, beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, tutorial } = p;
   const tabs = liteTabs();
   const shown = (t: LiteTab) => tabs.some(([x]) => x === t);
-  const [tab, setTab] = useState<LiteTab>(() => (shown(liteTabOf(piece)) && (liteTabOf(piece) === "I" || liteTabOf(piece) === "II") ? liteTabOf(piece) : storedTab()));
+  const [tab, setTab] = useState<LiteTab>(() => (shown(liteTabOf(piece)) && gridTab(liteTabOf(piece)) ? liteTabOf(piece) : storedTab()));
+  // D727: THE ART OF FUGUE's notes load with the extras, on demand (its tiles once they are in).
+  const [aofReady, setAofReady] = useState(extrasLoaded());
+  useEffect(() => {
+    if (tab === "AOF" && !aofReady) void loadExtras().then(() => setAofReady(true), () => {});
+  }, [tab, aofReady]);
   const pick = (t: LiteTab) => (setTab(t), storeTab(t), t === "II" && p.bookTwo?.());
   const won = new Set(beaten);
   const first = !!tutorial && liteFirstVisit(beaten, tutorial.done);
   // The first visit: the right column says where to start until a tile is tapped.
   const [chosen, setChosen] = useState(!first || !!p.current);
-  const grid = tab === "I" || tab === "II";
+  const grid = gridTab(tab) && (tab !== "AOF" || aofReady);
   const ids = grid ? gridIds(tab) : [];
   const next = grid ? liteSuggested(ids, won, first) : null;
   const choose = (id: string) => (setChosen(true), p.select(id));
@@ -150,7 +159,7 @@ export function Selection(p: SelectionProps) {
           <div role="tablist">
             {tabs.map(([t, label]) => {
               // Design studio (D463): each book its share finished, "BOOK I  42%", a bar under it.
-              const pct = t === "I" || t === "II" ? Math.round((100 * gridIds(t).filter((id) => won.has(id)).length) / Math.max(1, gridIds(t).length)) : null;
+              const pct = gridTab(t) ? Math.round((100 * gridIds(t).filter((id) => won.has(id)).length) / Math.max(1, gridIds(t).length)) : null;
               return (
                 <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`sel-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
                   <span className="sel-tab-name">{t === "I" || t === "II" ? `${tr("BOOK")} ${t}` : tr(label)}</span>
@@ -203,20 +212,22 @@ export function Selection(p: SelectionProps) {
               {/* D447 (the owner: "ought to include the name of the book, i.e. J. S. Bach's Well-Tempered Clavier BOOK I – 24 FUGUES"): the work's name over the book's. */}
               <h2 className="sel-strip-title" id="lite-book-head">
                 <span className="sel-strip-work" id="lite-work-head">
-                  {tr("J. S. BACH · THE WELL-TEMPERED CLAVIER")}
+                  {tab === "AOF" ? tr("J. S. BACH · THE ART OF FUGUE") : tr("J. S. BACH · THE WELL-TEMPERED CLAVIER")}
                 </span>
-                <span className="sel-strip-book">
-                  {tr("BOOK")} {tab} · {tr("{n} FUGUES", { n: ids.length })}
-                </span>
+                <span className="sel-strip-book">{tab === "AOF" ? `BWV 1080 · ${tr("{n} PIECES", { n: ids.length })}` : `${tr("BOOK")} ${tab} · ${tr("{n} FUGUES", { n: ids.length })}`}</span>
               </h2>
-              <span className="sel-strip-order">{tr("MAJOR · MINOR, BY KEY")}</span>
+              <span className="sel-strip-order">{tab === "AOF" ? tr("ONE SUBJECT, IN D MINOR, IN BACH'S ORDER") : tr("MAJOR · MINOR, BY KEY")}</span>
             </header>
-            <ol className="sel-grid" id="sel-grid">
+            <ol className={`sel-grid${tab === "AOF" ? " sel-grid-aof" : ""}`} id="sel-grid">
               {ids.map((id) => (
                 <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} />
               ))}
             </ol>
           </>
+        ) : tab === "AOF" ? (
+          <p className="tb-lite-line" id="aof-loading" role="status">
+            {tr("LOADING…")}
+          </p>
         ) : (
           <LiteGrid key={tab} bare book={tab} soundOf={p.soundOf} beaten={beaten} best={best} scores={scores} bestOld={bestOld} scoresOld={scoresOld} open={p.open} hear={p.hear} settings={p.settings} fuguesOnly />
         )}
@@ -275,6 +286,8 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
   const n = Number(id.slice(-2));
   // Design studio: the key in words, "C♯ major" / "C♯ minor", not the upper/lower-case convention.
   const key = keyWords(f.key);
+  // D727: an Art of Fugue tile says its number and kind (all are in D minor).
+  const aof = id.startsWith("bwv1080") ? aofLabel(id) : null;
   // Design studio (D463): the whole name on the tile, its article back ("THE IMP"), on up to two lines.
   const full = fugueName(id, lang());
   const nick = full;
@@ -309,7 +322,15 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
         {/* D499: the words in a band under the whole picture (no longer over its foot). */}
         <span className="sel-tile-words">
           <span className="sel-tile-key">
-            <b>{n}</b> {key.tonic} <i>{key.mode}</i>
+            {aof ? (
+              <>
+                <b>{aof.n}</b> <i>{aof.sub}</i>
+              </>
+            ) : (
+              <>
+                <b>{n}</b> {key.tonic} <i>{key.mode}</i>
+              </>
+            )}
           </span>
           {nick && (
             <span className={`sel-tile-name${nick.length > 17 ? " long" : ""}`} id={`name-${id}`} data-word={longestWord(nick)}>

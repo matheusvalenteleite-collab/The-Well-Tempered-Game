@@ -33,7 +33,7 @@ test("D382: the passphrase unlock still opens everything without Book I finished
   setUnlocked(true);
   assert.equal(store.get(UNLOCK_KEY), "1");
   assert.equal(bookTwoOpen(), true);
-  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "MORE", "CHORALES"]);
+  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "MORE", "CHORALES"]);
   assert.equal(bookTwoNews(), false, "no celebration for the owner's unlock");
 });
 
