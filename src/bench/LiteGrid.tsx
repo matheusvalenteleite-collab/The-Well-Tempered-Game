@@ -11,7 +11,7 @@ import { presetById } from "../touch/sound.ts";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyLabel } from "./emblem.ts";
 import { pieceWord } from "./piece-word.ts";
-import { BEFORE_JUDGING, bestScore, CHORALE_IDS, liteAll, liteExtra, liteLevel, liteTabOf, liteTabs, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
+import { BEFORE_JUDGING, bestScore, CHORALE_IDS, OWN_TAB_SECTIONS, liteAll, liteExtra, liteLevel, liteTabOf, liteTabs, MORE_SECTIONS, startHere, type LiteTab } from "./lite.ts";
 import { popTitle } from "./PlayPop.tsx";
 import { keyTint } from "../touch/MusicBox.tsx";
 
@@ -165,8 +165,8 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
       {tab === "MORE" && !waiting && (
         // D340: MORE BACH, in sections; each card as Book I's (the picture, the name, the voices, the level, the sound).
         <>
-          {/* D727: THE ART OF FUGUE has its own tab. */}
-          {MORE_SECTIONS.filter((s) => s.id !== "aof").map((s) => (
+          {/* D727, D750: THE ART OF FUGUE and THE INVENTIONS AND SINFONIAS have their own tabs. */}
+          {MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).map((s) => (
             // D350: each collection folded (the owner: "foldable … to ease up navigation"), its count on the fold.
             <details key={s.id} className="tb-lite-section tb-lite-fold" aria-label={s.title}>
               <summary className="tb-lite-book" id={`section-${s.id}`}>

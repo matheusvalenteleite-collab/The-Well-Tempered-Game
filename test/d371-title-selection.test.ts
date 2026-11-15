@@ -147,9 +147,10 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   store.set("tb-unlock-all", "1");
   try {
     const full = renderToStaticMarkup(createElement(Selection, { ...base, beaten: [] }));
-    for (const t of ["I", "II", "MORE", "CHORALES"]) assert.match(full, new RegExp(`id="tab-book-${t}"`));
+    for (const t of ["I", "II", "AOF", "INV", "MORE", "CHORALES"]) assert.match(full, new RegExp(`id="tab-book-${t}"`));
     store.set("tb-lite-book-v1", "MORE");
-    const more = renderToStaticMarkup(createElement(Selection, { ...base, piece: "bwv772", voice: 0, singing: [0, 1], beaten: [] }));
+    // (D750: the Inventions have a tab of their own; a ricercar of the Musical Offering stays in MORE BACH.)
+    const more = renderToStaticMarkup(createElement(Selection, { ...base, piece: "bwv1079-ric3", voice: 0, singing: [0, 1, 2], beaten: [] }));
     assert.match(more, /class="tb-lite tb-lite-bare"/);
     assert.doesNotMatch(more, /id="tile-|id="lite-top"/);
   } finally {

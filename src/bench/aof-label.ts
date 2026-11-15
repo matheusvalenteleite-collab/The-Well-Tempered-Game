@@ -7,3 +7,10 @@ export function aofLabel(id: string): { n: string; sub: string } {
   if (m[1]) return { n: tr("CANON"), sub: tr(({ "14": "AUG.", "15": "8VE", "16": "10TH", "17": "12TH" } as Record<string, string>)[m[2]] ?? "") };
   return { n: String(Number(m[2])), sub: m[3] === "r" ? tr("RECTUS") : m[3] === "i" ? tr("INVERSUS") : id === "bwv1080-14" ? tr("UNFINISHED") : tr("CONTRAPUNCTUS") };
 }
+
+/** D750: an Invention's or Sinfonia's number (BWV 772–786: Inventions 1–15; 787–801: Sinfonias 1–15) and kind; null for any other piece. */
+export function invOf(id: string): { n: number; kind: "INVENTION" | "SINFONIA" } | null {
+  const m = /^bwv(\d{3})$/.exec(id);
+  const b = m ? Number(m[1]) : 0;
+  return b >= 772 && b <= 786 ? { n: b - 771, kind: "INVENTION" } : b >= 787 && b <= 801 ? { n: b - 786, kind: "SINFONIA" } : null;
+}
