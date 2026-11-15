@@ -14,7 +14,7 @@ test("D727: twenty pieces in the edition's order, the unfinished 14 last; their 
   assert.deepEqual(AOF_IDS.slice(11, 15), ["bwv1080-12r", "bwv1080-12i", "bwv1080-13r", "bwv1080-13i"]);
   for (const id of AOF_IDS) assert.equal(liteTabOf(id), "AOF", id);
   assert.deepEqual(liteNextOrder("bwv1080-03"), [...AOF_IDS]);
-  assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "MORE", "CHORALES"]);
+  assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
 });
 
 test("D727: for the friends the tab waits for its dressing (AOF_FOR_ALL)", () => {

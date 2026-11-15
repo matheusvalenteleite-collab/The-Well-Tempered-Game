@@ -20,12 +20,14 @@ import { difficultyOf } from "./difficulty.ts";
  * Offering's ricercars, the Inventions, the Sinfonias, the Concerto for Two Violins: tools/touch/more-bach.ts)
  * and CHORALES (Bach's 370 four-part chorales: tools/touch/chorales.ts).
  */
-export type LiteTab = "I" | "II" | "AOF" | "MORE" | "CHORALES";
+export type LiteTab = "I" | "II" | "AOF" | "INV" | "MORE" | "CHORALES";
 export const LITE_TABS: readonly [LiteTab, string][] = [
   ["I", "BOOK I"],
   ["II", "BOOK II"],
   // D727: THE ART OF FUGUE, its own tab for everyone (out of MORE BACH), a grid of tiles as the books'.
   ["AOF", "THE ART OF FUGUE"],
+  // D750: THE INVENTIONS AND SINFONIAS, the same (out of MORE BACH).
+  ["INV", "INVENTIONS AND SINFONIAS"],
   ["MORE", "MORE BACH"],
   ["CHORALES", "CHORALES"],
 ];
@@ -35,7 +37,9 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
  * for its twenty pieces): until then only behind the unlock, as MORE BACH was. Flip when their work lands.
  */
 export const AOF_FOR_ALL = true;
-export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL)));
+/** D750: THE INVENTIONS AND SINFONIAS open to everyone once the studio's setting and Instruments' sounds land; until then behind the unlock. */
+export const INV_FOR_ALL = false;
+export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL)));
 
 /** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
 export const BOOK_ONE_FUGUES: readonly string[] = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
@@ -73,16 +77,20 @@ export const MORE_SECTIONS: readonly { id: Collection; title: string; ids: strin
 export const CHORALE_IDS: readonly string[] = CHORALE_INDEX;
 /** D727: THE ART OF FUGUE's twenty pieces in the edition's order (Contrapuncti 1–11, 12 and 13 rectus and inversus, the four canons, the unfinished 14). */
 export const AOF_IDS: readonly string[] = MORE_SECTIONS.find((s) => s.id === "aof")?.ids ?? [];
+/** D750: the two-part Inventions 1–15, then the three-part Sinfonias 1–15 (BWV 772–801), in Bach's order. */
+export const INV_IDS: readonly string[] = [...(MORE_SECTIONS.find((s) => s.id === "inv")?.ids ?? []), ...(MORE_SECTIONS.find((s) => s.id === "sin")?.ids ?? [])];
+/** D750: the MORE BACH sections that have a tab of their own (not listed under MORE BACH). */
+export const OWN_TAB_SECTIONS: readonly string[] = ["aof", "inv", "sin"];
 const EXTRA = new Set([...MORE_SECTIONS.flatMap((s) => s.ids), ...CHORALE_IDS]);
 /** D340: a piece of the MORE BACH or CHORALES tab. */
 export const liteExtra = (id: string): boolean => EXTRA.has(id);
 /** D340: the tab a piece is listed under. */
-export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
+export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : INV_IDS.includes(id) ? "INV" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
 /** D340: what NEXT follows a piece with: its own tab's list. */
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
   const tab = liteTabOf(id);
   // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock; D382: or once earned).
-  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => s.id !== "aof").flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
 }
 
 /**
