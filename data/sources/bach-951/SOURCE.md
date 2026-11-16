@@ -17,8 +17,12 @@ metadata; the licence field is the uploader's choice of licence and is the one r
 
 One harpsichord part on two staves, the voices written in layers (`staff:voice` as MusicXML writes them), joined
 by `xmlVoices`: the soprano `1:1`; the alto `1:2`, with `1:7`, `2:2`, `2:6`, `2:7` where it is written in another
-layer or on the lower staff (bars 12, 28-29, 40-41, 59, 67-69, 83-84, 93-95, 97, 103-104); the bass `2:5`, with
-`2:1` (bar 94). Joined so, no voice overlaps itself but the soprano's last chord (bar 112, to the band: D363).
+layer or on the lower staff (bars 12, 28-29, 40-41, 59, 67-69, 83-84, 93-95, 97, 103-104); the soprano also
+`2:1` (bar 94: F♯3-G3 on the lower staff, beamed with the soprano's run); the bass `2:5`. Joined
+so, no voice overlaps itself but the soprano's last chord (bar 112, to the band: D363). As the print has it, the
+alto holds the low B2 through bar 94 into 95 and climbs from it while the bass rests (a whole-bar rest, then a half
+and a quaver); the first half of bar 96 (A3 G♯3 F♯3 E♯3 F♯3 C♯4 B3 A3, on the upper staff in the bass clef) is the
+alto's, moved from PDMX's soprano layer by a fix.
 The subject and answer given by hand (`theme`): the finders take the tonal answer (bar 3, soprano) for the subject
 in E.
 
@@ -57,4 +61,38 @@ PDMX kept where the print agrees with it (Madrisan differs): bar 55 (E4), bar 62
 
 ## Ties
 
-TIES_PENDING
+Every place where the two editions disagree on a tie (38) or an onset (5) was read from the print (the same pages,
+300-dpi system crops zoomed). PDMX had lost its ties: 25 notes it strikes again are tied in the print, made one
+note by `applyFixes` (`tie`: the note held on from the one before, the same pitch, ending there):
+
+| bar | place | voice | note |
+|---|---|---|---|
+| 25 | 3/4 | alto | F♯4 |
+| 27 | 1/4 | bass | D3 |
+| 27 | 3/4 | alto | G4 |
+| 29 | 1/2 | bass | E3 |
+| 30 | 0 | soprano | D4 |
+| 31 | 0 | bass | E2 |
+| 38 | 1/2 | bass | B3 |
+| 40 | 0 | bass | B2 |
+| 41 | 3/4 | bass | B3 |
+| 42 | 0 | bass | A3 |
+| 44 | 0 | alto | A4 |
+| 47 | 1/2 | alto | G4 |
+| 52 | 1/4 | alto | C♮5 (with the pitch above) |
+| 52 | 3/4 | alto | D5 |
+| 54 | 0 | alto | F♯4 |
+| 57 | 1/2 | soprano | C♯5 |
+| 73 | 0 | alto | B4 |
+| 73 | 1/2 | alto | A4 |
+| 88 | 3/4 | alto | A4 |
+| 91 | 0 | alto | A♯4 |
+| 92 | 1/2 | alto | E4 |
+| 93 | 1/2 | alto | B3 |
+| 95 | 0 | alto | B2 |
+| 97 | 0 | alto | B3 |
+| 111 | 7/8 | alto | C♯4 (the tie half hidden by the flags: medium confidence) |
+
+And bar 28: the alto's B3 begins at 3/16 after a semiquaver rest, not at 1/8 (`start`). Where the print ties and
+PDMX already holds the note (bars 82, 89, 100, 101, 102, 104, 105), nothing is changed; where Madrisan ties and the
+print strikes again or reads otherwise (bars 55, 82, 94, 102, 104, 111), PDMX is right and kept.

@@ -165,7 +165,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv799: { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     bwv801: { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     "bwv903-2": { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
-    bwv951: { 3: [["trialClarinet", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
+    bwv951: { 3: [["trialOboe", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     "bwv228-1": { 8: [["trialFlute", 0.45], ["trialOboe", 0.3214], ["trialClarinet", 0.1929], ["trialHorn", 0.0643], ["trialOboe", -0.0643], ["trialBassoon", -0.1929], ["trialBassoon", -0.3214], ["trialBassoon", -0.45]] },
     "bwv228-2": { 8: [["trialFlute", 0.45], ["trialOboe", 0.3214], ["trialClarinet", 0.1929], ["trialHorn", 0.0643], ["trialOboe", -0.0643], ["trialBassoon", -0.1929], ["trialBassoon", -0.3214], ["trialBassoon", -0.45]] },
     "bwv54-3": { 4: [["trialFlute", -0.2], ["trialClarinet", -0.07], ["trialClarinet", 0.07], ["trialBassoon", 0.2]] },

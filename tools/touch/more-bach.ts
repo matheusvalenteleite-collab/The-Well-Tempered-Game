@@ -94,7 +94,7 @@ interface Spec {
    * D751: the edition corrected where it disagrees with the Bach-Gesellschaft print (read from the print: SOURCE.md):
    * a voice's nth note of a bar given another pitch, or held on from the note before (a tie the edition broke).
    */
-  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to?: string; tie?: true })[];
+  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to?: string; tie?: true; start?: string } | { voice: number; bar: number; at: string; add: string; dur: string } | { voice: number; bar: number; at: string; until: string; toVoice: number })[];
   /** The voices the player may take (all where unset). */
   playable?: number[];
   /** The edition's typesetter and licence, for the credit line. */
@@ -485,6 +485,33 @@ const BWV951_FIXES: NonNullable<Spec["fixes"]> = [
   { voice: 2, bar: 92, at: "0", from: "D#3", to: "D3" },
   { voice: 1, bar: 99, at: "5/8", from: "A#4", to: "A4" },
   { voice: 1, bar: 108, at: "13/16", from: "B3", to: "C#4" },
+  // The print's ties PDMX strikes again (all read: SOURCE.md), a note it strikes early (bar 28), and the alto in bar 96 (PDMX's soprano layer).
+  { voice: 1, bar: 25, at: "3/4", from: "F#4", tie: true },
+  { voice: 2, bar: 27, at: "1/4", from: "D3", tie: true },
+  { voice: 1, bar: 27, at: "3/4", from: "G4", tie: true },
+  { voice: 2, bar: 29, at: "1/2", from: "E3", tie: true },
+  { voice: 0, bar: 30, at: "0", from: "D4", tie: true },
+  { voice: 2, bar: 31, at: "0", from: "E2", tie: true },
+  { voice: 2, bar: 38, at: "1/2", from: "B3", tie: true },
+  { voice: 2, bar: 40, at: "0", from: "B2", tie: true },
+  { voice: 2, bar: 41, at: "3/4", from: "B3", tie: true },
+  { voice: 2, bar: 42, at: "0", from: "A3", tie: true },
+  { voice: 1, bar: 44, at: "0", from: "A4", tie: true },
+  { voice: 1, bar: 47, at: "1/2", from: "G4", tie: true },
+  { voice: 1, bar: 52, at: "3/4", from: "D5", tie: true },
+  { voice: 1, bar: 54, at: "0", from: "F#4", tie: true },
+  { voice: 0, bar: 57, at: "1/2", from: "C#5", tie: true },
+  { voice: 1, bar: 73, at: "0", from: "B4", tie: true },
+  { voice: 1, bar: 73, at: "1/2", from: "A4", tie: true },
+  { voice: 1, bar: 88, at: "3/4", from: "A4", tie: true },
+  { voice: 1, bar: 91, at: "0", from: "A#4", tie: true },
+  { voice: 1, bar: 92, at: "1/2", from: "E4", tie: true },
+  { voice: 1, bar: 93, at: "1/2", from: "B3", tie: true },
+  { voice: 1, bar: 95, at: "0", from: "B2", tie: true },
+  { voice: 0, bar: 96, at: "0", until: "1/2", toVoice: 1 },
+  { voice: 1, bar: 97, at: "0", from: "B3", tie: true },
+  { voice: 1, bar: 111, at: "7/8", from: "C#4", tie: true },
+  { voice: 1, bar: 28, at: "1/8", from: "B3", start: "3/16" },
 ];
 
 const KEYBOARD: Spec[] = [
@@ -520,7 +547,7 @@ const KEYBOARD: Spec[] = [
     xml: "2069976.mxl",
     xmlDir: "pdmx",
     page: "https://musescore.com/user/18579/scores/2069976",
-    xmlVoices: ["1:1", "1:2|1:7|2:2|2:6|2:7", "2:5|2:1"],
+    xmlVoices: ["1:1|2:1", "1:2|1:7|2:2|2:6|2:7", "2:5"],
     // The answer is tonal (the subject's falling fifth answered by a fourth): given by hand (the finders call it the subject in E).
     theme: { subject: [1, 1, 17], answer: [0, 3, 17] },
     voiceNames: THREE,
@@ -952,8 +979,33 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
     const v = r.voices[x.voice];
     // D753: a note found by its place in the bar ("11/16" of a whole note in) and its pitch as read, checked.
     if ("at" in x) {
-      const [a, b] = x.at.split("/").map(Number);
-      const on = from + Math.round(((b ? a / b : a) * 4 * TPQ));
+      const place = (f: string) => {
+        const [a, b] = f.split("/").map(Number);
+        return from + Math.round((b ? a / b : a) * 4 * TPQ);
+      };
+      const on = place(x.at);
+      // D754: the notes a layer gives one voice that the print gives another (from `at` to before `until`), moved.
+      if ("toVoice" in x) {
+        const end = place(x.until);
+        const moved = v.filter((n) => n[0] >= on && n[0] < end);
+        if (!moved.length) throw new Error(`fix: bar ${x.bar} ${x.at}-${x.until}: voice ${x.voice} has nothing to move`);
+        for (const n of moved) v.splice(v.indexOf(n), 1);
+        const w = r.voices[x.toVoice];
+        if (w.some((n) => moved.some((m) => n[0] < m[0] + m[1] && m[0] < n[0] + n[1]))) throw new Error(`fix: bar ${x.bar}: voice ${x.toVoice} not silent where the moved notes sound`);
+        w.push(...moved);
+        w.sort((m, n) => m[0] - n[0] || n[2] - m[2]);
+        continue;
+      }
+      // D754: a note the edition left out, added (its length in whole notes), where the voice is silent.
+      if ("add" in x) {
+        const p = parsePitch(x.add);
+        const end = on + place(x.dur) - from;
+        if (v.some((n) => n[0] < end && n[0] + n[1] > on)) throw new Error(`fix: bar ${x.bar} ${x.at}: voice ${x.voice} not silent for ${x.add}`);
+        v.push([on, end - on, p.midi, p.diatonic]);
+        v.sort((m, n) => m[0] - n[0] || n[2] - m[2]);
+        r.spell[p.midi] ??= x.add;
+        continue;
+      }
       const was = parsePitch(x.from).midi;
       const m = v.find((n) => n[0] === on && n[2] === was);
       if (!m) throw new Error(`fix: no ${x.from} at ${x.at} of bar ${x.bar}, voice ${x.voice}`);
@@ -963,6 +1015,14 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
         if (!before) throw new Error(`fix: no ${x.from} held into ${x.at} of bar ${x.bar}, voice ${x.voice}`);
         before[1] += m[1];
         v.splice(v.indexOf(m), 1);
+        continue;
+      }
+      // D754: struck later than the edition has it (a rest before it), its end kept.
+      if (x.start) {
+        const end = m[0] + m[1];
+        m[0] = place(x.start);
+        m[1] = end - m[0];
+        if (m[1] <= 0) throw new Error(`fix: bar ${x.bar} ${x.at}: ${x.from} moved past its end`);
         continue;
       }
       if (!x.to) throw new Error(`fix: bar ${x.bar} ${x.at}: neither a pitch nor a tie`);

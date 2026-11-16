@@ -106,5 +106,5 @@ export const VOICE_SCORES: Readonly<Record<string, readonly number[]>> = {
   "bwv804": [10.86, 9.91],
   "bwv805": [6.83, 7.83],
   "bwv903-2": [7.35, 5.48, 7.04],
-  "bwv951": [6.48, 7.32, 7.61],
+  "bwv951": [6.47, 7.34, 7.62],
 };
