@@ -296,6 +296,13 @@ function moreBachSounds(): Record<string, string> {
     "bwv903-2": "fluteHarp",
     // D754: the Albinoni Fugue (D779: STRING CONSORT by the voices' distinctness and its alto's low B on a phone; colour-plans/more.ts WHY).
     "bwv951": "stringConsort",
+    // D755: the C minor Fantasia and Fugue on the harpsichord (Instruments may choose otherwise).
+    "bwv906-1": "harpsichordSampled",
+    "bwv906-2": "harpsichordSampled",
+    // D756: "pour la luth ò cembal": the harpsichord for now (Instruments may choose the lute-harpsichord's sound otherwise).
+    "bwv998-1": "harpsichordSampled",
+    "bwv998-2": "harpsichordSampled",
+    "bwv998-3": "harpsichordSampled",
     "bwv1043-2": "super16",
     "bwv228-2": "soloVoices",
     "bwv54-3": "super16",
