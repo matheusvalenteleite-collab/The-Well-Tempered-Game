@@ -97,7 +97,7 @@ upper = {
     \tuplet 3/2 { fis' d' fis' } \tuplet 3/2 { a' c'' ees'' } \tuplet 3/2 { a'' ees'' d'' } \tuplet 3/2 { c'' bes' a' } |
     % bar 16
     \tuplet 3/2 { bes'16 d'' g'' } \tuplet 3/2 { ees'' d'' c'' } \tuplet 3/2 { bes' a' g' } \tuplet 3/2 { a' g' fis' }
-    g'16 d' b g r4 |
+    \tuplet 3/2 { g'16 d' b } g8 r4 |  % second reading: a triplet and a quaver (one beam to G3)
   }
   \repeat volta 2 {
     % bar 17
@@ -153,15 +153,15 @@ upper = {
     f''8 \tuplet 3/2 { r16 g' aes' } \tuplet 3/2 { f'' g' aes' } \tuplet 3/2 { f'' g' aes' }
     f''8 \tuplet 3/2 { r16 g' aes' } \tuplet 3/2 { f'' g' aes' } \tuplet 3/2 { f'' g' aes' } |
     % bar 31
-    ees''8 \tuplet 3/2 { bes'16 aes' g' } f'16 aes' c'' f''
-    d''8 \tuplet 3/2 { aes'16 g' f' } ees'16 g' bes' ees'' |
+    ees''8 \tuplet 3/2 { bes'16 aes' g' } \tuplet 3/2 { f'16 aes' c'' } f''8
+    d''8 \tuplet 3/2 { aes'16 g' f' } \tuplet 3/2 { ees'16 g' bes' } ees''8 |  % second reading: beats 2 and 4 a triplet and a quaver
     % bar 32
     \tuplet 3/2 { c''16 r f' } \tuplet 3/2 { bes' r e' } \tuplet 3/2 { aes' r d' } \tuplet 3/2 { g' r c' }
     \tuplet 3/2 { fis' r c'' } \tuplet 3/2 { fis' r c' } \tuplet 3/2 { fis' r c'' } \tuplet 3/2 { fis' r d' } |
     % bar 33
     \tuplet 3/2 { ees'16 g' aes' } \tuplet 3/2 { a' bes' b' } \tuplet 3/2 { c'' d'' ees'' } \tuplet 3/2 { e'' f'' fis'' }
     \tuplet 3/2 { g'' d'' b' } \tuplet 3/2 { g' d' b } g8 r8 |
-    % bar 34  (= bar 1; the trill sign is printed in brackets)
+    % bar 34  (= bar 1; the left hand's mordent printed in brackets, with (♯))
     \voiceOne
     \tuplet 3/2 { c'''16 g'' ees'' } \tuplet 3/2 { c'' g' ees' } c'8 <g'' c'''>8
     <g'' c'''>8 b''8 \oneVoice f''8.\downprall e''32 f''32 |
@@ -176,7 +176,7 @@ upper = {
     %          bracketed natural below, i.e. B natural; the turn is attached to C5)
     \voiceOne
     c''8.\mordent\turn d''16 d''8.\downprall c''16 \oneVoice
-    \tuplet 3/2 { c''16 b' d'' } \tuplet 3/2 { aes' g' b' } \tuplet 3/2 { f' e' g' } \tuplet 3/2 { des' c' bes } |
+    \tuplet 3/2 { c''16 b' d'' } \tuplet 3/2 { aes' g' b' } \tuplet 3/2 { f' e' g' } \tuplet 3/2 { des' c' bes' } |  % second reading: B♭4 (printed flat, on the B4 line)
     % bar 38
     \tuplet 3/2 { bes'16 a' c'' } \tuplet 3/2 { ges' f' a' } \tuplet 3/2 { ees' d' f' } \tuplet 3/2 { ces' bes aes' }
     \tuplet 3/2 { aes' g' bes' } \tuplet 3/2 { fes' ees' g' } \tuplet 3/2 { des' c' ees' } \tuplet 3/2 { bes a fis' } |
@@ -185,7 +185,7 @@ upper = {
     \tuplet 3/2 { f' ees'' d'' } \tuplet 3/2 { f'' ees'' d'' } \tuplet 3/2 { ees'' d'' c'' } \tuplet 3/2 { d'' c'' b' } |
     % bar 40
     \tuplet 3/2 { c''16 d'' ees'' } \tuplet 3/2 { f' ees'' d'' } \tuplet 3/2 { ees' d'' c'' } \tuplet 3/2 { d' c'' b' }
-    c''16 g' ees' c' r4 |
+    \tuplet 3/2 { c''16 g' ees' } c'8 r4 |  % second reading: a triplet and a quaver (one beam to C4)
   }
 }
 
@@ -368,7 +368,7 @@ lower = {
     \tuplet 3/2 { c'16 f' aes' } c''8 c'8 c''8 \tuplet 3/2 { b16 f' aes' } d''8 b8 d''8 |
     % bar 31
     \tuplet 3/2 { c'16 ees' g' } c''8 aes''8 \tuplet 3/2 { ees'16 d' c' }
-    bes16 d' f' bes' g''8 \tuplet 3/2 { des'16 c' bes } |
+    \tuplet 3/2 { bes16 d' f' } bes'8 g''8 \tuplet 3/2 { des'16 c' bes } |  % second reading: beat 3 a triplet and a quaver
     % bar 32
     \tuplet 3/2 { aes16 aes' r } \tuplet 3/2 { aes g' r } \tuplet 3/2 { aes f' r } \tuplet 3/2 { aes ees' r }
     \tuplet 3/2 { a ees' r } \tuplet 3/2 { a ees' r } \tuplet 3/2 { a d' r } \tuplet 3/2 { a c' r } \clef bass |
