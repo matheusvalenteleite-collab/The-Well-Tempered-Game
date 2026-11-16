@@ -68,7 +68,7 @@ test("D340: MORE BACH's voices and bars, as the editions have them (and the seco
 test("D340: what the pipeline computes for the WTC: entries in the fugues, inventions and sinfonias (none in the canons and the concerto), cadences, keys, tempi, sounds, characters", () => {
   for (const f of MORE_BACH) {
     // D707: the canons too (their dux and comes, data/touch/aof-entries.txt).
-    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && !["bwv228-1", "bwv54-1", "bwv906-1", "bwv998-1", "bwv998-3"].includes(f.id); // D755, D756: BWV 906's Fantasia, BWV 998's Prelude and Allegro are no fugues
+    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && !["bwv228-1", "bwv54-1"].includes(f.id); // D755, D756: BWV 906's Fantasia, BWV 998's Prelude and Allegro are no fugues; D780: their motive's returns their entries (data/touch/906-998-entries.txt)
     if (fugal) assert.ok(f.entries.length >= 2, `${f.id}: ${f.entries.length} entries`);
     else assert.equal(f.entries.length, 0, f.id);
     for (const e of f.entries) assert.ok(f.voices[e.voice].some((n) => n[0] === e.on), `${f.id}: entry at ${e.on} on a note`);

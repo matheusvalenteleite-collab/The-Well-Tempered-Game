@@ -25,6 +25,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv799: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
     "bwv903-2": { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
     bwv951: { 3: [["s2Trumpet", -0.22], ["s2Tres", -0.08], ["s2Bass", 0.02]] },
+    "bwv906-1": { 2: [["s2Trumpet", -0.14], ["s2Tres", 0.02]] },
     "bwv1043-1": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trumpet", 0.09], ["s2Tres", -0.09], ["s2Trumpet", -0.27], ["s2Bass", -0.45]] },
     "bwv1043-2": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trumpet", 0.09], ["s2Tres", -0.09], ["s2Bass", -0.27], ["s2Bass", -0.45]] },
     "bwv1043-3": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trumpet", 0.09], ["s2Tres", -0.09], ["s2Trumpet", -0.27], ["s2Bass", -0.45]] },
@@ -33,10 +34,12 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     "bwv54-1": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trombone", 0.09], ["s2Tres", -0.09], ["s2Bass", -0.27], ["s2Bass", -0.45]] },
   },
   abbeyRoad: {
+    "bwv906-1": { 2: [["a2Guitar", 0], ["a2Guitar", 0]] },
     "bwv228-1": { 8: [["a2Moog", 0.45], ["a2Guitar", 0.3214], ["a2Trumpet", 0.1929], ["a2Hammond", 0.0643], ["a2Trumpet", -0.0643], ["a2Bass", -0.1929], ["a2Bass", -0.3214], ["a2Bass", -0.45]] },
   },
   petSounds: {
     bwv951: { 3: [["p3Tack", 0], ["p3Twelve", 0, 0.95], ["p3Bass", 0, 0.6]] },
+    "bwv906-1": { 2: [["p3Tack", 0], ["p3Tack", 0, 0.6]] },
     "bwv228-1": { 8: [["p3Tack", 0.45], ["p3Twelve", 0.3214], ["p2Accordion", 0.1929], ["psHorn", 0.0643], ["psHorn", -0.0643], ["p3Bass", -0.1929], ["p3Bass", -0.3214], ["p3Bass", -0.45]] },
   },
   baroqueBand: {
@@ -71,7 +74,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv793: { 3: [["trioOboe1", -0.16], ["trioHarpsi", 0.12], ["trioCello", -0.02]] },
     "bwv903-2": { 3: [["trioOboe1", -0.16], ["trioHarpsi", 0.12], ["trioCello", -0.02]] },
     bwv951: { 3: [["trioOboe1", -0.16], ["trioHarpsi", 0.12], ["trioCello", -0.02]] },
-    "bwv906-1": { 2: [["trioHarpsi", -0.14], ["trioBassoon", 0.08]] },
+    "bwv906-1": { 2: [["trioHarpsi", -0.14], ["trioHarpsi", 0.08]] },
     "bwv906-2": { 3: [["trioHarpsi", -0.16], ["trioBassoon", 0.12], ["trioCello", -0.02]] },
     "bwv998-1": { 2: [["trioHarpsi", -0.14], ["trioBassoon", 0.08]] },
     "bwv998-2": { 3: [["trioHarpsi", -0.16], ["trioBassoon", 0.12], ["trioCello", -0.02]] },
@@ -86,6 +89,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
   bachBrass: {
     "bwv1080-c15": { 2: [["bachHorn", -0.1], ["bachBass", 0.08]] },
     bwv951: { 3: [["bachTrumpet", -0.14], ["bachTrumpet", 0], ["bachBass", 0.1]] },
+    "bwv906-1": { 2: [["bachTrumpet", -0.1], ["bachHorn", 0.08]] },
     "bwv1043-1": { 6: [["bachTrumpet", 0.45], ["bachTrumpet", 0.27], ["bachTrumpet", 0.09], ["bachTrumpetMute", -0.09], ["bachHorn", -0.27], ["bachBass", -0.45]] },
     "bwv1043-2": { 6: [["bachTrumpet", 0.45], ["bachTrumpet", 0.27], ["bachTrumpetMute", 0.09], ["bachTrumpetMute", -0.09], ["bachBass", -0.27], ["bachBass", -0.45]] },
     "bwv1043-3": { 6: [["bachTrumpet", 0.45], ["bachTrumpet", 0.27], ["bachTrumpet", 0.09], ["bachTrumpetMute", -0.09], ["bachHorn", -0.27], ["bachBass", -0.45]] },
@@ -140,6 +144,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
   },
   fluteHarp: {
     "bwv1080-c15": { 2: [["seaHarp", -0.14], ["seaCello", 0.12]] },
+    "bwv906-1": { 2: [["seaFlute", -0.14], ["seaHarp", 0.12]] },
     "bwv228-1": { 8: [["seaFlute", 0.45], ["seaViola", 0.3214], ["seaHarp", 0.1929], ["seaHarp", 0.0643], ["seaHarp", -0.0643], ["seaCello", -0.1929], ["seaCello", -0.3214], ["seaCello", -0.45]] },
     "bwv228-2": { 8: [["seaFlute", 0.45], ["seaViola", 0.3214], ["seaHarp", 0.1929], ["seaHarp", 0.0643], ["seaHarp", -0.0643], ["seaCello", -0.1929], ["seaCello", -0.3214], ["seaCello", -0.45]] },
   },
@@ -183,7 +188,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv801: { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     "bwv903-2": { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     bwv951: { 3: [["trialOboe", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
-    "bwv906-1": { 2: [["trialClarinet", -0.12], ["trialBassoon", 0.12]] },
+    "bwv906-1": { 2: [["trialClarinet", -0.12], ["trialHorn", 0.12]] },
     "bwv906-2": { 3: [["trialClarinet", -0.18], ["trialHorn", 0], ["trialBassoon", 0.18]] },
     "bwv998-1": { 2: [["trialClarinet", -0.12], ["trialBassoon", 0.12]] },
     "bwv998-2": { 3: [["trialClarinet", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
@@ -201,11 +206,13 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     "bwv1080-12i": { 4: [["trkViolin", -0.35], ["trkHarpsi", 0.35], ["trkHarpsi", -0.35], ["trkBass", 0.35]] },
     "bwv1080-c15": { 2: [["trkHarpsi", -0.35], ["trkBass", 0.35]] },
     "bwv1079-ric6": { 6: [["trkViolin", -0.35], ["trkViolin", 0.35], ["trkHarpsi", -0.2, 0.5], ["trkHarpsi", 0.2, 0.5], ["trkHarpsi", 0, 0.84], ["trkBass", 0]] },
+    "bwv906-1": { 2: [["trkViolin", -0.35], ["trkHarpsi", 0.35]] },
     "bwv228-1": { 8: [["trkViolin", 0.45], ["trkFlute", 0.3214], ["trkHarpsi", 0.1929], ["trkHarpsi", 0.0643], ["trkViolin", -0.0643], ["trkBass", -0.1929], ["trkBass", -0.3214], ["trkBass", -0.45]] },
     "bwv228-2": { 8: [["trkViolin", 0.45], ["trkFlute", 0.3214], ["trkHarpsi", 0.1929], ["trkHarpsi", 0.0643], ["trkBass", -0.0643], ["trkBass", -0.1929], ["trkBass", -0.3214], ["trkBass", -0.45]] },
   },
   super16: {
     "bwv1080-c15": { 2: [["s16Harpsi", 0.25], ["s16Bassoon", -0.1]] },
+    "bwv906-1": { 2: [["s16Violin", 0.25], ["s16Harpsi", -0.1]] },
     "bwv228-1": { 8: [["s16Violin", 0.45], ["s16Flute", 0.3214], ["s16Harpsi", 0.1929], ["s16Harpsi", 0.0643], ["s16Violin", -0.0643], ["s16Bassoon", -0.1929], ["s16Bassoon", -0.3214], ["s16Bassoon", -0.45]] },
     "bwv228-2": { 8: [["s16Violin", 0.45], ["s16Flute", 0.3214], ["s16Harpsi", 0.1929], ["s16Strings", 0.0643], ["s16Violin", -0.0643], ["s16Bassoon", -0.1929], ["s16Bassoon", -0.3214], ["s16Bassoon", -0.45]] },
   },
@@ -221,6 +228,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
   },
   jazzQuartet: {
     "bwv1080-c15": { 2: [["jqPiano", -0.14], ["jqBass", 0.04]] },
+    "bwv906-1": { 2: [["jqVibes", -0.14], ["jqPiano", 0.04]] },
     "bwv1043-1": { 6: [["jqVibes", 0.45], ["jqPiano", 0.27], ["jqPiano", 0.09], ["jqPiano", -0.09], ["jqPiano", -0.27], ["jqBass", -0.45]] },
     "bwv1043-3": { 6: [["jqVibes", 0.45], ["jqPiano", 0.27], ["jqPiano", 0.09], ["jqPiano", -0.09], ["jqPiano", -0.27], ["jqBass", -0.45]] },
     "bwv228-1": { 8: [["jqVibes", 0.45], ["jqPiano", 0.3214], ["jqPiano", 0.1929], ["jqPiano", 0.0643], ["jqPiano", -0.0643], ["jqPiano", -0.1929], ["jqBass", -0.3214], ["jqBass", -0.45]] },
