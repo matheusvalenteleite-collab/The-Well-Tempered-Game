@@ -28,7 +28,7 @@ const TOTALS: Readonly<Record<string, { pieces: number; stretched: number; undec
   "WTC preludes": { pieces: 48, stretched: 255, undeclared: 69 },
   "other fugues": { pieces: 1, stretched: 0, undeclared: 0 },
   tutorial: { pieces: 1, stretched: 2, undeclared: 0 },
-  "more bach": { pieces: 62, stretched: 106, undeclared: 7 }, // D751: and the Four Duets (none stretched)
+  "more bach": { pieces: 63, stretched: 113, undeclared: 7 }, // D751: and the Four Duets (none stretched); D753: the Chromatic Fugue (7 stretched)
   concertos: { pieces: 42, stretched: 1104, undeclared: 106 },
   chorales: { pieces: 370, stretched: 52, undeclared: 0 },
 };
@@ -72,5 +72,20 @@ test("D642: every sound within D540's budget over every playable piece (25 MB de
     const b = presetBudget(sound, ids);
     assert.ok(b.mb <= PRESET_MB, `${sound}: ${b.mb.toFixed(2)} MB (${b.piece} v${b.voice})`);
     assert.ok(b.residentMb <= RESIDENT_MB, `${sound}: ${b.residentMb.toFixed(2)} MB resident`);
+  }
+});
+
+test("D739: the Inventions and Sinfonias on their own sounds (D731): no note in another octave, none read past STRETCH_MAX, none past its set's declared reach", async () => {
+  const { PIECE_SOUND } = await import("../src/touch/piece-sound.ts");
+  const more = COLLECTIONS.find(([n]) => n === "more bach")![1];
+  // D748: and the Four Duets (BWV 802-805).
+  const inv = more.filter((p) => /^bwv\d{3}$/.test(p.id) && +p.id.slice(3) >= 772 && +p.id.slice(3) <= 805);
+  assert.equal(inv.length, 34);
+  for (const p of inv) {
+    const r = auditCollection("more bach", [p], [PIECE_SOUND[p.id]]);
+    // (A synthesized sound reads no recording: nothing to audit there.)
+    assert.equal(r.moves, 0, `${p.id}: octave moves`);
+    assert.deepEqual(r.stretched, [], `${p.id}: stretched on ${PIECE_SOUND[p.id]}`);
+    assert.deepEqual(r.undeclared, [], `${p.id}: past its declared reach`);
   }
 });

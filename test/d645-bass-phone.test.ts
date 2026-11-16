@@ -15,6 +15,8 @@ import { playerSound } from "../src/touch/sound.ts";
 import { BASS_GAP_DB, bassPatchOf, bassSig, type BassRun } from "../src/touch/bass-phone.ts";
 import { BASS_PHONE } from "../src/touch/bass-phone-data.ts";
 import { BASS_PHONE_AOF } from "../src/touch/bass-phone-aof.ts";
+import { BASS_PHONE_INV } from "../src/touch/bass-phone-inv.ts";
+import { BASS_PHONE_DUET } from "../src/touch/bass-phone-duet.ts";
 import { FakeAudioContext, type FakeNode, installFakeAudio } from "./fake-audio.ts";
 import { Chip, PHONE_BASS_GAIN, voicing } from "../src/touch/chip.ts";
 import { KRAUT2_MOOG_PHONE_LIFT, placeFor, presetById, setPreset } from "../src/touch/sound.ts";
@@ -140,6 +142,30 @@ test(`D711: the Art of Fugue's every piece measured on its own sound, its bass w
   const bad: string[] = [];
   for (const id of AOF) {
     const m = BASS_PHONE_AOF[id];
+    assert.ok(m, `${id}: measured`);
+    const f = fugueById(id);
+    assert.equal(f.id, id);
+    const s = playerSound(PIECE_SOUND[id]);
+    assert.equal(m.s, s, `${id}: measured on ${m.s}, its sound now ${s}: re-measure`);
+    assert.equal(m.sig, bassSig(bassPatchOf(s, f)), `${id}: its bass's patch changed since measured: re-measure`);
+    assert.equal(m.band.lu.length, f.voices.length);
+    const b = f.voices.length - 1;
+    const dbNow = bassPatchOf(m.s, f)?.phoneExcite?.db ?? null;
+    for (const [k, pv] of [["band", 0], ["player", b]] as const) {
+      const g = gapOf(id, m.s, m[k], pv, m.db, dbNow);
+      if (g > BASS_GAP_DB) bad.push(`${id} ${k} ${g.toFixed(1)}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+/** D734: the Inventions' and Sinfonias' 30, each on its own sound (D731), as the Art of Fugue's. */
+const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
+test(`D734: every Invention and Sinfonia measured on its own sound, its bass within ${BASS_GAP_DB} LU of its loudest voice on a phone, in the band and as the player's`, () => {
+  const bad: string[] = [];
+  // D745: and the Four Duets'.
+  for (const id of [...INV, "bwv802", "bwv803", "bwv804", "bwv805"]) {
+    const m = BASS_PHONE_INV[id] ?? BASS_PHONE_DUET[id];
     assert.ok(m, `${id}: measured`);
     const f = fugueById(id);
     assert.equal(f.id, id);

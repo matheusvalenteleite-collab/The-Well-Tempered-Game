@@ -261,6 +261,44 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   "bwv1080-c16": "tabor", // the 12/8 canon, a dance in compound time: the tabor (idiomatic there), 89 %
   "bwv1080-c17": "scoreSynth", // brisk triplets at 134: BERLIN SCHOOL's own synth kit from the score, 94 %
   "bwv1080-14": "timpani", // the unfinished fugue, stile antico: tonic and dominant at the arrivals only, 91 %
+  // D735: the Inventions and Sinfonias, each on its own sound (D731), by the same criteria (tools/touch/drum-fit/score.ts:
+  // the style FITS the metre, a grid's pulse in its band, at least 65 % of the strokes on the score's onsets: here 83-100 %),
+  // the gap under the band measured (D601's renders; test/d601 holds it).
+  bwv772: "chip", // the first Invention on GAME BOY: its own chip kit
+  bwv773: "scoreSynth", // the canon on BERLIN SCHOOL: its own synth kit read from the score
+  bwv774: "tabor", // a 3/8 dance: the tabor, idiomatic in it (CHORINHO's choro does not fit the metre)
+  bwv775: "chip", // the perpetuum mobile on SID 64: its own kit
+  bwv776: "brushes", // the melody over the running bass: JAZZ QUARTET's brushes
+  bwv777: "brushes", // the syncopated 3/8: the brushes (BOSSA's grid does not fit it)
+  bwv778: "brushes", // the sighing E minor on BOSSA NOVA: the brushes, quieter than its bossa
+  bwv779: "chip", // Carlos's F major in 3/4: the chip kit, an electronic kit read from the score (the drum machines' grids do not fit 3/4; SYNTH KIT's roll at b. 34 stood 1.4 LU over the band, D601)
+  bwv780: "swell", // slow and chromatic: washes at the arrivals, no beat
+  bwv781: "chip", // the 9/8 gigue on GAME BOY: its own kit
+  bwv782: "swell", // the chromatic G minor on TRACKER, slow: washes at the arrivals, no beat (the chip kit's fill at b. 16 stood 2.1 LU over the band, D601; TRIP-HOP's pulse under its band)
+  bwv783: "brushes", // the pastoral 12/8 on JAZZ QUARTET: its brushes
+  bwv784: "pet", // PET SOUNDS' own (its timpani at the arrivals, tonic and dominant)
+  bwv785: "chip", // Carlos's B♭ on SWITCHED-ON: the chip kit, an electronic kit read from the score (MACHINE's fill stood within 1 dB of the band by D601's model)
+  bwv786: "triphop", // the fugal B minor on TRACKER, calm: trip-hop at 72 (68-96), 97 % (the chip kit's coda fill stood 1.7 LU over the band, D601; BREAKBEAT's pulse under its band)
+  bwv787: "lofi", // SUPER 16-BIT's own, 76 a minute (68-92)
+  bwv788: "brushes", // the lilting 12/8 on TOMITA: brushes (its machines' grids do not fit 12/8)
+  bwv789: "motorik", // the walking trio on KRAUTROCK: its own drummer
+  bwv790: "abbey", // the slow trio on ABBEY ROAD: its own
+  bwv791: "ballad", // the ornamented song in 3/4: the ballad, 50 a minute (48-80)
+  bwv792: "tabor", // the 9/8 in flowing thirds: the tabor (the choro's grid does not fit it)
+  bwv793: "swell", // chromatic, introspective, calm: washes, no beat
+  bwv794: "abbey", // the lively trio on ABBEY ROAD: its own
+  bwv795: "swell", // slow, three subjects: washes at the arrivals
+  bwv796: "chip", // the bright 3/4 on SID 64: its own kit
+  bwv797: "chip", // CLASSIC CHIP's own
+  bwv798: "lofi", // SUPER 16-BIT's own, 80 a minute (68-92)
+  bwv799: "chip", // CLASSIC CHIP's own
+  bwv800: "bossa", // the cheerful B♭ trio on SALSA, moderate (2.6 notes a second): the bossa's lighter groove over SALSA's own, 99 %
+  bwv801: "liebezeit", // the driving 9/16 on KRAUTROCK: Jaki Liebezeit's trance, 68 a minute (62-104)
+  // D744: the Four Duets, each on its own sound (D741), by the same criteria (score.ts: FITS, the pulse in its band, the onsets).
+  bwv802: "scoreSynth", // the chromatic 3/8 on BERLIN SCHOOL: its own synth kit read from the score, 99 %
+  bwv803: "chip", // the bright 2/4 on GAME BOY: its own chip kit, 95 %
+  bwv804: "brushes", // the 12/8 gigue on JAZZ QUARTET: its brushes, 100 %
+  bwv805: "motorik", // the alla breve fugue on KRAUTROCK: its own drummer, 92 %
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {

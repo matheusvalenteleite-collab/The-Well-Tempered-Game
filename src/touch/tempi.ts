@@ -99,7 +99,20 @@ export type OpeningStep = "default" | "fast";
  * for every one of them (test/d710-aof-tempo.test.ts). The others' DEFAULT is already inside it and stays.
  */
 export const AOF_FAST = ["bwv1080-02", "bwv1080-04", "bwv1080-06", "bwv1080-08", "bwv1080-09", "bwv1080-11", "bwv1080-12r", "bwv1080-12i", "bwv1080-c15", "bwv1080-c17"] as const;
-export const OPENING_STEP: Readonly<Record<string, OpeningStep>> = { wtc1f24: "fast", wtc2f22: "fast", ...Object.fromEntries(AOF_FAST.map((id) => [id, "fast" as const])) };
+/**
+ * D733: the Inventions and Sinfonias the same way (data/tempi/inv-recordings.csv: 14 complete sets on Apple Music's store
+ * pages): Invention 10 (DEFAULT 90 a crotchet, the recordings 111-216) and Sinfonia 6 (75; 93-211), both in 9/8, open on
+ * FAST (126, 105), inside their range. The other 28 DEFAULTs lie inside theirs (Invention 9 and Sinfonia 4 brought down to
+ * the fastest recording, tools/tempi/more-bach.ts RECORDED_MAX; Invention 6 read against its recordings played with the
+ * repeats, the game playing each half once).
+ */
+export const INV_FAST = ["bwv781", "bwv792"] as const;
+export const OPENING_STEP: Readonly<Record<string, OpeningStep>> = {
+  wtc1f24: "fast",
+  wtc2f22: "fast",
+  ...Object.fromEntries(AOF_FAST.map((id) => [id, "fast" as const])),
+  ...Object.fromEntries(INV_FAST.map((id) => [id, "fast" as const])),
+};
 export const openingStep = (id: string): OpeningStep => OPENING_STEP[id] ?? "default";
 
 /**

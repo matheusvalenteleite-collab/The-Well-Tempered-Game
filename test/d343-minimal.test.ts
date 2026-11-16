@@ -49,7 +49,7 @@ test("D343: locked, play.html is Book I's fugues on a phone; unlocked, all four 
   assert.equal(unlocked(), false);
   assert.equal(litePlatform(), "mobile");
   // D489: Book II open from the start.
-  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF"]);
+  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV"]);
   assert.equal(nextIn(liteNextOrder("wtc1f24", true), "wtc1f24"), "wtc2f01", "NEXT after Book I's last goes on into Book II");
   store.set(UNLOCK_KEY, "1");
   try {
@@ -139,7 +139,7 @@ test("D343: the MORE BACH and CHORALES notes load on demand; their index (ids, c
   const { CHORALE_IDS, MORE_SECTIONS } = await import("../src/bench/lite.ts");
   const { extrasLoaded, fugueById, loadExtras } = await import("../src/touch/fugue.ts");
   assert.equal(CHORALE_IDS.length, 370, "the tabs known before the notes");
-  assert.equal(MORE_SECTIONS.flatMap((s) => s.ids).length, 63 + 42); // D751: the Four Duets
+  assert.equal(MORE_SECTIONS.flatMap((s) => s.ids).length, 64 + 42); // D751: the Four Duets; D753: the Chromatic Fugue
   await Promise.all([loadExtras(), loadExtras()]);
   assert.equal(extrasLoaded(), true);
   assert.equal(fugueById("chor001").id, "chor001");
