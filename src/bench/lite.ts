@@ -38,7 +38,7 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
  */
 export const AOF_FOR_ALL = true;
 /** D750: THE INVENTIONS AND SINFONIAS open to everyone once the studio's setting and Instruments' sounds land; until then behind the unlock. */
-export const INV_FOR_ALL = false;
+export const INV_FOR_ALL = true;
 export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL)));
 
 /** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
