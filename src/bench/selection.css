@@ -506,3 +506,7 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-grid.sel-grid-aof { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 /* D750: THE INVENTIONS AND SINFONIAS, 6 × 5 (the Inventions the first fifteen, the Sinfonias the next). */
 .sel-grid.sel-grid-inv { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); }
+/* D499d: the left column scrolls (six collections and more no longer fit a phone's height); the
+   foot still sits at the bottom when everything fits (margin-top: auto), and scrolls with the rest when not. */
+.sel-left { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; }
+.sel-left > * { flex-shrink: 0; }

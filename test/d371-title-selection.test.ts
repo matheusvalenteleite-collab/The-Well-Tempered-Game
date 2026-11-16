@@ -128,7 +128,7 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   assert.match(first, /id="sel-hint"/);
   assert.doesNotMatch(first, /id="sel-play"|id="next-/);
   // D463 (design studio, D412's selection): the tab is the book and its share finished.
-  assert.match(first, /id="tab-book-I"[^>]*><span class="sel-tab-name">BOOK I<\/span><span class="sel-tab-pct" id="pct-book-I">0%</);
+  assert.match(first, /id="tab-book-I"[^>]*><span class="sel-tab-name">WTC BOOK I<\/span><span class="sel-tab-pct" id="pct-book-I">0%</);
   assert.match(first, /id="tab-book-II"/, "D489: Book II open from the start");
   assert.doesNotMatch(first, /id="tab-book-MORE"/);
   // Played before: NEXT on the first unfinished, the grades stamped, the chosen piece and PLAY on the right.

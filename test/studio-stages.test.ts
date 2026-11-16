@@ -21,12 +21,18 @@ test("all 48 fugues have a world of their own, and only they; the Art of Fugue i
   for (let b = 772; b <= 801; b++) assert.ok(hasStage(`bwv${b}`), `bwv${b}`);
   // D671: the Four Duets share the Gallery.
   for (let b = 802; b <= 805; b++) assert.ok(hasStage(`bwv${b}`), `bwv${b}`);
+  // D672: the Chromatic Fugue, the Lighthouse.
+  assert.ok(hasStage("bwv903-2") && !hasStage("bwv903-1"));
+  // D673: the Albinoni fugue, the Lagoon.
+  assert.ok(hasStage("bwv951"));
   assert.ok(!hasStage("wtc1p01") && !hasStage(undefined));
   const s = src("src/touch/stage-bg.ts");
   assert.ok(!/^  "bwv1080-/m.test(s), "no per-piece Art of Fugue world or script");
   assert.match(s, /test: \(id\) => id\.startsWith\("bwv1080-"\), world: constellation/);
   assert.match(s, /test: \(id\) => INV_ID\.test\(id\), world: songbirds/);
   assert.match(s, /test: \(id\) => DUET_ID\.test\(id\), world: gallery/);
+  assert.match(s, /test: \(id\) => CHROMATIC_ID\.test\(id\), world: lighthouse/);
+  assert.match(s, /test: \(id\) => ALBINONI_ID\.test\(id\), world: lagoon/);
 });
 
 /** A canvas that only counts what is drawn (the worlds draw without throwing, at the start, middle and end). */
@@ -47,7 +53,7 @@ test("each world draws at the opening, the middle and the close, in FULL and QUI
   // D665: the Art of Fugue's pieces are in the extras chunk.
   const { loadExtras } = await import("../src/touch/fugue.ts");
   await loadExtras();
-  for (const id of [...STAGE_IDS, ...AOF, "bwv772", "bwv786", "bwv787", "bwv801", "bwv802", "bwv805"]) {
+  for (const id of [...STAGE_IDS, ...AOF, "bwv772", "bwv786", "bwv787", "bwv801", "bwv802", "bwv805", "bwv903-2", "bwv951"]) {
     const f = fugueById(id);
     for (const p of [0, 0.5, 1]) {
       const now = f.length * p;
