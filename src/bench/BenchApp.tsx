@@ -101,7 +101,7 @@ import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, liteTabOf, liteTabs, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { pieceTitle, Selection } from "./Selection.tsx";
 import { HowTo, type ClipNote } from "./HowTo.tsx";
@@ -234,7 +234,9 @@ export function sane(p: Pick): Pick {
   // D263: on a phone the minimal page has no preludes: a prelude gives its fugue.
   const mob = APP.lite && litePlatform() === "mobile";
   // D275: and Book II's fugues. D343: those and the MORE BACH and CHORALES pieces only once unlocked (unlock.ts).
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : (unlocked() && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  // Main board (2.70): a piece whose tab is shown to everyone (THE ART OF FUGUE, THE INVENTIONS AND SINFONIAS) is
+  // chosen as any book's fugue: the owner found their tiles "not selectable, and thus unplayable".
+  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : ((unlocked() || liteTabs().some(([t]) => t === liteTabOf(pair))) && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));

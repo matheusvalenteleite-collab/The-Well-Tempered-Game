@@ -38,7 +38,7 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
  */
 export const AOF_FOR_ALL = true;
 /** D750: THE INVENTIONS AND SINFONIAS open to everyone once the studio's setting and Instruments' sounds land; until then behind the unlock. */
-export const INV_FOR_ALL = false;
+export const INV_FOR_ALL = true;
 export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL)));
 
 /** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
@@ -63,7 +63,7 @@ const SECTION_OF: readonly [Collection, string][] = [
   ["sin", "SINFONIAS"],
   // D751: the Four Duets of Clavier-Übung III, BWV 802-805 (Duet 4 held until its notes are checked: bach-duets/SOURCE.md).
   ["duet", "FOUR DUETS"],
-  // D753: single keyboard works (the Chromatic Fugue, BWV 903; D754 to come: BWV 951 on Albinoni's theme).
+  // D753: single keyboard works (the Chromatic Fugue, BWV 903; D754: the Fugue on a Theme by Albinoni, BWV 951).
   ["keyboard", "FANTASIAS AND FUGUES"],
   ["concerto", "CONCERTO"],
   // D348: BWV 1052-1058 and 1060-1065, every movement (D351: and BWV 1059 as a reconstruction) (tools/touch/concertos.ts; MuseScore editions, CC0).
