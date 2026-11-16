@@ -26,9 +26,9 @@ test("D340: MORE BACH: the Art of Fugue (11 contrapuncti, 2 mirror fugues each r
   // D341: and the motet BWV 228 (two sections) and the cantata BWV 54 (movements 1 and 3), from IMSLP.
   // D348: and the harpsichord concertos, 39 movements (test/d348-concertos.test.ts); D351: 42 with BWV 1059R.
   // D751: and the Four Duets.
-  assert.equal(MORE_BACH.length, 66 + 42);
-  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("duet"), count("keyboard"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 4, 4, 3, 2, 2, 42]);
-  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 66 + 42);
+  assert.equal(MORE_BACH.length, 69 + 42);
+  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("duet"), count("keyboard"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 4, 7, 3, 2, 2, 42]);
+  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 69 + 42);
   for (const f of MORE_BACH) {
     assert.equal(fugueById(f.id), f);
     assert.equal(f.voices.length, f.voiceNames.length, f.id);
@@ -68,7 +68,7 @@ test("D340: MORE BACH's voices and bars, as the editions have them (and the seco
 test("D340: what the pipeline computes for the WTC: entries in the fugues, inventions and sinfonias (none in the canons and the concerto), cadences, keys, tempi, sounds, characters", () => {
   for (const f of MORE_BACH) {
     // D707: the canons too (their dux and comes, data/touch/aof-entries.txt).
-    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && !["bwv228-1", "bwv54-1", "bwv906-1"].includes(f.id); // D755: BWV 906's Fantasia is no fugue
+    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && !["bwv228-1", "bwv54-1", "bwv906-1", "bwv998-1", "bwv998-3"].includes(f.id); // D755, D756: BWV 906's Fantasia, BWV 998's Prelude and Allegro are no fugues
     if (fugal) assert.ok(f.entries.length >= 2, `${f.id}: ${f.entries.length} entries`);
     else assert.equal(f.entries.length, 0, f.id);
     for (const e of f.entries) assert.ok(f.voices[e.voice].some((n) => n[0] === e.on), `${f.id}: entry at ${e.on} on a note`);
@@ -133,7 +133,7 @@ test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunct
   assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
   // D751: and the Four Duets after the Sinfonias.
   assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "FOUR DUETS", "FANTASIAS AND FUGUES", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 4, 4, 3, 42, 2, 2]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 4, 7, 3, 42, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
   assert.equal(CHORALE_IDS.length, 370);
   assert.equal(liteTabOf("bwv1080-14"), "AOF");
