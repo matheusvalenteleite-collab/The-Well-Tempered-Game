@@ -45,6 +45,13 @@ interface Spec {
    */
   xml?: string;
   xmlParts?: number[];
+  /** D754: the folder under data/sources/<dir>/ holding the MusicXML ("imslp" where unset; "pdmx"). */
+  xmlDir?: string;
+  /**
+   * D754: the voices from one keyboard part's written layers, top first: each "staff:voice" as MusicXML
+   * writes them, several joined by "|" (a line written in more than one layer, or moving staff).
+   */
+  xmlVoices?: string[];
   fromBar?: number;
   toBar?: number;
   page?: string;
@@ -87,7 +94,7 @@ interface Spec {
    * D751: the edition corrected where it disagrees with the Bach-Gesellschaft print (read from the print: SOURCE.md):
    * a voice's nth note of a bar given another pitch, or held on from the note before (a tie the edition broke).
    */
-  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to: string })[];
+  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to?: string; tie?: true })[];
   /** The voices the player may take (all where unset). */
   playable?: number[];
   /** The edition's typesetter and licence, for the credit line. */
@@ -457,6 +464,29 @@ const BWV903_FIXES: NonNullable<Spec["fixes"]> = [
   { voice: 2, bar: 127, at: "9/16", from: "D3", to: "F3" },
   { voice: 1, bar: 157, at: "1/16", from: "E5", to: "D5" },
 ];
+/**
+ * D754: PDMX's BWV 951 where the Bach-Gesellschaft print (Band 36, No. XXXVI, pp. 178-183) reads otherwise
+ * (data/sources/bach-951/SOURCE.md): pitches, then the notes it strikes again that the print ties.
+ */
+const BWV951_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 1, bar: 8, at: "1/8", from: "D4", to: "D#4" },
+  { voice: 2, bar: 21, at: "3/4", from: "D3", to: "B2" },
+  { voice: 1, bar: 38, at: "5/16", from: "E4", to: "D4" },
+  { voice: 1, bar: 52, at: "1/8", from: "C#5", to: "C5" },
+  { voice: 1, bar: 52, at: "1/4", from: "C#5", to: "C5" },
+  { voice: 1, bar: 52, at: "1/4", from: "C5", tie: true },
+  { voice: 1, bar: 52, at: "5/16", from: "C#5", to: "C5" },
+  { voice: 2, bar: 52, at: "15/16", from: "F#3", to: "E#3" },
+  { voice: 1, bar: 59, at: "7/8", from: "G4", to: "G#4" },
+  { voice: 1, bar: 70, at: "0", from: "C#4", to: "A3" },
+  { voice: 0, bar: 70, at: "7/16", from: "C#5", to: "A4" },
+  { voice: 0, bar: 71, at: "27/32", from: "D5", to: "D#5" },
+  { voice: 2, bar: 85, at: "3/16", from: "C#4", to: "C4" },
+  { voice: 2, bar: 92, at: "0", from: "D#3", to: "D3" },
+  { voice: 1, bar: 99, at: "5/8", from: "A#4", to: "A4" },
+  { voice: 1, bar: 108, at: "13/16", from: "B3", to: "C#4" },
+];
+
 const KEYBOARD: Spec[] = [
   {
     id: "bwv903-2",
@@ -475,6 +505,28 @@ const KEYBOARD: Spec[] = [
     entries: true,
     fixes: BWV903_FIXES,
     credit: "MUTOPIA PROJECT · TYPESET BY GREG LOUIS FROM THE BACH-GESELLSCHAFT EDITION, CORRECTED FROM ITS PRINT · PUBLIC DOMAIN",
+  },
+  {
+    // D754: from PDMX (MuseScore score 2069976, its uploader's Public Domain mark), its written layers joined into the three voices, corrected from the Bach-Gesellschaft print.
+    id: "bwv951",
+    collection: "keyboard",
+    number: 2,
+    title: "Fugue in B minor on a Theme by Albinoni",
+    short: "FUGUE ON A THEME BY ALBINONI",
+    bwv: "951",
+    key: "b",
+    dir: "bach-951",
+    mutopia: 0,
+    xml: "2069976.mxl",
+    xmlDir: "pdmx",
+    page: "https://musescore.com/user/18579/scores/2069976",
+    xmlVoices: ["1:1", "1:2|1:7|2:2|2:6|2:7", "2:5|2:1"],
+    // The answer is tonal (the subject's falling fifth answered by a fourth): given by hand (the finders call it the subject in E).
+    theme: { subject: [1, 1, 17], answer: [0, 3, 17] },
+    voiceNames: THREE,
+    entries: true,
+    fixes: BWV951_FIXES,
+    credit: "PDMX · MUSESCORE SCORE 2069976 BY CADAMS, CORRECTED FROM THE BACH-GESELLSCHAFT PRINT · PUBLIC DOMAIN",
   },
 ];
 
@@ -508,7 +560,7 @@ export function sungLine(x: XmlScore, i: number, kept: readonly number[]): { not
 
 /** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
 export function readXmlPiece(s: Spec): Read {
-  const dir = `${SRC}${s.dir}/imslp/`;
+  const dir = `${SRC}${s.dir}/${s.xmlDir ?? "imslp"}/`;
   const x = readMusicXml(`${dir}${s.xml}`);
   const from = s.fromBar ? x.bars.find((b) => b.n === s.fromBar)!.on : 0;
   const toBar = s.toBar;
@@ -516,21 +568,31 @@ export function readXmlPiece(s: Spec): Read {
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
   const kept = s.xmlParts ?? x.parts.map((_, i) => i);
-  const voices: Note[][] = kept.map((i) =>
-    sungLine(x, i, kept)
-      .notes.filter((n) => n[0] >= from && n[0] < to)
+  // D754: one part's layers as the voices, each layer named once (none left over).
+  const layered = s.xmlVoices
+    ? (() => {
+        const part = x.parts[kept[0]].notes;
+        const home = (n: XmlPart["notes"][number]) => s.xmlVoices!.findIndex((v) => v.split("|").includes(`${n[3]}:${n[4]}`));
+        const lost = [...new Set(part.filter((n) => home(n) < 0).map((n) => `${n[3]}:${n[4]}`))];
+        if (lost.length) throw new Error(`${s.id}: MusicXML layers ${lost.join(", ")} not in ${s.xmlVoices!.join(", ")}`);
+        return s.xmlVoices!.map((_, vi) => part.filter((n) => home(n) === vi));
+      })()
+    : null;
+  const voices: Note[][] = (layered ?? kept.map((i) => sungLine(x, i, kept).notes)).map((notes) =>
+    sortVoice(notes
+      .filter((n) => n[0] >= from && n[0] < to)
       .map(([on, dur, pitch]) => {
         const p = parsePitch(pitch);
         spell[p.midi] ??= pitch;
         spelled.push(pitch);
         return [on - from, Math.min(dur, to - on), p.midi, p.diatonic] as Note;
-      }),
+      })),
   );
   const length = to - from;
   const bars = x.bars.filter((b) => b.on >= from && b.on < to).map((b) => ({ n: b.n, on: b.on - from }));
   // D347: the words of each voice kept (none for an instrument), as packLyrics stores them.
   const hy = hyphensOf(x.parts, s.joins);
-  const lyrics = (s.xmlParts ?? x.parts.map((_, i) => i)).map((i) =>
+  const lyrics = (layered ? [] : (s.xmlParts ?? x.parts.map((_, i) => i))).map((i) =>
     packLyrics(x.parts[i].lyrics.flatMap((l, k) => (l.on >= from && l.on < to ? [{ on: l.on - from, end: Math.min(l.end, to) - from, text: l.text, joined: hy.joined[i][k] }] : []))),
   );
   let agree = { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 };
@@ -895,6 +957,15 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
       const was = parsePitch(x.from).midi;
       const m = v.find((n) => n[0] === on && n[2] === was);
       if (!m) throw new Error(`fix: no ${x.from} at ${x.at} of bar ${x.bar}, voice ${x.voice}`);
+      // D754: struck again where the print ties it: held on from the note before (the same pitch, ending there).
+      if (x.tie) {
+        const before = v.find((n) => n[0] + n[1] === on && n[2] === was);
+        if (!before) throw new Error(`fix: no ${x.from} held into ${x.at} of bar ${x.bar}, voice ${x.voice}`);
+        before[1] += m[1];
+        v.splice(v.indexOf(m), 1);
+        continue;
+      }
+      if (!x.to) throw new Error(`fix: bar ${x.bar} ${x.at}: neither a pitch nor a tie`);
       const p = parsePitch(x.to);
       m[2] = p.midi;
       m[3] = p.diatonic;

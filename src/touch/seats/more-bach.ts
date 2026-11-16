@@ -24,6 +24,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv798: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
     bwv799: { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
     "bwv903-2": { 3: [["s2Trumpet", -0.22], ["s2Trumpet", -0.08], ["s2Bass", 0.02]] },
+    bwv951: { 3: [["s2Trumpet", -0.22], ["s2Tres", -0.08], ["s2Bass", 0.02]] },
     "bwv1043-1": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trumpet", 0.09], ["s2Tres", -0.09], ["s2Trumpet", -0.27], ["s2Bass", -0.45]] },
     "bwv1043-2": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trumpet", 0.09], ["s2Tres", -0.09], ["s2Bass", -0.27], ["s2Bass", -0.45]] },
     "bwv1043-3": { 6: [["s2Trumpet", 0.45], ["s2Trumpet", 0.27], ["s2Trumpet", 0.09], ["s2Tres", -0.09], ["s2Trumpet", -0.27], ["s2Bass", -0.45]] },
@@ -35,6 +36,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     "bwv228-1": { 8: [["a2Moog", 0.45], ["a2Guitar", 0.3214], ["a2Trumpet", 0.1929], ["a2Hammond", 0.0643], ["a2Trumpet", -0.0643], ["a2Bass", -0.1929], ["a2Bass", -0.3214], ["a2Bass", -0.45]] },
   },
   petSounds: {
+    bwv951: { 3: [["p3Tack", 0], ["p3Twelve", 0, 0.95], ["p3Bass", 0, 0.6]] },
     "bwv228-1": { 8: [["p3Tack", 0.45], ["p3Twelve", 0.3214], ["p2Accordion", 0.1929], ["psHorn", 0.0643], ["psHorn", -0.0643], ["p3Bass", -0.1929], ["p3Bass", -0.3214], ["p3Bass", -0.45]] },
   },
   baroqueBand: {
@@ -52,6 +54,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv799: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
     bwv801: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
     "bwv903-2": { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
+    bwv951: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
     "bwv228-1": { 8: [["bandViolin", 0.45], ["bandViolin", 0.3214], ["bandViola", 0.1929], ["bandCello", 0.0643], ["bandOboe", -0.0643], ["bandCello", -0.1929], ["bandCello", -0.3214], ["bandCello", -0.45]] },
     "bwv228-2": { 8: [["bandViolin", 0.45], ["bandViolin", 0.3214], ["bandViola", 0.1929], ["bandViola", 0.0643], ["bandOboe", -0.0643], ["bandCello", -0.1929], ["bandCello", -0.3214], ["bandCello", -0.45]] },
     "bwv54-3": { 4: [["bandViolin", -0.2, 1.11], ["bandViola", -0.04, 0.85], ["bandViola", 0.16, 1.32], ["bandCello", 0.05]] },
@@ -65,6 +68,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv787: { 3: [["trioOboe1", -0.18], ["trioHarpsi", 0.18], ["trioBassoon", 0.06]] },
     bwv793: { 3: [["trioOboe1", -0.16], ["trioHarpsi", 0.12], ["trioCello", -0.02]] },
     "bwv903-2": { 3: [["trioOboe1", -0.16], ["trioHarpsi", 0.12], ["trioCello", -0.02]] },
+    bwv951: { 3: [["trioOboe1", -0.16], ["trioHarpsi", 0.12], ["trioCello", -0.02]] },
     "bwv1043-1": { 6: [["trioOboe1", -0.2], ["trioOboe2", 0.2], ["trioHarpsi", -0.08], ["trioHarpsi", 0.1], ["trioCello", 0], ["trioCello", 0]] },
     "bwv1043-2": { 6: [["trioOboe1", -0.2], ["trioOboe2", 0.2], ["trioHarpsi", -0.08], ["trioOboe2", 0.1], ["trioCello", 0], ["trioCello", 0]] },
     "bwv1043-3": { 6: [["trioOboe1", -0.2], ["trioOboe2", 0.2], ["trioHarpsi", -0.08], ["trioHarpsi", 0.1], ["trioCello", 0], ["trioCello", 0]] },
@@ -74,11 +78,15 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
   },
   bachBrass: {
     "bwv1080-c15": { 2: [["bachHorn", -0.1], ["bachBass", 0.08]] },
+    bwv951: { 3: [["bachTrumpet", -0.14], ["bachTrumpet", 0], ["bachBass", 0.1]] },
     "bwv1043-1": { 6: [["bachTrumpet", 0.45], ["bachTrumpet", 0.27], ["bachTrumpet", 0.09], ["bachTrumpetMute", -0.09], ["bachHorn", -0.27], ["bachBass", -0.45]] },
     "bwv1043-2": { 6: [["bachTrumpet", 0.45], ["bachTrumpet", 0.27], ["bachTrumpetMute", 0.09], ["bachTrumpetMute", -0.09], ["bachBass", -0.27], ["bachBass", -0.45]] },
     "bwv1043-3": { 6: [["bachTrumpet", 0.45], ["bachTrumpet", 0.27], ["bachTrumpet", 0.09], ["bachTrumpetMute", -0.09], ["bachHorn", -0.27], ["bachBass", -0.45]] },
     "bwv228-1": { 8: [["bachTrumpet", 0.45], ["bachTrumpet", 0.3214], ["bachHorn", 0.1929], ["bachTrombone", 0.0643], ["bachHorn", -0.0643], ["bachHorn", -0.1929], ["bachBass", -0.3214], ["bachBass", -0.45]] },
     "bwv228-2": { 8: [["bachTrumpet", 0.45], ["bachTrumpet", 0.3214], ["bachHorn", 0.1929], ["bachTrombone", 0.0643], ["bachHorn", -0.0643], ["bachBass", -0.1929], ["bachBass", -0.3214], ["bachBass", -0.45]] },
+  },
+  chorinho: {
+    bwv951: { 3: [["c2Cavaco", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
   },
   bossaNova: {
     "bwv1080-c15": { 2: [["b2Guitar", -0.1], ["b2Guitar", 0.06]] },
@@ -108,6 +116,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv804: { 2: [["vdClarinet", -0.12], ["vdBassoon", 0.1]] },
     bwv805: { 2: [["vdClarinet", -0.12], ["vdBassoon", 0.1]] },
     "bwv903-2": { 3: [["vdClarinet", -0.16], ["vdClarinet", 0.14], ["vdBassoon", 0.04]] },
+    bwv951: { 3: [["vdClarinet", -0.16], ["vdClarinet", 0.14], ["vdBassoon", 0.04]] },
     "bwv1043-1": { 6: [["vdClarinet", 0.45], ["vdClarinet", 0.27], ["vdClarinet", 0.09], ["vdClarinet", -0.09], ["vdClarinet", -0.27], ["vdTuba", -0.45]] },
     "bwv1043-2": { 6: [["vdClarinet", 0.45], ["vdClarinet", 0.27], ["vdClarinet", 0.09], ["vdClarinet", -0.09], ["vdTuba", -0.27], ["vdTuba", -0.45]] },
     "bwv1043-3": { 6: [["vdClarinet", 0.45], ["vdClarinet", 0.27], ["vdClarinet", 0.09], ["vdClarinet", -0.09], ["vdClarinet", -0.27], ["vdTuba", -0.45]] },
@@ -156,6 +165,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     bwv799: { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     bwv801: { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     "bwv903-2": { 3: [["trialFlute", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
+    bwv951: { 3: [["trialClarinet", -0.18], ["trialClarinet", 0], ["trialBassoon", 0.18]] },
     "bwv228-1": { 8: [["trialFlute", 0.45], ["trialOboe", 0.3214], ["trialClarinet", 0.1929], ["trialHorn", 0.0643], ["trialOboe", -0.0643], ["trialBassoon", -0.1929], ["trialBassoon", -0.3214], ["trialBassoon", -0.45]] },
     "bwv228-2": { 8: [["trialFlute", 0.45], ["trialOboe", 0.3214], ["trialClarinet", 0.1929], ["trialHorn", 0.0643], ["trialOboe", -0.0643], ["trialBassoon", -0.1929], ["trialBassoon", -0.3214], ["trialBassoon", -0.45]] },
     "bwv54-3": { 4: [["trialFlute", -0.2], ["trialClarinet", -0.07], ["trialClarinet", 0.07], ["trialBassoon", 0.2]] },
