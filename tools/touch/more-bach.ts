@@ -1090,6 +1090,12 @@ for (const [id, ex] of INV_TABLE) AOF_TABLE.set(id, ex);
 /** D740: and the Four Duets' (data/touch/duet-entries.txt, the same grammar and ways). */
 export const DUET_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/duet-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
 for (const [id, ex] of DUET_TABLE) AOF_TABLE.set(id, ex);
+/** D770: and the Chromatic Fugue's (data/touch/903-entries.txt, the same grammar and ways). */
+export const FUGUE903_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/903-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
+for (const [id, ex] of FUGUE903_TABLE) AOF_TABLE.set(id, ex);
+/** D779: and the Albinoni Fugue's (data/touch/951-entries.txt). */
+export const FUGUE951_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/951-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
+for (const [id, ex] of FUGUE951_TABLE) AOF_TABLE.set(id, ex);
 export function tableEntries(
   id: string,
   piece: { tpq: number; meter: string; bars: { n: number; on: number }[]; length: number; voices: Note[][]; key: string },

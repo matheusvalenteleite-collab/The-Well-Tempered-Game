@@ -1,0 +1,33 @@
+# THE CHROMATIC FUGUE'S ENTRIES (D770): every statement of the Fugue of the Chromatic Fantasia and Fugue (BWV 903-2) and
+# of its countersubject, the table the game's entries are built from (tools/touch/more-bach.ts places it with
+# tools/touch/expert.ts placeExpert, as the Inventions' and Duets' tables, D730, D740). Read off the notes by D707's scanner
+# (tools/touch/inv-entries/table.py) and reviewed: the subject (eight bars, chromatic, read from the soprano at b. 1) and
+# the countersubject (the soprano's line against the answer, b. 9), which returns with nearly every entry and, inverted,
+# in the episode of 27-35. "mod": a statement whose first note is changed (the tonal answers at 9 and 41; 107), or the
+# countersubject laid from its second note. Left out: the countersubject's find at 117 (0.77, under 0.8).
+# The chords of the climaxes (53, 94, 135, 158-161) are not entries: D363's band voices, the notes as written.
+
+== bwv903-2 | S multi
+% the subject eleven times (76 and 107 not among the finders'), the countersubject ten; the chords at 53, 94, 135, 158-161 are no statement
+1+0 S len=24   # theme 1 read here
+9+0 S t2 len=24   # theme 2 read here
+9+0.75 A mod   # fit 1.0 from2
+19+0 A t2   # fit 1.0 full
+19+0 B   # fit 1.0 full
+27+0 B t2 inv mod   # fit 0.82 from2
+30+0 S t2 inv mod   # fit 0.91 from2
+41+2 A mod   # fit 1.0 from2
+42+0 S t2   # fit 1.0 full
+60+0 A   # fit 0.88 full
+60+0 B t2 mod   # fit 0.82 from2
+64+0 S t2 mod   # fit 0.83 full (placed by its intervals: its rhythm varied)
+76+0 B   # fit 1.0 full
+82+2 A t2 mod   # fit 0.82 from2
+84+0 B t2 mod   # fit 1.0 from2
+90+0 S   # fit 0.94 full
+107+0.75 A mod   # fit 0.93 from2
+126+0.25 B t2 mod   # fit 1.0 from2
+131+0 A   # fit 0.88 full
+140+0 B   # fit 1.0 full
+154+0 S   # fit 1.0 full
+

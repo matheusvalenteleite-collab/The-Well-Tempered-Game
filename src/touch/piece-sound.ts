@@ -292,10 +292,10 @@ function moreBachSounds(): Record<string, string> {
     "bwv803": "gameboy",
     "bwv804": "jazzQuartet",
     "bwv805": "krautrock",
-    // D753: the Chromatic Fugue on the harpsichord (Instruments may choose otherwise).
-    "bwv903-2": "harpsichordSampled",
-    // D754: the Albinoni Fugue on the harpsichord (Instruments may choose otherwise).
-    "bwv951": "harpsichordSampled",
+    // D753: the Chromatic Fugue (D771: FLUTE & HARP by the voices' distinctness; colour-plans/more.ts WHY).
+    "bwv903-2": "fluteHarp",
+    // D754: the Albinoni Fugue (D779: STRING CONSORT by the voices' distinctness and its alto's low B on a phone; colour-plans/more.ts WHY).
+    "bwv951": "stringConsort",
     // D755: the C minor Fantasia and Fugue on the harpsichord (Instruments may choose otherwise).
     "bwv906-1": "harpsichordSampled",
     "bwv906-2": "harpsichordSampled",

@@ -2405,6 +2405,14 @@ export const DUET_LEVELS: Readonly<Record<string, Readonly<Record<string, { phon
   gameboy: { bwv803: { phoneGain: 1.36 } }, // -30.6 LUFS
   jazzQuartet: { bwv804: { phoneGain: 1.33 } }, // -30.4 LUFS
 };
+/** D777: the Chromatic Fugue the same way: -29.2 LUFS whole with the lift, raised to about -28. */
+export const F903_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  fluteHarp: { "bwv903-2": { phoneGain: 1.15 } },
+};
+for (const [sid, lv] of Object.entries(F903_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
 for (const [sid, lv] of Object.entries(DUET_LEVELS)) {
   const p = PRESETS.find((x) => x.id === sid)!;
   p.levels = { ...(p.levels ?? {}), ...lv };
