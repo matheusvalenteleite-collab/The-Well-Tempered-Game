@@ -167,6 +167,10 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
   // slapstick's blocks and ratchet once the drums session's STOOGES lands, FUGUE_STYLES); FLUTE & HARP the brushes and the frame
   // cymbal washes (its SWELL likewise); ORCHESTRA & ORGAN the timpani and the field drums.
   berlinSchool: ["scoreSynth", "machine", "techno", "idm", "linn"],
+  // D801-D803: BERLIN SCHOOL's three trial versions, its family.
+  berlinWarm: ["scoreSynth", "machine", "techno", "idm", "linn"],
+  berlinModular: ["scoreSynth", "machine", "techno", "idm", "linn"],
+  berlinClear: ["scoreSynth", "machine", "techno", "idm", "linn"],
   vaudeville: ["stooges", "frame", "tabor", "castanets"],
   fluteHarp: ["swell", "brushes", "psych", "jazzWaltz"],
   orchestraOrgan: ["timpani", "fieldDrums", "march", "frame"],
