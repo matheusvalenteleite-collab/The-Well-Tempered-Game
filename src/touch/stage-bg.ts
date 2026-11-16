@@ -4984,6 +4984,100 @@ function lagoon(k: Kit) {
   if (cl > 0.02) light(k, w * 0.6, HZ, w * 0.35, [255, 200, 150], 0.12 * cl);
 }
 
+/** D674: the Fantasia and Fugue in C minor, BWV 906 (bwv906-1 the Fantasia, bwv906-2 the unfinished Fugue). */
+const C_MINOR_906_ID = /^bwv906-\d$/;
+/**
+ * THE SCAFFOLD (the Fantasia and Fugue in C minor). A church front being built at dusk: the lower storey finished
+ * (its door, its round window), the gable above rising course by course inside its timber scaffold, the planned
+ * outline of the gable marked in faint cord, a treadwheel crane at the side. In the Fantasia two masons' torches move
+ * along the scaffold, quicker as the music runs, crossing as the hands cross; at each cadence a stone settles: the
+ * Fantasia lays the gable's first courses. In the Fugue each entry is a stone lifted by the crane (rising with the
+ * entry, set when it ends), the courses going on up from where the Fantasia left them. The Fugue breaks off where
+ * Bach's text stops: its last stone hangs on the rope, never set, the gable unbuilt; the torches burn low.
+ */
+function scaffold(k: Kit) {
+  const { w, h, g } = k;
+  const fugue = k.pid.endsWith("-2");
+  const cl = k.climax;
+  const GY = h * 0.9;
+  k.vgrad(0, GY, [[0, rgba(mix([40, 34, 70], [20, 22, 44], k.p))], [1, rgba(mix([210, 120, 90], [120, 70, 80], k.p))]]);
+  light(k, w * 0.5, GY, w * 0.4, [255, 170, 110], 0.1 + 0.15 * cl);
+  k.R(0, GY, w, h - GY, "#2a2220");
+  // the lower storey, finished
+  const FX0 = w * 0.33, FX1 = w * 0.67, S1 = h * 0.58;
+  const STONE = "#8a7a68";
+  k.R(FX0, S1, FX1 - FX0, GY - S1, STONE);
+  fillTex(k, texture(k, "stone", 32, stone), FX0, S1, FX1 - FX0, GY - S1);
+  k.R(w * 0.47, GY - h * 0.16, w * 0.06, h * 0.16, "#2a1e18");
+  k.disc(w * 0.5, GY - h * 0.16, w * 0.03, "#2a1e18");
+  k.disc(w * 0.5, S1 + h * 0.08, h * 0.04, "#2a2230");
+  k.R(FX0 - 2, S1 - 2, FX1 - FX0 + 4, 3, "#6a5c4c");
+  // the gable: its planned outline, and the courses built so far
+  const AP = h * 0.12;
+  const rows = 10;
+  const rowH = (S1 - AP) / rows;
+  g.strokeStyle = "rgba(230,220,200,0.25)";
+  g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(FX0, S1);
+  g.lineTo(w * 0.5, AP);
+  g.lineTo(FX1, S1);
+  g.stroke();
+  // the built share: the Fantasia lays the first courses (by its cadences), the Fugue goes on (by its entries) and stops short
+  const cadsDone = k.cads.filter((c) => c <= k.now()).length;
+  let done = 0;
+  for (let i = 0; i < k.ents.length; i++) if (entryState(k, i) === 2) done++;
+  const built = fugue ? 0.3 + 0.55 * (k.ents.length ? done / k.ents.length : 0) : 0.3 * (k.cads.length ? cadsDone / k.cads.length : 0);
+  const full = Math.floor(built * rows);
+  for (let r = 0; r < rows; r++) {
+    const yb = S1 - r * rowH;
+    const half = ((FX1 - FX0) / 2) * (1 - (r + 1) / rows);
+    if (r < full) k.R(w * 0.5 - half, yb - rowH, half * 2, rowH, r % 2 ? "#8a7a68" : "#84745f");
+    if (r < full) for (let x = w * 0.5 - half + (r % 2 ? 4 : 0); x < w * 0.5 + half; x += 9) k.R(x, yb - rowH, 1, rowH, "rgba(0,0,0,0.25)");
+  }
+  // the scaffold: poles and boards up the gable's sides
+  const WOOD = "#5a4028";
+  for (const x of [FX0 - 6, w * 0.42, w * 0.58, FX1 + 6]) k.R(x, AP + h * 0.04, 2, GY - AP - h * 0.04, WOOD);
+  for (let l = 0; l < 4; l++) k.R(FX0 - 8, S1 - l * (S1 - AP) * 0.24, FX1 - FX0 + 16, 2, WOOD);
+  // the crane: its jib over the gable, the rope, the stone
+  const CX = FX1 + w * 0.08;
+  k.R(CX, AP - 4, 3, GY - AP + 4, WOOD);
+  k.R(CX - w * 0.22, AP - 4, w * 0.22 + 3, 2, WOOD);
+  k.disc(CX + 1, GY - 10, 9, "rgba(90,64,40,0.9)");
+  k.disc(CX + 1, GY - 10, 6, "#2a2220");
+  const HX = w * 0.52;
+  let lift = -1;
+  let liftV = 0;
+  for (let i = 0; i < k.ents.length; i++) {
+    const st = entryState(k, i);
+    if (st > 0 && st < 2) (lift = st), (liftV = k.voicesOf[i] ?? 0);
+  }
+  // the break: the last entry's stone left hanging where the text stops
+  const broken = fugue && k.p > 0.97;
+  if (fugue && (lift >= 0 || broken)) {
+    // the stone rises from the ground to just over the courses built, and is set when the entry ends; the last one
+    // stops there, hanging over the unfinished gable
+    const top = S1 - full * rowH - rowH - 10;
+    const sy = broken ? top : GY - 8 - (GY - 8 - top) * lift;
+    k.R(HX, AP - 2, 1, sy - AP + 2, "#1a1410");
+    k.R(HX - 7, sy - 1, 14, 8, "#2a2018");
+    k.R(HX - 6, sy, 12, 6, broken ? "#9a8a76" : rgba(mix([154, 138, 118], hex(inkOf(liftV, k.nVoices)), 0.3)));
+  }
+  // the masons' torches: in the Fantasia moving along the scaffold, crossing; low once the Fugue breaks off
+  const torches = fugue ? 1 : 2;
+  for (let t = 0; t < torches; t++) {
+    const sp = 0.15 + 0.5 * k.busy;
+    const u = (Math.sin(k.t * sp + t * Math.PI) + 1) / 2;
+    const tx = fugue ? FX0 - 4 : FX0 + (FX1 - FX0) * (t ? 1 - u : u);
+    const level = fugue ? 1 : t + 1;
+    const ty = S1 - level * (S1 - AP) * 0.24 - 3;
+    const a = broken ? 0.12 : 0.4;
+    k.R(tx, ty - 3, 1, 4, "#3a2a1a");
+    k.R(tx - 1, ty - 6, 3, 3, broken ? "#a0602a" : "#ffcf6a");
+    light(k, tx, ty - 5, 18, [255, 180, 90], a);
+  }
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -5000,6 +5094,8 @@ const WORKS: WorkSetting[] = [
   { test: (id) => CHROMATIC_ID.test(id), world: lighthouse, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [COOL, 0.07, "none", 0, 1.02], [0.34, 0.16, SILVER, false], [DUSK_NIGHT, 0.08]) },
   // D673: the Albinoni fugue, the Lagoon.
   { test: (id) => ALBINONI_ID.test(id), world: lagoon, script: sk([DUSK_GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.6, 0.5, [255, 200, 150], false], [DUSK_NIGHT, 0.08]) },
+  // D674: the Fantasia and Fugue in C minor, the Scaffold.
+  { test: (id) => C_MINOR_906_ID.test(id), world: scaffold, script: sk([DUSK_GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.5, 0.9, [255, 170, 110], false], [DUSK_NIGHT, 0.1]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
