@@ -98,7 +98,7 @@ test("D713: the Art of Fugue's drums (HOME and its picks) under the band at ever
 /** D735: the Inventions' and Sinfonias' 30 (MORE BACH's), each on its own sound with its HOME (D731, D735). */
 const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
 /** D744: and the Four Duets. */
-const DUETS = ["bwv802", "bwv803", "bwv804", "bwv805"];
+const DUETS = ["bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2", "bwv951"]; // D774, D779: and the Chromatic and the Albinoni Fugues
 test("D735: the Inventions' and Sinfonias' HOME drums under the band at every stroke, on the phone model", async () => {
   const bad: string[] = [];
   let n = 0;

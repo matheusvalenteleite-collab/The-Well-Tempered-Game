@@ -111,3 +111,34 @@ test("D741, D744: the Four Duets on four sounds (none shared within the group), 
     assert.ok(share >= 0.65, `${id}: ${(share * 100).toFixed(0)} %`);
   }
 });
+
+test("D771, D774: the Chromatic Fugue on FLUTE & HARP (a sound then serving fewer than three pieces), its reason and plan; TIMPANI fits, on the onsets", async () => {
+  const id = "bwv903-2";
+  assert.equal(PIECE_SOUND[id], "fluteHarp");
+  assert.equal(COLOURS[id].sound, "fluteHarp");
+  assert.ok(/^D771: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy));
+  assert.ok(COLOURS[id].plans.fluteHarp?.length);
+  const f = fugueById(id);
+  assert.equal(FUGUE_STYLES[id], "timpani");
+  assert.equal(homeFor(id, "fluteHarp"), "timpani");
+  assert.ok(fits("timpani", f));
+  const ons = [...new Set(f.voices.flatMap((v) => v.map((n) => n[0])))];
+  const strokes = await strokesOf(f, "fluteHarp", "timpani");
+  const share = strokes.filter((x) => ons.some((o) => Math.abs(o - x.tick) <= f.tpq / 8)).length / strokes.length;
+  assert.ok(share >= 0.65, `${(share * 100).toFixed(0)} %`);
+});
+
+test("D779: the Albinoni Fugue on STRING CONSORT (fewer than three pieces then), its reason and plan; FIELD DRUM fits, on the onsets", async () => {
+  const id = "bwv951";
+  assert.equal(PIECE_SOUND[id], "stringConsort");
+  assert.equal(COLOURS[id].sound, "stringConsort");
+  assert.ok(/^D779: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy));
+  assert.ok(COLOURS[id].plans.stringConsort?.length);
+  const f = fugueById(id);
+  assert.equal(FUGUE_STYLES[id], "fieldDrums");
+  assert.equal(homeFor(id, "stringConsort"), "fieldDrums");
+  assert.ok(fits("fieldDrums", f));
+  const ons = [...new Set(f.voices.flatMap((v) => v.map((n) => n[0])))];
+  const strokes = await strokesOf(f, "stringConsort", "fieldDrums");
+  assert.ok(strokes.filter((x) => ons.some((o) => Math.abs(o - x.tick) <= f.tpq / 8)).length / strokes.length >= 0.65);
+});
