@@ -22,8 +22,8 @@ import { difficultyOf } from "./difficulty.ts";
  */
 export type LiteTab = "I" | "II" | "AOF" | "INV" | "MORE" | "CHORALES";
 export const LITE_TABS: readonly [LiteTab, string][] = [
-  ["I", "BOOK I"],
-  ["II", "BOOK II"],
+  ["I", "WTC BOOK I"],
+  ["II", "WTC BOOK II"],
   // D727: THE ART OF FUGUE, its own tab for everyone (out of MORE BACH), a grid of tiles as the books'.
   ["AOF", "THE ART OF FUGUE"],
   // D750: THE INVENTIONS AND SINFONIAS, the same (out of MORE BACH).
