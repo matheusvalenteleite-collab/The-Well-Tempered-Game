@@ -25,7 +25,7 @@ const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "
 const INV = Array.from({ length: 30 }, (_, i) => `bwv${772 + i}`);
 // D746: and the Four Duets.
 // D776: and the Chromatic Fugue.
-const IDS = [...WTC, ...AOF, ...INV, "bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2"];
+const IDS = [...WTC, ...AOF, ...INV, "bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2", "bwv951"];
 const c = (x: readonly number[]) => (x[0] + x[1]) / 2;
 const dB = (g: number) => 20 * Math.log10(g);
 

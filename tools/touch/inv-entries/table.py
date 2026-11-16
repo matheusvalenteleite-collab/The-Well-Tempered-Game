@@ -54,6 +54,8 @@ SPEC = {
     "bwv805": ("multi", [(1, 1, 2, 12, 32, 0.75, (1,), 5), (1, 9, 2, 12, 32, 0.75, (1,), 5)]),
     # D770: the Chromatic Fugue (BWV 903-2), the same way (data/touch/903-entries.txt).
     "bwv903-2": ("multi", [(0, 1, 0, 16, 24, 0.75, (1,), 6), (0, 9, 0, 12, 24, 0.75, (1,), 6)]),
+    # D779: the Albinoni Fugue (BWV 951), the same way (data/touch/951-entries.txt).
+    "bwv951": ("multi", [(1, 1, 0.5, 16, 8.5, 0.75, (1,), 6), (1, 3, 1.25, 12, 7.25, 0.75, (1,), 6)]),
 }
 
 

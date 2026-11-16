@@ -1,0 +1,30 @@
+# THE ALBINONI FUGUE'S ENTRIES (D779): BWV 951's subject and countersubject, the table the game's entries are built from
+# (tools/touch/more-bach.ts places it with tools/touch/expert.ts placeExpert, as the other tables, D730). Read off the notes
+# by D707's scanner (tools/touch/inv-entries/table.py) and reviewed: the subject (the alto, b. 1) and the countersubject
+# (the alto's line against the soprano's answer, b. 3). "mod": the tonal answers laid from their second note (3, 12), or
+# the finders' (D754's given theme) statements the scan's threshold misses: 50 (A major), 54 and 85 (the bass, varied).
+
+== bwv951 | S multi
+% the subject fifteen times, the countersubject six (the bass carries it in sequence at 12-22; once more against 31)
+1+0.5 A len=8.5   # theme 1 read here
+3+1.25 A t2 len=7.25   # theme 2 read here
+3+0.5 S mod   # fit 0.97 from2
+7+0.5 B   # fit 1.0 full
+12+0.5 A mod   # fit 1.0 from2
+12+1.25 B t2   # fit 1.0 full
+14+0.25 B t2   # fit 0.83 full
+16+2.25 B t2   # fit 1.0 full
+18+2.5 S   # fit 1.0 full
+22+2.25 B t2 mod   # fit 0.88 full (placed by its intervals: its rhythm varied)
+24+2.5 B   # fit 0.97 full
+31+2.5 A   # fit 1.0 full
+31+3.25 B t2   # fit 1.0 full
+38+2.5 S   # fit 1.0 full
+59+0.5 A   # fit 0.81 full
+78+0.5 A   # fit 1.0 full
+95+2.5 B   # fit 0.78 full
+106+2.5 B   # fit 0.81 full
+50+2.5 A mod   # the subject in A major, a step bent: the finders' statement (D754's theme), kept
+54+0.75 B mod   # the bass's statement, its head varied: the finders', kept
+85+2.75 B mod   # the bass in A minor, varied: the finders', kept
+

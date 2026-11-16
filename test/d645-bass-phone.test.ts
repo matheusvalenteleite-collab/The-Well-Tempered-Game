@@ -166,7 +166,7 @@ test(`D734: every Invention and Sinfonia measured on its own sound, its bass wit
   const bad: string[] = [];
   // D745: and the Four Duets'.
   // D775: and the Chromatic Fugue's.
-  for (const id of [...INV, "bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2"]) {
+  for (const id of [...INV, "bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2", "bwv951"]) {
     const m = BASS_PHONE_INV[id] ?? BASS_PHONE_DUET[id] ?? BASS_PHONE_903[id];
     assert.ok(m, `${id}: measured`);
     const f = fugueById(id);

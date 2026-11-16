@@ -30,11 +30,11 @@ const AOF = process.argv.includes("--aof");
 const INV = process.argv.includes("--inv");
 // D745: the Four Duets (BWV 802-805) into a file of their own (--duet).
 const DUET = process.argv.includes("--duet");
-// D775: the Chromatic Fugue (BWV 903-2) into a file of its own (--903).
+// D775: the Chromatic Fugue (BWV 903-2) into a file of its own (--903); D779: and the Albinoni Fugue (BWV 951).
 const F903 = process.argv.includes("--903");
 if (AOF || INV || DUET || F903) await loadExtras();
 const isInv = (k: string) => /^bwv(7[789]\d|80[01])$/.test(k) && +k.slice(3) >= 772 && +k.slice(3) <= 801;
-const ids = Object.keys(PIECE_SOUND).filter((k) => (F903 ? k === "bwv903-2" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
+const ids = Object.keys(PIECE_SOUND).filter((k) => (F903 ? k === "bwv903-2" || k === "bwv951" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
 const out: Record<string, unknown> = {};
 const errs: string[] = [];
 for (const id of ids) {
@@ -68,7 +68,7 @@ for (const id of ids) {
 }
 const fmt = (o: unknown) => JSON.stringify(o);
 console.log(`/**
- * ${F903 ? "D775, THE CHROMATIC FUGUE'S BASS ON A PHONE (D645's measure for BWV 903-2 on its own sound). " : DUET ? "D745, THE FOUR DUETS' BASS ON A PHONE (D645's measure for BWV 802-805, each on its own sound). " : INV ? "D734, THE INVENTIONS' AND SINFONIAS' BASS ON A PHONE (D645's measure for their 30 pieces, each on its own sound). " : AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
+ * ${F903 ? "D775, THE FANTASIAS AND FUGUES' BASS ON A PHONE (D645's measure for BWV 903-2 and, D779, BWV 951, each on its own sound). " : DUET ? "D745, THE FOUR DUETS' BASS ON A PHONE (D645's measure for BWV 802-805, each on its own sound). " : INV ? "D734, THE INVENTIONS' AND SINFONIAS' BASS ON A PHONE (D645's measure for their 30 pieces, each on its own sound). " : AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
  * 48 fugues on its own sound: \`band\` the player on the top voice (the bass in the band), \`player\` the player on the
  * bass; \`lu\` each voice alone through the phone model (mono, two 2nd-order 600 Hz high-passes, ebur128: integrated LUFS),
  * \`at\` the balance's gain on it then (dB: the player's level on the player's voice, the band's trim on the others),
