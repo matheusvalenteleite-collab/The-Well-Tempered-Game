@@ -4916,6 +4916,74 @@ function lighthouse(k: Kit) {
   }
 }
 
+/** D673: the Fugue on a Theme by Albinoni, BWV 951. */
+const ALBINONI_ID = /^bwv951$/;
+/**
+ * THE LAGOON (the Albinoni fugue). Dusk on open water: a far city of low roofs, domes and one bell tower along the
+ * horizon, a line of mooring poles (posts lashed in threes) running out across the still water toward it. Each entry
+ * of the subject lights a lantern on the next post, its light trembling in the water, the lantern touched with the
+ * entering voice's colour while it sounds and warm once it is done; the line of lights reaches the city as the piece
+ * ends. The sky goes from the last rose of sunset to deep blue; at the climax the far city's windows answer; at the
+ * last chord the water is still.
+ */
+function lagoon(k: Kit) {
+  const { w, h } = k;
+  const cl = k.climax;
+  const HZ = h * 0.5;
+  const top = mix([70, 70, 120], [24, 30, 66], k.p);
+  const low = mix([236, 150, 120], [90, 70, 110], k.p);
+  k.vgrad(0, HZ, [[0, rgba(top)], [1, rgba(low)]]);
+  k.stars(30, 0.55, 0.4);
+  // the far city: low roofs, two domes, a bell tower
+  const CITY = "#2a2236";
+  let x = w * 0.08;
+  for (let r = 0; x < w * 0.94; r++) {
+    const rw = 8 + hash(r + 80) * 12, rh = 3 + hash(r + 81) * 5;
+    k.R(x, HZ - rh, rw, rh + 1, CITY);
+    x += rw;
+  }
+  for (const [dx, dr] of [[0.42, 7], [0.58, 5]] as const) {
+    k.disc(w * dx, HZ - 7, dr, CITY);
+    k.R(w * dx - dr, HZ - 7, dr * 2, 7, CITY);
+    k.R(w * dx - 0.5, HZ - 7 - dr - 4, 1, 4, CITY);
+  }
+  const BX = w * 0.66;
+  k.R(BX, HZ - 30, 6, 30, CITY);
+  k.tri(BX + 3, HZ - 30, 7, 9, CITY);
+  for (let i = 0; i < 16; i++) if (hash(i + 90) < 0.25 + 0.75 * cl) k.R(w * (0.12 + 0.78 * hash(i + 91)), HZ - 2 - hash(i + 92) * 4, 1, 1, "rgba(255,210,140,0.8)");
+  // the water: the sky mirrored, darker, slow ripples
+  k.vgrad(HZ, h - HZ, [[0, rgba(mix(low, [20, 20, 40], 0.45))], [1, rgba(mix(top, [6, 8, 20], 0.5))]]);
+  for (let r = 0; r < 22; r++) {
+    const y = HZ + 2 + hash(r + 100) * (h - HZ - 4);
+    const xx = wrap(hash(r + 101) * w + k.t * (1.5 + hash(r + 102)), w + 40) - 20;
+    k.R(xx, y, 6 + hash(r + 103) * 14, 1, "rgba(255,230,210,0.07)");
+  }
+  // the posts: one cluster for each entry, from near (left, below) out to the city (right, on the horizon)
+  const n = Math.max(1, k.ents.length);
+  for (let i = n - 1; i >= 0; i--) {
+    const u = i / Math.max(1, n - 1);
+    const d = Math.pow(u, 0.8);
+    const px = w * (0.24 + 0.5 * d), py = h * 0.94 - (h * 0.94 - HZ - 2) * d;
+    const s = 1.6 - 1.3 * d;
+    const ph = 22 * s;
+    for (const o of [-2, 0, 2]) k.R(px + o * s, py - ph + Math.abs(o) * s, Math.max(1, 2 * s), ph - Math.abs(o) * s, "#1c1410");
+    k.R(px - 2 * s, py - ph * 0.6, 5 * s, Math.max(1, s), "#3a2a20");
+    const st = entryState(k, i);
+    if (st === 0) continue;
+    const sounding = st < 2;
+    const c: C3 = sounding ? mix([255, 214, 140], hex(inkOf(k.voicesOf[i] ?? 0, k.nVoices)), 0.4) : [255, 206, 130];
+    const ly = py - ph - 2 * s;
+    k.R(px - s, ly - s, 3 * s, 3 * s, rgba(c));
+    light(k, px, ly, (10 + (sounding ? 8 : 0)) * s, c, sounding ? 0.55 : 0.35);
+    // its reflection: a trembling streak below the post
+    for (let j = 0; j < 6; j++) {
+      const wob = k.still ? 0 : Math.sin(k.sec * 2 + j + i) * s;
+      k.R(px - s + wob, py + 2 + j * 3 * s, 3 * s, Math.max(1, s), rgba(c, 0.35 * (1 - j / 6)));
+    }
+  }
+  if (cl > 0.02) light(k, w * 0.6, HZ, w * 0.35, [255, 200, 150], 0.12 * cl);
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -4930,6 +4998,8 @@ const WORKS: WorkSetting[] = [
   { test: (id) => DUET_ID.test(id), world: gallery, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [VIOLET, 0.07, "motes", 0, 1.02], [0.5, 0.12, [220, 200, 170], false], [DUSK_NIGHT, 0.08]) },
   // D672: the Chromatic Fugue, the Lighthouse.
   { test: (id) => CHROMATIC_ID.test(id), world: lighthouse, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [COOL, 0.07, "none", 0, 1.02], [0.34, 0.16, SILVER, false], [DUSK_NIGHT, 0.08]) },
+  // D673: the Albinoni fugue, the Lagoon.
+  { test: (id) => ALBINONI_ID.test(id), world: lagoon, script: sk([DUSK_GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.6, 0.5, [255, 200, 150], false], [DUSK_NIGHT, 0.08]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
