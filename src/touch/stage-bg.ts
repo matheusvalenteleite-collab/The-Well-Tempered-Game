@@ -4826,12 +4826,11 @@ function gallery(k: Kit) {
   }
 }
 
-/** D672: the Chromatic Fantasia and Fugue, BWV 903 (the Fugue now; the Fantasia shares the setting when it comes). */
-const CHROMATIC_ID = /^bwv903(-\d)?$/;
+/** D672: the Chromatic Fugue, BWV 903 (the owner: the Fugue alone, no Fantasia). */
+const CHROMATIC_ID = /^bwv903-2$/;
 /**
- * THE LIGHTHOUSE (the Chromatic Fantasia and Fugue). A night sea under heavy cloud, a lighthouse on a dark headland,
- * a ship's lights far out. The cloud's colour drifts slowly through the piece (the chromatic harmony: never a flash,
- * no lightning). Each entry of the subject turns the lighthouse's beam once across the water over the entry's length
+ * THE LIGHTHOUSE (the Chromatic Fugue). A night sea under heavy cloud, a lighthouse on a dark headland, a ship's
+ * lights far out; the cloud steady (the owner: no drifting sky). Each entry of the subject turns the lighthouse's beam once across the water over the entry's length
  * (a soft wedge of light, its lantern touched with the entering voice's colour); between entries the lamp burns
  * steady. The ship comes nearer as the piece goes on; at the climax the cloud parts and the moon shows; at the last
  * chord the sea is still.
@@ -4840,9 +4839,8 @@ function lighthouse(k: Kit) {
   const { w, h, g } = k;
   const cl = k.climax;
   const HZ = h * 0.6;
-  // the sky: the cloud's colour drifting through the piece
-  const drift = (Math.sin(k.p * Math.PI * 3) + 1) / 2;
-  const cloudC: C3 = mix([46, 40, 70], [40, 58, 72], drift);
+  // the sky under one steady cloud
+  const cloudC: C3 = [44, 48, 70];
   k.vgrad(0, HZ, [[0, rgba(mix([18, 20, 38], cloudC, 0.5))], [1, rgba(mix([56, 58, 80], cloudC, 0.5))]]);
   // the moon behind the cloud, shown as the cloud parts at the climax
   const MX = w * 0.34, MY = h * 0.16;
@@ -4930,7 +4928,7 @@ const WORKS: WorkSetting[] = [
   { test: (id) => INV_ID.test(id), world: songbirds, script: sk([GOLD, 0.04, "none", 0, 1.01], [COOL, 0.06, "none", 0, 1.02], [0.8, 0.1, WARM, false], [GOLD, 0.06]) },
   // D671: the Four Duets, the Gallery.
   { test: (id) => DUET_ID.test(id), world: gallery, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [VIOLET, 0.07, "motes", 0, 1.02], [0.5, 0.12, [220, 200, 170], false], [DUSK_NIGHT, 0.08]) },
-  // D672: the Chromatic Fantasia and Fugue, the Lighthouse.
+  // D672: the Chromatic Fugue, the Lighthouse.
   { test: (id) => CHROMATIC_ID.test(id), world: lighthouse, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [COOL, 0.07, "none", 0, 1.02], [0.34, 0.16, SILVER, false], [DUSK_NIGHT, 0.08]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;

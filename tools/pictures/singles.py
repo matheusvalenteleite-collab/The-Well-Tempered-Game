@@ -1,8 +1,7 @@
 """The single works' pictures (D672 on, design studio): one setting per work, its tiles its variations (D668).
 
-BWV 903, the Chromatic Fantasia and Fugue: THE LIGHTHOUSE (stage-bg.ts `lighthouse`). A night sea under heavy cloud,
-a lighthouse on a dark headland, its beam across the water, a ship's lights far out. The Fugue's tile has the beam
-swept toward the ship; the Fantasia's, when it comes, will have the lamp alone under the cloud.
+BWV 903, the Chromatic Fugue (the owner: the Fugue alone): THE LIGHTHOUSE (stage-bg.ts `lighthouse`). A night sea under
+heavy cloud, a lighthouse on a dark headland, its beam swept across the water toward a ship's lights far out.
 """
 from lib import *  # noqa: F401,F403
 
