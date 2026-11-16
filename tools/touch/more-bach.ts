@@ -82,6 +82,10 @@ interface Spec {
   fromMidi?: boolean;
   /** The LilyPond voices in score order (top first), where the reader names more than the piece has. */
   lyVoices?: string[];
+  /** D755: a stream holding a voice's second line for a few bars (its chords), given to that voice as its own extra notes (D363's sub-line). */
+  lyAside?: Record<string, string>;
+  /** D755: the folder under data/sources/<dir>/ holding the LilyPond (Mutopia's mutopia/<mutopia>/ where unset): a transcription of our own. */
+  lyDir?: string;
   voiceNames: string[];
   /** Entries found (a fugue, an invention, a sinfonia); none for a canon or the concerto. */
   entries: boolean;
@@ -514,6 +518,9 @@ const BWV951_FIXES: NonNullable<Spec["fixes"]> = [
   { voice: 1, bar: 28, at: "1/8", from: "B3", start: "3/16" },
 ];
 
+const BGA36 = "https://archive.org/download/bach-gesellschaft-ausgabe/BGA%20Band%2036.pdf";
+const BWV906_CREDIT = "TRANSCRIBED FOR THE GAME FROM THE BACH-GESELLSCHAFT EDITION, BAND 36 (1890) · PUBLIC DOMAIN";
+
 const KEYBOARD: Spec[] = [
   {
     id: "bwv903-2",
@@ -554,6 +561,44 @@ const KEYBOARD: Spec[] = [
     entries: true,
     fixes: BWV951_FIXES,
     credit: "PDMX · MUSESCORE SCORE 2069976 BY CADAMS, CORRECTED FROM THE BACH-GESELLSCHAFT PRINT · PUBLIC DOMAIN",
+  },
+  // D755: no free edition exists; transcribed for the game from the Bach-Gesellschaft print and read again bar by bar (data/sources/bach-906/SOURCE.md).
+  {
+    id: "bwv906-1",
+    collection: "keyboard",
+    number: 3,
+    title: "Fantasia and Fugue in C minor, Fantasia",
+    short: "FANTASIA IN C MINOR",
+    bwv: "906",
+    key: "c",
+    dir: "bach-906",
+    mutopia: 0,
+    lyDir: "transcription",
+    page: BGA36,
+    ly: "bwv906fan.ly",
+    lyVoices: ["upper", "lower"],
+    lyAside: { upperTwo: "upper", lowerTwo: "lower" },
+    voiceNames: TWO_HANDS,
+    entries: false,
+    credit: BWV906_CREDIT,
+  },
+  {
+    id: "bwv906-2",
+    collection: "keyboard",
+    number: 4,
+    title: "Fantasia and Fugue in C minor, Fugue (unfinished)",
+    short: "FUGUE IN C MINOR (UNFINISHED)",
+    bwv: "906",
+    key: "c",
+    dir: "bach-906",
+    mutopia: 0,
+    lyDir: "transcription",
+    page: BGA36,
+    ly: "bwv906fug.ly",
+    lyVoices: ["upper:1", "upper:2", "lower:1"],
+    voiceNames: THREE,
+    entries: true,
+    credit: BWV906_CREDIT,
   },
 ];
 
@@ -728,7 +773,7 @@ export interface Read {
 }
 
 export function readPiece(s: Spec): Read {
-  const dir = `${SRC}${s.dir}/mutopia/${s.mutopia}/`;
+  const dir = s.lyDir ? `${SRC}${s.dir}/${s.lyDir}/` : `${SRC}${s.dir}/mutopia/${s.mutopia}/`;
   const ly = s.ly ? readLy(`${dir}${s.ly}`, s.score ?? 0) : null;
   const m = s.mid ? readMidi(readFileSync(`${dir}${s.mid}`)) : null;
   const k = m ? TPQ / m.division : 1;
@@ -767,7 +812,7 @@ export function readPiece(s: Spec): Read {
     for (const n of lyNotes) count.set(n.voice, (count.get(n.voice) ?? 0) + 1);
     const ids = s.lyVoices ?? [...count].filter(([, c]) => c >= 0.03 * lyNotes.length).map(([v]) => v);
     // D753: a voice may be several LilyPond streams ("upper:2|lower:1": a line that changes staff).
-    const home = (v: string) => ids.find((id) => id.split("|").includes(v)) ?? (ids.includes(v.split(/[:/]/)[0]) ? v.split(/[:/]/)[0] : null);
+    const home = (v: string) => ids.find((id) => id.split("|").includes(v)) ?? s.lyAside?.[v] ?? (ids.includes(v.split(/[:/]/)[0]) ? v.split(/[:/]/)[0] : null);
     const unknown = [...count.keys()].filter((v) => !home(v));
     if (unknown.length) throw new Error(`${s.id}: LilyPond voices ${unknown.join(", ")} not in ${ids.join(", ")}`);
     voices = ids.map((id) =>

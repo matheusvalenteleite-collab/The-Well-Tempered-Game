@@ -48,6 +48,9 @@ const REFERENCE: Record<string, number> = {
   "bwv903-2": 76,
   // D754: the Albinoni Fugue (harpsichordists about ♩ 66-80).
   "bwv951": 72,
+  // D755: the C minor Fantasia and its unfinished Fugue (editorial).
+  "bwv906-1": 84,
+  "bwv906-2": 72,
   // The Concerto for Two Violins: moderate, historically informed (period bands play I at about ♩ = 100-112,
   // II at ♩. = 40-46, III at ♩ = 126-144).
   "bwv1043-1": 96, "bwv1043-2": 60 /* ♩. = 40 */, "bwv1043-3": 120,
