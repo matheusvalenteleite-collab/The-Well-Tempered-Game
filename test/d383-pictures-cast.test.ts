@@ -19,7 +19,9 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 
 test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes keep their emblems", () => {
   // D664: and the Art of Fugue's 20.
-  assert.equal(Object.keys(PICTURES).length, 104);
+  assert.equal(Object.keys(PICTURES).length, 106);
+  // D674: the Scaffold, the Fantasia's tile and the unfinished Fugue's.
+  assert.ok(pictureOf("bwv906-1") && pictureOf("bwv906-2"), "bwv906 drawn");
   // D673: the Albinoni fugue's Lagoon.
   assert.ok(pictureOf("bwv951"), "bwv951 drawn");
   // D672: the Chromatic Fugue's Lighthouse.
