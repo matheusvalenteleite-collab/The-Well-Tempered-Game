@@ -1,0 +1,83 @@
+# THE ENTRIES OF BWV 906 AND 998 (D780): the table the game's entries are built from for the Fantasia and Fugue in
+# C minor and the Prelude, Fugue and Allegro in E-flat (tools/touch/more-bach.ts places it with tools/touch/expert.ts
+# placeExpert, as the Inventions', Duets' and the Chromatic Fugue's tables, D730). Read off the notes by D707's scanner
+# (tools/touch/inv-entries/table.py) and reviewed; only a real returning subject or motive counted:
+#   - the Fantasia: its motive, the C minor chord falling from the top in semiquaver triplets (the right hand, b. 1),
+#     each a fit of 1.0 ("mod": its first note changed): the opening's three bars, the left hand's rising inversion as the
+#     hands change parts (5-6, 19-20), the second half (17-20, G minor) and the return (33-36); its finds under 1.0 (15)
+#     and the crossing figures (9-13, 25-28) are not counted;
+#   - the Fugue (unfinished): its subject eight times, the finders' eight, each a fit of 1.0; its countersubject (the
+#     soprano against the answer, b. 3) returns nowhere else (the scan's best other fit 0.68): none;
+#   - the Prelude: its head (the turn and the falling chord, bar 1) where it opens a phrase: 1, 6 (B-flat), 14 (C minor),
+#     25 (A-flat), 42 (the return over the tonic pedal), each a fit of 1.0; the rest is its broken-chord figuration;
+#   - the Fugue: its subject seventeen times, the finders' sixteen and 43 (the alto in C minor, its tail varied: 0.75);
+#     "mod" the statements laid from their second note (the tonal answer at 3, and 11, 13, 21, 39 and their da capo); 50
+#     and 52 (the bass in sequence) the finders', varied; left out the scan's finds inside the semiquaver figuration
+#     (31, 37, 45); its countersubject comes back only in the da capo's bar 77 (bar 3's): none;
+#   - the Allegro: its head (the falling semiquaver scale, bar 1) at 1, 6 (the cadence's echo), 19 (B-flat) and 80 (the
+#     return in E-flat); the rising scale the scan reads inverted at 23 is passage-work, not counted.
+
+== bwv906-1 | S
+% its motive, the chord falling from the top (the right hand, bar 1), fifteen times: the opening's three bars, the left hand's
+% inversion as the hands change parts (5-6, 19-20), the second half's opening in G minor (17-20) and the return (33-36)
+1+0 U len=1.5   # theme 1 read here
+2+0 U mod   # fit 1.0 from2
+3+0 U mod   # fit 1.0 from2
+5+0 L inv mod   # fit 1.0 from2
+6+0 L inv mod   # fit 1.0 from2
+17+0 U   # fit 1.0 full
+18+0 U mod   # fit 1.0 from2
+19+1 L inv mod   # fit 1.0 from2
+19+2.16667 U mod   # fit 1.0 from2
+20+2.16667 U mod   # fit 1.0 from2
+33+2 U   # fit 1.0 full
+34+0 U   # fit 1.0 full
+35+0 U mod   # fit 1.0 from2
+36+0 U mod   # fit 1.0 from2
+36+2 U mod   # fit 1.0 from2
+
+== bwv906-2 | S
+% the subject eight times (unfinished: the print stops on bar 48's first beat)
+1+0.5 S len=8.5   # theme 1 read here
+3+0.5 A   # fit 1.0 full
+5+0.5 B   # fit 1.0 full
+9+0.5 S   # fit 1.0 full
+17+0.5 B   # fit 1.0 full
+19+0.5 A   # fit 1.0 full
+21+0.5 S   # fit 1.0 full
+46+0.5 A   # fit 1.0 full
+
+== bwv998-1 | S
+% the head five times, each opening a phrase
+1+0.5 U len=6   # theme 1 read here
+6+0.5 U   # fit 1.0 full
+14+0.5 U   # fit 1.0 full
+25+0.5 U   # fit 1.0 full
+42+0.5 U   # fit 1.0 full
+
+== bwv998-2 | S
+% the subject seventeen times (its da capo written out, 75-103)
+1+1 S len=8   # theme 1 read here
+3+1 A mod   # fit 0.79 from2
+7+1 B   # fit 1.0 full
+11+1 B mod   # fit 1.0 from2
+13+1 B mod   # fit 1.0 from2
+15+1 B   # fit 1.0 full
+21+1 S mod   # fit 1.0 from2
+35+1 A   # fit 0.88 full
+39+1 B mod   # fit 1.0 from2
+43+1 A   # fit 0.75 full
+50+0 B mod   # the finders' (D756): the bass in sequence, varied
+52+0 B mod   # the finders' (D756), the same
+81+1 B   # fit 1.0 full
+85+1 B mod   # fit 1.0 from2
+87+1 B mod   # fit 1.0 from2
+89+1 B   # fit 1.0 full
+95+1 S mod   # fit 1.0 from2
+
+== bwv998-3 | S
+% the head four times
+1+0.25 U len=6   # theme 1 read here
+6+0.25 U   # fit 0.75 full
+19+0.25 U   # fit 1.0 full
+80+0.25 U   # fit 0.75 full

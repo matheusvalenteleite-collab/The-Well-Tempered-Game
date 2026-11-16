@@ -64,9 +64,10 @@ const REFERENCE: Record<string, number> = {
  * D733: where the reference (lowered for the load) is faster than every recording measured (data/tempi/inv-recordings.csv,
  * track durations on Apple Music's store pages, 14 complete sets of the Inventions and Sinfonias), NORMAL is the
  * fastest of them, floored: Invention 9 (fastest 66.5, the reference 72) and Sinfonia 4 (50.6, the reference 60). The
- * reference itself (`median`: difficulty and stars) is unchanged.
+ * reference itself (`median`: difficulty and stars) is unchanged. D783: and BWV 998's Fugue (data/tempi/998-recordings.csv:
+ * fastest 78.98, the reference 80).
  */
-const RECORDED_MAX: Record<string, number> = { bwv780: 66, bwv790: 50 };
+const RECORDED_MAX: Record<string, number> = { bwv780: 66, bwv790: 50, "bwv998-2": 78 };
 /** The chorales: the chorale mode's ♩ = 60; a chorale in 3/2 at 𝅗𝅥 = 40. */
 const choraleRef = (p: Piece) => (p.meter === "3/2" ? 80 : 60);
 

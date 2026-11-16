@@ -30,7 +30,7 @@ function piece(id: string, sound: string, soundWhy: string, character: string, t
  * in more of the room from the final group (FINAL: form-points.ts formOf's last group of entries, by its first entry), or
  * from the return (`home`) where the final group comes before the cadence (the motive heard throughout).
  */
-const FINAL: Record<string, number> = {"bwv951": 106.625, "bwv903-2": 154, "bwv802": 65.667, "bwv803": 141, "bwv804": 38.25, "bwv805": 96.5, "bwv772": 2.062, "bwv773": 23.125, "bwv774": 56.667, "bwv775": 38.0, "bwv776": 23.062, "bwv777": 56.167, "bwv778": 7.125, "bwv779": 16.167, "bwv780": 29.0, "bwv781": 27.0, "bwv782": 16.5, "bwv783": 18.0, "bwv784": 22.562, "bwv785": 16.562, "bwv786": 18.125, "bwv787": 18.938, "bwv788": 28.0, "bwv789": 19.125, "bwv790": 20.062, "bwv792": 29.0, "bwv793": 35.167, "bwv794": 21.125, "bwv795": 23.875, "bwv796": 31.333, "bwv797": 65.167, "bwv798": 24.0, "bwv799": 53.0, "bwv800": 18.938, "bwv801": 35.333};
+const FINAL: Record<string, number> = {"bwv906-1": 33.5, "bwv906-2": 46.125, "bwv998-2": 95.25, "bwv951": 106.625, "bwv903-2": 154, "bwv802": 65.667, "bwv803": 141, "bwv804": 38.25, "bwv805": 96.5, "bwv772": 2.062, "bwv773": 23.125, "bwv774": 56.667, "bwv775": 38.0, "bwv776": 23.062, "bwv777": 56.167, "bwv778": 7.125, "bwv779": 16.167, "bwv780": 29.0, "bwv781": 27.0, "bwv782": 16.5, "bwv783": 18.0, "bwv784": 22.562, "bwv785": 16.562, "bwv786": 18.125, "bwv787": 18.938, "bwv788": 28.0, "bwv789": 19.125, "bwv790": 20.062, "bwv792": 29.0, "bwv793": 35.167, "bwv794": 21.125, "bwv795": 23.875, "bwv796": 31.333, "bwv797": 65.167, "bwv798": 24.0, "bwv799": 53.0, "bwv800": 18.938, "bwv801": 35.333};
 const arc = (id: string, sound: string, turn: number, home: number): Moment[] => {
   const fin = FINAL[id] !== undefined && FINAL[id] > turn ? FINAL[id] : home;
   return [
@@ -77,7 +77,12 @@ const WHY: Record<string, string> = {
   "bwv804": "D741: the G major gigue in 12/8: JAZZ QUARTET's vibraphone over its double bass, the 12/8 swung (the voice probe's closest pair 5.27 against HARPSICHORD's 2.72).",
   "bwv805": "D741: the strict A minor fugue alla breve, its long chromatic subject: KRAUTROCK's Mellotron over its Moog bass, the motorik pulse under the relentless crotchets (the voice probe's closest pair 3.68 against HARPSICHORD's 1.58).",
   "bwv903-2": "D771: the Chromatic Fugue's three voices, a long chromatic subject: FLUTE & HARP's alto flute, harp and cello, a plucked keyboard-like harp among two sustained lines (the voice probe's closest pair 2.20 against HARPSICHORD's 1.14; of the sounds serving fewer than three pieces, the clearest).",
-  bwv951: "D779: the Albinoni Fugue's three voices, a Venetian theme worked in long episodes: STRING CONSORT, Albinoni's own medium, its three strings of different weight (the voice probe's closest pair 1.69 against HARPSICHORD's 1.41). SALSA measured clearer (2.52) but its trombone left the alto's low B (bar 94, the bass resting) 7.9 LU under the soprano on a phone; here 3.6."
+  bwv951: "D779: the Albinoni Fugue's three voices, a Venetian theme worked in long episodes: STRING CONSORT, Albinoni's own medium, its three strings of different weight (the voice probe's closest pair 1.69 against HARPSICHORD's 1.41). SALSA measured clearer (2.52) but its trombone left the alto's low B (bar 94, the bass resting) 7.9 LU under the soprano on a phone; here 3.6.",
+  "bwv906-1": "D782: the Fantasia's two hands, the left crossing over the right up to A♭5: JAZZ QUARTET's vibraphone on the right hand and its piano on the left (its own seat, D781: the piano covers the crossings), a struck bar over a keyboard (the voice probe's closest pair 4.34 against HARPSICHORD's 3.02; GAME BOY 4.73 and KRAUTROCK 4.43 measured a little clearer, each already on six or seven pieces).",
+  "bwv906-2": "D782: the unfinished C minor fugue's three voices: ABBEY ROAD's Moog, guitar and bass, three different attacks, the bass's climbs to E♭5 within reach (the voice probe's closest pair 3.61 against HARPSICHORD's 1.55; KRAUTROCK 5.15 clearer, already on seven pieces; BOSSA NOVA 3.79, its bass past its reach there).",
+  "bwv998-1": "D789: \"pour la luth ò cembal\": the Prelude's broken-chord line over a slow bass on CHORINHO's plucked strings (the cavaquinho and the seven-string guitar), a lute's family (the voice probe's closest pair 3.04 against HARPSICHORD's 1.35 and its lute stop's 1.16; GAME BOY 5.79 and BOSSA NOVA 5.03 clearer, BOSSA NOVA's bass past its reach).",
+  "bwv998-2": "D789: the da capo fugue's three voices: SALSA's trumpets over the tres and the baby bass, the plucked tres a lute's cousin (the voice probe's closest pair 2.98 against HARPSICHORD's 0.75 and its lute stop's 0.91; KRAUTROCK 5.60 clearer, already on seven pieces).",
+  "bwv998-3": "D789: the Allegro's running line on either staff over the bass: GAME BOY's lead over its bass, a game's quick figures (the voice probe's closest pair 5.55 against HARPSICHORD's 1.13 and its lute stop's 1.01)."
 };
 
 
@@ -124,6 +129,13 @@ export const MORE: Record<string, PieceColours> = {
   ...piece("bwv903-2", "fluteHarp", WHY["bwv903-2"], "Three voices on a long chromatic subject; cadences in D minor (39, 71, 75, 147); chords at the climaxes (53, 94, 135) and the close (158-161).", B("bwv903-2", 75), 154),
   // D779: the Albinoni Fugue (BWV 951) on STRING CONSORT, the arc as the Inventions' (D736).
   ...piece("bwv951", "stringConsort", WHY.bwv951, "Three voices on Albinoni's theme, long episodes between the entries; cadences in B minor (54, 64, 78), the last entry in the bass (106).", B("bwv951", 54), 106),
+  // D782: BWV 906 on its two sounds, the arc as the Inventions' (D736).
+  ...piece("bwv906-1", "jazzQuartet", WHY["bwv906-1"], "A two-part fantasia in two repeated halves (each played once): the hands exchange the falling-chord motive and cross (9-13, 25-28, 31); the second half opens in G minor (17), the return (33).", B("bwv906-1", 17), 33.5),
+  ...piece("bwv906-2", "abbeyRoad", WHY["bwv906-2"], "Three voices on a chromatic subject, eight entries; unfinished: it breaks off on bar 48's first beat, as the print does.", B("bwv906-2", 17), 46.125),
+  // D789: BWV 998 on its two sounds, the same arc.
+  ...piece("bwv998-1", "chorinho", WHY["bwv998-1"], "A prelude in 12/8: one broken-chord line over pedal notes; its head opens each phrase (1, 6, 14, 25) and returns over the tonic (42).", B("bwv998-1", 25), 42),
+  ...piece("bwv998-2", "salsa", WHY["bwv998-2"], "A da capo fugue: the subject's exposition and episodes (1-74), the middle in C, G and F minor (43-54), the da capo written out (75-103).", B("bwv998-2", 50), 95.25),
+  ...piece("bwv998-3", "gameboy", WHY["bwv998-3"], "A binary Allegro in 3/8 (each half played once): the running line on either staff; cadences in B♭ (23, 32), the return in E♭ (80).", B("bwv998-3", 49), 80),
   "bwv1043-2": {
     sound: "super16",
     soundWhy: "The concerto keeps SUPER 16-BIT, its strings for the band and its violin for the solos (D340, D351).",
