@@ -151,7 +151,7 @@ export function LiteGrid({ soundOf, beaten, best = {}, scores = {}, bestOld = {}
         <div className="tb-lite-tabs" role="tablist" aria-label="Books">
           {tabs.map(([t, label]) => (
             <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`tb-lite-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
-              {t === "I" || t === "II" ? `${tr("BOOK")} ${t}` : tr(label)}
+              {t === "I" || t === "II" ? `WTC ${tr("BOOK")} ${t}` : tr(label)}
             </button>
           ))}
         </div>

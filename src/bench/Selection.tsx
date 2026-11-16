@@ -171,7 +171,7 @@ export function Selection(p: SelectionProps) {
               const pct = gridTab(t) ? Math.round((100 * gridIds(t).filter((id) => won.has(id)).length) / Math.max(1, gridIds(t).length)) : null;
               return (
                 <button key={t} type="button" role="tab" id={`tab-book-${t}`} aria-selected={tab === t} className={`sel-tab${tab === t ? " on" : ""}`} onClick={() => pick(t)}>
-                  <span className="sel-tab-name">{t === "I" || t === "II" ? `${tr("BOOK")} ${t}` : tr(label)}</span>
+                  <span className="sel-tab-name">{t === "I" || t === "II" ? `WTC ${tr("BOOK")} ${t}` : tr(label)}</span>
                   {pct !== null && (
                     <span className="sel-tab-pct" id={`pct-book-${t}`}>
                       {pct}%
@@ -223,7 +223,7 @@ export function Selection(p: SelectionProps) {
                 <span className="sel-strip-work" id="lite-work-head">
                   {tab === "AOF" ? tr("J. S. BACH · THE ART OF FUGUE") : tab === "INV" ? tr("J. S. BACH · INVENTIONS AND SINFONIAS") : tr("J. S. BACH · THE WELL-TEMPERED CLAVIER")}
                 </span>
-                <span className="sel-strip-book">{tab === "AOF" ? `BWV 1080 · ${tr("{n} PIECES", { n: ids.length })}` : tab === "INV" ? `BWV 772–801 · ${tr("{n} PIECES", { n: ids.length })}` : `${tr("BOOK")} ${tab} · ${tr("{n} FUGUES", { n: ids.length })}`}</span>
+                <span className="sel-strip-book">{tab === "AOF" ? `BWV 1080 · ${tr("{n} PIECES", { n: ids.length })}` : tab === "INV" ? `BWV 772–801 · ${tr("{n} PIECES", { n: ids.length })}` : `WTC ${tr("BOOK")} ${tab} · ${tr("{n} FUGUES", { n: ids.length })}`}</span>
               </h2>
               <span className="sel-strip-order">{tab === "AOF" ? tr("ONE SUBJECT, IN D MINOR, IN BACH'S ORDER") : tab === "INV" ? tr("INVENTIONS 1–15 · SINFONIAS 1–15") : tr("MAJOR · MINOR, BY KEY")}</span>
             </header>
