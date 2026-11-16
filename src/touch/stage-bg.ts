@@ -4826,6 +4826,96 @@ function gallery(k: Kit) {
   }
 }
 
+/** D672: the Chromatic Fugue, BWV 903 (the owner: the Fugue alone, no Fantasia). */
+const CHROMATIC_ID = /^bwv903-2$/;
+/**
+ * THE LIGHTHOUSE (the Chromatic Fugue). A night sea under heavy cloud, a lighthouse on a dark headland, a ship's
+ * lights far out; the cloud steady (the owner: no drifting sky). Each entry of the subject turns the lighthouse's beam once across the water over the entry's length
+ * (a soft wedge of light, its lantern touched with the entering voice's colour); between entries the lamp burns
+ * steady. The ship comes nearer as the piece goes on; at the climax the cloud parts and the moon shows; at the last
+ * chord the sea is still.
+ */
+function lighthouse(k: Kit) {
+  const { w, h, g } = k;
+  const cl = k.climax;
+  const HZ = h * 0.6;
+  // the sky under one steady cloud
+  const cloudC: C3 = [44, 48, 70];
+  k.vgrad(0, HZ, [[0, rgba(mix([18, 20, 38], cloudC, 0.5))], [1, rgba(mix([56, 58, 80], cloudC, 0.5))]]);
+  // the moon behind the cloud, shown as the cloud parts at the climax
+  const MX = w * 0.34, MY = h * 0.16;
+  light(k, MX, MY, 30, [210, 220, 240], 0.08 + 0.3 * cl);
+  k.disc(MX, MY, 6, rgba([226, 230, 240], 0.25 + 0.7 * cl));
+  // the cloud banks, drifting
+  for (let i = 0; i < 9; i++) {
+    const y = h * (0.05 + 0.4 * hash(i + 21));
+    const x = wrap(hash(i + 22) * w * 1.4 - k.t * (1.5 + hash(i + 23)), w + 120) - 60;
+    const a = (0.55 + 0.3 * hash(i + 24)) * (1 - 0.75 * cl);
+    for (let j = 0; j < 5; j++) k.disc(x + j * 12, y + (j % 2) * 3, 10 + (j % 3) * 3, rgba(mix(cloudC, [16, 16, 26], 0.4), a));
+  }
+  // the sea, slow swell lines
+  k.vgrad(HZ, h - HZ, [[0, "#141a28"], [1, "#0a0e18"]]);
+  for (let r = 0; r < 26; r++) {
+    const y = HZ + 3 + hash(r + 60) * (h - HZ - 6);
+    const x = wrap(hash(r + 61) * w + k.t * (2 + 2 * hash(r + 62)), w + 40) - 20;
+    k.R(x, y, 8 + hash(r + 63) * 16, 1, `rgba(150,170,210,${0.06 + 0.08 * ((y - HZ) / (h - HZ))})`);
+  }
+  // the ship far out, nearer as the piece goes on
+  const SX = w * (0.28 + 0.12 * k.p), SY = HZ + 2 + 6 * k.p, ss = 1 + k.p;
+  k.R(SX - 6 * ss, SY - 2 * ss, 12 * ss, 2 * ss, "#06080e");
+  k.R(SX - 1, SY - 9 * ss, 1, 7 * ss, "#06080e");
+  k.R(SX - 5 * ss, SY - 3 * ss, 1, 1, "#ffd890");
+  k.R(SX + 4 * ss, SY - 3 * ss, 1, 1, "#ff7a6a");
+  // the headland and the tower
+  const LX = w * 0.68, LB = HZ + h * 0.08;
+  g.fillStyle = "#06070c";
+  g.beginPath();
+  g.moveTo(w * 0.56, h);
+  g.lineTo(w * 0.6, LB);
+  g.lineTo(w * 0.66, LB - 6);
+  g.lineTo(w * 0.74, LB - 4);
+  g.lineTo(w * 0.82, LB + 4);
+  g.lineTo(w * 0.86, h);
+  g.closePath();
+  g.fill();
+  const TH = h * 0.4, TW = 14;
+  const TT = LB - 6 - TH;
+  for (let b = 0; b < 5; b++) k.R(LX - TW / 2 + b * 0.4, TT + (b * TH) / 5, TW - b * 0.8, TH / 5 + 1, b % 2 ? "#a83a32" : "#d8d2c4");
+  k.R(LX - 9, TT - 2, 18, 2, "#1a1a20");
+  k.R(LX - 6, TT - 11, 12, 9, "#1a1a20");
+  k.tri(LX, TT - 11, 14, 7, "#1a1a20");
+  // the lamp: steady between entries; each entry turns the beam once across the water, the voice's colour in the lantern
+  let beam = -1;
+  let voice = -1;
+  for (let i = 0; i < k.ents.length; i++) {
+    const st = entryState(k, i);
+    if (st > 0 && st < 2) (beam = st), (voice = k.voicesOf[i] ?? 0);
+  }
+  const LY = TT - 6;
+  const lampC: C3 = voice >= 0 ? mix([255, 226, 150], hex(inkOf(voice, k.nVoices)), 0.35) : [255, 226, 150];
+  k.R(LX - 4, LY - 3, 8, 6, rgba(lampC));
+  light(k, LX, LY, 22 + 10 * cl, lampC, 0.5);
+  if (beam >= 0 || cl > 0.02) {
+    const u = beam >= 0 ? beam : 0.5;
+    // the sweep from the left horizon, toward the shore, to the right horizon (flattened: the sea seen low)
+    const ang = Math.PI * (1 - u);
+    const len = w * 0.9;
+    const spread = 0.12;
+    const a = (beam >= 0 ? 0.3 : 0) + 0.12 * cl;
+    const end = (t: number): [number, number] => [LX + Math.cos(t) * len, LY + 6 + Math.max(0, Math.sin(t)) * len * 0.3];
+    const gr = g.createRadialGradient(LX, LY, 2, LX, LY, len);
+    gr.addColorStop(0, rgba(lampC, a));
+    gr.addColorStop(1, rgba(lampC, 0));
+    g.fillStyle = gr;
+    g.beginPath();
+    g.moveTo(LX, LY);
+    g.lineTo(...end(ang - spread));
+    g.lineTo(...end(ang + spread));
+    g.closePath();
+    g.fill();
+  }
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -4838,6 +4928,8 @@ const WORKS: WorkSetting[] = [
   { test: (id) => INV_ID.test(id), world: songbirds, script: sk([GOLD, 0.04, "none", 0, 1.01], [COOL, 0.06, "none", 0, 1.02], [0.8, 0.1, WARM, false], [GOLD, 0.06]) },
   // D671: the Four Duets, the Gallery.
   { test: (id) => DUET_ID.test(id), world: gallery, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [VIOLET, 0.07, "motes", 0, 1.02], [0.5, 0.12, [220, 200, 170], false], [DUSK_NIGHT, 0.08]) },
+  // D672: the Chromatic Fugue, the Lighthouse.
+  { test: (id) => CHROMATIC_ID.test(id), world: lighthouse, script: sk([DUSK_NIGHT, 0.05, "none", 0, 1.01], [COOL, 0.07, "none", 0, 1.02], [0.34, 0.16, SILVER, false], [DUSK_NIGHT, 0.08]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
