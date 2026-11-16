@@ -5078,6 +5078,115 @@ function scaffold(k: Kit) {
   }
 }
 
+/** D675: the Prelude, Fugue and Allegro in E-flat major, BWV 998 ("pour la luth ò cembal"). */
+const LUTE_998_ID = /^bwv998-\d$/;
+/** The three movements' light through the window: morning, afternoon, evening (sky, light). */
+const WORKSHOP_LIGHT: Record<string, [C3, C3]> = { "1": [[190, 214, 236], [255, 236, 190]], "2": [[150, 190, 230], [255, 214, 150]], "3": [[230, 150, 110], [255, 170, 110]] };
+/** A lute: its pear-shaped body (centre x, y; half-width r), the rose, the neck to the left, the bent pegbox. */
+function lute(k: Kit, x: number, y: number, r: number, wood: string, rose: string, flip = false) {
+  const g = k.g;
+  const d = flip ? -1 : 1;
+  g.fillStyle = wood;
+  g.beginPath();
+  g.ellipse(x, y, r, r * 0.8, 0, 0, Math.PI * 2);
+  g.fill();
+  g.beginPath();
+  g.moveTo(x - d * r * 0.6, y - r * 0.55);
+  g.lineTo(x - d * r * 1.25, y - r * 0.18);
+  g.lineTo(x - d * r * 1.25, y + r * 0.18);
+  g.lineTo(x - d * r * 0.6, y + r * 0.55);
+  g.closePath();
+  g.fill();
+  // the neck, and the pegbox bent back at its end
+  const nx = flip ? x + r * 1.25 : x - r * 2.3;
+  k.R(nx, y - r * 0.14, r * 1.05, r * 0.28, wood);
+  const px = flip ? x + r * 2.3 : x - r * 2.3 - r * 0.25;
+  k.R(px, y - r * 0.5, r * 0.25, r * 0.5, wood);
+  k.disc(x - d * r * 0.15, y, r * 0.24, rose);
+}
+/**
+ * THE LUTE-MAKER'S WORKSHOP (the Prelude, Fugue and Allegro, all three). A workshop of warm panelling, lutes hanging
+ * on the wall, a window onto a garden; on the bench, among the shavings, a lute being finished. The light is the
+ * movement's own: morning for the Prelude, afternoon for the Fugue, evening for the Allegro. The Prelude (its broken
+ * chords over a slow bass): the sunlight from the window moving slowly across the bench, the lute still unstrung.
+ * The Fugue: each entry strings another course, the string catching the light in the entering voice's colour as it
+ * sounds; the courses strung as the piece goes on. The Allegro (its running line): the strung lute's rose glowing,
+ * dust dancing in the light, quicker as the music runs.
+ */
+function workshop(k: Kit) {
+  const { w, h, g } = k;
+  const mv = k.pid.slice(-1);
+  const [sky, sun] = WORKSHOP_LIGHT[mv] ?? WORKSHOP_LIGHT["2"];
+  const cl = k.climax;
+  // the wall
+  k.vgrad(0, h, [[0, "#3a2818"], [1, "#2a1c12"]]);
+  fillTex(k, texture(k, "panels", 24, panels), 0, 0, w, h * 0.78);
+  // the window onto the garden
+  const WX = w * 0.24, WY = h * 0.1, WW = w * 0.14, WH = h * 0.42;
+  k.vgrad(WY, WH, [[0, rgba(sky)], [1, rgba(mix(sky, [120, 170, 100], 0.5))]], WX, WW);
+  k.R(WX, WY + WH * 0.7, WW, WH * 0.3, rgba(mix([80, 130, 70], sky, 0.25)));
+  for (let i = 0; i < 6; i++) k.disc(WX + WW * (0.1 + 0.16 * i), WY + WH * 0.7, 5 + hash(i + 7) * 4, rgba(mix([70, 120, 60], sky, 0.2)));
+  k.R(WX - 3, WY - 3, WW + 6, 3, "#5a3c22");
+  k.R(WX - 3, WY + WH, WW + 6, 4, "#5a3c22");
+  k.R(WX - 3, WY, 3, WH, "#5a3c22");
+  k.R(WX + WW, WY, 3, WH, "#5a3c22");
+  k.R(WX + WW / 2 - 1, WY, 2, WH, "#5a3c22");
+  k.R(WX, WY + WH / 2 - 1, WW, 2, "#5a3c22");
+  // lutes hanging on the wall, and a row of chisels
+  lute(k, w * 0.54, h * 0.24, 13, "#8a5a2a", "#2a1a10");
+  lute(k, w * 0.7, h * 0.32, 11, "#a06a34", "#2a1a10");
+  for (let c = 0; c < 6; c++) k.R(w * 0.44 + c * 4, h * 0.5, 2, 8 + (c % 3) * 2, c % 2 ? "#9a9a9a" : "#6a4a2a");
+  // the bench, the shavings
+  const BY = h * 0.76;
+  k.R(0, BY, w, h - BY, "#5a3a1e");
+  k.R(0, BY, w, 3, "#7a5230");
+  for (let s = 0; s < 18; s++) k.R(w * (0.24 + 0.52 * hash(s + 40)), BY + 4 + hash(s + 41) * (h - BY - 8), 3, 1, "rgba(230,190,130,0.6)");
+  // the lute on the bench, face up: its body and neck, and the courses strung
+  const LX = w * 0.58, LY = BY - h * 0.02, LR = h * 0.15;
+  lute(k, LX, LY, LR, "#b07a3e", mv === "3" ? rgba(mix([60, 36, 20], [255, 200, 120], 0.25 + 0.5 * cl)) : "#3a2414");
+  const COURSES = 11;
+  let strung = 0;
+  let live = -1, liveV = 0;
+  if (mv === "1") strung = 0;
+  else if (mv === "3") strung = COURSES;
+  else {
+    let done = 0;
+    for (let i = 0; i < k.ents.length; i++) {
+      const st = entryState(k, i);
+      if (st === 2) done++;
+      else if (st > 0) (live = i), (liveV = k.voicesOf[i] ?? 0);
+    }
+    strung = Math.min(COURSES, Math.round((COURSES * done) / Math.max(1, k.ents.length)));
+  }
+  const bridgeX = LX + LR * 0.45, nutX = LX - LR * 2.3;
+  for (let s = 0; s < COURSES; s++) {
+    const off = (s - (COURSES - 1) / 2) * (LR * 0.05);
+    const isLive = live >= 0 && s === strung;
+    if (s < strung || isLive) k.R(nutX, LY + off, bridgeX - nutX, 1, isLive ? rgba(mix([255, 240, 200], hex(inkOf(liveV, k.nVoices)), 0.5)) : "rgba(240,230,200,0.7)");
+  }
+  if (live >= 0) light(k, (nutX + bridgeX) / 2, LY, LR * 1.6, hex(inkOf(liveV, k.nVoices)), 0.25);
+  k.R(bridgeX - 1, LY - LR * 0.3, 2, LR * 0.6, "#3a2414");
+  // the sunlight from the window: in the Prelude moving across the bench
+  const sx = mv === "1" ? w * (0.3 + 0.4 * k.p) : w * (mv === "2" ? 0.5 : 0.62);
+  g.fillStyle = rgba(sun, 0.1 + 0.08 * cl);
+  g.beginPath();
+  g.moveTo(WX, WY + WH * 0.2);
+  g.lineTo(WX + WW, WY + WH * 0.2);
+  g.lineTo(sx + w * 0.1, BY);
+  g.lineTo(sx - w * 0.06, BY);
+  g.closePath();
+  g.fill();
+  light(k, sx + w * 0.02, BY, w * 0.12, sun, 0.25 + 0.15 * cl);
+  // the Allegro's dust, dancing in the light
+  if (mv === "3")
+    for (let m = 0; m < 24; m++) {
+      const u = wrap(hash(m + 60) + k.t * (0.04 + 0.12 * k.busy) * (0.6 + hash(m + 61)), 1);
+      const mx = WX + WW * 0.5 + (sx - WX) * u + Math.sin(k.t * 2 + m) * 4;
+      const my = WY + WH * 0.4 + (BY - WY - WH * 0.4) * u;
+      k.R(mx, my, 1, 1, rgba(sun, 0.6 * (1 - Math.abs(u - 0.5))));
+    }
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -5096,6 +5205,8 @@ const WORKS: WorkSetting[] = [
   { test: (id) => ALBINONI_ID.test(id), world: lagoon, script: sk([DUSK_GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.6, 0.5, [255, 200, 150], false], [DUSK_NIGHT, 0.08]) },
   // D674: the Fantasia and Fugue in C minor, the Scaffold.
   { test: (id) => C_MINOR_906_ID.test(id), world: scaffold, script: sk([DUSK_GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.5, 0.9, [255, 170, 110], false], [DUSK_NIGHT, 0.1]) },
+  // D675: the Prelude, Fugue and Allegro in E-flat, the Lute-Maker's Workshop.
+  { test: (id) => LUTE_998_ID.test(id), world: workshop, script: sk([GOLD, 0.04, "motes", 0, 1.01], [WARM, 0.05, "motes", 0, 1.02], [0.6, 0.25, WARM, false], [GOLD, 0.06]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
