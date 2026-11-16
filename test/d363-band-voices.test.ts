@@ -42,6 +42,9 @@ const WITH_BAND: Record<string, number[]> = {
   "bwv903-2": [1, 2],
   // D755: the C minor Fantasia's chords (bars 1-3, 8-10, 17-18, 25-26, 34-38), each hand's.
   "bwv906-1": [0, 1],
+  // D756: the E-flat Prelude's inner voice (bars 36-40) and the Fugue's fourth part in the bass (bars 23-32, 97-103).
+  "bwv998-1": [0],
+  "bwv998-2": [2],
 };
 const ALL = [...PIECES, ...MORE_BACH];
 const overlaps = (ns: TouchNote[]) => ns.some((n, i) => ns.some((m, j) => i !== j && m[0] < n[0] && n[0] < m[0] + m[1]));

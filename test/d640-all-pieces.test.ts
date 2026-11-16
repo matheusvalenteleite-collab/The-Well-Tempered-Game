@@ -28,7 +28,7 @@ const TOTALS: Readonly<Record<string, { pieces: number; stretched: number; undec
   "WTC preludes": { pieces: 48, stretched: 255, undeclared: 69 },
   "other fugues": { pieces: 1, stretched: 0, undeclared: 0 },
   tutorial: { pieces: 1, stretched: 2, undeclared: 0 },
-  "more bach": { pieces: 66, stretched: 487, undeclared: 81 }, // D751: and the Four Duets (none stretched); D753: the Chromatic Fugue (7 stretched); D754: BWV 951 (7 stretched, 1 past its reach: by rule); D755: BWV 906 (367 stretched, 73 past their reach, by rule: the Fantasia's left hand crossing up to Ab5 on the bass instruments)
+  "more bach": { pieces: 69, stretched: 500, undeclared: 83 }, // D751: and the Four Duets (none stretched); D753: the Chromatic Fugue (7 stretched); D754: BWV 951 (7 stretched, 1 past its reach: by rule); D755: BWV 906 (367 stretched, 73 past their reach, by rule: the Fantasia's left hand crossing up to Ab5 on the bass instruments); D756: BWV 998 (13 stretched, 2 past their reach, by rule)
   concertos: { pieces: 42, stretched: 1104, undeclared: 106 },
   chorales: { pieces: 370, stretched: 52, undeclared: 0 },
 };

@@ -52,6 +52,12 @@ interface Spec {
    * writes them, several joined by "|" (a line written in more than one layer, or moving staff).
    */
   xmlVoices?: string[];
+  /**
+   * D756: the bars taken, as ranges of the file's bar numbers joined in order (a movement of a file holding a whole
+   * work; a repeat the edition writes out, taken once): the bars numbered again from 1, the time signature the
+   * first range's. Instead of fromBar/toBar.
+   */
+  xmlRanges?: [from: number, to: number][];
   fromBar?: number;
   toBar?: number;
   page?: string;
@@ -98,7 +104,7 @@ interface Spec {
    * D751: the edition corrected where it disagrees with the Bach-Gesellschaft print (read from the print: SOURCE.md):
    * a voice's nth note of a bar given another pitch, or held on from the note before (a tie the edition broke).
    */
-  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to?: string; tie?: true; start?: string } | { voice: number; bar: number; at: string; add: string; dur: string } | { voice: number; bar: number; at: string; until: string; toVoice: number })[];
+  fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to?: string; tie?: true; start?: string; length?: string; strike?: true } | { voice: number; bar: number; at: string; add: string; dur: string } | { voice: number; bar: number; at: string; until: string; toVoice?: number; remove?: true; pitch?: string; chord?: true })[];
   /** The voices the player may take (all where unset). */
   playable?: number[];
   /** The edition's typesetter and licence, for the credit line. */
@@ -518,6 +524,46 @@ const BWV951_FIXES: NonNullable<Spec["fixes"]> = [
   { voice: 1, bar: 28, at: "1/8", from: "B3", start: "3/16" },
 ];
 
+/**
+ * D756: BWV 998 where the Bach-Gesellschaft print (Band 45/1, 1897, pp. 141-148) reads otherwise than the PDMX file
+ * (data/sources/bach-998/SOURCE.md), in each movement's own bar numbers.
+ */
+const BWV998_1_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 0, bar: 9, at: "3/8", from: "D4", to: "Db4" },
+  { voice: 0, bar: 37, at: "1/8", from: "C4", to: "Ab3" },
+  // An eighth and a new crotchet, no tie.
+  { voice: 1, bar: 46, at: "3/4", from: "Eb3", strike: true },
+];
+const BWV998_2_FIXES: NonNullable<Spec["fixes"]> = [
+  // Pitches (the da capo, bars 78-103, repeats bars 4-29).
+  ...[17, 91].map((bar) => ({ voice: 1, bar, at: "7/8", from: "C4", to: "Bb3" })),
+  ...[23, 97].map((bar) => ({ voice: 1, bar, at: "7/8", from: "Bb3", to: "D4" })),
+  // Notes in the layer of another voice, given to the voice the print stems and beams them with.
+  ...[29, 103].flatMap((bar) => [
+    // (A chord with the bass's Eb2: the band takes one note, D363.)
+    { voice: 1, bar, at: "0", until: "1/16", pitch: "G3", toVoice: 2, chord: true as const },
+    { voice: 0, bar, at: "0", until: "1/16", pitch: "Bb3", toVoice: 1 },
+  ]),
+  { voice: 1, bar: 55, at: "1/8", until: "1/4", toVoice: 0 },
+  ...[58, 59, 60].map((bar) => ({ voice: 0, bar, at: "0", until: "1", toVoice: 1 })),
+  { voice: 1, bar: 68, at: "5/16", until: "1", toVoice: 0 },
+  { voice: 1, bar: 69, at: "0", until: "3/16", toVoice: 0 },
+  { voice: 0, bar: 76, at: "0", until: "1/16", toVoice: 1 },
+  // A semiquaver, not a quaver.
+  { voice: 0, bar: 69, at: "3/16", from: "D3", length: "1/16" },
+  // The print's plain dotted A4 where the edition writes a trill out.
+  { voice: 0, bar: 75, at: "1/4", until: "7/16", remove: true },
+  { voice: 0, bar: 75, at: "1/4", add: "A4", dur: "3/16" },
+];
+const BWV998_3_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 0, bar: 31, at: "1/8", until: "5/16", remove: true },
+  { voice: 0, bar: 31, at: "1/8", add: "A4", dur: "3/16" },
+  { voice: 0, bar: 88, at: "5/16", from: "F3", to: "F4" },
+  { voice: 0, bar: 90, at: "1/8", until: "3/16", pitch: "F3", remove: true },
+  { voice: 0, bar: 90, at: "1/4", until: "5/16", pitch: "D3", remove: true },
+];
+const BWV998_CREDIT = "PDMX · MUSESCORE SCORE 132011 BY VERITS99, CORRECTED FROM THE BACH-GESELLSCHAFT PRINT · CC0";
+
 const BGA36 = "https://archive.org/download/bach-gesellschaft-ausgabe/BGA%20Band%2036.pdf";
 const BWV906_CREDIT = "TRANSCRIBED FOR THE GAME FROM THE BACH-GESELLSCHAFT EDITION, BAND 36 (1890) · PUBLIC DOMAIN";
 
@@ -600,6 +646,71 @@ const KEYBOARD: Spec[] = [
     entries: true,
     credit: BWV906_CREDIT,
   },
+  // D756: Prelude, Fugue and Allegro in E-flat major, one work, three movements from one PDMX file (data/sources/bach-998/SOURCE.md).
+  {
+    id: "bwv998-1",
+    collection: "keyboard",
+    number: 5,
+    title: "Prelude, Fugue and Allegro in E-flat major, Prelude",
+    short: "PRELUDE IN E-FLAT MAJOR",
+    bwv: "998",
+    key: "Eb",
+    dir: "bach-998",
+    mutopia: 0,
+    xml: "132011.mxl",
+    xmlDir: "pdmx",
+    page: "https://musescore.com/user/13172/scores/132011",
+    xmlRanges: [[1, 48]],
+    // The broken-chord line (and the inner voice of bars 36-40, its chords); the bass.
+    xmlVoices: ["1:1|1:2", "2:5"],
+    voiceNames: TWO_HANDS,
+    entries: false,
+    fixes: BWV998_1_FIXES,
+    credit: BWV998_CREDIT,
+  },
+  {
+    id: "bwv998-2",
+    collection: "keyboard",
+    number: 6,
+    title: "Prelude, Fugue and Allegro in E-flat major, Fugue",
+    short: "FUGUE IN E-FLAT MAJOR",
+    bwv: "998",
+    key: "Eb",
+    dir: "bach-998",
+    mutopia: 0,
+    xml: "132011.mxl",
+    xmlDir: "pdmx",
+    page: "https://musescore.com/user/13172/scores/132011",
+    xmlRanges: [[49, 151]],
+    // Its layers follow the staves, not the voices: 2:5 is the alto where it enters (bars 3-10, again 78-84) and in bars 33, 43, 45, else the bass.
+    xmlVoices: ["1:1", "1:2|1:5|2:1|2:2|2:5@3-10|2:5@33|2:5@43|2:5@45|2:5@78-84", "2:5|2:6|1:3"],
+    voiceNames: THREE,
+    entries: true,
+    fixes: BWV998_2_FIXES,
+    credit: BWV998_CREDIT,
+  },
+  {
+    id: "bwv998-3",
+    collection: "keyboard",
+    number: 7,
+    title: "Prelude, Fugue and Allegro in E-flat major, Allegro",
+    short: "ALLEGRO IN E-FLAT MAJOR",
+    bwv: "998",
+    key: "Eb",
+    dir: "bach-998",
+    mutopia: 0,
+    xml: "132011.mxl",
+    xmlDir: "pdmx",
+    page: "https://musescore.com/user/13172/scores/132011",
+    // The edition writes both repeats out (its bars 152-215, 216-343); each half taken once, as the print gives it.
+    xmlRanges: [[152, 183], [216, 279]],
+    // The running line on either staff (with the few inner notes, its chords); the bass.
+    xmlVoices: ["1:1|2:1|1:2|1:6", "2:5"],
+    voiceNames: TWO_HANDS,
+    entries: false,
+    fixes: BWV998_3_FIXES,
+    credit: BWV998_CREDIT,
+  },
 ];
 
 export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...CONCERTO, ...VOCAL];
@@ -630,6 +741,58 @@ export function sungLine(x: XmlScore, i: number, kept: readonly number[]): { not
   return { notes, dropped };
 }
 
+/** D756: a movement from a file holding the whole work (Spec.xmlRanges), its voices from one part's layers (xmlVoices). */
+function readXmlRanges(s: Spec, x: XmlScore): Read {
+  if (!s.xmlVoices) throw new Error(`${s.id}: xmlRanges wants xmlVoices`);
+  const part = x.parts[(s.xmlParts ?? [0])[0]].notes;
+  // A layer may be qualified by the (new) bars where it is that voice ("2:5@3-10"): those read before the plain ones.
+  const rules = s.xmlVoices.flatMap((v, vi) =>
+    v.split("|").map((l) => {
+      const [layer, span] = l.split("@");
+      const [a, b] = span ? span.split("-").map(Number) : [0, 0];
+      return { layer, vi, a, b: span ? (b ?? a) : 0, qualified: !!span };
+    }),
+  );
+  rules.sort((p, q) => Number(q.qualified) - Number(p.qualified));
+  let bar = 0;
+  const home = (n: XmlPart["notes"][number]) => rules.find((r) => r.layer === `${n[3]}:${n[4]}` && (!r.qualified || (bar >= r.a && bar <= r.b)))?.vi ?? -1;
+  const start = (n: number) => {
+    const b = x.bars.find((m) => m.n === n);
+    if (!b) throw new Error(`${s.id}: no bar ${n}`);
+    return b.on;
+  };
+  const end = (n: number) => x.bars.find((m) => m.n === n + 1)?.on ?? x.length;
+  const spell: Record<number, string> = {};
+  const spelled: string[] = [];
+  const voices: Note[][] = s.xmlVoices.map(() => []);
+  const bars: { n: number; on: number }[] = [];
+  const lost = new Set<string>();
+  let base = 0;
+  for (const [fb, tb] of s.xmlRanges!) {
+    const a = start(fb);
+    const z = end(tb);
+    for (const b of x.bars) if (b.on >= a && b.on < z) bars.push({ n: bars.length + 1, on: b.on - a + base });
+    for (const n of part) {
+      if (n[0] < a || n[0] >= z) continue;
+      bar = bars.filter((b) => b.on <= n[0] - a + base).at(-1)!.n;
+      const vi = home(n);
+      if (vi < 0) {
+        lost.add(`${n[3]}:${n[4]}`);
+        continue;
+      }
+      const p = parsePitch(n[2]);
+      spell[p.midi] ??= n[2];
+      spelled.push(n[2]);
+      voices[vi].push([n[0] - a + base, Math.min(n[1], z - n[0]), p.midi, p.diatonic]);
+    }
+    base += z - a;
+  }
+  if (lost.size) throw new Error(`${s.id}: MusicXML layers ${[...lost].join(", ")} not in ${s.xmlVoices.join(", ")}`);
+  const a0 = start(s.xmlRanges![0][0]);
+  const meter = [...x.measures].filter((m) => m.on <= a0 && m.time).at(-1)?.time ?? x.meter;
+  return { voices: voices.map(sortVoice), spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 } };
+}
+
 /** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
 export function readXmlPiece(s: Spec): Read {
   const dir = `${SRC}${s.dir}/${s.xmlDir ?? "imslp"}/`;
@@ -637,6 +800,7 @@ export function readXmlPiece(s: Spec): Read {
   const from = s.fromBar ? x.bars.find((b) => b.n === s.fromBar)!.on : 0;
   const toBar = s.toBar;
   const to = toBar ? (x.bars.find((b) => b.n === toBar + 1)?.on ?? x.length) : x.length;
+  if (s.xmlRanges) return readXmlRanges(s, x);
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
   const kept = s.xmlParts ?? x.parts.map((_, i) => i);
@@ -1030,13 +1194,23 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
       };
       const on = place(x.at);
       // D754: the notes a layer gives one voice that the print gives another (from `at` to before `until`), moved.
-      if ("toVoice" in x) {
+      // D756: notes the edition adds (a trill written out where the print has the plain note), removed.
+      if ("until" in x && x.remove) {
+        const only = x.pitch ? parsePitch(x.pitch).midi : null;
+        const gone = v.filter((n) => n[0] >= on && n[0] < place(x.until) && (only === null || n[2] === only));
+        if (!gone.length) throw new Error(`fix: bar ${x.bar} ${x.at}-${x.until}: voice ${x.voice} has nothing to remove`);
+        for (const n of gone) v.splice(v.indexOf(n), 1);
+        continue;
+      }
+      if ("until" in x) {
+        if (x.toVoice === undefined) throw new Error(`fix: bar ${x.bar} ${x.at}-${x.until}: neither removed nor moved`);
         const end = place(x.until);
-        const moved = v.filter((n) => n[0] >= on && n[0] < end);
+        const only = x.pitch ? parsePitch(x.pitch).midi : null;
+        const moved = v.filter((n) => n[0] >= on && n[0] < end && (only === null || n[2] === only));
         if (!moved.length) throw new Error(`fix: bar ${x.bar} ${x.at}-${x.until}: voice ${x.voice} has nothing to move`);
         for (const n of moved) v.splice(v.indexOf(n), 1);
-        const w = r.voices[x.toVoice];
-        if (w.some((n) => moved.some((m) => n[0] < m[0] + m[1] && m[0] < n[0] + n[1]))) throw new Error(`fix: bar ${x.bar}: voice ${x.toVoice} not silent where the moved notes sound`);
+        const w = r.voices[x.toVoice!];
+        if (!x.chord && w.some((n) => moved.some((m) => n[0] < m[0] + m[1] && m[0] < n[0] + n[1]))) throw new Error(`fix: bar ${x.bar}: voice ${x.toVoice} not silent where the moved notes sound`);
         w.push(...moved);
         w.sort((m, n) => m[0] - n[0] || n[2] - m[2]);
         continue;
@@ -1052,6 +1226,15 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
         continue;
       }
       const was = parsePitch(x.from).midi;
+      // D756: held on where the print strikes it again: the note split there.
+      if ("strike" in x && x.strike) {
+        const held = v.find((n) => n[0] < on && n[0] + n[1] > on && n[2] === was);
+        if (!held) throw new Error(`fix: no ${x.from} held through ${x.at} of bar ${x.bar}, voice ${x.voice}`);
+        v.splice(v.indexOf(held) + 1, 0, [on, held[0] + held[1] - on, held[2], held[3]]);
+        held[1] = on - held[0];
+        v.sort((m, n) => m[0] - n[0] || n[2] - m[2]);
+        continue;
+      }
       const m = v.find((n) => n[0] === on && n[2] === was);
       if (!m) throw new Error(`fix: no ${x.from} at ${x.at} of bar ${x.bar}, voice ${x.voice}`);
       // D754: struck again where the print ties it: held on from the note before (the same pitch, ending there).
@@ -1061,6 +1244,11 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
         before[1] += m[1];
         v.splice(v.indexOf(m), 1);
         continue;
+      }
+      // D756: a length the edition has wrong (in whole notes).
+      if ("length" in x && x.length) {
+        m[1] = place(x.length) - from;
+        if (!x.to) continue;
       }
       // D754: struck later than the edition has it (a rest before it), its end kept.
       if (x.start) {
