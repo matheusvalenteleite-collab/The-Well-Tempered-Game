@@ -1,4 +1,4 @@
-"""The single works' pictures (D672 on, design studio): one setting per work, its tiles its variations (D668).
+"""The single works' pictures (D672-D675, design studio): one setting per work, its tiles its variations (D668).
 
 BWV 903, the Chromatic Fugue (the owner: the Fugue alone): THE LIGHTHOUSE (stage-bg.ts `lighthouse`). A night sea under
 heavy cloud, a lighthouse on a dark headland, its beam swept across the water toward a ship's lights far out.
@@ -134,3 +134,52 @@ def scaffold(fugue):
 
 PICTURES["bwv906-1"] = lambda: scaffold(False)
 PICTURES["bwv906-2"] = lambda: scaffold(True)
+
+
+def workshop(mv):
+    """BWV 998, the Prelude, Fugue and Allegro in E-flat ("pour la luth ò cembal"): THE LUTE-MAKER'S WORKSHOP
+    (stage-bg.ts `workshop`). Warm panelling, a lute on the wall, a window onto a garden, and on the bench a lute
+    being finished. The three tiles: the window's light (morning, afternoon, evening) and the lute's strings (none
+    in the Prelude, half strung in the Fugue, all in the Allegro, its rose catching the evening light)."""
+    sky, sun = {1: ((190, 214, 236), (255, 236, 190)), 2: ((150, 190, 230), (255, 214, 150)), 3: ((230, 150, 110), (255, 170, 110))}[mv]
+    p = Pix((58, 40, 24))
+    for x in range(0, W, 6):
+        p.vline(x, 0, 29, (44, 30, 18))
+    p.rect(6, 4, 14, 16, sky)
+    p.rect(6, 15, 14, 5, mix((80, 130, 70), sky, 0.25))
+    p.rect(5, 3, 16, 1, (90, 60, 34))
+    p.rect(5, 20, 16, 2, (90, 60, 34))
+    p.vline(5, 3, 21, (90, 60, 34))
+    p.vline(20, 3, 21, (90, 60, 34))
+    p.vline(13, 4, 19, (90, 60, 34))
+    p.hline(6, 19, 11, (90, 60, 34))
+
+    def lute(cx, cy, r, wood, rose):
+        p.ell(cx, cy, r, r * 0.8, wood)
+        p.rect(cx - r * 2.2, cy - 1, r * 1.3, 2, wood)
+        p.rect(cx - r * 2.4, cy - 3, 2, 3, wood)
+        p.disc(cx - r * 0.15, cy, r * 0.28, rose)
+
+    lute(46, 8, 5, (138, 90, 42), (42, 26, 16))
+    for i in range(5):
+        p.vline(30 + i * 2, 20, 23 + i % 2, (150, 150, 150) if i % 2 else (106, 74, 42))
+    p.rect(0, 30, W, 10, (90, 58, 30))
+    p.hline(0, W - 1, 30, (122, 82, 48))
+    for i in range(10):
+        p.hline(6 + (i * 7) % 50, 8 + (i * 7) % 50, 33 + i % 5, (230, 190, 130))
+    for y in range(31, 38):
+        for x in range(24 + (y - 31), 44 + (y - 31)):
+            if (x + y) % 2 == 0:
+                r, g, b, _ = p.get(x, y)
+                p.set(x, y, mix((r, g, b), sun, 0.35))
+    rose = (255, 214, 140) if mv == 3 else (42, 26, 16)
+    lute(44, 27, 7, (176, 122, 62), rose)
+    for y in {1: (), 2: (27,), 3: (26, 28)}[mv]:
+        p.hline(29, 49, y, (240, 230, 200))
+    p.vline(49, 25, 29, (58, 36, 20))
+    return p
+
+
+PICTURES["bwv998-1"] = lambda: workshop(1)
+PICTURES["bwv998-2"] = lambda: workshop(2)
+PICTURES["bwv998-3"] = lambda: workshop(3)
