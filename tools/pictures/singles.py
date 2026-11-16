@@ -87,3 +87,50 @@ def lagoon():
 
 
 PICTURES = {"bwv903-2": lambda: lighthouse(True), "bwv951": lagoon}
+
+
+def scaffold(fugue):
+    """BWV 906, the Fantasia and Fugue in C minor: THE SCAFFOLD (stage-bg.ts `scaffold`). A church front being built at
+    dusk inside its timber scaffold, the crane at the side. The Fantasia's tile: the gable's first courses, two masons'
+    torches on the boards. The Fugue's: the gable higher, unfinished, the last stone hanging on the crane's rope."""
+    p = Pix()
+    p.vgrad(0, 0, W, 34, [(40, 34, 70), (90, 60, 90), (200, 116, 88)])
+    p.rect(0, 34, W, 6, (42, 34, 32))
+    st = (138, 122, 104)
+    p.rect(20, 22, 24, 12, st)
+    for y in range(24, 34, 3):
+        for x in range(20 + (y % 2) * 2, 44, 5):
+            p.set(x, y, (100, 88, 74))
+    p.rect(30, 27, 4, 7, (42, 30, 24))
+    p.set(31, 26, (42, 30, 24))
+    p.set(32, 26, (42, 30, 24))
+    p.line(20, 22, 32, 6, (150, 136, 126))
+    p.line(44, 22, 32, 6, (150, 136, 126))
+    rows = 4 if not fugue else 9
+    for r in range(rows):
+        y = 21 - r * 1.7
+        half = 12 * (1 - (r + 1) / 10)
+        p.rect(32 - half, y, half * 2, 2, st if r % 2 else (130, 114, 96))
+    wood = (96, 66, 40)
+    for x in (18, 26, 38, 46):
+        p.vline(x, 8, 33, wood)
+    for y in (21, 15, 10):
+        p.hline(17, 47, y, wood)
+    p.vline(52, 4, 33, wood)
+    p.hline(30, 52, 4, wood)
+    p.ring(52, 30, 3, wood)
+    if fugue:
+        p.vline(41, 5, 8, (26, 20, 16))
+        p.rect(39, 9, 5, 3, (170, 154, 132))
+        p.hline(39, 43, 8, (40, 30, 24))
+        p.set(17, 13, (160, 96, 42))
+    else:
+        for x, y in ((22, 13), (41, 8)):
+            p.vline(x, y + 1, y + 3, (60, 42, 26))
+            p.set(x, y, (255, 210, 110))
+            p.set(x, y - 1, (255, 240, 180))
+    return p
+
+
+PICTURES["bwv906-1"] = lambda: scaffold(False)
+PICTURES["bwv906-2"] = lambda: scaffold(True)
