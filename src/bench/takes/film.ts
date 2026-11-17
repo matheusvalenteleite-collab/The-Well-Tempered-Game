@@ -38,6 +38,9 @@ export interface FilmVoice {
   who: string;
 }
 
+/** D725b: MAKE A VIDEO set aside (the owner: "this tool should be scraped for the time being. We might reimplement it later on"); the code stays, the button is not offered. */
+export const FILM_OFFERED = false;
+
 export function filmType(): string | null {
   if (typeof MediaRecorder === "undefined") return null;
   return FILM_TYPES.find((t) => MediaRecorder.isTypeSupported(t)) ?? null;
