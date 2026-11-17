@@ -66,6 +66,12 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
 export const STRETCH_SEATS: ReadonlySet<string> = new Set(["tracker", "super16", "soloVoices", "baroqueBand"]);
 /** D637: an instrument kept on its line though some notes are read past STRETCH_MAX (a band's own colour: test/d635's allow-list). */
 export const STRETCH_KEPT: Readonly<Record<string, readonly PatchId[]>> = { vaudeville: ["vdXylo"] };
+/**
+ * D781: the pieces whose lowest line is not a bass the band keeps: BWV 906's Fantasia, whose left hand crosses over the right
+ * up to A♭5 (and its chords to B♭5: bars 9-13, 25-28, 31), seated like an upper voice (the band's instrument that leaves
+ * fewest notes stretched, then misses its compass least), on every sound.
+ */
+export const LOW_LINE_FREE: ReadonlySet<string> = new Set(["bwv906-1"]);
 /** D641: beyond the 48 fugues a kept instrument stays on its line only while no note of it is read further than this (the fugues' worst, VAUDEVILLE's A#3). */
 export const KEPT_MAX = 9;
 
@@ -231,7 +237,8 @@ function worstOf(id: PatchId, line: readonly number[]): number {
  * D641, THE SEATS BEYOND THE 48 FUGUES (tools/touch/stretch/collections.ts: the preludes, the tutorial, MORE BACH, the
  * concertos, the chorales, on every sound): a piece of up to 13 voices, so no search over trades. Each upper voice whose
  * instrument leaves notes read more than STRETCH_MAX from a recording takes the band's recorded instrument (any of its
- * line-ups' patches) that leaves fewest, then misses its compass least, its own kept on a tie; the bass keeps its own;
+ * line-ups' patches) that leaves fewest, then misses its compass least, its own kept on a tie; the bass keeps its own
+ * (D781: but LOW_LINE_FREE's);
  * STRETCH_KEPT's instruments stay where no note is read past KEPT_MAX. The seat's pan and level stay.
  */
 export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
@@ -273,7 +280,7 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
       const staged = !!stageFor(f, sound);
       const st = partsStretch(seat[0], line, staged);
       const kept = STRETCH_KEPT[sound]?.includes(seat[0]) && worstOf(seat[0], line) <= KEPT_MAX;
-      if (v < count - 1 && st > 0 && !kept && line.length) {
+      if ((v < count - 1 || LOW_LINE_FREE.has(f.id)) && st > 0 && !kept && line.length) {
         // Fewest stretched, then the compass missed least, then not the band's bass, then one of this line-up's own.
         const inUp = new Set(base.map((x) => x[0]));
         const key = (c: PatchId) => [partsStretch(c, line, staged), Math.abs(excess(c, line)), basses.has(c) ? 1 : 0, inUp.has(c) ? 0 : 1];

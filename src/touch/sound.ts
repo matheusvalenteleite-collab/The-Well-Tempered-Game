@@ -2485,6 +2485,22 @@ export const DUET_LEVELS: Readonly<Record<string, Readonly<Record<string, { phon
 export const F903_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
   fluteHarp: { "bwv903-2": { phoneGain: 1.15 } },
 };
+/**
+ * D787: BWV 906's and 998's movements the same way (whole, with the lift, the phone model, against the 48's median, -27.95):
+ * those more than 1 LU off raised to about it: the Fantasia (-29.1), the Fugue in C minor (-29.0), the Prelude (-30.1), the
+ * Fugue in E-flat (-31.7); the Allegro (-32.8) held at D593's 4 dB (about -28.8 after).
+ */
+export const F906_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  jazzQuartet: { "bwv906-1": { phoneGain: 1.14 } },
+  abbeyRoad: { "bwv906-2": { phoneGain: 1.13 } },
+  chorinho: { "bwv998-1": { phoneGain: 1.28 } },
+  salsa: { "bwv998-2": { phoneGain: 1.54 } },
+  gameboy: { "bwv998-3": { phoneGain: 1.58 } },
+};
+for (const [sid, lv] of Object.entries(F906_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
 for (const [sid, lv] of Object.entries(F903_LEVELS)) {
   const p = PRESETS.find((x) => x.id === sid)!;
   p.levels = { ...(p.levels ?? {}), ...lv };

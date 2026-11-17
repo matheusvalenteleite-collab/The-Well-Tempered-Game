@@ -56,6 +56,13 @@ SPEC = {
     "bwv903-2": ("multi", [(0, 1, 0, 16, 24, 0.75, (1,), 6), (0, 9, 0, 12, 24, 0.75, (1,), 6)]),
     # D779: the Albinoni Fugue (BWV 951), the same way (data/touch/951-entries.txt).
     "bwv951": ("multi", [(1, 1, 0.5, 16, 8.5, 0.75, (1,), 6), (1, 3, 1.25, 12, 7.25, 0.75, (1,), 6)]),
+    # D780: BWV 906 and 998 the same way (data/touch/906-998-entries.txt): the Fantasia's opening theme, the fugues'
+    # subjects (their countersubjects return nowhere but with their own answer), the Prelude's and the Allegro's heads.
+    "bwv906-1": ("", [(0, 1, 0, 7, 1.5, 0.75, (1,), 6)]),
+    "bwv906-2": ("", [(0, 1, 0.5, 16, 8.5, 0.75, (1,), 6)]),
+    "bwv998-1": ("", [(0, 1, 0.5, 12, 6, 0.75, (1,), 6)]),
+    "bwv998-2": ("", [(0, 1, 1, 8, 8, 0.75, (1,), 6)]),
+    "bwv998-3": ("", [(0, 1, 0.25, 12, 6, 0.75, (1,), 6)]),
 }
 
 

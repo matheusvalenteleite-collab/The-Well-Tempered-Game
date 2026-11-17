@@ -307,6 +307,12 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   "bwv903-2": "timpani",
   // D779: the Albinoni Fugue on STRING CONSORT: its FIELD DRUM, the muffled drum's rolls into the arrivals, 100 % on the onsets.
   bwv951: "fieldDrums",
+  // D784: BWV 906 and 998, each on its sound's own family (score.ts: FITS, the onsets; D601's renders: no stroke over the band).
+  "bwv906-1": "brushes", // the Fantasia on JAZZ QUARTET: its brushes, 99 % on the onsets
+  "bwv906-2": "abbey", // the unfinished fugue on ABBEY ROAD: its own drummer, 97 %
+  "bwv998-1": "tabor", // the 12/8 Prelude on CHORINHO: the tabor's tambourine (the choro's pandeiro does not fit 12/8), 94 %
+  "bwv998-2": "bossa", // the Fugue on SALSA: the bossa's brushes and rim, 97 %
+  "bwv998-3": "tabor", // the 3/8 Allegro on GAME BOY: the tabor, 98 % (its own chip kit, the swell and the timpani stood within 1 dB of the band in its thin bars, D601)
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
