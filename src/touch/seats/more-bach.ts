@@ -392,6 +392,7 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
     "bwv1080-c15": { 2: [["jqPiano", -0.14], ["jqBass", 0.04]] },
     "bwv906-1": { 2: [["jqVibes", -0.14], ["jqPiano", 0.04]] },
     "bwv988-14": { 2: [["jqPiano", -0.14], ["jqBass", 0.04]] },
+    "bwv988-20": { 2: [["jqPiano", -0.14], ["jqBass", 0.04]] },
     "bwv1043-1": { 6: [["jqVibes", 0.45], ["jqPiano", 0.27], ["jqPiano", 0.09], ["jqPiano", -0.09], ["jqPiano", -0.27], ["jqBass", -0.45]] },
     "bwv1043-3": { 6: [["jqVibes", 0.45], ["jqPiano", 0.27], ["jqPiano", 0.09], ["jqPiano", -0.09], ["jqPiano", -0.27], ["jqBass", -0.45]] },
     "bwv228-1": { 8: [["jqVibes", 0.45], ["jqPiano", 0.3214], ["jqPiano", 0.1929], ["jqPiano", 0.0643], ["jqPiano", -0.0643], ["jqPiano", -0.1929], ["jqBass", -0.3214], ["jqBass", -0.45]] },
