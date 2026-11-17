@@ -47,9 +47,18 @@ The file's Variation 26 is broken: its 3/4 bars hold the right hand's 18/16 run 
 read again by a second reader. Its voices: each hand as the prints write it (the running line or the sarabande's upper
 voice, by turns), and the sarabande's lower voice, written under it in either hand, as a voice between them.
 
-Where the prints differ: bar 14, the upper staff's lower voice D5 (1741) against E5 (Bach-Gesellschaft): D5. Bar 13,
-C♯5 without a sharp in the 1741 print, the same note sharpened just before the bar line: C♯5. Bar 16, the final D6 a
-crotchet without its dot in 1741 (the bar short): dotted, as the Bach-Gesellschaft.
+Where the prints differ: bar 14, the upper staff's lower voice D5 (1741) against E5 (Bach-Gesellschaft): D5. Bar 12,
+the sarabande's lower voice A4 then C♯5 (1741; the Bach-Gesellschaft adds an E4): as 1741. Bar 16, the final D6 a
+crotchet without its dot in 1741 (the bar short): its length the bar's, as the Bach-Gesellschaft; its sign the 1741
+print's short mordent (the Bach-Gesellschaft's three-humped sign not followed; medium confidence: the stroke may be the
+stem). Bar 13, the sarabande's lower voice: C♯5 kept against the 1741 print's C (no accidental), with the
+Bach-Gesellschaft and Mutopia (the same note sharpened just before the bar line, the harmony towards D): contestable, as
+Variation 4's bar 17.
+
+The second reading (another reader, each bar read from both prints before the transcription was opened) found every
+note of bars 1-12, 14, 15, 17, 18 and 20-32 as transcribed, bar 16's sign as above (corrected), bar 13 as above, and
+bar 19's A5 doubtful in the 1741 print (its head half a space low, a ledger stroke through it) and clear in the
+Bach-Gesellschaft: A5 kept.
 
 ## Checked against
 

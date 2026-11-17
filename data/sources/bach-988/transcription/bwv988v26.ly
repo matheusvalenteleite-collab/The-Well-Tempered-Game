@@ -257,7 +257,7 @@ lower = {
     %          % ? the sign: BG a three-hump zigzag with a vertical stroke (long
     %          mordent); in 1741 the same zigzag sits at the end of the downward
     %          stem, and the stroke may be only the stem crossing it)
-    \tuplet 6/4 { fis''16 e'' fis'' a'' g'' a'' } \tuplet 6/4 { d'' cis'' d'' fis'' a'' cis''' } \tuplet 6/4 { d'''4.\prallmordent } |
+    \tuplet 6/4 { fis''16 e'' fis'' a'' g'' a'' } \tuplet 6/4 { d'' cis'' d'' fis'' a'' cis''' } \tuplet 6/4 { d'''4.\mordent } |  % second reading: the 1741 print's short mordent (the Bach-Gesellschaft's longer sign not followed)
   }
   \repeat volta 2 {
     % bar 17  (LH: upper voice of the 3/4 sarabande)
