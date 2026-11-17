@@ -285,17 +285,12 @@ test("D264: every piece open from the start, in Bach's order; each card's diffic
   assert.equal(liteLevel("wtc1p02").label, "NORMAL", "a prelude its fugue's");
 });
 
-test("D265/D417: a piece's sound opens once it is finished with a B or better (the best grade kept)", async () => {
+test("D863: no locks: every piece's sound open from the start (D265/D417's B unlock withdrawn); the best grade still kept", async () => {
   store.clear();
   const { recordLite, soundUnlocked, readLite } = await import("../src/bench/lite.ts");
-  assert.equal(soundUnlocked("wtc1f01"), false);
-  recordLite("wtc1f01", false, true, "C");
-  assert.equal(soundUnlocked("wtc1f01"), false);
-  recordLite("wtc1f01", true, true, "S");
-  assert.equal(soundUnlocked("wtc1f01"), false, "a failed run counts for nothing");
-  // D417: a B opens it.
-  recordLite("wtc1f01", false, true, "B");
   assert.equal(soundUnlocked("wtc1f01"), true);
+  assert.equal(soundUnlocked("bwv772"), true);
+  recordLite("wtc1f01", false, true, "B");
   recordLite("wtc1f01", false, true, "C");
   assert.equal(readLite().best.wtc1f01, "B", "the best kept");
 });

@@ -1,7 +1,14 @@
 /**
  * D199: each fugue's NORMAL and SLOW tempo from the durations in data/tempi/recordings.csv.
  *
- *   node tools/tempi/compute.ts            # writes data/tempi/tempi.json, prints the summary table
+ *   node tools/tempi/compute.ts            # writes data/tempi/tempi.json and preludes.json, prints the summary tables
+ *
+ * D861: the 48 preludes by the same rule, from data/tempi/prelude-recordings.csv (the same MusicBrainz releases,
+ * tools/tempi/musicbrainz.py rows --preludes, curate.py --preludes) into data/tempi/preludes.json. Unlike a fugue a
+ * prelude in two repeated halves (I/24; II/2, 5, 8, 9, 10, 12, 15, 18, 20, 21) is often recorded with its repeats,
+ * where the game plays each half once: each row carries the quarter notes that recording plays (`quarters`: the
+ * halves once or twice, as curate.py read it), and its tempo is taken over those. II/3's change of metre (4/4,
+ * then a 3/8 fughetta) needs nothing: the tempo is an average over the piece's quarter notes, both parts.
  *
  * Every recording's duration is turned into an average quarter-note tempo (the piece's length in
  * quarters, from data/touch/pieces.json, × 60 / seconds).
@@ -45,9 +52,12 @@ function seconds(d: string): number {
   return d.split(":").reduce((a, x) => a * 60 + Number(x), 0);
 }
 
-const lines = readFileSync(new URL("data/tempi/recordings.csv", ROOT), "utf8").trim().split("\n");
-const head = fields(lines[0]);
-const rows = lines.slice(1).map((l) => Object.fromEntries(fields(l).map((v, i) => [head[i], v])));
+/** A CSV file's rows, by its header's names. */
+function csvRows(path: string): Record<string, string>[] {
+  const lines = readFileSync(new URL(path, ROOT), "utf8").trim().split("\n");
+  const head = fields(lines[0]);
+  return lines.slice(1).map((l) => Object.fromEntries(fields(l).map((v, i) => [head[i], v])));
+}
 
 /** The q-th quantile, linearly interpolated (q in 0..1). */
 function quantile(xs: number[], q: number): number {
@@ -91,30 +101,42 @@ const GAME_Q = 0.35, GAME_LOAD = 5.5;
 const SLOW_SHARE = 0.62, MIN_SHARE = 0.45, LOAD = 3.0, FLOOR = 30;
 const even = (x: number) => Math.round(x / 2) * 2;
 
-const out: Record<string, unknown> = {};
-const table: string[] = ["| piece | meter | n | median ♩ | IQR ♩ | normal | slow | unit: normal / slow | flag |", "|---|---|---|---|---|---|---|---|---|"];
-for (const f of pieces) {
-  if (f.kind !== "fugue" && !f.id.startsWith("bwv1080")) continue;
-  const quarters = f.length / f.tpq;
-  const recs = rows.filter((r) => r.piece === f.id);
-  const bpms = recs.map((r) => (quarters * 60) / seconds(r.duration));
-  if (!bpms.length) throw new Error(`no recordings for ${f.id}`);
-  const med = quantile(bpms, 0.5), q1 = quantile(bpms, 0.25), q3 = quantile(bpms, 0.75);
-  const load = busiest60(f);
-  const normal = Math.round(Math.max(Math.min(...bpms), Math.min(quantile(bpms, GAME_Q), (GAME_LOAD / load) * 60)));
-  const byLoad = (LOAD / load) * 60;
-  const slow = Math.max(FLOOR, even(Math.max(MIN_SHARE * normal, Math.min(SLOW_SHARE * normal, byLoad))));
-  const { unit, perQuarter } = beatUnit(f.meter);
-  const unitBpm = { normal: Math.round(normal * perQuarter), slow: Math.round(slow * perQuarter) };
-  const flag = recs.length < 5 ? "fewer than 5" : "";
-  out[f.id] = {
-    normal, median: Math.round(med), slow, unit, unitBpm, n: recs.length,
-    iqr: [Math.round(q1), Math.round(q3)], range: [Math.round(Math.min(...bpms)), Math.round(Math.max(...bpms))],
-    busiest: Math.round(load * (normal / 60) * 10) / 10,
-    ...(flag ? { flag } : {}),
-  };
-  table.push(`| ${f.id} | ${f.meter} | ${recs.length} | ${med.toFixed(1)} | ${Math.round(q1)}–${Math.round(q3)} | ${normal} | ${slow} | ${unit} ${unitBpm.normal} / ${unitBpm.slow} | ${flag} |`);
+/**
+ * The pieces' records from a CSV of recordings, written to a JSON file; prints the summary table. A row's
+ * `quarters`, where given (D861: a prelude played with its repeats), is what that recording plays; else the
+ * piece's length.
+ */
+function compute(csv: string, json: string, which: (f: Piece) => boolean): void {
+  const rows = csvRows(csv);
+  const out: Record<string, unknown> = {};
+  const table: string[] = ["| piece | meter | n | median ♩ | IQR ♩ | normal | slow | unit: normal / slow | flag |", "|---|---|---|---|---|---|---|---|---|"];
+  for (const f of pieces) {
+    if (!which(f)) continue;
+    const quarters = f.length / f.tpq;
+    const recs = rows.filter((r) => r.piece === f.id);
+    const bpms = recs.map((r) => ((r.quarters ? Number(r.quarters) : quarters) * 60) / seconds(r.duration));
+    if (!bpms.length) throw new Error(`no recordings for ${f.id}`);
+    const med = quantile(bpms, 0.5), q1 = quantile(bpms, 0.25), q3 = quantile(bpms, 0.75);
+    const load = busiest60(f);
+    const normal = Math.round(Math.max(Math.min(...bpms), Math.min(quantile(bpms, GAME_Q), (GAME_LOAD / load) * 60)));
+    const byLoad = (LOAD / load) * 60;
+    const slow = Math.max(FLOOR, even(Math.max(MIN_SHARE * normal, Math.min(SLOW_SHARE * normal, byLoad))));
+    const { unit, perQuarter } = beatUnit(f.meter);
+    const unitBpm = { normal: Math.round(normal * perQuarter), slow: Math.round(slow * perQuarter) };
+    const flag = recs.length < 5 ? "fewer than 5" : "";
+    out[f.id] = {
+      normal, median: Math.round(med), slow, unit, unitBpm, n: recs.length,
+      iqr: [Math.round(q1), Math.round(q3)], range: [Math.round(Math.min(...bpms)), Math.round(Math.max(...bpms))],
+      busiest: Math.round(load * (normal / 60) * 10) / 10,
+      ...(flag ? { flag } : {}),
+    };
+    table.push(`| ${f.id} | ${f.meter} | ${recs.length} | ${med.toFixed(1)} | ${Math.round(q1)}–${Math.round(q3)} | ${normal} | ${slow} | ${unit} ${unitBpm.normal} / ${unitBpm.slow} | ${flag} |`);
+  }
+  const lines = Object.entries(out).map(([id, t]) => `  ${JSON.stringify(id)}: ${JSON.stringify(t)}`);
+  writeFileSync(new URL(json, ROOT), `{\n${lines.join(",\n")}\n}\n`);
+  console.log(table.join("\n"));
 }
-const json = Object.entries(out).map(([id, t]) => `  ${JSON.stringify(id)}: ${JSON.stringify(t)}`);
-writeFileSync(new URL("data/tempi/tempi.json", ROOT), `{\n${json.join(",\n")}\n}\n`);
-console.log(table.join("\n"));
+
+compute("data/tempi/recordings.csv", "data/tempi/tempi.json", (f) => f.kind === "fugue" || f.id.startsWith("bwv1080"));
+// D861: the 48 preludes by the same rule.
+compute("data/tempi/prelude-recordings.csv", "data/tempi/preludes.json", (f) => f.kind === "prelude" && /^wtc[12]p\d\d$/.test(f.id));

@@ -101,6 +101,15 @@ export function applyDrumPreset(pieceId: string) {
   if (p && source) source.apply(pieceId, p);
 }
 /** D453: a preset chosen for the piece (the MORE grid), kept and applied; the drums turned on with it. */
+/** D863: a piece's drum style forgotten (back to its HOME) when another piece is chosen. */
+export function forgetDrumPreset(pieceId: string) {
+  try {
+    localStorage.removeItem(PRESET_KEY(pieceId));
+  } catch {
+    /* this visit only */
+  }
+}
+
 export function chooseDrumPreset(pieceId: string, id: string): string {
   chosen.set(pieceId, id);
   try {

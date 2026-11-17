@@ -33,7 +33,7 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
-import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
+import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, REVOKED_SPAN_S, STRAY_SPAN_S, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
 /** D445: an entry's points, whole (paid by the share of its notes right). */
 const ENTRY_POINTS = 20;
 import { couleFill, couleTiming, exprFamily, GLENN, isKeyboard, joinedByEar, joinedSound, keyboardSlide, LUTE_SLUR, luteSlur, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, slidePitch, SlideSlur, slurRingS, touchFamily } from "./glenn.ts";
@@ -110,6 +110,7 @@ import { CLEAN_INK, HELD_INK, holdBonus, LEGATO_INK, legatoGapMs, releaseVerdict
 import { firstAtOrAfter } from "../touch/visible.ts";
 import { afterCadence, artBonus, broadenClose, artRoom, dissonantAt, graceMs, heldBounds, holdOf, strongBeat, touchStyle, TouchSense, valueClass, type Grace } from "./intention.ts";
 import { scaleFits, scaleKeys, keyPitch, SCALE_LANES, type ScaleKey } from "./scale-keys.ts";
+import { handPart, meterOf } from "../touch/two-hands.ts";
 import { lineKey, subjectLine, type LineEntry, type Stretto, type SubjectLine } from "./subject-line.ts";
 import { BAR, barAcross, barDynamic, contourCue, contourOk, dynamic, HOME_LANES, keyPlace, planLanes, levelOf, moves, stepNear, stepPitch, type Move, type Options, type Proto, laneOk, isRepeat } from "./protos.ts";
 
@@ -656,7 +657,8 @@ export class ProtoGame {
   constructor(f: TouchFugue, voices: number | number[], from: number, proto: Proto, o: Options & { bpm: number; clock?: Clock }, chip: Chip) {
     this.f = f;
     // D445: a prelude's crowd more patient (D259).
-    this.listeners = new Crowd(f.kind === "prelude" ? CROWD_LEAVE_PRELUDE : CROWD_LEAVE);
+    // D862: TWO HANDS's crowd remembers each hand's notes as one voice's (twice the notes, twice the memory).
+    this.listeners = new Crowd(f.kind === "prelude" || o.twoHands ? CROWD_LEAVE_PRELUDE : CROWD_LEAVE, o.twoHands ? 2 : 1);
     this.crowd = this.listeners.meter();
     this.proto = proto;
     this.startTick = from;
@@ -738,6 +740,10 @@ export class ProtoGame {
     this.hands = handsOn;
     const lhMine = (on: number) => handsOn && handsAt(f, arc, on) !== null && !inPedal(on);
     const voiceList = handsOn ? [0, 1] : Array.isArray(voices) ? voices : [voices];
+    // D862, TWO HANDS (the prototype): the left hand's voice the left thumb's (track 0), the right hand's the right's (track 1).
+    const twoHands = !!o.twoHands && !line && !handsOn && voiceList.length === 2;
+    this.twoHands = twoHands;
+    const meter = twoHands ? meterOf(f, o.bpm, (t) => inBar(f, t)) : null;
     // D258: the right hand's line handed to another voice for some bars (Prelude 4's climax: the bass).
     const tov = arc?.takeover && !handsOn && !line && f.kind === "prelude" && voiceList.join() === "0" ? arc.takeover : null;
     const take = tov ? { voice: tov.voice, on: barStart(f, tov.from), end: barStart(f, tov.to) } : null;
@@ -748,7 +754,7 @@ export class ProtoGame {
     // D261: the player's own voice's notes given to the others (each thumb only its top or bass notes).
     const movedOut = new Set<string>();
     // D442, THE REVEAL: on a phone, the prelude's plan picks the player's notes from both hands, bar by bar.
-    const rv = !line && !handsOn && f.kind === "prelude" && arc?.reveal ? reveal(f, arc.reveal) : null;
+    const rv = !line && !handsOn && !twoHands && f.kind === "prelude" && arc?.reveal ? reveal(f, arc.reveal) : null;
     this.tracks = line ? this.lineTracks(line) : voiceList.map((v) => {
       if (rv && v === 0) {
         const inSpan = (on: number) => on >= from && (o.until === undefined || on < o.until);
@@ -765,7 +771,10 @@ export class ProtoGame {
         const traces = new Map([...rv.traces].filter(([on]) => inSpan(on)));
         return { voice: 0, notes, moves: moves(notes, this.beat), traces: traces.size ? traces : undefined };
       }
-      const src = take && v === 0 ? [...f.voices[0].filter(([on]) => !inTake(on)), ...f.voices[take.voice].filter(([on]) => inTake(on))].sort((a, b) => a[0] - b[0] || b[2] - a[2]) : f.voices[v];
+      // D862: a hand's outer line, thinned to HANDS_MAX_RATE a second; its other notes the game's (drawn faint: `aid`).
+      const hand = twoHands ? handPart(f.voices[v].filter(([on]) => on >= from && (o.until === undefined || on < o.until)), v === voiceList[0] ? "left" : "right", meter!) : null;
+      if (hand) for (const [on, , midi] of hand.game) movedOut.add(lineKey(v, on, midi)), this.aidKeys.add(lineKey(v, on, midi));
+      const src = hand ? hand.mine : take && v === 0 ? [...f.voices[0].filter(([on]) => !inTake(on)), ...f.voices[take.voice].filter(([on]) => inTake(on))].sort((a, b) => a[0] - b[0] || b[2] - a[2]) : f.voices[v];
       const notes = laneNotes(
         src.filter(([on]) => on >= from && (o.until === undefined || on < o.until) && (!handsOn || v !== 1 || lhMine(on))),
         this.beat,
@@ -773,7 +782,7 @@ export class ProtoGame {
       );
       if (take && v === 0) for (const n of notes) if (inTake(n.on)) n.voice = take.voice;
       // D261: each thumb only its notes: the top of each half bar (right), the bass at its start (left).
-      const pick = f.kind === "prelude" && !line ? (v === 0 ? arc?.strike?.rh : handsOn && v === 1 ? arc?.strike?.lh : undefined) : undefined;
+      const pick = f.kind === "prelude" && !line && !twoHands ? (v === 0 ? arc?.strike?.rh : handsOn && v === 1 ? arc?.strike?.lh : undefined) : undefined;
       const traces = new Map<number, { on: number; dur: number; midi: number }[]>();
       if (pick) {
         const groups = new Map<number, LaneNote[]>();
@@ -819,7 +828,7 @@ export class ProtoGame {
       }
       // D258, SWEEP: a note of a quarter or more begun with the inner voice under it becomes a chord, spread upward when struck.
       let sweeps: Set<number> | undefined;
-      if (arc?.sweeps && f.kind === "prelude" && v === 0 && !handsOn) {
+      if (arc?.sweeps && f.kind === "prelude" && v === 0 && !handsOn && !twoHands) {
         sweeps = new Set();
         const inner = f.voices[1] ?? [];
         for (let i = notes.length - 1; i >= 0; i--) {
@@ -840,6 +849,8 @@ export class ProtoGame {
     [{ voice: this.voice, notes: this.notes, moves: this.moves }] = this.tracks;
     const played = this.tracks.map((t) => t.voice);
     this.others = o.solo || o.her ? [] : line ? accompaniment(f, from, -1).filter((n) => !line.keys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until)) : handsOn ? accompaniment(f, from, -1).filter((n) => (movedOut.has(lineKey(n.voice, n.on, n.midi)) || (n.voice !== 0 && !(n.voice === 1 && lhMine(n.on)))) && (o.until === undefined || n.on < o.until)) : accompaniment(f, from, take || movedOut.size ? -1 : played[0]).filter((n) => (n.band || (take && inTake(n.on) ? n.voice !== take.voice : !played.includes(n.voice) || movedOut.has(lineKey(n.voice, n.on, n.midi)))) && !sweepKeys.has(lineKey(n.voice, n.on, n.midi)) && (o.until === undefined || n.on < o.until));
+    // D862: the notes the game plays for a hand (TWO HANDS), marked so the box draws them faint.
+    if (this.aidKeys.size) this.others = this.others.map((n) => (this.aidKeys.has(lineKey(n.voice, n.on, n.midi)) ? { ...n, aid: true } : n));
     // D302: the others joined and detached, the reading's marks on every entry of the subject.
     // D309: each instrument's table, the fugue's character, the piano's levels from the whole score (never the player's part).
     // D385: a whole-piece reading's marks on every voice (its slurs, dots, joins), its plan (dynamics, palettes) on the piano.
@@ -1823,7 +1834,7 @@ export class ProtoGame {
       if (a.perfect) this.perfects--;
       else this.goods--;
       this.hits--;
-      this.slip(WRONG_WORTH);
+      this.slip(WRONG_WORTH, REVOKED_SPAN_S);
       // D445: the points taken back shown on the note (a run re-judged wrong).
       const back = Math.round(a.pts + a.art + a.held);
       if (back > 0) this.pops.push({ tick: notes[j].on, step: notes[j].step, text: `−${back}`, at: performance.now(), gold: false });
@@ -2510,7 +2521,7 @@ export class ProtoGame {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
-      this.slip(STRAY_WORTH, 0.5);
+      this.slip(STRAY_WORTH, STRAY_SPAN_S);
       // A keyboard: the key struck is heard all the same. Elsewhere a touch on no note is silent (D293: it
       // sounded the nearest note, soft and muffled: on a phone's speaker a hole in the voice, then a jolt).
       const key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
@@ -4220,11 +4231,11 @@ export class ProtoGame {
    * ones) of the slip before. CON FUOCO lasts while the streak holds FUOCO_NOTES. The feats that mean
    * "no mistakes" count the slips themselves (`slips`, the wrong and missed notes), never the streak.
    */
-  private slip(worth = 0, weight = 1) {
+  private slip(worth = 0, span?: number) {
     this.slips++;
     this.chain = 0;
-    // D445: the crowd hears it (a wrong note less badly than one let go by; a tap on no note as half a note).
-    this.hearCrowd(worth, weight, true);
+    // D445: the crowd hears it (a wrong note less badly than one let go by). D860: a tap on no note for STRAY_SPAN_S.
+    this.hearCrowd(worth, span, true);
     const fuoco = this.streak >= FUOCO_NOTES;
     this.streak = slipLoss(this.streak);
     this.combo = slipLoss(this.combo);
@@ -4324,9 +4335,10 @@ export class ProtoGame {
   crowd = CROWD_START;
   /** D445: the crowd listening (scoring.ts Crowd); `crowd` is its meter, 0 the crowd leaving. */
   private listeners = new Crowd();
-  private hearCrowd(worth: number, weight = 1, fault = false) {
+  /** D860: heard on the music's clock; `span`, the seconds a fault between the notes stands for (a note's own: the time since the last, scoring.ts Crowd). */
+  private hearCrowd(worth: number, span?: number, fault = false) {
     // A fault always cools the crowd, however cold it already is (never above half its level).
-    this.listeners.hear(fault ? Math.min(worth, this.listeners.level / 2) : worth, weight);
+    this.listeners.hear(fault ? Math.min(worth, this.listeners.level / 2) : worth, this.timeAt(this.now), span);
     this.crowd = this.listeners.meter();
   }
   /** D445: the streak bonus's level (0..STREAK_STEPS) and the right notes toward its next step. */
@@ -4523,7 +4535,7 @@ export class ProtoGame {
       // Held through the rest: the crowd cools, the chain is broken (no slip: the note was right).
       this.art.cleanOf++;
       this.chain = 0;
-      this.hearCrowd(0.5, 0.5, true);
+      this.hearCrowd(0.5, STRAY_SPAN_S, true);
       this.flash = { text: "REST!", at, good: false, kind: "rest" };
       return;
     }
@@ -4653,6 +4665,10 @@ export class ProtoGame {
   readonly arc: Arc | undefined;
   /** D252: both hands played (the right hand track 0, the left track 1), each in its own lanes. */
   readonly hands: boolean = false;
+  /** D862, TWO HANDS: the left hand track 0 (the left thumb), the right track 1 (the right thumb), each judged on its own. */
+  readonly twoHands: boolean = false;
+  /** D862: the hands' written notes the game plays (a chord's others, the inner voice, the quick notes between), as lineKey. */
+  readonly aidKeys = new Set<string>();
   /** D252: a hand's lanes: the left hand the leftmost (two on a phone, four on the computer's keys), the right the rest. */
   laneRegion(k: number): { from: number; count: number } {
     const split = this.road ? 2 : 4;
@@ -5215,21 +5231,24 @@ export class ProtoGame {
   }
   results(): RunResults {
     const r = { right: 0, wrong: 0, missed: 0, stray: this.stray, of: 0, score: Math.floor(this.score), grade: "", captured: this.entries.filter((e) => e.state === "captured").length, entries: this.entries.length, maxStreak: this.maxStreak };
-    for (const { notes } of this.tracks)
+    // D862, TWO HANDS: each hand's tally too.
+    const hands = this.tracks.map(() => ({ right: 0, of: 0 }));
+    for (const [k, { notes }] of this.tracks.entries())
       notes.forEach((n, i) => {
         // D191: the riding notes are not counted.
         if ((i > 0 && notes[i - 1].on === n.on) || n.ride) return;
         // A failed run: only the notes before the end count.
         if (this.failedAt !== null && n.on > this.failedAt) return;
         r.of++;
-        if (n.state === "hit") r.right++;
+        hands[k].of++;
+        if (n.state === "hit") r.right++, hands[k].right++;
         else if (n.wrong) r.wrong++;
         else r.missed++;
       });
     const failed = this.failedAt !== null;
     const art = { ...this.art, touch: this.sense.touch };
     const progress = failed ? this.progressAt(this.failedAt as number) : 1;
-    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces }, entryShares: this.entryShares() });
+    const sheet = scoreSheet({ ...r, art, earned: { ...this.earned }, perfects: this.perfects, goods: this.goods, failed, progress, style: { ...this.style }, graces: { ...this.graces }, entryShares: this.entryShares(), ...(this.twoHands ? { hands } : {}) });
     // D445: the grade follows from the performance alone.
     r.grade = sheet.grade;
     const lens = this.lens?.stats({ ...r, art, thumbs: this.thumbs });

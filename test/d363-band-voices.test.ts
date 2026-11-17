@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { barAt, bandNotes, everyNote, fugueById, loadExtras, MORE_BACH, PIECES, writtenNotes, type TouchNote } from "../src/touch/fugue.ts";
-import { accompaniment, stepRange, voicesFrom } from "../src/touch/voice-mode.ts";
+import { accompaniment, DULL_VOICES, stepRange, voicesFrom } from "../src/touch/voice-mode.ts";
 import { parsePitch } from "../src/music/pitch.ts";
 import { splitDivisi } from "../tools/touch/divisi.ts";
 import { labGame } from "../src/bench/lab/game.ts";
@@ -80,8 +80,8 @@ test("D363: a band-only voice is no voice: not named, not offered, not counted (
     const f = fugueById(id);
     assert.equal(f.voiceNames.length, f.voices.length, `${id}: a name a voice, none for the band's`);
     // The voices offered from the start (the pop-up's choice): the voices, never the band's.
-    // (D757: those the piece offers, where it names them: the Goldberg's lines worth playing.)
-    assert.deepEqual(voicesFrom(f, 0), f.voices.map((_, v) => v).filter((v) => !f.playable || f.playable.includes(v)));
+    // (D757: those the piece offers, where it names them: the Goldberg's lines worth playing; D864: the dull lines aside.)
+    assert.deepEqual(voicesFrom(f, 0), f.voices.map((_, v) => v).filter((v) => (!f.playable || f.playable.includes(v)) && !(DULL_VOICES[f.id] ?? []).includes(v)));
     // The ensemble's layout and each slot's sound go by the voices' count: the band's notes take their parent's.
     const kinds = kindsOf("organ", f.voices.length);
     assert.equal(kinds.length, f.voices.length);

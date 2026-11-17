@@ -191,7 +191,9 @@ export function bestScore(scores: Readonly<Record<string, number>>, piece: strin
 // D417 (the owner: "all unlocks for each fugue are opened upon completing it with score B instead of A, otherwise it's too difficult").
 export const SOUND_UNLOCK_GRADES = ["S", "A", "B"];
 // D337: a grade earned before 1.52 still unlocks (what was earned stays earned).
-export const soundUnlocked = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
+// D863: no locks for now (the owner: "Let's not do any lock unlock progression for the time being"): every sound open.
+export const soundUnlocked = (_id: string, _st?: LiteState): boolean => true;
+export const soundEarnedOld = (id: string, st: LiteState = readLite()): boolean => SOUND_UNLOCK_GRADES.includes(st.best[id] ?? "") || SOUND_UNLOCK_GRADES.includes(st.bestOld[id] ?? "");
 const RANK = ["D", "C", "B", "A", "S"];
 /** D356: a WTC fugue's tempo (SLOW · DEFAULT · FAST) opens with its sound (D417: B or better). */
 export const tempoEarned = soundUnlocked;
@@ -459,6 +461,17 @@ export function lastVoice(id: string): number | undefined {
     return undefined;
   }
 }
+/** D863: a piece's voice forgotten (back to its default voice) when another piece is chosen. */
+export function forgetLastVoice(id: string) {
+  try {
+    const o = JSON.parse(localStorage.getItem(LAST_VOICE_KEY) ?? "{}") as Record<string, number>;
+    delete o[id];
+    localStorage.setItem(LAST_VOICE_KEY, JSON.stringify(o));
+  } catch {
+    /* this visit only */
+  }
+}
+
 export function saveLastVoice(id: string, voice: number) {
   try {
     const o = JSON.parse(localStorage.getItem(LAST_VOICE_KEY) ?? "{}") as Record<string, number>;

@@ -293,7 +293,9 @@ test("D225: from the fourth lesson on the crowd can leave (a player mashing one 
     }
     const res = g.results();
     if (n >= 3) {
-      assert.notEqual(g.failedAt, null, `${l.id}: the crowd left`);
+      // D860: the crowd's patience is in seconds (about six of nothing right, after a grace of three), so in a
+      // lesson whose music lasts less than about a dozen seconds it cannot leave; the masher is still never passed.
+      if (clock.t > 12) assert.notEqual(g.failedAt, null, `${l.id}: the crowd left`);
       assert.ok(!passed(l, res), l.id);
     } else assert.equal(g.failedAt, null, `${l.id}: played to the end`);
   });

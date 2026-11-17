@@ -13,7 +13,7 @@ import { MORE_TEMPO, tempoOf } from "../src/touch/tempi.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { PATCHES, patchFor, placeFor, presetById, setPreset } from "../src/touch/sound.ts";
 import { voicing } from "../src/touch/chip.ts";
-import { startTick, voicesFrom } from "../src/touch/voice-mode.ts";
+import { DULL_VOICES, startTick, voicesFrom } from "../src/touch/voice-mode.ts";
 import { defaultVoice } from "../src/bench/flow.ts";
 import { MORE_SECTIONS } from "../src/bench/lite.ts";
 import { ProtoGame, type Contact, type Rows } from "../src/bench/proto-game.ts";
@@ -89,7 +89,7 @@ test("D348: the lines the player may take: each harpsichord's right hand (offere
     assert.deepEqual(f.playable!.filter((v) => v < 2 * n), hands, `${f.id}: every hand offered`);
     const vi = f.voiceNames.indexOf("Violin I");
     assert.ok(f.playable!.every((v) => v < 2 * n || v === vi), f.id);
-    assert.deepEqual(voicesFrom(f, 0), f.playable);
+    assert.deepEqual(voicesFrom(f, 0), f.playable!.filter((v) => !(DULL_VOICES[f.id] ?? []).includes(v)), "D864: the dull lines aside");
     assert.equal(defaultVoice(f, voicesFrom(f, 0)), 0, `${f.id}: the right hand first`);
     for (const v of f.playable!) {
       const line = f.voices[v];
