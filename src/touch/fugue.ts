@@ -125,7 +125,7 @@ export interface TouchFugue {
    * back to their notes in the lines offered, tools/touch/concertos.ts untrill): [voice, onset, kern
    * signs, the edition's notes as written ([onset, length, MIDI] in ticks): the band sounds these].
    */
-  ornaments?: [voice: number, on: number, signs: string, written?: [number, number, number][]][];
+  ornaments?: [voice: number, on: number, signs: string, written?: [number, number, number][] | null, graces?: string[]][];
   /**
    * D363: the band-only voices: where an edition writes two notes at once in one voice (the kern
    * encodings' split spines in 14 of the 48, Mutopia's extra voices on a staff in Contrapunctus 5-7),
@@ -161,7 +161,7 @@ export function everyNote(f: TouchFugue): TouchNote[] {
 }
 
 /** D340: the collections beyond the WTC. */
-export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "concerto" | "motet" | "cantata" | "chorale" | "hconcerto";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "goldberg" | "concerto" | "motet" | "cantata" | "chorale" | "hconcerto";
 
 /** All 96, each prelude before its fugue, Book I then Book II. */
 export const PIECES = data as unknown as TouchFugue[];

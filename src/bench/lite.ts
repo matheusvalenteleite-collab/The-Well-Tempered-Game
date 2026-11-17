@@ -65,6 +65,8 @@ const SECTION_OF: readonly [Collection, string][] = [
   ["duet", "FOUR DUETS"],
   // D753: single keyboard works (the Chromatic Fugue, BWV 903; D754: the Fugue on a Theme by Albinoni, BWV 951; D755: the Fantasia and unfinished Fugue in C minor, BWV 906; D756: the Prelude, Fugue and Allegro in E-flat, BWV 998).
   ["keyboard", "FANTASIAS AND FUGUES"],
+  // D757: the Goldberg Variations, BWV 988 (in MORE BACH first, the owner: "If I like it, it'll be promoted").
+  ["goldberg", "GOLDBERG VARIATIONS"],
   ["concerto", "CONCERTO"],
   // D348: BWV 1052-1058 and 1060-1065, every movement (D351: and BWV 1059 as a reconstruction) (tools/touch/concertos.ts; MuseScore editions, CC0).
   ["hconcerto", "HARPSICHORD CONCERTOS"],
@@ -84,6 +86,8 @@ export const AOF_IDS: readonly string[] = MORE_SECTIONS.find((s) => s.id === "ao
 /** D750: the two-part Inventions 1–15, then the three-part Sinfonias 1–15 (BWV 772–801), in Bach's order. */
 export const INV_IDS: readonly string[] = [...(MORE_SECTIONS.find((s) => s.id === "inv")?.ids ?? []), ...(MORE_SECTIONS.find((s) => s.id === "sin")?.ids ?? [])];
 /** D750: the MORE BACH sections that have a tab of their own (not listed under MORE BACH). */
+/** D757: the Goldberg's Aria and thirty variations, in Bach's order (a MORE BACH section; NEXT among them, from Variation 30 back to the Aria). */
+export const GOLD_IDS: readonly string[] = MORE_SECTIONS.find((s) => s.id === "goldberg")?.ids ?? [];
 export const OWN_TAB_SECTIONS: readonly string[] = ["aof", "inv", "sin"];
 const EXTRA = new Set([...MORE_SECTIONS.flatMap((s) => s.ids), ...CHORALE_IDS]);
 /** D340: a piece of the MORE BACH or CHORALES tab. */
@@ -94,7 +98,7 @@ export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "C
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
   const tab = liteTabOf(id);
   // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock; D382: or once earned).
-  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : GOLD_IDS.includes(id) ? [...GOLD_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
 }
 
 /**
