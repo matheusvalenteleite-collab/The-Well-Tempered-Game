@@ -36,7 +36,7 @@ import { parseExpert, placeExpert, type ExpertFugue } from "./expert.ts";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
 
-export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "concerto" | "motet" | "cantata";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "goldberg" | "concerto" | "motet" | "cantata";
 
 interface Spec {
   /**
@@ -58,6 +58,12 @@ interface Spec {
    * first range's. Instead of fromBar/toBar.
    */
   xmlRanges?: [from: number, to: number][];
+  /** D757: xmlRanges counted by the file's measures (from 1), not their written numbers (the Goldberg's restart and repeat); the bars keep their place in the piece (a first ending left out leaves a gap). */
+  xmlByIndex?: boolean;
+  /** D757: the edition's ornament signs and appoggiaturas kept, as kern's signs on their notes (TouchFugue.ornaments): never written out. */
+  keepOrnaments?: boolean;
+  /** D757: ornaments the print gives otherwise: at a bar's place and pitch, the signs set ("" none) and/or the appoggiaturas ("Q"/"q" + pitch). */
+  ornFixes?: { bar: number; at: string; pitch: string; signs?: string; graces?: string[] }[];
   fromBar?: number;
   toBar?: number;
   page?: string;
@@ -713,7 +719,86 @@ const KEYBOARD: Spec[] = [
   },
 ];
 
-export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...CONCERTO, ...VOCAL];
+/**
+ * D757: THE GOLDBERG VARIATIONS, BWV 988: the Aria and thirty variations from the Open Goldberg score (PDMX, MuseScore
+ * score 48072, CC0; data/sources/bach-988/SOURCE.md), each piece by its measures in the file (`xmlByIndex`), each half
+ * once (the game plays every repeat once: a first ending left out), its voices the edition's written layers (the main
+ * ones, a few notes in another layer joined to the voice of their staff nearest in pitch: their chords to the band,
+ * D363), its ornaments kept as signs (`keepOrnaments`). Variation 26 is the file's broken (its bars' lengths do not add
+ * up): transcribed from the prints instead (lyDir). The Aria da capo is the Aria again (the file's copy identical):
+ * not a piece of its own.
+ */
+const GOLDBERG_TABLE: [n: number, ranges: [number, number][], voices: string[]][] = [
+  [0, [[1, 32]], ["1:1|1:3|1:2|1:4", "2:5|2:7", "2:6"]],
+  [1, [[33, 64]], ["1:1|1:5|1:2", "2:5|2:1|2:2|2:7"]],
+  [2, [[65, 79], [81, 96], [98, 98]], ["1:1", "1:2", "2:5|2:2"]],
+  [3, [[99, 114]], ["1:1", "1:2", "2:5"]],
+  [4, [[115, 129], [131, 146], [148, 148]], ["1:1", "1:2", "2:5", "2:6"]],
+  [5, [[149, 180]], ["1:1", "2:5"]],
+  [6, [[181, 195], [198, 213], [216, 216]], ["1:1", "1:2", "2:5|2:2|2:1", "2:6"]],
+  [7, [[217, 248]], ["1:1", "2:5"]],
+  [8, [[249, 280]], ["1:1", "2:5"]],
+  [9, [[281, 296]], ["1:1|1:3", "1:2", "2:5"]],
+  [10, [[297, 328]], ["1:1", "1:2", "2:5", "2:6"]],
+  [11, [[329, 360]], ["1:1", "2:5"]],
+  [12, [[361, 392]], ["1:1", "1:2|1:5", "2:5|2:2", "2:6"]],
+  [13, [[393, 424]], ["1:1|1:2", "2:5", "2:6|2:8"]],
+  [14, [[425, 456]], ["1:1", "2:5"]],
+  [15, [[457, 488]], ["1:1", "1:2|1:5", "2:5|2:2", "2:6"]],
+  [16, [[489, 503], [505, 535], [538, 538]], ["1:1|1:3", "1:2|1:4", "2:5|2:6|2:7|2:8"]],
+  [17, [[539, 570]], ["1:1", "2:5"]],
+  [18, [[571, 602]], ["1:1", "1:2", "2:5"]],
+  [19, [[603, 634]], ["1:1", "1:2", "2:5|2:6|2:2"]],
+  [20, [[635, 666]], ["1:1", "2:5"]],
+  [21, [[667, 682]], ["1:1", "1:2|1:5", "2:5|2:2", "2:6"]],
+  [22, [[683, 714]], ["1:1", "1:2", "2:5", "2:6"]],
+  [23, [[715, 746]], ["1:1", "2:5", "1:2", "2:6"]],
+  [24, [[747, 778]], ["1:1", "1:2|1:5", "2:5|2:2|2:7", "2:6"]],
+  [25, [[779, 793], [795, 810], [812, 812]], ["1:1", "2:5", "2:6"]],
+  [27, [[845, 876]], ["1:1", "2:5"]],
+  [28, [[877, 908]], ["1:1|1:3", "1:2|1:4", "2:5|2:6"]],
+  [29, [[909, 940]], ["1:2", "1:1", "2:6", "2:5"]],
+  [30, [[941, 958]], ["1:1", "1:2|1:3|1:4", "2:5|2:2|2:7", "2:6"]],
+];
+/** D757: each variation's heading in the 1741 print (the canons' interval, the Fughetta, the Ouverture, the Quodlibet). */
+const GOLDBERG_KIND: Record<number, string> = {
+  3: "Canone all'Unisono", 6: "Canone alla Seconda", 9: "Canone alla Terza", 10: "Fughetta", 12: "Canone alla Quarta",
+  15: "Canone alla Quinta", 16: "Ouverture", 18: "Canone alla Sesta", 21: "Canone alla Settima", 24: "Canone all'Ottava",
+  27: "Canone alla Nona", 30: "Quodlibet",
+};
+const GOLDBERG_MINOR = new Set([15, 21, 25]);
+const GOLDBERG_CREDIT = "THE OPEN GOLDBERG VARIATIONS SCORE (WERNER SCHWEER, KIMIKO ISHIZAKA, 2012), PDMX · CORRECTED FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT · CC0";
+const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {};
+const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {};
+const voicesNamed = (n: number) => (n === 2 ? TWO_HANDS : n === 3 ? THREE : FOUR);
+const goldbergTitle = (n: number) => (n === 0 ? "Goldberg Variations, Aria" : `Goldberg Variations, Variation ${n}${GOLDBERG_KIND[n] ? `, ${GOLDBERG_KIND[n]}` : ""}`);
+const GOLDBERG: Spec[] = [
+  ...GOLDBERG_TABLE.map(([n, ranges, voices]): Spec => ({
+    id: `bwv988-${String(n).padStart(2, "0")}`,
+    collection: "goldberg",
+    number: n + 1,
+    title: goldbergTitle(n),
+    short: n === 0 ? "ARIA" : `VARIATION ${n}`,
+    bwv: "988",
+    key: GOLDBERG_MINOR.has(n) ? "g" : "G",
+    dir: "bach-988",
+    mutopia: 0,
+    xml: "48072.mxl",
+    xmlDir: "pdmx",
+    page: "https://musescore.com/user/9836/scores/48072",
+    xmlRanges: ranges,
+    xmlByIndex: true,
+    xmlVoices: voices,
+    keepOrnaments: true,
+    voiceNames: voicesNamed(voices.length),
+    entries: n === 10,
+    ...(GOLDBERG_FIXES[n] ? { fixes: GOLDBERG_FIXES[n] } : {}),
+    ...(GOLDBERG_ORN_FIXES[n] ? { ornFixes: GOLDBERG_ORN_FIXES[n] } : {}),
+    credit: GOLDBERG_CREDIT,
+  })),
+].sort((a, b) => a.number - b.number);
+
+export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...GOLDBERG, ...CONCERTO, ...VOCAL];
 
 /**
  * D361: a sung part is one line, the MusicXML voice(s) carrying its words. Another voice written on its
@@ -757,11 +842,15 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   let bar = 0;
   const home = (n: XmlPart["notes"][number]) => rules.find((r) => r.layer === `${n[3]}:${n[4]}` && (!r.qualified || (bar >= r.a && bar <= r.b)))?.vi ?? -1;
   const start = (n: number) => {
-    const b = x.bars.find((m) => m.n === n);
+    const b = s.xmlByIndex ? x.measures[n - 1] : x.bars.find((m) => m.n === n);
     if (!b) throw new Error(`${s.id}: no bar ${n}`);
     return b.on;
   };
-  const end = (n: number) => x.bars.find((m) => m.n === n + 1)?.on ?? x.length;
+  const end = (n: number) => (s.xmlByIndex ? x.measures[n]?.on : x.bars.find((m) => m.n === n + 1)?.on) ?? x.length;
+  const first = s.xmlRanges![0][0];
+  const orn: NonNullable<Read["orn"]> = [];
+  const unplayed: NonNullable<Read["unplayed"]> = [];
+  const p0 = x.parts[(s.xmlParts ?? [0])[0]];
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
   const voices: Note[][] = s.xmlVoices.map(() => []);
@@ -771,7 +860,30 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   for (const [fb, tb] of s.xmlRanges!) {
     const a = start(fb);
     const z = end(tb);
-    for (const b of x.bars) if (b.on >= a && b.on < z) bars.push({ n: bars.length + 1, on: b.on - a + base });
+    if (s.xmlByIndex) for (let i = fb; i <= tb; i++) bars.push({ n: i - first + 1, on: x.measures[i - 1].on - a + base });
+    else for (const b of x.bars) if (b.on >= a && b.on < z) bars.push({ n: bars.length + 1, on: b.on - a + base });
+    if (s.keepOrnaments) {
+      const marks = new Map<string, { on: number; midi: number; signs: string; graces: string[] }>();
+      const mark = (on: number, pitch: string) => {
+        const k = `${on}:${pitch}`;
+        if (!marks.has(k)) marks.set(k, { on: on - a + base, midi: parsePitch(pitch).midi, signs: "", graces: [] });
+        return marks.get(k)!;
+      };
+      for (const o of p0.ornaments)
+        if (o.on >= a && o.on < z)
+          for (const g of o.signs) {
+            if (KERN_SIGN[g]) mark(o.on, o.pitch).signs += KERN_SIGN[g];
+            else unplayed.push({ on: o.on - a + base, midi: parsePitch(o.pitch).midi, sign: g });
+          }
+      // An appoggiatura: on the note it leads to (the same staff and voice; the top of a chord).
+      for (const g of p0.graces) {
+        if (g.on < a || g.on >= z) continue;
+        const host = part.filter((n) => n[0] === g.on && n[3] === g.staff && n[4] === g.voice).sort((p, q) => parsePitch(q[2]).midi - parsePitch(p[2]).midi)[0];
+        if (!host) throw new Error(`${s.id}: an appoggiatura ${g.pitch} with no note at ${g.on}`);
+        mark(host[0], host[2]).graces.push(`${g.slash ? "q" : "Q"}${g.pitch}`);
+      }
+      orn.push(...marks.values());
+    }
     for (const n of part) {
       if (n[0] < a || n[0] >= z) continue;
       bar = bars.filter((b) => b.on <= n[0] - a + base).at(-1)!.n;
@@ -790,7 +902,7 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   if (lost.size) throw new Error(`${s.id}: MusicXML layers ${[...lost].join(", ")} not in ${s.xmlVoices.join(", ")}`);
   const a0 = start(s.xmlRanges![0][0]);
   const meter = [...x.measures].filter((m) => m.on <= a0 && m.time).at(-1)?.time ?? x.meter;
-  return { voices: voices.map(sortVoice), spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 } };
+  return { voices: voices.map(sortVoice), spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 }, ...(s.keepOrnaments ? { orn, unplayed } : {}) };
 }
 
 /** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
@@ -934,7 +1046,13 @@ export interface Read {
   agree: { midiInLy: number; lyInMidi: number; midiNotes: number; lyNotes: number };
   /** D347: each voice's words (packLyrics), where any voice is sung. */
   lyrics?: (number | string)[][];
+  /** D757: the ornaments kept (Spec.keepOrnaments): each note's onset and pitch, its kern signs, its appoggiaturas; and the signs the game cannot play. */
+  orn?: { on: number; midi: number; signs: string; graces: string[] }[];
+  unplayed?: { on: number; midi: number; sign: string }[];
 }
+
+/** D757: MusicXML's and LilyPond's ornament names as kern's signs (ornament-play.ts: the step read from the bar, upper case its default); others unplayed. */
+const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", downprall: "T", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
 
 export function readPiece(s: Spec): Read {
   const dir = s.lyDir ? `${SRC}${s.dir}/${s.lyDir}/` : `${SRC}${s.dir}/mutopia/${s.mutopia}/`;
@@ -1019,7 +1137,46 @@ export function readPiece(s: Spec): Read {
     const unfolded = agreeWith(readLy(`${dir}${s.ly}`, s.score ?? 0, false).notes);
     if (unfolded.midiInLy > agree.midiInLy) agree = unfolded;
   }
+  // D757: the LilyPond's ornament signs and appoggiaturas kept (Spec.keepOrnaments), on the notes they mark.
+  if (s.keepOrnaments && ly) {
+    const marks = new Map<string, { on: number; midi: number; signs: string; graces: string[] }>();
+    const unplayed: NonNullable<Read["unplayed"]> = [];
+    const mark = (on: number, midi: number) => {
+      const k = `${on}:${midi}`;
+      if (!marks.has(k)) marks.set(k, { on, midi, signs: "", graces: [] });
+      return marks.get(k)!;
+    };
+    for (const n of lyNotes)
+      for (const g of n.orn ?? []) {
+        if (KERN_SIGN[g]) mark(ticks(n.on), n.midi).signs += KERN_SIGN[g];
+        else unplayed.push({ on: ticks(n.on), midi: n.midi, sign: g });
+      }
+    for (const g of ly.notes.filter((n) => n.grace)) {
+      const host = lyNotes.filter((n) => n.on === g.on && n.voice === g.voice).sort((p, q) => q.midi - p.midi)[0];
+      if (!host) throw new Error(`${s.id}: an appoggiatura ${g.pitch} with no note at ${g.on}`);
+      mark(ticks(host.on), host.midi).graces.push(`${g.graceKind === "acciaccatura" ? "q" : "Q"}${g.pitch}`);
+    }
+    return { voices, spell, spelled, bars, meter, length, agree, orn: [...marks.values()], unplayed };
+  }
   return { voices, spell, spelled, bars, meter, length, agree };
+}
+
+/** D757: the ornament fixes (Spec.ornFixes): a note's signs and appoggiaturas as the print gives them. */
+export function applyOrnFixes(r: Read, fixes: NonNullable<Spec["ornFixes"]>) {
+  r.orn ??= [];
+  for (const x of fixes) {
+    const from = r.bars.find((b) => b.n === x.bar)?.on;
+    if (from === undefined) throw new Error(`orn fix: no bar ${x.bar}`);
+    const [a, b] = x.at.split("/").map(Number);
+    const on = from + Math.round((b ? a / b : a) * 4 * TPQ);
+    const midi = parsePitch(x.pitch).midi;
+    if (!r.voices.some((v) => v.some((n) => n[0] === on && n[2] === midi))) throw new Error(`orn fix: no ${x.pitch} at ${x.at} of bar ${x.bar}`);
+    let o = r.orn.find((m) => m.on === on && m.midi === midi);
+    if (!o) r.orn.push((o = { on, midi, signs: "", graces: [] }));
+    if (x.signs !== undefined) o.signs = x.signs;
+    if (x.graces) o.graces = x.graces;
+  }
+  r.orn = r.orn.filter((o) => o.signs || o.graces.length);
 }
 
 // --- Analysis -------------------------------------------------------------------------------------
@@ -1292,6 +1449,7 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
 export function build(s: Spec) {
   const r = s.xml ? readXmlPiece(s) : readPiece(s);
   if (s.fixes) applyFixes(r, s.fixes);
+  if (s.ornFixes) applyOrnFixes(r, s.ornFixes);
   const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
   const piece = { tpq: TPQ, meter: r.meter, bars: r.bars, length: r.length, voices: r.voices, key: s.key };
   const speller = keySpeller(r.spelled);
@@ -1347,7 +1505,16 @@ export function build(s: Spec) {
     const line = new Set(f.voices[e.voice].map((n) => `${n[0]}:${n[1]}:${n[2]}`));
     e.notes = e.notes.filter((n) => line.has(`${n[0]}:${n[1]}:${n[2]}`));
   }
-  return { f: band.length ? { ...f, bandVoices: band } : f, agree: r.agree };
+  // D757: the ornaments kept, each on the voice now holding its note (one the band took is the band's: not kept).
+  const ornaments: [number, number, string, null, string[]?][] = [];
+  for (const o of r.orn ?? []) {
+    const vi = f.voices.findIndex((v) => v.some((n) => n[0] === o.on && n[2] === o.midi));
+    if (vi < 0) continue;
+    ornaments.push(o.graces.length ? [vi, o.on, o.signs, null, o.graces] : [vi, o.on, o.signs, null]);
+  }
+  ornaments.sort((p, q) => p[1] - q[1] || p[0] - q[0]);
+  const g = ornaments.length ? { ...f, ornaments } : f;
+  return { f: band.length ? { ...g, bandVoices: band } : g, agree: r.agree, unplayed: r.unplayed ?? [], ornLost: (r.orn?.length ?? 0) - ornaments.length };
 }
 
 // --- Write ------------------------------------------------------------------------------------------

@@ -78,7 +78,9 @@ export function ornamentsOf(f: TouchFugue): Map<string, Ornament> {
     for (const [v, on, , signs, graces] of ROWS[f.id] ?? ROWS[ALIAS[f.id] ?? ""] ?? [])
       m.set(`${v}:${on}`, { signs, graces: (graces ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi })) });
     // D367: the piece's own (the harpsichord concertos' written-out trills, their notes as the edition writes them).
-    for (const [v, on, signs, written] of f.ornaments ?? []) m.set(`${v}:${on}`, { signs, graces: [], ...(written ? { written } : {}) });
+    // D757: and the Goldberg's signs and appoggiaturas as its edition prints them ("Q"/"q" + pitch, as ornaments.json's).
+    for (const [v, on, signs, written, graces] of f.ornaments ?? [])
+      m.set(`${v}:${on}`, { signs, graces: (graces ?? []).map((g) => ({ kind: g[0] as "q" | "Q", midi: parsePitch(g.slice(1)).midi })), ...(written ? { written } : {}) });
     if (f.kind === "fugue") carrySubjectOrnaments(f, m);
     cache.set(f.id, m);
   }

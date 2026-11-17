@@ -28,7 +28,7 @@ import { filmOf } from "./films.ts";
 import { APP } from "./config.ts";
 import { SOUND_GROUPS } from "./SoundSelect.tsx";
 import { aofLabel, invOf } from "./aof-label.ts";
-import { AOF_IDS, INV_IDS, BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
+import { AOF_IDS, GOLD_IDS, INV_IDS, BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
 
 /** A piece named as the list names it (D283: in the language chosen; no BWV, D343). */
 export function pieceTitle(id: string): string {
@@ -45,11 +45,11 @@ export function pieceTitle(id: string): string {
 }
 
 /** The grid's pieces for a book tab (on a phone the fugues only). */
-export const gridIds = (tab: LiteTab): string[] => (tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : liteAll(true).filter((id) => (id.startsWith("wtc2") ? "II" : "I") === tab));
+export const gridIds = (tab: LiteTab): string[] => (tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : tab === "GOLD" ? [...GOLD_IDS] : liteAll(true).filter((id) => (id.startsWith("wtc2") ? "II" : "I") === tab));
 /** D727: the tabs laid out as a grid of tiles (the books, THE ART OF FUGUE); the others as lists. */
-export const gridTab = (t: LiteTab): boolean => t === "I" || t === "II" || t === "AOF" || t === "INV";
+export const gridTab = (t: LiteTab): boolean => t === "I" || t === "II" || t === "AOF" || t === "INV" || t === "GOLD";
 /** D750: the grid tabs whose notes come with the extras (loaded when the tab opens). */
-const extraTab = (t: LiteTab): boolean => t === "AOF" || t === "INV";
+const extraTab = (t: LiteTab): boolean => t === "AOF" || t === "INV" || t === "GOLD";
 
 
 export interface SelectionProps {
@@ -221,11 +221,11 @@ export function Selection(p: SelectionProps) {
               {/* D447 (the owner: "ought to include the name of the book, i.e. J. S. Bach's Well-Tempered Clavier BOOK I – 24 FUGUES"): the work's name over the book's. */}
               <h2 className="sel-strip-title" id="lite-book-head">
                 <span className="sel-strip-work" id="lite-work-head">
-                  {tab === "AOF" ? tr("J. S. BACH · THE ART OF FUGUE") : tab === "INV" ? tr("J. S. BACH · INVENTIONS AND SINFONIAS") : tr("J. S. BACH · THE WELL-TEMPERED CLAVIER")}
+                  {tab === "AOF" ? tr("J. S. BACH · THE ART OF FUGUE") : tab === "INV" ? tr("J. S. BACH · INVENTIONS AND SINFONIAS") : tab === "GOLD" ? tr("J. S. BACH · GOLDBERG VARIATIONS") : tr("J. S. BACH · THE WELL-TEMPERED CLAVIER")}
                 </span>
-                <span className="sel-strip-book">{tab === "AOF" ? `BWV 1080 · ${tr("{n} PIECES", { n: ids.length })}` : tab === "INV" ? `BWV 772–801 · ${tr("{n} PIECES", { n: ids.length })}` : `WTC ${tr("BOOK")} ${tab} · ${tr("{n} FUGUES", { n: ids.length })}`}</span>
+                <span className="sel-strip-book">{tab === "AOF" ? `BWV 1080 · ${tr("{n} PIECES", { n: ids.length })}` : tab === "INV" ? `BWV 772–801 · ${tr("{n} PIECES", { n: ids.length })}` : tab === "GOLD" ? `BWV 988 · ${tr("{n} PIECES", { n: ids.length })}` : `WTC ${tr("BOOK")} ${tab} · ${tr("{n} FUGUES", { n: ids.length })}`}</span>
               </h2>
-              <span className="sel-strip-order">{tab === "AOF" ? tr("ONE SUBJECT, IN D MINOR, IN BACH'S ORDER") : tab === "INV" ? tr("INVENTIONS 1–15 · SINFONIAS 1–15") : tr("MAJOR · MINOR, BY KEY")}</span>
+              <span className="sel-strip-order">{tab === "AOF" ? tr("ONE SUBJECT, IN D MINOR, IN BACH'S ORDER") : tab === "INV" ? tr("INVENTIONS 1–15 · SINFONIAS 1–15") : tab === "GOLD" ? tr("THE ARIA AND THIRTY VARIATIONS") : tr("MAJOR · MINOR, BY KEY")}</span>
             </header>
             <ol className={`sel-grid${tab === "AOF" ? " sel-grid-aof" : tab === "INV" ? " sel-grid-inv" : ""}`} id="sel-grid">
               {ids.map((id) => (

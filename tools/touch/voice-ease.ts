@@ -9,7 +9,7 @@ import { voiceDifficulty } from "../../src/bench/difficulty.ts";
 
 // D727: and THE ART OF FUGUE's twenty pieces (its own tab on play.html), its notes loaded first; D750: and the 30 Inventions and Sinfonias.
 await loadExtras();
-const ids = [...[1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`)), ...MORE_INDEX.filter(([, c]) => c === "aof").map(([id]) => id), "bwv1080-14", ...MORE_INDEX.filter(([, c]) => c === "inv" || c === "sin" || c === "duet" || c === "keyboard").map(([id]) => id)];
+const ids = [...[1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`)), ...MORE_INDEX.filter(([, c]) => c === "aof").map(([id]) => id), "bwv1080-14", ...MORE_INDEX.filter(([, c]) => c === "inv" || c === "sin" || c === "duet" || c === "keyboard" || c === "goldberg").map(([id]) => id)];
 const rows = ids.map((id) => {
   const f = fugueById(id);
   return `  ${JSON.stringify(id)}: [${f.voices.map((_, v) => voiceDifficulty(f, v).score).join(", ")}],`;

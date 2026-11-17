@@ -51,6 +51,38 @@ const REFERENCE: Record<string, number> = {
   // D755: the C minor Fantasia and its unfinished Fugue (editorial).
   "bwv906-1": 84,
   "bwv906-2": 72,
+  // D757: the Goldberg Variations (editorial: harpsichordists' usual pace, quarter notes a minute).
+  "bwv988-00": 56,
+  "bwv988-01": 84,
+  "bwv988-02": 80,
+  "bwv988-03": 66, /* ♩. = 44 */
+  "bwv988-04": 90, /* ♩. = 60 */
+  "bwv988-05": 120,
+  "bwv988-06": 81, /* ♩. = 54 */
+  "bwv988-07": 90, /* ♩. = 60 */
+  "bwv988-08": 100,
+  "bwv988-09": 66,
+  "bwv988-10": 120, /* 𝅗𝅥 = 60 */
+  "bwv988-11": 84, /* ♩. = 56 */
+  "bwv988-12": 80,
+  "bwv988-13": 54,
+  "bwv988-14": 104,
+  "bwv988-15": 54,
+  "bwv988-16": 76, /* the Ouverture 𝅗𝅥 = 38, its 3/8 fugue ♩. = 51: one tempo for both, D757 */
+  "bwv988-17": 100,
+  "bwv988-18": 112, /* 𝅗𝅥 = 56 */
+  "bwv988-19": 100, /* ♩. = 67 */
+  "bwv988-20": 96,
+  "bwv988-21": 60,
+  "bwv988-22": 112, /* 𝅗𝅥 = 56 */
+  "bwv988-23": 96,
+  "bwv988-24": 75, /* ♩. = 50 */
+  "bwv988-25": 40,
+  "bwv988-26": 92,
+  "bwv988-27": 84, /* ♩. = 56 */
+  "bwv988-28": 84,
+  "bwv988-29": 92,
+  "bwv988-30": 76,
   // D756: the E-flat Prelude, Fugue and Allegro (lutenists and harpsichordists about ♩. 56-66, ♩ 72-92, ♩. 60-76).
   "bwv998-1": 90 /* ♩. = 60 */, "bwv998-2": 80, "bwv998-3": 99 /* ♩. = 66 */,
   // The Concerto for Two Violins: moderate, historically informed (period bands play I at about ♩ = 100-112,
