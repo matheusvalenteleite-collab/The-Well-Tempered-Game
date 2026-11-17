@@ -69,6 +69,13 @@ export const ADDED: Record<string, [number, string, string, number?][]> = {
     [11, "G#2", "T", 0],
     [16, "G#3", "T", 1],
   ],
+  // The non-WTC ornament audit (docs/audits/ORNAMENTS-NON-WTC.md): signs the Bach-Gesellschaft prints
+  // (vol. 3, 1853, read on the scan) that the Mutopia editions leave out, each also in the Humdrum
+  // encodings (study only): Invention 7's mordent on the soprano's C5 at the start of bar 10 (BGA p. 9);
+  // Sinfonia 1's short wavy line on the soprano's E5 in bar 14 (p. 19; the motif of bar 5, where the
+  // edition puts it and the BGA has none).
+  inven07: [[10, "C5", "M", 0]],
+  sinfo01: [[14, "E5", "W", 2.5]],
 };
 
 /**
@@ -100,6 +107,16 @@ export const BGA_SIGNS: Record<string, [number, string, string, number][]> = {
   ],
   wtc2f06: [[16, "F4", "T", 3.5]],
   wtc2f20: [[28, "E2", "T", 1]],
+  // The non-WTC ornament audit (docs/audits/ORNAMENTS-NON-WTC.md): signs the Mutopia sinfonias
+  // (Vermersch, source not stated) add where the Bach-Gesellschaft (vol. 3, read on the scan) prints none,
+  // nor does the Humdrum encoding of the BGA: Sinfonia 1 bar 5 (p. 19), Sinfonia 13 bars 3 and 7 (p. 38).
+  // (Sinfonia 7's trill in bar 43 is not the BGA's either, but THE TUTORIAL's lesson 6.2 is built on it:
+  // left for the owner.)
+  sinfo01: [[5, "B4", "", 2.5]],
+  sinfo13: [
+    [3, "B4", "", 0.5],
+    [7, "F#4", "", 0.5],
+  ],
 };
 
 /**
