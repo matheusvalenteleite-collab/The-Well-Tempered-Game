@@ -531,6 +531,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     const voiceInk = inkOf(o.voice, fr.count);
     const bw = Math.max(1, x2 - x1 - 1);
     const oy = yOf(o.step) - altOf(o.step, o.midi) * shift;
+    // D862, TWO HANDS: a note the game plays for a hand: a thin, faint line in the hand's colour (heard, never a target).
+    if (o.aid) {
+      g.globalAlpha = sounding ? 0.7 : 0.35;
+      g.fillStyle = voiceInk;
+      g.fillRect(x1, oy + Math.floor(bh / 2) - 1, bw, 2);
+      continue;
+    }
     // D478 (design studio; the owner: "the subject in other voices looks the same as every other note"): another voice's
     // subject note drawn full, outlined in its voice's pale light, like the player's own.
     if (si >= 0 && full && spans![si].form !== "counter") {

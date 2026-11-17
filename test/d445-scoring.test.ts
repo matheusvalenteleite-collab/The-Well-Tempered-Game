@@ -7,7 +7,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Crowd, CROWD_LEAVE, gradeFor, GRACE_NOTES, streakFactor, STREAK_STEPS } from "../src/bench/scoring.ts";
+import { Crowd, CROWD_LEAVE, gradeFor, GRACE_S, streakFactor, STREAK_STEPS } from "../src/bench/scoring.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import { defaultVoice } from "../src/bench/flow.ts";
 import { ex } from "../src/bench/manual/kit.ts";
@@ -20,17 +20,19 @@ test("D445: the grade from the performance alone, rounded once", () => {
 });
 
 test("D445: the crowd: a wrong note costs less than a note let go by; never empty in the round's first notes; a run of good notes fills it", () => {
+  // D860: heard on the music's clock, each outcome for the time it stands for (here a note every half second).
   const wrong = new Crowd();
   const missed = new Crowd();
-  for (let k = 0; k < 6; k++) wrong.hear(0.2), missed.hear(0);
+  for (let k = 0; k < 6; k++) wrong.hear(0.2, k / 2), missed.hear(0, k / 2);
   assert.ok(wrong.level > missed.level);
   const early = new Crowd();
-  for (let k = 0; k < GRACE_NOTES - 1; k++) early.hear(0);
+  for (let k = 0; k < 8; k++) early.hear(0, k / 4);
   assert.ok(early.meter() > 0, "grace");
-  early.hear(0);
+  for (let k = 8; k < 40; k++) early.hear(0, k / 4);
+  assert.ok(GRACE_S < 10);
   assert.equal(early.meter(), 0);
   const back = new Crowd();
-  for (let k = 0; k < 40; k++) back.hear(1);
+  for (let k = 0; k < 80; k++) back.hear(1, k / 2);
   assert.ok(back.meter() > 0.95);
   assert.ok(CROWD_LEAVE > 0.4);
 });

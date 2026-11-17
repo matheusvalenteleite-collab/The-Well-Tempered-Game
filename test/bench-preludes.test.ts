@@ -167,7 +167,10 @@ test("D229: preludes ride more generously than fugues: the struck notes about 6 
       rode += r;
     }
   }
-  assert.ok(rode > fugueRode && rode / all > 0.1 && rode / all < 0.6, `${rode} of ${all} onsets ride (a fugue's rule: ${fugueRode})`);
+  // D861: at the recordings' tempi (the busiest voice at most 5.5 notes a second, a semiquaver 180 ms or more) few
+  // notes come under PRELUDE_RIDE_MS (170 ms), so the share riding at HARD's threshold is small (was over 10% at
+  // D229's quicker tempi); the lower tiers' thresholds (200, 250 ms) and the fits ride more.
+  assert.ok(rode > fugueRode && rode / all > 0.01 && rode / all < 0.6, `${rode} of ${all} onsets ride (a fugue's rule: ${fugueRode})`);
   if (process.env.D229_TABLE) console.log(`preludes: ${rode} of ${all} onsets ride; by a fugue's rule ${fugueRode}`);
 });
 
