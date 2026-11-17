@@ -17,8 +17,8 @@ const CARD: Record<string, { name: string; key: string; lh: string; rh: string }
   bwv772: { name: "INV. 1", key: "C MAJOR", lh: "3.0", rh: "3.2" },
 };
 
-export function HandsList({ play }: { play: (id: string) => void }) {
-  const [open, setOpen] = useState(true);
+export function HandsList({ play, folded = false }: { play: (id: string) => void; folded?: boolean }) {
+  const [open, setOpen] = useState(!folded);
   // The invention's notes are MORE BACH's chunk, fetched on demand: its button waits for them.
   const [extras, setExtras] = useState(extrasLoaded);
   useEffect(() => {
@@ -44,7 +44,13 @@ export function HandsList({ play }: { play: (id: string) => void }) {
   };
   if (!open)
     return (
-      <button type="button" id="hands-open" style={{ ...box, cursor: "pointer" }} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        id="hands-open"
+        // D866: folded, a small tab at the right column's foot (over no card).
+        style={{ ...box, left: "auto", right: "calc(8px + var(--tg-sar, 0px))", transform: "none", width: "auto", minHeight: 36, cursor: "pointer" }}
+        onClick={() => setOpen(true)}
+      >
         TWO HANDS ▲
       </button>
     );
