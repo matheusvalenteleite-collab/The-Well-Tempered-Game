@@ -17,7 +17,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { soundPlans, voicing } from "../../../src/touch/chip.ts";
-import { nameOfMidi, nearestSample, sampledMidis, SAMPLED, setFor, MAX_SHIFT_ANY, STRETCH_MAX } from "../../../src/touch/sampled.ts";
+import { nameOfMidi, nearestSample, reachOf, sampledMidis, SAMPLED, setFor, MAX_SHIFT_ANY, STRETCH_MAX } from "../../../src/touch/sampled.ts";
 import { STOP_FAMILIES } from "../../../src/touch/consort-stops.ts";
 import { stageFor } from "../../../src/touch/stage.ts";
 import { OWN_PIECES, PATCHES, patchIdFor, type Patch, presetById, setPieceLayout, setPreset, type PatchId } from "../../../src/touch/sound.ts";
@@ -220,6 +220,21 @@ export function partsStretch(id: PatchId, line: readonly number[], staged: boole
   return n;
 }
 
+/** D850: a line's notes past a patch's declared reach (sampled.ts reachOf, as D640's audit) yet within STRETCH_MAX of a recording: not allowed. */
+export function pastReach(id: PatchId, line: readonly number[]): number {
+  const pt = PATCHES[id];
+  const inst = pt.sample ? SAMPLED[pt.sample] : null;
+  if (!inst) return 0;
+  let n = 0;
+  for (const m of line) {
+    const set = setFor(inst, m);
+    const r = reachOf(inst, set);
+    const near = nearestSample(set, m);
+    if ((m > r.hi || m < r.lo) && near !== null && Math.abs(m - near) <= STRETCH_MAX) n++;
+  }
+  return n;
+}
+
 /** D641: the worst read of a line on a patch (semitones from its nearest recording, the set as planned). */
 function worstOf(id: PatchId, line: readonly number[]): number {
   const pt = PATCHES[id];
@@ -239,7 +254,9 @@ function worstOf(id: PatchId, line: readonly number[]): number {
  * instrument leaves notes read more than STRETCH_MAX from a recording takes the band's recorded instrument (any of its
  * line-ups' patches) that leaves fewest, then misses its compass least, its own kept on a tie; the bass keeps its own
  * (D781: but LOW_LINE_FREE's);
- * STRETCH_KEPT's instruments stay where no note is read past KEPT_MAX. The seat's pan and level stay.
+ * STRETCH_KEPT's instruments stay where no note is read past KEPT_MAX. The seat's pan and level stay. D850: an upper voice
+ * with notes past its instrument's declared reach (none stretched) takes, likewise, the one that misses its compass least
+ * without stretching any.
  */
 export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
   const p = presetById(sound);
@@ -280,18 +297,24 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
       const staged = !!stageFor(f, sound);
       const st = partsStretch(seat[0], line, staged);
       const kept = STRETCH_KEPT[sound]?.includes(seat[0]) && worstOf(seat[0], line) <= KEPT_MAX;
-      if ((v < count - 1 || LOW_LINE_FREE.has(f.id)) && st > 0 && !kept && line.length) {
+      // D850: or notes past its set's declared reach that are not stretched ones (D640's audit allows past-reach notes only
+      // as stretched reads): a crossing upper line, like the Goldberg's Variation 20 right hand down to G2 on JAZZ QUARTET's vibes.
+      const ex = st > 0 ? 0 : pastReach(seat[0], line);
+      if ((v < count - 1 || LOW_LINE_FREE.has(f.id)) && (st > 0 || ex > 0) && !kept && line.length) {
         // Fewest stretched, then the compass missed least, then not the band's bass, then one of this line-up's own.
         const inUp = new Set(base.map((x) => x[0]));
         const key = (c: PatchId) => [partsStretch(c, line, staged), Math.abs(excess(c, line)), basses.has(c) ? 1 : 0, inUp.has(c) ? 0 : 1];
         let best = [st, Infinity, 0, 0];
+        // (D850: on the reach alone, only an instrument that leaves none past its reach unstretched may take the line.)
+        const ok = (c: PatchId) => st > 0 || pastReach(c, line) === 0;
         for (const c of cands) {
+          if (!ok(c)) continue;
           const k = key(c);
           const i = k.findIndex((x, j) => x !== best[j]);
           if (i >= 0 && k[i] < best[i]) (best = k), (pick = c);
         }
-        // (Its own kept where none does better on the stretch.)
-        if (best[0] >= st) pick = seat[0];
+        // (Its own kept where none does better on the stretch; D850: on the reach alone, where none reaches further without stretching.)
+        if (st > 0 ? best[0] >= st : best[0] > 0 || pastReach(pick, line) > 0) pick = seat[0];
       }
       if (pick !== seat[0]) {
         changed = true;
