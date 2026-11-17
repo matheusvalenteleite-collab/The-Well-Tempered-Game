@@ -768,8 +768,75 @@ const GOLDBERG_KIND: Record<number, string> = {
 };
 const GOLDBERG_MINOR = new Set([15, 21, 25]);
 const GOLDBERG_CREDIT = "THE OPEN GOLDBERG VARIATIONS SCORE (WERNER SCHWEER, KIMIKO ISHIZAKA, 2012), PDMX · CORRECTED FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT · CC0";
-const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {};
-const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {};
+/**
+ * D757: where the prints read otherwise than the Open Goldberg score (data/sources/bach-988/SOURCE.md: every difference
+ * from Mutopia's and Madrisan's typesettings read in the 1741 print and the Bach-Gesellschaft; the 1741 print first),
+ * each piece's own bars (as the file counts them, both endings) and voices (GOLDBERG_TABLE's order).
+ */
+const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
+  // The second ending's C5 the C♯5 held from bar 15 (the Bach-Gesellschaft's tie; the 1741 print's arcs there mark the endings).
+  4: [
+    { voice: 0, bar: 17, at: "0", from: "C5", to: "C#5" },
+    { voice: 0, bar: 17, at: "0", from: "C#5", tie: true },
+  ],
+  6: [
+    { voice: 1, bar: 28, at: "0", from: "C4", tie: true },
+    { voice: 1, bar: 30, at: "0", from: "E4", tie: true },
+  ],
+  24: [
+    { voice: 3, bar: 20, at: "0", from: "Eb3", to: "D#3" },
+    { voice: 2, bar: 21, at: "0", from: "B3", tie: true },
+    { voice: 2, bar: 21, at: "3/4", from: "C4", tie: true },
+    { voice: 2, bar: 22, at: "0", from: "A3", tie: true },
+    { voice: 2, bar: 27, at: "1/8", from: "Ab3", to: "G#3" },
+  ],
+  25: [
+    { voice: 0, bar: 2, at: "0", from: "Db5", to: "C#5" },
+    { voice: 0, bar: 2, at: "0", from: "C#5", tie: true },
+    { voice: 0, bar: 9, at: "3/16", from: "G4", to: "A4" },
+    { voice: 1, bar: 21, at: "1/2", from: "G4", to: "Gb4" },
+    { voice: 1, bar: 21, at: "11/16", from: "C4", to: "Cb4" },
+    { voice: 1, bar: 22, at: "0", from: "Cb4", strike: true },
+    { voice: 0, bar: 22, at: "21/32", from: "C5", to: "Cb5" },
+  ],
+  27: [{ voice: 0, bar: 20, at: "0", from: "Eb5", to: "D#5" }],
+  28: [
+    { voice: 0, bar: 4, at: "1/4", from: "Db6", to: "C#6" },
+    { voice: 0, bar: 9, at: "1/4", from: "D5", to: "E5" },
+  ],
+  29: [
+    { voice: 3, bar: 4, at: "3/8", from: "F#3", to: "E3" },
+    { voice: 1, bar: 27, at: "1/12", from: "F#4", to: "F4" },
+    ...["1/4", "3/8"].map((at) => ({ voice: 3, bar: 16, at, from: "Db4", to: "C#4" })),
+    ...["1/4", "3/8", "5/8"].map((at) => ({ voice: 3, bar: 22, at, from: "Eb5", to: "D#5" })),
+  ],
+  30: [{ voice: 3, bar: 17, at: "7/8", from: "Db4", to: "C#4" }],
+};
+const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
+  // The trill hooked from below (Bach's Doppelt-cadence): a trill, not the short one the edition names.
+  0: [
+    { bar: 3, at: "1/4", pitch: "G4", signs: "T" },
+    { bar: 11, at: "1/4", pitch: "G5", signs: "T" },
+    { bar: 12, at: "1/4", pitch: "C#5", signs: "T" },
+    { bar: 17, at: "1/4", pitch: "A4", signs: "T" },
+  ],
+  // The hooked trill with a mordent (Doppelt-cadence und Mordant).
+  5: [{ bar: 17, at: "1/2", pitch: "F#5", signs: "TM" }],
+  // The hooked long trill of the prints, not a short one.
+  24: [
+    { bar: 17, at: "0", pitch: "A4", signs: "T" },
+    { bar: 19, at: "0", pitch: "A5", signs: "T" },
+  ],
+  // Appoggiaturas neither print has (bars 5, 6, 14); and bars 1-2's, which the Bach-Gesellschaft prints and the 1741 print does not.
+  25: [
+    { bar: 1, at: "1/4", pitch: "Bb5", graces: [] },
+    { bar: 2, at: "1/4", pitch: "Ab5", graces: [] },
+    { bar: 5, at: "1/4", pitch: "D5", graces: [] },
+    { bar: 6, at: "1/4", pitch: "Eb5", graces: [] },
+    { bar: 14, at: "1/4", pitch: "Bb5", graces: [] },
+  ],
+  30: [{ bar: 12, at: "1/2", pitch: "D#5", signs: "" }],
+};
 const voicesNamed = (n: number) => (n === 2 ? TWO_HANDS : n === 3 ? THREE : FOUR);
 const goldbergTitle = (n: number) => (n === 0 ? "Goldberg Variations, Aria" : `Goldberg Variations, Variation ${n}${GOLDBERG_KIND[n] ? `, ${GOLDBERG_KIND[n]}` : ""}`);
 const GOLDBERG: Spec[] = [
