@@ -6,6 +6,7 @@
  * of the real man). Who speaks is set as a lesson begins (BenchApp); every bubble asks `host()` for the
  * face and `hostLine` for the words: Glenn's own wording where he has one, else the line as written.
  */
+import { unlocked } from "./unlock.ts";
 import { APP } from "./config.ts";
 
 export type Host = "bach" | "glenn";
@@ -15,7 +16,13 @@ export const setHost = (h: Host) => void (who = h);
 export const hostName = (): string => (who === "glenn" ? "Glenn" : "Herr Bach");
 /** The parts Glenn hosts in the pilot. */
 export const GLENN_PARTS = ["1"];
-export const glennHosts = (part: string): boolean => !!APP.glennPilot && GLENN_PARTS.includes(part);
+/**
+ * D865: Glenn's pilot (Part 1 hosted by him, Fugue I/1's film) also in the developer view of play.html (the owner: "I wanna see
+ * the one film with Glenn that we already have ... Same for the tutorial part 1. Can we add this to the developer version of the
+ * game? (I.e. Only if one inputs ricercar)"): only the film and the host, not the pilot's preludes or reveal arcs.
+ */
+export const glennShown = (): boolean => !!APP.glennPilot || (APP.lite && unlocked());
+export const glennHosts = (part: string): boolean => glennShown() && GLENN_PARTS.includes(part);
 
 /** Glenn's wording of Part 1's lines (English; the Lab is English only), keyed by the line as Bach says it. */
 export const GLENN_LINES: Record<string, string> = {

@@ -11,6 +11,7 @@
  * play) and a big ▶ PLAY under the right thumb. The first visit (nothing played, no lesson done): the
  * TUTORIAL glows, the grid is dimmed but works, and the right column says in one sentence where to start.
  */
+import { glennShown } from "./glenn-host.ts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { auditionUrl, soundBlurb } from "../touch/sound-blurbs.ts";
 import { FugueAbout } from "./FugueAbout.tsx";
@@ -25,7 +26,6 @@ import { versionLine, Wordmark } from "./Intro.tsx";
 import { GRADE_INK, LiteGrid, PixelGear, storedTab, storeTab } from "./LiteGrid.tsx";
 import { popTitle } from "./PlayPop.tsx";
 import { filmOf } from "./films.ts";
-import { APP } from "./config.ts";
 import { SOUND_GROUPS } from "./SoundSelect.tsx";
 import { aofLabel, invOf } from "./aof-label.ts";
 import { AOF_IDS, INV_IDS, BEFORE_JUDGING, bestScore, liteAll, liteFirstVisit, liteLevel, liteSuggested, liteTabs, liteTabOf, type LiteTab } from "./lite.ts";
@@ -149,11 +149,11 @@ export function Selection(p: SelectionProps) {
           <button type="button" id="card-tutorial" className={`sel-tutorial${first ? " sel-glow" : ""}`} onClick={tutorial.start}>
             <span className="sel-tut-head">
               <span className="sel-tut-face" aria-hidden="true">
-                <Portrait talking={false} who={APP.glennPilot ? "glenn" : undefined} />
+                <Portrait talking={false} who={glennShown() ? "glenn" : undefined} />
               </span>
               <span className="sel-tut-words">
                 <span className="sel-tut-title">{tr("TUTORIAL")}</span>
-                <span className="sel-tut-sub">{APP.glennPilot ? "LEARN TO PLAY WITH GLENN" : tr("LEARN TO PLAY WITH HERR BACH")}</span>
+                <span className="sel-tut-sub">{glennShown() ? "LEARN TO PLAY WITH GLENN" : tr("LEARN TO PLAY WITH HERR BACH")}</span>
               </span>
             </span>
             <span className="sel-tut-bar" aria-hidden="true">
