@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { FUGUES, PIECES } from "../src/touch/fugue.ts";
-import { TEMPO, fastTempo, OPENING_STEP, tempoOf } from "../src/touch/tempi.ts";
+import { PRELUDE_TEMPO, TEMPO, fastTempo, OPENING_STEP, tempoOf } from "../src/touch/tempi.ts";
 
 const fugues = PIECES.filter((f) => f.kind === "fugue" || f.id.startsWith("bwv1080"));
 
@@ -59,9 +59,51 @@ test("every fugue's tempo rests on sourced recordings", () => {
   for (const f of fugues) assert.equal(count[f.id], TEMPO[f.id].n, f.id);
 });
 
-test("D229: Book I's preludes at Ishizaka's median bar; Book II's keep their default; unknown pieces get 46", () => {
-  assert.equal(tempoOf("wtc1p01"), 55);
-  assert.equal(tempoOf("wtc1p02"), 100);
-  assert.equal(tempoOf("wtc2p01"), 42);
+test("D861: the 48 preludes by the fugues' rule, from their own recordings; unknown pieces get 46", () => {
+  const preludes = PIECES.filter((f) => f.kind === "prelude" && /^wtc[12]p\d\d$/.test(f.id));
+  assert.equal(preludes.length, 48);
+  assert.equal(Object.keys(PRELUDE_TEMPO).length, 48);
+  const rows = readFileSync(new URL("../data/tempi/prelude-recordings.csv", import.meta.url), "utf8").trim().split("\n");
+  assert.deepEqual(rows[0].split(","), ["piece", "performer", "instrument", "year", "duration", "source", "quarters", "note"]);
+  const count: Record<string, number> = {};
+  for (const r of rows.slice(1)) {
+    const id = r.split(",")[0];
+    count[id] = (count[id] ?? 0) + 1;
+    assert.match(r, /https?:\/\//, "a source URL on every row");
+  }
+  for (const f of preludes) {
+    const t = PRELUDE_TEMPO[f.id];
+    assert.ok(t, f.id);
+    assert.equal(count[f.id], t.n, f.id);
+    assert.ok(t.n >= 20, `${f.id}: ${t.n} recordings`);
+    // D312's bounds: between the slowest recording and the median, the busiest voice at most 5.5 notes a second
+    // unless that is slower than every recording.
+    assert.ok(t.normal <= t.median && t.normal >= t.range[0], `${f.id}: normal ${t.normal} in ${t.range[0]}..${t.median}`);
+    assert.ok(t.busiest <= 5.55 || t.normal === t.range[0], `${f.id}: ${t.busiest} notes a second`);
+    assert.equal(tempoOf(f.id), t.normal, f.id);
+  }
+  // Pinned: II/1 (was 42, D184's audit), and II/2, whose recordings mostly take both repeats (each half
+  // read twice: were it read once, its tempo would be about half).
+  assert.equal(tempoOf("wtc2p01"), 49);
+  assert.equal(tempoOf("wtc2p02"), 79);
+  assert.equal(tempoOf("wtc1p01"), 61);
   assert.equal(tempoOf("nope"), 46);
+});
+
+test("D861: a binary prelude's recordings are read over the halves they play", () => {
+  const rows = readFileSync(new URL("../data/tempi/prelude-recordings.csv", import.meta.url), "utf8").trim().split("\n").slice(1);
+  const len = (id: string) => { const f = PIECES.find((p) => p.id === id)!; return f.length / f.tpq; };
+  const repeated = new Set<string>();
+  for (const r of rows) {
+    const [id] = r.split(",");
+    const q = Number(r.split(",")[6]);
+    if (/both repeats|first repeat|second repeat/.test(r)) {
+      repeated.add(id);
+      assert.ok(q > len(id) && q <= 2 * len(id) + 1e-9, `${id}: ${q} quarters played, ${len(id)} in the game`);
+    } else assert.ok(Math.abs(q - len(id)) < 1e-9, `${id}: ${q}`);
+  }
+  assert.deepEqual([...repeated].sort(), ["wtc1p24", "wtc2p02", "wtc2p05", "wtc2p08", "wtc2p09", "wtc2p10", "wtc2p12", "wtc2p15", "wtc2p18", "wtc2p20", "wtc2p21"]);
+  // Loesser's own repeats, read from his bar lines (D131): both in II/2, only the first in II/5.
+  assert.match(rows.find((r) => r.startsWith("wtc2p02,Arthur Loesser"))!, /both repeats/);
+  assert.match(rows.find((r) => r.startsWith("wtc2p05,Arthur Loesser"))!, /first repeat/);
 });

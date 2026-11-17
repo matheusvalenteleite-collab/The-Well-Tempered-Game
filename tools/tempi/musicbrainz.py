@@ -6,6 +6,9 @@ from commercial recordings listed in MusicBrainz (track lengths, the performer f
   python3 tools/tempi/musicbrainz.py CACHE_DIR search    # candidate releases
   python3 tools/tempi/musicbrainz.py CACHE_DIR fetch     # each release, with its tracks
   python3 tools/tempi/musicbrainz.py CACHE_DIR rows OUT.csv
+  python3 tools/tempi/musicbrainz.py CACHE_DIR rows OUT.csv --preludes   # D861: the 48 preludes instead
+
+The preludes come from the same releases (the search finds the Well-Tempered Clavier, not the fugues).
 
 Every request is cached in CACHE_DIR; MusicBrainz asks for at most one request a second.
 """
@@ -103,6 +106,34 @@ def piece_of(title):
     return None
 
 
+PRELUDE = r"pr[aäéæ]?e?lud|praeambul|præambul"
+
+
+def prelude_of(title):
+    """D861: the prelude a track holds: wtc1p01..wtc2p24, or None (a fugue, or a prelude and its fugue on one track)."""
+    t = title.lower()
+    if not re.search(PRELUDE, t):
+        return None
+    if re.search(r"fug", t):
+        # "Prelude and Fugue no. 2 in C minor, BWV 871: I. Praeludium": the work's title, then the movement
+        last = re.split(r":|\s[-–—]+\s", t)[-1]
+        if re.search(r"fug", last) or not re.search(PRELUDE, last):
+            return None
+    t = re.sub(r"bwv\.?\s*\d{3}\s*[-–—]\s*\d{3}", "", t)  # the book's range, "BWV 870-893"
+    m = re.findall(r"bwv\.?\s*(\d{3})", t)
+    if not m:
+        return None
+    n = int(m[-1])
+    no = re.findall(r"\bno\.?\s*(\d{1,2})\b", t)
+    if no and int(no[-1]) != (n - 845 if n <= 869 else n - 869):
+        return None  # the number and the BWV disagree: a mislabelled track
+    if 846 <= n <= 869:
+        return f"wtc1p{n - 845:02d}"
+    if 870 <= n <= 893:
+        return f"wtc2p{n - 869:02d}"
+    return None
+
+
 def performer(track):
     names, inst = [], ""
     for r in track["recording"].get("relations", []):
@@ -115,7 +146,7 @@ def performer(track):
     return "; ".join(dict.fromkeys(names)), inst
 
 
-def rows(cache, out):
+def rows(cache, out, which=piece_of):
     with open(os.path.join(cache, "cands.json")) as f:
         cands = json.load(f)
     res = []
@@ -128,7 +159,7 @@ def rows(cache, out):
         rel_names = [c["name"] for c in d.get("artist-credit", []) if "bach" not in c["name"].lower()]
         for m in d.get("media", []):
             for t in m.get("tracks", []):
-                p = piece_of(t["title"])
+                p = which(t["title"])
                 if not p or not t.get("length"):
                     continue
                 who, inst = performer(t)
@@ -149,4 +180,4 @@ def rows(cache, out):
 if __name__ == "__main__":
     cache, cmd = sys.argv[1], sys.argv[2]
     os.makedirs(cache, exist_ok=True)
-    {"search": lambda: search(cache), "fetch": lambda: fetch(cache), "rows": lambda: rows(cache, sys.argv[3])}[cmd]()
+    {"search": lambda: search(cache), "fetch": lambda: fetch(cache), "rows": lambda: rows(cache, sys.argv[3], prelude_of if "--preludes" in sys.argv else piece_of)}[cmd]()
