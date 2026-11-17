@@ -95,7 +95,7 @@ import type { DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { glennHosts, hostLine, setHost } from "./glenn-host.ts";
+import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
 import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
@@ -1714,7 +1714,7 @@ export function BenchApp() {
   const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
   // D376: THE EXPRESSION LAB's badge moves out of the thumbs' way while a run plays (lab.css).
   useEffect(() => {
-    if (APP.glenn || APP.glennPilot) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
+    if (APP.glenn || glennShown()) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
   }, [phase.kind]);
   const introPlaying = useRef<IntroPlaying | null>(null);
   const introOver = useRef(false);
@@ -2329,7 +2329,7 @@ export function BenchApp() {
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
           tutorial={{ ...manualProgress(readManual()), start: () => startManual() }}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
-          learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
+          learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
           playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
