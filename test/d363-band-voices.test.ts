@@ -45,6 +45,20 @@ const WITH_BAND: Record<string, number[]> = {
   // D756: the E-flat Prelude's inner voice (bars 36-40) and the Fugue's fourth part in the bass (bars 23-32, 97-103).
   "bwv998-1": [0],
   "bwv998-2": [2],
+  // D757: the Goldberg's chords, and the notes a voice's layers write at once (D363's divisi), each voice's.
+  "bwv988-00": [0, 1],
+  "bwv988-01": [0, 1],
+  "bwv988-02": [2],
+  "bwv988-06": [2],
+  "bwv988-09": [0],
+  "bwv988-12": [2],
+  "bwv988-13": [0],
+  "bwv988-15": [2],
+  "bwv988-16": [0, 2],
+  "bwv988-19": [2],
+  "bwv988-21": [2],
+  "bwv988-28": [2],
+  "bwv988-30": [1, 2],
 };
 const ALL = [...PIECES, ...MORE_BACH];
 const overlaps = (ns: TouchNote[]) => ns.some((n, i) => ns.some((m, j) => i !== j && m[0] < n[0] && n[0] < m[0] + m[1]));

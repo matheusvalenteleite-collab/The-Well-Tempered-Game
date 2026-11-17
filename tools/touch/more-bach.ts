@@ -783,6 +783,19 @@ const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
     { voice: 1, bar: 28, at: "0", from: "C4", tie: true },
     { voice: 1, bar: 30, at: "0", from: "E4", tie: true },
   ],
+  8: [{ voice: 1, bar: 19, at: "11/16", from: "C#4", to: "C4" }],
+  9: [{ voice: 0, bar: 13, at: "0", from: "B4", tie: true }],
+  11: [{ voice: 1, bar: 26, at: "3/16", from: "B3", tie: true }],
+  12: [{ voice: 0, bar: 11, at: "1/4", from: "C#5", tie: true }],
+  14: [
+    { voice: 1, bar: 3, at: "1/16", from: "D4", to: "E4" },
+    { voice: 1, bar: 3, at: "3/16", from: "D4", to: "E4" },
+    { voice: 0, bar: 4, at: "5/8", from: "C3", strike: true },
+    { voice: 0, bar: 23, at: "1/4", from: "Eb4", to: "D#4" },
+    { voice: 0, bar: 23, at: "7/16", from: "Eb4", to: "D#4" },
+    { voice: 0, bar: 25, at: "0", from: "E4", length: "1/16" },
+  ],
+  15: [{ voice: 2, bar: 4, at: "5/16", from: "A4", to: "G4" }],
   16: [{ voice: 2, bar: 11, at: "15/16", from: "Ab3", to: "G#3" }],
   21: [
     { voice: 2, bar: 7, at: "15/16", from: "Db3", to: "C#3" },
@@ -843,6 +856,21 @@ const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
     { bar: 5, at: "1/4", pitch: "D5", graces: [] },
     { bar: 6, at: "1/4", pitch: "Eb5", graces: [] },
     { bar: 14, at: "1/4", pitch: "Bb5", graces: [] },
+  ],
+  // Appoggiaturas and a sign neither print has.
+  9: [
+    { bar: 12, at: "0", pitch: "E4", graces: [] },
+    { bar: 13, at: "0", pitch: "C4", graces: [] },
+    { bar: 13, at: "1/4", pitch: "B3", signs: "" },
+  ],
+  10: [{ bar: 25, at: "0", pitch: "C#3", signs: "" }],
+  // The trill hooked from below (as the Aria's).
+  11: [6, 7, 14, 15].map((bar) => ({ bar, at: "0", pitch: bar < 10 ? "G4" : "D5", signs: "T" })),
+  13: [{ bar: 12, at: "11/16", pitch: "G5", signs: "" }],
+  // One long trill (the edition doubles it with a short one); a long trill the edition leaves out.
+  14: [
+    { bar: 17, at: "1/4", pitch: "C6", signs: "T" },
+    { bar: 20, at: "1/4", pitch: "A2", signs: "T" },
   ],
   20: [{ bar: 10, at: "1/4", pitch: "A5", signs: "" }],
   // Two signs the print does not have; an appoggiatura it has (its pitch, D5, the likelier reading of a small head between the C5 space and the D5 line).
