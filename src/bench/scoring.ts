@@ -69,7 +69,8 @@ export class Crowd {
   private seen = 0;
   private lastAt: number | null = null;
   private readonly leave: number;
-  constructor(leave = CROWD_LEAVE) {
+  /** D862/D860: `hands` kept for TWO HANDS' callers; on D860's clock two hands' outcomes share the seconds, so it changes nothing. */
+  constructor(leave = CROWD_LEAVE, _hands = 1) {
     this.leave = leave;
   }
   /**

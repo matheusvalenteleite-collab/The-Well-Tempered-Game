@@ -108,6 +108,13 @@ export interface Options {
    * Absent: D359's practice room as it was.
    */
   dress?: readonly string[];
+  /**
+   * D862, TWO HANDS (the prototype, play.html?proto=hands; src/touch/two-hands.ts): two voices played, the left
+   * hand's by the left thumb (the first voice given), the right hand's by the right (the second); each hand's line
+   * its outer notes (the right hand's top, the left hand's bottom), its quick notes over HANDS_MAX_RATE a second
+   * the game's; every note the player is not asked for played by the game (a non-strict piece only).
+   */
+  twoHands?: boolean;
 }
 
 /**
