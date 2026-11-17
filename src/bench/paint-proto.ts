@@ -926,6 +926,51 @@ function coming(g: ProtoGame, k = 0): { i: number; p: number } | null {
   return { i, p: Math.max(0, Math.min(1, 1 - dt / approach)) };
 }
 
+/**
+ * D862, TWO HANDS: each bar is its hand's and nothing else's: tinted in the hand's colour (the left warm, the right
+ * cool, voice-inks.ts HAND_INK, as its blocks in the box), its inner edge a broad stripe of it, named (LEFT HAND,
+ * RIGHT HAND), lit only by its own hand's coming note, with a band of light from that note to it.
+ */
+function handsLight(c: CanvasRenderingContext2D, w: number, h: number, bw: number, g: ProtoGame, t: Tok) {
+  const rows = g.rows;
+  if (!rows) return;
+  const sides = [
+    { k: 0, side: "left" as const, x: 0 },
+    { k: 1, side: "right" as const, x: w - bw },
+  ];
+  for (const s of sides) {
+    const tr = g.tracks[s.k];
+    if (!tr) continue;
+    const ink = inkOf(tr.voice, g.f.voices.length);
+    c.fillStyle = ink;
+    c.globalAlpha = 0.14;
+    c.fillRect(s.x, 0, bw, h);
+    c.globalAlpha = 0.9;
+    c.fillRect(s.side === "left" ? bw - 7 : w - bw, 0, 7, h);
+    c.globalAlpha = 1;
+    // Low on the bar, over the stops: clear of the count-in digit and the performance meter at its top.
+    label(c, s.side === "left" ? "LEFT HAND" : "RIGHT HAND", s.x + bw / 2, h - 48, ink, 9);
+    const nx = coming(g, s.k);
+    if (!nx) continue;
+    const n = tr.notes[nx.i];
+    const y = rows.yOf(n.step);
+    c.fillStyle = ink;
+    c.globalAlpha = 0.05 + 0.2 * nx.p * nx.p;
+    c.fillRect(s.x, 0, bw, h);
+    if (!paper) {
+      const xn = Math.max(bw, Math.min(w - bw, rows.xOf(n.on)));
+      c.globalAlpha = 0.14 + 0.32 * nx.p;
+      if (s.side === "left") c.fillRect(bw, y - rows.rowH, xn - bw, 2 * rows.rowH);
+      else c.fillRect(xn, y - rows.rowH, w - bw - xn, 2 * rows.rowH);
+    }
+    c.globalAlpha = 1;
+    const own = g.lastBySide[s.side];
+    const sy = own && g.now - own.tick <= OWN_FRESH_S * g.tps ? own.y : y;
+    if (n.long) label(c, "HOLD", s.x + bw / 2, sy, t.fg, 7);
+  }
+  c.globalAlpha = 1;
+}
+
 /** A lit place: the colour rising as the beat comes, two bars meeting on it. */
 function light(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, p: number, ink: string, t: Tok) {
   c.fillStyle = ink;
@@ -1084,7 +1129,9 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
   const rows = g.rows;
   if (g.proto.id === "ladder" && rows) {
     // D296: no pitch names on the bars (the bars are not a scale: the way matters, not the spot).
-    const nx = coming(g);
+    // D862, TWO HANDS: each bar lit by its own hand's coming note (handsLight).
+    if (g.twoHands) handsLight(c, w, h, bw, g, t);
+    const nx = g.twoHands ? null : coming(g);
     if (nx) {
       const n = g.notes[nx.i];
       const m = g.moves[nx.i];

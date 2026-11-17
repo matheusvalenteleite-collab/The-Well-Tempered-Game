@@ -84,7 +84,9 @@ export function stepBeat(id: string, bpm: number): string {
  * unlocked view (`full`, tb-unlock-all); in the friends' view a WTC fugue once finished with an A or
  * better (`gradedA`: lite.ts tempoEarned).
  */
-export const tempoOpen = (id: string, full: boolean, gradedA: boolean): boolean => !!stepTempi(id) && (full || (isWtcFugue(id) && gradedA));
+// D863: no tempo lock (the owner: "Don't put any fugue tempo locks. Unlock the tempos from the beginning"): every piece
+// with tempi offers them from the start; `full` and `gradedA` kept for the callers, no longer deciding.
+export const tempoOpen = (id: string, _full: boolean, _gradedA: boolean): boolean => !!stepTempi(id);
 
 export const nextStep = (s: TempoStep): TempoStep => TEMPO_STEPS[(TEMPO_STEPS.indexOf(s) + 1) % TEMPO_STEPS.length];
 
@@ -98,6 +100,18 @@ export function readSteps(): Record<string, TempoStep> {
     return {};
   }
 }
+/** D863: a piece's tempo step forgotten (back to what it opens on) when another piece is chosen. */
+export function forgetStep(id: string): Record<string, TempoStep> {
+  const next = { ...readSteps() };
+  delete next[id];
+  try {
+    localStorage.setItem(TEMPO_STEP_KEY, JSON.stringify(next));
+  } catch {
+    /* this visit only */
+  }
+  return next;
+}
+
 export function saveStep(id: string, step: TempoStep): Record<string, TempoStep> {
   const next = { ...readSteps() };
   // D594: what the piece opens on is not stored; DEFAULT is, on a piece that opens on FAST.
