@@ -880,7 +880,7 @@ const GOLDBERG: Spec[] = [
     credit: GOLDBERG_CREDIT,
   })),
   // Variation 26: transcribed from the 1741 print and the Bach-Gesellschaft (the file's is broken). Each hand as the prints write it (its running 18/16 line or the sarabande's upper voice, by turns); the sarabande's lower voice, written under it in either hand, a voice of its own (the middle).
-  {
+  ((): Spec => ({
     id: "bwv988-26",
     collection: "goldberg",
     number: 27,
@@ -898,7 +898,7 @@ const GOLDBERG: Spec[] = [
     voiceNames: ["Upper", "Middle", "Lower"],
     entries: false,
     credit: "TRANSCRIBED FOR THE GAME FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT EDITION · PUBLIC DOMAIN",
-  },
+  }))(),
 ].sort((a, b) => a.number - b.number);
 
 export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...GOLDBERG, ...CONCERTO, ...VOCAL];
