@@ -121,6 +121,13 @@ export interface TouchFugue {
    */
   lyrics?: (number | string)[][];
   /**
+   * D728: the chorales' second line of words, packed as `lyrics`: where the setting of the 389 writes two lines under
+   * a note (a repeated section's second pass; or a second text the edition prints, its "Text 2"), the second.
+   */
+  lyricsSecond?: (number | string)[][];
+  /** D728: where a chorale's words come from: its setting in the 389 (data/sources/chorale-lyrics/), how it was matched (exact, tune, bwv), the stanza labels printed. */
+  words?: { setting: string; match: string; stanzas?: string[] };
+  /**
    * D367: ornaments the piece's own data carries (the harpsichord concertos' written-out trills, read
    * back to their notes in the lines offered, tools/touch/concertos.ts untrill): [voice, onset, kern
    * signs, the edition's notes as written ([onset, length, MIDI] in ticks): the band sounds these].
