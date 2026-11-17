@@ -84,7 +84,7 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
-import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
+import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, forgetDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
 import { curatedFor, drumMenuFor, homeFor } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
@@ -101,7 +101,7 @@ import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, liteTabOf, liteTabs, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, forgetLastVoice, liteExtra, liteNextOrder, litePlatform, liteTabOf, liteTabs, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { pieceTitle, Selection } from "./Selection.tsx";
 import { HowTo, type ClipNote } from "./HowTo.tsx";
@@ -113,7 +113,7 @@ import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
-import { isWtcFugue, nextStep, openingStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
+import { forgetStep, isWtcFugue, nextStep, openingStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -541,6 +541,24 @@ export function BenchApp() {
       save(SOUND_KEY, next);
     }
   };
+  // D863: a piece's settings last only while it is the piece chosen (the owner: "the selections of sounds and
+  // tempo and all go back to default when another fugue is selected. This helps avoiding the player messing up
+  // all configs without noticing"): leaving a piece forgets its sound, tempo, drum style and voice.
+  const pickedBefore = useRef(pick.piece);
+  useEffect(() => {
+    const old = pickedBefore.current;
+    pickedBefore.current = pick.piece;
+    if (!APP.lite || old === pick.piece) return;
+    setChosen((c) => {
+      if (!(old in c)) return c;
+      const { [old]: _gone, ...rest } = c;
+      save(SOUND_KEY, rest);
+      return rest;
+    });
+    setTempoSteps(forgetStep(old));
+    forgetDrumPreset(old);
+    forgetLastVoice(old);
+  }, [pick.piece]);
   const [, herLoaded] = useState(0);
   /** A start asked for while her track loads: the game begins once it is ready (this piece's key). */
   const waitingHer = useRef<string | null>(null);
@@ -2306,7 +2324,7 @@ export function BenchApp() {
           // D458: the chosen fugue's SAVED PERFORMANCES.
           takes={{ n: takeCount[f.id] ?? 0, open: () => setTakesOpen(true) }}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
-          tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
+          tempo={stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], ownName: PIECE_SOUND[f.id] ? presetById(PIECE_SOUND[f.id]).name : undefined, set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (

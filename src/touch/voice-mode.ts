@@ -26,10 +26,23 @@ export function startTick(f: TouchFugue, share: number): number {
   return barStart(f, barAt(f, Math.max(0, Math.min(0.99, share)) * f.length));
 }
 
+/**
+ * D864: lines not offered because they are dull to play (the owner: "we should avoid making those boring bass lines
+ * playable, and focus on the fun ones; it's best to avoid offering a boring line"). From the boring-lines audit: no
+ * subject entries, and a dullness beyond every WTC fugue voice or 40% repeated pitches. They still sound, by the game.
+ */
+export const DULL_VOICES: Readonly<Record<string, readonly number[]>> = {
+  "bwv998-1": [1], // the Prelude's left hand: 0.5 notes a second, mostly long notes and rests
+  "bwv1065-2": [1, 3, 5, 7], // the four harpsichords' left hands: 66-77% repeated pitches
+  "bwv54-1": [2, 3, 5], // the violas' and the continuo's throbbing quavers: 57-62% repeated pitches
+  "bwv1063-2": [1], // Harpsichord I's left hand: 53% repeated pitches
+};
+
 /** The voices that still sing from a tick on. */
 export function voicesFrom(f: TouchFugue, from: number): number[] {
-  // D340: only the voices the piece offers (the concerto's two solo violins).
-  return f.voices.map((_, v) => v).filter((v) => (!f.playable || f.playable.includes(v)) && f.voices[v].some(([on]) => on >= from));
+  // D340: only the voices the piece offers (the concerto's two solo violins); D864: never a dull one.
+  const dull = DULL_VOICES[f.id] ?? [];
+  return f.voices.map((_, v) => v).filter((v) => (!f.playable || f.playable.includes(v)) && !dull.includes(v) && f.voices[v].some(([on]) => on >= from));
 }
 
 export function level(f: TouchFugue, voice: number, from: number): Level {
