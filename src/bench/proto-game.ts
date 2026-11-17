@@ -33,7 +33,7 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
-import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
+import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, REVOKED_SPAN_S, STRAY_SPAN_S, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
 /** D445: an entry's points, whole (paid by the share of its notes right). */
 const ENTRY_POINTS = 20;
 import { couleFill, couleTiming, exprFamily, GLENN, isKeyboard, joinedByEar, joinedSound, keyboardSlide, LUTE_SLUR, luteSlur, nextStrongBeat, overHoldS, RingList, SLIDE_TRACK_TAU, slideGlideTau, slidePhase, slidePitch, SlideSlur, slurRingS, touchFamily } from "./glenn.ts";
@@ -1823,7 +1823,7 @@ export class ProtoGame {
       if (a.perfect) this.perfects--;
       else this.goods--;
       this.hits--;
-      this.slip(WRONG_WORTH);
+      this.slip(WRONG_WORTH, REVOKED_SPAN_S);
       // D445: the points taken back shown on the note (a run re-judged wrong).
       const back = Math.round(a.pts + a.art + a.held);
       if (back > 0) this.pops.push({ tick: notes[j].on, step: notes[j].step, text: `−${back}`, at: performance.now(), gold: false });
@@ -2510,7 +2510,7 @@ export class ProtoGame {
       this.grade = { text: "✕", at: performance.now(), side: h.side, why: "time" };
       // A strike on no note is a slip, and counts against the accuracy (mashing scores nothing).
       this.stray++;
-      this.slip(STRAY_WORTH, 0.5);
+      this.slip(STRAY_WORTH, STRAY_SPAN_S);
       // A keyboard: the key struck is heard all the same. Elsewhere a touch on no note is silent (D293: it
       // sounded the nearest note, soft and muffled: on a phone's speaker a hole in the voice, then a jolt).
       const key = at.key?.midi ?? (this.proto.id === "piano" ? h.cell : undefined);
@@ -4220,11 +4220,11 @@ export class ProtoGame {
    * ones) of the slip before. CON FUOCO lasts while the streak holds FUOCO_NOTES. The feats that mean
    * "no mistakes" count the slips themselves (`slips`, the wrong and missed notes), never the streak.
    */
-  private slip(worth = 0, weight = 1) {
+  private slip(worth = 0, span?: number) {
     this.slips++;
     this.chain = 0;
-    // D445: the crowd hears it (a wrong note less badly than one let go by; a tap on no note as half a note).
-    this.hearCrowd(worth, weight, true);
+    // D445: the crowd hears it (a wrong note less badly than one let go by). D860: a tap on no note for STRAY_SPAN_S.
+    this.hearCrowd(worth, span, true);
     const fuoco = this.streak >= FUOCO_NOTES;
     this.streak = slipLoss(this.streak);
     this.combo = slipLoss(this.combo);
@@ -4324,9 +4324,10 @@ export class ProtoGame {
   crowd = CROWD_START;
   /** D445: the crowd listening (scoring.ts Crowd); `crowd` is its meter, 0 the crowd leaving. */
   private listeners = new Crowd();
-  private hearCrowd(worth: number, weight = 1, fault = false) {
+  /** D860: heard on the music's clock; `span`, the seconds a fault between the notes stands for (a note's own: the time since the last, scoring.ts Crowd). */
+  private hearCrowd(worth: number, span?: number, fault = false) {
     // A fault always cools the crowd, however cold it already is (never above half its level).
-    this.listeners.hear(fault ? Math.min(worth, this.listeners.level / 2) : worth, weight);
+    this.listeners.hear(fault ? Math.min(worth, this.listeners.level / 2) : worth, this.timeAt(this.now), span);
     this.crowd = this.listeners.meter();
   }
   /** D445: the streak bonus's level (0..STREAK_STEPS) and the right notes toward its next step. */
@@ -4523,7 +4524,7 @@ export class ProtoGame {
       // Held through the rest: the crowd cools, the chain is broken (no slip: the note was right).
       this.art.cleanOf++;
       this.chain = 0;
-      this.hearCrowd(0.5, 0.5, true);
+      this.hearCrowd(0.5, STRAY_SPAN_S, true);
       this.flash = { text: "REST!", at, good: false, kind: "rest" };
       return;
     }
