@@ -817,7 +817,7 @@ export function BenchApp() {
     // D487: the player's voice never quieter than the others: its lift on the player's own bus, with TOOLS' balance.
     if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift * (mixGains && !lt ? (mixGains[played[0] ?? voice] ?? 1) : 1);
     // D862: and under the TWO HANDS prototype's flag (its live check reads the thumbs held).
-    if (APP.dev || handsProto) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
+    if (APP.dev || handsProto || (APP.lite && unlocked())) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -2355,7 +2355,8 @@ export function BenchApp() {
         />
       )}
       {/* D862, TWO HANDS (the prototype): its list over the selection, only with ?proto=hands. */}
-      {handsProto && phase.kind === "home" && !intro && <HandsList play={(id) => (stopHearing(), setHandsPiece(id), start(true))} />}
+      {/* D866: and in the developer view (the owner: "Add two hands prototype to developer mode in main game"), folded at first. */}
+      {(handsProto || (APP.lite && unlocked())) && phase.kind === "home" && !intro && <HandsList folded={!handsProto} play={(id) => (stopHearing(), setHandsPiece(id), start(true))} />}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
       {APP.lite && howTo && <HowTo sound={{ play: playClip, stop: stopHearing }} close={() => (stopHearing(), setHowTo(false))} />}
       {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}
