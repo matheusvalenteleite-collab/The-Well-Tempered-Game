@@ -12,8 +12,6 @@ import { terraceStops } from "../src/touch/registration.ts";
 
 // D501: CLAVICHORD offered (test/d501-instruments-finish.test.ts); D502: BACH BRASS (test/d502-brass.test.ts); D503: the jazz quartet (test/d503-jazz.test.ts).
 const IDS = ["trialWinds"];
-// D801-D803: the BERLIN SCHOOL versions, trials too (their own seating and sends, BERLIN SCHOOL's: test/d800).
-const BERLIN = ["berlinWarm", "berlinModular", "berlinClear"];
 
 test("the trials are found by id, never offered", () => {
   for (const id of IDS) {
@@ -21,8 +19,7 @@ test("the trials are found by id, never offered", () => {
     assert.ok(!offered(id));
     assert.ok(!PRESETS.some((p) => p.id === id));
   }
-  for (const id of BERLIN) assert.ok(presetById(id).id === id && !offered(id) && !PRESETS.some((p) => p.id === id), id);
-  assert.equal(TRIALS.length, IDS.length + BERLIN.length);
+  assert.equal(TRIALS.length, IDS.length);
   // D437: the organ trio gone (a stored id opens on the organ); D430: the trial band under its offered id.
   assert.equal(presetById("trialOrganTrio").id, "chamberOrgan");
   assert.equal(presetById("trialBaroque").id, "baroqueBand");
@@ -33,7 +30,7 @@ test("the trials are found by id, never offered", () => {
 });
 
 test("seated narrowly, every layout's patches real", () => {
-  for (const p of TRIALS.filter((t) => !BERLIN.includes(t.id)))
+  for (const p of TRIALS)
     for (const [n, vs] of Object.entries(p.by ?? {})) {
       assert.equal(vs!.length, Number(n));
       for (const [id, pan] of vs!) {
@@ -44,7 +41,7 @@ test("seated narrowly, every layout's patches real", () => {
 });
 
 test("one send per trial", () => {
-  for (const p of TRIALS.filter((t) => !BERLIN.includes(t.id))) {
+  for (const p of TRIALS) {
     const sends = new Set(Object.values(p.by ?? {}).flatMap((vs) => vs!.map(([id]) => PATCHES[id].send)));
     assert.equal(sends.size, 1, `${p.id} ${[...sends]}`);
   }

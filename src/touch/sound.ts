@@ -1491,40 +1491,18 @@ export const PATCHES = {
   p3Twelve: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: PET_SEND, level: PET3_LEVEL.twelve, sample: "rockGuitar", one: PET3_TWELVE, lane: "wall" }),
   p3Bass: P({ osc: [{ wave: "saw", gain: 0.5 }, { wave: "sine" }], filter: { freq: 2.5, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.003, d: 1, s: 0, r: 0.06 }, send: PET_BASS_SEND, level: PET3_LEVEL.bass, sample: "rockBass", one: {}, shelf: PET3_BASS_SHELF, phoneLift: PET_BASS_PHONE_LIFT, double: { patch: PET3_BASS_HARP, level: PET3_LEVEL.harp, late: 0.004 }, lane: "wall" }),
   p2Accordion: P({ osc: [{ wave: "freeReed", detune: -7 }, { wave: "freeReed", detune: 13, gain: 0.85 }], filter: { freq: 3400, hz: true, q: 0.7 }, amp: { a: 0.03, d: 0.1, s: 0.92, r: 0.07 }, send: PET_SEND, level: PET2_LEVEL.accordion, one: {}, lane: "wall" }),
-  // D586, BERLIN SCHOOL (BERLIN_SEND): the lead a saw and a detuned pulse through a resonant four-pole filter (its envelope
-  // a little slow: a Moog's sweep on every note), a late vibrato; the sequencer's voice a saw and a sub-octave square through
-  // a high-resonance filter snapping shut (the "Phaedra" pluck); the string machine's three saws; the bass a saw and its
-  // square an octave below, driven (its upper harmonics carry it on a phone). Each with an oscillator's drift.
-  bsLead: P({ osc: [{ wave: "saw", gain: 0.8 }, { wave: "pulse25", detune: 7, gain: 0.3 }], filter: { freq: 3, q: 3.2, env: 3, envDecay: 0.16, poles: 4 }, drive: 0.4, amp: { a: 0.004, d: 0.25, s: 0.8, r: 0.06 }, vib: { depth: 5, rate: 5.2, delay: 0.45 }, drift: { cents: 3, rate: 0.09 }, send: BERLIN_SEND.lead, level: 0.22 }),
-  bsSeq: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.3 }], filter: { freq: 2, q: 6, env: 5.5, envDecay: 0.085, poles: 4 }, amp: { a: 0.002, d: 0.22, s: 0.55, r: 0.05 }, drift: { cents: 2.5, rate: 0.13 }, send: BERLIN_SEND.seq, level: 0.34 }),
-  bsStrings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "saw", detune: 11, gain: 0.5 }, { wave: "saw", detune: -11, gain: 0.5 }], filter: { freq: 2.6, q: 0.7 }, amp: { a: 0.03, d: 0.3, s: 0.85, r: 0.18 }, vib: { depth: 4, rate: 4.6, delay: 0.5 }, drift: { cents: 3, rate: 0.07 }, send: BERLIN_SEND.strings, level: 0.16 }),
-  bsBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.45 }, { wave: "triangle", octave: 1, gain: 0.15 }], filter: { freq: 1000, hz: true, q: 2, env: 4, envDecay: 0.1, poles: 4 }, drive: 0.7, hp: 40, amp: { a: 0.002, d: 0.25, s: 0.55, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: BERLIN_SEND.bass, level: 0.27 }),
-  // D801-D803, BERLIN SCHOOL REWORKED, three trial versions (TRIALS below: presetById finds them; nothing offered, no piece
-  // moved). D800's diagnosis (renders of each voice alone, the phone context): today's lead and sequencer close their
-  // four-pole filters to two or three times the note within 0.1-0.2 s, so after the attack each is nearly a sine (the
-  // lead's centroid 684 Hz on C5, the sequencer's 398 Hz on E4); the string machine sits 5-6 dB under the others and at
-  // 305 Hz on A3, all but gone on a phone (-15 dB through the 600 Hz model); nothing moves within a held note (the
-  // sequencer's centroid 13 cents, the bass's 4); the space is all but dry (the release's tail -37 to -51 dB).
-  // WARM (D801): the filters left open and less resonant, two saws a little apart on the lead, the strings an ensemble
-  // (three saws, a phaser) brought up, a rounder bass; a moderate send.
-  bwLead: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "saw", detune: 6, gain: 0.6 }], filter: { freq: 5, q: 1.4, env: 1.6, envDecay: 0.35, poles: 4 }, amp: { a: 0.03, d: 0.3, s: 0.85, r: 0.2 }, vib: { depth: 4, rate: 5, delay: 0.5 }, drift: { cents: 3, rate: 0.09 }, send: 0.24, level: 0.25 }),
-  bwSeq: P({ osc: [{ wave: "saw" }, { wave: "triangle", octave: -1, gain: 0.25 }], filter: { freq: 3.5, q: 2.5, env: 3, envDecay: 0.2, poles: 4 }, amp: { a: 0.003, d: 0.3, s: 0.65, r: 0.1 }, drift: { cents: 2.5, rate: 0.13 }, send: 0.12, level: 0.3 }),
-  bwStrings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "saw", detune: 8, gain: 0.55 }, { wave: "saw", detune: -8, gain: 0.55 }], filter: { freq: 4.5, q: 0.8 }, phaser: { rate: 0.11, lo: 500, hi: 3500 }, amp: { a: 0.09, d: 0.3, s: 0.9, r: 0.3 }, vib: { depth: 3, rate: 4.6, delay: 0.5 }, drift: { cents: 3, rate: 0.07 }, send: 0.24, level: 0.24 }),
-  bwBass: P({ osc: [{ wave: "saw" }, { wave: "sine", octave: -1, gain: 0.5 }], filter: { freq: 1600, hz: true, q: 1.2, env: 2, envDecay: 0.15, poles: 4 }, drive: 0.35, hp: 40, amp: { a: 0.002, d: 0.25, s: 0.5, r: 0.06 }, drift: { cents: 2, rate: 0.05 }, send: 0.01, level: 0.4 }),
-  // MODULAR (D802): a modular's sequencer and its slow sweeps: every filter moving with the clock (Patch.filter.sweep, each
-  // voice its own rate), the sequencer's resonance high and its envelope snapping, the lead's pulse width swinging (PWM),
-  // the echo and the long room fed more (the inner voices most).
-  bmLead: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "saw", detune: -5, gain: 0.5 }], pwm: { width: 0.35, depth: 0.15, rate: 0.3, clock: true }, filter: { freq: 4, q: 3.5, env: 2.2, envDecay: 0.3, poles: 4, sweep: { rate: 0.045, octaves: 0.7 } }, amp: { a: 0.025, d: 0.3, s: 0.85, r: 0.2 }, vib: { depth: 5, rate: 5.2, delay: 0.5 }, drift: { cents: 3, rate: 0.09 }, send: 0.28, level: 0.28 }),
-  bmSeq: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.2 }], filter: { freq: 3, q: 8, env: 6, envDecay: 0.13, poles: 4, sweep: { rate: 0.065, octaves: 1 } }, amp: { a: 0.002, d: 0.25, s: 0.6, r: 0.12 }, drift: { cents: 2.5, rate: 0.13 }, send: 0.3, level: 0.3 }),
-  bmStrings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "saw", detune: 10, gain: 0.55 }, { wave: "saw", detune: -10, gain: 0.55 }], filter: { freq: 4, q: 1.8, poles: 4, sweep: { rate: 0.035, octaves: 0.8 } }, phaser: { rate: 0.09, lo: 400, hi: 3000 }, amp: { a: 0.12, d: 0.3, s: 0.9, r: 0.35 }, drift: { cents: 3, rate: 0.07 }, send: 0.32, level: 0.24 }),
-  bmBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.4 }], filter: { freq: 1300, hz: true, q: 2.5, env: 3, envDecay: 0.12, poles: 4, sweep: { rate: 0.03, octaves: 0.5 } }, drive: 0.5, hp: 40, amp: { a: 0.002, d: 0.22, s: 0.5, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: 0.01, level: 0.3 }),
-  // CLEAR (D803): the voices told apart by their attacks and their spectra: a hollow pulse lead (an organ-like square,
-  // a soft attack), a bright, short sequencer pluck, a glassy pad (triangle and sine an octave up) in place of the string
-  // machine, a round bass; seated wider, nearly dry.
-  bcLead: P({ osc: [{ wave: "pulse50", gain: 0.6 }, { wave: "pulse25", detune: 4, gain: 0.35 }], filter: { freq: 6, q: 1, env: 1, envDecay: 0.2, poles: 2 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.25 }, vib: { depth: 5, rate: 5.4, delay: 0.4 }, drift: { cents: 2, rate: 0.09 }, send: 0.16, level: 0.5 }),
-  bcSeq: P({ osc: [{ wave: "saw" }], filter: { freq: 4, q: 4, env: 4, envDecay: 0.1, poles: 4 }, amp: { a: 0.001, d: 0.35, s: 0.4, r: 0.06 }, drift: { cents: 2, rate: 0.13 }, send: 0.06, level: 0.36 }),
-  bcStrings: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.35 }, { wave: "triangle", detune: 7, gain: 0.5 }], amp: { a: 0.14, d: 0.4, s: 0.9, r: 0.3 }, vib: { depth: 3, rate: 4.4, delay: 0.6 }, drift: { cents: 2, rate: 0.07 }, send: 0.1, level: 0.42 }),
-  bcBass: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.8 }, { wave: "sine", octave: -1, gain: 0.3 }], filter: { freq: 2600, hz: true, q: 0.9 }, drive: 0.5, hp: 40, amp: { a: 0.002, d: 0.22, s: 0.45, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: 0, level: 0.28 }),
+  // D586, BERLIN SCHOOL. D805 (the owner: "The BERLIN preset has a lot of potential … improve it"; D800's diagnosis: the
+  // lead and the sequencer nearly sines after their attacks, the string machine lost on a phone, the voices alike): rebuilt as
+  // D803's CLEAR, the voices told apart by their attacks and spectra: a hollow pulse lead with a soft attack and a little
+  // echo, a bright short sequencer pluck, a glassy pad (triangle and a sine an octave up) in place of the string machine, a
+  // round, punchy, dry bass; seated a little wider. Held to the standing rules: the sequencer's attack 3 ms and the bass's 4
+  // (CLEAR's 1 and 2 snapped at the onset in D805's renders), the lead let go as D308 asks (its release 0.06 s, CLEAR's 0.25),
+  // the pad's attack 90 ms (D299: no offered sound but TOMITA's choir 100 ms or slower) and its release 0.18 s. (D805's CLEAR+MOTION, MODULAR's sweeps and an echo on the sequencer added, measured 0.58 less
+  // distinct than CLEAR on wtc1f02, over the 0.3 allowed: not taken.)
+  bsLead: P({ osc: [{ wave: "pulse50", gain: 0.6 }, { wave: "pulse25", detune: 4, gain: 0.35 }], filter: { freq: 6, q: 1, env: 1, envDecay: 0.2, poles: 2 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.06 }, vib: { depth: 5, rate: 5.4, delay: 0.4 }, drift: { cents: 2, rate: 0.09 }, send: 0.16, level: 0.5 }),
+  bsSeq: P({ osc: [{ wave: "saw" }], filter: { freq: 4, q: 4, env: 4, envDecay: 0.1, poles: 4 }, amp: { a: 0.003, d: 0.35, s: 0.4, r: 0.06 }, drift: { cents: 2, rate: 0.13 }, send: 0.06, level: 0.36 }),
+  bsStrings: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.35 }, { wave: "triangle", detune: 7, gain: 0.5 }], amp: { a: 0.09, d: 0.4, s: 0.9, r: 0.18 }, vib: { depth: 3, rate: 4.4, delay: 0.6 }, drift: { cents: 2, rate: 0.07 }, send: 0.1, level: 0.42 }),
+  bsBass: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.8 }, { wave: "sine", octave: -1, gain: 0.3 }], filter: { freq: 2600, hz: true, q: 0.9 }, drive: 0.5, hp: 40, amp: { a: 0.004, d: 0.22, s: 0.45, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: 0, level: 0.28 }),
   // D588, VAUDEVILLE (VAUD_SEND): the xylophone struck (its recordings, VSCO's), the clarinet held (VSCO's, CHORINHO's), the
   // bassoon with its short notes (Iowa's, ZELENKA TRIO's, the compass and the tongue), the bass trombone (Iowa's, BACH BRASS's).
   vdXylo: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.25 }], amp: { a: 0.001, d: 0.5, s: 0, r: 0.08 }, send: VAUD_SEND, level: 0.75, sample: "vaudXylo", one: {} }),
@@ -2247,17 +2225,21 @@ export const PRESETS: Preset[] = [
     id: "berlinSchool",
     name: "BERLIN SCHOOL",
     // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
+    // D805: on a phone 3.2 dB more (1.23 → 1.78): the rebuilt sound's six clips matched to the old one's (the 600 Hz model);
+    // whole, with the lift, the six against D593's -28 LUFS: Contrapunctus I (-25.1 without it) 1.5 dB down on a phone, D715's limit for the Art of Fugue (about -26.6 after), the rest within 1 LU.
+    levels: { "bwv1080-01": { phoneGain: 0.842 } },
     gain: 1.32,
-    phoneGain: 1.23,
+    phoneGain: 1.78,
     slots: ["bsLead", "bsSeq", "bsStrings", "bsSeq", "bsBass"],
     room: 0,
     fx: "space",
+    // D805: CLEAR's seating, held within D585's ±0.3 (one band on a phone's speaker).
     by: {
       1: [["bsLead", 0]],
-      2: [["bsLead", 0.2], ["bsBass", -0.05]],
-      3: [["bsLead", 0.25], ["bsSeq", -0.28], ["bsBass", 0]],
-      4: [["bsLead", 0.25], ["bsSeq", -0.28], ["bsStrings", 0.12], ["bsBass", 0]],
-      5: [["bsLead", 0.25], ["bsSeq", -0.28, 0.9], ["bsStrings", 0.12], ["bsSeq", 0.3, 0.84], ["bsBass", 0]],
+      2: [["bsLead", 0.24], ["bsBass", -0.06]],
+      3: [["bsLead", 0.27], ["bsSeq", -0.3], ["bsBass", 0]],
+      4: [["bsLead", 0.27], ["bsSeq", -0.3], ["bsStrings", 0.13], ["bsBass", 0]],
+      5: [["bsLead", 0.27], ["bsSeq", -0.3, 0.9], ["bsStrings", 0.13], ["bsSeq", 0.3, 0.84], ["bsBass", 0]],
     },
   },
   // D588, VAUDEVILLE (VAUD_SEND): the xylophone on the top voice, the clarinet inside, the bassoon on the bass; four and five
@@ -2363,56 +2345,6 @@ export const TRIALS: Preset[] = [
       3: [["trialFlute", -0.18], ["trialOboe", 0], ["trialBassoon", 0.18]],
       4: [["trialFlute", -0.2], ["trialOboe", -0.07], ["trialClarinet", 0.07], ["trialBassoon", 0.2]],
       5: [["trialFlute", -0.22], ["trialOboe", -0.08], ["trialClarinet", 0.08], ["trialHorn", 0.22], ["trialBassoon", 0.14]],
-    },
-  },
-  // D801-D803: BERLIN SCHOOL reworked, three versions for the owner's ear (the patches' comment above, D800's diagnosis);
-  // BERLIN SCHOOL's line-ups, its gain and its space; CLEAR seated wider.
-  {
-    id: "berlinWarm",
-    name: "BERLIN SCHOOL · WARM",
-    gain: 1.32,
-    phoneGain: 1.44, // D804: matched to BERLIN SCHOOL's six clips on a phone (600 Hz model)
-    slots: ["bwLead", "bwSeq", "bwStrings", "bwSeq", "bwBass"],
-    room: 0,
-    fx: "space",
-    by: {
-      1: [["bwLead", 0]],
-      2: [["bwLead", 0.2], ["bwBass", -0.05]],
-      3: [["bwLead", 0.25], ["bwSeq", -0.28], ["bwBass", 0]],
-      4: [["bwLead", 0.25], ["bwSeq", -0.28], ["bwStrings", 0.12], ["bwBass", 0]],
-      5: [["bwLead", 0.25], ["bwSeq", -0.28, 0.9], ["bwStrings", 0.12], ["bwSeq", 0.3, 0.84], ["bwBass", 0]],
-    },
-  },
-  {
-    id: "berlinModular",
-    name: "BERLIN SCHOOL · MODULAR",
-    gain: 1.32,
-    phoneGain: 1.43, // D804: matched to BERLIN SCHOOL's six clips on a phone (600 Hz model)
-    slots: ["bmLead", "bmSeq", "bmStrings", "bmSeq", "bmBass"],
-    room: 0,
-    fx: "space",
-    by: {
-      1: [["bmLead", 0]],
-      2: [["bmLead", 0.2], ["bmBass", -0.05]],
-      3: [["bmLead", 0.25], ["bmSeq", -0.28], ["bmBass", 0]],
-      4: [["bmLead", 0.25], ["bmSeq", -0.28], ["bmStrings", 0.12], ["bmBass", 0]],
-      5: [["bmLead", 0.25], ["bmSeq", -0.28, 0.9], ["bmStrings", 0.12], ["bmSeq", 0.3, 0.84], ["bmBass", 0]],
-    },
-  },
-  {
-    id: "berlinClear",
-    name: "BERLIN SCHOOL · CLEAR",
-    gain: 1.32,
-    phoneGain: 1.78, // D804: matched to BERLIN SCHOOL's six clips on a phone (600 Hz model)
-    slots: ["bcLead", "bcSeq", "bcStrings", "bcSeq", "bcBass"],
-    room: 0,
-    fx: "space",
-    by: {
-      1: [["bcLead", 0]],
-      2: [["bcLead", 0.3], ["bcBass", -0.08]],
-      3: [["bcLead", 0.38], ["bcSeq", -0.42], ["bcBass", 0]],
-      4: [["bcLead", 0.38], ["bcSeq", -0.42], ["bcStrings", 0.18], ["bcBass", 0]],
-      5: [["bcLead", 0.38], ["bcSeq", -0.42, 0.9], ["bcStrings", 0.18], ["bcSeq", 0.45, 0.84], ["bcBass", 0]],
     },
   },
   // (D502: BACH BRASS and D503: MODERN JAZZ QUARTET remade and offered: RETIRED.trialBrass, RETIRED.trialJazz; D501: CLAVICHORD offered, D510 withdrawn.)
