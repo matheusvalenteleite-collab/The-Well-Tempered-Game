@@ -1319,3 +1319,12 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-result-body { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 10px; width: 100%; max-width: 100%; flex: none; }
 .tb-result-body > * { flex: none; max-width: 100%; }
 .tb-result > .tb-result-body { zoom: 1; }
+/* D676: the subject's forms on the fugue card: one button a form (▶, its contour, its name, its first bar). */
+.tb-hear-forms { display: flex; flex-wrap: wrap; gap: 5px; }
+.tb-hear-form { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 4px 8px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-fg); background: #1a1f33; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-hear-form.on { color: #1a1408; background: var(--tg-gold); border-color: var(--tg-gold); }
+.tb-hear-form:focus-visible { outline: 2px solid var(--tg-shine); }
+.tb-hear-form-play { font-size: 7px; }
+.tb-hear-form-line { flex: none; }
+.tb-hear-form-bar { color: var(--tg-muted); font-size: 6px; }
+.tb-hear-form.on .tb-hear-form-bar { color: #3a2c10; }

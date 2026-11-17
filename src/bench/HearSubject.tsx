@@ -21,6 +21,7 @@ import { kindsOf } from "../touch/practice.ts";
 import { characterOf } from "../touch/character.ts";
 import { preset } from "../touch/sound.ts";
 import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
+import { formLabel, subjectForms } from "./subject-forms.ts";
 
 export type { Performed };
 export { firstEntry };
@@ -32,16 +33,24 @@ export { firstEntry };
  */
 export function HearSubject({ id, play, stop, close: onClose, single = false, embedded = false }: { id: string; play: (notes: Performed, voice: number) => Promise<number>; stop: () => void; close: () => void; single?: boolean; embedded?: boolean }) {
   const f = fugueById(id);
-  const e = firstEntry(id);
+  // D676: each subject and each transformation the fugue uses, as its own form on the card (heard and drawn on its
+  // own); the first is the subject as before, and only it carries the reading (the readings mark the subject's notes).
+  const forms = subjectForms(id);
+  const [fi, setFi] = useState(0);
+  // A fugue on one form only shows it too when that form is a transformation (Contrapunctus 3 on the inverted subject).
+  const listed = forms.length > 1 || (forms.length === 1 && (forms[0].inverted || forms[0].scale !== 1));
+  const form = listed ? forms[Math.min(fi, forms.length - 1)] : null;
+  const e = form && fi > 0 ? form.entry : firstEntry(id);
   const readings = readingsOf(id);
   // D393: only BUSONI offered (OFFER_READINGS off): the reading play.html plays, shown, no chooser.
   const offered = OFFER_READINGS && !single;
   const [reading, setReading] = useState<Reading | null>(() => (!OFFER_READINGS ? playReading(id) : single ? bestReading(id, preset().id) : chosenReading(id, preset().id)));
   const [picking, setPicking] = useState(false);
+  const shown = fi > 0 ? null : reading;
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
-  const perf = e ? performSubject(reading, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
+  const perf = e ? performSubject(shown, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
   // D492: the playback stopped on every close, and when the view goes (unmounted) by any other route.
   const stopRef = useRef(stop);
   stopRef.current = stop;
@@ -69,12 +78,12 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
     if (!embedded || shownOnce.current) hear();
     shownOnce.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reading?.id]);
+  }, [reading?.id, fi]);
   useEffect(() => {
     let raf = 0;
     const draw = () => {
       const c = canvas.current;
-      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), reading, started.current);
+      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), shown, started.current);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -88,9 +97,9 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
   };
   const nick = fugueName(id, lang());
   // Design studio (D398): the legend only of the signs this subject bears in this reading.
-  const ns = reading?.notes ?? [];
-  const has: Record<string, boolean> | null = reading
-    ? { short: ns.some((n) => !!n.short), apart: ns.some((n) => n.join === false), joined: ns.some((n, i) => !!n.join && !slurredJoin(reading, i)), slur: (reading.slurs ?? []).length > 0, strong: ns.some((n) => !!n.accent) }
+  const ns = shown?.notes ?? [];
+  const has: Record<string, boolean> | null = shown
+    ? { short: ns.some((n) => !!n.short), apart: ns.some((n) => n.join === false), joined: ns.some((n, i) => !!n.join && !slurredJoin(shown, i)), slur: (shown.slurs ?? []).length > 0, strong: ns.some((n) => !!n.accent) }
     : null;
   const legend = has ? markLegend(STRONG_SIDE).filter((l) => has[l.kind]) : [];
   const card = (
@@ -98,7 +107,7 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
         {!embedded && <div className="tb-hear-top">
           {nick && <span className="tb-hear-nick">{nick.toUpperCase()}</span>}
           <h2 className="tb-hear-title">
-            {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)} · {tr("THE SUBJECT")}
+            {lang() === "en" ? f.title.toUpperCase() : pieceName(f.kind, f.key)} · {new Set(forms.map((x) => x.theme)).size > 1 ? tr("THE SUBJECTS") : tr("THE SUBJECT")}
           </h2>
           <button type="button" className="tg-x tb-hear-x" aria-label="Close" onClick={close}>
             ✕
@@ -124,11 +133,25 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
             </div>
           )}
         </div>
+        {form && (
+          <div className="tb-hear-forms" id="hear-forms" role="radiogroup" aria-label={tr("ITS FORMS")}>
+            {forms.map((x, i) => (
+              <button key={i} type="button" id={`hear-form-${i}`} role="radio" aria-checked={i === fi} className={`tb-hear-form${i === fi ? " on" : ""}`} onClick={() => (i === fi ? hear() : setFi(i))}>
+                <span className="tb-hear-form-play" aria-hidden="true">▶</span>
+                <FormContour notes={x.entry.notes} />
+                <span className="tb-hear-form-name">{formLabel(id, x, forms)}</span>
+                <span className="tb-hear-form-bar">{tr("BAR {n}", { n: x.bar })}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="tb-hear-row">
           <button type="button" id="hear-again" className="tb-hear-btn2 tb-hear-again" onClick={hear}>
             ▶ {embedded ? tr("HEAR THE SUBJECT") : tr("HEAR IT AGAIN")}
           </button>
-          {!offered || !readings.length ? (
+          {fi > 0 ? (
+            <span className="tb-hear-one">{tr("PLAYED AS WRITTEN")}</span>
+          ) : !offered || !readings.length ? (
             reading ? (
               <span className="tb-hear-one" id="reading-one">
                 {tr("THE READING")}: {reading.author} {reading.year}
@@ -152,17 +175,17 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
             ))}
           </ul>
         )}
-        {reading?.quote && (
+        {shown?.quote && (
           <blockquote className="tb-hear-quote" id="hear-quote">
-            “{reading.quote}”
+            “{shown.quote}”
             <cite>
-              {reading.author.charAt(0) + reading.author.slice(1).toLowerCase()}, {reading.work.includes(String(reading.year)) ? reading.work : `${reading.work} (${reading.year})`}{reading.pages ? `, ${reading.pages}` : ""}
-              {reading.basis === "rule" ? ` · ${tr("his rule, applied to the notes")}` : ""}
-              {reading.tempoText ? ` · ${tr("his tempo: {t} (the game plays ♩ = {q})", { t: reading.tempoText, q: tempoOf(id) })}` : ""}
+              {shown.author.charAt(0) + shown.author.slice(1).toLowerCase()}, {shown.work.includes(String(shown.year)) ? shown.work : `${shown.work} (${shown.year})`}{shown.pages ? `, ${shown.pages}` : ""}
+              {shown.basis === "rule" ? ` · ${tr("his rule, applied to the notes")}` : ""}
+              {shown.tempoText ? ` · ${tr("his tempo: {t} (the game plays ♩ = {q})", { t: shown.tempoText, q: tempoOf(id) })}` : ""}
             </cite>
           </blockquote>
         )}
-        {!reading && <p className="tb-hear-lock">{!OFFER_READINGS && !busoniOn() && readings.some((r) => r.whole) ? tr("BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION") : !offered ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
+        {!reading && fi === 0 && <p className="tb-hear-lock">{!OFFER_READINGS && !busoniOn() && readings.some((r) => r.whole) ? tr("BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION") : !offered ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
       </div>
   );
   if (embedded) return card;
@@ -293,4 +316,22 @@ function paintSubject(c: HTMLCanvasElement, perf: Performed, midis: number[], in
     g.fillStyle = GOLD_LINE;
     g.fillRect(X(now) - 1, 4, 2, cssH - 8);
   }
+}
+
+/** D676: a form's contour, small: its notes as a line (pitch up, time across), for the form's button. */
+function FormContour({ notes }: { notes: readonly (readonly [number, number, number, ...unknown[]])[] }) {
+  const W = 46, H = 16;
+  if (!notes.length) return null;
+  const on0 = notes[0][0];
+  const end = notes.at(-1)![0] + notes.at(-1)![1];
+  let lo = Infinity, hi = -Infinity;
+  for (const n of notes) (lo = Math.min(lo, n[2])), (hi = Math.max(hi, n[2]));
+  const x = (t: number) => 1 + ((t - on0) / Math.max(1, end - on0)) * (W - 2);
+  const y = (m: number) => 1 + ((hi - m) / Math.max(1, hi - lo)) * (H - 2);
+  const pts = notes.flatMap(([on, dur, m]) => [`${x(on).toFixed(1)},${y(m).toFixed(1)}`, `${x(on + dur).toFixed(1)},${y(m).toFixed(1)}`]).join(" ");
+  return (
+    <svg className="tb-hear-form-line" width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
 }

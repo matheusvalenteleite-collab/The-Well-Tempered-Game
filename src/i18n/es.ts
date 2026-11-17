@@ -192,6 +192,12 @@ export const ES: Record<string, string> = {
   "An organist's articulation, from Bach's marked parts. Not every fugue.": "La articulación de un organista, a partir de las partes que Bach marcó. No en todas las fugas.",
   "A Romantic theorist's phrasing. No tempo.": "El fraseo de un teórico romántico. Sin tempo.",
   "A pianist's edition. The default on every instrument.": "La edición de un pianista. La opción por defecto en todos los instrumentos.",
+  // D676: the subject's forms on the fugue card.
+  "SUBJECT {n}": "SUJETO {n}",
+  "COUNTERSUBJECT": "CONTRASUJETO",
+  "PLAYED AS WRITTEN": "TOCADO COMO ESTÁ ESCRITO",
+  "THE SUBJECTS": "LOS SUJETOS",
+  "ITS FORMS": "SUS FORMAS",
   "HEAR IT AGAIN": "ESCUCHAR OTRA VEZ",
   // Settings
   SETTINGS: "AJUSTES",
