@@ -881,6 +881,17 @@ const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
   ],
   30: [{ bar: 12, at: "1/2", pitch: "D#5", signs: "" }],
 };
+/**
+ * D757 (the owner: "we should avoid making those boring bass lines playable, and focus on the fun ones"): the voices
+ * offered where not every one is (the others the band's, as written): the Aria's slow ground and its inner voice; the
+ * accompaniments of Variations 13 and 25 and the sarabande's lower voice in 26; the canons' and the Fughetta's partial
+ * layers and slow basses (6, 10, 12, 15, 21, 24); the Ouverture's inner voice (16); Variation 22's minim ground and the
+ * Quodlibet's (30); Variations 23, 28 and 29's few-note second layers. Measured: notes a bar, held notes, bars sounded.
+ */
+const GOLDBERG_PLAYABLE: Record<number, number[]> = {
+  0: [0], 6: [0, 1, 2], 10: [0, 2], 12: [0, 2], 13: [0], 15: [0, 2], 16: [0, 2], 21: [0, 1, 2], 22: [0, 1, 2],
+  23: [0, 1], 24: [0, 2], 25: [0], 26: [0, 2], 28: [0, 2], 29: [1, 3], 30: [0, 1, 2],
+};
 const voicesNamed = (n: number) => (n === 2 ? TWO_HANDS : n === 3 ? THREE : FOUR);
 const goldbergTitle = (n: number) => (n === 0 ? "Goldberg Variations, Aria" : `Goldberg Variations, Variation ${n}${GOLDBERG_KIND[n] ? `, ${GOLDBERG_KIND[n]}` : ""}`);
 const GOLDBERG: Spec[] = [
@@ -903,6 +914,7 @@ const GOLDBERG: Spec[] = [
     keepOrnaments: true,
     voiceNames: voicesNamed(voices.length),
     entries: n === 10,
+    ...(GOLDBERG_PLAYABLE[n] ? { playable: GOLDBERG_PLAYABLE[n], defaultVoice: GOLDBERG_PLAYABLE[n][0] } : {}),
     ...(GOLDBERG_FIXES[n] ? { fixes: GOLDBERG_FIXES[n] } : {}),
     ...(GOLDBERG_ORN_FIXES[n] ? { ornFixes: GOLDBERG_ORN_FIXES[n] } : {}),
     credit: GOLDBERG_CREDIT,
@@ -924,6 +936,7 @@ const GOLDBERG: Spec[] = [
     lyVoices: ["upper", "upperTwo|lowerTwo", "lower"],
     keepOrnaments: true,
     voiceNames: ["Upper", "Middle", "Lower"],
+    playable: GOLDBERG_PLAYABLE[26],
     entries: false,
     credit: "TRANSCRIBED FOR THE GAME FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT EDITION · PUBLIC DOMAIN",
   }))(),

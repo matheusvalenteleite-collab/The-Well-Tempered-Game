@@ -14,7 +14,7 @@ for Symbolic Music Processing", Zenodo 2025-06-01, DOI 10.5281/zenodo.15571083; 
 - No source edition named. Revised 2012, 2015, 2017.
 
 Read by `tools/touch/more-bach.ts` (`GOLDBERG_TABLE`) into `data/touch/more-bach.json` as `bwv988-00` (the Aria) to
-`bwv988-30`, the GOLD tab (D757).
+`bwv988-30`, MORE BACH's section GOLDBERG VARIATIONS (D757).
 
 ## How it is read
 
@@ -27,13 +27,17 @@ Read by `tools/touch/more-bach.ts` (`GOLDBERG_TABLE`) into `data/touch/more-bach
   first by mean pitch; a layer with a few notes joined to the main layer of its staff nearest in pitch (where it sounds
   with that voice, a chord: D363's divisi gives the extra note to the band). Two, three or four voices as the piece is
   written.
+- Voices offered: only the lines worth playing (the owner); the others sound in the band as written
+  (`GOLDBERG_PLAYABLE`): the Aria its melody only; Variations 13 and 25 their melodies; 26 its hands; the canons (6, 12,
+  15, 21, 24), the Fughetta (10), the Ouverture (16), 22, 23, 28, 29 and the Quodlibet (30) without their partial layers
+  and slow basses.
 - Ornaments: the edition's signs kept as kern's signs on their notes (`keepOrnaments`): inverted mordent W, mordent M,
   trill T, turn S; and its appoggiaturas, "Q" + pitch (the game plays them: ornament-play.ts; the half or whole step read
   from the bar). Nothing written out. The trill hooked from below (Bach's Doppelt-cadence), which the edition names a
   short inverted mordent, is a trill (T) here. The Aria's two slides (Schleifer, bars 21 and 23) have no kern sign and
   are not played; listed by the importer as unplayed.
 - The Aria da capo (measures 959-990) is identical to the Aria (every note, ornament, appoggiatura and repeat sign): it
-  is not a piece of its own (the owner to choose how the GOLD tab shows it).
+  is not a piece of its own (the owner: no tile for it; NEXT after Variation 30 returns to the Aria).
 
 ## Variation 26
 

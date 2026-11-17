@@ -46,7 +46,7 @@ const WITH_BAND: Record<string, number[]> = {
   "bwv998-1": [0],
   "bwv998-2": [2],
   // D757: the Goldberg's chords, and the notes a voice's layers write at once (D363's divisi), each voice's.
-  "bwv988-00": [0, 1],
+  "bwv988-00": [0],
   "bwv988-01": [0, 1],
   "bwv988-02": [2],
   "bwv988-06": [2],
@@ -80,7 +80,8 @@ test("D363: a band-only voice is no voice: not named, not offered, not counted (
     const f = fugueById(id);
     assert.equal(f.voiceNames.length, f.voices.length, `${id}: a name a voice, none for the band's`);
     // The voices offered from the start (the pop-up's choice): the voices, never the band's.
-    assert.deepEqual(voicesFrom(f, 0), f.voices.map((_, v) => v));
+    // (D757: those the piece offers, where it names them: the Goldberg's lines worth playing.)
+    assert.deepEqual(voicesFrom(f, 0), f.voices.map((_, v) => v).filter((v) => !f.playable || f.playable.includes(v)));
     // The ensemble's layout and each slot's sound go by the voices' count: the band's notes take their parent's.
     const kinds = kindsOf("organ", f.voices.length);
     assert.equal(kinds.length, f.voices.length);

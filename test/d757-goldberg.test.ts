@@ -1,31 +1,37 @@
 /**
- * D757: THE GOLDBERG VARIATIONS, BWV 988, their own tab (GOLD): the Aria and thirty variations in Bach's order, NEXT among
- * them and from Variation 30 back to the Aria (the owner: no Aria da capo tile, the file's copy being the Aria's notes);
- * behind the unlock until the owner sees it; their ornaments kept as signs (none written out), Variation 26 transcribed.
+ * D757: THE GOLDBERG VARIATIONS, BWV 988, a section of MORE BACH (the owner: "Put it in MORE BACH first. If I like it,
+ * it'll be promoted"): the Aria and thirty variations in Bach's order, NEXT among them and from Variation 30 back to the
+ * Aria (no Aria da capo tile, the file's copy being the Aria's notes); only the lines worth playing offered (the owner:
+ * no boring lines); their ornaments kept as signs (none written out), Variation 26 transcribed.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { GOLD_FOR_ALL, GOLD_IDS, liteNextOrder, liteTabOf, liteTabs, OWN_TAB_SECTIONS } from "../src/bench/lite.ts";
+import { GOLD_IDS, LITE_TABS, liteNextOrder, liteTabOf, MORE_SECTIONS, OWN_TAB_SECTIONS } from "../src/bench/lite.ts";
 import { nextIn } from "../src/bench/flow.ts";
 
-type Piece = { id: string; collection?: string; voices: number[][]; voiceNames: string[]; ornaments?: [number, number, string, null, string[]?][]; meter: string; bars: { n: number }[] };
+type Piece = { id: string; collection?: string; voices: number[][][]; voiceNames: string[]; playable?: number[]; ornaments?: [number, number, string, null, string[]?][]; meter: string; bars: { n: number }[] };
 const MORE: Piece[] = JSON.parse(readFileSync(new URL("../data/touch/more-bach.json", import.meta.url), "utf8"));
 const gold = MORE.filter((p) => p.collection === "goldberg");
 
-test("D757: the Aria and thirty variations, their own tab, NEXT among them and from Variation 30 to the Aria", () => {
+test("D757: the Aria and thirty variations, a MORE BACH section, NEXT among them and from Variation 30 to the Aria", () => {
   assert.deepEqual(GOLD_IDS, Array.from({ length: 31 }, (_, n) => `bwv988-${String(n).padStart(2, "0")}`));
   assert.ok(!GOLD_IDS.includes("bwv988-31"), "no Aria da capo tile");
-  for (const id of GOLD_IDS) assert.equal(liteTabOf(id), "GOLD", id);
+  assert.ok(MORE_SECTIONS.some((s) => s.id === "goldberg" && s.title === "GOLDBERG VARIATIONS"));
+  assert.ok(!OWN_TAB_SECTIONS.includes("goldberg") && !LITE_TABS.some(([, t]) => /GOLDBERG/.test(t)), "no tab of its own (yet)");
+  for (const id of GOLD_IDS) assert.equal(liteTabOf(id), "MORE", id);
   assert.deepEqual(liteNextOrder("bwv988-12"), [...GOLD_IDS]);
   assert.equal(nextIn(liteNextOrder("bwv988-30"), "bwv988-30"), "bwv988-00");
-  assert.ok(OWN_TAB_SECTIONS.includes("goldberg"));
-  assert.ok(!liteNextOrder("bwv1079-ric3").some((id) => GOLD_IDS.includes(id)), "MORE BACH's NEXT leaves them out");
 });
 
-test("D757: behind the unlock for the friends until the owner has seen it (GOLD_FOR_ALL)", () => {
-  assert.equal(GOLD_FOR_ALL, false);
-  assert.equal(liteTabs().some(([t]) => t === "GOLD"), GOLD_FOR_ALL);
+test("D757: only the lines worth playing offered (the Aria's ground, the accompaniments, the slow basses the band's)", () => {
+  const by = (id: string) => gold.find((p) => p.id === id)!;
+  assert.deepEqual(by("bwv988-00").playable, [0], "the Aria: its melody");
+  assert.deepEqual(by("bwv988-13").playable, [0]);
+  assert.deepEqual(by("bwv988-25").playable, [0]);
+  assert.deepEqual(by("bwv988-26").playable, [0, 2], "Variation 26: the hands, not the sarabande's lower voice");
+  assert.equal(by("bwv988-01").playable, undefined, "both hands of a two-part variation");
+  for (const p of gold) for (const v of p.playable ?? []) assert.ok(v < p.voices.length && p.voices[v].length > 40, `${p.id} v${v}`);
 });
 
 test("D757: the ornaments kept as signs on their notes, the appoggiaturas with them; no ornament written out", () => {

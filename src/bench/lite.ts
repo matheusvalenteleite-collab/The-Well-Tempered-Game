@@ -20,7 +20,7 @@ import { difficultyOf } from "./difficulty.ts";
  * Offering's ricercars, the Inventions, the Sinfonias, the Concerto for Two Violins: tools/touch/more-bach.ts)
  * and CHORALES (Bach's 370 four-part chorales: tools/touch/chorales.ts).
  */
-export type LiteTab = "I" | "II" | "AOF" | "INV" | "GOLD" | "MORE" | "CHORALES";
+export type LiteTab = "I" | "II" | "AOF" | "INV" | "MORE" | "CHORALES";
 export const LITE_TABS: readonly [LiteTab, string][] = [
   ["I", "WTC BOOK I"],
   ["II", "WTC BOOK II"],
@@ -28,8 +28,6 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
   ["AOF", "THE ART OF FUGUE"],
   // D750: THE INVENTIONS AND SINFONIAS, the same (out of MORE BACH).
   ["INV", "INVENTIONS AND SINFONIAS"],
-  // D757: THE GOLDBERG VARIATIONS, the same (the Aria and thirty variations; behind the unlock until the owner sees it).
-  ["GOLD", "GOLDBERG VARIATIONS"],
   ["MORE", "MORE BACH"],
   ["CHORALES", "CHORALES"],
 ];
@@ -41,9 +39,7 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
 export const AOF_FOR_ALL = true;
 /** D750: THE INVENTIONS AND SINFONIAS open to everyone once the studio's setting and Instruments' sounds land; until then behind the unlock. */
 export const INV_FOR_ALL = true;
-/** D757: THE GOLDBERG VARIATIONS behind the unlock until the owner has seen them (and the studio's setting and Instruments' sounds land). */
-export const GOLD_FOR_ALL = false;
-export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL) || (t === "GOLD" && GOLD_FOR_ALL)));
+export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL)));
 
 /** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
 export const BOOK_ONE_FUGUES: readonly string[] = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
@@ -69,7 +65,7 @@ const SECTION_OF: readonly [Collection, string][] = [
   ["duet", "FOUR DUETS"],
   // D753: single keyboard works (the Chromatic Fugue, BWV 903; D754: the Fugue on a Theme by Albinoni, BWV 951; D755: the Fantasia and unfinished Fugue in C minor, BWV 906; D756: the Prelude, Fugue and Allegro in E-flat, BWV 998).
   ["keyboard", "FANTASIAS AND FUGUES"],
-  // D757: the Goldberg Variations, BWV 988 (their own tab, GOLD).
+  // D757: the Goldberg Variations, BWV 988 (in MORE BACH first, the owner: "If I like it, it'll be promoted").
   ["goldberg", "GOLDBERG VARIATIONS"],
   ["concerto", "CONCERTO"],
   // D348: BWV 1052-1058 and 1060-1065, every movement (D351: and BWV 1059 as a reconstruction) (tools/touch/concertos.ts; MuseScore editions, CC0).
@@ -90,19 +86,19 @@ export const AOF_IDS: readonly string[] = MORE_SECTIONS.find((s) => s.id === "ao
 /** D750: the two-part Inventions 1–15, then the three-part Sinfonias 1–15 (BWV 772–801), in Bach's order. */
 export const INV_IDS: readonly string[] = [...(MORE_SECTIONS.find((s) => s.id === "inv")?.ids ?? []), ...(MORE_SECTIONS.find((s) => s.id === "sin")?.ids ?? [])];
 /** D750: the MORE BACH sections that have a tab of their own (not listed under MORE BACH). */
-/** D757: the Aria and the thirty variations, in Bach's order. */
+/** D757: the Goldberg's Aria and thirty variations, in Bach's order (a MORE BACH section; NEXT among them, from Variation 30 back to the Aria). */
 export const GOLD_IDS: readonly string[] = MORE_SECTIONS.find((s) => s.id === "goldberg")?.ids ?? [];
-export const OWN_TAB_SECTIONS: readonly string[] = ["aof", "inv", "sin", "goldberg"];
+export const OWN_TAB_SECTIONS: readonly string[] = ["aof", "inv", "sin"];
 const EXTRA = new Set([...MORE_SECTIONS.flatMap((s) => s.ids), ...CHORALE_IDS]);
 /** D340: a piece of the MORE BACH or CHORALES tab. */
 export const liteExtra = (id: string): boolean => EXTRA.has(id);
 /** D340: the tab a piece is listed under. */
-export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : INV_IDS.includes(id) ? "INV" : GOLD_IDS.includes(id) ? "GOLD" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
+export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : INV_IDS.includes(id) ? "INV" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
 /** D340: what NEXT follows a piece with: its own tab's list. */
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
   const tab = liteTabOf(id);
   // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock; D382: or once earned).
-  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : tab === "GOLD" ? [...GOLD_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : GOLD_IDS.includes(id) ? [...GOLD_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
 }
 
 /**

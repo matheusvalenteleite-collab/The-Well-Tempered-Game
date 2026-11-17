@@ -54,7 +54,7 @@ test("D343: locked, play.html is Book I's fugues on a phone; unlocked, all four 
   store.set(UNLOCK_KEY, "1");
   try {
     assert.equal(unlocked(), true);
-    assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD", "MORE", "CHORALES"]);
+    assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
     assert.equal(nextIn(liteNextOrder("wtc1f24", true), "wtc1f24"), "wtc2f01");
     store.set("tb-lite-platform", "computer");
     assert.equal(litePlatform(), "computer", "⚙ PLAY ON again");

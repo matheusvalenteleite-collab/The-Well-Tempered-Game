@@ -134,7 +134,7 @@ test("D340: CHORALES: Sapp's 370, four voices each, every fermata held a beat lo
 
 test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunctus 14 closing the Art of Fugue), CHORALES", () => {
   // D727: THE ART OF FUGUE its own tab (its pieces still kept in MORE_SECTIONS' first, shown under AOF).
-  assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD", "MORE", "CHORALES"]);
+  assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
   // D751: and the Four Duets after the Sinfonias.
   assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "FOUR DUETS", "FANTASIAS AND FUGUES", "GOLDBERG VARIATIONS", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
   assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 4, 7, GOLD, 3, 42, 2, 2]);
