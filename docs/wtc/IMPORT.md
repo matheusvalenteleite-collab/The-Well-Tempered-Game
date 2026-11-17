@@ -371,3 +371,6 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2p24 | 3 written-out trills folded back into their notes |
 | wtc2f24 | b. 16, voice 0, beats 0-1.5: D4 E4 F#4 G4 F#4 → D4 F#4 (slip: the Bach-Gesellschaft's soprano, as the Humdrum check and the witness have it) |
 | wtc2f24 | b. 16, voice 1, beats 0-1.5: B3 E4 → B3 C#4 D4 E4 F#4 E4 (slip: the Bach-Gesellschaft's alto, as the Humdrum check has it (the soprano's semiquavers in Rother's)) |
+| sinfo01 | bar 5, B4: the sign removed (not the BGA's) (D206) |
+| sinfo13 | bar 3, B4: the sign removed (not the BGA's) (D206) |
+| sinfo13 | bar 7, F#4: the sign removed (not the BGA's) (D206) |

@@ -14,7 +14,7 @@ import { backupText, deleteTake, lasting, putTake, readBackup, renameTake, starT
 import { clampLevel, gains, LEVEL_STEP, readMix, saveMix, starred, type MixVoice } from "./takes/myfugue.ts";
 import { renderMp3, type RenderStats } from "./takes/render.ts";
 import { midiOf } from "./takes/midi.ts";
-import { filmFile, filmType, type FilmStats } from "./takes/film.ts";
+import { FILM_OFFERED, filmFile, filmType, type FilmStats } from "./takes/film.ts";
 
 /** A take's voice word, as the pop-up names the voices (ALTO; UPPER for a two-part piece). */
 export function takeVoiceWord(piece: string): (voice: number) => string {
@@ -202,7 +202,7 @@ export function TakesPanel({ piece, listen, close, my }: { piece: string; listen
                     </button>
                   </>
                 )}
-                {filmType() && (
+                {FILM_OFFERED && filmType() && (
                   <button type="button" className="tb-take-btn" id="my-film" onClick={() => my.film(set)}>
                     🎬 {tr("MAKE A VIDEO")}
                   </button>
