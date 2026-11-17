@@ -879,6 +879,26 @@ const GOLDBERG: Spec[] = [
     ...(GOLDBERG_ORN_FIXES[n] ? { ornFixes: GOLDBERG_ORN_FIXES[n] } : {}),
     credit: GOLDBERG_CREDIT,
   })),
+  // Variation 26: transcribed from the 1741 print and the Bach-Gesellschaft (the file's is broken). Each hand as the prints write it (its running 18/16 line or the sarabande's upper voice, by turns); the sarabande's lower voice, written under it in either hand, a voice of its own (the middle).
+  {
+    id: "bwv988-26",
+    collection: "goldberg",
+    number: 27,
+    title: goldbergTitle(26),
+    short: "VARIATION 26",
+    bwv: "988",
+    key: "G",
+    dir: "bach-988",
+    mutopia: 0,
+    lyDir: "transcription",
+    page: "https://archive.org/download/bach-gesellschaft-ausgabe/BGA%20Band%2003.pdf",
+    ly: "bwv988v26.ly",
+    lyVoices: ["upper", "upperTwo|lowerTwo", "lower"],
+    keepOrnaments: true,
+    voiceNames: ["Upper", "Middle", "Lower"],
+    entries: false,
+    credit: "TRANSCRIBED FOR THE GAME FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT EDITION · PUBLIC DOMAIN",
+  },
 ].sort((a, b) => a.number - b.number);
 
 export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...GOLDBERG, ...CONCERTO, ...VOCAL];
@@ -1135,7 +1155,7 @@ export interface Read {
 }
 
 /** D757: MusicXML's and LilyPond's ornament names as kern's signs (ornament-play.ts: the step read from the bar, upper case its default); others unplayed. */
-const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", downprall: "T", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
+const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", downprall: "T", prallprall: "T", prallmordent: "TM", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
 
 export function readPiece(s: Spec): Read {
   const dir = s.lyDir ? `${SRC}${s.dir}/${s.lyDir}/` : `${SRC}${s.dir}/mutopia/${s.mutopia}/`;
