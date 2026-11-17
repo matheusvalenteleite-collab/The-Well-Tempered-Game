@@ -34,16 +34,39 @@ export function unpackLyrics(packed: readonly (number | string)[]): Syllable[] {
 }
 
 const memo = new WeakMap<TouchFugue, (Syllable[] | null)[]>();
-/** A voice's words (null for an instrument or a piece without words), unpacked once. */
-export function lyricsOf(f: TouchFugue, voice: number): Syllable[] | null {
-  if (!f.lyrics) return null;
-  let all = memo.get(f);
-  if (!all) memo.set(f, (all = []));
+const memo2 = new WeakMap<TouchFugue, (Syllable[] | null)[]>();
+/**
+ * A voice's words (null for an instrument or a piece without words), unpacked once. D678: `second`, the chorales'
+ * second line under the notes (D728 lyricsSecond); the stanza the edition prints for the line ("1", "2") before
+ * its first syllable ("1. AUS").
+ */
+export function lyricsOf(f: TouchFugue, voice: number, second = false): Syllable[] | null {
+  const lines = second ? f.lyricsSecond : f.lyrics;
+  if (!lines) return null;
+  const m = second ? memo2 : memo;
+  let all = m.get(f);
+  if (!all) m.set(f, (all = []));
   if (all[voice] === undefined) {
-    const p = f.lyrics[voice];
-    all[voice] = p && p.length ? unpackLyrics(p) : null;
+    const p = lines[voice];
+    const syls = p && p.length ? unpackLyrics(p) : null;
+    const stanza = f.words?.stanzas?.[second ? 1 : 0];
+    if (syls && stanza) syls[0] = { ...syls[0], shown: `${stanza}. ${syls[0].shown}` };
+    all[voice] = syls;
   }
   return all[voice];
+}
+
+/**
+ * D678 (design studio): the words drawn under the player's voice in a chorale: its own where the edition underlays
+ * them, else the soprano's (the hymn's words; the edition underlays the lower voices in only 43 of the 370), marked
+ * `borrowed` so the box draws them a shade fainter; the second line under the first.
+ */
+export function wordsFor(f: TouchFugue, voice: number): { first: Syllable[]; second: Syllable[] | null; borrowed: boolean } | null {
+  const own = lyricsOf(f, voice);
+  if (own) return { first: own, second: lyricsOf(f, voice, true), borrowed: false };
+  if (voice === 0 || f.collection !== "chorale") return null;
+  const sop = lyricsOf(f, 0);
+  return sop ? { first: sop, second: lyricsOf(f, 0, true), borrowed: true } : null;
 }
 
 /** The first syllable still sounding at or after `tick` (its melisma ends after it): where drawing starts. */
