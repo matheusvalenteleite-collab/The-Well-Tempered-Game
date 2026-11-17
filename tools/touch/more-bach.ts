@@ -783,6 +783,15 @@ const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
     { voice: 1, bar: 28, at: "0", from: "C4", tie: true },
     { voice: 1, bar: 30, at: "0", from: "E4", tie: true },
   ],
+  16: [{ voice: 2, bar: 11, at: "15/16", from: "Ab3", to: "G#3" }],
+  21: [
+    { voice: 2, bar: 7, at: "15/16", from: "Db3", to: "C#3" },
+    { voice: 2, bar: 12, at: "1/4", from: "A3", to: "Ab3" },
+    { voice: 1, bar: 16, at: "0", from: "D4", tie: true },
+  ],
+  22: [{ voice: 3, bar: 30, at: "1/2", from: "Db3", to: "C#3" }],
+  // The C5 under the E5 the edition leaves out.
+  23: [{ voice: 2, bar: 25, at: "1/2", add: "C5", dur: "1/8" }],
   24: [
     { voice: 3, bar: 20, at: "0", from: "Eb3", to: "D#3" },
     { voice: 2, bar: 21, at: "0", from: "B3", tie: true },
@@ -834,6 +843,13 @@ const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
     { bar: 5, at: "1/4", pitch: "D5", graces: [] },
     { bar: 6, at: "1/4", pitch: "Eb5", graces: [] },
     { bar: 14, at: "1/4", pitch: "Bb5", graces: [] },
+  ],
+  20: [{ bar: 10, at: "1/4", pitch: "A5", signs: "" }],
+  // Two signs the print does not have; an appoggiatura it has (its pitch, D5, the likelier reading of a small head between the C5 space and the D5 line).
+  23: [
+    { bar: 11, at: "1/2", pitch: "B5", signs: "" },
+    { bar: 19, at: "0", pitch: "C4", signs: "" },
+    { bar: 23, at: "1/16", pitch: "C5", graces: ["QD5"] },
   ],
   30: [{ bar: 12, at: "1/2", pitch: "D#5", signs: "" }],
 };
