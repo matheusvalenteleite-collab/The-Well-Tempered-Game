@@ -8,7 +8,7 @@ the chosen reading, whose marks are written for the subject's notes).
 
 Everything shown is read from the entry tables (`theme`, `inverted`, `scale` on each entry: Instruments' verified
 tables). Nothing is derived or guessed here. The names: SUBJECT, SUBJECT 1/2/3 where a fugue has more than one,
-COUNTERSUBJECT where the tables count a regular countersubject (the Inventions; Sinfonias 9 and 13), and INVERTED,
+COUNTERSUBJECT where the tables count a regular countersubject (the Inventions; Sinfonias 9 and 13; BWV 803, 805, 903 and 951), and INVERTED,
 AUGMENTED, DIMINISHED, alone or together. The transformations are as the tables tag them: relative to the work's subject
 (in the Art of Fugue, the subject of Contrapunctus 1), so Contrapunctus 3 is shown as INVERTED.
 
@@ -63,10 +63,10 @@ AUGMENTED, DIMINISHED, alone or together. The transformations are as the tables 
 | `bwv795` | Sinfonia 9 in F minor | SUBJECT (bar 1); COUNTERSUBJECT (bar 1); COUNTERSUBJECT · INVERTED (bar 14) |
 | `bwv799` | Sinfonia 13 in A minor | SUBJECT (bar 1); COUNTERSUBJECT (bar 4) |
 | `bwv802` | Duet 1 in E minor | SUBJECT (bar 1); INVERTED (bar 57) |
-| `bwv803` | Duet 2 in F major | SUBJECT 1 (bar 1); SUBJECT 1 · INVERTED (bar 74); SUBJECT 2 (bar 5) |
-| `bwv805` | Duet 4 in A minor | SUBJECT 1 (bar 1); SUBJECT 2 (bar 9) |
-| `bwv903-2` | Chromatic Fantasia and Fugue in D minor, Fugue | SUBJECT 1 (bar 1); SUBJECT 2 (bar 8); SUBJECT 2 · INVERTED (bar 26) |
-| `bwv951` | Fugue in B minor on a Theme by Albinoni | SUBJECT 1 (bar 1); SUBJECT 2 (bar 3) |
+| `bwv803` | Duet 2 in F major | SUBJECT (bar 1); INVERTED (bar 74); COUNTERSUBJECT (bar 5) |
+| `bwv805` | Duet 4 in A minor | SUBJECT (bar 1); COUNTERSUBJECT (bar 9) |
+| `bwv903-2` | Chromatic Fantasia and Fugue in D minor, Fugue | SUBJECT (bar 1); COUNTERSUBJECT (bar 8); COUNTERSUBJECT · INVERTED (bar 26) |
+| `bwv951` | Fugue in B minor on a Theme by Albinoni | SUBJECT (bar 1); COUNTERSUBJECT (bar 3) |
 | `bwv906-1` | Fantasia and Fugue in C minor, Fantasia | SUBJECT (bar 1); INVERTED (bar 5) |
 | `bwv228-2` | Fürchte dich nicht, BWV 228: fugue and chorale | SUBJECT (bar 78); AUGMENTED (bar 83) |
 
@@ -79,6 +79,7 @@ AUGMENTED, DIMINISHED, alone or together. The transformations are as the tables 
   augmentation (bar 5), nor in "the Canon" of the brief, whose reference is unclear. Nothing is added without a source.
 - **Countersubjects in the WTC** (I/2, I/3, I/12, I/16, I/21 and others with a regular countersubject) are not tagged
   as subjects in the tables, so they are not listed; II/18 and II/23's second subjects are.
-- **Theme 2 outside the WTC, the AoF and the Inventions** (BWV 799, 802-805, 903, 951): shown as SUBJECT 2 until
-  Instruments confirms whether each is a second subject or a countersubject.
+- **Theme 2 outside the WTC and the AoF**: Instruments confirmed from the tables' headers that it is a countersubject
+  in BWV 799, 803, 805, 903 (the Fugue) and 951, so the card calls it COUNTERSUBJECT there; 802 and 804 have one
+  subject only.
 - **No entries at all** for bwv1043-1/2/3, bwv228-1 and bwv54-1: their cards are unchanged.

@@ -35,6 +35,8 @@ test("multiple subjects and their transformations, in order, each with its first
   assert.equal(new Set(subjectForms("bwv1080-11").map((x) => x.theme)).size, 3);
   // The Inventions' second line is a countersubject, not a subject.
   assert.ok(labels("bwv777").some((l) => l.startsWith("COUNTERSUBJECT")));
+  // Instruments: the Chromatic Fugue's, the Albinoni fugue's and Duets 2 and 4's second lines are countersubjects.
+  for (const id of ["bwv903-2", "bwv951", "bwv803", "bwv805"]) assert.ok(labels(id).some((l) => l.startsWith("COUNTERSUBJECT")) && labels(id)[0].startsWith("SUBJECT @"), id);
 });
 
 test("the card shows the forms: a button each (▶, contour, name, bar); only the subject carries the reading", () => {

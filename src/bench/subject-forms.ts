@@ -20,10 +20,11 @@ export interface SubjectForm {
 }
 
 /**
- * Where the tables' second line is a countersubject rather than a second subject (Instruments: the Inventions' and
- * two Sinfonias' second lines, counted for their double counterpoint), the card calls it so.
+ * Where the tables' second line is a countersubject rather than a second subject, the card calls it so (Instruments,
+ * from each table's header: the Inventions' and Sinfonias 9 and 13's second lines, counted for their double
+ * counterpoint; the Chromatic Fugue's, D770; the Albinoni fugue's, D779; Duets 2 and 4's, D740).
  */
-const COUNTER = /^bwv(77[2-9]|78[0-6]|795|799)$/;
+const COUNTER = /^bwv(77[2-9]|78[0-6]|795|799|803|805|951|903-2)$/;
 
 /** The fugue's subject forms, in the order they first sound (the first subject's first form first). */
 export function subjectForms(id: string): SubjectForm[] {
