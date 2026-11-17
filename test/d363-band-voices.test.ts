@@ -45,6 +45,20 @@ const WITH_BAND: Record<string, number[]> = {
   // D756: the E-flat Prelude's inner voice (bars 36-40) and the Fugue's fourth part in the bass (bars 23-32, 97-103).
   "bwv998-1": [0],
   "bwv998-2": [2],
+  // D757: the Goldberg's chords, and the notes a voice's layers write at once (D363's divisi), each voice's.
+  "bwv988-00": [0],
+  "bwv988-01": [0, 1],
+  "bwv988-02": [2],
+  "bwv988-06": [2],
+  "bwv988-09": [0],
+  "bwv988-12": [2],
+  "bwv988-13": [0],
+  "bwv988-15": [2],
+  "bwv988-16": [0, 2],
+  "bwv988-19": [2],
+  "bwv988-21": [2],
+  "bwv988-28": [2],
+  "bwv988-30": [1, 2],
 };
 const ALL = [...PIECES, ...MORE_BACH];
 const overlaps = (ns: TouchNote[]) => ns.some((n, i) => ns.some((m, j) => i !== j && m[0] < n[0] && n[0] < m[0] + m[1]));
@@ -66,7 +80,8 @@ test("D363: a band-only voice is no voice: not named, not offered, not counted (
     const f = fugueById(id);
     assert.equal(f.voiceNames.length, f.voices.length, `${id}: a name a voice, none for the band's`);
     // The voices offered from the start (the pop-up's choice): the voices, never the band's.
-    assert.deepEqual(voicesFrom(f, 0), f.voices.map((_, v) => v).filter((v) => !(DULL_VOICES[f.id] ?? []).includes(v)), "D864: the dull lines aside");
+    // (D757: those the piece offers, where it names them: the Goldberg's lines worth playing; D864: the dull lines aside.)
+    assert.deepEqual(voicesFrom(f, 0), f.voices.map((_, v) => v).filter((v) => (!f.playable || f.playable.includes(v)) && !(DULL_VOICES[f.id] ?? []).includes(v)));
     // The ensemble's layout and each slot's sound go by the voices' count: the band's notes take their parent's.
     const kinds = kindsOf("organ", f.voices.length);
     assert.equal(kinds.length, f.voices.length);

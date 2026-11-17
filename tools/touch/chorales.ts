@@ -47,6 +47,83 @@ const ticks = (f: string) => {
   return Math.round((n / d) * 4 * TPQ);
 };
 export const CHORALE_CREDIT = "CHORALE: CRAIG STUART SAPP, BACH-370-CHORALES (DÖRFFEL, BREITKOPF & HÄRTEL C. 1875) · CC BY-NC-SA 4.0";
+/** D728: the words' edition (data/sources/chorale-lyrics/SOURCE.md), named on the chorales that carry them. */
+export const WORDS_CREDIT = "WORDS: GERTIM ALBERDA AND JOHANNES HENTSCHEL, 389 CHORALE SETTINGS (BREITKOPF 1898) · CC BY-NC-SA 4.0";
+
+/** D728: a setting's voice from data/sources/chorale-lyrics/alberda.json: each attack's MIDI and its syllables by verse ("0", "1": [text, syllabic]). */
+type Attack = [number, Record<string, [string, string]>?];
+interface Worded {
+  setting: string;
+  tier: string;
+  voices: (Attack[] | null)[];
+}
+const WORDS: Record<string, Worded> = JSON.parse(readFileSync(`${ROOT}data/sources/chorale-lyrics/alberda.json`, "utf8"));
+/** D728: what laying the words found, each chorale's (the importer's report). */
+export const WORDS_REPORT: { id: string; voice: number; laid: number; lost: number }[] = [];
+
+/**
+ * D728: a voice's words laid on its notes: the setting's attacks matched to ours in order by pitch (the longest common
+ * sequence: where the two editions' versions differ, a note one of them lacks is passed over), each matched attack's
+ * syllable on our note, held to the end of the last note before the next syllable (its melisma); verse 1 as the words
+ * sung, and verse 2 where a repeated section has its own line; packed as packLyrics (more-bach.ts) packs them.
+ */
+export function layWords(notes: readonly Note[], attacks: readonly Attack[]): { verses: (number | string)[][]; laid: number; lost: number; shift: number; stanzas: string[] } {
+  const n = notes.length;
+  const m = attacks.length;
+  // The setting may stand in another key (another version of the tune): matched at the transposition that matches most.
+  const table = (shift: number) => {
+    const L = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+    for (let i = n - 1; i >= 0; i--)
+      for (let j = m - 1; j >= 0; j--) L[i][j] = notes[i][2] === attacks[j][0] + shift ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    return L;
+  };
+  let shift = 0;
+  let L = table(0);
+  for (let k = -12; k <= 12; k++) {
+    if (k === 0) continue;
+    const T = table(k);
+    if (T[0][0] > L[0][0]) (L = T), (shift = k);
+  }
+  const at = new Map<number, number>();
+  for (let i = 0, j = 0; i < n && j < m; ) {
+    if (notes[i][2] === attacks[j][0] + shift && L[i][j] === L[i + 1][j + 1] + 1) (at.set(j, i), i++, j++);
+    else if (L[i + 1][j] >= L[i][j + 1]) i++;
+    else j++;
+  }
+  let lost = 0;
+  let laid = 0;
+  const stanzas: string[] = [];
+  // Each note's lines in order: its first its words; a second only where the setting writes two (a repeated section's second pass).
+  const lines = (a: Attack) => Object.keys(a[1] ?? {}).sort((x, y) => Number(x) - Number(y)).map((k) => a[1]![k]);
+  const verses = [0, 1].map((verse) => {
+    const syl: { i: number; text: string; joined: boolean }[] = [];
+    attacks.forEach((a, j) => {
+      const s = lines(a)[verse];
+      if (!s) return;
+      const i = at.get(j);
+      if (i === undefined) {
+        if (verse === 0) lost++;
+        return;
+      }
+      if (verse === 0) laid++;
+      // The edition's stanza label before a line's first word ("1. Ach", "Text 2: Ein"): not sung; the stanza kept.
+      const m = /^(?:Text\s*(\d+)\s*:|(\d+)\*?\.)[\s\u00a0]*(.*)$/.exec(s[0]);
+      if (m) stanzas.push(m[1] ?? m[2]);
+      syl.push({ i, text: m ? m[3] : s[0], joined: s[1] === "begin" || s[1] === "middle" });
+    });
+    const out: (number | string)[] = [];
+    let last = 0;
+    syl.forEach((x, k) => {
+      const upTo = k + 1 < syl.length ? syl[k + 1].i : n;
+      const endNote = notes[Math.max(x.i, upTo - 1)];
+      const on = notes[x.i][0];
+      out.push(on - last, endNote[0] + endNote[1] - on, x.joined ? `${x.text}-` : x.text);
+      last = on;
+    });
+    return out;
+  });
+  return { verses, laid, lost, shift, stanzas: [...new Set(stanzas)] };
+}
 
 export function chorale(c: Chorale) {
   const meter = c.meters[0].meter;
@@ -133,7 +210,23 @@ export function chorale(c: Chorale) {
   };
   homeward(f);
   if (!f.keys.length) f.keys = [{ on: 0, key }];
-  return f;
+  // D728: the words, where the 389 have this chorale: verse 1 on each voice the setting gives words, verse 2 where it has one.
+  const w = WORDS[f.id];
+  if (!w) return f;
+  const laid = w.voices.map((a, vi) => {
+    if (!a) return null;
+    const r = layWords(voices[vi], a);
+    WORDS_REPORT.push({ id: f.id, voice: vi, laid: r.laid, lost: r.lost });
+    return r;
+  });
+  const second = laid.map((r) => r?.verses[1] ?? []);
+  return {
+    ...f,
+    credit: `${CHORALE_CREDIT} · ${WORDS_CREDIT}`,
+    lyrics: laid.map((r) => r?.verses[0] ?? []),
+    ...(second.some((v) => v.length) ? { lyricsSecond: second } : {}),
+    words: { setting: w.setting, match: w.tier, ...(laid[0]?.stanzas.length ? { stanzas: laid[0].stanzas } : {}) },
+  };
 }
 
 export function allChorales() {
@@ -148,5 +241,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   writeFileSync(`${ROOT}data/touch/chorales.json`, JSON.stringify(out) + "\n");
   const n = out.reduce((t, f) => t + f.voices.flat().length, 0);
   console.log(`wrote data/touch/chorales.json: ${out.length} chorales, ${n} notes, ${out.reduce((t, f) => t + f.fermatas.length, 0)} fermatas held`);
+  // D728: the words laid, and any the setting has that found no note of ours (its version differing there).
+  const sop = WORDS_REPORT.filter((r) => r.voice === 0);
+  const sum = (rs: typeof WORDS_REPORT, k: "laid" | "lost") => rs.reduce((t, r) => t + r[k], 0);
+  console.log(`words: ${sop.length} chorales' sopranos, ${sum(sop, "laid")} syllables laid, ${sum(sop, "lost")} lost; ${WORDS_REPORT.length - sop.length} lower voices, ${sum(WORDS_REPORT.filter((r) => r.voice > 0), "laid")} laid, ${sum(WORDS_REPORT.filter((r) => r.voice > 0), "lost")} lost`);
+  for (const r of WORDS_REPORT.filter((x) => x.lost > 0).sort((a, b) => b.lost - a.lost).slice(0, 12)) console.log(`  ${r.id} v${r.voice}: ${r.laid} laid, ${r.lost} lost`);
   for (const f of out.slice(0, 3)) console.log(`  ${f.id} ${f.title} ${f.key} ${f.meter} bars ${f.bars.length} fermatas ${f.fermatas.length} cadences ${f.cadences.length}`);
 }

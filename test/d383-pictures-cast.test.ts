@@ -19,7 +19,9 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 
 test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes keep their emblems", () => {
   // D664: and the Art of Fugue's 20.
-  assert.equal(Object.keys(PICTURES).length, 109);
+  assert.equal(Object.keys(PICTURES).length, 140);
+  // D677: the Goldberg Variations' 31, the Night Watch.
+  for (let v = 0; v <= 30; v++) assert.ok(pictureOf(`bwv988-${String(v).padStart(2, "0")}`), `bwv988 ${v} drawn`);
   // D675: the Lute-Maker's Workshop, the three movements' tiles.
   for (const m of [1, 2, 3]) assert.ok(pictureOf(`bwv998-${m}`), `bwv998-${m} drawn`);
   // D674: the Scaffold, the Fantasia's tile and the unfinished Fugue's.
@@ -49,7 +51,7 @@ test("pictures: all 48 fugues drawn, 64 x 40 in #rgb, each its own; the preludes
   assert.equal(emblemPixels("wtc1p01").length, EMBLEM_W * EMBLEM_H);
   // The generator is kept beside the data it writes.
   assert.match(src("src/bench/pictures-data.ts"), /tools\/pictures\/build\.py/);
-  for (const f of ["lib.py", "book1.py", "book2.py", "aof.py", "inv.py", "duets.py", "singles.py", "build.py", "sheet.py"]) assert.ok(src(`tools/pictures/${f}`).length > 100, f);
+  for (const f of ["lib.py", "book1.py", "book2.py", "aof.py", "inv.py", "duets.py", "singles.py", "goldberg.py", "build.py", "sheet.py"]) assert.ok(src(`tools/pictures/${f}`).length > 100, f);
 });
 
 test("names: all 48 in English, Portuguese and Spanish, a short form for the tiles, each its own; II/13 the owner's Telephone (WTC 1.92)", () => {
