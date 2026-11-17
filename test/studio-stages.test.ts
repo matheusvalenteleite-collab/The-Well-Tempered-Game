@@ -29,6 +29,8 @@ test("all 48 fugues have a world of their own, and only they; the Art of Fugue i
   assert.ok(hasStage("bwv906-1") && hasStage("bwv906-2"));
   // D675: the Prelude, Fugue and Allegro, the Lute-Maker's Workshop.
   assert.ok(hasStage("bwv998-1") && hasStage("bwv998-2") && hasStage("bwv998-3"));
+  // D677: the Goldberg Variations, the Night Watch.
+  for (let v = 0; v <= 30; v++) assert.ok(hasStage(`bwv988-${String(v).padStart(2, "0")}`), `bwv988 ${v}`);
   assert.ok(!hasStage("wtc1p01") && !hasStage(undefined));
   const s = src("src/touch/stage-bg.ts");
   assert.ok(!/^  "bwv1080-/m.test(s), "no per-piece Art of Fugue world or script");
@@ -39,6 +41,7 @@ test("all 48 fugues have a world of their own, and only they; the Art of Fugue i
   assert.match(s, /test: \(id\) => ALBINONI_ID\.test\(id\), world: lagoon/);
   assert.match(s, /test: \(id\) => C_MINOR_906_ID\.test\(id\), world: scaffold/);
   assert.match(s, /test: \(id\) => LUTE_998_ID\.test\(id\), world: workshop/);
+  assert.match(s, /test: \(id\) => GOLDBERG_ID\.test\(id\), world: nightWatch/);
 });
 
 /** A canvas that only counts what is drawn (the worlds draw without throwing, at the start, middle and end). */
@@ -59,7 +62,7 @@ test("each world draws at the opening, the middle and the close, in FULL and QUI
   // D665: the Art of Fugue's pieces are in the extras chunk.
   const { loadExtras } = await import("../src/touch/fugue.ts");
   await loadExtras();
-  for (const id of [...STAGE_IDS, ...AOF, "bwv772", "bwv786", "bwv787", "bwv801", "bwv802", "bwv805", "bwv903-2", "bwv951", "bwv906-1", "bwv906-2", "bwv998-1", "bwv998-2", "bwv998-3"]) {
+  for (const id of [...STAGE_IDS, ...AOF, "bwv772", "bwv786", "bwv787", "bwv801", "bwv802", "bwv805", "bwv903-2", "bwv951", "bwv906-1", "bwv906-2", "bwv998-1", "bwv998-2", "bwv998-3", "bwv988-00", "bwv988-03", "bwv988-16", "bwv988-25", "bwv988-30"]) {
     const f = fugueById(id);
     for (const p of [0, 0.5, 1]) {
       const now = f.length * p;
