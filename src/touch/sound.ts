@@ -809,6 +809,20 @@ const OR_PEDAL: Patch = { osc: [{ wave: "stopGedackt", octave: -1, gain: 0.4 }, 
 /** D590: a doubling part (ContinuoPart.from: from that stage on), its level ORCH_STAGE_DB's, a moment late (a second player's entrance). */
 const stagePart = (patch: Patch, db: number, from: number, pan?: number, until?: number): ContinuoPart => ({ patch, level: 10 ** (db / 20), from, late: 0.008, ...(pan !== undefined ? { pan } : {}), ...(until !== undefined ? { until } : {}) });
 
+/** SOLO VOICES' alto (VocalSet) and ZELENKA TRIO's first oboe, named here so BWV 54's layered alto can stack them (D858, Patch.double). */
+/**
+ * D858: the oboe alone this much (dB) over the sung alto alone at the same seat level, on the phone model (bwv54-1 b. 11-15,
+ * the alto alone: -21.8 against -31.3 LUFS at 1, D856's renders; their matched levels 0.36 and 1.07): the layers' "under" is
+ * from where the two sound equally loud.
+ */
+const ALTO_PAIR_DB = 9.5;
+const SING_A = P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "l", scoop: 30, over: 6, fall: 60, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.68, sample: "voiceA", one: {} });
+const TRIO_OBOE1 = P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.6, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 0.69, sample: "trioOboe1", bow: TRIO_TONGUE, one: {}, compass: TRIO_COMPASS.oboe, swell: TRIO_SWELL });
+/**
+ * D858: BWV 54's alto, the two layered in unison (Patch.double, chip.ts: one note, the second instrument on the same pitch, no
+ * delay): m1 the voice leading, the oboe 6 dB under; m2 the oboe 3 dB under; m3 the oboe leading, the voice 3 dB under.
+ */
+const LAYER = (main: Patch, under: Patch, db: number): Patch => ({ ...main, double: { patch: under, level: 10 ** ((-db + (main === SING_A ? -ALTO_PAIR_DB : ALTO_PAIR_DB)) / 20) } });
 export const PATCHES = {
   // Strings and winds (ACOUSTIC).
   violin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }, { wave: "saw", detune: 7, gain: 0.3 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.06, d: 0.2, s: 0.85, r: 0.14 }, vib: { depth: 10, rate: 5.2, delay: 0.3 }, level: 0.42 }),
@@ -1269,7 +1283,10 @@ export const PATCHES = {
   singS: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 20, over: 4, fall: 70, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.6, sample: "voiceS", one: {} }),
   /** D358: the second soprano (five voices, the Ricercar's six): the soprano a shade lighter, a second singer beside her. */
   singS2: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 70, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.56, sample: "voiceS", one: {} }),
-  singA: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.12, ring: 2 }, syllable: { cons: "l", scoop: 30, over: 6, fall: 60, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.68, sample: "voiceA", one: {} }),
+  singA: SING_A,
+  altoM1: LAYER(SING_A, TRIO_OBOE1, 6),
+  altoM2: LAYER(SING_A, TRIO_OBOE1, 3),
+  altoM3: LAYER(TRIO_OBOE1, SING_A, 3),
   singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.7, sample: "voiceT", one: {} }),
   singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "l", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "l", scoop: 15, over: 3, fall: 40, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.6, sample: "voiceB", one: {} }),
   singChoir: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "alto", size: 1, cons: "m", scoop: 40, over: 8, fall: 60, breath: 0.15, ring: 2 }, syllable: { cons: "m", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.05, d: 0.1, s: 1, r: 0.12 }, rec: { a: 0.05, d: 0, s: 1, r: 0.18 }, send: 0.2, level: 1.68, sample: "choirAah" }),
@@ -1305,7 +1322,7 @@ export const PATCHES = {
   // voice of four or five; the harpsichord (the game's) as the fifth's inner voice. The continuo on the bass line
   // (Patch.continuo: the cello and the harpsichord on the bassoon, the harpsichord on the cello) only where the
   // piece's script has it (trio.ts). One room (REVERBS.chamber) at one send (TRIO_SEND).
-  trioOboe1: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.6, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 0.69, sample: "trioOboe1", bow: TRIO_TONGUE, one: {}, compass: TRIO_COMPASS.oboe, swell: TRIO_SWELL }),
+  trioOboe1: TRIO_OBOE1,
   trioOboe2: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.5 }], filter: { freq: 3.6, q: 1.2, env: 1, envDecay: 0.1 }, amp: { a: 0.035, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.035, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 0.52, sample: "trioOboe2", vib: { depth: 0, rate: 5.2, delay: 0.2 }, bow: TRIO_TONGUE, one: {}, compass: TRIO_COMPASS.oboe, swell: TRIO_SWELL }),
   trioBassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.95, r: 0.1 }, send: TRIO_SEND, level: 1, sample: "trioBassoon", bow: TRIO_TONGUE, one: {}, phoneLift: TRIO_BASSOON_PHONE_LIFT, compass: TRIO_COMPASS.bassoon, swell: TRIO_SWELL, continuo: [CONTINUO_CELLO, CONTINUO_HARPSI] }),
   trioCello: P({ ...TRIO_CELLO, continuo: [CONTINUO_HARPSI] }),
@@ -2239,7 +2256,7 @@ mergeSeats(OCTAVE_SEATS);
  */
 export type PieceTrial = { name: string; sound: string; why: string; pieces: Readonly<Record<string, Partial<Record<number, readonly Slot[]>>>> };
 /** D86x: the alto's level on SUPER 16-BIT's trials (its seat's level): its line alone as loud as today's alto alone on the phone model (renders). */
-const TRIAL_ALTO = { sung: 1.07, oboe: 0.36 } as const;
+const TRIAL_ALTO = { sung: 1.07, oboe: 0.36, m1: 0.93, m2: 0.85, m3: 0.285 } as const;
 export const PIECE_TRIALS: Readonly<Record<string, PieceTrial>> = {
   // (D890: v1, TRACKER with the alto on its choir, withdrawn with TRACKER.)
   "bwv54-v2": {
@@ -2258,6 +2275,36 @@ export const PIECE_TRIALS: Readonly<Record<string, PieceTrial>> = {
     pieces: {
       "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Cello", 0]] },
       "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Bassoon", 0]] },
+    },
+  },
+  // D858: the owner, on v2 and v3: "a mix between v2 and oboe, perhaps both layered on top of each other, with loudness
+  // adjusted… sung alto sounds great but can get drowned by the violin. oboe sounds protagonistic and nasal in a fun way, but
+  // might be too harsh by itself." The two in unison on the alto (PATCHES altoM1-3), its level matched alone to today's alto.
+  "bwv54-m1": {
+    name: "BWV 54 m1: SUPER 16-BIT, the alto sung and on the oboe in unison (the voice leading, the oboe 6 dB under)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto layered: VocalSet's alto and ZELENKA TRIO's first oboe on the same notes (the voice leading, the oboe 6 dB under), in the middle.",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM1", 0, TRIAL_ALTO.m1], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM1", 0, TRIAL_ALTO.m1], ["s16Bassoon", 0]] },
+    },
+  },
+  "bwv54-m2": {
+    name: "BWV 54 m2: SUPER 16-BIT, the alto sung and on the oboe in unison (the voice leading, the oboe 3 dB under)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto layered: VocalSet's alto and ZELENKA TRIO's first oboe on the same notes (the voice leading, the oboe 3 dB under), in the middle.",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM2", 0, TRIAL_ALTO.m2], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM2", 0, TRIAL_ALTO.m2], ["s16Bassoon", 0]] },
+    },
+  },
+  "bwv54-m3": {
+    name: "BWV 54 m3: SUPER 16-BIT, the alto sung and on the oboe in unison (the oboe leading, the voice 3 dB under)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto layered: VocalSet's alto and ZELENKA TRIO's first oboe on the same notes (the oboe leading, the voice 3 dB under), in the middle.",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM3", 0, TRIAL_ALTO.m3], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM3", 0, TRIAL_ALTO.m3], ["s16Bassoon", 0]] },
     },
   },
 };

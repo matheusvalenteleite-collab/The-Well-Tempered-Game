@@ -3,15 +3,15 @@
  * pieces, the players' voice was getting too drowned in the background (remember that the game is playing through phone
  * speakers)." In the many-voiced pieces (a soloist over an orchestra: the harpsichord concertos, BWV 1043, BWV 54) the
  * player's level is measured on the piece's own sound so that its line stands SOLO_TARGET_DB over the whole band (median),
- * the band takes none of a fugue table's trims, the continuo is floored on a phone (D645), and a band note doubling the
- * player's written note in unison is DOUBLE_DUCK_DB down: all constants of the piece, the voice and the sound.
+ * the band takes none of a fugue table's trims and the continuo is floored on a phone (D645): constants of the piece, the
+ * voice and the sound. D857: D853's doubling duck withdrawn (it tied a level to the notes): no band note is lowered.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById, loadExtras, FUGUES } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { setPreset } from "../src/touch/sound.ts";
-import { BALANCE, BAND_TRIM_MAX_DB, DOUBLE_DUCK_DB, SOLO_LIFT_MAX_DB, SOLO_LIFT_MIN_DB, SOLO_TARGET_DB, bandTrimDb, doublingKeys, isSoloPiece, liftGain, soloLiftDb, soloTrimDb } from "../src/touch/player-lift.ts";
+import { BALANCE, BAND_TRIM_MAX_DB, SOLO_LIFT_MAX_DB, SOLO_LIFT_MIN_DB, SOLO_TARGET_DB, bandTrimDb, isSoloPiece, liftGain, soloLiftDb, soloTrimDb } from "../src/touch/player-lift.ts";
 import { SOLO_LOUD } from "../src/touch/player-lift-solo.ts";
 import { OWN_LOUD } from "../src/touch/player-lift-data.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
@@ -39,7 +39,7 @@ test("D851: the solo pieces are the collections with a soloist over an orchestra
 });
 
 test("D852: SOLO_LOUD: every solo piece on its own sound, every voice a player can choose, its level within bounds, both paths; the continuo's floor within the band's", () => {
-  assert.ok(SOLO_TARGET_DB >= 2 && SOLO_TARGET_DB <= 4);
+  assert.ok(SOLO_TARGET_DB >= 0 && SOLO_TARGET_DB <= 3);
   for (const id of soloIds()) {
     const f = fugueById(id);
     const row = SOLO_LOUD[id];
@@ -68,26 +68,6 @@ test("D852: the band takes no fugue table's trims in a solo piece (the bass's fl
   const w = fugueById("wtc2f18");
   const g = new ProtoGame(w, 0, 0, protoById("ladder"), { bpm: 60, legato: false, easy: "direction", fail: false }, quietChip({ t: 0 }, []));
   assert.equal(g.lift, liftGain("wtc2f18", "jazzQuartet", 0, 3));
-  assert.equal(g.doubling.size, 0);
-});
-
-test("D853: the doubling: a band note in unison with the player's written note for more than half its length, never the bass, never the player's own", () => {
-  const f = fugueById("bwv1052-1");
-  const keys = doublingKeys(f, 0);
-  const bass = f.voices.length - 1;
-  assert.ok(keys.size > 100, `${keys.size}`);
-  const vi = f.voiceNames!.indexOf("Violin I");
-  let fromVi = 0;
-  for (const k of keys) {
-    const [u, on] = k.split(":").map(Number);
-    assert.notEqual(u, 0);
-    assert.notEqual(u, bass);
-    if (u === vi) fromVi++;
-    const n = f.voices[u].find((x) => x[0] === on)!;
-    const shared = f.voices[0].filter((m) => m[2] === n[2] && m[0] < n[0] + n[1] && m[0] + m[1] > n[0]).reduce((a, m) => a + Math.min(n[0] + n[1], m[0] + m[1]) - Math.max(n[0], m[0]), 0);
-    assert.ok(shared * 2 > n[1], k);
-  }
-  assert.ok(fromVi > keys.size / 3, `violin I doubles the right hand most (${fromVi} of ${keys.size})`);
 });
 
 const quietChip = (clock: { t: number }, log: { at: number; p: Play; m: number }[]) =>
@@ -107,21 +87,17 @@ function band(id: string, voice: number, bars: number, raw: boolean): { tick: nu
   return log.filter((x) => !x.p.lead).map((x) => ({ tick: g.tickAtTime(x.at), level: x.p.level ?? 1 }));
 }
 
-test("D853: the band's doubling notes DOUBLE_DUCK_DB down, the others as raw but for the continuo's floor; the player's level SOLO_LOUD's: by the score alone", () => {
+test("D857: no band note lowered by the score (the duck withdrawn): the band's notes as raw but for the continuo's floor; the player's level SOLO_LOUD's", () => {
   const id = "bwv1052-1";
   const f = fugueById(id);
   const a = band(id, 0, 16, true);
   const b = band(id, 0, 16, false);
   assert.equal(a.length, b.length);
   const tb = soloTrimDb(f, "super16", f.voices.length - 1);
-  let ducked = 0;
   for (let i = 0; i < a.length; i++) {
     const r = dB(b[i].level / a[i].level);
-    const ok = [0, -DOUBLE_DUCK_DB, tb].some((x) => Math.abs(r - x) < 0.01);
-    assert.ok(ok, `note ${i}: ${r.toFixed(2)} dB`);
-    if (Math.abs(r + DOUBLE_DUCK_DB) < 0.01) ducked++;
+    assert.ok([0, tb].some((x) => Math.abs(r - x) < 0.01), `note ${i}: ${r.toFixed(2)} dB`);
   }
-  assert.ok(ducked > 20, `${ducked} band notes ducked`);
   setPreset("super16");
   const g = new ProtoGame(f, 0, 0, protoById("ladder"), { bpm: 60, legato: false, easy: "direction", fail: false }, quietChip({ t: 0 }, []));
   assert.ok(Math.abs(dB(g.lift) - soloLiftDb(f, "super16", 0)) < 1e-9);
