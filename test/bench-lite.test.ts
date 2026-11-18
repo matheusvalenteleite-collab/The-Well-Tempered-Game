@@ -240,7 +240,8 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
     assert.doesNotMatch(app, /ACHIEVEMENTS|INTERFACE|KIMIKO/);
     // D343: every device on play.html is a phone or tablet, so its tutorial is the manual's card (D342),
     // not the bench's; and for the friends no TOOLS, no other book or tab.
-    assert.match(app, /id="card-tutorial"/);
+    // D868: no tutorial for the friends (the developer view keeps it).
+    assert.doesNotMatch(app, /id="card-tutorial"/);
     assert.match(app, /id="tab-book-II"/, "D489: Book II open from the start");
     for (const id of ["lite-tools", "tab-book-MORE", "tab-book-CHORALES"]) assert.doesNotMatch(app, new RegExp(`id="${id}"`), id);
   } finally {
