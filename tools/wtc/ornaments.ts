@@ -75,8 +75,8 @@ export const ADDED: Record<string, [number, string, string, number?][]> = {
   // Sinfonia 1's short wavy line on the soprano's E5 in bar 14 (p. 19; the motif of bar 5, where the
   // edition puts it and the BGA has none).
   inven07: [[10, "C5", "M", 0]],
-  // D877: Invention 9's mordent on the C5 of bar 33 (BG p. 11; a turn follows it, not played).
-  inven09: [[33, "C5", "M", 0]],
+  // D877: Invention 9's mordent on the C5 of bar 33 (BG p. 11), D878: and the turn after it.
+  inven09: [[33, "C5", "MJ", 0]],
   sinfo01: [[14, "E5", "W", 2.5]],
 };
 
@@ -124,11 +124,14 @@ export const BGA_SIGNS: Record<string, [number, string, string, number][]> = {
   inven05: [[32, "F5", "DR", 1]],
   inven09: [
     [15, "B4", "D", 0],
-    [15, "C5", "TR", 2],
+    [15, "C5", "TRJ", 2],
     [16, "D5", "U", 1],
     [33, "G4", "D", 1],
   ],
-  inven11: [[10, "E5", "UR", 3]],
+  inven11: [
+    [10, "D5", "MJ", 2],
+    [10, "E5", "UR", 3],
+  ],
   inven12: [1, 3, 9, 18, 20].map((bar, i) => [bar, ["B4", "F#3", "G#4", "B2", "D3"][i], "UR", 3] as [number, string, string, number]),
   sinfo01: [[5, "B4", "", 2.5]],
   sinfo07: [[43, "D#5", "", 2]],
@@ -154,13 +157,13 @@ export const CONTRAPUNCTUS: [number, number, string, string][] = [
  * ornamented text, with its small notes), in place of the edition's one sign: [voice, bar, beat, pitch, signs,
  * graces?]. The small notes are quavers slurred to their notes (the Explication's Accent), played as long
  * appoggiaturas (Q); the two runs of small demisemiquavers (bars 12, 16) as short graces (q) before the sign.
- * Not played: the turn printed after a mordant (bars 1, 2, 8, 13, 14, 29, 30, 37: a turn on the dot, which the
- * game has no sign for: the mordant kept) and the arpeggio of bar 21.
+ * The turn printed after a mordant, over the dot (bars 1, 2, 8, 13, 14, 29, 30, 37), played after it (J, D878).
+ * Not played: the arpeggio of bar 21.
  */
 export const SINFONIA5: [number, number, number, string, string, string[]?][] = [
-  [0, 1, 2, "Eb5", "M"],
+  [0, 1, 2, "Eb5", "MJ"],
   [0, 2, 0, "D5", "", ["QEb5"]],
-  [1, 2, 2, "Bb4", "M"],
+  [1, 2, 2, "Bb4", "MJ"],
   [0, 3, 0, "C5", "", ["QDb5"]],
   [1, 3, 0, "Ab4", "", ["QBb4"]],
   [0, 3, 2, "F5", "", ["QC5"]],
@@ -178,7 +181,7 @@ export const SINFONIA5: [number, number, number, string, string, string[]?][] = 
   [0, 7, 1, "Eb5", "M"],
   [1, 7, 2, "C5", "", ["QG4"]],
   [1, 8, 0, "F4", "", ["QC5"]],
-  [1, 8, 2, "Bb4", "M"],
+  [1, 8, 2, "Bb4", "MJ"],
   [0, 9, 0, "Eb5", "", ["QD5"]],
   [1, 9, 0, "G4", "", ["QAb4"]],
   [1, 9, 2, "C5", "M"],
@@ -191,9 +194,9 @@ export const SINFONIA5: [number, number, number, string, string, string[]?][] = 
   [0, 12, 2, "D5", "D", ["qF5", "qEb5", "qD5", "qC5", "qD5"]],
   [0, 13, 0, "C5", "M"],
   [1, 13, 0, "C5", "M"],
-  [1, 13, 2, "C5", "M"],
+  [1, 13, 2, "C5", "MJ"],
   [1, 14, 0, "A4", "", ["QBb4"]],
-  [0, 14, 2, "F5", "M"],
+  [0, 14, 2, "F5", "MJ"],
   [0, 15, 0, "D5", "", ["QEb5"]],
   [0, 15, 2, "F5", "", ["QEb5"]],
   [1, 15, 2, "D5", "", ["QC5"]],
@@ -227,9 +230,9 @@ export const SINFONIA5: [number, number, number, string, string, string[]?][] = 
   [0, 27, 0, "G5", "", ["QF5"]],
   [0, 27, 2, "Db5", "", ["QEb5"]],
   [0, 28, 2, "Bb4", "D"],
-  [0, 29, 2, "Ab4", "M"],
+  [0, 29, 2, "Ab4", "MJ"],
   [0, 30, 0, "G4", "", ["QAb4"]],
-  [1, 30, 2, "Eb4", "M"],
+  [1, 30, 2, "Eb4", "MJ"],
   [1, 31, 0, "D4", "", ["QEb4"]],
   [0, 31, 2, "Bb4", "", ["QF4"]],
   [1, 31, 2, "Db4", "", ["QC4"]],
@@ -250,5 +253,5 @@ export const SINFONIA5: [number, number, number, string, string, string[]?][] = 
   [0, 36, 2, "C5", "W"],
   [0, 37, 0, "F4", "", ["QC5"]],
   [1, 37, 1, "D4", "", ["QEb4"]],
-  [0, 37, 2, "Bb4", "M"],
+  [0, 37, 2, "Bb4", "MJ"],
 ];
