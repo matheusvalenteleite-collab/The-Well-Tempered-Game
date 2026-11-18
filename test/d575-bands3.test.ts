@@ -137,13 +137,3 @@ test("D581: PET SOUNDS' sleigh bells in the middle and final groups only (never 
   }
 });
 
-test("D580: PET SOUNDS on the record's colours, within the budget: the tack piano, the twelve-string, the accordion, the horn, the bass and its harmonica", () => {
-  const p = presetById("petSounds");
-  assert.deepEqual(p.by![4]!.map(([id]) => id), ["p3Tack", "p3Twelve", "psHorn", "p3Bass"]);
-  assert.ok(PATCHES.p3Tack.one?.courses && PATCHES.p3Tack.one.courses.unison.cents >= 8, "the tack's jangle: a second string out of true");
-  assert.ok(PATCHES.p3Twelve.one?.courses && PATCHES.p3Twelve.one.courses.octave.gain > 0, "the twelve-string's octave courses");
-  assert.ok(PATCHES.p3Bass.double, "the bass harmonica in unison");
-  for (const id of ["p3Tack", "p3Twelve", "p3Bass", "p2Accordion"] as const) assert.equal(PATCHES[id].lane, "wall", id);
-  const b = presetBudget("petSounds");
-  assert.ok(b.mb <= PRESET_MB, `${b.mb}`);
-});

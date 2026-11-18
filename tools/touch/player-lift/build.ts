@@ -23,6 +23,7 @@ import { entrySpans } from "../../../src/touch/voice-mode.ts";
 import { BAND_ENTRY_DB, BAND_SPREAD_DB, BAND_TRIM_MAX_DB, PLAYER_ENTRY_DB, BRIGHT_MAX_DB, BRIGHT_SLACK_DB, LIFT_MAX_DB, LIFT_MIN_DB } from "../../../src/touch/player-lift.ts";
 import { SOUND_LOUD as OLD_SOUND } from "../../../src/touch/player-lift-data.ts";
 import { BASS_GAP_DB } from "../../../src/touch/bass-phone.ts";
+import { WITHDRAWN_D890 } from "../../../src/touch/sound.ts";
 import { BASS_PHONE as BASS_48 } from "../../../src/touch/bass-phone-data.ts";
 import { BASS_PHONE_AOF } from "../../../src/touch/bass-phone-aof.ts";
 import { BASS_PHONE_INV } from "../../../src/touch/bass-phone-inv.ts";
@@ -246,7 +247,8 @@ if (Object.keys(snd).length) {
     (SOUND[s] ??= {})[+n] = { ...x, h: x.b.map(() => 0), ...(d ? { d: { b: d.b.map((y) => y[0]), off: d.off.map((y) => y[0]), t: d.t, l: d.l } } : {}) };
   }
 } else
-  for (const [s, by] of Object.entries(OLD_SOUND))
+  // D890: a withdrawn sound's tables (PET SOUNDS, TRACKER, MEGA FM) not carried over.
+  for (const [s, by] of Object.entries(OLD_SOUND).filter(([s]) => !WITHDRAWN_D890.has(s)))
     for (const [n, x] of Object.entries(by)) (SOUND[s] ??= {})[+n] = { b: x.b, off: x.off, t: x.t, l: x.l, h: x.h, ...((x as SoundRow).d ? { d: (x as SoundRow).d } : {}) };
 // D703: a like-for-like baseline (OLDDATA=<a player-lift-data.ts>): that data's balance (one for both paths, as it was) on
 // these scans' runs, the lost stretches counted the same way, per path; and the new balance's beside it.

@@ -82,8 +82,9 @@ test("D596: I/24 on SID 64 with SYNTH KIT, D574's staged build kept: sparse at t
   assert.equal(FUGUE_STYLES.wtc1f24, "scoreSynth");
   assert.equal(drumStyleFor("wtc1f24", "sid64"), "scoreSynth");
   // ORCHESTRA & ORGAN a choice: on it the fugue's own drums are not forced; the timpani still among the picks.
-  assert.ok(FUGUE_PICKS.wtc1f24.includes("timpani"));
-  assert.ok(IDEAS.some((i) => i.id === "finale-orchestra" && i.sound === "orchestraOrgan" && i.kind === "tailored"));
+  // D891: the timpani withdrawn: out of the picks, and the Sound Lab's ORCHESTRA & ORGAN finale with it.
+  assert.ok(!FUGUE_PICKS.wtc1f24.includes("timpani"));
+  assert.ok(!IDEAS.some((i) => i.id === "finale-orchestra"));
   assert.equal(TWEAKS.wtc1f24.stage, 0.4);
   assert.equal(TWEAKS.wtc1f24.climaxKit, true);
   const f = fugueById("wtc1f24");

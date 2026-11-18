@@ -109,10 +109,6 @@ export const BOOK1: Record<string, PieceColours> = {
         at(1, OFLUTE, "A light fugue: the flutes."),
         at(42, OPRIN, "The reprise on the principals."),
       ],
-      megaFm: [
-        at(28, { fm: 0.65 }, "The long episode with a mellower FM index."),
-        at(E("wtc1f03", 35), OWN, "The entries in the operators' own brightness."),
-      ],
     },
   },
   wtc1f04: {
@@ -373,14 +369,15 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f15: {
-    sound: "megaFm",
-    soundWhy: "A gigue, 'a performer's fugue' of fire and humour with sharp articulation (Keller): MEGA FM's clav and slap bass articulate it crisply and cut through a phone's speaker.",
+    // D893: CHORINHO (was MEGA FM, withdrawn: D890).
+    sound: "chorinho",
+    soundWhy: "D893: a gigue, 'a performer's fugue' of fire and humour with sharp articulation (Keller): CHORINHO's flute, bandolim and seven-string, a regional's bite in 6/8 (the voice probe's closest pair 2.31 against MEGA FM's 1.29; BOSSA NOVA's 2.63 near it on more pieces, KRAUTROCK's 5.87 on seven already), its own synth kit read from the score.",
     character: "Bodky's three spans (1-37 forte, 38-61 piano, 61-86 forte); the exposition inverso 20-31 (Ledbetter); the final stretti 77-79.",
     plans: {
-      megaFm: [
-        at(38, { fm: 0.7 }, "Bodky's middle span (38-61) with a mellower FM index."),
-        at(61.625, OWN, "The operators' own brightness from 61⅝ (Bodky)."),
-        at(77, { fm: 1.2 }, "The last stretti a little brighter."),
+      chorinho: [
+        at(38, { tone: -1.5 }, "Bodky's middle span (38-61) a shade darker."),
+        at(61.625, OWN, "The band's own brightness from 61⅝ (Bodky)."),
+        at(77, { tone: 1.5 }, "The last stretti a little brighter."),
       ],
       harpsichordSampled: [at(1, H84, "Bodky: 8″+4″ for 1-37."), at(38, H8, "Bodky: the 8′ for 38-61⅝."), at(61.625, H84, "Bodky: 8″+4″ from 61⅝ to the end.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(38, OFLUTE, "Bodky's softer middle on the flutes."), at(61.625, OPRIN, "The principals again.")],
@@ -415,8 +412,9 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f17: {
-    sound: "petSounds",
-    soundWhy: "'Noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, a 1966 ballad's tempo, four voices for a Pet Sounds session (the tack piano, the twelve-string, the French horn, the picked bass with its bass harmonica) over a soft backbeat with tambourine, the sleigh bells from the middle entries and the timpani at the arrivals; the reprise (Ledbetter 27-35) out of a bar's break.",
+    // D893: FLUTE & HARP (was PET SOUNDS, withdrawn: D890).
+    sound: "fluteHarp",
+    soundWhy: "D893: 'noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, four voices on FLUTE & HARP's alto flute, harp, viola and cello in a hall, the slow lines sustained (the voice probe's closest pair 1.94 against PET SOUNDS' 0.87; SUPER 16-BIT's 2.18 near, its alto a harpsichord's pluck); no drums.",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
@@ -448,7 +446,6 @@ export const BOOK1: Record<string, PieceColours> = {
     soundWhy: "D588 (the owner: \"we need this one to be a more Stooges-y fugue, slapsticky\"): 'a delicate and complicated scherzo' (Keller after Tovey) in 9/8, its subject all skips and rests: a slapstick short's pit band, the xylophone on the top voice, the clarinet inside, the bassoon's staccato on the bass; with DRUMS on, woodblocks, temple blocks and the ratchet on the cadences.",
     character: "Sections 1-20, 23-42 and the reprise 42-54 (Ledbetter); dolce e molto espressivo (Bodky).",
     plans: {
-      tracker: [at(23, { vib: 12 }, "The middle section with the tracker's vibrato command."), at(42, OWN, "The reprise plain.")],
       vaudeville: [at(23, { tone: -1.5 }, "D588: the middle section (23-42) a shade darker, the band's second chorus."), at(42, OWN, "The reprise (42-54) bright again.")],
       harpsichordSampled: [at(1, H8, "Dolce: the 8′."), at(23, HLUTE, "The middle section (23-42) on the buff."), at(42, H84, "The reprise (42-54) on 8′+4′.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(42, OPRIN, "The reprise on the principals.")],

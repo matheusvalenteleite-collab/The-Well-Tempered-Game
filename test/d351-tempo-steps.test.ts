@@ -15,7 +15,7 @@ g0.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: s
 const { CHORALES, fugueById, loadExtras, MORE_BACH } = await import("../src/touch/fugue.ts");
 const { MORE_TEMPO } = await import("../src/touch/tempi.ts");
 const { PIECE_SOUND } = await import("../src/touch/piece-sound.ts");
-const { PATCHES, patchFor, placeFor, PRESETS, setPreset } = await import("../src/touch/sound.ts");
+const { PRESETS, setPreset } = await import("../src/touch/sound.ts");
 const { EMBLEM_W, GLYPHS, keyLabel, labelWidth } = await import("../src/bench/emblem.ts");
 const { pieceWord } = await import("../src/bench/piece-word.ts");
 const steps = await import("../src/bench/tempo-steps.ts");
@@ -109,22 +109,7 @@ test("D351, D434: every tempo the piece's own sound (the owner: \"keep each fugu
   assert.equal((steps as Record<string, unknown>).stepSound, undefined, "no sound by step");
   assert.equal((steps as Record<string, unknown>).STEP_SOUNDS, undefined);
   for (const id of [...MORE, ...CHORALE_IDS]) assert.ok(PRESETS.some((x) => x.id === (PIECE_SOUND[id] ?? "chip")), id);
-  // The concertos at SLOW and FAST, as SUPER 16-BIT (D348): the harpsichords on a harpsichord, never louder than a string line.
-  for (const [pid, harp] of [["tracker", PATCHES.trkHarpsi]] as const) {
-    setPreset(pid);
-    for (const f of MORE_BACH.filter((x) => x.collection === "hconcerto")) {
-      const n = f.voices.length;
-      const level = (v: number) => (patchFor(v, n)!.level ?? 1) * placeFor(v, n)!.level;
-      const strings = f.voiceNames.map((x, v) => (/Violin|Viola/.test(x) ? v : -1)).filter((v) => v >= 0);
-      for (const [v, name] of f.voiceNames.entries()) {
-        if (/Harpsichord/.test(name)) {
-          assert.equal(patchFor(v, n), harp, `${pid} ${f.id} ${name}`);
-          assert.ok(level(v) <= Math.min(...strings.map(level)) + 1e-9, `${pid} ${f.id} ${name}: never louder than the strings`);
-        }
-        assert.ok(Math.abs(placeFor(v, n)!.pan) <= 0.35);
-      }
-    }
-  }
+  // (D351's concertos on TRACKER: withdrawn with it, D890.)
   setPreset("chip");
   // The page: the piece's own sound, or the one chosen for it, at every tempo; the card shows the sound in force.
   const app = src("src/bench/BenchApp.tsx");

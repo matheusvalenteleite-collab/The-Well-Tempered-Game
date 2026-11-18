@@ -95,7 +95,7 @@ test("D340: what the pipeline computes for the WTC: entries in the fugues, inven
   assert.equal(PIECE_SOUND.chor001, "chamberOrgan");
   // D355: the Art of Fugue each its own sound; D708: chosen by the voices' distinctness (Contrapunctus 5 on BOSSA NOVA, 14 on PET SOUNDS).
   assert.equal(PIECE_SOUND["bwv1080-05"], "bossaNova");
-  assert.equal(PIECE_SOUND["bwv1080-14"], "petSounds");
+  assert.equal(PIECE_SOUND["bwv1080-14"], "tomita"); // D893
 });
 
 test("D340: the concerto offers the two solo violins only; a chorale its soprano first", () => {

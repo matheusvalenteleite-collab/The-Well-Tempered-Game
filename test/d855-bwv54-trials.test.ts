@@ -27,7 +27,7 @@ test("D855: the trials are off by default; BWV 54 opens on SUPER 16-BIT as befor
 });
 
 test("D855: each trial seats every voice of both arias, the alto on an instrument of its own (no other voice on its patch)", () => {
-  assert.deepEqual(Object.keys(PIECE_TRIALS), ["bwv54-v1", "bwv54-v2", "bwv54-v3"]);
+  assert.deepEqual(Object.keys(PIECE_TRIALS), ["bwv54-v2", "bwv54-v3"]); // D890: v1 (TRACKER) withdrawn
   for (const [tid, t] of Object.entries(PIECE_TRIALS)) {
     setPieceTrial(tid);
     try {

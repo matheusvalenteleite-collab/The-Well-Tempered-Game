@@ -594,6 +594,8 @@ export const ROCK_STYLE: Readonly<Record<string, RockStyle>> = { abbey: "abbey",
 /** D526: every file any library style may play (its engine's recordings; none for a synthesized kit). */
 export function drumFilesFor(style: string): { set: string; notes: number[] }[] {
   switch (styleInfo(style).engine) {
+    case "none":
+      return [];
     case "brushes":
       return [{ set: BRUSH_SET, notes: [...BRUSH_MIDIS] }];
     case "rockBand":
@@ -4065,6 +4067,9 @@ export class Chip {
       const style = drumStyleFor(piece.id);
       const pcx: GrooveContext = { tick: cx?.tick ?? 0, beat: cx?.beat ?? 1, fills: cx?.fills ?? [], end: cx?.end ?? piece.length, dynDb: cx?.dynDb ?? 0, piece };
       switch (styleInfo(style).engine) {
+        // D892: NO DRUMS (drum-library.ts NO_DRUMS): nothing struck, and never the sound's own drummer in its place.
+        case "none":
+          return true;
         case "brushes": {
           const fills = brushFills(piece, pcx.beat, per);
           return (this.brushes(at, beatS, b, per, compound, { ...pcx, fills, dynDb: (cx?.dynDb ?? 0) + brushDb(piece, pcx.tick) }, style), true);

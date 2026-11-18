@@ -259,13 +259,7 @@ test("D311: GAME BOY, SID 64, MEGA FM: the pulse width (its loudness kept), the 
     return (dl.delayTime as FakeParam).value * 329.63;
   };
   assert.ok(Math.abs((await width(1)) - 0.125) < 0.003 && Math.abs((await width(0)) - 0.5) < 0.005);
-  const fmIndex = async (x: number) => {
-    const s = await strike("megaFm", { touch: x });
-    return Math.max(...s.made.filter((n) => n.kind === "gain").map((n) => (n.gain as FakeParam).events.find((e) => e.type === "set" && e.t === DOWN)?.v ?? 0));
-  };
-  const lo = await fmIndex(0);
-  const hi = await fmIndex(1);
-  assert.ok(Math.abs(Math.log2(hi / lo) - 1.4) < 0.05, `FM index ×${(hi / lo).toFixed(2)}`);
+  // (D890: MEGA FM withdrawn: its FM index by the touch no longer reached by an offered sound.)
 });
 
 test("D311: SWITCHED-ON and TOMITA: the filter's brightness by the landing; a held move sweeps a wah (nothing at rest)", async () => {

@@ -35,7 +35,9 @@ test("D526: the library: unique ids grouped by family, short caps labels, the de
     assert.ok(s.metres.length > 0 && s.why.length > 10, id);
     if (s.engine === "grid") assert.ok(GRIDS[id], id);
   }
-  for (const id of ["rock", "poprock", "abbey", "psych", "motorik", "ballad", "shuffle", "brushes", "jazz", "bebop", "jazzWaltz", "salsa", "bossa", "choro", "baiao", "machine", "house", "techno", "breakbeat", "dnb", "triphop", "linn", "lofi", "idm", "chip", "timpani", "frame"]) assert.ok(styleIds.includes(id), id);
+  for (const id of ["rock", "poprock", "abbey", "psych", "motorik", "ballad", "shuffle", "brushes", "jazz", "bebop", "jazzWaltz", "salsa", "bossa", "choro", "baiao", "machine", "house", "techno", "breakbeat", "dnb", "triphop", "linn", "lofi", "idm", "chip", "frame"]) assert.ok(styleIds.includes(id), id);
+  // D891: the timpani, the tabor and the field drum withdrawn; D892: NO DRUMS a HOME, never in the list.
+  for (const id of ["timpani", "tabor", "fieldDrums", "none"]) assert.ok(!styleIds.includes(id), id);
   for (const fam of FAMILIES) assert.ok(stylesIn(fam).length >= 2, fam);
   assert.ok(stylesIn("electronic").length >= 10);
   for (const p of PLANNED_STYLES) assert.ok(!styleIds.includes(p.id), p.id);
@@ -46,7 +48,9 @@ test("D526: every sound has a HOME and a family (HOME first); the bands their ow
     const fam = familyFor(p.id);
     assert.ok(SOUND_STYLES[p.id], `${p.id} has a family`);
     assert.equal(fam[0], homeStyleFor(p.id));
-    assert.ok(fam.length >= 2 && fam.every((s) => styleIds.includes(s)) && new Set(fam).size === fam.length, p.id);
+    // D892: NO DRUMS a HOME (CLASSIC CHIP's, the organ's), never in the list.
+    // (D891: TRIAL WINDS, no offered sound, left the frame drum alone.)
+    assert.ok((fam.length >= 2 || p.id === "trialWinds") && fam.every((s) => styleIds.includes(s) || s === "none") && new Set(fam).size === fam.length, p.id);
   }
   assert.equal(homeStyleFor("abbeyRoad"), "abbey");
   assert.equal(homeStyleFor("krautrock"), "motorik");
@@ -54,8 +58,10 @@ test("D526: every sound has a HOME and a family (HOME first); the bands their ow
   assert.equal(homeStyleFor("jazzQuartet"), "brushes");
   assert.equal(homeStyleFor("salsa"), "salsa");
   assert.equal(homeStyleFor("chorinho"), "choro");
-  assert.equal(homeStyleFor("petSounds"), "pet");
-  assert.equal(homeStyleFor("chip"), "chip");
+  // D892: CLASSIC CHIP without its drum; GAME BOY keeps the chip kit. (D890: PET SOUNDS withdrawn; its kit "pet" ABBEY ROAD's.)
+  assert.equal(homeStyleFor("chip"), "none");
+  assert.equal(homeStyleFor("gameboy"), "chip");
+  assert.ok(familyFor("abbeyRoad").includes("pet"));
   assert.ok(!familyFor("abbeyRoad").includes("timpani") && !familyFor("abbeyRoad").includes("brushes"), "the diagnosis: ABBEY ROAD offered timpani or brushes");
 });
 
@@ -85,8 +91,9 @@ test("D526: the DRUMS menu: the whole library for every fugue and sound, HOME fi
   for (const sound of ["abbeyRoad", "chip", "harpsichordSampled", "nothing"]) {
     for (const f of [WTC[0], fugueById("wtc1f11"), fugueById("wtc2f18")]) {
       const m = drumMenuFor(f.id, sound);
-      assert.equal(m.length, styleIds.length);
-      assert.deepEqual([...m.map((x) => x.style)].sort(), [...styleIds].sort());
+      const all = [...new Set([...familyFor(sound), ...styleIds])];
+      assert.equal(m.length, all.length);
+      assert.deepEqual([...m.map((x) => x.style)].sort(), [...all].sort());
       assert.equal(m[0].id, HOME_ID);
       assert.equal(m[0].style, homeStyleFor(sound));
       assert.ok(m[0].home && m.slice(1).every((x) => !x.home));
@@ -202,7 +209,7 @@ test("D526: with DRUMS on, every style plays through the one choke point (Chip.s
       for (const e of ev) {
         assert.ok(e.style === style && Number.isFinite(e.tick) && e.tick >= f.barTicks * 3 - 1 && e.vel > 0 && e.vel <= 1.5, `${style} ${JSON.stringify(e)}`);
       }
-      const voice = { brushes: "brush", rockBand: "rock", latin: "latin", bossa: "bossa", pet: "pet", grid: "kit", kit: "kit", score: "kit" }[styleInfo(style).engine];
+      const voice = ({ brushes: "brush", rockBand: "rock", latin: "latin", bossa: "bossa", pet: "pet", grid: "kit", kit: "kit", score: "kit", none: "none" } as const)[styleInfo(style).engine];
       assert.ok(ev.some((e) => e.voice === voice || (voice === "brush" && e.voice === "sweep") || (voice === "bossa" && e.voice === "sweep")), `${style}: ${voice}`);
     }
   }

@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { strokesOf } from "./drum-strokes.ts";
 import { beatOf, fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
-import { FUGUE_PICKS, homeFor, SOUND_FUGUE_HOME } from "../src/touch/drum-library.ts";
+import { FUGUE_PICKS, homeFor, NO_DRUMS, SOUND_FUGUE_HOME } from "../src/touch/drum-library.ts";
 import { pieceLevel } from "../src/touch/sound.ts";
 import { BAND, PIECE_DB, TAIL_S, TAIL_W } from "../src/touch/drum-peak-data.ts";
 import { STREET_MIN_BAR_S, STREET_VEL } from "../src/touch/score-layers.ts";
@@ -46,6 +46,8 @@ function bandAt(id: string, tick: number): number {
 
 /** Every stroke of `style` on `sound` over a fugue, against the band measured under `key`: the strokes counted and those not MARGIN_DB under. */
 async function overBand(id: string, sound: string, style: string, key: string, bad: string[]): Promise<number> {
+  // D892-D894: NO DRUMS strikes nothing.
+  if (style === NO_DRUMS) return 0;
   const f = fugueById(id);
   const lv = 20 * Math.log10(pieceLevel(sound, id, true));
   const db = PIECE_DB[`${style}@${sound}`];
@@ -111,7 +113,7 @@ test("D735: the Inventions' and Sinfonias' HOME drums under the band at every st
   assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 
-test("D618: a sound's HOME by fugue (BACH BRASS's calm fugues on TIMPANI and FIELD DRUM) under that sound's band at every stroke", async () => {
+test("D618: a sound's HOME by fugue (BACH BRASS's calm fugues; D891: NO DRUMS since the timpani and the field drums went) under that sound's band at every stroke", async () => {
   const bad: string[] = [];
   let n = 0;
   for (const [sound, homes] of Object.entries(SOUND_FUGUE_HOME))
@@ -119,7 +121,7 @@ test("D618: a sound's HOME by fugue (BACH BRASS's calm fugues on TIMPANI and FIE
       assert.equal(homeFor(id, sound), homes[id], `${id} on ${sound}: its HOME`);
       n += await overBand(id, sound, homes[id], `${id}@${sound}`, bad);
     }
-  assert.ok(n > 2000, `${n} strokes`);
+  assert.equal(n, 0, "D891: none struck");
   assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 

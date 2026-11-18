@@ -38,7 +38,6 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
   // SALSA: the brass front line and the tres trade seats; the baby bass keeps the bass.
   salsa: { s2Trombone: { near: ["s2Trumpet", "s2Tres"] }, s2Trumpet: { near: ["s2Trombone", "s2Tres"] }, s2Tres: { near: ["s2Trumpet", "s2Trombone"] } },
   abbeyRoad: { a2Guitar: { near: ["a2Trumpet"] }, a2Trumpet: { near: ["a2Guitar"] } },
-  petSounds: { psHorn: { near: ["p3Twelve"] }, p3Twelve: { near: ["psHorn"] } },
   // (D637: II/2's tenor down to C2, past the viola, on the band's cello: two cellos, as STRING CONSORT's low viola, D632.)
   baroqueBand: { bandOboe: { near: ["bandViola"] }, bandViolin: { near: ["bandViola"] }, bandViola: { near: ["bandViolin", "bandOboe"], stretch: ["bandCello"] } },
   oboeTrio: { trioOboe1: { near: ["trioOboe2"], far: ["trioHarpsi"] }, trioOboe2: { near: ["trioBassoon"] }, trioBassoon: { near: ["trioOboe2"] } },
@@ -53,9 +52,8 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
   stringConsort: { consViolin: { near: ["consViola"] }, consViola: { near: ["consCello", "consViolin"] } },
   trialWinds: { trialOboe: { near: ["trialClarinet"] }, trialFlute: { near: ["trialOboe", "trialClarinet"] }, trialClarinet: { near: ["trialOboe", "trialHorn", "trialBassoon"] } },
   // D637: the stretched reads' bands (tools/touch/stretch/audit.ts): their own instruments traded among the upper voices
-  // (TRACKER's choir and SUPER 16-BIT's strings with the harpsichord), SOLO VOICES' singers a neighbouring voice's singer
+  // (SUPER 16-BIT's strings with the harpsichord; D890: TRACKER withdrawn), SOLO VOICES' singers a neighbouring voice's singer
   // (`stretch`: taken only where they leave fewer notes stretched, never for the compass alone).
-  tracker: {},
   super16: {},
   soloVoices: { singS: { near: [], stretch: ["singA"] }, singA: { near: [], stretch: ["singS", "singT"] }, singT: { near: [], stretch: ["singA", "singB"] } },
 };
@@ -63,7 +61,7 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
  * D637: the sounds whose line-ups are chosen for the stretch first (the others' stretched notes are on the bass, which keeps
  * its instrument, or would cost the band its colour: ZELENKA TRIO's alto on the harpsichord for one note; test/d635's allow-list).
  */
-export const STRETCH_SEATS: ReadonlySet<string> = new Set(["tracker", "super16", "soloVoices", "baroqueBand"]);
+export const STRETCH_SEATS: ReadonlySet<string> = new Set(["super16", "soloVoices", "baroqueBand"]);
 /** D637: an instrument kept on its line though some notes are read past STRETCH_MAX (a band's own colour: test/d635's allow-list). */
 export const STRETCH_KEPT: Readonly<Record<string, readonly PatchId[]>> = { vaudeville: ["vdXylo"] };
 /**

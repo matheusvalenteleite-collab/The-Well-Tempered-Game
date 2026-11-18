@@ -17,7 +17,6 @@ import { ART_HOLD, ART_SPREAD, joins, phrase, phraseContext, SLUR_SHAPE, type Sh
 import { GAP_MAX_SHARE, TABLES } from "../src/touch/practice.ts";
 import { performSubject, readingMarks, readingsOf } from "../src/touch/readings.ts";
 import { accompaniment, subjectMarks } from "../src/touch/voice-mode.ts";
-import { hz } from "../src/touch/tuning.ts";
 
 const ctxOf = installFakeAudio(0, true);
 
@@ -191,37 +190,6 @@ test("D302: a synthesized sound (SWITCHED-ON): joined, no gap and no new attack;
   const want = Math.min(0.14, Math.max(0.04, 0.28 * l.value));
   assert.ok(Math.abs((1 - l.sh[0].hold) * l.value - want) <= ART_SPREAD * want + 0.002, `the default leap's written gap ${((1 - l.sh[0].hold) * l.value).toFixed(3)} s`);
   assert.ok(silence(l) > 0.03, `heard (${silence(l).toFixed(3)} s)`);
-});
-
-test("D302: an FM sound (MEGA FM's reed): joined, no gap and no burst of the index; detached, a gap", () => {
-  const j = pair("megaFm", 0, 3, 0);
-  assert.ok(dip(j) > 0.6, `dip ${dip(j).toFixed(2)}`);
-  assert.ok(overshoot(j) < 1.08, `overshoot ${overshoot(j).toFixed(2)}`);
-  const index = (p: P, k: 0 | 1, t: number) => {
-    const f0 = hz(p.midi[k]);
-    let best = 0;
-    for (const n of p.made[k]) if (n.kind === "gain" && n.targets.some((x) => x instanceof FakeParam) && (n.gain as FakeParam).events.length) best = Math.max(best, (n.gain as FakeParam).valueAt(t) / f0);
-    return best;
-  };
-  const idx2 = index(j, 1, j.on2 + 0.001);
-  const body = index(j, 1, j.on2 + 0.4);
-  assert.ok(idx2 <= body * 1.05, `the index at the joined onset ${idx2.toFixed(2)}, its body ${body.toFixed(2)}`);
-  const d = pair("megaFm", 2, 3, 0);
-  assert.ok(silence(d) >= 0.2 * d.value, `silent ${silence(d).toFixed(3)} s`);
-  assert.ok(index(d, 1, d.on2 + 0.001) > index(d, 1, d.on2 + 0.4) * 1.3, "a detached note's onset bright (the index falling)");
-});
-
-test("D302: a recorded sustained sound (TRACKER's violin; D510: NOCTURNE 32-BIT's withdrawn): joined, crossfaded past the attack; detached, a gap", async () => {
-  setPreset("tracker");
-  await new Chip().prepare(I2.voices.flat().map((n) => n[2]));
-  const j = pair("tracker", 0, 3, 0);
-  assert.ok(dip(j) > 0.6, `dip ${dip(j).toFixed(2)}`);
-  const src = j.made[1].find((n) => n instanceof FakeSource && n.kind === "buffer") as FakeSource;
-  assert.ok(src.offset >= 0.2, `started past its attack (${src.offset.toFixed(3)} s in)`);
-  const d = pair("tracker", 2, 3, 0);
-  assert.ok(silence(d) >= 0.2 * d.value, `silent ${silence(d).toFixed(3)} s`);
-  const src2 = d.made[1].find((n) => n instanceof FakeSource && n.kind === "buffer") as FakeSource;
-  assert.ok(src2.offset < 0.05, "a detached note from its attack");
 });
 
 test("D302: a plucked recording (the harpsichord): joined, held into the next (overlegato); detached, a gap", async () => {

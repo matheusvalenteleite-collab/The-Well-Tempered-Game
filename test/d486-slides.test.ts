@@ -89,7 +89,6 @@ test("D486: each instrument family colours a slide its own way, by interval", ()
   assert.equal(name("chip", 60, 62), "pitch slide");
   assert.equal(name("chip", 60, 67), "arpeggio");
   assert.equal(name("gameboy", 60, 67), "pitch slide");
-  assert.equal(name("megaFm", 60, 64), "bend");
   assert.equal(name("tomita", 60, 64), "portamento");
   assert.equal(name("analog", 60, 64), "portamento");
   // Glides longer for larger intervals; a falling leap on the strings slower still.

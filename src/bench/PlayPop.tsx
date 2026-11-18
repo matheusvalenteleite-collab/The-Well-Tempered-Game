@@ -49,9 +49,7 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["analog", "SWITCHED-ON"],
   // D297: the new presets, after the five (for the owner to judge).
   ["super16", "SUPER 16-BIT"],
-  ["megaFm", "MEGA FM"],
   ["sid64", "SID 64"],
-  ["tracker", "TRACKER"],
   // D302: CHAMBER ORGAN remade as PIPE ORGAN; two singing voices. (D304: FOREST 64 and PARTY 64 withdrawn.)
   ["chamberOrgan", "PIPE ORGAN"],
   ["vocalSynth", "VOCAL SYNTH"],
@@ -77,8 +75,7 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   ["krautrock", "KRAUTROCK"],
   // D521: BOSSA NOVA (the flute, the nylon guitar, the piano, the upright bass and its drums).
   ["bossaNova", "BOSSA NOVA"],
-  // D524: PET SOUNDS (the strings, the horn, the harpsichord, the piano, the electric bass, its drums and timpani).
-  ["petSounds", "PET SOUNDS"],
+  // (D890: PET SOUNDS, TRACKER and MEGA FM withdrawn.)
   // D586-D590: the setups' new sounds (BERLIN SCHOOL's synthesizers; VAUDEVILLE's pit band; FLUTE & HARP; ORCHESTRA & ORGAN, staged).
   ["berlinSchool", "BERLIN SCHOOL"],
   ["vaudeville", "VAUDEVILLE"],

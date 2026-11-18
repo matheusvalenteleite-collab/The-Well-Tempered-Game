@@ -23,7 +23,7 @@ before(async () => {
 const SOUNDS: Record<string, [string, string]> = {
   bwv772: ["gameboy", "chip"],
   bwv773: ["berlinSchool", "scoreSynth"],
-  bwv774: ["chorinho", "tabor"],
+  bwv774: ["chorinho", "castanets"],
   bwv775: ["sid64", "chip"],
   bwv776: ["jazzQuartet", "brushes"],
   bwv777: ["bossaNova", "brushes"],
@@ -31,35 +31,35 @@ const SOUNDS: Record<string, [string, string]> = {
   bwv779: ["analog", "chip"],
   bwv780: ["berlinSchool", "swell"],
   bwv781: ["gameboy", "chip"],
-  bwv782: ["tracker", "swell"],
+  bwv782: ["oboeTrio", "swell"],
   bwv783: ["jazzQuartet", "brushes"],
-  bwv784: ["petSounds", "pet"],
+  bwv784: ["harpsichordSampled", "brushes"],
   bwv785: ["analog", "chip"],
-  bwv786: ["tracker", "triphop"],
+  bwv786: ["oboeTrio", "triphop"],
   bwv787: ["super16", "lofi"],
   bwv788: ["tomita", "brushes"],
   bwv789: ["krautrock", "motorik"],
   bwv790: ["abbeyRoad", "abbey"],
-  bwv791: ["petSounds", "ballad"],
-  bwv792: ["chorinho", "tabor"],
+  bwv791: ["baroqueBand", "none"],
+  bwv792: ["chorinho", "none"],
   bwv793: ["tomita", "swell"],
   bwv794: ["abbeyRoad", "abbey"],
   bwv795: ["pianoSampled", "swell"],
   bwv796: ["sid64", "chip"],
-  bwv797: ["chip", "chip"],
+  bwv797: ["chip", "none"],
   bwv798: ["super16", "lofi"],
-  bwv799: ["chip", "chip"],
+  bwv799: ["chip", "none"],
   bwv800: ["salsa", "bossa"],
   bwv801: ["krautrock", "liebezeit"],
 };
-const CHIPS = new Set(["chip", "gameboy", "sid64", "super16", "tracker", "megaFm"]);
+const CHIPS = new Set(["chip", "gameboy", "sid64", "super16"]);
 
 test("D731: each Invention and Sinfonia on its own sound, varied (at most two pieces a sound, chips on at most a third), with its reason", () => {
   const uses = new Map<string, string[]>();
   for (const [id, [s]] of Object.entries(SOUNDS)) {
     assert.equal(PIECE_SOUND[id], s, id);
     assert.equal(COLOURS[id].sound, s, id);
-    assert.ok(/^D731: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy), `${id}: why`);
+    assert.ok(/^D(731|893): .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy), `${id}: why`);
     assert.ok(COLOURS[id].plans[s]?.length, `${id}: a colour plan on its sound`);
     (uses.get(s) ?? uses.set(s, []).get(s)!).push(id);
   }
@@ -75,6 +75,7 @@ test("D735: each HOME fits the metre, a grid's pulse in its band, at least 65 % 
     const f = fugueById(id);
     assert.equal(FUGUE_STYLES[id], st, id);
     assert.equal(homeFor(id, s), st, id);
+    if (st === "none") continue; // D892-D894
     assert.ok(fits(st, f), `${id}: ${st} in ${f.meter}`);
     const b = beatOf(f);
     const tps = (f.tpq * tempoOf(id)) / 60;
@@ -112,33 +113,24 @@ test("D741, D744: the Four Duets on four sounds (none shared within the group), 
   }
 });
 
-test("D771, D774: the Chromatic Fugue on FLUTE & HARP (a sound then serving fewer than three pieces), its reason and plan; TIMPANI fits, on the onsets", async () => {
+test("D771, D774: the Chromatic Fugue on FLUTE & HARP (a sound then serving fewer than three pieces), its reason and plan; its drums (D894: none)", async () => {
   const id = "bwv903-2";
   assert.equal(PIECE_SOUND[id], "fluteHarp");
   assert.equal(COLOURS[id].sound, "fluteHarp");
   assert.ok(/^D771: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy));
   assert.ok(COLOURS[id].plans.fluteHarp?.length);
-  const f = fugueById(id);
-  assert.equal(FUGUE_STYLES[id], "timpani");
-  assert.equal(homeFor(id, "fluteHarp"), "timpani");
-  assert.ok(fits("timpani", f));
-  const ons = [...new Set(f.voices.flatMap((v) => v.map((n) => n[0])))];
-  const strokes = await strokesOf(f, "fluteHarp", "timpani");
-  const share = strokes.filter((x) => ons.some((o) => Math.abs(o - x.tick) <= f.tpq / 8)).length / strokes.length;
-  assert.ok(share >= 0.65, `${(share * 100).toFixed(0)} %`);
+  // D891, D894: the timpani withdrawn; calm (2.5 notes a second): no drums.
+  assert.equal(FUGUE_STYLES[id], "none");
+  assert.equal(homeFor(id, "fluteHarp"), "none");
 });
 
-test("D779: the Albinoni Fugue on STRING CONSORT (fewer than three pieces then), its reason and plan; FIELD DRUM fits, on the onsets", async () => {
+test("D779: the Albinoni Fugue on STRING CONSORT (fewer than three pieces then), its reason and plan; its drums (D894: none)", async () => {
   const id = "bwv951";
   assert.equal(PIECE_SOUND[id], "stringConsort");
   assert.equal(COLOURS[id].sound, "stringConsort");
   assert.ok(/^D779: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy));
   assert.ok(COLOURS[id].plans.stringConsort?.length);
-  const f = fugueById(id);
-  assert.equal(FUGUE_STYLES[id], "fieldDrums");
-  assert.equal(homeFor(id, "stringConsort"), "fieldDrums");
-  assert.ok(fits("fieldDrums", f));
-  const ons = [...new Set(f.voices.flatMap((v) => v.map((n) => n[0])))];
-  const strokes = await strokesOf(f, "stringConsort", "fieldDrums");
-  assert.ok(strokes.filter((x) => ons.some((o) => Math.abs(o - x.tick) <= f.tpq / 8)).length / strokes.length >= 0.65);
+  // D891, D894: the field drum withdrawn; calm: no drums.
+  assert.equal(FUGUE_STYLES[id], "none");
+  assert.equal(homeFor(id, "stringConsort"), "none");
 });

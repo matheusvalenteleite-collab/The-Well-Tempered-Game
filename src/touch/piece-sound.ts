@@ -1,4 +1,4 @@
-import { playerSound, trialSoundFor } from "./sound.ts";
+import { WITHDRAWN_D890, playerSound, trialSoundFor } from "./sound.ts";
 
 /**
  * D246: each piece's own sound (the owner: "choose a default preset for every piece, the one which
@@ -101,6 +101,14 @@ import { playerSound, trialSoundFor } from "./sound.ts";
  * staged build, and II/22 on KRAUTROCK with LIEBEZEIT ("sounds much cooler as Krautrock"), both opening on FAST (tempi.ts
  * OPENING_STEP).
  */
+/**
+ * D893, the thirteen whose sound was withdrawn (D890: PET SOUNDS, TRACKER, MEGA FM), each anew by the voice probe's closest pair
+ * among the remaining sounds (no more than two Inventions and Sinfonias a sound, D731; the sounds already on seven or more
+ * pieces left out where another came near), the slow ones on sustained voices (the owner: TOMITA "absolute bliss" on
+ * Contrapunctus 3; plucked ensembles disappoint in slow pieces): I/15 CHORINHO, I/17 FLUTE & HARP, II/15 ABBEY ROAD; the Art of
+ * Fugue's 6, 10 and 14 TOMITA, 12 (rectus and inversus) BERLIN SCHOOL, Canon 16 SALSA; Inventions 11 and 15 ZELENKA TRIO,
+ * Invention 13 the harpsichord, Sinfonia 5 BAROQUE BAND (tools/touch/colour-plans: each reason).
+ */
 export const PIECE_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
@@ -132,11 +140,11 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p14: "harpsichordSampled",
   wtc1f14: "jazzQuartet",
   wtc1p15: "chip",
-  wtc1f15: "megaFm",
+  wtc1f15: "chorinho",
   wtc1p16: "chip",
   wtc1f16: "abbeyRoad",
   wtc1p17: "chip",
-  wtc1f17: "petSounds",
+  wtc1f17: "fluteHarp",
   wtc1p18: "harpsichordSampled",
   wtc1f18: "pianoSampled",
   wtc1p19: "harpsichordSampled",
@@ -181,7 +189,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2p14: "chip",
   wtc2f14: "pianoSampled",
   wtc2p15: "chip",
-  wtc2f15: "tracker",
+  wtc2f15: "abbeyRoad",
   wtc2p16: "chip",
   wtc2f16: "baroqueBand",
   wtc2p17: "chip",
@@ -200,8 +208,8 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc2f23: "oboeTrio",
   wtc2p24: "harpsichordSampled",
   wtc2f24: "analog",
-  // The Art of Fugue (D708: Contrapunctus 14 on PET SOUNDS; the rest of the cycle in the D355 block below)
-  "bwv1080-14": "petSounds",
+  // The Art of Fugue (D708: Contrapunctus 14 on PET SOUNDS; D893: on TOMITA; the rest of the cycle in the D355 block below)
+  "bwv1080-14": "tomita",
   ...moreBachSounds(),
 };
 
@@ -241,19 +249,19 @@ function moreBachSounds(): Record<string, string> {
     "bwv1080-03": "tomita",
     "bwv1080-04": "krautrock",
     "bwv1080-05": "bossaNova",
-    "bwv1080-06": "petSounds",
+    "bwv1080-06": "tomita",
     "bwv1080-07": "bossaNova",
     "bwv1080-08": "sid64",
     "bwv1080-09": "krautrock",
-    "bwv1080-10": "tracker",
+    "bwv1080-10": "tomita",
     "bwv1080-11": "tomita",
-    "bwv1080-12r": "megaFm",
-    "bwv1080-12i": "megaFm",
+    "bwv1080-12r": "berlinSchool",
+    "bwv1080-12i": "berlinSchool",
     "bwv1080-13r": "chip",
     "bwv1080-13i": "chip",
     "bwv1080-c14": "vocalSynth",
     "bwv1080-c15": "gameboy",
-    "bwv1080-c16": "tracker",
+    "bwv1080-c16": "salsa",
     "bwv1080-c17": "berlinSchool",
     "bwv1079-ric3": "pianoSampled",
     "bwv1079-ric6": "chamberOrgan",
@@ -267,16 +275,16 @@ function moreBachSounds(): Record<string, string> {
     "bwv779": "analog",
     "bwv780": "berlinSchool",
     "bwv781": "gameboy",
-    "bwv782": "tracker",
+    "bwv782": "oboeTrio",
     "bwv783": "jazzQuartet",
-    "bwv784": "petSounds",
+    "bwv784": "harpsichordSampled",
     "bwv785": "analog",
-    "bwv786": "tracker",
+    "bwv786": "oboeTrio",
     "bwv787": "super16",
     "bwv788": "tomita",
     "bwv789": "krautrock",
     "bwv790": "abbeyRoad",
-    "bwv791": "petSounds",
+    "bwv791": "baroqueBand",
     "bwv792": "chorinho",
     "bwv793": "tomita",
     "bwv794": "abbeyRoad",
@@ -346,7 +354,9 @@ function moreBachSounds(): Record<string, string> {
 /** The sound a piece opens with: the player's choice for it, else its own, else the game's default. */
 export function soundFor(id: string, chosen: Readonly<Record<string, string>>, fallback: string): string {
   // D86x: a piece trial (sound.ts PIECE_TRIALS, `?trial=`) plays the piece on its own sound.
-  const s = trialSoundFor(id) ?? chosen[id] ?? PIECE_SOUND[id] ?? fallback;
+  // D890: a choice of a withdrawn sound (PET SOUNDS, TRACKER, MEGA FM) falls back to the piece's own.
+  const c = chosen[id];
+  const s = trialSoundFor(id) ?? (c !== undefined && !WITHDRAWN_D890.has(c) ? c : undefined) ?? PIECE_SOUND[id] ?? fallback;
   // D249: a choice of a withdrawn preset (the organ, kept from before) opens on its stand-in;
   // D292: anything else not among the five (TRAVERSO, an unknown id) on CLASSIC CHIP.
   return playerSound(s);
