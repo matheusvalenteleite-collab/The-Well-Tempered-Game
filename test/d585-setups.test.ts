@@ -34,7 +34,7 @@ test("D585-D590: the fugues' own sounds and drums as the owner's verdicts set th
     wtc2f03: ["sid64", "house"],
     wtc2f04: ["gameboy", "idm"],
     wtc1f02: ["berlinSchool", "scoreSynth"],
-    wtc1f15: ["chorinho", "scoreSynth"], // D893-D894: MEGA FM withdrawn; its other pick, the synth kit
+    wtc1f15: ["berlinSchool", "scoreSynth"], // D893-D894: MEGA FM withdrawn; its other pick, the synth kit; D910: BERLIN SCHOOL (the owner: electronic)
     wtc2f24: ["analog", "arcade"],
     wtc1f19: ["vaudeville", "stooges"],
     wtc2f18: ["fluteHarp", "swell"],
