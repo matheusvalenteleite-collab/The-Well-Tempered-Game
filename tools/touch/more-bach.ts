@@ -873,19 +873,22 @@ const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
   30: [{ voice: 3, bar: 17, at: "7/8", from: "Db4", to: "C#4" }],
 };
 const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
-  // The trill hooked from below (Bach's Doppelt-cadence): a trill, not the short one the edition names.
+  // D877: the trill hooked from above (Bach's Doppelt-Cadence, read on the 1741 print and the BG), not the short one the
+  // edition names; and the two slides (Schleifer) the print signs before the note.
   0: [
-    { bar: 3, at: "1/4", pitch: "G4", signs: "T" },
-    { bar: 11, at: "1/4", pitch: "G5", signs: "T" },
-    { bar: 12, at: "1/4", pitch: "C#5", signs: "T" },
-    { bar: 17, at: "1/4", pitch: "A4", signs: "T" },
+    { bar: 3, at: "1/4", pitch: "G4", signs: "U" },
+    { bar: 11, at: "1/4", pitch: "G5", signs: "U" },
+    { bar: 12, at: "1/4", pitch: "C#5", signs: "U" },
+    { bar: 17, at: "1/4", pitch: "A4", signs: "U" },
+    { bar: 21, at: "0", pitch: "G5", signs: "L" },
+    { bar: 23, at: "3/8", pitch: "A5", signs: "L" },
   ],
   // The hooked trill with a mordent (Doppelt-cadence und Mordant).
   5: [{ bar: 17, at: "1/2", pitch: "F#5", signs: "TM" }],
-  // The hooked long trill of the prints, not a short one.
+  // The long trill hooked from above (D877: the 1741 print), not a short one.
   24: [
-    { bar: 17, at: "0", pitch: "A4", signs: "T" },
-    { bar: 19, at: "0", pitch: "A5", signs: "T" },
+    { bar: 17, at: "0", pitch: "A4", signs: "U" },
+    { bar: 19, at: "0", pitch: "A5", signs: "U" },
   ],
   // Appoggiaturas neither print has (bars 5, 6, 14); and bars 1-2's, which the Bach-Gesellschaft prints and the 1741 print does not.
   25: [
@@ -902,8 +905,8 @@ const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
     { bar: 13, at: "1/4", pitch: "B3", signs: "" },
   ],
   10: [{ bar: 25, at: "0", pitch: "C#3", signs: "" }],
-  // The trill hooked from below (as the Aria's).
-  11: [6, 7, 14, 15].map((bar) => ({ bar, at: "0", pitch: bar < 10 ? "G4" : "D5", signs: "T" })),
+  // D877: the trills hooked from below (bars 6, 7, 14, 15) and from above (bar 13), as the 1741 print and the MusicXML's approach have them.
+  11: [6, 7, 13, 14, 15].map((bar) => ({ bar, at: "0", pitch: bar < 10 ? "G4" : "D5", signs: bar === 13 ? "U" : "D" })),
   13: [{ bar: 12, at: "11/16", pitch: "G5", signs: "" }],
   // One long trill (the edition doubles it with a short one); a long trill the edition leaves out.
   14: [
@@ -1244,7 +1247,7 @@ export interface Read {
  * mordent M, the turn S; the hooked signs (Doppelt-Cadence, from below D or above U, "und Mordant" R) as AOF_HOOKS reads
  * them on the print; others unplayed (listed).
  */
-const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", startTrillSpan: "T", downprall: "T", prallprall: "T", prallmordent: "TR", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
+const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", startTrillSpan: "T", downprall: "U", downmordent: "UR", lineprall: "U", prallprall: "T", prallmordent: "TR", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
 
 export function readPiece(s: Spec): Read {
   const dir = s.lyDir ? `${SRC}${s.dir}/${s.lyDir}/` : `${SRC}${s.dir}/mutopia/${s.mutopia}/`;

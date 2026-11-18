@@ -75,6 +75,8 @@ export const ADDED: Record<string, [number, string, string, number?][]> = {
   // Sinfonia 1's short wavy line on the soprano's E5 in bar 14 (p. 19; the motif of bar 5, where the
   // edition puts it and the BGA has none).
   inven07: [[10, "C5", "M", 0]],
+  // D877: Invention 9's mordent on the C5 of bar 33 (BG p. 11; a turn follows it, not played).
+  inven09: [[33, "C5", "M", 0]],
   sinfo01: [[14, "E5", "W", 2.5]],
 };
 
@@ -112,6 +114,22 @@ export const BGA_SIGNS: Record<string, [number, string, string, number][]> = {
   // nor does the Humdrum encoding of the BGA: Sinfonia 1 bar 5 (p. 19), Sinfonia 13 bars 3 and 7 (p. 38).
   // D874: and Sinfonia 7's trill in bar 43 (not the BGA's nor in the encoding; THE TUTORIAL's lesson 6.2 moved to
   // Sinfonia 2's printed long trill).
+  // D877: the hooked signs, read on the scan (BG vol. 3) after the Explication: the Doppelt-Cadence from below (D) or
+  // from above (U), with a stroke "und Mordant" (R); Invention 9's longer wavy line with a stroke, Trillo und Mordant.
+  inven02: [2, 4, 12, 14, 24].map((bar, i) => [bar, ["D5", "D4", "A3", "A4", "D5"][i], "D", 3] as [number, string, string, number]),
+  inven03: [
+    [3, "C#5", "UR", 1],
+    [45, "C#5", "UR", 1],
+  ],
+  inven05: [[32, "F5", "DR", 1]],
+  inven09: [
+    [15, "B4", "D", 0],
+    [15, "C5", "TR", 2],
+    [16, "D5", "U", 1],
+    [33, "G4", "D", 1],
+  ],
+  inven11: [[10, "E5", "UR", 3]],
+  inven12: [1, 3, 9, 18, 20].map((bar, i) => [bar, ["B4", "F#3", "G#4", "B2", "D3"][i], "UR", 3] as [number, string, string, number]),
   sinfo01: [[5, "B4", "", 2.5]],
   sinfo07: [[43, "D#5", "", 2]],
   sinfo13: [

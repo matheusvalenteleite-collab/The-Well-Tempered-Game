@@ -19,7 +19,7 @@ import { parseLog, type LabLog } from "../src/bench/lab/log.ts";
 import { parseStudy } from "../src/bench/lab/study.ts";
 import type { LabEvent } from "../src/bench/lab/events.ts";
 
-test("D353: MORE BACH's Inventions and Sinfonias find their 313 written ornaments, each on its note (D875: Sinfonia 5's 93 from the Bach-Gesellschaft print, Invention 3's two turns on tied notes, Sinfonia 7's unprinted trill gone; D366: the Mutopia editions' own signs, less three the BGA does not print and plus two it does (docs/audits/ORNAMENTS-NON-WTC.md); 310 from the kern encodings before, Sinfonia 5's ornamented version among them)", async () => {
+test("D353: MORE BACH's Inventions and Sinfonias find their 314 written ornaments, each on its note (D875: Sinfonia 5's 93 from the Bach-Gesellschaft print, Invention 3's two turns on tied notes, Sinfonia 7's unprinted trill gone; D877: Invention 9's mordent in bar 33; D366: the Mutopia editions' own signs, less three the BGA does not print and plus two it does (docs/audits/ORNAMENTS-NON-WTC.md); 310 from the kern encodings before, Sinfonia 5's ornamented version among them)", async () => {
   await loadExtras();
   const rows = ornamentsData as unknown as Record<string, [number, number, string, string][]>;
   let found = 0;
@@ -38,8 +38,8 @@ test("D353: MORE BACH's Inventions and Sinfonias find their 313 written ornament
       found++;
     }
   }
-  assert.equal(total, 313);
-  assert.equal(found, 313);
+  assert.equal(total, 314);
+  assert.equal(found, 314);
   // Invention 1's mordents (the tutorial cites them) in MORE BACH too.
   assert.ok([...ornamentsOf(fugueById("bwv772")).values()].some((o) => /[Mm]/.test(o.signs)));
 });
