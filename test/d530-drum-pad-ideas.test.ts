@@ -37,7 +37,7 @@ test("D530: the pad shows every style once, by family, HOME and FITS marked, the
 test("D530: the style chosen is the setting's; HOME follows the sound; older links read as before", () => {
   const s = { ...defaults("wtc1f12"), drums: 1 };
   assert.equal(padStyle(s, "vocalSynth"), "house");
-  assert.equal(padStyle(s, "chamberOrgan"), "timpani");
+  assert.equal(padStyle(s, "chamberOrgan"), "none"); // D891: the organ's timpani withdrawn
   assert.equal(padChoice(s, "vocalSynth"), "home");
   assert.equal(padStyle({ ...s, style: "triphop" }, "vocalSynth"), "triphop");
   assert.equal(padChoice({ ...s, style: "triphop" }, "vocalSynth"), "triphop");

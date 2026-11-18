@@ -12,6 +12,7 @@
  *        node tools/touch/bass-phone/fit.ts <measure.json> --duet > src/touch/bass-phone-duet.ts   (D745: the Four Duets)
  *        node tools/touch/bass-phone/fit.ts <measure.json> --903 > src/touch/bass-phone-903.ts   (D775: the Chromatic Fugue)
  *        node tools/touch/bass-phone/fit.ts <measure.json> --906 > src/touch/bass-phone-906.ts   (D785: BWV 906 and 998)
+ *        ONLY=<id,...> node tools/touch/bass-phone/fit.ts <measure.json> [--aof|--inv|...]   (D893: those pieces' rows alone, to splice)
  */
 import { readFileSync } from "node:fs";
 import { fugueById, loadExtras } from "../../../src/touch/fugue.ts";
@@ -40,7 +41,9 @@ const isInv = (k: string) => /^bwv(7[789]\d|80[01])$/.test(k) && +k.slice(3) >= 
 const ids = Object.keys(PIECE_SOUND).filter((k) => (F906 ? /^bwv(906|998)-\d$/.test(k) : F903 ? k === "bwv903-2" || k === "bwv951" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
 const out: Record<string, unknown> = {};
 const errs: string[] = [];
-for (const id of ids) {
+// D893: ONLY=<id,...> fits those pieces alone (their rows spliced into the group's file, the others' rows kept as measured).
+const only = (process.env.ONLY ?? "").split(",").filter(Boolean);
+for (const id of only.length ? ids.filter((k) => only.includes(k)) : ids) {
   const f = fugueById(id);
   const nv = f.voices.length, b = nv - 1;
   const s = playerSound(PIECE_SOUND[id]);

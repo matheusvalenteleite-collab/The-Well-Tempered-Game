@@ -15,7 +15,7 @@ import { FUGUES, beatOf, fugueById } from "../src/touch/fugue.ts";
 import { formOf, phaseAt } from "../src/touch/form-points.ts";
 import { fileOf, folderOf } from "../src/touch/sampled.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
-import { FUGUE_PICKS, HOME_ID, PLANNED_STYLES, curatedFor, drumMenuFor, homeStyleFor, setDrumStyle, styleIds, styleInfo } from "../src/touch/drum-library.ts";
+import { FUGUE_PICKS, HOME_ID, PLANNED_STYLES, WITHDRAWN_STYLES, curatedFor, drumMenuFor, homeStyleFor, setDrumStyle, styleIds, styleInfo } from "../src/touch/drum-library.ts";
 import { SCORE_KITS, SCORE_STYLES, TWEAKS, arrivals, bassLine, clockOf, homeTimpani, scoreBeat, scorePlan, isScoreStyle } from "../src/touch/score-drums.ts";
 
 installFakeAudio(0, true);
@@ -25,7 +25,9 @@ const WTC = FUGUES.filter((f) => /^wtc/.test(f.id));
 
 test("D532: the period styles are in the library (no longer planned), score-driven, unpitched but the timpani, on recorded CC0 kits", () => {
   assert.equal(PLANNED_STYLES.length, 0);
-  for (const s of SCORE_STYLES) {
+  // D891: the timpani, the tabor and the field drum withdrawn from the library (their engine kept: score-drums.ts).
+  for (const s of WITHDRAWN_STYLES) assert.ok(!styleIds.includes(s), s);
+  for (const s of SCORE_STYLES.filter((x) => !WITHDRAWN_STYLES.has(x))) {
     assert.ok(styleIds.includes(s), s);
     assert.equal(styleInfo(s).engine, "score", s);
     assert.equal(styleInfo(s).family, "orchestral", s);
@@ -175,19 +177,21 @@ test("D533: tailored: every fugue where a score-driven style is the default or a
   }
   // D585: I/1 left the organ for the grand (the owner's lo-fi idea): its tweak kept for PIPE ORGAN's timpani and field drums, a choice away.
   // D595: II/22 left the organ for KRAUTROCK: its tweak kept likewise for the organ's field drums, a choice away.
-  const kept = new Set(["wtc1f01", "wtc2f22"]);
+  // D891: and the fugues whose only score-driven offer was a withdrawn kit (the timpani, the tabor, the field drum): their tweaks kept, any style a choice away.
+  const kept = new Set(["wtc1f01", "wtc2f22", "wtc1f21", "wtc2f11", "wtc2f13"]);
   for (const id of Object.keys(TWEAKS)) assert.ok(need.has(id) || kept.has(id), `${id}: a tweak for a fugue that offers no score-driven style first`);
   // The French overture, the gigues and the dances: their picks.
   assert.ok(FUGUE_PICKS.wtc1f05.includes("military"));
   // (D568: I/15's pinball ARCADE's now, the owner: "Didn't like this as tabor and pipe"; the tabor kept for II/15.)
-  assert.ok(FUGUE_PICKS.wtc2f15.includes("tabor") && !FUGUE_PICKS.wtc1f15.includes("tabor") && FUGUE_PICKS.wtc1f15.includes("arcade"));
+  // (D891: the tabor withdrawn; II/15 keeps its castanets.)
+  assert.ok(FUGUE_PICKS.wtc2f15.includes("castanets") && !Object.values(FUGUE_PICKS).some((p) => p.includes("tabor")) && FUGUE_PICKS.wtc1f15.includes("arcade"));
   // D587: II/24's castanets withdrawn (the owner: "very bad idea to go for this Scarlatti sound").
   assert.ok(!(FUGUE_PICKS.wtc2f24 ?? []).includes("castanets"));
   assert.ok(FUGUE_PICKS.wtc2f16.includes("castanets"));
   assert.ok(need.size >= 20, `${need.size}`);
   // On the DRUMS menu: the sound's family, then the fugue's picks.
-  const m = drumMenuFor("wtc2f15", "megaFm").map((x) => x.style);
-  assert.ok(m.indexOf("tabor") < m.indexOf("rock"));
+  const m = drumMenuFor("wtc2f15", "sid64").map((x) => x.style);
+  assert.ok(m.indexOf("castanets") < m.indexOf("rock"));
 });
 
 test("D532: through the one choke point: each beat's strokes scheduled by Chip.scheduleKitHit (voice kit), the tick each belongs to", async () => {
@@ -198,7 +202,7 @@ test("D532: through the one choke point: each beat's strokes scheduled by Chip.s
   const f = fugueById("wtc1f05");
   const b = beatOf(f);
   const compound = b.ticks !== f.tpq * (4 / Number(f.meter.split("/")[1]));
-  for (const style of SCORE_STYLES) {
+  for (const style of SCORE_STYLES.filter((x) => !WITHDRAWN_STYLES.has(x))) {
     setDrumStyle(f.id, style);
     chip.kitEvents.length = 0;
     let want = 0;

@@ -55,7 +55,7 @@ import { PIECE_SOUND } from "./piece-sound.ts";
 
 export type Family = "rock" | "jazz" | "latin" | "electronic" | "orchestral";
 export type Metre = MetreClass;
-export type Engine = "grid" | "kit" | "brushes" | "rockBand" | "latin" | "bossa" | "pet" | "score";
+export type Engine = "grid" | "kit" | "brushes" | "rockBand" | "latin" | "bossa" | "pet" | "score" | "none";
 export interface StyleInfo {
   id: string;
   family: Family;
@@ -106,18 +106,26 @@ export const STYLES: readonly StyleInfo[] = [
   S("scoreSynth", "electronic", "SYNTH KIT", [D, T, C], "score", "an analog kit read from the score: the subject's rhythm on the hats, the bass's accents on the kick, the episodes lighter, the cadences marked (D570)"),
   // D532: the orchestral and period styles are SCORE-DRIVEN (score-drums.ts): no loop; the bass's accents, the subject's
   // rhythm in its entries, the cadences, the structural arrivals, read from each fugue's own score.
-  S("timpani", "orchestral", "TIMPANI", [D, T, C], "score", "the timpani on the home tonic and dominant at the structural arrivals only; a soft bass drum on the bass line's own accents (D532)"),
+  // D891: the TIMPANI, the TABOR and the FIELD DRUM withdrawn (the owner's decision); score-drums.ts keeps their engine (the
+  // timpani's rule still serves PET SOUNDS' kit, "pet"), no menu offers them, a stored choice of one plays the piece's HOME.
   S("frame", "orchestral", "FRAME DRUM", [T, C], "score", "frame drums on the bass's accents and the subject's rhythm, the tambourine shaken into the entries (D532)"),
   S("military", "orchestral", "SIDE DRUM", [D, T], "score", "Lully's side drum, for the French overture: the dotted rhythm of the subject, flams on the bass's accents, ruffs at the cadences (D532)"),
-  S("tabor", "orchestral", "TABOR", [T, C], "score", "pipe and tabor: the tabor on the bass's accents, the tambourine on the subject's rhythm, for the dances and gigues (D532)"),
   S("castanets", "orchestral", "CASTANETS", [T, C], "score", "Spanish baroque castanets: the subject's rhythm, the bass's accents, carretillas into the cadences (D532)"),
   S("janissary", "orchestral", "JANISSARY", [D], "score", "alla turca: the bass drum on the bass's accents, the cymbals with the strongest, the triangle on the subject (D532)"),
-  S("fieldDrums", "orchestral", "FIELD DRUM", [D, T], "score", "rope-tension field drums: long rolls into the arrivals and on the pedals, flammed accents on the bass (D532)"),
   S("march", "orchestral", "MARCH", [D, T, C], "score", "a military march: the subject's rhythm on the side drum with flams, drags and rolls into the entries, the bass drum on the strong beats, the cymbals at the arrivals (D567)"),
   S("stooges", "orchestral", "STOOGES", [D, T, C], "score", "slapstick: woodblock and temple blocks on the score's rhythms, a ratchet, a whistle-like sweep, the bonk on the cadences (D569)"),
 ];
 export type StyleId = (typeof STYLES)[number]["id"];
-const BY_ID = new Map(STYLES.map((s) => [s.id, s]));
+/**
+ * D892, NO DRUMS: a HOME that plays nothing (CLASSIC CHIP's since D892, a piece's own where no remaining kit fits it: the
+ * slow fugues, D893). Not in STYLES (no family, never in the rest of the menu): the DRUMS row's first entry where it is the
+ * HOME, so DRUMS on with nothing chosen is silent there; any style can still be chosen.
+ */
+export const NO_DRUMS = "none";
+const NONE_INFO: StyleInfo = S(NO_DRUMS, "electronic", "NO DRUMS", [D, T, C], "none", "no drums: the piece plays alone (D892)");
+/** D891: the withdrawn kits (a stored choice of one reads as HOME). */
+export const WITHDRAWN_STYLES: ReadonlySet<string> = new Set(["timpani", "tabor", "fieldDrums"]);
+const BY_ID = new Map([...STYLES, NONE_INFO].map((s) => [s.id, s]));
 export const styleIds: readonly StyleId[] = FAMILIES.flatMap((fam) => STYLES.filter((s) => s.family === fam).map((s) => s.id));
 /** The style an unknown id is read as. */
 export const HOME_FALLBACK: StyleId = "rock";
@@ -125,7 +133,7 @@ export const isStyle = (id: unknown): id is StyleId => typeof id === "string" &&
 export const styleInfo = (id: string): StyleInfo => BY_ID.get(id) ?? BY_ID.get(HOME_FALLBACK)!;
 export const stylesIn = (family: Family): StyleId[] => styleIds.filter((id) => styleInfo(id).family === family);
 
-/** S3's period and orchestral styles: all playable since D532 (military, tabor, castanets, janissary, fieldDrums in STYLES). */
+/** S3's period and orchestral styles: all playable since D532 (military, castanets, janissary in STYLES; D891: the tabor and the field drums withdrawn). */
 export const PLANNED_STYLES: readonly { id: string; family: Family; label: string }[] = [];
 
 /**
@@ -136,40 +144,40 @@ export const PLANNED_STYLES: readonly { id: string; family: Family; label: strin
 export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
   abbeyRoad: ["abbey", "psych", "poprock", "rock", "ballad", "shuffle", "pet"],
   krautrock: ["motorik", "liebezeit", "rock", "psych", "techno", "idm"],
-  petSounds: ["pet", "ballad", "poprock", "abbey", "psych", "brushes"],
   bossaNova: ["bossa", "baiao", "choro", "brushes", "lofi"],
   salsa: ["salsa", "choro", "baiao", "bossa"],
   chorinho: ["choro", "baiao", "bossa", "salsa"],
   jazzQuartet: ["brushes", "jazz", "bebop", "jazzWaltz", "bossa"],
   pianoSampled: ["jazz", "brushes", "jazzWaltz", "bebop", "ballad", "triphop"],
-  chip: ["chip", "machine", "linn", "idm", "breakbeat"],
+  // D892: CLASSIC CHIP without its drum (the owner): NO DRUMS its HOME, the chip kit out of its family (GAME BOY and SID 64 keep it).
+  chip: ["none", "machine", "linn", "idm", "breakbeat"],
   gameboy: ["chip", "idm", "machine", "breakbeat"],
   sid64: ["chip", "linn", "idm", "machine", "techno"],
-  tracker: ["breakbeat", "dnb", "chip", "idm", "house"],
   super16: ["lofi", "chip", "breakbeat", "triphop", "linn"],
-  megaFm: ["linn", "machine", "breakbeat", "chip", "house"],
   analog: ["machine", "techno", "house", "linn", "idm"],
   tomita: ["triphop", "idm", "machine", "lofi", "psych"],
   vocalSynth: ["house", "linn", "techno", "machine", "triphop"],
   // D532: the period sounds' families take the period kits: the court's band and the brass the side drum and the
   // Janissaries, the dances' sounds the tabor and the castanets, the church's and the consort's the field drums.
-  harpsichordSampled: ["frame", "castanets", "tabor", "timpani", "brushes"],
-  chamberOrgan: ["timpani", "fieldDrums", "frame"],
-  soloVoices: ["frame", "tabor", "timpani", "brushes"],
-  stringConsort: ["frame", "fieldDrums", "timpani", "ballad"],
-  baroqueBand: ["timpani", "military", "castanets", "janissary", "frame"],
-  oboeTrio: ["frame", "tabor", "castanets", "timpani", "baiao"],
+  harpsichordSampled: ["frame", "castanets", "brushes"],
+  // D891: the PIPE ORGAN's timpani and field drums withdrawn: NO DRUMS its HOME (the chorales, the Ricercar a 6), the frame drum and the swell a choice.
+  chamberOrgan: ["none", "frame", "swell"],
+  soloVoices: ["frame", "brushes"],
+  stringConsort: ["frame", "ballad"],
+  // D891: BAROQUE BAND's timpani withdrawn: Lully's side drum its HOME.
+  baroqueBand: ["military", "castanets", "janissary", "frame"],
+  oboeTrio: ["frame", "castanets", "baiao"],
   // D567: the owner: "The Janissary drum is boring and shitty, I hate it. A more march-like preset would work better":
   // MARCH is BACH BRASS's HOME, the Janissaries out of its family (still in the library).
-  bachBrass: ["march", "timpani", "military", "fieldDrums", "frame"],
-  trialWinds: ["frame", "tabor", "timpani"],
+  bachBrass: ["march", "military", "frame"],
+  trialWinds: ["frame"],
   // D586-D590, the setups' new sounds: BERLIN SCHOOL a drum machine of its time; VAUDEVILLE the score's period kits (the
   // slapstick's blocks and ratchet once the drums session's STOOGES lands, FUGUE_STYLES); FLUTE & HARP the brushes and the frame
   // cymbal washes (its SWELL likewise); ORCHESTRA & ORGAN the timpani and the field drums.
   berlinSchool: ["scoreSynth", "machine", "techno", "idm", "linn"],
-  vaudeville: ["stooges", "frame", "tabor", "castanets"],
+  vaudeville: ["stooges", "frame", "castanets"],
   fluteHarp: ["swell", "brushes", "psych", "jazzWaltz"],
-  orchestraOrgan: ["timpani", "fieldDrums", "march", "frame"],
+  orchestraOrgan: ["march", "frame"],
 };
 /**
  * D532: a fugue's own period picks (after its sound's family on the DRUMS menu): the French overture (I/5) the side drum,
@@ -185,20 +193,16 @@ export const FUGUE_PICKS: Readonly<Record<string, readonly StyleId[]>> = {
   wtc1f19: ["stooges"],
   wtc1f20: ["liebezeit"],
   wtc2f18: ["swell"],
-  wtc1f05: ["military", "fieldDrums"],
+  wtc1f05: ["military"],
   wtc2f05: ["march", "military"],
   wtc1f09: ["castanets"],
-  wtc1f10: ["castanets", "tabor"],
-  wtc1f11: ["tabor", "castanets"],
+  wtc1f10: ["castanets"],
+  wtc1f11: ["castanets"],
   wtc1f15: ["arcade", "scoreSynth"],
-  wtc1f21: ["tabor"],
-  wtc1f22: ["fieldDrums"],
-  wtc1f24: ["scoreSynth", "timpani", "fieldDrums"],
-  wtc2f11: ["tabor"],
-  wtc2f13: ["tabor"],
-  wtc2f15: ["tabor", "castanets"],
+  wtc1f24: ["scoreSynth"],
+  wtc2f15: ["castanets"],
   wtc2f16: ["castanets"],
-  wtc2f21: ["castanets", "tabor"],
+  wtc2f21: ["castanets"],
   wtc2f22: ["liebezeit"],
   wtc2f24: ["arcade", "scoreSynth"],
 };
@@ -216,7 +220,7 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc1f01: "lofi",
   wtc1f02: "scoreSynth",
   wtc1f05: "march",
-  wtc1f15: "arcade",
+  wtc1f15: "scoreSynth", // D894: I/15 on CHORINHO (D893): its other pick, the synth kit read from the score, 98 % on the onsets (ARCADE's pulse out of its band at this tempo)
   wtc1f19: "stooges",
   wtc1f20: "liebezeit",
   // D596: I/24 on SID 64: SYNTH KIT, the score-driven electronic kit, keeps D574's staged build (no timpani on a chip kit).
@@ -246,27 +250,27 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   "bwv1080-03": "triphop", // chromatic, introspective, calm: "at most trip-hop", 72 a minute (68-96), 70 %
   "bwv1080-04": "motorik", // the long sequences at 134: KRAUTROCK's own drummer, 96 %
   "bwv1080-05": "bossa", // the lilting counter-fugue: BOSSA NOVA's own, 90 %
-  "bwv1080-06": "pet", // the French overture: PET SOUNDS' own (its timpani at the arrivals, tonic and dominant), 92 %
+  "bwv1080-06": NO_DRUMS, // D894: on TOMITA (D893), slow: no drums (the owner's Contrapunctus 3)
   "bwv1080-07": "bossa", // the augmentations, slow: BOSSA NOVA's own (D709: on ABBEY ROAD the bass stood under), 98 %
   "bwv1080-08": "chip", // angular, a 3, on SID 64: its own chip kit, 89 % (SYNTH KIT's coda roll stood 1.7 LU over the band: D713)
   "bwv1080-09": "liebezeit", // quick and motoric at 140: Jaki Liebezeit's trance at 70 (62-104), 98 %
-  "bwv1080-10": "triphop", // calm duple at 84 (68-96): 78 %
-  "bwv1080-11": "fieldDrums", // the grand chromatic triple fugue: the muffled drum's rolls into the arrivals, 96 %
-  "bwv1080-12r": "scoreSynth", // the slow 3/2 on MEGA FM: the synth kit read from the score, 91 % (FRAME's bass stroke over the band in 12i, b. 24: D713)
-  "bwv1080-12i": "scoreSynth",
-  "bwv1080-13r": "chip", // lively, a 3, on CLASSIC CHIP: its own kit, 90 %
-  "bwv1080-13i": "chip",
+  "bwv1080-10": NO_DRUMS, // D894: on TOMITA, slow: no drums
+  "bwv1080-11": NO_DRUMS, // D894: the field drums withdrawn (D891); slow, on TOMITA: no drums
+  "bwv1080-12r": NO_DRUMS, // D894: on BERLIN SCHOOL (D893), the slow 3/2: no drums
+  "bwv1080-12i": NO_DRUMS,
+  "bwv1080-13r": NO_DRUMS, // D892: CLASSIC CHIP without its drum; no remaining kit clearly fits (its family's at 64-69 % on the onsets)
+  "bwv1080-13i": NO_DRUMS,
   "bwv1080-c14": "triphop", // the canon by augmentation, calm-moderate: trip-hop at 72 (68-96), 85 %
   "bwv1080-c15": "chip", // the 9/16 gigue, driving: GAME BOY's own chip kit, 99 %
-  "bwv1080-c16": "tabor", // the 12/8 canon, a dance in compound time: the tabor (idiomatic there), 89 %
+  "bwv1080-c16": NO_DRUMS, // D894: the tabor withdrawn (D891); on SALSA (D893), calm: no drums
   "bwv1080-c17": "scoreSynth", // brisk triplets at 134: BERLIN SCHOOL's own synth kit from the score, 94 %
-  "bwv1080-14": "timpani", // the unfinished fugue, stile antico: tonic and dominant at the arrivals only, 91 %
+  "bwv1080-14": NO_DRUMS, // D894: the timpani withdrawn; on TOMITA, the slowest: no drums
   // D735: the Inventions and Sinfonias, each on its own sound (D731), by the same criteria (tools/touch/drum-fit/score.ts:
   // the style FITS the metre, a grid's pulse in its band, at least 65 % of the strokes on the score's onsets: here 83-100 %),
   // the gap under the band measured (D601's renders; test/d601 holds it).
   bwv772: "chip", // the first Invention on GAME BOY: its own chip kit
   bwv773: "scoreSynth", // the canon on BERLIN SCHOOL: its own synth kit read from the score
-  bwv774: "tabor", // a 3/8 dance: the tabor, idiomatic in it (CHORINHO's choro does not fit the metre)
+  bwv774: "castanets", // D894: the tabor withdrawn (D891): the castanets, its period kin (FITS 3/8; CHORINHO's own fit no 3/8; the frame drum's roll in b. 58 only 0.8 dB under the band, inside D601's 1 dB margin), 98 % on the onsets
   bwv775: "chip", // the perpetuum mobile on SID 64: its own kit
   bwv776: "brushes", // the melody over the running bass: JAZZ QUARTET's brushes
   bwv777: "brushes", // the syncopated 3/8: the brushes (BOSSA's grid does not fit it)
@@ -274,24 +278,24 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   bwv779: "chip", // Carlos's F major in 3/4: the chip kit, an electronic kit read from the score (the drum machines' grids do not fit 3/4; SYNTH KIT's roll at b. 34 stood 1.4 LU over the band, D601)
   bwv780: "swell", // slow and chromatic: washes at the arrivals, no beat
   bwv781: "chip", // the 9/8 gigue on GAME BOY: its own kit
-  bwv782: "swell", // the chromatic G minor on TRACKER, slow: washes at the arrivals, no beat (the chip kit's fill at b. 16 stood 2.1 LU over the band, D601; TRIP-HOP's pulse under its band)
+  bwv782: "swell", // D894: on ZELENKA TRIO (D893), slow: its washes kept, 100 %
   bwv783: "brushes", // the pastoral 12/8 on JAZZ QUARTET: its brushes
-  bwv784: "pet", // PET SOUNDS' own (its timpani at the arrivals, tonic and dominant)
+  bwv784: "brushes", // D894: on the harpsichord (D893): the brushes of its family, 100 %
   bwv785: "chip", // Carlos's B♭ on SWITCHED-ON: the chip kit, an electronic kit read from the score (MACHINE's fill stood within 1 dB of the band by D601's model)
-  bwv786: "triphop", // the fugal B minor on TRACKER, calm: trip-hop at 72 (68-96), 97 % (the chip kit's coda fill stood 1.7 LU over the band, D601; BREAKBEAT's pulse under its band)
+  bwv786: "triphop", // D894: on ZELENKA TRIO (D893): its trip-hop kept, 97 % (its family's frame and castanets do not fit 4/4)
   bwv787: "lofi", // SUPER 16-BIT's own, 76 a minute (68-92)
   bwv788: "brushes", // the lilting 12/8 on TOMITA: brushes (its machines' grids do not fit 12/8)
   bwv789: "motorik", // the walking trio on KRAUTROCK: its own drummer
   bwv790: "abbey", // the slow trio on ABBEY ROAD: its own
-  bwv791: "ballad", // the ornamented song in 3/4: the ballad, 50 a minute (48-80)
-  bwv792: "tabor", // the 9/8 in flowing thirds: the tabor (the choro's grid does not fit it)
+  bwv791: NO_DRUMS, // D894: on BAROQUE BAND (D893), the slow song: no drums
+  bwv792: NO_DRUMS, // D894: the tabor withdrawn; calm (1.7 notes a second): no drums
   bwv793: "swell", // chromatic, introspective, calm: washes, no beat
   bwv794: "abbey", // the lively trio on ABBEY ROAD: its own
   bwv795: "swell", // slow, three subjects: washes at the arrivals
   bwv796: "chip", // the bright 3/4 on SID 64: its own kit
-  bwv797: "chip", // CLASSIC CHIP's own
+  bwv797: NO_DRUMS, // D892: CLASSIC CHIP without its drum; calm (2.0 notes a second): no drums
   bwv798: "lofi", // SUPER 16-BIT's own, 80 a minute (68-92)
-  bwv799: "chip", // CLASSIC CHIP's own
+  bwv799: NO_DRUMS,
   bwv800: "bossa", // the cheerful B♭ trio on SALSA, moderate (2.6 notes a second): the bossa's lighter groove over SALSA's own, 99 %
   bwv801: "liebezeit", // the driving 9/16 on KRAUTROCK: Jaki Liebezeit's trance, 68 a minute (62-104)
   // D744: the Four Duets, each on its own sound (D741), by the same criteria (score.ts: FITS, the pulse in its band, the onsets).
@@ -300,15 +304,23 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   bwv804: "brushes", // the 12/8 gigue on JAZZ QUARTET: its brushes, 100 %
   bwv805: "motorik", // the alla breve fugue on KRAUTROCK: its own drummer, 92 %
   // D774: the Chromatic Fugue on FLUTE & HARP: the timpani, tonic and dominant at the arrivals only (the engine's rule), its climaxes marked, 87 % on the onsets.
-  "bwv903-2": "timpani",
+  "bwv903-2": NO_DRUMS, // D894: the timpani withdrawn; calm (2.5 notes a second): no drums
   // D779: the Albinoni Fugue on STRING CONSORT: its FIELD DRUM, the muffled drum's rolls into the arrivals, 100 % on the onsets.
-  bwv951: "fieldDrums",
+  bwv951: NO_DRUMS, // D894: the field drum withdrawn; calm: no drums
   // D784: BWV 906 and 998, each on its sound's own family (score.ts: FITS, the onsets; D601's renders: no stroke over the band).
   "bwv906-1": "brushes", // the Fantasia on JAZZ QUARTET: its brushes, 99 % on the onsets
   "bwv906-2": "abbey", // the unfinished fugue on ABBEY ROAD: its own drummer, 97 %
-  "bwv998-1": "tabor", // the 12/8 Prelude on CHORINHO: the tabor's tambourine (the choro's pandeiro does not fit 12/8), 94 %
+  "bwv998-1": NO_DRUMS, // D894: the tabor withdrawn; calm (2.85 notes a second): no drums
   "bwv998-2": "bossa", // the Fugue on SALSA: the bossa's brushes and rim, 97 %
-  "bwv998-3": "tabor", // the 3/8 Allegro on GAME BOY: the tabor, 98 % (its own chip kit, the swell and the timpani stood within 1 dB of the band in its thin bars, D601)
+  "bwv998-3": NO_DRUMS, // D894: the tabor withdrawn; no remaining kit stays under the band in its thin bars (D601: the castanets one stroke only 0.9 dB under in b. 58, inside the 1 dB margin; the frame drum, the side drum, MARCH and SYNTH KIT more strokes): no drums
+  // D894: the pieces whose own drums were withdrawn (D891) or whose sound was (D893), and CLASSIC CHIP's (D892); calm ones
+  // (under 3 notes a second, D618's line) play none, the owner's lean (slow fugues alone).
+  wtc1f09: "military", // BAROQUE BAND's timpani withdrawn: Lully's side drum, its new HOME, 100 % on the onsets
+  wtc2f11: "breakbeat", // CLASSIC CHIP without its drum, but the 6/16 runs (3.3 notes a second): the break fits clearly, 99 % on the onsets, in its band
+  wtc2f15: "castanets", // on ABBEY ROAD (D893), 3/8: its own pick, the castanets, 100 % (ABBEY ROAD's own does not fit 3/8; PSYCH's pulse out of its band)
+  wtc2f16: NO_DRUMS, // BAROQUE BAND, calm (2.3 notes a second)
+  wtc2f21: NO_DRUMS, // BAROQUE BAND, calm (2.1)
+  wtc1f17: NO_DRUMS, // on FLUTE & HARP (D893), solemnly slow
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
@@ -334,21 +346,23 @@ export function fugueStyle(pieceId: string): StyleId | null {
  * (the tonic and dominant at the structural arrivals only) for the stile antico (I/22, II/9) and the other calm ones (I/16,
  * I/18, II/2), and for the compound ones whatever their character (I/14 in 6/4, II/18 in 6/8: FIELD DRUM is not idiomatic
  * in a compound metre, FITS). II/5 (calm by its notes, a festive alla breve: MARCH's own, D600) keeps its MARCH.
+ * D891: the field drums and the timpani withdrawn: these calm fugues on BACH BRASS play NO DRUMS (the owner's lean: the slow
+ * fugues alone, D893).
  */
 export const SOUND_FUGUE_HOME: Readonly<Record<string, Readonly<Record<string, StyleId>>>> = {
   bachBrass: {
-    wtc1f08: "fieldDrums",
-    wtc1f12: "fieldDrums",
-    wtc1f14: "timpani",
-    wtc1f16: "timpani",
-    wtc1f18: "timpani",
-    wtc1f22: "timpani",
-    wtc1f24: "fieldDrums",
-    wtc2f02: "timpani",
-    wtc2f08: "fieldDrums",
-    wtc2f09: "timpani",
-    wtc2f18: "timpani",
-    wtc2f22: "fieldDrums",
+    wtc1f08: NO_DRUMS,
+    wtc1f12: NO_DRUMS,
+    wtc1f14: NO_DRUMS,
+    wtc1f16: NO_DRUMS,
+    wtc1f18: NO_DRUMS,
+    wtc1f22: NO_DRUMS,
+    wtc1f24: NO_DRUMS,
+    wtc2f02: NO_DRUMS,
+    wtc2f08: NO_DRUMS,
+    wtc2f09: NO_DRUMS,
+    wtc2f18: NO_DRUMS,
+    wtc2f22: NO_DRUMS,
   },
 };
 /** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else (D618) the sound's HOME for that fugue, else the sound's HOME. */
@@ -382,7 +396,8 @@ let currentPiece: string | null = null;
 /** A stored or given id as a style (null: HOME). */
 function readChoice(pieceId: string, id: unknown): StyleId | null {
   if (isStyle(id)) return id;
-  if (isCharacter(id)) return stylesFor(pieceId)[id];
+  // D891: a D514 character read as a withdrawn style (its TIMPANI) is HOME.
+  if (isCharacter(id)) { const st = stylesFor(pieceId)[id]; return isStyle(st) ? st : null; }
   return null;
 }
 /** Chooses the drums the backing plays for a piece ("home" or an unknown id: the sound's HOME). It does not turn DRUMS on. */

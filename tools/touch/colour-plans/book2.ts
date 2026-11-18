@@ -16,7 +16,6 @@ export const BOOK2: Record<string, PieceColours> = {
     soundWhy: "'Masculine humour, not too light; high spirits intensifying toward the close' (Keller), in 2/4, choro's and samba's own metre, its running semiquavers the pandeiro's: the flute on top, the bandolim in the middle, the seven-string guitar on Bach's bass (one to a voice), the regional's fills into the entries after its episodes and a break before the last.",
     character: "Long episodes (29-39, 61-68, 74-83), the cadence on G (21-22), a dominant pedal (50-52), an intensifying close.",
     plans: {
-      megaFm: [at(29, { fm: 0.7 }, "The episode 29-39 mellower."), at(E("wtc2f01", 39), OWN, "The bass's entry (39)."), at(61, { fm: 0.7 }, "The episode 61-68."), at(E("wtc2f01", 68), OWN, "The bass's entry (68)."), at(74, { fm: 1.2 }, "Keller's intensifying close a little brighter.")],
       harpsichordSampled: [at(B("wtc2f01", 22), H84, "After the cadence on G (22): 8′+4′."), at(29, H8, "The episode 29-39 on the 8′."), at(E("wtc2f01", 39), H84, "The entry."), at(74, HFULL, "The close: the manuals coupled.")],
       chamberOrgan: [at(1, OPRIN, "The organ-fugue figures (Bodky) on the principals."), at(29, OFLUTE, "The episode on the flutes."), at(E("wtc2f01", 39), OPRIN, "The entry."), at(74, OPLENO, "The close on the plenum.")],
     },
@@ -175,11 +174,12 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f15: {
-    sound: "tracker",
-    soundWhy: "A corrente-like 3/8, 'delicately moving' (Keller): TRACKER's violin, harpsichord and slapped bass, hard left and right, light and clear on a phone.",
+    // D893: ABBEY ROAD (was TRACKER, withdrawn: D890).
+    sound: "abbeyRoad",
+    soundWhy: "D893: a corrente-like 3/8, 'delicately moving' (Keller): ABBEY ROAD's Moog, Leslie guitar and flatwound bass, one to a voice, light and clear on a phone (the voice probe's closest pair 3.61 against TRACKER's 0.42; KRAUTROCK's 5.59 on seven pieces already), with its castanets.",
     character: "Stretti (25-31), an episode after the cadence in B minor (45-65) over a D pedal (56-59).",
     plans: {
-      tracker: [at(B("wtc2f15", 45), { vib: 10 }, "The episode after the cadence in B minor with the tracker's vibrato."), at(E("wtc2f15", 65), OWN, "The alto's entry (65).")],
+      abbeyRoad: [at(B("wtc2f15", 45), { tone: -1.5 }, "The episode after the cadence in B minor a shade darker."), at(E("wtc2f15", 65), OWN, "The alto's entry (65).")],
       harpsichordSampled: [at(1, H84, "8′+4′."), at(B("wtc2f15", 45), H8, "The episode on the 8′."), at(E("wtc2f15", 65), H84, "The entry.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(E("wtc2f15", 65), OPRIN, "The last entry.")],
     },

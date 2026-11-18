@@ -96,7 +96,6 @@ test("D501: in the engine, each family's slide under \"auto\" is its forced mode
     ["pianoSampled", "d486"],
     ["chip", "d486"],
     ["gameboy", "d486"],
-    ["megaFm", "d486"],
     ["analog", "d486"],
   ];
   let differs = 0;

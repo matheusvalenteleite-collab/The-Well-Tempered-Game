@@ -31,8 +31,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   chip: "chip",
   gameboy: "chip",
   sid64: "chip",
-  megaFm: "chip",
-  tracker: "console",
   super16: "console",
   analog: "synth",
   tomita: "synth",
@@ -67,9 +65,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // D521: BOSSA NOVA as JAZZ QUARTET (the piano's three zones, each instrument its own): the pluck on the guitar (its pp or mf
   // recording) and the bass, the weight on the piano, the breath on the flute (the zone's level; a held sway its swell).
   bossaNova: "jazz",
-  // D524: PET SOUNDS as JAZZ QUARTET (the piano's three zones, each instrument its own): the weight on the piano and the
-  // harpsichord's pluck, the bass's pick, the strings' and the horn's level by the zone; a held one's sway its breath.
-  petSounds: "jazz",
   // D586: BERLIN SCHOOL as the synthesizers (the filter's brightness); D588 VAUDEVILLE and D589 FLUTE & HARP each instrument
   // its own family's touch (landing "band": the breath on the winds, the pluck on the xylophone and the harp, the bow on the
   // strings, the brassiness on the bass trombone); D590 ORCHESTRA & ORGAN as the consort (a bow's pressure, the messa).
@@ -217,7 +212,6 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   abbeyRoad: [0, 0],
   krautrock: [0, 0],
   bossaNova: [0, 0],
-  petSounds: [0, 0],
   // A buff stop's softer note, a firmer pluck (with the lute's darkness and the brighter pluck's shelf).
   harpsichordSampled: [-0.5, 1.5],
   // The swell box's shutters: the level with its brightness (ORGAN_SWELL_TONE), the echo manual's under it.
@@ -226,10 +220,8 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   chip: [-2, 2.5],
   gameboy: [-3, 1],
   sid64: [-3, 1],
-  megaFm: [-3.5, 1],
   // The consoles' and the synthesizers' filter (TOMITA's patches hardly answer it: the level does).
   super16: [-5, 1],
-  tracker: [-5, 1],
   analog: [-4, 3],
   tomita: [-4, 2.5],
   // The closed vowel is the louder (measured 6-8 dB over the open at the same gain): the level the other way.

@@ -17,7 +17,7 @@ function mirror(id: string, sound: string, soundWhy: string, character: string, 
 }
 
 const C12 = (inv: boolean) => ({
-  megaFm: [at(1, { tone: -2 }, "The exposition in a darker tone."), at(18, { fm: 0.7, tone: -2 }, "After the cadences of 12 and 17: the FM mellower."), at(50, { tone: 2 }, "The final group (50): bright."), at(54, { tone: 2, room: 0.1 }, "The closing pedal in more of the room.")],
+  berlinSchool: [at(1, { tone: -2 }, "The exposition in a darker tone."), at(18, { lp: 2400, tone: -2 }, "After the cadences of 12 and 17: the filters half closed."), at(50, { tone: 2 }, "The final group (50): bright."), at(54, { tone: 2, room: 0.1 }, "The closing pedal in more of the room.")],
   soloVoices: [at(18, { room: 0.08 }, "After the cadences of 12 and 17, a little further away."), at(inv ? 50 : 54, { room: 0.12 }, "The closing pedal on D in more of the hall.")],
   harpsichordSampled: [at(1, H88, "A slow 3/2, sarabande-like: the coupled unison's weight."), at(18, H8, "After the cadence (17): the 8′."), at(inv ? 50 : 54, H88, "The closing pedal: the coupled unison.")],
   chamberOrgan: [at(1, OPRIN, "The principals."), at(18, OFLUTE, "After the cadence: the flutes."), at(inv ? 50 : 54, OFONDS, "The closing pedal: the foundations.")],
@@ -26,7 +26,6 @@ const C13 = {
   chip: [at(1, { tone: -2 }, "The exposition in a darker tone."), ...widths(38, [0.25, 0.25], "The long middle without entries (from 38): the pulses rounder."), at(62, { tone: -1 }, "The entries of 62: the own widths."), at(66, { tone: 2, room: 0.12 }, "The last entries and the close (66): bright, in more of the room.")],
   harpsichordSampled: [at(1, H84, "8′+4′."), at(38, H8, "The long middle without entries (from 38) on the 8′."), at(62, H84, "The entries of 62."), at(66, HFULL, "The last entry and the close: the manuals coupled.")],
   chamberOrgan: [at(1, OFLUTE, "Lively, three voices: the flutes."), at(62, OPRIN, "The last entries on the principals.")],
-  megaFm: [at(38, { fm: 0.7 }, "The middle without entries, mellower."), at(62, OWN, "The last entries.")],
 };
 
 export const AOF: Record<string, PieceColours> = {
@@ -86,11 +85,11 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-06": {
-    sound: "petSounds",
-    soundWhy: "D708: 'In Stylo Francese' (Bach's title): the French overture's dotted rhythms and diminutions, stately: PET SOUNDS' tack piano, twelve-string guitar, horn and bass (the bass doubled by the Wall of Sound's harp; its timpani among its drums), the orchestral pop of 1966 with the overture's pomp (the probe's closest pair 1.47 against the harpsichord's 0.76; BAROQUE BAND's 0.36 on this piece's seats).",
+    sound: "tomita",
+    soundWhy: "D893: 'In Stylo Francese' (Bach's title), the French overture's dotted rhythms and their diminutions, slow: TOMITA's whistle, flute, choir and bass, every voice held, in its wide space echo, no drums (the owner: TOMITA 'absolute bliss' on Contrapunctus 3; the voice probe's closest pair 1.98 against PET SOUNDS' 1.48; KRAUTROCK's 3.25 and ABBEY ROAD's 2.57 with plucked voices).",
     character: "Diminutions in stretto from bar 2; pedals on A (7-9, 31-33) and D (74-79); a cadence in D minor (33).",
     plans: {
-      petSounds: [at(B("bwv1080-06", 33), { tone: -1.5 }, "After the cadence in D minor (33), a shade darker."), at(E("bwv1080-06", 57), OWN, "The diminution's entry (57).")],
+      tomita: [at(B("bwv1080-06", 33), { tone: -1.5 }, "After the cadence in D minor (33), a shade darker."), at(E("bwv1080-06", 57), OWN, "The diminution's entry (57).")],
       harpsichordSampled: [at(1, HFULL, "The French style on the full harpsichord."), at(B("bwv1080-06", 33), H84, "After the cadence in D minor (33): 8′+4′."), at(E("bwv1080-06", 57), HFULL, "The diminution's entry (57): coupled again.")],
       chamberOrgan: [at(1, OPLENO, "The overture style on the plenum."), at(B("bwv1080-06", 33), OPRIN, "After the cadence: the principals."), at(E("bwv1080-06", 57), OPLENO, "The plenum again.")],
       super16: [at(B("bwv1080-06", 33), { room: 0.15 }, "The middle span in the SPC echo."), at(E("bwv1080-06", 57), OWN, "Dry from 57.")],
@@ -130,11 +129,11 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-10": {
-    sound: "tracker",
-    soundWhy: "'Alla Decima', a double fugue opening on the inverted subject: TRACKER's violin, harpsichord, 8-bit choir and slapped bass, hard left and right, each entry its own colour.",
+    sound: "tomita",
+    soundWhy: "D893: 'Alla Decima', a slow double fugue opening on the inverted subject: TOMITA's held voices in its space echo, no drums (the voice probe's closest pair 2.45 against TRACKER's 1.06; ABBEY ROAD's 2.97 with its guitar and bass plucked).",
     character: "The inverted subject's exposition (1-14), a new section from 44, the subjects combined from 85.",
     plans: {
-      tracker: [at(1, { tone: -2 }, "The exposition in a darker tone."), at(B("bwv1080-10", 33), { tone: -2 }, "After the cadence in D minor (33), darker."), at(E("bwv1080-10", 44), { tone: -1 }, "The tenor's entry (44)."), at(115, { tone: 2 }, "The final group (115): bright.")],
+      tomita: [at(1, { tone: -2 }, "The exposition in a darker tone."), at(B("bwv1080-10", 33), { tone: -2 }, "After the cadence in D minor (33), darker."), at(E("bwv1080-10", 44), { tone: -1 }, "The tenor's entry (44)."), at(115, { tone: 2 }, "The final group (115): bright.")],
       harpsichordSampled: [at(1, H8, "The 8′."), at(E("bwv1080-10", 44), H84, "The section from 44: 8′+4′."), at(E("bwv1080-10", 85), HFULL, "The subjects combined (85): coupled.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes."), at(E("bwv1080-10", 44), OPRIN, "The principals."), at(E("bwv1080-10", 85), OPLENO, "The subjects combined: the plenum.")],
     },
@@ -150,8 +149,8 @@ export const AOF: Record<string, PieceColours> = {
       pianoSampled: [at(B("bwv1080-11", 27), { layer: "soft" }, "After the cadence, the soft layer."), at(E("bwv1080-11", 71), OWN, "The inversions.")],
     },
   },
-  ...mirror("bwv1080-12r", "megaFm", "D708: a mirror fugue in a slow 3/2, four voices: MEGA FM's lead, e-piano, clav and slap bass, each its own (the probe's closest pair 1.67 against SOLO VOICES' 0.40), the sarabande-like lines as the Genesis sang them.", "Four entries (1-14), cadences in D minor (12) and A minor (17), a closing pedal on D (54-56).", C12(false)),
-  ...mirror("bwv1080-12i", "megaFm", "D708: the mirror of Contrapunctus 12 on the same sound as its rectus: MEGA FM (the probe's closest pair 2.02 against SOLO VOICES' 0.59).", "The rectus turned upside down: the same bars, a closing pedal (50-54).", C12(true)),
+  ...mirror("bwv1080-12r", "berlinSchool", "D893: a mirror fugue in a slow 3/2, four voices: BERLIN SCHOOL's lead, sequencer voice, string machine and synth bass, held in its space echo, no drums (the voice probe's closest pair 3.05 on the reworked BERLIN SCHOOL, D805, against MEGA FM's 1.69; TOMITA's 1.46).", "Four entries (1-14), cadences in D minor (12) and A minor (17), a closing pedal on D (54-56).", C12(false)),
+  ...mirror("bwv1080-12i", "berlinSchool", "D893: the mirror of Contrapunctus 12 on the same sound as its rectus: BERLIN SCHOOL (the voice probe's closest pair 3.16 against MEGA FM's 2.01).", "The rectus turned upside down: the same bars, a closing pedal (50-54).", C12(true)),
   ...mirror("bwv1080-13r", "chip", "D708: a lively mirror fugue in three voices: CLASSIC CHIP's pulses and triangle, a console's three channels (the probe's closest pair 2.37 against the harpsichord's 0.46; Bach's own arrangement for two harpsichords, BWV 1080/18, one choice away).", "Entries to 37, a long middle with a G pedal (38-42), the last entries (62, 66).", C13),
   ...mirror("bwv1080-13i", "chip", "D708: the inversus on the same sound as its rectus: CLASSIC CHIP (the probe's closest pair 1.70 against the harpsichord's 1.41).", "The rectus upside down, the same bars; a pedal on C (30-33).", C13),
   "bwv1080-c14": {
@@ -176,11 +175,11 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-c16": {
-    sound: "tracker",
-    soundWhy: "D708: a canon at the tenth in 12/8, two voices: TRACKER's sampled violin and slapped bass, hard left and right (the probe's distance 5.10 against the harpsichord's 2.38: one instrument for both lines), the lilt kept dry.",
+    sound: "salsa",
+    soundWhy: "D893: a canon at the tenth in 12/8, two voices: SALSA's trumpet over its baby bass, the upper line held (the voice probe's distance 5.58 against TRACKER's 5.10; JAZZ QUARTET's 8.15 vibes and bass both struck, on eight pieces), the lilt kept dry; no drums.",
     character: "Two voices in compound time; a cadence in F (17).",
     plans: {
-      tracker: [at(1, { tone: -2 }, "The canon opens in a darker tone."), at(40, { tone: 2 }, "The second half (40, the final group): the parts inverted, bright."), at(56, OWN, "The coda (56).")],
+      salsa: [at(1, { tone: -2 }, "The canon opens in a darker tone."), at(40, { tone: 2 }, "The second half (40, the final group): the parts inverted, bright."), at(56, OWN, "The coda (56).")],
       harpsichordSampled: [at(1, H8, "The 8′."), at(42, H84, "The second half: 8′+4′.")],
       chamberOrgan: [at(1, OFLUTE, "The flutes.")],
     },
@@ -197,11 +196,11 @@ export const AOF: Record<string, PieceColours> = {
     },
   },
   "bwv1080-14": {
-    sound: "petSounds",
-    soundWhy: "D708: the unfinished triple fugue, its last subject B-A-C-H, breaking off in bar 239: PET SOUNDS' tack piano, twelve-string guitar, horn and bass, each voice its own (the probe's closest pair 1.97 against the harpsichord's 0.64), Brian Wilson's melancholy for the work's last page; it ends in tempo where the text stops (D710).",
+    sound: "tomita",
+    soundWhy: "D893: the unfinished triple fugue, its last subject B-A-C-H, breaking off in bar 239, the slowest: TOMITA's held voices in its wide space echo, no drums, as the owner heard Contrapunctus 3 (the voice probe's closest pair 1.94 against PET SOUNDS' 2.08: the nearest sustained sound; ABBEY ROAD's 2.72 and BOSSA NOVA's 2.43 with plucked voices); it ends in tempo where the text stops (D710).",
     character: "The first subject (1-113), the running second subject (from 114, after the cadence in D), the third, B-A-C-H (from 193, after the cadence in G minor), all three together (233-239).",
     plans: {
-      petSounds: [at(1, { tone: -1.5 }, "The first subject in the stile antico, a darker tone."), at(E("bwv1080-14", 114), { tone: -1.5 }, "The running second subject (114)."), at(E("bwv1080-14", 193), { tone: -0.5 }, "B-A-C-H (193)."), at(E("bwv1080-14", 233), { tone: 1.5, room: 0.12 }, "All three subjects together (233): bright, in more of the room.")],
+      tomita: [at(1, { tone: -1.5 }, "The first subject in the stile antico, a darker tone."), at(E("bwv1080-14", 114), { tone: -1.5 }, "The running second subject (114)."), at(E("bwv1080-14", 193), { tone: -0.5 }, "B-A-C-H (193)."), at(E("bwv1080-14", 233), { tone: 1.5, room: 0.12 }, "All three subjects together (233): bright, in more of the room.")],
       harpsichordSampled: [at(1, H8, "The first subject in the stile antico: the 8′."), at(E("bwv1080-14", 114), H84, "The second subject (114): 8′+4′."), at(E("bwv1080-14", 193), HFULL, "B-A-C-H (193): the manuals coupled.")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(E("bwv1080-14", 114), OFLUTE, "The running second subject on the flutes."), at(E("bwv1080-14", 147), OPRIN, "The second subject with the first (147)."), at(E("bwv1080-14", 193), OPLENO, "B-A-C-H: the plenum.")],
       soloVoices: [at(E("bwv1080-14", 193), { room: 0.12 }, "B-A-C-H in more of the hall.")],

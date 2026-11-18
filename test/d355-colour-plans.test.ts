@@ -157,11 +157,7 @@ test("D355: the band only: the player's note never coloured; the player's TUTTI 
   assert.deepEqual(bandRegistration(reg(["lute"], true), { colour: c }), reg(["lute"], true), "TUTTI: the player registers everything");
   assert.deepEqual(bandRegistration(reg(null), { colour: c, lead: true }), reg(null), "the player's note");
   const v = voicing(0, 3, false);
-  const [, p] = coloured("megaFm", c, v, { level: 0.8 });
-  assert.equal(p.level, 0.8, "the level untouched");
-  assert.equal(p.fmScale, 0.7);
-  const [, mine] = coloured("megaFm", c, v, { lead: true, level: 0.8 });
-  assert.deepEqual(mine, { lead: true, level: 0.8 });
+  // (D890: MEGA FM, the one sound with an FM index to colour, withdrawn.)
   // CLASSIC CHIP's pulses: the voicing's width; the triangle bass untouched.
   assert.equal(coloured("chip", { pw: 0.5 }, { ...v, patch: null, timbre: "pulse12" }, {})[0].timbre, "pulse50");
   assert.equal(coloured("chip", { pw: 0.5 }, { ...v, patch: null, timbre: "triangle" }, {})[0].timbre, "triangle");

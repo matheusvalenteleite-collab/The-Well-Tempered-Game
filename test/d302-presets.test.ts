@@ -82,7 +82,6 @@ test("D302: SOLO VOICES: the four singers recorded, a syllable at each new note 
   assert.equal(new Set(pr.slots!.map((s) => PATCHES[s].syllable!.cons)).size, 1);
   for (const id of ["voiceS", "voiceA", "voiceT", "voiceB", "choirAah"] as const) assert.equal(SAMPLED[id].plucked, false);
   assert.match(creditFor("soloVoices")!, /VOCALSET.*CC BY 4\.0/);
-  assert.match(creditFor("tracker")!, /FLUIDR3/);
   assert.equal(creditFor("chamberOrgan"), null);
 });
 
@@ -120,7 +119,6 @@ test("D304: a singer's subject not belled (the tinkling): I/2's glass spark on t
     return notes;
   };
   // D428: no real instrument is belled now (the harpsichord neither); D505 (deliberately): nor a synthesizer.
-  assert.equal(count("megaFm"), 0);
   assert.equal(count("chip"), 0);
   assert.equal(count("harpsichordSampled"), 0);
   assert.equal(count("vocalSynth"), 0);

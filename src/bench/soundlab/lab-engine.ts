@@ -15,7 +15,7 @@
 import { Chip } from "../../touch/chip.ts";
 import { openingOf, soundPlans } from "../../touch/chip.ts";
 import { barAt, barStart, everyNote, fugueById, type TouchFugue } from "../../touch/fugue.ts";
-import { preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow, pieceLineUp } from "../../touch/sound.ts";
+import { preset, PRESETS, presetById, setBacking, setDrums, setOwnKit, setPieceLayout, setPreset, TRIALS, playerSound, pieceLayoutNow, pieceLineUp, WITHDRAWN_D890 } from "../../touch/sound.ts";
 import { loadPlanKeep, type Plan } from "../../touch/sampled.ts";
 import { setDrumStyle } from "../../touch/drum-library.ts";
 import { padChoice, padStyle } from "./drum-pad.ts";
@@ -46,7 +46,8 @@ export const LAB_SOUNDS = [...PRESETS, ...TRIALS].map((p) => ({ id: p.id, name: 
 /** The sound a setting plays (the fugue's own where none is chosen; a trial by its own id). */
 export function soundOf(s: LabSettings): string {
   if (s.sound && LAB_SOUNDS.some((x) => x.id === s.sound)) return s.sound;
-  if (s.sound) return playerSound(s.sound);
+  // D890: a withdrawn sound (PET SOUNDS, TRACKER, MEGA FM) chosen once opens the piece on its own.
+  if (s.sound && !WITHDRAWN_D890.has(s.sound)) return playerSound(s.sound);
   return playerSound(PIECE_SOUND[s.piece] ?? "chip");
 }
 /** The voice Herr Bach plays: the one chosen, else the game's first offer (play.html's for a fugue not yet finished: the second to enter). */

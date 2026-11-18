@@ -201,6 +201,11 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     why: "I/19 A, 9/8 at a dotted crotchet of 1.08 s, 54 bars, the subject in running quavers (0.36 s): STOOGES' slapstick on it: the woodblock on each entry's first bar (nine quavers, the scherzo's chatter), the temple blocks on the bass's two heaviest notes a bar (the high block where it leaps up), the claves in the episodes; eight cadences (9 A, 13 f#, 16 b, 20 E, 36 b, 42 f#, 49 A, 54 A), each after a half beat's cartoon pause and a ta-da on the blocks, the bonk on it, the slapstick on the perfect ones; a ratchet with a rising whistle into the acts, the final a bonk, the slapstick and a falling whistle.",
     styles: { stooges: { subject: "head", perBar: 2, thr: 0.95, cadences: "all", rolls: "acts" } },
   },
+  // D893: I/17 on FLUTE & HARP (no drums its default, D894); SWELL, its family's, a choice away, as II/18's on the same sound.
+  wtc1f17: {
+    why: "I/17 A♭, 4/4 at a crotchet of 1.11 s, 35 bars, four voices, 'noble and warm … solemnly slow' (Keller), on FLUTE & HARP: SWELL a choice away, one mallet stroke a bar on the bass's heaviest note, the brush on each entry's head, a gentle swell at the perfect cadences only.",
+    styles: { swell: { thr: 0.9, perBar: 1, subject: "head", rolls: "acts", cadences: "perfect", level: 0.85 } },
+  },
   wtc2f18: {
     why: "II/18 g#, 6/8 at a dotted crotchet of 1.08 s, 143 bars, its subject five and a half bars of flowing quavers (the owner: \"flow like the sea. It's beautiful but also not overly assuming\"): SWELL: one mallet stroke a bar on the bass's heaviest note (the low tom on the bar, the high one off it), the brush on each entry's first bar, a gentle cymbal swell every four bars, a fuller one into the acts and the final chord, the mallets' roll into the acts; the snare only at the acts' arrivals and on the final group's downbeats (bars 135-140: \"reserve that for only a few parts\"); the two perfect cadences (55, 143) marked.",
     styles: { swell: { thr: 0.9, perBar: 1, subject: "head", rolls: "acts", cadences: "perfect", level: 0.9 } },

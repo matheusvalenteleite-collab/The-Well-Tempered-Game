@@ -74,8 +74,10 @@ test("D514 (D526): get/set per piece: the choice this visit, else the selection 
   assert.equal(chosenStyle("wtc2f20"), null);
   assert.equal(drumStyleFor("wtc2f20", "analog"), homeStyleFor("analog"));
   setDrumPreset(id, "percussion");
-  assert.equal(chosenStyle(id), stylesFor(id).percussion);
-  assert.equal(drumStyleFor(id), stylesFor(id).percussion);
+  // D891: a D514 character read as a withdrawn kit (the TIMPANI) is HOME.
+  const perc = stylesFor(id).percussion === "timpani" ? null : stylesFor(id).percussion;
+  assert.equal(chosenStyle(id), perc);
+  if (perc) assert.equal(drumStyleFor(id), perc);
   setDrumPreset(id, "nonsense");
   assert.equal(chosenStyle(id), null);
   localStorage.setItem(STORED_PRESET_KEY("wtc2f19"), "acoustic");

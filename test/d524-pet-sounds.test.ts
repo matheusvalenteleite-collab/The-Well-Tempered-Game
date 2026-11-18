@@ -7,26 +7,15 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { register } from "node:module";
 import { FakeAudioContext, installFakeAudio } from "./fake-audio.ts";
-import { Chip, REVERBS, type GrooveContext } from "../src/touch/chip.ts";
-import { DYNAMIC_SOUNDS, PATCHES, PET_CREDIT, PET_SEND, PRESETS, creditFor, grooveNow, offered, presetById, setDrums, setPreset } from "../src/touch/sound.ts";
-import { SAMPLED, TIMP_MIDIS as D514_TIMP, TIMP_SET, kitMidi, sampledMidis } from "../src/touch/sampled.ts";
-import { TOUCH_KINDS, holdMode } from "../src/touch/touch-expr.ts";
-import { MIN_GAP_BARS, TIMP_MIDIS, bassAt, petBeat, petPlan } from "../src/touch/pet-drums.ts";
+import { MIN_GAP_BARS, bassAt, petBeat, petPlan } from "../src/touch/pet-drums.ts";
 import { arrivals, homeTimpani } from "../src/touch/score-drums.ts";
 import { beatOf, fugueById } from "../src/touch/fugue.ts";
 import { entrySpans } from "../src/touch/voice-mode.ts";
 import { formOf } from "../src/touch/form-points.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
-import { slideFamily } from "../src/bench/slide-sound.ts";
 import { COLOURS } from "../tools/touch/colour-plans/index.ts";
-import { PT } from "../src/i18n/pt.ts";
-import { ES } from "../src/i18n/es.ts";
 
-register("./tsx-hooks.mjs", import.meta.url);
-const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
-const { SOUND_GROUPS } = await import("../src/bench/SoundSelect.tsx");
 
 installFakeAudio(0, true);
 FakeAudioContext.prototype.decodeAudioData = function (this: FakeAudioContext) {
@@ -35,60 +24,6 @@ FakeAudioContext.prototype.decodeAudioData = function (this: FakeAudioContext) {
   return Promise.resolve(b);
 } as never;
 
-const PET = presetById("petSounds");
-const ctxOf = (c: Chip) => (c as unknown as { ctx: FakeAudioContext }).ctx;
-
-test("D524: PET SOUNDS offered: in the lists, an ensemble, named in three languages, credited, Busoni's dynamics reach it", () => {
-  assert.ok(offered("petSounds"));
-  assert.equal(PET.name, "PET SOUNDS");
-  assert.ok(POP_SOUNDS.some((r: readonly unknown[]) => r[0] === "petSounds"));
-  assert.ok(SOUND_GROUPS.find((r: readonly unknown[]) => r[0] === "ENSEMBLES")![1].includes("petSounds"));
-  assert.equal(PT["PET SOUNDS"], "PET SOUNDS");
-  assert.equal(ES["PET SOUNDS"], "PET SOUNDS");
-  assert.equal(creditFor("petSounds"), PET_CREDIT);
-  assert.match(PET_CREDIT, /IOWA/);
-  assert.ok(DYNAMIC_SOUNDS.has("petSounds"));
-});
-
-test("D524: the band: one instrument a voice (strings, horn, harpsichord, piano, electric bass); one echo chamber; within ±0.2; no bells", () => {
-  const by = PET.by!;
-  // D560: D545's band promoted (the musette accordion in the piano's place). D580: the record's colours: the tack piano,
-  // the twelve-string, the accordion, the French horn, Carol Kaye's bass (its bass harmonica in unison: Patch.double).
-  assert.deepEqual(by[3]!.map(([p]) => p), ["p3Tack", "psHorn", "p3Bass"]);
-  assert.deepEqual(by[4]!.map(([p]) => p), ["p3Tack", "p3Twelve", "psHorn", "p3Bass"]);
-  assert.deepEqual(by[5]!.map(([p]) => p), ["p3Tack", "p3Twelve", "p2Accordion", "psHorn", "p3Bass"]);
-  for (const [n, vs] of Object.entries(by)) {
-    assert.equal(vs!.length, Number(n), "one instrument a voice, nothing added");
-    for (const [, pan] of vs!) assert.ok(Math.abs(pan) <= 0.2);
-  }
-  assert.equal(PET.fx, "goldStar");
-  assert.ok(REVERBS.goldStar.rt60 <= 1.6);
-  for (const id of ["psStrings", "psHorn", "psHarpsi", "psPiano"] as const) assert.equal(PATCHES[id].send, PET_SEND, id);
-  // No mallet, bell or glockenspiel anywhere in the band (the owner hates stray glockenspiel).
-  for (const id of PET.slots!) assert.ok(!PATCHES[id].motor && !/vib|bell|glock|celesta/i.test(String(PATCHES[id].sample)), id);
-  assert.equal(PATCHES.psBass.sample, "rockBass");
-  assert.ok((PATCHES.psBass.phoneLift?.db ?? 0) >= 5);
-  assert.equal(PATCHES.p3Bass.sample, "rockBass");
-  assert.ok((PATCHES.p3Bass.phoneLift?.db ?? 0) >= 5 && PATCHES.p3Bass.double && !PATCHES.p3Bass.double.patch.sample, "the bass lifted on a phone, its harmonica synthesised");
-});
-
-test("D524: the recordings reused (no new pitched set): the strings, the horn, the harpsichord, the bass E1-G3, the rock kit, the tambourine, the timpani", () => {
-  assert.equal(SAMPLED.petStrings.set, "petStrings");
-  assert.equal(sampledMidis("rickBass")[0], 28);
-  // The kit the rock kit's, the tambourine the club kit's, the timpani D514's: no new files.
-  assert.ok(kitMidi("kitClub", "tambourine", true) !== null);
-  assert.deepEqual([...D514_TIMP], [...TIMP_MIDIS]);
-  assert.equal(TIMP_SET, "timpLoud");
-});
-
-test("D524: the touch as JAZZ QUARTET's; a held string or horn note's sway its breath; the slide each instrument's own", () => {
-  assert.equal(TOUCH_KINDS.petSounds, "jazz");
-  assert.equal(holdMode("jazz", PATCHES.psStrings, false), "breath");
-  assert.equal(holdMode("jazz", PATCHES.psPiano, true), "none");
-  assert.equal(slideFamily("petSounds", PATCHES.psStrings), "bowed");
-  assert.equal(slideFamily("petSounds", PATCHES.psHorn), "brass");
-  assert.equal(slideFamily("petSounds", PATCHES.psBass), "bass");
-});
 
 function hitsOf(id: string, dynDb = 0) {
   const f = fugueById(id);
@@ -162,33 +97,6 @@ test("D524: Busoni's level shades the drums (within ±4 dB); his p the quiet pat
   const mid = hitsOf("wtc1f17", 0).out.find((h) => h.piece === "kick")!;
   assert.ok(loud.vel > mid.vel && loud.vel / mid.vel <= 10 ** (4 / 20) + 1e-9);
   assert.ok(!hitsOf("wtc1f17", -6).out.some((h) => h.piece === "tamb"));
-});
-
-test("D524: the drums on the game's clock: only with PET SOUNDS, always with it; each hit inside its beat", async () => {
-  setPreset("petSounds");
-  const chip = new Chip();
-  await chip.prepare([48, 60, 72], [72]);
-  assert.equal(grooveNow()?.kit, "pet");
-  const f = fugueById("wtc1f17");
-  const beat = f.tpq;
-  const cx: GrooveContext = { tick: f.bars[3].on, beat, fills: [], end: f.length, piece: f };
-  const t0 = ctxOf(chip).currentTime + 1;
-  const n0 = chip.brushLog.length;
-  assert.equal(chip.groove(t0, 1.1, 0, 3, 4, false, cx), true);
-  const log = chip.brushLog.slice(n0);
-  assert.ok(log.length > 0);
-  assert.ok(log.every((l) => l.at >= t0 && l.at < t0 + 1.1));
-  for (const p of PRESETS) assert.equal(p.groove === "petSounds", p.id === "petSounds", p.id);
-  setDrums(false);
-  assert.equal(grooveNow()?.kit, "pet");
-  setDrums(true);
-  setPreset("chip");
-});
-
-test("D524: the allocation: I/17 opens on PET SOUNDS, with its reason", () => {
-  assert.equal(PIECE_SOUND.wtc1f17, "petSounds");
-  assert.equal(COLOURS.wtc1f17.sound, "petSounds");
-  assert.match(COLOURS.wtc1f17.soundWhy, /Pet Sounds/);
 });
 
 test("D524: the harpsichord, an honoured core sound, opens at least two fugues (II/2, II/9; D590: I/24 to ORCHESTRA & ORGAN, the owner: \"definitely not harpsichord\"); SID 64 keeps four", () => {

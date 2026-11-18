@@ -76,11 +76,6 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     pt: "Bossa nova: flauta, Rhodes, sax, violão e baixo",
     es: "Bossa nova: flauta, Rhodes, saxo, guitarra y bajo",
   },
-  petSounds: {
-    en: "Tack piano, 12-string, accordion, horn, bass, soft backbeat",
-    pt: "Piano de tachinhas, 12 cordas, acordeom, trompa, baixo",
-    es: "Piano de chinchetas, 12 cuerdas, acordeón, trompa, bajo",
-  },
   vaudeville: {
     en: "Pit band: xylophone, clarinet, bassoon, bass trombone",
     pt: "Banda de teatro: xilofone, clarinete, fagote, trombone",
@@ -112,20 +107,10 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     pt: "Console 16 bits: violino, flauta, cravo, cordas; eco",
     es: "Consola de 16 bits: violín, flauta, clave, cuerdas; eco",
   },
-  megaFm: {
-    en: "FM synth: lead, brass, e-piano, clav, slap bass; echo",
-    pt: "FM: solo, metais, piano elétrico, clavinete, baixo; eco",
-    es: "FM: solista, metales, piano eléctrico, clavinet, bajo; eco",
-  },
   sid64: {
     en: "Home computer chip: pulse lead, saw, triangle, pulse bass",
     pt: "Chip de computador: pulso, dente de serra, triângulo, baixo",
     es: "Chip de ordenador: pulso, diente de sierra, triángulo, bajo",
-  },
-  tracker: {
-    en: "Tracker: violin, flute, harpsichord, 8-bit choir, slap bass",
-    pt: "Tracker: violino, flauta, cravo, coro 8 bits, baixo slap",
-    es: "Tracker: violín, flauta, clave, coro de 8 bits, bajo slap",
   },
   // SYNTHESIZERS
   analog: {
@@ -167,8 +152,8 @@ export function soundBlurb(soundId: string, lang: BlurbLang = "en"): string {
  */
 export const AUDITION_SOUNDS: readonly string[] = [
   "harpsichordSampled", "pianoSampled", "chamberOrgan",
-  "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "petSounds", "vaudeville", "fluteHarp", "orchestraOrgan",
-  "chip", "gameboy", "super16", "megaFm", "sid64", "tracker",
+  "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "vaudeville", "fluteHarp", "orchestraOrgan",
+  "chip", "gameboy", "super16", "sid64",
   "analog", "berlinSchool", "tomita",
   "vocalSynth", "soloVoices",
 ];

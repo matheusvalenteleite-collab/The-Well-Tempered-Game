@@ -44,7 +44,6 @@ export const IDEAS: readonly Idea[] = [
   // OWN: the new defaults (D585-D590), each its fugue's own sound and drums.
   I("canon-lofi", "own", "wtc1f01", "pianoSampled", "lofi", 1, "The C major at 49 on the grand, a dull kick behind the beat: beats to study counterpoint to."),
   I("imp-berlin", "own", "wtc1f02", "berlinSchool", "scoreSynth", 1, "The Imp's semiquavers as a step sequencer: Berlin, 1975, the kit reading the subject."),
-  I("pinball-arcade", "own", "wtc1f15", "megaFm", "arcade", 1, "The bouncing 6/8 gigue on the FM chip, an arcade's kit: the pinball table."),
   I("stooges-vaudeville", "own", "wtc1f19", "vaudeville", "stooges", 1, "The 9/8 scherzo's skips and rests for a slapstick pit band: xylophone, clarinet, bassoon."),
   I("loco-liebezeit", "own", "wtc1f20", "krautrock", "liebezeit", 1, "Eighty-seven bars of A minor over a Tago Mago loop: toms and hats interlocking."),
   // D594-D595: I/24 on SID 64 and II/22 on KRAUTROCK, both at FAST (their opening step); I/24's orchestra now TAILORED.
@@ -63,14 +62,11 @@ export const IDEAS: readonly Idea[] = [
   I("ambush-waltz", "safe", "wtc1f06", "jazzQuartet", "jazzWaltz", 1, "The D minor 3/4 on a ride across the three instead of the band's brushes."),
   I("pilgrim-brushes", "safe", "wtc1f08", "pianoSampled", "brushes", 1, "The long E-flat minor on the grand, brushes stirring under it: late-night Loussier."),
   I("bicycle-808", "safe", "wtc1f07", "analog", "machine", 1, "Switched-On Bach's own decade, with the drum machine it never had."),
-  I("diary-pet", "safe", "wtc1f17", "petSounds", "pet", 1, "A-flat major, the tambourine and Hal Blaine's tom: the record's own drummer."),
-  I("procession-field", "safe", "wtc1f22", "soloVoices", "fieldDrums", 1, "The B-flat minor procession behind rope-tension field drums."),
   // TAILORED: a fugue's character met across the families.
   I("coronation-military", "tailored", "wtc1f05", "bachBrass", "military", 1, "The D major's dotted French-overture rhythm on a Lully side drum."),
   I("ombra-castanets", "tailored", "wtc2f16", "baroqueBand", "castanets", 1, "The G minor 3/4 on the baroque band, castanets on its lilting subject: a dark Spanish courante."),
   I("lantern-swing", "tailored", "wtc1f14", "jazzQuartet", "jazz", 1, "The F-sharp minor 6/4 on the ride's swing in twelve: the quartet's compound beat."),
   // D594: D590's orchestral finale, no longer I/24's own: the strings, the winds held back, the organ at the final group.
-  I("finale-orchestra", "tailored", "wtc1f24", "orchestraOrgan", "timpani", 63, "Book I's last fugue from bar 63: the winds held back, then the organ arriving at the final group."),
 ];
 
 /** The candidates the proxy dropped (rendered, then read against the fugue's onsets), with the reason: not to offer again. */
