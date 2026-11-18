@@ -4,7 +4,7 @@
 // OfflineAudioContext at 44.1 kHz on a phone (a mobile context). measure.py reads each voice's centroid, attack, decay and
 // tail and the pairs' distances.
 // Needs Playwright and a dev server with no hot reload on PORT.
-// usage: node tools/touch/voice-probe/render.cjs <out dir> <jobs.json>   (jobs: [{name, piece, sound, midis: [...]}])
+// usage: node tools/touch/voice-probe/render.cjs <out dir> <jobs.json>   (jobs: [{name, piece, sound, midis: [...], trial?}])
 const { chromium } = require(process.env.PLAYWRIGHT || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
@@ -32,6 +32,8 @@ fs.mkdirSync(outDir, { recursive: true });
       const f = fugueById(job.piece);
       snd.setPreset(job.sound);
       snd.setBacking(false);
+      // D86x: a job's `trial` (sound.ts PIECE_TRIALS: a piece trial's line-up on its sound).
+      snd.setPieceTrial?.(job.trial ?? null);
       const tl = snd.preset().id === 'oboeTrio' ? trio.trioLayout(f) : null;
       snd.setPieceLayout(tl ? { preset: snd.preset().id, count: tl.count, slots: tl.slots } : snd.pieceLineUp(snd.preset().id, f));
       const dur = job.midis.length * 6 + 1.5;
