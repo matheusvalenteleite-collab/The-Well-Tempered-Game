@@ -380,9 +380,10 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | inven03 | bar 45, C#5: the sign the BGA's (UR) (D206) |
 | inven05 | bar 32, F5: the sign the BGA's (DR) (D206) |
 | inven09 | bar 15, B4: the sign the BGA's (D) (D206) |
-| inven09 | bar 15, C5: the sign the BGA's (TR) (D206) |
+| inven09 | bar 15, C5: the sign the BGA's (TRJ) (D206) |
 | inven09 | bar 16, D5: the sign the BGA's (U) (D206) |
 | inven09 | bar 33, G4: the sign the BGA's (D) (D206) |
+| inven11 | bar 10, D5: the sign the BGA's (MJ) (D206) |
 | inven11 | bar 10, E5: the sign the BGA's (UR) (D206) |
 | inven12 | bar 1, B4: the sign the BGA's (UR) (D206) |
 | inven12 | bar 3, F#3: the sign the BGA's (UR) (D206) |

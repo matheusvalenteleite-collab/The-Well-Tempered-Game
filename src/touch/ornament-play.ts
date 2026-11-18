@@ -120,7 +120,7 @@ export function ornamentMark(o: Ornament): string {
   if (/[TtODU]/.test(s)) return "TR";
   if (/[Mm]/.test(s)) return "~|";
   if (/[Ww]/.test(s)) return "~";
-  if (/[S$]/.test(s)) return "S";
+  if (/[S$J]/.test(s)) return "S";
   // D870: the slide (L) plays itself, as grace notes do.
   return o.graces.length || s.includes("L") ? "·" : "";
 }
@@ -178,7 +178,7 @@ export function shakeOf(o: Ornament): Shake | null {
   if (/[TtODU]/.test(s)) return { kind: "trill", word: "TRILL", first: 1, need: 4 };
   if (/[Mm]/.test(s)) return { kind: "mordent", word: "MORDENT", first: -1, need: 2 };
   if (/[Ww]/.test(s)) return { kind: "short", word: "TRILL", first: 1, need: 2 };
-  if (/[S$]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 2 };
+  if (/[S$J]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 2 };
   return null;
 }
 

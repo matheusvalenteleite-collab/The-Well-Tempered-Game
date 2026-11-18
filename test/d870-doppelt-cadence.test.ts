@@ -41,3 +41,17 @@ test("D870: the time is the note's: nothing spills past it", () => {
     assert.ok(Math.abs(end - 1.5) < 1e-9, `${s}: ${end}`);
   }
 });
+
+test("D878: the turn after the note: held to the dot (or a plain note's half), then U N L N; a sign before it in its own time", () => {
+  // A dotted crotchet: E held for a crotchet, then F E D E in the dot.
+  const r = realise({ midi: 64, at: 0, dur: 1.5 }, "J", [], C);
+  assert.deepEqual(r.map((x) => x.midi), [64, 65, 64, 62, 64]);
+  assert.equal(r[0].dur, 1);
+  assert.equal(r[1].at, 1);
+  // A mordent, then the turn on the tie (a minim: at its half).
+  const m = realise({ midi: 64, at: 0, dur: 2 }, "MJ", [], C);
+  assert.deepEqual(m.map((x) => x.midi), [64, 62, 64, 65, 64, 62, 64]);
+  assert.ok(m.slice(0, 3).every((x) => x.at < 1) && m[3].at === 1);
+  assert.ok(Math.abs(Math.max(...m.map((x) => x.at + x.dur)) - 2) < 1e-9);
+  assert.equal(ornamentMark({ signs: "MJ", graces: [] }), "~|");
+});
