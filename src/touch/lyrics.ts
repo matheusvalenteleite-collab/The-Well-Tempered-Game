@@ -36,7 +36,7 @@ export function unpackLyrics(packed: readonly (number | string)[]): Syllable[] {
 const memo = new WeakMap<TouchFugue, (Syllable[] | null)[]>();
 const memo2 = new WeakMap<TouchFugue, (Syllable[] | null)[]>();
 /**
- * A voice's words (null for an instrument or a piece without words), unpacked once. D678: `second`, the chorales'
+ * A voice's words (null for an instrument or a piece without words), unpacked once. D679: `second`, the chorales'
  * second line under the notes (D728 lyricsSecond); the stanza the edition prints for the line ("1", "2") before
  * its first syllable ("1. AUS").
  */
@@ -57,7 +57,7 @@ export function lyricsOf(f: TouchFugue, voice: number, second = false): Syllable
 }
 
 /**
- * D678 (design studio): the words drawn under the player's voice in a chorale: its own where the edition underlays
+ * D679 (design studio): the words drawn under the player's voice in a chorale: its own where the edition underlays
  * them, else the soprano's (the hymn's words; the edition underlays the lower voices in only 43 of the 370), marked
  * `borrowed` so the box draws them a shade fainter; the second line under the first.
  */

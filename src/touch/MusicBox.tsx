@@ -583,12 +583,13 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const miss = tok("--tg-miss");
   const edge = tok("--tg-fg");
   // D347: the sung words under the player's voice (drawn first: the blocks stay on top).
-  // D678: a chorale's second line stacked under the first, as a hymnal prints them; a lower voice the edition gives no
+  // D679: a chorale's second line stacked under the first, as a hymnal prints them; a lower voice the edition gives no
   // words takes the soprano's, a shade fainter (its syllables under its own notes that start with them).
   const words = fr.piece ? wordsFor(fugueById(fr.piece), fr.voice) : null;
-  const wordLine = !!words && fr.piece?.startsWith("chor") && WORDS_LAYOUT() === "line";
+  // D679 (the owner chose B, the word line): a chorale's words on their own line; BWV 228's and 54's under the notes (D347).
+  const wordLine = !!words && !!fr.piece?.startsWith("chor");
   if (words && wordLine) {
-    // D678 (design studio, option B): a chorale's words on a line of their own at the box's foot, as a hymnal prints
+    // D679 (design studio; the owner chose B): a chorale's words on a line of their own at the box's foot, as a hymnal prints
     // them under the staves: each syllable at its own time, the one sung now lit, the second line under the first.
     const s = bh >= 16 ? 2 : 1;
     // Over what lies on the roll's foot (the voice legend: D473), not under it.
@@ -967,19 +968,11 @@ interface LyricGeo {
   t0: number;
   t1: number;
   ink: string;
-  /** D678: the second line's drop under the first, in px; and a borrowed line's fainter share. */
+  /** D679: the second line's drop under the first, in px; and a borrowed line's fainter share. */
   drop?: number;
   alpha?: number;
 }
-/** D678: where a chorale's words go: under the player's notes ("under", as D347) or on a line at the box's foot ("line"). */
-const WORDS_LAYOUT = (): "under" | "line" => {
-  try {
-    return typeof localStorage !== "undefined" && localStorage.getItem("tb-words-layout") === "under" ? "under" : "line";
-  } catch {
-    return "line";
-  }
-};
-/** D678: a line of words at a fixed height: each syllable at its tick, the one sounding now lit; hyphens between a word's syllables. */
+/** D679: a line of words at a fixed height: each syllable at its tick, the one sounding now lit; hyphens between a word's syllables. */
 function wordLinePaint(g: CanvasRenderingContext2D, syls: readonly Syllable[], xOf: (t: number) => number, now: number, t0: number, t1: number, w: number, y: number, s: number, ink: string, fade: number) {
   let prevEnd = -Infinity;
   let prevJoined = false;

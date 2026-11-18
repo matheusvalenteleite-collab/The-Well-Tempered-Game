@@ -1,5 +1,5 @@
 /**
- * D678 (design studio): the chorales' words in the box (D728's data): the second line stacked under the first, as a
+ * D679 (design studio; the owner chose B, the word line): the chorales' words in the box (D728's data): the second line stacked under the first, as a
  * hymnal prints them; the stanza the edition prints before a line's first syllable; a lower voice the edition gives
  * no words takes the soprano's, drawn a shade fainter under its own notes.
  */
@@ -31,8 +31,11 @@ test("the stanza printed before a line's first syllable, the second line its own
   if (st[1]) assert.ok(lyricsOf(withStanza, 0, true)![0].shown.startsWith(`${st[1]}. `));
 });
 
-test("the box stacks the second line and fades a borrowed one", () => {
+test("a chorale's words on their own line at the box's foot; the second line under the first; a borrowed one fainter", () => {
   const s = src("src/touch/MusicBox.tsx");
+  assert.match(s, /const wordLine = !!words && !!fr\.piece\?\.startsWith\("chor"\);/);
+  assert.match(s, /wordLinePaint\(g, words\.first, xOf, fr\.now/);
+  assert.ok(!/WORDS_LAYOUT/.test(s), "one layout, the owner's");
   assert.match(s, /const words = fr\.piece \? wordsFor\(fugueById\(fr\.piece\), fr\.voice\) : null;/);
   assert.match(s, /if \(words\.second\) paintLyrics\(g, words\.second, fr, \{ \.\.\.geo, drop: 7 \* \(bh >= 16 \? 2 : 1\) \+ 1 \}\);/);
   assert.match(s, /alpha: words\.borrowed \? 0\.7 : 1/);
