@@ -28,7 +28,7 @@
  *
  * (N the written note, U the scale step above, L below; plucked: harpsichord (D510: the lute and the clavichord withdrawn); organ: pipe and
  * sampled; bowed: string consort; brass: BACH BRASS (D502: the lip slur, a rising leap the rip, a quick smear up into the note); voice: vocal synth, solo voices; flute: traverso; chip: classic chip,
- * SID 64, super 16-bit; slide8: Game Boy, tracker (their pitch-slide effect); fm: Mega FM;
+ * SID 64, super 16-bit; slide8: Game Boy (its pitch-slide effect); fm: no offered sound since D890 withdrew Mega FM;
  * synth: Switched-On, Tomita, bleeps and bloops.) A glide's time is its time constant (an exponential
  * approach, Sounding.glide): about two thirds of the way there in that time.
  *
@@ -123,8 +123,6 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
   if (presetId === "krautrock") return patch?.sample === "piano" ? "piano" : patch?.sample ? "bass" : "organ";
   // D521: BOSSA NOVA's, likewise: the flutist's slur, the guitarist's quick ornament (a plucked grace), the bassist's slide, the piano's.
   if (presetId === "bossaNova") return patch?.sample === "trialFlute" ? "flute" : patch?.sample === "bossaGuitar" ? "plucked" : patch?.sample === "jazzBass" ? "bass" : "piano";
-  // D524: PET SOUNDS' likewise: the strings bowed, the horn's lip, the harpsichord's and the piano's own, the bassist's slide.
-  if (presetId === "petSounds") return patch?.sample === "petStrings" ? "bowed" : patch?.sample === "brassHorn" ? "brass" : patch?.sample === "harpsichord" ? "plucked" : patch?.sample === "rockBass" ? "bass" : "piano";
   // D588: VAUDEVILLE's the player's instrument's own: the xylophone's quick grace (a mallet's), the clarinet's and the bassoon's
   // reed, the bass trombone's lip. D589: FLUTE & HARP's the flutist's slur, the harpist's plucked grace, the strings' bow.
   if (presetId === "vaudeville") return patch?.sample === "vaudXylo" ? "mallet" : patch?.sample === "brassBass" ? "brass" : "reed";
@@ -154,10 +152,7 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
     case "oboeTrio": // D504: ZELENKA TRIO's reeds (glenn.ts touchFamily "strings": Patch.bow as a tongue)
       return "reed";
     case "gameboy":
-    case "tracker":
       return "slide8";
-    case "megaFm":
-      return "fm";
     case "analog":
     case "tomita":
     case "modular":

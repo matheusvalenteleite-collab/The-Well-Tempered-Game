@@ -98,7 +98,8 @@ test("D593: the level at the master, set as the piece starts, constant through t
 
 test("D715, D718: the Art of Fugue's levels: on their own sounds, a phone's only, about the defaults' median (raised up to 4 dB; C7 lowered 1 dB after the lift)", () => {
   const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter((id) => id.startsWith("bwv1080-")).map((id) => [id, p.id] as const));
-  assert.equal(all.length, 13);
+  // D890, D896: six moved to new sounds; Contrapunctus 12 inversus and Canon 16 levelled on theirs.
+  assert.equal(all.length, 9);
   for (const [id, snd] of all) {
     assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
     const up = 20 * Math.log10(pieceLevel(snd, id, true));
@@ -110,11 +111,13 @@ test("D715, D718: the Art of Fugue's levels: on their own sounds, a phone's only
 test("D738: the Inventions' and Sinfonias' levels: on their own sounds, a phone's only, about the defaults' median (raised 1-4 dB)", () => {
   const inv = (id: string) => /^bwv(7[789]\d|80[01])$/.test(id) && +id.slice(3) >= 772;
   const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter(inv).map((id) => [id, p.id] as const));
-  assert.equal(all.length, 16);
+  // D890, D896: four moved to new sounds; Invention 15 raised, Invention 13 and Sinfonia 5 lowered on theirs.
+  assert.equal(all.length, 15);
   for (const [id, snd] of all) {
     assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
     const up = 20 * Math.log10(pieceLevel(snd, id, true));
-    assert.ok(up >= 1 && up <= 4, `${id}: ${up.toFixed(1)} dB on a phone`);
+    const lowered = id === "bwv784" || id === "bwv791";
+    assert.ok(lowered ? up <= -1 && up >= -1.5 : up >= 0.9 && up <= 4, `${id}: ${up.toFixed(1)} dB on a phone`);
     assert.equal(pieceLevel(snd, id, false), 1, `${id}: the computer path as it was`);
   }
 });

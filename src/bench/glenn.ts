@@ -87,8 +87,6 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "abbeyRoad" || presetId === "krautrock") return "plucked";
   // D521: BOSSA NOVA likewise (the guitar, the piano and the bass plucked or struck; the flute tongued: Patch.bow).
   if (presetId === "bossaNova") return "plucked";
-  // D524: PET SOUNDS on top its strings and its horn (bowed, tongued: Patch.bow), as the consort.
-  if (presetId === "petSounds") return "bowed";
   // D588: VAUDEVILLE on top its xylophone (struck: one player's over-legato); D589 FLUTE & HARP its flute and D590 ORCHESTRA
   // & ORGAN its strings on top (tongued and bowed: Patch.bow), as the consort.
   if (presetId === "vaudeville") return "plucked";
@@ -277,9 +275,7 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   chip: "synths",
   gameboy: "synths",
   super16: "synths",
-  megaFm: "synths",
   sid64: "synths",
-  tracker: "synths",
   analog: "synths",
   tomita: "synths",
   // D586: BERLIN SCHOOL's synthesizers; D590 ORCHESTRA & ORGAN as the strings (its bows: Patch.bow). (D589 FLUTE & HARP each

@@ -27,7 +27,7 @@ test("D424: the families: strings, voices, the chips and synths; keyboards and t
   assert.equal(touchFamily("soloVoices"), "voices");
   assert.equal(touchFamily("vocalSynth"), "voices");
   // D433: BLEEPS AND BLOOPS retired (its id no family now).
-  for (const id of ["chip", "gameboy", "super16", "megaFm", "sid64", "tracker", "analog", "tomita"]) assert.equal(touchFamily(id), "synths", id);
+  for (const id of ["chip", "gameboy", "super16", "sid64", "analog", "tomita"]) assert.equal(touchFamily(id), "synths", id);
   for (const id of ["pianoSampled", "harpsichordSampled", "chamberOrgan", "organSampled", "traverso"]) assert.equal(touchFamily(id), null, id);
   // Every offered preset with a touch family is placed: the sustaining ones in a family, the keyboards and the lute not.
   for (const p of PRESETS) {
@@ -156,7 +156,7 @@ test("D424: a pull-off is the slur on strings, voices and synths; a join is not"
     assert.ok((j.soft ?? 0) >= GLENN.rearticSoft, `${v}: a soft new syllable`);
   }
   // SYNTHS: the pull-off the mono-synth legato (no retrigger); the join retriggered.
-  for (const c of ["chip", "megaFm", "super16", "tomita"]) {
+  for (const c of ["chip", "super16", "tomita"]) {
     const pull = second(c, setRelease).p;
     assert.deepEqual([pull.legato, pull.slur], [true, true], c);
     assert.equal(second(c, join).p.legato, false, `${c}: retriggered`);

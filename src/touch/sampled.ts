@@ -66,8 +66,6 @@ export interface Bake {
   /** D504: the high-pass under the note (Hz; 120 where not given: the presets' floor). */
   floor?: number;
 }
-/** D297: TRACKER's short loops (s from the onset): half a second, as a MOD's samples looped a short stretch. */
-export const TRACKER_LOOP: [number, number] = [1.0, 1.5];
 /** D313: where SOLO VOICES' passages are taken from (s from the onset: build_sustain.py's files are steady from 0.2 s to 3.15 s). */
 export const VOICE_CHAIN: [number, number] = [0.45, 3.0];
 /** D358: the cello's made loop (s from the onset): its recordings are 2.3-4.2 s, steady from about 0.5 s to 2.2 s (measured). */
@@ -91,13 +89,7 @@ export const PERIOD: Record<string, Bake> = {
   // D358: the concertos' continuo on a cello (the band a string band: SOUND-PRINCIPLES.md), as the console held it.
   cello16: { folder: "cello", rate: 22050, lp: 6000, bits: 11, loop: CELLO_LOOP },
   // (D510: NOCTURNE 32-BIT's sets, 22.05 kHz and 13 bits, withdrawn with it; their folders stay, others' recordings.)
-  // TRACKER (the Amiga's 8-bit samples at 8-16 kHz, held, no smoothing; short loops of 0.5 s).
-  violinMod: { folder: "violin", rate: 12000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
-  fluteMod: { folder: "flute", rate: 10000, lp: 0, bits: 8, loop: TRACKER_LOOP, hold: true },
-  harpsiMod: { folder: "harpsichord", rate: 16000, lp: 0, bits: 8, hold: true },
-  // D302: the choir "aah" (its loop as the chorales' take it) and the slapped electric bass, in place of the clarinet and the bassoon.
-  choirMod: { folder: "choirAahs", rate: 11000, lp: 0, bits: 8, loop: [0.9, 2.5], hold: true },
-  bassMod: { folder: "ebass", rate: 11000, lp: 0, bits: 8, hold: true },
+  // (D890: TRACKER's 8-bit sets withdrawn with it; their folders stay, others' recordings.)
   // D302, PIPE ORGAN: the VCSL organ's plenum and pedal as recorded (their own loops), kept at 22 kHz
   // (half the memory; nothing of an organ's lost under 10 kHz) with the 120 Hz floor (no boom for a
   // phone's limiter), 16 bits: no grain.
@@ -171,10 +163,7 @@ export const PERIOD: Record<string, Bake> = {
   brassTromboneMf: { folder: "brassTromboneMf", rate: 32000, lp: 11000, bits: 16, loop: true },
   // D614: the straight-muted trumpet (VSCO 2 CE, CC0; build_brass_mute.py): the episodes' trumpets, the second of five throughout.
   brassTrumpetMute: { folder: "brassTrumpetMute", rate: 32000, lp: 11000, bits: 16, loop: true },
-  // D524, PET SOUNDS: the string section (VSCO 2 CE's viola section, sustained with vibrato: a 1966 session's strings, held
-  // on the made loop) and the electric bass (Karoryfer's Black And Blue "babyblue", picked: Carol Kaye's pick on a P-bass's
-  // kind of line), at full fidelity as the consort's; the bass's floor at 40 Hz (its E1 is 41 Hz).
-  petStrings: { folder: "violaSus", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // (D890: PET SOUNDS' string section withdrawn with it; violaSus stays, ORCHESTRA & ORGAN's and the consort's.)
   // D547, BOSSA NOVA v2: Iowa's alto flute (tools/playback/bossa/build_altoflute.py: every minor third G3-Db6 and F6, held to
   // 4.3 s as BACH BRASS's notes) and Karoryfer's tenor saxophone (sax/, the Lab's), each held on the made loop.
   bossaAltoFlute: { folder: "altoFlute", rate: 32000, lp: 11000, bits: 16, loop: true },
@@ -555,7 +544,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "violinMod" | "fluteMod" | "harpsiMod" | "choirMod" | "bassMod" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "petStrings" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -688,12 +677,6 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   harpsi16: { set: "harpsi16", plucked: true, gain: 1.8 },
   strings16: { set: "strings16", plucked: false, gain: 2.2 },
   bassoon16: { extend: { up: 5 }, set: "bassoon16", zones: [{ set: "bassoon16Low", lo: 0, hi: 37 }], plucked: false, gain: 2.2 },
-  // TRACKER's.
-  violinMod: { set: "violinMod", plucked: false, gain: 2.2 },
-  fluteMod: { set: "fluteMod", plucked: false, gain: 2.2 },
-  harpsiMod: { set: "harpsiMod", plucked: true, gain: 1.8 },
-  choirMod: { extend: { up: 5 }, set: "choirMod", plucked: false, gain: 2.2 },
-  bassMod: { extend: { up: 5 }, set: "bassMod", plucked: true, gain: 2.2 },
   voiceS: { extend: { up: 5 }, set: "voiceS", plucked: false, gain: 2.2 },
   voiceA: { extend: { up: 8 }, set: "voiceA", plucked: false, gain: 2.2 },
   voiceT: { extend: { up: 7 }, set: "voiceT", plucked: false, gain: 2.2 },
@@ -771,9 +754,6 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // the left hand's damping by the note's length (a short note stopped by the finger lifting, a longer one ringing a little into
   // the next, as a guitarist lets a line sing), a firmer stroke a little brighter (velTone: the nail), retuned a tone at most.
   bossaGuitar: { extend: { up: 5, down: 5 }, set: "bossaGuitar", plucked: true, gain: 2.2, soft: { set: "bossaGuitarSoft", below: 0.794, gain: 1 }, pedal: { short: 0.2, shortTau: 0.04, tau: 0.1 }, velTone: { perDb: 0.6, hz: 2200, min: -3, max: 3 }, maxShift: 2 },
-  // D524, PET SOUNDS: the string section held on its loop, retuned 3 semitones at most (recorded every major or minor third);
-  // its bass is ABBEY ROAD's (rockBass: the same picked babyblue, D523's trims).
-  petStrings: { set: "petStrings", plucked: false, gain: 2.2, maxShift: 3 },
   // D547, BOSSA NOVA v2: the alto flute (every minor third: 1.5 semitones at most to the nearest, 3 past its compass, then an
   // octave nearer) and the tenor saxophone (every minor third Cs3-G5), each held on its made loop.
   bossaAltoFlute: { extend: { down: 5 }, set: "bossaAltoFlute", plucked: false, gain: 2.2, maxShift: 3 },

@@ -45,7 +45,6 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   krautrock: { id: "equal", a: 440 },
   bossaNova: { id: "equal", a: 440 },
   // D524: PET SOUNDS: a 1966 Hollywood session, equal at A = 440.
-  petSounds: { id: "equal", a: 440 },
   // D588, D589: VAUDEVILLE (a 1930s pit band) and FLUTE & HARP (Debussy's trio's instruments): modern, equal at A = 440.
   vaudeville: { id: "equal", a: 440 },
   fluteHarp: { id: "equal", a: 440 },

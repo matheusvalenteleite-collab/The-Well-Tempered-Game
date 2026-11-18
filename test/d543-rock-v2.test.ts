@@ -12,7 +12,8 @@ import { installFakeAudio } from "./fake-audio.ts";
 import { Chip } from "../src/touch/chip.ts";
 
 const ctxOf = installFakeAudio(0, false);
-const BANDS = ["krautrock", "abbeyRoad", "petSounds"] as const;
+// D890: PET SOUNDS withdrawn.
+const BANDS = ["krautrock", "abbeyRoad"] as const;
 
 test("D543-D545: the rebuilt rock bands: no piano, one instrument a voice, their lanes in the chain", () => {
   for (const band of BANDS) {
@@ -25,13 +26,12 @@ test("D543-D545: the rebuilt rock bands: no piano, one instrument a voice, their
       if (n >= 2) assert.equal(new Set(row.map((r) => r[0])).size, n, `${band} ${n}: one instrument a voice`);
       for (const [id] of row) {
         const pt = PATCHES[id as PatchId];
-        // D580: PET SOUNDS' tack piano back (the owner liked the piano); the other two none.
-        if (band !== "petSounds") assert.notEqual(pt.sample, "piano", `${band}: ${id} is a piano`);
+        assert.notEqual(pt.sample, "piano", `${band}: ${id} is a piano`);
         const lane = p.lanes?.[id as PatchId] ?? pt.lane;
         if (lane) assert.ok(lanes.has(lane), `${band}: ${id}'s lane ${lane}`);
       }
     }
-    if (band !== "petSounds") for (const id of p.slots ?? []) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
+    for (const id of p.slots ?? []) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
     const last = BAND_CHAINS[band].bus.at(-1)!;
     assert.equal(last.kind, "gain", `${band}: the trim ends the bus`);
     // (D580: PET SOUNDS' -15.5: its hotter tape and louder chamber trimmed back to its level.)
@@ -47,11 +47,9 @@ test("D543-D545: the rebuilt rock bands: no piano, one instrument a voice, their
 test("D543-D545: the bands' HOME drums kept", () => {
   assert.equal(homeStyleFor("krautrock"), "motorik");
   assert.equal(homeStyleFor("abbeyRoad"), "abbey");
-  assert.equal(homeStyleFor("petSounds"), "pet");
 });
 
 test("D560: the v1 instruments gone from the bands (the rebuilt ones in their place)", () => {
   assert.ok(!presetById("krautrock").by![4]!.some((r) => r[0] === "krPiano"));
   assert.ok(!presetById("abbeyRoad").by![3]!.some((r) => r[0] === "abPiano"));
-  assert.ok(!presetById("petSounds").by![4]!.some((r) => r[0] === "psPiano"));
 });

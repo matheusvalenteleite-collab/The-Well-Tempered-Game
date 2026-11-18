@@ -64,7 +64,7 @@ export const STYLE_NAMES: Readonly<Record<DrumStyle, string>> = {
 export const CHARACTERS: readonly DrumCharacter[] = ["electronic", "acoustic", "percussion"];
 
 /** The sounds after a console or a computer: their drums the console's own noise channel. */
-export const CONSOLE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "super16", "nocturne32", "megaFm", "sid64", "tracker"]);
+export const CONSOLE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "super16", "nocturne32", "sid64"]);
 /** The synthesizers: an analog drum machine first. */
 export const SYNTH_SOUNDS: ReadonlySet<string> = new Set(["analog", "tomita", "vocalSynth"]);
 /** The church's, the court's and the chamber's sounds: the timpani (or the frame drums) first. */

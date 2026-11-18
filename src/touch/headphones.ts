@@ -223,7 +223,8 @@ export function driftOf(offsetsMs: number[]): number {
  * to. No sound makes the headphones' delay shorter (BLUETOOTH MODE takes it out); a slow attack or a
  * long echo only blurs where the beat is. Checked against the patches in test/bt-mode.test.ts.
  */
-export const BT_SOUNDS = ["chip", "gameboy", "harpsichordSampled", "sid64", "tracker"] as const;
+// D890: TRACKER withdrawn.
+export const BT_SOUNDS = ["chip", "gameboy", "harpsichordSampled", "sid64"] as const;
 
 /** D299: the last Bluetooth delay tapped (s), kept on the device to offer again (never applied by itself). */
 export const BT_LAG_KEY = "tb-bt-lag-v1";

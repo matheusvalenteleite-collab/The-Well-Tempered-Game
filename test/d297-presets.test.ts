@@ -18,7 +18,8 @@ const ctxOf = installFakeAudio(0, true);
 // D302: CHAMBER ORGAN remade as PIPE ORGAN (its id kept), TEMPLE 64 and AGENT 64 as FOREST 64 and PARTY 64, two singing voices added; D304: FOREST 64 and PARTY 64 withdrawn.
 // D433: BLEEPS AND BLOOPS (modular) retired.
 // D510: NOCTURNE 32-BIT withdrawn (the owner: "the mix doesn't work").
-const NEW = ["super16", "megaFm", "sid64", "tracker", "chamberOrgan", "vocalSynth", "soloVoices", "tomita"];
+// D890: MEGA FM and TRACKER withdrawn.
+const NEW = ["super16", "sid64", "chamberOrgan", "vocalSynth", "soloVoices", "tomita"];
 /** The presets judged by the clarity rules here (every one but the niche picks bends none of them). */
 const ALL = [...NEW, "analog"];
 
@@ -26,8 +27,8 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   assert.equal(presetById("analog").name, "SWITCHED-ON");
   assert.equal(presetById("carlos").id, "analog");
   // D365: then STRING CONSORT and LUTE (test/d365-consort-lute.test.ts).
-  assert.deepEqual(PRESETS.slice(5, 13).map((p) => p.id), NEW);
-  assert.deepEqual(PRESETS.slice(5, 13).map((p) => p.name), ["SUPER 16-BIT", "MEGA FM", "SID 64", "TRACKER", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA"]);
+  assert.deepEqual(PRESETS.slice(5, 11).map((p) => p.id), NEW);
+  assert.deepEqual(PRESETS.slice(5, 11).map((p) => p.name), ["SUPER 16-BIT", "SID 64", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA"]);
   for (const id of NEW) {
     // D340: but the MORE BACH and CHORALES tabs' asked-for exceptions (the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT). D348: and the harpsichord concertos.
     // D355: and the pieces given a sound of their own (tools/touch/colour-plans).
@@ -40,8 +41,8 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   }
   assert.equal(presetById("super16").fx, "spc");
   assert.equal(presetById("nocturne32").id, "super16", "D510: withdrawn, on SUPER 16-BIT");
-  // D302: MEGA FM a short dark echo (no reverb).
-  assert.equal(presetById("megaFm").fx, "echo");
+  // D890: MEGA FM, TRACKER and PET SOUNDS withdrawn: a stored id is no preset (CLASSIC CHIP stands in).
+  for (const id of ["megaFm", "tracker", "petSounds"]) assert.equal(presetById(id).id, "chip", id);
 });
 
 test("D297: every voice its own instrument, pans within ±0.35, vibrato only on held upper voices, late, rates apart", () => {
@@ -87,20 +88,11 @@ test("D297, D302: SUPER 16-BIT's echo from every voice (the strings and the flut
   assert.ok(PATCHES.s16Strings.send! > PATCHES.s16Harpsi.send! && PATCHES.s16Flute.send! > PATCHES.s16Bassoon.send!);
   assert.deepEqual(SPC_ECHO, { delay: 0.16, right: 0.24, feedback: 0.4, lp: 3200, hp: 300 });
   assert.equal(HALL.predelay, 0.025);
-  for (const p of presetById("megaFm").slots!) {
-    const pt = PATCHES[p];
-    assert.ok(pt.fm && !pt.sample && (pt.send ?? 0) <= 0.12, p);
-    assert.equal(pt.bits, 9);
-    assert.deepEqual(pt.osc, [{ wave: "sine" }]);
-    assert.ok(pt.filter!.hz && pt.filter!.freq >= 10000, `${p}: the lowpass opened`);
-  }
-  // The index falls on every note (bright onset, mellow body), but for the brass, which rises first.
-  for (const p of ["fmLead", "fmPiano", "fmClav", "fmBass"] as const) assert.ok(PATCHES[p].fm!.to < PATCHES[p].fm!.index, p);
-  assert.ok(PATCHES.fmBrass.fm!.rise!.to > PATCHES.fmBrass.fm!.index);
-  // D302: the lead, the brass, the clav and the bass fed back (the chip's operator feedback); the e-piano's tine and the slap's click fall.
-  for (const p of ["fmLead", "fmBrass", "fmClav", "fmBass"] as const) assert.ok(PATCHES[p].fm!.fb! >= 0.5, p);
-  assert.ok(PATCHES.fmPiano.fm!.mod2!.ratio === 14 && PATCHES.fmPiano.fm!.mod2!.to! < PATCHES.fmPiano.fm!.mod2!.index);
-  assert.deepEqual(["fmLead", "fmPiano", "fmClav", "fmBass"].map((p) => PATCHES[p as PatchId].fm!.ratio), [1, 1, 3, 1]);
+  // D890: MEGA FM's fed-back lead kept as a donor: an FM patch at 9 bits, the lowpass open, its index falling, fed back, seated by no offered sound.
+  const lead = PATCHES.fmLead;
+  assert.ok(lead.fm && !lead.sample && lead.bits === 9 && lead.filter!.hz && lead.filter!.freq >= 10000);
+  assert.ok(lead.fm.to < lead.fm.index && lead.fm.fb! >= 0.5 && lead.fm.ratio === 1);
+  for (const p of PRESETS) assert.ok(!Object.values(p.by ?? {}).some((ls) => (ls ?? []).some(([id]) => id === "fmLead")) && !((p.slots ?? []) as readonly string[]).includes("fmLead"), p.id);
 });
 
 test("D297: the period sets: their folders, mono, baked loops for the loopless recordings, the organ's manual above its pedal", () => {
@@ -109,8 +101,6 @@ test("D297: the period sets: their folders, mono, baked loops for the loopless r
   setPreset("super16");
   // D358: and the concertos' continuo cello.
   assert.deepEqual(sampledNow().sort(), ["bassoon16", "cello16", "flute16", "harpsi16", "strings16", "violin16"]);
-  setPreset("megaFm");
-  assert.deepEqual(sampledNow(), []);
   setPreset("chip");
   for (const [set, b] of Object.entries(PERIOD)) {
     // Crush 11 bits or more on the console samples (§8); 10 for the N64 ADPCM's grain; TRACKER's 8 (the Amiga's, asked for).
@@ -131,7 +121,7 @@ test("D297: the period sets: their folders, mono, baked loops for the loopless r
 });
 
 test("D297: every piece's recordings for a period preset fit a phone's budget (all its instruments together)", () => {
-  for (const id of ["super16", "tracker", "chamberOrgan", "soloVoices"]) {
+  for (const id of ["super16", "chamberOrgan", "soloVoices"]) {
     setPreset(id);
     let worst = 0;
     for (const p of PIECES) {
@@ -194,12 +184,6 @@ test("D297: on the sound: the shared room off for the period presets and back af
   assert.equal(delays(), 2, "the echo's delays (D302: one each side)");
   chip.note(74, 0.6, 0.5, voicing(0, 3));
   assert.equal(delays(), 2, "built once");
-  setPreset("megaFm");
-  const before = ctx.made.get("oscillator") ?? 0;
-  chip.note(72, 1.6, 0.2, voicing(0, 3));
-  // The carrier and its modulator (the lead has no second).
-  assert.equal((ctx.made.get("oscillator") ?? 0) - before, 2);
-  assert.equal(delays(), 2, "D302: MEGA FM's short echo");
   setPreset("gameboy");
   chip.note(72, 2, 0.2, voicing(0, 3));
   assert.ok(master!.targets.includes(rooms[0]), "the room wired again");
@@ -280,18 +264,6 @@ test("D304: FOREST 64 and PARTY 64 withdrawn (the owner: 0 each), they and TEMPL
   for (const id of ["nylon26", "strings26", "bassoon26", "trumpet26", "guitar26", "sax26", "ebass26"]) assert.equal(PERIOD[id], undefined, id);
   // (D305: BLEEPS AND BLOOPS' spring, kept with its patches; D339: the sampled piano's and harpsichord's salon; D430: BAROQUE BAND's room; D504: ZELENKA TRIO's chamber; D503: JAZZ QUARTET's club; D523: ABBEY ROAD's studio; D525: KRAUTROCK's inner room.)
   assert.deepEqual(Object.keys(REVERBS).sort(), ["band", "bossa", "cathedral", "chamber", "club", "goldStar", "hall", "inner", "plate", "salon", "space", "spring", "studio"]);
-});
-
-test("D297, D302: TRACKER: 8-bit samples held without smoothing, short loops, hard left and right, a tone portamento", () => {
-  for (const id of ["violinMod", "fluteMod", "harpsiMod", "choirMod", "bassMod"]) {
-    assert.equal(PERIOD[id].hold, true, id);
-    assert.ok(PERIOD[id].rate >= 8000 && PERIOD[id].rate <= 16000, id);
-  }
-  const pans = presetById("tracker").by![4]!.map(([, pan]) => pan);
-  for (let i = 1; i < pans.length; i++) assert.ok(pans[i] * pans[i - 1] < 0, `${pans}`);
-  assert.ok(pans.every((x) => Math.abs(x) === 0.35));
-  assert.equal(presetById("tracker").fx, undefined, "no reverb");
-  for (const s of ["trkViolin", "trkFlute", "trkChoir"] as const) assert.ok(PATCHES[s].slide! > 0 && PATCHES[s].rec!.s < 1, s);
 });
 
 test("D297: SWITCHED-ON and MODULAR drift; TOMITA's wash only from the inner voices; the niche picks' sends capped", () => {

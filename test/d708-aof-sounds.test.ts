@@ -23,11 +23,13 @@ before(async () => {
 /** The sounds chosen (D708) and the HOME drums (D712). */
 const SOUNDS: Record<string, [string, string]> = {
   "bwv1080-01": ["berlinSchool", "swell"], "bwv1080-02": ["jazzQuartet", "jazz"], "bwv1080-03": ["tomita", "triphop"], "bwv1080-04": ["krautrock", "motorik"],
-  "bwv1080-05": ["bossaNova", "bossa"], "bwv1080-06": ["petSounds", "pet"], "bwv1080-07": ["bossaNova", "bossa"], "bwv1080-08": ["sid64", "chip"],
-  "bwv1080-09": ["krautrock", "liebezeit"], "bwv1080-10": ["tracker", "triphop"], "bwv1080-11": ["tomita", "fieldDrums"], "bwv1080-12r": ["megaFm", "scoreSynth"],
-  "bwv1080-12i": ["megaFm", "scoreSynth"], "bwv1080-13r": ["chip", "chip"], "bwv1080-13i": ["chip", "chip"], "bwv1080-c14": ["vocalSynth", "triphop"],
-  "bwv1080-c15": ["gameboy", "chip"], "bwv1080-c16": ["tracker", "tabor"], "bwv1080-c17": ["berlinSchool", "scoreSynth"], "bwv1080-14": ["petSounds", "timpani"],
+  "bwv1080-05": ["bossaNova", "bossa"], "bwv1080-06": ["tomita", "none"], "bwv1080-07": ["bossaNova", "bossa"], "bwv1080-08": ["sid64", "chip"],
+  "bwv1080-09": ["krautrock", "liebezeit"], "bwv1080-10": ["tomita", "none"], "bwv1080-11": ["tomita", "none"], "bwv1080-12r": ["berlinSchool", "none"],
+  "bwv1080-12i": ["berlinSchool", "none"], "bwv1080-13r": ["chip", "none"], "bwv1080-13i": ["chip", "none"], "bwv1080-c14": ["vocalSynth", "triphop"],
+  "bwv1080-c15": ["gameboy", "chip"], "bwv1080-c16": ["salsa", "none"], "bwv1080-c17": ["berlinSchool", "scoreSynth"], "bwv1080-14": ["tomita", "none"],
 };
+/** D893: the six whose sound was withdrawn (D890), chosen anew: the slow ones on sustained voices (the owner's TOMITA), not held to D708's two a sound. D891-D894: their drums, and those whose kit went, NO DRUMS. */
+const D893 = new Set(["bwv1080-06", "bwv1080-10", "bwv1080-12r", "bwv1080-12i", "bwv1080-c16", "bwv1080-14"]);
 
 test("D708: each piece on its own sound, varied (at most two pieces a sound, a mirror fugue's forms together), with its reason", () => {
   const uses = new Map<string, Set<string>>();
@@ -35,12 +37,13 @@ test("D708: each piece on its own sound, varied (at most two pieces a sound, a m
     const [s] = SOUNDS[id];
     assert.equal(PIECE_SOUND[id], s, id);
     assert.equal(COLOURS[id].sound, s, id);
-    assert.ok(/D708/.test(COLOURS[id].soundWhy) || s === "sid64" || s === "gameboy" || id === "bwv1080-10", `${id}: why`);
+    assert.ok(/D708|D893/.test(COLOURS[id].soundWhy) || s === "sid64" || s === "gameboy", `${id}: why`);
+    if (D893.has(id)) continue;
     const piece = id.replace(/(1[23])[ri]$/, "$1");
     (uses.get(s) ?? uses.set(s, new Set()).get(s)!).add(piece);
   }
   for (const [s, ps] of uses) assert.ok(ps.size <= 2, `${s}: ${[...ps].join(", ")}`);
-  assert.ok(uses.size >= 12, `${uses.size} sounds`);
+  assert.ok(uses.size >= 8, `${uses.size} sounds`);
 });
 
 test("D712: each HOME fits the metre, a grid's pulse in its band, at least 65 % of the strokes on the score's onsets", async () => {
@@ -49,6 +52,7 @@ test("D712: each HOME fits the metre, a grid's pulse in its band, at least 65 % 
     const [s, st] = SOUNDS[id];
     assert.equal(FUGUE_STYLES[id], st, id);
     assert.equal(homeFor(id, s), st, id);
+    if (st === "none") continue;
     assert.ok(fits(st, f), `${id}: ${st} in ${f.meter}`);
     const b = beatOf(f);
     const tps = (f.tpq * tempoOf(id)) / 60;
@@ -71,7 +75,9 @@ test("D710: Contrapunctus 14's drums close nothing where the text breaks off (no
   const f = fugueById("bwv1080-14");
   const last = Math.max(...f.voices.flat().map((n) => n[0]));
   const lastBar = f.bars.at(-1)!.on;
-  const s = await strokesOf(f, PIECE_SOUND[f.id], homeFor(f.id, PIECE_SOUND[f.id]));
+  // D894: on TOMITA with no drums now; the rule held for any style chosen (its last one, the timpani, withdrawn: the frame drum).
+  assert.equal(homeFor(f.id, PIECE_SOUND[f.id]), "none");
+  const s = await strokesOf(f, PIECE_SOUND[f.id], "frame");
   assert.ok(s.length > 100);
   for (const x of s) {
     assert.ok(x.tick <= last + f.tpq / 4, `a stroke past the last attack (${x.tick})`);

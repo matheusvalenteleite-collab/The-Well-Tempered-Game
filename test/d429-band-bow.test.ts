@@ -60,7 +60,7 @@ test("D429: STRING CONSORT's band joins as string players: slurs inside Busoni's
 });
 
 test("D429: other sounds' band notes carry neither", () => {
-  for (const s of ["pianoSampled", "harpsichordSampled", "soloVoices", "megaFm"]) {
+  for (const s of ["pianoSampled", "harpsichordSampled", "soloVoices"]) {
     const log = bandNotes(s, "wtc1f02", 6);
     assert.equal(log.filter((x) => x.p.slur || x.p.bowChange || x.p.give).length, 0, s);
   }

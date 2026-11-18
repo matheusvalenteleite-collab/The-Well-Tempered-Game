@@ -923,17 +923,6 @@ export const BAND_CHAINS = {
     bus: [{ kind: "eq", bands: [{ type: "peaking", hz: 3200, db: -1.5, q: 1 }, { type: "lowshelf", hz: 180, db: 1 }] }, { kind: "tape", drive: 1.2, rolloff: 13000 }],
     reverb: { ir: "chamber", seconds: 1.2, phoneSeconds: 0.8, rt60: 1.05, predelay: 0.014, hp: 140, lp: 6500, brightness: 0.4, level: 0.3, phoneLevel: 0.23 },
   },
-  // Gold Star / Western, 1966: Brian Wilson's mono wall: everything folded to one image (width 0.15), the Fairchild-like
-  // squeeze, hot 3-track tape, the echo chamber; the bass and the doubled keyboards in one lane with a tape slap.
-  petSounds: {
-    band: "petSounds",
-    lanes: {
-      wall: [{ kind: "echo", time: 0.09, feedback: 0.15, mix: 0.3, lp: 3500, hp: 250 }, { kind: "adt", delay: 0.012, depth: 0.0008, rate: 0.4, spread: 0.2, level: 0.6 }],
-    },
-    // D580 ("Lush, not flat"): the bounce's tape hotter (drive 2.6: its saturation), the image a little wider than mono (0.25,
-    // the wall still one image), the Gold Star chamber louder and longer (its bloom on everything).
-    bus: [{ kind: "eq", era: "goldStar66" }, { kind: "comp", model: "fairchild", threshold: -24 }, { kind: "tape", drive: 2.6, bias: 0.12, bump: { hz: 100, db: 2 }, rolloff: 9000 }, { kind: "place", width: 0.25 }, { kind: "gain", db: PET2_TRIM_DB }],
-    reverb: { ir: "chamber", seconds: 2.0, phoneSeconds: 1.0, rt60: 1.9, predelay: 0.025, hp: 220, lp: 6000, brightness: 0.5, level: 0.5 },
-  },
+  // (D890: PET SOUNDS' Gold Star chain withdrawn with it; the goldStar66 era and the goldStar reverb stay, engine features.)
 } as const satisfies Record<string, ChainSpec>;
 export type ChainBand = keyof typeof BAND_CHAINS;

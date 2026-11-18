@@ -13,7 +13,7 @@ import { BRASS_GROWTH, BRASS_LENGTHS, BRASS_MUTE, BRASS_UNISON, growthAt, length
 import { FUGUES, fugueById } from "../src/touch/fugue.ts";
 import { formOf, phaseAt } from "../src/touch/form-points.ts";
 import { voicing } from "../src/touch/chip.ts";
-import { SOUND_FUGUE_HOME, fits, homeFor, homeStyleFor, styleInfo } from "../src/touch/drum-library.ts";
+import { SOUND_FUGUE_HOME, homeFor, homeStyleFor, styleInfo } from "../src/touch/drum-library.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { TEMPO } from "../src/touch/tempi.ts";
 
@@ -170,9 +170,9 @@ test("D618: BACH BRASS's calm fugues (busiest voice under 3 notes a second) on T
   const homes = SOUND_FUGUE_HOME.bachBrass;
   assert.deepEqual(Object.keys(homes).sort(), calm.filter((id) => PIECE_SOUND[id] !== "bachBrass").sort());
   for (const [id, st] of Object.entries(homes)) {
-    assert.ok(st === "timpani" || st === "fieldDrums", id);
-    assert.ok(fits(st, id), `${id}: ${st} in its metre`);
-    assert.equal(styleInfo(st).engine, "score");
+    // D891: the timpani and the field drums withdrawn: NO DRUMS.
+    assert.equal(st, "none", id);
+    assert.equal(styleInfo(st).engine, "none");
     assert.equal(homeFor(id, "bachBrass"), st);
   }
   assert.equal(homeFor("wtc2f05", "bachBrass"), "march");
