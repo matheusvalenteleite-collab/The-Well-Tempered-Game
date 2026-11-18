@@ -1,0 +1,425 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "piece": "bwv1080-c17",
+ "edition": {
+  "name": "The print: the Bach-Gesellschaft text, Band 25.1 (ed. Wilhelm Rust, 1878)",
+  "method": "the marks two independent transcriptions of it agree on at the same note: the Mutopia typesetting the game's notes come from and Craig Sapp's encoding of BG 25.1 (tools/touch/aof-print.ts)"
+ },
+ "marks": [
+  {
+   "v": 1,
+   "on": 101760,
+   "art": "staccato",
+   "p": 50,
+   "bar": 14
+  },
+  {
+   "v": 1,
+   "on": 105600,
+   "art": "staccato",
+   "p": 52,
+   "bar": 14
+  },
+  {
+   "v": 0,
+   "on": 163200,
+   "art": "staccato",
+   "p": 69,
+   "bar": 22
+  },
+  {
+   "v": 0,
+   "on": 167040,
+   "art": "staccato",
+   "p": 70,
+   "bar": 22
+  },
+  {
+   "v": 1,
+   "on": 293760,
+   "art": "staccato",
+   "p": 55,
+   "bar": 39
+  },
+  {
+   "v": 1,
+   "on": 297600,
+   "art": "staccato",
+   "p": 57,
+   "bar": 39
+  },
+  {
+   "v": 1,
+   "on": 416640,
+   "art": "staccato",
+   "p": 50,
+   "bar": 55
+  },
+  {
+   "v": 1,
+   "on": 420480,
+   "art": "staccato",
+   "p": 52,
+   "bar": 55
+  },
+  {
+   "v": 0,
+   "on": 554880,
+   "art": "staccato",
+   "p": 74,
+   "bar": 73
+  },
+  {
+   "v": 0,
+   "on": 558720,
+   "art": "staccato",
+   "p": 76,
+   "bar": 73
+  },
+  {
+   "v": 0,
+   "on": 591360,
+   "art": "fermata",
+   "p": 74,
+   "bar": 78
+  },
+  {
+   "v": 1,
+   "on": 591360,
+   "art": "fermata",
+   "p": 38,
+   "bar": 78
+  }
+ ],
+ "slurs": [
+  {
+   "v": 1,
+   "from": 12480,
+   "to": 14400,
+   "kind": "slur",
+   "bar": 2
+  },
+  {
+   "v": 1,
+   "from": 20160,
+   "to": 22080,
+   "kind": "slur",
+   "bar": 3
+  },
+  {
+   "v": 1,
+   "from": 30720,
+   "to": 32640,
+   "kind": "slur",
+   "bar": 5
+  },
+  {
+   "v": 1,
+   "from": 38400,
+   "to": 41280,
+   "kind": "slur",
+   "bar": 6
+  },
+  {
+   "v": 1,
+   "from": 42240,
+   "to": 45120,
+   "kind": "slur",
+   "bar": 6
+  },
+  {
+   "v": 1,
+   "from": 50880,
+   "to": 52800,
+   "kind": "slur",
+   "bar": 7
+  },
+  {
+   "v": 1,
+   "from": 53760,
+   "to": 56640,
+   "kind": "slur",
+   "bar": 8
+  },
+  {
+   "v": 1,
+   "from": 57600,
+   "to": 60480,
+   "kind": "slur",
+   "bar": 8
+  },
+  {
+   "v": 0,
+   "from": 73920,
+   "to": 75840,
+   "kind": "slur",
+   "bar": 10
+  },
+  {
+   "v": 0,
+   "from": 81600,
+   "to": 83520,
+   "kind": "slur",
+   "bar": 11
+  },
+  {
+   "v": 0,
+   "from": 86400,
+   "to": 89280,
+   "kind": "slur",
+   "bar": 12
+  },
+  {
+   "v": 0,
+   "from": 92160,
+   "to": 94080,
+   "kind": "slur",
+   "bar": 13
+  },
+  {
+   "v": 0,
+   "from": 99840,
+   "to": 102720,
+   "kind": "slur",
+   "bar": 14
+  },
+  {
+   "v": 0,
+   "from": 103680,
+   "to": 106560,
+   "kind": "slur",
+   "bar": 14
+  },
+  {
+   "v": 0,
+   "from": 107520,
+   "to": 109440,
+   "kind": "slur",
+   "bar": 15
+  },
+  {
+   "v": 0,
+   "from": 112320,
+   "to": 114240,
+   "kind": "slur",
+   "bar": 15
+  },
+  {
+   "v": 0,
+   "from": 115200,
+   "to": 118080,
+   "kind": "slur",
+   "bar": 16
+  },
+  {
+   "v": 0,
+   "from": 119040,
+   "to": 121920,
+   "kind": "slur",
+   "bar": 16
+  },
+  {
+   "v": 0,
+   "from": 278400,
+   "to": 281280,
+   "kind": "slur",
+   "bar": 37
+  },
+  {
+   "v": 0,
+   "from": 284160,
+   "to": 286080,
+   "kind": "slur",
+   "bar": 38
+  },
+  {
+   "v": 0,
+   "from": 288960,
+   "to": 290880,
+   "kind": "slur",
+   "bar": 38
+  },
+  {
+   "v": 0,
+   "from": 291840,
+   "to": 294720,
+   "kind": "slur",
+   "bar": 39
+  },
+  {
+   "v": 0,
+   "from": 295680,
+   "to": 298560,
+   "kind": "slur",
+   "bar": 39
+  },
+  {
+   "v": 0,
+   "from": 299520,
+   "to": 301440,
+   "kind": "slur",
+   "bar": 40
+  },
+  {
+   "v": 0,
+   "from": 304320,
+   "to": 306240,
+   "kind": "slur",
+   "bar": 40
+  },
+  {
+   "v": 0,
+   "from": 307200,
+   "to": 310080,
+   "kind": "slur",
+   "bar": 41
+  },
+  {
+   "v": 0,
+   "from": 311040,
+   "to": 313920,
+   "kind": "slur",
+   "bar": 41
+  },
+  {
+   "v": 1,
+   "from": 339840,
+   "to": 342720,
+   "kind": "slur",
+   "bar": 45
+  },
+  {
+   "v": 1,
+   "from": 345600,
+   "to": 347520,
+   "kind": "slur",
+   "bar": 46
+  },
+  {
+   "v": 1,
+   "from": 350400,
+   "to": 352320,
+   "kind": "slur",
+   "bar": 46
+  },
+  {
+   "v": 1,
+   "from": 353280,
+   "to": 356160,
+   "kind": "slur",
+   "bar": 47
+  },
+  {
+   "v": 1,
+   "from": 357120,
+   "to": 360000,
+   "kind": "slur",
+   "bar": 47
+  },
+  {
+   "v": 1,
+   "from": 360960,
+   "to": 362880,
+   "kind": "slur",
+   "bar": 48
+  },
+  {
+   "v": 0,
+   "from": 364800,
+   "to": 367680,
+   "kind": "slur",
+   "bar": 48
+  },
+  {
+   "v": 1,
+   "from": 365760,
+   "to": 367680,
+   "kind": "slur",
+   "bar": 48
+  },
+  {
+   "v": 1,
+   "from": 368640,
+   "to": 371520,
+   "kind": "slur",
+   "bar": 49
+  },
+  {
+   "v": 1,
+   "from": 372480,
+   "to": 375360,
+   "kind": "slur",
+   "bar": 49
+  },
+  {
+   "v": 1,
+   "from": 539520,
+   "to": 542400,
+   "kind": "slur",
+   "bar": 71
+  },
+  {
+   "v": 1,
+   "from": 545280,
+   "to": 547200,
+   "kind": "slur",
+   "bar": 72
+  },
+  {
+   "v": 1,
+   "from": 550080,
+   "to": 552000,
+   "kind": "slur",
+   "bar": 72
+  },
+  {
+   "v": 1,
+   "from": 552960,
+   "to": 555840,
+   "kind": "slur",
+   "bar": 73
+  },
+  {
+   "v": 1,
+   "from": 556800,
+   "to": 559680,
+   "kind": "slur",
+   "bar": 73
+  },
+  {
+   "v": 1,
+   "from": 565440,
+   "to": 567360,
+   "kind": "slur",
+   "bar": 74
+  },
+  {
+   "v": 1,
+   "from": 568320,
+   "to": 571200,
+   "kind": "slur",
+   "bar": 75
+  },
+  {
+   "v": 1,
+   "from": 572160,
+   "to": 575040,
+   "kind": "slur",
+   "bar": 75
+  },
+  {
+   "v": 0,
+   "from": 583680,
+   "to": 586560,
+   "kind": "slur",
+   "bar": 77
+  },
+  {
+   "v": 0,
+   "from": 587520,
+   "to": 590400,
+   "kind": "slur",
+   "bar": 77
+  }
+ ]
+}

@@ -20,7 +20,7 @@ import { difficultyOf } from "./difficulty.ts";
  * Offering's ricercars, the Inventions, the Sinfonias, the Concerto for Two Violins: tools/touch/more-bach.ts)
  * and CHORALES (Bach's 370 four-part chorales: tools/touch/chorales.ts).
  */
-export type LiteTab = "I" | "II" | "AOF" | "INV" | "MORE" | "CHORALES";
+export type LiteTab = "I" | "II" | "AOF" | "INV" | "GOLD" | "MORE" | "CHORALES";
 export const LITE_TABS: readonly [LiteTab, string][] = [
   ["I", "WTC BOOK I"],
   ["II", "WTC BOOK II"],
@@ -28,6 +28,8 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
   ["AOF", "THE ART OF FUGUE"],
   // D750: THE INVENTIONS AND SINFONIAS, the same (out of MORE BACH).
   ["INV", "INVENTIONS AND SINFONIAS"],
+  // D867: THE GOLDBERG VARIATIONS, the same (out of MORE BACH; the owner: "I also want to upgrade goldbach variations to the main game, it is very cool").
+  ["GOLD", "GOLDBERG VARIATIONS"],
   ["MORE", "MORE BACH"],
   ["CHORALES", "CHORALES"],
 ];
@@ -39,7 +41,9 @@ export const LITE_TABS: readonly [LiteTab, string][] = [
 export const AOF_FOR_ALL = true;
 /** D750: THE INVENTIONS AND SINFONIAS open to everyone once the studio's setting and Instruments' sounds land; until then behind the unlock. */
 export const INV_FOR_ALL = true;
-export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL)));
+/** D867: THE GOLDBERG VARIATIONS open to everyone. */
+export const GOLD_FOR_ALL = true;
+export const liteTabs = (): readonly [LiteTab, string][] => (unlocked() ? LITE_TABS : LITE_TABS.filter(([t]) => t === "I" || (t === "II" && bookTwoOpen()) || (t === "AOF" && AOF_FOR_ALL) || (t === "INV" && INV_FOR_ALL) || (t === "GOLD" && GOLD_FOR_ALL)));
 
 /** D382: Book I's 24 fugues, each of which must be finished (played to its end, any grade) to open Book II. */
 export const BOOK_ONE_FUGUES: readonly string[] = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
@@ -88,17 +92,17 @@ export const INV_IDS: readonly string[] = [...(MORE_SECTIONS.find((s) => s.id ==
 /** D750: the MORE BACH sections that have a tab of their own (not listed under MORE BACH). */
 /** D757: the Goldberg's Aria and thirty variations, in Bach's order (a MORE BACH section; NEXT among them, from Variation 30 back to the Aria). */
 export const GOLD_IDS: readonly string[] = MORE_SECTIONS.find((s) => s.id === "goldberg")?.ids ?? [];
-export const OWN_TAB_SECTIONS: readonly string[] = ["aof", "inv", "sin"];
+export const OWN_TAB_SECTIONS: readonly string[] = ["aof", "inv", "sin", "goldberg"];
 const EXTRA = new Set([...MORE_SECTIONS.flatMap((s) => s.ids), ...CHORALE_IDS]);
 /** D340: a piece of the MORE BACH or CHORALES tab. */
 export const liteExtra = (id: string): boolean => EXTRA.has(id);
 /** D340: the tab a piece is listed under. */
-export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : INV_IDS.includes(id) ? "INV" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
+export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : INV_IDS.includes(id) ? "INV" : GOLD_IDS.includes(id) ? "GOLD" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
 /** D340: what NEXT follows a piece with: its own tab's list. */
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
   const tab = liteTabOf(id);
   // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock; D382: or once earned).
-  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : GOLD_IDS.includes(id) ? [...GOLD_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
+  return tab === "CHORALES" ? [...CHORALE_IDS] : tab === "AOF" ? [...AOF_IDS] : tab === "INV" ? [...INV_IDS] : tab === "GOLD" ? [...GOLD_IDS] : tab === "MORE" ? MORE_SECTIONS.filter((s) => !OWN_TAB_SECTIONS.includes(s.id)).flatMap((s) => s.ids) : liteAll(fuguesOnly).filter((x) => x.startsWith("wtc1") || bookTwoOpen());
 }
 
 /**

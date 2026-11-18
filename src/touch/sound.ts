@@ -574,6 +574,13 @@ export const PIZZ_PHONE_LIFT = { hz: 400, db: 14 } as const;
  */
 export const BAND_SEND = 0.18;
 export const CONTINUO = { db: -8, phoneDb: -4.5, pan: -0.06, late: 0.015 } as const;
+/**
+ * D852: SUPER 16-BIT's continuo cello (s16Cello: the concertos', BWV 1043's and BWV 54's bass only) on a phone, its upper
+ * partials lifted as the consort's (D365): with the soloist brought over the band (player-lift.ts SOLO_TARGET_DB) the
+ * continuo alone stood 6-11 LU under the loudest voice alone on the phone model (D645's measure); the trim's floor (6 dB) did
+ * not reach it.
+ */
+export const CONSOLE_CELLO_PHONE_LIFT = { hz: 700, db: 6 } as const;
 /** D430: BAROQUE BAND's cello on a phone (as the consort's, CELLO_PHONE_LIFT, measured for the band). */
 export const BAND_CELLO_PHONE_LIFT = { hz: 700, db: 5 } as const;
 /**
@@ -1022,7 +1029,7 @@ export const PATCHES = {
    * SOUND-PRINCIPLES.md), the strings' envelope, send and bow; its bow's bite and upper partials carry
    * the bass on a phone (cello16: the Freesound cello as the console held it).
    */
-  s16Cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, send: 0.3, level: 0.6, sample: "cello16", bow: STRING_BOW }),
+  s16Cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, send: 0.3, level: 0.6, sample: "cello16", bow: STRING_BOW, phoneLift: CONSOLE_CELLO_PHONE_LIFT }),
   s16Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.012, d: 0.25, s: 0.78, r: 0.08 }, rec: { a: 0.012, d: 0.25, s: 0.78, fade: 4, r: 0.08 }, send: 0.12, hp: 120, level: 0.64, sample: "bassoon16" }),
   // MEGA FM (the Mega Drive's YM2612: every channel its own two-operator instrument, the modulation
   // index decaying on every note, no reverb; a 9-bit grain and a 7 kHz lowpass at the output).
@@ -1429,14 +1436,21 @@ export const PATCHES = {
   a2Hammond: P({ osc: [{ wave: "tonewheel", octave: -1 }], filter: { freq: 4200, hz: true, q: 0.6, env: 1.6, envDecay: 0.06 }, chiff: { level: 0.12, time: 0.005, at: 10 }, amp: { a: 0.004, d: 0.05, s: 1, r: 0.04 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.hammond, one: {}, lane: "organ" }),
   a2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.02, d: 0.1, s: 0.9, r: 0.12 }, rec: { a: 0.015, d: 0.1, s: 0.92, r: 0.12 }, send: ABBEY2_SEND, level: ABBEY2_LEVEL.trumpet, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "brass" }),
   a2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.7 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 1, s: 0, r: 0.08 }, send: ABBEY2_SEND * 0.3, level: ABBEY2_LEVEL.bass, sample: "rockBass", one: {}, phoneLift: ROCK_BASS_PHONE_LIFT, lane: "bass", phoneExcite: ABBEY2_BASS_PHONE_EXCITE }),
-  // D586, BERLIN SCHOOL (BERLIN_SEND): the lead a saw and a detuned pulse through a resonant four-pole filter (its envelope
-  // a little slow: a Moog's sweep on every note), a late vibrato; the sequencer's voice a saw and a sub-octave square through
-  // a high-resonance filter snapping shut (the "Phaedra" pluck); the string machine's three saws; the bass a saw and its
-  // square an octave below, driven (its upper harmonics carry it on a phone). Each with an oscillator's drift.
-  bsLead: P({ osc: [{ wave: "saw", gain: 0.8 }, { wave: "pulse25", detune: 7, gain: 0.3 }], filter: { freq: 3, q: 3.2, env: 3, envDecay: 0.16, poles: 4 }, drive: 0.4, amp: { a: 0.004, d: 0.25, s: 0.8, r: 0.06 }, vib: { depth: 5, rate: 5.2, delay: 0.45 }, drift: { cents: 3, rate: 0.09 }, send: BERLIN_SEND.lead, level: 0.22 }),
-  bsSeq: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.3 }], filter: { freq: 2, q: 6, env: 5.5, envDecay: 0.085, poles: 4 }, amp: { a: 0.002, d: 0.22, s: 0.55, r: 0.05 }, drift: { cents: 2.5, rate: 0.13 }, send: BERLIN_SEND.seq, level: 0.34 }),
-  bsStrings: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "saw", detune: 11, gain: 0.5 }, { wave: "saw", detune: -11, gain: 0.5 }], filter: { freq: 2.6, q: 0.7 }, amp: { a: 0.03, d: 0.3, s: 0.85, r: 0.18 }, vib: { depth: 4, rate: 4.6, delay: 0.5 }, drift: { cents: 3, rate: 0.07 }, send: BERLIN_SEND.strings, level: 0.16 }),
-  bsBass: P({ osc: [{ wave: "saw" }, { wave: "square", octave: -1, gain: 0.45 }, { wave: "triangle", octave: 1, gain: 0.15 }], filter: { freq: 1000, hz: true, q: 2, env: 4, envDecay: 0.1, poles: 4 }, drive: 0.7, hp: 40, amp: { a: 0.002, d: 0.25, s: 0.55, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: BERLIN_SEND.bass, level: 0.27 }),
+  // D586, BERLIN SCHOOL. D805 (the owner: "The BERLIN preset has a lot of potential … improve it"; D800's diagnosis: the
+  // lead and the sequencer nearly sines after their attacks, the string machine lost on a phone, the voices alike): rebuilt as
+  // D803's CLEAR, the voices told apart by their attacks and spectra: a hollow pulse lead with a soft attack and a little
+  // echo, a bright short sequencer pluck, a glassy pad (triangle and a sine an octave up) in place of the string machine, a
+  // round, punchy, dry bass; seated a little wider. Held to the standing rules: the sequencer's attack 3 ms and the bass's 4
+  // (CLEAR's 1 and 2 snapped at the onset in D805's renders), the lead let go as D308 asks (its release 0.06 s, CLEAR's 0.25),
+  // the pad's attack 90 ms (D299: no offered sound but TOMITA's choir 100 ms or slower) and its release 0.18 s.
+  // D809: the lead brighter and more present (its narrow pulse up, the filter at 9x the note), the sequencer's filter
+  // envelope 1.8 (4 opened a saw's edges at the onset) and its attack 6 ms, the pad 1.8 dB down; in four and five voices the
+  // lead's seat 1.2 (the lift's bass floor had left it under on a phone). (D805's CLEAR+MOTION, MODULAR's sweeps and an echo on the sequencer added, measured 0.58 less
+  // distinct than CLEAR on wtc1f02, over the 0.3 allowed: not taken.)
+  bsLead: P({ osc: [{ wave: "pulse50", gain: 0.6 }, { wave: "pulse25", detune: 4, gain: 0.5 }], filter: { freq: 9, q: 1.3, env: 1, envDecay: 0.2, poles: 2 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.06 }, vib: { depth: 5, rate: 5.4, delay: 0.4 }, drift: { cents: 2, rate: 0.09 }, send: 0.16, level: 0.5 }),
+  bsSeq: P({ osc: [{ wave: "saw" }], filter: { freq: 4, q: 4, env: 1.8, envDecay: 0.1, poles: 4 }, amp: { a: 0.006, d: 0.35, s: 0.4, r: 0.06 }, drift: { cents: 2, rate: 0.13 }, send: 0.06, level: 0.36 }),
+  bsStrings: P({ osc: [{ wave: "triangle" }, { wave: "sine", octave: 1, gain: 0.35 }, { wave: "triangle", detune: 7, gain: 0.5 }], amp: { a: 0.09, d: 0.4, s: 0.9, r: 0.18 }, vib: { depth: 3, rate: 4.4, delay: 0.6 }, drift: { cents: 2, rate: 0.07 }, send: 0.1, level: 0.34 }),
+  bsBass: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.8 }, { wave: "sine", octave: -1, gain: 0.3 }], filter: { freq: 2600, hz: true, q: 0.9 }, drive: 0.5, hp: 40, amp: { a: 0.004, d: 0.22, s: 0.45, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: 0, level: 0.28 }),
   // D588, VAUDEVILLE (VAUD_SEND): the xylophone struck (its recordings, VSCO's), the clarinet held (VSCO's, CHORINHO's), the
   // bassoon with its short notes (Iowa's, ZELENKA TRIO's, the compass and the tongue), the bass trombone (Iowa's, BACH BRASS's).
   vdXylo: P({ osc: [{ wave: "sine" }, { wave: "sine", octave: 2, gain: 0.25 }], amp: { a: 0.001, d: 0.5, s: 0, r: 0.08 }, send: VAUD_SEND, level: 0.75, sample: "vaudXylo", one: {} }),
@@ -1646,7 +1660,9 @@ export const PRESETS: Preset[] = [
     id: "super16",
     name: "SUPER 16-BIT",
     // D560: held to the budget (25 MB): BAND_SLIM, a recording every fourth semitone (the console's own way: few samples stretched far); 54.1 → 20.9 MB.
-    slim: { ...BAND_SLIM, stride: 4 },
+    // D856: the sung alto of BWV 54's trial (PIECE_TRIALS bwv54-v2) every recording (a voice read 2 semitones off its own is a
+    // formant shifted): only where that trial seats it.
+    slim: { ...BAND_SLIM, stride: 4, strides: { voiceA: 1 } },
     slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,
     fx: "spc",
@@ -2070,17 +2086,21 @@ export const PRESETS: Preset[] = [
     id: "berlinSchool",
     name: "BERLIN SCHOOL",
     // D586-D590: matched to the median of twelve offered sounds (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top; measured).
+    // D805: on a phone 2.2 dB more (1.23 → 1.59): the rebuilt sound's six, whole, with the lift, about D593's -28 LUFS (D809:
+    // -27.1 to -29.1); Contrapunctus I besides 1.5 dB down on a phone, D715's limit for the Art of Fugue.
+    levels: { "bwv1080-01": { phoneGain: 0.842 } },
     gain: 1.32,
-    phoneGain: 1.23,
+    phoneGain: 1.59,
     slots: ["bsLead", "bsSeq", "bsStrings", "bsSeq", "bsBass"],
     room: 0,
     fx: "space",
+    // D805: CLEAR's seating, held within D585's ±0.3 (one band on a phone's speaker).
     by: {
       1: [["bsLead", 0]],
-      2: [["bsLead", 0.2], ["bsBass", -0.05]],
-      3: [["bsLead", 0.25], ["bsSeq", -0.28], ["bsBass", 0]],
-      4: [["bsLead", 0.25], ["bsSeq", -0.28], ["bsStrings", 0.12], ["bsBass", 0]],
-      5: [["bsLead", 0.25], ["bsSeq", -0.28, 0.9], ["bsStrings", 0.12], ["bsSeq", 0.3, 0.84], ["bsBass", 0]],
+      2: [["bsLead", 0.24], ["bsBass", -0.06]],
+      3: [["bsLead", 0.27], ["bsSeq", -0.3], ["bsBass", 0]],
+      4: [["bsLead", 0.27, 1.2], ["bsSeq", -0.3], ["bsStrings", 0.13], ["bsBass", 0]],
+      5: [["bsLead", 0.27, 1.2], ["bsSeq", -0.3, 0.9], ["bsStrings", 0.13], ["bsSeq", 0.3, 0.84], ["bsBass", 0]],
     },
   },
   // D588, VAUDEVILLE (VAUD_SEND): the xylophone on the top voice, the clarinet inside, the bassoon on the bass; four and five
@@ -2210,6 +2230,54 @@ export function mergeSeats(table: SeatTable) {
 mergeSeats(OCTAVE_SEATS);
 
 /**
+ * D86x, BWV 54'S ALTO, TRIALS (not offered: the owner picks). The owner: "I used to love BWV 54 in the game … It's absurd
+ * that even the solo [alto] had the same sound as the orchestra." On SUPER 16-BIT (its sound since D341) the alto sings on
+ * the strings (s16Strings, the violas' own patch); until D434 (7b3da1b1, 1 Nov) the tempo steps changed the sound (D351):
+ * FAST played the cantata on TRACKER, the alto alone on its 8-bit choir "aah". Each trial below gives the alto a timbre of
+ * its own, the other voices as their sound seats them; heard with `?trial=<id>` (play.html, bench.html: pieceTrialNow), in
+ * the Sound Lab, or by the render harness (setPieceTrial). PIECE_SOUND is unchanged.
+ */
+export type PieceTrial = { name: string; sound: string; why: string; pieces: Readonly<Record<string, Partial<Record<number, readonly Slot[]>>>> };
+/** D86x: the alto's level on SUPER 16-BIT's trials (its seat's level): its line alone as loud as today's alto alone on the phone model (renders). */
+const TRIAL_ALTO = { sung: 1.07, oboe: 0.36 } as const;
+export const PIECE_TRIALS: Readonly<Record<string, PieceTrial>> = {
+  // (D890: v1, TRACKER with the alto on its choir, withdrawn with TRACKER.)
+  "bwv54-v2": {
+    name: "BWV 54 v2: SUPER 16-BIT, the alto sung (VocalSet's alto)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto on SOLO VOICES' alto singer (VocalSet, F3-E5 recorded: every note read from its own recording), in the middle, in front of the strings.",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["singA", 0, TRIAL_ALTO.sung], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["singA", 0, TRIAL_ALTO.sung], ["s16Bassoon", 0]] },
+    },
+  },
+  "bwv54-v3": {
+    name: "BWV 54 v3: SUPER 16-BIT, the alto on a solo oboe (ZELENKA TRIO's)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto on ZELENKA TRIO's first oboe (Iowa's, its tongue), in the middle: an obbligato reed's line over the strings. Its lowest recording is B♭3: the alto's 35 notes under it (F3-A3) are read 1-5 semitones down (within STRETCH_MAX).",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Bassoon", 0]] },
+    },
+  },
+};
+let pieceTrial: string | null = (() => {
+  try {
+    const t = typeof location !== "undefined" ? new URLSearchParams(location.search).get("trial") : null;
+    return t && PIECE_TRIALS[t] ? t : null;
+  } catch {
+    return null;
+  }
+})();
+/** D86x: a piece trial on (its id in PIECE_TRIALS) or off (null). */
+export function setPieceTrial(id: string | null) {
+  pieceTrial = id && PIECE_TRIALS[id] ? id : null;
+}
+export const pieceTrialNow = () => pieceTrial;
+/** D86x: the sound a piece trial plays the piece on (undefined: no trial for it). */
+export const trialSoundFor = (pieceId: string): string | undefined => (pieceTrial && PIECE_TRIALS[pieceTrial].pieces[pieceId] ? PIECE_TRIALS[pieceTrial].sound : undefined);
+
+/**
  * D715: THE ART OF FUGUE'S LEVELS ON A PHONE (D593's Preset.levels: the whole mix, a constant of the piece and its sound).
  * Each piece on its own sound (D708) measured whole on the phone model (tools/touch/bass-phone/render.cjs `solo: "mix"`,
  * the player on the top voice, DRUMS off: mono, two 2nd-order 600 Hz high-passes, ebur128), against the 48 defaults'
@@ -2267,12 +2335,12 @@ export const F906_LEVELS: Readonly<Record<string, Readonly<Record<string, { phon
 };
 /**
  * D896: the thirteen given a new sound (D893) the same way (whole, with the lift, the phone model, against the 48's median,
- * -27.95): those more than 1 LU off brought to about -28: I/15 (-29.8), Contrapunctus 12 inversus (-29.7), Canon 16 (-30.3),
- * Invention 15 (-29.0) raised; Invention 13 (-26.9) and Sinfonia 5 (-26.6) lowered. A phone's only.
+ * -27.95): those more than 1 LU off brought to about -28: I/15 (-29.8), Canon 16 (-30.3), Invention 15 (-29.0) raised;
+ * Contrapunctus 12 rectus (-26.3, on the reworked BERLIN SCHOOL, D805), Invention 13 (-26.9) and Sinfonia 5 (-26.6) lowered. A phone's only.
  */
 export const RETIRE_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
   chorinho: { wtc1f15: { phoneGain: 1.23 } },
-  berlinSchool: { "bwv1080-12i": { phoneGain: 1.22 } },
+  berlinSchool: { "bwv1080-12r": { phoneGain: 0.85 } }, // D715's limit: 1.5 dB down at most
   salsa: { "bwv1080-c16": { phoneGain: 1.3 } },
   oboeTrio: { bwv786: { phoneGain: 1.12 } },
   harpsichordSampled: { bwv784: { phoneGain: 0.88 } },
@@ -2577,7 +2645,9 @@ export function setPieceLayout(l: { preset: string; count: number; slots: readon
  * sampledNow), or null where the piece has none.
  */
 export function pieceLineUp(presetId: string, f: { id: string; voices: readonly unknown[] }): { preset: string; count: number; slots: readonly Slot[]; only: true } | null {
-  const slots = presetById(presetId).pieces?.[f.id]?.[f.voices.length];
+  // D86x: a piece trial's line-up on its sound (PIECE_TRIALS), in place of the sound's own.
+  const tr = pieceTrial ? PIECE_TRIALS[pieceTrial] : null;
+  const slots = (tr && tr.sound === presetById(presetId).id ? tr.pieces[f.id]?.[f.voices.length] : undefined) ?? presetById(presetId).pieces?.[f.id]?.[f.voices.length];
   return slots ? { preset: presetId, count: f.voices.length, slots, only: true } : null;
 }
 export const pieceLayoutNow = () => pieceLayout;

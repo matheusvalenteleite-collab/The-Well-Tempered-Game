@@ -1,4 +1,4 @@
-import { WITHDRAWN_D890, playerSound } from "./sound.ts";
+import { WITHDRAWN_D890, playerSound, trialSoundFor } from "./sound.ts";
 
 /**
  * D246: each piece's own sound (the owner: "choose a default preset for every piece, the one which
@@ -353,9 +353,10 @@ function moreBachSounds(): Record<string, string> {
 
 /** The sound a piece opens with: the player's choice for it, else its own, else the game's default. */
 export function soundFor(id: string, chosen: Readonly<Record<string, string>>, fallback: string): string {
+  // D86x: a piece trial (sound.ts PIECE_TRIALS, `?trial=`) plays the piece on its own sound.
   // D890: a choice of a withdrawn sound (PET SOUNDS, TRACKER, MEGA FM) falls back to the piece's own.
   const c = chosen[id];
-  const s = (c !== undefined && !WITHDRAWN_D890.has(c) ? c : undefined) ?? PIECE_SOUND[id] ?? fallback;
+  const s = trialSoundFor(id) ?? (c !== undefined && !WITHDRAWN_D890.has(c) ? c : undefined) ?? PIECE_SOUND[id] ?? fallback;
   // D249: a choice of a withdrawn preset (the organ, kept from before) opens on its stand-in;
   // D292: anything else not among the five (TRAVERSO, an unknown id) on CLASSIC CHIP.
   return playerSound(s);

@@ -11,14 +11,14 @@ import type { BassRun } from "./bass-phone.ts";
 
 export const BASS_PHONE_INV: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
   bwv772: {"s":"gameboy","sig":"[null,0.35,null,null,null,null]","db":null,"band":{"lu":[-30.9,-31.3],"at":[-1.5,0],"mix":-28.3},"player":{"lu":[-32.6,-31.2],"at":[0.8,-0.7],"mix":-29.1}},
-  bwv773: {"s":"berlinSchool","sig":"[null,0.27,null,null,null,null]","db":null,"band":{"lu":[-30,-32],"at":[-1.7,0],"mix":-28},"player":{"lu":[-30.5,-30.6],"at":[0,-2.3],"mix":-27.8}},
+  bwv773: {"s":"berlinSchool","sig":"[null,0.28,null,null,null,null]","db":null,"band":{"lu":[-28.6,-32.1],"at":[-1.7,0],"mix":-27.2},"player":{"lu":[-28.4,-31.7],"at":[0,-2.3],"mix":-27}},
   bwv774: {"s":"chorinho","sig":"[\"choroGuitar\",0.19,{\"hz\":500,\"db\":9},null,null,null]","db":null,"band":{"lu":[-28.3,-31.5],"at":[-0.7,0],"mix":-27.9},"player":{"lu":[-29,-30.8],"at":[0,-0.6],"mix":-28.2}},
   bwv775: {"s":"sid64","sig":"[null,0.45,null,null,null,null]","db":null,"band":{"lu":[-29.4,-33.2],"at":[-2.1,0],"mix":-28},"player":{"lu":[-30.8,-31.8],"at":[0,-1.5],"mix":-28.4}},
   bwv776: {"s":"jazzQuartet","sig":"[\"jazzBass\",0.85,{\"hz\":320,\"db\":12,\"cut\":280},null,{\"hz\":700,\"db\":3},[250,16,600]]","db":6,"band":{"lu":[-28.6,-32.2],"at":[-0.2,3.8],"mix":-28.6},"player":{"lu":[-28.9,-31.9],"at":[0,3.6],"mix":-28.9}},
   bwv777: {"s":"bossaNova","sig":"[\"bossaGuitar\",0.55,{\"hz\":700,\"db\":5},null,{\"hz\":2600,\"db\":-3},null]","db":null,"band":{"lu":[-29.2,-31],"at":[1.8,0],"mix":-28.9},"player":{"lu":[-29.8,-30.5],"at":[3.4,-0.3],"mix":-29}},
   bwv778: {"s":"bossaNova","sig":"[\"bossaGuitar\",0.55,{\"hz\":700,\"db\":5},null,{\"hz\":2600,\"db\":-3},null]","db":null,"band":{"lu":[-28.3,-29.2],"at":[1.9,0],"mix":-28.1},"player":{"lu":[-28.9,-29.3],"at":[3.5,0],"mix":-28.5}},
   bwv779: {"s":"analog","sig":"[null,0.336,null,null,null,null]","db":null,"band":{"lu":[-30.6,-31.3],"at":[-1.2,0],"mix":-28},"player":{"lu":[-31,-30.7],"at":[0,-2],"mix":-28}},
-  bwv780: {"s":"berlinSchool","sig":"[null,0.27,null,null,null,null]","db":null,"band":{"lu":[-28.8,-32.8],"at":[-1.3,0],"mix":-27.4},"player":{"lu":[-29.8,-31.9],"at":[0,-2.4],"mix":-27.8}},
+  bwv780: {"s":"berlinSchool","sig":"[null,0.28,null,null,null,null]","db":null,"band":{"lu":[-27.5,-32.7],"at":[-1.3,0],"mix":-26.5},"player":{"lu":[-27.8,-33.1],"at":[0,-2.4],"mix":-26.9}},
   bwv781: {"s":"gameboy","sig":"[null,0.35,null,null,null,null]","db":null,"band":{"lu":[-30,-31.9],"at":[-2.4,0],"mix":-28.1},"player":{"lu":[-30.4,-32.4],"at":[0,-2.3],"mix":-28.5}},
   bwv782: {"s":"oboeTrio","sig":"[\"trioBassoon\",1,{\"hz\":500,\"db\":9},null,null,null]","db":null,"band":{"lu":[-30.1,-32.8],"at":[3.7,0],"mix":-28.3},"player":{"lu":[-28.9,-31.8],"at":[6,-0.9],"mix":-27.2}},
   bwv783: {"s":"jazzQuartet","sig":"[\"jazzBass\",0.85,{\"hz\":320,\"db\":12,\"cut\":280},null,{\"hz\":700,\"db\":3},[250,16,600]]","db":6,"band":{"lu":[-27.9,-31.1],"at":[-0.5,2.5],"mix":-27.9},"player":{"lu":[-28.4,-30.6],"at":[0,2.2],"mix":-28}},

@@ -75,6 +75,8 @@ export const ADDED: Record<string, [number, string, string, number?][]> = {
   // Sinfonia 1's short wavy line on the soprano's E5 in bar 14 (p. 19; the motif of bar 5, where the
   // edition puts it and the BGA has none).
   inven07: [[10, "C5", "M", 0]],
+  // D877: Invention 9's mordent on the C5 of bar 33 (BG p. 11), D878: and the turn after it.
+  inven09: [[33, "C5", "MJ", 0]],
   sinfo01: [[14, "E5", "W", 2.5]],
 };
 
@@ -110,9 +112,29 @@ export const BGA_SIGNS: Record<string, [number, string, string, number][]> = {
   // The non-WTC ornament audit (docs/audits/ORNAMENTS-NON-WTC.md): signs the Mutopia sinfonias
   // (Vermersch, source not stated) add where the Bach-Gesellschaft (vol. 3, read on the scan) prints none,
   // nor does the Humdrum encoding of the BGA: Sinfonia 1 bar 5 (p. 19), Sinfonia 13 bars 3 and 7 (p. 38).
-  // (Sinfonia 7's trill in bar 43 is not the BGA's either, but THE TUTORIAL's lesson 6.2 is built on it:
-  // left for the owner.)
+  // D874: and Sinfonia 7's trill in bar 43 (not the BGA's nor in the encoding; THE TUTORIAL's lesson 6.2 moved to
+  // Sinfonia 2's printed long trill).
+  // D877: the hooked signs, read on the scan (BG vol. 3) after the Explication: the Doppelt-Cadence from below (D) or
+  // from above (U), with a stroke "und Mordant" (R); Invention 9's longer wavy line with a stroke, Trillo und Mordant.
+  inven02: [2, 4, 12, 14, 24].map((bar, i) => [bar, ["D5", "D4", "A3", "A4", "D5"][i], "D", 3] as [number, string, string, number]),
+  inven03: [
+    [3, "C#5", "UR", 1],
+    [45, "C#5", "UR", 1],
+  ],
+  inven05: [[32, "F5", "DR", 1]],
+  inven09: [
+    [15, "B4", "D", 0],
+    [15, "C5", "TRJ", 2],
+    [16, "D5", "U", 1],
+    [33, "G4", "D", 1],
+  ],
+  inven11: [
+    [10, "D5", "MJ", 2],
+    [10, "E5", "UR", 3],
+  ],
+  inven12: [1, 3, 9, 18, 20].map((bar, i) => [bar, ["B4", "F#3", "G#4", "B2", "D3"][i], "UR", 3] as [number, string, string, number]),
   sinfo01: [[5, "B4", "", 2.5]],
+  sinfo07: [[43, "D#5", "", 2]],
   sinfo13: [
     [3, "B4", "", 0.5],
     [7, "F#4", "", 0.5],
@@ -128,4 +150,108 @@ export const BGA_SIGNS: Record<string, [number, string, string, number][]> = {
 export const CONTRAPUNCTUS: [number, number, string, string][] = [
   [2, 1501440, "C#4", "W"],
   [0, 1687680, "D#5", "S"],
+];
+
+/**
+ * D875: SINFONIA 5's ornaments as the Bach-Gesellschaft prints them (vol. 3, pp. 24-25, read on the scan: the
+ * ornamented text, with its small notes), in place of the edition's one sign: [voice, bar, beat, pitch, signs,
+ * graces?]. The small notes are quavers slurred to their notes (the Explication's Accent), played as long
+ * appoggiaturas (Q); the two runs of small demisemiquavers (bars 12, 16) as short graces (q) before the sign.
+ * The turn printed after a mordant, over the dot (bars 1, 2, 8, 13, 14, 29, 30, 37), played after it (J, D878).
+ * Not played: the arpeggio of bar 21.
+ */
+export const SINFONIA5: [number, number, number, string, string, string[]?][] = [
+  [0, 1, 2, "Eb5", "MJ"],
+  [0, 2, 0, "D5", "", ["QEb5"]],
+  [1, 2, 2, "Bb4", "MJ"],
+  [0, 3, 0, "C5", "", ["QDb5"]],
+  [1, 3, 0, "Ab4", "", ["QBb4"]],
+  [0, 3, 2, "F5", "", ["QC5"]],
+  [1, 3, 2, "Ab4", "", ["QG4"]],
+  [0, 4, 0, "Eb5", "", ["QF5"]],
+  [1, 4, 0, "G4", "", ["QAb4"]],
+  [0, 4, 2, "Eb5", "", ["QD5"]],
+  [0, 5, 0, "D5", "", ["QEb5"]],
+  [1, 5, 0, "Bb4", "", ["QC5"]],
+  [0, 5, 2, "G5", "", ["QD5"]],
+  [0, 6, 0, "C5", "", ["QG5"]],
+  [1, 6, 1, "Ab4", "S"],
+  [0, 6, 2, "F5", "", ["QC5"]],
+  [0, 7, 0, "Bb4", "", ["QF5"]],
+  [0, 7, 1, "Eb5", "M"],
+  [1, 7, 2, "C5", "", ["QG4"]],
+  [1, 8, 0, "F4", "", ["QC5"]],
+  [1, 8, 2, "Bb4", "MJ"],
+  [0, 9, 0, "Eb5", "", ["QD5"]],
+  [1, 9, 0, "G4", "", ["QAb4"]],
+  [1, 9, 2, "C5", "M"],
+  [1, 10, 0, "C5", "S"],
+  [0, 10, 2, "D5", "M"],
+  [0, 11, 0, "D5", "S"],
+  [1, 11, 1, "B4", "", ["QC5"]],
+  [0, 11, 2, "F5", "", ["QEb5"]],
+  [1, 11, 2, "D5", "", ["QC5"]],
+  [0, 12, 2, "D5", "D", ["qF5", "qEb5", "qD5", "qC5", "qD5"]],
+  [0, 13, 0, "C5", "M"],
+  [1, 13, 0, "C5", "M"],
+  [1, 13, 2, "C5", "MJ"],
+  [1, 14, 0, "A4", "", ["QBb4"]],
+  [0, 14, 2, "F5", "MJ"],
+  [0, 15, 0, "D5", "", ["QEb5"]],
+  [0, 15, 2, "F5", "", ["QEb5"]],
+  [1, 15, 2, "D5", "", ["QC5"]],
+  [0, 16, 0, "Eb5", "", ["QF5"]],
+  [1, 16, 0, "C5", "", ["QD5"]],
+  [0, 16, 2, "C5", "D", ["qEb5", "qC5", "qBb4", "qA4", "qBb4", "qEb5", "qC5"]],
+  [0, 17, 0, "Bb4", "M"],
+  [1, 17, 0, "Bb4", "M"],
+  [0, 17, 2, "Ab5", "D"],
+  [0, 18, 0, "G5", "", ["QAb5"]],
+  [1, 18, 2, "Db5", "D"],
+  [1, 19, 0, "C5", "", ["QDb5"]],
+  [0, 19, 1, "E5", "", ["QF5"]],
+  [1, 19, 2, "Bb4", "", ["QC5"]],
+  [1, 20, 0, "Ab4", "", ["QBb4"]],
+  [0, 20, 1, "Db5", "", ["QEb5"]],
+  [0, 20, 2, "F5", "", ["QC5"]],
+  [1, 20, 2, "Ab4", "", ["QG4"]],
+  [0, 21, 0, "E5", "", ["QF5"]],
+  [1, 22, 0, "Db5", "S"],
+  [0, 22, 2, "Bb5", "", ["QF5"]],
+  [0, 23, 1, "E5", "D"],
+  [0, 23, 2, "F5", "", ["QE5"]],
+  [1, 23, 2, "Ab4", "", ["QBb4"]],
+  [0, 24, 0, "F5", "", ["QE5"]],
+  [1, 24, 0, "Ab4", "", ["QG4"]],
+  [0, 24, 2, "E5", "D"],
+  [1, 25, 0, "Ab4", "M"],
+  [1, 25, 2, "F5", "", ["QC5"]],
+  [1, 26, 0, "Db5", "", ["QC5"]],
+  [0, 27, 0, "G5", "", ["QF5"]],
+  [0, 27, 2, "Db5", "", ["QEb5"]],
+  [0, 28, 2, "Bb4", "D"],
+  [0, 29, 2, "Ab4", "MJ"],
+  [0, 30, 0, "G4", "", ["QAb4"]],
+  [1, 30, 2, "Eb4", "MJ"],
+  [1, 31, 0, "D4", "", ["QEb4"]],
+  [0, 31, 2, "Bb4", "", ["QF4"]],
+  [1, 31, 2, "Db4", "", ["QC4"]],
+  [0, 32, 0, "Ab4", "", ["QBb4"]],
+  [1, 32, 0, "C4", "", ["QDb4"]],
+  [0, 32, 2, "Ab4", "", ["QG4"]],
+  [1, 32, 2, "F4", "", ["QC4"]],
+  [0, 33, 0, "G4", "", ["QAb4"]],
+  [1, 33, 0, "Eb4", "", ["QF4"]],
+  [1, 33, 2, "Eb4", "", ["QD4"]],
+  [1, 34, 0, "D4", "", ["QEb4"]],
+  [0, 34, 1, "Bb4", "S"],
+  [1, 34, 2, "G4", "M"],
+  [1, 35, 0, "C4", "", ["QG4"]],
+  [0, 35, 1, "Ab4", "S"],
+  [1, 35, 2, "F4", "M"],
+  [1, 36, 0, "Bb3", "", ["QF4"]],
+  [0, 36, 2, "C5", "W"],
+  [0, 37, 0, "F4", "", ["QC5"]],
+  [1, 37, 1, "D4", "", ["QEb4"]],
+  [0, 37, 2, "Bb4", "MJ"],
 ];

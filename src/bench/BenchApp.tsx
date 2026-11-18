@@ -2327,7 +2327,8 @@ export function BenchApp() {
           soundOf={soundAt}
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
-          tutorial={{ ...manualProgress(readManual()), start: () => startManual() }}
+          // D868: the tutorial taken out of the game (the owner: "Eliminate tutorial from game"); kept in the developer view (ricercar), Glenn's Part 1 with it.
+          tutorial={unlocked() ? { ...manualProgress(readManual()), start: () => startManual() } : undefined}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.

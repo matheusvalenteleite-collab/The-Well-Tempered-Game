@@ -94,7 +94,7 @@ import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
 import { BAND_GROWTH, PIECE_GROWTH, growthAt, lengthCaps, unisonAt, unisonLate, unisonSpans, type GrowthSpec, type MuteSpec, type UnisonSpan, type UnisonSpec } from "../touch/band-growth.ts";
 import { busoniReaches, expressiveAll, PATCHES, patchIdFor, pieceLineUp, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
-import { bandTrimDb, entryGain, liftGain, playerToneDb } from "../touch/player-lift.ts";
+import { bandTrimDb, doublingKeys, duckGain, entryGain, isSoloPiece, liftGain, playerToneDb, soloLiftDb, soloTrimDb } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -622,6 +622,8 @@ export class ProtoGame {
    */
   readonly trims: readonly number[];
   readonly tone: number;
+  /** D851: the band's notes doubling the player's line in unison (player-lift.ts doublingKeys), DOUBLE_DUCK_DB down. */
+  readonly doubling: ReadonlySet<string>;
   /**
    * D497, THE SOUND LAB (soundlab.html only; never set by the game): a gain per band voice over everything else
    * (its mixer and its solo/mute), read as each band note is scheduled. D720: also MY FUGUE's mixer (the band's voices). Null: no change.
@@ -667,9 +669,13 @@ export class ProtoGame {
     this.o = o;
     this.chip = chip;
     const mine = Array.isArray(voices) ? voices : [voices];
-    this.lift = o.her || o.solo || mine.length !== 1 ? 1 : liftGain(f.id, preset().id, mine[0], f.voices.length);
-    this.trims = f.voices.map((_, u) => 10 ** (bandTrimDb(f.id, preset().id, u, f.voices.length) / 20));
-    this.tone = o.her || o.solo || mine.length !== 1 ? 0 : playerToneDb(f.id, preset().id, mine[0], f.voices.length);
+    // D851: a soloist over an orchestra (the concertos, BWV 1043, BWV 54): its own balance (player-lift.ts soloLiftDb).
+    const solo = isSoloPiece(f);
+    const one = !(o.her || o.solo || mine.length !== 1);
+    this.lift = !one ? 1 : solo ? 10 ** (soloLiftDb(f, preset().id, mine[0]) / 20) : liftGain(f.id, preset().id, mine[0], f.voices.length);
+    this.trims = f.voices.map((_, u) => 10 ** ((solo ? soloTrimDb(f, preset().id, u) : bandTrimDb(f.id, preset().id, u, f.voices.length)) / 20));
+    this.tone = !one || solo ? 0 : playerToneDb(f.id, preset().id, mine[0], f.voices.length);
+    this.doubling = one && solo ? doublingKeys(f, mine[0]) : new Set();
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
     // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
     // D602: the harpsichord's two manuals scripted for the piece (harpsi-manuals.ts: the entries on the brighter manual, the
@@ -1237,7 +1243,7 @@ export class ProtoGame {
       const muted = !!(mt && gw0?.veiled && sv.v.patch === PATCHES[mt.from] && n.midi >= mt.compass[0] && n.midi <= mt.compass[1]);
       const vv = muted ? { ...sv.v, patch: PATCHES[mt!.to] } : sv.v;
       // D508: the band's balance: the voice's trim, and its subject's entry a little forward (not where Busoni's palette brings it out).
-      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1);
+      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1) * (this.doubling.has(`${n.voice}:${n.on}`) ? duckGain() : 1);
       const prev = this.lastOther.get(n.voice);
       // D363: a band-only voice's note (a divisi) sounds as its parent but is not its line: no ornament of the line's, not its line's last note.
       if (!n.band) this.lastOther.set(n.voice, n.midi);
@@ -1247,10 +1253,10 @@ export class ProtoGame {
       // D385: on the piano a trill is a pianist's (piano-trill.ts): unsnapped, its upper notes lighter and uneven,
       // overlapped with the dampers half-seated, the two pitches from two recordings; from the main note where
       // a whole-piece reading plays it (Busoni's own realisation).
-      const ptr = orn && /[TtO]/.test(orn.signs) ? this.pianoTrillOf(parts, n.midi, this.whole ? "main" : "upper") : undefined;
+      const ptr = orn && /[TtODU]/.test(orn.signs) ? this.pianoTrillOf(parts, n.midi, this.whole ? "main" : "upper") : undefined;
       if (ptr) parts = ptr.parts;
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
-      if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
+      if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtODU]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$J]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
       // D429: a bowed band note (Patch.bow) joined as a string player joins: inside one of the reading's slurs the
       // same bow (a slur), any other join a new bow (bow change); its give-way to the next likewise.
@@ -3980,7 +3986,7 @@ export class ProtoGame {
         const prev = this.before(i, h.k);
         const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
         // D353: the overlay draws it as it sounds (the player's, written).
-        this.performed.set(`${h.k}:${i}`, { kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: false, voice: this.voiceOf(h.k, i), step: n0.step, midi: n0.midi, on: n0.on, end: n0.on + n0.dur, parts: parts.map(([pon, pdur, pm]) => [pon - n0.on + this.now, pdur, pm] as [number, number, number]) });
+        this.performed.set(`${h.k}:${i}`, { kind: /[TtODU]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$J]/.test(orn.signs) ? "turn" : "short", free: false, band: false, voice: this.voiceOf(h.k, i), step: n0.step, midi: n0.midi, on: n0.on, end: n0.on + n0.dur, parts: parts.map(([pon, pdur, pm]) => [pon - n0.on + this.now, pdur, pm] as [number, number, number]) });
         h.sounds = parts.map(([pon, pdur, pmidi], k) => {
           const at = t0 + (this.timeAt(pon) - this.timeAt(n0.on));
           const last = k === parts.length - 1;

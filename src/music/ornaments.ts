@@ -144,6 +144,18 @@ export function ornamentUnit(tempo: number, perSecond = 11): number {
 
 /** A note with its ornament and grace notes, as the notes that sound. */
 export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; midi: number }[] = [], ctx: OrnamentContext): Sounding[] {
+  if (signs.includes("J")) {
+    // D878: the turn after the note (Bach's sign set over a dot or a tie, or beside the note: C. P. E. Bach's turn
+    // over the dot, Versuch I, ch. 2, sect. 4): the note (with any sign before the turn, played in its own time)
+    // held to the dot, or to the tie (a plain note: its half), then the turn, U N L N, the last held to the end.
+    const split = isDotted(n.dur) ? (n.dur * 2) / 3 : n.dur / 2;
+    const head = realise({ ...n, dur: split }, signs.replace(/J/g, ""), graces, ctx);
+    const rest = n.dur - split;
+    const u = Math.min(ctx.unit, rest / 4);
+    const t = n.at + split;
+    const turn = [n.midi + ctx.stepAbove(n.midi), n.midi, n.midi - ctx.stepBelow(n.midi), n.midi];
+    return [...head, ...turn.map((midi, k) => ({ midi, at: t + k * u, dur: k === 3 ? rest - 3 * u : u }))].filter((x) => x.dur > 1e-9);
+  }
   const out: Sounding[] = [];
   let at = n.at;
   let dur = n.dur;
@@ -165,7 +177,24 @@ export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; m
   };
   const has = (c: string) => signs.includes(c);
   const trillUp = ctx.diatonic ? ctx.stepAbove(N) : has("T") ? 2 : has("t") ? 1 : ctx.stepAbove(N);
-  if (has("T") || has("t") || has("O")) {
+  if (has("D") || has("U")) {
+    // D870: Bach's Doppelt-Cadence (Explication nos. 5-8): the trill entered by a turn, its hook from below (D: the
+    // step below, the note, then the trill from above: L N U N …) or from above (U: the step above, the note, the
+    // step below, the note, then the trill: U N L N U N …); "und Mordant" (R) closing it below and back (… L N), as
+    // the Trillo und Mordant. The trill's grid and settle as the Trillo's (D319).
+    const up = N + ctx.stepAbove(N);
+    const low = N - ctx.stepBelow(N);
+    const head = has("D") ? [low, N] : [up, N, low, N];
+    const g = ctx.trillUnit ?? ctx.unit;
+    const rest = Math.max(0, dur - head.length * g);
+    const cpe = ctx.style === "cpe";
+    const tail = trillPitches(N, up, low, rest, g, has("R"), cpe || ctx.nachschlag ? 0 : (ctx.settle ?? TRILL_SETTLE));
+    seq([...head, ...tail], true);
+  } else if (has("L")) {
+    // D870: the slide (Schleifer): two quick notes rising from the third below to the note, held.
+    const one = N - ctx.stepBelow(N);
+    seq([one - ctx.stepBelow(one), one, N], false, true);
+  } else if (has("T") || has("t") || has("O")) {
     // D319: the trill lasts the note (trillPitches): from the note above, alternating on the tempo's
     // grid, the main note settling only for the last ~15% of a long note (C. P. E. Bach: through the
     // whole note, §21, no settle). The closing turn: written (R), or C. P. E. Bach's Nachschlag on a

@@ -3,6 +3,18 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Chorales (18 November 2026)
+
+- **Fewer fermata slowdowns in the chorales.** The owner: "I want to eliminate the fermata slowing downs of the
+  chorales, they're repetitive and disruptive. Maybe it's because they're excessive and so consistent. Perhaps they
+  need be rarer and, sometimes, more subtle ... let's go for a simpler route and simply reserve them for the last
+  fermatas. If there is some easy way of singling out some other important fermatas in the pieces by a general rule
+  (thus avoiding the need for token intensive research into each particular chorale), you may also treat those as
+  fermata worthy. The idea is that the chorales will flow more naturally now, less disruptions."
+  Plan: the final fermata keeps its hold; every other fermata plays in time (at most a short breath). Candidate
+  general rules for a few more, to put to the owner first: the fermata that closes the Stollen (before the repeat),
+  and an interior fermata on a perfect cadence to the tonic. No per-chorale research.
+
 ## Touch game, play.html (open items, 26 October 2026)
 
 - **The tutorial's Invention 1 subject should end on its resolving note.** The owner: "the subject

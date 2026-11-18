@@ -78,11 +78,12 @@ test("D379: every excerpt's notes, read from data/touch/", () => {
       assert.deepEqual(got.map((n) => nameOf(n[2])), st.m.notes, `${l.id} ${st.kind}: ${st.m.label}`);
       assert.deepEqual(st.m.notes!.map(midiOf), got.map((n) => n[2]));
     }
-  // The signs the graces lessons point at, in the edition's data (ornament-play.ts): the quick shakes on B and F, the long one on D♯.
+  // The signs the graces lessons point at, in the edition's data (ornament-play.ts): the quick shakes on B and F, the long one on E♭ (D874).
   const g1 = gameFor(lessonById("6.1")!.stages[2].m, { t: 0 }).g;
   assert.deepEqual(g1.tracks[0].notes.filter((_, i) => g1.ornamentAt(0, i)).map((n) => nameOf(n.midi)), ["B4", "F5"]);
   const g2 = gameFor(lessonById("6.2")!.stages[2].m, { t: 0 }).g;
   assert.deepEqual(g2.tracks[0].notes.filter((_, i) => g2.ornamentAt(0, i)).map((n) => nameOf(n.midi)), ["E♭5"]);
+  assert.equal(g2.ornamentAt(0, 0), "TR", "the long shake a full trill");
   // The held-over sighs: three places in Sinfonia 9's alto (D364's holdOverAt).
   const g3 = gameFor(lessonById("6.3")!.stages[2].m, { t: 0 }).g;
   assert.equal(g3.tracks[0].notes.filter((_, i) => g3.holdOverAt(0, i)).length, 3);

@@ -119,9 +119,9 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     es: "Líneas de Moog sobre un bajo de sintetizador, en seco",
   },
   berlinSchool: {
-    en: "Synth lead, sequencer, string machine, bass; tape echo",
-    pt: "Synth solo, sequenciador, string machine, baixo; eco",
-    es: "Sinte solista, secuenciador, string machine, bajo; eco",
+    en: "Pulse lead, plucked sequencer, glassy pad, punchy bass",
+    pt: "Solo de pulso, sequenciador, pad vítreo, baixo firme",
+    es: "Solista de pulso, secuenciador, pad vítreo, bajo firme",
   },
   tomita: {
     en: "Synth whistle, strings, flute, choir and bass, space echo",
