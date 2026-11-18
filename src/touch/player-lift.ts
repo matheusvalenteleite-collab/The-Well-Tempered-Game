@@ -116,22 +116,23 @@ export function entryGain(player: boolean, busoniEntryDb = 0): number {
  * constants of the piece, the voice and the sound (never of the play; right or wrong alike; no dynamics from the notes):
  *
  *   THE BAND. No trims (none of a fugue table's); the bass floored on a phone (`tb`: D645's 6 LU, measured).
- *   THE DOUBLING. A band note in unison with the player's own written note (the ripieno's violin I with the solo
- *     harpsichord's right hand, col violino) DOUBLE_DUCK_DB down: by the score's notes, whatever the player plays; never
- *     the bass (D645). The player's line is the one in front; the doubled note still sounds in the band.
+ *   (D853's doubling duck, a band note in unison with the player's lowered, withdrawn by D857: it tied a level to the notes.)
  *   THE PLAYER. Its level on its bus (`l`, `d` on a computer) measured on the piece's own sound (or a trial's, keyed
  *     `<piece>@<sound>`) so that the median margin
  *     of its line over the whole band (summed, as it sounds) is SOLO_TARGET_DB (player-lift-solo.ts), within
  *     SOLO_LIFT_MIN_DB..SOLO_LIFT_MAX_DB; on another sound D508's match alone (`l` less its trim), none of the table's trims.
  */
 export const SOLO_COLLECTIONS: ReadonlySet<string> = new Set(["hconcerto", "concerto", "cantata"]);
-/** D851: the player's line over the whole band: the median margin aimed at (dB, on each path's own measure). */
-export const SOLO_TARGET_DB = 3;
+/**
+ * D851: the player's line over the whole band: the median margin aimed at (dB, on each path's own measure). D858 (the owner:
+ * "any loudness assigned to player's voice ought to be subtle"): 0, level with the band's sum, from D852's +3: the smallest
+ * of 0, +1, +2, +3 that keeps D508's lost stretches no more than +3's (17 on a phone, every one under the continuo's floor; none
+ * under the violins at any of them; 0 on a computer).
+ */
+export const SOLO_TARGET_DB = 0;
 /** D851: the bounds of the player's level there (dB). */
 export const SOLO_LIFT_MAX_DB = 12;
 export const SOLO_LIFT_MIN_DB = -3;
-/** D851: a band note doubling the player's written note in unison, lowered (dB). */
-export const DOUBLE_DUCK_DB = 6;
 
 type SoloPiece = { id: string; collection?: string; voices: readonly unknown[] };
 /** D851: a soloist over an orchestra (SOLO_COLLECTIONS). */
@@ -154,26 +155,3 @@ export function soloTrimDb(f: SoloPiece, sound: string, voice: number, phone = p
   return row && row.s === sound && voice === f.voices.length - 1 ? Math.max(0, Math.min(BAND_TRIM_MAX_DB, (phone ? row.tb : row.tbd) ?? 0)) : 0;
 }
 
-/**
- * D851: the band's notes doubling the player's line in unison (`${voice}:${on}`): a note of another voice, not the bass,
- * whose pitch the player's voice sounds over more than half of its length. By the score alone.
- */
-export function doublingKeys(f: { id: string; collection?: string; voices: readonly (readonly (readonly number[])[])[] }, player: number): Set<string> {
-  const out = new Set<string>();
-  if (BALANCE.raw) return out;
-  const mine = f.voices[player] ?? [];
-  const bass = f.voices.length - 1;
-  f.voices.forEach((vs, u) => {
-    if (u === player || u === bass) return;
-    let j = 0;
-    for (const [on, dur, midi] of vs) {
-      while (j < mine.length && mine[j][0] + mine[j][1] <= on) j++;
-      let shared = 0;
-      for (let k = j; k < mine.length && mine[k][0] < on + dur; k++) if (mine[k][2] === midi) shared += Math.min(on + dur, mine[k][0] + mine[k][1]) - Math.max(on, mine[k][0]);
-      if (shared * 2 > dur) out.add(`${u}:${on}`);
-    }
-  });
-  return out;
-}
-/** D851: the gain of a band note doubling the player's line (1: none). */
-export const duckGain = (): number => (BALANCE.raw ? 1 : 10 ** (-DOUBLE_DUCK_DB / 20));

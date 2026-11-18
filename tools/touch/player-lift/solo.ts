@@ -161,6 +161,9 @@ if (mode === "voices") {
   const dk = deskF ? load([deskF]) : {};
   const V = load((process.env.VOICES ?? "").split(",").filter(Boolean));
   const rows: Record<string, { s: string; v: number[]; l: number[]; d?: number[]; tb?: number; m: number[]; md?: number[] }> = {};
+  // (TARGET=<dB>: another target, for comparing; the calibration scans made with the cello's shelf already in: CALSHELF=1)
+  const TARGET = process.env.TARGET !== undefined ? +process.env.TARGET : SOLO_TARGET_DB;
+  const calShelf = process.env.CALSHELF === "1";
   const clampL = (x: number) => r1(Math.max(SOLO_LIFT_MIN_DB, Math.min(SOLO_LIFT_MAX_DB, x)));
   for (const r of Object.values(ph)) {
     if (!r.voices.B) continue;
@@ -170,7 +173,7 @@ if (mode === "voices") {
     const m = mixRun(r);
     row.v.push(r.voice);
     row.m.push(m.med);
-    row.l.push(clampL(SOLO_TARGET_DB - m.med));
+    row.l.push(clampL(TARGET - m.med));
   }
   for (const [key, row] of Object.entries(rows)) {
     const id = key.split("@")[0];
@@ -202,7 +205,9 @@ if (mode === "voices") {
         let B = 0;
         for (let u = 0; u < n; u++) B += r.voices[`v${u}`]?.blk?.[k]?.[1] ?? 0;
         const b = r.voices[`v${bass}`]?.blk?.[k]?.[1] ?? 0;
-        if (B > 0) xs.push(db((B + b * (10 ** ((tb + shelf) / 10) - 1)) / B));
+        // (the calibration's bass already shelved: its trim on the shelved level; else both added)
+        const add = calShelf ? 10 ** (shelf / 10) * (10 ** (tb / 10) - 1) : 10 ** ((tb + shelf) / 10) - 1;
+        if (B > 0) xs.push(db((B + b * add) / B));
       }
       return pct(xs, 50) || 0;
     };
@@ -225,7 +230,7 @@ if (mode === "voices") {
     const i = row.v.indexOf(r.voice);
     if (i < 0) continue;
     const m = mixRun(r);
-    (row.d ??= row.v.map(() => 0))[i] = r1(Math.max(SOLO_LIFT_MIN_DB, Math.min(SOLO_LIFT_MAX_DB, SOLO_TARGET_DB - m.med)));
+    (row.d ??= row.v.map(() => 0))[i] = r1(Math.max(SOLO_LIFT_MIN_DB, Math.min(SOLO_LIFT_MAX_DB, TARGET - m.med)));
     (row.md ??= row.v.map(() => NaN))[i] = m.med;
   }
   // voices in order

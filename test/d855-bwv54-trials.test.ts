@@ -1,5 +1,5 @@
 /**
- * D855-D856: BWV 54'S ALTO, THREE TRIALS (not offered). The owner: "I used to love BWV 54 in the game … It's absurd that even
+ * D855-D856, D858: BWV 54'S ALTO, TRIALS (not offered; D858: v1, TRACKER, dropped; m1-m3 the sung alto and the oboe layered). The owner: "I used to love BWV 54 in the game … It's absurd that even
  * the solo [alto] had the same sound as the orchestra." On SUPER 16-BIT the alto sings on the violas' own patch; until D434
  * the FAST step played it on TRACKER, the alto alone on the choir. PIECE_TRIALS (sound.ts) gives the alto a timbre of its
  * own three ways; heard with `?trial=<id>`; the default (PIECE_SOUND) unchanged until the owner picks. Each trial passes the
@@ -27,7 +27,7 @@ test("D855: the trials are off by default; BWV 54 opens on SUPER 16-BIT as befor
 });
 
 test("D855: each trial seats every voice of both arias, the alto on an instrument of its own (no other voice on its patch)", () => {
-  assert.deepEqual(Object.keys(PIECE_TRIALS), ["bwv54-v1", "bwv54-v2", "bwv54-v3"]);
+  assert.deepEqual(Object.keys(PIECE_TRIALS), ["bwv54-v2", "bwv54-v3", "bwv54-m1", "bwv54-m2", "bwv54-m3"]);
   for (const [tid, t] of Object.entries(PIECE_TRIALS)) {
     setPieceTrial(tid);
     try {
@@ -65,10 +65,12 @@ test("D855: no note of any voice read past STRETCH_MAX from a recording, none pa
         const f = fugueById(id);
         const lu = pieceLineUp(t.sound, f)!;
         f.voices.forEach((vs, v) => {
-          const pt = PATCHES[lu.slots[v][0]];
-          const inst = pt.sample ? SAMPLED[pt.sample] : null;
-          if (!inst) return;
+          const pt0 = PATCHES[lu.slots[v][0]];
           let far = 0;
+          // (D858: a layered alto's second instrument, Patch.double, read on the same notes)
+          for (const pt of [pt0, ...(pt0.double ? [pt0.double.patch] : [])]) {
+          const inst = pt.sample ? SAMPLED[pt.sample] : null;
+          if (!inst) continue;
           for (const [, , m] of vs) {
             const set = setFor(inst, m);
             const near = nearestSample(set, m);
@@ -77,6 +79,7 @@ test("D855: no note of any voice read past STRETCH_MAX from a recording, none pa
             far = Math.max(far, Math.abs(m - near!));
             assert.ok(Math.abs(m - near!) <= STRETCH_MAX, `${tid} ${id} v${v} ${lu.slots[v][0]}: ${m} read from ${near}`);
             assert.ok(m >= r.lo && m <= r.hi, `${tid} ${id} v${v} ${lu.slots[v][0]}: ${m} past its reach ${r.lo}-${r.hi}`);
+          }
           }
           if (v === ALTO[id]) worst.push(`${tid} ${id} alto ${lu.slots[v][0]}: worst read ${far}`);
         });
