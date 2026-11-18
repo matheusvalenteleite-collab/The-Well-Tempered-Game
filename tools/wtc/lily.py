@@ -337,6 +337,8 @@ class Event:
     dur: F
     line: int
     orn: list = field(default_factory=list)  # D366: ornament signs written on it (\\trill, \\prall ...)
+    art: list = field(default_factory=list)  # D871: articulations written on it (staccato, fermata, ...)
+    slur: list = field(default_factory=list)  # D871: slurs it opens "(" or closes ")"
 
 
 @dataclass
@@ -488,6 +490,11 @@ harmonic halfopen ictus noBeam lheel rheel ltoe rtoe signumcongruentiae""".split
 # D366: the signs kept on the notes (the ornaments; \\startTrillSpan is a trill with its wavy line).
 ORNAMENTS = set("""mordent prall prallprall prallmordent upprall downprall upmordent downmordent pralldown
 prallup lineprall reverseturn turn trill startTrillSpan""".split())
+
+# D871: the articulations kept on the notes (the print's marks: dots, strokes, accents, fermatas), and the shorthand.
+ARTICULATIONS = set("""staccato staccatissimo tenuto accent marcato portato fermata shortfermata longfermata
+verylongfermata""".split())
+_ART_SHORT = {".": "staccato", "!": "staccatissimo", "-": "tenuto", ">": "accent", "^": "marcato", "_": "portato"}
 
 _NOOP_PREFIX = {"once", "temporary", "parenthesize", "single", "footnote_"}
 _SKIP_BLOCK = {"header", "paper", "layout", "midi", "with"}
@@ -746,15 +753,35 @@ class Parser:
                         ev.ties = [True] * max(1, len(ev.pitches))  # D366: a tie on "q" (no pitches of its own) too
                     else:
                         ev.ties[per_note] = True
-            elif t.kind == "sym" and t.value in "[]()":
+            elif t.kind == "sym" and t.value in "()":
+                self.i += 1
+                if ev is not None:
+                    ev.slur.append(t.value)  # D871
+            elif t.kind == "sym" and t.value in "[]":
                 self.i += 1
             elif t.kind == "artic":
                 self.i += 1
+                if ev is not None and t.value[1:] in _ART_SHORT:
+                    ev.art.append(_ART_SHORT[t.value[1:]])  # D871: -. ^> _- …
             elif t.kind == "dir":
                 self.i += 1
                 u = self.peek()
                 if u is None:
                     return
+                # D871: a tie or a slur with a direction (^~, _~, ^( ): as without one (they were dropped).
+                if u.kind == "sym" and u.value == "~":
+                    self.i += 1
+                    if ev is not None:
+                        if per_note is None:
+                            ev.ties = [True] * max(1, len(ev.pitches))
+                        else:
+                            ev.ties[per_note] = True
+                    continue
+                if u.kind == "sym" and u.value in "()":
+                    self.i += 1
+                    if ev is not None:
+                        ev.slur.append(u.value)
+                    continue
                 if u.kind == "cmd" and u.value in ("markup", "markuplist"):
                     self.i += 1
                     self.skip_markup()
@@ -767,6 +794,8 @@ class Parser:
                 else:
                     if ev is not None and u.kind == "cmd" and u.value in ORNAMENTS:
                         ev.orn.append(u.value)
+                    if ev is not None and u.kind == "cmd" and u.value in ARTICULATIONS:
+                        ev.art.append(u.value)  # D871
                     self.i += 1
             elif t.kind == "cmd" and t.value == "rest":
                 self.i += 1
@@ -775,6 +804,8 @@ class Parser:
             elif t.kind == "cmd" and t.value in _POST:
                 if ev is not None and t.value in ORNAMENTS:
                     ev.orn.append(t.value)
+                if ev is not None and t.value in ARTICULATIONS:
+                    ev.art.append(t.value)  # D871
                 self.i += 1
             elif t.kind == "cmd" and t.value == "tweak":
                 self.i += 1
@@ -1254,6 +1285,8 @@ class _Player:
                 self.notes.append(self.note(p, t, F(0), ctx, grace=True))
             return t
         orn = list(ev.orn)
+        art = list(ev.art)
+        slur = list(ev.slur)
         for p, tied in zip(pitches, ties):
             m = p.midi()
             key, pkey = (ctx["voice"], m), (ctx["part"], m)
@@ -1262,8 +1295,23 @@ class _Player:
                 prev = self.pending_part.get(pkey)
                 if prev is not None and prev["onset"] + prev["duration"] != t:
                     prev = None
+            # D871: a turn written on a tied note's continuation (over the second note) starts a note there, so that
+            # it is played where it is written (the tie-merge kept only the first note's signs); a trill carried
+            # over the tie (a long note's wavy line) stays one note, as before.
+            if prev is not None and any(o in ("turn", "reverseturn") for o in orn):
+                for d in (self.pending, self.pending_part):
+                    for k2 in [k2 for k2, v in d.items() if v is prev]:
+                        del d[k2]
+                prev = None
             if prev is not None:
                 prev["duration"] += dur
+                # D871: a mark on the continuation (a fermata, a slur's end) is the held note's.
+                if art:
+                    prev.setdefault("art", []).extend(a for a in art if a not in prev.get("art", []))
+                    art = []
+                if ")" in slur:
+                    prev.setdefault("slur", []).append(")")
+                    slur = [x for x in slur if x != ")"]
                 for d in (self.pending, self.pending_part):
                     for k2 in [k2 for k2, v in d.items() if v is prev]:
                         del d[k2]
@@ -1275,6 +1323,12 @@ class _Player:
             if orn:
                 n["orn"] = orn  # D366: on the first sounding note of the event
                 orn = []
+            if art:
+                n["art"] = art  # D871: likewise
+                art = []
+            if slur:
+                n["slur"] = slur
+                slur = []
             self.notes.append(n)
             if tied:
                 self.pending[key] = n

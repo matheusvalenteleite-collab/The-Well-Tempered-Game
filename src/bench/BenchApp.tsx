@@ -84,7 +84,7 @@ import { defaultVoice, nextIn } from "./flow.ts";
 import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
-import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
+import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, forgetDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
 import { curatedFor, drumMenuFor, homeFor } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
@@ -95,13 +95,13 @@ import type { DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { glennHosts, hostLine, setHost } from "./glenn-host.ts";
+import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
 import { GlennFilm } from "./GlennFilm.tsx";
 import { dressedOf, finishStep, markDressed, markSeen, nextLesson as nextManual, progress as manualProgress, reachStage, readManual, recordTake, setAside, triesOf } from "./manual/store.ts";
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
-import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, liteExtra, liteNextOrder, litePlatform, liteTabOf, liteTabs, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
+import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, forgetLastVoice, liteExtra, liteNextOrder, litePlatform, liteTabOf, liteTabs, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
 import { GRADE_INK, LiteGrid } from "./LiteGrid.tsx";
 import { pieceTitle, Selection } from "./Selection.tsx";
 import { HowTo, type ClipNote } from "./HowTo.tsx";
@@ -113,7 +113,7 @@ import { setUnlocked, unlocked } from "./unlock.ts";
 import { VersionTap } from "./Secret.tsx";
 import { UPRIGHT_QUERY } from "./Sideways.tsx";
 import { PlayPop, POP_SOUNDS, popTitle } from "./PlayPop.tsx";
-import { isWtcFugue, nextStep, openingStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
+import { forgetStep, isWtcFugue, nextStep, openingStep, readSteps, saveStep, stepBeat, stepTempi, stepWord, tempoOpen, type TempoStep } from "./tempo-steps.ts";
 import { ToolsButton, ToolsPanel } from "./ToolsPanel.tsx";
 import { mineGain, practiceOptions, practiceRun, readTools, type PracticeRun, type ToolsState } from "./practice.ts";
 import { tt } from "./tools-i18n.ts";
@@ -132,6 +132,9 @@ import { askToKeep, lasting, putTake, starTake, takeCounts, takesOf } from "./ta
 import { backingFor, gains, readMix } from "./takes/myfugue.ts";
 import { Filmer, type FilmStats } from "./takes/film.ts";
 import { onHomeScreen, TakesPanel, takeVoiceWord } from "./TakesPanel.tsx";
+import { handsFlag, handsOf } from "../touch/two-hands.ts";
+import { setHandInks } from "../touch/voice-inks.ts";
+import { HandsList } from "./HandsList.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
 import { ARROW_KEYS, arrowOf, dynamic, easyOf, KEY_ROWS, type KeysLayout, keyId, keyRow, menuOf, midiId, moveOf, offered, PROTOS, protoById, roadAlone, takesHer, type Platform, type ProtoId } from "./protos.ts";
 /** D453: the DRUMS row's quick round: HOME, then the sound's family and the fugue's own picks. */
@@ -326,6 +329,9 @@ export function BenchApp() {
       if (!APP.lite) save(PICK_KEY, next);
       return next;
     });
+  // D862, TWO HANDS (the prototype): `?proto=hands` on play.html shows its list; the piece chosen there, while it plays.
+  const [handsProto] = useState(() => APP.lite && handsFlag());
+  const [handsPiece, setHandsPiece] = useState<string | null>(null);
   // D237, the minimal page: its own progress, instruction lines seen and volume (lite.ts).
   const [lite, setLite] = useState(readLite);
   // D239: the bench shows the first game's one-line rule per mode too (START plays at once: no other place to read it).
@@ -439,11 +445,14 @@ export function BenchApp() {
   const dressRef = useRef(dressIntro);
   dressRef.current = dressIntro;
   const run = lesson?.run ?? manRun;
-  const f = fugueById(run?.piece ?? pick.piece);
+  // D862, TWO HANDS (the prototype, play.html?proto=hands only): its piece played apart from the pick (a prelude
+  // stays off the phone's selection, D263): LADDER, the left thumb the left hand, the right thumb the right.
+  const f = fugueById(run?.piece ?? handsPiece ?? pick.piece);
+  const twoHands = !run && handsPiece !== null && f.id === handsPiece ? handsOf(f.id) : null;
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
   // D237: the minimal page: a phone's prelude on HIGHWAY, its fugue on LADDER; a computer's both on HIGHWAY (keys).
-  const proto = protoById(run ? run.proto : stageMode(f, platform, APP.lite ? (platform === "computer" ? "keys" : "ladder") : offered(pick.proto, platform, midi.length > 0)));
-  const prelude = !run && f.kind === "prelude";
+  const proto = protoById(run ? run.proto : twoHands ? "ladder" : stageMode(f, platform, APP.lite ? (platform === "computer" ? "keys" : "ladder") : offered(pick.proto, platform, midi.length > 0)));
+  const prelude = !run && !twoHands && f.kind === "prelude";
   // D298: ⚙ DISPLAY: the box (DEFAULT), CANTUS (to come: the box meanwhile), or the fugue's sheet
   // (SHEET · TWO STAVES, SHEET · ONE STAFF PER VOICE) where it is engraved (the 48 fugues); kept on the device.
   // D327: kept per piece; never chosen for a piece: one staff per voice for four and five voices once the tutorial is passed, else the last choice.
@@ -482,7 +491,7 @@ export function BenchApp() {
     };
   }, [sheetOn, sheetLayout, f.id]);
   const from = run ? run.from : startTick(f, pick.share);
-  const voice = run ? run.voice : pick.voice;
+  const voice = run ? run.voice : twoHands ? twoHands.lh : pick.voice;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
   // D356: a WTC fugue's too, in the friends' view once finished with an A or better (tempoEarned), in the unlocked view always.
   const opensTempo = (id: string) => APP.lite && tempoOpen(id, full, tempoEarned(id, lite));
@@ -541,6 +550,24 @@ export function BenchApp() {
       save(SOUND_KEY, next);
     }
   };
+  // D863: a piece's settings last only while it is the piece chosen (the owner: "the selections of sounds and
+  // tempo and all go back to default when another fugue is selected. This helps avoiding the player messing up
+  // all configs without noticing"): leaving a piece forgets its sound, tempo, drum style and voice.
+  const pickedBefore = useRef(pick.piece);
+  useEffect(() => {
+    const old = pickedBefore.current;
+    pickedBefore.current = pick.piece;
+    if (!APP.lite || old === pick.piece) return;
+    setChosen((c) => {
+      if (!(old in c)) return c;
+      const { [old]: _gone, ...rest } = c;
+      save(SOUND_KEY, rest);
+      return rest;
+    });
+    setTempoSteps(forgetStep(old));
+    forgetDrumPreset(old);
+    forgetLastVoice(old);
+  }, [pick.piece]);
   const [, herLoaded] = useState(0);
   /** A start asked for while her track loads: the game begins once it is ready (this piece's key). */
   const waitingHer = useRef<string | null>(null);
@@ -558,7 +585,7 @@ export function BenchApp() {
 
   // D214, SUBJECT: every voice has the subject in turn.
   const subjectMode = proto.id === "subject";
-  const played = subjectMode ? f.voices.map((_, i) => i) : [voice];
+  const played = subjectMode ? f.voices.map((_, i) => i) : twoHands ? [twoHands.lh, twoHands.rh] : [voice];
   // D247: LADDER: the box holds the whole piece's range at one scale, whatever the voice (the voice's
   // own range, D211's margins squeezing the rest, lost the fugue's architecture with the soprano or
   // the bass); the touches judged on rows no smaller than LADDER_ROW_MIN (proto-game.ts).
@@ -757,7 +784,9 @@ export function BenchApp() {
     if (APP.lite && !run && !prac && !lt) saveLastVoice(f.id, voice);
     // D720: MY FUGUE's takes behind (theirs the voices muted in the band).
     const backs = lt ? listenBacking.current : (overTakes.current ?? []);
-    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}) }, ch);
+    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}), ...(twoHands && !prac && !lt ? { twoHands: true } : {}) }, ch);
+    // D862, TWO HANDS: the left hand warm, the right cool (the blocks, the bars), for this run only.
+    setHandInks(g.twoHands && twoHands ? twoHands : null);
     // D457: LISTEN: the take as the player's voice.
     if (lt) g.listen = new TakePlayer(lt);
     // D725: MAKE A VIDEO: the box filmed from its first frame (the music's own sound), until the end.
@@ -787,7 +816,8 @@ export function BenchApp() {
     // D485: the game open to the hit-tests (`?dev=1` only).
     // D487: the player's voice never quieter than the others: its lift on the player's own bus, with TOOLS' balance.
     if (!kimiko) ch.mine.gain.value = mineGain(readTools(f).balance, prac) * g.lift * (mixGains && !lt ? (mixGains[played[0] ?? voice] ?? 1) : 1);
-    if (APP.dev) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
+    // D862: and under the TWO HANDS prototype's flag (its live check reads the thumbs held).
+    if (APP.dev || handsProto || (APP.lite && unlocked())) (window as unknown as { __wtgGame?: ProtoGame }).__wtgGame = g;
     const h = hm && herBuf ? new Her(ch, hm) : null;
     if (h && herBuf) h.begin(g, herBuf);
     // For the measurements (the bench's own checks): the game and her playing.
@@ -815,7 +845,8 @@ export function BenchApp() {
     // D376: THE EXPRESSION LAB records every take too (the Lab's log, tagged GLENN, kept with the Lab's RUNS).
     const glennTake = APP.glenn && !man && !watching;
     // D457: on play.html every run of a piece is recorded (its take, and its log to judge it again), for SAVE on the score card.
-    const takeable = APP.lite && !APP.glenn && !man && !watching && !run && !prac && !lt && !kimiko;
+    // D862: not a TWO HANDS run (a take is one voice's).
+    const takeable = APP.lite && !APP.glenn && !man && !watching && !run && !prac && !lt && !kimiko && !g.twoHands;
     draftTake.current = null;
     const rec =
       (man || glennTake || takeable) && !watching
@@ -907,6 +938,8 @@ export function BenchApp() {
         ...(proto.id === "ladder" ? { spill: stepRange(f), ...study } : {}),
         voice,
         notes: g.notes,
+        // D862, TWO HANDS: the right hand's blocks too (the box's second played voice).
+        ...(g.twoHands && g.tracks[1] ? { voice2: g.tracks[1].voice, notes2: g.tracks[1].notes } : {}),
         others: g.others,
         ...marks,
         piece: f.id,
@@ -1007,6 +1040,9 @@ export function BenchApp() {
           recordLesson(lesson.pl, l.id, accuracy(r), ok);
           // D282: a step not passed says what fell short, in numbers.
           setPhase({ kind: "talk", lines: ok ? l.praise : [...l.again, ...(l.short ? [{ text: l.short(r) }] : [])], next: ok ? "advance" : "again" });
+        } else if (APP.lite && g.twoHands) {
+          // D862, TWO HANDS (the prototype): the result shown, nothing kept (no progress, no best, no NEXT).
+          setPhase({ kind: "result", ...r, best: null, seal: null, opened: [], next: null });
         } else if (APP.lite) {
           // D237: the minimal page keeps only the pieces finished (its own key), nothing of the bench's.
           // D264: nothing to unlock (all open): the piece kept as finished, no toast.
@@ -1063,6 +1099,7 @@ export function BenchApp() {
       recRef.current = null;
       g.stopAll();
       h?.stop();
+      setHandInks(null);
       if (hm) setTuning(tuning.id, tuning.a);
       ch.mine.gain.value = 1;
       game.current = null;
@@ -1183,7 +1220,7 @@ export function BenchApp() {
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
-  const home = () => ((waitingHer.current = null), (listening.current = null), (listenBacking.current = []), (overTakes.current = null), setLesson(null), setMan(null), setWatching(false), setPhase({ kind: "home" }));
+  const home = () => ((waitingHer.current = null), (listening.current = null), (listenBacking.current = []), (overTakes.current = null), setLesson(null), setMan(null), setWatching(false), setHandsPiece(null), setPhase({ kind: "home" }));
   // D373: ✕ in a lesson goes back to the tutorial's selection screen, the lesson chosen there.
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
@@ -1677,7 +1714,7 @@ export function BenchApp() {
   const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
   // D376: THE EXPRESSION LAB's badge moves out of the thumbs' way while a run plays (lab.css).
   useEffect(() => {
-    if (APP.glenn || APP.glennPilot) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
+    if (APP.glenn || glennShown()) document.documentElement.classList.toggle("glenn-playing", phase.kind === "play");
   }, [phase.kind]);
   const introPlaying = useRef<IntroPlaying | null>(null);
   const introOver = useRef(false);
@@ -2290,9 +2327,10 @@ export function BenchApp() {
           soundOf={soundAt}
           settings={() => setPhase({ kind: "settings" })}
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
-          tutorial={{ ...manualProgress(readManual()), start: () => startManual() }}
+          // D868: the tutorial taken out of the game (the owner: "Eliminate tutorial from game"); kept in the developer view (ricercar), Glenn's Part 1 with it.
+          tutorial={unlocked() ? { ...manualProgress(readManual()), start: () => startManual() } : undefined}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
-          learn={APP.glennPilot ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
+          learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
           playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
@@ -2306,7 +2344,7 @@ export function BenchApp() {
           // D458: the chosen fugue's SAVED PERFORMANCES.
           takes={{ n: takeCount[f.id] ?? 0, open: () => setTakesOpen(true) }}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
-          tempo={isWtcFugue(f.id) && stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
+          tempo={stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], ownName: PIECE_SOUND[f.id] ? presetById(PIECE_SOUND[f.id]).name : undefined, set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (
@@ -2317,6 +2355,9 @@ export function BenchApp() {
           }
         />
       )}
+      {/* D862, TWO HANDS (the prototype): its list over the selection, only with ?proto=hands. */}
+      {/* D866: and in the developer view (the owner: "Add two hands prototype to developer mode in main game"), folded at first. */}
+      {(handsProto || (APP.lite && unlocked())) && phase.kind === "home" && !intro && <HandsList folded={!handsProto} play={(id) => (stopHearing(), setHandsPiece(id), start(true))} />}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
       {APP.lite && howTo && <HowTo sound={{ play: playClip, stop: stopHearing }} close={() => (stopHearing(), setHowTo(false))} />}
       {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}

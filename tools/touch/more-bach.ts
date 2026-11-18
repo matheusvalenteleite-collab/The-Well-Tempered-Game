@@ -36,7 +36,7 @@ import { parseExpert, placeExpert, type ExpertFugue } from "./expert.ts";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SRC = `${ROOT}data/sources/`;
 
-export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "concerto" | "motet" | "cantata";
+export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "goldberg" | "concerto" | "motet" | "cantata";
 
 interface Spec {
   /**
@@ -58,6 +58,12 @@ interface Spec {
    * first range's. Instead of fromBar/toBar.
    */
   xmlRanges?: [from: number, to: number][];
+  /** D757: xmlRanges counted by the file's measures (from 1), not their written numbers (the Goldberg's restart and repeat); the bars keep their place in the piece (a first ending left out leaves a gap). */
+  xmlByIndex?: boolean;
+  /** D757: the edition's ornament signs and appoggiaturas kept, as kern's signs on their notes (TouchFugue.ornaments): never written out. */
+  keepOrnaments?: boolean;
+  /** D757: ornaments the print gives otherwise: at a bar's place and pitch, the signs set ("" none) and/or the appoggiaturas ("Q"/"q" + pitch). */
+  ornFixes?: { bar: number; at: string; pitch: string; signs?: string; graces?: string[] }[];
   fromBar?: number;
   toBar?: number;
   page?: string;
@@ -129,6 +135,8 @@ const AOF: Spec[] = [
     return {
       id: `bwv1080-${String(n).padStart(2, "0")}`,
       collection: "aof",
+      // D870: its printed ornaments kept as signs (the audit: none reached the game).
+      keepOrnaments: true,
       number: n,
       title: `Contrapunctus ${n}`,
       short: `CONTRAPUNCTUS ${n}`,
@@ -156,6 +164,8 @@ const AOF: Spec[] = [
       (form): Spec => ({
         id: `bwv1080-${n}${form[0]}`,
         collection: "aof",
+        // D870: its printed ornaments kept as signs (the audit: none reached the game).
+        keepOrnaments: true,
         number: n,
         title: `Contrapunctus ${n} ${a}, ${form}`,
         short: `CONTRAPUNCTUS ${n} · ${form.toUpperCase()}`,
@@ -184,6 +194,8 @@ const AOF: Spec[] = [
     ([n, name, short, mutopia, bg]): Spec => ({
       id: `bwv1080-c${n}`,
       collection: "aof",
+      // D870: its printed ornaments kept as signs (the audit: none reached the game).
+      keepOrnaments: true,
       number: n,
       title: `Canon ${name}`,
       short: `CANON ${short}`,
@@ -264,6 +276,37 @@ const INV: Spec[] = INV_MUTOPIA.map((mutopia, i) => {
   };
 });
 
+/**
+ * D875: Sinfonia 5 as the Bach-Gesellschaft prints it (vol. 3, pp. 24-25, read on the scan): seven semiquavers the
+ * print writes as three triplet demisemiquavers (bars 9, 10, 22, 25, 26, 35, 36), and the soprano's D-flat of bar 27
+ * tied over into bar 28 (the edition's D natural there is a slip: the harmony is B-flat minor).
+ */
+const SINF5_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 1, bar: 9, at: "7/16", from: "G5", length: "1/48" },
+  { voice: 1, bar: 9, at: "11/24", add: "Eb5", dur: "1/48" },
+  { voice: 1, bar: 9, at: "23/48", add: "B4", dur: "1/48" },
+  { voice: 0, bar: 10, at: "7/16", from: "Ab5", length: "1/48" },
+  { voice: 0, bar: 10, at: "11/24", add: "F5", dur: "1/48" },
+  { voice: 0, bar: 10, at: "23/48", add: "C5", dur: "1/48" },
+  { voice: 0, bar: 22, at: "7/16", from: "F5", length: "1/48" },
+  { voice: 0, bar: 22, at: "11/24", add: "E5", dur: "1/48" },
+  { voice: 0, bar: 22, at: "23/48", add: "F5", dur: "1/48" },
+  { voice: 1, bar: 25, at: "11/16", from: "Eb5", length: "1/48" },
+  { voice: 1, bar: 25, at: "17/24", add: "Db5", dur: "1/48" },
+  { voice: 1, bar: 25, at: "35/48", add: "C5", dur: "1/48" },
+  { voice: 0, bar: 26, at: "11/16", from: "Ab5", length: "1/48" },
+  { voice: 0, bar: 26, at: "17/24", add: "G5", dur: "1/48" },
+  { voice: 0, bar: 26, at: "35/48", add: "F5", dur: "1/48" },
+  { voice: 1, bar: 35, at: "7/16", from: "C4", length: "1/48" },
+  { voice: 1, bar: 35, at: "11/24", add: "D4", dur: "1/48" },
+  { voice: 1, bar: 35, at: "23/48", add: "Eb4", dur: "1/48" },
+  { voice: 0, bar: 36, at: "7/16", from: "G4", length: "1/48" },
+  { voice: 0, bar: 36, at: "11/24", add: "Ab4", dur: "1/48" },
+  { voice: 0, bar: 36, at: "23/48", add: "Bb4", dur: "1/48" },
+  { voice: 0, bar: 28, at: "0", from: "D5", to: "Db5" },
+  { voice: 0, bar: 28, at: "0", from: "Db5", tie: true },
+];
+
 const SIN: Spec[] = SIN_MUTOPIA.map((mutopia, i) => ({
   id: `bwv${787 + i}`,
   collection: "sin",
@@ -280,6 +323,7 @@ const SIN: Spec[] = SIN_MUTOPIA.map((mutopia, i) => ({
   voiceNames: THREE,
   entries: true,
   credit: i + 1 === 5 ? "MUTOPIA PROJECT · TYPESET BY OLIVIER VERMERSCH FROM THE BACH-GESELLSCHAFT EDITION · PUBLIC DOMAIN" : SIN_PD,
+  ...(i + 1 === 5 ? { fixes: SINF5_FIXES } : {}),
 }));
 
 const CONCERTO: Spec[] = (
@@ -713,7 +757,233 @@ const KEYBOARD: Spec[] = [
   },
 ];
 
-export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...CONCERTO, ...VOCAL];
+/**
+ * D757: THE GOLDBERG VARIATIONS, BWV 988: the Aria and thirty variations from the Open Goldberg score (PDMX, MuseScore
+ * score 48072, CC0; data/sources/bach-988/SOURCE.md), each piece by its measures in the file (`xmlByIndex`), each half
+ * once (the game plays every repeat once: a first ending left out), its voices the edition's written layers (the main
+ * ones, a few notes in another layer joined to the voice of their staff nearest in pitch: their chords to the band,
+ * D363), its ornaments kept as signs (`keepOrnaments`). Variation 26 is the file's broken (its bars' lengths do not add
+ * up): transcribed from the prints instead (lyDir). The Aria da capo is the Aria again (the file's copy identical):
+ * not a piece of its own.
+ */
+const GOLDBERG_TABLE: [n: number, ranges: [number, number][], voices: string[]][] = [
+  [0, [[1, 32]], ["1:1|1:3|1:2|1:4", "2:5|2:7", "2:6"]],
+  [1, [[33, 64]], ["1:1|1:5|1:2", "2:5|2:1|2:2|2:7"]],
+  [2, [[65, 79], [81, 96], [98, 98]], ["1:1", "1:2", "2:5|2:2"]],
+  [3, [[99, 114]], ["1:1", "1:2", "2:5"]],
+  [4, [[115, 129], [131, 146], [148, 148]], ["1:1", "1:2", "2:5", "2:6"]],
+  [5, [[149, 180]], ["1:1", "2:5"]],
+  [6, [[181, 195], [198, 213], [216, 216]], ["1:1", "1:2", "2:5|2:2|2:1", "2:6"]],
+  [7, [[217, 248]], ["1:1", "2:5"]],
+  [8, [[249, 280]], ["1:1", "2:5"]],
+  [9, [[281, 296]], ["1:1|1:3", "1:2", "2:5"]],
+  [10, [[297, 328]], ["1:1", "1:2", "2:5", "2:6"]],
+  [11, [[329, 360]], ["1:1", "2:5"]],
+  [12, [[361, 392]], ["1:1", "1:2|1:5", "2:5|2:2", "2:6"]],
+  [13, [[393, 424]], ["1:1|1:2", "2:5", "2:6|2:8"]],
+  [14, [[425, 456]], ["1:1", "2:5"]],
+  [15, [[457, 488]], ["1:1", "1:2|1:5", "2:5|2:2", "2:6"]],
+  [16, [[489, 503], [505, 535], [538, 538]], ["1:1|1:3", "1:2|1:4", "2:5|2:6|2:7|2:8"]],
+  [17, [[539, 570]], ["1:1", "2:5"]],
+  [18, [[571, 602]], ["1:1", "1:2", "2:5"]],
+  [19, [[603, 634]], ["1:1", "1:2", "2:5|2:6|2:2"]],
+  [20, [[635, 666]], ["1:1", "2:5"]],
+  [21, [[667, 682]], ["1:1", "1:2|1:5", "2:5|2:2", "2:6"]],
+  [22, [[683, 714]], ["1:1", "1:2", "2:5", "2:6"]],
+  [23, [[715, 746]], ["1:1", "2:5", "1:2", "2:6"]],
+  [24, [[747, 778]], ["1:1", "1:2|1:5", "2:5|2:2|2:7", "2:6"]],
+  [25, [[779, 793], [795, 810], [812, 812]], ["1:1", "2:5", "2:6"]],
+  [27, [[845, 876]], ["1:1", "2:5"]],
+  [28, [[877, 908]], ["1:1|1:3", "1:2|1:4", "2:5|2:6"]],
+  [29, [[909, 940]], ["1:2", "1:1", "2:6", "2:5"]],
+  [30, [[941, 958]], ["1:1", "1:2|1:3|1:4", "2:5|2:2|2:7", "2:6"]],
+];
+/** D757: each variation's heading in the 1741 print (the canons' interval, the Fughetta, the Ouverture, the Quodlibet). */
+const GOLDBERG_KIND: Record<number, string> = {
+  3: "Canone all'Unisono", 6: "Canone alla Seconda", 9: "Canone alla Terza", 10: "Fughetta", 12: "Canone alla Quarta",
+  15: "Canone alla Quinta", 16: "Ouverture", 18: "Canone alla Sesta", 21: "Canone alla Settima", 24: "Canone all'Ottava",
+  27: "Canone alla Nona", 30: "Quodlibet",
+};
+const GOLDBERG_MINOR = new Set([15, 21, 25]);
+const GOLDBERG_CREDIT = "THE OPEN GOLDBERG VARIATIONS SCORE (WERNER SCHWEER, KIMIKO ISHIZAKA, 2012), PDMX · CORRECTED FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT · CC0";
+/**
+ * D757: where the prints read otherwise than the Open Goldberg score (data/sources/bach-988/SOURCE.md: every difference
+ * from Mutopia's and Madrisan's typesettings read in the 1741 print and the Bach-Gesellschaft; the 1741 print first),
+ * each piece's own bars (as the file counts them, both endings) and voices (GOLDBERG_TABLE's order).
+ */
+const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
+  // The second ending's C5 the C♯5 held from bar 15 (the Bach-Gesellschaft's tie; the 1741 print's arcs there mark the endings).
+  4: [
+    { voice: 0, bar: 17, at: "0", from: "C5", to: "C#5" },
+    { voice: 0, bar: 17, at: "0", from: "C#5", tie: true },
+  ],
+  6: [
+    { voice: 1, bar: 28, at: "0", from: "C4", tie: true },
+    { voice: 1, bar: 30, at: "0", from: "E4", tie: true },
+  ],
+  8: [{ voice: 1, bar: 19, at: "11/16", from: "C#4", to: "C4" }],
+  9: [{ voice: 0, bar: 13, at: "0", from: "B4", tie: true }],
+  11: [{ voice: 1, bar: 26, at: "3/16", from: "B3", tie: true }],
+  12: [{ voice: 0, bar: 11, at: "1/4", from: "C#5", tie: true }],
+  14: [
+    { voice: 1, bar: 3, at: "1/16", from: "D4", to: "E4" },
+    { voice: 1, bar: 3, at: "3/16", from: "D4", to: "E4" },
+    { voice: 0, bar: 4, at: "5/8", from: "C3", strike: true },
+    { voice: 0, bar: 23, at: "1/4", from: "Eb4", to: "D#4" },
+    { voice: 0, bar: 23, at: "7/16", from: "Eb4", to: "D#4" },
+    { voice: 0, bar: 25, at: "0", from: "E4", length: "1/16" },
+  ],
+  15: [{ voice: 2, bar: 4, at: "5/16", from: "A4", to: "G4" }],
+  16: [{ voice: 2, bar: 11, at: "15/16", from: "Ab3", to: "G#3" }],
+  21: [
+    { voice: 2, bar: 7, at: "15/16", from: "Db3", to: "C#3" },
+    { voice: 2, bar: 12, at: "1/4", from: "A3", to: "Ab3" },
+    { voice: 1, bar: 16, at: "0", from: "D4", tie: true },
+  ],
+  22: [{ voice: 3, bar: 30, at: "1/2", from: "Db3", to: "C#3" }],
+  // The C5 under the E5 the edition leaves out.
+  23: [{ voice: 2, bar: 25, at: "1/2", add: "C5", dur: "1/8" }],
+  24: [
+    { voice: 3, bar: 20, at: "0", from: "Eb3", to: "D#3" },
+    { voice: 2, bar: 21, at: "0", from: "B3", tie: true },
+    { voice: 2, bar: 21, at: "3/4", from: "C4", tie: true },
+    { voice: 2, bar: 22, at: "0", from: "A3", tie: true },
+    { voice: 2, bar: 27, at: "1/8", from: "Ab3", to: "G#3" },
+  ],
+  25: [
+    { voice: 0, bar: 2, at: "0", from: "Db5", to: "C#5" },
+    { voice: 0, bar: 2, at: "0", from: "C#5", tie: true },
+    { voice: 0, bar: 9, at: "3/16", from: "G4", to: "A4" },
+    { voice: 1, bar: 21, at: "1/2", from: "G4", to: "Gb4" },
+    { voice: 1, bar: 21, at: "11/16", from: "C4", to: "Cb4" },
+    { voice: 1, bar: 22, at: "0", from: "Cb4", strike: true },
+    { voice: 0, bar: 22, at: "21/32", from: "C5", to: "Cb5" },
+  ],
+  27: [{ voice: 0, bar: 20, at: "0", from: "Eb5", to: "D#5" }],
+  28: [
+    { voice: 0, bar: 4, at: "1/4", from: "Db6", to: "C#6" },
+    { voice: 0, bar: 9, at: "1/4", from: "D5", to: "E5" },
+  ],
+  29: [
+    { voice: 3, bar: 4, at: "3/8", from: "F#3", to: "E3" },
+    { voice: 1, bar: 27, at: "1/12", from: "F#4", to: "F4" },
+    ...["1/4", "3/8"].map((at) => ({ voice: 3, bar: 16, at, from: "Db4", to: "C#4" })),
+    ...["1/4", "3/8", "5/8"].map((at) => ({ voice: 3, bar: 22, at, from: "Eb5", to: "D#5" })),
+  ],
+  30: [{ voice: 3, bar: 17, at: "7/8", from: "Db4", to: "C#4" }],
+};
+const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
+  // D877: the trill hooked from above (Bach's Doppelt-Cadence, read on the 1741 print and the BG), not the short one the
+  // edition names; and the two slides (Schleifer) the print signs before the note.
+  0: [
+    { bar: 3, at: "1/4", pitch: "G4", signs: "U" },
+    { bar: 11, at: "1/4", pitch: "G5", signs: "U" },
+    { bar: 12, at: "1/4", pitch: "C#5", signs: "U" },
+    { bar: 17, at: "1/4", pitch: "A4", signs: "U" },
+    { bar: 21, at: "0", pitch: "G5", signs: "L" },
+    { bar: 23, at: "3/8", pitch: "A5", signs: "L" },
+  ],
+  // The hooked trill with a mordent (Doppelt-cadence und Mordant).
+  5: [{ bar: 17, at: "1/2", pitch: "F#5", signs: "TM" }],
+  // The long trill hooked from above (D877: the 1741 print), not a short one.
+  24: [
+    { bar: 17, at: "0", pitch: "A4", signs: "U" },
+    { bar: 19, at: "0", pitch: "A5", signs: "U" },
+  ],
+  // Appoggiaturas neither print has (bars 5, 6, 14); and bars 1-2's, which the Bach-Gesellschaft prints and the 1741 print does not.
+  25: [
+    { bar: 1, at: "1/4", pitch: "Bb5", graces: [] },
+    { bar: 2, at: "1/4", pitch: "Ab5", graces: [] },
+    { bar: 5, at: "1/4", pitch: "D5", graces: [] },
+    { bar: 6, at: "1/4", pitch: "Eb5", graces: [] },
+    { bar: 14, at: "1/4", pitch: "Bb5", graces: [] },
+  ],
+  // Appoggiaturas and a sign neither print has.
+  9: [
+    { bar: 12, at: "0", pitch: "E4", graces: [] },
+    { bar: 13, at: "0", pitch: "C4", graces: [] },
+    { bar: 13, at: "1/4", pitch: "B3", signs: "" },
+  ],
+  10: [{ bar: 25, at: "0", pitch: "C#3", signs: "" }],
+  // D877: the trills hooked from below (bars 6, 7, 14, 15) and from above (bar 13), as the 1741 print and the MusicXML's approach have them.
+  11: [6, 7, 13, 14, 15].map((bar) => ({ bar, at: "0", pitch: bar < 10 ? "G4" : "D5", signs: bar === 13 ? "U" : "D" })),
+  13: [{ bar: 12, at: "11/16", pitch: "G5", signs: "" }],
+  // One long trill (the edition doubles it with a short one); a long trill the edition leaves out.
+  14: [
+    { bar: 17, at: "1/4", pitch: "C6", signs: "T" },
+    { bar: 20, at: "1/4", pitch: "A2", signs: "T" },
+  ],
+  20: [{ bar: 10, at: "1/4", pitch: "A5", signs: "" }],
+  // Two signs the print does not have; an appoggiatura it has (its pitch, D5, the likelier reading of a small head between the C5 space and the D5 line).
+  23: [
+    { bar: 11, at: "1/2", pitch: "B5", signs: "" },
+    { bar: 19, at: "0", pitch: "C4", signs: "" },
+    { bar: 23, at: "1/16", pitch: "C5", graces: ["QD5"] },
+  ],
+  30: [{ bar: 12, at: "1/2", pitch: "D#5", signs: "" }],
+};
+/**
+ * D757 (the owner: "we should avoid making those boring bass lines playable, and focus on the fun ones"): the voices
+ * offered where not every one is (the others the band's, as written): the Aria's slow ground and its inner voice; the
+ * accompaniments of Variations 13 and 25 and the sarabande's lower voice in 26; the canons' and the Fughetta's partial
+ * layers and slow basses (6, 10, 12, 15, 21, 24); the Ouverture's inner voice (16); Variation 22's minim ground and the
+ * Quodlibet's (30); Variations 23, 28 and 29's few-note second layers. Measured: notes a bar, held notes, bars sounded.
+ */
+const GOLDBERG_PLAYABLE: Record<number, number[]> = {
+  0: [0], 6: [0, 1, 2], 10: [0, 2], 12: [0, 2], 13: [0], 15: [0, 2], 16: [0, 2], 21: [0, 1, 2], 22: [0, 1, 2],
+  23: [0, 1], 24: [0, 2], 25: [0], 26: [0, 2], 28: [0, 2], 29: [1, 3], 30: [0, 1, 2],
+};
+const voicesNamed = (n: number) => (n === 2 ? TWO_HANDS : n === 3 ? THREE : FOUR);
+const goldbergTitle = (n: number) => (n === 0 ? "Goldberg Variations, Aria" : `Goldberg Variations, Variation ${n}${GOLDBERG_KIND[n] ? `, ${GOLDBERG_KIND[n]}` : ""}`);
+const GOLDBERG: Spec[] = [
+  ...GOLDBERG_TABLE.map(([n, ranges, voices]): Spec => ({
+    id: `bwv988-${String(n).padStart(2, "0")}`,
+    collection: "goldberg",
+    number: n + 1,
+    title: goldbergTitle(n),
+    short: n === 0 ? "ARIA" : `VARIATION ${n}`,
+    bwv: "988",
+    key: GOLDBERG_MINOR.has(n) ? "g" : "G",
+    dir: "bach-988",
+    mutopia: 0,
+    xml: "48072.mxl",
+    xmlDir: "pdmx",
+    page: "https://musescore.com/user/9836/scores/48072",
+    xmlRanges: ranges,
+    xmlByIndex: true,
+    xmlVoices: voices,
+    keepOrnaments: true,
+    voiceNames: voicesNamed(voices.length),
+    entries: n === 10,
+    ...(GOLDBERG_PLAYABLE[n] ? { playable: GOLDBERG_PLAYABLE[n], defaultVoice: GOLDBERG_PLAYABLE[n][0] } : {}),
+    ...(GOLDBERG_FIXES[n] ? { fixes: GOLDBERG_FIXES[n] } : {}),
+    ...(GOLDBERG_ORN_FIXES[n] ? { ornFixes: GOLDBERG_ORN_FIXES[n] } : {}),
+    credit: GOLDBERG_CREDIT,
+  })),
+  // Variation 26: transcribed from the 1741 print and the Bach-Gesellschaft (the file's is broken). Each hand as the prints write it (its running 18/16 line or the sarabande's upper voice, by turns); the sarabande's lower voice, written under it in either hand, a voice of its own (the middle).
+  ((): Spec => ({
+    id: "bwv988-26",
+    collection: "goldberg",
+    number: 27,
+    title: goldbergTitle(26),
+    short: "VARIATION 26",
+    bwv: "988",
+    key: "G",
+    dir: "bach-988",
+    mutopia: 0,
+    lyDir: "transcription",
+    page: "https://archive.org/download/bach-gesellschaft-ausgabe/BGA%20Band%2003.pdf",
+    ly: "bwv988v26.ly",
+    lyVoices: ["upper", "upperTwo|lowerTwo", "lower"],
+    keepOrnaments: true,
+    voiceNames: ["Upper", "Middle", "Lower"],
+    playable: GOLDBERG_PLAYABLE[26],
+    entries: false,
+    credit: "TRANSCRIBED FOR THE GAME FROM THE 1741 PRINT AND THE BACH-GESELLSCHAFT EDITION · PUBLIC DOMAIN",
+  }))(),
+].sort((a, b) => a.number - b.number);
+
+export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...GOLDBERG, ...CONCERTO, ...VOCAL];
 
 /**
  * D361: a sung part is one line, the MusicXML voice(s) carrying its words. Another voice written on its
@@ -757,11 +1027,15 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   let bar = 0;
   const home = (n: XmlPart["notes"][number]) => rules.find((r) => r.layer === `${n[3]}:${n[4]}` && (!r.qualified || (bar >= r.a && bar <= r.b)))?.vi ?? -1;
   const start = (n: number) => {
-    const b = x.bars.find((m) => m.n === n);
+    const b = s.xmlByIndex ? x.measures[n - 1] : x.bars.find((m) => m.n === n);
     if (!b) throw new Error(`${s.id}: no bar ${n}`);
     return b.on;
   };
-  const end = (n: number) => x.bars.find((m) => m.n === n + 1)?.on ?? x.length;
+  const end = (n: number) => (s.xmlByIndex ? x.measures[n]?.on : x.bars.find((m) => m.n === n + 1)?.on) ?? x.length;
+  const first = s.xmlRanges![0][0];
+  const orn: NonNullable<Read["orn"]> = [];
+  const unplayed: NonNullable<Read["unplayed"]> = [];
+  const p0 = x.parts[(s.xmlParts ?? [0])[0]];
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
   const voices: Note[][] = s.xmlVoices.map(() => []);
@@ -771,7 +1045,30 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   for (const [fb, tb] of s.xmlRanges!) {
     const a = start(fb);
     const z = end(tb);
-    for (const b of x.bars) if (b.on >= a && b.on < z) bars.push({ n: bars.length + 1, on: b.on - a + base });
+    if (s.xmlByIndex) for (let i = fb; i <= tb; i++) bars.push({ n: i - first + 1, on: x.measures[i - 1].on - a + base });
+    else for (const b of x.bars) if (b.on >= a && b.on < z) bars.push({ n: bars.length + 1, on: b.on - a + base });
+    if (s.keepOrnaments) {
+      const marks = new Map<string, { on: number; midi: number; signs: string; graces: string[] }>();
+      const mark = (on: number, pitch: string) => {
+        const k = `${on}:${pitch}`;
+        if (!marks.has(k)) marks.set(k, { on: on - a + base, midi: parsePitch(pitch).midi, signs: "", graces: [] });
+        return marks.get(k)!;
+      };
+      for (const o of p0.ornaments)
+        if (o.on >= a && o.on < z)
+          for (const g of o.signs) {
+            if (KERN_SIGN[g]) mark(o.on, o.pitch).signs += KERN_SIGN[g];
+            else unplayed.push({ on: o.on - a + base, midi: parsePitch(o.pitch).midi, sign: g });
+          }
+      // An appoggiatura: on the note it leads to (the same staff and voice; the top of a chord).
+      for (const g of p0.graces) {
+        if (g.on < a || g.on >= z) continue;
+        const host = part.filter((n) => n[0] === g.on && n[3] === g.staff && n[4] === g.voice).sort((p, q) => parsePitch(q[2]).midi - parsePitch(p[2]).midi)[0];
+        if (!host) throw new Error(`${s.id}: an appoggiatura ${g.pitch} with no note at ${g.on}`);
+        mark(host[0], host[2]).graces.push(`${g.slash ? "q" : "Q"}${g.pitch}`);
+      }
+      orn.push(...marks.values());
+    }
     for (const n of part) {
       if (n[0] < a || n[0] >= z) continue;
       bar = bars.filter((b) => b.on <= n[0] - a + base).at(-1)!.n;
@@ -790,7 +1087,7 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   if (lost.size) throw new Error(`${s.id}: MusicXML layers ${[...lost].join(", ")} not in ${s.xmlVoices.join(", ")}`);
   const a0 = start(s.xmlRanges![0][0]);
   const meter = [...x.measures].filter((m) => m.on <= a0 && m.time).at(-1)?.time ?? x.meter;
-  return { voices: voices.map(sortVoice), spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 } };
+  return { voices: voices.map(sortVoice), spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 }, ...(s.keepOrnaments ? { orn, unplayed } : {}) };
 }
 
 /** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
@@ -875,6 +1172,9 @@ export interface LyNote {
   graceKind?: string;
   /** D366: for a staff opened inside another staff's music (a voice dividing onto an extra staff), that staff. */
   host?: string;
+  /** D871: its articulations (staccato, fermata, …) and the slurs it opens or closes. */
+  art?: string[];
+  slur?: string[];
 }
 export interface LyScore {
   notes: LyNote[];
@@ -934,7 +1234,20 @@ export interface Read {
   agree: { midiInLy: number; lyInMidi: number; midiNotes: number; lyNotes: number };
   /** D347: each voice's words (packLyrics), where any voice is sung. */
   lyrics?: (number | string)[][];
+  /** D757: the ornaments kept (Spec.keepOrnaments): each note's onset and pitch, its kern signs, its appoggiaturas; and the signs the game cannot play. */
+  orn?: { on: number; midi: number; signs: string; graces: string[] }[];
+  unplayed?: { on: number; midi: number; sign: string }[];
 }
+
+/** D757: MusicXML's and LilyPond's ornament names as kern's signs (ornament-play.ts: the step read from the bar, upper case its default); others unplayed. */
+/**
+ * D757, D870: MusicXML's and LilyPond's ornament names as the game's signs (ornament-play.ts, src/music/ornaments.ts; the
+ * step read from the bar, upper case its default), after Bach's Explication (docs/playback/ORNAMENTS.md): the short
+ * wavy line W, the longer wavy line (Trillo) T, the wavy line with a stroke at its end (Trillo und Mordant) TR, the
+ * mordent M, the turn S; the hooked signs (Doppelt-Cadence, from below D or above U, "und Mordant" R) as AOF_HOOKS reads
+ * them on the print; others unplayed (listed).
+ */
+const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", startTrillSpan: "T", downprall: "U", downmordent: "UR", lineprall: "U", prallprall: "T", prallmordent: "TR", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
 
 export function readPiece(s: Spec): Read {
   const dir = s.lyDir ? `${SRC}${s.dir}/${s.lyDir}/` : `${SRC}${s.dir}/mutopia/${s.mutopia}/`;
@@ -1019,7 +1332,51 @@ export function readPiece(s: Spec): Read {
     const unfolded = agreeWith(readLy(`${dir}${s.ly}`, s.score ?? 0, false).notes);
     if (unfolded.midiInLy > agree.midiInLy) agree = unfolded;
   }
+  // D757: the LilyPond's ornament signs and appoggiaturas kept (Spec.keepOrnaments), on the notes they mark.
+  if (s.keepOrnaments && ly) {
+    const marks = new Map<string, { on: number; midi: number; signs: string; graces: string[] }>();
+    const unplayed: NonNullable<Read["unplayed"]> = [];
+    const mark = (on: number, midi: number) => {
+      const k = `${on}:${midi}`;
+      if (!marks.has(k)) marks.set(k, { on, midi, signs: "", graces: [] });
+      return marks.get(k)!;
+    };
+    for (const n of lyNotes)
+      for (const g of n.orn ?? []) {
+        if (KERN_SIGN[g]) mark(ticks(n.on), n.midi).signs += KERN_SIGN[g];
+        else unplayed.push({ on: ticks(n.on), midi: n.midi, sign: g });
+      }
+    for (const g of ly.notes.filter((n) => n.grace)) {
+      const host = lyNotes.filter((n) => n.on === g.on && n.voice === g.voice).sort((p, q) => q.midi - p.midi)[0];
+      if (!host) throw new Error(`${s.id}: an appoggiatura ${g.pitch} with no note at ${g.on}`);
+      mark(ticks(host.on), host.midi).graces.push(`${g.graceKind === "acciaccatura" ? "q" : "Q"}${g.pitch}`);
+    }
+    // The mirror fugues (read from their MIDI): the LilyPond holds both forms, the inversus after the rectus: an
+    // ornament on no note of this form is looked for one form later (the inversus's own place).
+    const shift = ticks(ly.length) - length;
+    const at = (on: number, midi: number) => voices.some((v) => v.some((n) => n[0] === on && n[2] === midi));
+    const orn = [...marks.values()].map((o) => (s.fromMidi && !at(o.on, o.midi) && at(o.on - shift, o.midi) ? { ...o, on: o.on - shift } : o));
+    return { voices, spell, spelled, bars, meter, length, agree, orn, unplayed };
+  }
   return { voices, spell, spelled, bars, meter, length, agree };
+}
+
+/** D757: the ornament fixes (Spec.ornFixes): a note's signs and appoggiaturas as the print gives them. */
+export function applyOrnFixes(r: Read, fixes: NonNullable<Spec["ornFixes"]>) {
+  r.orn ??= [];
+  for (const x of fixes) {
+    const from = r.bars.find((b) => b.n === x.bar)?.on;
+    if (from === undefined) throw new Error(`orn fix: no bar ${x.bar}`);
+    const [a, b] = x.at.split("/").map(Number);
+    const on = from + Math.round((b ? a / b : a) * 4 * TPQ);
+    const midi = parsePitch(x.pitch).midi;
+    if (!r.voices.some((v) => v.some((n) => n[0] === on && n[2] === midi))) throw new Error(`orn fix: no ${x.pitch} at ${x.at} of bar ${x.bar}`);
+    let o = r.orn.find((m) => m.on === on && m.midi === midi);
+    if (!o) r.orn.push((o = { on, midi, signs: "", graces: [] }));
+    if (x.signs !== undefined) o.signs = x.signs;
+    if (x.graces) o.graces = x.graces;
+  }
+  r.orn = r.orn.filter((o) => o.signs || o.graces.length);
 }
 
 // --- Analysis -------------------------------------------------------------------------------------
@@ -1292,6 +1649,7 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
 export function build(s: Spec) {
   const r = s.xml ? readXmlPiece(s) : readPiece(s);
   if (s.fixes) applyFixes(r, s.fixes);
+  if (s.ornFixes) applyOrnFixes(r, s.ornFixes);
   const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
   const piece = { tpq: TPQ, meter: r.meter, bars: r.bars, length: r.length, voices: r.voices, key: s.key };
   const speller = keySpeller(r.spelled);
@@ -1347,7 +1705,16 @@ export function build(s: Spec) {
     const line = new Set(f.voices[e.voice].map((n) => `${n[0]}:${n[1]}:${n[2]}`));
     e.notes = e.notes.filter((n) => line.has(`${n[0]}:${n[1]}:${n[2]}`));
   }
-  return { f: band.length ? { ...f, bandVoices: band } : f, agree: r.agree };
+  // D757: the ornaments kept, each on the voice now holding its note (one the band took is the band's: not kept).
+  const ornaments: [number, number, string, null, string[]?][] = [];
+  for (const o of r.orn ?? []) {
+    const vi = f.voices.findIndex((v) => v.some((n) => n[0] === o.on && n[2] === o.midi));
+    if (vi < 0) continue;
+    ornaments.push(o.graces.length ? [vi, o.on, o.signs, null, o.graces] : [vi, o.on, o.signs, null]);
+  }
+  ornaments.sort((p, q) => p[1] - q[1] || p[0] - q[0]);
+  const g = ornaments.length ? { ...f, ornaments } : f;
+  return { f: band.length ? { ...g, bandVoices: band } : g, agree: r.agree, unplayed: r.unplayed ?? [], ornLost: (r.orn?.length ?? 0) - ornaments.length };
 }
 
 // --- Write ------------------------------------------------------------------------------------------

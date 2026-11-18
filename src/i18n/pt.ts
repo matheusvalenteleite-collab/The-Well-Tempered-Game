@@ -614,6 +614,8 @@ export const PT: Record<string, string> = {
   "HOME: THIS FUGUE'S OWN SOUND": "DA CASA: O SOM PRÓPRIO DESTA FUGA",
   "MAJOR · MINOR, BY KEY": "MAIOR · MENOR, POR TONALIDADE",
   OPTIONS: "OPÇÕES",
+  // D868
+  "Pick a piece in the middle.": "Escolha uma peça no meio.",
   "Pick a fugue in the middle, or learn first with the TUTORIAL on the left.": "Escolha uma fuga no meio, ou aprenda primeiro com o TUTORIAL à esquerda.",
   // D380 (installing), D381 (headphones gone), D382 (Book II earned).
   "BOOK II UNLOCKED!": "LIVRO II DESBLOQUEADO!",
@@ -714,6 +716,11 @@ export const PT: Record<string, string> = {
   "INVENTIONS AND SINFONIAS": "INVENÇÕES E SINFONIAS",
   "J. S. BACH · INVENTIONS AND SINFONIAS": "J. S. BACH · INVENÇÕES E SINFONIAS",
   "INVENTIONS 1–15 · SINFONIAS 1–15": "INVENÇÕES 1–15 · SINFONIAS 1–15",
+  // D757.
+  "GOLDBERG VARIATIONS": "VARIAÇÕES GOLDBERG",
+  // D867: the Goldberg tab.
+  "J. S. BACH · GOLDBERG VARIATIONS": "J. S. BACH · VARIAÇÕES GOLDBERG",
+  "ARIA · 30 VARIATIONS": "ÁRIA · 30 VARIAÇÕES",
   // D751: the Four Duets.
   "FOUR DUETS": "QUATRO DUETOS",
   // D753.

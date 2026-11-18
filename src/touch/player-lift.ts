@@ -26,6 +26,7 @@
  * voices, D703). D703: measured after the band's chain, the phone's balance and the computer's each from its own path.
  */
 import { OWN_LOUD, SOUND_LOUD } from "./player-lift-data.ts";
+import { SOLO_LOUD } from "./player-lift-solo.ts";
 
 /** The player's own subject entries forward (dB, each note of the entry). */
 export const PLAYER_ENTRY_DB = 2;
@@ -42,8 +43,8 @@ export const LIFT_MIN_DB = -5;
 export const BRIGHT_SLACK_DB = 1.5;
 /** The most the player's voice is shelved down (dB). */
 export const BRIGHT_MAX_DB = 3;
-/** For the measurement (scan.cjs): raw, nothing of the balance applied. */
-export const BALANCE = { raw: false };
+/** For the measurement (scan.cjs): raw, nothing of the balance applied; `soloRaw` (D851) the solo pieces' player at 0 dB alone. */
+export const BALANCE = { raw: false, soloRaw: false };
 
 /** A piece's balance on a sound: per voice the band's trim `t`, the player's level `l`, the player's tone `h` (dB). */
 export interface Balance {
@@ -105,3 +106,74 @@ export function entryGain(player: boolean, busoniEntryDb = 0): number {
   const db = player ? PLAYER_ENTRY_DB : busoniEntryDb > 0 ? 0 : BAND_ENTRY_DB;
   return 10 ** (db / 20);
 }
+
+/**
+ * D851, THE SOLO OVER THE RIPIENO (the owner, on the harpsichord concertos through a phone: "the players' voice was getting
+ * too drowned in the background"). In the many-voiced pieces, a soloist over an orchestra (the harpsichord concertos,
+ * BWV 1043, the cantata BWV 54: SOLO_COLLECTIONS), D508's fugue balance does not hold: a sound's 2-5 voice table
+ * (SOUND_LOUD) mapped onto 6-13 voices brought the ripieno's violins and viola up by up to 4.7 dB (a fugue's inner-voice
+ * trims), and the player's level was matched to one voice while six to twelve others sum against it. Here instead, all
+ * constants of the piece, the voice and the sound (never of the play; right or wrong alike; no dynamics from the notes):
+ *
+ *   THE BAND. No trims (none of a fugue table's); the bass floored on a phone (`tb`: D645's 6 LU, measured).
+ *   THE DOUBLING. A band note in unison with the player's own written note (the ripieno's violin I with the solo
+ *     harpsichord's right hand, col violino) DOUBLE_DUCK_DB down: by the score's notes, whatever the player plays; never
+ *     the bass (D645). The player's line is the one in front; the doubled note still sounds in the band.
+ *   THE PLAYER. Its level on its bus (`l`, `d` on a computer) measured on the piece's own sound (or a trial's, keyed
+ *     `<piece>@<sound>`) so that the median margin
+ *     of its line over the whole band (summed, as it sounds) is SOLO_TARGET_DB (player-lift-solo.ts), within
+ *     SOLO_LIFT_MIN_DB..SOLO_LIFT_MAX_DB; on another sound D508's match alone (`l` less its trim), none of the table's trims.
+ */
+export const SOLO_COLLECTIONS: ReadonlySet<string> = new Set(["hconcerto", "concerto", "cantata"]);
+/** D851: the player's line over the whole band: the median margin aimed at (dB, on each path's own measure). */
+export const SOLO_TARGET_DB = 3;
+/** D851: the bounds of the player's level there (dB). */
+export const SOLO_LIFT_MAX_DB = 12;
+export const SOLO_LIFT_MIN_DB = -3;
+/** D851: a band note doubling the player's written note in unison, lowered (dB). */
+export const DOUBLE_DUCK_DB = 6;
+
+type SoloPiece = { id: string; collection?: string; voices: readonly unknown[] };
+/** D851: a soloist over an orchestra (SOLO_COLLECTIONS). */
+export const isSoloPiece = (f: Pick<SoloPiece, "collection">): boolean => !!f.collection && SOLO_COLLECTIONS.has(f.collection);
+
+/** D851: the player's level (dB) in a solo piece: the measured row on its own sound, else D508's match without its trim. */
+export function soloLiftDb(f: SoloPiece, sound: string, voice: number, phone = phoneNow()): number {
+  // (BALANCE.soloRaw: the calibration's scan, the band as D851 plays it and the player at 0 dB.)
+  if (BALANCE.raw || BALANCE.soloRaw) return 0;
+  const row = SOLO_LOUD[`${f.id}@${sound}`] ?? SOLO_LOUD[f.id];
+  const i = row && row.s === sound ? row.v.indexOf(voice) : -1;
+  if (row && i >= 0) return Math.max(SOLO_LIFT_MIN_DB, Math.min(SOLO_LIFT_MAX_DB, (phone ? row.l[i] : (row.d?.[i] ?? row.l[i])) ?? 0));
+  const n = f.voices.length;
+  return Math.max(LIFT_MIN_DB, Math.min(LIFT_MAX_DB, liftDb(f.id, sound, voice, n, phone) - bandTrimDb(f.id, sound, voice, n, phone)));
+}
+/** D851: a band voice's trim (dB) in a solo piece: none, but the bass's floor on a phone where measured. */
+export function soloTrimDb(f: SoloPiece, sound: string, voice: number, phone = phoneNow()): number {
+  if (BALANCE.raw) return 0;
+  const row = SOLO_LOUD[`${f.id}@${sound}`] ?? SOLO_LOUD[f.id];
+  return row && row.s === sound && voice === f.voices.length - 1 ? Math.max(0, Math.min(BAND_TRIM_MAX_DB, (phone ? row.tb : row.tbd) ?? 0)) : 0;
+}
+
+/**
+ * D851: the band's notes doubling the player's line in unison (`${voice}:${on}`): a note of another voice, not the bass,
+ * whose pitch the player's voice sounds over more than half of its length. By the score alone.
+ */
+export function doublingKeys(f: { id: string; collection?: string; voices: readonly (readonly (readonly number[])[])[] }, player: number): Set<string> {
+  const out = new Set<string>();
+  if (BALANCE.raw) return out;
+  const mine = f.voices[player] ?? [];
+  const bass = f.voices.length - 1;
+  f.voices.forEach((vs, u) => {
+    if (u === player || u === bass) return;
+    let j = 0;
+    for (const [on, dur, midi] of vs) {
+      while (j < mine.length && mine[j][0] + mine[j][1] <= on) j++;
+      let shared = 0;
+      for (let k = j; k < mine.length && mine[k][0] < on + dur; k++) if (mine[k][2] === midi) shared += Math.min(on + dur, mine[k][0] + mine[k][1]) - Math.max(on, mine[k][0]);
+      if (shared * 2 > dur) out.add(`${u}:${on}`);
+    }
+  });
+  return out;
+}
+/** D851: the gain of a band note doubling the player's line (1: none). */
+export const duckGain = (): number => (BALANCE.raw ? 1 : 10 ** (-DOUBLE_DUCK_DB / 20));

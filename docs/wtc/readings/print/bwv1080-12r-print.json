@@ -1,0 +1,54 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "piece": "bwv1080-12r",
+ "edition": {
+  "name": "The print: the Bach-Gesellschaft text, Band 25.1 (ed. Wilhelm Rust, 1878)",
+  "method": "the marks two independent transcriptions of it agree on at the same note: the Mutopia typesetting the game's notes come from and Craig Sapp's encoding of BG 25.1 (tools/touch/aof-print.ts)"
+ },
+ "marks": [
+  {
+   "v": 0,
+   "on": 633600,
+   "art": "fermata",
+   "p": 69,
+   "bar": 56
+  },
+  {
+   "v": 1,
+   "on": 637440,
+   "art": "fermata",
+   "p": 66,
+   "bar": 56
+  },
+  {
+   "v": 2,
+   "on": 637440,
+   "art": "fermata",
+   "p": 50,
+   "bar": 56
+  },
+  {
+   "v": 3,
+   "on": 641280,
+   "art": "fermata",
+   "p": 38,
+   "bar": 56
+  }
+ ],
+ "slurs": [
+  {
+   "v": 3,
+   "from": 84480,
+   "to": 91200,
+   "kind": "slur",
+   "bar": 8
+  },
+  {
+   "v": 3,
+   "from": 96000,
+   "to": 102720,
+   "kind": "slur",
+   "bar": 9
+  }
+ ]
+}

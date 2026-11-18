@@ -221,7 +221,10 @@ export const BEST_READING: Readonly<Record<string, string>> = {
  * owner). Every other sound, and every other fugue, keeps D344's choice.
  */
 export const WHOLE_DEFAULT = "busoni";
-export const wholeReadingOf = (id: string): Reading | null => readingsOf(id).find((r) => r.id === WHOLE_DEFAULT && r.whole) ?? null;
+/** D871: a piece with no BUSONI reading is played by its print's marks where it has them (the Art of Fugue: "print"). */
+export const WHOLE_FALLBACK = "print";
+export const wholeReadingOf = (id: string): Reading | null =>
+  readingsOf(id).find((r) => r.id === WHOLE_DEFAULT && r.whole) ?? readingsOf(id).find((r) => r.id === WHOLE_FALLBACK && r.whole) ?? null;
 /**
  * D393 (WTC 1.90; the owner: "leave only Busoni's reading in the game for now. It's the default, and can be
  * turned off in settings"): play.html offers no reading but BUSONI's. The books' readings (KELLER, BODKY,

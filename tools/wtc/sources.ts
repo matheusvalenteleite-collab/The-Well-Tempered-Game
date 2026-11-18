@@ -199,7 +199,8 @@ const SIGN: Record<string, string> = {
   "trill-mark": "T",
   prall: "W",
   "inverted-mordent": "W",
-  prallprall: "W",
+  // D873: the longer wavy line (two humps or more) is Bach's Trillo, a full trill (the Explication; docs/audits/ORNAMENTS-NON-WTC.md).
+  prallprall: "T",
   upprall: "W",
   downprall: "W",
   lineprall: "W",

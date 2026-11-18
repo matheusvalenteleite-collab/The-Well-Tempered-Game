@@ -91,6 +91,8 @@ const VOICES: Record<string, [pt: string, es: string]> = {
   BASS: ["BAIXO", "BAJO"],
   UPPER: ["SUPERIOR", "SUPERIOR"],
   LOWER: ["INFERIOR", "INFERIOR"],
+  // D757: the Goldberg's Variation 26, its sarabande's lower voice between the hands.
+  MIDDLE: ["MÉDIA", "MEDIA"],
   "RIGHT HAND": ["MÃO DIREITA", "MANO DERECHA"],
   "LEFT HAND": ["MÃO ESQUERDA", "MANO IZQUIERDA"],
 };

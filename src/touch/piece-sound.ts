@@ -1,4 +1,4 @@
-import { playerSound } from "./sound.ts";
+import { playerSound, trialSoundFor } from "./sound.ts";
 
 /**
  * D246: each piece's own sound (the owner: "choose a default preset for every piece, the one which
@@ -299,6 +299,38 @@ function moreBachSounds(): Record<string, string> {
     // D755: the C minor Fantasia and Fugue (D782: by the voices' distinctness among the kept sounds, the Fantasia's left hand on the piano, D781; colour-plans/more.ts WHY).
     "bwv906-1": "jazzQuartet",
     "bwv906-2": "abbeyRoad",
+    // D757: the Goldberg Variations on the harpsichord (Instruments may choose otherwise).
+    "bwv988-00": "harpsichordSampled",
+    "bwv988-01": "harpsichordSampled",
+    "bwv988-02": "harpsichordSampled",
+    "bwv988-03": "harpsichordSampled",
+    "bwv988-04": "harpsichordSampled",
+    "bwv988-05": "harpsichordSampled",
+    "bwv988-06": "harpsichordSampled",
+    "bwv988-07": "harpsichordSampled",
+    "bwv988-08": "harpsichordSampled",
+    "bwv988-09": "harpsichordSampled",
+    "bwv988-10": "harpsichordSampled",
+    "bwv988-11": "harpsichordSampled",
+    "bwv988-12": "harpsichordSampled",
+    "bwv988-13": "harpsichordSampled",
+    "bwv988-14": "harpsichordSampled",
+    "bwv988-15": "harpsichordSampled",
+    "bwv988-16": "harpsichordSampled",
+    "bwv988-17": "harpsichordSampled",
+    "bwv988-18": "harpsichordSampled",
+    "bwv988-19": "harpsichordSampled",
+    "bwv988-20": "harpsichordSampled",
+    "bwv988-21": "harpsichordSampled",
+    "bwv988-22": "harpsichordSampled",
+    "bwv988-23": "harpsichordSampled",
+    "bwv988-24": "harpsichordSampled",
+    "bwv988-25": "harpsichordSampled",
+    "bwv988-26": "harpsichordSampled",
+    "bwv988-27": "harpsichordSampled",
+    "bwv988-28": "harpsichordSampled",
+    "bwv988-29": "harpsichordSampled",
+    "bwv988-30": "harpsichordSampled",
     // D756: "pour la luth ò cembal" (D789: by the voices' distinctness among the kept sounds; the harpsichord's lute stop measured and not taken; colour-plans/more.ts WHY).
     "bwv998-1": "chorinho",
     "bwv998-2": "salsa",
@@ -313,7 +345,8 @@ function moreBachSounds(): Record<string, string> {
 
 /** The sound a piece opens with: the player's choice for it, else its own, else the game's default. */
 export function soundFor(id: string, chosen: Readonly<Record<string, string>>, fallback: string): string {
-  const s = chosen[id] ?? PIECE_SOUND[id] ?? fallback;
+  // D86x: a piece trial (sound.ts PIECE_TRIALS, `?trial=`) plays the piece on its own sound.
+  const s = trialSoundFor(id) ?? chosen[id] ?? PIECE_SOUND[id] ?? fallback;
   // D249: a choice of a withdrawn preset (the organ, kept from before) opens on its stand-in;
   // D292: anything else not among the five (TRAVERSO, an unknown id) on CLASSIC CHIP.
   return playerSound(s);
