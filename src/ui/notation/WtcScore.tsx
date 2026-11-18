@@ -54,7 +54,7 @@ export function planClefs(voices: WtcScoreVoice[], clefs: ClefId[], barQuarters:
 
 /** P8: the sign drawn for kern ornament signs (VexFlow's names). */
 function ornamentGlyph(signs: string): string | null {
-  if (/[Tt]/.test(signs)) return "tr";
+  if (/[TtDU]/.test(signs)) return "tr";
   if (/[Mm]/.test(signs)) return "mordent";
   if (/[Ww]/.test(signs)) return "mordent_inverted";
   if (signs.includes("$")) return "turn_inverted";

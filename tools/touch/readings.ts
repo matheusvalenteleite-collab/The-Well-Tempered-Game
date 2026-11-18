@@ -52,7 +52,8 @@ const SLURS: Record<string, Record<string, { legato: boolean; slurs: [number, nu
 /** D370: the voice of each fugue's first entry (hear-sound.ts firstEntry): the voice the marks were read against. */
 type Entry = { voice: number; on: number; theme?: number; notes: [number, number, number, ...unknown[]][] };
 const FIRST_ENTRY = new Map<string, Entry>(
-  (JSON.parse(readFileSync("data/touch/pieces.json", "utf8")) as { id: string; entries?: Entry[] }[]).flatMap((p) => {
+  // D871: and MORE BACH's pieces (the Art of Fugue's print readings).
+  ([...JSON.parse(readFileSync("data/touch/pieces.json", "utf8")), ...JSON.parse(readFileSync("data/touch/more-bach.json", "utf8"))] as { id: string; entries?: Entry[] }[]).flatMap((p) => {
     const e = (p.entries ?? []).filter((x) => !x.theme).sort((a, b) => a.on - b.on || a.voice - b.voice)[0];
     return e ? [[p.id, e] as [string, Entry]] : [];
   }),
@@ -104,6 +105,8 @@ const EDITIONS = [
     // D394: Book II's fugues from his Book II volume.
     book2: { work: "Das wohltemperierte Klavier, Zweiter Teil (Breitkopf & Härtel, 1915)", year: 1915 },
   },
+  // D871: the Art of Fugue's printed marks (tools/touch/aof-print.ts): played where a piece has no BUSONI reading.
+  { id: "print", author: "THE PRINT", work: "Die Kunst der Fuge, Bach-Gesellschaft Band 25.1 (ed. W. Rust, 1878)", year: 1878 },
 ];
 /** D392: a file read from another volume of the edition than the edition's own (its work and year). */
 const EDITION_FILES: Record<string, { work: string; year: number }> = {

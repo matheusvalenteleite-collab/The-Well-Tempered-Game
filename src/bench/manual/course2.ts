@@ -25,7 +25,7 @@ import { I2_SUBJECT } from "./fugue-track.ts";
 import { REAL_TOUR } from "./dress.ts";
 
 const SINF1 = "bwv787";
-const SINF7 = "bwv793";
+const SINF2 = "bwv788";
 const SINF9 = "bwv795";
 
 /** Invention 1's lower voice, bars 1–4 (the answer, an octave down, half a bar after the upper). */
@@ -51,8 +51,8 @@ const SINF9_ALTO = ["A♭4", "C5", "B4", "B♭4", "A4", "A♭4", "G4", "C5", "B4
 const SINF9_SOP = ["C5", "E♭5", "D5", "D5", "F5", "E5", "F5", "B5", "C6", "B♭5", "A♭5", "G5", "F5", "E♭5"];
 /** Invention 1, upper voice, bars 1–2: the quick shakes on B and F (the edition's signs). */
 const UPPER_1_2 = INV1_1_4.slice(0, 24);
-/** Sinfonia 7's soprano, bars 42–44: the long shake on D♯ before the end. */
-const SINF7_END = ["B5", "A5", "G5", "F♯5", "A5", "E♭5", "E5", "F♯5", "B5", "E♭5", "E5", "E5", "E♭5", "E5"];
+/** D874: Sinfonia 2's soprano, bars 7–8: the long shake on E♭ (the print's longer wavy line, Bach's Trillo), then the run down. */
+const SINF2_SHAKE = ["E♭5", "F5", "D5", "G5", "F5", "E♭5", "D5", "C5", "D5", "C5", "B♭4", "A4", "G4", "F♯4"];
 /** Invention 8, upper voice, bar 1: the leaps, and the next note. */
 const INV8_LEAPS = ["F4", "A4", "F4", "C5", "F4", "F5", "E5"];
 /** Invention 1, upper voice, bar 1: the first idea. */
@@ -301,21 +301,21 @@ export const COURSE2: ManualLesson[] = [
     english: "THE LONG SHAKE",
     minutes: 3,
     sound: "harpsichord",
-    aim: "Just before the end of a piece, a long note shakes for as long as it lasts.",
+    aim: "A long note with a long wavy line shakes for as long as it lasts.",
     learn: "The long shake: keep shaking for the whole note, then stop.",
-    music: "SINFONIA 7, BARS 42–44",
+    music: "SINFONIA 2, BARS 7–8",
     aids: ["thumbs"],
     ornaments: true,
     stages: [
-      st("watch", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2 }), "Near the end, the long note with the sign: watch, I keep shaking until the next note.", { aids: ["thumbs"] }),
-      st("try", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2, wait: true }), "Your turn. On the sign, shake and keep shaking. Each note waits for you.", { aids: ["thumbs"] }),
-      st("play", ex(SINF7, 0, 42, 44, { bpm: 40 }, "Sinfonia 7, top voice, bars 42–44: the long shake before the end", { notes: SINF7_END, widen: 2 }), "In time. Shake through the long note, then land on the last one."),
+      st("watch", ex(SINF2, 0, 7, 8, { bpm: 40 }, "Sinfonia 2, top voice, bars 7–8: the long shake", { notes: SINF2_SHAKE, widen: 2 }), "The long note with the long wavy line: watch, I keep shaking until the next note.", { aids: ["thumbs"] }),
+      st("try", ex(SINF2, 0, 7, 8, { bpm: 40 }, "Sinfonia 2, top voice, bars 7–8: the long shake", { notes: SINF2_SHAKE, widen: 2, wait: true }), "Your turn. On the sign, shake and keep shaking. Each note waits for you.", { aids: ["thumbs"] }),
+      st("play", ex(SINF2, 0, 7, 8, { bpm: 40 }, "Sinfonia 2, top voice, bars 7–8: the long shake", { notes: SINF2_SHAKE, widen: 2 }), "In time. Shake through the long note, then run down."),
     ],
     lens: { counts: ["Notes: 70%"], shown: ["The shake read"], never: ["The shake (it is never required)", "How fast you shake"] },
     checks: (x): Check[] => [notesRight(x, 0.7)],
     shown: (x): Check[] => [graceLine(x)],
-    before: ["Before the end of a piece I often shake a note for longer."],
-    after: ["A long shake, and then rest: the end feels like an end."],
+    before: ["A longer wavy line asks for a longer shake: the whole note long."],
+    after: ["A long shake, and then the music moves on."],
     again: ["Keep the shake going while the note lasts. Again."],
     told: (x) => (x.orn.of && x.orn.read < x.orn.of ? { text: "The shake was not heard. Shake small and quick, and keep going." } : null),
     sources: ["C. P. E. Bach, Versuch (1753), I, ch. 2, sect. 3: the trill, and its ending."],

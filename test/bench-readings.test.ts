@@ -10,7 +10,8 @@ import { protoById } from "../src/bench/protos.ts";
 const firstEntry = (id: string) => [...fugueById(id).entries].filter((e) => !e.theme).sort((a, b) => a.on - b.on || a.voice - b.voice)[0];
 
 test("D272: every reading belongs to a Book I fugue, at most three a fugue (D385: and one whole-piece edition), one mark per note of its first entry, levels and tempi sane", () => {
-  const ids = Object.keys(READINGS);
+  // D871: the WTC's (the Art of Fugue's print readings: test/d871-aof-print.test.ts).
+  const ids = Object.keys(READINGS).filter((id) => /^wtc/.test(id));
   assert.ok(ids.length >= 10, `${ids.length} fugues with a reading`);
   for (const id of ids) {
     assert.match(id, /^wtc[12]f\d\d$/);

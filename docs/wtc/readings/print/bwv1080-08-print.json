@@ -1,0 +1,194 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "piece": "bwv1080-08",
+ "edition": {
+  "name": "The print: the Bach-Gesellschaft text, Band 25.1 (ed. Wilhelm Rust, 1878)",
+  "method": "the marks two independent transcriptions of it agree on at the same note: the Mutopia typesetting the game's notes come from and Craig Sapp's encoding of BG 25.1 (tools/touch/aof-print.ts)"
+ },
+ "marks": [
+  {
+   "v": 2,
+   "on": 1436160,
+   "art": "fermata",
+   "p": 38,
+   "bar": 188
+  }
+ ],
+ "slurs": [
+  {
+   "v": 1,
+   "from": 32640,
+   "to": 36480,
+   "kind": "slur",
+   "bar": 5
+  },
+  {
+   "v": 1,
+   "from": 40320,
+   "to": 44160,
+   "kind": "slur",
+   "bar": 6
+  },
+  {
+   "v": 2,
+   "from": 71040,
+   "to": 74880,
+   "kind": "slur",
+   "bar": 10
+  },
+  {
+   "v": 2,
+   "from": 78720,
+   "to": 82560,
+   "kind": "slur",
+   "bar": 11
+  },
+  {
+   "v": 0,
+   "from": 109440,
+   "to": 113280,
+   "kind": "slur",
+   "bar": 15
+  },
+  {
+   "v": 0,
+   "from": 117120,
+   "to": 120960,
+   "kind": "slur",
+   "bar": 16
+  },
+  {
+   "v": 0,
+   "from": 128640,
+   "to": 130080,
+   "kind": "slur",
+   "bar": 17
+  },
+  {
+   "v": 0,
+   "from": 648960,
+   "to": 649920,
+   "kind": "slur",
+   "bar": 85
+  },
+  {
+   "v": 0,
+   "from": 650880,
+   "to": 651840,
+   "kind": "slur",
+   "bar": 85
+  },
+  {
+   "v": 0,
+   "from": 652800,
+   "to": 653760,
+   "kind": "slur",
+   "bar": 86
+  },
+  {
+   "v": 0,
+   "from": 654720,
+   "to": 655680,
+   "kind": "slur",
+   "bar": 86
+  },
+  {
+   "v": 0,
+   "from": 656640,
+   "to": 657600,
+   "kind": "slur",
+   "bar": 86
+  },
+  {
+   "v": 0,
+   "from": 658560,
+   "to": 659520,
+   "kind": "slur",
+   "bar": 86
+  },
+  {
+   "v": 0,
+   "from": 714240,
+   "to": 715200,
+   "kind": "slur",
+   "bar": 94
+  },
+  {
+   "v": 2,
+   "from": 912000,
+   "to": 913440,
+   "kind": "slur",
+   "bar": 119
+  },
+  {
+   "v": 2,
+   "from": 915840,
+   "to": 917280,
+   "kind": "slur",
+   "bar": 120
+  },
+  {
+   "v": 2,
+   "from": 919680,
+   "to": 921120,
+   "kind": "slur",
+   "bar": 120
+  },
+  {
+   "v": 2,
+   "from": 923520,
+   "to": 924960,
+   "kind": "slur",
+   "bar": 121
+  },
+  {
+   "v": 2,
+   "from": 927360,
+   "to": 928800,
+   "kind": "slur",
+   "bar": 121
+  },
+  {
+   "v": 1,
+   "from": 929280,
+   "to": 930240,
+   "kind": "slur",
+   "bar": 122
+  },
+  {
+   "v": 1,
+   "from": 931200,
+   "to": 932160,
+   "kind": "slur",
+   "bar": 122
+  },
+  {
+   "v": 1,
+   "from": 933120,
+   "to": 934080,
+   "kind": "slur",
+   "bar": 122
+  },
+  {
+   "v": 1,
+   "from": 935040,
+   "to": 936000,
+   "kind": "slur",
+   "bar": 122
+  },
+  {
+   "v": 1,
+   "from": 936960,
+   "to": 937920,
+   "kind": "slur",
+   "bar": 123
+  },
+  {
+   "v": 1,
+   "from": 938880,
+   "to": 939840,
+   "kind": "slur",
+   "bar": 123
+  }
+ ]
+}

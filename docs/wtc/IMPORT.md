@@ -107,7 +107,7 @@ last note ends more than a bar before the piece's end.
 | wtc2f24 | wtc-uct/book2/fugue24.ly | B | 3 | 982 | 100 | ok | ok |
 | inven01 | bach-inventions/mutopia/40/bach-invention-01.ly | C | 2 | 458 | 22 | ok | ok |
 | inven02 | bach-inventions/mutopia/58/bach-invention-02.ly | C | 2 | 634 | 27 | ok | ok |
-| inven03 | bach-inventions/mutopia/70/bach-invention-03.ly | D | 2 | 494 | 59 | ok | ok |
+| inven03 | bach-inventions/mutopia/70/bach-invention-03.ly | D | 2 | 496 | 59 | ok | ok |
 | inven04 | bach-inventions/mutopia/67/bach-invention-04.ly | D | 2 | 443 | 52 | ok | ok |
 | inven05 | bach-inventions/mutopia/55/bach-invention-05.ly | Eb | 2 | 733 | 32 | ok | ok |
 | inven06 | bach-inventions/mutopia/159/bach-invention-06.ly | E | 2 | 547 | 62 | ok | ok |
@@ -128,12 +128,12 @@ last note ends more than a bar before the piece's end.
 | sinfo06 | bach-inventions/mutopia/173/bwv792.ly | E | 3 | 508 | 41 | ok | ok |
 | sinfo07 | bach-inventions/mutopia/175/bwv793.ly | E | 3 | 727 | 44 | ok | ok |
 | sinfo08 | bach-inventions/mutopia/176/bwv794.ly | F | 3 | 563 | 23 | ok | ok |
-| sinfo09 | bach-inventions/mutopia/199/bwv795.ly | F | 3 | 651 | 35 | ok | ok |
+| sinfo09 | bach-inventions/mutopia/199/bwv795.ly | F | 3 | 650 | 35 | ok | ok |
 | sinfo10 | bach-inventions/mutopia/205/bwv796.ly | G | 3 | 632 | 33 | ok | ok |
 | sinfo11 | bach-inventions/mutopia/200/bwv797.ly | G | 3 | 526 | 72 | ok | ok |
 | sinfo12 | bach-inventions/mutopia/144/bwv798.ly | A | 3 | 760 | 31 | ok | ok |
 | sinfo13 | bach-inventions/mutopia/206/bwv799.ly | A | 3 | 634 | 64 | ok | ok |
-| sinfo14 | bach-inventions/mutopia/213/bwv800.ly | Bb | 3 | 619 | 24 | ok | ok |
+| sinfo14 | bach-inventions/mutopia/213/bwv800.ly | Bb | 3 | 618 | 24 | ok | ok |
 | sinfo15 | bach-inventions/mutopia/145/bwv801.ly | B | 3 | 672 | 39 | ok | ok |
 
 ## Corrections
@@ -371,6 +371,26 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2p24 | 3 written-out trills folded back into their notes |
 | wtc2f24 | b. 16, voice 0, beats 0-1.5: D4 E4 F#4 G4 F#4 → D4 F#4 (slip: the Bach-Gesellschaft's soprano, as the Humdrum check and the witness have it) |
 | wtc2f24 | b. 16, voice 1, beats 0-1.5: B3 E4 → B3 C#4 D4 E4 F#4 E4 (slip: the Bach-Gesellschaft's alto, as the Humdrum check has it (the soprano's semiquavers in Rother's)) |
+| inven02 | bar 2, D5: the sign the BGA's (D) (D206) |
+| inven02 | bar 4, D4: the sign the BGA's (D) (D206) |
+| inven02 | bar 12, A3: the sign the BGA's (D) (D206) |
+| inven02 | bar 14, A4: the sign the BGA's (D) (D206) |
+| inven02 | bar 24, D5: the sign the BGA's (D) (D206) |
+| inven03 | bar 3, C#5: the sign the BGA's (UR) (D206) |
+| inven03 | bar 45, C#5: the sign the BGA's (UR) (D206) |
+| inven05 | bar 32, F5: the sign the BGA's (DR) (D206) |
+| inven09 | bar 15, B4: the sign the BGA's (D) (D206) |
+| inven09 | bar 15, C5: the sign the BGA's (TR) (D206) |
+| inven09 | bar 16, D5: the sign the BGA's (U) (D206) |
+| inven09 | bar 33, G4: the sign the BGA's (D) (D206) |
+| inven11 | bar 10, E5: the sign the BGA's (UR) (D206) |
+| inven12 | bar 1, B4: the sign the BGA's (UR) (D206) |
+| inven12 | bar 3, F#3: the sign the BGA's (UR) (D206) |
+| inven12 | bar 9, G#4: the sign the BGA's (UR) (D206) |
+| inven12 | bar 18, B2: the sign the BGA's (UR) (D206) |
+| inven12 | bar 20, D3: the sign the BGA's (UR) (D206) |
 | sinfo01 | bar 5, B4: the sign removed (not the BGA's) (D206) |
+| sinfo05 | the Bach-Gesellschaft's 93 signs and small notes (D875) |
+| sinfo07 | bar 43, D#5: the sign removed (not the BGA's) (D206) |
 | sinfo13 | bar 3, B4: the sign removed (not the BGA's) (D206) |
 | sinfo13 | bar 7, F#4: the sign removed (not the BGA's) (D206) |

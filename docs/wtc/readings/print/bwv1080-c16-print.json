@@ -1,0 +1,89 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "piece": "bwv1080-c16",
+ "edition": {
+  "name": "The print: the Bach-Gesellschaft text, Band 25.1 (ed. Wilhelm Rust, 1878)",
+  "method": "the marks two independent transcriptions of it agree on at the same note: the Mutopia typesetting the game's notes come from and Craig Sapp's encoding of BG 25.1 (tools/touch/aof-print.ts)"
+ },
+ "marks": [
+  {
+   "v": 0,
+   "on": 901440,
+   "art": "staccato",
+   "p": 65,
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "on": 904320,
+   "art": "staccato",
+   "p": 69,
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "on": 907200,
+   "art": "staccato",
+   "p": 73,
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "on": 918720,
+   "art": "fermata",
+   "p": 74,
+   "bar": 80
+  },
+  {
+   "v": 1,
+   "on": 921600,
+   "art": "fermata",
+   "p": 57,
+   "bar": 81
+  },
+  {
+   "v": 0,
+   "on": 933120,
+   "art": "fermata",
+   "p": 62,
+   "bar": 82
+  },
+  {
+   "v": 1,
+   "on": 933120,
+   "art": "fermata",
+   "p": 38,
+   "bar": 82
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 899280,
+   "to": 900720,
+   "kind": "slur",
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "from": 902160,
+   "to": 903600,
+   "kind": "slur",
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "from": 905040,
+   "to": 906480,
+   "kind": "slur",
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "from": 907920,
+   "to": 909360,
+   "kind": "slur",
+   "bar": 79
+  }
+ ]
+}

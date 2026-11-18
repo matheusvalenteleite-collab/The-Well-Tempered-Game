@@ -33,6 +33,8 @@ def main() -> None:
         "notes": [{"on": fr(n["onset"]), "dur": fr(n["duration"]), "pitch": n["pitch"], "midi": n["midi"],
                    "voice": n["voice"], "staff": n["staff"], "part": n["part"], "grace": bool(n["grace"]),
                    **({"orn": n["orn"]} if n.get("orn") else {}),
+                   **({"art": n["art"]} if n.get("art") else {}),
+                   **({"slur": n["slur"]} if n.get("slur") else {}),
                    **({"graceKind": n["grace_kind"]} if n.get("grace_kind") else {}),
                    **({"host": n["host"]} if n.get("host") else {})} for n in s.notes],
         "measures": [{"n": m["number"], "on": fr(m["onset"])} for m in s.measures],

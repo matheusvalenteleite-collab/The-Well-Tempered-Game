@@ -1253,10 +1253,10 @@ export class ProtoGame {
       // D385: on the piano a trill is a pianist's (piano-trill.ts): unsnapped, its upper notes lighter and uneven,
       // overlapped with the dampers half-seated, the two pitches from two recordings; from the main note where
       // a whole-piece reading plays it (Busoni's own realisation).
-      const ptr = orn && /[TtO]/.test(orn.signs) ? this.pianoTrillOf(parts, n.midi, this.whole ? "main" : "upper") : undefined;
+      const ptr = orn && /[TtODU]/.test(orn.signs) ? this.pianoTrillOf(parts, n.midi, this.whole ? "main" : "upper") : undefined;
       if (ptr) parts = ptr.parts;
       // D353: the band's ornaments drawn over their notes as they sound (fainter than the player's).
-      if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
+      if (orn && parts.length > 1) this.bandPerformed.push({ kind: /[TtODU]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: true, voice: n.voice, step: n.step, midi: n.midi, on: n.on, end: n.on + n.dur, parts });
       const jn = joins(sh);
       // D429: a bowed band note (Patch.bow) joined as a string player joins: inside one of the reading's slurs the
       // same bow (a slur), any other join a new bow (bow change); its give-way to the next likewise.
@@ -3986,7 +3986,7 @@ export class ProtoGame {
         const prev = this.before(i, h.k);
         const parts = realiseNote(this.f, orn, n0.on, n0.dur, n0.midi, prev >= 0 ? notes[prev].midi : undefined, this.bpm);
         // D353: the overlay draws it as it sounds (the player's, written).
-        this.performed.set(`${h.k}:${i}`, { kind: /[TtO]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: false, voice: this.voiceOf(h.k, i), step: n0.step, midi: n0.midi, on: n0.on, end: n0.on + n0.dur, parts: parts.map(([pon, pdur, pm]) => [pon - n0.on + this.now, pdur, pm] as [number, number, number]) });
+        this.performed.set(`${h.k}:${i}`, { kind: /[TtODU]/.test(orn.signs) ? "trill" : /[Mm]/.test(orn.signs) ? "mordent" : /[S$]/.test(orn.signs) ? "turn" : "short", free: false, band: false, voice: this.voiceOf(h.k, i), step: n0.step, midi: n0.midi, on: n0.on, end: n0.on + n0.dur, parts: parts.map(([pon, pdur, pm]) => [pon - n0.on + this.now, pdur, pm] as [number, number, number]) });
         h.sounds = parts.map(([pon, pdur, pmidi], k) => {
           const at = t0 + (this.timeAt(pon) - this.timeAt(n0.on));
           const last = k === parts.length - 1;
