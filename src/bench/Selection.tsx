@@ -246,7 +246,7 @@ export function Selection(p: SelectionProps) {
           <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
         ) : (
           <p className="sel-hint" id="sel-hint">
-            {tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.")}
+            {tutorial ? tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.") : tr("Pick a piece in the middle.")}
           </p>
         )}
         {chosen && p.note}

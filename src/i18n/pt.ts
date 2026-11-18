@@ -614,6 +614,8 @@ export const PT: Record<string, string> = {
   "HOME: THIS FUGUE'S OWN SOUND": "DA CASA: O SOM PRÓPRIO DESTA FUGA",
   "MAJOR · MINOR, BY KEY": "MAIOR · MENOR, POR TONALIDADE",
   OPTIONS: "OPÇÕES",
+  // D868
+  "Pick a piece in the middle.": "Escolha uma peça no meio.",
   "Pick a fugue in the middle, or learn first with the TUTORIAL on the left.": "Escolha uma fuga no meio, ou aprenda primeiro com o TUTORIAL à esquerda.",
   // D380 (installing), D381 (headphones gone), D382 (Book II earned).
   "BOOK II UNLOCKED!": "LIVRO II DESBLOQUEADO!",
