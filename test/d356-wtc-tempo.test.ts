@@ -42,30 +42,24 @@ test("D356, D434: the sounds: every step the fugue's own (the owner: \"keep each
   assert.match(app, /const mine = full \? chosen : Object\.fromEntries\(Object\.entries\(chosen\)\.filter\(\(\[p\]\) => soundUnlocked\(p, lite\)\)\);\s*return soundFor\(id, mine, DEFAULT_SOUND\);/);
 });
 
-test("D356: the unlock: a friend's WTC fugue opens its tempo with a B or better (D417; today's or before 1.52), never a C; the unlocked view everywhere; MORE BACH only unlocked", () => {
+test("D863: no tempo lock: every piece with tempi offers them from the start, a friend's too; a prelude has none", () => {
   store.clear();
-  const st = () => lite.readLite();
-  const open = (id: string, full = false) => steps.tempoOpen(id, full, lite.tempoEarned(id, st()));
-  assert.equal(open("wtc1f01"), false);
-  lite.recordLite("wtc1f01", false, true, "C");
-  assert.equal(open("wtc1f01"), false, "a C does not open it");
-  lite.recordLite("wtc1f01", true, true, "S");
-  assert.equal(open("wtc1f01"), false, "a run the crowd left does not count");
-  lite.recordLite("wtc1f01", false, true, "B");
-  assert.equal(open("wtc1f01"), true, "D417: a B opens it");
-  assert.equal(open("wtc1f02"), false, "only that fugue's");
-  lite.recordLite("wtc2f03", false, true, "S");
-  assert.equal(open("wtc2f03"), true, "an S, Book II's too");
-  // A grade from before 1.52 stays earned.
-  store.set(lite.LITE_KEY, JSON.stringify({ ...JSON.parse(store.get(lite.LITE_KEY)!), best: { ...st().best, wtc1f05: "A" } }));
-  assert.equal(st().bestOld.wtc1f05, "A");
-  assert.equal(open("wtc1f05"), true);
-  // The owner's unlock: every fugue, and MORE BACH and CHORALES; a prelude never; MORE BACH never for a friend, even with an A.
-  assert.equal(open("wtc2f24", true), true);
+  const open = (id: string, full = false) => steps.tempoOpen(id, full, lite.tempoEarned(id, lite.readLite()));
+  assert.equal(open("wtc1f01"), true);
+  assert.equal(open("wtc2f24"), true);
+  assert.equal(open("bwv772"), true);
   assert.equal(open("bwv772", true), true);
   assert.equal(open("wtc1p01", true), false);
-  lite.recordLite("bwv772", false, true, "S");
-  assert.equal(open("bwv772"), false);
+});
+
+test("D863: a piece's tempo step forgotten when another piece is chosen", () => {
+  store.clear();
+  steps.saveStep("wtc1f01", "slow");
+  steps.saveStep("wtc1f02", "fast");
+  const left = steps.forgetStep("wtc1f01");
+  assert.equal(left.wtc1f01, undefined);
+  assert.equal(steps.readSteps().wtc1f01, undefined);
+  assert.equal(steps.readSteps().wtc1f02, "fast");
 });
 
 test("D356: the tempo kept per fugue on the device (tb-lite-tempo-v1, with D351's pieces)", () => {

@@ -5187,6 +5187,147 @@ function workshop(k: Kit) {
     }
 }
 
+/** D677: the Goldberg Variations, BWV 988 (bwv988-00 the Aria, -01 to -30 the variations). */
+const GOLDBERG_ID = /^bwv988-\d\d$/;
+/** The night's sky at each hour (top, horizon): evening (the Aria), night, the darkest (the G-minor variations), first light (the Quodlibet). */
+const NIGHT_KEYS: [number, C3, C3][] = [
+  [0, [70, 74, 124], [232, 150, 112]],
+  [6, [26, 30, 70], [70, 60, 100]],
+  [15, [14, 16, 42], [34, 34, 64]],
+  [25, [8, 10, 26], [18, 20, 40]],
+  [28, [24, 30, 66], [90, 80, 110]],
+  [30, [110, 140, 196], [252, 204, 150]],
+];
+function nightSky(n: number, minor: boolean): [C3, C3] {
+  let i = 0;
+  while (i < NIGHT_KEYS.length - 2 && NIGHT_KEYS[i + 1][0] <= n) i++;
+  const [a, t0, l0] = NIGHT_KEYS[i];
+  const [b, t1, l1] = NIGHT_KEYS[i + 1];
+  const u = Math.max(0, Math.min(1, (n - a) / Math.max(1, b - a)));
+  const top = mix(t0, t1, u), low = mix(l0, l1, u);
+  return minor ? [mix(top, [0, 0, 0], 0.35), mix(low, [0, 0, 0], 0.35)] : [top, low];
+}
+/** A canon's interval (1 the unison .. 9 the ninth: Variations 3, 6, .. 27), else 0. */
+const canonStep = (n: number) => (n > 0 && n < 30 && n % 3 === 0 ? n / 3 : 0);
+/**
+ * THE NIGHT WATCH (the Goldberg Variations, all 31). A music room through one night: a two-manual harpsichord (the
+ * print's "Clavicimbal mit 2 Manualen") by a tall window, a lamp. The Aria is the evening, the lamp lit; each variation
+ * a step further into the night (the sky, the stars, the moon crossing the window); the three G-minor variations
+ * (15, 21, 25) the darkest hours, 25 lit by one candle; 16, the Ouverture at the work's middle, with the curtains
+ * drawn open; 30, the Quodlibet, at first light, a window lit across the way (and NEXT goes home to the Aria's
+ * evening). Every canon (each third variation) has two candles on the music desk, one for each voice of the canon,
+ * the second set higher by the canon's interval. In play the flames move with the music, a cadence brightens the lamp,
+ * the climax warms the room; at the last chord the flames settle.
+ */
+function nightWatch(k: Kit) {
+  const { w, h, g } = k;
+  const n = Number(k.pid.slice(-2));
+  const minor = k.homeMinor;
+  const [top, low] = nightSky(n, minor);
+  const cl = k.climax;
+  const FL = h * 0.82;
+  // the room
+  k.vgrad(0, FL, [[0, "#1c1520"], [1, "#2a2026"]]);
+  fillTex(k, texture(k, "panels", 24, panels), 0, 0, w, FL);
+  k.R(0, FL, w, h - FL, "#2e2018");
+  fillTex(k, texture(k, "parquet", 16, parquet), 0, FL, w, h - FL);
+  // the window: its sky, the stars, the moon crossing; at dawn a lit window across the way
+  const WX = w * 0.24, WY = h * 0.08, WW = w * 0.16, WH = h * 0.56;
+  k.vgrad(WY, WH, [[0, rgba(top)], [1, rgba(low)]], WX, WW);
+  const dark = Math.max(0, Math.min(1, 1 - Math.abs(n - 20) / 14));
+  for (let i = 0; i < 26; i++) if (hash(i + 400) < 0.3 + 0.7 * dark) k.R(WX + hash(i + 401) * WW, WY + hash(i + 402) * WH * 0.7, 1, 1, `rgba(240,240,255,${0.3 + 0.5 * hash(i + 403)})`);
+  if (n > 2 && n < 29) {
+    const mu = (n - 3) / 25;
+    k.disc(WX + WW * (0.15 + 0.7 * mu), WY + WH * (0.2 + 0.25 * Math.sin(mu * Math.PI) * -1 + 0.25), 4, "rgba(236,232,214,0.9)");
+  }
+  k.R(WX, WY + WH * 0.8, WW, WH * 0.2, rgba(mix(low, [10, 10, 20], 0.6)));
+  if (n === 30) {
+    k.R(WX + WW * 0.55, WY + WH * 0.62, WW * 0.3, WH * 0.2, "#2a2230");
+    k.R(WX + WW * 0.62, WY + WH * 0.66, 4, 4, "rgba(255,210,140,0.9)");
+  }
+  const FRAME = "#4a3424";
+  k.R(WX - 3, WY - 3, WW + 6, 3, FRAME);
+  k.R(WX - 3, WY + WH, WW + 6, 4, FRAME);
+  k.R(WX - 3, WY, 3, WH, FRAME);
+  k.R(WX + WW, WY, 3, WH, FRAME);
+  k.R(WX + WW / 2 - 1, WY, 2, WH, FRAME);
+  for (let r = 1; r < 4; r++) k.R(WX, WY + (WH * r) / 4, WW, 1, FRAME);
+  // the curtains: half drawn; wide open for the Ouverture
+  const open = n === 16 ? 0.06 : 0.3;
+  const CUR = "#5a2228";
+  k.R(WX - 10, WY - 8, WW * open * 0.5 + 10, WH + 14, CUR);
+  k.R(WX + WW - WW * open * 0.5, WY - 8, WW * open * 0.5 + 10, WH + 14, CUR);
+  for (let s = 0; s < 4; s++) {
+    k.R(WX - 10 + s * 4, WY - 8, 1, WH + 14, "rgba(0,0,0,0.25)");
+    k.R(WX + WW + 9 - s * 4, WY - 8, 1, WH + 14, "rgba(0,0,0,0.25)");
+  }
+  k.R(WX - 14, WY - 10, WW + 28, 3, "#3a2618");
+  // the harpsichord: its long case side-on, the lid propped, two manuals at the left, the music desk
+  const HX = w * 0.48, HW = w * 0.3, HY = FL - h * 0.2, HH = h * 0.09;
+  // the lid, propped open, its painted inside catching the light
+  g.fillStyle = "#cdb98e";
+  g.beginPath();
+  g.moveTo(HX + 8, HY);
+  g.lineTo(HX + HW * 0.95, HY - h * 0.26);
+  g.lineTo(HX + HW, HY - h * 0.25);
+  g.lineTo(HX + HW, HY + HH * 0.15);
+  g.closePath();
+  g.fill();
+  g.strokeStyle = "#7a5a34";
+  g.lineWidth = 1;
+  g.stroke();
+  k.R(HX + HW * 0.55, HY - h * 0.15, 1, h * 0.15, "#2a1a10");
+  // the case, red lacquer with a gold band, the long tail to the right
+  g.fillStyle = "#6a2a24";
+  g.beginPath();
+  g.moveTo(HX, HY);
+  g.lineTo(HX + HW, HY + HH * 0.15);
+  g.lineTo(HX + HW, HY + HH);
+  g.lineTo(HX, HY + HH);
+  g.closePath();
+  g.fill();
+  k.R(HX, HY + HH * 0.35, HW, 2, "#d0a050");
+  // the two manuals at the player's end
+  for (const dy of [HH * 0.2, HH * 0.52]) {
+    k.R(HX - 14, HY + dy, 16, 4, "#ece4d0");
+    for (let kx = 1; kx < 16; kx += 2) k.R(HX - 14 + kx, HY + dy, 1, 2, "#1a1410");
+  }
+  for (const lx of [HX + 4, HX + HW * 0.5, HX + HW - 4]) k.R(lx, HY + HH, 3, FL - HY - HH, "#4a1e1a");
+  // the desk: the music, and the light: the lamp, or a canon's two candles, or Variation 25's one
+  const DX = HX + 6, DY = HY - 4;
+  k.R(DX - 2, DY - 10, 16, 10, "#e8dcc0");
+  k.R(DX - 3, DY, 18, 2, "#4a3424");
+  const step = canonStep(n);
+  const busy = 0.6 + 0.4 * k.busy;
+  const flame = (x: number, y: number, a: number, c: C3 = [255, 196, 110]) => {
+    const fl = k.still ? 0 : Math.sin(k.sec * 9 + x) * 0.6 * busy;
+    k.R(x + fl, y - 4, 2, 3, "#ffe08a");
+    k.R(x + fl, y - 5, 1, 1, "#fff4c8");
+    light(k, x + 1, y - 3, 20 + 10 * k.cadence + 10 * cl, c, a);
+  };
+  const glow = (0.35 + 0.15 * k.cadence + 0.2 * cl) * (1 - 0.3 * k.rest);
+  if (n === 25) {
+    k.R(DX + 20, DY - 8, 2, 8, "#e8e0c8");
+    flame(DX + 20, DY - 8, glow * 0.8);
+  } else if (step) {
+    const rise = step * 1.4;
+    k.R(DX - 8, DY - 8, 2, 8, "#e8e0c8");
+    flame(DX - 8, DY - 8, glow);
+    k.R(DX + 20, DY - 8 - rise, 2, 8 + rise, "#e8e0c8");
+    flame(DX + 20, DY - 8 - rise, glow);
+  } else {
+    // the lamp on the stand by the window
+    const LX = WX + WW + 22, LY = FL - h * 0.22;
+    k.R(LX, LY, 2, FL - LY, "#2a1e14");
+    k.R(LX - 6, LY - 2, 14, 2, "#3a2a1c");
+    k.R(LX - 2, LY - 10, 6, 8, "rgba(255,226,160,0.55)");
+    flame(LX, LY - 4, glow);
+  }
+  // the evening's warmth for the Aria, home again; the first light for the Quodlibet
+  if (n === 0) light(k, WX + WW / 2, WY + WH, WW * 1.6, [255, 170, 110], 0.12);
+  if (n === 30) light(k, WX + WW / 2, WY + WH * 0.6, WW * 2, [255, 214, 160], 0.16);
+}
+
 /** A work's setting: its one world and one script for all its pieces. */
 interface WorkSetting {
   test: (id: string) => boolean;
@@ -5207,6 +5348,8 @@ const WORKS: WorkSetting[] = [
   { test: (id) => C_MINOR_906_ID.test(id), world: scaffold, script: sk([DUSK_GOLD, 0.05, "none", 0, 1.01], [DUSK_NIGHT, 0.08, "none", 0, 1.02], [0.5, 0.9, [255, 170, 110], false], [DUSK_NIGHT, 0.1]) },
   // D675: the Prelude, Fugue and Allegro in E-flat, the Lute-Maker's Workshop.
   { test: (id) => LUTE_998_ID.test(id), world: workshop, script: sk([GOLD, 0.04, "motes", 0, 1.01], [WARM, 0.05, "motes", 0, 1.02], [0.6, 0.25, WARM, false], [GOLD, 0.06]) },
+  // D677: the Goldberg Variations, the Night Watch.
+  { test: (id) => GOLDBERG_ID.test(id), world: nightWatch, script: sk([DUSK_NIGHT, 0.04, "none", 0, 1.01], [DUSK_NIGHT, 0.06, "none", 0, 1.01], [0.4, 0.75, WARM, false], [DUSK_NIGHT, 0.06]) },
 ];
 const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
