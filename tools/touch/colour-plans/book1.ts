@@ -369,12 +369,12 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f15: {
-    // D893: CHORINHO (was MEGA FM, withdrawn: D890).
-    sound: "chorinho",
-    soundWhy: "D893: a gigue, 'a performer's fugue' of fire and humour with sharp articulation (Keller): CHORINHO's flute, bandolim and seven-string, a regional's bite in 6/8 (the voice probe's closest pair 2.31 against MEGA FM's 1.29; BOSSA NOVA's 2.63 near it on more pieces, KRAUTROCK's 5.87 on seven already), its own synth kit read from the score.",
+    // D893: CHORINHO (was MEGA FM, withdrawn: D890); D910: BERLIN SCHOOL (the owner: an electronic sound).
+    sound: "berlinSchool",
+    soundWhy: "D910: the owner, “Go for some electronic instrument like classic chip”: BERLIN SCHOOL, the electronic sound that measured best (the voice probe's closest pair 4.42 against CLASSIC CHIP's 1.67, GAME BOY 1.59, SID 64 2.33, SUPER 16-BIT 1.64, SWITCHED-ON 0.86; its bass alone 5.1 / 3.7 LU under the loudest voice against CLASSIC CHIP's 5.9 / 4.1). A gigue of fire and humour (Keller).",
     character: "Bodky's three spans (1-37 forte, 38-61 piano, 61-86 forte); the exposition inverso 20-31 (Ledbetter); the final stretti 77-79.",
     plans: {
-      chorinho: [
+      berlinSchool: [
         at(38, { tone: -1.5 }, "Bodky's middle span (38-61) a shade darker."),
         at(61.625, OWN, "The band's own brightness from 61⅝ (Bodky)."),
         at(77, { tone: 1.5 }, "The last stretti a little brighter."),

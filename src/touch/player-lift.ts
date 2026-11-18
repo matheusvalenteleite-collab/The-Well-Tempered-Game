@@ -127,9 +127,9 @@ export const SOLO_COLLECTIONS: ReadonlySet<string> = new Set(["hconcerto", "conc
  * D851: the player's line over the whole band: the median margin aimed at (dB, on each path's own measure). D858 (the owner:
  * "any loudness assigned to player's voice ought to be subtle"): 0, level with the band's sum, from D852's +3: the smallest
  * of 0, +1, +2, +3 that keeps D508's lost stretches no more than +3's (17 on a phone, every one under the continuo's floor; none
- * under the violins at any of them; 0 on a computer).
+ * under the violins at any of them; 0 on a computer). D911: +1, the owner's choice (11 lost on a phone, the fewest).
  */
-export const SOLO_TARGET_DB = 0;
+export const SOLO_TARGET_DB = 1;
 /** D851: the bounds of the player's level there (dB). */
 export const SOLO_LIFT_MAX_DB = 12;
 export const SOLO_LIFT_MIN_DB = -3;

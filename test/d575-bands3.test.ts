@@ -98,7 +98,8 @@ test("D578: JAZZ QUARTET's I/6 without the piano (its own line-up, its recording
   assert.equal(pieceLineUp("jazzQuartet", fugueById("wtc2f12")), null);
   // Only JAZZ QUARTET (I/6), SID 64 (II/6's alto on the triangle, D603) and BACH BRASS (I/24's and II/17's altos on the second trumpet, D613) have a piece's own line-up.
   // (D632: written here; the seats by range, octave-seats.ts, are merged into Preset.pieces beside them.)
-  assert.deepEqual(PRESETS.filter((p) => OWN_PIECES[p.id]).map((p) => p.id).sort(), ["bachBrass", "jazzQuartet", "sid64"]);
+  // D912: and SUPER 16-BIT (BWV 54's layered alto).
+  assert.deepEqual(PRESETS.filter((p) => OWN_PIECES[p.id]).map((p) => p.id).sort(), ["bachBrass", "jazzQuartet", "sid64", "super16"]);
   const b = presetBudget("jazzQuartet", ["wtc1f06"]);
   assert.ok(b.mb < PRESET_MB, `${b.mb}`);
   assert.ok(PATCHES.jqGuitar.sample === "rockGuitar", "the guitar kept (the A/B)");

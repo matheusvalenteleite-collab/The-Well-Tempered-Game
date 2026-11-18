@@ -140,7 +140,7 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   wtc1p14: "harpsichordSampled",
   wtc1f14: "jazzQuartet",
   wtc1p15: "chip",
-  wtc1f15: "chorinho",
+  wtc1f15: "berlinSchool", // D910: the owner: "Don't use chorinho for that fugue which had megafm. Go for some electronic instrument like classic chip."
   wtc1p16: "chip",
   wtc1f16: "abbeyRoad",
   wtc1p17: "chip",
