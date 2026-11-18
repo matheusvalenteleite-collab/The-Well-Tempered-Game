@@ -98,7 +98,8 @@ test("D593: the level at the master, set as the piece starts, constant through t
 
 test("D715, D718: the Art of Fugue's levels: on their own sounds, a phone's only, about the defaults' median (raised up to 4 dB; C7 lowered 1 dB after the lift)", () => {
   const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter((id) => id.startsWith("bwv1080-")).map((id) => [id, p.id] as const));
-  assert.equal(all.length, 13);
+  // D805: and Contrapunctus I on the rebuilt BERLIN SCHOOL, 1.5 dB down on a phone (D715's limit).
+  assert.equal(all.length, 14);
   for (const [id, snd] of all) {
     assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
     const up = 20 * Math.log10(pieceLevel(snd, id, true));
