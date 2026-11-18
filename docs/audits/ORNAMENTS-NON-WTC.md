@@ -19,7 +19,7 @@ harpsichord concertos (see the end).
   `phrasing.ts` derives articulation from the instrument tables, not from the print. Every slur, dot and
   fermata in the print is therefore dropped. That is a design gap, not a data error. Each table below
   says what the print has.
-- **Additions by code (against the owner's rule)**: every MORE BACH piece has `kind: "fugue"`, so
+- **Additions by code: KEEP (the owner's rule, D876)**: every MORE BACH piece has `kind: "fugue"`, so
   `carrySubjectOrnaments()` (D277, `ornament-play.ts`) copies an ornament from the first entry of a
   subject, or from any note that has one in two entries, to that note of **every** entry that lacks it.
   Replayed on the current data, it adds **44 signs that neither the print (as the Humdrum encodings of it
@@ -31,8 +31,10 @@ harpsichord concertos (see the end).
   - Invention 15: 1, at bar 19.
   - Sinfonia 8: 18 short wavy lines, at bars 6-14, 18, 19, 21 and 22.
 
-  Removing them needs a code change (skip the carry for MORE BACH pieces, or everywhere), so it was not
-  made here. **Recommended FIX (code).**
+  **KEEP (owner's rule, D876).** The owner: "We copy the trills when Bach didn't write them given that
+  they're in the first entrance. The rationale is that the only reason he didn't was for keyboardistic
+  reasons, and that he'd kept them if writing for individual instrumentists one per voice. So we keep them."
+  Not errors. The Art of Fugue's printed signs (D872) carry by the same rule.
 - **Sign mapping** (`tools/wtc/sources.ts` `SIGN`):
   - `\prallmordent` (a wavy line with a stroke, Bach's *Trillo und Mordant*) becomes `"WM"`, played as
     the short wavy sign plus a mordent. ORNAMENTS.md gives `TR` for the Trillo und Mordant.
@@ -92,7 +94,7 @@ Härtel, i.e. the BG text) and in Sapp's encoding of BG 25.1, at the same bar, v
 says otherwise. Verdict FIX means: the print has it and the game should have it. **None of these were
 added.** Adding them is a data change (rows in `ornaments.json` keyed by the game ids, as `CONTRAPUNCTUS`
 does). They were left out for three reasons:
-- D277 would then carry them into every entry.
+- D277 would then carry them into every entry (since ruled intended: D876; and the signs added, D872).
 - The sign mapping for `prallprall`/`prallmordent` is unsettled (above).
 - The appoggiaturas need a short/long decision.
 
@@ -313,7 +315,7 @@ agreeing signs.
 |---|---|---|---|---|---|
 | 41 signs (mordents on the subject's 8th and quarter, short wavy lines on the 16ths) | both | M/m, W | same | Mut+kern | KEEP |
 | 32, beat 0 / 1 | 0 | grace Ab5 before G5; M on F5 | kern: `O` on F5 and no grace | Mut vs kern | UNSURE (scan not read) |
-| bars 5, 6, 12, 13 (beat 1) | 1 | +4 mordents carried by D277 | none | code | FIX (code) |
+| bars 5, 6, 12, 13 (beat 1) | 1 | +4 mordents carried by D277 | none | code | KEEP (owner's rule, D876) |
 
 ### Inventions 6, 8, 13, 14 (bwv777, 779, 784, 785)
 
@@ -328,7 +330,7 @@ agreeing signs.
 |---|---|---|---|---|---|
 | 17 signs | both | M/m, W | same | Mut+kern; scan p. 9 for bars 1-11 | KEEP |
 | **10, beat 0** | 0 | — | **mordent on C5** | scan p. 9 + kern | **FIX (made)** |
-| 2-5, 11, 12, 17, 22, 23 | both | +15 mordents carried by D277 | none | code | FIX (code) |
+| 2-5, 11, 12, 17, 22, 23 | both | +15 mordents carried by D277 | none | code | KEEP (owner's rule, D876) |
 
 ### Invention 9 (bwv780)
 
@@ -404,7 +406,7 @@ re-encoded by Sapp from BG vol. 3, so where the two differ, the scan was read.
 | bar | voice | game has | print has | source | verdict |
 |---|---|---|---|---|---|
 | 4:4 · 6:18 · 8:2, 10, 1, 3 · 11:9, 24, 28 · 14:2, 7 · 15:37 | as in data | W, T | same signs | Mut+kern | KEEP (13 signs) |
-| Sinfonia 8, bars 6-22 | all | +18 short wavy lines carried by D277 | none | code | FIX (code) |
+| Sinfonia 8, bars 6-22 | all | +18 short wavy lines carried by D277 | none | code | KEEP (owner's rule, D876) |
 
 ### Sinfonia 5 (bwv791): the largest gap
 
@@ -439,8 +441,8 @@ re-encoded by Sapp from BG vol. 3, so where the two differ, the scan was read.
 | piece group | FIX made | FIX needed, not made (code or owner) | UNSURE | KEEP |
 |---|---|---|---|---|
 | Art of Fugue (19 pieces) | 0 | ~95 missing ornaments and small notes in 15 pieces; all slurs, dots and fermatas | ~25 (sign family, short/long, three Mutopia/Sapp disagreements) | C1, C2, C5, Canon 12: no ornaments, correct; C14's 2 signs |
-| Inventions (15) | 1 (Inv. 7) | 15 wrong signs (Inv. 2 ×5, 9 ×3, 12 ×5, plus 2 missing in 9); 3 turns lost on ties (Inv. 3 ×2, 9 ×1); 26 signs added by the D277 carry; slurs | 6 | ~215 signs |
-| Sinfonias (15) | 4 (Sinf. 1 ×2, 13 ×2) | Sinfonia 7's extra trill (tutorial depends on it); Sinfonia 5's ~95; 18 signs added by the D277 carry in Sinfonia 8 | 2 (Sinf. 1 strokes, 2's long wavy line) | 22 signs |
+| Inventions (15) | 1 (Inv. 7) | 15 wrong signs (Inv. 2 ×5, 9 ×3, 12 ×5, plus 2 missing in 9); 3 turns lost on ties (Inv. 3 ×2, 9 ×1); 26 signs added by the D277 carry (KEEP, D876); slurs | 6 | ~215 signs |
+| Sinfonias (15) | 4 (Sinf. 1 ×2, 13 ×2) | Sinfonia 7's extra trill (tutorial depends on it); Sinfonia 5's ~95; 18 signs added by the D277 carry in Sinfonia 8 (KEEP, D876) | 2 (Sinf. 1 strokes, 2's long wavy line) | 22 signs |
 
 ## Wrong notes or rhythms noticed
 
