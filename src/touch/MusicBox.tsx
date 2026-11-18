@@ -10,7 +10,7 @@
  */
 import { tr } from "../i18n/index.ts";
 import { ORN_RISE, bossBar, cadenceMarks, entryMarks, flags, ornText, pixRaw, pixText, sparks, subjectFx, textWidth, zoneGlow, type Burst, type FlagVariant, type Pop, type Span } from "./box-fx.ts";
-import { firstFrom, lyricsOf, type Syllable } from "./lyrics.ts";
+import { firstFrom, wordsFor, type Syllable } from "./lyrics.ts";
 import { markLegend, marksHas } from "./readings.ts";
 import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGeo } from "./box-whole.ts";
 import { wholeLegend, type BoxMark, type WholeBox } from "./whole-marks.ts";
@@ -583,8 +583,25 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const miss = tok("--tg-miss");
   const edge = tok("--tg-fg");
   // D347: the sung words under the player's voice (drawn first: the blocks stay on top).
-  const syls = fr.piece ? lyricsOf(fugueById(fr.piece), fr.voice) : null;
-  if (syls) paintLyrics(g, syls, fr, { xOf, yOf, lift: (n) => altOf(n.step, n.midi) * shift, bh, w, h, t0, t1: t0 + span, ink: edge });
+  // D679: a chorale's second line stacked under the first, as a hymnal prints them; a lower voice the edition gives no
+  // words takes the soprano's, a shade fainter (its syllables under its own notes that start with them).
+  const words = fr.piece ? wordsFor(fugueById(fr.piece), fr.voice) : null;
+  // D679 (the owner chose B, the word line): a chorale's words on their own line; BWV 228's and 54's under the notes (D347).
+  const wordLine = !!words && !!fr.piece?.startsWith("chor");
+  if (words && wordLine) {
+    // D679 (design studio; the owner chose B): a chorale's words on a line of their own at the box's foot, as a hymnal prints
+    // them under the staves: each syllable at its own time, the one sung now lit, the second line under the first.
+    const s = bh >= 16 ? 2 : 1;
+    // Over what lies on the roll's foot (the voice legend: D473), not under it.
+    const footC = Math.round((fr.foot ?? footPx) / PX);
+    const y1 = h - footC - 8 * s - (words.second ? 8 * s : 0) - 2;
+    wordLinePaint(g, words.first, xOf, fr.now, t0, t0 + span, w, y1, s, edge, words.borrowed ? 0.75 : 1);
+    if (words.second) wordLinePaint(g, words.second, xOf, fr.now, t0, t0 + span, w, y1 + 8 * s, s, edge, words.borrowed ? 0.75 : 1);
+  } else if (words) {
+    const geo = { xOf, yOf, lift: (n: LaneNote) => altOf(n.step, n.midi) * shift, bh, w, h, t0, t1: t0 + span, ink: edge, drop: 0, alpha: words.borrowed ? 0.7 : 1 };
+    paintLyrics(g, words.first, fr, geo);
+    if (words.second) paintLyrics(g, words.second, fr, { ...geo, drop: 7 * (bh >= 16 ? 2 : 1) + 1 });
+  }
   const played: [number, LaneNote[]][] = [[fr.voice, fr.notes]];
   if (fr.notes2 && fr.voice2 !== undefined) played.push([fr.voice2, fr.notes2]);
   // D374 (the owner: the box shows Bach's music): every note not yet played a plain block (D332's gap
@@ -750,7 +767,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
       const x = Math.max(playX + 2, xOf(n.on));
       // D347: where the words stand under the notes, YOU over the voice's next entry only (after a rest),
       // not over a note the words already mark.
-      if (!syls) {
+      if (!words) {
         if (x < w - 12) youLabel(g, x, Math.min(h - 6, yOf(n.step) + bh + 7), inkOf(fr.voice, fr.count), edge, fxClock);
       } else if (x < w - 12 && xOf(n.on) > playX + 24) youLabel(g, x, Math.max(0, yOf(n.step) - 8), inkOf(fr.voice, fr.count), edge, fxClock);
     }
@@ -951,6 +968,36 @@ interface LyricGeo {
   t0: number;
   t1: number;
   ink: string;
+  /** D679: the second line's drop under the first, in px; and a borrowed line's fainter share. */
+  drop?: number;
+  alpha?: number;
+}
+/** D679: a line of words at a fixed height: each syllable at its tick, the one sounding now lit; hyphens between a word's syllables. */
+function wordLinePaint(g: CanvasRenderingContext2D, syls: readonly Syllable[], xOf: (t: number) => number, now: number, t0: number, t1: number, w: number, y: number, s: number, ink: string, fade: number) {
+  let prevEnd = -Infinity;
+  let prevJoined = false;
+  for (let i = firstFrom(syls, t0); i < syls.length; i++) {
+    const sy = syls[i];
+    if (sy.on > t1) break;
+    // A word's syllables close up; between words a space (the next word never runs into the last).
+    const x = Math.max(xOf(sy.on), prevEnd + (prevJoined ? 2 : 5) * s);
+    const sp = lyricSprite(sy.shown, ink, s);
+    const tw = sp ? sp.width : textWidth(sy.shown, s) - s;
+    const lit = sy.on <= now && now < sy.end;
+    if (prevJoined && x - prevEnd > 4 * s) {
+      g.globalAlpha = LYRIC_ALPHA * fade;
+      g.fillStyle = ink;
+      g.fillRect(Math.round((prevEnd + x) / 2 - s), y + 2 * s, 3 * s, s);
+    }
+    if (x < w && x + tw > 0) {
+      g.globalAlpha = (lit ? 1 : LYRIC_ALPHA) * fade;
+      if (sp) g.drawImage(sp, x, y - 2 * s);
+      else pixRaw(g, sy.shown, x, y, ink, s);
+    }
+    prevEnd = x + tw;
+    prevJoined = sy.joined;
+  }
+  g.globalAlpha = 1;
 }
 const LYRIC_ALPHA = 0.55;
 const EXTENDER_ALPHA = 0.45;
@@ -989,10 +1036,11 @@ function paintLyrics(g: CanvasRenderingContext2D, syls: readonly Syllable[], fr:
     return lo;
   };
   /** Where a word's letters begin under a block: past its shadow, room left for the umlauts. */
-  const under = (n: LaneNote) => k.yOf(n.step) - k.lift(n) + k.bh + 1 + 2 * s;
+  const under = (n: LaneNote) => k.yOf(n.step) - k.lift(n) + k.bh + 1 + 2 * s + (k.drop ?? 0);
+  const fade = k.alpha ?? 1;
   const from = firstFrom(syls, k.t0);
   const placed: ({ x: number; end: number; y: number; j: number; melisma: boolean } | null)[] = [];
-  g.globalAlpha = LYRIC_ALPHA;
+  g.globalAlpha = LYRIC_ALPHA * fade;
   for (let i = from; i < syls.length; i++) {
     const sy = syls[i];
     let j = at(sy.on);
@@ -1035,7 +1083,7 @@ function paintLyrics(g: CanvasRenderingContext2D, syls: readonly Syllable[], fr:
     const sy = syls[from + q];
     if (p.melisma) {
       // The melisma's line: under the first note from the word's end, then under each note to the last.
-      g.globalAlpha = EXTENDER_ALPHA;
+      g.globalAlpha = EXTENDER_ALPHA * fade;
       const n0 = notes[p.j];
       const e0 = k.xOf(n0.on + n0.dur) - 1;
       if (e0 > p.end + s && p.end + s < k.w) g.fillRect(p.end + s, p.y + 4 * s, e0 - p.end - s, s);
@@ -1055,7 +1103,7 @@ function paintLyrics(g: CanvasRenderingContext2D, syls: readonly Syllable[], fr:
       const left = p.end + s;
       const right = nx.x - s;
       if (right - left < 3 * s || left > k.w || right < 0) return;
-      g.globalAlpha = LYRIC_ALPHA;
+      g.globalAlpha = LYRIC_ALPHA * fade;
       const hx = p.melisma ? right - 3 * s : Math.round((left + right - 3 * s) / 2);
       g.fillRect(hx, (p.melisma ? nx.y : p.y) + 2 * s, 3 * s, s);
     }
