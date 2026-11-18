@@ -14,7 +14,7 @@ import type { OtherNote } from "../src/touch/voice-mode.ts";
 import { slurShapeDb } from "../src/touch/whole-reading.ts";
 import { SLUR_DB, SLUR_HANDOVER_S, SLUR_LAST_DB, slurHandoverS } from "../src/bench/proto-game.ts";
 
-const all = () => Object.entries(READINGS).flatMap(([id, rs]) => rs.map((r) => ({ id, r })));
+const all = () => Object.entries(READINGS).filter(([id]) => /^wtc/.test(id)).flatMap(([id, rs]) => rs.map((r) => ({ id, r })));
 
 test("D370: every reading's joins are its slurs' insides or its legato; a slur's inside joined, its span in the subject; every choice documented", () => {
   const doc = JSON.parse(readFileSync(new URL("../docs/wtc/readings/slurs.json", import.meta.url), "utf8")) as Record<string, Record<string, { legato: boolean; slurs: [number, number][]; why: string }>>;

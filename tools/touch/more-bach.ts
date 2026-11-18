@@ -135,6 +135,8 @@ const AOF: Spec[] = [
     return {
       id: `bwv1080-${String(n).padStart(2, "0")}`,
       collection: "aof",
+      // D870: its printed ornaments kept as signs (the audit: none reached the game).
+      keepOrnaments: true,
       number: n,
       title: `Contrapunctus ${n}`,
       short: `CONTRAPUNCTUS ${n}`,
@@ -162,6 +164,8 @@ const AOF: Spec[] = [
       (form): Spec => ({
         id: `bwv1080-${n}${form[0]}`,
         collection: "aof",
+        // D870: its printed ornaments kept as signs (the audit: none reached the game).
+        keepOrnaments: true,
         number: n,
         title: `Contrapunctus ${n} ${a}, ${form}`,
         short: `CONTRAPUNCTUS ${n} · ${form.toUpperCase()}`,
@@ -190,6 +194,8 @@ const AOF: Spec[] = [
     ([n, name, short, mutopia, bg]): Spec => ({
       id: `bwv1080-c${n}`,
       collection: "aof",
+      // D870: its printed ornaments kept as signs (the audit: none reached the game).
+      keepOrnaments: true,
       number: n,
       title: `Canon ${name}`,
       short: `CANON ${short}`,
@@ -270,6 +276,37 @@ const INV: Spec[] = INV_MUTOPIA.map((mutopia, i) => {
   };
 });
 
+/**
+ * D875: Sinfonia 5 as the Bach-Gesellschaft prints it (vol. 3, pp. 24-25, read on the scan): seven semiquavers the
+ * print writes as three triplet demisemiquavers (bars 9, 10, 22, 25, 26, 35, 36), and the soprano's D-flat of bar 27
+ * tied over into bar 28 (the edition's D natural there is a slip: the harmony is B-flat minor).
+ */
+const SINF5_FIXES: NonNullable<Spec["fixes"]> = [
+  { voice: 1, bar: 9, at: "7/16", from: "G5", length: "1/48" },
+  { voice: 1, bar: 9, at: "11/24", add: "Eb5", dur: "1/48" },
+  { voice: 1, bar: 9, at: "23/48", add: "B4", dur: "1/48" },
+  { voice: 0, bar: 10, at: "7/16", from: "Ab5", length: "1/48" },
+  { voice: 0, bar: 10, at: "11/24", add: "F5", dur: "1/48" },
+  { voice: 0, bar: 10, at: "23/48", add: "C5", dur: "1/48" },
+  { voice: 0, bar: 22, at: "7/16", from: "F5", length: "1/48" },
+  { voice: 0, bar: 22, at: "11/24", add: "E5", dur: "1/48" },
+  { voice: 0, bar: 22, at: "23/48", add: "F5", dur: "1/48" },
+  { voice: 1, bar: 25, at: "11/16", from: "Eb5", length: "1/48" },
+  { voice: 1, bar: 25, at: "17/24", add: "Db5", dur: "1/48" },
+  { voice: 1, bar: 25, at: "35/48", add: "C5", dur: "1/48" },
+  { voice: 0, bar: 26, at: "11/16", from: "Ab5", length: "1/48" },
+  { voice: 0, bar: 26, at: "17/24", add: "G5", dur: "1/48" },
+  { voice: 0, bar: 26, at: "35/48", add: "F5", dur: "1/48" },
+  { voice: 1, bar: 35, at: "7/16", from: "C4", length: "1/48" },
+  { voice: 1, bar: 35, at: "11/24", add: "D4", dur: "1/48" },
+  { voice: 1, bar: 35, at: "23/48", add: "Eb4", dur: "1/48" },
+  { voice: 0, bar: 36, at: "7/16", from: "G4", length: "1/48" },
+  { voice: 0, bar: 36, at: "11/24", add: "Ab4", dur: "1/48" },
+  { voice: 0, bar: 36, at: "23/48", add: "Bb4", dur: "1/48" },
+  { voice: 0, bar: 28, at: "0", from: "D5", to: "Db5" },
+  { voice: 0, bar: 28, at: "0", from: "Db5", tie: true },
+];
+
 const SIN: Spec[] = SIN_MUTOPIA.map((mutopia, i) => ({
   id: `bwv${787 + i}`,
   collection: "sin",
@@ -286,6 +323,7 @@ const SIN: Spec[] = SIN_MUTOPIA.map((mutopia, i) => ({
   voiceNames: THREE,
   entries: true,
   credit: i + 1 === 5 ? "MUTOPIA PROJECT · TYPESET BY OLIVIER VERMERSCH FROM THE BACH-GESELLSCHAFT EDITION · PUBLIC DOMAIN" : SIN_PD,
+  ...(i + 1 === 5 ? { fixes: SINF5_FIXES } : {}),
 }));
 
 const CONCERTO: Spec[] = (
@@ -1131,6 +1169,9 @@ export interface LyNote {
   graceKind?: string;
   /** D366: for a staff opened inside another staff's music (a voice dividing onto an extra staff), that staff. */
   host?: string;
+  /** D871: its articulations (staccato, fermata, …) and the slurs it opens or closes. */
+  art?: string[];
+  slur?: string[];
 }
 export interface LyScore {
   notes: LyNote[];
@@ -1196,7 +1237,14 @@ export interface Read {
 }
 
 /** D757: MusicXML's and LilyPond's ornament names as kern's signs (ornament-play.ts: the step read from the bar, upper case its default); others unplayed. */
-const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", downprall: "T", prallprall: "T", prallmordent: "TM", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
+/**
+ * D757, D870: MusicXML's and LilyPond's ornament names as the game's signs (ornament-play.ts, src/music/ornaments.ts; the
+ * step read from the bar, upper case its default), after Bach's Explication (docs/playback/ORNAMENTS.md): the short
+ * wavy line W, the longer wavy line (Trillo) T, the wavy line with a stroke at its end (Trillo und Mordant) TR, the
+ * mordent M, the turn S; the hooked signs (Doppelt-Cadence, from below D or above U, "und Mordant" R) as AOF_HOOKS reads
+ * them on the print; others unplayed (listed).
+ */
+const KERN_SIGN: Record<string, string> = { "trill-mark": "T", trill: "T", startTrillSpan: "T", downprall: "T", prallprall: "T", prallmordent: "TR", mordent: "M", "inverted-mordent": "W", prall: "W", turn: "S", "inverted-turn": "$", reverseturn: "$" };
 
 export function readPiece(s: Spec): Read {
   const dir = s.lyDir ? `${SRC}${s.dir}/${s.lyDir}/` : `${SRC}${s.dir}/mutopia/${s.mutopia}/`;
@@ -1300,7 +1348,12 @@ export function readPiece(s: Spec): Read {
       if (!host) throw new Error(`${s.id}: an appoggiatura ${g.pitch} with no note at ${g.on}`);
       mark(ticks(host.on), host.midi).graces.push(`${g.graceKind === "acciaccatura" ? "q" : "Q"}${g.pitch}`);
     }
-    return { voices, spell, spelled, bars, meter, length, agree, orn: [...marks.values()], unplayed };
+    // The mirror fugues (read from their MIDI): the LilyPond holds both forms, the inversus after the rectus: an
+    // ornament on no note of this form is looked for one form later (the inversus's own place).
+    const shift = ticks(ly.length) - length;
+    const at = (on: number, midi: number) => voices.some((v) => v.some((n) => n[0] === on && n[2] === midi));
+    const orn = [...marks.values()].map((o) => (s.fromMidi && !at(o.on, o.midi) && at(o.on - shift, o.midi) ? { ...o, on: o.on - shift } : o));
+    return { voices, spell, spelled, bars, meter, length, agree, orn, unplayed };
   }
   return { voices, spell, spelled, bars, meter, length, agree };
 }
