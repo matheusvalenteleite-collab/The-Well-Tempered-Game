@@ -18,8 +18,8 @@ test("D757: the Aria and thirty variations, a MORE BACH section, NEXT among them
   assert.deepEqual(GOLD_IDS, Array.from({ length: 31 }, (_, n) => `bwv988-${String(n).padStart(2, "0")}`));
   assert.ok(!GOLD_IDS.includes("bwv988-31"), "no Aria da capo tile");
   assert.ok(MORE_SECTIONS.some((s) => s.id === "goldberg" && s.title === "GOLDBERG VARIATIONS"));
-  assert.ok(!OWN_TAB_SECTIONS.includes("goldberg") && !LITE_TABS.some(([, t]) => /GOLDBERG/.test(t)), "no tab of its own (yet)");
-  for (const id of GOLD_IDS) assert.equal(liteTabOf(id), "MORE", id);
+  assert.ok(OWN_TAB_SECTIONS.includes("goldberg") && LITE_TABS.some(([t]) => t === "GOLD"), "D867: its own tab, out of MORE BACH");
+  for (const id of GOLD_IDS) assert.equal(liteTabOf(id), "GOLD", id);
   assert.deepEqual(liteNextOrder("bwv988-12"), [...GOLD_IDS]);
   assert.equal(nextIn(liteNextOrder("bwv988-30"), "bwv988-30"), "bwv988-00");
 });

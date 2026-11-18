@@ -25,7 +25,7 @@ test("D382: Book I's 24 fugues are the condition, preludes not needed", () => {
 
 test("D489: Book II open from the start for the friends: its tab and NEXT order, with no fugue finished", () => {
   assert.equal(bookTwoOpen(), true);
-  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV"], "MORE BACH and CHORALES stay behind the passphrase; THE ART OF FUGUE and THE INVENTIONS AND SINFONIAS for everyone (D727, D750)");
+  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD"], "MORE BACH and CHORALES stay behind the passphrase; THE ART OF FUGUE and THE INVENTIONS AND SINFONIAS for everyone (D727, D750)");
   assert.ok(liteNextOrder("wtc1f24", true).includes("wtc2f01"), "NEXT goes on into Book II");
 });
 
@@ -33,7 +33,7 @@ test("D382: the passphrase unlock still opens everything without Book I finished
   setUnlocked(true);
   assert.equal(store.get(UNLOCK_KEY), "1");
   assert.equal(bookTwoOpen(), true);
-  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
+  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD", "MORE", "CHORALES"]);
   assert.equal(bookTwoNews(), false, "no celebration for the owner's unlock");
 });
 
