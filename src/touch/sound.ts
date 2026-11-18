@@ -574,6 +574,13 @@ export const PIZZ_PHONE_LIFT = { hz: 400, db: 14 } as const;
  */
 export const BAND_SEND = 0.18;
 export const CONTINUO = { db: -8, phoneDb: -4.5, pan: -0.06, late: 0.015 } as const;
+/**
+ * D852: SUPER 16-BIT's continuo cello (s16Cello: the concertos', BWV 1043's and BWV 54's bass only) on a phone, its upper
+ * partials lifted as the consort's (D365): with the soloist brought over the band (player-lift.ts SOLO_TARGET_DB) the
+ * continuo alone stood 6-11 LU under the loudest voice alone on the phone model (D645's measure); the trim's floor (6 dB) did
+ * not reach it.
+ */
+export const CONSOLE_CELLO_PHONE_LIFT = { hz: 700, db: 6 } as const;
 /** D430: BAROQUE BAND's cello on a phone (as the consort's, CELLO_PHONE_LIFT, measured for the band). */
 export const BAND_CELLO_PHONE_LIFT = { hz: 700, db: 5 } as const;
 /**
@@ -1046,7 +1053,7 @@ export const PATCHES = {
    * SOUND-PRINCIPLES.md), the strings' envelope, send and bow; its bow's bite and upper partials carry
    * the bass on a phone (cello16: the Freesound cello as the console held it).
    */
-  s16Cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, send: 0.3, level: 0.6, sample: "cello16", bow: STRING_BOW }),
+  s16Cello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, rec: { a: 0.05, d: 0.3, s: 0.85, fade: 4, r: 0.12 }, send: 0.3, level: 0.6, sample: "cello16", bow: STRING_BOW, phoneLift: CONSOLE_CELLO_PHONE_LIFT }),
   s16Bassoon: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.6 }], filter: { freq: 2.4, q: 1, env: 1.3, envDecay: 0.1 }, amp: { a: 0.012, d: 0.25, s: 0.78, r: 0.08 }, rec: { a: 0.012, d: 0.25, s: 0.78, fade: 4, r: 0.08 }, send: 0.12, hp: 120, level: 0.64, sample: "bassoon16" }),
   // MEGA FM (the Mega Drive's YM2612: every channel its own two-operator instrument, the modulation
   // index decaying on every note, no reverb; a 9-bit grain and a 7 kHz lowpass at the output).
@@ -1727,7 +1734,9 @@ export const PRESETS: Preset[] = [
     id: "super16",
     name: "SUPER 16-BIT",
     // D560: held to the budget (25 MB): BAND_SLIM, a recording every fourth semitone (the console's own way: few samples stretched far); 54.1 → 20.9 MB.
-    slim: { ...BAND_SLIM, stride: 4 },
+    // D856: the sung alto of BWV 54's trial (PIECE_TRIALS bwv54-v2) every recording (a voice read 2 semitones off its own is a
+    // formant shifted): only where that trial seats it.
+    slim: { ...BAND_SLIM, stride: 4, strides: { voiceA: 1 } },
     slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,
     fx: "spc",
@@ -2361,6 +2370,62 @@ export function mergeSeats(table: SeatTable) {
 mergeSeats(OCTAVE_SEATS);
 
 /**
+ * D86x, BWV 54'S ALTO, TRIALS (not offered: the owner picks). The owner: "I used to love BWV 54 in the game … It's absurd
+ * that even the solo [alto] had the same sound as the orchestra." On SUPER 16-BIT (its sound since D341) the alto sings on
+ * the strings (s16Strings, the violas' own patch); until D434 (7b3da1b1, 1 Nov) the tempo steps changed the sound (D351):
+ * FAST played the cantata on TRACKER, the alto alone on its 8-bit choir "aah". Each trial below gives the alto a timbre of
+ * its own, the other voices as their sound seats them; heard with `?trial=<id>` (play.html, bench.html: pieceTrialNow), in
+ * the Sound Lab, or by the render harness (setPieceTrial). PIECE_SOUND is unchanged.
+ */
+export type PieceTrial = { name: string; sound: string; why: string; pieces: Readonly<Record<string, Partial<Record<number, readonly Slot[]>>>> };
+/** D86x: the alto's level on SUPER 16-BIT's trials (its seat's level): its line alone as loud as today's alto alone on the phone model (renders). */
+const TRIAL_ALTO = { sung: 1.07, oboe: 0.36 } as const;
+export const PIECE_TRIALS: Readonly<Record<string, PieceTrial>> = {
+  "bwv54-v1": {
+    name: "BWV 54 v1: TRACKER, the alto on its choir (D351's FAST step, as it was)",
+    sound: "tracker",
+    why: "The sound BWV 54 had at the FAST tempo step until D434: the violins on the tracker violin, the violas on its harpsichord, the alto alone on the 8-bit choir \"aah\", the continuo on the slapped bass (TRACKER's line-ups, unchanged since).",
+    pieces: {
+      "bwv54-1": { 6: [["trkViolin", -0.35], ["trkViolin", 0.35], ["trkHarpsi", -0.2, 0.5], ["trkHarpsi", 0.2, 0.5], ["trkChoir", 0, 0.84], ["trkBass", 0]] },
+      "bwv54-3": { 4: [["trkViolin", -0.35], ["trkHarpsi", 0.35], ["trkChoir", -0.35], ["trkBass", 0.35]] },
+    },
+  },
+  "bwv54-v2": {
+    name: "BWV 54 v2: SUPER 16-BIT, the alto sung (VocalSet's alto)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto on SOLO VOICES' alto singer (VocalSet, F3-E5 recorded: every note read from its own recording), in the middle, in front of the strings.",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["singA", 0, TRIAL_ALTO.sung], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["singA", 0, TRIAL_ALTO.sung], ["s16Bassoon", 0]] },
+    },
+  },
+  "bwv54-v3": {
+    name: "BWV 54 v3: SUPER 16-BIT, the alto on a solo oboe (ZELENKA TRIO's)",
+    sound: "super16",
+    why: "SUPER 16-BIT's strings as they are, the alto on ZELENKA TRIO's first oboe (Iowa's, its tongue), in the middle: an obbligato reed's line over the strings. Its lowest recording is B♭3: the alto's 35 notes under it (F3-A3) are read 1-5 semitones down (within STRETCH_MAX).",
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Bassoon", 0]] },
+    },
+  },
+};
+let pieceTrial: string | null = (() => {
+  try {
+    const t = typeof location !== "undefined" ? new URLSearchParams(location.search).get("trial") : null;
+    return t && PIECE_TRIALS[t] ? t : null;
+  } catch {
+    return null;
+  }
+})();
+/** D86x: a piece trial on (its id in PIECE_TRIALS) or off (null). */
+export function setPieceTrial(id: string | null) {
+  pieceTrial = id && PIECE_TRIALS[id] ? id : null;
+}
+export const pieceTrialNow = () => pieceTrial;
+/** D86x: the sound a piece trial plays the piece on (undefined: no trial for it). */
+export const trialSoundFor = (pieceId: string): string | undefined => (pieceTrial && PIECE_TRIALS[pieceTrial].pieces[pieceId] ? PIECE_TRIALS[pieceTrial].sound : undefined);
+
+/**
  * D715: THE ART OF FUGUE'S LEVELS ON A PHONE (D593's Preset.levels: the whole mix, a constant of the piece and its sound).
  * Each piece on its own sound (D708) measured whole on the phone model (tools/touch/bass-phone/render.cjs `solo: "mix"`,
  * the player on the top voice, DRUMS off: mono, two 2nd-order 600 Hz high-passes, ebur128), against the 48 defaults'
@@ -2714,7 +2779,9 @@ export function setPieceLayout(l: { preset: string; count: number; slots: readon
  * sampledNow), or null where the piece has none.
  */
 export function pieceLineUp(presetId: string, f: { id: string; voices: readonly unknown[] }): { preset: string; count: number; slots: readonly Slot[]; only: true } | null {
-  const slots = presetById(presetId).pieces?.[f.id]?.[f.voices.length];
+  // D86x: a piece trial's line-up on its sound (PIECE_TRIALS), in place of the sound's own.
+  const tr = pieceTrial ? PIECE_TRIALS[pieceTrial] : null;
+  const slots = (tr && tr.sound === presetById(presetId).id ? tr.pieces[f.id]?.[f.voices.length] : undefined) ?? presetById(presetId).pieces?.[f.id]?.[f.voices.length];
   return slots ? { preset: presetId, count: f.voices.length, slots, only: true } : null;
 }
 export const pieceLayoutNow = () => pieceLayout;

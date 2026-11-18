@@ -1,4 +1,4 @@
-import { playerSound } from "./sound.ts";
+import { playerSound, trialSoundFor } from "./sound.ts";
 
 /**
  * D246: each piece's own sound (the owner: "choose a default preset for every piece, the one which
@@ -313,7 +313,8 @@ function moreBachSounds(): Record<string, string> {
 
 /** The sound a piece opens with: the player's choice for it, else its own, else the game's default. */
 export function soundFor(id: string, chosen: Readonly<Record<string, string>>, fallback: string): string {
-  const s = chosen[id] ?? PIECE_SOUND[id] ?? fallback;
+  // D86x: a piece trial (sound.ts PIECE_TRIALS, `?trial=`) plays the piece on its own sound.
+  const s = trialSoundFor(id) ?? chosen[id] ?? PIECE_SOUND[id] ?? fallback;
   // D249: a choice of a withdrawn preset (the organ, kept from before) opens on its stand-in;
   // D292: anything else not among the five (TRAVERSO, an unknown id) on CLASSIC CHIP.
   return playerSound(s);

@@ -22,6 +22,9 @@ const { chromium } = require(process.env.PLAYWRIGHT || '/opt/node-tools/node_mod
 const fs = require('fs');
 const PORT = process.env.PORT || '5300';
 const DESKTOP = process.env.DESKTOP === '1';
+const MIX = process.env.MIX === '1';
+const APPLIED = process.env.APPLIED === '1' ? (process.env.SOLOCAL === '1' ? 'cal' : true) : false;
+const TRIAL = process.env.TRIAL || '';
 const [out, ...jobs] = process.argv.slice(2);
 (async () => {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -44,23 +47,30 @@ const [out, ...jobs] = process.argv.slice(2);
     const [fromBar, secs] = part ? part.split(':').map(Number) : [0, 0];
     const pg = await page();
     // D718: MORE BACH's pieces (the Art of Fugue) are registered once their notes and seats load.
-    const nv = await pg.evaluate(async (id) => { const m = await import('/src/touch/fugue.ts'); await m.loadExtras(); return m.fugueById(id).voices.length; }, piece);
-    const keyOf = (v) => `${piece}:${v}${snd ? '@' + snd : ''}${part ? '~' + part : ''}`;
-    if ([...Array(nv).keys()].every((v) => results[keyOf(v)])) continue;
+    const [nv, playable] = await pg.evaluate(async (id) => { const m = await import('/src/touch/fugue.ts'); await m.loadExtras(); const f = m.fugueById(id); if (f.id !== id) throw new Error(`no piece ${id}`); return [f.voices.length, f.playable ?? null]; }, piece);
+    const keyOf = (v) => `${piece}:${v}${snd ? '@' + snd : ''}${part ? '~' + part : ''}${TRIAL ? '%' + TRIAL : ''}`;
+    // D851: PLAYABLE=1, the player's own renders only in the voices a player can choose (a concerto's solo parts; f.playable).
+    const mine = process.env.PLAYABLE === '1' && playable ? playable : [...Array(nv).keys()];
+    if (mine.every((v) => results[MIX ? `${keyOf(v)}#mix` : keyOf(v)])) continue;
     const t0 = Date.now();
     // one render: the player in `pv`, only `solo` heard ('P': the player's own voice; a number: that band voice)
-    const render = (pv, solo) => pg.evaluate(async ([id, snd, pv, solo, fromBar, secs]) => {
+    const render = (pv, solo) => pg.evaluate(async ([id, snd, pv, solo, fromBar, secs, applied, trial]) => {
       const SR = 24000, N = 512, dt = N / SR;
       const { fugueById, barStart } = await import('/src/touch/fugue.ts');
       const chipM = await import('/src/touch/chip.ts');
-      const { setPreset, setBacking, playerSound } = await import('/src/touch/sound.ts');
+      const { setPreset, setBacking, playerSound, setPieceTrial } = await import('/src/touch/sound.ts');
+      // D855: TRIAL=<id>, a piece trial's line-up (sound.ts PIECE_TRIALS) on its sound (named with @sound).
+      setPieceTrial?.(trial || null);
       const { PIECE_SOUND } = await import('/src/touch/piece-sound.ts');
       const { ProtoGame } = await import('/src/bench/proto-game.ts');
       const { protoById, easyOf } = await import('/src/bench/protos.ts');
       const { playReading } = await import('/src/touch/readings.ts');
       const { tempoOf } = await import('/src/touch/tempi.ts');
       const { loadColours } = await import('/src/touch/colour.ts');
-      (await import('/src/touch/player-lift.ts')).BALANCE.raw = true;
+      // D851: APPLIED=1, the balance as the game applies it (the player's level on its bus, the band's trims, the solo's room).
+      if (!applied) (await import('/src/touch/player-lift.ts')).BALANCE.raw = true;
+      // D851: SOLOCAL=1 (with APPLIED=1), the calibration: the band as the game plays it, the solo pieces' player at 0 dB.
+      if (applied === 'cal') (await import('/src/touch/player-lift.ts')).BALANCE.soloRaw = true;
       await loadColours().catch(() => {});
       const f = fugueById(id);
       const sound = playerSound(snd || PIECE_SOUND[id] || 'chip');
@@ -90,12 +100,13 @@ const [out, ...jobs] = process.argv.slice(2);
         const all = f.voices.flat().map((n) => n[2]);
         // D578: as the game prepares a piece (TouchApp: its opening, so a piece's own line-up is planned first).
         await ch.prepare(all, f.voices[pv].map((n) => n[2]), chipM.openingOf(f));
-        const mute = f.voices.map((_, u) => u).filter((u) => u !== pv && u !== solo);
+        // D851: solo 'B', the whole band together (the player's notes at 1e-6): a many-voiced band summed as it sounds.
+        const mute = solo === 'B' ? [] : f.voices.map((_, u) => u).filter((u) => u !== pv && u !== solo);
         if (solo !== 'P') { const o = ch.note.bind(ch); ch.note = (m, at, d, v, pl = {}) => o(m, at, d, v, pl.lead ? { ...pl, level: 1e-6 } : pl); }
         const proto = protoById('ladder');
         const g = new ProtoGame(f, [pv], from, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false, mute }, ch);
         g.wall = () => 0;
-        ch.mine.gain.value = 1;
+        ch.mine.gain.value = applied ? g.lift : 1;
         const W = 844, H = 390, y0 = 330, rowH = 9;
         g.rows = { yOf: (st) => y0 - st * rowH, stepAt: (y) => Math.round((y0 - y) / rowH), rowH, xOf: () => 0 };
         const bq = (type, fr, q, gain = 0) => { const x = ac.createBiquadFilter(); x.type = type; x.frequency.value = fr; x.Q.value = q; x.gain.value = gain; return x; };
@@ -134,7 +145,7 @@ const [out, ...jobs] = process.argv.slice(2);
         ac.suspend(dt).then(tick);
         await ac.startRendering();
         // the voice measured: where the score has it sounding (a note of it held there), its energy there
-        const u = solo === 'P' ? pv : solo;
+        const u = solo === 'P' || solo === 'B' ? pv : solo;
         const nW = w.length;
         // (and heard: over -40 dB of its loudest window, D508's gate: a plucked note's tail died away under a held note is not the voice)
         let mx = 0; for (const x of w) mx = Math.max(mx, x[0]);
@@ -164,22 +175,46 @@ const [out, ...jobs] = process.argv.slice(2);
           segTick.push(tk);
           printed.push(g.whole?.levelAt ? f.voices.map((_, uu) => +g.whole.levelAt(uu, tk).toFixed(1)) : null);
         }
-        return { id: f.id, sound, reading: reading?.id ?? null, phone: navigator.maxTouchPoints > 0, v, segTick, printed };
+        // D851: the output in blocks of BLK steps (about 0.1 s), every block whatever sounds (`blk`: [K, phone] mean energy),
+        // and whether the score has the voice sounding there (`bsnd`): the band's voices summed block by block against the
+        // player's (tools/touch/player-lift/solo.ts), the many-voiced pieces' measure (a concerto's ripieno adds up).
+        const BLK = 5;
+        v.blk = []; v.bsnd = [];
+        for (let s0 = 0; s0 < nW; s0 += BLK) {
+          let c = 0, eKb = 0, ePb = 0, sn = 0;
+          for (let i = s0; i < Math.min(nW, s0 + BLK); i++) { c++; eKb += w[i][0]; ePb += w[i][1]; if (sounding[i]) sn++; }
+          v.blk.push([+(eKb / c).toExponential(3), +(ePb / c).toExponential(3)]);
+          v.bsnd.push(sn * 2 > c ? 1 : 0);
+        }
+        return { id: f.id, sound, reading: reading?.id ?? null, phone: navigator.maxTouchPoints > 0, v, segTick, printed, blkTick: ticks.filter((_, i) => i % BLK === 0) };
       } finally {
         AudioNode.prototype.connect = origConnect;
         window.AudioContext = Real;
       }
-    }, [piece, snd, pv, solo, fromBar, secs]);
+    }, [piece, snd, pv, solo, fromBar, secs, APPLIED, TRIAL]);
+    // D851: MIX=1, per playable voice two renders: the player alone and the whole band (`B`), stored under `<piece>:<v>@mix`.
+    if (MIX) {
+      for (const v of mine) {
+        const k = `${keyOf(v)}#mix`;
+        if (results[k]) continue;
+        const P = await render(v, 'P'); const B = await render(v, 'B'); renders += 2;
+        results[k] = { id: P.id, voice: v, sound: P.sound, phone: P.phone, applied: APPLIED, chain: 'after', voices: { P: P.v, B: B.v }, segTick: P.segTick, blkTick: P.blkTick };
+        console.log(k, P.sound, DESKTOP ? 'desktop' : 'phone', APPLIED ? 'applied' : 'raw', `P K${P.v.K} Ph${P.v.Ph} | B K${B.v.K} Ph${B.v.Ph}`);
+      }
+      fs.writeFileSync(out, JSON.stringify(results, null, 1));
+      if (renders > 60) { await p.close(); p = null; renders = 0; }
+      continue;
+    }
     const own = [], band = [];
-    for (let v = 0; v < nv; v++) { own.push(await render(v, 'P')); renders++; }
+    for (let v = 0; v < nv; v++) { if (mine.includes(v)) { own.push(await render(v, 'P')); renders++; } else own.push(null); }
     for (let u = 0; u < nv; u++) { band.push(await render(u === 0 ? 1 : 0, u)); renders++; }
-    for (let v = 0; v < nv; v++) {
+    for (const v of mine) {
       const voices = { P: own[v].v };
       for (let u = 0; u < nv; u++) if (u !== v) voices[`v${u}`] = band[u].v;
-      results[keyOf(v)] = { id: own[v].id, voice: v, sound: own[v].sound, reading: own[v].reading, phone: own[v].phone, chain: 'after', voices, segTick: own[v].segTick, printed: own[v].printed };
+      results[keyOf(v)] = { id: own[v].id, voice: v, sound: own[v].sound, reading: own[v].reading, phone: own[v].phone, chain: 'after', voices, segTick: own[v].segTick, printed: own[v].printed, blkTick: own[v].blkTick };
     }
     fs.writeFileSync(out, JSON.stringify(results, null, 1));
-    console.log(keyOf('*'), own[0].sound, DESKTOP ? 'desktop' : 'phone', ((Date.now() - t0) / 1000).toFixed(0) + 's', own.map((x, v) => `P${v} K${x.v.K} Ph${x.v.Ph}`).join(' '), '|', band.map((x, u) => `v${u} K${x.v.K} Ph${x.v.Ph}`).join(' '));
+    console.log(keyOf('*'), own[mine[0]].sound, DESKTOP ? 'desktop' : 'phone', ((Date.now() - t0) / 1000).toFixed(0) + 's', own.map((x, v) => (x ? `P${v} K${x.v.K} Ph${x.v.Ph}` : '')).join(' '), '|', band.map((x, u) => `v${u} K${x.v.K} Ph${x.v.Ph}`).join(' '));
     // a fresh page now and then (the offline contexts' memory)
     if (renders > 60) { await p.close(); p = null; renders = 0; }
   }

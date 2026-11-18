@@ -94,7 +94,7 @@ import { reveal } from "./reveal.ts";
 import { arcOf, handsAt, liftAt, lineAt, pedalSpans, type Arc } from "./arc.ts";
 import { BAND_GROWTH, PIECE_GROWTH, growthAt, lengthCaps, unisonAt, unisonLate, unisonSpans, type GrowthSpec, type MuteSpec, type UnisonSpan, type UnisonSpec } from "../touch/band-growth.ts";
 import { busoniReaches, expressiveAll, PATCHES, patchIdFor, pieceLineUp, preset, registerAll, setPieceLayout, toneAll } from "../touch/sound.ts";
-import { bandTrimDb, entryGain, liftGain, playerToneDb } from "../touch/player-lift.ts";
+import { bandTrimDb, doublingKeys, duckGain, entryGain, isSoloPiece, liftGain, playerToneDb, soloLiftDb, soloTrimDb } from "../touch/player-lift.ts";
 import type { Side } from "../touch/thumbs.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../touch/voice-mode.ts";
 import { SubjectSound } from "../touch/subject-fx.ts";
@@ -621,6 +621,8 @@ export class ProtoGame {
    */
   readonly trims: readonly number[];
   readonly tone: number;
+  /** D851: the band's notes doubling the player's line in unison (player-lift.ts doublingKeys), DOUBLE_DUCK_DB down. */
+  readonly doubling: ReadonlySet<string>;
   /**
    * D497, THE SOUND LAB (soundlab.html only; never set by the game): a gain per band voice over everything else
    * (its mixer and its solo/mute), read as each band note is scheduled. D720: also MY FUGUE's mixer (the band's voices). Null: no change.
@@ -665,9 +667,13 @@ export class ProtoGame {
     this.o = o;
     this.chip = chip;
     const mine = Array.isArray(voices) ? voices : [voices];
-    this.lift = o.her || o.solo || mine.length !== 1 ? 1 : liftGain(f.id, preset().id, mine[0], f.voices.length);
-    this.trims = f.voices.map((_, u) => 10 ** (bandTrimDb(f.id, preset().id, u, f.voices.length) / 20));
-    this.tone = o.her || o.solo || mine.length !== 1 ? 0 : playerToneDb(f.id, preset().id, mine[0], f.voices.length);
+    // D851: a soloist over an orchestra (the concertos, BWV 1043, BWV 54): its own balance (player-lift.ts soloLiftDb).
+    const solo = isSoloPiece(f);
+    const one = !(o.her || o.solo || mine.length !== 1);
+    this.lift = !one ? 1 : solo ? 10 ** (soloLiftDb(f, preset().id, mine[0]) / 20) : liftGain(f.id, preset().id, mine[0], f.voices.length);
+    this.trims = f.voices.map((_, u) => 10 ** ((solo ? soloTrimDb(f, preset().id, u) : bandTrimDb(f.id, preset().id, u, f.voices.length)) / 20));
+    this.tone = !one || solo ? 0 : playerToneDb(f.id, preset().id, mine[0], f.voices.length);
+    this.doubling = one && solo ? doublingKeys(f, mine[0]) : new Set();
     // D355: the piece's colour plan for the sound (the band's registration and effects by bar), once the plans are in.
     // D431: not where Busoni leads (colour.ts busoniLeads: his reading played, reaching the sound, with marks enough).
     // D602: the harpsichord's two manuals scripted for the piece (harpsi-manuals.ts: the entries on the brighter manual, the
@@ -1226,7 +1232,7 @@ export class ProtoGame {
       const muted = !!(mt && gw0?.veiled && sv.v.patch === PATCHES[mt.from] && n.midi >= mt.compass[0] && n.midi <= mt.compass[1]);
       const vv = muted ? { ...sv.v, patch: PATCHES[mt!.to] } : sv.v;
       // D508: the band's balance: the voice's trim, and its subject's entry a little forward (not where Busoni's palette brings it out).
-      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1);
+      const bal = (this.trims[n.voice] ?? 1) * (sv.sn ? entryGain(false, this.whole?.paletteAt(n.voice, n.on).entryDb ?? 0) : 1) * (this.labGain?.[n.voice] ?? 1) * (this.doubling.has(`${n.voice}:${n.on}`) ? duckGain() : 1);
       const prev = this.lastOther.get(n.voice);
       // D363: a band-only voice's note (a divisi) sounds as its parent but is not its line: no ornament of the line's, not its line's last note.
       if (!n.band) this.lastOther.set(n.voice, n.midi);
