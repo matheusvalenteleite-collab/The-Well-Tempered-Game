@@ -23,6 +23,20 @@ export interface KernNote {
   orn?: string;
   /** P8: grace notes written before it (kern q/Q, no time of their own), in order. */
   grace?: { pitch: string; kind: "q" | "Q" }[];
+  /** D871: articulations written on it (kern ' staccato, ` staccatissimo, ~ tenuto, ^ accent, ; fermata), and slurs it opens or closes. */
+  art?: string[];
+  slur?: ("(" | ")")[];
+}
+
+/** D871: a kern token's articulations, in the game's names. */
+export function kernArticulations(tok: string): string[] {
+  const out: string[] = [];
+  if (tok.includes("`")) out.push("staccatissimo");
+  else if (tok.includes("'")) out.push("staccato");
+  if (tok.includes("~")) out.push("tenuto");
+  if (tok.includes("^")) out.push("accent");
+  if (tok.includes(";")) out.push("fermata");
+  return out;
 }
 
 /** P8: the ornament signs of a kern token (its pitch, duration, ties, beams and so on left out). */
@@ -178,14 +192,19 @@ export function parseKern(text: string): KernPiece {
         const voice = raw[s.voice];
         const tieEnd = sub.includes("]") || sub.includes("_");
         const open = s.ties.get(p);
+        const art = kernArticulations(sub.replace(/[a-gA-G]+(#+|-+|n)?/, ""));
+        const slur = [...sub].filter((c) => c === "(" || c === ")") as ("(" | ")")[];
         if (tieEnd && open !== undefined) {
           voice[open].dur += d;
           if (sub.includes("]")) s.ties.delete(p);
+          // D871: a fermata or a slur's end on the tie's last note is the held note's.
+          if (art.includes("fermata")) (voice[open].art ??= []).push("fermata");
+          if (slur.includes(")")) (voice[open].slur ??= []).push(")");
         } else {
           const orn = kernOrnaments(sub);
           const g = graces.get(s);
           graces.delete(s);
-          voice.push({ on: s.t, dur: d, pitch: p, sub: s.sub, ...(orn ? { orn } : {}), ...(g?.length ? { grace: g } : {}) });
+          voice.push({ on: s.t, dur: d, pitch: p, sub: s.sub, ...(orn ? { orn } : {}), ...(g?.length ? { grace: g } : {}), ...(art.length ? { art } : {}), ...(slur.length ? { slur } : {}) });
           if (sub.includes("[")) s.ties.set(p, voice.length - 1);
         }
       }

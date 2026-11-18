@@ -7,7 +7,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { TPQ, type WtcPiece } from "../../src/wtc/corpus.ts";
 import { readFugue, readInvention, readPrelude, ROOT, type OrnRow, type Read } from "./sources.ts";
-import { ADDED, BGA_SIGNS, CONTRAPUNCTUS } from "./ornaments.ts";
+import { ADDED, BGA_SIGNS, CONTRAPUNCTUS, SINFONIA5 } from "./ornaments.ts";
 
 const fugues: WtcPiece[] = [];
 const preludes: WtcPiece[] = [];
@@ -78,6 +78,16 @@ const take = (r: Read, into: WtcPiece[]) => {
     if (signs || rows[i][4]?.length) rows[i][3] = signs;
     else rows.splice(i, 1);
     corrections.push(`| ${p.id} | bar ${bar}, ${pitch}: the sign ${signs ? `the BGA's (${signs})` : "removed (not the BGA's)"} (D206) |`);
+  }
+  // D875: Sinfonia 5's signs and small notes, the print's in place of the edition's.
+  if (p.id === "sinfo05") {
+    rows.length = 0;
+    for (const [v, bar, beat, pitch, signs, graces] of SINFONIA5) {
+      const on = p.bars.find((b) => b.n === bar)!.on + beat * TPQ;
+      if (!p.voices[v].some((n) => n[0] === on && n[2] === pitch)) throw new Error(`sinfo05 bar ${bar} beat ${beat}: no ${pitch} in voice ${v}`);
+      rows.push(graces ? [v, on, pitch, signs, graces] : [v, on, pitch, signs]);
+    }
+    corrections.push(`| sinfo05 | the Bach-Gesellschaft's ${SINFONIA5.length} signs and small notes (D875) |`);
   }
   rows.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   // A sign on a note a correction re-spelled (tools/wtc/corrections.ts) names the note as corrected.

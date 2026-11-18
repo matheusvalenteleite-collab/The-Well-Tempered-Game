@@ -1,0 +1,404 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "piece": "bwv1080-c15",
+ "edition": {
+  "name": "The print: the Bach-Gesellschaft text, Band 25.1 (ed. Wilhelm Rust, 1878)",
+  "method": "the marks two independent transcriptions of it agree on at the same note: the Mutopia typesetting the game's notes come from and Craig Sapp's encoding of BG 25.1 (tools/touch/aof-print.ts)"
+ },
+ "marks": [
+  {
+   "v": 0,
+   "on": 8640,
+   "art": "staccato",
+   "p": 70,
+   "bar": 3
+  },
+  {
+   "v": 0,
+   "on": 10080,
+   "art": "staccato",
+   "p": 69,
+   "bar": 3
+  },
+  {
+   "v": 0,
+   "on": 11520,
+   "art": "staccato",
+   "p": 67,
+   "bar": 3
+  },
+  {
+   "v": 1,
+   "on": 25920,
+   "art": "staccato",
+   "p": 58,
+   "bar": 7
+  },
+  {
+   "v": 1,
+   "on": 27360,
+   "art": "staccato",
+   "p": 57,
+   "bar": 7
+  },
+  {
+   "v": 1,
+   "on": 28800,
+   "art": "staccato",
+   "p": 55,
+   "bar": 7
+  },
+  {
+   "v": 0,
+   "on": 112320,
+   "art": "staccato",
+   "p": 77,
+   "bar": 27
+  },
+  {
+   "v": 0,
+   "on": 113760,
+   "art": "staccato",
+   "p": 76,
+   "bar": 27
+  },
+  {
+   "v": 0,
+   "on": 115200,
+   "art": "staccato",
+   "p": 74,
+   "bar": 27
+  },
+  {
+   "v": 1,
+   "on": 129600,
+   "art": "staccato",
+   "p": 65,
+   "bar": 31
+  },
+  {
+   "v": 1,
+   "on": 131040,
+   "art": "staccato",
+   "p": 64,
+   "bar": 31
+  },
+  {
+   "v": 1,
+   "on": 132480,
+   "art": "staccato",
+   "p": 62,
+   "bar": 31
+  },
+  {
+   "v": 0,
+   "on": 181440,
+   "art": "staccato",
+   "p": 68,
+   "bar": 43
+  },
+  {
+   "v": 0,
+   "on": 182880,
+   "art": "staccato",
+   "p": 69,
+   "bar": 43
+  },
+  {
+   "v": 1,
+   "on": 198720,
+   "art": "staccato",
+   "p": 56,
+   "bar": 47
+  },
+  {
+   "v": 1,
+   "on": 200160,
+   "art": "staccato",
+   "p": 57,
+   "bar": 47
+  },
+  {
+   "v": 1,
+   "on": 201600,
+   "art": "staccato",
+   "p": 59,
+   "bar": 47
+  },
+  {
+   "v": 0,
+   "on": 246240,
+   "art": "staccato",
+   "p": 72,
+   "bar": 58
+  },
+  {
+   "v": 0,
+   "on": 247680,
+   "art": "staccato",
+   "p": 77,
+   "bar": 58
+  },
+  {
+   "v": 0,
+   "on": 249120,
+   "art": "staccato",
+   "p": 76,
+   "bar": 58
+  },
+  {
+   "v": 1,
+   "on": 263520,
+   "art": "staccato",
+   "p": 60,
+   "bar": 62
+  },
+  {
+   "v": 1,
+   "on": 264960,
+   "art": "staccato",
+   "p": 65,
+   "bar": 62
+  },
+  {
+   "v": 1,
+   "on": 266400,
+   "art": "staccato",
+   "p": 64,
+   "bar": 62
+  },
+  {
+   "v": 0,
+   "on": 272160,
+   "art": "staccato",
+   "p": 61,
+   "bar": 64
+  },
+  {
+   "v": 0,
+   "on": 273600,
+   "art": "staccato",
+   "p": 62,
+   "bar": 64
+  },
+  {
+   "v": 0,
+   "on": 275040,
+   "art": "staccato",
+   "p": 64,
+   "bar": 64
+  },
+  {
+   "v": 1,
+   "on": 289440,
+   "art": "staccato",
+   "p": 49,
+   "bar": 68
+  },
+  {
+   "v": 1,
+   "on": 290880,
+   "art": "staccato",
+   "p": 50,
+   "bar": 68
+  },
+  {
+   "v": 1,
+   "on": 292320,
+   "art": "staccato",
+   "p": 52,
+   "bar": 68
+  },
+  {
+   "v": 0,
+   "on": 302400,
+   "art": "staccato",
+   "p": 65,
+   "bar": 71
+  },
+  {
+   "v": 0,
+   "on": 303840,
+   "art": "staccato",
+   "p": 64,
+   "bar": 71
+  },
+  {
+   "v": 0,
+   "on": 305280,
+   "art": "staccato",
+   "p": 62,
+   "bar": 71
+  },
+  {
+   "v": 0,
+   "on": 306720,
+   "art": "staccato",
+   "p": 61,
+   "bar": 72
+  },
+  {
+   "v": 0,
+   "on": 308160,
+   "art": "staccato",
+   "p": 62,
+   "bar": 72
+  },
+  {
+   "v": 0,
+   "on": 309600,
+   "art": "staccato",
+   "p": 64,
+   "bar": 72
+  },
+  {
+   "v": 1,
+   "on": 319680,
+   "art": "staccato",
+   "p": 53,
+   "bar": 75
+  },
+  {
+   "v": 1,
+   "on": 321120,
+   "art": "staccato",
+   "p": 52,
+   "bar": 75
+  },
+  {
+   "v": 1,
+   "on": 322560,
+   "art": "staccato",
+   "p": 50,
+   "bar": 75
+  },
+  {
+   "v": 1,
+   "on": 324000,
+   "art": "staccato",
+   "p": 49,
+   "bar": 76
+  },
+  {
+   "v": 1,
+   "on": 325440,
+   "art": "staccato",
+   "p": 50,
+   "bar": 76
+  },
+  {
+   "v": 1,
+   "on": 326880,
+   "art": "staccato",
+   "p": 52,
+   "bar": 76
+  },
+  {
+   "v": 0,
+   "on": 336960,
+   "art": "staccato",
+   "p": 70,
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "on": 338400,
+   "art": "staccato",
+   "p": 69,
+   "bar": 79
+  },
+  {
+   "v": 0,
+   "on": 339840,
+   "art": "staccato",
+   "p": 67,
+   "bar": 79
+  },
+  {
+   "v": 1,
+   "on": 354240,
+   "art": "staccato",
+   "p": 58,
+   "bar": 83
+  },
+  {
+   "v": 1,
+   "on": 355680,
+   "art": "staccato",
+   "p": 57,
+   "bar": 83
+  },
+  {
+   "v": 1,
+   "on": 357120,
+   "art": "staccato",
+   "p": 55,
+   "bar": 83
+  },
+  {
+   "v": 0,
+   "on": 423360,
+   "art": "fermata",
+   "p": 62,
+   "bar": 99
+  }
+ ],
+ "slurs": [
+  {
+   "v": 0,
+   "from": 211680,
+   "to": 212160,
+   "kind": "slur",
+   "bar": 50
+  },
+  {
+   "v": 0,
+   "from": 213120,
+   "to": 213600,
+   "kind": "slur",
+   "bar": 50
+  },
+  {
+   "v": 0,
+   "from": 214560,
+   "to": 215040,
+   "kind": "slur",
+   "bar": 50
+  },
+  {
+   "v": 0,
+   "from": 216000,
+   "to": 216480,
+   "kind": "slur",
+   "bar": 51
+  },
+  {
+   "v": 1,
+   "from": 228960,
+   "to": 229440,
+   "kind": "slur",
+   "bar": 54
+  },
+  {
+   "v": 1,
+   "from": 230400,
+   "to": 230880,
+   "kind": "slur",
+   "bar": 54
+  },
+  {
+   "v": 1,
+   "from": 231840,
+   "to": 232320,
+   "kind": "slur",
+   "bar": 54
+  },
+  {
+   "v": 1,
+   "from": 233280,
+   "to": 233760,
+   "kind": "slur",
+   "bar": 55
+  }
+ ]
+}

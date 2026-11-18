@@ -110,7 +110,7 @@ export function WtcStudy({ onVoices, onExercises, onTutorial }: { onVoices(n: Mo
   const flats = Object.values(sig).some((x) => x < 0);
   /** P8: ornaments played (Bach's Explication): the note before each in its voice, and the key's steps. */
   /** P8: the ornaments marked on the roll: tr, a mordent ∿, a turn ∽, a grace note ♪. */
-  const rollMarks = useMemo(() => new Map([...P.orn].map(([i, o]) => [i, /[TtO]/.test(o.signs) ? "tr" : /[MmWw]/.test(o.signs) ? "∿" : /[S$]/.test(o.signs) ? "∽" : "♪"])), [P]);
+  const rollMarks = useMemo(() => new Map([...P.orn].map(([i, o]) => [i, /[TtODU]/.test(o.signs) ? "tr" : /[MmWw]/.test(o.signs) ? "∿" : /[S$]/.test(o.signs) ? "∽" : "♪"])), [P]);
   const prevInVoice = useMemo(() => {
     const last = new Map<number, number>();
     return P.notes.map((n, i) => {

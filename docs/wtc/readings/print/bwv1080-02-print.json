@@ -1,0 +1,152 @@
+{
+ "format": "wtc-reading/2 (whole piece)",
+ "piece": "bwv1080-02",
+ "edition": {
+  "name": "The print: the Bach-Gesellschaft text, Band 25.1 (ed. Wilhelm Rust, 1878)",
+  "method": "the marks two independent transcriptions of it agree on at the same note: the Mutopia typesetting the game's notes come from and Craig Sapp's encoding of BG 25.1 (tools/touch/aof-print.ts)"
+ },
+ "marks": [
+  {
+   "v": 0,
+   "on": 629760,
+   "art": "fermata",
+   "p": 62,
+   "bar": 83
+  },
+  {
+   "v": 1,
+   "on": 641280,
+   "art": "fermata",
+   "p": 57,
+   "bar": 84
+  },
+  {
+   "v": 2,
+   "on": 641280,
+   "art": "fermata",
+   "p": 54,
+   "bar": 84
+  },
+  {
+   "v": 3,
+   "on": 641280,
+   "art": "fermata",
+   "p": 38,
+   "bar": 84
+  }
+ ],
+ "slurs": [
+  {
+   "v": 3,
+   "from": 28320,
+   "to": 30240,
+   "kind": "slur",
+   "bar": 4
+  },
+  {
+   "v": 3,
+   "from": 30720,
+   "to": 32640,
+   "kind": "slur",
+   "bar": 5
+  },
+  {
+   "v": 3,
+   "from": 42240,
+   "to": 45600,
+   "kind": "slur",
+   "bar": 6
+  },
+  {
+   "v": 3,
+   "from": 46080,
+   "to": 49440,
+   "kind": "slur",
+   "bar": 7
+  },
+  {
+   "v": 3,
+   "from": 49920,
+   "to": 53280,
+   "kind": "slur",
+   "bar": 7
+  },
+  {
+   "v": 3,
+   "from": 53760,
+   "to": 57120,
+   "kind": "slur",
+   "bar": 8
+  },
+  {
+   "v": 2,
+   "from": 66720,
+   "to": 68640,
+   "kind": "slur",
+   "bar": 9
+  },
+  {
+   "v": 2,
+   "from": 69120,
+   "to": 72480,
+   "kind": "slur",
+   "bar": 10
+  },
+  {
+   "v": 2,
+   "from": 72960,
+   "to": 76320,
+   "kind": "slur",
+   "bar": 10
+  },
+  {
+   "v": 3,
+   "from": 78240,
+   "to": 80160,
+   "kind": "slur",
+   "bar": 11
+  },
+  {
+   "v": 3,
+   "from": 85920,
+   "to": 87840,
+   "kind": "slur",
+   "bar": 12
+  },
+  {
+   "v": 3,
+   "from": 88320,
+   "to": 91680,
+   "kind": "slur",
+   "bar": 12
+  },
+  {
+   "v": 1,
+   "from": 92160,
+   "to": 95520,
+   "kind": "slur",
+   "bar": 13
+  },
+  {
+   "v": 3,
+   "from": 96000,
+   "to": 99360,
+   "kind": "slur",
+   "bar": 13
+  },
+  {
+   "v": 0,
+   "from": 155040,
+   "to": 156960,
+   "kind": "slur",
+   "bar": 21
+  },
+  {
+   "v": 0,
+   "from": 158880,
+   "to": 160800,
+   "kind": "slur",
+   "bar": 21
+  }
+ ]
+}

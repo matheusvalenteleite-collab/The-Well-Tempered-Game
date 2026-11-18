@@ -33,9 +33,11 @@ Read by `tools/touch/more-bach.ts` (`GOLDBERG_TABLE`) into `data/touch/more-bach
   and slow basses.
 - Ornaments: the edition's signs kept as kern's signs on their notes (`keepOrnaments`): inverted mordent W, mordent M,
   trill T, turn S; and its appoggiaturas, "Q" + pitch (the game plays them: ornament-play.ts; the half or whole step read
-  from the bar). Nothing written out. The trill hooked from below (Bach's Doppelt-cadence), which the edition names a
-  short inverted mordent, is a trill (T) here. The Aria's two slides (Schleifer, bars 21 and 23) have no kern sign and
-  are not played; listed by the importer as unplayed.
+  from the bar). Nothing written out. The hooked trills (Bach's Doppelt-Cadence), which the edition names a short
+  inverted mordent, are played as the Explication writes them (D877, read on the 1741 print): hooked from above (U) in
+  the Aria (bars 3, 11, 12, 17) and Var. 24 (bars 17, 19), from below (D) in Var. 11 (bars 6, 7, 14, 15; from above in
+  bar 13). The Aria's two slides (Schleifer, bars 21 and 23), signs in both prints, are played as the slide (L: two
+  steps up into the note).
 - The Aria da capo (measures 959-990) is identical to the Aria (every note, ornament, appoggiatura and repeat sign): it
   is not a piece of its own (the owner: no tile for it; NEXT after Variation 30 returns to the Aria).
 
@@ -123,19 +125,19 @@ Ornaments:
 
 | piece | bar, place, note | edition | print (kept) |
 |---|---|---|---|
-| Aria | 3, 11, 12, 17 (1/4) | inverted mordent | the trill hooked from below: T |
+| Aria | 3, 11, 12, 17 (1/4) | inverted mordent | the trill hooked from above: U (D877; was T) |
 | Var. 5 | 17, 1/2, F♯5 | mordent | the hooked trill with a mordent: TM |
 | Var. 9 | 12, 0, E4; 13, 0, C4 | an appoggiatura | none |
 | Var. 9 | 13, 1/4, B3 | inverted mordent | none |
 | Var. 10 | 25, 0, C♯3 | mordent | none (low confidence: an unreadable mark in the 1741 print's upper staff) |
-| Var. 11 | 6, 7 (G4), 14, 15 (D5), 0 | inverted mordent | the trill hooked from below: T |
+| Var. 11 | 6, 7 (G4), 14, 15 (D5), 0; 13 (D5) | inverted mordent | the trill hooked from below: D; bar 13 from above: U (D877; was T) |
 | Var. 13 | 12, 11/16, G5 | turn | none |
 | Var. 14 | 17, 1/4, C6 | inverted mordent and trill | one long trill: T |
 | Var. 14 | 20, 1/4, A2 | none | a long trill: T |
 | Var. 20 | 10, 1/4, A5 | mordent | none |
 | Var. 23 | 11, 1/2, B5; 19, 0, C4 | mordent; trill | none |
 | Var. 23 | 23, 1/16, C5 | none | an appoggiatura, D5 (its head between the C5 space and the D5 line: the likelier reading) |
-| Var. 24 | 17, 0, A4; 19, 0, A5 | inverted mordent | the hooked long trill: T |
+| Var. 24 | 17, 0, A4; 19, 0, A5 | inverted mordent | the long trill hooked from above: U (D877; was T) |
 | Var. 25 | 5, 6, 14 (1/4) | an appoggiatura | none (in neither print) |
 | Var. 25 | 1, 2 (1/4) | an appoggiatura | none: the 1741 print has none; the Bach-Gesellschaft has them (the 1741 print followed; contestable) |
 | Var. 30 | 12, 1/2, D♯5 | inverted mordent | none |
@@ -148,8 +150,7 @@ Bach-Gesellschaft's engraving; the 1741 print's short signs agree with the editi
 
 Not changed, recorded: Var. 16 bar 15, the turn printed between the dotted D5 and the E5 (most likely a turn after the
 D; the game plays a turn only at a note's start: the edition's turn on the E5 kept). Var. 17 bar 12, a long mordent
-(three humps and a stroke): kern has no long mordent, M kept. Var. 21 bar 6, whether the D4's sign is hooked from above
-(unclear): kept.
+(three humps and a stroke): kern has no long mordent, M kept. Var. 21 bar 6: the D4's sign is a plain short wavy line, no hook (the 1741 print, D877): kept.
 
 ## Hand crossings
 

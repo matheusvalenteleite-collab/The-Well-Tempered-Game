@@ -117,11 +117,12 @@ function carrySubjectOrnaments(f: TouchFugue, m: Map<string, Ornament>) {
 /** The sign drawn over an ornamented note: "TR" a trill, "~" the short wavy sign, "~|" a mordent, "S" a turn. */
 export function ornamentMark(o: Ornament): string {
   const s = o.signs;
-  if (/[TtO]/.test(s)) return "TR";
+  if (/[TtODU]/.test(s)) return "TR";
   if (/[Mm]/.test(s)) return "~|";
   if (/[Ww]/.test(s)) return "~";
   if (/[S$]/.test(s)) return "S";
-  return o.graces.length ? "·" : "";
+  // D870: the slide (L) plays itself, as grace notes do.
+  return o.graces.length || s.includes("L") ? "·" : "";
 }
 
 /**
@@ -138,7 +139,7 @@ export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number,
   }
   const q = f.tpq;
   const steps = contextSteps(f, on, midi, o.signs);
-  const nachschlag = /[TtO]/.test(o.signs) && !o.signs.includes("R") && nachschlagAt(f, on, midi, dur, bpm);
+  const nachschlag = /[TtODU]/.test(o.signs) && !o.signs.includes("R") && nachschlagAt(f, on, midi, dur, bpm);
   const parts = realise({ midi, at: on / q, dur: dur / q }, o.signs, o.graces, { unit: ornamentUnit(bpm / 2), quick: mordentUnit(60 / bpm), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag });
   return parts.map((p) => [Math.round(p.at * q), Math.max(1, Math.round(p.dur * q)), p.midi]);
 }
@@ -151,7 +152,7 @@ export function realiseNote(f: TouchFugue, o: Ornament, on: number, dur: number,
  * note (at most half of it); any other ornament over the held length, as before.
  */
 export function realiseHeld(f: TouchFugue, o: Ornament, on: number, dur: number, hold: number, midi: number, prevMidi: number | undefined, bpm: number): [number, number, number][] {
-  if (!/[TtO]/.test(o.signs) || hold >= 1) return realiseNote(f, o, on, dur * hold, midi, prevMidi, bpm);
+  if (!/[TtODU]/.test(o.signs) || hold >= 1) return realiseNote(f, o, on, dur * hold, midi, prevMidi, bpm);
   const parts = realiseNote(f, o, on, dur, midi, prevMidi, bpm);
   const last = parts[parts.length - 1];
   last[1] = Math.max(Math.round(last[1] / 2), Math.round(last[1] - dur * (1 - hold)));
@@ -174,7 +175,7 @@ export interface Shake {
 }
 export function shakeOf(o: Ornament): Shake | null {
   const s = o.signs;
-  if (/[TtO]/.test(s)) return { kind: "trill", word: "TRILL", first: 1, need: 4 };
+  if (/[TtODU]/.test(s)) return { kind: "trill", word: "TRILL", first: 1, need: 4 };
   if (/[Mm]/.test(s)) return { kind: "mordent", word: "MORDENT", first: -1, need: 2 };
   if (/[Ww]/.test(s)) return { kind: "short", word: "TRILL", first: 1, need: 2 };
   if (/[S$]/.test(s)) return { kind: "turn", word: "TURN", first: 1, need: 2 };
@@ -204,7 +205,7 @@ export function freeOrnamentParts(f: TouchFugue, kind: FreeKind, noteOn: number,
   // main back within about 80 ms at any tempo; D353's unit / 2, no faster than the beat's 32nds, was 125 ms a note at 60).
   // The up-down forms named (the Pralltriller, the Schneller: main, upper, main) are W's snapped form, from the main note.
   const prevMidi = !written && (kind === "pralltriller" || kind === "schneller") ? midi + 1 : opts.prevMidi;
-  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit, quick: mordentUnit(60 / bpm), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag: !!opts.nachschlag && /[TtO]/.test(signs) && !signs.includes("R") });
+  let parts = realise({ midi, at: from / q, dur: (until - from) / q }, signs, [], { unit, quick: mordentUnit(60 / bpm), trillUnit: trillUnit(60 / bpm, MECH.trillPerSecond), settle: MECH.trillSettle, prevMidi, ...steps, diatonic: true, nachschlag: !!opts.nachschlag && /[TtODU]/.test(signs) && !signs.includes("R") });
   if (parts.length > 1 && parts[0].midi === midi) {
     const shift = parts[1].at - parts[0].at;
     parts = parts.slice(1).map((p, k, a) => ({ ...p, at: p.at - shift, dur: k === a.length - 1 ? p.dur + shift : p.dur }));
