@@ -49,12 +49,12 @@ test("D343: locked, play.html is Book I's fugues on a phone; unlocked, all four 
   assert.equal(unlocked(), false);
   assert.equal(litePlatform(), "mobile");
   // D489: Book II open from the start.
-  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV"]);
+  assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD"]);
   assert.equal(nextIn(liteNextOrder("wtc1f24", true), "wtc1f24"), "wtc2f01", "NEXT after Book I's last goes on into Book II");
   store.set(UNLOCK_KEY, "1");
   try {
     assert.equal(unlocked(), true);
-    assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "MORE", "CHORALES"]);
+    assert.deepEqual(liteTabs().map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD", "MORE", "CHORALES"]);
     assert.equal(nextIn(liteNextOrder("wtc1f24", true), "wtc1f24"), "wtc2f01");
     store.set("tb-lite-platform", "computer");
     assert.equal(litePlatform(), "computer", "⚙ PLAY ON again");

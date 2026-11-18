@@ -716,6 +716,9 @@ export const PT: Record<string, string> = {
   "INVENTIONS 1–15 · SINFONIAS 1–15": "INVENÇÕES 1–15 · SINFONIAS 1–15",
   // D757.
   "GOLDBERG VARIATIONS": "VARIAÇÕES GOLDBERG",
+  // D867: the Goldberg tab.
+  "J. S. BACH · GOLDBERG VARIATIONS": "J. S. BACH · VARIAÇÕES GOLDBERG",
+  "ARIA · 30 VARIATIONS": "ÁRIA · 30 VARIAÇÕES",
   // D751: the Four Duets.
   "FOUR DUETS": "QUATRO DUETOS",
   // D753.
