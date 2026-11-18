@@ -144,6 +144,18 @@ export function ornamentUnit(tempo: number, perSecond = 11): number {
 
 /** A note with its ornament and grace notes, as the notes that sound. */
 export function realise(n: Sounding, signs: string, graces: { kind: "q" | "Q"; midi: number }[] = [], ctx: OrnamentContext): Sounding[] {
+  if (signs.includes("J")) {
+    // D878: the turn after the note (Bach's sign set over a dot or a tie, or beside the note: C. P. E. Bach's turn
+    // over the dot, Versuch I, ch. 2, sect. 4): the note (with any sign before the turn, played in its own time)
+    // held to the dot, or to the tie (a plain note: its half), then the turn, U N L N, the last held to the end.
+    const split = isDotted(n.dur) ? (n.dur * 2) / 3 : n.dur / 2;
+    const head = realise({ ...n, dur: split }, signs.replace(/J/g, ""), graces, ctx);
+    const rest = n.dur - split;
+    const u = Math.min(ctx.unit, rest / 4);
+    const t = n.at + split;
+    const turn = [n.midi + ctx.stepAbove(n.midi), n.midi, n.midi - ctx.stepBelow(n.midi), n.midi];
+    return [...head, ...turn.map((midi, k) => ({ midi, at: t + k * u, dur: k === 3 ? rest - 3 * u : u }))].filter((x) => x.dur > 1e-9);
+  }
   const out: Sounding[] = [];
   let at = n.at;
   let dur = n.dur;

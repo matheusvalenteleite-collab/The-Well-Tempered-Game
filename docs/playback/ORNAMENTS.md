@@ -14,6 +14,17 @@ it; more research may refine it.
   - **R** a trill's closing turn;
   - **O** an ornament of unspecified kind;
   - **q / Q** grace notes, short or long.
+- The game's own signs, beyond kern's (src/music/ornaments.ts `realise`):
+  - **D / U** Bach's Doppelt-Cadence, the trill entered by a hook from below (L N, then the trill) or from above
+    (U N L N, then the trill); **R** after either: "und Mordant" (D870; the Explication, Clavier-Büchlein vor W. F.
+    Bach, 1720);
+  - **L** the slide (Schleifer): two steps up into the note (D870);
+  - **J** the turn after the note (D878): the sign Bach sets over a dot, over a tie, or beside the note, after another
+    sign. The convention: the note is held, and the turn (U N L N) is played after it, in the dot's time (C. P. E.
+    Bach, Versuch I, ch. 2, sect. 4, on the Doppelschlag: the turn over the dot of a dotted note comes after the note,
+    not on its beat); on a tie, from the tie. The game: a dotted value held for its undotted part, any other note for
+    its half (the tie's place in every case read so far), then the turn, its last note held to the end; a sign
+    before the turn (a mordent, a Trillo und Mordant) played in the first part.
 - `node tools/wtc/ornaments.ts` gathers them into `data/wtc/ornaments.json`. Each ornamented note is
   stored as [voice, onset, pitch, signs, grace notes], keyed to the notes of
   `data/wtc/{fugues,preludes,inventions}.json`, which are left unchanged.
