@@ -11,7 +11,7 @@ import type { BassRun } from "./bass-phone.ts";
 
 export const BASS_PHONE: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
   wtc1f01: {"s":"pianoSampled","sig":"[\"piano\",0.3,{\"hz\":800,\"db\":5},null,null,null]","db":null,"band":{"lu":[-27.9,-29.2,-30,-30.7],"at":[1.9,2.4,0.8,0.9],"mix":-25.2},"player":{"lu":[-28.6,-29.2,-30,-30.6],"at":[0,2.4,0.8,0.1],"mix":-25.5}},
-  wtc1f02: {"s":"berlinSchool","sig":"[null,0.28,null,null,null,null]","db":null,"band":{"lu":[-30.4,-30.7,-35.2],"at":[-2.2,0.7,0],"mix":-27.8},"player":{"lu":[-31,-30.7,-33],"at":[0.7,0.7,-1.4],"mix":-27.9}},
+  wtc1f02: {"s":"berlinSchool","sig":"[null,0.28,null,null,null,null]","db":null,"band":{"lu":[-30.2,-31.7,-35.2],"at":[-2.2,0.7,0],"mix":-28.1},"player":{"lu":[-30.6,-31.7,-33.6],"at":[0.7,0.7,-1.4],"mix":-28.2}},
   wtc1f03: {"s":"gameboy","sig":"[null,0.35,null,null,null,null]","db":null,"band":{"lu":[-33,-34.9,-34.7],"at":[-2.7,6,0],"mix":-30.2},"player":{"lu":[-34.3,-34.9,-33.8],"at":[0.5,6,-1.1],"mix":-30.4}},
   wtc1f04: {"s":"stringConsort","sig":"[\"consortCello\",0.56,{\"hz\":700,\"db\":8},null,null,null]","db":null,"band":{"lu":[-27,-25.3,-27.9,-24.9,-28.9],"at":[3,4.2,5.5,1.5,0],"mix":-22.6},"player":{"lu":[-28,-25.3,-27.9,-24.9,-28.2],"at":[4.1,4.2,5.5,1.5,-1.1],"mix":-22.9}},
   wtc1f05: {"s":"bachBrass","sig":"[\"brassBass\",1.3,{\"hz\":600,\"db\":4.5},180,null,null]","db":null,"band":{"lu":[-29.5,-30.1,-32.2,-30.7],"at":[0.7,0,1.3,0],"mix":-25.7},"player":{"lu":[-29.8,-30.1,-32.2,-30.4],"at":[0,0,1.3,0.3],"mix":-25.8}},
