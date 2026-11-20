@@ -15,7 +15,7 @@ import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { pieceLineUp } from "../src/touch/sound.ts";
 import { FUGUE_STYLES } from "../src/touch/drum-library.ts";
 import { COLLECTIONS, auditCollection } from "../tools/touch/stretch/collections.ts";
-import { LOW_LINE_FREE } from "../tools/touch/octaves/seats.ts";
+import { lowLineFree } from "../tools/touch/octaves/seats.ts";
 
 const IDS = ["bwv906-1", "bwv906-2", "bwv998-1", "bwv998-2", "bwv998-3"] as const;
 
@@ -53,7 +53,7 @@ test("D781, D782, D789: each on its sound, nothing past STRETCH_MAX or its set's
     const r = auditCollection("more bach", [more.find((p) => p.id === id)!], [PIECE_SOUND[id]]);
     assert.deepEqual([r.moves, r.stretched.length, r.undeclared.length], [0, 0, 0], id);
   }
-  assert.ok(LOW_LINE_FREE.has("bwv906-1"));
+  assert.ok(lowLineFree(fugueById("bwv906-1"))); // D900: the rule, in place of D781's list
   const lu = pieceLineUp("jazzQuartet", fugueById("bwv906-1"));
   assert.deepEqual(lu?.slots.map((s) => s[0]), ["jqVibes", "jqPiano"]);
   // D891, D894: the tabor withdrawn: the Prelude (calm) none, the Allegro none (no remaining kit under the band in its thin bars).
