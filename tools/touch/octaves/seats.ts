@@ -65,11 +65,22 @@ export const STRETCH_SEATS: ReadonlySet<string> = new Set(["super16", "soloVoice
 /** D637: an instrument kept on its line though some notes are read past STRETCH_MAX (a band's own colour: test/d635's allow-list). */
 export const STRETCH_KEPT: Readonly<Record<string, readonly PatchId[]>> = { vaudeville: ["vdXylo"] };
 /**
- * D781: the pieces whose lowest line is not a bass the band keeps: BWV 906's Fantasia, whose left hand crosses over the right
- * up to A♭5 (and its chords to B♭5: bars 9-13, 25-28, 31), seated like an upper voice (the band's instrument that leaves
- * fewest notes stretched, then misses its compass least), on every sound.
+ * D781 → D900: A LOWEST LINE THAT CLIMBS INTO THE TREBLE is seated like an upper voice (the band's instrument that leaves
+ * fewest notes stretched, then misses its compass least), on every sound. The rule: more than LOW_TREBLE_MAX of its notes
+ * (the player's and the band's parts of the line) over C5. The bands' bass instruments are recorded up to about G4-C5, so a
+ * bass line reads no more than a handful of notes there; a left hand that crosses over the right (BWV 906's Fantasia, up to
+ * A♭5; the Goldberg's hand-crossing variations) reads dozens. Over every playable piece it takes BWV 906's Fantasia (39 notes
+ * over C5) and the Goldberg's Variations 5, 8, 11, 14, 17, 20, 26, 28 and 29 (8 to 59); the next, II/21's prelude and BWV
+ * 906's Fugue, have 4.
  */
-export const LOW_LINE_FREE: ReadonlySet<string> = new Set(["bwv906-1"]);
+export const LOW_TREBLE_MIDI = 72;
+export const LOW_TREBLE_MAX = 5;
+export function lowLineFree(f: Pick<TouchFugue, "voices" | "bandVoices">): boolean {
+  const v = f.voices.length - 1;
+  if (v < 1) return false;
+  const line = [...f.voices[v], ...(f.bandVoices ?? []).filter((x) => x.of === v).flatMap((x) => x.notes)];
+  return line.filter((n) => n[2] > LOW_TREBLE_MIDI).length > LOW_TREBLE_MAX;
+}
 /** D641: beyond the 48 fugues a kept instrument stays on its line only while no note of it is read further than this (the fugues' worst, VAUDEVILLE's A#3). */
 export const KEPT_MAX = 9;
 
@@ -251,7 +262,7 @@ function worstOf(id: PatchId, line: readonly number[]): number {
  * concertos, the chorales, on every sound): a piece of up to 13 voices, so no search over trades. Each upper voice whose
  * instrument leaves notes read more than STRETCH_MAX from a recording takes the band's recorded instrument (any of its
  * line-ups' patches) that leaves fewest, then misses its compass least, its own kept on a tie; the bass keeps its own
- * (D781: but LOW_LINE_FREE's);
+ * (D781, D900: but a lowest line that climbs into the treble, lowLineFree);
  * STRETCH_KEPT's instruments stay where no note is read past KEPT_MAX. The seat's pan and level stay. D850: an upper voice
  * with notes past its instrument's declared reach (none stretched) takes, likewise, the one that misses its compass least
  * without stretching any.
@@ -298,7 +309,7 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
       // D850: or notes past its set's declared reach that are not stretched ones (D640's audit allows past-reach notes only
       // as stretched reads): a crossing upper line, like the Goldberg's Variation 20 right hand down to G2 on JAZZ QUARTET's vibes.
       const ex = st > 0 ? 0 : pastReach(seat[0], line);
-      if ((v < count - 1 || LOW_LINE_FREE.has(f.id)) && (st > 0 || ex > 0) && !kept && line.length) {
+      if ((v < count - 1 || lowLineFree(f)) && (st > 0 || ex > 0) && !kept && line.length) {
         // Fewest stretched, then the compass missed least, then not the band's bass, then one of this line-up's own.
         const inUp = new Set(base.map((x) => x[0]));
         const key = (c: PatchId) => [partsStretch(c, line, staged), Math.abs(excess(c, line)), basses.has(c) ? 1 : 0, inUp.has(c) ? 0 : 1];

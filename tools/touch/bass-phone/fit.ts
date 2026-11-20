@@ -12,6 +12,7 @@
  *        node tools/touch/bass-phone/fit.ts <measure.json> --duet > src/touch/bass-phone-duet.ts   (D745: the Four Duets)
  *        node tools/touch/bass-phone/fit.ts <measure.json> --903 > src/touch/bass-phone-903.ts   (D775: the Chromatic Fugue)
  *        node tools/touch/bass-phone/fit.ts <measure.json> --906 > src/touch/bass-phone-906.ts   (D785: BWV 906 and 998)
+ *        node tools/touch/bass-phone/fit.ts <measure.json> --988 > src/touch/bass-phone-988.ts   (D904: the Goldberg Variations)
  *        ONLY=<id,...> node tools/touch/bass-phone/fit.ts <measure.json> [--aof|--inv|...]   (D893: those pieces' rows alone, to splice)
  */
 import { readFileSync } from "node:fs";
@@ -36,9 +37,11 @@ const DUET = process.argv.includes("--duet");
 const F903 = process.argv.includes("--903");
 // D785: BWV 906's two movements and 998's three into a file of their own (--906).
 const F906 = process.argv.includes("--906");
-if (AOF || INV || DUET || F903 || F906) await loadExtras();
+// D904: the Goldberg Variations' 31 into a file of their own (--988).
+const F988 = process.argv.includes("--988");
+if (AOF || INV || DUET || F903 || F906 || F988) await loadExtras();
 const isInv = (k: string) => /^bwv(7[789]\d|80[01])$/.test(k) && +k.slice(3) >= 772 && +k.slice(3) <= 801;
-const ids = Object.keys(PIECE_SOUND).filter((k) => (F906 ? /^bwv(906|998)-\d$/.test(k) : F903 ? k === "bwv903-2" || k === "bwv951" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
+const ids = Object.keys(PIECE_SOUND).filter((k) => (F988 ? /^bwv988-\d\d$/.test(k) : F906 ? /^bwv(906|998)-\d$/.test(k) : F903 ? k === "bwv903-2" || k === "bwv951" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
 const out: Record<string, unknown> = {};
 const errs: string[] = [];
 // D893: ONLY=<id,...> fits those pieces alone (their rows spliced into the group's file, the others' rows kept as measured).
@@ -74,7 +77,7 @@ for (const id of only.length ? ids.filter((k) => only.includes(k)) : ids) {
 }
 const fmt = (o: unknown) => JSON.stringify(o);
 console.log(`/**
- * ${F906 ? "D785, BWV 906'S AND 998'S BASS ON A PHONE (D645's measure for their five movements, each on its own sound). " : F903 ? "D775, THE FANTASIAS AND FUGUES' BASS ON A PHONE (D645's measure for BWV 903-2 and, D779, BWV 951, each on its own sound). " : DUET ? "D745, THE FOUR DUETS' BASS ON A PHONE (D645's measure for BWV 802-805, each on its own sound). " : INV ? "D734, THE INVENTIONS' AND SINFONIAS' BASS ON A PHONE (D645's measure for their 30 pieces, each on its own sound). " : AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
+ * ${F988 ? "D904, THE GOLDBERG VARIATIONS' BASS ON A PHONE (D645's measure for its 31, each on its own sound). " : F906 ? "D785, BWV 906'S AND 998'S BASS ON A PHONE (D645's measure for their five movements, each on its own sound). " : F903 ? "D775, THE FANTASIAS AND FUGUES' BASS ON A PHONE (D645's measure for BWV 903-2 and, D779, BWV 951, each on its own sound). " : DUET ? "D745, THE FOUR DUETS' BASS ON A PHONE (D645's measure for BWV 802-805, each on its own sound). " : INV ? "D734, THE INVENTIONS' AND SINFONIAS' BASS ON A PHONE (D645's measure for their 30 pieces, each on its own sound). " : AOF ? "D711, THE ART OF FUGUE'S BASS ON A PHONE (D645's measure for its 20 pieces, each on its own sound). " : ""}D645, THE BASS ON A PHONE (generated: tools/touch/bass-phone/render.cjs, measure.py, fit.ts; do not edit by hand). Each of the
  * 48 fugues on its own sound: \`band\` the player on the top voice (the bass in the band), \`player\` the player on the
  * bass; \`lu\` each voice alone through the phone model (mono, two 2nd-order 600 Hz high-passes, ebur128: integrated LUFS),
  * \`at\` the balance's gain on it then (dB: the player's level on the player's voice, the band's trim on the others),
@@ -84,6 +87,6 @@ console.log(`/**
  */
 import type { BassRun } from "./bass-phone.ts";
 
-export const ${F906 ? "BASS_PHONE_906" : F903 ? "BASS_PHONE_903" : DUET ? "BASS_PHONE_DUET" : INV ? "BASS_PHONE_INV" : AOF ? "BASS_PHONE_AOF" : "BASS_PHONE"}: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
+export const ${F988 ? "BASS_PHONE_988" : F906 ? "BASS_PHONE_906" : F903 ? "BASS_PHONE_903" : DUET ? "BASS_PHONE_DUET" : INV ? "BASS_PHONE_INV" : AOF ? "BASS_PHONE_AOF" : "BASS_PHONE"}: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
 ${Object.entries(out).map(([k, v]) => `  ${/^\w+$/.test(k) ? k : JSON.stringify(k)}: ${fmt(v)},`).join("\n")}
 };`);

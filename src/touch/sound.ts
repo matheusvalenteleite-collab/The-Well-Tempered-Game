@@ -2347,6 +2347,28 @@ export const RETIRE_LEVELS: Readonly<Record<string, Readonly<Record<string, { ph
   harpsichordSampled: { bwv784: { phoneGain: 0.88 } },
   baroqueBand: { bwv791: { phoneGain: 0.85 } },
 };
+/**
+ * D905: the Goldberg Variations' loudness on a phone (D896's way: whole, with the lift, the phone model, against the 48's median,
+ * -27.95): those more than 1 LU off brought to about -28 (raised up to 4 dB, lowered 1.5 dB at most: D715's limit). A phone's only.
+ */
+export const GOLD_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  abbeyRoad: { "bwv988-06": { phoneGain: 1.26 } }, // 06 -30.0 LUFS
+  berlinSchool: { "bwv988-23": { phoneGain: 0.85 } }, // 23 -26.5 LUFS
+  bossaNova: { "bwv988-19": { phoneGain: 0.85 } }, // 19 -26.0 LUFS
+  chorinho: { "bwv988-12": { phoneGain: 1.41 } }, // 12 -31.0 LUFS
+  gameboy: { "bwv988-05": { phoneGain: 1.12 }, "bwv988-17": { phoneGain: 1.17 }, "bwv988-20": { phoneGain: 1.2 } }, // 05 -29.0, 17 -29.4, 20 -29.6 LUFS
+  harpsichordSampled: { "bwv988-08": { phoneGain: 0.85 }, "bwv988-15": { phoneGain: 0.85 } }, // 08 -26.2, 15 -25.9 LUFS
+  jazzQuartet: { "bwv988-07": { phoneGain: 1.12 } }, // 07 -29.0 LUFS
+  krautrock: { "bwv988-02": { phoneGain: 1.14 }, "bwv988-03": { phoneGain: 1.17 } }, // 02 -29.1, 03 -29.4 LUFS
+  salsa: { "bwv988-26": { phoneGain: 1.43 }, "bwv988-28": { phoneGain: 1.51 } }, // 26 -31.1, 28 -31.6 LUFS
+  super16: { "bwv988-00": { phoneGain: 1.3 }, "bwv988-13": { phoneGain: 1.29 } }, // 00 -30.3, 13 -30.2 LUFS
+  tomita: { "bwv988-21": { phoneGain: 1.3 }, "bwv988-24": { phoneGain: 1.26 } }, // 21 -30.3, 24 -30.0 LUFS
+  vocalSynth: { "bwv988-25": { phoneGain: 0.85 } }, // 25 -26.2 LUFS
+};
+for (const [sid, lv] of Object.entries(GOLD_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
 for (const [sid, lv] of Object.entries(RETIRE_LEVELS)) {
   const p = PRESETS.find((x) => x.id === sid)!;
   p.levels = { ...(p.levels ?? {}), ...lv };
