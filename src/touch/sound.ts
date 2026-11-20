@@ -1284,8 +1284,6 @@ export const PATCHES = {
   /** D358: the second soprano (five voices, the Ricercar's six): the soprano a shade lighter, a second singer beside her. */
   singS2: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "soprano", size: 1, cons: "l", scoop: 60, over: 12, fall: 80, breath: 0.1, ring: 3 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 70, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.56, sample: "voiceS", one: {} }),
   singA: SING_A,
-  altoM1: LAYER(SING_A, TRIO_OBOE1, 6),
-  altoM2: LAYER(SING_A, TRIO_OBOE1, 3),
   altoM3: LAYER(TRIO_OBOE1, SING_A, 3),
   singT: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "tenor", size: 1, cons: "l", scoop: 50, over: 10, fall: 70, breath: 0.1, ring: 2 }, syllable: { cons: "l", scoop: 25, over: 5, fall: 50, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.7, sample: "voiceT", one: {} }),
   singB: P({ osc: [{ wave: "glottal" }], sing: { vowel: "a", type: "bass", size: 1, cons: "l", scoop: 40, over: 8, fall: 50, breath: 0.08, ring: 2 }, syllable: { cons: "l", scoop: 15, over: 3, fall: 40, messa: 1.5 }, amp: { a: 0.03, d: 0.1, s: 1, r: 0.09 }, rec: { a: 0.03, d: 0, s: 1, r: 0.15 }, send: VOICE_SEND, level: 0.6, sample: "voiceB", one: {} }),
@@ -1680,6 +1678,13 @@ export const PRESETS: Preset[] = [
     // D856: the sung alto of BWV 54's trial (PIECE_TRIALS bwv54-v2) every recording (a voice read 2 semitones off its own is a
     // formant shifted): only where that trial seats it.
     slim: { ...BAND_SLIM, stride: 4, strides: { voiceA: 1 } },
+    // D912: BWV 54's alto, the owner's pick of D859's trials (m3): ZELENKA TRIO's oboe leading, VocalSet's alto 3 dB under in
+    // unison (PATCHES altoM3), in the middle; its seat level its alone as loud as the strings' alto was (-32.2 against -32.3 LUFS
+    // on the phone model).
+    pieces: {
+      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM3", 0, 0.285], ["s16Cello", 0]] },
+      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM3", 0, 0.285], ["s16Bassoon", 0]] },
+    },
     slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,
     fx: "spc",
@@ -2256,58 +2261,8 @@ mergeSeats(OCTAVE_SEATS);
  */
 export type PieceTrial = { name: string; sound: string; why: string; pieces: Readonly<Record<string, Partial<Record<number, readonly Slot[]>>>> };
 /** D86x: the alto's level on SUPER 16-BIT's trials (its seat's level): its line alone as loud as today's alto alone on the phone model (renders). */
-const TRIAL_ALTO = { sung: 1.07, oboe: 0.36, m1: 0.93, m2: 0.85, m3: 0.285 } as const;
-export const PIECE_TRIALS: Readonly<Record<string, PieceTrial>> = {
-  // (D890: v1, TRACKER with the alto on its choir, withdrawn with TRACKER.)
-  "bwv54-v2": {
-    name: "BWV 54 v2: SUPER 16-BIT, the alto sung (VocalSet's alto)",
-    sound: "super16",
-    why: "SUPER 16-BIT's strings as they are, the alto on SOLO VOICES' alto singer (VocalSet, F3-E5 recorded: every note read from its own recording), in the middle, in front of the strings.",
-    pieces: {
-      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["singA", 0, TRIAL_ALTO.sung], ["s16Cello", 0]] },
-      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["singA", 0, TRIAL_ALTO.sung], ["s16Bassoon", 0]] },
-    },
-  },
-  "bwv54-v3": {
-    name: "BWV 54 v3: SUPER 16-BIT, the alto on a solo oboe (ZELENKA TRIO's)",
-    sound: "super16",
-    why: "SUPER 16-BIT's strings as they are, the alto on ZELENKA TRIO's first oboe (Iowa's, its tongue), in the middle: an obbligato reed's line over the strings. Its lowest recording is B♭3: the alto's 35 notes under it (F3-A3) are read 1-5 semitones down (within STRETCH_MAX).",
-    pieces: {
-      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Cello", 0]] },
-      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["trioOboe1", 0, TRIAL_ALTO.oboe], ["s16Bassoon", 0]] },
-    },
-  },
-  // D858: the owner, on v2 and v3: "a mix between v2 and oboe, perhaps both layered on top of each other, with loudness
-  // adjusted… sung alto sounds great but can get drowned by the violin. oboe sounds protagonistic and nasal in a fun way, but
-  // might be too harsh by itself." The two in unison on the alto (PATCHES altoM1-3), its level matched alone to today's alto.
-  "bwv54-m1": {
-    name: "BWV 54 m1: SUPER 16-BIT, the alto sung and on the oboe in unison (the voice leading, the oboe 6 dB under)",
-    sound: "super16",
-    why: "SUPER 16-BIT's strings as they are, the alto layered: VocalSet's alto and ZELENKA TRIO's first oboe on the same notes (the voice leading, the oboe 6 dB under), in the middle.",
-    pieces: {
-      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM1", 0, TRIAL_ALTO.m1], ["s16Cello", 0]] },
-      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM1", 0, TRIAL_ALTO.m1], ["s16Bassoon", 0]] },
-    },
-  },
-  "bwv54-m2": {
-    name: "BWV 54 m2: SUPER 16-BIT, the alto sung and on the oboe in unison (the voice leading, the oboe 3 dB under)",
-    sound: "super16",
-    why: "SUPER 16-BIT's strings as they are, the alto layered: VocalSet's alto and ZELENKA TRIO's first oboe on the same notes (the voice leading, the oboe 3 dB under), in the middle.",
-    pieces: {
-      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM2", 0, TRIAL_ALTO.m2], ["s16Cello", 0]] },
-      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM2", 0, TRIAL_ALTO.m2], ["s16Bassoon", 0]] },
-    },
-  },
-  "bwv54-m3": {
-    name: "BWV 54 m3: SUPER 16-BIT, the alto sung and on the oboe in unison (the oboe leading, the voice 3 dB under)",
-    sound: "super16",
-    why: "SUPER 16-BIT's strings as they are, the alto layered: VocalSet's alto and ZELENKA TRIO's first oboe on the same notes (the oboe leading, the voice 3 dB under), in the middle.",
-    pieces: {
-      "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM3", 0, TRIAL_ALTO.m3], ["s16Cello", 0]] },
-      "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM3", 0, TRIAL_ALTO.m3], ["s16Bassoon", 0]] },
-    },
-  },
-};
+/** D912: no piece trial now (BWV 54's m3 is the default: super16's `pieces`; v2, v3, m1, m2 removed). */
+export const PIECE_TRIALS: Readonly<Record<string, PieceTrial>> = {};
 let pieceTrial: string | null = (() => {
   try {
     const t = typeof location !== "undefined" ? new URLSearchParams(location.search).get("trial") : null;
@@ -2386,8 +2341,7 @@ export const F906_LEVELS: Readonly<Record<string, Readonly<Record<string, { phon
  * Contrapunctus 12 rectus (-26.3, on the reworked BERLIN SCHOOL, D805), Invention 13 (-26.9) and Sinfonia 5 (-26.6) lowered. A phone's only.
  */
 export const RETIRE_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
-  chorinho: { wtc1f15: { phoneGain: 1.23 } },
-  berlinSchool: { "bwv1080-12r": { phoneGain: 0.85 } }, // D715's limit: 1.5 dB down at most
+  berlinSchool: { "bwv1080-12r": { phoneGain: 0.85 }, wtc1f15: { phoneGain: 0.86 } }, // D715's limit: 1.5 dB down at most; D913: I/15 on it -26.6 LUFS
   salsa: { "bwv1080-c16": { phoneGain: 1.3 } },
   oboeTrio: { bwv786: { phoneGain: 1.12 } },
   harpsichordSampled: { bwv784: { phoneGain: 0.88 } },
