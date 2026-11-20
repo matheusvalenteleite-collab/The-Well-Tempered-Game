@@ -195,7 +195,7 @@ function repeatBand(c: CanvasRenderingContext2D, w: number, bw: number, g: Proto
 }
 
 /** The hold fill: a held block filling as it is held, gold once held to its bound (D218's 75%). */
-function holdFill(c: CanvasRenderingContext2D, g: ProtoGame) {
+export function holdFill(c: CanvasRenderingContext2D, g: ProtoGame) {
   const rows = g.rows!;
   const ns = g.tracks[0].notes;
   for (const hn of g.heldNotes()) {
@@ -491,7 +491,7 @@ export function thumbPath(c: CanvasRenderingContext2D, w: number, bw: number, g:
  * across its width: firm and bright by the box (its inner edge), soft and dark out by the phone's edge.
  * Never a verdict: the sound only (D311).
  */
-function colourMap(c: CanvasRenderingContext2D, w: number, h: number, bw: number) {
+export function colourMap(c: CanvasRenderingContext2D, w: number, h: number, bw: number) {
   const y = h * 0.88;
   for (const side of ["left", "right"] as const) {
     const x0 = side === "left" ? 0 : w - bw;

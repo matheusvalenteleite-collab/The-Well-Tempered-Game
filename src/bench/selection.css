@@ -510,3 +510,9 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
    foot still sits at the bottom when everything fits (margin-top: auto), and scrolls with the rest when not. */
 .sel-left { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; }
 .sel-left > * { flex-shrink: 0; }
+/* D680 (design studio): BASICS with Glenn, and the two tutorials to come, greyed. */
+.sel-basics { flex: none; display: grid; gap: 4px; }
+.sel-basics-later { display: grid; gap: 3px; }
+.sel-basics-soon { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 6px; padding: 3px 4px; font-family: var(--tg-pixel); background: #1e1c28; border: 1px dashed #46425a; opacity: 0.6; }
+.sel-basics-soon b { font-weight: normal; font-size: 5px; color: #8a88a4; }
+.sel-basics-soon i { font-style: normal; font-size: 4px; line-height: 1.5; color: #6e6e8c; }

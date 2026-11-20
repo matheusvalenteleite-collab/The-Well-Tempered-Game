@@ -76,6 +76,8 @@ export interface SelectionProps {
   settings: () => void;
   setLang?: (l: Lang) => void;
   tutorial?: { done: number; of: number; start: () => void };
+  /** D680 (design studio): BASICS with Glenn, the first of three tutorials (the developer view only for now), in the TUTORIAL slot; glowing while a beginner. */
+  basics?: { beginner: boolean; start: () => void };
   /** TOOLS, once unlocked. */
   beside?: ReactNode;
   /** The piece last opened this visit (D295): back from it, it stays chosen. */
@@ -145,7 +147,31 @@ export function Selection(p: SelectionProps) {
             {versionLine()}
           </p>
         </div>
-        {tutorial && (
+        {p.basics && (
+          <div className="sel-basics">
+            <button type="button" id="card-basics" className={`sel-tutorial sel-basics-card${p.basics.beginner ? " sel-glow" : ""}`} onClick={p.basics.start}>
+              <span className="sel-tut-head">
+                <span className="sel-tut-face" aria-hidden="true">
+                  <Portrait talking={false} who="glenn" />
+                </span>
+                <span className="sel-tut-words">
+                  <span className="sel-tut-title">{tr("BASICS")}</span>
+                  <span className="sel-tut-sub">{tr("WITH GLENN")}</span>
+                </span>
+              </span>
+              <span className="sel-tut-go">▶ {tr("BEGIN")}</span>
+            </button>
+            <div className="sel-basics-later" aria-label={tr("UNDER CONSTRUCTION")}>
+              {["INTERMEDIATE", "ADVANCED"].map((w) => (
+                <span key={w} className="sel-basics-soon" aria-disabled="true">
+                  <b>{tr(w)}</b>
+                  <i>{tr("UNDER CONSTRUCTION")}</i>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {tutorial && !p.basics && (
           <button type="button" id="card-tutorial" className={`sel-tutorial${first ? " sel-glow" : ""}`} onClick={tutorial.start}>
             <span className="sel-tut-head">
               <span className="sel-tut-face" aria-hidden="true">
