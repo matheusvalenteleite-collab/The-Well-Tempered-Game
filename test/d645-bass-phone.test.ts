@@ -19,6 +19,7 @@ import { BASS_PHONE_INV } from "../src/touch/bass-phone-inv.ts";
 import { BASS_PHONE_DUET } from "../src/touch/bass-phone-duet.ts";
 import { BASS_PHONE_903 } from "../src/touch/bass-phone-903.ts";
 import { BASS_PHONE_906 } from "../src/touch/bass-phone-906.ts";
+import { BASS_PHONE_988 } from "../src/touch/bass-phone-988.ts";
 import { FakeAudioContext, type FakeNode, installFakeAudio } from "./fake-audio.ts";
 import { Chip, PHONE_BASS_GAIN, voicing } from "../src/touch/chip.ts";
 import { KRAUT2_MOOG_PHONE_LIFT, placeFor, presetById, setPreset } from "../src/touch/sound.ts";
@@ -167,8 +168,10 @@ test(`D734: every Invention and Sinfonia measured on its own sound, its bass wit
   const bad: string[] = [];
   // D745: and the Four Duets'.
   // D775: and the Chromatic Fugue's.
-  for (const id of [...INV, "bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2", "bwv951", "bwv906-1", "bwv906-2", "bwv998-1", "bwv998-2", "bwv998-3"]) {
-    const m = BASS_PHONE_INV[id] ?? BASS_PHONE_DUET[id] ?? BASS_PHONE_903[id] ?? BASS_PHONE_906[id];
+  // D904: and the Goldberg Variations' 31.
+  const GOLD = Array.from({ length: 31 }, (_, n) => `bwv988-${String(n).padStart(2, "0")}`);
+  for (const id of [...INV, "bwv802", "bwv803", "bwv804", "bwv805", "bwv903-2", "bwv951", "bwv906-1", "bwv906-2", "bwv998-1", "bwv998-2", "bwv998-3", ...GOLD]) {
+    const m = BASS_PHONE_INV[id] ?? BASS_PHONE_DUET[id] ?? BASS_PHONE_903[id] ?? BASS_PHONE_906[id] ?? BASS_PHONE_988[id];
     assert.ok(m, `${id}: measured`);
     const f = fugueById(id);
     assert.equal(f.id, id);
