@@ -321,6 +321,38 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc2f16: NO_DRUMS, // BAROQUE BAND, calm (2.3 notes a second)
   wtc2f21: NO_DRUMS, // BAROQUE BAND, calm (2.1)
   wtc1f17: NO_DRUMS, // on FLUTE & HARP (D893), solemnly slow
+  // D902: the Goldberg Variations, a keyboard work kept close to it: no drums on any (D892's NO DRUMS), on whatever sound.
+  "bwv988-00": NO_DRUMS,
+  "bwv988-01": NO_DRUMS,
+  "bwv988-02": NO_DRUMS,
+  "bwv988-03": NO_DRUMS,
+  "bwv988-04": NO_DRUMS,
+  "bwv988-05": NO_DRUMS,
+  "bwv988-06": NO_DRUMS,
+  "bwv988-07": NO_DRUMS,
+  "bwv988-08": NO_DRUMS,
+  "bwv988-09": NO_DRUMS,
+  "bwv988-10": NO_DRUMS,
+  "bwv988-11": NO_DRUMS,
+  "bwv988-12": NO_DRUMS,
+  "bwv988-13": NO_DRUMS,
+  "bwv988-14": NO_DRUMS,
+  "bwv988-15": NO_DRUMS,
+  "bwv988-16": NO_DRUMS,
+  "bwv988-17": NO_DRUMS,
+  "bwv988-18": NO_DRUMS,
+  "bwv988-19": NO_DRUMS,
+  "bwv988-20": NO_DRUMS,
+  "bwv988-21": NO_DRUMS,
+  "bwv988-22": NO_DRUMS,
+  "bwv988-23": NO_DRUMS,
+  "bwv988-24": NO_DRUMS,
+  "bwv988-25": NO_DRUMS,
+  "bwv988-26": NO_DRUMS,
+  "bwv988-27": NO_DRUMS,
+  "bwv988-28": NO_DRUMS,
+  "bwv988-29": NO_DRUMS,
+  "bwv988-30": NO_DRUMS,
 };
 /** D585: the stand-in for a fugue's style the library does not have yet (its nearest kin among the styles it has). */
 export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
