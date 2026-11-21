@@ -2345,7 +2345,7 @@ export const F906_LEVELS: Readonly<Record<string, Readonly<Record<string, { phon
  */
 export const RETIRE_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
   berlinSchool: { "bwv1080-12r": { phoneGain: 0.85 }, wtc1f15: { phoneGain: 0.86 } }, // D715's limit: 1.5 dB down at most; D913: I/15 on it -26.6 LUFS
-  salsa: { "bwv1080-c16": { phoneGain: 1.43 } }, // D923: 1.3 before; its whole level where it was on the phone model (-28.0 LUFS) after SALSA's bus lost its tape
+  salsa: { "bwv1080-c16": { phoneGain: 1.32 } }, // D923: 1.3 before (-28.0 LUFS on the phone model); D924: 1.43 measured -27.3 with D593's refreshed balance, 1.32
   oboeTrio: { bwv786: { phoneGain: 1.12 } },
   harpsichordSampled: { bwv784: { phoneGain: 0.88 } },
   baroqueBand: { bwv791: { phoneGain: 0.85 } },
