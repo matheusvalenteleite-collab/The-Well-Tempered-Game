@@ -188,6 +188,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f08 | bar 74, B#3: the sign the BGA's (T) (D206) |
 | wtc1f08 | b. 48, voice 2, beats 1.5-2: E3 C#3 → D#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f08 | b. 77, voice 2, beat 0.5: E3 → E#3 (slip: E#, as the Humdrum check and Mutopia have it) |
+| wtc1p09 | b. 16, voice 1, beats 3-3.5: B3 → B3 (slip: the B3 held to the bar's end, a dotted minim, as the Bach-Gesellschaft prints it (BG 14, p. 36); Mutopia and the Humdrum check agree) |
 | wtc1p09 | re-voiced (mutopia): 3 voices, 49 notes placed by the nearest voice (D881) |
 | wtc1f09 | b. 26, voice 2, beats 2-4: F#2 C#3 D#3 B2 → F#2 E3 D#3 B2 (editorial: the Bach-Gesellschaft's E (Rother's ossia): the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f09 | b. 24, voice 2, beat 2.5: E3 → G#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
