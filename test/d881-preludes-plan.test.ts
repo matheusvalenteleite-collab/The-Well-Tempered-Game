@@ -29,3 +29,10 @@ test("D881-D885: a planned prelude offers only its plan's voices; I/2 none; I/1'
   assert.equal(PRELUDE_PLAN.wtc1p05.tempo, "slow");
   assert.deepEqual(Object.keys(DULL_EXCEPTIONS), ["wtc1p01"]);
 });
+
+test("D886: I/9 bar 16, the B3 a dotted minim to the bar's end, as the Bach-Gesellschaft prints it", () => {
+  const f = fugueById("wtc1p09");
+  const bar16 = f.bars.find((b) => b.n === 16)!.on;
+  const b3 = f.voices.flat().find((n) => n[0] === bar16 + 3 * f.tpq && n[2] === 59)!;
+  assert.equal(b3[1], 3 * f.tpq);
+});
