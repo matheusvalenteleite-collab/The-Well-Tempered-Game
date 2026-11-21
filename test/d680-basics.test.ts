@@ -65,3 +65,11 @@ test("every word in Portuguese and Spanish; the developer view only; Glenn's win
   // No strobe: every pulse in the marks slower than a second.
   assert.match(src("src/bench/basics/basics-aids.ts"), /Math\.sin\(now \/ 420\)/);
 });
+
+test("D683: Glenn plays the game, his thumbs the game's own plan, the phone a mirror of the box", () => {
+  const g = src("src/bench/basics/GlennPiano.tsx");
+  assert.match(g, /export function thumbsOf/);
+  const app = src("src/bench/BenchApp.tsx");
+  assert.match(app, /plan: g\.plan\.filter/);
+  assert.equal(BASICS.find((t) => t.aid === "swell")?.m.coach, "colour");
+});
