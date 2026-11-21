@@ -63,7 +63,7 @@ export const BASICS: readonly BasicsTake[] = [
   ...both(5, mat(SIN9, 2, 1, 2, 40, "Sinfonia 9, the bass, bars 1–2"), "HOLD", "hold"),
   // 6 POLYPHONY: one segment, a voice a pass (top, middle, bottom); the tip (STRONG · SOFT) on the middle pass, the slow one.
   { step: 6, kind: "play", m: mat(SIN9, 0, 3, 4, 36, "Sinfonia 9, bars 3–4, the top voice"), word: "YOU", aid: "you", pass: 0 },
-  { step: 6, kind: "play", m: mat(SIN9, 1, 3, 4, 36, "Sinfonia 9, bars 3–4, the middle voice"), word: "STRONG · SOFT", aid: "swell", pass: 1 },
+  { step: 6, kind: "play", m: mat(SIN9, 1, 3, 4, 36, "Sinfonia 9, bars 3–4, the middle voice", { coach: "colour" }), word: "STRONG · SOFT", aid: "swell", pass: 1 },
   { step: 6, kind: "play", m: mat(SIN9, 2, 3, 4, 36, "Sinfonia 9, bars 3–4, the bottom voice"), word: "YOU", aid: "you", pass: 2 },
   // SURPRISE: the same bars again, the sound changing every half bar.
   { step: 7, kind: "play", m: mat(SIN9, 0, 3, 4, 40, "Sinfonia 9, bars 3–4, the top voice"), word: "Pick any piece.", aid: "surprise" },
