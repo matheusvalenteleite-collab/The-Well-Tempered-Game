@@ -2202,7 +2202,7 @@ export function BenchApp() {
       {/* D681: BASICS's host, Glenn at the piano, in a small window above the box (never over the notes). */}
       {bTake && phase.kind === "play" && (
         <div className="basics-window" aria-hidden="true">
-          <GlennPiano src={glennSrc} mode={glennMode} />
+          <GlennPiano src={glennSrc} mode={glennMode} talking={glennMode === "shrug"} />
           {glennMode === "shrug" && <p className="basics-end">{tr("Pick any piece.")}</p>}
         </div>
       )}
