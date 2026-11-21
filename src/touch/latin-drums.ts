@@ -335,6 +335,43 @@ export const GROOVES: Readonly<Record<LatinBand, Record<12 | 16, { full: readonl
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 /** Whether a subject or answer sounds at `tick`. */
+/**
+ * D924: SALSA's SPARSE rows, for the pieces it plays with DRUMS on in place of a library kit (LATIN_SPARSE): the clave and a
+ * light conga the spine, the low bell on the cycle's two downbeats under an entry; the bells' quavers, the timbal's bell,
+ * the cáscara, the martillo and the ghost slaps out (the owner: "too noisy"). Their stroke rate under the bossa kit's
+ * they replace (bwv800 4.0 a second, BWV 998/2 5.0). II/10 and every other piece keep GROOVES.salsa.
+ */
+export const LATIN_SPARSE: ReadonlySet<string> = new Set(["bwv800", "bwv998-2"]);
+export const SALSA_SPARSE: Readonly<Record<12 | 16, { full: readonly Row[]; quiet: readonly Row[] }>> = {
+  16: {
+    full: [
+      ["clave", [2, 4, 8, 11, 14], 0.42],
+      ["bellLow", [0, 8], 0.42],
+      ["conga", [6, 14], 0.5],
+      ["slap", [10], 0.4],
+      ["tumba", [15], 0.5],
+    ],
+    quiet: [
+      ["clave", [2, 4, 8, 11, 14], 0.34],
+      ["conga", [6, 14], 0.4],
+      ["tumba", [15], 0.38],
+    ],
+  },
+  12: {
+    full: [
+      ["clave", [0, 3, 7, 10], 0.38],
+      ["bellLow", [0], 0.42],
+      ["conga", [4, 10], 0.5],
+      ["tumba", [11], 0.5],
+    ],
+    quiet: [
+      ["clave", [0, 3, 7, 10], 0.32],
+      ["conga", [4, 10], 0.38],
+      ["tumba", [11], 0.36],
+    ],
+  },
+};
+
 export const inEntry = (plan: LatinPlan, tick: number) => plan.entries.some(([on, end]) => tick >= on && tick < end);
 
 /**
@@ -427,7 +464,7 @@ export function latinBeat(band: LatinBand, plan: LatinPlan, tick: number, beat: 
     // layers join act by act and play firmer into the final group (choroStage), on the same written rows.
     const arc = band === "chorinho" && plan.form ? choroStage(plan.form, t) : null;
     const k = (full ? 1 : 10 ** (EPISODE_DB / 20)) * g * (arc ? arc.gain : 1);
-    const rows = GROOVES[band][plan.cycle];
+    const rows = (band === "salsa" && LATIN_SPARSE.has(plan.id) ? SALSA_SPARSE : GROOVES[band])[plan.cycle];
     const use: readonly Row[] = !arc ? rows[full ? "full" : "quiet"] : full ? choroFull(rows, arc.stage) : arc.stage >= 3 ? [...rows.quiet, ...rows.full.filter((r) => r[0] === "tamborim").map((r) => [r[0], r[1], r[2] * 0.7] as Row)] : rows.quiet;
     for (const [piece, pulses, vel, damp] of use) {
       if (!pulses.includes(p) || (land && (piece === "tumba" || piece === "surdo" || piece === "timbalBell"))) continue;

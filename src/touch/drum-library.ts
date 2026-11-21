@@ -296,7 +296,7 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   bwv797: NO_DRUMS, // D892: CLASSIC CHIP without its drum; calm (2.0 notes a second): no drums
   bwv798: "lofi", // SUPER 16-BIT's own, 80 a minute (68-92)
   bwv799: NO_DRUMS,
-  bwv800: "bossa", // the cheerful B♭ trio on SALSA, moderate (2.6 notes a second): the bossa's lighter groove over SALSA's own, 99 %
+  bwv800: "salsa", // D924: SALSA's own percussion (D923's calmer rows), not the bossa's brushes (their stir and taps the hiss over 7 kHz on SALSA's band), 98 % on the onsets
   bwv801: "liebezeit", // the driving 9/16 on KRAUTROCK: Jaki Liebezeit's trance, 68 a minute (62-104)
   // D744: the Four Duets, each on its own sound (D741), by the same criteria (score.ts: FITS, the pulse in its band, the onsets).
   bwv802: "scoreSynth", // the chromatic 3/8 on BERLIN SCHOOL: its own synth kit read from the score, 99 %
@@ -311,7 +311,7 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   "bwv906-1": "brushes", // the Fantasia on JAZZ QUARTET: its brushes, 99 % on the onsets
   "bwv906-2": "abbey", // the unfinished fugue on ABBEY ROAD: its own drummer, 97 %
   "bwv998-1": NO_DRUMS, // D894: the tabor withdrawn; calm (2.85 notes a second): no drums
-  "bwv998-2": "bossa", // the Fugue on SALSA: the bossa's brushes and rim, 97 %
+  "bwv998-2": "salsa", // D924: the Fugue on SALSA: its own percussion, not the bossa's brushes (as bwv800), 84 % on the onsets
   "bwv998-3": NO_DRUMS, // D894: the tabor withdrawn; no remaining kit stays under the band in its thin bars (D601: the castanets one stroke only 0.9 dB under in b. 58, inside the 1 dB margin; the frame drum, the side drum, MARCH and SYNTH KIT more strokes): no drums
   // D894: the pieces whose own drums were withdrawn (D891) or whose sound was (D893), and CLASSIC CHIP's (D892); calm ones
   // (under 3 notes a second, D618's line) play none, the owner's lean (slow fugues alone).
