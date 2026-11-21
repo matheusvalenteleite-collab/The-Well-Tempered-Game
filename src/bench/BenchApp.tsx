@@ -97,7 +97,7 @@ import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
 import { ACTS, ACTS_READY, FINALE, stagePassed as basicsPassed } from "./basics/plan.ts";
 import { basicsRun, nextAt, stageOf, type BasicsAt } from "./basics/runner.ts";
-import { paintBasics2, type MissShown } from "./basics/aids2.ts";
+import { paintBasics2, paintCue, type MissShown } from "./basics/aids2.ts";
 import { BasicsHost, type HostView } from "./basics/BasicsHost.tsx";
 import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
@@ -457,6 +457,7 @@ export function BenchApp() {
   const [bas, setBas] = useState<BasicsAt | null>(null);
   const [hostView, setHostView] = useState<HostView | null>(null);
   const basMiss = useRef<MissShown | null>(null);
+  const basJoin = useRef<{ at: number; y: number } | null>(null);
   const basMisses = useRef(0);
   const bStage = bas ? stageOf(bas) : undefined;
   const bRun = useMemo(() => (bas && bStage ? basicsRun(bStage, bas.phase, bas.notches) : undefined), [bas?.act, bas?.stage, bas?.phase, bas?.notches]);
@@ -712,7 +713,8 @@ export function BenchApp() {
     return {
       now: from - b.ticks,
       tps: 1,
-      key: keyAt(f, from),
+      // D700: BASICS's passages (6.4 starts at CP4's bar 50, C major there) name the piece's key, as the main game does.
+      key: bStage ? f.key : keyAt(f, from),
       barTicks: f.barTicks,
       beatTicks: b.ticks,
       count: f.voices.length,
@@ -906,6 +908,8 @@ export function BenchApp() {
       basMisses.current = bs.at.misses;
       g.tap = (e) => {
         bLens.feed(e);
+        // D693: a join credited (thumb to thumb, no gap): the bridge lit a moment (6.2).
+        if (e.kind === "note" && e.ok && e.legato?.ok) basJoin.current = { at: performance.now(), y: g.lastBySide[e.side]?.y ?? 0 };
         if (!(e.kind === "miss" || (e.kind === "note" && !e.ok))) return;
         basMisses.current += 1;
         if (e.kind === "note" && e.ladder?.steps !== undefined && e.ladder.movedPx !== undefined) {
@@ -935,7 +939,11 @@ export function BenchApp() {
         paintProto(ctx, w, h, g, marks.subject);
         const tour = man?.mode === "tour" ? tourRef.current : null;
         // D687: BASICS's aids, on in DO, fading over PROVE's first notes.
-        if (bs) paintBasics2(ctx, w, h, g, { aids: bs.st.aids, alpha: bs.at.phase === "do" ? 1 : Math.max(0, 1 - g.tracks[0].notes.filter((n) => n.state !== "pending").length / 3), ...(bs.st.side ? { side: bs.st.side } : {}), miss: basMiss.current, beat: beatOf(f).ticks });
+        if (bs) paintBasics2(ctx, w, h, g, { aids: bs.st.aids, alpha: bs.at.phase === "do" ? 1 : Math.max(0, 1 - g.tracks[0].notes.filter((n) => n.state !== "pending").length / 3), ...(bs.st.side ? { side: bs.st.side } : {}), miss: basMiss.current, join: basJoin.current, beat: beatOf(f).ticks });
+        if (bs?.st.cue) {
+          const on = f.bars[bs.st.cue.bar - 1]?.on ?? 0;
+          paintCue(ctx, w, h, g, { text: tr(bs.st.cue.text), on, off: on + 3 * f.barTicks });
+        }
         if (lens && (aids.length || tour)) paintAids(ctx, w, h, g, lens, { aids, firstTake, ...(ask ? { ask } : {}), ...(stepKind ? { step: stepKind as "watch", box: boxRect() } : {}), ...(tour ? { tour: { focus: TOUR[tour.k]?.focus ?? "all", left: tour.left, right: tour.right } } : {}) });
       });
     const b = beatOf(f);
@@ -963,7 +971,7 @@ export function BenchApp() {
       frame.current = {
         now: g.viewNow,
         tps: g.tps,
-        key: g.keyNow(),
+        key: bStage ? f.key : g.keyNow(),
         barTicks: f.barTicks,
         beatTicks: b.ticks,
         count: f.voices.length,
@@ -1621,8 +1629,10 @@ export function BenchApp() {
     const at = bas;
     const st = stageOf(at);
     const misses = basMisses.current;
-    if (basicsPassed(st, r)) {
-      if (at.phase === "do") return basicsTake({ ...at, phase: "prove", misses });
+    const takes = (at.takes ?? 0) + 1;
+    // Act VI's stations: the idea tried a few times is enough (heard once, or three takes), and no PROVE.
+    if (basicsPassed(st, r) || (st.light && takes >= 3)) {
+      if (at.phase === "do" && !st.light) return basicsTake({ ...at, phase: "prove", misses, takes: 0 });
       const nx = nextAt(at, ACTS_READY);
       if (!nx) return basicsFinale();
       if (nx.act !== at.act) return basicsAct(nx.act);
@@ -1630,7 +1640,7 @@ export function BenchApp() {
     }
     // The help the misses of this take have earned (the highest step crossed), then the same take again.
     const crossed = (k: number) => at.misses < k && misses >= k;
-    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, ...o });
+    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, takes, ...o });
     if ([4, 8, 12].some(crossed)) return again({ notches: at.notches + 1 });
     if (crossed(3) && st.clip) return setHostView({ kind: "clip", clip: st.clip, done: () => again() });
     if (crossed(2) || crossed(3)) return setHostView({ kind: "hint", text: st.hint, done: () => again() });
@@ -2021,8 +2031,8 @@ export function BenchApp() {
   const onBars = playing || (phase.kind === "mtalk" && !!manLesson && isCourse(manLesson));
   const own = (onBars && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
   // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
-  // D402: in the tutorial from THE REAL THING on (the full screen).
-  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && (full || playing);
+  // D402: in the tutorial from THE REAL THING on (the full screen). D696: never in BASICS (6.4 teaches the shake at the default stop).
+  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && !bStage && (!man || !!dressNow?.includes("stops")) && (full || playing);
   // D472 (design studio): STRING CONSORT's articulation stops (D512) at the bars' feet, as the pistons stand there.
   const consortOn = hasConsortStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && layout === "bars" && playing;
 
@@ -2035,7 +2045,8 @@ export function BenchApp() {
         hud={
           <>
             <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? liteTitle(f) : `BENCH · ${proto.name}`}</span>
-            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
+            {/* D700: BASICS names its piece's key when it renders (frame.current can still hold the screen before's). */}
+            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(bStage ? f.key : frame.current.key) : keyName(bStage ? f.key : frame.current.key)}</span>
             {playing && listening.current && (
               // D457: a take played back, named in the title bar.
               <span className="tb-tools-tag" id="listen-tag">

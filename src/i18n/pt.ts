@@ -621,6 +621,7 @@ export const PT: Record<string, string> = {
   // D868
   "Pick a piece in the middle.": "Escolha uma peça no meio.",
   "Pick a fugue in the middle, or learn first with the TUTORIAL on the left.": "Escolha uma fuga no meio, ou aprenda primeiro com o TUTORIAL à esquerda.",
+  "Pick a fugue in the middle, or learn first with BASICS on the left.": "Escolha uma fuga no meio, ou aprenda primeiro com o BÁSICO à esquerda.",
   // D380 (installing), D381 (headphones gone), D382 (Book II earned).
   "BOOK II UNLOCKED!": "LIVRO II DESBLOQUEADO!",
   "You finished all 24 fugues of Book I. 24 more await.": "Você terminou as 24 fugas do Livro I. Mais 24 esperam por você.",

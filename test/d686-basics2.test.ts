@@ -124,7 +124,7 @@ test("the help comes in steps: nothing, the hint, the clip, a notch slower", () 
 
 test("every line and label in Portuguese and Spanish; the developer view only; no D680 leftovers", () => {
   for (const a of ACTS) {
-    for (const s of [a.title, ...(a.n < 6 ? [a.glenn] : []), ...a.stages.map((x) => x.hint), ...a.stages.flatMap((x) => (x.cue ? [x.cue.text] : []))]) assert.ok(BASICS_PT[s] && BASICS_ES[s], s);
+    for (const s of [a.title, a.glenn, ...a.stages.map((x) => x.hint), ...a.stages.flatMap((x) => (x.cue ? [x.cue.text] : []))]) assert.ok(BASICS_PT[s] && BASICS_ES[s], s);
   }
   for (const w of ["CONTINUE", "I KNOW THIS", "TO THE GAME", "LIFT"]) assert.ok(BASICS_PT[w] && BASICS_ES[w], w);
   const app = src("src/bench/BenchApp.tsx");

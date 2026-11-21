@@ -18,11 +18,11 @@ const CLIPS: Record<ClipId, string> = {
   two: new URL("./clips/two.mp4", import.meta.url).href,
   hold: new URL("./clips/hold.mp4", import.meta.url).href,
   lift: new URL("./clips/lift.mp4", import.meta.url).href,
-  strong: new URL("./clips/tap.mp4", import.meta.url).href,
-  legato: new URL("./clips/two.mp4", import.meta.url).href,
-  short: new URL("./clips/tap.mp4", import.meta.url).href,
-  shake: new URL("./clips/tap.mp4", import.meta.url).href,
-  slide: new URL("./clips/up.mp4", import.meta.url).href,
+  strong: new URL("./clips/strong.mp4", import.meta.url).href,
+  legato: new URL("./clips/legato.mp4", import.meta.url).href,
+  short: new URL("./clips/short.mp4", import.meta.url).href,
+  shake: new URL("./clips/shake.mp4", import.meta.url).href,
+  slide: new URL("./clips/slide.mp4", import.meta.url).href,
 };
 
 export type HostView =

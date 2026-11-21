@@ -973,24 +973,39 @@ export function zoneGlow(c: Ctx, zone: "pleno" | "fuoco" | null) {
  * D194, the cadences (D208: a tick on the timeline): each coming one a short gold tick at the foot of
  * the box, named beside it ("FULL CADENCE · G MINOR"); as it is reached, the tick flares.
  */
-export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[]) {
-  const { g, w, h, xOf, now } = c;
+/** D697 (design studio): `foot`, the box px something lies over at the roll's foot (the voice legend: D473): the mark and its name drawn above it, never under the legend; `right`, `left`, the box px the side bars cover: the name kept between them. */
+export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[], foot = 0, right = 0, left = 0) {
+  const { g, w, xOf, now } = c;
+  const h = c.h - foot;
+  // D697: two cadences close together: the later's name waits until the earlier's has gone (its mark still drawn).
+  let taken = -Infinity;
   for (const cd of cadences) {
     const x = xOf(cd.on);
     if (x < -40 || x > w) continue;
     const since = ((now - cd.on) / c.tps) * 1000;
     if (since > 1400) continue;
     const flare = since >= 0 ? 1 - since / 1400 : 0;
+    // D700: the name between the side bars and never crossed by its mark: right of the line where it fits, else
+    // ending left of it; where neither fits, the line stops above the name (a stub).
+    const tw = textWidth(cd.text);
+    const lo = left + 2;
+    const hi = w - right - 2;
+    const tx = x + 3 + tw <= hi ? Math.max(lo, x + 3) : Math.max(lo, Math.min(x - 3, hi) - tw);
+    const named = tx >= taken + 6;
+    const crosses = named && x >= tx - 1 && x <= tx + tw;
+    const len = crosses ? 3 : 12;
     g.globalAlpha = since >= 0 ? 0.4 + 0.6 * flare : 0.8;
     g.fillStyle = c.gold;
-    g.fillRect(x, h - 12, 1, 12);
+    g.fillRect(x, h - 12, 1, len);
     g.fillRect(x - 1, h - 12, 3, 1);
     if (flare > 0) {
       g.globalAlpha = 0.3 * flare;
-      g.fillRect(x - 2, h - 16, 5, 16);
+      g.fillRect(x - 2, h - 16, 5, len + 4);
     }
+    if (!named) continue;
     g.globalAlpha = since >= 0 ? flare : 0.7;
-    pixText(g, cd.text, Math.min(x + 3, w - textWidth(cd.text) - 2), h - 8, c.gold);
+    pixText(g, cd.text, tx, h - 8, c.gold);
+    taken = tx + tw;
   }
   g.globalAlpha = 1;
 }

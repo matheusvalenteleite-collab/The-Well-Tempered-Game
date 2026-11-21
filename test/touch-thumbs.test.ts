@@ -278,9 +278,10 @@ test("prepare marks no rides, at any level", () => {
   assert.ok(lv.notes.every((n) => !n.ride));
 });
 
-test("the preludes, played by hands: the right hand above the left", () => {
+test("the preludes, played by hands: the right hand above the left (D881: but those the plan re-voices)", () => {
+  const VOICED: Record<string, number> = { wtc1p04: 4, wtc1p07: 4, wtc1p08: 3, wtc1p09: 3, wtc1p10: 3, wtc1p12: 4 };
   for (const p of PRELUDES) {
-    assert.ok(p.voices.length === 2 || p.id === "wtc1p04", `${p.id}: ${p.voices.length} parts`);
+    assert.ok(p.voices.length === (VOICED[p.id] ?? 2), `${p.id}: ${p.voices.length} parts`);
     if (p.voices.length === 2) {
       assert.deepEqual(p.voiceNames, ["Right hand", "Left hand"]);
       const mean = (v: number[][]) => v.reduce((t, n) => t + n[2], 0) / v.length;

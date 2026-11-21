@@ -17,6 +17,8 @@ export interface BasicsAt {
   /** Misses so far in this stage (the help steps), and the tempo notches taken off. */
   misses: number;
   notches: number;
+  /** Takes so far in this stage (Act VI's light rule: passed after three). */
+  takes?: number;
 }
 
 export const stageOf = (at: Pick<BasicsAt, "act" | "stage">): Stage => ACTS[at.act].stages[at.stage];
@@ -36,8 +38,10 @@ export function basicsRun(st: Stage, phase: Phase, notches: number): Run {
     solo: st.solo,
     ...(st.easy ? { easy: st.easy } : {}),
     ...(st.side ? { side: st.side } : {}),
+    ...(st.skip ? { skip: st.skip } : {}),
+    ...(st.count ? { count: st.count } : {}),
   };
-  const r = runOf(m, undefined, [], false, false);
+  const r = runOf(m, undefined, [], !!st.ornaments, false);
   const early = Number(st.id[0]) <= 4;
   return {
     ...r,
