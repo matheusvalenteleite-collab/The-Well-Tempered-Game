@@ -77,3 +77,22 @@ test("the leader changes: Var. 24 at bars 9 and 25, Var. 27 at bar 17, each name
   assert.match(e, /by > ay \? Math\.max\(ay, by\) \+ bow : Math\.min\(ay, by\) - bow/);
   assert.ok(!/score|grade|"hit"|"miss"/.test(e.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")));
 });
+
+test("at most one token in flight a beat in each leg (Var. 24's two-bar delay: no column of tokens at the playhead)", async () => {
+  await loadExtras();
+  const { beatOf } = await import("../src/touch/fugue.ts");
+  for (const id of Object.keys(CANONS)) {
+    const f = fugueById(id);
+    const beat = beatOf(f).ticks;
+    const pairs = echoPairs(f);
+    const flying = pairs.filter((p) => p.flies);
+    assert.equal(new Set(flying.map((p) => `${p.leg}:${Math.floor(p.a.on / beat)}`)).size, flying.length, id);
+    // at any moment, no more tokens in flight than beats in the delay (+1)
+    const L = CANONS[id].legs;
+    for (const p of flying) {
+      const now = p.a.on;
+      const n = flying.filter((q) => q.leg === p.leg && now >= q.a.on && now < q.b.on).length;
+      assert.ok(n <= Math.ceil(L[p.leg].delay / beat) + 1, `${id} ${n}`);
+    }
+  }
+});

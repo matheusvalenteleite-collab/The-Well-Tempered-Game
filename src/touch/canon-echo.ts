@@ -14,7 +14,7 @@
  * game's own notes (each leader's onset + the delay against the follower's voices; the canons session's survey, proposal
  * at https://claude.ai/artifact/N64gm5aPPKggXTHoen5zo7); the label of each leg names the canon, or the change of leader.
  */
-import type { TouchFugue } from "./fugue.ts";
+import { beatOf, type TouchFugue } from "./fugue.ts";
 
 /** One stretch of a canon: who leads, who follows, how much later and at what interval. */
 export interface CanonLeg {
@@ -106,6 +106,12 @@ export interface EchoPair {
   b: N;
   /** The leg it belongs to (an index into the canon's legs). */
   leg: number;
+  /**
+   * D930 (the board, on Var. 24's 2-bar delay: tokens stacked at the playhead "read as a glitch"): whether a token flies
+   * for this pair. One a beat, the first leader's note of each beat in each leg, so a long delay keeps a few tokens spread
+   * along their arcs instead of a column of them lifting off at once. Every pair keeps its arc and its lit answer.
+   */
+  flies: boolean;
 }
 
 const memo = new WeakMap<TouchFugue, EchoPair[]>();
@@ -130,10 +136,16 @@ export function echoPairs(f: TouchFugue): EchoPair[] {
         if (on < t0 || on >= t1) continue;
         const want = L.contrary ? L.steps - step : step + L.steps;
         const b = (at.get(on + L.delay) ?? []).find((n) => n.step === want);
-        if (b) out.push({ a: { on, dur, midi, step, voice: v }, b, leg: li });
+        if (b) out.push({ a: { on, dur, midi, step, voice: v }, b, leg: li, flies: false });
       }
   });
   out.sort((x, y) => x.a.on - y.a.on || x.b.on - y.b.on);
+  const beat = beatOf(f).ticks;
+  const flown = new Set<string>();
+  for (const p of out) {
+    const key = `${p.leg}:${Math.floor(p.a.on / beat)}`;
+    if (!flown.has(key)) (flown.add(key), (p.flies = true));
+  }
   memo.set(f, out);
   return out;
 }
@@ -174,7 +186,7 @@ export function paintEcho(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo
   const cy = (n: N) => k.yOf(n.step) + k.bh / 2;
   g.save();
   g.lineWidth = 1;
-  for (const { a, b, leg: li } of pairs) {
+  for (const { a, b, leg: li, flies } of pairs) {
     const contrary = spec.legs[li].contrary;
     if (b.on + b.dur < k.t0) continue;
     if (a.on > k.t1) break;
@@ -185,16 +197,23 @@ export function paintEcho(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo
     const mx = (ax + bx) / 2;
     const bow = Math.max(10, k.bh * 2.2);
     const my = contrary ? (ay + by) / 2 : by > ay ? Math.max(ay, by) + bow : Math.min(ay, by) - bow;
-    g.globalAlpha = 0.22;
-    g.strokeStyle = k.ink(b.voice);
-    g.setLineDash([2, 2]);
+    // D930 (the board: the arcs "barely visible against the night room" at 667): a dark halo under the dotted line, so it
+    // holds on a light or busy world, and the line itself a touch stronger; still under the notes and fainter than them.
     g.beginPath();
     g.moveTo(ax, ay);
     g.quadraticCurveTo(mx, my, bx, by);
+    g.globalAlpha = 0.3;
+    g.strokeStyle = "#05060d";
+    g.lineWidth = 3;
+    g.stroke();
+    g.lineWidth = 1;
+    g.globalAlpha = 0.34;
+    g.strokeStyle = k.ink(b.voice);
+    g.setLineDash([2, 2]);
     g.stroke();
     g.setLineDash([]);
     // In flight: a token of the note along the arc (turning over in contrary motion).
-    if (k.now >= a.on && k.now < b.on) {
+    if (flies && k.now >= a.on && k.now < b.on) {
       const t = (k.now - a.on) / Math.max(1, b.on - a.on);
       const x = (1 - t) * (1 - t) * ax + 2 * (1 - t) * t * mx + t * t * bx;
       const y = (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * my + t * t * by;
