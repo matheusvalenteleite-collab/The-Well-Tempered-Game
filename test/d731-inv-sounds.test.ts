@@ -49,7 +49,7 @@ const SOUNDS: Record<string, [string, string]> = {
   bwv797: ["chip", "none"],
   bwv798: ["super16", "lofi"],
   bwv799: ["chip", "none"],
-  bwv800: ["salsa", "bossa"],
+  bwv800: ["salsa", "salsa"], // D924: SALSA's own percussion (was the bossa's brushes)
   bwv801: ["krautrock", "liebezeit"],
 };
 const CHIPS = new Set(["chip", "gameboy", "sid64", "super16"]);

@@ -28,6 +28,6 @@ export const BASS_PHONE_AOF: Readonly<Record<string, { s: string; sig: string; d
   "bwv1080-14": {"s":"tomita","sig":"[null,0.3,null,null,null,null]","db":null,"band":{"lu":[-33,-36.2,-31.4,-33],"at":[-1.2,0,0,0],"mix":-28.2},"player":{"lu":[-32.6,-36.2,-31.4,-33.5],"at":[0,0,0,-1.5],"mix":-28.2}},
   "bwv1080-c14": {"s":"vocalSynth","sig":"[null,0.5,null,null,null,null]","db":null,"band":{"lu":[-28.3,-32.3],"at":[0.9,0],"mix":-27.1},"player":{"lu":[-28.8,-30.8],"at":[2.3,0],"mix":-27.1}},
   "bwv1080-c15": {"s":"gameboy","sig":"[null,0.35,null,null,null,null]","db":null,"band":{"lu":[-31.3,-30.3],"at":[-3.6,0],"mix":-28},"player":{"lu":[-32.4,-29.9],"at":[0,-1.6],"mix":-28.3}},
-  "bwv1080-c16": {"s":"salsa","sig":"[\"jazzBass\",3.8,{\"hz\":320,\"db\":15,\"cut\":280},null,{\"hz\":700,\"db\":-1},[250,16,600]]","db":12,"band":{"lu":[-30.4,-35.1],"at":[-0.1,0],"mix":-30},"player":{"lu":[-29.9,-36.4],"at":[1.4,-2.8],"mix":-29.7}},
+  "bwv1080-c16": {"s":"salsa","sig":"[\"jazzBass\",3.8,{\"hz\":320,\"db\":15,\"cut\":280},null,{\"hz\":700,\"db\":-1},[250,16,600]]","db":12,"band":{"lu":[-29.1,-32.5],"at":[0.2,0],"mix":-28},"player":{"lu":[-29.3,-32.2],"at":[0.8,-0.3],"mix":-28.1}},
   "bwv1080-c17": {"s":"berlinSchool","sig":"[null,0.28,null,null,null,null]","db":null,"band":{"lu":[-28.9,-33.4],"at":[-2.1,0],"mix":-28.1},"player":{"lu":[-29.6,-33.1],"at":[0,-1.9],"mix":-28.5}},
 };
