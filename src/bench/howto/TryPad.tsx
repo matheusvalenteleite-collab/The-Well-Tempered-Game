@@ -3,7 +3,7 @@
  * BASICS v2 stage the card names (plan.ts ACTS, runner.ts basicsRun) as BASICS runs its DO: LADDER, the music
  * waiting at the first note (at every note in 1.1), nothing failed, BASICS' timing windows, its sound; and it
  * paints BASICS' own aids (aids2.ts paintBasics2: the rings, the arrow, the gold line, the draining block, LIFT,
- * and after a wrong move exactly two arrows, YOU DID and NEEDED). The bars are the game's: each a BAR share of the
+ * and after a wrong move exactly two arrows, YOU DID and NEEDED), and, as BASICS since D691, no verdict words. The bars are the game's: each a BAR share of the
  * pad's width, STRONG by the box (protos.ts barDynamic reads the touch's x as the game does). When the take ends
  * the stage's own rule (stagePassed) says whether it was it; no score is kept, nothing is saved.
  */
@@ -194,7 +194,7 @@ export function TryPad({ t, title, chip, restore, close }: { t: Try; title: stri
   );
 }
 
-/** The pad's picture: the game's strips, box and gold line; the other voices dim, yours full and rimmed; BASICS' aids; the verdict words by the thumb. */
+/** The pad's picture: the game's strips, box and gold line; the other voices dim, yours full and rimmed; BASICS' aids; no verdict words (D691). */
 function paintPad(cv: HTMLCanvasElement, g: ProtoGame, st: Stage, miss: MissShown | null) {
   const W = cv.clientWidth || 300;
   const H = cv.clientHeight || 200;
@@ -280,13 +280,5 @@ function paintPad(cv: HTMLCanvasElement, g: ProtoGame, st: Stage, miss: MissShow
     c.arc(d.side === "left" ? bw / 2 : W - bw / 2, d.y, Math.max(9, bw * 0.13), 0, Math.PI * 2);
     c.fill();
   }
-  // The verdict (PERFECT, GOOD, ✕, MISS) and the end's word (HELD, TOO SOON, REST!), by the thumb, for a moment.
-  const now = performance.now();
-  const gr = g.grade;
-  if (gr && now - gr.at < 700) {
-    const ink2 = gr.text === "PERFECT" ? "#ffd23f" : gr.text === "GOOD" ? "#5fdc6a" : "#d8443a";
-    label(c, trCanvas(gr.text), gr.side === "left" ? bw / 2 : gr.side === "right" ? W - bw / 2 : W / 2, H * 0.5 - 14, ink2, 9);
-  }
-  const fl = g.flash;
-  if (fl && now - fl.at < 900) label(c, trCanvas(fl.text), W / 2, H - 8, fl.good ? "#5fdc6a" : "#f0784a", 8);
+  // No verdict words on the pad, as on BASICS' play screen (D691): the aids and the end's line say it.
 }

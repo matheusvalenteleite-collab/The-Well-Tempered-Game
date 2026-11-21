@@ -90,8 +90,12 @@ test("D921: the later pads are a few bars, real Bach (5), BASICS' sound for each
         assert.match(st.piece, /^bwv1080-/, `${t.stage}: The Art of Fugue`);
         assert.ok((st.toBar ?? 99) - (st.fromBar ?? 1) <= 5, `${t.stage}: a few bars`);
       }
-  const sounds = PLAY[5].cards.flatMap((c) => (c.tries ?? []).map((t) => padStage(t).sound));
-  assert.deepEqual(sounds, ["pianoSampled", "pianoSampled", "pianoSampled", "harpsichordSampled", "soloVoices", "chip", "krautrock"]);
+  // Each station's pad plays the sound BASICS gives its stage (the pad follows BASICS: 6.6 GAME BOY's when the studio sets it).
+  const { ACTS } = await import("../src/bench/basics/plan.ts");
+  for (const c of PLAY[5].cards) for (const t of c.tries ?? []) assert.equal(padStage(t).sound, ACTS[5].stages.find((s) => s.id === t.stage)?.sound, t.stage);
+  assert.match(src("src/bench/howto/TryPad.tsx"), /setPreset\(st\.sound \?\? "pianoSampled"\)/);
+  // D691: no verdict words on the pads, as on BASICS' screen.
+  assert.doesNotMatch(src("src/bench/howto/TryPad.tsx"), /g\.grade|g\.flash/);
 });
 
 test("D920: every word in three languages: the cards, the reference, the labels, the drawings", async () => {

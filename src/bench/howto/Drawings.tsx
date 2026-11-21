@@ -438,12 +438,14 @@ function ScreenMap() {
           {say(WORD.now)}
         </Txt>
       </Screen>
-      <Txt x={L_BAR} y={H / 2} size={7}>
-        {say(WORD.bars)}
-      </Txt>
-      <Txt x={R_BAR} y={H / 2} size={7}>
-        {say(WORD.bars)}
-      </Txt>
+      {/* Upright along each bar, so the word stays inside it whatever its length. */}
+      {[L_BAR, R_BAR].map((x) => (
+        <g key={x} transform={`rotate(-90 ${x} ${H / 2})`}>
+          <Txt x={x} y={H / 2 + 3} size={7}>
+            {say(WORD.bars)}
+          </Txt>
+        </g>
+      ))}
     </Svg>
   );
 }
