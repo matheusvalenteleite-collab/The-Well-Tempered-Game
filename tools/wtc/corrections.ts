@@ -283,6 +283,8 @@ export const CORRECTIONS: Correction[] = [
   { id: "wtc1p11", voice: 1, bar: 8, at: 4, from: "A2", to: "Bb2", kind: "slip", why: P1 },
   { id: "wtc1p12", voice: 1, bar: 5, at: 0, from: "Ab2", to: "A2", kind: "slip", why: P1 },
   { id: "wtc1p12", voice: 1, bar: 6, at: 1, from: "Eb3", to: "G3", kind: "slip", why: P1 },
+  // D886: I/9 bar 16, the tenor's B3 a dotted minim to the bar's end, not a minim: the Bach-Gesellschaft (BG 14, p. 36, read on the scan), Mutopia and the Humdrum check agree.
+  { id: "wtc1p09", voice: 1, bar: 16, span: [3, 3.5], notes: "B3@3/3", kind: "slip", why: "the B3 held to the bar's end, a dotted minim, as the Bach-Gesellschaft prints it (BG 14, p. 36); Mutopia and the Humdrum check agree" },
   { id: "wtc1p13", voice: 1, bar: 15, at: 1.5, from: "A#3", to: "A#2", kind: "slip", why: P1V },
   { id: "wtc1p13", voice: 0, bar: 29, at: 1.75, from: "C#5", to: "A#4", kind: "slip", why: P1V },
   { id: "wtc1p15", voice: 1, bar: 13, at: 2.3333, from: "G3", to: "F#3", kind: "slip", why: P1 },
