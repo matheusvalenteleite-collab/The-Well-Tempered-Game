@@ -1620,13 +1620,27 @@ export function BenchApp() {
     game.current?.pause();
     afterGlenn("rewind", TURN_MS / 2, () => beginBasics(k));
   }
-  /** Glenn's window reads the music sounding now: the player's line and the band's. */
+  /** D683: Glenn's phone mirrors the game: its plan (his thumbs), the box's notes and rows now. */
   const glennSrc = () => {
     const g = game.current;
     if (!g) return null;
+    const fr = frame.current;
     const now = g.viewNow;
-    const near = (n: { on: number; dur: number }) => n.on <= now && n.on + n.dur > now - 4 * f.tpq;
-    return { now, tps: g.tps, beat: beatOf(f).ticks, notes: [...g.tracks.flatMap((t) => t.notes.filter(near)), ...g.others.filter(near)] };
+    const span = (fr.bars ?? 3) * f.barTicks;
+    const near = (n: { on: number; dur: number }) => n.on < now + span && n.on + n.dur > now - span / 3;
+    const mine = new Set(g.tracks.map((t) => t.voice));
+    return {
+      now,
+      tps: g.tps,
+      beat: beatOf(f).ticks,
+      bar: f.barTicks,
+      lo: fr.lo,
+      hi: fr.hi,
+      bars: fr.bars ?? 3,
+      plan: g.plan.filter((p) => p.off > now - f.barTicks && p.on < now + f.barTicks),
+      notes: [...g.tracks.flatMap((t) => t.notes.filter(near).map((n) => ({ on: n.on, dur: n.dur, step: n.step, mine: true }))), ...g.others.filter(near).map((n) => ({ on: n.on, dur: n.dur, step: n.step, mine: mine.has(n.voice) }))],
+      slide: bTake?.aid === "swell",
+    };
   };
   const startManual = (warned = false) => {
     if (!warned && warnFirst(() => startManual(true))) return;
