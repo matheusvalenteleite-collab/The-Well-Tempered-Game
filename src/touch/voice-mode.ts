@@ -4,6 +4,7 @@
  * its end. The point is a share of the piece (0 to 99%), taken back to the start of its bar; the
  * count-in is the four beats before it.
  */
+import { preludeExcluded } from "./prelude-plan.ts";
 import { barAt, barStart, countInStart, beatOf, type TouchFugue, entryShape, everyNote } from "./fugue.ts";
 import { laneNotes, type LaneNote } from "./lanes.ts";
 import type { Span } from "./box-fx.ts";
@@ -41,7 +42,8 @@ export const DULL_VOICES: Readonly<Record<string, readonly number[]>> = {
 /** The voices that still sing from a tick on. */
 export function voicesFrom(f: TouchFugue, from: number): number[] {
   // D340: only the voices the piece offers (the concerto's two solo violins); D864: never a dull one.
-  const dull = DULL_VOICES[f.id] ?? [];
+  // D881: and a planned prelude's voices it does not offer (prelude-plan.ts).
+  const dull = [...(DULL_VOICES[f.id] ?? []), ...preludeExcluded(f.id, f.voices.length)];
   return f.voices.map((_, v) => v).filter((v) => (!f.playable || f.playable.includes(v)) && !dull.includes(v) && f.voices[v].some(([on]) => on >= from));
 }
 

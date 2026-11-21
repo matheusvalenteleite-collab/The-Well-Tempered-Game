@@ -1,0 +1,31 @@
+/**
+ * D881-D885: the Book I preludes 1-12 for the main game: re-voiced where the plan takes real voices (no note changed),
+ * each planned prelude offering only the voices the plan names.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { PRELUDE_PLAN, DULL_EXCEPTIONS } from "../src/touch/prelude-plan.ts";
+import { fugueById } from "../src/touch/fugue.ts";
+import { voicesFrom } from "../src/touch/voice-mode.ts";
+
+const W = JSON.parse(readFileSync(new URL("../data/wtc/preludes.json", import.meta.url), "utf8")) as { id: string; voices: unknown[][] }[];
+
+test("D881: the re-voiced preludes have their voices (I/7 and I/12 four, I/8, I/9 and I/10 three), as the game holds them", () => {
+  for (const [id, n] of [["wtc1p07", 4], ["wtc1p08", 3], ["wtc1p09", 3], ["wtc1p10", 3], ["wtc1p12", 4]] as const) {
+    assert.equal(W.find((p) => p.id === id)!.voices.length, n, id);
+    assert.equal(fugueById(id).voices.length, n, `${id} in the game`);
+  }
+});
+
+test("D881-D885: a planned prelude offers only its plan's voices; I/2 none; I/1's right hand the one named exception", () => {
+  for (const [id, p] of Object.entries(PRELUDE_PLAN)) {
+    const f = fugueById(id);
+    for (const v of p.offer) assert.ok(v < f.voices.length, `${id}: voice ${v}`);
+    assert.deepEqual(voicesFrom(f, 0), [...p.offer].sort(), id);
+  }
+  assert.deepEqual(voicesFrom(fugueById("wtc1p02"), 0), []);
+  assert.deepEqual(voicesFrom(fugueById("wtc1p04"), 0), [0, 3]);
+  assert.equal(PRELUDE_PLAN.wtc1p05.tempo, "slow");
+  assert.deepEqual(Object.keys(DULL_EXCEPTIONS), ["wtc1p01"]);
+});

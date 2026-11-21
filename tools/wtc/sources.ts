@@ -488,6 +488,79 @@ export function readXmlPrelude(book: 1 | 2, number: number, witness = false): Re
   return { piece, orn, source: `data/sources/${dir}/${file}`, notes };
 }
 
+/**
+ * D881-D883: the Book I preludes whose voices the main game offers (docs/audits/PRELUDES-PLAN.md), re-voiced on the
+ * game's own notes (the OpenWTC text, corrected and checked: nothing of it changed, only which voice a note is in):
+ *   - "layers" (I/7, fugal from bar 10): the edition's own two layers a staff, a voice each;
+ *   - "mutopia" (I/9, I/12): each note given the voice of the same note (onset and pitch) in the Mutopia edition
+ *     (I/9: public domain; I/12: Sven Reichard, CC BY-SA 4.0, credited), its voices named in `ids`;
+ *   - "melody" (I/8, I/10): the right hand's top line (its outermost note at each onset, a note under a held higher
+ *     one not), the hand's other notes and the left hand.
+ * A note left over (a layer beyond the voices, or no note in Mutopia at its onset and pitch, listed in the report) goes
+ * to the voice free at its onset whose last note is nearest in pitch.
+ */
+type Revoice = { how: "layers" } | { how: "melody" } | { how: "mutopia"; path: string; ids: string[] };
+const REVOICE: Record<number, Revoice> = {
+  7: { how: "layers" },
+  8: { how: "melody" },
+  9: { how: "mutopia", path: "data/wtc/sources/mutopia/BachJS/BWV854/BWV854_Praeludium_IX_rh/BWV854_Praeludium_IX_rh.ly", ids: ["upper", "lower/v1", "lower/v2"] },
+  10: { how: "melody" },
+  12: { how: "mutopia", path: "data/wtc/sources/mutopia/BachJS/BWV857/BWV857_Praeludium12/BWV857_Praeludium12.ly", ids: ["upper/v1", "upper/v2", "upper/v3", "upper/v4"] },
+};
+export function revoice(r: Read, how: Revoice): Read {
+  const midi = (p: string) => parsePitch(p).midi;
+  const all = r.piece.voices.flatMap((v, staff) => v.map((n) => ({ n, staff })));
+  // Each note's voice (null: left over), and the number of voices.
+  let count: number;
+  const voiceOf = new Map<WtcNote, number | null>();
+  if (how.how === "layers") {
+    count = 4;
+    for (const { n, staff } of all) voiceOf.set(n, n[3] < 2 ? staff * 2 + n[3] : null);
+  } else if (how.how === "melody") {
+    count = 3;
+    const rh = [...r.piece.voices[0]].sort((a, b) => a[0] - b[0] || midi(b[2]) - midi(a[2]));
+    let last = -1;
+    for (const n of rh) {
+      const covered = rh.some((o) => o !== n && o[0] < n[0] && o[0] + o[1] > n[0] && midi(o[2]) > midi(n[2]));
+      const line = n[0] !== last && !covered;
+      if (line) last = n[0];
+      voiceOf.set(n, line ? 0 : 1);
+    }
+    for (const n of r.piece.voices[1]) voiceOf.set(n, 2);
+  } else {
+    count = how.ids.length;
+    const ly = readLy(`${ROOT}${how.path}`, 0, true);
+    const at = new Map<string, number>();
+    for (const x of ly.notes) if (!x.grace && x.dur !== "0/1" && how.ids.includes(x.voice)) at.set(`${ticks(x.on)}:${x.midi}`, how.ids.indexOf(x.voice));
+    for (const { n } of all) voiceOf.set(n, at.get(`${n[0]}:${midi(n[2])}`) ?? null);
+  }
+  const voices: [number, number, string][][] = Array.from({ length: count }, () => []);
+  const left: WtcNote[] = [];
+  for (const { n } of all.sort((a, b) => a.n[0] - b.n[0])) {
+    const v = voiceOf.get(n);
+    if (v === null || v === undefined) left.push(n);
+    else voices[v].push([n[0], n[1], n[2]]);
+  }
+  for (const n of left) {
+    const free = voices.map((v, i) => i).filter((i) => !voices[i].some((o) => o[0] <= n[0] && o[0] + o[1] > n[0]));
+    const near = (i: number) => {
+      const before = voices[i].filter((o) => o[0] <= n[0]).at(-1);
+      return before ? Math.abs(midi(before[2]) - midi(n[2])) : 99;
+    };
+    const pick = (free.length ? free : voices.map((_, i) => i)).sort((a, b) => near(a) - near(b))[0];
+    voices[pick].push([n[0], n[1], n[2]]);
+  }
+  const out = voices.map((v) => withSubs(v.sort((a, b) => a[0] - b[0])));
+  // The ornaments to the voice that now has their note.
+  const orn = r.orn.map((o) => {
+    const v = out.findIndex((ns) => ns.some((x) => x[0] === o[1] && x[2] === o[2]));
+    if (v < 0) throw new Error(`${r.piece.id}: an ornament on no note after re-voicing (${o[1]} ${o[2]})`);
+    return [v, ...o.slice(1)] as OrnRow;
+  });
+  const notes = [...r.notes, `re-voiced (${how.how}): ${count} voices, ${left.length} notes placed by the nearest voice (D881)`];
+  return { ...r, piece: { ...r.piece, voices: out }, orn, notes };
+}
+
 /** Book II nos. 1, 2 and 6 from the Mutopia Project (public domain), as printed (each repeat once). */
 const MUTOPIA_PRELUDES: Record<number, string> = {
   1: "data/wtc/sources/mutopia/BachJS/BWV870/wtk2prelude1/wtk2prelude1.ly",
@@ -561,6 +634,7 @@ function readFourVoicePrelude(): Read {
 
 export function readPrelude(book: 1 | 2, number: number): Read {
   if (book === 1 && number === 4) return readFourVoicePrelude();
+  if (book === 1 && REVOICE[number]) return revoice(readXmlPrelude(1, number), REVOICE[number]);
   return book === 2 && MUTOPIA_PRELUDES[number] ? readLyPrelude(number) : readXmlPrelude(book, number);
 }
 

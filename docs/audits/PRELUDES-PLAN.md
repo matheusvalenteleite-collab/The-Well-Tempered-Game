@@ -1,6 +1,8 @@
-# The WTC preludes in the main game: the per-piece plan, Book I 1–12 (D880)
+# The WTC preludes in the main game: the per-piece plan, Book I 1–12 (D880–D885)
 
-For the owner's approval: nothing ships before it. Measured by `tools/wtc/prelude-measure.ts` on the game's notes
+**Ruled** (the board, for the owner, D881–D885): I/1 the RH figure, the one named exception to the dull-lines rule; I/2 held back; I/5 the RH at the slow tempo; I/4 soprano and bass only; the re-import of I/7, I/9 and I/12 done (D881), with I/8 and I/10's melody split from the right hand. The plan as data: src/touch/prelude-plan.ts.
+
+Written for the owner's approval. Measured by `tools/wtc/prelude-measure.ts` on the game's notes
 (the OpenWTC edition, CC0, data/wtc/preludes.json) and, where it has real voices, the Mutopia edition (data/wtc/sources/mutopia/).
 Tempi are D861's. The game's ceiling is 5.5 notes a second (D312).
 
