@@ -142,3 +142,9 @@ test("the cue, NO GAP and the new selection line in Portuguese and Spanish; the 
 test("D696: BASICS shows no registration stops (the harpsichord's I · II · III), the main game keeps them", () => {
   assert.match(src("src/bench/BenchApp.tsx"), /const stopsOn = hasStops\(presetById\(soundNow\)\.id\) && !lesson && !bStage && /);
 });
+
+test("D700: a BASICS passage names the piece's key in the header (6.4: D MINOR, not bar 50's C major)", () => {
+  assert.match(src("src/bench/BenchApp.tsx"), /key: bStage \? f\.key : keyAt\(f, from\),/);
+  assert.match(src("src/bench/BenchApp.tsx"), /key: bStage \? f\.key : g\.keyNow\(\),/);
+  assert.match(src("src/bench/BenchApp.tsx"), /keyName\(bStage \? f\.key : frame\.current\.key\)/);
+});

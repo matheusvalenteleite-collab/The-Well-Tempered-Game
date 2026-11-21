@@ -713,7 +713,8 @@ export function BenchApp() {
     return {
       now: from - b.ticks,
       tps: 1,
-      key: keyAt(f, from),
+      // D700: BASICS's passages (6.4 starts at CP4's bar 50, C major there) name the piece's key, as the main game does.
+      key: bStage ? f.key : keyAt(f, from),
       barTicks: f.barTicks,
       beatTicks: b.ticks,
       count: f.voices.length,
@@ -970,7 +971,7 @@ export function BenchApp() {
       frame.current = {
         now: g.viewNow,
         tps: g.tps,
-        key: g.keyNow(),
+        key: bStage ? f.key : g.keyNow(),
         barTicks: f.barTicks,
         beatTicks: b.ticks,
         count: f.voices.length,
@@ -2044,7 +2045,8 @@ export function BenchApp() {
         hud={
           <>
             <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? liteTitle(f) : `BENCH · ${proto.name}`}</span>
-            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(frame.current.key) : keyName(frame.current.key)}</span>
+            {/* D700: BASICS names its piece's key when it renders (frame.current can still hold the screen before's). */}
+            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(bStage ? f.key : frame.current.key) : keyName(bStage ? f.key : frame.current.key)}</span>
             {playing && listening.current && (
               // D457: a take played back, named in the title bar.
               <span className="tb-tools-tag" id="listen-tag">

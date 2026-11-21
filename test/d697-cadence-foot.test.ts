@@ -41,3 +41,28 @@ test("the name kept left of the right side bar", () => {
   const name = xs.filter((x) => x < 248 || x > 253);
   assert.ok(name.length > 20 && Math.max(...name) <= 300 - 60, `${Math.max(...name)}`);
 });
+
+test("D700: the mark's line never crosses its name (near the right bar the name ends left of the line)", () => {
+  for (const on of [500, 1700, 2000]) {
+    const a = ctx();
+    const xs: number[] = [];
+    (a.c as { g: { fillRect: (x: number, y: number, w?: number, h?: number) => void } }).g.fillRect = (x: number, _y: number, _w = 1, hh = 1) => void (hh <= 2 && xs.push(x));
+    cadenceMarks(a.c, [{ on, text: "IMPERFECT CADENCE · A MINOR" }], 20, 60);
+    const line = 50 + on / 10;
+    const name = xs.filter((x) => Math.abs(x - line) > 2);
+    assert.ok(name.length > 20, `${on}`);
+    assert.ok(name.every((x) => x > line + 2) || name.every((x) => x < line - 2), `the name on both sides of the line at ${on}`);
+  }
+});
+
+test("D700: neither side fits: the line stops above the name (a stub), the name between the bars", () => {
+  const a = ctx();
+  const rects: [number, number, number, number][] = [];
+  (a.c as { g: { fillRect: (x: number, y: number, w: number, h: number) => void } }).g.fillRect = (x, y, ww, hh) => void rects.push([x, y, ww, hh]);
+  // A box 300 wide, bars 100 each side: 100 px between them, the name wider than either side of a mark at 150.
+  cadenceMarks(a.c, [{ on: 1000, text: "IMPERFECT CADENCE · A MINOR" }], 20, 100, 100);
+  const line = rects.find(([x, , ww, hh]) => x === 150 && ww === 1 && hh > 1)!;
+  assert.equal(line[3], 3);
+  const px = rects.filter(([x, , ww, hh]) => ww <= 1 && hh <= 1 && Math.abs(x - 150) > 2).map(([x]) => x);
+  assert.ok(px.length > 20 && Math.min(...px) >= 102, `${Math.min(...px)}`);
+});
