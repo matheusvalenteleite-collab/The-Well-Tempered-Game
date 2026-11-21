@@ -520,7 +520,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // subject casts shadow, and the subject lights the world round it (brighter on the note sounding). With the stage only.
   if (staged && spans && stageMode() !== "off") lightAndShadow(g, fr, spans, otherIdx!, { t0, span, w, h, xOf, yOf, hOf, bh });
   // D678 (design studio; the pilot): a tagged canon's echo lane, under every note: each leader's note arcs to its answer.
-  if (fr.piece && CANONS[fr.piece] && !fr.floor) paintEcho(g, fugueById(fr.piece), { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v) => inkOf(v, fr.count), text: (gg, t, x, y, ink) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl) });
+  if (fr.piece && CANONS[fr.piece] && !fr.floor) paintEcho(g, fugueById(fr.piece), { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v) => inkOf(v, fr.count), text: (gg, t, x, y, ink) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner });
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
     const x1 = xOf(o.on);

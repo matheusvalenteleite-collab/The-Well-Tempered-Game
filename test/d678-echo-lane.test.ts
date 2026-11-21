@@ -14,21 +14,22 @@ test("Variation 3: the alto answers the soprano one bar later at the unison, not
   await loadExtras();
   const f = fugueById("bwv988-03");
   const spec = CANONS["bwv988-03"];
-  assert.equal(spec.delay, f.barTicks);
+  assert.equal(spec.legs[0].delay, f.barTicks);
   const pairs = echoPairs(f);
-  const dux = f.voices[0].filter((n) => n[0] + spec.delay < f.length).length;
+  const dux = f.voices[0].filter((n) => n[0] + spec.legs[0].delay < f.length).length;
   // The canon breaks at each half's cadence (the leader's last bars there unanswered): 129 of 152 notes paired.
   assert.ok(pairs.length / dux > 0.8, `${pairs.length}/${dux}`);
-  for (const { a, b } of pairs) assert.ok(b.on === a.on + spec.delay && b.midi === a.midi);
+  for (const { a, b } of pairs) assert.ok(b.on === a.on + spec.legs[0].delay && b.midi === a.midi);
 });
 
 test("Variation 12: the comes answers one bar later a fourth below, in contrary motion (the pitches mirrored)", async () => {
   await loadExtras();
   const f = fugueById("bwv988-12");
   const spec = CANONS["bwv988-12"];
-  assert.equal(spec.delay, f.barTicks);
-  assert.ok(spec.contrary);
-  const pairs = echoPairs(f);
+  assert.equal(spec.legs[0].delay, f.barTicks);
+  assert.ok(spec.legs[0].contrary);
+  // D930: the first half (the soprano leading) as the pilot drew it.
+  const pairs = echoPairs(f).filter((p) => p.leg === 0);
   assert.ok(pairs.length >= 100, String(pairs.length));
   // The opening: the soprano's G (67) answered by the D a fourth below (62); its rising step by a falling one.
   assert.equal(pairs[0].a.midi + pairs[0].b.midi, 129);
@@ -39,6 +40,6 @@ test("the box draws the echo lane under the notes for a tagged canon only; drawi
   const s = src("src/touch/MusicBox.tsx");
   assert.match(s, /if \(fr\.piece && CANONS\[fr\.piece\] && !fr\.floor\) paintEcho\(/);
   const e = src("src/touch/canon-echo.ts");
-  assert.match(e, /if \(spec\.contrary\) g\.rotate\(Math\.PI \* t\);/);
+  assert.match(e, /if \(contrary\) g\.rotate\(Math\.PI \* t\);/);
   assert.ok(!/score|grade|"hit"|"miss"/.test(e.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")));
 });

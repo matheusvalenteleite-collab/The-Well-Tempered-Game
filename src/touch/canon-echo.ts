@@ -6,59 +6,134 @@
  * contrary motion it turns over as it goes: the inversion drawn as a turn); as the follower sounds it, its note is lit
  * in the follower's colour. Drawing only: nothing judged reads it.
  *
- * The canons, tagged by the studio from the score (the game's own notes; tools: matching each dux note's onset + the
- * delay against the comes' voices): Variation 3, Canone all'Unisono, the soprano led, the alto one bar (of 12/8) later
- * at the same pitch (40 of the first 40 notes match); Variation 12, Canone alla Quarta, in contrary motion, the soprano
- * led, the comes one bar (of 3/4) later a fourth below, turned upside down about the axis where the two pitches sum to
- * 129 or 130 (the edition writes the comes partly in the alto, partly in the tenor).
+ * D930 (canons session; the board approved batches 1 and 2): every Goldberg canon and the Inventions' two canons. A canon
+ * is now a list of LEGS, because the leader changes voice: Var. 12's second half is led from below (the pilot, tagging the
+ * soprano as leader throughout, paired 11 of the soprano's 95 notes there), Var. 24's leader changes at bars 9 and 25,
+ * Var. 27's hands change places at bar 17, Invention 2's leader at bars 11 and 23. And the match is DIATONIC (the notes'
+ * staff `step`): a third, a sixth, a seventh or a ninth changes size in semitones with the scale. All tagged from the
+ * game's own notes (each leader's onset + the delay against the follower's voices; the canons session's survey, proposal
+ * at https://claude.ai/artifact/N64gm5aPPKggXTHoen5zo7); the label of each leg names the canon, or the change of leader.
  */
 import type { TouchFugue } from "./fugue.ts";
 
-export interface CanonSpec {
-  /** The leader's voice, and the voices the follower is written in. */
-  dux: number;
+/** One stretch of a canon: who leads, who follows, how much later and at what interval. */
+export interface CanonLeg {
+  /** The bars (1-based, counted by the tick: bar b begins at (b - 1) x barTicks) whose leader's notes this leg reads, [from, to). */
+  from: number;
+  to: number;
+  /** The leader's voices, and the voices the follower is written in (the edition splits either across voices). */
+  dux: readonly number[];
   comes: readonly number[];
   /** How much later the follower answers, in ticks. */
   delay: number;
-  /** In contrary motion: the pitches mirrored about this axis (dux + comes = 2 x axis); else at `interval` semitones. */
+  /** In contrary motion: dux step + comes step = `steps` (the mirror). Else comes step - dux step = `steps` (a 2nd: 1). */
   contrary: boolean;
-  axis?: number;
-  interval?: number;
-  /** What the box says the first bars (the canon's interval, its delay, its motion). */
+  steps: number;
+  /** What the box says over the leg's first bars. */
   label: string;
 }
 
+export interface CanonSpec {
+  legs: readonly CanonLeg[];
+}
+
+const leg = (from: number, to: number, dux: number[], comes: number[], delay: number, contrary: boolean, steps: number, label: string): CanonLeg => ({ from, to, dux, comes, delay, contrary, steps, label });
+
+/** Bar lengths in ticks (tpq 1920): 12/8 11520, 3/8 2880, 4/4 7680, 3/4 5760, 2/4 3840, 2/2 7680, 9/8 8640, 6/8 5760. */
 export const CANONS: Readonly<Record<string, CanonSpec>> = {
-  "bwv988-03": { dux: 0, comes: [1], delay: 11520, contrary: false, interval: 0, label: "CANON AT THE UNISON · ONE BAR LATER" },
-  "bwv988-12": { dux: 0, comes: [1, 2], delay: 5760, contrary: true, axis: 64.75, label: "CANON AT THE FOURTH · IN CONTRARY MOTION" },
+  // Canone all'Unisono: the soprano led, the alto one bar later at the same pitch.
+  "bwv988-03": { legs: [leg(1, 17, [0], [1], 11520, false, 0, "CANON AT THE UNISON · ONE BAR LATER")] },
+  // Canone alla Seconda: the leader in the alto (the edition hands it to the tenor at times), the soprano a second above.
+  "bwv988-06": { legs: [leg(1, 33, [1, 2], [0], 2880, false, 1, "CANON AT THE SECOND · ONE BAR LATER")] },
+  // Canone alla Terza: the soprano led, the alto a third below.
+  "bwv988-09": { legs: [leg(1, 17, [0], [1], 7680, false, -2, "CANON AT THE THIRD · ONE BAR LATER")] },
+  // Canone alla Quarta, in contrary motion (steps summing to 61: the soprano's G answered by the D a fourth below); after
+  // the double bar the leader is below (alto, tenor) and the soprano answers.
+  "bwv988-12": {
+    legs: [
+      leg(1, 17, [0], [1, 2], 5760, true, 61, "CANON AT THE FOURTH · IN CONTRARY MOTION"),
+      leg(17, 33, [1, 2], [0], 5760, true, 61, "NOW THE LOWER VOICE LEADS"),
+    ],
+  },
+  // Canone alla Quinta, in contrary motion (steps summing to 68): the leader's first bar written in the soprano, then in
+  // the alto and tenor; the soprano answers a fifth above, turned over.
+  "bwv988-15": {
+    legs: [
+      leg(1, 2, [0], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
+      leg(2, 33, [1, 2], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
+    ],
+  },
+  // Canone alla Sesta: the alto led, the soprano a sixth above, half a bar (a minim) later.
+  "bwv988-18": { legs: [leg(1, 33, [1], [0], 3840, false, 5, "CANON AT THE SIXTH · HALF A BAR LATER")] },
+  // Canone alla Settima: the leader in the tenor and alto, the soprano a seventh above, half a bar later.
+  "bwv988-21": { legs: [leg(1, 17, [1, 2], [0], 3840, false, 6, "CANON AT THE SEVENTH · HALF A BAR LATER")] },
+  // Canone all'Ottava, two bars later: the soprano leads, then the lower voices (bars 9-24), then the soprano again.
+  "bwv988-24": {
+    legs: [
+      leg(1, 9, [0], [1, 2], 17280, false, -7, "CANON AT THE OCTAVE · TWO BARS LATER"),
+      leg(9, 25, [1, 2], [0], 17280, false, 7, "NOW THE LOWER VOICE LEADS"),
+      leg(25, 33, [0], [1, 2], 17280, false, -7, "THE TOP VOICE LEADS AGAIN"),
+    ],
+  },
+  // Canone alla Nona, two voices: the left hand leads, the right a ninth above; after the double bar the hands change places.
+  "bwv988-27": {
+    legs: [
+      leg(1, 17, [1], [0], 5760, false, 8, "CANON AT THE NINTH · ONE BAR LATER"),
+      leg(17, 33, [0], [1], 5760, false, -8, "NOW THE RIGHT HAND LEADS"),
+    ],
+  },
+  // Invention 2: a canon at the octave two bars later (bars 1-9); the left hand leads in bars 11-19, the right again in
+  // bars 23-24 (two octaves apart then); the bars between are free.
+  bwv773: {
+    legs: [
+      leg(1, 10, [0], [1], 15360, false, -7, "CANON AT THE OCTAVE · TWO BARS LATER"),
+      leg(11, 20, [1], [0], 15360, false, 7, "NOW THE LEFT HAND LEADS"),
+      leg(23, 25, [0], [1], 15360, false, -14, "THE RIGHT HAND LEADS AGAIN"),
+    ],
+  },
+  // Invention 8: canonic in its opening (bars 1-7) and its return (bars 26-29) only, a bar later, an octave below.
+  bwv779: {
+    legs: [
+      leg(1, 8, [0], [1], 5760, false, -7, "CANON AT THE OCTAVE · ONE BAR LATER"),
+      leg(26, 30, [0], [1], 5760, false, -7, "THE CANON RETURNS"),
+    ],
+  },
 };
 
 type N = { on: number; dur: number; midi: number; step: number; voice: number };
 export interface EchoPair {
   a: N;
   b: N;
+  /** The leg it belongs to (an index into the canon's legs). */
+  leg: number;
 }
 
 const memo = new WeakMap<TouchFugue, EchoPair[]>();
-/** Each dux note and the comes note that answers it (its onset + the delay, its pitch the canon's), for a tagged canon. */
+/** Each leader's note and the follower's note that answers it (its onset + the delay, its step the canon's), leg by leg, in time. */
 export function echoPairs(f: TouchFugue): EchoPair[] {
   const spec = CANONS[f.id];
   if (!spec) return [];
   const had = memo.get(f);
   if (had) return had;
-  const at = new Map<number, N[]>();
-  for (const v of spec.comes)
-    for (const [on, dur, midi, step] of f.voices[v] ?? []) {
-      const list = at.get(on) ?? [];
-      list.push({ on, dur, midi, step, voice: v });
-      at.set(on, list);
-    }
   const out: EchoPair[] = [];
-  for (const [on, dur, midi, step] of f.voices[spec.dux] ?? []) {
-    const want = spec.contrary ? 2 * (spec.axis ?? 0) - midi : midi + (spec.interval ?? 0);
-    const b = (at.get(on + spec.delay) ?? []).find((n) => Math.abs(n.midi - want) <= (spec.contrary ? 1 : 0));
-    if (b) out.push({ a: { on, dur, midi, step, voice: spec.dux }, b });
-  }
+  spec.legs.forEach((L, li) => {
+    const t0 = (L.from - 1) * f.barTicks, t1 = (L.to - 1) * f.barTicks;
+    const at = new Map<number, N[]>();
+    for (const v of L.comes)
+      for (const [on, dur, midi, step] of f.voices[v] ?? []) {
+        const list = at.get(on) ?? [];
+        list.push({ on, dur, midi, step, voice: v });
+        at.set(on, list);
+      }
+    for (const v of L.dux)
+      for (const [on, dur, midi, step] of f.voices[v] ?? []) {
+        if (on < t0 || on >= t1) continue;
+        const want = L.contrary ? L.steps - step : step + L.steps;
+        const b = (at.get(on + L.delay) ?? []).find((n) => n.step === want);
+        if (b) out.push({ a: { on, dur, midi, step, voice: v }, b, leg: li });
+      }
+  });
+  out.sort((x, y) => x.a.on - y.a.on || x.b.on - y.b.on);
   memo.set(f, out);
   return out;
 }
@@ -79,6 +154,12 @@ export interface EchoGeo {
   fg: string;
   /** Where the box's clear part begins (past the left bar), for the label. */
   left: number;
+  /**
+   * D930: the label's top: under the entry tabs' two rows where the piece has them (the Inventions: box-fx entryMarks, tabs
+   * 7 px high at 1 and 12), else at the box's top; and none while the box's banner (D314's first-time hint) is up.
+   */
+  labelY?: number;
+  quiet?: boolean;
 }
 
 /** Draws the echo lane under the notes: the arcs, the tokens in flight, the answers lit, the label at first. */
@@ -86,18 +167,24 @@ export function paintEcho(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo
   const spec = CANONS[f.id];
   const pairs = echoPairs(f);
   if (!spec || !pairs.length) return;
+  const firstOf = new Map<number, EchoPair>();
+  // (a leg that only carries on the one before it, under the same name, is not named again)
+  for (const p of pairs) if (!firstOf.has(p.leg) && (p.leg === 0 || spec.legs[p.leg].label !== spec.legs[p.leg - 1].label)) firstOf.set(p.leg, p);
   const cx = (n: N) => k.xOf(n.on) + Math.max(2, (k.xOf(n.on + n.dur) - k.xOf(n.on)) / 2);
   const cy = (n: N) => k.yOf(n.step) + k.bh / 2;
   g.save();
   g.lineWidth = 1;
-  for (const { a, b } of pairs) {
+  for (const { a, b, leg: li } of pairs) {
+    const contrary = spec.legs[li].contrary;
     if (b.on + b.dur < k.t0) continue;
     if (a.on > k.t1) break;
     const ax = cx(a), ay = cy(a), bx = cx(b), by = cy(b);
     if (Math.max(ax, bx) < 0 || Math.min(ax, bx) > k.w) continue;
-    // The arc: over the notes for a canon at the same pitch, bowed through the middle for one that turns over.
+    // The arc: bowed through the middle for a canon that turns over; else on the follower's side (over the notes when it
+    // answers above or at the same pitch, under them when it answers below), so it bows the other way when the leader changes.
     const mx = (ax + bx) / 2;
-    const my = spec.contrary ? (ay + by) / 2 : Math.min(ay, by) - Math.max(10, k.bh * 2.2);
+    const bow = Math.max(10, k.bh * 2.2);
+    const my = contrary ? (ay + by) / 2 : by > ay ? Math.max(ay, by) + bow : Math.min(ay, by) - bow;
     g.globalAlpha = 0.22;
     g.strokeStyle = k.ink(b.voice);
     g.setLineDash([2, 2]);
@@ -115,7 +202,7 @@ export function paintEcho(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo
       const th = Math.max(2, k.bh * 0.6);
       g.save();
       g.translate(x, y);
-      if (spec.contrary) g.rotate(Math.PI * t);
+      if (contrary) g.rotate(Math.PI * t);
       g.globalAlpha = 0.75;
       g.fillStyle = k.ink(a.voice);
       g.fillRect(-tw / 2, -th / 2, tw, th);
@@ -132,12 +219,13 @@ export function paintEcho(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo
       g.strokeRect(x1 - 2.5, k.yOf(b.step) - 2.5, Math.max(2, x2 - x1) + 4, k.bh + 4);
     }
   }
-  // The canon named over the first bars of the follower, fading.
-  const first = pairs[0].b.on;
-  const fade = 1 - Math.max(0, Math.min(1, (k.now - first - 3 * k.barTicks) / (2 * k.barTicks)));
-  if (k.now >= pairs[0].a.on && fade > 0) {
-    g.globalAlpha = 0.85 * fade;
-    k.text(g, spec.label, k.left + 6, 6, k.fg);
+  // Each leg named over the first bars of its follower, fading: the canon at first, then each change of leader.
+  for (const [li, p] of firstOf) {
+    const fade = 1 - Math.max(0, Math.min(1, (k.now - p.b.on - 3 * k.barTicks) / (2 * k.barTicks)));
+    if (!k.quiet && k.now >= p.a.on && fade > 0) {
+      g.globalAlpha = 0.85 * fade;
+      k.text(g, spec.legs[li].label, k.left + 6, k.labelY ?? 6, k.fg);
+    }
   }
   g.restore();
 }
