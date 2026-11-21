@@ -10,6 +10,7 @@ export const BASICS_ES: Record<string, string> = {
   "TO THE GAME": "AL JUEGO",
   "YOU DID": "TÚ HICISTE",
   NEEDED: "HACÍA FALTA",
+  "NO GAP": "SIN HUECO",
   LIFT: "SUELTA",
   "Thumbs on the phone": "Pulgares en el móvil",
   TIMING: "TIEMPO",

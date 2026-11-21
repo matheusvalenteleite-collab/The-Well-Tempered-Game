@@ -97,7 +97,7 @@ import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
 import { ACTS, ACTS_READY, FINALE, stagePassed as basicsPassed } from "./basics/plan.ts";
 import { basicsRun, nextAt, stageOf, type BasicsAt } from "./basics/runner.ts";
-import { paintBasics2, type MissShown } from "./basics/aids2.ts";
+import { paintBasics2, paintCue, type MissShown } from "./basics/aids2.ts";
 import { BasicsHost, type HostView } from "./basics/BasicsHost.tsx";
 import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
@@ -457,6 +457,7 @@ export function BenchApp() {
   const [bas, setBas] = useState<BasicsAt | null>(null);
   const [hostView, setHostView] = useState<HostView | null>(null);
   const basMiss = useRef<MissShown | null>(null);
+  const basJoin = useRef<{ at: number; y: number } | null>(null);
   const basMisses = useRef(0);
   const bStage = bas ? stageOf(bas) : undefined;
   const bRun = useMemo(() => (bas && bStage ? basicsRun(bStage, bas.phase, bas.notches) : undefined), [bas?.act, bas?.stage, bas?.phase, bas?.notches]);
@@ -906,6 +907,8 @@ export function BenchApp() {
       basMisses.current = bs.at.misses;
       g.tap = (e) => {
         bLens.feed(e);
+        // D693: a join credited (thumb to thumb, no gap): the bridge lit a moment (6.2).
+        if (e.kind === "note" && e.ok && e.legato?.ok) basJoin.current = { at: performance.now(), y: g.lastBySide[e.side]?.y ?? 0 };
         if (!(e.kind === "miss" || (e.kind === "note" && !e.ok))) return;
         basMisses.current += 1;
         if (e.kind === "note" && e.ladder?.steps !== undefined && e.ladder.movedPx !== undefined) {
@@ -935,7 +938,11 @@ export function BenchApp() {
         paintProto(ctx, w, h, g, marks.subject);
         const tour = man?.mode === "tour" ? tourRef.current : null;
         // D687: BASICS's aids, on in DO, fading over PROVE's first notes.
-        if (bs) paintBasics2(ctx, w, h, g, { aids: bs.st.aids, alpha: bs.at.phase === "do" ? 1 : Math.max(0, 1 - g.tracks[0].notes.filter((n) => n.state !== "pending").length / 3), ...(bs.st.side ? { side: bs.st.side } : {}), miss: basMiss.current, beat: beatOf(f).ticks });
+        if (bs) paintBasics2(ctx, w, h, g, { aids: bs.st.aids, alpha: bs.at.phase === "do" ? 1 : Math.max(0, 1 - g.tracks[0].notes.filter((n) => n.state !== "pending").length / 3), ...(bs.st.side ? { side: bs.st.side } : {}), miss: basMiss.current, join: basJoin.current, beat: beatOf(f).ticks });
+        if (bs?.st.cue) {
+          const on = f.bars[bs.st.cue.bar - 1]?.on ?? 0;
+          paintCue(ctx, w, h, g, { text: tr(bs.st.cue.text), on, off: on + 3 * f.barTicks });
+        }
         if (lens && (aids.length || tour)) paintAids(ctx, w, h, g, lens, { aids, firstTake, ...(ask ? { ask } : {}), ...(stepKind ? { step: stepKind as "watch", box: boxRect() } : {}), ...(tour ? { tour: { focus: TOUR[tour.k]?.focus ?? "all", left: tour.left, right: tour.right } } : {}) });
       });
     const b = beatOf(f);
@@ -1621,8 +1628,10 @@ export function BenchApp() {
     const at = bas;
     const st = stageOf(at);
     const misses = basMisses.current;
-    if (basicsPassed(st, r)) {
-      if (at.phase === "do") return basicsTake({ ...at, phase: "prove", misses });
+    const takes = (at.takes ?? 0) + 1;
+    // Act VI's stations: the idea tried a few times is enough (heard once, or three takes), and no PROVE.
+    if (basicsPassed(st, r) || (st.light && takes >= 3)) {
+      if (at.phase === "do" && !st.light) return basicsTake({ ...at, phase: "prove", misses, takes: 0 });
       const nx = nextAt(at, ACTS_READY);
       if (!nx) return basicsFinale();
       if (nx.act !== at.act) return basicsAct(nx.act);
@@ -1630,7 +1639,7 @@ export function BenchApp() {
     }
     // The help the misses of this take have earned (the highest step crossed), then the same take again.
     const crossed = (k: number) => at.misses < k && misses >= k;
-    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, ...o });
+    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, takes, ...o });
     if ([4, 8, 12].some(crossed)) return again({ notches: at.notches + 1 });
     if (crossed(3) && st.clip) return setHostView({ kind: "clip", clip: st.clip, done: () => again() });
     if (crossed(2) || crossed(3)) return setHostView({ kind: "hint", text: st.hint, done: () => again() });

@@ -14,7 +14,7 @@ import type { LensStats } from "../manual/lens.ts";
 import "./exercises.ts";
 
 export type ClipId = "tap" | "up" | "down" | "same" | "leap" | "two" | "hold" | "lift" | "strong" | "legato" | "short" | "shake" | "slide";
-export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides";
+export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides" | "join";
 
 export type PassRule =
   | { kind: "right"; need: number }
@@ -47,6 +47,13 @@ export interface Stage {
   solo: boolean;
   /** The second miss's line (one short line, translated). */
   hint: string;
+  /** A passage that starts or ends inside a bar (6.4): notes skipped from the first bar's line, and how many. */
+  skip?: number;
+  count?: number;
+  /** The signs over the notes asked for (6.4's trill: touch, then rock). */
+  ornaments?: boolean;
+  /** Act VI's stations: a light rule (the idea tried a few times): no PROVE; passed when the idea is heard, or after three takes. */
+  light?: boolean;
   /** A line said at a moment of the music (5.2: at the soprano's entry), by bar. */
   cue?: { bar: number; text: string };
 }
@@ -106,8 +113,8 @@ export const ACTS: readonly Act[] = [
     title: "A REAL FUGUE",
     glenn: "Now, a real fugue. Four voices, from one of his last works, and a damn fine one. You begin, alone, in the alto. The others will follow you.",
     stages: [
-      ex("5.1", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, aids: ["rings", "arrow", "gold", "drain", "lift"], pass: { kind: "share", share: 0.6 }, hint: "Follow the tune: up, down, the same." }),
-      ex("5.2", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 9, bpm: 44, solo: false, aids: ["rings", "gold", "drain", "lift"], pass: { kind: "share", share: 0.55 }, hint: "Yours are bright; the others play themselves.", cue: { bar: 5, text: "Listen: someone answers you with your own tune. That's a fugue. Theirs are dim, yours are bright. Keep going." } }),
+      ex("5.1", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, aids: ["rings", "arrow", "gold", "drain", "lift"], pass: { kind: "share", share: 0.6 }, hint: "Follow the tune: up, down, the same." }),
+      ex("5.2", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 8, bpm: 44, solo: false, aids: ["rings", "gold", "drain", "lift"], pass: { kind: "share", share: 0.55 }, hint: "Yours are bright; the others play themselves.", cue: { bar: 5, text: "Listen: someone answers you with your own tune. That's a fugue. Theirs are dim, yours are bright. Keep going." } }),
     ],
   },
   {
@@ -115,21 +122,21 @@ export const ACTS: readonly Act[] = [
     title: "MAKE IT SING",
     glenn: "GLENN'S LINE TO COME",
     stages: [
-      ex("6.1", { clip: "strong", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "colour", need: 3 }, hint: "By the box: strong. By the edge: soft." }),
-      ex("6.2", { clip: "legato", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "joins", need: 3 }, hint: "Pass the note from thumb to thumb, no gap." }),
-      ex("6.3", { clip: "short", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "short", need: 3 }, hint: "Touch and let go at once: short." }),
-      ex("6.4", { clip: "shake", piece: "bwv1080-04", voice: 2, fromBar: 50, toBar: 52, bpm: 44, sound: "harpsichordSampled", aids: ["rings", "gold"], pass: { kind: "tries", what: "shake", need: 1 }, hint: "Touch the note, then rock your thumb." }),
-      ex("6.5", { clip: "slide", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: "soloVoices", aids: ["rings", "gold"], pass: { kind: "tries", what: "slide", need: 2 }, hint: "Keep your thumb down and glide to the next note." }),
-      ex("6.6", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: "chip", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
-      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: "krautrock", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+      ex("6.1", { clip: "strong", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "colour", need: 3 }, hint: "By the box: strong. By the edge: soft." }),
+      ex("6.2", { clip: "legato", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold", "join"], pass: { kind: "tries", what: "joins", need: 3 }, hint: "Pass the note from thumb to thumb, no gap." }),
+      ex("6.3", { clip: "short", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "short", need: 3 }, hint: "Touch and let go at once: short." }),
+      ex("6.4", { clip: "shake", piece: "bwv1080-04", voice: 2, fromBar: 50, toBar: 53, skip: 2, count: 13, ornaments: true, light: true, bpm: 44, sound: "harpsichordSampled", aids: ["rings", "gold"], pass: { kind: "tries", what: "shake", need: 1 }, hint: "Touch the note, then rock your thumb." }),
+      ex("6.5", { clip: "slide", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "soloVoices", aids: ["rings", "gold"], pass: { kind: "tries", what: "slide", need: 2 }, hint: "Keep your thumb down and glide to the next note." }),
+      ex("6.6", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "gameboy", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "krautrock", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
     ],
   },
 ];
 
 export const FINALE = "That's it. You've played your first fugue, well, its beginning. You're ready for the main game.";
 
-/** The acts open in BASICS v2 for now (I–IV; V and VI to come). */
-export const ACTS_READY = 4;
+/** The acts open (all six). */
+export const ACTS_READY = 6;
 
 /** The help a miss brings, by how many misses the stage has had (1st nothing, 2nd the hint, 3rd the clip, 4th slower). */
 export function helpFor(misses: number): "none" | "hint" | "clip" | "slower" {
