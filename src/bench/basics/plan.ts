@@ -120,7 +120,7 @@ export const ACTS: readonly Act[] = [
   {
     n: 6,
     title: "MAKE IT SING",
-    glenn: "GLENN'S LINE TO COME",
+    glenn: "Right notes at the right time: that's the game. Now make it music. Every sound listens to your thumbs in its own way, and none of it costs you points. Start with the piano: near the box it sings out, near the edge it whispers.",
     stages: [
       ex("6.1", { clip: "strong", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "colour", need: 3 }, hint: "By the box: strong. By the edge: soft." }),
       ex("6.2", { clip: "legato", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold", "join"], pass: { kind: "tries", what: "joins", need: 3 }, hint: "Pass the note from thumb to thumb, no gap." }),
