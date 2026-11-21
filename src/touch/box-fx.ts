@@ -973,8 +973,8 @@ export function zoneGlow(c: Ctx, zone: "pleno" | "fuoco" | null) {
  * D194, the cadences (D208: a tick on the timeline): each coming one a short gold tick at the foot of
  * the box, named beside it ("FULL CADENCE · G MINOR"); as it is reached, the tick flares.
  */
-/** D697 (design studio): `foot`, the box px something lies over at the roll's foot (the voice legend: D473): the mark and its name drawn above it, never under the legend. */
-export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[], foot = 0) {
+/** D697 (design studio): `foot`, the box px something lies over at the roll's foot (the voice legend: D473): the mark and its name drawn above it, never under the legend; `right`, the box px the right side bar covers: the name kept left of it. */
+export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[], foot = 0, right = 0) {
   const { g, w, xOf, now } = c;
   const h = c.h - foot;
   // D697: two cadences close together: the later's name waits until the earlier's has gone (its mark still drawn).
@@ -994,7 +994,7 @@ export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[], f
       g.fillRect(x - 2, h - 16, 5, 16);
     }
     g.globalAlpha = since >= 0 ? flare : 0.7;
-    const tx = Math.min(x + 3, w - textWidth(cd.text) - 2);
+    const tx = Math.min(x + 3, w - right - textWidth(cd.text) - 2);
     if (tx < taken + 6) continue;
     pixText(g, cd.text, tx, h - 8, c.gold);
     taken = tx + textWidth(cd.text);

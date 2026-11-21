@@ -31,3 +31,13 @@ test("two cadences close together: one name at a time (the later's mark only)", 
   cadenceMarks(apart.c, [{ on: 500, text: "IMPERFECT CADENCE · A MINOR" }, { on: 2400, text: "FULL" }], 20);
   assert.ok(apart.rects.length - one.rects.length > 4, "far apart: both named");
 });
+
+test("the name kept left of the right side bar", () => {
+  const a = ctx();
+  const xs: number[] = [];
+  (a.c as { g: { fillRect: (x: number, y: number) => void } }).g.fillRect = (x: number) => xs.push(x);
+  cadenceMarks(a.c, [{ on: 2000, text: "IMPERFECT CADENCE · A MINOR" }], 20, 60);
+  // The mark stands where the cadence falls (x 250, under the bar); its name's pixels left of the bar.
+  const name = xs.filter((x) => x < 248 || x > 253);
+  assert.ok(name.length > 20 && Math.max(...name) <= 300 - 60, `${Math.max(...name)}`);
+});

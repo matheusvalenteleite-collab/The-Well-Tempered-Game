@@ -921,8 +921,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   }
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
-  if (fr.banner) banner(g, w, fr.banner, fx.gold);
-  if (fr.cadences) cadenceMarks(fx, fr.cadences, Math.round((fr.foot ?? footPx) / PX));
+  if (fr.banner) banner(g, w, fr.banner, fx.gold, cl, cr);
+  if (fr.cadences) cadenceMarks(fx, fr.cadences, Math.round((fr.foot ?? footPx) / PX), Math.round(cr));
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   zoneGlow(fx, fr.zone ?? null);
 }
@@ -1201,15 +1201,42 @@ function legendSign(g: CanvasRenderingContext2D, kind: string, x0: number, y: nu
   }
 }
 /** D314: a line over the box's top, on a dark band (the ornament's first-time hint). */
-function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: string) {
-  const tw = textWidth(text);
-  const x = Math.max(2, Math.round((w - tw) / 2));
+/**
+ * A line over the box (D314's ornament hint; a cadence's name). D698 (design studio): it stays between the side bars
+ * (the wide box runs under them: `cl`, `cr`, box px), centred there; too long for one line, it breaks in two (at the
+ * colon, else a comma, else the space nearest the middle), each on its own dark strip.
+ */
+export function bannerLines(text: string, room: number): string[] {
+  if (textWidth(text) <= room) return [text];
+  const mid = text.length / 2;
+  let best = -1;
+  // The colon first (a hint's two halves), then a comma, then a space: the first kind found near enough the middle.
+  for (const re of [/: /g, /, /g, / /g]) {
+    let here = -1;
+    for (const m of text.matchAll(re)) if (here < 0 || Math.abs(m.index! - mid) < Math.abs(here - mid)) here = m.index!;
+    if (here >= 0 && Math.abs(here - mid) < text.length / 3) {
+      best = here;
+      break;
+    }
+  }
+  if (best < 0) return [text];
+  const cut = text[best] === " " ? best : best + 1;
+  return [text.slice(0, cut).trim(), text.slice(cut).trim()];
+}
+function banner(g: CanvasRenderingContext2D, w: number, text: string, ink: string, cl = 0, cr = 0) {
+  const room = w - cl - cr - 12;
+  const lines = bannerLines(text, room);
   const pulse = 0.75 + 0.25 * Math.sin(performance.now() / 180);
-  g.globalAlpha = 0.82;
-  g.fillStyle = "#0c0a10";
-  g.fillRect(x - 4, 3, tw + 7, 11);
-  g.globalAlpha = pulse;
-  pixText(g, text, x, 6, ink);
+  lines.forEach((line, k) => {
+    const tw = textWidth(line);
+    const x = Math.max(cl + 2, Math.round(cl + (w - cl - cr - tw) / 2));
+    const y = 3 + k * 10;
+    g.globalAlpha = 0.82;
+    g.fillStyle = "#0c0a10";
+    g.fillRect(x - 4, y, tw + 7, 11);
+    g.globalAlpha = pulse;
+    pixText(g, line, x, y + 3, ink);
+  });
   g.globalAlpha = 1;
 }
 const GOLD_SLUR = "#ffd23f";
