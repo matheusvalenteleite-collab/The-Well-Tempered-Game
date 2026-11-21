@@ -138,3 +138,7 @@ test("the cue, NO GAP and the new selection line in Portuguese and Spanish; the 
   assert.ok(PT[line] && ES[line]);
   assert.match(src("src/bench/Selection.tsx"), /p\.basics \? tr\("Pick a fugue in the middle, or learn first with BASICS on the left\."\)/);
 });
+
+test("D696: BASICS shows no registration stops (the harpsichord's I · II · III), the main game keeps them", () => {
+  assert.match(src("src/bench/BenchApp.tsx"), /const stopsOn = hasStops\(presetById\(soundNow\)\.id\) && !lesson && !bStage && /);
+});

@@ -2030,8 +2030,8 @@ export function BenchApp() {
   const onBars = playing || (phase.kind === "mtalk" && !!manLesson && isCourse(manLesson));
   const own = (onBars && (layout === "full" || layout === "bars") ? ` tb-${layout}` : "") + ` tb-proto-${proto.id}` + (roadAlone(proto, playing) ? " tb-road" : "");
   // D322/D357: the stops for the player's voice (the harpsichord's, the organ's). D369: on the two bars at the bars' feet.
-  // D402: in the tutorial from THE REAL THING on (the full screen).
-  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && (full || playing);
+  // D402: in the tutorial from THE REAL THING on (the full screen). D696: never in BASICS (6.4 teaches the shake at the default stop).
+  const stopsOn = hasStops(presetById(soundNow).id) && !lesson && !bStage && (!man || !!dressNow?.includes("stops")) && (full || playing);
   // D472 (design studio): STRING CONSORT's articulation stops (D512) at the bars' feet, as the pistons stand there.
   const consortOn = hasConsortStops(presetById(soundNow).id) && !lesson && (!man || !!dressNow?.includes("stops")) && layout === "bars" && playing;
 
