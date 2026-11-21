@@ -245,10 +245,14 @@ export const ERA_EQ: Readonly<Record<EraId, readonly EqBand[]>> = {
     { type: "peaking", hz: 4000, db: 1.5, q: 0.8 },
     { type: "lowpass", hz: 9000, q: 0.6 },
   ],
+  // D923: the 4 kHz shelf (+2.5 dB to the top, the only era with no top roll) a presence peak at 3.5 kHz instead (the
+  // trumpet's brightness kept, the player's voice on top as clear), the top rolled at 10 kHz as the others: the hiss off
+  // (the owner on bwv800: "too noisy and uncomfortable").
   fania72: [
     { type: "highpass", hz: 60, q: 0.7 },
     { type: "peaking", hz: 1200, db: 2, q: 1 },
-    { type: "highshelf", hz: 4000, db: 2.5 },
+    { type: "peaking", hz: 3500, db: 2.5, q: 0.7 },
+    { type: "lowpass", hz: 10000, q: 0.6 },
   ],
   plank72: [
     { type: "peaking", hz: 80, db: 2, q: 0.9 },
@@ -760,7 +764,12 @@ export function buildChain(ctx: BaseAudioContext, spec: ChainSpec, opts: { phone
  * into it unchanged; the drums (outside the chain) keep their balance with the band. `phoneDb`: through the game's phone
  * path and the 600 Hz speaker model each v2 matched to its original within 1 LU (NOTES.md beside the renders).
  */
-export const SALSA2_TRIM = { db: -11.5, phoneDb: -14.7 } as const;
+// D923: -0.4 dB and -0.1 dB on a phone (was -11.5, -14.7): with the tape gone the ensemble summed unsquashed (its mix
+// 1 LU over its voices' own change), the trumpet back level
+// (sound.ts SALSA2_TRUMPET_LEVEL): the band's whole level where it was (bwv800, II/10 on the phone model), without the saturation.
+export const SALSA2_TRIM = { db: -11.9, phoneDb: -14.8 } as const;
+/** D923: the horns' 1176 eased (-20 dB: up to 21 dB of squeeze on the bite, the brass flattened and edgy). */
+export const SALSA2_HORN_THRESHOLD = -14;
 export const BOSSA2_TRIM = { db: -5.5, phoneDb: -3.9 } as const;
 // (D560: the phone's trims 1.2 dB further down for CHORINHO and KRAUTROCK, measured after the promotion: their phoneGain, before
 // the bus compressors, moved the phone level by a third of its change; the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14.)
@@ -857,12 +866,13 @@ export const BAND_CHAINS = {
   salsa: {
     band: "salsa",
     lanes: {
-      horns: [{ kind: "comp", model: "1176", threshold: -20 }, { kind: "eq", bands: [{ type: "peaking", hz: 1400, db: 2, q: 1 }] }],
+      horns: [{ kind: "comp", model: "1176", threshold: SALSA2_HORN_THRESHOLD }, { kind: "eq", bands: [{ type: "peaking", hz: 1400, db: 2, q: 1 }] }],
       tres: [{ kind: "eq", bands: [{ type: "highpass", hz: 180 }, { type: "peaking", hz: 2500, db: 3, q: 1.2 }] }],
     },
     // D546: no bus compressor (the horns' 1176 is the band's squeeze; the glue cost the audio thread at 4× throttle for
     // little: tools/playback/cpu), the plate's impulse 1.0 s (0.7 on a phone).
-    bus: [{ kind: "eq", era: "fania72" }, { kind: "tape", drive: 1.2, rolloff: 14000 }, { kind: "gain", ...SALSA2_TRIM }],
+    // D923: no tape stage (its drive 1.2 saturated the hot brass and the bass's phone exciter): the clean 16-track.
+    bus: [{ kind: "eq", era: "fania72" }, { kind: "gain", ...SALSA2_TRIM }],
     reverb: { ir: "plate", seconds: 1.0, phoneSeconds: 0.7, rt60: 1.0, predelay: 0.015, hp: 300, lp: 7000, brightness: 0.65, level: 0.41, phoneLevel: 0.088 },
   },
   // Rio / New York, 1959-64: close, soft and narrow; the guitar and the voice-like flute in the middle; the Rhodes warm

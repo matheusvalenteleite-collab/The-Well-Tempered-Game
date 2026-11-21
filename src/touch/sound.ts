@@ -752,6 +752,8 @@ export const BOSSA_SEND = 0.15;
  * so a short note is struck once and a long one shimmers), its brightness; the flute a little brighter.
  */
 export const SALSA2_SEND = 0.1;
+/** D923: the trumpet +3 dB (1.15 before): its loudness on a phone was partly the bus tape's harmonics; with the tape gone, back level with the trombone. */
+export const SALSA2_TRUMPET_LEVEL = 1.62;
 export const SALSA2_BITE = { a: 0.012, d: 0.12, s: 0.8, r: 0.1 } as const;
 export const SALSA2_TRES_COURSES = { split: 60, unison: { gain: 0.85, cents: 6, delay: 0.004, shelf: 2 }, octave: { gain: 0.35, shelf: 2 } } as const;
 export const SALSA2_TRES_SHELF = { hz: 2500, db: 3 } as const;
@@ -1404,7 +1406,7 @@ export const PATCHES = {
   // "for a heavier sound"), each note's bite (SALSA2_BITE: a hard tongue, an accent falling to 80% within 0.12 s); the tres
   // (the guitar's recordings strung as its three doubled courses: SALSA2_TRES_COURSES, the low course in octaves, the upper
   // in unison), crisp and damped; the baby bass's round "boom". Lanes of the band's chain: "horns", "tres".
-  s2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.15, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "horns" }),
+  s2Trumpet: P({ osc: [{ wave: "triangle", gain: 0.8 }, { wave: "saw", gain: 0.35 }, { wave: "sine", gain: 0.4 }], filter: { freq: 3.2, q: 1, env: 2.4, envDecay: 0.2 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: SALSA2_TRUMPET_LEVEL, sample: "brassTrumpet", bow: BRASS_TONGUE, one: {}, lane: "horns" }),
   s2Trombone: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }, { wave: "sine", gain: 0.5 }], filter: { freq: 2.2, q: 0.9, env: 1.8, envDecay: 0.25 }, amp: { a: 0.012, d: 0.12, s: 0.8, r: 0.1 }, rec: SALSA2_BITE, send: SALSA2_SEND, level: 1.5, sample: "brassTrombone", bow: BRASS_TONGUE, one: {}, lane: "horns", phoneLift: BRASS_HORN_PHONE_LIFT }),
   s2Tres: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 5, q: 0.8, env: 2, envDecay: 0.08 }, amp: { a: 0.002, d: 0.5, s: 0, r: 0.06 }, send: SALSA2_SEND, level: 0.5, sample: "choroGuitar", one: { courses: SALSA2_TRES_COURSES }, shelf: SALSA2_TRES_SHELF, lane: "tres" }),
   s2Bass: P({ osc: [{ wave: "sine" }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 1, env: 1.5, envDecay: 0.1 }, amp: { a: 0.004, d: 0.6, s: 0, r: 0.06 }, send: SALSA2_SEND * 0.3, level: SALSA2_BASS_LEVEL, sample: "jazzBass", one: {}, shelf: SALSA_BASS_ROUND, phoneLift: SALSA_BASS_PHONE_LIFT, phoneExcite: SALSA2_BASS_PHONE_EXCITE }),
@@ -1974,7 +1976,8 @@ export const PRESETS: Preset[] = [
   {
     id: "salsa",
     // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
-    levels: { wtc2f10: { gain: 1.14, phoneGain: 1.04 } },
+    // D923: on a phone 0.3 dB under (1.04 before): the band's whole level where it was after the bus lost its tape.
+    levels: { wtc2f10: { gain: 1.14, phoneGain: 1 } },
     name: "SALSA",
     // D520 (D436's way: I/21 b. 1-8, II/9 b. 1-5, Herr Bach on top): +3 dB, and on a phone 1.6 dB less of it; D546 matched to it.
     gain: 1.41,
@@ -2342,7 +2345,7 @@ export const F906_LEVELS: Readonly<Record<string, Readonly<Record<string, { phon
  */
 export const RETIRE_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
   berlinSchool: { "bwv1080-12r": { phoneGain: 0.85 }, wtc1f15: { phoneGain: 0.86 } }, // D715's limit: 1.5 dB down at most; D913: I/15 on it -26.6 LUFS
-  salsa: { "bwv1080-c16": { phoneGain: 1.3 } },
+  salsa: { "bwv1080-c16": { phoneGain: 1.43 } }, // D923: 1.3 before; its whole level where it was on the phone model (-28.0 LUFS) after SALSA's bus lost its tape
   oboeTrio: { bwv786: { phoneGain: 1.12 } },
   harpsichordSampled: { bwv784: { phoneGain: 0.88 } },
   baroqueBand: { bwv791: { phoneGain: 0.85 } },
