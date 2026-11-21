@@ -8,7 +8,7 @@ const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
 
 test("D292, D297, D302, D304: the friends' pop-up offers the players' sounds (the five, then the ten new presets), in their order", () => {
   assert.deepEqual(POP_SOUNDS.map(([id]) => id), PRESETS.map((p) => p.id));
-  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "SWITCHED-ON", "SUPER 16-BIT", "SID 64", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET", "SALSA", "CHORINHO", "ABBEY ROAD", "KRAUTROCK", "BOSSA NOVA", "BERLIN SCHOOL", "VAUDEVILLE", "FLUTE & HARP", "ORCHESTRA & ORGAN"]);
+  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "SWITCHED-ON", "SUPER 16-BIT", "SID 64", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET", "SALSA", "CHORINHO", "ABBEY ROAD", "PSYCH", "BOSSA NOVA", "BERLIN SCHOOL", "VAUDEVILLE", "FLUTE & HARP", "ORCHESTRA & ORGAN"]);
 });
 
 test("D246: every piece has its own sound, a real preset; the player's choice for a piece wins", async () => {
