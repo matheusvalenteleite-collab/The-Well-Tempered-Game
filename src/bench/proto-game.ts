@@ -862,7 +862,7 @@ export class ProtoGame {
     // D338: the count-in by time (at most about 4 s, at least two beats), not whole bars.
     // D373: the tutorial's count-in in whole beats ("I count four, then you begin").
     // D413: his demonstration (a WATCH: Bach plays) counted in by nobody: a short silent lead, then he begins.
-    this.start = o.wait ? from - this.beat : o.demo ? from - this.demoLead() : o.countBeats ? from - o.countBeats * this.beat : countInStart(f, from, this.tps);
+    this.start = o.wait || o.waitFirst ? from - this.beat : o.demo ? from - this.demoLead() : o.countBeats ? from - o.countBeats * this.beat : countInStart(f, from, this.tps);
     this.entry = from;
     this.end = (o.until ?? f.length) + this.beat;
     this.opt = options(f.tpq, this.bpm, "easy");
@@ -1150,7 +1150,8 @@ export class ProtoGame {
       const l = this.liftNow(this.now + this.tps * 0.5);
       ch.coupling = { up: l > 0.25 ? 0.18 + 0.27 * Math.min(1, (l - 0.25) / 0.75) : 0, down: l > 0.66 ? 0.4 * Math.min(1, (l - 0.66) / 0.34) : 0, split: 48 };
     }
-    if (this.o.wait) {
+    // D686: BASICS's ideas wait at their first note only (the notes before it struck: none), then the music flows.
+    if (this.o.wait || (this.o.waitFirst && this.notes.length && this.notes[0].state === "pending")) {
       const nx = this.next();
       const on = nx >= 0 ? this.notes[nx].on : null;
       if (on !== null && on >= this.entry && this.now > on) {
@@ -1185,7 +1186,7 @@ export class ProtoGame {
       const accent = inBarBeat === 0;
       // D177: past the count-in, a band's rhythm section plays the beat instead of the click.
       const compound = this.beat !== this.f.tpq * (4 / Number(this.f.meter.split("/")[1]));
-      if (this.o.wait) {
+      if (this.o.wait || (this.o.waitFirst && this.now < this.entry)) {
         this.nextBeat += this.beat;
         continue;
       }
