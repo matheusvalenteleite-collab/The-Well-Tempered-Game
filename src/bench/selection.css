@@ -358,40 +358,77 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-left-foot .sel-howto span:first-child { color: var(--tg-shine); }
 
 /* D452: the guide. The whole screen; the header (✕) fixed, the sections scrolling under it with a thin gold bar. */
-.howto-veil { position: fixed; inset: 0; z-index: 60; display: flex; align-items: stretch; justify-content: center; padding: max(6px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); background: rgba(5, 6, 12, 0.8); }
-.howto { box-sizing: border-box; display: flex; flex-direction: column; width: min(760px, 100%); min-height: 0; background: var(--tg-box, #12162a); border: 3px solid var(--tg-shine); box-shadow: 6px 6px 0 #b8322a; }
-.howto-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px 6px 14px; border-bottom: 2px solid #2c345c; }
-.howto-head h1 { margin: 0; font-family: var(--tg-pixel); font-size: 11px; font-weight: 400; color: var(--tg-shine); letter-spacing: 0.06em; }
-.howto-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 6px 14px 18px; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.5; color: var(--tg-fg); }
-.howto-body::-webkit-scrollbar { width: 7px; }
+/* D920: HOW TO PLAY, BASICS' written companion: a sheet over the screen, chips on top, a card per idea. */
+.howto-veil { position: fixed; inset: 0; z-index: 60; display: flex; align-items: stretch; justify-content: center; padding: max(4px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(4px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); background: rgba(5, 6, 12, 0.82); }
+.howto { position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: min(980px, 100%); min-height: 0; overflow: hidden; background: var(--tg-box, #12162a); border: 2px solid var(--tg-shine); box-shadow: 4px 4px 0 #b8322a; }
+.howto-head { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 12px; border-bottom: 2px solid #2c345c; min-width: 0; }
+.howto-head h1 { flex: none; margin: 0; font-family: var(--tg-pixel); font-size: 9px; font-weight: 400; color: var(--tg-shine); letter-spacing: 0.06em; white-space: nowrap; }
+.howto-chips { flex: 1 1 auto; display: flex; gap: 4px; min-width: 0; overflow: hidden; justify-content: center; }
+.howto-chip { flex: 0 1 auto; min-width: 0; min-height: 30px; padding: 0 8px; display: inline-flex; align-items: center; gap: 5px; font-family: var(--tg-pixel); font-size: 6px; letter-spacing: 0.04em; color: #a8a6c8; background: #1c1f2c; border: 1px solid #2c345c; cursor: pointer; white-space: nowrap; }
+.howto-chip b { font-weight: 400; color: var(--tg-shine); }
+.howto-chip.on { color: #14101a; background: var(--tg-shine); border-color: var(--tg-shine); }
+.howto-chip.on b { color: #14101a; }
+.howto-chip span { overflow: hidden; text-overflow: ellipsis; }
+.howto-head .tg-x { flex: none; }
+.howto-body { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 4px 12px 28px; scrollbar-width: thin; scrollbar-color: var(--tg-shine) #1c1f2c; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.45; color: var(--tg-fg); }
+.howto-body::-webkit-scrollbar { width: 6px; }
 .howto-body::-webkit-scrollbar-thumb { background: var(--tg-shine); }
 .howto-body::-webkit-scrollbar-track { background: #1c1f2c; }
-.howto-body p { margin: 6px 0; }
-.howto-sec { border-bottom: 1px solid #2c345c; }
-.howto-sec > summary, .howto-sub > summary { cursor: pointer; list-style: none; font-family: var(--tg-pixel); font-weight: 400; }
-.howto-sec > summary::-webkit-details-marker, .howto-sub > summary::-webkit-details-marker { display: none; }
-.howto-sec > summary { padding: 10px 0; font-size: 9px; color: var(--tg-shine); letter-spacing: 0.05em; }
-.howto-sec > summary::before, .howto-sub > summary::before { content: "▸ "; color: #8c88aa; }
-.howto-sec[open] > summary::before, .howto-sub[open] > summary::before { content: "▾ "; }
-.howto-sub { margin: 4px 0 6px 6px; padding-left: 8px; border-left: 2px solid #2c345c; }
-.howto-sub > summary { padding: 6px 0; font-size: 7px; color: #f3d78a; letter-spacing: 0.04em; }
-.howto-list { margin: 6px 0; padding-left: 18px; }
-.howto-list li { margin: 3px 0; }
-.howto-fig { margin: 8px 0; display: grid; gap: 4px; }
-.howto-fig figcaption { font-size: 12px; color: #a8a6c8; font-style: italic; }
+.howto-body p { margin: 0 0 6px; }
+.howto-chapter { padding: 10px 0 4px; }
+.howto-chapter + .howto-chapter { border-top: 1px solid #2c345c; }
+.howto-chapter h2 { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; font-family: var(--tg-pixel); font-size: 9px; font-weight: 400; letter-spacing: 0.06em; color: var(--tg-shine); }
+.howto-n { display: inline-grid; place-items: center; width: 20px; height: 20px; color: #14101a; background: var(--tg-shine); font-size: 8px; }
+.howto-intro { color: #c9c6e6; font-style: italic; }
+.howto-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); gap: 14px; align-items: start; padding: 8px 0 12px; }
+.howto-card + .howto-card { border-top: 1px dashed #2c345c; }
+.howto-card h3 { margin: 0 0 6px; font-family: var(--tg-pixel); font-size: 7px; font-weight: 400; letter-spacing: 0.05em; color: #f3d78a; }
+.howto-fine { font-size: 12px; color: #a8a6c8; }
+.howto-tries { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.howto-try { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.04em; color: var(--tg-fg); background: #1c1f2c; border: 2px solid var(--tg-shine); box-shadow: 2px 2px 0 #b8322a; cursor: pointer; }
+.howto-try-k { font-family: var(--tg-pixel); font-size: 6px; letter-spacing: 0.05em; color: var(--tg-shine); margin-right: 2px; }
+.howto-try span { color: var(--tg-shine); }
+.howto-try:active { transform: translate(2px, 2px); box-shadow: none; }
+.howto-visual { display: grid; gap: 4px; min-width: 0; }
+.howto-visual-frame { position: relative; aspect-ratio: 320 / 150; background: #0f1730; border: 1px solid #2c345c; overflow: hidden; }
+.howto-visual-frame > .howto-clip { position: absolute; inset: 0; }
+.howto-visual-frame .howto-clip-canvas { height: 100%; border: 0; }
+.howto-draw { display: block; width: 100%; height: 100%; }
+.howto-draw-t { font-family: var(--tg-pixel); letter-spacing: 0.03em; }
+.howto-video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+.howto-visual-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.howto-tab { min-height: 30px; padding: 0 8px; font-family: var(--tg-pixel); font-size: 6px; color: #a8a6c8; background: #1c1f2c; border: 1px solid #2c345c; cursor: pointer; }
+.howto-tab.on { color: #14101a; background: #f3d78a; border-color: #f3d78a; }
+.howto-ref { border-bottom: 1px solid #2c345c; }
+.howto-ref > summary { min-height: 34px; display: flex; align-items: center; cursor: pointer; list-style: none; font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.05em; color: #f3d78a; }
+.howto-ref > summary::-webkit-details-marker { display: none; }
+.howto-ref > summary::before { content: "▸"; margin-right: 8px; color: #8c88aa; }
+.howto-ref[open] > summary::before { content: "▾"; }
+.howto-ref-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); gap: 14px; padding: 0 0 10px; }
+.howto-ref-fig { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.howto-ref-fig .howto-draw { aspect-ratio: 320 / 150; height: auto; border: 1px solid #2c345c; }
+.howto-ref-body:not(:has(.howto-ref-fig)) { grid-template-columns: minmax(0, 1fr); }
+/* D921: TRY IT, the pad over the guide: its line on top, the game's bars and box under it. */
+.howto-pad { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: #0a0c16; }
+.howto-pad-head { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; border-bottom: 2px solid #2c345c; min-width: 0; }
+.howto-pad-head b { flex: none; font-family: var(--tg-pixel); font-size: 7px; font-weight: 400; color: var(--tg-shine); letter-spacing: 0.05em; white-space: nowrap; }
+.howto-pad-say { flex: 1 1 auto; min-width: 0; font-family: Georgia, "Times New Roman", serif; font-size: 13px; color: var(--tg-fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.howto-pad-say em { color: #a8a6c8; font-style: normal; }
+.howto-pill { flex: none; min-height: 34px; padding: 0 12px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-fg); background: #1c1f2c; border: 1px solid #2c345c; cursor: pointer; }
+.howto-pill-on { color: #14101a; background: var(--tg-shine); border-color: var(--tg-shine); }
+.howto-pad-area { position: relative; flex: 1 1 auto; min-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.howto-pad-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.howto-pad-result { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 52%; display: grid; gap: 6px; justify-items: center; text-align: center; padding: 12px 16px; background: rgba(10, 12, 22, 0.92); border: 2px solid #f0784a; pointer-events: none; }
+.howto-pad-result.ok { border-color: var(--tg-shine); }
+.howto-pad-result b { font-family: Georgia, "Times New Roman", serif; font-size: 15px; font-weight: 400; color: var(--tg-fg); }
+.howto-pad-result.ok b { font-family: var(--tg-pixel); font-size: 10px; color: var(--tg-shine); }
+.howto-pad-result span { font-family: var(--tg-pixel); font-size: 7px; color: #a8a6c8; }
+.howto-head .tg-x { min-width: 36px; min-height: 32px; }
 .howto-clip { position: relative; }
 .howto-clip-canvas { display: block; width: 100%; height: 120px; image-rendering: pixelated; border: 1px solid #2c345c; }
-.howto-play { position: absolute; right: 6px; bottom: 6px; padding: 5px 8px; font-family: var(--tg-pixel); font-size: 7px; color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; cursor: pointer; }
+.howto-play { position: absolute; right: 6px; bottom: 6px; min-height: 30px; padding: 0 10px; font-family: var(--tg-pixel); font-size: 7px; color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; cursor: pointer; }
 .howto-play.on { background: #f0784a; }
 .howto-play:active { transform: translate(2px, 2px); box-shadow: none; }
-.howto-bars { display: grid; grid-template-columns: 1fr 2.4fr 1fr; gap: 0; height: 90px; font-family: var(--tg-pixel); font-size: 6px; max-width: 420px; }
-.howto-bar { display: grid; grid-template-columns: 1fr 1fr; align-items: center; text-align: center; background: #1c1f2c; border: 1px solid #4b8ef0; }
-.howto-bar-left { grid-column: 1; grid-row: 1; }
-.howto-bar-right { grid-column: 3; grid-row: 1; }
-.howto-bar span { display: grid; place-items: center; height: 100%; }
-.howto-bar-left span:first-child, .howto-bar-right span:last-child { background: linear-gradient(to right, rgba(140, 136, 170, 0.08), rgba(140, 136, 170, 0.08)); color: #8c88aa; }
-.howto-bar-left span:last-child, .howto-bar-right span:first-child { background: rgba(243, 210, 107, 0.16); color: var(--tg-shine); }
-.howto-bar-box { grid-column: 2; grid-row: 1; display: grid; place-items: center; background: #0f1730; color: #8c88aa; }
 .howto-flags { display: flex; gap: 10px; align-items: flex-start; }
 .howto-flags-canvas { image-rendering: pixelated; }
 .howto-flags-names { margin: 0; padding: 0; list-style: none; font-family: var(--tg-pixel); font-size: 6px; color: #a8a6c8; display: grid; grid-auto-rows: 36px; align-items: center; padding-top: 0; margin-top: -4px; }
@@ -407,9 +444,13 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .howto-signs { margin: 4px 0; padding: 0; list-style: none; display: grid; gap: 6px; font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; }
 .howto-signs li { display: flex; align-items: center; gap: 10px; }
 .howto-sign { flex: none; image-rendering: pixelated; }
+@media (max-width: 860px) {
+  .howto-chip:not(.on) span { display: none; }
+}
 @media (max-width: 700px) {
   .howto-body { font-size: 13px; }
-  .howto-clip-canvas { height: 104px; }
+  .howto-card, .howto-ref-body { gap: 10px; }
+  .howto-pad-head b { display: none; }
 }
 
 /* D453: DRUMS: ON/OFF, the style (a tap the next of HOME and the sound's family), MORE (every style). */
