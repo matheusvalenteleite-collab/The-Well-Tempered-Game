@@ -77,7 +77,8 @@ export const TIER_RIDE_MS: Record<Tier, number> = { EASY: 250, INTERMEDIATE: 200
  * brings them under it (checked by a test). The steps are coarse: the strong places' grid halves.
  */
 // D861: refitted at the preludes' new measuring tempo (their recordings' median, as the fugues').
-export const PRELUDE_FIT: Record<string, number> = { wtc1p12: 370, wtc1p14: 350, wtc1p18: 270, wtc1p20: 280, wtc1p22: 450 };
+// D881: I/12 no longer needs one (re-voiced: its top line 1.0 a second at the default).
+export const PRELUDE_FIT: Record<string, number> = { wtc1p14: 350, wtc1p18: 270, wtc1p20: 280, wtc1p22: 450 };
 
 /** The riding threshold for a prelude: its tier's, or its fit (Book II's and any other: HARD's). */
 export const preludeRideMs = (id: string): number => Math.max(TIER_RIDE_MS[tierOf(id) ?? "HARD"], PRELUDE_FIT[id] ?? 0);
