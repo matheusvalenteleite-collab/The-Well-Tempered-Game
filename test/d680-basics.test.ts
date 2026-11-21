@@ -60,7 +60,8 @@ test("every word in Portuguese and Spanish; the developer view only; Glenn's win
   for (const t of BASICS) if (t.word !== "↑ ↓") assert.ok(BASICS_PT[t.word] && BASICS_ES[t.word], t.word);
   for (const w of ["BASICS", "WITH GLENN", "INTERMEDIATE", "ADVANCED", "UNDER CONSTRUCTION", "LISTEN"]) assert.ok(BASICS_PT[w] && BASICS_ES[w], w);
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /basics=\{unlocked\(\) \?/);
+  assert.match(app, /basics=\{BASICS_SHOWN && unlocked\(\) \?/, "D685: withdrawn (BASICS_SHOWN false)");
+  assert.match(app, /const BASICS_SHOWN = false;/);
   assert.match(app, /bTake \? BASICS_FLOOR/);
   // No strobe: every pulse in the marks slower than a second.
   assert.match(src("src/bench/basics/basics-aids.ts"), /Math\.sin\(now \/ 420\)/);

@@ -154,6 +154,8 @@ const LAG_SETUP_KEY = "tg-lag-setup";
 // D208: a new key, so every player starts on the sampled harpsichord.
 // D246: each piece its own sound (piece-sound.ts), the player's choice kept per piece.
 const SOUND_KEY = "tg-sound-by-piece-v1";
+/** D685: the first BASICS withdrawn; its code kept until the new tutorial replaces it. */
+const BASICS_SHOWN = false;
 const DEFAULT_SOUND = "harpsichordSampled";
 const TUNING_KEY = "tg-tuning";
 /** D327: play.html's ⚙ TUNING (INSTRUMENT DEFAULT where nothing is kept). */
@@ -2442,7 +2444,8 @@ export function BenchApp() {
           // D868: the tutorial taken out of the game (the owner: "Eliminate tutorial from game"); kept in the developer view (ricercar), Glenn's Part 1 with it.
           tutorial={unlocked() ? { ...manualProgress(readManual()), start: () => startManual() } : undefined}
           // D680 (design studio): BASICS with Glenn in the old TUTORIAL slot, the developer view only for now; glowing while a beginner (no B or better yet).
-          basics={unlocked() ? { beginner: beginner(lite.best), start: () => beginBasics(0) } : undefined}
+          // D685: BASICS (D680-D684) withdrawn from the developer view too (the owner: it "doesn't teach anything"); a new tutorial is being designed.
+          basics={BASICS_SHOWN && unlocked() ? { beginner: beginner(lite.best), start: () => beginBasics(0) } : undefined}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
