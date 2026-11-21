@@ -34,8 +34,9 @@ test("D543-D545: the rebuilt rock bands: no piano, one instrument a voice, their
     for (const id of p.slots ?? []) assert.notEqual(PATCHES[id as PatchId].sample, "piano");
     const last = BAND_CHAINS[band].bus.at(-1)!;
     assert.equal(last.kind, "gain", `${band}: the trim ends the bus`);
-    // (D580: PET SOUNDS' -15.5: its hotter tape and louder chamber trimmed back to its level.)
-    assert.ok(last.kind === "gain" && last.db < -9 && last.db > -16);
+    // (D580: PET SOUNDS' -15.5: its hotter tape and louder chamber trimmed back to its level. D931: ABBEY ROAD's -7.1
+    // without its bus tape's gain to trim.)
+    assert.ok(last.kind === "gain" && last.db < -6 && last.db > -16);
   }
   // The chains still build on one context.
   new Chip();
