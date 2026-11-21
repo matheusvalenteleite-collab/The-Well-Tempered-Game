@@ -1,21 +1,20 @@
 /**
- * D452, HOW TO PLAY (the owner, 2 Nov 2026: "this has become redundant now, right? Perhaps the how to play part
- * is still important to keep. In that case, revise what it says, to make it up to date with the game's
- * developments, and relocate it to the left column, below SETTINGS, as a button of its own"; the main board: a
- * text-based counterpart of the tutorial and of every how-to-play instruction, with foldable sections and
- * subsections, illustrations, animated and audible examples, in the game's own drawing and sound).
+ * D920, HOW TO PLAY, the written companion of BASICS v2 (the owner: "minimalistic, well designed, slick,
+ * informative as the interactive tutorials but only via texts, illustrations, playable segments"). One scrolling
+ * page under a row of chips: PART A, six chapters in BASICS' order (TIMING, DIRECTION, TWO THUMBS, HOLDING, A REAL
+ * FUGUE, MAKE IT SING), each idea a card: a title, one or two sentences, one picture (D922's drawings, or a clip of
+ * real bars), the real-thumbs clip BASICS shows (D690) one tap away, and TRY IT (D921: BASICS' own stage on the
+ * game's engine, in a pad over the guide); PART B, the reference, a folded row each.
  *
- * The words are howto-text.ts (en, pt, es). The pictures here: CLIPS, real bars of real fugues drawn as the
- * box draws them (the strips, the box, the gold line, each voice in its ink, the player's notes full and
- * rimmed, the entries' flags in D493's forms: an inversion's word upside down, an augmentation's wide, a
- * diminution's pressed) and heard through the game's sound when ▶ is tapped, the box scrolling as they sound;
- * and still figures: the bar's SOFT and STRONG sides, the flags, the grades in their inks, the performance's
- * parts. Every example's notes are read from the game's own data (data/touch, D493's entries); nothing is
- * made up. A clip stops when another starts, when its section folds, and when the guide closes.
+ * Kept from D452: CLIPS, real bars of real fugues drawn as the box draws them (the strips, the box, the gold line,
+ * each voice in its ink, the player's notes full and rimmed, the entries' flags in D493's forms) and heard through
+ * the game's sound when LISTEN is tapped; the reference's still figures (the flags, the grades, the signs, the
+ * words). A clip stops when another starts, when a pad opens and when the guide closes.
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { lang, tr } from "../i18n/index.ts";
-import { barStart, fugueById, type TouchFugue } from "../touch/fugue.ts";
+import { barStart, fugueById, loadExtras, type TouchFugue } from "../touch/fugue.ts";
+import type { Chip } from "../touch/chip.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { ORN_PIXELS, formText, formWidth, ornText, pixRaw, pixText } from "../touch/box-fx.ts";
 import { markLegend } from "../touch/readings.ts";
@@ -23,7 +22,9 @@ import { SIGN_PIXELS_5, type Sign } from "../touch/chroma.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
 import { tempoOf } from "../touch/tempi.ts";
 import { GRADE_INK } from "./LiteGrid.tsx";
-import { HOWTO, type Block, type Clip, type Fig, type T } from "./howto-text.ts";
+import { PLAY, REF, UI, type Card, type Chapter, type Clip, type Fig, type RefRow, type T, type Try, type Video } from "./howto-text.ts";
+import { Drawing } from "./howto/Drawings.tsx";
+import { TryPad } from "./howto/TryPad.tsx";
 
 /** A note a clip plays: its time and length in seconds from the clip's start, its pitch, its voice. */
 export interface ClipNote {
@@ -253,23 +254,7 @@ function paintClip(cv: HTMLCanvasElement, f: TouchFugue, c: Clip, notes: ReturnT
     }
   }
   // The clip's caption in the box's corner: the fugue and the bars.
-  pixText(g, `${f.book === 1 ? "I" : "II"}/${f.number} · ${c.bars[0] === c.bars[1] ? `${tr("BAR")} ${c.bars[0]}` : `${tr("BARS")} ${c.bars[0]}-${c.bars[1]}`}`, bar + 4, 3, "#8c88aa");
-}
-
-/** THE BAR, SIDEWAYS: STRONG by the box, SOFT by the outer edge (D315, D469: the words always at the bars' top). */
-function BarFig() {
-  const strong = STRONG_SIDE === "inner";
-  return (
-    <div className="howto-bars" aria-hidden="true">
-      {[0, 1].map((side) => (
-        <div key={side} className={`howto-bar howto-bar-${side === 0 ? "left" : "right"}`}>
-          <span className="howto-bar-soft">{tr(side === 0 ? (strong ? "SOFT" : "STRONG") : strong ? "STRONG" : "SOFT")}</span>
-          <span className="howto-bar-strong">{tr(side === 0 ? (strong ? "STRONG" : "SOFT") : strong ? "SOFT" : "STRONG")}</span>
-        </div>
-      ))}
-      <div className="howto-bar-box">{tr("THE BOX")}</div>
-    </div>
-  );
+  pixText(g, `${f.book === 1 || f.book === 2 ? `${f.book === 1 ? "I" : "II"}/${f.number}` : (f.short ?? f.title).toUpperCase()} · ${c.bars[0] === c.bars[1] ? `${tr("BAR")} ${c.bars[0]}` : `${tr("BARS")} ${c.bars[0]}-${c.bars[1]}`}`, bar + 4, 3, "#8c88aa");
 }
 
 /** THE FLAGS: an entry's word in each of its forms (D493), drawn by the box's own lettering. */
@@ -447,91 +432,229 @@ function WordsFig({ words }: { words: readonly [string, string][] }) {
   );
 }
 
+
+/** BASICS v2's real-thumbs clips (D690), by name (each 2 s, muted, looping). */
+const VIDEOS: Record<Video, string> = {
+  tap: new URL("./basics/clips/tap.mp4", import.meta.url).href,
+  up: new URL("./basics/clips/up.mp4", import.meta.url).href,
+  down: new URL("./basics/clips/down.mp4", import.meta.url).href,
+  same: new URL("./basics/clips/same.mp4", import.meta.url).href,
+  leap: new URL("./basics/clips/leap.mp4", import.meta.url).href,
+  two: new URL("./basics/clips/two.mp4", import.meta.url).href,
+  hold: new URL("./basics/clips/hold.mp4", import.meta.url).href,
+  lift: new URL("./basics/clips/lift.mp4", import.meta.url).href,
+};
+const VIDEO_WORD: Record<Video, T> = {
+  tap: { en: "TAP", pt: "TOQUE", es: "TOQUE" },
+  up: { en: "UP", pt: "SOBE", es: "SUBE" },
+  down: { en: "DOWN", pt: "DESCE", es: "BAJA" },
+  same: { en: "SAME", pt: "IGUAL", es: "IGUAL" },
+  leap: { en: "LEAP", pt: "SALTO", es: "SALTO" },
+  two: { en: "TWO", pt: "DOIS", es: "DOS" },
+  hold: { en: "HOLD", pt: "SEGURE", es: "MANTÉN" },
+  lift: { en: "LIFT", pt: "SOLTE", es: "SUELTA" },
+};
+
 function Figure({ fig, sound, active, setActive, uid }: { fig: Fig; sound?: HowToSound; active: string | null; setActive: (id: string | null) => void; uid: string }) {
   switch (fig.kind) {
+    case "draw":
+      return <Drawing id={fig.draw} />;
     case "clip":
       return <ClipFig c={fig.clip} sound={sound} active={active} setActive={setActive} uid={uid} />;
-    case "bar":
-      return <BarFig />;
     case "flags":
       return <FlagsFig />;
     case "grades":
-      return <GradesFig />;
+      return (
+        <>
+          <PartsFig />
+          <GradesFig />
+        </>
+      );
     case "parts":
       return <PartsFig />;
     case "marks":
       return <MarksFig />;
     case "signs":
-      return <SignsFig where={fig.where} />;
+      return (
+        <>
+          <SignsFig where="in" />
+          <SignsFig where={fig.where} />
+          <MarksFig />
+        </>
+      );
     case "words":
       return <WordsFig words={fig.words} />;
   }
 }
 
-function Blocks({ blocks, sound, active, setActive, path }: { blocks: readonly Block[]; sound?: HowToSound; active: string | null; setActive: (id: string | null) => void; path: string }) {
+/**
+ * The picture's slot: the drawing (or the clip), or BASICS' real thumbs when THUMBS is chosen; a card with several
+ * clips shows a chip for each. The slot keeps its size whichever is shown (the studio's later clips go in here).
+ */
+function Visual({ card, sound, active, setActive }: { card: Card; sound?: HowToSound; active: string | null; setActive: (id: string | null) => void }) {
+  const [shown, setShown] = useState<Video | null>(null);
+  const vids = card.videos ?? [];
   return (
-    <>
-      {blocks.map((b, i) => {
-        const uid = `${path}-${i}`;
-        if ("p" in b) return <p key={uid}>{say(b.p)}</p>;
-        if ("list" in b)
-          return (
-            <ul key={uid} className="howto-list">
-              {b.list.map((t, k) => (
-                <li key={k}>{say(t)}</li>
-              ))}
-            </ul>
-          );
-        if ("fig" in b)
-          return (
-            <figure key={uid} className="howto-fig">
-              <Figure fig={b.fig} sound={sound} active={active} setActive={setActive} uid={uid} />
-              {b.cap && <figcaption>{say(b.cap)}</figcaption>}
-            </figure>
-          );
-        return (
-          <details key={uid} className="howto-sub" id={`howto-${b.sub.id}`} onToggle={(e) => !(e.target as HTMLDetailsElement).open && active?.startsWith(uid) && (sound?.stop(), setActive(null))}>
-            <summary>{say(b.sub.title)}</summary>
-            <Blocks blocks={b.sub.blocks} sound={sound} active={active} setActive={setActive} path={uid} />
-          </details>
-        );
-      })}
-    </>
+    <div className="howto-visual">
+      <div className="howto-visual-frame">
+        {shown ? <video key={shown} className="howto-video" src={VIDEOS[shown]} autoPlay loop muted playsInline aria-label={say(VIDEO_WORD[shown])} /> : <Figure fig={card.fig} sound={sound} active={active} setActive={setActive} uid={card.id} />}
+      </div>
+      {vids.length > 0 && (
+        <div className="howto-visual-tabs" role="group">
+          <button type="button" className={`howto-tab${shown ? "" : " on"}`} id={`howto-pic-${card.id}`} onClick={() => setShown(null)}>
+            {say(UI.picture)}
+          </button>
+          {vids.map((v) => (
+            <button key={v} type="button" className={`howto-tab${shown === v ? " on" : ""}`} id={`howto-vid-${card.id}-${v}`} onClick={() => setShown(v)}>
+              ▶ {vids.length > 1 ? say(VIDEO_WORD[v]) : say(UI.thumbs)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
-/** HOW TO PLAY: the sections folded (the first open), the ✕ always in view, the text scrolling under it. */
-export function HowTo({ close, sound }: { close: () => void; sound?: HowToSound }) {
+function CardView({ card, sound, active, setActive, tryIt, alone }: { card: Card; sound?: HowToSound; active: string | null; setActive: (id: string | null) => void; tryIt: (t: Try, title: string) => void; alone: boolean }) {
+  return (
+    <article className="howto-card" id={`howto-card-${card.id}`}>
+      <div className="howto-card-text">
+        {!alone && <h3>{say(card.title)}</h3>}
+        {card.lead.map((t, i) => (
+          <p key={i}>{say(t)}</p>
+        ))}
+        {card.fine && <p className="howto-fine">{say(card.fine)}</p>}
+        {card.tries && (
+          <div className="howto-tries" role="group" aria-label={say(UI.tryIt)}>
+            <span className="howto-try-k">{say(UI.tryIt)}</span>
+            {card.tries.map((t) => (
+              <button key={t.stage} type="button" className="howto-try" id={`howto-try-${t.stage}`} onClick={() => tryIt(t, `${say(card.title)} · ${say(t.label)}`)}>
+                <span aria-hidden="true">▶</span> {say(t.label)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <Visual card={card} sound={sound} active={active} setActive={setActive} />
+    </article>
+  );
+}
+
+function ChapterView({ ch, sound, active, setActive, tryIt }: { ch: Chapter; sound?: HowToSound; active: string | null; setActive: (id: string | null) => void; tryIt: (t: Try, title: string) => void }) {
+  return (
+    <section className="howto-chapter" id={`howto-${ch.id}`} data-chip={ch.id}>
+      <h2>
+        <span className="howto-n">{ch.n}</span> {say(ch.title)}
+      </h2>
+      {ch.intro && <p className="howto-intro">{say(ch.intro)}</p>}
+      {ch.cards.map((c) => (
+        <CardView key={c.id} card={c} sound={sound} active={active} setActive={setActive} tryIt={tryIt} alone={ch.cards.length === 1} />
+      ))}
+    </section>
+  );
+}
+
+function RefView({ row, sound, active, setActive }: { row: RefRow; sound?: HowToSound; active: string | null; setActive: (id: string | null) => void }) {
+  return (
+    <details className="howto-ref" id={`howto-ref-${row.id}`}>
+      <summary>{say(row.title)}</summary>
+      <div className="howto-ref-body">
+        <div className="howto-ref-text">
+          {row.lines.map((t, i) => (
+            <p key={i}>{say(t)}</p>
+          ))}
+        </div>
+        {row.fig && (
+          <div className="howto-ref-fig">
+            <Figure fig={row.fig} sound={sound} active={active} setActive={setActive} uid={`ref-${row.id}`} />
+          </div>
+        )}
+      </div>
+    </details>
+  );
+}
+
+const CHIPS = [...PLAY.map((c) => ({ id: c.id, n: c.n, t: c.title })), { id: "ref", n: "i", t: UI.ref }];
+
+/**
+ * HOW TO PLAY: the ✕ and the chips always in view (a chip scrolls to its chapter, the one in view lit), the page
+ * scrolling under them; TRY IT opens its pad over the guide (DONE comes back to the same place).
+ */
+export function HowTo({ close, sound, chip, restore }: { close: () => void; sound?: HowToSound; chip?: () => Chip; restore?: () => void }) {
   const [active, setActive] = useState<string | null>(null);
+  const [pad, setPad] = useState<{ t: Try; title: string } | null>(null);
+  const [inView, setInView] = useState(CHIPS[0].id);
+  const [, loaded] = useState(0);
+  const body = useRef<HTMLDivElement>(null);
   const soundRef = useRef(sound);
   soundRef.current = sound;
   useEffect(() => () => soundRef.current?.stop(), []);
+  // The Art of Fugue's bars (chapter 5) are an extra: loaded with the guide.
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
+    if (fugueById("bwv1080-01").id !== "bwv1080-01") void loadExtras().then(() => loaded((n) => n + 1));
+  }, []);
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), pad ? setPad(null) : close());
     window.addEventListener("keydown", esc, true);
     return () => window.removeEventListener("keydown", esc, true);
-  }, [close]);
+  }, [close, pad]);
   const pick = (id: string | null) => {
     if (id === null || id !== active) soundRef.current?.stop();
     setActive(id);
   };
+  const tryIt = (t: Try, title: string) => {
+    pick(null);
+    setPad({ t, title });
+  };
+  const noRestore = useCallback(() => {}, []);
+  // The chip of the chapter at the top of the page.
+  const onScroll = () => {
+    const b = body.current;
+    if (!b) return;
+    const top = b.getBoundingClientRect().top + 8;
+    let id = CHIPS[0].id;
+    for (const c of CHIPS) {
+      const el = b.querySelector<HTMLElement>(`#howto-${c.id}`);
+      if (el && el.getBoundingClientRect().top <= top + 40) id = c.id;
+    }
+    if (id !== inView) setInView(id);
+  };
+  const go = (id: string) => {
+    const b = body.current;
+    const el = b?.querySelector<HTMLElement>(`#howto-${id}`);
+    if (b && el) b.scrollTo({ top: el.offsetTop - b.offsetTop - 4, behavior: "smooth" });
+  };
   return (
     <div className="howto-veil" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div className="howto" role="dialog" aria-modal="true" aria-label={tr("HOW TO PLAY")} id="howto">
+      <div className="howto" role="dialog" aria-modal="true" aria-label={say(UI.title)} id="howto">
         <header className="howto-head">
-          <h1>{tr("HOW TO PLAY")}</h1>
+          <h1>{say(UI.title)}</h1>
+          <nav className="howto-chips" aria-label={say(UI.title)}>
+            {CHIPS.map((c) => (
+              <button key={c.id} type="button" className={`howto-chip${inView === c.id ? " on" : ""}`} id={`howto-chip-${c.id}`} onClick={() => go(c.id)}>
+                <b>{c.n}</b>
+                <span>{say(c.t)}</span>
+              </button>
+            ))}
+          </nav>
           <button type="button" id="howto-close" className="tg-x" aria-label="Close" onClick={close}>
             ✕
           </button>
         </header>
-        <div className="howto-body" id="howto-body">
-          {HOWTO.map((s, i) => (
-            <details key={s.id} className="howto-sec" id={`howto-${s.id}`} open={i === 0} onToggle={(e) => !(e.target as HTMLDetailsElement).open && active?.startsWith(s.id) && pick(null)}>
-              <summary>{say(s.title)}</summary>
-              <Blocks blocks={s.blocks} sound={sound} active={active} setActive={pick} path={s.id} />
-            </details>
+        <div className="howto-body" id="howto-body" ref={body} onScroll={onScroll}>
+          {PLAY.map((ch) => (
+            <ChapterView key={ch.id} ch={ch} sound={sound} active={active} setActive={pick} tryIt={tryIt} />
           ))}
+          <section className="howto-chapter howto-refs" id="howto-ref" data-chip="ref">
+            <h2>
+              <span className="howto-n">i</span> {say(UI.ref)}
+            </h2>
+            {REF.map((r) => (
+              <RefView key={r.id} row={r} sound={sound} active={active} setActive={pick} />
+            ))}
+          </section>
         </div>
+        {pad && chip && <TryPad key={pad.t.stage} t={pad.t} title={pad.title} chip={chip} restore={restore ?? noRestore} close={() => setPad(null)} />}
       </div>
     </div>
   );
