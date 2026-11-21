@@ -24,24 +24,24 @@ test("D452: no text enlarged by iOS; no OPTIONS link; HOW TO PLAY under SETTINGS
   assert.match(src("src/bench/BenchApp.tsx"), /id="settings-pistons"/);
 });
 
-test("D452: the guide: every word in three languages; every example real bars, its flags the experts' entries", async () => {
-  const { HOWTO } = await import("../src/bench/howto-text.ts");
+test("D452 (D920): the guide: every word in three languages; every example real bars, its flags the experts' entries", async () => {
+  const { PLAY, REF } = await import("../src/bench/howto-text.ts");
   const { clipNotes } = await import("../src/bench/HowTo.tsx");
-  const { fugueById } = await import("../src/touch/fugue.ts");
-  type B = (typeof HOWTO)[number]["blocks"][number];
+  const { fugueById, loadExtras } = await import("../src/touch/fugue.ts");
+  await loadExtras();
   const ts: { en: string; pt: string; es: string }[] = [];
   const clips: { piece: string; bars: [number, number]; voices?: number[] }[] = [];
-  const walk = (bs: readonly B[]) =>
-    bs.forEach((b) => {
-      if ("p" in b) ts.push(b.p);
-      else if ("list" in b) ts.push(...b.list);
-      else if ("fig" in b) (b.cap && ts.push(b.cap), b.fig.kind === "clip" && clips.push(b.fig.clip));
-      else (ts.push(b.sub.title), walk(b.sub.blocks as B[]));
-    });
-  for (const s of HOWTO) (ts.push(s.title), walk(s.blocks));
+  for (const ch of PLAY) {
+    ts.push(ch.title, ...(ch.intro ? [ch.intro] : []));
+    for (const c of ch.cards) {
+      ts.push(c.title, ...c.lead, ...(c.fine ? [c.fine] : []), ...(c.tries ?? []).map((t) => t.label));
+      if (c.fig.kind === "clip") clips.push(c.fig.clip);
+    }
+  }
+  for (const r of REF) ts.push(r.title, ...r.lines);
   for (const t of ts) for (const l of ["en", "pt", "es"] as const) assert.ok(t[l].trim().length > 0, `${t.en}: ${l}`);
-  assert.ok(HOWTO.length >= 10 && clips.length >= 10);
-  for (const c of clips) assert.ok(clipNotes(fugueById(c.piece), c).notes.length > 0, `${c.piece} ${c.bars}: notes`);
+  assert.ok(PLAY.length === 6 && REF.length >= 6 && clips.length >= 1);
+  for (const c of clips) assert.ok(fugueById(c.piece).id === c.piece && clipNotes(fugueById(c.piece), c).notes.length > 0, `${c.piece} ${c.bars}: notes`);
   const entry = (id: string, bar: number, voice: number) => fugueById(id).entries.find((e) => e.bar === bar && e.voice === voice);
   assert.equal(entry("wtc1f08", 30, 0)?.inverted, true, "I/8 b.30 inverted");
   assert.equal(entry("wtc1f08", 62, 2)?.scale, 2, "I/8 b.62 augmented");
