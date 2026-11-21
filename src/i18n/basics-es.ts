@@ -8,6 +8,8 @@ export const BASICS_ES: Record<string, string> = {
   CONTINUE: "CONTINUAR",
   "I KNOW THIS": "ESTO YA LO SÉ",
   "TO THE GAME": "AL JUEGO",
+  "YOU DID": "TÚ HICISTE",
+  NEEDED: "HACÍA FALTA",
   LIFT: "SUELTA",
   "Thumbs on the phone": "Pulgares en el móvil",
   TIMING: "TIEMPO",

@@ -21,6 +21,8 @@ export interface MissShown {
   /** The tune's way (+1 up, −1 down, 0 the same) and the thumb's (from its last touch). */
   needed: number;
   made: number;
+  /** Where the thumb touched before (the ring the two arrows start from), and where it touched now. */
+  y0: number;
   y: number;
   at: number;
 }
@@ -103,18 +105,21 @@ export function paintBasics2(c: CanvasRenderingContext2D, w: number, h: number, 
       if (g.now >= end && (!nx || g.now < nx.on)) for (const side of ["left", "right"] as const) label(c, trCanvas("LIFT"), barX(side), h * 0.85, GOLD, 7);
     }
   }
+  // While a miss is shown: its own ring (the touch before) and two arrows, nothing else on that bar.
+  const missing = has("made") && !!s.miss && now - s.miss.at < 1800;
   // The rings: each thumb's last touch, in its colour; the arrow from the ring to the next note.
   for (const side of ["left", "right"] as const) {
     if (!has("rings")) break;
     const last = g.lastBySide[side];
-    if (!last) continue;
+    if (!last || (missing && s.miss?.side === side)) continue;
     c.strokeStyle = THUMB_INK[side];
     c.lineWidth = 2.5;
     c.beginPath();
     c.arc(barX(side), last.y, Math.max(10, bw * 0.16), 0, Math.PI * 2);
     c.stroke();
   }
-  if (has("arrow") && next) {
+  // (While a miss is shown, its two arrows only: no third.)
+  if (has("arrow") && next && !missing) {
     const planned = g.plan.find((p) => p.i === nextI)?.side;
     const side = s.side ?? planned ?? "right";
     const last = g.lastBySide[side];
@@ -136,15 +141,27 @@ export function paintBasics2(c: CanvasRenderingContext2D, w: number, h: number, 
       c.fillRect(x0, 0, bw, h);
     }
   }
-  // After a miss: the move made (dashed) beside the move needed (solid), for a moment.
-  if (has("made") && s.miss && now - s.miss.at < 1800) {
+  // After a miss: exactly two arrows from the ring of the touch before, labelled: what you did (dimmed, dashed)
+  // and what was needed (gold).
+  if (missing && s.miss) {
     const m = s.miss;
     const k = 1 - Math.max(0, (now - m.at - 1200) / 600);
     c.globalAlpha = s.alpha * k;
     const x = barX(m.side);
-    const span = Math.max(24, rows.rowH * 3);
-    arrow(c, x - 16, m.y, m.y - m.needed * span, GOLD);
-    arrow(c, x + 16, m.y, m.y - m.made * span, "rgba(236,230,214,0.85)", true, 2);
+    const span = Math.max(28, rows.rowH * 3);
+    c.strokeStyle = THUMB_INK[m.side];
+    c.lineWidth = 2.5;
+    c.beginPath();
+    c.arc(x, m.y0, Math.max(10, bw * 0.16), 0, Math.PI * 2);
+    c.stroke();
+    const madeTo = m.made === 0 ? m.y0 : m.y0 - m.made * span;
+    const needTo = m.needed === 0 ? m.y0 : m.y0 - m.needed * span;
+    const dx = Math.max(16, bw * 0.2);
+    arrow(c, x - dx, m.y0, madeTo, "rgba(236,230,214,0.6)", true, 2);
+    arrow(c, x + dx, m.y0, needTo, GOLD);
+    const ly = (to: number) => (to === m.y0 ? m.y0 + 22 : to + Math.sign(to - m.y0) * 12);
+    label(c, trCanvas("YOU DID"), x - dx, ly(madeTo), "rgba(236,230,214,0.75)", 6);
+    label(c, trCanvas("NEEDED"), x + dx, ly(needTo), GOLD, 6);
   }
   c.restore();
 }

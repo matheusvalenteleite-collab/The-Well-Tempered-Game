@@ -50,7 +50,8 @@ export function exercise(id: string, title: string, line: Line): TouchFugue {
     length,
     barTicks,
     bars: Array.from({ length: nBars }, (_, k) => ({ n: k + 1, on: k * barTicks })),
-    voiceNames: ["YOU"],
+    // No name: the legend says YOU alone (D691).
+    voiceNames: [""],
     voices: [notes],
     entries: [],
     keys: [{ on: 0, key: "C" }],

@@ -91,7 +91,7 @@ import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsO
 import { TutorialSelect } from "./manual/ManualMap.tsx";
 import { Caption, DressBubble, LensSheet, ResultLine, Seal, SignCard, Spotlight, SpotFlash, SpotLine, StageLine, StepBanner, TourBubble } from "./manual/Screens.tsx";
 import { dressOf, introFor, introIds } from "./manual/dress-of.ts";
-import type { DressLine } from "./manual/dress.ts";
+import type { DressId, DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
@@ -156,6 +156,8 @@ const LAG_SETUP_KEY = "tg-lag-setup";
 // D246: each piece its own sound (piece-sound.ts), the player's choice kept per piece.
 const SOUND_KEY = "tg-sound-by-piece-v1";
 /** D686: a beginner (BASICS's card glows): no piece finished with a B or better yet. */
+/** D691: BASICS's play screen: no verdict words, no score, no accuracy, no crowd (the aids speak instead). */
+const BASICS_DRESS: DressId[] = ["voices", "bar", "marks", "subjects"];
 const beginner = (best: Readonly<Record<string, string>>) => !Object.values(best).some((g) => g === "S" || g === "A" || g === "B");
 const DEFAULT_SOUND = "harpsichordSampled";
 const TUNING_KEY = "tg-tuning";
@@ -798,7 +800,7 @@ export function BenchApp() {
     if (APP.lite && !run && !prac && !lt) saveLastVoice(f.id, voice);
     // D720: MY FUGUE's takes behind (theirs the voices muted in the band).
     const backs = lt ? listenBacking.current : (overTakes.current ?? []);
-    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}), ...(twoHands && !prac && !lt ? { twoHands: true } : {}) }, ch);
+    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && (lesson?.pl === "mobile" || !!manLesson?.guide), ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(dressNow ? { dress: dressNow } : bStage ? { dress: BASICS_DRESS } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}), ...(twoHands && !prac && !lt ? { twoHands: true } : {}) }, ch);
     // D862, TWO HANDS: the left hand warm, the right cool (the blocks, the bars), for this run only.
     setHandInks(g.twoHands && twoHands ? twoHands : null);
     // D457: LISTEN: the take as the player's voice.
@@ -909,7 +911,9 @@ export function BenchApp() {
         if (e.kind === "note" && e.ladder?.steps !== undefined && e.ladder.movedPx !== undefined) {
           const last = g.lastBySide[e.side];
           const made = Math.abs(e.ladder.movedPx) < (e.ladder.needPx ?? 6) ? 0 : Math.sign(e.ladder.movedPx);
-          basMiss.current = { side: e.side, needed: Math.sign(e.ladder.steps), made, y: last?.y ?? 0, at: performance.now() };
+          // The touch before: the ring the arrows start from (movedPx is + up; the screen's y runs down).
+          const y = last?.y ?? 0;
+          basMiss.current = { side: e.side, needed: Math.sign(e.ladder.steps), made, y0: y + e.ladder.movedPx, y, at: performance.now() };
         }
       };
     }
@@ -2619,7 +2623,8 @@ export function VoiceLegend({ names, played, ink, paper = false, alone = false }
   return (
     <>
       <span className="tb-you-chip" id="legend-you" style={{ background: fill, borderColor: ink(mine[0] ?? 0) }}>
-        <span>{tr("YOU · {voice}", { voice: mine.map((i) => voiceName(names[i])).join(" + ") })}</span>
+        {/* D691: a voice with no name (BASICS's exercises): YOU alone, not "YOU · YOU". */}
+        <span>{mine.some((i) => names[i]) ? tr("YOU · {voice}", { voice: mine.filter((i) => names[i]).map((i) => voiceName(names[i])).join(" + ") }) : tr("YOU")}</span>
       </span>
       {others.map((i) => (
         <span key={names[i]} className="tb-legend-other" style={{ color: ink(i), opacity: paper ? 0.75 : 0.6 }}>
