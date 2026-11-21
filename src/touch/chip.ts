@@ -666,8 +666,10 @@ export const LATIN_KIT: { level: number; phone: number; hp: number; send: number
   phone: 1.57,
   hp: 90,
   send: 0.1,
-  // Each band's share (D522: CHORINHO's regional measured 1.4 dB under where JAZZ's brushes sit).
-  band: { salsa: 1, chorinho: 1.17 },
+  // Each band's share (D522: CHORINHO's regional measured 1.4 dB under where JAZZ's brushes sit). D923: SALSA's bells, clave
+  // and cáscara (its brightest, its own pieces) softer (bell 0.42, bellLow 0.45, timbalBell 0.38, cascara 0.45 before), its
+  // share 1 dB under (1 before).
+  band: { salsa: 0.89, chorinho: 1.17 },
   pieces: {
     conga: [0.9, 0.22],
     slap: [0.8, 0.22],
@@ -675,14 +677,14 @@ export const LATIN_KIT: { level: number; phone: number; hp: number; send: number
     bongoHi: [0.7, -0.24],
     bongoMute: [0.55, -0.24],
     bongoLo: [0.7, -0.2],
-    bell: [0.42, -0.2],
-    bellLow: [0.45, -0.2],
-    timbalBell: [0.38, -0.1],
+    bell: [0.34, -0.2],
+    bellLow: [0.38, -0.2],
+    timbalBell: [0.32, -0.1],
     clave: [0.45, 0.04],
     hembra: [0.75, -0.12],
     macho: [0.7, -0.08],
     rimshot: [0.7, -0.1],
-    cascara: [0.45, -0.1],
+    cascara: [0.36, -0.1],
     pandJingle: [0.5, 0.04],
     pandHit: [0.55, 0.04],
     pandBass: [0.9, 0.04],
