@@ -1,14 +1,17 @@
 /**
- * D452: HOW TO PLAY's words, in English, Brazilian Portuguese and Spanish. Every rule here is the game's as it
- * stands (2.30): the sources are the decision rows named beside each section (docs/DECISIONS.md). The
- * examples are real bars of real fugues (HowTo.tsx clipNotes reads their notes from the game's data).
+ * D920, HOW TO PLAY's words (en, Brazilian Portuguese, es): the written companion of BASICS v2 (D686+).
+ * PART A mirrors BASICS' acts in their order and with their rules (one idea a card: one or two sentences,
+ * a picture, the real-thumbs clip where BASICS has one, and a TRY IT pad that runs BASICS' own stage);
+ * PART B is the compact reference. Every rule is the game's as the code stands (proto-game.ts, articulation.ts,
+ * mechanics.ts, scoring.ts, touch-expr.ts, slide-sound.ts; the rows named beside each card). Not taught, by the
+ * owner's wish: holding one note and sounding the next by lifting it.
  */
 export interface T {
   en: string;
   pt: string;
   es: string;
 }
-const L = (en: string, pt: string, es: string): T => ({ en, pt, es });
+export const L = (en: string, pt: string, es: string): T => ({ en, pt, es });
 
 /** A clip: bars of a fugue drawn and heard; `mine` the voice drawn as the player's; `slides` pairs of the player's notes joined by a slide. */
 export interface Clip {
@@ -23,441 +26,425 @@ export interface Clip {
   /** Slower than the fugue's tempo, below 1. */
   speed?: number;
 }
-export type Fig = { kind: "clip"; clip: Clip } | { kind: "bar" } | { kind: "flags" } | { kind: "grades" } | { kind: "parts" } | { kind: "marks" } | { kind: "signs"; where: "in" | "over" } | { kind: "words"; words: readonly [string, string][] };
-export type Block = { p: T } | { list: T[] } | { fig: Fig; cap?: T } | { sub: { id: string; title: T; blocks: Block[] } };
-export interface Section {
+
+/** The drawings (HowTo.tsx `Drawing`), each in the game's own look. */
+export type DrawId = "timing" | "direction" | "two" | "hold" | "strong" | "legato" | "shake" | "slide" | "gameboy" | "psych" | "screen";
+export type Fig =
+  | { kind: "draw"; draw: DrawId }
+  | { kind: "clip"; clip: Clip }
+  | { kind: "flags" }
+  | { kind: "grades" }
+  | { kind: "parts" }
+  | { kind: "marks" }
+  | { kind: "signs"; where: "in" | "over" }
+  | { kind: "words"; words: readonly [string, string][] };
+
+/** A TRY IT pad: a BASICS v2 stage (plan.ts ACTS), run as BASICS runs its DO (the aids on, the music waiting at the first note). */
+export interface Try {
+  stage: string;
+  label: T;
+  /** Shorter than the stage (its last bar), to keep a pad to a few notes. */
+  toBar?: number;
+}
+/** The real-thumbs clips BASICS v2 shows (D690; src/bench/basics/clips). */
+export type Video = "tap" | "up" | "down" | "same" | "leap" | "two" | "hold" | "lift";
+
+export interface Card {
   id: string;
   title: T;
-  blocks: Block[];
+  /** One or two sentences. */
+  lead: T[];
+  fig: Fig;
+  videos?: Video[];
+  tries?: Try[];
+  /** A small print line under the lead. */
+  fine?: T;
+}
+export interface Chapter {
+  id: string;
+  n: string;
+  title: T;
+  /** A chapter with stations (6) is its cards; else one card. */
+  cards: Card[];
+  intro?: T;
+}
+export interface RefRow {
+  id: string;
+  title: T;
+  lines: T[];
+  fig?: Fig;
 }
 
-const sub = (id: string, title: T, ...blocks: Block[]): Block => ({ sub: { id, title, blocks } });
-const p = (en: string, pt: string, es: string): Block => ({ p: L(en, pt, es) });
-const clip = (c: Clip, cap?: T): Block => ({ fig: { kind: "clip", clip: c }, cap });
+const dr = (draw: DrawId): Fig => ({ kind: "draw", draw });
 
-export const HOWTO: Section[] = [
+/** PART A, as BASICS v2: I TIMING, II DIRECTION, III TWO THUMBS, IV HOLDING, V A REAL FUGUE, VI MAKE IT SING. */
+export const PLAY: Chapter[] = [
   {
-    id: "minute",
-    title: L("THE GAME IN A MINUTE", "O JOGO EM UM MINUTO", "EL JUEGO EN UN MINUTO"),
-    blocks: [
-      p(
-        "A fugue is music for several voices that take up the same tune in turn. You play one of those voices with your two thumbs; the game plays all the others.",
-        "Uma fuga é música para várias vozes que retomam a mesma melodia, uma depois da outra. Você toca uma dessas vozes com os dois polegares; o jogo toca todas as outras.",
-        "Una fuga es música para varias voces que retoman la misma melodía, una tras otra. Tú tocas una de esas voces con los dos pulgares; el juego toca todas las demás.",
-      ),
-      p(
-        "Hold the phone sideways. Choose a fugue in the middle of the selection screen, choose YOUR VOICE on the right, and press PLAY. New to it? The TUTORIAL on the left teaches the same things with your thumbs.",
-        "Segure o celular deitado. Escolha uma fuga no meio da tela de seleção, escolha SUA VOZ à direita e toque em TOCAR. É a primeira vez? O TUTORIAL, à esquerda, ensina tudo isto com os seus polegares.",
-        "Sostén el móvil de lado. Elige una fuga en el centro de la pantalla de selección, elige TU VOZ a la derecha y pulsa TOCAR. ¿Es tu primera vez? El TUTORIAL, a la izquierda, enseña todo esto con tus pulgares.",
-      ),
-      clip(
-        { piece: "wtc1f02", bars: [1, 4], mine: 1, thumbs: true },
-        L(
-          "Fugue 2 in C minor, its first bars. Your voice (here the alto) is drawn full and rimmed in white; the others are thinner. The rings are your thumbs.",
-          "Fuga 2 em dó menor, os primeiros compassos. A sua voz (aqui o contralto) é desenhada cheia, com contorno branco; as outras são mais finas. Os anéis são os seus polegares.",
-          "Fuga 2 en do menor, los primeros compases. Tu voz (aquí el contralto) se dibuja llena, con borde blanco; las otras son más finas. Los anillos son tus pulgares.",
-        ),
-      ),
+    id: "timing",
+    n: "1",
+    title: L("TIMING", "TEMPO", "TIEMPO"),
+    cards: [
+      {
+        id: "timing",
+        title: L("TIMING", "TEMPO", "TIEMPO"),
+        lead: [
+          L(
+            "Notes drift from right to left. When one reaches the gold line, touch a bar, either one: the moment your thumb lands is the note.",
+            "As notas vêm da direita para a esquerda. Quando uma chega à linha dourada, toque numa barra, qualquer uma: o instante em que o polegar pousa é a nota.",
+            "Las notas avanzan de derecha a izquierda. Cuando una llega a la línea dorada, toca una barra, cualquiera: el instante en que el pulgar se apoya es la nota.",
+          ),
+          L(
+            "On the line is PERFECT; a little early or late is GOOD. A note you let go by is MISS.",
+            "Em cima da linha é PERFEITO; um pouco antes ou depois é BOM. Uma nota que você deixa passar é ERROU.",
+            "Sobre la línea es PERFECTO; un poco antes o después es BIEN. Una nota que dejas pasar es FALLO.",
+          ),
+        ],
+        fig: dr("timing"),
+        videos: ["tap"],
+        tries: [
+          { stage: "1.1", label: L("ONE NOTE", "UMA NOTA", "UNA NOTA") },
+          { stage: "1.2", label: L("A PULSE", "UM PULSO", "UN PULSO") },
+        ],
+      },
     ],
   },
   {
-    id: "screen",
-    title: L("THE PLAY SCREEN", "A TELA DE JOGO", "LA PANTALLA DE JUEGO"),
-    blocks: [
-      sub(
-        "box",
-        L("The music box", "A caixa de música", "La caja de música"),
-        p(
-          "In the middle is the music box. The notes come in from the right and move left; the gold line near the left is now. Height is pitch: a higher note sits higher. Every note is a block of the same height, and each voice keeps its own colour and its place (the bass always below the soprano).",
-          "No meio fica a caixa de música. As notas entram pela direita e andam para a esquerda; a linha dourada, perto da esquerda, é o agora. A altura é o tom: uma nota mais aguda fica mais acima. Cada nota é um bloco da mesma altura, e cada voz mantém a sua cor e o seu lugar (o baixo sempre abaixo do soprano).",
-          "En el centro está la caja de música. Las notas entran por la derecha y avanzan hacia la izquierda; la línea dorada, cerca de la izquierda, es el ahora. La altura es el tono: una nota más aguda está más arriba. Cada nota es un bloque de la misma altura, y cada voz conserva su color y su lugar (el bajo siempre por debajo del soprano).",
+    id: "direction",
+    n: "2",
+    title: L("DIRECTION", "DIREÇÃO", "DIRECCIÓN"),
+    cards: [
+      {
+        id: "direction",
+        title: L("DIRECTION", "DIREÇÃO", "DIRECCIÓN"),
+        lead: [
+          L(
+            "It's not where you touch, it's where you go. Each touch is compared with that same thumb's last touch: higher for up, lower for down, the same spot for a repeated note.",
+            "Não importa onde você toca, e sim para onde vai. Cada toque é comparado com o último toque do mesmo polegar: mais alto para subir, mais baixo para descer, o mesmo lugar para uma nota repetida.",
+            "No importa dónde tocas, sino hacia dónde vas. Cada toque se compara con el último toque del mismo pulgar: más arriba para subir, más abajo para bajar, el mismo sitio para una nota repetida.",
+          ),
+          L(
+            "The exact height never matters, so a big leap needs only a small move the right way. The wrong way is a ✕.",
+            "A altura exata nunca importa: um salto grande pede só um pequeno movimento para o lado certo. Para o lado errado é um ✕.",
+            "La altura exacta nunca importa: un salto grande pide solo un pequeño movimiento hacia el lado correcto. Hacia el lado equivocado es una ✕.",
+          ),
+        ],
+        fine: L(
+          "A thumb's first touch, and its first after a pause of about three beats, is free: any height is right.",
+          "O primeiro toque de um polegar, e o primeiro depois de uma pausa de uns três tempos, é livre: qualquer altura está certa.",
+          "El primer toque de un pulgar, y el primero tras una pausa de unos tres tiempos, es libre: cualquier altura vale.",
         ),
-        p(
-          "Your notes are full, with a white rim; the other voices are thinner and dimmer, and the game plays them for you. A note you hit shines; a missed one goes dark and shakes. The box takes the colour of the fugue's key, and its top names the fugue.",
-          "As suas notas são cheias, com contorno branco; as outras vozes são mais finas e apagadas, e o jogo as toca por você. Uma nota acertada brilha; uma perdida escurece e treme. A caixa ganha a cor da tonalidade da fuga, e o topo dela diz o nome da fuga.",
-          "Tus notas son llenas, con borde blanco; las otras voces son más finas y apagadas, y el juego las toca por ti. Una nota acertada brilla; una fallada se oscurece y tiembla. La caja toma el color de la tonalidad de la fuga, y en su parte superior aparece el nombre de la fuga.",
-        ),
-      ),
-      sub(
-        "bars",
-        L("The two bars", "As duas barras", "Las dos barras"),
-        p(
-          "Left and right of the box are two bars, one for each thumb. You can touch anywhere along a bar. At the top of the bars: the score, the crowd, and the words SOFT and STRONG. On the right bar, your PERFORMANCE so far.",
-          "À esquerda e à direita da caixa ficam duas barras, uma para cada polegar. Você pode tocar em qualquer ponto da barra. No alto das barras: a pontuação, a plateia e as palavras SUAVE e FORTE. Na barra direita, a sua INTERPRETAÇÃO até agora.",
-          "A la izquierda y a la derecha de la caja hay dos barras, una para cada pulgar. Puedes tocar en cualquier punto de la barra. Arriba de las barras: la puntuación, el público y las palabras SUAVE y FUERTE. En la barra derecha, tu INTERPRETACIÓN hasta el momento.",
-        ),
-      ),
-      sub(
-        "words",
-        L("The words you see", "As palavras que aparecem", "Las palabras que aparecen"),
-        { fig: { kind: "words", words: [["PERFECT", "#ffd23f"], ["GOOD", "#5fdc6a"], ["MISS", "#d8443a"], ["✕ WRONG", "#d8443a"], ["HELD", "#5fdc6a"], ["TOO SOON", "#f0784a"], ["REST!", "#f0784a"]] } },
-        p(
-          "PERFECT and GOOD flash briefly; the words for a slip stay a little longer, so you can read them. A pause resumes with a 3-2-1 count, from exactly where you stopped.",
-          "PERFEITO e BOM aparecem rapidamente; as palavras de um deslize ficam um pouco mais, para dar tempo de ler. Uma pausa recomeça com uma contagem 3-2-1, exatamente de onde você parou.",
-          "PERFECTO y BIEN aparecen un instante; las palabras de un fallo se quedan un poco más, para que puedas leerlas. Una pausa se reanuda con una cuenta 3-2-1, exactamente desde donde paraste.",
-        ),
-      ),
+        fig: dr("direction"),
+        videos: ["up", "down", "same", "leap"],
+        tries: [
+          { stage: "2.4", label: L("UP, DOWN, SAME", "SOBE, DESCE, IGUAL", "SUBE, BAJA, IGUAL") },
+          { stage: "2.5", label: L("A LEAP", "UM SALTO", "UN SALTO") },
+        ],
+      },
     ],
   },
   {
-    id: "notes",
-    title: L("PLAYING THE NOTES", "TOCANDO AS NOTAS", "TOCAR LAS NOTAS"),
-    blocks: [
-      sub(
-        "tap",
-        L("A tap is a note", "Um toque é uma nota", "Un toque es una nota"),
-        p(
-          "Touch either bar as your note reaches the gold line. Touch higher on the bar when the tune goes up, lower when it goes down. You don't need the exact height, only the right direction. Taking turns, left thumb then right, is the easiest way to keep up.",
-          "Toque em qualquer uma das barras quando a sua nota chegar à linha dourada. Toque mais acima na barra quando a melodia sobe, mais abaixo quando desce. Não é preciso acertar a altura exata, só a direção certa. Alternar os polegares, esquerdo e depois direito, é o jeito mais fácil de acompanhar.",
-          "Toca cualquiera de las dos barras cuando tu nota llegue a la línea dorada. Toca más arriba en la barra cuando la melodía sube, más abajo cuando baja. No hace falta la altura exacta, solo la dirección correcta. Alternar los pulgares, izquierdo y luego derecho, es la forma más fácil de seguir el ritmo.",
-        ),
-        clip(
-          { piece: "wtc1f02", bars: [1, 2], voices: [1], mine: 1, thumbs: true, speed: 0.75 },
-          L("The subject of Fugue 2, played by two thumbs taking turns (a little slower).", "O sujeito da Fuga 2, tocado por dois polegares alternados (um pouco mais devagar).", "El sujeto de la Fuga 2, tocado con los dos pulgares alternados (un poco más despacio)."),
-        ),
-      ),
-      sub(
-        "time",
-        L("On time", "No tempo", "A tiempo"),
-        p(
-          "The moment your thumb lands is the note. Right on the line is PERFECT; a little early or late is GOOD. A wrong direction is ✕ WRONG, and a note you let go by is MISS.",
-          "O momento em que o polegar toca é a nota. Bem em cima da linha é PERFEITO; um pouco antes ou depois é BOM. Uma direção errada é ✕ ERRADO, e uma nota que passa sem ser tocada é ERROU.",
-          "El momento en que el pulgar toca es la nota. Justo en la línea es PERFECTO; un poco antes o después es BIEN. Una dirección equivocada es ✕ MAL, y una nota que dejas pasar es FALLO.",
-        ),
-      ),
-      sub(
-        "hold",
-        L("Holding, and rests", "Segurar, e as pausas", "Mantener, y los silencios"),
-        p(
-          "A long note is held: keep the thumb down for its length (HELD). Lifting before half the note shows TOO SOON. Where your voice has a rest, lift; holding through a rest shows REST!.",
-          "Uma nota longa é segurada: mantenha o polegar apoiado durante toda a duração dela (SUSTENTOU). Levantar antes da metade da nota mostra CEDO DEMAIS. Onde a sua voz tem uma pausa, levante; segurar durante a pausa mostra PAUSA!.",
-          "Una nota larga se mantiene: deja el pulgar apoyado durante toda su duración (SOSTENIDA). Levantarlo antes de la mitad de la nota muestra DEMASIADO PRONTO. Donde tu voz tiene un silencio, levanta el pulgar; mantenerlo durante el silencio muestra ¡SILENCIO!.",
-        ),
-      ),
+    id: "two",
+    n: "3",
+    title: L("TWO THUMBS", "DOIS POLEGARES", "DOS PULGARES"),
+    cards: [
+      {
+        id: "two",
+        title: L("TWO THUMBS", "DOIS POLEGARES", "DOS PULGARES"),
+        lead: [
+          L(
+            "Share the notes between your thumbs: left, right, left. It's quicker, and it sounds better.",
+            "Divida as notas entre os polegares: esquerdo, direito, esquerdo. É mais rápido e soa melhor.",
+            "Reparte las notas entre los pulgares: izquierdo, derecho, izquierdo. Es más rápido y suena mejor.",
+          ),
+          L(
+            "Each thumb follows its own last touch, never the other's: a right-thumb note goes up from where the right thumb last was.",
+            "Cada polegar segue o seu próprio último toque, nunca o do outro: uma nota do polegar direito sobe a partir de onde o direito tocou por último.",
+            "Cada pulgar sigue su propio último toque, nunca el del otro: una nota del pulgar derecho sube desde donde tocó el derecho por última vez.",
+          ),
+        ],
+        fig: dr("two"),
+        videos: ["two"],
+        tries: [{ stage: "3.1", label: L("A SCALE", "UMA ESCALA", "UNA ESCALA") }],
+      },
     ],
   },
   {
-    // D657 (design studio; the owner: "I still don't understand what are the little symbols inside some notes … a 'X' and a 'M'"):
-    // the signs in a note's block (chroma.ts SIGN_PIXELS_5) and the ornaments' signs over it (ornament-play.ts ornamentMark).
-    id: "signs",
-    title: L("SIGNS ON THE NOTES", "SINAIS NAS NOTAS", "SIGNOS EN LAS NOTAS"),
-    blocks: [
-      sub(
-        "in",
-        L("Inside a note: sharps and flats", "Dentro de uma nota: sustenidos e bemóis", "Dentro de una nota: sostenidos y bemoles"),
-        p(
-          "Some notes are not in the piece's key. They carry their sign at the start of the block, as printed music writes it, and the block sits a little off its row: up when the note is raised, down when it is lowered. You play them like any other note: the sign tells you what you hear.",
-          "Algumas notas não pertencem ao tom da peça. Elas levam o seu sinal no começo do bloco, como na partitura impressa, e o bloco fica um pouco fora da sua linha: acima quando a nota sobe, abaixo quando desce. Você as toca como qualquer outra nota: o sinal diz o que você ouve.",
-          "Algunas notas no pertenecen a la tonalidad de la pieza. Llevan su signo al principio del bloque, como en la partitura impresa, y el bloque queda un poco fuera de su fila: arriba cuando la nota sube, abajo cuando baja. Las tocas como cualquier otra nota: el signo te dice lo que oyes.",
-        ),
-        { fig: { kind: "signs", where: "in" } },
-      ),
-      sub(
-        "over",
-        L("Over a note: ornaments", "Sobre uma nota: ornamentos", "Sobre una nota: ornamentos"),
-        p(
-          "Bach's ornaments are written over their note. Touch the note, then rock the thumb; an ornament never costs or earns points.",
-          "Os ornamentos de Bach vêm escritos sobre a sua nota. Toque a nota e depois balance o polegar; um ornamento nunca tira nem dá pontos.",
-          "Los ornamentos de Bach van escritos sobre su nota. Toca la nota y luego balancea el pulgar; un ornamento nunca quita ni da puntos.",
-        ),
-        { fig: { kind: "signs", where: "over" } },
-      ),
-    ],
-  },
-  {
-    id: "slides",
-    title: L("SLIDES", "DESLIZES", "DESLIZAMIENTOS"),
-    blocks: [
-      sub(
-        "slide",
-        L("Sliding to the next note", "Deslizar até a próxima nota", "Deslizar hasta la nota siguiente"),
-        p(
-          "Instead of lifting and tapping again, you can keep your thumb down and slide it toward the next note, in the direction the tune goes. Once you are at least halfway there, the next note plays. Going past it is fine; going far past shows TOO FAR. Arriving early, it waits for its time.",
-          "Em vez de levantar e tocar de novo, você pode manter o polegar apoiado e deslizá-lo em direção à próxima nota, no sentido em que a melodia vai. Quando você chega pelo menos à metade do caminho, a próxima nota soa. Passar um pouco do ponto não tem problema; passar muito mostra LONGE DEMAIS. Se chegar cedo, a nota espera a hora dela.",
-          "En lugar de levantar y volver a tocar, puedes dejar el pulgar apoyado y deslizarlo hacia la nota siguiente, en la dirección en que va la melodía. Cuando llegas al menos a la mitad del camino, la nota siguiente suena. Pasarte un poco no importa; pasarte mucho muestra DEMASIADO LEJOS. Si llegas antes, la nota espera su momento.",
-        ),
-        p(
-          "A slide goes one way only, and only to the next note: to turn back, lift and strike again. The box joins a slide's two notes with a ribbon. Each sound colours a slide its own way: a quick shake on the harpsichord, a grace note on the piano, a glide on strings and voices.",
-          "Um deslize vai num só sentido, e só até a próxima nota: para voltar, levante e toque de novo. A caixa une as duas notas de um deslize com uma fita. Cada som colore o deslize do seu jeito: um trinado rápido no cravo, uma apojatura no piano, um glissando nas cordas e nas vozes.",
-          "Un deslizamiento va en un solo sentido, y solo hasta la nota siguiente: para volver, levanta y toca de nuevo. La caja une las dos notas de un deslizamiento con una cinta. Cada sonido colorea el deslizamiento a su manera: un trino rápido en el clave, una apoyatura en el piano, un glissando en las cuerdas y las voces.",
-        ),
-        clip(
-          { piece: "wtc1f02", bars: [1, 1], voices: [1], mine: 1, thumbs: true, slides: [[1, 2]], speed: 0.6 },
-          L("The second and third notes joined by a slide: the thumb stays down and glides.", "A segunda e a terceira notas unidas por um deslize: o polegar continua apoiado e desliza.", "La segunda y la tercera nota unidas por un deslizamiento: el pulgar sigue apoyado y se desliza."),
-        ),
-        p(
-          "When a slide fails, the box says why, in amber, by your thumb: FURTHER, TOO FAR, TOO EARLY, TOO LATE, LIFTED, or LIFT TO TURN.",
-          "Quando um deslize falha, a caixa diz por quê, em âmbar, ao lado do polegar: MAIS LONGE, LONGE DEMAIS, CEDO DEMAIS, TARDE DEMAIS, LEVANTOU ou LEVANTE PARA VOLTAR.",
-          "Cuando un deslizamiento falla, la caja dice por qué, en ámbar, junto a tu pulgar: MÁS LEJOS, DEMASIADO LEJOS, DEMASIADO PRONTO, DEMASIADO TARDE, LEVANTADO o LEVANTA PARA VOLVER.",
-        ),
-      ),
-      sub(
-        "slidein",
-        L("Sliding in", "Entrar deslizando", "Entrar deslizando"),
-        p(
-          "After a rest, or before your first note, you can also slide into a note: up to two beats ahead, put your thumb down above or below the coming note and slide in. The note sounds when you are halfway there and is judged as a tap (PERFECT or GOOD). Putting the thumb down is never counted as a mistake.",
-          "Depois de uma pausa, ou antes da sua primeira nota, você também pode entrar numa nota deslizando: até dois tempos antes, apoie o polegar acima ou abaixo da nota que vem e deslize até ela. A nota soa quando você chega à metade do caminho e é avaliada como um toque (PERFEITO ou BOM). Apoiar o polegar nunca conta como erro.",
-          "Después de un silencio, o antes de tu primera nota, también puedes entrar en una nota deslizando: hasta dos tiempos antes, apoya el pulgar por encima o por debajo de la nota que viene y deslízate hasta ella. La nota suena cuando llegas a la mitad del camino y se juzga como un toque (PERFECTO o BIEN). Apoyar el pulgar nunca cuenta como error.",
-        ),
-      ),
-    ],
-  },
-  {
-    id: "touch",
-    title: L("TOUCH: SOFT, STRONG, AND BUSONI'S SIGNS", "TOQUE: SUAVE, FORTE E OS SINAIS DE BUSONI", "TOQUE: SUAVE, FUERTE Y LOS SIGNOS DE BUSONI"),
-    blocks: [
-      sub(
-        "soft",
-        L("Soft and strong, across the bar", "Suave e forte, na largura da barra", "Suave y fuerte, a lo ancho de la barra"),
-        { fig: { kind: "bar" } },
-        p(
-          "Across each bar, the side by the box is STRONG (firmer, brighter) and the outer edge is SOFT (gentler, darker). A held thumb moved sideways shapes the note as it sounds. This is yours to use: it never costs or earns points. On the piano the bar has three zones: soft, normal and strong.",
-          "Na largura de cada barra, o lado junto à caixa é FORTE (mais firme, mais brilhante) e a borda de fora é SUAVE (mais delicada, mais escura). Um polegar segurando uma nota e movido para o lado molda a nota enquanto ela soa. Isto é seu para usar: nunca tira nem dá pontos. No piano a barra tem três zonas: suave, normal e forte.",
-          "A lo ancho de cada barra, el lado junto a la caja es FUERTE (más firme, más brillante) y el borde exterior es SUAVE (más delicado, más oscuro). Un pulgar que mantiene una nota y se mueve hacia el lado moldea la nota mientras suena. Es tuyo para usarlo: nunca quita ni da puntos. En el piano la barra tiene tres zonas: suave, normal y fuerte.",
-        ),
-      ),
-      sub(
-        "busoni",
-        L("Busoni's signs", "Os sinais de Busoni", "Los signos de Busoni"),
-        p(
-          "Every fugue comes with the markings of Ferruccio Busoni's edition, drawn over your notes. They tell you how each note is touched. You can turn them off in SETTINGS (BUSONI'S MARKINGS); then you play with your own articulation.",
-          "Cada fuga vem com as marcações da edição de Ferruccio Busoni, desenhadas sobre as suas notas. Elas dizem como cada nota é tocada. Você pode desligá-las em CONFIGURAÇÕES (MARCAÇÕES DE BUSONI); aí você toca com a sua própria articulação.",
-          "Cada fuga trae las indicaciones de la edición de Ferruccio Busoni, dibujadas sobre tus notas. Te dicen cómo se toca cada nota. Puedes desactivarlas en AJUSTES (INDICACIONES DE BUSONI); entonces tocas con tu propia articulación.",
-        ),
-        { fig: { kind: "marks" } },
-        p(
-          "Accents are a hard tap: strike harder, anywhere on the bar (SETTINGS › TAP STRENGTH teaches the phone your soft and hard taps; without a motion sensor, use the strong side). Ornaments (a trill, a mordent): touch the note, then rock the thumb; they are never scored. Busoni's words (dolce and the like) appear at the side, with their meaning.",
-          "Os acentos são um toque forte: bata com mais força, em qualquer ponto da barra (CONFIGURAÇÕES › FORÇA DO TOQUE ensina ao celular os seus toques suaves e fortes; sem sensor de movimento, use o lado forte). Ornamentos (um trinado, um mordente): toque a nota e depois balance o polegar; eles nunca contam pontos. As palavras de Busoni (dolce e outras) aparecem ao lado, com o seu significado.",
-          "Los acentos son un toque fuerte: golpea con más fuerza, en cualquier punto de la barra (AJUSTES › FUERZA DEL TOQUE enseña al móvil tus toques suaves y fuertes; sin sensor de movimiento, usa el lado fuerte). Los ornamentos (un trino, un mordente): toca la nota y luego balancea el pulgar; nunca puntúan. Las palabras de Busoni (dolce y otras) aparecen al lado, con su significado.",
-        ),
-      ),
+    id: "hold",
+    n: "4",
+    title: L("HOLDING", "SEGURAR", "MANTENER"),
+    cards: [
+      {
+        id: "hold",
+        title: L("HOLDING AND RESTS", "SEGURAR E PAUSAS", "MANTENER Y SILENCIOS"),
+        lead: [
+          L(
+            "Your thumb is the key: keep it down and the note sings on, lift it and the note stops. Hold a long block to its end: HELD. Lifting before about half of it is TOO SOON.",
+            "O polegar é a tecla: mantenha-o apoiado e a nota continua; levante-o e ela para. Segure um bloco longo até o fim: SUSTENTOU. Levantar antes de mais ou menos a metade é CEDO DEMAIS.",
+            "El pulgar es la tecla: mantenlo apoyado y la nota sigue sonando; levántalo y se detiene. Mantén un bloque largo hasta el final: SOSTENIDA. Levantar antes de más o menos la mitad es DEMASIADO PRONTO.",
+          ),
+          L(
+            "Where your voice rests, lift. Holding on through a rest is REST!",
+            "Onde a sua voz pausa, levante. Segurar por cima de uma pausa é PAUSA!",
+            "Donde tu voz calla, levanta. Mantener a través de un silencio es ¡SILENCIO!",
+          ),
+        ],
+        fig: dr("hold"),
+        videos: ["hold", "lift"],
+        tries: [
+          { stage: "4.1", label: L("LONG NOTES", "NOTAS LONGAS", "NOTAS LARGAS") },
+          { stage: "4.2", label: L("RESTS", "PAUSAS", "SILENCIOS") },
+        ],
+      },
     ],
   },
   {
     id: "fugue",
-    title: L("WHAT IS IN A FUGUE", "O QUE HÁ NUMA FUGA", "QUÉ HAY EN UNA FUGA"),
-    blocks: [
-      p(
-        "The box marks the fugue's events as they come, so you can hear its plan while you play. The examples below are Bach's own bars; tap LISTEN.",
-        "A caixa marca os acontecimentos da fuga à medida que chegam, para você ouvir o plano dela enquanto toca. Os exemplos abaixo são compassos do próprio Bach; toque em OUVIR.",
-        "La caja marca los acontecimientos de la fuga a medida que llegan, para que oigas su plan mientras tocas. Los ejemplos de abajo son compases del propio Bach; pulsa ESCUCHAR.",
+    n: "5",
+    title: L("A REAL FUGUE", "UMA FUGA DE VERDADE", "UNA FUGA DE VERDAD"),
+    cards: [
+      {
+        id: "fugue",
+        title: L("A REAL FUGUE", "UMA FUGA DE VERDADE", "UNA FUGA DE VERDAD"),
+        lead: [
+          L(
+            "In a fugue every voice takes up the same tune in turn. You play one voice; the game plays the others.",
+            "Numa fuga, cada voz retoma a mesma melodia, uma depois da outra. Você toca uma voz; o jogo toca as outras.",
+            "En una fuga, cada voz retoma la misma melodía, una tras otra. Tú tocas una voz; el juego toca las demás.",
+          ),
+          L(
+            "Yours are bright, rimmed in white; the others are dim and play themselves. Here: The Art of Fugue, Contrapunctus 1. You begin, alone, in the alto; at bar 5 the soprano answers with your tune.",
+            "As suas são claras, com contorno branco; as outras são apagadas e tocam sozinhas. Aqui: A Arte da Fuga, Contrapunctus 1. Você começa, sozinho, no contralto; no compasso 5 o soprano responde com a sua melodia.",
+            "Las tuyas son claras, con borde blanco; las otras son tenues y suenan solas. Aquí: El arte de la fuga, Contrapunctus 1. Empiezas tú, solo, en el contralto; en el compás 5 el soprano responde con tu melodía.",
+          ),
+        ],
+        fig: { kind: "clip", clip: { piece: "bwv1080-01", bars: [1, 6], mine: 1 } },
+        tries: [{ stage: "5.2", label: L("THE OPENING", "A ABERTURA", "EL COMIENZO"), toBar: 6 }],
+      },
+    ],
+  },
+  {
+    id: "sing",
+    n: "6",
+    title: L("MAKE IT SING", "FAÇA CANTAR", "HAZLO CANTAR"),
+    intro: L(
+      "How a note sounds is yours: none of this ever costs or earns points, and right or wrong, the sound is the same.",
+      "Como a nota soa é com você: nada disto tira ou dá pontos e, certo ou errado, o som é o mesmo.",
+      "Cómo suena la nota es cosa tuya: nada de esto quita ni da puntos y, bien o mal, el sonido es el mismo.",
+    ),
+    cards: [
+      {
+        id: "strong",
+        title: L("PIANO · STRONG AND SOFT", "PIANO · FORTE E SUAVE", "PIANO · FUERTE Y SUAVE"),
+        lead: [
+          L(
+            "Across each bar, the side by the box is STRONG and the outer edge is SOFT. On the piano the bar has three zones: soft, normal, strong.",
+            "Na largura de cada barra, o lado junto à caixa é FORTE e a borda de fora é SUAVE. No piano a barra tem três zonas: suave, normal, forte.",
+            "A lo ancho de cada barra, el lado junto a la caja es FUERTE y el borde exterior es SUAVE. En el piano la barra tiene tres zonas: suave, normal, fuerte.",
+          ),
+        ],
+        fig: dr("strong"),
+        tries: [{ stage: "6.1", label: L("STRONG, SOFT", "FORTE, SUAVE", "FUERTE, SUAVE"), toBar: 3 }],
+      },
+      {
+        id: "legato",
+        title: L("PIANO · JOINED AND DETACHED", "PIANO · LIGADO E DESTACADO", "PIANO · LIGADO Y PICADO"),
+        lead: [
+          L(
+            "To join two notes, pass the note from one thumb to the other with no gap: the next thumb lands as the first lets go.",
+            "Para ligar duas notas, passe a nota de um polegar para o outro sem intervalo: o próximo polegar pousa quando o primeiro solta.",
+            "Para ligar dos notas, pasa la nota de un pulgar al otro sin hueco: el siguiente pulgar se apoya cuando el primero suelta.",
+          ),
+          L(
+            "For a short, detached note, touch and let go at once.",
+            "Para uma nota curta, destacada, toque e solte logo.",
+            "Para una nota corta, picada, toca y suelta enseguida.",
+          ),
+        ],
+        fig: dr("legato"),
+        tries: [
+          { stage: "6.2", label: L("JOINED", "LIGADO", "LIGADO"), toBar: 3 },
+          { stage: "6.3", label: L("SHORT", "CURTO", "CORTO"), toBar: 3 },
+        ],
+      },
+      {
+        id: "shake",
+        title: L("HARPSICHORD · THE SHAKE", "CRAVO · O TRINADO", "CLAVE · EL TRINO"),
+        lead: [
+          L(
+            "Where Bach prints a trill over a note, touch the note, then rock your thumb: the shake follows your rocking.",
+            "Onde Bach imprime um trinado sobre a nota, toque a nota e depois balance o polegar: o trinado segue o seu balanço.",
+            "Donde Bach imprime un trino sobre la nota, toca la nota y luego balancea el pulgar: el trino sigue tu balanceo.",
+          ),
+        ],
+        fig: dr("shake"),
+        tries: [{ stage: "6.4", label: L("A TRILL", "UM TRINADO", "UN TRINO") }],
+      },
+      {
+        id: "slide",
+        title: L("SOLO VOICES · THE SLIDE", "VOZES SOLO · O DESLIZE", "VOCES SOLISTAS · EL DESLIZAMIENTO"),
+        lead: [
+          L(
+            "Keep your thumb down and glide it toward the next note, the way the tune goes: from halfway there, the next note sounds. Only one way, only to the next note; to turn back, lift.",
+            "Mantenha o polegar apoiado e deslize-o em direção à próxima nota, no sentido da melodia: a partir da metade do caminho, a próxima nota soa. Só num sentido e só até a próxima nota; para voltar, levante.",
+            "Mantén el pulgar apoyado y deslízalo hacia la nota siguiente, en el sentido de la melodía: a partir de la mitad del camino, suena la nota siguiente. Solo en un sentido y solo hasta la nota siguiente; para volver, levanta.",
+          ),
+        ],
+        fine: L(
+          "Each sound slides its own way: voices and strings glide, the piano adds a grace note, the harpsichord a quick shake.",
+          "Cada som desliza à sua maneira: vozes e cordas deslizam, o piano põe uma apojatura, o cravo um trinado rápido.",
+          "Cada sonido se desliza a su manera: voces y cuerdas se deslizan, el piano añade una apoyatura, el clave un trino rápido.",
+        ),
+        fig: dr("slide"),
+        tries: [{ stage: "6.5", label: L("SLIDES", "DESLIZES", "DESLIZAMIENTOS"), toBar: 3 }],
+      },
+      {
+        id: "gameboy",
+        title: L("GAME BOY", "GAME BOY", "GAME BOY"),
+        lead: [
+          L(
+            "Where you land picks the wave: the soft side a round square, the middle a hollow pulse, the strong side a thin, bright one. A held note moved sideways wobbles (vibrato); a slide is the chip's quick pitch slide.",
+            "Onde você pousa escolhe a onda: o lado suave uma quadrada redonda, o meio um pulso oco, o lado forte um pulso fino e brilhante. Uma nota segurada e movida para o lado vibra (vibrato); um deslize é o rápido glissando do chip.",
+            "Donde te apoyas elige la onda: el lado suave una cuadrada redonda, el centro un pulso hueco, el lado fuerte un pulso fino y brillante. Una nota mantenida y movida de lado vibra (vibrato); un deslizamiento es el rápido glissando del chip.",
+          ),
+        ],
+        fig: dr("gameboy"),
+        tries: [{ stage: "6.6", label: L("PLAY IT", "TOCAR", "TOCAR"), toBar: 3 }],
+      },
+      {
+        id: "psych",
+        title: L("PSYCH", "PSYCH", "PSYCH"),
+        lead: [
+          L(
+            "A band: each instrument answers the piano's three zones its own way, the piano by its weight, the guitars and the bass by their pluck. The organ holds steady.",
+            "Uma banda: cada instrumento responde às três zonas do piano à sua maneira, o piano pelo peso, as guitarras e o baixo pelo ataque. O órgão fica estável.",
+            "Una banda: cada instrumento responde a las tres zonas del piano a su manera, el piano por su peso, las guitarras y el bajo por su pulsación. El órgano se mantiene estable.",
+          ),
+        ],
+        fig: dr("psych"),
+        tries: [{ stage: "6.7", label: L("PLAY IT", "TOCAR", "TOCAR"), toBar: 3 }],
+      },
+    ],
+  },
+];
+
+/** PART B: the reference, a row each, one or two lines. */
+export const REF: RefRow[] = [
+  {
+    id: "screen",
+    title: L("THE SCREEN", "A TELA", "LA PANTALLA"),
+    lines: [
+      L(
+        "The box in the middle, a thumb bar on each side, the gold line near the left: now. Height is pitch; each voice keeps its colour and its place. Yours are full and rimmed in white; a note you hit shines, a missed one goes dark. The box takes the colour of the key.",
+        "A caixa no meio, uma barra para cada polegar dos lados, a linha dourada perto da esquerda: o agora. A altura é o tom; cada voz mantém a sua cor e o seu lugar. As suas são cheias, com contorno branco; uma nota acertada brilha, uma perdida escurece. A caixa ganha a cor da tonalidade.",
+        "La caja en el centro, una barra para cada pulgar a los lados, la línea dorada cerca de la izquierda: el ahora. La altura es el tono; cada voz conserva su color y su lugar. Las tuyas son llenas, con borde blanco; una nota acertada brilla, una fallada se oscurece. La caja toma el color de la tonalidad.",
       ),
-      sub(
-        "subject",
-        L("The subject", "O sujeito", "El sujeto"),
-        p(
-          "The subject is the tune the whole fugue is made from. It is heard first alone, in one voice. Each time a voice states it, a flag saying SUBJECT appears over its first note, in the voice's colour, and stays at the top of the box while the entry lasts. Your own subject notes have a thin gold rim.",
-          "O sujeito é a melodia da qual a fuga inteira é feita. Ele é ouvido primeiro sozinho, numa voz. Cada vez que uma voz o apresenta, uma bandeira com a palavra SUJEITO aparece sobre a primeira nota, na cor da voz, e fica no alto da caixa enquanto a entrada dura. As notas do sujeito na sua voz têm um fino contorno dourado.",
-          "El sujeto es la melodía de la que está hecha toda la fuga. Se oye primero solo, en una voz. Cada vez que una voz lo presenta, una bandera con la palabra SUJETO aparece sobre su primera nota, en el color de la voz, y se queda arriba de la caja mientras dura la entrada. Las notas del sujeto en tu voz tienen un fino borde dorado.",
-        ),
-        clip({ piece: "wtc1f02", bars: [1, 2], voices: [1], mine: 1 }, L("Fugue 2: the subject, alone in the alto.", "Fuga 2: o sujeito, sozinho no contralto.", "Fuga 2: el sujeto, solo en el contralto.")),
+    ],
+    fig: dr("screen"),
+  },
+  {
+    id: "words",
+    title: L("THE WORDS", "AS PALAVRAS", "LAS PALABRAS"),
+    lines: [
+      L(
+        "Said by your thumb as you play. The slide's, in amber, say why one failed: FURTHER, TOO FAR, TOO EARLY, TOO LATE, LIFTED, LIFT TO TURN.",
+        "Ditas junto ao polegar enquanto você toca. As do deslize, em âmbar, dizem por que ele falhou: MAIS LONGE, LONGE DEMAIS, CEDO DEMAIS, TARDE DEMAIS, LEVANTOU, LEVANTE PARA VOLTAR.",
+        "Aparecen junto al pulgar mientras tocas. Las del deslizamiento, en ámbar, dicen por qué falló: MÁS LEJOS, DEMASIADO LEJOS, DEMASIADO PRONTO, DEMASIADO TARDE, LEVANTADO, LEVANTA PARA VOLVER.",
       ),
-      sub(
-        "answer",
-        L("The answer and the countersubject", "A resposta e o contrassujeito", "La respuesta y el contrasujeto"),
-        p(
-          "Then a second voice enters with the subject a fifth higher: the answer. The game flags it as a SUBJECT too. Meanwhile the first voice goes on with a counter-melody, the countersubject (not marked in the box). One by one, every voice enters this way: that opening is the exposition.",
-          "Depois uma segunda voz entra com o sujeito uma quinta acima: a resposta. O jogo também a marca como SUJEITO. Enquanto isso, a primeira voz continua com uma contramelodia, o contrassujeito (que a caixa não marca). Uma a uma, todas as vozes entram assim: essa abertura é a exposição.",
-          "Después una segunda voz entra con el sujeto una quinta más arriba: la respuesta. El juego también la marca como SUJETO. Mientras tanto, la primera voz sigue con una contramelodía, el contrasujeto (que la caja no marca). Una a una, todas las voces entran así: esa apertura es la exposición.",
-        ),
-        clip({ piece: "wtc1f02", bars: [1, 4], voices: [0, 1], mine: 1 }, L("Fugue 2, bars 1–4: the alto's subject, then the soprano's answer over the alto's countersubject.", "Fuga 2, compassos 1–4: o sujeito no contralto, depois a resposta no soprano sobre o contrassujeito do contralto.", "Fuga 2, compases 1–4: el sujeto en el contralto, luego la respuesta en el soprano sobre el contrasujeto del contralto.")),
+    ],
+    fig: { kind: "words", words: [["PERFECT", "#ffd23f"], ["GOOD", "#5fdc6a"], ["✕", "#d8443a"], ["MISS", "#d8443a"], ["HELD", "#5fdc6a"], ["TOO SOON", "#f0784a"], ["REST!", "#f0784a"]] },
+  },
+  {
+    id: "grade",
+    title: L("SCORE AND GRADE", "PONTUAÇÃO E NOTA", "PUNTUACIÓN Y NOTA"),
+    lines: [
+      L(
+        "PERFORMANCE, 0 to 100: the notes right (60), timing (15: GOOD counts three quarters), touch (15: holds, rests, joins, Busoni's signs) and the subject's entries (10). The grade comes from it alone: S from 95, A 90, B 80, C 70, D below.",
+        "INTERPRETAÇÃO, de 0 a 100: notas certas (60), tempo (15: BOM vale três quartos), toque (15: notas seguradas, pausas, ligaduras, sinais de Busoni) e entradas do sujeito (10). A nota vem só dela: S a partir de 95, A 90, B 80, C 70, D abaixo.",
+        "INTERPRETACIÓN, de 0 a 100: notas acertadas (60), tiempo (15: BIEN cuenta tres cuartos), toque (15: notas mantenidas, silencios, ligados, signos de Busoni) y entradas del sujeto (10). La nota sale solo de ella: S desde 95, A 90, B 80, C 70, D por debajo.",
       ),
-      sub(
-        "episode",
-        L("Episodes", "Episódios", "Episodios"),
-        p(
-          "Between entries come episodes: passages built from bits of the subject, often in sequence, that travel to a new key. No flag marks them; you can tell them by the absence of flags. The tutorial's Part F (EPISODES AND STRETTO) plays them for you.",
-          "Entre as entradas vêm os episódios: passagens feitas de pedaços do sujeito, muitas vezes em sequência, que levam a uma nova tonalidade. Nenhuma bandeira os marca; você os reconhece pela falta de bandeiras. A Parte F do tutorial (EPISÓDIOS E STRETTO) mostra exemplos.",
-          "Entre las entradas vienen los episodios: pasajes hechos con trozos del sujeto, a menudo en secuencia, que llevan a una nueva tonalidad. Ninguna bandera los marca; los reconoces por la ausencia de banderas. La Parte F del tutorial (EPISODIOS Y STRETTO) los muestra.",
-        ),
-        clip({ piece: "wtc1f02", bars: [5, 6], mine: 1 }, L("Fugue 2, bars 5–6: an episode, all three voices, no entry.", "Fuga 2, compassos 5–6: um episódio, as três vozes, nenhuma entrada.", "Fuga 2, compases 5–6: un episodio, las tres voces, ninguna entrada.")),
+      L(
+        "The score is for bragging: PERFECT 2, GOOD 1, plus holds, entries and cadences; +10% for every 16 right in a row (up to +50%), a slip a step off; at the end × your performance. Your best is kept per fugue and voice.",
+        "A pontuação é para se gabar: PERFEITO 2, BOM 1, mais notas seguradas, entradas e cadências; +10% a cada 16 certas seguidas (até +50%), um erro tira um degrau; no fim, × a sua interpretação. O seu recorde fica guardado por fuga e por voz.",
+        "La puntuación es para presumir: PERFECTO 2, BIEN 1, más notas mantenidas, entradas y cadencias; +10% por cada 16 seguidas (hasta +50%), un fallo resta un escalón; al final, × tu interpretación. Tu récord se guarda por fuga y por voz.",
       ),
-      sub(
-        "stretto",
-        L("Stretto", "Stretto", "Stretto"),
-        p(
-          "In a stretto the entries overlap: a voice starts the subject before the last one has finished. The flags stack, a row for each entry, and the fugue's stage reacts.",
-          "Num stretto as entradas se sobrepõem: uma voz começa o sujeito antes que a anterior tenha terminado. As bandeiras se empilham, uma fileira para cada entrada, e o cenário da fuga reage.",
-          "En un stretto las entradas se superponen: una voz empieza el sujeto antes de que la anterior haya terminado. Las banderas se apilan, una fila por entrada, y el escenario de la fuga reacciona.",
-        ),
-        clip({ piece: "wtc1f01", bars: [7, 8], mine: 0 }, L("Fugue 1 in C major, bars 7–8: the soprano and the tenor enter together, in stretto.", "Fuga 1 em dó maior, compassos 7–8: o soprano e o tenor entram juntos, em stretto.", "Fuga 1 en do mayor, compases 7–8: el soprano y el tenor entran juntos, en stretto.")),
-      ),
-      sub(
-        "forms",
-        L("Inversion, augmentation, diminution", "Inversão, aumentação, diminuição", "Inversión, aumentación, disminución"),
-        p(
-          "Bach also brings the subject back changed. Inverted: upside down, every step that rose now falls; its flag is turned upside down. Augmented: every note twice as long; its flag is twice as wide. Diminished: every note twice as short; its flag is pressed together.",
-          "Bach também traz o sujeito de volta transformado. Invertido: de cabeça para baixo, cada passo que subia agora desce; a bandeira fica de cabeça para baixo. Aumentado: cada nota duas vezes mais longa; a bandeira fica duas vezes mais larga. Diminuído: cada nota duas vezes mais curta; a bandeira fica comprimida.",
-          "Bach también trae de vuelta el sujeto transformado. Invertido: al revés, cada paso que subía ahora baja; su bandera aparece al revés. Aumentado: cada nota el doble de larga; su bandera es el doble de ancha. Disminuido: cada nota la mitad de larga; su bandera aparece comprimida.",
-        ),
-        { fig: { kind: "flags" } },
-        clip({ piece: "wtc1f08", bars: [30, 31], voices: [0], mine: 0 }, L("Fugue 8 in D♯ minor, bar 30: the subject inverted, in the soprano.", "Fuga 8 em ré♯ menor, compasso 30: o sujeito invertido, no soprano.", "Fuga 8 en re♯ menor, compás 30: el sujeto invertido, en el soprano.")),
-        clip({ piece: "wtc1f08", bars: [62, 64], voices: [2], mine: 2 }, L("Fugue 8, bar 62: the subject augmented, in the bass.", "Fuga 8, compasso 62: o sujeito aumentado, no baixo.", "Fuga 8, compás 62: el sujeto aumentado, en el bajo.")),
-        clip({ piece: "wtc2f09", bars: [26, 27], voices: [0], mine: 0 }, L("Book II, Fugue 9 in E major, bar 26: the subject diminished, in the soprano.", "Livro II, Fuga 9 em mi maior, compasso 26: o sujeito diminuído, no soprano.", "Libro II, Fuga 9 en mi mayor, compás 26: el sujeto disminuido, en el soprano.")),
-      ),
-      sub(
-        "subjects",
-        L("Fugues with more than one subject", "Fugas com mais de um sujeito", "Fugas con más de un sujeto"),
-        p(
-          "A few fugues have a second or third subject (Book I: 4; Book II: 4, 14, 18 and 23). There the flags are numbered: SUBJECT 1, SUBJECT 2, SUBJECT 3.",
-          "Algumas fugas têm um segundo ou terceiro sujeito (Livro I: 4; Livro II: 4, 14, 18 e 23). Nelas as bandeiras são numeradas: SUJEITO 1, SUJEITO 2, SUJEITO 3.",
-          "Algunas fugas tienen un segundo o tercer sujeto (Libro I: 4; Libro II: 4, 14, 18 y 23). En ellas las banderas van numeradas: SUJETO 1, SUJETO 2, SUJETO 3.",
-        ),
-        clip({ piece: "wtc1f04", bars: [35, 36], voices: [0, 3], mine: 0, flagBars: [35] }, L("Fugue 4 in C♯ minor, bar 35: the second subject in the soprano, the first in the tenor below it.", "Fuga 4 em dó♯ menor, compasso 35: o segundo sujeito no soprano, o primeiro no tenor, abaixo dele.", "Fuga 4 en do♯ menor, compás 35: el segundo sujeto en el soprano, el primero en el tenor, debajo.")),
-      ),
-      sub(
-        "cadence",
-        L("Cadences", "Cadências", "Cadencias"),
-        p(
-          "A cadence is a point of arrival, where the music closes in a key. The box shows each one as a gold tick at its foot, named (for example FULL CADENCE · G MINOR), and it flares as you reach it.",
-          "Uma cadência é um ponto de chegada, onde a música fecha numa tonalidade. A caixa mostra cada uma como uma marca dourada no pé dela, com nome (por exemplo CADÊNCIA CONCLUSIVA · SOL MENOR), que brilha quando você chega lá.",
-          "Una cadencia es un punto de llegada, donde la música cierra en una tonalidad. La caja muestra cada una como una marca dorada en su parte inferior, con su nombre (por ejemplo CADENCIA CONCLUSIVA · SOL MENOR), que brilla cuando llegas a ella.",
-        ),
-        p(
-          "Where the entries come from: every entry of the 48 is placed as the published analyses give it (Prout, Iliffe, Busoni, Ledbetter), not guessed by the game.",
-          "De onde vêm as entradas: cada entrada das 48 é marcada como as análises publicadas a dão (Prout, Iliffe, Busoni, Ledbetter), não adivinhada pelo jogo.",
-          "De dónde vienen las entradas: cada entrada de las 48 se marca como la dan los análisis publicados (Prout, Iliffe, Busoni, Ledbetter), no adivinada por el juego.",
-        ),
+    ],
+    fig: { kind: "grades" },
+  },
+  {
+    id: "crowd",
+    title: L("THE CROWD", "A PLATEIA", "EL PÚBLICO"),
+    lines: [
+      L(
+        "The crowd hears the last few seconds of your playing. A wrong note bothers it less than a note let go by; about six seconds with nothing right and it leaves, ending the round. A two-second slip never empties it.",
+        "A plateia ouve os últimos segundos do que você toca. Uma nota errada a incomoda menos que uma nota que você deixa passar; uns seis segundos sem nada certo e ela vai embora, e a partida acaba. Um deslize de dois segundos nunca a esvazia.",
+        "El público escucha los últimos segundos de lo que tocas. Una nota equivocada le molesta menos que una que dejas pasar; unos seis segundos sin nada bien y se va, y la partida termina. Un tropiezo de dos segundos nunca lo vacía.",
       ),
     ],
   },
   {
-    id: "score",
-    title: L("SCORE, GRADES AND THE CROWD", "PONTUAÇÃO, NOTAS E A PLATEIA", "PUNTUACIÓN, NOTAS Y EL PÚBLICO"),
-    blocks: [
-      sub(
-        "performance",
-        L("Your performance and your grade", "A sua interpretação e a sua nota", "Tu interpretación y tu nota"),
-        p(
-          "PERFORMANCE, from 0 to 100, says how well you played. It has four parts: the notes right (60), timing (15: PERFECT counts in full, GOOD three quarters), touch (15: holds, rests, joins and Busoni's signs) and the subject's entries (10, each by the share of its notes you got right).",
-          "A INTERPRETAÇÃO, de 0 a 100, diz quão bem você tocou. Ela tem quatro partes: as notas certas (60), o tempo (15: PERFEITO vale inteiro, BOM três quartos), o toque (15: notas seguradas, pausas, ligaduras e os sinais de Busoni) e as entradas do sujeito (10, cada uma pela parte das notas que você acertou).",
-          "La INTERPRETACIÓN, de 0 a 100, dice lo bien que tocaste. Tiene cuatro partes: las notas acertadas (60), el tiempo (15: PERFECTO cuenta entero, BIEN tres cuartos), el toque (15: notas mantenidas, silencios, ligaduras y los signos de Busoni) y las entradas del sujeto (10, cada una según la parte de sus notas que acertaste).",
-        ),
-        { fig: { kind: "parts" } },
-        p(
-          "Your grade comes from the performance alone: S from 95, A from 90, B from 80, C from 70, D below.",
-          "A sua nota vem só da interpretação: S a partir de 95, A a partir de 90, B a partir de 80, C a partir de 70, D abaixo disso.",
-          "Tu nota sale solo de la interpretación: S desde 95, A desde 90, B desde 80, C desde 70, D por debajo.",
-        ),
-        { fig: { kind: "grades" } },
-      ),
-      sub(
-        "points",
-        L("The score", "A pontuação", "La puntuación"),
-        p(
-          "The score is for bragging. Each note earns points (PERFECT 2, GOOD 1), and so do held notes, the subject's entries and the cadences. A streak of right notes raises them: +10% for every 16 in a row, up to +50%, and a slip takes one step off. At the end the points are multiplied by your performance. Your best is kept for each fugue and each voice; a run at SLOW tempo is kept apart.",
-          "A pontuação é para se gabar. Cada nota vale pontos (PERFEITO 2, BOM 1), e também as notas seguradas, as entradas do sujeito e as cadências. Uma sequência de notas certas aumenta os pontos: +10% a cada 16 seguidas, até +50%, e um deslize tira um degrau. No fim, os pontos são multiplicados pela sua interpretação. O seu recorde fica guardado para cada fuga e cada voz; uma partida em andamento LENTO fica à parte.",
-          "La puntuación es para presumir. Cada nota da puntos (PERFECTO 2, BIEN 1), y también las notas mantenidas, las entradas del sujeto y las cadencias. Una racha de notas acertadas los aumenta: +10% por cada 16 seguidas, hasta +50%, y un fallo quita un escalón. Al final, los puntos se multiplican por tu interpretación. Tu récord se guarda para cada fuga y cada voz; una partida en tempo LENTO se guarda aparte.",
-        ),
-      ),
-      sub(
-        "crowd",
-        L("The crowd", "A plateia", "El público"),
-        p(
-          "The crowd listens to how you are playing now: roughly your last dozen notes. A wrong note bothers it less than a note let go by. If your playing stays poor for a while, the crowd leaves and the round ends. It never leaves during your first eight notes.",
-          "A plateia escuta como você está tocando agora: mais ou menos as suas últimas doze notas. Uma nota errada a incomoda menos que uma nota que passa sem ser tocada. Se você continuar tocando mal por um tempo, a plateia vai embora e a partida acaba. Ela nunca sai durante as suas primeiras oito notas.",
-          "El público escucha cómo estás tocando ahora: más o menos tus últimas doce notas. Una nota equivocada le molesta menos que una nota que dejas pasar. Si sigues tocando mal durante un rato, el público se va y la partida termina. Nunca se va durante tus primeras ocho notas.",
-        ),
+    id: "flags",
+    title: L("THE FUGUE'S FLAGS", "AS BANDEIRAS DA FUGA", "LAS BANDERAS DE LA FUGA"),
+    lines: [
+      L(
+        "A flag in the voice's colour marks each entry of the subject: upside down when inverted, wide when augmented, pressed when diminished, numbered where there are several subjects. Overlapping flags are a stretto.",
+        "Uma bandeira na cor da voz marca cada entrada do sujeito: de cabeça para baixo quando invertido, larga quando aumentado, apertada quando diminuído, numerada onde há vários sujeitos. Bandeiras sobrepostas são um stretto.",
+        "Una bandera del color de la voz marca cada entrada del sujeto: boca abajo si está invertido, ancha si está aumentado, apretada si está disminuido, numerada donde hay varios sujetos. Banderas superpuestas son un stretto.",
       ),
     ],
+    fig: { kind: "flags" },
   },
   {
-    id: "unlocks",
-    title: L("WHAT YOU UNLOCK", "O QUE VOCÊ DESBLOQUEIA", "LO QUE DESBLOQUEAS"),
-    blocks: [
-      p(
-        "Every fugue of both books is open from the start. The label on each card (EASY, NORMAL, HARD) is a guide, not a lock.",
-        "Todas as fugas dos dois livros estão abertas desde o início. A etiqueta de cada cartão (FÁCIL, NORMAL, DIFÍCIL) é um guia, não uma tranca.",
-        "Todas las fugas de los dos libros están abiertas desde el principio. La etiqueta de cada carta (FÁCIL, NORMAL, DIFÍCIL) es una guía, no un candado.",
-      ),
-      p(
-        "Finish a fugue with a B or better and you unlock two things for that fugue: its TEMPO button (SLOW, DEFAULT, FAST) and its SOUND choice.",
-        "Termine uma fuga com B ou mais e você desbloqueia duas coisas para essa fuga: o botão ANDAMENTO (LENTO, PADRÃO, RÁPIDO) e a escolha de SOM.",
-        "Termina una fuga con B o más y desbloqueas dos cosas para esa fuga: el botón TEMPO (LENTO, NORMAL, RÁPIDO) y la elección de SONIDO.",
+    id: "signs",
+    title: L("SIGNS AND ORNAMENTS", "SINAIS E ORNAMENTOS", "SIGNOS Y ORNAMENTOS"),
+    lines: [
+      L(
+        "A sharp or flat sits at the start of its block, the block a little off its row; play it as any note. An ornament is drawn over its note: touch, then rock. Busoni's markings over your notes say how each is touched (SETTINGS turns them off).",
+        "Um sustenido ou bemol fica no início do bloco, o bloco um pouco fora da sua fileira; toque como qualquer nota. Um ornamento vem desenhado sobre a nota: toque e balance. As marcações de Busoni sobre as suas notas dizem como tocar cada uma (CONFIGURAÇÕES as desliga).",
+        "Un sostenido o bemol va al principio de su bloque, el bloque un poco fuera de su fila; tócalo como cualquier nota. Un ornamento se dibuja sobre su nota: toca y balancea. Las indicaciones de Busoni sobre tus notas dicen cómo tocar cada una (AJUSTES las apaga).",
       ),
     ],
+    fig: { kind: "signs", where: "over" },
   },
   {
-    id: "extras",
-    title: L("TEMPO, SOUND, DRUMS, PISTONS", "ANDAMENTO, SOM, BATERIA, PISTÕES", "TEMPO, SONIDO, BATERÍA, PISTONES"),
-    blocks: [
-      sub(
-        "tempo",
-        L("Tempo and sound", "Andamento e som", "Tempo y sonido"),
-        p(
-          "TEMPO, once unlocked, cycles SLOW (three quarters of the speed), DEFAULT and FAST (about 1.4 times). Each fugue has its own sound; once unlocked, SOUND lets you pick another.",
-          "O ANDAMENTO, depois de desbloqueado, alterna entre LENTO (três quartos da velocidade), PADRÃO e RÁPIDO (cerca de 1,4 vez). Cada fuga tem o seu próprio som; depois de desbloqueado, SOM deixa você escolher outro.",
-          "El TEMPO, una vez desbloqueado, alterna entre LENTO (tres cuartos de la velocidad), NORMAL y RÁPIDO (alrededor de 1,4 veces). Cada fuga tiene su propio sonido; una vez desbloqueado, SONIDO te deja elegir otro.",
-        ),
-      ),
-      sub(
-        "drums",
-        L("Drums", "Bateria", "Batería"),
-        p(
-          "DRUMS, on the right of the selection screen, add a backing beat under the fugue: on or off, and, where the fugue has them, a choice of styles (STYLE). They are sound only, never scored.",
-          "BATERIA, à direita da tela de seleção, acrescenta uma batida de acompanhamento sob a fuga: ligada ou desligada e, onde a fuga tiver, uma escolha de estilos (ESTILO). É só som, nunca conta pontos.",
-          "BATERÍA, a la derecha de la pantalla de selección, añade un ritmo de acompañamiento bajo la fuga: activada o desactivada y, donde la fuga los tenga, una elección de estilos (ESTILO). Es solo sonido, nunca puntúa.",
-        ),
-      ),
-      sub(
-        "pistons",
-        L("Pistons (organ and harpsichord)", "Pistões (órgão e cravo)", "Pistones (órgano y clave)"),
-        p(
-          "On the organ and the harpsichord, three pistons sit at the foot of the thumb bars: each draws a set of stops at one touch, even while your other thumb holds a note. What each piston holds is set in SETTINGS › PISTONS for the chosen fugue.",
-          "No órgão e no cravo, três pistões ficam no pé das barras dos polegares: cada um aciona um conjunto de registros com um toque, mesmo enquanto o outro polegar segura uma nota. O que cada pistão aciona se escolhe em CONFIGURAÇÕES › PISTÕES, para a fuga escolhida.",
-          "En el órgano y el clave, tres pistones están al pie de las barras de los pulgares: cada uno activa un conjunto de registros con un toque, incluso mientras el otro pulgar mantiene una nota. Lo que activa cada pistón se elige en AJUSTES › PISTONES, para la fuga elegida.",
-        ),
-      ),
-    ],
-  },
-  {
-    id: "selection",
-    title: L("THE SELECTION SCREEN", "A TELA DE SELEÇÃO", "LA PANTALLA DE SELECCIÓN"),
-    blocks: [
-      p(
-        "Each card shows the fugue's picture, its number and key, its name, its level and your best grade; NEXT marks a good one to play next. Tap a card to choose it; the right column shows it, with YOUR VOICE, TEMPO, SOUND and DRUMS.",
-        "Cada cartão mostra a imagem da fuga, o número e a tonalidade, o nome, o nível e a sua melhor nota; PRÓXIMA marca uma boa para tocar em seguida. Toque num cartão para escolhê-lo; a coluna da direita mostra a fuga, com SUA VOZ, ANDAMENTO, SOM e BATERIA.",
-        "Cada carta muestra la imagen de la fuga, su número y tonalidad, su nombre, su nivel y tu mejor nota; SIGUIENTE marca una buena para tocar después. Toca una carta para elegirla; la columna de la derecha la muestra, con TU VOZ, TEMPO, SONIDO y BATERÍA.",
-      ),
-      p(
-        "Tap the glowing picture on the right to open the fugue's box: HEAR THE SUBJECT (press ▶ to hear it and watch it drawn), how many entries, strettos and cadences it has, a note on the piece, and Busoni's own words about it.",
-        "Toque na imagem que brilha, à direita, para abrir a caixa da fuga: OUÇA O SUJEITO (toque em ▶ para ouvi-lo e vê-lo desenhado), quantas entradas, strettos e cadências ela tem, uma nota sobre a peça e as palavras do próprio Busoni sobre ela.",
-        "Toca la imagen que brilla, a la derecha, para abrir la caja de la fuga: ESCUCHA EL SUJETO (pulsa ▶ para oírlo y verlo dibujado), cuántas entradas, strettos y cadencias tiene, una nota sobre la pieza y las palabras del propio Busoni sobre ella.",
+    id: "sound",
+    title: L("SOUND, TEMPO, DRUMS", "SOM, ANDAMENTO, BATERIA", "SONIDO, TEMPO, BATERÍA"),
+    lines: [
+      L(
+        "Each fugue has its own sound; SOUND picks another (piano, harpsichord, organ, voices, GAME BOY, PSYCH and more). TEMPO: SLOW, DEFAULT, FAST. DRUMS adds a beat, never points. Choosing another piece puts its sound, tempo and voice back to their defaults.",
+        "Cada fuga tem o seu som; SOM escolhe outro (piano, cravo, órgão, vozes, GAME BOY, PSYCH e mais). ANDAMENTO: LENTO, PADRÃO, RÁPIDO. BATERIA acrescenta uma batida, nunca pontos. Escolher outra peça devolve o som, o andamento e a voz ao padrão.",
+        "Cada fuga tiene su sonido; SONIDO elige otro (piano, clave, órgano, voces, GAME BOY, PSYCH y más). TEMPO: LENTO, NORMAL, RÁPIDO. BATERÍA añade un ritmo, nunca puntos. Elegir otra pieza devuelve el sonido, el tempo y la voz a sus valores por defecto.",
       ),
     ],
   },
   {
     id: "settings",
     title: L("SETTINGS", "CONFIGURAÇÕES", "AJUSTES"),
-    blocks: [
-      { list: [
-        L("LANGUAGE and VOLUME.", "IDIOMA e VOLUME.", "IDIOMA y VOLUMEN."),
-        L("BUSONI'S MARKINGS: on (the default) or off.", "MARCAÇÕES DE BUSONI: ligadas (o padrão) ou desligadas.", "INDICACIONES DE BUSONI: activadas (por defecto) o desactivadas."),
-        L("STAGE: each fugue's world behind the box: FULL, QUIET or OFF.", "CENÁRIO: o mundo de cada fuga atrás da caixa: CHEIO, DISCRETO ou DESLIGADO.", "ESCENARIO: el mundo de cada fuga detrás de la caja: COMPLETO, DISCRETO o APAGADO."),
-        L("PISTONS: for the chosen fugue, when its sound is the organ or the harpsichord.", "PISTÕES: para a fuga escolhida, quando o som dela é o órgão ou o cravo.", "PISTONES: para la fuga elegida, cuando su sonido es el órgano o el clave."),
-        L("SOUND DELAY: wired headphones and the phone's speaker need nothing (0 ms, the default). Bluetooth sound arrives late, so the game warns you when you press PLAY: for the real experience turn Bluetooth off; otherwise calibrate here, tapping along to the clicks.", "ATRASO DO SOM: fones com fio e o alto-falante do celular não precisam de nada (0 ms, o padrão). O som por Bluetooth chega atrasado, por isso o jogo avisa quando você toca em TOCAR: para a experiência de verdade, desligue o Bluetooth; senão, calibre aqui, tocando junto com os cliques.", "RETARDO DEL SONIDO: los auriculares con cable y el altavoz del móvil no necesitan nada (0 ms, por defecto). El sonido por Bluetooth llega tarde, así que el juego te avisa al pulsar TOCAR: para la experiencia de verdad, desactiva el Bluetooth; si no, calibra aquí, tocando al ritmo de los clics."),
-        L("TAP STRENGTH: six soft taps, then six hard, so the phone knows your accents.", "FORÇA DO TOQUE: seis toques suaves e depois seis fortes, para o celular reconhecer os seus acentos.", "FUERZA DEL TOQUE: seis toques suaves y luego seis fuertes, para que el móvil reconozca tus acentos."),
-      ] },
-    ],
-  },
-  {
-    id: "tutorial",
-    title: L("THE TUTORIAL", "O TUTORIAL", "EL TUTORIAL"),
-    blocks: [
-      p(
-        "Everything here, done with your own thumbs, step by step: the TUTORIAL on the left of the selection screen.",
-        "Tudo o que está aqui, feito com os seus próprios polegares, passo a passo: o TUTORIAL, à esquerda da tela de seleção.",
-        "Todo lo que está aquí, hecho con tus propios pulgares, paso a paso: el TUTORIAL, a la izquierda de la pantalla de selección.",
+    lines: [
+      L(
+        "LANGUAGE, VOLUME; BUSONI'S MARKINGS on or off; STAGE (each fugue's world behind the box: FULL, QUIET, OFF) and its WORLD SOUNDS; PISTONS for the organ and the harpsichord; SOUND DELAY: nothing to do on the speaker or wired headphones; with Bluetooth, tap along to the clicks.",
+        "IDIOMA, VOLUME; MARCAÇÕES DE BUSONI ligadas ou não; CENÁRIO (o mundo de cada fuga atrás da caixa: CHEIO, DISCRETO, DESLIGADO) e os SONS DO CENÁRIO; PISTÕES para o órgão e o cravo; ATRASO DO SOM: nada a fazer no alto-falante ou com fone com fio; com Bluetooth, toque junto com os cliques.",
+        "IDIOMA, VOLUMEN; INDICACIONES DE BUSONI sí o no; ESCENARIO (el mundo de cada fuga detrás de la caja: COMPLETO, DISCRETO, APAGADO) y sus SONIDOS; PISTONES para el órgano y el clave; RETARDO DEL SONIDO: nada que hacer con el altavoz o auriculares con cable; con Bluetooth, toca al ritmo de los clics.",
       ),
-      { list: [
-        L("Part 1 · First notes: the screen, each thumb alone, taking turns, playing with Bach.", "Parte 1 · Primeiras notas: a tela, cada polegar sozinho, alternando, tocando com Bach.", "Parte 1 · Primeras notas: la pantalla, cada pulgar solo, alternando, tocando con Bach."),
-        L("Part 2 · High and low: steps and leaps, the same note again, quick runs.", "Parte 2 · Agudo e grave: graus e saltos, a mesma nota de novo, escalas rápidas.", "Parte 2 · Agudo y grave: grados y saltos, la misma nota otra vez, escalas rápidas."),
-        L("Part 3 · How long: held, short, detached and legato, accents.", "Parte 3 · Quanto dura: segurada, curta, destacada e ligada, acentos.", "Parte 3 · Cuánto dura: mantenida, corta, picada y ligada, acentos."),
-        L("Part 4 · Playing with Bach: the tune that comes back, leading, answering, three voices.", "Parte 4 · Tocando com Bach: a melodia que volta, conduzir, responder, três vozes.", "Parte 4 · Tocando con Bach: la melodía que vuelve, conducir, responder, tres voces."),
-        L("Part 5 · Time and breath: breathing at a phrase's end, letting the end come, lingering.", "Parte 5 · Tempo e respiração: respirar no fim da frase, deixar o fim chegar, demorar-se.", "Parte 5 · Tiempo y respiración: respirar al final de la frase, dejar llegar el final, detenerse."),
-        L("Part 6 · Shakes, sighs and slurs: trills, sighs, colour, sliding into a slur.", "Parte 6 · Trinados, suspiros e ligaduras: trinados, suspiros, cor, deslizar para uma ligadura.", "Parte 6 · Trinos, suspiros y ligaduras: trinos, suspiros, color, deslizar hacia una ligadura."),
-        L("Part F · So you want to play a fugue?: who was Bach, his keyboards, why well-tempered, what a fugue is, episodes and stretto, how to listen.", "Parte F · Então você quer tocar uma fuga?: quem foi Bach, os teclados dele, por que bem temperado, o que é uma fuga, episódios e stretto, como ouvir.", "Parte F · ¿Así que quieres tocar una fuga?: quién fue Bach, sus teclados, por qué bien temperado, qué es una fuga, episodios y stretto, cómo escuchar."),
-      ] },
     ],
   },
 ];
+
+/** The guide's own labels. */
+export const UI = {
+  title: L("HOW TO PLAY", "COMO JOGAR", "CÓMO JUGAR"),
+  ref: L("REFERENCE", "REFERÊNCIA", "REFERENCIA"),
+  tryIt: L("TRY IT", "EXPERIMENTE", "PRUÉBALO"),
+  again: L("AGAIN", "DE NOVO", "OTRA VEZ"),
+  done: L("DONE", "PRONTO", "LISTO"),
+  thumbs: L("THUMBS", "POLEGARES", "PULGARES"),
+  picture: L("PICTURE", "DESENHO", "DIBUJO"),
+  listen: L("LISTEN", "OUVIR", "ESCUCHAR"),
+  stop: L("STOP", "PARAR", "PARAR"),
+  loading: L("TUNING UP…", "AFINANDO…", "AFINANDO…"),
+  waiting: L("The music waits for your first touch.", "A música espera o seu primeiro toque.", "La música espera tu primer toque."),
+  passed: L("✓ THAT'S IT", "✓ ISSO MESMO", "✓ ASÍ ES"),
+  right: L("{n} OF {of} RIGHT", "{n} DE {of} CERTAS", "{n} DE {of} BIEN"),
+};
+
+/** Everything above, for the tests (D496: no retired words anywhere in the guide). */
+export const HOWTO = { play: PLAY, ref: REF, ui: UI };
