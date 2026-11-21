@@ -199,6 +199,6 @@ test("D357: one touch (no fold, no long press), shown while playing for the frie
   const app = readFileSync(new URL("../src/bench/BenchApp.tsx", import.meta.url), "utf8");
   // D369: the condition kept (stopsOn); on the two bars the row moves to the bars' feet (test/d369-owner-fixes.test.ts).
   // D402: in the tutorial only from THE REAL THING on (its dressing), never in an older lesson.
-  assert.match(app, /const stopsOn = hasStops\(presetById\(soundNow\)\.id\) && !lesson && \(!man \|\| !!dressNow\?\.includes\("stops"\)\) && \(full \|\| playing\);/);
+  assert.match(app, /const stopsOn = hasStops\(presetById\(soundNow\)\.id\) && !lesson && !bStage && \(!man \|\| !!dressNow\?\.includes\("stops"\)\) && \(full \|\| playing\);/);
   assert.match(app, /\{stopsOn && layout !== "bars" && <RegistrationStops/);
 });
