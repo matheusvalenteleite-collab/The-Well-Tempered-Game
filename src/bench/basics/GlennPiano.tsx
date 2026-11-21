@@ -67,6 +67,7 @@ const C = {
   scarf2: "#55604f",
   coat: "#262c3c",
   coatHi: "#343c50",
+  mouth: "#9a5a4a",
   out: "#0a0810",
 };
 
@@ -117,7 +118,7 @@ export function thumbsOf(s: GlennSource, last: Record<"left" | "right", { y: num
   });
 }
 
-function scene(c: CanvasRenderingContext2D, s: GlennSource | null, thumbs: ThumbAt[] | null, o: { turn: number; rewind: number; shrug: number; look: number; t: number }) {
+function scene(c: CanvasRenderingContext2D, s: GlennSource | null, thumbs: ThumbAt[] | null, o: { turn: number; rewind: number; shrug: number; look: number; face: number; t: number }) {
   // The wall, dithered, the lamp's warmth from the left.
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
@@ -201,28 +202,54 @@ function scene(c: CanvasRenderingContext2D, s: GlennSource | null, thumbs: Thumb
     }
   }
   // Glenn from behind, low before the phone: the swept-back hair, the ears, the scarf, the coat's shoulders.
-  const hy0 = 29 + Math.round(o.shrug * -2) - look;
-  px(c, 41, 36 - Math.round(o.shrug * 2), 38, 6, C.out);
-  px(c, 42, 37 - Math.round(o.shrug * 2), 36, 3, C.coat);
-  px(c, 42, 37 - Math.round(o.shrug * 2), 10, 3, C.coatHi);
-  px(c, 50, 35, 20, 3, C.out);
-  px(c, 51, 35, 18, 2, C.scarf);
-  px(c, 61, 35, 7, 2, C.scarf2);
-  px(c, 53, hy0 - 1, 14, 12, C.out);
-  px(c, 54, hy0, 12, 10, C.hair);
-  px(c, 54, hy0, 4, 7, C.hair2);
-  for (const [x, y, n] of [[57, hy0 + 1, 5], [60, hy0, 7], [63, hy0 + 1, 6]]) for (let i = 0; i < n; i += 2) px(c, x + (i >> 2), y + i, 1, 1, C.hair2);
-  px(c, 52, hy0 + 4, 2, 3, C.out);
-  px(c, 53, hy0 + 4, 1, 2, C.skin);
-  px(c, 66, hy0 + 4, 2, 3, C.out);
-  px(c, 66, hy0 + 4, 1, 2, C.skin);
+  // D684 (the owner: "When Glenn talks to player he looks to player (he tilts and turns backwards in a natural way)"):
+  // turned toward us (`face` 0 … 1, eased), the head comes round over his right shoulder and tilts, the shoulders follow.
+  const f = o.face;
+  const tx = Math.round(f * 5);
+  const tilt = Math.round(f * 2);
+  const hy0 = 29 + Math.round(o.shrug * -2) - look - tilt;
+  const sh = Math.round(o.shrug * 2);
+  px(c, 41, 36 - sh, 38, 6, C.out);
+  px(c, 42, 37 - sh, 36, 3, C.coat);
+  px(c, 42, 37 - sh, 10, 3, C.coatHi);
+  // The right shoulder comes back toward us as he turns (higher, lit).
+  if (f > 0.2) (px(c, 66, 35 - sh - tilt, 13, 3, C.out), px(c, 67, 36 - sh - tilt, 11, 2, C.coatHi));
+  px(c, 50 + tx, 35, 20, 3, C.out);
+  px(c, 51 + tx, 35, 18, 2, C.scarf);
+  px(c, 61 + tx, 35, 7, 2, C.scarf2);
+  const hx = 53 + tx;
+  px(c, hx, hy0 - 1, 14, 12, C.out);
+  px(c, hx + 1, hy0, 12, 10, C.hair);
+  if (f < 0.35) {
+    px(c, hx + 1, hy0, 4, 7, C.hair2);
+    for (const [x, y, n] of [[hx + 4, hy0 + 1, 5], [hx + 7, hy0, 7], [hx + 10, hy0 + 1, 6]]) for (let i = 0; i < n; i += 2) px(c, x + (i >> 2), y + i, 1, 1, C.hair2);
+    px(c, hx - 1, hy0 + 4, 2, 3, C.out);
+    px(c, hx, hy0 + 4, 1, 2, C.skin);
+    px(c, hx + 13, hy0 + 4, 2, 3, C.out);
+    px(c, hx + 13, hy0 + 4, 1, 2, C.skin);
+  } else {
+    // Three-quarter, over the shoulder: the face on the right of the head, the hair swept back to the left.
+    const k = f > 0.7 ? 0 : 1;
+    px(c, hx + 1, hy0, 6 + k, 4, C.hair2);
+    px(c, hx + 5 + k, hy0 + 3, 7 - k, 7, C.skin);
+    px(c, hx + 5 + k, hy0 + 8, 7 - k, 1, C.skin2);
+    px(c, hx + 6 + k, hy0 + 4, 5 - k, 1, C.hair);
+    px(c, hx + 7 + k, hy0 + 5, 1, 1, C.out);
+    px(c, hx + 10, hy0 + 5, 1, 1, C.out);
+    px(c, hx + 12, hy0 + 5, 1, 3, C.skin);
+    px(c, hx + 13, hy0 + 6, 1, 1, C.skin2);
+    px(c, hx + 8 + k, hy0 + 8, 2, 1, C.mouth);
+    px(c, hx + 3, hy0 + 5, 2, 3, C.skin2);
+  }
 }
 
 /**
  * Glenn with his phone. `src()` gives the game now (its plan, the box's notes); `mode` the moment: playing, turning
  * the page, leafing back, the shrug.
  */
-export function GlennPiano({ src, mode, className }: { src: () => GlennSource | null; mode: GlennMode; className?: string }) {
+export function GlennPiano({ src, mode, talking = false, className }: { src: () => GlennSource | null; mode: GlennMode; talking?: boolean; className?: string }) {
+  const talkRef = useRef(talking);
+  talkRef.current = talking;
   const ref = useRef<HTMLCanvasElement>(null);
   const modeRef = useRef(mode);
   const since = useRef(performance.now());
@@ -241,8 +268,12 @@ export function GlennPiano({ src, mode, className }: { src: () => GlennSource | 
     c.imageSmoothingEnabled = false;
     const last = { left: { x: SC.x + 5, y: SC.y + 14 }, right: { x: SC.x + SC.w - 6, y: SC.y + 6 } };
     let raf = 0;
+    let face = 0;
+    let lastT = performance.now();
     const tick = () => {
       const t = performance.now();
+      const dt = Math.min(0.1, (t - lastT) / 1000);
+      lastT = t;
       const m = modeRef.current;
       const age = t - since.current;
       const s = m === "play" ? srcRef.current() : null;
@@ -252,7 +283,9 @@ export function GlennPiano({ src, mode, className }: { src: () => GlennSource | 
       const shrug = m === "shrug" ? Math.min(1, age / 400) * (age < 2600 ? 1 : Math.max(0, 1 - (age - 2600) / 400)) : 0;
       // He looks up at the score (the phone lowered a little) while he turns or leafs back.
       const look = m === "turn" || m === "rewind" ? Math.sin(Math.PI * Math.min(1, age / 1000)) : 0;
-      scene(c, s, thumbs, { turn, rewind, shrug, look, t });
+      // D684: turned toward the player while he speaks (eased in and out, never snapped); back to the phone to play.
+      face += ((talkRef.current || m === "shrug" ? 1 : 0) - face) * Math.min(1, dt * 5);
+      scene(c, s, thumbs, { turn, rewind, shrug, look, face, t });
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

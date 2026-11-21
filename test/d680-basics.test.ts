@@ -73,3 +73,9 @@ test("D683: Glenn plays the game, his thumbs the game's own plan, the phone a mi
   assert.match(app, /plan: g\.plan\.filter/);
   assert.equal(BASICS.find((t) => t.aid === "swell")?.m.coach, "colour");
 });
+
+test("D684: Glenn turns to the player when he speaks, eased, and back to the phone to play", () => {
+  const g = src("src/bench/basics/GlennPiano.tsx");
+  assert.match(g, /face \+= \(\(talkRef\.current \|\| m === "shrug" \? 1 : 0\) - face\) \* Math\.min\(1, dt \* 5\)/);
+  assert.match(src("src/bench/BenchApp.tsx"), /talking=\{glennMode === "shrug"\}/);
+});
