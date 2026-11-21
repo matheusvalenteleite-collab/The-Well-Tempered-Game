@@ -922,7 +922,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
   if (fr.banner) banner(g, w, fr.banner, fx.gold);
-  if (fr.cadences) cadenceMarks(fx, fr.cadences);
+  if (fr.cadences) cadenceMarks(fx, fr.cadences, Math.round((fr.foot ?? footPx) / PX));
   if (fr.spans && fr.bossFight) bossBar(fx, fr.spans.filter((s) => s.form !== "counter"), fr.voice, fr.notes);
   zoneGlow(fx, fr.zone ?? null);
 }
