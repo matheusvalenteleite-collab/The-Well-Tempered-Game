@@ -72,7 +72,7 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   // D523: ABBEY ROAD (with its drums).
   ["abbeyRoad", "ABBEY ROAD"],
   // D525: KRAUTROCK (with its motorik drums).
-  ["krautrock", "KRAUTROCK"],
+  ["krautrock", "PSYCH"], // D869
   // D521: BOSSA NOVA (the flute, the nylon guitar, the piano, the upright bass and its drums).
   ["bossaNova", "BOSSA NOVA"],
   // (D890: PET SOUNDS, TRACKER and MEGA FM withdrawn.)

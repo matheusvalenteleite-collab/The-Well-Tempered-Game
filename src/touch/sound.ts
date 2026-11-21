@@ -2052,7 +2052,7 @@ export const PRESETS: Preset[] = [
   // voice of four and five; the band's signature instrument opens); the motorik drums (groove "motorik") always with it.
   {
     id: "krautrock",
-    name: "KRAUTROCK",
+    name: "PSYCH", // D869: KRAUTROCK renamed PSYCH (the owner)
     // D525 (D436's way, JAZZ QUARTET rendered beside it): +1.5 dB; D543 matched to it on a phone.
     gain: 1.19,
     // D560: +1.6 dB over its pre-promotion level on the phone model (the mean of I/21 b. 1-8, II/9 b. 1-5, I/2 b. 3-14): matched back.

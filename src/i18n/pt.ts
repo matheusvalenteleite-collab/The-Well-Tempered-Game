@@ -56,7 +56,8 @@ export const PT: Record<string, string> = {
   // D523: ABBEY ROAD (a name: kept).
   "ABBEY ROAD": "ABBEY ROAD",
   // D525: KRAUTROCK (a name: kept).
-  KRAUTROCK: "KRAUTROCK",
+  KRAUTROCK: "PSYCH",
+  PSYCH: "PSYCH",
   // D521: BOSSA NOVA (the name as in Portuguese and Spanish).
   "BOSSA NOVA": "BOSSA NOVA",
   // D586-D590: the setups' new sounds.
