@@ -34,6 +34,8 @@ export interface AidsState {
   /** One thumb: the side the arrows are drawn on. */
   side?: "left" | "right";
   miss: MissShown | null;
+  /** D693 (6.2): the last join credited (thumb to thumb, no gap): when, and where the new note landed. */
+  join?: { at: number; y: number } | null;
   /** The beat (ticks), to find the rests. */
   beat: number;
 }
@@ -141,6 +143,16 @@ export function paintBasics2(c: CanvasRenderingContext2D, w: number, h: number, 
       c.fillRect(x0, 0, bw, h);
     }
   }
+  // D693 (6.2): a join made: a gold bridge across the box between the two bars at the new note's height, and NO
+  // GAP over it; it fades over a second (one light a join, nothing for a gap).
+  if (has("join") && s.join && now - s.join.at < 1000) {
+    const k = 1 - (now - s.join.at) / 1000;
+    c.globalAlpha = s.alpha * k;
+    c.fillStyle = "rgba(243,215,138,0.35)";
+    c.fillRect(bw, s.join.y - 3, w - 2 * bw, 6);
+    label(c, trCanvas("NO GAP"), w / 2, s.join.y - 12, GOLD, 7);
+    c.globalAlpha = s.alpha;
+  }
   // After a miss: exactly two arrows from the ring of the touch before, labelled: what you did (dimmed, dashed)
   // and what was needed (gold).
   if (missing && s.miss) {
@@ -163,5 +175,42 @@ export function paintBasics2(c: CanvasRenderingContext2D, w: number, h: number, 
     label(c, trCanvas("YOU DID"), x - dx, ly(madeTo), "rgba(236,230,214,0.75)", 6);
     label(c, trCanvas("NEEDED"), x + dx, ly(needTo), GOLD, 6);
   }
+  c.restore();
+}
+
+/**
+ * D692 (design studio; BASICS v2, Act V): a line said at a moment of the music (5.2: Glenn, as the soprano
+ * answers), on the box's top edge between the bars, small and unboxed; it fades in and out over a second and
+ * never stops the music.
+ */
+export function paintCue(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, cue: { text: string; on: number; off: number }) {
+  if (g.now < cue.on || g.now > cue.off) return;
+  const span = Math.max(1, cue.off - cue.on);
+  const k = Math.min(1, (g.now - cue.on) / (span * 0.08), (cue.off - g.now) / (span * 0.12));
+  const bw = w * BAR;
+  const max = w - 2 * bw - 48;
+  const size = Math.round(Math.max(12, Math.min(16, h * 0.036)));
+  c.save();
+  c.globalAlpha = Math.max(0, k);
+  c.font = `500 ${size}px system-ui, sans-serif`;
+  c.textAlign = "center";
+  c.textBaseline = "top";
+  const words = cue.text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+  for (const wd of words) {
+    const t = line ? `${line} ${wd}` : wd;
+    if (c.measureText(t).width > max && line) (lines.push(line), (line = wd));
+    else line = t;
+  }
+  if (line) lines.push(line);
+  const lh = size * 1.3;
+  // Below the header (the title, pause and close), never over them.
+  const y0 = Math.max(52, h * 0.13);
+  c.fillStyle = "rgba(10,12,16,0.55)";
+  const tw = Math.max(...lines.map((l) => c.measureText(l).width));
+  c.fillRect(w / 2 - tw / 2 - 12, y0 - 6, tw + 24, lines.length * lh + 10);
+  c.fillStyle = "#ece6d6";
+  lines.forEach((l, i) => c.fillText(l, w / 2, y0 + i * lh));
   c.restore();
 }
