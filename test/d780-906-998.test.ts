@@ -57,7 +57,8 @@ test("D781, D782, D789: each on its sound, nothing past STRETCH_MAX or its set's
   const lu = pieceLineUp("jazzQuartet", fugueById("bwv906-1"));
   assert.deepEqual(lu?.slots.map((s) => s[0]), ["jqVibes", "jqPiano"]);
   // D891, D894: the tabor withdrawn: the Prelude (calm) none, the Allegro none (no remaining kit under the band in its thin bars).
-  assert.deepEqual(IDS.map((id) => FUGUE_STYLES[id]), ["brushes", "abbey", "none", "bossa", "none"]);
+  // D924: the Fugue on SALSA's own percussion (the bossa's brushes before).
+  assert.deepEqual(IDS.map((id) => FUGUE_STYLES[id]), ["brushes", "abbey", "none", "salsa", "none"]);
 });
 
 test("D783: the tempi inside their recordings (both halves repeated where the print repeats them); no Busoni reading", () => {
