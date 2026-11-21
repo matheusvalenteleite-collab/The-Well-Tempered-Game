@@ -1,0 +1,165 @@
+/**
+ * D686 (design studio; BASICS v2, the owner's plan): the tutorial's acts and their stages. One new idea a stage;
+ * each runs SHOW (a 2 s clip of real thumbs, from above) → DO (the aids on; the music waits for the first tap) →
+ * PROVE (the aids fade); a stage is left on success, never on a timer. Help comes in steps and the player never
+ * fails out: the first miss nothing, the second a hint line, the third the clip again, the fourth a notch slower.
+ * Each act opens with Glenn's line (his still portrait) and an I KNOW THIS that skips it.
+ *
+ * Only the game's real rules are taught: direction is judged against the same thumb's last touch, so the music of
+ * the direction act is one thumb, or pairs after a rest, where that and "the note before" agree. Holding and
+ * lifting to make a note sound is not taught.
+ */
+import type { Results } from "../lessons.ts";
+import type { LensStats } from "../manual/lens.ts";
+import "./exercises.ts";
+
+export type ClipId = "tap" | "up" | "down" | "same" | "leap" | "two" | "hold" | "lift" | "strong" | "legato" | "short" | "shake" | "slide";
+export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides";
+
+export type PassRule =
+  | { kind: "right"; need: number }
+  | { kind: "moves"; need: number }
+  /** A clean run: every note right but at most `slips` (the weak player's test: 1; strictly clean is too strict). */
+  | { kind: "clean"; slips: number }
+  | { kind: "holds"; holds: number; rests: number }
+  | { kind: "share"; share: number }
+  | { kind: "tries"; what: "colour" | "joins" | "short" | "shake" | "slide" | "any"; need: number };
+
+export interface Stage {
+  id: string;
+  clip: ClipId | null;
+  piece: string;
+  voice: number;
+  fromBar?: number;
+  toBar?: number;
+  /** Crotchets a minute. */
+  bpm: number;
+  pass: PassRule;
+  /** The music waits at every note (1.1), or at the first only (each new idea, the rest). */
+  wait: "all" | "first";
+  easy?: "timing";
+  /** One thumb (Act II): the hints and the rings on that side. */
+  side?: "left" | "right";
+  aids: Aid[];
+  /** The sound (sound.ts preset), else the piano. */
+  sound?: string;
+  /** The other voices: off, or played by the game (Act V). */
+  solo: boolean;
+  /** The second miss's line (one short line, translated). */
+  hint: string;
+  /** A line said at a moment of the music (5.2: at the soprano's entry), by bar. */
+  cue?: { bar: number; text: string };
+}
+
+export interface Act {
+  n: number;
+  title: string;
+  glenn: string;
+  stages: Stage[];
+}
+
+const PIANO = "pianoSampled";
+const ex = (id: string, o: Partial<Stage> & Pick<Stage, "piece" | "bpm" | "pass" | "hint" | "clip">): Stage => ({ id, voice: 0, wait: "first", aids: ["rings", "gold"], solo: true, ...o });
+
+export const ACTS: readonly Act[] = [
+  {
+    n: 1,
+    title: "TIMING",
+    glenn: "Watch the notes drift towards the gold line. The moment one arrives, touch a bar, either one. Timing is everything.",
+    stages: [
+      ex("1.1", { clip: "tap", piece: "basics-1-1", bpm: 60, wait: "all", easy: "timing", aids: ["gold", "rings"], pass: { kind: "right", need: 4 }, hint: "Touch as the note meets the gold line." }),
+      ex("1.2", { clip: "tap", piece: "basics-1-2", bpm: 60, easy: "timing", aids: ["gold", "rings"], pass: { kind: "right", need: 4 }, hint: "One touch for each note, as it arrives." }),
+    ],
+  },
+  {
+    n: 2,
+    title: "DIRECTION",
+    glenn: "It's not where you touch, it's where you go. Tune goes up, reach higher than your last touch. Down, go lower. Same note, same spot.",
+    stages: [
+      ex("2.1", { clip: "up", piece: "basics-2-1", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Higher than your last touch." }),
+      ex("2.2", { clip: "down", piece: "basics-2-2", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Lower than your last touch." }),
+      ex("2.3", { clip: "same", piece: "basics-2-3", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Same note: touch the same spot." }),
+      ex("2.4", { clip: "up", piece: "basics-2-4", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 6 }, hint: "Up, down or the same: follow the tune." }),
+      ex("2.5", { clip: "leap", piece: "basics-2-5", bpm: 80, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "A big jump needs only a small move the right way." }),
+    ],
+  },
+  {
+    n: 3,
+    title: "TWO THUMBS",
+    glenn: "One thumb? Nobody plays the piano with one finger. Share the notes between your thumbs: left, right, left. It's quicker, and it sounds better.",
+    stages: [
+      ex("3.1", { clip: "two", piece: "basics-3-1", bpm: 60, aids: ["rings", "arrow", "sides", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "Left, right, left: take turns." }),
+      ex("3.2", { clip: "two", piece: "basics-3-1", bpm: 120, aids: ["rings", "arrow", "sides", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "Take turns; each thumb follows its own last touch." }),
+    ],
+  },
+  {
+    n: 4,
+    title: "HOLDING",
+    glenn: "Your thumb is the key. Keep it down and the note sings on; lift it and the note stops. Long notes, long holds.",
+    stages: [
+      ex("4.1", { clip: "hold", piece: "basics-4-1", bpm: 66, aids: ["rings", "drain", "gold"], pass: { kind: "holds", holds: 3, rests: 0 }, hint: "Keep your thumb down until the block runs out." }),
+      ex("4.2", { clip: "lift", piece: "basics-4-2", bpm: 66, aids: ["rings", "drain", "lift", "gold"], pass: { kind: "holds", holds: 0, rests: 1 }, hint: "At a rest, lift your thumb." }),
+    ],
+  },
+  {
+    n: 5,
+    title: "A REAL FUGUE",
+    glenn: "Now, a real fugue. Four voices, from one of his last works, and a damn fine one. You begin, alone, in the alto. The others will follow you.",
+    stages: [
+      ex("5.1", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, aids: ["rings", "arrow", "gold", "drain", "lift"], pass: { kind: "share", share: 0.6 }, hint: "Follow the tune: up, down, the same." }),
+      ex("5.2", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 9, bpm: 44, solo: false, aids: ["rings", "gold", "drain", "lift"], pass: { kind: "share", share: 0.55 }, hint: "Yours are bright; the others play themselves.", cue: { bar: 5, text: "Listen: someone answers you with your own tune. That's a fugue. Theirs are dim, yours are bright. Keep going." } }),
+    ],
+  },
+  {
+    n: 6,
+    title: "MAKE IT SING",
+    glenn: "GLENN'S LINE TO COME",
+    stages: [
+      ex("6.1", { clip: "strong", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "colour", need: 3 }, hint: "By the box: strong. By the edge: soft." }),
+      ex("6.2", { clip: "legato", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "joins", need: 3 }, hint: "Pass the note from thumb to thumb, no gap." }),
+      ex("6.3", { clip: "short", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "short", need: 3 }, hint: "Touch and let go at once: short." }),
+      ex("6.4", { clip: "shake", piece: "bwv1080-04", voice: 2, fromBar: 50, toBar: 52, bpm: 44, sound: "harpsichordSampled", aids: ["rings", "gold"], pass: { kind: "tries", what: "shake", need: 1 }, hint: "Touch the note, then rock your thumb." }),
+      ex("6.5", { clip: "slide", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: "soloVoices", aids: ["rings", "gold"], pass: { kind: "tries", what: "slide", need: 2 }, hint: "Keep your thumb down and glide to the next note." }),
+      ex("6.6", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: "chip", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 5, bpm: 44, sound: "krautrock", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+    ],
+  },
+];
+
+export const FINALE = "That's it. You've played your first fugue, well, its beginning. You're ready for the main game.";
+
+/** The acts open in BASICS v2 for now (I–IV; V and VI to come). */
+export const ACTS_READY = 4;
+
+/** The help a miss brings, by how many misses the stage has had (1st nothing, 2nd the hint, 3rd the clip, 4th slower). */
+export function helpFor(misses: number): "none" | "hint" | "clip" | "slower" {
+  if (misses <= 1) return "none";
+  if (misses === 2) return "hint";
+  if (misses === 3) return "clip";
+  return misses % 4 === 0 ? "slower" : "hint";
+}
+/** A notch slower: 12% of the stage's tempo a notch, at most three notches. */
+export const slower = (bpm: number, notches: number) => Math.round(bpm * (1 - 0.12 * Math.min(3, notches)));
+
+/** Whether a take met its stage's rule (the game's own tally and the tutorial's lens). */
+export function stagePassed(st: Stage, r: Results): boolean {
+  const x = (r as Results & { lens?: LensStats }).lens;
+  const p = st.pass;
+  switch (p.kind) {
+    case "right":
+      return r.right >= p.need;
+    case "moves":
+      return !!x && x.direction.ok >= p.need;
+    case "clean":
+      return r.of > 0 && r.right >= r.of - p.slips && r.stray <= 1;
+    case "holds":
+      return !!x && x.held.ok >= p.holds && x.rests.ok >= p.rests;
+    case "share":
+      return r.of > 0 && r.right >= p.share * r.of;
+    case "tries": {
+      if (!x) return false;
+      const n = p.what === "colour" ? Math.min(x.colour.firm, x.colour.soft) : p.what === "joins" ? x.joins.ok : p.what === "short" ? (x.marks.short.ok || Object.values(x.words).filter((w) => /SHORT|CLEAN/.test(w)).length) : p.what === "shake" ? x.orn.read + x.orn.free : p.what === "slide" ? x.slides : r.right;
+      return n >= p.need;
+    }
+  }
+}
