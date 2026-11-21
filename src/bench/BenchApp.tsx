@@ -95,9 +95,10 @@ import type { DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { BASICS, BASICS_SOUND, basicsRun, beginner, REWIND_MISSES, SURPRISE_SOUNDS, TURN_MS, turnsPage } from "./basics/basics.ts";
-import { paintBasics, type BasicsInk } from "./basics/basics-aids.ts";
-import { GlennPiano, type GlennMode } from "./basics/GlennPiano.tsx";
+import { ACTS, ACTS_READY, FINALE, stagePassed as basicsPassed } from "./basics/plan.ts";
+import { basicsRun, nextAt, stageOf, type BasicsAt } from "./basics/runner.ts";
+import { paintBasics2, type MissShown } from "./basics/aids2.ts";
+import { BasicsHost, type HostView } from "./basics/BasicsHost.tsx";
 import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
 import { GlennFilm } from "./GlennFilm.tsx";
@@ -154,8 +155,8 @@ const LAG_SETUP_KEY = "tg-lag-setup";
 // D208: a new key, so every player starts on the sampled harpsichord.
 // D246: each piece its own sound (piece-sound.ts), the player's choice kept per piece.
 const SOUND_KEY = "tg-sound-by-piece-v1";
-/** D685: the first BASICS withdrawn; its code kept until the new tutorial replaces it. */
-const BASICS_SHOWN = false;
+/** D686: a beginner (BASICS's card glows): no piece finished with a B or better yet. */
+const beginner = (best: Readonly<Record<string, string>>) => !Object.values(best).some((g) => g === "S" || g === "A" || g === "B");
 const DEFAULT_SOUND = "harpsichordSampled";
 const TUNING_KEY = "tg-tuning";
 /** D327: play.html's ⚙ TUNING (INSTRUMENT DEFAULT where nothing is kept). */
@@ -278,8 +279,6 @@ const ZOOM_ROWS = 10;
 const ZOOM_NOTES = 16;
 /** D375: the share of the box's height under the tutorial's speech bubble. */
 const TUT_FLOOR = 0.3;
-/** D681: BASICS's floor: Glenn's window at the box's foot. */
-const BASICS_FLOOR = 0.27;
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -451,14 +450,14 @@ export function BenchApp() {
   const [dressIntro, setDressIntro] = useState<{ lines: DressLine[]; k: number; ids: string[]; tour: boolean } | null>(null);
   const dressRef = useRef(dressIntro);
   dressRef.current = dressIntro;
-  // D680, BASICS (design studio): the take under way (BASICS's index), Glenn's moment in his window, the surprise's sound.
-  const [basics, setBasics] = useState<{ k: number } | null>(null);
-  const [glennMode, setGlennMode] = useState<GlennMode>("idle");
-  const [basicsSound, setBasicsSound] = useState<string | null>(null);
-  const basicsInk = useRef<BasicsInk>({ learned: 0 });
-  const bTake = basics ? BASICS[basics.k] : undefined;
-  const basicsSoundNow = useRef<string>(BASICS_SOUND);
-  const bRun = useMemo(() => (bTake ? basicsRun(bTake) : undefined), [bTake]);
+  // D689, BASICS v2 (design studio): where the tutorial is (act, stage, DO or PROVE, the misses, the tempo
+  // notches), and what it shows between the takes (Glenn's card, a clip, a hint).
+  const [bas, setBas] = useState<BasicsAt | null>(null);
+  const [hostView, setHostView] = useState<HostView | null>(null);
+  const basMiss = useRef<MissShown | null>(null);
+  const basMisses = useRef(0);
+  const bStage = bas ? stageOf(bas) : undefined;
+  const bRun = useMemo(() => (bas && bStage ? basicsRun(bStage, bas.phase, bas.notches) : undefined), [bas?.act, bas?.stage, bas?.phase, bas?.notches]);
   const run = lesson?.run ?? manRun ?? bRun;
   // D862, TWO HANDS (the prototype, play.html?proto=hands only): its piece played apart from the pick (a prelude
   // stays off the phone's selection, D263): LADDER, the left thumb the left hand, the right thumb the right.
@@ -534,7 +533,7 @@ export function BenchApp() {
     const mine = full ? chosen : Object.fromEntries(Object.entries(chosen).filter(([p]) => soundUnlocked(p, lite)));
     return soundFor(id, mine, DEFAULT_SOUND);
   };
-  const sound = bTake ? (basicsSound ?? BASICS_SOUND) : man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
+  const sound = bStage ? (bStage.sound ?? "pianoSampled") : man ? SOUND_PRESET[soundOf(manLesson!, manMat)] : soundAt(f.id);
   const soundNow = kimiko ? herSound : sound;
   // D272: on play.html a fugue is played by its chosen reading (D274: at the recordings' tempo, never the
   // book's: the owner, "fugues should not be too fast").
@@ -630,8 +629,7 @@ export function BenchApp() {
   }, [f, proto.id, zoom]);
   // D375: Herr Bach's words cover the box's foot through a tutorial step: the notes stay above them.
   // D402: once the hint card carries his words (3.6 on), nothing covers the box's foot.
-  // D681: BASICS keeps the box's foot for Glenn's window (the notes above it, never under him).
-  const boxFloor = bTake ? BASICS_FLOOR : run?.tut && !dressNow?.includes("hint") ? TUT_FLOOR : 0;
+  const boxFloor = !bStage && run?.tut && !dressNow?.includes("hint") ? TUT_FLOOR : 0;
   // D377: the box's zoom everywhere (box-zoom.ts), in CLASSIC's box (the interfaces and the engraving keep
   // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
   // narrowed rarely and eased (not in a lesson: its range is its passage's already).
@@ -897,17 +895,21 @@ export function BenchApp() {
     }
     recRef.current = rec;
     if (takeable) g.takeRec = g.takeRecorder();
-    // D680, BASICS: no failure; a bad miss (REWIND_MISSES in a row) quietly takes the passage back and plays it again;
-    // the moves made the right way counted (the arrows fade with them).
-    const bt = bTake;
-    if (bt?.kind === "play") {
-      let streak = 0;
+    // D689, BASICS v2: the take's lens (its pass rule reads it); each miss counted (the help steps), and the move
+    // made against the move needed kept for a moment (the aids show them side by side).
+    const bs = bStage && bas ? { st: bStage, at: bas } : null;
+    if (bs) {
+      const bLens = new LensTally(g);
+      g.lens = bLens;
+      basMisses.current = bs.at.misses;
       g.tap = (e) => {
-        if (e.kind === "miss" || (e.kind === "note" && !e.ok)) streak++;
-        else if (e.kind === "note" && e.ok) (streak = 0), (basicsInk.current.learned += 1);
-        if (streak >= REWIND_MISSES && game.current === g) {
-          streak = -Infinity;
-          window.setTimeout(() => basicsAgain(), 0);
+        bLens.feed(e);
+        if (!(e.kind === "miss" || (e.kind === "note" && !e.ok))) return;
+        basMisses.current += 1;
+        if (e.kind === "note" && e.ladder?.steps !== undefined && e.ladder.movedPx !== undefined) {
+          const last = g.lastBySide[e.side];
+          const made = Math.abs(e.ladder.movedPx) < (e.ladder.needPx ?? 6) ? 0 : Math.sign(e.ladder.movedPx);
+          basMiss.current = { side: e.side, needed: Math.sign(e.ladder.steps), made, y: last?.y ?? 0, at: performance.now() };
         }
       };
     }
@@ -928,7 +930,8 @@ export function BenchApp() {
       g.view(() => {
         paintProto(ctx, w, h, g, marks.subject);
         const tour = man?.mode === "tour" ? tourRef.current : null;
-        if (bTake) paintBasics(ctx, w, h, g, bTake, basicsInk.current);
+        // D687: BASICS's aids, on in DO, fading over PROVE's first notes.
+        if (bs) paintBasics2(ctx, w, h, g, { aids: bs.st.aids, alpha: bs.at.phase === "do" ? 1 : Math.max(0, 1 - g.tracks[0].notes.filter((n) => n.state !== "pending").length / 3), ...(bs.st.side ? { side: bs.st.side } : {}), miss: basMiss.current, beat: beatOf(f).ticks });
         if (lens && (aids.length || tour)) paintAids(ctx, w, h, g, lens, { aids, firstTake, ...(ask ? { ask } : {}), ...(stepKind ? { step: stepKind as "watch", box: boxRect() } : {}), ...(tour ? { tour: { focus: TOUR[tour.k]?.focus ?? "all", left: tour.left, right: tour.right } } : {}) });
       });
     const b = beatOf(f);
@@ -980,8 +983,8 @@ export function BenchApp() {
         // D208: no bosses in LADDER for now.
         bossFight: proto.id !== "ladder",
         // D359: THE MANUAL's practice room: no points or words rising from the notes, no bursts.
-        pops: man || bTake ? [] : g.pops,
-        bursts: man || bTake ? [] : g.bursts,
+        pops: man || bs ? [] : g.pops,
+        bursts: man || bs ? [] : g.bursts,
         zone: g.zone,
         // D353: the ornaments performed, drawn over their notes (the overlay).
         performed: g.overlay(),
@@ -1010,16 +1013,6 @@ export function BenchApp() {
       if (proto.layout === "bars") g.rows = boxRows(f.barTicks, g.now, zv, box.bars);
       if (rec && g.rows) rec.rows(g.rows.yOf(0), g.rows.rowH);
       if (AUTO) autoplay(g, auto);
-      // D680: the surprise: the sound changed every half bar (piano, CLASSIC CHIP, JAZZ QUARTET, KRAUTROCK).
-      if (bt?.aid === "surprise") {
-        const k = Math.max(0, Math.min(SURPRISE_SOUNDS.length - 1, Math.floor((g.now - from) / (f.barTicks / 2))));
-        const id = SURPRISE_SOUNDS[k];
-        if (presetById(id).id !== basicsSoundNow.current) {
-          basicsSoundNow.current = id;
-          basicsInk.current.soundName = presetById(id).name;
-          setBasicsSound(id);
-        }
-      }
       // D249: the centre holds the count-in only; the combo is by the score (paint-proto.ts scoreboard).
       // D379: no big count digit over his demonstration in a tutorial WATCH (it hid the first note and his arrow).
       if (count.current) count.current.textContent = g.countIn() && stepKind !== "watch" && !dressRef.current ? String(g.countIn()) : "";
@@ -1066,9 +1059,9 @@ export function BenchApp() {
         // D314: an ornament shaken: its first-time hint is done.
         if (r.shakes.hit > 0 && !run) seenId("ornament");
         // D299's retune of a Bluetooth delay after each run: D494, gone (the delay stays as the player tapped it).
-        if (bTake) {
-          // D680, BASICS: the next take, without a word (Glenn turns the page between excerpts).
-          basicsNext();
+        if (bs) {
+          // D689, BASICS v2: on success the next phase or idea; else the help earned, and the same take again.
+          basicsDone(r);
         } else if (man) {
           // D342: THE MANUAL's step over: its lens read, the next step chosen.
           recRef.current = null;
@@ -1264,7 +1257,7 @@ export function BenchApp() {
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
-  const home = () => ((basicsOn.current = false), setBasics(null), setBasicsSound(null), setGlennMode("idle"), (waitingHer.current = null), (listening.current = null), (listenBacking.current = []), (overTakes.current = null), setLesson(null), setMan(null), setWatching(false), setHandsPiece(null), setPhase({ kind: "home" }));
+  const home = () => ((basOn.current = false), setBas(null), setHostView(null), (waitingHer.current = null), (listening.current = null), (listenBacking.current = []), (overTakes.current = null), setLesson(null), setMan(null), setWatching(false), setHandsPiece(null), setPhase({ kind: "home" }));
   // D373: ✕ in a lesson goes back to the tutorial's selection screen, the lesson chosen there.
   const quit = () => (setPaused(false), practice.current && setToolsOpen(true), man ? toMap() : home());
   /** D308: PAUSE (not with KIMIKO: her recording keeps the time; not in a lesson's step, which waits anyway). */
@@ -1582,68 +1575,65 @@ export function BenchApp() {
   const toMap = () => (setHost("bach"), setTourAt(null), setDressIntro(null), (dressRef.current = null), setMan(null), setWatching(false), setPhase({ kind: "home" }), setSteps(true));
   /** D373 (the report's first three minutes): the first visit goes straight into 1.1, no map, no card; afterwards the selection screen. */
   /**
-   * D680, BASICS: a take begun (Glenn's HEAR, or the player's PLAY), the passages' pieces fetched first (Invention 8
-   * and Sinfonia 9 are MORE BACH's chunk).
+   * D689, BASICS v2 (the owner's plan): an act opens with Glenn's card (CONTINUE, or I KNOW THIS: the next act); each
+   * idea with its clip (SHOW), then DO (the aids on, the music waiting at its first note), then PROVE (the aids
+   * fading). A stage is left on success only; a take short of it brings the help its misses have earned (the
+   * second miss a hint line, the third the clip again, the fourth a notch slower) and the same take again.
    */
-  const basicsOn = useRef(false);
-  function beginBasics(k = 0) {
-    void askMotion();
-    if (BASICS.some((x) => fugueById(x.m.piece).id !== x.m.piece)) return void loadExtras().then(() => beginBasics(k));
-    const t = BASICS[k];
-    basicsOn.current = true;
+  const basOn = useRef(false);
+  function basicsAct(act: number) {
+    basOn.current = true;
     setSteps(false);
     setLesson(null);
     setMan(null);
-    if (!(k > 0 && BASICS[k - 1].step === t.step)) basicsInk.current = { learned: 0 };
-    basicsSoundNow.current = BASICS_SOUND;
-    setBasicsSound(null);
-    setBasics({ k });
-    setWatching(t.kind === "hear");
-    setGlennMode("play");
+    setWatching(false);
+    setBas(null);
+    const a = ACTS[act];
+    const after = () => (act + 1 < Math.min(ACTS_READY, ACTS.length) ? basicsAct(act + 1) : basicsFinale());
+    setHostView({ kind: "card", act: a.n, title: a.title, line: a.glenn, go: () => basicsIdea({ act, stage: 0 }), skip: after });
+  }
+  function basicsIdea(at: { act: number; stage: number }) {
+    const st = stageOf(at);
+    const go = () => basicsTake({ ...at, phase: "do", misses: 0, notches: 0 });
+    if (st.clip) setHostView({ kind: "clip", clip: st.clip, done: go });
+    else go();
+  }
+  function basicsTake(at: BasicsAt) {
+    if (!basOn.current) return;
+    const st = stageOf(at);
+    if (fugueById(st.piece).id !== st.piece) return void loadExtras().then(() => basicsTake(at));
+    void askMotion();
+    setHostView(null);
+    basMiss.current = null;
+    setBas(at);
     start(true);
   }
-  // For the studio's own checks (the developer view): a take begun directly.
-  if (unlocked()) (window as unknown as { __wtgBasics?: (k: number) => void }).__wtgBasics = beginBasics;
-  /** After a moment of Glenn's (the page turned, the passage leafed back), unless BASICS was left meanwhile. */
-  const afterGlenn = (mode: GlennMode, ms: number, then: () => void) => {
-    setGlennMode(mode);
-    window.setTimeout(() => basicsOn.current && then(), ms);
-  };
-  function basicsNext() {
-    const k = (basics?.k ?? 0) + 1;
-    if (k >= BASICS.length) return afterGlenn("shrug", 3200, home);
-    if (turnsPage(k)) return afterGlenn("turn", TURN_MS, () => beginBasics(k));
-    if (BASICS[k].pass) return afterGlenn("rewind", TURN_MS, () => beginBasics(k));
-    beginBasics(k);
+  function basicsFinale() {
+    setBas(null);
+    setHostView({ kind: "finale", line: FINALE, done: home });
   }
-  /** A bad miss: the passage taken back quietly and played again (no failure, nothing said). */
-  function basicsAgain() {
-    const k = basics?.k ?? 0;
-    game.current?.pause();
-    afterGlenn("rewind", TURN_MS / 2, () => beginBasics(k));
+  function basicsDone(r: ReturnType<ProtoGame["results"]>) {
+    if (!bas) return;
+    const at = bas;
+    const st = stageOf(at);
+    const misses = basMisses.current;
+    if (basicsPassed(st, r)) {
+      if (at.phase === "do") return basicsTake({ ...at, phase: "prove", misses });
+      const nx = nextAt(at, ACTS_READY);
+      if (!nx) return basicsFinale();
+      if (nx.act !== at.act) return basicsAct(nx.act);
+      return basicsIdea(nx);
+    }
+    // The help the misses of this take have earned (the highest step crossed), then the same take again.
+    const crossed = (k: number) => at.misses < k && misses >= k;
+    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, ...o });
+    if ([4, 8, 12].some(crossed)) return again({ notches: at.notches + 1 });
+    if (crossed(3) && st.clip) return setHostView({ kind: "clip", clip: st.clip, done: () => again() });
+    if (crossed(2) || crossed(3)) return setHostView({ kind: "hint", text: st.hint, done: () => again() });
+    again();
   }
-  /** D683: Glenn's phone mirrors the game: its plan (his thumbs), the box's notes and rows now. */
-  const glennSrc = () => {
-    const g = game.current;
-    if (!g) return null;
-    const fr = frame.current;
-    const now = g.viewNow;
-    const span = (fr.bars ?? 3) * f.barTicks;
-    const near = (n: { on: number; dur: number }) => n.on < now + span && n.on + n.dur > now - span / 3;
-    const mine = new Set(g.tracks.map((t) => t.voice));
-    return {
-      now,
-      tps: g.tps,
-      beat: beatOf(f).ticks,
-      bar: f.barTicks,
-      lo: fr.lo,
-      hi: fr.hi,
-      bars: fr.bars ?? 3,
-      plan: g.plan.filter((p) => p.off > now - f.barTicks && p.on < now + f.barTicks),
-      notes: [...g.tracks.flatMap((t) => t.notes.filter(near).map((n) => ({ on: n.on, dur: n.dur, step: n.step, mine: true }))), ...g.others.filter(near).map((n) => ({ on: n.on, dur: n.dur, step: n.step, mine: mine.has(n.voice) }))],
-      slide: bTake?.aid === "swell",
-    };
-  };
+  // For the studio's own checks (the developer view): an act or a take begun directly.
+  if (unlocked()) Object.assign(window as unknown as Record<string, unknown>, { __wtgBasicsAct: basicsAct, __wtgBasicsTake: basicsTake });
   const startManual = (warned = false) => {
     if (!warned && warnFirst(() => startManual(true))) return;
     const s = readManual();
@@ -2201,13 +2191,8 @@ export function BenchApp() {
         , document.body)}
       </MusicBox>
       <PlayArea events={events} paint={paint} hint="" />
-      {/* D681: BASICS's host, Glenn at the piano, in a small window above the box (never over the notes). */}
-      {bTake && phase.kind === "play" && (
-        <div className="basics-window" aria-hidden="true">
-          <GlennPiano src={glennSrc} mode={glennMode} talking={glennMode === "shrug"} />
-          {glennMode === "shrug" && <p className="basics-end">{tr("Pick any piece.")}</p>}
-        </div>
-      )}
+      {/* D688: BASICS v2's cards, clips and hint, over the play screen between the takes. */}
+      {hostView && <BasicsHost view={hostView} />}
       {playing && man && manLesson && isCourse(manLesson) && (
         // D373: WATCH, TRY and PLAY told apart (the banner, the strips' words), his words over the foot of the box; 1.1's bubbles.
         <div className="tb-course-chrome">
@@ -2443,9 +2428,8 @@ export function BenchApp() {
           setLang={(l: Lang) => (setLang(l), setLite(readLite()))}
           // D868: the tutorial taken out of the game (the owner: "Eliminate tutorial from game"); kept in the developer view (ricercar), Glenn's Part 1 with it.
           tutorial={unlocked() ? { ...manualProgress(readManual()), start: () => startManual() } : undefined}
-          // D680 (design studio): BASICS with Glenn in the old TUTORIAL slot, the developer view only for now; glowing while a beginner (no B or better yet).
-          // D685: BASICS (D680-D684) withdrawn from the developer view too (the owner: it "doesn't teach anything"); a new tutorial is being designed.
-          basics={BASICS_SHOWN && unlocked() ? { beginner: beginner(lite.best), start: () => beginBasics(0) } : undefined}
+          // D686 (design studio): BASICS v2, the owner's plan, in the old TUTORIAL slot, the developer view only for now; glowing while a beginner (no B or better yet).
+          basics={unlocked() ? { beginner: beginner(lite.best), start: () => basicsAct(0) } : undefined}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.

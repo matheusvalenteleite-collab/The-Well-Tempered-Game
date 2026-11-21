@@ -50,6 +50,8 @@ export interface Options {
   /** The lessons (D185, D188): the passage ends here (a tick); the music waits for each note; the voice alone. */
   until?: number;
   wait?: boolean;
+  /** D686 (BASICS v2): the music waits only at the first note (the start of each new idea), then flows. */
+  waitFirst?: boolean;
   solo?: boolean;
   /** D223, D299: BLUETOOTH MODE: the whole piece, the player's notes too, on the schedule at the written times; the touches score, silently. */
   bt?: boolean;

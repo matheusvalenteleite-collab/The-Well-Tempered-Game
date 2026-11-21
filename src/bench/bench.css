@@ -1328,9 +1328,21 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-hear-form-line { flex: none; }
 .tb-hear-form-bar { color: var(--tg-muted); font-size: 6px; }
 .tb-hear-form.on .tb-hear-form-bar { color: #3a2c10; }
-/* D681 (design studio): BASICS's host, Glenn at the piano, in a small window in the box's foot (the box keeps that
-   share free: BenchApp BASICS_FLOOR), centred, the notes all above him; whole pixels, crisp. */
-.basics-window { position: fixed; z-index: 26; bottom: max(26px, calc(env(safe-area-inset-bottom, 0px) + 22px)); left: 50%; transform: translateX(-50%); pointer-events: none; display: grid; justify-items: center; gap: 3px; }
-.basics-glenn { display: block; width: 240px; height: 80px; image-rendering: pixelated; border: 2px solid #46425a; box-shadow: 2px 2px 0 #0a0810; background: #2a2030; }
-.basics-end { position: absolute; bottom: calc(100% + 4px); white-space: nowrap; margin: 0; padding: 4px 8px; font-family: var(--tg-pixel); font-size: 8px; color: #2a2216; background: var(--tg-shine); box-shadow: 2px 2px 0 #b8322a; }
-@media (max-height: 400px) { .basics-glenn { width: 210px; height: 70px; } }
+/* D688 (design studio): BASICS v2's cards (Glenn's still portrait and line, CONTINUE and I KNOW THIS), its clips and its
+   one hint line, over the play screen between the takes; nothing of it while the music plays. */
+.basics2-layer { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: rgba(10, 8, 16, 0.72); }
+.basics2-card { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; width: min(560px, 100%); padding: 14px; font-family: var(--tg-pixel); color: var(--tg-fg); background: #2c345c; border: 2px solid #78789f; box-shadow: 3px 3px 0 #b8322a; }
+.basics2-glenn { width: 56px; }
+.basics2-glenn .tb-bach-face { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.basics2-words { display: grid; gap: 10px; min-width: 0; }
+.basics2-act { margin: 0; font-size: 9px; color: var(--tg-shine); letter-spacing: 0.08em; }
+.basics2-line { margin: 0; font-size: 8px; line-height: 1.8; }
+.basics2-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.basics2-go, .basics2-skip { min-height: 36px; padding: 8px 12px; font-family: var(--tg-pixel); font-size: 8px; cursor: pointer; }
+.basics2-go { color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; }
+.basics2-skip { color: var(--tg-fg); background: transparent; border: 1px solid #78789f; }
+.basics2-cliplayer { cursor: pointer; }
+.basics2-clip { width: min(640px, 92vw, calc(82vh * 16 / 9)); height: auto; border: 2px solid #78789f; box-shadow: 3px 3px 0 #0a0810; background: #1d1a24; }
+.basics2-hintlayer { background: rgba(10, 8, 16, 0.5); cursor: pointer; }
+.basics2-hint { margin: 0; padding: 10px 14px; max-width: min(520px, 100%); font-family: var(--tg-pixel); font-size: 9px; line-height: 1.7; color: #2a2216; background: var(--tg-shine); box-shadow: 2px 2px 0 #b8322a; text-align: center; }
+@media (max-height: 400px) { .basics2-card { padding: 10px; gap: 10px; } .basics2-glenn { width: 44px; } .basics2-line { font-size: 7px; } }
