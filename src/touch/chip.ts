@@ -711,11 +711,13 @@ export const ROCK_DRUMS = {
   ref: -30,
   hp: 45,
   vary: { db: 1, cents: 8 },
-  pieces: { kick: 0.7, snare: 0.62, rim: 0.5, hat: 0.34, openhat: 0.32, crash: 0.42, ride: 0.3, tomHigh: 0.55, tomLow: 0.6 } as Record<RockPiece, number>,
+  // D931: the cymbals softer (hat 0.34, openhat 0.32, crash 0.42, ride 0.3 before): the kit's top, the mix's most over 7 kHz.
+  pieces: { kick: 0.7, snare: 0.62, rim: 0.5, hat: 0.28, openhat: 0.27, crash: 0.34, ride: 0.25, tomHigh: 0.55, tomLow: 0.6 } as Record<RockPiece, number>,
   pan: { kick: -0.06, snare: -0.08, rim: -0.08, hat: -0.2, openhat: -0.2, crash: 0.06, ride: 0.1, tomHigh: -0.12, tomLow: 0.08 } as Record<RockPiece, number>,
   styles: {
-    abbey: { level: 1, phone: 1.8, send: 0.14 },
-    motorik: { level: 1, phone: 1.25, send: 0.08 },
+    // D931: each 1.5 dB under (1 before): the bands calmer.
+    abbey: { level: 0.84, phone: 1.8, send: 0.14 },
+    motorik: { level: 0.84, phone: 1.25, send: 0.08 },
   } as Record<RockStyle, { level: number; phone: number; send: number }>,
 };
 /** D523: the groove each rock band's drums play (sound.ts Preset.groove), by style. */

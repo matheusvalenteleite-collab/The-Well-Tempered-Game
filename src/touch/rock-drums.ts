@@ -16,7 +16,7 @@
  * compound), two beats long into an entry after an episode, one beat otherwise, a crash and the kick on the entry's beat;
  * entries in stretto (nearer than MIN_FILL_GAP_BARS) a crash only. The groove: the kick on the bar's strong beats, the
  * snare on the backbeat, the hi-hat in eighths (sixteenths under a slow beat: SIXTEENTHS_FROM_S); the EPISODES quieter
- * (the cross-stick for the snare, the hat lighter, the kick softer); Busoni's f busier (the kick's push before the
+ * (the cross-stick for the snare, the hat lighter and thinner, D931: every other stroke; the kick softer); Busoni's f busier (the kick's push before the
  * third beat, the hat opened on the last eighth of the bar), his p quieter; the BREAK: a bar of silence before the final
  * entry but for a two-note snare pick-up; the FLOURISH: a two-beat roll into the final chord, a crash, the kick and the
  * floor tom on it, then nothing (the cymbal rings out).
@@ -26,7 +26,7 @@
  * even eighths, all the way through; under a slow beat (MOTORIK_DOUBLE_FROM_S: the fugue's quaver the drummer's
  * crotchet) the motorik bar fills two of the fugue's beats, at the fugue's own tempo. The form heard only in subtle
  * ways: an open hi-hat on the last eighth before an entry (a crash, soft, on one not in stretto); the EPISODES a
- * little quieter (DRIFT); the BREAK, a bar of the hi-hat alone before the final entry; the end, the crash and the kick
+ * little quieter (DRIFT) and thinner (D931: the hat on every other stroke); the BREAK, a bar of the hi-hat alone before the final entry; the end, the crash and the kick
  * on the final chord, then nothing. No roll anywhere.
  */
 import type { TouchFugue } from "./fugue.ts";
@@ -264,6 +264,8 @@ function abbey(b: number, per: number, compound: boolean, tick: number, beat: nu
   if (backbeats(per).includes(b) && !(c.land && b === 0)) hit(c.episode ? "rim" : "snare", 0, (c.episode ? 0.62 : per === 3 && b === 2 ? 0.6 : 0.8) * (c.quiet && !c.episode ? 0.85 : 1));
   sub.forEach((at, j) => {
     if (c.land && at === 0) return;
+    // D931: the episodes' hat thinned (every other stroke: eighths for sixteenths, crotchets for eighths, 1 and 3 of a compound beat's three).
+    if (c.episode && j % 2) return;
     const open = c.busy && b === per - 1 && j === sub.length - 1;
     hit(open ? "openhat" : "hat", at, (j === 0 ? 0.55 : j % 2 ? 0.34 : 0.44) * soft);
   });
@@ -280,6 +282,8 @@ function motorik(b: number, per: number, compound: boolean, beat: number, beatS:
     const last = j === sub.length - 1;
     const open = !!next && last && Math.abs(tick + beat - next.at) < beat / 2;
     if (c.land && at === 0 && c.land.kind === "fill") return;
+    // D931: the episodes' hat thinned as ABBEY ROAD's (every other stroke; the open hat before an entry kept).
+    if (c.episode && j % 2 && !open) return;
     hit(open ? "openhat" : "hat", at, (j % 2 === 0 ? 0.5 : 0.36) * soft);
   });
   if (c.land && c.land.kind === "fill") hit("crash", 0, 0.42);

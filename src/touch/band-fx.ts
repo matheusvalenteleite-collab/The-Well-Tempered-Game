@@ -812,10 +812,25 @@ export const BRASS_LOW_LANE: EqBand[] = [{ type: "highpass", hz: 45, q: 0.7 }, {
 export const BRASS_HORN_LANE: EqBand[] = [{ type: "peaking", hz: 280, db: -3, q: 1 }];
 export const BRASS_HIP: EqBand[] = [{ type: "highpass", hz: 40, q: 0.7 }, { type: "peaking", hz: 250, db: -1, q: 1 }];
 export const BRASS_EARLY = { time: 0.019, feedback: 0, mix: 0.15, lp: 2500, hp: 200, drive: 1 } as const;
-export const KRAUT2_TRIM_DB = -13.2;
+// D931: -11.2 (-13.2 before): the band's whole level where it was on the phone model without the bus tape's gain.
+export const KRAUT2_TRIM_DB = -11.2;
+/**
+ * D931, PSYCH (and ABBEY ROAD) calmer, as SALSA (D923): the owner, "Abbey Road and possibly PSYCH have the same issue as
+ * I pointed out before with salsa". The bus tape gone (PSYCH's drive 1.8, ABBEY ROAD's 2.2: 3-5 dB off the band's
+ * transients at the same loudness), its low bump and its top kept as plain EQ, the top rolled from 9 kHz; the bus
+ * compressor eased (PSYCH's 1176 at -18 dB squeezed 9-10 dB on average, ABBEY ROAD's Fairchild at -22 dB 6); the trims
+ * so each band's whole stands where it did on the phone model.
+ */
+export const KRAUT2_BUS_THRESHOLD = -11;
+export const KRAUT2_FUZZ_DB = 5;
+export const KRAUT2_TOP: EqBand[] = [{ type: "peaking", hz: 90, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: 0.6 }];
+export const ABBEY2_BUS_THRESHOLD = -19;
+export const ABBEY2_MOOG_DB = 1.5;
+export const ABBEY2_TOP: EqBand[] = [{ type: "peaking", hz: 110, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: 0.6 }];
 /** D575: the guitar's tape echo, a colour (was mix 0.5, feedback 0.38, full band): its repeats' level, their regeneration, their band. */
 export const KRAUT_ECHO = { feedback: 0.24, mix: 0.2, hp: 300, lp: 2600 } as const;
-export const ABBEY2_TRIM_DB = -11.5;
+// D931: -7.1 (-11.5 before): the band's whole level where it was on the phone model without the bus tape's gain.
+export const ABBEY2_TRIM_DB = -7.1;
 export const PET2_TRIM_DB = -15.5;
 /**
  * (The wetness, measured after the classic bands found their drafted rooms 6-10 dB too wet: the reverb's share of the band's
@@ -836,13 +851,16 @@ export const BAND_CHAINS = {
       organ: [{ kind: "eq", bands: [{ type: "peaking", hz: 2500, db: 3, q: 1.2 }, { type: "lowpass", hz: 7000, q: 0.6 }] }, { kind: "phaser", rate: 0.25, hz: 900, sweep: 1500, mix: 0.45 }, { kind: "place", pan: -0.35 }],
       // D575 (the owner: "the guitar is becoming too wet and hard to understand the voice"): the echo a colour behind it,
       // not a second guitar: its repeats KRAUT_ECHO's (mix and feedback down, the repeats darker and thinner than the line).
-      guitar: [{ kind: "gain", db: 22 }, { kind: "fuzz", drive: 6, tone: 2600, level: 0.06 }, { kind: "place", pan: 0.4 }, { kind: "echo", time: 0.36, beats: 0.75, ...KRAUT_ECHO, pan: -0.6, wow: { rate: 0.55, depth: 0.0011 } }],
+      // D931: the fuzz's place in the band kept as the bus's 1176 eased (KRAUT2_FUZZ_DB).
+      guitar: [{ kind: "gain", db: 22 }, { kind: "fuzz", drive: 6, tone: 2600, level: 0.06 }, { kind: "gain", db: KRAUT2_FUZZ_DB }, { kind: "place", pan: 0.4 }, { kind: "echo", time: 0.36, beats: 0.75, ...KRAUT_ECHO, pan: -0.6, wow: { rate: 0.55, depth: 0.0011 } }],
       // D575: the Minimoog-style lead (sound.ts k2Synth): a little presence, the tape, a little left (the organ's seat).
       synth: [{ kind: "eq", bands: [{ type: "peaking", hz: 1800, db: 1.5, q: 1 }, { type: "lowpass", hz: 7500, q: 0.6 }] }, { kind: "tape", drive: 1.3, rolloff: 9000 }, { kind: "place", pan: -0.3 }],
       clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "place", pan: 0.55 }],
       mellotron: [{ kind: "tape", drive: 1.6, rolloff: 8000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 140, lp: 5500 }, { kind: "place", pan: 0.25 }],
     },
-    bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: -18 }, { kind: "tape", drive: 1.8, bump: { hz: 90, db: 1.5 }, rolloff: 12000 }, { kind: "gain", db: KRAUT2_TRIM_DB, phoneDb: KRAUT2_TRIM_DB - 1.2 }],
+    // D931: no bus tape (its drive 1.8 after the 1176 shaved the band's transients) and the 1176 eased (KRAUT2_BUS_THRESHOLD):
+    // the tape's bump and its top kept as EQ, the top rolled lower (KRAUT2_TOP: plank72 has no roll of its own).
+    bus: [{ kind: "eq", era: "plank72" }, { kind: "comp", model: "1176", threshold: KRAUT2_BUS_THRESHOLD }, { kind: "eq", bands: KRAUT2_TOP }, { kind: "gain", db: KRAUT2_TRIM_DB, phoneDb: KRAUT2_TRIM_DB - 1.2 }],
     reverb: { ir: "plate", seconds: 1.4, phoneSeconds: 0.9, rt60: 1.2, predelay: 0.01, hp: 250, lp: 6000, level: 0.8 },
   },
   // D544, ABBEY ROAD v2: EMI Studio Two, February-August 1969 (STUDY.md §2): the TG12345's eight tracks. The Gretsch through a
@@ -854,11 +872,15 @@ export const BAND_CHAINS = {
     lanes: {
       guitar: [{ kind: "leslie", speed: "chorale" }, { kind: "adt", delay: 0.018, depth: 0.0018, rate: 0.6, spread: 0.3, level: 0.8 }, { kind: "place", pan: -0.8 }],
       organ: [{ kind: "leslie", speed: "chorale" }, { kind: "tape", drive: 1.5 }, { kind: "place", pan: 0.8 }],
-      moog: [{ kind: "tape", drive: 1.3 }],
+      // D931: the Moog's place in the band kept as the bus's Fairchild eased (ABBEY2_MOOG_DB).
+      moog: [{ kind: "tape", drive: 1.3 }, { kind: "gain", db: ABBEY2_MOOG_DB }],
       brass: [{ kind: "adt", delay: 0.014, depth: 0.0012, rate: 0.5, spread: 0.4, level: 0.7 }, { kind: "comp", model: "fairchild" }, { kind: "place", pan: 0.6 }],
-      bass: [{ kind: "eq", bands: [{ type: "peaking", hz: 150, db: 2.5, q: 0.9 }, { type: "lowpass", hz: 1600, q: 0.7 }] }],
+      // D931: on a phone 1 dB up (the bus tape's harmonics, what a phone heard of it, gone): within D645's 6 LU.
+      bass: [{ kind: "eq", bands: [{ type: "peaking", hz: 150, db: 2.5, q: 0.9 }, { type: "lowpass", hz: 1600, q: 0.7 }] }, { kind: "gain", db: 0, phoneDb: 1 }],
     },
-    bus: [{ kind: "eq", era: "emi67" }, { kind: "comp", model: "fairchild" }, { kind: "tape", drive: 2.2, bias: 0.1, bump: { hz: 110, db: 1.5 }, rolloff: 11000 }, { kind: "gain", db: ABBEY2_TRIM_DB }],
+    // D931: no bus tape (its drive 2.2 shaved about 5 dB off the band's transients) and the Fairchild eased
+    // (ABBEY2_BUS_THRESHOLD): the tape's bump and its top kept as EQ, the top rolled lower (ABBEY2_TOP).
+    bus: [{ kind: "eq", era: "emi67" }, { kind: "comp", model: "fairchild", threshold: ABBEY2_BUS_THRESHOLD }, { kind: "eq", bands: ABBEY2_TOP }, { kind: "gain", db: ABBEY2_TRIM_DB }],
     reverb: { ir: "chamber", seconds: 1.6, phoneSeconds: 1.0, rt60: 1.4, predelay: 0.02, hp: 250, lp: 7000, brightness: 0.5, level: 0.28 },
   },
   // 1970s New York salsa (Fania): the brass section's lane bright and pushed; the tres crisp; bright console EQ, a fast
