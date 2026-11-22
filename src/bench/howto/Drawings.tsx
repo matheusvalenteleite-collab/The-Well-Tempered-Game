@@ -56,8 +56,9 @@ const WORD = {
   others: L("THE OTHERS", "AS OUTRAS", "LAS OTRAS"),
   bars: L("THUMB BARS", "BARRAS", "BARRAS"),
   subject: L("SUBJECT", "SUJEITO", "SUJETO"),
-  instr: L("PIANO · GUITARS · BASS", "PIANO · GUITARRAS · BAIXO", "PIANO · GUITARRAS · BAJO"),
-  organ: L("ORGAN: STEADY", "ÓRGÃO: ESTÁVEL", "ÓRGANO: ESTABLE"),
+  // D1003: PSYCH's band as it is (sound.ts krautrock: Mellotron, synthesizer, two guitars, Moog bass): no piano, no organ.
+  instr: L("SYNTH · MELLOTRON · GUITARS · BASS", "SYNTH · MELLOTRON · GUITARRAS · BAIXO", "SYNTH · MELLOTRON · GUITARRAS · BAJO"),
+  organ: L("HELD: SWELLS SIDEWAYS", "SEGURADA: CRESCE DE LADO", "MANTENIDA: CRECE DE LADO"),
 };
 
 function Txt({ x, y, children, ink = DIM, size = 8, anchor = "middle", weight }: { x: number; y: number; children: ReactNode; ink?: string; size?: number; anchor?: "start" | "middle" | "end"; weight?: number }) {

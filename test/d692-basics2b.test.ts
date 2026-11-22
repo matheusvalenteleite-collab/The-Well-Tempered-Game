@@ -146,5 +146,5 @@ test("D696: BASICS shows no registration stops (the harpsichord's I · II · III
 test("D700: a BASICS passage names the piece's key in the header (6.4: D MINOR, not bar 50's C major)", () => {
   assert.match(src("src/bench/BenchApp.tsx"), /key: bStage \? f\.key : keyAt\(f, from\),/);
   assert.match(src("src/bench/BenchApp.tsx"), /key: bStage \? f\.key : g\.keyNow\(\),/);
-  assert.match(src("src/bench/BenchApp.tsx"), /keyName\(bStage \? f\.key : frame\.current\.key\)/);
+  assert.match(src("src/bench/BenchApp.tsx"), /keyName\(bStage \? f\.key : hudKey\)/); // D1002: the header's key from state
 });

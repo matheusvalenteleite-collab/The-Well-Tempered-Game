@@ -707,6 +707,15 @@ export function BenchApp() {
   const game = useRef<ProtoGame | null>(null);
   const paint = useRef<Painter | null>(null);
   const frame = useRef<Frame>(preview());
+  // D1002: the header's key as React state, set whenever the frame's key changes (the frame loop, a new preview): the
+  // header read frame.current.key only when something else re-rendered it, so it could stay on the last piece's key.
+  const [hudKey, setHudKey] = useState(() => frame.current.key);
+  const hudKeyRef = useRef(frame.current.key);
+  const keyShown = (k: string) => {
+    if (k === hudKeyRef.current) return;
+    hudKeyRef.current = k;
+    setHudKey(k);
+  };
   const count = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   /** D391: the side bar's translation of the whole reading's word in force on the player's line (set by the frame loop). */
@@ -762,7 +771,10 @@ export function BenchApp() {
 
   useEffect(() => {
     shownAt.current = performance.now();
-    if (phase.kind !== "play" && phase.kind !== "result") frame.current = preview();
+    if (phase.kind !== "play" && phase.kind !== "result") {
+      frame.current = preview();
+      keyShown(frame.current.key);
+    }
   }, [phase, pick]);
 
   function ensureChip(): Chip {
@@ -1038,6 +1050,7 @@ export function BenchApp() {
         // D327: on the two bars the legend stands in the right side bar (SideLegend), off the first subject.
         ...(proto.layout === "bars" ? {} : { legendUntil: from + LEGEND_S * g.tps }),
       };
+      keyShown(frame.current.key);
       // D442, THE REVEAL: Glenn's word for each new step, from a bar before it to a bar and a half into it.
       if (hintRef.current && proto.layout === "bars" && revealPlan && !man) {
         placeHint(hintRef.current, g, from, true);
@@ -2118,7 +2131,7 @@ export function BenchApp() {
           <>
             <span className="tg-hud-title">{man ? `${man.id} · ${tr(manLesson?.english ?? "")}` : lesson ? `${tr("LESSON")} ${lesson.n + 1} · ${tr(TRACKS[lesson.pl][lesson.n].english)}` : APP.lite ? liteTitle(f) : `BENCH · ${proto.name}`}</span>
             {/* D700: BASICS names its piece's key when it renders (frame.current can still hold the screen before's). */}
-            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(bStage ? f.key : frame.current.key) : keyName(bStage ? f.key : frame.current.key)}</span>
+            <span className="tg-hud-bar">{APP.lite && lang() !== "en" ? keyWordsIn(bStage ? f.key : hudKey) : keyName(bStage ? f.key : hudKey)}</span>
             {playing && listening.current && (
               // D457: a take played back, named in the title bar.
               <span className="tb-tools-tag" id="listen-tag">
