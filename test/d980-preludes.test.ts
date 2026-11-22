@@ -16,14 +16,15 @@ test("D980: the gate: a PRELUDE_PLAN row not held; the voices offered exist and 
   const { fugueById } = await import("../src/touch/fugue.ts");
   assert.ok(preludeReady("wtc1p01") && preludeReady("wtc1p12"));
   // (I/2: held by D883 until Progression's row lands; the loop below holds either way.)
-  assert.ok(!preludeReady("wtc2p01"), "Book II: no rows yet");
+  assert.ok(!preludeReady("wtc2p01"), "D988: Book II COMING until the board opens it (PRELUDE_BOOKS)");
   assert.ok(!preludeReady("wtc1f01") && !preludeReady("bwv772"));
   for (let n = 1; n <= 24; n++) {
     const id = `wtc1p${String(n).padStart(2, "0")}`;
     assert.equal(preludeReady(id), !!PRELUDE_PLAN[id] && !PRELUDE_PLAN[id].held, id);
+    assert.ok(preludeReady(id), `${id}: all of Book I offered`);
   }
   for (const [id, plan] of Object.entries(PRELUDE_PLAN)) {
-    if (plan.held) continue;
+    if (plan.held || !preludeReady(id)) continue;
     const f = fugueById(id);
     assert.deepEqual(voicesFrom(f, 0), [...plan.offer].sort((a, b) => a - b), `${id}: exactly the voices offered`);
     for (const v of plan.offer) {
@@ -63,8 +64,8 @@ test("D980: PRELUDE | FUGUE in the right column; COMING for a prelude not ready;
 test("D980, D985: the prelude's world and sound are its fugue's; a prelude not ready keeps its own sound", async () => {
   const { PIECE_SOUND } = await import("../src/touch/piece-sound.ts");
   const { hasStage } = await import("../src/touch/stage-bg.ts");
-  const { PRELUDE_PLAN } = await import("../src/touch/prelude-plan.ts");
-  for (const [id, plan] of Object.entries(PRELUDE_PLAN)) if (!plan.held) assert.equal(PIECE_SOUND[id], PIECE_SOUND[id.replace("p", "f")], id);
+  const { PRELUDE_PLAN, preludeReady } = await import("../src/touch/prelude-plan.ts");
+  for (const [id, plan] of Object.entries(PRELUDE_PLAN)) if (!plan.held && preludeReady(id)) assert.equal(PIECE_SOUND[id], PIECE_SOUND[id.replace("p", "f")], id);
   assert.equal(PIECE_SOUND.wtc1p05, "bachBrass");
   // A prelude not ready keeps its own: Book II's (no rows yet).
   assert.equal(PIECE_SOUND.wtc2p01, "harpsichordSampled");
