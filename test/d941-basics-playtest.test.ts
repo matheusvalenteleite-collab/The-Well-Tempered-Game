@@ -76,6 +76,7 @@ test("no count-in (PROVE waits at its first note too); the take ends at its last
       }
   assert.deepEqual(["1.1", "1.2", "2.4", "3.1", "4.2", "5.1", "5.2", "6.6"].map((id) => beatFor(stage(id))), [null, { kind: "click", gain: 0.07 }, { kind: "click", gain: 0.07 }, { kind: "drums", style: "rock" }, { kind: "drums", style: "rock" }, { kind: "click", gain: 0.05 }, null, { kind: "drums", style: "home" }]);
   assert.ok(basicsRun(stage("1.2"), "do", 0).click);
+  assert.deepEqual(beatFor(stage("6.7")), { kind: "drums", style: "liebezeit" });
   assert.equal(basicsRun(stage("3.1"), "do", 0).tut?.band, true);
 });
 
