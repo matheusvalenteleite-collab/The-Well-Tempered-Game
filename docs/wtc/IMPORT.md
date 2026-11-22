@@ -273,7 +273,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f02 | b. 27, voice 1, beat 3.5: F#4 → F4 (slip: F natural, as the Humdrum check and Mutopia have it) |
 | wtc2f02 | b. 28, voice 1, beat 0: E4 → Eb4 (slip: the final chord's E flat, as the Humdrum check and Mutopia have it) |
 | wtc2p03 | 1 written-out trills folded back into their notes |
-| wtc2p03 | re-voiced (layers): 3 voices, 59 notes placed by the nearest voice (D881) |
+| wtc2p03 | re-voiced (layers): 3 voices, 1 notes placed by the nearest voice (D881) |
 | wtc2f03 | b. 21, voice 0, beat 2: E#4 → F#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f03 | b. 19, voice 0, beats 3-3.25: E#5 → E#5 F#5 (slip: the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's "sic", the witness agrees)) |
 | wtc2f03 | b. 19, voice 0, beats 3.5-3.75: C#5 → C#5 D#5 (slip: the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's "sic", the witness agrees)) |

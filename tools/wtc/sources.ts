@@ -529,7 +529,9 @@ const REVOICE: Record<number, Revoice> = {
 const L3 = (s: number, a: number): Revoice => ({ how: "layers", map: { [`0:${s}`]: 0, [`0:${a}`]: 1, "1:0": 2 }, count: 3 });
 const REVOICE2: Record<number, Revoice> = {
   1: { how: "melody" },
-  3: L3(1, 0),
+  // D961: and its left hand's second layer (the opening's held pedal, C#3 under the figure) the bass's: left to the
+  // nearest voice it fell in the soprano, free above while the bass sounded.
+  3: { how: "layers", map: { "0:1": 0, "0:0": 1, "1:0": 2, "1:1": 2 }, count: 3 },
   4: L3(0, 1),
   5: L3(0, 1),
   9: L3(0, 1),
