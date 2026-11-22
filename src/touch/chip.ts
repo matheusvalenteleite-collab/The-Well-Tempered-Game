@@ -130,6 +130,12 @@ export const VOICE_CAP = { phone: 32, computer: 64, phoneSustained: 18 };
  */
 export const CHAIN = { xf: 0.3, points: 10, tries: 6, spread: 0.8, least: 1.2, max: 16 };
 /**
+ * D1010: the Q of a sound's own top (Preset.top), as the Web Audio API reads a lowpass's Q (in dB: the resonance 10^(Q/20)):
+ * a Butterworth's (a resonance of 1/sqrt 2), flat under the corner and no peak (0.6 there, D931's, is 1.07: about +1.4 dB at
+ * 7-9 kHz).
+ */
+export const TOP_Q = 20 * Math.log10(Math.SQRT1_2);
+/**
  * D249: on a phone, a sustained recorded sound (the organ: 10-16 nodes a note, every note held on its
  * loop) has the lower cap, and ORGANO PLENO's extra pipes count against it, one each.
  */
@@ -1433,7 +1439,10 @@ export class Chip {
   /** D540: the band chain the preset now asks for, built or taken down (its tail let ring out, then disconnected). */
   private bandChain() {
     const spec = preset().chain ?? null;
-    if ((this.chain?.spec ?? null) === spec) return;
+    // D1010: a sound's own top (Preset.top), where it has no chain: a gentle lowpass between the notes' way in and the master.
+    const top = spec ? 0 : (preset().top ?? 0);
+    if ((this.chain?.spec ?? null) === spec && this.topHz === top) return;
+    this.topHz = top;
     const old = this.chain;
     this.chain = null;
     this.laneMine.clear();
@@ -1457,8 +1466,20 @@ export class Chip {
       this.bandIn.connect(this.chain.input);
       this.chain.output.connect(this.master);
       if (this.lastBeatS) this.chain.setBeat(this.lastBeatS);
+    } else if (top) {
+      if (!this.top) {
+        this.top = this.ctx.createBiquadFilter();
+        this.top.type = "lowpass";
+        this.top.Q.value = TOP_Q;
+        this.top.connect(this.master);
+      }
+      this.top.frequency.value = top;
+      this.bandIn.connect(this.top);
     } else this.bandIn.connect(this.master);
   }
+  /** D1010: the sound's own top (Preset.top) now, 0 for none; its lowpass, made the first time a sound asks for one. */
+  private topHz = 0;
+  private top: BiquadFilterNode | null = null;
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
   get input(): AudioNode {
