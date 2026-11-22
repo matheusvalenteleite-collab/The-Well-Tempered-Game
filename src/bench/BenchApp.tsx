@@ -137,7 +137,7 @@ import { askToKeep, lasting, putTake, starTake, takeCounts, takesOf } from "./ta
 import { backingFor, gains, readMix } from "./takes/myfugue.ts";
 import { Filmer, type FilmStats } from "./takes/film.ts";
 import { onHomeScreen, TakesPanel, takeVoiceWord } from "./TakesPanel.tsx";
-import { handsFlag, handsOf } from "../touch/two-hands.ts";
+import { handsFlag, handsFugue, handsOf } from "../touch/two-hands.ts";
 import { setHandInks } from "../touch/voice-inks.ts";
 import { HandsList } from "./HandsList.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
@@ -469,8 +469,10 @@ export function BenchApp() {
   const run = lesson?.run ?? manRun ?? bRun;
   // D862, TWO HANDS (the prototype, play.html?proto=hands only): its piece played apart from the pick (a prelude
   // stays off the phone's selection, D263): LADDER, the left thumb the left hand, the right thumb the right.
-  const f = fugueById(run?.piece ?? handsPiece ?? pick.piece);
-  const twoHands = !run && handsPiece !== null && f.id === handsPiece ? handsOf(f.id) : null;
+  const f0 = fugueById(run?.piece ?? handsPiece ?? pick.piece);
+  const twoHands = !run && handsPiece !== null && f0.id === handsPiece ? handsOf(f0.id) : null;
+  // D888: a re-voiced prelude given back to TWO HANDS as its two hands.
+  const f = twoHands ? handsFugue(f0) : f0;
   // D229: a prelude on HIGHWAY (a phone's five lanes, a computer's keys), a fugue in the mode chosen.
   // D237: the minimal page: a phone's prelude on HIGHWAY, its fugue on LADDER; a computer's both on HIGHWAY (keys).
   const proto = protoById(run ? run.proto : twoHands ? "ladder" : stageMode(f, platform, APP.lite ? (platform === "computer" ? "keys" : "ladder") : offered(pick.proto, platform, midi.length > 0)));

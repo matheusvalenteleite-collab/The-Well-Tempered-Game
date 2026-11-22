@@ -3,6 +3,14 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Chorales (22 November 2026)
+
+- **Lyrics at the top of the music box, not the bottom.** The owner: "chorales lyrics should appear on top of
+  music box, not bottom. possibly the lyrics could appear in the upper rectangle box which displays title of piece.
+  but maybe it's a better idea to have them top of music box, below upper rectangle title box." Leaning: a line at
+  the top of the box, just under the title bar (D679's words line moved up). Live hit-test at 932 and 667, and keep
+  it clear of the cadence names and the ornament hint.
+
 ## Chorales (18 November 2026)
 
 - **Fewer fermata slowdowns in the chorales.** The owner: "I want to eliminate the fermata slowing downs of the
