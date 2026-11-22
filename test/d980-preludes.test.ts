@@ -16,12 +16,13 @@ test("D980: the gate: a PRELUDE_PLAN row not held; the voices offered exist and 
   const { fugueById } = await import("../src/touch/fugue.ts");
   assert.ok(preludeReady("wtc1p01") && preludeReady("wtc1p12"));
   // (I/2: held by D883 until Progression's row lands; the loop below holds either way.)
-  assert.ok(!preludeReady("wtc2p01"), "D988: Book II COMING until the board opens it (PRELUDE_BOOKS)");
+  // D997 (the owner: "I want Preludes book ii too now"): Book II open (PRELUDE_BOOKS [1, 2]).
+  assert.ok(preludeReady("wtc2p01") && preludeReady("wtc2p24"), "D997: Book II offered");
   assert.ok(!preludeReady("wtc1f01") && !preludeReady("bwv772"));
-  for (let n = 1; n <= 24; n++) {
-    const id = `wtc1p${String(n).padStart(2, "0")}`;
+  for (let n = 1; n <= 48; n++) {
+    const id = `wtc${n <= 24 ? 1 : 2}p${String(((n - 1) % 24) + 1).padStart(2, "0")}`;
     assert.equal(preludeReady(id), !!PRELUDE_PLAN[id] && !PRELUDE_PLAN[id].held, id);
-    assert.ok(preludeReady(id), `${id}: all of Book I offered`);
+    assert.ok(preludeReady(id), `${id}: all 48 offered (D997)`);
   }
   for (const [id, plan] of Object.entries(PRELUDE_PLAN)) {
     if (plan.held || !preludeReady(id)) continue;
@@ -52,10 +53,13 @@ test("D980: PRELUDE | FUGUE in the right column; COMING for a prelude not ready;
   assert.match(pre, /id="tile-wtc1f05"[^>]*aria-pressed="true"/, "the key's tile lit");
   assert.match(pre, /id="ppip-wtc1f09"/, "I/9's prelude finished: its P");
   assert.doesNotMatch(pre, /id="ppip-wtc1f05"/);
-  // A prelude not ready: Book II's (no rows yet).
-  const held = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc2f07", current: "wtc2f07", beaten: [] }));
-  assert.match(held, /id="sel-stage-prelude" class="soon" disabled="" aria-disabled="true">PRELUDE<i>COMING<\/i>/);
-  assert.match(held, /id="sel-stage-fugue" class="on"/);
+  // D997: Book II's keys too (II/7's prelude offered).
+  const two = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc2f07", current: "wtc2f07", beaten: ["wtc2p07"] }));
+  assert.match(two, /id="sel-stage-prelude" class="" aria-pressed="false">PRELUDE</);
+  assert.match(two, /id="sel-stage-fugue" class="on"/);
+  // A prelude not ready (held, or a row taken away) still says COMING: every WTC prelude is planned now, so the source keeps it.
+  const src = (await import("node:fs")).readFileSync(new URL("../src/bench/Selection.tsx", import.meta.url), "utf8");
+  assert.match(src, /className="soon" disabled aria-disabled="true">\s*\{tr\("PRELUDE"\)\}\s*<i>\{tr\("COMING"\)\}<\/i>/);
   // D988: the normal view as before: no switch, no P.
   const normal = renderToStaticMarkup(createElement(Selection, { ...base, preludes: false, piece: "wtc1f09", current: "wtc1f09", beaten: ["wtc1p09"] }));
   assert.doesNotMatch(normal, /sel-stage|ppip-/);
@@ -67,8 +71,8 @@ test("D980, D985: the prelude's world and sound are its fugue's; a prelude not r
   const { PRELUDE_PLAN, preludeReady } = await import("../src/touch/prelude-plan.ts");
   for (const [id, plan] of Object.entries(PRELUDE_PLAN)) if (!plan.held && preludeReady(id)) assert.equal(PIECE_SOUND[id], PIECE_SOUND[id.replace("p", "f")], id);
   assert.equal(PIECE_SOUND.wtc1p05, "bachBrass");
-  // A prelude not ready keeps its own: Book II's (no rows yet).
-  assert.equal(PIECE_SOUND.wtc2p01, "harpsichordSampled");
+  // D997: Book II's on its fugue's.
+  assert.equal(PIECE_SOUND.wtc2p01, PIECE_SOUND.wtc2f01);
   assert.ok(hasStage("wtc1p09") && hasStage("wtc2p24"));
 });
 
