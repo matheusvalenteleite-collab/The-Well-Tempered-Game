@@ -351,27 +351,30 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
   // fill that breaks the trance: drum-presets.ts kitBeatTrance), the episodes the same loop softer. The club kit dry and
   // close (the room's share a fifth of the others').
   liebezeit: {
+    // D932: darker and sparser (D924's way; the hats' sixteenths and the snare's ghosts the hiss over 7 kHz on PSYCH's band,
+    // 8-10 strokes a second): the kick's loop and the snare's backbeat the spine, the hats soft, off the beat only, one high and one low
+    // tom a bar answering each other (the six variations theirs and the kick's), a ghost only now and then.
     duple: g(4, 4, {
       kick: "#... ..x. ..#. ....|#... ..x. ..#. ....|#... ...x ..#. ..x.|#... ..x. ..#. ....|#..x ..x. ..#. ....|#... ...x ..#. ..x.",
-      snare: "..-. X..- .-.. X.-.|..-. X..- .-.. X.-.|.-.. X..- ..-. X.-.|..-. X.-- .-.. X.-.|..-. X..- .-.. X..-|.-.. X..- ..-. X.--",
-      hat: "x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-.-|x-X- x-x- x-X- x-x-|x-X- x-x- x-X- x-.-",
+      snare: ".... X... .... X...|.... X... .... X..-|.... X... .... X...|.... X... ..-. X...|.... X... .... X...|.... X... .... X.-.",
+      hat: "..o. ..o. ..o. ..o.|..o. ..o. ..o. ..o.|..o. ..o. ..o. ..o.|..o. ..o. ..o. ....|..o. ..o. ..o. ..o.|..o. ..o. ..o. ....",
       openhat: ".... .... .... ....|.... .... .... ....|.... .... .... ....|.... .... .... ..o.|.... .... .... ....|.... .... .... ..o.",
-      tomHigh: ".... .... .o.. ....|.... ...o .... .o..|.... .... .o.. ....|...o .... .o.. ....|.... .... .o.o ....|...o .... .... .o..",
-      tomLow: ".... ..o. .... ..o.|.... .... ..o. ...o|.... ..o. .... ..o.|.... ..o. .... ...o|.... ..o. .... ...o|.... ..o. ..o. ....",
+      tomHigh: ".... .... .o.. ....|.... ...o .... ....|.... .... .... .o..|...o .... .... ....|.... .... .o.. ....|.... .... .... .o..",
+      tomLow: ".... ..o. .... ....|.... .... ..o. ....|.... ..o. .... ....|.... .... .... ...o|.... .... .... ...o|.... ..o. .... ....",
     }),
     triple: g(3, 4, {
       kick: "#... ..x. ....|#... .... ..x.|#..x .... ..x.",
-      snare: "..-. X..- .-..|..-. X..- ..-.|.-.. X.-- .-..",
-      hat: "x-X- x-x- x-X-",
-      tomHigh: ".... .... .o..|...o .... .o..|.... ...o ....",
-      tomLow: ".... ..o. ...o|.... ..o. ....|.... ..o. ..o.",
+      snare: ".... X... ....|.... X... ....|.... X..- ....",
+      hat: "..o. ..o. ..o.",
+      tomHigh: ".... .... .o..|...o .... ....|.... ...o ....",
+      tomLow: ".... ..o. ....|.... .... ..o.|.... .... ...o",
     }),
     compound: g(4, 3, {
       kick: "#.. .x. #.. ...|#.. .x. #.. ..x|#.x ... #.. .x.",
-      snare: ".-. X.- .-. X..|.-. X.- ..- X.-|.-. X.- .-. X--",
-      hat: "xoX xoX xoX xoX",
-      tomHigh: "... ..o ... o..|..o ... ... ..o|... ..o .o. ...",
-      tomLow: "..o ... ..o ...|... ..o ..o ...|..o ... ... o..",
+      snare: "... X.. ... X..|... X.. ... X..|... X.. ... X.-",
+      hat: "..o ..o ..o ..o",
+      tomHigh: "... ..o ... ...|..o ... ... ...|... ... .o. ...",
+      tomLow: "..o ... ... ...|... ... ..o ...|... ..o ... ...",
     }),
     bpm: [62, 104],
     climax: "open",
@@ -382,7 +385,7 @@ export const GRIDS: Readonly<Record<string, GridStyle>> = {
     trance: true,
     send: 0.02,
     humanS: 0.005,
-    share: 0.8,
+    share: 0.7, // D932: 0.8 before
   },
   // ARCADE (D568): videogame drums for "such a bouncy videogamey fugue … keep the PINBALL vibe": a chip kit (a kick swept
   // down from a pulse's chirp, a noise-channel snare, square clicks for the hats), bouncing: the kick on 1 and the

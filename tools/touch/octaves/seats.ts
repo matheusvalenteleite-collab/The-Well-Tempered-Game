@@ -11,7 +11,7 @@
  * the set as the fugue's plan leaves it), the band's own instruments traded or a substitute taken for it; STRETCH_KEPT's
  * instruments excepted (a band's own colour kept on its line: test/d635's allow-list says why).
  * The bass keeps its instrument (the phone's bass, the band's foundation): its set extended where it must be. The seat's pan
- * and level stay (the mix as it was); only the instrument changes.
+ * and level stay (the mix as it was; D933: but where SEAT_LEVELS says); only the instrument changes.
  *
  *   node tools/touch/octaves/seats.ts          writes src/touch/octave-seats.ts and lists every swap
  */
@@ -28,6 +28,12 @@ import { TRIO_ID, trioLayout } from "../../../src/touch/trio.ts";
 import { WTC_FUGUES } from "./audit.ts";
 
 type Slot = readonly [PatchId, number, number?];
+/**
+ * D933: a seat's level where its substitute sounds far louder than the instrument it replaces (by voice): BAROQUE BAND's
+ * oboe on I/9's top line (the violin's seat, 1.11) measured 7.9 dB over the violin and 5.9 over the cello on the phone
+ * model, the band's trims lifting the others 5.5 dB to it (the whole -20.8 LUFS, into the limiter); 0.79 (-3 dB: still the top, the balance kept; sound.ts levels the rest).
+ */
+export const SEAT_LEVELS: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, number>>>>>> = { baroqueBand: { wtc1f09: { 0: 0.79 } } };
 /** Semitones past the reach a near substitute may miss by and still take the seat (its set extended that far: II/10's C3 on the trumpet, E3's recording read 4 down). */
 export const NEAR_TOL = 1;
 /** Semitones past the reach the own instrument may miss by before a far substitute is weighed. */
@@ -202,7 +208,8 @@ export function seatsFor(sound: string) {
         const hi = Math.max(...line);
         log.push(`${sound} ${f.id} v${v} (${nameOfMidi(lo)}-${nameOfMidi(hi)}): ${seat[0]} (misses by ${excess(seat[0], line)}) → ${pick} (${excess(pick, line)})${traded[v] !== seat[0] && pick === traded[v] ? " (traded)" : ""}`);
       }
-      slots.push(seat.length > 2 ? [pick, seat[1], seat[2]] : [pick, seat[1]]);
+      const lv = SEAT_LEVELS[sound]?.[f.id]?.[v] ?? seat[2];
+      slots.push(lv !== undefined ? [pick, seat[1], lv] : [pick, seat[1]]);
     }
     if (changed) out[f.id] = { [count]: slots };
   }
@@ -329,7 +336,8 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
         changed = true;
         log.push(`${sound} ${f.id} v${v} (${nameOfMidi(Math.min(...line))}-${nameOfMidi(Math.max(...line))}): ${seat[0]} (${st} stretched) → ${pick} (${partsStretch(pick, line, staged)})`);
       }
-      slots.push(seat.length > 2 ? [pick, seat[1], seat[2]] : [pick, seat[1]]);
+      const lv = SEAT_LEVELS[sound]?.[f.id]?.[v] ?? seat[2];
+      slots.push(lv !== undefined ? [pick, seat[1], lv] : [pick, seat[1]]);
     }
     if (changed) out[f.id] = { [count]: slots };
   }
