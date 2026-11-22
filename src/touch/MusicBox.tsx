@@ -451,7 +451,11 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const shift = chromaShift(bh);
   const altOf = (step: number, midi: number) => (shift && hOf(step) === bh ? alterAgainst(step, midi, sig) : 0);
 
-  const fx = { g, w, h, left: Math.round(cl), play: playX, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count) };
+  // D972: the entry tabs drawn last frame (the fugues' morphs keep their emblem clear of them) and this frame (their tag)
+  TABS_PREV.length = 0;
+  TABS_PREV.push(...TABS_NOW);
+  TABS_NOW.length = 0;
+  const fx = { g, w, h, left: Math.round(cl), play: playX, xOf, yOf, hOf, bh, now: fr.now, tps: fr.tps, gold: tok("--tg-gold"), miss: tok("--tg-miss"), fg: tok("--tg-fg"), ink: (v: number) => inkOf(v, fr.count), tabs: TABS_NOW };
   // D372: the effects' clock (s), and the voices played (the effects' passes).
   const fxClock = performance.now() / 1000;
   PLAYED_VOICES[0] = fr.voice;
@@ -583,7 +587,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // voices (dimmed while a shape flies), under the player's notes, which never move and stay on top.
   // The landing flare is drawn once more over the player's notes (below), as an outline: it frames them, never hides them.
   // D972: a fugue's transformed entries morph the same way (fugue-morph.ts), in the same two passes.
-  const canonGeo = fr.piece && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), gold: fx.gold, left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
+  const canonGeo = fr.piece && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), gold: fx.gold, textW: (t: string) => textWidth(t, 1), free: (x0: number, x1: number, y0: number, y1: number) => !blockedAt(x0, x1, y0, y1, -1) && !TABS_NOW.some((r) => r.x < x1 && r.x + r.w > x0 && r.y < y1 && r.y + r.h > y0), tabsBelow: (x0: number, x1: number) => TABS_PREV.reduce((b, r) => (r.x < x1 && r.x + r.w > x0 ? Math.max(b, r.y + r.h) : b), 0), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
   const morphs = (pass: "under" | "over") => {
     if (!canonGeo || !fr.piece) return;
     if (CANONS[fr.piece]) paintCanon(g, fugueById(fr.piece), canonGeo, pass);
@@ -1375,3 +1379,7 @@ function unmorphed(spans: Span[], keys: ReadonlySet<string>): Span[] {
   unmorphedMemo.set(spans, { keys, out });
   return out;
 }
+
+/** D972: the entry tabs' rectangles, last frame's and this frame's (box-fx entryMarks fills `tabs`). */
+const TABS_PREV: { x: number; y: number; w: number; h: number }[] = [];
+const TABS_NOW: { x: number; y: number; w: number; h: number }[] = [];

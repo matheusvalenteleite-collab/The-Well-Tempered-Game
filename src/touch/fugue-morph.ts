@@ -139,7 +139,45 @@ const EMPTY: ReadonlySet<string> = new Set();
 const keyMemo = new WeakMap<TouchFugue, Set<string>>();
 
 /** The box's geometry, as the canons' (canon-echo.ts EchoGeo), with the subject's gold for the emblem. */
-export type MorphGeo = EchoGeo & { gold: string };
+export type MorphGeo = EchoGeo & {
+  gold: string;
+  /** The box's pixel text's width. */
+  textW?: (s: string) => number;
+  /** Whether a rectangle is clear of every note and every entry tab (the tag's place: never over notes). */
+  free?: (x0: number, x1: number, y0: number, y1: number) => boolean;
+  /** The lowest entry tab's bottom over these columns (0: none): the emblem stands under them. */
+  tabsBelow?: (x0: number, x1: number) => number;
+};
+/** Per morph, between frames: the tag's place (kept while it stays clear) and the flying copy's extent this frame. */
+const tagAt = new WeakMap<FugueMorph, { x: number; y: number }>();
+const copyBox = new WeakMap<FugueMorph, { x0: number; x1: number; y0: number; y1: number }>();
+/** After a search finds no clear place, none is sought again before this tick (the search is not every frame's cost). */
+const tagRetry = new WeakMap<FugueMorph, number>();
+/**
+ * The tag's place (the board: never over notes, nor the entry tabs, nor the copy itself): the first clear slot from the
+ * box's top left (rows of 2 px down to half the box, columns of 6 px), kept while it stays clear; none, no tag.
+ */
+function tagPlace(m: FugueMorph, k: MorphGeo, tw: number, th: number): { x: number; y: number } | null {
+  const cb = copyBox.get(m);
+  const clear = (x: number, y: number) => {
+    if (cb && cb.x0 < x + tw + 2 && cb.x1 > x - 2 && cb.y0 < y + th + 1 && cb.y1 > y - 2) return false;
+    return !k.free || k.free(x - 2, x + tw + 2, y - 2, y + th + 1);
+  };
+  const had = tagAt.get(m);
+  if (had && clear(had.x, had.y)) return had;
+  if ((tagRetry.get(m) ?? -Infinity) > k.now) return null;
+  const right = k.w - k.left - tw - 4;
+  for (let y = 2; y < k.h * 0.5; y += 2)
+    for (let x = k.left + 6; x <= right; x += 6)
+      if (clear(x, y)) {
+        const at = { x, y };
+        tagAt.set(m, at);
+        return at;
+      }
+  tagAt.delete(m);
+  tagRetry.set(m, k.now + k.barTicks / 8);
+  return null;
+}
 
 /** From the neighbour if its first note is on screen as the morph lifts off (the box's view runs `now - t0` behind). */
 export const fromNeighbour = (m: FugueMorph, k: { now: number; t0: number }) => !!m.src && m.src.on >= m.n.start - (k.now - k.t0);
@@ -201,7 +239,6 @@ export function paintFugueMorphs(g: CanvasRenderingContext2D, f: TouchFugue, k: 
   if (!ms.length) return;
   const q = f.tpq, under = pass !== "over", over = pass !== "under";
   g.save();
-  let tags = 0;
   for (const m of ms) {
     if (k.now >= m.end || k.now < m.e.start) continue;
     const near = fromNeighbour(m, k);
@@ -215,7 +252,8 @@ export function paintFugueMorphs(g: CanvasRenderingContext2D, f: TouchFugue, k: 
       g.fillRect(0, 0, k.w, k.h);
     }
     if (under && k.now < m.n.landed) {
-      const top = (k.labelY ?? 6) + 10;
+      // the emblem's band: in the top margin, under any entry tab over its columns (kept clear of the flags)
+      const top = Math.max((k.labelY ?? 6) + 10, (k.tabsBelow ? k.tabsBelow(Math.min(k.xOf(m.tB0), k.w - k.left - k.w * 0.4) - 4, k.w) : 0) + 3);
       if (!near) {
         // the emblem's frame, until it leaves
         const first = emblemAt(m, 0, k.now, k, top), lastN = emblemAt(m, m.S.length - 1, k.now, k, top);
@@ -243,8 +281,13 @@ export function paintFugueMorphs(g: CanvasRenderingContext2D, f: TouchFugue, k: 
           }
         }
       }
+      const box = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
       for (let i = 0; i < m.T.length; i++) {
         const r = near ? neighbourAt(m, i, k.now, k) : emblemAt(m, i, k.now, k, top);
+        box.x0 = Math.min(box.x0, r.x - 3);
+        box.x1 = Math.max(box.x1, r.x + r.w + 3);
+        box.y0 = Math.min(box.y0, r.y - r.h / 2 - 3);
+        box.y1 = Math.max(box.y1, r.y + r.h / 2 + 3);
         const al = near ? 1 : (r as Rect & { a: number }).a;
         g.fillStyle = r.col;
         g.globalAlpha = 0.18 * al;
@@ -257,14 +300,26 @@ export function paintFugueMorphs(g: CanvasRenderingContext2D, f: TouchFugue, k: 
         g.fillStyle = "#ffffff";
         g.fillRect(r.x, r.flip ? r.y + r.h / 2 - 1 : r.y - r.h / 2, r.w, 1);
       }
-    }
-    if (under && !k.quiet && k.now < m.end) {
-      // the tag, fading as it lands
+      if (!near && k.now < m.e.fly + q) {
+        // the emblem's frame counts as the copy too
+        box.y0 = Math.min(box.y0, top - 2);
+        box.y1 = Math.max(box.y1, top + Math.max(8, Math.round(k.bh * 2.5)) + 6);
+      }
+      copyBox.set(m, box);
+    } else if (under) copyBox.delete(m);
+    if (over && !k.quiet && k.now < m.end) {
+      // the tag, fading as it lands, in a clear place: never over the notes, the entry tabs or the copy (the board); on
+      // a dark backing; two at once each find their own (the first's place is taken by then)
       const fadeL = 1 - Math.max(0, Math.min(1, (k.now - m.n.landed) / (2 * q)));
-      const from = near ? tr("FROM BAR {n}", { n: m.src!.bar }) : m.name;
-      g.globalAlpha = 0.9 * fadeL;
-      // two at once (a first form beside another): the second tag under the first
-      k.text(g, `${from} · ${m.what}`, k.left + 6, (k.labelY ?? 6) + 9 * tags++, k.gold);
+      const from = near ? tr("FROM BAR {n}", { n: m.src!.bar }) : m.name, s = `${from} · ${m.what}`;
+      const tw = k.textW ? k.textW(s) : s.length * 6, at = tagPlace(m, k, tw, 7);
+      if (at) {
+        g.globalAlpha = 0.85 * fadeL;
+        g.fillStyle = "#0b0d18";
+        g.fillRect(at.x - 2, at.y - 2, tw + 4, 10);
+        g.globalAlpha = fadeL;
+        k.text(g, s, at.x, at.y, k.gold);
+      }
     }
     if (over && k.now >= m.n.landed - q / 4) {
       // landed: the entry's notes flare in their own colour (an outline over them), then settle

@@ -104,3 +104,15 @@ test("step 1: on the subject card a form chosen is first shown made from the sub
   assert.match(body, /const col = mix\(m\.fromInk, m\.toInk, u\);/);
   assert.ok(!/shadowBlur/.test(body));
 });
+
+test("the tag (the board, #472): drawn in a clear place only, never over notes, the entry tabs or the copy; the emblem under the tabs", () => {
+  const e = src("src/touch/fugue-morph.ts");
+  assert.match(e, /const tw = k\.textW \? k\.textW\(s\) : s\.length \* 6, at = tagPlace\(m, k, tw, 7\);\n\s*if \(at\) \{/);
+  assert.match(e, /if \(cb && cb\.x0 < x \+ tw \+ 2 && cb\.x1 > x - 2 && cb\.y0 < y \+ th \+ 1 && cb\.y1 > y - 2\) return false;/);
+  assert.match(e, /return !k\.free \|\| k\.free\(x - 2, x \+ tw \+ 2, y - 2, y \+ th \+ 1\);/);
+  assert.match(e, /k\.tabsBelow \? k\.tabsBelow\(/);
+  // the box's test: no note (any voice) and no entry tab in the rectangle; the tabs recorded as they are drawn
+  const m = src("src/touch/MusicBox.tsx");
+  assert.match(m, /free: \(x0: number, x1: number, y0: number, y1: number\) => !blockedAt\(x0, x1, y0, y1, -1\) && !TABS_NOW\.some\(/);
+  assert.equal((src("src/touch/box-fx.ts").match(/c\.tabs\?\.push\(/g) ?? []).length, 2);
+});
