@@ -19,7 +19,7 @@ export const BASICS_PT: Record<string, string> = {
   "Faster now. Taking turns is what makes it possible.": "Agora mais rápido. É o revezamento que torna isso possível.",
   "A long note sounds as long as your thumb stays down. Hold it to the end of the block.": "Uma nota longa soa enquanto o seu polegar fica apoiado. Segure até o fim do bloco.",
   "A rest is silence: lift your thumb and let the note stop.": "Uma pausa é silêncio: levante o polegar e deixe a nota parar.",
-  "Near the box a note sounds strong; out at the edge, soft. Same note, two voices.": "Perto da caixa a nota soa forte; lá na borda, suave. A mesma nota, duas vozes.",
+  "Near the box a note sounds strong; out at the edge, soft. Same note, two colours.": "Perto da caixa a nota soa forte; lá na borda, suave. A mesma nota, duas cores.",
   "Touch the next note before you lift the last: the sound joins, no gap.": "Toque a próxima nota antes de soltar a anterior: o som se liga, sem intervalo.",
   "Touch and let go at once: a short, crisp note.": "Toque e solte na hora: uma nota curta e nítida.",
   "A sign over a note: touch it, then rock your thumb. That's a trill.": "Um sinal sobre a nota: toque nela e depois balance o polegar. Isso é um trinado.",
