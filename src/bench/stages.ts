@@ -159,6 +159,8 @@ export function herUnlocked(s: Stages = readStages(), feats: { earned: Partial<R
 export const PRELUDE_PART: Readonly<Record<string, number>> = {
   // D950: I/2's left hand, the one part its plan offers (src/touch/prelude-plan.ts).
   wtc1p02: 1,
+  // D959: and II/23's, likewise.
+  wtc2p23: 1,
 };
 
 /** D251: the part a prelude gives (the right hand, voice 0, unless `PRELUDE_PART` names another). */

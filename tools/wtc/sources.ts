@@ -522,7 +522,7 @@ const REVOICE: Record<number, Revoice> = {
   12: { how: "mutopia", path: "data/wtc/sources/mutopia/BachJS/BWV857/BWV857_Praeludium12/BWV857_Praeludium12.ly", ids: ["upper/v1", "upper/v2", "upper/v3", "upper/v4"] },
 };
 /**
- * D953: Book II's (batch 3, II/1-12): the voices from the editions' layers (verits99's, CC0; II/1 Mutopia's hands, its
+ * D953, D957: Book II's (batches 3 and 4): the voices from the editions' layers (verits99's, CC0; II/1 Mutopia's hands, its
  * melody split): each layer the voice its height makes it (II/3's second right-hand layer its top voice), the strays
  * by the nearest voice.
  */
@@ -534,6 +534,13 @@ const REVOICE2: Record<number, Revoice> = {
   5: L3(0, 1),
   9: L3(0, 1),
   11: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2, "1:1": 3 }, count: 4 },
+  // D957: batch 4 (II/13-24): II/14 its soprano over the left hand's two voices; II/16 four; II/19, II/22 three;
+  // II/17 its melody split from the right hand's inner notes.
+  14: { how: "layers", map: { "0:0": 0, "1:0": 1, "1:1": 2 }, count: 3 },
+  16: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2, "1:1": 3 }, count: 4 },
+  17: { how: "melody" },
+  19: L3(0, 1),
+  22: L3(0, 1),
 };
 export function revoice(r: Read, how: Revoice): Read {
   const midi = (p: string) => parsePitch(p).midi;
