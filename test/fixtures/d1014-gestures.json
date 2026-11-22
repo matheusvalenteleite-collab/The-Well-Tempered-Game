@@ -275,7 +275,7 @@
    ],
    "after": [
     0.74,
-    3.42
+    3.44
    ]
   },
   "timbre_db": {
@@ -284,20 +284,20 @@
   },
   "centroid_hz": {
    "before": 1158,
-   "after": 1168
+   "after": 1169
   },
   "pitch": {
-   "frames": 150,
-   "after_mean_cents": 1.7,
-   "diff_mean_cents": -0.07,
-   "per_note_mean_max_abs": 0.9,
+   "frames": 151,
+   "after_mean_cents": 1.71,
+   "diff_mean_cents": -0.06,
+   "per_note_mean_max_abs": 0.78,
    "diff_p95_abs": 1.14
   },
   "slides": {
    "scripted": 14,
    "played": 14,
    "slid_note_mean_max_abs_cents": 4.03,
-   "measured": 8
+   "measured": 9
   }
  },
  "slide-psych-synth": {
@@ -317,7 +317,7 @@
    ],
    "after": [
     1.31,
-    4.48
+    4.47
    ]
   },
   "timbre_db": {
@@ -326,12 +326,12 @@
   },
   "centroid_hz": {
    "before": 1466,
-   "after": 1495
+   "after": 1491
   },
   "pitch": {
    "frames": 875,
-   "after_mean_cents": 1.92,
-   "diff_mean_cents": -0.47,
+   "after_mean_cents": 1.89,
+   "diff_mean_cents": -0.5,
    "per_note_mean_max_abs": 10.37,
    "diff_p95_abs": 5.16
   },

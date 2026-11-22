@@ -201,6 +201,17 @@ export const REED_GLIDE_MS = { half: 22, step: 28 } as const;
 export const BASS_SLIDE_MAX = 2;
 /** In a quick passage a glide no longer than this share of the note (a portamento that never smears the next). */
 const GLIDE_SHARE = 0.25;
+/**
+ * D1018, THE GLIDE SETTLED WITHIN A THIRD OF THE NOTE (PSYCH's synthesizer and Moog, D1017): a glide's time constant at most
+ * what brings it from the note slid from to within SETTLE_CENTS of the written pitch by SETTLE_SHARE of the note (an
+ * exponential approach: tau = share × note / ln(interval / settle)). Measured (BWV 789 b. 16, the synthesizer's semiquavers,
+ * 0.21 s, every one slid): with D486's 40 ms, the median note reached its pitch 117 ms in (28 of 30 notes past a third), its
+ * mean 45 cents off; capped, each written pitch heard (DECISIONS D1018).
+ */
+export const SETTLE_CENTS = 15;
+export const SETTLE_SHARE = 0.15;
+/** D1018: the longest glide (s) from `from` to `to` (MIDI) that settles on a note `noteMs` long within SETTLE_SHARE of it. */
+export const settleTau = (from: number, to: number, noteMs: number) => (SETTLE_SHARE * noteMs) / 1000 / Math.log(Math.max(SETTLE_CENTS * 1.5, Math.abs(to - from) * 100) / SETTLE_CENTS);
 
 /**
  * The gesture of a slide from `from` to `to` (MIDI) on `presetId`, the arriving note `noteMs` long, in a key
@@ -216,7 +227,9 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
   if (fam === "bowed" || fam === "brass" || fam === "voice" || fam === "slide8" || fam === "fm" || fam === "synth" || fam === "bass" || (fam === "chip" && (ic === "half" || ic === "step" || quick))) {
     const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : fam === "brass" && ic === "leap" && !up ? 35 / 45 : 1);
     const names = { bowed: "shift", brass: ic === "leap" && up ? "rip" : "lip slur", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide", bass: "slide" } as const;
-    return { kind: "glide", name: names[fam], tau: Math.max(0.008, Math.min(ms, GLIDE_SHARE * noteMs)) / 1000 };
+    const tau = Math.max(0.008, Math.min(ms, GLIDE_SHARE * noteMs)) / 1000;
+    // D1018: PSYCH's glides settle within a third of the note (settleTau), however quick the passage.
+    return { kind: "glide", name: names[fam], tau: presetId === "krautrock" ? Math.min(tau, settleTau(from, to, noteMs)) : tau };
   }
   if (fam === "reed") {
     // D504: a reed's slide: into a step a short portamento (the fingers sliding off the hole, the lip easing the

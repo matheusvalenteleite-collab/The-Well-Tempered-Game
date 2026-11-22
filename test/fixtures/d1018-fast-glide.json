@@ -1,0 +1,35 @@
+{
+ "piece": "bwv789",
+ "sound": "krautrock",
+ "player": 0,
+ "fromBar": 16,
+ "secs": 13,
+ "note_ms": 188,
+ "before": {
+  "semiquavers": 26,
+  "reach_ms_median": 28.0,
+  "reach_share_median": 0.15,
+  "over_third": 0,
+  "mean_cents_abs_median": 6.9,
+  "mean_cents_abs_max": 23.0,
+  "slid": 30
+ },
+ "uncapped": {
+  "semiquavers": 26,
+  "reach_ms_median": 117.0,
+  "reach_share_median": 0.62,
+  "over_third": 26,
+  "mean_cents_abs_median": 46.25,
+  "mean_cents_abs_max": 70.7,
+  "slid": 30
+ },
+ "after": {
+  "semiquavers": 26,
+  "reach_ms_median": 53.0,
+  "reach_share_median": 0.28,
+  "over_third": 1,
+  "mean_cents_abs_median": 14.75,
+  "mean_cents_abs_max": 33.8,
+  "slid": 30
+ }
+}
