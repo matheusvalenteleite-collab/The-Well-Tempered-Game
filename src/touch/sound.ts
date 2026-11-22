@@ -1295,9 +1295,12 @@ export const PATCHES = {
   // TinySOL's solo viola (D365: one player, not a section), a Freesound cello), seated as a quartet sits (Preset.by), one room (the salon) at one
   // send (CONSORT_SEND), one envelope (in 50 ms: the bow biting; out 120 ms), a bow change on a joined note
   // (Patch.bow), nothing added (the recordings' own vibrato), the player's line played as the others (Patch.one).
-  consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
-  consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
-  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: CONSORT_CELLO_PHONE_LIFT }),
+  consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolinSolo", bow: STRING_BOW, one: {} }),
+  // D1013 (provisional): the consort's viola a shade brighter than its cello (a 3 dB high shelf from 1.2 kHz: its centroid about 150 Hz up),
+  // the owner's "a tiny tiny tweak" so the viola and cello, both TinySOL's, are told apart; its level 1 dB under (0.5 → 0.444), the
+  // shelf's own loudness taken back, so the voice is as loud as before (the scans: K-weighted -0.2, through a phone +0.3 to +0.5 dB of D1011's).
+  consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.444, sample: "consortViola", bow: STRING_BOW, one: {}, shelf: { hz: 1200, db: 3 } }),
+  consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloSolo", bow: STRING_BOW, one: {}, phoneLift: CONSORT_CELLO_PHONE_LIFT }),
   // D512, the consort's articulation stops (consort-stops.ts): SPICCATO and PIZZICATO, each voice's own recordings
   // (VSCO 2 CE), dying away by themselves (the bow bounced, the string plucked), at the arco's level (sampled.ts
   // CONSORT_STOP_GAIN, measured), in the same room at the same send; the cello's phone lift kept. A pizzicato's
@@ -1818,8 +1821,9 @@ export const PRESETS: Preset[] = [
   {
     id: "stringConsort",
     name: "STRING CONSORT",
-    // D560: held to the budget (25 MB): BAND_SLIM; 30.5 → 17.8 MB.
-    slim: BAND_SLIM,
+    // D560: held to the budget (25 MB): BAND_SLIM; 30.5 → 17.8 MB. D1011: its own violin and cello (TinySOL) recorded every
+    // two or three semitones, each kept (stride 2: none thinned away; no note read more than 1.5 semitones from a recording).
+    slim: { ...BAND_SLIM, strides: { consortViolinSolo: 2, consortCelloSolo: 2 } },
     slots: ["consViolin", "consViolin", "consViola", "consViola", "consCello"],
     // D645: the cello lifted on a phone (CONSORT_CELLO_PHONE_LIFT), the rest a little under it there: each fugue's phone mix where it was (the phone model, whole fugue).
     // D703: and its fugues re-matched to the base after the balance was rebuilt (renders, both paths).
@@ -2553,11 +2557,14 @@ export const PIANO_CREDIT = "PIANO: SALAMANDER GRAND PIANO V3 · ALEXANDER HOLM 
 export const VOICES_CREDIT = "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A. WAHL, B. PARDO · CC BY 4.0";
 // D358: SOLO VOICES sings without FluidR3's choir now (its second soprano a soprano): VocalSet's credit alone.
 /** D358, D365: STRING CONSORT's recordings (CC BY asks for credit). (D510: LUTE's credit gone with it.) */
-export const CONSORT_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0";
+/** D1011: STRING CONSORT's strings all TinySOL's (violinSolo/, violaSolo/, celloSolo/). */
+export const CONSORT_CREDIT = "STRINGS: VIOLIN, VIOLA, CELLO TINYSOL, IRCAM · CC BY 4.0";
+/** The strings BAROQUE BAND and ORCHESTRA & ORGAN keep (D358's: the VSO2 violin, the Freesound cello, TinySOL's viola). */
+export const BAND_STRINGS_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0";
 /** TRIALS' recordings (VSCO 2 CE is CC0, credit encouraged; VSO2 CE, the cello and TinySOL ask for it). */
 export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC0";
 /** D430: BAROQUE BAND's (the consort's strings, VSCO's oboe, VCSL's harpsichord). */
-export const BAROQUE_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
+export const BAROQUE_CREDIT = `${BAND_STRINGS_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
 export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · TENOR SAX (I/6): KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D547 (D521's before it): BOSSA NOVA's (Iowa's alto flute, guitar and bass: free for any use; the tenor sax via tonejs-instruments: CC BY 3.0; the brushes and Big Rusty's kit: CC0). */
@@ -2582,7 +2589,7 @@ export const VAUDEVILLE_CREDIT = `XYLOPHONE: VERSILIAN STUDIOS VSO2 CE · CC BY 
 /** D589: FLUTE & HARP's alto flute (Iowa's), harp (VSO2's), the consort's viola and cello. */
 export const FLUTE_HARP_CREDIT = "ALTO FLUTE: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · HARP: VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0 · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0";
 /** D590: ORCHESTRA & ORGAN's strings (the consort's), woodwinds and horn (VSO2's and VSCO's); its organ synthesized. */
-export const ORCHESTRA_CREDIT = `${CONSORT_CREDIT} · OBOE ${VSCO_CREDIT} · HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0`;
+export const ORCHESTRA_CREDIT = `${BAND_STRINGS_CREDIT} · OBOE ${VSCO_CREDIT} · HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0`;
 const CREDITS: Record<string, string> = { vaudeville: VAUDEVILLE_CREDIT, fluteHarp: FLUTE_HARP_CREDIT, orchestraOrgan: ORCHESTRA_CREDIT, abbeyRoad: ABBEY_ROAD_CREDIT, krautrock: KRAUTROCK_CREDIT, pianoSampled: PIANO_CREDIT, soloVoices: VOICES_CREDIT, stringConsort: CONSORT_CREDIT, baroqueBand: BAROQUE_CREDIT, bachBrass: BRASS_CREDIT, oboeTrio: TRIO_CREDIT, trialWinds: WINDS_CREDIT, jazzQuartet: JAZZ_QUARTET_CREDIT, salsa: SALSA_CREDIT, chorinho: CHORINHO_CREDIT, bossaNova: BOSSA_CREDIT };
 export const creditFor = (id: string): string | null => CREDITS[presetById(id).id] ?? null;
 /** A sound the players may choose (D292: one of the five). */

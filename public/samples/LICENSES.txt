@@ -116,6 +116,15 @@ violaSolo/  TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent Lostanlen, F
          Changed: mono; onset kept 1 ms before the attack; 4.5 s with a 0.3 s fade; each note's steady loudness (0.5-3 s,
          K-weighted) evened; the loudest peak at -1 dBFS; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/viola/build_viola.py.
 
+D1011, the touch game's STRING CONSORT's violin and cello (its own: the other sounds keep violin/ and cello/ above):
+violinSolo/ celloSolo/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent Lostanlen, Fabien Lévy, Joshua Fineberg, Yan Maresz;
+         IRCAM; zenodo.org/records/3685367). CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+         Solo violin (G3-C#7) and solo cello (C2-D#5), ordinario, mf, every two or three semitones, each pitch's string chosen for an
+         even colour. Changed: mono; onset kept 1 ms before the attack; retuned to its name by resampling; 4.5 s with a 0.3 s fade;
+         the held tone's slow swell evened; the violin's onset quickened (its rise brought up to a 60 ms ramp, at most +9 dB);
+         each note's level evened (K-weighted, and measured through the game's engine); the loudest peak at -1 dBFS;
+         mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/consort/build_consort.py.
+
 D504, the touch game's ZELENKA TRIO (two oboes, the bassoon; its continuo the cello/ and harpsichord/ above):
 trioOboe/ trioOboeMf/ trioOboeShort/ trioBassoon/ trioBassoonMf/ trioBassoonShort/   University of Iowa Electronic Music Studios,
          Musical Instrument Samples (theremin.music.uiowa.edu/MIS.html): oboe and bassoon. "These recordings may be downloaded and
