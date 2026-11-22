@@ -105,8 +105,9 @@ export interface SelectionProps {
     preset?: string;
     /** D453: how many of the menu the quick round goes through (HOME and the sound's family); all where unset. */
     quick?: number;
-    cycle: () => void;
-    /** D453: a style chosen in MORE's grid. */
+    /** D453: the next of the quick round; D940: only where there is no grid (`choose`) to open. */
+    cycle?: () => void;
+    /** D453: a style chosen in the grid (D940: opened by the style's knob). */
     choose?: (id: string) => void;
   };
   /** Design studio (D463): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
@@ -497,29 +498,27 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
         </button>
       )}
       {drums && (
-        <>
-        <p className="sel-ask sel-drums-ask">{tr("DRUMS")}</p>
+        // D940 (the owner: "improve the drums buttons on right column (specially the on/off toggle which looks like a temporary
+        // stand-in right now, and we don't need a third button for grid drums selection, clicking on the main drums buttons
+        // should already open the grid, similarly to how the buttons of instruments currently work)"): two knobs in SOUND's
+        // language. DRUMS, ON or OFF with its lamp; the style, a tap opening every style (as SOUND opens the sounds).
         <div className="sel-drums" id="sel-drums" role="group" aria-label={tr("DRUMS")}>
-          {/* D453 (the owner: every drum style for every fugue, quick to reach): ON/OFF; the style's name, a tap the next of HOME and the sound's family; MORE, every style. */}
           <button type="button" id="sel-drums-on" className={`sel-knob sel-drums-on${drums.on ? " on" : ""}`} role="switch" aria-checked={drums.on} aria-label={`${tr("DRUMS")}: ${drums.on ? tr("ON") : tr("OFF")}`} onClick={drums.toggle}>
-            <span className="sel-switch" aria-hidden="true">
-              <i />
-            </span>
+            <i className="sel-lamp" aria-hidden="true" />
+            <span className="sel-knob-k">{tr("DRUMS")}</span>
+            {/* Spanish's DESACTIVADA, the longest of the words, a step smaller on a small phone. */}
+            <b className={[...(drums.on ? tr("ON") : tr("OFF"))].length > 9 ? "long" : undefined}>{drums.on ? tr("ON") : tr("OFF")}</b>
           </button>
           {drums.presets.length > 1 && (
-            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-label={`${tr("DRUMS")}: ${nowDrum?.name ?? ""}`} onClick={drums.cycle}>
+            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-haspopup={drums.choose ? "dialog" : undefined} aria-label={`${tr("DRUMS")}: ${nowDrum?.name ?? ""}`} onClick={drums.choose ? () => setDrumGrid(true) : drums.cycle}>
               <span className="sel-knob-k">{nowDrum?.home ? tr("HOME") : tr("STYLE")}</span>
-              <b>{nowDrum?.name} ↻</b>
-            </button>
-          )}
-          {drums.presets.length > 1 && drums.choose && (
-            <button type="button" id="sel-drums-more" className="sel-knob sel-drums-more" aria-haspopup="dialog" aria-label={`${tr("MORE")} (${drums.presets.length})`} title={tr("MORE")} onClick={() => setDrumGrid(true)}>
-              <b aria-hidden="true">▦</b>
-              <span className="sel-knob-k">{drums.presets.length}</span>
+              <b>
+                {nowDrum?.name}
+                {drums.choose ? " ▦" : " ↻"}
+              </b>
             </button>
           )}
         </div>
-        </>
       )}
       {drumGrid && drums?.choose && <DrumGrid drums={drums} close={() => setDrumGrid(false)} />}
       {soundGrid && sound && !sound.locked && <SoundGrid sound={sound} close={() => setSoundGrid(false)} />}
