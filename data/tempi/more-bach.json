@@ -76,7 +76,7 @@
   "bwv988-12": {"normal":80,"median":80,"slow":46,"unit":"♩","unitBpm":{"normal":80,"slow":46},"n":0,"iqr":[80,80],"range":[80,80],"busiest":5.3,"flag":"editorial"},
   "bwv988-13": {"normal":41,"median":54,"slow":30,"unit":"♩","unitBpm":{"normal":41,"slow":30},"n":0,"iqr":[54,54],"range":[54,54],"busiest":5.5,"flag":"editorial"},
   "bwv988-14": {"normal":78,"median":104,"slow":36,"unit":"♩","unitBpm":{"normal":78,"slow":36},"n":0,"iqr":[104,104],"range":[104,104],"busiest":7.8,"flag":"editorial"},
-  "bwv988-15": {"normal":54,"median":54,"slow":34,"unit":"♩","unitBpm":{"normal":54,"slow":34},"n":0,"iqr":[54,54],"range":[54,54],"busiest":3.6,"flag":"editorial"},
+  "bwv988-15": {"normal":54,"median":54,"slow":34,"unit":"♩","unitBpm":{"normal":54,"slow":34},"n":0,"iqr":[54,54],"range":[54,54],"busiest":4.1,"flag":"editorial"},
   "bwv988-16": {"normal":76,"median":76,"slow":46,"unit":"𝅗𝅥","unitBpm":{"normal":38,"slow":23},"n":0,"iqr":[76,76],"range":[76,76],"busiest":5.1,"flag":"editorial"},
   "bwv988-17": {"normal":83,"median":100,"slow":46,"unit":"♩","unitBpm":{"normal":83,"slow":46},"n":0,"iqr":[100,100],"range":[100,100],"busiest":5.5,"flag":"editorial"},
   "bwv988-18": {"normal":112,"median":112,"slow":70,"unit":"𝅗𝅥","unitBpm":{"normal":56,"slow":35},"n":0,"iqr":[112,112],"range":[112,112],"busiest":2.8,"flag":"editorial"},

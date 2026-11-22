@@ -51,12 +51,12 @@ const WITH_BAND: Record<string, number[]> = {
   "bwv988-02": [2],
   "bwv988-06": [2],
   "bwv988-09": [0],
-  "bwv988-12": [2],
   "bwv988-13": [0],
-  "bwv988-15": [2],
   "bwv988-16": [0, 2],
   "bwv988-19": [2],
   "bwv988-21": [2],
+  // D908: the canons folded to three parts: Var. 24's bass whole, with its chords (Vars. 12 and 15's whole basses have none).
+  "bwv988-24": [2],
   "bwv988-28": [2],
   "bwv988-30": [1, 2],
 };
