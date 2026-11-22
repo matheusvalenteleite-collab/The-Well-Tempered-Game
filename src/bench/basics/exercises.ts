@@ -119,10 +119,12 @@ const MAKERS: Record<string, (rnd: () => number) => Line> = {
     return [...(rnd() < 0.5 ? [...up, ...down] : [...down, ...up]), ...leap];
   },
   "basics-3-1": (rnd) => {
-    const a = Math.floor(rnd() * 3);
-    const upFirst = rnd() < 0.5;
-    const ks = upFirst ? [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0] : [7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7];
-    return [...ks.map((k, i) => n(DIA(a + k), i === ks.length - 1 ? 2 : 1)), r(2)];
+    // A scale over five to eight notes, up then down or down then up, from a step chosen; a note or two held longer.
+    const span = 4 + Math.floor(rnd() * 4);
+    const a = Math.floor(rnd() * (10 - span));
+    const up = Array.from({ length: span + 1 }, (_, k) => k);
+    const ks = rnd() < 0.5 ? [...up, ...up.slice(0, -1).reverse()] : [...up.slice().reverse(), ...up.slice(1)];
+    return [...ks.map((k, i) => n(DIA(a + k), i === ks.length - 1 || (i > 0 && i % 4 === 0 && rnd() < 0.35) ? 2 : 1)), r(2)];
   },
   "basics-4-1": (rnd) => {
     const ds = shuffle(rnd, [2, 2, 2, 2, 4, 4]);
