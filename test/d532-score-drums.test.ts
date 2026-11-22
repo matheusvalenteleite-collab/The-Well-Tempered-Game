@@ -178,7 +178,8 @@ test("D533: tailored: every fugue where a score-driven style is the default or a
   // D585: I/1 left the organ for the grand (the owner's lo-fi idea): its tweak kept for PIPE ORGAN's timpani and field drums, a choice away.
   // D595: II/22 left the organ for KRAUTROCK: its tweak kept likewise for the organ's field drums, a choice away.
   // D891: and the fugues whose only score-driven offer was a withdrawn kit (the timpani, the tabor, the field drum): their tweaks kept, any style a choice away.
-  const kept = new Set(["wtc1f01", "wtc2f22", "wtc1f21", "wtc2f11", "wtc2f13"]);
+  // D984: and I/13's prelude (FRAME a little softer, for D601).
+  const kept = new Set(["wtc1f01", "wtc2f22", "wtc1f21", "wtc2f11", "wtc2f13", "wtc1p13"]);
   for (const id of Object.keys(TWEAKS)) assert.ok(need.has(id) || kept.has(id), `${id}: a tweak for a fugue that offers no score-driven style first`);
   // The French overture, the gigues and the dances: their picks.
   assert.ok(FUGUE_PICKS.wtc1f05.includes("military"));
