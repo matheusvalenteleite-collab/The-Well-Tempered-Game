@@ -11,7 +11,7 @@ import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
-import { handPart, handsFlag, HANDS_MAX_RATE, meterOf, skyline, thin, TWO_HANDS, TWO_HANDS_IDS } from "../src/touch/two-hands.ts";
+import { handsFugue, handPart, handsFlag, HANDS_MAX_RATE, meterOf, skyline, thin, TWO_HANDS, TWO_HANDS_IDS } from "../src/touch/two-hands.ts";
 
 // Invention 1 is MORE BACH's (loaded on demand).
 await loadExtras();
@@ -115,7 +115,10 @@ function playHands(id: string, sideOf: (k: number) => "left" | "right", only?: n
 }
 
 test("D862: the engine: the left thumb the left hand (track 0), the right thumb the right (track 1); the game's notes marked to be drawn faint", () => {
-  const f = fugueById("wtc1p24");
+  // D888: I/24 now holds three voices; TWO HANDS reads it as its two hands.
+  const f = handsFugue(fugueById("wtc1p24"));
+  assert.equal(fugueById("wtc1p24").voices.length, 3);
+  assert.equal(f.voices.length, 2);
   const clock = { t: 0 };
   const g = new ProtoGame(f, [1, 0], 0, protoById("ladder"), { bpm: tempoOf(f.id), legato: false, twoHands: true }, fakeChip(clock));
   assert.equal(g.twoHands, true);
