@@ -839,7 +839,12 @@ const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
     { voice: 0, bar: 23, at: "7/16", from: "Eb4", to: "D#4" },
     { voice: 0, bar: 25, at: "0", from: "E4", length: "1/16" },
   ],
-  15: [{ voice: 2, bar: 4, at: "5/16", from: "A4", to: "G4" }],
+  15: [
+    { voice: 2, bar: 4, at: "5/16", from: "A4", to: "G4" },
+    // D951: the canon's leader opens in the soprano's layer (G4 G4 F4 F4 Eb4 Eb4 D4, bar 1) and goes on in the second
+    // line from bar 2: those seven notes the second line's (a reading at the junction, as D908's; no note changed).
+    { voice: 0, bar: 1, at: "1/16", until: "1/2", toVoice: 1 },
+  ],
   16: [{ voice: 2, bar: 11, at: "15/16", from: "Ab3", to: "G#3" }],
   21: [
     { voice: 2, bar: 7, at: "15/16", from: "Db3", to: "C#3" },
