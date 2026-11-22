@@ -65,3 +65,40 @@ options:
 - leave both for a later batch.
 
 Luigi: leave I/2 for later; offer I/5's right hand at the slow tempo.
+
+# Batch 2: Book I 13–24 (D887), proposed
+
+Measured by the same tool (`node tools/wtc/prelude-measure.ts "wtc1p(1[3-9]|2[0-4])"`), against the same yardstick.
+None of these preludes is fugal.
+
+## What the sources hold
+
+The three-voice preludes (I/16, I/18, I/19, I/23, I/24) have their voices in OpenWTC's own layers (CC0). Re-voicing
+can take them from there, as for I/7, with nothing new to credit.
+
+Mutopia is a second witness where it exists:
+- I/15, I/16, I/17 and I/20 are public domain;
+- I/24 is CC BY-SA 4.0 (Heikki Junes), and its voicing matches OpenWTC's layers note for note (190 / 185 / 347), so it
+  is used as a check only;
+- the Humdrum is the third witness.
+
+I/22 is chordal: its melody would be split from the right hand, as I/8's was.
+
+## The table
+
+| prelude | tempo | texture | offered | excluded (why) | n/s (busiest 4 s) | verdict |
+|---|---|---|---|---|---|---|
+| I/13 F♯ | ♪. 75 | two-part: a tune over an accompanying motif | RH, LH | — | RH 2.6 (3.75), LH 1.6 (3.25) | **playable** |
+| I/14 f♯ | ♩ 81 | two-part, invention-like | RH, LH | — | RH 4.3 (5.5), LH 3.9 (5.5) | **playable**, at the ceiling |
+| I/15 G | ♪. 73 | two-part figuration, the hands swapping the figure | RH, LH | — | RH 4.0 (5.75), LH 3.3 (5.75) | **playable**, fast (as I/3, I/11) |
+| I/16 g | ♩ 35 | three voices: a trilled soprano, an alto, a bass | S, A, B | — | S 1.7 (3.5), A 1.2 (3.25), B 1.3 (3.5) | **re-voice** (layers), then playable |
+| I/17 A♭ | ♩ 83 | concerto-like: a tune over a broken-chord bass | RH, LH | — (the bass not dull by any test: rep 0 %, bar-repeat 2 %) | RH 3.3 (5.75), LH 3.2 (5.75) | **playable**, fast |
+| I/18 g♯ | ♩. 36 | three-part, sinfonia-like | all three | — | 2.0, 1.1, 2.2 (≤ 3.75) | **re-voice** (layers), then playable |
+| I/19 A | ♩ 68 | three-part, imitative | all three | — | about 2.8, 1.0, 2.5 (≤ 4.75) | **re-voice**: the middle voice crosses the staves (to be read against the Humdrum) |
+| I/20 a | ♩. 55 | two-part, invention-like, thickened at cadences | RH, LH | — | RH 3.7 (5.75), LH 2.9 (4.5) | **playable**, fast |
+| I/21 B♭ | ♩ 44 | toccata: broken-chord runs, free passages | RH, at the slow tempo (♩ 30) | LH (chords) | RH 2.75 (6–6.5 at ♩ 44; about 4.4 at ♩ 30) | **slow tempo**, as I/5 |
+| I/22 b♭ | ♩ 32 | five-part arioso, chords under a melody | the melody (RH top) | the inner parts and bass: rep 22–49 % | 1.4 (2.0), rep 18 % | **re-voice** (the melody split), then playable: close to the limit (20 %) |
+| I/23 B | ♩ 63 | three-part, imitative | all three | — | 1.9, 1.5, 2.0 (≤ 4.25) | **re-voice** (layers), then playable |
+| I/24 b | ♩ 64 | a trio: two upper voices over a walking bass | all three | — | 1.1, 1.05, 2.0 (≤ 2.25) | **re-voice** (layers), then playable |
+
+**Nothing is held back.** The re-voicing is needed for I/16, I/18, I/19, I/22, I/23 and I/24, after approval.
