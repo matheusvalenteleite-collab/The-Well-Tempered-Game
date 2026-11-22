@@ -978,21 +978,28 @@ export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[], f
   const { g, w, xOf, now } = c;
   const h = c.h - foot;
   // D697: two cadences close together: the later's name waits until the earlier's has gone (its mark still drawn).
+  // D941: the names placed first, then every mark: no mark's line through ANY name (D700 held for its own name only;
+  // two marks sharing a name's row crossed it), a mark under a name stopping above the name's row (a stub).
   let taken = -Infinity;
+  const shown: { x: number; since: number; flare: number; name: { text: string; tx: number; tw: number } | null }[] = [];
   for (const cd of cadences) {
     const x = xOf(cd.on);
     if (x < -40 || x > w) continue;
     const since = ((now - cd.on) / c.tps) * 1000;
     if (since > 1400) continue;
     const flare = since >= 0 ? 1 - since / 1400 : 0;
-    // D700: the name between the side bars and never crossed by its mark: right of the line where it fits, else
-    // ending left of it; where neither fits, the line stops above the name (a stub).
+    // D700: the name between the side bars, right of its line where it fits, else ending left of it.
     const tw = textWidth(cd.text);
     const lo = left + 2;
     const hi = w - right - 2;
     const tx = x + 3 + tw <= hi ? Math.max(lo, x + 3) : Math.max(lo, Math.min(x - 3, hi) - tw);
     const named = tx >= taken + 6;
-    const crosses = named && x >= tx - 1 && x <= tx + tw;
+    if (named) taken = tx + tw;
+    shown.push({ x, since, flare, name: named ? { text: cd.text, tx, tw } : null });
+  }
+  const names = shown.flatMap((s) => (s.name ? [s.name] : []));
+  for (const { x, since, flare, name } of shown) {
+    const crosses = names.some((n) => x >= n.tx - 1 && x <= n.tx + n.tw);
     const len = crosses ? 3 : 12;
     g.globalAlpha = since >= 0 ? 0.4 + 0.6 * flare : 0.8;
     g.fillStyle = c.gold;
@@ -1002,10 +1009,9 @@ export function cadenceMarks(c: Ctx, cadences: { on: number; text: string }[], f
       g.globalAlpha = 0.3 * flare;
       g.fillRect(x - 2, h - 16, 5, len + 4);
     }
-    if (!named) continue;
+    if (!name) continue;
     g.globalAlpha = since >= 0 ? flare : 0.7;
-    pixText(g, cd.text, tx, h - 8, c.gold);
-    taken = tx + tw;
+    pixText(g, name.text, name.tx, h - 8, c.gold);
   }
   g.globalAlpha = 1;
 }
