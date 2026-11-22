@@ -19,6 +19,7 @@ import type { Performed } from "./HearSubject.tsx";
 import { lang, partName, pieceName, tr, type Lang } from "../i18n/index.ts";
 import { extrasLoaded, fugueById, loadExtras } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
+import { fugueOfPrelude, preludeOfFugue, preludeReady, worldOf } from "../touch/prelude-plan.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { Portrait } from "./Bach.tsx";
 import { FitEmblem } from "./FitEmblem.tsx";
@@ -88,10 +89,12 @@ export interface SelectionProps {
   bookTwo?: () => void;
   /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
   learn?: (id: string) => void;
+  /** D988 (the owner: "ship book I preludes to main game developer mode"): PRELUDE | FUGUE and the tiles' P, the developer view only for now. */
+  preludes?: boolean;
   /** D442, the Glenn pilot: a key's prelude or fugue played (the fugue only once its prelude is finished). */
   playPiece?: (id: string) => void;
   /** Design studio (D463): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
-  tempo?: { word: string; beat: string; locked: boolean; cycle: () => void };
+  tempo?: { word: string; beat: string; locked: boolean; cycle: () => void; /** D980: shown, not chosen (I/5's and I/21's preludes, slow only). */ fixed?: boolean };
   /** D458: the chosen piece's SAVED PERFORMANCES (how many; opens them), under PLAY. */
   takes?: { n: number; open: () => void };
   /** D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE: the sound's play, and its stop (the box closed). */
@@ -105,8 +108,9 @@ export interface SelectionProps {
     preset?: string;
     /** D453: how many of the menu the quick round goes through (HOME and the sound's family); all where unset. */
     quick?: number;
-    cycle: () => void;
-    /** D453: a style chosen in MORE's grid. */
+    /** D453: the next of the quick round; D940: only where there is no grid (`choose`) to open. */
+    cycle?: () => void;
+    /** D453: a style chosen in the grid (D940: opened by the style's knob). */
     choose?: (id: string) => void;
   };
   /** Design studio (D463): the chosen piece's SOUND, a native list (the system's wheel on a phone). */
@@ -133,7 +137,8 @@ export function Selection(p: SelectionProps) {
   const next = grid ? liteSuggested(ids, won, first) : null;
   const choose = (id: string) => (setChosen(true), p.select(id));
   // D442, the Glenn pilot: a tile is a key (its prelude and fugue); the fugue open once the prelude is finished.
-  const pairKey = piece.replace(/^wtc1p/, "wtc1f");
+  // D980: and play.html's key for a WTC prelude, Book II's too (its tile is its fugue's).
+  const pairKey = p.playPiece ? piece.replace(/^wtc1p/, "wtc1f") : fugueOfPrelude(piece);
   const fugueOpen = won.has(pairKey.replace(/^wtc1f/, "wtc1p")) || won.has(pairKey);
   const learning = !!tutorial && tutorial.done < tutorial.of;
   return (
@@ -255,7 +260,7 @@ export function Selection(p: SelectionProps) {
             </header>
             <ol className={`sel-grid${tab === "AOF" ? " sel-grid-aof" : tab === "INV" ? " sel-grid-inv" : tab === "GOLD" ? " sel-grid-inv" : ""}`} id="sel-grid">
               {ids.map((id) => (
-                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} />
+                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} prelude={!!p.preludes && !p.playPiece && won.has(preludeOfFugue(id))} />
               ))}
             </ol>
           </>
@@ -269,7 +274,7 @@ export function Selection(p: SelectionProps) {
       </section>
       <aside className="sel-col sel-right" id="sel-right">
         {chosen ? (
-          <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} />
+          <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} pair={p.preludes && !p.playPiece && /^wtc[12]f\d\d$/.test(pairKey) ? { fugue: pairKey, prelude: preludeOfFugue(pairKey), choose: p.select } : undefined} />
         ) : (
           <p className="sel-hint" id="sel-hint">
             {p.basics ? tr("Pick a fugue in the middle, or learn first with BASICS on the left.") : tutorial ? tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.") : tr("Pick a piece in the middle.")}
@@ -315,7 +320,7 @@ export function keyWords(key: string): { tonic: string; mode: string } {
 }
 
 /** A tile of the grid: the picture, its number and key, its level; the best grade (or ✓); NEXT. */
-function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void }) {
+function Tile({ id, on, done, next, grade, old, pick, prelude }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void; /** D980: its prelude finished. */ prelude?: boolean }) {
   const f = fugueById(id);
   const lv = liteLevel(id);
   const n = Number(id.slice(-2));
@@ -344,6 +349,12 @@ function Tile({ id, on, done, next, grade, old, pick }: { id: string; on: boolea
             </span>
           ) : (
             done && <span className="sel-done">✓</span>
+          )}
+          {/* D980: the key's prelude finished: a small P at the picture's foot (the grade at its head is the fugue's). */}
+          {prelude && (
+            <span className="sel-ppip" id={`ppip-${id}`} aria-label={tr("PRELUDE")}>
+              P
+            </span>
           )}
           {next && (
             <span className="sel-next" id={`next-${id}`}>
@@ -393,12 +404,13 @@ export function shortPart(name: string): string {
 
 /** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
  * voices, its best (D463: no secrets for now), the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D463). */
-function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound, subject, drums }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>> }) {
+function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound, subject, drums, pair }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>>; /** D980: a WTC key's two pieces, PRELUDE | FUGUE. */ pair?: { fugue: string; prelude: string; choose: (id: string) => void } }) {
   const f = fugueById(piece);
   const lv = liteLevel(piece);
   const wtc = /^wtc[12][fp]\d\d$/.test(piece);
   const name = pieceTitle(piece);
-  const nick = fugueName(piece, lang());
+  // D980: a prelude shares its fugue's world: its name and picture.
+  const nick = fugueName(worldOf(piece), lang());
   const grade = best[piece] ?? bestOld[piece];
   const [about, setAbout] = useState(false);
   // D453: DRUMS' grid open, and the style playing now.
@@ -406,15 +418,16 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
   // D455: the sounds' grid open.
   const [soundGrid, setSoundGrid] = useState(false);
   const nowDrum = drums ? (drums.presets.find((d) => d.id === drums.preset) ?? drums.presets[0]) : undefined;
-  const aboutable = f.kind === "fugue" && wtc;
+  // D980: and a ready prelude's ABOUT THIS PRELUDE.
+  const aboutable = wtc && (f.kind === "fugue" || preludeReady(piece));
   // D445: the best in the voice chosen (another voice's is its own).
   const mine = bestScore(scores, piece, voice);
   const score = mine ?? scoresOld[piece];
   return (
     <div className="sel-piece" id="sel-piece">
       {/* D449, D452: the whole picture opens ABOUT THIS FUGUE, and the whole picture glows to say so (no ?). */}
-      <span className={`sel-piece-pic${aboutable ? " sel-piece-pic-open" : ""}`} id="sel-piece-pic" role={aboutable ? "button" : undefined} tabIndex={aboutable ? 0 : undefined} aria-label={aboutable ? tr("ABOUT THIS FUGUE") : undefined} onClick={aboutable ? () => setAbout(true) : undefined}>
-        <FitEmblem id={piece} className="sel-piece-emblem" cover />
+      <span className={`sel-piece-pic${aboutable ? " sel-piece-pic-open" : ""}`} id="sel-piece-pic" role={aboutable ? "button" : undefined} tabIndex={aboutable ? 0 : undefined} aria-label={aboutable ? tr(f.kind === "prelude" ? "ABOUT THIS PRELUDE" : "ABOUT THIS FUGUE") : undefined} onClick={aboutable ? () => setAbout(true) : undefined}>
+        <FitEmblem id={worldOf(piece)} className="sel-piece-emblem" cover />
         {grade && (
           <span className={`sel-grade${best[piece] ? "" : " sel-old"}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }}>
             {grade}
@@ -426,6 +439,26 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
         <p className="sel-piece-nick" id="sel-piece-nick">
           {nick}
         </p>
+      )}
+      {pair && (
+        // D980 (the owner: each key PRELUDE and FUGUE, no lock; placed in the right column, the owner's Q1): the switch picks
+        // which of the key's two pieces is chosen; the rest of the column (voices, tempo, sound, drums, best) follows it. A
+        // new key starts on FUGUE (its tile chooses the fugue). A prelude not ready (held, or not yet planned) says COMING.
+        <div className="sel-pair-switch" id="sel-stage" role="group" aria-label={`${tr("PRELUDE")} · ${tr("FUGUE")}`}>
+          {preludeReady(pair.prelude) ? (
+            <button type="button" id="sel-stage-prelude" className={piece === pair.prelude ? "on" : ""} aria-pressed={piece === pair.prelude} onClick={() => pair.choose(pair.prelude)}>
+              {tr("PRELUDE")}
+            </button>
+          ) : (
+            <button type="button" id="sel-stage-prelude" className="soon" disabled aria-disabled="true">
+              {tr("PRELUDE")}
+              <i>{tr("COMING")}</i>
+            </button>
+          )}
+          <button type="button" id="sel-stage-fugue" className={piece === pair.fugue ? "on" : ""} aria-pressed={piece === pair.fugue} onClick={() => pair.choose(pair.fugue)}>
+            {tr("FUGUE")}
+          </button>
+        </div>
       )}
       <p className="sel-piece-name" id="sel-piece-name">
         {name}
@@ -450,7 +483,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
           {score !== undefined ? tr("BEST {n}", { n: score.toLocaleString("en") }) : tr("BEST —")}
         </span>
       </p>
-      {f.kind !== "prelude" && (
+      {(f.kind !== "prelude" || preludeReady(piece)) && (
         <>
           <p className="sel-ask">{tr("YOUR VOICE")}</p>
           <div className="sel-voices" data-n={f.voiceNames.length} role="group" aria-label="Voice">
@@ -469,11 +502,12 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
       {(tempo || sound) && (
         <div className="sel-knobs">
           {tempo && (
-            <button type="button" id="sel-tempo" className={`sel-knob${tempo.locked ? " locked" : ""}`} aria-label={`${tr("TEMPO")}: ${tempo.word}`} title={tempo.locked ? tr("A B ON THIS FUGUE UNLOCKS TEMPO") : undefined} onClick={tempo.cycle}>
+            <button type="button" id="sel-tempo" className={`sel-knob${tempo.locked ? " locked" : ""}${tempo.fixed ? " fixed" : ""}`} aria-label={`${tr("TEMPO")}: ${tempo.word}${tempo.fixed ? ` ${tempo.beat}` : ""}`} disabled={tempo.fixed} title={tempo.locked ? tr("A B ON THIS FUGUE UNLOCKS TEMPO") : undefined} onClick={tempo.cycle}>
               <span className="sel-knob-k">{tr("TEMPO")}</span>
               <b>
                 {tempo.locked ? "🔒 " : ""}
                 {tempo.word}
+                {tempo.fixed ? ` ${tempo.beat}` : ""}
               </b>
             </button>
           )}
@@ -497,29 +531,27 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
         </button>
       )}
       {drums && (
-        <>
-        <p className="sel-ask sel-drums-ask">{tr("DRUMS")}</p>
+        // D940 (the owner: "improve the drums buttons on right column (specially the on/off toggle which looks like a temporary
+        // stand-in right now, and we don't need a third button for grid drums selection, clicking on the main drums buttons
+        // should already open the grid, similarly to how the buttons of instruments currently work)"): two knobs in SOUND's
+        // language. DRUMS, ON or OFF with its lamp; the style, a tap opening every style (as SOUND opens the sounds).
         <div className="sel-drums" id="sel-drums" role="group" aria-label={tr("DRUMS")}>
-          {/* D453 (the owner: every drum style for every fugue, quick to reach): ON/OFF; the style's name, a tap the next of HOME and the sound's family; MORE, every style. */}
           <button type="button" id="sel-drums-on" className={`sel-knob sel-drums-on${drums.on ? " on" : ""}`} role="switch" aria-checked={drums.on} aria-label={`${tr("DRUMS")}: ${drums.on ? tr("ON") : tr("OFF")}`} onClick={drums.toggle}>
-            <span className="sel-switch" aria-hidden="true">
-              <i />
-            </span>
+            <i className="sel-lamp" aria-hidden="true" />
+            <span className="sel-knob-k">{tr("DRUMS")}</span>
+            {/* Spanish's DESACTIVADA, the longest of the words, a step smaller on a small phone. */}
+            <b className={[...(drums.on ? tr("ON") : tr("OFF"))].length > 9 ? "long" : undefined}>{drums.on ? tr("ON") : tr("OFF")}</b>
           </button>
           {drums.presets.length > 1 && (
-            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-label={`${tr("DRUMS")}: ${nowDrum?.name ?? ""}`} onClick={drums.cycle}>
+            <button type="button" id="sel-drums-preset" className={`sel-knob sel-drums-preset${drums.on ? "" : " off"}`} aria-haspopup={drums.choose ? "dialog" : undefined} aria-label={`${tr("DRUMS")}: ${nowDrum?.name ?? ""}`} onClick={drums.choose ? () => setDrumGrid(true) : drums.cycle}>
               <span className="sel-knob-k">{nowDrum?.home ? tr("HOME") : tr("STYLE")}</span>
-              <b>{nowDrum?.name} ↻</b>
-            </button>
-          )}
-          {drums.presets.length > 1 && drums.choose && (
-            <button type="button" id="sel-drums-more" className="sel-knob sel-drums-more" aria-haspopup="dialog" aria-label={`${tr("MORE")} (${drums.presets.length})`} title={tr("MORE")} onClick={() => setDrumGrid(true)}>
-              <b aria-hidden="true">▦</b>
-              <span className="sel-knob-k">{drums.presets.length}</span>
+              <b>
+                {nowDrum?.name}
+                {drums.choose ? " ▦" : " ↻"}
+              </b>
             </button>
           )}
         </div>
-        </>
       )}
       {drumGrid && drums?.choose && <DrumGrid drums={drums} close={() => setDrumGrid(false)} />}
       {soundGrid && sound && !sound.locked && <SoundGrid sound={sound} close={() => setSoundGrid(false)} />}

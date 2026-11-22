@@ -21,7 +21,8 @@ import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react"
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
 import { hasStage, paintStage, stageMode } from "./stage-bg.ts";
-import { CANONS, paintEcho } from "./canon-echo.ts";
+import { CANONS } from "./canon-echo.ts";
+import { paintCanon } from "./canon-ribbon.ts";
 import { inkOf } from "./voice-inks.ts";
 import { fxState, paintFx } from "./event-fx.ts";
 import { SIGN_PIXELS_5, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
@@ -519,8 +520,6 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D478 (design studio; the owner: "use shadows and light intelligently"): over the world, the music that is not the
   // subject casts shadow, and the subject lights the world round it (brighter on the note sounding). With the stage only.
   if (staged && spans && stageMode() !== "off") lightAndShadow(g, fr, spans, otherIdx!, { t0, span, w, h, xOf, yOf, hOf, bh });
-  // D678 (design studio; the pilot): a tagged canon's echo lane, under every note: each leader's note arcs to its answer.
-  if (fr.piece && CANONS[fr.piece] && !fr.floor) paintEcho(g, fugueById(fr.piece), { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v) => inkOf(v, fr.count), text: (gg, t, x, y, ink) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner });
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
     const x1 = xOf(o.on);
@@ -577,6 +576,11 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   g.globalAlpha = 1;
   // D372: the others' subjects' effects, under the player's notes.
   if (spans) subjectFx(fx, spans, playedVoices, false, fr.piece, fr.beatTicks, fxClock);
+  // D970: a tagged canon's rolling ribbon (canon-ribbon.ts; it replaced D678's echo lane): over the world and the other
+  // voices (dimmed while a shape flies), under the player's notes, which never move and stay on top.
+  // The landing flare is drawn once more over the player's notes (below), as an outline: it frames them, never hides them.
+  const canonGeo = fr.piece && CANONS[fr.piece] && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
+  if (fr.piece && CANONS[fr.piece] && !fr.floor) paintCanon(g, fugueById(fr.piece), canonGeo!, "under");
 
   // The voice played (or two): full, outlined.
   const shine = tok("--tg-shine");
@@ -919,6 +923,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     if (FLAG_VARIANT === "o") flags(fx, spans, blockedAt);
     else entryMarks(fx, spans, FLAG_VARIANT, "over", noteTop, blockedAt);
   }
+  // D970: the canon's landing flare over the player's notes (where the player follows, the copy lands on them).
+  if (canonGeo && fr.piece) paintCanon(g, fugueById(fr.piece), canonGeo, "over");
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
   if (fr.banner) banner(g, w, fr.banner, fx.gold, cl, cr);

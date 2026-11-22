@@ -14,7 +14,8 @@ import type { LensStats } from "../manual/lens.ts";
 import "./exercises.ts";
 
 export type ClipId = "tap" | "up" | "down" | "same" | "leap" | "two" | "hold" | "lift" | "strong" | "legato" | "short" | "shake" | "slide";
-export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides" | "join";
+/** D992: "signs", the thumbs' ● ○ (not drawn in BASICS on a stage without it: not yet introduced). */
+export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides" | "join" | "signs";
 
 export type PassRule =
   | { kind: "right"; need: number }
@@ -54,6 +55,8 @@ export interface Stage {
   ornaments?: boolean;
   /** Act VI's stations: a light rule (the idea tried a few times): no PROVE; passed when the idea is heard, or after three takes. */
   light?: boolean;
+  /** D941: Act VI's drums where the station names its own (6.7 PSYCH: LIEBEZEIT, D932's calmed style), else the sound's as the game plays it. */
+  drums?: string;
   /** A line said at a moment of the music (5.2: at the soprano's entry), by bar. */
   cue?: { bar: number; text: string };
 }
@@ -128,7 +131,7 @@ export const ACTS: readonly Act[] = [
       ex("6.4", { clip: "shake", piece: "bwv1080-04", voice: 2, fromBar: 50, toBar: 53, skip: 2, count: 13, ornaments: true, light: true, bpm: 44, sound: "harpsichordSampled", aids: ["rings", "gold"], pass: { kind: "tries", what: "shake", need: 1 }, hint: "Touch the note, then rock your thumb." }),
       ex("6.5", { clip: "slide", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "soloVoices", aids: ["rings", "gold"], pass: { kind: "tries", what: "slide", need: 2 }, hint: "Keep your thumb down and glide to the next note." }),
       ex("6.6", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "gameboy", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
-      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "krautrock", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "krautrock", drums: "liebezeit", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
     ],
   },
 ];
@@ -137,6 +140,24 @@ export const FINALE = "That's it. You've played your first fugue, well, its begi
 
 /** The acts open (all six). */
 export const ACTS_READY = 6;
+
+/**
+ * D941 (design studio; the owner's playtest: "We need a beat during exercises to help player out. Maybe a simple metronome
+ * in the beginning. Then it might become drums as the tutorial goes along"): the beat under a stage. Acts I-II a soft click
+ * on every beat (the downbeat accented), none where the music waits at every note (1.1: no beat to keep); Acts III-IV the
+ * library's plain ROCK kit; Act V a lighter click while the alto is alone (5.1), nothing once it is answered (5.2: the
+ * voices keep the time); Act VI each station's sound's own drums, as the game plays them for that piece (drum-library
+ * homeFor; PSYCH the calmed LIEBEZEIT, D932). Never louder for a right or a wrong note; it follows the tempo (a notch slower, the beat slower).
+ */
+export type Beat = { kind: "click"; gain: number } | { kind: "drums"; style: string } | null;
+export function beatFor(st: Stage): Beat {
+  const act = Number(st.id.split(".")[0]);
+  if (st.wait === "all") return null;
+  if (act <= 2) return { kind: "click", gain: 0.07 };
+  if (act <= 4) return { kind: "drums", style: "rock" };
+  if (act === 5) return st.solo ? { kind: "click", gain: 0.05 } : null;
+  return { kind: "drums", style: st.drums ?? "home" };
+}
 
 /** The help a miss brings, by how many misses the stage has had (1st nothing, 2nd the hint, 3rd the clip, 4th slower). */
 export function helpFor(misses: number): "none" | "hint" | "clip" | "slower" {

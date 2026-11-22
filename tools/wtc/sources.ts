@@ -489,7 +489,7 @@ export function readXmlPrelude(book: 1 | 2, number: number, witness = false): Re
 }
 
 /**
- * D881-D883: the Book I preludes whose voices the main game offers (docs/audits/PRELUDES-PLAN.md), re-voiced on the
+ * D881-D883, D888: the Book I preludes whose voices the main game offers (docs/audits/PRELUDES-PLAN.md), re-voiced on the
  * game's own notes (the OpenWTC text, corrected and checked: nothing of it changed, only which voice a note is in):
  *   - "layers" (I/7, fugal from bar 10): the edition's own two layers a staff, a voice each;
  *   - "mutopia" (I/9, I/12): each note given the voice of the same note (onset and pitch) in the Mutopia edition
@@ -499,13 +499,48 @@ export function readXmlPrelude(book: 1 | 2, number: number, witness = false): Re
  * A note left over (a layer beyond the voices, or no note in Mutopia at its onset and pitch, listed in the report) goes
  * to the voice free at its onset whose last note is nearest in pitch.
  */
-type Revoice = { how: "layers" } | { how: "melody" } | { how: "mutopia"; path: string; ids: string[] };
+type Revoice =
+  | { how: "layers"; map?: Record<string, number>; count?: number }
+  | { how: "staves" }
+  | { how: "melody" }
+  | { how: "mutopia"; path: string; ids: string[] };
 const REVOICE: Record<number, Revoice> = {
   7: { how: "layers" },
   8: { how: "melody" },
   9: { how: "mutopia", path: "data/wtc/sources/mutopia/BachJS/BWV854/BWV854_Praeludium_IX_rh/BWV854_Praeludium_IX_rh.ly", ids: ["upper", "lower/v1", "lower/v2"] },
   10: { how: "melody" },
+  // D888: batch 2 (Book I 13-24). Three voices from the layers: the right hand's first layer the top voice, its
+  // second the middle, the left hand's first the bass ("layers" with a map); or, where the middle voice moves into
+  // the left hand (I/16, I/19: the left hand's two layers then the middle voice above the bass, as the Humdrum check
+  // has them, 94 % of notes alike), by height ("staves"). I/22: its melody split, as I/8's.
+  16: { how: "staves" },
+  18: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2 }, count: 3 },
+  19: { how: "staves" },
+  22: { how: "melody" },
+  23: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2 }, count: 3 },
+  24: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2 }, count: 3 },
   12: { how: "mutopia", path: "data/wtc/sources/mutopia/BachJS/BWV857/BWV857_Praeludium12/BWV857_Praeludium12.ly", ids: ["upper/v1", "upper/v2", "upper/v3", "upper/v4"] },
+};
+/**
+ * D953, D957: Book II's (batches 3 and 4): the voices from the editions' layers (verits99's, CC0; II/1 Mutopia's hands, its
+ * melody split): each layer the voice its height makes it (II/3's second right-hand layer its top voice), the strays
+ * by the nearest voice.
+ */
+const L3 = (s: number, a: number): Revoice => ({ how: "layers", map: { [`0:${s}`]: 0, [`0:${a}`]: 1, "1:0": 2 }, count: 3 });
+const REVOICE2: Record<number, Revoice> = {
+  1: { how: "melody" },
+  3: L3(1, 0),
+  4: L3(0, 1),
+  5: L3(0, 1),
+  9: L3(0, 1),
+  11: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2, "1:1": 3 }, count: 4 },
+  // D957: batch 4 (II/13-24): II/14 its soprano over the left hand's two voices; II/16 four; II/19, II/22 three;
+  // II/17 its melody split from the right hand's inner notes.
+  14: { how: "layers", map: { "0:0": 0, "1:0": 1, "1:1": 2 }, count: 3 },
+  16: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2, "1:1": 3 }, count: 4 },
+  17: { how: "melody" },
+  19: L3(0, 1),
+  22: L3(0, 1),
 };
 export function revoice(r: Read, how: Revoice): Read {
   const midi = (p: string) => parsePitch(p).midi;
@@ -514,8 +549,18 @@ export function revoice(r: Read, how: Revoice): Read {
   let count: number;
   const voiceOf = new Map<WtcNote, number | null>();
   if (how.how === "layers") {
-    count = 4;
-    for (const { n, staff } of all) voiceOf.set(n, n[3] < 2 ? staff * 2 + n[3] : null);
+    count = how.count ?? 4;
+    for (const { n, staff } of all) voiceOf.set(n, how.map ? (how.map[`${staff}:${n[3]}`] ?? null) : n[3] < 2 ? staff * 2 + n[3] : null);
+  } else if (how.how === "staves") {
+    // The right hand: its first layer the top voice, any other the middle. The left hand: a note sounding with a note
+    // of another of its layers, the higher of the two the middle voice and the lower the bass; alone, the bass.
+    count = 3;
+    const [rh, lh] = r.piece.voices;
+    for (const n of rh) voiceOf.set(n, n[3] === 0 ? 0 : 1);
+    for (const n of lh) {
+      const other = lh.find((o) => o !== n && o[3] !== n[3] && o[0] < n[0] + n[1] && n[0] < o[0] + o[1]);
+      voiceOf.set(n, other && midi(n[2]) > midi(other[2]) ? 1 : 2);
+    }
   } else if (how.how === "melody") {
     count = 3;
     const rh = [...r.piece.voices[0]].sort((a, b) => a[0] - b[0] || midi(b[2]) - midi(a[2]));
@@ -635,7 +680,8 @@ function readFourVoicePrelude(): Read {
 export function readPrelude(book: 1 | 2, number: number): Read {
   if (book === 1 && number === 4) return readFourVoicePrelude();
   if (book === 1 && REVOICE[number]) return revoice(readXmlPrelude(1, number), REVOICE[number]);
-  return book === 2 && MUTOPIA_PRELUDES[number] ? readLyPrelude(number) : readXmlPrelude(book, number);
+  const read = book === 2 && MUTOPIA_PRELUDES[number] ? readLyPrelude(number) : readXmlPrelude(book, number);
+  return book === 2 && REVOICE2[number] ? revoice(read, REVOICE2[number]) : read;
 }
 
 // --- The Inventions and Sinfonias: Mutopia (D340) -----------------------------------------------------

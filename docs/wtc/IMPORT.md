@@ -39,33 +39,33 @@ last note ends more than a bar before the piece's end.
 | wtc1f14 | wtc-uct/book1/fugue14.ly | F# | 4 | 811 | 40 | ok | ok |
 | wtc1p15 | wtc-openwtc/wtc1p15-719561.mxl | G | 2 | 609 | 19 | 16 odd (bar 2, 3, 4) | ok |
 | wtc1f15 | wtc-uct/book1/fugue15.ly | G | 3 | 1697 | 86 | ok | ok |
-| wtc1p16 | wtc-openwtc/wtc1p16-719556.mxl | G | 2 | 534 | 19 | ok | ok |
+| wtc1p16 | wtc-openwtc/wtc1p16-719556.mxl | G | 3 | 534 | 19 | ok | ok |
 | wtc1f16 | wtc-uct/book1/fugue16.ly | G | 4 | 753 | 34 | ok | ok |
 | wtc1p17 | wtc-openwtc/wtc1p17-719551.mxl | Ab | 2 | 663 | 44 | ok | ok |
 | wtc1f17 | wtc-uct/book1/fugue17.ly | Ab | 4 | 891 | 35 | ok | ok |
-| wtc1p18 | wtc-openwtc/wtc1p18-719546.mxl | G# | 2 | 560 | 29 | ok | ok |
+| wtc1p18 | wtc-openwtc/wtc1p18-719546.mxl | G# | 3 | 560 | 29 | ok | ok |
 | wtc1f18 | wtc-uct/book1/fugue18.ly | G# | 4 | 803 | 41 | ok | ok |
-| wtc1p19 | wtc-openwtc/wtc1p19-719541.mxl | A | 2 | 611 | 24 | ok | ok |
+| wtc1p19 | wtc-openwtc/wtc1p19-719541.mxl | A | 3 | 611 | 24 | ok | ok |
 | wtc1f19 | wtc-uct/book1/fugue19.ly | A | 3 | 1180 | 54 | ok | ok |
 | wtc1p20 | wtc-openwtc/wtc1p20-719536.mxl | A | 2 | 615 | 28 | ok | ok |
 | wtc1f20 | wtc-uct/book1/fugue20.ly | A | 4 | 2408 | 87 | ok | ok |
 | wtc1p21 | wtc-openwtc/wtc1p21-719531.mxl | Bb | 2 | 633 | 20 | ok | ok |
 | wtc1f21 | wtc-uct/book1/fugue21.ly | Bb | 3 | 952 | 48 | ok | ok |
-| wtc1p22 | wtc-openwtc/wtc1p22-719526.mxl | Bb | 2 | 784 | 24 | ok | ok |
+| wtc1p22 | wtc-openwtc/wtc1p22-719526.mxl | Bb | 3 | 784 | 24 | ok | ok |
 | wtc1f22 | wtc-uct/book1/fugue22.ly | Bb | 5 | 745 | 75 | ok | ok |
-| wtc1p23 | wtc-openwtc/wtc1p23-719521.mxl | B | 2 | 417 | 19 | ok | ok |
+| wtc1p23 | wtc-openwtc/wtc1p23-719521.mxl | B | 3 | 417 | 19 | ok | ok |
 | wtc1f23 | wtc-uct/book1/fugue23.ly | B | 4 | 827 | 34 | ok | ok |
-| wtc1p24 | wtc-openwtc/wtc1p24-719516.mxl | B | 2 | 724 | 47 | ok | ok |
+| wtc1p24 | wtc-openwtc/wtc1p24-719516.mxl | B | 3 | 724 | 47 | ok | ok |
 | wtc1f24 | wtc-uct/book1/fugue24.ly | B | 4 | 1808 | 76 | ok | ok |
-| wtc2p01 | mutopia/BachJS/BWV870/wtk2prelude1/wtk2prelude1.ly | C | 2 | 836 | 34 | ok | ok |
+| wtc2p01 | mutopia/BachJS/BWV870/wtk2prelude1/wtk2prelude1.ly | C | 3 | 836 | 34 | ok | ok |
 | wtc2f01 | wtc-uct/book2/fugue01.ly | C | 3 | 1032 | 83 | ok | ok |
 | wtc2p02 | mutopia/BachJS/BWV871/wtk2-prelude2/wtk2-prelude2.ly | C | 2 | 695 | 28 | ok | ok |
 | wtc2f02 | wtc-uct/book2/fugue02.ly | C | 4 | 657 | 28 | ok | ok |
-| wtc2p03 | wtc-musescore/wtc2p03-130944.mxl | C# | 2 | 804 | 50 | 24 odd (bar 25, 26, 27) | ok |
+| wtc2p03 | wtc-musescore/wtc2p03-130944.mxl | C# | 3 | 804 | 50 | 24 odd (bar 25, 26, 27) | ok |
 | wtc2f03 | wtc-uct/book2/fugue03.ly | C# | 3 | 812 | 35 | ok | ok |
-| wtc2p04 | wtc-musescore/wtc2p04-130947.mxl | C# | 2 | 1150 | 62 | ok | ok |
+| wtc2p04 | wtc-musescore/wtc2p04-130947.mxl | C# | 3 | 1150 | 62 | ok | ok |
 | wtc2f04 | wtc-uct/book2/fugue04.ly | C# | 3 | 1353 | 71 | ok | ok |
-| wtc2p05 | wtc-musescore/wtc2p05-130949.mxl | D | 2 | 1494 | 56 | ok | ok |
+| wtc2p05 | wtc-musescore/wtc2p05-130949.mxl | D | 3 | 1494 | 56 | ok | ok |
 | wtc2f05 | wtc-uct/book2/fugue05.ly | D | 4 | 878 | 50 | ok | ok |
 | wtc2p06 | mutopia/BachJS/BWV875/bwv875a/bwv875a.ly | D | 2 | 1079 | 61 | ok | ok |
 | wtc2f06 | wtc-uct/book2/fugue06.ly | D | 3 | 800 | 27 | ok | ok |
@@ -73,33 +73,33 @@ last note ends more than a bar before the piece's end.
 | wtc2f07 | wtc-uct/book2/fugue07.ly | Eb | 4 | 707 | 70 | ok | ok |
 | wtc2p08 | wtc-musescore/wtc2p08-131063.mxl | D# | 2 | 977 | 36 | ok | ok |
 | wtc2f08 | wtc-uct/book2/fugue08.ly | D# | 4 | 1019 | 46 | ok | ok |
-| wtc2p09 | wtc-musescore/wtc2p09-131065.mxl | E | 2 | 896 | 54 | ok | ok |
+| wtc2p09 | wtc-musescore/wtc2p09-131065.mxl | E | 3 | 896 | 54 | ok | ok |
 | wtc2f09 | wtc-uct/book2/fugue09.ly | E | 4 | 749 | 43 | ok | ok |
 | wtc2p10 | wtc-musescore/wtc2p10-131067.mxl | E | 2 | 997 | 109 | ok | ok |
 | wtc2f10 | wtc-uct/book2/fugue10.ly | E | 3 | 1433 | 86 | ok | ok |
-| wtc2p11 | wtc-musescore/wtc2p11-131069.mxl | F | 2 | 1246 | 72 | ok | ok |
+| wtc2p11 | wtc-musescore/wtc2p11-131069.mxl | F | 4 | 1246 | 72 | ok | ok |
 | wtc2f11 | wtc-uct/book2/fugue11.ly | F | 3 | 978 | 99 | ok | ok |
 | wtc2p12 | wtc-musescore/wtc2p12-131072.mxl | F | 2 | 758 | 70 | ok | ok |
 | wtc2f12 | wtc-uct/book2/fugue12.ly | F | 3 | 1118 | 85 | ok | ok |
 | wtc2p13 | wtc-musescore/wtc2p13-131074.mxl | F# | 2 | 1300 | 75 | ok | ok |
 | wtc2f13 | wtc-uct/book2/fugue13.ly | F# | 3 | 1123 | 84 | ok | ok |
-| wtc2p14 | wtc-musescore/wtc2p14-131076.mxl | F# | 2 | 892 | 43 | ok | ok |
+| wtc2p14 | wtc-musescore/wtc2p14-131076.mxl | F# | 3 | 892 | 43 | ok | ok |
 | wtc2f14 | wtc-uct/book2/fugue14.ly | F# | 3 | 1399 | 70 | ok | ok |
 | wtc2p15 | wtc-musescore/wtc2p15-131078.mxl | G | 2 | 915 | 48 | ok | ok |
 | wtc2f15 | wtc-uct/book2/fugue15.ly | G | 3 | 691 | 72 | ok | ok |
-| wtc2p16 | wtc-musescore/wtc2p16-131080.mxl | G | 2 | 526 | 21 | ok | ok |
+| wtc2p16 | wtc-musescore/wtc2p16-131080.mxl | G | 4 | 526 | 21 | ok | ok |
 | wtc2f16 | wtc-uct/book2/fugue16.ly | G | 4 | 1659 | 84 | ok | ok |
-| wtc2p17 | wtc-musescore/wtc2p17-131082.mxl | Ab | 2 | 1551 | 77 | ok | ok |
+| wtc2p17 | wtc-musescore/wtc2p17-131082.mxl | Ab | 3 | 1551 | 77 | ok | ok |
 | wtc2f17 | wtc-uct/book2/fugue17.ly | Ab | 4 | 1346 | 50 | ok | ok |
 | wtc2p18 | wtc-musescore/wtc2p18-131084.mxl | G# | 2 | 1287 | 50 | ok | ok |
 | wtc2f18 | wtc-uct/book2/fugue18.ly | G# | 3 | 1529 | 143 | ok | ok |
-| wtc2p19 | wtc-musescore/wtc2p19-131086.mxl | A | 2 | 688 | 33 | ok | ok |
+| wtc2p19 | wtc-musescore/wtc2p19-131086.mxl | A | 3 | 688 | 33 | ok | ok |
 | wtc2f19 | wtc-uct/book2/fugue19.ly | A | 3 | 754 | 29 | ok | ok |
 | wtc2p20 | wtc-musescore/wtc2p20-131088.mxl | A | 2 | 781 | 32 | ok | ok |
 | wtc2f20 | wtc-uct/book2/fugue20.ly | A | 3 | 731 | 28 | ok | ok |
 | wtc2p21 | wtc-musescore/wtc2p21-131090.mxl | Bb | 2 | 1755 | 87 | ok | ok |
 | wtc2f21 | wtc-uct/book2/fugue21.ly | Bb | 3 | 961 | 93 | ok | ok |
-| wtc2p22 | wtc-musescore/wtc2p22-131092.mxl | Bb | 2 | 1191 | 83 | ok | ok |
+| wtc2p22 | wtc-musescore/wtc2p22-131092.mxl | Bb | 3 | 1191 | 83 | ok | ok |
 | wtc2f22 | wtc-uct/book2/fugue22.ly | Bb | 4 | 1752 | 101 | ok | ok |
 | wtc2p23 | wtc-musescore/wtc2p23-131094.mxl | B | 2 | 1050 | 46 | ok | ok |
 | wtc2f23 | wtc-uct/book2/fugue23.ly | B | 4 | 1316 | 104 | ok | ok |
@@ -216,6 +216,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f15 | b. 67, voice 2, beat 0.75: C3 → C#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f15 | b. 67, voice 0, beat 1: C5 → C#5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p16 | b. 8, voice 1, beat 3.25: G3 → Ab3 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
+| wtc1p16 | re-voiced (staves): 3 voices, 0 notes placed by the nearest voice (D881) |
 | wtc1p17 | b. 37, voice 1, beat 1: Bb3 → Ab3 (slip: Mutopia and verits99 (A = 415 Hz) agree with the Humdrum check) |
 | wtc1f17 | b. 13, voice 0, beat 3.75: Eb5 → E5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f17 | b. 19, voice 1, beat 3.5: G4 → Gb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -226,8 +227,10 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f17 | b. 31, voice 1, beats 1.5-2.5: F5 → F5 F5 (editorial: the early versions' tie (dashed in Rother's; his note on mm. 30-31) left out, as the Bach-Gesellschaft) |
 | wtc1p18 | b. 20, voice 1, beat 0.25: D#3 → C#3 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
 | wtc1p18 | b. 20, voice 1, beat 0.5: C#3 → D#3 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
+| wtc1p18 | re-voiced (layers): 3 voices, 52 notes placed by the nearest voice (D881) |
 | wtc1f18 | b. 13, voice 0, beat 3: F#5 → D#5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1p19 | b. 14, voice 1, beats 0-2.25: G#3 F#3 E#3 B3 A3 → D3 B2 G#3 F#3 C#3 E#3 B3 A3 F#3 (slip: the bass's D B C# F# (OpenWTC's bar ends early); verits99's score (A = 415 Hz) agrees with the Humdrum check) |
+| wtc1p19 | re-voiced (staves): 3 voices, 0 notes placed by the nearest voice (D881) |
 | wtc1f19 | b. 5, voice 2, beat 2: F#4 → A4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f19 | b. 19, voice 0, beat 1.5: D4 → D#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f19 | b. 52, voice 2, beat 2.5: A2 → B2 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -249,6 +252,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1p21 | b. 18, voice 0, beat 2.5: A3 → Ab3 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
 | wtc1p21 | b. 18, voice 1, beat 3.625: A3 → Ab3 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
 | wtc1f21 | b. 27, voice 0, beat 0: D5 → F5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
+| wtc1p22 | re-voiced (melody): 3 voices, 0 notes placed by the nearest voice (D881) |
 | wtc1f22 | b. 59, voice 2, beat 1: D5 → Db5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f22 | b. 35, voice 3, beat 3: Eb3 → Gb3 (slip: Gb, not the bass's Eb doubled (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc1f22 | b. 71, voice 2, beat 3: Eb4 → Gb4 (slip: Gb, not the tenor's Eb doubled (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
@@ -256,9 +260,12 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc1f22 | b. 12, voice 1, beats 0-1: Eb5 → nothing (slip: the tie over the bar (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc1p23 | b. 2, voice 0, beat 0.25: F#5 → E5 (slip: verits99's score (A = 415 Hz) agrees with the Humdrum check) |
 | wtc1p23 | b. 19, voice 0, beats 1-2: A#4 → A#4 F#4 (slip: the F# under the A#; verits99's score (A = 415 Hz) agrees with the Humdrum check) |
+| wtc1p23 | re-voiced (layers): 3 voices, 33 notes placed by the nearest voice (D881) |
+| wtc1p24 | re-voiced (layers): 3 voices, 2 notes placed by the nearest voice (D881) |
 | wtc1f24 | b. 12, voice 3, beat 2.25: D#3 → F#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f24 | b. 23, voice 1, beat 2: G4 → G#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc1f24 | b. 75, voice 3, beat 1.25: E#3 → E3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
+| wtc2p01 | re-voiced (melody): 3 voices, 0 notes placed by the nearest voice (D881) |
 | wtc2f01 | b. 33, voice 1, beat 1.75: D4 → F4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f01 | b. 79, voice 0, beat 0: D4 → G4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f02 | b. 7, voice 2, beat 3.5: Bb2 → B2 (slip: B natural, as the Humdrum check and Mutopia have it) |
@@ -266,6 +273,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f02 | b. 27, voice 1, beat 3.5: F#4 → F4 (slip: F natural, as the Humdrum check and Mutopia have it) |
 | wtc2f02 | b. 28, voice 1, beat 0: E4 → Eb4 (slip: the final chord's E flat, as the Humdrum check and Mutopia have it) |
 | wtc2p03 | 1 written-out trills folded back into their notes |
+| wtc2p03 | re-voiced (layers): 3 voices, 59 notes placed by the nearest voice (D881) |
 | wtc2f03 | b. 21, voice 0, beat 2: E#4 → F#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f03 | b. 19, voice 0, beats 3-3.25: E#5 → E#5 F#5 (slip: the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's "sic", the witness agrees)) |
 | wtc2f03 | b. 19, voice 0, beats 3.5-3.75: C#5 → C#5 D#5 (slip: the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's "sic", the witness agrees)) |
@@ -284,6 +292,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f03 | b. 29, voice 0, beats 3.25-3.75: D#5 E5 D#5 → D#5 E5 D#5 (slip: the Bach-Gesellschaft's two demisemiquavers for Rother's semiquaver (the Humdrum check's "sic", the witness agrees)) |
 | wtc2f03 | b. 31, voice 0, beats 1-2.625: E#5 E#5 → E#5 (slip: the tie (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc2p04 | 22 written-out trills folded back into their notes |
+| wtc2p04 | re-voiced (layers): 3 voices, 6 notes placed by the nearest voice (D881) |
 | wtc2f04 | b. 11, voice 2, beat 1.75: F#2 → G#2 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f04 | b. 11, voice 2, beat 2: G#2 → F#2 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f04 | b. 36, voice 2, beat 1.5: D#3 → F#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -292,6 +301,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2p05 | written-out repeats taken once (112 measures → 56) |
 | wtc2p05 | 4 written-out trills folded back into their notes |
 | wtc2p05 | 60 figures: dotted (editorial: the dotted quaver and semiquaver as written (verits99 writes them as triplets), as the game has always played them) |
+| wtc2p05 | re-voiced (layers): 3 voices, 53 notes placed by the nearest voice (D881) |
 | wtc2f05 | b. 49, voice 2, beats 2.5-4: D3 E3 → D3 B2 E3 A2 (slip: the bass divides (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc2f06 | bar 16, F4: the sign the BGA's (T) (D206) |
 | wtc2f06 | b. 21, voice 2, beat 3: C3 → C#3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -302,6 +312,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f08 | b. 33, voice 3, beat 1.5: E#3 → E3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p09 | written-out repeats taken once (108 measures → 54) |
 | wtc2p09 | 4 written-out trills folded back into their notes |
+| wtc2p09 | re-voiced (layers): 3 voices, 76 notes placed by the nearest voice (D881) |
 | wtc2f09 | b. 15, voice 0, beat 4: B4 → B#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f09 | b. 15, voice 0, beat 7: B4 → B#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f09 | b. 19, voice 0, beat 5.5: E4 → E#4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -324,11 +335,13 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f10 | b. 16, voice 2, beats 1-2: G3 D#4 → G3 D#4 (editorial: the dotted quaver's semiquaver played as a triplet quaver, as the game has always played it (the Humdrum check and the witness align it so)) |
 | wtc2f10 | b. 78, voice 0, beats 2-3.3333333333333335: D#4 C5 → D#4 C5 (editorial: the semiquaver and dotted quaver played with the triplets, as the game has always played them) |
 | wtc2f10 | 64 figures: assimilate (editorial: the dotted quaver's semiquaver played as the triplets' third quaver, as the game has always played it) |
+| wtc2p11 | re-voiced (layers): 4 voices, 118 notes placed by the nearest voice (D881) |
 | wtc2f11 | b. 77, voice 0, beat 0.25: F4 → G4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f11 | b. 77, voice 0, beat 0.5: G4 → F4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f11 | b. 78, voice 0, beat 0.75: D4 → F4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p12 | written-out repeats taken once (141 measures → 71) |
 | wtc2p13 | 15 written-out trills folded back into their notes |
+| wtc2p14 | re-voiced (layers): 3 voices, 34 notes placed by the nearest voice (D881) |
 | wtc2p15 | written-out repeats taken once (96 measures → 48) |
 | wtc2f15 | b. 40, voice 2, beat 1: B3 → D4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f15 | b. 60, voice 0, beat 0.25: B3 → Bb3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -340,9 +353,11 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f15 | b. 63, voice 1, beats 0-1.5: nothing → F#3 G3 A3 (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
 | wtc2f15 | b. 64, voice 1, beats 0-0.625: nothing → B3 C#4 D4 E4 F#4 (editorial: the run handed bass → alto → soprano as the Bach-Gesellschaft writes it (the Humdrum check; Rother's soprano staff carries it all)) |
 | wtc2p16 | 2 written-out trills folded back into their notes |
+| wtc2p16 | re-voiced (layers): 4 voices, 20 notes placed by the nearest voice (D881) |
 | wtc2f16 | b. 29, voice 1, beat 0: Eb4 → Bb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f16 | b. 49, voice 3, beat 0.75: C2 → E2 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p17 | 8 written-out trills folded back into their notes |
+| wtc2p17 | re-voiced (melody): 3 voices, 0 notes placed by the nearest voice (D881) |
 | wtc2f17 | b. 12, voice 2, beat 3.75: Gb4 → G4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f17 | b. 44, voice 1, beat 2: Bbb4 → Bb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f17 | b. 44, voice 1, beat 3: Bbb4 → Bb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
@@ -355,6 +370,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2f18 | b. 81, voice 1, beats 0-0.5: B3 → nothing (slip: the tie over the bar (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc2f18 | b. 87, voice 1, beats 0.5-2: C#5 C#5 → C#5 (slip: the tie (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
 | wtc2p19 | 1 written-out trills folded back into their notes |
+| wtc2p19 | re-voiced (layers): 3 voices, 28 notes placed by the nearest voice (D881) |
 | wtc2f19 | b. 20, voice 0, beat 2: D5 → E5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f19 | b. 3, voice 2, beats 2-2.5: D#4 → D#4 B3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2p20 | written-out repeats taken once (64 measures → 32) |
@@ -364,6 +380,7 @@ Each correction to an edition as read (tools/wtc/corrections.ts), and what the r
 | wtc2p21 | written-out repeats taken once (174 measures → 87) |
 | wtc2f21 | b. 78, voice 0, beat 2.5: Bb4 → C5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f21 | b. 38, voice 2, beats 0-0.5: Eb2 → nothing (slip: no E flat on the downbeat (the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree)) |
+| wtc2p22 | re-voiced (layers): 3 voices, 46 notes placed by the nearest voice (D881) |
 | wtc2f22 | b. 35, voice 0, beat 5.5: Eb5 → Ab5 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f22 | b. 39, voice 2, beat 1: E4 → Eb4 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |
 | wtc2f22 | b. 45, voice 2, beat 3: A3 → Ab3 (slip: the free witness (OpenWTC / verits99, CC0) and the Humdrum check agree) |

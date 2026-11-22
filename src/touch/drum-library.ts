@@ -52,6 +52,7 @@ import { isCharacter, stylesFor } from "./drum-presets.ts";
 import { metreClass, type MetreClass } from "./drum-grids.ts";
 import { preset } from "./sound.ts";
 import { PIECE_SOUND } from "./piece-sound.ts";
+import { worldOf } from "./prelude-plan.ts";
 
 export type Family = "rock" | "jazz" | "latin" | "electronic" | "orchestral";
 export type Metre = MetreClass;
@@ -365,6 +366,8 @@ export const FUGUE_STYLE_STANDIN: Readonly<Record<string, StyleId>> = {
 };
 /** D585: the fugue's own style (FUGUE_STYLES, or its stand-in), or null where it has none. */
 export function fugueStyle(pieceId: string): StyleId | null {
+  // D984: a prelude shares its fugue's drums where those are NO DRUMS (looked up by world, prelude-plan.ts `worldOf`).
+  if (FUGUE_STYLES[worldOf(pieceId)] === NO_DRUMS) return NO_DRUMS;
   const want = FUGUE_STYLES[pieceId];
   if (!want) return null;
   return isStyle(want) ? want : (FUGUE_STYLE_STANDIN[want] ?? null);
@@ -398,7 +401,10 @@ export const SOUND_FUGUE_HOME: Readonly<Record<string, Readonly<Record<string, S
   },
 };
 /** D585: the style a fugue's DRUMS play with nothing chosen: the fugue's own on its own sound, else (D618) the sound's HOME for that fugue, else the sound's HOME. */
-export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? SOUND_FUGUE_HOME[sound]?.[pieceId] ?? homeStyleFor(sound);
+// D984: and a sound's NO DRUMS for a fugue (SOUND_FUGUE_HOME) its prelude's too, by world.
+const soundFugueHome = (pieceId: string, sound: string): StyleId | undefined =>
+  SOUND_FUGUE_HOME[sound]?.[pieceId] ?? (SOUND_FUGUE_HOME[sound]?.[worldOf(pieceId)] === NO_DRUMS ? NO_DRUMS : undefined);
+export const homeFor = (pieceId: string, sound: string): StyleId => (sound === PIECE_SOUND[pieceId] ? fugueStyle(pieceId) : null) ?? soundFugueHome(pieceId, sound) ?? homeStyleFor(sound);
 export const familyFor = (sound: string): readonly StyleId[] => SOUND_STYLES[sound] ?? stylesIn(styleInfo(HOME_FALLBACK).family);
 
 const fugueOf = (f: TouchFugue | string): TouchFugue | null => {
@@ -436,6 +442,10 @@ function readChoice(pieceId: string, id: unknown): StyleId | null {
 export function setDrumStyle(pieceId: string, style: string) {
   chosen.set(pieceId, readChoice(pieceId, style));
   currentPiece = pieceId;
+}
+/** D941: a choice made for this visit forgotten (BASICS's own beat: the piece's stored choice, or HOME, again). */
+export function forgetDrumStyle(pieceId: string) {
+  chosen.delete(pieceId);
 }
 /** The style chosen for a piece (this visit, else stored), null where HOME plays. */
 export function chosenStyle(pieceId: string): StyleId | null {

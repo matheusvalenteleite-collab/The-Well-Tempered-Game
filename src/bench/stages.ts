@@ -13,6 +13,7 @@
  * HIGHWAY_LANES: one hand, D251: the prelude's own, not chosen), its fugue on LADDER (SUBJECT withdrawn);
  * on a computer both on the computer's HIGHWAY (keys).
  */
+import { preludeReady } from "../touch/prelude-plan.ts";
 import { APP } from "./config.ts";
 import type { TouchFugue } from "../touch/fugue.ts";
 import { betterGrade } from "./cards.ts";
@@ -136,7 +137,8 @@ function keep(id: string, grade: string, today: string): boolean {
  */
 export function stageMode(f: TouchFugue, platform: Platform, chosen: ProtoId): ProtoId {
   // D442: the Glenn pilot's preludes on a phone on LADDER, the fugues' screen (THE REVEAL, reveal.ts).
-  if (f.kind === "prelude") return platform === "computer" ? "keys" : APP.glennPilot ? "ladder" : "highway";
+  // D980 (reverses D229 for the ready preludes): the same game as the fugues, LADDER on a phone.
+  if (f.kind === "prelude") return platform === "computer" ? "keys" : APP.glennPilot || preludeReady(f.id) ? "ladder" : "highway";
   if (platform === "mobile") return "ladder";
   return chosen;
 }
@@ -154,7 +156,12 @@ export function herUnlocked(s: Stages = readStages(), feats: { earned: Partial<R
  * game gives"): the part each prelude gives its player, by id. The right hand (voice 0) for every
  * prelude unless named here (room to give one its left hand, or another part, later).
  */
-export const PRELUDE_PART: Readonly<Record<string, number>> = {};
+export const PRELUDE_PART: Readonly<Record<string, number>> = {
+  // D950: I/2's left hand, the one part its plan offers (src/touch/prelude-plan.ts).
+  wtc1p02: 1,
+  // D959: and II/23's, likewise.
+  wtc2p23: 1,
+};
 
 /** D251: the part a prelude gives (the right hand, voice 0, unless `PRELUDE_PART` names another). */
 export const preludePart = (id: string): number => PRELUDE_PART[id] ?? 0;

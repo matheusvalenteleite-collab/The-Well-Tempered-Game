@@ -7,27 +7,35 @@
 import { useEffect, useRef } from "react";
 import { tr } from "../../i18n/index.ts";
 import { GlennFace } from "../GlennFace.tsx";
-import type { ClipId } from "./plan.ts";
 
-const CLIPS: Record<ClipId, string> = {
-  tap: new URL("./clips/tap.mp4", import.meta.url).href,
-  up: new URL("./clips/up.mp4", import.meta.url).href,
-  down: new URL("./clips/down.mp4", import.meta.url).href,
-  same: new URL("./clips/same.mp4", import.meta.url).href,
-  leap: new URL("./clips/leap.mp4", import.meta.url).href,
-  two: new URL("./clips/two.mp4", import.meta.url).href,
-  hold: new URL("./clips/hold.mp4", import.meta.url).href,
-  lift: new URL("./clips/lift.mp4", import.meta.url).href,
-  strong: new URL("./clips/strong.mp4", import.meta.url).href,
-  legato: new URL("./clips/legato.mp4", import.meta.url).href,
-  short: new URL("./clips/short.mp4", import.meta.url).href,
-  shake: new URL("./clips/shake.mp4", import.meta.url).href,
-  slide: new URL("./clips/slide.mp4", import.meta.url).href,
+/**
+ * D941 (the owner's playtest: "We should have them quickly playing through the exact same exercise player will soon be
+ * offered"): one clip a stage, its own first version played by the thumbs the game plans, in order, at 1.75x its tempo,
+ * back at rest at the end (D699).
+ */
+export const CLIPS: Readonly<Record<string, string>> = {
+  "1.1": new URL("./clips/1-1.mp4", import.meta.url).href,
+  "1.2": new URL("./clips/1-2.mp4", import.meta.url).href,
+  "2.1": new URL("./clips/2-1.mp4", import.meta.url).href,
+  "2.2": new URL("./clips/2-2.mp4", import.meta.url).href,
+  "2.3": new URL("./clips/2-3.mp4", import.meta.url).href,
+  "2.4": new URL("./clips/2-4.mp4", import.meta.url).href,
+  "2.5": new URL("./clips/2-5.mp4", import.meta.url).href,
+  "3.1": new URL("./clips/3-1.mp4", import.meta.url).href,
+  "3.2": new URL("./clips/3-2.mp4", import.meta.url).href,
+  "4.1": new URL("./clips/4-1.mp4", import.meta.url).href,
+  "4.2": new URL("./clips/4-2.mp4", import.meta.url).href,
+  "6.1": new URL("./clips/6-1.mp4", import.meta.url).href,
+  "6.2": new URL("./clips/6-2.mp4", import.meta.url).href,
+  "6.3": new URL("./clips/6-3.mp4", import.meta.url).href,
+  "6.4": new URL("./clips/6-4.mp4", import.meta.url).href,
+  "6.5": new URL("./clips/6-5.mp4", import.meta.url).href,
 };
 
 export type HostView =
   | { kind: "card"; act: number; title: string; line: string; go: () => void; skip: () => void }
-  | { kind: "clip"; clip: ClipId; done: () => void }
+  /** D991: `sound` starts the clip's sound on its video (and returns its stop); the clip loops until touched. */
+  | { kind: "clip"; stage: string; done: () => void; sound?: (video: HTMLVideoElement) => () => void }
   | { kind: "hint"; text: string; done: () => void }
   | { kind: "finale"; line: string; done: () => void };
 
@@ -58,6 +66,11 @@ export function BasicsHost({ view }: { view: HostView | null }) {
     const t = window.setTimeout(view.done, 2200);
     return () => window.clearTimeout(t);
   }, [view]);
+  // D991: the clip's sound, on its video's loop, until the clip is left.
+  useEffect(() => {
+    if (view?.kind !== "clip" || !view.sound || !vid.current) return;
+    return view.sound(vid.current);
+  }, [view]);
   if (!view) return null;
   if (view.kind === "card")
     return (
@@ -84,8 +97,16 @@ export function BasicsHost({ view }: { view: HostView | null }) {
     );
   if (view.kind === "clip")
     return (
-      <div className="basics2-layer basics2-cliplayer" onClick={view.done}>
-        <video ref={vid} className="basics2-clip" src={CLIPS[view.clip]} autoPlay muted playsInline onEnded={view.done} onError={view.done} aria-label={tr("Thumbs on the phone")} />
+      // D991 (the owner: "Hands animation doesn't end by itself, but upon touch (which should be signalled)"): the clip
+      // loops, heard, until a touch, taken as it lifts (its press is the layer's, never a note's); TOUCH TO PLAY over
+      // the clip's empty top, breathing slowly (no faster than once a second).
+      <div className="basics2-layer basics2-cliplayer" id="basics2-cliplayer" onPointerDown={(e) => e.preventDefault()} onClick={view.done}>
+        <div className="basics2-clipwrap">
+          <video ref={vid} className="basics2-clip" src={CLIPS[view.stage]} autoPlay loop muted playsInline aria-label={tr("Thumbs on the phone")} />
+          <p className="basics2-touch" id="basics2-touch">
+            {tr("TOUCH TO PLAY")}
+          </p>
+        </div>
       </div>
     );
   return (

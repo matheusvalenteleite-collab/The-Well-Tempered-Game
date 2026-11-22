@@ -16,6 +16,7 @@
  * texture; none past the last chord); only in a pilot world, only where the game shows it in full (the design studio's
  * rule: a fugue with a world, STAGE FULL (QUIET and OFF silent), not the tutorial's box), and WORLD SOUNDS on. Pure: no audio here.
  */
+import { worldOf } from "./prelude-plan.ts";
 import { beatOf, type TouchFugue } from "./fugue.ts";
 import { formOf } from "./form-points.ts";
 import { tempoOf } from "./tempi.ts";
@@ -110,7 +111,7 @@ export const SWELL_SURGE_DB = 1.5;
 
 const memo = new Map<string, SfxEvent[]>();
 /** The piece's effects by tick (memoised), from its world's list (or `kinds`). */
-export function sfxPlan(f: TouchFugue, kinds: readonly SfxKind[] = PILOT_SFX[f.id] ?? []): SfxEvent[] {
+export function sfxPlan(f: TouchFugue, kinds: readonly SfxKind[] = PILOT_SFX[worldOf(f.id)] ?? []): SfxEvent[] {
   const key = `${f.id}:${kinds.join(",")}`;
   const hit = memo.get(key);
   if (hit) return hit;
@@ -120,7 +121,7 @@ export function sfxPlan(f: TouchFugue, kinds: readonly SfxKind[] = PILOT_SFX[f.i
   for (const k of kinds) {
     const C = CURVE_SOUND[k];
     if (C) {
-      const v = trimOf(f.id, k);
+      const v = trimOf(worldOf(f.id), k);
       if (C.event === "bed") out.push({ kind: k, tick: ons[0] ?? 0, end: bedEnd(f, k), vel: v });
       else if (C.event === "climax" && C.shot) out.push({ kind: k, tick: F.climax.rise, end: F.climax.rise, vel: v });
       else if (C.event === "climax") out.push({ kind: k, tick: F.climax.rise, end: swellEnd(f), vel: v });
@@ -251,7 +252,8 @@ export function sfxKindsNow(f: TouchFugue, shown: boolean): readonly SfxKind[] {
   if (lab) return lab.on ? [...(PILOT_SFX[f.id] ?? []), ...(lab.trial ? (SWEEP_TRIAL[f.id] ?? []) : [])] : [];
   // The design studio's rule: only with STAGE FULL (QUIET and OFF silent), a piece with a world, not the tutorial's box.
   if (!sfxOn() || !shown || !hasStage(f.id) || stageMode() !== "full") return [];
-  return PILOT_SFX[f.id] ?? [];
+  // D980: a prelude's world sounds as its fugue's (its beds; what rides the entries has none to ride).
+  return PILOT_SFX[worldOf(f.id)] ?? [];
 }
 
 // --- D706, D644, D704-D706, THE SECOND BATCH: one engine for every new effect (CURVE_SOUND). Each sound is a few layers of the

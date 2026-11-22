@@ -333,6 +333,13 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     perBar: 1,
     subject: "head",
   },
+  // D984: I/13's prelude (OBOE TRIO, FRAME its sound's HOME): the frame drums softer (0.8, -1.9 dB), so that the roll into
+  // its last chord and the chord's accents stay D601's 1 dB under the band (0.1-0.5 dB over at the full level; 0.85 not
+  // enough: the final frame drum is held at chip.ts ACCENT_MAX until the level takes it under).
+  wtc1p13: {
+    why: "I/13's prelude, F#, 12/16, 30 bars, a tune over an accompanying motif on OBOE TRIO: FRAME as its sound's HOME, softer (0.8) so the roll into the last chord and the chord itself stay under the band.",
+    styles: { frame: { level: 0.8 } },
+  },
   wtc2f22: {
     why: "II/22 bb, 3/2 at a minim of 1 s, 101 bars, the subject and its inversion in stretto: the head only, rolls into the acts, the pedals rolled on the tonic and the dominant (bars 95-101).",
     subject: "head",

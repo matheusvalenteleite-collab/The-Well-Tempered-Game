@@ -456,8 +456,6 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 /* D453: DRUMS: ON/OFF, the style (a tap the next of HOME and the sound's family), MORE (every style). */
 .sel-drums { grid-auto-flow: unset; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) minmax(0, 0.7fr); }
 .sel-drums .sel-knob { min-height: 34px; }
-.sel-drums-more { text-align: center; }
-.sel-drums-more b { color: var(--tg-fg); }
 
 /* D453: the MORE grid, after the Sound Lab's pad: the families in rows, each style a big button, HOME and FITS marked. */
 .sel-drumgrid { box-sizing: border-box; display: flex; flex-direction: column; width: min(820px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); background: var(--tg-box, #12162a); border: 3px solid var(--tg-shine); box-shadow: 6px 6px 0 #b8322a; font-family: var(--tg-pixel); }
@@ -486,17 +484,17 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-drums { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) 30px; }
 .sel-drums .sel-knob b { white-space: normal; overflow: visible; overflow-wrap: normal; word-break: normal; }
 .sel-drums-on b { font-size: 5.5px; line-height: 1.3; }
-.sel-drums-more { display: grid; place-items: center; padding: 2px 0; }
-.sel-drums-more b { font-family: system-ui, sans-serif; font-size: 14px; line-height: 1; color: var(--tg-shine); }
-.sel-drums-more .sel-knob-k { font-size: 5px; }
-/* D453: DRUMS named over the row (as YOUR VOICE); ON/OFF a switch, no words to cut in any language. */
-.sel-drums-ask { margin-top: 2px; }
-.sel-drums { grid-template-columns: 44px minmax(0, 1fr) 30px; }
-.sel-drums-on { display: grid; place-items: center; padding: 0; }
-.sel-switch { position: relative; display: block; width: 28px; height: 14px; background: #3a3858; border: 1px solid #78789f; }
-.sel-switch i { position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; background: #8c88aa; transition: left 0.12s steps(3); }
-.sel-drums-on.on .sel-switch { background: #2f6b3a; border-color: #5fdc6a; }
-.sel-drums-on.on .sel-switch i { left: 15px; background: #5fdc6a; }
+/* D940: DRUMS as two knobs in SOUND's language, lined up with TEMPO and SOUND above: ON/OFF with a pixel lamp, the style (opens the grid). */
+.sel-drums { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px; }
+.sel-drums .sel-knob { min-height: 34px; }
+.sel-drums-on b { color: #8c88aa; white-space: nowrap; }
+.sel-lamp { position: absolute; top: 4px; right: 4px; display: block; width: 6px; height: 6px; background: #3a3858; box-shadow: inset 0 0 0 1px #78789f; }
+@media (max-width: 700px) { .sel-drums-on b { font-size: 5px; } .sel-drums-on b.long { font-size: 4.5px; letter-spacing: -0.02em; } .sel-lamp { top: 3px; right: 3px; width: 5px; height: 5px; } }
+.sel-drums-on.on { border-color: #5fdc6a; }
+.sel-drums-on.on b { color: #5fdc6a; }
+.sel-drums-on.on .sel-lamp { background: #5fdc6a; box-shadow: 0 0 4px 1px rgba(95, 220, 106, 0.55); }
+.sel-drums-preset.off { opacity: 1; }
+.sel-drums-preset.off b { color: #8c88aa; }
 
 /* D455: SOUND's knob a button (the grid's sign); the sounds' grid in DRUMS' grid's dress. */
 #sel-sound-knob { font: inherit; }
@@ -557,3 +555,14 @@ html:has(.tb-sel, .tb-intro) #wtc-version { display: none; }
 .sel-basics-soon { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 6px; padding: 3px 4px; font-family: var(--tg-pixel); background: #1e1c28; border: 1px dashed #46425a; opacity: 0.6; }
 .sel-basics-soon b { font-weight: normal; font-size: 5px; color: #8a88a4; }
 .sel-basics-soon i { font-style: normal; font-size: 4px; line-height: 1.5; color: #6e6e8c; }
+
+/* D980: PRELUDE | FUGUE, the key's two pieces, under the world's name; the one chosen lit as a voice is; COMING dashed. */
+.sel-pair-switch { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px; margin: 2px 0 1px; }
+.sel-pair-switch button { position: relative; display: grid; place-content: center; gap: 1px; min-width: 0; min-height: 40px; padding: 0 2px; font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.04em; color: var(--tg-fg); background: #1e1c32; border: 1px solid #78789f; cursor: pointer; overflow: hidden; }
+.sel-pair-switch button.on { color: #14101a; background: var(--tg-shine); border-color: var(--tg-shine); }
+.sel-pair-switch button.soon { color: #6e6e8c; border-style: dashed; border-color: #4a4766; cursor: default; }
+.sel-pair-switch button i { font-style: normal; font-size: 5px; letter-spacing: 0.02em; }
+.sel-pair-switch button:not(:disabled):active { transform: translate(1px, 1px); }
+@media (max-width: 700px) { .sel-pair-switch button { font-size: 6px; letter-spacing: 0; } .sel-pair-switch button i { font-size: 4.5px; } }
+/* D980: the tile's P, its prelude finished: at the picture's foot, right (the fugue's grade at its head). */
+.sel-ppip { position: absolute; right: 2px; bottom: 2px; z-index: 3; padding: 1px 2px 0; font-size: 6px; line-height: 1.2; color: #14101a; background: #9fe0a0; box-shadow: 1px 1px 0 #14101a; }
