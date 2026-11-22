@@ -1,60 +1,183 @@
 /**
  * D371 (Mario and Luigi's report, 1c): the intro's music, Contrapunctus XIV's third subject, B♭–A–C–B♮
  * (BACH, his name in notes), read from the game's own data (pieces.json `bwv1080-14`, the tenor from bar
- * 193: B♭3 A3 C4 B3, half notes). The picture follows the notes (Intro.tsx): each image fades in on its note.
+ * 193). The picture follows the notes (Intro.tsx): each image fades in on its note.
  *
- * D406: the subject's continuation as the data has it (the tenor goes on B3 C♯4 D4), at ♩ = 80; the C♯ a short
- * step (a breath longer than the data's eighth) into the D, where the title page cross-fades into the selection
- * screen (INTRO_RESOLVE_S). D410 (a harpsichord arpeggio), D500 (STRING CONSORT's cello, then BAROQUE BAND's
- * suspension and perfect cadence): superseded by D507.
+ * D406 (the C♯–D continuation), D410, D500, D507 (the line an octave up over a left-hand D–A–D): superseded by D935.
  *
- * D507 (the owner: "I hate the suspension to perfect cadence … a simple piano rendition of the B-A-C-H subject,
- * where the last D note gets a left hand D A D chord accompaniment, softly … Soft from start to end. Meditative,
- * not rumbley. At ALTO or SOPRANO height for the subject; the accompaniment is left hand, bass or tenor height. No
- * articulations in the subject statement, just legato with slight new attack at each note … H longer than the
- * others … should not be"): the recorded grand alone. The right hand B♭4 A4 C5 B4, C♯5 D5 (the data's line an
- * octave up, at the alto's and the soprano's height), the four of B-A-C-H equal half notes (the H no longer
- * held), the C♯ the data's short step into the D; legato, each key held a moment into the next (a pianist's
- * finger legato: the next note's own hammer is its slight new attack), no other articulation; soft throughout
- * (the soft layer, a little darker, levels by measurement). Under the D the left hand's open D3–A3–D4 (tenor
- * height: no low bass to rumble), gently spread from the bottom, softer than the line, ringing on as the title
- * page gives way, then fading to nothing over the selection.
+ * D935 (the owner: "I want it to sound more like it does in the original piece when that subject is introduced
+ * … I specially don't like the robotic way it's sounding now and the weird cadence to D A D"): Bach's own notes
+ * and nothing else, at his pitch: every voice of the data from the tenor's B♭3 (bar 193, beat 3, where the
+ * subject enters alone after the second section's cadence) to bar 197's downbeat, where the tenor's statement
+ * closes on D4 (C♯4 → D4) and the alto's answer has sounded its own four notes (F E G F♯: G4 → F♯4), the two
+ * resting on D–F♯ (INTRO_TO_BAR). No added chord. Played on the recorded grand as a pianist would: a breath
+ * before the first note; the time shaped (phrasing.ts withSpeed: the first note settled into, a little forward
+ * to the D, the C♯ lingered on, the last beats slowing into the close); loudness by the phrase's arch
+ * (whole-reading.ts phraseArchDb), the metre's weight (PALETTES.dolce) and the subject a little over the alto,
+ * the colour following the level (Play.vel); finger legato into each next note, the dampers slow and the room a
+ * little larger (dolce's half pedal); the closing D–F♯ held under the pedal and left to ring, faded to nothing.
  */
-import { fugueById } from "../touch/fugue.ts";
+import { fugueById, inBar } from "../touch/fugue.ts";
 import { PATCHES, presetById, type Preset } from "../touch/sound.ts";
 import { voicing, type Chip, type Play, type Sounding } from "../touch/chip.ts";
+import { TOUCH, withSpeed } from "../touch/phrasing.ts";
+import { metricPlace, PALETTES, phraseArchDb } from "../touch/whole-reading.ts";
 
 /** Where the subject is in the data: the piece, its voice (the tenor) and bar. */
 export const BACH_SOURCE = { piece: "bwv1080-14", voice: 2, bar: 193 } as const;
-/** B♭ A C B♮ as MIDI pitches (the tenor's octave). */
+/** B♭ A C B♮ as MIDI pitches (the tenor's octave, as written). */
 export const BACH_PITCHES = [58, 57, 60, 59] as const;
-/** D406: what the tenor plays next in the data, C♯ D (the subject's continuation), the tenor's octave. */
-export const BACH_CONTINUATION = [61, 62] as const;
-/** D507: the right hand an octave over the data's tenor (B♭4–D5: the alto's and the soprano's height). */
-export const INTRO_OCTAVE = 12;
-/** Seconds a half note lasts (♩ = 80). */
-export const INTRO_HALF_S = 1.5;
-/** D507: the H as long as the others (D406's dotted half undone). */
-export const INTRO_H_S = INTRO_HALF_S;
-/** D406: the C♯ (the data's eighth at ♩ = 80, 0.375 s, given a breath more). */
-export const INTRO_CSHARP_S = 0.45;
-/** D406: the D, and the left hand's chord with it: seconds from the first note; the cross-fade to the selection starts here. */
-export const INTRO_RESOLVE_S = 3 * INTRO_HALF_S + INTRO_H_S + INTRO_CSHARP_S;
-/** D507: legato: each key held this long into the next note's strike (finger legato). */
-export const INTRO_OVERLAP_S = 0.07;
+/** D935: the stretch ends on this bar's downbeat (its notes there the last struck, held to the end). */
+export const INTRO_TO_BAR = 197;
+/** D935: Bach's pitch (D507's octave up undone); a variant may move every voice together. */
+export const INTRO_OCTAVE = 0;
+/** D935: the tempo (quarters a minute) before the shaping. */
+export const INTRO_BPM = 76;
 
-/** D507: the left hand's open D–A–D under the D (MIDI: D3 A3 D4), and its spread from the bottom (s after the D). */
-export const INTRO_CHORD = [50, 57, 62] as const;
-export const INTRO_CHORD_SPREAD_S = [0, 0.09, 0.18] as const;
-/** D507: from the D the piano rings this long (s): the D and its chord held, the last INTRO_FADE_S faded to nothing. */
-export const INTRO_TAIL_S = 5.5;
-export const INTRO_FADE_S = 2.2;
-/** D507: the title page's cross-fade into the selection screen, from the D (s): it has given way as the chord settles, which rings on over the selection. */
-export const INTRO_CROSS_S = 2.3;
-/** The title page, from the first note to the selection screen (s): the D, then the cross-fade. */
+/**
+ * D935: a performance of the stretch: its octave, its tempo and tempo shape (beats from the B♭ against a speed,
+ * straight lines between), the subject's and the other voice's dB, the legato's overlap (s), the dampers' and the
+ * room's scale (the pedal), how long the last notes ring and the fade at its end (s), the breath before the first
+ * note (s).
+ */
+export interface IntroPerformance {
+  octave: number;
+  bpm: number;
+  speed: readonly (readonly [beat: number, speed: number])[];
+  subjectDb: number;
+  othersDb: number;
+  overlapS: number;
+  dampMul: number;
+  roomMul: number;
+  lingerS: number;
+  fadeS: number;
+  breathS: number;
+}
+
+/**
+ * D935, the shipped performance: settled into from 0.9 of the tempo, a little forward through B-A-C-H toward the D
+ * (1.03), the C♯ lingered on (0.82: D406's breath into the D), the D held at tempo while the alto answers, then the
+ * last two and a half beats slowing to 0.78 (phrasing.ts RIT_END) into the close.
+ */
+export const INTRO_A: IntroPerformance = {
+  octave: INTRO_OCTAVE,
+  bpm: INTRO_BPM,
+  speed: [[0, 0.9], [1.5, 1], [6, 1.03], [7.5, 0.98], [7.5, 0.82], [8, 0.82], [8, 1], [11.5, 1], [14, 0.78]],
+  subjectDb: 0,
+  othersDb: -2.5,
+  overlapS: 0.08,
+  dampMul: PALETTES.dolce.dampMul,
+  roomMul: PALETTES.dolce.roomMul,
+  lingerS: 4.6,
+  fadeS: 2.6,
+  breathS: 0.6,
+};
+
+/** The data's notes there, if the data were ever missing them (beats from the B♭, beats long, MIDI, voice). */
+const FALLBACK: readonly (readonly [number, number, number, number])[] = [
+  [0, 2, 58, 2], [2, 2, 57, 2], [4, 2, 60, 2], [6, 1.5, 59, 2], [7.5, 0.5, 61, 2], [8, 3.5, 62, 2], [8, 2, 65, 1], [10, 2, 64, 1],
+  [11.5, 0.25, 61, 2], [11.75, 0.25, 59, 2], [12, 2, 61, 2], [12, 2, 67, 1], [14, 2, 62, 2], [14, 1.5, 66, 1],
+];
+
+/**
+ * The stretch as the data has it: [onset, duration, MIDI, voice], ticks from the B♭ (every voice, onsets from the
+ * B♭ to INTRO_TO_BAR's downbeat); the quarter's ticks, the downbeat's tick, and each onset's place in the metre.
+ */
+function stretch(): { notes: [number, number, number, number][]; tpq: number; end: number; place: (tick: number) => 0 | 1 | 2 } {
+  try {
+    const f = fugueById(BACH_SOURCE.piece);
+    const bar = f.id === BACH_SOURCE.piece ? f.bars.find((b) => b.n === BACH_SOURCE.bar) : undefined;
+    const to = f.bars.find((b) => b.n === INTRO_TO_BAR);
+    const first = bar ? f.voices[BACH_SOURCE.voice].find(([on, , m]) => on >= bar.on && m === BACH_PITCHES[0]) : undefined;
+    if (bar && to && first) {
+      const s = first[0];
+      const notes: [number, number, number, number][] = [];
+      f.voices.forEach((vs, v) => {
+        for (const [on, d, m] of vs) if (on >= s && on <= to.on) notes.push([on - s, d, m, v]);
+      });
+      notes.sort((a, b) => a[0] - b[0] || a[3] - b[3]);
+      const subj = notes.filter((n) => n[3] === BACH_SOURCE.voice).slice(0, 4).map((n) => n[2]);
+      if (subj.every((m, i) => m === BACH_PITCHES[i])) return { notes, tpq: f.tpq, end: to.on - s, place: (t) => metricPlace((x) => inBar(f, x), t + s, f.tpq) };
+    }
+  } catch {
+    /* the fallback */
+  }
+  const tpq = 4;
+  // The B♭ on the bar's third beat.
+  return { notes: FALLBACK.map(([b, d, m, v]) => [b * tpq, d * tpq, m, v]), tpq, end: 14 * tpq, place: (t) => ((t + 2 * tpq) % (4 * tpq) === 0 ? 0 : t % tpq === 0 ? 1 : 2) };
+}
+
+export interface IntroNote {
+  midi: number;
+  /** Seconds from the first note. */
+  at: number;
+  len: number;
+  /** The voice in the data (BACH_SOURCE.voice the subject's). */
+  voice: number;
+  /** dB about the intro's level (the phrase, the metre, the voice). */
+  db: number;
+  /** One of the last notes (struck on INTRO_TO_BAR's downbeat): held to the end, faded. */
+  last: boolean;
+}
+
+/** A fixed unevenness (s), the same every run: a hash of the note, TOUCH.piano.jitter at most either way. */
+const jitter = (v: number, tick: number) => {
+  const h = Math.sin(v * 127.1 + tick * 0.0137) * 43758.5453;
+  return (h - Math.floor(h) - 0.5) * 2 * TOUCH.piano.jitter;
+};
+
+/**
+ * D935: the intro as played: every voice of the stretch, its times through the performance's tempo shape (the
+ * first note at 0, the others a few ms uneven), each held a moment into its voice's next (finger legato), the last
+ * ones held to the end; each note's dB the phrase's arch over the stretch, the metre's weight (dolce: downbeat,
+ * beat, between) and its voice's.
+ */
+export function introNotes(p: IntroPerformance = INTRO_A): IntroNote[] {
+  const { notes, tpq, end, place } = stretch();
+  const sp = p.speed;
+  const speed = (tick: number) => {
+    const b = tick / tpq;
+    let k = 0;
+    while (k < sp.length - 1 && sp[k + 1][0] <= b) k++;
+    if (k >= sp.length - 1) return sp[sp.length - 1][1];
+    const [b0, s0] = sp[k];
+    const [b1, s1] = sp[k + 1];
+    return b1 > b0 ? s0 + ((s1 - s0) * (b - b0)) / (b1 - b0) : s1;
+  };
+  const w = withSpeed({ warp: (t) => t, unwarp: (t) => t }, speed, end, Math.max(1, Math.round(tpq / 16)));
+  const secs = (tick: number) => (w.warp(tick) / tpq) * (60 / p.bpm);
+  const total = secs(end) + p.lingerS;
+  return notes.map(([on, , m, v], i) => {
+    const last = on >= end;
+    const at = secs(on) + (on > 0 ? jitter(v, on) : 0);
+    const next = notes.find((n, j) => j > i && n[3] === v && n[0] > on);
+    const len = last || !next ? total - at : secs(next[0]) - at + p.overlapS;
+    const db = phraseArchDb(end ? on / end : 0) + PALETTES.dolce.weight[place(on)] + (v === BACH_SOURCE.voice ? p.subjectDb : p.othersDb);
+    return { midi: m + p.octave, at, len, voice: v, db, last };
+  });
+}
+
+/** D935: B, A, C, H as heard (s from the first note): the title page's four images fade in on them (Intro.tsx). */
+export const introOnsets = (p: IntroPerformance = INTRO_A): number[] =>
+  introNotes(p).filter((x) => x.voice === BACH_SOURCE.voice).slice(0, 4).map((x) => x.at);
+/** D935: the close (the last notes struck, s from the first): the title page's cross-fade into the selection starts here. */
+export const introResolve = (p: IntroPerformance = INTRO_A): number => Math.min(...introNotes(p).filter((x) => x.last).map((x) => x.at));
+
+/** D935: the images' times (s from the first note): B, A, C, H. */
+export const INTRO_ONSETS_S: readonly number[] = introOnsets();
+/** D935: the close: seconds from the first note; the cross-fade to the selection starts here. */
+export const INTRO_RESOLVE_S = introResolve();
+/** D935: the last notes ring this long from the close (s), the last INTRO_FADE_S faded to nothing. */
+export const INTRO_TAIL_S = INTRO_A.lingerS;
+export const INTRO_FADE_S = INTRO_A.fadeS;
+/** D935: the title page's cross-fade into the selection screen, from the close (s): gone while the D–F♯ still rings. */
+export const INTRO_CROSS_S = 2.4;
+/** The title page, from the first note to the selection screen (s): the close, then the cross-fade. */
 export const INTRO_S = INTRO_RESOLVE_S + INTRO_CROSS_S;
 /** D406: a skip fades the sound out over this long (s), not a cut. */
 export const INTRO_SKIP_FADE_S = 0.35;
+/** D935: the breath before the first note (s from the sound being ready). */
+export const INTRO_BREATH_S = INTRO_A.breathS;
 
 /**
  * D507: the intro's own sound: PIANO (SAMPLED) (its recordings, its music room), under its own id so the game's
@@ -62,61 +185,15 @@ export const INTRO_SKIP_FADE_S = 0.35;
  */
 export const INTRO_PRESET: Preset = { ...presetById("pianoSampled"), id: "intro", name: "INTRO" };
 
-export interface IntroNote {
-  midi: number;
-  /** Seconds from the first note. */
-  at: number;
-  len: number;
-}
-
 /**
- * D507: soft from start to end: the line on the piano's soft layer (Salamander's layer 7, its pp-p colour) at this
- * level, the left hand's chord about 2.4 dB under it. By measurement (render-harness intro, scratchpad glock2/):
- * -28.6 LUFS on a computer and -27.8 on a phone, 1-2 dB under D500's intro (-27.5, -26.2) and about 5 dB under the
- * game's sounds; through the phone model (600 Hz high-pass) -34.6 (D500's -29.1: the piano's body is under the small
- * speaker's band). The soft layer lower (0.62, darkened 3 dB: -31.4 on a phone) fell to -38.7 there, nearly lost,
- * so the level stays here and the softness is the layer's.
+ * D935: the level at 0 dB, on the soft layer (Salamander's layer 7), each note's dB about it; the colour follows
+ * the level (Play.vel = the note's dB: a note played softer is darker). Set by measurement to about D507's loudness
+ * (scratchpad intro/NOTES.md).
  */
-export const INTRO_LEVEL = 0.95;
-export const INTRO_CHORD_LEVEL = 0.72;
-/** D507: the soft layer's colour as recorded (Play.vel 0: not brightened or darkened by the level). */
-export const INTRO_VEL = 0;
-
-/**
- * The subject and its continuation as the intro plays them: the data's pitches from the tenor's first
- * B♭ in bar 193 (B♭ A C B♮ C♯ D; the report's and the owner's notes if the data were ever missing them),
- * an octave up; four equal half notes, the C♯ short, each held a moment into the next; the D rings on.
- */
-export function bachNotes(): IntroNote[] {
-  const want = [...BACH_PITCHES, ...BACH_CONTINUATION];
-  let pitches: number[] = want;
-  try {
-    const f = fugueById(BACH_SOURCE.piece);
-    const bar = f.id === BACH_SOURCE.piece ? f.bars.find((b) => b.n === BACH_SOURCE.bar) : undefined;
-    const line = bar ? f.voices[BACH_SOURCE.voice].filter(([on]) => on >= bar.on) : [];
-    const k = line.findIndex(([, , m]) => m === BACH_PITCHES[0]);
-    const read = k >= 0 ? line.slice(k, k + want.length).map(([, , m]) => m) : [];
-    if (read.length === want.length && read.every((m, i) => m === want[i])) pitches = read;
-  } catch {
-    /* the report's and the owner's notes */
-  }
-  const steps = [INTRO_HALF_S, INTRO_HALF_S, INTRO_HALF_S, INTRO_H_S, INTRO_CSHARP_S];
-  let at = 0;
-  return pitches.map((m, i) => {
-    const len = i < steps.length ? steps[i] + INTRO_OVERLAP_S : INTRO_TAIL_S;
-    const note = { midi: m + INTRO_OCTAVE, at, len };
-    at += steps[i] ?? 0;
-    return note;
-  });
-}
-
-/** D507: the left hand's chord: seconds from the first note, to the tail's end. */
-export function chordNotes(): IntroNote[] {
-  return INTRO_CHORD.map((midi, i) => ({ midi, at: INTRO_RESOLVE_S + INTRO_CHORD_SPREAD_S[i], len: INTRO_TAIL_S - INTRO_CHORD_SPREAD_S[i] }));
-}
+export const INTRO_LEVEL = 0.71;
 
 /** Every pitch the intro plays (their recordings loaded before it starts). */
-export const introPitches = (): number[] => [...new Set([...bachNotes(), ...chordNotes()].map((x) => x.midi))];
+export const introPitches = (p: IntroPerformance = INTRO_A): number[] => [...new Set(introNotes(p).map((x) => x.midi))];
 
 /** The intro waits at most this long for its recordings (ms; under Intro.tsx's 2.6 s for the picture). */
 export const INTRO_LOAD_WAIT_MS = 2200;
@@ -129,33 +206,30 @@ export interface IntroPlaying {
 }
 
 /**
- * D507: plays the intro on `ch` (its preset set to INTRO_PRESET by the caller, its recordings prepared): the
- * right hand's six notes and the left hand's chord, all handed to the chip at once (nine notes), soft; the D and
- * its chord faded to nothing at the tail's end (each note's trim, so its room's send fades too). Everything
- * through one gain, `out`, which a skip fades.
+ * D935: plays the intro on `ch` (its preset set to INTRO_PRESET by the caller, its recordings prepared), the first
+ * note `lead` s from now (the breath): every note handed to the chip at once, on the soft layer, its level and
+ * colour by its dB, the dampers and the room by the pedal; the last notes faded to nothing at the end (each note's
+ * trim, so its room's send fades too). Everything through one gain, `out`, which a skip fades.
  */
-export function playIntro(ch: Chip, lead = 0.12): IntroPlaying {
+export function playIntro(ch: Chip, lead = INTRO_BREATH_S, p: IntroPerformance = INTRO_A): IntroPlaying {
   const ctx = ch.ctx;
   const t0 = ctx.currentTime + lead;
   const out = ctx.createGain();
   out.connect(ch.input);
   const sounds: Sounding[] = [];
   const v = { ...voicing(0, 1, true), pan: 0, patch: PATCHES.pianoSampled };
-  const end = t0 + INTRO_RESOLVE_S + INTRO_TAIL_S;
-  const fadeFrom = end - INTRO_FADE_S;
-  const soft: Play = { into: out, couple: false, layer: "soft", vel: INTRO_VEL };
-  const play = (x: IntroNote, level: number, last: boolean) => {
-    const on = t0 + x.at;
-    const sd = ch.note(x.midi, on, x.len, v, { ...soft, level, ...(last ? { final: true } : {}) });
-    if (last) {
+  const notes = introNotes(p);
+  const end = t0 + Math.min(...notes.filter((x) => x.last).map((x) => x.at)) + p.lingerS;
+  const fadeFrom = end - p.fadeS;
+  for (const x of notes) {
+    const play: Play = { into: out, couple: false, layer: "soft", level: INTRO_LEVEL * 10 ** (x.db / 20), vel: x.db, dampMul: p.dampMul, roomMul: p.roomMul, ...(x.last ? { final: true } : {}) };
+    const sd = ch.note(x.midi, t0 + x.at, x.len, v, play);
+    if (x.last) {
       sd.trim?.(1, fadeFrom, fadeFrom + 0.001);
       sd.trim?.(0.0001, fadeFrom, end);
     }
     sounds.push(sd);
-  };
-  const line = bachNotes();
-  line.forEach((x, i) => play(x, INTRO_LEVEL, i === line.length - 1));
-  for (const x of chordNotes()) play(x, INTRO_CHORD_LEVEL, true);
+  }
   let over = false;
   return {
     t0,

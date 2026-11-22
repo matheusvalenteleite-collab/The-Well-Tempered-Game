@@ -1,13 +1,15 @@
 /**
  * D371 (Mario and Luigi's report, 1a–1c), play.html's title page, on every launch. A black screen says
  * TOUCH TO BEGIN in the three languages (a phone plays no sound before a touch); that touch starts
- * Contrapunctus XIV's B♭–A–C–B♮ on the pipe organ (intro-sound.ts) and the page: Herr Bach's face (the
+ * Contrapunctus XIV's B♭–A–C–B♮ (intro-sound.ts; D935 on the piano) and the page: Herr Bach's face (the
  * game's sprite, Bach.tsx), the wordmark (wordmark.ts; D468 the old 8-bit title, an SVG), the subtitle
  * and, small, the version, each fading in on its note. D406: on the D (the subject's continuation, the
  * consort's D major under it) the whole page cross-fades into the selection screen beneath it
  * (INTRO_CROSS_S from INTRO_RESOLVE_S), the chord dying away over the selection. Any further touch skips
  * straight to it (the sound faded out quickly). D500: the subject on the cello, then BAROQUE BAND's cadence from
- * the D; the cross-fade (now as long as the cadence) gone as its D major lands.
+ * the D; the cross-fade (now as long as the cadence) gone as its D major lands. D935: Bach's bars 193-197 on the
+ * piano, played with rubato: each image on its note as heard (INTRO_ONSETS_S, not a fixed beat), the cross-fade
+ * from the close (the tenor's D under the alto's F♯), the two ringing on over the selection.
  */
 import { useEffect, useRef, useState } from "react";
 import { lang, tr, WORDMARK, type Lang } from "../i18n/index.ts";
@@ -16,7 +18,7 @@ import { ES } from "../i18n/es.ts";
 import { Portrait } from "./Bach.tsx";
 import { runsPath, WORDMARK_INK, WORDMARK_SHADOW, wordmarkPixels } from "./wordmark.ts";
 import { VERSION } from "./version.ts";
-import { INTRO_CROSS_S, INTRO_HALF_S, INTRO_RESOLVE_S, INTRO_S } from "./intro-sound.ts";
+import { INTRO_CROSS_S, INTRO_ONSETS_S, INTRO_RESOLVE_S, INTRO_S } from "./intro-sound.ts";
 
 /** TOUCH TO BEGIN in each language (all three on the black screen, the one in force first). */
 const BEGIN_IN: Record<Lang, string> = { en: "TOUCH TO BEGIN", pt: PT["TOUCH TO BEGIN"], es: ES["TOUCH TO BEGIN"] };
@@ -77,7 +79,7 @@ export function Intro({ begin, end }: { begin: () => Promise<number>; end: (skip
   const l = lang();
   const others = (["en", "pt", "es"] as const).filter((x) => x !== l);
   return (
-    <div className={`tb-intro tb-intro-at-${stage}`} id="intro" role="button" tabIndex={0} aria-label={BEGIN_IN[l]} onClick={touch} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && touch()} style={{ ["--note" as string]: `${INTRO_HALF_S}s`, ["--resolve" as string]: `${INTRO_RESOLVE_S}s`, ["--cross" as string]: `${INTRO_CROSS_S}s` }}>
+    <div className={`tb-intro tb-intro-at-${stage}`} id="intro" role="button" tabIndex={0} aria-label={BEGIN_IN[l]} onClick={touch} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && touch()} style={{ ["--n2" as string]: `${INTRO_ONSETS_S[1]}s`, ["--n3" as string]: `${INTRO_ONSETS_S[2]}s`, ["--n4" as string]: `${INTRO_ONSETS_S[3]}s`, ["--resolve" as string]: `${INTRO_RESOLVE_S}s`, ["--cross" as string]: `${INTRO_CROSS_S}s` }}>
       {stage === "touch" ? (
         <div className="tb-intro-begin">
           <p className="tb-intro-touch" id="intro-touch">

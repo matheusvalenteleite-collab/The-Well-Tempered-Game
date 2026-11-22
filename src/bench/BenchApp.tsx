@@ -1817,9 +1817,9 @@ export function BenchApp() {
   }, [hearing]);
   /**
    * D371: play.html's title page (Intro.tsx), on every launch. Its first touch makes the sound (the phone's
-   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D507: on
-   * the recorded piano, softly, then C♯–D and the left hand's D–A–D under the D, which rings on into the
-   * selection screen; a skip fades it out quickly. Its end gives the piece's sound back.
+   * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D935: on
+   * the recorded piano, Bach's bars 193-197 (every voice), played with rubato, closing on D–F♯, which rings on into
+   * the selection screen; a skip fades it out quickly. Its end gives the piece's sound back.
    */
   // D376: not in THE EXPRESSION LAB (straight to the selection screen).
   const [intro, setIntro] = useState(() => APP.lite && !APP.glenn);
@@ -1833,11 +1833,12 @@ export function BenchApp() {
     const ch = ensureChip();
     setPreset(INTRO_PRESET);
     // D500, D507: the intro is recordings (the piano): loaded first (a moment, at most INTRO_LOAD_WAIT_MS: any not
-    // in by then synthesized), so the cello's first bow is its own; the picture waits for it (Intro.tsx).
+    // in by then synthesized), so the first note is its own; the picture waits for it (Intro.tsx).
     await Promise.race([ch.prepare(introPitches()).catch(() => {}), new Promise((r) => setTimeout(r, INTRO_LOAD_WAIT_MS))]);
     if (introOver.current) return 0;
+    // D935: the first note after a breath (INTRO_BREATH_S); the picture waits for it.
     introPlaying.current = playIntro(ch);
-    return 0.12 + (ch.lag ?? 0);
+    return introPlaying.current.t0 - ch.ctx.currentTime + (ch.lag ?? 0);
   };
   const introEnd = (skipped: boolean) => {
     introOver.current = true;

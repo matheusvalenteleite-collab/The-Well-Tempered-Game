@@ -23,9 +23,9 @@
 .tb-intro-version { position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 6px; color: #646482; letter-spacing: 0.1em; text-align: center; }
 /* Each image on its note (a half note apart), everything out with the last one's decay. */
 .tb-intro-n1, .tb-intro-n2, .tb-intro-n3, .tb-intro-n4 { opacity: 0; animation: tb-intro-in 1.2s ease-out forwards; }
-.tb-intro-n2 { animation-delay: var(--note, 1.5s); }
-.tb-intro-n3 { animation-delay: calc(var(--note, 1.5s) * 2); }
-.tb-intro-n4 { animation-delay: calc(var(--note, 1.5s) * 3); }
+.tb-intro-n2 { animation-delay: var(--n2, 1.6s); }
+.tb-intro-n3 { animation-delay: var(--n3, 3.2s); }
+.tb-intro-n4 { animation-delay: var(--n4, 4.7s); }
 @keyframes tb-intro-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 @keyframes tb-intro-out { to { opacity: 0; } }
 
