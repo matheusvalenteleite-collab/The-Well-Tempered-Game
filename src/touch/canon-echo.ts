@@ -60,15 +60,9 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
       leg(17, 33, [1], [0], 5760, true, 61, "NOW THE LOWER VOICE LEADS"),
     ],
   },
-  // Canone alla Quinta, in contrary motion (steps summing to 68): the leader's first bar written in the soprano, then in
-  // the alto and tenor; the soprano answers a fifth above, turned over.
-  "bwv988-15": {
-    legs: [
-      // D951: the leader's first bar in the second line now (voice 1), as the rest of it.
-      leg(1, 2, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
-      leg(2, 33, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
-    ],
-  },
+  // Canone alla Quinta, in contrary motion (steps summing to 68): the second line leads (D951: whole in voice 1 from its
+  // first note, so one leg), the soprano answers a fifth above, turned over.
+  "bwv988-15": { legs: [leg(1, 33, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION")] },
   // Canone alla Sesta: the alto led, the soprano a sixth above, half a bar (a minim) later.
   "bwv988-18": { legs: [leg(1, 33, [1], [0], 3840, false, 5, "CANON AT THE SIXTH · HALF A BAR LATER")] },
   // Canone alla Settima: the leader in the tenor and alto, the soprano a seventh above, half a bar later.

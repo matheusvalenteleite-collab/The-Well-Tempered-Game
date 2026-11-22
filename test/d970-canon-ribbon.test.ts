@@ -44,7 +44,7 @@ test("a big morph at the first entry and at each change of leader, and only ther
   const bigs = (id: string) => ribbonShapes(fugueById(id)).filter((s) => s.big).map((s) => s.leg);
   assert.deepEqual(bigs("bwv988-03"), [0]);
   assert.deepEqual(bigs("bwv988-12"), [0, 1]);
-  assert.deepEqual(bigs("bwv988-15"), [0]); // its bar-1 leg carries on under the same name
+  assert.deepEqual(bigs("bwv988-15"), [0]); // one leg since D951
   assert.deepEqual(bigs("bwv988-24"), [0, 1, 2]);
   assert.deepEqual(bigs("bwv988-27"), [0, 1]);
   assert.deepEqual(bigs("bwv773"), [0, 1, 2]);
