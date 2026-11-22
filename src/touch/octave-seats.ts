@@ -237,8 +237,9 @@ export const OCTAVE_SEATS: Readonly<Record<string, Readonly<Record<string, Parti
   stringConsort: {
     wtc1f04: { 5: [["consViolin", -0.24], ["consViolin", -0.12], ["consViola", 0], ["consCello", 0.12], ["consCello", 0.24]] },
     wtc1f12: { 4: [["consViolin", -0.24], ["consViola", -0.08], ["consViola", 0.08], ["consCello", 0.24]] },
+    wtc1f17: { 4: [["consViolin", -0.24], ["consViolin", -0.08], ["consCello", 0.08], ["consCello", 0.24]] },
     wtc2f02: { 4: [["consViolin", -0.24], ["consViolin", -0.08], ["consCello", 0.08], ["consCello", 0.24]] },
-    wtc2f15: { 3: [["consViola", -0.2], ["consViola", 0.04], ["consCello", 0.2]] },
+    wtc2f15: { 3: [["consViola", -0.2], ["consCello", 0.04], ["consCello", 0.2]] },
     wtc1p02: { 2: [["consViola", -0.15], ["consCello", 0.15]] },
     wtc1p07: { 4: [["consViolin", -0.24], ["consViolin", -0.08], ["consCello", 0.08], ["consCello", 0.24]] },
     wtc1p09: { 3: [["consViolin", -0.2], ["consCello", 0.04], ["consCello", 0.2]] },

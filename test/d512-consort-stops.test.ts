@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { FakeAudioContext, FakeParam, FakeSource, installFakeAudio } from "./fake-audio.ts";
 import { Chip, voicing } from "../src/touch/chip.ts";
 import { PATCHES, sampledNow, setPreset } from "../src/touch/sound.ts";
-import { fileOf, noteInfo, sampledMidis, sampleHz, SAMPLED, PERIOD } from "../src/touch/sampled.ts";
+import { fileOf, nearestSample, noteInfo, sampledMidis, sampleHz, SAMPLED, PERIOD } from "../src/touch/sampled.ts";
 import { SAMPLE_MANIFEST } from "../src/audio/sample-manifest.ts";
 import { holdMode } from "../src/touch/touch-expr.ts";
 import {
@@ -164,6 +164,10 @@ FakeAudioContext.prototype.decodeAudioData = function (this: FakeAudioContext) {
   return Promise.resolve(b);
 } as never;
 
+// D1011: the consort's arco violin its own TinySOL set (the shared consortViolin stays the other sounds'), recorded every two or
+// three semitones: a note's rate is its pitch over the recording it is read from (G4 from G#4 on the arco, from G4 on the stops).
+const ARCO_VIOLIN = "consortViolinSolo";
+const hzOf = (set: string, m: number) => sampleHz(set, nearestSample(set, m)!);
 test("D512: a note under a stop plays that stop's recording, from the next note; ARCO's own for the band without TUTTI", async () => {
   setPreset(C);
   const chip = new Chip();
@@ -184,11 +188,11 @@ test("D512: a note under a stop plays that stop's recording, from the next note;
   setConsortStop(C, { stop: "pizz", tutti: false });
   const [pizz] = rates(true);
   const [band] = rates(false);
-  const want = sampleHz("consortViolin", 67) / sampleHz("consortViolinPizz", 67);
+  const want = hzOf(ARCO_VIOLIN, 67) / hzOf("consortViolinPizz", 67);
   assert.ok(Math.abs(pizz / arco - want) < 1e-6, `${pizz / arco} ${want}`);
   assert.ok(Math.abs(band - arco) < 1e-9, "the band's note its arco without TUTTI");
   setConsortStop(C, { stop: "spicc", tutti: true });
   const [bandSpicc] = rates(false);
-  assert.ok(Math.abs(bandSpicc / arco - sampleHz("consortViolin", 67) / sampleHz("consortViolinSpicc", 67)) < 1e-6, "under TUTTI the band follows");
+  assert.ok(Math.abs(bandSpicc / arco - hzOf(ARCO_VIOLIN, 67) / hzOf("consortViolinSpicc", 67)) < 1e-6, "under TUTTI the band follows");
   setConsortStop(C, DEFAULT_CONSORT);
 });
