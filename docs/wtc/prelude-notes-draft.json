@@ -1,0 +1,257 @@
+{
+  "about": "DRAFT (not shipped; for the owner to read): ABOUT THIS PRELUDE notes for the 42 WTC preludes without a companion note (src/wtc/notes.ts has I/1, 2, 7, 8, 10, 24). Style and length as those six. Facts only from the score data (data/touch/pieces.json: metre, voices, the analysis's sections and cadences), the repeats as D861 reads them (II/2, 5, 8, 9, 10, 12, 15, 18, 20, 21; I/24), II/3's change of metre (D861), and the plan's measured textures (docs/audits/PRELUDES-PLAN.md, src/touch/prelude-plan.ts). Words of character (grave, festive, pastoral) are the companion's reading, as in the existing notes; no history, anecdote or quotation. `src` names what each factual claim rests on.",
+  "notes": {
+    "wtc1.03": {
+      "en": "Quick, in 3/8, and in two parts: the hands toss one figure between them, one running while the other answers. Listen for the exchange, and for how far it travels through sharp keys before it comes home.",
+      "pt": "Rápido, em 3/8 e a duas vozes: as mãos lançam uma mesma figura de uma para a outra, uma correndo enquanto a outra responde. Ouça a troca, e o quanto ela viaja pelas tonalidades de sustenidos antes de voltar para casa.",
+      "es": "Rápido, en 3/8 y a dos voces: las manos se lanzan una misma figura, una corre mientras la otra responde. Escucha el intercambio, y lo lejos que viaja por las tonalidades de sostenidos antes de volver a casa.",
+      "src": "pieces.json: 3/8, two parts, cadences in E♯, A♯, D♯, G♯ minor and B, F♯, G♯ major; PRELUDES-PLAN: the hands swap the figure and the tune"
+    },
+    "wtc1.04": {
+      "en": "A slow arioso in 6/4, in four parts: a singing top line over a bass that moves as steadily, the inner voices filling the chords between them. Give it room; it is the soprano's song.",
+      "pt": "Um arioso lento em 6/4, a quatro vozes: uma linha superior que canta sobre um baixo que caminha com a mesma calma, as vozes internas preenchendo os acordes entre eles. Dê-lhe espaço; é a canção do soprano.",
+      "es": "Un arioso lento en 6/4, a cuatro voces: una línea superior que canta sobre un bajo que avanza con la misma calma, las voces interiores llenando los acordes entre ambos. Dale espacio; es la canción del soprano.",
+      "src": "pieces.json: 6/4, four voices; PRELUDES-PLAN: four-part arioso, the inner voices sparse"
+    },
+    "wtc1.05": {
+      "en": "Running semiquavers in the right hand over a detached, leaping bass, without a pause, until the last bars break the pattern for a free close. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Semicolcheias correndo na mão direita sobre um baixo destacado e saltitante, sem pausa, até que os últimos compassos quebram o padrão num final livre. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Semicorcheas que corren en la mano derecha sobre un bajo destacado y saltarín, sin pausa, hasta que los últimos compases rompen el patrón en un final libre. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "PRELUDES-PLAN: figuration over a leaping staccato bass, free coda; pieces.json: 4/4; prelude-plan.ts: at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc1.06": {
+      "en": "Triplet semiquavers in the right hand over a bass walking in quavers: a steady stream of broken harmony in D minor, ending on a major chord.",
+      "pt": "Tercinas de semicolcheias na mão direita sobre um baixo que caminha em colcheias: uma corrente contínua de harmonia arpejada em ré menor, terminando num acorde maior.",
+      "es": "Tresillos de semicorcheas en la mano derecha sobre un bajo que camina en corcheas: una corriente continua de armonía arpegiada en re menor, que termina en un acorde mayor.",
+      "src": "PRELUDES-PLAN: figuration over a walking quaver bass; pieces.json: the last key D major"
+    },
+    "wtc1.09": {
+      "en": "A pastoral in 12/8 in three parts, the voices answering one another as in an invention. Gentle and unhurried: it moves once to F♯ minor and comes back.",
+      "pt": "Uma pastoral em 12/8 a três vozes, as vozes respondendo umas às outras como numa invenção. Suave e sem pressa: vai uma vez a fá sustenido menor e volta.",
+      "es": "Una pastoral en 12/8 a tres voces, que se responden unas a otras como en una invención. Suave y sin prisa: va una vez a fa sostenido menor y regresa.",
+      "src": "pieces.json: 12/8, three voices, one cadence in F♯ minor; PRELUDES-PLAN: three-part pastorale, invention-like"
+    },
+    "wtc1.11": {
+      "en": "A quick two-part piece in 12/8, like an invention: the two hands share the same figure, now one leading, now the other.",
+      "pt": "Uma peça rápida a duas vozes em 12/8, como uma invenção: as duas mãos dividem a mesma figura, ora uma conduz, ora a outra.",
+      "es": "Una pieza rápida a dos voces en 12/8, como una invención: las dos manos comparten la misma figura, ahora guía una, ahora la otra.",
+      "src": "pieces.json: 12/8, two parts; PRELUDES-PLAN: two-part, invention-like"
+    },
+    "wtc1.12": {
+      "en": "Four voices in slow common time: two upper lines that sigh in falling pairs of notes, a tenor, and a bass that walks beneath them.",
+      "pt": "Quatro vozes num compasso quaternário lento: duas linhas superiores que suspiram em pares de notas descendentes, um tenor e um baixo que caminha por baixo delas.",
+      "es": "Cuatro voces en un compás cuaternario lento: dos líneas superiores que suspiran en parejas de notas descendentes, un tenor y un bajo que camina por debajo.",
+      "src": "pieces.json: 4/4, four voices; PRELUDES-PLAN: a sighing soprano and alto, a tenor, a walking bass"
+    },
+    "wtc1.13": {
+      "en": "A gentle tune in 12/16 over a small, recurring accompanying figure, the two hands at ease with each other. It wanders to D♯ minor and B major and home.",
+      "pt": "Uma melodia suave em 12/16 sobre uma pequena figura de acompanhamento que se repete, as duas mãos à vontade uma com a outra. Passeia por ré sustenido menor e si maior e volta para casa.",
+      "es": "Una melodía suave en 12/16 sobre una pequeña figura de acompañamiento que se repite, las dos manos cómodas la una con la otra. Pasea por re sostenido menor y si mayor y vuelve a casa.",
+      "src": "pieces.json: 12/16, two parts, cadences in D♯ minor and B major; prelude-plan.ts: a tune over an accompanying motif"
+    },
+    "wtc1.14": {
+      "en": "Two voices in steady semiquavers, close to an invention: each hand takes up the other's figure in turn.",
+      "pt": "Duas vozes em semicolcheias constantes, próximo de uma invenção: cada mão retoma, por sua vez, a figura da outra.",
+      "es": "Dos voces en semicorcheas constantes, cercano a una invención: cada mano retoma, por turno, la figura de la otra.",
+      "src": "pieces.json: 4/4, two parts; prelude-plan.ts: two-part, invention-like"
+    },
+    "wtc1.15": {
+      "en": "Bright running figures in 24/16, passed from hand to hand: among the busiest preludes of the book, and among the lightest.",
+      "pt": "Figuras brilhantes e corridas em 24/16, passadas de uma mão para a outra: entre os prelúdios mais movimentados do livro, e entre os mais leves.",
+      "es": "Figuras brillantes y veloces en 24/16, pasadas de una mano a la otra: entre los preludios más movidos del libro, y entre los más ligeros.",
+      "src": "pieces.json: 24/16, two parts; prelude-plan.ts: the hands swapping the figure; D861: among the preludes held at the 5.5 notes-a-second cap"
+    },
+    "wtc1.16": {
+      "en": "Three voices in slow common time, the top one decorated with long trills while the others move beneath it. It travels through the flat keys to C minor before returning.",
+      "pt": "Três vozes num quaternário lento, a de cima ornada com longos trinados enquanto as outras se movem por baixo. Percorre as tonalidades de bemóis até dó menor antes de voltar.",
+      "es": "Tres voces en un cuaternario lento, la superior adornada con largos trinos mientras las otras se mueven por debajo. Recorre las tonalidades de bemoles hasta do menor antes de volver.",
+      "src": "pieces.json: 4/4, three voices, a cadence in C minor; prelude-plan.ts: a trilled soprano"
+    },
+    "wtc1.17": {
+      "en": "Festive, in 3/4, in the manner of a concerto: a tune over a bass of broken chords, returning like a refrain between its excursions.",
+      "pt": "Festivo, em 3/4, à maneira de um concerto: uma melodia sobre um baixo de acordes arpejados, que volta como um refrão entre suas excursões.",
+      "es": "Festivo, en 3/4, a la manera de un concierto: una melodía sobre un bajo de acordes arpegiados, que vuelve como un estribillo entre sus excursiones.",
+      "src": "pieces.json: 3/4, two parts, cadences in E♭ and A♭ major; prelude-plan.ts: concerto-like, a tune over a broken-chord bass"
+    },
+    "wtc1.18": {
+      "en": "A quiet three-part piece in 6/8, like one of the Sinfonias: three equal voices in imitation, moving from G♯ minor through D♯ and C♯ minor.",
+      "pt": "Uma peça tranquila a três vozes em 6/8, como uma das Sinfonias: três vozes iguais em imitação, indo de sol sustenido menor a ré sustenido e dó sustenido menor.",
+      "es": "Una pieza tranquila a tres voces en 6/8, como una de las Sinfonías: tres voces iguales en imitación, que van de sol sostenido menor a re sostenido y do sostenido menor.",
+      "src": "pieces.json: 6/8, three voices, cadences in G♯, D♯, C♯ minor; prelude-plan.ts: sinfonia-like"
+    },
+    "wtc1.19": {
+      "en": "A light three-part invention in common time; the middle voice moves between the hands. One turn to F♯ minor, then home to A major.",
+      "pt": "Uma invenção leve a três vozes em quaternário; a voz do meio passa de uma mão para a outra. Uma volta por fá sustenido menor, e de novo a lá maior.",
+      "es": "Una invención ligera a tres voces en cuaternario; la voz central pasa de una mano a la otra. Un giro a fa sostenido menor y de vuelta a la mayor.",
+      "src": "pieces.json: 4/4, three voices, cadences in F♯ minor and A major; prelude-plan.ts: imitative, the middle voice crossing the hands"
+    },
+    "wtc1.20": {
+      "en": "A brisk two-part piece in 9/8, the hands in close imitation; it ends in A major, not the minor it began in.",
+      "pt": "Uma peça vigorosa a duas vozes em 9/8, as mãos em imitação cerrada; termina em lá maior, e não no menor em que começou.",
+      "es": "Una pieza enérgica a dos voces en 9/8, las manos en imitación estrecha; termina en la mayor, no en el menor en que empezó.",
+      "src": "pieces.json: 9/8, two parts, a cadence in A major at the end; prelude-plan.ts: invention-like"
+    },
+    "wtc1.21": {
+      "en": "Flourishes like a toccata's, the hands taking turns with rapid runs: a written-out improvisation. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Floreios como os de uma tocata, as mãos se revezando em passagens rápidas: uma improvisação escrita. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Floreos como los de una tocata, las manos turnándose en pasajes rápidos: una improvisación escrita. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "prelude-plan.ts: toccata; cards.ts PRELUDE_LOOKS: flourishes, the hands taking turns; pieces.json: 4/4; prelude-plan.ts: at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc1.22": {
+      "en": "A solemn lament in slow common time, its melody over sustained chords. It sinks to E♭ minor before closing in B♭, the minor turned to major at the last.",
+      "pt": "Um lamento solene em quaternário lento, a melodia sobre acordes sustentados. Desce a mi bemol menor antes de fechar em si bemol, o menor tornado maior no final.",
+      "es": "Un lamento solemne en cuaternario lento, la melodía sobre acordes sostenidos. Desciende a mi bemol menor antes de cerrar en si bemol, el menor convertido en mayor al final.",
+      "src": "pieces.json: 4/4, cadences in E♭ minor and B♭ minor, the last key B♭ major; prelude-plan.ts: an arioso, the melody alone offered"
+    },
+    "wtc1.23": {
+      "en": "A calm three-part piece in common time, the voices imitating one another, staying close to B major throughout.",
+      "pt": "Uma peça calma a três vozes em quaternário, as vozes imitando umas às outras, sempre perto de si maior.",
+      "es": "Una pieza tranquila a tres voces en cuaternario, las voces imitándose unas a otras, siempre cerca de si mayor.",
+      "src": "pieces.json: 4/4, three voices, no cadence outside the home key; prelude-plan.ts: three-part, imitative"
+    },
+    "wtc2.01": {
+      "en": "A figured upper part over a held bass: the melody spins out above long notes, and moves to D minor before settling in C.",
+      "pt": "Uma parte superior ornamentada sobre um baixo sustentado: a melodia se desenrola acima de notas longas, e passa por ré menor antes de assentar em dó.",
+      "es": "Una parte superior ornamentada sobre un bajo sostenido: la melodía se despliega sobre notas largas, y pasa por re menor antes de asentarse en do.",
+      "src": "pieces.json: 4/4, three voices, cadences in D minor and C major; prelude-plan.ts: a figured upper part over a held bass"
+    },
+    "wtc2.02": {
+      "en": "Two parts in common time, in two halves, each repeated, passing through E♭ major and F minor on the way home to C minor.",
+      "pt": "Duas vozes em quaternário, em duas metades, cada uma repetida, passando por mi bemol maior e fá menor no caminho de volta a dó menor.",
+      "es": "Dos voces en cuaternario, en dos mitades, cada una repetida, que pasan por mi bemol mayor y fa menor de camino a do menor.",
+      "src": "pieces.json: 4/4, two parts, keys E♭, C minor, F minor; D861: in two repeated halves"
+    },
+    "wtc2.03": {
+      "en": "Two pieces in one: broken chords over a long-held bass, then a short fughetta in 3/8.",
+      "pt": "Duas peças numa só: acordes arpejados sobre um baixo longamente sustentado, depois uma breve fughetta em 3/8.",
+      "es": "Dos piezas en una: acordes arpegiados sobre un bajo largamente sostenido, y luego una breve fughetta en 3/8.",
+      "src": "D861: 4/4, then a 3/8 fughetta; prelude-plan.ts: broken chords, then a fughetta, its bass's pedal figure"
+    },
+    "wtc2.04": {
+      "en": "A three-part trio in 9/8: three lines of equal weight, ornate and singing, travelling to E major and F♯ minor before returning.",
+      "pt": "Um trio a três vozes em 9/8: três linhas de igual peso, ornamentadas e cantantes, viajando a mi maior e fá sustenido menor antes de voltar.",
+      "es": "Un trío a tres voces en 9/8: tres líneas de igual peso, ornamentadas y cantables, que viajan a mi mayor y fa sostenido menor antes de volver.",
+      "src": "pieces.json: 9/8, three voices, cadences in E major, F♯ minor, C♯ minor; prelude-plan.ts: a three-part trio"
+    },
+    "wtc2.05": {
+      "en": "Broad and festive, in two repeated halves: three voices trading short figures as in a concerto. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Amplo e festivo, em duas metades repetidas: três vozes trocando figuras curtas como num concerto. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Amplio y festivo, en dos mitades repetidas: tres voces que intercambian figuras cortas como en un concierto. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "pieces.json: 2/2, three voices; D861: in two repeated halves; prelude-plan.ts: concerto-like, at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc2.06": {
+      "en": "Two-part figuration in 3/4, the running notes passing between the hands, with stops in G major and A minor along the way. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Figuração a duas vozes em 3/4, as notas corridas passando de uma mão para a outra, com paradas em sol maior e lá menor pelo caminho. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Figuración a dos voces en 3/4, las notas rápidas pasando de una mano a la otra, con paradas en sol mayor y la menor por el camino. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "pieces.json: 3/4, two parts, cadences in G major and A minor; prelude-plan.ts: two-part figuration, at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc2.07": {
+      "en": "A pastorale in 9/8 for the two hands, long and leisurely, wandering through B♭, A♭, C minor and F minor before it finds E♭ again.",
+      "pt": "Uma pastoral em 9/8 para as duas mãos, longa e tranquila, passeando por si bemol, lá bemol, dó menor e fá menor antes de reencontrar mi bemol.",
+      "es": "Una pastoral en 9/8 para las dos manos, larga y pausada, que pasea por si bemol, la bemol, do menor y fa menor antes de reencontrar mi bemol.",
+      "src": "pieces.json: 9/8, two parts, cadences in B♭, A♭, C minor, F minor, E♭; prelude-plan.ts: a pastorale"
+    },
+    "wtc2.08": {
+      "en": "Two parts in common time, in two repeated halves, reaching F♯ major on the way. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Duas vozes em quaternário, em duas metades repetidas, chegando a fá sustenido maior pelo caminho. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Dos voces en cuaternario, en dos mitades repetidas, que llegan a fa sostenido mayor por el camino. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "pieces.json: 4/4, two parts, a cadence in F♯ major; D861: in two repeated halves; prelude-plan.ts: at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc2.09": {
+      "en": "Three voices in 3/4, in two repeated halves: a gentle, flowing piece that reaches B major and returns to E.",
+      "pt": "Três vozes em 3/4, em duas metades repetidas: uma peça suave e fluente que chega a si maior e volta a mi.",
+      "es": "Tres voces en 3/4, en dos mitades repetidas: una pieza suave y fluida que llega a si mayor y vuelve a mi.",
+      "src": "pieces.json: 3/4, three voices, cadences in B major and E major; D861: in two repeated halves"
+    },
+    "wtc2.10": {
+      "en": "Two parts in 3/8, in two long repeated halves, like a quick invention; it travels widely, from G and B minor to D, A minor and back to E. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Duas vozes em 3/8, em duas longas metades repetidas, como uma invenção rápida; viaja longe, de sol e si menor a ré, lá menor e de volta a mi. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Dos voces en 3/8, en dos largas mitades repetidas, como una invención rápida; viaja lejos, de sol y si menor a re, la menor y de vuelta a mi. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "pieces.json: 3/8, two parts, cadences in B minor, B, D, A minor, G, E major; D861: in two repeated halves; prelude-plan.ts: at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc2.11": {
+      "en": "Four voices in 3/2, flowing and imitative, the parts entering one after another and weaving a long, even texture.",
+      "pt": "Quatro vozes em 3/2, fluentes e imitativas, as partes entrando uma após a outra e tecendo uma textura longa e uniforme.",
+      "es": "Cuatro voces en 3/2, fluidas e imitativas, las partes entrando una tras otra y tejiendo una textura larga y uniforme.",
+      "src": "pieces.json: 3/2, four voices; prelude-plan.ts: four voices, imitative"
+    },
+    "wtc2.12": {
+      "en": "Two parts in 2/4, in two repeated halves: a sighing upper line over a bass that moves in octaves.",
+      "pt": "Duas vozes em 2/4, em duas metades repetidas: uma linha superior que suspira sobre um baixo que se move em oitavas.",
+      "es": "Dos voces en 2/4, en dos mitades repetidas: una línea superior que suspira sobre un bajo que se mueve en octavas.",
+      "src": "pieces.json: 2/4, two parts; D861: in two repeated halves; prelude-plan.ts: the bass's octave figures"
+    },
+    "wtc2.13": {
+      "en": "A long two-part piece in 3/4 that ranges far through the sharp keys, to A♯ minor, C♯, G♯ minor and D♯ minor, before returning to F♯.",
+      "pt": "Uma longa peça a duas vozes em 3/4 que vai longe pelas tonalidades de sustenidos, a lá sustenido menor, dó sustenido, sol sustenido menor e ré sustenido menor, antes de voltar a fá sustenido.",
+      "es": "Una larga pieza a dos voces en 3/4 que llega lejos por las tonalidades de sostenidos, a la sostenido menor, do sostenido, sol sostenido menor y re sostenido menor, antes de volver a fa sostenido.",
+      "src": "pieces.json: 3/4, two parts, cadences in A♯ minor, C♯, B, D♯ minor, G♯ minor"
+    },
+    "wtc2.14": {
+      "en": "Three parts in 3/4: a singing, ornamented soprano over the left hand's two voices, turning to C♯ minor and A major before ending in F♯ major.",
+      "pt": "Três vozes em 3/4: um soprano cantante e ornamentado sobre as duas vozes da mão esquerda, passando por dó sustenido menor e lá maior antes de terminar em fá sustenido maior.",
+      "es": "Tres voces en 3/4: un soprano cantable y ornamentado sobre las dos voces de la mano izquierda, que pasa por do sostenido menor y la mayor antes de terminar en fa sostenido mayor.",
+      "src": "pieces.json: 3/4, three voices, cadences in C♯ minor, A major, F♯ major; prelude-plan.ts: a soprano over the left hand's two voices"
+    },
+    "wtc2.15": {
+      "en": "Two parts in 3/4, in two repeated halves, semiquavers running in one hand while the other keeps time. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Duas vozes em 3/4, em duas metades repetidas, semicolcheias correndo numa mão enquanto a outra marca o tempo. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Dos voces en 3/4, en dos mitades repetidas, semicorcheas que corren en una mano mientras la otra marca el tiempo. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "pieces.json: 3/4, two parts; D861: in two repeated halves; prelude-plan.ts: two-part semiquavers, at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    },
+    "wtc2.16": {
+      "en": "A slow four-part piece, grave and full-voiced, moving to D minor and C minor before ending in G major.",
+      "pt": "Uma peça lenta a quatro vozes, grave e cheia, que passa por ré menor e dó menor antes de terminar em sol maior.",
+      "es": "Una pieza lenta a cuatro voces, grave y plena, que pasa por re menor y do menor antes de terminar en sol mayor.",
+      "src": "pieces.json: 4/4, four voices, keys D minor, C minor, the last G major; prelude-plan.ts: a four-part largo"
+    },
+    "wtc2.17": {
+      "en": "Long and festive, in 3/4, in the manner of a concerto: a melody and its bass, returning between excursions to F minor, B♭ minor and D♭.",
+      "pt": "Longo e festivo, em 3/4, à maneira de um concerto: uma melodia e seu baixo, voltando entre excursões a fá menor, si bemol menor e ré bemol.",
+      "es": "Largo y festivo, en 3/4, a la manera de un concierto: una melodía y su bajo, que vuelven entre excursiones a fa menor, si bemol menor y re bemol.",
+      "src": "pieces.json: 3/4, three voices, cadences in E♭, F minor, B♭ minor, D♭, A♭; prelude-plan.ts: concerto-like"
+    },
+    "wtc2.18": {
+      "en": "Two parts in common time, in two repeated halves, reaching D♯ minor and G♯ major before returning to G♯ minor.",
+      "pt": "Duas vozes em quaternário, em duas metades repetidas, chegando a ré sustenido menor e sol sustenido maior antes de voltar a sol sustenido menor.",
+      "es": "Dos voces en cuaternario, en dos mitades repetidas, que llegan a re sostenido menor y sol sostenido mayor antes de volver a sol sostenido menor.",
+      "src": "pieces.json: 4/4, two parts, cadences in D♯ minor, G♯ major, G♯ minor; D861: in two repeated halves"
+    },
+    "wtc2.19": {
+      "en": "Three parts in 12/8, light and even, the voices sharing one lilting figure.",
+      "pt": "Três vozes em 12/8, leves e uniformes, as vozes dividindo uma mesma figura balançada.",
+      "es": "Tres voces en 12/8, ligeras y uniformes, las voces compartiendo una misma figura ondulante.",
+      "src": "pieces.json: 12/8, three voices; prelude-plan.ts: three-part"
+    },
+    "wtc2.20": {
+      "en": "Two parts in common time, in two repeated halves, its lines bending through semitones.",
+      "pt": "Duas vozes em quaternário, em duas metades repetidas, as linhas se curvando por semitons.",
+      "es": "Dos voces en cuaternario, en dos mitades repetidas, las líneas doblándose por semitonos.",
+      "src": "pieces.json: 4/4, two parts; D861: in two repeated halves; prelude-plan.ts: two-part, chromatic"
+    },
+    "wtc2.21": {
+      "en": "Two parts in 12/16, in two long repeated halves: quick, flowing figures shared by the hands, ranging through G minor, C minor and E♭ before B♭ returns.",
+      "pt": "Duas vozes em 12/16, em duas longas metades repetidas: figuras rápidas e fluentes divididas pelas mãos, percorrendo sol menor, dó menor e mi bemol antes de voltar a si bemol.",
+      "es": "Dos voces en 12/16, en dos largas mitades repetidas: figuras rápidas y fluidas compartidas por las manos, que recorren sol menor, do menor y mi bemol antes de volver a si bemol.",
+      "src": "pieces.json: 12/16, two parts, cadences in G minor, C minor, E♭, B♭; D861: in two repeated halves"
+    },
+    "wtc2.22": {
+      "en": "A long three-part piece in common time, the voices in imitation, moving through F minor, D♭, E♭ minor and A♭ and always back to B♭ minor.",
+      "pt": "Uma longa peça a três vozes em quaternário, as vozes em imitação, passando por fá menor, ré bemol, mi bemol menor e lá bemol e sempre de volta a si bemol menor.",
+      "es": "Una larga pieza a tres voces en cuaternario, las voces en imitación, que pasa por fa menor, re bemol, mi bemol menor y la bemol y siempre vuelve a si bemol menor.",
+      "src": "pieces.json: 4/4, three voices, cadences in F minor, D♭, E♭ minor, A♭, B♭ minor (several)"
+    },
+    "wtc2.23": {
+      "en": "Two-part figuration in common time: the right hand's figure repeats while the left hand carries the line, through G♯ minor, E, F♯ and D♯ minor.",
+      "pt": "Figuração a duas vozes em quaternário: a figura da mão direita se repete enquanto a mão esquerda conduz a linha, por sol sustenido menor, mi, fá sustenido e ré sustenido menor.",
+      "es": "Figuración a dos voces en cuaternario: la figura de la mano derecha se repite mientras la izquierda lleva la línea, por sol sostenido menor, mi, fa sostenido y re sostenido menor.",
+      "src": "pieces.json: 4/4, two parts, cadences in G♯ minor, E, F♯, D♯ minor, B, E; prelude-plan.ts: the left hand offered, the right hand's halves repeated"
+    },
+    "wtc2.24": {
+      "en": "Two parts in common time, quick and direct, travelling to A and D major, B major, F♯ minor and E minor before closing in B minor. In the game it is played at its slow tempo: at the usual one its runs are faster than two thumbs can follow.",
+      "pt": "Duas vozes em quaternário, rápidas e diretas, viajando a lá e ré maior, si maior, fá sustenido menor e mi menor antes de fechar em si menor. No jogo, é tocado no andamento lento: no habitual, suas passagens são rápidas demais para dois polegares.",
+      "es": "Dos voces en cuaternario, rápidas y directas, que viajan a la y re mayor, si mayor, fa sostenido menor y mi menor antes de cerrar en si menor. En el juego se toca en su tempo lento: en el habitual, sus pasajes son demasiado rápidos para dos pulgares.",
+      "src": "pieces.json: 4/4, two parts, cadences in A, D, B major, F♯ minor, E minor, B minor; prelude-plan.ts: at the slow tempo (over the 5.5 notes-a-second ceiling at D861's tempo: D883, D889, D955, D959)"
+    }
+  }
+}
