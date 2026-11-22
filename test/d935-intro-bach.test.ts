@@ -1,8 +1,8 @@
 /**
- * D935 (was D507's piano test, and D500's cadence test before it): the intro is Bach's own bars, every voice of the
- * data from the tenor's B♭3 in Contrapunctus XIV's bar 193 to bar 197's downbeat (the tenor's D under the alto's
- * F♯), at his pitch, nothing added (no D–A–D); played on the recorded grand with rubato, loudness by the phrase and
- * the metre, the subject over the alto, legato, a little pedal, the close left to ring; the picture on its notes.
+ * D935 (was D507's piano test, and D500's cadence test before it): the intro is Bach's own line, the tenor alone
+ * from its B♭3 in Contrapunctus XIV's bar 193 to bar 197's downbeat (the subject's nine notes and the D its C♯
+ * rises to), at his pitch, nothing added (no D–A–D, no alto); a careful pianist at ♩ = 96: light rubato, a narrow
+ * soft shape, darkened attack, full legato, slow dampers, no quickly-dying recording; the picture on its notes.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -33,81 +33,97 @@ function fakeChip() {
   return { chip, played };
 }
 
-test("D935: exactly the data's notes, every voice, from the tenor's B♭ in bar 193 to bar 197's downbeat, at Bach's pitch; no D–A–D", async () => {
+test("D935: the tenor alone, the data's notes from its B♭ in bar 193 to bar 197's downbeat; the subject's fourteen beats and its D; no alto, no chord", async () => {
   const m = await import("../src/bench/intro-sound.ts");
   const { fugueById } = await import("../src/touch/fugue.ts");
   const f = fugueById(m.BACH_SOURCE.piece);
   const b193 = f.bars.find((b) => b.n === m.BACH_SOURCE.bar)!;
   const b197 = f.bars.find((b) => b.n === m.INTRO_TO_BAR)!;
-  const s = f.voices[m.BACH_SOURCE.voice].find(([on, , p]) => on >= b193.on && p === 58)![0];
+  const tenor = f.voices[m.BACH_SOURCE.voice];
+  const s = tenor.find(([on, , p]) => on >= b193.on && p === 58)![0];
   assert.equal(s, b193.on + 2 * f.tpq, "the subject enters on bar 193's third beat");
-  // Nothing else sounds as the subject enters (the cadence's chord is over): the tenor alone.
-  assert.ok(f.voices.every((vs) => vs.every(([on, d]) => !(on < s && on + d > s))));
-  const want = f.voices.flatMap((vs, v) => vs.filter(([on]) => on >= s && on <= b197.on).map(([, , p]) => `${v}:${p}`)).sort();
+  assert.ok(f.voices.every((vs) => vs.every(([on, d]) => !(on < s && on + d > s))), "nothing else sounds as it enters");
+  // The subject's length as the piece states it: every B-A-C-H entry fourteen beats (fugue.ts entries, theme 3).
+  const ents = f.entries.filter((e) => e.theme === 3);
+  assert.ok(ents.length >= 5 && ents.every((e) => e.end - e.on === 14 * f.tpq));
+  const first = ents.find((e) => e.on === s)!;
+  assert.deepEqual(first.notes.map((n) => n[2]), [58, 57, 60, 59, 61, 62, 61, 59, 61]);
   const notes = m.introNotes();
-  assert.deepEqual(notes.map((x) => `${x.voice}:${x.midi}`).sort(), want, "Bach's notes, no more, no fewer");
+  assert.deepEqual(notes.map((x) => x.midi), [...first.notes.map((n) => n[2]), 62], "the subject, then the D its C♯ rises to (the tenor's next note)");
+  const d = tenor.find(([on]) => on === b197.on)!;
+  assert.equal(d[2], 62);
+  assert.ok(!tenor.some(([on]) => on > b197.on && on < b197.on + d[1] + f.tpq / 2), "the D a half note, then the tenor rests");
   assert.equal(m.INTRO_OCTAVE, 0);
-  assert.deepEqual(notes.filter((x) => x.voice === m.BACH_SOURCE.voice).map((x) => x.midi), [58, 57, 60, 59, 61, 62, 61, 59, 61, 62], "the tenor's whole statement");
-  assert.deepEqual(notes.filter((x) => x.last).map((x) => x.midi).sort(), [62, 66], "the close: the tenor's D4 under the alto's F♯4");
-  assert.ok(!notes.some((x) => x.midi === 50), "no added D3 (D507's chord gone)");
-  assert.ok(!("chordNotes" in m) && !("INTRO_CHORD" in m));
+  assert.equal(notes.filter((x) => x.last).length, 1);
+  assert.ok(notes.at(-1)!.last);
+  assert.ok(!notes.some((x) => x.double), "one instrument");
 });
 
-test("D935: a pianist's time: the onsets off the metronome (settled into, the C♯ lingered on, the close slowed), never by much", async () => {
+test("D935: faster, unhurried, light rubato: ♩ = 96, a small breath at the start, a gentle easing into the D", async () => {
   const m = await import("../src/bench/intro-sound.ts");
-  const beat = 60 / m.INTRO_BPM;
-  const t = m.introNotes().filter((x) => x.voice === m.BACH_SOURCE.voice).map((x) => x.at);
+  assert.ok(m.INTRO_A.bpm >= 92 && m.INTRO_A.bpm <= 100);
+  const beat = 60 / m.INTRO_A.bpm;
+  const t = m.introNotes().map((x) => x.at);
   const gaps = t.slice(1).map((x, i) => x - t[i]);
-  // B♭ → A (2 beats) broader than A → C: the first note settled into.
-  assert.ok(gaps[0] > gaps[1] + 0.02);
-  // The C♯ (half a beat) lingered on, a breath more than written.
-  assert.ok(gaps[4] > 0.5 * beat * 1.1);
-  // The last two beats (C♯ → D) slower than the first statement's.
-  assert.ok(gaps[8] > gaps[1] * 1.08);
-  for (const [i, g] of gaps.entries()) assert.ok(g > 0, `note ${i} in order`);
-  assert.ok(m.INTRO_RESOLVE_S > 14 * beat && m.INTRO_RESOLVE_S < 14 * beat * 1.12, "about the written length, a little broader");
+  assert.ok(gaps[0] > gaps[1] + 0.01 && gaps[0] < gaps[1] * 1.08, "the first note settled into, a little");
+  assert.ok(gaps[8] > gaps[1] * 1.03 && gaps[8] < gaps[1] * 1.15, "the C♯ → D eased, gently");
+  assert.ok(Math.abs(gaps[2] - 2 * beat) < 0.02, "in tempo between");
+  assert.ok(m.INTRO_RESOLVE_S > 14 * beat && m.INTRO_RESOLVE_S < 14 * beat * 1.06);
 });
 
-test("D935: the phrase's loudness: varied by the phrase and the metre (not flat), the subject over the alto, soft; legato and a little pedal", async () => {
+test("D935: the careful touch: the soft layer, a narrow shape, una corda colour, a lowpass on these notes, full legato, slow dampers, a warm room", async () => {
   const m = await import("../src/bench/intro-sound.ts");
-  const { PALETTES } = await import("../src/touch/whole-reading.ts");
   const notes = m.introNotes();
-  const subj = notes.filter((x) => x.voice === m.BACH_SOURCE.voice);
-  const alto = notes.filter((x) => x.voice !== m.BACH_SOURCE.voice);
-  assert.ok(new Set(subj.map((x) => x.db.toFixed(2))).size >= 6, "no two levels alike, mostly");
-  assert.ok(Math.max(...subj.map((x) => x.db)) - Math.min(...subj.map((x) => x.db)) >= 3, "a shaped line");
-  // The arch: the ends under the middle.
-  const mid = subj.find((x) => x.midi === 59)!.db;
-  assert.ok(subj[0].db < mid - 2 && subj.at(-1)!.db < mid - 2);
-  // Voicing: at each shared onset the subject over the alto.
-  for (const a of alto) {
-    const t = subj.find((x) => Math.abs(x.at - a.at) < 0.02);
-    if (t) assert.ok(t.db > a.db + 1.5, `the subject over the alto at ${a.at.toFixed(2)}`);
-  }
-  // Legato: each note held a moment into its voice's next.
-  for (const v of [subj, alto]) for (let i = 1; i < v.length; i++) {
-    const over = v[i - 1].at + v[i - 1].len - v[i].at;
-    assert.ok(over > 0.02 && over < 0.15, `held ${over.toFixed(3)} s into the next`);
+  const dbs = notes.map((x) => x.db);
+  assert.ok(Math.max(...dbs) - Math.min(...dbs) <= 2.2 && Math.max(...dbs) - Math.min(...dbs) >= 1, "shaped, narrowly");
+  assert.ok(new Set(dbs.map((x) => x.toFixed(2))).size >= 6, "not flat");
+  for (let i = 1; i < notes.length; i++) {
+    const over = notes[i - 1].at + notes[i - 1].len - notes[i].at;
+    assert.ok(over > 0.09 && over < 0.15, `held ${over.toFixed(3)} s into the next`);
   }
   const { setPreset, PATCHES } = await import("../src/touch/sound.ts");
   setPreset(m.INTRO_PRESET);
   const { chip, played } = fakeChip();
   // deno-lint-ignore no-explicit-any
   m.playIntro(chip as any, 0.12);
-  assert.equal(played.length, notes.length, "nothing else (no band)");
-  for (const n of played) {
+  assert.equal(played.length, notes.length, "nothing else");
+  for (const [i, n] of played.entries()) {
     assert.equal(n.patch, PATCHES.pianoSampled, "the recorded grand");
     assert.equal(n.p.layer, "soft");
-    assert.ok((n.p.level as number) < 1.1, "soft");
-    assert.equal(n.p.dampMul, PALETTES.dolce.dampMul, "the dampers slow: dolce's half pedal");
+    assert.equal(n.p.lp, 4500);
+    assert.equal(n.p.hold, "none");
+    assert.ok((n.p.vel as number) <= -2 && Math.abs((n.p.vel as number) - (-3 + 0.5 * notes[i].db)) < 1e-9, "darker, following the level by half");
+    assert.ok((n.p.dampMul as number) >= 1.6 && (n.p.roomMul as number) > 1.2);
     for (const k of ["legato", "slur", "accent", "give", "bowChange"]) assert.equal(n.p[k], undefined, `${n.midi}: no ${k}`);
   }
-  // The colour follows the level (a softer note darker).
-  assert.ok(played.every((n, i) => Math.abs((n.p.vel as number) - notes[i].db) < 1e-9));
   setPreset("chip");
 });
 
-test("D935: the close lingers: the D–F♯ held to the end and faded to nothing there; the page gone while it rings", async () => {
+test("D935: no note from a recording that dies away quickly: B3 and C4 from A3, C♯4 and D4 from D♯4, all within the piano's guard", async () => {
+  const m = await import("../src/bench/intro-sound.ts");
+  const { nearestSample, SAMPLED } = await import("../src/touch/sampled.ts");
+  const { setPreset } = await import("../src/touch/sound.ts");
+  setPreset(m.INTRO_PRESET);
+  const { chip, played } = fakeChip();
+  // deno-lint-ignore no-explicit-any
+  m.playIntro(chip as any, 0.12);
+  const set = SAMPLED.piano.soft!.set;
+  for (const n of played) {
+    const from = n.p.fromSample as number;
+    assert.ok(from === 57 || from === 63, `${n.midi} from A3 or D♯4 (${from})`);
+    assert.equal(nearestSample(set, from), from, "a recording of the soft layer");
+    assert.ok(Math.abs(from - n.midi) <= (SAMPLED.piano.maxShift ?? 3));
+  }
+  // C4's own (the nearest for B3, C4, C♯4 left alone) never read.
+  assert.ok(played.every((n) => n.p.fromSample !== 60));
+  assert.ok(m.introPitches().includes(57) && m.introPitches().includes(63), "loaded first");
+  // The engine reads Play.fromSample where it picks the recording.
+  const src2 = src("src/touch/chip.ts");
+  assert.match(src2, /if \(p\.fromSample !== undefined && nearestSample\(main, p\.fromSample\) === p\.fromSample && Math\.abs\(p\.fromSample - midi\) <= \(inst\.maxShift \?\? MAX_SHIFT_ANY\)\) near = p\.fromSample;/);
+  setPreset("chip");
+});
+
+test("D935: the D lingers: held to the end and faded to nothing there; the page gone while it rings; the breath before the first note", async () => {
   const m = await import("../src/bench/intro-sound.ts");
   const { setPreset } = await import("../src/touch/sound.ts");
   setPreset(m.INTRO_PRESET);
@@ -117,23 +133,35 @@ test("D935: the close lingers: the D–F♯ held to the end and faded to nothing
   assert.equal(p.t0, 1.12);
   const end = 1.12 + m.INTRO_RESOLVE_S + m.INTRO_TAIL_S;
   const faded = played.filter((n) => n.trims.length);
-  assert.deepEqual(faded.map((n) => n.midi).sort(), [62, 66]);
-  assert.ok(faded.every((n) => n.trims.at(-1)![0] < 0.01 && Math.abs(n.trims.at(-1)![2] - end) < 1e-9));
-  assert.ok(faded.every((n) => Math.abs(n.at + n.dur - end) < 0.02), "held to the end");
+  assert.deepEqual(faded.map((n) => n.midi), [62]);
+  assert.ok(faded.every((n) => n.trims.at(-1)![0] < 0.01 && Math.abs(n.trims.at(-1)![2] - end) < 1e-9 && Math.abs(n.at + n.dur - end) < 0.02));
   assert.ok(m.INTRO_TAIL_S >= 3.5, "it lingers");
   assert.ok(m.INTRO_CROSS_S >= 1.5 && m.INTRO_CROSS_S <= m.INTRO_TAIL_S - m.INTRO_FADE_S + 0.5);
-  assert.ok(m.INTRO_S >= 12 && m.INTRO_S <= 15, "about fourteen seconds to the selection");
-  // The breath before the first note (the default lead).
+  assert.ok(m.INTRO_S >= 10 && m.INTRO_S <= 12.5, "about eleven seconds to the selection");
   // deno-lint-ignore no-explicit-any
   assert.ok(Math.abs(m.playIntro(fakeChip().chip as any).t0 - 1 - m.INTRO_BREATH_S) < 1e-9 && m.INTRO_BREATH_S >= 0.3);
   setPreset("chip");
 });
 
-test("D935: the picture on the notes as heard: each image on B, A, C, H (not a fixed beat), the cross-fade from the close", async () => {
+test("D935: the alternatives are Bach's same line (render-only), each a different performance; the game plays INTRO_A", async () => {
   const m = await import("../src/bench/intro-sound.ts");
-  const t = m.introNotes().filter((x) => x.voice === m.BACH_SOURCE.voice).slice(0, 4).map((x) => x.at);
+  const { PATCHES } = await import("../src/touch/sound.ts");
+  const want = m.introNotes().map((x) => x.midi);
+  for (const [name, v] of Object.entries(m.INTRO_VARIANTS)) {
+    assert.ok(v.patch in PATCHES && (!v.double || v.double.patch in PATCHES), name);
+    const line = m.introNotes(v).filter((x) => !x.double).map((x) => x.midi - v.octave);
+    assert.deepEqual(line, want, `${name}: the same notes`);
+    const dbl = m.introNotes(v).filter((x) => x.double);
+    if (v.double) assert.deepEqual(dbl.map((x) => x.midi - v.double!.octave), want, `${name}: its doubling the same line`);
+  }
+  assert.ok(!src("src/bench/BenchApp.tsx").includes("INTRO_VARIANTS"));
+});
+
+test("D935: the picture on the notes as heard: each image on B, A, C, H (not a fixed beat), the cross-fade from the D", async () => {
+  const m = await import("../src/bench/intro-sound.ts");
+  const t = m.introNotes().slice(0, 4).map((x) => x.at);
   assert.deepEqual([...m.INTRO_ONSETS_S], t);
-  assert.equal(m.INTRO_RESOLVE_S, Math.min(...m.introNotes().filter((x) => x.last).map((x) => x.at)));
+  assert.equal(m.INTRO_RESOLVE_S, m.introNotes().at(-1)!.at);
   const intro = src("src/bench/Intro.tsx");
   for (const k of [2, 3, 4]) assert.match(intro, new RegExp(`\\["--n${k}" as string\\]: \`\\$\\{INTRO_ONSETS_S\\[${k - 1}\\]\\}s\``));
   const css = src("src/bench/selection.css");

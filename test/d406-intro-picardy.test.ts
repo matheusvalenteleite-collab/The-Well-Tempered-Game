@@ -3,7 +3,7 @@
  * continuation C♯–D, the D under the string consort's D major (the Picardy third), on the cross-fade
  * from the title page into the selection screen; a skip fades the sound out instead of cutting it.
  * D500: the cello's line and BAROQUE BAND's cadence; D507: the piano alone, B-A-C-H equal, the left hand's D–A–D;
- * D935: Bach's bars 193-197 at his pitch, every voice, no chord (test/d935-intro-bach.test.ts); updated deliberately.
+ * D935: the tenor's line alone, bars 193-197, at his pitch, no chord (test/d935-intro-bach.test.ts); updated deliberately.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -24,7 +24,7 @@ test("D406: the data's tenor goes on B♭ A C B♮ C♯ D; the intro plays them 
   const k = line.findIndex(([, , p]) => p === 58);
   assert.deepEqual(line.slice(k, k + 6).map(([, , p]) => p), [58, 57, 60, 59, 61, 62], "the continuation is C♯–D in the data");
   // D935: the tenor at its own pitch (deliberately: D507 played it an octave up).
-  const notes = m.introNotes().filter((n) => n.voice === m.BACH_SOURCE.voice);
+  const notes = m.introNotes();
   assert.deepEqual(notes.slice(0, 6).map((n) => n.midi), [58, 57, 60, 59, 61, 62]);
   const len = (i: number) => notes[i + 1].at - notes[i].at;
   assert.ok(len(4) < len(0) / 2, "the C♯ a short step into the D");
