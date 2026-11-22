@@ -110,6 +110,8 @@ export function basicsRun(st: Stage, phase: Phase, notches: number, k = 0): Run 
       // note; the take over once its last note is judged; the band's drums under a solo line where the stage has them.
       ...(st.wait === "first" ? { waitFirst: true } : {}),
       endAtLast: true,
+      // D992: the ● ○ only where the stage has introduced them.
+      thumbSigns: st.aids.includes("signs"),
       ...(beat?.kind === "drums" ? { band: true } : {}),
     },
     ...(beat?.kind === "click" ? { click: { full: Number.MAX_SAFE_INTEGER, gone: Number.MAX_SAFE_INTEGER, gain: beat.gain } } : {}),
