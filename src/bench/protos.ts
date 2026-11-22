@@ -56,6 +56,8 @@ export interface Options {
   endAtLast?: boolean;
   /** D941 (BASICS): the band's drums play though the run is solo (the other voices off). */
   band?: boolean;
+  /** D992 (BASICS): the thumbs' ● ○ under the notes and on the bars: false, not drawn (not yet introduced). */
+  thumbSigns?: boolean;
   solo?: boolean;
   /** D223, D299: BLUETOOTH MODE: the whole piece, the player's notes too, on the schedule at the written times; the touches score, silently. */
   bt?: boolean;
