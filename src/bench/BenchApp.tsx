@@ -25,7 +25,8 @@ import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
 import { answer, askFirst, nextLesson, recordLesson, skipLesson, triesAt, tutorialDone } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
-import { tempoOf } from "../touch/tempi.ts";
+import { PRELUDE_TEMPO, tempoOf } from "../touch/tempi.ts";
+import { fugueOfPrelude, preludeReady, slowOnly } from "../touch/prelude-plan.ts";
 import { presetById, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -247,14 +248,18 @@ export function sane(p: Pick): Pick {
   // D275: and Book II's fugues. D343: those and the MORE BACH and CHORALES pieces only once unlocked (unlock.ts).
   // Main board (2.70): a piece whose tab is shown to everyone (THE ART OF FUGUE, THE INVENTIONS AND SINFONIAS) is
   // chosen as any book's fugue: the owner found their tiles "not selectable, and thus unplayable".
-  const piece = APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : ((unlocked() || liteTabs().some(([t]) => t === liteTabOf(pair))) && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
+  // D941 (reverses D263 for the planned preludes): a ready prelude (prelude-plan.ts `preludeReady`) is played on a phone
+  // too, Book II's included; one not ready still gives its fugue.
+  const readyPrelude = preludeReady(known) && (known.startsWith("wtc1") || bookTwoOpen());
+  const piece = APP.lite && readyPrelude ? known : APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : ((unlocked() || liteTabs().some(([t]) => t === liteTabOf(pair))) && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
   const singing = voicesFrom(f, startTick(f, share));
   // D237: a fugue's voice of the first entry by default (flow.ts). D251: a prelude always its own part
   // (stages.ts `preludePart`), whatever was chosen or kept before.
   // D369: on play.html an unfinished fugue offers the second voice to enter; a finished one the voice last played.
-  const voice = f.kind !== "prelude" && singing.includes(p.voice) ? p.voice : APP.lite ? liteVoice(f, singing, readLite().beaten.includes(f.id)) : defaultVoice(f, singing);
+  // D941 (reverses D251 on play.html): a ready prelude's voice is the player's choice among PRELUDE_PLAN's offered.
+  const voice = (f.kind !== "prelude" || (APP.lite && preludeReady(f.id))) && singing.includes(p.voice) ? p.voice : APP.lite ? liteVoice(f, singing, readLite().beaten.includes(f.id)) : defaultVoice(f, singing);
   // D219: a stored mode withdrawn (HIGHWAY, TWO VOICES, KIMIKO on a phone) falls back to LADDER; a stored KIMIKO as LADDER WITH KIMIKO.
   const was = p.proto as string;
   const proto = PROTOS.some((x) => x.id === was) ? p.proto : DEFAULT.proto;
@@ -2197,7 +2202,8 @@ export function BenchApp() {
               </button>
               {phase.next && (
                 <button type="button" id="next" className="tb-play" onClick={() => begin(phase.next!)}>
-                  ▶ {tr("NEXT")}
+                  {/* D941: a prelude's NEXT is its fugue, named so. */}
+                  ▶ {f.kind === "prelude" && phase.next === fugueOfPrelude(f.id) ? tr("FUGUE") : tr("NEXT")}
                 </button>
               )}
             </div>
@@ -2460,7 +2466,8 @@ export function BenchApp() {
           // D458: the chosen fugue's SAVED PERFORMANCES.
           takes={{ n: takeCount[f.id] ?? 0, open: () => setTakesOpen(true) }}
           // D463 (design studio): TEMPO and SOUND on the selection's right column.
-          tempo={stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : undefined}
+          // D941: a prelude offered at the slow tempo only (I/5, I/21) shows it, fixed; other preludes no TEMPO (D861).
+          tempo={stepTempi(f.id) ? { word: stepWord(step), beat: stepBeat(f.id, (tempi ?? stepTempi(f.id)!)[step]), locked: !tempi, cycle: () => tempi && setTempoSteps(saveStep(f.id, nextStep(step))) } : slowOnly(f.id) && PRELUDE_TEMPO[f.id] ? { word: stepWord("slow"), beat: `${PRELUDE_TEMPO[f.id].unit} ${PRELUDE_TEMPO[f.id].unitBpm.slow}`, locked: false, fixed: true, cycle: () => {} } : undefined}
           sound={APP.lite ? { locked: !full && !soundUnlocked(f.id, lite), value: sound, name: tr(presetById(sound).name.replace(/ \(SAMPLED\)$/, "").replace(/ · .*$/, "")), sounds: POP_SOUNDS, own: PIECE_SOUND[f.id], ownName: PIECE_SOUND[f.id] ? presetById(PIECE_SOUND[f.id]).name : undefined, set: setSound } : undefined}
           note={
             lag !== null && lag > 0.02 ? (
@@ -2652,7 +2659,8 @@ export function VoiceLegend({ names, played, ink, paper = false, alone = false }
  */
 function liteTitle(f: TouchFugue): string {
   const formal = lang() === "en" || f.collection ? f.title.toUpperCase() : pieceName(f.kind, f.key, f.number);
-  const name = f.kind === "fugue" ? fugueName(f.id, lang()) : null;
+  // D941: a ready prelude by its world's name too (THE SPARROW · PRELUDE 9 IN E MAJOR).
+  const name = f.kind === "fugue" ? fugueName(f.id, lang()) : preludeReady(f.id) ? fugueName(fugueOfPrelude(f.id), lang()) : null;
   return name ? `${name.toUpperCase()} · ${formal}` : formal;
 }
 /** D462: the words of Settings' STAGE switch (the fugue's world behind the box). */

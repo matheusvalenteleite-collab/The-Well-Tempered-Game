@@ -12,6 +12,7 @@
 import data from "../../data/tempi/tempi.json" with { type: "json" };
 import moreData from "../../data/tempi/more-bach.json" with { type: "json" };
 import preludeData from "../../data/tempi/preludes.json" with { type: "json" };
+import { slowOnly } from "./prelude-plan.ts";
 
 export type TempoVersion = "normal" | "slow";
 
@@ -65,6 +66,8 @@ export function tempoOf(id: string): number {
   // D710: a MORE BACH piece too (the Art of Fugue's: its record in more-bach.json).
   const rec = t ?? MORE_TEMPO[id];
   if (rec && OPENING_STEP[id] === "fast") return fastTempo(rec);
+  // D941: a prelude offered at the slow tempo only (I/5, I/21) plays at its slow tempo (preludes.json `slow`).
+  if (slowOnly(id) && PRELUDE_TEMPO[id]?.slow) return PRELUDE_TEMPO[id].slow;
   return t?.normal ?? MORE_TEMPO[id]?.normal ?? PRELUDE_TEMPO[id]?.normal ?? TUTORIAL_TEMPO[id] ?? 46;
 }
 

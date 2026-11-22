@@ -3,6 +3,7 @@
  * Hardware" (§6.1-6.3: SUPER 16-BIT, NOCTURNE 32-BIT, MEGA FM), SID 64, TRACKER, CHAMBER ORGAN,
  * TEMPLE 64, AGENT 64, and the niche picks MODULAR and TOMITA; ANALOG SYNTH remade as SWITCHED-ON.
  */
+import { fugueOfPrelude, preludeReady } from "../src/touch/prelude-plan.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { installFakeAudio } from "./fake-audio.ts";
@@ -32,7 +33,8 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
   for (const id of NEW) {
     // D340: but the MORE BACH and CHORALES tabs' asked-for exceptions (the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT). D348: and the harpsichord concertos.
     // D355: and the pieces given a sound of their own (tools/touch/colour-plans).
-    assert.ok(!Object.entries(PIECE_SOUND).some(([p, s]) => s === id && !COLOURS[p] && !/^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/.test(p)), id);
+    // D941: a ready prelude on its fugue's sound, by its fugue's plan.
+    assert.ok(!Object.entries(PIECE_SOUND).some(([p, s]) => s === id && !COLOURS[p] && !(preludeReady(p) && COLOURS[fugueOfPrelude(p)]) && !/^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/.test(p)), id);
     // D305: VOCAL SYNTH sung as singers sing.
     // D309: PIPE ORGAN the organ's way, SOLO VOICES the singers' legato.
     assert.equal(styleOf(id), id === "vocalSynth" ? "sung" : id === "chamberOrgan" ? "organ" : id === "soloVoices" ? "solo" : "plain");

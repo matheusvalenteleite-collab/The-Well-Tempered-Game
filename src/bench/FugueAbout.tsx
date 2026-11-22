@@ -14,6 +14,8 @@ import { fugueById } from "../touch/fugue.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
 import { NOTES } from "../wtc/notes.ts";
+import { preludeNote, preludeTrait } from "../wtc/prelude-texts.ts";
+import { worldOf } from "../touch/prelude-plan.ts";
 import { Emblem } from "./FuguePicker.tsx";
 import { keyWords, pieceTitle } from "./Selection.tsx";
 
@@ -56,7 +58,11 @@ export function FugueAbout({ id, close, subject }: { id: string; close: () => vo
   const f = fugueById(id);
   const facts = entryFacts(id);
   const cite = CITATIONS[id];
-  const note = NOTES[`wtc${f.book}.${String(f.number).padStart(2, "0")}`]?.fugue;
+  // D941: ABOUT THIS PRELUDE: the same box, the prelude's own words (its character's line, its note, in the language in
+  // force) and the score's facts; no subject (a prelude has no entries).
+  const prelude = f.kind === "prelude";
+  const note = prelude ? preludeNote(id) : NOTES[`wtc${f.book}.${String(f.number).padStart(2, "0")}`]?.fugue;
+  const trait = prelude ? preludeTrait(id) : undefined;
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && (e.stopPropagation(), close());
     window.addEventListener("keydown", esc, true);
@@ -64,13 +70,13 @@ export function FugueAbout({ id, close, subject }: { id: string; close: () => vo
   }, [close]);
   return (
     <div className="tb-pop-veil" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div className="tb-pop sel-about-pop" role="dialog" aria-modal="true" aria-label={tr("ABOUT THIS FUGUE")} id="about-pop">
+      <div className="tb-pop sel-about-pop" role="dialog" aria-modal="true" aria-label={tr(prelude ? "ABOUT THIS PRELUDE" : "ABOUT THIS FUGUE")} id="about-pop">
         <button type="button" id="about-close" className="tg-x tb-pop-x" aria-label="Close" onClick={close}>
           ✕
         </button>
         <div className="sel-about-side">
-          <Emblem id={id} className="sel-about-pic" />
-          <p className="sel-about-nick">{fugueName(id, lang())}</p>
+          <Emblem id={worldOf(id)} className="sel-about-pic" />
+          <p className="sel-about-nick">{fugueName(worldOf(id), lang())}</p>
           <p className="sel-about-title">{pieceTitle(id)}</p>
           <p className="sel-about-meta">
             {tr("BOOK")} {f.book === 1 ? "I" : "II"} · {f.number} · BWV {f.bwv.replace(/^BWV\s*/i, "")}
@@ -87,12 +93,39 @@ export function FugueAbout({ id, close, subject }: { id: string; close: () => vo
           </dl>
         </div>
         <div className="sel-about-main">
-          {subject && (
+          {prelude && (
+            <>
+              <h2 className="sel-about-h">{tr("THE PIECE")}</h2>
+              {trait && (
+                <p className="sel-about-text sel-about-trait" id="about-trait">
+                  {trait}
+                </p>
+              )}
+              {note ? (
+                <p className="sel-about-text" id="about-note">
+                  {note}
+                </p>
+              ) : (
+                !trait && <p className="sel-about-line">{tr("NOT YET WRITTEN")}</p>
+              )}
+              {/* Where the score's data marks none, nothing said (not "0"). */}
+              {facts.cadences > 0 && (
+                <p className="sel-about-line">
+                  {facts.cadences} {tr("CADENCES")}
+                </p>
+              )}
+              {/* The voicing's licence (WTC_CREDITS): I/12's voices after the Mutopia edition, CC BY-SA 4.0. */}
+              {id === "wtc1p12" && <p className="sel-about-line sel-about-credit">VOICES AFTER THE MUTOPIA PROJECT (SVEN REICHARD), CC BY-SA 4.0</p>}
+            </>
+          )}
+          {!prelude && subject && (
             <>
               <h2 className="sel-about-h">{tr("THE SUBJECT")}</h2>
               <HearSubject id={id} play={subject.play} stop={subject.stop} close={close} embedded />
             </>
           )}
+          {!prelude && (
+          <>
           <h2 className="sel-about-h">{tr("THE SUBJECT, VOICE BY VOICE")}</h2>
           <ul className="sel-about-entries" aria-label={tr("ENTRIES")}>
             {f.voiceNames.map((vn, i) => (
@@ -112,7 +145,9 @@ export function FugueAbout({ id, close, subject }: { id: string; close: () => vo
             {facts.augmented > 0 && <> · {facts.augmented} {tr("AUGMENTED")}</>}
             {facts.diminished > 0 && <> · {facts.diminished} {tr("DIMINISHED")}</>} · {facts.cadences} {tr("CADENCES")}
           </p>
-          {note && (
+          </>
+          )}
+          {!prelude && note && (
             <>
               <h2 className="sel-about-h">{tr("THE PIECE")}</h2>
               <p className="sel-about-text">{note}</p>
