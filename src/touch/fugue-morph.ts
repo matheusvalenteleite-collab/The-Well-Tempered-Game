@@ -15,6 +15,13 @@
  * of the entry is carried (no thinning, D971). At most one morph in 8 bars, but the first entry of each form always
  * (the board). The morph replaces the subject effect (HOP, the traveller) on the entry it builds; elsewhere it stays.
  *
+ * D973 (the owner on the prototypes: "Choose the best"; the board: build both): THE ANSWER AND THE STRETTO. The
+ * exposition's answer is built from the entry before it, moved as one line by the transposition most of its notes share;
+ * the notes the tonal answer moves differently keep that path, then take their own step over the last half of the
+ * flight, a soft arc (D974: 1.5x higher, to read at 1x on a small phone), lit while they take it. A stretto's entry (in
+ * within the first half of the same subject's entry in another voice) is built from that entry, lifting as it comes in.
+ * One cap for every kind: at most one morph in 8 bars, the first of each transformed form always.
+ *
  * Drawing only, as the canons' ribbon (canon-ribbon.ts, D970): over the world and the other voices (which dim a little
  * while a shape flies), under the player's notes; the landing flare drawn again over them as an outline. No canvas
  * blur. The ⚙ CANONS & FUGUES setting (MORPH / OFF) covers it.
@@ -51,23 +58,12 @@ export interface FugueMorph {
   s1: number;
   lo: number;
   hi: number;
-  /** D973 (prototype): what is built: a transformed entry (D972), an answer in the exposition, or a stretto's entry. */
+  /** D973: what is built: a transformed entry (D972), an answer in the exposition, or a stretto's entry. */
   kind: "form" | "answer" | "stretto";
   /** D973: an answer's notes that the tonal answer moves differently from the rest (they take a step of their own, last). */
   adj?: boolean[];
 }
 
-/**
- * D973 (prototype, the board: "prototype first"): the further kinds, on in the game only with `?fm=answer,stretto`
- * (play.html's address), for the gallery's live recordings; off by default, nothing changes in play without it.
- */
-const PROTO: ReadonlySet<string> = (() => {
-  try {
-    return new Set((new URLSearchParams(globalThis.location?.search ?? "").get("fm") ?? "").split(",").filter(Boolean));
-  } catch {
-    return new Set();
-  }
-})();
 
 const formKey = (e: TouchEntry) => `${e.theme ?? 1}:${!!e.inverted}:${e.scale ?? 1}`;
 const plain = (e: TouchEntry) => !e.inverted && (e.scale ?? 1) === 1;
@@ -138,48 +134,44 @@ export function fugueMorphs(f: TouchFugue): FugueMorph[] {
       c, dS, s0: S[0].on, s1: S[S.length - 1].on + S[S.length - 1].dur, lo: Math.min(...S.map((x) => x.step)), hi: Math.max(...S.map((x) => x.step)),
     };
   };
+  // Each entry its candidate (at most one kind): a transformed entry (D972), an exposition's answer, a stretto's entry
+  // (D973); then one cap for them all (the board: never crowding): at most one in 8 bars, the first entry of each
+  // transformed form always.
+  const expo = es.filter((e) => (e.theme ?? 1) === 1).slice(0, f.voices.length);
   const seen = new Set<string>();
   let last = -Infinity;
   for (const t of es) {
-    if (!transformed(t)) continue;
-    const fk = formKey(t), first = !seen.has(fk);
-    seen.add(fk);
-    if (!first && t.on < last + 8 * f.barTicks) continue;
     const theme = t.theme ?? 1;
-    const subject = es.find((e) => (e.theme ?? 1) === theme)!;
-    if (subject === t && !subject.inverted && (subject.scale ?? 1) === 1) continue;
-    // the neighbour: the latest plain entry of this subject already sounding as the morph lifts off
-    const m = make(t, "form", (n) => [...es].reverse().find((x) => x !== t && plain(x) && (x.theme ?? 1) === theme && x.on <= n.start) ?? null);
+    let m: FugueMorph | null = null;
+    let first = false;
+    if (transformed(t)) {
+      const fk = formKey(t);
+      first = !seen.has(fk);
+      seen.add(fk);
+      if (!first && t.on < last + 8 * f.barTicks) continue;
+      const subject = es.find((e) => (e.theme ?? 1) === theme)!;
+      if (subject === t && !subject.inverted && (subject.scale ?? 1) === 1) continue;
+      // the neighbour: the latest plain entry of this subject already sounding as the morph lifts off
+      m = make(t, "form", (n) => [...es].reverse().find((x) => x !== t && plain(x) && (x.theme ?? 1) === theme && x.on <= n.start) ?? null);
+    } else {
+      if (t.on < last + 8 * f.barTicks) continue;
+      if (expo.includes(t)) {
+        // the exposition's answer, built from the entry before it (the transposition, the tonal answer's own steps)
+        if (t.form === "answer" && plain(t)) m = make(t, "answer", (n) => [...expo].reverse().find((x) => x !== t && x.on <= n.start && plain(x)) ?? null);
+      } else {
+        // a stretto: it comes in within the first half of the same subject's entry in another voice, and is built from
+        // that entry, lifting as it comes in (at least 0.45 s of flight)
+        const p = [...es].reverse().find((x) => x !== t && (x.theme ?? 1) === theme && x.voice !== t.voice && x.on < t.on && t.on - x.on <= 0.5 * (x.end - x.on));
+        const lead = p ? t.on - q / 4 - (p.on + q / 4) : 0;
+        if (p && lead >= qs(0.45)) {
+          m = make(t, "stretto", () => p, Math.min(lead, Math.max(2.5 * q, qs(1.4))));
+          if (m && !m.src) m = null;
+        }
+      }
+    }
     if (!m) continue;
     out.push(m);
     last = t.on;
-  }
-  const taken = new Set(out.map((m) => m.entry));
-  if (PROTO.has("answer")) {
-    // D973: the exposition's answers (its first entries, one a voice), each built from the entry before it
-    const expo = es.filter((e) => (e.theme ?? 1) === 1).slice(0, f.voices.length);
-    for (const t of expo) {
-      if (t.form !== "answer" || !plain(t) || taken.has(t)) continue;
-      const m = make(t, "answer", (n) => [...expo].reverse().find((x) => x !== t && x.on <= n.start && plain(x)) ?? null);
-      if (m) (out.push(m), taken.add(t));
-    }
-  }
-  if (PROTO.has("stretto")) {
-    // D973: a stretto's entry, built from the entry it overlaps while both sound (a short flight from the moment the
-    // first comes in); at most one in 8 bars
-    let lastS = -Infinity;
-    const expo = new Set(es.filter((e) => (e.theme ?? 1) === 1).slice(0, f.voices.length));
-    for (const t of es) {
-      if (taken.has(t) || expo.has(t) || t.on < lastS + 8 * f.barTicks) continue;
-      // a stretto: it comes in within the first half of the entry it overlaps
-      const p = [...es].reverse().find((x) => x !== t && (x.theme ?? 1) === (t.theme ?? 1) && x.voice !== t.voice && x.on < t.on && t.on - x.on <= 0.5 * (x.end - x.on));
-      if (!p) continue;
-      // the lift as the first entry sounds: the flight from then to a quarter before the second comes in
-      const lead = t.on - q / 4 - (p.on + q / 4);
-      if (lead < qs(0.45)) continue;
-      const m = make(t, "stretto", () => p, Math.min(lead, Math.max(2.5 * q, qs(1.4))));
-      if (m && m.src) (out.push(m), taken.add(t), (lastS = t.on));
-    }
   }
   out.sort((a, b) => a.n.start - b.n.start);
   memo.set(f, out);
@@ -221,14 +213,15 @@ function neighbourAt(m: FugueMorph, i: number, t: number, k: MorphGeo): Rect {
   };
   const B = base(u), E = base(1);
   // D973: an answer's adjusted note keeps the transposition's path, then takes its own step at the end
-  const ru = m.adj?.[i] ? ease((u - 0.6) / 0.4) : u;
+  // D974 (the board: to read at 1x on a small phone): its own step over the last half of the flight, the arc 1.5x higher
+  const ru = m.adj?.[i] ? ease((u - 0.5) / 0.5) : u;
   const tt = B.tt + (b.on - E.tt) * u, d = B.d + (b.dur - E.d) * u, st = B.st + (b.step - E.st) * ru;
   const x = k.xOf(tt);
   // D973: its own step drawn as a small soft arc, the note lit while it takes it
   const own = m.adj?.[i] && ru > 0 && ru < 1 ? Math.sin(Math.PI * ru) : 0;
   return {
     hot: own,
-    x, w: Math.max(2, k.xOf(tt + d) - x - 1), y: k.yOf(st) + k.bh / 2 - 2 * uL * (1 - u) - own * k.bh * 1.5,
+    x, w: Math.max(2, k.xOf(tt + d) - x - 1), y: k.yOf(st) + k.bh / 2 - 2 * uL * (1 - u) - own * k.bh * 2.25,
     h: m.inv ? Math.max(k.bh * 0.4, k.bh * Math.abs(B.cos)) : k.bh,
     col: mix(k.ink(a.voice), k.ink(b.voice), u), flip: m.inv && u >= 0.5,
   };
@@ -327,6 +320,22 @@ export function paintFugueMorphs(g: CanvasRenderingContext2D, f: TouchFugue, k: 
         g.globalAlpha = 0.7 * al;
         g.fillStyle = "#ffffff";
         g.fillRect(r.x, r.flip ? r.y + r.h / 2 - 1 : r.y - r.h / 2, r.w, 1);
+      }
+    }
+    if (over && m.adj && near && k.now >= m.n.fly && k.now < m.n.landed) {
+      // D974: an answer's adjusted note, while it takes its own step, drawn again over the player's notes as an outline
+      // (where the answer is the player's voice it lands among their own notes, which would hide it)
+      for (let i = 0; i < m.T.length; i++) {
+        if (!m.adj[i]) continue;
+        const r = neighbourAt(m, i, k.now, k);
+        if (!r.hot) continue;
+        g.strokeStyle = r.col;
+        g.lineWidth = 1;
+        g.globalAlpha = 0.95 * r.hot;
+        g.strokeRect(r.x - 1.5, r.y - r.h / 2 - 1.5, r.w + 3, r.h + 3);
+        g.globalAlpha = 0.45 * r.hot;
+        g.fillStyle = "#ffffff";
+        g.fillRect(r.x, r.y - r.h / 2, r.w, r.h);
       }
     }
     if (over && k.now >= m.n.landed - q / 4) {
