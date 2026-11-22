@@ -24,10 +24,7 @@ async function run(id: string) {
   for (let now = 0; now < f.length; now += step) {
     const t0 = now - 0.25 * 3 * f.barTicks - (103 / 260) * 3 * f.barTicks;
     g.clearRect(0, 0, 466, 190);
-    const inView = f.voices.flat().filter((n) => n[0] + n[1] >= t0 && n[0] <= t0 + span);
-    const geo = { xOf: (t: number) => Math.round(((t - t0) / span) * 466), yOf: (s: number) => 2 + (hi - s) * rh, bh, w: 466, h: 190, t0, t1: t0 + span, now, barTicks: f.barTicks, ink: (v: number) => inkOf(v, f.voices.length), text: () => {}, fg: "#fff", gold: "#f3d26b", left: 103, textW: (t: string) => t.length * 4,
-      // D972: the tag's search, as the game's (every note in view tested against the rectangle)
-      free: (x0: number, x1: number, y0: number, y1: number) => !inView.some((n) => { const nx = Math.round(((n[0] - t0) / span) * 466), ny = 2 + (hi - n[3]) * rh; return nx < x1 && Math.round(((n[0] + n[1] - t0) / span) * 466) > x0 && ny < y1 && ny + bh > y0; }) };
+    const geo = { xOf: (t: number) => Math.round(((t - t0) / span) * 466), yOf: (s: number) => 2 + (hi - s) * rh, bh, w: 466, h: 190, t0, t1: t0 + span, now, barTicks: f.barTicks, ink: (v: number) => inkOf(v, f.voices.length), text: () => {}, fg: "#fff", gold: "#f3d26b", left: 103 };
     // each frame painted REPS times and timed together (the page's clock is coarse: 0.1 ms)
     const a = performance.now();
     for (let r = 0; r < REPS; r++) if (CANONS[id]) paintCanon(g, f, geo);

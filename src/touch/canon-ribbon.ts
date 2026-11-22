@@ -8,7 +8,7 @@
  * follower's, leaving a short fading trail; it lands on the follower's real notes a moment before the first of them
  * sounds, and they flare in their own colour. The segments go back to back, so the line seems to peel off the leader and
  * pour into the follower. At the first entry and at each change of leader the first shape is bigger (two segments: the
- * "big morph", named by the leg's label). Every segment flies, everywhere (D971: the owner, "every second segment is a bad
+ * "big morph"; D972: no label drawn, the motion and colour carry it). Every segment flies, everywhere (D971: the owner, "every second segment is a bad
  * idea. It carves the voices arbitrarily"; D970's adaptive density removed).
  *
  * Drawing only, over the world and the other voices (which dim a little while a shape flies) and under the player's notes
@@ -197,7 +197,7 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
   if (!shapes.length) return;
   const q = f.tpq;
   g.save();
-  // "under": the veil, the flying copies and the labels (under the player's notes); "over": the landing flare alone, an
+  // "under": the veil and the flying copies (under the player's notes); "over": the landing flare alone, an
   // outline over the notes it lands on (the player's, where the player follows: under them it would be hidden).
   const under = pass !== "over", over = pass !== "under";
   // D970 (the board, the game against the prototype): while a shape flies, the world and the other voices dim a little
@@ -263,15 +263,6 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
       }
     }
   }
-  // Each leg named over the first bars of its follower, fading (D930): the canon at first, then each change of leader.
-  const spec = CANONS[f.id];
-  for (const s of shapes) {
-    if (!s.big || !under) continue;
-    const fadeL = 1 - Math.max(0, Math.min(1, (k.now - s.tB0 - 3 * k.barTicks) / (2 * k.barTicks)));
-    if (!k.quiet && k.now >= s.start && fadeL > 0) {
-      g.globalAlpha = 0.85 * fadeL;
-      k.text(g, spec.legs[s.leg].label, k.left + 6, k.labelY ?? 6, k.fg);
-    }
-  }
+  // D972 (the owner: "We don't need tags … They're just cluttering"): no words in play; the leg's label is data only.
   g.restore();
 }

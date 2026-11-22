@@ -451,7 +451,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   const shift = chromaShift(bh);
   const altOf = (step: number, midi: number) => (shift && hOf(step) === bh ? alterAgainst(step, midi, sig) : 0);
 
-  // D972: the entry tabs drawn last frame (the fugues' morphs keep their emblem clear of them) and this frame (their tag)
+  // D972: the entry tabs drawn last frame (the fugues' morphs keep their emblem clear of them)
   TABS_PREV.length = 0;
   TABS_PREV.push(...TABS_NOW);
   TABS_NOW.length = 0;
@@ -587,7 +587,7 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // voices (dimmed while a shape flies), under the player's notes, which never move and stay on top.
   // The landing flare is drawn once more over the player's notes (below), as an outline: it frames them, never hides them.
   // D972: a fugue's transformed entries morph the same way (fugue-morph.ts), in the same two passes.
-  const canonGeo = fr.piece && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), gold: fx.gold, textW: (t: string) => textWidth(t, 1), free: (x0: number, x1: number, y0: number, y1: number) => !blockedAt(x0, x1, y0, y1, -1) && !TABS_NOW.some((r) => r.x < x1 && r.x + r.w > x0 && r.y < y1 && r.y + r.h > y0), tabsBelow: (x0: number, x1: number) => TABS_PREV.reduce((b, r) => (r.x < x1 && r.x + r.w > x0 ? Math.max(b, r.y + r.h) : b), 0), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
+  const canonGeo = fr.piece && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), gold: fx.gold, tabsBelow: (x0: number, x1: number) => TABS_PREV.reduce((b, r) => (r.x < x1 && r.x + r.w > x0 ? Math.max(b, r.y + r.h) : b), 0), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
   const morphs = (pass: "under" | "over") => {
     if (!canonGeo || !fr.piece) return;
     if (CANONS[fr.piece]) paintCanon(g, fugueById(fr.piece), canonGeo, pass);

@@ -89,7 +89,7 @@ test("the morph replaces the subject effect on the entry it builds; in the box's
   assert.match(e, /if \(canonsMode\(\) === "off"\) return;/);
   // ⚙ CANONS & FUGUES
   assert.match(src("src/bench/BenchApp.tsx"), /<Choice id="canons" label="CANONS & FUGUES"/);
-  for (const l of ["pt", "es"]) for (const k of ["CANONS & FUGUES", "UPSIDE DOWN", "TWICE AS SLOW", "TWICE AS FAST", "FROM BAR {n}"]) assert.ok(src(`src/i18n/${l}.ts`).includes(`"${k}": "`), `${l} ${k}`);
+  for (const l of ["pt", "es"]) for (const k of ["CANONS & FUGUES"]) assert.ok(src(`src/i18n/${l}.ts`).includes(`"${k}": "`), `${l} ${k}`);
 });
 
 test("step 1: on the subject card a form chosen is first shown made from the subject, then heard; the setting OFF skips it", () => {
@@ -105,14 +105,12 @@ test("step 1: on the subject card a form chosen is first shown made from the sub
   assert.ok(!/shadowBlur/.test(body));
 });
 
-test("the tag (the board, #472): drawn in a clear place only, never over notes, the entry tabs or the copy; the emblem under the tabs", () => {
-  const e = src("src/touch/fugue-morph.ts");
-  assert.match(e, /const tw = k\.textW \? k\.textW\(s\) : s\.length \* 6, at = tagPlace\(m, k, tw, 7\);\n\s*if \(at\) \{/);
-  assert.match(e, /if \(cb && cb\.x0 < x \+ tw \+ 2 && cb\.x1 > x - 2 && cb\.y0 < y \+ th \+ 1 && cb\.y1 > y - 2\) return false;/);
-  assert.match(e, /return !k\.free \|\| k\.free\(x - 2, x \+ tw \+ 2, y - 2, y \+ th \+ 1\);/);
-  assert.match(e, /k\.tabsBelow \? k\.tabsBelow\(/);
-  // the box's test: no note (any voice) and no entry tab in the rectangle; the tabs recorded as they are drawn
-  const m = src("src/touch/MusicBox.tsx");
-  assert.match(m, /free: \(x0: number, x1: number, y0: number, y1: number\) => !blockedAt\(x0, x1, y0, y1, -1\) && !TABS_NOW\.some\(/);
+test("no words in play (the owner: \"We don't need tags … They're just cluttering\"): neither the fugues' morphs nor the canons' ribbon draws text; the emblem under the tabs", () => {
+  for (const f of ["src/touch/fugue-morph.ts", "src/touch/canon-ribbon.ts"]) {
+    const e = src(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    assert.ok(!/k\.text\(|fillText|strokeText|\btr\(/.test(e), f);
+  }
+  assert.match(src("src/touch/fugue-morph.ts"), /k\.tabsBelow \? k\.tabsBelow\(/);
   assert.equal((src("src/touch/box-fx.ts").match(/c\.tabs\?\.push\(/g) ?? []).length, 2);
+  for (const l of ["pt", "es"]) for (const k of ["UPSIDE DOWN", "TWICE AS SLOW", "TWICE AS FAST", "FROM BAR {n}"]) assert.ok(!src(`src/i18n/${l}.ts`).includes(`"${k}": "`), `${l} ${k}`);
 });
