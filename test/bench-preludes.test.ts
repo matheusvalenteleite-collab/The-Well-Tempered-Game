@@ -111,7 +111,9 @@ test("D229: a failed prelude run (the crowd gone) does not beat it", () => {
 });
 
 test("D229: the modes: a phone's prelude on HIGHWAY, its fugue on LADDER (SUBJECT withdrawn); a computer's both on HIGHWAY · keys", () => {
-  const p = fugueById("wtc1p07");
+  // D980 (reverses D229 for the ready preludes): I/7's prelude on LADDER as a fugue; a prelude not ready (Book II's, no rows yet) as before.
+  assert.equal(stageMode(fugueById("wtc1p07"), "mobile", "ladder"), "ladder");
+  const p = fugueById("wtc2p07");
   const f = fugueById("wtc1f07");
   assert.equal(stageMode(p, "mobile", "ladder"), "highway");
   assert.equal(stageMode(p, "mobile", "subject"), "highway");
