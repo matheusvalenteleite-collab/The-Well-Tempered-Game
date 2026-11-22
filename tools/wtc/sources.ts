@@ -521,6 +521,20 @@ const REVOICE: Record<number, Revoice> = {
   24: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2 }, count: 3 },
   12: { how: "mutopia", path: "data/wtc/sources/mutopia/BachJS/BWV857/BWV857_Praeludium12/BWV857_Praeludium12.ly", ids: ["upper/v1", "upper/v2", "upper/v3", "upper/v4"] },
 };
+/**
+ * D953: Book II's (batch 3, II/1-12): the voices from the editions' layers (verits99's, CC0; II/1 Mutopia's hands, its
+ * melody split): each layer the voice its height makes it (II/3's second right-hand layer its top voice), the strays
+ * by the nearest voice.
+ */
+const L3 = (s: number, a: number): Revoice => ({ how: "layers", map: { [`0:${s}`]: 0, [`0:${a}`]: 1, "1:0": 2 }, count: 3 });
+const REVOICE2: Record<number, Revoice> = {
+  1: { how: "melody" },
+  3: L3(1, 0),
+  4: L3(0, 1),
+  5: L3(0, 1),
+  9: L3(0, 1),
+  11: { how: "layers", map: { "0:0": 0, "0:1": 1, "1:0": 2, "1:1": 3 }, count: 4 },
+};
 export function revoice(r: Read, how: Revoice): Read {
   const midi = (p: string) => parsePitch(p).midi;
   const all = r.piece.voices.flatMap((v, staff) => v.map((n) => ({ n, staff })));
@@ -659,7 +673,8 @@ function readFourVoicePrelude(): Read {
 export function readPrelude(book: 1 | 2, number: number): Read {
   if (book === 1 && number === 4) return readFourVoicePrelude();
   if (book === 1 && REVOICE[number]) return revoice(readXmlPrelude(1, number), REVOICE[number]);
-  return book === 2 && MUTOPIA_PRELUDES[number] ? readLyPrelude(number) : readXmlPrelude(book, number);
+  const read = book === 2 && MUTOPIA_PRELUDES[number] ? readLyPrelude(number) : readXmlPrelude(book, number);
+  return book === 2 && REVOICE2[number] ? revoice(read, REVOICE2[number]) : read;
 }
 
 // --- The Inventions and Sinfonias: Mutopia (D340) -----------------------------------------------------

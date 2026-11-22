@@ -1,7 +1,7 @@
 /**
  * D881-D885: THE WTC PRELUDES IN THE MAIN GAME, the per-piece plan (docs/audits/PRELUDES-PLAN.md; the board's rulings for
  * the owner): which voices a prelude offers (the others still sound, by the game: voice-mode.ts `voicesFrom`), at which
- * tempo, and which are held back. Voice numbers are data/touch/pieces.json's (highest first). Book I so far.
+ * tempo, and which are held back. Voice numbers are data/touch/pieces.json's (highest first). Book I and Book II 1-12.
  */
 export interface PreludePlan {
   /** The voices the player may take. */
@@ -39,6 +39,19 @@ export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc1p22: { offer: [0], why: "a five-part arioso: the melody alone (D899)" },
   wtc1p23: { offer: [0, 1, 2], why: "three-part, imitative (D888)" },
   wtc1p24: { offer: [0, 1, 2], why: "a trio: two upper voices over a walking bass (D888)" },
+  // D953-D956: batch 3, Book II 1-12.
+  wtc2p01: { offer: [0], why: "a figured upper part over a held bass: the melody (D953)" },
+  wtc2p02: { offer: [0, 1], why: "two-part, at the ceiling" },
+  wtc2p03: { offer: [0, 1], why: "broken chords, then a fughetta: played as a fugue; its bass's pedal figure dull (D954)" },
+  wtc2p04: { offer: [0, 1, 2], why: "a three-part trio (D953)" },
+  wtc2p05: { offer: [0, 1, 2], tempo: "slow", why: "three voices, concerto-like, at the slow tempo (D955)" },
+  wtc2p06: { offer: [0, 1], tempo: "slow", why: "two-part figuration, at the slow tempo (D955)" },
+  wtc2p07: { offer: [0, 1], why: "a pastorale, the two hands" },
+  wtc2p08: { offer: [0, 1], tempo: "slow", why: "two-part, at the slow tempo (D955)" },
+  wtc2p09: { offer: [0, 1, 2], why: "three-part, stile antico (D953)" },
+  wtc2p10: { offer: [0, 1], tempo: "slow", why: "two-part, at the slow tempo (D955)" },
+  wtc2p11: { offer: [0, 1, 2, 3], why: "four voices, imitative (D953)" },
+  wtc2p12: { offer: [0, 1], why: "two-part; the bass's octave figures at the yardstick's edge, not beyond (D956)" },
 };
 /**
  * D882: the deliberate exceptions to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
