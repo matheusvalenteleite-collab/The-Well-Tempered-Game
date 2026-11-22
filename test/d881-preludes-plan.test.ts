@@ -13,7 +13,7 @@ const W = JSON.parse(readFileSync(new URL("../data/wtc/preludes.json", import.me
 
 test("D881: the re-voiced preludes have their voices (I/7 and I/12 four, I/8, I/9 and I/10 three), as the game holds them", () => {
   // D888: and batch 2's (I/16, I/18, I/19, I/22, I/23, I/24 three each).
-  for (const [id, n] of [["wtc1p07", 4], ["wtc1p08", 3], ["wtc1p09", 3], ["wtc1p10", 3], ["wtc1p12", 4], ["wtc1p16", 3], ["wtc1p18", 3], ["wtc1p19", 3], ["wtc1p22", 3], ["wtc1p23", 3], ["wtc1p24", 3]] as const) {
+  for (const [id, n] of [["wtc1p07", 4], ["wtc1p08", 3], ["wtc1p09", 3], ["wtc1p10", 3], ["wtc1p12", 4], ["wtc1p16", 3], ["wtc1p18", 3], ["wtc1p19", 3], ["wtc1p22", 3], ["wtc1p23", 3], ["wtc1p24", 3], ["wtc2p01", 3], ["wtc2p03", 3], ["wtc2p04", 3], ["wtc2p05", 3], ["wtc2p09", 3], ["wtc2p11", 4], ["wtc2p14", 3], ["wtc2p16", 4], ["wtc2p17", 3], ["wtc2p19", 3], ["wtc2p22", 3]] as const) {
     assert.equal(W.find((p) => p.id === id)!.voices.length, n, id);
     assert.equal(fugueById(id).voices.length, n, `${id} in the game`);
   }
@@ -32,6 +32,12 @@ test("D881-D885: a planned prelude offers only its plan's voices; I/2 none; I/1'
   assert.equal(PRELUDE_PLAN.wtc1p05.tempo, "slow");
   assert.equal(PRELUDE_PLAN.wtc1p21.tempo, "slow");
   assert.equal(Object.keys(PRELUDE_PLAN).filter((id) => /^wtc1p/.test(id)).length, 24, "Book I planned");
+  // D953-D956: Book II 1-12 too.
+  assert.equal(Object.keys(PRELUDE_PLAN).filter((id) => /^wtc2p(0\d|1[0-2])$/.test(id)).length, 12, "Book II 1-12 planned");
+  for (const id of ["wtc2p05", "wtc2p06", "wtc2p08", "wtc2p10", "wtc2p15", "wtc2p24"]) assert.equal(PRELUDE_PLAN[id].tempo, "slow", id);
+  // D957-D960: all 48 planned, none held.
+  assert.equal(Object.keys(PRELUDE_PLAN).length, 48);
+  assert.ok(Object.values(PRELUDE_PLAN).every((p) => !p.held && p.offer.length > 0));
   assert.deepEqual(Object.keys(DULL_EXCEPTIONS), ["wtc1p01", "wtc1p02"]);
 });
 

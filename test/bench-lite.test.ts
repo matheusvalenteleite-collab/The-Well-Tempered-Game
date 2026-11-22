@@ -122,7 +122,7 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   assert.match(fug, /YOUR VOICE/);
   assert.equal(fug.match(/id="voice-\d"/g)?.length, 4);
   // Every prelude's part is the right hand (voice 0) unless the map names another (D950: I/2's left hand).
-  assert.deepEqual(PRELUDE_PART, { wtc1p02: 1 });
+  assert.deepEqual(PRELUDE_PART, { wtc1p02: 1, wtc2p23: 1 });
   for (let n = 1; n <= 24; n++) {
     const id = `wtc1p${String(n).padStart(2, "0")}`;
     const part = id === "wtc1p02" ? 1 : 0;
@@ -140,12 +140,14 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   APP.lite = true;
   try {
     // D343: play.html is played on phones only (a computer is shown MOBILE ONLY): no preludes there, so a
-    // prelude kept from before gives its fugue, and Book II waits behind the owner's unlock.
+    // prelude kept from before gives its fugue (D988: the normal view keeps D263 for now).
     assert.equal(sane(was).piece, "wtc1f01");
     assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc2f07", "D489: Book II open to the friends");
     // Unlocked (a computer may then play, as before D343): a prelude's own part, whatever was chosen.
     store.set("tb-unlock-all", "1");
     assert.equal(sane(was).piece, "wtc1p01", "unlocked: the computer's preludes");
+    // D980, D988 (reverses D263 in the developer view): a ready prelude is played on a phone; I/1 offers its right hand.
+    assert.equal(sane({ ...was, piece: "wtc1p03", voice: 1 }).voice, 1, "D983: a ready prelude's voice is chosen (I/3's left hand)");
     assert.equal(sane(was).voice, 0);
     assert.equal(sane({ ...was, voice: -1 }).voice, 0);
     // D275: a Book II fugue is kept on play.html (it fell back to Book I's first).
@@ -284,7 +286,10 @@ test("D264: every piece open from the start, in Bach's order; each card's diffic
   assert.equal(liteLevel("wtc1f02").label, "NORMAL");
   assert.equal(liteLevel("wtc1f03").label, "HARD");
   assert.equal(liteLevel("wtc1f24").label, "HARD", "the BOSS among the hard");
-  assert.equal(liteLevel("wtc1p02").label, "NORMAL", "a prelude its fugue's");
+  // D980: a prelude by its own stars (difficulty.ts PRELUDE_STAR_CUTS), no longer its fugue's tier; I/5 at the slow tempo it is played at.
+  assert.equal(liteLevel("wtc1p02").label, "HARD");
+  assert.equal(liteLevel("wtc1p04").label, "EASY");
+  assert.equal(liteLevel("wtc1p05").label, "EASY", "I/5 measured at its slow tempo");
 });
 
 test("D863: no locks: every piece's sound open from the start (D265/D417's B unlock withdrawn); the best grade still kept", async () => {

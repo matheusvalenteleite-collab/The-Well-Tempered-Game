@@ -6,7 +6,8 @@
  */
 import { beatOf, type TouchFugue } from "../touch/fugue.ts";
 import { laneNotes } from "../touch/lanes.ts";
-import { standardTempo } from "../touch/tempi.ts";
+import { slowOnly } from "../touch/prelude-plan.ts";
+import { standardTempo, tempoOf } from "../touch/tempi.ts";
 import { moves } from "./protos.ts";
 
 export interface Difficulty {
@@ -29,7 +30,9 @@ export const STAR_CUTS = [4.0, 5.0, 6.2, 7.4];
 export const PRELUDE_STAR_CUTS = [4.6, 6.2, 8.2, 9.1];
 
 export function difficultyOf(f: TouchFugue): Difficulty {
-  const sPerTick = 60 / (standardTempo(f.id) * f.tpq);
+  // D980 (the board): a prelude offered at the slow tempo only (I/5, I/21) is measured at the tempo it is played, not
+  // D861's median, which the player cannot choose.
+  const sPerTick = 60 / ((slowOnly(f.id) ? tempoOf(f.id) : standardTempo(f.id)) * f.tpq);
   const beat = beatOf(f).ticks;
   const iois: number[] = [];
   const loads: number[] = [];
@@ -86,7 +89,9 @@ export interface VoiceDifficulty {
   score: number;
 }
 export function voiceDifficulty(f: TouchFugue, v: number): VoiceDifficulty {
-  const sPerTick = 60 / (standardTempo(f.id) * f.tpq);
+  // D980 (the board): a prelude offered at the slow tempo only (I/5, I/21) is measured at the tempo it is played, not
+  // D861's median, which the player cannot choose.
+  const sPerTick = 60 / ((slowOnly(f.id) ? tempoOf(f.id) : standardTempo(f.id)) * f.tpq);
   const beat = beatOf(f).ticks;
   const ns = laneNotes(f.voices[v] ?? [], beat, v).filter((n, i, a) => !(i > 0 && a[i - 1].on === n.on));
   const ms = moves(ns, beat);

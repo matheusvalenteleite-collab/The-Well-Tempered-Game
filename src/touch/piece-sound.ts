@@ -1,4 +1,5 @@
 import { WITHDRAWN_D890, playerSound, trialSoundFor } from "./sound.ts";
+import { fugueOfPrelude, preludeReady } from "./prelude-plan.ts";
 
 /**
  * D246: each piece's own sound (the owner: "choose a default preset for every piece, the one which
@@ -109,7 +110,7 @@ import { WITHDRAWN_D890, playerSound, trialSoundFor } from "./sound.ts";
  * Fugue's 6, 10 and 14 TOMITA, 12 (rectus and inversus) BERLIN SCHOOL, Canon 16 SALSA; Inventions 11 and 15 ZELENKA TRIO,
  * Invention 13 the harpsichord, Sinfonia 5 BAROQUE BAND (tools/touch/colour-plans: each reason).
  */
-export const PIECE_SOUND: Readonly<Record<string, string>> = {
+const OWN_SOUND: Readonly<Record<string, string>> = {
   // Book I
   wtc1p01: "harpsichordSampled",
   wtc1f01: "pianoSampled",
@@ -212,6 +213,13 @@ export const PIECE_SOUND: Readonly<Record<string, string>> = {
   "bwv1080-14": "tomita",
   ...moreBachSounds(),
 };
+/**
+ * D980 (the owner, Q2: "yes"): a ready prelude (prelude-plan.ts `preludeReady`) opens on its fugue's sound, the world's:
+ * I/5's prelude on BACH BRASS as THE CORONATION. Its own above is kept for a prelude not yet offered.
+ */
+export const PIECE_SOUND: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(OWN_SOUND).map(([id, s]) => [id, preludeReady(id) ? (OWN_SOUND[fugueOfPrelude(id)] ?? s) : s]),
+);
 
 /**
  * D340: the MORE BACH and CHORALES tabs (among the sounds the players have, sound.ts PRESETS): the Art

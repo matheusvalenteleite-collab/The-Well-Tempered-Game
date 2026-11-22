@@ -279,7 +279,7 @@ test("prepare marks no rides, at any level", () => {
 });
 
 test("the preludes, played by hands: the right hand above the left (D881: but those the plan re-voices)", () => {
-  const VOICED: Record<string, number> = { wtc1p04: 4, wtc1p07: 4, wtc1p08: 3, wtc1p09: 3, wtc1p10: 3, wtc1p12: 4, wtc1p16: 3, wtc1p18: 3, wtc1p19: 3, wtc1p22: 3, wtc1p23: 3, wtc1p24: 3 };
+  const VOICED: Record<string, number> = { wtc1p04: 4, wtc1p07: 4, wtc1p08: 3, wtc1p09: 3, wtc1p10: 3, wtc1p12: 4, wtc1p16: 3, wtc1p18: 3, wtc1p19: 3, wtc1p22: 3, wtc1p23: 3, wtc1p24: 3, wtc2p01: 3, wtc2p03: 3, wtc2p04: 3, wtc2p05: 3, wtc2p09: 3, wtc2p11: 4, wtc2p14: 3, wtc2p16: 4, wtc2p17: 3, wtc2p19: 3, wtc2p22: 3 };
   for (const p of PRELUDES) {
     assert.ok(p.voices.length === (VOICED[p.id] ?? 2), `${p.id}: ${p.voices.length} parts`);
     if (p.voices.length === 2) {

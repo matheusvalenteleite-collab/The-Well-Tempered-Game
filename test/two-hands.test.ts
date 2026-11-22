@@ -141,3 +141,11 @@ test("D862: both hands played, each thumb its own hand, scores; the right hand a
     assert.ok(rightOnly.right / rightOnly.of <= 0.7, `${id} the right hand alone: ${rightOnly.right}/${rightOnly.of}`);
   }
 });
+
+test("D989: TWO HANDS retired: the flag and the developer view no longer show it; the code dormant", async () => {
+  const { TWO_HANDS_RETIRED } = await import("../src/touch/two-hands.ts");
+  assert.equal(TWO_HANDS_RETIRED, true);
+  const app = (await import("node:fs")).readFileSync(new URL("../src/bench/BenchApp.tsx", import.meta.url), "utf8");
+  assert.match(app, /useState\(\(\) => !TWO_HANDS_RETIRED && APP\.lite && handsFlag\(\)\)/);
+  assert.match(app, /\{!TWO_HANDS_RETIRED && \(handsProto \|\| \(APP\.lite && unlocked\(\)\)\) && phase\.kind === "home" && !intro && <HandsList/);
+});
