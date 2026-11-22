@@ -118,3 +118,13 @@ test("the stage's line kept on in play, plain (no box), in a strip kept clear at
   const fn = aids.slice(aids.indexOf("export function paintInstruction"));
   assert.doesNotMatch(fn, /fillRect/);
 });
+
+test("one clip a stage that shows one, its own file (the HOW TO page keeps D690's thirteen)", async () => {
+  const { existsSync } = await import("node:fs");
+  const host = readFileSync(new URL("../src/bench/basics/BasicsHost.tsx", import.meta.url), "utf8");
+  for (const st of ACTS.flatMap((a) => a.stages).filter((s) => s.clip)) {
+    assert.match(host, new RegExp(`"${st.id.replace(".", "\\.")}": new URL\\("\\./clips/${st.id.replace(".", "-")}\\.mp4"`), st.id);
+    assert.ok(existsSync(new URL(`../src/bench/basics/clips/${st.id.replace(".", "-")}.mp4`, import.meta.url)), st.id);
+  }
+  for (const c of ["tap", "up", "two", "hold", "shake"]) assert.ok(existsSync(new URL(`../src/bench/basics/clips/${c}.mp4`, import.meta.url)), c);
+});
