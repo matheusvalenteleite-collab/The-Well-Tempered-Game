@@ -9,17 +9,16 @@
  * the robotic way it's sounding now and the weird cadence to D A D"; then, of its first version: "played faster …
  * the notes less aggressive, more soft creamy like a pianist with a good careful touch. I don't want the fugal answer
  * to the subject, only its initial entry up to completion. No other voice enters"): Bach's notes and nothing else:
- * the tenor alone, as the data has it from its B♭3 on bar 193's third beat (where the third subject enters alone
- * after the second section's cadence) to bar 197's downbeat (INTRO_TO_BAR): the subject's nine notes (B♭ A C B♮
- * C♯ D, held, C♯ B C♯: fourteen beats, the length of every one of its entries in the piece) and the tenor's own
- * next note, the D4 the last C♯ rises to, a half note before the tenor's rest: the statement closed. The alto's
- * answer (bar 195) is not played. The printed ornament is played (the owner: "add the trill on the note of the subject"):
- * the data's sign on the subject's last C♯ (bar 196, beat 3: W, the BG's short wavy line), realised as the game
- * realises it (ornament-play.ts realiseHeld: after a rising step, Bach's short Trillo, D–C♯–D–C♯ from the note
- * above on the beat, then the C♯ held), its upper notes lighter, each held a finger's overlap into the next, the D
- * from another recording than the C♯. At Bach's pitch. On the recorded grand as a careful pianist would play it
+ * the tenor alone. Round 3 played the subject whole (to bar 197, with its printed short Trillo on the last C♯ of bar
+ * 196); round 4, the owner: "it's better to stop at the sixth note (B, A, C, H, note 5, note 6) as we used to. I didn't
+ * like the addition of the rest of the subject. Ends on note 6 without any added accompaniments, that's simple and
+ * effective." So: the tenor's first six notes as the data has them from its B♭3 on bar 193's third beat (where the
+ * third subject enters alone after the second section's cadence), B♭ A C B♮ C♯ D (INTRO_NOTES), the D (bar 195, beat
+ * 3) the last, left to ring; nothing after it, nothing under it. The data marks no ornament on these six (its one sign
+ * in these bars, W on bar 196's C♯, falls after the cut); any it marked would be played through the game's own
+ * realisation (ornament-play.ts realiseHeld). At Bach's pitch. On the recorded grand as a careful pianist would play it
  * (round 3, the owner: "slower pianist is better"): ♩ = 80
- * with a small breath at the start and a gentle easing into the D (phrasing.ts withSpeed); the softest layer, its
+ * with a small breath at the start and an easing through the H and the C♯ into the D (phrasing.ts withSpeed); the softest layer, its
  * loudness shaped narrowly (the phrase's arch and the metre's weight at under half their size: nothing pokes out);
  * the attack darkened (una corda: Play.vel low and following the level only by half; a lowpass at 4.5 kHz on these
  * notes only); full finger legato, slow dampers (the soft pedal), a warmer room; and no note read from a recording
@@ -39,8 +38,8 @@ import { metricPlace, PALETTES, phraseArchDb } from "../touch/whole-reading.ts";
 export const BACH_SOURCE = { piece: "bwv1080-14", voice: 2, bar: 193 } as const;
 /** B♭ A C B♮ as MIDI pitches (the tenor's octave, as written). */
 export const BACH_PITCHES = [58, 57, 60, 59] as const;
-/** D935: the line ends on this bar's downbeat (the tenor's D4, the last note, held to the end). */
-export const INTRO_TO_BAR = 197;
+/** D935: the line is the tenor's first six notes from its B♭ (B♭ A C B♮ C♯ D): the last, the D, held to the end. */
+export const INTRO_NOTES = 6;
 /** D935: Bach's pitch (D507's octave up undone). */
 export const INTRO_OCTAVE = 0;
 
@@ -81,7 +80,7 @@ export const INTRO_SAMPLES: Readonly<Record<number, number>> = { 57: 57, 58: 57,
 
 /**
  * D935, the shipped performance: the careful pianist. ♩ = 80, the first note settled into (0.93 → 1 over the first
- * beat and a quarter), the last two and a half beats easing to 0.88; the arch and the weight at 0.45 (the line within
+ * beat and a quarter), the H and the C♯ easing to 0.86 into the D; the arch and the weight at 0.45 (the line within
  * about 2 dB); the soft layer, una corda (vel −3, half the colour of the level), a lowpass at 4.5 kHz; each note held
  * 120 ms into the next, the dampers 1.8× slower (the palettes' most), the room 1.4×.
  */
@@ -89,9 +88,9 @@ export const INTRO_A: IntroPerformance = {
   patch: "pianoSampled",
   octave: INTRO_OCTAVE,
   bpm: 80,
-  speed: [[0, 0.93], [1.25, 1], [11.5, 1], [14, 0.88]],
+  speed: [[0, 0.93], [1.25, 1], [5.5, 1], [8, 0.86]],
   shape: 0.45,
-  level: 1.0,
+  level: 1.19,
   layer: "soft",
   velBase: -3,
   velPerDb: 0.5,
@@ -100,8 +99,8 @@ export const INTRO_A: IntroPerformance = {
   overlapS: 0.12,
   dampMul: 1.8,
   roomMul: 1.4,
-  lingerS: 4.2,
-  fadeS: 2.4,
+  lingerS: 4.6,
+  fadeS: 2.6,
   breathS: 0.5,
 };
 
@@ -111,35 +110,34 @@ export const INTRO_A: IntroPerformance = {
  */
 export const INTRO_VARIANTS: Readonly<Record<string, IntroPerformance>> = {
   // The same pianist an octave up (D507's height): sweeter on a phone's small speaker; read from C5 and D♯5 (A4's soft recording dies quickly).
-  octave: { ...INTRO_A, octave: 12, level: 1.03, samples: { 69: 72, 70: 72, 71: 72, 72: 72, 73: 72, 74: 75 } },
+  octave: { ...INTRO_A, octave: 12, level: 1.13, samples: { 69: 72, 70: 72, 71: 72, 72: 72, 73: 72, 74: 75 } },
   // The same pianist quicker (♩ = 96, round 2's main), side by side with the shipped ♩ = 80.
   faster: { ...INTRO_A, bpm: 96, level: 0.99 },
   // A solo cello (the consort's), as written: one bow, the notes joined, a breath before the first.
-  cello: { ...INTRO_A, patch: "consCello", layer: undefined, samples: undefined, lp: undefined, velBase: 0, velPerDb: 0, shape: 0.7, level: 0.4, joined: true, overlapS: 0.06, dampMul: 1, roomMul: 1.2, lingerS: 3.2, fadeS: 2.2, breathS: 0.7, speed: [[0, 0.9], [1.5, 1], [11.5, 1], [14, 0.85]] },
+  cello: { ...INTRO_A, patch: "consCello", layer: undefined, samples: undefined, lp: undefined, velBase: 0, velPerDb: 0, shape: 0.7, level: 0.4, joined: true, overlapS: 0.06, dampMul: 1, roomMul: 1.2, lingerS: 3.2, fadeS: 2.2, breathS: 0.7, speed: [[0, 0.9], [1.5, 1], [5.5, 1], [8, 0.85]] },
   // A viola as written over a cello an octave below, a soft unison of two players.
-  violaCello: { ...INTRO_A, patch: "consViola", double: { patch: "consCello", octave: -12, db: -4 }, layer: undefined, samples: undefined, lp: undefined, velBase: 0, velPerDb: 0, shape: 0.7, level: 0.41, joined: true, overlapS: 0.06, dampMul: 1, roomMul: 1.2, lingerS: 3.2, fadeS: 2.2, breathS: 0.7, speed: [[0, 0.9], [1.5, 1], [11.5, 1], [14, 0.85]] },
+  violaCello: { ...INTRO_A, patch: "consViola", double: { patch: "consCello", octave: -12, db: -4 }, layer: undefined, samples: undefined, lp: undefined, velBase: 0, velPerDb: 0, shape: 0.7, level: 0.41, joined: true, overlapS: 0.06, dampMul: 1, roomMul: 1.2, lingerS: 3.2, fadeS: 2.2, breathS: 0.7, speed: [[0, 0.9], [1.5, 1], [5.5, 1], [8, 0.85]] },
   // The jazz quartet's vibraphone, softest mallets, its motor's slow shimmer: a music box's glow, an octave up.
   vibes: { ...INTRO_A, patch: "jqVibes", octave: 12, layer: undefined, samples: undefined, lp: undefined, velBase: 0, velPerDb: 0, level: 0.76, roomMul: 1.3, dampMul: 1 },
 };
 
 /** The data's line there, if the data were ever missing it (beats from the B♭, beats long, MIDI). */
 const FALLBACK: readonly (readonly [number, number, number])[] = [
-  [0, 2, 58], [2, 2, 57], [4, 2, 60], [6, 1.5, 59], [7.5, 0.5, 61], [8, 3.5, 62], [11.5, 0.25, 61], [11.75, 0.25, 59], [12, 2, 61], [14, 2, 62],
+  [0, 2, 58], [2, 2, 57], [4, 2, 60], [6, 1.5, 59], [7.5, 0.5, 61], [8, 3.5, 62],
 ];
 
 /**
- * The line as the data has it: [onset, duration, MIDI], ticks from the B♭ (the tenor's onsets from the B♭ to
- * INTRO_TO_BAR's downbeat); the quarter's ticks, the downbeat's tick, each onset's place in the metre.
+ * The line as the data has it: [onset, duration, MIDI], ticks from the B♭ (the tenor's first INTRO_NOTES notes from
+ * the B♭); the quarter's ticks, the last note's tick, each onset's place in the metre.
  */
 function line(): { notes: [number, number, number][]; tpq: number; end: number; place: (tick: number) => 0 | 1 | 2; ornament: (i: number, bpm: number) => { signs: string; parts: [number, number, number][] } | null } {
   try {
     const f = fugueById(BACH_SOURCE.piece);
     const bar = f.id === BACH_SOURCE.piece ? f.bars.find((b) => b.n === BACH_SOURCE.bar) : undefined;
-    const to = f.bars.find((b) => b.n === INTRO_TO_BAR);
     const first = bar ? f.voices[BACH_SOURCE.voice].find(([on, , m]) => on >= bar.on && m === BACH_PITCHES[0]) : undefined;
-    if (bar && to && first) {
+    if (bar && first) {
       const s = first[0];
-      const notes = f.voices[BACH_SOURCE.voice].filter(([on]) => on >= s && on <= to.on).map(([on, d, m]): [number, number, number] => [on - s, d, m]);
+      const notes = f.voices[BACH_SOURCE.voice].filter(([on]) => on >= s).slice(0, INTRO_NOTES).map(([on, d, m]): [number, number, number] => [on - s, d, m]);
       // D935: the printed ornaments on the line, as the game plays them (ornament-play.ts: the data's signs, realised).
       const orns = ornamentsOf(f);
       const ornament = (i: number, bpm: number) => {
@@ -148,14 +146,14 @@ function line(): { notes: [number, number, number][]; tpq: number; end: number; 
         if (!o) return null;
         return { signs: o.signs, parts: realiseHeld(f, o, on + s, d, 1, m, notes[i - 1]?.[2], bpm).map(([a, l, p]): [number, number, number] => [a - s, l, p]) };
       };
-      if (BACH_PITCHES.every((m, i) => notes[i]?.[2] === m)) return { notes, tpq: f.tpq, end: to.on - s, place: (t) => metricPlace((x) => inBar(f, x), t + s, f.tpq), ornament };
+      if (BACH_PITCHES.every((m, i) => notes[i]?.[2] === m)) return { notes, tpq: f.tpq, end: notes[notes.length - 1][0], place: (t) => metricPlace((x) => inBar(f, x), t + s, f.tpq), ornament };
     }
   } catch {
     /* the fallback */
   }
   const tpq = 4;
   // The B♭ on the bar's third beat (no data: no ornaments to read).
-  return { notes: FALLBACK.map(([b, d, m]) => [b * tpq, d * tpq, m]), tpq, end: 14 * tpq, place: (t) => ((t + 2 * tpq) % (4 * tpq) === 0 ? 0 : t % tpq === 0 ? 1 : 2), ornament: () => null };
+  return { notes: FALLBACK.map(([b, d, m]) => [b * tpq, d * tpq, m]), tpq, end: 8 * tpq, place: (t) => ((t + 2 * tpq) % (4 * tpq) === 0 ? 0 : t % tpq === 0 ? 1 : 2), ornament: () => null };
 }
 
 export interface IntroNote {
@@ -165,7 +163,7 @@ export interface IntroNote {
   len: number;
   /** dB about the performance's level (the phrase and the metre). */
   db: number;
-  /** The last note (INTRO_TO_BAR's downbeat): held to the end, faded. */
+  /** The last note (the D, the sixth): held to the end, faded. */
   last: boolean;
   /** The doubling instrument's note (`IntroPerformance.double`), not the line's. */
   double?: boolean;
@@ -255,7 +253,7 @@ export const INTRO_RESOLVE_S = introResolve();
 export const INTRO_TAIL_S = INTRO_A.lingerS;
 export const INTRO_FADE_S = INTRO_A.fadeS;
 /** D935: the title page's cross-fade into the selection screen, from the close (s): gone while the D still rings. */
-export const INTRO_CROSS_S = 2.2;
+export const INTRO_CROSS_S = 3;
 /** The title page, from the first note to the selection screen (s): the close, then the cross-fade. */
 export const INTRO_S = INTRO_RESOLVE_S + INTRO_CROSS_S;
 /** D406: a skip fades the sound out over this long (s), not a cut. */

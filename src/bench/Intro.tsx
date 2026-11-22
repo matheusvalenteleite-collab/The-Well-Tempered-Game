@@ -8,7 +8,7 @@
  * (INTRO_CROSS_S from INTRO_RESOLVE_S), the chord dying away over the selection. Any further touch skips
  * straight to it (the sound faded out quickly). D500: the subject on the cello, then BAROQUE BAND's cadence from
  * the D; the cross-fade (now as long as the cadence) gone as its D major lands. D935: the tenor's subject alone
- * (bars 193-197) on the piano, with light rubato: each image on its note as heard (INTRO_ONSETS_S, not a fixed
+ * (its first six notes, bar 193) on the piano, with light rubato: each image on its note as heard (INTRO_ONSETS_S, not a fixed
  * beat), the cross-fade from the closing D, which rings on over the selection.
  */
 import { useEffect, useRef, useState } from "react";

@@ -1818,7 +1818,7 @@ export function BenchApp() {
   /**
    * D371: play.html's title page (Intro.tsx), on every launch. Its first touch makes the sound (the phone's
    * gesture) and plays B♭–A–C–B♮ (intro-sound.ts); resolves with the seconds until it is heard. D935: on
-   * the recorded piano, the tenor's subject alone (bars 193-197), softly, with light rubato, closing on D, which rings on into
+   * the recorded piano, the subject's first six notes alone, softly, with light rubato, closing on D, which rings on into
    * the selection screen; a skip fades it out quickly. Its end gives the piece's sound back.
    */
   // D376: not in THE EXPRESSION LAB (straight to the selection screen).
