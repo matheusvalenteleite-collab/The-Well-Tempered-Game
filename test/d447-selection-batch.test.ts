@@ -87,6 +87,7 @@ test("D450: DRUMS on the right column: ON/OFF; the piece's presets cycled, kept,
   assert.deepEqual(applied, ["wtc1f04:b", "wtc1f04:c", "wtc1f04:a"]);
   const three = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc1f04", drums: { on: true, toggle: () => {}, presets: D.drumPresets("wtc1f04"), preset: "b", cycle: () => {} } }));
   // D453: the style's name (no count: the round is HOME and the sound's family, MORE every style).
+  // D940: without a grid (no `choose`) the style's knob still cycles.
   assert.match(three, /id="sel-drums-preset"[^>]*>.*STYLE.*SWING ↻/s);
   assert.doesNotMatch(src("src/bench/BenchApp.tsx"), /<LiteDrumsSwitch/, "moved, not doubled");
 });

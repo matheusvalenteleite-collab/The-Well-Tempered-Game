@@ -37,6 +37,17 @@ export const TWO_HANDS: Record<string, HandsSpec> = {
   bwv772: { rh: 0, lh: 1 },
 };
 export const TWO_HANDS_IDS = Object.keys(TWO_HANDS);
+/**
+ * D888: a prototype piece the main game now holds in real voices, given back to TWO HANDS as its two hands (each hand
+ * the voices its staff carries): I/24's soprano and alto the right hand, its bass the left.
+ */
+const HANDS_OF_VOICES: Record<string, [number[], number[]]> = { wtc1p24: [[0, 1], [2]] };
+export function handsFugue(f: TouchFugue): TouchFugue {
+  const m = HANDS_OF_VOICES[f.id];
+  if (!m) return f;
+  const hand = (vs: number[]) => vs.flatMap((v) => f.voices[v]).sort((a, b) => a[0] - b[0] || b[2] - a[2]);
+  return { ...f, voices: [hand(m[0]), hand(m[1])], voiceNames: ["Right hand", "Left hand"] };
+}
 
 /** The fastest a thumb is asked to play, notes a second (the fugues' ceiling, D312). */
 export const HANDS_MAX_RATE = 5.5;

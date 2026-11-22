@@ -44,8 +44,9 @@ test("D453: the row (a switch, the style, MORE) and the grid by family with HOME
   const presets = L.drumMenuFor("wtc1f04", "harpsichord");
   const html = renderToStaticMarkup(createElement(Selection, { piece: "wtc1f04", current: "wtc1f04", voice: 1, singing: [0, 1, 2, 3, 4], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, hear: () => {}, settings: () => {}, beaten: [], tutorial: { done: 3, of: 12, start: () => {} }, drums: { on: true, toggle: () => {}, presets, preset: "home", quick: 4, cycle: () => {}, choose: () => {} } }));
   assert.match(html, /id="sel-drums-on"[^>]*role="switch"[^>]*aria-checked="true"/);
-  assert.match(html, new RegExp(`id="sel-drums-preset".*${presets[0].name} ↻`, "s"));
-  assert.match(html, /id="sel-drums-more"/);
+  // D940: the style's knob opens the grid (no separate MORE button).
+  assert.match(html, new RegExp(`id="sel-drums-preset"[^>]*aria-haspopup="dialog".*${presets[0].name} ▦`, "s"));
+  assert.doesNotMatch(html, /id="sel-drums-more"/);
   const src = (await import("node:fs")).readFileSync(new URL("../src/bench/Selection.tsx", import.meta.url), "utf8");
   assert.match(src, /function DrumGrid/);
   assert.match(src, /\{d\.home && <i className="home">\{tr\("HOME"\)\}<\/i>\}/);
