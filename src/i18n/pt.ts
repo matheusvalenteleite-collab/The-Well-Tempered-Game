@@ -347,6 +347,7 @@ export const PT: Record<string, string> = {
   MISS: "ERROU",
   HELD: "SUSTENTOU",
   "TOO SOON": "CEDO DEMAIS",
+  CANONS: "CÂNONES",
   STAGE: "CENÁRIO",
   "WORLD SOUNDS": "SONS DO CENÁRIO",
   "ABOUT THIS FUGUE": "SOBRE ESTA FUGA",

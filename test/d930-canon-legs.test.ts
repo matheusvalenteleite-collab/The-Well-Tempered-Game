@@ -73,8 +73,9 @@ test("diatonic: Variation 9's third is three or four semitones, all one leg", as
 test("the leader changes: Var. 24 at bars 9 and 25, Var. 27 at bar 17, each named once; drawing only", () => {
   assert.deepEqual(CANONS["bwv988-24"].legs.map((l) => l.from), [1, 9, 25]);
   assert.deepEqual(CANONS["bwv988-27"].legs.map((l) => [l.dux[0], l.comes[0]]), [[1, 0], [0, 1]]);
-  const e = readFileSync(new URL("../src/touch/canon-echo.ts", import.meta.url), "utf8");
-  assert.match(e, /by > ay \? Math\.max\(ay, by\) \+ bow : Math\.min\(ay, by\) - bow/);
+  // D970: each change of leader opens with a big morph (canon-ribbon.ts), named by its leg's label
+  const e = readFileSync(new URL("../src/touch/canon-ribbon.ts", import.meta.url), "utf8");
+  assert.match(e, /const structural = li === 0 \|\| L\.label !== spec\.legs\[li - 1\]\.label;/);
   assert.ok(!/score|grade|"hit"|"miss"/.test(e.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")));
 });
 

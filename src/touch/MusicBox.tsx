@@ -21,7 +21,8 @@ import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react"
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
 import { hasStage, paintStage, stageMode } from "./stage-bg.ts";
-import { CANONS, paintEcho } from "./canon-echo.ts";
+import { CANONS } from "./canon-echo.ts";
+import { paintCanon } from "./canon-ribbon.ts";
 import { inkOf } from "./voice-inks.ts";
 import { fxState, paintFx } from "./event-fx.ts";
 import { SIGN_PIXELS_5, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
@@ -519,8 +520,8 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D478 (design studio; the owner: "use shadows and light intelligently"): over the world, the music that is not the
   // subject casts shadow, and the subject lights the world round it (brighter on the note sounding). With the stage only.
   if (staged && spans && stageMode() !== "off") lightAndShadow(g, fr, spans, otherIdx!, { t0, span, w, h, xOf, yOf, hOf, bh });
-  // D678 (design studio; the pilot): a tagged canon's echo lane, under every note: each leader's note arcs to its answer.
-  if (fr.piece && CANONS[fr.piece] && !fr.floor) paintEcho(g, fugueById(fr.piece), { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v) => inkOf(v, fr.count), text: (gg, t, x, y, ink) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner });
+  // D970: a tagged canon's rolling ribbon (canon-ribbon.ts; it replaced D678's echo lane), under every note: the leader's line in shapes, morphing into the follower's notes.
+  if (fr.piece && CANONS[fr.piece] && !fr.floor) paintCanon(g, fugueById(fr.piece), { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v) => inkOf(v, fr.count), text: (gg, t, x, y, ink) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner });
   for (let oi = firstSounding(fr.others, t0, span); oi < fr.others.length; oi++) {
     const o = fr.others[oi];
     const x1 = xOf(o.on);

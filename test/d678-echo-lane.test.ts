@@ -36,10 +36,11 @@ test("Variation 12: the comes answers one bar later a fourth below, in contrary 
   for (let i = 1; i < 6; i++) assert.equal(Math.sign(pairs[i].a.midi - pairs[i - 1].a.midi), -Math.sign(pairs[i].b.midi - pairs[i - 1].b.midi) || 0);
 });
 
-test("the box draws the echo lane under the notes for a tagged canon only; drawing only", () => {
+test("the box draws the canon (D970: the rolling ribbon, which replaced the echo lane) under the notes for a tagged canon only; drawing only", () => {
   const s = src("src/touch/MusicBox.tsx");
-  assert.match(s, /if \(fr\.piece && CANONS\[fr\.piece\] && !fr\.floor\) paintEcho\(/);
-  const e = src("src/touch/canon-echo.ts");
-  assert.match(e, /if \(contrary\) g\.rotate\(Math\.PI \* t\);/);
+  assert.match(s, /if \(fr\.piece && CANONS\[fr\.piece\] && !fr\.floor\) paintCanon\(/);
+  const e = src("src/touch/canon-ribbon.ts");
+  // contrary motion still drawn as a turn: the shape's height folds through the half-turn (cos), its lit edge ends underneath
+  assert.match(e, /c = Math\.cos\(Math\.PI \* u\);/);
   assert.ok(!/score|grade|"hit"|"miss"/.test(e.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")));
 });

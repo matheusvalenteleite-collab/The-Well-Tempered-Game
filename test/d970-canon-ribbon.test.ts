@@ -1,0 +1,82 @@
+/**
+ * D970 (canons session; the owner's pick, the third prototype): THE ROLLING RIBBON on the nine Goldberg canons and
+ * Inventions 2 and 8, replacing the echo lane. Every answered leader note carried in exactly one shape; segments of about a
+ * bar's breath, never fewer than three notes; a big morph at the first entry and at each change of leader; adaptive
+ * density; each shape landing before its follower's first note sounds; drawing only, no canvas blur; ⚙ CANONS.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fugueById, loadExtras } from "../src/touch/fugue.ts";
+import { CANONS, echoPairs } from "../src/touch/canon-echo.ts";
+import { ribbonShapes, unitOf, canonsMode } from "../src/touch/canon-ribbon.ts";
+
+const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+const IDS = ["bwv988-03", "bwv988-06", "bwv988-09", "bwv988-12", "bwv988-15", "bwv988-18", "bwv988-21", "bwv988-24", "bwv988-27", "bwv773", "bwv779"];
+
+test("batch 1: the nine Goldberg canons and Inventions 2 and 8 carry a ribbon", async () => {
+  await loadExtras();
+  for (const id of IDS) assert.ok(CANONS[id] && ribbonShapes(fugueById(id)).length > 3, id);
+});
+
+test("every answered leader note is in exactly one shape, landing on its own answer", async () => {
+  await loadExtras();
+  for (const id of IDS) {
+    const f = fugueById(id), P = echoPairs(f), S = ribbonShapes(f);
+    const seen = new Map<string, number>();
+    for (const s of S) s.A.forEach((a, i) => { const k = `${a.voice}:${a.on}`; seen.set(k, (seen.get(k) ?? 0) + 1); const p = P.find((x) => x.a.voice === a.voice && x.a.on === a.on)!; assert.equal(s.T[i], p.b); });
+    assert.equal(seen.size, P.length, id);
+    assert.ok([...seen.values()].every((n) => n === 1), id);
+  }
+});
+
+test("segments: about a bar's breath (half a bar to two bars, nearest 2¼ s), never fewer than three notes", async () => {
+  await loadExtras();
+  for (const id of IDS) {
+    const f = fugueById(id), u = unitOf(f) / f.barTicks;
+    assert.ok([0.5, 1, 2].includes(u), `${id} ${u}`);
+    for (const s of ribbonShapes(f)) assert.ok(s.A.length >= 3, `${id} ${s.A.length}`);
+  }
+});
+
+test("a big morph at the first entry and at each change of leader, and only there", async () => {
+  await loadExtras();
+  const bigs = (id: string) => ribbonShapes(fugueById(id)).filter((s) => s.big).map((s) => s.leg);
+  assert.deepEqual(bigs("bwv988-03"), [0]);
+  assert.deepEqual(bigs("bwv988-12"), [0, 1]);
+  assert.deepEqual(bigs("bwv988-15"), [0]); // its bar-1 leg carries on under the same name
+  assert.deepEqual(bigs("bwv988-24"), [0, 1, 2]);
+  assert.deepEqual(bigs("bwv988-27"), [0, 1]);
+  assert.deepEqual(bigs("bwv773"), [0, 1, 2]);
+});
+
+test("adaptive density: every segment for 8 bars after a big morph, then every second one", async () => {
+  await loadExtras();
+  const f = fugueById("bwv988-12"), S = ribbonShapes(f), B = f.barTicks;
+  const leg0 = S.filter((s) => s.leg === 0 && !s.big), from = S.find((s) => s.big)!.tA0;
+  for (const s of leg0) if (s.tA0 < from + 8 * B) assert.ok(s.shown);
+  const late = leg0.filter((s) => s.tA0 >= from + 8 * B);
+  assert.ok(late.length >= 2);
+  late.forEach((s, i) => assert.equal(s.shown, i % 2 === 0));
+});
+
+test("each shape lands a quarter before its follower's first note sounds, its flight never under a quarter, never before the start", async () => {
+  await loadExtras();
+  for (const id of IDS) {
+    const f = fugueById(id);
+    for (const s of ribbonShapes(f)) {
+      assert.equal(s.landed, s.tB0 - f.tpq / 4);
+      assert.ok(s.start >= 0 && s.fly > s.start && s.landed - s.fly >= f.tpq - 1, `${id} ${s.start} ${s.fly} ${s.landed}`);
+    }
+  }
+});
+
+test("drawing only, under the notes, no canvas blur; ⚙ CANONS: MORPH by default, or OFF", () => {
+  const e = src("src/touch/canon-ribbon.ts").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  assert.ok(!/shadowBlur|filter\s*=/.test(e));
+  assert.ok(!/score|grade|"hit"|"miss"/.test(e));
+  assert.equal(canonsMode(), "morph");
+  const b = src("src/bench/BenchApp.tsx");
+  assert.match(b, /<Choice id="canons" label="CANONS"/);
+  for (const l of ["pt", "es"]) assert.match(src(`src/i18n/${l}.ts`), /CANONS: "/);
+});
