@@ -46,6 +46,7 @@ import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
+import { canonsMode, saveCanonsMode } from "../touch/canon-ribbon.ts";
 import { setSfxOn, sfxOn } from "../touch/world-sfx.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { SoundFold } from "./SoundFold.tsx";
@@ -564,6 +565,8 @@ export function BenchApp() {
   const [busoni, setBusoni] = useState(busoniOn);
   // D462: the fugue's world behind the box (stage-bg.ts): FULL, QUIET or OFF.
   const [stageBg, setStageBg] = useState(stageBgMode);
+  // D970: the canons' rolling ribbon, MORPH (the default) or OFF.
+  const [canons, setCanons] = useState(canonsMode);
   const [sfx, setSfx] = useState(sfxOn);
   const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (run.reading === "busoni" && !busoni ? null : (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null)) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
@@ -2390,6 +2393,8 @@ export function BenchApp() {
           <Choice id="busoni" label="BUSONI'S MARKINGS" options={BUSONI_SWITCH[lang()] ?? BUSONI_SWITCH.en} value={busoni ? "on" : "off"} set={(v) => (setBusoniOn(v === "on"), setBusoni(v === "on"))} />
           {/* D462 (design studio): each fugue's world behind its box. */}
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
+          {/* D970 (canons session): the canons' rolling ribbon (canon-ribbon.ts): the leader's line morphing into the follower. */}
+          <Choice id="canons" label="CANONS" options={CANONS_SWITCH[lang()] ?? CANONS_SWITCH.en} value={canons} set={(v) => (saveCanonsMode(v), setCanons(v))} />
           {/* D623 (instruments): the pilot worlds' sound effects (world-sfx.ts), heard only with STAGE FULL; their own off switch. */}
           <Choice id="world-sounds" label="WORLD SOUNDS" options={SFX_SWITCH[lang()] ?? SFX_SWITCH.en} value={sfx ? "on" : "off"} set={(v) => (setSfxOn(v === "on"), setSfx(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
@@ -2732,6 +2737,12 @@ const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
   en: [["full", "FULL"], ["quiet", "QUIET"], ["off", "OFF"]],
   pt: [["full", "CHEIO"], ["quiet", "DISCRETO"], ["off", "DESLIGADO"]],
   es: [["full", "COMPLETO"], ["quiet", "DISCRETO"], ["off", "APAGADO"]],
+};
+/** D970: the words of Settings' CANONS switch (the canons, masculine plural in Portuguese and Spanish). */
+const CANONS_SWITCH: Record<string, ["morph" | "off", string][]> = {
+  en: [["morph", "MORPH"], ["off", "OFF"]],
+  pt: [["morph", "ANIMADOS"], ["off", "DESLIGADOS"]],
+  es: [["morph", "ANIMADOS"], ["off", "APAGADOS"]],
 };
 /** D623: the words of Settings' WORLD SOUNDS switch (the sounds, masculine plural in Portuguese and Spanish). */
 const SFX_SWITCH: Record<string, ["on" | "off", string][]> = {

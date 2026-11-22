@@ -6,6 +6,9 @@
  * contrary motion it turns over as it goes: the inversion drawn as a turn); as the follower sounds it, its note is lit
  * in the follower's colour. Drawing only: nothing judged reads it.
  *
+ * D970: the drawing is now THE ROLLING RIBBON (canon-ribbon.ts, paintCanon), which replaced the dotted arcs and tokens;
+ * this file keeps the canons' tags (CANONS, the legs) and the pairs (echoPairs) it is drawn from.
+ *
  * D930 (canons session; the board approved batches 1 and 2): every Goldberg canon and the Inventions' two canons. A canon
  * is now a list of LEGS, because the leader changes voice: Var. 12's second half is led from below (the pilot, tagging the
  * soprano as leader throughout, paired 11 of the soprano's 95 notes there), Var. 24's leader changes at bars 9 and 25,
@@ -57,15 +60,9 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
       leg(17, 33, [1], [0], 5760, true, 61, "NOW THE LOWER VOICE LEADS"),
     ],
   },
-  // Canone alla Quinta, in contrary motion (steps summing to 68): the leader's first bar written in the soprano, then in
-  // the alto and tenor; the soprano answers a fifth above, turned over.
-  "bwv988-15": {
-    legs: [
-      // D951: the leader's first bar in the second line now (voice 1), as the rest of it.
-      leg(1, 2, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
-      leg(2, 33, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
-    ],
-  },
+  // Canone alla Quinta, in contrary motion (steps summing to 68): the second line leads (D951: whole in voice 1 from its
+  // first note, so one leg), the soprano answers a fifth above, turned over.
+  "bwv988-15": { legs: [leg(1, 33, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION")] },
   // Canone alla Sesta: the alto led, the soprano a sixth above, half a bar (a minim) later.
   "bwv988-18": { legs: [leg(1, 33, [1], [0], 3840, false, 5, "CANON AT THE SIXTH · HALF A BAR LATER")] },
   // Canone alla Settima: the leader in the tenor and alto, the soprano a seventh above, half a bar later.
@@ -103,7 +100,8 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
   },
 };
 
-type N = { on: number; dur: number; midi: number; step: number; voice: number };
+export type EchoNote = { on: number; dur: number; midi: number; step: number; voice: number };
+type N = EchoNote;
 export interface EchoPair {
   a: N;
   b: N;
@@ -175,79 +173,4 @@ export interface EchoGeo {
    */
   labelY?: number;
   quiet?: boolean;
-}
-
-/** Draws the echo lane under the notes: the arcs, the tokens in flight, the answers lit, the label at first. */
-export function paintEcho(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo) {
-  const spec = CANONS[f.id];
-  const pairs = echoPairs(f);
-  if (!spec || !pairs.length) return;
-  const firstOf = new Map<number, EchoPair>();
-  // (a leg that only carries on the one before it, under the same name, is not named again)
-  for (const p of pairs) if (!firstOf.has(p.leg) && (p.leg === 0 || spec.legs[p.leg].label !== spec.legs[p.leg - 1].label)) firstOf.set(p.leg, p);
-  const cx = (n: N) => k.xOf(n.on) + Math.max(2, (k.xOf(n.on + n.dur) - k.xOf(n.on)) / 2);
-  const cy = (n: N) => k.yOf(n.step) + k.bh / 2;
-  g.save();
-  g.lineWidth = 1;
-  for (const { a, b, leg: li, flies } of pairs) {
-    const contrary = spec.legs[li].contrary;
-    if (b.on + b.dur < k.t0) continue;
-    if (a.on > k.t1) break;
-    const ax = cx(a), ay = cy(a), bx = cx(b), by = cy(b);
-    if (Math.max(ax, bx) < 0 || Math.min(ax, bx) > k.w) continue;
-    // The arc: bowed through the middle for a canon that turns over; else on the follower's side (over the notes when it
-    // answers above or at the same pitch, under them when it answers below), so it bows the other way when the leader changes.
-    const mx = (ax + bx) / 2;
-    const bow = Math.max(10, k.bh * 2.2);
-    const my = contrary ? (ay + by) / 2 : by > ay ? Math.max(ay, by) + bow : Math.min(ay, by) - bow;
-    // D930 (the board: the arcs "barely visible against the night room" at 667): a dark halo under the dotted line, so it
-    // holds on a light or busy world, and the line itself a touch stronger; still under the notes and fainter than them.
-    g.beginPath();
-    g.moveTo(ax, ay);
-    g.quadraticCurveTo(mx, my, bx, by);
-    g.globalAlpha = 0.3;
-    g.strokeStyle = "#05060d";
-    g.lineWidth = 3;
-    g.stroke();
-    g.lineWidth = 1;
-    g.globalAlpha = 0.34;
-    g.strokeStyle = k.ink(b.voice);
-    g.setLineDash([2, 2]);
-    g.stroke();
-    g.setLineDash([]);
-    // In flight: a token of the note along the arc (turning over in contrary motion).
-    if (flies && k.now >= a.on && k.now < b.on) {
-      const t = (k.now - a.on) / Math.max(1, b.on - a.on);
-      const x = (1 - t) * (1 - t) * ax + 2 * (1 - t) * t * mx + t * t * bx;
-      const y = (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * my + t * t * by;
-      const tw = Math.max(3, Math.min(10, (k.xOf(a.on + a.dur) - k.xOf(a.on)) * 0.5));
-      const th = Math.max(2, k.bh * 0.6);
-      g.save();
-      g.translate(x, y);
-      if (contrary) g.rotate(Math.PI * t);
-      g.globalAlpha = 0.75;
-      g.fillStyle = k.ink(a.voice);
-      g.fillRect(-tw / 2, -th / 2, tw, th);
-      // Its top edge lit, so the turn shows: the light ends underneath.
-      g.fillStyle = "rgba(255,255,255,0.8)";
-      g.fillRect(-tw / 2, -th / 2, tw, 1);
-      g.restore();
-    }
-    // Answered: the follower's note lit in its colour while it sounds.
-    if (k.now >= b.on && k.now < b.on + b.dur) {
-      const x1 = k.xOf(b.on), x2 = k.xOf(b.on + b.dur);
-      g.globalAlpha = 0.5;
-      g.strokeStyle = k.ink(b.voice);
-      g.strokeRect(x1 - 2.5, k.yOf(b.step) - 2.5, Math.max(2, x2 - x1) + 4, k.bh + 4);
-    }
-  }
-  // Each leg named over the first bars of its follower, fading: the canon at first, then each change of leader.
-  for (const [li, p] of firstOf) {
-    const fade = 1 - Math.max(0, Math.min(1, (k.now - p.b.on - 3 * k.barTicks) / (2 * k.barTicks)));
-    if (!k.quiet && k.now >= p.a.on && fade > 0) {
-      g.globalAlpha = 0.85 * fade;
-      k.text(g, spec.legs[li].label, k.left + 6, k.labelY ?? 6, k.fg);
-    }
-  }
-  g.restore();
 }
