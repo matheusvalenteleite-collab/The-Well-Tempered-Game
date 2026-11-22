@@ -145,8 +145,8 @@ function shape(f: TouchFugue, leg: number, list: EchoPair[], big: boolean, contr
 }
 
 /* ---------- the drawing ---------- */
-const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
-const easeOut = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : 1 - (1 - u) ** 3);
+export const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+export const easeOut = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : 1 - (1 - u) ** 3);
 const parsed = new Map<string, [number, number, number] | null>();
 function rgb(c: string): [number, number, number] | null {
   let v = parsed.get(c);
@@ -156,7 +156,7 @@ function rgb(c: string): [number, number, number] | null {
   }
   return v;
 }
-function mix(a: string, b: string, u: number): string {
+export function mix(a: string, b: string, u: number): string {
   const A = rgb(a), B = rgb(b);
   if (!A || !B) return u < 0.5 ? a : b;
   return `rgb(${Math.round(A[0] + (B[0] - A[0]) * u)},${Math.round(A[1] + (B[1] - A[1]) * u)},${Math.round(A[2] + (B[2] - A[2]) * u)})`;

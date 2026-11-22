@@ -198,6 +198,11 @@ export const ES: Record<string, string> = {
   "A pianist's edition. The default on every instrument.": "La edición de un pianista. La opción por defecto en todos los instrumentos.",
   // D676: the subject's forms on the fugue card.
   "SUBJECT {n}": "SUJETO {n}",
+  // D972: the fugues' morphs (fugue-morph.ts)
+  "UPSIDE DOWN": "BOCA ABAJO",
+  "TWICE AS SLOW": "EL DOBLE DE LENTO",
+  "TWICE AS FAST": "EL DOBLE DE RÁPIDO",
+  "FROM BAR {n}": "DEL COMPÁS {n}",
   "COUNTERSUBJECT": "CONTRASUJETO",
   "PLAYED AS WRITTEN": "TOCADO COMO ESTÁ ESCRITO",
   "THE SUBJECTS": "LOS SUJETOS",
@@ -348,6 +353,7 @@ export const ES: Record<string, string> = {
   HELD: "SOSTENIDA",
   "TOO SOON": "DEMASIADO PRONTO",
   CANONS: "CÁNONES",
+  "CANONS & FUGUES": "CÁNONES Y FUGAS",
   STAGE: "ESCENARIO",
   "WORLD SOUNDS": "SONIDOS DEL ESCENARIO",
   // D980: the preludes on play.html.

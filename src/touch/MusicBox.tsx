@@ -23,6 +23,7 @@ import { fugueById } from "./fugue.ts";
 import { hasStage, paintStage, stageMode } from "./stage-bg.ts";
 import { CANONS } from "./canon-echo.ts";
 import { paintCanon } from "./canon-ribbon.ts";
+import { morphedKeys, paintFugueMorphs } from "./fugue-morph.ts";
 import { inkOf } from "./voice-inks.ts";
 import { fxState, paintFx } from "./event-fx.ts";
 import { SIGN_PIXELS_5, alterAgainst, chromaShift, signOf, signatureOf } from "./chroma.ts";
@@ -574,13 +575,22 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
     if (!spans && fr.subject?.has(`${o.voice}:${o.on}`)) dots(g, x1, x2, yOf(o.step), tok("--tg-fg"));
   }
   g.globalAlpha = 1;
+  // D972: an entry a fugue's morph builds (fugue-morph.ts) has the morph in place of its subject effect.
+  const fxSpans = spans && fr.piece && !fr.floor ? unmorphed(spans, morphedKeys(fugueById(fr.piece))) : spans;
   // D372: the others' subjects' effects, under the player's notes.
-  if (spans) subjectFx(fx, spans, playedVoices, false, fr.piece, fr.beatTicks, fxClock);
+  if (fxSpans) subjectFx(fx, fxSpans, playedVoices, false, fr.piece, fr.beatTicks, fxClock);
   // D970: a tagged canon's rolling ribbon (canon-ribbon.ts; it replaced D678's echo lane): over the world and the other
   // voices (dimmed while a shape flies), under the player's notes, which never move and stay on top.
   // The landing flare is drawn once more over the player's notes (below), as an outline: it frames them, never hides them.
-  const canonGeo = fr.piece && CANONS[fr.piece] && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
+  // D972: a fugue's transformed entries morph the same way (fugue-morph.ts), in the same two passes.
+  const canonGeo = fr.piece && !fr.floor ? { xOf, yOf, bh, w, h, t0, t1: t0 + span, now: fr.now, barTicks: fr.barTicks, ink: (v: number) => inkOf(v, fr.count), text: (gg: CanvasRenderingContext2D, t: string, x: number, y: number, ink: string) => void pixText(gg, t, x, y, ink), fg: tok("--tg-fg"), gold: fx.gold, left: Math.round(cl), labelY: spans?.length ? 24 : 6, quiet: !!fr.banner } : null;
+  const morphs = (pass: "under" | "over") => {
+    if (!canonGeo || !fr.piece) return;
+    if (CANONS[fr.piece]) paintCanon(g, fugueById(fr.piece), canonGeo, pass);
+    else paintFugueMorphs(g, fugueById(fr.piece), canonGeo, pass);
+  };
   if (fr.piece && CANONS[fr.piece] && !fr.floor) paintCanon(g, fugueById(fr.piece), canonGeo!, "under");
+  else morphs("under");
 
   // The voice played (or two): full, outlined.
   const shine = tok("--tg-shine");
@@ -919,12 +929,12 @@ export function paintClassic(c: HTMLCanvasElement, cssW: number, cssH: number, f
   // D372: the subject's effect over the player's own subject notes, then each entry's mark (the design
   // studio: the tabs and words, only where no note is; FLAG_VARIANT).
   if (spans) {
-    subjectFx(fx, spans, playedVoices, true, fr.piece, fr.beatTicks, fxClock);
+    subjectFx(fx, fxSpans!, playedVoices, true, fr.piece, fr.beatTicks, fxClock);
     if (FLAG_VARIANT === "o") flags(fx, spans, blockedAt);
     else entryMarks(fx, spans, FLAG_VARIANT, "over", noteTop, blockedAt);
   }
   // D970: the canon's landing flare over the player's notes (where the player follows, the copy lands on them).
-  if (canonGeo && fr.piece) paintCanon(g, fugueById(fr.piece), canonGeo, "over");
+  morphs("over");
   // D314: what the reading's marks ask, at the start of a round where they appear; the ornament's hint.
   if (fr.readingMarks?.size && fr.legendUntil !== undefined && fr.now < fr.legendUntil) marksLegend(g, w, h, fr, edge, Math.min(1, (fr.legendUntil - fr.now) / (2 * fr.tps)));
   if (fr.banner) banner(g, w, fr.banner, fx.gold, cl, cr);
@@ -1353,4 +1363,15 @@ function innerAnim(g: CanvasRenderingContext2D, x: number, y: number, w: number,
   const u = Math.max(0, Math.min(1, (now - on) / Math.max(1, dur)));
   g.fillStyle = `rgba(255,255,255,${0.45 * k})`;
   g.fillRect(x, y, Math.max(1, Math.round(w * u)), hh);
+}
+
+/** D972: the spans without the entries a morph builds (memoised: the same array while the spans and the set hold). */
+const unmorphedMemo = new WeakMap<readonly Span[], { keys: ReadonlySet<string>; out: Span[] }>();
+function unmorphed(spans: Span[], keys: ReadonlySet<string>): Span[] {
+  if (!keys.size) return spans;
+  const had = unmorphedMemo.get(spans);
+  if (had && had.keys === keys) return had.out;
+  const out = spans.filter((s) => s.form === "counter" || !keys.has(`${s.voice}:${s.on}`));
+  unmorphedMemo.set(spans, { keys, out });
+  return out;
 }
